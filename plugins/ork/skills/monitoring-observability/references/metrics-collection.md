@@ -166,7 +166,7 @@ async def call_llm(prompt: str, model: str, operation: str) -> str:
 ```
 
 **Grafana dashboard queries:**
-```promql
+```text
 # Total cost per day
 sum(increase(llm_cost_dollars_total[1d])) by (model)
 

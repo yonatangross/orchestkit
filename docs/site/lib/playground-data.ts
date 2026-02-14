@@ -1,6 +1,6 @@
 // AUTO-GENERATED barrel — re-exports from split modules for backward compatibility.
 // DO NOT EDIT MANUALLY — your changes will be overwritten.
-// Run: npm run build (or node scripts/generate-playground-data.js)
+// Run: npm run build (or node scripts/generate-docs-data.js)
 //
 // For new code, import directly from @/lib/generated/* for better tree-shaking.
 

@@ -27,6 +27,7 @@ import { sessionEnvSetup } from './session-env-setup.js';
 import { sessionTracking } from './session-tracking.js';
 import { memoryMetricsCollector } from './memory-metrics-collector.js';
 import { staleTeamCleanup } from './stale-team-cleanup.js';
+import { typeErrorIndexer } from './type-error-indexer.js';
 
 // -----------------------------------------------------------------------------
 // Types
@@ -53,6 +54,7 @@ const HOOKS: HookConfig[] = [
   { name: 'session-tracking', fn: sessionTracking },
   { name: 'memory-metrics-collector', fn: memoryMetricsCollector },
   { name: 'stale-team-cleanup', fn: staleTeamCleanup },
+  { name: 'type-error-indexer', fn: typeErrorIndexer },
 ];
 
 /** Exposed for registry wiring tests */

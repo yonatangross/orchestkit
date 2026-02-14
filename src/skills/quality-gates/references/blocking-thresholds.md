@@ -8,6 +8,33 @@ Detailed guide for quality gate blocking conditions and escalation.
 
 These conditions MUST be resolved before proceeding:
 
+### 0. YAGNI Gate (over-engineered for scope)
+
+If the planned architecture complexity exceeds what the project tier justifies, **STOP**.
+
+**Justified complexity ratio:** `actual_planned_LOC / scope_appropriate_LOC`
+
+| Ratio | Action |
+|-------|--------|
+| > 2.0 | **BLOCK** — Must simplify. Present simpler alternatives to user. |
+| 1.5-2.0 | **WARN** — Likely over-engineered. Present alternative, proceed only if user confirms. |
+| < 1.5 | **OK** — Proportionate. |
+
+**Examples of YAGNI violations:**
+- Repository pattern + DI framework for a 5-file take-home
+- Custom JWT rotation for an MVP (use managed auth)
+- CQRS for a single-entity CRUD app
+- Event sourcing without audit trail requirements
+- Microservices for a 2-developer team
+
+**Exempt from YAGNI gate:** Security patterns (input validation, SQL parameterization, auth checks) are never over-engineering.
+
+**Action:** Surface the simpler alternative BEFORE implementation. User can override with explicit confirmation.
+
+**See:** `rules/yagni-gate.md` for full YAGNI questions and evaluation method.
+
+---
+
 ### 1. Incomplete Requirements (>3 critical questions)
 
 If you have more than 3 unanswered critical questions, **STOP**.
@@ -146,6 +173,11 @@ Can proceed with caution, but document assumptions:
 
 ```
 function evaluateGate(task):
+    // Step 0: YAGNI check (runs FIRST)
+    yagniRatio = task.plannedLOC / task.tierAppropriateLOC
+    if (yagniRatio > 2.0):
+        return BLOCKED("over_engineered", suggestSimpler(task))
+
     if (unansweredCriticalQuestions > 3):
         return BLOCKED("incomplete_requirements")
 
@@ -160,6 +192,9 @@ function evaluateGate(task):
 
     if (complexity >= 4 && !hasBreakdown):
         return BLOCKED("complexity_overflow")
+
+    if (yagniRatio > 1.5):
+        return WARNING("likely_over_engineered", suggestSimpler(task))
 
     if (complexity == 3 || unansweredQuestions in [1, 2]):
         return WARNING("proceed_with_caution")

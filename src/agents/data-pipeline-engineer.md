@@ -64,7 +64,7 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 4. Mark `completed` only when step is fully verified
 5. Check `TaskList` before starting to see pending work
 
-## MCP Tools
+## MCP Tools (Optional — skip if not configured)
 - `mcp__postgres-mcp__*` - Vector index operations and data queries
 - `mcp__context7__*` - Documentation for embedding providers (Voyage AI, OpenAI)
 

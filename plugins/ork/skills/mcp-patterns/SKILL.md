@@ -1,11 +1,16 @@
 ---
 name: mcp-patterns
-description: MCP server building, advanced patterns, and security hardening
+license: MIT
+compatibility: "Claude Code 2.1.34+."
+author: OrchestKit
+description: MCP server building, advanced patterns, and security hardening. Use when building MCP servers, implementing tool handlers, hardening MCP security, or debugging MCP integrations.
 version: 2.0.0
 tags: [mcp, server, tools, resources, security, prompt-injection]
 user-invocable: false
 context: fork
 complexity: high
+metadata:
+  category: mcp-enhancement
 ---
 
 # MCP Patterns

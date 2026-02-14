@@ -2,7 +2,7 @@
 # scripts/ci/run-tests.sh
 # Dynamic test discovery and execution
 #
-# Usage: run-tests.sh <test-dir> [--parallel N] [--verbose]
+# Usage: run-tests.sh <test-dir> [--verbose]
 #
 # Discovers and runs all test-*.sh scripts in the specified directory.
 # Returns non-zero exit code if any tests fail.
@@ -17,8 +17,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-TEST_DIR="${1:?Usage: run-tests.sh <test-dir> [--parallel N] [--verbose]}"
-PARALLEL=1
+TEST_DIR="${1:?Usage: run-tests.sh <test-dir> [--verbose]}"
 VERBOSE=false
 PATTERN="test-*.sh"
 
@@ -26,10 +25,6 @@ PATTERN="test-*.sh"
 shift || true
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --parallel)
-      PARALLEL="${2:-1}"
-      shift 2
-      ;;
     --verbose)
       VERBOSE=true
       shift
@@ -69,7 +64,6 @@ echo ""
 echo -e "Directory: ${GREEN}$TEST_DIR${NC}"
 echo -e "Pattern: ${GREEN}$PATTERN${NC}"
 echo -e "Tests discovered: ${GREEN}${#TEST_FILES[@]}${NC}"
-echo -e "Parallel: ${GREEN}$PARALLEL${NC}"
 echo ""
 
 # Track results
@@ -116,33 +110,15 @@ run_test() {
   fi
 }
 
-# Run tests
-if [[ "$PARALLEL" -eq 1 ]]; then
-  # Sequential execution
-  for test_file in "${TEST_FILES[@]}"; do
-    if run_test "$test_file"; then
-      PASSED=$((PASSED + 1))
-    else
-      FAILED=$((FAILED + 1))
-      FAILED_TESTS+=("$(basename "$test_file")")
-    fi
-  done
-else
-  # Parallel execution using xargs
-  echo "Running tests in parallel (max $PARALLEL concurrent)..."
-
-  # Export the run function and variables for parallel execution
-  export -f run_test
-  export VERBOSE
-  export RED GREEN YELLOW BLUE NC
-
-  # Use xargs for parallel execution
-  printf '%s\n' "${TEST_FILES[@]}" | xargs -P "$PARALLEL" -I {} bash -c 'run_test "$@"' _ {}
-
-  # Note: Parallel mode doesn't track individual results well
-  # For accurate counts, use sequential mode
-  PASSED=${#TEST_FILES[@]}
-fi
+# Run tests sequentially
+for test_file in "${TEST_FILES[@]}"; do
+  if run_test "$test_file"; then
+    PASSED=$((PASSED + 1))
+  else
+    FAILED=$((FAILED + 1))
+    FAILED_TESTS+=("$(basename "$test_file")")
+  fi
+done
 
 END_TIME=$(date +%s)
 TOTAL_DURATION=$((END_TIME - START_TIME))

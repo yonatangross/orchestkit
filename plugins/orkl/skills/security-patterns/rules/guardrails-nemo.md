@@ -48,7 +48,7 @@ rails:
 ```
 
 **Correct -- Colang 2.0 fact-checking rails:**
-```colang
+```text
 define flow answer question with facts
   """Enable fact-checking for RAG responses."""
   user ...

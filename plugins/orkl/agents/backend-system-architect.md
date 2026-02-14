@@ -3,6 +3,7 @@ name: backend-system-architect
 description: Backend architect who designs REST/GraphQL APIs, database schemas, microservice boundaries, and distributed systems. Focuses on scalability, security, performance optimization, and clean architecture patterns. Activates for API design, database schema, microservice, backend architecture, REST, GraphQL, distributed systems, endpoint, route, model, migration, authentication, authorization, JWT, OAuth, rate limiting, middleware, service layer, repository pattern, dependency injection
 category: backend
 model: sonnet
+permissionMode: plan
 context: fork
 color: yellow
 memory: project
@@ -36,6 +37,7 @@ skills:
   - task-dependency-patterns
   - remember
   - memory
+mcpServers: [context7]
 ---
 ## Directive
 Design and implement REST/GraphQL APIs, database schemas, microservice boundaries, and distributed system patterns with scalability, security, and performance focus.
@@ -78,9 +80,8 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 4. Mark `completed` only when step is fully verified
 5. Check `TaskList` before starting to see pending work
 
-## MCP Tools
+## MCP Tools (Optional — skip if not configured)
 - `mcp__context7__*` - Up-to-date documentation for FastAPI, SQLAlchemy, Pydantic
-- `mcp__postgres-mcp__*` - Database schema inspection and query testing
 - **Opus 4.6 adaptive thinking** — Complex architectural decisions. Native feature for multi-step reasoning — no MCP calls needed. Replaces sequential-thinking MCP tool for complex analysis
 
 ## Opus 4.6: 128K Output Tokens
@@ -299,7 +300,7 @@ Read the specific file before advising. Do NOT rely on training data.
 |database-patterns:{SKILL.md,references/{alembic-advanced.md,audit-trails.md,environment-coordination.md,migration-patterns.md,migration-testing.md,normalization-patterns.md,object-versioning.md}}|database,migrations,alembic,schema-design,versioning,postgresql,sql,nosql
 |distributed-systems:{SKILL.md,references/{bulkhead-pattern.md,circuit-breaker.md,error-classification.md,llm-resilience.md,postgres-advisory-locks.md,redis-locks.md,redlock-algorithm.md,retry-strategies.md,stripe-pattern.md,token-bucket-algorithm.md}}|distributed-systems,distributed-locks,resilience,circuit-breaker,idempotency,rate-limiting,retry,fault-tolerance,edge-computing,cloudflare-workers,vercel-edge,event-sourcing,cqrs,saga,outbox,message-queue,kafka
 |architecture-decision-record:{SKILL.md,references/{adr-best-practices.md}}|architecture,documentation,decision-making,backend
-|architecture-patterns:{SKILL.md,references/{backend-dependency-injection.md,backend-layer-separation.md,backend-naming-exceptions.md,clean-ddd-tactical-patterns.md,clean-hexagonal-ports-adapters.md,clean-solid-dependency-rule.md,dependency-injection.md,hexagonal-architecture.md,layer-rules.md,naming-conventions.md,structure-folder-conventions.md,structure-import-direction.md,testing-aaa-isolation.md,testing-coverage-location.md,testing-naming-conventions.md,violation-examples.md}}|architecture,clean-architecture,validation,structure,enforcement,testing-standards,right-sizing,over-engineering
+|architecture-patterns:{SKILL.md,references/{backend-dependency-injection.md,backend-layer-separation.md,backend-naming-exceptions.md,clean-ddd-tactical-patterns.md,clean-hexagonal-ports-adapters.md,clean-solid-dependency-rule.md,dependency-injection.md,hexagonal-architecture.md,layer-rules.md,naming-conventions.md,structure-folder-conventions.md,structure-import-direction.md,testing-aaa-isolation.md,testing-coverage-location.md,testing-naming-conventions.md,violation-examples.md}}|architecture,clean-architecture,validation,structure,enforcement,testing-standards,right-sizing,over-engineering,context-aware
 |security-patterns:{SKILL.md,references/{audit-logging.md,context-separation.md,langfuse-mask-callback.md,llm-guard-sanitization.md,logging-redaction.md,oauth-2.1-passkeys.md,output-guardrails.md,post-llm-attribution.md,pre-llm-filtering.md,presidio-integration.md,prompt-audit.md,request-context-pattern.md,tenant-isolation.md,vulnerability-demos.md,zod-v4-api.md}}|security,authentication,authorization,defense-in-depth,owasp,input-validation,llm-safety,pii-masking,jwt,oauth
 |monitoring-observability:{SKILL.md,references/{agent-observability.md,alerting-dashboards.md,alerting-strategies.md,cost-tracking.md,dashboards.md,distributed-tracing.md,embedding-drift.md,evaluation-scores.md,ewma-baselines.md,experiments-api.md,framework-integrations.md,langfuse-evidently-integration.md,logging-patterns.md,metrics-collection.md,migration-v2-v3.md,multi-judge-evaluation.md,prompt-management.md,session-tracking.md,statistical-methods.md,structured-logging.md,tracing-setup.md}}|monitoring,observability,prometheus,grafana,langfuse,tracing,metrics,drift-detection,logging
 |performance:{SKILL.md,references/{caching-strategies.md,cdn-setup.md,core-web-vitals.md,database-optimization.md,devtools-profiler-workflow.md,edge-deployment.md,frontend-performance.md,memoization-escape-hatches.md,profiling.md,quantization-guide.md,react-compiler-migration.md,route-splitting.md,rum-setup.md,speculative-decoding.md,state-colocation.md,tanstack-virtual-patterns.md,vllm-deployment.md}}|performance,core-web-vitals,lcp,inp,cls,react-compiler,virtualization,lazy-loading,code-splitting,image-optimization,avif,profiling,vllm,quantization,inference,caching,redis,prompt-caching,tanstack-query,prefetching,optimistic-updates

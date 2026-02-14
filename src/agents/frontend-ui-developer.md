@@ -71,7 +71,7 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 4. Mark `completed` only when step is fully verified
 5. Check `TaskList` before starting to see pending work
 
-## MCP Tools
+## MCP Tools (Optional — skip if not configured)
 - `mcp__context7__*` - React 19, TanStack Query, Zod, Tailwind CSS documentation
 - **Opus 4.6 adaptive thinking** — Complex state management decisions. Native feature for multi-step reasoning — no MCP calls needed. Replaces sequential-thinking MCP tool for complex analysis
 

@@ -1,6 +1,6 @@
 ---
 description: "Creates polished demo videos for skills, tutorials, and CLI demonstrations. Use when producing video showcases, marketing content, or terminal recordings."
-allowed-tools: [Bash, Read, Write, Edit, Glob, Grep]
+allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate]
 ---
 
 # Auto-generated from skills/demo-producer/SKILL.md
@@ -363,7 +363,7 @@ const AGENT_COLORS = {
   workflow:     "#8b5cf6",  // Purple - workflow-architect
   backend:      "#06b6d4",  // Cyan - backend-system-architect
   security:     "#ef4444",  // Red - security-auditor
-  performance:  "#22c55e",  // Green - performance-engineer
+  performance:  "#22c55e",  // Green - frontend-performance-engineer
   frontend:     "#f59e0b",  // Amber - frontend-ui-developer
   data:         "#ec4899",  // Pink - data-pipeline-engineer
   llm:          "#6366f1",  // Indigo - llm-integrator

@@ -14,9 +14,58 @@ Transform rough ideas into fully-formed designs through intelligent agent select
 **Core principle:** Analyze the topic, select relevant agents dynamically, explore alternatives in parallel, present design incrementally.
 
 
-## STEP 0: Verify User Intent with AskUserQuestion
+## STEP 0: Project Context Discovery
 
-**BEFORE creating tasks**, clarify brainstorming constraints:
+**BEFORE creating tasks or selecting agents**, detect the project tier. This becomes the **complexity ceiling** for all downstream decisions.
+
+### Auto-Detection (scan codebase)
+
+```python
+# PARALLEL — quick signals (launch all in ONE message)
+Grep(pattern="take-home|assignment|interview|hackathon", glob="README*", output_mode="content")
+Grep(pattern="take-home|assignment|interview|hackathon", glob="*.md", output_mode="content")
+Glob(pattern=".github/workflows/*")
+Glob(pattern="**/Dockerfile")
+Glob(pattern="**/terraform/**")
+Glob(pattern="**/k8s/**")
+Glob(pattern="CONTRIBUTING.md")
+```
+
+### Tier Classification
+
+| Signal | Tier |
+|--------|------|
+| README says "take-home", "assignment", time limit | **1. Interview** |
+| < 10 files, no CI, no Docker | **2. Hackathon** |
+| `.github/workflows/`, 10-25 deps | **3. MVP** |
+| Module boundaries, Redis, background jobs | **4. Growth** |
+| K8s/Terraform, DDD structure, monorepo | **5. Enterprise** |
+| CONTRIBUTING.md, LICENSE, minimal deps | **6. Open Source** |
+
+**If confidence is low**, ask the user:
+
+```python
+AskUserQuestion(questions=[{
+  "question": "What kind of project is this?",
+  "header": "Project tier",
+  "options": [
+    {"label": "Interview / take-home", "description": "8-15 files, 200-600 LOC, simple architecture"},
+    {"label": "Startup / MVP", "description": "MVC monolith, managed services, ship fast"},
+    {"label": "Growth / enterprise", "description": "Modular monolith or DDD, full observability"},
+    {"label": "Open source library", "description": "Minimal API surface, exhaustive tests"}
+  ],
+  "multiSelect": false
+}])
+```
+
+**Pass the detected tier as context to ALL downstream agents and phases.** The tier constrains which patterns are appropriate — see `scope-appropriate-architecture` skill for the full matrix.
+
+> **Override:** User can always override the detected tier. Warn them of trade-offs if they choose a higher tier than detected.
+
+
+## STEP 0a: Verify User Intent with AskUserQuestion
+
+**Clarify brainstorming constraints:**
 
 ```python
 AskUserQuestion(
@@ -54,7 +103,7 @@ AskUserQuestion(
 - **Quick ideation**: Generate ideas, skip deep evaluation
 
 
-## STEP 0b: Select Orchestration Mode
+## STEP 0b: Select Orchestration Mode (skip for Tier 1-2)
 
 Choose **Agent Teams** (mesh — agents debate and challenge ideas) or **Task tool** (star — all report to lead):
 
@@ -124,7 +173,7 @@ Skip brainstorming when:
 | "brainstorm API for users" | workflow-architect, backend-system-architect, security-auditor |
 | "brainstorm dashboard UI" | workflow-architect, frontend-ui-developer, ux-researcher |
 | "brainstorm RAG pipeline" | workflow-architect, llm-integrator, data-pipeline-engineer |
-| "brainstorm caching strategy" | workflow-architect, backend-system-architect, performance-engineer |
+| "brainstorm caching strategy" | workflow-architect, backend-system-architect, frontend-performance-engineer |
 
 **Always include:** `workflow-architect` for system design perspective.
 
@@ -210,4 +259,4 @@ TeamDelete()
 - [Example Session](references/example-session-dashboard.md) - Complete example
 
 
-**Version:** 4.1.0 (January 2026) - Refactored to progressive loading structure
+**Version:** 4.2.0 (February 2026) - Added project context discovery (Phase 0)

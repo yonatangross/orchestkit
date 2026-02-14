@@ -362,7 +362,7 @@ const AGENT_COLORS = {
   workflow:     "#8b5cf6",  // Purple - workflow-architect
   backend:      "#06b6d4",  // Cyan - backend-system-architect
   security:     "#ef4444",  // Red - security-auditor
-  performance:  "#22c55e",  // Green - performance-engineer
+  performance:  "#22c55e",  // Green - frontend-performance-engineer
   frontend:     "#f59e0b",  // Amber - frontend-ui-developer
   data:         "#ec4899",  // Pink - data-pipeline-engineer
   llm:          "#6366f1",  // Indigo - llm-integrator
@@ -441,3 +441,1675 @@ Rule: If content doesn't earn its screen time, cut it.
 - `references/content-types.md` - Detailed content type specs
 - `references/format-selection.md` - Platform requirements and multi-format support
 - `references/script-generation.md` - Script templates and generation patterns
+
+
+---
+
+## Rules (3)
+
+### Skill Analyzer Patterns — MEDIUM
+
+
+## Skill Analyzer Patterns
+
+Reference patterns for extracting structured metadata from SKILL.md files for demo script generation.
+
+### Output Structure
+
+```typescript
+interface SkillMetadata {
+  name: string;
+  description: string;
+  tags: string[];
+  version: string;
+  userInvocable: boolean;
+  context: 'fork' | 'inherit' | 'none';
+  phases: WorkflowPhase[];
+  examples: CodeExample[];
+  keyFeatures: string[];
+  relatedSkills: string[];
+}
+```
+
+### Frontmatter Parsing
+
+```bash
+# Extract name
+name=$(grep "^name:" SKILL.md | head -1 | cut -d: -f2- | xargs)
+
+# Extract description
+description=$(grep "^description:" SKILL.md | head -1 | cut -d: -f2- | xargs)
+
+# Extract tags
+tags=$(grep "^tags:" SKILL.md | sed 's/tags: \[//' | sed 's/\]//' | tr -d '"')
+```
+
+### Phase Detection
+
+- Look for `## Phase N:` or `### Phase N:` headers
+- Extract tools from code blocks (Grep, Glob, Read, Task, etc.)
+- Detect parallel execution from "PARALLEL" comments or multiple tool calls
+
+### Example Detection
+
+- Find code blocks with language tags (```python, ```bash, etc.)
+- Extract surrounding context as description
+- Identify quick start examples from `## Quick Start` sections
+
+### Feature Detection
+
+- Parse bullet points after "Key Features" or "What it does"
+- Extract from description field
+- Identify from tags array
+
+### Key Rules
+
+- Parse frontmatter YAML **before** the closing `---` delimiter
+- Phase headers follow `## Phase N:` pattern — extract name and description
+- Code examples need **language tag** and **surrounding context**
+- Related skills come from `## Related Skills` section with backtick-wrapped names
+- Validate extracted metadata against the `SkillMetadata` interface before generating demos
+
+
+### Video Composition and Audio — HIGH
+
+
+## Video Composition and Audio
+
+**Incorrect — poor composition and audio:**
+```typescript
+// WRONG: Spring animation starting at frame 0 (invisible first frame)
+const scale = spring({ frame, fps, from: 0, to: 1 });
+// WRONG: Hardcoded callout coordinates (break on format change)
+<div style={{ position: 'absolute', left: 450, top: 320 }}>
+// WRONG: Music competing with narration (no ducking)
+// Both tracks at -12 dB = unintelligible narration
+```
+
+**Correct — Remotion composition with proper patterns:**
+```typescript
+// Remotion folder organization
+Production/
+├── Landscape-16x9/      // YouTube, Website (1920x1080)
+│   ├── Core-Skills/
+│   ├── Memory-Skills/
+│   └── Styles/          // ProgressiveZoom, SplitMerge, etc.
+├── Vertical-9x16/       // TikTok, Reels, Shorts (1080x1920)
+├── Square-1x1/          // Instagram, LinkedIn (1080x1080)
+└── Marketing/           // Brand & intro videos
+```
+
+### Audio Mixing
+
+| Element | Volume | Rule |
+|---------|--------|------|
+| Narration | -14 to -12 dB | Primary, always clear |
+| Background music | -24 to -20 dB | Duck -6 to -8 dB under narration |
+| SFX | -18 to -14 dB | Punctuate key moments |
+| Target LUFS | -14 LUFS | Platform standard |
+
+### Thumbnail Rules
+
+| Rule | Value |
+|------|-------|
+| Text | 3-4 words maximum |
+| Test | Must be readable at small preview size |
+| First frame | Optimize — many platforms use it as preview |
+
+### Visual Effects Categories
+
+| Category | Components |
+|----------|------------|
+| 3D Graphics | Three.js in Remotion, CSS-based 3D, floating logos |
+| Data Viz | StatCounter, ProgressRing, BarChart, LineChart |
+| Lottie | After Effects integration, animated emojis |
+| Effects | ParticleBackground, MeshGradient, GlowOrbs |
+| Captions | TikTokCaption, KaraokeCaption, TypingCaption |
+
+### Common Mistakes
+
+1. No hook in first 3 seconds (lose 33% of viewers)
+2. Music competing with narration (duck -6 to -8 dB)
+3. Spring animations starting at 0 (invisible first frame)
+4. Hardcoded callout coordinates (break on format change)
+5. Intro cards too long (>5s disrupts flow)
+6. Missing captions (accessibility and silent browsing)
+7. Not testing thumbnails at small preview size
+
+### Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Music volume | -24 to -20 dB under narration |
+| TTS model | eleven_multilingual_v2 (production) |
+| Thumbnail text | 3-4 words maximum |
+| Debug grid | Enabled during dev, disabled for renders |
+| Caption style | TikTokCaption for shorts, subtitle for long-form |
+
+
+### Video Production Pipeline — HIGH
+
+
+## Video Production Pipeline
+
+**Incorrect — jumping straight to recording:**
+```
+# WRONG: No planning, no script, no timing
+vhs record my-demo.tape
+# Results in: rambling, bad pacing, missed key moments
+```
+
+**Correct — structured pre-production pipeline:**
+```
+video-storyboarding     terminal-demo-generator     manim-visualizer
+(pre-production)        (recording)                 (animations)
+       |                       |                         |
+       v                       v                         v
+content-type-recipes    remotion-composer <---- scene-intro-cards
+(recipes)               (composition)          callout-positioning
+       |                       |               thumbnail-first-frame
+       v                       v
+narration-scripting     music-sfx-selection
+hook-formulas           audio-mixing-patterns
+video-pacing            elevenlabs-narration
+```
+
+### Pre-Production Checklist
+
+| Step | Rule File | Key Pattern |
+|------|-----------|-------------|
+| Storyboarding | `preproduction-storyboard.md` | AIDA framework, scene templates, shot planning |
+| Narration | `preproduction-narration.md` | Scene-by-scene scripts, timing markers, WPM pacing |
+| Hook Formulas | `preproduction-hooks.md` | 12 proven hook patterns for scroll-stopping intros |
+| Content Recipes | `preproduction-recipes.md` | Content type recipes (skill demo, agent demo, tutorial) |
+| Pacing | `preproduction-pacing.md` | Video rhythm, attention curves, platform-specific timing |
+
+### Recording Patterns
+
+| Tool | Best For | Format |
+|------|----------|--------|
+| VHS | Terminal recordings | `.tape` script files |
+| asciinema | CLI sessions | `.cast` recordings |
+| Manim | Architecture animations | Python scripts |
+
+### Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Frame rate | 30fps (standard), 60fps (smooth typing) |
+| Resolution | 1920x1080 (YouTube), 1080x1920 (shorts) |
+| Hook duration | 3 seconds max |
+| AIDA split | 15% attention, 35% interest, 35% desire, 15% action |
+| Narration WPM | 130-150 (standard), 120-140 (technical) |
+| Intro card duration | 2-4 seconds |
+
+
+
+---
+
+## References (4)
+
+### Content Types
+
+# Content Type Templates
+
+## Overview
+
+Each content type has a specific template that determines:
+- Terminal simulation flow
+- Key visual elements
+- Timing and pacing
+- Hook and CTA text
+
+## Skill Demo Template
+
+**Duration**: 15-25s
+**Hook**: "\{skill_name\} automates \{key_action\} in Claude Code"
+
+```bash
+# Phase 1: Activation (2s)
+◆ Activating skill: {name}
+  → Reading skills/{name}/SKILL.md
+  → Auto-injecting: {related_skills}
+✓ {description}
+
+# Phase 2: Task Creation (3s)
+◆ TaskCreate: Created task #1 "{phase_1}"
+◆ TaskCreate: Created task #2 "{phase_2}"
+
+# Phase 3: Execution (8-15s)
+◆ TaskUpdate: Task #1 → in_progress
+⠋ [Task #1] {action}...
+✓ [Task #1] {phase_1} completed
+◆ TaskUpdate: Task #2 → in_progress
+⠋ [Task #2] {action}...
+✓ [Task #2] {phase_2} completed
+
+# Phase 4: Results (2s)
+◆ TaskList: 2/2 completed
+✓ {summary}
+```
+
+## Agent Demo Template
+
+**Duration**: 20-30s
+**Hook**: "\{agent_name\} - Your AI \{specialty\} assistant"
+
+```bash
+# Phase 1: Spawning (2s)
+⚡ Spawning {agent_name} agent via Task tool...
+
+# Phase 2: Tool Usage (5s)
+◆ Read: {file_count} files analyzed
+◆ Grep: {pattern_count} patterns found
+◆ Bash: Running {command}
+
+# Phase 3: Parallel Agents (8s) - if applicable
+⚡ Spawning {n} parallel sub-agents...
+◆ TaskUpdate: Task #1 → in_progress
+◆ TaskUpdate: Task #2 → in_progress
+✓ [Task #1] {sub_agent_1} completed
+✓ [Task #2] {sub_agent_2} completed
+
+# Phase 4: Synthesis (5s)
+◆ Synthesizing results from {n} agents...
+✓ {final_output}
+```
+
+## Plugin Demo Template
+
+**Duration**: 20-30s
+**Hook**: "\{plugin_name\} - \{tagline\}"
+
+```bash
+# Phase 1: Discovery (3s)
+> /plugin marketplace search {plugin}
+
+OrchestKit Marketplace
+──────────────────────
+{plugin_name} v{version}
+{description}
+★ {stars} | ↓ {downloads}
+
+# Phase 2: Installation (4s)
+> /plugin install {plugin}
+
+Installing {plugin_name}...
+  → Downloading from marketplace
+  → Validating plugin.json
+  → Registering {skills_count} skills
+  → Registering {agents_count} agents
+  → Setting up {hooks_count} hooks
+✓ {plugin_name} installed successfully
+
+# Phase 3: Configuration (5s)
+> /ork:configure
+
+{configuration_wizard}
+
+# Phase 4: Features (8s)
+{feature_showcase}
+```
+
+## Tutorial Demo Template
+
+**Duration**: 30-60s
+**Hook**: "\{title\} in \{time\}"
+
+```bash
+# Phase 1: Problem Statement (3s)
+# {problem_description}
+
+# Phase 2: Solution Setup (5s)
+> {setup_commands}
+
+# Phase 3: Code Writing (15-30s)
+# Show typing code with explanations
+> cat {file}
+
+{code_content}
+
+# Phase 4: Execution (5s)
+> {run_command}
+{output}
+
+# Phase 5: Result (3s)
+✓ {success_message}
+```
+
+## CLI Tool Demo Template
+
+**Duration**: 10-20s
+**Hook**: "\{tool_name\} - \{one_liner\}"
+
+```bash
+# Phase 1: Command (2s)
+> {command}
+
+# Phase 2: Execution (5-12s)
+{animated_output}
+
+# Phase 3: Result (3s)
+✓ {result_summary}
+```
+
+## Code Walkthrough Template
+
+**Duration**: 30-60s
+**Hook**: "Understanding \{component\} in \{project\}"
+
+```bash
+# Phase 1: File Overview (3s)
+> cat {file_path}
+
+# Phase 2: Key Sections (15-40s)
+# Navigate through sections with highlights
+# Lines {start}-{end}: {explanation}
+
+{code_block_1}
+
+# Purpose: {explanation_1}
+
+{code_block_2}
+
+# Pattern: {pattern_name}
+
+# Phase 3: Connections (5s)
+# Shows relationships to other files
+
+# Phase 4: Summary (3s)
+# Key takeaways
+```
+
+## Duration Guidelines
+
+| Style | Min | Max | Best For |
+|-------|-----|-----|----------|
+| Quick | 6s | 10s | Single feature, social teasers |
+| Standard | 15s | 25s | Full workflow, typical demo |
+| Tutorial | 30s | 60s | Educational content |
+| Cinematic | 60s | 120s | Product launches, keynotes |
+
+
+### Format Selection
+
+# Format Selection Guide
+
+## Video Formats
+
+| Format | Resolution | Aspect Ratio | Use Cases |
+|--------|------------|--------------|-----------|
+| Horizontal | 1920x1080 | 16:9 | YouTube, Twitter, Website embeds |
+| Vertical | 1080x1920 | 9:16 | TikTok, Instagram Reels, YouTube Shorts |
+| Square | 1080x1080 | 1:1 | Instagram Feed, LinkedIn |
+
+## Terminal Dimensions by Format
+
+### Horizontal (16:9)
+```text
+Set Width 1400
+Set Height 650
+Set FontSize 18
+Set Padding 30
+```
+- Good for: detailed output, wide terminal commands
+- Lines visible: ~25-30
+- Characters per line: ~140
+
+### Vertical (9:16)
+```text
+Set Width 900
+Set Height 1400
+Set FontSize 22
+Set Padding 40
+```
+- Good for: scrolling content, mobile viewing
+- Lines visible: ~50-55
+- Characters per line: ~80
+
+### Square (1:1)
+```text
+Set Width 1080
+Set Height 1080
+Set FontSize 20
+Set Padding 35
+```
+- Good for: balanced content, social media
+- Lines visible: ~40-45
+- Characters per line: ~100
+
+## Style Guidelines
+
+### Quick Demo (6-10s)
+- Single feature highlight
+- Minimal text
+- Fast cuts
+- Hook: 1.5s, CTA: 2s
+- Best for: Social media teasers
+
+### Standard Demo (15-25s)
+- Full workflow
+- Multiple steps
+- Clear progression
+- Hook: 1.5s, CTA: 2.5s
+- Best for: Product demos, feature showcases
+
+### Tutorial (30-60s)
+- Detailed explanation
+- Code examples
+- Pauses for reading
+- Hook: 2s, CTA: 3s
+- Best for: Educational content
+
+### Cinematic (60s+)
+- Story-driven narrative
+- Multiple scenes
+- High production value
+- Hook: 3s, CTA: 5s
+- Best for: Product launches, keynotes
+
+### Scrapbook (15-35s)
+- Warm paper texture, NOT dark
+- Fast cuts (100-200ms transitions)
+- Social proof cards + terminal captures
+- Serif typography, collage framing
+- Hook: 3s, CTA: 3s
+- Best for: Product showcases, brand videos, social media
+
+## Duration Calculation
+
+```
+Total = Hook + Content + CTA + Buffer
+
+where:
+- Hook: 1.5-3s depending on style
+- Content: varies by type
+- CTA: 2-5s depending on style
+- Buffer: 0.5s for fade in/out
+```
+
+### Content Duration by Type
+
+| Type | Quick | Standard | Tutorial | Scrapbook |
+|------|-------|----------|----------|-----------|
+| Skill | 5s | 12s | 25s | 20s |
+| Agent | 6s | 15s | 30s | 25s |
+| Plugin | 8s | 18s | 35s | 30s |
+| Tutorial | N/A | N/A | 30-60s | N/A |
+| CLI | 4s | 10s | 20s | 15s |
+| Code | 6s | 15s | 40s | N/A |
+
+## Remotion Composition Settings
+
+### Horizontal
+```tsx
+width={1920}
+height={1080}
+```
+
+### Vertical
+```tsx
+width={1080}
+height={1920}
+```
+
+### Square
+```tsx
+width={1080}
+height={1080}
+```
+
+## Color Palette by Content Type
+
+| Type | Primary | Secondary |
+|------|---------|-----------|
+| Skill | #8b5cf6 (purple) | #a78bfa |
+| Agent | #06b6d4 (cyan) | #22d3ee |
+| Plugin | #22c55e (green) | #4ade80 |
+| Tutorial | #f59e0b (amber) | #fbbf24 |
+| CLI | #6366f1 (indigo) | #818cf8 |
+| Code | #ec4899 (pink) | #f472b6 |
+
+## Platform-Specific Requirements
+
+### YouTube
+- Minimum: 1280x720
+- Recommended: 1920x1080
+- Max length: 12 hours
+- Best practice: 15-60s for Shorts
+
+### TikTok
+- Resolution: 1080x1920
+- Max length: 10 minutes
+- Best practice: 15-60s
+
+### Instagram Reels
+- Resolution: 1080x1920
+- Max length: 90 seconds
+- Best practice: 15-30s
+
+### Twitter/X
+- Max resolution: 1920x1200
+- Max length: 2:20
+- Best practice: 15-45s
+
+### LinkedIn
+- Recommended: 1920x1080 or 1080x1080
+- Max length: 10 minutes
+- Best practice: 30-90s
+
+
+### Script Generation
+
+# Script Generation
+
+## Generator Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Script Generator                          │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  Input                                                       │
+│  ├── Content Type (skill|agent|plugin|tutorial|cli|code)    │
+│  ├── Content Source (file path or description)              │
+│  ├── Style (quick|standard|tutorial|cinematic)              │
+│  └── Options (hooks, agents, phases)                        │
+│                                                              │
+│  Process                                                     │
+│  ├── 1. Parse content source                                │
+│  ├── 2. Extract key information                             │
+│  ├── 3. Select template                                     │
+│  ├── 4. Inject dynamic content                              │
+│  └── 5. Generate timing                                     │
+│                                                              │
+│  Output                                                      │
+│  ├── demo-{name}.sh (bash simulator)                        │
+│  ├── sim-{name}.tape (horizontal VHS)                       │
+│  └── sim-{name}-vertical.tape (vertical VHS)                │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Bash Simulator Template
+
+```bash
+#!/usr/bin/env bash
+# Auto-generated demo script for {name}
+# Type: {content_type} | Style: {style}
+# Generated: {timestamp}
+
+set -euo pipefail
+
+# Colors
+GREEN="\033[32m"
+YELLOW="\033[33m"
+CYAN="\033[36m"
+MAGENTA="\033[35m"
+DIM="\033[2m"
+BOLD="\033[1m"
+RESET="\033[0m"
+
+# Spinners
+SPINNERS=("⠋" "⠙" "⠹" "⠸" "⠼" "⠴" "⠦" "⠧" "⠇" "⠏")
+
+# Functions
+type_text() {
+    local text="$1"
+    local delay="${2:-0.03}"
+    for ((i=0; i<${#text}; i++)); do
+        echo -n "${text:$i:1}"
+        sleep "$delay"
+    done
+    echo
+}
+
+spinner() {
+    local message="$1"
+    local duration="${2:-1}"
+    local end=$((SECONDS + duration))
+    local i=0
+    while [ $SECONDS -lt $end ]; do
+        printf "\r${CYAN}${SPINNERS[$i]} ${message}${RESET}"
+        i=$(( (i + 1) % ${#SPINNERS[@]} ))
+        sleep 0.1
+    done
+    printf "\r"
+}
+
+status_bar() {
+    echo -e "${DIM}[Opus 4.6] ████████░░ 42% | ~/project git:(main) | ● 3m${RESET}"
+    echo -e "${DIM}✓ Bash ×3 | ✓ Read ×5 | ✓ Grep ×2 | ✓ Task ×∞${RESET}"
+    echo -e "${DIM}>> bypass permissions on (shift+Tab to cycle)${RESET}"
+    echo
+}
+
+task_create() {
+    echo -e "${CYAN}◆${RESET} TaskCreate: Created task #$1 \"$2\""
+    sleep 0.3
+}
+
+task_update() {
+    echo -e "${CYAN}◆${RESET} TaskUpdate: Task #$1 → $2"
+    sleep 0.2
+}
+
+task_complete() {
+    echo -e "${GREEN}✓${RESET} [Task #$1] $2 ${GREEN}completed${RESET}"
+    sleep 0.2
+}
+
+activate_skill() {
+    echo -e "${CYAN}◆${RESET} Activating skill: ${MAGENTA}$1${RESET}"
+    sleep 0.3
+    echo -e "  ${DIM}→ Reading skills/$1/SKILL.md${RESET}"
+    sleep 0.2
+    if [ -n "${2:-}" ]; then
+        echo -e "  ${DIM}→ Auto-injecting: $2${RESET}"
+        sleep 0.2
+    fi
+    echo -e "${GREEN}✓${RESET} $3"
+    sleep 0.3
+}
+
+spawn_agents() {
+    echo -e "${YELLOW}⚡${RESET} Spawning $1 parallel agents via Task tool..."
+    sleep 0.5
+}
+
+# Main demo
+main() {
+    clear
+    status_bar
+
+    {DEMO_CONTENT}
+
+    echo
+    echo -e "${GREEN}${BOLD}Demo complete!${RESET}"
+}
+
+main
+```
+
+## VHS Tape Template
+
+### Horizontal (16:9)
+```text
+Output ../output/{name}-demo.mp4
+Set Shell "bash"
+Set FontFamily "Menlo"
+Set FontSize 18
+Set Width 1400
+Set Height 650
+Set Theme "Dracula"
+Set Padding 30
+Set Framerate 30
+Set TypingSpeed 50ms
+
+Type "../scripts/demo-{name}.sh"
+Enter
+Sleep {duration}s
+```
+
+### Vertical (9:16)
+```text
+Output ../output/{name}-demo-vertical.mp4
+Set Shell "bash"
+Set FontFamily "Menlo"
+Set FontSize 22
+Set Width 900
+Set Height 1400
+Set Theme "Dracula"
+Set Padding 40
+Set Framerate 30
+Set TypingSpeed 50ms
+
+Type "../scripts/demo-{name}.sh"
+Enter
+Sleep {duration}s
+```
+
+## Content Extraction
+
+### From SKILL.md
+```bash
+# Extract frontmatter
+name=$(grep "^name:" SKILL.md | cut -d: -f2 | tr -d ' ')
+description=$(grep "^description:" SKILL.md | cut -d: -f2-)
+tags=$(grep "^tags:" SKILL.md | sed 's/tags: \[//' | sed 's/\]//')
+
+# Extract phases from ## headers
+phases=$(grep "^## " SKILL.md | sed 's/## //')
+```
+
+### From Agent Markdown
+```bash
+# Extract from frontmatter
+name=$(grep "^name:" agent.md | cut -d: -f2 | tr -d ' ')
+skills=$(grep "^  - " agent.md | sed 's/  - //')
+tools=$(grep "tools:" -A 10 agent.md | grep "^  - " | sed 's/  - //')
+```
+
+### From plugin.json
+```bash
+# Extract with jq
+name=$(jq -r '.name' plugin.json)
+version=$(jq -r '.version' plugin.json)
+skills_count=$(jq '.skills | length' plugin.json)
+agents_count=$(jq '.agents | length' plugin.json)
+```
+
+### From Custom Input
+```bash
+# Parse tutorial/cli description
+title="$1"
+# Generate structure based on title keywords
+```
+
+## Timing Calculation
+
+```bash
+# Base timing per element
+ACTIVATION_TIME=2
+TASK_CREATE_TIME=0.3
+TASK_UPDATE_TIME=0.2
+SPINNER_TIME=1
+COMPLETION_TIME=0.3
+RESULT_TIME=2
+
+# Calculate total
+calculate_duration() {
+    local phases=$1
+    local agents=$2
+
+    total=$ACTIVATION_TIME
+    total=$((total + phases * (TASK_CREATE_TIME + SPINNER_TIME + COMPLETION_TIME)))
+    total=$((total + agents * 2))
+    total=$((total + RESULT_TIME))
+
+    echo $total
+}
+```
+
+
+### Template System
+
+# Template System Architecture
+
+Comprehensive guide to the three template systems in demo-producer and how to create configurations for any skill.
+
+## Table of Contents
+
+- [Overview](#overview)
+- [SkillDemoConfig Interface](#skilldemoconfig-interface)
+- [Template: TriTerminalRace](#template-triterminalrace)
+- [Template: ProgressiveZoom](#template-progressivezoom)
+- [Template: SplitThenMerge](#template-splitthenmerge)
+- [Creating a Configuration for Any Skill](#creating-a-configuration-for-any-skill)
+- [Shared Component Library](#shared-component-library)
+- [Best Practices](#best-practices)
+- [Rendering](#rendering)
+- [Related Skills](#related-skills)
+
+---
+
+## Overview
+
+The demo-producer skill uses a modular template system that separates concerns:
+
+1. **Template**: Defines layout and animation (TriTerminalRace, ProgressiveZoom, SplitThenMerge)
+2. **Configuration**: Provides content and timing (SkillDemoConfig)
+3. **Components**: Reusable UI elements (LiveFolderTree, LevelBadge, CodePreview)
+
+This architecture allows creating demos for any skill by providing a configuration matching the SkillDemoConfig interface.
+
+---
+
+## SkillDemoConfig Interface
+
+Base configuration shared across all templates:
+
+```typescript
+interface SkillDemoConfig {
+  // Skill metadata
+  skillName: string;           // e.g., "explore", "commit", "debug"
+  skillCommand: string;        // e.g., "/ork:explore"
+  hook: string;                // Attention-grabbing opening (5-7 words)
+  primaryColor: string;        // Hex color for branding
+
+  // Timeline structure
+  phases: Phase[];             // Array of execution phases
+
+  // Template-specific content
+  simple: LevelConfig;         // Beginner level
+  medium: LevelConfig;         // Intermediate level
+  advanced: LevelConfig;       // Advanced level
+
+  // Summary display
+  summaryTitle: string;        // e.g., "📊 RESULTS"
+  summaryTagline: string;      // e.g., "Explore any skill instantly"
+
+  // Optional overrides
+  duration?: number;           // Total video duration in seconds
+  fps?: number;                // Frames per second
+}
+
+interface Phase {
+  name: string;                // Full name: "Analyze", "Load References"
+  shortName: string;           // Abbreviation: "Analyze", "Refs"
+  duration?: number;           // Duration in frames for this phase
+}
+
+interface LevelConfig {
+  name: string;                // "Simple", "Medium", "Advanced"
+  description: string;         // Short description of complexity level
+  inputCount: number;          // Number of inputs/commands required
+  files: FileEntry[];          // Files created during execution
+  references: ReferenceEntry[]; // Patterns loaded
+  claudeResponse: string[];    // Multi-line AI response
+  completionTime: string;      // Display duration: "8s", "12s"
+  metrics: Record<string, string>; // Custom metrics
+}
+
+interface FileEntry {
+  name: string;                // Path: "src/components/Button.tsx"
+  status: "pending" | "in-progress" | "completed";
+  lines: number;               // Lines of code
+  language?: string;           // For syntax highlighting
+}
+
+interface ReferenceEntry {
+  name: string;                // Pattern name: "cursor-pagination"
+  status: "pending" | "loading" | "loaded";
+  category: string;            // Category: "core", "api", "performance"
+}
+```
+
+---
+
+## Template: TriTerminalRace
+
+**Use when**: Showcasing the same skill at different complexity levels simultaneously.
+
+### Architecture
+
+```
+┌─────────────────────────────────────────────┐
+│           HOOK (0-2s)                       │
+│    "Explore any skill with one command"     │
+├─────┬─────────────────┬──────────────────────┤
+│ 🟢  │ 🟡              │ 🟣                   │
+│ SIM │ MED             │ ADV                  │
+├─────┼─────────────────┼──────────────────────┤
+│ S1  │ S2              │ S3                   │
+│ 50% │ 50% [progress]  │ 30% [progress]      │
+├─────┴─────────────────┴──────────────────────┤
+│           SUMMARY (17-20s)                  │
+│    ┌─────┐  ┌─────┐  ┌─────┐                │
+│    │ 8s  │  │ 12s │  │ 15s │                │
+│    └─────┘  └─────┘  └─────┘                │
+└─────────────────────────────────────────────┘
+```
+
+### Configuration Example
+
+```typescript
+export const exploreSkillConfig: SkillDemoConfig = {
+  skillName: "explore",
+  skillCommand: "/ork:explore",
+  hook: "Explore any skill instantly",
+  primaryColor: "#8b5cf6",
+
+  phases: [
+    { name: "Load", shortName: "Load" },
+    { name: "Parse", shortName: "Parse" },
+    { name: "Display", shortName: "Show" },
+  ],
+
+  simple: {
+    name: "Simple",
+    description: "Single skill",
+    inputCount: 1,
+    files: [
+      { name: "skill-output.md", status: "completed", lines: 42 },
+    ],
+    references: [
+      { name: "skill-parser", status: "loaded", category: "core" },
+    ],
+    claudeResponse: [
+      "I've loaded the Explore skill with:",
+      "• Full skill metadata",
+      "• All references and dependencies",
+      "• Formatted for readability",
+    ],
+    completionTime: "8s",
+    metrics: { "Refs Loaded": "3", "Lines": "42" },
+  },
+
+  medium: {
+    name: "Medium",
+    description: "Multiple skills + agent context",
+    inputCount: 3,
+    files: [
+      { name: "skill-output.md", status: "completed", lines: 85 },
+      { name: "agent-context.json", status: "completed", lines: 120 },
+    ],
+    references: [
+      { name: "skill-parser", status: "loaded", category: "core" },
+      { name: "agent-resolver", status: "loaded", category: "context" },
+      { name: "markdown-renderer", status: "loaded", category: "formatting" },
+    ],
+    claudeResponse: [
+      "Exploring skills with agent context:",
+      "• 5 related agents identified",
+      "• Cross-referenced patterns loaded",
+      "• Context-aware display",
+    ],
+    completionTime: "12s",
+    metrics: { "Refs Loaded": "9", "Lines": "205", "Agents": "5" },
+  },
+
+  advanced: {
+    name: "Advanced",
+    description: "Full ecosystem with analytics",
+    inputCount: 5,
+    files: [
+      { name: "skill-graph.json", status: "completed", lines: 340 },
+      { name: "ecosystem-analysis.json", status: "completed", lines: 210 },
+      { name: "recommendations.md", status: "completed", lines: 125 },
+    ],
+    references: [
+      { name: "skill-parser", status: "loaded", category: "core" },
+      { name: "graph-analyzer", status: "loaded", category: "analysis" },
+      { name: "agent-resolver", status: "loaded", category: "context" },
+      { name: "ecosystem-mapper", status: "loaded", category: "discovery" },
+      { name: "markdown-renderer", status: "loaded", category: "formatting" },
+    ],
+    claudeResponse: [
+      "Full ecosystem analysis complete:",
+      "• 12 related skills discovered",
+      "• 8 agent touchpoints mapped",
+      "• Dependency graph generated",
+      "• AI-powered recommendations provided",
+    ],
+    completionTime: "15s",
+    metrics: {
+      "Refs Loaded": "15",
+      "Lines": "675",
+      "Agents": "8",
+      "Skills": "12",
+    },
+  },
+
+  summaryTitle: "📊 RESULTS",
+  summaryTagline: "Explore any skill instantly with context",
+};
+```
+
+### Registration in Remotion
+
+```typescript
+import { TriTerminalRace, triTerminalRaceSchema } from "./components/TriTerminalRace";
+import { exploreSkillConfig } from "./components/configs/explore-demo";
+
+<Composition
+  id="ExploreTriRace"
+  component={TriTerminalRace}
+  durationInFrames={30 * 20}  // 20 seconds at 30fps
+  fps={30}
+  width={1920}
+  height={1080}
+  schema={triTerminalRaceSchema}
+  defaultProps={exploreSkillConfig}
+/>
+```
+
+### Key Components Used
+
+- **LiveFolderTree**: Animates file structure as files are "created"
+- **LevelBadge**: Color-coded left sidebar (🟢/🟡/🟣)
+- **SkillReferences**: Animated reference loading indicators
+- **ProgressPhases**: Phase progress indicators with completion percentage
+- **ClaudeResponse**: Typewriter-effect AI response text
+- **CodePreview**: Syntax-highlighted code snippets
+
+### Customization Points
+
+```typescript
+// Adjust racing speed ratios
+const simpleProgress = Math.min(100, raceProgress * 1.3);  // Faster
+const mediumProgress = Math.min(100, raceProgress * 1.0);  // Normal
+const advancedProgress = Math.min(100, raceProgress * 0.7); // Slower
+
+// Change color palette
+const LEVEL_COLORS = {
+  simple: "#22c55e",    // Green
+  medium: "#f59e0b",    // Amber
+  advanced: "#8b5cf6",  // Purple
+};
+
+// Adjust panel spacing
+const PANEL_WIDTH = 600;
+const PANEL_GAP = 30;
+```
+
+---
+
+## Template: ProgressiveZoom
+
+**Use when**: Stepping through code or concepts with progressive revelation.
+
+### Architecture
+
+```
+┌──────────────────────────────────────────────┐
+│        HOOK + CODE OVERVIEW (0-2s)           │
+│    ┌────────────────────────────────────┐    │
+│    │  src/api/auth.ts                   │    │
+│    │  12 lines, 3 key sections         │    │
+│    └────────────────────────────────────┘    │
+├──────────────────────────────────────────────┤
+│    PHASE 1: ZOOM TO SECTION (2-8s)           │
+│    ┌────────────────────────────────────┐    │
+│    │  function validateToken() {        │    │
+│    │  ▶ jwt.verify(token)               │    │
+│    │    ├─ Signature check              │    │
+│    │    └─ Expiry validation            │    │
+│    └────────────────────────────────────┘    │
+├──────────────────────────────────────────────┤
+│    PHASE 2: ZOOM TO SECTION (8-15s)          │
+│    [next section with annotations]           │
+├──────────────────────────────────────────────┤
+│           TIMELINE + SUMMARY (15-20s)        │
+│    ✓ Validation  ✓ Error Handling  ✓ Export │
+└──────────────────────────────────────────────┘
+```
+
+### Configuration Example
+
+```typescript
+export const authApiProgressiveZoomConfig: SkillDemoConfig = {
+  skillName: "auth-api",
+  skillCommand: "/ork:code-walkthrough",
+  hook: "JWT validation pattern explained",
+  primaryColor: "#06b6d4",
+
+  phases: [
+    { name: "Token Extraction", shortName: "Extract" },
+    { name: "Signature Validation", shortName: "Verify" },
+    { name: "Expiry Check", shortName: "Expiry" },
+    { name: "Error Handling", shortName: "Errors" },
+  ],
+
+  simple: {
+    name: "Basic",
+    description: "Core validation only",
+    inputCount: 1,
+    files: [
+      { name: "src/auth/validate.ts", status: "completed", lines: 15, language: "typescript" },
+    ],
+    references: [
+      { name: "jsonwebtoken", status: "loaded", category: "library" },
+    ],
+    claudeResponse: [
+      "Basic JWT validation:",
+      "• Extract token from headers",
+      "• Verify with secret key",
+      "• Return user data",
+    ],
+    completionTime: "6s",
+    metrics: { "Sections": "1", "Lines": "15" },
+  },
+
+  medium: {
+    name: "Production",
+    description: "With error handling",
+    inputCount: 3,
+    files: [
+      { name: "src/auth/validate.ts", status: "completed", lines: 35, language: "typescript" },
+      { name: "src/auth/errors.ts", status: "completed", lines: 20, language: "typescript" },
+    ],
+    references: [
+      { name: "jsonwebtoken", status: "loaded", category: "library" },
+      { name: "error-handling-rfc9457", status: "loaded", category: "patterns" },
+    ],
+    claudeResponse: [
+      "Production-ready validation:",
+      "• Extract from Authorization header",
+      "• Verify signature and expiry",
+      "• Handle 5 error cases",
+      "• Return structured errors",
+    ],
+    completionTime: "12s",
+    metrics: { "Sections": "3", "Lines": "55", "Errors": "5" },
+  },
+
+  advanced: {
+    name: "Enterprise",
+    description: "Multi-tenant with caching",
+    inputCount: 5,
+    files: [
+      { name: "src/auth/validate.ts", status: "completed", lines: 65, language: "typescript" },
+      { name: "src/auth/cache.ts", status: "completed", lines: 40, language: "typescript" },
+      { name: "src/auth/revocation.ts", status: "completed", lines: 30, language: "typescript" },
+    ],
+    references: [
+      { name: "jsonwebtoken", status: "loaded", category: "library" },
+      { name: "redis-patterns", status: "loaded", category: "caching" },
+      { name: "error-handling-rfc9457", status: "loaded", category: "patterns" },
+      { name: "multi-tenancy", status: "loaded", category: "architecture" },
+    ],
+    claudeResponse: [
+      "Enterprise JWT validation:",
+      "• Multi-tenant token validation",
+      "• Redis-backed revocation list",
+      "• Signature + expiry + revocation checks",
+      "• Structured error responses",
+      "• Performance metrics collection",
+    ],
+    completionTime: "18s",
+    metrics: { "Sections": "5", "Lines": "135", "Errors": "8", "Caching": "Redis" },
+  },
+
+  summaryTitle: "🔐 JWT VALIDATION",
+  summaryTagline: "From basic to enterprise-ready",
+};
+```
+
+### Key Components Used
+
+- **CodePreview**: Full code display with line highlighting
+- **Highlights**: Zoom targets and annotations
+- **TimelineBar**: Phase progression timeline
+- **Annotations**: Contextual callouts on code sections
+- **CaptionOverlay**: Phase descriptions
+
+### Animation Timing
+
+```typescript
+// Zoom curve: ease in/out for smooth transitions
+const zoom = Easing.bezier(0.25, 0.1, 0.25, 1)(zoomProgress);
+
+// Annotation fade in/out
+const annotationOpacity = interpolate(
+  frame,
+  [phaseStart, phaseStart + 10, phaseEnd - 10, phaseEnd],
+  [0, 1, 1, 0],
+  { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
+);
+```
+
+---
+
+## Template: SplitThenMerge
+
+**Use when**: Showing transformation or before/after comparison.
+
+### Architecture
+
+```
+┌──────────────────────────────────────────────┐
+│             HOOK (0-2s)                      │
+│    "Stop wasting time on repetitive tasks"   │
+├─────────────────┬──────────────────────────┤
+│                 │                          │
+│     WITHOUT     │      WITH {SKILL}        │
+│  SKILL          │                          │
+│                 │                          │
+│  Manual steps   │  Automated execution     │
+│  120s ⏱️         │  8s ⚡                   │
+│  Error-prone    │  Guaranteed consistency  │
+│  Context lost   │  Full context preserved │
+│                 │                          │
+│  ✗ Slow         │  ✓ Fast                  │
+│  ✗ Error-prone  │  ✓ Reliable              │
+│  ✗ Tedious      │  ✓ Delightful            │
+│                 │                          │
+├─────────────────┴──────────────────────────┤
+│  MERGE → UNIFIED VIEW (10-15s)              │
+│    ┌───────────────────────────────────┐    │
+│    │  Result: Enhanced workflow       │    │
+│    │  Time: 92s saved per task        │    │
+│    │  Quality: 100% consistency       │    │
+│    │  Impact: 15 hours/week recovered │    │
+│    └───────────────────────────────────┘    │
+└──────────────────────────────────────────────┘
+```
+
+### Configuration Example
+
+```typescript
+export const buildOptimizationConfig: SkillDemoConfig = {
+  skillName: "build-optimizer",
+  skillCommand: "/ork:build-optimizer",
+  hook: "Turn 2-minute builds into 15 seconds",
+  primaryColor: "#22c55e",
+
+  phases: [
+    { name: "Analyze", shortName: "Analyze" },
+    { name: "Optimize", shortName: "Optimize" },
+    { name: "Build", shortName: "Build" },
+  ],
+
+  simple: {
+    name: "Without Optimization",
+    description: "Standard build process",
+    inputCount: 1,
+    files: [
+      { name: "dist/bundle.js", status: "completed", lines: 250000 },
+    ],
+    references: [],
+    claudeResponse: [
+      "Building with standard webpack config...",
+      "Processing 1,200 modules...",
+      "Waiting for optimization...",
+    ],
+    completionTime: "120s",
+    metrics: { "Build Time": "120s", "Bundle Size": "2.5 MB", "Chunks": "8" },
+  },
+
+  medium: {
+    name: "With Optimization",
+    description: "Optimized build process",
+    inputCount: 3,
+    files: [
+      { name: "dist/bundle.js", status: "completed", lines: 85000 },
+      { name: "dist/vendor.js", status: "completed", lines: 120000 },
+    ],
+    references: [
+      { name: "webpack-optimization", status: "loaded", category: "tooling" },
+    ],
+    claudeResponse: [
+      "Analyzing dependencies...",
+      "Applying code splitting...",
+      "Minifying & compressing...",
+      "Optimized bundle ready",
+    ],
+    completionTime: "45s",
+    metrics: { "Build Time": "45s", "Bundle Size": "1.2 MB", "Chunks": "3" },
+  },
+
+  advanced: {
+    name: "Advanced Optimization",
+    description: "Production-ready optimizations",
+    inputCount: 5,
+    files: [
+      { name: "dist/main.js", status: "completed", lines: 45000 },
+      { name: "dist/vendor.js", status: "completed", lines: 95000 },
+      { name: "dist/async-routes.js", status: "completed", lines: 25000 },
+    ],
+    references: [
+      { name: "webpack-optimization", status: "loaded", category: "tooling" },
+      { name: "dynamic-imports", status: "loaded", category: "patterns" },
+      { name: "cache-busting", status: "loaded", category: "deployment" },
+    ],
+    claudeResponse: [
+      "Advanced optimization pipeline:",
+      "• Tree-shaking unused code",
+      "• Dynamic imports for routes",
+      "• Service worker caching",
+      "• Image optimization",
+      "• Ready for production",
+    ],
+    completionTime: "15s",
+    metrics: {
+      "Build Time": "15s",
+      "Bundle Size": "650 KB",
+      "Chunks": "4",
+      "Gzip": "185 KB",
+    },
+  },
+
+  summaryTitle: "⚡ PERFORMANCE GAINS",
+  summaryTagline: "From 120s to 15s: 8x speedup",
+};
+```
+
+### Key Components Used
+
+- **SplitScreen**: Side-by-side comparison layout
+- **MergeTransition**: Dramatic merge animation
+- **ContrastHighlight**: Emphasize differences
+- **ImpactMetrics**: Show key improvements
+- **BeforeAfterSnapshots**: Visual state comparison
+
+### Merge Animation
+
+```typescript
+// Smooth merge from split to unified
+const mergeProgress = interpolate(
+  frame,
+  [splitEnd, mergeStart, mergeEnd],
+  [0, 0, 1],
+  { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
+);
+
+const leftPanelX = interpolate(mergeProgress, [0, 1], [-960, 0]);
+const rightPanelX = interpolate(mergeProgress, [0, 1], [960, 0]);
+```
+
+---
+
+## Template: ScrapbookDemo
+
+**Use when**: Creating product showcases, brand videos, or social proof compilations with a warm, editorial aesthetic.
+
+### Architecture
+
+```
+┌──────────────────────────────────────────────┐
+│        TITLE STAMP (0-3s)                    │
+│    "OrchestKit"                              │
+│    61 skills. 36 agents. One plugin.         │
+├──────────────────────────────────────────────┤
+│    SOCIAL PROOF CARDS (3-7.5s)               │
+│    ┌─────────┐  ┌─────────┐  ┌─────────┐   │
+│    │ @sarah  │  │ @marcus │  │ @priya  │   │
+│    │ "..."   │  │ "..."   │  │ "..."   │   │
+│    └─────────┘  └─────────┘  └─────────┘   │
+├──────────────────────────────────────────────┤
+│    TERMINAL CAPTURE (7.5-11.5s)              │
+│    ┌────────────────────────────┐            │
+│    │  $ /ork:implement ...     │ ← tilted   │
+│    │  ✓ Created 3 files        │   frame    │
+│    └────────────────────────────┘            │
+├──────────────────────────────────────────────┤
+│    STATS REVEAL (11.5-13.5s)                 │
+│        197        36        111              │
+│       skills    agents     hooks             │
+├──────────────────────────────────────────────┤
+│    CTA (13.5-17s)                            │
+│    Get started                               │
+│    ┌─/plugin install ork─┐                   │
+│    └─────────────────────┘                   │
+└──────────────────────────────────────────────┘
+```
+
+### Props Interface
+
+```typescript
+interface ScrapbookDemoProps {
+  title: string;           // Hero text (e.g., "OrchestKit")
+  tagline: string;         // Subtitle
+  socialCards: Array<{     // 2-4 social proof quotes
+    author: string;
+    text: string;
+    handle?: string;
+  }>;
+  terminalContent?: string; // Terminal output as multi-line string
+  stats: {
+    skills: number;
+    agents: number;
+    hooks: number;
+  };
+  ctaCommand: string;      // e.g., "/plugin install ork"
+  accentColor?: string;    // Override default teal accent
+}
+```
+
+### Component Breakdown
+
+| Component | Purpose |
+|-----------|---------|
+| `PaperTexture` | Warm cream background with canvas grain and edge shadow |
+| `KineticText` | Bold serif text that "stamps" in with spring overshoot |
+| `SocialCard` | Tweet-style card with avatar, author, quote text |
+| `CollageFrame` | Tilted frame with drop shadow for screenshots |
+| `StatsCounter` | Animated count-up numbers with accent underlines |
+
+### Style Constants
+
+- **Background**: `#F0F0E8` (warm paper cream), NOT dark
+- **Typography**: Georgia serif for headlines, Inter sans for data
+- **Animation**: 150ms transitions, 50ms stagger, spring overshoot
+- **Grain**: 4% opacity warm-toned noise
+- **Vignette**: 30% intensity warm edge darkening
+
+### Variants
+
+- `ScrapbookDemo` — 1920x1080 landscape (16:9)
+- `ScrapbookDemoSquare` — 1080x1080 square (1:1), fewer social cards
+
+---
+
+## Creating a Configuration for Any Skill
+
+### Step 1: Gather Skill Information
+
+```typescript
+const skillName = "my-skill";
+const skillCommand = "/ork:my-skill";
+
+// Read from SKILL.md frontmatter
+const description = "What this skill does";
+const tags = ["tag1", "tag2"];
+
+// Choose a brand color
+const primaryColor = "#8b5cf6"; // Or use agent color palette
+```
+
+### Step 2: Define Phases
+
+List the main execution phases visible in the demo:
+
+```typescript
+const phases = [
+  { name: "Load Context", shortName: "Load" },
+  { name: "Analyze Input", shortName: "Analyze" },
+  { name: "Generate Output", shortName: "Generate" },
+  { name: "Format Results", shortName: "Format" },
+];
+```
+
+### Step 3: Create Simple Level
+
+Minimal use case that completes quickly:
+
+```typescript
+simple: {
+  name: "Simple",
+  description: "Basic use case",
+  inputCount: 1,
+  files: [
+    { name: "output.txt", status: "completed", lines: 20 },
+  ],
+  references: [
+    { name: "core-pattern", status: "loaded", category: "core" },
+  ],
+  claudeResponse: [
+    "Simple execution:",
+    "• Loaded core pattern",
+    "• Generated basic output",
+  ],
+  completionTime: "5s",
+  metrics: { "Items": "1", "Lines": "20" },
+},
+```
+
+### Step 4: Create Medium Level
+
+Standard production use case:
+
+```typescript
+medium: {
+  name: "Medium",
+  description: "Standard use case",
+  inputCount: 3,
+  files: [
+    { name: "output.json", status: "completed", lines: 80 },
+    { name: "report.md", status: "completed", lines: 45 },
+  ],
+  references: [
+    { name: "core-pattern", status: "loaded", category: "core" },
+    { name: "formatting", status: "loaded", category: "output" },
+  ],
+  claudeResponse: [
+    "Standard workflow:",
+    "• Processed 3 inputs",
+    "• Applied patterns",
+    "• Generated formatted output",
+  ],
+  completionTime: "10s",
+  metrics: { "Items": "3", "Lines": "125", "Formats": "2" },
+},
+```
+
+### Step 5: Create Advanced Level
+
+Complex, full-featured execution:
+
+```typescript
+advanced: {
+  name: "Advanced",
+  description: "Full ecosystem with analysis",
+  inputCount: 8,
+  files: [
+    { name: "analysis.json", status: "completed", lines: 250 },
+    { name: "recommendations.md", status: "completed", lines: 120 },
+    { name: "metrics.csv", status: "completed", lines: 45 },
+  ],
+  references: [
+    { name: "core-pattern", status: "loaded", category: "core" },
+    { name: "analysis-engine", status: "loaded", category: "analysis" },
+    { name: "formatting", status: "loaded", category: "output" },
+    { name: "visualization", status: "loaded", category: "display" },
+  ],
+  claudeResponse: [
+    "Advanced analysis complete:",
+    "• Processed 8 complex inputs",
+    "• Applied deep analysis",
+    "• Generated insights",
+    "• Created visualizations",
+  ],
+  completionTime: "18s",
+  metrics: {
+    "Items": "8",
+    "Lines": "415",
+    "Formats": "3",
+    "Insights": "12",
+  },
+},
+```
+
+### Step 6: Add Summary
+
+Create compelling summary messaging:
+
+```typescript
+summaryTitle: "📊 ANALYSIS COMPLETE",
+summaryTagline: "From simple to advanced in one command",
+```
+
+### Step 7: Register in Remotion
+
+```typescript
+import { TriTerminalRace } from "./components/TriTerminalRace";
+import { mySkillConfig } from "./components/configs/my-skill";
+
+<Composition
+  id="MySkillDemo"
+  component={TriTerminalRace}
+  durationInFrames={30 * 20}
+  fps={30}
+  width={1920}
+  height={1080}
+  defaultProps={mySkillConfig}
+/>
+```
+
+---
+
+## Shared Component Library
+
+All templates use these reusable components:
+
+| Component | File | Purpose |
+|-----------|------|---------|
+| `LiveFolderTree` | `shared/LiveFolderTree.tsx` | Animated file tree with progress |
+| `LevelBadge` | `shared/LevelBadge.tsx` | Difficulty level indicator |
+| `SkillReferences` | `shared/SkillReferences.tsx` | Reference loading animation |
+| `ProgressPhases` | `shared/ProgressPhases.tsx` | Phase completion tracking |
+| `ClaudeResponse` | `shared/ClaudeResponse.tsx` | Typewriter effect text |
+| `CodePreview` | `shared/CodePreview.tsx` | Syntax-highlighted code |
+| `CompactProgressBar` | `shared/ProgressPhases.tsx` | Footer progress indicator |
+
+### Component Props Pattern
+
+All components follow this pattern for consistency:
+
+```typescript
+interface ComponentProps {
+  frame: number;              // Current animation frame
+  fps: number;                // Frames per second
+  primaryColor?: string;      // Brand color
+  theme?: "dark" | "light";   // Visual theme
+}
+```
+
+---
+
+## Best Practices
+
+### Configuration Design
+
+1. **Use realistic metrics** - Show actual numbers from real runs
+2. **Progressive complexity** - Each level should be notably more complex
+3. **Concise Claude responses** - 2-4 lines max, action → result
+4. **Matching file counts** - Simple (1-2), Medium (2-3), Advanced (3-5)
+5. **Consistent reference categories** - Use: core, patterns, analysis, tooling, output
+
+### Timing Guidelines
+
+| Level | Typical Duration |
+|-------|------------------|
+| Simple | 5-8 seconds |
+| Medium | 10-14 seconds |
+| Advanced | 15-20 seconds |
+
+### Hook Formulas
+
+```
+[Verb] [noun] in [time frame]
+→ "Create docs in 30 seconds"
+
+[Number] [benefit] with [action]
+→ "8x faster builds with code splitting"
+
+Stop [pain point]
+→ "Stop waiting for optimizations"
+
+From [bad] to [good] with [tool]
+→ "From manual to automated with one command"
+```
+
+---
+
+## Rendering
+
+### Single Template
+
+```bash
+remotion render Root MySkillDemo out/my-skill-demo.mp4
+```
+
+### All Formats
+
+```bash
+remotion render Root MySkillDemo out/horizontal.mp4 --props='{"format":"horizontal"}'
+remotion render Root MySkillDemo out/vertical.mp4 --props='{"format":"vertical"}'
+remotion render Root MySkillDemo out/square.mp4 --props='{"format":"square"}'
+```
+
+### With Custom Props
+
+```bash
+remotion render Root MySkillDemo out/custom.mp4 \
+  --props='{"hook":"Custom hook text","primaryColor":"#ff00ff"}'
+```
+
+---
+
+## Related Skills
+
+- `demo-producer` - Main skill for orchestrating demo creation
+- `video-production` - Recording, composition, audio, and visual effects for demos
+

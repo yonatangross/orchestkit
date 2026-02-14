@@ -5,6 +5,8 @@ description: "Creates commits with conventional format and validation. Use when 
 
 <span className="badge badge-blue">Command</span> <span className="badge badge-green">low</span>
 
+**Primary Agent:** [git-operations-engineer](/docs/reference/agents/git-operations-engineer)
+
 ## Related Skills
 
 - [git-recovery](/docs/reference/skills/git-recovery)
@@ -130,3 +132,452 @@ Each category has individual rule files in `rules/` loaded on-demand:
 
 - [Conventional Commits](references/conventional-commits.md)
 - [Recovery](references/recovery.md)
+
+---
+
+## Rules (3)
+
+### Atomic Commit Rules — CRITICAL
+
+
+## Atomic Commit Rules
+
+A commit is atomic when it contains exactly ONE logical change that can be understood, reviewed, and reverted independently.
+
+### The Atomicity Test
+
+A commit is atomic if ALL of these are true:
+
+```
+[x] Does ONE logical thing
+[x] Leaves the codebase in a working state (tests pass)
+[x] Commit message doesn't need "and" in the title
+[x] Can be reverted independently without breaking other features
+[x] A reviewer can understand the full change without external context
+```
+
+### Detection Heuristics
+
+**Directory Spread** — Changes spanning unrelated directories signal mixed concerns:
+
+```
+# ATOMIC: Related files in same domain
+src/auth/login.ts
+src/auth/login.test.ts
+src/auth/types.ts
+
+# NOT ATOMIC: Unrelated directories
+src/auth/login.ts        ← auth feature
+src/billing/invoice.ts   ← billing feature
+config/webpack.config.js ← build config
+```
+
+**Commit Type Mixing** — A single commit shouldn't mix types:
+
+```
+# NOT ATOMIC: feat + fix in one commit
+feat: Add user dashboard
+fix: Resolve login timeout     ← separate commit
+
+# NOT ATOMIC: feat + chore in one commit
+feat: Add API caching
+chore: Update eslint config     ← separate commit
+```
+
+**File Count Threshold** — More than 10 staged files warrants inspection. Not always wrong, but should be verified:
+
+```
+# OK: 15 files, all test fixtures for one feature
+tests/fixtures/user-*.json (15 files)
+
+# NOT OK: 12 files across 6 unrelated modules
+```
+
+**"And" Test** — If describing the commit requires "and", it's two commits:
+
+```
+# Fails "and" test → split it
+"Add user authentication AND fix logging format"
+
+# Passes "and" test → atomic
+"Add JWT token validation for login endpoint"
+```
+
+### Common Atomic Patterns
+
+| Pattern | Files | Why Atomic |
+|---------|-------|------------|
+| Feature + its tests | `feature.ts` + `feature.test.ts` | Tests validate the feature |
+| Migration + model update | `migration.sql` + `model.ts` | Schema change is one concern |
+| Refactor across files | Multiple files, same pattern | One refactoring decision |
+| Config change | `.env.example` + `config.ts` | One configuration concern |
+| Dependency update | `package.json` + `package-lock.json` | One dependency decision |
+
+### Common Non-Atomic Patterns
+
+| Pattern | Problem | Fix |
+|---------|---------|-----|
+| Feature + unrelated fix | Two concerns | Two separate commits |
+| Code change + formatting | Formatting is noise | Format first, then change |
+| Multiple features | Can't revert independently | One commit per feature |
+| Feature + config change | Different review concerns | Separate unless config IS the feature |
+
+### Key Rules
+
+- One logical change per commit — if you say "and", split it
+- Tests belong with the code they test — same commit
+- Formatting/linting changes are separate commits
+- Database migrations go with the code that uses them
+- Never mix feature work with unrelated refactoring
+
+
+### Commit Splitting Strategies — HIGH
+
+
+## Commit Splitting Strategies
+
+When you have mixed changes in your working directory, use these strategies to create atomic commits.
+
+### Strategy 1: Interactive Staging (`git add -p`)
+
+Stage changes hunk-by-hunk to separate concerns:
+
+```bash
+# Stage changes interactively
+git add -p
+
+# Options at each hunk:
+# y - stage this hunk
+# n - skip this hunk
+# s - split into smaller hunks (if hunk has gaps)
+# e - manually edit the hunk boundaries
+# q - quit, leave remaining unstaged
+
+# Review what's staged vs unstaged
+git diff --staged    # Will be committed
+git diff             # Won't be committed
+
+# Commit the staged portion
+git commit -m "feat(#123): Add user validation"
+
+# Repeat for next logical change
+git add -p
+git commit -m "fix(#456): Resolve timeout in auth"
+```
+
+### Strategy 2: File-Based Splitting
+
+When changes are in separate files, stage by file:
+
+```bash
+# Stage only auth-related files
+git add src/auth/login.ts src/auth/login.test.ts
+git commit -m "feat(#123): Add login validation"
+
+# Stage only billing-related files
+git add src/billing/invoice.ts src/billing/invoice.test.ts
+git commit -m "feat(#124): Add invoice generation"
+```
+
+### Strategy 3: Stash-Based Splitting
+
+For complex mixed changes, use stash to isolate:
+
+```bash
+# Stash everything
+git stash
+
+# Apply and stage only what you need
+git stash pop
+git add -p  # Stage only feature A
+git stash   # Re-stash the rest
+git commit -m "feat: Feature A"
+
+# Recover remaining changes
+git stash pop
+git add -p  # Stage feature B
+git commit -m "feat: Feature B"
+```
+
+### Strategy 4: Pre-Commit Formatting Split
+
+Always format BEFORE making logical changes:
+
+```bash
+# Step 1: Format first (separate commit)
+npx prettier --write src/
+git add -A
+git commit -m "style: Format files with prettier"
+
+# Step 2: Now make your logical changes
+# ... edit files ...
+git add -p
+git commit -m "feat(#123): Add user dashboard"
+```
+
+### When to Split
+
+| Signal | Action |
+|--------|--------|
+| `git diff --staged` shows > 10 files | Review if all related |
+| Commit message needs "and" | Split into separate commits |
+| Changes span > 3 unrelated directories | Split by directory/concern |
+| Mix of feat + fix + chore | One commit per type |
+| Formatting mixed with logic changes | Format first, then logic |
+
+### Key Rules
+
+- Use `git add -p` as the default — stage interactively, not `git add .`
+- Format changes always go in their own commit
+- Test files go with the code they test, not in separate commits
+- When in doubt, split — smaller commits are always safer
+- Each commit should pass tests independently
+
+
+### Conventional Commit Format — HIGH
+
+
+## Conventional Commit Format
+
+All commits must follow the Conventional Commits specification for automated tooling.
+
+### Format
+
+```
+<type>(<scope>): <description>
+
+[optional body]
+
+[optional footer]
+Co-Authored-By: Claude <noreply@anthropic.com>
+```
+
+### Types
+
+| Type | When | Bumps |
+|------|------|-------|
+| `feat` | New feature or capability | MINOR |
+| `fix` | Bug fix | PATCH |
+| `refactor` | Code restructuring, no behavior change | — |
+| `docs` | Documentation only | — |
+| `test` | Adding or fixing tests | — |
+| `chore` | Build, deps, CI, tooling | — |
+| `style` | Formatting, whitespace, semicolons | — |
+| `perf` | Performance improvement | PATCH |
+| `ci` | CI/CD configuration | — |
+| `build` | Build system changes | — |
+
+### Scope
+
+Optional, identifies the area of change:
+
+```bash
+# Issue reference (preferred)
+feat(#123): Add user authentication
+
+# Module name
+fix(auth): Resolve token expiration
+
+# No scope (acceptable for small changes)
+chore: Update dependencies
+```
+
+### Breaking Changes
+
+Use `!` after type/scope OR `BREAKING CHANGE:` footer:
+
+```bash
+# With ! marker (bumps MAJOR)
+feat(api)!: Change authentication endpoint structure
+
+# With footer
+feat(api): Change auth endpoints
+
+BREAKING CHANGE: /api/auth/login now requires email instead of username
+```
+
+### Title Rules
+
+```
+[x] Imperative mood ("Add feature" not "Added feature")
+[x] No period at end
+[x] < 72 characters (< 50 preferred)
+[x] Lowercase after colon
+[x] Meaningful — describes WHY, not just WHAT
+```
+
+**Incorrect:**
+```
+Fixed the bug.                          # Past tense, period, no type
+feat: stuff                             # Vague
+feat: Add user authentication and fix billing  # Two concerns
+FEAT: Add Auth                          # Uppercase
+```
+
+**Correct:**
+```
+feat(#123): Add JWT token validation for login
+fix(#456): Resolve race condition in payment processing
+refactor: Extract database connection pool to shared module
+```
+
+### Body (Optional)
+
+Use for context that doesn't fit in the title:
+
+```bash
+git commit -m "$(cat <<'EOF'
+feat(#123): Add rate limiting to API endpoints
+
+Applied token bucket algorithm with 100 req/min per user.
+Redis-backed for distributed deployments.
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+EOF
+)"
+```
+
+### Key Rules
+
+- Type is mandatory — no untyped commits
+- Scope with issue number when available (`#123`)
+- Title &lt; 72 chars, imperative mood, no period
+- One type per commit — if you need `feat` AND `fix`, make two commits
+- Always include `Co-Authored-By` when Claude assists
+- Breaking changes must use `!` or `BREAKING CHANGE:` footer
+
+
+
+---
+
+## References (2)
+
+### Conventional Commits
+
+# Conventional Commits
+
+## Format
+
+```
+<type>(<scope>): <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+## Types
+
+| Type | Description | Bumps |
+|------|-------------|-------|
+| `feat` | New feature for users | MINOR |
+| `fix` | Bug fix for users | PATCH |
+| `docs` | Documentation only | - |
+| `style` | Formatting, no code change | - |
+| `refactor` | Code change, no feature/fix | - |
+| `perf` | Performance improvement | PATCH |
+| `test` | Adding/fixing tests | - |
+| `chore` | Build process, deps | - |
+| `ci` | CI configuration | - |
+| `revert` | Revert previous commit | - |
+
+## Breaking Changes
+
+Add `!` after type or `BREAKING CHANGE:` in footer:
+
+```
+feat!: drop support for Node 14
+
+BREAKING CHANGE: Node 14 is no longer supported
+```
+
+## Scope Examples
+
+- `feat(auth): add OAuth2 support`
+- `fix(api): handle null response`
+- `docs(readme): update install steps`
+- `refactor(core): extract helper functions`
+
+## Good Examples
+
+```
+feat(#123): add user profile page
+
+- Create ProfilePage component
+- Add profile API endpoint
+- Include unit tests
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+```
+
+```
+fix(#456): prevent XSS in comment display
+
+Sanitize HTML in user comments before rendering.
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+```
+
+### Recovery
+
+# Git Recovery
+
+## Committed to Wrong Branch
+
+```bash
+# Save work to new branch
+git checkout -b issue/<number>-<description>
+
+# Reset original branch
+git checkout dev
+git reset --hard origin/dev
+
+# Return to feature branch
+git checkout issue/<number>-<description>
+```
+
+## Undo Last Commit (Keep Changes)
+
+```bash
+git reset --soft HEAD~1
+```
+
+## Undo Last Commit (Discard Changes)
+
+```bash
+git reset --hard HEAD~1
+```
+
+## Amend Last Commit
+
+```bash
+# Fix message only
+git commit --amend -m "new message"
+
+# Add forgotten files
+git add forgotten-file.txt
+git commit --amend --no-edit
+```
+
+## Revert Published Commit
+
+```bash
+git revert <commit-hash>
+git push
+```
+
+## Unstage Files
+
+```bash
+git restore --staged <file>
+```
+
+## Discard Local Changes
+
+```bash
+# Single file
+git restore <file>
+
+# All files
+git restore .
+```

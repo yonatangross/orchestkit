@@ -161,3 +161,1905 @@ Projects v2 uses GraphQL for setting custom fields (Status, Priority, Domain). B
 ## Examples
 
 - [Automation Scripts](examples/automation-scripts.md) - Ready-to-use scripts for bulk operations, PR automation, milestone management
+
+
+---
+
+## Rules (2)
+
+### Linking Issues to Branches and PRs — MEDIUM
+
+
+## Linking Issues to Branches and PRs
+
+Establish bidirectional links between issues, branches, commits, and PRs for full traceability and automatic issue closure.
+
+### Branch Naming Convention
+
+```bash
+# Pattern: {type}/{issue-number}-{description}
+issue/123-implement-feature
+fix/456-resolve-timeout-bug
+feature/789-add-search-api
+
+# Creates automatic link: branch -> issue
+```
+
+### Commit Linking
+
+```bash
+# Reference in commit message
+git commit -m "feat(#123): Add user validation"
+
+# Auto-close keywords (in commit or PR body)
+git commit -m "fix: Resolve timeout (closes #456)"
+git commit -m "feat: Add search (fixes #789)"
+```
+
+### PR Linking
+
+```bash
+# Create PR that auto-closes issue on merge
+gh pr create --title "feat(#123): Add search" \
+  --body "Closes #123
+
+## Changes
+- Added search API endpoint
+- Added search UI component"
+
+# Link existing PR to issue
+gh issue edit 123 --add-label "has-pr"
+```
+
+### PR-Aware Session Resumption
+
+```bash
+# Resume with full PR context (CC 2.1.27+)
+claude --from-pr 42    # Loads PR diff, comments, review status
+```
+
+### Linking Checklist
+
+| Link | How | Automatic? |
+|------|-----|------------|
+| Branch to issue | Branch name `issue/N-*` | Yes (hooks) |
+| Commit to issue | `#N` in commit message | Yes (GitHub) |
+| PR to issue | `Closes #N` in PR body | Yes (GitHub) |
+| Issue to PR | `has-pr` label | Manual or hook |
+
+### Key Rules
+
+- Always start branches with **issue number prefix** for automatic detection
+- Use **`Closes #N`** in PR body for automatic issue closure on merge
+- Include **`#N`** in every commit that relates to an issue
+- Use **conventional commit format** for consistent linking
+- Add **`has-pr` label** to issues when a PR is created
+- Use **`--from-pr`** to resume sessions with full PR context
+
+
+### Automated Issue Progress Updates — HIGH
+
+
+## Automated Issue Progress Updates
+
+Track issue progress automatically through commit detection, sub-task matching, and session summaries. Eliminates manual status updates.
+
+### Three-Hook Pipeline
+
+| Hook | Trigger | Action |
+|------|---------|--------|
+| Commit Detection | Each commit | Extracts issue number, queues for batch comment |
+| Sub-task Updater | Commit message match | Checks off matching `- [ ]` items in issue body |
+| Session Summary | Session end | Posts consolidated progress comment |
+
+### Issue Number Extraction
+
+```bash
+# From branch name (priority)
+issue/123-implement-feature  # Extracts: 123
+fix/456-resolve-bug          # Extracts: 456
+feature/789-add-tests        # Extracts: 789
+
+# From commit message (fallback)
+"feat(#123): Add user validation"     # Extracts: 123
+"fix: Resolve bug (closes #456)"      # Extracts: 456
+```
+
+### Sub-task Auto-Completion
+
+Commit messages are matched against issue checkboxes using normalized text comparison:
+
+```markdown
+# Issue body (before)
+- [ ] Add input validation
+- [ ] Write unit tests
+
+# Commit: "feat(#123): Add input validation"
+
+# Issue body (after)
+- [x] Add input validation
+- [ ] Write unit tests
+```
+
+### Session Summary Format
+
+```markdown
+## Claude Code Progress Update
+
+**Session**: `abc12345...`
+**Branch**: `issue/123-implement-feature`
+
+### Commits (3)
+- `abc1234`: feat(#123): Add input validation
+- `def5678`: test(#123): Add unit tests
+
+### Files Changed
+- `src/validation.ts` (+45, -12)
+- `tests/validation.test.ts` (+89, -0)
+
+### Sub-tasks Completed
+- [x] Add input validation
+- [x] Write unit tests
+```
+
+### Key Rules
+
+- Use **issue-prefixed branches** (`issue/N-`, `fix/N-`, `feature/N-`) for automatic detection
+- Include **`#N`** in commit messages as fallback for issue linking
+- Use **conventional commits** (`feat(#123):`, `fix(#123):`) for reliable matching
+- Match commit message text to **checkbox descriptions** for auto-completion
+- Post **consolidated summaries** at session end, not per-commit
+
+
+
+---
+
+## References (5)
+
+### Graphql Api
+
+# GraphQL API with gh
+
+## Basic GraphQL Query
+
+```bash
+gh api graphql -f query='
+  query {
+    viewer {
+      login
+      name
+    }
+  }
+'
+```
+
+## Variables in Queries
+
+```bash
+gh api graphql \
+  -F owner="org" \
+  -F repo="repo-name" \
+  -f query='
+    query($owner: String!, $repo: String!) {
+      repository(owner: $owner, name: $repo) {
+        issues(first: 10, states: OPEN) {
+          nodes {
+            number
+            title
+          }
+        }
+      }
+    }
+  '
+```
+
+**Note**: Use `-F` for non-string values (numbers, booleans), `-f` for strings.
+
+---
+
+## Common Queries
+
+### Repository Info
+
+```bash
+gh api graphql -f query='
+  query($owner: String!, $repo: String!) {
+    repository(owner: $owner, name: $repo) {
+      name
+      description
+      stargazerCount
+      forkCount
+      issues(states: OPEN) { totalCount }
+      pullRequests(states: OPEN) { totalCount }
+    }
+  }
+' -f owner="org" -f repo="repo-name"
+```
+
+### Issue with Labels and Milestone
+
+```bash
+gh api graphql -f query='
+  query($owner: String!, $repo: String!, $number: Int!) {
+    repository(owner: $owner, name: $repo) {
+      issue(number: $number) {
+        title
+        body
+        state
+        labels(first: 10) {
+          nodes { name color }
+        }
+        milestone {
+          title
+          dueOn
+        }
+        assignees(first: 5) {
+          nodes { login }
+        }
+      }
+    }
+  }
+' -f owner="org" -f repo="repo-name" -F number=123
+```
+
+### PR with Reviews and Checks
+
+```bash
+gh api graphql -f query='
+  query($owner: String!, $repo: String!, $number: Int!) {
+    repository(owner: $owner, name: $repo) {
+      pullRequest(number: $number) {
+        title
+        reviewDecision
+        mergeable
+        commits(last: 1) {
+          nodes {
+            commit {
+              statusCheckRollup {
+                state
+                contexts(first: 10) {
+                  nodes {
+                    ... on CheckRun {
+                      name
+                      conclusion
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        reviews(last: 10) {
+          nodes {
+            author { login }
+            state
+            submittedAt
+          }
+        }
+      }
+    }
+  }
+' -f owner="org" -f repo="repo-name" -F number=456
+```
+
+---
+
+## Pagination
+
+```bash
+# Use --paginate for automatic pagination
+gh api graphql --paginate \
+  -F owner="org" \
+  -F repo="repo-name" \
+  -f query='
+    query($owner: String!, $repo: String!, $endCursor: String) {
+      repository(owner: $owner, name: $repo) {
+        issues(first: 100, after: $endCursor, states: OPEN) {
+          nodes {
+            number
+            title
+          }
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
+        }
+      }
+    }
+  '
+```
+
+**Important**: For pagination to work:
+- Include `$endCursor: String` in query variables
+- Include `pageInfo \{ hasNextPage endCursor \}` in response
+- Use `after: $endCursor` in the connection
+
+---
+
+## Mutations
+
+### Add Label to Issue
+
+```bash
+# First get label ID
+LABEL_ID=$(gh api graphql -f query='
+  query($owner: String!, $repo: String!, $name: String!) {
+    repository(owner: $owner, name: $repo) {
+      label(name: $name) { id }
+    }
+  }
+' -f owner="org" -f repo="repo-name" -f name="bug" \
+  --jq '.data.repository.label.id')
+
+# Get issue ID
+ISSUE_ID=$(gh api graphql -f query='
+  query($owner: String!, $repo: String!, $number: Int!) {
+    repository(owner: $owner, name: $repo) {
+      issue(number: $number) { id }
+    }
+  }
+' -f owner="org" -f repo="repo-name" -F number=123 \
+  --jq '.data.repository.issue.id')
+
+# Add label
+gh api graphql -f query='
+  mutation($issueId: ID!, $labelIds: [ID!]!) {
+    addLabelsToLabelable(input: {
+      labelableId: $issueId
+      labelIds: $labelIds
+    }) {
+      labelable {
+        ... on Issue { title }
+      }
+    }
+  }
+' -f issueId="$ISSUE_ID" -f labelIds="[\"$LABEL_ID\"]"
+```
+
+### Create Issue with GraphQL
+
+```bash
+gh api graphql -f query='
+  mutation($repoId: ID!, $title: String!, $body: String) {
+    createIssue(input: {
+      repositoryId: $repoId
+      title: $title
+      body: $body
+    }) {
+      issue {
+        number
+        url
+      }
+    }
+  }
+' -f repoId="MDEwOlJlcG9zaXRvcnkxMjM0NTY3ODk=" \
+  -f title="New issue via GraphQL" \
+  -f body="Description here"
+```
+
+### Close Issue
+
+```bash
+gh api graphql -f query='
+  mutation($issueId: ID!) {
+    closeIssue(input: { issueId: $issueId }) {
+      issue {
+        state
+        closedAt
+      }
+    }
+  }
+' -f issueId="I_kwDOABCD1234"
+```
+
+---
+
+## JQ Processing
+
+```bash
+# Extract specific field
+gh api graphql -f query='...' --jq '.data.repository.issues.nodes'
+
+# Filter results
+gh api graphql -f query='...' \
+  --jq '.data.repository.issues.nodes[] | select(.labels.nodes[].name == "bug")'
+
+# Transform to custom format
+gh api graphql -f query='...' \
+  --jq '.data.repository.issues.nodes[] | {num: .number, title: .title}'
+```
+
+---
+
+## Error Handling
+
+```bash
+# Check for errors in response
+RESULT=$(gh api graphql -f query='...')
+
+if echo "$RESULT" | jq -e '.errors' > /dev/null 2>&1; then
+  echo "GraphQL Error:"
+  echo "$RESULT" | jq '.errors[].message'
+  exit 1
+fi
+
+# Process successful result
+echo "$RESULT" | jq '.data'
+```
+
+---
+
+## Useful Fragments
+
+### Reusable Issue Fragment
+
+```graphql
+fragment IssueFields on Issue {
+  number
+  title
+  state
+  createdAt
+  updatedAt
+  labels(first: 10) {
+    nodes { name }
+  }
+  assignees(first: 5) {
+    nodes { login }
+  }
+  milestone {
+    title
+  }
+}
+
+query {
+  repository(owner: "org", name: "repo-name") {
+    issues(first: 10) {
+      nodes {
+        ...IssueFields
+      }
+    }
+  }
+}
+```
+
+---
+
+## Bulk Operations
+
+### Update Multiple Issues
+
+```bash
+# Get all issues to update
+ISSUES=$(gh api graphql -f query='
+  query {
+    repository(owner: "org", name: "repo-name") {
+      issues(first: 50, states: OPEN, labels: ["stale"]) {
+        nodes { id number }
+      }
+    }
+  }
+' --jq '.data.repository.issues.nodes[]')
+
+# Close each one
+echo "$ISSUES" | while read -r issue; do
+  ISSUE_ID=$(echo "$issue" | jq -r '.id')
+  gh api graphql -f query='
+    mutation($id: ID!) {
+      closeIssue(input: { issueId: $id }) {
+        issue { number state }
+      }
+    }
+  ' -f id="$ISSUE_ID"
+done
+```
+
+---
+
+## Rate Limit Checking
+
+```bash
+gh api graphql -f query='
+  query {
+    rateLimit {
+      limit
+      remaining
+      resetAt
+      used
+    }
+  }
+'
+```
+
+---
+
+## Get Node IDs
+
+Many GraphQL mutations require node IDs (not numbers):
+
+```bash
+# Issue ID
+gh api graphql -f query='
+  query($owner: String!, $repo: String!, $number: Int!) {
+    repository(owner: $owner, name: $repo) {
+      issue(number: $number) { id }
+    }
+  }
+' -f owner="org" -f repo="repo-name" -F number=123 \
+  --jq '.data.repository.issue.id'
+
+# Repository ID
+gh api graphql -f query='
+  query($owner: String!, $repo: String!) {
+    repository(owner: $owner, name: $repo) { id }
+  }
+' -f owner="org" -f repo="repo-name" \
+  --jq '.data.repository.id'
+
+# Label ID
+gh api graphql -f query='
+  query($owner: String!, $repo: String!, $name: String!) {
+    repository(owner: $owner, name: $repo) {
+      label(name: $name) { id }
+    }
+  }
+' -f owner="org" -f repo="repo-name" -f name="bug" \
+  --jq '.data.repository.label.id'
+```
+
+
+### Issue Management
+
+# Issue Management
+
+## Creating Issues
+
+### Basic Creation
+
+```bash
+# Non-interactive (ideal for automation)
+gh issue create \
+  --title "Bug: API returns 500 on invalid input" \
+  --body "Description of the issue..." \
+  --label "bug,backend" \
+  --assignee "@me" \
+  --milestone "Sprint 5"
+```
+
+### With Multi-line Body (Heredoc)
+
+```bash
+gh issue create \
+  --title "feat: Implement hybrid search" \
+  --body "$(cat <<'EOF'
+## Description
+Implement hybrid search combining BM25 and vector similarity.
+
+## Acceptance Criteria
+- [ ] HNSW index on chunks table
+- [ ] RRF fusion algorithm
+- [ ] 95%+ test pass rate
+
+## Technical Notes
+See PGVector skill for implementation details.
+EOF
+)"
+```
+
+### Using Templates
+
+```bash
+# Use repo template from .github/ISSUE_TEMPLATE/
+gh issue create --template "bug_report.md"
+
+# Use local file as body
+gh issue create --title "..." --body-file ./issue-body.md
+```
+
+---
+
+## Editing Issues
+
+```bash
+# Add labels
+gh issue edit 123 --add-label "high,backend"
+
+# Remove labels
+gh issue edit 123 --remove-label "low"
+
+# Set milestone
+gh issue edit 123 --milestone "Sprint 8"
+
+# Assign users
+gh issue edit 123 --add-assignee "username1,username2"
+
+# Update title/body
+gh issue edit 123 --title "New title" --body "Updated body"
+```
+
+---
+
+## Listing and Filtering
+
+```bash
+# Open issues assigned to me
+gh issue list --state open --assignee @me
+
+# By label (multiple)
+gh issue list --label "bug" --label "backend"
+
+# By milestone
+gh issue list --milestone "Sprint 5"
+
+# Search with GitHub search syntax
+gh issue list --search "status:success author:@me"
+
+# Limit results
+gh issue list --limit 20
+```
+
+### JSON Output for Scripting
+
+```bash
+# Get issue data as JSON
+gh issue list --json number,title,labels,milestone,state
+
+# Filter with jq
+gh issue list --json number,labels \
+  --jq '[.[] | select(.labels[].name == "critical")] | .[].number'
+
+# Get specific fields
+gh issue view 123 --json title,body,labels,assignees
+```
+
+---
+
+## Bulk Operations
+
+### Add Label to Multiple Issues
+
+```bash
+# Inline list
+gh issue edit 23 34 45 --add-label "needs-review"
+
+# From query result
+gh issue list --label "stale" --json number --jq '.[].number' | \
+  xargs -I {} gh issue edit {} --add-label "deprecated"
+```
+
+### Close Multiple Issues
+
+```bash
+# Close with comment
+gh issue list --label "duplicate" --json number --jq '.[].number' | \
+  while read num; do
+    gh issue close "$num" --comment "Closing as duplicate"
+  done
+```
+
+### Bulk Assign to Milestone
+
+```bash
+MILESTONE="Sprint 8"
+ISSUES=$(gh issue list --label "sprint-8" --json number --jq '.[].number')
+
+for issue in $ISSUES; do
+  gh issue edit "$issue" --milestone "$MILESTONE"
+  echo "Assigned #$issue to $MILESTONE"
+done
+```
+
+---
+
+## Issue Comments
+
+```bash
+# Add comment
+gh issue comment 123 --body "Working on this now"
+
+# View comments
+gh issue view 123 --comments
+
+# Edit last comment (via web)
+gh issue view 123 --web
+```
+
+---
+
+## Issue Development Flow
+
+```bash
+# Create branch linked to issue
+gh issue develop 123 --checkout
+
+# This creates: username/issue-123-title-slug
+# And checks it out locally
+```
+
+---
+
+## Sub-Issues
+
+Native sub-issues are available but CLI support is limited:
+
+```bash
+# Install extension for sub-issue support
+gh extension install yahsan2/gh-sub-issue
+
+# Create sub-issue
+gh sub-issue create 123 --title "Implement API endpoint"
+
+# List sub-issues
+gh sub-issue list 123
+```
+
+**Alternative: Use GraphQL**
+
+```bash
+gh api graphql -f query='
+  mutation {
+    addSubIssue(input: {
+      parentId: "I_kwDOABCD1234"
+      subIssueId: "I_kwDOABCD5678"
+    }) {
+      parentIssue { title }
+      subIssue { title }
+    }
+  }
+'
+```
+
+---
+
+## Transfer and Pin Issues
+
+```bash
+# Move issue to another repo
+gh issue transfer 123 owner/new-repo
+
+# Pin to repo (max 3)
+gh issue pin 123
+
+# Unpin
+gh issue unpin 123
+```
+
+---
+
+## Common Patterns
+
+### Create Issue and Get Number
+
+```bash
+ISSUE_URL=$(gh issue create --title "..." --body "..." --json url --jq '.url')
+ISSUE_NUM=$(echo "$ISSUE_URL" | grep -o '[0-9]*$')
+echo "Created issue #$ISSUE_NUM"
+```
+
+### Find Untriaged Issues
+
+```bash
+# Issues with no labels
+gh issue list --json number,title,labels \
+  --jq '[.[] | select(.labels | length == 0)]'
+```
+
+### Issue Statistics
+
+```bash
+# Count by label
+gh issue list --state all --json labels \
+  --jq '[.[].labels[].name] | group_by(.) | map({label: .[0], count: length}) | sort_by(-.count)'
+```
+
+
+### Milestone Api
+
+# Milestone API Reference
+
+GitHub CLI has NO native milestone commands. Use `gh api` REST calls for all milestone operations.
+
+## API Endpoints
+
+| Operation | Method | Endpoint |
+|-----------|--------|----------|
+| List | GET | `/repos/:owner/:repo/milestones` |
+| Get | GET | `/repos/:owner/:repo/milestones/:number` |
+| Create | POST | `/repos/:owner/:repo/milestones` |
+| Update | PATCH | `/repos/:owner/:repo/milestones/:number` |
+| Delete | DELETE | `/repos/:owner/:repo/milestones/:number` |
+
+---
+
+## Create Milestone
+
+```bash
+# Minimal
+gh api -X POST repos/:owner/:repo/milestones \
+  -f title="Sprint 10"
+
+# Full options
+gh api -X POST repos/:owner/:repo/milestones \
+  -f title="Sprint 10: Performance" \
+  -f state="open" \
+  -f description="Focus on frontend performance optimization" \
+  -f due_on="2026-03-15T00:00:00Z"
+
+# Create and capture number
+MILESTONE_NUM=$(gh api -X POST repos/:owner/:repo/milestones \
+  -f title="Sprint 8" \
+  --jq '.number')
+echo "Created milestone #$MILESTONE_NUM"
+```
+
+---
+
+## List Milestones
+
+```bash
+# All open (default)
+gh api repos/:owner/:repo/milestones
+
+# All milestones (including closed)
+gh api "repos/:owner/:repo/milestones?state=all"
+
+# Closed only
+gh api "repos/:owner/:repo/milestones?state=closed"
+
+# Sorted by due date
+gh api "repos/:owner/:repo/milestones?sort=due_on&direction=asc"
+
+# With jq formatting
+gh api repos/:owner/:repo/milestones --jq '
+  .[] | {
+    number,
+    title,
+    state,
+    due: .due_on,
+    progress: "\(.closed_issues)/\(.open_issues + .closed_issues)"
+  }'
+
+# Progress summary
+gh api repos/:owner/:repo/milestones --jq '.[] | "\(.title): \(.closed_issues)/\(.open_issues + .closed_issues) done"'
+```
+
+---
+
+## Get Single Milestone
+
+```bash
+gh api repos/:owner/:repo/milestones/1
+```
+
+---
+
+## Update Milestone
+
+```bash
+# Change title
+gh api -X PATCH repos/:owner/:repo/milestones/1 \
+  -f title="New Title"
+
+# Update description
+gh api -X PATCH repos/:owner/:repo/milestones/1 \
+  -f description="Updated scope: includes auth improvements"
+
+# Update due date
+gh api -X PATCH repos/:owner/:repo/milestones/1 \
+  -f due_on="2026-04-01T00:00:00Z"
+```
+
+---
+
+## Close/Reopen Milestone
+
+```bash
+# Close milestone
+gh api -X PATCH repos/:owner/:repo/milestones/5 -f state=closed
+
+# Reopen milestone
+gh api -X PATCH repos/:owner/:repo/milestones/5 -f state=open
+```
+
+---
+
+## Delete Milestone
+
+```bash
+# Warning: removes milestone from all issues!
+gh api -X DELETE repos/:owner/:repo/milestones/1
+```
+
+---
+
+## Workflow Patterns
+
+### Sprint Workflow
+
+```bash
+# 1. Create sprint milestone
+gh api -X POST repos/:owner/:repo/milestones \
+  -f title="Sprint 8: Auth & Performance" \
+  -f due_on="2026-02-14T00:00:00Z"
+
+# 2. Assign issues to sprint
+gh issue edit 123 124 125 --milestone "Sprint 8: Auth & Performance"
+
+# 3. Check progress mid-sprint
+gh api repos/:owner/:repo/milestones --jq '
+  .[] | select(.title | contains("Sprint 8")) |
+  "Progress: \(.closed_issues)/\(.open_issues + .closed_issues) (\((.closed_issues / (.open_issues + .closed_issues) * 100) | floor)%)"'
+
+# 4. Close sprint when done
+MILESTONE_NUM=$(gh api repos/:owner/:repo/milestones --jq '.[] | select(.title | contains("Sprint 8")) | .number')
+gh api -X PATCH repos/:owner/:repo/milestones/$MILESTONE_NUM -f state=closed
+```
+
+### Release Workflow
+
+```bash
+# 1. Create release milestone
+gh api -X POST repos/:owner/:repo/milestones \
+  -f title="v2.0.0" \
+  -f description="Major release: New auth system, performance improvements" \
+  -f due_on="2026-03-01T00:00:00Z"
+
+# 2. Tag issues for release
+gh issue list --milestone "v2.0.0" --json number,title --jq '.[] | "#\(.number): \(.title)"'
+
+# 3. When ready, close and create release
+gh api -X PATCH repos/:owner/:repo/milestones/10 -f state=closed
+gh release create v2.0.0 --generate-notes
+```
+
+---
+
+## Useful Aliases
+
+Add to `~/.config/gh/config.yml`:
+
+```yaml
+aliases:
+  ms: api repos/:owner/:repo/milestones --jq '.[] | "#\(.number) \(.title) [\(.state)] \(.closed_issues)/\(.open_issues+.closed_issues)"'
+  ms-create: '!f() { gh api -X POST repos/:owner/:repo/milestones -f title="$1" ${2:+-f due_on="$2"} ${3:+-f description="$3"}; }; f'
+  ms-close: '!f() { gh api -X PATCH repos/:owner/:repo/milestones/$1 -f state=closed; }; f'
+  ms-open: '!f() { gh api -X PATCH repos/:owner/:repo/milestones/$1 -f state=open; }; f'
+  ms-progress: '!f() { gh api repos/:owner/:repo/milestones/$1 --jq "\"Progress: \\(.closed_issues)/\\(.open_issues + .closed_issues) (\\((.closed_issues * 100 / (.open_issues + .closed_issues)) | floor)%)\""; }; f'
+```
+
+Usage:
+
+```bash
+gh ms                              # List all
+gh ms-create "Sprint 11"           # Create
+gh ms-create "v2.0" "2026-04-01"   # With due date
+gh ms-close 5                      # Close
+gh ms-progress 1                   # Check progress
+```
+
+---
+
+## Best Practices
+
+1. **Use ISO 8601 dates** - `YYYY-MM-DDTHH:MM:SSZ` format for due_on
+2. **Meaningful titles** - Include sprint number and focus area
+3. **Close on time** - Even with open issues, close at deadline
+4. **Don't delete** - Close instead to preserve history
+5. **Link to Projects** - Use Projects v2 Iteration field for cross-repo tracking
+
+
+### Pr Workflows
+
+# Pull Request Workflows
+
+## Creating PRs
+
+### Basic Creation
+
+```bash
+# Interactive (opens editor)
+gh pr create
+
+# Non-interactive with auto-fill from commits
+gh pr create --fill
+
+# Explicit title and body
+gh pr create \
+  --title "feat(#123): Add hybrid search with PGVector" \
+  --body "Description..." \
+  --base dev \
+  --head feature/pgvector-search
+```
+
+### Full PR Creation Pattern
+
+```bash
+gh pr create \
+  --title "feat(#${ISSUE_NUM}): Implement Langfuse tracing" \
+  --body "$(cat <<'EOF'
+## Summary
+- Added @observe decorator to workflow functions
+- Implemented CallbackHandler for LangChain
+- Added session and user tracking
+
+## Changes
+- `backend/app/shared/services/langfuse/` - New Langfuse client
+- `backend/app/workflows/nodes/` - Added tracing decorators
+- `backend/tests/unit/services/` - Langfuse unit tests
+
+## Test Plan
+- [ ] Unit tests pass (`poetry run pytest tests/unit/`)
+- [ ] Integration test with real Langfuse instance
+- [ ] Verify traces appear in Langfuse UI
+
+Closes #372
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+EOF
+)" \
+  --base dev \
+  --label "enhancement,backend" \
+  --assignee "@me" \
+  --reviewer "teammate"
+```
+
+### Using Body File
+
+```bash
+gh pr create --title "..." --body-file pr-description.md
+```
+
+---
+
+## PR Checks and Status
+
+### View Check Status
+
+```bash
+# List all checks
+gh pr checks 456
+
+# Watch checks in real-time
+gh pr checks 456 --watch
+
+# Wait for specific check
+gh pr checks 456 --watch --fail-fast
+```
+
+### JSON Output for Automation
+
+```bash
+# Get check status
+gh pr checks 456 --json name,state,conclusion
+
+# Check if all passed
+gh pr checks 456 --json conclusion \
+  --jq 'all(.[].conclusion == "SUCCESS")'
+```
+
+### Wait for Checks Pattern
+
+```bash
+PR_NUMBER=456
+
+while true; do
+  STATUS=$(gh pr view $PR_NUMBER --json statusCheckRollupState --jq '.statusCheckRollupState')
+
+  case "$STATUS" in
+    "SUCCESS")
+      echo "All checks passed!"
+      break
+      ;;
+    "FAILURE")
+      echo "Checks failed!"
+      gh pr checks $PR_NUMBER
+      exit 1
+      ;;
+    *)
+      echo "Waiting... (status: $STATUS)"
+      sleep 30
+      ;;
+  esac
+done
+```
+
+---
+
+## PR Reviews
+
+### Requesting Reviews
+
+```bash
+# Request review
+gh pr edit 456 --add-reviewer "username1,username2"
+
+# Remove reviewer
+gh pr edit 456 --remove-reviewer "username"
+```
+
+### Submitting Reviews
+
+```bash
+# Approve
+gh pr review 456 --approve
+
+# Approve with comment
+gh pr review 456 --approve --body "LGTM! Clean implementation."
+
+# Request changes
+gh pr review 456 --request-changes --body "Need tests for edge cases"
+
+# Comment without approval/rejection
+gh pr review 456 --comment --body "Nice refactoring!"
+```
+
+### View Review Status
+
+```bash
+# Get review decision
+gh pr view 456 --json reviewDecision
+
+# List reviews
+gh pr view 456 --json reviews \
+  --jq '.reviews[] | "\(.author.login): \(.state)"'
+```
+
+---
+
+## Merging PRs
+
+### Merge Strategies
+
+```bash
+# Merge commit (default)
+gh pr merge 456 --merge
+
+# Squash merge (recommended for clean history)
+gh pr merge 456 --squash
+
+# Rebase merge
+gh pr merge 456 --rebase
+
+# With branch deletion
+gh pr merge 456 --squash --delete-branch
+```
+
+### Auto-Merge
+
+```bash
+# Enable auto-merge (merges when checks pass + approved)
+gh pr merge 456 --auto --squash --delete-branch
+
+# Disable auto-merge
+gh pr merge 456 --disable-auto
+```
+
+### Admin Merge (Bypass Protections)
+
+```bash
+# Bypass branch protection rules (requires admin)
+gh pr merge 456 --admin --squash
+```
+
+---
+
+## Safe Merge Pattern
+
+```bash
+#!/bin/bash
+PR_NUMBER=$1
+
+# 1. Verify checks passed
+if ! gh pr view $PR_NUMBER --json statusCheckRollupState \
+  --jq '.statusCheckRollupState == "SUCCESS"' | grep -q true; then
+  echo "ERROR: Checks not passed"
+  gh pr checks $PR_NUMBER
+  exit 1
+fi
+
+# 2. Verify approved
+APPROVED=$(gh pr view $PR_NUMBER --json reviewDecision --jq '.reviewDecision')
+if [[ "$APPROVED" != "APPROVED" ]]; then
+  echo "ERROR: PR not approved (status: $APPROVED)"
+  exit 1
+fi
+
+# 3. Verify mergeable
+MERGEABLE=$(gh pr view $PR_NUMBER --json mergeable --jq '.mergeable')
+if [[ "$MERGEABLE" != "MERGEABLE" ]]; then
+  echo "ERROR: PR has conflicts"
+  exit 1
+fi
+
+# 4. Merge
+gh pr merge $PR_NUMBER --squash --delete-branch
+echo "Successfully merged PR #$PR_NUMBER"
+```
+
+---
+
+## PR Comments
+
+```bash
+# Add comment
+gh pr comment 456 --body "Addressed review feedback in latest commit"
+
+# View comments
+gh pr view 456 --comments
+```
+
+---
+
+## Checkout and Edit
+
+```bash
+# Checkout PR locally
+gh pr checkout 456
+
+# Edit PR metadata
+gh pr edit 456 --title "New title" --add-label "urgent"
+
+# Close without merging
+gh pr close 456 --comment "Superseded by #789"
+
+# Reopen
+gh pr reopen 456
+```
+
+---
+
+## PR Listing and Search
+
+```bash
+# My open PRs
+gh pr list --author @me --state open
+
+# PRs needing my review
+gh pr list --search "review-requested:@me"
+
+# Ready to merge
+gh pr list --json number,title,reviewDecision,statusCheckRollupState \
+  --jq '[.[] | select(.reviewDecision == "APPROVED" and .statusCheckRollupState == "SUCCESS")]'
+
+# Draft PRs
+gh pr list --draft
+```
+
+---
+
+## Convert Draft to Ready
+
+```bash
+# Mark ready for review
+gh pr ready 456
+
+# Convert to draft
+gh pr ready 456 --undo
+```
+
+---
+
+## PR Diff and Files
+
+```bash
+# View diff
+gh pr diff 456
+
+# List changed files
+gh pr view 456 --json files --jq '.files[].path'
+
+# View specific file
+gh pr diff 456 -- path/to/file.py
+```
+
+---
+
+## Common Patterns
+
+### Create PR from Current Branch
+
+```bash
+# Push and create PR in one flow
+git push -u origin $(git branch --show-current) && \
+gh pr create --fill --base dev
+```
+
+### Find Stale PRs
+
+```bash
+# PRs not updated in 7 days
+gh pr list --json number,title,updatedAt \
+  --jq '[.[] | select(.updatedAt < (now - 604800 | todate))]'
+```
+
+### PR Statistics
+
+```bash
+# Average time to merge
+gh pr list --state merged --limit 20 --json createdAt,mergedAt \
+  --jq '[.[] | (.mergedAt | fromdateiso8601) - (.createdAt | fromdateiso8601)] | add / length / 3600 | "Average: \(.) hours"'
+```
+
+
+### Projects V2
+
+# GitHub Projects v2
+
+## Overview
+
+GitHub Projects v2 uses custom fields for advanced project management. The `gh project` commands provide basic operations, but setting custom fields requires GraphQL.
+
+---
+
+## Basic Project Commands
+
+```bash
+# List projects
+gh project list --owner @me
+
+# View project
+gh project view 1 --owner @me
+
+# List fields
+gh project field-list 1 --owner @me --format json
+
+# Add item to project
+gh project item-add 1 --owner @me \
+  --url "https://github.com/org/repo/issues/123"
+
+# Remove item from project
+gh project item-delete 1 --owner @me --id "PVTI_abc123"
+```
+
+---
+
+## Setting Custom Fields (GraphQL)
+
+### Set Single Select Field (Status, Priority, etc.)
+
+```bash
+PROJECT_ID="PVT_kwHOAS8tks4BIL_t"
+ITEM_ID="PVTI_..."  # From item-add result
+FIELD_ID="PVTSSF_lAHOAS8tks4BIL_tzg4uOTk"
+OPTION_ID="92ee1ecd"  # Option value ID
+
+gh api graphql -f query='
+  mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
+    updateProjectV2ItemFieldValue(input: {
+      projectId: $projectId
+      itemId: $itemId
+      fieldId: $fieldId
+      value: { singleSelectOptionId: $optionId }
+    }) {
+      projectV2Item {
+        id
+      }
+    }
+  }
+' \
+  -f projectId="$PROJECT_ID" \
+  -f itemId="$ITEM_ID" \
+  -f fieldId="$FIELD_ID" \
+  -f optionId="$OPTION_ID"
+```
+
+### Set Text Field
+
+```bash
+gh api graphql -f query='
+  mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $text: String!) {
+    updateProjectV2ItemFieldValue(input: {
+      projectId: $projectId
+      itemId: $itemId
+      fieldId: $fieldId
+      value: { text: $text }
+    }) {
+      projectV2Item { id }
+    }
+  }
+' \
+  -f projectId="$PROJECT_ID" \
+  -f itemId="$ITEM_ID" \
+  -f fieldId="$TEXT_FIELD_ID" \
+  -f text="Custom value"
+```
+
+### Set Number Field
+
+```bash
+gh api graphql -f query='
+  mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $number: Float!) {
+    updateProjectV2ItemFieldValue(input: {
+      projectId: $projectId
+      itemId: $itemId
+      fieldId: $fieldId
+      value: { number: $number }
+    }) {
+      projectV2Item { id }
+    }
+  }
+' \
+  -f projectId="$PROJECT_ID" \
+  -f itemId="$ITEM_ID" \
+  -f fieldId="$NUMBER_FIELD_ID" \
+  -F number=5
+```
+
+---
+
+## Complete Workflow: Create Issue + Add to Project
+
+```bash
+#!/bin/bash
+# create-and-track.sh
+
+TITLE="$1"
+BODY="$2"
+LABELS="${3:-enhancement}"
+STATUS_OPTION="${4:-19303ae5}"  # Default: ready
+
+# Configuration
+PROJECT_NUMBER=1
+PROJECT_OWNER="username"
+PROJECT_ID="PVT_..."
+STATUS_FIELD_ID="PVTSSF_..."
+REPO="org/repo"
+
+# 1. Create issue
+ISSUE_URL=$(gh issue create \
+  --repo "$REPO" \
+  --title "$TITLE" \
+  --body "$BODY" \
+  --label "$LABELS" \
+  --json url --jq '.url')
+
+echo "Created: $ISSUE_URL"
+
+# 2. Add to project
+ITEM_ID=$(gh project item-add $PROJECT_NUMBER \
+  --owner $PROJECT_OWNER \
+  --url "$ISSUE_URL" \
+  --format json | jq -r '.id')
+
+echo "Added to project: $ITEM_ID"
+
+# 3. Set status
+gh api graphql -f query='
+  mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
+    updateProjectV2ItemFieldValue(input: {
+      projectId: $projectId
+      itemId: $itemId
+      fieldId: $fieldId
+      value: { singleSelectOptionId: $optionId }
+    }) {
+      projectV2Item { id }
+    }
+  }
+' \
+  -f projectId="$PROJECT_ID" \
+  -f itemId="$ITEM_ID" \
+  -f fieldId="$STATUS_FIELD_ID" \
+  -f optionId="$STATUS_OPTION"
+
+echo "Set status"
+```
+
+---
+
+## Query Project Items
+
+### Get All Items with Status
+
+```bash
+gh api graphql -f query='
+  query($owner: String!, $number: Int!) {
+    user(login: $owner) {
+      projectV2(number: $number) {
+        items(first: 50) {
+          nodes {
+            id
+            content {
+              ... on Issue {
+                number
+                title
+              }
+              ... on PullRequest {
+                number
+                title
+              }
+            }
+            fieldValues(first: 10) {
+              nodes {
+                ... on ProjectV2ItemFieldSingleSelectValue {
+                  name
+                  field { ... on ProjectV2SingleSelectField { name } }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+' -f owner="username" -F number=1
+```
+
+### Get Items by Status
+
+```bash
+# Get all "In Development" items
+gh api graphql -f query='
+  query($owner: String!, $number: Int!) {
+    user(login: $owner) {
+      projectV2(number: $number) {
+        items(first: 100) {
+          nodes {
+            content {
+              ... on Issue { number title }
+            }
+            fieldValues(first: 5) {
+              nodes {
+                ... on ProjectV2ItemFieldSingleSelectValue {
+                  name
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+' -f owner="username" -F number=1 \
+  --jq '.data.user.projectV2.items.nodes[] | select(.fieldValues.nodes[].name == "In Development") | .content'
+```
+
+---
+
+## Discovering Field IDs
+
+If you need to find field/option IDs for a project:
+
+```bash
+# Get all fields with options
+gh api graphql -f query='
+  query($owner: String!, $number: Int!) {
+    user(login: $owner) {
+      projectV2(number: $number) {
+        id
+        fields(first: 20) {
+          nodes {
+            ... on ProjectV2Field {
+              id
+              name
+            }
+            ... on ProjectV2SingleSelectField {
+              id
+              name
+              options {
+                id
+                name
+              }
+            }
+            ... on ProjectV2IterationField {
+              id
+              name
+            }
+          }
+        }
+      }
+    }
+  }
+' -f owner="username" -F number=1 | jq '.data.user.projectV2'
+```
+
+---
+
+## Move Item Between Statuses
+
+```bash
+# Helper function
+move_to_status() {
+  local ITEM_ID="$1"
+  local STATUS_OPTION_ID="$2"
+
+  gh api graphql -f query='
+    mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
+      updateProjectV2ItemFieldValue(input: {
+        projectId: $projectId
+        itemId: $itemId
+        fieldId: $fieldId
+        value: { singleSelectOptionId: $optionId }
+      }) {
+        projectV2Item { id }
+      }
+    }
+  ' \
+    -f projectId="$PROJECT_ID" \
+    -f itemId="$ITEM_ID" \
+    -f fieldId="$STATUS_FIELD_ID" \
+    -f optionId="$STATUS_OPTION_ID"
+}
+
+# Usage
+move_to_status "PVTI_abc123" "92ee1ecd"  # Move to In Development
+```
+
+---
+
+## Organization Projects
+
+For organization-owned projects, use `organization` instead of `user`:
+
+```bash
+gh api graphql -f query='
+  query($org: String!, $number: Int!) {
+    organization(login: $org) {
+      projectV2(number: $number) {
+        id
+        title
+      }
+    }
+  }
+' -f org="my-org" -F number=1
+```
+
+
+
+---
+
+## Examples (1)
+
+### Automation Scripts
+
+# GitHub Automation Scripts
+
+Ready-to-use scripts for common GitHub automation tasks.
+
+## Bulk Issue Operations
+
+### Add Label to Multiple Issues
+
+```bash
+#!/usr/bin/env bash
+# Add label to all issues matching criteria
+
+LABEL="needs-review"
+QUERY="is:open label:bug"
+
+gh issue list --search "$QUERY" --json number --jq '.[].number' | \
+while read -r issue; do
+  echo "Adding '$LABEL' to #$issue"
+  gh issue edit "$issue" --add-label "$LABEL"
+done
+```
+
+### Assign Issues to Team Member
+
+```bash
+#!/usr/bin/env bash
+# Assign unassigned issues in a milestone
+
+MILESTONE="Sprint 8"
+ASSIGNEE="@me"
+
+gh issue list --milestone "$MILESTONE" --assignee "" --json number --jq '.[].number' | \
+while read -r issue; do
+  echo "Assigning #$issue to $ASSIGNEE"
+  gh issue edit "$issue" --add-assignee "$ASSIGNEE"
+done
+```
+
+### Close Stale Issues
+
+```bash
+#!/usr/bin/env bash
+# Close issues with no activity > 90 days
+
+DAYS=90
+CUTOFF=$(date -v-${DAYS}d +%Y-%m-%d 2>/dev/null || date -d "$DAYS days ago" +%Y-%m-%d)
+
+gh issue list --state open --json number,updatedAt --jq \
+  ".[] | select(.updatedAt < \"$CUTOFF\") | .number" | \
+while read -r issue; do
+  echo "Closing stale issue #$issue"
+  gh issue close "$issue" --comment "Closing due to inactivity. Reopen if still relevant."
+done
+```
+
+---
+
+## PR Automation
+
+### Auto-Merge Approved PRs
+
+```bash
+#!/usr/bin/env bash
+# Enable auto-merge for approved PRs with passing checks
+
+gh pr list --json number,reviewDecision,statusCheckRollupState --jq \
+  '.[] | select(.reviewDecision == "APPROVED" and .statusCheckRollupState == "SUCCESS") | .number' | \
+while read -r pr; do
+  echo "Enabling auto-merge for PR #$pr"
+  gh pr merge "$pr" --auto --squash --delete-branch
+done
+```
+
+### Request Reviews from CODEOWNERS
+
+```bash
+#!/usr/bin/env bash
+# Add reviewers based on changed files
+
+PR_NUMBER=$1
+
+# Get changed files
+CHANGED=$(gh pr diff "$PR_NUMBER" --name-only)
+
+# Map to reviewers (customize per team)
+REVIEWERS=""
+if echo "$CHANGED" | grep -q "^src/api/"; then
+  REVIEWERS="$REVIEWERS backend-team"
+fi
+if echo "$CHANGED" | grep -q "^src/components/"; then
+  REVIEWERS="$REVIEWERS frontend-team"
+fi
+
+if [[ -n "$REVIEWERS" ]]; then
+  gh pr edit "$PR_NUMBER" --add-reviewer $REVIEWERS
+fi
+```
+
+### PR Status Dashboard
+
+```bash
+#!/usr/bin/env bash
+# Generate PR status summary
+
+echo "=== PR Status Dashboard ==="
+echo ""
+
+echo "## Ready to Merge"
+gh pr list --json number,title,author --jq \
+  '.[] | "- #\(.number) \(.title) (@\(.author.login))"' \
+  --search "review:approved status:success"
+
+echo ""
+echo "## Needs Review"
+gh pr list --json number,title,author --jq \
+  '.[] | "- #\(.number) \(.title) (@\(.author.login))"' \
+  --search "review:none"
+
+echo ""
+echo "## Changes Requested"
+gh pr list --json number,title,author --jq \
+  '.[] | "- #\(.number) \(.title) (@\(.author.login))"' \
+  --search "review:changes-requested"
+```
+
+---
+
+## Milestone Management
+
+### Milestone Progress Report
+
+```bash
+#!/usr/bin/env bash
+# Generate milestone progress report
+
+echo "=== Milestone Progress ==="
+echo ""
+
+gh api repos/:owner/:repo/milestones --jq '.[] |
+  "## \(.title)
+Due: \(.due_on // "No due date")
+Progress: \(.closed_issues)/\(.open_issues + .closed_issues) issues (\((.closed_issues * 100 / ((.open_issues + .closed_issues) | if . == 0 then 1 else . end)) | floor)%)
+"'
+```
+
+### Move Issues to Next Sprint
+
+```bash
+#!/usr/bin/env bash
+# Move open issues from current to next milestone
+
+CURRENT="Sprint 7"
+NEXT="Sprint 8"
+
+gh issue list --milestone "$CURRENT" --state open --json number --jq '.[].number' | \
+while read -r issue; do
+  echo "Moving #$issue to $NEXT"
+  gh issue edit "$issue" --milestone "$NEXT"
+done
+```
+
+### Create Sprint Milestone
+
+```bash
+#!/usr/bin/env bash
+# Create milestone with due date
+
+SPRINT_NUM=$1
+WEEKS=${2:-2}
+DUE_DATE=$(date -v+${WEEKS}w +%Y-%m-%dT00:00:00Z 2>/dev/null || \
+           date -d "+$WEEKS weeks" +%Y-%m-%dT00:00:00Z)
+
+gh api -X POST repos/:owner/:repo/milestones \
+  -f title="Sprint $SPRINT_NUM" \
+  -f description="Sprint $SPRINT_NUM goals and deliverables" \
+  -f due_on="$DUE_DATE"
+
+echo "Created Sprint $SPRINT_NUM (due $DUE_DATE)"
+```
+
+---
+
+## Cross-Repo Operations
+
+### Sync Labels Across Repos
+
+```bash
+#!/usr/bin/env bash
+# Copy labels from source repo to target repos
+
+SOURCE_REPO="org/main-repo"
+TARGET_REPOS=("org/api" "org/frontend" "org/docs")
+
+# Get labels from source
+LABELS=$(gh label list --repo "$SOURCE_REPO" --json name,color,description)
+
+for repo in "${TARGET_REPOS[@]}"; do
+  echo "Syncing labels to $repo"
+  echo "$LABELS" | jq -c '.[]' | while read -r label; do
+    NAME=$(echo "$label" | jq -r '.name')
+    COLOR=$(echo "$label" | jq -r '.color')
+    DESC=$(echo "$label" | jq -r '.description // ""')
+
+    gh label create "$NAME" --repo "$repo" --color "$COLOR" --description "$DESC" 2>/dev/null || \
+    gh label edit "$NAME" --repo "$repo" --color "$COLOR" --description "$DESC"
+  done
+done
+```
+
+### Find Issues Across Repos
+
+```bash
+#!/usr/bin/env bash
+# Search issues across organization
+
+ORG="my-org"
+QUERY="is:open label:critical"
+
+gh search issues --owner "$ORG" "$QUERY" --json repository,number,title --jq \
+  '.[] | "\(.repository.nameWithOwner)#\(.number): \(.title)"'
+```
+
+---
+
+## Rate Limit Handling
+
+```bash
+#!/usr/bin/env bash
+# Check rate limits before bulk operations
+
+check_rate_limit() {
+  REMAINING=$(gh api rate_limit --jq '.rate.remaining')
+  if [[ "$REMAINING" -lt 100 ]]; then
+    RESET=$(gh api rate_limit --jq '.rate.reset')
+    WAIT=$((RESET - $(date +%s)))
+    echo "Rate limit low ($REMAINING). Waiting ${WAIT}s..."
+    sleep "$WAIT"
+  fi
+}
+
+# Use in loops
+for issue in $(gh issue list --json number --jq '.[].number'); do
+  check_rate_limit
+  gh issue edit "$issue" --add-label "processed"
+done
+```
+
+## Related
+
+- [Issue Management](../references/issue-management.md)
+- [Milestone API](../references/milestone-api.md)
+- [GraphQL API](../references/graphql-api.md)
+

@@ -1,13 +1,18 @@
 ---
 name: feedback
+license: MIT
+compatibility: "Claude Code 2.1.34+."
 description: "Manages OrchestKit feedback system. Use when providing feedback or viewing usage analytics."
+argument-hint: "[subcommand]"
 context: inherit
 version: 1.2.0
 author: OrchestKit
 tags: [feedback, learning, patterns, metrics, privacy, analytics, consent]
 user-invocable: true
-allowedTools: [Read, Write, Edit, Grep, Glob]
+allowed-tools: [Read, Write, Edit, Grep, Glob]
 complexity: low
+metadata:
+  category: document-asset-creation
 ---
 
 # Feedback - Manage Learning System

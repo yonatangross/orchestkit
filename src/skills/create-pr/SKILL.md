@@ -1,14 +1,21 @@
 ---
 name: create-pr
+license: MIT
+compatibility: "Claude Code 2.1.34+. Requires memory MCP server, gh CLI."
 description: "Creates GitHub pull requests with validation. Use when opening PRs or submitting code for review."
+argument-hint: "[title]"
 context: fork
+agent: git-operations-engineer
 version: 2.3.0
 author: OrchestKit
 tags: [git, github, pull-request, pr, code-review]
 user-invocable: true
-allowedTools: [AskUserQuestion, Bash, Task, TaskCreate, TaskUpdate, mcp__memory__search_nodes]
+allowed-tools: [AskUserQuestion, Bash, Task, TaskCreate, TaskUpdate, mcp__memory__search_nodes]
 skills: [commit, review-pr, security-scanning, memory]
 complexity: medium
+metadata:
+  category: workflow-automation
+  mcp-server: memory
 ---
 
 # Create Pull Request

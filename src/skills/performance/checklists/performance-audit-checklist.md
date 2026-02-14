@@ -71,7 +71,7 @@ lighthouse http://localhost:3000 \
 
 **1. Find Slow Endpoints**
 
-```promql
+```text
 # Top 10 slowest endpoints (p95 latency)
 topk(10,
   histogram_quantile(0.95,
@@ -291,7 +291,7 @@ analyses = await session.execute(
 
 **1. Check Current Pool Usage**
 
-```promql
+```text
 # Connection pool saturation
 db_connections_active / db_connections_max
 ```

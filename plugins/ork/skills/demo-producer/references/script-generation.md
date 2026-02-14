@@ -130,7 +130,7 @@ main
 ## VHS Tape Template
 
 ### Horizontal (16:9)
-```tape
+```text
 Output ../output/{name}-demo.mp4
 Set Shell "bash"
 Set FontFamily "Menlo"
@@ -148,7 +148,7 @@ Sleep {duration}s
 ```
 
 ### Vertical (9:16)
-```tape
+```text
 Output ../output/{name}-demo-vertical.mp4
 Set Shell "bash"
 Set FontFamily "Menlo"

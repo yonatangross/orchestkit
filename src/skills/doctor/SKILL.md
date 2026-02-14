@@ -1,14 +1,19 @@
 ---
 name: doctor
+license: MIT
+compatibility: "Claude Code 2.1.34+."
 description: "OrchestKit health diagnostics. Use when checking plugin health or troubleshooting issues."
+argument-hint: "[--verbose]"
 context: inherit
 version: 3.0.0
 author: OrchestKit
 tags: [health-check, diagnostics, validation, permissions, hooks, skills, agents, memory]
 user-invocable: true
-allowedTools: [Bash, Read, Grep, Glob]
+allowed-tools: [Bash, Read, Grep, Glob]
 skills: [configure]
 complexity: low
+metadata:
+  category: document-asset-creation
 ---
 
 # OrchestKit Health Diagnostics
@@ -68,13 +73,13 @@ Auto-detects which OrchestKit plugins are installed:
 **Output (orkl):**
 ```
 Installed Plugins: 1
-- orkl: 43 skills, 36 agents, 86 hook entries
+- orkl: 44 skills, 36 agents, 86 hook entries
 ```
 
 **Output (ork full):**
 ```
 Installed Plugins: 1
-- ork: 60 skills, 36 agents, 86 hook entries
+- ork: 61 skills, 36 agents, 86 hook entries
 ```
 
 ### 1. Skills Validation

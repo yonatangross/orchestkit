@@ -1,5 +1,7 @@
 ---
 name: testing-patterns
+license: MIT
+compatibility: "Claude Code 2.1.34+."
 description: Comprehensive testing patterns for unit, integration, E2E, pytest, API mocking (MSW/VCR), test data, property/contract testing, performance, LLM, and accessibility testing. Use when writing tests, setting up test infrastructure, or validating application quality.
 tags: [testing, unit, integration, e2e, pytest, msw, vcr, property, contract, performance, llm, a11y]
 context: fork
@@ -8,6 +10,8 @@ version: 2.0.0
 author: OrchestKit
 user-invocable: false
 complexity: high
+metadata:
+  category: document-asset-creation
 ---
 
 # Testing Patterns

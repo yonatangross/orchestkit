@@ -118,3 +118,5818 @@ Adobe React Aria hooks for building WCAG-compliant interactive UI.
 - `design-system-starter` - Accessible component library patterns
 - `i18n-date-patterns` - RTL layout and locale-aware formatting
 - `motion-animation-patterns` - Reduced motion and animation accessibility
+
+
+---
+
+## Rules (9)
+
+### React Aria: Components — HIGH
+
+
+# React Aria Components (useButton, useDialog, useMenu)
+
+## useButton - Accessible Button
+
+```tsx
+import { useRef } from 'react';
+import { useButton, useFocusRing, mergeProps } from 'react-aria';
+import type { AriaButtonProps } from 'react-aria';
+
+function Button(props: AriaButtonProps & { className?: string }) {
+  const ref = useRef<HTMLButtonElement>(null);
+  const { buttonProps, isPressed } = useButton(props, ref);
+  const { focusProps, isFocusVisible } = useFocusRing();
+
+  return (
+    <button
+      {...mergeProps(buttonProps, focusProps)}
+      ref={ref}
+      className={`
+        px-4 py-2 rounded font-medium transition-all
+        ${isPressed ? 'scale-95' : ''}
+        ${isFocusVisible ? 'ring-2 ring-offset-2 ring-blue-500' : ''}
+        disabled:opacity-50 disabled:cursor-not-allowed
+      `}
+    >
+      {props.children}
+    </button>
+  );
+}
+```
+
+**Key Props:**
+- `onPress` - Triggered on click, tap, Enter, or Space
+- `isDisabled` - Disables all interaction
+- `elementType` - Custom element type (default: button)
+
+## useDialog - Modal Dialog
+
+```tsx
+import { useRef } from 'react';
+import { useDialog, useModalOverlay, FocusScope, mergeProps } from 'react-aria';
+import { useOverlayTriggerState } from 'react-stately';
+
+function Modal({ state, title, children }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const { modalProps, underlayProps } = useModalOverlay({}, state, ref);
+  const { dialogProps, titleProps } = useDialog({ 'aria-label': title }, ref);
+
+  return (
+    <div {...underlayProps} className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
+      <FocusScope contain restoreFocus autoFocus>
+        <div {...mergeProps(modalProps, dialogProps)} ref={ref} className="bg-white rounded-lg p-6">
+          <h2 {...titleProps} className="text-xl font-semibold mb-4">{title}</h2>
+          {children}
+        </div>
+      </FocusScope>
+    </div>
+  );
+}
+```
+
+## useMenu - Dropdown Menu
+
+```tsx
+import { useRef } from 'react';
+import { useButton, useMenuTrigger, useMenu, useMenuItem, mergeProps } from 'react-aria';
+import { useMenuTriggerState, useTreeState } from 'react-stately';
+import { Item } from 'react-stately';
+
+export function MenuButton(props: { label: string; onAction: (key: string) => void }) {
+  const state = useMenuTriggerState({});
+  const ref = useRef<HTMLButtonElement>(null);
+  const { menuTriggerProps, menuProps } = useMenuTrigger({}, state, ref);
+  const { buttonProps } = useButton(menuTriggerProps, ref);
+
+  return (
+    <div className="relative inline-block">
+      <button
+        {...buttonProps}
+        ref={ref}
+        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 flex items-center gap-2"
+      >
+        {props.label}
+        <span aria-hidden="true">&#9660;</span>
+      </button>
+      {state.isOpen && (
+        <MenuPopup
+          {...menuProps}
+          autoFocus={state.focusStrategy}
+          onClose={state.close}
+          onAction={(key) => {
+            props.onAction(key as string);
+            state.close();
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+function MenuPopup(props: any) {
+  const ref = useRef<HTMLUListElement>(null);
+  const state = useTreeState({ ...props, selectionMode: 'none' });
+  const { menuProps } = useMenu(props, state, ref);
+
+  return (
+    <ul {...menuProps} ref={ref} className="absolute top-full left-0 mt-1 min-w-[200px] bg-white border rounded shadow-lg py-1 z-50">
+      {[...state.collection].map((item) => (
+        <MenuItem key={item.key} item={item} state={state} onAction={props.onAction} onClose={props.onClose} />
+      ))}
+    </ul>
+  );
+}
+
+function MenuItem({ item, state, onAction, onClose }: any) {
+  const ref = useRef<HTMLLIElement>(null);
+  const { menuItemProps, isFocused, isPressed } = useMenuItem(
+    { key: item.key, onAction, onClose }, state, ref
+  );
+
+  return (
+    <li {...menuItemProps} ref={ref} className={`px-4 py-2 cursor-pointer ${isFocused ? 'bg-blue-50' : ''} ${isPressed ? 'bg-blue-100' : ''}`}>
+      {item.rendered}
+    </li>
+  );
+}
+```
+
+## mergeProps Utility
+
+Safely merge multiple prop objects (combines event handlers):
+
+```tsx
+import { mergeProps } from 'react-aria';
+
+const combinedProps = mergeProps(
+  { onClick: handler1, className: 'base' },
+  { onClick: handler2, className: 'extra' }
+);
+// Result: onClick calls both handlers
+```
+
+## Hooks vs Components Decision
+
+| Approach | Use When |
+|----------|----------|
+| `useButton` hooks | Maximum control over rendering and styling |
+| `Button` from react-aria-components | Fast prototyping, less boilerplate |
+
+## Anti-Patterns
+
+```tsx
+// NEVER use div with onClick for interactive elements
+<div onClick={handleClick}>Click me</div>  // Missing keyboard support!
+
+// ALWAYS use useButton or native button
+const { buttonProps } = useButton({ onPress: handleClick }, ref);
+<div {...buttonProps} ref={ref}>Click me</div>
+
+// NEVER forget aria-live for dynamic announcements
+<div>{errorMessage}</div>  // Screen readers won't announce!
+
+// ALWAYS use aria-live for status updates
+<div aria-live="polite" className="sr-only">{errorMessage}</div>
+```
+
+
+### React Aria: Forms — HIGH
+
+
+# React Aria Forms (useComboBox, useTextField, useListBox)
+
+## useComboBox - Accessible Autocomplete
+
+```tsx
+import { useRef } from 'react';
+import { useComboBox, useFilter } from 'react-aria';
+import { useComboBoxState } from 'react-stately';
+
+function ComboBox(props) {
+  const { contains } = useFilter({ sensitivity: 'base' });
+  const state = useComboBoxState({ ...props, defaultFilter: contains });
+  const inputRef = useRef(null), buttonRef = useRef(null), listBoxRef = useRef(null);
+
+  const { buttonProps, inputProps, listBoxProps, labelProps } = useComboBox(
+    { ...props, inputRef, buttonRef, listBoxRef }, state
+  );
+
+  return (
+    <div className="relative inline-flex flex-col">
+      <label {...labelProps}>{props.label}</label>
+      <div className="flex">
+        <input {...inputProps} ref={inputRef} className="border rounded-l px-3 py-2" />
+        <button {...buttonProps} ref={buttonRef} className="border rounded-r px-2">&#9660;</button>
+      </div>
+      {state.isOpen && (
+        <ul {...listBoxProps} ref={listBoxRef} className="absolute top-full w-full border bg-white">
+          {[...state.collection].map((item) => (
+            <li key={item.key} className="px-3 py-2 hover:bg-gray-100">{item.rendered}</li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+```
+
+**Features:**
+- Type-ahead filtering with `useFilter`
+- Arrow keys navigate options, Enter selects, Escape closes
+- Label associated with input via `labelProps`
+- `aria-expanded` indicates dropdown state
+
+## useTextField - Accessible Text Input
+
+```tsx
+import { useRef } from 'react';
+import { useTextField } from 'react-aria';
+
+function TextField(props) {
+  const ref = useRef(null);
+  const { labelProps, inputProps, descriptionProps, errorMessageProps } = useTextField(props, ref);
+
+  return (
+    <div className="flex flex-col gap-1">
+      <label {...labelProps} className="font-medium">
+        {props.label}
+      </label>
+      <input
+        {...inputProps}
+        ref={ref}
+        className="border rounded px-3 py-2"
+      />
+      {props.description && (
+        <div {...descriptionProps} className="text-sm text-gray-600">
+          {props.description}
+        </div>
+      )}
+      {props.errorMessage && (
+        <div {...errorMessageProps} className="text-sm text-red-600">
+          {props.errorMessage}
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+**Key Props:**
+- `label` - Accessible label text
+- `description` - Helper text (linked via `aria-describedby`)
+- `errorMessage` - Error text (linked via `aria-describedby`)
+- `isRequired` - Adds `aria-required="true"`
+- `isInvalid` - Adds `aria-invalid="true"`
+
+## useListBox - Accessible List with Selection
+
+```tsx
+import { useRef } from 'react';
+import { useListBox, useOption } from 'react-aria';
+import { useListState } from 'react-stately';
+import { Item } from 'react-stately';
+
+function ListBox(props) {
+  const state = useListState(props);
+  const ref = useRef(null);
+  const { listBoxProps } = useListBox(props, state, ref);
+
+  return (
+    <ul {...listBoxProps} ref={ref} className="border rounded">
+      {[...state.collection].map((item) => (
+        <Option key={item.key} item={item} state={state} />
+      ))}
+    </ul>
+  );
+}
+
+function Option({ item, state }) {
+  const ref = useRef(null);
+  const { optionProps, isSelected, isFocused } = useOption(
+    { key: item.key }, state, ref
+  );
+
+  return (
+    <li
+      {...optionProps}
+      ref={ref}
+      className={`
+        px-3 py-2 cursor-pointer
+        ${isSelected ? 'bg-blue-500 text-white' : ''}
+        ${isFocused ? 'bg-gray-100' : ''}
+      `}
+    >
+      {item.rendered}
+    </li>
+  );
+}
+
+// Usage
+<ListBox selectionMode="multiple">
+  <Item key="red">Red</Item>
+  <Item key="green">Green</Item>
+  <Item key="blue">Blue</Item>
+</ListBox>
+```
+
+**Selection Modes:**
+- `"single"` - Select one item
+- `"multiple"` - Select multiple items
+- `"none"` - No selection (display only)
+
+## useSelect - Dropdown Select
+
+```tsx
+import { useRef } from 'react';
+import { HiddenSelect, useSelect } from 'react-aria';
+import { useSelectState } from 'react-stately';
+
+function Select(props) {
+  const state = useSelectState(props);
+  const ref = useRef(null);
+  const { triggerProps, valueProps, menuProps } = useSelect(props, state, ref);
+
+  return (
+    <div className="relative inline-flex flex-col">
+      <HiddenSelect state={state} triggerRef={ref} label={props.label} />
+      <button
+        {...triggerProps}
+        ref={ref}
+        className="px-4 py-2 border rounded flex justify-between items-center"
+      >
+        <span {...valueProps}>
+          {state.selectedItem?.rendered || 'Select...'}
+        </span>
+        <span aria-hidden="true">&#9660;</span>
+      </button>
+      {state.isOpen && (
+        <ListBoxPopup {...menuProps} state={state} />
+      )}
+    </div>
+  );
+}
+```
+
+## react-stately Integration
+
+| React Aria Hook | State Hook |
+|----------------|------------|
+| useComboBox | useComboBoxState |
+| useListBox | useListState |
+| useSelect | useSelectState |
+| useMenu | useTreeState |
+| useCheckbox | useToggleState |
+
+## Anti-Patterns
+
+```tsx
+// NEVER omit label associations
+<input type="text" placeholder="Email" />  // No accessible name!
+
+// ALWAYS associate labels properly
+<label {...labelProps}>Email</label>
+<input {...inputProps} />
+
+// NEVER use placeholder as label
+<input placeholder="Enter email" />  // Disappears on focus!
+
+// ALWAYS provide visible label + optional placeholder
+<label htmlFor="email">Email</label>
+<input id="email" placeholder="user@example.com" />
+```
+
+
+### React Aria: Overlays — HIGH
+
+
+# React Aria Overlays (useModalOverlay, useTooltip, usePopover)
+
+## useModalOverlay - Full Modal Dialog
+
+```tsx
+import { useRef } from 'react';
+import { useDialog, useModalOverlay, FocusScope, mergeProps } from 'react-aria';
+import { useOverlayTriggerState } from 'react-stately';
+import { AnimatePresence, motion } from 'motion/react';
+
+function Modal({ state, title, children }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const { modalProps, underlayProps } = useModalOverlay(
+    { isDismissable: true },
+    state,
+    ref
+  );
+  const { dialogProps, titleProps } = useDialog({ 'aria-label': title }, ref);
+
+  return (
+    <AnimatePresence>
+      {state.isOpen && (
+        <>
+          {/* Backdrop */}
+          <motion.div
+            {...underlayProps}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/50"
+          />
+          {/* Dialog */}
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+            <FocusScope contain restoreFocus autoFocus>
+              <motion.div
+                {...mergeProps(modalProps, dialogProps)}
+                ref={ref}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 pointer-events-auto"
+              >
+                <h2 {...titleProps} className="text-xl font-semibold mb-4">{title}</h2>
+                {children}
+              </motion.div>
+            </FocusScope>
+          </div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+}
+
+// Usage
+function App() {
+  const state = useOverlayTriggerState({});
+
+  return (
+    <>
+      <button onClick={state.open} className="px-4 py-2 bg-blue-500 text-white rounded">
+        Open Modal
+      </button>
+      <Modal state={state} title="Confirm Action">
+        <p className="mb-4 text-gray-700">Are you sure you want to proceed?</p>
+        <div className="flex gap-2 justify-end">
+          <button onClick={state.close} className="px-4 py-2 border rounded">Cancel</button>
+          <button onClick={() => { console.log('Confirmed'); state.close(); }} className="px-4 py-2 bg-blue-500 text-white rounded">
+            Confirm
+          </button>
+        </div>
+      </Modal>
+    </>
+  );
+}
+```
+
+**Features:**
+- Focus trapped within modal via `FocusScope contain`
+- Escape key closes modal
+- Click outside dismisses (if `isDismissable`)
+- Focus returns to trigger button via `restoreFocus`
+- Motion animations for smooth entrance/exit
+
+## useTooltip - Accessible Tooltip
+
+```tsx
+import { useRef } from 'react';
+import { useTooltip, useTooltipTrigger } from 'react-aria';
+import { useTooltipTriggerState } from 'react-stately';
+import { AnimatePresence, motion } from 'motion/react';
+
+function Tooltip({ children, content, delay = 0 }) {
+  const state = useTooltipTriggerState({ delay });
+  const ref = useRef<HTMLButtonElement>(null);
+  const { triggerProps, tooltipProps } = useTooltipTrigger({}, state, ref);
+
+  return (
+    <>
+      <span {...triggerProps} ref={ref}>
+        {children}
+      </span>
+      <AnimatePresence>
+        {state.isOpen && (
+          <TooltipPopup {...tooltipProps}>{content}</TooltipPopup>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
+
+function TooltipPopup(props: any) {
+  const ref = useRef<HTMLDivElement>(null);
+  const { tooltipProps } = useTooltip(props, ref);
+
+  return (
+    <motion.div
+      {...tooltipProps}
+      ref={ref}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="absolute z-50 px-3 py-1.5 bg-gray-900 text-white text-sm rounded shadow-lg"
+    >
+      {props.children}
+    </motion.div>
+  );
+}
+```
+
+**Features:**
+- Shows on hover and focus
+- Accessible via `aria-describedby`
+- Configurable delay before showing
+- Content on Hover/Focus (WCAG 1.4.13): dismissible, hoverable, persistent
+
+## usePopover - Non-Modal Overlay
+
+```tsx
+import { useRef } from 'react';
+import { usePopover, DismissButton, Overlay } from 'react-aria';
+import { useOverlayTriggerState } from 'react-stately';
+
+function Popover({ state, children, ...props }) {
+  const popoverRef = useRef(null);
+  const { popoverProps, underlayProps } = usePopover(
+    { ...props, popoverRef },
+    state
+  );
+
+  return (
+    <Overlay>
+      <div {...underlayProps} className="fixed inset-0" />
+      <div
+        {...popoverProps}
+        ref={popoverRef}
+        className="absolute z-10 bg-white border rounded shadow-lg p-4"
+      >
+        <DismissButton onDismiss={state.close} />
+        {children}
+        <DismissButton onDismiss={state.close} />
+      </div>
+    </Overlay>
+  );
+}
+```
+
+**Popover vs Modal:**
+
+| Feature | Popover | Modal |
+|---------|---------|-------|
+| Focus containment | Soft (can escape) | Strict (trapped) |
+| Backdrop | Invisible dismiss layer | Visible overlay |
+| Use case | Dropdowns, color pickers | Confirmations, forms |
+| Escape key | Closes | Closes |
+| Click outside | Dismisses | Dismisses if `isDismissable` |
+
+## Overlay State Management
+
+All overlays use `useOverlayTriggerState`:
+
+```tsx
+import { useOverlayTriggerState } from 'react-stately';
+
+const state = useOverlayTriggerState({});
+
+// Properties
+state.isOpen    // boolean
+state.open()    // open overlay
+state.close()   // close overlay
+state.toggle()  // toggle
+```
+
+## Confirmation Dialog Pattern
+
+Pre-built pattern for confirming destructive actions:
+
+```tsx
+function ConfirmDialog({ state, title, message, onConfirm }) {
+  return (
+    <Modal state={state} title={title}>
+      <p className="text-gray-700 mb-6">{message}</p>
+      <div className="flex gap-2 justify-end">
+        <button onClick={state.close} className="px-4 py-2 border rounded">
+          Cancel
+        </button>
+        <button
+          onClick={() => { onConfirm(); state.close(); }}
+          className="px-4 py-2 bg-red-500 text-white rounded"
+        >
+          Confirm
+        </button>
+      </div>
+    </Modal>
+  );
+}
+```
+
+## Anti-Patterns
+
+```tsx
+// NEVER handle focus manually for modals
+useEffect(() => { modalRef.current?.focus(); }, []);  // Incomplete!
+
+// ALWAYS use FocusScope for modals/overlays
+<FocusScope contain restoreFocus autoFocus>
+  <div role="dialog">...</div>
+</FocusScope>
+
+// NEVER forget to restore focus on close
+// useOverlayTriggerState + FocusScope restoreFocus handles this automatically
+```
+
+
+### Focus: Keyboard Navigation — HIGH
+
+
+# Keyboard Navigation (WCAG 2.1.1, 2.4.3, 2.4.7)
+
+## Roving Tabindex
+
+Only one item in a group has `tabIndex=\{0\}`; the rest have `tabIndex=\{-1\}`. Arrow keys move focus.
+
+```tsx
+function TabList({ tabs, onSelect }) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const tabRefs = useRef<HTMLButtonElement[]>([]);
+
+  const handleKeyDown = (e: KeyboardEvent, index: number) => {
+    const keyMap: Record<string, number> = {
+      ArrowRight: (index + 1) % tabs.length,
+      ArrowLeft: (index - 1 + tabs.length) % tabs.length,
+      Home: 0, End: tabs.length - 1,
+    };
+    if (e.key in keyMap) {
+      e.preventDefault();
+      setActiveIndex(keyMap[e.key]);
+      tabRefs.current[keyMap[e.key]]?.focus();
+    }
+  };
+
+  return (
+    <div role="tablist">
+      {tabs.map((tab, i) => (
+        <button key={tab.id} ref={(el) => (tabRefs.current[i] = el!)}
+          role="tab" tabIndex={i === activeIndex ? 0 : -1}
+          aria-selected={i === activeIndex}
+          onKeyDown={(e) => handleKeyDown(e, i)}
+          onClick={() => { setActiveIndex(i); onSelect(tab); }}>
+          {tab.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+```
+
+## useRovingTabindex Hook
+
+Reusable hook for toolbars, menus, and lists:
+
+```tsx
+type Orientation = 'horizontal' | 'vertical';
+
+export function useRovingTabindex<T extends HTMLElement>(
+  itemCount: number,
+  orientation: Orientation = 'vertical'
+) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const itemsRef = useRef<Map<number, T>>(new Map());
+
+  const handleKeyDown = useCallback((event: React.KeyboardEvent) => {
+    const keys = orientation === 'horizontal'
+      ? { next: 'ArrowRight', prev: 'ArrowLeft' }
+      : { next: 'ArrowDown', prev: 'ArrowUp' };
+
+    let nextIndex: number | null = null;
+
+    if (event.key === keys.next) {
+      nextIndex = (activeIndex + 1) % itemCount;
+    } else if (event.key === keys.prev) {
+      nextIndex = (activeIndex - 1 + itemCount) % itemCount;
+    } else if (event.key === 'Home') {
+      nextIndex = 0;
+    } else if (event.key === 'End') {
+      nextIndex = itemCount - 1;
+    }
+
+    if (nextIndex !== null) {
+      event.preventDefault();
+      setActiveIndex(nextIndex);
+      itemsRef.current.get(nextIndex)?.focus();
+    }
+  }, [activeIndex, itemCount, orientation]);
+
+  const getItemProps = useCallback((index: number) => ({
+    ref: (element: T | null) => {
+      if (element) {
+        itemsRef.current.set(index, element);
+      } else {
+        itemsRef.current.delete(index);
+      }
+    },
+    tabIndex: index === activeIndex ? 0 : -1,
+    onFocus: () => setActiveIndex(index),
+  }), [activeIndex]);
+
+  return { activeIndex, setActiveIndex, handleKeyDown, getItemProps };
+}
+
+// Usage: Toolbar
+function Toolbar() {
+  const { getItemProps, handleKeyDown } = useRovingTabindex<HTMLButtonElement>(
+    3, 'horizontal'
+  );
+
+  return (
+    <div role="toolbar" aria-label="Text formatting" onKeyDown={handleKeyDown}>
+      <button {...getItemProps(0)} aria-label="Bold"><BoldIcon /></button>
+      <button {...getItemProps(1)} aria-label="Italic"><ItalicIcon /></button>
+      <button {...getItemProps(2)} aria-label="Underline"><UnderlineIcon /></button>
+    </div>
+  );
+}
+```
+
+## Skip Links
+
+Allow keyboard users to bypass repeated navigation:
+
+```tsx
+export function SkipLinks() {
+  return (
+    <nav aria-label="Skip links">
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
+      <a href="#navigation" className="skip-link">
+        Skip to navigation
+      </a>
+    </nav>
+  );
+}
+
+// Layout usage
+export function Layout({ children }) {
+  return (
+    <>
+      <SkipLinks />
+      <nav id="navigation" aria-label="Main navigation">
+        {/* navigation */}
+      </nav>
+      <main id="main-content" tabIndex={-1}>
+        {children}
+      </main>
+    </>
+  );
+}
+```
+
+```css
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: #000;
+  color: #fff;
+  padding: 8px;
+  z-index: 100;
+}
+.skip-link:focus {
+  top: 0;
+}
+```
+
+## Focus Within Detection
+
+```tsx
+export function useFocusWithin<T extends HTMLElement>() {
+  const ref = useRef<T>(null);
+  const [isFocusWithin, setIsFocusWithin] = useState(false);
+
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+
+    const handleFocusIn = () => setIsFocusWithin(true);
+    const handleFocusOut = (e: FocusEvent) => {
+      if (!element.contains(e.relatedTarget as Node)) {
+        setIsFocusWithin(false);
+      }
+    };
+
+    element.addEventListener('focusin', handleFocusIn);
+    element.addEventListener('focusout', handleFocusOut);
+    return () => {
+      element.removeEventListener('focusin', handleFocusIn);
+      element.removeEventListener('focusout', handleFocusOut);
+    };
+  }, []);
+
+  return { ref, isFocusWithin };
+}
+```
+
+## Focus Indicator Styles
+
+```css
+/* Use :focus-visible (not :focus) for keyboard-only indicators */
+:focus-visible {
+  outline: 3px solid #0052cc;
+  outline-offset: 2px;
+}
+
+/* Ensure scroll margin for sticky headers */
+:focus {
+  scroll-margin-top: var(--header-height, 64px);
+}
+```
+
+## Anti-Patterns
+
+```tsx
+// NEVER use positive tabindex - breaks natural tab order
+<button tabIndex={5}>Bad</button>
+
+// NEVER remove focus outline without replacement (WCAG 2.4.7)
+button:focus { outline: none; }
+
+// NEVER auto-focus without user expectation
+useEffect(() => inputRef.current?.focus(), []);
+
+// NEVER hide skip links permanently - must be visible on focus
+.skip-link { display: none; }
+```
+
+
+### Focus: Focus Restoration — HIGH
+
+
+# Focus Restoration (WCAG 2.4.3)
+
+## Basic Focus Restore
+
+Return focus to the trigger element when an overlay closes:
+
+```tsx
+function useRestoreFocus(isOpen: boolean) {
+  const triggerRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      triggerRef.current = document.activeElement as HTMLElement;
+    } else if (triggerRef.current) {
+      triggerRef.current.focus();
+      triggerRef.current = null;
+    }
+  }, [isOpen]);
+}
+```
+
+## Reusable useFocusRestore Hook
+
+```tsx
+import { useEffect, useRef } from 'react';
+
+export function useFocusRestore(shouldRestore: boolean) {
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    previousFocusRef.current = document.activeElement as HTMLElement;
+
+    return () => {
+      if (shouldRestore && previousFocusRef.current) {
+        previousFocusRef.current.focus();
+      }
+    };
+  }, [shouldRestore]);
+}
+
+// Usage
+function ConfirmationModal({ isOpen, onClose }) {
+  useFocusRestore(isOpen);
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose}>
+      <h2>Are you sure?</h2>
+      <button onClick={onClose}>Cancel</button>
+      <button onClick={handleConfirm}>Confirm</button>
+    </Modal>
+  );
+}
+```
+
+## Focus First Error
+
+After form validation failure, focus the first field with an error:
+
+```tsx
+import { useEffect, useRef } from 'react';
+
+export function useFocusFirstError(errors: Record<string, string>) {
+  const formRef = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    if (Object.keys(errors).length === 0) return;
+
+    const firstErrorField = Object.keys(errors)[0];
+    const element = formRef.current?.querySelector(
+      `[name="${firstErrorField}"]`
+    ) as HTMLElement;
+
+    element?.focus();
+  }, [errors]);
+
+  return formRef;
+}
+
+// Usage
+function MyForm() {
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const formRef = useFocusFirstError(errors);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const validationErrors = validateForm();
+    setErrors(validationErrors);
+  };
+
+  return (
+    <form ref={formRef} onSubmit={handleSubmit}>
+      <input name="email" type="email" aria-invalid={!!errors.email} />
+      {errors.email && <span role="alert">{errors.email}</span>}
+      <button type="submit">Submit</button>
+    </form>
+  );
+}
+```
+
+## Focus Confirmation Message
+
+After a successful action, focus a confirmation for screen readers:
+
+```tsx
+function FormWithConfirmation() {
+  const [submitted, setSubmitted] = useState(false);
+  const confirmationRef = useRef<HTMLDivElement>(null);
+
+  const handleSubmit = async () => {
+    await submitForm();
+    setSubmitted(true);
+    confirmationRef.current?.focus();
+  };
+
+  return (
+    <>
+      <form onSubmit={handleSubmit}>{/* fields */}</form>
+      {submitted && (
+        <div
+          ref={confirmationRef}
+          tabIndex={-1}
+          role="status"
+          aria-live="polite"
+        >
+          Form submitted successfully!
+        </div>
+      )}
+    </>
+  );
+}
+```
+
+## Restoration Strategies
+
+| Strategy | When to Use | Implementation |
+|----------|------------|----------------|
+| Trigger element | Closing modals/menus | Store `document.activeElement` before open |
+| First error | Form validation failure | Query `[name="firstErrorField"]` |
+| Confirmation message | Successful submission | Focus `tabIndex=\{-1\}` status element |
+| Session storage | Page navigation | Save/restore via `data-focus-id` |
+
+## Common Mistakes
+
+| Mistake | Fix |
+|---------|-----|
+| Not storing trigger ref before open | Capture `document.activeElement` immediately on open |
+| Trigger element removed from DOM | Check element exists before calling `.focus()` |
+| Not clearing ref after restore | Set `triggerRef.current = null` after focus |
+| Forgetting `tabIndex=\{-1\}` on non-interactive targets | Required for programmatic focus on divs |
+
+
+### Focus: Focus Trap — HIGH
+
+
+# Focus Trap (WCAG 2.1.1, 2.1.2)
+
+## React Aria FocusScope
+
+The simplest and most reliable approach for modals and dialogs:
+
+```tsx
+import { FocusScope } from 'react-aria';
+
+function Modal({ isOpen, onClose, children }) {
+  if (!isOpen) return null;
+  return (
+    <div role="dialog" aria-modal="true">
+      <FocusScope contain restoreFocus autoFocus>
+        <div className="modal-content">
+          {children}
+          <button onClick={onClose}>Close</button>
+        </div>
+      </FocusScope>
+    </div>
+  );
+}
+```
+
+**FocusScope Props:**
+- `contain` - Trap focus within children
+- `restoreFocus` - Restore focus to trigger on unmount
+- `autoFocus` - Auto-focus first focusable element
+
+## Custom useFocusTrap Hook
+
+When you need more control than FocusScope provides:
+
+```tsx
+import { useEffect, useRef, useCallback } from 'react';
+
+const FOCUSABLE_SELECTOR = [
+  'a[href]',
+  'area[href]',
+  'input:not([disabled]):not([type="hidden"])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  'button:not([disabled])',
+  'iframe',
+  'object',
+  'embed',
+  '[contenteditable]',
+  '[tabindex]:not([tabindex="-1"])',
+].join(',');
+
+export function useFocusTrap<T extends HTMLElement>(isActive: boolean) {
+  const containerRef = useRef<T>(null);
+  const previousActiveElement = useRef<HTMLElement | null>(null);
+
+  // Store trigger element
+  useEffect(() => {
+    if (isActive) {
+      previousActiveElement.current = document.activeElement as HTMLElement;
+    } else if (previousActiveElement.current) {
+      previousActiveElement.current.focus();
+      previousActiveElement.current = null;
+    }
+  }, [isActive]);
+
+  // Trap focus within the container
+  const handleKeyDown = useCallback((event: KeyboardEvent) => {
+    if (!isActive || event.key !== 'Tab') return;
+
+    const container = containerRef.current;
+    if (!container) return;
+
+    const focusableElements = Array.from(
+      container.querySelectorAll(FOCUSABLE_SELECTOR)
+    ) as HTMLElement[];
+
+    if (focusableElements.length === 0) return;
+
+    const firstElement = focusableElements[0];
+    const lastElement = focusableElements[focusableElements.length - 1];
+
+    if (event.shiftKey) {
+      if (document.activeElement === firstElement) {
+        event.preventDefault();
+        lastElement.focus();
+      }
+    } else {
+      if (document.activeElement === lastElement) {
+        event.preventDefault();
+        firstElement.focus();
+      }
+    }
+  }, [isActive]);
+
+  // Focus the first element when activated
+  useEffect(() => {
+    if (!isActive) return;
+    const container = containerRef.current;
+    if (!container) return;
+    const focusableElements = Array.from(
+      container.querySelectorAll(FOCUSABLE_SELECTOR)
+    ) as HTMLElement[];
+    if (focusableElements.length > 0) {
+      focusableElements[0].focus();
+    }
+  }, [isActive]);
+
+  // Attach event listener
+  useEffect(() => {
+    if (!isActive) return;
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isActive, handleKeyDown]);
+
+  return containerRef;
+}
+```
+
+## Escape Key Handler
+
+Every focus trap must have an Escape key handler:
+
+```tsx
+export function useEscapeKey(onEscape: () => void, isActive: boolean = true) {
+  useEffect(() => {
+    if (!isActive) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onEscape();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onEscape, isActive]);
+}
+```
+
+## Trap vs Contain
+
+| Pattern | Use Case | Behavior |
+|---------|----------|----------|
+| `FocusTrap` (strict) | Modals, dialogs | Focus cannot escape at all |
+| `FocusScope` (soft) | Popovers, dropdowns | Focus contained but can escape |
+
+## Anti-Patterns
+
+```tsx
+// NEVER trap focus without Escape key handler
+<FocusTrap><div>No way out!</div></FocusTrap>
+
+// NEVER handle focus manually for modals
+useEffect(() => { modalRef.current?.focus(); }, []);  // Incomplete!
+
+// ALWAYS use FocusScope for modals/overlays
+<FocusScope contain restoreFocus autoFocus>
+  <div role="dialog">...</div>
+</FocusScope>
+```
+
+
+### WCAG: Color Contrast — CRITICAL
+
+
+# Color Contrast (WCAG 1.4.3, 1.4.11)
+
+## Contrast Requirements
+
+| Element Type | Minimum Ratio | WCAG Criterion |
+|-------------|---------------|----------------|
+| Normal text (&lt; 18pt / &lt; 14pt bold) | 4.5:1 | 1.4.3 |
+| Large text (>= 18pt / >= 14pt bold) | 3:1 | 1.4.3 |
+| UI components (borders, icons, focus) | 3:1 | 1.4.11 |
+| Focus indicators | 3:1 | 2.4.7 |
+
+## CSS Custom Properties
+
+```css
+:root {
+  --text-primary: #1a1a1a;   /* 16.1:1 on white - normal text */
+  --text-secondary: #595959; /* 7.0:1 on white - secondary */
+  --focus-ring: #0052cc;     /* 7.3:1 - focus indicator */
+}
+
+/* High visibility focus indicator */
+:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* Button border 3:1 contrast */
+.button {
+  background: #ffffff;
+  border: 2px solid #757575; /* 4.5:1 on white */
+}
+
+/* Minimum target size (WCAG 2.5.8) */
+button, a[role="button"], input[type="checkbox"] {
+  min-width: 24px;
+  min-height: 24px;
+}
+
+/* Touch-friendly target size */
+@media (hover: none) {
+  button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+```
+
+## Non-Color Status Indicators
+
+Never convey information through color alone:
+
+```tsx
+// FORBIDDEN: Color-only status
+<span className="text-red-500">Error</span>
+
+// CORRECT: Color + icon + text
+<span className="text-red-500 flex items-center gap-1">
+  <AlertIcon aria-hidden="true" />
+  Error: Invalid email address
+</span>
+```
+
+## Text Spacing (WCAG 1.4.12)
+
+Content must remain usable when text spacing is adjusted:
+
+```css
+body {
+  line-height: 1.5;        /* at least 1.5x font size */
+}
+p {
+  margin-bottom: 2em;      /* at least 2x font size */
+}
+```
+
+## Reflow (WCAG 1.4.10)
+
+Content must reflow without horizontal scrolling at 320px width:
+
+```css
+/* Responsive design */
+.card {
+  width: 100%;
+  max-width: 600px;
+}
+
+/* FORBIDDEN: Fixed width that forces horizontal scroll */
+.card {
+  width: 800px;
+}
+```
+
+## Testing Tools
+
+- **WebAIM Contrast Checker**: [webaim.org/resources/contrastchecker](https://webaim.org/resources/contrastchecker/)
+- **Chrome DevTools**: Inspect > Color picker > Contrast ratio
+- **Lighthouse**: Accessibility audit built into Chrome DevTools
+
+## Common Mistakes
+
+| Mistake | Fix |
+|---------|-----|
+| Insufficient text contrast (#b3b3b3 = 2.1:1) | Use #595959 or darker (7.0:1+) |
+| Removing focus outline globally | Use `:focus-visible` with custom outline |
+| Color-only error indication | Add icon + text alongside color |
+| Fixed-width layouts | Use responsive `max-width` + `width: 100%` |
+| Tiny touch targets | Minimum 24px, 44px for touch devices |
+
+
+### WCAG: Semantic HTML — CRITICAL
+
+
+# Semantic HTML & ARIA (WCAG 1.3.1, 4.1.2)
+
+## Document Structure
+
+```tsx
+<main>
+  <article>
+    <header><h1>Page Title</h1></header>
+    <section aria-labelledby="features-heading">
+      <h2 id="features-heading">Features</h2>
+      <ul><li>Feature 1</li></ul>
+    </section>
+    <aside aria-label="Related content">...</aside>
+  </article>
+</main>
+```
+
+## Heading Hierarchy
+
+Always follow h1-h6 order without skipping levels:
+
+```tsx
+// CORRECT
+<h1>Page Title</h1>
+  <h2>Section</h2>
+    <h3>Subsection</h3>
+
+// FORBIDDEN: Skipping levels
+<h1>Page Title</h1>
+  <h3>Subsection</h3>  // Skipped h2!
+```
+
+## ARIA Labels and States
+
+```tsx
+// Icon-only button
+<button aria-label="Save document">
+  <svg aria-hidden="true">...</svg>
+</button>
+
+// Form field with error
+<input
+  id="email"
+  aria-required="true"
+  aria-invalid={!!error}
+  aria-describedby={error ? "email-error" : "email-hint"}
+/>
+{error && <p id="email-error" role="alert">{error}</p>}
+
+// Custom widget with explicit role
+<div
+  role="switch"
+  aria-checked={isEnabled}
+  aria-label="Enable notifications"
+  tabIndex={0}
+  onClick={handleToggle}
+  onKeyDown={(e) => {
+    if (e.key === ' ' || e.key === 'Enter') handleToggle();
+  }}
+/>
+```
+
+## Form Structure
+
+```tsx
+<form>
+  <fieldset>
+    <legend>Shipping Address</legend>
+    <label htmlFor="street">Street</label>
+    <input id="street" type="text" autoComplete="street-address" />
+  </fieldset>
+</form>
+```
+
+## Live Regions
+
+```tsx
+// Polite: status updates (default, avoids interruption)
+<div role="status" aria-live="polite" aria-atomic="true">
+  {items.length} items in cart
+</div>
+
+// Assertive: errors that need immediate announcement
+<div role="alert" aria-live="assertive">
+  {error}
+</div>
+```
+
+## Page Language
+
+```html
+<html lang="en">
+  <body>
+    <p>The French phrase <span lang="fr">Je ne sais quoi</span> means...</p>
+  </body>
+</html>
+```
+
+## Skip Links
+
+```tsx
+<a href="#main-content" className="skip-link">
+  Skip to main content
+</a>
+<nav>...</nav>
+<main id="main-content" tabIndex={-1}>
+  {children}
+</main>
+```
+
+```css
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: #000;
+  color: #fff;
+  padding: 8px;
+  z-index: 100;
+}
+.skip-link:focus {
+  top: 0;
+}
+```
+
+## WCAG 2.2 AA Checklist
+
+| Criterion | Requirement | Test |
+|-----------|-------------|------|
+| 1.1.1 Non-text | Alt text for images | axe-core scan |
+| 1.3.1 Info | Semantic HTML, headings | Manual + automated |
+| 1.4.3 Contrast | 4.5:1 text, 3:1 large | WebAIM checker |
+| 2.1.1 Keyboard | All functionality via keyboard | Tab through |
+| 2.4.3 Focus Order | Logical tab sequence | Manual test |
+| 2.4.7 Focus Visible | Clear focus indicator | Visual check |
+| 2.4.11 Focus Not Obscured | Focus not hidden by sticky elements | scroll-margin-top |
+| 2.5.8 Target Size | Min 24x24px interactive | CSS audit |
+| 4.1.2 Name/Role/Value | Proper ARIA, labels | Screen reader test |
+
+## Anti-Patterns
+
+- **Div soup**: Using `<div>` where `&lt;nav&gt;`, `&lt;main&gt;`, `&lt;article&gt;` should be used
+- **Empty links/buttons**: Interactive elements without accessible names
+- **ARIA overuse**: Using ARIA when semantic HTML suffices (prefer `&lt;button&gt;` over `<div role="button">`)
+- **Positive tabindex**: Using `tabIndex > 0` disrupts natural tab order
+- **Decorative images without alt=""**: Must use `alt=""` or `role="presentation"`
+
+
+### WCAG: Accessibility Testing — CRITICAL
+
+
+# Accessibility Testing
+
+## Automated Testing with axe-core
+
+### Component-Level (jest-axe)
+
+```tsx
+import { render } from '@testing-library/react';
+import { axe, toHaveNoViolations } from 'jest-axe';
+
+expect.extend(toHaveNoViolations);
+
+test('form has no accessibility violations', async () => {
+  const { container } = render(<AccessibleForm />);
+  const results = await axe(container);
+  expect(results).toHaveNoViolations();
+});
+```
+
+### Page-Level (Playwright + axe-core)
+
+```typescript
+import { test, expect } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
+
+test('should not have any automatically detectable accessibility issues', async ({ page }) => {
+  await page.goto('/');
+  const accessibilityScanResults = await new AxeBuilder({ page }).analyze();
+  expect(accessibilityScanResults.violations).toEqual([]);
+});
+```
+
+### ESLint Plugin
+
+```bash
+npm install --save-dev eslint-plugin-jsx-a11y
+```
+
+Catches issues during development: missing alt text, missing labels, invalid ARIA attributes.
+
+## Screen Reader Testing
+
+Test with at least one screen reader:
+
+| Platform | Screen Reader | How to Enable |
+|----------|--------------|---------------|
+| Windows | NVDA (free) | [nvaccess.org](https://www.nvaccess.org/) |
+| Windows | JAWS | [freedomscientific.com](https://www.freedomscientific.com/) |
+| macOS/iOS | VoiceOver | Cmd+F5 to enable |
+| Android | TalkBack | Built-in |
+
+### Verification Steps
+
+- Navigate with Tab key, verify focus indicators
+- Navigate with arrow keys (for custom widgets)
+- Verify all images/icons are announced correctly
+- Verify form labels are announced
+- Verify error messages are announced via `role="alert"`
+- Verify dynamic content updates are announced via `aria-live`
+- Verify headings provide proper page structure
+- Verify links are descriptive when read out of context
+
+## Manual Keyboard Testing
+
+1. Navigate entire UI with keyboard only (no mouse)
+2. Verify all interactive elements are reachable via Tab
+3. Test Tab, Shift+Tab, Arrow keys, Enter, Escape, Space
+4. Verify focus order follows visual/logical reading order
+5. Verify focus indicators are visible on all interactive elements
+6. Verify focus does not get trapped (except in modals, which need Escape)
+7. Check that focus returns after closing modals/menus
+
+## Automated Testing Tools
+
+| Tool | Purpose | Coverage |
+|------|---------|----------|
+| **axe DevTools** | Browser extension | ~30-50% of WCAG issues |
+| **Lighthouse** | Accessibility audit | Built into Chrome DevTools |
+| **WAVE** | Visual feedback | Page-level audit |
+| **ESLint jsx-a11y** | Catches issues during development | Code-level |
+| **Playwright + axe** | CI/CD automated regression | Page-level |
+
+## CI/CD Integration
+
+```yaml
+# GitHub Actions example
+- name: Run accessibility tests
+  run: npx playwright test --grep @a11y
+```
+
+## Common Mistakes
+
+| Mistake | Fix |
+|---------|-----|
+| Only relying on automated tests | Automated tests catch 30-50%; manual + screen reader testing required |
+| Testing only happy path | Test error states, loading states, empty states |
+| Not testing keyboard navigation | Tab through entire flow manually |
+| Ignoring screen reader announcements | Test with NVDA/VoiceOver for dynamic content |
+
+
+
+---
+
+## References (3)
+
+### Focus Patterns
+
+# Focus Management Patterns
+
+Detailed implementation guide for keyboard navigation and focus management in React applications.
+
+## Focus Trap Algorithms
+
+### Basic Focus Trap
+
+A focus trap restricts keyboard navigation to a specific container (modal, dialog, drawer).
+
+**Algorithm:**
+
+1. Find all focusable elements within the container
+2. On Tab key, move focus to next focusable element
+3. On Shift+Tab, move focus to previous focusable element
+4. Wrap around at boundaries (first ↔ last)
+5. Prevent focus from escaping the container
+
+**Focusable Element Selector:**
+
+```typescript
+const FOCUSABLE_SELECTOR = [
+  'a[href]',
+  'area[href]',
+  'input:not([disabled]):not([type="hidden"])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  'button:not([disabled])',
+  'iframe',
+  'object',
+  'embed',
+  '[contenteditable]',
+  '[tabindex]:not([tabindex="-1"])'
+].join(',');
+```
+
+**Implementation:**
+
+```typescript
+function trapFocus(container: HTMLElement, event: KeyboardEvent) {
+  const focusableElements = container.querySelectorAll(FOCUSABLE_SELECTOR);
+  const firstElement = focusableElements[0] as HTMLElement;
+  const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+
+  if (event.key !== 'Tab') return;
+
+  if (event.shiftKey) {
+    // Shift + Tab
+    if (document.activeElement === firstElement) {
+      event.preventDefault();
+      lastElement.focus();
+    }
+  } else {
+    // Tab
+    if (document.activeElement === lastElement) {
+      event.preventDefault();
+      firstElement.focus();
+    }
+  }
+}
+```
+
+### Return Focus on Close
+
+When a modal closes, return focus to the element that triggered it.
+
+```typescript
+function useFocusTrap(isOpen: boolean) {
+  const triggerRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      // Store the currently focused element
+      triggerRef.current = document.activeElement as HTMLElement;
+    } else if (triggerRef.current) {
+      // Return focus when modal closes
+      triggerRef.current.focus();
+      triggerRef.current = null;
+    }
+  }, [isOpen]);
+
+  return triggerRef;
+}
+```
+
+---
+
+## Roving Tabindex Patterns
+
+Roving tabindex allows arrow key navigation within a group (toolbar, menu, listbox).
+
+### Rules
+
+1. Only one element in the group has `tabindex="0"` (the active item)
+2. All other elements have `tabindex="-1"` (reachable via script, not Tab)
+3. Arrow keys move focus and update the active item
+4. Tab moves out of the group
+
+### Implementation
+
+```typescript
+function useRovingTabindex<T extends HTMLElement>(
+  items: T[],
+  orientation: 'horizontal' | 'vertical' = 'vertical'
+) {
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    const keys = orientation === 'horizontal'
+      ? { next: 'ArrowRight', prev: 'ArrowLeft' }
+      : { next: 'ArrowDown', prev: 'ArrowUp' };
+
+    if (event.key === keys.next) {
+      event.preventDefault();
+      const nextIndex = (activeIndex + 1) % items.length;
+      setActiveIndex(nextIndex);
+      items[nextIndex]?.focus();
+    } else if (event.key === keys.prev) {
+      event.preventDefault();
+      const prevIndex = (activeIndex - 1 + items.length) % items.length;
+      setActiveIndex(prevIndex);
+      items[prevIndex]?.focus();
+    } else if (event.key === 'Home') {
+      event.preventDefault();
+      setActiveIndex(0);
+      items[0]?.focus();
+    } else if (event.key === 'End') {
+      event.preventDefault();
+      const lastIndex = items.length - 1;
+      setActiveIndex(lastIndex);
+      items[lastIndex]?.focus();
+    }
+  };
+
+  return {
+    activeIndex,
+    setActiveIndex,
+    handleKeyDown,
+    getItemProps: (index: number) => ({
+      tabIndex: index === activeIndex ? 0 : -1,
+      onFocus: () => setActiveIndex(index),
+    }),
+  };
+}
+```
+
+### Example: Toolbar
+
+```tsx
+function Toolbar() {
+  const buttons = useRef<HTMLButtonElement[]>([]);
+  const { getItemProps, handleKeyDown } = useRovingTabindex(buttons.current, 'horizontal');
+
+  return (
+    <div role="toolbar" onKeyDown={handleKeyDown}>
+      <button ref={el => buttons.current[0] = el!} {...getItemProps(0)}>
+        Bold
+      </button>
+      <button ref={el => buttons.current[1] = el!} {...getItemProps(1)}>
+        Italic
+      </button>
+      <button ref={el => buttons.current[2] = el!} {...getItemProps(2)}>
+        Underline
+      </button>
+    </div>
+  );
+}
+```
+
+---
+
+## Focus Restoration Strategies
+
+### Strategy 1: Save/Restore on Navigation
+
+```typescript
+function useFocusRestore() {
+  useEffect(() => {
+    const savedFocus = sessionStorage.getItem('focusedElement');
+    if (savedFocus) {
+      const element = document.querySelector(`[data-focus-id="${savedFocus}"]`) as HTMLElement;
+      element?.focus();
+      sessionStorage.removeItem('focusedElement');
+    }
+  }, []);
+
+  const saveFocus = (id: string) => {
+    sessionStorage.setItem('focusedElement', id);
+  };
+
+  return { saveFocus };
+}
+```
+
+### Strategy 2: Focus First Error
+
+After form submission, focus the first validation error.
+
+```typescript
+function focusFirstError(errors: Record<string, string>) {
+  const firstErrorField = Object.keys(errors)[0];
+  if (firstErrorField) {
+    const element = document.querySelector(`[name="${firstErrorField}"]`) as HTMLElement;
+    element?.focus();
+  }
+}
+```
+
+### Strategy 3: Focus Confirmation Message
+
+After a successful action, focus a confirmation message for screen readers.
+
+```tsx
+function FormWithConfirmation() {
+  const [submitted, setSubmitted] = useState(false);
+  const confirmationRef = useRef<HTMLDivElement>(null);
+
+  const handleSubmit = async () => {
+    await submitForm();
+    setSubmitted(true);
+    confirmationRef.current?.focus();
+  };
+
+  return (
+    <>
+      <form onSubmit={handleSubmit}>{/* fields */}</form>
+      {submitted && (
+        <div
+          ref={confirmationRef}
+          tabIndex={-1}
+          role="status"
+          aria-live="polite"
+        >
+          Form submitted successfully!
+        </div>
+      )}
+    </>
+  );
+}
+```
+
+---
+
+## Skip Links Implementation
+
+Skip links allow keyboard users to bypass repetitive navigation and jump to main content.
+
+### Basic Skip Link
+
+```tsx
+function SkipLink() {
+  return (
+    <a
+      href="#main-content"
+      className="skip-link"
+      style={{
+        position: 'absolute',
+        left: '-9999px',
+        zIndex: 999,
+      }}
+      onFocus={(e) => {
+        e.currentTarget.style.left = '0';
+      }}
+      onBlur={(e) => {
+        e.currentTarget.style.left = '-9999px';
+      }}
+    >
+      Skip to main content
+    </a>
+  );
+}
+```
+
+### CSS Approach (Preferred)
+
+```css
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  z-index: 999;
+  padding: 1rem;
+  background: var(--color-primary);
+  color: white;
+}
+
+.skip-link:focus {
+  left: 0;
+  top: 0;
+}
+```
+
+### Multiple Skip Links
+
+```tsx
+function SkipLinks() {
+  return (
+    <nav aria-label="Skip links">
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
+      <a href="#navigation" className="skip-link">
+        Skip to navigation
+      </a>
+      <a href="#footer" className="skip-link">
+        Skip to footer
+      </a>
+    </nav>
+  );
+}
+```
+
+**Usage:**
+
+```tsx
+function Layout({ children }) {
+  return (
+    <>
+      <SkipLinks />
+      <nav id="navigation">{/* nav */}</nav>
+      <main id="main-content" tabIndex={-1}>
+        {children}
+      </main>
+      <footer id="footer">{/* footer */}</footer>
+    </>
+  );
+}
+```
+
+**Important:** Add `tabIndex=\{-1\}` to target elements so they receive focus programmatically.
+
+---
+
+## Advanced Patterns
+
+### Focus Within Detection
+
+```typescript
+function useFocusWithin<T extends HTMLElement>() {
+  const ref = useRef<T>(null);
+  const [isFocusWithin, setIsFocusWithin] = useState(false);
+
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+
+    const handleFocusIn = () => setIsFocusWithin(true);
+    const handleFocusOut = (e: FocusEvent) => {
+      if (!element.contains(e.relatedTarget as Node)) {
+        setIsFocusWithin(false);
+      }
+    };
+
+    element.addEventListener('focusin', handleFocusIn);
+    element.addEventListener('focusout', handleFocusOut);
+
+    return () => {
+      element.removeEventListener('focusin', handleFocusIn);
+      element.removeEventListener('focusout', handleFocusOut);
+    };
+  }, []);
+
+  return { ref, isFocusWithin };
+}
+```
+
+### Escape Key to Close
+
+```typescript
+function useEscapeKey(onEscape: () => void, isActive: boolean) {
+  useEffect(() => {
+    if (!isActive) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onEscape();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onEscape, isActive]);
+}
+```
+
+---
+
+## Testing Focus Management
+
+### Manual Testing Checklist
+
+1. Navigate entire UI with keyboard only (no mouse)
+2. Verify all interactive elements are reachable
+3. Check that focus indicator is visible
+4. Test Tab, Shift+Tab, Arrow keys, Escape, Enter
+5. Verify focus doesn't get trapped unexpectedly
+6. Check that focus returns after closing dialogs
+
+### Automated Testing with Playwright
+
+```typescript
+test('modal traps focus', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Open Modal' }).click();
+
+  // First focusable element
+  await page.keyboard.press('Tab');
+  await expect(page.getByRole('button', { name: 'Close' })).toBeFocused();
+
+  // Last focusable element
+  await page.keyboard.press('Tab');
+  await expect(page.getByRole('button', { name: 'Submit' })).toBeFocused();
+
+  // Wrap around
+  await page.keyboard.press('Tab');
+  await expect(page.getByRole('button', { name: 'Close' })).toBeFocused();
+});
+```
+
+---
+
+## Common Mistakes
+
+| Mistake | Fix |
+|---------|-----|
+| Removing focus outline globally | Use `:focus-visible` to show only for keyboard |
+| Focus trap without escape hatch | Always allow Escape key to close |
+| Not returning focus after modal close | Store trigger element and refocus it |
+| Setting `tabindex="0"` on all items in roving group | Only the active item should be `tabindex="0"` |
+| Skip link always visible | Only show on focus (screen reader users need it) |
+
+---
+
+**Last Updated:** 2026-01-16
+
+
+### React Aria Hooks
+
+# React Aria Hooks Reference
+
+Comprehensive API reference for Adobe's React Aria hooks with React 19 patterns.
+
+## Installation
+
+```bash
+npm install react-aria react-stately
+```
+
+**Peer Dependencies:**
+- React 19.x
+- react-dom 19.x
+
+---
+
+## Button Hooks
+
+### useButton
+
+Creates accessible buttons with keyboard, pointer, and focus support.
+
+```tsx
+import { useRef } from 'react';
+import { useButton, useFocusRing, mergeProps } from 'react-aria';
+import type { AriaButtonProps } from 'react-aria';
+
+function Button(props: AriaButtonProps) {
+  const ref = useRef<HTMLButtonElement>(null);
+  const { buttonProps, isPressed } = useButton(props, ref);
+  const { focusProps, isFocusVisible } = useFocusRing();
+
+  return (
+    <button
+      {...mergeProps(buttonProps, focusProps)}
+      ref={ref}
+      className={`
+        px-4 py-2 rounded
+        ${isPressed ? 'scale-95' : ''}
+        ${isFocusVisible ? 'ring-2 ring-blue-500' : ''}
+      `}
+    >
+      {props.children}
+    </button>
+  );
+}
+```
+
+**Key Props:**
+- `onPress` - Triggered on click or Enter/Space
+- `isDisabled` - Disables interaction
+- `type` - Button type (button, submit, reset)
+- `elementType` - Custom element type (default: button)
+
+**Returns:**
+- `buttonProps` - Spread on button element
+- `isPressed` - Current press state
+
+---
+
+### useToggleButton
+
+Toggle buttons with on/off states (like icon toggles).
+
+```tsx
+import { useRef } from 'react';
+import { useToggleButton } from 'react-aria';
+import { useToggleState } from 'react-stately';
+
+function ToggleButton(props) {
+  const state = useToggleState(props);
+  const ref = useRef(null);
+  const { buttonProps, isPressed } = useToggleButton(props, state, ref);
+
+  return (
+    <button
+      {...buttonProps}
+      ref={ref}
+      className={state.isSelected ? 'bg-blue-500 text-white' : 'bg-gray-200'}
+    >
+      {props.children}
+    </button>
+  );
+}
+
+// Usage
+<ToggleButton onChange={(isSelected) => console.log(isSelected)}>
+  Toggle Me
+</ToggleButton>
+```
+
+---
+
+## Selection Hooks
+
+### useListBox
+
+Accessible list with single/multiple selection, keyboard navigation, and typeahead.
+
+```tsx
+import { useRef } from 'react';
+import { useListBox, useOption } from 'react-aria';
+import { useListState } from 'react-stately';
+import { Item } from 'react-stately';
+
+function ListBox(props) {
+  const state = useListState(props);
+  const ref = useRef(null);
+  const { listBoxProps } = useListBox(props, state, ref);
+
+  return (
+    <ul {...listBoxProps} ref={ref} className="border rounded">
+      {[...state.collection].map((item) => (
+        <Option key={item.key} item={item} state={state} />
+      ))}
+    </ul>
+  );
+}
+
+function Option({ item, state }) {
+  const ref = useRef(null);
+  const { optionProps, isSelected, isFocused } = useOption(
+    { key: item.key },
+    state,
+    ref
+  );
+
+  return (
+    <li
+      {...optionProps}
+      ref={ref}
+      className={`
+        px-3 py-2 cursor-pointer
+        ${isSelected ? 'bg-blue-500 text-white' : ''}
+        ${isFocused ? 'bg-gray-100' : ''}
+      `}
+    >
+      {item.rendered}
+    </li>
+  );
+}
+
+// Usage
+<ListBox selectionMode="multiple">
+  <Item key="red">Red</Item>
+  <Item key="green">Green</Item>
+  <Item key="blue">Blue</Item>
+</ListBox>
+```
+
+**Key Props:**
+- `selectionMode` - "single", "multiple", "none"
+- `disallowEmptySelection` - Prevent deselecting last item
+- `onSelectionChange` - Callback with Set of keys
+
+---
+
+### useSelect
+
+Dropdown select with keyboard navigation and proper ARIA semantics.
+
+```tsx
+import { useRef } from 'react';
+import { HiddenSelect, useSelect } from 'react-aria';
+import { useSelectState } from 'react-stately';
+import { Item } from 'react-stately';
+
+function Select(props) {
+  const state = useSelectState(props);
+  const ref = useRef(null);
+  const { triggerProps, valueProps, menuProps } = useSelect(props, state, ref);
+
+  return (
+    <div className="relative inline-flex flex-col">
+      <HiddenSelect state={state} triggerRef={ref} label={props.label} />
+      <button
+        {...triggerProps}
+        ref={ref}
+        className="px-4 py-2 border rounded flex justify-between items-center"
+      >
+        <span {...valueProps}>
+          {state.selectedItem?.rendered || 'Select...'}
+        </span>
+        <span aria-hidden="true">▼</span>
+      </button>
+      {state.isOpen && (
+        <ListBoxPopup {...menuProps} state={state} />
+      )}
+    </div>
+  );
+}
+```
+
+---
+
+## Menu Hooks
+
+### useMenu / useMenuItem
+
+Dropdown menus with keyboard navigation and submenus.
+
+```tsx
+import { useRef } from 'react';
+import { useMenu, useMenuItem, useMenuTrigger } from 'react-aria';
+import { useMenuTriggerState } from 'react-stately';
+
+function MenuButton(props) {
+  const state = useMenuTriggerState(props);
+  const ref = useRef(null);
+  const { menuTriggerProps, menuProps } = useMenuTrigger({}, state, ref);
+
+  return (
+    <div className="relative">
+      <button {...menuTriggerProps} ref={ref}>
+        Actions ▼
+      </button>
+      {state.isOpen && (
+        <Menu {...menuProps} onAction={props.onAction} onClose={state.close} />
+      )}
+    </div>
+  );
+}
+
+function Menu(props) {
+  const ref = useRef(null);
+  const state = useTreeState(props);
+  const { menuProps } = useMenu(props, state, ref);
+
+  return (
+    <ul {...menuProps} ref={ref} className="absolute mt-1 border bg-white rounded shadow">
+      {[...state.collection].map((item) => (
+        <MenuItem key={item.key} item={item} state={state} onAction={props.onAction} onClose={props.onClose} />
+      ))}
+    </ul>
+  );
+}
+
+function MenuItem({ item, state, onAction, onClose }) {
+  const ref = useRef(null);
+  const { menuItemProps } = useMenuItem(
+    { key: item.key, onAction, onClose },
+    state,
+    ref
+  );
+
+  return (
+    <li {...menuItemProps} ref={ref} className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
+      {item.rendered}
+    </li>
+  );
+}
+```
+
+---
+
+## Overlay Hooks
+
+### useDialog
+
+Modal dialogs with proper ARIA semantics.
+
+```tsx
+import { useRef } from 'react';
+import { useDialog } from 'react-aria';
+
+function Dialog({ title, children, ...props }) {
+  const ref = useRef(null);
+  const { dialogProps, titleProps } = useDialog(props, ref);
+
+  return (
+    <div {...dialogProps} ref={ref} className="bg-white rounded-lg p-6">
+      <h2 {...titleProps} className="text-xl font-semibold mb-4">
+        {title}
+      </h2>
+      {children}
+    </div>
+  );
+}
+```
+
+---
+
+### useModalOverlay
+
+Full-screen overlay with focus management and dismissal.
+
+```tsx
+import { useRef } from 'react';
+import { useModalOverlay, FocusScope } from 'react-aria';
+import { useOverlayTriggerState } from 'react-stately';
+
+function Modal({ state, title, children }) {
+  const ref = useRef(null);
+  const { modalProps, underlayProps } = useModalOverlay(
+    { isDismissable: true },
+    state,
+    ref
+  );
+
+  return (
+    <div
+      {...underlayProps}
+      className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center"
+    >
+      <FocusScope contain restoreFocus autoFocus>
+        <div {...modalProps} ref={ref}>
+          <Dialog title={title}>{children}</Dialog>
+        </div>
+      </FocusScope>
+    </div>
+  );
+}
+
+// Usage with state management
+function App() {
+  const state = useOverlayTriggerState({});
+
+  return (
+    <>
+      <button onClick={state.open}>Open Modal</button>
+      {state.isOpen && (
+        <Modal state={state} title="Example">
+          <p>Modal content here</p>
+          <button onClick={state.close}>Close</button>
+        </Modal>
+      )}
+    </>
+  );
+}
+```
+
+---
+
+### useTooltip / useTooltipTrigger
+
+Accessible tooltips with hover/focus triggers.
+
+```tsx
+import { useRef } from 'react';
+import { useTooltip, useTooltipTrigger } from 'react-aria';
+import { useTooltipTriggerState } from 'react-stately';
+
+function TooltipTrigger({ children, tooltip, ...props }) {
+  const state = useTooltipTriggerState(props);
+  const ref = useRef(null);
+  const { triggerProps, tooltipProps } = useTooltipTrigger({}, state, ref);
+
+  return (
+    <>
+      <button {...triggerProps} ref={ref}>
+        {children}
+      </button>
+      {state.isOpen && (
+        <Tooltip {...tooltipProps}>{tooltip}</Tooltip>
+      )}
+    </>
+  );
+}
+
+function Tooltip(props) {
+  const ref = useRef(null);
+  const { tooltipProps } = useTooltip(props, ref);
+
+  return (
+    <div
+      {...tooltipProps}
+      ref={ref}
+      className="absolute z-50 px-2 py-1 bg-gray-900 text-white text-sm rounded"
+    >
+      {props.children}
+    </div>
+  );
+}
+```
+
+---
+
+### usePopover
+
+Non-modal popovers for dropdowns, color pickers, etc.
+
+```tsx
+import { useRef } from 'react';
+import { usePopover, DismissButton, Overlay } from 'react-aria';
+import { useOverlayTriggerState } from 'react-stately';
+
+function Popover({ state, children, ...props }) {
+  const popoverRef = useRef(null);
+  const { popoverProps, underlayProps } = usePopover(
+    {
+      ...props,
+      popoverRef,
+    },
+    state
+  );
+
+  return (
+    <Overlay>
+      <div {...underlayProps} className="fixed inset-0" />
+      <div
+        {...popoverProps}
+        ref={popoverRef}
+        className="absolute z-10 bg-white border rounded shadow-lg p-4"
+      >
+        <DismissButton onDismiss={state.close} />
+        {children}
+        <DismissButton onDismiss={state.close} />
+      </div>
+    </Overlay>
+  );
+}
+
+// Usage
+function App() {
+  const state = useOverlayTriggerState({});
+
+  return (
+    <>
+      <button onClick={state.open}>Open Popover</button>
+      {state.isOpen && (
+        <Popover state={state}>
+          <p>Popover content</p>
+        </Popover>
+      )}
+    </>
+  );
+}
+```
+
+---
+
+## Form Hooks
+
+### useTextField
+
+Accessible text inputs with label association.
+
+```tsx
+import { useRef } from 'react';
+import { useTextField } from 'react-aria';
+
+function TextField(props) {
+  const ref = useRef(null);
+  const { labelProps, inputProps, descriptionProps, errorMessageProps } = useTextField(props, ref);
+
+  return (
+    <div className="flex flex-col gap-1">
+      <label {...labelProps} className="font-medium">
+        {props.label}
+      </label>
+      <input
+        {...inputProps}
+        ref={ref}
+        className="border rounded px-3 py-2"
+      />
+      {props.description && (
+        <div {...descriptionProps} className="text-sm text-gray-600">
+          {props.description}
+        </div>
+      )}
+      {props.errorMessage && (
+        <div {...errorMessageProps} className="text-sm text-red-600">
+          {props.errorMessage}
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+---
+
+## Focus Management
+
+### FocusScope
+
+Manages focus containment and restoration for overlays.
+
+**Props:**
+- `contain` - Trap focus within children
+- `restoreFocus` - Restore focus to trigger on unmount
+- `autoFocus` - Auto-focus first focusable element
+
+```tsx
+import { FocusScope } from 'react-aria';
+
+<FocusScope contain restoreFocus autoFocus>
+  <div role="dialog">
+    <button>First focusable</button>
+    <button>Second focusable</button>
+  </div>
+</FocusScope>
+```
+
+---
+
+### useFocusRing
+
+Detects keyboard focus for styling focus indicators.
+
+```tsx
+import { useFocusRing } from 'react-aria';
+
+function Component() {
+  const { focusProps, isFocusVisible } = useFocusRing();
+
+  return (
+    <button
+      {...focusProps}
+      className={isFocusVisible ? 'ring-2 ring-blue-500' : ''}
+    >
+      Focusable
+    </button>
+  );
+}
+```
+
+---
+
+## Utility Functions
+
+### mergeProps
+
+Safely merges multiple prop objects (handles event handlers, className, etc.).
+
+```tsx
+import { mergeProps } from 'react-aria';
+
+const combinedProps = mergeProps(
+  { onClick: handler1, className: 'base' },
+  { onClick: handler2, className: 'extra' }
+);
+// Result: onClick calls both handlers, className="base extra"
+```
+
+---
+
+## Integration with react-stately
+
+React Aria hooks require state management from `react-stately`:
+
+| Hook | State Hook |
+|------|------------|
+| useSelect | useSelectState |
+| useListBox | useListState |
+| useComboBox | useComboBoxState |
+| useMenu | useTreeState |
+| useModalOverlay | useOverlayTriggerState |
+
+```tsx
+import { useListBox } from 'react-aria';
+import { useListState } from 'react-stately';
+
+const state = useListState(props);
+const { listBoxProps } = useListBox(props, state, ref);
+```
+
+---
+
+## TypeScript Support
+
+All hooks include TypeScript types from `@types/react-aria`:
+
+```tsx
+import type { AriaButtonProps, AriaDialogProps } from 'react-aria';
+
+function MyButton(props: AriaButtonProps) {
+  // Full type safety
+}
+```
+
+---
+
+## Resources
+
+- [React Aria Documentation](https://react-spectrum.adobe.com/react-aria/)
+- [React Stately Documentation](https://react-spectrum.adobe.com/react-stately/)
+- [ARIA Authoring Practices Guide](https://www.w3.org/WAI/ARIA/apg/)
+
+
+### Wcag Criteria
+
+# WCAG 2.2 Level AA Criteria Reference
+
+Complete guide to Web Content Accessibility Guidelines 2.2 AA requirements.
+
+---
+
+## Principle 1: Perceivable
+
+Information and user interface components must be presentable to users in ways they can perceive.
+
+### 1.1 Text Alternatives
+
+**1.1.1 Non-text Content (Level A)**
+
+All non-text content (images, icons, charts) must have text alternatives:
+
+```tsx
+// ✅ Informative image
+<img src="chart.png" alt="Revenue increased by 40% in Q4" />
+
+// ✅ Decorative image
+<img src="background.jpg" alt="" role="presentation" />
+
+// ✅ Icon button
+<button aria-label="Save document">
+  <svg aria-hidden="true"><path d="..." /></svg>
+</button>
+
+// ❌ Missing alt text
+<img src="photo.jpg" />
+```
+
+### 1.3 Adaptable
+
+**1.3.1 Info and Relationships (Level A)**
+
+Information structure must be programmatically determined:
+
+```tsx
+// ✅ Semantic HTML
+<form>
+  <fieldset>
+    <legend>Shipping Address</legend>
+    <label htmlFor="street">Street</label>
+    <input id="street" type="text" />
+  </fieldset>
+</form>
+
+// ❌ Div soup
+<div class="form">
+  <div class="group">
+    <span>Shipping Address</span>
+    <span>Street</span>
+    <input />
+  </div>
+</div>
+```
+
+**1.3.2 Meaningful Sequence (Level A)**
+
+Reading order must match visual presentation:
+
+```tsx
+// ✅ DOM order matches visual order
+<header>...</header>
+<main>...</main>
+<aside>...</aside>
+
+// ❌ Using CSS to reorder without adjusting HTML
+<aside style={{ order: -1 }}>...</aside>
+<main>...</main>
+<header>...</header>
+```
+
+**1.3.5 Identify Input Purpose (Level AA)**
+
+Form fields must have autocomplete attributes:
+
+```tsx
+<input
+  type="email"
+  name="email"
+  autoComplete="email"
+  id="user-email"
+/>
+<input
+  type="tel"
+  name="phone"
+  autoComplete="tel"
+  id="user-phone"
+/>
+```
+
+### 1.4 Distinguishable
+
+**1.4.3 Contrast (Minimum) (Level AA)**
+
+Text contrast ratios:
+- Normal text (&lt; 18pt / &lt; 14pt bold): **4.5:1 minimum**
+- Large text (≥ 18pt / ≥ 14pt bold): **3:1 minimum**
+
+```css
+/* ✅ High contrast for normal text */
+:root {
+  --text-on-white: #1a1a1a;    /* 16.1:1 */
+  --text-secondary: #595959;   /* 7.0:1 */
+}
+
+/* ❌ Insufficient contrast */
+:root {
+  --text-gray: #b3b3b3;        /* 2.1:1 - FAIL */
+}
+```
+
+**Tools:** [WebAIM Contrast Checker](https://webaim.org/resources/contrastchecker/), Chrome DevTools
+
+**1.4.10 Reflow (Level AA)**
+
+Content must reflow without horizontal scrolling at 320px width (400% zoom).
+
+```css
+/* ✅ Responsive design */
+.card {
+  width: 100%;
+  max-width: 600px;
+}
+
+/* ❌ Fixed width */
+.card {
+  width: 800px; /* Forces horizontal scroll on small screens */
+}
+```
+
+**1.4.11 Non-text Contrast (Level AA)**
+
+UI components and graphical objects must have **3:1 contrast** against adjacent colors:
+
+- Form field borders
+- Button boundaries
+- Focus indicators
+- Icons
+- Chart elements
+
+```css
+/* ✅ Button border 3:1 contrast */
+.button {
+  background: #ffffff;
+  border: 2px solid #757575; /* 4.5:1 on white */
+}
+
+/* ✅ Focus indicator 3:1 contrast */
+:focus-visible {
+  outline: 3px solid #0052cc; /* 7.3:1 on white */
+}
+```
+
+**1.4.12 Text Spacing (Level AA)**
+
+Content must not lose information when text spacing is adjusted:
+
+- Line height: at least 1.5x font size
+- Paragraph spacing: at least 2x font size
+- Letter spacing: at least 0.12x font size
+- Word spacing: at least 0.16x font size
+
+```css
+/* ✅ Accessible text spacing */
+body {
+  line-height: 1.5;
+}
+p {
+  margin-bottom: 2em;
+}
+```
+
+**1.4.13 Content on Hover or Focus (Level AA)**
+
+Additional content triggered by hover/focus must be:
+- Dismissible (Esc key)
+- Hoverable (pointer can move over it)
+- Persistent (doesn't disappear until dismissed)
+
+```tsx
+// ✅ Tooltip with Radix UI
+<Tooltip.Root>
+  <Tooltip.Trigger>Hover me</Tooltip.Trigger>
+  <Tooltip.Portal>
+    <Tooltip.Content>
+      Tooltip text
+      <Tooltip.Arrow />
+    </Tooltip.Content>
+  </Tooltip.Portal>
+</Tooltip.Root>
+```
+
+---
+
+## Principle 2: Operable
+
+User interface components and navigation must be operable.
+
+### 2.1 Keyboard Accessible
+
+**2.1.1 Keyboard (Level A)**
+
+All functionality must be available via keyboard:
+
+```tsx
+// ✅ Keyboard accessible
+<button onClick={handleClick}>Click me</button>
+
+// ❌ Mouse-only interaction
+<div onClick={handleClick}>Click me</div>
+
+// ✅ If using div, add keyboard support
+<div
+  role="button"
+  tabIndex={0}
+  onClick={handleClick}
+  onKeyDown={(e) => {
+    if (e.key === 'Enter' || e.key === ' ') handleClick();
+  }}
+>
+  Click me
+</div>
+```
+
+**2.1.2 No Keyboard Trap (Level A)**
+
+Focus must not get trapped:
+
+```tsx
+// ✅ Modal with focus trap (can exit with Esc)
+import { Dialog } from '@radix-ui/react-dialog';
+
+<Dialog.Root open={isOpen} onOpenChange={setIsOpen}>
+  <Dialog.Portal>
+    <Dialog.Overlay />
+    <Dialog.Content>
+      {/* Focus trapped here, but Esc closes */}
+      <Dialog.Close>Close</Dialog.Close>
+    </Dialog.Content>
+  </Dialog.Portal>
+</Dialog.Root>
+```
+
+**2.1.4 Character Key Shortcuts (Level A)**
+
+Single-key shortcuts must be remappable or disabled:
+
+```tsx
+// ✅ Require modifier key
+useEffect(() => {
+  const handler = (e: KeyboardEvent) => {
+    if (e.ctrlKey && e.key === 's') {
+      e.preventDefault();
+      handleSave();
+    }
+  };
+  window.addEventListener('keydown', handler);
+  return () => window.removeEventListener('keydown', handler);
+}, []);
+```
+
+### 2.4 Navigable
+
+**2.4.1 Bypass Blocks (Level A)**
+
+Provide skip links to bypass repeated content:
+
+```tsx
+<a href="#main-content" className="skip-link">
+  Skip to main content
+</a>
+
+<nav>...</nav>
+
+<main id="main-content">
+  <h1>Page Title</h1>
+  {/* Main content */}
+</main>
+```
+
+```css
+/* ✅ Visible on focus */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: #000;
+  color: #fff;
+  padding: 8px;
+  z-index: 100;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+```
+
+**2.4.3 Focus Order (Level A)**
+
+Tab order must follow logical reading sequence:
+
+```tsx
+// ✅ Natural tab order
+<form>
+  <input tabIndex={0} /> {/* Natural order */}
+  <input tabIndex={0} />
+  <button type="submit">Submit</button>
+</form>
+
+// ❌ Positive tabindex (disrupts natural order)
+<button tabIndex={3}>Third</button>
+<button tabIndex={1}>First</button>
+<button tabIndex={2}>Second</button>
+```
+
+**2.4.7 Focus Visible (Level AA)**
+
+Keyboard focus must be clearly visible:
+
+```css
+/* ✅ High visibility focus indicator */
+:focus-visible {
+  outline: 3px solid #0052cc;
+  outline-offset: 2px;
+}
+
+/* ❌ Removed focus outline */
+button:focus {
+  outline: none; /* FORBIDDEN without replacement */
+}
+```
+
+**2.4.11 Focus Not Obscured (Minimum) (Level AA - NEW in WCAG 2.2)**
+
+Focused element must not be entirely hidden by sticky headers/footers:
+
+```css
+/* ✅ Ensure scroll margin for sticky header */
+:root {
+  --header-height: 64px;
+}
+
+:focus {
+  scroll-margin-top: var(--header-height);
+}
+```
+
+### 2.5 Input Modalities
+
+**2.5.1 Pointer Gestures (Level A)**
+
+All multipoint/path-based gestures must have single-pointer alternatives:
+
+```tsx
+// ✅ Pinch-to-zoom alternative
+<button onClick={handleZoomIn}>Zoom In</button>
+<button onClick={handleZoomOut}>Zoom Out</button>
+
+// ✅ Swipe alternative
+<button onClick={handlePrevious}>Previous</button>
+<button onClick={handleNext}>Next</button>
+```
+
+**2.5.2 Pointer Cancellation (Level A)**
+
+Actions should complete on `up` event, not `down`:
+
+```tsx
+// ✅ Click completes on mouse up
+<button onClick={handleClick}>Click me</button>
+
+// ❌ Action on mouse down
+<button onMouseDown={handleClick}>Click me</button>
+```
+
+**2.5.3 Label in Name (Level A)**
+
+Accessible name must include visible text:
+
+```tsx
+// ✅ Aria-label matches visible text
+<button aria-label="Save document">Save</button>
+
+// ❌ Aria-label doesn't match visible text
+<button aria-label="Submit form">Save</button>
+```
+
+**2.5.7 Dragging Movements (Level AA - NEW in WCAG 2.2)**
+
+Dragging functionality must have single-pointer alternative:
+
+```tsx
+// ✅ Drag-and-drop with keyboard alternative
+<DragDropContext onDragEnd={handleDragEnd}>
+  <Droppable droppableId="list">
+    {(provided) => (
+      <ul {...provided.droppableProps} ref={provided.innerRef}>
+        {items.map((item, index) => (
+          <Draggable key={item.id} draggableId={item.id} index={index}>
+            {/* Item with move up/down buttons */}
+            <button onClick={() => moveUp(index)}>↑</button>
+            <button onClick={() => moveDown(index)}>↓</button>
+          </Draggable>
+        ))}
+      </ul>
+    )}
+  </Droppable>
+</DragDropContext>
+```
+
+**2.5.8 Target Size (Minimum) (Level AA - NEW in WCAG 2.2)**
+
+Interactive elements must be at least **24x24 CSS pixels** (except inline links):
+
+```css
+/* ✅ Minimum target size */
+button, a[role="button"], input[type="checkbox"] {
+  min-width: 24px;
+  min-height: 24px;
+}
+
+/* ✅ Touch-friendly target size */
+@media (hover: none) {
+  button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+```
+
+---
+
+## Principle 3: Understandable
+
+Information and operation of user interface must be understandable.
+
+### 3.1 Readable
+
+**3.1.1 Language of Page (Level A)**
+
+Page language must be specified:
+
+```html
+<html lang="en">
+```
+
+**3.1.2 Language of Parts (Level AA)**
+
+Changes in language must be marked:
+
+```tsx
+<p>The French phrase <span lang="fr">Je ne sais quoi</span> means...</p>
+```
+
+### 3.2 Predictable
+
+**3.2.1 On Focus (Level A)**
+
+Focus must not trigger unexpected context changes:
+
+```tsx
+// ✅ Submit on button click
+<form onSubmit={handleSubmit}>
+  <input type="text" />
+  <button type="submit">Submit</button>
+</form>
+
+// ❌ Submit on focus change
+<select onChange={handleSubmit}>...</select>
+```
+
+**3.2.2 On Input (Level A)**
+
+User input must not automatically trigger context changes:
+
+```tsx
+// ✅ Button to apply filter
+<select value={filter} onChange={(e) => setFilter(e.target.value)}>
+  ...
+</select>
+<button onClick={applyFilter}>Apply</button>
+
+// ❌ Auto-submit on select change
+<select onChange={(e) => { setFilter(e.target.value); form.submit(); }}>
+```
+
+**3.2.3 Consistent Navigation (Level AA)**
+
+Navigation must be consistent across pages:
+
+```tsx
+// ✅ Same navigation on every page
+<nav>
+  <Link to="/">Home</Link>
+  <Link to="/about">About</Link>
+  <Link to="/contact">Contact</Link>
+</nav>
+```
+
+**3.2.4 Consistent Identification (Level AA)**
+
+Components with same functionality must be identified consistently:
+
+```tsx
+// ✅ Consistent icon and label
+<button aria-label="Save document"><SaveIcon /></button>
+
+// ❌ Inconsistent labeling
+<button aria-label="Save">...</button>
+<button aria-label="Store document">...</button>
+```
+
+### 3.3 Input Assistance
+
+**3.3.1 Error Identification (Level A)**
+
+Errors must be identified and described:
+
+```tsx
+// ✅ Error message with role="alert"
+{error && (
+  <p id="email-error" role="alert" className="text-error">
+    {error}
+  </p>
+)}
+
+<input
+  id="email"
+  type="email"
+  aria-invalid={!!error}
+  aria-describedby={error ? "email-error" : undefined}
+/>
+```
+
+**3.3.2 Labels or Instructions (Level A)**
+
+Form fields must have clear labels:
+
+```tsx
+// ✅ Associated label
+<label htmlFor="username">Username</label>
+<input id="username" type="text" />
+
+// ✅ Aria-label when visual label not present
+<input type="search" aria-label="Search products" />
+```
+
+**3.3.3 Error Suggestion (Level AA)**
+
+Provide correction suggestions when possible:
+
+```tsx
+{error === 'EMAIL_INVALID' && (
+  <p id="email-error" role="alert">
+    Please enter a valid email address (example: user@example.com)
+  </p>
+)}
+```
+
+**3.3.4 Error Prevention (Legal, Financial, Data) (Level AA)**
+
+Provide confirmation before critical actions:
+
+```tsx
+<Dialog.Root open={showConfirm} onOpenChange={setShowConfirm}>
+  <Dialog.Trigger asChild>
+    <button>Delete account</button>
+  </Dialog.Trigger>
+  <Dialog.Portal>
+    <Dialog.Content>
+      <Dialog.Title>Confirm deletion</Dialog.Title>
+      <Dialog.Description>
+        This action cannot be undone. Are you sure?
+      </Dialog.Description>
+      <button onClick={handleDelete}>Yes, delete</button>
+      <Dialog.Close>Cancel</Dialog.Close>
+    </Dialog.Content>
+  </Dialog.Portal>
+</Dialog.Root>
+```
+
+---
+
+## Principle 4: Robust
+
+Content must be robust enough to be interpreted by assistive technologies.
+
+### 4.1 Compatible
+
+**4.1.2 Name, Role, Value (Level A)**
+
+All UI components must have proper name, role, and value:
+
+```tsx
+// ✅ Native button (implicit role)
+<button aria-label="Close dialog" onClick={onClose}>
+  ×
+</button>
+
+// ✅ Custom widget with explicit role
+<div
+  role="switch"
+  aria-checked={isEnabled}
+  aria-label="Enable notifications"
+  tabIndex={0}
+  onClick={handleToggle}
+  onKeyDown={(e) => {
+    if (e.key === ' ' || e.key === 'Enter') handleToggle();
+  }}
+/>
+
+// ❌ Missing accessible name
+<button onClick={onClose}>×</button>
+```
+
+**4.1.3 Status Messages (Level AA)**
+
+Status updates must be programmatically determinable:
+
+```tsx
+// ✅ Live region for status updates
+<div role="status" aria-live="polite">
+  {items.length} items in cart
+</div>
+
+// ✅ Alert for errors
+<div role="alert" aria-live="assertive">
+  {error}
+</div>
+```
+
+---
+
+## Testing Tools
+
+| Tool | Purpose | Link |
+|------|---------|------|
+| **axe DevTools** | Automated testing | [Browser extension](https://www.deque.com/axe/devtools/) |
+| **WebAIM Contrast Checker** | Color contrast | [webaim.org/resources/contrastchecker](https://webaim.org/resources/contrastchecker/) |
+| **WAVE** | Page-level audit | [wave.webaim.org](https://wave.webaim.org/) |
+| **NVDA** | Screen reader (Windows) | [nvaccess.org](https://www.nvaccess.org/) |
+| **JAWS** | Screen reader (Windows) | [freedomscientific.com](https://www.freedomscientific.com/products/software/jaws/) |
+| **VoiceOver** | Screen reader (macOS/iOS) | Built-in |
+| **TalkBack** | Screen reader (Android) | Built-in |
+
+---
+
+## Resources
+
+- [WCAG 2.2 Official Spec](https://www.w3.org/TR/WCAG22/)
+- [MDN Accessibility Guide](https://developer.mozilla.org/en-US/docs/Web/Accessibility)
+- [WebAIM Resources](https://webaim.org/resources/)
+- [A11y Project Checklist](https://www.a11yproject.com/checklist/)
+- [Inclusive Components](https://inclusive-components.design/)
+
+---
+
+**Version**: 1.0.0
+**Last Updated**: 2026-01-16
+**Based on**: WCAG 2.2 Level AA
+
+
+
+---
+
+## Checklists (3)
+
+### Focus Checklist
+
+# Focus Management Checklist
+
+Comprehensive checklist for implementing and verifying focus management in React applications.
+
+## Implementation Checklist
+
+### Modal/Dialog Focus Trapping
+
+- [ ] Modal contains all focusable elements within a container
+- [ ] First focusable element receives focus when modal opens
+- [ ] Tab key moves focus forward within the modal
+- [ ] Shift+Tab moves focus backward within the modal
+- [ ] Focus wraps from last to first element and vice versa
+- [ ] Focus cannot escape the modal via Tab/Shift+Tab
+- [ ] Escape key closes the modal
+- [ ] Focus returns to trigger element when modal closes
+- [ ] Modal has `role="dialog"` and `aria-modal="true"`
+- [ ] Modal is wrapped with `AnimatePresence` for exit animations
+
+### Roving Tabindex (Toolbars/Menus)
+
+- [ ] Only one item in the group has `tabindex="0"` (the active item)
+- [ ] All other items have `tabindex="-1"`
+- [ ] Arrow keys move focus between items
+- [ ] Arrow key direction matches orientation (horizontal/vertical)
+- [ ] Home key focuses the first item
+- [ ] End key focuses the last item
+- [ ] Tab key moves out of the group
+- [ ] Active item updates when focused with mouse
+- [ ] Visual focus indicator is visible on active item
+
+### Skip Links
+
+- [ ] Skip link is the first focusable element on the page
+- [ ] Skip link is visually hidden by default
+- [ ] Skip link becomes visible when focused
+- [ ] Skip link text clearly describes the destination ("Skip to main content")
+- [ ] Target element has `id` matching skip link `href`
+- [ ] Target element has `tabIndex=\{-1\}` for programmatic focus
+- [ ] Skip links are styled with sufficient contrast and size
+- [ ] Skip links are tested with keyboard navigation
+
+### Form Focus Management
+
+- [ ] First invalid field receives focus after validation
+- [ ] Success message receives focus after form submission
+- [ ] Error messages are announced to screen readers
+- [ ] Multi-step forms maintain focus context between steps
+- [ ] Autofocus is used sparingly and intentionally
+- [ ] Focus is not lost when dynamically adding/removing fields
+
+### Focus Indicators
+
+- [ ] All interactive elements have a visible focus indicator
+- [ ] Focus indicator has sufficient contrast (3:1 minimum)
+- [ ] Focus indicator is not removed globally with CSS
+- [ ] Use `:focus-visible` to show indicator only for keyboard users
+- [ ] Focus indicator is animated smoothly (optional)
+- [ ] Custom focus styles match the design system
+
+## Testing Checklist
+
+### Manual Keyboard Testing
+
+- [ ] Navigate entire UI using only keyboard (no mouse)
+- [ ] Verify all interactive elements are reachable
+- [ ] Check that focus order follows visual/logical order
+- [ ] Test Tab, Shift+Tab, Arrow keys, Enter, Escape, Space
+- [ ] Verify focus doesn't get stuck in any component
+- [ ] Check that focus wraps correctly in modal/roving tabindex
+- [ ] Verify focus returns to trigger after closing modal/menu
+- [ ] Test with screen reader (NVDA, JAWS, VoiceOver)
+
+### Automated Testing (Playwright/Vitest)
+
+- [ ] Test focus trap in modal (`toBeFocused()`)
+- [ ] Test roving tabindex with arrow keys
+- [ ] Test skip link navigation
+- [ ] Test focus restoration after modal close
+- [ ] Test Escape key closes modal and restores focus
+- [ ] Test focus moves to first error after form validation
+- [ ] Test focus moves to confirmation message after success
+- [ ] Test focus order matches DOM order
+
+### Screen Reader Testing
+
+#### NVDA (Windows)
+
+- [ ] Focus announces element role and label
+- [ ] Modal announces "dialog" role and title
+- [ ] Error messages are announced immediately
+- [ ] Form fields announce label, role, and validation state
+- [ ] Skip links are announced and functional
+
+#### VoiceOver (macOS)
+
+- [ ] Focus announces element role and label
+- [ ] Modal announces "dialog" role and title
+- [ ] Error messages are announced immediately
+- [ ] Form fields announce label, role, and validation state
+- [ ] Skip links are announced and functional
+
+#### JAWS (Windows)
+
+- [ ] Focus announces element role and label
+- [ ] Modal announces "dialog" role and title
+- [ ] Error messages are announced immediately
+- [ ] Form fields announce label, role, and validation state
+- [ ] Skip links are announced and functional
+
+### Visual Focus Indicator Testing
+
+- [ ] Focus indicator is visible on all interactive elements
+- [ ] Focus indicator has sufficient contrast (3:1 minimum)
+- [ ] Focus indicator is not hidden by other elements
+- [ ] Focus indicator respects color scheme (light/dark mode)
+- [ ] Focus indicator works with design system tokens
+
+### Cross-Browser Testing
+
+- [ ] Chrome: Focus indicator visible, keyboard navigation works
+- [ ] Firefox: Focus indicator visible, keyboard navigation works
+- [ ] Safari: Focus indicator visible, keyboard navigation works
+- [ ] Edge: Focus indicator visible, keyboard navigation works
+
+## Debugging Checklist
+
+### Focus Lost or Not Visible
+
+- [ ] Check if element has `tabindex="-1"` (not keyboard focusable)
+- [ ] Check if element is hidden (`display: none`, `visibility: hidden`)
+- [ ] Check if element is outside viewport
+- [ ] Check if CSS removes outline/focus indicator
+- [ ] Use browser DevTools to track `document.activeElement`
+
+### Focus Trap Not Working
+
+- [ ] Verify focusable selector includes all interactive elements
+- [ ] Check if event listener is attached to correct container
+- [ ] Verify `event.preventDefault()` is called on Tab key
+- [ ] Check if first/last element references are correct
+- [ ] Use `console.log` to debug focus trap logic
+
+### Roving Tabindex Not Working
+
+- [ ] Verify only one item has `tabindex="0"` at a time
+- [ ] Check if arrow key event listener is attached
+- [ ] Verify `setActiveIndex` updates correctly
+- [ ] Check if orientation matches key bindings
+- [ ] Use React DevTools to inspect state updates
+
+### Focus Restoration Not Working
+
+- [ ] Verify trigger element is stored in ref
+- [ ] Check if ref is cleared after modal closes
+- [ ] Verify element still exists in DOM when refocused
+- [ ] Check if element is focusable (not disabled/hidden)
+- [ ] Use `console.log` to track trigger ref lifecycle
+
+## Code Review Checklist
+
+- [ ] All modals/dialogs implement focus trap
+- [ ] Toolbars/menus use roving tabindex pattern
+- [ ] Skip links are present on all pages
+- [ ] Form validation focuses first error
+- [ ] Success/error messages receive focus
+- [ ] No global `outline: none` in CSS
+- [ ] `:focus-visible` is used instead of `:focus` where appropriate
+- [ ] Focus management hooks are reusable and tested
+- [ ] ARIA attributes are correct (`role`, `aria-modal`, `aria-label`)
+- [ ] Focus restoration is implemented for all dismissible UI
+
+## Accessibility Compliance
+
+- [ ] WCAG 2.1 Level AA: Focus Visible (2.4.7)
+- [ ] WCAG 2.1 Level AA: Focus Order (2.4.3)
+- [ ] WCAG 2.1 Level AA: Keyboard (2.1.1)
+- [ ] WCAG 2.1 Level AA: No Keyboard Trap (2.1.2)
+- [ ] WCAG 2.1 Level AAA: Focus Appearance (2.4.13) (optional)
+
+---
+
+**Last Updated:** 2026-01-16
+
+
+### React Aria Checklist
+
+# React Aria Component Checklist
+
+Comprehensive checklist for building accessible components with React Aria.
+
+## Pre-Implementation
+
+Before building a new component:
+
+- [ ] Identify the correct ARIA pattern from [ARIA Authoring Practices Guide](https://www.w3.org/WAI/ARIA/apg/)
+- [ ] Determine if a React Aria hook exists for this pattern
+- [ ] Install dependencies: `npm install react-aria react-stately`
+- [ ] Review existing examples in React Aria documentation
+
+---
+
+## ARIA Roles and Attributes
+
+Ensure proper semantic structure:
+
+- [ ] Component uses appropriate ARIA role (button, dialog, listbox, menu, etc.)
+- [ ] All interactive elements have accessible names (`aria-label` or associated `&lt;label&gt;`)
+- [ ] Related elements are linked with `aria-labelledby`, `aria-describedby`, `aria-controls`
+- [ ] Dynamic content uses `aria-live` regions (polite, assertive, off)
+- [ ] Hidden elements use `aria-hidden="true"` (NOT display: none for SR-only content)
+- [ ] States are announced: `aria-expanded`, `aria-selected`, `aria-checked`, `aria-pressed`
+- [ ] Invalid inputs have `aria-invalid="true"` and `aria-errormessage`
+
+---
+
+## Keyboard Navigation
+
+All interactions must be keyboard accessible:
+
+### Focus Management
+
+- [ ] All interactive elements are focusable (no `tabindex="-1"` on buttons/links)
+- [ ] Focus order follows visual order (logical tab sequence)
+- [ ] Custom components have appropriate `tabIndex` (0 for focusable, -1 for managed)
+- [ ] Focus indicators are visible (use `useFocusRing` for keyboard-only indicators)
+- [ ] No keyboard traps (user can always escape with Tab or Escape)
+
+### Modal/Overlay Focus
+
+- [ ] Focus is trapped within modal using `&lt;FocusScope contain&gt;`
+- [ ] Focus auto-moves to first focusable element on open (`autoFocus`)
+- [ ] Focus restores to trigger element on close (`restoreFocus`)
+- [ ] Escape key closes modal/overlay
+- [ ] Clicking outside dismisses (if `isDismissable` is true)
+
+### Keyboard Shortcuts
+
+- [ ] **Enter/Space** - Activates buttons and toggles
+- [ ] **Arrow keys** - Navigate lists, menus, tabs, radio groups
+- [ ] **Home/End** - Jump to first/last item in lists/menus
+- [ ] **Escape** - Closes overlays, cancels actions
+- [ ] **Tab/Shift+Tab** - Moves focus between interactive elements
+- [ ] **Type-ahead** - Single-character search in listboxes/menus (if applicable)
+
+---
+
+## Screen Reader Testing
+
+Test with actual screen readers:
+
+### NVDA (Windows) + Chrome/Firefox
+
+- [ ] Navigate component with Tab/Shift+Tab
+- [ ] Verify all elements are announced correctly
+- [ ] Test forms mode (Enter on input fields)
+- [ ] Verify `aria-live` announcements work
+
+### VoiceOver (macOS) + Safari
+
+- [ ] Navigate with VO+Right Arrow (browse mode)
+- [ ] Test form controls with VO+Space
+- [ ] Verify rotor navigation (VO+U)
+- [ ] Check landmarks and headings structure
+
+### JAWS (Windows) + Chrome/Edge
+
+- [ ] Test virtual cursor navigation
+- [ ] Verify forms mode activation
+- [ ] Test table navigation (if applicable)
+
+### Mobile Screen Readers
+
+- [ ] TalkBack (Android) - Swipe navigation
+- [ ] VoiceOver (iOS) - Swipe navigation
+- [ ] Test touch gestures (double-tap to activate)
+
+---
+
+## Common Patterns Checklist
+
+### Button Component
+
+- [ ] Uses `useButton` hook, not div+onClick
+- [ ] Supports `onPress` for click/tap/Enter/Space
+- [ ] Has `isPressed` state for visual feedback
+- [ ] Uses `useFocusRing` for keyboard focus indicator
+- [ ] Works with `isDisabled` prop (no pointer events, aria-disabled)
+
+### Dialog/Modal Component
+
+- [ ] Uses `useDialog` + `useModalOverlay` hooks
+- [ ] Wrapped in `&lt;FocusScope contain restoreFocus autoFocus&gt;`
+- [ ] Has accessible name (`aria-label` or `aria-labelledby`)
+- [ ] Escape key closes modal
+- [ ] Clicking overlay dismisses (if `isDismissable`)
+- [ ] Uses `useOverlayTriggerState` for open/close state
+
+### Combobox/Autocomplete
+
+- [ ] Uses `useComboBox` + `useComboBoxState`
+- [ ] Label associated with input
+- [ ] Dropdown opens on input focus or button click
+- [ ] Arrow keys navigate options
+- [ ] Enter selects option
+- [ ] Escape closes dropdown
+- [ ] Type-ahead filtering works
+- [ ] Selected value shown in input
+- [ ] `aria-expanded` indicates dropdown state
+
+### Menu Component
+
+- [ ] Uses `useMenu` + `useMenuItem` hooks
+- [ ] Trigger button has `aria-haspopup="menu"`
+- [ ] Arrow keys navigate items (roving tabindex)
+- [ ] Enter/Space activates menu item
+- [ ] Escape closes menu
+- [ ] Focus returns to trigger button on close
+- [ ] Submenus open with Arrow Right, close with Arrow Left
+
+### ListBox Component
+
+- [ ] Uses `useListBox` + `useOption` hooks
+- [ ] Supports single/multiple selection modes
+- [ ] Arrow keys navigate options
+- [ ] Enter/Space toggles selection
+- [ ] Home/End jump to first/last item
+- [ ] Selected items have `aria-selected="true"`
+- [ ] Type-ahead search works
+
+### Form Field Component
+
+- [ ] Uses `useTextField`, `useCheckbox`, `useRadioGroup`, etc.
+- [ ] Label visually and programmatically associated
+- [ ] Required fields have `aria-required="true"`
+- [ ] Error messages linked with `aria-describedby`
+- [ ] Invalid inputs have `aria-invalid="true"`
+- [ ] Helper text announced to screen readers
+
+---
+
+## Testing Strategy
+
+### Automated Testing
+
+- [ ] Add `jest-axe` tests for automatic WCAG violations
+- [ ] Use `@testing-library/react` for interaction testing
+- [ ] Test keyboard navigation programmatically
+- [ ] Verify ARIA attributes with queries
+
+```tsx
+import { axe, toHaveNoViolations } from 'jest-axe';
+expect.extend(toHaveNoViolations);
+
+test('MyComponent has no accessibility violations', async () => {
+  const { container } = render(<MyComponent />);
+  const results = await axe(container);
+  expect(results).toHaveNoViolations();
+});
+```
+
+### Manual Testing
+
+- [ ] Tab through entire component (forward and backward)
+- [ ] Test with keyboard only (no mouse)
+- [ ] Use screen reader to verify announcements
+- [ ] Test with browser zoom at 200%
+- [ ] Verify color contrast with devtools
+- [ ] Test in high contrast mode (Windows)
+
+---
+
+## Performance Considerations
+
+- [ ] Large lists use virtualization (`@tanstack/react-virtual`)
+- [ ] Focus management doesn't cause layout thrashing
+- [ ] `mergeProps` used instead of manual object spreading
+- [ ] State updates debounced/throttled where appropriate (search inputs)
+
+---
+
+## Documentation
+
+- [ ] Component usage examples in Storybook/docs
+- [ ] Keyboard shortcuts documented
+- [ ] ARIA attributes explained
+- [ ] Common gotchas and troubleshooting
+
+---
+
+## Code Review Checklist
+
+Before merging:
+
+- [ ] No div+onClick buttons (use `useButton` instead)
+- [ ] No manual focus management for modals (use `FocusScope`)
+- [ ] All interactive elements keyboard accessible
+- [ ] Proper ARIA roles and attributes
+- [ ] Focus indicators visible
+- [ ] Screen reader tested
+- [ ] jest-axe tests pass
+- [ ] TypeScript types correct (from `react-aria` types)
+
+---
+
+## Resources
+
+- [React Aria Documentation](https://react-spectrum.adobe.com/react-aria/)
+- [ARIA Authoring Practices Guide](https://www.w3.org/WAI/ARIA/apg/)
+- [WebAIM Screen Reader Testing](https://webaim.org/articles/screenreader_testing/)
+- [WCAG 2.1 Guidelines](https://www.w3.org/WAI/WCAG21/quickref/)
+
+
+### Wcag Checklist
+
+# WCAG 2.2 AA Compliance Checklist
+
+Use this checklist to audit components and pages for accessibility compliance.
+
+---
+
+## Quick Pre-Flight Checklist
+
+Before submitting any component for review:
+
+- [ ] All interactive elements are keyboard accessible
+- [ ] Focus indicators are visible (3px solid outline)
+- [ ] Color contrast meets 4.5:1 for text, 3:1 for UI components
+- [ ] All images have alt text (or alt="" if decorative)
+- [ ] Form inputs have associated labels
+- [ ] Error messages use `role="alert"` and `aria-describedby`
+- [ ] Interactive elements are at least 24x24px
+- [ ] No positive `tabIndex` values (e.g., tabIndex=\{5\})
+- [ ] Semantic HTML used (button, nav, main, article)
+- [ ] Tested with keyboard navigation (Tab, Enter, Esc)
+
+---
+
+## Detailed Audit Checklist
+
+### Perceivable (Can users perceive the content?)
+
+#### 1.1 Text Alternatives
+
+- [ ] All `<img>` elements have `alt` attribute
+- [ ] Decorative images use `alt=""` or `role="presentation"`
+- [ ] Icon buttons have `aria-label`
+- [ ] Complex images (charts, diagrams) have detailed descriptions
+- [ ] SVG icons inside buttons have `aria-hidden="true"`
+
+#### 1.3 Adaptable
+
+- [ ] Semantic HTML used (`&lt;header&gt;`, `&lt;nav&gt;`, `&lt;main&gt;`, `&lt;article&gt;`, `&lt;footer&gt;`)
+- [ ] Heading hierarchy is correct (h1 → h2 → h3, no skipping levels)
+- [ ] Form fields use `&lt;label&gt;` elements with `htmlFor` attribute
+- [ ] Related form fields grouped with `&lt;fieldset&gt;` and `&lt;legend&gt;`
+- [ ] Lists use `<ul>`, `<ol>`, or `&lt;dl&gt;` (not div + CSS)
+- [ ] Tables use `<th>` with `scope` attribute
+- [ ] Form inputs have `autoComplete` attributes
+
+#### 1.4 Distinguishable
+
+- [ ] Text contrast ratio ≥ 4.5:1 (normal text) or ≥ 3:1 (large text)
+- [ ] UI component contrast ≥ 3:1 (borders, icons, focus indicators)
+- [ ] Information not conveyed by color alone (use icons + text)
+- [ ] Focus indicators have ≥ 3:1 contrast against background
+- [ ] No horizontal scrolling at 400% zoom (320px width)
+- [ ] Content reflows at 320px width without loss of information
+- [ ] No loss of content when text spacing increased (line-height: 1.5)
+
+**Tools:**
+- WebAIM Contrast Checker: [https://webaim.org/resources/contrastchecker/](https://webaim.org/resources/contrastchecker/)
+- Chrome DevTools: Inspect > Color picker > Contrast ratio
+
+---
+
+### Operable (Can users operate the interface?)
+
+#### 2.1 Keyboard Accessible
+
+- [ ] All interactive elements reachable via keyboard
+- [ ] All actions available via keyboard (no mouse-only interactions)
+- [ ] No keyboard traps (can exit all components with Esc or Tab)
+- [ ] Keyboard shortcuts require modifier key (Ctrl/Cmd/Alt)
+- [ ] Custom widgets handle Enter and Space keys
+
+**Test:** Tab through entire page, press Enter/Space on all interactive elements
+
+#### 2.4 Navigable
+
+- [ ] Skip link provided to bypass repeated navigation
+- [ ] Page has unique `&lt;title&gt;` element
+- [ ] Link text is descriptive (not "click here")
+- [ ] Focus order follows visual reading order (left-to-right, top-to-bottom)
+- [ ] Focus visible on all interactive elements
+- [ ] Headings describe topic or purpose
+- [ ] Multiple ways to find pages (menu, search, sitemap)
+- [ ] Current page indicated in navigation
+- [ ] Focus not obscured by sticky headers/footers (use `scroll-margin-top`)
+
+**Test:** Tab through page, verify logical sequence
+
+#### 2.5 Input Modalities
+
+- [ ] All multipoint gestures have single-pointer alternatives (buttons)
+- [ ] All dragging functionality has keyboard alternative
+- [ ] Interactive elements ≥ 24x24px (or 44x44px for touch devices)
+- [ ] Adequate spacing between interactive elements (8px minimum)
+- [ ] Click actions complete on mouse up (not mouse down)
+- [ ] Accessible name includes visible label text
+
+**Test:** Resize browser to 320px, verify tap target sizes
+
+---
+
+### Understandable (Can users understand the content and interface?)
+
+#### 3.1 Readable
+
+- [ ] Page language specified (`&lt;html lang="en"&gt;`)
+- [ ] Language changes marked with `lang` attribute
+
+#### 3.2 Predictable
+
+- [ ] Focus does not trigger automatic navigation or form submission
+- [ ] Input does not cause unexpected context changes
+- [ ] Navigation consistent across pages
+- [ ] Repeated components identified consistently
+
+#### 3.3 Input Assistance
+
+- [ ] Form fields have visible labels
+- [ ] Required fields indicated (with `aria-required="true"`)
+- [ ] Error messages clearly identify which field has error
+- [ ] Error messages provide correction suggestions
+- [ ] Errors use `role="alert"` for screen reader announcement
+- [ ] Form fields use `aria-invalid="true"` when errors present
+- [ ] Form fields use `aria-describedby` to link to error messages
+- [ ] Critical actions require confirmation (delete, purchase, submit)
+
+**Test:** Submit form with errors, verify error messages are announced
+
+---
+
+### Robust (Can assistive technologies interpret the content?)
+
+#### 4.1 Compatible
+
+- [ ] HTML validates (no duplicate IDs, proper nesting)
+- [ ] ARIA roles used correctly (match semantic HTML when possible)
+- [ ] All custom widgets have proper `role` attribute
+- [ ] All interactive elements have accessible names
+- [ ] State changes programmatically determinable (`aria-expanded`, `aria-checked`)
+- [ ] Status messages use `role="status"` or `role="alert"`
+- [ ] Live regions used for dynamic content updates
+
+**Test:** Run axe DevTools, validate with W3C validator
+
+---
+
+## Screen Reader Testing Checklist
+
+Test with at least one screen reader:
+
+### Windows
+- [ ] NVDA (free) - [nvaccess.org](https://www.nvaccess.org/)
+- [ ] JAWS (commercial) - [freedomscientific.com](https://www.freedomscientific.com/)
+
+### macOS/iOS
+- [ ] VoiceOver (built-in) - Cmd+F5 to enable
+
+### Android
+- [ ] TalkBack (built-in)
+
+### Verification Steps
+
+- [ ] Navigate with Tab key, verify focus indicators
+- [ ] Navigate with arrow keys (for custom widgets)
+- [ ] Verify all images/icons are announced correctly
+- [ ] Verify form labels are announced
+- [ ] Verify error messages are announced
+- [ ] Verify dynamic content updates are announced
+- [ ] Verify headings provide proper page structure
+- [ ] Verify links are descriptive when read out of context
+- [ ] Verify button purposes are clear
+
+---
+
+## Automated Testing Checklist
+
+Run these tools before manual testing:
+
+- [ ] **axe DevTools** browser extension - catches 30-50% of issues
+- [ ] **Lighthouse** accessibility audit - built into Chrome DevTools
+- [ ] **WAVE** browser extension - visual feedback on accessibility issues
+- [ ] **ESLint jsx-a11y plugin** - catches issues during development
+- [ ] **Playwright accessibility tests** - automated regression tests
+
+**Example Playwright test:**
+
+```typescript
+import { test, expect } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
+
+test('should not have any automatically detectable accessibility issues', async ({ page }) => {
+  await page.goto('/');
+  const accessibilityScanResults = await new AxeBuilder({ page }).analyze();
+  expect(accessibilityScanResults.violations).toEqual([]);
+});
+```
+
+---
+
+## Common Issues and Fixes
+
+| Issue | Fix |
+|-------|-----|
+| Missing alt text | Add `alt` attribute to all images |
+| Low contrast | Darken text or lighten background to meet 4.5:1 ratio |
+| Missing label | Add `&lt;label&gt;` with `htmlFor` or `aria-label` |
+| Keyboard trap | Add `onKeyDown` handler to detect Esc key |
+| No focus indicator | Add `:focus-visible \{ outline: 3px solid #0052cc; \}` |
+| Div button | Replace with `&lt;button&gt;` or add `role="button"` + keyboard handler |
+| Empty link | Add descriptive text or `aria-label` |
+| Small touch target | Increase `min-width` and `min-height` to 24px (44px for touch) |
+| Non-semantic HTML | Replace divs with `&lt;nav&gt;`, `&lt;main&gt;`, `&lt;article&gt;`, `&lt;button&gt;`, etc. |
+| Color-only status | Add icon or text label alongside color |
+
+---
+
+## Component-Specific Checklists
+
+### Button Component
+
+- [ ] Uses `&lt;button&gt;` element (not div with onClick)
+- [ ] Has accessible name (visible text or aria-label)
+- [ ] Disabled state uses `disabled` attribute (not just CSS)
+- [ ] Icon-only buttons have `aria-label`
+- [ ] Minimum 24x24px size
+- [ ] Focus indicator visible
+
+### Form Component
+
+- [ ] All inputs have associated labels
+- [ ] Required fields marked with `aria-required="true"`
+- [ ] Error messages use `role="alert"`
+- [ ] Error messages linked with `aria-describedby`
+- [ ] Invalid fields marked with `aria-invalid="true"`
+- [ ] Submit button clearly labeled
+- [ ] Fieldsets group related inputs
+
+### Modal/Dialog Component
+
+- [ ] Uses `&lt;dialog&gt;` element or proper ARIA roles
+- [ ] Focus trapped within modal when open
+- [ ] Focus returns to trigger element when closed
+- [ ] Closes on Esc key
+- [ ] Backdrop closes modal on click
+- [ ] First focusable element receives focus on open
+- [ ] Title uses `<h2>` or `aria-labelledby`
+
+### Navigation Component
+
+- [ ] Uses `&lt;nav&gt;` landmark
+- [ ] Skip link provided
+- [ ] Current page indicated with `aria-current="page"`
+- [ ] Keyboard accessible
+- [ ] Links descriptive
+- [ ] Dropdown menus keyboard accessible (arrow keys)
+
+### Data Table Component
+
+- [ ] Uses `<table>`, `<thead>`, `<tbody>`, `<th>`, `<td>` elements
+- [ ] Header cells use `<th>` with `scope` attribute
+- [ ] Complex tables have `&lt;caption&gt;` or `aria-label`
+- [ ] Sortable columns indicate sort direction with `aria-sort`
+- [ ] Expandable rows use `aria-expanded`
+
+---
+
+## Compliance Sign-Off
+
+Component/Page: ____________________
+
+- [ ] Automated tests passed (axe, Lighthouse, WAVE)
+- [ ] Manual keyboard testing completed
+- [ ] Screen reader testing completed
+- [ ] Color contrast verified
+- [ ] Semantic HTML used throughout
+- [ ] All checklist items above verified
+
+Reviewed by: ____________________
+Date: ____________________
+
+---
+
+**Version**: 1.0.0
+**Last Updated**: 2026-01-16
+**Based on**: WCAG 2.2 Level AA
+
+
+
+---
+
+## Examples (3)
+
+### Focus Examples
+
+# Focus Management Examples
+
+Complete, production-ready code examples for focus management patterns.
+
+## Example 1: Focus Trap Hook
+
+A reusable hook for modal/dialog focus trapping.
+
+```tsx
+import { useEffect, useRef, useCallback } from 'react';
+
+const FOCUSABLE_SELECTOR = [
+  'a[href]',
+  'area[href]',
+  'input:not([disabled]):not([type="hidden"])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  'button:not([disabled])',
+  'iframe',
+  'object',
+  'embed',
+  '[contenteditable]',
+  '[tabindex]:not([tabindex="-1"])',
+].join(',');
+
+export function useFocusTrap<T extends HTMLElement>(isActive: boolean) {
+  const containerRef = useRef<T>(null);
+  const previousActiveElement = useRef<HTMLElement | null>(null);
+
+  // Store the element that triggered the modal
+  useEffect(() => {
+    if (isActive) {
+      previousActiveElement.current = document.activeElement as HTMLElement;
+    } else if (previousActiveElement.current) {
+      previousActiveElement.current.focus();
+      previousActiveElement.current = null;
+    }
+  }, [isActive]);
+
+  // Trap focus within the container
+  const handleKeyDown = useCallback((event: KeyboardEvent) => {
+    if (!isActive || event.key !== 'Tab') return;
+
+    const container = containerRef.current;
+    if (!container) return;
+
+    const focusableElements = Array.from(
+      container.querySelectorAll(FOCUSABLE_SELECTOR)
+    ) as HTMLElement[];
+
+    if (focusableElements.length === 0) return;
+
+    const firstElement = focusableElements[0];
+    const lastElement = focusableElements[focusableElements.length - 1];
+
+    if (event.shiftKey) {
+      // Shift + Tab: wrap to last element
+      if (document.activeElement === firstElement) {
+        event.preventDefault();
+        lastElement.focus();
+      }
+    } else {
+      // Tab: wrap to first element
+      if (document.activeElement === lastElement) {
+        event.preventDefault();
+        firstElement.focus();
+      }
+    }
+  }, [isActive]);
+
+  // Focus the first element when activated
+  useEffect(() => {
+    if (!isActive) return;
+
+    const container = containerRef.current;
+    if (!container) return;
+
+    const focusableElements = Array.from(
+      container.querySelectorAll(FOCUSABLE_SELECTOR)
+    ) as HTMLElement[];
+
+    if (focusableElements.length > 0) {
+      focusableElements[0].focus();
+    }
+  }, [isActive]);
+
+  // Attach event listener
+  useEffect(() => {
+    if (!isActive) return;
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isActive, handleKeyDown]);
+
+  return containerRef;
+}
+```
+
+**Usage:**
+
+```tsx
+import { useFocusTrap } from '@/hooks/useFocusTrap';
+import { AnimatePresence, motion } from 'motion/react';
+import { modalBackdrop, modalContent } from '@/lib/animations';
+
+function Modal({ isOpen, onClose, children }) {
+  const containerRef = useFocusTrap<HTMLDivElement>(isOpen);
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          <motion.div
+            {...modalBackdrop}
+            className="fixed inset-0 z-50 bg-black/50"
+            onClick={onClose}
+          />
+          <motion.div
+            {...modalContent}
+            ref={containerRef}
+            role="dialog"
+            aria-modal="true"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          >
+            <div className="bg-white rounded-2xl p-6 max-w-md w-full">
+              {children}
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+}
+```
+
+---
+
+## Example 2: Roving Tabindex Component
+
+A toolbar with arrow key navigation.
+
+```tsx
+import { useRef, useState, useCallback } from 'react';
+
+type Orientation = 'horizontal' | 'vertical';
+
+export function useRovingTabindex<T extends HTMLElement>(
+  itemCount: number,
+  orientation: Orientation = 'vertical'
+) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const itemsRef = useRef<Map<number, T>>(new Map());
+
+  const handleKeyDown = useCallback((event: React.KeyboardEvent) => {
+    const keys = orientation === 'horizontal'
+      ? { next: 'ArrowRight', prev: 'ArrowLeft' }
+      : { next: 'ArrowDown', prev: 'ArrowUp' };
+
+    let nextIndex: number | null = null;
+
+    if (event.key === keys.next) {
+      nextIndex = (activeIndex + 1) % itemCount;
+    } else if (event.key === keys.prev) {
+      nextIndex = (activeIndex - 1 + itemCount) % itemCount;
+    } else if (event.key === 'Home') {
+      nextIndex = 0;
+    } else if (event.key === 'End') {
+      nextIndex = itemCount - 1;
+    }
+
+    if (nextIndex !== null) {
+      event.preventDefault();
+      setActiveIndex(nextIndex);
+      itemsRef.current.get(nextIndex)?.focus();
+    }
+  }, [activeIndex, itemCount, orientation]);
+
+  const getItemProps = useCallback((index: number) => ({
+    ref: (element: T | null) => {
+      if (element) {
+        itemsRef.current.set(index, element);
+      } else {
+        itemsRef.current.delete(index);
+      }
+    },
+    tabIndex: index === activeIndex ? 0 : -1,
+    onFocus: () => setActiveIndex(index),
+  }), [activeIndex]);
+
+  return {
+    activeIndex,
+    setActiveIndex,
+    handleKeyDown,
+    getItemProps,
+  };
+}
+```
+
+**Usage: Toolbar**
+
+```tsx
+function Toolbar() {
+  const { getItemProps, handleKeyDown } = useRovingTabindex<HTMLButtonElement>(
+    3,
+    'horizontal'
+  );
+
+  return (
+    <div role="toolbar" aria-label="Text formatting" onKeyDown={handleKeyDown}>
+      <button {...getItemProps(0)} aria-label="Bold">
+        <BoldIcon />
+      </button>
+      <button {...getItemProps(1)} aria-label="Italic">
+        <ItalicIcon />
+      </button>
+      <button {...getItemProps(2)} aria-label="Underline">
+        <UnderlineIcon />
+      </button>
+    </div>
+  );
+}
+```
+
+**Usage: Vertical Menu**
+
+```tsx
+function Menu() {
+  const items = ['Profile', 'Settings', 'Logout'];
+  const { getItemProps, handleKeyDown } = useRovingTabindex<HTMLButtonElement>(
+    items.length,
+    'vertical'
+  );
+
+  return (
+    <div role="menu" onKeyDown={handleKeyDown}>
+      {items.map((item, index) => (
+        <button
+          key={item}
+          role="menuitem"
+          {...getItemProps(index)}
+        >
+          {item}
+        </button>
+      ))}
+    </div>
+  );
+}
+```
+
+---
+
+## Example 3: Focus Restore Utility
+
+Utility for restoring focus after navigation or modal close.
+
+```tsx
+import { useEffect, useRef } from 'react';
+
+export function useFocusRestore(shouldRestore: boolean) {
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    // Store current focus when component mounts
+    previousFocusRef.current = document.activeElement as HTMLElement;
+
+    return () => {
+      // Restore focus when component unmounts (if flag is true)
+      if (shouldRestore && previousFocusRef.current) {
+        previousFocusRef.current.focus();
+      }
+    };
+  }, [shouldRestore]);
+}
+```
+
+**Usage: Modal with Focus Restore**
+
+```tsx
+function ConfirmationModal({ isOpen, onClose }) {
+  useFocusRestore(isOpen);
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose}>
+      <h2>Are you sure?</h2>
+      <button onClick={onClose}>Cancel</button>
+      <button onClick={handleConfirm}>Confirm</button>
+    </Modal>
+  );
+}
+```
+
+**Advanced: Focus First Error in Form**
+
+```tsx
+import { useEffect, useRef } from 'react';
+
+export function useFocusFirstError(errors: Record<string, string>) {
+  const formRef = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    if (Object.keys(errors).length === 0) return;
+
+    const firstErrorField = Object.keys(errors)[0];
+    const element = formRef.current?.querySelector(
+      `[name="${firstErrorField}"]`
+    ) as HTMLElement;
+
+    element?.focus();
+  }, [errors]);
+
+  return formRef;
+}
+```
+
+**Usage:**
+
+```tsx
+function MyForm() {
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const formRef = useFocusFirstError(errors);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const validationErrors = validateForm();
+    setErrors(validationErrors);
+  };
+
+  return (
+    <form ref={formRef} onSubmit={handleSubmit}>
+      <input name="email" type="email" aria-invalid={!!errors.email} />
+      {errors.email && <span role="alert">{errors.email}</span>}
+
+      <input name="password" type="password" aria-invalid={!!errors.password} />
+      {errors.password && <span role="alert">{errors.password}</span>}
+
+      <button type="submit">Submit</button>
+    </form>
+  );
+}
+```
+
+---
+
+## Example 4: Skip Link Component
+
+Accessible skip links for keyboard navigation.
+
+```tsx
+import { motion } from 'motion/react';
+import { fadeIn } from '@/lib/animations';
+
+export function SkipLinks() {
+  return (
+    <nav aria-label="Skip links" className="sr-only focus-within:not-sr-only">
+      <motion.a
+        {...fadeIn}
+        href="#main-content"
+        className="skip-link"
+      >
+        Skip to main content
+      </motion.a>
+      <motion.a
+        {...fadeIn}
+        href="#navigation"
+        className="skip-link"
+      >
+        Skip to navigation
+      </motion.a>
+    </nav>
+  );
+}
+```
+
+**CSS (Tailwind):**
+
+```css
+/* Add to global styles */
+.skip-link {
+  @apply fixed top-0 left-0 z-[9999] bg-primary text-white px-4 py-2 transform -translate-y-full;
+  @apply focus:translate-y-0 transition-transform;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.focus-within\:not-sr-only:focus-within {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: 0;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+```
+
+**Usage in Layout:**
+
+```tsx
+import { SkipLinks } from '@/components/SkipLinks';
+
+export function Layout({ children }) {
+  return (
+    <>
+      <SkipLinks />
+      <nav id="navigation" aria-label="Main navigation">
+        {/* navigation */}
+      </nav>
+      <main id="main-content" tabIndex={-1}>
+        {children}
+      </main>
+    </>
+  );
+}
+```
+
+---
+
+## Example 5: Escape Key to Close
+
+Utility hook for closing modals/menus with Escape key.
+
+```tsx
+import { useEffect } from 'react';
+
+export function useEscapeKey(onEscape: () => void, isActive: boolean = true) {
+  useEffect(() => {
+    if (!isActive) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onEscape();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onEscape, isActive]);
+}
+```
+
+**Usage:**
+
+```tsx
+function Drawer({ isOpen, onClose }) {
+  useEscapeKey(onClose, isOpen);
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div {...slideInRight}>
+          <h2>Drawer Content</h2>
+          <button onClick={onClose}>Close</button>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+```
+
+---
+
+## Example 6: Focus Within Detection
+
+Detect when focus is inside a component (for styling/logic).
+
+```tsx
+import { useEffect, useRef, useState } from 'react';
+
+export function useFocusWithin<T extends HTMLElement>() {
+  const ref = useRef<T>(null);
+  const [isFocusWithin, setIsFocusWithin] = useState(false);
+
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+
+    const handleFocusIn = () => setIsFocusWithin(true);
+    const handleFocusOut = (e: FocusEvent) => {
+      // Check if focus moved outside the element
+      if (!element.contains(e.relatedTarget as Node)) {
+        setIsFocusWithin(false);
+      }
+    };
+
+    element.addEventListener('focusin', handleFocusIn);
+    element.addEventListener('focusout', handleFocusOut);
+
+    return () => {
+      element.removeEventListener('focusin', handleFocusIn);
+      element.removeEventListener('focusout', handleFocusOut);
+    };
+  }, []);
+
+  return { ref, isFocusWithin };
+}
+```
+
+**Usage: Highlight Card on Focus Within**
+
+```tsx
+function Card({ title, children }) {
+  const { ref, isFocusWithin } = useFocusWithin<HTMLDivElement>();
+
+  return (
+    <div
+      ref={ref}
+      className={cn(
+        'p-4 rounded-lg border',
+        isFocusWithin ? 'border-primary ring-2 ring-primary/20' : 'border-border'
+      )}
+    >
+      <h3>{title}</h3>
+      {children}
+    </div>
+  );
+}
+```
+
+---
+
+## Testing Example: Playwright
+
+Test focus trap in a modal:
+
+```typescript
+import { test, expect } from '@playwright/test';
+
+test('modal traps focus correctly', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Open Modal' }).click();
+
+  // Modal should be open
+  await expect(page.getByRole('dialog')).toBeVisible();
+
+  // First element should be focused
+  await expect(page.getByRole('button', { name: 'Close' })).toBeFocused();
+
+  // Tab to next element
+  await page.keyboard.press('Tab');
+  await expect(page.getByLabel('Email')).toBeFocused();
+
+  // Tab to next element
+  await page.keyboard.press('Tab');
+  await expect(page.getByRole('button', { name: 'Submit' })).toBeFocused();
+
+  // Tab should wrap to first element
+  await page.keyboard.press('Tab');
+  await expect(page.getByRole('button', { name: 'Close' })).toBeFocused();
+
+  // Shift+Tab should wrap to last element
+  await page.keyboard.press('Shift+Tab');
+  await expect(page.getByRole('button', { name: 'Submit' })).toBeFocused();
+
+  // Escape should close modal and restore focus
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog')).not.toBeVisible();
+  await expect(page.getByRole('button', { name: 'Open Modal' })).toBeFocused();
+});
+```
+
+---
+
+**Last Updated:** 2026-01-16
+
+
+### React Aria Examples
+
+# React Aria Examples
+
+Complete working examples of accessible components built with React Aria.
+
+## Installation
+
+```bash
+npm install react-aria react-stately
+npm install --save-dev @types/react-aria @types/react-stately
+```
+
+---
+
+## Example 1: Accessible Dropdown Menu
+
+Full-featured menu with keyboard navigation and ARIA semantics.
+
+```tsx
+// MenuButton.tsx
+import { useRef } from 'react';
+import { useButton, useMenuTrigger, useMenu, useMenuItem, mergeProps } from 'react-aria';
+import { useMenuTriggerState, useTreeState } from 'react-stately';
+import { Item } from 'react-stately';
+
+// Menu Trigger Component
+export function MenuButton(props: { label: string; onAction: (key: string) => void }) {
+  const state = useMenuTriggerState({});
+  const ref = useRef<HTMLButtonElement>(null);
+  const { menuTriggerProps, menuProps } = useMenuTrigger({}, state, ref);
+  const { buttonProps } = useButton(menuTriggerProps, ref);
+
+  return (
+    <div className="relative inline-block">
+      <button
+        {...buttonProps}
+        ref={ref}
+        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 flex items-center gap-2"
+      >
+        {props.label}
+        <span aria-hidden="true">▼</span>
+      </button>
+      {state.isOpen && (
+        <MenuPopup
+          {...menuProps}
+          autoFocus={state.focusStrategy}
+          onClose={state.close}
+          onAction={(key) => {
+            props.onAction(key as string);
+            state.close();
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+// Menu Popup Component
+function MenuPopup(props: any) {
+  const ref = useRef<HTMLUListElement>(null);
+  const state = useTreeState({ ...props, selectionMode: 'none' });
+  const { menuProps } = useMenu(props, state, ref);
+
+  return (
+    <ul
+      {...menuProps}
+      ref={ref}
+      className="absolute top-full left-0 mt-1 min-w-[200px] bg-white border border-gray-200 rounded shadow-lg py-1 z-50"
+    >
+      {[...state.collection].map((item) => (
+        <MenuItem
+          key={item.key}
+          item={item}
+          state={state}
+          onAction={props.onAction}
+          onClose={props.onClose}
+        />
+      ))}
+    </ul>
+  );
+}
+
+// Menu Item Component
+function MenuItem({ item, state, onAction, onClose }: any) {
+  const ref = useRef<HTMLLIElement>(null);
+  const { menuItemProps, isFocused, isPressed } = useMenuItem(
+    { key: item.key, onAction, onClose },
+    state,
+    ref
+  );
+
+  return (
+    <li
+      {...menuItemProps}
+      ref={ref}
+      className={`
+        px-4 py-2 cursor-pointer
+        ${isFocused ? 'bg-blue-50' : ''}
+        ${isPressed ? 'bg-blue-100' : ''}
+      `}
+    >
+      {item.rendered}
+    </li>
+  );
+}
+
+// Usage
+function App() {
+  return (
+    <MenuButton
+      label="Actions"
+      onAction={(key) => {
+        if (key === 'edit') console.log('Edit clicked');
+        if (key === 'delete') console.log('Delete clicked');
+      }}
+    >
+      <Item key="edit">Edit</Item>
+      <Item key="delete">Delete</Item>
+      <Item key="duplicate">Duplicate</Item>
+    </MenuButton>
+  );
+}
+```
+
+**Features:**
+- Keyboard navigation with arrow keys
+- Enter/Space activates menu items
+- Escape closes menu
+- Focus returns to trigger button
+- Proper ARIA roles and attributes
+
+---
+
+## Example 2: Modal Dialog with Focus Trap
+
+Accessible modal with focus management and backdrop dismissal.
+
+```tsx
+// Modal.tsx
+import { useRef } from 'react';
+import { useDialog, useModalOverlay, useButton, FocusScope, mergeProps } from 'react-aria';
+import { useOverlayTriggerState } from 'react-stately';
+import { AnimatePresence, motion } from 'motion/react';
+import { modalBackdrop, modalContent } from '@/lib/animations';
+
+// Modal Component
+function Modal({
+  state,
+  title,
+  children,
+}: {
+  state: ReturnType<typeof useOverlayTriggerState>;
+  title: string;
+  children: React.ReactNode;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const { modalProps, underlayProps } = useModalOverlay(
+    { isDismissable: true },
+    state,
+    ref
+  );
+  const { dialogProps, titleProps } = useDialog({ 'aria-label': title }, ref);
+
+  return (
+    <AnimatePresence>
+      {state.isOpen && (
+        <>
+          {/* Backdrop */}
+          <motion.div
+            {...underlayProps}
+            {...modalBackdrop}
+            className="fixed inset-0 z-50 bg-black/50"
+          />
+          {/* Modal Content */}
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+            <FocusScope contain restoreFocus autoFocus>
+              <motion.div
+                {...mergeProps(modalProps, dialogProps)}
+                {...modalContent}
+                ref={ref}
+                className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 pointer-events-auto"
+              >
+                <h2 {...titleProps} className="text-xl font-semibold mb-4">
+                  {title}
+                </h2>
+                {children}
+              </motion.div>
+            </FocusScope>
+          </div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+}
+
+// Usage
+function App() {
+  const state = useOverlayTriggerState({});
+
+  return (
+    <>
+      <button
+        onClick={state.open}
+        className="px-4 py-2 bg-blue-500 text-white rounded"
+      >
+        Open Modal
+      </button>
+
+      <Modal state={state} title="Confirm Action">
+        <p className="mb-4 text-gray-700">
+          Are you sure you want to proceed with this action?
+        </p>
+        <div className="flex gap-2 justify-end">
+          <button
+            onClick={state.close}
+            className="px-4 py-2 border rounded hover:bg-gray-100"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => {
+              console.log('Confirmed');
+              state.close();
+            }}
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            Confirm
+          </button>
+        </div>
+      </Modal>
+    </>
+  );
+}
+```
+
+**Features:**
+- Focus trapped within modal
+- Escape key closes modal
+- Click outside dismisses
+- Focus returns to trigger button
+- Motion animations for smooth entrance/exit
+
+---
+
+## Example 3: Combobox with Filtering
+
+Autocomplete input with keyboard navigation and filtering.
+
+```tsx
+// Combobox.tsx
+import { useRef } from 'react';
+import { useComboBox, useFilter, useButton } from 'react-aria';
+import { useComboBoxState } from 'react-stately';
+import { Item } from 'react-stately';
+
+interface ComboBoxProps {
+  label: string;
+  items: Array<{ id: string; name: string }>;
+  onSelectionChange?: (key: string | null) => void;
+}
+
+export function ComboBox(props: ComboBoxProps) {
+  const { contains } = useFilter({ sensitivity: 'base' });
+  const state = useComboBoxState({ ...props, defaultFilter: contains });
+
+  const inputRef = useRef<HTMLInputElement>(null);
+  const listBoxRef = useRef<HTMLUListElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  const { inputProps, listBoxProps, labelProps } = useComboBox(
+    {
+      ...props,
+      inputRef,
+      listBoxRef,
+      buttonRef,
+    },
+    state
+  );
+
+  const { buttonProps } = useButton(
+    {
+      onPress: () => state.open(),
+      isDisabled: state.isDisabled,
+    },
+    buttonRef
+  );
+
+  return (
+    <div className="relative inline-flex flex-col gap-1">
+      <label {...labelProps} className="font-medium text-sm">
+        {props.label}
+      </label>
+      <div className="flex">
+        <input
+          {...inputProps}
+          ref={inputRef}
+          className="flex-1 border rounded-l px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <button
+          {...buttonProps}
+          ref={buttonRef}
+          className="border border-l-0 rounded-r px-3 bg-gray-50 hover:bg-gray-100"
+        >
+          <span aria-hidden="true">▼</span>
+        </button>
+      </div>
+      {state.isOpen && (
+        <ul
+          {...listBoxProps}
+          ref={listBoxRef}
+          className="absolute top-full mt-1 w-full border bg-white rounded shadow-lg max-h-60 overflow-auto z-10"
+        >
+          {[...state.collection].map((item) => (
+            <ComboBoxItem key={item.key} item={item} state={state} />
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function ComboBoxItem({ item, state }: any) {
+  const ref = useRef<HTMLLIElement>(null);
+  const { optionProps, isSelected, isFocused } = useOption(
+    { key: item.key },
+    state,
+    ref
+  );
+
+  return (
+    <li
+      {...optionProps}
+      ref={ref}
+      className={`
+        px-3 py-2 cursor-pointer
+        ${isFocused ? 'bg-blue-50' : ''}
+        ${isSelected ? 'bg-blue-100 font-semibold' : ''}
+      `}
+    >
+      {item.rendered}
+    </li>
+  );
+}
+
+// Usage
+function App() {
+  const items = [
+    { id: '1', name: 'Apple' },
+    { id: '2', name: 'Banana' },
+    { id: '3', name: 'Cherry' },
+    { id: '4', name: 'Date' },
+  ];
+
+  return (
+    <ComboBox
+      label="Select Fruit"
+      items={items}
+      onSelectionChange={(key) => console.log('Selected:', key)}
+    >
+      {(item) => <Item key={item.id}>{item.name}</Item>}
+    </ComboBox>
+  );
+}
+```
+
+**Features:**
+- Type-ahead filtering with `useFilter`
+- Keyboard navigation (arrow keys, Enter, Escape)
+- Accessible name via label
+- Button to open dropdown
+- Selected value shown in input
+
+---
+
+## Example 4: Tooltip Component
+
+Accessible tooltip with hover/focus triggers.
+
+```tsx
+// Tooltip.tsx
+import { useRef } from 'react';
+import { useTooltip, useTooltipTrigger } from 'react-aria';
+import { useTooltipTriggerState } from 'react-stately';
+import { AnimatePresence, motion } from 'motion/react';
+import { fadeIn } from '@/lib/animations';
+
+interface TooltipProps {
+  children: React.ReactElement;
+  content: string;
+  delay?: number;
+}
+
+export function Tooltip({ children, content, delay = 0 }: TooltipProps) {
+  const state = useTooltipTriggerState({ delay });
+  const ref = useRef<HTMLButtonElement>(null);
+
+  const { triggerProps, tooltipProps } = useTooltipTrigger(
+    { isDisabled: false },
+    state,
+    ref
+  );
+
+  return (
+    <>
+      {/* Trigger element */}
+      <span {...triggerProps} ref={ref}>
+        {children}
+      </span>
+
+      {/* Tooltip popup */}
+      <AnimatePresence>
+        {state.isOpen && (
+          <TooltipPopup {...tooltipProps}>{content}</TooltipPopup>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
+
+function TooltipPopup(props: any) {
+  const ref = useRef<HTMLDivElement>(null);
+  const { tooltipProps } = useTooltip(props, ref);
+
+  return (
+    <motion.div
+      {...tooltipProps}
+      {...fadeIn}
+      ref={ref}
+      className="absolute z-50 px-3 py-1.5 bg-gray-900 text-white text-sm rounded shadow-lg"
+      style={{
+        top: 'calc(100% + 8px)',
+        left: '50%',
+        transform: 'translateX(-50%)',
+      }}
+    >
+      {props.children}
+    </motion.div>
+  );
+}
+
+// Usage
+function App() {
+  return (
+    <div className="p-8">
+      <Tooltip content="This is a helpful tooltip">
+        <button className="px-4 py-2 bg-blue-500 text-white rounded">
+          Hover Me
+        </button>
+      </Tooltip>
+    </div>
+  );
+}
+```
+
+**Features:**
+- Shows on hover and focus
+- Accessible via `aria-describedby`
+- Delay before showing (configurable)
+- Motion animation for smooth entrance
+
+---
+
+## Testing Example
+
+Using `@testing-library/react` and `jest-axe`:
+
+```tsx
+// MenuButton.test.tsx
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { axe, toHaveNoViolations } from 'jest-axe';
+import { MenuButton } from './MenuButton';
+import { Item } from 'react-stately';
+
+expect.extend(toHaveNoViolations);
+
+describe('MenuButton', () => {
+  test('has no accessibility violations', async () => {
+    const { container } = render(
+      <MenuButton label="Actions" onAction={() => {}}>
+        <Item key="edit">Edit</Item>
+        <Item key="delete">Delete</Item>
+      </MenuButton>
+    );
+    const results = await axe(container);
+    expect(results).toHaveNoViolations();
+  });
+
+  test('opens menu on click', async () => {
+    const user = userEvent.setup();
+    render(
+      <MenuButton label="Actions" onAction={() => {}}>
+        <Item key="edit">Edit</Item>
+      </MenuButton>
+    );
+
+    const button = screen.getByRole('button', { name: /actions/i });
+    await user.click(button);
+
+    expect(screen.getByRole('menu')).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: /edit/i })).toBeInTheDocument();
+  });
+
+  test('navigates with arrow keys', async () => {
+    const user = userEvent.setup();
+    render(
+      <MenuButton label="Actions" onAction={() => {}}>
+        <Item key="edit">Edit</Item>
+        <Item key="delete">Delete</Item>
+      </MenuButton>
+    );
+
+    const button = screen.getByRole('button', { name: /actions/i });
+    await user.click(button);
+
+    const editItem = screen.getByRole('menuitem', { name: /edit/i });
+    expect(editItem).toHaveFocus();
+
+    await user.keyboard('{ArrowDown}');
+    const deleteItem = screen.getByRole('menuitem', { name: /delete/i });
+    expect(deleteItem).toHaveFocus();
+  });
+
+  test('closes menu on escape', async () => {
+    const user = userEvent.setup();
+    render(
+      <MenuButton label="Actions" onAction={() => {}}>
+        <Item key="edit">Edit</Item>
+      </MenuButton>
+    );
+
+    const button = screen.getByRole('button', { name: /actions/i });
+    await user.click(button);
+
+    expect(screen.getByRole('menu')).toBeInTheDocument();
+
+    await user.keyboard('{Escape}');
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+  });
+});
+```
+
+---
+
+## Resources
+
+- [React Aria Documentation](https://react-spectrum.adobe.com/react-aria/)
+- [Testing Library React Aria Examples](https://testing-library.com/docs/react-testing-library/example-intro)
+- [ARIA Authoring Practices Examples](https://www.w3.org/WAI/ARIA/apg/example-index/)
+
+
+### Wcag Examples
+
+# WCAG Compliance Code Examples
+
+Complete, production-ready examples of accessible patterns.
+
+---
+
+## 1. Accessible Form with Validation
+
+Full form with labels, error handling, and live region announcements.
+
+```tsx
+import { useState } from 'react';
+import { z } from 'zod';
+
+const FormSchema = z.object({
+  email: z.string().email('Please enter a valid email address'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+  agreeToTerms: z.boolean().refine((val) => val === true, {
+    message: 'You must agree to the terms',
+  }),
+});
+
+type FormData = z.infer<typeof FormSchema>;
+
+export function AccessibleForm() {
+  const [formData, setFormData] = useState<FormData>({
+    email: '',
+    password: '',
+    agreeToTerms: false,
+  });
+  const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
+  const [submitStatus, setSubmitStatus] = useState<string>('');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const result = FormSchema.safeParse(formData);
+
+    if (!result.success) {
+      const fieldErrors: Partial<Record<keyof FormData, string>> = {};
+      result.error.issues.forEach((issue) => {
+        const field = issue.path[0] as keyof FormData;
+        fieldErrors[field] = issue.message;
+      });
+      setErrors(fieldErrors);
+      setSubmitStatus('Please correct the errors below');
+      return;
+    }
+
+    setErrors({});
+    setSubmitStatus('Form submitted successfully!');
+    // Submit form...
+  };
+
+  return (
+    <form onSubmit={handleSubmit} noValidate>
+      <h1>Create Account</h1>
+
+      {/* Status message - announced by screen readers */}
+      {submitStatus && (
+        <div
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+          className="mb-4 p-3 rounded bg-blue-50 text-blue-900"
+        >
+          {submitStatus}
+        </div>
+      )}
+
+      {/* Email field */}
+      <div className="mb-4">
+        <label htmlFor="email" className="block mb-1 font-medium">
+          Email <span aria-label="required">*</span>
+        </label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          autoComplete="email"
+          value={formData.email}
+          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+          aria-required="true"
+          aria-invalid={!!errors.email}
+          aria-describedby={errors.email ? 'email-error' : 'email-hint'}
+          className={`w-full px-3 py-2 border rounded ${
+            errors.email ? 'border-red-600' : 'border-gray-300'
+          }`}
+        />
+        <p id="email-hint" className="text-sm text-gray-600 mt-1">
+          We'll never share your email
+        </p>
+        {errors.email && (
+          <p id="email-error" role="alert" className="text-red-600 text-sm mt-1">
+            {errors.email}
+          </p>
+        )}
+      </div>
+
+      {/* Password field */}
+      <div className="mb-4">
+        <label htmlFor="password" className="block mb-1 font-medium">
+          Password <span aria-label="required">*</span>
+        </label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          autoComplete="new-password"
+          value={formData.password}
+          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+          aria-required="true"
+          aria-invalid={!!errors.password}
+          aria-describedby={errors.password ? 'password-error' : 'password-hint'}
+          className={`w-full px-3 py-2 border rounded ${
+            errors.password ? 'border-red-600' : 'border-gray-300'
+          }`}
+        />
+        <p id="password-hint" className="text-sm text-gray-600 mt-1">
+          Must be at least 8 characters
+        </p>
+        {errors.password && (
+          <p id="password-error" role="alert" className="text-red-600 text-sm mt-1">
+            {errors.password}
+          </p>
+        )}
+      </div>
+
+      {/* Checkbox */}
+      <div className="mb-4">
+        <label className="flex items-start gap-2">
+          <input
+            type="checkbox"
+            checked={formData.agreeToTerms}
+            onChange={(e) => setFormData({ ...formData, agreeToTerms: e.target.checked })}
+            aria-required="true"
+            aria-invalid={!!errors.agreeToTerms}
+            aria-describedby={errors.agreeToTerms ? 'terms-error' : undefined}
+            className="mt-1 w-5 h-5"
+          />
+          <span>
+            I agree to the <a href="/terms" className="text-blue-600 underline">terms and conditions</a>
+            <span aria-label="required"> *</span>
+          </span>
+        </label>
+        {errors.agreeToTerms && (
+          <p id="terms-error" role="alert" className="text-red-600 text-sm mt-1">
+            {errors.agreeToTerms}
+          </p>
+        )}
+      </div>
+
+      {/* Submit button */}
+      <button
+        type="submit"
+        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+      >
+        Create Account
+      </button>
+    </form>
+  );
+}
+```
+
+**Key accessibility features:**
+- All inputs have associated labels with `htmlFor`
+- Required fields marked with `aria-required="true"`
+- Invalid fields marked with `aria-invalid="true"`
+- Error messages use `role="alert"` for immediate announcement
+- Error messages linked with `aria-describedby`
+- Hint text linked with `aria-describedby`
+- Status message uses `role="status"` with `aria-live="polite"`
+- Visible focus indicators
+- AutoComplete attributes for password managers
+
+---
+
+## 2. Accessible Modal Dialog
+
+Modal with focus trap, Esc to close, and backdrop click handling.
+
+```tsx
+import { useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { modalBackdrop, modalContent } from '@/lib/animations';
+
+interface ModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  children: React.ReactNode;
+}
+
+export function AccessibleModal({ isOpen, onClose, title, children }: ModalProps) {
+  const modalRef = useRef<HTMLDivElement>(null);
+  const triggerElementRef = useRef<HTMLElement | null>(null);
+
+  // Store the element that opened the modal
+  useEffect(() => {
+    if (isOpen) {
+      triggerElementRef.current = document.activeElement as HTMLElement;
+    }
+  }, [isOpen]);
+
+  // Focus trap and Esc key handler
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+        return;
+      }
+
+      if (e.key === 'Tab') {
+        const modal = modalRef.current;
+        if (!modal) return;
+
+        const focusableElements = modal.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), textarea, input, select'
+        );
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+
+        if (e.shiftKey && document.activeElement === firstElement) {
+          e.preventDefault();
+          lastElement.focus();
+        } else if (!e.shiftKey && document.activeElement === lastElement) {
+          e.preventDefault();
+          firstElement.focus();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
+  // Focus first element when modal opens
+  useEffect(() => {
+    if (isOpen && modalRef.current) {
+      const firstFocusable = modalRef.current.querySelector<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      firstFocusable?.focus();
+    }
+  }, [isOpen]);
+
+  // Return focus to trigger element when modal closes
+  useEffect(() => {
+    if (!isOpen && triggerElementRef.current) {
+      triggerElementRef.current.focus();
+      triggerElementRef.current = null;
+    }
+  }, [isOpen]);
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          {/* Backdrop */}
+          <motion.div
+            {...modalBackdrop}
+            className="fixed inset-0 z-50 bg-black/50"
+            onClick={onClose}
+            aria-hidden="true"
+          />
+
+          {/* Modal */}
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              {...modalContent}
+              ref={modalRef}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="modal-title"
+              className="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6"
+            >
+              {/* Title */}
+              <h2 id="modal-title" className="text-xl font-semibold mb-4">
+                {title}
+              </h2>
+
+              {/* Content */}
+              <div className="mb-6">{children}</div>
+
+              {/* Close button */}
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={onClose}
+                  className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                >
+                  Close
+                </button>
+              </div>
+
+              {/* Close icon button */}
+              <button
+                onClick={onClose}
+                aria-label="Close dialog"
+                className="absolute top-4 right-4 p-2 rounded hover:bg-gray-100 focus-visible:outline focus-visible:outline-2"
+              >
+                <svg
+                  aria-hidden="true"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+                </svg>
+              </button>
+            </motion.div>
+          </div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+}
+```
+
+**Key accessibility features:**
+- `role="dialog"` and `aria-modal="true"`
+- Title linked with `aria-labelledby`
+- Focus trapped within modal
+- Esc key closes modal
+- Focus returns to trigger element on close
+- Close button has `aria-label`
+- Backdrop click closes modal
+- First focusable element receives focus on open
+
+---
+
+## 3. Skip Navigation Link
+
+Allow keyboard users to bypass repeated navigation.
+
+```tsx
+export function SkipLink() {
+  return (
+    <a
+      href="#main-content"
+      className="skip-link"
+    >
+      Skip to main content
+    </a>
+  );
+}
+
+// In your layout component:
+export function Layout({ children }: { children: React.ReactNode }) {
+  return (
+    <>
+      <SkipLink />
+      <header>
+        <nav>
+          {/* Navigation links */}
+        </nav>
+      </header>
+      <main id="main-content" tabIndex={-1}>
+        {children}
+      </main>
+    </>
+  );
+}
+```
+
+```css
+/* styles/globals.css */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: #000;
+  color: #fff;
+  padding: 8px;
+  text-decoration: none;
+  z-index: 100;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+```
+
+---
+
+## 4. Accessible Tab Component
+
+Tabs with keyboard navigation (arrow keys, Home, End).
+
+```tsx
+import { useState, useRef, useEffect } from 'react';
+
+interface TabProps {
+  tabs: { id: string; label: string; content: React.ReactNode }[];
+}
+
+export function AccessibleTabs({ tabs }: TabProps) {
+  const [activeTab, setActiveTab] = useState(0);
+  const tabListRef = useRef<HTMLDivElement>(null);
+
+  const handleKeyDown = (e: React.KeyboardEvent, index: number) => {
+    let newIndex = index;
+
+    switch (e.key) {
+      case 'ArrowRight':
+        e.preventDefault();
+        newIndex = (index + 1) % tabs.length;
+        break;
+      case 'ArrowLeft':
+        e.preventDefault();
+        newIndex = (index - 1 + tabs.length) % tabs.length;
+        break;
+      case 'Home':
+        e.preventDefault();
+        newIndex = 0;
+        break;
+      case 'End':
+        e.preventDefault();
+        newIndex = tabs.length - 1;
+        break;
+      default:
+        return;
+    }
+
+    setActiveTab(newIndex);
+
+    // Focus the new tab
+    const newTab = tabListRef.current?.children[newIndex] as HTMLElement;
+    newTab?.focus();
+  };
+
+  return (
+    <div>
+      {/* Tab list */}
+      <div
+        ref={tabListRef}
+        role="tablist"
+        aria-label="Content sections"
+        className="flex border-b border-gray-300"
+      >
+        {tabs.map((tab, index) => (
+          <button
+            key={tab.id}
+            role="tab"
+            id={`tab-${tab.id}`}
+            aria-selected={activeTab === index}
+            aria-controls={`panel-${tab.id}`}
+            tabIndex={activeTab === index ? 0 : -1}
+            onClick={() => setActiveTab(index)}
+            onKeyDown={(e) => handleKeyDown(e, index)}
+            className={`px-4 py-2 font-medium focus-visible:outline focus-visible:outline-2 ${
+              activeTab === index
+                ? 'text-blue-600 border-b-2 border-blue-600'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Tab panels */}
+      {tabs.map((tab, index) => (
+        <div
+          key={tab.id}
+          role="tabpanel"
+          id={`panel-${tab.id}`}
+          aria-labelledby={`tab-${tab.id}`}
+          hidden={activeTab !== index}
+          className="p-4"
+        >
+          {tab.content}
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+**Key accessibility features:**
+- `role="tablist"`, `role="tab"`, `role="tabpanel"`
+- `aria-selected` indicates active tab
+- `aria-controls` links tab to panel
+- Only active tab is focusable (`tabIndex=\{0\}`)
+- Arrow keys navigate between tabs
+- Home/End keys jump to first/last tab
+- Panels hidden with `hidden` attribute (not CSS display:none)
+
+---
+
+## 5. Focus Management in Complex Widgets
+
+Custom dropdown with roving tabindex.
+
+```tsx
+import { useState, useRef, useEffect } from 'react';
+
+interface DropdownProps {
+  label: string;
+  options: string[];
+  value: string;
+  onChange: (value: string) => void;
+}
+
+export function AccessibleDropdown({ label, options, value, onChange }: DropdownProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [focusedIndex, setFocusedIndex] = useState(0);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        if (!isOpen) {
+          setIsOpen(true);
+        } else {
+          setFocusedIndex((prev) => (prev + 1) % options.length);
+        }
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        if (!isOpen) {
+          setIsOpen(true);
+        } else {
+          setFocusedIndex((prev) => (prev - 1 + options.length) % options.length);
+        }
+        break;
+      case 'Enter':
+      case ' ':
+        e.preventDefault();
+        if (isOpen) {
+          onChange(options[focusedIndex]);
+          setIsOpen(false);
+          buttonRef.current?.focus();
+        } else {
+          setIsOpen(true);
+        }
+        break;
+      case 'Escape':
+        e.preventDefault();
+        setIsOpen(false);
+        buttonRef.current?.focus();
+        break;
+    }
+  };
+
+  // Focus first option when opening
+  useEffect(() => {
+    if (isOpen) {
+      setFocusedIndex(options.indexOf(value));
+    }
+  }, [isOpen, value, options]);
+
+  return (
+    <div className="relative">
+      <button
+        ref={buttonRef}
+        onClick={() => setIsOpen(!isOpen)}
+        onKeyDown={handleKeyDown}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        aria-labelledby="dropdown-label"
+        className="w-full px-4 py-2 text-left bg-white border border-gray-300 rounded focus-visible:outline focus-visible:outline-2"
+      >
+        <span id="dropdown-label" className="sr-only">{label}</span>
+        {value}
+      </button>
+
+      {isOpen && (
+        <ul
+          ref={listRef}
+          role="listbox"
+          aria-labelledby="dropdown-label"
+          onKeyDown={handleKeyDown}
+          className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded shadow-lg max-h-60 overflow-auto"
+        >
+          {options.map((option, index) => (
+            <li
+              key={option}
+              role="option"
+              aria-selected={option === value}
+              onClick={() => {
+                onChange(option);
+                setIsOpen(false);
+                buttonRef.current?.focus();
+              }}
+              className={`px-4 py-2 cursor-pointer ${
+                index === focusedIndex ? 'bg-blue-100' : ''
+              } ${option === value ? 'bg-blue-50 font-semibold' : ''}`}
+            >
+              {option}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+```
+
+**Key accessibility features:**
+- `role="listbox"` and `role="option"`
+- `aria-haspopup="listbox"` on trigger
+- `aria-expanded` indicates open/closed state
+- `aria-selected` on current option
+- Arrow keys navigate options
+- Enter/Space selects option
+- Esc closes dropdown and returns focus
+- Focus returns to trigger on close
+
+---
+
+## 6. Live Region for Dynamic Updates
+
+Announce changes to screen reader users without interrupting.
+
+```tsx
+import { useState, useEffect } from 'react';
+
+export function ShoppingCart() {
+  const [items, setItems] = useState<string[]>([]);
+  const [statusMessage, setStatusMessage] = useState('');
+
+  const addItem = (item: string) => {
+    setItems([...items, item]);
+    setStatusMessage(`${item} added to cart. ${items.length + 1} items total.`);
+  };
+
+  const removeItem = (index: number) => {
+    const removedItem = items[index];
+    setItems(items.filter((_, i) => i !== index));
+    setStatusMessage(`${removedItem} removed from cart. ${items.length - 1} items total.`);
+  };
+
+  return (
+    <div>
+      <h2>Shopping Cart</h2>
+
+      {/* Live region for status updates */}
+      <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+      >
+        {statusMessage}
+      </div>
+
+      {/* Visible cart count */}
+      <p aria-hidden="true">
+        {items.length} {items.length === 1 ? 'item' : 'items'} in cart
+      </p>
+
+      <ul>
+        {items.map((item, index) => (
+          <li key={index} className="flex justify-between items-center py-2">
+            <span>{item}</span>
+            <button
+              onClick={() => removeItem(index)}
+              aria-label={`Remove ${item} from cart`}
+              className="px-3 py-1 bg-red-600 text-white rounded"
+            >
+              Remove
+            </button>
+          </li>
+        ))}
+      </ul>
+
+      <button
+        onClick={() => addItem('Product ' + (items.length + 1))}
+        className="px-4 py-2 bg-blue-600 text-white rounded"
+      >
+        Add Item
+      </button>
+    </div>
+  );
+}
+```
+
+**Key accessibility features:**
+- `role="status"` with `aria-live="polite"` announces changes
+- `aria-atomic="true"` ensures entire message is read
+- `.sr-only` class hides visual duplicate
+- Remove buttons have descriptive `aria-label`
+
+---
+
+## 7. Accessible Error Summary
+
+Error summary at top of form that links to fields with errors.
+
+```tsx
+interface ErrorSummaryProps {
+  errors: Record<string, string>;
+}
+
+export function ErrorSummary({ errors }: ErrorSummaryProps) {
+  const errorEntries = Object.entries(errors);
+
+  if (errorEntries.length === 0) return null;
+
+  return (
+    <div
+      role="alert"
+      aria-labelledby="error-summary-title"
+      className="mb-6 p-4 bg-red-50 border-l-4 border-red-600 rounded"
+    >
+      <h2 id="error-summary-title" className="text-lg font-semibold text-red-900 mb-2">
+        There {errorEntries.length === 1 ? 'is' : 'are'} {errorEntries.length}{' '}
+        {errorEntries.length === 1 ? 'error' : 'errors'} in this form
+      </h2>
+      <ul className="list-disc list-inside space-y-1">
+        {errorEntries.map(([field, message]) => (
+          <li key={field}>
+            <a
+              href={`#${field}`}
+              className="text-red-900 underline hover:text-red-700"
+              onClick={(e) => {
+                e.preventDefault();
+                document.getElementById(field)?.focus();
+              }}
+            >
+              {message}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+```
+
+**Key accessibility features:**
+- `role="alert"` announces errors immediately
+- Links to fields with errors
+- Clicking link focuses the field
+- Descriptive error count
+
+---
+
+## Resources
+
+- [WCAG 2.2 Spec](https://www.w3.org/TR/WCAG22/)
+- [WAI-ARIA Authoring Practices](https://www.w3.org/WAI/ARIA/apg/)
+- [Radix UI Primitives](https://www.radix-ui.com/) - Accessible components
+- [Inclusive Components](https://inclusive-components.design/)
+- [A11y Project Checklist](https://www.a11yproject.com/checklist/)
+
+---
+
+**Version**: 1.0.0
+**Last Updated**: 2026-01-16
+

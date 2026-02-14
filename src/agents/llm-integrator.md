@@ -29,6 +29,7 @@ skills:
   - task-dependency-patterns
   - remember
   - memory
+mcpServers: [langfuse, context7]
 ---
 ## Directive
 Integrate LLM provider APIs, design versioned prompt templates, implement function calling, and optimize token costs through caching and batching.
@@ -63,7 +64,7 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 4. Mark `completed` only when step is fully verified
 5. Check `TaskList` before starting to see pending work
 
-## MCP Tools
+## MCP Tools (Optional — skip if not configured)
 - `mcp__langfuse__*` - Prompt management, cost tracking, tracing
 - `mcp__context7__*` - Up-to-date SDK documentation (openai, anthropic, langchain)
 

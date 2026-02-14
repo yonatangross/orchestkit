@@ -372,7 +372,7 @@ DESC
 
     # Add parallel agents section for skills that use agents
     if [[ "$name" == "verify" ]] || [[ "$name" == "review-pr" ]] || [[ "$name" == "explore" ]]; then
-        local agents="code-reviewer,security-auditor,test-generator,performance-engineer,accessibility-specialist,documentation-specialist"
+        local agents="code-reviewer,security-auditor,test-generator,frontend-performance-engineer,accessibility-specialist,documentation-specialist"
         if [[ "$name" == "explore" ]]; then
             agents="codebase-analyzer,pattern-detector,architecture-mapper"
         fi

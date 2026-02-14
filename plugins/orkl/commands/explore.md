@@ -462,28 +462,5 @@ Task(
 
 ## Related Skills
 - implement: Implement after exploration
-## Key Project Directories
 
-- `backend/app/workflows/` - LangGraph agent workflows
-- `backend/app/api/` - FastAPI endpoints
-- `backend/app/services/` - Business logic
-- `backend/app/db/` - Database models
-- `frontend/src/features/` - React feature modules
-
-
-**Version:** 2.0.0 (January 2026)
-
-**v2.0.0 Enhancements:**
-- Added **Code Health Assessment**: Rate found code 0-10 across 5 dimensions (readability, maintainability, testability, complexity, documentation)
-- Added **Dependency Hotspot Map**: Visualize coupling, fan-in/fan-out, circular dependencies
-- Added **Product Perspective Agent**: Business context, findability suggestions, documentation gaps
-- Updated report template with health scores, hotspot diagrams, and entry points
-- Expanded from 5-phase to 8-phase process
-
-## Key Decisions
-
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| Health scoring | 5 dimensions, 0-10 scale | Granular feedback on specific improvement areas |
-| Dependency analysis | Fan-in/fan-out metrics | Quantifies coupling for informed refactoring decisions |
-| Report format | Structured markdown with tables | Scannable, actionable output |
+**Version:** 2.1.0 (February 2026)

@@ -1,0 +1,677 @@
+---
+title: "Scope Appropriate Architecture"
+description: "Right-sizes architecture to project scope. Prevents over-engineering by classifying projects into 6 tiers and constraining pattern choices accordingly. Use when designing architecture, selecting patterns, or when brainstorming/implement detect a project tier."
+---
+
+<span className="badge badge-gray">Reference</span> <span className="badge badge-green">low</span>
+
+
+# Scope-Appropriate Architecture
+
+Right-size every architectural decision to the project's actual needs. Not every project needs hexagonal architecture, CQRS, or microservices.
+
+**Core principle:** Detect the project tier first, then constrain all downstream pattern choices to that tier's complexity ceiling.
+
+---
+
+## The 6 Project Tiers
+
+| Tier | LOC Ratio | Architecture | DB | Auth | Tests |
+|------|-----------|-------------|-----|------|-------|
+| **1. Interview/Take-home** | 1.0-1.3x | Flat files, no layers | SQLite / JSON | None or basic | 8-15 focused |
+| **2. Hackathon/Prototype** | 0.8-1.0x | Single file if possible | SQLite / in-memory | None | Zero |
+| **3. Startup/MVP** | 1.0-1.5x | MVC monolith | Managed Postgres | Clerk/Supabase Auth | Happy path + critical |
+| **4. Growth-stage** | 1.5-2.0x | Modular monolith | Postgres + Redis | Auth service | Unit + integration |
+| **5. Enterprise** | 2.0-3.0x | Hexagonal/DDD | Postgres + queues | OAuth2/SAML | Full pyramid |
+| **6. Open Source** | 1.2-1.8x | Minimal API surface | Configurable | Optional | Exhaustive public API |
+
+**LOC Ratio** = total lines / core business logic lines. Higher ratio = more infrastructure code relative to business value.
+
+---
+
+## Auto-Detection Signals
+
+| Signal | Tier Indicator |
+|--------|---------------|
+| README contains "take-home", "assignment", "interview" | Tier 1 |
+| Time limit mentioned (e.g., "4 hours", "weekend") | Tier 1-2 |
+| &lt; 10 files, no CI, no Docker | Tier 1-2 |
+| `.github/workflows/` present | Tier 3+ |
+| `package.json` with 20+ dependencies | Tier 3+ |
+| Kubernetes/Terraform files present | Tier 4-5 |
+| `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md` | Tier 6 |
+| Monorepo with `packages/` or `apps/` | Tier 4-5 |
+
+**When confidence is low:** Ask the user with `AskUserQuestion`.
+
+---
+
+## Pattern Appropriateness Matrix
+
+| Pattern | Interview | Hackathon | MVP | Growth | Enterprise |
+|---------|-----------|-----------|-----|--------|------------|
+| Repository pattern | OVERKILL | OVERKILL | BORDERLINE | APPROPRIATE | REQUIRED |
+| Event-driven arch | OVERKILL | OVERKILL | OVERKILL | SELECTIVE | APPROPRIATE |
+| DI containers | OVERKILL | OVERKILL | LIGHT ONLY | APPROPRIATE | REQUIRED |
+| Separate DTO layers | OVERKILL | OVERKILL | 1 EXTRA | 2 LAYERS | ALL LAYERS |
+| Microservices | NEVER | NEVER | NEVER | EXTRACT ONLY | APPROPRIATE |
+| CQRS | OVERKILL | OVERKILL | OVERKILL | OVERKILL | WHEN JUSTIFIED |
+| Hexagonal architecture | OVERKILL | OVERKILL | OVERKILL | BORDERLINE | APPROPRIATE |
+| DDD (bounded contexts) | OVERKILL | OVERKILL | OVERKILL | SELECTIVE | APPROPRIATE |
+| Message queues | OVERKILL | OVERKILL | BORDERLINE | APPROPRIATE | REQUIRED |
+| API versioning | SKIP | SKIP | URL prefix | Header-based | Full strategy |
+| Error handling | try/catch | console.log | Error boundary | Error service | RFC 9457 |
+| Logging | console.log | none | Structured JSON | Centralized | OpenTelemetry |
+
+**Rule of thumb:** If a pattern shows OVERKILL for the detected tier, do NOT use it. Suggest the simpler alternative instead.
+
+---
+
+## Technology Quick-Reference by Tier
+
+| Choice | Interview | Hackathon | MVP | Growth | Enterprise |
+|--------|-----------|-----------|-----|--------|------------|
+| **Database** | SQLite / JSON file | In-memory / SQLite | Managed Postgres | Postgres + Redis | Postgres + queues + cache |
+| **Auth** | Hardcoded / none | None | Clerk / Supabase Auth | Auth service | OAuth2 / SAML / SSO |
+| **State mgmt** | useState | useState | Zustand / Context | Zustand + React Query | Redux / custom + cache |
+| **CSS** | Inline / Tailwind | Tailwind | Tailwind | Tailwind + design tokens | Design system |
+| **API** | Express routes | Single file handler | Next.js API routes | FastAPI / Express | Gateway + services |
+| **Deployment** | localhost | Vercel / Railway | Vercel / Railway | Docker + managed | K8s / ECS |
+| **CI/CD** | None | None | GitHub Actions basic | Multi-stage pipeline | Full pipeline + gates |
+| **Monitoring** | None | None | Error tracking only | APM + logs | Full observability stack |
+
+---
+
+## Build vs Buy Decision Tree (Tiers 1-3)
+
+For Interview, Hackathon, and MVP tiers, **always prefer buying over building**:
+
+| Capability | BUY (use SaaS) | BUILD (only if) |
+|-----------|----------------|-----------------|
+| Auth | Clerk, Supabase Auth, Auth0 | Core product IS auth |
+| Payments | Stripe | Core product IS payments |
+| Email | Resend, SendGrid | Core product IS email |
+| File storage | S3, Cloudflare R2 | Compliance requires on-prem |
+| Search | Algolia, Typesense Cloud | > 10M docs or custom ranking |
+| Analytics | PostHog, Mixpanel | Unique data requirements |
+
+**Time savings:** Auth alone is 2-4 weeks build vs 2 hours integrate.
+
+---
+
+## Upgrade Path
+
+When a project grows beyond its current tier, upgrade incrementally:
+
+```
+Tier 2 (Prototype) → Tier 3 (MVP)
+  Add: Postgres, basic auth, error boundaries, CI
+
+Tier 3 (MVP) → Tier 4 (Growth)
+  Add: Redis cache, background jobs, monitoring, module boundaries
+
+Tier 4 (Growth) → Tier 5 (Enterprise)
+  Add: DI, bounded contexts, message queues, full observability
+  Extract: First microservice (only the proven bottleneck)
+```
+
+**Key insight:** You can always add complexity later. You cannot easily remove it.
+
+---
+
+## When This Skill Activates
+
+This skill is loaded by:
+- `brainstorming` Phase 0 (context discovery)
+- `implement` Step 0 (context discovery)
+- `quality-gates` YAGNI check
+- Any skill that needs to right-size a recommendation
+
+The detected tier is passed as context to constrain downstream decisions.
+
+---
+
+## Related Skills
+
+- `brainstorming` - Uses tier detection in Phase 0 to constrain ideas
+- `implement` - Uses tier detection in Step 0 to constrain architecture
+- `quality-gates` - YAGNI gate references this skill's tier matrix
+- `architecture-patterns` - Architecture validation (constrained by tier)
+
+---
+
+## References
+
+- [Interview & Take-Home Guide](references/interview-takehome.md) - Tiers 1-2 in detail
+- [Startup & MVP Guide](references/startup-mvp.md) - Tier 3 patterns and decisions
+- [Enterprise Guide](references/enterprise.md) - Tiers 4-5 patterns and justification criteria
+- [Open Source Guide](references/open-source.md) - Tier 6 unique considerations
+
+
+---
+
+## References (4)
+
+### Enterprise
+
+# Enterprise Guide (Tiers 4-5)
+
+Guidance for growth-stage and enterprise production applications.
+
+## Tier 4: Growth-Stage
+
+### When You're Here
+
+- 4-15 developers on the codebase
+- $10K-$500K MRR
+- 10K-1M monthly active users
+- SLAs exist (99.5%+ uptime)
+- Compliance requirements emerging
+
+### Architecture: Modular Monolith
+
+```
+src/
+├── modules/
+│   ├── users/
+│   │   ├── api/            # Module-scoped routes
+│   │   ├── services/       # Business logic
+│   │   ├── repository/     # Data access (NOW justified)
+│   │   └── types/          # Module types
+│   ├── orders/
+│   │   ├── api/
+│   │   ├── services/
+│   │   ├── repository/
+│   │   └── types/
+│   └── shared/             # Cross-module utilities
+├── infrastructure/
+│   ├── database/           # Connection, migrations
+│   ├── cache/              # Redis client
+│   ├── queue/              # Background job client
+│   └── monitoring/         # APM setup
+└── config/                 # Environment-specific config
+```
+
+### Patterns NOW Justified
+
+| Pattern | Why Now |
+|---------|---------|
+| Repository pattern | Multiple data sources, testability matters |
+| DI (light) | Constructor injection for services, no container yet |
+| Module boundaries | Team ownership, independent deployment later |
+| Background jobs | Email, reports, data sync — can't block requests |
+| Redis cache | Database bottlenecks are real and measured |
+| Structured logging | Debugging across modules needs correlation |
+
+### Patterns Still OVERKILL
+
+| Pattern | Why Not Yet |
+|---------|-------------|
+| Microservices | Monolith handles the traffic, operational overhead isn't justified |
+| CQRS | Read/write patterns aren't divergent enough |
+| Event sourcing | Audit log column is sufficient |
+| API gateway | One service, one entry point |
+| Service mesh | One service, no mesh needed |
+| Custom DI container | Constructor injection is sufficient |
+
+### Database at Growth Stage
+
+- **Primary:** Postgres with connection pooling (PgBouncer or managed)
+- **Cache:** Redis for sessions, hot data, rate limiting
+- **Background:** Redis-backed queue (BullMQ, Celery)
+- **Search:** Postgres full-text or Typesense (if > 100K searchable records)
+
+### Testing Strategy
+
+| Type | Coverage Target |
+|------|----------------|
+| Unit | Core business logic: 80%+ |
+| Integration | All API endpoints, all service methods |
+| E2E | Critical user journeys (5-10 flows) |
+| Performance | Load test key endpoints (k6 or Artillery) |
+| Security | OWASP top 10 scan in CI |
+
+---
+
+## Tier 5: Enterprise
+
+### When You're Here
+
+- 15+ developers, multiple teams
+- $500K+ MRR or enterprise contracts
+- 1M+ monthly active users
+- Strict SLAs (99.9%+ uptime)
+- Compliance: SOC2, HIPAA, GDPR, or similar
+- Incidents cost real money
+
+### Architecture: Domain-Driven (Hexagonal)
+
+```
+src/
+├── domains/
+│   ├── identity/           # Bounded context
+│   │   ├── application/    # Use cases, commands, queries
+│   │   ├── domain/         # Entities, value objects, events
+│   │   ├── infrastructure/ # Repos, adapters, external services
+│   │   └── presentation/   # Controllers, DTOs, serializers
+│   ├── billing/
+│   │   └── ...
+│   └── catalog/
+│       └── ...
+├── shared/
+│   ├── kernel/             # Shared value objects, base classes
+│   └── infrastructure/     # Cross-cutting: auth, logging, tracing
+├── api-gateway/            # Route to domains
+└── workers/                # Background processors per domain
+```
+
+### Patterns NOW Justified
+
+| Pattern | Justification |
+|---------|--------------|
+| Hexagonal / Clean Architecture | Team boundaries align with domain boundaries |
+| DDD (bounded contexts) | Complex domain logic requires explicit modeling |
+| CQRS | Read and write patterns have diverged significantly |
+| Event-driven | Cross-domain communication needs decoupling |
+| API gateway | Multiple services, unified entry point |
+| Full DI container | Complex dependency graphs across domains |
+| RFC 9457 errors | External API consumers need structured errors |
+| OpenTelemetry | Distributed tracing across services |
+
+### Justification Required
+
+Even at enterprise scale, these patterns need specific justification:
+
+| Pattern | Only When |
+|---------|-----------|
+| Microservices extraction | Team can't deploy independently, proven bottleneck |
+| Event sourcing | Regulatory audit trail OR temporal query requirements |
+| Saga pattern | Multi-service transactions that can't use 2PC |
+| Service mesh (Istio) | > 10 services with complex networking needs |
+| Custom framework | Existing frameworks demonstrably insufficient |
+
+### Database at Enterprise Scale
+
+- **Primary:** Postgres with read replicas, connection pooling
+- **Cache:** Redis Cluster (HA) or Valkey
+- **Queue:** RabbitMQ or Kafka (based on throughput needs)
+- **Search:** Elasticsearch or OpenSearch (> 1M documents)
+- **Analytics:** Data warehouse (BigQuery, Snowflake, ClickHouse)
+
+### Monitoring & Observability
+
+| Layer | Tool |
+|-------|------|
+| Metrics | Prometheus + Grafana (or Datadog) |
+| Tracing | OpenTelemetry + Jaeger (or Datadog APM) |
+| Logging | Structured JSON → ELK or Loki |
+| Alerting | PagerDuty + Grafana alerts |
+| Error tracking | Sentry with release tracking |
+| Uptime | Synthetic monitoring (Checkly, Datadog) |
+| SLO/SLI | Error budget dashboards |
+
+### Testing Strategy
+
+| Type | Coverage Target |
+|------|----------------|
+| Unit | 80%+ for domain logic |
+| Integration | All service boundaries |
+| Contract | API contracts between services |
+| E2E | Critical business flows |
+| Performance | Load + stress + soak testing |
+| Security | SAST + DAST + dependency audit |
+| Chaos | Failure injection (Chaos Monkey / Litmus) |
+
+
+### Interview Takehome
+
+# Interview & Take-Home Guide (Tiers 1-2)
+
+Guidance for interview assignments, take-home projects, hackathons, and prototypes.
+
+## Tier 1: Interview / Take-Home
+
+### Target Metrics
+
+| Metric | Target | Red Flag |
+|--------|--------|----------|
+| Files | 8-15 | > 25 |
+| LOC | 200-600 | > 1,500 |
+| Tests | 8-15 focused | > 40 |
+| Dependencies | 3-8 | > 15 |
+| Layers | 1-2 | > 3 |
+| Config files | 2-3 | > 8 |
+
+### What Interviewers Actually Evaluate
+
+1. **Clean, readable code** — not architectural patterns
+2. **Working solution** — not infrastructure
+3. **Good naming and structure** — not abstractions
+4. **Thoughtful trade-offs** — documented, not implemented
+5. **Tests for critical paths** — not 100% coverage
+
+### Architecture Pattern
+
+```
+src/
+├── app.ts              # Entry point + routes
+├── handlers/           # Request handlers (thin)
+├── services/           # Business logic (1-2 files)
+├── types.ts            # Shared types
+└── __tests__/          # Co-located tests
+```
+
+No repository pattern. No DI. No separate DTO layers. No middleware chain.
+
+### Highest-Leverage Technique
+
+Add a "What I Would Change for Production" section to README:
+
+```markdown
+## What I Would Change for Production
+
+- **Database**: Replace SQLite with Postgres + connection pooling
+- **Auth**: Integrate Clerk/Auth0 instead of basic token
+- **Error handling**: Add structured error responses (RFC 9457)
+- **Monitoring**: Add OpenTelemetry tracing
+- **Testing**: Add integration tests with testcontainers
+- **CI/CD**: Add GitHub Actions with lint, test, build stages
+```
+
+This shows awareness WITHOUT building it. Interviewers value judgment over implementation.
+
+### Common Over-Engineering Mistakes
+
+| Mistake | Why It Hurts |
+|---------|-------------|
+| Hexagonal architecture | 3x more files, evaluator can't find the logic |
+| Docker + docker-compose | Adds setup friction, not required |
+| OpenAPI spec generation | Time spent on tooling, not business logic |
+| Custom error hierarchy | 5 error classes for 3 endpoints |
+| Event-driven patterns | Async complexity for sync workflows |
+| Repository + Unit of Work | 4 files to wrap a 2-line query |
+
+### What TO Build
+
+- Clear input validation with helpful error messages
+- One integration test that proves the happy path works
+- A few unit tests for edge cases in business logic
+- Clean README with setup instructions (&lt; 5 steps)
+
+---
+
+## Tier 2: Hackathon / Prototype
+
+### Target Metrics
+
+| Metric | Target | Red Flag |
+|--------|--------|----------|
+| Files | 1-5 | > 10 |
+| LOC | 50-300 | > 800 |
+| Tests | 0 | Any |
+| Time to demo | &lt; 4 hours | &gt; 8 hours |
+
+### Architecture Pattern
+
+Single file if possible. Maximum one level of extraction.
+
+```
+app.ts          # Everything
+# OR
+app.ts          # Routes + handlers
+db.ts           # Data access
+```
+
+### Principles
+
+- **Ship the demo.** Nothing else matters.
+- **Hardcode everything.** Config is waste.
+- **No tests.** Prototype will be thrown away.
+- **Use the highest-level abstractions available.** ORMs, UI kits, SaaS APIs.
+- **Copy-paste is fine.** DRY is for production code.
+
+### Technology Choices
+
+- **Framework**: Whatever you know best
+- **Database**: SQLite, JSON file, or in-memory
+- **Deployment**: Vercel, Railway, or localhost
+- **Auth**: Hardcoded user or none
+- **UI**: Tailwind + shadcn/ui (fastest to good-looking)
+
+
+### Open Source
+
+# Open Source Guide (Tier 6)
+
+Guidance for open-source libraries, frameworks, and tools.
+
+## Target Metrics
+
+| Metric | Target | Red Flag |
+|--------|--------|----------|
+| Public API surface | Minimal | Exposing internals |
+| LOC ratio | 1.2-1.8x | > 2.5x (over-abstracted) |
+| Test coverage (public API) | 95%+ | &lt; 80% |
+| Test coverage (internals) | 60%+ | &lt; 40% |
+| Dependencies | Minimal | > 10 runtime deps |
+| Breaking changes per major | &lt; 5 | &gt; 15 |
+
+## Architecture Principles
+
+### 1. Minimal API Surface
+
+Expose the minimum necessary. Everything public becomes a contract.
+
+```typescript
+// Good: Small, focused API
+export { createClient } from "./client";
+export type { ClientOptions, Client } from "./types";
+
+// Bad: Leaking internals
+export { createClient, _parseResponse, _buildUrl, _retryWithBackoff } from "./client";
+```
+
+### 2. Zero or Minimal Dependencies
+
+Every dependency is a liability for consumers:
+- Security vulnerabilities propagate
+- Version conflicts with consumer's dependencies
+- Bundle size increases
+- Maintenance burden when deps are abandoned
+
+**Prefer:** Vendoring small utilities over adding dependencies.
+
+### 3. Backwards Compatibility
+
+- Semantic versioning is non-negotiable
+- Deprecate before removing (minimum 1 minor version)
+- Migration guides for every breaking change
+- Codemods when feasible (like Next.js does)
+
+## Testing Strategy
+
+| Type | Focus |
+|------|-------|
+| Unit tests | Every public API method, every edge case |
+| Integration | Common usage patterns from README examples |
+| Compatibility | Test against multiple Node/Python/runtime versions |
+| Type tests | Verify TypeScript types work correctly (tsd, expect-type) |
+| Snapshot | API surface snapshot to catch accidental breaks |
+| Performance | Benchmark critical paths, regression testing |
+
+### Test What Matters
+
+```typescript
+// Test public API behavior, not implementation details
+test("createClient returns working client", () => {
+  const client = createClient({ apiKey: "test" });
+  expect(client.query).toBeDefined();
+  expect(typeof client.query).toBe("function");
+});
+
+// Test edge cases consumers will hit
+test("createClient throws on missing apiKey", () => {
+  expect(() => createClient({})).toThrow("apiKey is required");
+});
+```
+
+## Documentation
+
+| Document | Purpose | Priority |
+|----------|---------|----------|
+| README.md | Quick start, installation, basic usage | CRITICAL |
+| API reference | Every public method with examples | HIGH |
+| CONTRIBUTING.md | How to contribute, dev setup | HIGH |
+| CHANGELOG.md | Every version's changes | HIGH |
+| Migration guide | Upgrade path between majors | HIGH (per major) |
+| Architecture doc | Internal design for contributors | MEDIUM |
+
+## What Makes Open Source Different
+
+| Concern | Product Code | Open Source |
+|---------|-------------|-------------|
+| API design | Internal, change freely | Public contract, break carefully |
+| Dependencies | Add what's useful | Minimize ruthlessly |
+| Testing | Test business flows | Test every public API edge case |
+| Docs | Internal wiki | Public, polished, with examples |
+| Error messages | Log and fix | Descriptive — user can't see your code |
+| Types | Nice to have | Essential — API discoverability |
+| Bundle size | Less critical | Critical for frontend consumers |
+| Node versions | Pick one | Support multiple (LTS at minimum) |
+
+## Common Mistakes
+
+| Mistake | Impact |
+|---------|--------|
+| Exposing too many internals as public API | Can never remove them |
+| Heavy runtime dependencies | Conflicts + bloat for consumers |
+| Not testing edge cases | Users find bugs, lose trust |
+| Poor error messages | Users can't self-diagnose |
+| No migration guide between versions | Users stay on old versions |
+| Monolithic package | Users import everything for one feature |
+
+## Package Structure Decisions
+
+| Decision | Small Library | Framework |
+|----------|--------------|-----------|
+| Single package | Yes | No — use monorepo |
+| Tree-shakeable | Essential | Essential |
+| ESM + CJS | Both via dual exports | Both via dual exports |
+| Subpath exports | If > 3 features | Yes — `pkg/feature` |
+| Plugin system | No | Yes — extensibility |
+
+
+### Startup Mvp
+
+# Startup & MVP Guide (Tier 3)
+
+Guidance for MVPs, early-stage startups, and small production applications.
+
+## Target Metrics
+
+| Metric | Target | Red Flag |
+|--------|--------|----------|
+| Files | 20-60 | > 120 |
+| LOC | 2,000-8,000 | > 15,000 |
+| Tests | Happy path + critical edges | > 200 tests |
+| Dependencies | 10-25 | > 50 |
+| Deploy time | &lt; 10 min | &gt; 30 min |
+| Time to first user | 2-6 weeks | > 12 weeks |
+
+## Architecture: MVC Monolith
+
+```
+src/
+├── app/                    # Next.js App Router pages
+│   ├── api/                # API routes (thin handlers)
+│   ├── (auth)/             # Auth-gated pages
+│   └── (public)/           # Public pages
+├── lib/
+│   ├── db.ts               # Database client (Drizzle/Prisma)
+│   ├── auth.ts             # Auth config (Clerk/Supabase)
+│   └── email.ts            # Email client (Resend)
+├── components/             # React components
+├── actions/                # Server actions (business logic)
+└── types/                  # Shared types
+```
+
+### Key Principles
+
+1. **Monolith first.** Always. No exceptions.
+2. **Managed services.** Database, auth, email, storage — all SaaS.
+3. **One deployment target.** Vercel OR Railway, not both.
+4. **Feature flags over branches.** Ship incomplete features behind flags.
+5. **Server actions over API routes.** Less boilerplate, same safety.
+
+## Build vs Buy at MVP Scale
+
+| Decision | Recommendation | Time Saved |
+|----------|---------------|------------|
+| Auth | BUY: Clerk (2h) vs BUILD: JWT + sessions (2-4w) | 2-4 weeks |
+| Payments | BUY: Stripe Checkout (4h) vs BUILD: custom (4-8w) | 4-8 weeks |
+| Email | BUY: Resend (1h) vs BUILD: SMTP + templates (1-2w) | 1-2 weeks |
+| File upload | BUY: UploadThing/S3 (2h) vs BUILD: custom (1-2w) | 1-2 weeks |
+| Search | BUY: Postgres full-text (0h) vs BUILD: Elasticsearch (2-4w) | 2-4 weeks |
+| Analytics | BUY: PostHog (1h) vs BUILD: custom (2-4w) | 2-4 weeks |
+
+**Total potential savings: 12-24 weeks** by choosing BUY for non-core features.
+
+## Database Decisions
+
+- **Default choice:** Managed Postgres (Supabase, Neon, Railway)
+- **ORM:** Drizzle (type-safe, lightweight) or Prisma (broader ecosystem)
+- **Migrations:** ORM-managed, not manual SQL
+- **Caching:** None initially. Add Redis only after measuring bottlenecks.
+
+### What NOT to Do
+
+- No read replicas (you don't have the traffic)
+- No database-per-service (you have one service)
+- No custom connection pooling (managed service handles it)
+- No event sourcing (your audit needs are met by `updated_at` columns)
+
+## Testing Strategy
+
+| Type | Coverage | Priority |
+|------|----------|----------|
+| Unit tests | Business logic functions | HIGH |
+| Integration | API routes / server actions | HIGH |
+| E2E | Critical user flows (signup, purchase) | MEDIUM |
+| Performance | None yet | LOW |
+
+**Rule:** Test the user flows that lose you money if broken. Skip everything else.
+
+## Error Handling
+
+```typescript
+// MVP-appropriate error handling
+try {
+  const result = await createOrder(data);
+  return { success: true, data: result };
+} catch (error) {
+  console.error("Order creation failed:", error);
+  return { success: false, error: "Failed to create order" };
+}
+```
+
+No custom error hierarchies. No error codes. No RFC 9457. Log it, return a message, move on.
+
+## Deployment
+
+- **Platform:** Vercel (frontend-heavy) or Railway (backend-heavy)
+- **CI/CD:** GitHub Actions — lint + test + deploy (3 steps max)
+- **Environments:** Production + Preview (Vercel auto). No staging.
+- **Monitoring:** Error tracking (Sentry free tier) + uptime (Better Stack free)
+
+## When to Upgrade to Tier 4
+
+Upgrade when you have evidence, not speculation:
+
+| Signal | Action |
+|--------|--------|
+| Response times > 500ms consistently | Add caching layer |
+| Database CPU > 60% sustained | Add read replica or optimize queries |
+| Team > 3 developers on same codebase | Extract module boundaries |
+| Deployment frequency > 5x/day | Add staging environment |
+| Revenue > $10K MRR | Invest in monitoring + reliability |
+

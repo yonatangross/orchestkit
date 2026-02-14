@@ -1,5 +1,7 @@
 ---
 name: agent-orchestration
+license: MIT
+compatibility: "Claude Code 2.1.34+."
 description: Agent orchestration patterns for agentic loops, multi-agent coordination, alternative frameworks, and multi-scenario workflows. Use when building autonomous agent loops, coordinating multiple agents, evaluating CrewAI/AutoGen/Swarm, or orchestrating complex multi-step scenarios.
 tags: [agents, orchestration, multi-agent, agent-loops, crewai, autogen, swarm, coordination]
 context: fork
@@ -8,6 +10,8 @@ version: 2.0.0
 author: OrchestKit
 user-invocable: false
 complexity: high
+metadata:
+  category: workflow-automation
 ---
 
 # Agent Orchestration

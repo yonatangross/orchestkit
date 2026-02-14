@@ -132,7 +132,7 @@ groups:
 ## SLO/SLI Dashboards
 
 **Service Level Indicators (SLIs):**
-```promql
+```text
 # Availability SLI: % of successful requests
 sum(rate(http_requests_total{status!~"5.."}[30d])) /
 sum(rate(http_requests_total[30d]))

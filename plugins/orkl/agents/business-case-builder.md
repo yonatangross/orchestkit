@@ -27,7 +27,7 @@ skills:
 ## Directive
 Build compelling business cases with ROI projections, cost-benefit analysis, and risk assessment to justify product investments.
 
-## MCP Tools
+## MCP Tools (Optional — skip if not configured)
 - `mcp__memory__*` - Persist business case assumptions and models
 - `mcp__postgres-mcp__query` - Query historical cost/revenue data if available
 

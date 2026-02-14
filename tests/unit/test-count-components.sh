@@ -33,6 +33,18 @@ log_section() {
     echo "═══════════════════════════════════════════════════════════════"
 }
 
+# Cache script outputs to avoid redundant invocations (6x count-components + 2x validate = ~9s wasted)
+CACHED_TEXT_OUTPUT=""
+CACHED_JSON_OUTPUT=""
+CACHED_VALIDATE_EXIT=255
+CACHED_VALIDATE_OUTPUT=""
+
+cache_outputs() {
+    CACHED_TEXT_OUTPUT=$("${PROJECT_ROOT}/bin/count-components.sh" 2>/dev/null)
+    CACHED_JSON_OUTPUT=$("${PROJECT_ROOT}/bin/count-components.sh" --json 2>/dev/null)
+    CACHED_VALIDATE_OUTPUT=$("${PROJECT_ROOT}/bin/validate-counts.sh" 2>&1) && CACHED_VALIDATE_EXIT=0 || CACHED_VALIDATE_EXIT=$?
+}
+
 # Test that count-components.sh exists and is executable
 test_count_script_exists() {
     local script="${PROJECT_ROOT}/bin/count-components.sh"
@@ -45,35 +57,34 @@ test_count_script_exists() {
 
 # Test that count-components.sh outputs expected format
 test_count_output_format() {
-    local output
-    output=$("${PROJECT_ROOT}/bin/count-components.sh" 2>/dev/null)
+    local output="$CACHED_TEXT_OUTPUT"
 
     # Check for expected lines
-    if echo "$output" | grep -q "Skills:"; then
+    if [[ "$output" == *"Skills:"* ]]; then
         log_pass "count-components.sh outputs Skills count"
     else
         log_fail "count-components.sh missing Skills count"
     fi
 
-    if echo "$output" | grep -q "Agents:"; then
+    if [[ "$output" == *"Agents:"* ]]; then
         log_pass "count-components.sh outputs Agents count"
     else
         log_fail "count-components.sh missing Agents count"
     fi
 
-    if echo "$output" | grep -q "Commands:"; then
+    if [[ "$output" == *"Commands:"* ]]; then
         log_pass "count-components.sh outputs Commands count"
     else
         log_fail "count-components.sh missing Commands count"
     fi
 
-    if echo "$output" | grep -q "Hooks:"; then
+    if [[ "$output" == *"Hooks:"* ]]; then
         log_pass "count-components.sh outputs Hooks count"
     else
         log_fail "count-components.sh missing Hooks count"
     fi
 
-    if echo "$output" | grep -q "Bundles:"; then
+    if [[ "$output" == *"Bundles:"* ]]; then
         log_pass "count-components.sh outputs Bundles count"
     else
         log_fail "count-components.sh missing Bundles count"
@@ -82,8 +93,7 @@ test_count_output_format() {
 
 # Test JSON output mode
 test_count_json_output() {
-    local output
-    output=$("${PROJECT_ROOT}/bin/count-components.sh" --json 2>/dev/null)
+    local output="$CACHED_JSON_OUTPUT"
 
     if echo "$output" | jq . >/dev/null 2>&1; then
         log_pass "count-components.sh --json outputs valid JSON"
@@ -92,12 +102,9 @@ test_count_json_output() {
         return
     fi
 
-    # Verify required fields
-    local skills=$(echo "$output" | jq '.skills // 0')
-    local agents=$(echo "$output" | jq '.agents // 0')
-    local commands=$(echo "$output" | jq '.commands // 0')
-    local hooks=$(echo "$output" | jq '.hooks // 0')
-    local bundles=$(echo "$output" | jq '.bundles // 0')
+    # Verify required fields (single jq call instead of 5)
+    local skills agents hooks
+    read -r skills agents hooks < <(echo "$output" | jq -r '[.skills // 0, .agents // 0, .hooks // 0] | @tsv' | tr -d '\r')
 
     if [[ "$skills" -gt 0 ]]; then
         log_pass "JSON has skills count: $skills"
@@ -120,21 +127,17 @@ test_count_json_output() {
 
 # Test counts match declared values in plugin.json (dynamic validation)
 test_count_sanity() {
-    # Use validate-counts.sh as the source of truth - it compares actual vs declared
-    if "${PROJECT_ROOT}/bin/validate-counts.sh" >/dev/null 2>&1; then
+    # Use cached validate-counts.sh result
+    if [[ $CACHED_VALIDATE_EXIT -eq 0 ]]; then
         log_pass "Component counts match plugin.json declarations"
     else
         log_fail "Component counts mismatch - run bin/validate-counts.sh for details"
         return
     fi
 
-    # Additional sanity: ensure counts are non-zero (something exists)
-    local output
-    output=$("${PROJECT_ROOT}/bin/count-components.sh" --json 2>/dev/null)
-
-    local skills=$(echo "$output" | jq '.skills // 0')
-    local agents=$(echo "$output" | jq '.agents // 0')
-    local hooks=$(echo "$output" | jq '.hooks // 0')
+    # Additional sanity: ensure counts are non-zero (reuse cached JSON)
+    local skills agents hooks
+    read -r skills agents hooks < <(echo "$CACHED_JSON_OUTPUT" | jq -r '[.skills // 0, .agents // 0, .hooks // 0] | @tsv' | tr -d '\r')
 
     # Basic sanity: components exist
     if [[ "$skills" -gt 0 ]]; then
@@ -158,15 +161,11 @@ test_count_sanity() {
 
 # Test validate-counts.sh
 test_validate_counts() {
-    local output
-    local exit_code=0
-
-    output=$("${PROJECT_ROOT}/bin/validate-counts.sh" 2>&1) || exit_code=$?
-
-    if [[ $exit_code -eq 0 ]]; then
+    # Reuse cached result
+    if [[ $CACHED_VALIDATE_EXIT -eq 0 ]]; then
         log_pass "validate-counts.sh passes (counts match)"
     else
-        log_fail "validate-counts.sh fails: $output"
+        log_fail "validate-counts.sh fails: $CACHED_VALIDATE_OUTPUT"
     fi
 }
 
@@ -175,18 +174,12 @@ test_update_dry_run() {
     local output
     output=$("${PROJECT_ROOT}/bin/update-counts.sh" --dry-run 2>&1)
 
-    if echo "$output" | grep -q "DRY RUN"; then
+    if [[ "$output" == *"DRY RUN"* ]]; then
         log_pass "update-counts.sh --dry-run works"
     else
         log_fail "update-counts.sh --dry-run missing DRY RUN indicator"
     fi
 
-    # Should not modify any files
-    local git_status
-    git_status=$(cd "$PROJECT_ROOT" && git diff --name-only)
-
-    # This check only works if repo was clean before
-    # So we just verify the script ran without error
     log_pass "update-counts.sh --dry-run completed without error"
 }
 
@@ -194,10 +187,14 @@ test_update_dry_run() {
 test_count_accuracy() {
     log_section "Verifying Count Accuracy"
 
+    # Extract all reported counts from cached JSON in a single jq call
+    local reported_skills reported_agents reported_commands reported_hooks
+    read -r reported_skills reported_agents reported_commands reported_hooks < <(
+        echo "$CACHED_JSON_OUTPUT" | jq -r '[.skills, .agents, .commands, .hooks] | @tsv' | tr -d '\r'
+    )
+
     # Count skills manually
     local actual_skills=$(find "${PROJECT_ROOT}/src/skills" -name "SKILL.md" -type f 2>/dev/null | wc -l | tr -d ' ')
-    local reported_skills=$("${PROJECT_ROOT}/bin/count-components.sh" --json | jq '.skills')
-
     if [[ "$actual_skills" -eq "$reported_skills" ]]; then
         log_pass "Skills count matches directory: $actual_skills"
     else
@@ -206,8 +203,6 @@ test_count_accuracy() {
 
     # Count agents manually
     local actual_agents=$(find "${PROJECT_ROOT}/src/agents" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
-    local reported_agents=$("${PROJECT_ROOT}/bin/count-components.sh" --json | jq '.agents')
-
     if [[ "$actual_agents" -eq "$reported_agents" ]]; then
         log_pass "Agents count matches directory: $actual_agents"
     else
@@ -216,8 +211,6 @@ test_count_accuracy() {
 
     # Count commands manually
     local actual_commands=$(find "${PROJECT_ROOT}/src/commands" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
-    local reported_commands=$("${PROJECT_ROOT}/bin/count-components.sh" --json | jq '.commands')
-
     if [[ "$actual_commands" -eq "$reported_commands" ]]; then
         log_pass "Commands count matches directory: $actual_commands"
     else
@@ -225,10 +218,7 @@ test_count_accuracy() {
     fi
 
     # Count hooks manually (TypeScript files in hooks/src, excluding __tests__ and lib)
-    # Migrated from shell scripts to TypeScript in v5.1.0
     local actual_hooks=$(find "${PROJECT_ROOT}/src/hooks/src" -name "*.ts" -type f ! -path "*/__tests__/*" ! -path "*/lib/*" ! -name "index.ts" ! -name "types.ts" 2>/dev/null | wc -l | tr -d ' ')
-    local reported_hooks=$("${PROJECT_ROOT}/bin/count-components.sh" --json | jq '.hooks')
-
     if [[ "$actual_hooks" -eq "$reported_hooks" ]]; then
         log_pass "Hooks count matches directory: $actual_hooks"
     else
@@ -244,6 +234,9 @@ main() {
 
     log_section "Test 1: Script Existence"
     test_count_script_exists
+
+    # Cache script outputs upfront (3 calls instead of 9)
+    cache_outputs
 
     log_section "Test 2: Output Format"
     test_count_output_format

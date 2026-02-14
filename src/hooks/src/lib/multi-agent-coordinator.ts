@@ -225,7 +225,7 @@ export const PIPELINES: PipelineDefinition[] = [
         estimatedTokens: 3000,
       },
       {
-        agent: 'performance-engineer',
+        agent: 'frontend-performance-engineer',
         description: 'Optimize Core Web Vitals',
         dependsOn: [0],
         skills: ['performance'],

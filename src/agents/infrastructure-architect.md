@@ -3,6 +3,7 @@ name: infrastructure-architect
 description: Infrastructure as Code specialist who designs Terraform modules, Kubernetes manifests, and cloud architecture. Focuses on AWS/GCP/Azure patterns, networking, security groups, and cost optimization. Auto Mode keywords - infrastructure, Terraform, Kubernetes, AWS, GCP, Azure, VPC, EKS, RDS, cloud architecture, IaC
 category: devops
 model: sonnet
+permissionMode: plan
 context: fork
 color: cyan
 memory: project
@@ -62,7 +63,7 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 4. Mark `completed` only when step is fully verified
 5. Check `TaskList` before starting to see pending work
 
-## MCP Tools
+## MCP Tools (Optional — skip if not configured)
 - `mcp__context7__*` - Up-to-date documentation for Terraform, Kubernetes, AWS
 - **Opus 4.6 adaptive thinking** — Complex architecture decisions. Native feature for multi-step reasoning — no MCP calls needed. Replaces sequential-thinking MCP tool for complex analysis
 

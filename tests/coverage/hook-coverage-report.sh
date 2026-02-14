@@ -35,19 +35,22 @@ echo ""
 is_hook_tested() {
     local hook_name="$1"
     local hook_path="$2"
+    local hook_base="${hook_name%.ts}"  # Strip .ts for matching .js imports
 
-    # Check if hook name appears in any test file (TypeScript tests)
-    if grep -rq "$hook_name" "$TESTS_DIR" --include="*.ts" 2>/dev/null; then
+    # Check if hook base name appears in any test file (TypeScript tests)
+    # Use base name (no extension) so "foo.ts" matches imports of "foo.js"
+    if grep -rq "$hook_base" "$TESTS_DIR" --include="*.ts" 2>/dev/null; then
         return 0  # Tested
     fi
 
-    # Check if hook path appears in any test file
-    if grep -rq "$hook_path" "$TESTS_DIR" --include="*.ts" 2>/dev/null; then
+    # Check if hook path (without extension) appears in any test file
+    local hook_path_base="${hook_path%.ts}"
+    if grep -rq "$hook_path_base" "$TESTS_DIR" --include="*.ts" 2>/dev/null; then
         return 0  # Tested
     fi
 
     # Also check shell-based tests in project tests dir
-    if grep -rq "$hook_name" "$PROJECT_ROOT/tests" --include="*.sh" 2>/dev/null; then
+    if grep -rq "$hook_base" "$PROJECT_ROOT/tests" --include="*.sh" 2>/dev/null; then
         return 0  # Tested
     fi
 
@@ -71,11 +74,6 @@ report_category() {
         if [ -f "$hook_file" ]; then
             hook_name=$(basename "$hook_file")
             relative_path="${hook_file#$HOOKS_DIR/}"
-
-            # Skip dispatchers
-            if [[ "$hook_name" == *"dispatcher"* ]]; then
-                continue
-            fi
 
             ((category_total++)) || true
             TOTAL_HOOKS=$((TOTAL_HOOKS + 1))
@@ -127,16 +125,14 @@ echo "────────────────────────�
 for subcategory in bash write-edit input-mod mcp task skill; do
     if [ -d "$HOOKS_DIR/pretool/$subcategory" ]; then
         # Count hooks
-        count=$(find "$HOOKS_DIR/pretool/$subcategory" -name "*.ts" -type f ! -name "*dispatcher*" 2>/dev/null | wc -l | tr -d ' ')
+        count=$(find "$HOOKS_DIR/pretool/$subcategory" -name "*.ts" -type f 2>/dev/null | wc -l | tr -d ' ')
         tested=0
 
         for hook_file in "$HOOKS_DIR/pretool/$subcategory"/*.ts; do
             if [ -f "$hook_file" ]; then
                 hook_name=$(basename "$hook_file")
-                if [[ "$hook_name" != *"dispatcher"* ]]; then
-                    if is_hook_tested "$hook_name" "pretool/$subcategory/$hook_name"; then
-                        ((tested++)) || true
-                    fi
+                if is_hook_tested "$hook_name" "pretool/$subcategory/$hook_name"; then
+                    ((tested++)) || true
                 fi
             fi
         done

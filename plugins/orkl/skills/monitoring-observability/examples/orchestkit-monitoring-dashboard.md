@@ -33,7 +33,7 @@ This document shows OrchestKit's actual monitoring setup including metrics, dash
 
 **Prometheus Queries:**
 
-```promql
+```text
 # p95 latency
 histogram_quantile(0.95,
   rate(http_request_duration_seconds_bucket[5m])
@@ -59,7 +59,7 @@ avg(rate(process_cpu_seconds_total[5m])) * 100
 - LLM latency distribution
 
 **Cost Breakdown Panel:**
-```promql
+```text
 # Total cost per day by model
 sum(increase(llm_cost_dollars_total[1d])) by (model)
 
@@ -76,7 +76,7 @@ sum(increase(llm_cost_dollars_total[1h])) by (operation)
 | **Total** | **$7.40** | **$222** |
 
 **Cache Performance Panel:**
-```promql
+```text
 # Cache hit rate
 sum(rate(cache_operations_total{result="hit"}[5m])) /
 sum(rate(cache_operations_total[5m]))
@@ -102,7 +102,7 @@ avg_over_time(llm_cost_dollars_total[1h])
 4. Quality score distribution
 
 **Quality Gate Pass Rate:**
-```promql
+```text
 # Pass rate over last 24h
 sum(rate(quality_gate_passed_total[24h])) /
 sum(rate(quality_gate_total[24h]))
@@ -137,7 +137,7 @@ GROUP BY DATE(timestamp);
 4. Cache hit ratio
 
 **Query Latency:**
-```promql
+```text
 # p95 query latency
 histogram_quantile(0.95,
   rate(db_query_duration_seconds_bucket[5m])
@@ -145,7 +145,7 @@ histogram_quantile(0.95,
 ```
 
 **Connection Pool:**
-```promql
+```text
 # Active connections
 db_connections_active
 
@@ -166,7 +166,7 @@ db_connections_active / db_connections_max
 **Metrics from Golden Dataset (98 analyses, 415 chunks):**
 
 **Pass Rate:**
-```promql
+```text
 # Retrieval pass rate (expected chunk in top-k)
 sum(retrieval_pass_total) / sum(retrieval_total)
 ```
@@ -193,7 +193,7 @@ GROUP BY difficulty;
 | **Overall** | **203** | **0.777** | **91.6%** |
 
 **Search Latency:**
-```promql
+```text
 # Hybrid search latency (HNSW + BM25 RRF)
 histogram_quantile(0.95,
   rate(search_duration_seconds_bucket[5m])
@@ -308,26 +308,26 @@ histogram_quantile(0.95,
 ### Loki Queries (LogQL)
 
 **Find all errors in last hour:**
-```logql
+```text
 {app="orchestkit-backend"} |= "ERROR" | json
 ```
 
 **Count errors by endpoint:**
-```logql
+```text
 sum by (endpoint) (
   count_over_time({app="orchestkit-backend"} |= "ERROR" [5m])
 )
 ```
 
 **Search for specific analysis:**
-```logql
+```text
 {app="orchestkit-backend"}
 | json
 | analysis_id="550e8400-e29b-41d4-a716-446655440000"
 ```
 
 **p95 LLM latency from logs:**
-```logql
+```text
 quantile_over_time(0.95,
   {app="orchestkit-backend"}
   | json

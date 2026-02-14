@@ -464,3 +464,529 @@ claude                              # Shows resume hint
 ---
 
 **Version:** 2.1.0 (February 2026)
+
+
+---
+
+## Rules (3)
+
+### Fault Tree Analysis — MEDIUM
+
+
+## Fault Tree Analysis (FTA)
+
+Top-down, deductive analysis mapping all paths to a failure using boolean logic (AND/OR gates). Best for critical systems and exhaustive failure analysis.
+
+### FTA Symbols
+
+| Symbol | Meaning |
+|--------|---------|
+| TOP | Top event — the failure being analyzed |
+| AND | All inputs must occur for output |
+| OR | Any input causes output |
+| Basic Event | Root cause (leaf node) |
+| Undeveloped | Needs further analysis |
+
+### Example: Authentication Failure
+
+```
+                USER CANNOT
+                AUTHENTICATE
+                     |
+                   [OR]
+        +------------+------------+
+        |            |            |
+    Invalid      Auth Service   Account
+   Credentials     Down         Locked
+        |            |
+      [OR]         [OR]
+    +---+---+    +---+---+
+    |   |   |    |   |   |
+   Wrong Expired Token DB  Redis External
+   Pass  Token  Invalid Down Down  Auth
+```
+
+### Building a Fault Tree
+
+1. **Define top event** — the failure to analyze
+2. **Ask "what causes this?"** — list immediate causes
+3. **Classify as AND/OR** — do ALL causes need to happen, or ANY one?
+4. **Decompose each cause** — repeat until reaching basic events
+5. **Identify minimal cut sets** — smallest combinations that cause failure
+6. **Prioritize by probability** — most likely paths first
+
+### Minimal Cut Sets
+
+The smallest set of basic events that together cause the top event:
+
+```
+Top: User Cannot Authenticate (OR gate)
+  Cut Set 1: {Wrong Password}         — single point of failure
+  Cut Set 2: {Expired Token}          — single point of failure
+  Cut Set 3: {DB Down}                — single point of failure
+  Cut Set 4: {Account Locked}         — single point of failure
+```
+
+Single-event cut sets indicate **no redundancy** — add defense-in-depth.
+
+### When to Use FTA
+
+| Scenario | Use FTA? |
+|----------|----------|
+| Safety-critical system failure | Yes |
+| Need exhaustive failure path mapping | Yes |
+| Complex multi-component failure | Yes |
+| Simple linear bug | No — use 5 Whys |
+| Multiple contributing factors | Maybe — Fishbone first |
+| Regulatory compliance analysis | Yes |
+| Post-incident for serious outages | Yes |
+
+### Key Rules
+
+- Start from the **top event** (failure) and work **downward**
+- Every gate must be classified as **AND** (all required) or **OR** (any sufficient)
+- Decompose until reaching **basic events** (actionable root causes)
+- Identify **minimal cut sets** to find the most vulnerable paths
+- Single-event cut sets indicate **missing redundancy**
+- Use for **critical systems** where exhaustive analysis is justified
+
+
+### Fishbone Diagram (Ishikawa) — MEDIUM
+
+
+## Fishbone Diagram (Ishikawa)
+
+Visualize multiple potential causes organized by category. Best for problems with several contributing factors.
+
+### Software-Specific Categories
+
+```
+                    +-------------+
+          Code -----+             |
+                    |             |
+ Infrastructure ----+             +---- BUG/INCIDENT
+                    |             |
+   Dependencies ----+             |
+                    |             |
+   Configuration ---+             |
+                    |             |
+        Process ----+             |
+                    |             |
+        People -----+             |
+                    +-------------+
+```
+
+### Example: API Latency Spike
+
+| Category | Potential Causes |
+|----------|-----------------|
+| **Code** | N+1 query, missing index, sync blocking call |
+| **Infrastructure** | DB connection pool exhausted, network saturation, insufficient RAM |
+| **Dependencies** | External API slow, Redis timeout, CDN cache miss |
+| **Configuration** | Wrong pool size, missing timeout, debug logging on |
+| **Process** | No load testing, no perf regression CI |
+| **People** | Unfamiliarity with query optimizer, missing review |
+
+### Fishbone Process
+
+1. **Define the problem** clearly (the fish head)
+2. **Identify major categories** (the bones) — use software categories above
+3. **Brainstorm causes** for each category
+4. **Analyze relationships** between causes across categories
+5. **Prioritize** most likely root causes by evidence
+6. **Verify** with data, metrics, or targeted testing
+7. **Take action** on confirmed causes
+
+### When to Use Fishbone
+
+| Scenario | Use Fishbone? |
+|----------|---------------|
+| Multiple things went wrong | Yes |
+| Problem has one clear cause | No — use 5 Whys |
+| Team brainstorming session | Yes |
+| Safety-critical failure analysis | No — use Fault Tree |
+| Recurring issue with no clear pattern | Yes |
+
+### Key Rules
+
+- Use **software-specific categories** (Code, Infrastructure, Dependencies, Configuration, Process, People)
+- Brainstorm causes per category **before** analyzing relationships
+- Look for **cross-category interactions** (e.g., code + config)
+- **Prioritize by evidence**, not by assumption
+- Verify top candidates with **data or experiments** before committing to a fix
+
+
+### 5 Whys Technique — HIGH
+
+
+## 5 Whys Technique
+
+Iteratively ask "why" to drill down from symptom to root cause. Simple, fast, and effective for linear causal chains.
+
+### Process
+
+```
+Problem Statement: [Clear description of the issue]
+    |
+    v
+Why #1: [First level cause]
+    |
+    v
+Why #2: [Deeper cause]
+    |
+    v
+Why #3: [Even deeper]
+    |
+    v
+Why #4: [Getting to root]
+    |
+    v
+Why #5: [Root cause identified]
+    |
+    v
+Action: [Fix that addresses root cause]
+```
+
+### Example: Production Outage
+
+```markdown
+**Problem:** Website was down for 2 hours
+
+**Why 1:** The application server ran out of memory and crashed.
+**Why 2:** A memory leak in the image processing service accumulated over time.
+**Why 3:** The service wasn't releasing image buffers after processing.
+**Why 4:** The cleanup code had a bug introduced in last week's release.
+**Why 5:** We don't have automated memory leak detection in our test suite.
+
+**Root Cause:** Missing automated memory leak testing
+**Action:** Add memory profiling to CI pipeline, add cleanup tests
+```
+
+### Best Practices
+
+| Do | Don't |
+|----|-------|
+| Base answers on evidence | Guess or assume |
+| Stay focused on one causal chain | Branch too early |
+| Keep asking until actionable | Stop at symptoms |
+| Involve people closest to issue | Assign blame |
+| Document your reasoning | Skip steps |
+
+### When 5 Whys Falls Short
+
+- **Multiple contributing factors** — use Fishbone diagram instead
+- **Complex system interactions** — use Fault Tree Analysis
+- **Organizational/process issues** — needs broader systemic analysis
+- **Concurrent failures** — 5 Whys assumes linear causation
+
+### Key Rules
+
+- Always start with a **clear, specific problem statement**
+- Each "why" must be **supported by evidence** (logs, metrics, code)
+- Stop when you reach an **actionable root cause** (not always exactly 5)
+- The fix should address the **root cause**, not the symptom
+- Document the full chain for **knowledge sharing**
+
+
+
+---
+
+## References (3)
+
+### Hypothesis Rca
+
+# Hypothesis-Based Root Cause Analysis
+
+Scientific method for identifying root causes with quantified confidence.
+
+## The Scientific Method for RCA
+
+```
+1. Observe symptoms
+2. Form hypotheses
+3. Gather evidence
+4. Test hypotheses
+5. Confirm or reject
+6. Repeat until root cause found
+```
+
+## Hypothesis Template
+
+```markdown
+## Hypothesis: [Brief name]
+**Confidence:** [0-100]%
+
+**Description:**
+[What might be causing the issue]
+
+**Evidence For:**
+- [Supporting evidence 1]
+- [Supporting evidence 2]
+
+**Evidence Against:**
+- [Contradicting evidence 1]
+
+**Test Plan:**
+1. [Step to verify/refute]
+2. [Expected outcome if true]
+```
+
+## Confidence Score Guidelines
+
+| Score | Meaning | Evidence Required |
+|-------|---------|-------------------|
+| 90-100% | Near certain | Reproduction + multiple strong evidence |
+| 70-89% | Highly likely | Clear evidence, logical chain |
+| 50-69% | Probable | Some evidence, plausible mechanism |
+| 30-49% | Possible | Limited evidence, needs investigation |
+| 0-29% | Unlikely | Weak evidence, backup hypothesis |
+
+## Evidence Classification
+
+| Type | Weight | Examples |
+|------|--------|----------|
+| **Reproduction** | +30% | Consistent reproduction steps |
+| **Code trace** | +20% | Stack trace to specific line |
+| **Timing correlation** | +15% | Issue appeared after deployment X |
+| **Log evidence** | +15% | Error messages match hypothesis |
+| **Similar patterns** | +10% | Same error in related code |
+| **User report** | +5% | Consistent user descriptions |
+
+## Contradicting Evidence
+
+| Evidence | Weight |
+|----------|--------|
+| Hypothesis disproven by test | -40% |
+| Works in same conditions | -25% |
+| Unrelated timing | -15% |
+| No supporting logs | -10% |
+
+## Multiple Hypothesis Comparison
+
+```markdown
+| Hypothesis | Initial | After Test | Status |
+|------------|---------|------------|--------|
+| Race condition | 65% | 85% | INVESTIGATING |
+| Null reference | 40% | 15% | REJECTED |
+| Cache stale | 30% | 30% | ON HOLD |
+```
+
+## Best Practices
+
+1. **Start with 3+ hypotheses** - Avoid tunnel vision
+2. **Test highest confidence first** - Efficient investigation
+3. **Update scores after each test** - Track progress
+4. **Document rejected hypotheses** - Prevent repeated investigation
+5. **Look for evidence against** - Avoid confirmation bias
+
+
+### Prevention Patterns
+
+# Prevention Patterns
+
+Strategies to prevent issue recurrence by category.
+
+## Code-Level Prevention
+
+| Issue Type | Prevention Pattern |
+|------------|-------------------|
+| Null/undefined | Optional chaining, nullish coalescing |
+| Type errors | Strict TypeScript, runtime validation |
+| Input validation | Zod schemas at boundaries |
+| Error handling | Result types, explicit error states |
+| Race conditions | Locks, atomic operations, idempotency |
+| Memory leaks | Cleanup in useEffect, WeakRef |
+
+```typescript
+// Before: Vulnerable
+const name = user.profile.name;
+
+// After: Defensive
+const name = user?.profile?.name ?? 'Unknown';
+```
+
+## Architecture-Level Prevention
+
+| Issue Type | Prevention Pattern |
+|------------|-------------------|
+| Cascading failures | Circuit breakers |
+| Network instability | Retry with backoff |
+| Data inconsistency | Transactions, saga pattern |
+| Timeout issues | Request deadlines, cancellation |
+| Resource exhaustion | Rate limiting, pooling |
+
+```python
+# Circuit breaker example
+@circuit_breaker(failure_threshold=5, recovery_timeout=30)
+async def external_api_call():
+    ...
+```
+
+## Process-Level Prevention
+
+| Issue Type | Prevention Pattern |
+|------------|-------------------|
+| Logic errors | Mandatory PR review |
+| Missing tests | Coverage requirements (>80%) |
+| Regression | Required regression test before fix |
+| Knowledge gaps | ADR for decisions |
+| Onboarding issues | Runbook documentation |
+
+## Tooling-Level Prevention
+
+| Issue Type | Prevention Pattern |
+|------------|-------------------|
+| Style issues | ESLint/Ruff rules |
+| Type errors | Pre-commit type check |
+| Security vulnerabilities | Dependency scanning in CI |
+| Format inconsistency | Auto-format on save |
+| Secrets in code | Pre-commit secret detection |
+
+```yaml
+# .pre-commit-config.yaml
+- repo: local
+  hooks:
+    - id: type-check
+      name: TypeScript check
+      entry: npx tsc --noEmit
+      language: system
+```
+
+## Prevention Priority Matrix
+
+| Effort | Impact | Priority |
+|--------|--------|----------|
+| Low | High | Immediate |
+| Low | Low | Backlog |
+| High | High | Sprint planning |
+| High | Low | Skip |
+
+
+### Similar Issue Search
+
+# Similar Issue Search
+
+Find related past issues to leverage previous solutions and detect regressions.
+
+## GitHub Issue Search Patterns
+
+```bash
+# Search by error message
+gh issue list --search "TypeError: Cannot read property" --state all
+
+# Search by component/file
+gh issue list --search "UserService" --state all --json number,title,state
+
+# Search by label
+gh issue list --label "bug" --state closed --limit 20
+
+# Combined search
+gh issue list --search "auth login 401" --state all --json number,title,closedAt
+```
+
+## Memory/Knowledge Graph Queries
+
+```python
+# Search for past fixes
+mcp__memory__search_nodes(query="fix authentication error")
+
+# Search by error type
+mcp__memory__search_nodes(query="TypeError resolution")
+
+# Search by component
+mcp__memory__search_nodes(query="UserService bug")
+```
+
+## Stack Trace Similarity Matching
+
+Match by:
+1. **Exception type** - Same error class
+2. **File/line** - Same code location
+3. **Call stack depth** - Similar execution path
+4. **Error message pattern** - Regex match on message
+
+## Similarity Assessment Criteria
+
+| Factor | Weight | High Match |
+|--------|--------|------------|
+| Same exception type | 30% | Exact match |
+| Same file | 25% | Same file involved |
+| Similar error message | 20% | >80% string similarity |
+| Same component | 15% | Same service/module |
+| Recent (&lt; 30 days) | 10% | Recently resolved |
+
+## When to Reuse vs Investigate Fresh
+
+**Reuse Previous Solution When:**
+- Similarity > 80%
+- Same root cause confirmed
+- Fix is still applicable
+- No code changes since fix
+
+**Investigate Fresh When:**
+- Similarity &lt; 60%
+- Context has changed significantly
+- Previous fix may be incomplete
+- New dependencies involved
+
+## Issue Classification
+
+| Type | Action |
+|------|--------|
+| **Regression** | Same issue, fix reverted or bypassed |
+| **Variant** | Similar pattern, different trigger |
+| **New** | No similar issues found |
+
+
+
+---
+
+## Checklists (1)
+
+### Fix Complete Checklist
+
+# Fix Complete Checklist
+
+Verify all aspects of issue resolution before closing.
+
+## Root Cause Analysis
+
+- [ ] Root cause identified with confidence >= 70%
+- [ ] Hypotheses documented (at least 2 considered)
+- [ ] Evidence for/against documented
+- [ ] Similar issues checked
+
+## Fix Verification
+
+- [ ] Regression test added
+- [ ] All existing tests pass
+- [ ] Fix manually verified
+- [ ] Edge cases covered
+
+## Prevention
+
+- [ ] Prevention recommendation documented
+- [ ] At least one prevention measure implemented or ticketed
+- [ ] Runbook entry created/updated
+
+## Knowledge Capture
+
+- [ ] Lessons learned stored in memory
+- [ ] RCA report generated (for high/critical issues)
+- [ ] Related issues linked
+
+## PR/Commit
+
+- [ ] Commit message includes issue number
+- [ ] Commit message describes root cause
+- [ ] PR links to issue with "Fixes #N"
+
+## Final Verification
+
+```bash
+# Quick verification commands
+git log -1 --oneline  # Check commit message
+gh pr checks          # Check CI status
+gh issue view [N]     # Verify issue linked
+```
+

@@ -15,6 +15,7 @@ tools:
   - TaskCreate
   - TaskUpdate
   - TaskList
+disallowedTools: [Write, Edit, MultiEdit]
 skills:
   - product-frameworks
   - github-operations
@@ -28,7 +29,7 @@ hooks:
 ## Directive
 Score and rank product opportunities using quantitative frameworks, analyze trade-offs, and recommend optimal sequencing for maximum value delivery.
 
-## MCP Tools
+## MCP Tools (Optional — skip if not configured)
 - `mcp__memory__*` - Track prioritization decisions over time
 - `mcp__postgres-mcp__query` - Query historical feature data if available
 

@@ -7,6 +7,10 @@ description: "Use when assessing task complexity, before starting complex tasks,
 
 **Primary Agent:** [code-quality-reviewer](/docs/reference/agents/code-quality-reviewer)
 
+## Related Skills
+
+- [scope-appropriate-architecture](/docs/reference/skills/scope-appropriate-architecture)
+
 
 # Quality Gates
 
@@ -51,6 +55,8 @@ This skill teaches agents how to assess task complexity, enforce quality gates, 
 
 | Condition | Threshold | Action |
 |-----------|-----------|--------|
+| **YAGNI Gate** | **Justified ratio > 2.0** | **BLOCK with simpler alternatives** |
+| YAGNI Warning | Justified ratio 1.5-2.0 | WARN with simpler alternatives |
 | Critical Questions | > 3 unanswered | BLOCK |
 | Missing Dependencies | Any blocking | BLOCK |
 | Failed Attempts | >= 3 | BLOCK & ESCALATE |
@@ -119,14 +125,22 @@ Key topics covered:
 ### Gate Decision Flow
 
 ```
+0. YAGNI check (runs FIRST — before any implementation planning)
+   → Read project tier from scope-appropriate-architecture
+   → Calculate justified_complexity = planned_LOC / tier_appropriate_LOC
+   → If ratio > 2.0: BLOCK (must simplify)
+   → If ratio 1.5-2.0: WARN (present simpler alternative)
+   → Security patterns exempt from YAGNI gate
+
 1. Assess complexity (1-5)
 2. Count critical questions unanswered
 3. Check dependencies blocked
 4. Check attempt count
 
-if (questions > 3 || deps blocked || attempts >= 3) -> BLOCK
+if (yagni_ratio > 2.0) -> BLOCK with simpler alternatives
+else if (questions > 3 || deps blocked || attempts >= 3) -> BLOCK
 else if (complexity >= 4 && no plan) -> BLOCK
-else if (complexity == 3 || questions 1-2) -> WARNING
+else if (yagni_ratio > 1.5 || complexity == 3 || questions 1-2) -> WARNING
 else -> PASS
 ```
 
@@ -206,6 +220,7 @@ Track success/failure patterns across projects to prevent repeating mistakes and
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
+| YAGNI Gate | `rules/yagni-gate.md` | Pre-implementation scope check, justified complexity ratio, simpler alternatives |
 | Pattern Library | `rules/practices-code-standards.md` | Success/failure tracking, confidence scoring, memory integration |
 | Review Checklist | `rules/practices-review-checklist.md` | Category-based review, proactive anti-pattern detection |
 
@@ -232,6 +247,8 @@ Track success/failure patterns across projects to prevent repeating mistakes and
 
 ## Version History
 
+**v1.3.0** - Added YAGNI gate as Step 0 in gate flow, justified complexity ratio (BLOCK > 2.0, WARN 1.5-2.0), scope-appropriate-architecture integration
+
 **v1.1.0** - Added LLM-as-judge quality validation, retry logic, graceful degradation, triple-consumer artifact design
 
 **v1.0.0** - Initial release with complexity scoring, blocking thresholds, stuck detection, requirements checks
@@ -244,6 +261,7 @@ Track success/failure patterns across projects to prevent repeating mistakes and
 
 ## Related Skills
 
+- `scope-appropriate-architecture` - Project tier detection that feeds YAGNI gate
 - `architecture-patterns` - Enforce testing standards as part of quality gates
 - `llm-evaluation` - LLM-as-judge patterns for quality validation
 - `golden-dataset` - Validate datasets meet quality thresholds
@@ -298,3 +316,1802 @@ Track success/failure patterns across projects to prevent repeating mistakes and
 ### llm-as-judge
 **Keywords:** llm as judge, g-eval, aspect scoring, quality validation
 **Solves:** How do I use LLM-as-judge? Evaluate relevance, depth, coherence with thresholds
+
+### yagni-gate
+**Keywords:** yagni, over-engineering, justified complexity, scope check, too complex, simplify
+**Solves:** Is this complexity justified? Calculate justified_complexity ratio against project tier, BLOCK if > 2.0, surface simpler alternatives
+
+---
+
+## Rules (3)
+
+### Best Practices Pattern Library — HIGH
+
+
+## Best Practices Pattern Library
+
+Track and aggregate success/failure patterns across projects to prevent repeating mistakes.
+
+**Incorrect — no pattern tracking:**
+```python
+# Same team, third project using offset pagination
+# Each time it fails at scale, each time nobody remembers
+@router.get("/items")
+def list_items(page: int = 1, limit: int = 20):
+    offset = (page - 1) * limit
+    return db.query(Item).offset(offset).limit(limit).all()
+    # Timeout on tables with 1M+ rows — again
+```
+
+**Correct — pattern library with outcome tracking:**
+```python
+# Pattern library entry (stored in knowledge graph)
+pattern = {
+    "category": "pagination",
+    "pattern": "cursor-based pagination",
+    "outcome": "success",
+    "projects": ["project-a", "project-b", "project-c"],
+    "confidence": "strong",  # 3+ projects, 100% success
+    "note": "Scales well for large datasets"
+}
+
+# Anti-pattern entry
+anti_pattern = {
+    "category": "pagination",
+    "pattern": "offset pagination",
+    "outcome": "failure",
+    "projects": ["project-a", "project-d"],
+    "confidence": "strong_anti",  # 2+ projects, all failed
+    "note": "Caused timeouts on tables with 1M+ rows",
+    "lesson": "Use cursor-based for datasets > 100K rows"
+}
+```
+
+**Confidence scoring:**
+
+| Level | Meaning | Criteria |
+|-------|---------|----------|
+| Strong success | Always recommend | 3+ projects, 100% success rate |
+| Moderate success | Recommend with caveats | 1-2 projects or some failures |
+| Mixed results | Context-dependent | Both successes and failures |
+| Anti-pattern | Actively warn against | Only failures |
+| Strong anti-pattern | Block with explanation | 3+ projects, all failed |
+
+**Memory integration:**
+```bash
+# Store a successful pattern
+mcp__memory__add_node(
+    name="cursor-pagination-success",
+    type="best_practice",
+    content="Cursor-based pagination works well for large datasets (3 projects)"
+)
+
+# Query patterns before making architecture decisions
+mcp__memory__search_nodes(query="pagination patterns outcomes")
+```
+
+**Key rules:**
+- Track every significant architectural decision outcome (success or failure)
+- Include project name and context so patterns are discoverable
+- Proactively query pattern library before repeating known decisions
+- Update confidence levels as more project data accumulates
+
+
+### Best Practices Review Checklist — HIGH
+
+
+## Best Practices Review Checklist
+
+Use stored patterns to proactively detect anti-patterns and guide reviews.
+
+**Incorrect — reviewing without historical context:**
+```python
+# Code review misses known anti-pattern because reviewer
+# doesn't know the team failed with this approach before
+@router.get("/users")
+def list_users(page: int = 1):
+    # Reviewer approves offset pagination — team failed with
+    # this exact pattern on 2 previous projects
+    return db.query(User).offset((page-1)*20).limit(20).all()
+```
+
+**Correct — proactive pattern-based review:**
+```python
+# Before review, query pattern library for relevant categories
+# patterns = search_patterns(categories=["pagination", "auth", "orm"])
+
+# Review checklist generated from pattern library:
+# WARNING: offset pagination — failed in project-a, project-d
+#   Lesson: Use cursor-based for datasets > 100K rows
+#   Recommendation: Switch to cursor-based pagination
+
+# Approved alternative:
+@router.get("/users")
+def list_users(cursor: str | None = None, limit: int = 20):
+    query = db.query(User).order_by(User.id)
+    if cursor:
+        query = query.filter(User.id > decode_cursor(cursor))
+    results = query.limit(limit + 1).all()
+    next_cursor = encode_cursor(results[-1].id) if len(results) > limit else None
+    return {"items": results[:limit], "next_cursor": next_cursor}
+```
+
+**Category-based review workflow:**
+
+| Step | Action | Source |
+|------|--------|--------|
+| 1 | Identify categories in PR (auth, DB, API) | Code diff analysis |
+| 2 | Query pattern library for those categories | Knowledge graph search |
+| 3 | Flag any matching anti-patterns | Automated warning |
+| 4 | Suggest proven alternatives from success patterns | Pattern library |
+| 5 | Log review outcome for future reference | Memory update |
+
+**Display format for pattern warnings:**
+```
+PAGINATION
+  [strong_success] Cursor-based pagination (3 projects, always worked)
+  [strong_anti] Offset pagination (failed in 2 projects)
+    Lesson: Use cursor-based for large datasets
+
+AUTHENTICATION
+  [strong_success] JWT + httpOnly refresh tokens (4 projects)
+  [mixed] Session-based auth (1 success, 1 failure)
+    Note: Scaling issues in high-traffic scenarios
+```
+
+**Key rules:**
+- Query pattern library at the start of every code review
+- Flag all matching anti-patterns with their failure history and lessons
+- Suggest proven alternatives from the success pattern list
+- Update pattern library after review with new outcomes
+
+
+### YAGNI Gate — HIGH
+
+
+## YAGNI Gate
+
+Pre-implementation check that prevents over-engineering by validating complexity against project scope.
+
+**Incorrect — skipping straight to implementation:**
+```
+Task: "Add user authentication"
+→ Immediately builds OAuth2.1 + PKCE + SSO + MFA + custom JWT rotation
+→ 2000 LOC for a take-home assignment
+```
+
+**Correct — YAGNI gate catches this:**
+```
+Task: "Add user authentication"
+→ YAGNI Gate: Project tier = Interview (detected from README)
+→ Scope-appropriate auth = session cookies or hardcoded key
+→ Justified complexity ratio = 2000 / 200 = 10.0 → BLOCK
+→ Suggestion: "Use session cookies. Add a comment noting what you'd change for production."
+```
+
+## YAGNI Gate Questions
+
+Before applying any architecture pattern, answer ALL four:
+
+| # | Question | If "No" |
+|---|----------|---------|
+| 1 | Does this pattern serve a **current** requirement? | Remove it. "Might need later" is not current. |
+| 2 | Could 80% of the value be delivered with 20% of complexity? | Use the simpler version. |
+| 3 | Is this the simplest thing that could possibly work? | Simplify until it is. |
+| 4 | Is the cost of adding this later significantly higher than now? | If low cost to add later, defer. |
+
+**Pass rule:** Must answer YES to question 1 AND at least one of questions 2-4 must justify current inclusion.
+
+## Justified Complexity Ratio
+
+```
+justified_complexity = actual_complexity / scope_appropriate_complexity
+```
+
+Where `scope_appropriate_complexity` comes from the project tier (see `scope-appropriate-architecture` skill):
+
+| Tier | Scope-Appropriate LOC | Typical Patterns |
+|------|----------------------|------------------|
+| Interview/Hackathon | 200-800 | Flat files, inline SQL, no abstractions |
+| MVP | 1,000-5,000 | MVC monolith, managed auth, simple ORM |
+| Growth/Production | 5,000-30,000 | Layered, repository where needed, DI |
+| Enterprise | 30,000+ | Hexagonal, CQRS if justified, full DI |
+
+### Thresholds
+
+| Ratio | Status | Action |
+|-------|--------|--------|
+| > 2.0 | **BLOCK** | Over-engineered. Must simplify before proceeding. Surface simpler alternatives. |
+| 1.5 - 2.0 | **WARN** | Likely over-engineered. Present simpler alternative. Proceed only if user confirms. |
+| 1.0 - 1.5 | **OK** | Proportionate complexity. |
+| &lt; 1.0 | **OK** | Simpler than expected. Fine. |
+
+### Evaluation Method
+
+Estimate actual complexity by counting planned patterns:
+
+| Pattern | Complexity Cost (LOC) |
+|---------|-----------------------|
+| Repository per entity | +150-300 |
+| Dependency injection framework | +100-200 |
+| Domain exceptions hierarchy | +50-100 |
+| Generic base repository | +100-200 |
+| Unit of Work | +150-250 |
+| Event sourcing | +500-2000 |
+| CQRS | +300-800 |
+| Custom auth (JWT + refresh) | +200-400 |
+| Message queue integration | +200-500 |
+
+Sum planned pattern costs. Divide by tier's scope-appropriate LOC ceiling. Apply thresholds.
+
+## Devil's Advocate: Simpler Alternatives
+
+When YAGNI gate triggers WARN or BLOCK, **surface alternatives before implementation** (not buried in references):
+
+```markdown
+## YAGNI Gate: Over-Engineering Warning
+
+**Planned approach:** Repository pattern + DI + domain exceptions (est. ~800 LOC)
+**Project tier:** MVP (scope-appropriate: ~2,000 LOC)
+**Ratio:** 800 / 2000 = 0.4 → OK
+
+But if tier were Interview:
+**Ratio:** 800 / 400 = 2.0 → BLOCK
+
+### Simpler Alternative
+- Direct ORM calls in route handlers (~150 LOC)
+- Inline validation (~50 LOC)
+- HTTP exceptions directly (~30 LOC)
+- Total: ~230 LOC — delivers same functionality
+```
+
+## Integration with Gate Flow
+
+Insert as Step 0 in the quality gate decision flow, **before** complexity assessment:
+
+```
+Step 0: YAGNI Check
+  → Read project tier (from scope-appropriate-architecture or auto-detect)
+  → For each planned pattern: run 4 YAGNI questions
+  → Calculate justified_complexity ratio
+  → If ratio > 2.0: BLOCK with simpler alternatives
+  → If ratio 1.5-2.0: WARN with simpler alternatives
+
+Step 1: Assess complexity (1-5)
+Step 2: Count critical questions
+Step 3: Check dependencies
+Step 4: Check attempt count
+Step 5: Final gate decision
+```
+
+## Key Rules
+
+- YAGNI gate runs BEFORE implementation planning, not after
+- Security patterns are exempt — never simplify auth validation, input sanitization, or SQL parameterization
+- The gate evaluates architecture patterns, not business logic complexity
+- When blocked, the agent MUST present the simpler alternative to the user
+- User can override with explicit confirmation ("I know this is a take-home but I want to demonstrate hexagonal architecture")
+
+
+
+---
+
+## References (5)
+
+### Blocking Thresholds
+
+# Blocking Thresholds Reference
+
+Detailed guide for quality gate blocking conditions and escalation.
+
+---
+
+## BLOCKING Conditions
+
+These conditions MUST be resolved before proceeding:
+
+### 0. YAGNI Gate (over-engineered for scope)
+
+If the planned architecture complexity exceeds what the project tier justifies, **STOP**.
+
+**Justified complexity ratio:** `actual_planned_LOC / scope_appropriate_LOC`
+
+| Ratio | Action |
+|-------|--------|
+| > 2.0 | **BLOCK** — Must simplify. Present simpler alternatives to user. |
+| 1.5-2.0 | **WARN** — Likely over-engineered. Present alternative, proceed only if user confirms. |
+| &lt; 1.5 | **OK** — Proportionate. |
+
+**Examples of YAGNI violations:**
+- Repository pattern + DI framework for a 5-file take-home
+- Custom JWT rotation for an MVP (use managed auth)
+- CQRS for a single-entity CRUD app
+- Event sourcing without audit trail requirements
+- Microservices for a 2-developer team
+
+**Exempt from YAGNI gate:** Security patterns (input validation, SQL parameterization, auth checks) are never over-engineering.
+
+**Action:** Surface the simpler alternative BEFORE implementation. User can override with explicit confirmation.
+
+**See:** `rules/yagni-gate.md` for full YAGNI questions and evaluation method.
+
+---
+
+### 1. Incomplete Requirements (>3 critical questions)
+
+If you have more than 3 unanswered critical questions, **STOP**.
+
+**Examples of critical questions:**
+- "What should happen when X fails?"
+- "What data structure should I use?"
+- "What's the expected behavior for edge case Y?"
+- "Which API should I call?"
+- "What authentication method?"
+- "What's the expected response format?"
+- "Who is the target user for this feature?"
+
+**Action:** List all critical questions and request clarification before proceeding.
+
+---
+
+### 2. Missing Dependencies (blocked by another task)
+
+**Indicators:**
+- Task depends on incomplete work
+- Required API endpoint doesn't exist
+- Database schema not ready
+- External service not configured
+- Required library not installed
+- Configuration not set up
+
+**Action:** Identify the blocking dependency and escalate or wait for resolution.
+
+---
+
+### 3. Stuck Detection (3 attempts at same task)
+
+**Indicators:**
+- Tried 3 different approaches, all failed
+- Keep encountering the same error
+- Can't find necessary information
+- Solution keeps breaking other things
+- Circular problem (fixing A breaks B, fixing B breaks A)
+
+**Action:** Escalate to user with detailed attempt history.
+
+---
+
+### 4. Evidence Failure (tests/builds failing)
+
+**Indicators:**
+- Tests fail after 2 fix attempts
+- Build breaks after changes
+- Type errors persist
+- Integration tests failing
+- Linting errors that can't be resolved
+
+**Action:** Analyze root cause, document failures, and escalate if unable to resolve.
+
+---
+
+### 5. Complexity Overflow (Level 4-5 tasks without breakdown)
+
+**Indicators:**
+- Complex task not broken into subtasks
+- No clear implementation plan
+- Too many unknowns
+- Scope unclear
+- No acceptance criteria defined
+
+**Action:** Break down into Level 1-3 subtasks before proceeding.
+
+---
+
+## WARNING Conditions
+
+Can proceed with caution, but document assumptions:
+
+### 1. Moderate Complexity (Level 3)
+
+- Can proceed but should verify approach first
+- Document assumptions
+- Plan for checkpoints
+- Consider asking for validation mid-way
+
+### 2. 1-2 Unanswered Questions
+
+- Document assumptions
+- Proceed with best guess
+- Note for review later
+- Flag for user during review
+
+### 3. 1-2 Failed Attempts
+
+- Try alternative approach
+- Document what didn't work
+- Consider asking for help before third attempt
+
+---
+
+## Escalation Protocol
+
+### When to Escalate
+
+| Condition | Trigger | Action |
+|-----------|---------|--------|
+| Critical Questions | > 3 unanswered | Ask user for clarification |
+| Missing Dependencies | Any blocking | Report and wait/suggest alternatives |
+| Stuck | 3 attempts failed | Full escalation with history |
+| Evidence Failure | 2 fix attempts | Report failures, ask for guidance |
+| Complexity Overflow | Level 4-5 no plan | Request breakdown approval |
+
+### Escalation Message Template
+
+```markdown
+## Escalation: Task Blocked
+
+**Task:** [Task description]
+**Block Type:** [Critical Questions / Dependencies / Stuck / Evidence / Complexity]
+**Attempts:** [Count if applicable]
+
+### Current Blocker
+[Describe the persistent problem]
+
+### What Was Tried (if applicable)
+1. **Attempt 1:** [Approach] - Failed: [Reason]
+2. **Attempt 2:** [Approach] - Failed: [Reason]
+3. **Attempt 3:** [Approach] - Failed: [Reason]
+
+### Need Guidance On
+- [Specific question 1]
+- [Specific question 2]
+
+**Recommendation:** [What might unblock this]
+```
+
+---
+
+## Gate Decision Logic
+
+```
+function evaluateGate(task):
+    // Step 0: YAGNI check (runs FIRST)
+    yagniRatio = task.plannedLOC / task.tierAppropriateLOC
+    if (yagniRatio > 2.0):
+        return BLOCKED("over_engineered", suggestSimpler(task))
+
+    if (unansweredCriticalQuestions > 3):
+        return BLOCKED("incomplete_requirements")
+
+    if (hasMissingDependencies):
+        return BLOCKED("missing_dependencies")
+
+    if (attemptCount >= 3):
+        return BLOCKED("stuck_after_3_attempts")
+
+    if (hasFailingEvidence && fixAttempts >= 2):
+        return BLOCKED("evidence_failure")
+
+    if (complexity >= 4 && !hasBreakdown):
+        return BLOCKED("complexity_overflow")
+
+    if (yagniRatio > 1.5):
+        return WARNING("likely_over_engineered", suggestSimpler(task))
+
+    if (complexity == 3 || unansweredQuestions in [1, 2]):
+        return WARNING("proceed_with_caution")
+
+    return PASS("can_proceed")
+```
+
+---
+
+## Attempt Tracking
+
+```javascript
+// Track every attempt at a task
+context.attempt_tracking[taskId] = {
+  attempts: [
+    {
+      timestamp: "2024-01-15T10:30:00Z",
+      approach: "Tried approach X",
+      outcome: "Failed because Y",
+      error_message: "Error details"
+    }
+  ],
+  first_attempt: "2024-01-15T10:00:00Z"
+};
+
+// Check if should escalate
+if (context.attempt_tracking[taskId].attempts.length >= 3) {
+  escalateToUser(taskId, context.attempt_tracking[taskId]);
+}
+```
+
+### Complexity Scoring
+
+# Complexity Scoring Reference
+
+Detailed guide for assessing task complexity on a 1-5 scale.
+
+---
+
+## Level 1: Trivial
+
+**Characteristics:**
+- Single file change
+- Simple variable rename
+- Documentation update
+- CSS styling tweak
+- &lt; 50 lines of code
+- &lt; 30 minutes estimated
+- No dependencies
+- No unknowns
+
+**Examples:**
+- Fix a typo in a string
+- Update a constant value
+- Add a comment to explain code
+- Change button color in CSS
+
+---
+
+## Level 2: Simple
+
+**Characteristics:**
+- 1-3 file changes
+- Basic function implementation
+- Simple API endpoint (CRUD)
+- Straightforward component
+- 50-200 lines of code
+- 30 minutes - 2 hours estimated
+- 0-1 dependencies
+- Minimal unknowns
+
+**Examples:**
+- Add a new utility function
+- Create a simple React component
+- Implement a basic GET endpoint
+- Add form validation for one field
+
+---
+
+## Level 3: Moderate
+
+**Characteristics:**
+- 3-10 file changes
+- Multiple component coordination
+- API with validation and error handling
+- State management integration
+- Database schema changes
+- 200-500 lines of code
+- 2-8 hours estimated
+- 2-3 dependencies
+- Some unknowns that need research
+
+**Examples:**
+- Implement a feature with frontend and backend changes
+- Add a new database table with API endpoints
+- Create a form with multiple validation rules
+- Integrate a simple third-party library
+
+---
+
+## Level 4: Complex
+
+**Characteristics:**
+- 10-25 file changes
+- Cross-cutting concerns
+- Authentication/authorization
+- Real-time features (WebSockets)
+- Payment integration
+- Database migrations with data
+- 500-1500 lines of code
+- 8-24 hours (1-3 days) estimated
+- 4-6 dependencies
+- Significant unknowns
+- Multiple decision points
+
+**Examples:**
+- Implement user authentication system
+- Add WebSocket-based notifications
+- Integrate payment gateway
+- Create role-based access control
+
+---
+
+## Level 5: Very Complex
+
+**Characteristics:**
+- 25+ file changes
+- Architectural changes
+- New service/microservice
+- Complete feature subsystem
+- Third-party API integration
+- Performance optimization
+- 1500+ lines of code
+- 24+ hours (3+ days) estimated
+- 7+ dependencies
+- Many unknowns
+- Requires research and prototyping
+- High risk of scope creep
+
+**Examples:**
+- Build a new microservice
+- Implement a complete search system
+- Major refactoring of core architecture
+- Full AI/ML pipeline integration
+
+---
+
+## Quick Assessment Formula
+
+```
+Complexity = max(
+  file_count_score,
+  lines_of_code_score,
+  dependency_score,
+  unknowns_score
+)
+```
+
+**File Count Score:**
+- 1 file: Level 1
+- 2-3 files: Level 2
+- 4-10 files: Level 3
+- 11-25 files: Level 4
+- 25+ files: Level 5
+
+**Lines of Code Score:**
+- &lt; 50: Level 1
+- 50-200: Level 2
+- 200-500: Level 3
+- 500-1500: Level 4
+- 1500+: Level 5
+
+**Dependency Score:**
+- 0 deps: Level 1
+- 1 dep: Level 2
+- 2-3 deps: Level 3
+- 4-6 deps: Level 4
+- 7+ deps: Level 5
+
+**Unknowns Score:**
+- No unknowns: Level 1-2
+- Some unknowns: Level 3
+- Significant unknowns: Level 4
+- Many unknowns, needs research: Level 5
+
+---
+
+## Assessment Checklist
+
+Before assigning a complexity score, answer:
+
+1. [ ] How many files need to change?
+2. [ ] Approximately how many lines of code?
+3. [ ] What are the dependencies?
+4. [ ] What unknowns exist?
+5. [ ] How long would this take an experienced developer?
+6. [ ] Are there cross-cutting concerns (auth, logging, etc.)?
+7. [ ] Does this require database changes?
+8. [ ] Does this integrate with external services?
+
+### Gate Patterns
+
+# Quality Gate Patterns Reference
+
+## Overview
+
+Quality gates are automated checkpoints that enforce quality standards before allowing work to proceed. They prevent low-quality outputs from propagating through pipelines.
+
+## Gate Types
+
+### 1. Threshold Gates
+**Purpose**: Enforce minimum quality scores before proceeding
+
+**Pattern**:
+```python
+def threshold_gate(result: QualityResult, threshold: float = 0.7) -> GateDecision:
+    """Block if quality score below threshold"""
+    if result.overall_score < threshold:
+        return GateDecision(
+            passed=False,
+            reason=f"Quality score {result.overall_score:.2f} below threshold {threshold}",
+            retry_allowed=True
+        )
+    return GateDecision(passed=True)
+```
+
+**Use when**:
+- You have quantifiable quality metrics (0-1 scores)
+- Clear minimum acceptable quality exists
+- Failures should trigger retry/escalation
+
+**Thresholds by context**:
+| Context | Minimum | Production | Gold Standard |
+|---------|---------|------------|---------------|
+| AI Content Analysis | 0.60 | 0.75 | 0.85 |
+| Code Review | 0.70 | 0.80 | 0.90 |
+| API Responses | 0.65 | 0.75 | 0.85 |
+| Test Coverage | 0.80 | 0.85 | 0.95 |
+
+### 2. Complexity Gates
+**Purpose**: Prevent overwhelming tasks from proceeding without intervention
+
+**Pattern**:
+```python
+def complexity_gate(analysis: ComplexityAnalysis) -> GateDecision:
+    """Block overly complex tasks requiring decomposition"""
+    
+    # Scoring: 1 (trivial) to 5 (expert-level)
+    if analysis.complexity_score > 3:
+        return GateDecision(
+            passed=False,
+            reason=f"Complexity score {analysis.complexity_score}/5 requires task breakdown",
+            action_required="DECOMPOSE",
+            retry_allowed=False  # Must fix structure first
+        )
+    
+    # Warning for moderate complexity
+    if analysis.complexity_score == 3:
+        return GateDecision(
+            passed=True,
+            warnings=[f"Moderate complexity - monitor progress closely"],
+            action_required="MONITOR"
+        )
+    
+    return GateDecision(passed=True)
+```
+
+**Complexity indicators**:
+- **Score 1-2**: Simple, single-agent capable
+- **Score 3**: Moderate, requires monitoring
+- **Score 4-5**: Complex, requires decomposition or expert review
+
+**Blocking criteria**:
+- Missing critical dependencies (>2 unknown items)
+- Ambiguous requirements (>3 clarification questions)
+- Multi-domain scope without clear boundaries
+
+### 3. Dependency Gates
+**Purpose**: Ensure prerequisites are met before proceeding
+
+**Pattern**:
+```python
+def dependency_gate(task: Task, completed_tasks: Set[str]) -> GateDecision:
+    """Block if dependencies not satisfied"""
+    
+    missing = set(task.depends_on) - completed_tasks
+    
+    if missing:
+        return GateDecision(
+            passed=False,
+            reason=f"Missing dependencies: {', '.join(missing)}",
+            blockers=list(missing),
+            retry_allowed=True  # Can retry after deps complete
+        )
+    
+    return GateDecision(passed=True)
+```
+
+**Use when**:
+- Sequential workflows with clear dependencies
+- Downstream tasks require upstream data
+- Parallel execution needs synchronization points
+
+### 4. Attempt Limit Gates
+**Purpose**: Detect stuck workflows and escalate
+
+**Pattern**:
+```python
+def attempt_limit_gate(task: Task, max_attempts: int = 3) -> GateDecision:
+    """Block after N failed attempts"""
+    
+    if task.attempt_count >= max_attempts:
+        return GateDecision(
+            passed=False,
+            reason=f"Failed {task.attempt_count} attempts, escalating",
+            action_required="ESCALATE",
+            retry_allowed=False,  # No more auto-retries
+            escalation_data={
+                "attempts": task.attempt_count,
+                "last_error": task.last_error,
+                "time_spent": task.total_duration
+            }
+        )
+    
+    return GateDecision(passed=True)
+```
+
+**Escalation triggers**:
+- 3+ failed attempts on same task
+- Total time spent > 2x estimated duration
+- Repeating error patterns (same failure 2+ times)
+
+### 5. Composite Gates
+**Purpose**: Combine multiple gate conditions
+
+**Pattern**:
+```python
+def composite_gate(
+    task: Task,
+    quality_result: QualityResult,
+    complexity: ComplexityAnalysis
+) -> GateDecision:
+    """Evaluate multiple gate conditions"""
+    
+    gates = [
+        threshold_gate(quality_result, threshold=0.75),
+        complexity_gate(complexity),
+        attempt_limit_gate(task, max_attempts=3)
+    ]
+    
+    # Fail if ANY gate fails
+    failures = [g for g in gates if not g.passed]
+    if failures:
+        return GateDecision(
+            passed=False,
+            reason="Multiple gate failures",
+            sub_failures=failures,
+            retry_allowed=all(g.retry_allowed for g in failures)
+        )
+    
+    # Collect all warnings
+    warnings = [w for g in gates for w in g.warnings]
+    
+    return GateDecision(passed=True, warnings=warnings)
+```
+
+## Failure Handling Strategies
+
+### 1. Retry with Backoff
+**When**: Transient failures (network, rate limits, temporary resource issues)
+
+```python
+async def retry_with_backoff(
+    operation: Callable,
+    max_attempts: int = 3,
+    base_delay: float = 1.0
+) -> Result:
+    """Exponential backoff retry"""
+    
+    for attempt in range(max_attempts):
+        try:
+            return await operation()
+        except TransientError as e:
+            if attempt == max_attempts - 1:
+                raise
+            
+            delay = base_delay * (2 ** attempt)  # 1s, 2s, 4s
+            await asyncio.sleep(delay)
+```
+
+### 2. Graceful Degradation
+**When**: Partial results are acceptable
+
+```python
+def degrade_gracefully(result: PartialResult) -> GateDecision:
+    """Accept incomplete results with warnings"""
+    
+    if result.completeness < 0.5:
+        return GateDecision(passed=False, reason="Too incomplete")
+    
+    if result.completeness < 0.9:
+        return GateDecision(
+            passed=True,
+            warnings=[f"Partial result: {result.completeness:.0%} complete"],
+            metadata={"degraded": True}
+        )
+    
+    return GateDecision(passed=True)
+```
+
+### 3. Alternative Path Routing
+**When**: Multiple strategies exist for same goal
+
+```python
+def route_alternative(task: Task, failure: GateDecision) -> str:
+    """Route to alternative strategy on failure"""
+    
+    if "rate_limit" in failure.reason:
+        return "alternative_llm_provider"
+    
+    if "complexity" in failure.reason:
+        return "decompose_and_parallelize"
+    
+    if "quality" in failure.reason:
+        return "enhanced_prompt_strategy"
+    
+    return "escalate_to_human"
+```
+
+## Bypass Criteria
+
+### Safe Bypass Conditions
+Quality gates should be bypassable ONLY when:
+
+1. **Explicit Override**: Human explicitly approves bypass with justification
+   ```python
+   if user_override and user_override.justification:
+       logger.warning(f"Gate bypassed: {user_override.justification}")
+       return GateDecision(passed=True, bypassed=True)
+   ```
+
+2. **Emergency Mode**: System in degraded state, availability > quality
+   ```python
+   if system.emergency_mode and task.priority == "CRITICAL":
+       return GateDecision(passed=True, bypassed=True, reason="Emergency override")
+   ```
+
+3. **Experimental Features**: Explicitly marked as experimental/beta
+   ```python
+   if task.experimental and config.allow_experimental_bypass:
+       return GateDecision(passed=True, bypassed=True, warnings=["Experimental bypass"])
+   ```
+
+### NEVER Bypass When
+- Security vulnerabilities detected
+- Data integrity at risk
+- Legal/compliance requirements involved
+- Production deployments (unless explicit emergency override)
+
+## Monitoring & Observability
+
+### Key Metrics to Track
+
+```python
+class GateMetrics:
+    """Track gate effectiveness"""
+    
+    gate_name: str
+    pass_rate: float  # % of attempts that pass
+    avg_retry_count: float  # Average retries before passing
+    bypass_rate: float  # % of bypassed gates (should be <1%)
+    false_positive_rate: float  # Gates that blocked valid work
+    false_negative_rate: float  # Gates that passed poor work
+```
+
+### Alerting Thresholds
+- **Pass rate &lt; 70%**: Gate too strict or upstream quality issues
+- **Bypass rate > 5%**: Gate being circumvented, investigate why
+- **Avg retries > 2**: Gate not providing actionable feedback
+- **False positive rate > 10%**: Tune gate thresholds
+
+## Integration Patterns
+
+### LangGraph Integration
+```python
+from langgraph.graph import StateGraph
+
+def create_workflow_with_gate():
+    workflow = StateGraph(State)
+    
+    # Add nodes
+    workflow.add_node("process", process_node)
+    workflow.add_node("quality_gate", quality_gate_node)
+    workflow.add_node("compress", compress_node)
+    
+    # Route based on gate decision
+    workflow.add_conditional_edges(
+        "quality_gate",
+        lambda state: "compress" if state.gate_passed else "retry_process"
+    )
+    
+    return workflow
+```
+
+### FastAPI Integration
+```python
+from fastapi import HTTPException, status
+
+async def api_with_gate(input: Input) -> Output:
+    """API endpoint with quality gate"""
+    
+    result = await process(input)
+    gate_decision = quality_gate(result)
+    
+    if not gate_decision.passed:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={
+                "error": "Quality gate failed",
+                "reason": gate_decision.reason,
+                "retry_allowed": gate_decision.retry_allowed
+            }
+        )
+    
+    return result
+```
+
+## Best Practices
+
+### 1. Make Gates Actionable
+**Bad**: "Quality too low"
+**Good**: "Depth score 0.45/1.0 (need 0.75+). Add: technical implementation details, code examples, performance metrics"
+
+### 2. Progressive Escalation
+- Attempt 1: Auto-retry with same strategy
+- Attempt 2: Auto-retry with enhanced prompts
+- Attempt 3: Escalate to human review
+
+### 3. Fail Fast, Fail Loud
+- Detect issues early in pipeline
+- Log detailed failure context
+- Provide actionable remediation steps
+
+### 4. Measure and Tune
+- Track gate effectiveness metrics
+- A/B test threshold values
+- Regular review of bypass requests
+
+### 5. Document Gate Rationale
+Every gate should document:
+- **Why**: Business/technical reason for gate
+- **Threshold**: How values were determined
+- **Bypass**: Conditions for safe bypass
+- **Ownership**: Who can adjust gate parameters
+
+## Common Anti-Patterns
+
+### ❌ Silent Failures
+```python
+# BAD: Swallow failures
+try:
+    result = quality_gate(data)
+except Exception:
+    pass  # Continue anyway
+```
+
+### ❌ Overly Strict Gates
+```python
+# BAD: Unrealistic thresholds
+if quality_score < 0.99:  # 99% threshold unrealistic
+    raise QualityError("Not perfect enough")
+```
+
+### ❌ No Feedback Loop
+```python
+# BAD: Block without guidance
+if not meets_quality:
+    return "Failed"  # User has no idea why or how to fix
+```
+
+### ✅ Good Gate Implementation
+```python
+# GOOD: Clear, actionable, tunable
+def quality_gate(result: QualityResult, config: GateConfig) -> GateDecision:
+    """
+    Quality gate for AI-generated content analysis.
+    
+    Threshold rationale: 0.75 ensures technical depth while allowing
+    for reasonable LLM variation. Tuned via A/B testing over 200 samples.
+    
+    Bypass: Allowed only for experimental features (config.experimental=True)
+    Owner: AI-ML team
+    """
+    if result.overall_score < config.threshold:
+        return GateDecision(
+            passed=False,
+            reason=f"Score {result.overall_score:.2f} below {config.threshold}",
+            actionable_feedback=[
+                f"Depth: {result.depth_score:.2f} (need 0.75+) - Add technical details",
+                f"Accuracy: {result.accuracy_score:.2f} (need 0.80+) - Verify facts",
+                f"Completeness: {result.completeness:.2f} (need 0.70+) - Cover all aspects"
+            ],
+            retry_allowed=True
+        )
+    
+    return GateDecision(passed=True)
+```
+
+---
+
+**References**:
+- Google SRE Book: Error Budgets and SLOs
+- Accelerate (Forsgren et al.): Deployment frequency metrics
+- LangGraph: Conditional routing patterns
+
+
+### Llm Quality Validation
+
+# LLM-as-Judge Quality Validation Reference
+
+Modern AI workflows benefit from automated quality assessment using LLM-as-judge patterns.
+
+---
+
+## Quality Aspects to Evaluate
+
+When validating LLM-generated content, evaluate these dimensions:
+
+```python
+QUALITY_ASPECTS = [
+    "relevance",    # How relevant is the output to the input?
+    "depth",        # How thorough and detailed is the analysis?
+    "coherence",    # How well-structured and clear is the output?
+    "accuracy",     # Are facts and code snippets correct?
+    "completeness"  # Are all required sections present?
+]
+```
+
+---
+
+## Quality Gate Implementation Pattern
+
+```python
+async def quality_gate_node(state: WorkflowState) -> dict:
+    """Validate output quality using LLM-as-judge."""
+    THRESHOLD = 0.7  # Minimum score to pass (0.0-1.0)
+    MAX_RETRIES = 2
+
+    # Skip if no content to validate
+    if not state.get("output"):
+        return {"quality_gate_passed": True}
+
+    # Evaluate each quality aspect
+    scores = {}
+    for aspect in QUALITY_ASPECTS:
+        try:
+            async with asyncio.timeout(30):  # Timeout protection
+                score = await evaluate_aspect(
+                    input_content=state["input"],
+                    output_content=state["output"],
+                    aspect=aspect
+                )
+                scores[aspect] = score
+        except TimeoutError:
+            scores[aspect] = 0.7  # Fail open with passing score
+
+    # Calculate average (guard against division by zero)
+    avg_score = sum(scores.values()) / len(scores) if scores else 0.0
+
+    # Determine gate result
+    retry_count = state.get("retry_count", 0)
+    gate_passed = avg_score >= THRESHOLD or retry_count >= MAX_RETRIES
+
+    return {
+        "quality_scores": scores,
+        "quality_gate_avg_score": avg_score,
+        "quality_gate_passed": gate_passed,
+        "quality_gate_retry_count": retry_count
+    }
+```
+
+---
+
+## Retry Logic
+
+```python
+def should_retry_synthesis(state: WorkflowState) -> str:
+    """Conditional edge function for quality gate routing."""
+    if state.get("quality_gate_passed", True):
+        return "continue"  # Proceed to next node
+
+    retry_count = state.get("quality_gate_retry_count", 0)
+    if retry_count < MAX_RETRIES:
+        return "retry_synthesis"  # Re-run synthesis
+
+    return "continue"  # Max retries reached, fail open
+```
+
+---
+
+## Fail-Open vs Fail-Closed
+
+### Fail-Open (Recommended for most cases)
+- If quality validation fails/errors, allow workflow to continue
+- Log the failure for monitoring
+- Prevents workflow from getting stuck
+- Use when partial output is better than no output
+
+### Fail-Closed (Use for critical paths)
+- If validation fails, block the workflow
+- Use for payment processing, security operations
+- Requires explicit error handling and user notification
+
+---
+
+## Graceful Degradation Pattern
+
+```python
+async def safe_quality_evaluation(state: dict) -> dict:
+    """Quality gate with full graceful degradation."""
+    try:
+        async with asyncio.timeout(60):  # Total timeout
+            return await quality_gate_node(state)
+    except TimeoutError:
+        logger.warning("quality_gate_timeout", analysis_id=state["id"])
+        return {
+            "quality_gate_passed": True,  # Fail open
+            "quality_gate_error": "Evaluation timed out"
+        }
+    except Exception as e:
+        logger.error("quality_gate_error", error=str(e))
+        return {
+            "quality_gate_passed": True,  # Fail open
+            "quality_gate_error": str(e)
+        }
+```
+
+---
+
+## Triple-Consumer Artifact Design
+
+Modern artifacts should serve three distinct audiences:
+
+### 1. AI Coding Assistants (Claude Code, Cursor, Copilot)
+- **Need:** Structured context, implementation steps, code snippets
+- **Format:** Pre-formatted prompts enabling accurate code generation
+- **Quality check:** Are code snippets runnable? Are steps actionable?
+
+### 2. Tutor Systems (Socratic learning)
+- **Need:** Core concepts, exercises, quiz questions, mastery checklists
+- **Format:** Pedagogical structure for progressive skill building
+- **Quality check:** Do exercises have hints and solutions? Are quiz answers valid?
+
+### 3. Human Readers (Developers, learners)
+- **Need:** TL;DR, visual diagrams, glossary, clear explanations
+- **Format:** Scannable in 10-30 seconds with deep-dive capability
+- **Quality check:** Is summary under 500 chars? Do diagrams render correctly?
+
+---
+
+## Schema Validation for Multi-Consumer Output
+
+```python
+from pydantic import BaseModel, Field, model_validator
+
+class QuizQuestion(BaseModel):
+    """Quiz question with validated answer."""
+    question: str = Field(min_length=10)
+    options: list[str] = Field(min_length=2, max_length=6)
+    correct_answer: str
+    explanation: str = Field(min_length=20)
+
+    @model_validator(mode='after')
+    def validate_correct_answer(self) -> 'QuizQuestion':
+        """Ensure correct_answer is one of the options."""
+        if self.correct_answer not in self.options:
+            raise ValueError(
+                f"correct_answer '{self.correct_answer}' "
+                f"must be one of {self.options}"
+            )
+        return self
+```
+
+---
+
+## Quality Thresholds by Use Case
+
+| Use Case | Threshold | Fail Mode | Max Retries |
+|----------|-----------|-----------|-------------|
+| Documentation | 0.6 | Open | 1 |
+| Code Generation | 0.7 | Open | 2 |
+| Test Generation | 0.7 | Open | 2 |
+| Security Analysis | 0.8 | Closed | 3 |
+| Payment/Finance | 0.9 | Closed | 3 |
+
+### Workflows
+
+# Quality Gate Workflows Reference
+
+Detailed workflows for quality gate validation and task management.
+
+---
+
+## Workflow 1: Pre-Task Gate Validation
+
+**When:** Before starting any task (especially Level 3-5)
+
+### Step 0: YAGNI Check
+```
+Read project tier (from scope-appropriate-architecture or auto-detect)
+For each planned architecture pattern:
+  1. Does it serve a CURRENT requirement?
+  2. Could 80% of value come from 20% of complexity?
+  3. Is this the simplest thing that could work?
+  4. Is the cost of adding later significantly higher than now?
+
+Calculate: justified_complexity = planned_LOC / tier_appropriate_LOC
+If ratio > 2.0 → BLOCK (surface simpler alternative)
+If ratio 1.5-2.0 → WARN (present alternative, get user confirmation)
+Security patterns are exempt.
+```
+
+### Step 1: Assess Complexity
+```
+Read task description
+Count file changes needed
+Estimate lines of code
+Identify dependencies
+Count unknowns
+-> Assign complexity score (1-5)
+```
+
+### Step 2: Identify Critical Questions
+```
+What must I know to complete this?
+- Data structures?
+- Expected behaviors?
+- Edge cases?
+- Error handling?
+- API contracts?
+
+-> List all critical questions
+-> Count unanswered questions
+```
+
+### Step 3: Check Dependencies
+```
+What does this task depend on?
+- Other tasks?
+- External services?
+- Database changes?
+- Configuration?
+
+-> Verify dependencies ready
+-> List blockers
+```
+
+### Step 4: Gate Decision
+```javascript
+if (unansweredQuestions > 3) return BLOCKED;
+if (missingDependencies > 0) return BLOCKED;
+if (complexity >= 4 && !hasPlan) return BLOCKED;
+if (complexity == 3) return WARNING;
+return PASS;
+```
+
+### Step 5: Document in Context
+```javascript
+context.quality_gates.push({
+  task_id: taskId,
+  timestamp: new Date().toISOString(),
+  complexity_score: 3,
+  gate_status: 'pass',
+  critical_questions: [...],
+  can_proceed: true
+});
+```
+
+---
+
+## Workflow 2: Stuck Detection & Escalation
+
+**When:** After multiple failed attempts at same task
+
+### Step 1: Track Attempts
+```javascript
+if (!context.attempt_tracking[taskId]) {
+  context.attempt_tracking[taskId] = {
+    attempts: [],
+    first_attempt: new Date().toISOString()
+  };
+}
+
+context.attempt_tracking[taskId].attempts.push({
+  timestamp: new Date().toISOString(),
+  approach: "Describe what was tried",
+  outcome: "Failed because X",
+  error_message: "Error details"
+});
+```
+
+### Step 2: Check Threshold
+```javascript
+const attemptCount = context.attempt_tracking[taskId].attempts.length;
+
+if (attemptCount >= 3) {
+  return {
+    status: 'blocked',
+    reason: 'stuck_after_3_attempts',
+    escalate_to: 'user',
+    attempts_history: context.attempt_tracking[taskId].attempts
+  };
+}
+```
+
+### Step 3: Escalation Message
+```markdown
+## Escalation: Task Stuck
+
+**Task:** [Task description]
+**Attempts:** 3
+**Status:** BLOCKED - Need human guidance
+
+### What Was Tried
+1. **Attempt 1:** [Approach] -> Failed: [Reason]
+2. **Attempt 2:** [Approach] -> Failed: [Reason]
+3. **Attempt 3:** [Approach] -> Failed: [Reason]
+
+### Current Blocker
+[Describe the persistent problem]
+
+### Need Guidance On
+- [Specific question 1]
+- [Specific question 2]
+
+**Recommendation:** Human review needed to unblock
+```
+
+---
+
+## Workflow 3: Complexity Breakdown (Level 4-5)
+
+**When:** Assigned a Level 4 or 5 complexity task
+
+### Step 1: Break Down into Subtasks
+```markdown
+## Task Breakdown: [Main Task]
+**Overall Complexity:** Level 4
+
+### Subtasks
+1. **Subtask 1:** [Description]
+   - Complexity: Level 2
+   - Dependencies: None
+   - Estimated: 2 hours
+
+2. **Subtask 2:** [Description]
+   - Complexity: Level 3
+   - Dependencies: Subtask 1
+   - Estimated: 4 hours
+
+3. **Subtask 3:** [Description]
+   - Complexity: Level 2
+   - Dependencies: Subtask 2
+   - Estimated: 2 hours
+
+**Total Estimated:** 8 hours
+**Complexity Check:** All subtasks <= Level 3
+```
+
+### Step 2: Validate Breakdown
+```
+Check:
+- [ ] All subtasks are Level 1-3
+- [ ] Dependencies clearly mapped
+- [ ] Each subtask has clear acceptance criteria
+- [ ] Sum of estimates reasonable
+- [ ] No overlapping work
+- [ ] No circular dependencies
+```
+
+### Step 3: Create Execution Plan
+```markdown
+## Execution Plan
+
+**Phase 1:** Subtask 1
+- Start: After requirements confirmed
+- Gate check: Pass
+- Evidence: Tests pass, build succeeds
+
+**Phase 2:** Subtask 2
+- Start: After Subtask 1 complete
+- Gate check: Verify Subtask 1 evidence
+- Evidence: Integration tests pass
+
+**Phase 3:** Subtask 3
+- Start: After Subtask 2 complete
+- Gate check: End-to-end verification
+- Evidence: Full feature tests pass
+```
+
+---
+
+## Workflow 4: Requirements Completeness Check
+
+**When:** Starting a new feature or significant task
+
+### Functional Requirements Check
+```markdown
+- [ ] **Happy path defined:** What should happen when everything works?
+- [ ] **Error cases defined:** What should happen when things fail?
+- [ ] **Edge cases identified:** What are the boundary conditions?
+- [ ] **Input validation:** What inputs are valid/invalid?
+- [ ] **Output format:** What should the output look like?
+- [ ] **Success criteria:** How do we know it works?
+```
+
+### Technical Requirements Check
+```markdown
+- [ ] **API contracts:** Endpoints, methods, schemas defined?
+- [ ] **Data structures:** Models, types, interfaces specified?
+- [ ] **Database changes:** Schema migrations needed?
+- [ ] **Authentication:** Who can access this?
+- [ ] **Performance:** Any latency/throughput requirements?
+- [ ] **Security:** Any special security considerations?
+```
+
+### Count Critical Unknowns
+```javascript
+const criticalUnknowns = [
+  !functionalRequirements.happyPath,
+  !functionalRequirements.errorCases,
+  !technicalRequirements.apiContracts,
+  !technicalRequirements.dataStructures
+].filter(unknown => unknown).length;
+
+if (criticalUnknowns > 3) {
+  return {
+    gate_status: 'blocked',
+    reason: 'incomplete_requirements',
+    critical_unknowns: criticalUnknowns,
+    action: 'clarify_requirements'
+  };
+}
+```
+
+---
+
+## Best Practices
+
+### 1. Always Run Gate Check Before Starting
+```javascript
+// GOOD: Gate check first
+function startTask(task) {
+  const gateCheck = runQualityGate(task);
+
+  if (gateCheck.status === 'blocked') {
+    escalate(gateCheck.reason);
+    return;
+  }
+
+  if (gateCheck.status === 'warning') {
+    documentAssumptions(gateCheck.warnings);
+  }
+
+  implementTask(task);
+}
+```
+
+### 2. Document All Assumptions
+```markdown
+When proceeding with warnings, document assumptions:
+
+## Assumptions Made
+1. **Assumption:** API will return JSON format
+   **Risk:** Low - standard REST practice
+   **Mitigation:** Add try-catch for parsing
+
+2. **Assumption:** User authentication already implemented
+   **Risk:** Medium - might not exist
+   **Mitigation:** Check early, escalate if missing
+```
+
+### 3. Track Attempts for Stuck Detection
+```javascript
+function attemptTask(taskId, approach) {
+  trackAttempt(taskId, approach);
+
+  const attemptCount = getAttemptCount(taskId);
+  if (attemptCount >= 3) {
+    escalateToUser(taskId);
+    return 'blocked';
+  }
+
+  return executeApproach(approach);
+}
+```
+
+### 4. Break Down Complex Tasks Proactively
+```javascript
+function handleComplexTask(task) {
+  if (task.complexity >= 4) {
+    const subtasks = breakDownIntoSubtasks(task);
+
+    subtasks.forEach(subtask => {
+      runQualityGate(subtask);
+      implementSubtask(subtask);
+    });
+  } else {
+    implementTask(task);
+  }
+}
+```
+
+
+---
+
+## Checklists (1)
+
+### Quality Gate Checklist
+
+# Quality Gate Implementation Checklist
+
+Use this checklist when implementing quality gates in workflows, APIs, or CI/CD pipelines.
+
+## 1. Gate Definition
+
+### Requirements Gathering
+- [ ] **Identify quality dimensions** to measure (e.g., depth, accuracy, completeness, performance)
+- [ ] **Define success criteria** with quantifiable thresholds (e.g., score ≥ 0.75)
+- [ ] **Document rationale** for threshold values (data-driven, not arbitrary)
+- [ ] **Specify failure modes** and their consequences
+- [ ] **Determine retry strategy** (auto-retry, enhanced retry, escalate)
+
+### Threshold Determination
+- [ ] **Baseline current performance** (run without gate to collect data)
+- [ ] **A/B test threshold values** (test 3-5 values with real data)
+- [ ] **Measure impact** on pass rate, quality, and downstream metrics
+- [ ] **Set conservative initial threshold** (can tighten later with data)
+- [ ] **Define threshold by context** if quality requirements vary (e.g., by content type)
+
+### Bypass Criteria
+- [ ] **Document safe bypass conditions** (emergency mode, experimental features, explicit override)
+- [ ] **Define approval process** for bypass requests (who can approve, required justification)
+- [ ] **Set bypass alerting** (notify on every bypass, track bypass rate)
+- [ ] **Never bypass for** security, compliance, or data integrity issues
+
+## 2. Implementation
+
+### Core Gate Logic
+- [ ] **Implement gate function** with clear pass/fail decision logic
+- [ ] **Return structured decision** (passed, reason, retry_allowed, actionable_feedback)
+- [ ] **Make decisions deterministic** (same input → same output for debugging)
+- [ ] **Include attempt tracking** to prevent infinite retry loops
+- [ ] **Add timeout protection** for async operations
+
+### Actionable Feedback
+- [ ] **Provide specific failure reasons** (not generic "quality too low")
+- [ ] **Include dimension scores** (e.g., "depth: 0.45/1.0, need 0.75+")
+- [ ] **Suggest concrete improvements** (e.g., "Add code examples, performance metrics")
+- [ ] **Show thresholds clearly** (current value vs. required value)
+- [ ] **Link to documentation** or examples of passing work
+
+### Error Handling
+- [ ] **Handle evaluation failures** (e.g., LLM timeout, API error)
+- [ ] **Implement retry logic** with exponential backoff for transient errors
+- [ ] **Set max retry attempts** (typically 3) to prevent infinite loops
+- [ ] **Define escalation path** for stuck workflows (human review, alternative strategy)
+
+## 3. Observability
+
+### Logging
+- [ ] **Log every gate evaluation** with decision and scores
+- [ ] **Log actionable feedback** for failed gates
+- [ ] **Include correlation ID** to trace across workflow steps
+- [ ] **Use structured logging** (JSON format) for easy querying
+
+### Metrics
+- [ ] **Track pass rate** (% of attempts that pass)
+- [ ] **Track retry metrics** (avg retries before pass, retry success rate)
+- [ ] **Track bypass rate** (should be &lt;1% in normal operation)
+- [ ] **Track escalation rate** (% requiring human intervention)
+- [ ] **Track false positive rate** (gates blocking valid work)
+- [ ] **Track false negative rate** (gates passing poor work)
+- [ ] **Track gate latency** (time spent in evaluation)
+
+### Alerting
+- [ ] **Alert on low pass rate** (&lt;70%) - may indicate upstream issues
+- [ ] **Alert on high bypass rate** (>5%) - gate being circumvented
+- [ ] **Alert on evaluation failures** (>1%) - scoring system issues
+- [ ] **Alert on stuck workflows** (3+ failed attempts)
+
+## 4. Testing
+
+### Unit Tests
+- [ ] **Test threshold boundaries** (score at threshold-0.01, threshold, threshold+0.01)
+- [ ] **Test each failure mode** (low depth, low accuracy, etc.)
+- [ ] **Test retry logic** (max attempts, exponential backoff)
+- [ ] **Test bypass conditions** (all documented bypass scenarios)
+- [ ] **Test error handling** (evaluation timeout, API failure, invalid input)
+
+### Integration Tests
+- [ ] **Test workflow routing** (pass → compress, fail → retry, escalate → human)
+- [ ] **Test state persistence** across retries (attempt count increments correctly)
+- [ ] **Test idempotency** (re-running same evaluation gives same result)
+
+## 5. Documentation
+
+### For Developers
+- [ ] **Document gate purpose** (why this gate exists, what it protects)
+- [ ] **Document threshold rationale** (how values were determined, data source)
+- [ ] **Document bypass conditions** (when safe to bypass, approval process)
+- [ ] **Provide code examples** of passing/failing cases
+- [ ] **Link to monitoring dashboard** (where to view gate metrics)
+
+## 6. Rollout
+
+### Pre-Production
+- [ ] **Shadow mode first** (evaluate but don't block, collect data)
+- [ ] **Measure baseline pass rate** (should be >70% before enforcing)
+- [ ] **Tune thresholds** based on shadow mode data
+- [ ] **Review false positives** (manually check 20+ blocked cases)
+
+### Production Rollout
+- [ ] **Enable in non-critical path** first (experimental features)
+- [ ] **Gradually increase enforcement** (warn → block for 10% → 50% → 100%)
+- [ ] **Monitor metrics closely** during rollout (hourly for first week)
+- [ ] **Have rollback plan** ready (feature flag to disable gate)
+
+---
+
+**Remember**: Quality gates should **enable** quality work, not **prevent** work. If pass rate &lt;70% or bypass rate &gt;5%, investigate root causes.
+
+
+
+---
+
+## Examples (1)
+
+### Orchestkit Quality Gates
+
+# OrchestKit Quality Gates - Real Implementation
+
+## Overview
+
+OrchestKit uses quality gates in its LangGraph content analysis pipeline to ensure AI-generated summaries meet production standards before compression and storage.
+
+**Location**: `backend/app/workflows/nodes/quality_gate_node.py`
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    LangGraph Workflow                            │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│  1. Content Analysis Agents                                      │
+│     ├── Tech Comparator                                          │
+│     ├── Security Auditor                                         │
+│     ├── Implementation Planner                                   │
+│     └── ... (8 specialist agents)                                │
+│                    │                                              │
+│                    ▼                                              │
+│  2. Quality Gate Node  ◄── G-Eval Scorer (Gemini)               │
+│                    │                                              │
+│         ┌──────────┴──────────┐                                  │
+│         │                     │                                  │
+│         ▼                     ▼                                  │
+│    Pass (0.75+)          Fail (<0.75)                            │
+│         │                     │                                  │
+│         ▼                     ▼                                  │
+│  3. Compress Findings    Retry/Escalate                          │
+│                                                                   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+## Quality Gate Implementation
+
+See full implementation in backend/app/workflows/nodes/quality_gate_node.py
+
+### Key Metrics (Last 30 Days)
+
+```python
+{
+    "total_analyses": 203,
+    "gate_pass_rate": 0.847,  # 84.7% pass on first attempt
+    "avg_attempts": 1.23,
+    "bypass_rate": 0.0,  # No bypasses (good!)
+    "escalation_rate": 0.034,  # 3.4% escalated to human
+    
+    "avg_scores": {
+        "depth": 0.79,
+        "accuracy": 0.86,
+        "completeness": 0.75
+    }
+}
+```
+
+## Lessons Learned
+
+### 1. Truncation Kills Quality
+**Problem**: Initial 2000-char truncation destroyed analytical depth  
+**Solution**: Increased to 8000 chars for evaluation  
+**Impact**: Depth scores improved 12%
+
+### 2. Actionable Feedback is Critical
+**Problem**: Generic "quality too low" messages led to same failures  
+**Solution**: Specific dimension scores + improvement suggestions  
+**Impact**: Retry success rate 45% → 78%
+
+### 3. Tune Thresholds with Data
+**Problem**: Arbitrary 0.70 threshold allowed shallow summaries  
+**Solution**: A/B tested 0.70, 0.75, 0.80 over 200 samples  
+**Impact**: 0.75 optimal (quality ↑15%, pass rate still 84%)
+
+---
+
+**Key Takeaway**: Quality gates in OrchestKit prevent 15%+ of low-quality analysis from reaching users, with only 3.4% requiring human escalation.
+

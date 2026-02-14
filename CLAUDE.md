@@ -4,7 +4,7 @@ Essential context for Claude Code when working on OrchestKit.
 
 ## Project Overview
 
-**OrchestKit** — Claude Code plugin: **60 skills**, **36 agents**, **86 hooks** (65 global + 22 agent-scoped + 1 skill-scoped).
+**OrchestKit** — Claude Code plugin: **61 skills**, **36 agents**, **0 hooks** (63 global + 22 agent-scoped + 1 skill-scoped).
 
 **Purpose**: AI-assisted development with built-in best practices, security patterns, and quality gates.
 
@@ -12,8 +12,8 @@ Essential context for Claude Code when working on OrchestKit.
 
 ```
 src/                    ← SOURCE (edit here!)
-├── skills/<name>/SKILL.md    # 60 skills (YAML frontmatter + Markdown)
-├── agents/<name>.md          # 36 agents (CC 2.1.6 format)
+├── skills/<name>/SKILL.md    # 61 skills (YAML frontmatter + Markdown)
+├── agents/<name>.md          # 36 agents (CC 2.1.34 format)
 └── hooks/                    # TypeScript hooks (hooks.json + src/ + dist/)
 manifests/                    # Plugin definitions (JSON)
 plugins/                      # GENERATED (never edit!)
@@ -35,7 +35,7 @@ cd src/hooks && npm run build    # Compile TypeScript hooks
 
 ## Adding Components
 
-**Skill**: Create `src/skills/my-skill/SKILL.md` with YAML frontmatter (`name`, `description`, `tags`, `user-invocable`, `complexity`). Add to `manifests/ork.json`, run `npm run build`.
+**Skill**: See `src/skills/CONTRIBUTING-SKILLS.md` for full authoring standards. Create `src/skills/my-skill/SKILL.md` with YAML frontmatter (`name`, `description`, `tags`, `user-invocable`, `complexity`). Add to `manifests/ork.json`, run `npm run build`.
 
 **Agent**: Create `src/agents/my-agent.md` with frontmatter (`name`, `description`, `model`, `tools`, `skills`). Add to manifest, rebuild.
 
@@ -55,7 +55,7 @@ cd src/hooks && npm run build    # Compile TypeScript hooks
 | `ork-creative` | 3 | 1 | Video production add-on |
 | `ork` | 60 | 36 | Full — lite + creative + Python, React, LLM/RAG |
 
-All plugins include 86 hooks. 23 skills are user-invocable via `/ork:skillname`.
+All plugins include 0 hooks. 61 skills are user-invocable via `/ork:skillname`.
 
 ## Quick Reference
 
@@ -68,7 +68,7 @@ All plugins include 86 hooks. 23 skills are user-invocable via `/ork:skillname`.
 
 ## Version
 
-- **Current**: 6.0.5 · **Claude Code**: >= 2.1.34
+- **Current**: 6.0.6 · **Claude Code**: >= 2.1.34
 - **Hooks**: 86 entries (63 global + 22 agent-scoped + 1 skill-scoped, 11 bundles, 7 fire-and-forget dispatchers)
 
 See `CHANGELOG.md` for history. See `src/hooks/README.md` for hook architecture.

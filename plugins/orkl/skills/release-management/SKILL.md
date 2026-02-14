@@ -1,5 +1,7 @@
 ---
 name: release-management
+license: MIT
+compatibility: "Claude Code 2.1.34+. Requires gh CLI."
 description: GitHub release workflow with semantic versioning, changelogs, and release automation using gh CLI. Use when creating releases, tagging versions, or publishing changelogs.
 context: fork
 version: 1.0.0
@@ -7,6 +9,8 @@ author: OrchestKit
 tags: [git, github, releases, versioning, changelog, automation]
 user-invocable: false
 complexity: low
+metadata:
+  category: document-asset-creation
 ---
 
 # Release Management
@@ -85,7 +89,7 @@ gh release upload v1.2.0 ./dist/app.zip ./dist/app.tar.gz
 
 ## Semantic Versioning
 
-```
+```text
 MAJOR.MINOR.PATCH
   │     │     │
   │     │     └── Bug fixes (backwards compatible)
@@ -273,6 +277,7 @@ gh release create "v$NEW" --generate-notes
 ```
 
 Usage:
+
 ```bash
 ./bump-version.sh patch  # 1.2.3 -> 1.2.4
 ./bump-version.sh minor  # 1.2.4 -> 1.3.0

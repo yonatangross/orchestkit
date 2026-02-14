@@ -1,9 +1,11 @@
 ---
 title: "Plan Viz"
-description: "Visualize planned changes before implementation. Before/after architecture, risk dashboard, execution order, impact analysis."
+description: "Visualize planned changes before implementation. Use when reviewing plans, comparing before/after architecture, assessing risk, or analyzing execution order and impact."
 ---
 
 <span className="badge badge-blue">Command</span> <span className="badge badge-yellow">medium</span>
+
+**Primary Agent:** [workflow-architect](/docs/reference/agents/workflow-architect)
 
 ## Related Skills
 
@@ -367,3 +369,807 @@ Sequential Block C (verification):
 - [Plan Report Template](assets/plan-report.md) — Full mustache-style report
 - [Impact Dashboard Template](assets/impact-dashboard.md) — Impact table
 - [Tier 1 Header Template](assets/tier1-header.md) — 5-line summary
+
+
+---
+
+## Rules (2)
+
+### ASCII Architecture Visualization Patterns — MEDIUM
+
+
+## ASCII Architecture Visualization Patterns
+
+**Incorrect — flat text descriptions:**
+```
+The system has a frontend that talks to a backend API which uses
+a database and a cache layer. There's also a message queue for
+async processing.
+```
+
+**Correct — layered architecture diagram:**
+```
+┌─────────────────────────────────────────────────────┐
+│                    Load Balancer                      │
+└──────────┬──────────────────────────┬────────────────┘
+           │                          │
+┌──────────v──────────┐  ┌───────────v────────────┐
+│   API Gateway       │  │   API Gateway          │
+│   (instance 1)      │  │   (instance 2)         │
+└──────────┬──────────┘  └───────────┬────────────┘
+           │                          │
+           └──────────┬───────────────┘
+                      │
+        ┌─────────────┼────────────────┐
+        │             │                │
+┌───────v──────┐ ┌────v─────┐ ┌───────v──────┐
+│  PostgreSQL  │ │  Redis   │ │  RabbitMQ    │
+│  (primary)   │ │  (cache) │ │  (queue)     │
+└──────────────┘ └──────────┘ └──────────────┘
+```
+
+### Blast Radius Visualization
+
+```
+                Ring 3: Tests (8 files)
+           +-------------------------------+
+           |    Ring 2: Transitive (5)      |
+           |   +------------------------+   |
+           |   |  Ring 1: Direct (3)     |   |
+           |   |   +--------------+      |   |
+           |   |   | CHANGED FILE |      |   |
+           |   |   +--------------+      |   |
+           |   +------------------------+   |
+           +-------------------------------+
+
+Direct dependents:   auth.py, routes.py, middleware.py
+Transitive:          app.py, config.py, utils.py, cli.py, server.py
+```
+
+### Reversibility Timeline
+
+```
+REVERSIBILITY TIMELINE
+Phase 1  [================]  FULLY REVERSIBLE    (add column, nullable)
+Phase 2  [================]  FULLY REVERSIBLE    (new endpoint, additive)
+Phase 3  [============....]  PARTIALLY           (backfill data)
+              --- POINT OF NO RETURN ---
+Phase 4  [........????????]  IRREVERSIBLE        (drop old column)
+Phase 5  [================]  FULLY REVERSIBLE    (frontend toggle)
+```
+
+### Comparison Tables
+
+```
+CROSS-LAYER CONSISTENCY
+Backend Endpoint          Frontend Consumer     Status
+POST /invoices            createInvoice()       PLANNED
+GET  /invoices/:id        useInvoice(id)        PLANNED
+GET  /invoices            InvoiceList.tsx        MISSING  !!
+```
+
+### Key Patterns
+
+| Pattern | Use Case |
+|---------|----------|
+| Layered boxes | System architecture, deployment topology |
+| Concentric rings | Blast radius, impact analysis |
+| Timeline bars | Reversibility, migration phases |
+| Swimlanes | Execution order, parallel work streams |
+| Annotated trees | File change manifests, directory structures |
+| Comparison tables | Cross-layer consistency, before/after |
+
+
+### ASCII Diagram Fundamentals — MEDIUM
+
+
+## ASCII Diagram Fundamentals
+
+**Incorrect — inconsistent characters and alignment:**
+```
++-------+    +-------+
+| Frontend | -> | Backend |
++-------+    +-------+
+              |
+          +--------+
+          | Database |
+          +--------+
+```
+
+**Correct — proper box-drawing characters with alignment:**
+```
+Box-Drawing Characters:
+┌─┐│└─┘  Standard weight
+┏━┓┃┗━┛  Heavy weight
+├─┤┬┴    Connectors
+╔═╗║╚═╝  Double lines
+```
+
+```
+┌──────────────┐      ┌──────────────┐
+│   Frontend   │─────>│   Backend    │
+│   React 19   │      │   FastAPI    │
+└──────────────┘      └───────┬──────┘
+                              │
+                              v
+                      ┌──────────────┐
+                      │  PostgreSQL  │
+                      └──────────────┘
+```
+
+### Progress Tracking
+
+```
+[████████░░] 80% Complete
++ Design    (2 days)
++ Backend   (5 days)
+~ Frontend  (3 days)
+- Testing   (pending)
+```
+
+### File Trees
+
+```
+src/
+├── api/
+│   ├── routes.py          [M] +45 -12    !! high-traffic path
+│   └── schemas.py         [M] +20 -5
+├── services/
+│   └── billing.py         [A] +180       ** new file
+└── tests/
+    └── test_billing.py    [A] +120       ** new file
+
+Legend: [A]dd [M]odify [D]elete  !! Risk  ** New
+```
+
+### Workflow Diagrams
+
+```
+Backend  ===[Schema]======[API]===========================[Deploy]====>
+                |            |                                ^
+                |            +------blocks------+             |
+                |                               |             |
+Frontend ------[Wait]--------[Components]=======[Integration]=+
+
+=== Active work   --- Blocked/waiting   | Dependency
+```
+
+### Key Rules
+
+| Rule | Description |
+|------|-------------|
+| Font | Always monospace — box-drawing characters require fixed-width |
+| Weight | Standard (─│) for normal, Heavy (━┃) for emphasis |
+| Arrows | Use ─>, ──>, or │ with v/^ for direction |
+| Alignment | Right-pad labels to match column widths |
+| Annotations | Use !! for risk, ** for new, [A/M/D] for change type |
+
+
+
+---
+
+## References (5)
+
+### Blast Radius Patterns
+
+# Blast Radius Patterns
+
+Visualize the transitive impact of planned changes.
+
+## Concentric Rings
+
+The changed file at center, expanding rings for each degree of dependency:
+
+```
+                         Ring 3: Tests (8 files)
+                    +-------------------------------+
+                    |      Ring 2: Transitive (5)    |
+                    |   +------------------------+   |
+                    |   |   Ring 1: Direct (3)    |   |
+                    |   |   +--------------+      |   |
+                    |   |   | CHANGED FILE |      |   |
+                    |   |   +--------------+      |   |
+                    |   +------------------------+   |
+                    +-------------------------------+
+
+Ring 1 (direct):     auth.py, routes.py, middleware.py
+Ring 2 (transitive): app.py, config.py, utils.py, cli.py, server.py
+Ring 3 (tests):      test_auth.py, test_routes.py, ... (+6 more)
+```
+
+## Multi-File Blast Radius
+
+When multiple files change, show overlapping impact:
+
+```
+BLAST RADIUS: 3 changed files
+
+memory-writer.ts ─── Ring 1: 5 files ─── Ring 2: 12 files ─── Ring 3: 8 tests
+                          |                    |
+memory-health.ts ─── Ring 1: 3 files ────+    |
+                          |               |    |
+queue-processor.ts ── Ring 1: 2 files ──+─+───+
+
+Overlap: 4 files appear in multiple blast radii
+Unique impact: 18 files total (not 25 — overlap deduplicated)
+```
+
+## Fan-In / Fan-Out Analysis
+
+```
+Fan-In (what depends on changed files)    Fan-Out (what changed files depend on)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+memory-writer.ts  [========] 8            graph-client     [======] 6
+memory-health.ts  [====] 4                cc-native-writer [====] 4
+queue-processor.ts [==] 2                 logger           [==] 2
+decision-history.ts [===] 3              config            [=] 1
+
+High fan-in = higher risk (more things break if this file breaks)
+High fan-out = higher complexity (more things to understand)
+```
+
+## Dependency Tree (Detailed)
+
+```
+BLAST RADIUS: memory-writer.ts
+
+memory-writer.ts (CHANGED)
+├── stop/auto-remember-continuity.ts     (direct dependent)
+│   ├── stop/unified-dispatcher.ts       (transitive)
+│   │   └── hooks.json                   (config entry)
+│   └── stop/session-patterns.ts         (transitive)
+├── stop/session-profile-aggregator.ts   (direct dependent)
+├── subagent-stop/agent-memory-store.ts  (direct dependent)
+├── skill/decision-processor.ts          (direct dependent)
+│   └── skill/unified-dispatcher.ts      (transitive)
+└── lifecycle/pre-compact-saver.ts       (direct dependent)
+
+Direct: 5 files  |  Transitive: 3 files  |  Total: 8 files
+```
+
+## Impact by Layer
+
+For full-stack changes, show blast radius per layer:
+
+```
+BLAST RADIUS BY LAYER
+
+API Layer:
+  Changed: routes.py, schemas.py
+  Impact:  middleware.py, auth.py (2 dependents)
+  Tests:   test_routes.py, test_auth.py (2 test files)
+
+Service Layer:
+  Changed: billing.py (new)
+  Impact:  None (new file, no dependents yet)
+  Tests:   test_billing.py (new, paired)
+
+Model Layer:
+  Changed: invoice.py (new)
+  Impact:  billing.py depends on it (1 dependent)
+  Tests:   test_models.py needs update (1 test file)
+
+Frontend:
+  Changed: InvoiceList.tsx, InvoiceDetail.tsx (new)
+  Impact:  App.tsx (routing), Sidebar.tsx (navigation)
+  Tests:   InvoiceList.test.tsx (new, paired)
+
+Cross-Layer Dependencies:
+  Frontend -> API: 2 new fetch calls (POST /invoices, GET /invoices)
+  API -> Model: 1 new import (InvoiceModel)
+```
+
+## Compact Blast Radius (small changes)
+
+```
+BLAST RADIUS: routes.py -> 3 direct, 5 transitive, 4 tests = 12 files
+```
+
+
+### Change Manifest Patterns
+
+# Change Manifest Patterns
+
+Terraform-style annotated file trees for visualizing planned changes.
+
+## Symbol Convention
+
+Borrowed from Terraform plan output for universal recognition:
+
+```
+[A]  Add       — New file being created
+[M]  Modify    — Existing file being changed
+[D]  Delete    — File being removed
+[R]  Rename    — File being moved/renamed
+[S]  Simplify  — File being reduced (lines removed, logic simplified)
+```
+
+## Annotation Convention
+
+```
+!!   Risk flag     — High-traffic path, complex logic, or fragile code
+**   New file      — Freshly created, no existing behavior to break
+~~   Deprecated    — Being replaced by another file
+->   Moves to      — Content relocating to a different path
+```
+
+## Basic Change Tree
+
+```
+src/
+├── api/
+│   ├── routes.py          [M] +45 -12
+│   └── schemas.py         [M] +20 -5
+├── services/
+│   └── billing.py         [A] +180       ** new file
+├── models/
+│   └── invoice.py         [A] +95        ** new file
+└── tests/
+    └── test_billing.py    [A] +120       ** new file
+
+Legend: [A]dd [M]odify [D]elete  !! Risk  ** New
+Summary: +460 -17  |  3 new  |  2 modified  |  0 deleted
+```
+
+## Annotated Change Tree (with risk flags)
+
+```
+src/
+├── hooks/
+│   ├── lifecycle/
+│   │   ├── mem0-context-retrieval.ts   [D] -245    ~~ replaced by graph
+│   │   ├── mem0-analytics-tracker.ts   [D] -180    ~~ no replacement needed
+│   │   └── pre-compact-saver.ts        [S] -40     remove mem0 fallback
+│   ├── stop/
+│   │   ├── mem0-queue-sync.ts          [D] -320    ~~ queue system removed
+│   │   └── auto-remember-continuity.ts [S] -25     !! touches session persistence
+│   ├── lib/
+│   │   ├── memory-writer.ts            [S] -350    !! core write path
+│   │   ├── queue-processor.ts          [D] -280    ~~ queue system removed
+│   │   └── memory-health.ts            [S] -60     remove mem0 health checks
+│   └── setup/
+│       ├── mem0-backup-setup.ts        [D] -150
+│       ├── mem0-cleanup.ts             [D] -120
+│       └── mem0-analytics-dashboard.ts [D] -200
+├── skills/
+│   ├── mem0-memory/                    [D] -4500   ~~ entire skill removed
+│   ├── memory-fabric/SKILL.md          [S] -80     remove mem0 paths
+│   └── remember/SKILL.md              [S] -45     remove --mem0 flag
+└── tests/
+    └── mem0/                           [D] -3200   ~~ 20 test files removed
+
+Legend: [A]dd [M]odify [D]elete [S]implify  !! Risk  ** New  ~~ Deprecated
+Summary: +0 -9,795  |  0 new  |  4 simplified  |  30 deleted
+```
+
+## Grouped by Action
+
+For large changesets, group by action type:
+
+```
+DELETIONS (30 files, -9,195 lines):
+  src/skills/mem0-memory/         [D] 42 files  -4,500 lines
+  tests/mem0/                     [D] 20 files  -3,200 lines
+  src/hooks/src/lifecycle/mem0-*  [D]  2 files    -425 lines
+  src/hooks/src/stop/mem0-*       [D]  2 files    -520 lines
+  src/hooks/src/setup/mem0-*      [D]  3 files    -470 lines
+  bin/mem0-*.py                   [D]  2 files     -80 lines
+
+SIMPLIFICATIONS (4 files, -600 lines):
+  src/hooks/src/lib/memory-writer.ts    [S] -350 lines  !! core write path
+  src/skills/memory-fabric/SKILL.md     [S]  -80 lines
+  src/skills/remember/SKILL.md          [S]  -45 lines
+  src/hooks/src/lib/memory-health.ts    [S]  -60 lines
+  src/hooks/src/stop/auto-remember.ts   [S]  -25 lines  !! session persistence
+
+NO CHANGES (185 files):
+  All other skills, agents, hooks unchanged
+```
+
+## Compact Format (for small changes)
+
+```
+CHANGES: 3 files (+85 -12)
+  [M] src/api/routes.py      +45 -12  !! hot path
+  [A] src/api/schemas.py     +20
+  [A] tests/test_routes.py   +20
+```
+
+
+### Decision Log Patterns
+
+# Decision Log Patterns
+
+ADR-lite format for documenting non-obvious choices in a plan.
+
+## When to Document a Decision
+
+Document when ANY of these apply:
+- Multiple valid approaches exist and one was chosen over others
+- The choice has a meaningful tradeoff (something is gained AND lost)
+- Future developers would ask "why was it done this way?"
+- The decision constrains future options
+
+Do NOT document:
+- Obvious choices ("we need a table for invoices")
+- Implementation details ("use for loop vs map")
+- Forced choices (only one option exists)
+
+## Standard Decision Entry
+
+```
+#1: Use graph-only memory instead of dual-write
+    Context:      Current system writes to 3 tiers (graph + .jsonl + mem0 cloud).
+                  Only graph tier is used by 98% of queries.
+    Decision:     Remove .jsonl and mem0 cloud tiers. Write only to graph + CC native.
+    Alternatives: [a] Keep mem0 as optional   -> still 14K lines of code to maintain
+                  [b] Abstract behind interface -> over-engineering for 2% usage
+    Tradeoff:     + 14K lines removed, 39 Python scripts gone, zero external deps
+                  - Lose cloud semantic search (affects cross-session pattern matching)
+    Confidence:   HIGH (usage data confirms <2% mem0 queries)
+```
+
+## Compact Decision Entry
+
+For plans with many small decisions:
+
+```
+DECISIONS
+
+#1  Graph-only memory (not dual-write)
+    + 14K lines removed  - lose cloud search  | Confidence: HIGH
+
+#2  Delete queue processor (not simplify)
+    + no background jobs  - no retry on write failure  | Confidence: HIGH
+
+#3  Keep decision-flow-tracker (not delete)
+    + behavioral intelligence preserved  - 200 lines to maintain  | Confidence: MEDIUM
+```
+
+## Decision with Alternatives Matrix
+
+When comparing 3+ options:
+
+```
+DECISION: Memory write strategy
+
++=================+===========+==========+========+==========+
+| Option          | Lines     | Ext Deps | Speed  | Coverage |
++=================+===========+==========+========+==========+
+| Graph-only  [X] | -14,100   | 0        | Fast   | 98%      |
+| Dual-write      | -0        | 1 (mem0) | Medium | 100%     |
+| Abstract layer  | +500      | 0        | Medium | 100%     |
++-----------------+-----------+----------+--------+----------+
+
+[X] = Selected option
+Rationale: 14K line reduction outweighs 2% coverage gap.
+           Cloud search can be re-added later if needed (additive change).
+```
+
+## Decision Chain (dependent decisions)
+
+When one decision forces subsequent decisions:
+
+```
+DECISION CHAIN
+
+#1  Remove mem0 cloud tier
+    |
+    +-> #2  Delete 39 Python scripts (no longer needed)
+    |
+    +-> #3  Delete queue processor (only existed for mem0 retry)
+    |
+    +-> #4  Simplify memory-writer.ts (remove 3-tier fallback)
+    |
+    +-> #5  Remove MEM0_API_KEY from CI/CD (no longer used)
+
+Root decision: #1
+Cascade: 4 follow-on decisions, all lower risk than root
+```
+
+## Reversible vs Irreversible Decisions
+
+Flag decisions by how hard they are to undo:
+
+```
+DECISION LOG
+
+#1  [REVERSIBLE]   Use PostgreSQL for billing data
+    Can migrate to another DB later. Schema is the contract, not the engine.
+
+#2  [REVERSIBLE]   REST over GraphQL for billing API
+    Can add GraphQL layer later without changing REST endpoints.
+
+#3  [IRREVERSIBLE] Store amounts in cents (integer) not dollars (float)
+    All downstream systems will depend on integer representation.
+    Changing later requires data migration across all consumers.
+```
+
+
+### Execution Swimlane Patterns
+
+# Execution Swimlane Patterns
+
+Temporal dependency diagrams showing parallel/sequential execution.
+
+## Symbol Convention
+
+```
+===  Active work (this lane is executing)
+---  Blocked / waiting for a dependency
+|    Dependency line (vertical)
++    Junction (dependency meets lane)
+>    Flow direction (lane endpoint)
+[N]  Phase reference number
+```
+
+## Basic Swimlane (2 lanes)
+
+```
+Backend  ===[1: Schema]==[2: API]========================[4: Deploy]===>
+                |            |                                ^
+                |            +--------blocks---------+        |
+                |                                    |        |
+Frontend ------[Wait]--------[3: Components]=========[5: Integrate]+
+
+=== Active   --- Waiting   | Dependency
+Critical path: 1 -> 2 -> 4 (backend-bound)
+```
+
+## Multi-Lane Swimlane (3+ lanes)
+
+```
+Database ===[1: Migrate]=====================================>
+                  |
+                  +---blocks---+---blocks---+
+                  |            |            |
+Backend  --------[Wait]------[2: API]=====[4: Deploy]=======>
+                               |               ^
+                               +--blocks--+    |
+                               |          |    |
+Frontend --------[Wait]------[Wait]-----[3: UI]==[5: Int.]==>
+                                                      |
+Tests    --------[Wait]------[Wait]-----[Wait]---[6: E2E]===>
+
+=== Active   --- Waiting   | Dependency
+Critical path: 1 -> 2 -> 3 -> 5 (longest chain)
+Parallel opportunity: Backend deploy (4) can run alongside Frontend UI (3)
+```
+
+## Phase Detail Blocks
+
+Expand key phases with sub-steps:
+
+```
+Phase 2: API Endpoints [estimated: 2-3 hours]
++--------------------------------------------------+
+| 2a. Define Pydantic schemas (InvoiceCreate, etc.) |
+| 2b. Implement CRUD routes                         |
+| 2c. Add auth middleware to new routes              |
+| 2d. Write route tests                             |
++--------------------------------------------------+
+  Blocks: Phase 3 (UI needs API contract)
+  Blocked by: Phase 1 (needs DB tables)
+```
+
+## With Time Estimates
+
+```
+Timeline (estimated):
+0h        1h        2h        3h        4h        5h        6h
+|---------|---------|---------|---------|---------|---------|
+Database  [##1##]
+Backend            [####2####]          [##4##]
+Frontend                      [####3####][##5##]
+Tests                                          [##6##]
+          ▲                                           ▲
+          Start                                       Done
+
+Estimated total: 6 hours (3.5h critical path + 2.5h parallel)
+Without parallelism: 9.5 hours
+Time saved by parallel execution: ~37%
+```
+
+## Dependency Graph (DAG style)
+
+For complex dependency chains, use a directed acyclic graph:
+
+```
+EXECUTION ORDER (DAG)
+
+    [1: Schema]
+        |
+    +---+---+
+    |       |
+[2: API] [3: Indexes]
+    |       |
+    +---+---+
+        |
+    [4: Deploy API]
+        |
+    +---+---+
+    |       |
+[5: UI]  [6: Cache]
+    |       |
+    +---+---+
+        |
+    [7: Integration]
+        |
+    [8: E2E Tests]
+
+Parallelizable pairs: (2,3), (5,6)
+Serial bottleneck: 4 (both UI and cache depend on API deploy)
+```
+
+## Conditional Execution
+
+When phases have success/failure branches:
+
+```
+[1: Migrate] --success--> [2: API] --success--> [3: Deploy]
+      |                      |
+      +--failure-->          +--failure-->
+      |                      |
+[1R: Rollback DB]      [2R: Revert API]
+      |                      |
+      +-----> [ABORT] <------+
+```
+
+
+### Risk Dashboard Patterns
+
+# Risk Dashboard Patterns
+
+Reversibility timelines and pre-mortem scenarios.
+
+## Reversibility Timeline
+
+Shows each phase's undo capability. The point of no return is the most important signal.
+
+### Standard Format
+
+```
+REVERSIBILITY TIMELINE
+
+Phase 1  [================]  FULLY REVERSIBLE    (add column, nullable)
+Phase 2  [================]  FULLY REVERSIBLE    (new endpoint, additive)
+Phase 3  [============....]  PARTIALLY           (backfill data, can truncate)
+              --- POINT OF NO RETURN ---
+Phase 4  [........????????]  IRREVERSIBLE        (drop old column, data lost)
+Phase 5  [================]  FULLY REVERSIBLE    (frontend toggle via flag)
+
+Recommendation: Add backup step before Phase 4
+```
+
+### Fill Pattern Legend
+
+```
+[================]  FULLY REVERSIBLE    — Can undo completely, no data loss
+[============....]  PARTIALLY           — Can undo, but some manual cleanup needed
+[========........]  DIFFICULT           — Requires backup restore or significant effort
+[....????????????]  IRREVERSIBLE        — Cannot undo, data permanently changed
+```
+
+### Compact Format (for simple plans)
+
+```
+Reversibility: Phase 1 [SAFE] -> Phase 2 [SAFE] -> Phase 3 [PARTIAL] -> Phase 4 [IRREVERSIBLE]
+                                                                          ^
+                                                               Point of no return
+```
+
+### With Rollback Instructions
+
+```
+REVERSIBILITY + ROLLBACK
+
+Phase 1: Add users.billing_address column
+  Reversibility: FULL
+  Rollback: ALTER TABLE users DROP COLUMN billing_address;
+  Time: <1 min  |  Data loss: NONE
+
+Phase 2: Deploy billing API endpoints
+  Reversibility: FULL
+  Rollback: Revert deployment to previous version
+  Time: ~3 min  |  Data loss: NONE
+
+Phase 3: Backfill billing_address from legacy table
+  Reversibility: PARTIAL
+  Rollback: UPDATE users SET billing_address = NULL WHERE ...;
+  Time: ~10 min  |  Data loss: backfilled data only
+
+Phase 4: Drop legacy_billing table
+  Reversibility: NONE
+  Rollback: Restore from backup (Phase 0 snapshot required)
+  Time: ~30 min  |  Data loss: ALL legacy billing if no backup
+```
+
+## Pre-Mortem Scenarios
+
+Frame risks as "what already went wrong" narratives. More memorable than probability tables.
+
+### Standard Format (3 scenarios)
+
+```
+PRE-MORTEM: This plan failed because...
+
+1. MOST LIKELY: Cache served stale prices after Stripe webhook
+   Probability: HIGH  |  Impact: HIGH
+   Mitigation: Add cache invalidation hook on webhook receipt
+   Rollback: Clear Redis cache (30s recovery)
+   Detection: Monitor cache hit rate, alert on stale-age > 60s
+
+2. MOST SEVERE: Migration ran on replica before primary
+   Probability: LOW  |  Impact: CRITICAL
+   Mitigation: Run migration with explicit --primary flag, verify replication lag
+   Rollback: Cannot cleanly roll back (need full backup restore)
+   Detection: Check pg_stat_replication before and after
+
+3. MOST SUBTLE: Frontend shows billing tab to free-tier users
+   Probability: MEDIUM  |  Impact: MEDIUM
+   Mitigation: Add feature flag check in BillingTab component
+   Rollback: Disable feature flag (instant)
+   Detection: QA checklist for each user tier
+```
+
+### Tabular Format (for quick scanning)
+
+```
+PRE-MORTEM RISK TABLE
++======================+========+==========+========================+=============+
+| Scenario             | Prob.  | Impact   | Mitigation             | Rollback    |
++======================+========+==========+========================+=============+
+| Stale cache after    | HIGH   | HIGH     | Cache invalidation     | Clear Redis |
+| webhook update       |        |          | on webhook receipt     | (30s)       |
++----------------------+--------+----------+------------------------+-------------+
+| Migration on replica | LOW    | CRITICAL | --primary flag +       | Full backup |
+| before primary       |        |          | check replication lag  | restore     |
++----------------------+--------+----------+------------------------+-------------+
+| Billing tab shown    | MEDIUM | MEDIUM   | Feature flag in        | Disable     |
+| to free-tier users   |        |          | BillingTab component   | flag (0s)   |
++----------------------+--------+----------+------------------------+-------------+
+```
+
+## Risk-Impact Quadrant
+
+For plans with many risk factors, use a 2x2 grid:
+
+```
+                     HIGH IMPACT
+                         |
+    MONITOR CLOSELY      |      ACT NOW
+                         |
+    * API versioning     |  * schema migration
+    * env config         |  * cache invalidation
+                         |
+   ──────────────────────+─────────────────── HIGH LIKELIHOOD
+                         |
+    ACCEPT               |      MITIGATE
+                         |
+    * docs update        |  * feature flag timing
+    * logging format     |  * DNS propagation
+                         |
+                     LOW IMPACT
+
+Priority: ACT NOW > MITIGATE > MONITOR > ACCEPT
+```
+
+## Cascading Failure Analysis
+
+For distributed systems, show how one failure propagates:
+
+```
+FAILURE CASCADE: Database connection pool exhausted
+
+[Pool exhausted] --> [API timeouts] --> [Frontend 504s] --> [User complaints]
+       |                   |                  |
+       v                   v                  v
+  Detection:          Detection:          Detection:
+  Connection          p95 latency         Error rate
+  count alert         > 5s alert          > 1% alert
+  (30s)               (2 min)             (5 min)
+
+Total detection time: 30s (if pool alert configured)
+Blast radius without alert: ~5 min until user-visible
+```
+

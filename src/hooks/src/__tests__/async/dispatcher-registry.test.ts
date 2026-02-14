@@ -82,6 +82,7 @@ describe('Dispatcher Registry Wiring', () => {
         'session-tracking',
         'memory-metrics-collector',
         'stale-team-cleanup',
+        'type-error-indexer',
       ]);
     });
   });
@@ -196,10 +197,10 @@ describe('Dispatcher Registry Wiring', () => {
         notificationHooks().length +
         setupHooks().length;
 
-      // posttool: 15, lifecycle: 5, stop: 24, subagent-stop: 4, notification: 2, setup: 1
+      // posttool: 15, lifecycle: 6, stop: 24, subagent-stop: 4, notification: 2, setup: 1
       // v7: removed graph-queue-sync from stop dispatcher (mem0 cloud removed)
-      // lifecycle: added stale-team-cleanup
-      expect(total).toBe(51);
+      // lifecycle: added stale-team-cleanup, type-error-indexer
+      expect(total).toBe(52);
     });
   });
 });

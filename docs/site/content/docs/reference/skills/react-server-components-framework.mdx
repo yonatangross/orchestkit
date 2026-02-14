@@ -381,3 +381,5440 @@ After mastering React Server Components:
 - How do I use async params and searchParams?
 - What replaced experimental_ppr?
 - How do I use the new caching APIs?
+
+---
+
+## Rules (5)
+
+### RSC: Cache Safety — CRITICAL
+
+
+## RSC: Cache Safety
+
+The `"use cache"` directive in Next.js 16 Cache Components generates cache keys from arguments, closures, and build ID. If user-specific data is fetched inside a cached function without a user-distinguishing key, the first user's response is served to every subsequent user. Runtime APIs (`cookies()`, `headers()`) cannot be called directly inside `"use cache"` blocks.
+
+**Incorrect — runtime API inside cache:**
+```tsx
+async function CachedDashboard() {
+  'use cache'
+  const token = cookies().get('token') // Error: cookies() cannot be used inside 'use cache'
+  const data = await fetchUserData(token)
+  return <Dashboard data={data} />
+}
+```
+
+**Correct — read runtime values outside, pass as arguments:**
+```tsx
+async function DashboardPage() {
+  const token = (await cookies()).get('token')?.value ?? ''
+  return <CachedDashboard token={token} />
+}
+
+async function CachedDashboard({ token }: { token: string }) {
+  'use cache'
+  // token is now part of the cache key — each user gets their own entry
+  const data = await fetchUserData(token)
+  return <Dashboard data={data} />
+}
+```
+
+**Incorrect — awaiting dynamic promises inside cache:**
+```tsx
+async function Cached({ promise }: { promise: Promise<unknown> }) {
+  'use cache'
+  const data = await promise // Causes build hang — promise is not serializable
+  return <div>{data}</div>
+}
+```
+
+**Correct — resolve outside, pass the value:**
+```tsx
+async function Parent() {
+  const value = await getDynamicValue()
+  return <Cached value={value} />
+}
+
+async function Cached({ value }: { value: string }) {
+  'use cache'
+  return <div>{value}</div>
+}
+```
+
+**Key rules:**
+- Never call `cookies()`, `headers()`, or read `searchParams` inside a `"use cache"` block — read them in a parent component and pass as serializable arguments.
+- Every argument passed to a cached function becomes part of the cache key. Include user-identifying values (userId, token) to prevent cross-user data leaks.
+- Do not `await` dynamic Promises inside `"use cache"` — resolve them outside and pass the result.
+- Nested `"use cache"` functions have isolated scopes; `React.cache` values from an outer function are not visible in an inner one. Cache at the appropriate level and compose via `children`.
+- Use `cacheTag()` with user-scoped tags (e.g., `user-$\{userId\}`) to enable targeted invalidation.
+
+Reference: `references/cache-components.md` (Constraints, Common Pitfalls)
+
+
+### RSC: Client Boundaries — CRITICAL
+
+
+## RSC: Client Boundaries
+
+The `'use client'` directive marks the boundary between Server and Client component trees. Every component imported by a Client Component becomes a Client Component too. Push `'use client'` to the smallest interactive leaf components to keep the server-rendered surface area as large as possible.
+
+**Incorrect:**
+```tsx
+// app/products/page.tsx
+'use client' // Entire page is now a client component
+
+import { useState, useEffect } from 'react'
+
+export default function ProductsPage() {
+  const [products, setProducts] = useState([])
+
+  useEffect(() => {
+    fetch('/api/products').then(r => r.json()).then(setProducts)
+  }, [])
+
+  return (
+    <div>
+      <h1>Products</h1>
+      <ProductFilters />
+      <ProductList products={products} />
+    </div>
+  )
+}
+```
+
+**Correct:**
+```tsx
+// app/products/page.tsx — Server Component (default, no directive)
+import { db } from '@/lib/database'
+import { ProductFilters } from '@/components/ProductFilters'
+
+export default async function ProductsPage() {
+  const products = await db.product.findMany()
+
+  return (
+    <div>
+      <h1>Products</h1>
+      <ProductFilters />             {/* Client Component — leaf */}
+      <ProductList products={products} /> {/* Server Component */}
+    </div>
+  )
+}
+
+// components/ProductFilters.tsx — only the interactive leaf is 'use client'
+'use client'
+
+import { useState } from 'react'
+
+export function ProductFilters() {
+  const [filter, setFilter] = useState('')
+  return (
+    <input
+      value={filter}
+      onChange={(e) => setFilter(e.target.value)}
+      placeholder="Filter..."
+    />
+  )
+}
+```
+
+**Key rules:**
+- Never add `'use client'` to page or layout files; extract interactive parts into dedicated leaf components.
+- Server Components can render Client Components, but Client Components **cannot** directly import Server Components — use the `children` prop pattern instead.
+- Pass Server Components into Client Components via `children` or render-prop slots so they stay server-rendered.
+- Every module imported by a `'use client'` file is pulled into the client bundle — keep imports minimal.
+
+Reference: `references/client-components.md` (Common Mistakes), `references/component-patterns.md` (Composition Rules)
+
+
+### RSC: Component Types — MEDIUM
+
+
+## RSC: Component Types
+
+React 19 deprecates `React.FC`. It previously added implicit `children` to all component props, which caused incorrect type-checking. Use function declarations (preferred) or typed arrow functions with explicit `React.ReactNode` return types.
+
+**Incorrect:**
+```tsx
+'use client'
+
+import React from 'react'
+
+// DEPRECATED: React.FC adds implicit children and is removed from React 19 best practices
+export const Button: React.FC<ButtonProps> = ({ children, onClick }) => {
+  return <button onClick={onClick}>{children}</button>
+}
+
+// Also problematic: no return type annotation
+export const Card = ({ title, body }: CardProps) => {
+  return (
+    <div>
+      <h2>{title}</h2>
+      <p>{body}</p>
+    </div>
+  )
+}
+```
+
+**Correct:**
+```tsx
+'use client'
+
+// PREFERRED: Function declaration with explicit return type
+export function Button({ children, onClick }: ButtonProps): React.ReactNode {
+  return <button onClick={onClick}>{children}</button>
+}
+
+// ALSO VALID: Arrow function without React.FC, with explicit return type
+export const Card = ({ title, body }: CardProps): React.ReactNode => {
+  return (
+    <div>
+      <h2>{title}</h2>
+      <p>{body}</p>
+    </div>
+  )
+}
+```
+
+**React 19 ref handling:**
+```tsx
+'use client'
+
+// React 19: ref is a regular prop — no forwardRef needed
+interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  ref?: React.Ref<HTMLInputElement>
+}
+
+export function Input({ ref, ...props }: InputProps): React.ReactNode {
+  return <input ref={ref} {...props} />
+}
+
+// Usage
+const inputRef = useRef<HTMLInputElement>(null)
+<Input ref={inputRef} placeholder="Enter text..." />
+```
+
+**Key rules:**
+- Use function declarations for components; they are hoisted and consistently identifiable in stack traces.
+- Always annotate the return type as `React.ReactNode` for clarity and type safety.
+- Do not use `React.FC` or `React.FunctionComponent` in React 19 projects.
+- In React 19, pass `ref` as a regular prop — `forwardRef` is no longer required.
+
+Reference: `references/client-components.md` (React 19 Component Patterns, Ref as Prop)
+
+
+### RSC: Hydration — HIGH
+
+
+## RSC: Hydration
+
+Hydration attaches event listeners to server-rendered HTML. If the client render produces different output than the server render, React throws a hydration mismatch warning and falls back to client-side rendering. Common causes: accessing browser APIs during render, using non-deterministic values (`Date.now()`, `Math.random()`), and conditional rendering based on client-only state.
+
+**Incorrect — non-deterministic value in render:**
+```tsx
+'use client'
+
+function TimestampBadge() {
+  // Server renders one value, client renders another → mismatch
+  return <span>{Date.now()}</span>
+}
+```
+
+**Correct — defer to useEffect:**
+```tsx
+'use client'
+
+import { useState, useEffect } from 'react'
+
+function TimestampBadge() {
+  const [time, setTime] = useState<number | null>(null)
+
+  useEffect(() => {
+    setTime(Date.now())
+  }, [])
+
+  return <span>{time ?? 'Loading...'}</span>
+}
+```
+
+**Incorrect — browser API access during render:**
+```tsx
+'use client'
+
+function ScreenWidth() {
+  // window is undefined on the server → crash or mismatch
+  const width = window.innerWidth
+  return <p>Width: {width}px</p>
+}
+```
+
+**Correct — browser API in useEffect with state:**
+```tsx
+'use client'
+
+import { useState, useEffect } from 'react'
+
+function ScreenWidth() {
+  const [width, setWidth] = useState(0)
+
+  useEffect(() => {
+    const handleResize = () => setWidth(window.innerWidth)
+    handleResize()
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  return <p>Width: {width}px</p>
+}
+```
+
+**Key rules:**
+- Never access `window`, `document`, `navigator`, `localStorage`, or other browser APIs during render — always use `useEffect`.
+- Avoid non-deterministic expressions (`Date.now()`, `Math.random()`, `crypto.randomUUID()`) in JSX — initialize as `null` and set in `useEffect`.
+- Use `suppressHydrationWarning` only for intentional, harmless mismatches — never to silence bugs.
+- For components that depend entirely on browser APIs, use a `ClientOnly` wrapper (mount guard via `useEffect`) or `next/dynamic` with `ssr: false`.
+
+Reference: `references/client-components.md` (Avoiding Hydration Mismatches, Client-Only Rendering)
+
+
+### RSC: Serialization — CRITICAL
+
+
+## RSC: Serialization
+
+Only serializable data can cross the Server-to-Client Component boundary. React must serialize props into the RSC payload sent over the wire. Passing non-serializable values causes build or runtime errors.
+
+**Incorrect:**
+```tsx
+// app/dashboard/page.tsx — Server Component
+export default async function Dashboard() {
+  const data = await getData()
+  return (
+    <ClientCard
+      item={data}
+      onClick={() => console.log('clicked')} // Functions cannot be serialized
+      formatter={new Intl.NumberFormat('en-US')} // Class instances cannot be serialized
+      icon={Symbol('star')} // Symbols cannot be serialized
+    />
+  )
+}
+```
+
+**Correct:**
+```tsx
+// app/dashboard/page.tsx — Server Component
+import { handleClick } from '@/app/actions' // Server Action
+
+export default async function Dashboard() {
+  const data = await getData()
+  return (
+    <ClientCard
+      item={{ id: data.id, name: data.name, price: data.price }} // Plain object
+      tags={['featured', 'sale']}  // Array of primitives
+      isActive={true}              // Boolean
+      onAction={handleClick}       // Server Actions ARE serializable
+    />
+  )
+}
+
+// components/ClientCard.tsx
+'use client'
+
+export function ClientCard({ item, tags, isActive, onAction }: ClientCardProps) {
+  const handleLocalClick = () => onAction(item.id) // Call server action
+
+  return (
+    <div onClick={handleLocalClick}>
+      <h2>{item.name}</h2>
+      <p>{isActive ? 'Active' : 'Inactive'}</p>
+    </div>
+  )
+}
+```
+
+**Serializable types** (safe to pass as props):
+- Primitives: `string`, `number`, `bigint`, `boolean`, `null`, `undefined`
+- Plain objects and arrays containing serializable values
+- Server Actions (functions defined with `'use server'`)
+- `Date`, `Map`, `Set`, `TypedArray`, `ArrayBuffer`
+
+**Non-serializable types** (will error at the boundary):
+- Regular functions and closures
+- Class instances (`new Intl.NumberFormat()`, `new URL()`, custom classes)
+- Symbols, `WeakMap`, `WeakSet`
+
+**Key rules:**
+- Define event handlers (`onClick`, `onChange`) inside the Client Component, not in the Server Component.
+- Use Server Actions (`'use server'`) when you need to pass callable behavior from server to client.
+- Convert class instances to plain objects before passing: `\{ url: myUrl.toString() \}` instead of `myUrl`.
+- When in doubt, check if `JSON.stringify(prop)` would succeed — that is a reasonable (though not exact) heuristic.
+
+Reference: `references/component-patterns.md` (Serializable Props Only)
+
+
+
+---
+
+## References (12)
+
+### Cache Components
+
+# Cache Components Reference
+
+Cache Components is the unified caching architecture in Next.js 16 that replaces `experimental_ppr` with a declarative, component-level caching model using the `"use cache"` directive.
+
+## Overview
+
+Cache Components enables:
+- **Declarative caching**: Mark functions and components as cacheable with `"use cache"`
+- **Fine-grained control**: Set cache lifetimes with `cacheLife()`
+- **On-demand invalidation**: Tag and invalidate cache entries with `cacheTag()` and `revalidateTag()`
+- **PPR by default**: Partial Prerendering is the default rendering approach
+
+## Configuration
+
+Enable Cache Components in `next.config.ts`:
+
+```ts
+// next.config.ts
+import type { NextConfig } from 'next'
+
+const nextConfig: NextConfig = {
+  cacheComponents: true,
+}
+
+export default nextConfig
+```
+
+---
+
+## The "use cache" Directive
+
+The `"use cache"` directive marks routes, components, or functions as cacheable.
+
+### File Level
+
+```tsx
+// app/products/page.tsx
+'use cache'
+
+export default async function ProductsPage() {
+  const products = await db.product.findMany()
+  return <ProductList products={products} />
+}
+```
+
+### Component Level
+
+```tsx
+async function CachedSidebar() {
+  'use cache'
+  const categories = await getCategories()
+  return <Sidebar categories={categories} />
+}
+```
+
+### Function Level
+
+```tsx
+async function getProducts() {
+  'use cache'
+  const res = await fetch('/api/products')
+  return res.json()
+}
+```
+
+---
+
+## Cache Key Generation
+
+Cache keys are automatically generated from:
+
+1. **Build ID**: Unique per deployment
+2. **Function ID**: Hash of function location and signature
+3. **Serializable arguments**: Props or function arguments
+4. **Closure values**: Variables captured from outer scope
+
+```tsx
+async function UserProducts({ userId }: { userId: string }) {
+  const getProducts = async (category: string) => {
+    'use cache'
+    // Cache key includes:
+    // - userId (closure)
+    // - category (argument)
+    return fetch(`/api/users/${userId}/products?cat=${category}`)
+  }
+
+  return getProducts('electronics')
+}
+```
+
+---
+
+## cacheLife() - Cache Duration Control
+
+Control how long cached values remain valid.
+
+### Built-in Profiles
+
+```tsx
+import { cacheLife } from 'next/cache'
+
+async function getData() {
+  'use cache'
+  cacheLife('hours') // Built-in profile
+  return fetch('/api/data')
+}
+```
+
+| Profile | stale | revalidate | expire |
+|---------|-------|------------|--------|
+| `'seconds'` | 0 | 1s | 60s |
+| `'minutes'` | 5m | 1m | 1h |
+| `'hours'` | 5m | 1h | 1d |
+| `'days'` | 5m | 1d | 1w |
+| `'weeks'` | 5m | 1w | 1mo |
+| `'max'` | 5m | 1mo | indefinite |
+
+### Custom Profiles (next.config.ts)
+
+```ts
+// next.config.ts
+import type { NextConfig } from 'next'
+
+const nextConfig: NextConfig = {
+  cacheComponents: true,
+  cacheLife: {
+    blog: {
+      stale: 3600,      // 1 hour client-side cache
+      revalidate: 900,  // 15 min server revalidation
+      expire: 86400,    // 1 day max age
+    },
+    products: {
+      stale: 300,       // 5 minutes
+      revalidate: 60,   // 1 minute
+      expire: 3600,     // 1 hour
+    },
+  },
+}
+
+export default nextConfig
+```
+
+```tsx
+// app/blog/page.tsx
+import { cacheLife } from 'next/cache'
+
+export default async function BlogPage() {
+  'use cache'
+  cacheLife('blog') // Use custom profile
+  // ...
+}
+```
+
+### Inline Configuration
+
+```tsx
+import { cacheLife } from 'next/cache'
+
+async function getAnalytics() {
+  'use cache'
+  cacheLife({
+    stale: 3600,      // 1 hour until considered stale
+    revalidate: 7200, // 2 hours until revalidated
+    expire: 86400,    // 1 day until expired
+  })
+  return fetch('/api/analytics')
+}
+```
+
+### Cache Timing Properties
+
+| Property | Description |
+|----------|-------------|
+| `stale` | Duration client caches without checking server |
+| `revalidate` | Frequency server refreshes cache (serves stale during revalidation) |
+| `expire` | Maximum duration before switching to dynamic (must be > revalidate) |
+
+---
+
+## cacheTag() - Cache Tagging and Invalidation
+
+Tag cached data for on-demand invalidation.
+
+### Tagging Cache Entries
+
+```tsx
+// app/data.ts
+import { cacheTag } from 'next/cache'
+
+async function getProducts() {
+  'use cache'
+  cacheTag('products')
+  return fetch('/api/products')
+}
+
+async function getProduct(id: string) {
+  'use cache'
+  cacheTag('products', `product-${id}`) // Multiple tags
+  return fetch(`/api/products/${id}`)
+}
+```
+
+### Invalidating by Tag
+
+```tsx
+// app/actions.ts
+'use server'
+
+import { revalidateTag } from 'next/cache'
+
+export async function updateProduct(id: string, data: ProductData) {
+  await db.product.update({ where: { id }, data })
+
+  revalidateTag('products')        // Invalidate all products
+  revalidateTag(`product-${id}`)   // Invalidate specific product
+}
+```
+
+### Immediate vs Stale-While-Revalidate
+
+```tsx
+import { updateTag, revalidateTag } from 'next/cache'
+
+// Immediate update - cache cleared, next request fetches fresh
+updateTag('cart')
+
+// Stale-while-revalidate - serves stale, revalidates in background
+revalidateTag('posts')
+```
+
+---
+
+## Before and After: Next.js 15 vs 16
+
+### Static Page
+
+```tsx
+// BEFORE (Next.js 15) - Route segment config
+export const dynamic = 'force-static'
+export const revalidate = 3600
+
+export default async function Page() {
+  const data = await fetch('/api/data')
+  return <div>{data}</div>
+}
+
+// AFTER (Next.js 16) - use cache directive
+import { cacheLife } from 'next/cache'
+
+export default async function Page() {
+  'use cache'
+  cacheLife('hours')
+  const data = await fetch('/api/data')
+  return <div>{data}</div>
+}
+```
+
+### ISR (Incremental Static Regeneration)
+
+```tsx
+// BEFORE (Next.js 15) - fetch options
+async function getProducts() {
+  const res = await fetch('/api/products', {
+    next: { revalidate: 3600, tags: ['products'] }
+  })
+  return res.json()
+}
+
+// AFTER (Next.js 16) - use cache + cacheLife + cacheTag
+import { cacheLife, cacheTag } from 'next/cache'
+
+async function getProducts() {
+  'use cache'
+  cacheLife('hours')
+  cacheTag('products')
+  const res = await fetch('/api/products')
+  return res.json()
+}
+```
+
+### Partial Prerendering
+
+```tsx
+// BEFORE (Next.js 15) - experimental_ppr
+export const experimental_ppr = true
+
+export default function Page() {
+  return (
+    <div>
+      <Header /> {/* Static */}
+      <Suspense fallback={<Skeleton />}>
+        <DynamicContent /> {/* Dynamic */}
+      </Suspense>
+    </div>
+  )
+}
+
+// AFTER (Next.js 16) - PPR is default with cacheComponents
+// No config needed - PPR is automatic
+export default function Page() {
+  return (
+    <div>
+      <Header /> {/* Automatically prerendered */}
+      <Suspense fallback={<Skeleton />}>
+        <DynamicContent /> {/* Streams at request time */}
+      </Suspense>
+    </div>
+  )
+}
+```
+
+### Tagged Revalidation
+
+```tsx
+// BEFORE (Next.js 15)
+await fetch('/api/data', { next: { tags: ['my-tag'] } })
+
+// Server Action
+import { revalidateTag } from 'next/cache'
+revalidateTag('my-tag')
+
+// AFTER (Next.js 16) - cacheTag inside use cache
+import { cacheTag } from 'next/cache'
+
+async function getData() {
+  'use cache'
+  cacheTag('my-tag')
+  return fetch('/api/data')
+}
+
+// Server Action (same API)
+import { revalidateTag } from 'next/cache'
+revalidateTag('my-tag')
+```
+
+---
+
+## Integration with PPR
+
+With Cache Components, Partial Prerendering is the default. Content is categorized as:
+
+1. **Automatically prerendered**: Components without network/runtime dependencies
+2. **Cached with `use cache`**: Components with external data, included in static shell
+3. **Deferred with Suspense**: Runtime-dependent content, streams at request time
+
+### Complete Example
+
+```tsx
+// app/blog/page.tsx
+import { Suspense } from 'react'
+import { cookies } from 'next/headers'
+import { cacheLife, cacheTag } from 'next/cache'
+
+export default function BlogPage() {
+  return (
+    <>
+      {/* Static - automatically prerendered */}
+      <Header />
+      <Navigation />
+
+      {/* Cached - included in static shell */}
+      <BlogPosts />
+
+      {/* Dynamic - streams at request time */}
+      <Suspense fallback={<PreferencesSkeleton />}>
+        <UserPreferences />
+      </Suspense>
+    </>
+  )
+}
+
+// Cached: Shared by all users, revalidates hourly
+async function BlogPosts() {
+  'use cache'
+  cacheLife('hours')
+  cacheTag('posts')
+
+  const posts = await db.post.findMany({
+    orderBy: { createdAt: 'desc' },
+    take: 10,
+  })
+
+  return (
+    <section>
+      {posts.map(post => (
+        <article key={post.id}>
+          <h2>{post.title}</h2>
+          <p>{post.excerpt}</p>
+        </article>
+      ))}
+    </section>
+  )
+}
+
+// Dynamic: Personalized per user
+async function UserPreferences() {
+  const theme = (await cookies()).get('theme')?.value || 'light'
+  const bookmarks = (await cookies()).get('bookmarks')?.value
+
+  return (
+    <aside className={`theme-${theme}`}>
+      <h3>Your Bookmarks</h3>
+      {bookmarks ? <BookmarkList ids={bookmarks} /> : <p>No bookmarks yet</p>}
+    </aside>
+  )
+}
+```
+
+---
+
+## Serialization Rules
+
+### Supported Types (Arguments)
+
+- Primitives: `string`, `number`, `boolean`, `null`, `undefined`
+- Plain objects: `\{ key: value \}`
+- Arrays: `[1, 2, 3]`
+- `Date`, `Map`, `Set`, `TypedArray`, `ArrayBuffer`
+- React elements (pass-through only)
+
+### Unsupported Types
+
+- Class instances
+- Functions (except pass-through)
+- Symbols, `WeakMap`, `WeakSet`
+- `URL` instances
+
+### Pass-Through Pattern
+
+For non-serializable values like functions or React elements, pass them through without reading:
+
+```tsx
+async function CachedLayout({
+  children,
+  action
+}: {
+  children: React.ReactNode
+  action: () => Promise<void>
+}) {
+  'use cache'
+
+  // DO NOT call action() or read children
+  // Just pass them through
+  return (
+    <div className="layout">
+      <CachedHeader />
+      {children}
+      <form action={action}>
+        <button type="submit">Submit</button>
+      </form>
+    </div>
+  )
+}
+```
+
+---
+
+## Constraints
+
+### Runtime APIs
+
+Cannot directly access `cookies()`, `headers()`, or `searchParams` inside `use cache`. Read outside and pass as arguments:
+
+```tsx
+// WRONG
+async function CachedComponent() {
+  'use cache'
+  const token = cookies().get('token') // Error!
+}
+
+// CORRECT
+async function Parent() {
+  const token = (await cookies()).get('token')?.value
+  return <CachedComponent token={token} />
+}
+
+async function CachedComponent({ token }: { token: string }) {
+  'use cache'
+  // token is now part of cache key
+  return <div>...</div>
+}
+```
+
+### React.cache Isolation
+
+Values from `React.cache` outside `use cache` are not visible inside:
+
+```tsx
+import { cache } from 'react'
+
+const store = cache(() => ({ value: null as string | null }))
+
+function Parent() {
+  store().value = 'from parent'
+  return <Child />
+}
+
+async function Child() {
+  'use cache'
+  // store().value is null - isolated scope
+  return <div>{store().value}</div>
+}
+```
+
+---
+
+## Migration Checklist
+
+| Old Pattern | New Pattern |
+|-------------|-------------|
+| `export const dynamic = 'force-static'` | `'use cache'` + `cacheLife('max')` |
+| `export const dynamic = 'force-dynamic'` | Remove (default behavior) |
+| `export const revalidate = 3600` | `cacheLife('hours')` or custom profile |
+| `export const experimental_ppr = true` | Remove (PPR is default) |
+| `fetch(..., \{ next: \{ revalidate \} \})` | `'use cache'` + `cacheLife()` |
+| `fetch(..., \{ next: \{ tags \} \})` | `'use cache'` + `cacheTag()` |
+| `export const fetchCache = '...'` | Remove (automatic with `use cache`) |
+
+---
+
+## Best Practices
+
+### 1. Cache at the Right Level
+
+```tsx
+// Cache the data-fetching component, not the entire page
+export default function Page() {
+  return (
+    <div>
+      <StaticHeader />
+      <CachedProductList /> {/* Cache here */}
+      <Suspense fallback={<CartSkeleton />}>
+        <DynamicCart /> {/* Runtime */}
+      </Suspense>
+    </div>
+  )
+}
+
+async function CachedProductList() {
+  'use cache'
+  cacheLife('hours')
+  const products = await getProducts()
+  return <ProductGrid products={products} />
+}
+```
+
+### 2. Use Appropriate Cache Profiles
+
+```tsx
+// Frequently changing data
+cacheLife('seconds')  // API status, live scores
+
+// Moderately changing data
+cacheLife('minutes')  // Social feeds, news
+
+// Slowly changing data
+cacheLife('hours')    // Product catalogs, blog posts
+
+// Rarely changing data
+cacheLife('days')     // Documentation, legal pages
+
+// Almost never changing
+cacheLife('max')      // Static assets, archived content
+```
+
+### 3. Tag Strategically
+
+```tsx
+async function getProduct(id: string) {
+  'use cache'
+  cacheTag('products', `product-${id}`, `category-${product.categoryId}`)
+  // Enables invalidation at multiple granularities
+}
+
+// Invalidate all products
+revalidateTag('products')
+
+// Invalidate one product
+revalidateTag('product-123')
+
+// Invalidate by category
+revalidateTag('category-electronics')
+```
+
+### 4. Combine with Suspense for Mixed Content
+
+```tsx
+export default function Dashboard() {
+  return (
+    <>
+      {/* Static shell */}
+      <DashboardLayout>
+        {/* Cached shared data */}
+        <CachedMetrics />
+
+        {/* User-specific, streams in */}
+        <Suspense fallback={<NotificationsSkeleton />}>
+          <UserNotifications />
+        </Suspense>
+
+        {/* Real-time, streams in */}
+        <Suspense fallback={<ActivitySkeleton />}>
+          <LiveActivity />
+        </Suspense>
+      </DashboardLayout>
+    </>
+  )
+}
+```
+
+---
+
+## Debugging
+
+Enable verbose cache logging:
+
+```bash
+NEXT_PRIVATE_DEBUG_CACHE=1 npm run dev
+# or
+NEXT_PRIVATE_DEBUG_CACHE=1 npm run start
+```
+
+In development, cached function console logs appear with `[Cache]` prefix.
+
+---
+
+## Platform Support
+
+| Platform | Supported |
+|----------|-----------|
+| Node.js server | Yes |
+| Docker container | Yes |
+| Static export | No |
+| Edge runtime | No |
+| Vercel | Yes |
+| Self-hosted | Yes |
+
+---
+
+## Common Pitfalls
+
+### Build Hangs with Dynamic Promises
+
+```tsx
+// WRONG - Causes build hang
+async function Cached({ promise }: { promise: Promise<unknown> }) {
+  'use cache'
+  const data = await promise // Waits forever during build
+}
+
+// CORRECT - Resolve outside, pass value
+async function Parent() {
+  const value = await getDynamicValue()
+  return <Cached value={value} />
+}
+
+async function Cached({ value }: { value: string }) {
+  'use cache'
+  return <div>{value}</div>
+}
+```
+
+### Mixing Cache Levels
+
+```tsx
+// WRONG - Nested use cache doesn't work as expected
+async function Outer() {
+  'use cache'
+  return <Inner /> // Inner's cache is separate
+}
+
+async function Inner() {
+  'use cache'
+  // This has its own cache entry
+}
+
+// CORRECT - Cache at the appropriate level
+async function Page() {
+  return (
+    <OuterCached>
+      <InnerCached />
+    </OuterCached>
+  )
+}
+```
+
+---
+
+## Summary
+
+| Feature | Purpose |
+|---------|---------|
+| `cacheComponents: true` | Enable Cache Components |
+| `'use cache'` | Mark as cacheable |
+| `cacheLife()` | Control cache duration |
+| `cacheTag()` | Tag for invalidation |
+| `revalidateTag()` | Invalidate by tag (stale-while-revalidate) |
+| `updateTag()` | Invalidate by tag (immediate) |
+
+Cache Components provides a declarative, component-level caching model that makes it easy to build fast, dynamic applications with fine-grained control over what gets cached and when.
+
+
+### Client Components
+
+# Client Components Reference
+
+Client Components enable interactivity, browser APIs, and React hooks in Next.js App Router applications.
+
+## When to Use Client Components
+
+Use Client Components when you need:
+- **Interactivity**: Click handlers, form inputs, state changes
+- **React Hooks**: `useState`, `useEffect`, `useContext`, `useReducer`
+- **Browser APIs**: `localStorage`, `window`, `navigator`, `IntersectionObserver`
+- **Event Listeners**: Mouse, keyboard, scroll, resize events
+- **Third-Party Libraries**: Many UI libraries require client-side rendering
+
+## The 'use client' Directive
+
+```tsx
+'use client'  // Must be at the top of the file, before any imports
+
+import { useState } from 'react'
+
+export function Counter() {
+  const [count, setCount] = useState(0)
+
+  return (
+    <button onClick={() => setCount(count + 1)}>
+      Count: {count}
+    </button>
+  )
+}
+```
+
+**Important**: The `'use client'` directive marks the **boundary** between Server and Client. All components imported by a Client Component are also treated as Client Components.
+
+## Client Component Characteristics
+
+- Ships JavaScript to the client
+- Can use all React hooks
+- Can access browser APIs
+- Cannot be `async` (no await at component level)
+- Cannot directly import Server Components
+- Hydrated on the client after initial HTML render
+
+## React 19 Component Patterns
+
+### Function Declarations (Recommended)
+
+```tsx
+'use client'
+
+// RECOMMENDED: Function declaration
+export function Button({ children, onClick }: ButtonProps): React.ReactNode {
+  return <button onClick={onClick}>{children}</button>
+}
+
+// ALSO VALID: Arrow function without React.FC
+export const Button = ({ children, onClick }: ButtonProps): React.ReactNode => {
+  return <button onClick={onClick}>{children}</button>
+}
+
+// DEPRECATED: React.FC (don't use in React 19)
+// export const Button: React.FC<ButtonProps> = ...
+```
+
+### Ref as Prop (React 19)
+
+```tsx
+'use client'
+
+// React 19: ref is a regular prop
+interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  ref?: React.Ref<HTMLInputElement>
+}
+
+export function Input({ ref, ...props }: InputProps): React.ReactNode {
+  return <input ref={ref} {...props} />
+}
+
+// Usage
+function Form() {
+  const inputRef = useRef<HTMLInputElement>(null)
+  return <Input ref={inputRef} placeholder="Enter text..." />
+}
+```
+
+## Interactivity Patterns
+
+### State Management
+
+```tsx
+'use client'
+
+import { useState, useCallback } from 'react'
+
+export function TodoList({ initialTodos }: { initialTodos: Todo[] }) {
+  const [todos, setTodos] = useState(initialTodos)
+  const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('all')
+
+  const filteredTodos = todos.filter(todo => {
+    if (filter === 'active') return !todo.completed
+    if (filter === 'completed') return todo.completed
+    return true
+  })
+
+  const toggleTodo = useCallback((id: string) => {
+    setTodos(prev =>
+      prev.map(todo =>
+        todo.id === id ? { ...todo, completed: !todo.completed } : todo
+      )
+    )
+  }, [])
+
+  return (
+    <div>
+      <FilterButtons filter={filter} onFilterChange={setFilter} />
+      <ul>
+        {filteredTodos.map(todo => (
+          <TodoItem key={todo.id} todo={todo} onToggle={toggleTodo} />
+        ))}
+      </ul>
+    </div>
+  )
+}
+```
+
+### Form Handling with useActionState
+
+```tsx
+'use client'
+
+import { useActionState } from 'react'
+import { submitContact } from './actions'
+
+interface FormState {
+  message: string
+  success: boolean
+}
+
+export function ContactForm(): React.ReactNode {
+  const [state, formAction, isPending] = useActionState(submitContact, {
+    message: '',
+    success: false
+  })
+
+  return (
+    <form action={formAction}>
+      <input name="email" type="email" disabled={isPending} required />
+      <textarea name="message" disabled={isPending} required />
+      <button type="submit" disabled={isPending}>
+        {isPending ? 'Sending...' : 'Send'}
+      </button>
+      {state.message && (
+        <p className={state.success ? 'text-green-600' : 'text-red-600'}>
+          {state.message}
+        </p>
+      )}
+    </form>
+  )
+}
+```
+
+### useFormStatus for Submit Buttons
+
+```tsx
+'use client'
+
+import { useFormStatus } from 'react-dom'
+
+export function SubmitButton({ children }: { children: React.ReactNode }): React.ReactNode {
+  const { pending } = useFormStatus()
+
+  return (
+    <button type="submit" disabled={pending} aria-busy={pending}>
+      {pending ? 'Submitting...' : children}
+    </button>
+  )
+}
+```
+
+## Hydration
+
+Hydration is the process where React attaches event listeners and makes the server-rendered HTML interactive.
+
+### Hydration Timeline
+
+1. Server renders HTML
+2. HTML sent to browser (user sees content)
+3. JavaScript bundle loads
+4. React hydrates the HTML (attaches event handlers)
+5. Page becomes interactive
+
+### Avoiding Hydration Mismatches
+
+```tsx
+'use client'
+
+import { useState, useEffect } from 'react'
+
+// PROBLEM: Different output on server vs client
+function BadComponent() {
+  return <span>{Date.now()}</span> // Hydration mismatch!
+}
+
+// SOLUTION: Use useEffect for client-only values
+function GoodComponent() {
+  const [time, setTime] = useState<number | null>(null)
+
+  useEffect(() => {
+    setTime(Date.now())
+  }, [])
+
+  return <span>{time ?? 'Loading...'}</span>
+}
+
+// ALTERNATIVE: Suppress hydration warning for intentional mismatches
+function TimeComponent() {
+  return <span suppressHydrationWarning>{Date.now()}</span>
+}
+```
+
+### Client-Only Rendering
+
+```tsx
+'use client'
+
+import { useState, useEffect } from 'react'
+
+export function ClientOnly({ children }: { children: React.ReactNode }) {
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) return null
+
+  return <>{children}</>
+}
+
+// Usage
+function App() {
+  return (
+    <ClientOnly>
+      <LocalStorageViewer />
+    </ClientOnly>
+  )
+}
+```
+
+## Browser API Usage
+
+```tsx
+'use client'
+
+import { useState, useEffect } from 'react'
+
+export function WindowSize() {
+  const [size, setSize] = useState({ width: 0, height: 0 })
+
+  useEffect(() => {
+    const handleResize = () => {
+      setSize({
+        width: window.innerWidth,
+        height: window.innerHeight
+      })
+    }
+
+    // Set initial size
+    handleResize()
+
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  return (
+    <p>
+      Window: {size.width} x {size.height}
+    </p>
+  )
+}
+```
+
+## Composition with Server Components
+
+### Children Pattern
+
+```tsx
+// ClientWrapper.tsx (Client Component)
+'use client'
+
+import { useState } from 'react'
+
+export function Accordion({ children, title }: { children: React.ReactNode; title: string }) {
+  const [isOpen, setIsOpen] = useState(false)
+
+  return (
+    <div>
+      <button onClick={() => setIsOpen(!isOpen)}>{title}</button>
+      {isOpen && <div>{children}</div>}
+    </div>
+  )
+}
+
+// Page.tsx (Server Component)
+import { Accordion } from './ClientWrapper'
+
+export default async function Page() {
+  const content = await getContent() // Server-side fetch
+
+  return (
+    <Accordion title="View Details">
+      {/* Server Component rendered as children */}
+      <ServerRenderedContent data={content} />
+    </Accordion>
+  )
+}
+```
+
+## Performance Considerations
+
+1. **Keep Client Components small**: Extract only interactive parts
+2. **Lift state up minimally**: Don't make entire pages client components
+3. **Use Server Components for data**: Fetch data in Server Components, pass to Client
+4. **Lazy load heavy components**: Use `dynamic()` for code splitting
+
+```tsx
+import dynamic from 'next/dynamic'
+
+// Lazy load heavy chart library
+const Chart = dynamic(() => import('./Chart'), {
+  loading: () => <ChartSkeleton />,
+  ssr: false  // Client-only rendering
+})
+```
+
+## Common Mistakes
+
+### Making Entire Pages Client Components
+
+```tsx
+// BAD: Entire page is client
+'use client'
+export default function ProductsPage() {
+  const [products, setProducts] = useState([])
+  useEffect(() => { /* fetch */ }, [])
+  return <ProductList products={products} />
+}
+
+// GOOD: Only interactive part is client
+// ProductsPage.tsx (Server Component)
+export default async function ProductsPage() {
+  const products = await getProducts()
+  return (
+    <div>
+      <ProductFilters /> {/* Client Component */}
+      <ProductList products={products} /> {/* Server Component */}
+    </div>
+  )
+}
+```
+
+### Importing Server Components in Client Components
+
+```tsx
+// BAD: Can't import Server Component in Client
+'use client'
+import { ServerData } from './ServerData' // Error!
+
+export function ClientWrapper() {
+  return <ServerData />
+}
+
+// GOOD: Pass as children
+'use client'
+export function ClientWrapper({ children }: { children: React.ReactNode }) {
+  return <div className="wrapper">{children}</div>
+}
+
+// Usage in Server Component
+import { ClientWrapper } from './ClientWrapper'
+import { ServerData } from './ServerData'
+
+export default function Page() {
+  return (
+    <ClientWrapper>
+      <ServerData />
+    </ClientWrapper>
+  )
+}
+```
+
+### Component Patterns
+
+# React Server Components - Component Patterns
+
+## Server vs Client Component Boundaries
+
+### Component Boundary Rules
+
+1. **Server Components** (default):
+   - Can be `async` and use `await`
+   - Can access backend resources directly (databases, file system, environment variables)
+   - Cannot use hooks (`useState`, `useEffect`, `useContext`, etc.)
+   - Cannot use browser-only APIs
+   - Zero client JavaScript
+
+2. **Client Components** (with `'use client'`):
+   - Can use hooks and interactivity
+   - Can access browser APIs
+   - Cannot be `async`
+   - Ships JavaScript to the client
+   - Must be marked with `'use client'` directive at the top
+
+3. **Composition Rules**:
+   - Server Components can import and render Client Components
+   - Client Components **cannot** directly import Server Components
+   - Server Components can be passed to Client Components as `children` or props
+
+---
+
+## Server Component Patterns
+
+### Basic Server Component
+
+```tsx
+// app/products/page.tsx
+import { db } from '@/lib/database'
+
+export default async function ProductsPage() {
+  // Direct database access - runs on server only
+  const products = await db.product.findMany({
+    include: { category: true }
+  })
+
+  return (
+    <div>
+      <h1>Products</h1>
+      {products.map(product => (
+        <ProductCard key={product.id} product={product} />
+      ))}
+    </div>
+  )
+}
+```
+
+### Server Component with Environment Variables
+
+```tsx
+// app/dashboard/page.tsx
+export default async function Dashboard() {
+  // Safe - environment variables stay on server
+  const apiKey = process.env.SECRET_API_KEY
+
+  const data = await fetch(`https://api.example.com/data`, {
+    headers: { Authorization: `Bearer ${apiKey}` }
+  }).then(res => res.json())
+
+  return <DashboardView data={data} />
+}
+```
+
+---
+
+## Client Component Patterns
+
+### Basic Client Component
+
+```tsx
+// components/AddToCartButton.tsx
+'use client' // Required for interactivity
+
+import { useState } from 'react'
+
+export function AddToCartButton({ productId }: { productId: string }) {
+  const [count, setCount] = useState(1)
+  const [isAdding, setIsAdding] = useState(false)
+
+  const handleAdd = async () => {
+    setIsAdding(true)
+    await addToCart(productId, count)
+    setIsAdding(false)
+  }
+
+  return (
+    <div>
+      <input
+        type="number"
+        value={count}
+        onChange={(e) => setCount(parseInt(e.target.value))}
+      />
+      <button onClick={handleAdd} disabled={isAdding}>
+        {isAdding ? 'Adding...' : 'Add to Cart'}
+      </button>
+    </div>
+  )
+}
+```
+
+### Client Component with Context
+
+```tsx
+// components/ThemeProvider.tsx
+'use client'
+
+import { createContext, useContext, useState } from 'react'
+
+const ThemeContext = createContext<'light' | 'dark'>('light')
+
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const [theme, setTheme] = useState<'light' | 'dark'>('light')
+
+  return (
+    <ThemeContext.Provider value={theme}>
+      {children}
+    </ThemeContext.Provider>
+  )
+}
+
+export const useTheme = () => useContext(ThemeContext)
+```
+
+---
+
+## Composition Patterns
+
+### ✅ Good: Leaf Client Components
+
+Keep Client Components at the edges (leaves) of the component tree:
+
+```tsx
+// app/products/page.tsx (Server Component)
+import { db } from '@/lib/database'
+import { FilterableProductList } from '@/components/FilterableProductList'
+
+export default async function ProductsPage() {
+  const products = await db.product.findMany()
+
+  return (
+    <div>
+      <h1>Products</h1>
+      {/* Server Component passes data to Client Component */}
+      <FilterableProductList products={products} />
+    </div>
+  )
+}
+
+// components/FilterableProductList.tsx (Client Component)
+'use client'
+
+export function FilterableProductList({ products }: { products: Product[] }) {
+  const [filter, setFilter] = useState('')
+  const filtered = products.filter(p => p.name.includes(filter))
+
+  return (
+    <div>
+      <input
+        value={filter}
+        onChange={(e) => setFilter(e.target.value)}
+        placeholder="Filter products..."
+      />
+      <ProductList products={filtered} />
+    </div>
+  )
+}
+```
+
+### ✅ Good: Server Component as Children
+
+Pass Server Components to Client Components via `children` prop:
+
+```tsx
+// app/layout.tsx (Server Component)
+import { ThemeProvider } from '@/components/ThemeProvider'
+import { Header } from @/components/Header'
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html>
+      <body>
+        {/* Client Component wraps Server Components */}
+        <ThemeProvider>
+          <Header /> {/* This can be a Server Component */}
+          {children} {/* These are Server Components */}
+        </ThemeProvider>
+      </body>
+    </html>
+  )
+}
+
+// components/ThemeProvider.tsx (Client Component)
+'use client'
+
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  // Client-side logic
+  return <div className="theme-wrapper">{children}</div>
+}
+```
+
+### ❌ Bad: Large Client Components
+
+Don't make entire pages Client Components:
+
+```tsx
+// ❌ Avoid this
+'use client'
+
+export default function Dashboard() {
+  const [filter, setFilter] = useState('')
+  const products = await getProducts() // ERROR: Can't use async in Client Component
+
+  return (
+    <div>
+      <input value={filter} onChange={(e) => setFilter(e.target.value)} />
+      <ProductList products={products} filter={filter} />
+    </div>
+  )
+}
+```
+
+---
+
+## Props Passing Patterns
+
+### Serializable Props Only
+
+Only serializable data can be passed from Server to Client Components:
+
+```tsx
+// ✅ Good: Serializable props
+<ClientComponent
+  data={{ id: 1, name: 'Product' }}
+  numbers={[1, 2, 3]}
+  isActive={true}
+/>
+
+// ❌ Bad: Functions, classes, symbols
+<ClientComponent
+  onClick={() => {}} // ❌ Functions can't be serialized
+  date={new Date()} // ❌ Dates lose precision
+  component={SomeComponent} // ❌ Components can't be serialized
+/>
+```
+
+### Passing Server Actions
+
+Server Actions can be passed as props:
+
+```tsx
+// app/posts/page.tsx (Server Component)
+import { deletePost } from '@/app/actions'
+
+export default function PostsPage({ posts }: { posts: Post[] }) {
+  return (
+    <div>
+      {posts.map(post => (
+        <PostCard key={post.id} post={post} onDelete={deletePost} />
+      ))}
+    </div>
+  )
+}
+
+// components/PostCard.tsx (Client Component)
+'use client'
+
+export function PostCard({ post, onDelete }: { post: Post; onDelete: (id: string) => Promise<void> }) {
+  return (
+    <div>
+      <h2>{post.title}</h2>
+      <button onClick={() => onDelete(post.id)}>Delete</button>
+    </div>
+  )
+}
+```
+
+---
+
+## Common Pitfalls
+
+### Pitfall 1: Importing Server Component into Client Component
+
+```tsx
+// ❌ This will error
+'use client'
+
+import { ServerComponent } from './ServerComponent' // ERROR
+
+export function ClientComponent() {
+  return <ServerComponent /> // Won't work
+}
+
+// ✅ Use children prop instead
+'use client'
+
+export function ClientWrapper({ children }: { children: React.ReactNode }) {
+  return <div className="wrapper">{children}</div>
+}
+
+// In parent Server Component:
+<ClientWrapper>
+  <ServerComponent /> {/* Works! */}
+</ClientWrapper>
+```
+
+### Pitfall 2: Using Hooks in Server Components
+
+```tsx
+// ❌ This will error
+export default async function Page() {
+  const [state, setState] = useState(0) // ERROR: Can't use hooks
+
+  return <div>{state}</div>
+}
+
+// ✅ Extract to Client Component
+// page.tsx (Server Component)
+export default function Page() {
+  return <Counter />
+}
+
+// Counter.tsx (Client Component)
+'use client'
+
+export function Counter() {
+  const [count, setCount] = useState(0)
+  return <button onClick={() => setCount(count + 1)}>{count}</button>
+}
+```
+
+### Pitfall 3: Async Client Components
+
+```tsx
+// ❌ This will error
+'use client'
+
+export default async function ClientComponent() { // ERROR: Client Components can't be async
+  const data = await fetchData()
+  return <div>{data}</div>
+}
+
+// ✅ Fetch in Server Component, pass as prop
+// page.tsx (Server Component)
+export default async function Page() {
+  const data = await fetchData()
+  return <ClientComponent data={data} />
+}
+
+// ClientComponent.tsx (Client Component)
+'use client'
+
+export function ClientComponent({ data }: { data: Data }) {
+  const [state, setState] = useState(data)
+  return <div>{state}</div>
+}
+```
+
+---
+
+## Advanced Patterns
+
+### Conditional Client Components
+
+Only load client-side code when needed:
+
+```tsx
+// app/product/[id]/page.tsx
+import dynamic from 'next/dynamic'
+
+const InteractiveReviews = dynamic(() => import('@/components/InteractiveReviews'), {
+  ssr: false,
+  loading: () => <ReviewsSkeleton />
+})
+
+export default async function ProductPage({ params }: { params: { id: string } }) {
+  const product = await getProduct(params.id)
+
+  return (
+    <div>
+      <ProductDetails product={product} />
+
+      {/* Only load interactive component on client */}
+      <InteractiveReviews productId={params.id} />
+    </div>
+  )
+}
+```
+
+### Shared State Between Server and Client
+
+Use cookies or URL state for shared state:
+
+```tsx
+// app/settings/page.tsx (Server Component)
+import { cookies } from 'next/headers'
+
+export default function SettingsPage() {
+  const theme = cookies().get('theme')?.value || 'light'
+
+  return <ThemeToggle initialTheme={theme} />
+}
+
+// components/ThemeToggle.tsx (Client Component)
+'use client'
+
+export function ThemeToggle({ initialTheme }: { initialTheme: string }) {
+  const [theme, setTheme] = useState(initialTheme)
+
+  const toggleTheme = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light'
+    setTheme(newTheme)
+    document.cookie = `theme=${newTheme}; path=/`
+  }
+
+  return <button onClick={toggleTheme}>Toggle Theme</button>
+}
+```
+
+
+### Data Fetching
+
+# Data Fetching Patterns
+
+## Extended fetch API
+
+Next.js extends the native fetch API with caching and revalidation options.
+
+### Caching Strategies
+
+```tsx
+// Static data - cached indefinitely (default)
+const res = await fetch('https://api.example.com/posts', {
+  cache: 'force-cache' // Default
+})
+
+// Revalidate every 60 seconds (ISR)
+const res = await fetch('https://api.example.com/posts', {
+  next: { revalidate: 60 }
+})
+
+// Always fresh - no caching
+const res = await fetch('https://api.example.com/posts', {
+  cache: 'no-store'
+})
+
+// Tag-based revalidation
+const res = await fetch('https://api.example.com/posts', {
+  next: { tags: ['posts'] }
+})
+```
+
+### Revalidation Methods
+
+```tsx
+// app/actions.ts
+'use server'
+
+import { revalidatePath, revalidateTag } from 'next/cache'
+
+export async function createPost(formData: FormData) {
+  // ... create post logic
+
+  // Revalidate specific path
+  revalidatePath('/posts')
+
+  // Revalidate all data with 'posts' tag
+  revalidateTag('posts')
+}
+```
+
+---
+
+## Parallel Data Fetching
+
+Fetch multiple resources simultaneously:
+
+```tsx
+export default async function UserPage({ params }: { params: { id: string } }) {
+  // Fetch in parallel
+  const [user, posts, comments] = await Promise.all([
+    getUser(params.id),
+    getUserPosts(params.id),
+    getUserComments(params.id),
+  ])
+
+  return (
+    <div>
+      <UserProfile user={user} />
+      <UserPosts posts={posts} />
+      <UserComments comments={comments} />
+    </div>
+  )
+}
+```
+
+---
+
+## Sequential Data Fetching
+
+When data depends on previous results:
+
+```tsx
+export default async function ArtistPage({ params }: { params: { id: string } }) {
+  const artist = await getArtist(params.id)
+
+  // This DEPENDS on artist data
+  const albums = await getArtistAlbums(artist.id, artist.region)
+
+  return (
+    <div>
+      <ArtistProfile artist={artist} />
+      <AlbumList albums={albums} />
+    </div>
+  )
+}
+```
+
+---
+
+## Route Segment Config
+
+Control caching and rendering behavior:
+
+```tsx
+// app/blog/[slug]/page.tsx
+
+// Force static rendering (SSG)
+export const dynamic = 'force-static'
+
+// Force dynamic rendering (SSR)
+export const dynamic = 'force-dynamic'
+
+// Revalidate every hour
+export const revalidate = 3600
+
+// Generate static params at build time
+export async function generateStaticParams() {
+  const posts = await getPosts()
+  return posts.map((post) => ({
+    slug: post.slug,
+  }))
+}
+```
+
+---
+
+## Database Queries
+
+Direct database access in Server Components:
+
+```tsx
+import { db } from '@/lib/prisma'
+
+export default async function ProductsPage() {
+  const products = await db.product.findMany({
+    where: { published: true },
+    include: {
+      category: true,
+      reviews: {
+        take: 5,
+        orderBy: { createdAt: 'desc' }
+      }
+    }
+  })
+
+  return <ProductList products={products} />
+}
+```
+
+---
+
+## Error Handling
+
+Handle fetch errors in Server Components:
+
+```tsx
+export default async function PostsPage() {
+  let posts
+
+  try {
+    posts = await fetch('https://api.example.com/posts').then(res => {
+      if (!res.ok) throw new Error('Failed to fetch')
+      return res.json()
+    })
+  } catch (error) {
+    return <ErrorMessage message="Failed to load posts" />
+  }
+
+  return <PostList posts={posts} />
+}
+```
+
+
+### Migration Guide
+
+# Migration Guide
+
+## Pages Router → App Router
+
+### Incremental Adoption
+
+1. Keep existing `pages/` directory
+2. Add new routes in `app/` directory
+3. Both routers work simultaneously
+4. Migrate route by route
+
+---
+
+## Data Fetching Migration
+
+### Before (Pages Router with getServerSideProps)
+
+```tsx
+// pages/posts.tsx
+export async function getServerSideProps() {
+  const posts = await getPosts()
+  return { props: { posts } }
+}
+
+export default function Posts({ posts }) {
+  return <PostList posts={posts} />
+}
+```
+
+### After (App Router)
+
+```tsx
+// app/posts/page.tsx
+export default async function Posts() {
+  const posts = await getPosts()
+  return <PostList posts={posts} />
+}
+```
+
+---
+
+## Client-Side Rendering → RSC
+
+### Before (CSR with useEffect)
+
+```tsx
+'use client'
+
+export default function Posts() {
+  const [posts, setPosts] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch('/api/posts')
+      .then(res => res.json())
+      .then(data => {
+        setPosts(data)
+        setLoading(false)
+      })
+  }, [])
+
+  if (loading) return <Loading />
+  return <PostList posts={posts} />
+}
+```
+
+### After (RSC)
+
+```tsx
+// Server Component - no hooks, just async/await
+export default async function Posts() {
+  const posts = await fetch('/api/posts').then(res => res.json())
+  return <PostList posts={posts} />
+}
+```
+
+---
+
+## API Routes → Server Actions
+
+### Before (API Route)
+
+```tsx
+// pages/api/posts.ts
+export default async function handler(req, res) {
+  if (req.method === 'POST') {
+    const post = await db.post.create({ data: req.body })
+    res.json(post)
+  }
+}
+
+// Client-side call
+const response = await fetch('/api/posts', {
+  method: 'POST',
+  body: JSON.stringify({ title, content })
+})
+```
+
+### After (Server Action)
+
+```tsx
+// app/actions.ts
+'use server'
+
+export async function createPost(data: { title: string; content: string }) {
+  const post = await db.post.create({ data })
+  revalidatePath('/posts')
+  return post
+}
+
+// Direct call (no fetch needed)
+const post = await createPost({ title, content })
+```
+
+---
+
+## Layout Migration
+
+### Before (Pages Router)
+
+```tsx
+// pages/_app.tsx
+export default function App({ Component, pageProps }) {
+  return (
+    <Layout>
+      <Component {...pageProps} />
+    </Layout>
+  )
+}
+```
+
+### After (App Router)
+
+```tsx
+// app/layout.tsx
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html>
+      <body>
+        <Layout>{children}</Layout>
+      </body>
+    </html>
+  )
+}
+```
+
+---
+
+## Metadata Migration
+
+### Before (Pages Router)
+
+```tsx
+import Head from 'next/head'
+
+export default function Post({ post }) {
+  return (
+    <>
+      <Head>
+        <title>{post.title}</title>
+        <meta name="description" content={post.excerpt} />
+      </Head>
+      <Article post={post} />
+    </>
+  )
+}
+```
+
+### After (App Router)
+
+```tsx
+import type { Metadata } from 'next'
+
+export async function generateMetadata({ params }): Promise<Metadata> {
+  const post = await getPost(params.slug)
+
+  return {
+    title: post.title,
+    description: post.excerpt,
+    openGraph: {
+      title: post.title,
+      description: post.excerpt,
+      images: [post.coverImage],
+    },
+  }
+}
+```
+
+---
+
+## Common Migration Pitfalls
+
+1. **Forgetting 'use client'** for interactive components
+2. **Trying to use hooks** in Server Components
+3. **Not awaiting** async Server Components
+4. **Importing Server Components** into Client Components
+5. **Missing revalidation** after mutations
+
+
+### Nextjs 16 Upgrade
+
+# Next.js 16 Upgrade Guide
+
+This reference covers breaking changes and migration steps when upgrading from Next.js 15 to Next.js 16.
+
+## Version Requirements
+
+| Dependency | Minimum Version |
+|------------|-----------------|
+| Node.js | 20.9.0+ |
+| TypeScript | 5.1.0+ |
+| React | 19.0.0+ |
+| React DOM | 19.0.0+ |
+
+```bash
+# Check your versions
+node --version   # Must be v20.9.0 or higher
+npx tsc --version # Must be 5.1.0 or higher
+```
+
+---
+
+## Breaking Changes
+
+### 1. Async Params and SearchParams
+
+Dynamic route parameters and search parameters are now Promises that must be awaited.
+
+**Before (Next.js 15)**
+
+```tsx
+// app/posts/[slug]/page.tsx
+export default function PostPage({ params, searchParams }) {
+  const { slug } = params
+  const { page } = searchParams
+  return <Post slug={slug} page={page} />
+}
+```
+
+**After (Next.js 16)**
+
+```tsx
+// app/posts/[slug]/page.tsx
+export default async function PostPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ slug: string }>
+  searchParams: Promise<{ page?: string }>
+}) {
+  const { slug } = await params
+  const { page } = await searchParams
+  return <Post slug={slug} page={page} />
+}
+```
+
+**Layout components**
+
+```tsx
+// app/posts/[slug]/layout.tsx
+export default async function PostLayout({
+  params,
+  children,
+}: {
+  params: Promise<{ slug: string }>
+  children: React.ReactNode
+}) {
+  const { slug } = await params
+  return (
+    <div>
+      <Sidebar slug={slug} />
+      {children}
+    </div>
+  )
+}
+```
+
+**generateMetadata**
+
+```tsx
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>
+}) {
+  const { slug } = await params
+  const post = await getPost(slug)
+  return { title: post.title }
+}
+```
+
+---
+
+### 2. Async Request APIs
+
+The `cookies()`, `headers()`, and `draftMode()` functions are now async.
+
+**Before (Next.js 15)**
+
+```tsx
+import { cookies, headers, draftMode } from 'next/headers'
+
+export default function Page() {
+  const cookieStore = cookies()
+  const headersList = headers()
+  const { isEnabled } = draftMode()
+
+  const token = cookieStore.get('token')
+  const userAgent = headersList.get('user-agent')
+
+  return <div>...</div>
+}
+```
+
+**After (Next.js 16)**
+
+```tsx
+import { cookies, headers, draftMode } from 'next/headers'
+
+export default async function Page() {
+  const cookieStore = await cookies()
+  const headersList = await headers()
+  const { isEnabled } = await draftMode()
+
+  const token = cookieStore.get('token')
+  const userAgent = headersList.get('user-agent')
+
+  return <div>...</div>
+}
+```
+
+**Server Actions**
+
+```tsx
+'use server'
+
+import { cookies } from 'next/headers'
+
+export async function setTheme(theme: string) {
+  const cookieStore = await cookies()
+  cookieStore.set('theme', theme)
+}
+```
+
+---
+
+### 3. Middleware Migration (middleware.ts to proxy.ts)
+
+The middleware file has been renamed and restructured for improved clarity.
+
+**Before (Next.js 15)**
+
+```tsx
+// middleware.ts
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+
+export function middleware(request: NextRequest) {
+  const token = request.cookies.get('token')
+
+  if (!token && request.nextUrl.pathname.startsWith('/dashboard')) {
+    return NextResponse.redirect(new URL('/login', request.url))
+  }
+
+  return NextResponse.next()
+}
+
+export const config = {
+  matcher: ['/dashboard/:path*'],
+}
+```
+
+**After (Next.js 16)**
+
+```tsx
+// proxy.ts
+import { type ProxyRequest, type ProxyResponse, redirect, next } from 'next/proxy'
+
+export default function proxy(request: ProxyRequest): ProxyResponse {
+  const token = request.cookies.get('token')
+
+  if (!token && request.pathname.startsWith('/dashboard')) {
+    return redirect('/login')
+  }
+
+  return next()
+}
+
+export const config = {
+  matcher: ['/dashboard/:path*'],
+}
+```
+
+**Key changes:**
+- File renamed from `middleware.ts` to `proxy.ts`
+- Import from `next/proxy` instead of `next/server`
+- Use `redirect()` and `next()` helpers instead of `NextResponse` methods
+- `request.nextUrl.pathname` simplified to `request.pathname`
+
+---
+
+### 4. PPR Migration (experimental_ppr to Cache Components)
+
+Partial Prerendering experimental flag has been replaced with Cache Components.
+
+**Before (Next.js 15)**
+
+```tsx
+// app/products/page.tsx
+export const experimental_ppr = true
+
+export default async function ProductsPage() {
+  return (
+    <div>
+      <StaticHeader />
+      <Suspense fallback={<ProductsSkeleton />}>
+        <DynamicProducts />
+      </Suspense>
+    </div>
+  )
+}
+```
+
+**After (Next.js 16)**
+
+```tsx
+// app/products/page.tsx
+import { cache } from 'next/cache'
+
+// Wrap static content in cache()
+const CachedHeader = cache(async () => {
+  return <StaticHeader />
+})
+
+export default async function ProductsPage() {
+  return (
+    <div>
+      <CachedHeader />
+      <Suspense fallback={<ProductsSkeleton />}>
+        <DynamicProducts />
+      </Suspense>
+    </div>
+  )
+}
+```
+
+**Cache Components with options**
+
+```tsx
+import { cache } from 'next/cache'
+
+// Cache with revalidation
+const CachedSidebar = cache(
+  async () => {
+    const categories = await getCategories()
+    return <Sidebar categories={categories} />
+  },
+  { revalidate: 3600 } // 1 hour
+)
+
+// Cache with tags
+const CachedProductList = cache(
+  async () => {
+    const products = await getProducts()
+    return <ProductList products={products} />
+  },
+  { tags: ['products'] }
+)
+```
+
+---
+
+### 5. AMP Support Removed
+
+AMP (Accelerated Mobile Pages) support has been completely removed.
+
+**Migration steps:**
+
+1. Remove `amp` exports from pages
+2. Remove AMP-specific components
+3. Use responsive design and modern performance techniques instead
+
+**Before (Next.js 15)**
+
+```tsx
+// pages/article.tsx
+export const config = { amp: true }
+
+export default function Article() {
+  return (
+    <amp-img src="/hero.jpg" width="800" height="400" />
+  )
+}
+```
+
+**After (Next.js 16)**
+
+```tsx
+// app/article/page.tsx
+import Image from 'next/image'
+
+export default function Article() {
+  return (
+    <Image
+      src="/hero.jpg"
+      width={800}
+      height={400}
+      priority
+      alt="Hero image"
+    />
+  )
+}
+```
+
+---
+
+### 6. ESLint Configuration (next lint removed)
+
+The `next lint` command has been removed. Use ESLint directly.
+
+**Before (Next.js 15)**
+
+```json
+{
+  "scripts": {
+    "lint": "next lint"
+  }
+}
+```
+
+**After (Next.js 16)**
+
+```bash
+# Install ESLint and Next.js config
+npm install eslint eslint-config-next --save-dev
+```
+
+```json
+{
+  "scripts": {
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
+  }
+}
+```
+
+**eslint.config.mjs (Flat Config)**
+
+```js
+// eslint.config.mjs
+import nextPlugin from '@next/eslint-plugin-next'
+import tsPlugin from '@typescript-eslint/eslint-plugin'
+import tsParser from '@typescript-eslint/parser'
+
+export default [
+  {
+    files: ['**/*.{ts,tsx}'],
+    plugins: {
+      '@next/next': nextPlugin,
+      '@typescript-eslint': tsPlugin,
+    },
+    languageOptions: {
+      parser: tsParser,
+    },
+    rules: {
+      ...nextPlugin.configs.recommended.rules,
+      ...nextPlugin.configs['core-web-vitals'].rules,
+    },
+  },
+]
+```
+
+---
+
+### 7. Parallel Routes Require default.js
+
+Parallel routes now require a `default.js` (or `default.tsx`) file.
+
+**Before (Next.js 15)**
+
+```
+app/
+  @modal/
+    login/
+      page.tsx
+  layout.tsx
+  page.tsx
+```
+
+**After (Next.js 16)**
+
+```
+app/
+  @modal/
+    default.tsx    # Required!
+    login/
+      page.tsx
+  layout.tsx
+  page.tsx
+```
+
+**default.tsx content**
+
+```tsx
+// app/@modal/default.tsx
+export default function Default() {
+  return null
+}
+```
+
+The `default.tsx` file renders when the parallel route slot has no active match. Without it, Next.js 16 will throw a build error.
+
+---
+
+## Turbopack as Default Bundler
+
+Next.js 16 uses Turbopack as the default bundler for both development and production.
+
+### Opting Out to Webpack
+
+If you encounter Turbopack compatibility issues:
+
+```bash
+# Development
+next dev --webpack
+
+# Production build
+next build --webpack
+```
+
+**package.json scripts**
+
+```json
+{
+  "scripts": {
+    "dev": "next dev",
+    "dev:webpack": "next dev --webpack",
+    "build": "next build",
+    "build:webpack": "next build --webpack"
+  }
+}
+```
+
+### Sass Tilde Prefix Removal
+
+Turbopack does not support the `~` prefix for importing from `node_modules` in Sass files.
+
+**Before**
+
+```scss
+// styles/globals.scss
+@import '~bootstrap/scss/bootstrap';
+@import '~@fontsource/inter/index.css';
+```
+
+**After**
+
+```scss
+// styles/globals.scss
+@import 'bootstrap/scss/bootstrap';
+@import '@fontsource/inter/index.css';
+```
+
+**Find and replace all occurrences**
+
+```bash
+# Find files with tilde imports
+grep -r "~" --include="*.scss" --include="*.sass" .
+
+# Common patterns to replace:
+# ~package-name  ->  package-name
+# ~@scope/package  ->  @scope/package
+```
+
+---
+
+## New Caching APIs
+
+### updateTag()
+
+Granular tag updates without full revalidation:
+
+```tsx
+'use server'
+
+import { updateTag } from 'next/cache'
+
+export async function updateProduct(id: string, data: ProductData) {
+  await db.product.update({ where: { id }, data })
+
+  // Update only this product's cache, not all products
+  updateTag(`product-${id}`)
+}
+```
+
+### refresh()
+
+Force refresh the current route's data:
+
+```tsx
+'use client'
+
+import { refresh } from 'next/navigation'
+
+export function RefreshButton() {
+  return (
+    <button onClick={() => refresh()}>
+      Refresh Data
+    </button>
+  )
+}
+```
+
+### New revalidateTag() Signature
+
+The `revalidateTag()` function now accepts options:
+
+**Before (Next.js 15)**
+
+```tsx
+import { revalidateTag } from 'next/cache'
+
+revalidateTag('products')
+```
+
+**After (Next.js 16)**
+
+```tsx
+import { revalidateTag } from 'next/cache'
+
+// Simple revalidation (same as before)
+revalidateTag('products')
+
+// With options
+revalidateTag('products', {
+  type: 'layout', // Revalidate layouts using this tag
+})
+
+revalidateTag('products', {
+  type: 'page', // Revalidate only pages (default)
+})
+
+// Revalidate multiple tags
+revalidateTag(['products', 'categories'])
+```
+
+---
+
+## Migration Checklist
+
+### Pre-Migration
+
+- [ ] Verify Node.js version is 20.9.0+
+- [ ] Verify TypeScript version is 5.1.0+
+- [ ] Review breaking changes list
+- [ ] Backup project or create migration branch
+- [ ] Run existing tests to establish baseline
+
+### Core Changes
+
+- [ ] Update `package.json` dependencies
+- [ ] Add `await` to all `params` and `searchParams` access
+- [ ] Add `await` to `cookies()`, `headers()`, `draftMode()` calls
+- [ ] Rename `middleware.ts` to `proxy.ts` and update imports
+- [ ] Replace `experimental_ppr` with Cache Components
+- [ ] Add `default.tsx` to all parallel route slots
+- [ ] Update ESLint configuration (remove `next lint`)
+
+### Sass/Turbopack
+
+- [ ] Remove `~` prefix from all Sass imports
+- [ ] Test build with Turbopack (default)
+- [ ] If issues, document and use `--webpack` flag temporarily
+
+### AMP (if applicable)
+
+- [ ] Remove `amp` configuration from pages
+- [ ] Replace AMP components with standard React/Next.js components
+- [ ] Update performance monitoring for non-AMP pages
+
+### Testing
+
+- [ ] Run full test suite
+- [ ] Test all dynamic routes with async params
+- [ ] Verify middleware (proxy) behavior
+- [ ] Check caching behavior with new APIs
+- [ ] Performance test with Turbopack vs Webpack
+
+### Post-Migration
+
+- [ ] Update CI/CD scripts for new ESLint config
+- [ ] Update documentation
+- [ ] Monitor production for issues
+- [ ] Remove temporary Webpack fallbacks once stable
+
+---
+
+## Automated Migration
+
+Next.js provides a codemod to automate some migrations:
+
+```bash
+# Run the Next.js 16 upgrade codemod
+npx @next/codemod@latest upgrade
+
+# Run specific codemods
+npx @next/codemod@latest async-request-apis .
+npx @next/codemod@latest async-dynamic-apis .
+```
+
+**Note:** Review all automated changes manually. The codemod handles most cases but may miss edge cases in complex codebases.
+
+---
+
+## Troubleshooting
+
+| Error | Cause | Fix |
+|-------|-------|-----|
+| `params is not defined` | Missing await | Add `await params` |
+| `cookies is not a function` | Sync usage | Add `await cookies()` |
+| `Cannot find module 'next/server'` in middleware | Old imports | Rename to `proxy.ts`, use `next/proxy` |
+| `experimental_ppr is not a valid export` | Removed feature | Use Cache Components |
+| `Missing default.js in parallel route` | New requirement | Add `default.tsx` returning `null` |
+| `Cannot resolve '~package'` in Sass | Turbopack | Remove `~` prefix |
+| `next lint command not found` | Removed command | Use `eslint` directly |
+
+---
+
+## Resources
+
+- [Next.js 16 Release Notes](https://nextjs.org/blog/next-16)
+- [Turbopack Documentation](https://turbo.build/pack/docs)
+- [Cache Components RFC](https://github.com/vercel/next.js/discussions/cache-components)
+- [ESLint Flat Config Migration](https://eslint.org/docs/latest/use/configure/migration-guide)
+
+
+### React 19 Patterns
+
+# React 19 Component Patterns
+
+## Table of Contents
+
+- [Overview](#overview)
+- [React.FC Removal](#1-reactfc-removal)
+- [forwardRef Removal](#2-forwardref-removal)
+- [New React 19 Hooks](#3-new-react-19-hooks)
+- [Testing React 19 Components](#4-testing-react-19-components)
+- [Migration Checklist](#5-migration-checklist)
+- [use() Hook for Suspense-Native Data Fetching](#6-use-hook-for-suspense-native-data-fetching)
+- [useOptimistic with useTransition](#7-useoptimistic-with-usetransition-async-pattern)
+- [Testing React 19 Hooks](#8-testing-react-19-hooks)
+- [ESLint Rules](#9-eslint-rules)
+
+---
+
+## Overview
+
+React 19 introduces breaking changes to component declaration patterns. This reference provides migration guidance and best practices for 2025+ React development.
+
+---
+
+## 1. React.FC Removal
+
+### Why React.FC is Deprecated
+
+React 18's `React.FC&lt;Props&gt;` automatically included `children` in the props type:
+
+```typescript
+// React 18: children was implicit
+type FC<P = {}> = FunctionComponent<P>
+interface FunctionComponent<P = {}> {
+  (props: P & { children?: ReactNode }): ReactNode | null
+  // ...
+}
+```
+
+React 19 removes this implicit `children`, making `React.FC` misleading and unnecessary.
+
+### Migration Pattern
+
+```typescript
+// ═══════════════════════════════════════════════════════════════════════════
+// BEFORE (React 18)
+// ═══════════════════════════════════════════════════════════════════════════
+
+import React from 'react'
+
+interface ButtonProps {
+  variant: 'primary' | 'secondary'
+  onClick: () => void
+}
+
+export const Button: React.FC<ButtonProps> = ({ variant, onClick, children }) => {
+  return (
+    <button className={`btn-${variant}`} onClick={onClick}>
+      {children}
+    </button>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// AFTER (React 19)
+// ═══════════════════════════════════════════════════════════════════════════
+
+interface ButtonProps {
+  variant: 'primary' | 'secondary'
+  onClick: () => void
+  children: React.ReactNode  // Explicit when needed
+}
+
+export function Button({ variant, onClick, children }: ButtonProps): React.ReactNode {
+  return (
+    <button className={`btn-${variant}`} onClick={onClick}>
+      {children}
+    </button>
+  )
+}
+```
+
+### Components Without Children
+
+```typescript
+// When component has no children, don't include it in props
+interface StatusBadgeProps {
+  status: 'active' | 'inactive'
+  count: number
+}
+
+export function StatusBadge({ status, count }: StatusBadgeProps): React.ReactNode {
+  return (
+    <span className={`badge-${status}`}>
+      {count}
+    </span>
+  )
+}
+```
+
+### Regex for Bulk Migration
+
+Use this regex pattern to find React.FC usage:
+
+```bash
+# Find all React.FC patterns
+grep -rn "React\.FC<\|: FC<\|React\.FunctionComponent" --include="*.tsx" src/
+
+# Count occurrences
+grep -c "React\.FC<" --include="*.tsx" -r src/
+```
+
+---
+
+## 2. forwardRef Removal
+
+### Why forwardRef is Deprecated
+
+React 19 allows `ref` to be passed as a regular prop, eliminating the need for `forwardRef`:
+
+```typescript
+// ═══════════════════════════════════════════════════════════════════════════
+// BEFORE (React 18)
+// ═══════════════════════════════════════════════════════════════════════════
+
+import { forwardRef } from 'react'
+
+interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  label: string
+}
+
+const Input = forwardRef<HTMLInputElement, InputProps>(
+  ({ label, ...props }, ref) => {
+    return (
+      <div>
+        <label>{label}</label>
+        <input ref={ref} {...props} />
+      </div>
+    )
+  }
+)
+
+Input.displayName = 'Input'
+
+// ═══════════════════════════════════════════════════════════════════════════
+// AFTER (React 19)
+// ═══════════════════════════════════════════════════════════════════════════
+
+interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  label: string
+  ref?: React.Ref<HTMLInputElement>
+}
+
+export function Input({ label, ref, ...props }: InputProps): React.ReactNode {
+  return (
+    <div>
+      <label>{label}</label>
+      <input ref={ref} {...props} />
+    </div>
+  )
+}
+```
+
+### Complex Ref Patterns
+
+For components that need ref callbacks or imperative handles:
+
+```typescript
+interface DialogProps {
+  title: string
+  children: React.ReactNode
+  ref?: React.Ref<HTMLDialogElement>
+}
+
+export function Dialog({ title, children, ref }: DialogProps): React.ReactNode {
+  return (
+    <dialog ref={ref}>
+      <h2>{title}</h2>
+      {children}
+    </dialog>
+  )
+}
+
+// Usage
+function App() {
+  const dialogRef = useRef<HTMLDialogElement>(null)
+
+  return (
+    <Dialog ref={dialogRef} title="Confirm">
+      <p>Are you sure?</p>
+      <button onClick={() => dialogRef.current?.close()}>Cancel</button>
+    </Dialog>
+  )
+}
+```
+
+---
+
+## 3. New React 19 Hooks
+
+### useActionState
+
+Replaces the experimental `useFormState`. Manages form state with server actions:
+
+```typescript
+'use client'
+
+import { useActionState } from 'react'
+
+type FormState = {
+  message: string
+  errors: Record<string, string[]>
+  success: boolean
+}
+
+const initialState: FormState = {
+  message: '',
+  errors: {},
+  success: false
+}
+
+async function createUser(
+  prevState: FormState,
+  formData: FormData
+): Promise<FormState> {
+  const email = formData.get('email') as string
+  const name = formData.get('name') as string
+
+  // Validation
+  if (!email.includes('@')) {
+    return {
+      message: 'Validation failed',
+      errors: { email: ['Invalid email format'] },
+      success: false
+    }
+  }
+
+  // Server mutation
+  try {
+    await db.user.create({ data: { email, name } })
+    return { message: 'User created!', errors: {}, success: true }
+  } catch (error) {
+    return { message: 'Failed to create user', errors: {}, success: false }
+  }
+}
+
+export function CreateUserForm(): React.ReactNode {
+  const [state, formAction, isPending] = useActionState(createUser, initialState)
+
+  return (
+    <form action={formAction}>
+      <input name="name" placeholder="Name" disabled={isPending} />
+      <input name="email" placeholder="Email" disabled={isPending} />
+
+      {state.errors.email && (
+        <span className="error">{state.errors.email[0]}</span>
+      )}
+
+      <button type="submit" disabled={isPending}>
+        {isPending ? 'Creating...' : 'Create User'}
+      </button>
+
+      {state.message && (
+        <p className={state.success ? 'success' : 'error'}>
+          {state.message}
+        </p>
+      )}
+    </form>
+  )
+}
+```
+
+### useFormStatus
+
+For submit buttons that need form state without prop drilling:
+
+```typescript
+'use client'
+
+import { useFormStatus } from 'react-dom'
+
+interface SubmitButtonProps {
+  children: React.ReactNode
+  loadingText?: string
+}
+
+export function SubmitButton({
+  children,
+  loadingText = 'Submitting...'
+}: SubmitButtonProps): React.ReactNode {
+  const { pending, data, method, action } = useFormStatus()
+
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      aria-busy={pending}
+      aria-disabled={pending}
+    >
+      {pending ? loadingText : children}
+    </button>
+  )
+}
+
+// Usage - no props needed!
+function ContactForm() {
+  return (
+    <form action={submitContactForm}>
+      <input name="message" />
+      <SubmitButton>Send Message</SubmitButton>
+    </form>
+  )
+}
+```
+
+### useOptimistic
+
+For instant UI updates with automatic rollback on error:
+
+```typescript
+'use client'
+
+import { useOptimistic, useTransition } from 'react'
+
+interface Todo {
+  id: string
+  text: string
+  completed: boolean
+}
+
+interface TodoListProps {
+  todos: Todo[]
+  onToggle: (id: string) => Promise<void>
+}
+
+export function TodoList({ todos, onToggle }: TodoListProps): React.ReactNode {
+  const [optimisticTodos, setOptimisticTodo] = useOptimistic(
+    todos,
+    (state, updatedTodo: Todo) =>
+      state.map(todo =>
+        todo.id === updatedTodo.id ? updatedTodo : todo
+      )
+  )
+  const [, startTransition] = useTransition()
+
+  const handleToggle = async (todo: Todo) => {
+    // Immediately update UI
+    startTransition(() => {
+      setOptimisticTodo({ ...todo, completed: !todo.completed })
+    })
+
+    // Server mutation - auto rollback on error
+    await onToggle(todo.id)
+  }
+
+  return (
+    <ul>
+      {optimisticTodos.map(todo => (
+        <li key={todo.id}>
+          <input
+            type="checkbox"
+            checked={todo.completed}
+            onChange={() => handleToggle(todo)}
+          />
+          <span className={todo.completed ? 'completed' : ''}>
+            {todo.text}
+          </span>
+        </li>
+      ))}
+    </ul>
+  )
+}
+```
+
+---
+
+## 4. Testing React 19 Components
+
+### Testing Function Declaration Components
+
+```typescript
+import { render, screen } from '@testing-library/react'
+import { describe, it, expect } from 'vitest'
+
+import { Button } from './Button'
+
+describe('Button', () => {
+  it('renders children correctly', () => {
+    render(<Button variant="primary" onClick={() => {}}>Click me</Button>)
+    expect(screen.getByText('Click me')).toBeInTheDocument()
+  })
+
+  it('applies variant class', () => {
+    render(<Button variant="secondary" onClick={() => {}}>Test</Button>)
+    expect(screen.getByRole('button')).toHaveClass('btn-secondary')
+  })
+})
+```
+
+### Testing Hooks with renderHook
+
+```typescript
+import { renderHook, act, waitFor } from '@testing-library/react'
+import * as React from 'react'
+import { describe, it, expect, vi } from 'vitest'
+
+import { useLibrarySearch } from './useLibrarySearch'
+
+// Create wrapper for providers
+function createWrapper() {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } }
+  })
+
+  return function Wrapper({ children }: { children: React.ReactNode }) {
+    return React.createElement(
+      QueryClientProvider,
+      { client: queryClient },
+      children
+    )
+  }
+}
+
+describe('useLibrarySearch', () => {
+  it('returns search results', async () => {
+    const { result } = renderHook(
+      () => useLibrarySearch({ query: 'react' }),
+      { wrapper: createWrapper() }
+    )
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true)
+    })
+
+    expect(result.current.data).toHaveLength(10)
+  })
+})
+```
+
+---
+
+## 5. Migration Checklist
+
+### Component Declaration Migration
+
+- [ ] Search for `React.FC&lt;` patterns
+- [ ] Replace with function declarations
+- [ ] Add explicit `children: React.ReactNode` to props when needed
+- [ ] Add explicit return type `: React.ReactNode`
+- [ ] Remove React import if only used for FC type
+- [ ] Run TypeScript to verify no type errors
+
+### forwardRef Migration
+
+- [ ] Search for `forwardRef&lt;` patterns
+- [ ] Add `ref?: React.Ref&lt;ElementType&gt;` to props interface
+- [ ] Destructure `ref` from props instead of second parameter
+- [ ] Remove `forwardRef` wrapper
+- [ ] Remove `.displayName` assignments (no longer needed)
+- [ ] Test ref forwarding still works
+
+### Hooks Migration
+
+- [ ] Replace `useFormState` with `useActionState`
+- [ ] Add `useFormStatus` to submit buttons (remove isPending prop drilling)
+- [ ] Add `useOptimistic` for optimistic updates (remove manual rollback logic)
+- [ ] Wrap optimistic updates in `startTransition`
+
+---
+
+## 6. use() Hook for Suspense-Native Data Fetching
+
+React 19's `use()` hook enables declarative data fetching with Suspense:
+
+### Basic Pattern
+
+```typescript
+'use client'
+
+import { use, Suspense } from 'react'
+
+interface ArtifactData {
+  id: string
+  content: string
+}
+
+// Component that uses the promise
+function ArtifactContent({
+  artifactPromise
+}: {
+  artifactPromise: Promise<ArtifactData>
+}): React.ReactNode {
+  // use() suspends until promise resolves
+  // - If pending: shows nearest Suspense fallback
+  // - If fulfilled: returns the data
+  // - If rejected: throws to nearest Error Boundary
+  const data = use(artifactPromise)
+
+  return <div>{data.content}</div>
+}
+
+// Parent with Suspense boundary
+function ArtifactPage({ id }: { id: string }): React.ReactNode {
+  const promise = cachePromise(`artifact-${id}`, () => fetchArtifact(id))
+
+  return (
+    <Suspense fallback={<ArtifactSkeleton />}>
+      <ArtifactContent artifactPromise={promise} />
+    </Suspense>
+  )
+}
+```
+
+### Promise Caching (CRITICAL)
+
+**Without caching, use() causes infinite loops!** Each render creates a new promise, triggering re-suspension:
+
+```typescript
+// lib/promiseCache.ts
+const cache = new Map<string, Promise<unknown>>()
+
+/**
+ * Cache a promise to prevent infinite Suspense loops
+ *
+ * CRITICAL: use() requires stable promise references.
+ * Creating new promises on each render causes infinite re-suspension.
+ */
+export function cachePromise<T>(
+  key: string,
+  fetcher: () => Promise<T>
+): Promise<T> {
+  if (!cache.has(key)) {
+    const promise = fetcher()
+      .catch((error) => {
+        // Remove failed promises so retry works
+        cache.delete(key)
+        throw error
+      })
+    cache.set(key, promise)
+  }
+  return cache.get(key) as Promise<T>
+}
+
+// Invalidate when data changes
+export function invalidateCache(key: string): void {
+  cache.delete(key)
+}
+
+// Clear all (e.g., on logout)
+export function clearCache(): void {
+  cache.clear()
+}
+```
+
+### When to Use use() vs TanStack Query
+
+| Use Case | use() | TanStack Query |
+|----------|-------|----------------|
+| Read-only data display | ✅ | ✅ |
+| Mutations/refetching | ❌ | ✅ |
+| Optimistic updates | ❌ | ✅ |
+| Background refetch | ❌ | ✅ |
+| Infinite scroll | ❌ | ✅ |
+| Simple one-shot fetch | ✅ | Overkill |
+
+**Rule of thumb**: Use `use()` for simple read-only data. Use TanStack Query for anything with mutations, refetching, or complex cache management.
+
+---
+
+## 7. useOptimistic with useTransition (Async Pattern)
+
+For non-form async operations (chat, lists, toggles), combine `useOptimistic` with `useTransition`:
+
+### Chat Message Pattern (Real-World Example)
+
+```typescript
+'use client'
+
+import { useOptimistic, useTransition } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+
+interface Message {
+  id: string
+  content: string
+  role: 'user' | 'assistant'
+  created_at: string
+}
+
+export function useTutorChat({ sessionId }: { sessionId: string }) {
+  const queryClient = useQueryClient()
+
+  // Server-confirmed messages from React Query
+  const { data: confirmedMessages = [], isLoading } = useQuery({
+    queryKey: ['messages', sessionId],
+    queryFn: () => fetchMessages(sessionId),
+  })
+
+  // Optimistic layer on top of confirmed messages
+  const [optimisticMessages, addOptimisticMessage] = useOptimistic(
+    confirmedMessages,
+    (current, newMessage: Message) => [...current, newMessage]
+  )
+
+  // Transition for non-blocking updates
+  const [isPending, startTransition] = useTransition()
+
+  const sendMessage = async (content: string) => {
+    if (!content.trim()) return
+
+    // Create optimistic message with temp ID
+    const optimisticMessage: Message = {
+      id: `temp-${Date.now()}`,
+      content: content.trim(),
+      role: 'user',
+      created_at: new Date().toISOString(),
+    }
+
+    startTransition(async () => {
+      // 1. Instant UI update
+      addOptimisticMessage(optimisticMessage)
+
+      try {
+        // 2. Server mutation
+        await sendMessageAPI(sessionId, content)
+        // 3. Refetch to get confirmed message with real ID
+        await queryClient.invalidateQueries({ queryKey: ['messages', sessionId] })
+      } catch (error) {
+        // 4. useOptimistic auto-rolls back on error!
+        toast({ title: 'Failed to send', variant: 'destructive' })
+      }
+    })
+  }
+
+  return {
+    messages: optimisticMessages,  // Always show optimistic state
+    sendMessage,
+    isPending,
+    isLoading,
+  }
+}
+```
+
+### Key Patterns
+
+1. **Temp IDs**: Use `temp-$\{Date.now()\}` for optimistic items
+2. **Auto-rollback**: `useOptimistic` reverts on error automatically
+3. **Query invalidation**: Refetch to get server-confirmed data
+4. **Transition wrapping**: `startTransition` for non-blocking updates
+
+---
+
+## 8. Testing React 19 Hooks
+
+### Testing useOptimistic Pattern
+
+```typescript
+import { renderHook, act, waitFor } from '@testing-library/react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+
+// Mock API
+const mockSendMessage = vi.fn()
+vi.mock('@services/api', () => ({
+  sendMessage: (...args) => mockSendMessage(...args),
+}))
+
+const createWrapper = () => {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  })
+  return ({ children }: { children: React.ReactNode }) => (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  )
+}
+
+describe('useTutorChat - useOptimistic', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockSendMessage.mockResolvedValue({ id: 'msg-1', content: 'Hello' })
+  })
+
+  it('shows message instantly before API responds', async () => {
+    // Make API slow to observe optimistic update
+    mockSendMessage.mockImplementation(
+      () => new Promise(resolve => setTimeout(() => resolve({ id: 'msg-1' }), 500))
+    )
+
+    const { result } = renderHook(() => useTutorChat({ sessionId: 'test' }), {
+      wrapper: createWrapper(),
+    })
+
+    // Wait for initial load
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+    // Send message
+    act(() => { result.current.sendMessage('Hello') })
+
+    // Message appears INSTANTLY (optimistic)
+    await waitFor(() => {
+      expect(result.current.messages.length).toBe(1)
+      expect(result.current.messages[0].content).toBe('Hello')
+      expect(result.current.messages[0].id).toMatch(/^temp-/)  // Temp ID
+    })
+  })
+
+  it('rolls back on API failure', async () => {
+    mockSendMessage.mockRejectedValue(new Error('Network error'))
+
+    const { result } = renderHook(() => useTutorChat({ sessionId: 'test' }), {
+      wrapper: createWrapper(),
+    })
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+    act(() => { result.current.sendMessage('Will fail') })
+
+    // Message appears optimistically
+    await waitFor(() => expect(result.current.messages.length).toBe(1))
+
+    // After error, useOptimistic rolls back
+    await waitFor(() => expect(result.current.messages.length).toBe(0))
+  })
+})
+```
+
+---
+
+## 9. ESLint Rules
+
+Add these ESLint rules to enforce React 19 patterns:
+
+```json
+{
+  "rules": {
+    "@typescript-eslint/ban-types": [
+      "error",
+      {
+        "types": {
+          "React.FC": {
+            "message": "Use function declarations instead. See react-19-patterns.md",
+            "fixWith": "function Component(props: Props): React.ReactNode"
+          },
+          "React.FunctionComponent": {
+            "message": "Use function declarations instead. See react-19-patterns.md"
+          }
+        }
+      }
+    ]
+  }
+}
+```
+
+---
+
+**Last Updated**: 2025-12-27
+**React Version**: 19.2.3
+**OrchestKit Implementation**: Issue #547 (bf43ad5a, 96d9a0e8)
+
+
+### Routing Patterns
+
+# Advanced Routing Patterns
+
+## Parallel Routes
+
+Render multiple pages simultaneously in the same layout.
+
+### Folder Structure
+```
+app/
+  @team/
+    page.tsx
+  @analytics/
+    page.tsx
+  layout.tsx
+  page.tsx
+```
+
+### Implementation
+
+```tsx
+// app/layout.tsx
+export default function Layout({
+  children,
+  team,
+  analytics,
+}: {
+  children: React.ReactNode
+  team: React.ReactNode
+  analytics: React.ReactNode
+}) {
+  return (
+    <div>
+      <div>{children}</div>
+      <div className="grid grid-cols-2 gap-4">
+        <div>{team}</div>
+        <div>{analytics}</div>
+      </div>
+    </div>
+  )
+}
+```
+
+---
+
+## Intercepting Routes
+
+Show a modal while keeping the URL, great for modals that deep-link.
+
+### Folder Structure
+```
+app/
+  photos/
+    [id]/
+      page.tsx
+  (..)photos/
+    [id]/
+      page.tsx
+  page.tsx
+```
+
+### Implementation
+
+```tsx
+// app/(..)photos/[id]/page.tsx (Intercepting route - shows modal)
+import { Modal } from '@/components/Modal'
+import { getPhoto } from '@/lib/photos'
+
+export default async function PhotoModal({ params }: { params: { id: string } }) {
+  const photo = await getPhoto(params.id)
+
+  return (
+    <Modal>
+      <img src={photo.url} alt={photo.title} />
+    </Modal>
+  )
+}
+
+// app/photos/[id]/page.tsx (Direct route - shows full page)
+import { getPhoto } from '@/lib/photos'
+
+export default async function PhotoPage({ params }: { params: { id: string } }) {
+  const photo = await getPhoto(params.id)
+
+  return (
+    <div>
+      <h1>{photo.title}</h1>
+      <img src={photo.url} alt={photo.title} />
+    </div>
+  )
+}
+```
+
+---
+
+## Partial Prerendering (PPR)
+
+Combine static and dynamic content in the same route.
+
+### Enable PPR
+
+```js
+// next.config.js
+module.exports = {
+  experimental: {
+    ppr: true
+  }
+}
+```
+
+### Implementation
+
+```tsx
+// app/product/[id]/page.tsx
+import { Suspense } from 'react'
+import { getProduct } from '@/lib/products'
+import { ReviewsList } from '@/components/ReviewsList'
+
+export const experimental_ppr = true
+
+export default async function ProductPage({ params }: { params: { id: string } }) {
+  const product = await getProduct(params.id)
+
+  return (
+    <div>
+      {/* Static shell - prerendered */}
+      <h1>{product.name}</h1>
+      <p>{product.description}</p>
+
+      {/* Dynamic content - streamed */}
+      <Suspense fallback={<ReviewsSkeleton />}>
+        <ReviewsList productId={params.id} />
+      </Suspense>
+    </div>
+  )
+}
+```
+
+---
+
+## Route Groups
+
+Organize routes without affecting URL structure.
+
+### Folder Structure
+```
+app/
+  (marketing)/
+    about/page.tsx
+    blog/page.tsx
+    layout.tsx
+  (shop)/
+    products/page.tsx
+    cart/page.tsx
+    layout.tsx
+```
+
+Each group can have its own layout without affecting URLs:
+- `/about` → uses (marketing) layout
+- `/products` → uses (shop) layout
+
+---
+
+## Dynamic Routes
+
+```tsx
+// app/blog/[slug]/page.tsx
+export default function BlogPost({ params }: { params: { slug: string } }) {
+  return <h1>Post: {params.slug}</h1>
+}
+
+// app/shop/[...slug]/page.tsx (Catch-all)
+export default function Product({ params }: { params: { slug: string[] } }) {
+  return <h1>Category: {params.slug.join('/')}</h1>
+}
+
+// app/docs/[[...slug]]/page.tsx (Optional catch-all)
+export default function Docs({ params }: { params: { slug?: string[] } }) {
+  return <h1>Docs: {params.slug?.join('/') || 'Home'}</h1>
+}
+```
+
+
+### Server Actions
+
+# Server Actions Reference
+
+## Basic Server Actions
+
+```tsx
+// app/actions.ts
+'use server'
+
+import { db } from '@/lib/database'
+import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
+
+export async function createPost(formData: FormData) {
+  const title = formData.get('title') as string
+  const content = formData.get('content') as string
+
+  const post = await db.post.create({
+    data: { title, content }
+  })
+
+  revalidatePath('/posts')
+  redirect(`/posts/${post.id}`)
+}
+```
+
+---
+
+## Progressive Enhancement
+
+Forms work without JavaScript:
+
+```tsx
+// app/posts/new/page.tsx
+import { createPost } from '@/app/actions'
+
+export default function NewPostPage() {
+  return (
+    <form action={createPost}>
+      <input type="text" name="title" required />
+      <textarea name="content" required />
+      <button type="submit">Create Post</button>
+    </form>
+  )
+}
+```
+
+---
+
+## Client-Side Enhancement
+
+Add loading states and error handling:
+
+```tsx
+// components/PostForm.tsx
+'use client'
+
+import { createPost } from '@/app/actions'
+import { useActionState } from 'react' // React 19: replaces useFormState
+import { useFormStatus } from 'react-dom'
+
+function SubmitButton(): React.ReactNode {
+  const { pending } = useFormStatus()
+  return (
+    <button type="submit" disabled={pending} aria-busy={pending}>
+      {pending ? 'Creating...' : 'Create Post'}
+    </button>
+  )
+}
+
+export function PostForm(): React.ReactNode {
+  // React 19: useActionState replaces useFormState from react-dom
+  const [state, formAction, isPending] = useActionState(createPost, { error: null })
+
+  return (
+    <form action={formAction}>
+      <input type="text" name="title" required disabled={isPending} />
+      <textarea name="content" required disabled={isPending} />
+      {state?.error && <p className="error">{state.error}</p>}
+      <SubmitButton />
+    </form>
+  )
+}
+```
+
+---
+
+## Optimistic UI
+
+Update UI immediately, before server responds:
+
+```tsx
+// components/TodoList.tsx
+'use client'
+
+import { useOptimistic } from 'react'
+import { toggleTodo } from '@/app/actions'
+
+export function TodoList({ todos }: { todos: Todo[] }) {
+  const [optimisticTodos, addOptimisticTodo] = useOptimistic(
+    todos,
+    (state, newTodo: Todo) => [...state, newTodo]
+  )
+
+  const handleToggle = async (id: string) => {
+    addOptimisticTodo({ ...todos.find(t => t.id === id)!, completed: true })
+    await toggleTodo(id)
+  }
+
+  return (
+    <ul>
+      {optimisticTodos.map(todo => (
+        <li key={todo.id}>
+          <input
+            type="checkbox"
+            checked={todo.completed}
+            onChange={() => handleToggle(todo.id)}
+          />
+          {todo.title}
+        </li>
+      ))}
+    </ul>
+  )
+}
+```
+
+---
+
+## Inline Server Actions
+
+Define actions directly in components:
+
+```tsx
+export default function Page() {
+  async function handleSubmit(formData: FormData) {
+    'use server'
+
+    const email = formData.get('email')
+    await subscribeToNewsletter(email)
+  }
+
+  return (
+    <form action={handleSubmit}>
+      <input type="email" name="email" />
+      <button>Subscribe</button>
+    </form>
+  )
+}
+```
+
+---
+
+## Validation with Zod
+
+```tsx
+// app/actions.ts
+'use server'
+
+import { z } from 'zod'
+
+const CreatePostSchema = z.object({
+  title: z.string().min(1).max(100),
+  content: z.string().min(10),
+  categoryId: z.string().uuid()
+})
+
+export async function createPost(formData: FormData) {
+  const rawData = {
+    title: formData.get('title'),
+    content: formData.get('content'),
+    categoryId: formData.get('categoryId')
+  }
+
+  const result = CreatePostSchema.safeParse(rawData)
+
+  if (!result.success) {
+    return { error: result.error.flatten().fieldErrors }
+  }
+
+  const post = await db.post.create({ data: result.data })
+  revalidatePath('/posts')
+  return { success: true, post }
+}
+```
+
+---
+
+## Calling from Client Components
+
+```tsx
+'use client'
+
+import { updateProfile } from '@/app/actions'
+
+export function ProfileForm({ user }: { user: User }) {
+  const handleUpdate = async () => {
+    const result = await updateProfile({
+      name: 'New Name',
+      email: 'new@email.com'
+    })
+
+    if (result.success) {
+      toast.success('Profile updated')
+    }
+  }
+
+  return <button onClick={handleUpdate}>Update Profile</button>
+}
+```
+
+
+### Server Components
+
+# Server Components Reference
+
+React Server Components (RSC) represent a paradigm shift in React architecture, enabling server-first rendering with zero client JavaScript overhead.
+
+## Why Server Components?
+
+- **Server-First Architecture**: Components render on the server by default, reducing client bundle size
+- **Zero Client Bundle**: Server Components don't ship JavaScript to the client
+- **Direct Backend Access**: Access databases, file systems, and APIs directly from components
+- **Automatic Code Splitting**: Only Client Components and their dependencies are bundled
+- **Type-Safe Data Fetching**: End-to-end TypeScript from database to UI
+- **SEO & Performance**: Server rendering improves Core Web Vitals and SEO
+
+## Server Component Characteristics
+
+Server Components (default in App Router):
+- Can be `async` and use `await`
+- Direct database/file system access
+- Cannot use hooks (`useState`, `useEffect`, etc.)
+- Cannot use browser APIs
+- Zero client JavaScript
+- Can import and render Client Components
+
+## Async Server Components
+
+```tsx
+// app/posts/page.tsx
+import { db } from '@/lib/db'
+
+export default async function PostsPage() {
+  // Direct database access - no API layer needed
+  const posts = await db.post.findMany({
+    orderBy: { createdAt: 'desc' },
+    include: { author: true }
+  })
+
+  return (
+    <div className="posts-grid">
+      {posts.map(post => (
+        <PostCard key={post.id} post={post} />
+      ))}
+    </div>
+  )
+}
+```
+
+## Data Fetching Patterns
+
+### Basic Fetch with Caching
+
+```tsx
+// Static (cached indefinitely) - default in production
+async function getProducts() {
+  const res = await fetch('https://api.example.com/products')
+  return res.json()
+}
+
+// Revalidate every 60 seconds (ISR)
+async function getProducts() {
+  const res = await fetch('https://api.example.com/products', {
+    next: { revalidate: 60 }
+  })
+  return res.json()
+}
+
+// Always fresh (dynamic)
+async function getProducts() {
+  const res = await fetch('https://api.example.com/products', {
+    cache: 'no-store'
+  })
+  return res.json()
+}
+
+// Tag-based revalidation
+async function getProducts() {
+  const res = await fetch('https://api.example.com/products', {
+    next: { tags: ['products'] }
+  })
+  return res.json()
+}
+```
+
+### Parallel Data Fetching
+
+```tsx
+// app/dashboard/page.tsx
+export default async function DashboardPage() {
+  // Parallel fetching - all requests start simultaneously
+  const [user, posts, analytics] = await Promise.all([
+    getUser(),
+    getUserPosts(),
+    getAnalytics()
+  ])
+
+  return (
+    <Dashboard
+      user={user}
+      posts={posts}
+      analytics={analytics}
+    />
+  )
+}
+```
+
+### Sequential Data Fetching
+
+```tsx
+// When data depends on previous results
+export default async function UserPostPage({ params }: { params: { userId: string } }) {
+  // First fetch - get user
+  const user = await getUser(params.userId)
+
+  // Second fetch - depends on user data
+  const posts = await getPostsByAuthor(user.id)
+
+  // Third fetch - depends on posts
+  const comments = await getCommentsForPosts(posts.map(p => p.id))
+
+  return <UserPosts user={user} posts={posts} comments={comments} />
+}
+```
+
+## Database Access from Server Components
+
+```tsx
+// Direct Prisma/Drizzle access
+import { prisma } from '@/lib/prisma'
+
+export default async function ProductPage({ params }: { params: { id: string } }) {
+  const product = await prisma.product.findUnique({
+    where: { id: params.id },
+    include: {
+      category: true,
+      reviews: {
+        take: 5,
+        orderBy: { createdAt: 'desc' }
+      }
+    }
+  })
+
+  if (!product) {
+    notFound()
+  }
+
+  return <ProductDetail product={product} />
+}
+```
+
+## Route Segment Config
+
+Control rendering mode at the route level:
+
+```tsx
+// app/products/page.tsx
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+
+// Force static rendering
+export const dynamic = 'force-static'
+
+// Set revalidation period
+export const revalidate = 3600 // 1 hour
+
+// Enable Partial Prerendering
+export const experimental_ppr = true
+
+export default async function ProductsPage() {
+  const products = await getProducts()
+  return <ProductList products={products} />
+}
+```
+
+## generateStaticParams for SSG
+
+Pre-render dynamic routes at build time:
+
+```tsx
+// app/posts/[slug]/page.tsx
+
+export async function generateStaticParams() {
+  const posts = await getAllPosts()
+
+  return posts.map((post) => ({
+    slug: post.slug,
+  }))
+}
+
+export default async function PostPage({ params }: { params: { slug: string } }) {
+  const post = await getPostBySlug(params.slug)
+  return <PostContent post={post} />
+}
+```
+
+## Server Component Composition
+
+### Passing Data Down
+
+```tsx
+// app/layout.tsx (Server Component)
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const user = await getCurrentUser()
+
+  return (
+    <html>
+      <body>
+        <Header user={user} />
+        <main>{children}</main>
+        <Footer />
+      </body>
+    </html>
+  )
+}
+```
+
+### Server Components with Client Children
+
+```tsx
+// app/dashboard/page.tsx (Server Component)
+import { InteractiveChart } from './InteractiveChart' // Client Component
+
+export default async function DashboardPage() {
+  const data = await getChartData() // Server-side fetch
+
+  return (
+    <div>
+      <h1>Dashboard</h1>
+      {/* Pass server-fetched data to Client Component */}
+      <InteractiveChart data={data} />
+    </div>
+  )
+}
+```
+
+## Error Handling
+
+```tsx
+// app/posts/error.tsx
+'use client'
+
+export default function Error({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string }
+  reset: () => void
+}) {
+  return (
+    <div>
+      <h2>Something went wrong!</h2>
+      <button onClick={() => reset()}>Try again</button>
+    </div>
+  )
+}
+```
+
+## Best Practices
+
+1. **Fetch data where it's used**: Colocate data fetching with components that need it
+2. **Use parallel fetching**: When data is independent, use `Promise.all()`
+3. **Set appropriate caching**: Match cache strategy to data freshness needs
+4. **Handle errors gracefully**: Implement error.tsx at appropriate levels
+5. **Use generateStaticParams**: Pre-render known dynamic routes
+6. **Keep Server Components default**: Only use Client Components when necessary
+
+## Common Pitfalls
+
+### Avoid Client-Side Data Fetching
+
+```tsx
+// BAD: useEffect in Client Component
+'use client'
+export function Products() {
+  const [products, setProducts] = useState([])
+  useEffect(() => {
+    fetch('/api/products').then(r => r.json()).then(setProducts)
+  }, [])
+  return <ProductList products={products} />
+}
+
+// GOOD: Server Component
+export default async function Products() {
+  const products = await getProducts()
+  return <ProductList products={products} />
+}
+```
+
+### Don't Mix Async with Hooks
+
+```tsx
+// BAD: This won't work
+export default async function Page() {
+  const [state, setState] = useState() // Error!
+  const data = await fetchData()
+  return <div>{data}</div>
+}
+
+// GOOD: Separate concerns
+export default async function Page() {
+  const data = await fetchData()
+  return <InteractiveWrapper data={data} /> // Client Component handles state
+}
+```
+
+### Streaming Patterns
+
+# Streaming Patterns Reference
+
+Streaming enables progressive rendering in React Server Components, showing content as it becomes available rather than waiting for the entire page.
+
+## Why Streaming?
+
+- **Faster Time to First Byte (TTFB)**: Start sending HTML immediately
+- **Improved Largest Contentful Paint (LCP)**: Critical content appears sooner
+- **Non-Blocking**: Slow data fetches don't block the entire page
+- **Better User Experience**: Progressive loading feels faster
+
+## Suspense Boundaries
+
+Suspense defines loading boundaries for async operations:
+
+```tsx
+import { Suspense } from 'react'
+
+export default function DashboardPage() {
+  return (
+    <div className="dashboard">
+      {/* Immediate: Static content renders right away */}
+      <Header />
+
+      {/* Streamed: Each section loads independently */}
+      <Suspense fallback={<MetricsSkeleton />}>
+        <MetricsCards />
+      </Suspense>
+
+      <Suspense fallback={<ChartSkeleton />}>
+        <RevenueChart />
+      </Suspense>
+
+      <Suspense fallback={<TableSkeleton />}>
+        <RecentOrders />
+      </Suspense>
+    </div>
+  )
+}
+```
+
+## Streaming Timeline
+
+```
+Time →
+|----[Header renders]----------------------------------------->
+|         |----[MetricsCards streams in]---------------------->
+|              |----[RevenueChart streams in]----------------->
+|                        |----[RecentOrders streams in]------->
+
+User sees:
+1. Header immediately
+2. Skeletons for metrics, chart, orders
+3. Each component replaces skeleton as data arrives
+```
+
+## Loading UI with loading.tsx
+
+Next.js automatically wraps page content with Suspense using `loading.tsx`:
+
+```tsx
+// app/dashboard/loading.tsx
+export default function DashboardLoading() {
+  return (
+    <div className="animate-pulse">
+      <div className="h-8 bg-gray-200 rounded w-1/4 mb-4" />
+      <div className="grid grid-cols-3 gap-4">
+        <div className="h-32 bg-gray-200 rounded" />
+        <div className="h-32 bg-gray-200 rounded" />
+        <div className="h-32 bg-gray-200 rounded" />
+      </div>
+    </div>
+  )
+}
+
+// app/dashboard/page.tsx
+// This page will show loading.tsx while data fetches
+export default async function DashboardPage() {
+  const data = await fetchDashboardData()
+  return <Dashboard data={data} />
+}
+```
+
+## Skeleton Components
+
+Create consistent loading states:
+
+```tsx
+// components/skeletons.tsx
+export function CardSkeleton() {
+  return (
+    <div className="rounded-xl bg-gray-100 p-4 animate-pulse">
+      <div className="h-4 bg-gray-200 rounded w-1/2 mb-2" />
+      <div className="h-8 bg-gray-200 rounded w-3/4" />
+    </div>
+  )
+}
+
+export function TableRowSkeleton() {
+  return (
+    <tr>
+      <td className="py-3"><div className="h-4 bg-gray-200 rounded w-24" /></td>
+      <td className="py-3"><div className="h-4 bg-gray-200 rounded w-32" /></td>
+      <td className="py-3"><div className="h-4 bg-gray-200 rounded w-16" /></td>
+    </tr>
+  )
+}
+
+export function TableSkeleton({ rows = 5 }: { rows?: number }) {
+  return (
+    <table className="w-full">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {Array.from({ length: rows }).map((_, i) => (
+          <TableRowSkeleton key={i} />
+        ))}
+      </tbody>
+    </table>
+  )
+}
+```
+
+## Nested Suspense Boundaries
+
+Create granular loading experiences:
+
+```tsx
+export default function ProductPage({ params }: { params: { id: string } }) {
+  return (
+    <div>
+      {/* Product info loads first */}
+      <Suspense fallback={<ProductSkeleton />}>
+        <ProductDetails id={params.id} />
+      </Suspense>
+
+      {/* Reviews can load later */}
+      <Suspense fallback={<ReviewsSkeleton />}>
+        <ProductReviews productId={params.id} />
+      </Suspense>
+
+      {/* Recommendations load last (less critical) */}
+      <Suspense fallback={<RecommendationsSkeleton />}>
+        <RelatedProducts productId={params.id} />
+      </Suspense>
+    </div>
+  )
+}
+```
+
+## Streaming SSR Architecture
+
+```
+Browser Request
+       ↓
+┌──────────────────────────────────┐
+│         Next.js Server           │
+│                                  │
+│  1. Start HTML stream            │
+│  2. Send <head> and shell        │
+│  3. Send Suspense fallbacks      │
+│  4. As data resolves:            │
+│     - Stream component HTML      │
+│     - Include hydration script   │
+│  5. Close HTML stream            │
+│                                  │
+└──────────────────────────────────┘
+       ↓
+Browser receives progressive HTML
+```
+
+## Parallel Streaming
+
+Fetch data in parallel, stream as each resolves:
+
+```tsx
+// Async components for parallel data fetching
+async function UserProfile({ userId }: { userId: string }) {
+  const user = await getUser(userId)  // 200ms
+  return <ProfileCard user={user} />
+}
+
+async function UserPosts({ userId }: { userId: string }) {
+  const posts = await getPosts(userId)  // 500ms
+  return <PostList posts={posts} />
+}
+
+async function UserAnalytics({ userId }: { userId: string }) {
+  const analytics = await getAnalytics(userId)  // 1000ms
+  return <AnalyticsChart data={analytics} />
+}
+
+// Page streams each component as it resolves
+export default function UserPage({ params }: { params: { id: string } }) {
+  return (
+    <div>
+      <Suspense fallback={<ProfileSkeleton />}>
+        <UserProfile userId={params.id} />  {/* Streams at ~200ms */}
+      </Suspense>
+
+      <Suspense fallback={<PostsSkeleton />}>
+        <UserPosts userId={params.id} />  {/* Streams at ~500ms */}
+      </Suspense>
+
+      <Suspense fallback={<AnalyticsSkeleton />}>
+        <UserAnalytics userId={params.id} />  {/* Streams at ~1000ms */}
+      </Suspense>
+    </div>
+  )
+}
+```
+
+## Partial Prerendering (PPR)
+
+Mix static and dynamic content in a single route:
+
+```tsx
+// app/product/[id]/page.tsx
+export const experimental_ppr = true
+
+export default function ProductPage({ params }: { params: { id: string } }) {
+  return (
+    <div>
+      {/* Static: Prerendered at build time */}
+      <Header />
+      <ProductNav />
+
+      {/* Dynamic: Streamed at request time */}
+      <Suspense fallback={<ProductSkeleton />}>
+        <ProductDetails id={params.id} />
+      </Suspense>
+
+      {/* Dynamic: Personalized content */}
+      <Suspense fallback={<CartSkeleton />}>
+        <CartPreview />
+      </Suspense>
+
+      {/* Static: Footer prerendered */}
+      <Footer />
+    </div>
+  )
+}
+```
+
+### PPR Benefits
+
+- Static shell serves instantly from CDN
+- Dynamic content streams in Suspense boundaries
+- Best of both static and dynamic rendering
+
+## Error Boundaries with Streaming
+
+Handle errors gracefully within streaming:
+
+```tsx
+// app/dashboard/error.tsx
+'use client'
+
+export default function DashboardError({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string }
+  reset: () => void
+}) {
+  return (
+    <div className="error-container">
+      <h2>Dashboard failed to load</h2>
+      <p>{error.message}</p>
+      <button onClick={reset}>Try again</button>
+    </div>
+  )
+}
+```
+
+### Component-Level Error Handling
+
+```tsx
+import { ErrorBoundary } from 'react-error-boundary'
+
+export default function DashboardPage() {
+  return (
+    <div>
+      <Header />
+
+      <ErrorBoundary fallback={<MetricsError />}>
+        <Suspense fallback={<MetricsSkeleton />}>
+          <MetricsCards />
+        </Suspense>
+      </ErrorBoundary>
+
+      <ErrorBoundary fallback={<ChartError />}>
+        <Suspense fallback={<ChartSkeleton />}>
+          <RevenueChart />
+        </Suspense>
+      </ErrorBoundary>
+    </div>
+  )
+}
+```
+
+## Loading State Best Practices
+
+### Do: Match Loading State to Content Shape
+
+```tsx
+// GOOD: Skeleton matches actual content layout
+function ArticleSkeleton() {
+  return (
+    <article className="space-y-4">
+      <div className="h-8 bg-gray-200 rounded w-3/4" />  {/* Title */}
+      <div className="h-4 bg-gray-200 rounded w-1/4" />  {/* Date */}
+      <div className="space-y-2">
+        <div className="h-4 bg-gray-200 rounded" />
+        <div className="h-4 bg-gray-200 rounded" />
+        <div className="h-4 bg-gray-200 rounded w-5/6" />
+      </div>
+    </article>
+  )
+}
+```
+
+### Do: Use Appropriate Granularity
+
+```tsx
+// TOO COARSE: One giant skeleton
+<Suspense fallback={<FullPageSkeleton />}>
+  <EntirePage />
+</Suspense>
+
+// TOO FINE: Too many skeletons (jarring)
+<Suspense fallback={<TitleSkeleton />}>
+  <Title />
+</Suspense>
+<Suspense fallback={<SubtitleSkeleton />}>
+  <Subtitle />
+</Suspense>
+
+// JUST RIGHT: Logical content groups
+<Suspense fallback={<HeaderSkeleton />}>
+  <HeaderSection />
+</Suspense>
+<Suspense fallback={<ContentSkeleton />}>
+  <MainContent />
+</Suspense>
+```
+
+### Don't: Cause Layout Shift
+
+```tsx
+// BAD: Skeleton different size than content
+function BadSkeleton() {
+  return <div className="h-20" />  // Fixed height
+}
+
+// GOOD: Skeleton matches content dimensions
+function GoodSkeleton() {
+  return (
+    <div className="min-h-[200px]">  // Matches content min-height
+      <div className="animate-pulse">...</div>
+    </div>
+  )
+}
+```
+
+## Streaming with Route Groups
+
+Organize streaming boundaries by feature:
+
+```
+app/
+  (marketing)/
+    page.tsx          # Static, no streaming needed
+    about/page.tsx
+  (dashboard)/
+    layout.tsx        # Shared dashboard shell
+    loading.tsx       # Dashboard-wide loading
+    analytics/
+      page.tsx
+      loading.tsx     # Analytics-specific loading
+    settings/
+      page.tsx
+```
+
+## Performance Tips
+
+1. **Stream critical content first**: Place important content in early Suspense boundaries
+2. **Use appropriate fallbacks**: Match skeleton to final content shape
+3. **Avoid waterfall**: Use parallel data fetching within Suspense boundaries
+4. **Consider PPR**: Use Partial Prerendering for mixed static/dynamic pages
+5. **Test on slow connections**: Verify streaming works well on 3G networks
+
+### Tanstack Router Patterns
+
+# React 19 + TanStack Router Patterns
+
+> **OrchestKit Supplement** (Dec 2025) - Patterns for React 19 applications using TanStack Router instead of Next.js App Router.
+
+## Overview
+
+While the main skill covers Next.js 16 + React Server Components, **OrchestKit uses React 19 with TanStack Router**. This supplement documents the equivalent patterns for client-rendered SPAs with React 19's new features.
+
+## Key Differences from Next.js RSC
+
+| Pattern | Next.js 16 App Router | React 19 + TanStack Router |
+|---------|----------------------|---------------------------|
+| Data Fetching | Server Components | TanStack Query + route loaders |
+| Mutations | Server Actions | React 19 `useActionState` + API calls |
+| Optimistic UI | Experimental `useOptimistic` | React 19 `useOptimistic` (stable) |
+| Transitions | `useTransition` | Same - `useTransition` |
+| Promise Handling | `use()` in Server Components | `use()` in Client Components |
+| Prefetching | Route segment prefetching | TanStack Router `defaultPreload: 'intent'` |
+
+---
+
+## Pattern 1: Route-Based Data Fetching
+
+### TanStack Router with Query Integration
+
+```tsx
+// router.tsx
+import { createRouter, createRootRoute, createRoute } from '@tanstack/react-router'
+import { QueryClient } from '@tanstack/react-query'
+
+const queryClient = new QueryClient()
+
+const rootRoute = createRootRoute({
+  component: RootLayout,
+})
+
+const analysisRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: 'analyze/$analysisId',
+  // ★ Prefetch with intent-based preloading
+  loader: ({ params }) => {
+    queryClient.prefetchQuery({
+      queryKey: ['analysis', params.analysisId],
+      queryFn: () => fetchAnalysis(params.analysisId),
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    })
+  },
+  component: AnalysisPage,
+})
+
+export const router = createRouter({
+  routeTree: rootRoute.addChildren([analysisRoute]),
+  defaultPreload: 'intent',  // Preload on hover
+  defaultPreloadDelay: 50,   // 50ms delay before preload
+  defaultStaleTime: 5 * 60 * 1000, // 5 minutes
+})
+```
+
+---
+
+## Pattern 2: React 19 useOptimistic
+
+### Optimistic Updates Without Server Actions
+
+```tsx
+import { useOptimistic, useTransition, useState } from 'react'
+
+interface AnalysisCard {
+  id: string
+  title: string
+  status: 'pending' | 'analyzing' | 'complete'
+}
+
+export function AnalysisList({ analyses }: { analyses: AnalysisCard[] }) {
+  const [optimisticAnalyses, addOptimistic] = useOptimistic(
+    analyses,
+    (current, newAnalysis: AnalysisCard) => [...current, newAnalysis]
+  )
+  const [isPending, startTransition] = useTransition()
+
+  async function handleSubmit(url: string) {
+    // Create optimistic placeholder
+    const optimistic: AnalysisCard = {
+      id: `temp-${Date.now()}`,
+      title: url,
+      status: 'pending',
+    }
+
+    startTransition(async () => {
+      addOptimistic(optimistic)  // Show immediately
+
+      const result = await createAnalysis({ url })  // Real API call
+      // React reconciles automatically when analyses prop updates
+    })
+  }
+
+  return (
+    <div>
+      {optimisticAnalyses.map(analysis => (
+        <Card key={analysis.id} analysis={analysis} />
+      ))}
+    </div>
+  )
+}
+```
+
+---
+
+## Pattern 3: useActionState for Form Handling
+
+### React 19 Form Actions (Without Server Actions)
+
+```tsx
+import { useActionState, use } from 'react'
+import { z } from 'zod'
+
+const UrlSchema = z.object({
+  url: z.string().url('Please enter a valid URL'),
+})
+
+async function submitUrl(
+  prevState: { error: string | null; success: boolean },
+  formData: FormData
+) {
+  const result = UrlSchema.safeParse({ url: formData.get('url') })
+
+  if (!result.success) {
+    return { error: result.error.errors[0].message, success: false }
+  }
+
+  try {
+    await api.post('/api/v1/analyses', { url: result.data.url })
+    return { error: null, success: true }
+  } catch (error) {
+    return { error: 'Failed to start analysis', success: false }
+  }
+}
+
+export function UrlInputForm() {
+  const [state, formAction, isPending] = useActionState(submitUrl, {
+    error: null,
+    success: false,
+  })
+
+  return (
+    <form action={formAction}>
+      <input
+        type="url"
+        name="url"
+        placeholder="https://example.com/article"
+        disabled={isPending}
+      />
+      <button type="submit" disabled={isPending}>
+        {isPending ? 'Analyzing...' : 'Analyze'}
+      </button>
+      {state.error && <p className="error">{state.error}</p>}
+    </form>
+  )
+}
+```
+
+---
+
+## Pattern 4: use() Hook for Promise Handling
+
+### Suspense-Based Data Fetching in Client Components
+
+```tsx
+import { use, Suspense } from 'react'
+
+// Cache the promise at module level or use a query cache
+const analysisPromise = fetchAnalysis(analysisId)
+
+function AnalysisDetails({ analysisId }: { analysisId: string }) {
+  // ★ use() unwraps promises in render, works with Suspense
+  const analysis = use(analysisPromise)
+
+  return (
+    <div>
+      <h1>{analysis.title}</h1>
+      <p>Status: {analysis.status}</p>
+    </div>
+  )
+}
+
+// Usage with Suspense boundary
+function AnalysisPage() {
+  return (
+    <Suspense fallback={<AnalysisSkeleton />}>
+      <AnalysisDetails analysisId="123" />
+    </Suspense>
+  )
+}
+```
+
+### With TanStack Query (Recommended)
+
+```tsx
+import { useSuspenseQuery } from '@tanstack/react-query'
+
+function AnalysisDetails({ analysisId }: { analysisId: string }) {
+  // useSuspenseQuery integrates with React 19's Suspense
+  const { data: analysis } = useSuspenseQuery({
+    queryKey: ['analysis', analysisId],
+    queryFn: () => fetchAnalysis(analysisId),
+  })
+
+  return <div>{analysis.title}</div>
+}
+```
+
+---
+
+## Pattern 5: Prefetching Strategy
+
+### Intent-Based Preloading
+
+```tsx
+// hooks/usePrefetch.ts
+import { useQueryClient } from '@tanstack/react-query'
+import { useRouter } from '@tanstack/react-router'
+import { useCallback } from 'react'
+
+export function usePrefetch() {
+  const queryClient = useQueryClient()
+  const router = useRouter()
+
+  const prefetchAnalysis = useCallback((analysisId: string) => {
+    // Prefetch route data
+    router.preloadRoute({
+      to: '/analyze/$analysisId',
+      params: { analysisId },
+    })
+
+    // Prefetch query data
+    queryClient.prefetchQuery({
+      queryKey: ['analysis', analysisId],
+      queryFn: () => fetchAnalysis(analysisId),
+      staleTime: 5 * 60 * 1000,
+    })
+  }, [queryClient, router])
+
+  return { prefetchAnalysis }
+}
+
+// Usage in component
+function SkillCard({ skill }) {
+  const { prefetchAnalysis } = usePrefetch()
+
+  return (
+    <Link
+      to="/analyze/$analysisId"
+      params={{ analysisId: skill.id }}
+      onMouseEnter={() => prefetchAnalysis(skill.id)}
+    >
+      {skill.title}
+    </Link>
+  )
+}
+```
+
+---
+
+## Pattern 6: Exhaustive Type Checking
+
+### assertNever for Type-Safe Switch Statements
+
+```tsx
+// lib/utils.ts
+export function assertNever(value: never, message?: string): never {
+  throw new Error(message ?? `Unexpected value: ${JSON.stringify(value)}`)
+}
+
+// Usage in component
+type AnalysisStatus = 'pending' | 'analyzing' | 'complete' | 'failed'
+
+function StatusBadge({ status }: { status: AnalysisStatus }) {
+  switch (status) {
+    case 'pending':
+      return <Badge variant="secondary">Pending</Badge>
+    case 'analyzing':
+      return <Badge variant="info">Analyzing</Badge>
+    case 'complete':
+      return <Badge variant="success">Complete</Badge>
+    case 'failed':
+      return <Badge variant="destructive">Failed</Badge>
+    default:
+      // TypeScript error if new status added but not handled
+      return assertNever(status, `Unhandled status: ${status}`)
+  }
+}
+```
+
+---
+
+## OrchestKit-Specific Patterns
+
+### 1. SSE Event Handling with Zustand
+
+```tsx
+// stores/sseStore.ts
+import { create } from 'zustand'
+
+interface SSEEvent {
+  event_id: string
+  type: string
+  data: unknown
+}
+
+interface SSEStore {
+  events: Map<string, SSEEvent>  // O(1) deduplication
+  addEvent: (event: SSEEvent) => void
+}
+
+export const useSSEStore = create<SSEStore>((set) => ({
+  events: new Map(),
+  addEvent: (event) => set((state) => {
+    // O(1) lookup for deduplication
+    if (state.events.has(event.event_id)) {
+      return state  // Already processed
+    }
+    const newEvents = new Map(state.events)
+    newEvents.set(event.event_id, event)
+    return { events: newEvents }
+  }),
+}))
+```
+
+### 2. List Virtualization
+
+```tsx
+// components/VirtualizedGrid.tsx
+import { useVirtualizer } from '@tanstack/react-virtual'
+
+export function VirtualizedGrid<T>({ items, renderItem }: Props<T>) {
+  const parentRef = useRef<HTMLDivElement>(null)
+
+  const virtualizer = useVirtualizer({
+    count: items.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 200,  // Estimated row height
+    overscan: 5,  // Render 5 extra items above/below viewport
+  })
+
+  return (
+    <div ref={parentRef} className="h-[600px] overflow-auto">
+      <div
+        style={{
+          height: virtualizer.getTotalSize(),
+          position: 'relative',
+        }}
+      >
+        {virtualizer.getVirtualItems().map((virtualItem) => (
+          <div
+            key={virtualItem.key}
+            style={{
+              position: 'absolute',
+              top: virtualItem.start,
+              width: '100%',
+            }}
+          >
+            {renderItem(items[virtualItem.index])}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+```
+
+---
+
+## Migration Checklist
+
+When migrating Next.js patterns to TanStack Router:
+
+- [ ] Replace `use server` with client-side API calls + `useActionState`
+- [ ] Replace `generateStaticParams` with route loader prefetching
+- [ ] Replace `revalidatePath` with TanStack Query `invalidateQueries`
+- [ ] Replace Next.js `Image` with native `<img>` + loading="lazy"
+- [ ] Replace `cookies()`/`headers()` with browser APIs or API calls
+- [ ] Replace `Metadata` exports with `document.title` or react-helmet
+
+---
+
+## References
+
+- [React 19 Release Notes](https://react.dev/blog/2024/12/05/react-19)
+- [TanStack Router Docs](https://tanstack.com/router/latest)
+- [TanStack Query with Suspense](https://tanstack.com/query/latest/docs/framework/react/guides/suspense)
+- [Zod Validation](https://zod.dev/)
+
+
+
+---
+
+## Checklists (1)
+
+### Rsc Implementation Checklist
+
+# React Server Components Implementation Checklist
+
+Use this checklist when implementing features with React Server Components and Next.js 16 App Router.
+
+> **Note**: Next.js 16 introduces Cache Components for fine-grained caching control. See the Caching section for details.
+
+## Component Architecture
+
+### Server Components
+- [ ] Default to Server Components (no `'use client'` directive)
+- [ ] Make Server Components `async` when fetching data
+- [ ] Access databases/APIs directly from Server Components
+- [ ] Avoid using React hooks in Server Components
+- [ ] Avoid browser APIs (window, document, localStorage) in Server Components
+- [ ] Use environment variables safely (never expose secrets to client)
+
+### Client Components
+- [ ] Add `'use client'` directive at the top of file
+- [ ] Keep Client Components small and focused
+- [ ] Push `'use client'` boundary as low as possible in component tree
+- [ ] Use Client Components only for interactivity (forms, animations, event handlers)
+- [ ] Verify all imports in Client Components are client-safe
+- [ ] Avoid heavy dependencies that increase bundle size
+
+### Component Composition
+- [ ] Server Components can import and render Client Components
+- [ ] Client Components receive Server Components via `children` prop (not direct import)
+- [ ] Pass serializable props between Server and Client Components
+- [ ] Avoid passing functions, dates, or complex objects as props
+
+## Data Fetching
+
+### fetch API Configuration
+- [ ] Use `cache: 'force-cache'` for static data (default)
+- [ ] Use `cache: 'no-store'` for dynamic/real-time data
+- [ ] Use `next: \{ revalidate: &lt;seconds&gt; \}` for Incremental Static Regeneration (ISR)
+- [ ] Use `next: \{ tags: ['tag'] \}` for tag-based revalidation
+- [ ] Fetch data in parallel with `Promise.all()` when possible
+- [ ] Fetch data sequentially only when dependent on previous results
+
+### Database Access
+- [ ] Use ORM/database client directly in Server Components
+- [ ] Close database connections properly
+- [ ] Use connection pooling for production
+- [ ] Implement proper error handling with try-catch
+- [ ] Add indexes for frequently queried fields
+- [ ] Select only required fields (avoid `SELECT *`)
+
+### Performance
+- [ ] Avoid waterfalls - fetch data in parallel
+- [ ] Use Suspense boundaries for independent data sources
+- [ ] Implement loading states with `loading.tsx`
+- [ ] Consider route segment config (`revalidate`, `dynamic`)
+- [ ] Use `generateStaticParams()` for static generation
+- [ ] Implement proper caching strategy (static, dynamic, ISR)
+
+## Server Actions
+
+### Setup & Security
+- [ ] Add `'use server'` directive to Server Actions file
+- [ ] Validate all input data (use Zod, Yup, or similar)
+- [ ] Check user authorization before mutations
+- [ ] Use try-catch for error handling
+- [ ] Sanitize user input to prevent injection attacks
+- [ ] Rate limit sensitive actions
+
+### Implementation
+- [ ] Return structured responses `\{ success, data?, error? \}`
+- [ ] Use `revalidatePath()` after mutations
+- [ ] Use `revalidateTag()` for tag-based revalidation
+- [ ] Use `redirect()` only after successful mutations
+- [ ] Handle FormData properly (get, set, append)
+- [ ] Support both form actions and programmatic calls
+
+### Progressive Enhancement
+- [ ] Forms work without JavaScript enabled
+- [ ] Provide loading states during submission
+- [ ] Show validation errors inline
+- [ ] Clear form after successful submission
+- [ ] Prevent double submissions
+
+### Client Integration (React 19)
+- [ ] Use `useActionState()` for form state management (replaces useFormState)
+- [ ] Use `useFormStatus()` for loading states in submit buttons
+- [ ] Use `useOptimistic()` with `useTransition()` for optimistic UI updates
+- [ ] Handle errors gracefully with user feedback
+
+## Routing
+
+### File Structure
+- [ ] Use `page.tsx` for route pages
+- [ ] Use `layout.tsx` for shared layouts
+- [ ] Use `loading.tsx` for loading states
+- [ ] Use `error.tsx` for error boundaries
+- [ ] Use `not-found.tsx` for 404 pages
+- [ ] Use `route.ts` for API routes
+
+### Dynamic Routes
+- [ ] Use `[param]` for dynamic segments
+- [ ] Use `[...slug]` for catch-all segments
+- [ ] Use `[[...slug]]` for optional catch-all
+- [ ] Implement `generateStaticParams()` for SSG
+- [ ] Handle `notFound()` for missing resources
+
+### Advanced Routing
+- [ ] Use parallel routes `@folder` for multi-panel layouts
+- [ ] Use intercepting routes `(..)` for modals
+- [ ] Understand route group `(folder)` behavior
+- [ ] Use `useRouter()` from `next/navigation` in Client Components
+- [ ] Use `redirect()` from `next/navigation` in Server Components
+
+## Streaming & Suspense
+
+### Suspense Boundaries
+- [ ] Wrap slow components in `&lt;Suspense&gt;`
+- [ ] Provide meaningful fallback UI
+- [ ] Create independent Suspense boundaries for parallel loading
+- [ ] Avoid wrapping entire page in single Suspense
+- [ ] Use Suspense for data-fetching components only
+
+### Loading States
+- [ ] Implement skeleton screens for better UX
+- [ ] Match skeleton layout to actual content
+- [ ] Show progress indicators for long operations
+- [ ] Use `loading.tsx` for route-level loading
+- [ ] Provide instant feedback for user actions
+
+## Metadata & SEO
+
+### Static Metadata
+- [ ] Export metadata object from `page.tsx`
+- [ ] Include title, description, and keywords
+- [ ] Add Open Graph tags for social sharing
+- [ ] Add Twitter Card tags
+- [ ] Configure viewport and icons
+
+### Dynamic Metadata
+- [ ] Implement `generateMetadata()` function
+- [ ] Fetch data required for metadata
+- [ ] Return proper `Metadata` type
+- [ ] Handle cases where data is not found
+- [ ] Cache metadata generation appropriately
+
+## Error Handling
+
+### Error Boundaries
+- [ ] Create `error.tsx` for route-level errors
+- [ ] Make `error.tsx` a Client Component
+- [ ] Provide error message and reset button
+- [ ] Log errors for monitoring
+- [ ] Handle different error types appropriately
+
+### Not Found Handling
+- [ ] Create `not-found.tsx` for 404 errors
+- [ ] Call `notFound()` when resource doesn't exist
+- [ ] Provide helpful navigation back to app
+- [ ] Include search functionality if appropriate
+
+### Validation Errors
+- [ ] Validate on both client and server
+- [ ] Show field-level errors
+- [ ] Prevent form submission if invalid
+- [ ] Use `useActionState()` for server-side errors (React 19)
+- [ ] Clear errors when user corrects input
+
+## Performance Optimization
+
+### Bundle Size
+- [ ] Verify Client Component boundaries are minimal
+- [ ] Use dynamic imports for heavy components
+- [ ] Analyze bundle with `@next/bundle-analyzer`
+- [ ] Remove unused dependencies
+- [ ] Use tree-shaking friendly imports
+
+### Rendering Strategy
+- [ ] Choose appropriate rendering mode (static, dynamic, ISR)
+- [ ] Use `generateStaticParams()` for known routes
+- [ ] Configure `revalidate` for ISR
+- [ ] Use `dynamic = 'force-static'` for static pages
+- [ ] Use `dynamic = 'force-dynamic'` for always-fresh pages
+
+### Caching
+- [ ] Configure appropriate cache headers
+- [ ] Use `fetch` cache options correctly
+- [ ] Implement tag-based revalidation
+- [ ] Clear cache after mutations
+- [ ] Understand Next.js caching behavior
+
+### Images & Assets
+- [ ] Use `next/image` for optimized images
+- [ ] Specify width and height for images
+- [ ] Use appropriate image formats (WebP, AVIF)
+- [ ] Lazy load offscreen images
+- [ ] Optimize fonts with `next/font`
+
+## Testing
+
+### Component Testing
+- [ ] Test Server Components with React Testing Library
+- [ ] Test Client Components with user interactions
+- [ ] Test Server Actions independently
+- [ ] Mock database calls in tests
+- [ ] Test error states and edge cases
+
+### Integration Testing
+- [ ] Test data fetching and rendering
+- [ ] Test form submissions end-to-end
+- [ ] Test navigation between routes
+- [ ] Test Suspense boundaries
+- [ ] Test error boundaries
+
+### Performance Testing
+- [ ] Measure Time to First Byte (TTFB)
+- [ ] Measure First Contentful Paint (FCP)
+- [ ] Measure Largest Contentful Paint (LCP)
+- [ ] Measure Cumulative Layout Shift (CLS)
+- [ ] Test with slow network conditions
+
+## Deployment
+
+### Pre-Deployment
+- [ ] Run `npm run build` successfully
+- [ ] Fix all TypeScript errors
+- [ ] Fix all ESLint warnings
+- [ ] Test production build locally
+- [ ] Verify environment variables are set
+
+### Configuration
+- [ ] Configure `next.config.js` appropriately
+- [ ] Set up proper domain and URLs
+- [ ] Configure caching headers
+- [ ] Set up CDN for static assets
+- [ ] Enable compression
+
+### Monitoring
+- [ ] Set up error tracking (Sentry, LogRocket)
+- [ ] Monitor Core Web Vitals
+- [ ] Track Server Action errors
+- [ ] Monitor database query performance
+- [ ] Set up alerts for critical errors
+
+## Common Pitfalls to Avoid
+
+- [ ] ❌ Don't use `useState` in Server Components
+- [ ] ❌ Don't use `useEffect` in Server Components
+- [ ] ❌ Don't access browser APIs in Server Components
+- [ ] ❌ Don't import Server Components into Client Components directly
+- [ ] ❌ Don't pass non-serializable props (functions, dates, class instances)
+- [ ] ❌ Don't forget `'use client'` directive for interactive components
+- [ ] ❌ Don't forget `'use server'` directive for Server Actions
+- [ ] ❌ Don't skip input validation in Server Actions
+- [ ] ❌ Don't expose secrets to Client Components
+- [ ] ❌ Don't create large Client Component boundaries
+
+## Migration Checklist (Pages → App Router)
+
+- [ ] Keep `pages/` directory initially (both routers work together)
+- [ ] Create `app/` directory
+- [ ] Move routes incrementally to `app/`
+- [ ] Convert `getServerSideProps()` to `async` Server Components
+- [ ] Convert `getStaticProps()` to `fetch` with cache
+- [ ] Convert API routes to Route Handlers or Server Actions
+- [ ] Update `next/link` usage (remove `<a>` child)
+- [ ] Update `next/router` to `next/navigation`
+- [ ] Test each migrated route thoroughly
+- [ ] Remove `pages/` when fully migrated
+

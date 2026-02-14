@@ -206,3 +206,5655 @@ See `test-cases.json` for 9 test cases across all categories.
 **Solves:**
 - How to document all API errors?
 - Error type management
+
+
+---
+
+## Rules (15)
+
+### Error Type Catalog — HIGH
+
+
+## Error Type Catalog
+
+Centralized problem type registry with specific exception subclasses and client handling patterns.
+
+**Problem Type Registry:**
+
+```python
+# app/core/problem_types.py
+PROBLEM_TYPES = {
+    "validation-error": {
+        "uri": "https://api.example.com/problems/validation-error",
+        "title": "Validation Error",
+        "status": 422,
+    },
+    "resource-not-found": {
+        "uri": "https://api.example.com/problems/resource-not-found",
+        "title": "Resource Not Found",
+        "status": 404,
+    },
+    "rate-limit-exceeded": {
+        "uri": "https://api.example.com/problems/rate-limit-exceeded",
+        "title": "Too Many Requests",
+        "status": 429,
+    },
+    "unauthorized": {
+        "uri": "https://api.example.com/problems/unauthorized",
+        "title": "Unauthorized",
+        "status": 401,
+    },
+    "forbidden": {
+        "uri": "https://api.example.com/problems/forbidden",
+        "title": "Forbidden",
+        "status": 403,
+    },
+    "conflict": {
+        "uri": "https://api.example.com/problems/conflict",
+        "title": "Conflict",
+        "status": 409,
+    },
+    "internal-error": {
+        "uri": "https://api.example.com/problems/internal-error",
+        "title": "Internal Server Error",
+        "status": 500,
+    },
+}
+```
+
+**Specific Exception Classes:**
+
+```python
+class NotFoundProblem(ProblemException):
+    def __init__(self, resource: str, resource_id: str, instance: str | None = None):
+        super().__init__(
+            status_code=404,
+            problem_type="https://api.example.com/problems/resource-not-found",
+            title="Resource Not Found",
+            detail=f"{resource} with ID '{resource_id}' was not found",
+            instance=instance,
+            resource=resource,
+            resource_id=resource_id,
+        )
+
+class RateLimitProblem(ProblemException):
+    def __init__(self, retry_after: int, instance: str | None = None):
+        super().__init__(
+            status_code=429,
+            problem_type="https://api.example.com/problems/rate-limit-exceeded",
+            title="Too Many Requests",
+            detail="Rate limit exceeded. Please retry later.",
+            instance=instance,
+            retry_after=retry_after,
+        )
+
+class ConflictProblem(ProblemException):
+    def __init__(self, detail: str, conflicting_field: str | None = None):
+        super().__init__(
+            status_code=409,
+            problem_type="https://api.example.com/problems/conflict",
+            title="Resource Conflict",
+            detail=detail,
+            conflicting_field=conflicting_field,
+        )
+```
+
+**Usage in Endpoints:**
+
+```python
+@router.get("/api/v1/analyses/{analysis_id}")
+async def get_analysis(
+    analysis_id: str,
+    request: Request,
+    service: AnalysisService = Depends(get_analysis_service),
+):
+    analysis = await service.get_by_id(analysis_id)
+    if not analysis:
+        raise NotFoundProblem(
+            resource="Analysis",
+            resource_id=analysis_id,
+            instance=str(request.url),
+        )
+    return analysis
+```
+
+**Python Client Handling:**
+
+```python
+import httpx
+from dataclasses import dataclass
+
+@dataclass
+class ProblemDetail:
+    type: str
+    status: int
+    title: str | None = None
+    detail: str | None = None
+    instance: str | None = None
+    extensions: dict | None = None
+
+    @classmethod
+    def from_response(cls, response: httpx.Response) -> "ProblemDetail":
+        if response.headers.get("content-type", "").startswith(
+            "application/problem+json"
+        ):
+            data = response.json()
+            return cls(
+                type=data.get("type", "about:blank"),
+                status=data.get("status", response.status_code),
+                title=data.get("title"),
+                detail=data.get("detail"),
+                instance=data.get("instance"),
+                extensions={
+                    k: v for k, v in data.items()
+                    if k not in ("type", "status", "title", "detail", "instance")
+                },
+            )
+        return cls(type="about:blank", status=response.status_code)
+```
+
+**TypeScript Client Handling:**
+
+```typescript
+interface ProblemDetail {
+  type: string;
+  status: number;
+  title?: string;
+  detail?: string;
+  instance?: string;
+  [key: string]: unknown; // Extensions
+}
+
+class APIError extends Error {
+  constructor(public problem: ProblemDetail) {
+    super(problem.detail || problem.title || 'Unknown error');
+  }
+}
+
+async function fetchWithProblemDetails(url: string): Promise<Response> {
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    const contentType = response.headers.get('content-type');
+
+    if (contentType?.includes('application/problem+json')) {
+      const problem: ProblemDetail = await response.json();
+      throw new APIError(problem);
+    }
+
+    throw new APIError({
+      type: 'about:blank',
+      status: response.status,
+      title: response.statusText,
+    });
+  }
+
+  return response;
+}
+```
+
+**Quick Reference:**
+
+| Status | Type Suffix | When to Use |
+|--------|-------------|-------------|
+| 400 | `bad-request` | Malformed request |
+| 401 | `unauthorized` | Missing/invalid auth |
+| 403 | `forbidden` | Not authorized |
+| 404 | `resource-not-found` | Resource doesn't exist |
+| 409 | `conflict` | Duplicate/constraint |
+| 422 | `validation-error` | Invalid field values |
+| 429 | `rate-limit-exceeded` | Too many requests |
+| 500 | `internal-error` | Unexpected error |
+
+**Key rules:**
+- Define all problem type URIs in a centralized registry
+- Create specific exception subclasses for each problem type
+- Stable URIs: problem type URLs should never change
+- Document each problem type at its URI
+- Provide client handling examples in both Python and TypeScript
+
+
+### RFC 9457 Problem Details — HIGH
+
+
+## RFC 9457 Problem Details
+
+Standardize API error responses with the RFC 9457 Problem Details format for machine-readable error handling.
+
+**RFC 9457 vs RFC 7807:**
+
+| Feature | RFC 7807 (Old) | RFC 9457 (Current) |
+|---------|----------------|---------------------|
+| Status | Obsolete | Active Standard |
+| Multiple problems | Not specified | Explicitly supported |
+| Error registry | No | Yes (IANA registry) |
+| Extension fields | Implicit | Explicitly allowed |
+
+**Problem Details Schema:**
+
+```python
+from pydantic import BaseModel, Field, HttpUrl
+from typing import Any
+
+class ProblemDetail(BaseModel):
+    """RFC 9457 Problem Details for HTTP APIs."""
+
+    type: HttpUrl = Field(
+        default="about:blank",
+        description="URI identifying the problem type",
+    )
+    title: str = Field(
+        description="Short, human-readable summary",
+    )
+    status: int = Field(
+        ge=400, le=599,
+        description="HTTP status code",
+    )
+    detail: str | None = Field(
+        default=None,
+        description="Human-readable explanation specific to this occurrence",
+    )
+    instance: str | None = Field(
+        default=None,
+        description="URI reference identifying the specific occurrence",
+    )
+
+    model_config = {"extra": "allow"}  # Allow extension fields
+```
+
+**ProblemException Base Class:**
+
+```python
+from fastapi import HTTPException
+from typing import Any
+
+class ProblemException(HTTPException):
+    """Base exception for RFC 9457 problem details."""
+
+    def __init__(
+        self,
+        status_code: int,
+        problem_type: str,
+        title: str,
+        detail: str | None = None,
+        instance: str | None = None,
+        **extensions: Any,
+    ):
+        self.problem_type = problem_type
+        self.title = title
+        self.detail = detail
+        self.instance = instance
+        self.extensions = extensions
+        super().__init__(status_code=status_code, detail=detail)
+
+    def to_problem_detail(self) -> dict[str, Any]:
+        result = {
+            "type": self.problem_type,
+            "title": self.title,
+            "status": self.status_code,
+        }
+        if self.detail:
+            result["detail"] = self.detail
+        if self.instance:
+            result["instance"] = self.instance
+        result.update(self.extensions)
+        return result
+```
+
+**FastAPI Exception Handler:**
+
+```python
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
+
+app = FastAPI()
+
+@app.exception_handler(ProblemException)
+async def problem_exception_handler(request: Request, exc: ProblemException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content=exc.to_problem_detail(),
+        media_type="application/problem+json",
+    )
+
+@app.exception_handler(Exception)
+async def generic_exception_handler(request: Request, exc: Exception):
+    return JSONResponse(
+        status_code=500,
+        content={
+            "type": "https://api.example.com/problems/internal-error",
+            "title": "Internal Server Error",
+            "status": 500,
+            "detail": "An unexpected error occurred",
+            "instance": str(request.url),
+        },
+        media_type="application/problem+json",
+    )
+```
+
+**Response Examples:**
+
+404 Not Found:
+```json
+{
+  "type": "https://api.example.com/problems/resource-not-found",
+  "title": "Resource Not Found",
+  "status": 404,
+  "detail": "Analysis with ID 'abc123' was not found",
+  "instance": "/api/v1/analyses/abc123",
+  "resource": "Analysis",
+  "resource_id": "abc123"
+}
+```
+
+429 Rate Limited:
+```json
+{
+  "type": "https://api.example.com/problems/rate-limit-exceeded",
+  "title": "Too Many Requests",
+  "status": 429,
+  "detail": "Rate limit exceeded. Please retry later.",
+  "instance": "/api/v1/analyses",
+  "retry_after": 60
+}
+```
+
+**Anti-Patterns (FORBIDDEN):**
+
+```python
+# NEVER return plain text errors
+return Response("Not found", status_code=404)
+
+# NEVER use inconsistent error formats
+return {"error": "Not found"}           # Different from other errors
+return {"message": "Validation failed"}  # Yet another format
+
+# NEVER expose internal details in production
+return {"detail": str(exc), "traceback": traceback.format_exc()}
+```
+
+**Key rules:**
+- Always use `application/problem+json` media type for error responses
+- Include `type` (URI) and `status` (HTTP code) as required fields
+- Use `about:blank` when no additional semantics beyond HTTP status
+- Add extension fields for machine-readable context (retry_after, resource_id)
+- Never expose stack traces or internal details in production
+
+
+### Validation Error Handling — HIGH
+
+
+## Validation Error Handling
+
+Patterns for structured field-level validation errors using RFC 9457 Problem Details.
+
+**Validation Problem Type:**
+
+```python
+class ValidationProblem(ProblemException):
+    def __init__(self, errors: list[dict], instance: str | None = None):
+        super().__init__(
+            status_code=422,
+            problem_type="https://api.example.com/problems/validation-error",
+            title="Validation Error",
+            detail="One or more fields failed validation",
+            instance=instance,
+            errors=errors,  # Extension field
+        )
+```
+
+**Pydantic RequestValidationError Handler:**
+
+```python
+from fastapi import Request
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(
+    request: Request, exc: RequestValidationError
+):
+    errors = [
+        {
+            "field": ".".join(str(loc) for loc in err["loc"][1:]),
+            "code": err["type"],
+            "message": err["msg"],
+        }
+        for err in exc.errors()
+    ]
+    problem = ValidationProblem(errors=errors, instance=str(request.url))
+    return JSONResponse(
+        status_code=422,
+        content=problem.to_problem_detail(),
+        media_type="application/problem+json",
+    )
+```
+
+**Validation Error Response:**
+
+```json
+{
+  "type": "https://api.example.com/problems/validation-error",
+  "title": "Validation Error",
+  "status": 422,
+  "detail": "One or more fields failed validation",
+  "instance": "/api/v1/analyses",
+  "errors": [
+    {"field": "source_url", "code": "url_parsing", "message": "Invalid URL format"},
+    {"field": "depth", "code": "less_than_equal", "message": "Must be between 1 and 3"}
+  ]
+}
+```
+
+**Custom Validation Beyond Pydantic:**
+
+```python
+@router.post("/analyses")
+async def create_analysis(
+    request: AnalyzeRequest,
+    service: AnalysisService = Depends(),
+):
+    # Custom validation beyond Pydantic schema
+    if not is_valid_url(str(request.url)):
+        raise ValidationProblem(
+            errors=[
+                {
+                    "field": "url",
+                    "code": "invalid_url",
+                    "message": "URL is not accessible or returns an error",
+                }
+            ]
+        )
+    return await service.create(request)
+```
+
+**GraphQL Field-Level Errors:**
+
+```graphql
+type CreateUserPayload {
+  user: User
+  errors: [UserError!]
+}
+
+type UserError {
+  field: String!
+  message: String!
+  code: String!
+}
+```
+
+Response:
+```json
+{
+  "data": {
+    "createUser": {
+      "user": null,
+      "errors": [
+        {
+          "field": "email",
+          "message": "Email is already taken",
+          "code": "DUPLICATE_EMAIL"
+        }
+      ]
+    }
+  }
+}
+```
+
+**Testing Validation Errors:**
+
+```python
+@pytest.mark.asyncio
+async def test_validation_error_includes_field_errors(client: AsyncClient):
+    response = await client.post("/api/v1/analyses", json={"url": "not-a-url"})
+
+    assert response.status_code == 422
+    assert response.headers["content-type"] == "application/problem+json"
+
+    problem = response.json()
+    assert problem["type"].endswith("validation-error")
+    assert "errors" in problem
+    assert any(e["field"] == "url" for e in problem["errors"])
+```
+
+**Key rules:**
+- Always include all validation errors, not just the first one
+- Provide field path, error code, and human-readable message per error
+- Skip the `body` prefix from Pydantic location paths
+- Use consistent error structure across all validation failures
+- Map Pydantic error types to user-friendly codes where needed
+
+
+### OpenAPI Specifications — HIGH
+
+
+## OpenAPI Specifications
+
+Patterns for creating comprehensive OpenAPI 3.1 specifications with proper schema definitions, authentication, and error documentation.
+
+**OpenAPI 3.1 Structure:**
+
+```yaml
+openapi: 3.1.0
+
+info:
+  title: Your API Name
+  version: 1.0.0
+  description: |
+    Brief description of what this API does.
+
+    ## Authentication
+    This API uses Bearer tokens for authentication.
+
+    ## Rate Limiting
+    - 1000 requests per hour per API key
+
+servers:
+  - url: https://api.company.com/v1
+    description: Production server
+  - url: http://localhost:3000/v1
+    description: Local development
+```
+
+**Endpoint Documentation with FastAPI:**
+
+```python
+@router.get(
+    "/analyses/{analysis_id}",
+    responses={
+        404: {"model": ErrorResponse, "description": "Analysis not found"},
+        500: {"model": ErrorResponse, "description": "Internal server error"},
+    },
+    summary="Get analysis details",
+    description="Retrieve detailed information about a specific analysis",
+)
+async def get_analysis(
+    analysis_id: Annotated[uuid.UUID, Path(description="Analysis UUID")]
+) -> AnalysisResponse:
+    ...
+```
+
+**Reusable Components:**
+
+```yaml
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    PageParam:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+
+    PerPageParam:
+      name: per_page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+
+  headers:
+    X-RateLimit-Limit:
+      description: Maximum requests allowed per hour
+      schema:
+        type: integer
+        example: 1000
+
+    X-RateLimit-Remaining:
+      description: Requests remaining in current window
+      schema:
+        type: integer
+
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              example: "VALIDATION_ERROR"
+            message:
+              type: string
+            details:
+              type: array
+              items:
+                type: object
+                properties:
+                  field:
+                    type: string
+                  message:
+                    type: string
+            request_id:
+              type: string
+
+  responses:
+    NotFoundError:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    ValidationError:
+      description: Validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+```
+
+**Per-Version OpenAPI Docs:**
+
+```python
+from fastapi import FastAPI
+from fastapi.openapi.utils import get_openapi
+
+def custom_openapi_v1():
+    return get_openapi(
+        title="OrchestKit API",
+        version="1.0.0",
+        routes=v1_router.routes,
+    )
+
+def custom_openapi_v2():
+    return get_openapi(
+        title="OrchestKit API",
+        version="2.0.0",
+        routes=v2_router.routes,
+    )
+
+app.mount("/docs/v1", create_docs_app(custom_openapi_v1))
+app.mount("/docs/v2", create_docs_app(custom_openapi_v2))
+```
+
+**Pydantic Schema Validation:**
+
+```python
+from pydantic import BaseModel, HttpUrl, Field
+
+class AnalyzeRequest(BaseModel):
+    url: HttpUrl
+    analysis_id: str | None = None
+    skill_level: str = Field(
+        default="beginner",
+        pattern="^(beginner|intermediate|advanced)$",
+    )
+```
+
+**Key rules:**
+- Use OpenAPI 3.1 for all new API specifications
+- Define reusable schemas, parameters, and responses in `components`
+- Document all error responses with examples
+- Include security schemes and rate limit headers
+- Generate per-version documentation when versioning
+
+
+### Resource Modeling — HIGH
+
+
+## Resource Modeling
+
+Patterns for modeling API resources with hierarchical relationships, filtering, sorting, and field selection.
+
+**Hierarchical Relationships:**
+
+```
+# Express ownership and containment through URL hierarchy
+GET /api/v1/analyses/{analysis_id}/artifact
+GET /api/v1/teams/{team_id}/members
+POST /api/v1/projects/{project_id}/tasks
+
+# NOT query params for primary relationships
+GET /api/v1/artifact?analysis_id={id}      # Avoid
+GET /api/v1/analysis_artifact/{id}          # Avoid
+```
+
+**Query Parameter Filtering:**
+
+```python
+@router.get("/analyses")
+async def list_analyses(
+    status: str | None = None,
+    content_type: str | None = None,
+    created_after: datetime | None = None,
+    created_before: datetime | None = None,
+) -> list[AnalysisResponse]:
+    filters = {}
+    if status:
+        filters["status"] = status
+    if content_type:
+        filters["content_type"] = content_type
+    return await repo.find_all(filters=filters)
+```
+
+**Usage:**
+```
+GET /api/v1/analyses?status=completed&content_type=article
+GET /api/v1/analyses?created_after=2025-01-01&created_before=2025-12-31
+```
+
+**Sorting:**
+
+```python
+@router.get("/analyses")
+async def list_analyses(
+    sort: str = Query(default="-created_at"),
+) -> list[AnalysisResponse]:
+    direction = "desc" if sort.startswith("-") else "asc"
+    field = sort.lstrip("-")
+    return await repo.find_all(order_by=field, direction=direction)
+```
+
+**Usage:**
+```
+GET /api/v1/analyses?sort=-created_at       # Newest first
+GET /api/v1/analyses?sort=title             # Alphabetical
+```
+
+**Field Selection (Sparse Fieldsets):**
+
+```python
+@router.get("/analyses")
+async def list_analyses(
+    fields: str | None = None,
+) -> list[dict[str, Any]]:
+    selected_fields = fields.split(",") if fields else None
+    results = await repo.find_all()
+
+    if selected_fields:
+        return [
+            {k: v for k, v in item.dict().items() if k in selected_fields}
+            for item in results
+        ]
+    return results
+```
+
+**Usage:**
+```
+GET /api/v1/analyses?fields=id,title,status
+```
+
+**GraphQL Connection Pattern (for GraphQL APIs):**
+
+```graphql
+type Query {
+  users(first: Int, after: String): UserConnection!
+}
+
+type UserConnection {
+  edges: [UserEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type UserEdge {
+  node: User!
+  cursor: String!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+```
+
+**Best Practices:**
+
+```python
+# Empty collections: Return empty array, not null
+{"data": []}   # Correct
+{"data": null}  # Wrong
+
+# Deleted resources: Return 404, not null
+# 404 Not Found (correct)
+# {"data": null} (wrong)
+
+# Null fields: Be explicit
+{"title": null, "description": ""}  # Clear intent
+```
+
+**Key rules:**
+- Use hierarchical URLs for parent-child relationships
+- Support filtering via query parameters on list endpoints
+- Use `-field` prefix for descending sort order
+- Return empty arrays (not null) for empty collections
+- Provide field selection for bandwidth optimization
+
+
+### REST API Conventions — HIGH
+
+
+## REST API Conventions
+
+Standard conventions for RESTful API design covering resource naming, HTTP methods, status codes, and pagination.
+
+**Resource Naming:**
+
+```
+# Plural nouns for collections
+GET /users
+GET /users/123
+POST /users
+
+# Hierarchical relationships
+GET /users/123/orders          # Orders for specific user
+GET /teams/5/members           # Members of specific team
+POST /projects/10/tasks        # Create task in project 10
+
+# Kebab-case for multi-word resources
+/shopping-carts
+/order-items
+/user-preferences
+```
+
+**HTTP Methods:**
+
+| Method | Purpose | Idempotent | Safe | Example |
+|--------|---------|------------|------|---------|
+| GET | Retrieve resource(s) | Yes | Yes | `GET /users/123` |
+| POST | Create resource | No | No | `POST /users` |
+| PUT | Replace entire resource | Yes | No | `PUT /users/123` |
+| PATCH | Partial update | No | No | `PATCH /users/123` |
+| DELETE | Remove resource | Yes | No | `DELETE /users/123` |
+
+**Status Codes:**
+
+| Code | Name | Use Case |
+|------|------|----------|
+| 200 | OK | Successful GET, PUT, PATCH |
+| 201 | Created | Successful POST (include `Location` header) |
+| 204 | No Content | Successful DELETE |
+| 400 | Bad Request | Invalid request syntax |
+| 401 | Unauthorized | Missing or invalid auth |
+| 403 | Forbidden | Authenticated but not authorized |
+| 404 | Not Found | Resource doesn't exist |
+| 409 | Conflict | Duplicate/constraint violation |
+| 422 | Unprocessable | Validation failed |
+| 429 | Too Many Requests | Rate limit exceeded |
+| 500 | Internal Error | Server error |
+
+**Cursor-Based Pagination (Recommended):**
+
+```python
+@router.get("/analyses")
+async def list_analyses(
+    cursor: str | None = None,
+    limit: int = Query(default=20, le=100)
+) -> PaginatedResponse:
+    results = await repo.get_paginated(cursor=cursor, limit=limit)
+
+    return {
+        "data": results,
+        "pagination": {
+            "next_cursor": encode_cursor(results[-1].id) if results else None,
+            "has_more": len(results) == limit
+        }
+    }
+```
+
+**Common Pitfalls:**
+
+| Pitfall | Bad | Good |
+|---------|-----|------|
+| Verbs in URLs | `POST /createUser` | `POST /users` |
+| Inconsistent naming | `/users, /userOrders` | `/users, /orders` |
+| Ignoring HTTP methods | `POST /users/123/delete` | `DELETE /users/123` |
+| Exposing internals | `/users-table` | `/users` |
+| Generic errors | `"Something went wrong"` | `"Email already exists"` |
+
+**Key rules:**
+- Always use plural nouns for resources
+- Use kebab-case for multi-word resource names
+- Map CRUD to proper HTTP methods
+- Include `Location` header in 201 responses
+- Use cursor-based pagination for large datasets
+
+
+### GraphQL Schema Patterns and FastAPI Integration — HIGH
+
+
+## GraphQL Schema Patterns and FastAPI Integration
+
+**Incorrect -- unprotected GraphQL endpoints:**
+```python
+# No authentication or authorization
+@strawberry.type
+class Query:
+    @strawberry.field
+    async def all_users(self, info: strawberry.Info) -> list[User]:
+        return await info.context.user_service.list_all()  # Anyone can see all users!
+
+# Exposing internal IDs
+@strawberry.type
+class User:
+    id: int  # Exposes auto-increment ID!
+```
+
+**Correct -- permission classes for authorization:**
+```python
+from strawberry.permission import BasePermission
+
+class IsAuthenticated(BasePermission):
+    message = "User is not authenticated"
+
+    async def has_permission(self, source, info: strawberry.Info, **kwargs) -> bool:
+        return info.context.current_user_id is not None
+
+class IsAdmin(BasePermission):
+    message = "Admin access required"
+
+    async def has_permission(self, source, info: strawberry.Info, **kwargs) -> bool:
+        user_id = info.context.current_user_id
+        if not user_id:
+            return False
+        user = await info.context.user_service.get(user_id)
+        return user and user.role == "admin"
+
+@strawberry.type
+class Query:
+    @strawberry.field(permission_classes=[IsAuthenticated])
+    async def me(self, info: strawberry.Info) -> User:
+        return await info.context.user_service.get(info.context.current_user_id)
+
+    @strawberry.field(permission_classes=[IsAdmin])
+    async def all_users(self, info: strawberry.Info) -> list[User]:
+        return await info.context.user_service.list_all()
+```
+
+**Correct -- FastAPI integration with context getter:**
+```python
+from strawberry.fastapi import GraphQLRouter
+
+schema = strawberry.Schema(query=Query, mutation=Mutation, subscription=Subscription)
+
+async def get_context(request: Request, user_service=Depends(get_user_service)) -> GraphQLContext:
+    return GraphQLContext(request=request, user_service=user_service)
+
+graphql_router = GraphQLRouter(schema, context_getter=get_context, graphiql=True)
+app = FastAPI()
+app.include_router(graphql_router, prefix="/graphql")
+```
+
+**Correct -- subscriptions with Redis PubSub:**
+```python
+@strawberry.type
+class Subscription:
+    @strawberry.subscription
+    async def user_updated(self, info: strawberry.Info, user_id: strawberry.ID) -> AsyncGenerator[User, None]:
+        async for message in info.context.pubsub.subscribe(f"user:{user_id}:updated"):
+            yield User(**message)
+```
+
+Key decisions:
+- Use opaque IDs (strawberry.ID) not internal auto-increment
+- Permission classes for field-level authorization
+- Redis PubSub for subscription horizontal scaling
+- Context getter for dependency injection
+
+
+### Strawberry GraphQL Schema Design — HIGH
+
+
+## Strawberry GraphQL Schema Design
+
+**Incorrect -- N+1 queries in resolvers:**
+```python
+# Making database calls in resolver loops
+@strawberry.type
+class Post:
+    author_id: strawberry.ID
+
+    @strawberry.field
+    async def author(self, info: strawberry.Info) -> "User":
+        # N+1: One query per post!
+        return await db.get_user(self.author_id)
+```
+
+**Correct -- DataLoader for batched loading:**
+```python
+from strawberry.dataloader import DataLoader
+
+class UserLoader(DataLoader[str, "User"]):
+    def __init__(self, user_repo):
+        super().__init__(load_fn=self.batch_load)
+        self.user_repo = user_repo
+
+    async def batch_load(self, keys: list[str]) -> list["User"]:
+        users = await self.user_repo.get_many(keys)
+        user_map = {u.id: u for u in users}
+        return [user_map.get(key) for key in keys]
+
+@strawberry.type
+class Post:
+    author_id: strawberry.ID
+
+    @strawberry.field
+    async def author(self, info: strawberry.Info) -> "User":
+        return await info.context.user_loader.load(self.author_id)
+```
+
+**Correct -- type-safe schema with Private fields:**
+```python
+import strawberry
+from strawberry import Private
+
+@strawberry.type
+class User:
+    id: strawberry.ID
+    email: str
+    name: str
+    password_hash: Private[str]  # Not exposed in schema
+
+    @strawberry.field
+    def display_name(self) -> str:
+        return f"{self.name} ({self.email})"
+
+@strawberry.input
+class CreateUserInput:
+    email: str
+    name: str
+    password: str
+```
+
+**Correct -- union types for mutation error handling:**
+```python
+@strawberry.type
+class CreateUserSuccess:
+    user: User
+
+@strawberry.type
+class UserError:
+    message: str
+    code: str
+    field: str | None = None
+
+@strawberry.type
+class CreateUserError:
+    errors: list[UserError]
+
+CreateUserResult = strawberry.union("CreateUserResult", [CreateUserSuccess, CreateUserError])
+```
+
+Key decisions:
+- Schema approach: Code-first with Strawberry types
+- N+1 prevention: DataLoader for ALL nested resolvers
+- Pagination: Relay-style cursor pagination
+- Auth: Permission classes (IsAuthenticated, IsAdmin)
+- Errors: Union types for mutations
+- Use when: Complex data relationships, client-driven fetching, real-time subscriptions
+- Do NOT use when: Simple CRUD (use REST), internal microservices (use gRPC)
+
+
+### gRPC Service Definition and Implementation — HIGH
+
+
+## gRPC Service Definition and Implementation
+
+**Incorrect -- REST for internal service communication:**
+```python
+# Using REST for high-frequency internal calls
+response = requests.post("http://user-service/api/users",
+                         json={"email": email, "name": name})
+# High serialization overhead, no compile-time validation, manual error mapping
+```
+
+**Correct -- protobuf service definition:**
+```text
+syntax = "proto3";
+package user.v1;
+
+import "google/protobuf/timestamp.proto";
+
+service UserService {
+  rpc GetUser(GetUserRequest) returns (User);
+  rpc CreateUser(CreateUserRequest) returns (User);
+  rpc ListUsers(ListUsersRequest) returns (stream User);       // Server streaming
+  rpc BulkCreateUsers(stream CreateUserRequest) returns (BulkCreateResponse);  // Client streaming
+}
+
+message User {
+  string id = 1;
+  string email = 2;
+  string name = 3;
+  UserStatus status = 4;
+  google.protobuf.Timestamp created_at = 5;
+}
+
+enum UserStatus {
+  USER_STATUS_UNSPECIFIED = 0;
+  USER_STATUS_ACTIVE = 1;
+  USER_STATUS_INACTIVE = 2;
+}
+```
+
+**Correct -- async server implementation:**
+```python
+import grpc.aio
+from app.protos import user_service_pb2 as pb2, user_service_pb2_grpc as pb2_grpc
+
+class UserServiceServicer(pb2_grpc.UserServiceServicer):
+    async def GetUser(self, request, context):
+        user = await self.user_repo.get(request.user_id)
+        if not user:
+            await context.abort(grpc.StatusCode.NOT_FOUND, f"User {request.user_id} not found")
+        return self._to_proto(user)
+
+    async def CreateUser(self, request, context):
+        if not request.email or "@" not in request.email:
+            await context.abort(grpc.StatusCode.INVALID_ARGUMENT, "Invalid email")
+        user = await self.user_repo.create(email=request.email, name=request.name)
+        return self._to_proto(user)
+```
+
+**Correct -- client with timeout and retry:**
+```python
+class UserServiceClient:
+    def __init__(self, host: str = "localhost:50051"):
+        self.channel = grpc.insecure_channel(host, options=[
+            ("grpc.keepalive_time_ms", 30000),
+            ("grpc.keepalive_timeout_ms", 10000),
+        ])
+        self.stub = pb2_grpc.UserServiceStub(self.channel)
+
+    def get_user(self, user_id: str, timeout: float = 5.0):
+        try:
+            return self.stub.GetUser(pb2.GetUserRequest(user_id=user_id), timeout=timeout)
+        except grpc.RpcError as e:
+            if e.code() == grpc.StatusCode.NOT_FOUND:
+                raise UserNotFoundError(user_id)
+            raise
+```
+
+Key decisions:
+- Proto organization: One service per file, shared messages in common.proto
+- Versioning: Package version (user.v1, user.v2), backward compatible
+- Always set client-side deadlines (timeout)
+- Always include health checks for load balancers
+- Use when: Internal microservices, streaming, polyglot, strong typing needed
+- Do NOT use when: Public APIs (use REST/GraphQL), simple CRUD, no HTTP/2
+
+
+### gRPC Streaming and Interceptors — HIGH
+
+
+## gRPC Streaming and Interceptors
+
+**Incorrect -- ignoring stream cancellation:**
+```python
+# Client may disconnect but server keeps processing
+def ListUsers(self, request, context):
+    for user in all_users:
+        yield self._to_proto(user)  # No cancellation check!
+```
+
+**Correct -- server streaming with cancellation check:**
+```python
+def ListUsers(self, request, context):
+    """Server streaming: yield users one by one."""
+    for user in self.user_repo.iterate(page_size=request.page_size or 100):
+        if not context.is_active():  # Check if client disconnected
+            return
+        yield self._to_proto(user)
+```
+
+**Correct -- bidirectional streaming:**
+```python
+async def UserUpdates(self, request_iterator, context):
+    """Bidirectional: receive updates, yield results."""
+    async for request in request_iterator:
+        if not context.is_active():
+            return
+        user = await self.user_repo.update(request.user_id, request.changes)
+        yield self._to_proto(user)
+```
+
+**Correct -- auth interceptor:**
+```python
+class AuthInterceptor(grpc.ServerInterceptor):
+    def __init__(self, auth_service):
+        self.auth_service = auth_service
+        self.public_methods = {"/user.v1.UserService/CreateUser"}
+
+    def intercept_service(self, continuation, handler_call_details):
+        if handler_call_details.method not in self.public_methods:
+            metadata = dict(handler_call_details.invocation_metadata)
+            token = metadata.get("authorization", "").replace("Bearer ", "")
+            if not token or not self.auth_service.verify(token):
+                return grpc.unary_unary_rpc_method_handler(
+                    lambda req, ctx: ctx.abort(grpc.StatusCode.UNAUTHENTICATED, "Invalid token")
+                )
+        return continuation(handler_call_details)
+```
+
+**Correct -- client retry interceptor with exponential backoff:**
+```python
+class RetryInterceptor(grpc.UnaryUnaryClientInterceptor):
+    def __init__(self, max_retries: int = 3):
+        self.max_retries = max_retries
+        self.retry_codes = {grpc.StatusCode.UNAVAILABLE, grpc.StatusCode.DEADLINE_EXCEEDED}
+
+    def intercept_unary_unary(self, continuation, client_call_details, request):
+        for attempt in range(self.max_retries):
+            try:
+                return continuation(client_call_details, request)
+            except grpc.RpcError as e:
+                if e.code() not in self.retry_codes or attempt == self.max_retries - 1:
+                    raise
+                time.sleep(2 ** attempt)  # Exponential backoff
+```
+
+Key decisions:
+- Server streaming: Always check `context.is_active()` before yielding
+- Auth: Interceptor with metadata, JWT tokens, public method allowlist
+- Retry: Exponential backoff, only retry UNAVAILABLE and DEADLINE_EXCEEDED
+- Always close channels to prevent resource leaks
+- Never skip deadline/timeout on client calls
+
+
+### Server-Sent Events (SSE) Streaming — HIGH
+
+
+## Server-Sent Events (SSE) Streaming
+
+**Incorrect -- no keepalive or cleanup:**
+```python
+# No keepalive, no abort handling, no reconnection support
+@app.get("/stream")
+async def stream():
+    async def generate():
+        for item in data:
+            yield f"data: {item}\n\n"
+    return StreamingResponse(generate(), media_type="text/event-stream")
+```
+
+**Correct -- SSE with keepalive and abort handling (Next.js):**
+```typescript
+export async function GET(req: Request) {
+  const encoder = new TextEncoder()
+
+  const stream = new ReadableStream({
+    async start(controller) {
+      controller.enqueue(encoder.encode('data: Hello\n\n'))
+
+      // Keep connection alive every 30s
+      const interval = setInterval(() => {
+        controller.enqueue(encoder.encode(': keepalive\n\n'))
+      }, 30000)
+
+      // Cleanup on client disconnect
+      req.signal.addEventListener('abort', () => {
+        clearInterval(interval)
+        controller.close()
+      })
+    }
+  })
+
+  return new Response(stream, {
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+    }
+  })
+}
+```
+
+**Correct -- LLM token streaming pattern:**
+```typescript
+export async function POST(req: Request) {
+  const { messages } = await req.json()
+  const stream = await openai.chat.completions.create({ model: 'gpt-5.2', messages, stream: true })
+  const encoder = new TextEncoder()
+
+  return new Response(
+    new ReadableStream({
+      async start(controller) {
+        for await (const chunk of stream) {
+          const content = chunk.choices[0]?.delta?.content
+          if (content) {
+            controller.enqueue(encoder.encode("data: " + JSON.stringify({ content }) + "\n\n"))
+          }
+        }
+        controller.enqueue(encoder.encode('data: [DONE]\n\n'))
+        controller.close()
+      }
+    }),
+    { headers: { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache' } }
+  )
+}
+```
+
+**Correct -- reconnecting client with exponential backoff:**
+```typescript
+class ReconnectingEventSource {
+  private eventSource: EventSource | null = null
+  private reconnectDelay = 1000
+  private maxReconnectDelay = 30000
+
+  constructor(private url: string, private onMessage: (data: string) => void) {
+    this.connect()
+  }
+
+  private connect() {
+    this.eventSource = new EventSource(this.url)
+    this.eventSource.onmessage = (event) => {
+      this.reconnectDelay = 1000
+      this.onMessage(event.data)
+    }
+    this.eventSource.onerror = () => {
+      this.eventSource?.close()
+      setTimeout(() => this.connect(), this.reconnectDelay)
+      this.reconnectDelay = Math.min(this.reconnectDelay * 2, this.maxReconnectDelay)
+    }
+  }
+}
+```
+
+Key decisions:
+- SSE for one-way server-to-client (LLM streaming, notifications)
+- Keepalive every 30s to prevent timeouts
+- Handle browser 6-connection-per-domain limit (use HTTP/2)
+- Exponential backoff for reconnection (1s to 30s)
+
+
+### WebSocket and Async Generator Patterns — HIGH
+
+
+## WebSocket and Async Generator Patterns
+
+**Incorrect -- no message validation or heartbeat:**
+```python
+# No heartbeat, no validation, no reconnection
+wss.on('connection', (ws) => {
+  ws.on('message', (data) => {
+    wss.clients.forEach((client) => client.send(data))  // Raw broadcast!
+  })
+})
+```
+
+**Correct -- WebSocket with heartbeat and validation:**
+```typescript
+const wss = new WebSocketServer({ port: 8080 })
+
+wss.on('connection', (ws) => {
+  // Heartbeat
+  const heartbeat = setInterval(() => ws.ping(), 30000)
+
+  ws.on('message', (data) => {
+    const parsed = JSON.parse(data.toString())
+    // Validate message structure
+    if (!parsed.type || !parsed.text) return
+
+    // Broadcast to connected clients
+    wss.clients.forEach((client) => {
+      if (client !== ws && client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify(parsed))
+      }
+    })
+  })
+
+  ws.on('close', () => clearInterval(heartbeat))
+})
+```
+
+**Incorrect -- async generator without cleanup:**
+```python
+# Generator not closed if exception occurs mid-iteration
+async for chunk in external_api_stream():  # Resource leak if exception!
+    yield process(chunk)
+```
+
+**Correct -- aclosing() for guaranteed async generator cleanup:**
+```python
+from contextlib import aclosing
+
+# Guaranteed cleanup with aclosing()
+async def stream_llm_response(prompt: str):
+    async with aclosing(llm.astream(prompt)) as stream:
+        async for chunk in stream:
+            yield chunk.content
+
+# Consumption with proper cleanup
+async def consume():
+    async with aclosing(stream_llm_response("Hello")) as response:
+        async for token in response:
+            handle(token)
+```
+
+**When to use aclosing():**
+
+| Scenario | Use aclosing() |
+|----------|----------------|
+| External API streaming (LLM, HTTP) | Always |
+| Database streaming results | Always |
+| File streaming | Always |
+| Simple in-memory generators | Optional |
+| Generator with try/finally cleanup | Always |
+
+Key decisions:
+- WebSocket for bidirectional real-time (chat, collaboration)
+- SSE for one-way server-to-client (use SSE rule instead)
+- Always implement heartbeat/ping-pong for WebSockets
+- Always use `aclosing()` for external resource async generators
+- Implement backpressure with ReadableStream flow control
+- Monitor buffer sizes, pause production when consumer is slow
+
+
+### Deprecation and Lifecycle — HIGH
+
+
+## Deprecation and Lifecycle
+
+Patterns for gracefully deprecating and sunsetting API versions with proper communication.
+
+**Deprecation Headers:**
+
+```python
+from fastapi import Response
+from datetime import date
+
+def add_deprecation_headers(
+    response: Response,
+    deprecated_date: date,
+    sunset_date: date,
+    link: str,
+):
+    response.headers["Deprecation"] = deprecated_date.isoformat()
+    response.headers["Sunset"] = sunset_date.isoformat()
+    response.headers["Link"] = f'<{link}>; rel="successor-version"'
+
+# Usage in v1 endpoints
+@router.get("/users/{user_id}")
+async def get_user_v1(user_id: str, response: Response):
+    add_deprecation_headers(
+        response,
+        deprecated_date=date(2025, 1, 1),
+        sunset_date=date(2025, 7, 1),
+        link="https://api.example.com/v2/users",
+    )
+    return await service.get_user(user_id)
+```
+
+**Version Lifecycle:**
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     VERSION LIFECYCLE                           │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  ┌─────────┐   ┌─────────┐   ┌──────────┐   ┌─────────────┐   │
+│  │  ALPHA  │ → │  BETA   │ → │  STABLE  │ → │ DEPRECATED  │   │
+│  │ (dev)   │   │ (test)  │   │ (prod)   │   │ (sunset)    │   │
+│  └─────────┘   └─────────┘   └──────────┘   └─────────────┘   │
+│                                                                 │
+│  POLICY:                                                        │
+│  • Deprecation notice: 3 months before sunset                   │
+│  • Sunset period: 6 months after deprecation                    │
+│  • Support: Latest stable + 1 previous version                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Breaking vs Non-Breaking Changes:**
+
+### Non-Breaking (No Version Bump)
+
+```python
+# Adding optional fields
+class UserResponse(BaseModel):
+    id: str
+    name: str
+    avatar_url: str | None = None  # New optional field
+
+# Adding new endpoints
+@router.get("/users/{user_id}/preferences")  # New endpoint
+
+# Adding optional query params
+@router.get("/users")
+async def list_users(
+    limit: int = 100,
+    cursor: str | None = None,  # New pagination
+):
+```
+
+### Breaking (Requires Version Bump)
+
+```python
+# Removing fields
+# Renaming fields
+# Changing field types
+# Changing URL structure
+# Changing authentication
+# Removing endpoints
+# Changing error formats
+```
+
+**Deprecation Middleware:**
+
+```python
+from starlette.middleware.base import BaseHTTPMiddleware
+
+DEPRECATED_VERSIONS = {
+    "v1": {
+        "sunset": datetime(2025, 12, 31),
+        "successor": "v2",
+    }
+}
+
+class DeprecationMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+
+        path = request.url.path
+        for version, info in DEPRECATED_VERSIONS.items():
+            if f"/api/{version}/" in path:
+                response.headers["Deprecation"] = "true"
+                response.headers["Sunset"] = info["sunset"].strftime(
+                    "%a, %d %b %Y %H:%M:%S GMT"
+                )
+                successor_path = path.replace(
+                    f"/api/{version}/",
+                    f"/api/{info['successor']}/"
+                )
+                response.headers["Link"] = (
+                    f'<{successor_path}>; rel="successor-version"'
+                )
+                break
+        return response
+
+app.add_middleware(DeprecationMiddleware)
+```
+
+**Anti-Patterns (FORBIDDEN):**
+
+```python
+# NEVER version internal implementation
+class UserServiceV1:  # Services should be version-agnostic
+    ...
+
+# NEVER break contracts without versioning
+class UserResponse(BaseModel):
+    full_name: str  # Changed from `name` without version bump!
+
+# NEVER sunset without notice
+# Just removing v1 routes one day
+
+# NEVER support too many versions (max 2-3)
+```
+
+**Key rules:**
+- Send deprecation notice at least 3 months before sunset
+- Include Deprecation, Sunset, and Link headers on deprecated versions
+- Additive changes (new optional fields, new endpoints) are non-breaking
+- Removing or renaming anything is always a breaking change
+- Track usage of deprecated versions and contact heavy users
+
+
+### Header-Based Versioning — HIGH
+
+
+## Header-Based Versioning
+
+Version selection via HTTP headers for clean URLs, best suited for internal APIs.
+
+**X-API-Version Header:**
+
+```python
+from fastapi import Header, HTTPException, Depends
+
+SUPPORTED_VERSIONS = {1, 2}
+DEFAULT_VERSION = 2
+
+async def get_api_version(
+    x_api_version: str = Header(default="1", alias="X-API-Version")
+) -> int:
+    try:
+        version = int(x_api_version)
+        if version not in SUPPORTED_VERSIONS:
+            raise ValueError()
+        return version
+    except ValueError:
+        raise HTTPException(
+            400,
+            f"Invalid API version. Supported: {SUPPORTED_VERSIONS}",
+        )
+
+@router.get("/users/{user_id}")
+async def get_user(
+    user_id: str,
+    version: int = Depends(get_api_version),
+    service: UserService = Depends(),
+):
+    user = await service.get_user(user_id)
+
+    if version == 1:
+        return UserResponseV1(id=user.id, name=user.full_name)
+    else:
+        return UserResponseV2(
+            id=user.id,
+            first_name=user.first_name,
+            last_name=user.last_name,
+        )
+```
+
+**Content Negotiation (Media Type Versioning):**
+
+```python
+from fastapi import Request
+
+MEDIA_TYPES = {
+    "application/vnd.orchestkit.v1+json": 1,
+    "application/vnd.orchestkit.v2+json": 2,
+    "application/json": 2,  # Default to latest
+}
+
+async def get_version_from_accept(request: Request) -> int:
+    accept = request.headers.get("Accept", "application/json")
+    return MEDIA_TYPES.get(accept, 2)
+
+@router.get("/users/{user_id}")
+async def get_user(
+    user_id: str,
+    version: int = Depends(get_version_from_accept),
+):
+    ...
+```
+
+**Testing Header Versioning:**
+
+```python
+import pytest
+from httpx import AsyncClient
+
+@pytest.mark.asyncio
+async def test_header_versioning(client: AsyncClient):
+    # Request with v1 header
+    response = await client.get(
+        "/api/users/123",
+        headers={"X-API-Version": "1"},
+    )
+    data = response.json()
+    assert "avatar_url" not in data
+
+    # Request with v2 header
+    response = await client.get(
+        "/api/users/123",
+        headers={"X-API-Version": "2"},
+    )
+    data = response.json()
+    assert "avatar_url" in data
+```
+
+**When to Use Header vs URL Path:**
+
+| Criteria | URL Path | Header |
+|----------|----------|--------|
+| **Visibility** | Clear in URL | Hidden in headers |
+| **Testing** | Easy with browser/curl | Needs header tools |
+| **Caching** | CDN-friendly | Requires Vary header |
+| **Best for** | Public APIs | Internal APIs |
+| **Multiple versions** | Separate route trees | Single route tree |
+
+**Key rules:**
+- Default to latest stable version when header is absent
+- Validate version against a supported versions set
+- Return 400 with helpful message for unsupported versions
+- Use header versioning only for internal APIs
+- Always document which versions are supported
+
+
+### URL Path Versioning — HIGH
+
+
+## URL Path Versioning
+
+The recommended versioning strategy for public APIs using URL path prefixes.
+
+**FastAPI Directory Structure:**
+
+```
+backend/app/
+├── api/
+│   ├── v1/
+│   │   ├── __init__.py
+│   │   ├── routes/
+│   │   │   ├── users.py
+│   │   │   └── analyses.py
+│   │   └── schemas/
+│   │       ├── user.py
+│   │       └── analysis.py
+│   ├── v2/
+│   │   ├── __init__.py
+│   │   ├── routes/
+│   │   │   ├── users.py      # Updated schemas
+│   │   │   └── analyses.py
+│   │   └── schemas/
+│   │       ├── user.py       # New schema version
+│   │       └── analysis.py
+│   └── router.py             # Combines all versions
+├── core/
+└── services/                  # Shared across versions
+```
+
+**Router Setup:**
+
+```python
+# backend/app/api/router.py
+from fastapi import APIRouter
+from app.api.v1.router import router as v1_router
+from app.api.v2.router import router as v2_router
+
+api_router = APIRouter()
+api_router.include_router(v1_router, prefix="/v1")
+api_router.include_router(v2_router, prefix="/v2")
+
+# main.py
+app.include_router(api_router, prefix="/api")
+```
+
+**Version-Specific Schemas:**
+
+```python
+# v1/schemas/user.py
+class UserResponseV1(BaseModel):
+    id: str
+    name: str  # Single name field
+
+# v2/schemas/user.py
+class UserResponseV2(BaseModel):
+    id: str
+    first_name: str  # Split into first/last
+    last_name: str
+    full_name: str   # Computed for convenience
+```
+
+**Shared Business Logic (Version-Agnostic Services):**
+
+```python
+# services/user_service.py (version-agnostic)
+class UserService:
+    async def get_user(self, user_id: str) -> User:
+        return await self.repo.get_by_id(user_id)
+
+# v1/routes/users.py
+@router.get("/{user_id}", response_model=UserResponseV1)
+async def get_user_v1(user_id: str, service: UserService = Depends()):
+    user = await service.get_user(user_id)
+    return UserResponseV1(id=user.id, name=user.full_name)
+
+# v2/routes/users.py
+@router.get("/{user_id}", response_model=UserResponseV2)
+async def get_user_v2(user_id: str, service: UserService = Depends()):
+    user = await service.get_user(user_id)
+    return UserResponseV2(
+        id=user.id,
+        first_name=user.first_name,
+        last_name=user.last_name,
+        full_name=f"{user.first_name} {user.last_name}",
+    )
+```
+
+**Strategy Comparison:**
+
+| Strategy | Example | Pros | Cons |
+|----------|---------|------|------|
+| URL Path | `/api/v1/users` | Simple, visible, cacheable | URL pollution |
+| Header | `X-API-Version: 1` | Clean URLs | Hidden, harder to test |
+| Query Param | `?version=1` | Easy testing | Messy, cache issues |
+| Content-Type | `Accept: application/vnd.api.v1+json` | RESTful | Complex |
+
+**Key rules:**
+- Always start with `/api/v1/` even if no v2 is planned
+- Keep services version-agnostic; only schemas and routes are versioned
+- Use schema inheritance for shared fields across versions
+- Support max 2-3 concurrent versions
+- Never version internal implementation (services, repositories)
+
+
+
+---
+
+## References (7)
+
+### Frontend Integration
+
+# Frontend API Integration (2026 Patterns)
+
+Type-safe API consumption with runtime validation.
+
+## Runtime Validation with Zod
+
+**CRITICAL**: TypeScript types are erased at runtime. API responses MUST be validated:
+
+```typescript
+import { z } from 'zod'
+
+const UserSchema = z.object({
+  id: z.string().uuid(),
+  email: z.string().email(),
+  name: z.string(),
+  role: z.enum(['admin', 'developer', 'viewer']),
+  created_at: z.string().datetime(),
+})
+
+const UsersResponseSchema = z.object({
+  data: z.array(UserSchema),
+  pagination: z.object({
+    next_cursor: z.string().nullable(),
+    has_more: z.boolean(),
+  }),
+})
+
+type User = z.infer<typeof UserSchema>
+
+async function fetchUsers(cursor?: string): Promise<UsersResponse> {
+  const response = await fetch(`/api/v1/users${cursor ? `?cursor=${cursor}` : ''}`)
+  const data = await response.json()
+  return UsersResponseSchema.parse(data) // Runtime validation!
+}
+```
+
+## Request Interceptors (ky)
+
+```typescript
+import ky from 'ky'
+
+export const api = ky.create({
+  prefixUrl: import.meta.env.VITE_API_URL,
+  timeout: 30000,
+  retry: {
+    limit: 2,
+    methods: ['get', 'head', 'options'],
+    statusCodes: [408, 429, 500, 502, 503, 504],
+  },
+  hooks: {
+    beforeRequest: [
+      async (request) => {
+        const token = await getAccessToken()
+        if (token) {
+          request.headers.set('Authorization', `Bearer ${token}`)
+        }
+      },
+    ],
+    afterResponse: [
+      async (request, options, response) => {
+        if (response.status === 401) {
+          const newToken = await refreshToken()
+          if (newToken) {
+            request.headers.set('Authorization', `Bearer ${newToken}`)
+            return ky(request, options)
+          }
+        }
+        return response
+      },
+    ],
+  },
+})
+```
+
+## Error Enrichment Pattern
+
+```typescript
+class ApiError extends Error {
+  constructor(
+    public status: number,
+    public code: string,
+    message: string,
+    public details?: Array<{ field: string; message: string }>
+  ) {
+    super(message)
+    this.name = 'ApiError'
+  }
+
+  get isValidationError(): boolean {
+    return this.status === 422
+  }
+
+  get isAuthError(): boolean {
+    return this.status === 401 || this.status === 403
+  }
+
+  get isRateLimited(): boolean {
+    return this.status === 429
+  }
+}
+```
+
+## TanStack Query Integration
+
+```typescript
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+
+export function useUsers(cursor?: string) {
+  return useQuery({
+    queryKey: ['users', { cursor }],
+    queryFn: () => getUsers(cursor),
+    staleTime: 30_000,
+  })
+}
+
+export function useCreateUser() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (input: CreateUserInput) =>
+      api.post('users', { json: input }).json().then(UserSchema.parse),
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] })
+    },
+  })
+}
+```
+
+## Anti-Patterns
+
+```typescript
+// NEVER: Trust API response types blindly
+const data = await response.json() as User  // Unsafe cast!
+
+// NEVER: Skip validation
+const user: User = await response.json()    // Runtime crash waiting
+
+// ALWAYS: Validate at the boundary
+const user = UserSchema.parse(await response.json())
+```
+
+### Graphql Api
+
+# GraphQL API Design
+
+## Schema Design Principles
+
+### Nullable by Default
+```graphql
+type User {
+  id: ID!              # Non-null (required)
+  email: String!       # Non-null
+  name: String         # Nullable (optional)
+  avatar: String       # Nullable
+}
+```
+
+### Use Connections for Lists
+```graphql
+type Query {
+  users(first: Int, after: String): UserConnection!
+}
+
+type UserConnection {
+  edges: [UserEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type UserEdge {
+  node: User!
+  cursor: String!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+```
+
+### Input Types for Mutations
+```graphql
+input CreateUserInput {
+  email: String!
+  name: String!
+  role: UserRole!
+}
+
+type Mutation {
+  createUser(input: CreateUserInput!): CreateUserPayload!
+}
+
+type CreateUserPayload {
+  user: User!
+  errors: [UserError!]
+}
+
+type UserError {
+  field: String!
+  message: String!
+  code: String!
+}
+```
+
+## Query Design
+
+**Fetch single resource:**
+```graphql
+query GetUser {
+  user(id: "123") {
+    id
+    name
+    email
+    posts {
+      id
+      title
+    }
+  }
+}
+```
+
+**Fetch list with filters:**
+```graphql
+query GetUsers {
+  users(
+    first: 10
+    after: "cursor123"
+    filter: { role: DEVELOPER, status: ACTIVE }
+  ) {
+    edges {
+      node {
+        id
+        name
+        email
+      }
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}
+```
+
+## Error Handling
+
+**Field-Level Errors:**
+```graphql
+type CreateUserPayload {
+  user: User
+  errors: [UserError!]
+}
+```
+
+**Response:**
+```json
+{
+  "data": {
+    "createUser": {
+      "user": null,
+      "errors": [
+        {
+          "field": "email",
+          "message": "Email is already taken",
+          "code": "DUPLICATE_EMAIL"
+        }
+      ]
+    }
+  }
+}
+```
+
+### Grpc Api
+
+# gRPC API Design
+
+## Proto File Structure
+
+```text
+syntax = "proto3";
+
+package company.user.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+service UserService {
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
+  rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse);
+  rpc DeleteUser(DeleteUserRequest) returns (google.protobuf.Empty);
+  rpc WatchUsers(WatchUsersRequest) returns (stream UserEvent);
+}
+
+message User {
+  string id = 1;
+  string email = 2;
+  string name = 3;
+  UserRole role = 4;
+  google.protobuf.Timestamp created_at = 5;
+}
+
+enum UserRole {
+  USER_ROLE_UNSPECIFIED = 0;
+  USER_ROLE_ADMIN = 1;
+  USER_ROLE_DEVELOPER = 2;
+  USER_ROLE_VIEWER = 3;
+}
+
+message GetUserRequest {
+  string id = 1;
+}
+
+message GetUserResponse {
+  User user = 1;
+}
+
+message ListUsersRequest {
+  int32 page_size = 1;
+  string page_token = 2;
+  string filter = 3;
+}
+
+message ListUsersResponse {
+  repeated User users = 1;
+  string next_page_token = 2;
+  int32 total_size = 3;
+}
+```
+
+## gRPC Status Codes
+
+| Code | HTTP Equivalent | Use Case |
+|------|-----------------|----------|
+| OK | 200 | Success |
+| INVALID_ARGUMENT | 400 | Invalid request |
+| NOT_FOUND | 404 | Resource not found |
+| ALREADY_EXISTS | 409 | Duplicate |
+| PERMISSION_DENIED | 403 | Forbidden |
+| UNAUTHENTICATED | 401 | Auth required |
+| RESOURCE_EXHAUSTED | 429 | Rate limit |
+| INTERNAL | 500 | Server error |
+
+### Rest Api
+
+# REST API Design
+
+## Resource Naming Conventions
+
+**Use plural nouns for resources:**
+```
+GET /users
+GET /users/123
+GET /users/123/orders
+```
+
+**Use hierarchical relationships:**
+```
+GET /users/123/orders          # Orders for specific user
+GET /teams/5/members           # Members of specific team
+POST /projects/10/tasks        # Create task in project 10
+```
+
+**Use kebab-case for multi-word resources:**
+```
+/shopping-carts
+/order-items
+/user-preferences
+```
+
+## HTTP Methods
+
+| Method | Purpose | Idempotent | Safe | Example |
+|--------|---------|------------|------|---------|
+| GET | Retrieve resource(s) | Yes | Yes | `GET /users/123` |
+| POST | Create resource | No | No | `POST /users` |
+| PUT | Replace entire resource | Yes | No | `PUT /users/123` |
+| PATCH | Partial update | No* | No | `PATCH /users/123` |
+| DELETE | Remove resource | Yes | No | `DELETE /users/123` |
+| HEAD | Metadata only (no body) | Yes | Yes | `HEAD /users/123` |
+| OPTIONS | Allowed methods | Yes | Yes | `OPTIONS /users` |
+
+## Status Codes
+
+### Success (2xx)
+- **200 OK**: Successful GET, PUT, PATCH, or DELETE
+- **201 Created**: Successful POST (include `Location` header)
+- **202 Accepted**: Request accepted, processing async
+- **204 No Content**: Successful DELETE or PUT with no response body
+
+### Client Errors (4xx)
+- **400 Bad Request**: Invalid request body or parameters
+- **401 Unauthorized**: Missing or invalid authentication
+- **403 Forbidden**: Authenticated but not authorized
+- **404 Not Found**: Resource doesn't exist
+- **409 Conflict**: Resource conflict (e.g., duplicate)
+- **422 Unprocessable Entity**: Validation failed
+- **429 Too Many Requests**: Rate limit exceeded
+
+### Server Errors (5xx)
+- **500 Internal Server Error**: Generic server error
+- **502 Bad Gateway**: Upstream service error
+- **503 Service Unavailable**: Temporary unavailability
+
+## Request/Response Formats
+
+**Request Body (POST/PUT/PATCH):**
+```json
+POST /users
+Content-Type: application/json
+
+{
+  "email": "jane@example.com",
+  "name": "Jane Smith",
+  "role": "developer"
+}
+```
+
+**Success Response:**
+```json
+HTTP/1.1 201 Created
+Location: /users/123
+
+{
+  "id": 123,
+  "email": "jane@example.com",
+  "name": "Jane Smith",
+  "created_at": "2025-10-31T10:30:00Z"
+}
+```
+
+## Pagination
+
+### Cursor-Based (Recommended)
+```
+GET /users?cursor=eyJpZCI6MTIzfQ&limit=20
+
+Response:
+{
+  "data": [...],
+  "pagination": {
+    "next_cursor": "eyJpZCI6MTQzfQ",
+    "has_more": true
+  }
+}
+```
+
+**Use for**: Large datasets, real-time data, infinite scroll
+
+### Offset-Based
+```
+GET /users?page=2&per_page=20
+
+Response:
+{
+  "data": [...],
+  "pagination": {
+    "page": 2,
+    "per_page": 20,
+    "total": 487,
+    "total_pages": 25
+  }
+}
+```
+
+**Use for**: Small datasets, admin panels, known bounds
+
+## Filtering and Sorting
+
+```
+GET /users?status=active&role=developer
+GET /users?sort=created_at:desc
+GET /users?fields=id,name,email
+```
+
+## API Versioning
+
+### URI Versioning (Recommended)
+```
+/api/v1/users
+/api/v2/users
+```
+
+### Header Versioning
+```
+GET /api/users
+Accept: application/vnd.company.v2+json
+```
+
+## Rate Limiting Headers
+
+```
+X-RateLimit-Limit: 1000
+X-RateLimit-Remaining: 987
+X-RateLimit-Reset: 1635724800
+```
+
+## Authentication
+
+**Bearer Token (JWT):**
+```
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+```
+
+**API Key:**
+```
+X-API-Key: sk_live_abc123...
+```
+
+### Rest Patterns
+
+# RESTful API Design Patterns
+
+Comprehensive guide to RESTful API design patterns including resource modeling, HTTP methods, status codes, versioning, pagination, filtering, and error handling.
+
+## Resource Modeling
+
+### Naming Conventions
+
+**Use plural nouns for collections:**
+```
+✅ GET /api/v1/analyses
+✅ GET /api/v1/artifacts
+✅ GET /api/v1/users
+
+❌ GET /api/v1/analysis
+❌ GET /api/v1/getArtifact
+```
+
+**Hierarchical relationships:**
+```
+✅ GET /api/v1/analyses/{analysis_id}/artifact
+✅ GET /api/v1/teams/{team_id}/members
+✅ POST /api/v1/projects/{project_id}/tasks
+
+❌ GET /api/v1/artifact?analysis_id={id}  # Query param for relationship
+❌ GET /api/v1/analysis_artifact/{id}      # Flat structure
+```
+
+**Use kebab-case for multi-word resources:**
+```
+✅ /api/v1/shopping-carts
+✅ /api/v1/user-preferences
+✅ /api/v1/order-items
+
+❌ /api/v1/shoppingCarts  (camelCase)
+❌ /api/v1/shopping_carts  (snake_case in URL)
+```
+
+### HTTP Methods (CRUD Operations)
+
+| Method | Purpose | Idempotent | Safe | Response | Example |
+|--------|---------|------------|------|----------|---------|
+| **GET** | Retrieve resource(s) | ✅ | ✅ | 200 OK | `GET /analyses/123` |
+| **POST** | Create resource | ❌ | ❌ | 201 Created | `POST /analyses` |
+| **PUT** | Replace entire resource | ✅ | ❌ | 200 OK | `PUT /analyses/123` |
+| **PATCH** | Partial update | ⚠️ | ❌ | 200 OK | `PATCH /analyses/123` |
+| **DELETE** | Remove resource | ✅ | ❌ | 204 No Content | `DELETE /analyses/123` |
+| **HEAD** | Metadata only | ✅ | ✅ | 200 OK | `HEAD /analyses/123` |
+| **OPTIONS** | Allowed methods | ✅ | ✅ | 200 OK | `OPTIONS /analyses` |
+
+**Idempotency Note**: PATCH can be designed to be idempotent by using absolute values instead of relative operations.
+
+### HTTP Status Codes
+
+#### Success (2xx)
+
+**200 OK** - Successful GET, PUT, PATCH, DELETE with response body
+```python
+@router.get("/analyses/{analysis_id}")
+async def get_analysis(analysis_id: uuid.UUID) -> AnalysisResponse:
+    return AnalysisResponse(...)  # 200 OK
+```
+
+**201 Created** - Successful POST, include `Location` header
+```python
+@router.post("/analyses", status_code=status.HTTP_201_CREATED)
+async def create_analysis(request: AnalyzeRequest) -> AnalyzeCreateResponse:
+    # Include SSE endpoint in response
+    return AnalyzeCreateResponse(
+        analysis_id=str(analysis_uuid),
+        sse_endpoint=f"/api/v1/analyze/{analysis_uuid}/stream"
+    )
+```
+
+**202 Accepted** - Request accepted, processing asynchronously
+```python
+@router.post("/long-running-task", status_code=status.HTTP_202_ACCEPTED)
+async def start_task() -> TaskStatusResponse:
+    # Start background task
+    return TaskStatusResponse(
+        task_id="...",
+        status="pending",
+        status_url="/tasks/123/status"
+    )
+```
+
+**204 No Content** - Successful DELETE or PUT with no response body
+```python
+@router.delete("/analyses/{analysis_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_analysis(analysis_id: uuid.UUID) -> None:
+    await repo.delete(analysis_id)
+```
+
+#### Client Errors (4xx)
+
+**400 Bad Request** - Invalid request syntax or malformed parameters
+```json
+{
+  "error": {
+    "code": "INVALID_REQUEST",
+    "message": "Request body is not valid JSON",
+    "timestamp": "2025-12-21T10:30:00Z"
+  }
+}
+```
+
+**401 Unauthorized** - Missing or invalid authentication
+```json
+{
+  "error": {
+    "code": "UNAUTHORIZED",
+    "message": "Missing or invalid authentication token",
+    "timestamp": "2025-12-21T10:30:00Z"
+  }
+}
+```
+
+**403 Forbidden** - Authenticated but not authorized
+```json
+{
+  "error": {
+    "code": "FORBIDDEN",
+    "message": "You do not have permission to access this resource",
+    "timestamp": "2025-12-21T10:30:00Z"
+  }
+}
+```
+
+**404 Not Found** - Resource doesn't exist
+```python
+@router.get("/artifacts/{artifact_id}")
+async def get_artifact(artifact_id: uuid.UUID) -> ArtifactResponse:
+    artifact = await repo.get_artifact_by_id(artifact_id)
+
+    if not artifact:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Artifact {artifact_id} not found"
+        )
+```
+
+**422 Unprocessable Entity** - Validation failed
+```python
+try:
+    content_type = detect_content_type(url_str)
+except ContentTypeError as e:
+    raise HTTPException(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        detail=f"Invalid URL format: {e!s}"
+    ) from e
+```
+
+**429 Too Many Requests** - Rate limit exceeded
+```json
+HTTP/1.1 429 Too Many Requests
+Retry-After: 3600
+X-RateLimit-Limit: 1000
+X-RateLimit-Remaining: 0
+X-RateLimit-Reset: 1703163600
+
+{
+  "error": {
+    "code": "RATE_LIMIT_EXCEEDED",
+    "message": "API rate limit exceeded. Try again in 1 hour.",
+    "retry_after": 3600
+  }
+}
+```
+
+#### Server Errors (5xx)
+
+**500 Internal Server Error** - Generic server error
+```python
+except Exception as e:
+    logger.error(
+        "analysis_creation_failed",
+        error=str(e),
+        exc_info=True
+    )
+    raise HTTPException(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        detail="Failed to create analysis record"
+    ) from e
+```
+
+**502 Bad Gateway** - Upstream service error
+**503 Service Unavailable** - Temporary unavailability (maintenance)
+**504 Gateway Timeout** - Upstream timeout
+
+## API Versioning
+
+### Strategy 1: URI Versioning (Recommended for Public APIs)
+
+**OrchestKit uses this approach:**
+```python
+# app/core/config.py
+API_V1_PREFIX = "/api/v1"
+
+# app/main.py
+app.include_router(
+    analysis_router,
+    prefix=f"{settings.API_V1_PREFIX}/analyze"
+)
+```
+
+**URL structure:**
+```
+/api/v1/analyses
+/api/v2/analyses  # New version with breaking changes
+```
+
+**Pros:**
+- Clear and visible in URLs
+- Easy to test and debug
+- Cache-friendly
+- Can route different versions to different servers
+
+**Cons:**
+- Verbose URLs
+- Need to maintain multiple codebases
+
+### Strategy 2: Header Versioning
+
+```
+GET /api/analyses
+Accept: application/vnd.orchestkit.v2+json
+API-Version: v2
+```
+
+**Pros:**
+- Clean URLs
+- RESTful purist approach
+
+**Cons:**
+- Not visible in browser
+- Harder to test manually
+- Need custom headers
+
+### Strategy 3: Query Parameter (Avoid)
+
+```
+GET /api/analyses?version=2
+```
+
+**Cons:**
+- Mixes with business logic parameters
+- Can be forgotten
+- Not cache-friendly
+
+## Pagination
+
+### Cursor-Based Pagination (Recommended for Large Datasets)
+
+**Best for**: Real-time data, infinite scroll, datasets that change frequently
+
+```python
+@router.get("/analyses")
+async def list_analyses(
+    cursor: str | None = None,
+    limit: int = Query(default=20, le=100)
+) -> PaginatedResponse:
+    results = await repo.get_paginated(cursor=cursor, limit=limit)
+
+    return {
+        "data": results,
+        "pagination": {
+            "next_cursor": encode_cursor(results[-1].id) if results else None,
+            "has_more": len(results) == limit
+        }
+    }
+```
+
+**Response:**
+```json
+{
+  "data": [...],
+  "pagination": {
+    "next_cursor": "eyJpZCI6MTIzfQ",
+    "has_more": true
+  }
+}
+```
+
+**Client usage:**
+```javascript
+// First page
+const page1 = await fetch('/api/v1/analyses?limit=20')
+const { data, pagination } = await page1.json()
+
+// Next page
+if (pagination.has_more) {
+  const page2 = await fetch(`/api/v1/analyses?cursor=${pagination.next_cursor}&limit=20`)
+}
+```
+
+### Offset-Based Pagination (For Known Bounds)
+
+**Best for**: Admin panels, small datasets, "jump to page N" UX
+
+```python
+@router.get("/analyses")
+async def list_analyses(
+    page: int = Query(default=1, ge=1),
+    per_page: int = Query(default=20, le=100)
+) -> PaginatedResponse:
+    offset = (page - 1) * per_page
+    results, total = await repo.get_paginated(offset=offset, limit=per_page)
+
+    return {
+        "data": results,
+        "pagination": {
+            "page": page,
+            "per_page": per_page,
+            "total": total,
+            "total_pages": (total + per_page - 1) // per_page
+        }
+    }
+```
+
+**Response:**
+```json
+{
+  "data": [...],
+  "pagination": {
+    "page": 2,
+    "per_page": 20,
+    "total": 487,
+    "total_pages": 25
+  }
+}
+```
+
+## Filtering and Sorting
+
+### Query Parameter Filtering
+
+```python
+@router.get("/analyses")
+async def list_analyses(
+    status: str | None = None,
+    content_type: str | None = None,
+    created_after: datetime | None = None,
+    created_before: datetime | None = None
+) -> list[AnalysisResponse]:
+    filters = {}
+    if status:
+        filters["status"] = status
+    if content_type:
+        filters["content_type"] = content_type
+    # ...
+
+    return await repo.find_all(filters=filters)
+```
+
+**Usage:**
+```
+GET /api/v1/analyses?status=completed&content_type=article
+GET /api/v1/analyses?created_after=2025-01-01&created_before=2025-12-31
+```
+
+### Sorting
+
+```python
+@router.get("/analyses")
+async def list_analyses(
+    sort: str = Query(default="-created_at")
+) -> list[AnalysisResponse]:
+    # Parse sort parameter: "-created_at" -> ("created_at", "desc")
+    direction = "desc" if sort.startswith("-") else "asc"
+    field = sort.lstrip("-")
+
+    return await repo.find_all(
+        order_by=field,
+        direction=direction
+    )
+```
+
+**Usage:**
+```
+GET /api/v1/analyses?sort=-created_at       # Newest first
+GET /api/v1/analyses?sort=title              # Alphabetical
+GET /api/v1/analyses?sort=-status,title      # Multiple fields
+```
+
+### Field Selection (Sparse Fieldsets)
+
+```python
+@router.get("/analyses")
+async def list_analyses(
+    fields: str | None = None
+) -> list[dict[str, Any]]:
+    selected_fields = fields.split(",") if fields else None
+    results = await repo.find_all()
+
+    if selected_fields:
+        return [
+            {k: v for k, v in item.dict().items() if k in selected_fields}
+            for item in results
+        ]
+
+    return results
+```
+
+**Usage:**
+```
+GET /api/v1/analyses?fields=id,title,status
+```
+
+## Error Response Format
+
+### Standard Error Structure
+
+```python
+# app/api/schemas/errors.py
+class ErrorDetail(BaseModel):
+    field: str
+    message: str
+    code: str
+
+class ErrorResponse(BaseModel):
+    error: dict[str, Any]
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "error": {
+                    "code": "VALIDATION_ERROR",
+                    "message": "Request validation failed",
+                    "details": [
+                        {
+                            "field": "url",
+                            "message": "Invalid URL format",
+                            "code": "INVALID_URL"
+                        }
+                    ],
+                    "timestamp": "2025-12-21T10:30:00Z",
+                    "request_id": "req_abc123"
+                }
+            }
+        }
+```
+
+### FastAPI Exception Handlers
+
+```python
+# app/main.py
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "error": {
+                "code": exc.status_code,
+                "message": exc.detail,
+                "timestamp": datetime.now(UTC).isoformat(),
+                "path": request.url.path
+            }
+        }
+    )
+
+@app.exception_handler(ValidationError)
+async def validation_exception_handler(request: Request, exc: ValidationError):
+    errors = []
+    for error in exc.errors():
+        errors.append({
+            "field": ".".join(str(x) for x in error["loc"]),
+            "message": error["msg"],
+            "code": error["type"]
+        })
+
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={
+            "error": {
+                "code": "VALIDATION_ERROR",
+                "message": "Request validation failed",
+                "details": errors,
+                "timestamp": datetime.now(UTC).isoformat()
+            }
+        }
+    )
+```
+
+## Rate Limiting
+
+### Response Headers
+
+```python
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+@router.get("/analyses")
+@limiter.limit("100/minute")
+async def list_analyses(request: Request) -> list[AnalysisResponse]:
+    # Rate limited to 100 requests per minute
+    pass
+```
+
+**Response headers:**
+```
+HTTP/1.1 200 OK
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 87
+X-RateLimit-Reset: 1703163600
+```
+
+**When exceeded:**
+```
+HTTP/1.1 429 Too Many Requests
+Retry-After: 60
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 0
+X-RateLimit-Reset: 1703163600
+
+{
+  "error": {
+    "code": "RATE_LIMIT_EXCEEDED",
+    "message": "Too many requests. Please try again in 60 seconds.",
+    "retry_after": 60,
+    "timestamp": "2025-12-21T10:30:00Z"
+  }
+}
+```
+
+## Best Practices
+
+### 1. Always Return Consistent Response Format
+
+```python
+# Good: Consistent structure
+{
+  "data": {...},
+  "metadata": {...}
+}
+
+# Bad: Inconsistent structure
+{...}  # Sometimes flat object
+{"results": [...]}  # Sometimes wrapped
+```
+
+### 2. Use Pydantic for Request/Response Validation
+
+```python
+from pydantic import BaseModel, HttpUrl, Field
+
+class AnalyzeRequest(BaseModel):
+    url: HttpUrl
+    analysis_id: str | None = None
+    skill_level: str = Field(default="beginner", pattern="^(beginner|intermediate|advanced)$")
+```
+
+### 3. Include Metadata in Responses
+
+```python
+{
+  "analysis_id": "123",
+  "url": "https://example.com",
+  "created_at": "2025-12-21T10:30:00Z",
+  "updated_at": "2025-12-21T11:00:00Z"
+}
+```
+
+### 4. Use OpenAPI Documentation
+
+```python
+@router.get(
+    "/analyses/{analysis_id}",
+    responses={
+        404: {"model": ErrorResponse, "description": "Analysis not found"},
+        500: {"model": ErrorResponse, "description": "Internal server error"}
+    },
+    summary="Get analysis details",
+    description="Retrieve detailed information about a specific analysis including status and artifacts"
+)
+async def get_analysis(
+    analysis_id: Annotated[uuid.UUID, Path(description="Analysis UUID")]
+) -> AnalysisResponse:
+    ...
+```
+
+### 5. Handle Edge Cases
+
+```python
+# Empty collections: Return empty array, not null
+{"data": []}  # ✅
+{"data": null}  # ❌
+
+# Deleted resources: Return 404, not null
+# ❌ {"data": null}
+# ✅ 404 Not Found
+
+# Null fields: Be explicit
+{
+  "title": null,  # ✅ Explicitly null
+  "description": ""  # ✅ Empty string if required
+}
+```
+
+## Related Files
+
+- See `assets/openapi-template.yaml` for full OpenAPI specification example
+- See `examples/orchestkit-api-design.md` for OrchestKit-specific patterns
+- See SKILL.md for GraphQL and gRPC patterns
+
+
+### Rfc9457 Spec
+
+# RFC 9457 Problem Details for HTTP APIs
+
+Comprehensive guide to the RFC 9457 specification for machine-readable error responses.
+
+## Overview
+
+RFC 9457 (formerly RFC 7807) defines a standard format for expressing API errors as JSON/XML objects. This allows clients to programmatically understand and handle errors.
+
+## Problem Details Object
+
+### Required Members
+
+| Member | Type | Description |
+|--------|------|-------------|
+| `type` | URI | A URI reference identifying the problem type |
+| `status` | integer | The HTTP status code |
+
+### Optional Members
+
+| Member | Type | Description |
+|--------|------|-------------|
+| `title` | string | Short, human-readable summary |
+| `detail` | string | Human-readable explanation specific to this occurrence |
+| `instance` | URI | URI reference identifying the specific occurrence |
+
+### Extension Members
+
+You can add custom members for additional context:
+
+```json
+{
+  "type": "https://api.orchestkit.dev/problems/validation-error",
+  "title": "Validation Error",
+  "status": 422,
+  "detail": "The request body contains invalid data",
+  "instance": "/api/v1/analyses/123",
+  "errors": [
+    {"field": "url", "message": "Invalid URL format"},
+    {"field": "depth", "message": "Must be between 1 and 3"}
+  ],
+  "trace_id": "abc123",
+  "timestamp": "2026-01-07T10:30:00Z"
+}
+```
+
+## Media Type
+
+Always use the correct media type:
+
+```
+Content-Type: application/problem+json
+```
+
+For XML (less common):
+```
+Content-Type: application/problem+xml
+```
+
+## Problem Type URIs
+
+### URI Design Principles
+
+1. **Stable**: URLs should not change
+2. **Documented**: Each type should have documentation at the URL
+3. **Versioned**: Consider including version in path
+4. **Hierarchical**: Use path segments for categories
+
+### Examples
+
+```
+# Good: Specific, documented
+https://api.orchestkit.dev/problems/rate-limit-exceeded
+https://api.orchestkit.dev/problems/validation-error
+https://api.orchestkit.dev/problems/resource-not-found
+
+# Bad: Generic, undocumented
+https://example.com/error
+about:blank
+```
+
+### about:blank
+
+Use `about:blank` when the problem has no additional semantics beyond the HTTP status:
+
+```json
+{
+  "type": "about:blank",
+  "title": "Not Found",
+  "status": 404,
+  "detail": "The requested resource was not found"
+}
+```
+
+## Common Problem Types
+
+### Validation Error (422)
+
+```json
+{
+  "type": "https://api.orchestkit.dev/problems/validation-error",
+  "title": "Validation Error",
+  "status": 422,
+  "detail": "One or more fields failed validation",
+  "errors": [
+    {
+      "field": "email",
+      "code": "invalid_format",
+      "message": "Invalid email format"
+    },
+    {
+      "field": "password",
+      "code": "too_short",
+      "message": "Password must be at least 8 characters"
+    }
+  ]
+}
+```
+
+### Authentication Error (401)
+
+```json
+{
+  "type": "https://api.orchestkit.dev/problems/authentication-required",
+  "title": "Authentication Required",
+  "status": 401,
+  "detail": "Access token is missing or invalid"
+}
+```
+
+### Authorization Error (403)
+
+```json
+{
+  "type": "https://api.orchestkit.dev/problems/insufficient-permissions",
+  "title": "Insufficient Permissions",
+  "status": 403,
+  "detail": "You don't have permission to access this resource",
+  "required_permission": "analyses:write"
+}
+```
+
+### Resource Not Found (404)
+
+```json
+{
+  "type": "https://api.orchestkit.dev/problems/resource-not-found",
+  "title": "Resource Not Found",
+  "status": 404,
+  "detail": "Analysis with ID 'abc123' was not found",
+  "resource_type": "analysis",
+  "resource_id": "abc123"
+}
+```
+
+### Rate Limit Exceeded (429)
+
+```json
+{
+  "type": "https://api.orchestkit.dev/problems/rate-limit-exceeded",
+  "title": "Rate Limit Exceeded",
+  "status": 429,
+  "detail": "You have exceeded 100 requests per minute",
+  "retry_after": 45,
+  "limit": 100,
+  "window": "1 minute"
+}
+```
+
+### Conflict (409)
+
+```json
+{
+  "type": "https://api.orchestkit.dev/problems/resource-conflict",
+  "title": "Resource Conflict",
+  "status": 409,
+  "detail": "A user with this email already exists",
+  "conflicting_field": "email"
+}
+```
+
+### Internal Server Error (500)
+
+```json
+{
+  "type": "https://api.orchestkit.dev/problems/internal-error",
+  "title": "Internal Server Error",
+  "status": 500,
+  "detail": "An unexpected error occurred. Please try again later.",
+  "trace_id": "trace-abc123",
+  "support_url": "https://support.orchestkit.dev"
+}
+```
+
+## Client Handling
+
+### Python Client Example
+
+```python
+import httpx
+from dataclasses import dataclass
+
+@dataclass
+class ProblemDetail:
+    type: str
+    status: int
+    title: str | None = None
+    detail: str | None = None
+    instance: str | None = None
+    extensions: dict | None = None
+
+    @classmethod
+    def from_response(cls, response: httpx.Response) -> "ProblemDetail":
+        if response.headers.get("content-type", "").startswith("application/problem+json"):
+            data = response.json()
+            return cls(
+                type=data.get("type", "about:blank"),
+                status=data.get("status", response.status_code),
+                title=data.get("title"),
+                detail=data.get("detail"),
+                instance=data.get("instance"),
+                extensions={
+                    k: v for k, v in data.items()
+                    if k not in ("type", "status", "title", "detail", "instance")
+                },
+            )
+        return cls(
+            type="about:blank",
+            status=response.status_code,
+            title=response.reason_phrase,
+        )
+
+
+class APIError(Exception):
+    def __init__(self, problem: ProblemDetail):
+        self.problem = problem
+        super().__init__(problem.detail or problem.title)
+
+
+async def make_request(url: str) -> dict:
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url)
+
+        if response.is_error:
+            problem = ProblemDetail.from_response(response)
+            raise APIError(problem)
+
+        return response.json()
+```
+
+### TypeScript Client Example
+
+```typescript
+interface ProblemDetail {
+  type: string;
+  status: number;
+  title?: string;
+  detail?: string;
+  instance?: string;
+  [key: string]: unknown; // Extensions
+}
+
+class APIError extends Error {
+  constructor(public problem: ProblemDetail) {
+    super(problem.detail || problem.title || 'Unknown error');
+  }
+}
+
+async function fetchWithProblemDetails(url: string): Promise<Response> {
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    const contentType = response.headers.get('content-type');
+
+    if (contentType?.includes('application/problem+json')) {
+      const problem: ProblemDetail = await response.json();
+      throw new APIError(problem);
+    }
+
+    throw new APIError({
+      type: 'about:blank',
+      status: response.status,
+      title: response.statusText,
+    });
+  }
+
+  return response;
+}
+```
+
+## Related Files
+
+- See `examples/fastapi-problem-details.md` for FastAPI implementation
+- See `checklists/error-handling-checklist.md` for implementation checklist
+- See SKILL.md for complete patterns
+
+
+### Versioning Strategies
+
+# API Versioning Strategies
+
+Comprehensive guide to API versioning approaches for REST APIs.
+
+## Strategy Comparison
+
+| Strategy | URL Example | Header Example | Pros | Cons |
+|----------|-------------|----------------|------|------|
+| URL Path | `/api/v1/users` | - | Visible, cache-friendly | URL changes |
+| Header | `/api/users` | `API-Version: 1` | Clean URLs | Hidden, harder to test |
+| Query | `/api/users?v=1` | - | Easy to add | Mixes with params |
+| Content Type | `/api/users` | `Accept: application/vnd.api.v1+json` | RESTful | Complex headers |
+
+## 1. URL Path Versioning (Recommended)
+
+The most common and recommended approach for public APIs.
+
+```
+GET /api/v1/users
+GET /api/v2/users
+```
+
+### FastAPI Implementation
+
+```python
+# app/main.py
+from fastapi import FastAPI
+from app.api.v1 import router as v1_router
+from app.api.v2 import router as v2_router
+
+app = FastAPI()
+
+app.include_router(v1_router, prefix="/api/v1")
+app.include_router(v2_router, prefix="/api/v2")
+```
+
+### Directory Structure
+
+```
+app/
+├── api/
+│   ├── v1/
+│   │   ├── __init__.py
+│   │   ├── routes/
+│   │   │   ├── users.py
+│   │   │   └── analyses.py
+│   │   └── schemas/
+│   │       ├── user.py
+│   │       └── analysis.py
+│   └── v2/
+│       ├── __init__.py
+│       ├── routes/
+│       │   ├── users.py      # Updated endpoints
+│       │   └── analyses.py
+│       └── schemas/
+│           ├── user.py       # New schema version
+│           └── analysis.py
+├── core/
+└── services/                  # Shared services
+```
+
+### Advantages
+
+- **Visible**: Version is in URL, easy to see
+- **Testable**: Easy to test with curl, browser
+- **Cache-friendly**: CDNs can cache per version
+- **Rollback**: Easy to keep old versions running
+
+### Disadvantages
+
+- **URL bloat**: URLs get longer
+- **Duplication**: May duplicate code across versions
+
+---
+
+## 2. Header Versioning
+
+Version specified in HTTP header.
+
+```
+GET /api/users
+API-Version: 2
+```
+
+### FastAPI Implementation
+
+```python
+from fastapi import APIRouter, Header, Depends
+
+def get_api_version(api_version: str = Header(default="1")) -> int:
+    """Extract API version from header."""
+    return int(api_version)
+
+@router.get("/users")
+async def get_users(
+    version: int = Depends(get_api_version),
+):
+    if version >= 2:
+        return {"users": [...], "pagination": {...}}  # v2 response
+    return {"users": [...]}  # v1 response
+```
+
+### When to Use
+
+- Internal APIs
+- When URL changes are disruptive
+- Single endpoint serving multiple versions
+
+---
+
+## 3. Content Negotiation (Media Type)
+
+Version in Accept/Content-Type header.
+
+```
+GET /api/users
+Accept: application/vnd.myapi.v2+json
+```
+
+### FastAPI Implementation
+
+```python
+from fastapi import APIRouter, Request
+
+@router.get("/users")
+async def get_users(request: Request):
+    accept = request.headers.get("accept", "")
+
+    if "vnd.myapi.v2" in accept:
+        return v2_response()
+    return v1_response()
+```
+
+### When to Use
+
+- Public APIs following strict REST
+- When media type indicates resource format
+- APIs with complex content types
+
+---
+
+## Version Lifecycle
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    VERSION LIFECYCLE                         │
+│                                                              │
+│  ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐  │
+│  │  Alpha   │──►│   Beta   │──►│  Stable  │──►│Deprecated│  │
+│  │   v3α    │   │   v3β    │   │    v3    │   │    v1    │  │
+│  └──────────┘   └──────────┘   └──────────┘   └──────────┘  │
+│       │              │              │              │         │
+│       │              │              │              ▼         │
+│       │              │              │        ┌──────────┐   │
+│       │              │              │        │  Sunset  │   │
+│       │              │              │        │(Removed) │   │
+│       │              │              │        └──────────┘   │
+│                                                              │
+│  Timeline Example:                                           │
+│  v1: Jan 2024 ──────────────────────── Deprecated Aug 2025  │
+│  v2: Mar 2025 ────────────────────────────────────────►     │
+│  v3: Planned 2026                                            │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Deprecation Headers
+
+```python
+from fastapi import Response
+
+@router.get("/v1/users")
+async def get_users_v1(response: Response):
+    # Add deprecation headers
+    response.headers["Deprecation"] = "true"
+    response.headers["Sunset"] = "Sat, 31 Dec 2025 23:59:59 GMT"
+    response.headers["Link"] = '</api/v2/users>; rel="successor-version"'
+
+    return {"users": [...]}
+```
+
+### Deprecation Response
+
+```json
+HTTP/1.1 200 OK
+Deprecation: true
+Sunset: Sat, 31 Dec 2025 23:59:59 GMT
+Link: </api/v2/users>; rel="successor-version"
+
+{
+  "_deprecation": {
+    "message": "This version is deprecated. Please migrate to v2.",
+    "sunset_date": "2025-12-31",
+    "migration_guide": "https://docs.api.com/migration/v1-to-v2"
+  },
+  "users": [...]
+}
+```
+
+---
+
+## Breaking vs Non-Breaking Changes
+
+### Non-Breaking (Safe to add)
+
+- New endpoints
+- New optional fields in response
+- New optional query parameters
+- New optional request body fields
+- Performance improvements
+- Bug fixes
+
+### Breaking (Requires new version)
+
+- Removing endpoints
+- Removing/renaming response fields
+- Changing field types
+- Changing required fields
+- Changing authentication
+- Changing error formats
+
+---
+
+## Code Sharing Strategies
+
+### 1. Shared Services
+
+```python
+# app/services/user_service.py (shared)
+class UserService:
+    async def get_user(self, user_id: str) -> User:
+        ...
+
+# app/api/v1/routes/users.py
+@router.get("/{user_id}")
+async def get_user_v1(user_id: str, service: UserService = Depends()):
+    user = await service.get_user(user_id)
+    return UserResponseV1.from_domain(user)
+
+# app/api/v2/routes/users.py
+@router.get("/{user_id}")
+async def get_user_v2(user_id: str, service: UserService = Depends()):
+    user = await service.get_user(user_id)
+    return UserResponseV2.from_domain(user)  # Different schema
+```
+
+### 2. Schema Inheritance
+
+```python
+# app/api/schemas/base.py
+class UserBase(BaseModel):
+    id: str
+    email: str
+    name: str
+
+# app/api/v1/schemas/user.py
+class UserResponseV1(UserBase):
+    pass
+
+# app/api/v2/schemas/user.py
+class UserResponseV2(UserBase):
+    avatar_url: str | None = None
+    created_at: datetime
+    preferences: dict
+```
+
+### 3. Adapter Pattern
+
+```python
+class ResponseAdapter:
+    @staticmethod
+    def to_v1(user: User) -> dict:
+        return {
+            "id": user.id,
+            "email": user.email,
+        }
+
+    @staticmethod
+    def to_v2(user: User) -> dict:
+        return {
+            "id": user.id,
+            "email": user.email,
+            "avatar_url": user.avatar_url,
+            "metadata": user.metadata,
+        }
+```
+
+---
+
+## Best Practices
+
+1. **Start with v1**: Even if not planning versions, start with `/api/v1`
+2. **Semantic versioning**: Major version for breaking changes only
+3. **Document changes**: Maintain changelog for each version
+4. **Deprecation period**: Give 6-12 months before sunsetting
+5. **Monitor usage**: Track which versions are being used
+6. **Feature flags**: Consider feature flags for gradual rollouts
+7. **Default version**: Always have a default (usually latest stable)
+
+## Related Files
+
+- See `examples/fastapi-versioning.md` for FastAPI examples
+- See `checklists/versioning-checklist.md` for implementation checklist
+
+
+
+---
+
+## Checklists (3)
+
+### Api Design Checklist
+
+# API Design Review Checklist
+
+Use this checklist when designing or reviewing APIs to ensure consistency, usability, and best practices.
+
+## Pre-Design Checklist
+
+- [ ] **Requirements Gathered**: Clear understanding of what the API needs to accomplish
+- [ ] **Stakeholders Identified**: Know who will use this API (frontend teams, partners, public)
+- [ ] **API Style Chosen**: REST, GraphQL, or gRPC based on requirements
+- [ ] **Versioning Strategy**: Decided how API will evolve (URI, header, or query param)
+- [ ] **Authentication Method**: Chosen auth approach (JWT, API keys, OAuth2)
+
+---
+
+## REST API Design Checklist
+
+### Resource Naming
+
+- [ ] **Plural Nouns**: Resources use plural nouns (`/users`, not `/user`)
+- [ ] **Hierarchical**: Relationships expressed through hierarchy (`/users/123/orders`)
+- [ ] **Kebab-Case**: Multi-word resources use kebab-case (`/shopping-carts`)
+- [ ] **No Verbs**: URLs don't contain actions (`/users`, not `/getUsers`)
+- [ ] **Consistent Naming**: Same naming pattern across all resources
+
+### HTTP Methods
+
+- [ ] **GET for Retrieval**: Read operations use GET
+- [ ] **POST for Creation**: New resources use POST
+- [ ] **PUT for Replace**: Full replacement uses PUT
+- [ ] **PATCH for Partial**: Partial updates use PATCH
+- [ ] **DELETE for Removal**: Deletions use DELETE
+- [ ] **Idempotent Operations**: PUT, DELETE, GET are idempotent
+- [ ] **Safe Operations**: GET, HEAD don't modify resources
+
+### Status Codes
+
+- [ ] **2xx for Success**: Appropriate success codes (200, 201, 204)
+- [ ] **4xx for Client Errors**: Correct client error codes (400, 401, 403, 404, 422, 429)
+- [ ] **5xx for Server Errors**: Server errors use 5xx (500, 502, 503)
+- [ ] **Consistent Usage**: Same code for same scenarios across API
+- [ ] **Location Header**: 201 responses include `Location` header
+
+### Request/Response
+
+- [ ] **JSON Format**: Using `application/json` content type
+- [ ] **Consistent Structure**: Same response structure across endpoints
+- [ ] **Error Format**: Standardized error response with code, message, details
+- [ ] **Timestamp Format**: ISO 8601 format for all dates/times
+- [ ] **Field Naming**: Consistent convention (snake_case or camelCase)
+
+### Pagination
+
+- [ ] **Pagination Implemented**: Large lists are paginated
+- [ ] **Cursor or Offset**: Chosen appropriate pagination strategy
+- [ ] **Page Info Included**: Response includes pagination metadata
+- [ ] **Configurable Limit**: Clients can specify page size
+- [ ] **Max Limit Enforced**: Prevent excessive page sizes
+
+### Filtering & Sorting
+
+- [ ] **Filter Parameters**: Query params for filtering (e.g., `?status=active`)
+- [ ] **Sort Parameter**: Query param for sorting (e.g., `?sort=created_at:desc`)
+- [ ] **Field Selection**: Support partial responses (e.g., `?fields=id,name`)
+- [ ] **Consistent Syntax**: Same filter/sort syntax across endpoints
+
+### Versioning
+
+- [ ] **Version Strategy Chosen**: URI, header, or query param versioning
+- [ ] **Version Number Visible**: Clear which version is being used
+- [ ] **Backward Compatibility**: Older versions supported for migration period
+- [ ] **Deprecation Policy**: Plan for sunsetting old versions
+
+### Authentication & Security
+
+- [ ] **Auth Required**: Protected endpoints require authentication
+- [ ] **Authorization Checked**: Verify user permissions for actions
+- [ ] **HTTPS Only**: API only accessible over HTTPS in production
+- [ ] **API Keys Secure**: Keys not exposed in URLs or logs
+- [ ] **Rate Limiting**: Implemented to prevent abuse
+
+### Rate Limiting
+
+- [ ] **Limits Defined**: Clear rate limits per endpoint/user
+- [ ] **Headers Included**: `X-RateLimit-*` headers in responses
+- [ ] **429 Status**: Returns 429 when limit exceeded
+- [ ] **Retry-After Header**: Tells client when to retry
+
+### Error Handling
+
+- [ ] **Consistent Format**: All errors follow same structure
+- [ ] **Error Codes**: Machine-readable error codes included
+- [ ] **Helpful Messages**: Clear, actionable error messages
+- [ ] **Field-Level Errors**: Validation errors specify which fields failed
+- [ ] **Request IDs**: Each response includes unique request ID for support
+
+---
+
+## GraphQL API Design Checklist
+
+### Schema Design
+
+- [ ] **Nullable by Default**: Fields nullable unless explicitly required (!)
+- [ ] **Connections for Lists**: Use Connection pattern for paginated lists
+- [ ] **Input Types**: Mutations use Input types, not inline args
+- [ ] **Enum Types**: Use enums for fixed sets of values
+- [ ] **Interface/Union Types**: Reuse types appropriately
+
+### Queries
+
+- [ ] **Single Resource Queries**: Can fetch individual items by ID
+- [ ] **List Queries**: Can fetch lists with filtering and pagination
+- [ ] **Nested Queries**: Related data fetchable in single query
+- [ ] **N+1 Prevention**: DataLoader or similar for batching
+
+### Mutations
+
+- [ ] **Input/Payload Pattern**: Mutations use `createUserInput` → `CreateUserPayload`
+- [ ] **Return Complete Object**: Mutations return updated resource
+- [ ] **Error Handling**: Payload includes errors array
+- [ ] **Optimistic UI**: Mutations designed for optimistic updates
+
+### Subscriptions
+
+- [ ] **Real-Time Events**: Subscriptions for live updates
+- [ ] **Filtered Subscriptions**: Clients can filter events
+- [ ] **Subscription Cleanup**: Proper cleanup on disconnect
+
+---
+
+## gRPC API Design Checklist
+
+### Proto Files
+
+- [ ] **Package Name**: Follows convention (company.service.v1)
+- [ ] **Versioned**: Version included in package name
+- [ ] **Imports Organized**: Standard imports (google/protobuf/*)
+- [ ] **Comments**: Services and messages documented
+
+### Service Design
+
+- [ ] **CRUD Operations**: Standard operations defined
+- [ ] **Request/Response Messages**: Each RPC has dedicated messages
+- [ ] **Streaming Where Appropriate**: Uses streaming for large data or live updates
+- [ ] **Empty Responses**: Uses google.protobuf.Empty for no-content responses
+
+### Message Design
+
+- [ ] **Field Numbers**: Sequential, never reused
+- [ ] **Required Fields**: Minimal required fields
+- [ ] **Repeated Fields**: For lists/arrays
+- [ ] **Oneof Fields**: For mutually exclusive fields
+- [ ] **Enums Have Zero**: First enum value is UNSPECIFIED = 0
+
+### Error Handling
+
+- [ ] **gRPC Status Codes**: Uses standard status codes
+- [ ] **Error Details**: Rich error info using google.rpc.Status
+- [ ] **Retry Logic**: Idempotent operations identified
+
+---
+
+## API Documentation Checklist
+
+### OpenAPI/AsyncAPI Specification
+
+- [ ] **Specification Created**: OpenAPI 3.1 or AsyncAPI 3.0 document exists
+- [ ] **Complete Coverage**: All endpoints documented
+- [ ] **Examples Provided**: Request/response examples for each endpoint
+- [ ] **Schema Definitions**: Reusable schemas in components section
+- [ ] **Security Schemes**: Authentication methods documented
+
+### Documentation Quality
+
+- [ ] **Getting Started Guide**: Clear intro for new users
+- [ ] **Authentication Guide**: How to authenticate explained
+- [ ] **Error Handling Guide**: Common errors and solutions
+- [ ] **Code Examples**: Working code samples in multiple languages
+- [ ] **Changelog**: Version history and breaking changes documented
+
+### API Reference
+
+- [ ] **Endpoint List**: All endpoints listed with descriptions
+- [ ] **Parameters Documented**: Query, path, header params explained
+- [ ] **Status Codes**: All possible status codes documented
+- [ ] **Rate Limits**: Limits and quotas clearly stated
+- [ ] **Deprecation Notices**: Deprecated endpoints marked
+
+---
+
+## Performance Checklist
+
+- [ ] **Pagination Default**: Reasonable default page size (20-50)
+- [ ] **Field Selection**: Support for partial responses
+- [ ] **Caching Headers**: Cache-Control, ETag headers where appropriate
+- [ ] **Compression**: Gzip/Brotli compression enabled
+- [ ] **Response Times**: &lt; 200ms for simple queries, &lt; 1s for complex
+- [ ] **N+1 Queries Avoided**: Efficient database queries
+- [ ] **Indexes Created**: Database indexes on frequently queried fields
+
+---
+
+## Testing Checklist
+
+- [ ] **Unit Tests**: Business logic tested
+- [ ] **Integration Tests**: API endpoints tested end-to-end
+- [ ] **Contract Tests**: API contracts validated
+- [ ] **Load Tests**: Performance under load verified
+- [ ] **Security Tests**: Common vulnerabilities tested (OWASP)
+- [ ] **Documentation Tests**: Examples in docs actually work
+
+---
+
+## Compliance & Standards
+
+- [ ] **REST Principles**: Follows RESTful conventions (if REST)
+- [ ] **GraphQL Spec**: Adheres to GraphQL specification (if GraphQL)
+- [ ] **gRPC Style Guide**: Follows protobuf style guide (if gRPC)
+- [ ] **Naming Conventions**: Consistent with org standards
+- [ ] **Security Standards**: Meets security requirements
+- [ ] **Privacy Compliance**: GDPR, CCPA compliance where applicable
+
+---
+
+## Pre-Launch Checklist
+
+- [ ] **All Tests Passing**: 100% pass rate on test suite
+- [ ] **Documentation Complete**: All endpoints documented
+- [ ] **Security Review**: Security team approved
+- [ ] **Load Testing**: Performance validated under expected load
+- [ ] **Monitoring Setup**: Metrics, logging, alerting configured
+- [ ] **Error Tracking**: Error monitoring (Sentry, etc.) configured
+- [ ] **Rollback Plan**: Can revert if issues found
+- [ ] **Stakeholder Approval**: Frontend/client teams signed off
+
+---
+
+## Post-Launch Checklist
+
+- [ ] **Monitor Metrics**: Track API usage, error rates, latency
+- [ ] **Collect Feedback**: Gather developer feedback
+- [ ] **Document Issues**: Track bugs and feature requests
+- [ ] **Iterate**: Plan improvements based on real usage
+- [ ] **Deprecation Plan**: Plan for sunsetting old versions if applicable
+
+---
+
+## Common API Anti-Patterns to Avoid
+
+❌ **Chatty APIs**: Too many round-trips required
+✅ **Fix**: Batch operations, nested resources, GraphQL
+
+❌ **Overfetching**: Returning more data than needed
+✅ **Fix**: Field selection, GraphQL, partial responses
+
+❌ **Underfetching**: Requiring multiple calls for related data
+✅ **Fix**: Include related resources, nested endpoints, GraphQL
+
+❌ **Breaking Changes**: Backward-incompatible changes without versioning
+✅ **Fix**: Version API, deprecation periods, additive changes
+
+❌ **Unclear Errors**: Generic "Error 500" messages
+✅ **Fix**: Specific error codes, helpful messages, troubleshooting info
+
+❌ **No Pagination**: Returning thousands of items
+✅ **Fix**: Implement pagination with reasonable defaults
+
+❌ **Ignoring HTTP**: Using POST for everything
+✅ **Fix**: Use appropriate HTTP methods (GET, POST, PUT, DELETE)
+
+❌ **Exposing Internal Details**: Database fields in API
+✅ **Fix**: Map to business domain, hide implementation
+
+---
+
+## Reviewer Sign-Off
+
+### Technical Review
+
+- [ ] **Backend Architect**: Architectural soundness verified
+- [ ] **Frontend Developer**: Developer experience validated
+- [ ] **Security Team**: Security implications reviewed
+- [ ] **DevOps**: Operational concerns addressed
+
+### Business Review
+
+- [ ] **Product Manager**: Business requirements met
+- [ ] **API Governance**: Compliance with API standards
+
+---
+
+**Checklist Version**: 1.0.0
+**Skill**: api-design-framework v1.0.0
+**Last Updated**: 2025-10-31
+
+
+### Error Handling Checklist
+
+# Error Handling Implementation Checklist
+
+## RFC 9457 Compliance
+
+### Response Format
+
+- [ ] All error responses use `application/problem+json` media type
+- [ ] All responses include required fields:
+  - [ ] `type` - URI reference for problem type
+  - [ ] `status` - HTTP status code
+- [ ] All responses include recommended fields:
+  - [ ] `title` - Human-readable summary
+  - [ ] `detail` - Specific error description
+  - [ ] `instance` - Request path that caused error
+
+### Problem Type URIs
+
+- [ ] Define problem type registry (documented URIs)
+- [ ] Each problem type has documentation at its URI
+- [ ] URIs are stable (won't change)
+- [ ] Using `about:blank` for generic HTTP errors
+
+### Standard Problem Types
+
+Define these common error types:
+
+- [ ] `validation-error` (422) - Request validation failed
+- [ ] `resource-not-found` (404) - Resource doesn't exist
+- [ ] `resource-conflict` (409) - Duplicate or constraint violation
+- [ ] `authentication-required` (401) - Missing/invalid credentials
+- [ ] `insufficient-permissions` (403) - Not authorized
+- [ ] `rate-limit-exceeded` (429) - Too many requests
+- [ ] `internal-error` (500) - Unexpected server error
+
+## Exception Handling
+
+### Custom Exceptions
+
+- [ ] Create base `ProblemException` class
+- [ ] Create specific exception classes:
+  - [ ] `ResourceNotFoundError`
+  - [ ] `ValidationError`
+  - [ ] `ConflictError`
+  - [ ] `AuthenticationError`
+  - [ ] `AuthorizationError`
+  - [ ] `RateLimitError`
+
+### Exception Handlers
+
+- [ ] Register handler for `ProblemException`
+- [ ] Register handler for `RequestValidationError` (Pydantic)
+- [ ] Register handler for `IntegrityError` (SQLAlchemy)
+- [ ] Register catch-all handler for `Exception`
+- [ ] All handlers return `application/problem+json`
+
+## Validation Errors
+
+- [ ] Include field-level error details
+- [ ] Use consistent error structure:
+  ```json
+  {
+    "errors": [
+      {"field": "email", "code": "invalid_format", "message": "..."}
+    ]
+  }
+  ```
+- [ ] Map Pydantic error types to user-friendly codes
+- [ ] Include all validation errors, not just first
+
+## Observability
+
+### Logging
+
+- [ ] Log all 5xx errors with full stack trace
+- [ ] Log 4xx errors at warning level
+- [ ] Include trace ID in all error logs
+- [ ] Include request context (path, method, user)
+
+### Trace IDs
+
+- [ ] Generate unique trace ID per request
+- [ ] Include trace ID in error responses
+- [ ] Include trace ID in logs
+- [ ] Pass trace ID through middleware
+
+### Monitoring
+
+- [ ] Track error rates by type
+- [ ] Track error rates by endpoint
+- [ ] Alert on error rate spikes
+- [ ] Alert on 5xx errors
+
+## Security
+
+### Information Disclosure
+
+- [ ] Never expose stack traces in production
+- [ ] Never expose database errors to clients
+- [ ] Never expose internal service details
+- [ ] Sanitize error messages
+
+### Consistent Responses
+
+- [ ] Return 404 for missing resources (not 403)
+- [ ] Return 401 before 403 (auth before authz)
+- [ ] Don't leak existence of resources via errors
+
+## Documentation
+
+### OpenAPI
+
+- [ ] Document all error responses in OpenAPI
+- [ ] Include example error responses
+- [ ] Document all problem types
+- [ ] Include error schemas
+
+### API Docs
+
+- [ ] Document error response format
+- [ ] Document common error codes
+- [ ] Document retry strategies
+- [ ] Provide error handling examples
+
+## Testing
+
+### Unit Tests
+
+- [ ] Test each exception class
+- [ ] Test problem detail serialization
+- [ ] Test exception handlers
+
+### Integration Tests
+
+- [ ] Test 404 returns problem detail
+- [ ] Test 422 includes field errors
+- [ ] Test 401/403 responses
+- [ ] Test 429 includes retry-after
+- [ ] Test 500 doesn't leak details
+
+### Error Scenarios
+
+- [ ] Test invalid request body
+- [ ] Test missing required fields
+- [ ] Test invalid field values
+- [ ] Test resource not found
+- [ ] Test duplicate resource
+- [ ] Test missing authentication
+- [ ] Test insufficient permissions
+- [ ] Test rate limit exceeded
+
+## Client Handling
+
+Document recommended client handling:
+
+```python
+# Python example
+async def handle_api_error(response):
+    if response.headers.get("content-type") == "application/problem+json":
+        problem = await response.json()
+
+        if problem["type"].endswith("rate-limit-exceeded"):
+            await asyncio.sleep(problem["retry_after"])
+            return await retry_request()
+
+        if problem["type"].endswith("validation-error"):
+            for error in problem.get("errors", []):
+                display_field_error(error["field"], error["message"])
+
+        raise APIError(problem)
+```
+
+## Quick Reference
+
+| Status | Type Suffix | When to Use |
+|--------|-------------|-------------|
+| 400 | `bad-request` | Malformed request |
+| 401 | `authentication-required` | Missing/invalid auth |
+| 403 | `insufficient-permissions` | Not authorized |
+| 404 | `resource-not-found` | Resource doesn't exist |
+| 409 | `resource-conflict` | Duplicate/constraint |
+| 422 | `validation-error` | Invalid field values |
+| 429 | `rate-limit-exceeded` | Too many requests |
+| 500 | `internal-error` | Unexpected error |
+| 503 | `service-unavailable` | Temporary outage |
+
+
+### Versioning Checklist
+
+# API Versioning Implementation Checklist
+
+## Planning
+
+### Strategy Selection
+
+- [ ] Choose versioning strategy:
+  - [ ] **URL Path** (`/api/v1/`) - Recommended for public APIs
+  - [ ] **Header** (`X-API-Version: 1`) - For internal APIs
+  - [ ] **Query Param** (`?version=1`) - Avoid if possible
+  - [ ] **Content Type** (`Accept: application/vnd.api.v1+json`) - For strict REST
+
+### Version Policy
+
+- [ ] Define what constitutes a breaking change:
+  - [ ] Removing endpoints
+  - [ ] Removing/renaming fields
+  - [ ] Changing field types
+  - [ ] Changing authentication
+  - [ ] Changing error format
+
+- [ ] Define deprecation policy:
+  - [ ] Minimum deprecation period (e.g., 6 months)
+  - [ ] Communication channels for deprecation notices
+  - [ ] Migration guide requirements
+
+## Implementation
+
+### Directory Structure
+
+- [ ] Create versioned directory structure:
+  ```
+  app/api/
+  ├── v1/
+  │   ├── routes/
+  │   └── schemas/
+  └── v2/
+      ├── routes/
+      └── schemas/
+  ```
+
+### Router Setup
+
+- [ ] Create version-specific routers:
+  ```python
+  app.include_router(v1_router, prefix="/api/v1")
+  app.include_router(v2_router, prefix="/api/v2")
+  ```
+
+- [ ] Configure OpenAPI tags per version
+- [ ] Set up version-specific docs endpoints
+
+### Schema Management
+
+- [ ] Create version-specific schemas
+- [ ] Use inheritance for common fields
+- [ ] Document schema changes between versions
+
+### Service Layer
+
+- [ ] Keep services version-agnostic
+- [ ] Use adapters to convert domain → version-specific response
+- [ ] Avoid version logic in service layer
+
+## Deprecation
+
+### Headers
+
+- [ ] Add deprecation headers to deprecated versions:
+  ```python
+  response.headers["Deprecation"] = "true"
+  response.headers["Sunset"] = "Sat, 31 Dec 2025 23:59:59 GMT"
+  response.headers["Link"] = '</api/v2/users>; rel="successor-version"'
+  ```
+
+### Response Warnings
+
+- [ ] Include deprecation info in response body (optional):
+  ```json
+  {
+    "_deprecation": {
+      "message": "This version is deprecated",
+      "sunset_date": "2025-12-31",
+      "migration_guide": "https://docs.api.com/migration"
+    }
+  }
+  ```
+
+### Communication
+
+- [ ] Email notification to API consumers
+- [ ] Update API documentation with deprecation notice
+- [ ] Add banner to developer portal
+- [ ] Track usage of deprecated versions
+
+## Documentation
+
+### OpenAPI/Swagger
+
+- [ ] Document all versions in OpenAPI
+- [ ] Include deprecation status in docs
+- [ ] Provide version comparison
+- [ ] Link to migration guides
+
+### Changelog
+
+- [ ] Maintain changelog per version
+- [ ] Document breaking changes clearly
+- [ ] Include migration instructions
+- [ ] Date each change
+
+### Migration Guides
+
+- [ ] Create migration guide for each major version:
+  - [ ] List all breaking changes
+  - [ ] Provide before/after examples
+  - [ ] Include code snippets
+  - [ ] Explain rationale for changes
+
+## Monitoring
+
+### Usage Tracking
+
+- [ ] Track requests per version
+- [ ] Monitor deprecated version usage
+- [ ] Alert on high deprecated version traffic
+- [ ] Dashboard for version metrics
+
+### Client Identification
+
+- [ ] Track which clients use which versions
+- [ ] Reach out to heavy deprecated version users
+- [ ] Provide migration assistance
+
+## Testing
+
+### Version-Specific Tests
+
+- [ ] Test each version independently
+- [ ] Verify correct fields in each version
+- [ ] Test deprecation headers
+- [ ] Test error responses per version
+
+### Compatibility Tests
+
+- [ ] Ensure v1 clients work with v1 API
+- [ ] Verify v2 doesn't break v1
+- [ ] Test header-based version selection
+- [ ] Test default version behavior
+
+### Migration Tests
+
+- [ ] Test that migrated clients work with new version
+- [ ] Verify data compatibility
+- [ ] Test edge cases during transition
+
+## Sunset Process
+
+### Pre-Sunset (6+ months before)
+
+- [ ] Announce deprecation
+- [ ] Add deprecation headers
+- [ ] Update documentation
+- [ ] Contact major API consumers
+
+### Active Deprecation (3-6 months before)
+
+- [ ] Increase warning frequency
+- [ ] Offer migration support
+- [ ] Track migration progress
+- [ ] Send reminder emails
+
+### Final Warning (1 month before)
+
+- [ ] Final warning to remaining users
+- [ ] Prepare for increased support
+- [ ] Plan sunset date announcement
+
+### Sunset
+
+- [ ] Remove deprecated version
+- [ ] Return 410 Gone for old endpoints
+- [ ] Keep redirect to migration docs
+- [ ] Monitor for issues
+
+## Quick Reference
+
+| Action | When |
+|--------|------|
+| Start with v1 | Always, even if no plans for v2 |
+| Create v2 | Breaking changes needed |
+| Deprecate v1 | 6+ months before sunset |
+| Sunset v1 | After deprecation period |
+
+## Common Mistakes
+
+- [ ] **Not versioning from start**: Always start with `/api/v1`
+- [ ] **Breaking v1 silently**: Always create new version for breaks
+- [ ] **Too many versions**: Consolidate when possible
+- [ ] **No deprecation period**: Give adequate migration time
+- [ ] **Version in domain layer**: Keep versions in API layer only
+- [ ] **Inconsistent versioning**: Use same strategy everywhere
+
+
+
+---
+
+## Examples (3)
+
+### Fastapi Problem Details
+
+# FastAPI Problem Details Implementation
+
+Complete example implementing RFC 9457 Problem Details in FastAPI.
+
+## Problem Detail Schema
+
+```python
+# app/core/exceptions.py
+from pydantic import BaseModel, Field
+from datetime import datetime, timezone
+from typing import Any
+
+
+class ProblemDetail(BaseModel):
+    """RFC 9457 Problem Details response schema."""
+
+    type: str = Field(
+        default="about:blank",
+        description="URI reference identifying the problem type",
+    )
+    title: str = Field(
+        description="Short, human-readable summary",
+    )
+    status: int = Field(
+        description="HTTP status code",
+    )
+    detail: str | None = Field(
+        default=None,
+        description="Human-readable explanation specific to this occurrence",
+    )
+    instance: str | None = Field(
+        default=None,
+        description="URI reference identifying the specific occurrence",
+    )
+    # Common extensions
+    trace_id: str | None = None
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "type": "https://api.orchestkit.dev/problems/validation-error",
+                "title": "Validation Error",
+                "status": 422,
+                "detail": "The url field is required",
+                "instance": "/api/v1/analyses",
+                "trace_id": "abc123",
+                "timestamp": "2026-01-07T10:30:00Z",
+            }
+        }
+
+
+class ValidationProblem(ProblemDetail):
+    """Problem detail with validation errors."""
+
+    errors: list[dict[str, Any]] = Field(
+        default_factory=list,
+        description="List of validation errors",
+    )
+
+
+class RateLimitProblem(ProblemDetail):
+    """Problem detail for rate limiting."""
+
+    retry_after: int = Field(description="Seconds until retry is allowed")
+    limit: int = Field(description="Request limit")
+    window: str = Field(description="Time window for limit")
+```
+
+## Custom Exception Classes
+
+```python
+# app/core/exceptions.py
+from fastapi import HTTPException
+
+
+class ProblemException(Exception):
+    """Base exception that renders as RFC 9457 Problem Detail."""
+
+    def __init__(
+        self,
+        status_code: int,
+        problem_type: str,
+        title: str,
+        detail: str | None = None,
+        instance: str | None = None,
+        **extensions,
+    ):
+        self.status_code = status_code
+        self.problem_type = problem_type
+        self.title = title
+        self.detail = detail
+        self.instance = instance
+        self.extensions = extensions
+
+    def to_problem_detail(self, trace_id: str | None = None) -> dict:
+        """Convert to Problem Detail dict."""
+        problem = {
+            "type": self.problem_type,
+            "title": self.title,
+            "status": self.status_code,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+        if self.detail:
+            problem["detail"] = self.detail
+        if self.instance:
+            problem["instance"] = self.instance
+        if trace_id:
+            problem["trace_id"] = trace_id
+        problem.update(self.extensions)
+        return problem
+
+
+class ResourceNotFoundError(ProblemException):
+    """Resource not found error."""
+
+    def __init__(
+        self,
+        resource_type: str,
+        resource_id: str,
+    ):
+        super().__init__(
+            status_code=404,
+            problem_type="https://api.orchestkit.dev/problems/resource-not-found",
+            title="Resource Not Found",
+            detail=f"{resource_type} with ID '{resource_id}' was not found",
+            resource_type=resource_type,
+            resource_id=resource_id,
+        )
+
+
+class ValidationError(ProblemException):
+    """Validation error with field-level details."""
+
+    def __init__(
+        self,
+        errors: list[dict],
+        detail: str = "One or more fields failed validation",
+    ):
+        super().__init__(
+            status_code=422,
+            problem_type="https://api.orchestkit.dev/problems/validation-error",
+            title="Validation Error",
+            detail=detail,
+            errors=errors,
+        )
+
+
+class ConflictError(ProblemException):
+    """Resource conflict error."""
+
+    def __init__(
+        self,
+        detail: str,
+        conflicting_field: str | None = None,
+    ):
+        super().__init__(
+            status_code=409,
+            problem_type="https://api.orchestkit.dev/problems/resource-conflict",
+            title="Resource Conflict",
+            detail=detail,
+            conflicting_field=conflicting_field,
+        )
+
+
+class RateLimitError(ProblemException):
+    """Rate limit exceeded error."""
+
+    def __init__(
+        self,
+        retry_after: int,
+        limit: int,
+        window: str = "1 minute",
+    ):
+        super().__init__(
+            status_code=429,
+            problem_type="https://api.orchestkit.dev/problems/rate-limit-exceeded",
+            title="Rate Limit Exceeded",
+            detail=f"You have exceeded {limit} requests per {window}",
+            retry_after=retry_after,
+            limit=limit,
+            window=window,
+        )
+
+
+class AuthenticationError(ProblemException):
+    """Authentication required error."""
+
+    def __init__(self, detail: str = "Authentication is required"):
+        super().__init__(
+            status_code=401,
+            problem_type="https://api.orchestkit.dev/problems/authentication-required",
+            title="Authentication Required",
+            detail=detail,
+        )
+
+
+class AuthorizationError(ProblemException):
+    """Insufficient permissions error."""
+
+    def __init__(
+        self,
+        detail: str = "You don't have permission to access this resource",
+        required_permission: str | None = None,
+    ):
+        super().__init__(
+            status_code=403,
+            problem_type="https://api.orchestkit.dev/problems/insufficient-permissions",
+            title="Insufficient Permissions",
+            detail=detail,
+            required_permission=required_permission,
+        )
+```
+
+## Exception Handlers
+
+```python
+# app/core/exception_handlers.py
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+from sqlalchemy.exc import IntegrityError
+from pydantic import ValidationError as PydanticValidationError
+
+from app.core.exceptions import ProblemException
+
+
+def setup_exception_handlers(app: FastAPI):
+    """Register all exception handlers."""
+
+    @app.exception_handler(ProblemException)
+    async def problem_exception_handler(
+        request: Request,
+        exc: ProblemException,
+    ) -> JSONResponse:
+        """Handle custom problem exceptions."""
+        trace_id = getattr(request.state, "request_id", None)
+        exc.instance = request.url.path
+
+        return JSONResponse(
+            status_code=exc.status_code,
+            content=exc.to_problem_detail(trace_id),
+            media_type="application/problem+json",
+        )
+
+    @app.exception_handler(RequestValidationError)
+    async def validation_exception_handler(
+        request: Request,
+        exc: RequestValidationError,
+    ) -> JSONResponse:
+        """Handle Pydantic validation errors."""
+        errors = []
+        for error in exc.errors():
+            errors.append({
+                "field": ".".join(str(x) for x in error["loc"][1:]),  # Skip 'body'
+                "code": error["type"],
+                "message": error["msg"],
+            })
+
+        trace_id = getattr(request.state, "request_id", None)
+
+        return JSONResponse(
+            status_code=422,
+            content={
+                "type": "https://api.orchestkit.dev/problems/validation-error",
+                "title": "Validation Error",
+                "status": 422,
+                "detail": "Request validation failed",
+                "instance": request.url.path,
+                "trace_id": trace_id,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "errors": errors,
+            },
+            media_type="application/problem+json",
+        )
+
+    @app.exception_handler(IntegrityError)
+    async def integrity_error_handler(
+        request: Request,
+        exc: IntegrityError,
+    ) -> JSONResponse:
+        """Handle database integrity errors."""
+        trace_id = getattr(request.state, "request_id", None)
+
+        # Parse constraint name from error
+        detail = "A database constraint was violated"
+        if "unique" in str(exc.orig).lower():
+            detail = "A resource with this value already exists"
+
+        return JSONResponse(
+            status_code=409,
+            content={
+                "type": "https://api.orchestkit.dev/problems/resource-conflict",
+                "title": "Resource Conflict",
+                "status": 409,
+                "detail": detail,
+                "instance": request.url.path,
+                "trace_id": trace_id,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            },
+            media_type="application/problem+json",
+        )
+
+    @app.exception_handler(Exception)
+    async def generic_exception_handler(
+        request: Request,
+        exc: Exception,
+    ) -> JSONResponse:
+        """Handle unexpected exceptions."""
+        import structlog
+        logger = structlog.get_logger()
+
+        trace_id = getattr(request.state, "request_id", None)
+
+        # Log the full error
+        logger.exception(
+            "unhandled_exception",
+            trace_id=trace_id,
+            path=request.url.path,
+            error=str(exc),
+        )
+
+        return JSONResponse(
+            status_code=500,
+            content={
+                "type": "https://api.orchestkit.dev/problems/internal-error",
+                "title": "Internal Server Error",
+                "status": 500,
+                "detail": "An unexpected error occurred. Please try again later.",
+                "instance": request.url.path,
+                "trace_id": trace_id,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "support_url": "https://support.orchestkit.dev",
+            },
+            media_type="application/problem+json",
+        )
+```
+
+## Usage in Routes
+
+```python
+# app/api/v1/routes/analyses.py
+from fastapi import APIRouter, Depends
+from app.core.exceptions import ResourceNotFoundError, ValidationError
+
+router = APIRouter()
+
+@router.get("/analyses/{analysis_id}")
+async def get_analysis(
+    analysis_id: str,
+    service: AnalysisService = Depends(get_analysis_service),
+):
+    """Get analysis by ID."""
+    analysis = await service.get_by_id(analysis_id)
+
+    if not analysis:
+        raise ResourceNotFoundError(
+            resource_type="Analysis",
+            resource_id=analysis_id,
+        )
+
+    return AnalysisResponse.from_domain(analysis)
+
+
+@router.post("/analyses")
+async def create_analysis(
+    request: AnalyzeRequest,
+    service: AnalysisService = Depends(get_analysis_service),
+):
+    """Create a new analysis."""
+    # Custom validation beyond Pydantic
+    if not is_valid_url(str(request.url)):
+        raise ValidationError(
+            errors=[
+                {
+                    "field": "url",
+                    "code": "invalid_url",
+                    "message": "URL is not accessible or returns an error",
+                }
+            ]
+        )
+
+    return await service.create(request)
+```
+
+## OpenAPI Documentation
+
+```python
+# app/api/v1/routes/analyses.py
+from fastapi import APIRouter
+from app.core.exceptions import ProblemDetail, ValidationProblem
+
+router = APIRouter()
+
+@router.get(
+    "/analyses/{analysis_id}",
+    responses={
+        404: {
+            "model": ProblemDetail,
+            "description": "Analysis not found",
+            "content": {
+                "application/problem+json": {
+                    "example": {
+                        "type": "https://api.orchestkit.dev/problems/resource-not-found",
+                        "title": "Resource Not Found",
+                        "status": 404,
+                        "detail": "Analysis with ID 'abc123' was not found",
+                    }
+                }
+            },
+        },
+        500: {
+            "model": ProblemDetail,
+            "description": "Internal server error",
+        },
+    },
+)
+async def get_analysis(analysis_id: str):
+    ...
+```
+
+## Testing
+
+```python
+# tests/test_error_handling.py
+import pytest
+from httpx import AsyncClient
+
+@pytest.mark.asyncio
+async def test_not_found_returns_problem_detail(client: AsyncClient):
+    response = await client.get("/api/v1/analyses/nonexistent")
+
+    assert response.status_code == 404
+    assert response.headers["content-type"] == "application/problem+json"
+
+    problem = response.json()
+    assert problem["type"] == "https://api.orchestkit.dev/problems/resource-not-found"
+    assert problem["status"] == 404
+    assert "Analysis" in problem["detail"]
+
+@pytest.mark.asyncio
+async def test_validation_error_includes_field_errors(client: AsyncClient):
+    response = await client.post("/api/v1/analyses", json={"url": "not-a-url"})
+
+    assert response.status_code == 422
+    assert response.headers["content-type"] == "application/problem+json"
+
+    problem = response.json()
+    assert problem["type"] == "https://api.orchestkit.dev/problems/validation-error"
+    assert "errors" in problem
+    assert any(e["field"] == "url" for e in problem["errors"])
+```
+
+
+### Fastapi Versioning
+
+# FastAPI API Versioning Examples
+
+Complete examples for implementing API versioning in FastAPI.
+
+## URL Path Versioning
+
+### Project Structure
+
+```
+app/
+├── main.py
+├── api/
+│   ├── __init__.py
+│   ├── v1/
+│   │   ├── __init__.py
+│   │   ├── routes/
+│   │   │   ├── __init__.py
+│   │   │   ├── users.py
+│   │   │   └── analyses.py
+│   │   └── schemas/
+│   │       ├── __init__.py
+│   │       ├── user.py
+│   │       └── analysis.py
+│   └── v2/
+│       ├── __init__.py
+│       ├── routes/
+│       │   ├── __init__.py
+│       │   ├── users.py
+│       │   └── analyses.py
+│       └── schemas/
+│           ├── __init__.py
+│           ├── user.py
+│           └── analysis.py
+├── core/
+│   └── config.py
+└── services/           # Shared across versions
+    ├── user_service.py
+    └── analysis_service.py
+```
+
+### Version Routers
+
+```python
+# app/api/v1/__init__.py
+from fastapi import APIRouter
+from app.api.v1.routes import users, analyses
+
+router = APIRouter(tags=["v1"])
+router.include_router(users.router, prefix="/users", tags=["users"])
+router.include_router(analyses.router, prefix="/analyses", tags=["analyses"])
+
+
+# app/api/v2/__init__.py
+from fastapi import APIRouter
+from app.api.v2.routes import users, analyses
+
+router = APIRouter(tags=["v2"])
+router.include_router(users.router, prefix="/users", tags=["users"])
+router.include_router(analyses.router, prefix="/analyses", tags=["analyses"])
+```
+
+### Main App
+
+```python
+# app/main.py
+from fastapi import FastAPI
+from app.api.v1 import router as v1_router
+from app.api.v2 import router as v2_router
+
+app = FastAPI(
+    title="My API",
+    description="API with versioning",
+    version="2.0.0",
+)
+
+# Mount versioned routers
+app.include_router(v1_router, prefix="/api/v1")
+app.include_router(v2_router, prefix="/api/v2")
+
+# Optional: Default to latest version
+@app.get("/api/users")
+async def get_users_latest():
+    """Redirect to latest version."""
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url="/api/v2/users")
+```
+
+### Version-Specific Schemas
+
+```python
+# app/api/v1/schemas/user.py
+from pydantic import BaseModel
+
+class UserResponseV1(BaseModel):
+    """V1 user response - basic fields only."""
+    id: str
+    email: str
+    name: str
+
+
+# app/api/v2/schemas/user.py
+from pydantic import BaseModel
+from datetime import datetime
+
+class UserResponseV2(BaseModel):
+    """V2 user response - extended fields."""
+    id: str
+    email: str
+    name: str
+    avatar_url: str | None = None
+    created_at: datetime
+    last_login: datetime | None = None
+    preferences: dict = {}
+```
+
+### Version-Specific Routes
+
+```python
+# app/api/v1/routes/users.py
+from fastapi import APIRouter, Depends
+from app.api.v1.schemas.user import UserResponseV1
+from app.services.user_service import UserService
+
+router = APIRouter()
+
+@router.get("/{user_id}", response_model=UserResponseV1)
+async def get_user(
+    user_id: str,
+    service: UserService = Depends(),
+) -> UserResponseV1:
+    user = await service.get_by_id(user_id)
+    return UserResponseV1(
+        id=str(user.id),
+        email=user.email,
+        name=user.name,
+    )
+
+
+# app/api/v2/routes/users.py
+from fastapi import APIRouter, Depends
+from app.api.v2.schemas.user import UserResponseV2
+from app.services.user_service import UserService
+
+router = APIRouter()
+
+@router.get("/{user_id}", response_model=UserResponseV2)
+async def get_user(
+    user_id: str,
+    service: UserService = Depends(),
+) -> UserResponseV2:
+    user = await service.get_by_id(user_id)
+    return UserResponseV2(
+        id=str(user.id),
+        email=user.email,
+        name=user.name,
+        avatar_url=user.avatar_url,
+        created_at=user.created_at,
+        last_login=user.last_login,
+        preferences=user.preferences or {},
+    )
+```
+
+## Header-Based Versioning
+
+### Version Dependency
+
+```python
+# app/api/deps.py
+from fastapi import Header, HTTPException
+
+SUPPORTED_VERSIONS = {1, 2}
+DEFAULT_VERSION = 2
+
+def get_api_version(
+    api_version: str | None = Header(
+        default=None,
+        alias="X-API-Version",
+        description="API version (1 or 2)",
+    ),
+) -> int:
+    """Extract and validate API version from header."""
+    if api_version is None:
+        return DEFAULT_VERSION
+
+    try:
+        version = int(api_version)
+    except ValueError:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid API version: {api_version}",
+        )
+
+    if version not in SUPPORTED_VERSIONS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported API version: {version}. Supported: {SUPPORTED_VERSIONS}",
+        )
+
+    return version
+```
+
+### Version-Aware Route
+
+```python
+# app/api/routes/users.py
+from fastapi import APIRouter, Depends
+from app.api.deps import get_api_version
+from app.api.v1.schemas.user import UserResponseV1
+from app.api.v2.schemas.user import UserResponseV2
+
+router = APIRouter()
+
+@router.get("/{user_id}")
+async def get_user(
+    user_id: str,
+    version: int = Depends(get_api_version),
+    service: UserService = Depends(),
+):
+    """Get user - response varies by version."""
+    user = await service.get_by_id(user_id)
+
+    if version == 1:
+        return UserResponseV1(
+            id=str(user.id),
+            email=user.email,
+            name=user.name,
+        )
+
+    # version 2 (default)
+    return UserResponseV2(
+        id=str(user.id),
+        email=user.email,
+        name=user.name,
+        avatar_url=user.avatar_url,
+        created_at=user.created_at,
+    )
+```
+
+## Deprecation Handling
+
+### Deprecation Middleware
+
+```python
+# app/middleware/deprecation.py
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
+from datetime import datetime
+
+DEPRECATED_VERSIONS = {
+    "v1": {
+        "sunset": datetime(2025, 12, 31),
+        "successor": "v2",
+    }
+}
+
+class DeprecationMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+
+        # Check if path contains deprecated version
+        path = request.url.path
+        for version, info in DEPRECATED_VERSIONS.items():
+            if f"/api/{version}/" in path:
+                response.headers["Deprecation"] = "true"
+                response.headers["Sunset"] = info["sunset"].strftime(
+                    "%a, %d %b %Y %H:%M:%S GMT"
+                )
+                successor_path = path.replace(
+                    f"/api/{version}/",
+                    f"/api/{info['successor']}/"
+                )
+                response.headers["Link"] = (
+                    f'<{successor_path}>; rel="successor-version"'
+                )
+                break
+
+        return response
+
+
+# app/main.py
+app.add_middleware(DeprecationMiddleware)
+```
+
+### Deprecation Warning in Response
+
+```python
+# app/api/v1/routes/users.py
+from fastapi import APIRouter, Response
+
+router = APIRouter()
+
+DEPRECATION_WARNING = {
+    "warning": "This API version is deprecated",
+    "sunset_date": "2025-12-31",
+    "migration_guide": "https://docs.api.com/migration/v1-to-v2",
+}
+
+@router.get("/{user_id}")
+async def get_user(
+    user_id: str,
+    response: Response,
+    service: UserService = Depends(),
+):
+    # Add deprecation headers
+    response.headers["Deprecation"] = "true"
+    response.headers["Sunset"] = "Sat, 31 Dec 2025 23:59:59 GMT"
+
+    user = await service.get_by_id(user_id)
+
+    return {
+        "_deprecation": DEPRECATION_WARNING,
+        "data": UserResponseV1.from_orm(user).dict(),
+    }
+```
+
+## OpenAPI Documentation
+
+### Separate Docs per Version
+
+```python
+# app/main.py
+from fastapi import FastAPI
+from fastapi.openapi.utils import get_openapi
+
+app = FastAPI()
+
+# V1 OpenAPI schema
+def get_v1_openapi():
+    return get_openapi(
+        title="My API v1",
+        version="1.0.0",
+        description="API v1 (Deprecated)",
+        routes=[r for r in app.routes if "/api/v1" in str(r.path)],
+    )
+
+# V2 OpenAPI schema
+def get_v2_openapi():
+    return get_openapi(
+        title="My API v2",
+        version="2.0.0",
+        description="API v2 (Current)",
+        routes=[r for r in app.routes if "/api/v2" in str(r.path)],
+    )
+
+@app.get("/api/v1/openapi.json", include_in_schema=False)
+async def openapi_v1():
+    return get_v1_openapi()
+
+@app.get("/api/v2/openapi.json", include_in_schema=False)
+async def openapi_v2():
+    return get_v2_openapi()
+```
+
+## Testing Multiple Versions
+
+```python
+# tests/test_versioning.py
+import pytest
+from httpx import AsyncClient
+
+@pytest.mark.asyncio
+async def test_v1_returns_basic_fields(client: AsyncClient):
+    response = await client.get("/api/v1/users/123")
+    assert response.status_code == 200
+
+    data = response.json()
+    assert "id" in data
+    assert "email" in data
+    assert "name" in data
+    # V1 should NOT have these fields
+    assert "avatar_url" not in data
+    assert "preferences" not in data
+
+@pytest.mark.asyncio
+async def test_v2_returns_extended_fields(client: AsyncClient):
+    response = await client.get("/api/v2/users/123")
+    assert response.status_code == 200
+
+    data = response.json()
+    assert "id" in data
+    assert "email" in data
+    assert "name" in data
+    # V2 should have these fields
+    assert "avatar_url" in data
+    assert "preferences" in data
+
+@pytest.mark.asyncio
+async def test_v1_includes_deprecation_headers(client: AsyncClient):
+    response = await client.get("/api/v1/users/123")
+
+    assert response.headers.get("Deprecation") == "true"
+    assert "Sunset" in response.headers
+    assert "Link" in response.headers
+
+@pytest.mark.asyncio
+async def test_header_versioning(client: AsyncClient):
+    # Request with v1 header
+    response = await client.get(
+        "/api/users/123",
+        headers={"X-API-Version": "1"},
+    )
+    data = response.json()
+    assert "avatar_url" not in data
+
+    # Request with v2 header
+    response = await client.get(
+        "/api/users/123",
+        headers={"X-API-Version": "2"},
+    )
+    data = response.json()
+    assert "avatar_url" in data
+```
+
+
+### Orchestkit Api Design
+
+# OrchestKit API Design Decisions
+
+Real-world API design decisions from the OrchestKit project, documenting endpoint structure, versioning strategy, and architectural choices.
+
+## Project Context
+
+**OrchestKit**: Intelligent Learning Integration Platform - Multi-agent system for analyzing technical content.
+
+**Stack**: FastAPI (Python) + React 19 frontend
+**API Base**: `http://localhost:8500/api/v1`
+**Development Ports**:
+- Backend API: `localhost:8500`
+- Frontend: `localhost:5173`
+- PostgreSQL: `localhost:5437`
+
+## API Structure
+
+### URI Versioning
+
+**Decision**: Use URI-based versioning (`/api/v1/`)
+
+**Location**: `backend/app/core/config.py`
+```python
+API_V1_PREFIX = "/api/v1"
+```
+
+**Rationale**:
+- Clear visibility in URLs for debugging
+- Easy to route different versions to different handlers
+- Frontend can easily target specific API versions
+- Cache-friendly (CDNs can cache different versions separately)
+
+**Implementation**: `backend/app/main.py`
+```python
+from app.core.config import settings
+
+# Include analysis router with versioned prefix
+app.include_router(
+    analysis_router,
+    prefix=f"{settings.API_V1_PREFIX}/analyze"
+)
+
+# Include artifact router
+app.include_router(
+    artifact_router,
+    prefix=settings.API_V1_PREFIX
+)
+```
+
+## Endpoint Design
+
+### Analysis Endpoints
+
+**Location**: `backend/app/api/v1/analysis/endpoints.py`
+
+#### 1. Create Analysis (Async Task Pattern)
+
+```python
+POST /api/v1/analyze
+Content-Type: application/json
+
+{
+  "url": "https://example.com/article",
+  "analysis_id": "optional-custom-id",  # Optional
+  "skill_level": "beginner"              # Optional: beginner|intermediate|advanced
+}
+```
+
+**Response**: `201 Created`
+```json
+{
+  "analysis_id": "550e8400-e29b-41d4-a716-446655440000",
+  "url": "https://example.com/article",
+  "content_type": "article",
+  "status": "pending",
+  "sse_endpoint": "/api/v1/analyze/550e8400-e29b-41d4-a716-446655440000/stream"
+}
+```
+
+**Design Decision**: Return immediately with analysis_id + SSE endpoint
+- **Why**: Analysis workflow takes 30-120 seconds to complete
+- **Pattern**: Async task creation + progress streaming (see SSE section)
+- **Client flow**: Create analysis → Connect to SSE endpoint → Receive progress updates
+
+**Implementation**:
+```python
+@router.post(
+    "/analyze",
+    status_code=status.HTTP_201_CREATED,
+    responses={
+        422: {"model": ErrorResponse, "description": "Validation error"},
+        500: {"model": ErrorResponse, "description": "Internal server error"}
+    }
+)
+async def create_analysis(
+    request: AnalyzeRequest,
+    fastapi_request: Request,
+    analysis_repo: Annotated[IAnalysisRepository, Depends(get_analysis_repository)]
+) -> AnalyzeCreateResponse:
+    """Create analysis and start workflow asynchronously."""
+
+    # 1. Detect content type
+    content_type = detect_content_type(str(request.url))
+
+    # 2. Normalize custom analysis_id if provided (optional)
+    analysis_uuid = (
+        normalize_analysis_id_to_uuid(request.analysis_id)
+        if request.analysis_id
+        else None  # Let DB generate UUID v7 via server_default
+    )
+
+    # 3. Create Analysis record (status: pending)
+    # PostgreSQL 18 generates UUID v7 via server_default=text("uuidv7()")
+    created_analysis = await analysis_repo.create_analysis(
+        analysis_id=analysis_uuid,  # None → DB generates UUID v7
+        url=url_str,
+        content_type=content_type,
+        status="pending"
+    )
+    analysis_uuid = cast("AnalysisID", created_analysis.id)
+
+    # 4. Start workflow asynchronously (fire-and-forget)
+    task = asyncio.create_task(
+        run_workflow_task(analysis_uuid, url_str, request.skill_level)
+    )
+    background_tasks = fastapi_request.app.state.background_tasks
+    background_tasks.add(task)
+    task.add_done_callback(partial(_handle_task_completion, background_tasks=background_tasks))
+
+    # 5. Return immediately with SSE endpoint
+    sse_endpoint = f"{settings.API_V1_PREFIX}/analyze/{analysis_uuid}/stream"
+
+    return AnalyzeCreateResponse(
+        analysis_id=str(analysis_uuid),
+        url=url_str,
+        content_type=content_type,
+        status="pending",
+        sse_endpoint=sse_endpoint
+    )
+```
+
+#### 2. Get Analysis Status
+
+```python
+GET /api/v1/analyze/{analysis_id}
+```
+
+**Response**: `200 OK`
+```json
+{
+  "analysis_id": "550e8400-e29b-41d4-a716-446655440000",
+  "url": "https://example.com/article",
+  "content_type": "article",
+  "status": "completed",
+  "title": "Understanding React Server Components",
+  "artifact_id": "660e8400-e29b-41d4-a716-446655440001",
+  "created_at": "2025-12-21T10:30:00Z",
+  "updated_at": "2025-12-21T10:32:45Z"
+}
+```
+
+**Design Decision**: Return latest artifact_id in status response
+- **Why**: Frontend needs artifact_id to fetch results
+- **Alternative considered**: Separate endpoint for artifact lookup (rejected: extra round trip)
+
+#### 3. Stream Analysis Progress (SSE)
+
+```python
+GET /api/v1/analyze/{analysis_id}/stream
+Accept: text/event-stream
+```
+
+**Response**: Server-Sent Events stream
+```
+event: progress
+data: {"type":"progress","stage":"extraction","status":"running","timestamp":"2025-12-21T10:30:15Z"}
+
+event: progress
+data: {"type":"progress","stage":"extraction","status":"complete","word_count":5234}
+
+event: progress
+data: {"type":"progress","stage":"analysis","status":"running","agent":"tech_comparator"}
+
+event: complete
+data: {"type":"complete","stage":"artifact_generation","timestamp":"2025-12-21T10:32:45Z"}
+```
+
+**Design Decision**: Use SSE instead of WebSockets
+- **Why**: Unidirectional (server→client) is sufficient for progress updates
+- **Benefit**: Simpler client code (native EventSource API), automatic reconnection
+- **Trade-off**: No client→server messaging (not needed for this use case)
+
+See `references/sse-deep-dive.md` in `streaming-api-patterns` skill for details.
+
+### Artifact Endpoints
+
+**Location**: `backend/app/api/v1/analysis/artifacts.py`
+
+#### 1. Get Artifact by Analysis
+
+```python
+GET /api/v1/analyze/{analysis_id}/artifact
+```
+
+**Response**: `200 OK`
+```json
+{
+  "artifact_id": "660e8400-e29b-41d4-a716-446655440001",
+  "analysis_id": "550e8400-e29b-41d4-a716-446655440000",
+  "markdown_content": "# Understanding React Server Components\n\n...",
+  "artifact_metadata": {
+    "word_count": 5234,
+    "section_count": 8
+  },
+  "trace_id": "trace_abc123",
+  "created_at": "2025-12-21T10:32:45Z"
+}
+```
+
+**Design Decision**: Hierarchical URL (`/analyze/\{id\}/artifact`)
+- **Why**: Expresses relationship: "artifact belongs to analysis"
+- **Alternative considered**: `/artifacts?analysis_id=\{id\}` (rejected: less RESTful)
+
+#### 2. Get Artifact by ID
+
+```python
+GET /api/v1/artifacts/{artifact_id}
+```
+
+**Response**: Same as above
+
+**Design Decision**: Provide both hierarchical AND direct ID lookup
+- **Why**: Support different frontend access patterns
+- **Use case 1**: After analysis complete → use hierarchical endpoint
+- **Use case 2**: Direct link to artifact → use ID endpoint
+
+#### 3. Download Artifact
+
+```python
+GET /api/v1/artifacts/{artifact_id}/download
+```
+
+**Response**: `200 OK` (file download)
+```
+Content-Type: text/markdown
+Content-Disposition: attachment; filename="understanding-react-server-components-550e8400.md"
+
+# Understanding React Server Components
+...
+```
+
+**Design Decision**: Separate download endpoint with different response type
+- **Why**: Different headers (Content-Disposition) and analytics (download_count)
+- **Benefit**: Clean separation of view vs. download use cases
+
+**Implementation**:
+```python
+@router.get("/artifacts/{artifact_id}/download", response_class=Response)
+async def download_artifact(
+    artifact_id: uuid.UUID,
+    repo: Annotated[IArtifactRepository, Depends(get_artifact_repository)]
+) -> Response:
+    # Get artifact with analysis (for title)
+    result = await repo.get_artifact_with_analysis(artifact_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="Artifact not found")
+
+    artifact, analysis = result
+
+    # Extract title from analysis metadata
+    title = None
+    if analysis.extraction_metadata:
+        title = analysis.extraction_metadata.get("title")
+
+    # Generate filename: "article-title-uuid.md"
+    filename = generate_filename(title, str(artifact.analysis_id))
+
+    # Increment download_count for analytics
+    await repo.increment_download_count(artifact_id)
+
+    # Return with download headers
+    return Response(
+        content=artifact.markdown_content,
+        media_type="text/markdown",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'}
+    )
+```
+
+### Health Check Endpoint
+
+**Location**: `backend/app/api/v1/health.py`
+
+```python
+GET /api/v1/health
+```
+
+**Response**: `200 OK`
+```json
+{
+  "status": "healthy",
+  "version": "0.1.0",
+  "environment": "development",
+  "database": {
+    "status": "connected"
+  }
+}
+```
+
+**Design Decision**: Include database connectivity check
+- **Why**: Kubernetes readiness/liveness probes need to verify DB connection
+- **Timeout**: 5 seconds (configurable via DB_TIMEOUT constant)
+- **Error response**: Still returns 200 OK, but with `database.status: "disconnected"`
+
+## Error Handling
+
+### Standardized Error Format
+
+**Location**: `backend/app/api/schemas/errors.py`
+
+```python
+class ErrorResponse(BaseModel):
+    error: dict[str, Any]
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "error": {
+                    "code": "VALIDATION_ERROR",
+                    "message": "Request validation failed",
+                    "timestamp": "2025-12-21T10:30:00Z"
+                }
+            }
+        }
+```
+
+### Example Error Responses
+
+**404 Not Found**:
+```json
+{
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Artifact 660e8400-e29b-41d4-a716-446655440001 not found",
+    "timestamp": "2025-12-21T10:30:00Z"
+  }
+}
+```
+
+**422 Validation Error**:
+```python
+try:
+    content_type = detect_content_type(url_str)
+except ContentTypeError as e:
+    raise HTTPException(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        detail=f"Invalid URL format: {e!s}"
+    ) from e
+```
+
+Response:
+```json
+{
+  "error": {
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Invalid URL format: Must be a valid HTTP/HTTPS URL",
+    "timestamp": "2025-12-21T10:30:00Z"
+  }
+}
+```
+
+## URL Normalization
+
+### UUID Analysis IDs
+
+**Decision**: Always use UUIDs for analysis_id (not string slugs)
+
+**Normalization logic**: `backend/app/core/utils.py`
+```python
+def normalize_analysis_id_to_uuid(analysis_id: str) -> uuid.UUID:
+    """Normalize analysis_id to UUID format.
+
+    Supports:
+    - Full UUID: "550e8400-e29b-41d4-a716-446655440000"
+    - Short form: "550e8400" (first 8 chars)
+    """
+    # Try parsing as full UUID
+    try:
+        return uuid.UUID(analysis_id)
+    except ValueError:
+        pass
+
+    # Try short form (8 chars)
+    if len(analysis_id) == 8:
+        try:
+            # Pad to full UUID format
+            full_uuid = f"{analysis_id}-0000-0000-0000-000000000000"
+            return uuid.UUID(full_uuid)
+        except ValueError:
+            pass
+
+    raise ValueError(f"Invalid analysis_id format: {analysis_id}")
+```
+
+**Benefit**: Allows short URLs while maintaining UUID uniqueness
+
+## Repository Pattern
+
+### Dependency Injection
+
+**Pattern**: Use FastAPI Depends() for repository injection
+
+```python
+from typing import Annotated
+
+@router.get("/artifacts/{artifact_id}")
+async def get_artifact(
+    artifact_id: Annotated[uuid.UUID, Path(description="Artifact UUID")],
+    repo: Annotated[IArtifactRepository, Depends(get_artifact_repository)]
+) -> ArtifactMetadataResponse:
+    artifact = await repo.get_artifact_by_id(artifact_id)
+    ...
+```
+
+**Benefits**:
+- Easy testing (mock repository)
+- Clean separation of concerns
+- Type-safe with Annotated
+
+## API Documentation
+
+### OpenAPI Spec
+
+**Auto-generated**: Available at `/docs` (Swagger UI) and `/redoc` (ReDoc)
+
+**Custom documentation**:
+```python
+@router.get(
+    "/analyze/{analysis_id}/stream",
+    responses={
+        404: {"model": ErrorResponse, "description": "Analysis not found"},
+        500: {"model": ErrorResponse, "description": "Internal server error"}
+    }
+)
+async def stream_analysis_progress_endpoint(
+    analysis_id: Annotated[uuid.UUID, Path(description="Analysis UUID")],
+    request: Request
+):
+    """Stream real-time analysis progress via Server-Sent Events (SSE).
+
+    See app.api.v1.sse_handler.stream_analysis_progress for full documentation.
+    """
+    return await stream_analysis_progress_handler(analysis_id, request)
+```
+
+## Design Principles
+
+### 1. Immediate Response for Long Operations
+
+**Pattern**: Create → Return ID + Progress URL
+- **Example**: POST /analyze → Returns analysis_id + sse_endpoint
+- **Why**: Prevents timeout on long-running operations
+- **Client UX**: Show loading state with progress updates
+
+### 2. Include Related Resource URLs
+
+**Pattern**: Include navigation URLs in responses
+```json
+{
+  "analysis_id": "123",
+  "sse_endpoint": "/api/v1/analyze/123/stream",  ← Progress URL
+  "artifact_id": "456"                            ← Related resource
+}
+```
+
+**Benefit**: Frontend doesn't need to construct URLs
+
+### 3. Hierarchical URLs for Relationships
+
+**Pattern**: `/parent/\{id\}/child` for 1:1 or 1:many relationships
+- `/analyze/\{analysis_id\}/artifact` - Analysis has one latest artifact
+- `/teams/\{team_id\}/members` - Team has many members
+
+**Benefit**: Clear relationship modeling
+
+### 4. UUID Path Parameters
+
+**Pattern**: Use typed UUID path parameters
+```python
+analysis_id: Annotated[uuid.UUID, Path(description="Analysis UUID")]
+```
+
+**Benefit**: Automatic validation (400 if not valid UUID)
+
+### 5. Repository + Dependency Injection
+
+**Pattern**: Abstract database access behind repository interface
+```python
+class IArtifactRepository(Protocol):
+    async def get_artifact_by_id(self, artifact_id: uuid.UUID) -> Artifact | None: ...
+
+def get_artifact_repository() -> IArtifactRepository:
+    return ArtifactRepository(get_db_session())
+```
+
+**Benefits**:
+- Easy to mock for testing
+- Clean architecture
+- Database-agnostic API layer
+
+## Related Files
+
+- **SSE Implementation**: `backend/app/api/v1/analysis/sse_handler.py`
+- **Event Broadcaster**: `backend/app/shared/services/messaging/broadcaster.py`
+- **Error Schemas**: `backend/app/api/schemas/errors.py`
+- **Config**: `backend/app/core/config.py`
+- **API Schemas**: `backend/app/domains/analysis/schemas/api.py`
+
+## References
+
+- See `references/rest-patterns.md` for general REST patterns
+- See `streaming-api-patterns` skill for SSE implementation details
+- See `assets/openapi-template.yaml` for OpenAPI specification template
+

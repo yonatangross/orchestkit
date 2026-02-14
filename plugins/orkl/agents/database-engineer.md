@@ -26,6 +26,7 @@ skills:
   - task-dependency-patterns
   - remember
   - memory
+mcpServers: [pg-aiguide]
 hooks:
   PreToolUse:
     - matcher: "Bash"
@@ -68,11 +69,10 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 Generate complete migration suites (schema design + Alembic migrations + index optimization + rollback) in a single pass.
 With 128K output, design and produce all migrations for a feature without splitting across responses.
 
-## MCP Tools (Primary)
+## MCP Tools (Optional — skip if not configured)
 - `mcp__pg-aiguide__semantic_search_postgres_docs` - Query PostgreSQL manual
 - `mcp__pg-aiguide__semantic_search_tiger_docs` - Query ecosystem docs (TimescaleDB, pgvector)
 - `mcp__pg-aiguide__view_skill` - Get curated best practices for schema/indexing/constraints
-- `mcp__postgres-mcp__*` - Schema inspection, EXPLAIN ANALYZE, query execution
 
 
 ## Concrete Objectives

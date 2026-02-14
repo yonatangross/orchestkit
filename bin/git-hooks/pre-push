@@ -22,7 +22,7 @@ fi
 
 # ===== Check if only non-code files changed =====
 CHANGED_FILES=$(git diff --name-only origin/main...HEAD 2>/dev/null || git diff --name-only HEAD~1...HEAD)
-CODE_CHANGES=$(echo "$CHANGED_FILES" | grep -vE '\.(md|txt|yml|yaml|json)$|^\.github/|^docs/' || true)
+CODE_CHANGES=$(echo "$CHANGED_FILES" | grep -vE '\.(md|txt)$|^docs/' || true)
 
 if [[ -z "$CODE_CHANGES" ]]; then
   echo "  ✓ Skipping version check (only docs/config changes)"
@@ -242,29 +242,51 @@ CI_UNIT_TESTS=(
   tests/unit/test-pre-push-hook.sh
 )
 
-UNIT_TEST_ERRORS=0
-for test_file in "${CI_UNIT_TESTS[@]}"; do
+# Run tests in parallel (~160s sequential → ~75s parallel)
+MAX_JOBS=8
+if command -v nproc &>/dev/null; then
+  CORES=$(nproc)
+elif command -v sysctl &>/dev/null; then
+  CORES=$(sysctl -n hw.ncpu 2>/dev/null || echo 8)
+else
+  CORES=8
+fi
+[[ $CORES -lt $MAX_JOBS ]] && MAX_JOBS=$CORES
+
+export _PREPUSH_FAIL_DIR=$(mktemp -d)
+trap 'rm -rf "$_PREPUSH_FAIL_DIR"' EXIT
+
+_run_test() {
+  local test_file="$1"
   if [[ -f "$test_file" ]]; then
-    if ! run_with_timeout 120 bash "$test_file" >/dev/null 2>&1; then
-      if [[ $UNIT_TEST_ERRORS -eq 0 ]]; then
-        echo "FAILED"
-      fi
-      echo "    FAIL: $(basename "$test_file")"
-      UNIT_TEST_ERRORS=$((UNIT_TEST_ERRORS + 1))
+    if ! bash "$test_file" >/dev/null 2>&1; then
+      touch "$_PREPUSH_FAIL_DIR/$(basename "$test_file")"
     fi
   fi
+}
+export -f _run_test
+
+printf '%s\n' "${CI_UNIT_TESTS[@]}" | xargs -P "$MAX_JOBS" -I {} bash -c '_run_test "$1"' _ {}
+
+FAILURES=()
+for f in "$_PREPUSH_FAIL_DIR"/*; do
+  [[ -e "$f" ]] && FAILURES+=("$(basename "$f")")
 done
 
-if [[ $UNIT_TEST_ERRORS -gt 0 ]]; then
+if [[ ${#FAILURES[@]} -gt 0 ]]; then
+  echo "FAILED"
+  for f in "${FAILURES[@]}"; do
+    echo "    FAIL: $f"
+  done
   echo ""
   echo "╔════════════════════════════════════════════════════════════╗"
-  echo "║  Unit tests failed! ($UNIT_TEST_ERRORS test file(s) failed)"
+  echo "║  Unit tests failed! (${#FAILURES[@]} test file(s) failed)"
   echo "╠════════════════════════════════════════════════════════════╣"
   echo "║  Run failing tests to see details"
   echo "╚════════════════════════════════════════════════════════════╝"
   exit 1
 fi
-echo "OK"
+echo "OK (${#CI_UNIT_TESTS[@]} tests, ${MAX_JOBS} parallel)"
 
 # ===== Security Tests =====
 echo -n "  Running security tests... "

@@ -189,3 +189,3274 @@ Design, version, and optimize prompts for production LLM applications.
 - Configure LoRA/QLoRA for parameter-efficient training
 - Generate and validate synthetic training data
 - Align models with DPO and evaluate results
+
+
+---
+
+## Rules (18)
+
+### Function Calling: Parallel Execution — HIGH
+
+
+# Parallel Tool Calls
+
+## Basic Parallel Execution
+
+```python
+# OpenAI supports parallel tool calls
+response = await llm.chat(
+    messages=messages,
+    tools=tools,
+    parallel_tool_calls=True  # Default in GPT-5 series
+)
+
+# Handle multiple calls in parallel
+if response.tool_calls:
+    results = await asyncio.gather(*[
+        execute_tool(tc.function.name, json.loads(tc.function.arguments))
+        for tc in response.tool_calls
+    ])
+```
+
+## Strict Mode Constraint
+
+```python
+# Structured outputs with strict=True may not work with parallel_tool_calls
+# If using strict mode schemas, disable parallel calls:
+response = await llm.chat(
+    messages=messages,
+    tools=tools_with_strict_true,
+    parallel_tool_calls=False  # Required for strict mode reliability
+)
+```
+
+## Handling Partial Failures
+
+```python
+async def execute_tools_parallel(tool_calls: list) -> list[dict]:
+    """Execute tool calls in parallel with error handling."""
+    async def safe_execute(tc):
+        try:
+            result = await execute_tool(
+                tc.function.name,
+                json.loads(tc.function.arguments)
+            )
+            return {"tool_call_id": tc.id, "content": json.dumps(result)}
+        except Exception as e:
+            return {"tool_call_id": tc.id, "content": json.dumps({"error": str(e)})}
+
+    results = await asyncio.gather(*[safe_execute(tc) for tc in tool_calls])
+    return [{"role": "tool", **r} for r in results]
+```
+
+## Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Parallel calls | Disable with strict mode |
+| Error handling | Return error as tool result |
+| Max concurrent | 5-10 (avoid rate limits) |
+| Timeout | 30s per tool call |
+
+## Common Mistakes
+
+- Enabling parallel_tool_calls with strict mode schemas
+- Not handling individual tool failures in gather
+- Exceeding API rate limits with too many concurrent calls
+- Missing tool_call_id in response messages
+
+
+### Function Calling: Tool Definition — CRITICAL
+
+
+# Tool Definition (Strict Mode)
+
+## OpenAI Strict Mode Schema (2026 Best Practice)
+
+```python
+# OpenAI format with strict mode (2026 recommended)
+tools = [{
+    "type": "function",
+    "function": {
+        "name": "search_documents",
+        "description": "Search the document database for relevant content",
+        "strict": True,  # Enables structured output validation
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "query": {
+                    "type": "string",
+                    "description": "The search query"
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Max results to return"
+                }
+            },
+            "required": ["query", "limit"],  # All props required when strict
+            "additionalProperties": False     # Required for strict mode
+        }
+    }
+}]
+
+# Note: With strict=True:
+# - All properties must be listed in "required"
+# - additionalProperties must be False
+# - No "default" values (provide via code instead)
+```
+
+## Schema Factory Pattern
+
+```python
+def create_tool_schema(
+    name: str,
+    description: str,
+    parameters: dict,
+    strict: bool = True
+) -> dict:
+    """Create OpenAI-compatible tool schema with strict mode."""
+    return {
+        "type": "function",
+        "function": {
+            "name": name,
+            "description": description,
+            "strict": strict,
+            "parameters": {
+                "type": "object",
+                "properties": parameters,
+                "required": list(parameters.keys()),
+                "additionalProperties": False
+            }
+        }
+    }
+```
+
+## Anthropic Tool Schema
+
+```python
+def create_anthropic_tool(
+    name: str,
+    description: str,
+    input_schema: dict
+) -> dict:
+    """Create Anthropic-compatible tool definition."""
+    return {
+        "name": name,
+        "description": description,
+        "input_schema": {
+            "type": "object",
+            "properties": input_schema,
+            "required": list(input_schema.keys())
+        }
+    }
+```
+
+## LangChain Tool Binding
+
+```python
+from langchain_core.tools import tool
+from pydantic import BaseModel, Field
+
+@tool
+def search_documents(query: str, limit: int = 5) -> list[dict]:
+    """Search the document database.
+
+    Args:
+        query: Search query string
+        limit: Maximum results to return
+    """
+    return db.search(query, limit=limit)
+
+# Bind to model
+llm_with_tools = llm.bind_tools([search_documents])
+
+# Or with structured output
+class SearchResult(BaseModel):
+    query: str = Field(description="The search query used")
+    results: list[str] = Field(description="Matching documents")
+
+structured_llm = llm.with_structured_output(SearchResult)
+```
+
+## Structured Output (Guaranteed JSON)
+
+```python
+from pydantic import BaseModel
+
+class Analysis(BaseModel):
+    sentiment: str
+    confidence: float
+    key_points: list[str]
+
+# OpenAI structured output
+response = await client.beta.chat.completions.parse(
+    model="gpt-5.2",
+    messages=[{"role": "user", "content": "Analyze this text..."}],
+    response_format=Analysis
+)
+
+analysis = response.choices[0].message.parsed  # Typed Analysis object
+```
+
+## Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Schema mode | `strict: true` (2026 best practice) |
+| Description length | 1-2 sentences |
+| Tool count | 5-15 max (more = confusion) |
+| Output format | Structured Outputs > JSON mode |
+| Parameter validation | Use Pydantic/Zod |
+
+## Common Mistakes
+
+- Vague tool descriptions (LLM won't know when to use)
+- Missing `additionalProperties: false` in strict mode
+- Using `default` values with strict mode (not supported)
+- Too many tools (LLM gets confused beyond 15)
+
+
+### Function Calling: Validation & Execution Loop — CRITICAL
+
+
+# Tool Validation & Execution Loop
+
+## Tool Execution Loop
+
+```python
+async def run_with_tools(messages: list, tools: list) -> str:
+    """Execute tool calls until LLM returns final answer."""
+    while True:
+        response = await llm.chat(messages=messages, tools=tools)
+
+        # Check if LLM wants to call tools
+        if not response.tool_calls:
+            return response.content
+
+        # Execute each tool call
+        for tool_call in response.tool_calls:
+            result = await execute_tool(
+                tool_call.function.name,
+                json.loads(tool_call.function.arguments)
+            )
+
+            # Add tool result to conversation
+            messages.append({
+                "role": "tool",
+                "tool_call_id": tool_call.id,
+                "content": json.dumps(result)
+            })
+
+        # Continue loop (LLM will process tool results)
+```
+
+## Tool Registry with Validation
+
+```python
+class ToolRegistry:
+    """Registry for managing tool definitions and execution."""
+
+    def __init__(self):
+        self.tools: dict[str, Callable] = {}
+        self.schemas: list[dict] = []
+
+    def register(self, func: Callable) -> Callable:
+        """Register a function as a tool."""
+        schema = self._extract_schema(func)
+        self.tools[func.__name__] = func
+        self.schemas.append(schema)
+        return func
+
+    async def execute(self, name: str, args: dict) -> Any:
+        """Execute a registered tool with validation."""
+        if name not in self.tools:
+            raise ValueError(f"Unknown tool: {name}")
+        func = self.tools[name]
+        if asyncio.iscoroutinefunction(func):
+            return await func(**args)
+        return func(**args)
+```
+
+## Guarded Execution Loop
+
+```python
+async def run_tool_loop(
+    registry: ToolRegistry,
+    user_message: str,
+    model: str = "gpt-5.2",
+    max_iterations: int = 10
+) -> str:
+    """Run tool execution loop with iteration guard."""
+    client = AsyncOpenAI()
+    messages = [{"role": "user", "content": user_message}]
+
+    for _ in range(max_iterations):
+        response = await client.chat.completions.create(
+            model=model,
+            messages=messages,
+            tools=registry.schemas,
+            parallel_tool_calls=False
+        )
+
+        message = response.choices[0].message
+        if not message.tool_calls:
+            return message.content
+
+        messages.append(message.model_dump())
+
+        for tool_call in message.tool_calls:
+            try:
+                result = await registry.execute(
+                    tool_call.function.name,
+                    json.loads(tool_call.function.arguments)
+                )
+            except Exception as e:
+                result = {"error": str(e)}
+
+            messages.append({
+                "role": "tool",
+                "tool_call_id": tool_call.id,
+                "content": json.dumps(result)
+            })
+
+    raise RuntimeError("Max iterations reached")
+```
+
+## Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Max iterations | 10 (prevent infinite loops) |
+| Error handling | Return error as tool result |
+| Input validation | Use Pydantic/Zod |
+| Tool routing | Registry pattern with name lookup |
+
+## Common Mistakes
+
+- No max iteration guard (infinite tool call loops)
+- Crashing on tool failure instead of returning error
+- No input validation (LLM sends bad params)
+- Missing tool_call_id in response messages
+
+
+### Context Caching and Budget Scaling — HIGH
+
+
+## Context Caching and Budget Scaling
+
+**Incorrect -- pre-loading all context:**
+```python
+# Loading entire knowledge base into every request
+context = load_all_documents() + load_all_examples()
+response = llm.chat(system=context, messages=[user_msg])
+# Wastes tokens, hits limits, degrades quality
+```
+
+**Correct -- just-in-time loading with budget management:**
+```python
+# Just-in-time document loading with token budget
+async def build_context(query: str, budget: int) -> list[dict]:
+    # Retrieve only relevant documents
+    relevant_docs = await retriever.search(query, top_k=5)
+
+    # Truncate each doc to fit budget
+    doc_budget = int(budget * 0.25)  # 25% for retrieval
+    truncated = [truncate_to_tokens(doc, doc_budget // len(relevant_docs))
+                 for doc in relevant_docs]
+
+    return truncated
+```
+
+**Correct -- compression strategy selection:**
+
+| Strategy | Compression | Interpretable | Best For |
+|----------|-------------|---------------|----------|
+| Anchored Iterative | 60-80% | Yes | Long sessions (recommended) |
+| Sliding Window | 50-70% | Yes | Real-time chat |
+| Regenerative Full | 70-85% | Partial | Simple tasks |
+| Opaque | 95-99% | No | Storage-critical only |
+
+**Correct -- probe-based evaluation of compression:**
+```python
+# Validate compression quality with functional probes
+PROBES = [
+    "What is the session intent?",
+    "What files were modified?",
+    "What decisions were made and why?",
+]
+
+async def evaluate_compression(summary: str) -> float:
+    passed = 0
+    for probe in PROBES:
+        response = await llm.answer(f"Based on this summary:\n{summary}\n\n{probe}")
+        if response_is_valid(response):
+            passed += 1
+    return passed / len(PROBES)  # Target: >90% pass rate
+```
+
+Key principles:
+- CC 2.1.32+ auto-scales skill budget to 2% of context window
+- Use just-in-time loading, not pre-loading entire knowledge bases
+- Compress at 70% utilization, target 50% after compression
+- Test compression with probes (>90% pass rate), not ROUGE/BLEU similarity metrics
+
+
+### Context Window Management — HIGH
+
+
+## Context Window Management
+
+**Incorrect -- context-unaware prompting:**
+```python
+# Stuffing entire conversation into context without structure
+messages = full_history + retrieved_docs + system_prompt
+response = llm.chat(messages)  # Hits limits, "lost in the middle" recall drops to 10-40%
+```
+
+**Correct -- attention-aware context layering:**
+```python
+# Five-layer context architecture with attention-aware positioning
+ALLOCATIONS = {
+    "agent": {
+        "system": 0.10,       # 10% — START (high attention)
+        "tools": 0.15,        # 15% — START
+        "history": 0.30,      # 30% — MIDDLE (compressible)
+        "retrieval": 0.25,    # 25% — MIDDLE (just-in-time)
+        "observations": 0.20, # 20% — END (high attention)
+    },
+}
+
+# Compression triggers
+COMPRESS_AT = 0.70   # 70% utilization
+TARGET_AFTER = 0.50  # 50% utilization after compression
+MIN_MESSAGES = 10    # Minimum before compressing
+PRESERVE_LAST = 5    # Always keep last 5 uncompressed
+```
+
+**Correct -- anchored iterative summarization (recommended):**
+```markdown
+## Session Intent
+[What we're trying to accomplish - NEVER lose this]
+
+## Files Modified
+- path/to/file.ts: Added function X, modified class Y
+
+## Decisions Made
+- Decision 1: Chose X over Y because [rationale]
+
+## Current State
+[Where we are in the task - progress indicator]
+
+## Next Steps
+1. Complete X
+2. Test Y
+```
+
+Key principles:
+- Position critical info at START and END of context (high attention zones)
+- Middle of context has 10-40% recall rate — place background/optional info there
+- Merge summaries incrementally, never regenerate from scratch (avoids "telephone game" detail loss)
+- Truncate tool outputs at source — they can consume 83.9% of total context
+- Optimize for tokens-per-task, not tokens-per-request
+
+
+### LLM Evaluation Benchmarks and Quality Gates — HIGH
+
+
+## LLM Evaluation Benchmarks and Quality Gates
+
+**Incorrect -- no quality gate on LLM output:**
+```python
+# Returning raw LLM output without validation
+response = await llm.generate(prompt)
+return response  # No quality check!
+```
+
+**Correct -- quality gate with multi-metric assessment:**
+```python
+QUALITY_THRESHOLD = 0.7
+
+async def quality_gate(state: dict) -> dict:
+    """Gate LLM output with multi-metric assessment."""
+    scores = await full_quality_assessment(state["input"], state["output"])
+    passed = scores["average"] >= QUALITY_THRESHOLD
+    return {
+        **state,
+        "quality_passed": passed,
+        "scores": scores,
+        "retry_count": state.get("retry_count", 0) + (0 if passed else 1),
+    }
+
+async def full_quality_assessment(input_text: str, output_text: str) -> dict:
+    dimensions = ["relevance", "accuracy", "completeness"]
+    scores = {}
+    for dim in dimensions:
+        scores[dim] = await evaluate_quality(input_text, output_text, dim)
+    scores["average"] = sum(scores.values()) / len(scores)
+    return scores
+```
+
+**Correct -- batch evaluation over golden datasets:**
+```python
+async def batch_evaluate(model, dataset: list[dict], metrics: list[str]) -> dict:
+    """Evaluate model over a golden dataset."""
+    results = []
+    for example in dataset:
+        output = await model.generate(example["input"])
+        scores = {m: await evaluate(example, output, m) for m in metrics}
+        results.append({"input": example["input"], "expected": example["expected"],
+                        "actual": output, "scores": scores})
+
+    # Aggregate
+    avg_scores = {m: sum(r["scores"][m] for r in results) / len(results) for m in metrics}
+    return {"sample_size": len(dataset), "avg_scores": avg_scores, "results": results}
+```
+
+**Correct -- pairwise comparison for A/B evaluation:**
+```python
+async def pairwise_compare(input_text: str, output_a: str, output_b: str) -> str:
+    """Compare two model outputs, return winner."""
+    response = await judge_model.chat([{
+        "role": "user",
+        "content": f"""Compare these two responses to the input.
+Input: {input_text[:500]}
+Response A: {output_a[:1000]}
+Response B: {output_b[:1000]}
+Which is better? Reply with just 'A' or 'B'."""
+    }])
+    return response.content.strip()
+```
+
+Key principles:
+- Always implement quality gates before returning LLM output to users
+- Use 50+ samples for reliable batch evaluation metrics
+- Pairwise comparison eliminates position bias (randomize A/B order)
+- Track evaluation scores over time for regression detection
+
+
+### LLM Evaluation Metrics — HIGH
+
+
+## LLM Evaluation Metrics
+
+**Incorrect -- single-dimension evaluation:**
+```python
+# Only checking one thing with same model as judge
+output = await gpt4.complete(prompt)
+score = await gpt4.evaluate(output)  # Same model as judge!
+if score > 0.95:  # Threshold too high, blocks most content
+    return "pass"
+```
+
+**Correct -- multi-dimension LLM-as-judge with different judge model:**
+```python
+async def evaluate_quality(input_text: str, output_text: str, dimension: str) -> float:
+    """Use a DIFFERENT model as judge."""
+    response = await judge_model.chat([{
+        "role": "user",
+        "content": f"""Evaluate for {dimension}. Score 1-10.
+Input: {input_text[:500]}
+Output: {output_text[:1000]}
+Respond with just the number."""
+    }])
+    return int(response.content.strip()) / 10
+
+# Evaluate across 3-5 dimensions
+dimensions = ["relevance", "accuracy", "completeness", "coherence"]
+scores = {d: await evaluate_quality(input_text, output, d) for d in dimensions}
+average = sum(scores.values()) / len(scores)
+passed = average >= 0.7  # 0.7 for production, 0.6 for drafts
+```
+
+**Correct -- RAGAS metrics for RAG evaluation:**
+
+| Metric | Use Case | Threshold |
+|--------|----------|-----------|
+| Faithfulness | RAG grounding | >= 0.8 |
+| Answer Relevancy | Q&A systems | >= 0.7 |
+| Context Precision | Retrieval quality | >= 0.7 |
+| Context Recall | Retrieval completeness | >= 0.7 |
+
+**Correct -- hallucination detection:**
+```python
+async def detect_hallucination(context: str, output: str) -> dict:
+    """Check if output contains claims not supported by context."""
+    response = await judge_model.chat([{
+        "role": "user",
+        "content": f"""Check if the output contains claims not in the context.
+Context: {context[:2000]}
+Output: {output[:1000]}
+List any unsupported claims."""
+    }])
+    return {"has_hallucinations": bool(unsupported), "unsupported_claims": unsupported}
+```
+
+Key decisions:
+- Judge model: GPT-5.2-mini or Claude Haiku 4.5 (different from evaluated model)
+- Quality threshold: 0.7 production, 0.6 drafts
+- Dimensions: 3-5 most relevant to use case
+- Sample size: 50+ for reliable metrics
+
+
+### Local Inference: GPU Optimization — HIGH
+
+
+# GPU Optimization & Provider Factory
+
+## Provider Factory Pattern
+
+```python
+import os
+from langchain_ollama import ChatOllama
+
+def get_llm_provider(task_type: str = "general"):
+    """Auto-switch between Ollama and cloud APIs."""
+    if os.getenv("OLLAMA_ENABLED") == "true":
+        models = {
+            "reasoning": "deepseek-r1:70b",
+            "coding": "qwen2.5-coder:32b",
+            "general": "llama3.3:70b",
+        }
+        return ChatOllama(
+            model=models.get(task_type, "llama3.3:70b"),
+            keep_alive="5m"
+        )
+    else:
+        # Fall back to cloud API
+        from langchain_openai import ChatOpenAI
+        return ChatOpenAI(model="gpt-5.2")
+
+# Usage
+llm = get_llm_provider(task_type="coding")
+```
+
+## Structured Output with Ollama
+
+```python
+from pydantic import BaseModel, Field
+
+class CodeAnalysis(BaseModel):
+    language: str = Field(description="Programming language")
+    complexity: int = Field(ge=1, le=10)
+    issues: list[str] = Field(description="Found issues")
+
+structured_llm = llm.with_structured_output(CodeAnalysis)
+result = await structured_llm.ainvoke("Analyze this code: ...")
+# result is typed CodeAnalysis object
+```
+
+## CI Integration
+
+```yaml
+# GitHub Actions (self-hosted runner)
+jobs:
+  test:
+    runs-on: self-hosted  # M4 Max runner
+    env:
+      OLLAMA_ENABLED: "true"
+    steps:
+      - name: Pre-warm models
+        run: |
+          curl -s http://localhost:11434/api/embeddings \
+            -d '{"model":"nomic-embed-text","prompt":"warmup"}' > /dev/null
+
+      - name: Run tests
+        run: pytest tests/
+```
+
+## Pre-warming Models
+
+```python
+import httpx
+
+async def prewarm_models() -> None:
+    """Pre-warm Ollama models for faster first request."""
+    async with httpx.AsyncClient() as client:
+        # Warm embedding model
+        await client.post(
+            "http://localhost:11434/api/embeddings",
+            json={"model": "nomic-embed-text", "prompt": "warmup"},
+            timeout=60.0,
+        )
+
+        # Warm reasoning model (minimal generation)
+        await client.post(
+            "http://localhost:11434/api/chat",
+            json={
+                "model": "deepseek-r1:70b",
+                "messages": [{"role": "user", "content": "Hi"}],
+                "options": {"num_predict": 1},
+            },
+            timeout=120.0,
+        )
+```
+
+## Apple Silicon Best Practices
+
+- **DO** use `keep_alive="5m"` in CI (avoid cold starts)
+- **DO** pre-warm models before first call
+- **DO** set `num_ctx=32768` on Apple Silicon
+- **DO** use provider factory for cloud/local switching
+- **DON'T** use `keep_alive=-1` (wastes memory)
+- **DON'T** skip pre-warming in CI (30-60s cold start)
+- **DON'T** load more than 3 models simultaneously
+
+## Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| keep_alive | 5m for CI, -1 for dev only |
+| num_ctx | 32768 on Apple Silicon |
+| max_loaded_models | 2-3 depending on RAM |
+| Pre-warming | Always before CI tests |
+| Cloud fallback | Provider factory pattern |
+
+
+### Local Inference: Model Selection — HIGH
+
+
+# Model Selection Guide
+
+## Recommended Models (2026)
+
+| Task | Model | Size | VRAM | Notes |
+|------|-------|------|------|-------|
+| Reasoning | `deepseek-r1:70b` | ~42GB | 48GB+ | GPT-4 level |
+| Coding | `qwen2.5-coder:32b` | ~35GB | 40GB+ | 73.7% Aider benchmark |
+| General | `llama3.3:70b` | ~40GB | 48GB+ | Good all-around |
+| Fast | `llama3.3:7b` | ~4GB | 8GB+ | Quick inference |
+| Embeddings | `nomic-embed-text` | ~0.5GB | 2GB | 768 dims, fast |
+
+## Hardware Profiles
+
+```python
+HARDWARE_PROFILES = {
+    "m4_max_256gb": {
+        "reasoning": "deepseek-r1:70b",
+        "coding": "qwen2.5-coder:32b",
+        "general": "llama3.3:70b",
+        "embeddings": "nomic-embed-text",
+        "max_loaded": 3
+    },
+    "m3_pro_36gb": {
+        "reasoning": "llama3.3:7b",
+        "coding": "qwen2.5-coder:7b",
+        "general": "llama3.3:7b",
+        "embeddings": "nomic-embed-text",
+        "max_loaded": 2
+    },
+    "ci_runner": {
+        "all": "llama3.3:7b",  # Fast, low memory
+        "embeddings": "nomic-embed-text",
+        "max_loaded": 1
+    }
+}
+
+def get_model_for_task(task: str, hardware: str = "m4_max_256gb") -> str:
+    """Select model based on task and available hardware."""
+    profile = HARDWARE_PROFILES[hardware]
+    return profile.get(task, profile.get("general", "llama3.3:7b"))
+```
+
+## Quantization Options
+
+```bash
+# Full precision (best quality, most VRAM)
+ollama pull deepseek-r1:70b
+
+# Q4_K_M quantization (good balance)
+ollama pull deepseek-r1:70b-q4_K_M
+
+# Q4_0 quantization (fastest, lowest quality)
+ollama pull deepseek-r1:70b-q4_0
+```
+
+## Configuration
+
+- Context window: 32768 tokens (Apple Silicon)
+- keep_alive: 5m for CI, -1 for dev
+- Quantization: q4_K_M for production balance
+
+## Cost Optimization
+
+- Pre-warm models before batch jobs
+- Use smaller models for simple tasks
+- Load max 2-3 models simultaneously
+- CI: Use 7B models (93% cheaper than cloud)
+
+
+### Local Inference: Ollama Setup — HIGH
+
+
+# Ollama Setup & LangChain Integration
+
+## Quick Start
+
+```bash
+# Install Ollama
+curl -fsSL https://ollama.ai/install.sh | sh
+
+# Pull models
+ollama pull deepseek-r1:70b      # Reasoning (GPT-4 level)
+ollama pull qwen2.5-coder:32b    # Coding
+ollama pull nomic-embed-text     # Embeddings
+
+# Start server
+ollama serve
+```
+
+## LangChain Integration
+
+```python
+from langchain_ollama import ChatOllama, OllamaEmbeddings
+
+# Chat model
+llm = ChatOllama(
+    model="deepseek-r1:70b",
+    base_url="http://localhost:11434",
+    temperature=0.0,
+    num_ctx=32768,      # Context window
+    keep_alive="5m",    # Keep model loaded
+)
+
+# Embeddings
+embeddings = OllamaEmbeddings(
+    model="nomic-embed-text",
+    base_url="http://localhost:11434",
+)
+
+# Generate
+response = await llm.ainvoke("Explain async/await")
+vector = await embeddings.aembed_query("search text")
+```
+
+## Tool Calling with Ollama
+
+```python
+from langchain_core.tools import tool
+
+@tool
+def search_docs(query: str) -> str:
+    """Search the document database."""
+    return f"Found results for: {query}"
+
+# Bind tools
+llm_with_tools = llm.bind_tools([search_docs])
+response = await llm_with_tools.ainvoke("Search for Python patterns")
+```
+
+## Environment Configuration
+
+```bash
+# .env.local
+OLLAMA_ENABLED=true
+OLLAMA_HOST=http://localhost:11434
+OLLAMA_MODEL_REASONING=deepseek-r1:70b
+OLLAMA_MODEL_CODING=qwen2.5-coder:32b
+OLLAMA_MODEL_EMBED=nomic-embed-text
+
+# Performance tuning (Apple Silicon)
+OLLAMA_MAX_LOADED_MODELS=3    # Keep 3 models in memory
+OLLAMA_KEEP_ALIVE=5m          # 5 minute keep-alive
+```
+
+## Troubleshooting
+
+```bash
+# Check if Ollama is running
+curl http://localhost:11434/api/tags
+
+# List loaded models
+ollama list
+
+# Check model memory usage
+ollama ps
+
+# Pull specific quantization
+ollama pull deepseek-r1:70b-q4_K_M
+```
+
+## Cost Comparison
+
+| Provider | Monthly Cost | Latency |
+|----------|-------------|---------|
+| Cloud APIs | ~$675/month | 200-500ms |
+| Ollama Local | ~$50 (electricity) | 50-200ms |
+| **Savings** | **93%** | **2-3x faster** |
+
+## Common Mistakes
+
+- Not pre-warming models before first call (30-60s cold start)
+- Using `keep_alive=-1` (wastes memory indefinitely)
+- Skipping environment variable configuration
+- Not checking if Ollama is running before making calls
+
+
+### Prompt Design Patterns — HIGH
+
+
+## Prompt Design Patterns
+
+**Incorrect -- unstructured prompting for complex tasks:**
+```python
+# No reasoning structure for complex problems
+response = llm.complete("Solve: 15% of 240")  # No CoT!
+
+# Single example for few-shot (too few)
+examples = [{"input": "x", "output": "y"}]
+
+# Hardcoded prompt without versioning
+PROMPT = "You are a helpful assistant..."  # No version control!
+```
+
+**Correct -- Chain-of-Thought for reasoning tasks:**
+```python
+COT_SYSTEM = """You are a helpful assistant that solves problems step-by-step.
+
+When solving problems:
+1. Break down the problem into clear steps
+2. Show your reasoning for each step
+3. Verify your answer before responding
+4. If uncertain, acknowledge limitations
+
+Format your response as:
+STEP 1: [description]
+Reasoning: [your thought process]
+FINAL ANSWER: [your conclusion]"""
+
+cot_prompt = ChatPromptTemplate.from_messages([
+    ("system", COT_SYSTEM),
+    ("human", "Problem: {problem}\n\nThink through this step-by-step."),
+])
+```
+
+**Correct -- few-shot with 3-5 diverse examples:**
+```python
+from langchain_core.prompts import FewShotChatMessagePromptTemplate
+
+# Use 3-5 diverse, representative examples
+examples = [ex1, ex2, ex3, ex4, ex5]
+
+few_shot = FewShotChatMessagePromptTemplate(
+    examples=examples,
+    example_prompt=ChatPromptTemplate.from_messages([
+        ("human", "{input}"),
+        ("ai", "{output}"),
+    ]),
+)
+
+# Most similar examples last (recency bias helps)
+final_prompt = ChatPromptTemplate.from_messages([
+    ("system", "You are a helpful assistant. Answer concisely."),
+    few_shot,
+    ("human", "{input}"),
+])
+```
+
+**Pattern selection guide:**
+
+| Pattern | When to Use | Example Use Case |
+|---------|-------------|------------------|
+| Zero-shot | Simple, well-defined tasks | Classification, extraction |
+| Few-shot | Complex tasks needing examples | Format conversion, style matching |
+| CoT | Reasoning, math, logic | Problem solving, analysis |
+| Zero-shot CoT | Quick reasoning boost | Add "Let's think step by step" |
+| ReAct | Tool use, multi-step | Agent tasks, API calls |
+| Structured | JSON/schema output | Data extraction, API responses |
+
+Key decisions:
+- Few-shot examples: 3-5 diverse, representative examples
+- Example ordering: most similar examples last (recency bias)
+- CoT trigger: "Let's think step by step" or explicit format
+- Always use CoT for math/logic tasks
+
+
+### Prompt Testing and Optimization — HIGH
+
+
+## Prompt Testing and Optimization
+
+**Incorrect -- deploying prompts without testing or versioning:**
+```python
+# Hardcoded prompt, no version control, no A/B testing
+PROMPT = "You are a helpful assistant..."
+response = llm.complete(PROMPT + user_input)
+# No way to know if prompt changes improve or degrade quality
+```
+
+**Correct -- prompt versioning with Langfuse SDK v3:**
+```python
+from langfuse import Langfuse
+
+langfuse = Langfuse()
+
+# Get versioned prompt with environment label
+prompt = langfuse.get_prompt(
+    name="customer-support-v2",
+    label="production",  # production, staging, canary
+    cache_ttl_seconds=300,
+)
+
+# Compile with variables
+compiled = prompt.compile(
+    customer_name="John",
+    issue="billing question"
+)
+
+# Track via trace metadata for A/B comparison
+trace = langfuse.trace(
+    name="support-query",
+    metadata={"prompt_version": prompt.version, "variant": "A"},
+)
+```
+
+**Correct -- DSPy 3.1.0 automatic prompt optimization:**
+```python
+import dspy
+
+class OptimizedQA(dspy.Module):
+    def __init__(self):
+        self.generate = dspy.Predict("question -> answer")
+
+    def forward(self, question):
+        return self.generate(question=question)
+
+# MIPROv2: Data+demo-aware Bayesian optimization (recommended)
+optimizer = dspy.MIPROv2(metric=answer_match)
+optimized = optimizer.compile(OptimizedQA(), trainset=examples)
+
+# Alternative: GEPA (July 2025) - Reflective Prompt Evolution
+# Uses model introspection to analyze failures and propose better prompts
+```
+
+**Correct -- self-consistency for hard problems:**
+```python
+async def self_consistent_answer(question: str, n_paths: int = 5) -> str:
+    """Generate multiple CoT reasoning paths and vote on answer."""
+    answers = []
+    for _ in range(n_paths):
+        response = await llm.chat([{
+            "role": "user",
+            "content": f"{question}\n\nThink step by step."
+        }], temperature=0.7)  # Higher temp for diversity
+        answer = extract_final_answer(response)
+        answers.append(answer)
+
+    # Majority vote
+    from collections import Counter
+    return Counter(answers).most_common(1)[0][0]
+```
+
+Key decisions:
+- Prompt versioning: Langfuse with labels (production/staging)
+- A/B testing: 50+ samples, track via trace metadata
+- Auto-optimization: DSPy MIPROv2 for few-shot tuning
+- Self-consistency: 5 paths for hard reasoning problems
+
+
+### Streaming: Backpressure & Cancellation — MEDIUM
+
+
+# Backpressure & Stream Cancellation
+
+## Backpressure with Bounded Queue
+
+```python
+import asyncio
+
+async def stream_with_backpressure(prompt: str, max_buffer: int = 100):
+    """Handle slow consumers with backpressure."""
+    buffer = asyncio.Queue(maxsize=max_buffer)
+
+    async def producer():
+        async for token in async_stream(prompt):
+            await buffer.put(token)  # Blocks if buffer full
+        await buffer.put(None)  # Signal completion
+
+    async def consumer():
+        while True:
+            token = await buffer.get()
+            if token is None:
+                break
+            yield token
+            await asyncio.sleep(0)  # Yield control
+
+    # Start producer in background
+    asyncio.create_task(producer())
+
+    # Return consumer generator
+    async for token in consumer():
+        yield token
+```
+
+## Stream Cancellation
+
+```typescript
+// Frontend: Cancel with AbortController
+const controller = new AbortController();
+
+async function streamChat(prompt: string, onToken: (t: string) => void) {
+  const response = await fetch("/chat/stream?prompt=" + encodeURIComponent(prompt), {
+    signal: controller.signal
+  });
+
+  const reader = response.body?.getReader();
+  const decoder = new TextDecoder();
+
+  try {
+    while (reader) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      onToken(decoder.decode(value));
+    }
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      console.log('Stream cancelled by user');
+    }
+  }
+}
+
+// Cancel the stream
+controller.abort();
+```
+
+## Server-Side Cancellation
+
+```python
+from fastapi import Request
+
+@app.get("/chat/stream")
+async def stream_chat(prompt: str, request: Request):
+    """SSE with server-side disconnect detection."""
+    async def generate():
+        async for token in async_stream(prompt):
+            if await request.is_disconnected():
+                break  # Client disconnected
+            yield {"event": "token", "data": token}
+        yield {"event": "done", "data": ""}
+
+    return EventSourceResponse(generate())
+```
+
+## Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Buffer size | 50-200 tokens |
+| Cancellation (frontend) | AbortController |
+| Cancellation (server) | request.is_disconnected() |
+| Completion signal | None sentinel in queue |
+
+## Common Mistakes
+
+- Unbounded buffers (memory exhaustion with slow consumers)
+- Not checking for client disconnect on server side
+- Missing AbortController cleanup on component unmount
+- Not yielding control in consumer (starves event loop)
+
+
+### Streaming: SSE Endpoints — HIGH
+
+
+# SSE Streaming Endpoints
+
+## Basic Streaming (OpenAI)
+
+```python
+from openai import AsyncOpenAI
+
+client = AsyncOpenAI()
+
+async def async_stream(prompt: str):
+    """Async streaming for better concurrency."""
+    stream = await client.chat.completions.create(
+        model="gpt-5.2",
+        messages=[{"role": "user", "content": prompt}],
+        stream=True
+    )
+
+    async for chunk in stream:
+        if chunk.choices[0].delta.content:
+            yield chunk.choices[0].delta.content
+```
+
+## FastAPI SSE Endpoint
+
+```python
+from fastapi import FastAPI
+from sse_starlette.sse import EventSourceResponse
+
+app = FastAPI()
+
+@app.get("/chat/stream")
+async def stream_chat(prompt: str):
+    """Server-Sent Events endpoint for streaming."""
+    async def generate():
+        async for token in async_stream(prompt):
+            yield {
+                "event": "token",
+                "data": token
+            }
+        yield {"event": "done", "data": ""}
+
+    return EventSourceResponse(generate())
+```
+
+## Frontend SSE Consumer
+
+```typescript
+async function streamChat(prompt: string, onToken: (t: string) => void) {
+  const response = await fetch("/chat/stream?prompt=" + encodeURIComponent(prompt));
+  const reader = response.body?.getReader();
+  const decoder = new TextDecoder();
+
+  while (reader) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    const text = decoder.decode(value);
+    const lines = text.split('\n');
+
+    for (const line of lines) {
+      if (line.startsWith('data: ')) {
+        const data = line.slice(6);
+        if (data !== '[DONE]') {
+          onToken(data);
+        }
+      }
+    }
+  }
+}
+
+// Usage
+let fullResponse = '';
+await streamChat('Hello', (token) => {
+  fullResponse += token;
+  setDisplayText(fullResponse);  // Update UI incrementally
+});
+```
+
+## Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Protocol | SSE for web, WebSocket for bidirectional |
+| Timeout | 30-60s for long responses |
+| Retry | Reconnect on disconnect |
+| Framework | sse-starlette for FastAPI |
+
+## Common Mistakes
+
+- No timeout (hangs on network issues)
+- Missing error handling in stream
+- Not closing connections properly
+- Buffering entire response (defeats purpose of streaming)
+
+
+### Streaming: Structured & Tool Calls — HIGH
+
+
+# Streaming with Tool Calls & Structured Data
+
+## Streaming with Tool Call Accumulation
+
+```python
+async def stream_with_tools(messages: list, tools: list):
+    """Handle streaming responses that include tool calls."""
+    stream = await client.chat.completions.create(
+        model="gpt-5.2",
+        messages=messages,
+        tools=tools,
+        stream=True
+    )
+
+    collected_content = ""
+    collected_tool_calls = []
+
+    async for chunk in stream:
+        delta = chunk.choices[0].delta
+
+        # Collect content tokens
+        if delta.content:
+            collected_content += delta.content
+            yield {"type": "content", "data": delta.content}
+
+        # Collect tool call chunks
+        if delta.tool_calls:
+            for tc in delta.tool_calls:
+                # Tool calls come in chunks, accumulate them
+                if tc.index >= len(collected_tool_calls):
+                    collected_tool_calls.append({
+                        "id": tc.id,
+                        "function": {"name": "", "arguments": ""}
+                    })
+
+                if tc.function.name:
+                    collected_tool_calls[tc.index]["function"]["name"] += tc.function.name
+                if tc.function.arguments:
+                    collected_tool_calls[tc.index]["function"]["arguments"] += tc.function.arguments
+
+    # If tool calls, execute them
+    if collected_tool_calls:
+        yield {"type": "tool_calls", "data": collected_tool_calls}
+```
+
+## Partial JSON Parsing
+
+When streaming structured output, JSON arrives incrementally. Use libraries like `partial-json-parser` or accumulate until complete:
+
+```python
+import json
+
+def try_parse_partial_json(buffer: str) -> dict | None:
+    """Attempt to parse partial JSON, returning None if incomplete."""
+    try:
+        return json.loads(buffer)
+    except json.JSONDecodeError:
+        return None
+
+async def stream_structured_output(prompt: str):
+    """Stream and incrementally parse structured output."""
+    buffer = ""
+    async for token in async_stream(prompt):
+        buffer += token
+        parsed = try_parse_partial_json(buffer)
+        if parsed:
+            yield {"type": "parsed", "data": parsed}
+        else:
+            yield {"type": "partial", "data": buffer}
+```
+
+## Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Tool call handling | Accumulate chunks by index |
+| Partial JSON | Try-parse or use dedicated parser |
+| Content vs tools | Separate by delta type |
+| Post-stream | Execute tools after full accumulation |
+
+## Common Mistakes
+
+- Attempting to parse tool call arguments before fully accumulated
+- Not handling the case where both content and tool calls appear
+- Losing tool call chunks due to incorrect index tracking
+- Not signaling stream completion to consumers
+
+
+### Fine-Tuning: Dataset Preparation — HIGH
+
+
+# Dataset Preparation & Synthetic Data
+
+## Synthetic Data Generation
+
+```python
+import json
+import asyncio
+from openai import AsyncOpenAI
+
+client = AsyncOpenAI()
+
+async def generate_training_example(topic: str) -> dict:
+    """Generate a single training example using teacher model."""
+    response = await client.chat.completions.create(
+        model="gpt-5.2",  # Teacher
+        messages=[{
+            "role": "system",
+            "content": f"Generate a training example about {topic}. "
+                      "Include instruction and response."
+        }],
+        response_format={"type": "json_object"},
+        temperature=0.9,  # Higher for diversity
+    )
+    return json.loads(response.choices[0].message.content)
+
+
+async def generate_dataset(topic: str, num_examples: int = 100) -> list[dict]:
+    """Generate dataset in batches."""
+    examples = []
+    batch_size = 10
+
+    for batch_start in range(0, num_examples, batch_size):
+        batch_tasks = [
+            generate_training_example(topic)
+            for _ in range(min(batch_size, num_examples - batch_start))
+        ]
+        batch_results = await asyncio.gather(*batch_tasks)
+        examples.extend(batch_results)
+
+    return examples
+```
+
+## Quality Validation
+
+```python
+async def validate_example(example: dict, validator_model: str = "gpt-5.2-mini") -> dict:
+    """Validate and score a training example."""
+    response = await client.chat.completions.create(
+        model=validator_model,
+        messages=[{
+            "role": "system",
+            "content": """Score this training example 1-10 on:
+- clarity: Is the instruction clear?
+- quality: Is the response high quality?
+- realism: Is this a realistic interaction?
+
+Output JSON: {"clarity": N, "quality": N, "realism": N, "keep": true/false}
+Set keep=false if any score < 6."""
+        }, {
+            "role": "user",
+            "content": f"Instruction: {example['instruction']}\n\nResponse: {example['response']}"
+        }],
+        response_format={"type": "json_object"},
+    )
+    return {**example, **json.loads(response.choices[0].message.content)}
+```
+
+## Deduplication
+
+```python
+from sentence_transformers import SentenceTransformer
+import numpy as np
+
+def deduplicate_examples(examples: list[dict], threshold: float = 0.85) -> list[dict]:
+    """Remove near-duplicate examples using embeddings."""
+    model = SentenceTransformer("all-MiniLM-L6-v2")
+    instructions = [ex["instruction"] for ex in examples]
+    embeddings = model.encode(instructions)
+
+    unique_indices = []
+    for i, emb in enumerate(embeddings):
+        is_unique = True
+        for j in unique_indices:
+            similarity = np.dot(emb, embeddings[j]) / (
+                np.linalg.norm(emb) * np.linalg.norm(embeddings[j])
+            )
+            if similarity > threshold:
+                is_unique = False
+                break
+        if is_unique:
+            unique_indices.append(i)
+
+    return [examples[i] for i in unique_indices]
+```
+
+## Dataset Formatting
+
+```python
+# Alpaca format
+def to_alpaca_format(examples: list[dict]) -> list[dict]:
+    return [{
+        "instruction": ex["instruction"],
+        "input": ex.get("input", ""),
+        "output": ex["response"],
+    } for ex in examples]
+
+# ChatML format
+def to_chatml_format(examples: list[dict]) -> list[dict]:
+    return [{
+        "messages": [
+            {"role": "user", "content": ex["instruction"]},
+            {"role": "assistant", "content": ex["response"]},
+        ]
+    } for ex in examples]
+```
+
+## Data Requirements by Task
+
+| Task Type | Minimum Examples | Recommended |
+|-----------|------------------|-------------|
+| Style/tone | 500 | 1,000 |
+| Classification | 100/class | 500/class |
+| Format enforcement | 500 | 2,000 |
+| Domain expertise | 2,000 | 10,000 |
+| Complex reasoning | 5,000 | 20,000+ |
+
+## Best Practices
+
+1. **Quality > Quantity**: 1,000 high-quality examples beat 10,000 mediocre ones
+2. **Diversity**: Use seeds, varied prompts, multiple domains
+3. **Validation**: Filter with separate model, remove low-quality
+4. **Deduplication**: Remove near-duplicates to prevent overfitting
+5. **Iterative Refinement**: Generate, train, evaluate, adjust generation
+
+
+### Fine-Tuning: DPO Alignment & Evaluation — HIGH
+
+
+# DPO Alignment & Evaluation
+
+## Decision Framework: Fine-Tune or Not?
+
+| Approach | Try First | When It Works |
+|----------|-----------|---------------|
+| Prompt Engineering | Always | Simple tasks, clear instructions |
+| RAG | External knowledge needed | Knowledge-intensive tasks |
+| Fine-Tuning | Last resort | Deep specialization, format control |
+
+**Fine-tune ONLY when:**
+1. Prompt engineering tried and insufficient
+2. RAG doesn't capture domain nuances
+3. Specific output format consistently required
+4. You have ~1000+ high-quality examples
+
+## DPO Implementation
+
+```python
+from trl import DPOTrainer, DPOConfig
+
+config = DPOConfig(
+    learning_rate=5e-6,  # Lower for alignment
+    beta=0.1,            # KL penalty coefficient
+    per_device_train_batch_size=4,
+    num_train_epochs=1,
+)
+
+# Preference dataset: {prompt, chosen, rejected}
+trainer = DPOTrainer(
+    model=model,
+    ref_model=ref_model,  # Frozen reference
+    args=config,
+    train_dataset=preference_dataset,
+    tokenizer=tokenizer,
+)
+trainer.train()
+```
+
+## DPO with LoRA (Memory Efficient)
+
+```python
+from peft import LoraConfig, get_peft_model
+
+peft_config = LoraConfig(
+    r=16, lora_alpha=32,
+    target_modules=["q_proj", "v_proj", "k_proj", "o_proj"],
+    lora_dropout=0.05, bias="none", task_type="CAUSAL_LM",
+)
+model = get_peft_model(model, peft_config)
+
+# With LoRA, no separate ref_model needed
+trainer = DPOTrainer(
+    model=model,
+    ref_model=None,  # Uses implicit reference
+    args=DPOConfig(learning_rate=5e-5, beta=0.1),
+    train_dataset=dataset,
+    tokenizer=tokenizer,
+)
+```
+
+## Beta Tuning
+
+| Beta Value | Effect | Use Case |
+|------------|--------|----------|
+| 0.01 | Very aggressive alignment | Strong preference needed |
+| 0.1 | Standard | Most tasks |
+| 0.5 | Conservative | Preserve base capabilities |
+| 1.0 | Minimal change | Slight steering |
+
+## Evaluation
+
+```python
+async def evaluate_alignment(
+    model, tokenizer,
+    test_prompts: list[str],
+    judge_model: str = "gpt-5.2-mini",
+) -> dict:
+    """Evaluate model alignment quality."""
+    scores = []
+    for prompt in test_prompts:
+        inputs = tokenizer(prompt, return_tensors="pt")
+        outputs = model.generate(**inputs, max_new_tokens=256)
+        response = tokenizer.decode(outputs[0], skip_special_tokens=True)
+
+        judgment = await client.chat.completions.create(
+            model=judge_model,
+            messages=[{
+                "role": "user",
+                "content": f"Rate this response 1-10 for helpfulness.\n"
+                          f"Prompt: {prompt}\nResponse: {response}"
+            }]
+        )
+        scores.append(int(judgment.choices[0].message.content.strip()))
+
+    return {"mean_score": sum(scores) / len(scores), "scores": scores}
+```
+
+## Anti-Patterns (FORBIDDEN)
+
+```python
+# NEVER fine-tune without trying alternatives first
+model.fine_tune(data)  # Try prompt engineering & RAG first!
+
+# NEVER use low-quality training data
+data = scrape_random_web()  # Garbage in, garbage out
+
+# NEVER skip evaluation
+trainer.train()
+deploy(model)  # Always evaluate before deploy!
+
+# ALWAYS use separate eval set
+train, eval = split(data, test_size=0.1)
+trainer = SFTTrainer(..., eval_dataset=eval)
+```
+
+## Common Issues
+
+**Loss not decreasing**: Increase r (rank), lower learning rate, check data formatting
+
+**Overfitting**: Reduce epochs (1 is often enough), increase dropout, add more data
+
+**Model too conservative** (DPO): Lower beta, add diverse positive examples
+
+**Catastrophic forgetting**: Increase beta, mix in general data, use LoRA
+
+
+### Fine-Tuning: LoRA/QLoRA Configuration — HIGH
+
+
+# LoRA/QLoRA Fine-Tuning
+
+## How LoRA Works
+
+```
+Original: W (4096 x 4096) = 16M parameters
+LoRA:     A (4096 x 16) + B (16 x 4096) = 131K parameters (0.8%)
+```
+
+LoRA decomposes weight updates into low-rank matrices: freeze original W, train A and B where W' = W + BA.
+
+## LoRA vs QLoRA
+
+| Criteria | LoRA | QLoRA |
+|----------|------|-------|
+| Model fits in VRAM | Use LoRA | |
+| Memory constrained | | Use QLoRA |
+| Training speed | 39% faster | |
+| Memory savings | | 75%+ (dynamic 4-bit quants) |
+| Quality | Baseline | ~Same |
+| 70B model | | &lt;48GB VRAM |
+
+## Unsloth QLoRA Training
+
+```python
+from unsloth import FastLanguageModel
+from trl import SFTTrainer
+
+# Load with 4-bit quantization (QLoRA)
+model, tokenizer = FastLanguageModel.from_pretrained(
+    model_name="unsloth/Meta-Llama-3.1-8B",
+    max_seq_length=2048,
+    load_in_4bit=True,
+)
+
+# Add LoRA adapters
+model = FastLanguageModel.get_peft_model(
+    model,
+    r=16,              # Rank (16-64 typical)
+    lora_alpha=32,     # Scaling (2x r)
+    lora_dropout=0.05,
+    target_modules=[
+        "q_proj", "k_proj", "v_proj", "o_proj",  # Attention
+        "gate_proj", "up_proj", "down_proj",      # MLP
+    ],
+)
+
+# Train
+trainer = SFTTrainer(
+    model=model,
+    tokenizer=tokenizer,
+    train_dataset=dataset,
+    max_seq_length=2048,
+)
+trainer.train()
+```
+
+## PEFT Library (Standard)
+
+```python
+from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
+from transformers import AutoModelForCausalLM, BitsAndBytesConfig
+import torch
+
+# 4-bit quantization
+bnb_config = BitsAndBytesConfig(
+    load_in_4bit=True,
+    bnb_4bit_quant_type="nf4",
+    bnb_4bit_compute_dtype=torch.bfloat16,
+    bnb_4bit_use_double_quant=True,
+)
+
+model = AutoModelForCausalLM.from_pretrained(
+    "meta-llama/Llama-3.1-8B",
+    quantization_config=bnb_config,
+    device_map="auto",
+)
+model = prepare_model_for_kbit_training(model)
+
+lora_config = LoraConfig(
+    r=16, lora_alpha=32,
+    target_modules=["q_proj", "k_proj", "v_proj", "o_proj",
+                    "gate_proj", "up_proj", "down_proj"],
+    lora_dropout=0.05, bias="none", task_type="CAUSAL_LM",
+)
+model = get_peft_model(model, lora_config)
+```
+
+## Merging Adapters
+
+```python
+from peft import PeftModel
+
+base_model = AutoModelForCausalLM.from_pretrained(
+    "meta-llama/Llama-3.1-8B", torch_dtype=torch.float16, device_map="auto",
+)
+model = PeftModel.from_pretrained(base_model, "./lora_adapter")
+merged_model = model.merge_and_unload()
+merged_model.save_pretrained("./merged_model")
+```
+
+## Key Hyperparameters
+
+| Parameter | Recommended | Notes |
+|-----------|-------------|-------|
+| Learning rate | 2e-4 | LoRA/QLoRA standard |
+| Epochs | 1-3 | More risks overfitting |
+| LoRA r | 16-64 | Higher = more capacity |
+| LoRA alpha | 2x r | Scaling factor |
+| Batch size | 4-8 | Per device |
+| Warmup | 3% | Ratio of steps |
+
+## Memory Requirements
+
+| Model Size | Full FT | LoRA (r=16) | QLoRA (r=16) |
+|------------|---------|-------------|--------------|
+| 7B | 56GB+ | 16GB | 6GB |
+| 13B | 104GB+ | 32GB | 10GB |
+| 70B | 560GB+ | 160GB | 48GB |
+
+
+
+---
+
+## References (6)
+
+### Dpo Alignment
+
+# DPO: Direct Preference Optimization
+
+## Overview
+
+DPO (Direct Preference Optimization) aligns language models to human preferences without reward model training. It directly optimizes the policy using preference pairs (chosen vs rejected responses).
+
+## DPO vs RLHF
+
+| Aspect | RLHF | DPO |
+|--------|------|-----|
+| Complexity | High (RM + PPO) | Low (single training loop) |
+| Stability | Unstable | Stable |
+| Compute | 3-4x more | Baseline |
+| Memory | High (multiple models) | Lower |
+| Quality | Gold standard | Comparable |
+
+**Recommendation:** Use DPO for most alignment tasks. RLHF only when DPO insufficient.
+
+## Preference Dataset Format
+
+```python
+# Each example has: prompt, chosen (good), rejected (bad)
+preference_data = [
+    {
+        "prompt": "Explain quantum computing simply.",
+        "chosen": "Quantum computers use qubits that can be both 0 and 1 simultaneously, "
+                  "unlike classical bits. This allows them to solve certain problems faster.",
+        "rejected": "Quantum computing is very complicated and uses physics stuff. "
+                    "It's basically magic computers that are super fast."
+    },
+    {
+        "prompt": "Write a professional email declining a meeting.",
+        "chosen": "Subject: Re: Meeting Request\n\nThank you for the invitation. "
+                  "Unfortunately, I have a prior commitment at that time. "
+                  "Could we reschedule to later this week?",
+        "rejected": "Can't make it, too busy. Maybe some other time idk."
+    }
+]
+```
+
+## TRL Implementation
+
+```python
+from trl import DPOTrainer, DPOConfig
+from transformers import AutoModelForCausalLM, AutoTokenizer
+from datasets import Dataset
+
+# Load SFT'd model (DPO requires supervised fine-tuned base)
+model = AutoModelForCausalLM.from_pretrained(
+    "your-sft-model",
+    torch_dtype=torch.float16,
+    device_map="auto",
+)
+tokenizer = AutoTokenizer.from_pretrained("your-sft-model")
+tokenizer.pad_token = tokenizer.eos_token
+
+# Reference model (frozen copy for KL constraint)
+ref_model = AutoModelForCausalLM.from_pretrained(
+    "your-sft-model",
+    torch_dtype=torch.float16,
+    device_map="auto",
+)
+
+# DPO configuration
+config = DPOConfig(
+    # Learning rate (lower than SFT)
+    learning_rate=5e-7,
+
+    # Beta: KL penalty coefficient
+    # Higher = closer to reference, Lower = more aggressive alignment
+    beta=0.1,
+
+    # Sequence lengths
+    max_length=1024,
+    max_prompt_length=512,
+
+    # Training
+    per_device_train_batch_size=4,
+    gradient_accumulation_steps=4,
+    num_train_epochs=1,
+
+    # Optimization
+    warmup_ratio=0.1,
+    weight_decay=0.01,
+
+    # Logging
+    logging_steps=10,
+    output_dir="./dpo_output",
+)
+
+# Prepare dataset
+dataset = Dataset.from_list(preference_data)
+
+# Create trainer
+trainer = DPOTrainer(
+    model=model,
+    ref_model=ref_model,
+    args=config,
+    train_dataset=dataset,
+    tokenizer=tokenizer,
+)
+
+# Train
+trainer.train()
+
+# Save aligned model
+trainer.save_model("./aligned_model")
+```
+
+## DPO with LoRA (Memory Efficient)
+
+```python
+from peft import LoraConfig, get_peft_model
+
+# Base model
+model = AutoModelForCausalLM.from_pretrained(
+    "your-sft-model",
+    torch_dtype=torch.float16,
+    device_map="auto",
+)
+
+# LoRA config for DPO
+peft_config = LoraConfig(
+    r=16,
+    lora_alpha=32,
+    target_modules=["q_proj", "v_proj", "k_proj", "o_proj"],
+    lora_dropout=0.05,
+    bias="none",
+    task_type="CAUSAL_LM",
+)
+
+# Apply LoRA
+model = get_peft_model(model, peft_config)
+
+# DPO config for LoRA
+config = DPOConfig(
+    learning_rate=5e-5,  # Higher LR for LoRA
+    beta=0.1,
+    per_device_train_batch_size=4,
+    # ... other params
+)
+
+# With LoRA, no separate ref_model needed
+trainer = DPOTrainer(
+    model=model,
+    ref_model=None,  # Uses implicit reference
+    args=config,
+    train_dataset=dataset,
+    tokenizer=tokenizer,
+    peft_config=peft_config,
+)
+```
+
+## Creating Preference Data
+
+### Manual Curation
+```python
+def create_preference_pair(prompt: str, good: str, bad: str) -> dict:
+    """Create a single preference example."""
+    return {
+        "prompt": prompt,
+        "chosen": good,
+        "rejected": bad,
+    }
+```
+
+### LLM-Generated Preferences
+```python
+async def generate_preference_pairs(
+    prompts: list[str],
+    client: OpenAI,
+) -> list[dict]:
+    """Generate preference pairs using GPT-4."""
+    pairs = []
+
+    for prompt in prompts:
+        # Generate good response
+        good = await client.chat.completions.create(
+            model="gpt-5.2",
+            messages=[
+                {"role": "system", "content": "Provide a helpful, accurate response."},
+                {"role": "user", "content": prompt}
+            ]
+        )
+
+        # Generate bad response
+        bad = await client.chat.completions.create(
+            model="gpt-5.2",
+            messages=[
+                {"role": "system", "content": "Provide a response that is vague, "
+                 "unhelpful, or slightly incorrect."},
+                {"role": "user", "content": prompt}
+            ]
+        )
+
+        pairs.append({
+            "prompt": prompt,
+            "chosen": good.choices[0].message.content,
+            "rejected": bad.choices[0].message.content,
+        })
+
+    return pairs
+```
+
+### From Human Feedback
+```python
+def collect_human_preferences(
+    prompt: str,
+    responses: list[str],
+) -> dict | None:
+    """Present responses to human annotator for ranking."""
+    print(f"Prompt: {prompt}\n")
+    for i, r in enumerate(responses):
+        print(f"[{i}] {r}\n")
+
+    chosen_idx = int(input("Better response (index): "))
+    rejected_idx = int(input("Worse response (index): "))
+
+    return {
+        "prompt": prompt,
+        "chosen": responses[chosen_idx],
+        "rejected": responses[rejected_idx],
+    }
+```
+
+## Beta Tuning
+
+| Beta Value | Effect | Use Case |
+|------------|--------|----------|
+| 0.01 | Very aggressive alignment | Strong preference needed |
+| 0.1 | Standard | Most tasks |
+| 0.5 | Conservative | Preserve base capabilities |
+| 1.0 | Minimal change | Slight steering |
+
+```python
+# Start with beta=0.1, adjust based on evaluation
+config = DPOConfig(
+    beta=0.1,  # Experiment: [0.05, 0.1, 0.2, 0.5]
+    # ...
+)
+```
+
+## Evaluation
+
+```python
+async def evaluate_alignment(
+    model,
+    tokenizer,
+    test_prompts: list[str],
+    judge_model: str = "gpt-5.2-mini",
+) -> dict:
+    """Evaluate model alignment quality."""
+    scores = []
+
+    for prompt in test_prompts:
+        # Generate response
+        inputs = tokenizer(prompt, return_tensors="pt")
+        outputs = model.generate(**inputs, max_new_tokens=256)
+        response = tokenizer.decode(outputs[0], skip_special_tokens=True)
+
+        # Judge quality
+        judgment = await client.chat.completions.create(
+            model=judge_model,
+            messages=[{
+                "role": "user",
+                "content": f"Rate this response 1-10 for helpfulness and safety.\n"
+                          f"Prompt: {prompt}\nResponse: {response}\n"
+                          f"Just respond with the number."
+            }]
+        )
+        scores.append(int(judgment.choices[0].message.content.strip()))
+
+    return {
+        "mean_score": sum(scores) / len(scores),
+        "scores": scores,
+    }
+```
+
+## Common Issues
+
+**Issue: Model becomes too conservative**
+- Lower beta value
+- Add more diverse positive examples
+- Check if rejected examples are too similar to chosen
+
+**Issue: Alignment not taking effect**
+- Ensure model is properly SFT'd first
+- Increase learning rate
+- Check preference data quality (clear distinction)
+
+**Issue: Catastrophic forgetting**
+- Increase beta (stronger KL constraint)
+- Mix in general capability data
+- Use LoRA to preserve base weights
+
+
+### Lora Qlora
+
+# LoRA & QLoRA: Parameter-Efficient Fine-Tuning
+
+## Overview
+
+LoRA (Low-Rank Adaptation) and QLoRA (Quantized LoRA) enable fine-tuning large models on consumer hardware by training only small adapter matrices instead of all model weights.
+
+## How LoRA Works
+
+```
+Original: W (4096 x 4096) = 16M parameters
+LoRA:     A (4096 x 16) + B (16 x 4096) = 131K parameters (0.8%)
+```
+
+LoRA decomposes weight updates into low-rank matrices:
+- Freeze original weights W
+- Train A and B where: W' = W + BA
+- Rank r controls capacity (16-64 typical)
+
+## Unsloth Implementation (2x Faster)
+
+```python
+from unsloth import FastLanguageModel
+from trl import SFTTrainer
+from transformers import TrainingArguments
+from datasets import load_dataset
+
+# Load model with 4-bit quantization
+model, tokenizer = FastLanguageModel.from_pretrained(
+    model_name="unsloth/Meta-Llama-3.1-8B",
+    max_seq_length=2048,
+    dtype=None,  # Auto-detect
+    load_in_4bit=True,  # QLoRA
+)
+
+# Add LoRA adapters
+model = FastLanguageModel.get_peft_model(
+    model,
+    r=16,                # Rank: 16-64 typical
+    lora_alpha=32,       # Scaling: usually 2x r
+    lora_dropout=0.05,   # Regularization
+    target_modules=[
+        # Attention layers (always include)
+        "q_proj", "k_proj", "v_proj", "o_proj",
+        # MLP layers (per QLoRA paper - better results)
+        "gate_proj", "up_proj", "down_proj",
+    ],
+    bias="none",
+    use_gradient_checkpointing="unsloth",  # Memory efficient
+    random_state=42,
+)
+
+# Prepare dataset
+dataset = load_dataset("your_dataset", split="train")
+
+def format_prompt(example):
+    return f"""### Instruction:
+{example['instruction']}
+
+### Response:
+{example['response']}"""
+
+# Training arguments
+training_args = TrainingArguments(
+    output_dir="./output",
+    per_device_train_batch_size=4,
+    gradient_accumulation_steps=4,
+    learning_rate=2e-4,
+    num_train_epochs=1,
+    warmup_ratio=0.03,
+    weight_decay=0.001,
+    logging_steps=10,
+    save_strategy="epoch",
+    fp16=True,
+    optim="adamw_8bit",
+)
+
+# Train
+trainer = SFTTrainer(
+    model=model,
+    tokenizer=tokenizer,
+    train_dataset=dataset,
+    formatting_func=format_prompt,
+    max_seq_length=2048,
+    args=training_args,
+)
+
+trainer.train()
+
+# Save adapter only (small file)
+model.save_pretrained("./lora_adapter")
+tokenizer.save_pretrained("./lora_adapter")
+```
+
+## PEFT Library (Standard Implementation)
+
+```python
+from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
+from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
+import torch
+
+# 4-bit quantization config
+bnb_config = BitsAndBytesConfig(
+    load_in_4bit=True,
+    bnb_4bit_quant_type="nf4",
+    bnb_4bit_compute_dtype=torch.bfloat16,
+    bnb_4bit_use_double_quant=True,
+)
+
+# Load quantized model
+model = AutoModelForCausalLM.from_pretrained(
+    "meta-llama/Llama-3.1-8B",
+    quantization_config=bnb_config,
+    device_map="auto",
+)
+tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.1-8B")
+
+# Prepare for k-bit training
+model = prepare_model_for_kbit_training(model)
+
+# LoRA config
+lora_config = LoraConfig(
+    r=16,
+    lora_alpha=32,
+    target_modules=[
+        "q_proj", "k_proj", "v_proj", "o_proj",
+        "gate_proj", "up_proj", "down_proj",
+    ],
+    lora_dropout=0.05,
+    bias="none",
+    task_type="CAUSAL_LM",
+)
+
+# Apply LoRA
+model = get_peft_model(model, lora_config)
+
+# Print trainable parameters
+model.print_trainable_parameters()
+# Output: trainable params: 41,943,040 || all params: 8,071,106,560 || trainable%: 0.52%
+```
+
+## Target Module Selection
+
+| Model Family | Recommended Modules | Notes |
+|--------------|---------------------|-------|
+| Llama 3.x | q,k,v,o_proj + gate,up,down_proj | Full coverage |
+| Mistral | q,k,v,o_proj + gate,up,down_proj | Same as Llama |
+| Phi-3 | q,k,v,o_proj + gate,up,down_proj | Same pattern |
+| Qwen2 | q,k,v,o_proj + gate,up,down_proj | Same pattern |
+
+**Minimal (attention only):**
+```python
+target_modules=["q_proj", "v_proj"]  # Faster, less capacity
+```
+
+**Maximum (all projections):**
+```python
+target_modules=[
+    "q_proj", "k_proj", "v_proj", "o_proj",
+    "gate_proj", "up_proj", "down_proj",
+    "embed_tokens", "lm_head",  # Embeddings (use cautiously)
+]
+```
+
+## Hyperparameter Guidelines
+
+```yaml
+# Conservative (start here)
+lora:
+  r: 16
+  lora_alpha: 32
+  lora_dropout: 0.05
+
+training:
+  learning_rate: 2e-4
+  epochs: 1
+  batch_size: 4
+  gradient_accumulation: 4
+
+# Higher capacity (more complex tasks)
+lora:
+  r: 64
+  lora_alpha: 128
+  lora_dropout: 0.1
+
+training:
+  learning_rate: 1e-4
+  epochs: 2-3
+```
+
+## Memory Requirements
+
+| Model Size | Full FT | LoRA (r=16) | QLoRA (r=16) |
+|------------|---------|-------------|--------------|
+| 7B | 56GB+ | 16GB | 6GB |
+| 13B | 104GB+ | 32GB | 10GB |
+| 70B | 560GB+ | 160GB | 48GB |
+
+## Merging Adapters
+
+```python
+# Merge LoRA weights back into base model
+from peft import PeftModel
+
+# Load base model (full precision for merging)
+base_model = AutoModelForCausalLM.from_pretrained(
+    "meta-llama/Llama-3.1-8B",
+    torch_dtype=torch.float16,
+    device_map="auto",
+)
+
+# Load adapter
+model = PeftModel.from_pretrained(base_model, "./lora_adapter")
+
+# Merge and unload
+merged_model = model.merge_and_unload()
+
+# Save merged model
+merged_model.save_pretrained("./merged_model")
+```
+
+## Inference with Adapter
+
+```python
+from peft import PeftModel
+
+# Load base + adapter for inference
+model = AutoModelForCausalLM.from_pretrained(
+    "meta-llama/Llama-3.1-8B",
+    torch_dtype=torch.float16,
+    device_map="auto",
+)
+model = PeftModel.from_pretrained(model, "./lora_adapter")
+
+# Inference
+inputs = tokenizer("Your prompt", return_tensors="pt")
+outputs = model.generate(**inputs, max_new_tokens=256)
+```
+
+## Common Issues
+
+**Issue: Loss not decreasing**
+- Increase r (rank) for more capacity
+- Lower learning rate
+- Check data formatting
+
+**Issue: Overfitting**
+- Reduce epochs (1 is often enough)
+- Increase dropout
+- Add more diverse data
+
+**Issue: Out of memory**
+- Use gradient checkpointing
+- Reduce batch size, increase gradient accumulation
+- Use 4-bit quantization (QLoRA)
+
+
+### Model Selection
+
+# Model Selection Guide
+
+Choose the right Ollama model for your task and hardware.
+
+## Model Comparison (2026)
+
+| Model | Size | VRAM | Benchmark | Best For |
+|-------|------|------|-----------|----------|
+| deepseek-r1:70b | 42GB | 48GB+ | GPT-4 level | Reasoning, analysis |
+| qwen2.5-coder:32b | 35GB | 40GB+ | 73.7% Aider | Code generation |
+| llama3.3:70b | 40GB | 48GB+ | Strong | General purpose |
+| llama3.3:7b | 4GB | 8GB+ | Good | Fast inference |
+| nomic-embed-text | 0.5GB | 2GB | 768 dims | Embeddings |
+
+## Hardware Requirements
+
+```python
+HARDWARE_PROFILES = {
+    "m4_max_256gb": {
+        "reasoning": "deepseek-r1:70b",
+        "coding": "qwen2.5-coder:32b",
+        "general": "llama3.3:70b",
+        "embeddings": "nomic-embed-text",
+        "max_loaded": 3
+    },
+    "m3_pro_36gb": {
+        "reasoning": "llama3.3:7b",
+        "coding": "qwen2.5-coder:7b",
+        "general": "llama3.3:7b",
+        "embeddings": "nomic-embed-text",
+        "max_loaded": 2
+    },
+    "ci_runner": {
+        "all": "llama3.3:7b",  # Fast, low memory
+        "embeddings": "nomic-embed-text",
+        "max_loaded": 1
+    }
+}
+
+def get_model_for_task(task: str, hardware: str = "m4_max_256gb") -> str:
+    """Select model based on task and available hardware."""
+    profile = HARDWARE_PROFILES[hardware]
+    return profile.get(task, profile.get("general", "llama3.3:7b"))
+```
+
+## Quantization Options
+
+```bash
+# Full precision (best quality, most VRAM)
+ollama pull deepseek-r1:70b
+
+# Q4_K_M quantization (good balance)
+ollama pull deepseek-r1:70b-q4_K_M
+
+# Q4_0 quantization (fastest, lowest quality)
+ollama pull deepseek-r1:70b-q4_0
+```
+
+## Configuration
+
+- Context window: 32768 tokens (Apple Silicon)
+- keep_alive: 5m for CI, -1 for dev
+- Quantization: q4_K_M for production balance
+
+## Cost Optimization
+
+- Pre-warm models before batch jobs
+- Use smaller models for simple tasks
+- Load max 2-3 models simultaneously
+- CI: Use 7B models (93% cheaper than cloud)
+
+### Synthetic Data
+
+# Synthetic Data Generation for Fine-Tuning
+
+## Overview
+
+Synthetic data generation uses large teacher models (GPT-4, Claude) to create training data for smaller student models. This enables cost-effective fine-tuning without expensive manual annotation.
+
+## Teacher-Student Paradigm
+
+```
+Teacher Model (GPT-5.2) → Generate Examples → Train Student (Llama-8B)
+                                                    ↓
+                                              Deploy Student (cheaper)
+```
+
+## Basic Generation
+
+```python
+import json
+import asyncio
+from openai import AsyncOpenAI
+
+client = AsyncOpenAI()
+
+async def generate_training_example(
+    topic: str,
+    style: str = "helpful and concise",
+) -> dict:
+    """Generate a single training example."""
+    response = await client.chat.completions.create(
+        model="gpt-5.2",
+        messages=[{
+            "role": "system",
+            "content": f"""Generate a training example for a {style} AI assistant.
+
+Topic: {topic}
+
+Output JSON with:
+- instruction: A realistic user question/request
+- response: An ideal assistant response
+
+Be specific and realistic. Vary complexity and phrasing."""
+        }],
+        response_format={"type": "json_object"},
+        temperature=0.9,  # Higher for diversity
+    )
+
+    return json.loads(response.choices[0].message.content)
+
+
+async def generate_dataset(
+    topic: str,
+    num_examples: int = 100,
+    batch_size: int = 10,
+) -> list[dict]:
+    """Generate multiple training examples in batches."""
+    examples = []
+
+    for batch_start in range(0, num_examples, batch_size):
+        batch_tasks = [
+            generate_training_example(topic)
+            for _ in range(min(batch_size, num_examples - batch_start))
+        ]
+        batch_results = await asyncio.gather(*batch_tasks)
+        examples.extend(batch_results)
+
+        print(f"Generated {len(examples)}/{num_examples} examples")
+
+    return examples
+
+
+# Usage
+examples = asyncio.run(generate_dataset(
+    topic="Python programming and debugging",
+    num_examples=1000,
+))
+```
+
+## Diverse Generation Strategies
+
+### Seed-Based Diversity
+
+```python
+SEED_INSTRUCTIONS = [
+    "Explain {concept} to a beginner",
+    "Debug this {language} code: {code_snippet}",
+    "Compare {thing1} and {thing2}",
+    "Write a function that {task}",
+    "What are best practices for {topic}?",
+    "How do I handle {error_type} in {context}?",
+]
+
+async def generate_with_seeds(
+    seeds: list[str],
+    fill_values: dict,
+    per_seed: int = 20,
+) -> list[dict]:
+    """Generate examples based on seed templates."""
+    examples = []
+
+    for seed in seeds:
+        for _ in range(per_seed):
+            # Randomly fill template
+            filled = seed.format(**{
+                k: random.choice(v) if isinstance(v, list) else v
+                for k, v in fill_values.items()
+            })
+
+            example = await generate_training_example(filled)
+            examples.append(example)
+
+    return examples
+```
+
+### Multi-Turn Conversations
+
+```python
+async def generate_conversation(
+    topic: str,
+    num_turns: int = 3,
+) -> list[dict]:
+    """Generate multi-turn conversation examples."""
+    response = await client.chat.completions.create(
+        model="gpt-5.2",
+        messages=[{
+            "role": "system",
+            "content": f"""Generate a realistic {num_turns}-turn conversation between a user and AI assistant about {topic}.
+
+Output JSON:
+{{
+  "conversation": [
+    {{"role": "user", "content": "..."}},
+    {{"role": "assistant", "content": "..."}},
+    ...
+  ]
+}}
+
+Make it realistic with follow-up questions and clarifications."""
+        }],
+        response_format={"type": "json_object"},
+    )
+
+    return json.loads(response.choices[0].message.content)
+```
+
+## Quality Control
+
+### Self-Validation
+
+```python
+async def validate_example(
+    example: dict,
+    validator_model: str = "gpt-5.2-mini",
+) -> dict:
+    """Validate and score a training example."""
+    response = await client.chat.completions.create(
+        model=validator_model,
+        messages=[{
+            "role": "system",
+            "content": """Score this training example 1-10 on:
+- clarity: Is the instruction clear?
+- quality: Is the response high quality?
+- realism: Is this a realistic interaction?
+
+Output JSON: {"clarity": N, "quality": N, "realism": N, "keep": true/false}
+Set keep=false if any score < 6."""
+        }, {
+            "role": "user",
+            "content": f"Instruction: {example['instruction']}\n\nResponse: {example['response']}"
+        }],
+        response_format={"type": "json_object"},
+    )
+
+    validation = json.loads(response.choices[0].message.content)
+    return {**example, **validation}
+
+
+async def generate_validated_dataset(
+    topic: str,
+    target_count: int = 1000,
+    quality_threshold: float = 0.8,
+) -> list[dict]:
+    """Generate and filter high-quality examples."""
+    validated = []
+    generated = 0
+
+    while len(validated) < target_count:
+        # Generate batch
+        batch = await generate_dataset(topic, num_examples=100)
+        generated += len(batch)
+
+        # Validate
+        validations = await asyncio.gather(*[
+            validate_example(ex) for ex in batch
+        ])
+
+        # Filter
+        high_quality = [v for v in validations if v.get("keep", False)]
+        validated.extend(high_quality)
+
+        acceptance_rate = len(high_quality) / len(batch)
+        print(f"Batch acceptance: {acceptance_rate:.1%}, "
+              f"Total: {len(validated)}/{target_count}")
+
+    return validated[:target_count]
+```
+
+### Deduplication
+
+```python
+from sentence_transformers import SentenceTransformer
+import numpy as np
+
+def deduplicate_examples(
+    examples: list[dict],
+    similarity_threshold: float = 0.85,
+) -> list[dict]:
+    """Remove near-duplicate examples using embeddings."""
+    model = SentenceTransformer("all-MiniLM-L6-v2")
+
+    # Embed instructions
+    instructions = [ex["instruction"] for ex in examples]
+    embeddings = model.encode(instructions)
+
+    # Find unique examples
+    unique_indices = []
+    for i, emb in enumerate(embeddings):
+        is_unique = True
+        for j in unique_indices:
+            similarity = np.dot(emb, embeddings[j]) / (
+                np.linalg.norm(emb) * np.linalg.norm(embeddings[j])
+            )
+            if similarity > similarity_threshold:
+                is_unique = False
+                break
+        if is_unique:
+            unique_indices.append(i)
+
+    print(f"Deduplication: {len(examples)} → {len(unique_indices)} "
+          f"({len(unique_indices)/len(examples):.1%} unique)")
+
+    return [examples[i] for i in unique_indices]
+```
+
+## Domain-Specific Generation
+
+### Code Examples
+
+```python
+async def generate_code_examples(
+    language: str,
+    difficulty: str = "intermediate",
+    num_examples: int = 100,
+) -> list[dict]:
+    """Generate coding instruction-response pairs."""
+    response = await client.chat.completions.create(
+        model="gpt-5.2",
+        messages=[{
+            "role": "system",
+            "content": f"""Generate {num_examples} {language} coding examples at {difficulty} level.
+
+Each example should have:
+- instruction: A coding task or question
+- response: Working code with explanation
+
+Include variety: algorithms, debugging, best practices, common patterns.
+
+Output JSON array of {{"instruction": "...", "response": "..."}}"""
+        }],
+        response_format={"type": "json_object"},
+    )
+
+    return json.loads(response.choices[0].message.content).get("examples", [])
+```
+
+### Domain Expertise
+
+```python
+async def generate_domain_examples(
+    domain: str,
+    expertise_level: str,
+    terminology: list[str],
+) -> list[dict]:
+    """Generate domain-specific training data."""
+    response = await client.chat.completions.create(
+        model="gpt-5.2",
+        messages=[{
+            "role": "system",
+            "content": f"""Generate training examples for a {domain} expert assistant.
+
+Expertise level: {expertise_level}
+Must naturally incorporate terminology: {', '.join(terminology)}
+
+Generate realistic questions a {expertise_level} professional would ask.
+Responses should demonstrate deep domain knowledge."""
+        }],
+        response_format={"type": "json_object"},
+    )
+
+    return json.loads(response.choices[0].message.content)
+```
+
+## Dataset Formatting
+
+### Alpaca Format
+
+```python
+def to_alpaca_format(examples: list[dict]) -> list[dict]:
+    """Convert to Alpaca training format."""
+    return [
+        {
+            "instruction": ex["instruction"],
+            "input": ex.get("input", ""),
+            "output": ex["response"],
+        }
+        for ex in examples
+    ]
+```
+
+### ChatML Format
+
+```python
+def to_chatml_format(examples: list[dict]) -> list[dict]:
+    """Convert to ChatML format for chat models."""
+    return [
+        {
+            "messages": [
+                {"role": "user", "content": ex["instruction"]},
+                {"role": "assistant", "content": ex["response"]},
+            ]
+        }
+        for ex in examples
+    ]
+```
+
+## Cost Estimation
+
+```python
+def estimate_generation_cost(
+    num_examples: int,
+    avg_input_tokens: int = 100,
+    avg_output_tokens: int = 300,
+    model: str = "gpt-5.2",
+) -> float:
+    """Estimate synthetic data generation cost."""
+    # GPT-5.2 pricing (as of 2026)
+    prices = {
+        "gpt-5.2": {"input": 2.50 / 1_000_000, "output": 10.00 / 1_000_000},
+        "gpt-5.2-mini": {"input": 0.15 / 1_000_000, "output": 0.60 / 1_000_000},
+    }
+
+    price = prices.get(model, prices["gpt-5.2"])
+
+    input_cost = num_examples * avg_input_tokens * price["input"]
+    output_cost = num_examples * avg_output_tokens * price["output"]
+
+    return input_cost + output_cost
+
+
+# Example: 10,000 examples with GPT-4o
+cost = estimate_generation_cost(10000)
+print(f"Estimated cost: ${cost:.2f}")  # ~$32.50
+```
+
+## Best Practices
+
+1. **Quality > Quantity**: 1,000 high-quality examples beat 10,000 mediocre ones
+2. **Diversity**: Use seeds, varied prompts, multiple domains
+3. **Validation**: Filter with separate model, remove low-quality
+4. **Deduplication**: Remove near-duplicates to prevent overfitting
+5. **Iterative Refinement**: Generate, train, evaluate, adjust generation
+
+
+### Tool Schema
+
+# Tool Schema Patterns
+
+Define robust tool schemas for OpenAI and Anthropic function calling.
+
+## OpenAI Strict Mode Schema
+
+```python
+from typing import Literal
+
+def create_tool_schema(
+    name: str,
+    description: str,
+    parameters: dict,
+    strict: bool = True
+) -> dict:
+    """Create OpenAI-compatible tool schema with strict mode."""
+    schema = {
+        "type": "function",
+        "function": {
+            "name": name,
+            "description": description,
+            "strict": strict,
+            "parameters": {
+                "type": "object",
+                "properties": parameters,
+                "required": list(parameters.keys()),  # All required in strict
+                "additionalProperties": False
+            }
+        }
+    }
+    return schema
+
+# Example: Search tool
+search_tool = create_tool_schema(
+    name="search_documents",
+    description="Search knowledge base for relevant documents",
+    parameters={
+        "query": {"type": "string", "description": "Search query"},
+        "limit": {"type": "integer", "description": "Max results (1-100)"},
+        "filters": {
+            "type": "object",
+            "properties": {
+                "category": {"type": "string"},
+                "date_from": {"type": "string", "format": "date"}
+            },
+            "required": ["category", "date_from"],
+            "additionalProperties": False
+        }
+    }
+)
+```
+
+## Anthropic Tool Schema
+
+```python
+def create_anthropic_tool(
+    name: str,
+    description: str,
+    input_schema: dict
+) -> dict:
+    """Create Anthropic-compatible tool definition."""
+    return {
+        "name": name,
+        "description": description,
+        "input_schema": {
+            "type": "object",
+            "properties": input_schema,
+            "required": list(input_schema.keys())
+        }
+    }
+
+# Anthropic usage
+tools = [create_anthropic_tool(
+    name="get_weather",
+    description="Get current weather for a location",
+    input_schema={
+        "location": {"type": "string", "description": "City name"},
+        "units": {"type": "string", "enum": ["celsius", "fahrenheit"]}
+    }
+)]
+```
+
+## Configuration
+
+- `strict: true` - Enforces schema compliance (OpenAI)
+- `additionalProperties: false` - No extra fields allowed
+- All properties in `required` array for strict mode
+- Use `enum` for fixed choices
+
+## Cost Optimization
+
+- Shorter descriptions reduce prompt tokens
+- Limit tools to 5-15 per request
+- Cache tool schemas (they're static)
+- Disable parallel_tool_calls with strict mode
+
+### When To Finetune
+
+# When to Fine-Tune: Decision Framework
+
+## The Fine-Tuning Ladder
+
+Fine-tuning should be your **last resort**, not your first choice. Always climb the ladder from bottom to top:
+
+```
+Level 4: Fine-Tuning      ← Last resort
+Level 3: RAG              ← External knowledge
+Level 2: Few-Shot         ← Examples in prompt
+Level 1: Prompt Engineering  ← Always start here
+```
+
+## Decision Flowchart
+
+```
+START: "I need the model to do X"
+         │
+         ▼
+┌─────────────────────────────┐
+│ Can prompt engineering      │
+│ achieve acceptable results? │
+└─────────────────────────────┘
+         │
+    YES ─┼─ NO
+         │    │
+         ▼    ▼
+      DONE  ┌─────────────────────────────┐
+            │ Is the knowledge external/  │
+            │ frequently updated?         │
+            └─────────────────────────────┘
+                     │
+                YES ─┼─ NO
+                     │    │
+                     ▼    ▼
+                Use RAG  ┌─────────────────────────────┐
+                         │ Do you have ~1000+ quality  │
+                         │ examples of desired I/O?   │
+                         └─────────────────────────────┘
+                                  │
+                             YES ─┼─ NO
+                                  │    │
+                                  ▼    ▼
+                          Fine-Tune   Collect more data
+                                      or revisit prompt
+```
+
+## When Each Approach Works
+
+### Prompt Engineering (Level 1)
+
+**Use when:**
+- Task can be explained in natural language
+- Model has knowledge but needs guidance
+- Output format is flexible
+- You need rapid iteration
+
+**Examples:**
+- "Respond in formal business English"
+- "Always include a summary at the end"
+- "Use markdown formatting"
+
+```python
+# Often sufficient!
+system_prompt = """You are a legal document assistant.
+Always:
+- Use formal language
+- Cite relevant sections
+- End with a disclaimer"""
+```
+
+### Few-Shot Prompting (Level 2)
+
+**Use when:**
+- Task needs specific examples
+- Format is precise but describable
+- 3-10 examples capture the pattern
+
+**Examples:**
+- JSON extraction with specific schema
+- Classification with defined categories
+- Style transfer with reference
+
+```python
+# Few-shot often beats fine-tuning
+examples = [
+    {"input": "example1", "output": "desired_output1"},
+    {"input": "example2", "output": "desired_output2"},
+]
+```
+
+### RAG (Level 3)
+
+**Use when:**
+- Knowledge is external to model
+- Information changes frequently
+- Need citations/sources
+- Domain knowledge > training data
+
+**Examples:**
+- Company documentation Q&A
+- Product catalog search
+- Legal case lookup
+- Recent news analysis
+
+```python
+# RAG for dynamic knowledge
+context = retrieve_relevant_docs(query)
+response = llm.generate(f"Based on: {context}\n\nAnswer: {query}")
+```
+
+### Fine-Tuning (Level 4)
+
+**Use when ALL of these are true:**
+1. Prompt engineering exhausted
+2. RAG doesn't capture nuances
+3. Need deep behavioral changes
+4. Have ~1000+ quality examples
+5. Pattern too complex for prompts
+
+**Good use cases:**
+- Domain-specific terminology (medical, legal)
+- Consistent persona/voice
+- Specific output structure (always)
+- Task requires implicit knowledge
+
+**Bad use cases:**
+- "My prompt is too long" → Use prompt compression
+- "Need factual accuracy" → Use RAG
+- "Model doesn't know X" → Add to context
+- "Want different style" → Few-shot examples
+
+## Comparison Matrix
+
+| Criterion | Prompt | Few-Shot | RAG | Fine-Tune |
+|-----------|--------|----------|-----|-----------|
+| Setup time | Minutes | Hours | Days | Weeks |
+| Cost | $0 | $0 | $$ | $$$ |
+| Data needed | 0 | 3-10 | Docs | 1000+ |
+| Iteration speed | Fast | Fast | Medium | Slow |
+| Maintenance | Easy | Easy | Medium | Hard |
+| Knowledge update | Instant | Instant | Hours | Retrain |
+| Deep behavior | No | Limited | No | Yes |
+
+## Red Flags: Don't Fine-Tune
+
+Watch for these anti-patterns:
+
+```python
+# Thinking: "I'll fine-tune because..."
+
+# "...my prompt is getting long"
+# → Use prompt caching, compression, or few-shot
+
+# "...I need factual accuracy"
+# → Use RAG with verified sources
+
+# "...the model doesn't know about my product"
+# → Add product docs to context (RAG)
+
+# "...I only have 50 examples"
+# → Not enough! Collect more or use few-shot
+
+# "...I want faster inference"
+# → Fine-tuning doesn't make inference faster
+# → Use smaller model or prompt caching
+
+# "...I want cheaper inference"
+# → Fine-tune smaller model OR use caching
+# → But validate quality first with prompting
+```
+
+## Green Flags: Do Fine-Tune
+
+Fine-tuning is appropriate when:
+
+```python
+# "...the model needs a consistent clinical voice"
+# ✅ Deep behavioral change
+
+# "...every response must follow our 50-field JSON schema"
+# ✅ Complex structural requirements
+
+# "...we have 5,000 expert-validated examples"
+# ✅ Sufficient high-quality data
+
+# "...legal terminology must be used precisely"
+# ✅ Domain-specific patterns
+
+# "...prompt engineering plateau'd at 70% accuracy"
+# ✅ Other approaches exhausted
+```
+
+## Data Requirements by Task
+
+| Task Type | Minimum Examples | Recommended |
+|-----------|------------------|-------------|
+| Style/tone | 500 | 1,000 |
+| Classification | 100/class | 500/class |
+| Format enforcement | 500 | 2,000 |
+| Domain expertise | 2,000 | 10,000 |
+| Complex reasoning | 5,000 | 20,000+ |
+
+## Cost-Benefit Analysis
+
+```python
+def should_finetune(
+    current_accuracy: float,
+    target_accuracy: float,
+    training_examples: int,
+    monthly_volume: int,
+) -> dict:
+    """Analyze fine-tuning ROI."""
+
+    # Fine-tuning costs (rough estimates)
+    training_cost = training_examples * 0.008  # ~$8/1K examples
+    maintenance_cost_monthly = 500  # Re-training, evaluation
+
+    # Prompt-based costs
+    extra_tokens_per_call = 500  # Few-shot examples
+    token_cost = 0.01 / 1000  # Per token
+    prompt_cost_monthly = monthly_volume * extra_tokens_per_call * token_cost
+
+    # Break-even
+    if prompt_cost_monthly > 0:
+        break_even_months = training_cost / prompt_cost_monthly
+    else:
+        break_even_months = float('inf')
+
+    return {
+        "training_cost": training_cost,
+        "monthly_prompt_savings": prompt_cost_monthly,
+        "break_even_months": break_even_months,
+        "recommendation": "fine-tune" if break_even_months < 6 else "prompt",
+    }
+```
+
+## Checklist Before Fine-Tuning
+
+- [ ] Prompt engineering tried with 5+ iterations
+- [ ] Few-shot examples tested (3, 5, 10 examples)
+- [ ] RAG evaluated if knowledge-based
+- [ ] Have 1,000+ high-quality examples
+- [ ] Examples validated by domain expert
+- [ ] Evaluation set separate from training
+- [ ] Success metrics defined
+- [ ] Maintenance plan in place
+- [ ] Cost-benefit analysis positive
+
+
+
+---
+
+## Checklists (3)
+
+### Fine Tuning Decision
+
+# Fine-Tuning Decision Checklist
+
+Determine whether fine-tuning is appropriate.
+
+## Pre-Fine-Tuning Validation
+
+- [ ] Prompt engineering tried and insufficient
+- [ ] RAG tried and doesn't capture domain nuances
+- [ ] Few-shot learning tried with optimal examples
+- [ ] Task requires deep specialization beyond prompting
+
+## Data Requirements
+
+- [ ] Minimum 1000+ high-quality examples available
+- [ ] Examples are diverse and representative
+- [ ] Ground truth labels are accurate
+- [ ] Data cleaned and formatted correctly
+- [ ] Train/eval split prepared (90/10 typical)
+
+## Use Case Fit
+
+- [ ] Specific output format consistently required
+- [ ] Domain terminology/style needed
+- [ ] Persona must be deeply embedded
+- [ ] Performance gains justify cost
+
+## Technical Readiness
+
+- [ ] GPU resources available (LoRA: 16GB+, Full: 80GB+)
+- [ ] Training framework selected (Unsloth, TRL, Axolotl)
+- [ ] Base model chosen appropriately
+- [ ] Hyperparameters planned
+
+## LoRA Configuration
+
+- [ ] Rank (r) selected: 16-64 typical
+- [ ] Alpha set to 2x rank
+- [ ] Target modules identified:
+  - Attention: q_proj, k_proj, v_proj, o_proj
+  - MLP: gate_proj, up_proj, down_proj (if QLoRA)
+- [ ] Dropout configured (0.05 typical)
+
+## Training Setup
+
+- [ ] Learning rate appropriate (2e-4 for LoRA)
+- [ ] Batch size fits in memory
+- [ ] Epochs limited (1-3 to avoid overfitting)
+- [ ] Warmup ratio set (3% typical)
+- [ ] Evaluation checkpoints configured
+
+## DPO Alignment (if applicable)
+
+- [ ] Preference pairs collected (chosen/rejected)
+- [ ] Reference model frozen
+- [ ] Beta coefficient set (0.1 typical)
+- [ ] Lower learning rate (5e-6)
+
+## Evaluation Plan
+
+- [ ] Eval metrics defined (task-specific)
+- [ ] Baseline performance recorded
+- [ ] Comparison with prompting approaches
+- [ ] Human evaluation planned for quality
+
+## Post-Training
+
+- [ ] Model evaluated on held-out test set
+- [ ] Compared to baseline and prompt-based approaches
+- [ ] Model merged (if using adapters)
+- [ ] Deployment plan ready
+- [ ] Rollback procedure defined
+
+
+### Streaming Checklist
+
+# LLM Streaming Checklist
+
+## Implementation
+
+- [ ] Use async iterators
+- [ ] Handle connection drops
+- [ ] Implement timeout
+- [ ] Support cancellation
+
+## Frontend
+
+- [ ] Display tokens as received
+- [ ] Show typing indicator
+- [ ] Handle reconnection
+- [ ] Smooth text rendering
+
+## Error Handling
+
+- [ ] Detect stream errors
+- [ ] Partial response recovery
+- [ ] Graceful degradation
+- [ ] Error logging
+
+## Tool Calls
+
+- [ ] Accumulate tool call chunks
+- [ ] Execute after complete
+- [ ] Handle multiple tools
+- [ ] Resume stream after tools
+
+
+### Tool Checklist
+
+# Function Calling Checklist
+
+## Tool Definition
+
+- [ ] Clear, concise description (1-2 sentences)
+- [ ] All parameters documented
+- [ ] Use strict mode (`strict: true`) for reliability
+- [ ] All properties in `required` (when strict)
+- [ ] Set `additionalProperties: false` (when strict)
+
+## Schema Design
+
+- [ ] Use specific types (not just `string`)
+- [ ] Add enum constraints where applicable
+- [ ] Provide examples in descriptions
+- [ ] Limit to 5-15 tools per request
+
+## Tool Execution
+
+- [ ] Validate input parameters (Pydantic/Zod)
+- [ ] Handle errors gracefully
+- [ ] Return errors as tool results (don't crash)
+- [ ] Log tool calls for debugging
+
+## Execution Loop
+
+- [ ] Check for tool calls in response
+- [ ] Execute all requested tools
+- [ ] Add results to conversation
+- [ ] Continue until final answer
+
+## Parallel Tool Calls
+
+- [ ] Disable parallel calls with strict mode
+- [ ] Use asyncio.gather for parallel execution
+- [ ] Handle partial failures
+
+## Structured Output
+
+- [ ] Use Pydantic for type safety
+- [ ] Validate output schema
+- [ ] Handle parse errors
+- [ ] Provide fallback behavior
+
+## Testing
+
+- [ ] Test each tool independently
+- [ ] Test tool selection (right tool for task)
+- [ ] Test error handling
+- [ ] Test with invalid inputs
+

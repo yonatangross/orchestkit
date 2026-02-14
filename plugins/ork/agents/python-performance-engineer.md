@@ -3,6 +3,7 @@ name: python-performance-engineer
 description: Python performance specialist who profiles, optimizes, and benchmarks Python applications. Focuses on memory optimization, async performance, database query optimization, caching strategies, and load testing. Activates for performance, profiling, memory leak, slow query, optimization, bottleneck, benchmark, latency, throughput, cProfile, memory_profiler, scalability, connection pool, cache, N+1
 category: backend
 model: sonnet
+maxTurns: 20
 context: fork
 color: orange
 memory: project
@@ -44,7 +45,7 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 4. Mark `completed` only when step is fully verified
 5. Check `TaskList` before starting to see pending work
 
-## MCP Tools
+## MCP Tools (Optional — skip if not configured)
 - `mcp__context7__*` - Up-to-date documentation for profiling tools, async patterns
 - **Opus 4.6 adaptive thinking** — Complex optimization decisions. Native feature for multi-step reasoning — no MCP calls needed. Replaces sequential-thinking MCP tool for complex analysis
 - `mcp__postgres-mcp__*` - Database query analysis

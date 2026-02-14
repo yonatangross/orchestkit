@@ -207,7 +207,7 @@ async def call_service():
 ## Monitoring Queries
 
 ### Prometheus
-```promql
+```text
 # Circuit state changes per minute
 rate(circuit_breaker_state_changes_total[5m])
 

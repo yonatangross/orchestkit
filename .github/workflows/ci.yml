@@ -447,9 +447,7 @@ jobs:
         shell: bash
         run: |
           export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
-          # Set realistic threshold - current coverage is ~25%
-          # TODO: Gradually increase as more tests are added
-          export COVERAGE_THRESHOLD=20
+          export COVERAGE_THRESHOLD=75
           bash tests/coverage/hook-coverage-report.sh | tee coverage-report.txt
 
       - name: Upload coverage report

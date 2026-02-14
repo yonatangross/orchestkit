@@ -1,14 +1,20 @@
 ---
 name: review-pr
+license: MIT
+compatibility: "Claude Code 2.1.34+. Requires memory MCP server, gh CLI."
 description: "PR review with parallel specialized agents. Use when reviewing pull requests or code."
+argument-hint: "[pr-number-or-branch]"
 context: fork
 version: 1.4.0
 author: OrchestKit
 tags: [code-review, pull-request, quality, security, testing]
 user-invocable: true
-allowedTools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, mcp__memory__search_nodes]
+allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, mcp__memory__search_nodes]
 skills: [code-review-playbook, security-scanning, type-safety-validation, memory]
 complexity: medium
+metadata:
+  category: workflow-automation
+  mcp-server: memory
 ---
 
 # Review PR
@@ -49,7 +55,7 @@ AskUserQuestion(
 **Based on answer, adjust workflow:**
 - **Full review**: All 6-7 parallel agents
 - **Security focus**: Prioritize security-auditor, reduce other agents
-- **Performance focus**: Add performance-engineer agent
+- **Performance focus**: Add frontend-performance-engineer agent
 - **Quick review**: Single code-quality-reviewer agent only
 
 ---

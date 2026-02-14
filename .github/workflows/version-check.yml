@@ -44,7 +44,7 @@ jobs:
 
           # Check if only non-code files changed
           CHANGED_FILES=$(git diff --name-only origin/main...HEAD)
-          CODE_CHANGES=$(echo "$CHANGED_FILES" | grep -vE '\.(md|txt|yml|yaml|json)$|^\.github/|^docs/' || true)
+          CODE_CHANGES=$(echo "$CHANGED_FILES" | grep -vE '\.(md|txt)$|^docs/' || true)
 
           if [[ -z "$CODE_CHANGES" ]]; then
             echo "skip=true" >> $GITHUB_OUTPUT

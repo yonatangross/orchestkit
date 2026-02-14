@@ -35,7 +35,7 @@ tags: [grafana, dashboards, golden-signals, slo, sli, health-checks]
 
 ## RED Metrics for Dashboards
 
-```promql
+```text
 # Rate
 rate(http_requests_total[5m])
 
@@ -56,7 +56,7 @@ histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))
 
 ### Service Level Indicators (SLIs)
 
-```promql
+```text
 # Availability SLI: % of successful requests
 sum(rate(http_requests_total{status!~"5.."}[30d])) /
 sum(rate(http_requests_total[30d]))

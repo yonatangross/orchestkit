@@ -2,7 +2,7 @@
 
 ## Proto File Structure
 
-```protobuf
+```text
 syntax = "proto3";
 
 package company.user.v1;

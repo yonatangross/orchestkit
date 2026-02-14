@@ -1,14 +1,20 @@
 ---
 name: plan-viz
-description: "Visualize planned changes before implementation. Before/after architecture, risk dashboard, execution order, impact analysis."
+license: MIT
+compatibility: "Claude Code 2.1.34+."
+description: "Visualize planned changes before implementation. Use when reviewing plans, comparing before/after architecture, assessing risk, or analyzing execution order and impact."
+argument-hint: "[plan-or-issue]"
 context: fork
+agent: workflow-architect
 version: 1.0.0
 author: OrchestKit
 tags: [visualization, planning, before-after, architecture, diff, risk, impact, migration]
 user-invocable: true
-allowedTools: [Read, Grep, Glob, Task, AskUserQuestion, Bash, Write]
+allowed-tools: [Read, Grep, Glob, Task, AskUserQuestion, Bash, Write]
 skills: [ascii-visualizer, explore, architecture-decision-record, assess-complexity]
 complexity: medium
+metadata:
+  category: document-asset-creation
 ---
 
 # Plan Visualization

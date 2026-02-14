@@ -1,5 +1,7 @@
 ---
 name: domain-driven-design
+license: MIT
+compatibility: "Claude Code 2.1.34+."
 description: Domain-Driven Design tactical patterns for complex business domains. Use when modeling entities, value objects, domain services, repositories, or establishing bounded contexts.
 context: fork
 agent: backend-system-architect
@@ -8,6 +10,8 @@ tags: [ddd, domain-modeling, entities, value-objects, bounded-contexts, python]
 author: OrchestKit
 user-invocable: false
 complexity: medium
+metadata:
+  category: document-asset-creation
 ---
 
 # Domain-Driven Design Tactical Patterns

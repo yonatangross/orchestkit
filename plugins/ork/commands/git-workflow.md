@@ -1,6 +1,6 @@
 ---
 description: Complete git workflow patterns including GitHub Flow branching, atomic commits with interactive staging, and recovery operations using reflog. Essential patterns for clean history. Use when defining branching strategy or recovering git history.
-allowed-tools: [Bash, Read, Write, Edit, Glob, Grep]
+allowed-tools: [AskUserQuestion, Bash, Read, Grep, Glob]
 ---
 
 # Auto-generated from skills/git-workflow/SKILL.md

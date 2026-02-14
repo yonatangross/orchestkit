@@ -13,6 +13,7 @@ description: "Design exploration with parallel agents. Use when brainstorming id
 - [memory](/docs/reference/skills/memory)
 - [remember](/docs/reference/skills/remember)
 - [assess-complexity](/docs/reference/skills/assess-complexity)
+- [scope-appropriate-architecture](/docs/reference/skills/scope-appropriate-architecture)
 
 
 # Brainstorming Ideas Into Designs
@@ -23,9 +24,59 @@ Transform rough ideas into fully-formed designs through intelligent agent select
 
 ---
 
-## STEP 0: Verify User Intent with AskUserQuestion
+## STEP 0: Project Context Discovery
 
-**BEFORE creating tasks**, clarify brainstorming constraints:
+**BEFORE creating tasks or selecting agents**, detect the project tier. This becomes the **complexity ceiling** for all downstream decisions.
+
+### Auto-Detection (scan codebase)
+
+```python
+# PARALLEL — quick signals (launch all in ONE message)
+Grep(pattern="take-home|assignment|interview|hackathon", glob="README*", output_mode="content")
+Grep(pattern="take-home|assignment|interview|hackathon", glob="*.md", output_mode="content")
+Glob(pattern=".github/workflows/*")
+Glob(pattern="**/Dockerfile")
+Glob(pattern="**/terraform/**")
+Glob(pattern="**/k8s/**")
+Glob(pattern="CONTRIBUTING.md")
+```
+
+### Tier Classification
+
+| Signal | Tier |
+|--------|------|
+| README says "take-home", "assignment", time limit | **1. Interview** |
+| &lt; 10 files, no CI, no Docker | **2. Hackathon** |
+| `.github/workflows/`, 10-25 deps | **3. MVP** |
+| Module boundaries, Redis, background jobs | **4. Growth** |
+| K8s/Terraform, DDD structure, monorepo | **5. Enterprise** |
+| CONTRIBUTING.md, LICENSE, minimal deps | **6. Open Source** |
+
+**If confidence is low**, ask the user:
+
+```python
+AskUserQuestion(questions=[{
+  "question": "What kind of project is this?",
+  "header": "Project tier",
+  "options": [
+    {"label": "Interview / take-home", "description": "8-15 files, 200-600 LOC, simple architecture"},
+    {"label": "Startup / MVP", "description": "MVC monolith, managed services, ship fast"},
+    {"label": "Growth / enterprise", "description": "Modular monolith or DDD, full observability"},
+    {"label": "Open source library", "description": "Minimal API surface, exhaustive tests"}
+  ],
+  "multiSelect": false
+}])
+```
+
+**Pass the detected tier as context to ALL downstream agents and phases.** The tier constrains which patterns are appropriate — see `scope-appropriate-architecture` skill for the full matrix.
+
+> **Override:** User can always override the detected tier. Warn them of trade-offs if they choose a higher tier than detected.
+
+---
+
+## STEP 0a: Verify User Intent with AskUserQuestion
+
+**Clarify brainstorming constraints:**
 
 ```python
 AskUserQuestion(
@@ -64,7 +115,7 @@ AskUserQuestion(
 
 ---
 
-## STEP 0b: Select Orchestration Mode
+## STEP 0b: Select Orchestration Mode (skip for Tier 1-2)
 
 Choose **Agent Teams** (mesh — agents debate and challenge ideas) or **Task tool** (star — all report to lead):
 
@@ -138,7 +189,7 @@ Skip brainstorming when:
 | "brainstorm API for users" | workflow-architect, backend-system-architect, security-auditor |
 | "brainstorm dashboard UI" | workflow-architect, frontend-ui-developer, ux-researcher |
 | "brainstorm RAG pipeline" | workflow-architect, llm-integrator, data-pipeline-engineer |
-| "brainstorm caching strategy" | workflow-architect, backend-system-architect, performance-engineer |
+| "brainstorm caching strategy" | workflow-architect, backend-system-architect, frontend-performance-engineer |
 
 **Always include:** `workflow-architect` for system design perspective.
 
@@ -228,4 +279,1503 @@ TeamDelete()
 
 ---
 
-**Version:** 4.1.0 (January 2026) - Refactored to progressive loading structure
+**Version:** 4.2.0 (February 2026) - Added project context discovery (Phase 0)
+
+
+---
+
+## References (8)
+
+### Common Pitfalls
+
+# Common Brainstorming Pitfalls
+
+Avoid these mistakes during brainstorming sessions.
+
+## Pitfall 1: Information Overload
+
+```
+❌ BAD:
+"Before we start, I need to know:
+1. What's your tech stack?
+2. How many users?
+3. What's the budget?
+..."
+
+✅ GOOD:
+"What problem does this solve for your users?"
+[Wait for answer, then ask next question]
+```
+
+**Why:** Asking many questions at once prevents conversation flow.
+
+## Pitfall 2: Single Approach
+
+```
+❌ BAD:
+"Here's the solution: Use Redis for caching..."
+
+✅ GOOD:
+"I see three approaches:
+1. Redis (fast, but adds infrastructure)
+2. In-memory (simple, but doesn't scale)
+3. Database cache (integrated, but slower)
+Which trade-offs matter most?"
+```
+
+**Why:** Single approach suggests you haven't explored alternatives.
+
+## Pitfall 3: Over-Engineering
+
+```
+❌ BAD:
+"Let's use microservices, Kubernetes, Redis, Kafka..."
+
+✅ GOOD:
+"For 100 users/day, a monolith with PostgreSQL is sufficient.
+We can split services later if needed."
+```
+
+**Why:** YAGNI. Start simple, scale when necessary.
+
+## Pitfall 4: Ignoring Existing Code
+
+```
+❌ BAD:
+"Let's rebuild with completely different architecture..."
+
+✅ GOOD:
+[Read existing code first]
+"I see you're using Express + PostgreSQL.
+Let's extend that pattern..."
+```
+
+**Why:** Consistency > novelty. Use existing patterns unless compelling reason to change.
+
+## Pitfall 5: Premature Convergence
+
+```
+❌ BAD:
+[After generating 3 ideas]
+"Option B is clearly best, let's go with that."
+
+✅ GOOD:
+[Generate 10+ ideas first]
+[Fast-check feasibility]
+[Rate systematically]
+"After evaluating all options, Option B scores highest because..."
+```
+
+**Why:** Filtering too early misses potentially better alternatives.
+
+## Pitfall 6: Skipping Devil's Advocate
+
+```
+❌ BAD:
+"This approach looks great, let's implement it!"
+
+✅ GOOD:
+"Let me challenge this approach:
+- What assumptions are we making?
+- How could this fail?
+- What's the maintenance burden?"
+```
+
+**Why:** Unchallenged ideas often have hidden flaws.
+
+
+### Devils Advocate Prompts
+
+# Devil's Advocate Prompts
+
+Challenge templates for assumption testing. Find hidden flaws before implementation.
+
+## Hidden Assumptions
+
+- "What if the core assumption that [X] is wrong?"
+- "This assumes [dependency] will always be available. What if it fails?"
+- "We're assuming users will [behavior]. What evidence supports this?"
+
+## Failure Modes
+
+- "What if this fails because the data volume exceeds expectations?"
+- "The hidden flaw in this approach is [single point of failure]."
+- "At 10x scale, what breaks first?"
+- "What's the worst-case recovery scenario?"
+
+## Simpler Alternatives
+
+- "Could we solve 80% of this with a much simpler solution?"
+- "What if we just used [existing tool] instead of building this?"
+- "Is this complexity justified by the requirements?"
+
+## Maintenance Burden
+
+- "In 2 years, will anyone understand why this was built this way?"
+- "What technical debt does this create?"
+- "How many dependencies are we adding?"
+
+## Scaling Concerns
+
+- "What happens when [resource] becomes the bottleneck?"
+- "This works for 100 users. Does it work for 100,000?"
+- "What's the migration path when this outgrows itself?"
+
+## Security Holes
+
+- "What's the attack surface we're introducing?"
+- "If an attacker had access to [component], what could they do?"
+- "Are we trusting user input anywhere we shouldn't?"
+
+## Challenge Template
+
+```
+DEVIL'S ADVOCATE for: [idea name]
+
+1. ASSUMPTIONS: What must be true for this to work?
+2. FAILURE: How could this fail catastrophically?
+3. SIMPLER: What's the 10x simpler alternative?
+4. SCALE: What breaks at 10x load?
+5. MAINTENANCE: What's the 2-year cost?
+
+Severity: [Critical|High|Medium|Low] per concern
+```
+
+
+### Divergent Techniques
+
+# Divergent Techniques
+
+Generate 10+ ideas without filtering. Quantity over quality in early phases prevents premature convergence.
+
+## Techniques
+
+### SCAMPER
+Modify existing solutions systematically:
+- **S**ubstitute: What can replace a component?
+- **C**ombine: Merge two approaches?
+- **A**dapt: Borrow from another domain?
+- **M**odify: Change scale, shape, or form?
+- **P**ut to other use: Repurpose existing code?
+- **E**liminate: Remove complexity?
+- **R**earrange: Change sequence or flow?
+
+**Use when:** Improving existing features or patterns.
+
+### Mind Mapping
+Radiate from central topic, no filtering:
+1. Write topic in center
+2. Branch primary themes (tech, UX, data, security)
+3. Sub-branch specific ideas per theme
+4. Connect related branches
+
+**Use when:** Exploring unfamiliar problem spaces.
+
+### Reverse Brainstorming
+Ask "How could we make this fail?" then invert:
+1. List ways to guarantee failure
+2. Flip each into success criteria
+3. Generate ideas that achieve those criteria
+
+**Use when:** Risk-heavy decisions, security features.
+
+### Round-Robin
+Each agent contributes sequentially:
+1. Agent A proposes approach
+2. Agent B builds on or pivots from A
+3. Agent C adds new dimension
+4. Repeat until 10+ ideas
+
+**Use when:** Multi-domain topics needing diverse expertise.
+
+## Selection Guide
+
+| Situation | Technique |
+|-----------|-----------|
+| Extending existing system | SCAMPER |
+| Greenfield design | Mind Mapping |
+| Security/reliability focus | Reverse Brainstorming |
+| Cross-functional topic | Round-Robin |
+
+
+### Evaluation Rubric
+
+# Evaluation Rubric
+
+Rate each idea 0-10 across five dimensions with weighted scoring.
+
+## Dimensions
+
+| Dimension | Weight | Description |
+|-----------|--------|-------------|
+| **Impact** | 0.25 | Value delivered to users/business |
+| **Effort** | 0.20 | Implementation complexity (invert: low effort = high score) |
+| **Risk** | 0.20 | Technical/business risk (invert: low risk = high score) |
+| **Alignment** | 0.20 | Fit with existing architecture and patterns |
+| **Innovation** | 0.15 | Novelty and differentiation |
+
+## Scoring Scale
+
+| Score | Label | Criteria |
+|-------|-------|----------|
+| 9-10 | Excellent | Clearly best-in-class |
+| 7-8 | Good | Strong with minor concerns |
+| 5-6 | Adequate | Acceptable, notable trade-offs |
+| 3-4 | Weak | Significant drawbacks |
+| 0-2 | Poor | Fundamental issues |
+
+## Composite Formula
+
+```
+composite = impact * 0.25 + (10 - effort) * 0.20 + (10 - risk) * 0.20 + alignment * 0.20 + innovation * 0.15
+```
+
+## Devil's Advocate Adjustment
+
+| Finding | Adjustment |
+|---------|------------|
+| 1+ critical concerns | Multiply by 0.70 |
+| 3+ high concerns | Multiply by 0.85 |
+| No critical/high | No adjustment |
+
+## Example
+
+| Idea | Impact | Effort | Risk | Align | Innov | Raw | DA | Final |
+|------|--------|--------|------|-------|-------|-----|-----|-------|
+| JWT+Redis | 8 | 4 | 3 | 9 | 6 | 7.65 | 0 | **7.65** |
+| Session-only | 6 | 2 | 2 | 8 | 3 | 7.05 | 0 | **7.05** |
+| Custom tokens | 9 | 8 | 7 | 5 | 9 | 5.55 | 1 crit | **3.89** |
+
+
+### Example Session Auth
+
+# Example Session: Authentication Storage Design
+
+This complete example demonstrates the brainstorming workflow for designing an authentication storage solution.
+
+## Context
+
+User request: "I need to add authentication to my web app but I'm not sure how to store the auth data."
+
+## Phase 1: Understanding
+
+### Question 1 (Clarification)
+**Using AskUserQuestion tool:**
+
+```
+Question: "Where should the authentication data be stored?"
+Header: "Storage Location"
+Options:
+  - "Session storage"
+    Description: Clears on tab close, more secure, no cross-tab access
+  - "Local storage"
+    Description: Persists across sessions, more convenient, cross-tab access
+  - "Cookies"
+    Description: Works with SSR, compatible with older browsers, sent with requests
+  - "Server-side session"
+    Description: Most secure, requires backend session store, scales with infrastructure
+```
+
+**User selects:** "Cookies" (needs SSR compatibility)
+
+### Question 2 (Constraints)
+**Using AskUserQuestion tool:**
+
+```
+Question: "What's the primary security concern for this application?"
+Header: "Security Level"
+Options:
+  - "Basic protection"
+    Description: Standard security, public-facing app, low-risk data
+  - "Enhanced security"
+    Description: Financial data, user PII, requires CSRF protection
+  - "Maximum security"
+    Description: Healthcare/banking, requires encryption, audit logs
+```
+
+**User selects:** "Enhanced security" (handling user PII)
+
+### Question 3 (Success Criteria)
+**Open-ended:** "What would successful authentication look like for your users?"
+
+**User response:** "Users stay logged in for 7 days, can log out from any device, get notified of new logins"
+
+### Phase 1 Summary
+- **Storage:** Cookies (for SSR compatibility)
+- **Security:** Enhanced (CSRF protection, PII handling)
+- **Requirements:** 7-day sessions, multi-device logout, login notifications
+
+## Phase 2: Exploration
+
+### Proposed Approaches
+
+**Using AskUserQuestion tool:**
+
+```
+Question: "Which authentication architecture should we use?"
+Header: "Auth Architecture"
+Options:
+  - "JWT in httpOnly cookie"
+    Description: Stateless, scales easily, can't revoke tokens early, 7-day expiry matches requirement
+  - "Session ID with Redis"
+    Description: Stateful, instant revocation, requires Redis infrastructure, supports multi-device logout
+  - "JWT + Refresh Token"
+    Description: Balanced, short-lived JWT (15min) + long refresh token, instant revocation of refresh, more complex
+```
+
+**Trade-off Discussion:**
+
+| Approach | Pros | Cons | Complexity |
+|----------|------|------|------------|
+| JWT Only | Simple, stateless, no backend state | Can't revoke before expiry, all-or-nothing | Low |
+| Session+Redis | Instant revocation, multi-device control | Requires Redis, more infrastructure | Medium |
+| JWT+Refresh | Best of both, short-lived access token | More endpoints, token refresh logic | Medium-High |
+
+**User selects:** "Session ID with Redis" (needs instant revocation for multi-device logout)
+
+## Phase 3: Design Presentation
+
+### Section 1: Architecture Overview
+
+**Present:**
+```
+Authentication Flow:
+1. User logs in → Backend validates credentials
+2. Backend creates session in Redis (7-day TTL)
+3. Backend returns httpOnly cookie with session ID
+4. Client sends cookie with each request
+5. Backend validates session ID against Redis
+6. On logout → Delete session from Redis
+
+Session Structure in Redis:
+{
+  "user_id": "123",
+  "created_at": "2024-01-15T10:30:00Z",
+  "device_info": "Chrome/Mac",
+  "last_active": "2024-01-15T10:35:00Z"
+}
+```
+
+**Validate:** "Does this architecture handle your multi-device logout requirement?"
+
+**User feedback:** "Yes, but how do we notify about new logins?"
+
+### Section 2: Multi-Device Management
+
+**Present:**
+```
+Session Management:
+- Store all active sessions per user in Redis set: `user:123:sessions`
+- Each login creates new session, adds to set
+- On login, check if >3 sessions → send email notification
+- Logout from one device → remove that session ID
+- "Logout all devices" → delete entire session set
+
+Notification Logic:
+- On new session creation:
+  1. Check if user has existing sessions
+  2. If yes → trigger notification email/push
+  3. Include: device info, IP, timestamp, "Not you?" link
+```
+
+**Validate:** "Does this notification approach work for your use case?"
+
+**User feedback:** "Perfect, let's proceed"
+
+### Section 3: Security Implementation
+
+**Present:**
+```
+Security Measures:
+1. httpOnly cookies (prevent XSS theft)
+2. Secure flag (HTTPS only)
+3. SameSite=Lax (CSRF protection)
+4. 7-day max age, sliding window on activity
+5. CSRF token in separate header for mutations
+6. Rate limiting on login endpoint (5 attempts/15min)
+
+Cookie Setup:
+Set-Cookie: session_id=abc123;
+  HttpOnly;
+  Secure;
+  SameSite=Lax;
+  Max-Age=604800;
+  Path=/
+```
+
+**Validate:** "Does this meet your enhanced security requirement?"
+
+**User feedback:** "Yes, looks good"
+
+## Final Design Summary
+
+**Storage:** Session ID in httpOnly cookie
+**Backend:** Redis for session storage (7-day TTL)
+**Multi-device:** Session set per user, email notifications
+**Security:** httpOnly + Secure + SameSite + CSRF tokens
+**Logout:** Single-device and all-devices support
+
+## Implementation Notes
+
+- Use Redis with persistence (AOF or RDB)
+- Consider session cleanup job for expired entries
+- Monitor Redis memory usage
+- Log all authentication events for audit
+
+## Key Takeaways
+
+1. **Cookie choice was validated early** (Phase 1) → No rework needed
+2. **Trade-offs were explicit** (Phase 2) → User made informed choice
+3. **Design was validated incrementally** (Phase 3) → Caught notification requirement early
+4. **Security was specific** → Actual cookie configuration provided
+
+This prevented a common pitfall: building JWT auth and realizing multi-device logout is impossible without a backend state store.
+
+
+### Example Session Dashboard
+
+# Example Session: Real-Time Dashboard Design
+
+This complete example demonstrates brainstorming workflow for a real-time analytics dashboard.
+
+## Context
+
+User request: "Build me a real-time dashboard to track user activity on my SaaS app."
+
+## Phase 1: Understanding
+
+### Question 1 (Purpose)
+**Open-ended:** "What specific user activities do you want to track on this dashboard?"
+
+**User response:** "Logins, API calls, errors, active users right now."
+
+### Question 2 (Constraints)
+**Using AskUserQuestion tool:**
+
+```
+Question: "What's your data volume and update frequency?"
+Header: "Scale Requirements"
+Options:
+  - "Low volume"
+    Description: <1000 users, updates every 5-10 seconds acceptable
+  - "Medium volume"
+    Description: 1k-50k users, need 1-2 second updates
+  - "High volume"
+    Description: >50k users, need sub-second updates, streaming data
+```
+
+**User selects:** "Medium volume" (10k users, 2-second updates okay)
+
+### Question 3 (Success Criteria)
+**Open-ended:** "What decisions will you make based on this dashboard?"
+
+**User response:** "Spot issues quickly (error spikes), see if marketing campaigns are working (login spikes), monitor API health."
+
+### Phase 1 Summary
+- **Metrics:** Logins, API calls, errors, active users
+- **Scale:** 10k users, 2-second update frequency
+- **Goal:** Issue detection, campaign tracking, API health monitoring
+
+## Phase 2: Exploration
+
+### Proposed Approaches
+
+**Using AskUserQuestion tool:**
+
+```
+Question: "Which data pipeline architecture should we use?"
+Header: "Pipeline Design"
+Options:
+  - "Database polling"
+    Description: Query DB every 2 seconds, simple setup, may strain DB at scale
+  - "Server-Sent Events (SSE)"
+    Description: Push updates from server, real-time, keeps connections open
+  - "WebSockets with aggregation"
+    Description: Bidirectional real-time, more complex, supports filters
+```
+
+**Trade-off Analysis:**
+
+| Approach | Real-time | Complexity | Scalability | Cost |
+|----------|-----------|------------|-------------|------|
+| DB Polling | 2s delay | Low | Limited (DB strain) | Low |
+| SSE | Instant | Medium | Good (one-way) | Medium |
+| WebSockets | Instant | High | Excellent | High (connection overhead) |
+
+**Additional consideration:** "For 10k users with 2-second updates, SSE is optimal. WebSockets are overkill since you don't need bidirectional communication."
+
+**User selects:** "Server-Sent Events" (fits requirements, reasonable complexity)
+
+## Phase 3: Design Presentation
+
+### Section 1: Data Flow Architecture
+
+**Present:**
+```
+Data Pipeline:
+1. Application events → Message queue (Redis Streams)
+2. Aggregation worker → Process events every 1 second
+3. Aggregate results → Store in Redis cache (2-second TTL)
+4. SSE endpoint → Push aggregated data to dashboard
+5. Dashboard → Render charts with new data
+
+Components:
+- Event Producer: Application server (logs events to Redis Stream)
+- Aggregation Worker: Node.js worker (consumes stream, calculates metrics)
+- Cache Layer: Redis (stores last 60 seconds of aggregated data)
+- SSE Server: Express.js endpoint (/api/dashboard/stream)
+- Frontend: React + Chart.js (renders real-time updates)
+```
+
+**Validate:** "Does this flow make sense for tracking your user activities?"
+
+**User feedback:** "Yes, but what happens if dashboard disconnects?"
+
+### Section 2: Connection Handling
+
+**Present:**
+```
+SSE Connection Management:
+1. On disconnect → Client auto-reconnects with exponential backoff
+2. On reconnect → Server sends last 60s of cached data (catch-up)
+3. Heartbeat every 30s → Keep connection alive
+4. If aggregation worker fails → Fallback to DB polling (degraded mode)
+
+Reconnection Logic:
+- 1st attempt: Immediate
+- 2nd attempt: 1 second delay
+- 3rd attempt: 2 second delay
+- Max delay: 30 seconds
+- Give up after: 5 minutes (show "Reconnecting..." UI)
+
+Catch-up Strategy:
+- Server tracks last event ID per client
+- On reconnect, client sends: Last-Event-ID header
+- Server replays events since that ID (max 60s buffer)
+```
+
+**Validate:** "Does this handle disconnections appropriately?"
+
+**User feedback:** "Great, what about the actual metrics?"
+
+### Section 3: Metrics & Visualization
+
+**Present:**
+```
+Dashboard Metrics (auto-updating every 2s):
+
+1. Active Users (right now)
+   - Metric: Count of unique user_ids in last 5 minutes
+   - Visualization: Large number with sparkline
+   - Alert: Red if drops >50% from baseline
+
+2. Logins (per minute)
+   - Metric: Count of login events in rolling 1-minute window
+   - Visualization: Line chart (last 30 minutes)
+   - Alert: Green spike if >2x baseline (campaign success)
+
+3. API Calls (per second)
+   - Metric: Count of API events per second
+   - Visualization: Area chart (last 10 minutes)
+   - Alert: Yellow if >80% of rate limit
+
+4. Error Rate (percentage)
+   - Metric: (Error count / Total requests) * 100
+   - Visualization: Line chart with threshold markers
+   - Alert: Red if >5%
+
+Data Retention:
+- Real-time view: Last 60 minutes (Redis)
+- Historical: Last 30 days (TimescaleDB)
+- Switch view: Toggle between "Last hour" and "Today"
+```
+
+**Validate:** "Do these metrics and visualizations match what you need?"
+
+**User feedback:** "Perfect, this covers everything"
+
+## Final Design Summary
+
+**Architecture:** Redis Streams → Aggregation Worker → Redis Cache → SSE → React Dashboard
+
+**Metrics:**
+- Active users (5-min window)
+- Logins per minute (30-min chart)
+- API calls per second (10-min chart)
+- Error rate percentage (with alerts)
+
+**Resilience:**
+- Auto-reconnect with backoff
+- 60-second event replay on reconnect
+- Fallback to polling if worker fails
+- Heartbeat keep-alive
+
+**Data Storage:**
+- Real-time: Redis (60 minutes)
+- Historical: TimescaleDB (30 days)
+
+## Implementation Priorities
+
+1. **Phase 1:** Basic SSE endpoint + 4 metrics (2-3 days)
+2. **Phase 2:** Reconnection logic + error handling (1 day)
+3. **Phase 3:** Historical view + TimescaleDB (2 days)
+4. **Phase 4:** Alerting system (optional, 1 day)
+
+## Key Takeaways
+
+1. **Chose SSE over WebSockets** → Simpler, fits requirements (no bidirectional needed)
+2. **Redis Streams for events** → Natural fit for streaming data
+3. **60-second replay buffer** → Handles disconnections gracefully
+4. **Degraded mode fallback** → System stays functional even if worker fails
+5. **Clear alert thresholds** → Makes dashboard actionable, not just informational
+
+## What Was Avoided
+
+- **Mistake 1:** Starting with WebSockets → Would be overengineered
+- **Mistake 2:** Polling database directly → Would strain DB at 10k users
+- **Mistake 3:** No reconnection strategy → Poor user experience on network issues
+- **Mistake 4:** Storing everything in memory → Would lose data on restart
+
+This design validates requirements early and makes explicit trade-offs before implementation.
+
+
+### Phase Workflow
+
+# Brainstorming Phase Workflow
+
+Detailed instructions for the 7-phase brainstorming process.
+
+## Phase 0: Project Context Discovery & Agent Selection
+
+**Goal:** Detect project tier, then identify topic domain and select relevant agents.
+
+### Step 0: Detect Project Tier
+
+Before analyzing the topic, classify the project into one of 6 tiers (see `scope-appropriate-architecture` skill). This tier becomes the **complexity ceiling** for all ideas generated in later phases.
+
+**Tier impacts on brainstorming:**
+- **Tier 1-2 (Interview/Hackathon):** Skip complex patterns entirely. Ideas should focus on simplicity and directness. Limit to 5 ideas max.
+- **Tier 3 (MVP):** Prefer managed services and monolith patterns. Flag any microservice or event-driven idea as OVERKILL.
+- **Tier 4-5 (Growth/Enterprise):** Full brainstorming with all patterns available.
+- **Tier 6 (Open Source):** Focus on API design, extensibility, and backwards compatibility.
+
+**Include tier context in EVERY agent prompt:**
+```
+PROJECT TIER: {tier_name} (Tier {N})
+COMPLEXITY CEILING: {ceiling_description}
+Do NOT suggest patterns marked OVERKILL for this tier in the scope-appropriate-architecture matrix.
+```
+
+### Step 1: Classify Topic Keywords
+
+| Domain | Keywords to Detect |
+|--------|-------------------|
+| **Backend/API** | api, endpoint, REST, GraphQL, backend, server, route |
+| **Frontend/UI** | UI, component, React, frontend, page, form, dashboard |
+| **Database** | database, schema, query, SQL, PostgreSQL, migration |
+| **Auth/Security** | auth, login, JWT, OAuth, security, permission, role |
+| **AI/LLM** | AI, LLM, RAG, embeddings, prompt, agent, workflow |
+| **Performance** | performance, slow, optimize, cache, speed, latency |
+| **Testing** | test, coverage, quality, e2e, unit, integration |
+| **DevOps** | deploy, CI/CD, Docker, Kubernetes, infrastructure |
+
+### Step 2: Select Agents
+
+| Detected Domain | Primary Agents | Skills to Read |
+|-----------------|----------------|----------------|
+| Backend/API | `backend-system-architect`, `security-auditor` | api-design-framework |
+| Frontend/UI | `frontend-ui-developer`, `ux-researcher` | design-system-starter |
+| Database | `backend-system-architect` | database-schema-designer |
+| Auth/Security | `security-auditor`, `backend-system-architect` | auth-patterns |
+| AI/LLM | `llm-integrator`, `workflow-architect` | rag-retrieval |
+| Performance | `frontend-performance-engineer` | performance |
+
+**Always include:** `workflow-architect` (system design perspective)
+
+---
+
+## Phase 1: Memory + Codebase Context
+
+```python
+# Check knowledge graph for past decisions
+mcp__memory__search_nodes(query="{topic}")
+
+# Quick codebase scan (PARALLEL)
+Grep(pattern="{keywords}", output_mode="files_with_matches")
+Glob(pattern="**/*{topic}*")
+```
+
+---
+
+## Phase 2: Divergent Exploration
+
+**CRITICAL:** Generate 10+ ideas WITHOUT filtering. Quantity over quality.
+
+```python
+# Launch ALL agents in ONE message
+Task(subagent_type="workflow-architect", prompt="...", run_in_background=True)
+Task(subagent_type="security-auditor", prompt="...", run_in_background=True)
+Task(subagent_type="backend-system-architect", prompt="...", run_in_background=True)
+```
+
+**Divergent mindset instruction for agents:**
+```
+PROJECT TIER: {tier_name} (Tier {N})
+COMPLEXITY CEILING: {ceiling_description}
+
+DIVERGENT MODE: Generate as many approaches as possible.
+- Do NOT filter or critique ideas in this phase
+- Include unconventional, "crazy" approaches
+- Target: At least 3-4 distinct approaches
+- CONSTRAINT: Do NOT suggest patterns marked OVERKILL for Tier {N}
+```
+
+---
+
+## Phase 3: Feasibility Fast-Check
+
+30-second viability assessment per idea.
+
+| Score | Label | Action |
+|-------|-------|--------|
+| 0-2 | Infeasible | Drop immediately |
+| 3-5 | Challenging | Keep (flag risks) |
+| 6-8 | Feasible | Keep for evaluation |
+| 9-10 | Easy | Keep (may be too simple) |
+
+---
+
+## Phase 4: Evaluation & Rating
+
+See `evaluation-rubric.md` for scoring criteria.
+See `devils-advocate-prompts.md` for challenge templates.
+
+### Composite Score Formula
+
+```python
+composite = (
+    impact * 0.25 +
+    (10 - effort) * 0.20 +
+    (10 - risk) * 0.20 +
+    alignment * 0.20 +
+    innovation * 0.15
+)
+
+# Devil's advocate adjustment
+if critical_concerns > 0:
+    composite *= 0.7  # 30% penalty
+```
+
+---
+
+## Phase 5: Synthesis
+
+1. Filter to top 2-3 approaches
+2. Merge perspectives from all agents
+3. Build comprehensive trade-off table
+4. Present to user with scores
+
+```python
+AskUserQuestion(questions=[{
+  "question": "Which approach fits your needs?",
+  "header": "Design Options",
+  "options": [
+    {"label": "Option A (7.8/10)", "description": "..."},
+    {"label": "Option B (7.5/10)", "description": "..."}
+  ]
+}])
+```
+
+---
+
+## Phase 6: Design Presentation
+
+Present in 200-300 word sections:
+1. Architecture Overview
+2. Component Details
+3. Data Flow
+4. Error Handling
+5. Security Considerations
+6. Implementation Priorities
+
+After each section: "Does this look right so far?"
+
+```python
+# Store decision in memory
+mcp__memory__create_entities(entities=[{
+  "name": "{topic}-design-decision",
+  "entityType": "Decision",
+  "observations": ["Chose {approach} because {rationale}"]
+}])
+```
+
+
+### Socratic Questions
+
+# Socratic Questioning Templates
+
+Use these templates to guide requirements discovery through structured questioning.
+
+## Purpose Discovery
+
+**Goal:** Understand the "why" behind the feature.
+
+- "What problem does this solve for your users?"
+- "What happens if we don't build this?"
+- "How will success be measured?"
+- "Who is the primary user of this feature?"
+- "What's the most important outcome?"
+
+## Constraint Identification
+
+**Goal:** Uncover limitations and requirements.
+
+- "Are there performance requirements? (e.g., must load in &lt; 2s)"
+- "What's the expected scale? (users, data volume, requests/sec)"
+- "Are there compliance requirements? (GDPR, HIPAA, SOC2)"
+- "What's the timeline/budget constraint?"
+- "What existing systems must this integrate with?"
+
+## Trade-Off Exploration
+
+**Goal:** Make implicit preferences explicit.
+
+- "Would you prefer faster development or better performance?"
+- "Is flexibility more important than simplicity?"
+- "Should this be user-friendly or developer-friendly?"
+- "Optimize for: build speed, maintainability, or scalability?"
+- "What's more critical: feature completeness or time-to-market?"
+
+## Alternative Exploration
+
+**Goal:** Ensure consideration of all viable approaches.
+
+- "What if we didn't build this at all? What's the workaround?"
+- "How would [competitor] solve this?"
+- "Could we start with a simpler version? What's the MVP?"
+- "What if we had unlimited time/budget? What would we add?"
+- "What approaches have you already rejected? Why?"
+
+## Questioning Best Practices
+
+1. **One question at a time** - Don't overwhelm with multiple questions
+2. **Wait for answers** - Let conversation flow naturally
+3. **Follow threads** - Ask follow-up questions based on answers
+4. **Summarize understanding** - "So you need X because of Y?"
+
+
+
+---
+
+## Checklists (2)
+
+### Brainstorm Completion
+
+# Brainstorm Completion Checklist
+
+Verify brainstorm quality before concluding.
+
+## Divergent Phase
+
+- [ ] Generated 10+ distinct ideas (quantity over quality)
+- [ ] Used at least one divergent technique (SCAMPER, Mind Map, Reverse, Round-Robin)
+- [ ] Included unconventional "crazy" ideas
+- [ ] Did NOT filter during generation
+
+## Feasibility Check
+
+- [ ] Quick viability assessed for all ideas (30s per idea)
+- [ ] Infeasible ideas (score 0-2) dropped
+- [ ] Risks flagged for challenging ideas (score 3-5)
+
+## Evaluation Phase
+
+- [ ] Scored all five dimensions (Impact, Effort, Risk, Alignment, Innovation)
+- [ ] Applied weighted composite formula
+- [ ] Ran devil's advocate challenge on top 3-5 ideas
+- [ ] Adjusted scores for critical/high concerns
+
+## Synthesis
+
+- [ ] Filtered to top 2-3 approaches
+- [ ] Trade-off table complete
+- [ ] Presented options with scores to user
+
+## Documentation
+
+- [ ] Decision stored in knowledge graph
+- [ ] Tasks marked complete
+- [ ] ADR created if architectural decision
+
+
+### Brainstorm Session Checklist
+
+# Brainstorming Session Checklist
+
+Use this checklist to facilitate effective brainstorming sessions that transform rough ideas into actionable implementation plans.
+
+---
+
+## Pre-Session Preparation
+
+### Context Gathering
+- [ ] **Read the initial idea/request** - What is the user actually asking for?
+- [ ] **Identify the problem domain** - Backend, frontend, infrastructure, process, UX?
+- [ ] **Check existing system constraints** - Review architecture docs, tech stack, current capabilities
+- [ ] **Review similar features** - Has this been attempted before? What can we learn?
+- [ ] **Estimate time available** - Sprint timeline, team capacity, dependencies
+
+### Stakeholder Identification
+- [ ] **Primary user** - Who will use this feature?
+- [ ] **Secondary users** - Who else is impacted?
+- [ ] **Decision makers** - Who approves this?
+- [ ] **Implementation team** - Who will build this?
+
+---
+
+## Phase 1: Exploration (Socratic Questioning)
+
+### Foundational Questions
+- [ ] **Who** is this for?
+  - Primary user persona
+  - User skill level (beginner, intermediate, expert)
+  - Team size (solo, small team, enterprise)
+
+- [ ] **What** problem does this solve?
+  - Current pain point
+  - Workarounds users are doing today
+  - Impact if not solved (low, medium, high, critical)
+
+- [ ] **When** does this problem occur?
+  - User workflow stage
+  - Frequency (daily, weekly, rare)
+  - Time-sensitive vs. async
+
+- [ ] **Where** in the system does this fit?
+  - Existing feature enhancement vs. net-new
+  - Integration points with other features
+  - User journey touchpoints
+
+- [ ] **Why** now?
+  - Strategic priority
+  - Market pressure
+  - Technical debt reduction
+
+- [ ] **How** is this currently done?
+  - Manual workarounds
+  - External tools
+  - Cost of current solution
+
+### Depth Questions (Ask 2-3 levels deep)
+- [ ] "Can you give me an example of when this happened?"
+- [ ] "What did you try that didn't work?"
+- [ ] "What would success look like in 6 months?"
+- [ ] "If we could only solve one part, which part matters most?"
+- [ ] "What assumptions are we making?"
+
+---
+
+## Phase 2: Constraint Analysis
+
+### Technical Constraints
+- [ ] **Technology stack** - What tools/libraries are available?
+- [ ] **Performance requirements** - Latency, throughput, scale
+- [ ] **Data constraints** - Volume, retention, privacy/security
+- [ ] **Integration points** - APIs, webhooks, third-party services
+- [ ] **Browser/platform support** - Desktop, mobile, accessibility
+
+### Resource Constraints
+- [ ] **Time** - Sprint duration, deadline, phased rollout?
+- [ ] **Team** - Available developers, skill levels, concurrent work
+- [ ] **Budget** - Infrastructure costs, third-party services
+- [ ] **Dependencies** - Blocked by other features? Auth, payments, etc.
+
+### User Experience Constraints
+- [ ] **Learning curve** - Matches user skill level?
+- [ ] **Accessibility** - WCAG compliance, keyboard navigation
+- [ ] **Mobile-first vs. desktop-first** - Primary usage context
+- [ ] **Offline support** - Required or nice-to-have?
+- [ ] **Internationalization** - Multiple languages needed?
+
+---
+
+## Phase 3: Solution Generation
+
+### Create Multiple Variants (Aim for 3 options)
+
+**For each option, document:**
+
+#### Option Name (e.g., "MVP", "Standard", "Advanced")
+- [ ] **What:** 2-3 sentence description of the solution
+- [ ] **Scope:** List of included features (bullet points)
+- [ ] **Excluded:** What's explicitly NOT included
+- [ ] **Time estimate:** Days/weeks for implementation
+- [ ] **Pros:** 3-5 advantages
+- [ ] **Cons:** 3-5 disadvantages or risks
+- [ ] **Example user flow:** Step-by-step scenario (5-7 steps)
+- [ ] **Technical approach:** Key technologies/patterns
+
+---
+
+## Phase 4: Evaluation & Decision
+
+### Create Decision Matrix
+
+**Criteria to evaluate (customize per project):**
+- [ ] **Time to value** - How quickly can users benefit?
+- [ ] **Solves core problem** - Fully, partially, or tangentially?
+- [ ] **Technical risk** - Low, medium, high complexity
+- [ ] **User experience** - Intuitive, learnable, complex
+- [ ] **Scalability** - Handles growth (users, data, features)
+- [ ] **Maintainability** - Easy to debug, extend, document
+- [ ] **Enables future work** - Unlocks other features vs. dead-end
+- [ ] **Cost** - Infrastructure, development, ongoing maintenance
+
+### Scoring
+- [ ] Rate each option (1-5 scale or Low/Med/High)
+- [ ] Identify deal-breakers (e.g., "Exceeds sprint timeline")
+- [ ] Calculate weighted scores if needed
+
+### Recommendation
+- [ ] **Chosen option:** Which variant and why?
+- [ ] **Rationale:** 2-3 sentences explaining decision
+- [ ] **Tradeoffs acknowledged:** What are we giving up?
+- [ ] **Risks to monitor:** What could go wrong?
+
+---
+
+## Phase 5: Implementation Planning
+
+### Break Down Work
+
+**For the chosen option:**
+
+#### Backend Tasks
+- [ ] List 5-10 concrete tasks
+- [ ] Estimate effort (hours/days per task)
+- [ ] Identify dependencies (what must happen first?)
+- [ ] Tag technical risks
+
+#### Frontend Tasks
+- [ ] List 5-10 concrete tasks
+- [ ] Estimate effort (hours/days per task)
+- [ ] Identify shared components/utilities needed
+- [ ] Tag UX decision points
+
+#### Testing Tasks
+- [ ] Unit tests for new logic
+- [ ] Integration tests for API interactions
+- [ ] E2E tests for critical user flows
+- [ ] Performance/load testing if needed
+
+#### Documentation Tasks
+- [ ] API documentation
+- [ ] User-facing docs
+- [ ] Internal architecture notes
+- [ ] Migration guides (if applicable)
+
+### Create Timeline
+- [ ] **Day 1-2:** [Tasks]
+- [ ] **Day 3-4:** [Tasks]
+- [ ] **Day 5+:** [Tasks]
+- [ ] **Buffer:** Reserve 20-30% time for unknowns
+
+---
+
+## Phase 6: Success Metrics
+
+### Define Success
+
+#### Quantitative Metrics
+- [ ] **Adoption:** What % of users will use this?
+- [ ] **Engagement:** How often (daily, weekly)?
+- [ ] **Performance:** Latency, uptime, error rate targets
+- [ ] **Business impact:** Revenue, retention, cost savings
+
+#### Qualitative Metrics
+- [ ] **User satisfaction:** Survey ratings, NPS
+- [ ] **User feedback:** Common praise/complaints
+- [ ] **Observation:** Behavior changes noted
+
+### Rollback Criteria
+- [ ] **Performance degradation:** What's unacceptable?
+- [ ] **Error rates:** Threshold for disabling feature
+- [ ] **User complaints:** Volume/severity trigger
+- [ ] **Business impact:** Negative outcomes to watch
+
+---
+
+## Post-Session Documentation
+
+### Create RFC or Design Doc
+- [ ] **Title:** Clear, descriptive name
+- [ ] **Summary:** 2-3 sentences
+- [ ] **Problem statement:** From exploration phase
+- [ ] **Proposed solution:** Chosen option
+- [ ] **Alternatives considered:** Other options + why rejected
+- [ ] **Implementation plan:** Timeline and tasks
+- [ ] **Success metrics:** How we'll measure
+- [ ] **Risks:** What could go wrong
+- [ ] **Open questions:** What's still TBD
+
+### Share with Team
+- [ ] Post RFC in team channel (Slack, Discord, etc.)
+- [ ] Tag relevant stakeholders for review
+- [ ] Set feedback deadline (24-48 hours)
+- [ ] Schedule sync meeting if needed (complex changes)
+
+### Create Actionable Issues
+- [ ] Create GitHub/Jira issue with implementation plan
+- [ ] Tag with appropriate labels (feature, backend, frontend, etc.)
+- [ ] Assign to sprint/milestone
+- [ ] Link to RFC/design doc
+
+---
+
+## Session Anti-Patterns to Avoid
+
+### Common Pitfalls
+- [ ] ❌ **Jumping to solutions** - Explore the problem first (5W1H)
+- [ ] ❌ **Analysis paralysis** - Aim for 3 options, not 10
+- [ ] ❌ **Ignoring constraints** - Be realistic about time/resources
+- [ ] ❌ **Missing user voice** - Ground in real user needs
+- [ ] ❌ **Vague estimates** - "A few days" → "3-5 days"
+- [ ] ❌ **Skipping tradeoffs** - Every solution has pros AND cons
+- [ ] ❌ **No decision** - End with clear recommendation
+- [ ] ❌ **No next steps** - Create issues/tasks immediately
+
+---
+
+## Example Session Flow (30-45 minutes)
+
+**Minute 0-10: Exploration**
+- Ask 5W1H questions
+- Dig 2-3 levels deep
+- Document user context
+
+**Minute 10-15: Constraints**
+- List technical limitations
+- Check time/resource budget
+- Identify dependencies
+
+**Minute 15-30: Solution Generation**
+- Create 3 options (MVP, Standard, Advanced)
+- Document pros/cons for each
+- Write example user flows
+
+**Minute 30-40: Evaluation**
+- Score options against criteria
+- Make recommendation
+- Acknowledge tradeoffs
+
+**Minute 40-45: Next Steps**
+- Create implementation task list
+- Define success metrics
+- Assign follow-up actions
+
+---
+
+## Template Prompts
+
+### Starting a Session
+> "I have an idea: [rough idea]. Can you help me refine this into an actionable plan?"
+
+### When Stuck
+> "We've explored [option A] and [option B]. What other approaches should we consider?"
+
+### When Overcomplicating
+> "This feels complex. What's the simplest version that solves the core problem?"
+
+### When Missing Context
+> "What assumptions are we making? What don't we know yet?"
+
+### Ending the Session
+> "Based on our discussion, what should we build first?"
+
+---
+
+**Remember:** Great brainstorming is 70% asking questions, 20% generating options, 10% deciding. Resist the urge to code immediately—clarity saves days of rework.
+
+
+
+---
+
+## Examples (1)
+
+### Orchestkit Feature Brainstorm
+
+# Example: OrchestKit Feature Brainstorming Session
+
+## Feature Idea: Real-Time Collaborative Analysis Review
+
+**Initial Request:**
+"We should let multiple users review analysis results together, maybe like Google Docs but for technical content analysis."
+
+---
+
+## Phase 1: Clarifying Questions (Socratic Exploration)
+
+**Agent:** Let's explore this idea through some foundational questions:
+
+1. **Who is the primary user?**
+   - Solo developers reviewing their own analyses?
+   - Teams reviewing analyses before implementation?
+   - Educational settings (instructor + students)?
+
+2. **What problem does this solve?**
+   - Is asynchronous commenting insufficient?
+   - Do users need to see changes in real-time?
+   - Is this about reducing review cycles or improving quality?
+
+3. **When would users collaborate?**
+   - During initial analysis (watching agents work)?
+   - After completion (reviewing artifacts)?
+   - During implementation (referencing analysis)?
+
+4. **How does this fit OrchestKit's core value?**
+   - OrchestKit generates implementation guides from technical content
+   - Is collaboration about improving analysis inputs or outputs?
+   - Does this enhance learning or just convenience?
+
+---
+
+## Phase 2: User Responses & Refinement
+
+**User:** "Mainly teams reviewing analyses after completion. Current workflow has devs analyzing content separately, then discussing in Slack. We lose context switching between OrchestKit and Slack."
+
+**Agent:** Excellent context! This narrows scope significantly. Let's refine:
+
+**Refined Problem Statement:**
+Teams using OrchestKit lose context when discussing analyses outside the platform, leading to fragmented feedback and slower implementation decisions.
+
+**Next-Level Questions:**
+
+1. **What specific actions do teams take during review?**
+   - Highlighting relevant chunks?
+   - Questioning agent findings?
+   - Proposing implementation changes?
+   - Voting on next steps?
+
+2. **What information needs to be synchronized?**
+   - Cursor positions? (high complexity)
+   - Comments/annotations? (medium complexity)
+   - Presence indicators (who's viewing)? (low complexity)
+
+3. **What's the minimum viable collaboration?**
+   - Asynchronous comments with @mentions?
+   - Shared cursors and highlights?
+   - Video chat integration?
+
+---
+
+## Phase 3: Constraint Analysis
+
+**Agent:** Let's check this against OrchestKit's architecture:
+
+**Technical Constraints:**
+- ✅ Backend: FastAPI supports WebSockets (for real-time)
+- ✅ Frontend: React 19 supports Suspense (for optimistic UI)
+- ⚠️ Database: PostgreSQL needs LISTEN/NOTIFY for pub/sub
+- ❌ No existing auth system for multi-user (planned but not built)
+
+**Resource Constraints:**
+- Current sprint: 2 weeks remaining
+- Team: 2 developers (backend + frontend)
+- Dependencies: Auth system (3-5 days), WebSocket infrastructure (2-3 days)
+
+**User Experience Constraints:**
+- Can't require all reviewers to be online simultaneously
+- Must work for distributed teams (async-first)
+- Mobile support not critical (desktop-focused workflow)
+
+---
+
+## Phase 4: Solution Variants
+
+**Agent:** Based on constraints, here are 3 implementation levels:
+
+### Option A: Async Comments (MVP - 3 days)
+**What:**
+- Thread-based comments on analysis sections
+- @mentions for notifications
+- Email digest of new comments
+
+**Pros:**
+- Builds on existing artifact display
+- No WebSocket complexity
+- Works async (global teams)
+
+**Cons:**
+- Not "real-time" (user's original ask)
+- Still requires context switching to email
+
+**Example User Flow:**
+1. Alice completes analysis of "RAG Pipeline Best Practices"
+2. Shares link with team in Slack
+3. Bob adds comment: "Security analysis missing OWASP checks @alice"
+4. Alice gets email notification with context snippet
+5. Replies inline, updates analysis
+
+---
+
+### Option B: Presence + Live Comments (Standard - 7 days)
+**What:**
+- All of Option A, plus:
+- Show who's viewing the analysis (presence indicators)
+- Live comment updates via WebSockets
+- Typing indicators
+
+**Pros:**
+- Feels collaborative (see teammates' activity)
+- Reduces duplicate comments (see others typing)
+- Better for synchronous review sessions
+
+**Cons:**
+- Requires WebSocket infrastructure
+- More complex state management
+- Needs connection health monitoring
+
+**Example User Flow:**
+1. Alice shares analysis link in Slack: "Reviewing RAG pipeline analysis now"
+2. Bob clicks link, sees "Alice is viewing" badge
+3. Bob starts typing comment on Security section
+4. Alice sees "Bob is typing in Security Analysis..."
+5. Alice waits for Bob's comment before adding her own
+
+---
+
+### Option C: Full Collaborative Editing (Advanced - 14 days)
+**What:**
+- All of Option B, plus:
+- Collaborative editing of artifact summaries
+- Shared cursors and highlights
+- Conflict resolution (CRDT or OT)
+
+**Pros:**
+- True Google Docs experience
+- Can refine analyses together
+- Reduces "review → edit → re-review" cycles
+
+**Cons:**
+- High complexity (CRDT libraries)
+- Requires authentication/authorization
+- May confuse "agent-generated" vs "human-edited" content
+
+**Example User Flow:**
+1. Alice and Bob review analysis in real-time
+2. Both see shared cursors as they scroll
+3. Bob highlights "Missing: error handling patterns"
+4. Alice immediately edits artifact to add error handling section
+5. Both approve finalized artifact
+
+---
+
+## Phase 5: Decision Framework
+
+**Agent:** Let's evaluate against OrchestKit's goals:
+
+| Criteria | Option A | Option B | Option C |
+|----------|----------|----------|----------|
+| **Time to Value** | 3 days | 7 days | 14 days |
+| **Solves Context Loss** | Partial (still async) | Yes (live updates) | Yes (fully integrated) |
+| **Technical Risk** | Low | Medium | High |
+| **Matches User Skill Level** | Familiar (like GitHub) | New but intuitive | Complex (edit conflicts) |
+| **Scales to Team Size** | Excellent | Good | Requires moderation |
+| **Enables Learning** | Yes (threaded discussion) | Yes (see peer insights) | Risk (edit wars) |
+
+**Recommendation:** **Option B (Presence + Live Comments)**
+
+**Rationale:**
+1. **Addresses core problem:** Eliminates context switching while maintaining async-first design
+2. **Balances complexity:** WebSockets are proven tech, no CRDT complexity
+3. **Fits sprint:** 7 days leaves buffer for testing
+4. **Enables future:** Presence infrastructure unlocks Option C later
+
+---
+
+## Phase 6: Implementation Plan
+
+**Agent:** Here's the breakdown:
+
+### Backend (3 days)
+**Day 1: WebSocket Infrastructure**
+- [ ] Add `fastapi-websockets` dependency
+- [ ] Create `ConnectionManager` for presence tracking
+- [ ] Add `/ws/analysis/\{id\}/presence` endpoint
+- [ ] Redis pub/sub for multi-server scaling
+
+**Day 2: Comment System**
+- [ ] Database schema: `comments` table (analysis_id, user_id, section_id, content, created_at)
+- [ ] REST endpoints: POST/GET/PATCH/DELETE `/api/v1/analyses/\{id\}/comments`
+- [ ] WebSocket events: `comment.created`, `comment.updated`, `comment.deleted`
+
+**Day 3: Presence Logic**
+- [ ] Track active connections per analysis
+- [ ] Broadcast join/leave events
+- [ ] Typing indicators (debounced 1s)
+- [ ] Heartbeat ping/pong for connection health
+
+### Frontend (3 days)
+**Day 1: WebSocket Client**
+- [ ] Create `useAnalysisPresence` hook
+- [ ] Handle reconnection logic (exponential backoff)
+- [ ] Show connection status indicator
+
+**Day 2: Comments UI**
+- [ ] Comment thread component (nested replies)
+- [ ] Markdown support for code snippets
+- [ ] @mention autocomplete
+- [ ] Optimistic updates (show immediately, sync later)
+
+**Day 3: Presence UI**
+- [ ] Avatar badges for active viewers
+- [ ] Typing indicators in comment sections
+- [ ] Toast notifications for new comments
+
+### Testing (1 day)
+- [ ] Unit tests: Comment CRUD operations
+- [ ] Integration tests: WebSocket message flow
+- [ ] E2E tests: Multi-user collaboration scenario
+- [ ] Load test: 50 concurrent users on one analysis
+
+---
+
+## Phase 7: Success Metrics
+
+**Agent:** How will we know this succeeded?
+
+**Quantitative Metrics:**
+- **Adoption:** 40%+ of team analyses have comments within 1 week
+- **Engagement:** Average 3+ comments per analysis
+- **Speed:** 30% reduction in time from analysis → implementation decision
+- **Reliability:** 99.9% WebSocket uptime, &lt;100ms message latency
+
+**Qualitative Metrics:**
+- **Survey:** "Collaboration features improved our review process" (4/5 rating)
+- **Observation:** Teams stop using Slack for analysis discussions
+- **Feedback:** "Presence indicators helped us avoid duplicate comments"
+
+**Rollback Criteria:**
+- WebSocket connection failures >5%
+- User complaints about "too many notifications"
+- Performance degradation (page load >2s with active presence)
+
+---
+
+## Key Takeaways
+
+**Brainstorming Process Applied:**
+1. ✅ **Socratic questioning** transformed vague idea into specific problem
+2. ✅ **Constraint analysis** eliminated unrealistic options early
+3. ✅ **Multiple variants** provided choice with clear tradeoffs
+4. ✅ **Decision framework** aligned with project values
+5. ✅ **Implementation plan** made idea actionable
+
+**Outcome:**
+Went from "Google Docs for technical analysis" → "Async-first collaborative comments with real-time presence" in ~20 minutes of structured exploration.
+
+**Next Steps:**
+- [ ] Share this RFC with team for feedback
+- [ ] Create GitHub issue with Option B implementation plan
+- [ ] Spike: Test Redis pub/sub with FastAPI WebSockets (2 hours)
+
