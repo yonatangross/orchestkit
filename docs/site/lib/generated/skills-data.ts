@@ -242,7 +242,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "architecture-patterns": {
     "name": "architecture-patterns",
     "description": "Architecture validation and patterns for clean architecture, backend structure enforcement, project structure validation, test standards, and context-aware sizing. Use when designing system boundaries, enforcing layered architecture, validating project structure, defining test standards, or choosing the right architecture tier for project scope.",
-    "version": "2.0.0",
+    "version": "2.1.0",
     "author": "OrchestKit",
     "tags": [
       "architecture",
@@ -252,12 +252,15 @@ export const SKILLS: Record<string, SkillMeta> = {
       "enforcement",
       "testing-standards",
       "right-sizing",
-      "over-engineering"
+      "over-engineering",
+      "context-aware"
     ],
     "userInvocable": false,
     "context": "fork",
     "allowedTools": [],
-    "skills": [],
+    "skills": [
+      "scope-appropriate-architecture"
+    ],
     "agent": "backend-system-architect",
     "structure": {
       "references": [
@@ -2103,7 +2106,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "quality-gates": {
     "name": "quality-gates",
     "description": "Use when assessing task complexity, before starting complex tasks, when stuck after multiple attempts, or reviewing code against best practices. Provides quality-gates scoring (1-5), escalation workflows, and pattern library management.",
-    "version": "1.2.0",
+    "version": "1.3.0",
     "author": "OrchestKit AI Agent Hub",
     "tags": [
       "quality",
@@ -2112,12 +2115,16 @@ export const SKILLS: Record<string, SkillMeta> = {
       "escalation",
       "blocking",
       "best-practices",
-      "patterns"
+      "patterns",
+      "yagni",
+      "over-engineering"
     ],
     "userInvocable": false,
     "context": "fork",
     "allowedTools": [],
-    "skills": [],
+    "skills": [
+      "scope-appropriate-architecture"
+    ],
     "agent": "code-quality-reviewer",
     "structure": {
       "references": [

@@ -8,6 +8,21 @@ Detailed workflows for quality gate validation and task management.
 
 **When:** Before starting any task (especially Level 3-5)
 
+### Step 0: YAGNI Check
+```
+Read project tier (from scope-appropriate-architecture or auto-detect)
+For each planned architecture pattern:
+  1. Does it serve a CURRENT requirement?
+  2. Could 80% of value come from 20% of complexity?
+  3. Is this the simplest thing that could work?
+  4. Is the cost of adding later significantly higher than now?
+
+Calculate: justified_complexity = planned_LOC / tier_appropriate_LOC
+If ratio > 2.0 → BLOCK (surface simpler alternative)
+If ratio 1.5-2.0 → WARN (present alternative, get user confirmation)
+Security patterns are exempt.
+```
+
 ### Step 1: Assess Complexity
 ```
 Read task description

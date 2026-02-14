@@ -5,9 +5,10 @@ compatibility: "Claude Code 2.1.34+."
 description: Use when assessing task complexity, before starting complex tasks, when stuck after multiple attempts, or reviewing code against best practices. Provides quality-gates scoring (1-5), escalation workflows, and pattern library management.
 context: fork
 agent: code-quality-reviewer
-version: 1.2.0
+version: 1.3.0
 author: OrchestKit AI Agent Hub
-tags: [quality, complexity, planning, escalation, blocking, best-practices, patterns]
+tags: [quality, complexity, planning, escalation, blocking, best-practices, patterns, yagni, over-engineering]
+skills: [scope-appropriate-architecture]
 user-invocable: false
 complexity: max
 metadata:
@@ -57,6 +58,8 @@ This skill teaches agents how to assess task complexity, enforce quality gates, 
 
 | Condition | Threshold | Action |
 |-----------|-----------|--------|
+| **YAGNI Gate** | **Justified ratio > 2.0** | **BLOCK with simpler alternatives** |
+| YAGNI Warning | Justified ratio 1.5-2.0 | WARN with simpler alternatives |
 | Critical Questions | > 3 unanswered | BLOCK |
 | Missing Dependencies | Any blocking | BLOCK |
 | Failed Attempts | >= 3 | BLOCK & ESCALATE |
@@ -125,14 +128,22 @@ Key topics covered:
 ### Gate Decision Flow
 
 ```
+0. YAGNI check (runs FIRST — before any implementation planning)
+   → Read project tier from scope-appropriate-architecture
+   → Calculate justified_complexity = planned_LOC / tier_appropriate_LOC
+   → If ratio > 2.0: BLOCK (must simplify)
+   → If ratio 1.5-2.0: WARN (present simpler alternative)
+   → Security patterns exempt from YAGNI gate
+
 1. Assess complexity (1-5)
 2. Count critical questions unanswered
 3. Check dependencies blocked
 4. Check attempt count
 
-if (questions > 3 || deps blocked || attempts >= 3) -> BLOCK
+if (yagni_ratio > 2.0) -> BLOCK with simpler alternatives
+else if (questions > 3 || deps blocked || attempts >= 3) -> BLOCK
 else if (complexity >= 4 && no plan) -> BLOCK
-else if (complexity == 3 || questions 1-2) -> WARNING
+else if (yagni_ratio > 1.5 || complexity == 3 || questions 1-2) -> WARNING
 else -> PASS
 ```
 
@@ -212,6 +223,7 @@ Track success/failure patterns across projects to prevent repeating mistakes and
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
+| YAGNI Gate | `rules/yagni-gate.md` | Pre-implementation scope check, justified complexity ratio, simpler alternatives |
 | Pattern Library | `rules/practices-code-standards.md` | Success/failure tracking, confidence scoring, memory integration |
 | Review Checklist | `rules/practices-review-checklist.md` | Category-based review, proactive anti-pattern detection |
 
@@ -238,6 +250,8 @@ Track success/failure patterns across projects to prevent repeating mistakes and
 
 ## Version History
 
+**v1.3.0** - Added YAGNI gate as Step 0 in gate flow, justified complexity ratio (BLOCK > 2.0, WARN 1.5-2.0), scope-appropriate-architecture integration
+
 **v1.1.0** - Added LLM-as-judge quality validation, retry logic, graceful degradation, triple-consumer artifact design
 
 **v1.0.0** - Initial release with complexity scoring, blocking thresholds, stuck detection, requirements checks
@@ -250,6 +264,7 @@ Track success/failure patterns across projects to prevent repeating mistakes and
 
 ## Related Skills
 
+- `scope-appropriate-architecture` - Project tier detection that feeds YAGNI gate
 - `architecture-patterns` - Enforce testing standards as part of quality gates
 - `llm-evaluation` - LLM-as-judge patterns for quality validation
 - `golden-dataset` - Validate datasets meet quality thresholds
@@ -304,3 +319,7 @@ Track success/failure patterns across projects to prevent repeating mistakes and
 ### llm-as-judge
 **Keywords:** llm as judge, g-eval, aspect scoring, quality validation
 **Solves:** How do I use LLM-as-judge? Evaluate relevance, depth, coherence with thresholds
+
+### yagni-gate
+**Keywords:** yagni, over-engineering, justified complexity, scope check, too complex, simplify
+**Solves:** Is this complexity justified? Calculate justified_complexity ratio against project tier, BLOCK if > 2.0, surface simpler alternatives

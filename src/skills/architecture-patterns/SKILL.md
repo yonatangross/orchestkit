@@ -3,10 +3,11 @@ name: architecture-patterns
 license: MIT
 compatibility: "Claude Code 2.1.34+."
 description: Architecture validation and patterns for clean architecture, backend structure enforcement, project structure validation, test standards, and context-aware sizing. Use when designing system boundaries, enforcing layered architecture, validating project structure, defining test standards, or choosing the right architecture tier for project scope.
-tags: [architecture, clean-architecture, validation, structure, enforcement, testing-standards, right-sizing, over-engineering]
+tags: [architecture, clean-architecture, validation, structure, enforcement, testing-standards, right-sizing, over-engineering, context-aware]
+skills: [scope-appropriate-architecture]
 context: fork
 agent: backend-system-architect
-version: 2.0.0
+version: 2.1.0
 author: OrchestKit
 user-invocable: false
 complexity: high
@@ -133,12 +134,30 @@ Testing best practices with AAA pattern, naming conventions, isolation, and cove
 
 ## Right-Sizing
 
-Context-aware backend architecture sizing that prevents over-engineering for interviews and MVPs while ensuring proper structure for enterprise.
+Context-aware backend architecture enforcement. Rules adjust strictness based on project tier detected by `scope-appropriate-architecture`.
+
+**Enforcement procedure:**
+1. Read project tier from `scope-appropriate-architecture` context (set during brainstorming/implement Step 0)
+2. If no tier set, auto-detect using signals in `rules/right-sizing-tiers.md`
+3. Apply tier-based enforcement matrix — skip rules marked OFF for detected tier
+4. **Security rules are tier-independent** — always enforce SQL parameterization, input validation, auth checks
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
 | Architecture Sizing Tiers | `rules/right-sizing-tiers.md` | Interview/MVP/production/enterprise sizing matrix, LOC estimates, detection signals |
 | Right-Sizing Decision Guide | `rules/right-sizing-decision.md` | ORM, auth, error handling, testing recommendations per tier, over-engineering tax |
+
+### Tier-Based Rule Enforcement
+
+| Rule | Interview | MVP | Production | Enterprise |
+|------|-----------|-----|------------|------------|
+| Layer separation | OFF | WARN | BLOCK | BLOCK |
+| Repository pattern | OFF | OFF | WARN | BLOCK |
+| Domain exceptions | OFF | OFF | BLOCK | BLOCK |
+| Dependency injection | OFF | WARN | BLOCK | BLOCK |
+| OpenAPI documentation | OFF | OFF | WARN | BLOCK |
+
+**Manual override:** User can set tier explicitly to bypass auto-detection (e.g., "I want enterprise patterns for this take-home to demonstrate skill").
 
 ### Decision Flowchart
 
@@ -192,6 +211,8 @@ class UserService:
 
 ## Related Skills
 
+- `scope-appropriate-architecture` - Project tier detection that drives right-sizing enforcement
+- `quality-gates` - YAGNI gate uses tier context to validate complexity
 - `distributed-systems` - Distributed locking, resilience, idempotency patterns
 - `api-design` - REST API design, versioning, error handling
 - `testing-patterns` - Comprehensive testing patterns and strategies
