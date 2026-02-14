@@ -169,13 +169,11 @@ run_pip_audit() {
 
     print_header "pip-audit"
 
-    local fix_flag=""
-    if [[ -n "$AUTO_FIX" ]]; then
-        fix_flag="--fix"
-    fi
+    local -a pip_args=()
+    [[ -n "$AUTO_FIX" ]] && pip_args+=(--fix)
 
     local audit_output
-    audit_output=$(pip-audit $fix_flag 2>/dev/null || true)
+    audit_output=$(pip-audit "${pip_args[@]}" 2>/dev/null || true)
 
     if [[ -z "$audit_output" || "$audit_output" == *"No known vulnerabilities"* ]]; then
         echo "  No vulnerabilities found"
@@ -183,12 +181,12 @@ run_pip_audit() {
     fi
 
     print_separator
-    echo "$audit_output" | while IFS= read -r line; do
+    while IFS= read -r line; do
         if [[ -n "$line" && "$line" != "Name"* && "$line" != "---"* ]]; then
             echo "  $line"
             VULN_FOUND=1
         fi
-    done
+    done <<< "$audit_output"
 }
 
 # =============================================================================

@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import { useFocusTrap } from "@/hooks/use-focus-trap";
+import { useScrollLock } from "@/hooks/use-scroll-lock";
 import {
   Search,
   X,
@@ -78,48 +80,6 @@ function formatTitle(id: string): string {
 const ALL_CATEGORIES = Array.from(
   new Set(COMPOSITIONS.map((c) => c.category)),
 );
-
-// ── Focus trap hook (same pattern as AgentSelector) ──────────
-function useFocusTrap(
-  ref: React.RefObject<HTMLDivElement | null>,
-  active: boolean,
-) {
-  useEffect(() => {
-    if (!active || !ref.current) return;
-
-    const el = ref.current;
-
-    const initial = el.querySelectorAll<HTMLElement>(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-    );
-    initial[0]?.focus();
-
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Tab") {
-        const focusable = el.querySelectorAll<HTMLElement>(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-        );
-        const first = focusable[0];
-        const last = focusable[focusable.length - 1];
-
-        if (e.shiftKey) {
-          if (document.activeElement === first) {
-            e.preventDefault();
-            last?.focus();
-          }
-        } else {
-          if (document.activeElement === last) {
-            e.preventDefault();
-            first?.focus();
-          }
-        }
-      }
-    }
-
-    el.addEventListener("keydown", handleKeyDown);
-    return () => el.removeEventListener("keydown", handleKeyDown);
-  }, [ref, active]);
-}
 
 // ── Main component ───────────────────────────────────────────
 export function DemoGallery() {
@@ -413,6 +373,7 @@ function CompositionModal({
   const modalRef = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);
   useFocusTrap(modalRef, true);
+  useScrollLock(true);
 
   // Escape key closes
   useEffect(() => {
@@ -423,16 +384,8 @@ function CompositionModal({
     return () => document.removeEventListener("keydown", handleKey);
   }, [onClose]);
 
-  // Lock body scroll
-  useEffect(() => {
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, []);
-
   const handleCopy = useCallback(() => {
-    navigator.clipboard.writeText(composition.command);
+    navigator.clipboard.writeText(composition.command).catch(() => {});
     setCopied(true);
     setTimeout(setCopied, 2000, false);
   }, [composition.command]);

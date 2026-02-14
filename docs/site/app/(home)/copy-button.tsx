@@ -11,7 +11,7 @@ export function CopyInstallButton() {
     <button
       type="button"
       onClick={() => {
-        navigator.clipboard.writeText(SITE.installCommand);
+        navigator.clipboard.writeText(SITE.installCommand).catch(() => {});
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
       }}

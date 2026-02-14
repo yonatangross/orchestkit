@@ -122,7 +122,7 @@ manifest_errors=""
 for manifest in "$PROJECT_ROOT"/manifests/*.json; do
     if [[ -f "$manifest" ]]; then
         manifest_name=$(basename "$manifest")
-        if python3 -c "import json; json.load(open('$manifest'))" 2>/dev/null; then
+        if python3 -c "import json, sys; json.load(open(sys.argv[1]))" "$manifest" 2>/dev/null; then
             manifest_ok=$((manifest_ok + 1))
         else
             manifest_fail=$((manifest_fail + 1))
@@ -145,11 +145,11 @@ src_skill_count=$(find "$PROJECT_ROOT/src/skills" -maxdepth 1 -mindepth 1 -type 
 if [[ -f "$PROJECT_ROOT/manifests/ork.json" ]]; then
     manifest_skill_count=$(python3 -c "
 import json, sys
-with open('$PROJECT_ROOT/manifests/ork.json') as f:
+with open(sys.argv[1]) as f:
     data = json.load(f)
 skills = data.get('skills', [])
 print(len(skills))
-" 2>/dev/null || echo "0")
+" "$PROJECT_ROOT/manifests/ork.json" 2>/dev/null || echo "0")
 
     if [[ "$src_skill_count" -eq "$manifest_skill_count" ]]; then
         add_result "Skill count (ork)" "OK" "$src_skill_count skills in src/ match $manifest_skill_count in manifest"
@@ -176,11 +176,11 @@ if [[ -d "$PROJECT_ROOT/src/hooks" ]]; then
 
     if [[ -f "$PROJECT_ROOT/src/hooks/hooks.json" ]]; then
         hook_count=$(python3 -c "
-import json
-with open('$PROJECT_ROOT/src/hooks/hooks.json') as f:
+import json, sys
+with open(sys.argv[1]) as f:
     data = json.load(f)
 print(len(data.get('hooks', data) if isinstance(data, dict) else data))
-" 2>/dev/null || echo "?")
+" "$PROJECT_ROOT/src/hooks/hooks.json" 2>/dev/null || echo "?")
         add_result "hooks.json entries" "OK" "$hook_count hook entries"
     else
         add_result "hooks.json entries" "WARN" "hooks.json not found"

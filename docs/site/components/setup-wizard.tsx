@@ -253,7 +253,7 @@ export function SetupWizard() {
   const installCommand = `claude install orchestkit/${recommended}`;
 
   const handleCopy = useCallback(() => {
-    navigator.clipboard.writeText(installCommand);
+    navigator.clipboard.writeText(installCommand).catch(() => {});
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }, [installCommand]);

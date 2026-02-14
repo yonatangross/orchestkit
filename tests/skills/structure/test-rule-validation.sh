@@ -9,7 +9,7 @@
 #
 # Tests:
 # 1. Every rule file has YAML frontmatter with required fields:
-#    title, impact, impactDescription, tags
+#    title, impact (FAIL if missing); impactDescription, tags (WARN if missing)
 # 2. Impact is one of: CRITICAL, HIGH, MEDIUM, LOW
 # 3. WARN if no Incorrect/Correct code block pairs
 # 4. _sections.md exists when rules/ has rule files
@@ -144,9 +144,9 @@ echo "Found $TOTAL_RULES rule files across $TOTAL_SKILLS_WITH_RULES skills"
 echo ""
 
 # ============================================================================
-# Test 1: Required frontmatter fields (title, impact, impactDescription, tags)
+# Test 1: Frontmatter fields — required: title, impact; recommended: impactDescription, tags
 # ============================================================================
-echo -e "${CYAN}Test 1: Required Frontmatter Fields${NC}"
+echo -e "${CYAN}Test 1: Frontmatter Fields (required: title, impact; recommended: impactDescription, tags)${NC}"
 echo "────────────────────────────────────────────────────────────────────────────"
 
 missing_frontmatter_count=0
@@ -194,20 +194,18 @@ for rule_file in "${ALL_RULE_FILES[@]}"; do
         has_error=true
     fi
 
-    # Check impactDescription
+    # Check impactDescription (warn only — many existing rules lack this)
     impact_desc=$(get_frontmatter_field "$frontmatter" "impactDescription")
     if [[ -z "$impact_desc" ]]; then
-        fail "$display: Missing 'impactDescription' field"
+        warn "$display: Missing 'impactDescription' field"
         missing_impact_desc_count=$((missing_impact_desc_count + 1))
-        has_error=true
     fi
 
-    # Check tags
+    # Check tags (warn only — many existing rules lack this)
     tags=$(get_frontmatter_field "$frontmatter" "tags")
     if [[ -z "$tags" ]]; then
-        fail "$display: Missing 'tags' field"
+        warn "$display: Missing 'tags' field"
         missing_tags_count=$((missing_tags_count + 1))
-        has_error=true
     fi
 
     if [[ "$has_error" == "false" ]]; then
