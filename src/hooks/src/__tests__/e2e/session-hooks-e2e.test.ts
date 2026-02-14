@@ -1202,7 +1202,7 @@ describe('G. Performance Tests', () => {
     const { sessionEndTracking } = await import('../../stop/session-end-tracking.js');
 
     const iterations = 20;
-    const maxTotalTime = 2000; // 2 seconds
+    const maxTotalTime = 5000; // 5 seconds (CI runners vary widely)
 
     const start = Date.now();
     for (let i = 0; i < iterations; i++) {
