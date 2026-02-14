@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Test suite for performance-engineer agent
+# Test suite for frontend-performance-engineer agent
 # Validates agent structure, skills, and frontmatter
 
 set -euo pipefail
@@ -7,7 +7,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 AGENTS_DIR="$PROJECT_ROOT/src/agents"
-AGENT_FILE="$AGENTS_DIR/performance-engineer.md"
+AGENT_FILE="$AGENTS_DIR/frontend-frontend-performance-engineer.md"
 
 # Colors
 RED='\033[0;31m'
@@ -22,16 +22,16 @@ log_pass() { echo -e "${GREEN}✓${NC} $1"; PASSED=$((PASSED + 1)); }
 log_fail() { echo -e "${RED}✗${NC} $1"; FAILED=$((FAILED + 1)); }
 
 echo "=========================================="
-echo "Performance Engineer Agent Test Suite"
+echo "Frontend Performance Engineer Agent Test Suite"
 echo "=========================================="
 echo ""
 
 # Test 1: Agent file exists
 echo "Test 1: Agent file exists"
 if [[ -f "$AGENT_FILE" ]]; then
-  log_pass "performance-engineer.md exists"
+  log_pass "frontend-performance-engineer.md exists"
 else
-  log_fail "performance-engineer.md not found"
+  log_fail "frontend-performance-engineer.md not found"
   exit 1
 fi
 echo ""
