@@ -104,7 +104,7 @@ test_count_json_output() {
 
     # Verify required fields (single jq call instead of 5)
     local skills agents hooks
-    read -r skills agents hooks < <(echo "$output" | jq -r '[.skills // 0, .agents // 0, .hooks // 0] | @tsv')
+    read -r skills agents hooks < <(echo "$output" | jq -r '[.skills // 0, .agents // 0, .hooks // 0] | @tsv' | tr -d '\r')
 
     if [[ "$skills" -gt 0 ]]; then
         log_pass "JSON has skills count: $skills"
@@ -137,7 +137,7 @@ test_count_sanity() {
 
     # Additional sanity: ensure counts are non-zero (reuse cached JSON)
     local skills agents hooks
-    read -r skills agents hooks < <(echo "$CACHED_JSON_OUTPUT" | jq -r '[.skills // 0, .agents // 0, .hooks // 0] | @tsv')
+    read -r skills agents hooks < <(echo "$CACHED_JSON_OUTPUT" | jq -r '[.skills // 0, .agents // 0, .hooks // 0] | @tsv' | tr -d '\r')
 
     # Basic sanity: components exist
     if [[ "$skills" -gt 0 ]]; then
@@ -190,7 +190,7 @@ test_count_accuracy() {
     # Extract all reported counts from cached JSON in a single jq call
     local reported_skills reported_agents reported_commands reported_hooks
     read -r reported_skills reported_agents reported_commands reported_hooks < <(
-        echo "$CACHED_JSON_OUTPUT" | jq -r '[.skills, .agents, .commands, .hooks] | @tsv'
+        echo "$CACHED_JSON_OUTPUT" | jq -r '[.skills, .agents, .commands, .hooks] | @tsv' | tr -d '\r'
     )
 
     # Count skills manually
