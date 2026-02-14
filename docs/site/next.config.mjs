@@ -4,11 +4,6 @@ const withMDX = createMDX();
 
 /** @type {import('next').NextConfig} */
 const config = {
-  // Limit static generation workers to avoid OOM on Vercel (8GB, 4 cores)
-  // 162 MDX pages with ~5600 code blocks overwhelm memory with default workers
-  experimental: {
-    workerThreads: false,
-  },
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
