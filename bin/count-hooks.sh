@@ -25,9 +25,12 @@ GLOBAL=$(grep -c '"type": "command"' "$PROJECT_ROOT/src/hooks/hooks.json" 2>/dev
 
 # Agent-scoped hooks: command:.*run-hook in YAML frontmatter
 # Single grep across all files instead of per-file awk (96 forks → 2)
+# NOTE: Scans entire file, not just frontmatter. Safe because no agent/skill
+# markdown body contains 'command:.*run-hook' patterns. CI test-count-components.sh
+# will catch any drift if this assumption is violated.
 AGENT=$(grep -rch 'command:.*run-hook' "$PROJECT_ROOT/src/agents/" 2>/dev/null | awk '{s+=$1} END{print s+0}')
 
-# Skill-scoped hooks: command:.*run-hook in YAML frontmatter
+# Skill-scoped hooks: command:.*run-hook in YAML frontmatter (same assumption as above)
 SKILL=$(grep -rch 'command:.*run-hook' "$PROJECT_ROOT/src/skills/" 2>/dev/null | awk '{s+=$1} END{print s+0}')
 
 TOTAL=$((GLOBAL + AGENT + SKILL))

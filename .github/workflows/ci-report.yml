@@ -32,9 +32,9 @@ jobs:
         continue-on-error: true
         run: |
           if npm run build 2>&1 | tee build.log; then
-            echo "status=success" >> $GITHUB_OUTPUT
+            echo "status=success" >> "$GITHUB_OUTPUT"
           else
-            echo "status=failure" >> $GITHUB_OUTPUT
+            echo "status=failure" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Run tests with coverage

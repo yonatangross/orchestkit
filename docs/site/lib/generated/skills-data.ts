@@ -481,7 +481,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "design-system-starter",
       "memory",
       "remember",
-      "assess-complexity"
+      "assess-complexity",
+      "scope-appropriate-architecture"
     ],
     "agent": null,
     "structure": {
@@ -1447,7 +1448,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "explore",
       "verify",
       "memory",
-      "worktree-coordination"
+      "worktree-coordination",
+      "scope-appropriate-architecture"
     ],
     "agent": null,
     "structure": {
@@ -2436,6 +2438,37 @@ export const SKILLS: Record<string, SkillMeta> = {
     "structure": {
       "references": [
         "review-template.md"
+      ]
+    },
+    "plugins": [
+      "ork",
+      "orkl"
+    ],
+    "relatedAgents": []
+  },
+  "scope-appropriate-architecture": {
+    "name": "scope-appropriate-architecture",
+    "description": "Right-sizes architecture to project scope. Prevents over-engineering by classifying projects into 6 tiers and constraining pattern choices accordingly. Use when designing architecture, selecting patterns, or when brainstorming/implement detect a project tier.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "architecture",
+      "yagni",
+      "over-engineering",
+      "scope",
+      "patterns"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "structure": {
+      "references": [
+        "enterprise.md",
+        "interview-takehome.md",
+        "open-source.md",
+        "startup-mvp.md"
       ]
     },
     "plugins": [

@@ -6,11 +6,11 @@ import type { Plugin } from "./types";
 export const PLUGINS: Plugin[] = [
   {
     "name": "orkl",
-    "description": "Universal toolkit — 43 skills, 36 agents, 87 hooks. Language-agnostic, works for any stack.",
+    "description": "Universal toolkit — 44 skills, 36 agents, 87 hooks. Language-agnostic, works for any stack.",
     "fullDescription": "The universal OrchestKit toolkit. Includes all workflow skills (implement, explore, verify, review-pr, commit), all memory skills (remember, memory, mem0, fabric), product/UX skills, accessibility, and all specialized agents. Language-agnostic — works for any tech stack.",
     "category": "development",
     "version": "6.0.6",
-    "skillCount": 43,
+    "skillCount": 44,
     "agentCount": 36,
     "hooks": 87,
     "commandCount": 23,
@@ -130,11 +130,11 @@ export const PLUGINS: Plugin[] = [
   },
   {
     "name": "ork",
-    "description": "Full specialized toolkit — 60 skills, 36 agents, 87 hooks. Adds Python, React, LLM/RAG patterns.",
+    "description": "Full specialized toolkit — 61 skills, 36 agents, 87 hooks. Adds Python, React, LLM/RAG patterns.",
     "fullDescription": "The complete OrchestKit toolkit. Everything in orkl PLUS specialized patterns for Python (FastAPI, SQLAlchemy, Celery), React (RSC, TanStack, Zustand), LLM integration (function calling, streaming, fine-tuning), RAG retrieval, LangGraph workflows, and MCP server patterns.",
     "category": "development",
     "version": "6.0.6",
-    "skillCount": 60,
+    "skillCount": 61,
     "agentCount": 36,
     "hooks": 87,
     "commandCount": 23,

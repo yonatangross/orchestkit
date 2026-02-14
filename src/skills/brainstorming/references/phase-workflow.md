@@ -2,9 +2,26 @@
 
 Detailed instructions for the 7-phase brainstorming process.
 
-## Phase 0: Topic Analysis & Agent Selection
+## Phase 0: Project Context Discovery & Agent Selection
 
-**Goal:** Identify topic domain and dynamically select relevant agents.
+**Goal:** Detect project tier, then identify topic domain and select relevant agents.
+
+### Step 0: Detect Project Tier
+
+Before analyzing the topic, classify the project into one of 6 tiers (see `scope-appropriate-architecture` skill). This tier becomes the **complexity ceiling** for all ideas generated in later phases.
+
+**Tier impacts on brainstorming:**
+- **Tier 1-2 (Interview/Hackathon):** Skip complex patterns entirely. Ideas should focus on simplicity and directness. Limit to 5 ideas max.
+- **Tier 3 (MVP):** Prefer managed services and monolith patterns. Flag any microservice or event-driven idea as OVERKILL.
+- **Tier 4-5 (Growth/Enterprise):** Full brainstorming with all patterns available.
+- **Tier 6 (Open Source):** Focus on API design, extensibility, and backwards compatibility.
+
+**Include tier context in EVERY agent prompt:**
+```
+PROJECT TIER: {tier_name} (Tier {N})
+COMPLEXITY CEILING: {ceiling_description}
+Do NOT suggest patterns marked OVERKILL for this tier in the scope-appropriate-architecture matrix.
+```
 
 ### Step 1: Classify Topic Keywords
 
@@ -60,10 +77,14 @@ Task(subagent_type="backend-system-architect", prompt="...", run_in_background=T
 
 **Divergent mindset instruction for agents:**
 ```
+PROJECT TIER: {tier_name} (Tier {N})
+COMPLEXITY CEILING: {ceiling_description}
+
 DIVERGENT MODE: Generate as many approaches as possible.
 - Do NOT filter or critique ideas in this phase
 - Include unconventional, "crazy" approaches
 - Target: At least 3-4 distinct approaches
+- CONSTRAINT: Do NOT suggest patterns marked OVERKILL for Tier {N}
 ```
 
 ---

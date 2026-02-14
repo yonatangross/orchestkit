@@ -9,7 +9,7 @@ version: 2.0.0
 
 Correct middleware composition order and common pitfalls.
 
-- `zustand-middleware-order.md` — devtools outermost, immer innermost, persist in between
+- `zustand-middleware-order.md` — persist outermost, immer innermost, devtools/subscribeWithSelector in between
 - `zustand-middleware-pitfalls.md` — Avoid direct mutation without immer, async middleware patterns, persist migrations
 
 ## 2. Store Architecture (zustand) — HIGH — 1 rule

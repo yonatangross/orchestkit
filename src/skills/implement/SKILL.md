@@ -10,7 +10,7 @@ author: OrchestKit
 tags: [implementation, feature, full-stack, parallel-agents, reflection, worktree]
 user-invocable: true
 allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, mcp__context7__query_docs, mcp__memory__search_nodes]
-skills: [api-design, react-server-components-framework, type-safety-validation, testing-patterns, explore, verify, memory, worktree-coordination]
+skills: [api-design, react-server-components-framework, type-safety-validation, testing-patterns, explore, verify, memory, worktree-coordination, scope-appropriate-architecture]
 complexity: medium
 metadata:
   category: workflow-automation
@@ -33,9 +33,68 @@ Maximum utilization of parallel subagent execution for feature implementation wi
 
 ---
 
-## STEP 0: Verify User Intent with AskUserQuestion
+## STEP 0: Project Context Discovery
 
-**BEFORE creating tasks or doing ANY work**, ask the user to clarify scope:
+**BEFORE creating tasks or doing ANY work**, detect the project tier. This becomes the **complexity ceiling** for all architecture and pattern choices.
+
+### Auto-Detection (scan codebase)
+
+```python
+# PARALLEL — quick signals (launch all in ONE message)
+Grep(pattern="take-home|assignment|interview|hackathon", glob="README*", output_mode="content")
+Glob(pattern=".github/workflows/*")
+Glob(pattern="**/Dockerfile")
+Glob(pattern="**/terraform/**")
+Glob(pattern="**/k8s/**")
+Glob(pattern="CONTRIBUTING.md")
+```
+
+### Tier Classification
+
+| Signal | Tier | Architecture Ceiling |
+|--------|------|---------------------|
+| README says "take-home", time limit | **1. Interview** | Flat files, no layers, 8-15 files |
+| < 10 files, no CI | **2. Hackathon** | Single file if possible |
+| `.github/workflows/`, managed DB | **3. MVP** | MVC monolith, managed services |
+| Module boundaries, Redis, queues | **4. Growth** | Modular monolith, DI, repos |
+| K8s/Terraform, monorepo | **5. Enterprise** | Hexagonal/DDD, full observability |
+| CONTRIBUTING.md, LICENSE | **6. Open Source** | Minimal API, exhaustive tests |
+
+**If confidence is low**, ask the user:
+
+```python
+AskUserQuestion(questions=[{
+  "question": "What kind of project is this?",
+  "header": "Project tier",
+  "options": [
+    {"label": "Interview / take-home", "description": "8-15 files, 200-600 LOC, simple architecture"},
+    {"label": "Startup / MVP", "description": "MVC monolith, managed services, ship fast"},
+    {"label": "Growth / enterprise", "description": "Modular monolith or DDD, full observability"},
+    {"label": "Open source library", "description": "Minimal API surface, exhaustive tests"}
+  ],
+  "multiSelect": false
+}])
+```
+
+**Pass the detected tier to ALL downstream agents.** Tier constrains patterns — see `scope-appropriate-architecture` for the full matrix.
+
+### Tier-Based Workflow Adjustment
+
+| Tier | Phases to Run | Agents | Tests |
+|------|--------------|--------|-------|
+| 1. Interview | 1, 5 only | 1-2 max | 8-15 focused |
+| 2. Hackathon | 5 only | 1 max | None |
+| 3. MVP | 1-6, 9 | 3-4 | Happy path + critical |
+| 4-5. Growth/Enterprise | All 10 phases | 5-8 | Full pyramid |
+| 6. Open Source | 1-7, 9-10 | 3-4 | Exhaustive public API |
+
+> **Override:** User can always override tier. Warn of trade-offs if they choose higher than detected.
+
+---
+
+## STEP 0a: Verify User Intent with AskUserQuestion
+
+**Clarify implementation scope:**
 
 ```python
 AskUserQuestion(

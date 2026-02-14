@@ -22,7 +22,7 @@ fi
 
 # ===== Check if only non-code files changed =====
 CHANGED_FILES=$(git diff --name-only origin/main...HEAD 2>/dev/null || git diff --name-only HEAD~1...HEAD)
-CODE_CHANGES=$(echo "$CHANGED_FILES" | grep -vE '\.(md|txt|yml|yaml|json)$|^\.github/|^docs/' || true)
+CODE_CHANGES=$(echo "$CHANGED_FILES" | grep -vE '\.(md|txt)$|^docs/' || true)
 
 if [[ -z "$CODE_CHANGES" ]]; then
   echo "  ✓ Skipping version check (only docs/config changes)"
@@ -254,6 +254,7 @@ fi
 [[ $CORES -lt $MAX_JOBS ]] && MAX_JOBS=$CORES
 
 export _PREPUSH_FAIL_DIR=$(mktemp -d)
+trap 'rm -rf "$_PREPUSH_FAIL_DIR"' EXIT
 
 _run_test() {
   local test_file="$1"
@@ -283,10 +284,8 @@ if [[ ${#FAILURES[@]} -gt 0 ]]; then
   echo "╠════════════════════════════════════════════════════════════╣"
   echo "║  Run failing tests to see details"
   echo "╚════════════════════════════════════════════════════════════╝"
-  rm -rf "$_PREPUSH_FAIL_DIR"
   exit 1
 fi
-rm -rf "$_PREPUSH_FAIL_DIR"
 echo "OK (${#CI_UNIT_TESTS[@]} tests, ${MAX_JOBS} parallel)"
 
 # ===== Security Tests =====
