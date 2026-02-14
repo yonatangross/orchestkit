@@ -3,7 +3,7 @@
 
 export const SITE = {
   name: "OrchestKit",
-  version: "6.0.5",
+  version: "6.0.6",
   domain: "https://orchestkit.vercel.app",
   github: "https://github.com/yonatangross/orchestkit",
   installCommand: "claude install orchestkit/ork",
@@ -11,7 +11,7 @@ export const SITE = {
 } as const;
 
 export const COUNTS = {
-  skills: 60,
+  skills: 61,
   agents: 36,
   hooks: 86,
 } as const;
