@@ -161,7 +161,7 @@ for skill_name in "${skill_names[@]}"; do
 
         # Check if any keyword from this query appears in description/tags
         found=0
-        for word in "${words[@]}"; do
+        for word in ${words[@]+"${words[@]}"}; do
             if [[ "$desc_lower" == *"$word"* ]]; then
                 found=1
                 break
@@ -197,7 +197,7 @@ for skill_name in "${skill_names[@]}"; do
 
         # Count how many unique keywords from this negative query match description
         match_count=0
-        for word in "${words[@]}"; do
+        for word in ${words[@]+"${words[@]}"}; do
             if [[ "$desc_lower" == *"$word"* ]]; then
                 match_count=$((match_count + 1))
             fi
