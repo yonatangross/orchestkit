@@ -13,7 +13,7 @@ Essential context for Claude Code when working on OrchestKit.
 ```
 src/                    ← SOURCE (edit here!)
 ├── skills/<name>/SKILL.md    # 61 skills (YAML frontmatter + Markdown)
-├── agents/<name>.md          # 36 agents (CC 2.1.6 format)
+├── agents/<name>.md          # 36 agents (CC 2.1.34 format)
 └── hooks/                    # TypeScript hooks (hooks.json + src/ + dist/)
 manifests/                    # Plugin definitions (JSON)
 plugins/                      # GENERATED (never edit!)
@@ -68,7 +68,8 @@ All plugins include 0 hooks. 61 skills are user-invocable via `/ork:skillname`.
 
 ## Version
 
-- **Current**: 6.0.5 · **Claude Code**: >= 2.1.34
+- **Current**: 7.0.0 · **Claude Code**: >= 2.1.34
+- **Memory**: 2-tier (Graph MCP + CC Native MEMORY.md) — mem0 cloud removed in v7
 - **Hooks**: 86 entries (63 global + 22 agent-scoped + 1 skill-scoped, 11 bundles, 7 fire-and-forget dispatchers)
 
 See `CHANGELOG.md` for history. See `src/hooks/README.md` for hook architecture.

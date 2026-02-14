@@ -27,12 +27,13 @@ const mocks = vi.hoisted(() => {
     skillEditTracker: fn(), skillUsageOptimizer: fn(),
     memoryBridge: fn(), realtimeSync: fn(), userTracking: fn(), solutionDetector: fn(),
     toolPreferenceLearner: fn(),
-    // lifecycle (5) - Issue #362: removed instanceHeartbeat, multiInstanceInit; v7: removed cloud memory hooks
+    // lifecycle (6) - Issue #362: removed instanceHeartbeat, multiInstanceInit; v7: removed cloud memory hooks
     patternSyncPull: fn(),
     sessionEnvSetup: fn(),
     sessionTracking: fn(),
     memoryMetricsCollector: fn(),
     staleTeamCleanup: fn(),
+    typeErrorIndexer: fn(),
     // stop (4)
     autoSaveContext: fn(), sessionPatterns: fn(), issueWorkSummary: fn(), calibrationPersist: fn(),
     // subagent-stop (4)
@@ -76,6 +77,7 @@ vi.mock('../../lifecycle/session-env-setup.js', () => ({ sessionEnvSetup: mocks.
 vi.mock('../../lifecycle/session-tracking.js', () => ({ sessionTracking: mocks.sessionTracking }));
 vi.mock('../../lifecycle/memory-metrics-collector.js', () => ({ memoryMetricsCollector: mocks.memoryMetricsCollector }));
 vi.mock('../../lifecycle/stale-team-cleanup.js', () => ({ staleTeamCleanup: mocks.staleTeamCleanup }));
+vi.mock('../../lifecycle/type-error-indexer.js', () => ({ typeErrorIndexer: mocks.typeErrorIndexer }));
 
 // stop hooks
 vi.mock('../../stop/auto-save-context.js', () => ({ autoSaveContext: mocks.autoSaveContext }));
@@ -163,6 +165,7 @@ const lifecycleMap: Record<string, ReturnType<typeof vi.fn>> = {
   'session-tracking': mocks.sessionTracking,
   'memory-metrics-collector': mocks.memoryMetricsCollector,
   'stale-team-cleanup': mocks.staleTeamCleanup,
+  'type-error-indexer': mocks.typeErrorIndexer,
 };
 
 const stopMap: Record<string, ReturnType<typeof vi.fn>> = {
@@ -406,7 +409,7 @@ describe('Dispatcher Functional Tests', () => {
   // =========================================================================
 
   describe('lifecycle/unified-dispatcher', () => {
-    it('calls all 5 registered hooks', async () => {
+    it('calls all 6 registered hooks', async () => {
       await unifiedSessionStartDispatcher(input());
       expect(called(lifecycleMap)).toEqual(Object.keys(lifecycleMap).sort());
     });
@@ -427,7 +430,7 @@ describe('Dispatcher Functional Tests', () => {
 
       expect(mocks.logHook).toHaveBeenCalledWith(
         'session-start-dispatcher',
-        expect.stringContaining('1/5 hooks failed'),
+        expect.stringContaining('1/6 hooks failed'),
       );
     });
 

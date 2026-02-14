@@ -30,7 +30,7 @@ Pre-flight checklist for comprehensive feature verification with parallel agents
 | Condition | Agent | Launched |
 |-----------|-------|----------|
 | AI/ML features | llm-integrator | [ ] |
-| Performance-critical | performance-engineer | [ ] |
+| Performance-critical | frontend-performance-engineer | [ ] |
 | Database changes | database-engineer | [ ] |
 
 ## Quality Gate Checklist

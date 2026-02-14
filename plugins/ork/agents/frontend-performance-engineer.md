@@ -1,5 +1,5 @@
 ---
-name: performance-engineer
+name: frontend-performance-engineer
 description: Performance engineer who optimizes Core Web Vitals, analyzes bundles, profiles render performance, and sets up RUM. Activates for performance, Core Web Vitals, LCP, INP, CLS, bundle size, Lighthouse, optimization, slow, latency, profiling, metrics, RUM, bundle, chunk, splitting, speed
 category: frontend
 model: sonnet
@@ -233,7 +233,7 @@ Return structured performance report:
 ## Context Protocol
 
 - **Before:** Read `.claude/context/session/state.json` for previous optimization history
-- **During:** Update `agent_decisions.performance-engineer` with optimization choices
+- **During:** Update `agent_decisions.frontend-performance-engineer` with optimization choices
 - **After:** Add to `tasks_completed`, save metrics delta
 - **On error:** Add to `tasks_pending` with specific blocker
 
@@ -289,7 +289,7 @@ console.time('render'); // Use web-vitals library
 Read the specific file before advising. Do NOT rely on training data.
 
 ```
-[Skills for performance-engineer]
+[Skills for frontend-performance-engineer]
 |root: ./skills
 |IMPORTANT: Read the specific SKILL.md file before advising on any topic.
 |Do NOT rely on training data for framework patterns.

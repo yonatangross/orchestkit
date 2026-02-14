@@ -184,12 +184,12 @@ describe('unified-dispatcher', () => {
       expect(names).toContain('memory-metrics-collector');
     });
 
-    test('returns exactly 5 registered hooks', () => {
+    test('returns exactly 6 registered hooks', () => {
       // Act
       const names = registeredHookNames();
 
       // Assert
-      expect(names.length).toBe(5);
+      expect(names.length).toBe(6);
     });
   });
 
