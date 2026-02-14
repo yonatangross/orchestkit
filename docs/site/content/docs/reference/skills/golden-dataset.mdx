@@ -15,20 +15,20 @@ Comprehensive patterns for building, managing, and validating golden datasets fo
 ## Quick Reference
 
 | Category | Rules | Impact | When to Use |
-|----------|-------|--------|-------------|
+| -------- | ----- | ------ | ----------- |
 | [Curation](#curation) | 3 | HIGH | Content collection, annotation pipelines, diversity analysis |
 | [Management](#management) | 3 | HIGH | Versioning, backup/restore, CI/CD automation |
 | [Validation](#validation) | 3 | CRITICAL | Quality scoring, drift detection, regression testing |
 | [Add Workflow](#add-workflow) | 1 | HIGH | 9-phase curation, quality scoring, bias detection, silver-to-gold |
 
-**Total: 10 rules across 4 categories**
+Total: 10 rules across 4 categories
 
 ## Curation
 
 Content collection, multi-agent annotation, and diversity analysis for golden datasets.
 
 | Rule | File | Key Pattern |
-|------|------|-------------|
+| ---- | ---- | ----------- |
 | Collection | `rules/curation-collection.md` | Content type classification, quality thresholds, duplicate prevention |
 | Annotation | `rules/curation-annotation.md` | Multi-agent pipeline, consensus aggregation, Langfuse tracing |
 | Diversity | `rules/curation-diversity.md` | Difficulty stratification, domain coverage, balance guidelines |
@@ -38,7 +38,7 @@ Content collection, multi-agent annotation, and diversity analysis for golden da
 Versioning, storage, and CI/CD automation for golden datasets.
 
 | Rule | File | Key Pattern |
-|------|------|-------------|
+| ---- | ---- | ----------- |
 | Versioning | `rules/management-versioning.md` | JSON backup format, embedding regeneration, disaster recovery |
 | Storage | `rules/management-storage.md` | Backup strategies, URL contract, data integrity checks |
 | CI Integration | `rules/management-ci.md` | GitHub Actions automation, pre-deployment validation, weekly backups |
@@ -48,7 +48,7 @@ Versioning, storage, and CI/CD automation for golden datasets.
 Quality scoring, drift detection, and regression testing for golden datasets.
 
 | Rule | File | Key Pattern |
-|------|------|-------------|
+| ---- | ---- | ----------- |
 | Quality | `rules/validation-quality.md` | Schema validation, content quality, referential integrity |
 | Drift | `rules/validation-drift.md` | Duplicate detection, semantic similarity, coverage gap analysis |
 | Regression | `rules/validation-regression.md` | Difficulty distribution, pre-commit hooks, full dataset validation |
@@ -58,7 +58,7 @@ Quality scoring, drift detection, and regression testing for golden datasets.
 Structured workflow for adding new documents to the golden dataset.
 
 | Rule | File | Key Pattern |
-|------|------|-------------|
+| ---- | ---- | ----------- |
 | Add Document | `rules/curation-add-workflow.md` | 9-phase curation, parallel quality analysis, bias detection |
 
 ## Quick Start Example
@@ -88,7 +88,7 @@ async def validate_before_add(document: dict, source_url_map: dict) -> dict:
 ## Key Decisions
 
 | Decision | Recommendation |
-|----------|----------------|
+| -------- | -------------- |
 | Backup format | JSON (version controlled, portable) |
 | Embedding storage | Exclude from backup (regenerate on restore) |
 | Quality threshold | >= 0.70 quality score for inclusion |
@@ -124,22 +124,31 @@ See `test-cases.json` for 9 test cases across all categories.
 ## Capability Details
 
 ### curation
+
 **Keywords:** golden dataset, curation, content collection, annotation, quality criteria
+
 **Solves:**
+
 - Classify document content types for golden dataset
 - Run multi-agent quality analysis pipelines
 - Generate test queries for new documents
 
 ### management
+
 **Keywords:** golden dataset, backup, restore, versioning, disaster recovery
+
 **Solves:**
+
 - Backup and restore golden datasets with JSON
 - Regenerate embeddings after restore
 - Automate backups with CI/CD
 
 ### validation
+
 **Keywords:** golden dataset, validation, schema, duplicate detection, quality metrics
+
 **Solves:**
+
 - Validate entries against document schema
 - Detect duplicate or near-duplicate entries
 - Analyze dataset coverage and distribution gaps
