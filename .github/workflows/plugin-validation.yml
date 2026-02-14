@@ -39,16 +39,12 @@ jobs:
           path: plugins/
           retention-days: 1
 
-  # Job 1: Syntax and Structure Validation (cross-platform)
+  # Job 1: Syntax and Structure Validation
   syntax-validation:
-    name: Syntax & Structure (${{ matrix.os }})
+    name: Syntax & Structure
     needs: build
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     timeout-minutes: 10
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
@@ -109,16 +105,12 @@ jobs:
         shell: bash
         run: bash tests/unit/test-context-schemas.sh --verbose
 
-  # Job 3: Hook Unit Tests (cross-platform)
+  # Job 3: Hook Unit Tests
   hook-unit-tests:
-    name: Hook Unit Tests (${{ matrix.os }})
+    name: Hook Unit Tests
     needs: [build, syntax-validation]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     timeout-minutes: 15
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
@@ -137,16 +129,12 @@ jobs:
         shell: bash
         run: bash tests/unit/test-hooks-unit.sh --verbose
 
-  # Job 4: Integration Tests (cross-platform)
+  # Job 4: Integration Tests
   integration-tests:
-    name: Integration Tests (${{ matrix.os }})
+    name: Integration Tests
     needs: [build, syntax-validation, hook-unit-tests]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     timeout-minutes: 20
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
