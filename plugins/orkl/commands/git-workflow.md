@@ -1,5 +1,5 @@
 ---
-description: Complete git workflow patterns including GitHub Flow branching, atomic commits with interactive staging, and recovery operations using reflog. Essential patterns for clean history. Use when defining branching strategy or recovering git history.
+description: Complete git workflow patterns including GitHub Flow branching, atomic commits with interactive staging, merge and rebase strategies, and recovery operations using reflog. Essential patterns for clean history. Use when managing branches, defining branching strategy, or recovering git history.
 allowed-tools: [AskUserQuestion, Bash, Read, Grep, Glob]
 ---
 

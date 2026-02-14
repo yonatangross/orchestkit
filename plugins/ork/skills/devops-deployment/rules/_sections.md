@@ -24,3 +24,9 @@ Pipeline configuration for reliability and performance.
 Production deployment and data management patterns.
 
 - `devops-db-migrations.md` — Backward-compatible migrations with zero-downtime deploy order
+
+## 4. PaaS Deployment (paas) — HIGH — 1 rule
+
+Platform-as-a-Service deployment patterns.
+
+- `railway-deployment.md` — Railway config, Nixpacks, env vars, database provisioning, multi-service

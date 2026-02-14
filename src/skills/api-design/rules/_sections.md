@@ -49,3 +49,10 @@ Real-time data streaming with SSE, WebSockets, and async generator cleanup.
 
 - `streaming-sse.md` — SSE endpoints, LLM token streaming, reconnection with exponential backoff
 - `streaming-websocket.md` — WebSocket bidirectional, heartbeat, aclosing() for async generators
+
+## 7. Integrations (integration) — HIGH — 2 rules
+
+Messaging platform and CMS integration patterns.
+
+- `messaging-integrations.md` — WhatsApp WAHA, Telegram Bot API, webhook security, idempotency
+- `payload-cms.md` — Payload 3.0 collections, access control, hooks, CMS selection (Payload vs Sanity)

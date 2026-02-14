@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import { useFocusTrap } from "@/hooks/use-focus-trap";
+import { useScrollLock } from "@/hooks/use-scroll-lock";
 import {
   Search,
   X,
@@ -16,6 +18,7 @@ import {
 import { OptimizedThumbnail } from "@/components/optimized-thumbnail";
 import type { Composition } from "@/lib/generated/types";
 import { COMPOSITIONS } from "@/lib/generated/compositions-data";
+import { CATEGORY_COLORS } from "@/lib/category-colors";
 
 // ── Category metadata ────────────────────────────────────────
 const COMP_CATEGORY_META: Record<
@@ -25,38 +28,32 @@ const COMP_CATEGORY_META: Record<
   core: {
     label: "Core",
     dot: "bg-violet-500",
-    color: "text-violet-700 dark:text-violet-300",
-    bg: "bg-violet-100 dark:bg-violet-500/20",
+    ...CATEGORY_COLORS.development,
   },
   memory: {
     label: "Memory",
     dot: "bg-cyan-500",
-    color: "text-cyan-700 dark:text-cyan-300",
-    bg: "bg-cyan-100 dark:bg-cyan-500/20",
+    ...CATEGORY_COLORS.ai,
   },
   review: {
     label: "Review",
     dot: "bg-amber-500",
-    color: "text-amber-700 dark:text-amber-300",
-    bg: "bg-amber-100 dark:bg-amber-500/20",
+    ...CATEGORY_COLORS.backend,
   },
   devops: {
     label: "DevOps",
     dot: "bg-orange-500",
-    color: "text-orange-700 dark:text-orange-300",
-    bg: "bg-orange-100 dark:bg-orange-500/20",
+    ...CATEGORY_COLORS.devops,
   },
   ai: {
     label: "AI",
-    dot: "bg-emerald-500",
-    color: "text-emerald-700 dark:text-emerald-300",
-    bg: "bg-emerald-100 dark:bg-emerald-500/20",
+    dot: "bg-cyan-500",
+    ...CATEGORY_COLORS.ai,
   },
   advanced: {
     label: "Advanced",
     dot: "bg-pink-500",
-    color: "text-pink-700 dark:text-pink-300",
-    bg: "bg-pink-100 dark:bg-pink-500/20",
+    ...CATEGORY_COLORS.product,
   },
 };
 
@@ -83,48 +80,6 @@ function formatTitle(id: string): string {
 const ALL_CATEGORIES = Array.from(
   new Set(COMPOSITIONS.map((c) => c.category)),
 );
-
-// ── Focus trap hook (same pattern as AgentSelector) ──────────
-function useFocusTrap(
-  ref: React.RefObject<HTMLDivElement | null>,
-  active: boolean,
-) {
-  useEffect(() => {
-    if (!active || !ref.current) return;
-
-    const el = ref.current;
-
-    const initial = el.querySelectorAll<HTMLElement>(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-    );
-    initial[0]?.focus();
-
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Tab") {
-        const focusable = el.querySelectorAll<HTMLElement>(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-        );
-        const first = focusable[0];
-        const last = focusable[focusable.length - 1];
-
-        if (e.shiftKey) {
-          if (document.activeElement === first) {
-            e.preventDefault();
-            last?.focus();
-          }
-        } else {
-          if (document.activeElement === last) {
-            e.preventDefault();
-            first?.focus();
-          }
-        }
-      }
-    }
-
-    el.addEventListener("keydown", handleKeyDown);
-    return () => el.removeEventListener("keydown", handleKeyDown);
-  }, [ref, active]);
-}
 
 // ── Main component ───────────────────────────────────────────
 export function DemoGallery() {
@@ -418,6 +373,7 @@ function CompositionModal({
   const modalRef = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);
   useFocusTrap(modalRef, true);
+  useScrollLock(true);
 
   // Escape key closes
   useEffect(() => {
@@ -428,16 +384,8 @@ function CompositionModal({
     return () => document.removeEventListener("keydown", handleKey);
   }, [onClose]);
 
-  // Lock body scroll
-  useEffect(() => {
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, []);
-
   const handleCopy = useCallback(() => {
-    navigator.clipboard.writeText(composition.command);
+    navigator.clipboard.writeText(composition.command).catch(() => {});
     setCopied(true);
     setTimeout(setCopied, 2000, false);
   }, [composition.command]);

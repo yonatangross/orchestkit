@@ -1,0 +1,61 @@
+{
+  "skill": "commit",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "conventional-format",
+      "rule": "conventional-format",
+      "query": "Commit my authentication changes with a proper message",
+      "expectedBehavior": [
+        "Uses conventional commit format: type(scope): description",
+        "Includes Co-Authored-By trailer",
+        "Subject line under 72 characters",
+        "References issue number with # prefix"
+      ]
+    },
+    {
+      "id": "atomic-commit",
+      "rule": "atomic-commit",
+      "query": "I changed the API and updated the docs, commit everything",
+      "expectedBehavior": [
+        "Verifies each commit does ONE logical thing",
+        "Ensures codebase remains working after commit",
+        "Commit message does not need 'and' in title",
+        "Each commit can be reverted independently"
+      ]
+    },
+    {
+      "id": "commit-splitting",
+      "rule": "commit-splitting",
+      "query": "I have changes to the database schema and the UI, how should I commit?",
+      "expectedBehavior": [
+        "Recommends splitting into separate commits",
+        "Suggests using git add -p for interactive staging",
+        "Separates unrelated changes into distinct commits",
+        "Reviews staged vs unstaged changes with git diff"
+      ]
+    },
+    {
+      "id": "quick-commit",
+      "rule": "conventional-format",
+      "query": "Fix a typo in the error message",
+      "expectedBehavior": [
+        "Uses quick commit pattern for trivial changes",
+        "Uses fix type prefix",
+        "Includes Co-Authored-By trailer",
+        "Does not spawn agents for simple changes"
+      ]
+    },
+    {
+      "id": "branch-protection",
+      "rule": "atomic-commit",
+      "query": "Commit directly to main branch",
+      "expectedBehavior": [
+        "Checks current branch before committing",
+        "Refuses to commit to main or dev branches",
+        "Suggests creating a feature branch first",
+        "Uses issue/<number>-<description> naming convention"
+      ]
+    }
+  ]
+}

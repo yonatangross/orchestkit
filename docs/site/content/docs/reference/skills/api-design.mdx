@@ -23,7 +23,9 @@ Comprehensive API design patterns covering REST/GraphQL framework design, versio
 | [gRPC](#grpc) | 2 | HIGH | Protobuf services, streaming, interceptors, retry |
 | [Streaming](#streaming) | 2 | HIGH | SSE endpoints, WebSocket bidirectional, async generators |
 
-**Total: 15 rules across 6 categories**
+| [Integrations](#integrations) | 2 | HIGH | Messaging platforms (WhatsApp, Telegram), Payload CMS patterns |
+
+**Total: 17 rules across 7 categories**
 
 ## API Framework
 
@@ -81,6 +83,15 @@ Real-time data streaming with SSE, WebSockets, and proper cleanup.
 |------|------|-------------|
 | SSE | `rules/streaming-sse.md` | SSE endpoints, LLM streaming, reconnection, keepalive |
 | WebSocket | `rules/streaming-websocket.md` | Bidirectional, heartbeat, aclosing(), backpressure |
+
+## Integrations
+
+Messaging platform integrations and headless CMS patterns.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Messaging Platforms | `rules/messaging-integrations.md` | WhatsApp WAHA, Telegram Bot API, webhook security |
+| Payload CMS | `rules/payload-cms.md` | Payload 3.0 collections, access control, CMS selection |
 
 ## Quick Start Example
 
@@ -210,7 +221,7 @@ See `test-cases.json` for 9 test cases across all categories.
 
 ---
 
-## Rules (15)
+## Rules (17)
 
 ### Error Type Catalog — HIGH
 
@@ -1466,6 +1477,154 @@ Key decisions:
 - Never skip deadline/timeout on client calls
 
 
+### Messaging Platform Integrations — HIGH
+
+
+# Messaging Platform Integrations
+
+## Platform Selection
+
+| Platform | API Style | Best For | Limitations |
+|----------|-----------|----------|-------------|
+| WhatsApp (WAHA) | REST + Webhooks | Business messaging, notifications | Session management, rate limits |
+| Telegram Bot API | REST + Webhooks/Polling | Interactive bots, commands | 30 msg/sec per bot |
+| Slack | REST + Events API | Team workflows, notifications | Workspace-scoped |
+
+## WhatsApp via WAHA
+
+```typescript
+// Send message via WAHA (WhatsApp HTTP API)
+const response = await fetch(`${WAHA_URL}/api/sendText`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    chatId: `${phone}@c.us`,
+    text: message,
+    session: "default",
+  }),
+});
+```
+
+## Telegram Bot API
+
+```typescript
+// Set webhook for Telegram bot
+await fetch(`https://api.telegram.org/bot${TOKEN}/setWebhook`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    url: `${BASE_URL}/api/telegram/webhook`,
+    secret_token: WEBHOOK_SECRET,
+  }),
+});
+```
+
+## Webhook Security (Critical)
+
+Every platform provides a signature verification mechanism. **Always verify.**
+
+```typescript
+// Telegram: verify secret_token header
+function verifyTelegramWebhook(req: Request): boolean {
+  return req.headers["x-telegram-bot-api-secret-token"] === WEBHOOK_SECRET;
+}
+```
+
+- **WhatsApp WAHA**: API key header authentication
+- **Telegram**: `secret_token` in webhook registration, verified via header
+- **Slack**: HMAC-SHA256 signing secret verification
+
+## Anti-Patterns
+
+**Incorrect:**
+- Processing webhooks without signature verification — anyone can POST fake messages
+- Synchronous processing of incoming messages — webhook timeout causes retries
+- No idempotency on webhook handlers — duplicate messages on retry
+
+**Correct:**
+- Always verify webhook signatures before processing
+- Acknowledge webhook immediately (200 OK), process async via queue
+- Store message IDs and deduplicate on retry
+- Rate-limit outgoing messages per platform limits
+
+## References
+
+- `references/whatsapp-waha.md` — WAHA setup, session lifecycle, message types
+- `references/telegram-bot-api.md` — Bot setup, webhook config, keyboard patterns
+- `references/webhook-security.md` — Signature verification patterns per platform
+
+
+### Payload CMS Patterns — HIGH
+
+
+# Payload CMS 3.0 Patterns
+
+## CMS Selection Decision Tree
+
+| Factor | Payload | Sanity | Strapi |
+|--------|---------|--------|--------|
+| Runtime | Next.js (self-hosted) | Hosted (GROQ API) | Node.js (self-hosted) |
+| TypeScript | First-class, generated types | Plugin-based | Partial |
+| Data ownership | Full (your DB) | Sanity cloud | Full (your DB) |
+| Admin UI | Customizable React | Sanity Studio | Built-in |
+| Best for | Next.js apps, developer-owned | Content teams, editorial | REST-first APIs |
+
+**Choose Payload when**: Next.js project, need full data ownership, developer-first workflow.
+**Choose Sanity when**: Content-heavy editorial teams, need hosted GROQ API, real-time collaboration.
+
+## Collection Design
+
+```typescript
+// Payload 3.0 collection config
+import type { CollectionConfig } from "payload";
+
+export const Posts: CollectionConfig = {
+  slug: "posts",
+  admin: { useAsTitle: "title" },
+  access: {
+    read: () => true,
+    create: ({ req: { user } }) => Boolean(user),
+    update: ({ req: { user } }) => user?.role === "admin",
+    delete: ({ req: { user } }) => user?.role === "admin",
+  },
+  fields: [
+    { name: "title", type: "text", required: true },
+    { name: "content", type: "richText" },
+    { name: "author", type: "relationship", relationTo: "users" },
+    { name: "status", type: "select", options: ["draft", "published"] },
+  ],
+  hooks: {
+    beforeChange: [({ data }) => ({ ...data, updatedAt: new Date() })],
+  },
+};
+```
+
+## Access Control Patterns
+
+- **Collection-level**: `read`, `create`, `update`, `delete` functions
+- **Field-level**: Per-field `access` for sensitive data
+- **Role-based**: Check `user.role` in access functions
+- **Local API**: Uses `overrideAccess: true` by default — be explicit when calling from server
+
+## Anti-Patterns
+
+**Incorrect:**
+- Using Local API without `overrideAccess: false` in user-facing code — bypasses all access control
+- Putting business logic in hooks instead of service layer — untestable
+- Storing large files in the database — use S3/R2 upload adapter
+
+**Correct:**
+- Always set `overrideAccess: false` in API routes that serve user requests
+- Keep hooks thin — validate/transform only, delegate to services
+- Configure upload collections with S3-compatible storage adapter
+
+## References
+
+- `references/payload-collection-design.md` — Field types, relationships, blocks, validation
+- `references/payload-access-control.md` — RBAC patterns, field-level, multi-tenant
+- `references/payload-vs-sanity.md` — Detailed comparison, decision matrix, migration paths
+
+
 ### Server-Sent Events (SSE) Streaming — HIGH
 
 
@@ -2028,7 +2187,7 @@ async def get_user_v2(user_id: str, service: UserService = Depends()):
 
 ---
 
-## References (7)
+## References (13)
 
 ### Frontend Integration
 
@@ -2377,6 +2536,452 @@ message ListUsersResponse {
 | UNAUTHENTICATED | 401 | Auth required |
 | RESOURCE_EXHAUSTED | 429 | Rate limit |
 | INTERNAL | 500 | Server error |
+
+### Payload Access Control
+
+# Access Control Patterns
+
+RBAC patterns, field-level access, and admin vs API access for Payload CMS 3.0.
+
+## Access Function Signature
+
+Every access function receives context and returns `boolean` or a **query constraint**.
+
+```typescript
+import { Access } from 'payload'
+
+// Simple boolean — allow or deny
+const isAuthenticated: Access = ({ req: { user } }) => Boolean(user)
+
+// Query constraint — Payload auto-filters results
+const isOwner: Access = ({ req: { user } }) => {
+  if (!user) return false
+  return { createdBy: { equals: user.id } }
+}
+```
+
+Returning a query object is the most powerful pattern — Payload appends it to the database query automatically, so users only ever see their own data.
+
+## Role-Based Access Control
+
+```typescript
+// Define roles on user collection
+const Users: CollectionConfig = {
+  slug: 'users',
+  auth: true,  // Enables authentication
+  fields: [
+    {
+      name: 'role',
+      type: 'select',
+      options: ['admin', 'editor', 'viewer'],
+      required: true,
+      defaultValue: 'viewer',
+    },
+  ],
+}
+
+// Reusable access helpers
+const isAdmin: Access = ({ req: { user } }) => user?.role === 'admin'
+
+const isEditorOrAbove: Access = ({ req: { user } }) =>
+  ['admin', 'editor'].includes(user?.role)
+
+// Composite: admin sees all, editor sees own, viewer sees published
+const postAccess: Access = ({ req: { user } }) => {
+  if (user?.role === 'admin') return true
+  if (user?.role === 'editor') {
+    return { author: { equals: user.id } }
+  }
+  // Viewer / anonymous — only published
+  return { status: { equals: 'published' } }
+}
+```
+
+## Collection-Level Access
+
+```typescript
+const Posts: CollectionConfig = {
+  slug: 'posts',
+  access: {
+    read: postAccess,            // Who can list/get
+    create: isEditorOrAbove,     // Who can create
+    update: isAdminOrAuthor,     // Who can update
+    delete: isAdmin,             // Who can delete
+  },
+}
+```
+
+Each operation (`read`, `create`, `update`, `delete`) is independent. Omitting one defaults to allowing authenticated users.
+
+## Field-Level Access
+
+Hide or protect individual fields based on role.
+
+```typescript
+{
+  name: 'internalNotes',
+  type: 'textarea',
+  access: {
+    read: isAdmin,     // Hidden from API response for non-admins
+    update: isAdmin,   // Not editable by non-admins
+    create: isAdmin,   // Cannot be set on creation by non-admins
+  },
+}
+```
+
+Field-level access applies to both the REST/GraphQL API and the admin panel — fields are completely invisible to unauthorized users.
+
+## Admin Panel vs API Access
+
+Access control applies uniformly, but you can distinguish context:
+
+```typescript
+const adminOnlyInPanel: Access = ({ req }) => {
+  // req.user is available in both contexts
+  // req.headers can distinguish admin panel requests
+  if (req.user?.role === 'admin') return true
+  return false
+}
+```
+
+**Important:** The Local API (`payload.find()`) bypasses access control by default. Pass `overrideAccess: false` when calling from user-facing server code:
+
+```typescript
+// In a Next.js server component — MUST enforce access
+const posts = await payload.find({
+  collection: 'posts',
+  overrideAccess: false,  // Enforce access control
+  user: req.user,         // Pass the current user
+})
+```
+
+## Multi-Tenant Access
+
+Isolate data between tenants using query constraints.
+
+```typescript
+const tenantAccess: Access = ({ req: { user } }) => {
+  if (user?.role === 'super-admin') return true
+  if (!user?.tenant) return false
+  return { tenant: { equals: user.tenant } }
+}
+
+// Apply to every collection that is tenant-scoped
+const TenantPosts: CollectionConfig = {
+  slug: 'posts',
+  access: {
+    read: tenantAccess,
+    create: tenantAccess,
+    update: tenantAccess,
+    delete: tenantAccess,
+  },
+  fields: [
+    { name: 'tenant', type: 'relationship', relationTo: 'tenants', required: true },
+    // ... other fields
+  ],
+}
+```
+
+## Common Access Patterns Summary
+
+| Pattern | Returns | Use Case |
+|---------|---------|----------|
+| `() => true` | boolean | Public read |
+| `(\{ req \}) => Boolean(req.user)` | boolean | Authenticated only |
+| `(\{ req \}) => req.user?.role === 'admin'` | boolean | Admin only |
+| `(\{ req \}) => (\{ author: \{ equals: req.user?.id \} \})` | query | Row-level security |
+| `(\{ req \}) => (\{ tenant: \{ equals: req.user?.tenant \} \})` | query | Multi-tenant isolation |
+
+
+### Payload Collection Design
+
+# Collection Design Patterns
+
+Field types, relationships, blocks, tabs, and validation patterns for Payload CMS 3.0.
+
+## Field Types Quick Reference
+
+| Type | Use Case | Key Options |
+|------|----------|-------------|
+| `text` | Short strings | `minLength`, `maxLength`, `unique` |
+| `textarea` | Multi-line text | `minLength`, `maxLength` |
+| `richText` | Formatted content | Lexical editor (default in 3.0) |
+| `number` | Integers/floats | `min`, `max`, `hasMany` |
+| `select` | Enum values | `options`, `hasMany` |
+| `relationship` | Foreign key | `relationTo`, `hasMany`, `filterOptions` |
+| `upload` | Media reference | `relationTo` (upload collection) |
+| `blocks` | Polymorphic content | `blocks` array of block configs |
+| `array` | Repeatable groups | `fields` (nested field config) |
+| `group` | Nested object | `fields` (no separate collection) |
+| `tabs` | UI organization | `tabs` array with `fields` per tab |
+| `date` | Timestamps | `admin.date` config |
+| `checkbox` | Boolean flags | Default `false` |
+| `json` | Arbitrary JSON | Use sparingly — no admin UI |
+
+## Relationship Patterns
+
+```typescript
+// One-to-many: Post has one author
+{ name: 'author', type: 'relationship', relationTo: 'users', required: true }
+
+// Many-to-many: Post has multiple tags
+{ name: 'tags', type: 'relationship', relationTo: 'tags', hasMany: true }
+
+// Polymorphic: Link to different collection types
+{
+  name: 'relatedContent',
+  type: 'relationship',
+  relationTo: ['posts', 'pages', 'products'],  // Union type
+  hasMany: true,
+}
+
+// Filtered relationship: Only show published posts
+{
+  name: 'featuredPost',
+  type: 'relationship',
+  relationTo: 'posts',
+  filterOptions: { status: { equals: 'published' } },
+}
+```
+
+## Block Patterns (Polymorphic Content)
+
+Blocks are the key pattern for flexible page layouts — each block is a typed content section.
+
+```typescript
+import { Block } from 'payload'
+
+const HeroBlock: Block = {
+  slug: 'hero',
+  fields: [
+    { name: 'heading', type: 'text', required: true },
+    { name: 'image', type: 'upload', relationTo: 'media', required: true },
+    { name: 'ctaText', type: 'text' },
+    { name: 'ctaLink', type: 'text' },
+  ],
+}
+
+const ContentBlock: Block = {
+  slug: 'content',
+  fields: [
+    { name: 'body', type: 'richText' },
+    { name: 'width', type: 'select', options: ['full', 'narrow', 'wide'], defaultValue: 'full' },
+  ],
+}
+
+// Use in collection
+{
+  name: 'layout',
+  type: 'blocks',
+  blocks: [HeroBlock, ContentBlock, CTABlock, TestimonialBlock],
+}
+```
+
+## Tabs for Complex Collections
+
+```typescript
+const Products: CollectionConfig = {
+  slug: 'products',
+  fields: [
+    {
+      type: 'tabs',
+      tabs: [
+        {
+          label: 'General',
+          fields: [
+            { name: 'title', type: 'text', required: true },
+            { name: 'description', type: 'richText' },
+          ],
+        },
+        {
+          label: 'Pricing',
+          fields: [
+            { name: 'price', type: 'number', required: true },
+            { name: 'currency', type: 'select', options: ['USD', 'EUR', 'GBP'] },
+          ],
+        },
+        {
+          label: 'SEO',
+          fields: [
+            { name: 'metaTitle', type: 'text' },
+            { name: 'metaDescription', type: 'textarea' },
+          ],
+        },
+      ],
+    },
+  ],
+}
+```
+
+## Validation Patterns
+
+```typescript
+// Custom field validation
+{
+  name: 'slug',
+  type: 'text',
+  unique: true,
+  validate: (value) => {
+    if (!/^[a-z0-9-]+$/.test(value)) {
+      return 'Slug must be lowercase alphanumeric with hyphens only'
+    }
+    return true
+  },
+}
+
+// Conditional required — required only when status is published
+{
+  name: 'publishedDate',
+  type: 'date',
+  admin: {
+    condition: (data) => data.status === 'published',
+  },
+  validate: (value, { siblingData }) => {
+    if (siblingData.status === 'published' && !value) {
+      return 'Published date is required for published content'
+    }
+    return true
+  },
+}
+```
+
+## Global Config (Singletons)
+
+Use globals for site-wide settings that don't need multiple documents.
+
+```typescript
+import { GlobalConfig } from 'payload'
+
+const SiteSettings: GlobalConfig = {
+  slug: 'site-settings',
+  access: { read: () => true, update: isAdmin },
+  fields: [
+    { name: 'siteName', type: 'text', required: true },
+    { name: 'logo', type: 'upload', relationTo: 'media' },
+    { name: 'socialLinks', type: 'array', fields: [
+      { name: 'platform', type: 'select', options: ['twitter', 'github', 'linkedin'] },
+      { name: 'url', type: 'text' },
+    ]},
+  ],
+}
+```
+
+
+### Payload Vs Sanity
+
+# Payload vs Sanity — CMS Comparison
+
+Detailed comparison and decision matrix for choosing between Payload CMS 3.0, Sanity, Strapi, and WordPress.
+
+## Feature Comparison
+
+| Feature | Payload 3.0 | Sanity v3 | Strapi v5 | WordPress |
+|---------|-------------|-----------|-----------|-----------|
+| **Language** | TypeScript | TypeScript + GROQ | JavaScript/TS | PHP |
+| **Framework** | Built on Next.js | React (studio) | Koa.js | Monolithic |
+| **Hosting** | Self-hosted | Hosted API + self-hosted studio | Self-hosted | Self/hosted |
+| **Database** | MongoDB or Postgres | Hosted (proprietary) | SQLite/Postgres/MySQL | MySQL |
+| **Auth** | Built-in (JWT + cookies) | Hosted or custom | Built-in (JWT) | Built-in (sessions) |
+| **API** | REST + GraphQL auto-generated | GROQ + GraphQL | REST + GraphQL | REST + GraphQL (plugin) |
+| **Rich Text** | Lexical (built-in) | Portable Text | CKEditor/custom | Gutenberg |
+| **Admin UI** | React + Next.js | React (Sanity Studio) | React | PHP + React (Gutenberg) |
+| **Type Safety** | Config IS the schema | Schema + codegen | Schema + codegen | None natively |
+| **Plugins** | npm packages | npm packages | npm marketplace | Plugin ecosystem (massive) |
+| **License** | MIT (open source) | Freemium (hosted) | MIT with EE features | GPLv2 |
+| **Live Preview** | Built-in | Built-in | Via plugin | Theme preview |
+| **Versioning** | Built-in per collection | Built-in | Via plugin | Built-in (revisions) |
+
+## Cost Comparison
+
+| Tier | Payload | Sanity | Strapi |
+|------|---------|--------|--------|
+| **Free** | Unlimited (self-host) | 100K API requests/mo, 3 users | Unlimited (self-host) |
+| **Team** | Payload Cloud ($25/mo) | $99/mo (500K requests) | $29/mo (gold support) |
+| **Enterprise** | Custom | Custom | Custom |
+
+Payload is fully open source — cost is infrastructure only. Sanity's cost scales with API usage.
+
+## Decision Matrix
+
+### Choose Payload When:
+- Building a **Next.js application** — Payload runs inside your Next.js app
+- You want **full ownership** of data and infrastructure
+- Your team is **TypeScript-first** — config-as-code is natural
+- You need **custom access control** beyond simple roles
+- Self-hosting is acceptable or preferred
+- You want **one deployment** (CMS + frontend in same app)
+
+### Choose Sanity When:
+- **Content editors** are primary users, not developers
+- You need **real-time collaborative editing** (Google Docs-style)
+- Your content is consumed by **multiple frontends** (web, mobile, IoT)
+- You want a **hosted API** with no infrastructure management
+- **GROQ** query language fits your content querying needs
+- Editorial workflow and content scheduling are critical
+
+### Choose Strapi When:
+- You need a **quick admin panel** with minimal configuration
+- Your team prefers a **GUI-first** content modeling approach
+- You want a **marketplace** of pre-built plugins
+- The project is a **prototype or MVP** that may change CMS later
+- You need **multi-database support** (SQLite for dev, Postgres for prod)
+
+### Choose WordPress When:
+- **Non-technical editors** need to manage content independently
+- You need the **largest plugin ecosystem** (100K+ plugins)
+- SEO tooling (Yoast, RankMath) is a core requirement
+- Budget for development is limited — large talent pool
+- Content is primarily **blog/marketing pages**
+
+## Migration Considerations
+
+### From Sanity to Payload
+1. Export content via GROQ: `*[_type == "post"]`
+2. Map Portable Text to Lexical rich text format
+3. Recreate schemas as Payload collection configs
+4. Migrate assets from Sanity CDN to local/S3 storage
+5. Rebuild GROQ queries as Payload `where` clauses
+
+### From Strapi to Payload
+1. Export via Strapi REST API
+2. Map Strapi content types to Payload collections 1:1
+3. Convert Strapi lifecycle hooks to Payload hooks
+4. Migrate media from Strapi uploads to Payload upload collections
+5. Replace Strapi custom controllers with Payload custom endpoints
+
+### From WordPress to Payload
+1. Export via WP REST API (`/wp-json/wp/v2/posts`)
+2. Convert ACF/custom fields to Payload field configs
+3. Map WordPress taxonomies to Payload relationship fields
+4. Migrate media library to Payload upload collection
+5. Convert WordPress template hierarchy to Next.js layouts
+
+## Architecture Comparison
+
+```
+Payload 3.0:                    Sanity:
+┌─────────────────────┐        ┌──────────────┐    ┌──────────────┐
+│   Your Next.js App  │        │ Sanity Studio │    │  Your App    │
+│  ┌───────────────┐  │        │  (React SPA)  │    │ (any framework)│
+│  │ Payload CMS   │  │        └──────┬───────┘    └──────┬───────┘
+│  │  (embedded)   │  │               │                    │
+│  └───────┬───────┘  │               ▼                    ▼
+│          │          │        ┌──────────────┐    ┌──────────────┐
+│          ▼          │        │  Sanity API   │    │  Sanity API  │
+│  ┌───────────────┐  │        │   (hosted)    │    │   (hosted)   │
+│  │ MongoDB/PG    │  │        └──────────────┘    └──────────────┘
+│  └───────────────┘  │
+└─────────────────────┘        Single hosted API, multiple consumers
+Single deployment, full control
+```
+
+## When NOT to Use a Headless CMS
+
+- **Static content** that rarely changes — use Markdown + static site generator
+- **Application data** (user profiles, orders, analytics) — use a database directly
+- **Real-time data** (chat, live feeds) — use purpose-built real-time tools
+- Content that only developers edit — YAML/JSON config files may suffice
+
 
 ### Rest Api
 
@@ -3453,6 +4058,141 @@ async function fetchWithProblemDetails(url: string): Promise<Response> {
 - See SKILL.md for complete patterns
 
 
+### Telegram Bot Api
+
+# Telegram Bot API
+
+Reference for building Telegram bots with webhooks, commands, and interactive keyboards.
+
+## Bot Creation
+
+1. Open Telegram, search for `@BotFather`
+2. Send `/newbot`, follow prompts
+3. Save the bot token (`123456:ABC-DEF...`)
+
+## Webhook Setup
+
+```bash
+# Set webhook
+curl -X POST "https://api.telegram.org/bot<TOKEN>/setWebhook" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://app.com/telegram/webhook",
+    "secret_token": "your-webhook-secret",
+    "allowed_updates": ["message", "callback_query"]
+  }'
+
+# Verify webhook is set
+curl "https://api.telegram.org/bot<TOKEN>/getWebhookInfo"
+
+# Remove webhook (switch to polling)
+curl -X POST "https://api.telegram.org/bot<TOKEN>/deleteWebhook"
+```
+
+### Webhook Verification
+
+Telegram sends `X-Telegram-Bot-Api-Secret-Token` header matching your `secret_token`:
+
+```typescript
+function verifyTelegramWebhook(req: Request, secret: string): boolean {
+  return req.headers['x-telegram-bot-api-secret-token'] === secret;
+}
+```
+
+## Bot Commands
+
+Register commands with BotFather so they appear in the menu:
+
+```bash
+POST /bot<TOKEN>/setMyCommands
+{
+  "commands": [
+    { "command": "start", "description": "Start the bot" },
+    { "command": "help", "description": "Show help" },
+    { "command": "settings", "description": "Bot settings" }
+  ]
+}
+```
+
+Handle commands in your webhook:
+
+```typescript
+if (update.message?.text?.startsWith('/start')) {
+  await sendMessage(chatId, 'Welcome! Use /help to see available commands.');
+}
+```
+
+## Sending Messages
+
+### Text with Formatting
+
+```bash
+POST /bot<TOKEN>/sendMessage
+{
+  "chat_id": 123456,
+  "text": "*Bold* _italic_ `code` [link](https://example.com)",
+  "parse_mode": "MarkdownV2"
+}
+```
+
+### Inline Keyboards
+
+```bash
+POST /bot<TOKEN>/sendMessage
+{
+  "chat_id": 123456,
+  "text": "Choose an action:",
+  "reply_markup": {
+    "inline_keyboard": [
+      [
+        { "text": "Approve", "callback_data": "approve_123" },
+        { "text": "Reject", "callback_data": "reject_123" }
+      ],
+      [{ "text": "Visit site", "url": "https://example.com" }]
+    ]
+  }
+}
+```
+
+### Handle Callback Queries
+
+```typescript
+if (update.callback_query) {
+  const { id, data, message } = update.callback_query;
+
+  // Answer the callback (removes loading spinner)
+  await fetch(`${API}/answerCallbackQuery`, {
+    method: 'POST',
+    body: JSON.stringify({ callback_query_id: id })
+  });
+
+  // Process the action
+  if (data.startsWith('approve_')) {
+    await editMessage(message.chat.id, message.message_id, 'Approved!');
+  }
+}
+```
+
+## Media Messages
+
+```bash
+# Send photo
+POST /bot<TOKEN>/sendPhoto
+{ "chat_id": 123456, "photo": "https://example.com/image.jpg", "caption": "Check this" }
+
+# Send document
+POST /bot<TOKEN>/sendDocument
+{ "chat_id": 123456, "document": "https://example.com/file.pdf" }
+```
+
+## Rate Limits
+
+- **Private chats**: 1 message per second per chat
+- **Groups**: 20 messages per minute per group
+- **Global**: 30 messages per second across all chats
+- **Bulk notifications**: Use `sendMessage` in a loop with 1/30s delay between calls
+
+
 ### Versioning Strategies
 
 # API Versioning Strategies
@@ -3758,6 +4498,250 @@ class ResponseAdapter:
 
 - See `examples/fastapi-versioning.md` for FastAPI examples
 - See `checklists/versioning-checklist.md` for implementation checklist
+
+
+### Webhook Security
+
+# Webhook Security
+
+Patterns for verifying webhook authenticity and preventing replay attacks across messaging platforms.
+
+## Core Principle
+
+Never trust incoming webhooks without verification. All platforms provide a mechanism to prove the request originated from them.
+
+## HMAC-SHA256 Verification (Generic)
+
+```typescript
+import crypto from 'crypto';
+
+function verifyHmacSignature(
+  payload: string | Buffer,
+  signature: string,
+  secret: string,
+  prefix = ''
+): boolean {
+  const expected = prefix + crypto
+    .createHmac('sha256', secret)
+    .update(payload)
+    .digest('hex');
+  return crypto.timingSafeEqual(
+    Buffer.from(signature),
+    Buffer.from(expected)
+  );
+}
+```
+
+## Platform-Specific Verification
+
+### Slack
+
+```typescript
+function verifySlackWebhook(req: Request, signingSecret: string): boolean {
+  const timestamp = req.headers['x-slack-request-timestamp'] as string;
+  const signature = req.headers['x-slack-signature'] as string;
+
+  // Replay protection: reject requests older than 5 minutes
+  if (Math.abs(Date.now() / 1000 - Number(timestamp)) > 300) {
+    return false;
+  }
+
+  const baseString = `v0:${timestamp}:${req.rawBody}`;
+  const expected = 'v0=' + crypto
+    .createHmac('sha256', signingSecret)
+    .update(baseString)
+    .digest('hex');
+
+  return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
+}
+```
+
+### WhatsApp (Meta Business API)
+
+```typescript
+function verifyMetaWebhook(req: Request, appSecret: string): boolean {
+  const signature = (req.headers['x-hub-signature-256'] as string)?.replace('sha256=', '');
+  if (!signature) return false;
+
+  const expected = crypto
+    .createHmac('sha256', appSecret)
+    .update(req.rawBody)
+    .digest('hex');
+
+  return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
+}
+```
+
+### Telegram
+
+Telegram uses a simpler token-based approach:
+
+```typescript
+function verifyTelegramWebhook(req: Request, secretToken: string): boolean {
+  return req.headers['x-telegram-bot-api-secret-token'] === secretToken;
+}
+```
+
+## Replay Protection
+
+Signatures alone don't prevent replay attacks. Add timestamp validation:
+
+```typescript
+function isReplayAttack(timestamp: number, maxAgeSeconds = 300): boolean {
+  return Math.abs(Date.now() / 1000 - timestamp) > maxAgeSeconds;
+}
+```
+
+**Apply before signature check** — reject stale requests early.
+
+## Idempotency
+
+Messaging platforms may send duplicate webhooks (network retries, platform bugs). Track processed message IDs:
+
+```typescript
+async function processWebhook(messageId: string, handler: () => Promise<void>): Promise<void> {
+  // Atomic check-and-set using Redis
+  const isNew = await redis.set(`webhook:${messageId}`, '1', 'EX', 86400, 'NX');
+  if (!isNew) return; // Already processed
+  await handler();
+}
+```
+
+**Key rules:**
+- Use `timingSafeEqual` for all signature comparisons (prevents timing attacks)
+- Validate timestamps before checking signatures (cheap rejection of stale requests)
+- Store processed message IDs with TTL (24h is typical) for deduplication
+- Use raw request body for signature verification — parsed JSON may differ from original bytes
+
+
+### Whatsapp Waha
+
+# WhatsApp via WAHA
+
+WAHA (WhatsApp HTTP API) provides a self-hosted REST API for WhatsApp messaging without Meta's Business API.
+
+## Setup
+
+Run WAHA as a Docker container:
+
+```bash
+docker run -d \
+  --name waha \
+  -p 3000:3000 \
+  -e WHATSAPP_HOOK_URL=https://app.com/webhook/whatsapp \
+  -e WHATSAPP_HOOK_EVENTS=message,session.status \
+  devlikeapro/waha:latest
+```
+
+For production, use Docker Compose with persistent storage:
+
+```yaml
+services:
+  waha:
+    image: devlikeapro/waha:latest
+    ports:
+      - "3000:3000"
+    environment:
+      WHATSAPP_HOOK_URL: https://app.com/webhook/whatsapp
+      WHATSAPP_HOOK_EVENTS: message,message.ack,session.status
+      WAHA_DASHBOARD_ENABLED: "true"
+    volumes:
+      - waha_data:/app/.sessions
+    restart: unless-stopped
+
+volumes:
+  waha_data:
+```
+
+## Session Lifecycle
+
+```bash
+# Create and start session
+POST /api/sessions/start
+{ "name": "main", "config": { "proxy": null, "webhooks": [{ "url": "...", "events": ["message"] }] } }
+
+# Get QR code for authentication
+GET /api/sessions/main/qr   # Returns QR image
+GET /api/sessions/main/auth  # Returns pairing code alternative
+
+# Check session status
+GET /api/sessions/main
+# Response: { "name": "main", "status": "WORKING" | "SCAN_QR" | "STOPPED" }
+
+# Stop session
+POST /api/sessions/stop
+{ "name": "main" }
+```
+
+**Status flow**: `STARTING` -> `SCAN_QR` -> `WORKING` -> `STOPPED`
+
+## Message Types
+
+### Text
+
+```bash
+POST /api/sendText
+{ "session": "main", "chatId": "1234567890@c.us", "text": "Hello!" }
+```
+
+### Image / Document / Video
+
+```bash
+POST /api/sendFile
+{
+  "session": "main",
+  "chatId": "1234567890@c.us",
+  "file": {
+    "mimetype": "image/jpeg",
+    "url": "https://example.com/image.jpg",
+    "filename": "photo.jpg"
+  },
+  "caption": "Check this out"
+}
+```
+
+### Location
+
+```bash
+POST /api/sendLocation
+{ "session": "main", "chatId": "1234567890@c.us", "latitude": 32.0853, "longitude": 34.7818 }
+```
+
+## Group Messaging
+
+```bash
+# chatId for groups uses @g.us suffix
+POST /api/sendText
+{ "session": "main", "chatId": "120363001234567890@g.us", "text": "Group message" }
+
+# List groups
+GET /api/groups?session=main
+```
+
+## Handling Incoming Messages
+
+WAHA posts to your webhook URL:
+
+```json
+{
+  "event": "message",
+  "session": "main",
+  "payload": {
+    "id": "true_1234567890@c.us_AABBCCDD",
+    "from": "1234567890@c.us",
+    "to": "0987654321@c.us",
+    "body": "User message text",
+    "timestamp": 1707900000,
+    "hasMedia": false
+  }
+}
+```
+
+**Key points:**
+- `@c.us` suffix = individual chat, `@g.us` = group chat
+- `id` is unique per message — use for deduplication
+- Media messages have `hasMedia: true` and a separate download endpoint
+- Session status changes also come via webhook (`session.status` event)
 
 
 

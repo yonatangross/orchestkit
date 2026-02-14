@@ -1,0 +1,50 @@
+{
+  "skill": "git-workflow",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "branching-strategy",
+      "rule": "branch-protection",
+      "query": "Set up a branching strategy for our new project",
+      "expectedBehavior": [
+        "Recommends GitHub Flow branching model",
+        "Uses issue/<number>-<description> branch naming",
+        "Enforces main is always deployable",
+        "Requires PR workflow for protected branches"
+      ]
+    },
+    {
+      "id": "stash-recovery",
+      "rule": "recovery-stash",
+      "query": "I accidentally dropped my stash, how do I recover it?",
+      "expectedBehavior": [
+        "Uses git reflog to find the dropped stash",
+        "Provides stash recovery commands",
+        "Explains stash management best practices",
+        "Shows how to avoid future stash loss"
+      ]
+    },
+    {
+      "id": "rebase-workflow",
+      "rule": "merge-strategy",
+      "query": "Should I merge or rebase my feature branch?",
+      "expectedBehavior": [
+        "Recommends rebase over merge for clean history",
+        "Explains conflict resolution during rebase",
+        "Uses force-with-lease for safe pushing after rebase",
+        "Warns against rebasing shared branches"
+      ]
+    },
+    {
+      "id": "cherry-pick-recovery",
+      "rule": "recovery-reflog",
+      "query": "I committed to the wrong branch, how do I move it?",
+      "expectedBehavior": [
+        "Uses reflog to find the commit",
+        "Recommends cherry-pick to correct branch",
+        "Provides reset to remove from wrong branch",
+        "Distinguishes pushed vs unpushed recovery strategies"
+      ]
+    }
+  ]
+}

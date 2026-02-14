@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import { useFocusTrap } from "@/hooks/use-focus-trap";
+import { useScrollLock } from "@/hooks/use-scroll-lock";
 import {
   Search,
   X,
@@ -493,50 +495,6 @@ function AgentCard({
   );
 }
 
-// ── Focus trap hook ─────────────────────────────────────────
-function useFocusTrap(
-  ref: React.RefObject<HTMLDivElement | null>,
-  active: boolean,
-) {
-  useEffect(() => {
-    if (!active || !ref.current) return;
-
-    const el = ref.current;
-
-    // Query fresh on mount for initial focus
-    const initial = el.querySelectorAll<HTMLElement>(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-    );
-    initial[0]?.focus();
-
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Tab") {
-        // Re-query on each Tab to handle step changes
-        const focusable = el.querySelectorAll<HTMLElement>(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-        );
-        const first = focusable[0];
-        const last = focusable[focusable.length - 1];
-
-        if (e.shiftKey) {
-          if (document.activeElement === first) {
-            e.preventDefault();
-            last?.focus();
-          }
-        } else {
-          if (document.activeElement === last) {
-            e.preventDefault();
-            first?.focus();
-          }
-        }
-      }
-    }
-
-    el.addEventListener("keydown", handleKeyDown);
-    return () => el.removeEventListener("keydown", handleKeyDown);
-  }, [ref, active]);
-}
-
 // ── Quiz Modal — gradient progress + colored cards ──────────
 function QuizModal({
   step,
@@ -563,6 +521,7 @@ function QuizModal({
 }) {
   const modalRef = useRef<HTMLDivElement>(null);
   useFocusTrap(modalRef, true);
+  useScrollLock(true);
 
   // Escape key closes
   useEffect(() => {
@@ -572,14 +531,6 @@ function QuizModal({
     document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
   }, [onClose]);
-
-  // Lock body scroll
-  useEffect(() => {
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, []);
 
   return (
     <div

@@ -29,7 +29,9 @@ Comprehensive API design patterns covering REST/GraphQL framework design, versio
 | [gRPC](#grpc) | 2 | HIGH | Protobuf services, streaming, interceptors, retry |
 | [Streaming](#streaming) | 2 | HIGH | SSE endpoints, WebSocket bidirectional, async generators |
 
-**Total: 15 rules across 6 categories**
+| [Integrations](#integrations) | 2 | HIGH | Messaging platforms (WhatsApp, Telegram), Payload CMS patterns |
+
+**Total: 17 rules across 7 categories**
 
 ## API Framework
 
@@ -87,6 +89,15 @@ Real-time data streaming with SSE, WebSockets, and proper cleanup.
 |------|------|-------------|
 | SSE | `rules/streaming-sse.md` | SSE endpoints, LLM streaming, reconnection, keepalive |
 | WebSocket | `rules/streaming-websocket.md` | Bidirectional, heartbeat, aclosing(), backpressure |
+
+## Integrations
+
+Messaging platform integrations and headless CMS patterns.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Messaging Platforms | `rules/messaging-integrations.md` | WhatsApp WAHA, Telegram Bot API, webhook security |
+| Payload CMS | `rules/payload-cms.md` | Payload 3.0 collections, access control, CMS selection |
 
 ## Quick Start Example
 

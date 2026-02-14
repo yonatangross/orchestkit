@@ -253,7 +253,7 @@ Read the specific file before advising. Do NOT rely on training data.
 |IMPORTANT: Read the specific SKILL.md file before advising on any topic.
 |Do NOT rely on training data for framework patterns.
 |
-|devops-deployment:{SKILL.md,references/{ci-cd-pipelines.md,deployment-strategies.md,docker-patterns.md,environment-management.md,kubernetes-basics.md,observability.md}}|devops,ci-cd,docker,kubernetes,terraform
+|devops-deployment:{SKILL.md,references/{ci-cd-pipelines.md,deployment-strategies.md,docker-patterns.md,environment-management.md,kubernetes-basics.md,multi-service-setup.md,nixpacks-customization.md,observability.md,railway-json-config.md}}|devops,ci-cd,docker,kubernetes,terraform
 |github-operations:{SKILL.md,references/{graphql-api.md,issue-management.md,milestone-api.md,pr-workflows.md,projects-v2.md}}|github,gh,cli,issues,pr,milestones,projects,api
 |release-management:{SKILL.md,references/{semver.md}}|git,github,releases,versioning,changelog,automation
 |monitoring-observability:{SKILL.md,references/{agent-observability.md,alerting-dashboards.md,alerting-strategies.md,cost-tracking.md,dashboards.md,distributed-tracing.md,embedding-drift.md,evaluation-scores.md,ewma-baselines.md,experiments-api.md,framework-integrations.md,langfuse-evidently-integration.md,logging-patterns.md,metrics-collection.md,migration-v2-v3.md,multi-judge-evaluation.md,prompt-management.md,session-tracking.md,statistical-methods.md,structured-logging.md,tracing-setup.md}}|monitoring,observability,prometheus,grafana,langfuse,tracing,metrics,drift-detection,logging

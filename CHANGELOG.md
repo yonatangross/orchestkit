@@ -5,6 +5,34 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.0.7] - 2026-02-14
+
+### Added
+
+- 9 test-cases.json files for orchestration skills (commit, review-pr, fix-issue, implement, explore, create-pr, verify, assess, git-workflow) — 39 test cases total (#563)
+- Skill triggering test suite with trigger-cases.yaml + keyword overlap scoring (#571)
+- Rule validation test for YAML frontmatter compliance (#543)
+- "When NOT to Use" tier matrices for architecture-patterns, DDD, distributed-systems (#532)
+- Interview/take-home mode (STEP 0c) in implement skill (#533)
+- 5 new scripts: validate-conventional.sh, check-plugin-health.sh, scaffold-test.sh, scan-vulnerabilities.sh, run-lint-check.sh (#565)
+- Edit > Write memory pattern in memory + remember skills (#546)
+- Lazy loading wrappers for SkillBrowser, DemoGallery, AgentSelector (#438)
+- Docs CI workflow for auto-rebuild on src/ changes (#402)
+- Shared category-colors.ts palette for consistent UI (#439)
+- Database selection rule + 4 references in database-patterns (#535)
+- Railway deployment rule + 3 references in devops-deployment (#550)
+- Messaging integrations rule + 3 references in api-design (#551)
+- Payload CMS rule + 3 references in api-design (#552)
+
+### Fixed
+
+- Replaced ~50 hardcoded hex colors with fd-* design tokens in docs site (#440)
+- Fixed category color inconsistencies: ai (emerald→cyan), devops (violet→orange), research (indigo→teal) (#439)
+- Added aria-live="polite" on copy button feedback (#440)
+
+---
+
+
 ## [6.0.6] - 2026-02-14
 
 ### Added

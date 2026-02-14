@@ -27,7 +27,9 @@ Comprehensive patterns for database migrations, schema design, and version manag
 | [Versioning](#versioning) | 3 | HIGH | Changelogs, rollback plans, schema drift detection |
 | [Zero-Downtime Migration](#zero-downtime-migration) | 2 | CRITICAL | Expand-contract, pgroll, rollback monitoring |
 
-**Total: 11 rules across 4 categories**
+| [Database Selection](#database-selection) | 1 | HIGH | Choosing the right database, PostgreSQL vs MongoDB, cost analysis |
+
+**Total: 12 rules across 5 categories**
 
 ## Quick Start
 
@@ -82,6 +84,14 @@ Database version control and change management across environments.
 | Changelog | `rules/versioning-changelog.md` | Schema version table, semantic versioning, audit trails |
 | Rollback | `rules/versioning-rollback.md` | Rollback testing, destructive rollback docs, CI verification |
 | Drift Detection | `rules/versioning-drift.md` | Environment sync, checksum verification, migration locks |
+
+## Database Selection
+
+Decision frameworks for choosing the right database. Default: PostgreSQL.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Selection Guide | `rules/db-selection.md` | PostgreSQL-first, tier-based matrix, anti-patterns |
 
 ## Key Decisions
 

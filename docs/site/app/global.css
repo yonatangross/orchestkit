@@ -56,8 +56,8 @@
    ============================================================ */
 
 .bg-dot-grid {
-  background-color: #0c0f14;
-  background-image: radial-gradient(#1e293b 1px, transparent 1px);
+  background-color: var(--color-fd-background);
+  background-image: radial-gradient(var(--color-fd-border) 1px, transparent 1px);
   background-size: 24px 24px;
 }
 
@@ -74,13 +74,13 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background-color: #10b981;
+  background-color: var(--color-fd-primary);
   animation: circuit-pulse 2s ease-in-out infinite;
 }
 
 .circuit-line {
   height: 1px;
-  background-color: #1e293b;
+  background-color: var(--color-fd-border);
 }
 
 /* ============================================================
@@ -93,7 +93,7 @@
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #10b981;
+  color: var(--color-fd-primary);
 }
 
 .overline-muted {
@@ -155,8 +155,8 @@
 
 figure[data-rehype-pretty-code-figure] pre,
 pre:where(:not(.not-fumadocs-codeblock *)) {
-  background-color: #111621;
-  border: 1px solid #1e293b;
+  background-color: var(--color-fd-card);
+  border: 1px solid var(--color-fd-border);
   border-radius: 0.5rem;
 }
 
@@ -175,14 +175,14 @@ pre code {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #0c0f14;
+  background: var(--color-fd-background);
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: var(--color-fd-border);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: var(--color-fd-muted-foreground);
 }
 
 /* ============================================================

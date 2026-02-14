@@ -120,19 +120,17 @@ jobs:
 
   # ============================================================================
   # STAGE 2: Unit Tests (< 5m)
-  # Cross-platform: ubuntu + macos + windows
   # Node versions: 20 (LTS), 22 (Current LTS)
   # Uses dynamic test discovery
   # ============================================================================
   unit-tests:
-    name: Unit Tests (${{ matrix.os }}, node ${{ matrix.node-version }})
+    name: Unit Tests (node ${{ matrix.node-version }})
     needs: lint
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
         node-version: ['20', '22']
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
@@ -157,17 +155,16 @@ jobs:
 
   # ============================================================================
   # STAGE 2b: TypeScript Hook Tests (vitest)
-  # Cross-platform with Node version matrix
+  # Node version matrix
   # ============================================================================
   hook-typescript-tests:
-    name: TypeScript Tests (${{ matrix.os }}, node ${{ matrix.node-version }})
+    name: TypeScript Tests (node ${{ matrix.node-version }})
     needs: lint
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
         node-version: ['20', '22']
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
@@ -188,18 +185,12 @@ jobs:
   # ============================================================================
   # STAGE 3: Security Tests (< 3m)
   # ZERO TOLERANCE: Any failure blocks merge
-  # Cross-platform: ubuntu + macos + windows
-  # Uses dynamic test discovery
   # ============================================================================
   security-tests:
-    name: Security Tests (${{ matrix.os }})
+    name: Security Tests
     needs: [build-plugins]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     timeout-minutes: 15
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
@@ -222,18 +213,13 @@ jobs:
 
   # ============================================================================
   # STAGE 4: Integration Tests (< 5m)
-  # Cross-platform: ubuntu + macos + windows
   # Uses dynamic test discovery
   # ============================================================================
   integration-tests:
-    name: Integration Tests (${{ matrix.os }})
+    name: Integration Tests
     needs: [unit-tests, security-tests]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     timeout-minutes: 30
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
@@ -262,18 +248,13 @@ jobs:
 
   # ============================================================================
   # STAGE 5: Performance Tests (< 2m)
-  # Cross-platform: ubuntu + macos + windows
   # Uses dynamic test discovery
   # ============================================================================
   performance-tests:
-    name: Performance Tests (${{ matrix.os }})
+    name: Performance Tests
     needs: [build-plugins]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     timeout-minutes: 15
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
@@ -296,18 +277,13 @@ jobs:
 
   # ============================================================================
   # STAGE 6: Compliance Tests
-  # Cross-platform: ubuntu + macos + windows
   # Uses dynamic test discovery
   # ============================================================================
   compliance-tests:
-    name: Compliance Tests (${{ matrix.os }})
+    name: Compliance Tests
     needs: [build-plugins]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     timeout-minutes: 15
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
@@ -330,18 +306,13 @@ jobs:
 
   # ============================================================================
   # STAGE 7: Agent & Skill Validation
-  # Cross-platform: ubuntu + macos + windows
   # Uses dynamic test discovery
   # ============================================================================
   agent-skill-tests:
-    name: Agents & Skills (${{ matrix.os }})
+    name: Agents & Skills
     needs: [build-plugins]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     timeout-minutes: 20
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
@@ -376,18 +347,13 @@ jobs:
 
   # ============================================================================
   # STAGE 8: System Tests
-  # Cross-platform: ubuntu + macos + windows
   # Uses dynamic test discovery
   # ============================================================================
   system-tests:
-    name: System Tests (${{ matrix.os }})
+    name: System Tests
     needs: [build-plugins]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     timeout-minutes: 15
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 

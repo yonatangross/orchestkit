@@ -281,6 +281,7 @@ if [[ "$RUN_SKILLS" == "true" ]]; then
     # Run skill tests via the skill test runner (uses quick mode in main runner)
     if [[ -f "$SCRIPT_DIR/skills/run-skill-tests.sh" ]]; then
         run_test "SKILL.md Validation" "$SCRIPT_DIR/skills/structure/test-skill-md.sh" || true
+        run_test "Rule File Validation" "$SCRIPT_DIR/skills/structure/test-rule-validation.sh" || true
         run_test "Semantic Matching" "$SCRIPT_DIR/skills/semantic-matching/test-skill-discovery.sh" || true
         run_test "Skill-Agent Integration" "$SCRIPT_DIR/skills/integration/test-skill-agent-integration.sh" || true
         run_test "Agent Definitions" "$SCRIPT_DIR/subagents/definition/test-agent-definitions.sh" || true

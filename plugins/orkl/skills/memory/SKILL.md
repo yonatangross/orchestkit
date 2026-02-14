@@ -2,7 +2,7 @@
 name: memory
 license: MIT
 compatibility: "Claude Code 2.1.34+. Requires memory MCP server."
-description: "Read-side memory operations: search, load, sync, history, visualize. Use when searching past decisions, loading session context, or viewing the knowledge graph."
+description: "Read-side memory operations: search, recall, load, sync, history, visualize. Use when searching past decisions, loading session context, or viewing the knowledge graph."
 argument-hint: "[subcommand] [query]"
 context: fork
 version: 2.0.0
@@ -231,6 +231,36 @@ Format output appropriate to the operation.
 ## Related Skills
 
 - `remember` - Store decisions and patterns (write-side)
+
+---
+
+## Permission-Free File Operations
+
+When updating `.claude/memory/MEMORY.md` or project memory files, **prefer Edit over Write** to preserve existing content and avoid accidental overwrites:
+
+### Recommended Pattern
+
+1. **Read** — `Read(file_path)` to get current content
+2. **Verify anchor** — Confirm section header exists: `## Recent Decisions`, `## Patterns`, `## Preferences`
+3. **Edit** — `Edit(file_path, old_string=anchor_line, new_string=anchor_line + "\n" + new_content)`
+4. **Verify** — `Read(file_path)` to confirm edit applied correctly
+
+### Why Edit Over Write
+
+| Approach | Risk | Permission |
+|----------|------|-----------|
+| Write (overwrite) | Loses existing content if template incomplete | Requires approval |
+| Edit (surgical) | Only modifies target section | Often auto-approved |
+
+### Anchor Lines for MEMORY.md
+
+Stable anchors that persist across sessions:
+- `## Recent Decisions` — for project decisions
+- `## Patterns` — for recurring code patterns
+- `## Preferences` — for user preferences
+- `## Detailed Notes` — for topic file links
+
+> **Note**: The `memory-writer.ts` hook uses Node.js `writeFileSync` — this is correct for hooks context where full file control is needed. The Edit pattern above is for agent-side SKILL.md operations.
 
 ---
 

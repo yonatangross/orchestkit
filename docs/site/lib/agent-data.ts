@@ -4,6 +4,8 @@
 // Agent taxonomy data for the interactive selector.
 // Source of truth: src/agents/*.md frontmatter.
 
+import { CATEGORY_COLORS } from "@/lib/category-colors";
+
 export type TaskType =
   | "build"
   | "review"
@@ -45,64 +47,55 @@ export const CATEGORY_META: Record<
 > = {
   backend: {
     label: "Backend",
-    color: "text-amber-700 dark:text-amber-300",
-    bg: "bg-amber-100 dark:bg-amber-500/20",
+    ...CATEGORY_COLORS.backend,
     border: "border-l-amber-400 dark:border-l-amber-500",
     dot: "bg-amber-500",
   },
   frontend: {
     label: "Frontend",
-    color: "text-blue-700 dark:text-blue-300",
-    bg: "bg-blue-100 dark:bg-blue-500/20",
+    ...CATEGORY_COLORS.frontend,
     border: "border-l-blue-400 dark:border-l-blue-500",
     dot: "bg-blue-500",
   },
   security: {
     label: "Security",
-    color: "text-red-700 dark:text-red-300",
-    bg: "bg-red-100 dark:bg-red-500/20",
+    ...CATEGORY_COLORS.security,
     border: "border-l-red-400 dark:border-l-red-500",
     dot: "bg-red-500",
   },
   quality: {
     label: "Quality",
-    color: "text-emerald-700 dark:text-emerald-300",
-    bg: "bg-emerald-100 dark:bg-emerald-500/20",
+    ...CATEGORY_COLORS.quality,
     border: "border-l-emerald-400 dark:border-l-emerald-500",
     dot: "bg-emerald-500",
   },
   devops: {
     label: "DevOps",
-    color: "text-violet-700 dark:text-violet-300",
-    bg: "bg-violet-100 dark:bg-violet-500/20",
-    border: "border-l-violet-400 dark:border-l-violet-500",
-    dot: "bg-violet-500",
+    ...CATEGORY_COLORS.devops,
+    border: "border-l-orange-400 dark:border-l-orange-500",
+    dot: "bg-orange-500",
   },
   ai: {
     label: "AI / LLM",
-    color: "text-cyan-700 dark:text-cyan-300",
-    bg: "bg-cyan-100 dark:bg-cyan-500/20",
+    ...CATEGORY_COLORS.ai,
     border: "border-l-cyan-400 dark:border-l-cyan-500",
     dot: "bg-cyan-500",
   },
   product: {
     label: "Product",
-    color: "text-pink-700 dark:text-pink-300",
-    bg: "bg-pink-100 dark:bg-pink-500/20",
+    ...CATEGORY_COLORS.product,
     border: "border-l-pink-400 dark:border-l-pink-500",
     dot: "bg-pink-500",
   },
   research: {
     label: "Research",
-    color: "text-indigo-700 dark:text-indigo-300",
-    bg: "bg-indigo-100 dark:bg-indigo-500/20",
-    border: "border-l-indigo-400 dark:border-l-indigo-500",
-    dot: "bg-indigo-500",
+    ...CATEGORY_COLORS.research,
+    border: "border-l-teal-400 dark:border-l-teal-500",
+    dot: "bg-teal-500",
   },
   other: {
     label: "Other",
-    color: "text-slate-700 dark:text-slate-300",
-    bg: "bg-slate-100 dark:bg-slate-500/20",
+    ...CATEGORY_COLORS.other,
     border: "border-l-slate-400 dark:border-l-slate-500",
     dot: "bg-slate-400",
   },

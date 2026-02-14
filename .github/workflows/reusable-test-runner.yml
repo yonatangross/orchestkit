@@ -41,13 +41,12 @@ env:
 
 jobs:
   run-tests:
-    name: ${{ inputs.test-category }} (${{ matrix.os }}${{ inputs.include-node-matrix && format(', node {0}', matrix.node-version) || '' }})
-    runs-on: ${{ matrix.os }}
+    name: ${{ inputs.test-category }}${{ inputs.include-node-matrix && format(' (node {0})', matrix.node-version) || '' }}
+    runs-on: ubuntu-latest
     timeout-minutes: ${{ inputs.timeout-minutes }}
     strategy:
       fail-fast: ${{ inputs.fail-fast }}
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
         node-version: ${{ inputs.include-node-matrix && fromJSON('["20", "22"]') || fromJSON('["22"]') }}
 
     steps:

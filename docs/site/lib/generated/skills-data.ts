@@ -162,10 +162,16 @@ export const SKILLS: Record<string, SkillMeta> = {
         "frontend-integration.md",
         "graphql-api.md",
         "grpc-api.md",
+        "payload-access-control.md",
+        "payload-collection-design.md",
+        "payload-vs-sanity.md",
         "rest-api.md",
         "rest-patterns.md",
         "rfc9457-spec.md",
-        "versioning-strategies.md"
+        "telegram-bot-api.md",
+        "versioning-strategies.md",
+        "webhook-security.md",
+        "whatsapp-waha.md"
       ],
       "assets": [
         "asyncapi-template.yaml",
@@ -589,6 +595,7 @@ export const SKILLS: Record<string, SkillMeta> = {
         "__pycache__",
         "fetch-pr-data.sh",
         "review-pr.md",
+        "run-lint-check.sh",
         "run-pr-checks.py"
       ],
       "checklists": [
@@ -629,6 +636,9 @@ export const SKILLS: Record<string, SkillMeta> = {
       "references": [
         "conventional-commits.md",
         "recovery.md"
+      ],
+      "scripts": [
+        "validate-conventional.sh"
       ]
     },
     "plugins": [
@@ -736,11 +746,15 @@ export const SKILLS: Record<string, SkillMeta> = {
       "references": [
         "alembic-advanced.md",
         "audit-trails.md",
+        "cost-comparison.md",
+        "db-migration-paths.md",
         "environment-coordination.md",
         "migration-patterns.md",
         "migration-testing.md",
         "normalization-patterns.md",
-        "object-versioning.md"
+        "object-versioning.md",
+        "postgres-vs-mongodb.md",
+        "storage-and-cms.md"
       ],
       "scripts": [
         "create-migration.md",
@@ -837,7 +851,10 @@ export const SKILLS: Record<string, SkillMeta> = {
         "docker-patterns.md",
         "environment-management.md",
         "kubernetes-basics.md",
-        "observability.md"
+        "multi-service-setup.md",
+        "nixpacks-customization.md",
+        "observability.md",
+        "railway-json-config.md"
       ],
       "scripts": [
         "Dockerfile",
@@ -941,7 +958,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "doctor": {
     "name": "doctor",
-    "description": "OrchestKit health diagnostics. Use when checking plugin health or troubleshooting issues.",
+    "description": "OrchestKit doctor for health diagnostics. Use when running checks on plugin health, diagnosing problems, or troubleshooting issues.",
     "version": "3.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -974,6 +991,9 @@ export const SKILLS: Record<string, SkillMeta> = {
         "permission-rules.md",
         "schema-validation.md",
         "skills-validation.md"
+      ],
+      "scripts": [
+        "check-plugin-health.sh"
       ]
     },
     "plugins": [
@@ -1055,7 +1075,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "explore": {
     "name": "explore",
-    "description": "explore — Deep codebase exploration with parallel agents. Use when exploring a repo or discovering architecture.",
+    "description": "explore — Deep codebase exploration with parallel agents. Use when exploring a repo, discovering architecture, finding files, or analyzing design patterns.",
     "version": "2.1.0",
     "author": "OrchestKit",
     "tags": [
@@ -1145,7 +1165,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "fix-issue": {
     "name": "fix-issue",
-    "description": "Fixes GitHub issues with parallel analysis. Use when fixing bugs or resolving issues.",
+    "description": "Fixes GitHub issues with parallel analysis. Use to debug errors, resolve regressions, fix bugs, or triage issues.",
     "version": "2.1.0",
     "author": "OrchestKit",
     "tags": [
@@ -1209,7 +1229,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "git-workflow": {
     "name": "git-workflow",
-    "description": "Complete git workflow patterns including GitHub Flow branching, atomic commits with interactive staging, and recovery operations using reflog. Essential patterns for clean history. Use when defining branching strategy or recovering git history.",
+    "description": "Complete git workflow patterns including GitHub Flow branching, atomic commits with interactive staging, merge and rebase strategies, and recovery operations using reflog. Essential patterns for clean history. Use when managing branches, defining branching strategy, or recovering git history.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -1602,7 +1622,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "memory": {
     "name": "memory",
-    "description": "Read-side memory operations: search, load, sync, history, visualize. Use when searching past decisions, loading session context, or viewing the knowledge graph.",
+    "description": "Read-side memory operations: search, recall, load, sync, history, visualize. Use when searching past decisions, loading session context, or viewing the knowledge graph.",
     "version": "2.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -2528,6 +2548,7 @@ export const SKILLS: Record<string, SkillMeta> = {
         "auth-middleware-template.py",
         "prompt_builder.py",
         "safe_llm_call.py",
+        "scan-vulnerabilities.sh",
         "validation-schemas.ts"
       ],
       "checklists": [
@@ -2714,6 +2735,7 @@ export const SKILLS: Record<string, SkillMeta> = {
         "provider-verification-template.py",
         "pytest-fixture.py",
         "pytest-integration.py",
+        "scaffold-test.sh",
         "test-case-template.md",
         "test-plan-template.md",
         "vcr-cassette.py"
