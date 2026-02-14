@@ -5,7 +5,19 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [6.0.6] - 2026-02-13
+## [6.0.6] - 2026-02-14
+
+### Added
+
+- **Hooks**: Add type-error-indexer SessionStart hook — caches `tsc --noEmit` errors for agent awareness (#304)
+- **Skills**: Extract 27 rules from 7 reference-only tech skills (#559)
+- **Skills**: Add YAGNI gate to quality-gates, context-aware architecture-patterns (#530, #531)
+- **Skills**: Add scope-appropriate-architecture skill (#528, #529)
+
+### Changed
+
+- **Agents**: Rename performance-engineer → frontend-performance-engineer to avoid confusion with python-performance-engineer (#587)
+- **CLAUDE.md**: Update CC format reference from 2.1.6 to 2.1.34 (#515)
 
 ### Fixed
 
@@ -21,6 +33,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Tests**: Delete unused parallel mode from run-tests.sh (had bug assuming 100% pass)
 - **Tests**: Report vitest pass/fail/skip counts in run-all-tests.sh
 - **Docs**: Fix CLAUDE.md hook count (65 → 63 global, matches hooks.json)
+- **Docs**: Fix markdownlint warnings in golden-dataset and release-management skills
+- **Docs**: Replace unsupported gitattributes language with text for Shiki
 
 ---
 

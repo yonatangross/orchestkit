@@ -68,8 +68,7 @@ All plugins include 0 hooks. 61 skills are user-invocable via `/ork:skillname`.
 
 ## Version
 
-- **Current**: 7.0.0 · **Claude Code**: >= 2.1.34
-- **Memory**: 2-tier (Graph MCP + CC Native MEMORY.md) — mem0 cloud removed in v7
+- **Current**: 6.0.6 · **Claude Code**: >= 2.1.34
 - **Hooks**: 86 entries (63 global + 22 agent-scoped + 1 skill-scoped, 11 bundles, 7 fire-and-forget dispatchers)
 
 See `CHANGELOG.md` for history. See `src/hooks/README.md` for hook architecture.
