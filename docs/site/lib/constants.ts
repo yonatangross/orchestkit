@@ -1,9 +1,11 @@
 // Single source of truth for all site-wide values.
-// Update here once — every page picks it up.
+// Version is read from the root manifest (manifests/ork.json).
+
+import orkManifest from "../../../manifests/ork.json";
 
 export const SITE = {
   name: "OrchestKit",
-  version: "6.0.6",
+  version: orkManifest.version,
   domain: "https://orchestkit.vercel.app",
   github: "https://github.com/yonatangross/orchestkit",
   installCommand: "claude install orchestkit/ork",
