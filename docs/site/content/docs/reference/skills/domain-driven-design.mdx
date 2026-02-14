@@ -103,6 +103,21 @@ See [entities-value-objects.md](references/entities-value-objects.md) for Addres
 | [aggregate-invariants](rules/aggregate-invariants.md) | HIGH | Business rule enforcement, specification pattern |
 | [aggregate-sizing](rules/aggregate-sizing.md) | HIGH | Right-sizing, when to split, eventual consistency |
 
+## When NOT to Use
+
+Under 5 entities? Skip DDD entirely. The ceremony costs more than the benefit.
+
+| Pattern | Interview | Hackathon | MVP | Growth | Enterprise | Simpler Alternative |
+|---------|-----------|-----------|-----|--------|------------|---------------------|
+| Aggregates | OVERKILL | OVERKILL | OVERKILL | SELECTIVE | APPROPRIATE | Plain dataclasses with validation |
+| Bounded contexts | OVERKILL | OVERKILL | OVERKILL | BORDERLINE | APPROPRIATE | Python packages with clear imports |
+| CQRS | OVERKILL | OVERKILL | OVERKILL | OVERKILL | WHEN JUSTIFIED | Single model for read/write |
+| Value objects | OVERKILL | OVERKILL | BORDERLINE | APPROPRIATE | REQUIRED | Typed fields on the entity |
+| Domain events | OVERKILL | OVERKILL | OVERKILL | SELECTIVE | APPROPRIATE | Direct method calls between services |
+| Repository pattern | OVERKILL | OVERKILL | BORDERLINE | APPROPRIATE | REQUIRED | Direct ORM queries in service layer |
+
+**Rule of thumb:** DDD adds ~40% code overhead. Only worth it when domain complexity genuinely demands it (5+ entities with invariants spanning multiple objects). A CRUD app with DDD is a red flag.
+
 ## Anti-Patterns (FORBIDDEN)
 
 ```python

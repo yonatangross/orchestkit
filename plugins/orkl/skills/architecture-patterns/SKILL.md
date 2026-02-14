@@ -175,6 +175,21 @@ Do you have > 5 engineers or complex domain rules?
   NO  --> Layered architecture. Add abstractions only when pain appears.
 ```
 
+## When NOT to Use
+
+Not every project needs architecture patterns. Match complexity to project tier:
+
+| Pattern | Interview | Hackathon | MVP | Growth | Enterprise | Simpler Alternative |
+|---------|-----------|-----------|-----|--------|------------|---------------------|
+| Repository pattern | OVERKILL (~200 LOC) | OVERKILL | BORDERLINE | APPROPRIATE | REQUIRED | Direct ORM calls in service (~20 LOC) |
+| DI containers | OVERKILL (~150 LOC) | OVERKILL | LIGHT ONLY | APPROPRIATE | REQUIRED | Constructor params or module-level singletons (~10 LOC) |
+| Event-driven arch | OVERKILL (~300 LOC) | OVERKILL | OVERKILL | SELECTIVE | APPROPRIATE | Direct function calls between services (~30 LOC) |
+| Hexagonal architecture | OVERKILL (~400 LOC) | OVERKILL | OVERKILL | BORDERLINE | APPROPRIATE | Flat modules with imports (~50 LOC) |
+| Strict layer separation | OVERKILL (~250 LOC) | OVERKILL | WARN | BLOCK | BLOCK | Routes + models in same file (~40 LOC) |
+| Domain exceptions | OVERKILL (~100 LOC) | OVERKILL | OVERKILL | BLOCK | BLOCK | Built-in ValueError/HTTPException (~5 LOC) |
+
+**Rule of thumb:** If a pattern shows OVERKILL for the detected tier, do NOT use it. Use the simpler alternative. A take-home with hexagonal architecture signals over-engineering, not skill.
+
 ## Anti-Patterns (FORBIDDEN)
 
 ```python

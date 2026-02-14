@@ -263,6 +263,14 @@ Before storing, search for similar patterns in graph:
 3. If similar pattern found with opposite outcome:
    - Warn: "⚠️ This conflicts with an existing pattern. Store anyway?"
 
+## File-Based Memory Updates
+
+When updating `.claude/memory/MEMORY.md` or project memory files:
+- **PREFER Edit over Write** to preserve existing content and avoid overwriting
+- Use stable anchor lines: `## Recent Decisions`, `## Patterns`, `## Preferences`
+- See the `memory` skill's "Permission-Free File Operations" section for the full Edit pattern
+- This applies to the calling agent's file operations, not to the knowledge graph operations above
+
 
 ## Related Skills
 - `memory` - Search, load, sync, visualize (read-side operations)

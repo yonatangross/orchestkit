@@ -21,7 +21,9 @@ Comprehensive patterns for database migrations, schema design, and version manag
 | [Versioning](#versioning) | 3 | HIGH | Changelogs, rollback plans, schema drift detection |
 | [Zero-Downtime Migration](#zero-downtime-migration) | 2 | CRITICAL | Expand-contract, pgroll, rollback monitoring |
 
-**Total: 11 rules across 4 categories**
+| [Database Selection](#database-selection) | 1 | HIGH | Choosing the right database, PostgreSQL vs MongoDB, cost analysis |
+
+**Total: 12 rules across 5 categories**
 
 ## Quick Start
 
@@ -76,6 +78,14 @@ Database version control and change management across environments.
 | Changelog | `rules/versioning-changelog.md` | Schema version table, semantic versioning, audit trails |
 | Rollback | `rules/versioning-rollback.md` | Rollback testing, destructive rollback docs, CI verification |
 | Drift Detection | `rules/versioning-drift.md` | Environment sync, checksum verification, migration locks |
+
+## Database Selection
+
+Decision frameworks for choosing the right database. Default: PostgreSQL.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Selection Guide | `rules/db-selection.md` | PostgreSQL-first, tier-based matrix, anti-patterns |
 
 ## Key Decisions
 
@@ -145,7 +155,7 @@ Safe database schema changes without downtime using expand-contract pattern and 
 
 ---
 
-## Rules (11)
+## Rules (12)
 
 ### Alembic: Autogenerate Migrations — CRITICAL
 
@@ -493,6 +503,79 @@ def upgrade() -> None:
 - Running CONCURRENTLY inside a transaction block (fails)
 - Not committing between batches (holds locks too long)
 - Skipping `FOR UPDATE SKIP LOCKED` in batch queries (deadlocks)
+
+
+### Database Selection Guide — HIGH
+
+
+# Database Selection Guide
+
+## The Default: PostgreSQL
+
+PostgreSQL is the #1 most-loved database for good reason. **Start with PostgreSQL unless you have a specific, validated reason not to.**
+
+```sql
+-- PostgreSQL handles "document store" workloads with JSONB
+CREATE TABLE products (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  metadata JSONB DEFAULT '{}'
+);
+CREATE INDEX idx_products_metadata ON products USING GIN (metadata);
+SELECT * FROM products WHERE metadata @> '{"category": "electronics"}';
+```
+
+Key strengths: JSONB (90% of MongoDB use cases), full-text search (tsvector), extensions (PostGIS, pgvector, TimescaleDB), ACID transactions, universal ecosystem support.
+
+## Decision Matrix by Project Tier
+
+| Tier | Recommendation | Rationale |
+|------|---------------|-----------|
+| Interview / Take-home | SQLite or PostgreSQL | Zero config or standard choice |
+| Hackathon / Prototype | PostgreSQL | Don't waste time on exotic choices |
+| MVP (&lt; 6 months) | PostgreSQL | One database, learn it well |
+| Growth (1-5 engineers) | PostgreSQL + Redis (cache) | Add Redis only when measured |
+| Enterprise (5+) | PostgreSQL primary + purpose-built secondaries | Specialized stores for validated bottlenecks |
+
+## Decision Matrix by Data Model
+
+| Data Shape | Best Fit | Why |
+|------------|----------|-----|
+| Relational with joins | PostgreSQL | Built for this |
+| JSON documents with queries | PostgreSQL (JSONB) | Indexed JSON with SQL power |
+| Truly schema-less, evolving weekly | MongoDB | Only if you never join |
+| Key-value lookups | Redis | Sub-ms reads, ephemeral data |
+| Time-series metrics | PostgreSQL + TimescaleDB | Or InfluxDB for extreme scale |
+| Vector embeddings | PostgreSQL + pgvector | Or Pinecone for 100M+ vectors |
+
+## When to Use Each
+
+- **PostgreSQL**: Everything, unless proven otherwise. Web apps, APIs, SaaS, complex queries, JSON, full-text search, geo, vectors.
+- **MongoDB**: Truly document-shaped data with no relational needs. Content where schema changes weekly AND you never join.
+- **Redis**: Caching, sessions, ephemeral data. **Never as primary datastore.**
+- **SQLite**: Embedded, single-user, dev/testing, edge computing. **Never for concurrent multi-user writes.**
+
+## Anti-Patterns
+
+**Incorrect:**
+- Choosing MongoDB because "it's trendy" or "JSON is easier" without evaluating PostgreSQL JSONB
+- Premature sharding before exhausting indexing, query optimization, read replicas, connection pooling
+- SQLite in production with concurrent writes (causes `SQLITE_BUSY`)
+- Redis as primary datastore (data persistence is best-effort)
+- Running PostgreSQL + MongoDB + Redis + Elasticsearch when PostgreSQL alone covers it
+
+**Correct:**
+- Default to PostgreSQL, add specialized stores only for validated bottlenecks
+- Before choosing non-PostgreSQL: benchmark (not assume), verify data model incompatibility, confirm team expertise
+- Use Redis only as cache layer in front of PostgreSQL
+- Use SQLite only for embedded/single-user/dev
+
+## References
+
+- `references/postgres-vs-mongodb.md` — Head-to-head comparison, JSONB examples
+- `references/cost-comparison.md` — Hosting costs, license, operational complexity
+- `references/db-migration-paths.md` — MongoDB→PostgreSQL, SQLite→PostgreSQL strategies
+- `references/storage-and-cms.md` — CMS backends, file/blob storage decisions
 
 
 ### Migration Rollback and Monitoring — HIGH
@@ -1361,7 +1444,7 @@ command.stamp(alembic_config, "head")  # Loses history
 
 ---
 
-## References (7)
+## References (11)
 
 ### Alembic Advanced
 
@@ -1765,6 +1848,173 @@ FOR EACH ROW EXECUTE FUNCTION log_changes();
 | Row-level versioning | Simple history needs | Low |
 | Temporal tables | Point-in-time queries | Medium |
 | CDC | Full audit compliance | High |
+
+
+### Cost Comparison
+
+# Database Cost Comparison
+
+Hosting and operational cost analysis to inform database selection decisions.
+
+## Managed Hosting Costs (Approximate Monthly)
+
+| Provider | PostgreSQL | MongoDB | Redis |
+|----------|-----------|---------|-------|
+| **Free tier** | Supabase, Neon, Render | Atlas M0 (512 MB) | Upstash (10K cmds/day) |
+| **Hobby ($5-25)** | Supabase Pro ($25), Railway ($5+), Render ($7+) | Atlas M10 ($57+) | Upstash Pay-as-go, Redis Cloud ($5+) |
+| **Production ($50-200)** | Supabase Pro, RDS db.t3.medium (~$65), Cloud SQL (~$50) | Atlas M30 ($230+) | ElastiCache t3.small (~$25), Memorystore (~$35) |
+| **Scale ($200-1000)** | RDS db.r6g.large (~$200), Aurora (~$250) | Atlas M50 ($500+) | ElastiCache r6g.large (~$150) |
+
+Key takeaway: **MongoDB managed hosting costs 2-3x more than PostgreSQL** at equivalent tiers. MongoDB Atlas pricing reflects the vendor lock-in premium.
+
+## License Considerations
+
+| Database | License | Impact |
+|----------|---------|--------|
+| PostgreSQL | PostgreSQL License | Fully permissive. Host anywhere, modify freely. |
+| MongoDB | SSPL | Cannot offer MongoDB as a managed service. Limits cloud provider hosting options. |
+| Redis | RSALv2 + SSPLv1 (since 2024) | Source-available but not OSS. Alternatives: Valkey (Linux Foundation fork), KeyDB, DragonflyDB. |
+| SQLite | Public Domain | Zero restrictions. Embedded in everything. |
+
+## Operational Complexity
+
+| Factor | PostgreSQL | MongoDB | Redis | SQLite |
+|--------|-----------|---------|-------|--------|
+| Backup/restore | pg_dump, pg_basebackup, WAL archiving | mongodump, oplog | RDB snapshots, AOF | File copy |
+| Monitoring | pg_stat_statements, pgBadger | Atlas monitoring, mongotop | redis-cli INFO, RedisInsight | N/A |
+| Scaling reads | Read replicas (simple) | Replica sets (moderate) | Redis Cluster (moderate) | N/A |
+| Scaling writes | Partitioning, Citus (moderate) | Sharding (complex) | Redis Cluster (moderate) | N/A |
+| Team expertise needed | Moderate (widely known) | Moderate (less common) | Low (simple API) | Minimal |
+| Connection pooling | PgBouncer (essential at scale) | Built-in driver pooling | Built-in | N/A |
+
+## Total Cost of Ownership Factors
+
+Beyond hosting, consider:
+
+1. **Developer time**: PostgreSQL has more tutorials, Stack Overflow answers, and ORM support than any alternative
+2. **Hiring**: PostgreSQL/SQL skills are universal; MongoDB-specific expertise is niche
+3. **Migration cost**: Starting with PostgreSQL avoids expensive future migrations
+4. **Extension ecosystem**: PostGIS, pgvector, TimescaleDB, pg_cron are free — equivalent MongoDB features require paid Atlas tiers
+5. **Vendor lock-in**: MongoDB Atlas features (Atlas Search, Charts, App Services) don't transfer to self-hosted
+
+## Budget Decision Tree
+
+```
+Budget = $0?
+  YES --> SQLite (embedded) or Supabase/Neon free tier (managed Postgres)
+  NO  -->
+
+Budget < $50/mo?
+  YES --> Managed PostgreSQL (Supabase, Railway, Render)
+  NO  -->
+
+Budget < $500/mo?
+  YES --> PostgreSQL (managed) + Redis (Upstash or small ElastiCache)
+  NO  -->
+
+Budget $500+/mo?
+  YES --> PostgreSQL (RDS/Aurora/Cloud SQL) + Redis + purpose-built stores as needed
+```
+
+
+### Db Migration Paths
+
+# Database Migration Paths
+
+Common migration scenarios, tools, and risk assessment.
+
+## Migration Risk Matrix
+
+| Migration | Difficulty | Risk | Downtime | Typical Duration |
+|-----------|-----------|------|----------|-----------------|
+| SQLite to PostgreSQL | Low | Low | Minutes | 1-2 days dev work |
+| MongoDB to PostgreSQL | Medium-High | Medium | Hours (with planning) | 1-4 weeks |
+| MySQL to PostgreSQL | Medium | Low-Medium | Hours | 1-2 weeks |
+| PostgreSQL to PostgreSQL (version upgrade) | Low | Low | Minutes (pg_upgrade) | Hours |
+| Single PostgreSQL to read replicas | Low | Low | Near-zero | 1-2 days |
+| Redis cache swap (e.g., to Valkey) | Low | Low | Minutes | 1 day |
+
+## SQLite to PostgreSQL
+
+The most common migration path for growing projects.
+
+**When**: App outgrows single-user/embedded model and needs concurrent writes.
+
+**Steps**:
+1. Install PostgreSQL and create target database
+2. Use `pgloader` (recommended) for automated schema + data migration
+3. Update connection string and ORM configuration
+4. Replace SQLite-specific syntax (e.g., `AUTOINCREMENT` to `SERIAL`)
+5. Add connection pooling (PgBouncer for production)
+6. Test concurrent write scenarios
+
+**Tools**: `pgloader` (handles schema conversion automatically), `sqlite3 .dump` + manual SQL cleanup.
+
+**Common gotchas**:
+- SQLite `INTEGER PRIMARY KEY` is auto-increment; PostgreSQL needs `SERIAL` or `GENERATED ALWAYS AS IDENTITY`
+- SQLite has loose typing; PostgreSQL enforces column types strictly
+- Date/time handling differs — SQLite stores as text, PostgreSQL has native types
+
+## MongoDB to PostgreSQL
+
+The most impactful migration. Plan carefully.
+
+**When**: Team realizes relational queries, JOINs, or ACID transactions are needed.
+
+**Strategy**:
+
+1. **Schema mapping**: Map each collection to a table. For truly variable documents, use a typed columns + JSONB hybrid:
+   ```sql
+   CREATE TABLE products (
+       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+       name TEXT NOT NULL,
+       category TEXT NOT NULL,
+       price NUMERIC(10,2) NOT NULL,
+       metadata JSONB  -- Variable fields go here
+   );
+   ```
+
+2. **Data extraction**: `mongoexport --jsonArray` per collection, transform with scripts, load with `COPY`
+
+3. **Query rewriting**: Convert aggregation pipelines to SQL
+   - `$match` becomes `WHERE`
+   - `$group` becomes `GROUP BY`
+   - `$lookup` becomes `JOIN`
+   - `$unwind` becomes `LATERAL JOIN` or `jsonb_array_elements`
+
+4. **Dual-write period**: Write to both databases during transition, read from PostgreSQL, compare results
+
+5. **Cutover**: Switch reads to PostgreSQL, decommission MongoDB
+
+**Tools**: `mongoexport`, custom ETL scripts (Python recommended), `pgloader` (limited MongoDB support).
+
+**Risk mitigations**:
+- Run dual-write for at least 1 week in production
+- Compare query results between both databases automatically
+- Keep MongoDB running (read-only) for 30 days post-migration as rollback
+
+## MySQL to PostgreSQL
+
+**When**: Need advanced features (JSONB, CTEs, window functions, extensions) or better standards compliance.
+
+**Steps**:
+1. Use `pgloader` for automated migration (handles most type conversions)
+2. Review and fix: `ENUM` types, `UNSIGNED` integers, `AUTO_INCREMENT` to `SERIAL`
+3. Replace MySQL-specific functions (`IFNULL` to `COALESCE`, `LIMIT x,y` to `LIMIT y OFFSET x`)
+4. Update stored procedures (PL/pgSQL syntax differs from MySQL procedures)
+
+**Tools**: `pgloader` (best option), AWS DMS (for RDS-to-RDS), `mysqldump` + manual conversion.
+
+## Adding Read Replicas (PostgreSQL)
+
+**When**: Read-heavy workload saturates primary, measured (not assumed).
+
+**Steps**:
+1. Set up streaming replication (`primary_conninfo` in `recovery.conf` / `postgresql.auto.conf`)
+2. Configure application for read/write splitting (write to primary, read from replica)
+3. Handle replication lag in application logic (eventual consistency for reads)
+
+**Tools**: Built-in streaming replication, Patroni (HA), PgBouncer (connection routing).
 
 
 ### Environment Coordination
@@ -2948,6 +3198,178 @@ def downgrade():
 | Procedures | Version table | Archive before update |
 | Views | _v1, _v2 naming | Alias for current |
 | Reference data | Version column | Soft delete old |
+
+
+### Postgres Vs Mongodb
+
+# PostgreSQL vs MongoDB
+
+Head-to-head comparison for the most common database decision. TL;DR: PostgreSQL wins for almost every use case.
+
+## Feature Comparison
+
+| Feature | PostgreSQL | MongoDB |
+|---------|-----------|---------|
+| Data model | Relational + JSONB | Document (BSON) |
+| Schema | Enforced (with flexible JSONB) | Schema-less (optional validation) |
+| Transactions | Full ACID, multi-table | Multi-document (since 4.0, slower) |
+| Joins | Native, optimized | $lookup (slow, limited) |
+| JSON support | JSONB with GIN indexes | Native BSON |
+| Full-text search | Built-in tsvector | Atlas Search (paid) |
+| Geospatial | PostGIS (industry standard) | Built-in (basic) |
+| Aggregation | SQL (window functions, CTEs) | Aggregation pipeline (verbose) |
+| Replication | Streaming replication | Replica sets |
+| Sharding | Citus extension / partitioning | Built-in (complex to operate) |
+| License | PostgreSQL License (permissive) | SSPL (restrictive) |
+| Hosting | Every cloud, many managed options | Atlas (MongoDB Inc.) or self-host |
+
+## PostgreSQL JSONB: The MongoDB Killer
+
+PostgreSQL's JSONB type handles document workloads with full SQL power:
+
+```sql
+-- Store JSON documents
+CREATE TABLE products (
+    id SERIAL PRIMARY KEY,
+    data JSONB NOT NULL
+);
+
+-- Index nested fields
+CREATE INDEX idx_products_category ON products USING GIN ((data->'category'));
+
+-- Query JSON with SQL
+SELECT data->>'name' AS name, data->'price' AS price
+FROM products
+WHERE data @> '{"category": "electronics"}'
+  AND (data->>'price')::numeric < 500
+ORDER BY (data->>'price')::numeric;
+
+-- Combine relational joins WITH JSON queries
+SELECT u.email, p.data->>'name'
+FROM users u
+JOIN products p ON p.data->>'seller_id' = u.id::text
+WHERE p.data @> '{"in_stock": true}';
+```
+
+Key advantages over MongoDB:
+- **ACID transactions** across relational and JSON data in one query
+- **JOIN** JSON documents with relational tables
+- **GIN indexes** on JSONB are fast and flexible
+- **Partial indexes** on JSON fields for targeted performance
+- **No vendor lock-in** — SSPL license limits MongoDB hosting options
+
+## When MongoDB Actually Makes Sense
+
+These cases are rare but legitimate:
+
+1. **Rapidly evolving schemas**: Data shape changes multiple times per week, and you never need cross-document joins. Example: IoT with hundreds of device types each sending different telemetry shapes.
+
+2. **Existing MongoDB codebase**: Migration cost exceeds benefit. The team has deep MongoDB operational expertise and the application works well.
+
+3. **Content catalogs with embedded data**: Self-contained documents that are always read/written as a whole, never joined. Example: a product catalog where each product document contains all its variants, reviews, and metadata.
+
+4. **Time-series with variable schemas**: Each data point has different fields. Note: TimescaleDB (PostgreSQL extension) often handles this better.
+
+## Common MongoDB Pitfalls
+
+| Pitfall | What Happens | PostgreSQL Equivalent |
+|---------|-------------|----------------------|
+| No joins | Denormalize everything, data duplication | Native JOINs |
+| Schema drift | Documents with inconsistent fields | Schema enforcement |
+| $lookup performance | Cross-collection queries are slow | Optimized JOIN planner |
+| Transaction overhead | Multi-doc transactions are 2-5x slower than single-doc | Negligible transaction overhead |
+| SSPL license | Cannot offer as managed service | Permissive license |
+| ObjectId ordering | Time-based, leaks creation timestamps | UUID v7 or SERIAL |
+
+## Migration: MongoDB to PostgreSQL
+
+See `references/migration-paths.md` for detailed migration strategies.
+
+Quick summary:
+1. Map collections to tables (or JSONB columns for truly flexible data)
+2. Extract commonly queried fields into typed columns
+3. Use `mongodump` + transformation scripts + `COPY` for data migration
+4. Rewrite aggregation pipelines as SQL queries (usually simpler)
+
+
+### Storage And Cms
+
+# Storage and CMS Database Selection
+
+Guidance for choosing databases in content management and file storage contexts.
+
+## CMS Backend Database Selection
+
+| CMS Type | Recommended Database | Rationale |
+|----------|---------------------|-----------|
+| Traditional CMS (WordPress-like) | PostgreSQL | Structured content with relationships, taxonomies, user roles |
+| Headless CMS (API-first) | PostgreSQL | Content types, versioning, localization all benefit from relational model |
+| Blog / Documentation | PostgreSQL or SQLite | Simple schema; SQLite works for single-author static-gen |
+| E-commerce catalog | PostgreSQL | Products, variants, inventory, orders — heavily relational |
+| User-generated content | PostgreSQL | Moderation workflows, reporting, search — needs JOINs and transactions |
+
+### Why Not MongoDB for CMS?
+
+The "documents for content" intuition is wrong. CMS content is deeply relational:
+
+- Content references other content (related posts, linked products)
+- Taxonomies (categories, tags) are many-to-many relationships
+- User roles and permissions are relational
+- Content versioning needs transactions
+- Localization multiplies content with locale relationships
+
+PostgreSQL JSONB handles the flexible parts (custom fields, metadata) while maintaining relational integrity for the structural parts.
+
+## File and Blob Storage
+
+**Rule: Never store large files in a database.**
+
+| Storage Type | Use | Technology |
+|-------------|-----|------------|
+| File metadata | Database (PostgreSQL) | Store filename, size, mime type, S3 key, upload timestamp |
+| Small files (&lt; 1 MB) | Database acceptable | Profile avatars, thumbnails — `BYTEA` column or JSONB base64 |
+| Medium files (1-100 MB) | Object storage | S3, GCS, R2, MinIO — store URL/key in database |
+| Large files (100 MB+) | Object storage + multipart | S3 multipart upload, presigned URLs |
+| Temporary files | Object storage with lifecycle | S3 lifecycle rules for auto-deletion |
+
+### Recommended Architecture
+
+```
+User Upload --> API Server --> Object Storage (S3/R2/GCS)
+                    |
+                    v
+              PostgreSQL (metadata only)
+              - file_id, s3_key, filename
+              - mime_type, size_bytes
+              - uploaded_by, uploaded_at
+```
+
+This pattern:
+- Keeps database small and fast (metadata only)
+- Leverages CDN for file delivery (CloudFront, Cloudflare)
+- Enables presigned URLs for direct upload/download (bypasses API server)
+- Works with any object storage provider (no vendor lock-in)
+
+### When to Use Database for Storage
+
+Acceptable cases for storing data directly in PostgreSQL:
+
+1. **Small, frequently accessed blobs**: User avatars under 100 KB, stored as `BYTEA`
+2. **Generated documents**: PDF invoices, reports — if total volume is small (&lt; 10 GB)
+3. **Configuration files**: YAML/JSON configs under 1 MB
+4. **Embedded SQLite**: Single-user apps where adding object storage is overkill
+
+### Object Storage Comparison
+
+| Provider | Free Tier | Cost (per GB/mo) | Egress | Best For |
+|----------|-----------|-------------------|--------|----------|
+| Cloudflare R2 | 10 GB | $0.015 | Free | Cost-sensitive, no egress fees |
+| AWS S3 | 5 GB (12 months) | $0.023 | $0.09/GB | AWS ecosystem, mature tooling |
+| GCS | 5 GB | $0.020 | $0.12/GB | GCP ecosystem |
+| MinIO | Unlimited (self-hosted) | Infrastructure cost | N/A | On-premise, air-gapped |
+| Supabase Storage | 1 GB | $0.021 | Included in plan | Already using Supabase |
+
+**Default recommendation**: Cloudflare R2 for new projects (zero egress fees), S3 for AWS-native stacks.
 
 
 

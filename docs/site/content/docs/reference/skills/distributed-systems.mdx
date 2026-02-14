@@ -123,6 +123,22 @@ Event sourcing, CQRS, saga orchestration, and reliable messaging patterns.
 | Rate limit algorithm | Token bucket for most APIs, sliding window for strict quotas |
 | Rate limit storage | Redis (distributed, atomic Lua scripts) |
 
+## When NOT to Use
+
+No separate event-sourcing/saga/CQRS skills exist — they are rules within distributed-systems. But most projects never need them.
+
+| Pattern | Interview | Hackathon | MVP | Growth | Enterprise | Simpler Alternative |
+|---------|-----------|-----------|-----|--------|------------|---------------------|
+| Event sourcing | OVERKILL | OVERKILL | OVERKILL | OVERKILL | WHEN JUSTIFIED | Append-only table with status column |
+| Saga orchestration | OVERKILL | OVERKILL | OVERKILL | SELECTIVE | APPROPRIATE | Sequential service calls with manual rollback |
+| Circuit breaker | OVERKILL | OVERKILL | BORDERLINE | APPROPRIATE | REQUIRED | Try/except with timeout |
+| Distributed locks | OVERKILL | OVERKILL | BORDERLINE | APPROPRIATE | REQUIRED | Database row-level lock (SELECT FOR UPDATE) |
+| CQRS | OVERKILL | OVERKILL | OVERKILL | OVERKILL | WHEN JUSTIFIED | Single model for read/write |
+| Transactional outbox | OVERKILL | OVERKILL | OVERKILL | SELECTIVE | APPROPRIATE | Direct publish after commit |
+| Rate limiting | OVERKILL | OVERKILL | SIMPLE ONLY | APPROPRIATE | REQUIRED | Nginx rate limit or cloud WAF |
+
+**Rule of thumb:** If you have a single server process, you do not need distributed systems patterns. Use in-process alternatives. Add distribution only when you actually have multiple instances.
+
 ## Anti-Patterns (FORBIDDEN)
 
 ```python

@@ -16,6 +16,7 @@ import {
 import { OptimizedThumbnail } from "@/components/optimized-thumbnail";
 import type { Composition } from "@/lib/generated/types";
 import { COMPOSITIONS } from "@/lib/generated/compositions-data";
+import { CATEGORY_COLORS } from "@/lib/category-colors";
 
 // ── Category metadata ────────────────────────────────────────
 const COMP_CATEGORY_META: Record<
@@ -25,38 +26,32 @@ const COMP_CATEGORY_META: Record<
   core: {
     label: "Core",
     dot: "bg-violet-500",
-    color: "text-violet-700 dark:text-violet-300",
-    bg: "bg-violet-100 dark:bg-violet-500/20",
+    ...CATEGORY_COLORS.development,
   },
   memory: {
     label: "Memory",
     dot: "bg-cyan-500",
-    color: "text-cyan-700 dark:text-cyan-300",
-    bg: "bg-cyan-100 dark:bg-cyan-500/20",
+    ...CATEGORY_COLORS.ai,
   },
   review: {
     label: "Review",
     dot: "bg-amber-500",
-    color: "text-amber-700 dark:text-amber-300",
-    bg: "bg-amber-100 dark:bg-amber-500/20",
+    ...CATEGORY_COLORS.backend,
   },
   devops: {
     label: "DevOps",
     dot: "bg-orange-500",
-    color: "text-orange-700 dark:text-orange-300",
-    bg: "bg-orange-100 dark:bg-orange-500/20",
+    ...CATEGORY_COLORS.devops,
   },
   ai: {
     label: "AI",
-    dot: "bg-emerald-500",
-    color: "text-emerald-700 dark:text-emerald-300",
-    bg: "bg-emerald-100 dark:bg-emerald-500/20",
+    dot: "bg-cyan-500",
+    ...CATEGORY_COLORS.ai,
   },
   advanced: {
     label: "Advanced",
     dot: "bg-pink-500",
-    color: "text-pink-700 dark:text-pink-300",
-    bg: "bg-pink-100 dark:bg-pink-500/20",
+    ...CATEGORY_COLORS.product,
   },
 };
 

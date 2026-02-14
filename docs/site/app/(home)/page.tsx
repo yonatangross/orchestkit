@@ -48,13 +48,13 @@ export default function HomePage() {
             <span className="overline">OrchestKit v{SITE.version}</span>
           </div>
 
-          <h1 id="hero-heading" className="animate-fade-in stagger-2 mt-4 max-w-3xl text-4xl font-bold tracking-tight text-[#e2e8f0] sm:text-5xl lg:text-6xl">
+          <h1 id="hero-heading" className="animate-fade-in stagger-2 mt-4 max-w-3xl text-4xl font-bold tracking-tight text-fd-foreground sm:text-5xl lg:text-6xl">
             Stop explaining your stack.
             <br />
-            <span className="text-[#10b981]">Start shipping.</span>
+            <span className="text-fd-primary">Start shipping.</span>
           </h1>
 
-          <p className="animate-fade-in stagger-3 mt-6 max-w-lg text-[15px] text-[#94a3b8] leading-relaxed">
+          <p className="animate-fade-in stagger-3 mt-6 max-w-lg text-[15px] text-fd-muted-foreground leading-relaxed">
             {COUNTS.skills} skills, {COUNTS.agents} agents, and {COUNTS.hooks} hooks that turn Claude Code into
             a full development team.
           </p>
@@ -62,7 +62,7 @@ export default function HomePage() {
           <div className="animate-fade-in stagger-4 mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
             <Link
               href="/docs/getting-started/first-10-minutes"
-              className="inline-flex h-10 items-center rounded-lg bg-[#10b981] px-6 text-sm font-semibold text-[#0c0f14] transition-colors hover:bg-[#34d399]"
+              className="inline-flex h-10 items-center rounded-lg bg-fd-primary px-6 text-sm font-semibold text-fd-primary-foreground transition-colors hover:bg-fd-primary/80"
             >
               Get Started
             </Link>
@@ -70,9 +70,9 @@ export default function HomePage() {
           </div>
 
           {/* Circuit-trace stat bar */}
-          <div className="mt-16 hidden items-center justify-between border-t border-[#1e293b] pt-8 max-w-2xl sm:flex" aria-label="Quick statistics">
+          <div className="mt-16 hidden items-center justify-between border-t border-fd-border pt-8 max-w-2xl sm:flex" aria-label="Quick statistics">
             <div className="text-center">
-              <dd className="font-mono text-[40px] font-bold tabular-nums text-[#e2e8f0] leading-none">{COUNTS.skills}</dd>
+              <dd className="font-mono text-[40px] font-bold tabular-nums text-fd-foreground leading-none">{COUNTS.skills}</dd>
               <dt className="mt-1 overline-muted">Skills</dt>
             </div>
 
@@ -83,7 +83,7 @@ export default function HomePage() {
             </div>
 
             <div className="text-center">
-              <dd className="font-mono text-[40px] font-bold tabular-nums text-[#e2e8f0] leading-none">{COUNTS.agents}</dd>
+              <dd className="font-mono text-[40px] font-bold tabular-nums text-fd-foreground leading-none">{COUNTS.agents}</dd>
               <dt className="mt-1 overline-muted">Agents</dt>
             </div>
 
@@ -94,20 +94,20 @@ export default function HomePage() {
             </div>
 
             <div className="text-center">
-              <dd className="font-mono text-[40px] font-bold tabular-nums text-[#e2e8f0] leading-none">{COUNTS.hooks}</dd>
+              <dd className="font-mono text-[40px] font-bold tabular-nums text-fd-foreground leading-none">{COUNTS.hooks}</dd>
               <dt className="mt-1 overline-muted">Hooks</dt>
             </div>
           </div>
 
           {/* Mobile stats — stacked, no connectors */}
-          <dl className="mt-10 grid grid-cols-3 gap-4 border-t border-[#1e293b] pt-6 sm:hidden" aria-label="Quick statistics">
+          <dl className="mt-10 grid grid-cols-3 gap-4 border-t border-fd-border pt-6 sm:hidden" aria-label="Quick statistics">
             {([
               [COUNTS.skills, "Skills"],
               [COUNTS.agents, "Agents"],
               [COUNTS.hooks, "Hooks"],
             ] as const).map(([n, label]) => (
               <div key={label} className="text-center">
-                <dd className="font-mono text-2xl font-bold tabular-nums text-[#e2e8f0]">{n}</dd>
+                <dd className="font-mono text-2xl font-bold tabular-nums text-fd-foreground">{n}</dd>
                 <dt className="mt-0.5 overline-muted">{label}</dt>
               </div>
             ))}
@@ -116,7 +116,7 @@ export default function HomePage() {
       </section>
 
       {/* Category Distribution */}
-      <section aria-label="Skill categories" className="border-t border-[#1e293b] bg-[#111621]/50">
+      <section aria-label="Skill categories" className="border-t border-fd-border bg-fd-card/50">
         <div className="mx-auto max-w-[1024px] px-6 py-5">
           <div className="flex flex-wrap justify-center gap-3">
             {Object.entries({
@@ -130,9 +130,9 @@ export default function HomePage() {
               Workflows: 27,
             }).map(([label, count]) => (
               <div key={label} className="flex items-center gap-1.5 text-xs text-fd-muted-foreground">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#10b981]" />
+                <span className="h-1.5 w-1.5 rounded-full bg-fd-primary" />
                 <span>{label}</span>
-                <span className="font-mono font-medium tabular-nums text-[#94a3b8]">{count}</span>
+                <span className="font-mono font-medium tabular-nums text-fd-muted-foreground">{count}</span>
               </div>
             ))}
           </div>
@@ -140,13 +140,13 @@ export default function HomePage() {
       </section>
 
       {/* Primitives — accent-border cards */}
-      <section aria-labelledby="primitives-heading" className="border-t border-[#1e293b]">
+      <section aria-labelledby="primitives-heading" className="border-t border-fd-border">
         <div className="mx-auto max-w-[1024px] px-6 py-12 sm:py-16">
           <span className="overline">Building Blocks</span>
-          <h2 id="primitives-heading" className="mt-2 text-2xl font-semibold tracking-tight text-[#e2e8f0]">
+          <h2 id="primitives-heading" className="mt-2 text-2xl font-semibold tracking-tight text-fd-foreground">
             Three primitives, infinite workflows
           </h2>
-          <p className="mt-2 max-w-lg text-[15px] text-[#94a3b8]">
+          <p className="mt-2 max-w-lg text-[15px] text-fd-muted-foreground">
             Everything in OrchestKit composes from these building blocks.
           </p>
 
@@ -155,18 +155,18 @@ export default function HomePage() {
               <Link
                 key={item.letter}
                 href={item.href}
-                className="group border border-[#1e293b] border-l-2 border-l-[#10b981] bg-[#111621] p-5 transition-colors duration-200 hover:bg-[#171d2b] hover:border-l-[#34d399] sm:rounded-r-lg"
+                className="group border border-fd-border border-l-2 border-l-fd-primary bg-fd-card p-5 transition-colors duration-200 hover:bg-fd-secondary hover:border-l-fd-primary/80 sm:rounded-r-lg"
               >
-                <div className="mb-2 inline-flex h-7 w-7 items-center justify-center rounded border border-[#1e293b] font-mono text-xs font-bold text-[#10b981]" aria-hidden="true">
+                <div className="mb-2 inline-flex h-7 w-7 items-center justify-center rounded border border-fd-border font-mono text-xs font-bold text-fd-primary" aria-hidden="true">
                   {item.letter}
                 </div>
-                <h3 className="font-semibold text-[#e2e8f0]">
+                <h3 className="font-semibold text-fd-foreground">
                   {item.count} {item.title}
                 </h3>
-                <p className="mt-1.5 text-[13px] leading-relaxed text-[#94a3b8]">
+                <p className="mt-1.5 text-[13px] leading-relaxed text-fd-muted-foreground">
                   {item.desc}
                 </p>
-                <span className="mt-3 inline-flex items-center gap-1 font-mono text-[11px] font-medium text-[#10b981] opacity-0 transition-all duration-200 group-hover:opacity-100" aria-hidden="true">
+                <span className="mt-3 inline-flex items-center gap-1 font-mono text-[11px] font-medium text-fd-primary opacity-0 transition-all duration-200 group-hover:opacity-100" aria-hidden="true">
                   Browse all
                   <ChevronRight className="h-3 w-3" />
                 </span>
@@ -177,13 +177,13 @@ export default function HomePage() {
       </section>
 
       {/* Demo Showcase */}
-      <section aria-labelledby="demos-heading" className="border-t border-[#1e293b]">
+      <section aria-labelledby="demos-heading" className="border-t border-fd-border">
         <div className="mx-auto max-w-[1024px] px-6 py-12 sm:py-16">
           <span className="overline">Demos</span>
-          <h2 id="demos-heading" className="mt-2 text-2xl font-semibold tracking-tight text-[#e2e8f0]">
+          <h2 id="demos-heading" className="mt-2 text-2xl font-semibold tracking-tight text-fd-foreground">
             See it in action
           </h2>
-          <p className="mt-2 max-w-md text-[15px] text-[#94a3b8]">
+          <p className="mt-2 max-w-md text-[15px] text-fd-muted-foreground">
             Every command skill comes with a demo composition.
           </p>
           <div className="mt-6 flex gap-3 overflow-x-auto pb-4">
@@ -191,9 +191,9 @@ export default function HomePage() {
               <Link
                 key={comp.id}
                 href="/docs/reference"
-                className="group flex-none w-[260px] border border-[#1e293b] bg-[#111621] overflow-hidden rounded-lg transition-colors hover:bg-[#171d2b]"
+                className="group flex-none w-[260px] border border-fd-border bg-fd-card overflow-hidden rounded-lg transition-colors hover:bg-fd-secondary"
               >
-                <div className="aspect-video bg-[#0c0f14] relative">
+                <div className="aspect-video bg-fd-background relative">
                   <OptimizedThumbnail
                     src={comp.thumbnailCdn ?? `/thumbnails/${comp.id}.png`}
                     alt={comp.id}
@@ -203,7 +203,7 @@ export default function HomePage() {
                   </span>
                 </div>
                 <div className="p-3">
-                  <h3 className="text-sm font-medium text-[#e2e8f0]">{comp.id.replace(/([A-Z])/g, ' $1').trim()}</h3>
+                  <h3 className="text-sm font-medium text-fd-foreground">{comp.id.replace(/([A-Z])/g, ' $1').trim()}</h3>
                   <p className="mt-0.5 font-mono text-[11px] text-fd-muted-foreground">{comp.command}</p>
                 </div>
               </Link>
@@ -212,7 +212,7 @@ export default function HomePage() {
           <div className="mt-3">
             <Link
               href="/docs/reference"
-              className="font-mono text-[13px] text-[#10b981] hover:text-[#34d399] transition-colors"
+              className="font-mono text-[13px] text-fd-primary hover:text-fd-primary/80 transition-colors"
             >
               View all compositions &rarr;
             </Link>
@@ -221,10 +221,10 @@ export default function HomePage() {
       </section>
 
       {/* Quick paths */}
-      <section aria-labelledby="quickpaths-heading" className="border-t border-[#1e293b]">
+      <section aria-labelledby="quickpaths-heading" className="border-t border-fd-border">
         <div className="mx-auto max-w-[1024px] px-6 py-12 sm:py-16">
           <span className="overline">Quick Start</span>
-          <h2 id="quickpaths-heading" className="mt-2 mb-6 text-2xl font-semibold tracking-tight text-[#e2e8f0]">
+          <h2 id="quickpaths-heading" className="mt-2 mb-6 text-2xl font-semibold tracking-tight text-fd-foreground">
             Jump right in
           </h2>
           <div className="grid gap-px sm:grid-cols-2">
@@ -232,14 +232,14 @@ export default function HomePage() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="group flex items-center justify-between border border-[#1e293b] bg-[#111621] px-4 py-3.5 transition-colors duration-200 hover:bg-[#171d2b]"
+                className="group flex items-center justify-between border border-fd-border bg-fd-card px-4 py-3.5 transition-colors duration-200 hover:bg-fd-secondary"
               >
                 <div>
-                  <h3 className="text-sm font-medium text-[#e2e8f0]">{item.title}</h3>
-                  <div className="text-[13px] text-[#94a3b8]">{item.desc}</div>
+                  <h3 className="text-sm font-medium text-fd-foreground">{item.title}</h3>
+                  <div className="text-[13px] text-fd-muted-foreground">{item.desc}</div>
                 </div>
                 <ChevronRight
-                  className="h-4 w-4 shrink-0 text-fd-muted-foreground transition-all group-hover:translate-x-0.5 group-hover:text-[#10b981]"
+                  className="h-4 w-4 shrink-0 text-fd-muted-foreground transition-all group-hover:translate-x-0.5 group-hover:text-fd-primary"
                   aria-hidden="true"
                 />
               </Link>
@@ -249,18 +249,18 @@ export default function HomePage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-[#1e293b]">
+      <footer className="border-t border-fd-border">
         <div className="mx-auto flex max-w-[1024px] items-center justify-between px-6 py-5 text-[13px] text-fd-muted-foreground">
           <span>
             Built with{" "}
-            <a href="https://fumadocs.dev" target="_blank" rel="noopener noreferrer" className="text-[#94a3b8] underline decoration-[#1e293b] underline-offset-4 hover:text-[#10b981]">
+            <a href="https://fumadocs.dev" target="_blank" rel="noopener noreferrer" className="text-fd-muted-foreground underline decoration-fd-border underline-offset-4 hover:text-fd-primary">
               Fumadocs
             </a>
           </span>
           <nav aria-label="Footer" className="flex gap-5">
-            <a href={SITE.github} target="_blank" rel="noopener noreferrer" className="hover:text-[#94a3b8]">GitHub</a>
-            <Link href="/docs/foundations/overview" className="hover:text-[#94a3b8]">Docs</Link>
-            <Link href="/docs/cookbook/implement-feature" className="hover:text-[#94a3b8]">Cookbook</Link>
+            <a href={SITE.github} target="_blank" rel="noopener noreferrer" className="hover:text-fd-muted-foreground">GitHub</a>
+            <Link href="/docs/foundations/overview" className="hover:text-fd-muted-foreground">Docs</Link>
+            <Link href="/docs/cookbook/implement-feature" className="hover:text-fd-muted-foreground">Cookbook</Link>
           </nav>
         </div>
       </footer>

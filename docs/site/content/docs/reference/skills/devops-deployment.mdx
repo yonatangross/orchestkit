@@ -152,6 +152,15 @@ Key topics covered:
 - Structured logging
 - Distributed tracing (OpenTelemetry)
 
+### Railway Deployment
+**See: `rules/railway-deployment.md`**
+
+Key topics covered:
+- railway.json configuration, Nixpacks builds
+- Environment variable management, database provisioning
+- Multi-service setups, Railway CLI workflows
+- References: `references/railway-json-config.md`, `references/nixpacks-customization.md`, `references/multi-service-setup.md`
+
 ### Deployment Strategies
 **See: `references/deployment-strategies.md`**
 
@@ -299,7 +308,7 @@ Use Opus 4.6 adaptive thinking for:
 
 ---
 
-## Rules (5)
+## Rules (6)
 
 ### CI/CD: Branch Protection — HIGH
 
@@ -642,10 +651,95 @@ CMD ["node", "dist/main.js"]
 Reference: `references/docker-patterns.md` (lines 7-50)
 
 
+### Railway Deployment — HIGH
+
+
+# Railway Deployment Patterns
+
+## railway.json Configuration
+
+```json
+{
+  "$schema": "https://railway.com/railway.schema.json",
+  "build": {
+    "builder": "NIXPACKS",
+    "buildCommand": "npm ci && npm run build"
+  },
+  "deploy": {
+    "startCommand": "npm start",
+    "healthcheckPath": "/health",
+    "healthcheckTimeout": 30,
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 3
+  }
+}
+```
+
+## Nixpacks vs Dockerfile
+
+| Factor | Nixpacks (default) | Dockerfile |
+|--------|-------------------|-----------|
+| Setup | Zero config, auto-detect | Manual, full control |
+| Build time | Fast (Nix cache) | Depends on layers |
+| Customization | nixpacks.toml | Unlimited |
+| Use when | Standard apps | Custom runtimes, multi-stage |
+
+## Environment Variables
+
+- Use Railway's **shared variables** for cross-service config (DATABASE_URL, REDIS_URL)
+- **Service-specific** variables override shared ones
+- Reference other vars: `$\{\{shared.DATABASE_URL\}\}`
+- Never hardcode secrets — use Railway's encrypted env vars
+
+## Database Provisioning
+
+Railway provisions managed databases with one click:
+- PostgreSQL, MySQL, Redis, MongoDB
+- Connection string auto-injected as env var
+- Backups included on paid plans
+
+## Multi-Service Setup
+
+- Use **monorepo** config: set `rootDirectory` per service
+- Internal networking: services communicate via `$\{\{service.RAILWAY_PRIVATE_DOMAIN\}\}:port`
+- Shared env groups for common config
+
+## Railway CLI
+
+```bash
+railway login              # Authenticate
+railway link               # Connect to project
+railway up                 # Deploy from local
+railway logs               # View deployment logs
+railway variables          # List env vars
+railway shell              # Open shell in service
+```
+
+## Anti-Patterns
+
+**Incorrect:**
+- Running `railway up` from CI without `railway link` — deploys to wrong project
+- Using Dockerfile when Nixpacks handles the stack — unnecessary complexity
+- Storing secrets in railway.json — use env vars
+- Skipping healthcheck config — Railway can't detect failed deploys
+
+**Correct:**
+- Configure healthcheckPath for all web services
+- Use shared variables for cross-service config
+- Set restart policy for resilience
+- Use Nixpacks unless you need custom runtime
+
+## References
+
+- `references/railway-json-config.md` — Full railway.json schema and examples
+- `references/nixpacks-customization.md` — Custom build configs, environment detection
+- `references/multi-service-setup.md` — Monorepo deploy, service networking
+
+
 
 ---
 
-## References (6)
+## References (9)
 
 ### Ci Cd Pipelines
 
@@ -1493,6 +1587,175 @@ charts/app/
 
 See `scripts/k8s-manifests.yaml` and `scripts/helm-values.yaml` for complete examples.
 
+### Multi Service Setup
+
+# Multi-Service Setup on Railway
+
+Deploy multiple services in one Railway project for monorepos, microservices, or web + worker architectures.
+
+## Monorepo Configuration
+
+Each service in a Railway project can point to a different root directory:
+
+```
+my-monorepo/
+├── apps/
+│   ├── api/           ← Service 1 (root: apps/api)
+│   │   ├── package.json
+│   │   └── railway.json
+│   ├── web/           ← Service 2 (root: apps/web)
+│   │   ├── package.json
+│   │   └── railway.json
+│   └── worker/        ← Service 3 (root: apps/worker)
+│       ├── package.json
+│       └── railway.json
+├── packages/          ← Shared packages
+└── package.json       ← Root workspace
+```
+
+Set each service's root directory in the Railway dashboard under Settings > Source.
+
+## Private Networking
+
+Services within the same project communicate over Railway's private network:
+
+```
+# From the web service, call the API service:
+http://${{api.RAILWAY_PRIVATE_DOMAIN}}:${{api.PORT}}/endpoint
+
+# In environment variables (set on web service):
+API_URL=http://${{api.RAILWAY_PRIVATE_DOMAIN}}:${{api.PORT}}
+```
+
+**Key points:**
+- Private networking uses internal DNS, no public internet
+- Zero egress costs between services
+- Always use the `PORT` variable — not hardcoded ports
+- Services must listen on `0.0.0.0` (not `localhost`)
+
+## Common Architectures
+
+### Web + API + Worker
+
+| Service | Role | Public? |
+|---------|------|---------|
+| `web` | Frontend (Next.js, Vite) | Yes |
+| `api` | Backend API | Yes (or private if only web calls it) |
+| `worker` | Background jobs (BullMQ, Celery) | No |
+| `postgres` | Database | No (private only) |
+| `redis` | Cache / queue broker | No (private only) |
+
+### Shared Environment Variables
+
+Use Railway's shared variables (project-level) for values needed by all services:
+- `NODE_ENV=production`
+- `LOG_LEVEL=info`
+
+Use reference variables for cross-service connections:
+- `DATABASE_URL=$\{\{Postgres.DATABASE_URL\}\}`
+- `REDIS_URL=$\{\{Redis.REDIS_URL\}\}`
+- `API_URL=http://$\{\{api.RAILWAY_PRIVATE_DOMAIN\}\}:$\{\{api.PORT\}\}`
+
+## Deploy Order
+
+Railway deploys services in parallel by default. If you need ordering (e.g., run migrations before starting web):
+1. Put migrations in the API service's `startCommand`
+2. Use healthchecks — dependent services will retry connections until the API is healthy
+3. For strict ordering, use separate deploy triggers via Railway CLI
+
+
+### Nixpacks Customization
+
+# Nixpacks Customization
+
+Railway uses Nixpacks to auto-detect your stack and generate a build plan. Customize when auto-detection falls short.
+
+## Auto-Detection
+
+Nixpacks detects your language by looking for:
+
+| Language | Detection File |
+|----------|---------------|
+| Node.js | `package.json` |
+| Python | `requirements.txt`, `pyproject.toml`, `Pipfile` |
+| Go | `go.mod` |
+| Rust | `Cargo.toml` |
+| Ruby | `Gemfile` |
+| Java | `pom.xml`, `build.gradle` |
+| PHP | `composer.json` |
+
+## nixpacks.toml
+
+Place at project root (or set `nixpacksConfigPath` in `railway.json` for monorepos).
+
+### Adding System Packages
+
+```toml
+[phases.setup]
+nixPkgs = ["...", "ffmpeg", "imagemagick", "poppler_utils"]
+aptPkgs = ["libvips-dev"]
+```
+
+### Custom Build Phases
+
+```toml
+[phases.install]
+cmds = ["npm ci --production=false"]
+
+[phases.build]
+cmds = [
+  "npx prisma generate",
+  "npm run build"
+]
+dependsOn = ["install"]
+
+[start]
+cmd = "npm run start:prod"
+```
+
+### Environment Variables in Build
+
+```toml
+[variables]
+NODE_ENV = "production"
+NEXT_TELEMETRY_DISABLED = "1"
+```
+
+## Monorepo Root Path
+
+For monorepos, set the root directory per service in the Railway dashboard or via `railway.json`:
+
+```json
+{
+  "build": {
+    "builder": "NIXPACKS",
+    "nixpacksConfigPath": "apps/api/nixpacks.toml"
+  }
+}
+```
+
+Each service points to its own directory and `nixpacks.toml`.
+
+## When to Switch to Dockerfile
+
+Use Dockerfile instead of Nixpacks when:
+- Multi-stage builds are needed to reduce image size
+- Build requires conditional logic (e.g., `ARG`-based feature flags)
+- Precise control over base image (e.g., distroless, Alpine variants)
+- Nixpacks doesn't support a required system dependency
+
+Set in `railway.json`:
+
+```json
+{
+  "build": {
+    "builder": "DOCKERFILE",
+    "dockerfilePath": "Dockerfile.production"
+  }
+}
+```
+
+
 ### Observability
 
 # Observability & Monitoring
@@ -1662,6 +1925,108 @@ async def process_order(order_id: str):
         span.set_attribute("order_id", order_id)
         # Processing logic here
 ```
+
+### Railway Json Config
+
+# railway.json Configuration
+
+Complete reference for `railway.json` schema — the primary way to configure build and deploy behavior on Railway.
+
+## Full Schema
+
+```json
+{
+  "$schema": "https://railway.com/railway.schema.json",
+  "build": {
+    "builder": "NIXPACKS",
+    "buildCommand": "npm ci && npm run build",
+    "watchPatterns": ["src/**", "package.json"],
+    "nixpacksConfigPath": "nixpacks.toml",
+    "dockerfilePath": "Dockerfile"
+  },
+  "deploy": {
+    "startCommand": "node dist/server.js",
+    "healthcheckPath": "/health",
+    "healthcheckTimeout": 30,
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 3,
+    "numReplicas": 1,
+    "sleepApplication": false,
+    "region": "us-west1",
+    "cronSchedule": "0 */6 * * *"
+  }
+}
+```
+
+## Builder Options
+
+| Builder | When to Use |
+|---------|-------------|
+| `NIXPACKS` | Default — auto-detects language and builds (Node, Python, Go, Rust, etc.) |
+| `DOCKERFILE` | Complex builds, multi-stage images, custom system deps |
+| `PAKETO` | Cloud Native Buildpacks alternative |
+
+## Deploy Settings
+
+| Field | Default | Description |
+|-------|---------|-------------|
+| `startCommand` | Auto-detected | Overrides default start command |
+| `healthcheckPath` | None | HTTP path to check for 200 response |
+| `healthcheckTimeout` | 30 | Seconds before healthcheck is considered failed |
+| `restartPolicyType` | `ON_FAILURE` | `ON_FAILURE`, `ALWAYS`, or `NEVER` |
+| `restartPolicyMaxRetries` | 3 | Max restart attempts before marking deploy failed |
+| `numReplicas` | 1 | Number of instances (horizontal scaling) |
+| `sleepApplication` | false | Sleep service when no traffic (saves credits) |
+| `cronSchedule` | None | Cron expression for scheduled services |
+
+## Examples
+
+### Node.js API with migrations
+
+```json
+{
+  "$schema": "https://railway.com/railway.schema.json",
+  "build": {
+    "builder": "NIXPACKS",
+    "buildCommand": "npm ci && npx prisma generate && npm run build"
+  },
+  "deploy": {
+    "startCommand": "npx prisma migrate deploy && node dist/server.js",
+    "healthcheckPath": "/api/health",
+    "healthcheckTimeout": 60
+  }
+}
+```
+
+### Python FastAPI
+
+```json
+{
+  "$schema": "https://railway.com/railway.schema.json",
+  "build": {
+    "builder": "NIXPACKS",
+    "buildCommand": "pip install -r requirements.txt"
+  },
+  "deploy": {
+    "startCommand": "uvicorn main:app --host 0.0.0.0 --port $PORT",
+    "healthcheckPath": "/health"
+  }
+}
+```
+
+### Cron Worker (no web traffic)
+
+```json
+{
+  "$schema": "https://railway.com/railway.schema.json",
+  "deploy": {
+    "startCommand": "node dist/worker.js",
+    "cronSchedule": "*/15 * * * *",
+    "restartPolicyType": "NEVER"
+  }
+}
+```
+
 
 
 ---

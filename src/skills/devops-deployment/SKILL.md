@@ -158,6 +158,15 @@ Key topics covered:
 - Structured logging
 - Distributed tracing (OpenTelemetry)
 
+### Railway Deployment
+**See: `rules/railway-deployment.md`**
+
+Key topics covered:
+- railway.json configuration, Nixpacks builds
+- Environment variable management, database provisioning
+- Multi-service setups, Railway CLI workflows
+- References: `references/railway-json-config.md`, `references/nixpacks-customization.md`, `references/multi-service-setup.md`
+
 ### Deployment Strategies
 **See: `references/deployment-strategies.md`**
 

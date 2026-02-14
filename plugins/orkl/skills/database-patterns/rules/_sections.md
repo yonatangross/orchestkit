@@ -37,3 +37,9 @@ Safe database schema changes without downtime using expand-contract pattern and 
 |------|--------|------|
 | Zero-Downtime Migration Patterns | CRITICAL | `migration-zero-downtime.md` |
 | Migration Rollback and Monitoring | HIGH | `migration-rollback.md` |
+
+## 5. Database Selection (selection) — HIGH — 1 rule
+
+Decision frameworks for choosing the right database technology.
+
+- `db-selection.md` — PostgreSQL-first default, tier matrix, data model matrix, anti-patterns (MongoDB hype, premature sharding)
