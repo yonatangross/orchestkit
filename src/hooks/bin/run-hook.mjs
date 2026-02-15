@@ -110,6 +110,14 @@ if (!hookFn) {
 let input = '';
 let stdinClosed = false;
 
+/**
+ * Maximum stdin size (512KB). Image pastes can send megabytes of base64
+ * data in the prompt field, causing every hook to run expensive string
+ * operations on the payload. Cap stdin to prevent OOM and context death.
+ * See: https://github.com/yonatangross/orchestkit/issues/620
+ */
+const MAX_STDIN_BYTES = 512 * 1024;
+
 // Set up timeout - if no input received within 100ms, assume no input
 const timeout = setTimeout(() => {
   if (!stdinClosed) {
@@ -120,9 +128,26 @@ const timeout = setTimeout(() => {
 
 process.stdin.setEncoding('utf8');
 
+let inputBytes = 0;
+
 process.stdin.on('data', (chunk) => {
   clearTimeout(timeout);
   input += chunk;
+  inputBytes += Buffer.byteLength(chunk);
+  // Guard: if stdin exceeds max size (e.g. image base64 in prompt),
+  // stop reading and run hook with truncated input to avoid OOM
+  if (inputBytes > MAX_STDIN_BYTES) {
+    stdinClosed = true;
+    process.stdin.destroy();
+    try {
+      // Try to parse what we have — likely incomplete JSON, so fall back to empty
+      const parsedInput = input.trim() ? JSON.parse(input) : {};
+      runHook(normalizeInput(parsedInput));
+    } catch {
+      // JSON incomplete due to truncation — run with empty input (hook will no-op)
+      runHook(normalizeInput({}));
+    }
+  }
 });
 
 process.stdin.on('end', () => {
