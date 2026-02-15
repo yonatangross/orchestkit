@@ -25,6 +25,7 @@ import {
   getSessionId,
   logHook,
 } from '../lib/common.js';
+import { isImageOrBinaryPrompt, MAX_PROMPT_LENGTH } from '../lib/prompt-guards.js';
 import {
   detectUserIntent,
   type UserIntent,
@@ -255,8 +256,18 @@ function storeDecisionsAndPreferences(
 export function captureUserIntent(input: HookInput): HookResult {
   const prompt = input.prompt;
 
-  // Skip if no prompt
+  // Skip if no prompt or too short
   if (!prompt || prompt.length < MIN_PROMPT_LENGTH) {
+    return outputSilentSuccess();
+  }
+
+  // Guard: skip oversized or binary prompts (image paste, base64 data)
+  if (prompt.length > MAX_PROMPT_LENGTH) {
+    logHook(HOOK_NAME, `Prompt too large (${prompt.length} chars), skipping — likely image/binary data`);
+    return outputSilentSuccess();
+  }
+  if (prompt.length > 500 && isImageOrBinaryPrompt(prompt)) {
+    logHook(HOOK_NAME, `Image/binary content detected (${prompt.length} chars), skipping intent capture`);
     return outputSilentSuccess();
   }
 

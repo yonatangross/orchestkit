@@ -5,11 +5,28 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.0.11] - 2026-02-15
+
+### Fixed
+
+- Guard against image paste killing context window — 3-layer defense: stdin cap (512KB), prompt length guard (50K), image/binary detection (#620)
+- Correct orkl skill count in marketplace.json (62 → 45)
+
+### Changed
+
+- Rewrote `mcp-patterns` SKILL.md for 2025-11-25 MCP spec + AAIF governance (#613)
+- Updated `_sections.md` with 7 categories (14 rules) and priority levels
+- Updated agent skill-indexes for ai-safety-auditor, llm-integrator, security-auditor
+- Regenerated docs site pages and generated data files
+
+---
+
+
 ## [6.0.10] - 2026-02-15
 
 ### Fixed
 
-- TODO: Describe your changes here
+- Bumped version to 6.0.10
 
 ---
 
@@ -33,7 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- TODO: Describe your changes here
+- Bumped version to 6.0.8
 
 ---
 
@@ -203,7 +220,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Tavily Integration**: 3-tier web research workflow (WebFetch → Tavily → agent-browser) with curl patterns for search/extract/map APIs, graceful degradation when `TAVILY_API_KEY` is unset
 - **Tavily Site Discovery**: competitive-monitoring skill gains Tavily map+extract pre-step for competitor URL enumeration
 - **Tavily Agent Awareness**: web-research-analyst, market-intelligence, and product-strategist agents updated with Tavily directives
-- **BrightData MCP**: `BRIGHTDATA_API_TOKEN` env var documented for BrightData web scraping MCP server
 
 ### Fixed
 
@@ -296,7 +312,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- TODO: Describe your changes here
+- Bumped version to 5.7.4
 
 ---
 

@@ -42,11 +42,11 @@ for arg in "$@"; do
     case $arg in
         --verbose) VERBOSE="--verbose" ;;
         --quick) QUICK="true"; RUN_INTEGRATION="false"; RUN_E2E="false"; RUN_PERFORMANCE="false" ;;
-        --lint) SPECIFIC_CATEGORY="lint"; RUN_UNIT="false"; RUN_SECURITY="false"; RUN_INTEGRATION="false"; RUN_E2E="false"; RUN_PERFORMANCE="false" ;;
-        --unit) SPECIFIC_CATEGORY="unit"; RUN_LINT="false"; RUN_SECURITY="false"; RUN_INTEGRATION="false"; RUN_E2E="false"; RUN_PERFORMANCE="false" ;;
-        --security) SPECIFIC_CATEGORY="security"; RUN_LINT="false"; RUN_UNIT="false"; RUN_INTEGRATION="false"; RUN_E2E="false"; RUN_PERFORMANCE="false" ;;
-        --integration) SPECIFIC_CATEGORY="integration"; RUN_LINT="false"; RUN_UNIT="false"; RUN_SECURITY="false"; RUN_E2E="false"; RUN_PERFORMANCE="false" ;;
-        --e2e) SPECIFIC_CATEGORY="e2e"; RUN_LINT="false"; RUN_UNIT="false"; RUN_SECURITY="false"; RUN_INTEGRATION="false"; RUN_PERFORMANCE="false" ;;
+        --lint) SPECIFIC_CATEGORY="lint"; RUN_UNIT="false"; RUN_SECURITY="false"; RUN_INTEGRATION="false"; RUN_E2E="false"; RUN_PERFORMANCE="false"; RUN_SKILLS="false" ;;
+        --unit) SPECIFIC_CATEGORY="unit"; RUN_LINT="false"; RUN_SECURITY="false"; RUN_INTEGRATION="false"; RUN_E2E="false"; RUN_PERFORMANCE="false"; RUN_SKILLS="false" ;;
+        --security) SPECIFIC_CATEGORY="security"; RUN_LINT="false"; RUN_UNIT="false"; RUN_INTEGRATION="false"; RUN_E2E="false"; RUN_PERFORMANCE="false"; RUN_SKILLS="false" ;;
+        --integration) SPECIFIC_CATEGORY="integration"; RUN_LINT="false"; RUN_UNIT="false"; RUN_SECURITY="false"; RUN_E2E="false"; RUN_PERFORMANCE="false"; RUN_SKILLS="false" ;;
+        --e2e) SPECIFIC_CATEGORY="e2e"; RUN_LINT="false"; RUN_UNIT="false"; RUN_SECURITY="false"; RUN_INTEGRATION="false"; RUN_PERFORMANCE="false"; RUN_SKILLS="false" ;;
         --performance) SPECIFIC_CATEGORY="performance"; RUN_LINT="false"; RUN_UNIT="false"; RUN_SECURITY="false"; RUN_INTEGRATION="false"; RUN_E2E="false"; RUN_SKILLS="false" ;;
         --skills) SPECIFIC_CATEGORY="skills"; RUN_LINT="false"; RUN_UNIT="false"; RUN_SECURITY="false"; RUN_INTEGRATION="false"; RUN_E2E="false"; RUN_PERFORMANCE="false" ;;
         --all) RUN_LINT="true"; RUN_UNIT="true"; RUN_SECURITY="true"; RUN_INTEGRATION="true"; RUN_E2E="true"; RUN_PERFORMANCE="true"; RUN_SKILLS="true" ;;

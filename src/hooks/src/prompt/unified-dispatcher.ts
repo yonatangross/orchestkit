@@ -39,6 +39,7 @@ import {
   logHook,
   estimateTokenCount,
 } from '../lib/common.js';
+import { isImageOrBinaryPrompt, MAX_PROMPT_LENGTH } from '../lib/prompt-guards.js';
 
 // Import hook implementations
 import { satisfactionDetector } from './satisfaction-detector.js';
@@ -126,6 +127,17 @@ function extractContext(result: HookResult): string | null {
  * and consolidates their output into a single additionalContext response.
  */
 export function unifiedPromptDispatcher(input: HookInput): HookResult {
+  // Guard: skip all processing for oversized or binary prompts (image paste, base64 data)
+  const prompt = input.prompt || '';
+  if (prompt.length > MAX_PROMPT_LENGTH) {
+    logHook(HOOK_NAME, `Prompt too large (${prompt.length} chars > ${MAX_PROMPT_LENGTH}), skipping — likely image/binary data`);
+    return outputSilentSuccess();
+  }
+  if (prompt.length > 500 && isImageOrBinaryPrompt(prompt)) {
+    logHook(HOOK_NAME, `Image/binary content detected in prompt (${prompt.length} chars), skipping text analysis hooks`);
+    return outputSilentSuccess();
+  }
+
   const contextParts: string[] = [];
   let totalTokens = 0;
 
