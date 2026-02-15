@@ -526,7 +526,7 @@ const VerticalCTAScene: React.FC<{ primaryColor: string }> = ({
             fontFamily: "Menlo, monospace",
           }}
         >
-          170 skills * 35 agents
+          62 skills * 36 agents
         </span>
       </div>
     </AbsoluteFill>

@@ -85,9 +85,9 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 /plugin install ork
 ```
 
-**orkl** (62 skills) — All workflows, agents, hooks. Architecture, security, product, accessibility, memory.
+**orkl** (45 skills) — All workflows, agents, hooks. Architecture, security, product, accessibility, memory.
 
-**ork-creative** (62 skills) — Video production add-on. Demo recording, Remotion, storyboarding, content creation.
+**ork-creative** (3 skills) — Video production add-on. Demo recording, Remotion, storyboarding, content creation.
 
 **ork** (62 skills) — Everything in lite + creative + Python (FastAPI, SQLAlchemy), React (RSC, TanStack), LLM/RAG, LangGraph, MCP.
 
@@ -157,8 +157,8 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **v6.0.0** — Three-tier plugin architecture
 
 - **Breaking**: Simplified from 26 plugins to 3 (`orkl`, `ork-creative`, and `ork`)
-- `orkl` (62 skills) — Universal toolkit, all workflows work out of the box
-- `ork-creative` (62 skills) — Video production add-on for demo recording and content creation
+- `orkl` (45 skills) — Universal toolkit, all workflows work out of the box
+- `ork-creative` (3 skills) — Video production add-on for demo recording and content creation
 - `ork` (62 skills) — Full specialized with Python, React, LLM/RAG patterns
 - All 36 agents and 89 hooks included in orkl and ork
 

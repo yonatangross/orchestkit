@@ -124,7 +124,7 @@ const NODE_TYPE_STYLES: Record<string, { icon: string; bgColor: string }> = {
   output: { icon: "✓", bgColor: "#22c55e" },
 };
 
-// All 23 user-invocable OrchestKit commands (updated Jan 2026)
+// All 24 user-invocable OrchestKit commands (updated Feb 2026)
 const ORK_COMMANDS = [
   { cmd: "/explore", desc: "Deep codebase analysis", icon: "🔍", color: "#8b5cf6" },
   { cmd: "/implement", desc: "Build with parallel agents", icon: "🚀", color: "#22c55e" },
@@ -1699,7 +1699,7 @@ const PluginOutro: React.FC<PluginOutroProps> = ({ primaryColor, currentCommand 
             marginTop: 12,
           }}
         >
-          185 skills • 35 agents • 167 hooks
+          62 skills • 36 agents • 89 hooks
         </div>
       </div>
 

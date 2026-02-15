@@ -9,7 +9,7 @@ OrchestKit includes 62 skills validated against frontmatter requirements and con
 | Type | Count | Frontmatter |
 |------|-------|-------------|
 | User-invocable | 24 | `user-invocable: true` |
-| Reference | 175 | `user-invocable: false` |
+| Reference | 38 | `user-invocable: false` |
 
 ## Validation Checks
 
