@@ -14,7 +14,7 @@ Unified decision tree for web research tool selection: WebFetch, Tavily, agent-b
 
 ## 2. Browser Patterns (browser) — MEDIUM — 4 patterns
 
-SPA detection, authentication flows, multi-page research, and BrightData integration.
+SPA detection, authentication flows, and multi-page research.
 
 - Pattern 1-4 in SKILL.md — Auto-fallback, SPA detection, auth flow, multi-page research
 

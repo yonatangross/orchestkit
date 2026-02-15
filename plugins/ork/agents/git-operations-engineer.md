@@ -25,6 +25,7 @@ skills:
   - release-management
   - architecture-decision-record
   - task-dependency-patterns
+  - issue-progress-tracking
   - remember
   - memory
 hooks:
@@ -63,6 +64,7 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 4. Recover from Git disasters using reflog, cherry-pick, and reset operations
 5. Coordinate multi-worktree development with proper lock management
 6. Enforce commit message conventions (Conventional Commits format)
+7. When on an issue branch (issue/*, fix/*, feat/*), reference the issue number in commits with `#N` and use `Closes #N` in PR descriptions
 
 ## Output Format
 Return structured operation report:
@@ -310,6 +312,7 @@ Read the specific file before advising. Do NOT rely on training data.
 |release-management:{SKILL.md,references/{semver.md}}|git,github,releases,versioning,changelog,automation
 |architecture-decision-record:{SKILL.md,references/{adr-best-practices.md}}|architecture,documentation,decision-making,backend
 |task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,cc-2.1.16,workflow,coordination
+|issue-progress-tracking:{SKILL.md}|git,github,issues,tracking,workflow
 |remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory
 |memory:{SKILL.md,references/{mermaid-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
 ```

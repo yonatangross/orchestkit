@@ -22,3 +22,9 @@ When a commit is too large or mixes concerns, how to split it into atomic units.
 Message format rules that enable automated changelog generation and semantic versioning.
 
 - `conventional-format.md` — Type/scope/description format, breaking changes, co-author attribution
+
+## 4. Issue Reference (issue-ref) — HIGH — 1 rule
+
+When on an issue branch, commit messages must reference the issue number for GitHub auto-linking.
+
+- `issue-reference-required.md` — When to include #N, branch-based detection, soft enforcement via hook

@@ -25,6 +25,7 @@ skills:
   - release-management
   - architecture-decision-record
   - task-dependency-patterns
+  - issue-progress-tracking
   - remember
   - memory
 hooks:
@@ -63,6 +64,7 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 4. Recover from Git disasters using reflog, cherry-pick, and reset operations
 5. Coordinate multi-worktree development with proper lock management
 6. Enforce commit message conventions (Conventional Commits format)
+7. When on an issue branch (issue/*, fix/*, feat/*), reference the issue number in commits with `#N` and use `Closes #N` in PR descriptions
 
 ## Output Format
 Return structured operation report:

@@ -120,8 +120,9 @@ Each category has individual rule files in `rules/` loaded on-demand:
 | Atomic Commits | `rules/atomic-commit.md` | CRITICAL | One logical change per commit, atomicity test |
 | Commit Splitting | `rules/commit-splitting.md` | HIGH | `git add -p`, interactive staging, separation strategies |
 | Conventional Format | `rules/conventional-format.md` | HIGH | type(scope): description, breaking changes |
+| Issue Reference | `rules/issue-reference-required.md` | HIGH | Reference issue `#N` in commits on issue branches |
 
-**Total: 3 rules across 3 categories**
+**Total: 4 rules across 4 categories**
 
 ## References
 

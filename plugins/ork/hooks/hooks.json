@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 63 global + 22 agent-scoped + 1 skill-scoped = 86 total hooks",
+  "description": "OrchestKit hooks - 66 global + 22 agent-scoped + 1 skill-scoped = 89 total hooks",
   "hooks": {
     "PreToolUse": [
       {
@@ -23,8 +23,12 @@
         "matcher": "Bash(git commit*)",
         "hooks": [
           {
-            "type": "prompt",
-            "prompt": "You are a git commit atomicity reviewer. Analyze the git commit command being run. Consider: (1) Are all staged changes logically related to ONE concern? (2) Does the commit message accurately describe ALL staged changes? (3) Would this commit need 'and' in its description to cover everything? If the commit appears to mix unrelated concerns (e.g., a feature change + an unrelated config fix + documentation for a different feature), respond with {\"ok\": false, \"reason\": \"Suggest splitting into: [describe atomic commits]\"}. If the commit is focused on one logical change, respond with {\"ok\": true}. Be pragmatic — a feature file + its test file + a related type update is ONE concern. Only flag genuinely unrelated changes."
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/commit-atomicity-checker"
+          },
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/issue-reference-checker"
           }
         ]
       },
@@ -293,6 +297,10 @@
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-start/model-cost-advisor"
+          },
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-start/issue-context-injector"
           }
         ]
       }
