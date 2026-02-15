@@ -38,318 +38,44 @@ View and manage the OrchestKit feedback system that learns from your usage.
 
 ## Subcommands
 
-### status (default)
+| Subcommand | Description |
+|------------|-------------|
+| `status` (default) | Show current feedback system state, learned patterns, agent performance |
+| `pause` | Temporarily pause learning without clearing data |
+| `resume` | Resume paused learning |
+| `reset` | Clear all learned patterns (requires "RESET" confirmation) |
+| `export` | Export all feedback data to `.claude/feedback/export-\{date\}.json` |
+| `settings` | Show/edit settings (usage: `/feedback settings &lt;key&gt; &lt;value&gt;`) |
+| `opt-in` | Enable anonymous analytics sharing (GDPR-compliant consent) |
+| `opt-out` | Disable anonymous analytics sharing (revokes consent) |
+| `privacy` | Display the full privacy policy |
+| `export-analytics` | Export anonymous analytics to file for review before sharing |
 
-Show the current feedback system state.
+**Output:** Each subcommand displays formatted status, confirmation prompts, or exported file paths. See [Subcommand Reference](references/subcommand-reference.md) for detailed actions and expected output for each subcommand.
 
-**Output:**
-```
-Feedback System Status
------------------------------
-Learning: Enabled
-Anonymous sharing: Disabled
-Data retention: 90 days
+## Consent and Security
 
-Learned Patterns:
-- Auto-approves: npm install, npm test, git push (3 commands)
-- Code style: async/await preferred, TypeScript strict mode
+See [Consent and Security Rules](rules/consent-and-security.md) for GDPR consent management, security restrictions, and analytics data sharing policies.
 
-Agent Performance:
-- backend-architect: 94% success (28 spawns) [improving]
-- test-generator: 72% success (18 spawns) [declining]
+## Related Skills
 
-Context Savings: ~8k tokens/session (estimated)
+- skill-evolution: Evolve skills based on feedback
 
-Storage: .claude/feedback/ (45 KB)
-```
+## File Locations
 
-### pause
+See [File Locations](references/file-locations.md) for storage details.
 
-Temporarily pause all learning without clearing data.
+See [Privacy Policy](references/privacy-policy.md) for full privacy documentation.
 
-**Action:**
-1. Set `pausedUntil` in preferences to a far future date
-2. Confirm to user
 
-**Output:**
-```
-Feedback learning paused
+---
 
-Your existing patterns are preserved.
-Resume with: /feedback resume
-```
+## Rules (1)
 
-### resume
+### Consent Management and Security Rules — HIGH
 
-Resume paused learning.
 
-**Action:**
-1. Clear `pausedUntil` in preferences
-2. Confirm to user
-
-**Output:**
-```
-Feedback learning resumed
-
-The system will continue learning from your usage.
-```
-
-### reset
-
-Clear all learned patterns (requires confirmation).
-
-**Action:**
-1. Show what will be deleted
-2. Ask for confirmation (user must type "RESET")
-3. If confirmed, clear patterns file but keep preferences
-
-**Output (before confirmation):**
-```
-WARNING: This will clear all learned patterns:
-
-- 5 auto-approve permission rules
-- 3 code style preferences
-- Agent performance history
-
-Your preferences (enabled, sharing, retention) will be kept.
-
-To confirm, respond with exactly: RESET
-To cancel, respond with anything else.
-```
-
-**Output (after confirmation):**
-```
-Feedback data reset
-
-- Cleared 5 permission patterns
-- Cleared 3 style preferences
-- Cleared agent metrics
-
-Learning will start fresh from now.
-```
-
-### export
-
-Export all feedback data to a JSON file.
-
-**Action:**
-1. Read all feedback files
-2. Combine into single export
-3. Write to `.claude/feedback/export-\{date\}.json`
-
-**Output:**
-```
-Exported feedback data to:
-   .claude/feedback/export-2026-01-14.json
-
-Contains:
-- 5 learned permission patterns
-- 3 code style preferences
-- 8 skill usage metrics
-- 4 agent performance records
-
-File size: 12 KB
-```
-
-### settings
-
-Show current settings with option to change.
-
-**Output:**
-```
-Feedback Settings
------------------------------
-enabled:              true   (master switch)
-learnFromEdits:       true   (learn from code edits)
-learnFromApprovals:   true   (learn from permissions)
-learnFromAgentOutcomes: true (track agent success)
-shareAnonymized:      false  (share anonymous stats)
-retentionDays:        90     (data retention period)
-
-To change a setting, use:
-  /feedback settings <key> <value>
-
-Example:
-  /feedback settings retentionDays 30
-```
-
-### opt-in
-
-Enable anonymous analytics sharing. Records GDPR-compliant consent.
-
-**Action:**
-1. Record consent in consent-log.json with timestamp and policy version
-2. Set shareAnonymized = true in preferences
-3. Confirm to user
-
-**Output:**
-```
-Anonymous analytics sharing enabled.
-
-What we share (anonymized):
-  - Skill usage counts and success rates
-  - Agent performance metrics
-  - Hook trigger counts
-
-What we NEVER share:
-  - Your code or file contents
-  - Project names or paths
-  - Personal information
-  - Memory data
-
-Disable anytime: /feedback opt-out
-```
-
-### opt-out
-
-Disable anonymous analytics sharing. Revokes consent.
-
-**Action:**
-1. Record revocation in consent-log.json with timestamp
-2. Set shareAnonymized = false in preferences
-3. Confirm to user
-
-**Output:**
-```
-Anonymous analytics sharing disabled.
-
-Your feedback data stays completely local.
-No usage data is shared.
-
-Re-enable anytime: /feedback opt-in
-```
-
-### privacy
-
-Display the full privacy policy for anonymous analytics.
-
-**Action:**
-1. Display comprehensive privacy documentation
-2. Show what's collected, what's never collected
-3. Explain data protection measures
-
-**Output:**
-```
-═══════════════════════════════════════════════════════════════════
-              ORCHESTKIT ANONYMOUS ANALYTICS PRIVACY POLICY
-═══════════════════════════════════════════════════════════════════
-
-WHAT WE COLLECT (only with your consent)
-────────────────────────────────────────────────────────────────────
-
-  ✓ Skill usage counts        - e.g., "api-design used 45 times"
-  ✓ Skill success rates       - e.g., "92% success rate"
-  ✓ Agent spawn counts        - e.g., "backend-architect spawned 8 times"
-  ✓ Agent success rates       - e.g., "88% tasks completed successfully"
-  ✓ Hook trigger counts       - e.g., "git-branch-protection triggered 120 times"
-  ✓ Hook block counts         - e.g., "blocked 5 potentially unsafe commands"
-  ✓ Plugin version            - e.g., "4.12.0"
-  ✓ Report date               - e.g., "2026-01-14" (date only, no time)
-
-
-WHAT WE NEVER COLLECT
-────────────────────────────────────────────────────────────────────
-
-  ✗ Your code or file contents
-  ✗ Project names, paths, or directory structure
-  ✗ User names, emails, or any personal information
-  ✗ IP addresses (stripped at network layer)
-  ✗ Memory data or conversation history
-  ✗ Architecture decisions or design documents
-  ✗ API keys, tokens, or credentials
-  ✗ Git history or commit messages
-  ✗ Any data that could identify you or your projects
-
-
-YOUR RIGHTS
-────────────────────────────────────────────────────────────────────
-
-  • Opt-out anytime:     /feedback opt-out
-  • View your data:      /feedback export-analytics
-  • Check status:        /feedback status
-  • View this policy:    /feedback privacy
-```
-
-### export-analytics
-
-Export anonymous analytics data to a file for review before sharing.
-
-**Usage:**
-```
-/feedback export-analytics [path]
-```
-
-If no path is provided, exports to `.claude/feedback/analytics-exports/` with a timestamp.
-
-**Output:**
-```
-Analytics exported to: .claude/feedback/analytics-exports/analytics-export-20260114-120000.json
-
-Contents preview:
------------------
-Date: 2026-01-14
-Plugin Version: 4.12.0
-
-Summary:
-  Skills used: 8
-  Skill invocations: 45
-  Agents used: 3
-  Agent spawns: 12
-  Hooks configured: 5
-
-Please review the exported file before sharing.
-```
-
-**Export Format:**
-```json
-{
-  "timestamp": "2026-01-14",
-  "plugin_version": "4.12.0",
-  "skill_usage": {
-    "api-design-framework": { "uses": 12, "success_rate": 0.92 }
-  },
-  "agent_performance": {
-    "backend-system-architect": { "spawns": 8, "success_rate": 0.88 }
-  },
-  "hook_metrics": {
-    "git-branch-protection": { "triggered": 45, "blocked": 3 }
-  },
-  "summary": {
-    "unique_skills_used": 8,
-    "unique_agents_used": 3,
-    "hooks_configured": 5,
-    "total_skill_invocations": 45,
-    "total_agent_spawns": 12
-  },
-  "metadata": {
-    "exported_at": "2026-01-14T12:00:00Z",
-    "format_version": "1.0",
-    "note": "Review before sharing"
-  }
-}
-```
-
-## What We Share (When Opted In)
-
-Anonymous analytics include only aggregated, non-identifiable data:
-
-| Data Type | What's Included | What's NOT Included |
-|-----------|-----------------|---------------------|
-| Skills | Usage counts, success rates | File paths, code content |
-| Agents | Spawn counts, success rates | Project names, decisions |
-| Hooks | Trigger/block counts | Command content, paths |
-
-## What We NEVER Share
-
-The following are **blocked by design** and never included in analytics:
-
-- Project names, paths, or directory structure
-- File contents, code, or diffs
-- Decision content or context
-- User identity, email, or credentials
-- Memory data
-- URLs, IP addresses, or hostnames
-- Any strings that could identify the project or user
+# Consent Management and Security Rules
 
 ## Consent Management
 
@@ -367,31 +93,31 @@ The following commands are NEVER auto-approved regardless of learning:
 - Commands with `--force` or `--no-verify`
 - Commands involving passwords, secrets, or credentials
 
+## Analytics Data Sharing
 
-## Related Skills
-- skill-evolution: Evolve skills based on feedback
-## File Locations
+Anonymous analytics include only aggregated, non-identifiable data:
 
-See `references/file-locations.md` for storage details.
+| Data Type | What's Included | What's NOT Included |
+|-----------|-----------------|---------------------|
+| Skills | Usage counts, success rates | File paths, code content |
+| Agents | Spawn counts, success rates | Project names, decisions |
+| Hooks | Trigger/block counts | Command content, paths |
 
-### Analytics & Consent Files
+The following are **blocked by design** and never included in analytics:
 
-```
-.claude/feedback/
-├── preferences.json           # User preferences including shareAnonymized
-├── consent-log.json          # GDPR consent audit trail (opt-in/opt-out history)
-├── metrics.json              # Source data for analytics
-└── analytics-exports/        # Exported analytics for review
-    └── analytics-export-*.json
-```
+- Project names, paths, or directory structure
+- File contents, code, or diffs
+- Decision content or context
+- User identity, email, or credentials
+- Memory data
+- URLs, IP addresses, or hostnames
+- Any strings that could identify the project or user
 
-### Privacy Policy
 
-See `references/privacy-policy.md` for full privacy documentation.
 
 ---
 
-## References (2)
+## References (3)
 
 ### File Locations
 
@@ -760,3 +486,301 @@ This implementation follows GDPR requirements:
 
 - **Repository**: https://github.com/yonatangross/orchestkit-claude-plugin
 - **Issues**: https://github.com/yonatangross/orchestkit-claude-plugin/issues
+
+### Subcommand Reference
+
+# Feedback Subcommand Reference
+
+Detailed actions and expected output for each `/feedback` subcommand.
+
+## status (default)
+
+Show the current feedback system state.
+
+**Output:**
+```
+Feedback System Status
+-----------------------------
+Learning: Enabled
+Anonymous sharing: Disabled
+Data retention: 90 days
+
+Learned Patterns:
+- Auto-approves: npm install, npm test, git push (3 commands)
+- Code style: async/await preferred, TypeScript strict mode
+
+Agent Performance:
+- backend-architect: 94% success (28 spawns) [improving]
+- test-generator: 72% success (18 spawns) [declining]
+
+Context Savings: ~8k tokens/session (estimated)
+
+Storage: .claude/feedback/ (45 KB)
+```
+
+## pause
+
+Temporarily pause all learning without clearing data.
+
+**Action:**
+1. Set `pausedUntil` in preferences to a far future date
+2. Confirm to user
+
+**Output:**
+```
+Feedback learning paused
+
+Your existing patterns are preserved.
+Resume with: /feedback resume
+```
+
+## resume
+
+Resume paused learning.
+
+**Action:**
+1. Clear `pausedUntil` in preferences
+2. Confirm to user
+
+**Output:**
+```
+Feedback learning resumed
+
+The system will continue learning from your usage.
+```
+
+## reset
+
+Clear all learned patterns (requires confirmation).
+
+**Action:**
+1. Show what will be deleted
+2. Ask for confirmation (user must type "RESET")
+3. If confirmed, clear patterns file but keep preferences
+
+**Output (before confirmation):**
+```
+WARNING: This will clear all learned patterns:
+
+- 5 auto-approve permission rules
+- 3 code style preferences
+- Agent performance history
+
+Your preferences (enabled, sharing, retention) will be kept.
+
+To confirm, respond with exactly: RESET
+To cancel, respond with anything else.
+```
+
+**Output (after confirmation):**
+```
+Feedback data reset
+
+- Cleared 5 permission patterns
+- Cleared 3 style preferences
+- Cleared agent metrics
+
+Learning will start fresh from now.
+```
+
+## export
+
+Export all feedback data to a JSON file.
+
+**Action:**
+1. Read all feedback files
+2. Combine into single export
+3. Write to `.claude/feedback/export-\{date\}.json`
+
+**Output:**
+```
+Exported feedback data to:
+   .claude/feedback/export-2026-01-14.json
+
+Contains:
+- 5 learned permission patterns
+- 3 code style preferences
+- 8 skill usage metrics
+- 4 agent performance records
+
+File size: 12 KB
+```
+
+## settings
+
+Show current settings with option to change.
+
+**Output:**
+```
+Feedback Settings
+-----------------------------
+enabled:              true   (master switch)
+learnFromEdits:       true   (learn from code edits)
+learnFromApprovals:   true   (learn from permissions)
+learnFromAgentOutcomes: true (track agent success)
+shareAnonymized:      false  (share anonymous stats)
+retentionDays:        90     (data retention period)
+
+To change a setting, use:
+  /feedback settings <key> <value>
+
+Example:
+  /feedback settings retentionDays 30
+```
+
+## opt-in
+
+Enable anonymous analytics sharing. Records GDPR-compliant consent.
+
+**Action:**
+1. Record consent in consent-log.json with timestamp and policy version
+2. Set shareAnonymized = true in preferences
+3. Confirm to user
+
+**Output:**
+```
+Anonymous analytics sharing enabled.
+
+What we share (anonymized):
+  - Skill usage counts and success rates
+  - Agent performance metrics
+  - Hook trigger counts
+
+What we NEVER share:
+  - Your code or file contents
+  - Project names or paths
+  - Personal information
+  - Memory data
+
+Disable anytime: /feedback opt-out
+```
+
+## opt-out
+
+Disable anonymous analytics sharing. Revokes consent.
+
+**Action:**
+1. Record revocation in consent-log.json with timestamp
+2. Set shareAnonymized = false in preferences
+3. Confirm to user
+
+**Output:**
+```
+Anonymous analytics sharing disabled.
+
+Your feedback data stays completely local.
+No usage data is shared.
+
+Re-enable anytime: /feedback opt-in
+```
+
+## privacy
+
+Display the full privacy policy for anonymous analytics.
+
+**Action:**
+1. Display comprehensive privacy documentation
+2. Show what's collected, what's never collected
+3. Explain data protection measures
+
+**Output:**
+```
+═══════════════════════════════════════════════════════════════════
+              ORCHESTKIT ANONYMOUS ANALYTICS PRIVACY POLICY
+═══════════════════════════════════════════════════════════════════
+
+WHAT WE COLLECT (only with your consent)
+────────────────────────────────────────────────────────────────────
+
+  ✓ Skill usage counts        - e.g., "api-design used 45 times"
+  ✓ Skill success rates       - e.g., "92% success rate"
+  ✓ Agent spawn counts        - e.g., "backend-architect spawned 8 times"
+  ✓ Agent success rates       - e.g., "88% tasks completed successfully"
+  ✓ Hook trigger counts       - e.g., "git-branch-protection triggered 120 times"
+  ✓ Hook block counts         - e.g., "blocked 5 potentially unsafe commands"
+  ✓ Plugin version            - e.g., "4.12.0"
+  ✓ Report date               - e.g., "2026-01-14" (date only, no time)
+
+
+WHAT WE NEVER COLLECT
+────────────────────────────────────────────────────────────────────
+
+  ✗ Your code or file contents
+  ✗ Project names, paths, or directory structure
+  ✗ User names, emails, or any personal information
+  ✗ IP addresses (stripped at network layer)
+  ✗ Memory data or conversation history
+  ✗ Architecture decisions or design documents
+  ✗ API keys, tokens, or credentials
+  ✗ Git history or commit messages
+  ✗ Any data that could identify you or your projects
+
+
+YOUR RIGHTS
+────────────────────────────────────────────────────────────────────
+
+  • Opt-out anytime:     /feedback opt-out
+  • View your data:      /feedback export-analytics
+  • Check status:        /feedback status
+  • View this policy:    /feedback privacy
+```
+
+## export-analytics
+
+Export anonymous analytics data to a file for review before sharing.
+
+**Usage:**
+```
+/feedback export-analytics [path]
+```
+
+If no path is provided, exports to `.claude/feedback/analytics-exports/` with a timestamp.
+
+**Output:**
+```
+Analytics exported to: .claude/feedback/analytics-exports/analytics-export-20260114-120000.json
+
+Contents preview:
+-----------------
+Date: 2026-01-14
+Plugin Version: 4.12.0
+
+Summary:
+  Skills used: 8
+  Skill invocations: 45
+  Agents used: 3
+  Agent spawns: 12
+  Hooks configured: 5
+
+Please review the exported file before sharing.
+```
+
+**Export Format:**
+```json
+{
+  "timestamp": "2026-01-14",
+  "plugin_version": "4.12.0",
+  "skill_usage": {
+    "api-design-framework": { "uses": 12, "success_rate": 0.92 }
+  },
+  "agent_performance": {
+    "backend-system-architect": { "spawns": 8, "success_rate": 0.88 }
+  },
+  "hook_metrics": {
+    "git-branch-protection": { "triggered": 45, "blocked": 3 }
+  },
+  "summary": {
+    "unique_skills_used": 8,
+    "unique_agents_used": 3,
+    "hooks_configured": 5,
+    "total_skill_invocations": 45,
+    "total_agent_spawns": 12
+  },
+  "metadata": {
+    "exported_at": "2026-01-14T12:00:00Z",
+    "format_version": "1.0",
+    "note": "Review before sharing"
+  }
+}
+```
+

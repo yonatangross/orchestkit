@@ -42,20 +42,20 @@ AskUserQuestion(
 ```
 
 **Based on answer, adjust workflow:**
-- **Full exploration**: All 8 phases, all parallel agents
-- **Code structure only**: Skip phases 4-6 (health, dependencies, product)
+- **Full exploration**: All phases, all parallel agents
+- **Code structure only**: Skip phases 5-7 (health, dependencies, product)
 - **Data flow**: Focus phase 3 agents on data tracing
 - **Architecture patterns**: Focus on backend-system-architect agent
-- **Quick search**: Skip to phase 1-2 only, return file list
+- **Quick search**: Skip to phases 1-2 only, return file list
 
 
 ## STEP 0b: Select Orchestration Mode
 
-Choose **Agent Teams** (mesh — explorers share discoveries) or **Task tool** (star — all report to lead):
+Choose **Agent Teams** (mesh) or **Task tool** (star):
 
 1. `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` → **Agent Teams mode**
 2. Agent Teams unavailable → **Task tool mode** (default)
-3. Otherwise: Full exploration with 4+ agents → recommend **Agent Teams**; Quick search or single-focus → **Task tool**
+3. Full exploration with 4+ agents → recommend **Agent Teams**; Quick/single-focus → **Task tool**
 
 | Aspect | Task Tool | Agent Teams |
 |--------|-----------|-------------|
@@ -67,19 +67,12 @@ Choose **Agent Teams** (mesh — explorers share discoveries) or **Task tool** (
 > **Fallback:** If Agent Teams encounters issues, fall back to Task tool for remaining exploration.
 
 
-## ⚠️ CRITICAL: Task Management is MANDATORY (CC 2.1.16)
+## Task Management (MANDATORY)
 
 **BEFORE doing ANYTHING else, create tasks to show progress:**
 
 ```python
-# 1. Create main exploration task IMMEDIATELY
-TaskCreate(
-  subject="Explore: {topic}",
-  description="Deep codebase exploration for {topic}",
-  activeForm="Exploring {topic}"
-)
-
-# 2. Create subtasks for phases (8-phase process)
+TaskCreate(subject="Explore: {topic}", description="Deep codebase exploration for {topic}", activeForm="Exploring {topic}")
 TaskCreate(subject="Initial file search", activeForm="Searching files")
 TaskCreate(subject="Check knowledge graph", activeForm="Checking memory")
 TaskCreate(subject="Launch exploration agents", activeForm="Dispatching explorers")
@@ -87,10 +80,6 @@ TaskCreate(subject="Assess code health (0-10)", activeForm="Assessing code healt
 TaskCreate(subject="Map dependency hotspots", activeForm="Mapping dependencies")
 TaskCreate(subject="Add product perspective", activeForm="Adding product context")
 TaskCreate(subject="Generate exploration report", activeForm="Generating report")
-
-# 3. Update status as you progress
-TaskUpdate(taskId="2", status="in_progress")  # When starting
-TaskUpdate(taskId="2", status="completed")    # When done
 ```
 
 
@@ -101,10 +90,11 @@ TaskUpdate(taskId="2", status="completed")    # When done
 | **1. Initial Search** | Grep, Glob for matches | File locations |
 | **2. Memory Check** | Search knowledge graph | Prior context |
 | **3. Deep Exploration** | 4 parallel explorers | Multi-angle analysis |
-| **4. Code Health Assessment** | Rate found code 0-10 | Quality scores |
-| **5. Dependency Hotspot Map** | Identify coupling | Hotspot visualization |
-| **6. Product Perspective** | Business context | Findability suggestions |
-| **7. Report Generation** | Compile findings | Actionable report |
+| **4. AI System (if applicable)** | LangGraph, prompts, RAG | AI-specific findings |
+| **5. Code Health** | Rate code 0-10 | Quality scores |
+| **6. Dependency Hotspots** | Identify coupling | Hotspot visualization |
+| **7. Product Perspective** | Business context | Findability suggestions |
+| **8. Report Generation** | Compile findings | Actionable report |
 
 
 ### Phase 1: Initial Search
@@ -124,334 +114,29 @@ mcp__memory__search_nodes(query="architecture")
 
 ### Phase 3: Parallel Deep Exploration (4 Agents)
 
-Launch 4 specialized explorers in ONE message with `run_in_background: true`:
+See [Exploration Agents](rules/exploration-agents.md) for Task tool mode prompts.
 
-```python
-# PARALLEL - All 4 in ONE message
-Task(
-  subagent_type="Explore",
-  prompt="""Code Structure: Find all files, classes, functions related to: $ARGUMENTS
-
-  Scope: ONLY read files directly relevant to the topic. Do NOT explore the entire codebase.
-
-  SUMMARY: End with: "RESULT: [N] files, [M] classes - [key location, e.g., 'src/auth/']"
-  """,
-  run_in_background=True,
-  max_turns=25
-)
-Task(
-  subagent_type="Explore",
-  prompt="""Data Flow: Trace entry points, processing, storage for: $ARGUMENTS
-
-  Scope: ONLY read files directly relevant to the topic. Do NOT explore the entire codebase.
-
-  SUMMARY: End with: "RESULT: [entry] → [processing] → [storage] - [N] hop flow"
-  """,
-  run_in_background=True,
-  max_turns=25
-)
-Task(
-  subagent_type="backend-system-architect",
-  prompt="""Backend Patterns: Analyze architecture patterns, integrations, dependencies for: $ARGUMENTS
-
-  Scope: ONLY read files directly relevant to the topic. Do NOT explore the entire codebase.
-
-  SUMMARY: End with: "RESULT: [pattern name] - [N] integrations, [M] dependencies"
-  """,
-  run_in_background=True,
-  max_turns=25
-)
-Task(
-  subagent_type="frontend-ui-developer",
-  prompt="""Frontend Analysis: Find components, state management, routes for: $ARGUMENTS
-
-  Scope: ONLY read files directly relevant to the topic. Do NOT explore the entire codebase.
-
-  SUMMARY: End with: "RESULT: [N] components, [state lib] - [key route]"
-  """,
-  run_in_background=True,
-  max_turns=25
-)
-```
-
-**Explorer Roles:**
-1. **Code Structure Explorer** - Files, classes, functions
-2. **Data Flow Explorer** - Entry points, processing, storage
-3. **Backend Architect** - Patterns, integration, dependencies
-4. **Frontend Developer** - Components, state, routes
-
-### Phase 3 — Agent Teams Alternative
-
-In Agent Teams mode, form an exploration team where explorers share discoveries in real-time:
-
-```python
-TeamCreate(team_name="explore-{topic}", description="Explore {topic}")
-
-Task(subagent_type="Explore", name="structure-explorer",
-     team_name="explore-{topic}",
-     prompt="""Find all files, classes, and functions related to: {topic}
-     When you discover key entry points, message data-flow-explorer so they
-     can trace data paths from those points.
-     When you find backend patterns, message backend-explorer.
-     When you find frontend components, message frontend-explorer.""")
-
-Task(subagent_type="Explore", name="data-flow-explorer",
-     team_name="explore-{topic}",
-     prompt="""Trace entry points, processing, and storage for: {topic}
-     When structure-explorer shares entry points, start tracing from those.
-     When you discover cross-boundary data flows (frontend→backend or vice versa),
-     message both backend-explorer and frontend-explorer.""")
-
-Task(subagent_type="backend-system-architect", name="backend-explorer",
-     team_name="explore-{topic}",
-     prompt="""Analyze backend architecture patterns for: {topic}
-     When structure-explorer or data-flow-explorer share backend findings,
-     investigate deeper — API design, database schema, service patterns.
-     Share integration points with frontend-explorer for consistency.""")
-
-Task(subagent_type="frontend-ui-developer", name="frontend-explorer",
-     team_name="explore-{topic}",
-     prompt="""Analyze frontend components, state, and routes for: {topic}
-     When structure-explorer shares component locations, investigate deeper.
-     When backend-explorer shares API patterns, verify frontend alignment.
-     Share component hierarchy with data-flow-explorer.""")
-```
-
-**Team teardown** after report generation:
-```python
-SendMessage(type="shutdown_request", recipient="structure-explorer", content="Exploration complete")
-SendMessage(type="shutdown_request", recipient="data-flow-explorer", content="Exploration complete")
-SendMessage(type="shutdown_request", recipient="backend-explorer", content="Exploration complete")
-SendMessage(type="shutdown_request", recipient="frontend-explorer", content="Exploration complete")
-TeamDelete()
-```
-
-> **Fallback:** If team formation fails, use standard Phase 3 Task spawns above.
-
+See [Agent Teams Mode](rules/agent-teams-mode.md) for Agent Teams alternative.
 
 ### Phase 4: AI System Exploration (If Applicable)
 
-For AI/ML topics, add exploration of:
-- LangGraph workflows
-- Prompt templates
-- RAG pipeline
-- Caching strategies
+For AI/ML topics, add exploration of: LangGraph workflows, prompt templates, RAG pipeline, caching strategies.
 
-### Phase 5: Code Health Assessment (NEW)
+### Phase 5: Code Health Assessment
 
-**Goal:** Rate found code quality 0-10 with specific dimensions.
+See [Code Health Assessment](rules/code-health-assessment.md) for agent prompt. See [Code Health Rubric](references/code-health-rubric.md) for scoring criteria.
 
-```python
-Task(
-  subagent_type="code-quality-reviewer",
-  prompt="""CODE HEALTH ASSESSMENT for files related to: $ARGUMENTS
+### Phase 6: Dependency Hotspot Map
 
-  Rate each dimension 0-10:
+See [Dependency Hotspot Analysis](rules/dependency-hotspot-analysis.md) for agent prompt. See [Dependency Analysis](references/dependency-analysis.md) for metrics.
 
-  1. READABILITY (0-10)
-     - Clear naming conventions?
-     - Appropriate comments?
-     - Logical organization?
+### Phase 7: Product Perspective
 
-  2. MAINTAINABILITY (0-10)
-     - Single responsibility?
-     - Low coupling?
-     - Easy to modify?
-
-  3. TESTABILITY (0-10)
-     - Pure functions where possible?
-     - Dependency injection?
-     - Existing test coverage?
-
-  4. COMPLEXITY (0-10, inverted: 10=simple, 0=complex)
-     - Cyclomatic complexity?
-     - Nesting depth?
-     - Function length?
-
-  5. DOCUMENTATION (0-10)
-     - API docs present?
-     - Usage examples?
-     - Architecture notes?
-
-  Output:
-  {
-    "overall_score": N.N,
-    "dimensions": {
-      "readability": N,
-      "maintainability": N,
-      "testability": N,
-      "complexity": N,
-      "documentation": N
-    },
-    "hotspots": ["file:line - issue"],
-    "recommendations": ["improvement suggestion"]
-  }
-
-  SUMMARY: End with: "HEALTH: [N.N]/10 - [best dimension] strong, [worst dimension] needs work"
-  """,
-  run_in_background=True,
-  max_turns=25
-)
-```
-
-### Phase 6: Dependency Hotspot Map (NEW)
-
-**Goal:** Identify highly-coupled code and dependency bottlenecks.
-
-```python
-# Analyze imports and dependencies
-Task(
-  subagent_type="backend-system-architect",
-  prompt="""DEPENDENCY HOTSPOT ANALYSIS for: $ARGUMENTS
-
-  Analyze coupling and dependencies:
-
-  1. IMPORT ANALYSIS
-     - Which files import this code?
-     - What does this code import?
-     - Circular dependencies?
-
-  2. COUPLING SCORE (0-10, 10=highly coupled)
-     - How many files would break if this changes?
-     - Fan-in (incoming dependencies)
-     - Fan-out (outgoing dependencies)
-
-  3. CHANGE IMPACT
-     - Blast radius of modifications
-     - Files that always change together
-
-  4. HOTSPOT VISUALIZATION
-     ```
-     [Module A] --depends--> [Target] <--depends-- [Module B]
-                                |
-                                v
-                           [Module C]
-     ```
-
-  Output:
-  {
-    "coupling_score": N,
-    "fan_in": N,
-    "fan_out": N,
-    "circular_deps": [],
-    "change_impact": ["file - reason"],
-    "hotspot_diagram": "ASCII diagram"
-  }
-
-  SUMMARY: End with: "COUPLING: [N]/10 - [N] incoming, [M] outgoing deps - [key concern]"
-  """,
-  run_in_background=True,
-  max_turns=25
-)
-```
-
-### Phase 7: Product Perspective Agent (NEW)
-
-**Goal:** Add business context and findability suggestions.
-
-```python
-Task(
-  subagent_type="product-strategist",
-  prompt="""PRODUCT PERSPECTIVE for: $ARGUMENTS
-
-  Analyze from a product/business viewpoint:
-
-  1. BUSINESS CONTEXT
-     - What user problem does this code solve?
-     - What feature/capability does it enable?
-     - Who are the users of this code?
-
-  2. FINDABILITY SUGGESTIONS
-     - Better naming for discoverability?
-     - Missing documentation entry points?
-     - Where should someone look first?
-
-  3. KNOWLEDGE GAPS
-     - What context is missing for new developers?
-     - What tribal knowledge exists?
-     - What should be documented?
-
-  4. SEARCH OPTIMIZATION
-     - Keywords someone might use to find this
-     - Alternative terms for the same concept
-     - Related concepts to cross-reference
-
-  Output:
-  {
-    "business_purpose": "description",
-    "primary_users": ["user type"],
-    "findability_issues": ["issue - suggestion"],
-    "recommended_entry_points": ["file - why start here"],
-    "search_keywords": ["keyword"],
-    "documentation_gaps": ["gap"]
-  }
-
-  SUMMARY: End with: "FINDABILITY: [N] issues - start at [recommended entry point]"
-  """,
-  run_in_background=True,
-  max_turns=25
-)
-```
+See [Product Perspective](rules/product-perspective.md) for agent prompt. See [Findability Patterns](references/findability-patterns.md) for best practices.
 
 ### Phase 8: Generate Report
 
-```markdown
-# Exploration Report: $ARGUMENTS
-
-## Quick Answer
-[1-2 sentence summary]
-
-## File Locations
-| File | Purpose | Health Score |
-|------|---------|--------------|
-| `path/to/file.py` | [description] | [N.N/10] |
-
-## Code Health Summary
-| Dimension | Score | Notes |
-|-----------|-------|-------|
-| Readability | [N/10] | [note] |
-| Maintainability | [N/10] | [note] |
-| Testability | [N/10] | [note] |
-| Complexity | [N/10] | [note] |
-| Documentation | [N/10] | [note] |
-| **Overall** | **[N.N/10]** | |
-
-## Architecture Overview
-[ASCII diagram]
-
-## Dependency Hotspot Map
-```
-[Incoming deps] → [TARGET] → [Outgoing deps]
-```
-- **Coupling Score:** [N/10]
-- **Fan-in:** [N] files depend on this
-- **Fan-out:** [M] dependencies
-- **Circular Dependencies:** [list or "None"]
-
-## Data Flow
-1. [Entry] → 2. [Processing] → 3. [Storage]
-
-## Findability & Entry Points
-| Entry Point | Why Start Here |
-|-------------|----------------|
-| `path/to/file.py` | [reason] |
-
-**Search Keywords:** [keyword1], [keyword2], [keyword3]
-
-## Product Context
-- **Business Purpose:** [what problem this solves]
-- **Primary Users:** [who uses this]
-- **Documentation Gaps:** [what's missing]
-
-## How to Modify
-1. [Step 1]
-2. [Step 2]
-
-## Recommendations
-1. [Health improvement]
-2. [Findability improvement]
-3. [Documentation improvement]
-```
+See [Exploration Report Template](references/exploration-report-template.md).
 
 ## Common Exploration Queries
 

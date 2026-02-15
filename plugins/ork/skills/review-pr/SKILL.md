@@ -62,24 +62,11 @@ AskUserQuestion(
 
 ## STEP 0b: Select Orchestration Mode
 
-Choose **Agent Teams** (mesh — reviewers cross-reference findings) or **Task tool** (star — all report to lead):
-
-1. `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` → **Agent Teams mode**
-2. Agent Teams unavailable → **Task tool mode** (default)
-3. Otherwise: Full review with 6+ agents and cross-cutting concerns → recommend **Agent Teams**; Quick/focused review → **Task tool**
-
-| Aspect | Task Tool | Agent Teams |
-|--------|-----------|-------------|
-| Communication | All reviewers report to lead | Reviewers cross-reference findings |
-| Security + quality overlap | Lead deduplicates | security-auditor messages code-quality-reviewer directly |
-| Cost | ~200K tokens | ~500K tokens |
-| Best for | Quick/focused reviews | Full reviews with cross-cutting concerns |
-
-> **Fallback:** If Agent Teams encounters issues, fall back to Task tool for remaining review.
+See [Orchestration Mode Selection](references/orchestration-mode-selection.md)
 
 ---
 
-## ⚠️ CRITICAL: Task Management is MANDATORY (CC 2.1.16)
+## CRITICAL: Task Management is MANDATORY (CC 2.1.16)
 
 **BEFORE doing ANYTHING else, create tasks to track progress:**
 
@@ -118,14 +105,9 @@ gh pr diff $ARGUMENTS
 gh pr checks $ARGUMENTS
 ```
 
-Identify:
-- Total files changed
-- Lines added/removed
-- Affected domains (frontend, backend, AI)
+Identify: total files changed, lines added/removed, affected domains (frontend, backend, AI).
 
 ## Tool Guidance
-
-Use the right tools for PR review operations:
 
 | Task | Use | Avoid |
 |------|-----|-------|
@@ -135,278 +117,38 @@ Use the right tools for PR review operations:
 | Read file content | `Read(file_path="...")` | `bash cat` |
 | Check CI status | `Bash: gh pr checks` | Polling APIs |
 
-## Parallel Execution Strategy
-
 <use_parallel_tool_calls>
 When gathering PR context, run independent operations in parallel:
-- `gh pr view` (PR metadata) - independent
-- `gh pr diff` (changed files) - independent
-- `gh pr checks` (CI status) - independent
+- `gh pr view` (PR metadata), `gh pr diff` (changed files), `gh pr checks` (CI status)
 
 Spawn all three in ONE message. This cuts context-gathering time by 60%.
-
-For agent-based review (Phase 3), all 6 agents are independent - launch them together.
+For agent-based review (Phase 3), all 6 agents are independent -- launch them together.
 </use_parallel_tool_calls>
 
 ## Phase 2: Skills Auto-Loading (CC 2.1.6)
 
-**CC 2.1.6 auto-discovers skills** - no manual loading needed!
+**CC 2.1.6 auto-discovers skills** -- no manual loading needed!
 
 Relevant skills activated automatically:
-- `code-review-playbook` - Review patterns, conventional comments
-- `security-scanning` - OWASP, secrets, dependencies
-- `type-safety-validation` - Zod, TypeScript strict
+- `code-review-playbook` -- Review patterns, conventional comments
+- `security-scanning` -- OWASP, secrets, dependencies
+- `type-safety-validation` -- Zod, TypeScript strict
 
 ## Phase 3: Parallel Code Review (6 Agents)
 
-Launch SIX specialized reviewers in ONE message with `run_in_background: true`:
+See [Agent Prompts -- Task Tool Mode](rules/agent-prompts-task-tool.md) for the 6 parallel agent prompts.
 
-| Agent | Focus Area |
-|-------|-----------|
-| code-quality-reviewer #1 | Readability, complexity, DRY |
-| code-quality-reviewer #2 | Type safety, Zod, Pydantic |
-| security-auditor | Security, secrets, injection |
-| test-generator | Test coverage, edge cases |
-| backend-system-architect | API, async, transactions |
-| frontend-ui-developer | React 19, hooks, a11y |
+See [Agent Prompts -- Agent Teams Mode](rules/agent-prompts-agent-teams.md) for the mesh alternative.
 
-```python
-# PARALLEL - All 6 agents in ONE message
-Task(
-  description="Review code quality",
-  subagent_type="code-quality-reviewer",
-  prompt="""CODE QUALITY REVIEW for PR $ARGUMENTS
-
-  Review code readability and maintainability:
-  1. Naming conventions and clarity
-  2. Function/method complexity (cyclomatic < 10)
-  3. DRY violations and code duplication
-  4. SOLID principles adherence
-
-  Scope: ONLY read files directly relevant to the PR diff. Do NOT explore the entire codebase.
-
-  SUMMARY: End with: "RESULT: [PASS|WARN|FAIL] - [N] issues: [brief list]"
-  """,
-  run_in_background=True,
-  max_turns=25
-)
-Task(
-  description="Review type safety",
-  subagent_type="code-quality-reviewer",
-  prompt="""TYPE SAFETY REVIEW for PR $ARGUMENTS
-
-  Review type safety and validation:
-  1. TypeScript strict mode compliance
-  2. Zod/Pydantic schema usage
-  3. No `any` types or type assertions
-  4. Exhaustive switch/union handling
-
-  Scope: ONLY read files directly relevant to the PR diff. Do NOT explore the entire codebase.
-
-  SUMMARY: End with: "RESULT: [PASS|WARN|FAIL] - [N] type issues: [brief list]"
-  """,
-  run_in_background=True,
-  max_turns=25
-)
-Task(
-  description="Security audit PR",
-  subagent_type="security-auditor",
-  prompt="""SECURITY REVIEW for PR $ARGUMENTS
-
-  Security audit:
-  1. Secrets/credentials in code
-  2. Injection vulnerabilities (SQL, XSS)
-  3. Authentication/authorization checks
-  4. Dependency vulnerabilities
-
-  Scope: ONLY read files directly relevant to the PR diff. Do NOT explore the entire codebase.
-
-  SUMMARY: End with: "RESULT: [PASS|WARN|BLOCK] - [N] findings: [severity summary]"
-  """,
-  run_in_background=True,
-  max_turns=25
-)
-Task(
-  description="Review test coverage",
-  subagent_type="test-generator",
-  prompt="""TEST COVERAGE REVIEW for PR $ARGUMENTS
-
-  Review test quality:
-  1. Test coverage for changed code
-  2. Edge cases and error paths tested
-  3. Meaningful assertions (not just truthy)
-  4. No flaky tests (timing, external deps)
-
-  Scope: ONLY read files directly relevant to the PR diff. Do NOT explore the entire codebase.
-
-  SUMMARY: End with: "RESULT: [N]% coverage, [M] gaps - [key missing test]"
-  """,
-  run_in_background=True,
-  max_turns=25
-)
-Task(
-  description="Review backend code",
-  subagent_type="backend-system-architect",
-  prompt="""BACKEND REVIEW for PR $ARGUMENTS
-
-  Review backend code:
-  1. API design and REST conventions
-  2. Async/await patterns and error handling
-  3. Database query efficiency (N+1)
-  4. Transaction boundaries
-
-  Scope: ONLY read files directly relevant to the PR diff. Do NOT explore the entire codebase.
-
-  SUMMARY: End with: "RESULT: [PASS|WARN|FAIL] - [N] issues: [key concern]"
-  """,
-  run_in_background=True,
-  max_turns=25
-)
-Task(
-  description="Review frontend code",
-  subagent_type="frontend-ui-developer",
-  prompt="""FRONTEND REVIEW for PR $ARGUMENTS
-
-  Review frontend code:
-  1. React 19 patterns (hooks, server components)
-  2. State management correctness
-  3. Accessibility (a11y) compliance
-  4. Performance (memoization, lazy loading)
-
-  Scope: ONLY read files directly relevant to the PR diff. Do NOT explore the entire codebase.
-
-  SUMMARY: End with: "RESULT: [PASS|WARN|FAIL] - [N] issues: [key concern]"
-  """,
-  run_in_background=True,
-  max_turns=25
-)
-```
-
-### Phase 3 — Agent Teams Alternative
-
-In Agent Teams mode, form a review team where reviewers cross-reference findings directly:
-
-```python
-TeamCreate(team_name="review-pr-{number}", description="Review PR #{number}")
-
-Task(subagent_type="code-quality-reviewer", name="quality-reviewer",
-     team_name="review-pr-{number}",
-     prompt="""Review code quality and type safety for PR #{number}.
-     When you find patterns that overlap with security concerns,
-     message security-reviewer with the finding.
-     When you find test gaps, message test-reviewer.""")
-
-Task(subagent_type="security-auditor", name="security-reviewer",
-     team_name="review-pr-{number}",
-     prompt="""Security audit for PR #{number}.
-     Cross-reference with quality-reviewer for injection risks in code patterns.
-     When you find issues, message the responsible reviewer (backend-reviewer
-     for API issues, frontend-reviewer for XSS).""")
-
-Task(subagent_type="test-generator", name="test-reviewer",
-     team_name="review-pr-{number}",
-     prompt="""Review test coverage for PR #{number}.
-     When quality-reviewer flags test gaps, verify and suggest specific tests.
-     Message backend-reviewer or frontend-reviewer with test requirements.""")
-
-Task(subagent_type="backend-system-architect", name="backend-reviewer",
-     team_name="review-pr-{number}",
-     prompt="""Review backend code for PR #{number}.
-     When security-reviewer flags API issues, validate and suggest fixes.
-     Share API pattern findings with frontend-reviewer for consistency.""")
-
-Task(subagent_type="frontend-ui-developer", name="frontend-reviewer",
-     team_name="review-pr-{number}",
-     prompt="""Review frontend code for PR #{number}.
-     When backend-reviewer shares API patterns, verify frontend matches.
-     When security-reviewer flags XSS risks, validate and suggest fixes.""")
-```
-
-**Team teardown** after synthesis:
-```python
-# After collecting all findings and producing the review
-SendMessage(type="shutdown_request", recipient="quality-reviewer", content="Review complete")
-SendMessage(type="shutdown_request", recipient="security-reviewer", content="Review complete")
-SendMessage(type="shutdown_request", recipient="test-reviewer", content="Review complete")
-SendMessage(type="shutdown_request", recipient="backend-reviewer", content="Review complete")
-SendMessage(type="shutdown_request", recipient="frontend-reviewer", content="Review complete")
-TeamDelete()
-```
-
-> **Fallback:** If team formation fails, use standard Phase 3 Task spawns above.
-
----
-
-### Optional: AI Code Review
-
-If PR includes AI/ML code, add 7th agent:
-
-```python
-Task(
-  description="Review LLM integration",
-  subagent_type="llm-integrator",
-  prompt="""LLM CODE REVIEW for PR $ARGUMENTS
-
-  Review AI/LLM integration:
-  1. Prompt injection prevention
-  2. Token limit handling
-  3. Caching strategy
-  4. Error handling and fallbacks
-
-  SUMMARY: End with: "RESULT: [PASS|WARN|FAIL] - [N] LLM issues: [key concern]"
-  """,
-  run_in_background=True,
-  max_turns=25
-)
-```
+See [AI Code Review Agent](rules/ai-code-review-agent.md) for the optional 7th LLM agent.
 
 ## Phase 4: Run Validation
 
-```bash
-# Backend
-cd backend
-poetry run ruff format --check app/
-poetry run ruff check app/
-poetry run pytest tests/unit/ -v --tb=short
-
-# Frontend
-cd frontend
-npm run format:check
-npm run lint
-npm run typecheck
-npm run test
-```
+See [Validation Commands](references/validation-commands.md)
 
 ## Phase 5: Synthesize Review
 
-Combine all agent feedback into structured report:
-
-```markdown
-# PR Review: #$ARGUMENTS
-
-## Summary
-[1-2 sentence overview]
-
-## Code Quality
-| Area | Status | Notes |
-|------|--------|-------|
-| Readability | // | [notes] |
-| Type Safety | // | [notes] |
-| Test Coverage | // | [X%] |
-
-## Security
-| Check | Status |
-|-------|--------|
-| Secrets | / |
-| Input Validation | / |
-| Dependencies | / |
-
-## Blockers (Must Fix)
-- [if any]
-
-## Suggestions (Non-Blocking)
-- [improvements]
-```
+Combine all agent feedback into a structured report. See [Review Report Template](references/review-report-template.md)
 
 ## Phase 6: Submit Review
 
@@ -423,60 +165,43 @@ gh pr review $ARGUMENTS --request-changes -b "Review message"
 ### PR Status Enrichment
 
 The `pr-status-enricher` hook automatically detects open PRs at session start and sets:
-- `ORCHESTKIT_PR_URL` - PR URL for quick reference
-- `ORCHESTKIT_PR_STATE` - PR state (OPEN, MERGED, CLOSED)
+- `ORCHESTKIT_PR_URL` -- PR URL for quick reference
+- `ORCHESTKIT_PR_STATE` -- PR state (OPEN, MERGED, CLOSED)
 
-## CC 2.1.27+ Enhancements
-
-### Session Resume with PR Context
+### Session Resume with PR Context (CC 2.1.27+)
 
 Sessions are automatically linked when reviewing PRs. Resume later with full context:
 
 ```bash
-# Resume with PR context preserved (diff, comments, CI status)
 claude --from-pr 123
 claude --from-pr https://github.com/org/repo/pull/123
 ```
 
-This preserves:
-- Full PR diff still available
-- Review comments and threads loaded
-- CI/check status fresh
-- Perfect for multi-session deep reviews
-
 ### Task Metrics (CC 2.1.30)
 
-Task tool results now include efficiency metrics. After parallel agents complete, report:
-
-```markdown
-## Review Efficiency
-| Agent | Tokens | Tools | Duration |
-|-------|--------|-------|----------|
-| code-quality-reviewer | 450 | 8 | 12s |
-| security-auditor | 620 | 12 | 18s |
-| test-generator | 380 | 6 | 10s |
-
-**Total:** 1,450 tokens, 26 tool calls
-```
-
-Use metrics to:
-- Identify slow or expensive agents
-- Track review efficiency over time
-- Optimize agent prompts based on token usage
+See [Task Metrics Template](references/task-metrics-template.md)
 
 ## Conventional Comments
 
 Use these prefixes for comments:
-- `praise:` - Positive feedback
-- `nitpick:` - Minor suggestion
-- `suggestion:` - Improvement idea
-- `issue:` - Must fix
-- `question:` - Needs clarification
+- `praise:` -- Positive feedback
+- `nitpick:` -- Minor suggestion
+- `suggestion:` -- Improvement idea
+- `issue:` -- Must fix
+- `question:` -- Needs clarification
 
 ## Related Skills
 - commit: Create commits after review
 - create-pr: Create PRs for review
 - slack-integration: Team notifications for review events
+
 ## References
 
 - [Review Template](references/review-template.md)
+- [Review Report Template](references/review-report-template.md)
+- [Orchestration Mode Selection](references/orchestration-mode-selection.md)
+- [Validation Commands](references/validation-commands.md)
+- [Task Metrics Template](references/task-metrics-template.md)
+- [Agent Prompts -- Task Tool](rules/agent-prompts-task-tool.md)
+- [Agent Prompts -- Agent Teams](rules/agent-prompts-agent-teams.md)
+- [AI Code Review Agent](rules/ai-code-review-agent.md)
