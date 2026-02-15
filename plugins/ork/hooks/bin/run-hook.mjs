@@ -128,12 +128,15 @@ const timeout = setTimeout(() => {
 
 process.stdin.setEncoding('utf8');
 
+let inputBytes = 0;
+
 process.stdin.on('data', (chunk) => {
   clearTimeout(timeout);
   input += chunk;
+  inputBytes += Buffer.byteLength(chunk);
   // Guard: if stdin exceeds max size (e.g. image base64 in prompt),
   // stop reading and run hook with truncated input to avoid OOM
-  if (Buffer.byteLength(input) > MAX_STDIN_BYTES) {
+  if (inputBytes > MAX_STDIN_BYTES) {
     stdinClosed = true;
     process.stdin.destroy();
     try {

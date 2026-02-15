@@ -172,6 +172,25 @@ OVERSIZED_INPUT=$(jq -n --arg p "$(head -c 60000 /dev/urandom | base64 | tr -d '
     jq -n --arg p "$(generate_base64_block 60000)" \
     '{"prompt":$p,"tool_name":"","session_id":"test-perf","tool_input":{}}')
 
+# Per-hook timing: each hook must complete in <500ms on 60KB payload
+HOOK_TIMING_OK=true
+while IFS= read -r hook_name; do
+    [[ -z "$hook_name" ]] && continue
+    local_start=$(python3 -c "import time; print(int(time.time()*1000))")
+    run_hook "$hook_name" "$OVERSIZED_INPUT" 5 >/dev/null
+    local_end=$(python3 -c "import time; print(int(time.time()*1000))")
+    local_elapsed=$((local_end - local_start))
+    if [[ "$local_elapsed" -ge 500 ]]; then
+        log_fail "hook $hook_name completes in <500ms on 60KB" "Took ${local_elapsed}ms"
+        HOOK_TIMING_OK=false
+    fi
+done <<< "$PROMPT_HOOKS"
+
+if [[ "$HOOK_TIMING_OK" == "true" ]]; then
+    log_pass "all hooks complete in <500ms individually on 60KB payload"
+fi
+
+# Aggregate timing: full pipeline across all hooks
 START_MS=$(python3 -c "import time; print(int(time.time()*1000))")
 
 while IFS= read -r hook_name; do

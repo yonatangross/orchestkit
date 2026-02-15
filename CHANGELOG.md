@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [6.0.11] - 2026-02-15
 
+### Fixed
+
+- Guard against image paste killing context window — 3-layer defense: stdin cap (512KB), prompt length guard (50K), image/binary detection (#620)
+- Correct orkl skill count in marketplace.json (62 → 45)
+
 ### Changed
 
 - Rewrote `mcp-patterns` SKILL.md for 2025-11-25 MCP spec + AAIF governance (#613)
@@ -21,7 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- TODO: Describe your changes here
+- Bumped version to 6.0.10
 
 ---
 
@@ -45,7 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- TODO: Describe your changes here
+- Bumped version to 6.0.8
 
 ---
 
@@ -308,7 +313,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- TODO: Describe your changes here
+- Bumped version to 5.7.4
 
 ---
 

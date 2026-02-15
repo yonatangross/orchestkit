@@ -328,12 +328,12 @@ test_stdin_destroy_on_cap() {
 }
 test_stdin_destroy_on_cap
 
-# Test 13: Verify Buffer.byteLength check (not just string length)
+# Test 13: Verify incremental byte counter (not recalculating full input each chunk)
 test_byte_length_check() {
-    if grep -q "Buffer.byteLength" "$RUN_HOOK"; then
-        log_pass "uses Buffer.byteLength for accurate size check"
+    if grep -q "inputBytes" "$RUN_HOOK" && grep -q "Buffer.byteLength" "$RUN_HOOK"; then
+        log_pass "uses incremental byte counter for accurate size check"
     else
-        log_fail "uses Buffer.byteLength for accurate size check" "Pattern not found"
+        log_fail "uses incremental byte counter for accurate size check" "Pattern not found"
     fi
 }
 test_byte_length_check
@@ -346,49 +346,49 @@ echo ""
 echo -e "  ${CYAN}Source code guard verification${NC}"
 echo ""
 
-# Test 14: unified-dispatcher has MAX_PROMPT_LENGTH
+# Test 14: unified-dispatcher imports MAX_PROMPT_LENGTH from shared lib
 test_dispatcher_has_max_length() {
     if grep -q "MAX_PROMPT_LENGTH" "$PROJECT_ROOT/src/hooks/src/prompt/unified-dispatcher.ts"; then
-        log_pass "unified-dispatcher defines MAX_PROMPT_LENGTH"
+        log_pass "unified-dispatcher uses MAX_PROMPT_LENGTH"
     else
-        log_fail "unified-dispatcher defines MAX_PROMPT_LENGTH" "Constant not found"
+        log_fail "unified-dispatcher uses MAX_PROMPT_LENGTH" "Constant not found"
     fi
 }
 test_dispatcher_has_max_length
 
-# Test 15: unified-dispatcher has isImageOrBinaryPrompt
+# Test 15: unified-dispatcher imports isImageOrBinaryPrompt from shared lib
 test_dispatcher_has_image_detect() {
     if grep -q "isImageOrBinaryPrompt" "$PROJECT_ROOT/src/hooks/src/prompt/unified-dispatcher.ts"; then
-        log_pass "unified-dispatcher has isImageOrBinaryPrompt()"
+        log_pass "unified-dispatcher uses isImageOrBinaryPrompt()"
     else
-        log_fail "unified-dispatcher has isImageOrBinaryPrompt()" "Function not found"
+        log_fail "unified-dispatcher uses isImageOrBinaryPrompt()" "Function not found"
     fi
 }
 test_dispatcher_has_image_detect
 
-# Test 16: capture-user-intent has MAX_PROMPT_LENGTH
+# Test 16: capture-user-intent imports MAX_PROMPT_LENGTH from shared lib
 test_intent_has_max_length() {
     if grep -q "MAX_PROMPT_LENGTH" "$PROJECT_ROOT/src/hooks/src/prompt/capture-user-intent.ts"; then
-        log_pass "capture-user-intent defines MAX_PROMPT_LENGTH"
+        log_pass "capture-user-intent uses MAX_PROMPT_LENGTH"
     else
-        log_fail "capture-user-intent defines MAX_PROMPT_LENGTH" "Constant not found"
+        log_fail "capture-user-intent uses MAX_PROMPT_LENGTH" "Constant not found"
     fi
 }
 test_intent_has_max_length
 
-# Test 17: capture-user-intent has isImageOrBinaryPrompt
+# Test 17: capture-user-intent imports isImageOrBinaryPrompt from shared lib
 test_intent_has_image_detect() {
     if grep -q "isImageOrBinaryPrompt" "$PROJECT_ROOT/src/hooks/src/prompt/capture-user-intent.ts"; then
-        log_pass "capture-user-intent has isImageOrBinaryPrompt()"
+        log_pass "capture-user-intent uses isImageOrBinaryPrompt()"
     else
-        log_fail "capture-user-intent has isImageOrBinaryPrompt()" "Function not found"
+        log_fail "capture-user-intent uses isImageOrBinaryPrompt()" "Function not found"
     fi
 }
 test_intent_has_image_detect
 
-# Test 18: isImageOrBinaryPrompt checks data URI pattern
+# Test 18: shared lib defines isImageOrBinaryPrompt with data URI check
 test_image_detect_checks_data_uri() {
-    if grep -q 'data:image' "$PROJECT_ROOT/src/hooks/src/prompt/unified-dispatcher.ts"; then
+    if grep -q 'data:image' "$PROJECT_ROOT/src/hooks/src/lib/prompt-guards.ts"; then
         log_pass "isImageOrBinaryPrompt checks data:image/ URI"
     else
         log_fail "isImageOrBinaryPrompt checks data:image/ URI" "Pattern not found"
@@ -396,9 +396,9 @@ test_image_detect_checks_data_uri() {
 }
 test_image_detect_checks_data_uri
 
-# Test 19: isImageOrBinaryPrompt checks base64 blocks
+# Test 19: shared lib checks base64 blocks
 test_image_detect_checks_base64() {
-    if grep -q 'A-Za-z0-9+/=' "$PROJECT_ROOT/src/hooks/src/prompt/unified-dispatcher.ts"; then
+    if grep -q 'A-Za-z0-9+/=' "$PROJECT_ROOT/src/hooks/src/lib/prompt-guards.ts"; then
         log_pass "isImageOrBinaryPrompt checks base64 character blocks"
     else
         log_fail "isImageOrBinaryPrompt checks base64 character blocks" "Pattern not found"
@@ -406,9 +406,9 @@ test_image_detect_checks_base64() {
 }
 test_image_detect_checks_base64
 
-# Test 20: isImageOrBinaryPrompt checks non-printable ratio
+# Test 20: shared lib checks non-printable ratio
 test_image_detect_checks_nontext() {
-    if grep -q 'nonText' "$PROJECT_ROOT/src/hooks/src/prompt/unified-dispatcher.ts"; then
+    if grep -q 'nonText' "$PROJECT_ROOT/src/hooks/src/lib/prompt-guards.ts"; then
         log_pass "isImageOrBinaryPrompt checks non-text content ratio"
     else
         log_fail "isImageOrBinaryPrompt checks non-text content ratio" "Pattern not found"
@@ -424,7 +424,7 @@ echo ""
 echo -e "  ${CYAN}Performance: oversized prompt latency${NC}"
 echo ""
 
-# Test 21: Oversized prompt completes in under 2 seconds
+# Test 21: Oversized prompt completes in under 500ms
 test_oversized_prompt_latency() {
     local big_text
     big_text=$(generate_string 60000)
@@ -435,13 +435,156 @@ test_oversized_prompt_latency() {
     run_hook_with_input "prompt/unified-dispatcher" "$input" 5 >/dev/null
     end_ms=$(python3 -c "import time; print(int(time.time()*1000))")
     elapsed_ms=$((end_ms - start_ms))
-    if [[ "$elapsed_ms" -lt 2000 ]]; then
-        log_pass "oversized prompt completes in ${elapsed_ms}ms (< 2000ms)"
+    if [[ "$elapsed_ms" -lt 500 ]]; then
+        log_pass "oversized prompt completes in ${elapsed_ms}ms (< 500ms)"
     else
-        log_fail "oversized prompt completes in ${elapsed_ms}ms (< 2000ms)" "Took ${elapsed_ms}ms — guard may not be working"
+        log_fail "oversized prompt completes in ${elapsed_ms}ms (< 500ms)" "Took ${elapsed_ms}ms — guard may not be working"
     fi
 }
 test_oversized_prompt_latency
+
+# ============================================================================
+# Edge case tests (Issue #620 PR improvements)
+# ============================================================================
+
+echo ""
+echo -e "  ${CYAN}Edge Cases: additional boundary tests${NC}"
+echo ""
+
+# Test 22: Mixed base64+text should block (base64 block >1KB embedded in text)
+test_mixed_base64_text() {
+    local b64_block
+    b64_block=$(generate_base64_block 2000)
+    local mixed_prompt="implement auth with ${b64_block} using JWT"
+    local input
+    input=$(jq -n --arg p "$mixed_prompt" '{"prompt":$p,"tool_name":"","session_id":"test","tool_input":{}}')
+    local output
+    output=$(run_hook_with_input "prompt/unified-dispatcher" "$input")
+    if is_silent_success "$output"; then
+        log_pass "mixed base64+text (2KB base64 embedded) returns silent success"
+    else
+        log_fail "mixed base64+text (2KB base64 embedded) returns silent success" "Got: $output"
+    fi
+}
+test_mixed_base64_text
+
+# Test 23: Exactly 50,000 chars — boundary test (> not >=, should process)
+test_exact_boundary() {
+    local boundary_text
+    boundary_text=$(generate_string 50000)
+    local input
+    input=$(jq -n --arg p "$boundary_text" '{"prompt":$p,"tool_name":"","session_id":"test","tool_input":{}}')
+    local output
+    output=$(run_hook_with_input "prompt/unified-dispatcher" "$input" 10)
+    # Exactly 50K should NOT be blocked (guard is > not >=)
+    if [[ -n "$output" ]] && echo "$output" | jq -e '.continue' >/dev/null 2>&1; then
+        log_pass "exactly 50,000 chars processes normally (boundary: > not >=)"
+    else
+        log_fail "exactly 50,000 chars processes normally (boundary: > not >=)" "Got: $output"
+    fi
+}
+test_exact_boundary
+
+# Test 24: Unicode/emoji-heavy prompt should NOT trigger binary detection
+test_unicode_emoji() {
+    # Build a prompt with lots of 4-byte UTF-8 emoji — should be treated as text
+    local emoji_prompt
+    emoji_prompt=$(python3 -c "print('Check this out ' + '🎉🚀💡🔥✨' * 100 + ' and implement it')" 2>/dev/null || echo "")
+    if [[ -z "$emoji_prompt" ]]; then
+        log_pass "unicode/emoji prompt (skipped — python3 unavailable)"
+        return
+    fi
+    local input
+    input=$(jq -n --arg p "$emoji_prompt" '{"prompt":$p,"tool_name":"","session_id":"test","tool_input":{}}')
+    local output
+    output=$(run_hook_with_input "prompt/unified-dispatcher" "$input")
+    # Emoji is valid text — should NOT be blocked
+    if [[ -n "$output" ]] && echo "$output" | jq -e '.continue' >/dev/null 2>&1; then
+        log_pass "unicode/emoji-heavy prompt is not blocked"
+    else
+        log_fail "unicode/emoji-heavy prompt is not blocked" "Got: $output"
+    fi
+}
+test_unicode_emoji
+
+# Test 25: Malformed data URI (no slash) should NOT trigger data URI check
+test_malformed_data_uri() {
+    local b64_block
+    b64_block=$(generate_base64_block 200)
+    local malformed="data:imagepng;base64,${b64_block}"
+    local input
+    input=$(jq -n --arg p "$malformed" '{"prompt":$p,"tool_name":"","session_id":"test","tool_input":{}}')
+    local output
+    output=$(run_hook_with_input "prompt/unified-dispatcher" "$input")
+    # Malformed data URI (no slash) should NOT match ^data:image/
+    if [[ -n "$output" ]] && echo "$output" | jq -e '.continue' >/dev/null 2>&1; then
+        log_pass "malformed data URI (no slash) is not blocked by data URI check"
+    else
+        log_fail "malformed data URI (no slash) is not blocked by data URI check" "Got: $output"
+    fi
+}
+test_malformed_data_uri
+
+# Test 26: Base64 at position 5001+ is NOT detected (validates .slice(0,5000) boundary)
+test_base64_beyond_slice() {
+    local prefix
+    prefix=$(generate_string 5100 "x")
+    local b64_tail
+    b64_tail=$(generate_base64_block 2000)
+    local prompt_text="${prefix}${b64_tail}"
+    local input
+    input=$(jq -n --arg p "$prompt_text" '{"prompt":$p,"tool_name":"","session_id":"test","tool_input":{}}')
+    local output
+    output=$(run_hook_with_input "prompt/unified-dispatcher" "$input" 10)
+    # Base64 starts at position 5100, beyond the .slice(0, 5000) — should NOT be detected
+    if [[ -n "$output" ]] && echo "$output" | jq -e '.continue' >/dev/null 2>&1; then
+        log_pass "base64 beyond .slice(0,5000) boundary is not detected"
+    else
+        log_fail "base64 beyond .slice(0,5000) boundary is not detected" "Got: $output"
+    fi
+}
+test_base64_beyond_slice
+
+# ============================================================================
+# Shared lib verification
+# ============================================================================
+
+echo ""
+echo -e "  ${CYAN}Shared lib: prompt-guards.ts${NC}"
+echo ""
+
+# Test 27: prompt-guards.ts exists and exports both guard functions
+test_shared_lib_exists() {
+    local lib_path="$PROJECT_ROOT/src/hooks/src/lib/prompt-guards.ts"
+    if [[ -f "$lib_path" ]] && grep -q "export function isImageOrBinaryPrompt" "$lib_path" && grep -q "export const MAX_PROMPT_LENGTH" "$lib_path"; then
+        log_pass "prompt-guards.ts exports isImageOrBinaryPrompt + MAX_PROMPT_LENGTH"
+    else
+        log_fail "prompt-guards.ts exports isImageOrBinaryPrompt + MAX_PROMPT_LENGTH" "File or exports not found"
+    fi
+}
+test_shared_lib_exists
+
+# Test 28: unified-dispatcher imports from shared lib (no local definition)
+test_dispatcher_uses_shared_lib() {
+    local file="$PROJECT_ROOT/src/hooks/src/prompt/unified-dispatcher.ts"
+    if grep -q "from '../lib/prompt-guards" "$file" && ! grep -q "function isImageOrBinaryPrompt" "$file"; then
+        log_pass "unified-dispatcher imports from prompt-guards (no local dupe)"
+    else
+        log_fail "unified-dispatcher imports from prompt-guards (no local dupe)" "Still has local definition"
+    fi
+}
+test_dispatcher_uses_shared_lib
+
+# Test 29: capture-user-intent imports from shared lib (no local definition)
+test_intent_uses_shared_lib() {
+    local file="$PROJECT_ROOT/src/hooks/src/prompt/capture-user-intent.ts"
+    if grep -q "from '../lib/prompt-guards" "$file" && ! grep -q "function isImageOrBinaryPrompt" "$file"; then
+        log_pass "capture-user-intent imports from prompt-guards (no local dupe)"
+    else
+        log_fail "capture-user-intent imports from prompt-guards (no local dupe)" "Still has local definition"
+    fi
+}
+test_intent_uses_shared_lib
 
 # ============================================================================
 # SUMMARY

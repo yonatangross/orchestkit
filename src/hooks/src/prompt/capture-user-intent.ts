@@ -25,6 +25,7 @@ import {
   getSessionId,
   logHook,
 } from '../lib/common.js';
+import { isImageOrBinaryPrompt, MAX_PROMPT_LENGTH } from '../lib/prompt-guards.js';
 import {
   detectUserIntent,
   type UserIntent,
@@ -46,25 +47,6 @@ import { join, dirname, basename } from 'node:path';
 
 const HOOK_NAME = 'capture-user-intent';
 const MIN_PROMPT_LENGTH = 15; // Skip very short prompts
-/**
- * Maximum prompt length to process. Image pastes inject megabytes of base64
- * into the prompt field. detectUserIntent() runs 40+ regex patterns against
- * the full string — on megabytes this causes severe latency.
- */
-const MAX_PROMPT_LENGTH = 50_000;
-
-/**
- * Detect if prompt contains image/binary data (base64, data URIs, non-text).
- * Duplicated from unified-dispatcher — each hook runs in its own process.
- */
-function isImageOrBinaryPrompt(prompt: string): boolean {
-  if (/^data:image\//.test(prompt)) return true;
-  if (/[A-Za-z0-9+/=]{1024,}/.test(prompt.slice(0, 5000))) return true;
-  const sample = prompt.slice(0, 2000);
-  const nonText = sample.replace(/[\x20-\x7E\n\r\t]/g, '').length;
-  if (nonText / sample.length > 0.3) return true;
-  return false;
-}
 
 // =============================================================================
 // STORAGE TYPES

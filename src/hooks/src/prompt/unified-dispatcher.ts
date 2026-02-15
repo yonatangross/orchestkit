@@ -39,6 +39,7 @@ import {
   logHook,
   estimateTokenCount,
 } from '../lib/common.js';
+import { isImageOrBinaryPrompt, MAX_PROMPT_LENGTH } from '../lib/prompt-guards.js';
 
 // Import hook implementations
 import { satisfactionDetector } from './satisfaction-detector.js';
@@ -56,36 +57,6 @@ const HOOK_NAME = 'prompt-dispatcher';
 
 /** Maximum total tokens for consolidated output */
 const MAX_OUTPUT_TOKENS = 800;
-
-/**
- * Maximum prompt length to process (characters).
- * Image pastes can inject megabytes of base64 data into the prompt field.
- * Running toLowerCase() + includes() + regex on megabytes across 6 sub-hooks
- * causes severe latency and can effectively kill the context window.
- * Guard: skip all processing if prompt exceeds this threshold.
- */
-const MAX_PROMPT_LENGTH = 50_000;
-
-/**
- * Detect if prompt contains image/binary data.
- * CC may send base64-encoded images or data URIs in the prompt field
- * when users paste screenshots. These are useless for text analysis hooks
- * and extremely expensive to process with regex/string ops.
- */
-function isImageOrBinaryPrompt(prompt: string): boolean {
-  // Data URI for images (data:image/png;base64,...)
-  if (/^data:image\//.test(prompt)) return true;
-
-  // Long base64 block (>1KB of continuous base64 chars = likely binary)
-  if (/[A-Za-z0-9+/=]{1024,}/.test(prompt.slice(0, 5000))) return true;
-
-  // Prompt is mostly non-printable or non-ASCII
-  const sample = prompt.slice(0, 2000);
-  const nonText = sample.replace(/[\x20-\x7E\n\r\t]/g, '').length;
-  if (nonText / sample.length > 0.3) return true;
-
-  return false;
-}
 
 // -----------------------------------------------------------------------------
 // Types
