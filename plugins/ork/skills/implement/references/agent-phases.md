@@ -450,3 +450,62 @@ Task(
 ### Phase 6 — Teams Mode
 
 In Agent Teams mode, the code-reviewer has been reviewing continuously during Phase 5. Integration validation is lighter: the lead merges worktrees, runs integration tests, and collects the code-reviewer's final APPROVE/REJECT verdict. After Phase 6, the lead tears down the team (shutdown_request to all teammates + TeamDelete + worktree cleanup).
+
+---
+
+## Phase 7: Scope Creep Detection
+
+Launch `workflow-architect` to compare planned vs actual files/features. Score 0-10:
+
+| Score | Level | Action |
+|-------|-------|--------|
+| 0-2 | Minimal | Proceed to reflection |
+| 3-5 | Moderate | Document and justify unplanned changes |
+| 6-8 | Significant | Review with user, potentially split PR |
+| 9-10 | Major | Stop and reassess |
+
+See [Scope Creep Detection](scope-creep-detection.md) for the full agent prompt.
+
+---
+
+## Phase 8: E2E Verification
+
+If UI changes were made, verify with agent-browser:
+
+```bash
+agent-browser open http://localhost:5173
+agent-browser wait --load networkidle
+agent-browser snapshot -i
+agent-browser screenshot /tmp/feature.png
+agent-browser close
+```
+
+Skip this phase for backend-only or library implementations.
+
+---
+
+## Phase 9: Documentation
+
+Save implementation decisions to the knowledge graph for future reference:
+
+```python
+mcp__memory__create_entities(entities=[{
+  "name": "impl-{feature}-{date}",
+  "entityType": "ImplementationDecision",
+  "observations": ["chose X over Y because...", "pattern: ..."]
+}])
+```
+
+---
+
+## Phase 10: Post-Implementation Reflection
+
+Launch `workflow-architect` to evaluate:
+
+- What went well / what to improve
+- Estimation accuracy (actual vs planned time)
+- Reusable patterns to extract
+- Technical debt created
+- Knowledge gaps discovered
+
+Store lessons in memory for future implementations.
