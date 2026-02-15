@@ -7,9 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [6.0.11] - 2026-02-15
 
-### Fixed
+### Changed
 
-- TODO: Describe your changes here
+- Rewrote `mcp-patterns` SKILL.md for 2025-11-25 MCP spec + AAIF governance (#613)
+- Updated `_sections.md` with 7 categories (14 rules) and priority levels
+- Updated agent skill-indexes for ai-safety-auditor, llm-integrator, security-auditor
+- Regenerated docs site pages and generated data files
 
 ---
 
