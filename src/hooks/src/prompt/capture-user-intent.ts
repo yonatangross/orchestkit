@@ -46,6 +46,25 @@ import { join, dirname, basename } from 'node:path';
 
 const HOOK_NAME = 'capture-user-intent';
 const MIN_PROMPT_LENGTH = 15; // Skip very short prompts
+/**
+ * Maximum prompt length to process. Image pastes inject megabytes of base64
+ * into the prompt field. detectUserIntent() runs 40+ regex patterns against
+ * the full string — on megabytes this causes severe latency.
+ */
+const MAX_PROMPT_LENGTH = 50_000;
+
+/**
+ * Detect if prompt contains image/binary data (base64, data URIs, non-text).
+ * Duplicated from unified-dispatcher — each hook runs in its own process.
+ */
+function isImageOrBinaryPrompt(prompt: string): boolean {
+  if (/^data:image\//.test(prompt)) return true;
+  if (/[A-Za-z0-9+/=]{1024,}/.test(prompt.slice(0, 5000))) return true;
+  const sample = prompt.slice(0, 2000);
+  const nonText = sample.replace(/[\x20-\x7E\n\r\t]/g, '').length;
+  if (nonText / sample.length > 0.3) return true;
+  return false;
+}
 
 // =============================================================================
 // STORAGE TYPES
@@ -255,8 +274,18 @@ function storeDecisionsAndPreferences(
 export function captureUserIntent(input: HookInput): HookResult {
   const prompt = input.prompt;
 
-  // Skip if no prompt
+  // Skip if no prompt or too short
   if (!prompt || prompt.length < MIN_PROMPT_LENGTH) {
+    return outputSilentSuccess();
+  }
+
+  // Guard: skip oversized or binary prompts (image paste, base64 data)
+  if (prompt.length > MAX_PROMPT_LENGTH) {
+    logHook(HOOK_NAME, `Prompt too large (${prompt.length} chars), skipping — likely image/binary data`);
+    return outputSilentSuccess();
+  }
+  if (prompt.length > 500 && isImageOrBinaryPrompt(prompt)) {
+    logHook(HOOK_NAME, `Image/binary content detected (${prompt.length} chars), skipping intent capture`);
     return outputSilentSuccess();
   }
 
