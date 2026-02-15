@@ -11,6 +11,7 @@ Commands work without them - MCPs just add extra capabilities.
 | **sequential-thinking** | Structured reasoning | None | /brainstorm, /implement |
 | **memory** | Knowledge graph | Local file | Decisions, patterns, entities |
 | **tavily** | Web search, extract, crawl | Cloud (Tavily) | /explore, /implement, web-research agents |
+| **brightdata** | Anti-bot scraping, structured data | Cloud (BrightData) | web-research agents, /explore |
 
 > **Opus 4.6 Note:** Sequential-thinking MCP is optional when using Opus 4.6+, which has native adaptive thinking built-in. The MCP tool remains useful for non-Opus models.
 
@@ -46,6 +47,12 @@ Edit `.mcp.json` and set `"disabled": false` for selected MCPs:
       "command": "npx",
       "args": ["-y", "tavily-mcp@latest"],
       "env": { "TAVILY_API_KEY": "op://Private/Tavily API Key/API Key" },
+      "disabled": true
+    },
+    "brightdata": {
+      "command": "npx",
+      "args": ["-y", "@brightdata/mcp"],
+      "env": { "API_TOKEN": "op://Private/BrightData API Key/API Key" },
       "disabled": true
     }
   }
@@ -101,6 +108,38 @@ Tavily offers a hosted MCP server — no local process needed. Generate the URL 
 
 Agents fall back to WebFetch (Haiku-summarized) → agent-browser (full headless). Tavily fills the middle tier with raw markdown extraction and semantic search.
 
+## BrightData MCP
+
+When `API_TOKEN` is set and the BrightData MCP is enabled, agents gain anti-bot web scraping and structured data extraction.
+
+### Tools
+
+| Tool | Purpose | Free Tier |
+|------|---------|-----------|
+| `search_engine` | Web search via BrightData proxy network | 5,000 req/month |
+| `scrape_as_markdown` | Scrape any URL as clean markdown (anti-bot) | 5,000 req/month |
+| `scrape_as_markdown_batch` | Batch scrape multiple URLs | 5,000 req/month |
+| `search_engine_batch` | Batch web search | 5,000 req/month |
+
+Pro mode unlocks 60+ tools for ecommerce (Amazon, Walmart), social (LinkedIn, Instagram), and full browser automation.
+
+### Setup
+
+**Option A: Local MCP (npx)**
+1. Get a free API key (5,000 requests/month): https://brightdata.com/products/web-scraper/mcp
+2. Store in 1Password: `op item create --category "API Credential" --title "BrightData API Key" "API Key=..."`
+3. Reference in `.mcp.json`: `"API_TOKEN": "op://Private/BrightData API Key/API Key"`
+4. Set `"disabled": false` for the brightdata entry
+
+**Option B: Remote MCP (SSE)**
+```bash
+claude mcp add --transport sse brightdata "https://mcp.brightdata.com/sse?token=YOUR_TOKEN"
+```
+
+### Without BrightData
+
+Agents fall back to Tavily (if enabled) → WebFetch (Haiku-summarized). BrightData adds anti-bot scraping for sites that block standard HTTP clients.
+
 ## MCP Dependencies
 
 | MCP | Requirements |
@@ -109,6 +148,7 @@ Agents fall back to WebFetch (Haiku-summarized) → agent-browser (full headless
 | sequential-thinking | None |
 | memory | None (creates `.claude/memory/` automatically) |
 | tavily | `TAVILY_API_KEY` env var (free: https://app.tavily.com) |
+| brightdata | `API_TOKEN` env var (free: https://brightdata.com/products/web-scraper/mcp) |
 
 ## Plugin Integration
 
@@ -118,13 +158,14 @@ OrchestKit agents and skills integrate with these MCPs:
 |-----------|----------|---------|
 | /implement, /verify, /review-pr | context7 | Fetch current library docs |
 | web-research-analyst, market-intelligence | tavily | Web search and content extraction |
+| web-research-analyst | brightdata | Anti-bot scraping for blocked sites |
 | /remember, /memory | memory | Persist decisions across sessions |
 
 ## Without MCPs
 
 Commands still work - MCPs just enhance them:
 - `/implement` works, but without latest library docs (context7)
-- Web research works via WebFetch/WebSearch, but without raw markdown extraction (tavily)
+- Web research works via WebFetch/WebSearch, but without raw markdown extraction (tavily) or anti-bot scraping (brightdata)
 - Session continuity works via local files and knowledge graph
 
 ## Browser Automation
