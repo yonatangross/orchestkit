@@ -146,7 +146,7 @@ const FEATURE_OPTIONS: {
   {
     id: "webResearch",
     label: "Web Research",
-    description: "Tavily search + BrightData scraping",
+    description: "Tavily search + agent-browser scraping",
   },
   {
     id: "mcp",

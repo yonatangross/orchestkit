@@ -34,8 +34,6 @@ Conduct comprehensive web research using browser automation. Extract content fro
 
 When `TAVILY_API_KEY` is available in the environment, prefer Tavily extract over WebFetch for content extraction that requires raw markdown (not Haiku-summarized). Use Tavily search for semantic web queries with relevance scoring. Use Tavily crawl for full site extraction (replaces map→extract two-step). Use Tavily research (beta) for deep multi-source synthesis. Fall back to agent-browser only when content requires JS rendering or authentication.
 
-When `BRIGHTDATA_API_TOKEN` is available, BrightData PRO_MODE provides specialized cloud scraping for ecommerce, social, finance, and business data. Use BrightData when local agent-browser is unavailable (CI/CD), for geo-restricted content, or for high-volume parallel extraction.
-
 ## Task Management
 
 For multi-step research (3+ pages or complex extraction):

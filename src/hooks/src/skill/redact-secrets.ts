@@ -16,7 +16,6 @@ const API_KEY_PATTERNS = [
   /xox[baprs]-[a-zA-Z0-9-]+/, // Slack tokens
   /tvly-[a-zA-Z0-9-]{10,}/, // Tavily API key
   /m0-[a-zA-Z0-9]{10,}/, // Mem0 API key
-  /(?:BRIGHTDATA|Bearer|Authorization|api.key|token)\s*[:=]?\s*[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i, // UUID tokens in auth context (BrightData)
 ];
 
 // Generic secret patterns

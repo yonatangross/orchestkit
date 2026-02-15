@@ -43,9 +43,8 @@ No data is sent externally by default. The only optional external services are:
 
 - **Mem0 Cloud**: If you set `MEM0_API_KEY`, memory sync sends decisions to Mem0's API
 - **Tavily**: If you set `TAVILY_API_KEY`, web research skills use Tavily's search API
-- **BrightData**: If you set `BRIGHTDATA_API_TOKEN`, web scraping uses BrightData's MCP
 
-All three are opt-in via environment variables. Without them, OrchestKit operates entirely locally.
+Both are opt-in via environment variables. Without them, OrchestKit operates entirely locally.
 
 ---
 
@@ -154,7 +153,6 @@ By default, memory is project-scoped. Use `/ork:remember --global` to store patt
 | `CLAUDE_SESSION_ID` | Auto-set | Current session UUID |
 | `MEM0_API_KEY` | Optional | Enables Mem0 cloud memory (Tier 3) |
 | `TAVILY_API_KEY` | Optional | Enables Tavily search in web research skills |
-| `BRIGHTDATA_API_TOKEN` | Optional | Enables BrightData web scraping MCP |
 | `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` | Optional | Enables Agent Teams coordination mode |
 
 ---
