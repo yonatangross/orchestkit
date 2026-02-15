@@ -4,7 +4,7 @@ Essential context for Claude Code when working on OrchestKit.
 
 ## Project Overview
 
-**OrchestKit** — Claude Code plugin: **62 skills**, **36 agents**, **0 hooks** (63 global + 22 agent-scoped + 1 skill-scoped).
+**OrchestKit** — Claude Code plugin: **62 skills**, **36 agents**, **89 hooks** (66 global + 22 agent-scoped + 1 skill-scoped).
 
 **Purpose**: AI-assisted development with built-in best practices, security patterns, and quality gates.
 
@@ -51,11 +51,11 @@ cd src/hooks && npm run build    # Compile TypeScript hooks
 
 | Plugin | Skills | Agents | Description |
 |--------|--------|--------|-------------|
-| `orkl` | 44 | 36 | Universal toolkit — any stack |
+| `orkl` | 45 | 36 | Universal toolkit — any stack |
 | `ork-creative` | 3 | 1 | Video production add-on |
-| `ork` | 61 | 36 | Full — lite + creative + Python, React, LLM/RAG |
+| `ork` | 62 | 36 | Full — lite + creative + Python, React, LLM/RAG |
 
-All plugins include 0 hooks. 62 skills are user-invocable via `/ork:skillname`.
+All plugins include 89 hooks. 24 skills are user-invocable via `/ork:skillname`.
 
 ## Quick Reference
 
@@ -68,7 +68,7 @@ All plugins include 0 hooks. 62 skills are user-invocable via `/ork:skillname`.
 
 ## Version
 
-- **Current**: 6.0.6 · **Claude Code**: >= 2.1.34
-- **Hooks**: 86 entries (63 global + 22 agent-scoped + 1 skill-scoped, 11 bundles, 7 fire-and-forget dispatchers)
+- **Current**: 6.0.8 · **Claude Code**: >= 2.1.34
+- **Hooks**: 89 entries (66 global + 22 agent-scoped + 1 skill-scoped, 11 bundles, 7 fire-and-forget dispatchers)
 
 See `CHANGELOG.md` for history. See `src/hooks/README.md` for hook architecture.
