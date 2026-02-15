@@ -52,7 +52,7 @@ View and manage the OrchestKit feedback system that learns from your usage.
 | `privacy` | Display the full privacy policy |
 | `export-analytics` | Export anonymous analytics to file for review before sharing |
 
-See [Subcommand Reference](references/subcommand-reference.md) for detailed actions and expected output for each subcommand.
+**Output:** Each subcommand displays formatted status, confirmation prompts, or exported file paths. See [Subcommand Reference](references/subcommand-reference.md) for detailed actions and expected output for each subcommand.
 
 ## Consent and Security
 
