@@ -7,15 +7,15 @@ tags: transport, stdio, sse, streamable-http, claude-desktop, configuration
 
 ## Server Transport
 
-Choose stdio for CLI/Desktop, SSE for browsers, Streamable HTTP for production multi-client.
+Choose stdio for CLI/Desktop, Streamable HTTP for web apps and production multi-client. SSE is deprecated.
 
 **Transport decision matrix:**
 
 | Transport | Use Case | Pros | Cons |
 |-----------|----------|------|------|
 | stdio | CLI, Claude Desktop | Simple, no network | Single client only |
-| SSE | Web apps, browsers | Browser-compatible | HTTP overhead |
-| Streamable HTTP | Production APIs | Multi-client, scalable | More setup |
+| SSE | **Deprecated** | Browser-compatible | Deprecated since March 2025 |
+| Streamable HTTP | Web apps, production APIs | Multi-client, scalable, stateless option | More setup |
 
 **Incorrect -- hardcoded transport, no configuration:**
 ```python
@@ -60,7 +60,11 @@ const server = new Server(
 await server.connect(new StdioServerTransport());
 ```
 
-**Correct -- SSE for web deployment:**
+**Deprecated -- SSE for web deployment (use Streamable HTTP instead):**
+
+> SSE transport was deprecated in March 2025. Migrate to Streamable HTTP for
+> new projects. SSE remains functional but receives no new features.
+
 ```python
 from mcp.server.sse import SseServerTransport
 from starlette.applications import Starlette
@@ -83,6 +87,49 @@ app = Starlette(routes=[
 ])
 ```
 
+**Correct -- Streamable HTTP server (Python, recommended):**
+```python
+from mcp.server.mcpserver import MCPServer
+
+mcp = MCPServer("my-tools")
+
+@mcp.tool()
+def greet(name: str = "World") -> str:
+    """Greet someone by name."""
+    return f"Hello, {name}!"
+
+if __name__ == "__main__":
+    # Stateless with JSON responses -- best for production
+    mcp.run(transport="streamable-http", stateless_http=True, json_response=True)
+    # Stateful with session persistence (when needed):
+    # mcp.run(transport="streamable-http")
+```
+
+**Correct -- Streamable HTTP server (TypeScript, recommended):**
+```typescript
+import { createServer } from "node:http";
+import { NodeStreamableHTTPServerTransport } from "@modelcontextprotocol/node";
+import { McpServer } from "@modelcontextprotocol/server";
+
+const server = new McpServer({ name: "my-tools", version: "1.0.0" });
+
+// Register handlers...
+
+createServer(async (req, res) => {
+  const transport = new NodeStreamableHTTPServerTransport({
+    sessionIdGenerator: undefined, // stateless; use () => randomUUID() for sessions
+  });
+  await server.connect(transport);
+  await transport.handleRequest(req, res);
+}).listen(3000);
+```
+
+**Migrating SSE → Streamable HTTP:**
+- Python: Replace `SseServerTransport` with `MCPServer.run(transport="streamable-http")`
+- TypeScript: Replace `SSEServerTransport` with `NodeStreamableHTTPServerTransport`
+- Client endpoint changes from `/sse` + `/messages` to single `/mcp` path
+- Streamable HTTP supports both stateless (scalable) and stateful (session) modes
+
 **Claude Desktop configuration:**
 ```json
 {
@@ -102,7 +149,9 @@ app = Starlette(routes=[
 ```
 
 **Key rules:**
+- Use Streamable HTTP for all new web/production deployments (SSE is deprecated)
 - Use `uv` (not `pip`) for Python MCP server commands in Claude Desktop config
 - Set `cwd` when the server needs access to project files
 - Pass secrets via `env`, never hardcode in args
 - TypeScript servers: use `npx -y` for zero-install execution
+- Prefer stateless mode (`stateless_http=True`) unless session persistence is required
