@@ -1618,8 +1618,8 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "mcp-patterns": {
     "name": "mcp-patterns",
-    "description": "MCP server building, advanced patterns, and security hardening. Use when building MCP servers, implementing tool handlers, hardening MCP security, or debugging MCP integrations.",
-    "version": "2.0.0",
+    "description": "MCP server building, advanced patterns, and security hardening. Use when building MCP servers, implementing tool handlers, adding authentication, creating interactive UIs, hardening MCP security, or debugging MCP integrations.",
+    "version": "3.0.0",
     "author": "OrchestKit",
     "tags": [
       "mcp",
@@ -1627,7 +1627,11 @@ export const SKILLS: Record<string, SkillMeta> = {
       "tools",
       "resources",
       "security",
-      "prompt-injection"
+      "prompt-injection",
+      "oauth",
+      "elicitation",
+      "sampling",
+      "mcp-apps"
     ],
     "userInvocable": false,
     "context": "fork",
