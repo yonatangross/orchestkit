@@ -1,4 +1,4 @@
-# Tavily & BrightData: REST API vs MCP Research Report
+# Tavily REST API Research Report
 
 **Date:** 2026-02-06
 **Status:** Complete
@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-Both Tavily and BrightData expose **full REST APIs** that can be called via simple `curl` commands without any MCP server dependency. Both also offer Python SDKs and (in BrightData's case) a dedicated CLI tool. The MCP servers are convenience wrappers around these same REST endpoints. Skipping MCP is viable for scripted automation, hook integration, and environments where MCP server management is undesirable.
+Tavily exposes a **full REST API** that can be called via simple `curl` commands without any MCP server dependency. It also offers a Python SDK. The MCP server is a convenience wrapper around these same REST endpoints. Skipping MCP is viable for scripted automation, hook integration, and environments where MCP server management is undesirable.
 
 ---
 
@@ -139,7 +139,7 @@ curl -X POST https://api.tavily.com/research \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer tvly-YOUR_API_KEY" \
   -d '{
-    "input": "Compare Tavily and BrightData for AI agent web access",
+    "input": "Best practices for AI agent web access in 2026",
     "model": "pro",
     "citation_format": "numbered"
   }'
@@ -162,68 +162,7 @@ curl -X GET "https://api.tavily.com/research/REQUEST_ID" \
 
 ---
 
-## 2. BrightData REST API
-
-**Base URL:** `https://api.brightdata.com`
-**Auth:** `Authorization: Bearer YOUR_API_TOKEN`
-
-### 2.1 Web Unlocker (REST method)
-
-```bash
-curl -X POST https://api.brightdata.com/request \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_TOKEN" \
-  -d '{
-    "zone": "YOUR_WEB_UNLOCKER_ZONE",
-    "url": "https://example.com/pricing",
-    "format": "raw"
-  }'
-```
-
-**Key parameters:**
-| Parameter | Type | Notes |
-|-----------|------|-------|
-| `zone` | string | Your Web Unlocker zone name |
-| `url` | string | Target URL to scrape |
-| `format` | string | `raw` (direct HTML) or `json` |
-| `body` | string | Optional POST payload for target |
-
-### 2.2 Web Unlocker (Proxy method)
-
-```bash
-curl "https://example.com/pricing" \
-  --proxy brd.superproxy.io:33335 \
-  --proxy-user "brd-customer-CUSTOMER_ID-zone-ZONE_NAME:ZONE_PASSWORD"
-```
-
-### 2.3 SERP API
-
-```bash
-curl -X POST https://api.brightdata.com/request \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_TOKEN" \
-  -d '{
-    "zone": "YOUR_SERP_API_ZONE",
-    "url": "https://www.google.com/search?q=tavily+api&hl=en&gl=us",
-    "format": "raw"
-  }'
-```
-
-**Formats:**
-- `format: "raw"` -- Raw HTML
-- `data_format: "parsed_light"` -- Top 10 organic results only (JSON)
-- `data_format: "markdown"` -- AI-ready markdown output
-- Add `brd_json=1` to URL query params for full JSON SERP structure
-
-**Supported search engines:** Google, Bing, DuckDuckGo, Yandex, Baidu, Yahoo, Naver.
-
-### 2.4 Browser API / Scraping Browser
-
-The Browser API enables headless browser automation via their infrastructure. This typically requires the proxy-based integration method or their SDK rather than a simple REST call.
-
----
-
-## 3. Tavily CLI / SDK
+## 2. Tavily CLI / SDK
 
 ### Python SDK (recommended for scripted use)
 
@@ -289,65 +228,9 @@ pip install mcp-tavily
 
 ---
 
-## 4. BrightData CLI / SDK
-
-### Python SDK with CLI
-
-```bash
-pip install brightdata  # Includes CLI
-```
-
-**CLI commands:**
-```bash
-# Search
-brightdata search google "python tutorial" --location "United States"
-brightdata search linkedin jobs --keyword "python developer" --remote
-
-# Scrape
-brightdata scrape amazon products "https://amazon.com/dp/B123"
-brightdata scrape linkedin profiles "https://linkedin.com/in/johndoe"
-brightdata scrape generic "https://example.com" --output-format pretty
-
-# Output formats
-brightdata search google "AI news" --output-file results.json
-# Formats: json, pretty, minimal
-```
-
-### JavaScript SDK
-
-```bash
-npm install @brightdata/sdk
-```
-
-### Python SDK (programmatic)
-
-```python
-from brightdata import BrightDataClient
-import asyncio
-
-async def main():
-    async with BrightDataClient() as client:
-        # Generic scraping
-        result = await client.scrape_url("https://example.com")
-
-        # SERP
-        result = await client.search.google(query="AI tools", num_results=10)
-
-        # Platform-specific
-        result = await client.scrape.amazon.products(url="https://amazon.com/dp/B123")
-
-asyncio.run(main())
-```
-
-### MCP Server (optional)
-
-```bash
-npx @brightdata/mcp  # Requires API_TOKEN env var
-```
-
 ---
 
-## 5. Tradeoffs: MCP vs Direct REST API
+## 3. Tradeoffs: MCP vs Direct REST API
 
 ### What You LOSE by Skipping MCP
 
@@ -357,7 +240,7 @@ npx @brightdata/mcp  # Requires API_TOKEN env var
 | **Parameter validation** | MCP servers validate parameters via JSON Schema before sending. With REST, invalid params hit the API directly. | LOW |
 | **Streaming/bidirectional** | MCP uses persistent JSON-RPC connections. REST is stateless request/response. | LOW (for these use cases) |
 | **Context sharing** | MCP maintains state across multiple tool calls in a session. REST calls are independent. | LOW |
-| **Unified interface** | MCP provides one protocol for Tavily + BrightData + N other tools. REST requires per-service integration. | MEDIUM |
+| **Unified interface** | MCP provides one protocol for Tavily + N other tools. REST requires per-service integration. | MEDIUM |
 | **Auto-retry/error handling** | Some MCP servers handle retries and rate limiting. REST requires manual implementation. | LOW |
 | **Swappable providers** | MCP lets you swap Tavily for Exa without code changes. REST requires per-provider curl commands. | MEDIUM |
 
@@ -381,7 +264,7 @@ npx @brightdata/mcp  # Requires API_TOKEN env var
 | **Hook/script automation** | Direct REST (curl) | No MCP process needed, reliable in pre/post hooks |
 | **Agent-driven research** | MCP server | Tool discovery, context sharing across calls |
 | **CI/CD pipeline** | Direct REST (curl) | Deterministic, no server management |
-| **One-off CLI usage** | BrightData CLI / Tavily Python | Convenient, fast |
+| **One-off CLI usage** | Tavily Python SDK | Convenient, fast |
 | **Multi-provider orchestration** | MCP | Swap providers without code changes |
 | **Minimal dependency setup** | Direct REST (curl) | Just needs curl + API key |
 | **Claude Code integration** | MCP (already supported) | Native tool calling |
@@ -411,27 +294,7 @@ tavily_search() {
 tavily_search "React 19 server components best practices"
 ```
 
-### Pattern B: BrightData scrape via curl (hook-friendly)
-
-```bash
-brightdata_scrape() {
-  local url="$1"
-  local zone="${BRIGHTDATA_ZONE:-web_unlocker1}"
-  curl -s -X POST https://api.brightdata.com/request \
-    -H "Content-Type: application/json" \
-    -H "Authorization: Bearer $BRIGHTDATA_API_TOKEN" \
-    -d "{
-      \"zone\": \"$zone\",
-      \"url\": \"$url\",
-      \"format\": \"raw\"
-    }"
-}
-
-# Usage
-brightdata_scrape "https://competitor.com/pricing"
-```
-
-### Pattern C: Tavily Map + Extract pipeline (discover then scrape)
+### Pattern B: Tavily Map + Extract pipeline (discover then scrape)
 
 ```bash
 # Step 1: Discover all pages
@@ -449,26 +312,9 @@ curl -s -X POST https://api.tavily.com/extract \
   | jq '.results[] | {url, raw_content}'
 ```
 
-### Pattern D: BrightData SERP with parsed output
-
-```bash
-# Get structured Google results as JSON
-curl -s -X POST https://api.brightdata.com/request \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $BRIGHTDATA_API_TOKEN" \
-  -d '{
-    "zone": "serp_api1",
-    "url": "https://www.google.com/search?q=tavily+api+review&hl=en&gl=us&brd_json=1",
-    "format": "raw",
-    "data_format": "parsed_light"
-  }' | jq '.organic[:5] | .[] | {title, url, description}'
-```
-
 ---
 
-## 7. Cost Comparison
-
-### Tavily Pricing (as of Feb 2026)
+## 5. Cost — Tavily Pricing (as of Feb 2026)
 
 | Tier | Credits/Month | Cost |
 |------|--------------|------|
@@ -485,26 +331,3 @@ Credit costs per endpoint:
 - Crawl: 1-2 credits per 5 pages
 - Research: Variable (uses multiple search+extract calls)
 
-### BrightData Pricing
-
-Pay-as-you-go per request. Pricing varies by product zone (Web Unlocker, SERP API, Browser API). Typically $0.001-$0.01 per request depending on complexity and target site.
-
----
-
-## 8. Summary Table
-
-| Feature | Tavily | BrightData |
-|---------|--------|------------|
-| **REST API** | Yes, all 5 endpoints | Yes, unified `/request` endpoint |
-| **Auth method** | Bearer token | Bearer token or proxy credentials |
-| **Python SDK** | `pip install tavily-python` | `pip install brightdata` |
-| **JS/TS SDK** | `npm install @tavily/core` | `npm install @brightdata/sdk` |
-| **Dedicated CLI** | No (use Python SDK) | Yes (`brightdata` command) |
-| **MCP Server** | `tavily-mcp` (npm/pip) | `@brightdata/mcp` (npm) |
-| **Search** | Semantic AI search | SERP scraping (Google, Bing, etc.) |
-| **Extract** | AI-optimized content extraction | Raw HTML / proxy-based |
-| **Crawl** | Graph-based parallel traversal | Via Browser API |
-| **Anti-bot bypass** | Built-in | Core strength (CAPTCHA, proxies) |
-| **Output formats** | Markdown, text, JSON | Raw HTML, JSON, markdown |
-| **Free tier** | 1,000 credits/mo | No (pay-as-you-go) |
-| **Best for** | AI agent web access, RAG | Heavy scraping, anti-bot bypass |
