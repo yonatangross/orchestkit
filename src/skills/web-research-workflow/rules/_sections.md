@@ -1,6 +1,6 @@
 ---
 title: Web Research Workflow Rule Categories
-version: 2.0.0
+version: 3.0.0
 ---
 
 # Rule Categories
@@ -9,14 +9,13 @@ version: 2.0.0
 
 Unified decision tree for web research tool selection: WebFetch, Tavily, agent-browser.
 
-- Quick Decision Tree in SKILL.md — Auto-fallback escalation path
-- Tavily Search/Extract/Map/Crawl/Research patterns in SKILL.md
+- `tool-selection.md` — When-to-use-what tables, escalation heuristics, SPA detection, cost awareness, graceful degradation
 
 ## 2. Browser Patterns (browser) — MEDIUM — 4 patterns
 
-SPA detection, authentication flows, and multi-page research.
+SPA detection, authentication flows, multi-page research, best practices, and troubleshooting.
 
-- Pattern 1-4 in SKILL.md — Auto-fallback, SPA detection, auth flow, multi-page research
+- `browser-patterns.md` — Auto-fallback, auth flow, multi-page research, waits, rate limits, troubleshooting
 
 ## 3. Competitive Monitoring (monitoring) — HIGH — 2 rules
 
@@ -24,3 +23,7 @@ Track competitor page changes with snapshot capture, diff detection, and change 
 
 - `monitoring-competitor.md` — Snapshot capture, structured data extraction, change classification, alerting
 - `monitoring-change-detection.md` — Diff detection, structured comparison, site discovery, automated workflows
+
+## References
+
+- `references/tavily-api.md` — Tavily Search, Extract, Map, Crawl, Research endpoint examples and options

@@ -1110,6 +1110,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "references": [
         "code-health-rubric.md",
         "dependency-analysis.md",
+        "exploration-report-template.md",
         "findability-patterns.md"
       ],
       "assets": [
@@ -1154,7 +1155,8 @@ export const SKILLS: Record<string, SkillMeta> = {
     "structure": {
       "references": [
         "file-locations.md",
-        "privacy-policy.md"
+        "privacy-policy.md",
+        "subcommand-reference.md"
       ]
     },
     "plugins": [
@@ -2498,7 +2500,11 @@ export const SKILLS: Record<string, SkillMeta> = {
     "agent": null,
     "structure": {
       "references": [
-        "review-template.md"
+        "orchestration-mode-selection.md",
+        "review-report-template.md",
+        "review-template.md",
+        "task-metrics-template.md",
+        "validation-commands.md"
       ]
     },
     "plugins": [
@@ -2894,7 +2900,13 @@ export const SKILLS: Record<string, SkillMeta> = {
       "memory"
     ],
     "agent": null,
-    "structure": {},
+    "structure": {
+      "references": [
+        "output-format.md",
+        "recommendation-format.md",
+        "scoring-rubric.md"
+      ]
+    },
     "plugins": [
       "ork",
       "orkl"
@@ -3033,7 +3045,11 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": "web-research-analyst",
-    "structure": {},
+    "structure": {
+      "references": [
+        "tavily-api.md"
+      ]
+    },
     "plugins": [
       "ork",
       "orkl"

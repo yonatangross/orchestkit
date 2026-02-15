@@ -1,0 +1,29 @@
+---
+title: AI Code Review Agent
+impact: MEDIUM
+impactDescription: "Optional 7th reviewer agent for AI/ML code covering prompt injection and token limits"
+tags: ai-review, code-review, agent
+---
+
+# AI Code Review Agent (Optional)
+
+If PR includes AI/ML code, add a 7th agent:
+
+```python
+Task(
+  description="Review LLM integration",
+  subagent_type="llm-integrator",
+  prompt="""LLM CODE REVIEW for PR $ARGUMENTS
+
+  Review AI/LLM integration:
+  1. Prompt injection prevention
+  2. Token limit handling
+  3. Caching strategy
+  4. Error handling and fallbacks
+
+  SUMMARY: End with: "RESULT: [PASS|WARN|FAIL] - [N] LLM issues: [key concern]"
+  """,
+  run_in_background=True,
+  max_turns=25
+)
+```

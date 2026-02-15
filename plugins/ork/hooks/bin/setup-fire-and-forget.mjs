@@ -43,6 +43,7 @@ async function main() {
   const child = spawn('node', [workerPath, workFile], {
     detached: true,
     stdio: 'ignore',
+    windowsHide: true,
     env: process.env
   });
   child.unref();
