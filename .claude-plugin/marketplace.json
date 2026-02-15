@@ -14,7 +14,7 @@
   "plugins": [
     {
       "name": "orkl",
-      "description": "Complete AI development toolkit with 62 skills covering AI/LLM, backend, frontend, security, and testing patterns. Includes 36 specialized agents, 0 commands, and 0 lifecycle hooks.",
+      "description": "Universal AI development toolkit with 45 skills covering AI/LLM, backend, frontend, security, and testing patterns. Includes 36 specialized agents and 89 hooks.",
       "version": "6.0.11",
       "author": {
         "name": "Yonatan Gross",
