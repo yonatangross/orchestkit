@@ -108,6 +108,7 @@ function spawnBackground(parsedInput) {
   const child = spawn('node', [backgroundScript, hookName, inputBase64], {
     detached: true,
     stdio: 'ignore',
+    windowsHide: true,
     env: {
       ...process.env,
       // Pass through important env vars

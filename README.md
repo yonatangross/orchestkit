@@ -5,7 +5,7 @@
 
 ### Stop explaining your stack. Start shipping.
 
-**62 skills · 36 agents · 0 hooks · 3 plugins**
+**62 skills · 36 agents · 89 hooks · 3 plugins**
 
 [![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.34-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
@@ -55,7 +55,7 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 |-----------|-------|----------|
 | **Skills** | 62 | RAG patterns, FastAPI, React 19, testing, security |
 | **Agents** | 36 | backend-architect, frontend-dev, security-auditor |
-| **Hooks** | 86 | Pre-commit checks, git protection, quality gates |
+| **Hooks** | 89 | Pre-commit checks, git protection, quality gates |
 | **Plugins** | 3 | `orkl` (universal), `ork-creative` (video), `ork` (full) |
 
 **[Browse everything in the Docs →](https://orchestkit.vercel.app/docs/skills/overview)**
@@ -160,7 +160,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - `orkl` (62 skills) — Universal toolkit, all workflows work out of the box
 - `ork-creative` (62 skills) — Video production add-on for demo recording and content creation
 - `ork` (62 skills) — Full specialized with Python, React, LLM/RAG patterns
-- All 36 agents and 0 hooks included in orkl and ork
+- All 36 agents and 89 hooks included in orkl and ork
 
 [Full Changelog →](./CHANGELOG.md)
 

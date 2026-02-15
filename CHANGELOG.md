@@ -5,6 +5,21 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.0.9] - 2026-02-15
+
+### Fixed
+
+- Sync all component counts across docs, README, CLAUDE.md, marketplace.json, and tests
+- Hook count 86→89 (3 new hooks from issue-driven git workflow)
+- Plugin skill counts: orkl 44→45, ork 61→62
+- Version reference 6.0.6→6.0.9 in CLAUDE.md
+- Fix "0 hooks" in README and CLAUDE.md hero line
+- Update docs-data.test.ts hardcoded assertions to match current counts
+- Close milestones #56 (Documentation Site) and #68 (Issue-Driven Git)
+
+---
+
+
 ## [6.0.8] - 2026-02-15
 
 ### Fixed
