@@ -1505,6 +1505,34 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": []
   },
+  "issue-progress-tracking": {
+    "name": "issue-progress-tracking",
+    "description": "Auto-updates GitHub issues with commit progress. Use when starting work on an issue, tracking progress during implementation, or completing work with a PR.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "git",
+      "github",
+      "issues",
+      "tracking",
+      "workflow"
+    ],
+    "userInvocable": true,
+    "context": "inherit",
+    "allowedTools": [
+      "Bash"
+    ],
+    "skills": [],
+    "agent": null,
+    "structure": {},
+    "plugins": [
+      "ork",
+      "orkl"
+    ],
+    "relatedAgents": [
+      "git-operations-engineer"
+    ]
+  },
   "langgraph": {
     "name": "langgraph",
     "description": "LangGraph workflow patterns for state management, routing, parallel execution, supervisor-worker, tool calling, checkpointing, human-in-loop, streaming, subgraphs, and functional API. Use when building LangGraph pipelines, multi-agent systems, or AI workflows.",

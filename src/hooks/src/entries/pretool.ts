@@ -29,6 +29,8 @@ import { ghIssueCreationGuide } from '../pretool/bash/gh-issue-creation-guide.js
 import { issueDocsRequirement } from '../pretool/bash/issue-docs-requirement.js';
 import { multiInstanceQualityGate } from '../pretool/bash/multi-instance-quality-gate.js';
 import { agentBrowserSafety } from '../pretool/bash/agent-browser-safety.js';
+import { commitAtomicityChecker } from '../pretool/bash/commit-atomicity-checker.js';
+import { issueReferenceChecker } from '../pretool/bash/issue-reference-checker.js';
 
 // PreTool/Write-Edit hooks (1)
 import { fileGuard } from '../pretool/write-edit/file-guard.js';
@@ -84,6 +86,8 @@ export const hooks: Record<string, HookFn> = {
   'pretool/bash/issue-docs-requirement': issueDocsRequirement,
   'pretool/bash/multi-instance-quality-gate': multiInstanceQualityGate,
   'pretool/bash/agent-browser-safety': agentBrowserSafety,
+  'pretool/bash/commit-atomicity-checker': commitAtomicityChecker,
+  'pretool/bash/issue-reference-checker': issueReferenceChecker,
 
   // PreTool/Write-Edit hooks (1)
   'pretool/write-edit/file-guard': fileGuard,

@@ -233,14 +233,20 @@ TaskUpdate(taskId="2", status="completed")    # When done
 
 ## Phase 1: Discovery & Planning
 
-### 1a. Create Task List
+### 1a. Issue Tracking (if working on a GitHub issue)
+
+Run the **Start Work ceremony** from `issue-progress-tracking`: move issue to in-progress, comment on issue, ensure branch is named `issue/N-description`.
+
+For long implementations, post progress comments via `gh issue comment` after completing major phases.
+
+### 1b. Create Task List
 
 Break into small, deliverable, testable tasks:
 - Each task completable in one focused session
 - Each task MUST include its tests
 - Group by domain (frontend, backend, AI, shared)
 
-### 1b. Research Current Best Practices
+### 1c. Research Current Best Practices
 
 ```python
 # PARALLEL - Web searches (launch all in ONE message)
@@ -249,7 +255,7 @@ WebSearch("FastAPI async patterns 2026")
 WebSearch("TypeScript 5.x strict mode 2026")
 ```
 
-### 1c. Context7 Documentation
+### 1d. Context7 Documentation
 
 ```python
 # PARALLEL - Library docs (launch all in ONE message)
@@ -436,6 +442,7 @@ TaskUpdate(taskId=task_id, status="completed")
 - explore: Explore codebase before implementing
 - verify: Verify implementations work correctly
 - worktree-coordination: Git worktree management patterns
+- issue-progress-tracking: Auto-updates GitHub issues with commit progress
 
 ## References
 
