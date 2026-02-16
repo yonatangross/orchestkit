@@ -4,7 +4,7 @@
   "testCases": [
     {
       "id": "feature-pr",
-      "rule": "create-pr",
+      "rule": null,
       "query": "Create a PR for my feature branch",
       "expectedBehavior": [
         "Runs pre-flight checks (branch protection, uncommitted changes)",
@@ -15,7 +15,7 @@
     },
     {
       "id": "draft-pr",
-      "rule": "create-pr",
+      "rule": null,
       "query": "Create a quick draft PR without validation",
       "expectedBehavior": [
         "Skips parallel validation agents",
@@ -26,7 +26,7 @@
     },
     {
       "id": "stacked-pr",
-      "rule": "create-pr",
+      "rule": null,
       "query": "Create a PR that depends on PR #50",
       "expectedBehavior": [
         "Sets base branch to the dependency PR branch",
@@ -37,7 +37,7 @@
     },
     {
       "id": "should-not-trigger-review",
-      "rule": "create-pr",
+      "rule": null,
       "query": "Review the open PR on my branch",
       "expectedBehavior": [
         "Does NOT trigger create-pr workflow",

@@ -38,7 +38,7 @@
     },
     {
       "id": "should-not-trigger-feature",
-      "rule": "fix-issue",
+      "rule": null,
       "query": "Add a new dashboard widget for analytics",
       "expectedBehavior": [
         "Does NOT trigger fix-issue workflow",
