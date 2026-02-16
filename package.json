@@ -10,6 +10,7 @@
     "test": "bash tests/run-all-tests.sh",
     "test:security": "bash tests/security/run-security-tests.sh",
     "test:skills": "bash tests/skills/structure/test-skill-md.sh && bash tests/skills/structure/test-rule-validation.sh",
+    "test:skills:functional": "bash tests/skills/functional/test-rule-traceability.sh && bash tests/skills/functional/test-eval-completeness.sh",
     "test:agents": "bash tests/agents/test-agent-frontmatter.sh",
     "test:manifests": "bash tests/manifests/test-skill-uniqueness.sh && bash tests/manifests/test-manifest-dependencies.sh && bash tests/manifests/test-marketplace-ordering.sh && bash tests/manifests/test-plugin-orphan-skills.sh",
     "test:manifests:uniqueness": "bash tests/manifests/test-skill-uniqueness.sh",
