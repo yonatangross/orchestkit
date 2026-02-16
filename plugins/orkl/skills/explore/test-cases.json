@@ -4,7 +4,7 @@
   "testCases": [
     {
       "id": "full-exploration",
-      "rule": "explore",
+      "rule": "exploration-agents",
       "query": "Explore the authentication system in this codebase",
       "expectedBehavior": [
         "Launches 4 parallel exploration agents (structure, data flow, backend, frontend)",
@@ -15,7 +15,7 @@
     },
     {
       "id": "quick-search",
-      "rule": "explore",
+      "rule": "exploration-agents",
       "query": "Just find the files related to payment processing",
       "expectedBehavior": [
         "Skips deep agent analysis",
@@ -26,7 +26,7 @@
     },
     {
       "id": "data-flow-trace",
-      "rule": "explore",
+      "rule": "exploration-agents",
       "query": "Trace how user data flows from the API to the database",
       "expectedBehavior": [
         "Focuses data flow explorer agent on tracing entry points",
@@ -37,7 +37,7 @@
     },
     {
       "id": "architecture-patterns",
-      "rule": "explore",
+      "rule": "exploration-agents",
       "query": "What design patterns does the backend use?",
       "expectedBehavior": [
         "Focuses backend-system-architect agent on pattern analysis",

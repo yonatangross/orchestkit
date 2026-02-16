@@ -4,7 +4,7 @@
   "testCases": [
     {
       "id": "full-review",
-      "rule": "review-pr",
+      "rule": "agent-prompts-task-tool",
       "query": "Review PR #42 thoroughly",
       "expectedBehavior": [
         "Launches 6 parallel specialized review agents",
@@ -15,7 +15,7 @@
     },
     {
       "id": "security-focus",
-      "rule": "review-pr",
+      "rule": "agent-prompts-task-tool",
       "query": "Review PR #99 with focus on security vulnerabilities",
       "expectedBehavior": [
         "Prioritizes security-auditor agent",
@@ -26,7 +26,7 @@
     },
     {
       "id": "quick-review",
-      "rule": "review-pr",
+      "rule": "agent-prompts-task-tool",
       "query": "Give me a quick review of PR #15",
       "expectedBehavior": [
         "Uses single code-quality-reviewer agent only",
@@ -37,7 +37,7 @@
     },
     {
       "id": "ai-code-review",
-      "rule": "review-pr",
+      "rule": "ai-code-review-agent",
       "query": "Review PR #77 that adds LLM integration code",
       "expectedBehavior": [
         "Adds 7th agent: llm-integrator for AI code review",
@@ -48,7 +48,7 @@
     },
     {
       "id": "type-safety-review",
-      "rule": "review-pr",
+      "rule": "agent-prompts-task-tool",
       "query": "Review type safety in PR #33",
       "expectedBehavior": [
         "Checks TypeScript strict mode compliance",

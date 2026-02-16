@@ -4,7 +4,7 @@
   "testCases": [
     {
       "id": "new-feature",
-      "rule": "implement",
+      "rule": null,
       "query": "Implement user authentication with OAuth2",
       "expectedBehavior": [
         "Detects project tier via auto-detection signals",
@@ -16,7 +16,7 @@
     },
     {
       "id": "interview-mode",
-      "rule": "implement",
+      "rule": null,
       "query": "Implement a REST API for a take-home assignment",
       "expectedBehavior": [
         "Detects Tier 1 (Interview) from README signals",
@@ -27,7 +27,7 @@
     },
     {
       "id": "multi-agent-implementation",
-      "rule": "implement",
+      "rule": null,
       "query": "Implement real-time notifications with WebSocket support",
       "expectedBehavior": [
         "Launches parallel implementation agents for backend and frontend",
@@ -38,7 +38,7 @@
     },
     {
       "id": "scope-creep-detection",
-      "rule": "implement",
+      "rule": null,
       "query": "Implement a simple login form but also refactor the auth module",
       "expectedBehavior": [
         "Detects scope creep between original request and implementation",
@@ -49,7 +49,7 @@
     },
     {
       "id": "existing-pattern-reuse",
-      "rule": "implement",
+      "rule": null,
       "query": "Implement a new API endpoint following existing patterns",
       "expectedBehavior": [
         "Clarifies constraints via AskUserQuestion",

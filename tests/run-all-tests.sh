@@ -287,6 +287,11 @@ if [[ "$RUN_SKILLS" == "true" ]]; then
         run_test "Agent Definitions" "$SCRIPT_DIR/subagents/definition/test-agent-definitions.sh" || true
     fi
 
+    # Functional tests (rule traceability, eval completeness, efficiency scorecard)
+    run_test "Rule Traceability" "$SCRIPT_DIR/skills/functional/test-rule-traceability.sh" || true
+    run_test "Eval Completeness" "$SCRIPT_DIR/skills/functional/test-eval-completeness.sh" || true
+    run_test "Skill Efficiency Scorecard" "$SCRIPT_DIR/skills/functional/skill-efficiency-scorecard.sh" "true" || true
+
     # Plugin structure validation (CC 2.1.16 compliance)
     run_test "Plugin JSON Schema" "$SCRIPT_DIR/plugins/test-plugin-json-schema.sh" || true
     run_test "No Commands Directory" "$SCRIPT_DIR/plugins/test-no-commands-directory.sh" || true

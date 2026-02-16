@@ -5,6 +5,22 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.0.15] - 2026-02-16
+
+### Added
+
+- Rule traceability test: validates test case → rule file → content chain across 28 skills
+- Eval completeness test: validates consistency between test-cases.json and .eval.json formats
+- Skill efficiency scorecard: JSON metrics (rule count, imperative instructions, code examples, specificity ratio) for all 62 skills
+- `npm run test:skills:functional` script for running functional tests
+
+### Fixed
+
+- Corrected rule field mappings in 8 test-cases.json files (39 broken references → actual rule filenames or null)
+
+---
+
+
 ## [6.0.14] - 2026-02-16
 
 ### Fixed

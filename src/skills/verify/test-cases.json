@@ -4,7 +4,7 @@
   "testCases": [
     {
       "id": "full-verification",
-      "rule": "verify",
+      "rule": null,
       "query": "Verify the authentication flow implementation",
       "expectedBehavior": [
         "Dispatches 5 parallel verification agents",
@@ -15,7 +15,7 @@
     },
     {
       "id": "tests-only",
-      "rule": "verify",
+      "rule": null,
       "query": "Just run the tests for the user profile feature",
       "expectedBehavior": [
         "Runs backend and frontend test suites in parallel",
@@ -26,7 +26,7 @@
     },
     {
       "id": "security-audit",
-      "rule": "verify",
+      "rule": null,
       "query": "Run a security audit on the payment module",
       "expectedBehavior": [
         "Focuses on security-auditor agent",
@@ -37,7 +37,7 @@
     },
     {
       "id": "quick-check",
-      "rule": "verify",
+      "rule": null,
       "query": "Quick check if my changes are ready to merge",
       "expectedBehavior": [
         "Runs tests only without detailed analysis",
