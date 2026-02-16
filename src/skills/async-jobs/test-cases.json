@@ -15,7 +15,7 @@
     },
     {
       "id": "task-routing",
-      "rule": "jobs-task-queue",
+      "rule": null,
       "query": "Route tasks to priority queues based on user tier",
       "expectedBehavior": [
         "Defines critical/high/default/low queues with kombu",
@@ -59,7 +59,7 @@
     },
     {
       "id": "monitoring-health",
-      "rule": "jobs-monitoring",
+      "rule": null,
       "query": "Add monitoring and health checks to Celery workers",
       "expectedBehavior": [
         "Connects to celery signals for task_prerun and task_failure",

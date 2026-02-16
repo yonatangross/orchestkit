@@ -7,9 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [6.0.15] - 2026-02-16
 
+### Added
+
+- Rule traceability test: validates test case → rule file → content chain across 28 skills
+- Eval completeness test: validates consistency between test-cases.json and .eval.json formats
+- Skill efficiency scorecard: JSON metrics (rule count, imperative instructions, code examples, specificity ratio) for all 62 skills
+- `npm run test:skills:functional` script for running functional tests
+
 ### Fixed
 
-- TODO: Describe your changes here
+- Corrected rule field mappings in 8 test-cases.json files (39 broken references → actual rule filenames or null)
 
 ---
 

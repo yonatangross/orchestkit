@@ -4,7 +4,7 @@
   "testCases": [
     {
       "id": "playwright-setup",
-      "rule": "browser-snapshot-workflow",
+      "rule": null,
       "query": "Set up agent-browser for headless browser automation",
       "expectedBehavior": [
         "Installs agent-browser globally via npm",
@@ -37,7 +37,7 @@
     },
     {
       "id": "spa-extraction",
-      "rule": "browser-snapshot-workflow",
+      "rule": null,
       "query": "Extract content from a React SPA that WebFetch returns empty for",
       "expectedBehavior": [
         "Uses wait --load networkidle for SPA hydration",
@@ -48,7 +48,7 @@
     },
     {
       "id": "scraping-strategies",
-      "rule": "browser-scraping-ethics",
+      "rule": null,
       "query": "Crawl an entire documentation site with pagination",
       "expectedBehavior": [
         "Extracts navigation links first, then visits each",
@@ -59,7 +59,7 @@
     },
     {
       "id": "anti-bot-handling",
-      "rule": "browser-rate-limiting",
+      "rule": null,
       "query": "Scrape a site that blocks automated requests",
       "expectedBehavior": [
         "Checks robots.txt before crawling",
@@ -81,7 +81,7 @@
     },
     {
       "id": "structured-output",
-      "rule": "browser-snapshot-workflow",
+      "rule": null,
       "query": "Convert scraped web pages to clean markdown with metadata",
       "expectedBehavior": [
         "Removes noise elements before extraction",

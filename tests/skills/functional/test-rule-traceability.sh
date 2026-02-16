@@ -186,8 +186,6 @@ for tc_file in "$SKILLS_DIR"/*/test-cases.json; do
         score=$((skill_traced * 100 / skill_total))
         if [[ $score -eq 100 ]]; then
             pass "$skill_name: ${skill_traced}/${skill_total} behaviors traced (${score}%)"
-        elif [[ $score -ge 80 ]]; then
-            warn "$skill_name: ${skill_traced}/${skill_total} behaviors traced (${score}%)"
         else
             warn "$skill_name: ${skill_traced}/${skill_total} behaviors traced (${score}%)"
         fi
