@@ -289,10 +289,20 @@ Task(
 
   Feature: $ARGUMENTS
 
+  IMPORTANT: Match test types to change type using the Test Requirements Matrix:
+  - API endpoint → Unit + Integration + Contract (rules: integration-api, verification-contract, mocking-msw)
+  - DB schema    → Migration + Integration (rules: integration-database, data-seeding-cleanup)
+  - UI component → Unit + Snapshot + A11y (rules: unit-aaa-pattern, integration-component, a11y-jest-axe)
+  - Business logic → Unit + Property-based (rules: unit-aaa-pattern, pytest-markers, verification-property)
+  - LLM/AI      → Unit + Eval (rules: llm-deepeval, llm-mocking, llm-structured)
+  - Full-stack   → All of the above
+
+  Follow the testing-patterns skill rules for each test type.
+
   Generate ALL tests in ONE response:
 
   1. UNIT TESTS
-     - Python: pytest with factories (not raw dicts)
+     - Python: pytest with factories (not raw dicts), AAA pattern
      - TypeScript: Vitest with meaningful assertions
      - Cover edge cases: empty input, errors, timeouts, rate limits
 
@@ -300,13 +310,18 @@ Task(
      - API endpoint tests with TestClient
      - Database tests with fixtures
      - VCR.py cassettes for external HTTP calls
+     - If docker-compose/testcontainers detected: test against REAL services
 
-  3. FIXTURES & FACTORIES
+  3. CONTRACT / PROPERTY TESTS (if applicable)
+     - Contract tests for API boundaries (verification-contract)
+     - Property-based tests for business logic (verification-property)
+
+  4. FIXTURES & FACTORIES
      - conftest.py with shared fixtures
      - Factory classes for test data
      - MSW handlers for frontend API mocking
 
-  4. COVERAGE ANALYSIS
+  5. COVERAGE ANALYSIS
      - Run: poetry run pytest --cov=app --cov-report=term-missing
      - Run: npm test -- --coverage
      - Target: 80% minimum
@@ -347,7 +362,21 @@ In Agent Teams mode, the same 4 teammates from Phase 4 continue into implementat
 
 ---
 
-## Phase 6: Integration & Validation (4 Agents)
+## Phase 6: Integration Verification (4 Agents)
+
+### Real-Service Detection
+
+Before running integration tests, check for infrastructure:
+
+```python
+# PARALLEL — detect real service testing capability
+Glob(pattern="**/docker-compose*.yml")
+Glob(pattern="**/testcontainers*")
+Grep(pattern="testcontainers|docker-compose", glob="requirements*.txt")
+Grep(pattern="testcontainers|docker-compose", glob="package.json")
+```
+
+If detected, run integration tests against real services (not just mocks). Reference `testing-patterns` rules: `integration-database`, `integration-api`, `data-seeding-cleanup`.
 
 ### Validation Commands
 
@@ -357,6 +386,10 @@ poetry run alembic upgrade head  # dry-run
 poetry run ruff check app/
 poetry run ty check app/
 poetry run pytest tests/unit/ -v --cov=app
+# If docker-compose detected:
+docker-compose -f docker-compose.test.yml up -d
+poetry run pytest tests/integration/ -v
+docker-compose -f docker-compose.test.yml down
 ```
 
 **Frontend:**

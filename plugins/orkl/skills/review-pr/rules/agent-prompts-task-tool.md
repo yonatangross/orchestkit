@@ -75,19 +75,38 @@ Task(
   max_turns=25
 )
 Task(
-  description="Review test coverage",
+  description="Review test adequacy",
   subagent_type="test-generator",
-  prompt="""TEST COVERAGE REVIEW for PR $ARGUMENTS
+  prompt="""TEST ADEQUACY REVIEW for PR $ARGUMENTS
 
-  Review test quality:
-  1. Test coverage for changed code
-  2. Edge cases and error paths tested
-  3. Meaningful assertions (not just truthy)
-  4. No flaky tests (timing, external deps)
+  Evaluate whether this PR has sufficient tests:
 
-  Scope: ONLY read files directly relevant to the PR diff. Do NOT explore the entire codebase.
+  1. TEST EXISTENCE CHECK
+     - Does the PR add/modify code WITHOUT adding/updating tests?
+     - Are there changed files with 0 corresponding test files?
+     - Flag: "MISSING" if code changes have no tests at all
 
-  SUMMARY: End with: "RESULT: [N]% coverage, [M] gaps - [key missing test]"
+  2. TEST TYPE MATCHING (use testing-patterns rules)
+     Match changed code to required test types:
+     - API endpoint changes → need integration tests (rule: integration-api)
+     - DB schema changes → need migration + integration tests (rule: integration-database)
+     - UI component changes → need unit + a11y tests (rule: unit-aaa-pattern, a11y-jest-axe)
+     - Business logic → need unit + property tests (rule: verification-property)
+     - LLM/AI changes → need eval tests (rule: llm-deepeval)
+
+  3. TEST QUALITY
+     - Meaningful assertions (not just truthy/exists)
+     - Edge cases and error paths covered
+     - No flaky patterns (timing, external deps, random)
+     - Mocking is appropriate (not over-mocked)
+
+  4. COVERAGE GAPS
+     - Which changed functions/methods lack test coverage?
+     - Which error paths are untested?
+
+  Scope: ONLY read files directly relevant to the PR diff.
+
+  SUMMARY: End with: "RESULT: [ADEQUATE|GAPS|MISSING] - [N] untested paths, [M] missing test types - [key gap]"
   """,
   run_in_background=True,
   max_turns=25

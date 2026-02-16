@@ -10,6 +10,7 @@ description: "PR review with parallel specialized agents. Use when reviewing pul
 - [code-review-playbook](/docs/reference/skills/code-review-playbook)
 - [security-scanning](/docs/reference/skills/security-scanning)
 - [type-safety-validation](/docs/reference/skills/type-safety-validation)
+- [testing-patterns](/docs/reference/skills/testing-patterns)
 - [memory](/docs/reference/skills/memory)
 
 
@@ -129,6 +130,7 @@ Relevant skills activated automatically:
 - `code-review-playbook` -- Review patterns, conventional comments
 - `security-scanning` -- OWASP, secrets, dependencies
 - `type-safety-validation` -- Zod, TypeScript strict
+- `testing-patterns` -- Test adequacy, coverage gaps, rule matching
 
 ## Phase 3: Parallel Code Review (6 Agents)
 
@@ -233,9 +235,17 @@ Task(subagent_type="security-auditor", name="security-reviewer",
 
 Task(subagent_type="test-generator", name="test-reviewer",
      team_name="review-pr-{number}",
-     prompt="""Review test coverage for PR #{number}.
-     When quality-reviewer flags test gaps, verify and suggest specific tests.
-     Message backend-reviewer or frontend-reviewer with test requirements.""")
+     prompt="""Review TEST ADEQUACY for PR #{number}.
+     1. Check: Does the PR add/modify code WITHOUT adding tests? Flag as MISSING.
+     2. Match change types to required test types (testing-patterns rules):
+        - API → integration-api, verification-contract
+        - DB → integration-database, data-seeding-cleanup
+        - UI → unit-aaa-pattern, a11y-jest-axe
+        - Logic → verification-property
+     3. Evaluate test quality: meaningful assertions, no flaky patterns.
+     4. When quality-reviewer flags test gaps, verify and suggest specific tests.
+     Message backend-reviewer or frontend-reviewer with test requirements.
+     End with: RESULT: [ADEQUATE|GAPS|MISSING] - summary""")
 
 Task(subagent_type="backend-system-architect", name="backend-reviewer",
      team_name="review-pr-{number}",
@@ -337,19 +347,38 @@ Task(
   max_turns=25
 )
 Task(
-  description="Review test coverage",
+  description="Review test adequacy",
   subagent_type="test-generator",
-  prompt="""TEST COVERAGE REVIEW for PR $ARGUMENTS
+  prompt="""TEST ADEQUACY REVIEW for PR $ARGUMENTS
 
-  Review test quality:
-  1. Test coverage for changed code
-  2. Edge cases and error paths tested
-  3. Meaningful assertions (not just truthy)
-  4. No flaky tests (timing, external deps)
+  Evaluate whether this PR has sufficient tests:
 
-  Scope: ONLY read files directly relevant to the PR diff. Do NOT explore the entire codebase.
+  1. TEST EXISTENCE CHECK
+     - Does the PR add/modify code WITHOUT adding/updating tests?
+     - Are there changed files with 0 corresponding test files?
+     - Flag: "MISSING" if code changes have no tests at all
 
-  SUMMARY: End with: "RESULT: [N]% coverage, [M] gaps - [key missing test]"
+  2. TEST TYPE MATCHING (use testing-patterns rules)
+     Match changed code to required test types:
+     - API endpoint changes → need integration tests (rule: integration-api)
+     - DB schema changes → need migration + integration tests (rule: integration-database)
+     - UI component changes → need unit + a11y tests (rule: unit-aaa-pattern, a11y-jest-axe)
+     - Business logic → need unit + property tests (rule: verification-property)
+     - LLM/AI changes → need eval tests (rule: llm-deepeval)
+
+  3. TEST QUALITY
+     - Meaningful assertions (not just truthy/exists)
+     - Edge cases and error paths covered
+     - No flaky patterns (timing, external deps, random)
+     - Mocking is appropriate (not over-mocked)
+
+  4. COVERAGE GAPS
+     - Which changed functions/methods lack test coverage?
+     - Which error paths are untested?
+
+  Scope: ONLY read files directly relevant to the PR diff.
+
+  SUMMARY: End with: "RESULT: [ADEQUATE|GAPS|MISSING] - [N] untested paths, [M] missing test types - [key gap]"
   """,
   run_in_background=True,
   max_turns=25
@@ -462,7 +491,16 @@ Use this template when synthesizing agent feedback in Phase 5:
 |------|--------|-------|
 | Readability | // | [notes] |
 | Type Safety | // | [notes] |
-| Test Coverage | // | [X%] |
+
+## Test Adequacy
+| Check | Status | Details |
+|-------|--------|---------|
+| Tests exist for changes | // | [X changed files have tests, Y do not] |
+| Test types match changes | // | [e.g., API changes have integration tests] |
+| Coverage gaps | // | [N untested paths] |
+| Test quality | // | [meaningful assertions, no flaky patterns] |
+
+**Verdict:** [ADEQUATE | GAPS (list) | MISSING (critical)]
 
 ## Security
 | Check | Status |
@@ -622,6 +660,7 @@ cd backend
 poetry run ruff format --check app/
 poetry run ruff check app/
 poetry run pytest tests/unit/ -v --tb=short
+poetry run pytest tests/ -v --cov=app --cov-report=term-missing
 ```
 
 ## Frontend
@@ -632,5 +671,36 @@ npm run format:check
 npm run lint
 npm run typecheck
 npm run test
+npm run test -- --coverage
+```
+
+## Integration Tests (if infrastructure detected)
+
+```bash
+# Detect real service testing capability
+ls **/docker-compose*.yml 2>/dev/null
+ls **/testcontainers* 2>/dev/null
+
+# If detected, run integration tests against real services
+docker-compose -f docker-compose.test.yml up -d
+poetry run pytest tests/integration/ -v
+docker-compose -f docker-compose.test.yml down
+```
+
+## Test Adequacy Check
+
+```bash
+# List changed files without corresponding test files
+gh pr diff $ARGUMENTS --name-only | while read f; do
+  # Skip test files, configs, docs
+  case "$f" in
+    tests/*|*test*|*.md|*.json|*.yml) continue ;;
+  esac
+  # Check if a test file exists
+  test_file="tests/$(basename "$f" .py)_test.py"
+  if [ ! -f "$test_file" ]; then
+    echo "NO TEST: $f"
+  fi
+done
 ```
 

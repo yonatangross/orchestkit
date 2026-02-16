@@ -136,9 +136,10 @@ Verifies hooks are properly configured:
 
 **Output:**
 ```
-Hooks: 66/66 entries valid (12 bundles)
-- PreToolUse: 14, PostToolUse: 6, SubagentStart: 7, SubagentStop: 7
-- Setup: 6, SessionStart: 5, UserPromptSubmit: 5, PermissionRequest: 3
+Hooks: 89/89 entries valid (12 bundles)
+- Global: 66 (PreToolUse: 14, PostToolUse: 6, SubagentStart: 7, SubagentStop: 7,
+  Setup: 6, SessionStart: 5, UserPromptSubmit: 5, PermissionRequest: 3, ...)
+- Agent-scoped: 22, Skill-scoped: 1
 - Async hooks: 7 (fire-and-forget)
 - Error Rate: 0.3%
 ```
@@ -243,33 +244,34 @@ Claude Code: 2.1.42 (OK)
 +===================================================================+
 |                    OrchestKit Health Report                        |
 +===================================================================+
-| Version: 6.0.13  |  CC: 2.1.42  |  Plugins: ork              |
+| Version: {version}  |  CC: {cc_version}  |  Plugins: ork          |
 +===================================================================+
 | Skills           | 62/62 valid                                    |
 | Agents           | 36/36 valid                                    |
-| Hooks            | 66/66 entries (12 bundles)                     |
+| Hooks            | 89/89 entries (12 bundles)                     |
 | Memory           | Graph memory healthy                           |
 | Permissions      | 12/12 reachable                                |
 | Schemas          | 15/15 compliant                                |
 | Context          | 1850/2200 tokens (84%)                         |
 | Coordination     | 0 stale locks                                  |
-| CC Version       | 2.1.42 (OK)                                    |
+| CC Version       | {cc_version} (OK)                              |
 +===================================================================+
 | Status: HEALTHY (9/9 checks passed)                               |
 +===================================================================+
 ```
 
-**Domain-specific plugins (e.g., orkl + orkl):**
+> **Note:** `\{version\}` is read from `package.json` at runtime. `\{cc_version\}` is detected from Claude Code. Counts reflect installed plugin — dynamic, not hardcoded.
+
+**orkl plugin (lite):**
 ```
 +===================================================================+
 |                    OrchestKit Health Report                        |
 +===================================================================+
-| Version: 6.0.13  |  CC: 2.1.42  |  Plugins: 3 installed           |
+| Version: {version}  |  CC: {cc_version}  |  Plugins: orkl         |
 +===================================================================+
-| Installed        | ork, orkl, orkl       |
-| Skills           | 38/38 valid (combined)                         |
-| Agents           | 2/2 valid                                      |
-| Hooks            | 66/66 entries (via ork)                    |
+| Skills           | 45/45 valid                                    |
+| Agents           | 36/36 valid                                    |
+| Hooks            | 89/89 entries (12 bundles)                     |
 | Memory           | Graph memory healthy                           |
 +===================================================================+
 ```
@@ -282,17 +284,17 @@ Claude Code: 2.1.42 (OK)
 
 ```json
 {
-  "version": "6.0.13",
-  "claudeCode": "2.1.42",
+  "version": "{version}",
+  "claudeCode": "{cc_version}",
   "status": "healthy",
   "plugins": {
-    "installed": ["orkl", "ork-creative", "ork"],
-    "count": 3
+    "installed": ["ork"],
+    "count": 1
   },
   "checks": {
     "skills": {"passed": true, "count": 62, "perPlugin": {"ork": 62}},
     "agents": {"passed": true, "count": 36, "perPlugin": {"ork": 36}},
-    "hooks": {"passed": true, "entries": 66, "bundles": 12, "source": "ork"},
+    "hooks": {"passed": true, "entries": 89, "bundles": 12, "source": "ork"},
     "memory": {"passed": true, "available": ["graph"]},
     "permissions": {"passed": true, "count": 12},
     "schemas": {"passed": true, "count": 15},

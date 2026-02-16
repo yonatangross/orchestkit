@@ -39,6 +39,14 @@ Challenge templates for assumption testing. Find hidden flaws before implementat
 - "If an attacker had access to [component], what could they do?"
 - "Are we trusting user input anywhere we shouldn't?"
 
+## Testability Challenges
+
+- "How would you test the critical path without mocking everything?"
+- "What happens when the external dependency is unavailable during testing?"
+- "Show me the integration test — can it run in CI without special infrastructure?"
+- "How many mocks/stubs does a single test need? If more than 3, the design has coupling issues."
+- "Can a new developer write a test for this without reading the entire codebase?"
+
 ## Challenge Template
 
 ```
@@ -48,7 +56,8 @@ DEVIL'S ADVOCATE for: [idea name]
 2. FAILURE: How could this fail catastrophically?
 3. SIMPLER: What's the 10x simpler alternative?
 4. SCALE: What breaks at 10x load?
-5. MAINTENANCE: What's the 2-year cost?
+5. TESTABILITY: How do you test this? What's the mock surface?
+6. MAINTENANCE: What's the 2-year cost?
 
 Severity: [Critical|High|Medium|Low] per concern
 ```

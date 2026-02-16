@@ -14,6 +14,7 @@ description: "Design exploration with parallel agents. Use when brainstorming id
 - [remember](/docs/reference/skills/remember)
 - [assess-complexity](/docs/reference/skills/assess-complexity)
 - [scope-appropriate-architecture](/docs/reference/skills/scope-appropriate-architecture)
+- [testing-patterns](/docs/reference/skills/testing-patterns)
 
 
 # Brainstorming Ideas Into Designs
@@ -163,10 +164,10 @@ TaskCreate(subject="Present design options", activeForm="Presenting options")
 | **0. Topic Analysis** | Classify keywords, select 3-5 agents | Agent list |
 | **1. Memory + Context** | Search graph, check codebase | Prior patterns |
 | **2. Divergent Exploration** | Generate 10+ ideas WITHOUT filtering | Idea pool |
-| **3. Feasibility Fast-Check** | 30-second viability per idea | Filtered ideas |
-| **4. Evaluation & Rating** | Rate 0-10, devil's advocate challenge | Ranked ideas |
-| **5. Synthesis** | Filter to top 2-3, trade-off table | Options |
-| **6. Design Presentation** | Present in 200-300 word sections | Validated design |
+| **3. Feasibility Fast-Check** | 30-second viability per idea, **including testability** | Filtered ideas |
+| **4. Evaluation & Rating** | Rate 0-10 (6 dimensions incl. **testability**), devil's advocate | Ranked ideas |
+| **5. Synthesis** | Filter to top 2-3, trade-off table, **test strategy per approach** | Options |
+| **6. Design Presentation** | Present in 200-300 word sections, **include test plan** | Validated design |
 
 See `references/phase-workflow.md` for detailed instructions.
 
@@ -186,12 +187,12 @@ Skip brainstorming when:
 
 | Topic Example | Agents to Spawn |
 |---------------|-----------------|
-| "brainstorm API for users" | workflow-architect, backend-system-architect, security-auditor |
-| "brainstorm dashboard UI" | workflow-architect, frontend-ui-developer, ux-researcher |
-| "brainstorm RAG pipeline" | workflow-architect, llm-integrator, data-pipeline-engineer |
-| "brainstorm caching strategy" | workflow-architect, backend-system-architect, frontend-performance-engineer |
+| "brainstorm API for users" | workflow-architect, backend-system-architect, security-auditor, **test-generator** |
+| "brainstorm dashboard UI" | workflow-architect, frontend-ui-developer, ux-researcher, **test-generator** |
+| "brainstorm RAG pipeline" | workflow-architect, llm-integrator, data-pipeline-engineer, **test-generator** |
+| "brainstorm caching strategy" | workflow-architect, backend-system-architect, frontend-performance-engineer, **test-generator** |
 
-**Always include:** `workflow-architect` for system design perspective.
+**Always include:** `workflow-architect` for system design perspective, `test-generator` for testability assessment.
 
 ---
 
@@ -228,6 +229,18 @@ Task(subagent_type="frontend-ui-developer", name="frontend-thinker",
      Challenge backend proposals that create poor user experiences.
      Advocate for progressive disclosure and accessibility.""")
 
+# Always include: testability assessor
+Task(subagent_type="test-generator", name="testability-assessor",
+     team_name="brainstorm-{topic-slug}",
+     prompt="""Assess testability for each brainstormed approach: {topic}
+     For every idea shared by teammates, evaluate:
+     - Can core logic be unit tested without external services?
+     - What's the mock/stub surface area?
+     - Can it be integration-tested with docker-compose/testcontainers?
+     Score testability 0-10 per the evaluation rubric.
+     Challenge designs that score below 5 on testability.
+     Propose test strategies for the top approaches in synthesis phase.""")
+
 # Optional: Add security-auditor, ux-researcher, llm-integrator based on topic
 ```
 
@@ -239,6 +252,7 @@ Task(subagent_type="frontend-ui-developer", name="frontend-thinker",
 SendMessage(type="shutdown_request", recipient="system-designer", content="Brainstorm complete")
 SendMessage(type="shutdown_request", recipient="backend-thinker", content="Brainstorm complete")
 SendMessage(type="shutdown_request", recipient="frontend-thinker", content="Brainstorm complete")
+SendMessage(type="shutdown_request", recipient="testability-assessor", content="Brainstorm complete")
 # ... shutdown any additional domain teammates
 TeamDelete()
 ```
@@ -279,7 +293,7 @@ TeamDelete()
 
 ---
 
-**Version:** 4.2.0 (February 2026) - Added project context discovery (Phase 0)
+**Version:** 4.3.0 (February 2026) - Added testability scoring to evaluation, test strategy to synthesis output
 
 
 ---
@@ -368,7 +382,22 @@ Let's extend that pattern..."
 
 **Why:** Filtering too early misses potentially better alternatives.
 
-## Pitfall 6: Skipping Devil's Advocate
+## Pitfall 6: Designing Without Considering Testability
+
+```
+❌ BAD:
+"Beautiful hexagonal architecture with 12 ports and adapters!"
+[Requires 50 mocks to test a single use case]
+
+✅ GOOD:
+"Each module has clear boundaries.
+Unit tests need 0-2 mocks. Integration tests run against
+docker-compose services. E2E covers the 3 critical paths."
+```
+
+**Why:** A design that scores 10/10 on architecture but 2/10 on testability will slow down every future change. Score testability during evaluation (see `evaluation-rubric.md`) and prefer designs with clear testing boundaries.
+
+## Pitfall 7: Skipping Devil's Advocate
 
 ```
 ❌ BAD:
@@ -427,6 +456,14 @@ Challenge templates for assumption testing. Find hidden flaws before implementat
 - "If an attacker had access to [component], what could they do?"
 - "Are we trusting user input anywhere we shouldn't?"
 
+## Testability Challenges
+
+- "How would you test the critical path without mocking everything?"
+- "What happens when the external dependency is unavailable during testing?"
+- "Show me the integration test — can it run in CI without special infrastructure?"
+- "How many mocks/stubs does a single test need? If more than 3, the design has coupling issues."
+- "Can a new developer write a test for this without reading the entire codebase?"
+
 ## Challenge Template
 
 ```
@@ -436,7 +473,8 @@ DEVIL'S ADVOCATE for: [idea name]
 2. FAILURE: How could this fail catastrophically?
 3. SIMPLER: What's the 10x simpler alternative?
 4. SCALE: What breaks at 10x load?
-5. MAINTENANCE: What's the 2-year cost?
+5. TESTABILITY: How do you test this? What's the mock surface?
+6. MAINTENANCE: What's the 2-year cost?
 
 Severity: [Critical|High|Medium|Low] per concern
 ```
@@ -502,17 +540,18 @@ Each agent contributes sequentially:
 
 # Evaluation Rubric
 
-Rate each idea 0-10 across five dimensions with weighted scoring.
+Rate each idea 0-10 across six dimensions with weighted scoring.
 
 ## Dimensions
 
 | Dimension | Weight | Description |
 |-----------|--------|-------------|
-| **Impact** | 0.25 | Value delivered to users/business |
+| **Impact** | 0.20 | Value delivered to users/business |
 | **Effort** | 0.20 | Implementation complexity (invert: low effort = high score) |
-| **Risk** | 0.20 | Technical/business risk (invert: low risk = high score) |
+| **Risk** | 0.15 | Technical/business risk (invert: low risk = high score) |
 | **Alignment** | 0.20 | Fit with existing architecture and patterns |
-| **Innovation** | 0.15 | Novelty and differentiation |
+| **Testability** | 0.15 | How easily the design can be unit/integration/E2E tested |
+| **Innovation** | 0.10 | Novelty and differentiation |
 
 ## Scoring Scale
 
@@ -524,10 +563,20 @@ Rate each idea 0-10 across five dimensions with weighted scoring.
 | 3-4 | Weak | Significant drawbacks |
 | 0-2 | Poor | Fundamental issues |
 
+## Testability Scoring Guide
+
+| Score | Criteria |
+|-------|----------|
+| 9-10 | Pure functions, clear boundaries, all deps injectable, trivial to mock |
+| 7-8 | Mostly testable, minor coupling, mockable with reasonable effort |
+| 5-6 | Testable with effort, some tight coupling or hard-to-mock deps |
+| 3-4 | Hard to test, many external deps, deep coupling, requires real services |
+| 0-2 | Untestable: global state, hidden side effects, no seams for mocking |
+
 ## Composite Formula
 
 ```
-composite = impact * 0.25 + (10 - effort) * 0.20 + (10 - risk) * 0.20 + alignment * 0.20 + innovation * 0.15
+composite = impact * 0.20 + (10 - effort) * 0.20 + (10 - risk) * 0.15 + alignment * 0.20 + testability * 0.15 + innovation * 0.10
 ```
 
 ## Devil's Advocate Adjustment
@@ -540,11 +589,11 @@ composite = impact * 0.25 + (10 - effort) * 0.20 + (10 - risk) * 0.20 + alignmen
 
 ## Example
 
-| Idea | Impact | Effort | Risk | Align | Innov | Raw | DA | Final |
-|------|--------|--------|------|-------|-------|-----|-----|-------|
-| JWT+Redis | 8 | 4 | 3 | 9 | 6 | 7.65 | 0 | **7.65** |
-| Session-only | 6 | 2 | 2 | 8 | 3 | 7.05 | 0 | **7.05** |
-| Custom tokens | 9 | 8 | 7 | 5 | 9 | 5.55 | 1 crit | **3.89** |
+| Idea | Impact | Effort | Risk | Align | Test | Innov | Raw | DA | Final |
+|------|--------|--------|------|-------|------|-------|-----|-----|-------|
+| JWT+Redis | 8 | 4 | 3 | 9 | 8 | 6 | 7.45 | 0 | **7.45** |
+| Session-only | 6 | 2 | 2 | 8 | 9 | 3 | 7.25 | 0 | **7.25** |
+| Custom tokens | 9 | 8 | 7 | 5 | 3 | 9 | 4.90 | 1 crit | **3.43** |
 
 
 ### Example Session Auth
@@ -990,7 +1039,7 @@ Do NOT suggest patterns marked OVERKILL for this tier in the scope-appropriate-a
 | AI/LLM | `llm-integrator`, `workflow-architect` | rag-retrieval |
 | Performance | `frontend-performance-engineer` | performance |
 
-**Always include:** `workflow-architect` (system design perspective)
+**Always include:** `workflow-architect` (system design perspective) + `test-generator` (testability assessment)
 
 ---
 
@@ -1034,7 +1083,7 @@ DIVERGENT MODE: Generate as many approaches as possible.
 
 ## Phase 3: Feasibility Fast-Check
 
-30-second viability assessment per idea.
+30-second viability assessment per idea, including testability.
 
 | Score | Label | Action |
 |-------|-------|--------|
@@ -1043,22 +1092,33 @@ DIVERGENT MODE: Generate as many approaches as possible.
 | 6-8 | Feasible | Keep for evaluation |
 | 9-10 | Easy | Keep (may be too simple) |
 
+### Testability Quick-Check (per idea)
+
+Ask these 3 questions for each surviving idea:
+
+1. **Unit testable?** Can core logic be tested without external services?
+2. **Mock surface?** How many dependencies need mocking/stubbing? (fewer = better)
+3. **Integration testable?** Can this be tested with real services via docker-compose/testcontainers?
+
+Flag ideas that require mocking 5+ dependencies or cannot be integration-tested without complex setup.
+
 ---
 
 ## Phase 4: Evaluation & Rating
 
-See `evaluation-rubric.md` for scoring criteria.
-See `devils-advocate-prompts.md` for challenge templates.
+See `evaluation-rubric.md` for scoring criteria (6 dimensions including **testability**).
+See `devils-advocate-prompts.md` for challenge templates (including testing challenges).
 
 ### Composite Score Formula
 
 ```python
 composite = (
-    impact * 0.25 +
+    impact * 0.20 +
     (10 - effort) * 0.20 +
-    (10 - risk) * 0.20 +
+    (10 - risk) * 0.15 +
     alignment * 0.20 +
-    innovation * 0.15
+    testability * 0.15 +
+    innovation * 0.10
 )
 
 # Devil's advocate adjustment
@@ -1073,7 +1133,21 @@ if critical_concerns > 0:
 1. Filter to top 2-3 approaches
 2. Merge perspectives from all agents
 3. Build comprehensive trade-off table
-4. Present to user with scores
+4. **Add test strategy per approach** (see below)
+5. Present to user with scores
+
+### Test Strategy Per Approach
+
+For each top approach, include:
+
+| Aspect | Details |
+|--------|---------|
+| **Recommended test types** | Unit, Integration, E2E, Contract, Property-based |
+| **Mock boundaries** | What to mock vs. what to test with real services |
+| **Infrastructure needs** | docker-compose services, testcontainers, test DBs |
+| **Testing-patterns rules** | Which `testing-patterns` rules apply (e.g., `integration-api`, `e2e-playwright`) |
+
+This ensures the chosen design comes with a concrete testing plan, not just architecture.
 
 ```python
 AskUserQuestion(questions=[{
@@ -1096,7 +1170,8 @@ Present in 200-300 word sections:
 3. Data Flow
 4. Error Handling
 5. Security Considerations
-6. Implementation Priorities
+6. **Test Plan** (test types, mock boundaries, infrastructure requirements)
+7. Implementation Priorities
 
 After each section: "Does this look right so far?"
 

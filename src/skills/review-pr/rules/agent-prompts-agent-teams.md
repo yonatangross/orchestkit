@@ -28,9 +28,17 @@ Task(subagent_type="security-auditor", name="security-reviewer",
 
 Task(subagent_type="test-generator", name="test-reviewer",
      team_name="review-pr-{number}",
-     prompt="""Review test coverage for PR #{number}.
-     When quality-reviewer flags test gaps, verify and suggest specific tests.
-     Message backend-reviewer or frontend-reviewer with test requirements.""")
+     prompt="""Review TEST ADEQUACY for PR #{number}.
+     1. Check: Does the PR add/modify code WITHOUT adding tests? Flag as MISSING.
+     2. Match change types to required test types (testing-patterns rules):
+        - API → integration-api, verification-contract
+        - DB → integration-database, data-seeding-cleanup
+        - UI → unit-aaa-pattern, a11y-jest-axe
+        - Logic → verification-property
+     3. Evaluate test quality: meaningful assertions, no flaky patterns.
+     4. When quality-reviewer flags test gaps, verify and suggest specific tests.
+     Message backend-reviewer or frontend-reviewer with test requirements.
+     End with: RESULT: [ADEQUATE|GAPS|MISSING] - summary""")
 
 Task(subagent_type="backend-system-architect", name="backend-reviewer",
      team_name="review-pr-{number}",
