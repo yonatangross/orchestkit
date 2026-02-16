@@ -76,10 +76,6 @@ HOOK_SECURITY_*.txt
 # Hook overrides (per-project, user-specific)
 .claude/hook-overrides.json
 
-# Mem0 sync state
-.mem0-sync-pending
-**/.claude/mem0-webhooks.json
-
 # Orchestration runtime state (session-specific)
 .claude/orchestration/
 
@@ -111,7 +107,6 @@ __pycache__/
 .claude/memory/sessions/
 .claude/memory/tool-preferences.json
 .claude/memory/graph-queue.jsonl
-.claude/memory/mem0-queue.jsonl
 .claude/memory/open-problems.jsonl
 .claude/.comm-style-counter
 .claude/settings.json

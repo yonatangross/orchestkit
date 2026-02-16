@@ -35,11 +35,11 @@ Expected output:
 ```
 OrchestKit Health Check
 =======================
-Plugin:     ork v6.0.7
-Skills:     60 loaded (23 commands, 37 reference)
+Plugin:     ork v6.0.8
+Skills:     62 loaded (24 commands, 38 reference)
 Agents:     36 registered
-Hooks:      86 active (63 global, 22 agent, 1 skill-scoped)
-Memory:     Graph ✓  Local ✓  Mem0 ○  CC Native ✓
+Hooks:      89 active (66 global, 22 agent, 1 skill-scoped)
+Memory:     Graph ✓  Local ✓  CC Native ✓
 MCP:        memory ✓
 
 Status: Healthy
@@ -47,19 +47,18 @@ Status: Healthy
 
 `○` means optional and not configured. `✓` means active.
 
-## Optional: Memory Tiers
+## Optional: Web Research
 
-OrchestKit works out of the box with Graph Memory and Local Memory. For enhanced capabilities:
+OrchestKit works out of the box with all 3 memory tiers (Graph, Local, CC Native). For web research capabilities:
 
-| Tier | Env Variable | What It Adds |
+| Feature | Env Variable | What It Adds |
 |---|---|---|
-| Mem0 Cloud | `MEM0_API_KEY` | Semantic search across sessions |
 | Tavily Search | `TAVILY_API_KEY` | Web research in workflows |
 
-Set these in your shell profile (`~/.zshrc` or `~/.bashrc`):
+Set this in your shell profile (`~/.zshrc` or `~/.bashrc`):
 
 ```bash
-export MEM0_API_KEY="your-key-here"
+export TAVILY_API_KEY="your-key-here"
 ```
 
 ## Requirements

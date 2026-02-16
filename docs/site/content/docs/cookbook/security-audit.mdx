@@ -277,16 +277,15 @@ OrchestKit Security Tests (CRITICAL — ZERO TOLERANCE)
   PASS: Symlink Attack Tests
   PASS: Input Validation Tests
   PASS: Additional Security Tests
-  PASS: Mem0 Security Tests
 
 ============================================================================
-Results: 8 passed, 0 failed
+Results: 7 passed, 0 failed
 ```
 
 These tests validate that OrchestKit's own hooks (like `dangerous-command-blocker` and `file-guard`) correctly block attack vectors. They run automatically in CI and must all pass before merge.
 
 <Callout type="info">
-The security test suite covers 8 attack categories: command injection, JQ injection, path traversal, Unicode attacks, symlink attacks, input validation, SQLite injection, and line continuation bypass. These are not application tests -- they validate OrchestKit's defensive hooks that protect your development workflow.
+The security test suite covers 7 attack categories: command injection, JQ injection, path traversal, Unicode attacks, symlink attacks, input validation, and additional security checks. These are not application tests -- they validate OrchestKit's defensive hooks that protect your development workflow.
 </Callout>
 
 ## Behind the Scenes

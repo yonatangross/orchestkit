@@ -50,7 +50,7 @@ Commands for storing and retrieving decisions, patterns, and context across sess
 
 | Command | Description | Complexity | Example |
 |---------|-------------|------------|---------|
-| `/ork:remember` | Stores decisions and patterns in the knowledge graph. Supports `--success`, `--failed`, `--mem0`, and `--agent` flags for categorization. | low | `/ork:remember --success cursor pagination scales well` |
+| `/ork:remember` | Stores decisions and patterns in the knowledge graph. Supports `--success`, `--failed`, and `--agent` flags for categorization. | low | `/ork:remember --success cursor pagination scales well` |
 | `/ork:memory` | Read-side memory operations: search, load, sync, history, and visualization. Subcommands: `search`, `load`, `sync`, `history`, `viz`, `status`. | low | `/ork:memory search "pagination"` |
 
 ---
@@ -122,7 +122,7 @@ This means you do not need to remember which reference skills exist. The command
 
 ```
 /ork:remember --success --category database pgvector handles 10M vectors well
-/ork:memory search --mem0 "caching strategy"
+/ork:memory search "caching strategy"
 ```
 
 ### Chaining commands in a session

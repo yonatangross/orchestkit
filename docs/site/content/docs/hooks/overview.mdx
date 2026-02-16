@@ -48,7 +48,7 @@ Every Claude Code session follows the same lifecycle. Here is every event in the
 
 **When:** Plugin installation or first run.
 
-9 hooks handle first-run setup, maintenance checks, mem0 backup configuration, monorepo detection, and analytics dashboard initialization.
+Setup hooks handle first-run setup, maintenance checks, monorepo detection, and configuration repair.
 </Step>
 
 <Step>
@@ -56,7 +56,7 @@ Every Claude Code session follows the same lifecycle. Here is every event in the
 
 **When:** A new Claude Code session begins.
 
-5 hooks fire: a unified dispatcher (fire-and-forget) launches 7 background tasks (mem0 retrieval, pattern sync, coordination init), the session context loader reads prior state, the analytics consent checker runs, the PR status enricher loads context for `--from-pr` sessions, and the prefill guard scans for deprecated API patterns.
+5 hooks fire: a unified dispatcher (fire-and-forget) launches background tasks (pattern sync, coordination init), the session context loader reads prior state, the analytics consent checker runs, the PR status enricher loads context for `--from-pr` sessions, and the prefill guard scans for deprecated API patterns.
 </Step>
 
 <Step>
@@ -114,7 +114,7 @@ The largest group: hooks fire based on the tool matcher.
 
 **When:** A subagent (Task) is spawned or completes.
 
-- **SubagentStart** (7 hooks): Context stager, graph memory inject, mem0 memory inject, subagent validator, context gate, task linker, model cost advisor.
+- **SubagentStart** (7 hooks): Context stager, graph memory inject, subagent validator, context gate, task linker, model cost advisor.
 - **SubagentStop** (7 hooks): Unified dispatcher (fire-and-forget), output validator, auto-spawn quality gate, multi-claude verifier, subagent quality gate, task completer, retry handler.
 </Step>
 
