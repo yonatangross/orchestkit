@@ -71,6 +71,23 @@ git push -u origin hotfix/critical-fix
 gh pr create --base main --title "HOTFIX: Critical auth bypass"
 ```
 
+**Incorrect — Direct commit to main:**
+```bash
+# Bypasses code review and CI
+git checkout main
+git commit -m "quick fix"
+git push origin main
+```
+
+**Correct — Feature branch workflow:**
+```bash
+# PR-based deployment
+git checkout -b fix/issue-123
+git commit -m "fix(#123): Resolve auth bug"
+git push -u origin fix/issue-123
+gh pr create --base main
+```
+
 ### Key Rules
 
 - Never commit directly to main, dev, or release branches

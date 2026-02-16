@@ -81,6 +81,40 @@ async def fetch_user(user_id: str) -> User:
 # - No mutable default arguments
 ```
 
+**Incorrect — missing validation and timeout:**
+```python
+class UserInput(BaseModel):
+    email: str  # No validation!
+    age: int    # Accepts negative
+
+async def fetch_user(user_id: str) -> User:
+    # No timeout! May hang forever
+    response = await httpx.get(f"/users/{user_id}")
+    return User(**response.json())
+```
+
+**Correct — constrained fields with timeout protection:**
+```python
+from pydantic import BaseModel, Field, model_validator
+import asyncio
+
+class UserInput(BaseModel):
+    email: str = Field(pattern=r'^[\w\.-]+@[\w\.-]+\.\w+$')
+    age: int = Field(ge=0, le=150)
+
+    @model_validator(mode='after')
+    def validate_fields(self) -> 'UserInput':
+        if self.age < 13 and '@' not in self.email:
+            raise ValueError('Minors require valid parent email')
+        return self
+
+async def fetch_user(user_id: str) -> User:
+    async with asyncio.timeout(10):  # Timeout protection
+        response = await httpx.get(f"/users/{user_id}")
+        response.raise_for_status()
+        return User.model_validate(response.json())
+```
+
 ### Review Checklist
 
 | Check | Severity | What to Look For |

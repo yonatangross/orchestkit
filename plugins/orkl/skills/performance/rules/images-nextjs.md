@@ -87,6 +87,21 @@ export default function cloudflareLoader({
 </div>
 ```
 
+**Incorrect — Missing sizes causes incorrect srcset selection:**
+```tsx
+<Image src="/banner.jpg" alt="Banner" fill />
+```
+
+**Correct — Sizes hint ensures optimal image size:**
+```tsx
+<Image
+  src="/banner.jpg"
+  alt="Banner"
+  fill
+  sizes="(max-width: 768px) 100vw, 50vw"
+/>
+```
+
 **Key rules:**
 - **Set** `priority` on the LCP image (only one per page)
 - **Always** provide `sizes` for responsive images

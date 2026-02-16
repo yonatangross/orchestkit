@@ -144,3 +144,21 @@ payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
 # ALWAYS use generic error messages
 return "Invalid credentials"
 ```
+
+**Incorrect — Algorithm confusion vulnerability allows "none" algorithm attack:**
+```python
+# Reading algorithm from untrusted JWT header
+header = jwt.get_unverified_header(token)
+payload = jwt.decode(token, SECRET_KEY, algorithms=[header['alg']])
+# Attacker can set alg="none" to bypass signature verification
+```
+
+**Correct — Hardcode expected algorithm to prevent confusion attacks:**
+```python
+# Always specify the expected algorithm explicitly
+payload = jwt.decode(
+    token, SECRET_KEY,
+    algorithms=['HS256'],  # Never read from header
+    options={'require': ['exp', 'iat', 'sub']},
+)
+```

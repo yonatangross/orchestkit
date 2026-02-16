@@ -59,3 +59,26 @@ Score task complexity across 7 criteria (1-5 each) to determine if a task should
 - Level 4-5 tasks **must be decomposed** before starting implementation
 - Unknowns (criterion 5) is the **highest variance** factor — resolve unknowns first
 - Cross-cutting (criterion 6) indicates **coordination overhead** — account for it in estimates
+
+**Incorrect — Skipping complexity assessment:**
+```
+Task: "Add real-time notifications"
+Action: Start coding
+// No idea of scope, likely 3-5x over estimate
+```
+
+**Correct — Scoring all 7 criteria first:**
+```
+| Criterion | Score |
+|-----------|-------|
+| Lines of Code | 4/5 (800+ lines) |
+| Time Estimate | 4/5 (16+ hours) |
+| Files Affected | 3/5 (8 files) |
+| Dependencies | 4/5 (WebSockets, Redis) |
+| Unknowns | 3/5 (some research needed) |
+| Cross-Cutting | 4/5 (DB, API, UI, workers) |
+| Risk Level | 3/5 (testable) |
+| **Average** | **3.6 (Level 4 - Complex)** |
+
+Action: Decompose into subtasks before starting
+```

@@ -97,3 +97,23 @@ async def get_admin_user(user: User = Depends(get_current_user)) -> User:
         raise HTTPException(403, "Admin access required")
     return user
 ```
+
+**Incorrect — Manually creating dependencies couples code and breaks testability:**
+```python
+@router.post("/analyses")
+async def create_analysis(data: AnalysisCreate, request: Request):
+    db = AsyncSession(request.app.state.db_engine)
+    service = AnalysisService(db)  # Cannot mock in tests
+    return await service.create(data)
+```
+
+**Correct — Depends() enables dependency injection and easy testing:**
+```python
+@router.post("/analyses")
+async def create_analysis(
+    data: AnalysisCreate,
+    service: AnalysisService = Depends(get_analysis_service),
+):
+    return await service.create(data)
+# Tests can override get_analysis_service with mocks
+```

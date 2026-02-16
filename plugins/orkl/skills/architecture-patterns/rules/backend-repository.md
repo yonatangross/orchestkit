@@ -37,3 +37,19 @@ await loop.run_in_executor(None, sync_function)
 - Routers prefix with `router_`, services suffix with `_service`
 - Domain exceptions in domain layer, HTTP conversion in routers only
 - All database operations must use `await`
+
+**Incorrect — missing await on async database operation:**
+```typescript
+async function getUser(db: AsyncSession, userId: number) {
+    result = db.execute(select(User).where(User.id === userId));  // Missing await
+    return result.scalar_one_or_none();
+}
+```
+
+**Correct — properly awaiting async database calls:**
+```typescript
+async function getUser(db: AsyncSession, userId: number) {
+    result = await db.execute(select(User).where(User.id === userId));
+    return result.scalar_one_or_none();
+}
+```

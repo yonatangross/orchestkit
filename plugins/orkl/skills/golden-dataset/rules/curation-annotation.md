@@ -172,6 +172,27 @@ trace.score(name="quality_total", value=0.87)
 trace.event(name="curation_decision", metadata={"decision": "include"})
 ```
 
+**Incorrect — Sequential agent execution:**
+```python
+# Sequential - 4x slower
+quality_result = await analyze_quality(content)
+difficulty_result = await analyze_difficulty(content)
+domain_result = await analyze_domain(content)
+query_result = await generate_queries(content)
+```
+
+**Correct — Parallel agent execution:**
+```python
+# Parallel - all agents run concurrently
+quality_task = Task(subagent_type="code-quality-reviewer", prompt=quality_prompt, run_in_background=True)
+difficulty_task = Task(subagent_type="classifier", prompt=difficulty_prompt, run_in_background=True)
+domain_task = Task(subagent_type="tagger", prompt=domain_prompt, run_in_background=True)
+query_task = Task(subagent_type="query-generator", prompt=query_prompt, run_in_background=True)
+
+# Wait for all results
+results = await gather_task_results([quality_task, difficulty_task, domain_task, query_task])
+```
+
 **Key rules:**
 - Run all 4 analysis agents in parallel for throughput
 - Use weighted scoring (accuracy 0.25, coherence 0.20, depth 0.25, relevance 0.30)

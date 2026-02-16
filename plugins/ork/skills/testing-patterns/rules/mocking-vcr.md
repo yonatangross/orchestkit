@@ -70,3 +70,22 @@ def filter_request_body(request):
 | Record mode | `once` for dev, `none` for CI |
 | Cassette format | YAML (readable) |
 | Sensitive data | Always filter headers/body |
+
+**Incorrect — Not filtering sensitive data from cassettes:**
+```python
+@pytest.fixture(scope="module")
+def vcr_config():
+    return {"cassette_library_dir": "tests/cassettes"}
+    # Missing: filter_headers for API keys
+```
+
+**Correct — Filtering sensitive headers and query params:**
+```python
+@pytest.fixture(scope="module")
+def vcr_config():
+    return {
+        "cassette_library_dir": "tests/cassettes",
+        "filter_headers": ["authorization", "x-api-key"],
+        "filter_query_parameters": ["api_key", "token"]
+    }
+```

@@ -83,6 +83,30 @@ async function handleExport() {
 <button onClick={handleExport}>Export PDF</button>
 ```
 
+**Incorrect — No prefetching causes delayed navigation:**
+```tsx
+<a href="/dashboard">Dashboard</a>
+```
+
+**Correct — Hover prefetch gives 200-400ms head start:**
+```tsx
+function NavLink({ to, children }) {
+  const prefetchRef = useRef(false);
+
+  const handlePointerEnter = () => {
+    if (prefetchRef.current) return;
+    prefetchRef.current = true;
+    import(`./pages/${to}.tsx`);
+  };
+
+  return (
+    <a href={`/${to}`} onPointerEnter={handlePointerEnter}>
+      {children}
+    </a>
+  );
+}
+```
+
 **Key rules:**
 - **Use** `modulepreload` for critical JS the current page needs
 - **Use** `prefetch` for resources the user will likely need next

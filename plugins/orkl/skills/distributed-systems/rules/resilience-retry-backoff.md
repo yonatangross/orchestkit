@@ -120,3 +120,23 @@ class RetryBudget:
 4. **Retry inside circuit breaker** -- circuit only sees final result
 5. **Use Retry-After header** -- respect server's backoff request
 6. **Log all retries** -- include trace ID for correlation
+
+**Incorrect — Fixed delay without jitter causes thundering herd when service recovers:**
+```python
+for attempt in range(3):
+    try:
+        return await api_call()
+    except Exception:
+        await asyncio.sleep(1)  # All clients retry at same time!
+# 1000 clients = 1000 simultaneous retries
+```
+
+**Correct — Exponential backoff with jitter spreads retries over time:**
+```python
+for attempt in range(3):
+    try:
+        return await api_call()
+    except Exception:
+        delay = min(2 ** attempt, 60)  # 1s, 2s, 4s...
+        await asyncio.sleep(random.uniform(0, delay))  # Jitter spreads load
+```

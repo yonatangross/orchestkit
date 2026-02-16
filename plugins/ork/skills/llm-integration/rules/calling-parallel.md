@@ -71,3 +71,25 @@ async def execute_tools_parallel(tool_calls: list) -> list[dict]:
 - Not handling individual tool failures in gather
 - Exceeding API rate limits with too many concurrent calls
 - Missing tool_call_id in response messages
+
+**Incorrect — executing parallel tool calls without error isolation:**
+```python
+# Crashes entire batch if one tool fails
+response = await llm.chat(messages=messages, tools=tools, parallel_tool_calls=True)
+results = await asyncio.gather(*[
+    execute_tool(tc.function.name, json.loads(tc.function.arguments))
+    for tc in response.tool_calls
+])
+```
+
+**Correct — handling individual tool failures gracefully:**
+```python
+async def safe_execute(tc):
+    try:
+        result = await execute_tool(tc.function.name, json.loads(tc.function.arguments))
+        return {"tool_call_id": tc.id, "content": json.dumps(result)}
+    except Exception as e:
+        return {"tool_call_id": tc.id, "content": json.dumps({"error": str(e)})}
+
+results = await asyncio.gather(*[safe_execute(tc) for tc in response.tool_calls])
+```

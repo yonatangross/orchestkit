@@ -153,3 +153,31 @@ response_type=token  # Deprecated in OAuth 2.1
 # ALWAYS use PKCE with S256
 code_challenge=challenge&code_challenge_method=S256
 ```
+
+**Incorrect — OAuth 2.0 token exchange without PKCE is vulnerable to interception:**
+```python
+# No PKCE verification
+token_response = requests.post(
+    "https://auth.example.com/token",
+    data={
+        "grant_type": "authorization_code",
+        "code": auth_code,
+        "client_id": client_id,
+    }
+)
+```
+
+**Correct — OAuth 2.1 requires PKCE for all clients to prevent code interception:**
+```python
+# Generate and verify PKCE challenge
+verifier, challenge = generate_pkce_pair()
+token_response = requests.post(
+    "https://auth.example.com/token",
+    data={
+        "grant_type": "authorization_code",
+        "code": auth_code,
+        "client_id": client_id,
+        "code_verifier": verifier,  # Proves client possession
+    }
+)
+```

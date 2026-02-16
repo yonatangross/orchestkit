@@ -42,3 +42,19 @@ def db_engine(worker_id):
 | Distribution | `loadscope` for DB tests |
 | Fixture scope | `session` for expensive, `function` for mutable |
 | Async testing | pytest-asyncio with auto mode |
+
+**Incorrect — Shared database across workers causes conflicts:**
+```python
+@pytest.fixture(scope="session")
+def db_engine():
+    return create_engine("postgresql://localhost/test_db")
+    # Workers overwrite each other's data
+```
+
+**Correct — Isolated database per worker:**
+```python
+@pytest.fixture(scope="session")
+def db_engine(worker_id):
+    db_name = f"test_db_{worker_id}" if worker_id != "master" else "test_db"
+    return create_engine(f"postgresql://localhost/{db_name}")
+```

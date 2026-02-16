@@ -176,6 +176,28 @@ const MyButton = (props) => <button {...props} />
 | **Switch** | On/off toggles |
 | **Slider** | Range selection |
 
+**Incorrect — No ref forwarding:**
+```tsx
+// asChild won't work - no ref support
+const MyButton = (props) => <button {...props} />
+
+<Button asChild>
+  <MyButton>Click</MyButton>
+</Button>
+```
+
+**Correct — Ref forwarding required:**
+```tsx
+// Forwards ref and spreads props
+const MyButton = React.forwardRef<HTMLButtonElement, Props>(
+  (props, ref) => <button ref={ref} {...props} />
+)
+
+<Button asChild>
+  <MyButton>Click</MyButton>
+</Button>
+```
+
 ### Disclosure Components
 | Primitive | Use Case |
 |-----------|----------|

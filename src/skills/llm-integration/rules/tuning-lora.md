@@ -124,3 +124,21 @@ merged_model.save_pretrained("./merged_model")
 | 7B | 56GB+ | 16GB | 6GB |
 | 13B | 104GB+ | 32GB | 10GB |
 | 70B | 560GB+ | 160GB | 48GB |
+
+**Incorrect — trying full fine-tuning on consumer hardware:**
+```python
+model = AutoModelForCausalLM.from_pretrained("meta-llama/Llama-3.1-70B")
+trainer = SFTTrainer(model=model, train_dataset=dataset)
+trainer.train()  # OOM: requires 560GB+ VRAM
+```
+
+**Correct — using QLoRA for memory-efficient training:**
+```python
+model, tokenizer = FastLanguageModel.from_pretrained(
+    "unsloth/Meta-Llama-3.1-70B",
+    load_in_4bit=True  # QLoRA quantization
+)
+model = FastLanguageModel.get_peft_model(model, r=16, lora_alpha=32)
+trainer = SFTTrainer(model=model, train_dataset=dataset)
+trainer.train()  # Fits in 48GB VRAM
+```

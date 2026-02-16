@@ -164,3 +164,23 @@ GROUP BY DATE(timestamp) ORDER BY date;
 5. **Group by metadata** (agent_type, operation) for cost attribution
 6. **Use custom pricing** for self-hosted models
 7. **Use Metrics API** for programmatic queries instead of raw SQL
+
+**Incorrect — no cost tracking in LLM calls:**
+```python
+@observe()
+async def analyze(content: str):
+    response = await llm.generate(content)  # No usage tracking
+    return response  # Cost visibility lost
+```
+
+**Correct — tracking usage for cost attribution:**
+```python
+@observe()
+async def analyze(content: str):
+    response = await llm.generate(content)
+    get_client().update_current_observation(
+        model="claude-sonnet-4-5-20250929",
+        usage={"input": 1500, "output": 1000, "unit": "TOKENS"}
+    )
+    return response  # Cost auto-calculated in Langfuse
+```

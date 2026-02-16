@@ -108,3 +108,23 @@ Leading:
 - **Review leading indicators weekly** with the team
 - **Use lagging indicators** to validate that leading indicators actually predict outcomes
 - **Adjust leading indicators** when correlation breaks down
+
+**Incorrect — Only tracking lagging indicators:**
+```markdown
+Monthly Review:
+- Revenue: $485K (missed $500K target)
+- Churn: 5.2% (above 5% target)
+
+[Too late to fix - no early warning]
+```
+
+**Correct — Paired leading + lagging indicators:**
+```markdown
+Weekly (Leading):
+- Active users: 12,500 → trend down, investigate
+- Feature adoption: 68% → below 75%, action needed
+
+Monthly (Lagging):
+- Revenue: Validated prediction accuracy
+- Churn: Confirms leading indicators correlation
+```

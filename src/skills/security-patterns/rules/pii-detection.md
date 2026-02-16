@@ -134,3 +134,20 @@ langfuse = Langfuse(mask=mask_pii)
 | Masking strategy | Replace with type tokens `[REDACTED_EMAIL]` |
 | Performance | Async/batch for high-throughput |
 | Reversibility | LLM Guard Vault for deanonymization |
+
+**Incorrect — Logging raw user input exposes PII to log aggregators:**
+```python
+logger.info(f"Processing request for {user.email}")
+# Logs: "Processing request for john.doe@company.com"
+```
+
+**Correct — Detect and mask PII before logging using Presidio:**
+```python
+from presidio_analyzer import AnalyzerEngine
+from presidio_anonymizer import AnonymizerEngine
+
+results = analyzer.analyze(text=user.email, language="en")
+masked = anonymizer.anonymize(text=user.email, analyzer_results=results).text
+logger.info(f"Processing request for {masked}")
+# Logs: "Processing request for [EMAIL_ADDRESS]"
+```

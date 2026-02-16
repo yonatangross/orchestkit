@@ -76,3 +76,16 @@ await expect(page.getByRole('alert')).toBeVisible();
 | Browser | Chromium (Chrome for Testing in 1.58+) |
 | Execution | 5-30s per test |
 | Retries | 2-3 in CI, 0 locally |
+
+**Incorrect — Using hardcoded waits and CSS selectors:**
+```typescript
+await page.click('.submit-button');
+await page.waitForTimeout(2000);
+await expect(page.locator('.success-message')).toBeVisible();
+```
+
+**Correct — Semantic locators with auto-wait:**
+```typescript
+await page.getByRole('button', { name: 'Submit' }).click();
+await expect(page.getByRole('alert', { name: /success/i })).toBeVisible();
+```

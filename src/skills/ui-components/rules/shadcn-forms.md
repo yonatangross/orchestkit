@@ -176,6 +176,29 @@ export function ThemeAwareComponent() {
 }
 ```
 
+**Incorrect — Missing label association:**
+```tsx
+// Not accessible - label not linked to input
+<div>
+  <label>Email</label>
+  <input type="email" />
+</div>
+```
+
+**Correct — Proper label association:**
+```tsx
+// Accessible with htmlFor and id
+<div>
+  <Label htmlFor="email">Email</Label>
+  <Input
+    id="email"
+    type="email"
+    aria-describedby={error ? "email-error" : undefined}
+  />
+  {error && <p id="email-error">{error}</p>}
+</div>
+```
+
 ## Dependencies
 
 ```bash

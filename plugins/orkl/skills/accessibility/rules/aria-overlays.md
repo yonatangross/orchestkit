@@ -237,3 +237,24 @@ useEffect(() => { modalRef.current?.focus(); }, []);  // Incomplete!
 // NEVER forget to restore focus on close
 // useOverlayTriggerState + FocusScope restoreFocus handles this automatically
 ```
+
+**Incorrect — Modal without focus management:**
+```tsx
+{isOpen && (
+  <div role="dialog" className="modal">
+    <h2>Confirm Action</h2>
+    <button onClick={onClose}>Close</button>
+  </div>
+)}
+// No focus trap, no focus restoration
+```
+
+**Correct — useModalOverlay with FocusScope:**
+```tsx
+<FocusScope contain restoreFocus autoFocus>
+  <div {...mergeProps(modalProps, dialogProps)} ref={ref}>
+    <h2 {...titleProps}>Confirm Action</h2>
+    <button onClick={state.close}>Close</button>
+  </div>
+</FocusScope>
+```

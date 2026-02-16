@@ -168,3 +168,22 @@ Task Duration > 1 hour?
 - Ignoring framework maturity (beta vs production)
 - No fallback strategy (framework lock-in)
 - Overcomplicating simple tasks (use single agent)
+
+**Incorrect — using multi-agent framework for simple task:**
+```python
+# Overkill: LangGraph for single-step task
+workflow = StateGraph(State)
+workflow.add_node("summarize", summarize_node)
+workflow.add_edge(START, "summarize")
+workflow.add_edge("summarize", END)
+app = workflow.compile()
+result = await app.ainvoke({"text": "..."})
+```
+
+**Correct — single LLM call for simple task:**
+```python
+# Simple task = single agent
+from langchain_openai import ChatOpenAI
+llm = ChatOpenAI(model="gpt-5.2")
+result = await llm.ainvoke("Summarize this text: ...")
+```

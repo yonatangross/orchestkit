@@ -34,6 +34,41 @@ CREATE INDEX idx_chunks_content_tsvector ON chunks
     USING gin (content_tsvector);
 ```
 
+**Incorrect — computing tsvector at query time, slow:**
+```sql
+CREATE TABLE chunks (
+    id UUID PRIMARY KEY,
+    content TEXT NOT NULL,
+    embedding vector(1024)
+);
+
+-- Slow query: computes tsvector every time!
+SELECT * FROM chunks
+WHERE to_tsvector('english', content) @@ plainto_tsquery('search query');
+```
+
+**Correct — pre-computed tsvector as GENERATED column:**
+```sql
+CREATE TABLE chunks (
+    id UUID PRIMARY KEY,
+    content TEXT NOT NULL,
+    embedding vector(1024),
+    content_tsvector tsvector GENERATED ALWAYS AS (
+        to_tsvector('english', content)
+    ) STORED  -- Pre-computed, 5-10x faster
+);
+
+-- GIN index for fast keyword search
+CREATE INDEX idx_chunks_content_tsvector ON chunks USING gin (content_tsvector);
+
+-- HNSW index for fast vector search
+CREATE INDEX idx_chunks_embedding ON chunks
+    USING hnsw (embedding vector_cosine_ops) WITH (m = 16, ef_construction = 64);
+
+-- Fast query using pre-computed tsvector
+SELECT * FROM chunks WHERE content_tsvector @@ plainto_tsquery('search query');
+```
+
 **Key rules:**
 - Pre-compute tsvector as GENERATED column — 5-10x faster than `to_tsvector()` at query time
 - Use `vector(1024)` for Voyage-3 embeddings (match your model dimension)

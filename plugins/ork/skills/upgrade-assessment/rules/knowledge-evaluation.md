@@ -56,3 +56,22 @@ dimension_score > 8:   No action needed
 - Weighted composite score determines **overall readiness**
 - P0 items must be addressed **before** starting the upgrade
 - Re-score after addressing findings to **verify improvement**
+
+**Incorrect — Upgrading without evaluation causes production breakage:**
+```bash
+# Just upgrade without assessment
+npm install @anthropic-ai/claude@latest
+git commit -m "upgrade claude"
+# Production breaks: hardcoded model IDs, hook changes, context limits
+```
+
+**Correct — Structured evaluation identifies blockers before upgrade:**
+```bash
+# Phase 1: Detect environment
+./detect-environment.sh
+# Phase 2: Score dimensions (finds 3 CRITICAL issues)
+./score-compatibility.sh
+# Phase 3: Fix P0 blockers BEFORE upgrade
+./fix-model-refs.sh && ./migrate-hooks.sh
+# Then upgrade safely
+```

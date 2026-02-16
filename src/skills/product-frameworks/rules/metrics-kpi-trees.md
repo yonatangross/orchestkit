@@ -99,3 +99,19 @@ Baseline + target for each metric in the tree.
 - **Leading indicators at the leaves** -- actionable by teams
 - **Lagging indicators at the root** -- confirms outcomes
 - **Dashboard the tree** -- make it visible to the whole organization
+
+**Incorrect — Flat metrics without hierarchy:**
+```markdown
+Q1 Goals:
+- Increase revenue
+- Improve engagement
+- Reduce churn
+```
+
+**Correct — KPI tree with cause-effect relationships:**
+```markdown
+Revenue (Lagging)
+├── New Revenue = Leads × Conv Rate (Leading)
+├── Expansion = Users × Upsell Rate (Leading)
+└── Retained = Existing × (1 - Churn Rate) (Lagging)
+```

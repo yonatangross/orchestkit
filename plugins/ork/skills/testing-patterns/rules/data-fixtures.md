@@ -60,3 +60,25 @@ def completed_workflow(user_with_analyses):
         analysis.status = "completed"
     return user_with_analyses
 ```
+
+**Incorrect — Fixtures with hard-coded state that breaks isolation:**
+```python
+@pytest.fixture(scope="module")  # Shared across tests
+def user():
+    return {"id": 1, "email": "test@example.com"}
+
+def test_update_user(user):
+    user["email"] = "updated@example.com"  # Mutates shared state
+```
+
+**Correct — Function-scoped fixtures with composition:**
+```python
+@pytest.fixture
+def user():
+    return UserFactory()  # Fresh instance per test
+
+@pytest.fixture
+def admin_user(user):
+    user.role = "admin"  # Composes on top of user fixture
+    return user
+```

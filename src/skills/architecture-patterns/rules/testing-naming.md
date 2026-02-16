@@ -55,3 +55,19 @@ BLOCKED:
 - Names should read as specifications
 - Use "should" or "when" patterns for clarity
 - Place all tests in dedicated test directories
+
+**Incorrect — vague test name provides no context:**
+```typescript
+test('works', () => {
+    const result = calculateTotal([10, 20]);
+    expect(result).toBe(30);
+});
+```
+
+**Correct — descriptive name documents behavior:**
+```typescript
+test('should sum all item prices when calculating order total', () => {
+    const result = calculateTotal([10, 20]);
+    expect(result).toBe(30);
+});
+```

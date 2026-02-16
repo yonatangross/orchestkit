@@ -160,6 +160,20 @@ const columns: ColumnDef<User>[] = [
 />
 ```
 
+**Incorrect — Missing flexRender:**
+```tsx
+// Direct rendering breaks custom cells
+<TableCell>{cell.column.columnDef.cell}</TableCell>
+```
+
+**Correct — Use flexRender:**
+```tsx
+// Properly renders custom cell components
+<TableCell>
+  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+</TableCell>
+```
+
 ## Dependencies
 
 ```bash

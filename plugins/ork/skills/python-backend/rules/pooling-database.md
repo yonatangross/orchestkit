@@ -60,3 +60,26 @@ async def setup_connection(conn):
 pool_size = (concurrent_requests / avg_queries_per_request) * 1.5
 Example: 100 concurrent / 3 queries = 50
 ```
+
+**Incorrect — Creating engine per request exhausts database connections:**
+```python
+@app.get("/users")
+async def get_users():
+    engine = create_async_engine(DATABASE_URL)  # New pool every request!
+    async with AsyncSession(engine) as session:
+        return await session.execute(select(User))
+```
+
+**Correct — Reuse single engine from lifespan for all requests:**
+```python
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    app.state.engine = create_async_engine(DATABASE_URL, pool_size=20)
+    yield
+    await app.state.engine.dispose()
+
+@app.get("/users")
+async def get_users(request: Request):
+    async with AsyncSession(request.app.state.engine) as session:
+        return await session.execute(select(User))
+```

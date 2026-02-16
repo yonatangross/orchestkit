@@ -103,6 +103,26 @@ CREATE TABLE agent_findings (
 );
 ```
 
+**Incorrect — Violating 1NF (repeating groups):**
+```sql
+-- Multiple values in one column
+CREATE TABLE orders (
+  id UUID PRIMARY KEY,
+  product_ids TEXT  -- '101,102,103' stored as CSV
+);
+```
+
+**Correct — Junction table (1NF compliant):**
+```sql
+-- Atomic values, no repeating groups
+CREATE TABLE orders (id UUID PRIMARY KEY);
+CREATE TABLE order_items (
+  order_id UUID REFERENCES orders(id),
+  product_id UUID,
+  PRIMARY KEY (order_id, product_id)
+);
+```
+
 ## Design Philosophy
 
 1. **Model the domain, not the UI** - Schema reflects business entities

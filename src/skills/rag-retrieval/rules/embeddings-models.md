@@ -49,6 +49,36 @@ def cosine_similarity(a: list[float], b: list[float]) -> float:
 # 1.0 = identical, 0.0 = orthogonal
 ```
 
+**Incorrect — mixing different embedding models:**
+```python
+# Index with one model
+docs_embeddings = client.embeddings.create(
+    model="text-embedding-3-large",  # 3072 dims
+    input=documents
+)
+
+# Query with different model
+query_embedding = client.embeddings.create(
+    model="text-embedding-3-small",  # 1536 dims - MISMATCH!
+    input=query
+)
+# Results will be nonsensical due to dimension mismatch
+```
+
+**Correct — consistent model for queries and documents:**
+```python
+MODEL = "text-embedding-3-small"  # Use same model everywhere
+
+# Index
+docs_embeddings = client.embeddings.create(model=MODEL, input=documents)
+
+# Query
+query_embedding = client.embeddings.create(model=MODEL, input=query)
+
+# Now cosine similarity is meaningful
+similarity = cosine_similarity(query_embedding, docs_embeddings[0])
+```
+
 **Key rules:**
 - Embed queries and documents with the SAME model — never mix
 - Dimension reduction: Can truncate `text-embedding-3-large` to 1536 dims (Matryoshka)

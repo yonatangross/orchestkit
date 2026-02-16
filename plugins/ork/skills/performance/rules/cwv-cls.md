@@ -79,6 +79,16 @@ Prevent Cumulative Layout Shift for the 2026 threshold of <= 0.08.
 }
 ```
 
+**Incorrect — Image without dimensions causes layout shift:**
+```tsx
+<img src="/photo.jpg" alt="Photo" />
+```
+
+**Correct — Explicit dimensions reserve space:**
+```tsx
+<img src="/photo.jpg" width={800} height={600} alt="Photo" />
+```
+
 ## Key Rules
 
 1. **Always** set width/height on images

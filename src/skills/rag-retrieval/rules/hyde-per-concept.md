@@ -39,6 +39,24 @@ class HyDEService:
         return result
 ```
 
+**Incorrect — sequential HyDE generation, slow:**
+```python
+async def batch_hyde(concepts: list[str]) -> list[HyDEResult]:
+    results = []
+    for concept in concepts:  # Sequential! Slow for many concepts
+        result = await hyde_service.generate(concept)
+        results.append(result)
+    return results
+```
+
+**Correct — parallel HyDE generation:**
+```python
+async def batch_hyde(concepts: list[str]) -> list[HyDEResult]:
+    # Parallel generation for all concepts simultaneously
+    tasks = [hyde_service.generate(concept) for concept in concepts]
+    return await asyncio.gather(*tasks)
+```
+
 **Key rules:**
 - For multi-concept queries, decompose first then generate HyDE per concept
 - Cache aggressively — queries often repeat

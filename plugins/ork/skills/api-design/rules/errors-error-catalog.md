@@ -196,6 +196,25 @@ async function fetchWithProblemDetails(url: string): Promise<Response> {
 | 429 | `rate-limit-exceeded` | Too many requests |
 | 500 | `internal-error` | Unexpected error |
 
+**Incorrect — Ad-hoc error creation:**
+```python
+# Different format every endpoint
+raise HTTPException(404, detail="Not found")
+raise HTTPException(404, detail={"error": "Missing"})
+return JSONResponse({"message": "No such resource"}, 404)
+```
+
+**Correct — Centralized error catalog:**
+```python
+# Consistent use of problem types
+raise NotFoundProblem(
+    resource="Analysis",
+    resource_id=analysis_id,
+    instance=str(request.url)
+)
+# Always returns: application/problem+json with standard fields
+```
+
 **Key rules:**
 - Define all problem type URIs in a centralized registry
 - Create specific exception subclasses for each problem type

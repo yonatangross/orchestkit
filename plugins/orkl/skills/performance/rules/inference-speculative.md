@@ -79,6 +79,24 @@ Draft model speculation:
   - Requires extra GPU memory for draft model
 ```
 
+**Incorrect — No speculation means sequential token generation:**
+```bash
+docker run --gpus '"device=0"' \
+  vllm/vllm-openai:latest \
+  --model meta-llama/Llama-3.1-8B-Instruct
+# 4 tokens = 4 forward passes
+```
+
+**Correct — N-gram speculation reduces passes by 30-60%:**
+```bash
+docker run --gpus '"device=0"' \
+  vllm/vllm-openai:latest \
+  --model meta-llama/Llama-3.1-8B-Instruct \
+  --speculative-model [ngram] \
+  --num-speculative-tokens 5
+# 4 tokens ≈ 1.3 forward passes
+```
+
 **Key rules:**
 - **Use** n-gram speculation for structured/repetitive output (free, no extra VRAM)
 - **Use** draft model speculation for general text with large target models

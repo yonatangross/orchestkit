@@ -70,6 +70,28 @@ export default defineConfig({
 });
 ```
 
+**Incorrect — Eager imports bundle all routes together:**
+```tsx
+import Home from './pages/Home';
+import Dashboard from './pages/Dashboard';
+import Settings from './pages/Settings';
+
+const router = createBrowserRouter([
+  { path: '/', element: <Home /> },
+  { path: '/dashboard', element: <Dashboard /> },
+  { path: '/settings', element: <Settings /> },
+]);
+```
+
+**Correct — Lazy routes split per-page bundles:**
+```tsx
+const router = createBrowserRouter([
+  { path: '/', lazy: () => import('./pages/Home') },
+  { path: '/dashboard', lazy: () => import('./pages/Dashboard') },
+  { path: '/settings', lazy: () => import('./pages/Settings') },
+]);
+```
+
 **Key rules:**
 - **Split** at route boundaries as the minimum splitting strategy
 - **Use** React Router `lazy` for automatic route-level splitting

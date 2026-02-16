@@ -78,3 +78,20 @@ server.use(http.get('/api/...', () => HttpResponse.json({...})))
 | Default behavior | Return success |
 | Override scope | Per-test with `server.use()` |
 | Unhandled requests | Error (catch missing mocks) |
+
+**Incorrect — Mocking fetch directly:**
+```typescript
+jest.spyOn(global, 'fetch').mockResolvedValue({
+  json: async () => ({ data: 'mocked' })
+} as Response);
+// Brittle, doesn't match real network behavior
+```
+
+**Correct — Network-level mocking with MSW:**
+```typescript
+server.use(
+  http.get('/api/users/:id', ({ params }) => {
+    return HttpResponse.json({ id: params.id, name: 'Test User' });
+  })
+);
+```

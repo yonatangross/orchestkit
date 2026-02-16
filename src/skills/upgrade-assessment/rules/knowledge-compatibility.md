@@ -58,3 +58,19 @@ total_hours = sum(
 - Hook type and format changes can **silently break** — test all hooks after upgrade
 - Use the **detection patterns** above as a pre-upgrade checklist
 - Track each axis **independently** — model, CC version, and OrchestKit can upgrade separately
+
+**Incorrect — Hardcoded model ID breaks when upgrading to new Claude version:**
+```typescript
+const response = await anthropic.messages.create({
+  model: "claude-opus-4-20250514",  // Breaks when 4.6 becomes default
+  max_tokens: 4096,
+});
+```
+
+**Correct — Model alias and variable config survives upgrades:**
+```typescript
+const response = await anthropic.messages.create({
+  model: process.env.CLAUDE_MODEL || "claude-opus-latest",
+  max_tokens: settings.maxOutputTokens,
+});
+```

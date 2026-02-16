@@ -136,3 +136,24 @@ class AgentMemory:
 - No memory management (context overflow)
 - No error recovery (crashes on tool failure)
 - Over-complex prompts (agent gets confused)
+
+**Incorrect — ReAct loop without step limit:**
+```python
+async def react_loop(question: str, tools: dict):
+    history = f"Question: {question}"
+    while True:  # Infinite loop risk
+        response = await llm.chat([{"role": "user", "content": history}])
+        if "Final Answer:" in response.content:
+            return response.content
+```
+
+**Correct — max_steps prevents infinite loops:**
+```python
+async def react_loop(question: str, tools: dict, max_steps: int = 10):
+    history = f"Question: {question}"
+    for step in range(max_steps):  # Bounded loop
+        response = await llm.chat([{"role": "user", "content": history}])
+        if "Final Answer:" in response.content:
+            return response.content.split("Final Answer:")[-1]
+    return "Max steps reached without answer"
+```

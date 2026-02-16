@@ -83,6 +83,21 @@ git push --force origin main  # NEVER DO THIS
 # It fails if remote has commits you don't have locally
 ```
 
+**Incorrect — Merge main into feature:**
+```bash
+# Creates noisy merge commits
+git checkout feature-branch
+git merge origin/main  # Creates "Merge branch 'main' into feature" commit
+```
+
+**Correct — Rebase onto main:**
+```bash
+# Linear history
+git checkout feature-branch
+git rebase origin/main  # Replays feature commits on top of main
+git push --force-with-lease
+```
+
 ### Key Rules
 
 - Rebase feature branches onto main — don't merge main into feature branches

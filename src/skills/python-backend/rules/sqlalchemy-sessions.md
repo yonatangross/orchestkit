@@ -80,3 +80,23 @@ class User(Base):
 - Set `expire_on_commit=False` to prevent lazy load errors after commit
 - Set `pool_pre_ping=True` for production connection validation
 - Use `lazy="raise"` on all relationships
+
+**Incorrect — expire_on_commit=True causes lazy load errors after commit:**
+```python
+async_session_factory = async_sessionmaker(
+    engine, expire_on_commit=True  # Default, causes issues
+)
+user = await session.execute(select(User).where(User.id == user_id))
+await session.commit()
+print(user.email)  # ERROR: Instance is not bound to a Session
+```
+
+**Correct — expire_on_commit=False allows access after commit:**
+```python
+async_session_factory = async_sessionmaker(
+    engine, expire_on_commit=False  # Prevents lazy load errors
+)
+user = await session.execute(select(User).where(User.id == user_id))
+await session.commit()
+print(user.email)  # Works - object still accessible
+```

@@ -45,3 +45,22 @@ async with asyncio.timeout(10):
 - Breaking this rule breaks TaskGroup and timeout behavior
 - Use `try/finally` for guaranteed resource cleanup
 - Never use bare `create_task()` outside a TaskGroup
+
+**Incorrect — Swallowing CancelledError breaks TaskGroup cancellation propagation:**
+```python
+async def broken_task():
+    try:
+        await long_running_operation()
+    except asyncio.CancelledError:
+        return None  # BUG: TaskGroup cannot cancel properly!
+```
+
+**Correct — Re-raising CancelledError allows proper cleanup and cancellation flow:**
+```python
+async def proper_task():
+    try:
+        await long_running_operation()
+    except asyncio.CancelledError:
+        await cleanup()
+        raise  # CRITICAL: Propagate cancellation
+```

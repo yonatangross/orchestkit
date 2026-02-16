@@ -149,3 +149,20 @@ Notification = Union[EmailNotification, SMSNotification]
 | URL validation | HTTPS + domain allowlist |
 | Polymorphic data | Discriminated unions |
 | Form validation | Zod + React Hook Form |
+
+**Incorrect — Trusting file extension or MIME type allows malicious file uploads:**
+```typescript
+if (file.name.endsWith('.png') && file.type === 'image/png') {
+  await uploadFile(file);  // Can be spoofed by renaming .exe to .png
+}
+```
+
+**Correct — Validating magic bytes ensures file content matches declared type:**
+```typescript
+const buffer = await file.arrayBuffer();
+const bytes = new Uint8Array(buffer);
+const isPNG = bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E;
+if (isPNG) {
+  await uploadFile(file);  // Verified actual PNG file
+}
+```

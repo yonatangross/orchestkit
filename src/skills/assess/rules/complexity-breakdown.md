@@ -66,3 +66,20 @@ If any subtask still scores Level 4+, decompose it again.
 - Use **`TaskCreate` with `addBlockedBy`** to enforce subtask ordering
 - Each subtask should be **independently verifiable** with its own tests
 - Prefer **vertical slices** (end-to-end for one feature) over horizontal layers
+
+**Incorrect — Starting Level 5 task without decomposition:**
+```
+Task: "Migrate authentication to OAuth2"
+Complexity: 4.8 (Level 5)
+Action: Start implementing directly
+// High failure risk, scope creep likely
+```
+
+**Correct — Breaking into Level 1-3 subtasks:**
+```
+1. Research OAuth2 providers (Level 2, 1-2h)
+2. Add OAuth library dependency (Level 1, 30m)
+3. Implement OAuth callback handler (Level 2, 2-4h)
+4. Migrate existing sessions (Level 3, 4-8h)
+5. Add regression tests (Level 2, 2h)
+```

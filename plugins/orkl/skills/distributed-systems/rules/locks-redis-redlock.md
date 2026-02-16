@@ -139,3 +139,15 @@ class Redlock:
 - Releasing without owner check (releases someone else's lock)
 - Using single Redis for critical operations (SPOF)
 - Holding locks across slow external calls without heartbeat
+
+**Incorrect — SET without NX allows multiple processes to "acquire" same lock:**
+```python
+await redis.set(f"lock:{name}", owner_id, ex=30)
+# Two processes can both succeed!
+```
+
+**Correct — SET NX atomically acquires lock only if key doesn't exist:**
+```python
+acquired = await redis.set(f"lock:{name}", owner_id, nx=True, ex=30)
+# Only one process succeeds, others get False
+```

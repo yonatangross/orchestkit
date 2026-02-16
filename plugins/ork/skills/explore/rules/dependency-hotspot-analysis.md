@@ -54,3 +54,33 @@ Task(
   max_turns=25
 )
 ```
+
+**Incorrect — Listing imports without analysis:**
+```markdown
+auth.ts imports:
+- utils.ts
+- config.ts
+- db.ts
+```
+
+**Correct — Hotspot analysis with coupling score:**
+```json
+{
+  "coupling_score": 8,
+  "fan_in": 12,
+  "fan_out": 5,
+  "circular_deps": ["auth.ts → user.ts → auth.ts"],
+  "change_impact": [
+    "auth.ts change breaks 12 files",
+    "utils.ts and auth.ts always change together"
+  ],
+  "hotspot_diagram": "
+    [12 files] --depend on--> [auth.ts]
+                                  |
+                              depends on
+                                  v
+                      [utils, config, db, user, session]
+  "
+}
+```
+```

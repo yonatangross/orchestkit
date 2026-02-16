@@ -73,6 +73,39 @@ Single-event cut sets indicate **no redundancy** — add defense-in-depth.
 | Regulatory compliance analysis | Yes |
 | Post-incident for serious outages | Yes |
 
+**Incorrect — stopping at high-level causes without decomposition:**
+```
+USER CANNOT AUTHENTICATE
+         |
+       [OR]
+    +----+----+
+    |         |
+Auth Service  Account
+   Down       Locked
+```
+
+**Correct — decompose to basic events with AND/OR gates:**
+```
+                USER CANNOT
+                AUTHENTICATE
+                     |
+                   [OR]
+        +------------+------------+
+        |            |            |
+    Invalid      Auth Service   Account
+   Credentials     Down         Locked
+        |            |
+      [OR]         [OR]
+    +---+---+    +---+---+
+    |   |   |    |   |   |
+   Wrong Expired Token DB  Redis External
+   Pass  Token  Invalid Down Down  Auth
+
+Minimal Cut Sets identified:
+  {Wrong Password}, {Expired Token}, {DB Down}, {Account Locked}
+  → All single-event cuts = no redundancy, needs defense-in-depth
+```
+
 ### Key Rules
 
 - Start from the **top event** (failure) and work **downward**

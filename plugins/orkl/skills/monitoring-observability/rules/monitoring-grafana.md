@@ -90,3 +90,14 @@ sum(rate(http_request_duration_seconds_count[30d]))
 3. **Color code thresholds** — green/yellow/red
 4. **Include annotations** — deployments, incidents
 5. **Link to runbooks** — from alert panels
+
+**Incorrect — using average latency hides tail latency:**
+```text
+avg(http_request_duration_seconds)  # Misleading for user experience
+```
+
+**Correct — using percentiles shows tail latency:**
+```text
+histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))
+histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m]))
+```

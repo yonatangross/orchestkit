@@ -144,3 +144,28 @@ sdk.start();
 5. **Add metadata** for debugging (chunk counts, model params)
 6. **Truncate large inputs/outputs** to 500-1000 chars
 7. **Tag production vs staging** traces for environment filtering
+
+**Incorrect — flat trace without nested spans:**
+```python
+@observe()
+async def analyze(content: str):
+    chunks = await retrieve(content)  # Not traced
+    result = await generate(chunks)   # Not traced
+    return result  # No visibility into sub-operations
+```
+
+**Correct — nested spans for full visibility:**
+```python
+@observe(name="content_analysis")
+async def analyze(content: str):
+    @observe(name="retrieval")
+    async def retrieve_context():
+        return await vector_db.search(content)
+
+    @observe(name="generation")
+    async def generate_analysis(chunks):
+        return await llm.generate(chunks)
+
+    chunks = await retrieve_context()
+    return await generate_analysis(chunks)
+```

@@ -152,3 +152,17 @@ Always follow h1-h6 order without skipping levels:
 - **ARIA overuse**: Using ARIA when semantic HTML suffices (prefer `<button>` over `<div role="button">`)
 - **Positive tabindex**: Using `tabIndex > 0` disrupts natural tab order
 - **Decorative images without alt=""**: Must use `alt=""` or `role="presentation"`
+
+**Incorrect — Skipping heading levels:**
+```tsx
+<h1>Page Title</h1>
+<h3>Subsection</h3>  {/* Skipped h2 */}
+// Screen readers rely on heading hierarchy
+```
+
+**Correct — Following h1-h6 order without skipping:**
+```tsx
+<h1>Page Title</h1>
+<h2>Section</h2>
+<h3>Subsection</h3>
+```

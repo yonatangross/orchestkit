@@ -116,6 +116,32 @@ poetry run python scripts/backup_golden_dataset.py restore --replace
 poetry run python scripts/backup_golden_dataset.py restore
 ```
 
+**Incorrect — Storing embeddings in backup:**
+```python
+# Embedding vectors bloat backup file
+backup_data = {
+    "chunks": [{
+        "content": "...",
+        "embedding": [0.123, 0.456, ...],  # 1024 floats!
+    }]
+}
+```
+
+**Correct — Regenerate embeddings on restore:**
+```python
+# Exclude embeddings from backup
+backup_data = {
+    "chunks": [{
+        "content": "...",
+        # No embedding field
+    }]
+}
+
+# Regenerate during restore
+embedding = await embed_text(chunk_data["content"])
+chunk.embedding = embedding  # Fresh with current model
+```
+
 **Key rules:**
 - Always regenerate embeddings on restore -- never store them in backup
 - Commit backups every 10 analyses to avoid huge transactions

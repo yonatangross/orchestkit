@@ -121,3 +121,24 @@ Conservative SOM: min($470M x 3%, $15M, $470M x 70% x 3%)
 | Old data | Use most recent (<2 years) |
 | Single method | Cross-validate top-down and bottom-up |
 | Confusing TAM/SAM | TAM is total, SAM is your reach |
+
+**Incorrect — Unrealistic SOM without constraints:**
+```markdown
+TAM: $10B
+SAM (our segment): $3B
+SOM (10% market share): $300M
+
+This is achievable in 3 years!
+```
+
+**Correct — SOM constrained by realistic factors:**
+```markdown
+SAM: $3B
+
+Constraints:
+- Sales capacity: supports $15M ARR max
+- Competitive pressure: 5 strong incumbents
+- Realistic market share (Year 3): 0.5%
+
+Conservative SOM: min($3B × 0.5%, $15M) = $15M
+```

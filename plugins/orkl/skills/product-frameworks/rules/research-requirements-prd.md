@@ -152,3 +152,21 @@ Scenario: Successful login with valid credentials
 | **Availability** | 99.9% uptime |
 | **Security** | All data encrypted at rest and in transit |
 | **Accessibility** | WCAG 2.1 AA compliant |
+
+**Incorrect — Vague user story without acceptance criteria:**
+```markdown
+As a user, I want better reporting.
+```
+
+**Correct — INVEST user story with acceptance criteria:**
+```markdown
+As a sales manager,
+I want to see my team's pipeline by stage,
+so that I can identify bottlenecks and coach accordingly.
+
+Acceptance Criteria:
+- [ ] Shows deals grouped by stage
+- [ ] Displays deal count and total value per stage
+- [ ] Filters by date range (default: current quarter)
+- [ ] Updates in real-time when deals move stages
+```

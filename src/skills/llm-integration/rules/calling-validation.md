@@ -123,3 +123,26 @@ async def run_tool_loop(
 - Crashing on tool failure instead of returning error
 - No input validation (LLM sends bad params)
 - Missing tool_call_id in response messages
+
+**Incorrect — unbounded tool execution loop:**
+```python
+async def run_tools(user_message: str):
+    messages = [{"role": "user", "content": user_message}]
+    while True:  # Infinite loop risk
+        response = await llm.chat(messages=messages, tools=tools)
+        if not response.tool_calls:
+            return response.content
+        # Execute tools and continue...
+```
+
+**Correct — iteration guard prevents infinite loops:**
+```python
+async def run_tools(user_message: str, max_iterations: int = 10):
+    messages = [{"role": "user", "content": user_message}]
+    for _ in range(max_iterations):
+        response = await llm.chat(messages=messages, tools=tools)
+        if not response.tool_calls:
+            return response.content
+        # Execute tools and continue...
+    raise RuntimeError("Max iterations reached")
+```

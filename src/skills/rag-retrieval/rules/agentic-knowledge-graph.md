@@ -23,6 +23,22 @@ Query → [Entity Extraction] → [KG Lookup] → [Vector Search] → [Merge] �
 | GraphRAG | Entity-rich domains | Knowledge graph + vector hybrid |
 | Agentic | Complex multi-step | Full plan-route-act-verify loop |
 
+**Incorrect — vector-only search missing entity relationships:**
+```python
+async def search(query: str) -> list[dict]:
+    # Misses relationships between entities
+    return await vector_db.search(query, limit=10)
+```
+
+**Correct — hybrid KG + vector search:**
+```python
+async def graph_rag_search(query: str) -> list[dict]:
+    entities = await extract_entities(query)  # Extract entities from query
+    kg_results = await neo4j.lookup_entities(entities)  # KG lookup
+    vector_results = await vector_db.search(query, limit=10)  # Vector search
+    return merge_results(kg_results, vector_results)  # Combine both
+```
+
 **Key rules:**
 - Use GraphRAG when domain has rich entity relationships (people, organizations, products)
 - Combine KG entity lookup with vector similarity for hybrid results

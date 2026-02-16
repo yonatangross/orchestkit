@@ -57,6 +57,20 @@ Rule of thumb: lower quality for large hero images (more compression gain),
 higher quality for small thumbnails (already small files).
 ```
 
+**Incorrect — Single JPEG format misses 30-50% compression savings:**
+```html
+<img src="/photo.jpg" alt="Photo" width="800" height="600" />
+```
+
+**Correct — Modern formats with fallback:**
+```html
+<picture>
+  <source srcset="/photo.avif" type="image/avif" />
+  <source srcset="/photo.webp" type="image/webp" />
+  <img src="/photo.jpg" alt="Photo" width="800" height="600" />
+</picture>
+```
+
 **Key rules:**
 - **Prefer** AVIF as primary format with WebP fallback
 - **Use** quality 72-78 for AVIF and WebP (visually lossless for most photos)

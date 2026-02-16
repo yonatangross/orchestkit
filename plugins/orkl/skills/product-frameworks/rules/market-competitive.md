@@ -154,3 +154,30 @@ gh api repos/owner/repo/contributors --jq 'length'
 | Pricing changes | Monthly |
 | Feature launches | Per announcement |
 | Full analysis | Quarterly |
+
+**Incorrect — Vague competitive assessment:**
+```markdown
+## Competitors
+- Company A: Big player, lots of features
+- Company B: Cheaper option
+- Company C: New entrant
+```
+
+**Correct — Structured competitive analysis with SWOT:**
+```markdown
+## Competitor: Company A
+
+### Strengths / Weaknesses
++ Established brand, 60% market share
++ Enterprise features (SSO, RBAC)
+- Legacy UI, poor mobile experience
+- Slow release cycle (quarterly)
+
+### Threat Assessment: HIGH
+- Direct competitor in enterprise segment
+- Strong sales team, existing relationships
+
+### Our Differentiation
+- Modern UX, mobile-first
+- Weekly releases, faster iteration
+```

@@ -52,6 +52,41 @@ def chunk_multimodal_document(pdf_path: str) -> list[Chunk]:
     return chunks
 ```
 
+**Incorrect — text-only chunking, loses images and tables:**
+```python
+def chunk_pdf(pdf_path: str) -> list[str]:
+    import fitz
+    doc = fitz.open(pdf_path)
+    chunks = []
+    for page in doc:
+        chunks.append(page.get_text())  # Text only, images lost!
+    return chunks
+```
+
+**Correct — multimodal chunking with images and captions:**
+```python
+def chunk_multimodal_document(pdf_path: str) -> list[Chunk]:
+    import fitz
+    doc = fitz.open(pdf_path)
+    chunks = []
+
+    for page_num, page in enumerate(doc):
+        text_blocks = page.get_text("blocks")
+        for block in text_blocks:
+            if block[6] == 0:  # Text block
+                chunks.append(Chunk(content=block[4], chunk_type="text", page=page_num))
+            else:  # Image block
+                xref = block[7]
+                img = doc.extract_image(xref)
+                img_path = f"/tmp/page{page_num}_img{xref}.{img['ext']}"
+                with open(img_path, "wb") as f:
+                    f.write(img["image"])
+                caption = generate_image_caption(img_path)
+                chunks.append(Chunk(content=caption, chunk_type="image", page=page_num, image_path=img_path))
+
+    return chunks
+```
+
 **Key rules:**
 - Extract images separately and generate captions for text-based search
 - Preserve page numbers for citation and navigation

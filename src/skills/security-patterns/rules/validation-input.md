@@ -121,3 +121,22 @@ db.query('SELECT * FROM users WHERE name = ?', [name]);
 | Strategy | Allowlist over blocklist |
 | Location | Server-side always |
 | Error messages | Generic (don't leak info) |
+
+**Incorrect — Trusting client-side validation allows attackers to bypass checks:**
+```typescript
+// Client-side only
+const email = document.getElementById('email').value;
+if (email.includes('@')) {
+  await fetch('/api/users', { method: 'POST', body: JSON.stringify({ email }) });
+}
+// Attacker can bypass with curl/Postman
+```
+
+**Correct — Server-side schema validation with Zod ensures all input is validated:**
+```typescript
+app.post('/api/users', validateBody(z.object({
+  email: z.string().email(),
+})), async (req, res) => {
+  // req.body.email is validated regardless of client
+});
+```

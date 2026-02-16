@@ -134,3 +134,20 @@ Every alert must link to a runbook containing:
 | **PagerDuty** | Critical (on-call) | P1-P2 |
 | **Slack** | Warnings (team channel) | P3 |
 | **Email** | Low priority (daily digest) | P4 |
+
+**Incorrect — alert without for clause causes flapping:**
+```yaml
+- alert: HighErrorRate
+  expr: http_errors_total / http_requests_total > 0.05  # Immediate
+  labels:
+    severity: critical  # Pages on-call for brief spikes
+```
+
+**Correct — for clause prevents flapping:**
+```yaml
+- alert: HighErrorRate
+  expr: http_errors_total / http_requests_total > 0.05
+  for: 5m  # Must sustain 5min before firing
+  labels:
+    severity: critical
+```

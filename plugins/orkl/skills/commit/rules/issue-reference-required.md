@@ -48,6 +48,25 @@ git commit -m "fix(42): resolve null pointer"
 - **Recommended** for any branch linked to a known GitHub issue
 - **Skip** for branches unrelated to issues (e.g., `chore/update-deps`)
 
+**Incorrect — missing issue reference on issue branch:**
+```bash
+# On branch: issue/42-fix-auth
+# No issue reference - breaks traceability!
+git commit -m "fix: resolve null pointer in auth handler"
+```
+
+**Correct — issue reference in commit message:**
+```bash
+# On branch: issue/42-fix-auth
+# Issue number in scope
+git commit -m "fix(#42): resolve null pointer in auth handler"
+
+# Or in body
+git commit -m "fix(auth): resolve null pointer in auth handler
+
+Fixes #42"
+```
+
 ### Soft Rule
 
 This is a soft rule enforced by the `issue-reference-checker` hook, which nudges the developer to add the reference. The commit will not be blocked if the reference is missing.

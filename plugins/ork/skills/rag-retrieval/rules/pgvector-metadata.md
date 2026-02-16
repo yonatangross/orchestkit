@@ -41,6 +41,28 @@ final = deduplicate_and_rerank(all_results)
 | **Persistence** | ACID | AOF/RDB |
 | **Max dataset** | Billions | Memory-bound (~100M) |
 
+**Incorrect — no metadata filtering, irrelevant results:**
+```python
+# Returns all content types mixed together
+results = await session.execute(
+    select(Chunk).order_by(Chunk.embedding.cosine_distance(embedding)).limit(10)
+)
+```
+
+**Correct — filtered search with similarity threshold:**
+```python
+# Filter by content_type and similarity threshold
+results = await session.execute(
+    select(Chunk)
+    .where(Chunk.content_type == "code_block")  # Pre-filter
+    .order_by(Chunk.embedding.cosine_distance(embedding))
+    .limit(50)
+)
+
+# Apply similarity threshold
+filtered = [r for r in results if (1 - r.vector_distance) >= 0.75][:10]
+```
+
 **Key rules:**
 - Metadata boosting (title/path matching) adds +6% MRR
 - Pre-filter by content_type for targeted search

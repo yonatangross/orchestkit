@@ -75,6 +75,19 @@ async def profile_requests(request: Request, call_next):
     return response
 ```
 
+**Incorrect — cProfile in production requires code changes:**
+```python
+# Must instrument code manually
+with cProfile.Profile() as pr:
+    result = expensive_function()
+```
+
+**Correct — py-spy attaches to running process with zero overhead:**
+```bash
+# No code changes, no restart needed
+py-spy record -o profile.svg --pid 12345 --duration 30
+```
+
 **Key rules:**
 - **Use** py-spy in production (zero overhead when not profiling, no code changes)
 - **Use** cProfile in development for detailed call graphs

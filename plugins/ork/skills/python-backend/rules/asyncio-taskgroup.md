@@ -69,3 +69,21 @@ async def process_batch(items: list[dict]) -> tuple[list[dict], list[Exception]]
 - Use **`asyncio.timeout()`** context manager for deadlines
 - Handle **ExceptionGroup** with `except*` for multiple failures
 - TaskGroup auto-cancels remaining tasks when one fails
+
+**Incorrect — gather() doesn't cancel remaining tasks when one fails:**
+```python
+results = await asyncio.gather(
+    fetch_user(user_id),
+    fetch_orders(user_id),
+    fetch_preferences(user_id),
+)  # If one fails, others keep running (resource leak)
+```
+
+**Correct — TaskGroup auto-cancels all tasks when any fails (structured concurrency):**
+```python
+async with asyncio.TaskGroup() as tg:
+    user_task = tg.create_task(fetch_user(user_id))
+    orders_task = tg.create_task(fetch_orders(user_id))
+    prefs_task = tg.create_task(fetch_preferences(user_id))
+# If any fails, all are cancelled automatically
+```

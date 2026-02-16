@@ -60,3 +60,22 @@ async def wrapper_for_sync_lib():
 - Use `asyncio.to_thread()` for clean sync-to-async bridging
 - Never call `asyncio.run()` inside an existing event loop
 - Never block the event loop with `time.sleep()` or `requests.get()`
+
+**Incorrect — Unlimited concurrent requests exhaust connection pools and memory:**
+```python
+async def fetch_all(urls: list[str]):
+    tasks = [fetch_url(url) for url in urls]  # 10,000 concurrent!
+    return await asyncio.gather(*tasks)
+```
+
+**Correct — Semaphore limits concurrency to prevent resource exhaustion:**
+```python
+async def fetch_all(urls: list[str], max_concurrent: int = 10):
+    sem = asyncio.Semaphore(max_concurrent)
+    async def limited_fetch(url):
+        async with sem:
+            return await fetch_url(url)
+    async with asyncio.TaskGroup() as tg:
+        tasks = [tg.create_task(limited_fetch(url)) for url in urls]
+    return [t.result() for t in tasks]
+```

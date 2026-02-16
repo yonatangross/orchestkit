@@ -100,6 +100,35 @@ set -x  # In scripts with secrets in scope
 logger.debug("User authenticated", extra={"user_id": user.id})
 ```
 
+**Incorrect — hardcoded secrets, no auth, SQL injection:**
+```python
+# Hardcoded secret
+API_KEY = "sk-1234567890abcdef"
+
+# No auth protection
+@app.get("/api/admin/users")
+async def list_users():
+    return await db.get_all_users()
+
+# SQL injection vulnerability
+query = f"SELECT * FROM users WHERE id = {user_id}"
+```
+
+**Correct — env vars, auth middleware, parameterized queries:**
+```python
+# Environment variables
+API_KEY = os.environ["API_KEY"]
+
+# Auth middleware
+@app.get("/api/admin/users")
+async def list_users(user: User = Depends(require_admin)):
+    return await db.get_all_users()
+
+# Parameterized query
+query = "SELECT * FROM users WHERE id = $1"
+await db.execute(query, user_id)
+```
+
 ### Review Checklist
 
 | Check | Severity | Action |

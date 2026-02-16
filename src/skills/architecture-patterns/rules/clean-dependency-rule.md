@@ -72,3 +72,22 @@ def get_analysis_service(db: AsyncSession = Depends(get_db)) -> AnalysisService:
 |----------|----------------|
 | Protocol vs ABC | Protocol (structural typing) |
 | Dataclass vs Pydantic | Dataclass for domain, Pydantic for API |
+
+**Incorrect — service directly depends on concrete implementation:**
+```typescript
+class AnalysisService {
+    constructor() {
+        this._repo = new PostgresAnalysisRepository();  // Tight coupling
+    }
+}
+```
+
+**Correct — service depends on abstraction via protocol:**
+```typescript
+class IAnalysisRepository(Protocol):
+    async def get_by_id(self, id: str) -> Analysis | None: ...
+
+class AnalysisService:
+    def __init__(self, repo: IAnalysisRepository):  // Depends on abstraction
+        self._repo = repo
+```

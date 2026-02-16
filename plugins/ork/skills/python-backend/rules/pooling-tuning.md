@@ -77,3 +77,23 @@ async def fetch():
 # NEVER forget to close pools on shutdown
 # NEVER set pool_size too high (exhausts DB connections)
 ```
+
+**Incorrect — No pool monitoring leads to silent connection exhaustion:**
+```python
+# No visibility into pool state
+engine = create_async_engine(url, pool_size=20)
+# App runs slow, no idea why (pool exhausted)
+```
+
+**Correct — Prometheus metrics reveal pool exhaustion before timeouts occur:**
+```python
+from prometheus_client import Gauge
+
+pool_size_gauge = Gauge("db_pool_size", "DB pool size")
+pool_available_gauge = Gauge("db_pool_available", "Available connections")
+
+async def collect_metrics(pool):
+    pool_size_gauge.set(pool.get_size())
+    pool_available_gauge.set(pool.get_idle_size())
+# Alert when pool_available approaches 0
+```

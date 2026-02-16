@@ -150,3 +150,42 @@ analysis = response.choices[0].message.parsed  # Typed Analysis object
 - Missing `additionalProperties: false` in strict mode
 - Using `default` values with strict mode (not supported)
 - Too many tools (LLM gets confused beyond 15)
+
+**Incorrect — invalid strict mode schema with optional parameters:**
+```python
+tools = [{
+    "type": "function",
+    "function": {
+        "name": "search",
+        "strict": True,
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string"},
+                "limit": {"type": "integer", "default": 10}  # Invalid with strict
+            },
+            "required": ["query"]  # Must include all props when strict=True
+        }
+    }
+}]
+```
+
+**Correct — strict mode with all properties required:**
+```python
+tools = [{
+    "type": "function",
+    "function": {
+        "name": "search",
+        "strict": True,
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string"},
+                "limit": {"type": "integer"}
+            },
+            "required": ["query", "limit"],  # All properties required
+            "additionalProperties": False    # Required for strict mode
+        }
+    }
+}]
+```

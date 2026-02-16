@@ -41,6 +41,30 @@ SET hnsw.iterative_scan = 'relaxed_order';
 | **Weaknesses** | Exact matches, technical terms | No semantic understanding |
 | **Index** | HNSW (pgvector) | GIN (tsvector) |
 
+**Incorrect — no index, sequential scan on every query:**
+```sql
+-- No index! Sequential scan is 17x slower
+SELECT * FROM chunks
+ORDER BY embedding <=> '[0.1, 0.2, ...]'::vector
+LIMIT 10;
+```
+
+**Correct — HNSW index for fast queries:**
+```sql
+-- Create HNSW index
+CREATE INDEX idx_chunks_embedding_hnsw ON chunks
+    USING hnsw (embedding vector_cosine_ops)
+    WITH (m = 16, ef_construction = 64);
+
+-- Query-time tuning
+SET hnsw.ef_search = 40;  -- Higher = better recall
+
+-- Now queries are 17x faster
+SELECT * FROM chunks
+ORDER BY embedding <=> '[0.1, 0.2, ...]'::vector
+LIMIT 10;
+```
+
 **Key rules:**
 - Use HNSW for production (scales to millions, 17x faster queries)
 - IVFFlat only for >1000 queries/sec where index build time matters

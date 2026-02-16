@@ -59,3 +59,22 @@ const successRate = new Rate('success_rate');
 |----------|----------------|
 | Thresholds | p95 < 500ms, errors < 1% |
 | Duration | 5-10 min for load, 4h+ for soak |
+
+**Incorrect — No thresholds, tests pass even with poor performance:**
+```javascript
+export const options = {
+  stages: [{ duration: '1m', target: 20 }]
+  // Missing: thresholds for response time and errors
+};
+```
+
+**Correct — Thresholds enforce performance requirements:**
+```javascript
+export const options = {
+  stages: [{ duration: '1m', target: 20 }],
+  thresholds: {
+    http_req_duration: ['p(95)<500'],
+    http_req_failed: ['rate<0.01']
+  }
+};
+```

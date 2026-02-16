@@ -102,6 +102,29 @@ async def get_user_v2(user_id: str, service: UserService = Depends()):
 | Query Param | `?version=1` | Easy testing | Messy, cache issues |
 | Content-Type | `Accept: application/vnd.api.v1+json` | RESTful | Complex |
 
+**Incorrect — Versioned services:**
+```python
+# Services should be version-agnostic
+class UserServiceV1:
+    async def get_user(self, id: str):
+        ...
+
+class UserServiceV2:
+    async def get_user(self, id: str):
+        ...
+```
+
+**Correct — Version-agnostic services:**
+```python
+# Single service, version handled in response schemas
+class UserService:
+    async def get_user(self, id: str) -> User:
+        return await self.repo.get_by_id(id)
+
+# v1/routes/users.py returns UserResponseV1
+# v2/routes/users.py returns UserResponseV2
+```
+
 **Key rules:**
 - Always start with `/api/v1/` even if no v2 is planned
 - Keep services version-agnostic; only schemas and routes are versioned

@@ -207,3 +207,20 @@ function Select(props) {
 <label htmlFor="email">Email</label>
 <input id="email" placeholder="user@example.com" />
 ```
+
+**Incorrect — Placeholder as label, no explicit association:**
+```tsx
+<input type="text" placeholder="Enter your email" />
+// Screen readers can't identify field purpose reliably
+```
+
+**Correct — useTextField with proper label association:**
+```tsx
+const { labelProps, inputProps } = useTextField({ label: 'Email' }, ref);
+return (
+  <>
+    <label {...labelProps}>Email</label>
+    <input {...inputProps} ref={ref} />
+  </>
+);
+```

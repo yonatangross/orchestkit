@@ -224,3 +224,19 @@ useEffect(() => inputRef.current?.focus(), []);
 // NEVER hide skip links permanently - must be visible on focus
 .skip-link { display: none; }
 ```
+
+**Incorrect — Removing focus outline globally:**
+```css
+*:focus {
+  outline: none;
+}
+/* Violates WCAG 2.4.7, keyboard users can't see focus */
+```
+
+**Correct — Using focus-visible for keyboard-only indicators:**
+```css
+:focus-visible {
+  outline: 3px solid #0052cc;
+  outline-offset: 2px;
+}
+```

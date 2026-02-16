@@ -113,6 +113,22 @@ def upgrade() -> None:
 | Checksum deployed migrations | Detect unauthorized changes |
 | Environment parity | Consistent deployments |
 
+**Incorrect — Skipping environments:**
+```bash
+# Dangerous: Deploy to prod without staging test
+alembic upgrade head  # On production DB directly
+```
+
+**Correct — Progressive deployment:**
+```bash
+# Safe: Test in each environment sequentially
+alembic upgrade head  # Local
+# CI tests pass
+alembic upgrade head  # Staging
+# Smoke tests pass
+alembic upgrade head  # Production
+```
+
 ## Anti-Patterns
 
 - Modifying deployed migrations (create new migration instead)

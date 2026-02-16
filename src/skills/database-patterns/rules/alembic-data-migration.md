@@ -107,6 +107,23 @@ def upgrade() -> None:
 | 10K-1M rows | Batched UPDATE in migration | LIMIT + commit per batch |
 | > 1M rows | Background script + trigger | Trigger for new rows, script for old |
 
+**Incorrect — Single-phase NOT NULL:**
+```python
+# Locks table for entire backfill duration
+def upgrade():
+    op.add_column('users', sa.Column('org_id', UUID, nullable=False))
+    op.execute("UPDATE users SET org_id = 'default-uuid'")
+```
+
+**Correct — Two-phase NOT NULL:**
+```python
+# Phase 1: Add as nullable, backfill
+def upgrade():
+    op.add_column('users', sa.Column('org_id', UUID, nullable=True))
+    op.execute("UPDATE users SET org_id = 'default-uuid' WHERE org_id IS NULL")
+# Phase 2 (separate migration): Add NOT NULL after verification
+```
+
 ## Common Mistakes
 
 - Adding NOT NULL without two-phase approach (locks entire table)

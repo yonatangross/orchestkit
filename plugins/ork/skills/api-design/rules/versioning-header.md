@@ -107,6 +107,22 @@ async def test_header_versioning(client: AsyncClient):
 | **Best for** | Public APIs | Internal APIs |
 | **Multiple versions** | Separate route trees | Single route tree |
 
+**Incorrect — No default version:**
+```python
+# Breaks when header missing
+async def get_version(x_api_version: str = Header()):
+    return int(x_api_version)  # Error if header absent!
+```
+
+**Correct — Default to latest version:**
+```python
+# Falls back to latest stable version
+async def get_version(
+    x_api_version: str = Header(default="2")
+) -> int:
+    return int(x_api_version)
+```
+
 **Key rules:**
 - Default to latest stable version when header is absent
 - Validate version against a supported versions set

@@ -45,6 +45,25 @@ const nextConfig = {
 
 Open React DevTools and look for the "Memo ✨" badge on components. If present, the compiler is successfully memoizing that component.
 
+**Incorrect — Manual memoization when compiler is enabled:**
+```tsx
+// next.config.js has reactCompiler: true
+const value = useMemo(() => compute(data), [data]);
+const callback = useCallback(() => handle(), []);
+// Compiler already handles this automatically
+```
+
+**Correct — Let compiler auto-memoize:**
+```tsx
+// Compiler handles memoization automatically
+function Component({ data }) {
+  const value = compute(data); // Auto-memoized
+  const handle = () => {}; // Auto-memoized
+  return <div onClick={handle}>{value}</div>;
+}
+// Check DevTools for "Memo ✨" badge
+```
+
 ## Key Rules
 
 1. **Enable** React Compiler as the first step

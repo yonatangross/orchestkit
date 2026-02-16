@@ -104,3 +104,21 @@ Payback Period = Initial Investment / Annual Cash Flow
 | Underestimating timeline | Add 30-50% buffer to implementation estimates |
 | Sunk cost fallacy | Evaluate future costs/benefits only |
 | Confirmation bias | Have skeptic review the case |
+
+**Incorrect — Using simple ROI without time value of money:**
+```markdown
+Investment: $500,000
+Total benefits over 5 years: $1,000,000
+ROI = ($1M - $500K) / $500K = 100% - APPROVED
+```
+
+**Correct — Using NPV to account for time value:**
+```python
+npv = calculate_npv(
+    initial_investment=500_000,
+    cash_flows=[200_000] * 5,
+    discount_rate=0.10
+)
+# NPV = $258,157 (positive, but much less than naive ROI)
+# Accept if NPV > 0 and meets hurdle rate
+```

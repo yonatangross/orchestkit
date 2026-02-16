@@ -63,3 +63,19 @@ const createAnalysis = (overrides = {}) => ({
 | Strategy | Factories over fixtures |
 | Faker | Use for realistic random data |
 | Scope | Function-scoped for isolation |
+
+**Incorrect — Hard-coded test data that causes conflicts:**
+```python
+def test_create_user():
+    user = User(id=1, email="test@example.com")
+    db.add(user)
+    # Hard-coded ID causes failures when test runs multiple times
+```
+
+**Correct — Factory-generated data with realistic randomization:**
+```python
+def test_create_user():
+    user = UserFactory()  # Generates unique email, random name
+    db.add(user)
+    assert user.email.endswith('@example.com')
+```

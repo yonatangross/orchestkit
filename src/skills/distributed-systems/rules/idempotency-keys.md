@@ -129,3 +129,19 @@ key = f"{event.id}:{datetime.now()}"  # Timestamp varies!
 async def create_payment(data):
     return await process_payment(data)  # No idempotency!
 ```
+
+**Incorrect — Random UUID keys make retry detection impossible:**
+```python
+# Client generates new key on each retry
+key = str(uuid.uuid4())  # New key every time!
+await post("/api/orders", headers={"Idempotency-Key": key}, data=order)
+# Retry creates duplicate order
+```
+
+**Correct — Deterministic keys ensure retries are detected and deduplicated:**
+```python
+# Client generates same key for same operation
+key = hashlib.sha256(f"{order_id}:create:{json.dumps(order_data, sort_keys=True)}".encode()).hexdigest()
+await post("/api/orders", headers={"Idempotency-Key": key}, data=order)
+# Retry returns cached response
+```

@@ -41,3 +41,20 @@ def test_complex_analysis():
 | Marker strategy | Category (smoke, integration) + Resource (db, llm) |
 | CI fast path | `pytest -m "not slow"` for PR checks |
 | Nightly | `pytest` (all markers) for full coverage |
+
+**Incorrect — Using markers without registering them:**
+```python
+@pytest.mark.slow
+def test_complex():
+    pass
+# Pytest warns: PytestUnknownMarkWarning
+```
+
+**Correct — Register markers in pyproject.toml:**
+```toml
+[tool.pytest.ini_options]
+markers = [
+    "slow: marks tests as slow",
+    "integration: marks tests requiring external services"
+]
+```

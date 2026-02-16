@@ -169,6 +169,18 @@ Every Radix primitive includes:
 <Button className="focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
 ```
 
+**Incorrect — Manual state styling:**
+```tsx
+// Hard to maintain, breaks when state changes
+<div className={isOpen ? "opacity-100" : "opacity-0"}>
+```
+
+**Correct — Data attribute styling:**
+```tsx
+// Uses Radix's built-in state tracking
+<Dialog.Content className="data-[state=open]:animate-in data-[state=closed]:animate-out">
+```
+
 ## Keyboard Shortcuts Reference
 
 | Component | Key | Action |
