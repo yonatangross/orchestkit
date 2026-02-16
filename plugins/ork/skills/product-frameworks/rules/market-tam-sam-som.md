@@ -2,6 +2,8 @@
 title: "Market: TAM/SAM/SOM Sizing"
 category: market
 impact: HIGH
+impactDescription: "Ensures accurate market sizing using both top-down and bottom-up approaches with realistic SOM constraints"
+tags: tam, sam, som, market-sizing, market-analysis
 ---
 
 # TAM/SAM/SOM Market Sizing

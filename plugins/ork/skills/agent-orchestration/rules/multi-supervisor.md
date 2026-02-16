@@ -2,6 +2,8 @@
 title: "Multi-Agent: Supervisor Pattern"
 category: multi
 impact: CRITICAL
+impactDescription: "Ensures central coordinator routes tasks to specialist agents with parallel execution and timeout handling"
+tags: supervisor, routing, fan-out, fan-in, agent-teams
 ---
 
 # Supervisor Pattern

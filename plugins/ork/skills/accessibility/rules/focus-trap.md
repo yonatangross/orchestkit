@@ -2,6 +2,8 @@
 title: "Focus: Focus Trap"
 category: focus
 impact: HIGH
+impactDescription: "Ensures keyboard focus is trapped within modal dialogs and can be escaped with the Escape key"
+tags: focus, trap, modal, keyboard, escape
 ---
 
 # Focus Trap (WCAG 2.1.1, 2.1.2)

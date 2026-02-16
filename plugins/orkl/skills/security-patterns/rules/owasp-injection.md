@@ -2,6 +2,8 @@
 title: "OWASP: Injection Prevention"
 category: owasp
 impact: CRITICAL
+impactDescription: "Prevents SQL, command, and SSRF injection attacks through parameterized queries and input validation"
+tags: sql-injection, command-injection, ssrf, idor, owasp
 ---
 
 # Injection Prevention

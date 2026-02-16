@@ -2,6 +2,8 @@
 title: "Resilience: Bulkhead Isolation"
 category: resilience
 impact: CRITICAL
+impactDescription: "Ensures failure isolation by partitioning resources into independent pools with tier-based capacity limits"
+tags: resilience, bulkhead, isolation, tiers, capacity
 ---
 
 # Bulkhead Pattern

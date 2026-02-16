@@ -353,3 +353,9 @@ Sequential Block C (verification):
 - [Plan Report Template](assets/plan-report.md) — Full mustache-style report
 - [Impact Dashboard Template](assets/impact-dashboard.md) — Impact table
 - [Tier 1 Header Template](assets/tier1-header.md) — 5-line summary
+
+## Related Skills
+
+- `implement` - Execute planned changes
+- `explore` - Understand current architecture
+- `assess` - Evaluate complexity and risks

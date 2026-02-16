@@ -2,6 +2,8 @@
 title: "Mocking: LLM APIs"
 category: mocking
 impact: HIGH
+impactDescription: "Enables deterministic LLM API testing through VCR.py cassette recording with custom matchers and sensitive data filtering"
+tags: llm, vcr, mocking, api-testing, cassettes
 ---
 
 # LLM API Mocking

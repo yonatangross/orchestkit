@@ -2,6 +2,8 @@
 title: "Research: Requirements & PRD"
 category: research
 impact: HIGH
+impactDescription: "Ensures proper requirement engineering with INVEST user stories and comprehensive PRD documentation"
+tags: prd, user-stories, requirements, acceptance-criteria, invest
 ---
 
 # Requirements Engineering & PRDs

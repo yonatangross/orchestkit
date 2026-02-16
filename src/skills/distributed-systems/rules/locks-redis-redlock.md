@@ -2,6 +2,8 @@
 title: "Locks: Redis & Redlock"
 category: locks
 impact: CRITICAL
+impactDescription: "Ensures fault-tolerant distributed locking using Redis with Lua scripts and multi-node Redlock algorithm"
+tags: locks, redis, redlock, distributed, lua
 ---
 
 # Redis & Redlock Distributed Locks

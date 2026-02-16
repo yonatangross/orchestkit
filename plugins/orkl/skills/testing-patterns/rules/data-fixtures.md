@@ -2,6 +2,8 @@
 title: "Data: JSON Fixtures"
 category: data
 impact: MEDIUM
+impactDescription: "Establishes structured JSON fixtures and composition patterns for deterministic test data management"
+tags: test-data, fixtures, json, pytest, composition
 ---
 
 # JSON Fixtures and Composition

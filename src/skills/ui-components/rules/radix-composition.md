@@ -2,6 +2,8 @@
 title: "Radix: Composition"
 category: radix
 impact: HIGH
+impactDescription: "Enables polymorphic component rendering and nested trigger composition through Radix's asChild pattern"
+tags: radix, composition, asChild, slot, polymorphic
 ---
 
 # Radix Composition Patterns

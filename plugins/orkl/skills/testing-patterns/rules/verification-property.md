@@ -2,6 +2,8 @@
 title: "Verification: Property-Based Testing"
 category: verification
 impact: MEDIUM
+impactDescription: "Discovers edge cases through generative testing with Hypothesis to validate universal properties"
+tags: property-based-testing, hypothesis, generative-testing, edge-cases, fuzzing
 ---
 
 # Property-Based Testing with Hypothesis

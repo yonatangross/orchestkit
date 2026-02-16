@@ -2,6 +2,8 @@
 title: "Integration: API Testing"
 category: integration
 impact: HIGH
+impactDescription: "Validates API contract correctness and error handling through HTTP-level integration tests"
+tags: api-testing, integration, supertest, httpx, http
 ---
 
 # API Integration Testing

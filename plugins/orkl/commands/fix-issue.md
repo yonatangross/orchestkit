@@ -20,6 +20,10 @@ Systematic issue resolution with hypothesis-based root cause analysis, similar i
 
 > **Opus 4.6**: Root cause analysis uses native adaptive thinking. Dynamic token budgets scale with context window for thorough investigation.
 
+## Overview
+
+Systematic issue resolution with hypothesis-based root cause analysis. Uses parallel agents to investigate similar issues, form hypotheses, and validate fixes. Includes prevention recommendations and lessons learned capture to break recurring issue cycles.
+
 
 ## STEP 0: Verify User Intent with AskUserQuestion
 

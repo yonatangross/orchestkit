@@ -2,6 +2,8 @@
 title: "WCAG: Semantic HTML"
 category: wcag
 impact: CRITICAL
+impactDescription: "Ensures proper document structure with semantic HTML and ARIA attributes for screen readers"
+tags: wcag, semantic, html, aria, structure
 ---
 
 # Semantic HTML & ARIA (WCAG 1.3.1, 4.1.2)

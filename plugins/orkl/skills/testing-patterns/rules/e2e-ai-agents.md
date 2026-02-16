@@ -2,6 +2,8 @@
 title: "E2E: AI Agents"
 category: e2e
 impact: HIGH
+impactDescription: "Enables AI-powered test planning, generation, and self-healing through Playwright's built-in agent framework"
+tags: playwright, ai-agents, self-healing, test-generation, automation
 ---
 
 # Playwright AI Agents (1.58+)

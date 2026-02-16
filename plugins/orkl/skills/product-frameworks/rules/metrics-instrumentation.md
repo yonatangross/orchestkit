@@ -2,6 +2,8 @@
 title: "Metrics: Instrumentation & Definition"
 category: metrics
 impact: HIGH
+impactDescription: "Ensures proper metric instrumentation with formal definitions, event naming conventions, and alerting thresholds"
+tags: instrumentation, metrics, events, kpis, analytics
 ---
 
 # Metric Instrumentation & Definition

@@ -1,10 +1,10 @@
 {
-  "version": "2.0.0",
+  "version": "2.1.0",
   "organization": "OrchestKit",
   "date": "February 2026",
-  "abstract": "Browser automation and content capture patterns covering Playwright/agent-browser setup, page interaction with snapshot refs, content extraction, SPA extraction (React/Vue/Angular), multi-page scraping strategies, anti-bot handling, authentication flows, and structured output conversion.",
-  "ruleCount": 8,
-  "categories": 8,
+  "abstract": "OrchestKit orchestration wrapper for browser automation. Adds security rules, rate limiting, and ethical scraping guardrails on top of the upstream agent-browser skill.",
+  "ruleCount": 4,
+  "categories": 2,
   "consolidatedFrom": [
     "browser-automation",
     "browser-content-capture"

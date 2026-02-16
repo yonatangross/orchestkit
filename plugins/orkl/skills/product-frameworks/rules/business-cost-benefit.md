@@ -2,6 +2,8 @@
 title: "Business: Cost-Benefit & TCO"
 category: business
 impact: HIGH
+impactDescription: "Ensures comprehensive cost-benefit analysis including build vs. buy TCO comparisons and hidden costs"
+tags: tco, cost-benefit, build-vs-buy, roi, business-case
 ---
 
 # Cost-Benefit & Total Cost of Ownership

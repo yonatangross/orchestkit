@@ -2,6 +2,8 @@
 title: "Mocking: VCR.py"
 category: mocking
 impact: HIGH
+impactDescription: "Records and replays HTTP interactions for deterministic integration tests with sensitive data filtering"
+tags: vcr, http-recording, python, integration-testing, cassettes
 ---
 
 # VCR.py HTTP Recording

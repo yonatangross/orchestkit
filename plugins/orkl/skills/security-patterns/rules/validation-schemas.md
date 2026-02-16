@@ -2,6 +2,8 @@
 title: "Validation: Advanced Schemas & File Validation"
 category: validation
 impact: HIGH
+impactDescription: "Ensures secure file uploads and polymorphic data validation through magic byte checking and discriminated unions"
+tags: file-validation, discriminated-unions, magic-bytes, upload-security
 ---
 
 # Advanced Schemas & File Validation

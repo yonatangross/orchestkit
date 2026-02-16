@@ -2,6 +2,8 @@
 title: "PII: Redaction & Observability Integration"
 category: pii
 impact: HIGH
+impactDescription: "Prevents PII leakage in logs and traces through automatic redaction in Langfuse, structlog, and observability tools"
+tags: pii-redaction, langfuse, logging, observability, presidio
 ---
 
 # PII Redaction & Observability Integration

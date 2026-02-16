@@ -2,6 +2,8 @@
 title: "A11y: Playwright axe-core"
 category: a11y
 impact: MEDIUM
+impactDescription: "Validates full-page accessibility compliance including interactive states through E2E testing with axe-core"
+tags: accessibility, playwright, axe, e2e, wcag
 ---
 
 # Playwright + axe-core E2E

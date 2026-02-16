@@ -2,6 +2,8 @@
 title: "Defense: 8-Layer Security Architecture"
 category: defense
 impact: CRITICAL
+impactDescription: "Ensures defense-in-depth with 8 security layers from edge protection to observability"
+tags: defense-in-depth, security-layers, waf, authorization, validation
 ---
 
 # 8-Layer Security Architecture

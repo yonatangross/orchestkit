@@ -2,6 +2,8 @@
 title: "Data: Factory Patterns"
 category: data
 impact: MEDIUM
+impactDescription: "Provides reusable test data builders with realistic randomization for isolated, maintainable tests"
+tags: test-data, factories, faker, factoryboy, isolation
 ---
 
 # Test Data Factories

@@ -2,6 +2,8 @@
 title: "Integration: Component Testing"
 category: integration
 impact: HIGH
+impactDescription: "Tests React components with providers and user interactions for realistic integration coverage"
+tags: react, component-testing, integration, user-event, testing-library
 ---
 
 # React Component Integration Testing

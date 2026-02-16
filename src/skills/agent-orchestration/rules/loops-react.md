@@ -2,6 +2,8 @@
 title: "Loops: ReAct Pattern"
 category: loops
 impact: HIGH
+impactDescription: "Ensures agents reason step-by-step, take actions via tools, observe results, and iterate until reaching a final answer"
+tags: react, reasoning, tools, self-correction, memory
 ---
 
 # ReAct Pattern (Reasoning + Acting)

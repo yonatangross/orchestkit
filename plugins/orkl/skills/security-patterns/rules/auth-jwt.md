@@ -2,6 +2,8 @@
 title: "Auth: JWT Tokens & Password Hashing"
 category: auth
 impact: CRITICAL
+impactDescription: "Prevents credential theft through secure Argon2id password hashing and time-limited JWT tokens with rotation"
+tags: jwt, password-hashing, argon2, tokens, refresh-tokens
 ---
 
 # JWT Tokens & Password Hashing

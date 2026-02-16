@@ -2,6 +2,8 @@
 title: "Pytest: Parallel Execution"
 category: pytest
 impact: HIGH
+impactDescription: "Accelerates test suites through pytest-xdist parallel execution with proper worker isolation"
+tags: pytest, parallel-testing, xdist, performance, worker-isolation
 ---
 
 # Parallel Execution with pytest-xdist

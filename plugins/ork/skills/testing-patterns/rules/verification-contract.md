@@ -2,6 +2,8 @@
 title: "Verification: Contract Testing"
 category: verification
 impact: MEDIUM
+impactDescription: "Ensures API contract compatibility between consumers and providers using Pact-based contract testing"
+tags: contract-testing, pact, api-contracts, microservices, integration
 ---
 
 # Contract Testing with Pact

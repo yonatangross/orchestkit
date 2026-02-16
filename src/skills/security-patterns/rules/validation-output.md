@@ -2,6 +2,8 @@
 title: "Validation: Output Encoding & XSS Prevention"
 category: validation
 impact: HIGH
+impactDescription: "Prevents XSS attacks through proper HTML sanitization, output encoding, and security headers"
+tags: xss-prevention, output-encoding, dompurify, security-headers
 ---
 
 # Output Encoding & XSS Prevention

@@ -2,6 +2,8 @@
 title: "PII: Detection Patterns"
 category: pii
 impact: HIGH
+impactDescription: "Prevents PII exposure through regex and ML-based detection using Presidio and LLM Guard"
+tags: pii-detection, presidio, llm-guard, anonymization
 ---
 
 # PII Detection Patterns

@@ -2,6 +2,8 @@
 title: "Rate Limiting: Sliding Window"
 category: ratelimit
 impact: HIGH
+impactDescription: "Ensures precise rate limiting without boundary spikes by tracking individual request timestamps in Redis sorted sets"
+tags: ratelimit, sliding-window, redis, precision, quota
 ---
 
 # Sliding Window Rate Limiting

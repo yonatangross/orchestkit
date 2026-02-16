@@ -2,6 +2,8 @@
 title: "Unit: AAA Pattern"
 category: unit
 impact: CRITICAL
+impactDescription: "Enforces Arrange-Act-Assert structure for clear, maintainable unit tests with proper isolation"
+tags: unit-testing, aaa-pattern, test-structure, isolation, best-practices
 ---
 
 # AAA Pattern (Arrange-Act-Assert)

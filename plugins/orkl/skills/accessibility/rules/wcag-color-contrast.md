@@ -2,6 +2,8 @@
 title: "WCAG: Color Contrast"
 category: wcag
 impact: CRITICAL
+impactDescription: "Ensures text and UI components meet minimum 4.5:1 contrast ratio for readability"
+tags: wcag, contrast, color, accessibility, readability
 ---
 
 # Color Contrast (WCAG 1.4.3, 1.4.11)

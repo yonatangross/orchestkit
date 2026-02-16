@@ -2,6 +2,8 @@
 title: "LLM: DeepEval Quality"
 category: llm
 impact: HIGH
+impactDescription: "Validates LLM output quality across multiple dimensions using automated metrics for relevancy, faithfulness, and hallucination"
+tags: llm, deepeval, quality-metrics, rag, evaluation
 ---
 
 # DeepEval Quality Testing

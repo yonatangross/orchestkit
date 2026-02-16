@@ -2,6 +2,8 @@
 title: "Scenario: Routing & Synchronization"
 category: scenario
 impact: MEDIUM
+impactDescription: "Ensures milestone synchronization, difficulty scaling, and failure recovery across multi-scenario orchestration"
+tags: synchronization, routing, checkpointing, scaling, recovery
 ---
 
 # Scenario Routing & Synchronization

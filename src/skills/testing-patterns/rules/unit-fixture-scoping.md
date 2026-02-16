@@ -2,6 +2,8 @@
 title: "Unit: Fixture Scoping"
 category: unit
 impact: CRITICAL
+impactDescription: "Optimizes test performance through proper fixture scope selection while maintaining test isolation"
+tags: pytest, fixtures, scoping, performance, isolation
 ---
 
 # Fixture Scoping

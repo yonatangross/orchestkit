@@ -2,6 +2,8 @@
 title: "LLM: Mock Responses"
 category: llm
 impact: HIGH
+impactDescription: "Ensures deterministic, fast unit tests for LLM-dependent code through proper mocking and VCR patterns"
+tags: llm, mocking, vcr, testing, deterministic
 ---
 
 # LLM Response Mocking

@@ -2,6 +2,8 @@
 title: "Auth: OAuth 2.1 & Passkeys"
 category: auth
 impact: CRITICAL
+impactDescription: "Prevents authorization vulnerabilities through mandatory PKCE, token rotation, and phishing-resistant passkeys"
+tags: oauth, pkce, passkeys, webauthn, dpop
 ---
 
 # OAuth 2.1 & Passkeys/WebAuthn

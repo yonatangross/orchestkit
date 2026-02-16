@@ -2,6 +2,8 @@
 title: "LLM: Content Filtering & Three-Phase Pattern"
 category: llm
 impact: HIGH
+impactDescription: "Prevents LLM data leakage by separating content from identifiers across pre-LLM, LLM call, and post-LLM phases"
+tags: llm-security, three-phase, content-filtering, attribution
 ---
 
 # Content Filtering & Three-Phase Pattern

@@ -2,6 +2,8 @@
 title: "Rate Limiting: Distributed & Tiered"
 category: ratelimit
 impact: HIGH
+impactDescription: "Ensures API protection through distributed rate limiting with SlowAPI, Redis, and tiered user limits"
+tags: ratelimit, distributed, slowapi, redis, tiers
 ---
 
 # Distributed Rate Limiting with SlowAPI and Tiered Limits

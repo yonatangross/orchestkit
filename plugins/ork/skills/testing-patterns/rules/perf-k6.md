@@ -2,6 +2,8 @@
 title: "Performance: k6 Patterns"
 category: perf
 impact: MEDIUM
+impactDescription: "Establishes load testing thresholds and patterns for API performance validation with k6"
+tags: performance, k6, load-testing, thresholds, ci
 ---
 
 # k6 Load Testing

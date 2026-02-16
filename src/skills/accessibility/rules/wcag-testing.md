@@ -2,6 +2,8 @@
 title: "WCAG: Accessibility Testing"
 category: wcag
 impact: CRITICAL
+impactDescription: "Ensures accessibility compliance through automated testing with axe-core and manual screen reader verification"
+tags: wcag, testing, axe-core, screen-reader, automation
 ---
 
 # Accessibility Testing

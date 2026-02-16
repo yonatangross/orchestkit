@@ -2,6 +2,8 @@
 title: "A11y: jest-axe Testing"
 category: a11y
 impact: MEDIUM
+impactDescription: "Enables fast accessibility feedback during development through unit-level component testing with jest-axe"
+tags: accessibility, jest, axe, unit-testing, component
 ---
 
 # jest-axe Unit Testing

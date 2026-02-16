@@ -2,6 +2,8 @@
 title: "E2E: Playwright Core"
 category: e2e
 impact: HIGH
+impactDescription: "Establishes semantic locator patterns and best practices for resilient Playwright E2E tests"
+tags: playwright, e2e, locators, semantic, resilience
 ---
 
 # Playwright E2E Testing (1.58+)

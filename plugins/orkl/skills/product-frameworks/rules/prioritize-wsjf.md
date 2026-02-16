@@ -2,6 +2,8 @@
 title: "Prioritize: WSJF & MoSCoW"
 category: prioritize
 impact: HIGH
+impactDescription: "Ensures optimal prioritization using Cost of Delay and MoSCoW scope management"
+tags: wsjf, moscow, cost-of-delay, safe, scope-management
 ---
 
 # WSJF & MoSCoW Prioritization

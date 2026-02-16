@@ -2,6 +2,8 @@
 title: "React Aria: Forms"
 category: aria
 impact: HIGH
+impactDescription: "Ensures form controls like comboboxes, text fields, and listboxes have proper labels and keyboard navigation"
+tags: react-aria, forms, combobox, textfield, listbox
 ---
 
 # React Aria Forms (useComboBox, useTextField, useListBox)

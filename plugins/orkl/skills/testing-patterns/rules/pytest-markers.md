@@ -2,6 +2,8 @@
 title: "Pytest: Custom Markers"
 category: pytest
 impact: HIGH
+impactDescription: "Enables selective test execution through custom pytest markers for smoke, integration, and slow tests"
+tags: pytest, markers, test-organization, ci-optimization, selective-testing
 ---
 
 # Custom Pytest Markers

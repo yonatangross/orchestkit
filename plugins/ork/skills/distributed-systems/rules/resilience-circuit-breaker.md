@@ -2,6 +2,8 @@
 title: "Resilience: Circuit Breaker"
 category: resilience
 impact: CRITICAL
+impactDescription: "Prevents cascade failures by tripping circuit when downstream service exceeds failure thresholds with recovery probes"
+tags: resilience, circuit-breaker, failures, fallback, recovery
 ---
 
 # Circuit Breaker Pattern

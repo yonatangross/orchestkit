@@ -2,6 +2,8 @@
 title: "Multi-Agent: Result Synthesis"
 category: multi
 impact: HIGH
+impactDescription: "Ensures parallel agent outputs are combined into coherent, actionable results with quality metrics"
+tags: synthesis, aggregation, coordination, collaboration, results
 ---
 
 # Result Synthesis
