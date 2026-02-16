@@ -126,6 +126,17 @@ semgrep --config "p/python-security-audit" .
 grep -rn "requests.get\|urllib.urlopen" --include="*.py" .
 ```
 
+**Incorrect — interpolating user input directly into SQL query:**
+```python
+query = f"SELECT * FROM users WHERE email = '{email}'"
+cursor.execute(query)
+```
+
+**Correct — using parameterized query to prevent injection:**
+```python
+cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
+```
+
 ## Quick Reference
 
 | Vulnerability | Fix |

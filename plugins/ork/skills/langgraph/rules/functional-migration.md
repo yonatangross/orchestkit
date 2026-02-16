@@ -82,6 +82,42 @@ const workflow = entrypoint(
 - Subgraph composition with different state schemas
 - Graph topologies that aren't linear/tree-shaped
 
+**Incorrect — using Graph API for simple linear workflow:**
+```python
+from langgraph.graph import StateGraph
+
+def node_a(state):
+    return {"data": process(state["input"])}
+
+def node_b(state):
+    return {"result": transform(state["data"])}
+
+# Verbose for simple linear flow
+graph = StateGraph(State)
+graph.add_node("a", node_a)
+graph.add_node("b", node_b)
+graph.add_edge("a", "b")
+app = graph.compile()
+```
+
+**Correct — Functional API for simple workflows:**
+```python
+from langgraph.func import entrypoint, task
+
+@task
+def process_data(input: str) -> str:
+    return process(input)
+
+@task
+def transform_data(data: str) -> str:
+    return transform(data)
+
+@entrypoint()
+def workflow(input: str) -> str:
+    data = process_data(input).result()  # Clean, simple
+    return transform_data(data).result()
+```
+
 **Key rules:**
 - Functional API is best for sequential and orchestrator-worker patterns
 - Use Graph API when you need complex topology (loops, diamonds, dynamic routing)

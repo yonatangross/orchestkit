@@ -52,3 +52,25 @@ async def get_user(user_id: int, service: UserService = Depends(get_user_service
     except UserNotFoundError:
         raise HTTPException(404, "User not found")
 ```
+
+**Incorrect — database logic in router layer:**
+```typescript
+@router.post("/users")
+async def create_user(data: UserCreate, db: AsyncSession = Depends(get_db)) {
+    user = User(**data.dict());  // Business logic in router
+    db.add(user);  // Database access in router
+    await db.commit();
+    return user;
+}
+```
+
+**Correct — router delegates to service layer:**
+```typescript
+@router.post("/users")
+async def create_user(
+    data: UserCreate,
+    service: UserService = Depends(get_user_service)
+) {
+    return await service.create_user(data);  // Service handles logic
+}
+```

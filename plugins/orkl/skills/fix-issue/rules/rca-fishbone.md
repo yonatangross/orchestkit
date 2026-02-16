@@ -58,6 +58,45 @@ Visualize multiple potential causes organized by category. Best for problems wit
 | Safety-critical failure analysis | No — use Fault Tree |
 | Recurring issue with no clear pattern | Yes |
 
+**Incorrect — jumping to one cause without category analysis:**
+```markdown
+### API Latency Spike Analysis
+
+**Root Cause:** N+1 query in user endpoint
+**Fix:** Add query optimization
+```
+
+**Correct — fishbone analysis across all categories:**
+```markdown
+### API Latency Spike — Fishbone Analysis
+
+**Code:**
+- N+1 query in user endpoint (CONFIRMED via query log)
+- Sync blocking call to external API
+
+**Infrastructure:**
+- DB connection pool exhausted (CONFIRMED: 0 available connections)
+- Network saturation (ruled out: 20% utilization)
+
+**Dependencies:**
+- Redis timeout increased (ruled out: within SLA)
+
+**Configuration:**
+- Connection pool size too small (CONFIRMED: 10 max, need 50)
+
+**Process:**
+- No load testing in CI (process gap)
+
+**Root Causes (cross-category):**
+1. N+1 query (Code) + small pool (Config) = exhaustion
+2. Missing load tests (Process) = undetected before prod
+
+**Actions:**
+- Fix N+1 query immediately
+- Increase pool size 10 → 50
+- Add load tests to CI
+```
+
 ### Key Rules
 
 - Use **software-specific categories** (Code, Infrastructure, Dependencies, Configuration, Process, People)

@@ -59,3 +59,24 @@ await expect(page).toHaveScreenshot('checkout-page.png', {
 2. **Core Transaction:** Purchase, booking, submission
 3. **Data Operations:** Create, update, delete
 4. **User Settings:** Profile update, preferences
+
+**Incorrect — Duplicating selectors across tests:**
+```typescript
+test('checkout flow', async ({ page }) => {
+  await page.getByLabel('Email').fill('test@example.com');
+  await page.getByRole('button', { name: 'Submit' }).click();
+});
+
+test('another checkout test', async ({ page }) => {
+  await page.getByLabel('Email').fill('user@example.com');  // Duplicated
+  await page.getByRole('button', { name: 'Submit' }).click();  // Duplicated
+});
+```
+
+**Correct — Page Object encapsulates selectors:**
+```typescript
+const checkout = new CheckoutPage(page);
+await checkout.fillEmail('test@example.com');
+await checkout.submit();
+await checkout.expectConfirmation();
+```

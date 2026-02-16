@@ -105,6 +105,28 @@ async def prewarm_models() -> None:
 - **DON'T** skip pre-warming in CI (30-60s cold start)
 - **DON'T** load more than 3 models simultaneously
 
+**Incorrect — hardcoding cloud API with no local fallback:**
+```python
+from langchain_openai import ChatOpenAI
+
+llm = ChatOpenAI(model="gpt-5.2")  # Always uses cloud, ignores local setup
+response = await llm.ainvoke("Generate code...")
+```
+
+**Correct — provider factory switches between local and cloud:**
+```python
+import os
+from langchain_ollama import ChatOllama
+from langchain_openai import ChatOpenAI
+
+def get_llm_provider(task_type: str = "general"):
+    if os.getenv("OLLAMA_ENABLED") == "true":
+        return ChatOllama(model="qwen2.5-coder:32b", keep_alive="5m")
+    return ChatOpenAI(model="gpt-5.2")
+
+llm = get_llm_provider(task_type="coding")
+```
+
 ## Key Decisions
 
 | Decision | Recommendation |

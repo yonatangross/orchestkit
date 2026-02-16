@@ -60,3 +60,28 @@ def test_access_matrix(role, status):
     expected = (role == "admin" and status == "active")
     assert user.can_modify() == expected
 ```
+
+**Incorrect — Duplicating test logic for each edge case:**
+```typescript
+test('validates empty email', () => {
+  expect(isValidEmail('')).toBe(false);
+});
+test('validates missing @', () => {
+  expect(isValidEmail('invalid')).toBe(false);
+});
+test('validates missing domain', () => {
+  expect(isValidEmail('user@')).toBe(false);
+});
+```
+
+**Correct — Parametrized test covers all edge cases:**
+```typescript
+test.each([
+  ['', false],
+  ['invalid', false],
+  ['user@', false],
+  ['test@example.com', true]
+])('isValidEmail(%s) returns %s', (email, expected) => {
+  expect(isValidEmail(email)).toBe(expected);
+});
+```

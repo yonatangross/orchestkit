@@ -161,6 +161,21 @@ grep -rn "@csrf_exempt" --include="*.py" .
 semgrep --config "p/python-security-audit" .
 ```
 
+**Incorrect — reading JWT algorithm from untrusted token header:**
+```python
+header = jwt.get_unverified_header(token)
+payload = jwt.decode(token, SECRET_KEY, algorithms=[header['alg']])
+```
+
+**Correct — hardcoding expected algorithm with claim validation:**
+```python
+payload = jwt.decode(
+    token, SECRET_KEY,
+    algorithms=['HS256'],
+    options={'require': ['exp', 'iat', 'iss', 'aud']},
+)
+```
+
 ## Summary
 
 | Vulnerability | Bandit ID | Fix |

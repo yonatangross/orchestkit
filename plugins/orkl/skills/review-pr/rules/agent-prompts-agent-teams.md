@@ -64,4 +64,20 @@ SendMessage(type="shutdown_request", recipient="frontend-reviewer", content="Rev
 TeamDelete()
 ```
 
+**Incorrect — No team teardown:**
+```python
+# Agents keep running indefinitely
+Task(subagent_type="code-quality-reviewer", team_name="review-pr-123")
+Task(subagent_type="security-auditor", team_name="review-pr-123")
+# Missing shutdown_request calls!
+```
+
+**Correct — Proper team teardown:**
+```python
+# After review synthesis complete
+SendMessage(type="shutdown_request", recipient="quality-reviewer", content="Review complete")
+SendMessage(type="shutdown_request", recipient="security-reviewer", content="Review complete")
+TeamDelete()  # Clean shutdown
+```
+
 > **Fallback:** If team formation fails, use standard Task tool spawns from [agent-prompts-task-tool.md](agent-prompts-task-tool.md).

@@ -61,6 +61,43 @@ response = client.embeddings.create(
 )
 ```
 
+**Incorrect — no caching or batching, wasteful API calls:**
+```python
+async def embed_texts(texts: list[str]) -> list[list[float]]:
+    results = []
+    for text in texts:  # One API call per text!
+        embedding = await client.embeddings.create(
+            model="text-embedding-3-large",
+            input=text
+        )
+        results.append(embedding.data[0].embedding)
+    return results
+```
+
+**Correct — cached batching with rate limiting:**
+```python
+async def batch_embed(texts: list[str], batch_size: int = 100) -> list[list[float]]:
+    results = []
+    for i in range(0, len(texts), batch_size):
+        batch = texts[i:i + batch_size]
+        # Check cache first
+        cached_keys = [cache.get(text) for text in batch]
+        uncached = [t for t, c in zip(batch, cached_keys) if not c]
+
+        if uncached:
+            embeddings = await client.embeddings.create(
+                model="text-embedding-3-large",
+                input=uncached,
+                dimensions=1536  # Matryoshka reduction
+            )
+            for text, emb in zip(uncached, embeddings.data):
+                cache.set(text, emb.embedding)  # Cache for reuse
+
+        results.extend([cached or cache.get(t) for t, cached in zip(batch, cached_keys)])
+        await asyncio.sleep(0.1)  # Rate limiting
+    return results
+```
+
 **Key rules:**
 - Late Chunking: Embed full document, extract chunk vectors from contextualized tokens
 - Cache aggressively — same text + model = same embedding, no need to recompute

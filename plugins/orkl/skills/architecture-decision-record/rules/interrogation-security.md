@@ -75,6 +75,34 @@ def get_tags(request):
                     [doc_id, user.tenant_id])
 ```
 
+**Incorrect — no authorization, trusts frontend, SQL injection:**
+```python
+# WRONG: No auth check, SQL injection, no tenant filter
+def get_tags(request):
+    doc_id = request.params["doc_id"]
+    return db.query(f"SELECT * FROM tags WHERE doc_id = '{doc_id}'")
+```
+
+**Correct — layered security with tenant isolation:**
+```python
+def get_tags(request):
+    doc_id = request.params["doc_id"]
+
+    # Layer 1: Authentication
+    user = authenticate(request)
+
+    # Layer 2: Resource ownership check
+    doc = db.get(Document, doc_id)
+    if doc.tenant_id != user.tenant_id:
+        raise ForbiddenError()
+
+    # Layer 3: Parameterized query with tenant filter
+    return db.query(
+        "SELECT * FROM tags WHERE doc_id = %s AND tenant_id = %s",
+        [doc_id, user.tenant_id]  # Prevents SQL injection, enforces tenant isolation
+    )
+```
+
 ### Key Rules
 
 - Tenant isolation must be enforced at the **database query level**, not just UI

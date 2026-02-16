@@ -96,6 +96,33 @@ git commit -m "feat(#123): Add user dashboard"
 | Mix of feat + fix + chore | One commit per type |
 | Formatting mixed with logic changes | Format first, then logic |
 
+**Incorrect — staging everything at once, mixed concerns:**
+```bash
+# Staging all files including mixed changes
+git add .
+git commit -m "feat: Add login and fix billing and update config"
+# Unreviewable, can't revert parts!
+```
+
+**Correct — interactive staging for separate atomic commits:**
+```bash
+# Stage auth changes interactively
+git add -p src/auth/login.ts
+# y - stage login validation hunks
+# n - skip other hunks
+git add src/auth/login.test.ts
+git commit -m "feat(#123): Add login validation"
+
+# Stage billing changes interactively
+git add -p src/billing/invoice.ts
+git add src/billing/invoice.test.ts
+git commit -m "fix(#456): Resolve invoice calculation bug"
+
+# Stage config separately
+git add config/webpack.config.js
+git commit -m "chore: Update webpack config"
+```
+
 ### Key Rules
 
 - Use `git add -p` as the default — stage interactively, not `git add .`

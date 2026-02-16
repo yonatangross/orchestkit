@@ -77,6 +77,26 @@ function SearchResults() {
 }}>Calculate</button>
 ```
 
+**Incorrect — Blocking click handler delays visual feedback:**
+```tsx
+<button onClick={() => {
+  const result = heavyComputation(); // Blocks paint
+  setResult(result);
+}}>Calculate</button>
+```
+
+**Correct — Deferred work keeps UI responsive:**
+```tsx
+<button onClick={() => {
+  setLoading(true);
+  requestIdleCallback(() => {
+    const result = heavyComputation();
+    setResult(result);
+    setLoading(false);
+  });
+}}>Calculate</button>
+```
+
 ## Key Rules
 
 1. **Break** long tasks > 50ms with `scheduler.yield()`

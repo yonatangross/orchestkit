@@ -206,3 +206,25 @@ from autogen_agentchat.teams import RoundRobinGroupChat
 4. One function per tool with clear descriptions
 5. Use try/except around team.run()
 6. Use run_stream() for real-time feedback
+
+**Incorrect — team without termination condition runs indefinitely:**
+```python
+team = RoundRobinGroupChat(
+    participants=[planner, executor, reviewer]
+    # No termination condition - infinite loop risk
+)
+result = await team.run(task="Complete task")
+```
+
+**Correct — explicit termination prevents infinite loops:**
+```python
+termination = OrTerminationCondition(
+    TextMentionTermination("APPROVED"),
+    MaxMessageTermination(max_messages=20)
+)
+team = RoundRobinGroupChat(
+    participants=[planner, executor, reviewer],
+    termination_condition=termination
+)
+result = await team.run(task="Complete task")
+```

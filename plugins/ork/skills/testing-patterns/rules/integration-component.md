@@ -35,3 +35,24 @@ test('form submits and shows success', async () => {
 - Use `userEvent.setup()` for realistic interactions
 - Assert on user-visible outcomes, not implementation details
 - Use `findBy*` for async assertions (auto-waits)
+
+**Incorrect — Testing implementation details:**
+```typescript
+test('form updates state', () => {
+  const { result } = renderHook(() => useFormState());
+  act(() => result.current.setEmail('test@example.com'));
+  expect(result.current.email).toBe('test@example.com');
+  // Tests internal state, not user outcomes
+});
+```
+
+**Correct — Testing user-visible behavior:**
+```typescript
+test('form submits and shows success', async () => {
+  const user = userEvent.setup();
+  render(<UserForm />);
+  await user.type(screen.getByLabelText('Email'), 'test@example.com');
+  await user.click(screen.getByRole('button', { name: /submit/i }));
+  expect(await screen.findByText(/success/i)).toBeInTheDocument();
+});
+```

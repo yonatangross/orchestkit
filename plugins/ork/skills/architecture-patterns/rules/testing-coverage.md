@@ -57,3 +57,21 @@ def db_engine():
 - Use function scope for mutable state, session scope for expensive setup
 - Include cleanup via `yield` in fixtures
 - 100% coverage required for all new code
+
+**Incorrect — fixture without cleanup leaks resources:**
+```python
+@pytest.fixture
+def db_session():
+    session = create_session()
+    return session  # No cleanup, connection leak
+```
+
+**Correct — yield ensures cleanup runs:**
+```python
+@pytest.fixture
+def db_session():
+    session = create_session()
+    yield session
+    session.rollback()  # Always runs after test
+    session.close()
+```

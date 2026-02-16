@@ -54,6 +54,24 @@ def web_search(state: RAGState) -> dict:
     return {"documents": web_docs, "web_search_needed": False}
 ```
 
+**Incorrect — no fallback path or retry limits:**
+```python
+def route_after_grading(state: RAGState) -> str:
+    if state["web_search_needed"]:
+        return "transform_query"  # Infinite loop possible!
+    return "generate"
+```
+
+**Correct — bounded retries with web fallback:**
+```python
+def route_after_grading(state: RAGState) -> str:
+    if state["web_search_needed"]:
+        if state.get("retry_count", 0) < 2:  # Max 2 retries
+            return "transform_query"
+        return "web_search"  # Fallback to web
+    return "generate"
+```
+
 **Key rules:**
 - Fallback order: Rewrite query (2x max) -> Web search -> Abstain
 - Max 2-3 retries for query rewriting to prevent infinite loops

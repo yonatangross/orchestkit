@@ -83,6 +83,22 @@ async def list_analyses(
 | Exposing internals | `/users-table` | `/users` |
 | Generic errors | `"Something went wrong"` | `"Email already exists"` |
 
+**Incorrect — Verbs in URLs:**
+```python
+# RPC-style endpoints
+POST /createUser
+POST /users/123/delete
+GET /getUserOrders?id=123
+```
+
+**Correct — REST conventions:**
+```python
+# Resource-oriented
+POST /users
+DELETE /users/123
+GET /users/123/orders
+```
+
 **Key rules:**
 - Always use plural nouns for resources
 - Use kebab-case for multi-word resource names

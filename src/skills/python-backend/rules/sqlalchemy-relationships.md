@@ -68,3 +68,21 @@ async def get_data_from_multiple_users(user_ids: list[UUID]) -> list[dict]:
 | Lazy loading | `lazy="raise"` + explicit loads | Prevents accidental N+1 |
 | Eager loading | `selectinload` for collections | Better than joinedload for async |
 | Concurrent queries | Separate sessions per task | AsyncSession is NOT thread-safe |
+
+**Incorrect — Lazy loading causes N+1 query problem (1 + 100 queries):**
+```python
+users = await db.execute(select(User).limit(100))
+for user in users.scalars():
+    print(user.orders)  # Separate query for EACH user's orders!
+# Total queries: 1 (users) + 100 (orders) = 101 queries
+```
+
+**Correct — Eager loading with selectinload fetches all data in 2 queries:**
+```python
+users = await db.execute(
+    select(User).options(selectinload(User.orders)).limit(100)
+)
+for user in users.scalars():
+    print(user.orders)  # Already loaded, no extra query
+# Total queries: 2 (users + orders in batch)
+```

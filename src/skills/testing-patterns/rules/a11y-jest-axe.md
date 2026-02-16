@@ -49,3 +49,26 @@ it('form is accessible', async () => {
 - Test all component states (default, error, loading, disabled)
 - Never disable axe rules globally
 - Use for fast feedback in development
+
+**Incorrect — Only testing the default state:**
+```typescript
+it('form is accessible', async () => {
+  const { container } = render(<LoginForm />);
+  expect(await axe(container)).toHaveNoViolations();
+  // Missing: error, loading, disabled states
+});
+```
+
+**Correct — Testing all component states:**
+```typescript
+it('form is accessible in all states', async () => {
+  const { container, rerender } = render(<LoginForm />);
+  expect(await axe(container)).toHaveNoViolations();
+
+  rerender(<LoginForm error="Invalid email" />);
+  expect(await axe(container)).toHaveNoViolations();
+
+  rerender(<LoginForm loading={true} />);
+  expect(await axe(container)).toHaveNoViolations();
+});
+```

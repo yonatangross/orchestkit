@@ -73,3 +73,26 @@ class TestCalculateDiscount:
 - Slow tests (external calls)
 - Shared state between tests
 - Over-mocking (testing mocks not code)
+
+**Incorrect — Testing implementation details:**
+```typescript
+test('updates internal state', () => {
+  const service = new UserService();
+  service.setEmail('test@example.com');
+  expect(service._email).toBe('test@example.com');  // Private field
+});
+```
+
+**Correct — Testing public behavior with AAA pattern:**
+```typescript
+test('updates user email', () => {
+  // Arrange
+  const service = new UserService();
+
+  // Act
+  service.updateEmail('test@example.com');
+
+  // Assert
+  expect(service.getEmail()).toBe('test@example.com');
+});
+```

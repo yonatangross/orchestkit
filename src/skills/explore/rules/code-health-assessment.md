@@ -61,3 +61,32 @@ Task(
   max_turns=25
 )
 ```
+
+**Incorrect — Vague code quality feedback:**
+```markdown
+Code Review: The code looks okay. Some parts are complex.
+Maybe add more tests.
+```
+
+**Correct — Structured health assessment with scores:**
+```json
+{
+  "overall_score": 6.2,
+  "dimensions": {
+    "readability": 8,
+    "maintainability": 5,
+    "testability": 4,
+    "complexity": 6,
+    "documentation": 8
+  },
+  "hotspots": [
+    "auth.ts:45 - nested if/else 5 levels deep",
+    "utils.ts:120 - 200-line function, no SRP"
+  ],
+  "recommendations": [
+    "Extract auth.ts:45-80 to separate validation functions",
+    "Add unit tests for utils.ts edge cases"
+  ]
+}
+```
+```

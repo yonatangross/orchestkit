@@ -50,6 +50,33 @@ async def decomposed_search(query: str, search_fn, llm, top_k: int = 10) -> list
     return reciprocal_rank_fusion(results_per_concept, k=60)[:top_k]
 ```
 
+**Incorrect — no decomposition, single query for complex topics:**
+```python
+async def search(query: str, top_k: int = 10) -> list[dict]:
+    # "How does authentication affect database performance?"
+    # Single query misses one of the two concepts
+    return await vector_search(query, limit=top_k)
+```
+
+**Correct — decompose and fuse with RRF:**
+```python
+async def decomposed_search(query: str, top_k: int = 10) -> list[dict]:
+    if not is_multi_concept_heuristic(query):
+        return await search_fn(query, limit=top_k)  # Fast path
+
+    # Decompose: "authentication" + "database performance"
+    concepts = await decompose_query(query, llm)
+    if len(concepts) <= 1:
+        return await search_fn(query, limit=top_k)
+
+    # Parallel retrieval per concept
+    tasks = [search_fn(concept, limit=top_k) for concept in concepts]
+    results_per_concept = await asyncio.gather(*tasks)
+
+    # Fuse with RRF
+    return reciprocal_rank_fusion(results_per_concept, k=60)[:top_k]
+```
+
 **Key rules:**
 - Max 2-4 concepts per query (more increases latency without proportional benefit)
 - Use gpt-5.2-mini for decomposition (fast, cheap, good at concept extraction)

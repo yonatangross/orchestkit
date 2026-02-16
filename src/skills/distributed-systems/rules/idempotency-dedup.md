@@ -136,3 +136,28 @@ async def good_process(key):
     except IntegrityError:
         pass  # Already processed
 ```
+
+**Incorrect — Redis-only deduplication loses state after restart:**
+```python
+async def process_event(event_id: str):
+    if await redis.exists(f"processed:{event_id}"):
+        return  # Already processed
+    await handle_event(event_id)
+    await redis.set(f"processed:{event_id}", "1", ex=86400)
+# Redis restart = all events reprocessed!
+```
+
+**Correct — Dual-layer dedup: Redis (fast) + database (durable):**
+```python
+async def process_event(event_id: str):
+    # Fast path: Redis check
+    if await redis.exists(f"processed:{event_id}"):
+        return
+    # Durable check: Database with unique constraint
+    try:
+        await db.execute("INSERT INTO processed_events (event_id) VALUES ($1)", event_id)
+        await handle_event(event_id)
+        await redis.set(f"processed:{event_id}", "1", ex=86400)
+    except UniqueViolationError:
+        pass  # Already processed
+```

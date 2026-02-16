@@ -50,6 +50,24 @@ async def create_export(data: ExportRequest, arq: ArqRedis = Depends(get_arq_poo
     return {"job_id": job.job_id}
 ```
 
+**Incorrect — Using BackgroundTasks for long jobs:**
+```python
+# In-process task blocks other requests
+@router.post("/export")
+async def create_export(background_tasks: BackgroundTasks):
+    background_tasks.add_task(generate_large_export)  # 5+ minutes!
+    return {"status": "started"}
+```
+
+**Correct — Use distributed queue:**
+```python
+# Offload to worker, instant response
+@router.post("/export")
+async def create_export(arq: ArqRedis = Depends(get_arq_pool)):
+    job = await arq.enqueue_job("generate_large_export")
+    return {"job_id": job.job_id}
+```
+
 ## Key Decisions
 
 | Scenario | Use |

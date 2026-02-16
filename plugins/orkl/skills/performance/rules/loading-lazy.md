@@ -72,6 +72,28 @@ function DashboardSkeleton() {
 }
 ```
 
+**Incorrect — Missing Suspense fallback causes error:**
+```tsx
+const Dashboard = lazy(() => import('./Dashboard'));
+
+function App() {
+  return <Dashboard />; // Error: no Suspense boundary
+}
+```
+
+**Correct — Suspense with skeleton fallback:**
+```tsx
+const Dashboard = lazy(() => import('./Dashboard'));
+
+function App() {
+  return (
+    <Suspense fallback={<DashboardSkeleton />}>
+      <Dashboard />
+    </Suspense>
+  );
+}
+```
+
 **Key rules:**
 - **Wrap** every `lazy()` component in a `Suspense` boundary
 - **Add** an error boundary around Suspense for network failures

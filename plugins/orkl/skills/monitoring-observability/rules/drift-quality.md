@@ -166,3 +166,20 @@ Monitor drift in RAG retrieval quality by comparing retrieved document overlap a
 | Quality threshold | avg_score > 0.7 for production |
 | Canary frequency | Every 6 hours minimum |
 | Embedding method | Centroid distance for speed, cluster PSI for depth |
+
+**Incorrect — comparing quality to fixed threshold:**
+```python
+def check_quality(current_score: float):
+    if current_score < 0.7:  # Static threshold, no baseline
+        alert("Quality degradation")
+```
+
+**Correct — comparing against rolling baseline:**
+```python
+def check_quality(current_scores: list, baseline_scores: list):
+    current_mean = np.mean(current_scores)
+    baseline_mean = np.mean(baseline_scores)
+    drift_pct = (baseline_mean - current_mean) / baseline_mean
+    if drift_pct > 0.1:  # 10% drop from baseline
+        alert(f"Quality drift: {drift_pct:.1%} drop")
+```

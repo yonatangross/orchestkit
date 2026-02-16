@@ -188,3 +188,22 @@ async def test_tenant_a_cannot_see_tenant_b_documents(tenant_a_ctx, tenant_b_ctx
 
     assert result is None  # Tenant A cannot see tenant B's data
 ```
+
+**Incorrect — Optional tenant filtering allows cross-tenant data access:**
+```python
+async def find_documents(tenant_id: UUID | None = None):
+    query = select(Document)
+    if tenant_id:  # Can be bypassed by omitting parameter
+        query = query.where(Document.tenant_id == tenant_id)
+    return await session.execute(query)
+```
+
+**Correct — Immutable RequestContext makes tenant filtering mandatory and tamper-proof:**
+```python
+async def find_documents(ctx: RequestContext):
+    # Tenant filter is mandatory via immutable context
+    query = select(Document).where(
+        Document.tenant_id == ctx.tenant_id  # Cannot be bypassed
+    )
+    return await session.execute(query)
+```

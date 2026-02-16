@@ -60,6 +60,30 @@ async def contextualize_parallel(document: str, chunks: list[str]) -> list[str]:
     return await asyncio.gather(*[process_chunk(c) for c in chunks])
 ```
 
+**Incorrect — missing context generation and hybrid indexing:**
+```python
+def add_document(self, doc_id: str, text: str):
+    # No contextualization, no hybrid indexing
+    raw_chunks = self._chunk_text(text, 512)
+    embeddings = self.embed_model.embed(raw_chunks)
+    self.chunks.extend(embeddings)
+```
+
+**Correct — complete pipeline with contextualization and hybrid search:**
+```python
+def add_document(self, doc_id: str, text: str, chunk_size: int = 512):
+    raw_chunks = self._chunk_text(text, chunk_size)
+    contextualized = self._contextualize_batch(text, raw_chunks)  # Add context
+    embeddings = self.embed_model.embed(contextualized)  # Embed with context
+
+    for i, (raw, ctx, emb) in enumerate(zip(raw_chunks, contextualized, embeddings)):
+        self.chunks.append(ContextualChunk(
+            original=raw, contextualized=ctx, embedding=emb,
+            doc_id=doc_id, chunk_index=i
+        ))
+    self._rebuild_bm25()  # Hybrid BM25 + vector
+```
+
 **Key rules:**
 - Use contextual retrieval when: documents have important metadata, chunks lose context, quality is critical
 - Skip if: chunks are self-contained (Q&A pairs), low-latency indexing required, cost-sensitive with many small docs

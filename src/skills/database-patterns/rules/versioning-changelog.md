@@ -101,6 +101,29 @@ CREATE VIEW orders_summary_v2 AS SELECT order_id, customer_id, total, shipping_c
 CREATE VIEW orders_summary AS SELECT * FROM orders_summary_v2;  -- Current alias
 ```
 
+**Incorrect — Mutable audit log:**
+```sql
+-- Allows modification/deletion of history
+CREATE TABLE audit_log (
+  id SERIAL PRIMARY KEY,
+  action TEXT,
+  changed_at TIMESTAMP
+);
+-- Missing: Triggers, permissions to prevent changes
+```
+
+**Correct — Immutable audit trail:**
+```sql
+-- Append-only with JSONB for full history
+CREATE TABLE change_log (
+  id BIGSERIAL PRIMARY KEY,
+  old_data JSONB,
+  new_data JSONB,
+  changed_at TIMESTAMP DEFAULT NOW()
+);
+REVOKE DELETE, UPDATE ON change_log FROM app_user;
+```
+
 ## Best Practices
 
 | Practice | Reason |

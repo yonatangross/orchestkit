@@ -98,3 +98,23 @@ await streamChat('Hello', (token) => {
 - Missing error handling in stream
 - Not closing connections properly
 - Buffering entire response (defeats purpose of streaming)
+
+**Incorrect — buffering entire response before sending:**
+```python
+@app.get("/chat/stream")
+async def stream_chat(prompt: str):
+    full_response = ""
+    async for token in async_stream(prompt):
+        full_response += token  # Accumulate everything
+    return {"response": full_response}  # Send all at once
+```
+
+**Correct — streaming tokens incrementally:**
+```python
+@app.get("/chat/stream")
+async def stream_chat(prompt: str):
+    async def generate():
+        async for token in async_stream(prompt):
+            yield {"event": "token", "data": token}  # Send immediately
+    return EventSourceResponse(generate())
+```

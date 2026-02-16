@@ -163,3 +163,26 @@ useEffect(() => { modalRef.current?.focus(); }, []);  // Incomplete!
   <div role="dialog">...</div>
 </FocusScope>
 ```
+
+**Incorrect — Focus trap without escape mechanism:**
+```tsx
+function Modal({ isOpen, children }) {
+  const ref = useFocusTrap(isOpen);
+  return isOpen ? (
+    <div ref={ref} role="dialog">{children}</div>
+  ) : null;
+  // No Escape key handler, user is trapped
+}
+```
+
+**Correct — FocusScope with escape via Escape key:**
+```tsx
+function Modal({ isOpen, onClose, children }) {
+  useEscapeKey(onClose, isOpen);
+  return isOpen ? (
+    <FocusScope contain restoreFocus autoFocus>
+      <div role="dialog">{children}</div>
+    </FocusScope>
+  ) : null;
+}
+```

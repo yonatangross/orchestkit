@@ -41,3 +41,23 @@ test('modal state has no violations', async ({ page }) => {
 | WCAG level | AA (wcag2aa) | Industry standard |
 | State testing | Test all interactive states | Modal, error, loading |
 | Browser matrix | Chromium + Firefox | Cross-browser coverage |
+
+**Incorrect — Testing page without WCAG tags:**
+```typescript
+test('page has no violations', async ({ page }) => {
+  await page.goto('/');
+  const results = await new AxeBuilder({ page }).analyze();
+  expect(results.violations).toEqual([]);
+});
+```
+
+**Correct — Testing with WCAG 2.2 AA compliance:**
+```typescript
+test('page meets WCAG 2.2 AA', async ({ page }) => {
+  await page.goto('/');
+  const results = await new AxeBuilder({ page })
+    .withTags(['wcag2a', 'wcag2aa', 'wcag22aa'])
+    .analyze();
+  expect(results.violations).toEqual([]);
+});
+```

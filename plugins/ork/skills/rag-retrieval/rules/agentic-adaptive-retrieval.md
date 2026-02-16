@@ -47,6 +47,26 @@ async def adaptive_search(question: str, top_k: int = 10) -> list[dict]:
         return await web_search(question)
 ```
 
+**Incorrect — hardcoded single retrieval strategy:**
+```python
+async def search(question: str) -> list[dict]:
+    # Always uses HyDE regardless of query type
+    hyde_result = await hyde_service.generate(question)
+    return await retriever.search_by_embedding(hyde_result.embedding, top_k=10)
+```
+
+**Correct — adaptive routing based on query characteristics:**
+```python
+async def adaptive_search(question: str) -> list[dict]:
+    strategy = await route_query(question)  # Choose best approach
+
+    if strategy == "direct":
+        return await retriever.search(question, top_k=10)  # Fast path
+    elif strategy == "hyde":
+        hyde_result = await hyde_service.generate(question)
+        return await retriever.search_by_embedding(hyde_result.embedding, top_k=10)
+```
+
 **Key rules:**
 - Route queries to optimal sources based on query type
 - Direct search for simple factual queries (fastest)

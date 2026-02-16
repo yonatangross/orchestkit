@@ -110,3 +110,17 @@ if (file.type === 'image/png') {...}  // Can be spoofed
 element.textContent = userInput;
 const safe = DOMPurify.sanitize(userInput);
 ```
+
+**Incorrect — Using innerHTML with user content allows XSS script injection:**
+```javascript
+const userComment = "<script>alert('XSS')</script>";
+element.innerHTML = userComment;
+// Script executes, stealing cookies/tokens
+```
+
+**Correct — Using textContent automatically escapes HTML and prevents XSS:**
+```javascript
+const userComment = "<script>alert('XSS')</script>";
+element.textContent = userComment;
+// Renders as plain text: "<script>alert('XSS')</script>"
+```

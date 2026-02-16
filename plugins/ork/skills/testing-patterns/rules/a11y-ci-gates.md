@@ -50,3 +50,22 @@ new AxeBuilder({ page })
 | CI gate | Block on violations | Prevent regression |
 | Tags | wcag2a, wcag2aa, wcag22aa | Full WCAG 2.2 AA |
 | Exclusions | Third-party widgets only | Minimize blind spots |
+
+**Incorrect — Accessibility tests exist but don't enforce in CI:**
+```yaml
+# .github/workflows/test.yml
+- run: npm run test:a11y  # Runs but doesn't block on failures
+- run: npm run test:unit
+```
+
+**Correct — CI blocks PRs on accessibility violations:**
+```yaml
+# .github/workflows/accessibility.yml
+on: [pull_request]
+jobs:
+  a11y:
+    runs-on: ubuntu-latest
+    steps:
+      - run: npm run test:a11y  # Exits with code 1 on violations
+      - run: npx playwright test e2e/accessibility  # Blocks merge
+```

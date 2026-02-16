@@ -38,3 +38,18 @@ Classify each finding by severity:
 - **CRITICAL**: Hardcoded model IDs, removed API fields, breaking hook changes
 - **WARNING**: Outdated context window assumptions, deprecated patterns
 - **INFO**: Version references in documentation, optional feature flags
+
+**Incorrect — Generic grep without severity classification creates unactionable scan reports:**
+```bash
+grep -r "claude" src/
+# 2000 matches with no classification or context
+```
+
+**Correct — Targeted grep with severity classification produces actionable findings:**
+```bash
+# CRITICAL: Hardcoded model IDs
+grep -r "claude-opus-4\b\|claude-sonnet-4\b" src/ --include="*.ts"
+# WARNING: Context window assumptions
+grep -r "200000\|200_000" src/ --include="*.ts" --include="*.md"
+# Each finding gets severity label for prioritization
+```

@@ -145,3 +145,21 @@ We believe [change] will cause [metric] to [improve by X%]
 3. 50% for 1 week
 4. 100% rollout
 ```
+
+**Incorrect — Inconsistent event naming:**
+```json
+{
+  "event": "UserSignup",
+  "event": "feature-activated",
+  "event": "Subscription_Upgraded"
+}
+```
+
+**Correct — Consistent object_action naming:**
+```json
+{
+  "event": "user_signed_up",
+  "event": "feature_activated",
+  "event": "subscription_upgraded"
+}
+```

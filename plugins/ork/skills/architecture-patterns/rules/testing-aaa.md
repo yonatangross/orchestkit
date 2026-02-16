@@ -72,3 +72,25 @@ describe('ItemList', () => {
 def test_email_validation(self, email: str, expected: bool):
     assert is_valid_email(email) == expected
 ```
+
+**Incorrect — missing AAA structure, unclear test logic:**
+```typescript
+test('discount works', () => {
+    expect(new DiscountCalculator().calculate(createOrder({ total: 150 }))).toBe(15);
+});
+```
+
+**Correct — clear AAA sections make test readable:**
+```typescript
+test('should apply 10% discount for orders over $100', () => {
+    // Arrange
+    const order = createOrder({ total: 150 });
+    const calculator = new DiscountCalculator();
+
+    // Act
+    const discount = calculator.calculate(order);
+
+    // Assert
+    expect(discount).toBe(15);
+});
+```

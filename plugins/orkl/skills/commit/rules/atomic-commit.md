@@ -87,6 +87,31 @@ tests/fixtures/user-*.json (15 files)
 | Multiple features | Can't revert independently | One commit per feature |
 | Feature + config change | Different review concerns | Separate unless config IS the feature |
 
+**Incorrect — non-atomic commit mixing concerns:**
+```bash
+# Mixed commit spanning unrelated areas
+git add src/auth/login.ts \
+        src/billing/invoice.ts \
+        config/webpack.config.js
+git commit -m "feat: Add login AND fix invoice AND update webpack"
+# Three unrelated changes - can't revert independently!
+```
+
+**Correct — atomic commits with single concerns:**
+```bash
+# Commit 1: Auth feature + its tests (related)
+git add src/auth/login.ts src/auth/login.test.ts
+git commit -m "feat(#123): Add JWT token validation for login endpoint"
+
+# Commit 2: Billing feature + its tests (related)
+git add src/billing/invoice.ts src/billing/invoice.test.ts
+git commit -m "feat(#124): Add invoice generation service"
+
+# Commit 3: Config change (separate concern)
+git add config/webpack.config.js
+git commit -m "chore: Update webpack for tree shaking"
+```
+
 ### Key Rules
 
 - One logical change per commit — if you say "and", split it

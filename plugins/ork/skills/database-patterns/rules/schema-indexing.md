@@ -105,6 +105,26 @@ CREATE TABLE products (
 );
 ```
 
+**Incorrect — Missing foreign key index:**
+```sql
+-- FK without index causes slow joins
+CREATE TABLE orders (
+  id UUID PRIMARY KEY,
+  customer_id UUID REFERENCES customers(id)
+  -- Missing: CREATE INDEX idx_orders_customer ON orders(customer_id)
+);
+```
+
+**Correct — Index all foreign keys:**
+```sql
+-- Index enables fast joins and cascade deletes
+CREATE TABLE orders (
+  id UUID PRIMARY KEY,
+  customer_id UUID REFERENCES customers(id)
+);
+CREATE INDEX idx_orders_customer ON orders(customer_id);
+```
+
 ## Anti-Patterns
 
 - **Over-indexing:** Every index slows writes. Only index actual query patterns.

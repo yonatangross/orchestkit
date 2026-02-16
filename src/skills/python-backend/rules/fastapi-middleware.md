@@ -86,3 +86,17 @@ Add middleware in this order (last added runs first):
 2. RequestID
 3. Timing
 4. Logging (innermost)
+
+**Incorrect — Wrong middleware order causes missing request IDs in logs:**
+```python
+app.add_middleware(LoggingMiddleware)  # Runs first, no request_id yet
+app.add_middleware(RequestIDMiddleware)  # Runs second, sets request_id
+# Result: Logs missing request_id
+```
+
+**Correct — Correct order ensures request_id available for logging:**
+```python
+app.add_middleware(LoggingMiddleware)  # Runs last, has request_id
+app.add_middleware(RequestIDMiddleware)  # Runs first, sets request_id
+# Last added = outermost = runs first
+```

@@ -175,3 +175,22 @@ export async function functionCallingAgent(task: string): Promise<AgentResult> {
 | Plan-Execute | Well-defined goals | Structured, but replanning adds cost |
 | Function Calling | Production APIs | Most reliable, requires tool schemas |
 | Self-Correction | Quality-critical output | Higher cost, better quality |
+
+**Incorrect — executing without planning first:**
+```python
+async def execute_goal(goal: str):
+    steps = ["step1", "step2", "step3"]  # Hardcoded, no reasoning
+    for step in steps:
+        await execute_step(step)
+```
+
+**Correct — LLM generates plan before execution:**
+```python
+async def plan_and_execute(goal: str):
+    plan = await llm.chat([{"role": "user", "content": f"Create plan for: {goal}"}])
+    steps = parse_plan(plan.content)
+    for step in steps:
+        result = await execute_step(step)
+        if should_replan(result):
+            return await plan_and_execute(f"{goal}\nProgress: {result}")
+```

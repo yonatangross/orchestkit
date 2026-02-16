@@ -55,6 +55,27 @@ def grade_documents(state: RAGState) -> dict:
     }
 ```
 
+**Incorrect — no document grading, all docs used:**
+```python
+def generate(state: RAGState) -> dict:
+    # Uses all retrieved docs without quality check
+    context = "\n\n".join([d.page_content for d in state["documents"]])
+    return {"generation": llm.invoke(context)}
+```
+
+**Correct — grade documents before generation:**
+```python
+def grade_documents(state: RAGState) -> dict:
+    filtered_docs = []
+    for doc in state["documents"]:
+        score = grader.invoke({"question": state["question"], "document": doc.page_content})
+        if score.binary_score == "yes":  # Only keep relevant docs
+            filtered_docs.append(doc)
+
+    web_search_needed = len(filtered_docs) < len(state["documents"]) // 2
+    return {"documents": filtered_docs, "web_search_needed": web_search_needed}
+```
+
 **Key rules:**
 - Binary grading (yes/no) is simpler and more reliable than numeric scores
 - Trigger web search fallback when >50% of docs are filtered out

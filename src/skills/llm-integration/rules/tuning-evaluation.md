@@ -130,3 +130,25 @@ trainer = SFTTrainer(..., eval_dataset=eval)
 **Model too conservative** (DPO): Lower beta, add diverse positive examples
 
 **Catastrophic forgetting**: Increase beta, mix in general data, use LoRA
+
+**Incorrect — deploying fine-tuned model without evaluation:**
+```python
+trainer = SFTTrainer(model=model, train_dataset=train_data)
+trainer.train()
+model.save_pretrained("./production_model")  # No evaluation
+deploy(model)  # Could be degraded
+```
+
+**Correct — evaluating before deployment:**
+```python
+train, eval = train_test_split(data, test_size=0.1)
+trainer = SFTTrainer(
+    model=model,
+    train_dataset=train,
+    eval_dataset=eval  # Separate eval set
+)
+trainer.train()
+eval_results = await evaluate_alignment(model, tokenizer, test_prompts)
+if eval_results["mean_score"] >= 7.5:  # Quality threshold
+    deploy(model)
+```

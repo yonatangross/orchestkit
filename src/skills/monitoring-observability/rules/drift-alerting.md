@@ -134,3 +134,20 @@ class DriftAlertPipeline:
 | Correlation | Always confirm drift + quality drop before critical alerts |
 | Historical window | 30+ days for reliable dynamic thresholds |
 | Tool stack | Langfuse (traces) + Evidently/Phoenix (drift analysis) |
+
+**Incorrect — alerting on drift without quality correlation:**
+```python
+def check_drift(psi_score: float):
+    if psi_score > 0.2:  # Static threshold, no quality check
+        send_alert("CRITICAL: Drift detected")  # False alarms
+```
+
+**Correct — correlating drift with quality before alerting:**
+```python
+async def check_drift(psi_score: float, quality_score: float, baseline: float):
+    threshold = np.percentile(historical_psi, 95)  # Dynamic
+    if psi_score > threshold and quality_score < baseline * 0.9:
+        send_alert("CRITICAL: Drift + quality drop")  # High confidence
+    elif psi_score > threshold:
+        log_warning("Drift detected but quality stable")  # Monitor only
+```

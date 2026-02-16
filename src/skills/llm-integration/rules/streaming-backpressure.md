@@ -101,3 +101,21 @@ async def stream_chat(prompt: str, request: Request):
 - Not checking for client disconnect on server side
 - Missing AbortController cleanup on component unmount
 - Not yielding control in consumer (starves event loop)
+
+**Incorrect — unbounded queue causes memory exhaustion:**
+```python
+async def stream_tokens(prompt: str):
+    buffer = asyncio.Queue()  # No maxsize = unbounded
+    async for token in async_stream(prompt):
+        await buffer.put(token)  # Never blocks, grows infinitely
+    # Slow consumer = OOM
+```
+
+**Correct — bounded queue applies backpressure:**
+```python
+async def stream_tokens(prompt: str):
+    buffer = asyncio.Queue(maxsize=100)  # Bounded buffer
+    async for token in async_stream(prompt):
+        await buffer.put(token)  # Blocks when full, slows producer
+    # Producer matches consumer speed
+```

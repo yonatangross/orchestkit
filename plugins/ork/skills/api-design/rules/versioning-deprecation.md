@@ -143,6 +143,28 @@ class UserResponse(BaseModel):
 # NEVER support too many versions (max 2-3)
 ```
 
+**Incorrect — Breaking change without version bump:**
+```python
+# v1 schema changed without versioning
+class UserResponse(BaseModel):
+    id: str
+    full_name: str  # Changed from "name" - BREAKS clients!
+```
+
+**Correct — Version bump for breaking changes:**
+```python
+# v1 stays unchanged
+class UserResponseV1(BaseModel):
+    id: str
+    name: str
+
+# v2 with breaking changes
+class UserResponseV2(BaseModel):
+    id: str
+    first_name: str
+    last_name: str
+```
+
 **Key rules:**
 - Send deprecation notice at least 3 months before sunset
 - Include Deprecation, Sunset, and Link headers on deprecated versions

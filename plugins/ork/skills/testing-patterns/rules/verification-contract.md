@@ -69,3 +69,19 @@ pact-broker can-i-deploy \
 | Contract storage | Pact Broker (not git) |
 | Consumer selectors | mainBranch + deployedOrReleased |
 | Matchers | Use Like(), EachLike() for flexibility |
+
+**Incorrect — Hardcoding exact values in contract:**
+```python
+.will_respond_with(200, body={
+    "id": "user-123",  # Breaks if ID changes
+    "email": "test@example.com"
+})
+```
+
+**Correct — Using matchers for flexible contracts:**
+```python
+.will_respond_with(200, body={
+    "id": Like("user-123"),  # Matches any string
+    "email": Like("test@example.com")
+})
+```

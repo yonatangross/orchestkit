@@ -157,3 +157,23 @@ async def create_order(
 | Race handling | ON CONFLICT DO NOTHING | First writer wins |
 | Response caching | Status 2xx only | Don't cache errors |
 | Cleanup | Batch delete, daily job | Avoid long locks |
+
+**Incorrect — Check-then-act pattern has race condition between check and insert:**
+```typescript
+const existing = await db.query("SELECT * FROM idempotency_records WHERE key = $1", [key]);
+if (!existing) {
+  await processPayment(data);  // Race! Two processes both see "not existing"
+  await db.query("INSERT INTO idempotency_records (key, result) VALUES ($1, $2)", [key, result]);
+}
+```
+
+**Correct — Insert-first pattern atomically claims idempotency key:**
+```typescript
+try {
+  await db.query("INSERT INTO idempotency_records (key, status) VALUES ($1, 'processing')", [key]);
+  const result = await processPayment(data);
+  await db.query("UPDATE idempotency_records SET result = $1 WHERE key = $2", [result, key]);
+} catch (UniqueViolationError) {
+  return await db.query("SELECT result FROM idempotency_records WHERE key = $1", [key]);
+}
+```

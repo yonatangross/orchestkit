@@ -157,6 +157,30 @@ poetry run python scripts/data/add_to_golden_dataset.py check-duplicate \
 poetry run python scripts/data/add_to_golden_dataset.py coverage
 ```
 
+**Incorrect — Unbalanced difficulty distribution:**
+```python
+# All queries marked "easy"
+queries = [
+    {"id": "q-1", "difficulty": "easy"},
+    {"id": "q-2", "difficulty": "easy"},
+    {"id": "q-3", "difficulty": "easy"},
+]
+```
+
+**Correct — Balanced difficulty distribution:**
+```python
+# Mix of difficulty levels
+queries = [
+    {"id": "q-1", "difficulty": "trivial"},  # 3+ trivial
+    {"id": "q-2", "difficulty": "easy"},     # 3+ easy
+    {"id": "q-3", "difficulty": "medium"},   # 5+ medium
+    {"id": "q-4", "difficulty": "hard"},     # 3+ hard
+]
+
+# Validate distribution
+validate_difficulty_distribution(queries)  # Checks minimums
+```
+
 **Key rules:**
 - Run full dataset validation before every commit that modifies golden dataset files
 - Enforce minimum difficulty distribution (trivial 3, easy 3, medium 5, hard 3)

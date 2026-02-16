@@ -118,6 +118,26 @@ async def verify_golden_dataset() -> dict:
 3. **Test restore in staging** -- never test restore in production first
 4. **Document changes** -- track additions/removals in metadata
 
+**Incorrect — Missing URL validation:**
+```python
+# No URL contract enforcement
+analysis.url = url  # Could be placeholder
+session.add(analysis)
+await session.commit()
+```
+
+**Correct — Enforcing URL contract:**
+```python
+# Validate before saving
+valid, msg = validate_url(url)
+if not valid:
+    raise ValueError(f"Invalid URL: {msg}")
+
+analysis.url = url  # Guaranteed to be real canonical URL
+session.add(analysis)
+await session.commit()
+```
+
 **Key rules:**
 - Always use JSON backup for version control and portability
 - Never store placeholder URLs -- enforce the URL contract

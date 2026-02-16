@@ -58,6 +58,35 @@ def chunk_by_sentences(text: str, chunk_size: int = 512) -> list[str]:
     return chunks
 ```
 
+**Incorrect — fixed-size splits without overlap or semantic boundaries:**
+```python
+def chunk_text(text: str) -> list[str]:
+    # Arbitrary splits, no overlap, breaks mid-sentence
+    return [text[i:i+500] for i in range(0, len(text), 500)]
+```
+
+**Correct — semantic boundary chunking with overlap:**
+```python
+def chunk_by_sentences(text: str, chunk_size: int = 512, overlap: int = 75) -> list[str]:
+    sentences = text.split('. ')
+    chunks, current, current_len = [], [], 0
+
+    for sent in sentences:
+        if current_len + len(sent) > chunk_size and current:
+            chunk_text = '. '.join(current) + '.'
+            chunks.append(chunk_text)
+            # Keep last few sentences for overlap
+            overlap_sents = current[-2:] if len(current) > 2 else current
+            current, current_len = overlap_sents, sum(len(s) for s in overlap_sents)
+        else:
+            current.append(sent)
+            current_len += len(sent)
+
+    if current:
+        chunks.append('. '.join(current))
+    return chunks
+```
+
 **Key rules:**
 - Chunk size: 256-1024 tokens (512 typical sweet spot)
 - Overlap: 10-20% for context continuity between chunks

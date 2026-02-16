@@ -73,3 +73,23 @@ ollama pull deepseek-r1:70b-q4_0
 - Use smaller models for simple tasks
 - Load max 2-3 models simultaneously
 - CI: Use 7B models (93% cheaper than cloud)
+
+**Incorrect — loading oversized model for limited hardware:**
+```python
+# M3 Pro 36GB trying to run 70B model
+llm = ChatOllama(model="deepseek-r1:70b")  # OOM error, 42GB VRAM needed
+response = await llm.ainvoke("Simple task")
+```
+
+**Correct — selecting model based on hardware profile:**
+```python
+def get_model_for_hardware(hardware: str, task: str) -> str:
+    profiles = {
+        "m3_pro_36gb": {"reasoning": "llama3.3:7b"},
+        "m4_max_256gb": {"reasoning": "deepseek-r1:70b"}
+    }
+    return profiles[hardware].get(task, "llama3.3:7b")
+
+model = get_model_for_hardware("m3_pro_36gb", "reasoning")
+llm = ChatOllama(model=model)
+```

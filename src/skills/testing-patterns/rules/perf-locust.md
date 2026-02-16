@@ -40,3 +40,24 @@ class APIUser(HttpUser):
 | Tool | Locust for Python teams |
 | Task weights | Higher weight = more frequent |
 | Authentication | Use on_start for login |
+
+**Incorrect — No authentication flow, requests fail:**
+```python
+class APIUser(HttpUser):
+    @task
+    def get_analyses(self):
+        self.client.get("/api/analyses")  # 401 Unauthorized
+```
+
+**Correct — Login in on_start before tasks:**
+```python
+class APIUser(HttpUser):
+    def on_start(self):
+        self.client.post("/api/auth/login", json={
+            "email": "test@example.com", "password": "password"
+        })
+
+    @task
+    def get_analyses(self):
+        self.client.get("/api/analyses")  # Authenticated
+```

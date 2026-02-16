@@ -149,3 +149,22 @@ ORDER BY date;
 6. **Create test datasets** for regression testing
 7. **Track scores by prompt version** to measure improvements
 8. **Alert on quality drops** (e.g., avg_score < 0.6 for 3 consecutive days)
+
+**Incorrect — no quality scoring in production:**
+```python
+@observe()
+async def analyze(query: str):
+    response = await llm.generate(query)
+    return response  # No quality metrics
+```
+
+**Correct — automated quality scoring:**
+```python
+@observe()
+async def analyze(query: str):
+    response = await llm.generate(query)
+    scores = await scorer.score(query, response, ["relevance", "depth"])
+    for criterion, score in scores.items():
+        get_client().score_current_trace(name=criterion, value=score)
+    return response
+```

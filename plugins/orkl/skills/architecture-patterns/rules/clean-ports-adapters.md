@@ -67,3 +67,25 @@ class AnalysisAggregate:
 | Repository granularity | One per aggregate root |
 | Transaction boundary | Service layer, not repository |
 | Event publishing | Collect in aggregate, publish after commit |
+
+**Incorrect — mutable value object violates immutability:**
+```typescript
+@dataclass
+class AnalysisType:  // Mutable by default
+    category: str
+    depth: int
+
+analysis_type = AnalysisType("security", 2)
+analysis_type.depth = 5  // Can mutate, breaks value object contract
+```
+
+**Correct — frozen dataclass ensures immutability:**
+```typescript
+@dataclass(frozen=True)  // Immutable
+class AnalysisType:
+    category: str
+    depth: int
+
+analysis_type = AnalysisType("security", 2)
+analysis_type.depth = 5  // FrozenInstanceError
+```

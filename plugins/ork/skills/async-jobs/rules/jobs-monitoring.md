@@ -47,6 +47,28 @@ def generate_report(self, report_id: str) -> dict:
     return {"report_id": report_id, "size": len(pdf)}
 ```
 
+**Incorrect — No progress updates:**
+```python
+@shared_task
+def generate_report(report_id: str):
+    # Long-running task with no feedback
+    data = fetch_report_data(report_id)
+    pdf = render_pdf(data)
+    return {"report_id": report_id}
+```
+
+**Correct — Progress updates:**
+```python
+@shared_task(bind=True)
+def generate_report(self, report_id: str):
+    self.update_state(state="PROGRESS", meta={"step": "fetching", "percent": 25})
+    data = fetch_report_data(report_id)
+
+    self.update_state(state="PROGRESS", meta={"step": "rendering", "percent": 75})
+    pdf = render_pdf(data)
+    return {"report_id": report_id}
+```
+
 ## Celery Status Endpoint
 
 ```python

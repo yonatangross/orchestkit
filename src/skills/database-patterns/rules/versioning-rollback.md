@@ -123,6 +123,24 @@ def downgrade():
 command.stamp(alembic_config, "head")  # Loses history
 ```
 
+**Incorrect — Empty downgrade:**
+```python
+def upgrade():
+    op.create_table('users', ...)
+
+def downgrade():
+    pass  # Rollback won't work!
+```
+
+**Correct — Implement downgrade:**
+```python
+def upgrade():
+    op.create_table('users', ...)
+
+def downgrade():
+    op.drop_table('users')  # Full rollback support
+```
+
 ## Key Decisions
 
 | Decision | Recommendation | Rationale |

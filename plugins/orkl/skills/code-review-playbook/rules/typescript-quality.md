@@ -81,6 +81,46 @@ function CardSkeleton() {
 }
 ```
 
+**Incorrect — any types, no validation, non-exhaustive switch:**
+```typescript
+// Defeats type system
+function processData(data: any) { return data.email; }
+
+// Trust the network - no validation!
+const data = await response.json();
+
+// Non-exhaustive switch
+switch (status) {
+  case 'active': return 'Active';
+  case 'inactive': return 'Inactive';
+}  // Adding 'pending' silently breaks
+```
+
+**Correct — proper types, Zod validation, exhaustive switch:**
+```typescript
+import { z } from 'zod';
+
+// Proper types
+const UserSchema = z.object({
+  id: z.string().uuid(),
+  email: z.string().email(),
+});
+function processData(data: z.infer<typeof UserSchema>) { return data.email; }
+
+// Validate at boundary
+const data = UserSchema.parse(await response.json());
+
+// Exhaustive switch with assertNever
+function assertNever(x: never): never {
+  throw new Error(`Unexpected: ${x}`);
+}
+switch (status) {
+  case 'active': return 'Active';
+  case 'inactive': return 'Inactive';
+  default: return assertNever(status);  // Compiler catches missing cases
+}
+```
+
 ### Review Checklist
 
 | Check | Severity | What to Look For |
