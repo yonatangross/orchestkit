@@ -44,10 +44,10 @@ src/
 │       ├── assets/            # Optional: Templates and copyable files
 │       └── checklists/        # Optional: Implementation checklists
 ├── agents/               # 36 specialized AI personas
-└── hooks/                # 98 TypeScript hooks in 11 split bundles
+└── hooks/                # 89 TypeScript hooks in 12 split bundles
 
 manifests/                # Plugin definitions (3 JSON files)
-├── orkl.json             # Universal toolkit (44 skills)
+├── orkl.json             # Universal toolkit (45 skills)
 ├── ork-creative.json     # Video production add-on (3 skills)
 └── ork.json              # Full specialized (62 skills)
 ```

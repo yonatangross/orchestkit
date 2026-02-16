@@ -5,11 +5,19 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [6.0.12] - 2026-02-15
+## [6.0.13] - 2026-02-15
 
 ### Fixed
 
-- TODO: Describe your changes here
+- **Version sync**: package.json 6.0.9 → 6.0.13 to match manifests/pyproject.toml
+- **CLAUDE.md**: version 6.0.8 → 6.0.13, hook bundles 11 → 12
+- **marketplace.json**: engine >=2.1.33 → >=2.1.34
+- **README**: orkl skill count 62 → 45, ork-creative 62 → 3
+- **CONTRIBUTING**: orkl 44 → 45 skills, hooks 98 → 89, bundles 11 → 12
+- **Doctor skill**: version 5.4.0 → 6.0.13, CC min 2.1.16 → 2.1.34, hooks 22 → 66 entries, bundles 11 → 12, agents 35 → 36, skills 186 → 62, all reference files updated
+- **Hooks README**: 93 → 89 hooks, 11 → 12 bundles, CC 2.1.33 → 2.1.34
+- **Docs site**: installation orkl 44 → 45, command-skills 23 → 24, troubleshooting bundles 11 → 12
+- **Demo files**: all 6 component files updated with current counts (62 skills, 36 agents, 89 hooks)
 
 ---
 

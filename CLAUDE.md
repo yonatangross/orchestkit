@@ -68,7 +68,7 @@ All plugins include 89 hooks. 24 skills are user-invocable via `/ork:skillname`.
 
 ## Version
 
-- **Current**: 6.0.8 · **Claude Code**: >= 2.1.34
-- **Hooks**: 89 entries (66 global + 22 agent-scoped + 1 skill-scoped, 11 bundles, 7 fire-and-forget dispatchers)
+- **Current**: 6.0.12 · **Claude Code**: >= 2.1.34
+- **Hooks**: 89 entries (66 global + 22 agent-scoped + 1 skill-scoped, 12 bundles, 7 fire-and-forget dispatchers)
 
 See `CHANGELOG.md` for history. See `src/hooks/README.md` for hook architecture.

@@ -2,34 +2,38 @@
 
 ## Overview
 
-OrchestKit uses 22 hook entry points across 11 categories, compiled into 11 bundles. This reference explains how to validate and troubleshoot hooks.
+OrchestKit uses 66 global hook entries across 15 event types, compiled into 12 bundles. This reference explains how to validate and troubleshoot hooks.
 
 ## Hook Architecture
 
 ```
-hooks.json (22 entries)
+hooks.json (66 global entries)
     ↓
-11 TypeScript bundles (dist/*.mjs)
+12 TypeScript bundles (dist/*.mjs)
     ↓
-6 async hooks use fire-and-forget pattern
+7 async hooks use fire-and-forget pattern
 ```
 
 ## Hook Categories
 
-| Category | Count | Purpose |
-|----------|-------|---------|
-| PreToolUse | 8 | Before tool execution |
-| PostToolUse | 3 | After tool execution |
+| Event Type | Count | Purpose |
+|------------|-------|---------|
+| PreToolUse | 14 | Before tool execution |
+| SubagentStart | 7 | Before agent spawn |
+| SubagentStop | 7 | After agent completes |
+| PostToolUse | 6 | After tool execution |
+| Setup | 6 | Plugin initialization |
+| SessionStart | 5 | Session initialization |
+| UserPromptSubmit | 5 | Prompt enhancement |
 | PermissionRequest | 3 | Auto-approval logic |
-| UserPromptSubmit | 1 | Prompt enhancement |
-| SessionStart | 1 | Session initialization |
-| SessionEnd | 1 | Session cleanup |
-| Stop | 1 | Conversation end |
-| SubagentStart | 1 | Before agent spawn |
-| SubagentStop | 1 | After agent completes |
-| Notification | 1 | Desktop/sound alerts |
-| Setup | 1 | Plugin initialization |
-| **Total** | **22** | |
+| SessionEnd | 3 | Session cleanup |
+| TeammateIdle | 3 | Teammate idle handling |
+| Stop | 2 | Conversation end |
+| Notification | 2 | Desktop/sound alerts |
+| PostToolUseFailure | 1 | Failed tool handling |
+| PreCompact | 1 | Before context compaction |
+| TaskCompleted | 1 | Task completion handling |
+| **Total** | **66** | |
 
 ## Bundle Structure
 
@@ -44,6 +48,7 @@ hooks.json (22 entries)
 | pretool.mjs | Pre-execution | No |
 | prompt.mjs | Prompt enhancement | Yes |
 | setup.mjs | Initialization | Yes |
+| skill.mjs | Skill-scoped hooks | No |
 | stop.mjs | Conversation end | Yes |
 | subagent.mjs | Agent lifecycle | No |
 
@@ -68,7 +73,7 @@ ls -la src/hooks/dist/*.mjs
 Async hooks use fire-and-forget scripts:
 
 ```bash
-# 6 fire-and-forget scripts required
+# 7 fire-and-forget scripts required
 ls src/hooks/bin/*-fire-and-forget.mjs
 ```
 

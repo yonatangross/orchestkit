@@ -31,7 +31,7 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 7. **Coordination System** - Checks lock health and registry integrity
 8. **Context Budget** - Monitors token usage against budget
 9. **Memory System** - Graph memory health
-10. **Claude Code Version** - Validates CC >= 2.1.16
+10. **Claude Code Version** - Validates CC >= 2.1.34
 
 ## When to Use
 
@@ -73,13 +73,13 @@ Auto-detects which OrchestKit plugins are installed:
 **Output (orkl):**
 ```
 Installed Plugins: 1
-- orkl: 44 skills, 36 agents, 86 hook entries
+- orkl: 45 skills, 36 agents, 89 hook entries
 ```
 
 **Output (ork full):**
 ```
 Installed Plugins: 1
-- ork: 62 skills, 36 agents, 86 hook entries
+- ork: 62 skills, 36 agents, 89 hook entries
 ```
 
 ### 1. Skills Validation
@@ -97,16 +97,16 @@ Validates skills in installed plugins (count varies by installation):
 
 **Output (full ork):**
 ```
-Skills: 186/186 valid
+Skills: 62/62 valid
 - User-invocable: 24 commands
-- Reference skills: 163
+- Reference skills: 38
 ```
 
 **Output (orkl only):**
 ```
-Skills: 18/18 valid
-- User-invocable: 0 commands
-- Reference skills: 18
+Skills: 45/45 valid
+- User-invocable: 24 commands
+- Reference skills: 21
 ```
 
 ### 2. Agents Validation
@@ -123,7 +123,7 @@ Validates agents in installed plugins:
 
 **Output:**
 ```
-Agents: 35/35 valid
+Agents: 36/36 valid
 - Models: 12 sonnet, 15 haiku, 8 opus
 - All skill references valid
 ```
@@ -135,16 +135,17 @@ Verifies hooks are properly configured:
 ```bash
 # Checks performed:
 # - hooks.json schema valid
-# - Bundle files exist (11 .mjs bundles)
-# - Async hooks use fire-and-forget pattern (6 async)
+# - Bundle files exist (12 .mjs bundles)
+# - Async hooks use fire-and-forget pattern (7 async)
 # - Background hook metrics health (Issue #243)
 ```
 
 **Output:**
 ```
-Hooks: 22/22 entries valid (11 bundles)
-- PreToolUse: 8, PostToolUse: 3, PermissionRequest: 3
-- Async hooks: 6 (fire-and-forget)
+Hooks: 66/66 entries valid (12 bundles)
+- PreToolUse: 14, PostToolUse: 6, SubagentStart: 7, SubagentStop: 7
+- Setup: 6, SessionStart: 5, UserPromptSubmit: 5, PermissionRequest: 3
+- Async hooks: 7 (fire-and-forget)
 - Error Rate: 0.3%
 ```
 
@@ -188,8 +189,8 @@ Verifies plugins/ sync with src/:
 **Output:**
 ```
 Build System: in sync
-- Skills: 186 src/ = 186 plugins/
-- Agents: 35 src/ = 35 plugins/
+- Skills: 62 src/ = 62 plugins/
+- Agents: 36 src/ = 36 plugins/
 - Last build: 2 minutes ago
 ```
 
@@ -237,8 +238,8 @@ Validates runtime version:
 
 **Output:**
 ```
-Claude Code: 2.1.25 (OK)
-- Minimum required: 2.1.16
+Claude Code: 2.1.42 (OK)
+- Minimum required: 2.1.34
 ```
 
 ## Report Format
@@ -248,17 +249,17 @@ Claude Code: 2.1.25 (OK)
 +===================================================================+
 |                    OrchestKit Health Report                        |
 +===================================================================+
-| Version: 5.4.0  |  CC: 2.1.25  |  Plugins: ork + ork         |
+| Version: 6.0.13  |  CC: 2.1.42  |  Plugins: ork              |
 +===================================================================+
-| Skills           | 186/186 valid                                  |
-| Agents           | 35/35 valid                                    |
-| Hooks            | 22/22 entries (11 bundles)                     |
+| Skills           | 62/62 valid                                    |
+| Agents           | 36/36 valid                                    |
+| Hooks            | 66/66 entries (12 bundles)                     |
 | Memory           | Graph memory healthy                           |
 | Permissions      | 12/12 reachable                                |
 | Schemas          | 15/15 compliant                                |
 | Context          | 1850/2200 tokens (84%)                         |
 | Coordination     | 0 stale locks                                  |
-| CC Version       | 2.1.25 (OK)                                    |
+| CC Version       | 2.1.42 (OK)                                    |
 +===================================================================+
 | Status: HEALTHY (9/9 checks passed)                               |
 +===================================================================+
@@ -269,12 +270,12 @@ Claude Code: 2.1.25 (OK)
 +===================================================================+
 |                    OrchestKit Health Report                        |
 +===================================================================+
-| Version: 5.4.0  |  CC: 2.1.25  |  Plugins: 3 installed            |
+| Version: 6.0.13  |  CC: 2.1.42  |  Plugins: 3 installed           |
 +===================================================================+
 | Installed        | ork, orkl, orkl       |
 | Skills           | 38/38 valid (combined)                         |
 | Agents           | 2/2 valid                                      |
-| Hooks            | 22/22 entries (via ork)                   |
+| Hooks            | 66/66 entries (via ork)                    |
 | Memory           | Graph memory healthy                           |
 +===================================================================+
 ```
@@ -287,23 +288,23 @@ Claude Code: 2.1.25 (OK)
 
 ```json
 {
-  "version": "5.4.0",
-  "claudeCode": "2.1.25",
+  "version": "6.0.13",
+  "claudeCode": "2.1.42",
   "status": "healthy",
   "plugins": {
-    "installed": ["ork", "ork"],
-    "count": 2
+    "installed": ["orkl", "ork-creative", "ork"],
+    "count": 3
   },
   "checks": {
-    "skills": {"passed": true, "count": 186, "perPlugin": {"ork": 186}},
-    "agents": {"passed": true, "count": 35, "perPlugin": {"ork": 35}},
-    "hooks": {"passed": true, "entries": 22, "bundles": 11, "source": "ork"},
+    "skills": {"passed": true, "count": 62, "perPlugin": {"ork": 62}},
+    "agents": {"passed": true, "count": 36, "perPlugin": {"ork": 36}},
+    "hooks": {"passed": true, "entries": 66, "bundles": 12, "source": "ork"},
     "memory": {"passed": true, "available": ["graph"]},
     "permissions": {"passed": true, "count": 12},
     "schemas": {"passed": true, "count": 15},
     "context": {"passed": true, "usage": 0.84},
     "coordination": {"passed": true, "staleLocks": 0},
-    "ccVersion": {"passed": true, "version": "2.1.25"}
+    "ccVersion": {"passed": true, "version": "2.1.42"}
   },
   "exitCode": 0
 }

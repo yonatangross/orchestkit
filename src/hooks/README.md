@@ -14,7 +14,7 @@ The hooks system intercepts Claude Code operations at various lifecycle points t
 
 **Architecture:**
 - TypeScript source → ESM split bundles → Event-based deployment
-- 11 event-specific bundles + 1 unified bundle for CLI tools
+- 12 event-specific bundles + 1 unified bundle for CLI tools
 - 89% per-load savings (~35KB average vs 324KB unified)
 - Zero dependencies in production bundles
 - CC 2.1.17 compliant (engine field), CC 2.1.16 compliant (Task Management), CC 2.1.9 compliant (additionalContext)
@@ -67,7 +67,7 @@ hooks/
 │   ├── setup/              # Setup and maintenance hooks (9)
 │   ├── agent/              # Agent-specific hooks (5)
 │   └── skill/              # Skill validation hooks (22)
-├── dist/                   # Compiled output (11 split bundles + 1 unified)
+├── dist/                   # Compiled output (12 split bundles + 1 unified)
 │   ├── permission.mjs      # Permission bundle (8KB)
 │   ├── pretool.mjs         # PreToolUse bundle (48KB)
 │   ├── posttool.mjs        # PostToolUse bundle (58KB)
@@ -90,7 +90,7 @@ hooks/
 ├── tsconfig.json           # TypeScript configuration
 └── esbuild.config.mjs      # Build configuration (split bundles)
 
-**Total:** 93 hooks (all TypeScript, 7 fire-and-forget dispatchers)
+**Total:** 89 hooks (66 global + 22 agent-scoped + 1 skill-scoped, 7 fire-and-forget dispatchers)
 ```
 
 ---
@@ -851,7 +851,7 @@ export function myHook(input: HookInput): HookResult {
 
 **Performance Gains:**
 - **89% per-load savings:** Average ~35KB loaded per hook vs 324KB unified
-- **Split total:** 381KB (across 11 bundles)
+- **Split total:** 381KB (across 12 bundles)
 - **Typical load:** 8-58KB depending on event type
 
 ### Hook Execution Time
@@ -989,9 +989,9 @@ const bundleMap = {
 
 **Last Updated:** 2026-01-26
 **Version:** 2.1.0 (Async hooks support)
-**Architecture:** 11 split bundles (381KB total) + 1 unified (324KB)
-**Hooks:** 152 TypeScript hooks (6 async)
+**Architecture:** 12 split bundles (381KB total) + 1 unified (324KB)
+**Hooks:** 89 hooks (66 global + 22 agent-scoped + 1 skill-scoped, 7 async)
 **Average Bundle:** ~35KB per event
-**Claude Code Requirement:** >= 2.1.33
+**Claude Code Requirement:** >= 2.1.34
 
 See the async hooks section above for detailed async hook patterns.
