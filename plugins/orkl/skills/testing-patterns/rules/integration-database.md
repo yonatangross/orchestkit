@@ -2,6 +2,8 @@
 title: "Integration: Database Testing"
 category: integration
 impact: HIGH
+impactDescription: "Ensures database layer correctness through isolated integration tests with fresh state per test"
+tags: database, integration, sqlalchemy, isolation, test-containers
 ---
 
 # Database Integration Testing

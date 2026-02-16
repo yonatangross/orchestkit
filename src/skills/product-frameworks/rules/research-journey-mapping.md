@@ -2,6 +2,8 @@
 title: "Research: Journey Mapping & Service Blueprints"
 category: research
 impact: HIGH
+impactDescription: "Ensures comprehensive customer experience mapping with touchpoints, pain points, and service operations visibility"
+tags: journey-mapping, service-blueprint, customer-experience, touchpoints
 ---
 
 # Journey Mapping & Service Blueprints

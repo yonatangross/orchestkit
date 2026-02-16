@@ -2,6 +2,8 @@
 title: "React Aria: Components"
 category: aria
 impact: HIGH
+impactDescription: "Ensures buttons, dialogs, and menus are fully accessible with keyboard support and ARIA attributes"
+tags: react-aria, components, button, dialog, menu
 ---
 
 # React Aria Components (useButton, useDialog, useMenu)

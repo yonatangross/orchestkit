@@ -2,6 +2,8 @@
 title: "Verification: Stateful Testing"
 category: verification
 impact: MEDIUM
+impactDescription: "Validates complex state transitions and invariants through Hypothesis RuleBasedStateMachine testing"
+tags: stateful-testing, hypothesis, state-machines, invariants, fuzzing
 ---
 
 # Stateful Testing

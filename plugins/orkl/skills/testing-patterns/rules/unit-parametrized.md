@@ -2,6 +2,8 @@
 title: "Unit: Parametrized Tests"
 category: unit
 impact: CRITICAL
+impactDescription: "Reduces test duplication and increases edge case coverage through parametrized test patterns"
+tags: parametrized-testing, pytest, test.each, edge-cases, test-coverage
 ---
 
 # Parametrized Tests

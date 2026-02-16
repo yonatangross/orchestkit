@@ -2,6 +2,8 @@
 title: "Loops: Plan-and-Execute"
 category: loops
 impact: HIGH
+impactDescription: "Ensures agents generate multi-step plans before execution with replanning capability when conditions change"
+tags: planning, execution, react, function-calling, agents
 ---
 
 # Plan-and-Execute Pattern

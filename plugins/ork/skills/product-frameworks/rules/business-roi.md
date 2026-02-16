@@ -2,6 +2,8 @@
 title: "Business: ROI & Financial Metrics"
 category: business
 impact: HIGH
+impactDescription: "Ensures accurate financial analysis using NPV, IRR, and ROI calculations with time value of money"
+tags: roi, npv, irr, financial-metrics, payback-period
 ---
 
 # ROI & Financial Metrics

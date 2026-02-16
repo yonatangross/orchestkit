@@ -2,6 +2,8 @@
 title: "Prioritize: RICE & ICE Scoring"
 category: prioritize
 impact: HIGH
+impactDescription: "Ensures data-driven feature prioritization using Reach, Impact, Confidence, and Effort scores"
+tags: rice, ice, prioritization, scoring, feature-ranking
 ---
 
 # RICE & ICE Prioritization

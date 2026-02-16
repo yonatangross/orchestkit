@@ -2,6 +2,8 @@
 title: "Defense: Zero Trust & Tenant Isolation"
 category: defense
 impact: CRITICAL
+impactDescription: "Prevents cross-tenant data leakage through immutable request context and mandatory tenant filtering"
+tags: zero-trust, tenant-isolation, multi-tenancy, request-context
 ---
 
 # Zero Trust & Tenant Isolation

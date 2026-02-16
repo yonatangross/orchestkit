@@ -2,6 +2,8 @@
 title: "E2E: Page Objects"
 category: e2e
 impact: HIGH
+impactDescription: "Encapsulates page interactions into reusable classes for maintainable and DRY end-to-end tests"
+tags: page-object-model, playwright, e2e, maintainability, abstraction
 ---
 
 # Page Object Model

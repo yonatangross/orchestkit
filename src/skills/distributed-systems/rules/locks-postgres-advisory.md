@@ -2,6 +2,8 @@
 title: "Locks: PostgreSQL Advisory"
 category: locks
 impact: CRITICAL
+impactDescription: "Ensures safe distributed locking using PostgreSQL advisory locks with session and transaction-level scopes"
+tags: locks, postgresql, advisory, transactions, database
 ---
 
 # PostgreSQL Advisory Locks

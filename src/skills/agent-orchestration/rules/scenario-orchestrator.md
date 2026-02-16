@@ -2,6 +2,8 @@
 title: "Scenario: Multi-Scenario Orchestrator"
 category: scenario
 impact: MEDIUM
+impactDescription: "Ensures skills are tested across three parallel scenarios with progressive difficulty and synchronized execution"
+tags: scenarios, orchestration, parallel, testing, scaling
 ---
 
 # Multi-Scenario Orchestrator

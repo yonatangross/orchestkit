@@ -2,6 +2,8 @@
 title: "Multi-Agent: Debate & Conflict Resolution"
 category: multi
 impact: HIGH
+impactDescription: "Ensures agent disagreements are resolved through confidence scores, LLM arbitration, or majority voting"
+tags: conflict, resolution, debate, arbitration, communication
 ---
 
 # Agent Debate & Conflict Resolution

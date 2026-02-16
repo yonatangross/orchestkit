@@ -2,6 +2,8 @@
 title: "Idempotency: Request Deduplication"
 category: idempotency
 impact: HIGH
+impactDescription: "Ensures events are processed exactly once using dual-layer deduplication with Redis and database"
+tags: idempotency, deduplication, redis, events, kafka
 ---
 
 # Event Consumer Deduplication

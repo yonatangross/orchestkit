@@ -2,6 +2,8 @@
 title: "Frameworks: Comparison & Selection"
 category: frameworks
 impact: HIGH
+impactDescription: "Ensures appropriate multi-agent framework selection based on complexity, use case, and production requirements"
+tags: frameworks, langgraph, crewai, comparison, selection
 ---
 
 # Framework Comparison & Selection

@@ -2,6 +2,8 @@
 title: "Metrics: KPI Trees & North Star"
 category: metrics
 impact: HIGH
+impactDescription: "Ensures hierarchical metric decomposition with clear cause-effect relationships and North Star alignment"
+tags: kpi-trees, north-star, metrics-hierarchy, input-metrics
 ---
 
 # KPI Trees & North Star Metric

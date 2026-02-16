@@ -2,6 +2,8 @@
 title: "Strategy: Go/No-Go & Build/Buy/Partner"
 category: strategy
 impact: HIGH
+impactDescription: "Ensures systematic evaluation using stage gates and strategic analysis for build/buy/partner decisions"
+tags: go-no-go, build-vs-buy, stage-gates, strategic-decisions
 ---
 
 # Go/No-Go & Build/Buy/Partner Decisions

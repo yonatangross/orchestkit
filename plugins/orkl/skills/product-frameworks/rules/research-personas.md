@@ -2,6 +2,8 @@
 title: "Research: User Personas & Empathy Maps"
 category: research
 impact: HIGH
+impactDescription: "Ensures data-backed user personas with clear goals, pain points, and behavioral patterns for product alignment"
+tags: personas, empathy-map, user-research, target-users
 ---
 
 # User Personas & Empathy Maps

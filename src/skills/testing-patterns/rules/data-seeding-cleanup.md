@@ -2,6 +2,8 @@
 title: "Data: Seeding & Cleanup"
 category: data
 impact: MEDIUM
+impactDescription: "Ensures test isolation through automated database seeding and cleanup between test runs"
+tags: database, seeding, cleanup, isolation, fixtures
 ---
 
 # Database Seeding and Cleanup

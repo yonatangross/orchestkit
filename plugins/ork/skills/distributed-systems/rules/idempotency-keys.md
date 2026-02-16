@@ -2,6 +2,8 @@
 title: "Idempotency: Key Generation"
 category: idempotency
 impact: HIGH
+impactDescription: "Ensures deterministic idempotency key generation using Stripe-style headers for safe API request retries"
+tags: idempotency, keys, stripe, headers, deterministic
 ---
 
 # Idempotency Key Generation & Stripe-Style Header

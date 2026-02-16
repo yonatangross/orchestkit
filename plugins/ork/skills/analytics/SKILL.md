@@ -100,3 +100,9 @@ Each category has individual rule files in `rules/` loaded on-demand:
 ## Output Format
 
 Present results as a clean markdown table. Include counts, percentages, and averages. If a file doesn't exist, note that no data has been collected yet for that category.
+
+## Related Skills
+
+- `explore` - Codebase exploration and analysis
+- `feedback` - Capture user feedback
+- `remember` - Store project knowledge

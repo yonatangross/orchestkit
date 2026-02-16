@@ -2,6 +2,8 @@
 title: "Focus: Keyboard Navigation"
 category: focus
 impact: HIGH
+impactDescription: "Ensures all interactive elements are keyboard accessible with proper tab order and roving tabindex patterns"
+tags: keyboard, focus, tabindex, navigation, skip-links
 ---
 
 # Keyboard Navigation (WCAG 2.1.1, 2.4.3, 2.4.7)

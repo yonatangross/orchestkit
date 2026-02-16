@@ -2,6 +2,8 @@
 title: "Auth: RBAC & MFA"
 category: auth
 impact: CRITICAL
+impactDescription: "Prevents unauthorized access through role-based permissions, multi-factor authentication, and rate limiting"
+tags: rbac, mfa, totp, rate-limiting, permissions
 ---
 
 # Role-Based Access Control & Multi-Factor Authentication

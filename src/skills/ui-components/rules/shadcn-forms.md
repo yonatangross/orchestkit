@@ -2,6 +2,8 @@
 title: "shadcn/ui: Forms"
 category: shadcn
 impact: HIGH
+impactDescription: "Defines accessible form field patterns with proper label association and validation error handling"
+tags: shadcn, forms, validation, accessibility, form-fields
 ---
 
 # shadcn/ui Form Patterns

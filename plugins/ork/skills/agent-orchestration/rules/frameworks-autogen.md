@@ -2,6 +2,8 @@
 title: "Frameworks: Microsoft Agent Framework / AutoGen"
 category: frameworks
 impact: HIGH
+impactDescription: "Ensures enterprise multi-agent systems use RoundRobin/Selector teams with proper termination conditions and A2A protocol"
+tags: autogen, microsoft, teams, termination, a2a
 ---
 
 # Microsoft Agent Framework (AutoGen + Semantic Kernel)

@@ -2,6 +2,8 @@
 title: "Frameworks: CrewAI"
 category: frameworks
 impact: HIGH
+impactDescription: "Ensures role-based agent collaboration with Flows architecture, hierarchical crews, and structured outputs"
+tags: crewai, flows, hierarchical, mcp, guardrails
 ---
 
 # CrewAI Patterns (v1.8+)

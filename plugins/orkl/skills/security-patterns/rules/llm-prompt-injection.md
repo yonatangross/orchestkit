@@ -2,6 +2,8 @@
 title: "LLM: Prompt Injection Defense"
 category: llm
 impact: HIGH
+impactDescription: "Prevents prompt injection attacks by ensuring identifiers flow around the LLM, not through prompts"
+tags: prompt-injection, llm-security, safe-prompts, identifier-leakage
 ---
 
 # Prompt Injection Defense

@@ -2,6 +2,8 @@
 title: "Metrics: Leading & Lagging Indicators"
 category: metrics
 impact: HIGH
+impactDescription: "Ensures balanced use of predictive leading indicators paired with outcome-based lagging indicators"
+tags: leading-indicators, lagging-indicators, metrics-pairs, actionable-metrics
 ---
 
 # Leading & Lagging Indicators

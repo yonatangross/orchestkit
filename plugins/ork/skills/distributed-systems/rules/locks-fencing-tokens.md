@@ -2,6 +2,8 @@
 title: "Locks: Fencing Tokens & Safety"
 category: locks
 impact: CRITICAL
+impactDescription: "Ensures distributed locks validate ownership with fencing tokens and TTL management to prevent data corruption"
+tags: locks, fencing, ttl, heartbeat, safety
 ---
 
 # Lock Safety: Fencing Tokens, TTL & Heartbeat

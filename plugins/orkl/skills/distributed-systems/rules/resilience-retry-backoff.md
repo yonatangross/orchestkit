@@ -2,6 +2,8 @@
 title: "Resilience: Retry & Backoff"
 category: resilience
 impact: CRITICAL
+impactDescription: "Ensures safe retries using exponential backoff with jitter to prevent thundering herd and classify retryable errors"
+tags: resilience, retry, backoff, jitter, errors
 ---
 
 # Retry with Exponential Backoff

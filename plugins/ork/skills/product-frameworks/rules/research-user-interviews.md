@@ -2,6 +2,8 @@
 title: "Research: User Interviews & Testing"
 category: research
 impact: HIGH
+impactDescription: "Ensures rigorous user research through structured interviews, usability testing, and systematic insight collection"
+tags: user-interviews, usability-testing, research-methods, nps, sus
 ---
 
 # User Interviews & Usability Testing

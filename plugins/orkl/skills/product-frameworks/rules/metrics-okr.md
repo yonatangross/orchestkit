@@ -2,6 +2,8 @@
 title: "Metrics: OKR Framework"
 category: metrics
 impact: HIGH
+impactDescription: "Ensures proper OKR structure with qualitative objectives and quantitative, outcome-focused key results"
+tags: okr, objectives, key-results, goal-setting, alignment
 ---
 
 # OKR Framework

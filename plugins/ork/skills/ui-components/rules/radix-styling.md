@@ -2,6 +2,8 @@
 title: "Radix: Styling & Focus"
 category: radix
 impact: HIGH
+impactDescription: "Provides state-driven styling patterns and focus management strategies through Radix data attributes"
+tags: radix, styling, data-attributes, focus-management, keyboard-navigation
 ---
 
 # Radix Styling & Focus Management

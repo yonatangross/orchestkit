@@ -2,6 +2,8 @@
 title: "Focus: Focus Restoration"
 category: focus
 impact: HIGH
+impactDescription: "Ensures focus returns to the correct element after closing overlays or submitting forms"
+tags: focus, restoration, modal, form, error
 ---
 
 # Focus Restoration (WCAG 2.4.3)

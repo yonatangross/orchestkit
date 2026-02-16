@@ -83,4 +83,9 @@ User research methods and requirements documentation patterns.
 - **`research-user-interviews`** -- Interview guides, usability testing, surveys, card sorting
 - **`research-requirements-prd`** -- PRD template, user stories, acceptance criteria, INVEST
 
+## Related Skills
+
+- `assess` - Assess project complexity and risks
+- `brainstorming` - Generate product ideas and features
+
 **Version:** 2.0.0 (February 2026)

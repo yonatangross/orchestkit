@@ -2,6 +2,8 @@
 title: "Idempotency: Database-Backed"
 category: idempotency
 impact: HIGH
+impactDescription: "Ensures API operations are safely retryable by storing idempotency keys in PostgreSQL with ACID guarantees"
+tags: idempotency, database, postgresql, deduplication, api
 ---
 
 # Database-Backed Idempotency

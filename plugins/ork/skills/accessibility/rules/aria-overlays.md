@@ -2,6 +2,8 @@
 title: "React Aria: Overlays"
 category: aria
 impact: HIGH
+impactDescription: "Ensures modals, tooltips, and popovers trap focus correctly and restore focus on close"
+tags: react-aria, modal, tooltip, popover, overlay
 ---
 
 # React Aria Overlays (useModalOverlay, useTooltip, usePopover)
