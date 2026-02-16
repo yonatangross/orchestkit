@@ -288,8 +288,7 @@ if [[ "$RUN_SKILLS" == "true" ]]; then
     fi
 
     # Functional tests (rule traceability, eval completeness, efficiency scorecard)
-    # Traceability + scorecard are non-blocking (surface data quality gaps, not regressions)
-    run_test "Rule Traceability" "$SCRIPT_DIR/skills/functional/test-rule-traceability.sh" "true" || true
+    run_test "Rule Traceability" "$SCRIPT_DIR/skills/functional/test-rule-traceability.sh" || true
     run_test "Eval Completeness" "$SCRIPT_DIR/skills/functional/test-eval-completeness.sh" || true
     run_test "Skill Efficiency Scorecard" "$SCRIPT_DIR/skills/functional/skill-efficiency-scorecard.sh" "true" || true
 
