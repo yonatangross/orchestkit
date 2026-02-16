@@ -13,7 +13,16 @@ Use this template when synthesizing agent feedback in Phase 5:
 |------|--------|-------|
 | Readability | // | [notes] |
 | Type Safety | // | [notes] |
-| Test Coverage | // | [X%] |
+
+## Test Adequacy
+| Check | Status | Details |
+|-------|--------|---------|
+| Tests exist for changes | // | [X changed files have tests, Y do not] |
+| Test types match changes | // | [e.g., API changes have integration tests] |
+| Coverage gaps | // | [N untested paths] |
+| Test quality | // | [meaningful assertions, no flaky patterns] |
+
+**Verdict:** [ADEQUATE | GAPS (list) | MISSING (critical)]
 
 ## Security
 | Check | Status |

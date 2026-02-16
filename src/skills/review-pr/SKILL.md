@@ -5,12 +5,12 @@ compatibility: "Claude Code 2.1.34+. Requires memory MCP server, gh CLI."
 description: "PR review with parallel specialized agents. Use when reviewing pull requests or code."
 argument-hint: "[pr-number-or-branch]"
 context: fork
-version: 1.4.0
+version: 1.5.0
 author: OrchestKit
 tags: [code-review, pull-request, quality, security, testing]
 user-invocable: true
 allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, mcp__memory__search_nodes]
-skills: [code-review-playbook, security-scanning, type-safety-validation, memory]
+skills: [code-review-playbook, security-scanning, type-safety-validation, testing-patterns, memory]
 complexity: medium
 metadata:
   category: workflow-automation
@@ -133,6 +133,7 @@ Relevant skills activated automatically:
 - `code-review-playbook` -- Review patterns, conventional comments
 - `security-scanning` -- OWASP, secrets, dependencies
 - `type-safety-validation` -- Zod, TypeScript strict
+- `testing-patterns` -- Test adequacy, coverage gaps, rule matching
 
 ## Phase 3: Parallel Code Review (6 Agents)
 
