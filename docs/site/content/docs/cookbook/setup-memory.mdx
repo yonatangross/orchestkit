@@ -11,7 +11,7 @@ You have been working on a project for a week. Over that time you made twenty-pl
 
 Then Monday arrives. You open a new Claude Code session. Claude knows none of it. It suggests session cookies. It reaches for offset pagination. Every conversation starts from zero.
 
-OrchestKit solves this with a **4-tier memory architecture** that stores decisions once and surfaces them automatically in every future session. No manual copy-pasting. No re-explaining your stack. Decisions persist across conversations, projects, and machines.
+OrchestKit solves this with a **3-tier memory architecture** that stores decisions once and surfaces them automatically in every future session. No manual copy-pasting. No re-explaining your stack. Decisions persist across conversations, projects, and machines.
 
 ## What You'll Use
 
@@ -23,7 +23,7 @@ OrchestKit solves this with a **4-tier memory architecture** that stores decisio
 | `memory-context-injector` | Hook (prompt) | Searches graph memory on every prompt submit |
 | `mcp__memory__*` | MCP server | Graph database for entities and relations |
 
-## The 4 Memory Tiers
+## The 3 Memory Tiers
 
 Before diving into commands, understand what each tier does and when it activates.
 
@@ -31,11 +31,10 @@ Before diving into commands, understand what each tier does and when it activate
 |---|---|---|---|
 | **1. Graph** | MCP `mcp__memory__*` | None (zero-config) | Stores entities with typed relations. Primary tier. Always available. |
 | **2. Local** | `.claude/memory/*.jsonl` | None (auto-created) | JSONL queue files for session persistence and offline backup. |
-| **3. Mem0** | Cloud API | `MEM0_API_KEY` env var | Semantic search across all sessions and projects. Optional. |
-| **4. CC Native** | `~/.claude/projects/*/memory/MEMORY.md` | None (auto-sync) | Injected directly into Claude's system prompt. Survives plugin removal. |
+| **3. CC Native** | `~/.claude/projects/*/memory/MEMORY.md` | None (auto-sync) | Injected directly into Claude's system prompt. Survives plugin removal. |
 
 <Callout type="info">
-Tier 1 (Graph) and Tier 4 (CC Native) require zero configuration. They work the moment you install OrchestKit. Tier 2 adds local durability automatically. Tier 3 enables cross-project semantic search when you add a Mem0 API key.
+All three tiers require zero configuration. They work the moment you install OrchestKit. Tier 1 (Graph) is the primary storage. Tier 2 adds local durability automatically. Tier 3 (CC Native) is written automatically for high-confidence decisions and persists even without OrchestKit installed.
 </Callout>
 
 ## Step-by-Step
@@ -133,45 +132,9 @@ Results show the source tier, entity type, relations, and observations. You can 
 
 # Search cross-project best practices
 /ork:memory search --global "rate limiting"
-
-# Search both graph AND Mem0 cloud
-/ork:memory search --mem0 "database patterns"
 ```
 
-The `--mem0` flag returns graph results first, then cloud results, with duplicates removed and cross-references marked as `[CROSS-REF]`.
-
-### Step 4: Configure Mem0 for Cloud Persistence (Optional)
-
-For semantic search across all your projects and sessions, enable Tier 3 by setting a single environment variable:
-
-```bash
-# Add to ~/.zshrc or ~/.bashrc
-export MEM0_API_KEY="m0-your-key-here"
-```
-
-Restart Claude Code. Now use the `--mem0` flag to write to both graph and cloud simultaneously:
-
-```bash
-/ork:remember --mem0 "Use connection pooling with min=5, max=20 for PostgreSQL"
-```
-
-**Output:**
-
-```
-Remembered (database): "Use connection pooling with min=5, max=20 for PostgreSQL"
-   -> Stored in knowledge graph
-   -> Created entity: connection-pooling (Pattern)
-   -> Created entity: PostgreSQL (Technology)
-   -> Created relation: PostgreSQL -> USES -> connection-pooling
-   Graph: 2 entities, 1 relation
-   -> Also synced to mem0 cloud
-```
-
-<Callout type="info">
-Without `MEM0_API_KEY`, all `--mem0` commands gracefully fall back to graph-only storage. You see a notice: "mem0 sync requested but MEM0_API_KEY not configured (graph-only)". Nothing breaks.
-</Callout>
-
-### Step 5: Verify Memory System Health
+### Step 4: Verify Memory System Health
 
 Check that all tiers are operational at any time:
 
@@ -185,13 +148,10 @@ Check that all tiers are operational at any time:
 Memory System Status:
   Graph Memory:  healthy (42 decisions, 0 corrupt)
   Queue Depth:   3 pending
-  Mem0 Cloud:    connected (API key configured)
-  Last Sync:     2 hours ago
+  CC Native:     active (MEMORY.md present)
 ```
 
-If a tier shows an issue (for example, `Mem0 Cloud: disconnected (MEM0_API_KEY not set)`), the status output tells you exactly what to configure.
-
-### Step 6: Visualize Your Knowledge Graph
+### Step 5: Visualize Your Knowledge Graph
 
 See how your decisions connect to each other:
 
@@ -233,7 +193,7 @@ This is why Claude stops suggesting session cookies after you store the JWT deci
 
 ### On High-Confidence Decisions
 
-The `memory-writer` hook monitors for decisions with confidence >= 0.7. When it detects one, it automatically writes to Tier 4 (CC Native MEMORY.md). This file lives at `~/.claude/projects/<your-project>/memory/MEMORY.md` and is injected into Claude's system prompt for every session -- even sessions that do not use OrchestKit.
+The `memory-writer` hook monitors for decisions with confidence >= 0.7. When it detects one, it automatically writes to Tier 3 (CC Native MEMORY.md). This file lives at `~/.claude/projects/<your-project>/memory/MEMORY.md` and is injected into Claude's system prompt for every session -- even sessions that do not use OrchestKit.
 
 This means your most important decisions survive plugin removal, reinstallation, or upgrades. They are baked into Claude's base context.
 
@@ -250,8 +210,7 @@ When you invoke `/ork:remember`, the skill writes to all configured tiers simult
     |
     +---> Tier 1: Graph (mcp__memory__create_entities + create_relations)
     +---> Tier 2: Local (.claude/memory/graph-queue.jsonl)
-    +---> Tier 3: Mem0 cloud (only if --mem0 flag AND MEM0_API_KEY set)
-    +---> Tier 4: CC Native MEMORY.md (if confidence >= 0.7)
+    +---> Tier 3: CC Native MEMORY.md (if confidence >= 0.7)
 ```
 
 ### Entity and Relation Extraction
@@ -269,7 +228,7 @@ Graph memory stores explicit relationships between entities: `"JWT" -> USED_FOR 
 ## Tips
 
 <Callout type="info">
-**Store investigation context before ending a session.** Run `/ork:remember "Session summary: completed X, found Y, next steps Z"` before closing. The `auto-remember-continuity` hook captures some context automatically, but explicit summaries are richer, more reliable, and higher confidence -- meaning they are more likely to reach Tier 4 (CC Native).
+**Store investigation context before ending a session.** Run `/ork:remember "Session summary: completed X, found Y, next steps Z"` before closing. The `auto-remember-continuity` hook captures some context automatically, but explicit summaries are richer, more reliable, and higher confidence -- meaning they are more likely to reach Tier 3 (CC Native).
 </Callout>
 
 <Callout type="info">
@@ -294,6 +253,6 @@ Graph memory stores explicit relationships between entities: `"JWT" -> USED_FOR 
 
 ## Next Steps
 
-- **[Memory Overview](/docs/memory/overview)** -- Deep dive into the 4-tier architecture
-- **[Configuration](/docs/getting-started/configuration)** -- Set up environment variables including `MEM0_API_KEY`
+- **[Memory Overview](/docs/memory/overview)** -- Deep dive into the 3-tier architecture
+- **[Configuration](/docs/getting-started/configuration)** -- Set up environment variables
 - **[Security Audit Cookbook](/docs/cookbook/security-audit)** -- See memory in action during a security review

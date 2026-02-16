@@ -39,9 +39,6 @@ Setup hooks run when the plugin is installed or during maintenance windows. They
 | `setup/setup-check` | Validate plugin installation integrity | Yes |
 | `setup/first-run-setup` | Create `.claude/` directories, initialize config files | Yes |
 | `setup/setup-maintenance` | Periodic cleanup of stale files and caches | No |
-| `setup/mem0-backup-setup` | Configure mem0 cloud backup if `MEM0_API_KEY` is set | No |
-| `setup/mem0-cleanup` | Prune old mem0 queue entries | No |
-| `setup/mem0-analytics-dashboard` | Initialize analytics tracking infrastructure | No |
 | `setup/setup-repair` | Self-heal corrupted configuration files | No |
 | `setup/monorepo-detector` | Detect monorepo structure and set workspace context | Yes |
 
@@ -55,11 +52,8 @@ When a new session begins, these hooks fire in order:
 <Step>
 ### Unified Dispatcher (fire-and-forget)
 
-Spawns a detached background process that runs 7 startup tasks in parallel without blocking the session:
+Spawns a detached background process that runs startup tasks in parallel without blocking the session:
 
-- **mem0-context-retrieval** -- Load context from cloud memory
-- **mem0-webhook-setup** -- Configure memory webhooks
-- **mem0-analytics-tracker** -- Initialize analytics
 - **pattern-sync-pull** -- Pull learned patterns from previous sessions
 - **coordination-init** -- Register this instance for multi-instance coordination
 - **decision-sync-pull** -- Pull decision history
@@ -191,11 +185,9 @@ These hooks run in the background after the session has already exited:
 - `session-profile-aggregator` -- Aggregate session profile data
 - `session-end-tracking` -- Final session telemetry
 
-**Memory Sync (4):**
+**Memory Sync (2):**
 - `graph-queue-sync` -- Flush pending graph memory operations
 - `workflow-preference-learner` -- Learn workflow preferences from session behavior
-- `mem0-queue-sync` -- Flush pending mem0 cloud operations
-- `mem0-pre-compaction-sync` -- Ensure mem0 is synced before data loss
 
 **Instance Management (3):**
 - `multi-instance-cleanup` -- Clean up multi-instance coordination state

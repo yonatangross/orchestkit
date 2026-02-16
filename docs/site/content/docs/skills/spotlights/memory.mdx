@@ -35,11 +35,10 @@ Search the knowledge graph for entities, decisions, and patterns:
 ```bash
 /ork:memory search "cursor pagination"
 /ork:memory search --category database "connection pooling"
-/ork:memory search --mem0 "authentication flow"
 /ork:memory search --global "caching strategy"
 ```
 
-The `--mem0` flag searches both the local knowledge graph and Mem0 cloud storage simultaneously, merging results and marking cross-references. The `--global` flag searches patterns that apply across all your projects.
+The `--global` flag searches patterns that apply across all your projects.
 
 **Entity types you might find:**
 
@@ -65,17 +64,15 @@ Load relevant memories at the start of a session:
 
 This pulls in recent decisions, active project context, agent-specific memories, and optionally global patterns. It is most valuable at session start, giving Claude immediate context about your project without you having to re-explain anything.
 
-### sync -- Push to Cloud
+### sync -- Sync Memory
 
-Sync local decisions to Mem0 cloud for cross-session and cross-machine continuity:
+Sync local decisions to the knowledge graph:
 
 ```bash
 /ork:memory sync               # Sync pending changes
 /ork:memory sync --force       # Force full sync
 /ork:memory sync --dry-run     # Preview what would sync
 ```
-
-Requires `MEM0_API_KEY`. Without it, the skill skips cloud sync and notifies you.
 
 ### history -- Decision Timeline
 
@@ -113,22 +110,20 @@ Check memory system health:
 Memory System Status:
   Graph Memory:  healthy (42 decisions, 0 corrupt)
   Queue Depth:   3 pending
-  Mem0 Cloud:    connected (API key configured)
-  Last Sync:     2 hours ago
+  CC Native:     active (MEMORY.md present)
 ```
 
 ## The Memory Architecture
 
-OrchestKit uses a 4-tier memory architecture:
+OrchestKit uses a 3-tier memory architecture:
 
 | Tier | Storage | Always Available | Use Case |
 |------|---------|-----------------|----------|
 | 1. Graph | MCP `mcp__memory__*` | Yes | Primary storage, zero-config |
 | 2. Local | `.claude/memory/*.jsonl` | Yes | Backup, session persistence |
-| 3. Mem0 | Cloud (optional) | Requires API key | Semantic search, cross-session |
-| 4. CC Native | `~/.claude/projects/*/memory/MEMORY.md` | Yes | Auto-injected into system prompt |
+| 3. CC Native | `~/.claude/projects/*/memory/MEMORY.md` | Yes | Auto-injected into system prompt |
 
-High-confidence decisions (score 0.7 or above) are automatically written to CC Native memory (Tier 4), ensuring they persist even without OrchestKit installed.
+High-confidence decisions (score 0.7 or above) are automatically written to CC Native memory (Tier 3), ensuring they persist even without OrchestKit installed.
 
 ## Common Patterns
 
@@ -162,7 +157,6 @@ Before ending a session, store key findings:
   - Using RS256 for token signing
   - Refresh tokens stored in httpOnly cookies
 
-/ork:memory sync
 ```
 
 The next session can restore this context instantly with `/ork:memory load`.
@@ -187,10 +181,6 @@ This produces a Mermaid graph showing all architectural decisions and their rela
 **Use `--global` for universal patterns.** When you discover a pattern that applies to all your projects (not just the current one), store it with `/ork:remember --global`. These surface in any project when you search with `--global`.
 </Callout>
 
-<Callout type="warn">
-**Mem0 cloud sync is optional but valuable.** The knowledge graph works entirely locally. Mem0 adds semantic search (finding conceptually related memories, not just keyword matches) and cross-machine persistence. If you work on multiple machines, configure `MEM0_API_KEY`.
-</Callout>
-
 <Callout type="info">
 **Pair with `/ork:remember` for complete coverage.** `/ork:memory` reads; `/ork:remember` writes. Use them together: store decisions as you make them with `/ork:remember`, then search and load them in future sessions with `/ork:memory`.
 </Callout>
@@ -200,5 +190,5 @@ This produces a Mermaid graph showing all architectural decisions and their rela
 - [/ork:commit](/docs/skills/spotlights/commit) -- Commit changes (memory is often referenced during commit)
 - [/ork:implement](/docs/skills/spotlights/implement) -- Implementation draws on past decisions
 - [/ork:verify](/docs/skills/spotlights/verify) -- Verification stores scores in memory
-- [Memory Architecture](/docs/memory/overview) -- Deep dive into the 4-tier memory system
+- [Memory Architecture](/docs/memory/overview) -- Deep dive into the 3-tier memory system
 - [Command Skills Reference](/docs/skills/command-skills) -- All 23 command skills

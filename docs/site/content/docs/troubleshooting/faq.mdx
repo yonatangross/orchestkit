@@ -39,12 +39,11 @@ Yes. OrchestKit is designed to coexist with other plugins. Skills, agents, and h
 
 ### Does OrchestKit send data externally?
 
-No data is sent externally by default. The only optional external services are:
+No data is sent externally by default. The only optional external service is:
 
-- **Mem0 Cloud**: If you set `MEM0_API_KEY`, memory sync sends decisions to Mem0's API
 - **Tavily**: If you set `TAVILY_API_KEY`, web research skills use Tavily's search API
 
-Both are opt-in via environment variables. Without them, OrchestKit operates entirely locally.
+This is opt-in via an environment variable. Without it, OrchestKit operates entirely locally.
 
 ---
 
@@ -52,7 +51,7 @@ Both are opt-in via environment variables. Without them, OrchestKit operates ent
 
 ### How many skills are there?
 
-60 total: 23 command skills (user-invocable via `/ork:skillname`) and 37 reference skills (knowledge modules auto-injected by agents and hooks).
+62 total: 24 command skills (user-invocable via `/ork:skillname`) and 38 reference skills (knowledge modules auto-injected by agents and hooks).
 
 ### What does `complexity: low|medium|high|max` mean?
 
@@ -112,11 +111,11 @@ Yes. Create a markdown file in `src/agents/your-agent.md` with YAML frontmatter.
 
 ### How many hooks are there?
 
-89 total: 66 global hooks, 22 agent-scoped hooks, and 1 skill-scoped hook. They are compiled into 11 split bundles for faster loading.
+89 total: 66 global hooks, 22 agent-scoped hooks, and 1 skill-scoped hook. They are compiled into 12 split bundles for faster loading.
 
 ### What are fire-and-forget hooks?
 
-Six hooks use an async dispatch pattern where they start background work (analytics, network requests, startup tasks) and immediately return `{"continue": true}` without waiting for the background work to complete. This prevents slow operations from blocking the user's workflow.
+Seven hooks use an async dispatch pattern where they start background work (analytics, network requests, startup tasks) and immediately return `{"continue": true}` without waiting for the background work to complete. This prevents slow operations from blocking the user's workflow.
 
 ### Can I disable a specific hook?
 
@@ -128,7 +127,7 @@ Yes. Edit `src/hooks/hooks.json` and set `"enabled": false` on the hook entry. T
 
 ### How does memory work without any configuration?
 
-Tier 1 (Graph Memory) and Tier 2 (Local Memory) work out of the box with zero configuration. Decisions are stored in the MCP knowledge graph and backed up to `.claude/memory/*.jsonl` files. You only need configuration for Tier 3 (Mem0 Cloud), which requires `MEM0_API_KEY`.
+All 3 tiers work out of the box with zero configuration. Decisions are stored in the MCP knowledge graph (Tier 1), backed up to `.claude/memory/*.jsonl` files (Tier 2), and high-confidence decisions are promoted to CC Native MEMORY.md (Tier 3).
 
 ### What gets stored automatically?
 
@@ -136,7 +135,7 @@ OrchestKit's `auto-remember-continuity` hook automatically stores high-confidenc
 
 ### Can I delete memories?
 
-Yes. Memories in the knowledge graph can be managed via the MCP memory tools. Local memory files (`.claude/memory/*.jsonl`) can be edited or deleted directly. Mem0 cloud memories can be managed through the Mem0 API.
+Yes. Memories in the knowledge graph can be managed via the MCP memory tools. Local memory files (`.claude/memory/*.jsonl`) can be edited or deleted directly. CC Native MEMORY.md can be edited manually.
 
 ### Does memory work across different projects?
 
@@ -151,7 +150,6 @@ By default, memory is project-scoped. Use `/ork:remember --global` to store patt
 | `CLAUDE_PROJECT_DIR` | Auto-set | User's project directory |
 | `CLAUDE_PLUGIN_ROOT` | Auto-set | Plugin installation directory |
 | `CLAUDE_SESSION_ID` | Auto-set | Current session UUID |
-| `MEM0_API_KEY` | Optional | Enables Mem0 cloud memory (Tier 3) |
 | `TAVILY_API_KEY` | Optional | Enables Tavily search in web research skills |
 | `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` | Optional | Enables Agent Teams coordination mode |
 

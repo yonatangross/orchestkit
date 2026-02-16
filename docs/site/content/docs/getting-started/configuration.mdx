@@ -15,12 +15,6 @@ OrchestKit works out of the box with zero configuration. This page covers option
 | `CLAUDE_PLUGIN_ROOT` | Plugin installation path | Auto-detected |
 | `CLAUDE_SESSION_ID` | Current session UUID | Auto-generated |
 
-### Memory (Optional)
-
-| Variable | Description | Effect |
-|---|---|---|
-| `MEM0_API_KEY` | Mem0 cloud API key | Enables Tier 3: semantic cross-session memory |
-
 ### Web Research (Optional)
 
 | Variable | Description | Effect |
@@ -32,9 +26,6 @@ OrchestKit works out of the box with zero configuration. This page covers option
 Add to your shell profile (`~/.zshrc`, `~/.bashrc`, or `~/.config/fish/config.fish`):
 
 ```bash
-# Memory
-export MEM0_API_KEY="m0-your-key-here"
-
 # Web Research
 export TAVILY_API_KEY="tvly-your-key-here"
 ```
@@ -43,14 +34,13 @@ Then restart Claude Code or open a new terminal.
 
 ## Memory Tiers
 
-OrchestKit has 4 memory tiers. The first two work automatically:
+OrchestKit has 3 memory tiers. All work automatically with zero configuration:
 
 | Tier | Storage | Config Needed | What It Does |
 |---|---|---|---|
 | **1. Graph** | MCP `mcp__memory__*` | None (zero-config) | Knowledge graph: entities + relations |
 | **2. Local** | `.claude/memory/*.jsonl` | None (auto-created) | Session persistence, queue sync |
-| **3. Mem0** | Cloud API | `MEM0_API_KEY` | Semantic search across all sessions |
-| **4. CC Native** | `~/.claude/projects/*/memory/MEMORY.md` | None (auto-sync) | Injected into system prompt |
+| **3. CC Native** | `~/.claude/projects/*/memory/MEMORY.md` | None (auto-sync) | Injected into system prompt |
 
 High-confidence decisions (confidence >= 0.7) automatically promote from Graph to CC Native, ensuring they persist even without OrchestKit installed.
 
@@ -78,4 +68,4 @@ Run `/ork:configure` to adjust:
 ## Next Steps
 
 - **[The 3 Building Blocks](/docs/foundations/skills-agents-hooks)** — Understand the architecture
-- **[Memory System](/docs/memory/overview)** — Deep dive into 4-tier memory
+- **[Memory System](/docs/memory/overview)** — Deep dive into 3-tier memory
