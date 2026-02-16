@@ -78,7 +78,22 @@ Let's extend that pattern..."
 
 **Why:** Filtering too early misses potentially better alternatives.
 
-## Pitfall 6: Skipping Devil's Advocate
+## Pitfall 6: Designing Without Considering Testability
+
+```
+❌ BAD:
+"Beautiful hexagonal architecture with 12 ports and adapters!"
+[Requires 50 mocks to test a single use case]
+
+✅ GOOD:
+"Each module has clear boundaries.
+Unit tests need 0-2 mocks. Integration tests run against
+docker-compose services. E2E covers the 3 critical paths."
+```
+
+**Why:** A design that scores 10/10 on architecture but 2/10 on testability will slow down every future change. Score testability during evaluation (see `evaluation-rubric.md`) and prefer designs with clear testing boundaries.
+
+## Pitfall 7: Skipping Devil's Advocate
 
 ```
 ❌ BAD:

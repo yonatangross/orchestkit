@@ -491,7 +491,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "memory",
       "remember",
       "assess-complexity",
-      "scope-appropriate-architecture"
+      "scope-appropriate-architecture",
+      "testing-patterns"
     ],
     "agent": null,
     "structure": {
@@ -1439,7 +1440,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "implement": {
     "name": "implement",
     "description": "Full-power feature implementation with parallel subagents. Use when implementing, building, or creating features.",
-    "version": "2.2.0",
+    "version": "2.3.0",
     "author": "OrchestKit",
     "tags": [
       "implementation",
@@ -1484,6 +1485,7 @@ export const SKILLS: Record<string, SkillMeta> = {
         "agent-teams-phases.md",
         "agent-teams-security-audit.md",
         "cc-enhancements.md",
+        "e2e-verification.md",
         "feedback-loop.md",
         "interview-mode.md",
         "micro-planning-guide.md",

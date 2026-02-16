@@ -10,7 +10,7 @@ version: 4.2.0
 author: OrchestKit
 user-invocable: true
 allowed-tools: [AskUserQuestion, Task, Read, Grep, Glob, TaskCreate, TaskUpdate, TaskList, mcp__memory__search_nodes]
-skills: [architecture-decision-record, api-design, design-system-starter, memory, remember, assess-complexity, scope-appropriate-architecture]
+skills: [architecture-decision-record, api-design, design-system-starter, memory, remember, assess-complexity, scope-appropriate-architecture, testing-patterns]
 complexity: medium
 metadata:
   category: workflow-automation
@@ -164,10 +164,10 @@ TaskCreate(subject="Present design options", activeForm="Presenting options")
 | **0. Topic Analysis** | Classify keywords, select 3-5 agents | Agent list |
 | **1. Memory + Context** | Search graph, check codebase | Prior patterns |
 | **2. Divergent Exploration** | Generate 10+ ideas WITHOUT filtering | Idea pool |
-| **3. Feasibility Fast-Check** | 30-second viability per idea | Filtered ideas |
-| **4. Evaluation & Rating** | Rate 0-10, devil's advocate challenge | Ranked ideas |
-| **5. Synthesis** | Filter to top 2-3, trade-off table | Options |
-| **6. Design Presentation** | Present in 200-300 word sections | Validated design |
+| **3. Feasibility Fast-Check** | 30-second viability per idea, **including testability** | Filtered ideas |
+| **4. Evaluation & Rating** | Rate 0-10 (6 dimensions incl. **testability**), devil's advocate | Ranked ideas |
+| **5. Synthesis** | Filter to top 2-3, trade-off table, **test strategy per approach** | Options |
+| **6. Design Presentation** | Present in 200-300 word sections, **include test plan** | Validated design |
 
 See `references/phase-workflow.md` for detailed instructions.
 
@@ -187,12 +187,12 @@ Skip brainstorming when:
 
 | Topic Example | Agents to Spawn |
 |---------------|-----------------|
-| "brainstorm API for users" | workflow-architect, backend-system-architect, security-auditor |
-| "brainstorm dashboard UI" | workflow-architect, frontend-ui-developer, ux-researcher |
-| "brainstorm RAG pipeline" | workflow-architect, llm-integrator, data-pipeline-engineer |
-| "brainstorm caching strategy" | workflow-architect, backend-system-architect, frontend-performance-engineer |
+| "brainstorm API for users" | workflow-architect, backend-system-architect, security-auditor, **test-generator** |
+| "brainstorm dashboard UI" | workflow-architect, frontend-ui-developer, ux-researcher, **test-generator** |
+| "brainstorm RAG pipeline" | workflow-architect, llm-integrator, data-pipeline-engineer, **test-generator** |
+| "brainstorm caching strategy" | workflow-architect, backend-system-architect, frontend-performance-engineer, **test-generator** |
 
-**Always include:** `workflow-architect` for system design perspective.
+**Always include:** `workflow-architect` for system design perspective, `test-generator` for testability assessment.
 
 ---
 
@@ -280,4 +280,4 @@ TeamDelete()
 
 ---
 
-**Version:** 4.2.0 (February 2026) - Added project context discovery (Phase 0)
+**Version:** 4.3.0 (February 2026) - Added testability scoring to evaluation, test strategy to synthesis output

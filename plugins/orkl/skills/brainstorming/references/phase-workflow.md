@@ -91,7 +91,7 @@ DIVERGENT MODE: Generate as many approaches as possible.
 
 ## Phase 3: Feasibility Fast-Check
 
-30-second viability assessment per idea.
+30-second viability assessment per idea, including testability.
 
 | Score | Label | Action |
 |-------|-------|--------|
@@ -100,22 +100,33 @@ DIVERGENT MODE: Generate as many approaches as possible.
 | 6-8 | Feasible | Keep for evaluation |
 | 9-10 | Easy | Keep (may be too simple) |
 
+### Testability Quick-Check (per idea)
+
+Ask these 3 questions for each surviving idea:
+
+1. **Unit testable?** Can core logic be tested without external services?
+2. **Mock surface?** How many dependencies need mocking/stubbing? (fewer = better)
+3. **Integration testable?** Can this be tested with real services via docker-compose/testcontainers?
+
+Flag ideas that require mocking 5+ dependencies or cannot be integration-tested without complex setup.
+
 ---
 
 ## Phase 4: Evaluation & Rating
 
-See `evaluation-rubric.md` for scoring criteria.
-See `devils-advocate-prompts.md` for challenge templates.
+See `evaluation-rubric.md` for scoring criteria (6 dimensions including **testability**).
+See `devils-advocate-prompts.md` for challenge templates (including testing challenges).
 
 ### Composite Score Formula
 
 ```python
 composite = (
-    impact * 0.25 +
+    impact * 0.20 +
     (10 - effort) * 0.20 +
-    (10 - risk) * 0.20 +
+    (10 - risk) * 0.15 +
     alignment * 0.20 +
-    innovation * 0.15
+    testability * 0.15 +
+    innovation * 0.10
 )
 
 # Devil's advocate adjustment
@@ -130,7 +141,21 @@ if critical_concerns > 0:
 1. Filter to top 2-3 approaches
 2. Merge perspectives from all agents
 3. Build comprehensive trade-off table
-4. Present to user with scores
+4. **Add test strategy per approach** (see below)
+5. Present to user with scores
+
+### Test Strategy Per Approach
+
+For each top approach, include:
+
+| Aspect | Details |
+|--------|---------|
+| **Recommended test types** | Unit, Integration, E2E, Contract, Property-based |
+| **Mock boundaries** | What to mock vs. what to test with real services |
+| **Infrastructure needs** | docker-compose services, testcontainers, test DBs |
+| **Testing-patterns rules** | Which `testing-patterns` rules apply (e.g., `integration-api`, `e2e-playwright`) |
+
+This ensures the chosen design comes with a concrete testing plan, not just architecture.
 
 ```python
 AskUserQuestion(questions=[{
@@ -153,7 +178,8 @@ Present in 200-300 word sections:
 3. Data Flow
 4. Error Handling
 5. Security Considerations
-6. Implementation Priorities
+6. **Test Plan** (test types, mock boundaries, infrastructure requirements)
+7. Implementation Priorities
 
 After each section: "Does this look right so far?"
 

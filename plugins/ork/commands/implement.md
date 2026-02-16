@@ -73,10 +73,10 @@ Create tasks with `TaskCreate` BEFORE doing any work. Each phase gets a subtask.
 | **2. Micro-Planning** | Detailed plan per task ([guide](references/micro-planning-guide.md)) | — |
 | **3. Worktree** | Isolate in git worktree for 5+ file features ([workflow](references/worktree-workflow.md)) | — |
 | **4. Architecture** | 5 parallel background agents | workflow-architect, backend-system-architect, frontend-ui-developer, llm-integrator, ux-researcher |
-| **5. Implementation** | Parallel agents, single-pass artifacts | backend-system-architect, frontend-ui-developer, llm-integrator, test-generator, rapid-ui-designer |
-| **6. Integration** | 4 parallel agents | backend, frontend, code-quality-reviewer, security-auditor |
+| **5. Implementation + Tests** | Parallel agents, single-pass artifacts with mandatory tests | backend-system-architect, frontend-ui-developer, llm-integrator, test-generator, rapid-ui-designer |
+| **6. Integration Verification** | Code review + real-service integration tests | backend, frontend, code-quality-reviewer, security-auditor |
 | **7. Scope Creep** | Compare planned vs actual ([detection](references/scope-creep-detection.md)) | workflow-architect |
-| **8. E2E Verification** | Browser testing with agent-browser | — |
+| **8. E2E Verification** | Browser + API E2E testing ([guide](references/e2e-verification.md)) | — |
 | **9. Documentation** | Save decisions to memory graph | — |
 | **10. Reflection** | Lessons learned, estimation accuracy | workflow-architect |
 
@@ -93,13 +93,46 @@ If working on a GitHub issue, run the Start Work ceremony from `issue-progress-t
 Maintain checkpoints after each task. See [Feedback Loop](references/feedback-loop.md) for triggers and actions.
 
 
+## Test Requirements Matrix
+
+Phase 5 test-generator MUST produce tests matching the change type:
+
+| Change Type | Required Tests | `testing-patterns` Rules |
+|-------------|---------------|--------------------------|
+| API endpoint | Unit + Integration + Contract | `integration-api`, `contract-pact`, `mocking-msw` |
+| DB schema/migration | Migration + Integration | `integration-database`, `data-seeding-cleanup` |
+| UI component | Unit + Snapshot + A11y | `unit-react`, `a11y-jest-axe`, `e2e-playwright` |
+| Business logic | Unit + Property-based | `unit-pytest`, `property-hypothesis` |
+| LLM/AI feature | Unit + Eval | `llm-deepeval`, `llm-mocking`, `llm-structured` |
+| Full-stack feature | All of the above | All matching rules |
+
+### Real-Service Detection (Phase 6)
+
+Before running integration tests, detect infrastructure:
+
+```python
+# Auto-detect real service testing capability (PARALLEL)
+Glob(pattern="**/docker-compose*.yml")
+Glob(pattern="**/testcontainers*")
+Grep(pattern="testcontainers|docker-compose", glob="requirements*.txt")
+Grep(pattern="testcontainers|docker-compose", glob="package.json")
+```
+
+If detected: run integration tests against real services, not just mocks. Reference `testing-patterns` rules: `integration-database`, `integration-api`, `data-seeding-cleanup`.
+
+### Phase 9 Gate
+
+**Do NOT proceed to Phase 9 (Documentation) if test-generator produced 0 tests.** Return to Phase 5 and generate tests for the implemented code.
+
+
 ## Key Principles
 
-- **Tests are NOT optional** — each task includes its tests
+- **Tests are NOT optional** — each task includes its tests, matched to change type (see matrix above)
 - **Parallel when independent** — use `run_in_background: true`, launch all agents in ONE message
 - **128K output** — generate complete artifacts in a single pass, don't split unnecessarily
 - **Micro-plan before implementing** — scope boundaries, file list, acceptance criteria
 - **Detect scope creep** (phase 7) — score 0-10, split PR if significant
+- **Real services when available** — if docker-compose/testcontainers exist, use them in Phase 6
 - **Reflect and capture lessons** (phase 10) — persist to memory graph
 
 
@@ -123,3 +156,4 @@ Maintain checkpoints after each task. See [Feedback Loop](references/feedback-lo
 - [Micro-Planning Guide](references/micro-planning-guide.md)
 - [Scope Creep Detection](references/scope-creep-detection.md)
 - [Worktree Workflow](references/worktree-workflow.md)
+- [E2E Verification](references/e2e-verification.md)
