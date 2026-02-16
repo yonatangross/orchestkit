@@ -5,7 +5,7 @@ description: "How .claude/memory/ JSONL files provide offline-first durability, 
 
 import { Callout } from 'fumadocs-ui/components/callout';
 
-Local memory is Tier 2 -- the **durability layer** that ensures no decision is lost even if graph operations fail, sessions end unexpectedly, or Mem0 cloud is unreachable. It uses JSONL (JSON Lines) files in the `.claude/memory/` directory, which is auto-created on first write.
+Local memory is Tier 2 -- the **durability layer** that ensures no decision is lost even if graph operations fail or sessions end unexpectedly. It uses JSONL (JSON Lines) files in the `.claude/memory/` directory, which is auto-created on first write.
 
 ## The `.claude/memory/` Directory
 
@@ -13,13 +13,12 @@ Local memory is Tier 2 -- the **durability layer** that ensures no decision is l
 .claude/memory/
   decisions.jsonl        # All captured decisions and preferences
   graph-queue.jsonl      # Pending graph operations (entities + relations)
-  mem0-queue.jsonl       # Pending Mem0 cloud sync operations
   open-problems.jsonl    # Tracked open problems and blockers
   completed-flows.jsonl  # Completed workflow records
   tool-preferences.json  # Learned tool usage preferences
 ```
 
-Each file serves a distinct purpose. The three JSONL files form a **write-ahead queue** system: decisions land in the local files first, then are processed asynchronously into graph and cloud storage.
+Each file serves a distinct purpose. The JSONL files form a **write-ahead queue** system: decisions land in the local files first, then are processed asynchronously into graph storage.
 
 ## `decisions.jsonl` -- The Decision Log
 
@@ -141,69 +140,6 @@ A single decision typically generates two queued operations: one `create_entitie
 
 Graph queue operations are designed to be processed when the MCP memory server is available. The hook system reads pending operations and issues the corresponding `mcp__memory__create_entities` and `mcp__memory__create_relations` calls.
 
-## `mem0-queue.jsonl` -- Pending Cloud Sync
-
-When `MEM0_API_KEY` is configured, the memory writer also queues decisions for Mem0 cloud sync. This queue is processed at session end by the `mem0-queue-sync` hook.
-
-### Record Structure
-
-```json
-{
-  "text": "decision: Use cursor-based pagination for all list endpoints because Better performance for large datasets",
-  "user_id": "orchestkit-decisions",
-  "metadata": {
-    "type": "decision",
-    "category": "pagination",
-    "confidence": 0.85,
-    "source": "user_prompt",
-    "project": "orchestkit",
-    "timestamp": "2026-02-06T10:30:00.000Z",
-    "entities": ["cursor-pagination", "PostgreSQL"],
-    "has_rationale": true,
-    "has_alternatives": true,
-    "importance": "high",
-    "is_generalizable": true,
-    "contributor_id": "user@example.com"
-  },
-  "queued_at": "2026-02-06T10:30:00.002Z"
-}
-```
-
-### Processing at Session End
-
-The `mem0-queue-sync` hook fires on the `stop` lifecycle event. It:
-
-1. Checks if `MEM0_API_KEY` is configured (skips entirely if not)
-2. Reads all queued memories from `mem0-queue.jsonl`
-3. Deduplicates entries with the same text (keeps the most recent)
-4. Groups entries by `user_id` for organized output
-5. Generates CLI script commands for Claude to execute
-6. Clears the queue file
-
-If there are 5 queued memories across 2 scopes, the hook outputs:
-
-```
-## Mem0 Cloud Memory Sync
-
-The following decisions and patterns were captured this session.
-To persist them to mem0 cloud memory, execute these CLI scripts:
-
-### Scope: orchestkit-decisions
-
-**Memory 1:**
-python3 ${CLAUDE_PLUGIN_ROOT}/src/skills/mem0-memory/scripts/crud/add-memory.py \
-  --text "decision: Use cursor-based pagination..." \
-  --user-id "orchestkit-decisions" \
-  --metadata '{"type":"decision","category":"pagination",...}'
-
-**Summary:** 5 memories to sync across 2 scope(s).
-Categories: pagination, authentication, database
-```
-
-<Callout type="info">
-The mem0 queue is only populated when `MEM0_API_KEY` is configured. Without it, the queue file either does not exist or remains empty. No cloud operations are attempted.
-</Callout>
-
 ## `open-problems.jsonl` -- Problem Tracking
 
 This file tracks unresolved problems and blockers encountered during sessions. Entries include the problem description, related entities, and status.
@@ -220,9 +156,9 @@ Stores learned tool usage preferences (e.g., preferred editor, testing framework
 
 The local persistence layer is designed around an offline-first principle:
 
-1. **Writes always succeed locally.** The `appendToJsonl` function creates the directory if it does not exist and appends the record. Even if graph MCP is unreachable or Mem0 API is down, the decision is safely stored.
+1. **Writes always succeed locally.** The `appendToJsonl` function creates the directory if it does not exist and appends the record. Even if graph MCP is unreachable, the decision is safely stored.
 
-2. **Queues are processed when services become available.** Graph operations queue in `graph-queue.jsonl` until the MCP server processes them. Mem0 operations queue in `mem0-queue.jsonl` until session end sync.
+2. **Queues are processed when services become available.** Graph operations queue in `graph-queue.jsonl` until the MCP server processes them.
 
 3. **No data is lost on unexpected shutdown.** Since each write is an atomic file append (not a rewrite), partial writes at most lose one line. The JSONL parser in the context loader silently skips malformed lines.
 
@@ -247,7 +183,6 @@ The health check flags:
 | `.claude/memory/` does not exist | `unavailable` | No memory directory; nothing has been stored yet |
 | `decisions.jsonl` has corrupt lines | `degraded` | Some entries were partially written; parseable entries still work |
 | `graph-queue.jsonl` has 50+ entries | `degraded` | Queue is backing up; graph operations may not be processing |
-| `mem0-queue.jsonl` has 50+ entries | `degraded` | Cloud sync is backed up; check if `MEM0_API_KEY` is valid |
 
 Run `/ork:memory status` to see the full health report.
 
@@ -263,13 +198,11 @@ memory-writer.ts
     |
     +---> decisions.jsonl    (always, immediate)
     +---> graph-queue.jsonl  (always, queued operations)
-    +---> mem0-queue.jsonl   (only if MEM0_API_KEY set)
     |
     v
 Hook processing
     |
     +---> graph-queue processed --> mcp__memory__create_entities
-    +---> mem0-queue processed  --> python3 add-memory.py (at session end)
 ```
 
 The local files serve as the durable source of truth. If the graph is ever rebuilt or cleared, the decisions in `decisions.jsonl` can be replayed to reconstruct it.
@@ -278,12 +211,10 @@ The local files serve as the durable source of truth. If the graph is ever rebui
 
 - `decisions.jsonl` grows unbounded but is read from the tail (last N lines), so size does not affect read performance
 - `graph-queue.jsonl` is cleared as operations are processed
-- `mem0-queue.jsonl` is cleared at session end by the `mem0-queue-sync` hook
 
 If files become very large, the health check reports `degraded` status at the 50-entry threshold for queue files, signaling that processing may need attention.
 
 ## Next Steps
 
 - [Graph Memory](/docs/memory/graph-memory) -- the primary tier that local queues feed into
-- [Mem0 Cloud](/docs/memory/mem0-cloud) -- how the mem0 queue is processed for cloud persistence
-- [Architecture Overview](/docs/memory/overview) -- the full 4-tier system
+- [Architecture Overview](/docs/memory/overview) -- the full 3-tier system

@@ -227,7 +227,7 @@ test-generator:          "Write LLM tests incrementally. Use VCR.py for determin
 | 6. Integration | 4 parallel Task spawns | **Team members coordinate** | Peer verification |
 | 7. Scope Creep | 1 agent | Lead evaluates | Team disbanded |
 | 8. E2E Verification | Browser testing | Same | None |
-| 9. Documentation | mem0 save | Same | None |
+| 9. Documentation | memory save | Same | None |
 | 10. Reflection | 1 agent | Lead reflects | None |
 
 **Phase 4 + 5 merge opportunity:** With Agent Teams, architecture and implementation can overlap. The workflow-architect designs while the backend-system-architect starts building foundations.
@@ -394,7 +394,6 @@ export function teamQualityGate(teamEvidence: TeamEvidence): HookResult {
 | `subagent-stop/subagent-quality-gate` | `team/team-quality-gate` | New hook, aggregate validation |
 | `subagent-start/subagent-validator` | N/A — teammates validate via CLAUDE.md | Already handled |
 | `subagent-start/graph-memory-inject` | N/A — teammates load MCP servers | Already handled |
-| `subagent-start/mem0-memory-inject` | N/A — teammates load MCP servers | Already handled |
 | `subagent-stop/retry-handler` | Lead manages retries via messaging | Pattern change (see 4.4) |
 | `subagent-stop/handoff-preparer` | Teammates message directly | No longer needed |
 

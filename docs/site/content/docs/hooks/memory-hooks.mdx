@@ -1,6 +1,6 @@
 ---
 title: "Memory Bridge and Context Injection"
-description: "How OrchestKit injects past decisions into every prompt, captures new decisions automatically, and syncs memory across sessions through the knowledge graph and mem0."
+description: "How OrchestKit injects past decisions into every prompt, captures new decisions automatically, and syncs memory across sessions through the knowledge graph."
 ---
 
 import { Callout } from "fumadocs-ui/components/callout";
@@ -8,7 +8,7 @@ import { Steps, Step } from "fumadocs-ui/components/steps";
 
 ## The Memory Pipeline
 
-OrchestKit maintains memory across sessions through a pipeline of hooks that capture, store, load, and inject context. The system follows a graph-first architecture: the knowledge graph (via MCP) is always available with zero configuration, while mem0 cloud provides optional semantic search for cross-session continuity.
+OrchestKit maintains memory across sessions through a pipeline of hooks that capture, store, load, and inject context. The system follows a graph-first architecture: the knowledge graph (via MCP) is always available with zero configuration.
 
 ```
 Session N                                   Session N+1
@@ -18,8 +18,7 @@ User prompt                                 SessionStart
     v                                           v
 capture-user-intent  --->  decisions.jsonl  --->  memory-context-loader
     |                      graph-queue.jsonl       (once, first prompt)
-    |                      mem0-queue.jsonl            |
-    v                                                  v
+    v                                                  |
 memory-context  --->  search graph  --->  additionalContext injected
 (every prompt)        for past decisions  into Claude's context
     |
@@ -27,7 +26,6 @@ memory-context  --->  search graph  --->  additionalContext injected
 Stop (fire-and-forget)
     |
     +--> graph-queue-sync (flush to graph)
-    +--> mem0-queue-sync (flush to cloud)
     +--> auto-remember-continuity
 ```
 
@@ -163,7 +161,6 @@ When a decision is detected, the hook:
 1. Creates a structured decision record with `what`, `why`, entities, confidence score, and category
 2. Appends it to `.claude/memory/decisions.jsonl` (via `storeDecision`)
 3. Queues a graph memory write to `.claude/memory/graph-queue.jsonl`
-4. Queues a mem0 cloud write to `.claude/memory/mem0-queue.jsonl`
 
 ```typescript
 // The decision record structure
@@ -217,30 +214,9 @@ Each queued entry describes an entity or relation to create in the knowledge gra
 
 At session end, the `graph-queue-sync` hook reads the queue and executes the operations against the knowledge graph MCP.
 
-### Mem0 Queue
-
-**File:** `.claude/memory/mem0-queue.jsonl`
-**Flushed by:** `stop/mem0-queue-sync`
-
-Each queued entry describes a memory to store in mem0 cloud:
-
-```json
-{
-  "text": "Use PostgreSQL for analytics -- JSONB and vector support",
-  "user_id": "project:myapp:decisions",
-  "metadata": {
-    "category": "database",
-    "confidence": 0.85,
-    "timestamp": "2026-01-15T10:30:00Z"
-  }
-}
-```
-
-The queue is only flushed if `MEM0_API_KEY` is configured. Otherwise, the queue accumulates and can be synced later.
-
 ## Memory in Subagents
 
-When a subagent is spawned, two hooks inject memory context:
+When a subagent is spawned, the graph memory inject hook provides memory context:
 
 ### Graph Memory Inject
 
@@ -249,19 +225,12 @@ When a subagent is spawned, two hooks inject memory context:
 
 Searches the knowledge graph for entities and relations relevant to the subagent's task, then injects them as additional context.
 
-### Mem0 Memory Inject
-
-**Hook:** `subagent-start/mem0-memory-inject`
-**Event:** SubagentStart
-
-If mem0 is configured, performs a semantic search for memories relevant to the subagent's task type and injects matching results.
-
 ## Memory Fabric Initializer
 
 **Hook:** `pretool/mcp/memory-fabric-init`
-**Event:** PreToolUse (mcp\_\_mem0\_\_\* | mcp\_\_memory\_\_\*) (`once: true`)
+**Event:** PreToolUse (mcp\_\_memory\_\_\*) (`once: true`)
 
-On the first MCP memory tool call of the session, this hook initializes the memory fabric -- setting up the connection between the knowledge graph and any configured cloud memory backends. It runs once and silently.
+On the first MCP memory tool call of the session, this hook initializes the memory fabric -- setting up the connection to the knowledge graph. It runs once and silently.
 
 ## Memory Validator
 
@@ -270,19 +239,18 @@ On the first MCP memory tool call of the session, this hook initializes the memo
 
 Validates knowledge graph operations before they execute, ensuring entity names are properly formatted and relation types follow the expected vocabulary.
 
-## The Four-Tier Memory Architecture
+## The Three-Tier Memory Architecture
 
-OrchestKit's hooks bridge four storage tiers:
+OrchestKit's hooks bridge three storage tiers:
 
 | Tier | Storage | Written By | Read By |
 |------|---------|-----------|---------|
 | **1. Knowledge Graph** | MCP `mcp__memory__*` | `graph-queue-sync` (stop) | `memory-context` (prompt), `graph-memory-inject` (subagent) |
 | **2. Local JSONL** | `.claude/memory/*.jsonl` | `capture-user-intent` (prompt), `memory-writer` | `memory-context-loader` (first prompt) |
-| **3. Mem0 Cloud** | Remote API | `mem0-queue-sync` (stop) | `mem0-memory-inject` (subagent) |
-| **4. CC Native** | `MEMORY.md` | High-confidence decisions (>= 0.7) auto-written | Claude Code system prompt (automatic) |
+| **3. CC Native** | `MEMORY.md` | High-confidence decisions (>= 0.7) auto-written | Claude Code system prompt (automatic) |
 
 <Callout type="info">
-The graph (Tier 1) and local JSONL (Tier 2) tiers require zero configuration and always work. Mem0 cloud (Tier 3) requires `MEM0_API_KEY`. CC Native memory (Tier 4) is written automatically for high-confidence decisions and persists even without OrchestKit installed.
+All three tiers require zero configuration and always work. CC Native memory (Tier 3) is written automatically for high-confidence decisions and persists even without OrchestKit installed.
 </Callout>
 
 ## Auto-Remember Continuity
@@ -306,10 +274,8 @@ On the first prompt, this hook injects the user's profile context (project ident
 | `memory-context` | UserPromptSubmit | Read hint (graph) | Every prompt |
 | `capture-user-intent` | UserPromptSubmit | Write (JSONL + queues) | Every prompt |
 | `graph-memory-inject` | SubagentStart | Read (graph) | Per subagent |
-| `mem0-memory-inject` | SubagentStart | Read (mem0) | Per subagent |
 | `memory-fabric-init` | PreToolUse (MCP) | Setup | Once per session |
 | `memory-validator` | PreToolUse (MCP) | Validate | Per MCP call |
 | `graph-queue-sync` | Stop | Write (graph) | Once at exit |
-| `mem0-queue-sync` | Stop | Write (mem0) | Once at exit |
 | `auto-remember-continuity` | Stop | Write (all) | Once at exit |
 | `profile-injector` | UserPromptSubmit | Read (config) | Once per session |

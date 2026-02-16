@@ -5,7 +5,7 @@ description: "How OrchestKit auto-promotes high-confidence decisions to Claude C
 
 import { Callout } from 'fumadocs-ui/components/callout';
 
-CC Native memory is Tier 4 -- the **survivability layer**. Claude Code maintains a file at `~/.claude/projects/<project>/memory/MEMORY.md` that it automatically injects into the system prompt for every session. OrchestKit writes high-confidence decisions to this file, ensuring they persist even if the plugin is removed, reinstalled, or upgraded.
+CC Native memory is Tier 3 -- the **survivability layer**. Claude Code maintains a file at `~/.claude/projects/<project>/memory/MEMORY.md` that it automatically injects into the system prompt for every session. OrchestKit writes high-confidence decisions to this file, ensuring they persist even if the plugin is removed, reinstalled, or upgraded.
 
 ## How Claude Code Native Memory Works
 
@@ -140,27 +140,27 @@ The `--success` flag adds a positive outcome signal that increases confidence sc
 
 ## The Survivability Guarantee
 
-The core design principle behind Tier 4:
+The core design principle behind Tier 3:
 
 ```
-OrchestKit installed     -->  All 4 tiers active, decisions flow everywhere
-OrchestKit removed       -->  Tier 4 still works, MEMORY.md still injected
-Different plugin version -->  Tier 4 still works, previous decisions visible
-New machine, same repo   -->  Tier 4 works if ~/.claude/ is synced/backed up
+OrchestKit installed     -->  All 3 tiers active, decisions flow everywhere
+OrchestKit removed       -->  Tier 3 still works, MEMORY.md still injected
+Different plugin version -->  Tier 3 still works, previous decisions visible
+New machine, same repo   -->  Tier 3 works if ~/.claude/ is synced/backed up
 ```
 
 This means your most important decisions -- the ones that cleared the 0.7 confidence threshold -- are not locked into OrchestKit. They are plain text in a file that Claude Code itself manages. Even if you stop using OrchestKit entirely, Claude remembers what matters.
 
 ## Relationship to Other Tiers
 
-| Scenario | Tier 1 (Graph) | Tier 2 (Local) | Tier 3 (Mem0) | Tier 4 (CC Native) |
-|---|---|---|---|---|
-| Low-confidence observation | Stored | Stored | Queued (if configured) | **Skipped** |
-| Medium-confidence decision (0.5) | Stored | Stored | Queued (if configured) | **Skipped** |
-| High-confidence decision (0.7+) | Stored | Stored | Queued (if configured) | **Written** |
-| Very high confidence, generalizable (0.8+) | Stored | Stored | Queued with global scope | **Written** |
+| Scenario | Tier 1 (Graph) | Tier 2 (Local) | Tier 3 (CC Native) |
+|---|---|---|---|
+| Low-confidence observation | Stored | Stored | **Skipped** |
+| Medium-confidence decision (0.5) | Stored | Stored | **Skipped** |
+| High-confidence decision (0.7+) | Stored | Stored | **Written** |
+| Very high confidence, generalizable (0.8+) | Stored | Stored | **Written** |
 
-Tier 4 is the most selective tier. It serves as a curated summary of your most important project decisions, automatically maintained by the confidence threshold.
+Tier 3 is the most selective tier. It serves as a curated summary of your most important project decisions, automatically maintained by the confidence threshold.
 
 ## Hooks Involved
 
@@ -192,6 +192,6 @@ Verify the project path mapping. The directory name conversion replaces all path
 
 ## Next Steps
 
-- [Architecture Overview](/docs/memory/overview) -- see how Tier 4 fits into the full system
+- [Architecture Overview](/docs/memory/overview) -- see how Tier 3 fits into the full system
 - [Graph Memory](/docs/memory/graph-memory) -- the primary tier that feeds auto-promotion
 - [Set Up Cross-Session Memory](/docs/cookbook/setup-memory) -- end-to-end cookbook

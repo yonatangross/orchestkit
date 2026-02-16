@@ -110,14 +110,13 @@ ls .claude/memory/
 claude mcp list
 ```
 
-The memory system has 4 tiers. If Tier 1 (Graph) is not configured, decisions fall back to Tier 2 (Local files). If those are not writable, nothing persists.
+The memory system has 3 tiers. If Tier 1 (Graph) is not configured, decisions fall back to Tier 2 (Local files). If those are not writable, nothing persists.
 
 | Tier | Check | Fix |
 |------|-------|-----|
 | 1. Graph | `claude mcp list` shows memory server | Configure MCP memory server |
 | 2. Local | `.claude/memory/` directory exists | Create it: `mkdir -p .claude/memory` |
-| 3. Mem0 | `MEM0_API_KEY` is set | Set the environment variable |
-| 4. CC Native | `MEMORY.md` exists in project memory | Automatic -- no action needed |
+| 3. CC Native | `MEMORY.md` exists in project memory | Automatic -- no action needed |
 
 ---
 
