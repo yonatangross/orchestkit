@@ -47,7 +47,7 @@ Do NOT suggest patterns marked OVERKILL for this tier in the scope-appropriate-a
 | AI/LLM | `llm-integrator`, `workflow-architect` | rag-retrieval |
 | Performance | `frontend-performance-engineer` | performance |
 
-**Always include:** `workflow-architect` (system design perspective)
+**Always include:** `workflow-architect` (system design perspective) + `test-generator` (testability assessment)
 
 ---
 

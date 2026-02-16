@@ -211,6 +211,18 @@ Task(subagent_type="frontend-ui-developer", name="frontend-thinker",
      Challenge backend proposals that create poor user experiences.
      Advocate for progressive disclosure and accessibility.""")
 
+# Always include: testability assessor
+Task(subagent_type="test-generator", name="testability-assessor",
+     team_name="brainstorm-{topic-slug}",
+     prompt="""Assess testability for each brainstormed approach: {topic}
+     For every idea shared by teammates, evaluate:
+     - Can core logic be unit tested without external services?
+     - What's the mock/stub surface area?
+     - Can it be integration-tested with docker-compose/testcontainers?
+     Score testability 0-10 per the evaluation rubric.
+     Challenge designs that score below 5 on testability.
+     Propose test strategies for the top approaches in synthesis phase.""")
+
 # Optional: Add security-auditor, ux-researcher, llm-integrator based on topic
 ```
 
@@ -222,6 +234,7 @@ Task(subagent_type="frontend-ui-developer", name="frontend-thinker",
 SendMessage(type="shutdown_request", recipient="system-designer", content="Brainstorm complete")
 SendMessage(type="shutdown_request", recipient="backend-thinker", content="Brainstorm complete")
 SendMessage(type="shutdown_request", recipient="frontend-thinker", content="Brainstorm complete")
+SendMessage(type="shutdown_request", recipient="testability-assessor", content="Brainstorm complete")
 # ... shutdown any additional domain teammates
 TeamDelete()
 ```

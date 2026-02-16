@@ -99,10 +99,10 @@ Phase 5 test-generator MUST produce tests matching the change type:
 
 | Change Type | Required Tests | `testing-patterns` Rules |
 |-------------|---------------|--------------------------|
-| API endpoint | Unit + Integration + Contract | `integration-api`, `contract-pact`, `mocking-msw` |
+| API endpoint | Unit + Integration + Contract | `integration-api`, `verification-contract`, `mocking-msw` |
 | DB schema/migration | Migration + Integration | `integration-database`, `data-seeding-cleanup` |
-| UI component | Unit + Snapshot + A11y | `unit-react`, `a11y-jest-axe`, `e2e-playwright` |
-| Business logic | Unit + Property-based | `unit-pytest`, `property-hypothesis` |
+| UI component | Unit + Snapshot + A11y | `unit-aaa-pattern`, `integration-component`, `a11y-jest-axe`, `e2e-playwright` |
+| Business logic | Unit + Property-based | `unit-aaa-pattern`, `pytest-markers`, `verification-property` |
 | LLM/AI feature | Unit + Eval | `llm-deepeval`, `llm-mocking`, `llm-structured` |
 | Full-stack feature | All of the above | All matching rules |
 
