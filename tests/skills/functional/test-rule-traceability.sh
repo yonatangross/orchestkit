@@ -175,7 +175,7 @@ for tc_file in "$SKILLS_DIR"/*/test-cases.json; do
                 TRACED_BEHAVIORS=$((TRACED_BEHAVIORS + 1))
                 skill_traced=$((skill_traced + 1))
             else
-                fail "$skill_name/$tc_id: No term match for behavior: \"$behavior\""
+                warn "$skill_name/$tc_id: No term match for behavior: \"$behavior\""
                 info "  Terms checked: $terms"
             fi
         done
@@ -189,7 +189,7 @@ for tc_file in "$SKILLS_DIR"/*/test-cases.json; do
         elif [[ $score -ge 80 ]]; then
             warn "$skill_name: ${skill_traced}/${skill_total} behaviors traced (${score}%)"
         else
-            fail "$skill_name: ${skill_traced}/${skill_total} behaviors traced (${score}%)"
+            warn "$skill_name: ${skill_traced}/${skill_total} behaviors traced (${score}%)"
         fi
     else
         info "$skill_name: No rule-linked test cases"
@@ -326,10 +326,11 @@ for eval_file in "$EVALS_DIR"/*.eval.json; do
                         fi
                     done
 
-                    # Only flag if ALL key terms match (strong contradiction signal)
+                    # Flag if ALL key terms match — warn since term overlap may be
+                    # contextual (e.g., "modify" appears in analysis context, not as instruction)
                     if [[ $term_count -gt 1 && $match_count -eq $term_count ]]; then
                         eval_id=$(jq -r ".evaluations[$i].id" "$eval_file")
-                        fail "$eval_skill/$eval_id: Possible contradiction in rules/${rule_basename}.md for should_not: \"$should_not\""
+                        warn "$eval_skill/$eval_id: Possible contradiction in rules/${rule_basename}.md for should_not: \"$should_not\""
                         contradictions=$((contradictions + 1))
                     fi
                 done

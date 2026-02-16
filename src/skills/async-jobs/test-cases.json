@@ -4,7 +4,7 @@
   "testCases": [
     {
       "id": "celery-config",
-      "rule": "celery-config",
+      "rule": "jobs-task-queue",
       "query": "Set up a production Celery app with Redis broker",
       "expectedBehavior": [
         "Uses JSON serializer (never pickle)",
@@ -15,7 +15,7 @@
     },
     {
       "id": "task-routing",
-      "rule": "task-routing",
+      "rule": "jobs-task-queue",
       "query": "Route tasks to priority queues based on user tier",
       "expectedBehavior": [
         "Defines critical/high/default/low queues with kombu",
@@ -26,7 +26,7 @@
     },
     {
       "id": "canvas-workflows",
-      "rule": "canvas-workflows",
+      "rule": "celery-canvas",
       "query": "Build an ETL pipeline with parallel processing and aggregation",
       "expectedBehavior": [
         "Uses chain for sequential extract-transform-load steps",
@@ -37,7 +37,7 @@
     },
     {
       "id": "retry-strategies",
-      "rule": "retry-strategies",
+      "rule": "jobs-task-queue",
       "query": "Implement a task with retry and idempotency protection",
       "expectedBehavior": [
         "Uses autoretry_for with retry_backoff=True and retry_jitter=True",
@@ -48,7 +48,7 @@
     },
     {
       "id": "scheduled-tasks",
-      "rule": "scheduled-tasks",
+      "rule": "jobs-scheduling",
       "query": "Configure periodic tasks with overlap prevention",
       "expectedBehavior": [
         "Uses celery.schedules.crontab for time-based scheduling",
@@ -59,7 +59,7 @@
     },
     {
       "id": "monitoring-health",
-      "rule": "monitoring-health",
+      "rule": "jobs-monitoring",
       "query": "Add monitoring and health checks to Celery workers",
       "expectedBehavior": [
         "Connects to celery signals for task_prerun and task_failure",
@@ -70,7 +70,7 @@
     },
     {
       "id": "result-backends",
-      "rule": "result-backends",
+      "rule": "jobs-monitoring",
       "query": "Track task progress with custom states",
       "expectedBehavior": [
         "Defines custom states (VALIDATING, PROCESSING, UPLOADING)",
@@ -81,7 +81,7 @@
     },
     {
       "id": "arq-patterns",
-      "rule": "arq-patterns",
+      "rule": "jobs-task-queue",
       "query": "Set up async background tasks with ARQ and FastAPI",
       "expectedBehavior": [
         "Creates ARQ worker with startup/shutdown lifecycle hooks",
