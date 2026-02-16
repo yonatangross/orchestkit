@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.0.14] - 2026-02-16
+
+### Fixed
+
+- Remove all Mem0 Cloud references from 24 docs files — 4-tier → 3-tier memory architecture
+- Delete leftover mem0 artifacts (.claude/mem0-webhooks.json, mem0-queue.jsonl, logs)
+- Clean .gitignore and mypy.ini of mem0 entries
+- Fix stale hook count in choosing-a-plugin.mdx (86 → 89)
+
+---
+
+
 ## [6.0.13] - 2026-02-15
 
 ### Fixed
