@@ -127,6 +127,29 @@ def analyze_coverage_gaps(
     }
 ```
 
+**Incorrect — Hardcoded difficulty without analysis:**
+```python
+# Guessing difficulty level
+document = {
+    "id": "new-doc",
+    "difficulty": "medium",  # No assessment
+    "tags": ["ai-ml"],  # Only 1 tag
+}
+```
+
+**Correct — Classified difficulty with analysis:**
+```python
+# Analyze multiple factors
+factors = {
+    "technical_density": count_technical_terms(document["content"]),
+    "section_count": len(document.get("sections", [])),
+    "abstraction_level": assess_abstraction(document),
+}
+difficulty = classify_difficulty(document)  # Returns "hard" based on factors
+document["difficulty"] = difficulty
+document["tags"] = ["ai-ml", "backend", "devops"]  # Minimum 2 tags
+```
+
 **Key rules:**
 - Maintain balanced coverage across content types, difficulty levels, and domains
 - Do not over-index on articles -- ensure tutorials and research papers are represented

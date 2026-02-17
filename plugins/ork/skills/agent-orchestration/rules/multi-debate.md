@@ -2,6 +2,8 @@
 title: "Multi-Agent: Debate & Conflict Resolution"
 category: multi
 impact: HIGH
+impactDescription: "Ensures agent disagreements are resolved through confidence scores, LLM arbitration, or majority voting"
+tags: conflict, resolution, debate, arbitration, communication
 ---
 
 # Agent Debate & Conflict Resolution
@@ -109,3 +111,23 @@ class AgentBus:
 - Over-coordination (too much overhead)
 - Using Agent Teams for simple sequential work (use Task tool)
 - Broadcasting when a direct message suffices (wastes tokens)
+
+**Incorrect — no conflict resolution strategy:**
+```python
+async def multi_agent_analysis(task: str):
+    results = await asyncio.gather(agent1(task), agent2(task))
+    return results  # Return conflicting results without resolution
+```
+
+**Correct — LLM arbitration resolves conflicts:**
+```python
+async def multi_agent_analysis(task: str):
+    results = await asyncio.gather(agent1(task), agent2(task))
+    if results[0] != results[1]:  # Conflict detected
+        resolution = await llm.chat([{
+            "role": "user",
+            "content": f"Agent 1: {results[0]}\nAgent 2: {results[1]}\nWhich is correct?"
+        }])
+        return resolution.content
+    return results[0]
+```

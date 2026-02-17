@@ -2,6 +2,8 @@
 title: "Resilience: Bulkhead Isolation"
 category: resilience
 impact: CRITICAL
+impactDescription: "Ensures failure isolation by partitioning resources into independent pools with tier-based capacity limits"
+tags: resilience, bulkhead, isolation, tiers, capacity
 ---
 
 # Bulkhead Pattern
@@ -112,3 +114,18 @@ async def run_analysis(content: str):
 - Too many bulkheads (per-endpoint instead of per-dependency)
 - Ignoring rejection handling (BulkheadFullError becomes 500)
 - No correlation with circuit breaker (slots stay blocked on slow service)
+
+**Incorrect — No isolation means slow downstream service blocks all operations:**
+```python
+async def fetch_data():
+    await slow_external_api()  # Takes 30s when degraded
+# All requests wait, entire system becomes slow
+```
+
+**Correct — Bulkhead isolates slow service, protecting critical operations:**
+```python
+@bulkhead(tier=Tier.OPTIONAL, max_concurrent=3, timeout=5)
+async def fetch_data():
+    await slow_external_api()
+# Only 3 concurrent + waiting queue, rest get fast rejection
+```

@@ -2,6 +2,8 @@
 title: "Integration: API Testing"
 category: integration
 impact: HIGH
+impactDescription: "Validates API contract correctness and error handling through HTTP-level integration tests"
+tags: api-testing, integration, supertest, httpx, http
 ---
 
 # API Integration Testing
@@ -63,3 +65,31 @@ async def test_create_user(client: AsyncClient):
 | API endpoints | 70%+ |
 | Service layer | 80%+ |
 | Component interactions | 70%+ |
+
+**Incorrect — Only testing happy path:**
+```typescript
+test('creates user', async () => {
+  const response = await request(app)
+    .post('/api/users')
+    .send({ email: 'test@example.com' });
+  expect(response.status).toBe(201);
+  // Missing: validation errors, auth failures
+});
+```
+
+**Correct — Testing both success and error cases:**
+```typescript
+test('creates user with valid data', async () => {
+  const response = await request(app)
+    .post('/api/users')
+    .send({ email: 'test@example.com', name: 'Test' });
+  expect(response.status).toBe(201);
+});
+
+test('rejects invalid email', async () => {
+  const response = await request(app)
+    .post('/api/users')
+    .send({ email: 'invalid' });
+  expect(response.status).toBe(400);
+});
+```

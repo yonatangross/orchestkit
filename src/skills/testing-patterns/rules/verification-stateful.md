@@ -2,6 +2,8 @@
 title: "Verification: Stateful Testing"
 category: verification
 impact: MEDIUM
+impactDescription: "Validates complex state transitions and invariants through Hypothesis RuleBasedStateMachine testing"
+tags: stateful-testing, hypothesis, state-machines, invariants, fuzzing
 ---
 
 # Stateful Testing
@@ -60,4 +62,28 @@ def test_bad(x):
 @given(st.text())  # WRONG - includes 10MB strings
 def test_username(name):
     User(name=name)
+```
+
+**Incorrect — Not tracking model state, missing invariant violations:**
+```python
+class CartStateMachine(RuleBasedStateMachine):
+    @rule(item=st.text())
+    def add_item(self, item):
+        self.cart.add(item)
+        # Not tracking expected state
+```
+
+**Correct — Tracking model state to verify invariants:**
+```python
+class CartStateMachine(RuleBasedStateMachine):
+    def __init__(self):
+        super().__init__()
+        self.cart = Cart()
+        self.expected_items = []
+
+    @rule(item=st.text(min_size=1))
+    def add_item(self, item):
+        self.cart.add(item)
+        self.expected_items.append(item)
+        assert len(self.cart) == len(self.expected_items)
 ```

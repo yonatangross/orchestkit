@@ -27,3 +27,18 @@ Task(
   max_turns=25
 )
 ```
+
+**Incorrect — Missing LLM review for AI code:**
+```python
+# PR modifies prompt.py but no LLM reviewer
+Task(subagent_type="code-quality-reviewer", ...)
+Task(subagent_type="security-auditor", ...)
+# Missing: LLM-specific review
+```
+
+**Correct — Add LLM reviewer for AI code:**
+```python
+# Detect AI/ML changes, add specialized reviewer
+if pr_contains_llm_code:
+    Task(subagent_type="llm-integrator", prompt="LLM CODE REVIEW...", run_in_background=True)
+```

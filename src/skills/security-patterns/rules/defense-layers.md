@@ -2,6 +2,8 @@
 title: "Defense: 8-Layer Security Architecture"
 category: defense
 impact: CRITICAL
+impactDescription: "Ensures defense-in-depth with 8 security layers from edge protection to observability"
+tags: defense-in-depth, security-layers, waf, authorization, validation
 ---
 
 # 8-Layer Security Architecture
@@ -121,3 +123,24 @@ class TenantScopedRepository:
 | Zero Trust | Google BeyondCorp | Every request verified |
 | Least Privilege | AWS IAM | Minimal permissions |
 | Complete Mediation | Saltzer & Schroeder | Every access checked |
+
+**Incorrect — Single-layer auth check is vulnerable if JWT verification is bypassed:**
+```python
+@app.get("/documents/{doc_id}")
+def get_document(doc_id: UUID, token: str = Header(...)):
+    claims = verify_jwt(token)  # Only layer
+    return db.query(Document).get(doc_id)
+```
+
+**Correct — Multi-layer defense verifies auth, validates input, checks authorization, and filters data:**
+```python
+@app.get("/documents/{doc_id}")
+async def get_document(doc_id: UUID, ctx: RequestContext = Depends(get_context)):
+    # Layer 1: Gateway verified JWT
+    # Layer 2: UUID validation (Pydantic)
+    # Layer 3: Authorization
+    await authorize(ctx, "documents:read", doc_id)
+    # Layer 4: Tenant-scoped query
+    repo = TenantScopedRepository(db, ctx, Document)
+    return await repo.find_by_id(doc_id)
+```

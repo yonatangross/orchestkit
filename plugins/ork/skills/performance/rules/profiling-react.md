@@ -71,6 +71,23 @@ MyComponent.whyDidYouRender = true;
 "Hooks changed"       → useMemo/useCallback dependency changed
 ```
 
+**Incorrect — Blind memoization without profiling:**
+```tsx
+const MemoizedComponent = memo(Component);
+const memoizedValue = useMemo(() => value, []);
+const callback = useCallback(() => {}, []);
+// Added optimization without measurement
+```
+
+**Correct — Profile first, then optimize actual bottlenecks:**
+```tsx
+// 1. Open React DevTools Profiler
+// 2. Record interaction
+// 3. Identify slow renders (yellow/red bars > 16ms)
+// 4. Check "Why did this render?"
+// 5. Apply targeted fix only where needed
+```
+
 **Key rules:**
 - **Profile first** before adding any memoization
 - **Focus** on components that are both frequent AND slow (> 16ms)

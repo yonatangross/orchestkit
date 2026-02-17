@@ -55,6 +55,31 @@ async def rag_with_sufficiency(question: str, top_k: int = 5) -> str:
     return await generate_with_context(question, context)
 ```
 
+**Incorrect — no token budget or sufficiency check:**
+```python
+async def rag_query(question: str) -> str:
+    docs = await vector_db.search(question, limit=100)  # No limit!
+    context = "\n\n".join([doc.text for doc in docs])  # Could exceed context window
+    return await generate_with_context(question, context)  # No sufficiency check
+```
+
+**Correct — token budget with sufficiency validation:**
+```python
+async def rag_with_sufficiency(question: str, top_k: int = 5) -> str:
+    docs = await vector_db.search(question, limit=top_k)
+    fitted = fit_context(docs, max_tokens=6000)  # Budget enforcement
+    context = "\n\n".join([f"[{i+1}] {doc.text}" for i, doc in enumerate(fitted)])
+
+    check = await llm.with_structured_output(SufficiencyCheck).ainvoke(
+        f"Does this context contain sufficient information?\nQuestion: {question}\nContext:\n{context}"
+    )
+
+    if not check.is_sufficient and check.confidence > 0.7:
+        return f"I don't have enough information. Missing: {check.missing_info}"
+
+    return await generate_with_context(question, context)
+```
+
 **Key rules:**
 - Keep context under 75% of model limit, reserve for system prompt + response
 - Prioritize highest-relevance documents first

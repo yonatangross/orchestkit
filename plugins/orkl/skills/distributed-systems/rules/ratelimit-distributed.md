@@ -2,6 +2,8 @@
 title: "Rate Limiting: Distributed & Tiered"
 category: ratelimit
 impact: HIGH
+impactDescription: "Ensures API protection through distributed rate limiting with SlowAPI, Redis, and tiered user limits"
+tags: ratelimit, distributed, slowapi, redis, tiers
 ---
 
 # Distributed Rate Limiting with SlowAPI and Tiered Limits
@@ -137,4 +139,24 @@ async def admin_endpoint():  # No rate limit = vulnerable
     ...
 
 # NEVER use fixed window without considering edge spikes
+```
+
+**Incorrect — In-memory counters don't work in distributed systems:**
+```python
+counters = {}  # Per-instance state
+@app.post("/api/orders")
+async def create_order(user_id: str):
+    counters[user_id] = counters.get(user_id, 0) + 1
+    if counters[user_id] > 100:
+        raise RateLimitExceeded()
+# Multiple instances = no shared state
+```
+
+**Correct — Redis provides atomic distributed rate limiting across all instances:**
+```python
+@app.post("/api/orders")
+@limiter.limit("100/hour")
+async def create_order(request: Request, user_id: str):
+    # Shared Redis state across all instances
+    ...
 ```

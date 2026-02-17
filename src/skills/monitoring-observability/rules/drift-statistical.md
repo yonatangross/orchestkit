@@ -153,3 +153,18 @@ def combined_drift_score(expected, actual, weights=None):
 | Active development | 0.3 | Moderate |
 | High variability | 0.1-0.15 | Very stable |
 | Sudden change detection | 0.4-0.5 | Quick response |
+
+**Incorrect — using KS test on large dataset:**
+```python
+from scipy import stats
+statistic, p_value = stats.ks_2samp(baseline, current)  # baseline/current have 10K+ samples
+if p_value < 0.05:
+    alert("Drift detected")  # Too sensitive, false alarms
+```
+
+**Correct — PSI for production monitoring:**
+```python
+psi = calculate_psi(baseline, current, bins=10)
+if psi >= 0.25:  # Stable threshold
+    alert("Significant drift detected")  # Reliable signal
+```

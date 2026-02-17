@@ -99,6 +99,27 @@ db.createCollection("users", {
 | Consistency level | Start with strong, relax if needed | Data integrity first |
 | Schema validation | Always define for core collections | Catches bugs early |
 
+**Incorrect — Unbounded embedded array:**
+```json
+{
+  "_id": "user-123",
+  "orders": [
+    {"id": "order-1", "total": 100},
+    {"id": "order-2", "total": 200}
+  ]
+}
+```
+
+**Correct — Reference pattern for 1:many:**
+```json
+// users collection
+{"_id": "user-123", "name": "Alice"}
+
+// orders collection (separate)
+{"_id": "order-1", "user_id": "user-123", "total": 100}
+{"_id": "order-2", "user_id": "user-123", "total": 200}
+```
+
 ## Common Mistakes
 
 - Embedding unbounded arrays (document grows forever)

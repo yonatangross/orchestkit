@@ -59,3 +59,16 @@ BLOCKED: src/components/useAuth.ts, src/utils/useDebounce.ts
 ALLOWED: app/routers/router_users.py, app/services/user_service.py
 BLOCKED: app/user_service.py (not in services/), app/services/router_users.py (router in services/)
 ```
+
+**Incorrect — feature importing from app layer:**
+```typescript
+// In src/features/auth/components/LoginForm.tsx
+import { RootLayout } from '@/app/layout';  // Violates unidirectional flow
+```
+
+**Correct — feature imports from shared/components only:**
+```typescript
+// In src/features/auth/components/LoginForm.tsx
+import { Button } from '@/components/ui/Button';  // Correct direction
+import { useAuth } from '@/hooks/useAuth';
+```

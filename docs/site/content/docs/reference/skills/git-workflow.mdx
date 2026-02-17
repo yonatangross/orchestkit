@@ -284,6 +284,23 @@ git push -u origin hotfix/critical-fix
 gh pr create --base main --title "HOTFIX: Critical auth bypass"
 ```
 
+**Incorrect — Direct commit to main:**
+```bash
+# Bypasses code review and CI
+git checkout main
+git commit -m "quick fix"
+git push origin main
+```
+
+**Correct — Feature branch workflow:**
+```bash
+# PR-based deployment
+git checkout -b fix/issue-123
+git commit -m "fix(#123): Resolve auth bug"
+git push -u origin fix/issue-123
+gh pr create --base main
+```
+
 ### Key Rules
 
 - Never commit directly to main, dev, or release branches
@@ -365,6 +382,23 @@ ghi9012 docs(#123): Document validation error codes
 | `squash` | Merge into previous, combine messages |
 | `fixup` | Merge into previous, discard message |
 | `drop` | Remove commit entirely |
+
+**Incorrect — Dirty WIP history:**
+```bash
+# Pushed without cleanup
+abc1234 WIP
+def5678 fix
+ghi9012 more fixes
+jkl3456 finally works
+```
+
+**Correct — Cleaned history:**
+```bash
+# Squashed before pushing
+git rebase -i --autosquash HEAD~4
+# Result: One clean commit
+abc1234 feat(#123): Add user validation with edge case handling
+```
 
 ### Key Rules
 
@@ -454,6 +488,21 @@ git push --force origin main  # NEVER DO THIS
 
 # --force-with-lease prevents overwriting others' pushes
 # It fails if remote has commits you don't have locally
+```
+
+**Incorrect — Merge main into feature:**
+```bash
+# Creates noisy merge commits
+git checkout feature-branch
+git merge origin/main  # Creates "Merge branch 'main' into feature" commit
+```
+
+**Correct — Rebase onto main:**
+```bash
+# Linear history
+git checkout feature-branch
+git rebase origin/main  # Replays feature commits on top of main
+git push --force-with-lease
 ```
 
 ### Key Rules

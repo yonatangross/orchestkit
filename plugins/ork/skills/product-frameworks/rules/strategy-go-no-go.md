@@ -2,6 +2,8 @@
 title: "Strategy: Go/No-Go & Build/Buy/Partner"
 category: strategy
 impact: HIGH
+impactDescription: "Ensures systematic evaluation using stage gates and strategic analysis for build/buy/partner decisions"
+tags: go-no-go, build-vs-buy, stage-gates, strategic-decisions
 ---
 
 # Go/No-Go & Build/Buy/Partner Decisions
@@ -120,3 +122,22 @@ Is this a core differentiator?
 - Market access matters (distribution)
 - Risk sharing is valuable
 - Neither build nor buy fits perfectly
+
+**Incorrect — Go/No-Go without scoring criteria:**
+```markdown
+Idea: Build AI feature
+Team: Excited about it
+Decision: GO
+```
+
+**Correct — Systematic stage gate evaluation:**
+```markdown
+Gate 3: Business Case
+- [ ] ROI > 15% hurdle rate: YES (22%)
+- [ ] Payback < 24 months: YES (18 months)
+- [ ] Resource requirements: 3 FTEs available
+- [ ] Risk mitigation: Technical POC validated
+
+Weighted Score: 7.2/10
+Decision: GO (>= 7.0 threshold)
+```

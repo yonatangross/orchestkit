@@ -106,6 +106,26 @@ def downgrade() -> None:
 | Multi-database | Separate version tables | Independent migration tracking |
 | Transaction mode | Default on, disable for CONCURRENTLY | CONCURRENTLY requires no transaction |
 
+**Incorrect — Immediate column rename:**
+```python
+# Causes downtime - app breaks immediately
+def upgrade():
+    op.alter_column('users', 'name', new_column_name='full_name')
+```
+
+**Correct — Expand-contract pattern:**
+```python
+# Phase 1: Add new column, sync with trigger
+def upgrade():
+    op.add_column('users', sa.Column('full_name', sa.String(255)))
+    op.execute("""
+        CREATE TRIGGER trg_sync_user_name
+        BEFORE INSERT OR UPDATE ON users
+        FOR EACH ROW EXECUTE FUNCTION sync_user_name()
+    """)
+# Phase 2 (separate migration): Drop old column after app updated
+```
+
 ## Common Mistakes
 
 - Merging branches without testing both paths first

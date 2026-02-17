@@ -78,6 +78,27 @@ function imgixUrl(src: string, width: number, quality = 80) {
 />
 ```
 
+**Incorrect — srcset without sizes lets browser guess:**
+```html
+<img
+  srcset="/photo-400.jpg 400w, /photo-800.jpg 800w"
+  src="/photo-800.jpg"
+  alt="Photo"
+/>
+```
+
+**Correct — sizes guides browser to optimal choice:**
+```html
+<img
+  srcset="/photo-400.jpg 400w, /photo-800.jpg 800w"
+  sizes="(max-width: 640px) 100vw, 50vw"
+  src="/photo-800.jpg"
+  alt="Photo"
+  width="800"
+  height="600"
+/>
+```
+
 **Key rules:**
 - **Always** provide `sizes` alongside `srcset` for width descriptors
 - **Use** 3-4 srcset breakpoints (400, 800, 1200, 1600) for most images

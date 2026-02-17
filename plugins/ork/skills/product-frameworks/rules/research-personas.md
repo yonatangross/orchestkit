@@ -2,6 +2,8 @@
 title: "Research: User Personas & Empathy Maps"
 category: research
 impact: HIGH
+impactDescription: "Ensures data-backed user personas with clear goals, pain points, and behavioral patterns for product alignment"
+tags: personas, empathy-map, user-research, target-users
 ---
 
 # User Personas & Empathy Maps
@@ -130,3 +132,23 @@ immediate value with minimal onboarding.
 - **Accessibility by default**: Include users with disabilities in all personas
 - **Connect to metrics**: Link persona needs to measurable KPIs
 - **3-5 personas max**: Too many dilutes focus
+
+**Incorrect — Vague persona without goals:**
+```markdown
+Persona: Sarah
+Age: 35
+Job: Marketing Manager
+Likes: Social media, coffee
+```
+
+**Correct — Actionable persona with goals and pain points:**
+```markdown
+Persona: DevOps Dana
+Quote: "I don't have time for tools that create more work than they save."
+Goals:
+1. Reduce deployment failures
+2. Give developers self-service
+Pain Points:
+1. Alert fatigue from false positives
+2. Context switching between 10+ tools
+```

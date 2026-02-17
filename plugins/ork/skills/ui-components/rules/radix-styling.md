@@ -2,6 +2,8 @@
 title: "Radix: Styling & Focus"
 category: radix
 impact: HIGH
+impactDescription: "Provides state-driven styling patterns and focus management strategies through Radix data attributes"
+tags: radix, styling, data-attributes, focus-management, keyboard-navigation
 ---
 
 # Radix Styling & Focus Management
@@ -165,6 +167,18 @@ Every Radix primitive includes:
 
 ```tsx
 <Button className="focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+```
+
+**Incorrect — Manual state styling:**
+```tsx
+// Hard to maintain, breaks when state changes
+<div className={isOpen ? "opacity-100" : "opacity-0"}>
+```
+
+**Correct — Data attribute styling:**
+```tsx
+// Uses Radix's built-in state tracking
+<Dialog.Content className="data-[state=open]:animate-in data-[state=closed]:animate-out">
 ```
 
 ## Keyboard Shortcuts Reference

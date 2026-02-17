@@ -64,3 +64,17 @@ tags=$(grep "^tags:" SKILL.md | sed 's/tags: \[//' | sed 's/\]//' | tr -d '"')
 - Code examples need **language tag** and **surrounding context**
 - Related skills come from `## Related Skills` section with backtick-wrapped names
 - Validate extracted metadata against the `SkillMetadata` interface before generating demos
+
+**Incorrect — Parsing description from wrong section:**
+```bash
+# Extracts from body instead of frontmatter
+description=$(grep -m1 "description:" SKILL.md | cut -d: -f2-)
+# Gets "Description of feature X" from body, not skill description
+```
+
+**Correct — Extracting from frontmatter only:**
+```bash
+# Extract frontmatter between --- delimiters
+frontmatter=$(sed -n '/^---$/,/^---$/p' SKILL.md | sed '1d;$d')
+description=$(echo "$frontmatter" | grep "^description:" | cut -d: -f2- | xargs)
+```

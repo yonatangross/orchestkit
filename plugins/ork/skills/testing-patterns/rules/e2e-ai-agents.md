@@ -2,6 +2,8 @@
 title: "E2E: AI Agents"
 category: e2e
 impact: HIGH
+impactDescription: "Enables AI-powered test planning, generation, and self-healing through Playwright's built-in agent framework"
+tags: playwright, ai-agents, self-healing, test-generation, automation
 ---
 
 # Playwright AI Agents (1.58+)
@@ -51,4 +53,24 @@ npx playwright init-agents --loop=opencode  # For OpenCode
     }
   }
 }
+```
+
+**Incorrect — No seed file for AI agents to learn from:**
+```typescript
+// Missing tests/seed.spec.ts
+// AI agents have no example to understand app structure
+npx playwright init-agents --loop=claude
+```
+
+**Correct — Seed file teaches agents app patterns:**
+```typescript
+// tests/seed.spec.ts
+import { test } from '@playwright/test';
+
+test('example checkout flow', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Add to cart' }).click();
+  await page.getByRole('link', { name: 'Checkout' }).click();
+  // Agents learn selectors and patterns from this
+});
 ```

@@ -47,6 +47,32 @@ Ask these questions before committing to any architectural decision. Prevents co
 - **100x scenario:** Need dedicated search (Elasticsearch) for tag filtering
 ```
 
+**Incorrect — vague answers, no scale projection:**
+```markdown
+### Scale Assessment for: Document Tagging
+
+- **Users:** All users
+- **Data volume now:** A lot
+- **Data volume in 1 year:** More
+- **Access pattern:** Fast
+- **Growth rate:** It'll grow
+- **10x scenario:** Should be fine
+- **100x scenario:** We'll deal with it later
+```
+
+**Correct — specific numbers with breakpoint analysis:**
+```markdown
+### Scale Assessment for: Document Tagging
+
+- **Users:** 1,000 active users
+- **Data volume now:** 50,000 documents, ~200K tags
+- **Data volume in 1 year:** 500,000 documents, ~2M tags
+- **Access pattern:** Read-heavy (10:1 read:write)
+- **Growth rate:** Linear with user growth
+- **10x scenario:** Tag autocomplete LIKE query breaks (>500ms). Need GIN index on tag names.
+- **100x scenario:** 20M tags requires dedicated search (Elasticsearch/Typesense) for sub-100ms autocomplete.
+```
+
 ### Key Rules
 
 - Answer **every** question with specifics — vague answers indicate insufficient analysis

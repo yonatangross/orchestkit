@@ -49,6 +49,34 @@ Task(
   SUMMARY: End with: "FINDABILITY: [N] issues - start at [recommended entry point]"
   """,
   run_in_background=True,
-  max_turns=25
-)
+  max_turns=25)
+```
+
+**Incorrect — Technical analysis without business context:**
+```markdown
+Found auth.ts, user.ts, session.ts
+Uses JWT tokens, bcrypt hashing
+Database: PostgreSQL users table
+```
+
+**Correct — Product perspective with findability:**
+```json
+{
+  "business_purpose": "Secure user authentication and session management",
+  "primary_users": ["End users logging in", "Developers integrating auth"],
+  "findability_issues": [
+    "auth.ts - generic name, try auth/core.ts",
+    "Missing README in auth/ - devs don't know where to start"
+  ],
+  "recommended_entry_points": [
+    "auth/README.md (missing - create this!)",
+    "auth/core.ts - main authentication flow"
+  ],
+  "search_keywords": ["login", "authentication", "session", "JWT", "security"],
+  "documentation_gaps": [
+    "No auth flow diagram",
+    "Token refresh logic undocumented"
+  ]
+}
+```
 ```

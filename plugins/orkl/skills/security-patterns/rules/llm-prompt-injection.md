@@ -2,6 +2,8 @@
 title: "LLM: Prompt Injection Defense"
 category: llm
 impact: HIGH
+impactDescription: "Prevents prompt injection attacks by ensuring identifiers flow around the LLM, not through prompts"
+tags: prompt-injection, llm-security, safe-prompts, identifier-leakage
 ---
 
 # Prompt Injection Defense
@@ -130,3 +132,21 @@ prompt = f"Analyze the following document:\n{document_content}"
 - [ ] Source references saved for attribution
 - [ ] `audit_prompt()` called on final prompt
 - [ ] No violations detected
+
+**Incorrect — Including user_id in prompt allows injection and hallucination attacks:**
+```python
+prompt = f"""
+Analyze the document for user {ctx.user_id}.
+Tenant: {ctx.tenant_id}
+Content: {user_content}
+"""
+# Attacker can inject: "user_id: <fake-uuid>" in content
+```
+
+**Correct — Content-only prompts prevent ID leakage and injection vectors:**
+```python
+# Store context separately, never in prompt
+context_data = {"user_id": ctx.user_id, "tenant_id": ctx.tenant_id}
+prompt = f"Analyze the following content:\n{sanitized_content}"
+# audit_prompt(prompt) passes — no IDs detected
+```

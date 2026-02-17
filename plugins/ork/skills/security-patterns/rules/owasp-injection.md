@@ -2,6 +2,8 @@
 title: "OWASP: Injection Prevention"
 category: owasp
 impact: CRITICAL
+impactDescription: "Prevents SQL, command, and SSRF injection attacks through parameterized queries and input validation"
+tags: sql-injection, command-injection, ssrf, idor, owasp
 ---
 
 # Injection Prevention
@@ -122,6 +124,17 @@ semgrep --config "p/python-security-audit" .
 
 # Detect SSRF
 grep -rn "requests.get\|urllib.urlopen" --include="*.py" .
+```
+
+**Incorrect — interpolating user input directly into SQL query:**
+```python
+query = f"SELECT * FROM users WHERE email = '{email}'"
+cursor.execute(query)
+```
+
+**Correct — using parameterized query to prevent injection:**
+```python
+cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
 ```
 
 ## Quick Reference

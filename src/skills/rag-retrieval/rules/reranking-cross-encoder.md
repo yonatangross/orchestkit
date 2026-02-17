@@ -33,6 +33,29 @@ class CrossEncoderReranker:
 | `BAAI/bge-reranker-large` | ~100ms | Free | Better |
 | `cohere rerank-english-v3.0` | ~200ms | $1/1K | Best |
 
+**Incorrect — retrieving few, no reranking:**
+```python
+async def search(query: str) -> list[dict]:
+    # Retrieve only 10, no reranking - misses good results
+    return await vector_search(query, limit=10)
+```
+
+**Correct — retrieve many, rerank to few:**
+```python
+async def search_with_reranking(query: str) -> list[dict]:
+    # Retrieve many candidates
+    candidates = await vector_search(query, limit=50)
+
+    # Rerank with cross-encoder
+    pairs = [(query, doc["content"][:400]) for doc in candidates]
+    scores = cross_encoder.predict(pairs)
+    scored_docs = list(zip(candidates, scores))
+    scored_docs.sort(key=lambda x: x[1], reverse=True)
+
+    # Return top 10 after reranking
+    return [{**doc, "score": float(score)} for doc, score in scored_docs[:10]]
+```
+
 **Key rules:**
 - Retrieve many (50-100), rerank to few (10) — "retrieve more, rerank less"
 - Cross-encoder processes query+doc pair together (slow but accurate)

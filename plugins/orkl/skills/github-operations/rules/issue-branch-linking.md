@@ -62,6 +62,20 @@ claude --from-pr 42    # Loads PR diff, comments, review status
 | PR to issue | `Closes #N` in PR body | Yes (GitHub) |
 | Issue to PR | `has-pr` label | Manual or hook |
 
+**Incorrect — Branch without issue number prefix:**
+```bash
+git checkout -b implement-feature
+git commit -m "Add user validation"
+# No automatic linking - reviewer lacks context
+```
+
+**Correct — Issue-prefixed branch with linked commit:**
+```bash
+git checkout -b issue/123-implement-feature
+git commit -m "feat(#123): Add user validation"
+# Auto-links: branch → issue, commit → issue
+```
+
 ### Key Rules
 
 - Always start branches with **issue number prefix** for automatic detection

@@ -2,6 +2,8 @@
 title: "Data: Seeding & Cleanup"
 category: data
 impact: MEDIUM
+impactDescription: "Ensures test isolation through automated database seeding and cleanup between test runs"
+tags: database, seeding, cleanup, isolation, fixtures
 ---
 
 # Database Seeding and Cleanup
@@ -48,3 +50,23 @@ async def clean_database(db_session):
 - Hard-coded IDs (conflicts)
 - No cleanup after tests
 - Over-complex fixtures
+
+**Incorrect — No cleanup, leaving database polluted:**
+```python
+@pytest.fixture
+async def seeded_db(db_session):
+    users = [UserFactory.build() for _ in range(10)]
+    db_session.add_all(users)
+    await db_session.commit()
+    yield db_session
+    # No cleanup, state persists across tests
+```
+
+**Correct — Automatic cleanup after each test:**
+```python
+@pytest.fixture(autouse=True)
+async def clean_database(db_session):
+    yield
+    await db_session.execute("TRUNCATE users, analyses CASCADE")
+    await db_session.commit()
+```

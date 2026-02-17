@@ -2,6 +2,8 @@
 title: "Verification: Property-Based Testing"
 category: verification
 impact: MEDIUM
+impactDescription: "Discovers edge cases through generative testing with Hypothesis to validate universal properties"
+tags: property-based-testing, hypothesis, generative-testing, edge-cases, fuzzing
 ---
 
 # Property-Based Testing with Hypothesis
@@ -57,3 +59,19 @@ def test_normalize_idempotent(text):
 | Example count | 100 for CI, 10 for dev, 1000 for release |
 | Deadline | Disable for slow tests, 200ms default |
 | Stateful tests | RuleBasedStateMachine for state machines |
+
+**Incorrect — Testing specific examples only:**
+```python
+def test_sort():
+    assert sort([3, 1, 2]) == [1, 2, 3]
+    # Only tests one specific case
+```
+
+**Correct — Testing universal properties for all inputs:**
+```python
+@given(st.lists(st.integers()))
+def test_sort_properties(lst):
+    result = sort(lst)
+    assert len(result) == len(lst)
+    assert all(result[i] <= result[i+1] for i in range(len(result)-1))
+```

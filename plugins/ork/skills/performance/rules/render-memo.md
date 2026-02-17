@@ -63,6 +63,32 @@ function App() {
 4. **Fix**: Apply targeted optimization
 5. **Measure**: Confirm improvement
 
+**Incorrect — State too high causes unnecessary re-renders:**
+```tsx
+function App() {
+  const [filter, setFilter] = useState('');
+  return (
+    <>
+      <Header />  {/* Re-renders on filter change! */}
+      <FilterInput value={filter} onChange={setFilter} />
+      <List filter={filter} />
+    </>
+  );
+}
+```
+
+**Correct — State colocated minimizes re-renders:**
+```tsx
+function App() {
+  return (
+    <>
+      <Header />
+      <FilterableList />  {/* State inside, Header unaffected */}
+    </>
+  );
+}
+```
+
 ## Key Rules
 
 1. **Profile first** — never optimize without measurement

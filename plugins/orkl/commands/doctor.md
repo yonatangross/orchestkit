@@ -11,7 +11,7 @@ allowed-tools: [Bash, Read, Grep, Glob]
 
 ## Overview
 
-The `/ork:doctor` command performs comprehensive health checks on your OrchestKit installation. It auto-detects installed plugins and validates 10 categories:
+The `/ork:doctor` command performs comprehensive health checks on your OrchestKit installation. It auto-detects installed plugins and validates 11 categories:
 
 1. **Installed Plugins** - Detects orkl or ork
 2. **Skills Validation** - Frontmatter, references, token budget (dynamic count)
@@ -23,6 +23,7 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 8. **Context Budget** - Monitors token usage against budget
 9. **Memory System** - Graph memory health
 10. **Claude Code Version** - Validates CC >= 2.1.34
+11. **External Dependencies** - Checks optional tool availability (agent-browser)
 
 ## When to Use
 
@@ -232,6 +233,28 @@ Validates runtime version:
 ```
 Claude Code: 2.1.42 (OK)
 - Minimum required: 2.1.34
+```
+
+### 11. External Dependencies
+
+Checks optional tool availability:
+
+```bash
+# Checks performed:
+# - agent-browser: installed globally via skills CLI
+# - Validates symlink exists at ~/.claude/skills/agent-browser
+```
+
+**Output:**
+```
+External Dependencies:
+- agent-browser: installed (OK)
+```
+
+**Output (not installed):**
+```
+External Dependencies:
+- agent-browser: NOT INSTALLED (optional - install with: npx skills add vercel-labs/agent-browser)
 ```
 
 ## Report Format

@@ -5,6 +5,22 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.0.16] - 2026-02-16
+
+### Added
+
+- Add `impactDescription` and `tags` metadata to 98 rule files across 9 skills
+- Add `**Incorrect**`/`**Correct**` code example pairs to all 258 rules missing them
+- Rule example coverage now 412/412 (100%)
+
+### Fixed
+
+- Fix 5 skill structure warnings (missing Overview/Related Skills sections)
+- Resolve all 459 skill test warnings (196 metadata + 258 code examples + 5 structure)
+
+---
+
+
 ## [6.0.15] - 2026-02-16
 
 ### Added

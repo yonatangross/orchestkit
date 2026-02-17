@@ -2,6 +2,8 @@
 title: "shadcn/ui: Customization"
 category: shadcn
 impact: HIGH
+impactDescription: "Establishes type-safe component variants and OKLCH theming patterns through CVA and tailwind-merge"
+tags: shadcn, cva, theming, oklch, variants
 ---
 
 # shadcn/ui Customization
@@ -149,6 +151,35 @@ Button.displayName = 'Button'
 npx shadcn@latest init        # Initialize in project
 npx shadcn@latest add button  # Add components
 npx shadcn@latest add dialog card input label
+```
+
+**Incorrect — Modifying shadcn source files:**
+```tsx
+// Editing components/ui/button.tsx directly
+const buttonVariants = cva('...', {
+  variants: {
+    myCustomVariant: '...'  // Modified source!
+  }
+})
+```
+
+**Correct — Wrap, don't modify:**
+```tsx
+// Create wrapper component
+import { Button as ShadcnButton } from '@/components/ui/button'
+
+interface ExtendedButtonProps extends React.ComponentPropsWithoutRef<typeof ShadcnButton> {
+  loading?: boolean
+}
+
+const Button = React.forwardRef<HTMLButtonElement, ExtendedButtonProps>(
+  ({ loading, ...props }, ref) => (
+    <ShadcnButton ref={ref} {...props}>
+      {loading && <Loader />}
+      {props.children}
+    </ShadcnButton>
+  )
+)
 ```
 
 ## Best Practices

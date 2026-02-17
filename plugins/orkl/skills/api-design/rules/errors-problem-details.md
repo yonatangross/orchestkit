@@ -161,6 +161,28 @@ return {"message": "Validation failed"}  # Yet another format
 return {"detail": str(exc), "traceback": traceback.format_exc()}
 ```
 
+**Incorrect — Inconsistent error formats:**
+```python
+# Different structure every time
+return {"error": "Not found"}
+return {"message": "Validation failed", "fields": [...]}
+return Response("Internal error", 500)
+```
+
+**Correct — RFC 9457 Problem Details:**
+```python
+# Consistent RFC 9457 format
+return JSONResponse(
+    content={
+        "type": "https://api.example.com/problems/validation-error",
+        "title": "Validation Error",
+        "status": 422,
+        "errors": [{"field": "url", "message": "Invalid format"}]
+    },
+    media_type="application/problem+json"
+)
+```
+
 **Key rules:**
 - Always use `application/problem+json` media type for error responses
 - Include `type` (URI) and `status` (HTTP code) as required fields

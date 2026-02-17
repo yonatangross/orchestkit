@@ -115,3 +115,18 @@ agent-browser get text body > /tmp/cache/example-com.txt
 | Rate limited | Add delays, reduce request frequency |
 | Content in iframe | Use `agent-browser frame @e1` then extract |
 | No TAVILY_API_KEY | Skip Tavily tier, use WebFetch → agent-browser |
+
+**Incorrect — Browser without waiting for content:**
+```bash
+agent-browser open https://spa-app.com
+agent-browser get text body
+# Returns empty - content not loaded yet
+```
+
+**Correct — Wait for network idle before extracting:**
+```bash
+agent-browser open https://spa-app.com
+agent-browser wait --load networkidle
+agent-browser get text body
+# Content fully loaded
+```

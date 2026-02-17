@@ -102,3 +102,28 @@ from fastapi.responses import ORJSONResponse
 
 app = FastAPI(default_response_class=ORJSONResponse)
 ```
+
+**Incorrect — Creating resources at module level leads to connection leaks:**
+```python
+# Module-level connection (never closed!)
+db_engine = create_async_engine(DATABASE_URL)
+
+app = FastAPI()
+
+@app.on_event("startup")  # Deprecated
+async def startup():
+    await db_engine.connect()
+```
+
+**Correct — Lifespan context manager ensures proper resource cleanup:**
+```python
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: create resources
+    app.state.db_engine = create_async_engine(DATABASE_URL)
+    yield
+    # Shutdown: guaranteed cleanup
+    await app.state.db_engine.dispose()
+
+app = FastAPI(lifespan=lifespan)
+```

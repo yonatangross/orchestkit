@@ -80,6 +80,24 @@ required_queries: 3       # At least 3 test queries
 - Agent scores (for audit trail)
 - Langfuse trace ID
 
+**Incorrect — Placeholder URL:**
+```python
+# Missing real source URL
+analysis = Analysis(
+    url="https://orchestkit.dev/placeholder/123",
+    content_type="article",
+)
+```
+
+**Correct — Real canonical URL:**
+```python
+# Real source for re-fetching and validation
+analysis = Analysis(
+    url="https://docs.python.org/3/library/asyncio.html",
+    content_type="documentation",
+)
+```
+
 **Key rules:**
 - Never use placeholder URLs -- always store real canonical source URLs
 - Require minimum 2 domain tags and 3 test queries per entry

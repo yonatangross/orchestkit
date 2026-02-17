@@ -2,6 +2,8 @@
 title: "Prioritize: WSJF & MoSCoW"
 category: prioritize
 impact: HIGH
+impactDescription: "Ensures optimal prioritization using Cost of Delay and MoSCoW scope management"
+tags: wsjf, moscow, cost-of-delay, safe, scope-management
 ---
 
 # WSJF & MoSCoW Prioritization
@@ -116,3 +118,26 @@ Qualitative prioritization for scope management.
 2. **Revisit regularly**: Priorities shift -- rescore quarterly
 3. **Document assumptions**: Why did you give that Impact score?
 4. **Combine frameworks**: Use ICE for quick triage, RICE for final decisions
+
+**Incorrect — MoSCoW without viable Must-Have set:**
+```markdown
+Must Have:
+- User auth, CRUD, search, export, AI features,
+  mobile app, analytics, notifications (90% of scope)
+
+[Product not viable with just Must-Have items]
+```
+
+**Correct — Must-Have delivers viable product:**
+```markdown
+Must Have (60% of effort):
+- User authentication
+- Core data model
+- Basic CRUD operations
+
+Should Have (20%):
+- Search, export, notifications
+
+Could Have (20%):
+- Dark mode, keyboard shortcuts
+```

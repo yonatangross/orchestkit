@@ -2,6 +2,8 @@
 title: "Mocking: LLM APIs"
 category: mocking
 impact: HIGH
+impactDescription: "Enables deterministic LLM API testing through VCR.py cassette recording with custom matchers and sensitive data filtering"
+tags: llm, vcr, mocking, api-testing, cassettes
 ---
 
 # LLM API Mocking
@@ -50,3 +52,21 @@ def vcr_config():
 - Using `all` mode in CI (makes live calls)
 - Not filtering sensitive data
 - Missing cassettes in git
+
+**Incorrect — Recording mode allows live API calls in CI:**
+```python
+@pytest.fixture(scope="module")
+def vcr_config():
+    return {"record_mode": "all"}  # Makes live calls in CI
+```
+
+**Correct — CI uses 'none' mode to prevent live calls:**
+```python
+@pytest.fixture(scope="module")
+def vcr_config():
+    import os
+    return {
+        "record_mode": "none" if os.environ.get("CI") else "new_episodes",
+        "filter_headers": ["authorization", "x-api-key"]
+    }
+```

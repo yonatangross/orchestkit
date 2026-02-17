@@ -2,6 +2,8 @@
 title: "Validation: Output Encoding & XSS Prevention"
 category: validation
 impact: HIGH
+impactDescription: "Prevents XSS attacks through proper HTML sanitization, output encoding, and security headers"
+tags: xss-prevention, output-encoding, dompurify, security-headers
 ---
 
 # Output Encoding & XSS Prevention
@@ -107,4 +109,18 @@ if (file.type === 'image/png') {...}  // Can be spoofed
 // ALWAYS use textContent or DOMPurify
 element.textContent = userInput;
 const safe = DOMPurify.sanitize(userInput);
+```
+
+**Incorrect — Using innerHTML with user content allows XSS script injection:**
+```javascript
+const userComment = "<script>alert('XSS')</script>";
+element.innerHTML = userComment;
+// Script executes, stealing cookies/tokens
+```
+
+**Correct — Using textContent automatically escapes HTML and prevents XSS:**
+```javascript
+const userComment = "<script>alert('XSS')</script>";
+element.textContent = userComment;
+// Renders as plain text: "<script>alert('XSS')</script>"
 ```

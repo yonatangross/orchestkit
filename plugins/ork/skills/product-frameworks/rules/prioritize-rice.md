@@ -2,6 +2,8 @@
 title: "Prioritize: RICE & ICE Scoring"
 category: prioritize
 impact: HIGH
+impactDescription: "Ensures data-driven feature prioritization using Reach, Impact, Confidence, and Effort scores"
+tags: rice, ice, prioritization, scoring, feature-ranking
 ---
 
 # RICE & ICE Prioritization
@@ -114,3 +116,20 @@ Categorize features by customer satisfaction impact.
 | Ignoring qualitative factors | Use frameworks as input, not gospel |
 | Analysis paralysis | Set time limits on scoring sessions |
 | Inconsistent scales | Document and share scoring guidelines |
+
+**Incorrect — RICE without documented assumptions:**
+```markdown
+Feature A: RICE = 8,000
+Feature B: RICE = 12,500
+Priority: B, then A
+```
+
+**Correct — RICE with transparent scoring:**
+```markdown
+Feature B: Smart search with AI
+- Reach: 50,000 users/quarter (active searchers)
+- Impact: 2 (high - significantly better results)
+- Confidence: 0.8 (tested in prototype)
+- Effort: 3 person-months
+RICE = (50,000 × 2 × 0.8) / 3 = 26,667
+```

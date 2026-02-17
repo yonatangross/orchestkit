@@ -2,6 +2,8 @@
 title: "LLM: Content Filtering & Three-Phase Pattern"
 category: llm
 impact: HIGH
+impactDescription: "Prevents LLM data leakage by separating content from identifiers across pre-LLM, LLM call, and post-LLM phases"
+tags: llm-security, three-phase, content-filtering, attribution
 ---
 
 # Content Filtering & Three-Phase Pattern
@@ -162,3 +164,22 @@ artifact.id = uuid4()                   # We generate
 - [ ] Prompt passes audit
 - [ ] Output validated before use
 - [ ] Attribution uses context, not LLM output
+
+**Incorrect — Asking LLM for attribution leads to hallucinated document IDs:**
+```python
+prompt = f"Analyze this content and cite which documents support each claim."
+response = await llm.generate(prompt)
+# Save with LLM-generated document IDs
+artifact.source_ids = response["document_ids"]  # HALLUCINATED!
+```
+
+**Correct — Save source references before LLM call, attach deterministically after:**
+```python
+# Phase 1: Save refs before LLM
+docs = await semantic_search(query, ctx)
+source_refs = [d.id for d in docs]
+# Phase 2: LLM sees only content
+response = await llm.generate(content_only_prompt)
+# Phase 3: Attach saved refs
+artifact.source_ids = source_refs  # From our records, not LLM
+```

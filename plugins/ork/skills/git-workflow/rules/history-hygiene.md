@@ -75,6 +75,23 @@ ghi9012 docs(#123): Document validation error codes
 | `fixup` | Merge into previous, discard message |
 | `drop` | Remove commit entirely |
 
+**Incorrect — Dirty WIP history:**
+```bash
+# Pushed without cleanup
+abc1234 WIP
+def5678 fix
+ghi9012 more fixes
+jkl3456 finally works
+```
+
+**Correct — Cleaned history:**
+```bash
+# Squashed before pushing
+git rebase -i --autosquash HEAD~4
+# Result: One clean commit
+abc1234 feat(#123): Add user validation with edge case handling
+```
+
 ### Key Rules
 
 - Clean up history before pushing — squash WIP and fixup commits

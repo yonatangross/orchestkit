@@ -298,6 +298,47 @@ Questions covering data architecture, UX impact, and system coherence. Ensures d
 | "Users won't do that" | Ask: what if they DO? |
 | "It's just a small feature" | Ask: how does this grow with 100x users? |
 
+**Incorrect — vague answers, missing failure modes:**
+```markdown
+### Reliability Assessment for: User Tagging
+
+**Data:**
+- Storage location: Database
+- Access pattern: Fast
+- Retention: Keep everything
+
+**UX:**
+- Target latency: Should be quick
+- Feedback: A spinner
+- Error handling: Show an error
+
+**Coherence:**
+- Affected layers: Backend
+- API changes: Maybe some
+```
+
+**Correct — specific answers with failure handling:**
+```markdown
+### Reliability Assessment for: User Tagging
+
+**Data:**
+- Storage location: tags table with user_id FK + GIN index on tag names
+- Schema changes: New tags table, migration #47
+- Access pattern: Read-heavy (10:1) by user_id + autocomplete by tag prefix
+- Retention: 90 days for deleted tags (soft delete)
+
+**UX:**
+- Target latency: < 200ms for tag autocomplete
+- Feedback: Optimistic update + rollback on error
+- Error handling: Retry 2x with exponential backoff, then show "Failed to save tag. Retry?"
+
+**Coherence:**
+- Affected layers: DB (new table), API (2 new endpoints), frontend (Tag component)
+- Type changes: New Tag type in shared/types.ts
+- API changes: GET /tags?prefix=, POST /tags
+- Breaking changes: No (new feature)
+```
+
 ### Key Rules
 
 - Data decisions are **hard to change** — get storage right from the start
@@ -350,6 +391,32 @@ Ask these questions before committing to any architectural decision. Prevents co
 - **Growth rate:** Linear with user growth
 - **10x scenario:** Tag autocomplete needs index, current LIKE query won't scale
 - **100x scenario:** Need dedicated search (Elasticsearch) for tag filtering
+```
+
+**Incorrect — vague answers, no scale projection:**
+```markdown
+### Scale Assessment for: Document Tagging
+
+- **Users:** All users
+- **Data volume now:** A lot
+- **Data volume in 1 year:** More
+- **Access pattern:** Fast
+- **Growth rate:** It'll grow
+- **10x scenario:** Should be fine
+- **100x scenario:** We'll deal with it later
+```
+
+**Correct — specific numbers with breakpoint analysis:**
+```markdown
+### Scale Assessment for: Document Tagging
+
+- **Users:** 1,000 active users
+- **Data volume now:** 50,000 documents, ~200K tags
+- **Data volume in 1 year:** 500,000 documents, ~2M tags
+- **Access pattern:** Read-heavy (10:1 read:write)
+- **Growth rate:** Linear with user growth
+- **10x scenario:** Tag autocomplete LIKE query breaks (>500ms). Need GIN index on tag names.
+- **100x scenario:** 20M tags requires dedicated search (Elasticsearch/Typesense) for sub-100ms autocomplete.
 ```
 
 ### Key Rules
@@ -432,6 +499,34 @@ def get_tags(request):
         raise ForbiddenError()
     return db.query("SELECT * FROM tags WHERE doc_id = %s AND tenant_id = %s",
                     [doc_id, user.tenant_id])
+```
+
+**Incorrect — no authorization, trusts frontend, SQL injection:**
+```python
+# WRONG: No auth check, SQL injection, no tenant filter
+def get_tags(request):
+    doc_id = request.params["doc_id"]
+    return db.query(f"SELECT * FROM tags WHERE doc_id = '{doc_id}'")
+```
+
+**Correct — layered security with tenant isolation:**
+```python
+def get_tags(request):
+    doc_id = request.params["doc_id"]
+
+    # Layer 1: Authentication
+    user = authenticate(request)
+
+    # Layer 2: Resource ownership check
+    doc = db.get(Document, doc_id)
+    if doc.tenant_id != user.tenant_id:
+        raise ForbiddenError()
+
+    # Layer 3: Parameterized query with tenant filter
+    return db.query(
+        "SELECT * FROM tags WHERE doc_id = %s AND tenant_id = %s",
+        [doc_id, user.tenant_id]  # Prevents SQL injection, enforces tenant isolation
+    )
 ```
 
 ### Key Rules

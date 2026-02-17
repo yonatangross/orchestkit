@@ -265,6 +265,28 @@ async def execute_tools_parallel(tool_calls: list) -> list[dict]:
 - Exceeding API rate limits with too many concurrent calls
 - Missing tool_call_id in response messages
 
+**Incorrect — executing parallel tool calls without error isolation:**
+```python
+# Crashes entire batch if one tool fails
+response = await llm.chat(messages=messages, tools=tools, parallel_tool_calls=True)
+results = await asyncio.gather(*[
+    execute_tool(tc.function.name, json.loads(tc.function.arguments))
+    for tc in response.tool_calls
+])
+```
+
+**Correct — handling individual tool failures gracefully:**
+```python
+async def safe_execute(tc):
+    try:
+        result = await execute_tool(tc.function.name, json.loads(tc.function.arguments))
+        return {"tool_call_id": tc.id, "content": json.dumps(result)}
+    except Exception as e:
+        return {"tool_call_id": tc.id, "content": json.dumps({"error": str(e)})}
+
+results = await asyncio.gather(*[safe_execute(tc) for tc in response.tool_calls])
+```
+
 
 ### Function Calling: Tool Definition — CRITICAL
 
@@ -415,6 +437,45 @@ analysis = response.choices[0].message.parsed  # Typed Analysis object
 - Using `default` values with strict mode (not supported)
 - Too many tools (LLM gets confused beyond 15)
 
+**Incorrect — invalid strict mode schema with optional parameters:**
+```python
+tools = [{
+    "type": "function",
+    "function": {
+        "name": "search",
+        "strict": True,
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string"},
+                "limit": {"type": "integer", "default": 10}  # Invalid with strict
+            },
+            "required": ["query"]  # Must include all props when strict=True
+        }
+    }
+}]
+```
+
+**Correct — strict mode with all properties required:**
+```python
+tools = [{
+    "type": "function",
+    "function": {
+        "name": "search",
+        "strict": True,
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string"},
+                "limit": {"type": "integer"}
+            },
+            "required": ["query", "limit"],  # All properties required
+            "additionalProperties": False    # Required for strict mode
+        }
+    }
+}]
+```
+
 
 ### Function Calling: Validation & Execution Loop — CRITICAL
 
@@ -537,6 +598,29 @@ async def run_tool_loop(
 - Crashing on tool failure instead of returning error
 - No input validation (LLM sends bad params)
 - Missing tool_call_id in response messages
+
+**Incorrect — unbounded tool execution loop:**
+```python
+async def run_tools(user_message: str):
+    messages = [{"role": "user", "content": user_message}]
+    while True:  # Infinite loop risk
+        response = await llm.chat(messages=messages, tools=tools)
+        if not response.tool_calls:
+            return response.content
+        # Execute tools and continue...
+```
+
+**Correct — iteration guard prevents infinite loops:**
+```python
+async def run_tools(user_message: str, max_iterations: int = 10):
+    messages = [{"role": "user", "content": user_message}]
+    for _ in range(max_iterations):
+        response = await llm.chat(messages=messages, tools=tools)
+        if not response.tool_calls:
+            return response.content
+        # Execute tools and continue...
+    raise RuntimeError("Max iterations reached")
+```
 
 
 ### Context Caching and Budget Scaling — HIGH
@@ -901,6 +985,28 @@ async def prewarm_models() -> None:
 - **DON'T** skip pre-warming in CI (30-60s cold start)
 - **DON'T** load more than 3 models simultaneously
 
+**Incorrect — hardcoding cloud API with no local fallback:**
+```python
+from langchain_openai import ChatOpenAI
+
+llm = ChatOpenAI(model="gpt-5.2")  # Always uses cloud, ignores local setup
+response = await llm.ainvoke("Generate code...")
+```
+
+**Correct — provider factory switches between local and cloud:**
+```python
+import os
+from langchain_ollama import ChatOllama
+from langchain_openai import ChatOpenAI
+
+def get_llm_provider(task_type: str = "general"):
+    if os.getenv("OLLAMA_ENABLED") == "true":
+        return ChatOllama(model="qwen2.5-coder:32b", keep_alive="5m")
+    return ChatOpenAI(model="gpt-5.2")
+
+llm = get_llm_provider(task_type="coding")
+```
+
 ## Key Decisions
 
 | Decision | Recommendation |
@@ -983,6 +1089,26 @@ ollama pull deepseek-r1:70b-q4_0
 - Use smaller models for simple tasks
 - Load max 2-3 models simultaneously
 - CI: Use 7B models (93% cheaper than cloud)
+
+**Incorrect — loading oversized model for limited hardware:**
+```python
+# M3 Pro 36GB trying to run 70B model
+llm = ChatOllama(model="deepseek-r1:70b")  # OOM error, 42GB VRAM needed
+response = await llm.ainvoke("Simple task")
+```
+
+**Correct — selecting model based on hardware profile:**
+```python
+def get_model_for_hardware(hardware: str, task: str) -> str:
+    profiles = {
+        "m3_pro_36gb": {"reasoning": "llama3.3:7b"},
+        "m4_max_256gb": {"reasoning": "deepseek-r1:70b"}
+    }
+    return profiles[hardware].get(task, "llama3.3:7b")
+
+model = get_model_for_hardware("m3_pro_36gb", "reasoning")
+llm = ChatOllama(model=model)
+```
 
 
 ### Local Inference: Ollama Setup — HIGH
@@ -1090,6 +1216,27 @@ ollama pull deepseek-r1:70b-q4_K_M
 - Using `keep_alive=-1` (wastes memory indefinitely)
 - Skipping environment variable configuration
 - Not checking if Ollama is running before making calls
+
+**Incorrect — no keep_alive configuration leads to cold starts:**
+```python
+from langchain_ollama import ChatOllama
+
+llm = ChatOllama(model="deepseek-r1:70b")  # Model unloaded after each call
+response = await llm.ainvoke("Task 1")  # 30-60s cold start
+response = await llm.ainvoke("Task 2")  # Another 30-60s cold start
+```
+
+**Correct — keep_alive keeps model loaded for subsequent calls:**
+```python
+from langchain_ollama import ChatOllama
+
+llm = ChatOllama(
+    model="deepseek-r1:70b",
+    keep_alive="5m"  # Keep model loaded for 5 minutes
+)
+response = await llm.ainvoke("Task 1")  # 30-60s initial load
+response = await llm.ainvoke("Task 2")  # Instant (model still loaded)
+```
 
 
 ### Prompt Design Patterns — HIGH
@@ -1354,6 +1501,24 @@ async def stream_chat(prompt: str, request: Request):
 - Missing AbortController cleanup on component unmount
 - Not yielding control in consumer (starves event loop)
 
+**Incorrect — unbounded queue causes memory exhaustion:**
+```python
+async def stream_tokens(prompt: str):
+    buffer = asyncio.Queue()  # No maxsize = unbounded
+    async for token in async_stream(prompt):
+        await buffer.put(token)  # Never blocks, grows infinitely
+    # Slow consumer = OOM
+```
+
+**Correct — bounded queue applies backpressure:**
+```python
+async def stream_tokens(prompt: str):
+    buffer = asyncio.Queue(maxsize=100)  # Bounded buffer
+    async for token in async_stream(prompt):
+        await buffer.put(token)  # Blocks when full, slows producer
+    # Producer matches consumer speed
+```
+
 
 ### Streaming: SSE Endpoints — HIGH
 
@@ -1452,6 +1617,26 @@ await streamChat('Hello', (token) => {
 - Not closing connections properly
 - Buffering entire response (defeats purpose of streaming)
 
+**Incorrect — buffering entire response before sending:**
+```python
+@app.get("/chat/stream")
+async def stream_chat(prompt: str):
+    full_response = ""
+    async for token in async_stream(prompt):
+        full_response += token  # Accumulate everything
+    return {"response": full_response}  # Send all at once
+```
+
+**Correct — streaming tokens incrementally:**
+```python
+@app.get("/chat/stream")
+async def stream_chat(prompt: str):
+    async def generate():
+        async for token in async_stream(prompt):
+            yield {"event": "token", "data": token}  # Send immediately
+    return EventSourceResponse(generate())
+```
+
 
 ### Streaming: Structured & Tool Calls — HIGH
 
@@ -1542,6 +1727,31 @@ async def stream_structured_output(prompt: str):
 - Not handling the case where both content and tool calls appear
 - Losing tool call chunks due to incorrect index tracking
 - Not signaling stream completion to consumers
+
+**Incorrect — parsing incomplete tool call arguments:**
+```python
+async for chunk in stream:
+    if chunk.choices[0].delta.tool_calls:
+        tc = chunk.choices[0].delta.tool_calls[0]
+        # Parse before accumulation completes
+        args = json.loads(tc.function.arguments)  # JSONDecodeError on partial data
+        execute_tool(tc.function.name, args)
+```
+
+**Correct — accumulating tool calls before parsing:**
+```python
+collected_tool_calls = []
+async for chunk in stream:
+    if chunk.choices[0].delta.tool_calls:
+        for tc in chunk.choices[0].delta.tool_calls:
+            if tc.index >= len(collected_tool_calls):
+                collected_tool_calls.append({"function": {"arguments": ""}})
+            collected_tool_calls[tc.index]["function"]["arguments"] += tc.function.arguments
+
+# Parse after stream completes
+for tc in collected_tool_calls:
+    args = json.loads(tc["function"]["arguments"])
+```
 
 
 ### Fine-Tuning: Dataset Preparation — HIGH
@@ -1681,6 +1891,28 @@ def to_chatml_format(examples: list[dict]) -> list[dict]:
 4. **Deduplication**: Remove near-duplicates to prevent overfitting
 5. **Iterative Refinement**: Generate, train, evaluate, adjust generation
 
+**Incorrect — generating dataset without validation or deduplication:**
+```python
+async def generate_dataset(topic: str, num: int = 1000):
+    examples = []
+    for _ in range(num):
+        ex = await generate_example(topic)
+        examples.append(ex)  # No validation, possible duplicates
+    return examples
+```
+
+**Correct — validating and deduplicating before saving:**
+```python
+async def generate_dataset(topic: str, num: int = 1000):
+    examples = []
+    for _ in range(num):
+        ex = await generate_example(topic)
+        validation = await validate_example(ex)
+        if validation["keep"]:  # Filter low-quality
+            examples.append(ex)
+    return deduplicate_examples(examples, threshold=0.85)
+```
+
 
 ### Fine-Tuning: DPO Alignment & Evaluation — HIGH
 
@@ -1811,6 +2043,28 @@ trainer = SFTTrainer(..., eval_dataset=eval)
 
 **Catastrophic forgetting**: Increase beta, mix in general data, use LoRA
 
+**Incorrect — deploying fine-tuned model without evaluation:**
+```python
+trainer = SFTTrainer(model=model, train_dataset=train_data)
+trainer.train()
+model.save_pretrained("./production_model")  # No evaluation
+deploy(model)  # Could be degraded
+```
+
+**Correct — evaluating before deployment:**
+```python
+train, eval = train_test_split(data, test_size=0.1)
+trainer = SFTTrainer(
+    model=model,
+    train_dataset=train,
+    eval_dataset=eval  # Separate eval set
+)
+trainer.train()
+eval_results = await evaluate_alignment(model, tokenizer, test_prompts)
+if eval_results["mean_score"] >= 7.5:  # Quality threshold
+    deploy(model)
+```
+
 
 ### Fine-Tuning: LoRA/QLoRA Configuration — HIGH
 
@@ -1934,6 +2188,24 @@ merged_model.save_pretrained("./merged_model")
 | 7B | 56GB+ | 16GB | 6GB |
 | 13B | 104GB+ | 32GB | 10GB |
 | 70B | 560GB+ | 160GB | 48GB |
+
+**Incorrect — trying full fine-tuning on consumer hardware:**
+```python
+model = AutoModelForCausalLM.from_pretrained("meta-llama/Llama-3.1-70B")
+trainer = SFTTrainer(model=model, train_dataset=dataset)
+trainer.train()  # OOM: requires 560GB+ VRAM
+```
+
+**Correct — using QLoRA for memory-efficient training:**
+```python
+model, tokenizer = FastLanguageModel.from_pretrained(
+    "unsloth/Meta-Llama-3.1-70B",
+    load_in_4bit=True  # QLoRA quantization
+)
+model = FastLanguageModel.get_peft_model(model, r=16, lora_alpha=32)
+trainer = SFTTrainer(model=model, train_dataset=dataset)
+trainer.train()  # Fits in 48GB VRAM
+```
 
 
 

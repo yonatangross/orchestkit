@@ -286,6 +286,26 @@ async def get_users(db: AsyncSession):  # Missing Depends()
 | Direct instantiation | Service() without Depends | Use Depends(get_service) |
 | Missing await | Sync calls in async | Add await or use executor |
 
+**Incorrect — direct service instantiation in router:**
+```typescript
+@router.get("/users/{user_id}")
+async def get_user(user_id: int, db: AsyncSession = Depends(get_db)) {
+    service = UserService(db);  // Direct instantiation, untestable
+    return await service.get_user(user_id);
+}
+```
+
+**Correct — dependency injection with Depends:**
+```typescript
+@router.get("/users/{user_id}")
+async def get_user(
+    user_id: int,
+    service: UserService = Depends(get_user_service)  // Injected, testable
+) {
+    return await service.get_user(user_id);
+}
+```
+
 
 ### Backend: Layer Separation — HIGH
 
@@ -337,6 +357,28 @@ async def get_user(user_id: int, service: UserService = Depends(get_user_service
         raise HTTPException(404, "User not found")
 ```
 
+**Incorrect — database logic in router layer:**
+```typescript
+@router.post("/users")
+async def create_user(data: UserCreate, db: AsyncSession = Depends(get_db)) {
+    user = User(**data.dict());  // Business logic in router
+    db.add(user);  // Database access in router
+    await db.commit();
+    return user;
+}
+```
+
+**Correct — router delegates to service layer:**
+```typescript
+@router.post("/users")
+async def create_user(
+    data: UserCreate,
+    service: UserService = Depends(get_user_service)
+) {
+    return await service.create_user(data);  // Service handles logic
+}
+```
+
 
 ### Backend: File Naming & Exceptions — HIGH
 
@@ -372,6 +414,22 @@ await loop.run_in_executor(None, sync_function)
 - Routers prefix with `router_`, services suffix with `_service`
 - Domain exceptions in domain layer, HTTP conversion in routers only
 - All database operations must use `await`
+
+**Incorrect — missing await on async database operation:**
+```typescript
+async function getUser(db: AsyncSession, userId: number) {
+    result = db.execute(select(User).where(User.id === userId));  // Missing await
+    return result.scalar_one_or_none();
+}
+```
+
+**Correct — properly awaiting async database calls:**
+```typescript
+async function getUser(db: AsyncSession, userId: number) {
+    result = await db.execute(select(User).where(User.id === userId));
+    return result.scalar_one_or_none();
+}
+```
 
 
 ### Clean: SOLID & Dependency Inversion — HIGH
@@ -444,6 +502,25 @@ def get_analysis_service(db: AsyncSession = Depends(get_db)) -> AnalysisService:
 | Protocol vs ABC | Protocol (structural typing) |
 | Dataclass vs Pydantic | Dataclass for domain, Pydantic for API |
 
+**Incorrect — service directly depends on concrete implementation:**
+```typescript
+class AnalysisService {
+    constructor() {
+        this._repo = new PostgresAnalysisRepository();  // Tight coupling
+    }
+}
+```
+
+**Correct — service depends on abstraction via protocol:**
+```typescript
+class IAnalysisRepository(Protocol):
+    async def get_by_id(self, id: str) -> Analysis | None: ...
+
+class AnalysisService:
+    def __init__(self, repo: IAnalysisRepository):  // Depends on abstraction
+        self._repo = repo
+```
+
 
 ### Clean: Hexagonal Architecture — HIGH
 
@@ -501,6 +578,28 @@ backend/app/
 - Output ports define infrastructure needs (repository protocols)
 - Driving adapters call inward (routes -> services)
 - Driven adapters are called outward (services -> repositories)
+
+**Incorrect — domain layer importing infrastructure:**
+```typescript
+// In domains/analysis/services.py
+from infrastructure.repositories.postgres import PostgresAnalysisRepository  // Violates hex arch
+
+class AnalysisService:
+    def __init__(self):
+        self.repo = PostgresAnalysisRepository()
+```
+
+**Correct — domain depends only on ports:**
+```typescript
+// In domains/analysis/repositories.py (port)
+class IAnalysisRepository(Protocol):
+    async def get_by_id(self, id: str) -> Analysis | None: ...
+
+// In domains/analysis/services.py
+class AnalysisService:
+    def __init__(self, repo: IAnalysisRepository):  // Depends on port only
+        self._repo = repo
+```
 
 
 ### Clean: DDD Tactical Patterns — HIGH
@@ -567,6 +666,28 @@ class AnalysisAggregate:
 | Repository granularity | One per aggregate root |
 | Transaction boundary | Service layer, not repository |
 | Event publishing | Collect in aggregate, publish after commit |
+
+**Incorrect — mutable value object violates immutability:**
+```typescript
+@dataclass
+class AnalysisType:  // Mutable by default
+    category: str
+    depth: int
+
+analysis_type = AnalysisType("security", 2)
+analysis_type.depth = 5  // Can mutate, breaks value object contract
+```
+
+**Correct — frozen dataclass ensures immutability:**
+```typescript
+@dataclass(frozen=True)  // Immutable
+class AnalysisType:
+    category: str
+    depth: int
+
+analysis_type = AnalysisType("security", 2)
+analysis_type.depth = 5  // FrozenInstanceError
+```
 
 
 ### Right-Sizing Decision Guide — HIGH
@@ -786,6 +907,19 @@ ALLOWED: app/routers/router_users.py, app/services/user_service.py
 BLOCKED: app/user_service.py (not in services/), app/services/router_users.py (router in services/)
 ```
 
+**Incorrect — feature importing from app layer:**
+```typescript
+// In src/features/auth/components/LoginForm.tsx
+import { RootLayout } from '@/app/layout';  // Violates unidirectional flow
+```
+
+**Correct — feature imports from shared/components only:**
+```typescript
+// In src/features/auth/components/LoginForm.tsx
+import { Button } from '@/components/ui/Button';  // Correct direction
+import { useAuth } from '@/hooks/useAuth';
+```
+
 
 ### Structure: Folder Organization — HIGH
 
@@ -852,6 +986,18 @@ import { Button } from '@/components/Button';
 ```
 
 Barrel files break tree-shaking, cause circular dependencies, and slow builds.
+
+**Incorrect — excessive nesting depth:**
+```typescript
+// 6 levels deep
+src/features/dashboard/widgets/analytics/charts/line/LineChart.tsx
+```
+
+**Correct — flattened to maximum 4 levels:**
+```typescript
+// 4 levels, clear hierarchy
+src/features/dashboard/charts/LineChart.tsx
+```
 
 
 ### Testing: AAA Pattern & Isolation — MEDIUM
@@ -924,6 +1070,28 @@ def test_email_validation(self, email: str, expected: bool):
     assert is_valid_email(email) == expected
 ```
 
+**Incorrect — missing AAA structure, unclear test logic:**
+```typescript
+test('discount works', () => {
+    expect(new DiscountCalculator().calculate(createOrder({ total: 150 }))).toBe(15);
+});
+```
+
+**Correct — clear AAA sections make test readable:**
+```typescript
+test('should apply 10% discount for orders over $100', () => {
+    // Arrange
+    const order = createOrder({ total: 150 });
+    const calculator = new DiscountCalculator();
+
+    // Act
+    const discount = calculator.calculate(order);
+
+    // Assert
+    expect(discount).toBe(15);
+});
+```
+
 
 ### Testing: Coverage & Fixtures — MEDIUM
 
@@ -980,6 +1148,24 @@ def db_engine():
 - Include cleanup via `yield` in fixtures
 - 100% coverage required for all new code
 
+**Incorrect — fixture without cleanup leaks resources:**
+```python
+@pytest.fixture
+def db_session():
+    session = create_session()
+    return session  # No cleanup, connection leak
+```
+
+**Correct — yield ensures cleanup runs:**
+```python
+@pytest.fixture
+def db_session():
+    session = create_session()
+    yield session
+    session.rollback()  # Always runs after test
+    session.close()
+```
+
 
 ### Testing: Naming Conventions — MEDIUM
 
@@ -1033,6 +1219,22 @@ BLOCKED:
 - Names should read as specifications
 - Use "should" or "when" patterns for clarity
 - Place all tests in dedicated test directories
+
+**Incorrect — vague test name provides no context:**
+```typescript
+test('works', () => {
+    const result = calculateTotal([10, 20]);
+    expect(result).toBe(30);
+});
+```
+
+**Correct — descriptive name documents behavior:**
+```typescript
+test('should sum all item prices when calculating order total', () => {
+    const result = calculateTotal([10, 20]);
+    expect(result).toBe(30);
+});
+```
 
 
 

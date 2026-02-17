@@ -1,18 +1,7 @@
 {
   "skill": "browser-tools",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "testCases": [
-    {
-      "id": "playwright-setup",
-      "rule": null,
-      "query": "Set up agent-browser for headless browser automation",
-      "expectedBehavior": [
-        "Installs agent-browser globally via npm",
-        "Runs agent-browser install for Chromium",
-        "Configures environment variables for session management",
-        "Mentions cloud providers (browserbase, kernel) as options"
-      ]
-    },
     {
       "id": "page-interaction",
       "rule": "browser-snapshot-workflow",
@@ -36,39 +25,6 @@
       ]
     },
     {
-      "id": "spa-extraction",
-      "rule": null,
-      "query": "Extract content from a React SPA that WebFetch returns empty for",
-      "expectedBehavior": [
-        "Uses wait --load networkidle for SPA hydration",
-        "Detects React via __REACT_DEVTOOLS_GLOBAL_HOOK__",
-        "Waits for framework-specific markers before extraction",
-        "Handles infinite scroll with scrollToBottom pattern"
-      ]
-    },
-    {
-      "id": "scraping-strategies",
-      "rule": null,
-      "query": "Crawl an entire documentation site with pagination",
-      "expectedBehavior": [
-        "Extracts navigation links first, then visits each",
-        "Handles both click-based and URL-based pagination",
-        "Implements depth-limited recursive crawling",
-        "Uses parallel sessions for throughput"
-      ]
-    },
-    {
-      "id": "anti-bot-handling",
-      "rule": null,
-      "query": "Scrape a site that blocks automated requests",
-      "expectedBehavior": [
-        "Checks robots.txt before crawling",
-        "Adds delays between page navigations",
-        "Uses headed mode for CAPTCHA challenges",
-        "Implements resume capability for interrupted crawls"
-      ]
-    },
-    {
       "id": "auth-flows",
       "rule": "browser-auth-security",
       "query": "Capture content from a login-protected documentation site",
@@ -80,14 +36,25 @@
       ]
     },
     {
-      "id": "structured-output",
-      "rule": null,
-      "query": "Convert scraped web pages to clean markdown with metadata",
+      "id": "rate-limiting",
+      "rule": "browser-rate-limiting",
+      "query": "Scrape multiple pages without overwhelming the server",
       "expectedBehavior": [
-        "Removes noise elements before extraction",
-        "Preserves metadata (title, URL, crawled_at timestamp)",
-        "Outputs clean markdown suitable for downstream processing",
-        "Validates extracted data structure before saving"
+        "Adds delays between page navigations",
+        "Implements exponential backoff on 429 responses",
+        "Respects concurrency limits for parallel sessions",
+        "Monitors and adjusts rate based on server responses"
+      ]
+    },
+    {
+      "id": "ethical-scraping",
+      "rule": "browser-scraping-ethics",
+      "query": "Crawl a website for content extraction",
+      "expectedBehavior": [
+        "Checks robots.txt before crawling",
+        "Respects Terms of Service and site policies",
+        "Uses identifiable user-agent string",
+        "Limits crawl scope to necessary pages only"
       ]
     }
   ]

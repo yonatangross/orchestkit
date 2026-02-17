@@ -2,6 +2,8 @@
 title: "WCAG: Accessibility Testing"
 category: wcag
 impact: CRITICAL
+impactDescription: "Ensures accessibility compliance through automated testing with axe-core and manual screen reader verification"
+tags: wcag, testing, axe-core, screen-reader, automation
 ---
 
 # Accessibility Testing
@@ -102,3 +104,28 @@ Test with at least one screen reader:
 | Testing only happy path | Test error states, loading states, empty states |
 | Not testing keyboard navigation | Tab through entire flow manually |
 | Ignoring screen reader announcements | Test with NVDA/VoiceOver for dynamic content |
+
+**Incorrect — Only running automated tests:**
+```typescript
+test('accessibility', async ({ page }) => {
+  await page.goto('/');
+  const results = await new AxeBuilder({ page }).analyze();
+  expect(results.violations).toEqual([]);
+  // Only catches ~30-50% of issues
+});
+```
+
+**Correct — Combining automated + manual testing:**
+```typescript
+test('accessibility - automated', async ({ page }) => {
+  await page.goto('/');
+  const results = await new AxeBuilder({ page }).analyze();
+  expect(results.violations).toEqual([]);
+});
+
+// Plus manual checklist:
+// - Tab through all interactive elements
+// - Test with screen reader (NVDA/VoiceOver)
+// - Verify focus indicators visible
+// - Test error state announcements
+```

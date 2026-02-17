@@ -79,3 +79,20 @@ async def bulk_insert_chunked(
 - Chunk bulk inserts at 1000-10000 rows for memory management
 - One repository per aggregate root
 - Transaction boundary at the service layer, not repository
+
+**Incorrect — Adding entities one-by-one in loop causes N round trips:**
+```python
+async def create_users(db: AsyncSession, users_data: list[dict]):
+    for user_data in users_data:  # 1000 loop iterations
+        user = User(**user_data)
+        db.add(user)
+        await db.flush()  # 1000 round trips to DB!
+```
+
+**Correct — Bulk operations reduce round trips and improve performance:**
+```python
+async def create_users(db: AsyncSession, users_data: list[dict]):
+    users = [User(**data) for data in users_data]
+    db.add_all(users)  # Single round trip
+    await db.flush()
+```

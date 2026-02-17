@@ -72,6 +72,25 @@ def eval_quantized(client, test_cases):
 # Accept quantization if quality >= 95% of FP16 baseline
 ```
 
+**Incorrect — FP16 on smaller GPUs wastes VRAM:**
+```bash
+docker run --gpus all \
+  vllm/vllm-openai:latest \
+  --model meta-llama/Llama-3.1-70B-Instruct \
+  --tensor-parallel-size 8
+# Requires 140 GB VRAM
+```
+
+**Correct — FP8 quantization reduces VRAM by ~45%:**
+```bash
+docker run --gpus all \
+  vllm/vllm-openai:latest \
+  --model meta-llama/Llama-3.1-70B-Instruct \
+  --quantization fp8 \
+  --tensor-parallel-size 4
+# Requires 75 GB VRAM
+```
+
 **Key rules:**
 - **Use** FP8 on Hopper/Ada GPUs (best speed/quality tradeoff)
 - **Use** AWQ for maximum throughput on older GPUs

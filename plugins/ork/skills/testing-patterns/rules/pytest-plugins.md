@@ -2,6 +2,8 @@
 title: "Pytest: Plugins & Hooks"
 category: pytest
 impact: HIGH
+impactDescription: "Establishes factory fixture patterns and plugin best practices for reusable, maintainable test infrastructure"
+tags: pytest, fixtures, plugins, factory-pattern, test-infrastructure
 ---
 
 # Pytest Plugins and Hooks
@@ -54,3 +56,17 @@ def temp_db():
 | Plugin location | conftest.py for project, package for reuse |
 | Async testing | pytest-asyncio with auto mode |
 | Fixture scope | Function default, session for expensive setup |
+
+**Incorrect — Expensive fixture without session scope:**
+```python
+@pytest.fixture
+def ml_model():
+    return load_large_model()  # 5s, reloaded EVERY test
+```
+
+**Correct — Session-scoped fixture for expensive setup:**
+```python
+@pytest.fixture(scope="session")
+def ml_model():
+    return load_large_model()  # 5s, loaded ONCE
+```

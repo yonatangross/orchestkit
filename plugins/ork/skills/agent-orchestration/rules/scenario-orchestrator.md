@@ -2,6 +2,8 @@
 title: "Scenario: Multi-Scenario Orchestrator"
 category: scenario
 impact: MEDIUM
+impactDescription: "Ensures skills are tested across three parallel scenarios with progressive difficulty and synchronized execution"
+tags: scenarios, orchestration, parallel, testing, scaling
 ---
 
 # Multi-Scenario Orchestrator
@@ -175,3 +177,23 @@ class SkillOrchestrator(ABC):
 - No synchronization (results appear disjointed)
 - Unclear difficulty scaling (differ in scale, not approach)
 - Missing aggregation (individual results lack comparative insights)
+
+**Incorrect — running scenarios sequentially:**
+```python
+async def orchestrate(skill_name: str):
+    simple = await run_scenario("simple", skill_name)  # Wait
+    medium = await run_scenario("medium", skill_name)  # Wait
+    complex = await run_scenario("complex", skill_name) # Wait
+    return [simple, medium, complex]
+```
+
+**Correct — parallel execution of all scenarios:**
+```python
+async def orchestrate(skill_name: str):
+    results = await asyncio.gather(
+        run_scenario("simple", skill_name),
+        run_scenario("medium", skill_name),
+        run_scenario("complex", skill_name)
+    )
+    return aggregate_results(results)
+```

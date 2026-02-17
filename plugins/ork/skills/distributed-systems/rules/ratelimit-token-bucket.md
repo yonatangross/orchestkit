@@ -2,6 +2,8 @@
 title: "Rate Limiting: Token Bucket"
 category: ratelimit
 impact: HIGH
+impactDescription: "Ensures API rate limiting with burst capacity using atomic Redis token bucket implementation with refill logic"
+tags: ratelimit, token-bucket, redis, burst, refill
 ---
 
 # Token Bucket Rate Limiting
@@ -97,3 +99,22 @@ class TokenBucketLimiter:
 | Memory | O(1) per key | O(n) timestamps |
 | Precision | Approximate | Exact |
 | Redis Operations | 1 HMSET | 1 ZADD + 1 ZREMRANGEBYSCORE |
+
+**Incorrect — Check-then-act pattern has race condition in token refill:**
+```typescript
+const bucket = await redis.get(`bucket:${user}`);
+const tokens = JSON.parse(bucket).tokens + elapsed * refillRate;
+if (tokens >= 1) {
+  // Race! Another request can pass this check too
+  await redis.set(`bucket:${user}`, JSON.stringify({tokens: tokens - 1}));
+}
+```
+
+**Correct — Atomic Lua script ensures thread-safe token bucket operations:**
+```typescript
+const result = await redis.eval(TOKEN_BUCKET_SCRIPT,
+  keys: [`bucket:${user}`],
+  args: [capacity, refillRate, tokensRequested, Date.now()]
+);
+// Single atomic operation, no race conditions
+```

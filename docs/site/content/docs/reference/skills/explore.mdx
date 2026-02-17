@@ -222,6 +222,26 @@ TeamDelete()
 
 > **Fallback:** If team formation fails, use standard Task tool spawns. See [exploration-agents.md](exploration-agents.md).
 
+**Incorrect — Sequential exploration without coordination:**
+```python
+Task(subagent_type="Explore", prompt="Find auth files")
+# Wait for result...
+Task(subagent_type="Explore", prompt="Trace auth data flow")
+# Sequential, no sharing between agents
+```
+
+**Correct — Team mode with real-time discovery sharing:**
+```python
+TeamCreate(team_name="explore-auth")
+Task(subagent_type="Explore", name="structure-explorer",
+     team_name="explore-auth",
+     prompt="Find auth files. Message data-flow-explorer with entry points.")
+Task(subagent_type="Explore", name="data-flow-explorer",
+     team_name="explore-auth",
+     prompt="When structure-explorer shares entry points, trace data flows.")
+# Parallel execution, coordinated via messages
+```
+
 
 ### Code Health Assessment — MEDIUM
 
@@ -283,6 +303,36 @@ Task(
 )
 ```
 
+**Incorrect — Vague code quality feedback:**
+```markdown
+Code Review: The code looks okay. Some parts are complex.
+Maybe add more tests.
+```
+
+**Correct — Structured health assessment with scores:**
+```json
+{
+  "overall_score": 6.2,
+  "dimensions": {
+    "readability": 8,
+    "maintainability": 5,
+    "testability": 4,
+    "complexity": 6,
+    "documentation": 8
+  },
+  "hotspots": [
+    "auth.ts:45 - nested if/else 5 levels deep",
+    "utils.ts:120 - 200-line function, no SRP"
+  ],
+  "recommendations": [
+    "Extract auth.ts:45-80 to separate validation functions",
+    "Add unit tests for utils.ts edge cases"
+  ]
+}
+```
+```
+```
+
 
 ### Dependency Hotspot Analysis — MEDIUM
 
@@ -335,6 +385,37 @@ Task(
   run_in_background=True,
   max_turns=25
 )
+```
+
+**Incorrect — Listing imports without analysis:**
+```markdown
+auth.ts imports:
+- utils.ts
+- config.ts
+- db.ts
+```
+
+**Correct — Hotspot analysis with coupling score:**
+```json
+{
+  "coupling_score": 8,
+  "fan_in": 12,
+  "fan_out": 5,
+  "circular_deps": ["auth.ts → user.ts → auth.ts"],
+  "change_impact": [
+    "auth.ts change breaks 12 files",
+    "utils.ts and auth.ts always change together"
+  ],
+  "hotspot_diagram": "
+    [12 files] --depend on--> [auth.ts]
+                                  |
+                              depends on
+                                  v
+                      [utils, config, db, user, session]
+  "
+}
+```
+```
 ```
 
 
@@ -400,6 +481,30 @@ Task(
 3. **Backend Architect** - Patterns, integration, dependencies
 4. **Frontend Developer** - Components, state, routes
 
+**Incorrect — Sequential exploration:**
+```python
+Task(subagent_type="Explore", prompt="Find auth files")
+# Wait...
+Task(subagent_type="Explore", prompt="Trace auth flow")
+# Wait...
+Task(subagent_type="backend-system-architect", prompt="Analyze patterns")
+# Slow, sequential
+```
+
+**Correct — Parallel exploration in one message:**
+```python
+# All 4 in ONE message with run_in_background: true
+Task(subagent_type="Explore", prompt="Code Structure: Find all files related to auth",
+     run_in_background=True, max_turns=25)
+Task(subagent_type="Explore", prompt="Data Flow: Trace auth entry→storage",
+     run_in_background=True, max_turns=25)
+Task(subagent_type="backend-system-architect", prompt="Backend Patterns: Analyze auth architecture",
+     run_in_background=True, max_turns=25)
+Task(subagent_type="frontend-ui-developer", prompt="Frontend: Find auth components",
+     run_in_background=True, max_turns=25)
+# Parallel execution
+```
+
 
 ### Product Perspective — MEDIUM
 
@@ -448,8 +553,37 @@ Task(
   SUMMARY: End with: "FINDABILITY: [N] issues - start at [recommended entry point]"
   """,
   run_in_background=True,
-  max_turns=25
-)
+  max_turns=25)
+```
+
+**Incorrect — Technical analysis without business context:**
+```markdown
+Found auth.ts, user.ts, session.ts
+Uses JWT tokens, bcrypt hashing
+Database: PostgreSQL users table
+```
+
+**Correct — Product perspective with findability:**
+```json
+{
+  "business_purpose": "Secure user authentication and session management",
+  "primary_users": ["End users logging in", "Developers integrating auth"],
+  "findability_issues": [
+    "auth.ts - generic name, try auth/core.ts",
+    "Missing README in auth/ - devs don't know where to start"
+  ],
+  "recommended_entry_points": [
+    "auth/README.md (missing - create this!)",
+    "auth/core.ts - main authentication flow"
+  ],
+  "search_keywords": ["login", "authentication", "session", "JWT", "security"],
+  "documentation_gaps": [
+    "No auth flow diagram",
+    "Token refresh logic undocumented"
+  ]
+}
+```
+```
 ```
 
 

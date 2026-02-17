@@ -91,3 +91,28 @@ async def stream_structured_output(prompt: str):
 - Not handling the case where both content and tool calls appear
 - Losing tool call chunks due to incorrect index tracking
 - Not signaling stream completion to consumers
+
+**Incorrect — parsing incomplete tool call arguments:**
+```python
+async for chunk in stream:
+    if chunk.choices[0].delta.tool_calls:
+        tc = chunk.choices[0].delta.tool_calls[0]
+        # Parse before accumulation completes
+        args = json.loads(tc.function.arguments)  # JSONDecodeError on partial data
+        execute_tool(tc.function.name, args)
+```
+
+**Correct — accumulating tool calls before parsing:**
+```python
+collected_tool_calls = []
+async for chunk in stream:
+    if chunk.choices[0].delta.tool_calls:
+        for tc in chunk.choices[0].delta.tool_calls:
+            if tc.index >= len(collected_tool_calls):
+                collected_tool_calls.append({"function": {"arguments": ""}})
+            collected_tool_calls[tc.index]["function"]["arguments"] += tc.function.arguments
+
+# Parse after stream completes
+for tc in collected_tool_calls:
+    args = json.loads(tc["function"]["arguments"])
+```

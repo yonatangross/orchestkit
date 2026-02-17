@@ -55,3 +55,23 @@ TeamDelete()
 ```
 
 > **Fallback:** If team formation fails, use standard Task tool spawns. See [exploration-agents.md](exploration-agents.md).
+
+**Incorrect — Sequential exploration without coordination:**
+```python
+Task(subagent_type="Explore", prompt="Find auth files")
+# Wait for result...
+Task(subagent_type="Explore", prompt="Trace auth data flow")
+# Sequential, no sharing between agents
+```
+
+**Correct — Team mode with real-time discovery sharing:**
+```python
+TeamCreate(team_name="explore-auth")
+Task(subagent_type="Explore", name="structure-explorer",
+     team_name="explore-auth",
+     prompt="Find auth files. Message data-flow-explorer with entry points.")
+Task(subagent_type="Explore", name="data-flow-explorer",
+     team_name="explore-auth",
+     prompt="When structure-explorer shares entry points, trace data flows.")
+# Parallel execution, coordinated via messages
+```

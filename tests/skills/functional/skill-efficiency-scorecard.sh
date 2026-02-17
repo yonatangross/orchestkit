@@ -121,7 +121,7 @@ for skill_dir in "$SKILLS_DIR"/*/; do
     phase_steps=$(echo "$phase_steps" | tr -d '[:space:]')
 
     # --- Count anti-patterns ---
-    anti_patterns=$(echo "$all_content" | grep -ciE '\bNEVER\b|\bDO NOT\b|\bavoid\b|\bshould_not\b|\bDONT\b' 2>/dev/null || true)
+    anti_patterns=$(echo "$all_content" | grep -ciE '\bNEVER\b|\bDO NOT\b|\bavoid\b|\bshould_not\b|\bmust not\b|\bprohibited\b' 2>/dev/null || true)
     anti_patterns=${anti_patterns:-0}
     anti_patterns=$(echo "$anti_patterns" | tr -d '[:space:]')
 
@@ -213,12 +213,20 @@ echo "$aggregate" | jq -r '
 '
 echo ""
 
-# Top 5 most content-rich and 5 least content-rich
-echo "  Top 5 most content-rich (by total_words):"
-echo "$skills_json" | jq -r '[sort_by(-.total_words)[:5][] | "    \(.name): \(.total_words) words, \(.rule_count) rules, \(.code_examples) examples"] | .[]'
+# Human-readable table sorted by rule_count descending
+echo "  Top 5 skills (by rule_count):"
+printf "  %-35s %6s %12s %8s %11s\n" "Skill" "Rules" "Imperatives" "Examples" "Specificity"
+printf "  %-35s %6s %12s %8s %11s\n" "-----------------------------------" "------" "------------" "--------" "-----------"
+echo "$skills_json" | jq -r 'sort_by(-.rule_count)[:5][] | "\(.name)|\(.rule_count)|\(.imperative_instructions)|\(.code_examples)|\(.specificity_ratio)"' | while IFS='|' read -r name rules imp ex spec; do
+    printf "  %-35s %6s %12s %8s %11s\n" "$name" "$rules" "$imp" "$ex" "$spec"
+done
 echo ""
-echo "  Bottom 5 least content-rich:"
-echo "$skills_json" | jq -r '[sort_by(.total_words)[:5][] | "    \(.name): \(.total_words) words, \(.rule_count) rules, \(.code_examples) examples"] | .[]'
+echo "  Bottom 5 skills (by rule_count):"
+printf "  %-35s %6s %12s %8s %11s\n" "Skill" "Rules" "Imperatives" "Examples" "Specificity"
+printf "  %-35s %6s %12s %8s %11s\n" "-----------------------------------" "------" "------------" "--------" "-----------"
+echo "$skills_json" | jq -r 'sort_by(.rule_count)[:5][] | "\(.name)|\(.rule_count)|\(.imperative_instructions)|\(.code_examples)|\(.specificity_ratio)"' | while IFS='|' read -r name rules imp ex spec; do
+    printf "  %-35s %6s %12s %8s %11s\n" "$name" "$rules" "$imp" "$ex" "$spec"
+done
 echo ""
 
 echo "  Output: $RESULTS_DIR/scorecard.json"

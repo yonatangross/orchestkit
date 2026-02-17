@@ -2,6 +2,8 @@
 title: "Resilience: Circuit Breaker"
 category: resilience
 impact: CRITICAL
+impactDescription: "Prevents cascade failures by tripping circuit when downstream service exceeds failure thresholds with recovery probes"
+tags: resilience, circuit-breaker, failures, fallback, recovery
 ---
 
 # Circuit Breaker Pattern
@@ -126,3 +128,19 @@ async def analyze():
 | LLM API | 3 | 60s | 30s |
 | External API | 5 | 30s | 10s |
 | Database | 2-3 | 15s | 5s |
+
+**Incorrect — No circuit breaker causes cascade failure when downstream is down:**
+```python
+async def call_payment_api():
+    return await http.post("https://api.payment.com/charge")
+    # Keeps trying even when API is down, causing 30s timeouts on every request
+# Entire service becomes unresponsive
+```
+
+**Correct — Circuit breaker trips on failures, returning fast failures and allowing recovery:**
+```python
+@circuit_breaker(failure_threshold=5, recovery_timeout=30)
+async def call_payment_api():
+    return await http.post("https://api.payment.com/charge")
+# After 5 failures, circuit opens and returns fallback immediately
+```

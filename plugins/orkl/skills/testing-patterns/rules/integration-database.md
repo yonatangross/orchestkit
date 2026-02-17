@@ -2,6 +2,8 @@
 title: "Integration: Database Testing"
 category: integration
 impact: HIGH
+impactDescription: "Ensures database layer correctness through isolated integration tests with fresh state per test"
+tags: database, integration, sqlalchemy, isolation, test-containers
 ---
 
 # Database Integration Testing
@@ -42,3 +44,24 @@ def db_session():
 - No transaction rollback
 - Testing against production APIs
 - Slow setup/teardown
+
+**Incorrect — Shared database state across tests:**
+```python
+engine = create_engine("sqlite:///test.db")  # File-based, persistent
+
+def test_create_user():
+    session.add(User(email="test@example.com"))
+    # Leaves data behind for next test
+```
+
+**Correct — Fresh in-memory database per test:**
+```python
+@pytest.fixture(scope="function")
+def db_session():
+    engine = create_engine("sqlite:///:memory:")
+    Base.metadata.create_all(engine)
+    Session = sessionmaker(bind=engine)
+    session = Session()
+    yield session
+    session.close()
+```

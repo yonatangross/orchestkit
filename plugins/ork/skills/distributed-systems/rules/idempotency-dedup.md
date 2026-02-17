@@ -2,6 +2,8 @@
 title: "Idempotency: Request Deduplication"
 category: idempotency
 impact: HIGH
+impactDescription: "Ensures events are processed exactly once using dual-layer deduplication with Redis and database"
+tags: idempotency, deduplication, redis, events, kafka
 ---
 
 # Event Consumer Deduplication
@@ -132,5 +134,30 @@ async def good_process(key):
         await insert_processed(key)  # Atomic claim
         await process()
     except IntegrityError:
+        pass  # Already processed
+```
+
+**Incorrect — Redis-only deduplication loses state after restart:**
+```python
+async def process_event(event_id: str):
+    if await redis.exists(f"processed:{event_id}"):
+        return  # Already processed
+    await handle_event(event_id)
+    await redis.set(f"processed:{event_id}", "1", ex=86400)
+# Redis restart = all events reprocessed!
+```
+
+**Correct — Dual-layer dedup: Redis (fast) + database (durable):**
+```python
+async def process_event(event_id: str):
+    # Fast path: Redis check
+    if await redis.exists(f"processed:{event_id}"):
+        return
+    # Durable check: Database with unique constraint
+    try:
+        await db.execute("INSERT INTO processed_events (event_id) VALUES ($1)", event_id)
+        await handle_event(event_id)
+        await redis.set(f"processed:{event_id}", "1", ex=86400)
+    except UniqueViolationError:
         pass  # Already processed
 ```

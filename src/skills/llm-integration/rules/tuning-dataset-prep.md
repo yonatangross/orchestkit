@@ -138,3 +138,25 @@ def to_chatml_format(examples: list[dict]) -> list[dict]:
 3. **Validation**: Filter with separate model, remove low-quality
 4. **Deduplication**: Remove near-duplicates to prevent overfitting
 5. **Iterative Refinement**: Generate, train, evaluate, adjust generation
+
+**Incorrect — generating dataset without validation or deduplication:**
+```python
+async def generate_dataset(topic: str, num: int = 1000):
+    examples = []
+    for _ in range(num):
+        ex = await generate_example(topic)
+        examples.append(ex)  # No validation, possible duplicates
+    return examples
+```
+
+**Correct — validating and deduplicating before saving:**
+```python
+async def generate_dataset(topic: str, num: int = 1000):
+    examples = []
+    for _ in range(num):
+        ex = await generate_example(topic)
+        validation = await validate_example(ex)
+        if validation["keep"]:  # Filter low-quality
+            examples.append(ex)
+    return deduplicate_examples(examples, threshold=0.85)
+```

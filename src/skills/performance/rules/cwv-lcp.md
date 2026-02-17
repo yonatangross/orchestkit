@@ -72,6 +72,22 @@ const [data, setData] = useState(null);
 useEffect(() => { fetchData().then(setData); }, []);
 ```
 
+**Incorrect — Lazy-loading LCP image delays paint:**
+```tsx
+<img src="/hero.webp" alt="Hero" loading="lazy" />
+```
+
+**Correct — Priority loading for LCP image:**
+```tsx
+<img
+  src="/hero.webp"
+  alt="Hero"
+  fetchpriority="high"
+  loading="eager"
+  decoding="async"
+/>
+```
+
 ## Key Rules
 
 1. **Never** lazy-load the LCP image

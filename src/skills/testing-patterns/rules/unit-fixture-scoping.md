@@ -2,6 +2,8 @@
 title: "Unit: Fixture Scoping"
 category: unit
 impact: CRITICAL
+impactDescription: "Optimizes test performance through proper fixture scope selection while maintaining test isolation"
+tags: pytest, fixtures, scoping, performance, isolation
 ---
 
 # Fixture Scoping
@@ -44,3 +46,17 @@ def db_engine():
 | Execution | < 100ms per test |
 | Dependencies | None (mock everything external) |
 | Coverage tool | c8, nyc, pytest-cov |
+
+**Incorrect — Function-scoped fixture for expensive read-only resource:**
+```python
+@pytest.fixture  # scope="function" is default
+def compiled_regex():
+    return re.compile(r"complex.*pattern")  # Recompiled every test
+```
+
+**Correct — Module-scoped fixture for expensive read-only resource:**
+```python
+@pytest.fixture(scope="module")
+def compiled_regex():
+    return re.compile(r"complex.*pattern")  # Compiled once per module
+```

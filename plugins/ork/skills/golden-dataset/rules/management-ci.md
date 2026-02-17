@@ -154,6 +154,26 @@ if echo "$CHANGED_FILES" | grep -q "fixtures/documents_expanded.json\|fixtures/q
 fi
 ```
 
+**Incorrect — Backup without validation:**
+```yaml
+# Missing verification step
+- name: Run backup
+  run: poetry run python scripts/backup_golden_dataset.py backup
+- name: Commit backup
+  run: git commit -m "chore: backup"
+```
+
+**Correct — Backup with verification:**
+```yaml
+# Verify backup integrity
+- name: Run backup
+  run: poetry run python scripts/backup_golden_dataset.py backup
+- name: Verify backup
+  run: poetry run python scripts/backup_golden_dataset.py verify
+- name: Commit backup
+  run: git commit -m "chore: automated golden dataset backup [skip ci]"
+```
+
 **Key rules:**
 - Set up weekly automated backups to prevent data staleness
 - Validate golden dataset on every PR that modifies dataset files

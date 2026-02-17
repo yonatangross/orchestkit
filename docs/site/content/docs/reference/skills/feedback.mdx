@@ -113,6 +113,22 @@ The following are **blocked by design** and never included in analytics:
 - URLs, IP addresses, or hostnames
 - Any strings that could identify the project or user
 
+**Incorrect — Auto-approving dangerous commands:**
+```bash
+# Pre-push hook auto-approves all commands
+git push --force origin main  # DANGEROUS
+rm -rf /important/directory    # DESTRUCTIVE
+```
+
+**Correct — Blocking dangerous commands from auto-approval:**
+```bash
+# Security check in hook
+if [[ "$cmd" =~ (rm -rf|sudo|chmod 777|--force|--no-verify) ]]; then
+  echo "BLOCKED: Command requires manual approval"
+  exit 1
+fi
+```
+
 
 
 ---

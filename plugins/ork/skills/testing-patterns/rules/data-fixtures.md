@@ -2,6 +2,8 @@
 title: "Data: JSON Fixtures"
 category: data
 impact: MEDIUM
+impactDescription: "Establishes structured JSON fixtures and composition patterns for deterministic test data management"
+tags: test-data, fixtures, json, pytest, composition
 ---
 
 # JSON Fixtures and Composition
@@ -57,4 +59,26 @@ def completed_workflow(user_with_analyses):
     for analysis in user_with_analyses["analyses"]:
         analysis.status = "completed"
     return user_with_analyses
+```
+
+**Incorrect — Fixtures with hard-coded state that breaks isolation:**
+```python
+@pytest.fixture(scope="module")  # Shared across tests
+def user():
+    return {"id": 1, "email": "test@example.com"}
+
+def test_update_user(user):
+    user["email"] = "updated@example.com"  # Mutates shared state
+```
+
+**Correct — Function-scoped fixtures with composition:**
+```python
+@pytest.fixture
+def user():
+    return UserFactory()  # Fresh instance per test
+
+@pytest.fixture
+def admin_user(user):
+    user.role = "admin"  # Composes on top of user fixture
+    return user
 ```

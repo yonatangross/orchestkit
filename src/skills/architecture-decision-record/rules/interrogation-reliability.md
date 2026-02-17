@@ -69,6 +69,47 @@ Questions covering data architecture, UX impact, and system coherence. Ensures d
 | "Users won't do that" | Ask: what if they DO? |
 | "It's just a small feature" | Ask: how does this grow with 100x users? |
 
+**Incorrect — vague answers, missing failure modes:**
+```markdown
+### Reliability Assessment for: User Tagging
+
+**Data:**
+- Storage location: Database
+- Access pattern: Fast
+- Retention: Keep everything
+
+**UX:**
+- Target latency: Should be quick
+- Feedback: A spinner
+- Error handling: Show an error
+
+**Coherence:**
+- Affected layers: Backend
+- API changes: Maybe some
+```
+
+**Correct — specific answers with failure handling:**
+```markdown
+### Reliability Assessment for: User Tagging
+
+**Data:**
+- Storage location: tags table with user_id FK + GIN index on tag names
+- Schema changes: New tags table, migration #47
+- Access pattern: Read-heavy (10:1) by user_id + autocomplete by tag prefix
+- Retention: 90 days for deleted tags (soft delete)
+
+**UX:**
+- Target latency: < 200ms for tag autocomplete
+- Feedback: Optimistic update + rollback on error
+- Error handling: Retry 2x with exponential backoff, then show "Failed to save tag. Retry?"
+
+**Coherence:**
+- Affected layers: DB (new table), API (2 new endpoints), frontend (Tag component)
+- Type changes: New Tag type in shared/types.ts
+- API changes: GET /tags?prefix=, POST /tags
+- Breaking changes: No (new feature)
+```
+
 ### Key Rules
 
 - Data decisions are **hard to change** — get storage right from the start

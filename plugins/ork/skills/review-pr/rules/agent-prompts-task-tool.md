@@ -148,3 +148,21 @@ Task(
   max_turns=25
 )
 ```
+
+**Incorrect — Sequential agents:**
+```python
+# 6 reviewers run one-by-one (slow)
+Task(subagent_type="code-quality-reviewer", prompt="...")
+# Wait for completion
+Task(subagent_type="security-auditor", prompt="...")
+# Wait again...
+```
+
+**Correct — Parallel agents:**
+```python
+# All 6 agents in ONE message (fast)
+Task(subagent_type="code-quality-reviewer", prompt="...", run_in_background=True)
+Task(subagent_type="security-auditor", prompt="...", run_in_background=True)
+Task(subagent_type="test-generator", prompt="...", run_in_background=True)
+# All launch simultaneously
+```

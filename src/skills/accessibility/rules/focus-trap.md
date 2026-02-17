@@ -2,6 +2,8 @@
 title: "Focus: Focus Trap"
 category: focus
 impact: HIGH
+impactDescription: "Ensures keyboard focus is trapped within modal dialogs and can be escaped with the Escape key"
+tags: focus, trap, modal, keyboard, escape
 ---
 
 # Focus Trap (WCAG 2.1.1, 2.1.2)
@@ -160,4 +162,27 @@ useEffect(() => { modalRef.current?.focus(); }, []);  // Incomplete!
 <FocusScope contain restoreFocus autoFocus>
   <div role="dialog">...</div>
 </FocusScope>
+```
+
+**Incorrect — Focus trap without escape mechanism:**
+```tsx
+function Modal({ isOpen, children }) {
+  const ref = useFocusTrap(isOpen);
+  return isOpen ? (
+    <div ref={ref} role="dialog">{children}</div>
+  ) : null;
+  // No Escape key handler, user is trapped
+}
+```
+
+**Correct — FocusScope with escape via Escape key:**
+```tsx
+function Modal({ isOpen, onClose, children }) {
+  useEscapeKey(onClose, isOpen);
+  return isOpen ? (
+    <FocusScope contain restoreFocus autoFocus>
+      <div role="dialog">{children}</div>
+    </FocusScope>
+  ) : null;
+}
 ```

@@ -2,6 +2,8 @@
 title: "PII: Redaction & Observability Integration"
 category: pii
 impact: HIGH
+impactDescription: "Prevents PII leakage in logs and traces through automatic redaction in Langfuse, structlog, and observability tools"
+tags: pii-redaction, langfuse, logging, observability, presidio
 ---
 
 # PII Redaction & Observability Integration
@@ -211,4 +213,22 @@ def test_pii_redaction_in_logs():
     assert "123-45-6789" not in log_output
     assert "[REDACTED_EMAIL]" in log_output
     assert "[REDACTED_SSN]" in log_output
+```
+
+**Incorrect — Sending raw prompts to Langfuse leaks PII to observability platform:**
+```python
+langfuse = Langfuse()
+trace = langfuse.trace(
+    input="My email is john@example.com and SSN is 123-45-6789"
+)
+# PII stored in Langfuse without redaction
+```
+
+**Correct — Mask callback automatically redacts PII before sending to Langfuse:**
+```python
+langfuse = Langfuse(mask=mask_pii)
+trace = langfuse.trace(
+    input="My email is john@example.com and SSN is 123-45-6789"
+)
+# Stored as: "My email is [REDACTED_EMAIL] and SSN is [REDACTED_SSN]"
 ```

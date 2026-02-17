@@ -54,6 +54,41 @@ async def generate_with_context(query: str, chunks: list[Chunk], model: str = "c
     return response.content[0].text
 ```
 
+**Incorrect — no deduplication, fragmented results:**
+```python
+async def retrieve(self, query: str, top_k: int = 10) -> list[dict]:
+    text_emb = embed_text(query)
+    text_results = await self.vector_db.search(embedding=text_emb, top_k=top_k)
+
+    img_emb = embed_image(query_image)
+    img_results = await self.vector_db.search(embedding=img_emb, top_k=top_k)
+
+    # No deduplication! Same doc may appear twice
+    return text_results + img_results
+```
+
+**Correct — deduplicated cross-modal results:**
+```python
+async def retrieve(self, query: str, query_image: str = None, top_k: int = 10) -> list[dict]:
+    results = []
+    text_emb = embed_text(query)
+    text_results = await self.vector_db.search(embedding=text_emb, top_k=top_k)
+    results.extend(text_results)
+
+    if query_image:
+        img_emb = embed_image(query_image)
+        img_results = await self.vector_db.search(embedding=img_emb, top_k=top_k)
+        results.extend(img_results)
+
+    # Dedupe by doc_id, keep highest score
+    seen = {}
+    for r in results:
+        doc_id = r["metadata"]["doc_id"]
+        if doc_id not in seen or r["score"] > seen[doc_id]["score"]:
+            seen[doc_id] = r
+    return sorted(seen.values(), key=lambda x: x["score"], reverse=True)[:top_k]
+```
+
 **Key rules:**
 - Deduplicate by document ID — keep highest scoring result per document
 - Place images before text in generation prompt (attention positioning)

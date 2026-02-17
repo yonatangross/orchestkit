@@ -2,6 +2,8 @@
 title: "Focus: Focus Restoration"
 category: focus
 impact: HIGH
+impactDescription: "Ensures focus returns to the correct element after closing overlays or submitting forms"
+tags: focus, restoration, modal, form, error
 ---
 
 # Focus Restoration (WCAG 2.4.3)
@@ -153,3 +155,27 @@ function FormWithConfirmation() {
 | Trigger element removed from DOM | Check element exists before calling `.focus()` |
 | Not clearing ref after restore | Set `triggerRef.current = null` after focus |
 | Forgetting `tabIndex={-1}` on non-interactive targets | Required for programmatic focus on divs |
+
+**Incorrect — Not restoring focus after modal closes:**
+```tsx
+function Modal({ isOpen, onClose }) {
+  return isOpen ? (
+    <div role="dialog">
+      <button onClick={onClose}>Close</button>
+    </div>
+  ) : null;
+  // Focus doesn't return to trigger button
+}
+```
+
+**Correct — Using useFocusRestore hook:**
+```tsx
+function Modal({ isOpen, onClose }) {
+  useFocusRestore(isOpen);
+  return isOpen ? (
+    <div role="dialog">
+      <button onClick={onClose}>Close</button>
+    </div>
+  ) : null;
+}
+```

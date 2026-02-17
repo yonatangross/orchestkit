@@ -77,6 +77,11 @@ User research methods and requirements documentation patterns.
 - **`research-user-interviews`** -- Interview guides, usability testing, surveys, card sorting
 - **`research-requirements-prd`** -- PRD template, user stories, acceptance criteria, INVEST
 
+## Related Skills
+
+- `assess` - Assess project complexity and risks
+- `brainstorming` - Generate product ideas and features
+
 **Version:** 2.0.0 (February 2026)
 
 
@@ -219,6 +224,26 @@ Operational Costs (Annual)
 +-- Security/compliance
 ```
 
+**Incorrect — Ignoring hidden costs and opportunity cost:**
+```markdown
+## Cost Analysis
+Total development cost: $500,000
+Expected benefit: $1M over 3 years
+ROI: 100% - APPROVED
+```
+
+**Correct — Comprehensive TCO with hidden costs:**
+```markdown
+## 3-Year TCO Analysis
+Development: $500,000
+Maintenance (Years 2-3): $300,000/year = $600,000
+Opportunity cost (team could build $800K revenue feature): $800,000
+Total TCO: $1,900,000
+
+Benefits: $1,000,000
+Net: -$900,000 - REJECTED
+```
+
 
 ### Business: ROI & Financial Metrics — HIGH
 
@@ -321,6 +346,24 @@ Payback Period = Initial Investment / Annual Cash Flow
 | Underestimating timeline | Add 30-50% buffer to implementation estimates |
 | Sunk cost fallacy | Evaluate future costs/benefits only |
 | Confirmation bias | Have skeptic review the case |
+
+**Incorrect — Using simple ROI without time value of money:**
+```markdown
+Investment: $500,000
+Total benefits over 5 years: $1,000,000
+ROI = ($1M - $500K) / $500K = 100% - APPROVED
+```
+
+**Correct — Using NPV to account for time value:**
+```python
+npv = calculate_npv(
+    initial_investment=500_000,
+    cash_flows=[200_000] * 5,
+    discount_rate=0.10
+)
+# NPV = $258,157 (positive, but much less than naive ROI)
+# Accept if NPV > 0 and meets hurdle rate
+```
 
 
 ### Market: Competitive Analysis — HIGH
@@ -475,6 +518,33 @@ gh api repos/owner/repo/contributors --jq 'length'
 | Feature launches | Per announcement |
 | Full analysis | Quarterly |
 
+**Incorrect — Vague competitive assessment:**
+```markdown
+## Competitors
+- Company A: Big player, lots of features
+- Company B: Cheaper option
+- Company C: New entrant
+```
+
+**Correct — Structured competitive analysis with SWOT:**
+```markdown
+## Competitor: Company A
+
+### Strengths / Weaknesses
++ Established brand, 60% market share
++ Enterprise features (SSO, RBAC)
+- Legacy UI, poor mobile experience
+- Slow release cycle (quarterly)
+
+### Threat Assessment: HIGH
+- Direct competitor in enterprise segment
+- Strong sales team, existing relationships
+
+### Our Differentiation
+- Modern UX, mobile-first
+- Weekly releases, faster iteration
+```
+
 
 ### Market: TAM/SAM/SOM Sizing — HIGH
 
@@ -594,6 +664,27 @@ Conservative SOM: min($470M x 3%, $15M, $470M x 70% x 3%)
 | Old data | Use most recent (&lt;2 years) |
 | Single method | Cross-validate top-down and bottom-up |
 | Confusing TAM/SAM | TAM is total, SAM is your reach |
+
+**Incorrect — Unrealistic SOM without constraints:**
+```markdown
+TAM: $10B
+SAM (our segment): $3B
+SOM (10% market share): $300M
+
+This is achievable in 3 years!
+```
+
+**Correct — SOM constrained by realistic factors:**
+```markdown
+SAM: $3B
+
+Constraints:
+- Sales capacity: supports $15M ARR max
+- Competitive pressure: 5 strong incumbents
+- Realistic market share (Year 3): 0.5%
+
+Conservative SOM: min($3B × 0.5%, $15M) = $15M
+```
 
 
 ### Metrics: Instrumentation & Definition — HIGH
@@ -739,6 +830,24 @@ We believe [change] will cause [metric] to [improve by X%]
 4. 100% rollout
 ```
 
+**Incorrect — Inconsistent event naming:**
+```json
+{
+  "event": "UserSignup",
+  "event": "feature-activated",
+  "event": "Subscription_Upgraded"
+}
+```
+
+**Correct — Consistent object_action naming:**
+```json
+{
+  "event": "user_signed_up",
+  "event": "feature_activated",
+  "event": "subscription_upgraded"
+}
+```
+
 
 ### Metrics: KPI Trees & North Star — HIGH
 
@@ -836,6 +945,22 @@ Baseline + target for each metric in the tree.
 - **Leading indicators at the leaves** -- actionable by teams
 - **Lagging indicators at the root** -- confirms outcomes
 - **Dashboard the tree** -- make it visible to the whole organization
+
+**Incorrect — Flat metrics without hierarchy:**
+```markdown
+Q1 Goals:
+- Increase revenue
+- Improve engagement
+- Reduce churn
+```
+
+**Correct — KPI tree with cause-effect relationships:**
+```markdown
+Revenue (Lagging)
+├── New Revenue = Leads × Conv Rate (Leading)
+├── Expansion = Users × Upsell Rate (Leading)
+└── Retained = Existing × (1 - Churn Rate) (Lagging)
+```
 
 
 ### Metrics: Leading & Lagging Indicators — HIGH
@@ -944,6 +1069,26 @@ Leading:
 - **Use lagging indicators** to validate that leading indicators actually predict outcomes
 - **Adjust leading indicators** when correlation breaks down
 
+**Incorrect — Only tracking lagging indicators:**
+```markdown
+Monthly Review:
+- Revenue: $485K (missed $500K target)
+- Churn: 5.2% (above 5% target)
+
+[Too late to fix - no early warning]
+```
+
+**Correct — Paired leading + lagging indicators:**
+```markdown
+Weekly (Leading):
+- Active users: 12,500 → trend down, investigate
+- Feature adoption: 68% → below 75%, action needed
+
+Monthly (Lagging):
+- Revenue: Validated prediction accuracy
+- Churn: Confirms leading indicators correlation
+```
+
 
 ### Metrics: OKR Framework — HIGH
 
@@ -1045,6 +1190,26 @@ Individual OKRs (optional, aligns to team)
 | Gaming metrics | Pair metrics that balance each other |
 | Static goals | Review and adjust quarterly |
 | No baselines | Establish current state before setting targets |
+
+**Incorrect — Outputs instead of outcomes:**
+```markdown
+Objective: Build a great product
+
+Key Results:
+- Ship 10 features
+- Write 50 unit tests
+- Hold 20 customer interviews
+```
+
+**Correct — Outcome-focused key results:**
+```markdown
+Objective: Become the #1 choice for enterprise teams
+
+Key Results:
+- Increase enterprise NPS from 32 to 50
+- Reduce time-to-value from 14 days to 3 days
+- Achieve 95% feature adoption in first 30 days
+```
 
 
 ### Prioritize: RICE & ICE Scoring — HIGH
@@ -1160,6 +1325,23 @@ Categorize features by customer satisfaction impact.
 | Ignoring qualitative factors | Use frameworks as input, not gospel |
 | Analysis paralysis | Set time limits on scoring sessions |
 | Inconsistent scales | Document and share scoring guidelines |
+
+**Incorrect — RICE without documented assumptions:**
+```markdown
+Feature A: RICE = 8,000
+Feature B: RICE = 12,500
+Priority: B, then A
+```
+
+**Correct — RICE with transparent scoring:**
+```markdown
+Feature B: Smart search with AI
+- Reach: 50,000 users/quarter (active searchers)
+- Impact: 2 (high - significantly better results)
+- Confidence: 0.8 (tested in prototype)
+- Effort: 3 person-months
+RICE = (50,000 × 2 × 0.8) / 3 = 26,667
+```
 
 
 ### Prioritize: WSJF & MoSCoW — HIGH
@@ -1277,6 +1459,29 @@ Qualitative prioritization for scope management.
 2. **Revisit regularly**: Priorities shift -- rescore quarterly
 3. **Document assumptions**: Why did you give that Impact score?
 4. **Combine frameworks**: Use ICE for quick triage, RICE for final decisions
+
+**Incorrect — MoSCoW without viable Must-Have set:**
+```markdown
+Must Have:
+- User auth, CRUD, search, export, AI features,
+  mobile app, analytics, notifications (90% of scope)
+
+[Product not viable with just Must-Have items]
+```
+
+**Correct — Must-Have delivers viable product:**
+```markdown
+Must Have (60% of effort):
+- User authentication
+- Core data model
+- Basic CRUD operations
+
+Should Have (20%):
+- Search, export, notifications
+
+Could Have (20%):
+- Dark mode, keyboard shortcuts
+```
 
 
 ### Research: Journey Mapping & Service Blueprints — HIGH
@@ -1417,6 +1622,22 @@ Discover -> Research -> Try -> Buy -> Use -> Share
 - **Connect to metrics**: Link journey stages to measurable KPIs
 - **Review after major feature launches**: Journeys change with the product
 
+**Incorrect — Journey map without pain points:**
+```markdown
+Stage: Onboarding
+Actions: User signs up, receives email, logs in
+Touchpoints: Website, email, app
+```
+
+**Correct — Journey map with pain points and opportunities:**
+```markdown
+Stage: Onboarding
+Actions: User signs up, waits for email (5 min delay), logs in
+Emotions: Hopeful → Frustrated → Relieved
+Pain Points: Slow email delivery, unclear next steps
+Opportunities: Instant onboarding, in-app wizard instead of email
+```
+
 
 ### Research: User Personas & Empathy Maps — HIGH
 
@@ -1547,6 +1768,26 @@ immediate value with minimal onboarding.
 - **Accessibility by default**: Include users with disabilities in all personas
 - **Connect to metrics**: Link persona needs to measurable KPIs
 - **3-5 personas max**: Too many dilutes focus
+
+**Incorrect — Vague persona without goals:**
+```markdown
+Persona: Sarah
+Age: 35
+Job: Marketing Manager
+Likes: Social media, coffee
+```
+
+**Correct — Actionable persona with goals and pain points:**
+```markdown
+Persona: DevOps Dana
+Quote: "I don't have time for tools that create more work than they save."
+Goals:
+1. Reduce deployment failures
+2. Give developers self-service
+Pain Points:
+1. Alert fatigue from false positives
+2. Context switching between 10+ tools
+```
 
 
 ### Research: Requirements & PRD — HIGH
@@ -1699,6 +1940,24 @@ Scenario: Successful login with valid credentials
 | **Security** | All data encrypted at rest and in transit |
 | **Accessibility** | WCAG 2.1 AA compliant |
 
+**Incorrect — Vague user story without acceptance criteria:**
+```markdown
+As a user, I want better reporting.
+```
+
+**Correct — INVEST user story with acceptance criteria:**
+```markdown
+As a sales manager,
+I want to see my team's pipeline by stage,
+so that I can identify bottlenecks and coach accordingly.
+
+Acceptance Criteria:
+- [ ] Shows deals grouped by stage
+- [ ] Displays deal count and total value per stage
+- [ ] Filters by date range (default: current quarter)
+- [ ] Updates in real-time when deals move stages
+```
+
 
 ### Research: User Interviews & Testing — HIGH
 
@@ -1835,6 +2094,23 @@ Range: 0-100, Average: 68
 - Strategy: [Business consideration]
 ```
 
+**Incorrect — Leading questions that bias responses:**
+```markdown
+Interview Questions:
+- "Don't you think this feature would be useful?"
+- "Wouldn't you prefer this over your current tool?"
+- "You'd pay $50/month for this, right?"
+```
+
+**Correct — Open-ended questions that uncover insights:**
+```markdown
+Interview Questions:
+- "Walk me through the last time you [relevant activity]"
+- "What's the hardest part about [task]?"
+- "What would your ideal solution look like?"
+- "Can you show me how you typically [action]?"
+```
+
 
 ### Strategy: Go/No-Go & Build/Buy/Partner — HIGH
 
@@ -1955,6 +2231,25 @@ Is this a core differentiator?
 - Market access matters (distribution)
 - Risk sharing is valuable
 - Neither build nor buy fits perfectly
+
+**Incorrect — Go/No-Go without scoring criteria:**
+```markdown
+Idea: Build AI feature
+Team: Excited about it
+Decision: GO
+```
+
+**Correct — Systematic stage gate evaluation:**
+```markdown
+Gate 3: Business Case
+- [ ] ROI > 15% hurdle rate: YES (22%)
+- [ ] Payback < 24 months: YES (18 months)
+- [ ] Resource requirements: 3 FTEs available
+- [ ] Risk mitigation: Technical POC validated
+
+Weighted Score: 7.2/10
+Decision: GO (>= 7.0 threshold)
+```
 
 
 ### Strategy: Value Proposition & JTBD — HIGH
@@ -2080,6 +2375,24 @@ so I can appear informed in morning meetings.
 | **Evidence-based** | Validate assumptions with data |
 | **Strategic alignment** | Every initiative serves the mission |
 | **Reversible decisions** | Prefer options that preserve flexibility |
+
+**Incorrect — Feature-focused instead of job-focused:**
+```markdown
+Value Proposition:
+"Our app has AI, real-time sync, and dark mode"
+```
+
+**Correct — JTBD-based value proposition:**
+```markdown
+Jobs-to-be-Done:
+When I'm commuting to work,
+I want to catch up on industry news,
+so I can appear informed in morning meetings.
+
+Value Proposition:
+"Get curated industry insights in 5-minute audio briefs,
+perfectly timed for your commute"
+```
 
 
 

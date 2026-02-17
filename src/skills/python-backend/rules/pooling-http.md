@@ -60,3 +60,28 @@ app = FastAPI(lifespan=lifespan)
 - Create session at startup, close at shutdown
 - Set `limit_per_host` to prevent overwhelming a single service
 - Configure DNS caching for high-throughput scenarios
+
+**Incorrect — Creating session per request causes connection churn and poor performance:**
+```python
+@app.get("/fetch")
+async def fetch_data():
+    async with aiohttp.ClientSession() as session:  # New session every request!
+        async with session.get("https://api.example.com") as resp:
+            return await resp.json()
+```
+
+**Correct — Reuse session from lifespan for connection pooling and keep-alive:**
+```python
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    app.state.http_session = aiohttp.ClientSession(
+        connector=TCPConnector(limit=100, limit_per_host=20)
+    )
+    yield
+    await app.state.http_session.close()
+
+@app.get("/fetch")
+async def fetch_data(request: Request):
+    async with request.app.state.http_session.get("https://api.example.com") as resp:
+        return await resp.json()
+```

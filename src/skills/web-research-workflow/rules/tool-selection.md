@@ -98,3 +98,20 @@ fi
 ## Graceful Degradation
 
 If `TAVILY_API_KEY` is not set, the 3-tier tree collapses to the original 2-tier (WebFetch → agent-browser). No configuration needed — agents check for the env var before attempting Tavily calls.
+
+**Incorrect — Always using browser for everything:**
+```bash
+agent-browser open https://github.com/owner/repo/blob/main/README.md
+agent-browser wait --load networkidle
+agent-browser get text body
+# Slow, unnecessary - static content
+```
+
+**Correct — Use WebFetch for static content:**
+```bash
+WebFetch(
+  url="https://github.com/owner/repo/blob/main/README.md",
+  prompt="Extract README content"
+)
+# Fast, no browser needed
+```

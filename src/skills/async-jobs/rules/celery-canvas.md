@@ -64,6 +64,24 @@ workflow = send_email.starmap([("user1@ex.com", "S1"), ("user2@ex.com", "S2")])
 workflow = process_item.chunks(items, batch_size=100)
 ```
 
+**Incorrect — Mutable signature in chord:**
+```python
+# Body receives polluted args from each parallel task
+chord(
+    [process_chunk.s(chunk) for chunk in chunks],
+    aggregate_results.s()  # Receives all chunk results concatenated!
+)
+```
+
+**Correct — Immutable signature in chord:**
+```python
+# Body receives clean list of results
+chord(
+    [process_chunk.si(chunk) for chunk in chunks],  # .si() = immutable
+    aggregate_results.s()  # Receives [result1, result2, result3]
+)
+```
+
 ## Error Handling
 
 - Chain stops when any task fails; subsequent tasks don't run

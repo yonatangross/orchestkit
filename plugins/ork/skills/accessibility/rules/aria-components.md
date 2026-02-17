@@ -2,6 +2,8 @@
 title: "React Aria: Components"
 category: aria
 impact: HIGH
+impactDescription: "Ensures buttons, dialogs, and menus are fully accessible with keyboard support and ARIA attributes"
+tags: react-aria, components, button, dialog, menu
 ---
 
 # React Aria Components (useButton, useDialog, useMenu)
@@ -168,4 +170,19 @@ const { buttonProps } = useButton({ onPress: handleClick }, ref);
 
 // ALWAYS use aria-live for status updates
 <div aria-live="polite" className="sr-only">{errorMessage}</div>
+```
+
+**Incorrect — div with onClick, no keyboard support:**
+```tsx
+<div onClick={handleClick} className="button">
+  Click me
+</div>
+// No keyboard access, no screen reader announcement
+```
+
+**Correct — useButton hook provides full accessibility:**
+```tsx
+const ref = useRef<HTMLButtonElement>(null);
+const { buttonProps } = useButton({ onPress: handleClick }, ref);
+return <button {...buttonProps} ref={ref}>Click me</button>;
 ```

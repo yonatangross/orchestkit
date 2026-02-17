@@ -2,6 +2,8 @@
 title: "Auth: JWT Tokens & Password Hashing"
 category: auth
 impact: CRITICAL
+impactDescription: "Prevents credential theft through secure Argon2id password hashing and time-limited JWT tokens with rotation"
+tags: jwt, password-hashing, argon2, tokens, refresh-tokens
 ---
 
 # JWT Tokens & Password Hashing
@@ -141,4 +143,22 @@ payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
 
 # ALWAYS use generic error messages
 return "Invalid credentials"
+```
+
+**Incorrect — Algorithm confusion vulnerability allows "none" algorithm attack:**
+```python
+# Reading algorithm from untrusted JWT header
+header = jwt.get_unverified_header(token)
+payload = jwt.decode(token, SECRET_KEY, algorithms=[header['alg']])
+# Attacker can set alg="none" to bypass signature verification
+```
+
+**Correct — Hardcode expected algorithm to prevent confusion attacks:**
+```python
+# Always specify the expected algorithm explicitly
+payload = jwt.decode(
+    token, SECRET_KEY,
+    algorithms=['HS256'],  # Never read from header
+    options={'require': ['exp', 'iat', 'sub']},
+)
 ```

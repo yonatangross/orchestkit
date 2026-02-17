@@ -55,6 +55,42 @@ class CohereReranker:
         return [{**documents[r.index], "score": r.relevance_score} for r in results.results]
 ```
 
+**Incorrect — one LLM call per document, extremely slow:**
+```python
+async def llm_rerank(query: str, documents: list[dict]) -> list[dict]:
+    scores = []
+    for doc in documents:  # Sequential LLM calls!
+        response = await llm.chat.completions.create(
+            model="gpt-5.2-mini",
+            messages=[{"role": "user", "content": f"Rate relevance (0-1):\nQuery: {query}\nDoc: {doc['content']}"}]
+        )
+        scores.append(float(response.choices[0].message.content))
+    return sorted(zip(documents, scores), key=lambda x: x[1], reverse=True)
+```
+
+**Correct — batch all docs in one LLM call:**
+```python
+async def llm_rerank(query: str, documents: list[dict], top_k: int = 10) -> list[dict]:
+    # Batch all docs in ONE LLM call
+    docs_text = "\n\n".join([
+        f"[Doc {i+1}]\n{doc['content'][:300]}..."  # Truncate
+        for i, doc in enumerate(documents)
+    ])
+
+    response = await llm.chat.completions.create(
+        model="gpt-5.2-mini",
+        messages=[
+            {"role": "system", "content": "Rate each document's relevance (0.0-1.0). One score per line."},
+            {"role": "user", "content": f"Query: {query}\n\nDocuments:\n{docs_text}"}
+        ],
+        temperature=0
+    )
+
+    scores = parse_scores(response.choices[0].message.content, len(documents))
+    scored_docs = sorted(zip(documents, scores), key=lambda x: x[1], reverse=True)
+    return [{**doc, "score": score} for doc, score in scored_docs[:top_k]]
+```
+
 **Key rules:**
 - Batch all docs in one LLM call (reduces latency vs per-doc calls)
 - Truncate to 200-400 chars per doc for LLM reranking

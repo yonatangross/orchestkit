@@ -147,3 +147,21 @@ histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))
 # Total cost per day by model
 sum(increase(llm_cost_dollars_total[1d])) by (model)
 ```
+
+**Incorrect — unbounded label cardinality:**
+```python
+http_requests = Counter(
+    'http_requests_total',
+    ['method', 'endpoint', 'user_id']  # Millions of time series
+)
+http_requests.labels(method='GET', endpoint='/api', user_id='user_12345').inc()
+```
+
+**Correct — bounded labels only:**
+```python
+http_requests = Counter(
+    'http_requests_total',
+    ['method', 'endpoint', 'status']  # ~10K time series max
+)
+http_requests.labels(method='GET', endpoint='/api', status='200').inc()
+```

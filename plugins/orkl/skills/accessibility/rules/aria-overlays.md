@@ -2,6 +2,8 @@
 title: "React Aria: Overlays"
 category: aria
 impact: HIGH
+impactDescription: "Ensures modals, tooltips, and popovers trap focus correctly and restore focus on close"
+tags: react-aria, modal, tooltip, popover, overlay
 ---
 
 # React Aria Overlays (useModalOverlay, useTooltip, usePopover)
@@ -234,4 +236,25 @@ useEffect(() => { modalRef.current?.focus(); }, []);  // Incomplete!
 
 // NEVER forget to restore focus on close
 // useOverlayTriggerState + FocusScope restoreFocus handles this automatically
+```
+
+**Incorrect — Modal without focus management:**
+```tsx
+{isOpen && (
+  <div role="dialog" className="modal">
+    <h2>Confirm Action</h2>
+    <button onClick={onClose}>Close</button>
+  </div>
+)}
+// No focus trap, no focus restoration
+```
+
+**Correct — useModalOverlay with FocusScope:**
+```tsx
+<FocusScope contain restoreFocus autoFocus>
+  <div {...mergeProps(modalProps, dialogProps)} ref={ref}>
+    <h2 {...titleProps}>Confirm Action</h2>
+    <button onClick={state.close}>Close</button>
+  </div>
+</FocusScope>
 ```

@@ -149,6 +149,30 @@ def validate_references(documents: list[dict], queries: list[dict]) -> list[str]
 | Content Quality | Title/content length, tag count | Warning |
 | Difficulty Distribution | Balanced query difficulty levels | Warning |
 
+**Incorrect — Missing referential integrity check:**
+```python
+# Query references non-existent section
+query = {
+    "id": "q-test",
+    "expected_chunks": ["section-999"],  # Doesn't exist!
+}
+queries.append(query)  # No validation
+```
+
+**Correct — Validate references exist:**
+```python
+# Build set of valid section IDs
+valid_sections = set()
+for doc in documents:
+    for section in doc.get("sections", []):
+        valid_sections.add(section["id"])
+
+# Validate query references
+for chunk_id in query.get("expected_chunks", []):
+    if chunk_id not in valid_sections:
+        raise ValueError(f"Query references invalid section: {chunk_id}")
+```
+
 **Key rules:**
 - All documents must pass schema validation before inclusion
 - IDs must be unique across documents, queries, and sections

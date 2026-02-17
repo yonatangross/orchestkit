@@ -138,6 +138,25 @@ async def test_validation_error_includes_field_errors(client: AsyncClient):
     assert any(e["field"] == "url" for e in problem["errors"])
 ```
 
+**Incorrect — Generic validation error:**
+```python
+# No field-level details
+return {"error": "Validation failed"}, 422
+```
+
+**Correct — Field-level validation errors:**
+```python
+# Specific field errors
+return {
+    "type": "https://api.example.com/problems/validation-error",
+    "status": 422,
+    "errors": [
+        {"field": "url", "code": "url_parsing", "message": "Invalid URL format"},
+        {"field": "depth", "code": "less_than_equal", "message": "Must be between 1 and 3"}
+    ]
+}, 422
+```
+
 **Key rules:**
 - Always include all validation errors, not just the first one
 - Provide field path, error code, and human-readable message per error

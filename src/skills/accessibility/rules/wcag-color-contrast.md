@@ -2,6 +2,8 @@
 title: "WCAG: Color Contrast"
 category: wcag
 impact: CRITICAL
+impactDescription: "Ensures text and UI components meet minimum 4.5:1 contrast ratio for readability"
+tags: wcag, contrast, color, accessibility, readability
 ---
 
 # Color Contrast (WCAG 1.4.3, 1.4.11)
@@ -111,3 +113,17 @@ Content must reflow without horizontal scrolling at 320px width:
 | Color-only error indication | Add icon + text alongside color |
 | Fixed-width layouts | Use responsive `max-width` + `width: 100%` |
 | Tiny touch targets | Minimum 24px, 44px for touch devices |
+
+**Incorrect — Insufficient text contrast:**
+```css
+.secondary-text {
+  color: #b3b3b3;  /* 2.1:1 ratio on white - fails WCAG AA */
+}
+```
+
+**Correct — Meeting 4.5:1 contrast minimum:**
+```css
+.secondary-text {
+  color: #595959;  /* 7.0:1 ratio on white - passes WCAG AA */
+}
+```

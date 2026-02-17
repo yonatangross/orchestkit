@@ -68,3 +68,15 @@ import { Button } from '@/components/Button';
 ```
 
 Barrel files break tree-shaking, cause circular dependencies, and slow builds.
+
+**Incorrect — excessive nesting depth:**
+```typescript
+// 6 levels deep
+src/features/dashboard/widgets/analytics/charts/line/LineChart.tsx
+```
+
+**Correct — flattened to maximum 4 levels:**
+```typescript
+// 4 levels, clear hierarchy
+src/features/dashboard/charts/LineChart.tsx
+```

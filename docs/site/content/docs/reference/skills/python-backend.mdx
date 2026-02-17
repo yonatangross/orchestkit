@@ -204,6 +204,25 @@ async with asyncio.timeout(10):
 - Use `try/finally` for guaranteed resource cleanup
 - Never use bare `create_task()` outside a TaskGroup
 
+**Incorrect — Swallowing CancelledError breaks TaskGroup cancellation propagation:**
+```python
+async def broken_task():
+    try:
+        await long_running_operation()
+    except asyncio.CancelledError:
+        return None  # BUG: TaskGroup cannot cancel properly!
+```
+
+**Correct — Re-raising CancelledError allows proper cleanup and cancellation flow:**
+```python
+async def proper_task():
+    try:
+        await long_running_operation()
+    except asyncio.CancelledError:
+        await cleanup()
+        raise  # CRITICAL: Propagate cancellation
+```
+
 
 ### Asyncio: Structured Concurrency — HIGH
 
@@ -262,6 +281,25 @@ async def wrapper_for_sync_lib():
 - Use `asyncio.to_thread()` for clean sync-to-async bridging
 - Never call `asyncio.run()` inside an existing event loop
 - Never block the event loop with `time.sleep()` or `requests.get()`
+
+**Incorrect — Unlimited concurrent requests exhaust connection pools and memory:**
+```python
+async def fetch_all(urls: list[str]):
+    tasks = [fetch_url(url) for url in urls]  # 10,000 concurrent!
+    return await asyncio.gather(*tasks)
+```
+
+**Correct — Semaphore limits concurrency to prevent resource exhaustion:**
+```python
+async def fetch_all(urls: list[str], max_concurrent: int = 10):
+    sem = asyncio.Semaphore(max_concurrent)
+    async def limited_fetch(url):
+        async with sem:
+            return await fetch_url(url)
+    async with asyncio.TaskGroup() as tg:
+        tasks = [tg.create_task(limited_fetch(url)) for url in urls]
+    return [t.result() for t in tasks]
+```
 
 
 ### Asyncio: TaskGroup & Timeout — HIGH
@@ -330,6 +368,24 @@ async def process_batch(items: list[dict]) -> tuple[list[dict], list[Exception]]
 - Use **`asyncio.timeout()`** context manager for deadlines
 - Handle **ExceptionGroup** with `except*` for multiple failures
 - TaskGroup auto-cancels remaining tasks when one fails
+
+**Incorrect — gather() doesn't cancel remaining tasks when one fails:**
+```python
+results = await asyncio.gather(
+    fetch_user(user_id),
+    fetch_orders(user_id),
+    fetch_preferences(user_id),
+)  # If one fails, others keep running (resource leak)
+```
+
+**Correct — TaskGroup auto-cancels all tasks when any fails (structured concurrency):**
+```python
+async with asyncio.TaskGroup() as tg:
+    user_task = tg.create_task(fetch_user(user_id))
+    orders_task = tg.create_task(fetch_orders(user_id))
+    prefs_task = tg.create_task(fetch_preferences(user_id))
+# If any fails, all are cancelled automatically
+```
 
 
 ### FastAPI: Lifespan & Health — HIGH
@@ -432,6 +488,31 @@ from fastapi.responses import ORJSONResponse
 app = FastAPI(default_response_class=ORJSONResponse)
 ```
 
+**Incorrect — Creating resources at module level leads to connection leaks:**
+```python
+# Module-level connection (never closed!)
+db_engine = create_async_engine(DATABASE_URL)
+
+app = FastAPI()
+
+@app.on_event("startup")  # Deprecated
+async def startup():
+    await db_engine.connect()
+```
+
+**Correct — Lifespan context manager ensures proper resource cleanup:**
+```python
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: create resources
+    app.state.db_engine = create_async_engine(DATABASE_URL)
+    yield
+    # Shutdown: guaranteed cleanup
+    await app.state.db_engine.dispose()
+
+app = FastAPI(lifespan=lifespan)
+```
+
 
 ### FastAPI: Dependencies — HIGH
 
@@ -528,6 +609,26 @@ async def get_admin_user(user: User = Depends(get_current_user)) -> User:
     return user
 ```
 
+**Incorrect — Manually creating dependencies couples code and breaks testability:**
+```python
+@router.post("/analyses")
+async def create_analysis(data: AnalysisCreate, request: Request):
+    db = AsyncSession(request.app.state.db_engine)
+    service = AnalysisService(db)  # Cannot mock in tests
+    return await service.create(data)
+```
+
+**Correct — Depends() enables dependency injection and easy testing:**
+```python
+@router.post("/analyses")
+async def create_analysis(
+    data: AnalysisCreate,
+    service: AnalysisService = Depends(get_analysis_service),
+):
+    return await service.create(data)
+# Tests can override get_analysis_service with mocks
+```
+
 
 ### FastAPI: Middleware — HIGH
 
@@ -613,6 +714,20 @@ Add middleware in this order (last added runs first):
 3. Timing
 4. Logging (innermost)
 
+**Incorrect — Wrong middleware order causes missing request IDs in logs:**
+```python
+app.add_middleware(LoggingMiddleware)  # Runs first, no request_id yet
+app.add_middleware(RequestIDMiddleware)  # Runs second, sets request_id
+# Result: Logs missing request_id
+```
+
+**Correct — Correct order ensures request_id available for logging:**
+```python
+app.add_middleware(LoggingMiddleware)  # Runs last, has request_id
+app.add_middleware(RequestIDMiddleware)  # Runs first, sets request_id
+# Last added = outermost = runs first
+```
+
 
 ### Pooling: Database — MEDIUM
 
@@ -670,6 +785,29 @@ async def setup_connection(conn):
 ```
 pool_size = (concurrent_requests / avg_queries_per_request) * 1.5
 Example: 100 concurrent / 3 queries = 50
+```
+
+**Incorrect — Creating engine per request exhausts database connections:**
+```python
+@app.get("/users")
+async def get_users():
+    engine = create_async_engine(DATABASE_URL)  # New pool every request!
+    async with AsyncSession(engine) as session:
+        return await session.execute(select(User))
+```
+
+**Correct — Reuse single engine from lifespan for all requests:**
+```python
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    app.state.engine = create_async_engine(DATABASE_URL, pool_size=20)
+    yield
+    await app.state.engine.dispose()
+
+@app.get("/users")
+async def get_users(request: Request):
+    async with AsyncSession(request.app.state.engine) as session:
+        return await session.execute(select(User))
 ```
 
 
@@ -730,6 +868,31 @@ app = FastAPI(lifespan=lifespan)
 - Create session at startup, close at shutdown
 - Set `limit_per_host` to prevent overwhelming a single service
 - Configure DNS caching for high-throughput scenarios
+
+**Incorrect — Creating session per request causes connection churn and poor performance:**
+```python
+@app.get("/fetch")
+async def fetch_data():
+    async with aiohttp.ClientSession() as session:  # New session every request!
+        async with session.get("https://api.example.com") as resp:
+            return await resp.json()
+```
+
+**Correct — Reuse session from lifespan for connection pooling and keep-alive:**
+```python
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    app.state.http_session = aiohttp.ClientSession(
+        connector=TCPConnector(limit=100, limit_per_host=20)
+    )
+    yield
+    await app.state.http_session.close()
+
+@app.get("/fetch")
+async def fetch_data(request: Request):
+    async with request.app.state.http_session.get("https://api.example.com") as resp:
+        return await resp.json()
+```
 
 
 ### Pooling: Monitoring & Tuning — MEDIUM
@@ -805,6 +968,26 @@ async def fetch():
 
 # NEVER forget to close pools on shutdown
 # NEVER set pool_size too high (exhausts DB connections)
+```
+
+**Incorrect — No pool monitoring leads to silent connection exhaustion:**
+```python
+# No visibility into pool state
+engine = create_async_engine(url, pool_size=20)
+# App runs slow, no idea why (pool exhausted)
+```
+
+**Correct — Prometheus metrics reveal pool exhaustion before timeouts occur:**
+```python
+from prometheus_client import Gauge
+
+pool_size_gauge = Gauge("db_pool_size", "DB pool size")
+pool_available_gauge = Gauge("db_pool_available", "Available connections")
+
+async def collect_metrics(pool):
+    pool_size_gauge.set(pool.get_size())
+    pool_available_gauge.set(pool.get_idle_size())
+# Alert when pool_available approaches 0
 ```
 
 
@@ -885,6 +1068,23 @@ async def bulk_insert_chunked(
 - One repository per aggregate root
 - Transaction boundary at the service layer, not repository
 
+**Incorrect — Adding entities one-by-one in loop causes N round trips:**
+```python
+async def create_users(db: AsyncSession, users_data: list[dict]):
+    for user_data in users_data:  # 1000 loop iterations
+        user = User(**user_data)
+        db.add(user)
+        await db.flush()  # 1000 round trips to DB!
+```
+
+**Correct — Bulk operations reduce round trips and improve performance:**
+```python
+async def create_users(db: AsyncSession, users_data: list[dict]):
+    users = [User(**data) for data in users_data]
+    db.add_all(users)  # Single round trip
+    await db.flush()
+```
+
 
 ### SQLAlchemy: Relationships & Eager Loading — HIGH
 
@@ -951,6 +1151,24 @@ async def get_data_from_multiple_users(user_ids: list[UUID]) -> list[dict]:
 | Lazy loading | `lazy="raise"` + explicit loads | Prevents accidental N+1 |
 | Eager loading | `selectinload` for collections | Better than joinedload for async |
 | Concurrent queries | Separate sessions per task | AsyncSession is NOT thread-safe |
+
+**Incorrect — Lazy loading causes N+1 query problem (1 + 100 queries):**
+```python
+users = await db.execute(select(User).limit(100))
+for user in users.scalars():
+    print(user.orders)  # Separate query for EACH user's orders!
+# Total queries: 1 (users) + 100 (orders) = 101 queries
+```
+
+**Correct — Eager loading with selectinload fetches all data in 2 queries:**
+```python
+users = await db.execute(
+    select(User).options(selectinload(User.orders)).limit(100)
+)
+for user in users.scalars():
+    print(user.orders)  # Already loaded, no extra query
+# Total queries: 2 (users + orders in batch)
+```
 
 
 ### SQLAlchemy: Sessions & Models — HIGH
@@ -1030,6 +1248,26 @@ class User(Base):
 - Set `expire_on_commit=False` to prevent lazy load errors after commit
 - Set `pool_pre_ping=True` for production connection validation
 - Use `lazy="raise"` on all relationships
+
+**Incorrect — expire_on_commit=True causes lazy load errors after commit:**
+```python
+async_session_factory = async_sessionmaker(
+    engine, expire_on_commit=True  # Default, causes issues
+)
+user = await session.execute(select(User).where(User.id == user_id))
+await session.commit()
+print(user.email)  # ERROR: Instance is not bound to a Session
+```
+
+**Correct — expire_on_commit=False allows access after commit:**
+```python
+async_session_factory = async_sessionmaker(
+    engine, expire_on_commit=False  # Prevents lazy load errors
+)
+user = await session.execute(select(User).where(User.id == user_id))
+await session.commit()
+print(user.email)  # Works - object still accessible
+```
 
 
 

@@ -133,6 +133,26 @@ async def validate_before_add(
     return {"valid": len(errors) == 0, "errors": errors, "warnings": warnings}
 ```
 
+**Incorrect — Raw URL comparison:**
+```python
+# Fails for www/https/trailing slash variants
+if new_url == existing_url:
+    return "duplicate"
+```
+
+**Correct — Normalized URL comparison:**
+```python
+# Normalize both URLs before comparing
+def normalize_url(url: str) -> str:
+    parsed = urlparse(url.lower())
+    netloc = parsed.netloc.replace("www.", "")
+    path = parsed.path.rstrip("/")
+    return urlunparse((parsed.scheme, netloc, path, "", "", ""))
+
+if normalize_url(new_url) == normalize_url(existing_url):
+    return "duplicate"
+```
+
 **Key rules:**
 - Always run both URL and semantic duplicate checks before adding entries
 - Block entries with >= 0.90 cosine similarity to existing content

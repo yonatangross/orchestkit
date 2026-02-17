@@ -2,6 +2,8 @@
 title: "Locks: Fencing Tokens & Safety"
 category: locks
 impact: CRITICAL
+impactDescription: "Ensures distributed locks validate ownership with fencing tokens and TTL management to prevent data corruption"
+tags: locks, fencing, ttl, heartbeat, safety
 ---
 
 # Lock Safety: Fencing Tokens, TTL & Heartbeat
@@ -109,3 +111,22 @@ async def transfer_funds(session, from_account: int, to_account: int, amount):
 - Lock ordering for multiple locks
 - Retry with exponential backoff + jitter
 - Metrics: acquisition time, hold duration, failures
+
+**Incorrect — Releasing lock without owner validation can delete another process's lock:**
+```python
+await redis.delete(f"lock:{resource_id}")
+# If our lock expired and another process acquired it,
+# we just deleted their lock!
+```
+
+**Correct — Atomic owner validation via Lua ensures only owner can release:**
+```python
+RELEASE_SCRIPT = """
+if redis.call('get', KEYS[1]) == ARGV[1] then
+  return redis.call('del', KEYS[1])
+end
+return 0
+"""
+result = await redis.eval(RELEASE_SCRIPT, keys=[f"lock:{resource_id}"], args=[owner_id])
+# Only deletes if owner_id matches
+```

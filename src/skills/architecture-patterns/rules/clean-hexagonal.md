@@ -59,3 +59,25 @@ backend/app/
 - Output ports define infrastructure needs (repository protocols)
 - Driving adapters call inward (routes -> services)
 - Driven adapters are called outward (services -> repositories)
+
+**Incorrect — domain layer importing infrastructure:**
+```typescript
+// In domains/analysis/services.py
+from infrastructure.repositories.postgres import PostgresAnalysisRepository  // Violates hex arch
+
+class AnalysisService:
+    def __init__(self):
+        self.repo = PostgresAnalysisRepository()
+```
+
+**Correct — domain depends only on ports:**
+```typescript
+// In domains/analysis/repositories.py (port)
+class IAnalysisRepository(Protocol):
+    async def get_by_id(self, id: str) -> Analysis | None: ...
+
+// In domains/analysis/services.py
+class AnalysisService:
+    def __init__(self, repo: IAnalysisRepository):  // Depends on port only
+        self._repo = repo
+```

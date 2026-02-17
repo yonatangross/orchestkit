@@ -67,6 +67,24 @@ Tensor Parallelism:
   - Use for models > single GPU VRAM
 ```
 
+**Incorrect — Default memory utilization wastes KV cache space:**
+```bash
+docker run --gpus '"device=0"' \
+  vllm/vllm-openai:latest \
+  --model meta-llama/Llama-3.1-8B-Instruct
+# Uses default 0.70 GPU memory
+```
+
+**Correct — Higher utilization enables more concurrent requests:**
+```bash
+docker run --gpus '"device=0"' \
+  vllm/vllm-openai:latest \
+  --model meta-llama/Llama-3.1-8B-Instruct \
+  --gpu-memory-utilization 0.90 \
+  --max-model-len 8192
+# 2-4x more concurrent requests
+```
+
 **Key rules:**
 - **Set** `--gpu-memory-utilization 0.90` (leave headroom for KV cache)
 - **Use** `--tensor-parallel-size` equal to the number of GPUs

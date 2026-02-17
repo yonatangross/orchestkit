@@ -67,6 +67,29 @@ Commit messages are matched against issue checkboxes using normalized text compa
 - [x] Write unit tests
 ```
 
+**Incorrect — Manual issue updates without automation:**
+```bash
+# Commit without issue reference
+git commit -m "Add validation"
+
+# Manually comment on issue #123:
+"Added validation - see commit abc1234"
+[Time-consuming, error-prone]
+```
+
+**Correct — Automated progress tracking:**
+```bash
+# Issue-prefixed branch
+git checkout -b issue/123-validation
+
+# Conventional commit
+git commit -m "feat(#123): Add input validation"
+
+# Hook auto-posts to issue:
+"[Session abc123] feat(#123): Add input validation
+Files: src/validation.ts (+45)"
+```
+
 ### Key Rules
 
 - Use **issue-prefixed branches** (`issue/N-`, `fix/N-`, `feature/N-`) for automatic detection

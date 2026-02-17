@@ -285,9 +285,8 @@ Edit `.mcp.json` and set `"disabled": false` for selected MCPs:
       "disabled": false
     },
     "tavily": {
-      "command": "npx",
-      "args": ["-y", "tavily-mcp@latest"],
-      "env": { "TAVILY_API_KEY": "op://Private/Tavily API Key/API Key" },
+      "command": "sh",
+      "args": ["-c", "TAVILY_API_KEY=$(op read 'op://Private/Tavily API Key/API Key') exec npx -y tavily-mcp@latest"],
       "disabled": true
     }
   }
@@ -321,11 +320,13 @@ When `TAVILY_API_KEY` is set and the Tavily MCP is enabled, agents gain access t
 
 ### Setup
 
-**Option A: Local MCP (npx)**
+**Option A: Local MCP with 1Password (recommended)**
 1. Get a free API key (1,000 credits/month): https://app.tavily.com
 2. Store in 1Password: `op item create --category "API Credential" --title "Tavily API Key" "API Key=tvly-..."`
-3. Reference in `.mcp.json`: `"TAVILY_API_KEY": "op://Private/Tavily API Key/API Key"`
+3. Use `op read` in `.mcp.json` (see example config above) — the `sh -c` wrapper fetches the key from 1Password at MCP startup
 4. Set `"disabled": false` for the tavily entry
+
+> **Note:** Claude Code's MCP `env` block only resolves `$\{ENV_VAR\}` syntax, not `op://` references directly. Use the `sh -c "TAVILY_API_KEY=$(op read '...') exec npx ..."` wrapper pattern to read from 1Password at startup.
 
 **Option B: Remote MCP (hosted, no npx)**
 
@@ -350,7 +351,7 @@ Agents fall back to WebFetch (Haiku-summarized) → agent-browser (full headless
 | context7 | None |
 | sequential-thinking | None |
 | memory | None (creates `.claude/memory/` automatically) |
-| tavily | `TAVILY_API_KEY` env var (free: https://app.tavily.com) |
+| tavily | 1Password: `op read 'op://Private/Tavily API Key/API Key'` (free: https://app.tavily.com) |
 
 ## Plugin Integration
 

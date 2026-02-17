@@ -2,6 +2,8 @@
 title: "shadcn/ui: Data Table"
 category: shadcn
 impact: HIGH
+impactDescription: "Integrates TanStack Table with shadcn/ui for sortable, filterable, paginated data tables"
+tags: shadcn, tanstack-table, data-table, sorting, filtering
 ---
 
 # shadcn/ui Data Table
@@ -156,6 +158,20 @@ const columns: ColumnDef<User>[] = [
   onChange={(e) => table.getColumn('name')?.setFilterValue(e.target.value)}
   className="max-w-sm"
 />
+```
+
+**Incorrect — Missing flexRender:**
+```tsx
+// Direct rendering breaks custom cells
+<TableCell>{cell.column.columnDef.cell}</TableCell>
+```
+
+**Correct — Use flexRender:**
+```tsx
+// Properly renders custom cell components
+<TableCell>
+  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+</TableCell>
 ```
 
 ## Dependencies

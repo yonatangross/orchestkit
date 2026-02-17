@@ -2,6 +2,8 @@
 title: "Frameworks: CrewAI"
 category: frameworks
 impact: HIGH
+impactDescription: "Ensures role-based agent collaboration with Flows architecture, hierarchical crews, and structured outputs"
+tags: crewai, flows, hierarchical, mcp, guardrails
 ---
 
 # CrewAI Patterns (v1.8+)
@@ -206,3 +208,22 @@ result = ResearchCrew().crew().kickoff(inputs={"topic": "AI Safety"})
 5. Use `async_execution=True` for independent tasks
 6. Role clarity: each agent has distinct, non-overlapping role
 7. One clear deliverable per task
+
+**Incorrect — sequential process without hierarchical manager:**
+```python
+crew = Crew(
+    agents=[researcher, writer, reviewer],
+    tasks=[research_task, write_task, review_task],
+    process=Process.sequential  # No delegation, rigid order
+)
+```
+
+**Correct — hierarchical process with manager delegation:**
+```python
+crew = Crew(
+    agents=[manager, researcher, writer, reviewer],
+    tasks=[project_task],
+    process=Process.hierarchical,  # Manager delegates dynamically
+    manager_llm="gpt-5.2"
+)
+```

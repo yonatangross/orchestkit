@@ -107,3 +107,24 @@ ollama pull deepseek-r1:70b-q4_K_M
 - Using `keep_alive=-1` (wastes memory indefinitely)
 - Skipping environment variable configuration
 - Not checking if Ollama is running before making calls
+
+**Incorrect — no keep_alive configuration leads to cold starts:**
+```python
+from langchain_ollama import ChatOllama
+
+llm = ChatOllama(model="deepseek-r1:70b")  # Model unloaded after each call
+response = await llm.ainvoke("Task 1")  # 30-60s cold start
+response = await llm.ainvoke("Task 2")  # Another 30-60s cold start
+```
+
+**Correct — keep_alive keeps model loaded for subsequent calls:**
+```python
+from langchain_ollama import ChatOllama
+
+llm = ChatOllama(
+    model="deepseek-r1:70b",
+    keep_alive="5m"  # Keep model loaded for 5 minutes
+)
+response = await llm.ainvoke("Task 1")  # 30-60s initial load
+response = await llm.ainvoke("Task 2")  # Instant (model still loaded)
+```

@@ -2,6 +2,8 @@
 title: "Radix: Composition"
 category: radix
 impact: HIGH
+impactDescription: "Enables polymorphic component rendering and nested trigger composition through Radix's asChild pattern"
+tags: radix, composition, asChild, slot, polymorphic
 ---
 
 # Radix Composition Patterns
@@ -173,6 +175,28 @@ const MyButton = (props) => <button {...props} />
 | **Checkbox** | Boolean toggles |
 | **Switch** | On/off toggles |
 | **Slider** | Range selection |
+
+**Incorrect — No ref forwarding:**
+```tsx
+// asChild won't work - no ref support
+const MyButton = (props) => <button {...props} />
+
+<Button asChild>
+  <MyButton>Click</MyButton>
+</Button>
+```
+
+**Correct — Ref forwarding required:**
+```tsx
+// Forwards ref and spreads props
+const MyButton = React.forwardRef<HTMLButtonElement, Props>(
+  (props, ref) => <button ref={ref} {...props} />
+)
+
+<Button asChild>
+  <MyButton>Click</MyButton>
+</Button>
+```
 
 ### Disclosure Components
 | Primitive | Use Case |

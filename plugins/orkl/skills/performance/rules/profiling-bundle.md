@@ -79,6 +79,22 @@ const sorted = sortBy(items, 'name');
 const sorted = items.toSorted((a, b) => a.name.localeCompare(b.name));
 ```
 
+**Incorrect — Importing entire lodash adds 70 kB:**
+```typescript
+import _ from 'lodash';
+const sorted = _.sortBy(items, 'name');
+```
+
+**Correct — Import single function or use native API:**
+```typescript
+// Option 1: Import only what you need (4 kB)
+import sortBy from 'lodash/sortBy';
+const sorted = sortBy(items, 'name');
+
+// Option 2: Use native API (0 kB)
+const sorted = items.toSorted((a, b) => a.name.localeCompare(b.name));
+```
+
 **Key rules:**
 - **Run** bundle analysis on every release to catch regressions
 - **Set** CI performance budgets (fail build if exceeded)

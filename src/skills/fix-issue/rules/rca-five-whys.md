@@ -65,6 +65,40 @@ Action: [Fix that addresses root cause]
 - **Organizational/process issues** — needs broader systemic analysis
 - **Concurrent failures** — 5 Whys assumes linear causation
 
+**Incorrect — stopping at symptom without root cause:**
+```markdown
+**Problem:** Website was down for 2 hours
+
+**Why 1:** The application server crashed.
+**Action:** Restart the server
+```
+
+**Correct — drilling down to root cause with 5 Whys:**
+```markdown
+**Problem:** Website was down for 2 hours
+
+**Why 1:** The application server ran out of memory and crashed.
+  Evidence: Out-of-memory error in logs
+
+**Why 2:** A memory leak in the image processing service accumulated over time.
+  Evidence: Memory usage increased 2GB/hour in metrics
+
+**Why 3:** The service wasn't releasing image buffers after processing.
+  Evidence: Code review shows missing .dispose() calls
+
+**Why 4:** The cleanup code had a bug introduced in last week's release.
+  Evidence: Git blame + diff shows removal of cleanup in PR #234
+
+**Why 5:** We don't have automated memory leak detection in our test suite.
+  Evidence: No memory profiling in CI pipeline
+
+**Root Cause:** Missing automated memory leak testing
+**Actions:**
+- Add memory profiling to CI pipeline
+- Add cleanup tests for image processing
+- Revert PR #234's cleanup removal
+```
+
 ### Key Rules
 
 - Always start with a **clear, specific problem statement**

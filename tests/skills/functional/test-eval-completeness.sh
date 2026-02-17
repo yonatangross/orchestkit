@@ -65,6 +65,31 @@ info() {
     fi
 }
 
+# Stop words for keyword extraction (4+ char words to skip)
+is_stopword() {
+    local word="$1"
+    case "$word" in
+        this|that|with|from|have|does|what|when|where|which|will|would|could|should|these|those|them|then|than|their|there|they|been|being|were|also|into|each|only|just|more|most|some|such|very|like|make|made|used|uses|using|every|must|never|always|before|after|between|through|during|other|about|above|below|under|over)
+            return 0 ;;
+        *)
+            return 1 ;;
+    esac
+}
+
+# Extract meaningful terms (4+ chars, not stopwords) from a string
+extract_terms() {
+    local text="$1"
+    local lower
+    lower=$(echo "$text" | tr '[:upper:]' '[:lower:]' | tr -cs '[:alnum:]' ' ')
+    local terms=()
+    for word in $lower; do
+        if [[ ${#word} -ge 4 ]] && ! is_stopword "$word"; then
+            terms+=("$word")
+        fi
+    done
+    echo "${terms[*]}"
+}
+
 # Generic phrases that are too vague for expectedBehavior
 GENERIC_PATTERNS=(
     "follow best practices"
@@ -219,12 +244,14 @@ echo "--------------------------------------------------------------------------
 
 contradictions=0
 
+# Imperative patterns that indicate a POSITIVE instruction (not just a mention)
+IMPERATIVE_RE="(must|always|shall|require|implement|use|ensure|enforce)"
+# Negation patterns — if these appear on the same line, it's agreement not contradiction
+NEGATION_RE="(never|don.t|do not|should not|must not|avoid|don't|prohibited|forbid|warning|caution|instead of|rather than|not recommend)"
+
 for eval_skill in "${!EVAL_FILES[@]}"; do
     eval_file="${EVAL_FILES[$eval_skill]}"
     skill_dir="$SKILLS_DIR/$eval_skill"
-    rules_dir="$skill_dir/rules"
-
-    [[ -d "$rules_dir" ]] || continue
 
     eval_count=$(jq '.evaluations | length' "$eval_file")
     for i in $(seq 0 $((eval_count - 1))); do
@@ -236,23 +263,61 @@ for eval_skill in "${!EVAL_FILES[@]}"; do
 
         for s in $(seq 0 $((sn_count - 1))); do
             sn=$(jq -r ".evaluations[$i].should_not[$s]" "$eval_file")
-            sn_lower=$(echo "$sn" | tr '[:upper:]' '[:lower:]')
+            terms=$(extract_terms "$sn")
+            [[ -n "$terms" ]] || continue
 
-            # Check SKILL.md for direct instruction of forbidden behavior
-            skill_file="$skill_dir/SKILL.md"
-            if [[ -f "$skill_file" ]]; then
-                skill_lower=$(tr '[:upper:]' '[:lower:]' < "$skill_file")
-                if [[ "$skill_lower" == *"$sn_lower"* ]]; then
-                    fail "$eval_skill/$eval_id: SKILL.md contains exact should_not text: \"$sn\""
-                    contradictions=$((contradictions + 1))
-                fi
+            # Collect content from SKILL.md and rules/ files
+            content_files=()
+            [[ -f "$skill_dir/SKILL.md" ]] && content_files+=("$skill_dir/SKILL.md")
+            if [[ -d "$skill_dir/rules" ]]; then
+                for rf in "$skill_dir/rules"/*.md; do
+                    [[ -f "$rf" ]] && content_files+=("$rf")
+                done
             fi
+
+            for cf in "${content_files[@]}"; do
+                # Strip YAML frontmatter (between --- delimiters) before scanning
+                # Frontmatter fields like impactDescription are metadata, not instructions
+                cf_content=$(awk 'BEGIN{fm=0} /^---$/{fm=!fm; next} fm{next} {print}' "$cf" | tr '[:upper:]' '[:lower:]')
+                cf_basename=$(basename "$cf")
+
+                # Check each term: does it appear near an imperative keyword?
+                match_count=0
+                term_count=0
+                for term in $terms; do
+                    term_count=$((term_count + 1))
+                    # Look for lines containing both the term and an imperative word
+                    while IFS= read -r line; do
+                        if [[ "$line" == *"$term"* ]]; then
+                            # Check if the line has an imperative pattern
+                            if [[ "$line" =~ $IMPERATIVE_RE ]]; then
+                                # But skip if the line ALSO has a negation (agreement, not contradiction)
+                                if ! [[ "$line" =~ $NEGATION_RE ]]; then
+                                    match_count=$((match_count + 1))
+                                    break
+                                fi
+                            fi
+                        fi
+                    done <<< "$cf_content"
+                done
+
+                # Flag only if ALL non-stopword terms appear as imperative instructions
+                # AND there are at least 3 matching terms (fewer is too noisy)
+                if [[ $term_count -ge 3 ]]; then
+                    threshold=$term_count
+                    if [[ $match_count -ge $threshold ]]; then
+                        fail "$eval_skill/$eval_id: Contradiction in $cf_basename — should_not terms instructed: \"$sn\" ($match_count/$term_count terms)"
+                        contradictions=$((contradictions + 1))
+                        break  # one contradiction per should_not per skill is enough
+                    fi
+                fi
+            done
         done
     done
 done
 
 if [[ $contradictions -eq 0 ]]; then
-    pass "No contradictions found (should_not text not found verbatim in SKILL.md)"
+    pass "No contradictions found between should_not entries and skill instructions"
 fi
 echo ""
 
@@ -319,7 +384,7 @@ for tc_file in "$SKILLS_DIR"/*/test-cases.json; do
 
             # Check word count (must be >5 words)
             word_count=$(echo "$behavior" | wc -w | tr -d ' ')
-            if [[ "$word_count" -le 3 ]]; then
+            if [[ "$word_count" -le 5 ]]; then
                 warn "$skill_name/$tc_id: Too short ($word_count words): \"$behavior\""
                 short_count=$((short_count + 1))
             fi
@@ -337,11 +402,39 @@ if [[ $vague_count -eq 0 && $short_count -eq 0 ]]; then
     pass "All expectedBehavior entries are specific and descriptive"
 else
     if [[ $short_count -gt 0 ]]; then
-        echo "  $short_count behavior(s) with 3 or fewer words"
+        echo "  $short_count behavior(s) with 5 or fewer words"
     fi
     if [[ $vague_count -gt 0 ]]; then
         echo "  $vague_count behavior(s) with generic phrasing"
     fi
+fi
+echo ""
+
+# ============================================================================
+# Test 6: Orphaned eval files (referencing non-existent skills)
+# ============================================================================
+echo -e "${CYAN}Test 6: Orphaned Eval Files${NC}"
+echo "----------------------------------------------------------------------------"
+
+orphaned_evals=0
+
+for eval_file in "$EVALS_DIR"/*.eval.json; do
+    [[ -f "$eval_file" ]] || continue
+    jq empty "$eval_file" 2>/dev/null || continue
+
+    eval_skill=$(jq -r '.skill' "$eval_file")
+    eval_basename=$(basename "$eval_file")
+
+    if [[ ! -d "$SKILLS_DIR/$eval_skill" ]]; then
+        fail "$eval_basename: References non-existent skill '$eval_skill'"
+        orphaned_evals=$((orphaned_evals + 1))
+    else
+        info "$eval_basename: Skill '$eval_skill' exists"
+    fi
+done
+
+if [[ $orphaned_evals -eq 0 ]]; then
+    pass "All .eval.json files reference existing skills"
 fi
 echo ""
 

@@ -2,6 +2,8 @@
 title: "Research: Journey Mapping & Service Blueprints"
 category: research
 impact: HIGH
+impactDescription: "Ensures comprehensive customer experience mapping with touchpoints, pain points, and service operations visibility"
+tags: journey-mapping, service-blueprint, customer-experience, touchpoints
 ---
 
 # Journey Mapping & Service Blueprints
@@ -138,3 +140,19 @@ Discover -> Research -> Try -> Buy -> Use -> Share
 - **Cross-functional creation**: Include engineering, support, sales in workshops
 - **Connect to metrics**: Link journey stages to measurable KPIs
 - **Review after major feature launches**: Journeys change with the product
+
+**Incorrect — Journey map without pain points:**
+```markdown
+Stage: Onboarding
+Actions: User signs up, receives email, logs in
+Touchpoints: Website, email, app
+```
+
+**Correct — Journey map with pain points and opportunities:**
+```markdown
+Stage: Onboarding
+Actions: User signs up, waits for email (5 min delay), logs in
+Emotions: Hopeful → Frustrated → Relieved
+Pain Points: Slow email delivery, unclear next steps
+Opportunities: Instant onboarding, in-app wizard instead of email
+```

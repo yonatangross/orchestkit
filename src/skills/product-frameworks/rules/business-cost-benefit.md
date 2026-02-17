@@ -2,6 +2,8 @@
 title: "Business: Cost-Benefit & TCO"
 category: business
 impact: HIGH
+impactDescription: "Ensures comprehensive cost-benefit analysis including build vs. buy TCO comparisons and hidden costs"
+tags: tco, cost-benefit, build-vs-buy, roi, business-case
 ---
 
 # Cost-Benefit & Total Cost of Ownership
@@ -134,4 +136,24 @@ Operational Costs (Annual)
 +-- Support (tickets x cost/ticket)
 +-- Monitoring/observability
 +-- Security/compliance
+```
+
+**Incorrect — Ignoring hidden costs and opportunity cost:**
+```markdown
+## Cost Analysis
+Total development cost: $500,000
+Expected benefit: $1M over 3 years
+ROI: 100% - APPROVED
+```
+
+**Correct — Comprehensive TCO with hidden costs:**
+```markdown
+## 3-Year TCO Analysis
+Development: $500,000
+Maintenance (Years 2-3): $300,000/year = $600,000
+Opportunity cost (team could build $800K revenue feature): $800,000
+Total TCO: $1,900,000
+
+Benefits: $1,000,000
+Net: -$900,000 - REJECTED
 ```

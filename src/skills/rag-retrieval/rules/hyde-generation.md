@@ -62,6 +62,38 @@ async def generate_hyde(
 | Natural language questions | Yes |
 | Vocabulary mismatch suspected | Yes |
 
+**Incorrect — embedding the query instead of hypothetical document:**
+```python
+async def generate_hyde(query: str) -> HyDEResult:
+    response = await llm.chat.completions.create(
+        model="gpt-5.2-mini",
+        messages=[{"role": "user", "content": query}],
+        max_tokens=150
+    )
+    hypothetical_doc = response.choices[0].message.content
+    embedding = await embed_fn(query)  # WRONG: Embeds query, not hypothetical doc!
+    return HyDEResult(query, hypothetical_doc, embedding)
+```
+
+**Correct — embed the hypothetical document:**
+```python
+async def generate_hyde(query: str) -> HyDEResult:
+    response = await llm.chat.completions.create(
+        model="gpt-5.2-mini",
+        messages=[
+            {"role": "system", "content": "Write a short paragraph that would answer this query."},
+            {"role": "user", "content": query}
+        ],
+        max_tokens=150,
+        temperature=0.3
+    )
+
+    hypothetical_doc = response.choices[0].message.content
+    embedding = await embed_fn(hypothetical_doc)  # Embed the hypothetical doc!
+
+    return HyDEResult(query, hypothetical_doc, embedding)
+```
+
 **Key rules:**
 - Embed the hypothetical document, NOT the original query
 - Use fast/cheap model (gpt-5.2-mini, claude-haiku-4-5) for generation

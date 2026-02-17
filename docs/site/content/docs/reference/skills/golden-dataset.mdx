@@ -413,6 +413,27 @@ trace.score(name="quality_total", value=0.87)
 trace.event(name="curation_decision", metadata={"decision": "include"})
 ```
 
+**Incorrect — Sequential agent execution:**
+```python
+# Sequential - 4x slower
+quality_result = await analyze_quality(content)
+difficulty_result = await analyze_difficulty(content)
+domain_result = await analyze_domain(content)
+query_result = await generate_queries(content)
+```
+
+**Correct — Parallel agent execution:**
+```python
+# Parallel - all agents run concurrently
+quality_task = Task(subagent_type="code-quality-reviewer", prompt=quality_prompt, run_in_background=True)
+difficulty_task = Task(subagent_type="classifier", prompt=difficulty_prompt, run_in_background=True)
+domain_task = Task(subagent_type="tagger", prompt=domain_prompt, run_in_background=True)
+query_task = Task(subagent_type="query-generator", prompt=query_prompt, run_in_background=True)
+
+# Wait for all results
+results = await gather_task_results([quality_task, difficulty_task, domain_task, query_task])
+```
+
 **Key rules:**
 - Run all 4 analysis agents in parallel for throughput
 - Use weighted scoring (accuracy 0.25, coherence 0.20, depth 0.25, relevance 0.30)
@@ -497,6 +518,24 @@ required_queries: 3       # At least 3 test queries
 - Curation date
 - Agent scores (for audit trail)
 - Langfuse trace ID
+
+**Incorrect — Placeholder URL:**
+```python
+# Missing real source URL
+analysis = Analysis(
+    url="https://orchestkit.dev/placeholder/123",
+    content_type="article",
+)
+```
+
+**Correct — Real canonical URL:**
+```python
+# Real source for re-fetching and validation
+analysis = Analysis(
+    url="https://docs.python.org/3/library/asyncio.html",
+    content_type="documentation",
+)
+```
 
 **Key rules:**
 - Never use placeholder URLs -- always store real canonical source URLs
@@ -628,6 +667,29 @@ def analyze_coverage_gaps(
         "difficulty_distribution": difficulties,
         "gaps": gaps,
     }
+```
+
+**Incorrect — Hardcoded difficulty without analysis:**
+```python
+# Guessing difficulty level
+document = {
+    "id": "new-doc",
+    "difficulty": "medium",  # No assessment
+    "tags": ["ai-ml"],  # Only 1 tag
+}
+```
+
+**Correct — Classified difficulty with analysis:**
+```python
+# Analyze multiple factors
+factors = {
+    "technical_density": count_technical_terms(document["content"]),
+    "section_count": len(document.get("sections", [])),
+    "abstraction_level": assess_abstraction(document),
+}
+difficulty = classify_difficulty(document)  # Returns "hard" based on factors
+document["difficulty"] = difficulty
+document["tags"] = ["ai-ml", "backend", "devops"]  # Minimum 2 tags
 ```
 
 **Key rules:**
@@ -790,6 +852,26 @@ if echo "$CHANGED_FILES" | grep -q "fixtures/documents_expanded.json\|fixtures/q
 fi
 ```
 
+**Incorrect — Backup without validation:**
+```yaml
+# Missing verification step
+- name: Run backup
+  run: poetry run python scripts/backup_golden_dataset.py backup
+- name: Commit backup
+  run: git commit -m "chore: backup"
+```
+
+**Correct — Backup with verification:**
+```yaml
+# Verify backup integrity
+- name: Run backup
+  run: poetry run python scripts/backup_golden_dataset.py backup
+- name: Verify backup
+  run: poetry run python scripts/backup_golden_dataset.py verify
+- name: Commit backup
+  run: git commit -m "chore: automated golden dataset backup [skip ci]"
+```
+
 **Key rules:**
 - Set up weekly automated backups to prevent data staleness
 - Validate golden dataset on every PR that modifies dataset files
@@ -914,6 +996,26 @@ async def verify_golden_dataset() -> dict:
 3. **Test restore in staging** -- never test restore in production first
 4. **Document changes** -- track additions/removals in metadata
 
+**Incorrect — Missing URL validation:**
+```python
+# No URL contract enforcement
+analysis.url = url  # Could be placeholder
+session.add(analysis)
+await session.commit()
+```
+
+**Correct — Enforcing URL contract:**
+```python
+# Validate before saving
+valid, msg = validate_url(url)
+if not valid:
+    raise ValueError(f"Invalid URL: {msg}")
+
+analysis.url = url  # Guaranteed to be real canonical URL
+session.add(analysis)
+await session.commit()
+```
+
 **Key rules:**
 - Always use JSON backup for version control and portability
 - Never store placeholder URLs -- enforce the URL contract
@@ -1033,6 +1135,32 @@ poetry run python scripts/backup_golden_dataset.py restore --replace
 
 # Restore without deleting (adds to existing)
 poetry run python scripts/backup_golden_dataset.py restore
+```
+
+**Incorrect — Storing embeddings in backup:**
+```python
+# Embedding vectors bloat backup file
+backup_data = {
+    "chunks": [{
+        "content": "...",
+        "embedding": [0.123, 0.456, ...],  # 1024 floats!
+    }]
+}
+```
+
+**Correct — Regenerate embeddings on restore:**
+```python
+# Exclude embeddings from backup
+backup_data = {
+    "chunks": [{
+        "content": "...",
+        # No embedding field
+    }]
+}
+
+# Regenerate during restore
+embedding = await embed_text(chunk_data["content"])
+chunk.embedding = embedding  # Fresh with current model
 ```
 
 **Key rules:**
@@ -1171,6 +1299,26 @@ async def validate_before_add(
         )
 
     return {"valid": len(errors) == 0, "errors": errors, "warnings": warnings}
+```
+
+**Incorrect — Raw URL comparison:**
+```python
+# Fails for www/https/trailing slash variants
+if new_url == existing_url:
+    return "duplicate"
+```
+
+**Correct — Normalized URL comparison:**
+```python
+# Normalize both URLs before comparing
+def normalize_url(url: str) -> str:
+    parsed = urlparse(url.lower())
+    netloc = parsed.netloc.replace("www.", "")
+    path = parsed.path.rstrip("/")
+    return urlunparse((parsed.scheme, netloc, path, "", "", ""))
+
+if normalize_url(new_url) == normalize_url(existing_url):
+    return "duplicate"
 ```
 
 **Key rules:**
@@ -1327,6 +1475,30 @@ def validate_references(documents: list[dict], queries: list[dict]) -> list[str]
 | Referential Integrity | Query chunks reference valid sections | Error |
 | Content Quality | Title/content length, tag count | Warning |
 | Difficulty Distribution | Balanced query difficulty levels | Warning |
+
+**Incorrect — Missing referential integrity check:**
+```python
+# Query references non-existent section
+query = {
+    "id": "q-test",
+    "expected_chunks": ["section-999"],  # Doesn't exist!
+}
+queries.append(query)  # No validation
+```
+
+**Correct — Validate references exist:**
+```python
+# Build set of valid section IDs
+valid_sections = set()
+for doc in documents:
+    for section in doc.get("sections", []):
+        valid_sections.add(section["id"])
+
+# Validate query references
+for chunk_id in query.get("expected_chunks", []):
+    if chunk_id not in valid_sections:
+        raise ValueError(f"Query references invalid section: {chunk_id}")
+```
 
 **Key rules:**
 - All documents must pass schema validation before inclusion
@@ -1488,6 +1660,30 @@ poetry run python scripts/data/add_to_golden_dataset.py check-duplicate \
 
 # Analyze coverage gaps
 poetry run python scripts/data/add_to_golden_dataset.py coverage
+```
+
+**Incorrect — Unbalanced difficulty distribution:**
+```python
+# All queries marked "easy"
+queries = [
+    {"id": "q-1", "difficulty": "easy"},
+    {"id": "q-2", "difficulty": "easy"},
+    {"id": "q-3", "difficulty": "easy"},
+]
+```
+
+**Correct — Balanced difficulty distribution:**
+```python
+# Mix of difficulty levels
+queries = [
+    {"id": "q-1", "difficulty": "trivial"},  # 3+ trivial
+    {"id": "q-2", "difficulty": "easy"},     # 3+ easy
+    {"id": "q-3", "difficulty": "medium"},   # 5+ medium
+    {"id": "q-4", "difficulty": "hard"},     # 3+ hard
+]
+
+# Validate distribution
+validate_difficulty_distribution(queries)  # Checks minimums
 ```
 
 **Key rules:**

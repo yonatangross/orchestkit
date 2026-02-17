@@ -2,6 +2,8 @@
 title: "Multi-Agent: Result Synthesis"
 category: multi
 impact: HIGH
+impactDescription: "Ensures parallel agent outputs are combined into coherent, actionable results with quality metrics"
+tags: synthesis, aggregation, coordination, collaboration, results
 ---
 
 # Result Synthesis
@@ -151,3 +153,21 @@ Generate actionable recommendations:
 - [ ] Set coordination strategy (central orchestrator with task queue)
 - [ ] Design failure handling (timeout per agent, error isolation)
 - [ ] Agent health checks and performance metrics
+
+**Incorrect — returning raw agent outputs without synthesis:**
+```python
+async def multi_agent_analysis(task: str):
+    results = await asyncio.gather(agent1(task), agent2(task), agent3(task))
+    return results  # Returns list of disconnected findings
+```
+
+**Correct — synthesizing results into coherent output:**
+```python
+async def multi_agent_analysis(task: str):
+    results = await asyncio.gather(agent1(task), agent2(task), agent3(task))
+    synthesis = await llm.chat([{
+        "role": "user",
+        "content": f"Synthesize these findings: {json.dumps(results)}"
+    }])
+    return parse_synthesis(synthesis.content)
+```

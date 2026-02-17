@@ -171,6 +171,28 @@ class AnalyzeRequest(BaseModel):
     )
 ```
 
+**Incorrect — Missing response documentation:**
+```python
+# No response schema or error docs
+@router.get("/analyses/{id}")
+async def get_analysis(id: str):
+    return await service.get(id)
+```
+
+**Correct — Full OpenAPI documentation:**
+```python
+@router.get(
+    "/analyses/{id}",
+    responses={
+        404: {"model": ErrorResponse, "description": "Analysis not found"},
+        500: {"model": ErrorResponse, "description": "Internal error"}
+    },
+    summary="Get analysis details"
+)
+async def get_analysis(id: Annotated[str, Path(description="Analysis UUID")]) -> AnalysisResponse:
+    return await service.get(id)
+```
+
 **Key rules:**
 - Use OpenAPI 3.1 for all new API specifications
 - Define reusable schemas, parameters, and responses in `components`

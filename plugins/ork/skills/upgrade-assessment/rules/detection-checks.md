@@ -55,3 +55,18 @@ Environment snapshot including:
 - Current OrchestKit version (e.g., `6.0.0`)
 - Hook count and bundle count
 - Skill count and agent count
+
+**Incorrect — Running scans without precondition checks produces invalid results:**
+```bash
+# No environment verification
+grep -r "claude-" src/  # Scans in non-OrchestKit project
+# False positives and missed files
+```
+
+**Correct — Precondition checks ensure valid assessment environment:**
+```bash
+# Verify OrchestKit project structure
+[ -f CLAUDE.md ] && [ -d src/skills ] || exit 1
+# Only scan if structure is valid
+grep -r "claude-" src/skills/ --include="*.md"
+```

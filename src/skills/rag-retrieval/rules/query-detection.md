@@ -34,6 +34,31 @@ def is_multi_concept_heuristic(query: str) -> bool:
 | "X and Y in Z" | Yes |
 | "Difference between X, Y, Z" | Yes |
 
+**Incorrect — always decomposing, even for simple queries:**
+```python
+async def search(query: str, top_k: int = 10) -> list[dict]:
+    # Always calls LLM for decomposition, even for "What is React?"
+    concepts = await decompose_query(query, llm)  # Wasteful!
+    tasks = [search_fn(concept, limit=top_k) for concept in concepts]
+    return await asyncio.gather(*tasks)
+```
+
+**Correct — heuristic fast path before LLM decomposition:**
+```python
+async def search(query: str, top_k: int = 10) -> list[dict]:
+    if not is_multi_concept_heuristic(query):  # Sub-millisecond check
+        return await search_fn(query, limit=top_k)  # Fast path
+
+    # Only call LLM if heuristic detects multi-concept
+    concepts = await decompose_query(query, llm)
+    tasks = [search_fn(concept, limit=top_k) for concept in concepts]
+    return await asyncio.gather(*tasks)
+
+def is_multi_concept_heuristic(query: str) -> bool:
+    query_lower = query.lower()
+    return any(ind in query_lower for ind in [" vs ", " and ", "difference between"])
+```
+
 **Key rules:**
 - Heuristic first (sub-millisecond), LLM decomposition only if heuristic triggers
 - Single-concept queries should skip decomposition entirely (no LLM cost)

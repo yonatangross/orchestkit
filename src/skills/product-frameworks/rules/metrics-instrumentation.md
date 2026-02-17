@@ -2,6 +2,8 @@
 title: "Metrics: Instrumentation & Definition"
 category: metrics
 impact: HIGH
+impactDescription: "Ensures proper metric instrumentation with formal definitions, event naming conventions, and alerting thresholds"
+tags: instrumentation, metrics, events, kpis, analytics
 ---
 
 # Metric Instrumentation & Definition
@@ -142,4 +144,22 @@ We believe [change] will cause [metric] to [improve by X%]
 2. 25% for 2 weeks
 3. 50% for 1 week
 4. 100% rollout
+```
+
+**Incorrect — Inconsistent event naming:**
+```json
+{
+  "event": "UserSignup",
+  "event": "feature-activated",
+  "event": "Subscription_Upgraded"
+}
+```
+
+**Correct — Consistent object_action naming:**
+```json
+{
+  "event": "user_signed_up",
+  "event": "feature_activated",
+  "event": "subscription_upgraded"
+}
 ```

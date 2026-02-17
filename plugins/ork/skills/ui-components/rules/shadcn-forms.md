@@ -2,6 +2,8 @@
 title: "shadcn/ui: Forms"
 category: shadcn
 impact: HIGH
+impactDescription: "Defines accessible form field patterns with proper label association and validation error handling"
+tags: shadcn, forms, validation, accessibility, form-fields
 ---
 
 # shadcn/ui Form Patterns
@@ -172,6 +174,29 @@ export function ThemeAwareComponent() {
 
   return <div>Current theme: {resolvedTheme}</div>
 }
+```
+
+**Incorrect — Missing label association:**
+```tsx
+// Not accessible - label not linked to input
+<div>
+  <label>Email</label>
+  <input type="email" />
+</div>
+```
+
+**Correct — Proper label association:**
+```tsx
+// Accessible with htmlFor and id
+<div>
+  <Label htmlFor="email">Email</Label>
+  <Input
+    id="email"
+    type="email"
+    aria-describedby={error ? "email-error" : undefined}
+  />
+  {error && <p id="email-error">{error}</p>}
+</div>
 ```
 
 ## Dependencies

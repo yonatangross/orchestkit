@@ -2,6 +2,8 @@
 title: "Metrics: OKR Framework"
 category: metrics
 impact: HIGH
+impactDescription: "Ensures proper OKR structure with qualitative objectives and quantitative, outcome-focused key results"
+tags: okr, objectives, key-results, goal-setting, alignment
 ---
 
 # OKR Framework
@@ -101,3 +103,23 @@ Individual OKRs (optional, aligns to team)
 | Gaming metrics | Pair metrics that balance each other |
 | Static goals | Review and adjust quarterly |
 | No baselines | Establish current state before setting targets |
+
+**Incorrect — Outputs instead of outcomes:**
+```markdown
+Objective: Build a great product
+
+Key Results:
+- Ship 10 features
+- Write 50 unit tests
+- Hold 20 customer interviews
+```
+
+**Correct — Outcome-focused key results:**
+```markdown
+Objective: Become the #1 choice for enterprise teams
+
+Key Results:
+- Increase enterprise NPS from 32 to 50
+- Reduce time-to-value from 14 days to 3 days
+- Achieve 95% feature adoption in first 30 days
+```

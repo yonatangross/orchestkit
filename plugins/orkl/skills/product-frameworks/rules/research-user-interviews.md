@@ -2,6 +2,8 @@
 title: "Research: User Interviews & Testing"
 category: research
 impact: HIGH
+impactDescription: "Ensures rigorous user research through structured interviews, usability testing, and systematic insight collection"
+tags: user-interviews, usability-testing, research-methods, nps, sus
 ---
 
 # User Interviews & Usability Testing
@@ -134,4 +136,21 @@ Range: 0-100, Average: 68
 - Product: [What to build/change]
 - Design: [UX recommendation]
 - Strategy: [Business consideration]
+```
+
+**Incorrect — Leading questions that bias responses:**
+```markdown
+Interview Questions:
+- "Don't you think this feature would be useful?"
+- "Wouldn't you prefer this over your current tool?"
+- "You'd pay $50/month for this, right?"
+```
+
+**Correct — Open-ended questions that uncover insights:**
+```markdown
+Interview Questions:
+- "Walk me through the last time you [relevant activity]"
+- "What's the hardest part about [task]?"
+- "What would your ideal solution look like?"
+- "Can you show me how you typically [action]?"
 ```

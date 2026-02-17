@@ -2,6 +2,8 @@
 title: "OWASP: Authentication & Session Attacks"
 category: owasp
 impact: CRITICAL
+impactDescription: "Prevents JWT algorithm confusion, token sidejacking, CSRF, and timing attacks through secure authentication patterns"
+tags: jwt-security, csrf, timing-attacks, session-security, owasp
 ---
 
 # Authentication & Session Attacks
@@ -157,6 +159,21 @@ grep -rn "@csrf_exempt" --include="*.py" .
 
 # Timing attack vulnerable comparisons
 semgrep --config "p/python-security-audit" .
+```
+
+**Incorrect — reading JWT algorithm from untrusted token header:**
+```python
+header = jwt.get_unverified_header(token)
+payload = jwt.decode(token, SECRET_KEY, algorithms=[header['alg']])
+```
+
+**Correct — hardcoding expected algorithm with claim validation:**
+```python
+payload = jwt.decode(
+    token, SECRET_KEY,
+    algorithms=['HS256'],
+    options={'require': ['exp', 'iat', 'iss', 'aud']},
+)
 ```
 
 ## Summary

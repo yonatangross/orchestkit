@@ -2,6 +2,8 @@
 title: "Locks: PostgreSQL Advisory"
 category: locks
 impact: CRITICAL
+impactDescription: "Ensures safe distributed locking using PostgreSQL advisory locks with session and transaction-level scopes"
+tags: locks, postgresql, advisory, transactions, database
 ---
 
 # PostgreSQL Advisory Locks
@@ -134,4 +136,19 @@ SELECT l.pid, l.objid as lock_id, l.granted,
 FROM pg_locks l
 JOIN pg_stat_activity a ON l.pid = a.pid
 WHERE l.locktype = 'advisory';
+```
+
+**Incorrect — Session-level lock without cleanup causes deadlock after crash:**
+```python
+await session.execute(text("SELECT pg_advisory_lock(:id)"), {"id": lock_id})
+await process_critical_section()
+# Process crashes before unlock - lock held forever!
+```
+
+**Correct — Transaction-level lock auto-releases on commit/rollback:**
+```python
+async with session.begin():
+    await session.execute(text("SELECT pg_advisory_xact_lock(:id)"), {"id": lock_id})
+    await process_critical_section()
+    # Auto-released on commit/rollback/disconnect
 ```

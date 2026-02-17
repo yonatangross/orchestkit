@@ -52,3 +52,23 @@ async def get_users(db: AsyncSession):  # Missing Depends()
 | HTTPException in service | raise HTTPException in services/ | Use domain exceptions |
 | Direct instantiation | Service() without Depends | Use Depends(get_service) |
 | Missing await | Sync calls in async | Add await or use executor |
+
+**Incorrect — direct service instantiation in router:**
+```typescript
+@router.get("/users/{user_id}")
+async def get_user(user_id: int, db: AsyncSession = Depends(get_db)) {
+    service = UserService(db);  // Direct instantiation, untestable
+    return await service.get_user(user_id);
+}
+```
+
+**Correct — dependency injection with Depends:**
+```typescript
+@router.get("/users/{user_id}")
+async def get_user(
+    user_id: int,
+    service: UserService = Depends(get_user_service)  // Injected, testable
+) {
+    return await service.get_user(user_id);
+}
+```

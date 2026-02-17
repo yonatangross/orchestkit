@@ -56,6 +56,40 @@ class RAGPipeline:
         return merged[:top_k]
 ```
 
+**Incorrect — monolithic retrieval without composition:**
+```python
+async def query(question: str) -> list[dict]:
+    # No optional stages, fixed pipeline
+    docs = await retriever.search(question, top_k=10)
+    return docs
+```
+
+**Correct — composable pipeline with optional stages:**
+```python
+async def query(self, question: str, top_k: int = 10) -> list[dict]:
+    queries = [question]
+    if self.decomposer:  # Optional decomposition
+        concepts = await self.decomposer.decompose(question)
+        if len(concepts) > 1:
+            queries = concepts
+
+    all_results = []
+    for q in queries:
+        if self.hyde:  # Optional HyDE
+            hyde_result = await self.hyde.generate(q)
+            results = await self.retriever.search_by_embedding(hyde_result.embedding, top_k * 3)
+        else:
+            results = await self.retriever.search(q, top_k * 3)
+        all_results.append(results)
+
+    merged = reciprocal_rank_fusion(all_results) if len(all_results) > 1 else all_results[0]
+
+    if self.reranker:  # Optional reranking
+        merged = await self.reranker.rerank(question, merged, top_k)
+
+    return merged[:top_k]
+```
+
 **Key rules:**
 - Compose: Decompose → HyDE → Retrieve → Rerank → Context Fit → Generate
 - HyDE adds ~500ms latency; use with fallback timeout (2-3s)

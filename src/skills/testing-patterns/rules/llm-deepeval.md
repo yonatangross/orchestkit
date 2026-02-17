@@ -2,6 +2,8 @@
 title: "LLM: DeepEval Quality"
 category: llm
 impact: HIGH
+impactDescription: "Validates LLM output quality across multiple dimensions using automated metrics for relevancy, faithfulness, and hallucination"
+tags: llm, deepeval, quality-metrics, rag, evaluation
 ---
 
 # DeepEval Quality Testing
@@ -40,3 +42,24 @@ assert_test(test_case, metrics)
 |----------|----------------|
 | Quality metrics | Use multiple dimensions (3-5) |
 | Schema validation | Test both valid and invalid |
+
+**Incorrect — Testing only the output exists:**
+```python
+def test_llm_response():
+    result = get_llm_answer("What is Paris?")
+    assert result is not None
+    # No quality validation
+```
+
+**Correct — Testing multiple quality dimensions:**
+```python
+test_case = LLMTestCase(
+    input="What is the capital of France?",
+    actual_output="The capital of France is Paris.",
+    retrieval_context=["Paris is the capital of France."]
+)
+assert_test(test_case, [
+    AnswerRelevancyMetric(threshold=0.7),
+    FaithfulnessMetric(threshold=0.8)
+])
+```

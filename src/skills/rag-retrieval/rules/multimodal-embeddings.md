@@ -60,6 +60,25 @@ def embed_multimodal(texts=None, images=None) -> list[list[float]]:
     return client.multimodal_embed(inputs=inputs, model="voyage-multimodal-3").embeddings
 ```
 
+**Incorrect — using text-only embeddings for images:**
+```python
+def embed_image(image_path: str) -> list[float]:
+    # Using text embedding model for images - wrong modality!
+    caption = generate_caption(image_path)
+    return text_embed_model.embed([caption])[0]  # Loses visual features
+```
+
+**Correct — multimodal embeddings for cross-modal search:**
+```python
+def embed_image(image_path: str) -> list[float]:
+    image = Image.open(image_path)
+    inputs = processor(images=image, return_tensors="pt")
+    with torch.no_grad():
+        embeddings = model.get_image_features(**inputs)
+    embeddings = embeddings / embeddings.norm(dim=-1, keepdim=True)  # Normalize
+    return embeddings[0].tolist()
+```
+
 **Key rules:**
 - Normalize embeddings for cosine similarity (CLIP already normalized)
 - Voyage multimodal-3 for long documents (32K context)

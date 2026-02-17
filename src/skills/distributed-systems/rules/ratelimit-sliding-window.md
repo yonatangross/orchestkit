@@ -2,6 +2,8 @@
 title: "Rate Limiting: Sliding Window"
 category: ratelimit
 impact: HIGH
+impactDescription: "Ensures precise rate limiting without boundary spikes by tracking individual request timestamps in Redis sorted sets"
+tags: ratelimit, sliding-window, redis, precision, quota
 ---
 
 # Sliding Window Rate Limiting
@@ -89,3 +91,23 @@ end
 3. Set EXPIRE on the key to auto-cleanup inactive users
 4. Use pipeline or Lua script for atomicity
 5. Consider memory: each request stores a member in the sorted set
+
+**Incorrect — Fixed window allows 200 requests in 2 seconds with "100/min" limit:**
+```python
+# Fixed window resets at minute boundaries
+window_start = int(time.time() / 60) * 60
+if get_count(f"{user}:{window_start}") < 100:
+    allow()
+# User can send 100 at 0:59 and 100 at 1:01 = 200 in 2 seconds!
+```
+
+**Correct — Sliding window tracks individual timestamps for precise limiting:**
+```python
+now = time.time()
+window_start = now - 60  # Last 60 seconds
+await redis.zremrangebyscore(key, 0, window_start)  # Remove old
+count = await redis.zcard(key)  # Count current
+if count < 100:
+    await redis.zadd(key, {str(now): now})  # Add request
+# Exactly 100 requests per rolling 60-second window
+```

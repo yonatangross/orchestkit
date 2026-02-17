@@ -2,6 +2,8 @@
 title: "Radix: Dialog Patterns"
 category: radix
 impact: HIGH
+impactDescription: "Implements accessible modal dialogs with built-in focus management and keyboard navigation using Radix primitives"
+tags: radix, dialog, modal, accessibility, focus-trap
 ---
 
 # Radix Dialog Patterns
@@ -171,6 +173,30 @@ export const DialogContent = React.forwardRef<
 @keyframes fadeOut { to { opacity: 0; } }
 @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } }
 @keyframes scaleOut { to { transform: scale(0.95); opacity: 0; } }
+```
+
+**Incorrect — Using Dialog for destructive actions:**
+```tsx
+// Dialog closes on overlay click - unsafe for deletion
+<Dialog.Root>
+  <Dialog.Trigger>Delete Account</Dialog.Trigger>
+  <Dialog.Content>
+    <p>Delete your account?</p>
+    <Button onClick={deleteAccount}>Yes, delete</Button>
+  </Dialog.Content>
+</Dialog.Root>
+```
+
+**Correct — AlertDialog for destructive actions:**
+```tsx
+// AlertDialog requires explicit action - safe
+<AlertDialog.Root>
+  <AlertDialog.Trigger>Delete Account</AlertDialog.Trigger>
+  <AlertDialog.Content>
+    <AlertDialog.Title>Are you sure?</AlertDialog.Title>
+    <AlertDialog.Action onClick={deleteAccount}>Delete</AlertDialog.Action>
+  </AlertDialog.Content>
+</AlertDialog.Root>
 ```
 
 ## Accessibility Built-in

@@ -2,6 +2,8 @@
 title: "Scenario: Routing & Synchronization"
 category: scenario
 impact: MEDIUM
+impactDescription: "Ensures milestone synchronization, difficulty scaling, and failure recovery across multi-scenario orchestration"
+tags: synchronization, routing, checkpointing, scaling, recovery
 ---
 
 # Scenario Routing & Synchronization
@@ -222,3 +224,24 @@ python run_scenario.py
 | Input scaling | 1x, 3x, 8x (exponential) |
 | Time budgets | 30s, 90s, 300s |
 | Checkpoint frequency | Every milestone + completion |
+
+**Incorrect — no timeout on skill invocation:**
+```python
+async def run_scenario(scenario_id: str, skill_name: str):
+    result = await invoke_skill(skill_name, get_input(scenario_id))  # Hangs forever
+    return result
+```
+
+**Correct — timeout prevents infinite hangs:**
+```python
+async def run_scenario(scenario_id: str, skill_name: str):
+    timeout = {"simple": 30, "medium": 90, "complex": 300}[scenario_id]
+    try:
+        result = await asyncio.wait_for(
+            invoke_skill(skill_name, get_input(scenario_id)),
+            timeout=timeout
+        )
+        return result
+    except asyncio.TimeoutError:
+        return {"error": "timeout", "scenario_id": scenario_id}
+```

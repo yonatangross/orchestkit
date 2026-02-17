@@ -2,6 +2,8 @@
 title: "Multi-Agent: Supervisor Pattern"
 category: multi
 impact: CRITICAL
+impactDescription: "Ensures central coordinator routes tasks to specialist agents with parallel execution and timeout handling"
+tags: supervisor, routing, fan-out, fan-in, agent-teams
 ---
 
 # Supervisor Pattern
@@ -188,3 +190,24 @@ SendMessage(type="broadcast",
 | Worker timeout | 30s default |
 | Communication | Shared state, message bus, or SendMessage (CC 2.1.33+) |
 | Topology | Task tool (star) for simple; Agent Teams (mesh) for complex |
+
+**Incorrect — sequential execution of independent agents:**
+```python
+async def analyze(content: str):
+    security_result = await security_agent(content)  # Wait
+    perf_result = await performance_agent(content)   # Wait
+    quality_result = await quality_agent(content)    # Wait
+    return [security_result, perf_result, quality_result]
+```
+
+**Correct — parallel fan-out for independent agents:**
+```python
+async def analyze(content: str):
+    tasks = [
+        security_agent(content),
+        performance_agent(content),
+        quality_agent(content)
+    ]
+    results = await asyncio.gather(*tasks)  # Run in parallel
+    return results
+```

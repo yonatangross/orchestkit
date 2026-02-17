@@ -2,6 +2,8 @@
 title: "Auth: RBAC & MFA"
 category: auth
 impact: CRITICAL
+impactDescription: "Prevents unauthorized access through role-based permissions, multi-factor authentication, and rate limiting"
+tags: rbac, mfa, totp, rate-limiting, permissions
 ---
 
 # Role-Based Access Control & Multi-Factor Authentication
@@ -157,3 +159,21 @@ def password_reset():
 | Error messages | Generic "Invalid credentials" |
 | Account lockout | After 10 failed attempts |
 | Backup codes | 10 one-time use codes |
+
+**Incorrect — Direct role checks in routes leak user enumeration information:**
+```python
+@app.route('/admin/users')
+def admin_users():
+    if 'admin' not in current_user.roles:
+        return {"error": "You are not an admin"}, 403  # Reveals role info
+    return get_all_users()
+```
+
+**Correct — Generic error messages and proper RBAC decorator prevent enumeration:**
+```python
+@app.route('/admin/users')
+@require_role('admin')
+def admin_users():
+    return get_all_users()
+# Returns 403 Forbidden with no role details exposed
+```

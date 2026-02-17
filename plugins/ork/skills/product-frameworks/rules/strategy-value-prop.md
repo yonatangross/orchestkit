@@ -2,6 +2,8 @@
 title: "Strategy: Value Proposition & JTBD"
 category: strategy
 impact: HIGH
+impactDescription: "Ensures customer-first strategy using Jobs-to-be-Done framework and value proposition canvas for product-market fit"
+tags: jtbd, value-proposition, product-market-fit, customer-jobs
 ---
 
 # Value Proposition & Jobs-to-be-Done
@@ -124,3 +126,21 @@ so I can appear informed in morning meetings.
 | **Evidence-based** | Validate assumptions with data |
 | **Strategic alignment** | Every initiative serves the mission |
 | **Reversible decisions** | Prefer options that preserve flexibility |
+
+**Incorrect — Feature-focused instead of job-focused:**
+```markdown
+Value Proposition:
+"Our app has AI, real-time sync, and dark mode"
+```
+
+**Correct — JTBD-based value proposition:**
+```markdown
+Jobs-to-be-Done:
+When I'm commuting to work,
+I want to catch up on industry news,
+so I can appear informed in morning meetings.
+
+Value Proposition:
+"Get curated industry insights in 5-minute audio briefs,
+perfectly timed for your commute"
+```

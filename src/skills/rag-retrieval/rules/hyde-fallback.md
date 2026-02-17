@@ -34,6 +34,26 @@ async def hyde_with_fallback(
 - Keep hypothetical docs concise (100-200 tokens)
 - Combine with query decomposition for best results
 
+**Incorrect — no timeout or fallback, blocking forever:**
+```python
+async def hyde_search(query: str) -> list[float]:
+    # No timeout! May hang indefinitely
+    result = await hyde_service.generate(query)
+    return result.embedding
+```
+
+**Correct — timeout with graceful fallback:**
+```python
+async def hyde_with_fallback(query: str, timeout: float = 3.0) -> list[float]:
+    try:
+        async with asyncio.timeout(timeout):
+            result = await hyde_service.generate(query)
+            return result.embedding
+    except TimeoutError:
+        # Fallback to direct query embedding
+        return await embed_fn(query)
+```
+
 **Key rules:**
 - Always implement timeout fallback — HyDE generation model may be slow or unavailable
 - Default timeout: 2-3 seconds is the sweet spot (balances quality vs latency)

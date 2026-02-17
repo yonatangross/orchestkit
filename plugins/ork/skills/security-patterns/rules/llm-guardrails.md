@@ -2,6 +2,8 @@
 title: "LLM: Output Guardrails"
 category: llm
 impact: HIGH
+impactDescription: "Prevents unsafe LLM output through schema validation, grounding checks, and content safety filtering"
+tags: guardrails, output-validation, grounding, content-safety
 ---
 
 # Output Guardrails
@@ -153,4 +155,25 @@ if llm_response.get("is_safe", True):
 parsed, results = await run_guardrails(
     llm_output=response, context_texts=context, schema=AnalysisOutput,
 )
+```
+
+**Incorrect — Trusting LLM output without validation allows toxic content and hallucinated IDs:**
+```python
+response = await llm.generate(prompt)
+analysis = Analysis(
+    content=response["summary"],  # Could be toxic
+    document_id=response["doc_id"],  # Hallucinated UUID!
+)
+await db.save(analysis)
+```
+
+**Correct — Multi-layer guardrails validate schema, detect hallucinated IDs, and check grounding:**
+```python
+response = await llm.generate(prompt)
+parsed, results = await run_guardrails(
+    llm_output=response, context_texts=context, schema=AnalysisOutput,
+)
+if not parsed:
+    raise ValidationError(f"Guardrails failed: {results}")
+# Now safe to use parsed output
 ```

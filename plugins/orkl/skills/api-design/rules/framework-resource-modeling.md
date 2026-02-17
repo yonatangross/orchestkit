@@ -128,6 +128,18 @@ type PageInfo {
 {"title": null, "description": ""}  # Clear intent
 ```
 
+**Incorrect — Flat URLs with query params for hierarchy:**
+```typescript
+// Parent relationship in query param
+GET /api/v1/artifacts?analysis_id=abc-123
+```
+
+**Correct — Hierarchical URLs:**
+```typescript
+// Express ownership in URL structure
+GET /api/v1/analyses/abc-123/artifacts
+```
+
 **Key rules:**
 - Use hierarchical URLs for parent-child relationships
 - Support filtering via query parameters on list endpoints

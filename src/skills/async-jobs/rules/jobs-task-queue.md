@@ -75,6 +75,29 @@ def send_email(self, to: str, subject: str, body: str) -> dict:
         raise self.retry(exc=exc)
 ```
 
+**Incorrect — No retry strategy:**
+```python
+# Fails permanently on first error
+@shared_task
+def send_email(to: str, subject: str):
+    response = requests.post(url, json=data)  # Network error = lost job
+    return response.json()
+```
+
+**Correct — Retry with exponential backoff:**
+```python
+# Retries with backoff
+@shared_task(bind=True, max_retries=3, default_retry_delay=60,
+    autoretry_for=(ConnectionError, TimeoutError))
+def send_email(self, to: str, subject: str):
+    try:
+        response = requests.post(url, json=data, timeout=30)
+        response.raise_for_status()
+        return response.json()
+    except Exception as exc:
+        raise self.retry(exc=exc, countdown=60 * (2 ** self.request.retries))
+```
+
 ## Tool Selection
 
 | Tool | Best For | Complexity |
