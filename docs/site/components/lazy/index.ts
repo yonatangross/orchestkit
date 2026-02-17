@@ -4,3 +4,4 @@
 export { LazySkillBrowser } from "./skill-browser";
 export { LazyDemoGallery } from "./demo-gallery";
 export { LazyAgentSelector } from "./agent-selector";
+export { LazyChangelogTimeline } from "./changelog-timeline";

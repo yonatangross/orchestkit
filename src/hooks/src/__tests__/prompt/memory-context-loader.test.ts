@@ -435,7 +435,7 @@ describe('prompt/memory-context-loader', () => {
 
       expect(mockLogHook).toHaveBeenCalledWith(
         'memory-context-loader',
-        'Loaded 2 recent decisions as context'
+        'Loaded 2 decisions as context (0 filtered/deduped)'
       );
     });
   });

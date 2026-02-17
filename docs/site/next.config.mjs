@@ -37,7 +37,7 @@ const config = {
             "style-src 'self' 'unsafe-inline'",
             "img-src 'self' data: https:",
             "font-src 'self' data:",
-            "connect-src 'self' https:",
+            `connect-src 'self' https:${process.env.NODE_ENV === "development" ? " http://localhost:4747" : ""}`,
             "media-src 'self' https://cdn.sanity.io",
             "frame-ancestors 'none'",
           ].join("; "),

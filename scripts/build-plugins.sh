@@ -378,20 +378,11 @@ else
     echo -e "${YELLOW}  build-docs.sh not found or not executable, skipping${NC}"
 fi
 
-# Sync CHANGELOG.md into docs site
-CHANGELOG_SRC="$PROJECT_ROOT/CHANGELOG.md"
-CHANGELOG_DEST="$PROJECT_ROOT/docs/site/content/docs/changelog/index.mdx"
-
-if [[ -f "$CHANGELOG_SRC" ]]; then
-  mkdir -p "$(dirname "$CHANGELOG_DEST")"
-  cat > "$CHANGELOG_DEST" <<'FRONTMATTER'
----
-title: Changelog
-description: All notable changes to OrchestKit, following Keep a Changelog and Semantic Versioning.
----
-FRONTMATTER
-  cat "$CHANGELOG_SRC" >> "$CHANGELOG_DEST"
-  echo -e "${GREEN}  Changelog synced to docs site${NC}"
+# Generate changelog timeline data
+if [[ -f "$SCRIPT_DIR/generate-changelog-data.js" ]]; then
+    node "$SCRIPT_DIR/generate-changelog-data.js" 2>/dev/null || echo -e "${YELLOW}  generate-changelog-data.js failed, skipping${NC}"
+else
+    echo -e "${YELLOW}  generate-changelog-data.js not found, skipping${NC}"
 fi
 
 echo ""

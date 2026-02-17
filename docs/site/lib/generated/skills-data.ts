@@ -47,7 +47,8 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": [
       "accessibility-specialist",
-      "frontend-ui-developer"
+      "frontend-ui-developer",
+      "ui-feedback"
     ]
   },
   "agent-orchestration": {
@@ -546,9 +547,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "allowedTools": [],
     "skills": [],
     "agent": "web-research-analyst",
-    "structure": {
-      "references": []
-    },
+    "structure": {},
     "plugins": [
       "ork",
       "orkl"
@@ -1218,7 +1217,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "orkl"
     ],
     "relatedAgents": [
-      "debug-investigator"
+      "debug-investigator",
+      "ui-feedback"
     ]
   },
   "git-workflow": {
@@ -1726,6 +1726,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "security-layer-auditor",
       "system-design-reviewer",
       "test-generator",
+      "ui-feedback",
       "ux-researcher",
       "web-research-analyst",
       "workflow-architect"
@@ -2408,6 +2409,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "security-layer-auditor",
       "system-design-reviewer",
       "test-generator",
+      "ui-feedback",
       "ux-researcher",
       "web-research-analyst",
       "workflow-architect"
@@ -2701,6 +2703,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "release-engineer",
       "security-auditor",
       "test-generator",
+      "ui-feedback",
       "workflow-architect"
     ]
   },
@@ -2859,6 +2862,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "accessibility-specialist",
       "frontend-ui-developer",
       "rapid-ui-designer",
+      "ui-feedback",
       "ux-researcher"
     ]
   },

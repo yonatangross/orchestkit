@@ -21,6 +21,11 @@
       "command": "sh",
       "args": ["-c", "TAVILY_API_KEY=$(op read 'op://Private/Tavily API Key/API Key') exec npx -y tavily-mcp@latest"],
       "disabled": false
+    },
+    "agentation": {
+      "command": "npx",
+      "args": ["-y", "agentation-mcp", "server"],
+      "disabled": false
     }
   }
 }

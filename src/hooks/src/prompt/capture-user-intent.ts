@@ -48,6 +48,22 @@ import { join, dirname, basename } from 'node:path';
 const HOOK_NAME = 'capture-user-intent';
 const MIN_PROMPT_LENGTH = 15; // Skip very short prompts
 
+/**
+ * Detect system-generated messages that shouldn't be captured as user intent.
+ * CC/tooling warnings, error messages, and other non-user text.
+ */
+function isSystemMessage(prompt: string): boolean {
+  const SYSTEM_PATTERNS = [
+    /^⚠\s*Warning:/i,
+    /selected the directory of/i,
+    /inferred your workspace/i,
+    /^Error:/i,
+    /^\[stderr\]/i,
+    /detected multiple lockfiles/i,
+  ];
+  return SYSTEM_PATTERNS.some(p => p.test(prompt));
+}
+
 // =============================================================================
 // STORAGE TYPES
 // =============================================================================
@@ -268,6 +284,11 @@ export function captureUserIntent(input: HookInput): HookResult {
   }
   if (prompt.length > 500 && isImageOrBinaryPrompt(prompt)) {
     logHook(HOOK_NAME, `Image/binary content detected (${prompt.length} chars), skipping intent capture`);
+    return outputSilentSuccess();
+  }
+
+  // Guard: skip system-generated messages that aren't actual user intent
+  if (isSystemMessage(prompt)) {
     return outputSilentSuccess();
   }
 

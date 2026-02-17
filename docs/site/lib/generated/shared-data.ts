@@ -6,8 +6,8 @@ import type { Totals, AgentSummary, CategoryMeta } from "./types";
 export const TOTALS: Totals = {
   "plugins": 3,
   "skills": 62,
-  "agents": 36,
-  "hooks": 89,
+  "agents": 37,
+  "hooks": 86,
   "commands": 24,
   "compositions": 14
 };
@@ -343,6 +343,16 @@ export const AGENTS: AgentSummary[] = [
     ],
     "model": "sonnet",
     "category": "testing"
+  },
+  {
+    "name": "ui-feedback",
+    "description": "Processes UI annotations from agentation. Watches for new annotations, maps element paths to source code, implements fixes, and resolves annotations with summaries.",
+    "plugins": [
+      "ork",
+      "orkl"
+    ],
+    "model": "sonnet",
+    "category": "development"
   },
   {
     "name": "ux-researcher",
