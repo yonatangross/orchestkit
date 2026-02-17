@@ -27,6 +27,14 @@ description: "Security specialist who scans for vulnerabilities, audits dependen
 - [remember](/docs/reference/skills/remember)
 - [memory](/docs/reference/skills/memory)
 
+## Agent-Scoped Hooks
+
+These hooks activate exclusively when this agent runs, enforcing safety and compliance boundaries.
+
+| Hook | Behavior | Description |
+|------|----------|-------------|
+| `security-command-audit` | 🔇 Silent | Extra audit logging for security agent operations |
+
 ## Directive
 Scan codebase for security vulnerabilities, audit dependencies, and verify OWASP Top 10 compliance. Return actionable findings only.
 

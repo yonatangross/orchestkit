@@ -1,0 +1,71 @@
+---
+title: "Stop Pipeline"
+description: "Runs 23 cleanup hooks in a detached background process after session exit"
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+
+<span className="badge badge-orange">Fire-and-forget</span> <span className="badge badge-gray">Global</span>
+
+> Ensures session cleanup hooks run without blocking Claude Code exit, by spawning a detached background worker that processes all 23 Stop hooks in parallel.
+
+## When It Fires
+
+**Event:** Stop · **Trigger:** Claude Code session ends
+
+## What It Does
+
+When a Claude Code session ends, the Stop event fires. Rather than running 23 hooks synchronously (which would delay exit by several seconds), OrchestKit uses a **fire-and-forget** pattern: the hook entry point writes the input to a temp file, spawns a detached background worker, and immediately returns --- allowing Claude Code to exit in milliseconds.
+
+The pipeline has two components:
+
+### 1. Entry Point (`stop-fire-and-forget.mjs`)
+
+- Reads the hook input from stdin
+- Writes it to `.claude/hooks/pending/stop-<uuid>.json`
+- Spawns `background-worker.mjs` as a **detached process** (`stdio: 'ignore'`, `child.unref()`)
+- Returns `{ continue: true, suppressOutput: true }` immediately
+
+### 2. Background Worker (`background-worker.mjs`)
+
+- Reads the work file, then deletes it immediately
+- Routes to the appropriate dispatcher (the `stop` dispatcher in this case)
+- Runs all 23 hooks via `Promise.allSettled` in parallel
+- Logs results to `.claude/logs/hooks/background-worker.log`
+- Self-terminates after 5 minutes if stuck
+- Cleans up orphaned temp files older than 10 minutes
+
+## Hooks in the Stop Dispatcher
+
+The unified stop dispatcher runs these hooks in parallel:
+
+**Core session hooks:**
+- `auto-save-context`, `session-patterns`, `issue-work-summary`
+- `calibration-persist`, `session-profile-aggregator`, `session-end-tracking`
+
+**Memory and instance management:**
+- `workflow-preference-learner`, `task-completion-check`
+
+**Analysis hooks:**
+- `context-compressor`, `auto-remember-continuity`, `security-scan-aggregator`
+
+**Skill validation hooks:**
+- `coverage-check`, `evidence-collector`, `coverage-threshold-gate`
+- `cross-instance-test-validator`, `di-pattern-enforcer`, `duplicate-code-detector`
+- `eval-metrics-collector`, `migration-validator`, `review-summary-generator`
+- `security-summary`, `test-pattern-validator`, `test-runner`
+
+**Heavy analysis (runs last):**
+- `full-test-suite`
+
+<Callout type="warn">
+The stop dispatcher includes **re-entry prevention**: if `input.stop_hook_active` is true, it skips all hooks to avoid infinite recursion.
+</Callout>
+
+## Configuration
+
+This hook has no user-configurable options. The background worker timeout is hardcoded at 5 minutes.
+
+## Related Hooks
+
+- [unified-dispatchers](/docs/hooks/spotlights/unified-dispatchers) --- the background worker also serves other fire-and-forget events (posttool, lifecycle, notification, etc.)

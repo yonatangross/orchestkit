@@ -1,0 +1,13 @@
+{
+  "title": "Spotlights",
+  "pages": [
+    "dangerous-command-blocker",
+    "file-guard",
+    "unified-advisory-dispatcher",
+    "stop-pipeline",
+    "memory-validator",
+    "block-writes",
+    "pattern-consistency-enforcer",
+    "unified-dispatchers"
+  ]
+}

@@ -3,9 +3,11 @@
   "icon": "Webhook",
   "pages": [
     "overview",
+    "architecture",
     "lifecycle-hooks",
     "safety-hooks",
     "memory-hooks",
-    "writing-hooks"
+    "writing-hooks",
+    "...spotlights"
   ]
 }

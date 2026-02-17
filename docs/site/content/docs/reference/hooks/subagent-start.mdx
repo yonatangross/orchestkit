@@ -7,12 +7,12 @@ description: "Hooks triggered on SubagentStart events (7 hooks)."
 
 **7 hooks** registered for the `SubagentStart` lifecycle event.
 
-| Hook | Matcher | Scope | Notes |
-|------|---------|-------|-------|
-| `subagent-context-stager` | `*` | Global |  |
-| `graph-memory-inject` | `*` | Global |  |
-| `subagent-validator` | `*` | Global |  |
-| `context-gate` | `*` | Global |  |
-| `task-linker` | `*` | Global |  |
-| `model-cost-advisor` | `*` | Global |  |
-| `issue-context-injector` | `*` | Global |  |
+| Hook | Matcher | Behavior | Description |
+|------|---------|----------|-------------|
+| `subagent-context-stager` | `*` | 🔇 Silent | This hook: |
+| `graph-memory-inject` | `*` | 💡 Injects | Injects graph-based memory context before agent spawn. |
+| `subagent-validator` | `*` | 🔇 Silent | SubagentStart Hook (PreToolUse for Task) |
+| `context-gate` | `*` | 🛑 Blocks | Prevents context overflow by limiting concurrent background agents. |
+| `task-linker` | `*` | 💡 Injects | SubagentStart Hook for CC 2.1.16 Task Integration |
+| `model-cost-advisor` | `*` | 🔇 Silent | Analyzes task complexity and recommends optimal model for cost savings. |
+| `issue-context-injector` | `*` | 🔇 Silent | — |

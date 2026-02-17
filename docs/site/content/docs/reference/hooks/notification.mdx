@@ -7,7 +7,7 @@ description: "Hooks triggered on Notification events (2 hooks)."
 
 **2 hooks** registered for the `Notification` lifecycle event.
 
-| Hook | Matcher | Scope | Notes |
-|------|---------|-------|-------|
-| `unified-dispatcher` | `*` | Global |  |
-| `sound` | `permission_prompt|idle_prompt|auth_success` | Global |  |
+| Hook | Matcher | Behavior | Description |
+|------|---------|----------|-------------|
+| `unified-dispatcher` | `*` | 🔥 Fire-and-forget | Consolidates 2 async Notification hooks into a single dispatcher. |
+| `sound` | `permission_prompt\|idle_prompt\|auth_success` | 🔥 Fire-and-forget | Plays sounds for task completion. |

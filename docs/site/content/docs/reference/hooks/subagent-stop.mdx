@@ -7,12 +7,12 @@ description: "Hooks triggered on SubagentStop events (7 hooks)."
 
 **7 hooks** registered for the `SubagentStop` lifecycle event.
 
-| Hook | Matcher | Scope | Notes |
-|------|---------|-------|-------|
-| `unified-dispatcher` | `*` | Global |  |
-| `output-validator` | `*` | Global |  |
-| `auto-spawn-quality` | `*` | Global |  |
-| `multi-claude-verifier` | `*` | Global |  |
-| `subagent-quality-gate` | `*` | Global |  |
-| `task-completer` | `*` | Global |  |
-| `retry-handler` | `*` | Global |  |
+| Hook | Matcher | Behavior | Description |
+|------|---------|----------|-------------|
+| `unified-dispatcher` | `*` | 🔥 Fire-and-forget | Consolidates 4 async SubagentStop hooks into a single dispatcher. |
+| `output-validator` | `*` | 🛑 Blocks | Validates agent output quality and completeness. |
+| `auto-spawn-quality` | `*` | 🔇 Silent | — |
+| `multi-claude-verifier` | `*` | 🔇 Silent | — |
+| `subagent-quality-gate` | `*` | 🔇 Silent | Validates subagent output quality. |
+| `task-completer` | `*` | 💡 Injects | SubagentStop Hook for CC 2.1.16 Task Integration |
+| `retry-handler` | `*` | 💡 Injects | SubagentStop Hook for Failed Agent Retry Logic |

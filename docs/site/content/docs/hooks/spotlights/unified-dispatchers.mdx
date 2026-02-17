@@ -1,0 +1,82 @@
+---
+title: "Unified Dispatchers"
+description: "How one hooks.json entry fans out to many internal hooks across 7 events"
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+
+<span className="badge badge-blue">Injects</span> <span className="badge badge-gray">Global</span>
+
+> OrchestKit consolidates 86 hooks into a small number of hooks.json entries using unified dispatchers --- single entry points that route to many internal hooks.
+
+## The Pattern
+
+Without dispatchers, every hook would need its own entry in `hooks.json`, meaning Claude Code would spawn a separate Node.js process for each one. With 86 hooks, that would add significant latency to every tool call.
+
+The unified dispatcher pattern solves this:
+
+1. **One hooks.json entry** registers a single command per event type
+2. **One process spawn** executes the dispatcher
+3. **The dispatcher** imports and runs multiple hook functions in-process
+4. **Results are merged** into a single response (context injection, input modification, or denial)
+
+## Dispatcher Registry
+
+| Event | Dispatcher | Internal Hooks | Behavior |
+|-------|-----------|----------------|----------|
+| PreToolUse (Bash) | `unified-advisory-dispatcher` | 8 hooks | Budget-capped context injection (800 tokens) |
+| PreToolUse (Write/Edit) | `unified-quality-dispatcher` | Quality checks on file writes |  Context + blocking |
+| PreToolUse (Task) | `unified-agent-safety-dispatcher` | Agent safety checks for task delegation | Context + blocking |
+| PostToolUse | `unified-dispatcher` | Post-execution analysis hooks | Silent (fire-and-forget) |
+| PostToolUse (Write) | `unified-write-quality-dispatcher` | Post-write quality analysis | Context injection |
+| Stop | `unified-stop-dispatcher` | 23 hooks | Fire-and-forget via background worker |
+| UserPromptSubmit | `unified-dispatcher` | Prompt analysis and context injection | Context injection |
+| Lifecycle (SessionStart) | `unified-dispatcher` | Session initialization hooks | Silent (fire-and-forget) |
+| SubagentStop | `unified-dispatcher` | Subagent cleanup hooks | Silent (fire-and-forget) |
+| Notification | `unified-dispatcher` | Notification processing hooks | Silent (fire-and-forget) |
+| Setup | `unified-dispatcher` | One-time setup hooks | Silent (fire-and-forget) |
+
+## Execution Modes
+
+Dispatchers use two execution strategies depending on the event type:
+
+### Synchronous (PreToolUse, UserPromptSubmit)
+
+These dispatchers run hooks sequentially and return a merged result. They can:
+- **Block** the tool call (return `continue: false`)
+- **Inject context** (return `additionalContext`)
+- **Modify input** (return `updatedInput`)
+
+The dispatcher stops early if any hook blocks.
+
+### Fire-and-Forget (Stop, PostToolUse, Lifecycle, SubagentStop, Notification, Setup)
+
+These dispatchers are launched via `background-worker.mjs` as detached processes. The hooks.json entry returns immediately while the background worker:
+- Reads work from a temp file in `.claude/hooks/pending/`
+- Routes to the correct dispatcher via a registry
+- Runs all hooks via `Promise.allSettled`
+- Self-terminates after 5 minutes
+- Cleans up orphaned temp files older than 10 minutes
+
+<Callout type="info">
+Security-critical hooks (`dangerous-command-blocker`, `compound-command-validator`, `file-guard`) are **never** part of a dispatcher. They run as standalone entries to guarantee they can block before any other logic.
+</Callout>
+
+## Why Not One Giant Dispatcher?
+
+Separating dispatchers by event type provides:
+
+- **Isolation** --- a crash in post-tool hooks cannot affect pre-tool blocking
+- **Clarity** --- each dispatcher file lists exactly which hooks it manages
+- **Testability** --- each dispatcher has its own test file with focused assertions
+- **Budget control** --- different events have different token budgets and merging strategies
+
+## Configuration
+
+Dispatchers have no user-configurable options. The hook registry for each dispatcher is defined in its source file.
+
+## Related Hooks
+
+- [dangerous-command-blocker](/docs/hooks/spotlights/dangerous-command-blocker) --- standalone security hook (not in any dispatcher)
+- [stop-pipeline](/docs/hooks/spotlights/stop-pipeline) --- deep dive into the fire-and-forget stop dispatcher
+- [unified-advisory-dispatcher](/docs/hooks/spotlights/unified-advisory-dispatcher) --- deep dive into the PreToolUse Bash dispatcher

@@ -149,6 +149,15 @@
 }
 
 /* ============================================================
+   INLINE CODE IN TABLES — Prevent line-breaking at hyphens
+   ============================================================ */
+
+:where(table) :is(td, th) code {
+  white-space: nowrap;
+  word-break: keep-all;
+}
+
+/* ============================================================
    CODE BLOCKS — Let Fumadocs handle base styling via fd-* tokens.
    Only add contrast lift (card color) so blocks stand out from page bg.
    ============================================================ */

@@ -12,7 +12,7 @@ Generates skills, agents, and hooks reference pages.
 import json
 import os
 import re
-import sys
+
 from pathlib import Path
 
 
@@ -275,7 +275,6 @@ def generate_skills(skills_src: str, skills_out: str) -> int:
         text = skill_file.read_text(encoding="utf-8")
         meta, body = parse_frontmatter(text)
 
-        name = meta.get("name", slug)
         description = meta.get("description", "")
         user_invocable = meta.get("user-invocable", False)
         complexity = meta.get("complexity", "")
@@ -379,12 +378,69 @@ def generate_skills(skills_src: str, skills_out: str) -> int:
 # AGENTS
 # ---------------------------------------------------------------------------
 
+def build_agent_hooks_map(project_root: str) -> dict[str, list[dict]]:
+    """Scan src/hooks/src/agent/*.ts and build a mapping of agent_slug -> [hook_info].
+
+    Parses "Used by:" lines in TSDoc to find which agents each hook applies to.
+    Returns e.g. {"debug-investigator": [{"hook": "block-writes", "description": "...", "behavior": "blocks"}], ...}
+    """
+    agent_hooks_dir = Path(project_root) / "src" / "hooks" / "src" / "agent"
+    if not agent_hooks_dir.is_dir():
+        return {}
+
+    agent_map: dict[str, list[dict]] = {}
+
+    for ts_file in sorted(agent_hooks_dir.glob("*.ts")):
+        source = ts_file.read_text(encoding="utf-8")
+        hook_name = ts_file.stem
+
+        # Extract "Used by:" from TSDoc, handling multiline continuation
+        # Matches "Used by: name1, name2,\n *          name3, name4"
+        used_by_match = re.search(
+            r"Used by:\s*(.+?)(?:\n\s*\*\s*\n|\n\s*\*\s*[A-Z]|\*/)",
+            source, re.DOTALL,
+        )
+        if not used_by_match:
+            continue
+
+        # Clean up multiline: remove " * " continuation markers
+        used_by_text = re.sub(r"\n\s*\*\s*", " ", used_by_match.group(1)).strip()
+        # Split by commas and clean up
+        agent_names = []
+        for part in re.split(r",\s*", used_by_text):
+            # Remove trailing "agent", "agents", etc.
+            name = re.sub(r"\s+agents?\s*$", "", part.strip())
+            if name:
+                agent_names.append(name)
+
+        # Extract description from TSDoc
+        description = _extract_jsdoc_description(source)
+
+        # Detect behavior
+        behavior = _detect_behavior(source, "")
+
+        hook_info = {
+            "hook": hook_name,
+            "description": description,
+            "behavior": behavior,
+        }
+
+        for agent_name in agent_names:
+            agent_map.setdefault(agent_name, []).append(hook_info)
+
+    return agent_map
+
+
 def generate_agents(agents_src: str, agents_out: str) -> int:
     """Generate agent MDX pages. Returns count."""
     agents_dir = Path(agents_src)
     out_dir = Path(agents_out)
     index_rows = []
     slugs = []
+
+    # Build agent-scoped hooks mapping
+    project_root = os.environ.get("PROJECT_ROOT", "")
+    agent_hooks_map = build_agent_hooks_map(project_root) if project_root else {}
 
     agent_files = sorted(agents_dir.glob("*.md"))
     count = len(agent_files)
@@ -396,7 +452,6 @@ def generate_agents(agents_src: str, agents_out: str) -> int:
         text = agent_file.read_text(encoding="utf-8")
         meta, body = parse_frontmatter(text)
 
-        name = meta.get("name", slug)
         description = meta.get("description", "")
         model = meta.get("model", "")
         category = meta.get("category", "")
@@ -473,6 +528,26 @@ def generate_agents(agents_src: str, agents_out: str) -> int:
                     lines.append(f"- [{sk}](/docs/reference/skills/{sk})")
             lines.append("")
 
+        # Agent-scoped hooks cross-links
+        agent_hooks = agent_hooks_map.get(slug, [])
+        if agent_hooks:
+            lines.append("## Agent-Scoped Hooks")
+            lines.append("")
+            lines.append(
+                "These hooks activate exclusively when this agent runs, "
+                "enforcing safety and compliance boundaries."
+            )
+            lines.append("")
+            lines.append("| Hook | Behavior | Description |")
+            lines.append("|------|----------|-------------|")
+            for ah in agent_hooks:
+                badge = BEHAVIOR_BADGES.get(ah["behavior"], ah["behavior"])
+                desc = ah["description"] or "\u2014"
+                lines.append(
+                    f"| `{ah['hook']}` | {badge} | {desc} |"
+                )
+            lines.append("")
+
         lines.append(sanitize_mdx_body(body))
 
         out_file = out_dir / f"{slug}.mdx"
@@ -542,6 +617,126 @@ def scope_from_path(hook_path: str) -> str:
     return "Global"
 
 
+# Behavior badge labels
+BEHAVIOR_BADGES = {
+    "blocks": "\U0001f6d1 Blocks",
+    "injects": "\U0001f4a1 Injects",
+    "silent": "\U0001f507 Silent",
+    "fire-and-forget": "\U0001f525 Fire-and-forget",
+}
+
+
+def _find_hook_ts_file(hooks_src_dir: Path, hook_path: str) -> Path | None:
+    """Resolve a hook path (e.g. 'pretool/bash/dangerous-command-blocker') to its .ts source."""
+    ts_file = hooks_src_dir / f"{hook_path}.ts"
+    if ts_file.is_file():
+        return ts_file
+    return None
+
+
+def _extract_jsdoc_description(source: str) -> str:
+    """Extract the first meaningful description line from a JSDoc comment block.
+
+    Skips the title line (typically 'Name - HookType Hook') and CC compliance lines.
+    """
+    match = re.match(r"/\*\*(.*?)\*/", source, re.DOTALL)
+    if not match:
+        return ""
+
+    comment_body = match.group(1)
+    lines = [
+        line.strip().lstrip("* ").strip()
+        for line in comment_body.split("\n")
+    ]
+    # Filter to non-empty lines
+    lines = [l for l in lines if l]
+
+    for line in lines:
+        # Title line with hook type: "Name - PreToolUse Hook" or "Name - Dispatcher"
+        if re.match(r".+ - .+(Hook|Dispatcher)$", line, re.IGNORECASE):
+            continue
+        # Bare title line ending with Hook/Dispatcher (no " - ")
+        if re.match(r".+(Hook|Dispatcher)$", line) and lines.index(line) == 0:
+            continue
+        # Title line with description: "Name - Does something useful"
+        # Extract the part after " - " as the description
+        title_desc = re.match(r".+ - (.+)", line)
+        if title_desc and lines.index(line) == 0:
+            return title_desc.group(1)
+        # Skip CC compliance lines
+        if re.match(r"CC \d", line):
+            continue
+        # Skip Hook: lines
+        if re.match(r"Hook:", line):
+            continue
+        # Skip Version: lines
+        if re.match(r"Version:", line):
+            continue
+        # Skip Issue references: "Issue #235: Hook Architecture Refactor"
+        if re.match(r"Issue #\d+", line):
+            continue
+        # Skip SECURITY: or Purpose: or Hooks consolidated here: style headers
+        if re.match(r"(SECURITY|Purpose|Hooks consolidated|NOT consolidated|Created):", line):
+            continue
+        # Skip list items (sub-hook descriptions in dispatchers)
+        if line.startswith("- "):
+            continue
+        # Skip numbered items
+        if re.match(r"\d+\.", line):
+            continue
+        # Found a real description line
+        return line
+
+    return ""
+
+
+def _detect_behavior(source: str, command: str) -> str:
+    """Detect hook behavior type from source code and command string.
+
+    Returns: 'blocks', 'injects', 'silent', or 'fire-and-forget'.
+    """
+    # Fire-and-forget: uses run-hook-silent.mjs
+    if "run-hook-silent.mjs" in command:
+        return "fire-and-forget"
+
+    # Blocks: has continue: false or outputDeny
+    if re.search(r"continue\s*:\s*false", source) or "outputDeny" in source:
+        return "blocks"
+
+    # Injects: produces additionalContext
+    if "additionalContext" in source or "outputAllowWithContext" in source:
+        return "injects"
+
+    # Silent: suppressOutput or outputSilentSuccess without blocking/injecting
+    if "suppressOutput" in source or "outputSilentSuccess" in source:
+        return "silent"
+
+    return "silent"
+
+
+def extract_hook_metadata(hooks_src_dir: Path, hook_path: str, command: str) -> dict:
+    """Extract TSDoc description and behavior type from hook TypeScript source.
+
+    Args:
+        hooks_src_dir: Path to src/hooks/src/
+        hook_path: Hook path like 'pretool/bash/dangerous-command-blocker'
+        command: Full command string from hooks.json
+
+    Returns:
+        {"description": "...", "behavior": "blocks|injects|silent|fire-and-forget"}
+    """
+    ts_file = _find_hook_ts_file(hooks_src_dir, hook_path)
+    if not ts_file:
+        # Fallback: detect behavior from command alone
+        behavior = "fire-and-forget" if "run-hook-silent.mjs" in command else "silent"
+        return {"description": "", "behavior": behavior}
+
+    source = ts_file.read_text(encoding="utf-8")
+    description = _extract_jsdoc_description(source)
+    behavior = _detect_behavior(source, command)
+    return {"description": description, "behavior": behavior}
+
+
 def generate_hooks(hooks_json: str, hooks_out: str) -> int:
     """Generate hook category MDX pages. Returns total hook count."""
     print("Generating hook category pages...")
@@ -554,6 +749,10 @@ def generate_hooks(hooks_json: str, hooks_out: str) -> int:
     total_hooks = 0
     out_dir = Path(hooks_out)
 
+    # Resolve hooks source directory for TSDoc extraction
+    project_root = os.environ.get("PROJECT_ROOT", "")
+    hooks_src_dir = Path(project_root) / "src" / "hooks" / "src" if project_root else None
+
     category_pages = {}
     for cat in categories:
         matchers = hooks_data[cat]
@@ -564,13 +763,21 @@ def generate_hooks(hooks_json: str, hooks_out: str) -> int:
                 cmd = h.get("command", "")
                 hook_path, hook_name = hook_name_from_command(cmd)
                 scope = scope_from_path(hook_path)
-                once = "once" if h.get("once", False) else ""
+
+                # Extract TSDoc metadata
+                if hooks_src_dir and hooks_src_dir.is_dir():
+                    meta = extract_hook_metadata(hooks_src_dir, hook_path, cmd)
+                else:
+                    behavior = "fire-and-forget" if "run-hook-silent.mjs" in cmd else "silent"
+                    meta = {"description": "", "behavior": behavior}
+
                 rows.append({
                     "name": hook_name,
                     "path": hook_path,
                     "matcher": matcher_name,
                     "scope": scope,
-                    "once": once,
+                    "behavior": meta["behavior"],
+                    "description": meta["description"],
                 })
                 total_hooks += 1
         category_pages[cat] = rows
@@ -594,11 +801,14 @@ def generate_hooks(hooks_json: str, hooks_out: str) -> int:
         ]
 
         if rows:
-            lines.append("| Hook | Matcher | Scope | Notes |")
-            lines.append("|------|---------|-------|-------|")
+            lines.append("| Hook | Matcher | Behavior | Description |")
+            lines.append("|------|---------|----------|-------------|")
             for r in rows:
+                badge = BEHAVIOR_BADGES.get(r["behavior"], r["behavior"])
+                desc = r["description"].replace("|", "\\|") if r["description"] else "\u2014"
+                matcher_escaped = r["matcher"].replace("|", "\\|")
                 lines.append(
-                    f"| `{r['name']}` | `{r['matcher']}` | {r['scope']} | {r['once']} |"
+                    f"| `{r['name']}` | `{matcher_escaped}` | {badge} | {desc} |"
                 )
         else:
             lines.append("*No hooks registered for this event.*")
@@ -629,8 +839,16 @@ def generate_hooks(hooks_json: str, hooks_out: str) -> int:
         )
     (out_dir / "index.mdx").write_text("\n".join(index_lines) + "\n", encoding="utf-8")
 
-    # meta.json
-    pages = ["index"] + [s for s, _, _ in cat_slugs]
+    # Generate spotlights directory structure
+    spotlights_dir = out_dir / "spotlights"
+    spotlights_dir.mkdir(parents=True, exist_ok=True)
+    spotlights_meta = {"title": "Spotlights", "pages": []}
+    (spotlights_dir / "meta.json").write_text(
+        json.dumps(spotlights_meta, indent=2) + "\n", encoding="utf-8"
+    )
+
+    # meta.json — include spotlights section
+    pages = ["index"] + [s for s, _, _ in cat_slugs] + ["spotlights"]
     (out_dir / "meta.json").write_text(
         json.dumps({"title": "Hooks", "pages": pages}, indent=2) + "\n",
         encoding="utf-8",

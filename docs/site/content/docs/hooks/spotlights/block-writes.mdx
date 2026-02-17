@@ -1,0 +1,55 @@
+---
+title: "Block Writes"
+description: "Enforces read-only boundaries for investigation and review agents"
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+
+<span className="badge badge-red">Blocks</span> <span className="badge badge-purple">Agent-scoped</span>
+
+> Prevents Write, Edit, MultiEdit, and NotebookEdit operations for agents that should only investigate and report --- never modify code.
+
+## When It Fires
+
+**Event:** PreToolUse · **Matcher:** `Write`, `Edit`, `MultiEdit`, `NotebookEdit` · **Scope:** Agent-specific
+
+This hook is registered in hooks.json with agent-specific matchers, so it only fires for designated read-only agents.
+
+## What It Does
+
+When a read-only agent attempts any write operation, the hook returns a hard denial. Claude sees a message identifying the agent and explaining that it is read-only:
+
+```
+BLOCKED: Agent 'debug-investigator' is read-only.
+Write/Edit operations are not permitted.
+This agent investigates and reports - it does not modify code.
+```
+
+The agent name is read from the `CLAUDE_AGENT_ID` environment variable. All non-write tools (Bash, Read, Grep, Glob, WebFetch, etc.) are allowed through.
+
+## Agents Using This Hook
+
+| Agent | Purpose |
+|-------|---------|
+| `debug-investigator` | Investigates bugs without modifying code |
+| `code-quality-reviewer` | Reviews code quality, reports findings only |
+| `ux-researcher` | Analyzes UX patterns, no code changes |
+| `market-intelligence` | Gathers market/competitive intelligence |
+| `system-design-reviewer` | Reviews architecture decisions |
+
+## Blocked Tools
+
+The following tool names are intercepted and denied:
+
+- **Write** --- creating new files
+- **Edit** --- modifying existing files
+- **MultiEdit** --- batch file modifications
+- **NotebookEdit** --- Jupyter notebook cell edits
+
+## Configuration
+
+This hook has no user-configurable options. To change which agents are read-only, modify the agent-scoped hook entries in `hooks.json`.
+
+## Related Hooks
+
+- [file-guard](/docs/hooks/spotlights/file-guard) --- global file protection (complements block-writes for all agents)
