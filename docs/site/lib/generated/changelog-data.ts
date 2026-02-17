@@ -17,9 +17,25 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "6.0.18",
+    "date": "2026-02-17",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v6.0.17...v6.0.18",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "Sync `package.json` version from 6.0.12 to 6.0.18 (was drifted from manifests)",
+          "Create 19 missing git tags for all historical versions (v5.2.4 through v6.0.17)",
+          "Fix all changelog compare links to resolve to valid tag comparisons",
+          "Update `[Unreleased]` link to point to `v6.0.18...HEAD`"
+        ]
+      }
+    ]
+  },
+  {
     "version": "6.0.17",
     "date": "2026-02-17",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v6.0.16...v6.0.17",
     "sections": [
       {
         "type": "added",
@@ -109,7 +125,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "6.0.13",
     "date": "2026-02-15",
-    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v6.0.11...v6.0.13",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v6.0.12...v6.0.13",
     "sections": [
       {
         "type": "fixed",
@@ -153,7 +169,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "6.0.9",
     "date": "2026-02-15",
-    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v6.0.7...v6.0.9",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v6.0.8...v6.0.9",
     "sections": [
       {
         "type": "fixed",
@@ -274,7 +290,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "6.0.4",
     "date": "2026-02-13",
-    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v6.0.3...v6.0.4",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v6.0.2...v6.0.4",
     "sections": [
       {
         "type": "fixed",
@@ -328,7 +344,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "6.0.2",
     "date": "2026-02-06",
-    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v6.0.1...v6.0.2",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v6.0.0...v6.0.2",
     "sections": [
       {
         "type": "added",
@@ -421,7 +437,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "6.0.0",
     "date": "2026-02-04",
-    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v5.7.5...v6.0.0",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v5.7.1...v6.0.0",
     "sections": [
       {
         "type": "changed",
@@ -455,7 +471,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "5.7.5",
     "date": "2026-02-04",
-    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v5.7.3...v5.7.5",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v5.7.1...v5.7.5",
     "sections": [
       {
         "type": "fixed",
@@ -566,7 +582,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "5.7.0",
     "date": "2026-02-02",
-    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v5.6.2...v5.7.0",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v5.5.0...v5.7.0",
     "sections": [
       {
         "type": "changed",
