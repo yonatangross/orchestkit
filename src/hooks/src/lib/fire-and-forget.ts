@@ -15,11 +15,18 @@
 import { spawn } from 'node:child_process';
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
+import { tmpdir } from 'node:os';
 import { randomUUID } from 'node:crypto';
 import type { HookInput } from '../types.js';
 
+const IS_WINDOWS = process.platform === 'win32';
+
 // Get temp directory for work items
+// Issue #648: On Windows, use os.tmpdir() to avoid MAX_PATH (260 char) issues
 function getTempDir(): string {
+  if (IS_WINDOWS) {
+    return join(tmpdir(), 'orchestkit-hooks', 'pending');
+  }
   const projectDir = process.env.CLAUDE_PROJECT_DIR || process.cwd();
   const tempDir = join(projectDir, '.claude', 'hooks', 'pending');
   return tempDir;
@@ -55,11 +62,14 @@ export function fireAndForget(hookName: string, input: HookInput): void {
       timestamp: Date.now()
     }));
 
-    // Spawn detached worker
+    // Spawn background worker
+    // Issue #648: On Windows, detached: true opens a visible console window.
+    // unref() alone is sufficient to let the parent exit on all platforms.
     const workerPath = getWorkerPath();
     const child = spawn('node', [workerPath, workFile], {
-      detached: true,
+      detached: !IS_WINDOWS,
       stdio: 'ignore',
+      windowsHide: true,
       env: {
         ...process.env,
         ORCHESTKIT_WORK_FILE: workFile,

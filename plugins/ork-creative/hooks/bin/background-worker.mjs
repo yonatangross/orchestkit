@@ -12,7 +12,10 @@
 
 import { readFileSync, unlinkSync, existsSync, readdirSync, statSync, appendFileSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
+import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
+
+const IS_WINDOWS = process.platform === 'win32';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -38,10 +41,12 @@ function logToFile(message) {
 }
 
 // Clean up orphaned temp files (older than 10 minutes)
+// Issue #648: On Windows, temp files are in os.tmpdir() to avoid MAX_PATH
 function cleanupOrphanedFiles() {
   try {
-    const projectDir = process.env.CLAUDE_PROJECT_DIR || process.cwd();
-    const pendingDir = join(projectDir, '.claude', 'hooks', 'pending');
+    const pendingDir = IS_WINDOWS
+      ? join(tmpdir(), 'orchestkit-hooks', 'pending')
+      : join(process.env.CLAUDE_PROJECT_DIR || process.cwd(), '.claude', 'hooks', 'pending');
     if (!existsSync(pendingDir)) return;
 
     const now = Date.now();
