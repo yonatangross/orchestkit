@@ -417,6 +417,25 @@ async function fetchWithProblemDetails(url: string): Promise<Response> {
 | 429 | `rate-limit-exceeded` | Too many requests |
 | 500 | `internal-error` | Unexpected error |
 
+**Incorrect — Ad-hoc error creation:**
+```python
+# Different format every endpoint
+raise HTTPException(404, detail="Not found")
+raise HTTPException(404, detail={"error": "Missing"})
+return JSONResponse({"message": "No such resource"}, 404)
+```
+
+**Correct — Centralized error catalog:**
+```python
+# Consistent use of problem types
+raise NotFoundProblem(
+    resource="Analysis",
+    resource_id=analysis_id,
+    instance=str(request.url)
+)
+# Always returns: application/problem+json with standard fields
+```
+
 **Key rules:**
 - Define all problem type URIs in a centralized registry
 - Create specific exception subclasses for each problem type
@@ -584,6 +603,28 @@ return {"message": "Validation failed"}  # Yet another format
 return {"detail": str(exc), "traceback": traceback.format_exc()}
 ```
 
+**Incorrect — Inconsistent error formats:**
+```python
+# Different structure every time
+return {"error": "Not found"}
+return {"message": "Validation failed", "fields": [...]}
+return Response("Internal error", 500)
+```
+
+**Correct — RFC 9457 Problem Details:**
+```python
+# Consistent RFC 9457 format
+return JSONResponse(
+    content={
+        "type": "https://api.example.com/problems/validation-error",
+        "title": "Validation Error",
+        "status": 422,
+        "errors": [{"field": "url", "message": "Invalid format"}]
+    },
+    media_type="application/problem+json"
+)
+```
+
 **Key rules:**
 - Always use `application/problem+json` media type for error responses
 - Include `type` (URI) and `status` (HTTP code) as required fields
@@ -726,6 +767,25 @@ async def test_validation_error_includes_field_errors(client: AsyncClient):
     assert problem["type"].endswith("validation-error")
     assert "errors" in problem
     assert any(e["field"] == "url" for e in problem["errors"])
+```
+
+**Incorrect — Generic validation error:**
+```python
+# No field-level details
+return {"error": "Validation failed"}, 422
+```
+
+**Correct — Field-level validation errors:**
+```python
+# Specific field errors
+return {
+    "type": "https://api.example.com/problems/validation-error",
+    "status": 422,
+    "errors": [
+        {"field": "url", "code": "url_parsing", "message": "Invalid URL format"},
+        {"field": "depth", "code": "less_than_equal", "message": "Must be between 1 and 3"}
+    ]
+}, 422
 ```
 
 **Key rules:**
@@ -905,6 +965,28 @@ class AnalyzeRequest(BaseModel):
     )
 ```
 
+**Incorrect — Missing response documentation:**
+```python
+# No response schema or error docs
+@router.get("/analyses/{id}")
+async def get_analysis(id: str):
+    return await service.get(id)
+```
+
+**Correct — Full OpenAPI documentation:**
+```python
+@router.get(
+    "/analyses/{id}",
+    responses={
+        404: {"model": ErrorResponse, "description": "Analysis not found"},
+        500: {"model": ErrorResponse, "description": "Internal error"}
+    },
+    summary="Get analysis details"
+)
+async def get_analysis(id: Annotated[str, Path(description="Analysis UUID")]) -> AnalysisResponse:
+    return await service.get(id)
+```
+
 **Key rules:**
 - Use OpenAPI 3.1 for all new API specifications
 - Define reusable schemas, parameters, and responses in `components`
@@ -1039,6 +1121,18 @@ type PageInfo {
 {"title": null, "description": ""}  # Clear intent
 ```
 
+**Incorrect — Flat URLs with query params for hierarchy:**
+```typescript
+// Parent relationship in query param
+GET /api/v1/artifacts?analysis_id=abc-123
+```
+
+**Correct — Hierarchical URLs:**
+```typescript
+// Express ownership in URL structure
+GET /api/v1/analyses/abc-123/artifacts
+```
+
 **Key rules:**
 - Use hierarchical URLs for parent-child relationships
 - Support filtering via query parameters on list endpoints
@@ -1127,6 +1221,22 @@ async def list_analyses(
 | Ignoring HTTP methods | `POST /users/123/delete` | `DELETE /users/123` |
 | Exposing internals | `/users-table` | `/users` |
 | Generic errors | `"Something went wrong"` | `"Email already exists"` |
+
+**Incorrect — Verbs in URLs:**
+```python
+# RPC-style endpoints
+POST /createUser
+POST /users/123/delete
+GET /getUserOrders?id=123
+```
+
+**Correct — REST conventions:**
+```python
+# Resource-oriented
+POST /users
+DELETE /users/123
+GET /users/123/orders
+```
 
 **Key rules:**
 - Always use plural nouns for resources
@@ -1955,6 +2065,28 @@ class UserResponse(BaseModel):
 # NEVER support too many versions (max 2-3)
 ```
 
+**Incorrect — Breaking change without version bump:**
+```python
+# v1 schema changed without versioning
+class UserResponse(BaseModel):
+    id: str
+    full_name: str  # Changed from "name" - BREAKS clients!
+```
+
+**Correct — Version bump for breaking changes:**
+```python
+# v1 stays unchanged
+class UserResponseV1(BaseModel):
+    id: str
+    name: str
+
+# v2 with breaking changes
+class UserResponseV2(BaseModel):
+    id: str
+    first_name: str
+    last_name: str
+```
+
 **Key rules:**
 - Send deprecation notice at least 3 months before sunset
 - Include Deprecation, Sunset, and Link headers on deprecated versions
@@ -2068,6 +2200,22 @@ async def test_header_versioning(client: AsyncClient):
 | **Best for** | Public APIs | Internal APIs |
 | **Multiple versions** | Separate route trees | Single route tree |
 
+**Incorrect — No default version:**
+```python
+# Breaks when header missing
+async def get_version(x_api_version: str = Header()):
+    return int(x_api_version)  # Error if header absent!
+```
+
+**Correct — Default to latest version:**
+```python
+# Falls back to latest stable version
+async def get_version(
+    x_api_version: str = Header(default="2")
+) -> int:
+    return int(x_api_version)
+```
+
 **Key rules:**
 - Default to latest stable version when header is absent
 - Validate version against a supported versions set
@@ -2175,6 +2323,29 @@ async def get_user_v2(user_id: str, service: UserService = Depends()):
 | Header | `X-API-Version: 1` | Clean URLs | Hidden, harder to test |
 | Query Param | `?version=1` | Easy testing | Messy, cache issues |
 | Content-Type | `Accept: application/vnd.api.v1+json` | RESTful | Complex |
+
+**Incorrect — Versioned services:**
+```python
+# Services should be version-agnostic
+class UserServiceV1:
+    async def get_user(self, id: str):
+        ...
+
+class UserServiceV2:
+    async def get_user(self, id: str):
+        ...
+```
+
+**Correct — Version-agnostic services:**
+```python
+# Single service, version handled in response schemas
+class UserService:
+    async def get_user(self, id: str) -> User:
+        return await self.repo.get_by_id(id)
+
+# v1/routes/users.py returns UserResponseV1
+# v2/routes/users.py returns UserResponseV2
+```
 
 **Key rules:**
 - Always start with `/api/v1/` even if no v2 is planned

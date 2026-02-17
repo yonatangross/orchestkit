@@ -268,6 +268,25 @@ new AxeBuilder({ page })
 | Tags | wcag2a, wcag2aa, wcag22aa | Full WCAG 2.2 AA |
 | Exclusions | Third-party widgets only | Minimize blind spots |
 
+**Incorrect — Accessibility tests exist but don't enforce in CI:**
+```yaml
+# .github/workflows/test.yml
+- run: npm run test:a11y  # Runs but doesn't block on failures
+- run: npm run test:unit
+```
+
+**Correct — CI blocks PRs on accessibility violations:**
+```yaml
+# .github/workflows/accessibility.yml
+on: [pull_request]
+jobs:
+  a11y:
+    runs-on: ubuntu-latest
+    steps:
+      - run: npm run test:a11y  # Exits with code 1 on violations
+      - run: npx playwright test e2e/accessibility  # Blocks merge
+```
+
 
 ### A11y: jest-axe Testing — MEDIUM
 
@@ -316,6 +335,29 @@ it('form is accessible', async () => {
 - Never disable axe rules globally
 - Use for fast feedback in development
 
+**Incorrect — Only testing the default state:**
+```typescript
+it('form is accessible', async () => {
+  const { container } = render(<LoginForm />);
+  expect(await axe(container)).toHaveNoViolations();
+  // Missing: error, loading, disabled states
+});
+```
+
+**Correct — Testing all component states:**
+```typescript
+it('form is accessible in all states', async () => {
+  const { container, rerender } = render(<LoginForm />);
+  expect(await axe(container)).toHaveNoViolations();
+
+  rerender(<LoginForm error="Invalid email" />);
+  expect(await axe(container)).toHaveNoViolations();
+
+  rerender(<LoginForm loading={true} />);
+  expect(await axe(container)).toHaveNoViolations();
+});
+```
+
 
 ### A11y: Playwright axe-core — MEDIUM
 
@@ -355,6 +397,26 @@ test('modal state has no violations', async ({ page }) => {
 | WCAG level | AA (wcag2aa) | Industry standard |
 | State testing | Test all interactive states | Modal, error, loading |
 | Browser matrix | Chromium + Firefox | Cross-browser coverage |
+
+**Incorrect — Testing page without WCAG tags:**
+```typescript
+test('page has no violations', async ({ page }) => {
+  await page.goto('/');
+  const results = await new AxeBuilder({ page }).analyze();
+  expect(results.violations).toEqual([]);
+});
+```
+
+**Correct — Testing with WCAG 2.2 AA compliance:**
+```typescript
+test('page meets WCAG 2.2 AA', async ({ page }) => {
+  await page.goto('/');
+  const results = await new AxeBuilder({ page })
+    .withTags(['wcag2a', 'wcag2aa', 'wcag22aa'])
+    .analyze();
+  expect(results.violations).toEqual([]);
+});
+```
 
 
 ### Data: Factory Patterns — MEDIUM
@@ -418,6 +480,22 @@ const createAnalysis = (overrides = {}) => ({
 | Faker | Use for realistic random data |
 | Scope | Function-scoped for isolation |
 
+**Incorrect — Hard-coded test data that causes conflicts:**
+```python
+def test_create_user():
+    user = User(id=1, email="test@example.com")
+    db.add(user)
+    # Hard-coded ID causes failures when test runs multiple times
+```
+
+**Correct — Factory-generated data with realistic randomization:**
+```python
+def test_create_user():
+    user = UserFactory()  # Generates unique email, random name
+    db.add(user)
+    assert user.email.endswith('@example.com')
+```
+
 
 ### Data: JSON Fixtures — MEDIUM
 
@@ -477,6 +555,28 @@ def completed_workflow(user_with_analyses):
     return user_with_analyses
 ```
 
+**Incorrect — Fixtures with hard-coded state that breaks isolation:**
+```python
+@pytest.fixture(scope="module")  # Shared across tests
+def user():
+    return {"id": 1, "email": "test@example.com"}
+
+def test_update_user(user):
+    user["email"] = "updated@example.com"  # Mutates shared state
+```
+
+**Correct — Function-scoped fixtures with composition:**
+```python
+@pytest.fixture
+def user():
+    return UserFactory()  # Fresh instance per test
+
+@pytest.fixture
+def admin_user(user):
+    user.role = "admin"  # Composes on top of user fixture
+    return user
+```
+
 
 ### Data: Seeding & Cleanup — MEDIUM
 
@@ -525,6 +625,26 @@ async def clean_database(db_session):
 - Hard-coded IDs (conflicts)
 - No cleanup after tests
 - Over-complex fixtures
+
+**Incorrect — No cleanup, leaving database polluted:**
+```python
+@pytest.fixture
+async def seeded_db(db_session):
+    users = [UserFactory.build() for _ in range(10)]
+    db_session.add_all(users)
+    await db_session.commit()
+    yield db_session
+    # No cleanup, state persists across tests
+```
+
+**Correct — Automatic cleanup after each test:**
+```python
+@pytest.fixture(autouse=True)
+async def clean_database(db_session):
+    yield
+    await db_session.execute("TRUNCATE users, analyses CASCADE")
+    await db_session.commit()
+```
 
 
 ### E2E: AI Agents — HIGH
@@ -577,6 +697,26 @@ npx playwright init-agents --loop=opencode  # For OpenCode
     }
   }
 }
+```
+
+**Incorrect — No seed file for AI agents to learn from:**
+```typescript
+// Missing tests/seed.spec.ts
+// AI agents have no example to understand app structure
+npx playwright init-agents --loop=claude
+```
+
+**Correct — Seed file teaches agents app patterns:**
+```typescript
+// tests/seed.spec.ts
+import { test } from '@playwright/test';
+
+test('example checkout flow', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Add to cart' }).click();
+  await page.getByRole('link', { name: 'Checkout' }).click();
+  // Agents learn selectors and patterns from this
+});
 ```
 
 
@@ -636,6 +776,27 @@ await expect(page).toHaveScreenshot('checkout-page.png', {
 2. **Core Transaction:** Purchase, booking, submission
 3. **Data Operations:** Create, update, delete
 4. **User Settings:** Profile update, preferences
+
+**Incorrect — Duplicating selectors across tests:**
+```typescript
+test('checkout flow', async ({ page }) => {
+  await page.getByLabel('Email').fill('test@example.com');
+  await page.getByRole('button', { name: 'Submit' }).click();
+});
+
+test('another checkout test', async ({ page }) => {
+  await page.getByLabel('Email').fill('user@example.com');  // Duplicated
+  await page.getByRole('button', { name: 'Submit' }).click();  // Duplicated
+});
+```
+
+**Correct — Page Object encapsulates selectors:**
+```typescript
+const checkout = new CheckoutPage(page);
+await checkout.fillEmail('test@example.com');
+await checkout.submit();
+await checkout.expectConfirmation();
+```
 
 
 ### E2E: Playwright Core — HIGH
@@ -711,6 +872,19 @@ await expect(page.getByRole('alert')).toBeVisible();
 | Browser | Chromium (Chrome for Testing in 1.58+) |
 | Execution | 5-30s per test |
 | Retries | 2-3 in CI, 0 locally |
+
+**Incorrect — Using hardcoded waits and CSS selectors:**
+```typescript
+await page.click('.submit-button');
+await page.waitForTimeout(2000);
+await expect(page.locator('.success-message')).toBeVisible();
+```
+
+**Correct — Semantic locators with auto-wait:**
+```typescript
+await page.getByRole('button', { name: 'Submit' }).click();
+await expect(page.getByRole('alert', { name: /success/i })).toBeVisible();
+```
 
 
 ### Coverage Reporting — HIGH
@@ -890,6 +1064,34 @@ async def test_create_user(client: AsyncClient):
 | Service layer | 80%+ |
 | Component interactions | 70%+ |
 
+**Incorrect — Only testing happy path:**
+```typescript
+test('creates user', async () => {
+  const response = await request(app)
+    .post('/api/users')
+    .send({ email: 'test@example.com' });
+  expect(response.status).toBe(201);
+  // Missing: validation errors, auth failures
+});
+```
+
+**Correct — Testing both success and error cases:**
+```typescript
+test('creates user with valid data', async () => {
+  const response = await request(app)
+    .post('/api/users')
+    .send({ email: 'test@example.com', name: 'Test' });
+  expect(response.status).toBe(201);
+});
+
+test('rejects invalid email', async () => {
+  const response = await request(app)
+    .post('/api/users')
+    .send({ email: 'invalid' });
+  expect(response.status).toBe(400);
+});
+```
+
 
 ### Integration: Component Testing — HIGH
 
@@ -923,6 +1125,27 @@ test('form submits and shows success', async () => {
 - Use `userEvent.setup()` for realistic interactions
 - Assert on user-visible outcomes, not implementation details
 - Use `findBy*` for async assertions (auto-waits)
+
+**Incorrect — Testing implementation details:**
+```typescript
+test('form updates state', () => {
+  const { result } = renderHook(() => useFormState());
+  act(() => result.current.setEmail('test@example.com'));
+  expect(result.current.email).toBe('test@example.com');
+  // Tests internal state, not user outcomes
+});
+```
+
+**Correct — Testing user-visible behavior:**
+```typescript
+test('form submits and shows success', async () => {
+  const user = userEvent.setup();
+  render(<UserForm />);
+  await user.type(screen.getByLabelText('Email'), 'test@example.com');
+  await user.click(screen.getByRole('button', { name: /submit/i }));
+  expect(await screen.findByText(/success/i)).toBeInTheDocument();
+});
+```
 
 
 ### Integration: Database Testing — HIGH
@@ -967,6 +1190,27 @@ def db_session():
 - Testing against production APIs
 - Slow setup/teardown
 
+**Incorrect — Shared database state across tests:**
+```python
+engine = create_engine("sqlite:///test.db")  # File-based, persistent
+
+def test_create_user():
+    session.add(User(email="test@example.com"))
+    # Leaves data behind for next test
+```
+
+**Correct — Fresh in-memory database per test:**
+```python
+@pytest.fixture(scope="function")
+def db_session():
+    engine = create_engine("sqlite:///:memory:")
+    Base.metadata.create_all(engine)
+    Session = sessionmaker(bind=engine)
+    session = Session()
+    yield session
+    session.close()
+```
+
 
 ### LLM: DeepEval Quality — HIGH
 
@@ -1007,6 +1251,27 @@ assert_test(test_case, metrics)
 |----------|----------------|
 | Quality metrics | Use multiple dimensions (3-5) |
 | Schema validation | Test both valid and invalid |
+
+**Incorrect — Testing only the output exists:**
+```python
+def test_llm_response():
+    result = get_llm_answer("What is Paris?")
+    assert result is not None
+    # No quality validation
+```
+
+**Correct — Testing multiple quality dimensions:**
+```python
+test_case = LLMTestCase(
+    input="What is the capital of France?",
+    actual_output="The capital of France is Paris.",
+    retrieval_context=["Paris is the capital of France."]
+)
+assert_test(test_case, [
+    AnswerRelevancyMetric(threshold=0.7),
+    FaithfulnessMetric(threshold=0.8)
+])
+```
 
 
 ### LLM: Mock Responses — HIGH
@@ -1057,6 +1322,30 @@ async def test_llm_integration():
 | Timeout | Always test with &lt; 1s timeout |
 | Edge cases | Test all null/empty paths |
 
+**Incorrect — Testing against live LLM API in CI:**
+```python
+async def test_summarize():
+    response = await openai.chat.completions.create(
+        model="gpt-4", messages=[...]
+    )
+    assert response.choices[0].message.content
+    # Slow, expensive, non-deterministic
+```
+
+**Correct — Mocking LLM for fast, deterministic tests:**
+```python
+@pytest.fixture
+def mock_llm():
+    mock = AsyncMock()
+    mock.return_value = {"content": "Mocked summary", "confidence": 0.85}
+    return mock
+
+async def test_summarize(mock_llm):
+    with patch("app.llm.get_model", return_value=mock_llm):
+        result = await summarize("input text")
+    assert result["content"] == "Mocked summary"
+```
+
 
 ### LLM: Structured Output — HIGH
 
@@ -1100,6 +1389,26 @@ async def test_structured_output():
 | Timeout | Always test with &lt; 1s timeout |
 | Schema validation | Test both valid and invalid |
 | Edge cases | Test all null/empty paths |
+
+**Incorrect — No schema validation on LLM output:**
+```python
+async def test_llm_response():
+    result = await get_llm_response("test query")
+    assert result["answer"]  # Crashes if "answer" missing
+    assert result["confidence"] > 0  # No type checking
+```
+
+**Correct — Pydantic validation ensures schema correctness:**
+```python
+class LLMResponse(BaseModel):
+    answer: str = Field(min_length=1)
+    confidence: float = Field(ge=0.0, le=1.0)
+
+async def test_structured_output():
+    result = await get_llm_response("test query")
+    parsed = LLMResponse.model_validate(result)
+    assert 0 <= parsed.confidence <= 1.0
+```
 
 
 ### Mocking: LLM APIs — HIGH
@@ -1151,6 +1460,24 @@ def vcr_config():
 - Using `all` mode in CI (makes live calls)
 - Not filtering sensitive data
 - Missing cassettes in git
+
+**Incorrect — Recording mode allows live API calls in CI:**
+```python
+@pytest.fixture(scope="module")
+def vcr_config():
+    return {"record_mode": "all"}  # Makes live calls in CI
+```
+
+**Correct — CI uses 'none' mode to prevent live calls:**
+```python
+@pytest.fixture(scope="module")
+def vcr_config():
+    import os
+    return {
+        "record_mode": "none" if os.environ.get("CI") else "new_episodes",
+        "filter_headers": ["authorization", "x-api-key"]
+    }
+```
 
 
 ### Mocking: MSW 2.x — HIGH
@@ -1229,6 +1556,23 @@ server.use(http.get('/api/...', () => HttpResponse.json({...})))
 | Override scope | Per-test with `server.use()` |
 | Unhandled requests | Error (catch missing mocks) |
 
+**Incorrect — Mocking fetch directly:**
+```typescript
+jest.spyOn(global, 'fetch').mockResolvedValue({
+  json: async () => ({ data: 'mocked' })
+} as Response);
+// Brittle, doesn't match real network behavior
+```
+
+**Correct — Network-level mocking with MSW:**
+```typescript
+server.use(
+  http.get('/api/users/:id', ({ params }) => {
+    return HttpResponse.json({ id: params.id, name: 'Test User' });
+  })
+);
+```
+
 
 ### Mocking: VCR.py — HIGH
 
@@ -1298,6 +1642,25 @@ def filter_request_body(request):
 | Cassette format | YAML (readable) |
 | Sensitive data | Always filter headers/body |
 
+**Incorrect — Not filtering sensitive data from cassettes:**
+```python
+@pytest.fixture(scope="module")
+def vcr_config():
+    return {"cassette_library_dir": "tests/cassettes"}
+    # Missing: filter_headers for API keys
+```
+
+**Correct — Filtering sensitive headers and query params:**
+```python
+@pytest.fixture(scope="module")
+def vcr_config():
+    return {
+        "cassette_library_dir": "tests/cassettes",
+        "filter_headers": ["authorization", "x-api-key"],
+        "filter_query_parameters": ["api_key", "token"]
+    }
+```
+
 
 ### Performance: k6 Patterns — MEDIUM
 
@@ -1356,6 +1719,25 @@ const successRate = new Rate('success_rate');
 | Thresholds | p95 &lt; 500ms, errors &lt; 1% |
 | Duration | 5-10 min for load, 4h+ for soak |
 
+**Incorrect — No thresholds, tests pass even with poor performance:**
+```javascript
+export const options = {
+  stages: [{ duration: '1m', target: 20 }]
+  // Missing: thresholds for response time and errors
+};
+```
+
+**Correct — Thresholds enforce performance requirements:**
+```javascript
+export const options = {
+  stages: [{ duration: '1m', target: 20 }],
+  thresholds: {
+    http_req_duration: ['p(95)<500'],
+    http_req_failed: ['rate<0.01']
+  }
+};
+```
+
 
 ### Performance: Locust — MEDIUM
 
@@ -1394,6 +1776,27 @@ class APIUser(HttpUser):
 | Tool | Locust for Python teams |
 | Task weights | Higher weight = more frequent |
 | Authentication | Use on_start for login |
+
+**Incorrect — No authentication flow, requests fail:**
+```python
+class APIUser(HttpUser):
+    @task
+    def get_analyses(self):
+        self.client.get("/api/analyses")  # 401 Unauthorized
+```
+
+**Correct — Login in on_start before tasks:**
+```python
+class APIUser(HttpUser):
+    def on_start(self):
+        self.client.post("/api/auth/login", json={
+            "email": "test@example.com", "password": "password"
+        })
+
+    @task
+    def get_analyses(self):
+        self.client.get("/api/analyses")  # Authenticated
+```
 
 
 ### Performance: Test Types — MEDIUM
@@ -1452,6 +1855,27 @@ export const options = {
 - Unrealistic load profiles
 - Missing error rate thresholds
 
+**Incorrect — No warmup, sudden load spike:**
+```javascript
+export const options = {
+  vus: 100,
+  duration: '5m'
+  // No ramp-up, cold start skews results
+};
+```
+
+**Correct — Gradual ramp-up with warmup period:**
+```javascript
+export const options = {
+  stages: [
+    { duration: '30s', target: 20 },   // Warmup
+    { duration: '1m', target: 100 },   // Ramp up
+    { duration: '3m', target: 100 },   // Steady load
+    { duration: '30s', target: 0 }     // Ramp down
+  ]
+};
+```
+
 
 ### Pytest: Custom Markers — HIGH
 
@@ -1491,6 +1915,23 @@ def test_complex_analysis():
 | Marker strategy | Category (smoke, integration) + Resource (db, llm) |
 | CI fast path | `pytest -m "not slow"` for PR checks |
 | Nightly | `pytest` (all markers) for full coverage |
+
+**Incorrect — Using markers without registering them:**
+```python
+@pytest.mark.slow
+def test_complex():
+    pass
+# Pytest warns: PytestUnknownMarkWarning
+```
+
+**Correct — Register markers in pyproject.toml:**
+```toml
+[tool.pytest.ini_options]
+markers = [
+    "slow: marks tests as slow",
+    "integration: marks tests requiring external services"
+]
+```
 
 
 ### Pytest: Plugins & Hooks — HIGH
@@ -1547,6 +1988,20 @@ def temp_db():
 | Async testing | pytest-asyncio with auto mode |
 | Fixture scope | Function default, session for expensive setup |
 
+**Incorrect — Expensive fixture without session scope:**
+```python
+@pytest.fixture
+def ml_model():
+    return load_large_model()  # 5s, reloaded EVERY test
+```
+
+**Correct — Session-scoped fixture for expensive setup:**
+```python
+@pytest.fixture(scope="session")
+def ml_model():
+    return load_large_model()  # 5s, loaded ONCE
+```
+
 
 ### Pytest: Parallel Execution — HIGH
 
@@ -1587,6 +2042,22 @@ def db_engine(worker_id):
 | Distribution | `loadscope` for DB tests |
 | Fixture scope | `session` for expensive, `function` for mutable |
 | Async testing | pytest-asyncio with auto mode |
+
+**Incorrect — Shared database across workers causes conflicts:**
+```python
+@pytest.fixture(scope="session")
+def db_engine():
+    return create_engine("postgresql://localhost/test_db")
+    # Workers overwrite each other's data
+```
+
+**Correct — Isolated database per worker:**
+```python
+@pytest.fixture(scope="session")
+def db_engine(worker_id):
+    db_name = f"test_db_{worker_id}" if worker_id != "master" else "test_db"
+    return create_engine(f"postgresql://localhost/{db_name}")
+```
 
 
 ### Unit: AAA Pattern — CRITICAL
@@ -1660,6 +2131,29 @@ class TestCalculateDiscount:
 - Shared state between tests
 - Over-mocking (testing mocks not code)
 
+**Incorrect — Testing implementation details:**
+```typescript
+test('updates internal state', () => {
+  const service = new UserService();
+  service.setEmail('test@example.com');
+  expect(service._email).toBe('test@example.com');  // Private field
+});
+```
+
+**Correct — Testing public behavior with AAA pattern:**
+```typescript
+test('updates user email', () => {
+  // Arrange
+  const service = new UserService();
+
+  // Act
+  service.updateEmail('test@example.com');
+
+  // Assert
+  expect(service.getEmail()).toBe('test@example.com');
+});
+```
+
 
 ### Unit: Fixture Scoping — CRITICAL
 
@@ -1704,6 +2198,20 @@ def db_engine():
 | Execution | &lt; 100ms per test |
 | Dependencies | None (mock everything external) |
 | Coverage tool | c8, nyc, pytest-cov |
+
+**Incorrect — Function-scoped fixture for expensive read-only resource:**
+```python
+@pytest.fixture  # scope="function" is default
+def compiled_regex():
+    return re.compile(r"complex.*pattern")  # Recompiled every test
+```
+
+**Correct — Module-scoped fixture for expensive read-only resource:**
+```python
+@pytest.fixture(scope="module")
+def compiled_regex():
+    return re.compile(r"complex.*pattern")  # Compiled once per module
+```
 
 
 ### Unit: Parametrized Tests — CRITICAL
@@ -1762,6 +2270,31 @@ def test_access_matrix(role, status):
     user = User(role=role, status=status)
     expected = (role == "admin" and status == "active")
     assert user.can_modify() == expected
+```
+
+**Incorrect — Duplicating test logic for each edge case:**
+```typescript
+test('validates empty email', () => {
+  expect(isValidEmail('')).toBe(false);
+});
+test('validates missing @', () => {
+  expect(isValidEmail('invalid')).toBe(false);
+});
+test('validates missing domain', () => {
+  expect(isValidEmail('user@')).toBe(false);
+});
+```
+
+**Correct — Parametrized test covers all edge cases:**
+```typescript
+test.each([
+  ['', false],
+  ['invalid', false],
+  ['user@', false],
+  ['test@example.com', true]
+])('isValidEmail(%s) returns %s', (email, expected) => {
+  expect(isValidEmail(email)).toBe(expected);
+});
 ```
 
 
@@ -2004,6 +2537,22 @@ pact-broker can-i-deploy \
 | Consumer selectors | mainBranch + deployedOrReleased |
 | Matchers | Use Like(), EachLike() for flexibility |
 
+**Incorrect — Hardcoding exact values in contract:**
+```python
+.will_respond_with(200, body={
+    "id": "user-123",  # Breaks if ID changes
+    "email": "test@example.com"
+})
+```
+
+**Correct — Using matchers for flexible contracts:**
+```python
+.will_respond_with(200, body={
+    "id": Like("user-123"),  # Matches any string
+    "email": Like("test@example.com")
+})
+```
+
 
 ### Evidence Verification for Task Completion — MEDIUM
 
@@ -2137,6 +2686,22 @@ def test_normalize_idempotent(text):
 | Deadline | Disable for slow tests, 200ms default |
 | Stateful tests | RuleBasedStateMachine for state machines |
 
+**Incorrect — Testing specific examples only:**
+```python
+def test_sort():
+    assert sort([3, 1, 2]) == [1, 2, 3]
+    # Only tests one specific case
+```
+
+**Correct — Testing universal properties for all inputs:**
+```python
+@given(st.lists(st.integers()))
+def test_sort_properties(lst):
+    result = sort(lst)
+    assert len(result) == len(lst)
+    assert all(result[i] <= result[i+1] for i in range(len(result)-1))
+```
+
 
 ### Verification: Stateful Testing — MEDIUM
 
@@ -2197,6 +2762,30 @@ def test_bad(x):
 @given(st.text())  # WRONG - includes 10MB strings
 def test_username(name):
     User(name=name)
+```
+
+**Incorrect — Not tracking model state, missing invariant violations:**
+```python
+class CartStateMachine(RuleBasedStateMachine):
+    @rule(item=st.text())
+    def add_item(self, item):
+        self.cart.add(item)
+        # Not tracking expected state
+```
+
+**Correct — Tracking model state to verify invariants:**
+```python
+class CartStateMachine(RuleBasedStateMachine):
+    def __init__(self):
+        super().__init__()
+        self.cart = Cart()
+        self.expected_items = []
+
+    @rule(item=st.text(min_size=1))
+    def add_item(self, item):
+        self.cart.add(item)
+        self.expected_items.append(item)
+        assert len(self.cart) == len(self.expected_items)
 ```
 
 

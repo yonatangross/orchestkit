@@ -589,6 +589,40 @@ async def fetch_user(user_id: str) -> User:
 # - No mutable default arguments
 ```
 
+**Incorrect — missing validation and timeout:**
+```python
+class UserInput(BaseModel):
+    email: str  # No validation!
+    age: int    # Accepts negative
+
+async def fetch_user(user_id: str) -> User:
+    # No timeout! May hang forever
+    response = await httpx.get(f"/users/{user_id}")
+    return User(**response.json())
+```
+
+**Correct — constrained fields with timeout protection:**
+```python
+from pydantic import BaseModel, Field, model_validator
+import asyncio
+
+class UserInput(BaseModel):
+    email: str = Field(pattern=r'^[\w\.-]+@[\w\.-]+\.\w+$')
+    age: int = Field(ge=0, le=150)
+
+    @model_validator(mode='after')
+    def validate_fields(self) -> 'UserInput':
+        if self.age < 13 and '@' not in self.email:
+            raise ValueError('Minors require valid parent email')
+        return self
+
+async def fetch_user(user_id: str) -> User:
+    async with asyncio.timeout(10):  # Timeout protection
+        response = await httpx.get(f"/users/{user_id}")
+        response.raise_for_status()
+        return User.model_validate(response.json())
+```
+
 ### Review Checklist
 
 | Check | Severity | What to Look For |
@@ -699,6 +733,35 @@ set -x  # In scripts with secrets in scope
 logger.debug("User authenticated", extra={"user_id": user.id})
 ```
 
+**Incorrect — hardcoded secrets, no auth, SQL injection:**
+```python
+# Hardcoded secret
+API_KEY = "sk-1234567890abcdef"
+
+# No auth protection
+@app.get("/api/admin/users")
+async def list_users():
+    return await db.get_all_users()
+
+# SQL injection vulnerability
+query = f"SELECT * FROM users WHERE id = {user_id}"
+```
+
+**Correct — env vars, auth middleware, parameterized queries:**
+```python
+# Environment variables
+API_KEY = os.environ["API_KEY"]
+
+# Auth middleware
+@app.get("/api/admin/users")
+async def list_users(user: User = Depends(require_admin)):
+    return await db.get_all_users()
+
+# Parameterized query
+query = "SELECT * FROM users WHERE id = $1"
+await db.execute(query, user_id)
+```
+
 ### Review Checklist
 
 | Check | Severity | Action |
@@ -789,6 +852,46 @@ const data = use(promise);
 // REQUIRE: Skeleton loading, not spinners
 function CardSkeleton() {
   return <div className="animate-pulse">...</div>;
+}
+```
+
+**Incorrect — any types, no validation, non-exhaustive switch:**
+```typescript
+// Defeats type system
+function processData(data: any) { return data.email; }
+
+// Trust the network - no validation!
+const data = await response.json();
+
+// Non-exhaustive switch
+switch (status) {
+  case 'active': return 'Active';
+  case 'inactive': return 'Inactive';
+}  // Adding 'pending' silently breaks
+```
+
+**Correct — proper types, Zod validation, exhaustive switch:**
+```typescript
+import { z } from 'zod';
+
+// Proper types
+const UserSchema = z.object({
+  id: z.string().uuid(),
+  email: z.string().email(),
+});
+function processData(data: z.infer<typeof UserSchema>) { return data.email; }
+
+// Validate at boundary
+const data = UserSchema.parse(await response.json());
+
+// Exhaustive switch with assertNever
+function assertNever(x: never): never {
+  throw new Error(`Unexpected: ${x}`);
+}
+switch (status) {
+  case 'active': return 'Active';
+  case 'inactive': return 'Inactive';
+  default: return assertNever(status);  // Compiler catches missing cases
 }
 ```
 

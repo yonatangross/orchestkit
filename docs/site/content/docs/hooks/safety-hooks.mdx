@@ -111,7 +111,7 @@ Every denial is also logged to `permission-feedback.log` for audit:
 
 **Hook:** `pretool/write-edit/file-guard`
 **Event:** PreToolUse (Write|Edit)
-**Behavior:** Blocks writes to sensitive files, warns on config files.
+**Behavior:** Blocks writes to sensitive files, warns on config files, enforces file size limits on code files.
 
 ### Protected Files (Always Blocked)
 
@@ -174,6 +174,36 @@ Protected files include:
 - Private keys (.pem, id_rsa, id_ed25519)
 
 If you need to modify this file, do it manually outside Claude Code.
+```
+
+### File Size Gate (Write Only)
+
+The file guard enforces maximum line counts on code files to prevent bloated single-file modules. This runs on `Write` operations only (Edit doesn't carry full content).
+
+**Defaults:**
+
+| File Type | Limit | Env Var Override |
+|-----------|-------|-----------------|
+| Source files (`.py`, `.ts`, `.tsx`, `.js`, `.jsx`, `.go`, `.rs`, `.java`) | 300 lines | `ORCHESTKIT_MAX_FILE_LINES` |
+| Test files (`.test.*`, `.spec.*`, `test_*`, `*_test.*`, `__tests__/`) | 500 lines | `ORCHESTKIT_MAX_TEST_FILE_LINES` |
+
+Non-code files (`.json`, `.md`, `.yaml`, `.css`, `.html`, etc.) are never gated.
+
+**Bloat pattern detection** -- when a file exceeds the line limit, the denial message includes structural signals if detected:
+
+| Signal | Trigger | Guidance |
+|--------|---------|----------|
+| `god-file` | >15 exports | Split by domain |
+| `mixed-concerns` | Types + logic in file >150 lines | Extract types to `types.ts` |
+| `high-coupling` | >20 imports | File does too much, split by responsibility |
+| `multi-class` | >1 class | One class per file |
+| `multi-component` | >3 components | One component per file |
+
+**Override per-project** by setting env vars:
+
+```bash
+export ORCHESTKIT_MAX_FILE_LINES=500
+export ORCHESTKIT_MAX_TEST_FILE_LINES=800
 ```
 
 ## Permission Auto-Approve Hooks

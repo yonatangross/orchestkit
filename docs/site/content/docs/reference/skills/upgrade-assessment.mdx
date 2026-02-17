@@ -197,6 +197,21 @@ Classify each finding by severity:
 - **WARNING**: Outdated context window assumptions, deprecated patterns
 - **INFO**: Version references in documentation, optional feature flags
 
+**Incorrect — Generic grep without severity classification creates unactionable scan reports:**
+```bash
+grep -r "claude" src/
+# 2000 matches with no classification or context
+```
+
+**Correct — Targeted grep with severity classification produces actionable findings:**
+```bash
+# CRITICAL: Hardcoded model IDs
+grep -r "claude-opus-4\b\|claude-sonnet-4\b" src/ --include="*.ts"
+# WARNING: Context window assumptions
+grep -r "200000\|200_000" src/ --include="*.ts" --include="*.md"
+# Each finding gets severity label for prioritization
+```
+
 
 ### Detection Checks — HIGH
 
@@ -251,6 +266,21 @@ Environment snapshot including:
 - Current OrchestKit version (e.g., `6.0.0`)
 - Hook count and bundle count
 - Skill count and agent count
+
+**Incorrect — Running scans without precondition checks produces invalid results:**
+```bash
+# No environment verification
+grep -r "claude-" src/  # Scans in non-OrchestKit project
+# False positives and missed files
+```
+
+**Correct — Precondition checks ensure valid assessment environment:**
+```bash
+# Verify OrchestKit project structure
+[ -f CLAUDE.md ] && [ -d src/skills ] || exit 1
+# Only scan if structure is valid
+grep -r "claude-" src/skills/ --include="*.md"
+```
 
 
 ### Platform Compatibility Knowledge — HIGH
@@ -310,6 +340,22 @@ total_hours = sum(
 - Use the **detection patterns** above as a pre-upgrade checklist
 - Track each axis **independently** — model, CC version, and OrchestKit can upgrade separately
 
+**Incorrect — Hardcoded model ID breaks when upgrading to new Claude version:**
+```typescript
+const response = await anthropic.messages.create({
+  model: "claude-opus-4-20250514",  // Breaks when 4.6 becomes default
+  max_tokens: 4096,
+});
+```
+
+**Correct — Model alias and variable config survives upgrades:**
+```typescript
+const response = await anthropic.messages.create({
+  model: process.env.CLAUDE_MODEL || "claude-opus-latest",
+  max_tokens: settings.maxOutputTokens,
+});
+```
+
 
 ### Platform Upgrade Evaluation — HIGH
 
@@ -365,6 +411,25 @@ dimension_score > 8:   No action needed
 - Weighted composite score determines **overall readiness**
 - P0 items must be addressed **before** starting the upgrade
 - Re-score after addressing findings to **verify improvement**
+
+**Incorrect — Upgrading without evaluation causes production breakage:**
+```bash
+# Just upgrade without assessment
+npm install @anthropic-ai/claude@latest
+git commit -m "upgrade claude"
+# Production breaks: hardcoded model IDs, hook changes, context limits
+```
+
+**Correct — Structured evaluation identifies blockers before upgrade:**
+```bash
+# Phase 1: Detect environment
+./detect-environment.sh
+# Phase 2: Score dimensions (finds 3 CRITICAL issues)
+./score-compatibility.sh
+# Phase 3: Fix P0 blockers BEFORE upgrade
+./fix-model-refs.sh && ./migrate-hooks.sh
+# Then upgrade safely
+```
 
 
 

@@ -293,6 +293,21 @@ const { buttonProps } = useButton({ onPress: handleClick }, ref);
 <div aria-live="polite" className="sr-only">{errorMessage}</div>
 ```
 
+**Incorrect — div with onClick, no keyboard support:**
+```tsx
+<div onClick={handleClick} className="button">
+  Click me
+</div>
+// No keyboard access, no screen reader announcement
+```
+
+**Correct — useButton hook provides full accessibility:**
+```tsx
+const ref = useRef<HTMLButtonElement>(null);
+const { buttonProps } = useButton({ onPress: handleClick }, ref);
+return <button {...buttonProps} ref={ref}>Click me</button>;
+```
+
 
 ### React Aria: Forms — HIGH
 
@@ -497,6 +512,23 @@ function Select(props) {
 // ALWAYS provide visible label + optional placeholder
 <label htmlFor="email">Email</label>
 <input id="email" placeholder="user@example.com" />
+```
+
+**Incorrect — Placeholder as label, no explicit association:**
+```tsx
+<input type="text" placeholder="Enter your email" />
+// Screen readers can't identify field purpose reliably
+```
+
+**Correct — useTextField with proper label association:**
+```tsx
+const { labelProps, inputProps } = useTextField({ label: 'Email' }, ref);
+return (
+  <>
+    <label {...labelProps}>Email</label>
+    <input {...inputProps} ref={ref} />
+  </>
+);
 ```
 
 
@@ -735,6 +767,27 @@ useEffect(() => { modalRef.current?.focus(); }, []);  // Incomplete!
 // useOverlayTriggerState + FocusScope restoreFocus handles this automatically
 ```
 
+**Incorrect — Modal without focus management:**
+```tsx
+{isOpen && (
+  <div role="dialog" className="modal">
+    <h2>Confirm Action</h2>
+    <button onClick={onClose}>Close</button>
+  </div>
+)}
+// No focus trap, no focus restoration
+```
+
+**Correct — useModalOverlay with FocusScope:**
+```tsx
+<FocusScope contain restoreFocus autoFocus>
+  <div {...mergeProps(modalProps, dialogProps)} ref={ref}>
+    <h2 {...titleProps}>Confirm Action</h2>
+    <button onClick={state.close}>Close</button>
+  </div>
+</FocusScope>
+```
+
 
 ### Focus: Keyboard Navigation — HIGH
 
@@ -958,6 +1011,22 @@ useEffect(() => inputRef.current?.focus(), []);
 .skip-link { display: none; }
 ```
 
+**Incorrect — Removing focus outline globally:**
+```css
+*:focus {
+  outline: none;
+}
+/* Violates WCAG 2.4.7, keyboard users can't see focus */
+```
+
+**Correct — Using focus-visible for keyboard-only indicators:**
+```css
+:focus-visible {
+  outline: 3px solid #0052cc;
+  outline-offset: 2px;
+}
+```
+
 
 ### Focus: Focus Restoration — HIGH
 
@@ -1111,6 +1180,30 @@ function FormWithConfirmation() {
 | Trigger element removed from DOM | Check element exists before calling `.focus()` |
 | Not clearing ref after restore | Set `triggerRef.current = null` after focus |
 | Forgetting `tabIndex=\{-1\}` on non-interactive targets | Required for programmatic focus on divs |
+
+**Incorrect — Not restoring focus after modal closes:**
+```tsx
+function Modal({ isOpen, onClose }) {
+  return isOpen ? (
+    <div role="dialog">
+      <button onClick={onClose}>Close</button>
+    </div>
+  ) : null;
+  // Focus doesn't return to trigger button
+}
+```
+
+**Correct — Using useFocusRestore hook:**
+```tsx
+function Modal({ isOpen, onClose }) {
+  useFocusRestore(isOpen);
+  return isOpen ? (
+    <div role="dialog">
+      <button onClick={onClose}>Close</button>
+    </div>
+  ) : null;
+}
+```
 
 
 ### Focus: Focus Trap — HIGH
@@ -1274,6 +1367,29 @@ useEffect(() => { modalRef.current?.focus(); }, []);  // Incomplete!
 </FocusScope>
 ```
 
+**Incorrect — Focus trap without escape mechanism:**
+```tsx
+function Modal({ isOpen, children }) {
+  const ref = useFocusTrap(isOpen);
+  return isOpen ? (
+    <div ref={ref} role="dialog">{children}</div>
+  ) : null;
+  // No Escape key handler, user is trapped
+}
+```
+
+**Correct — FocusScope with escape via Escape key:**
+```tsx
+function Modal({ isOpen, onClose, children }) {
+  useEscapeKey(onClose, isOpen);
+  return isOpen ? (
+    <FocusScope contain restoreFocus autoFocus>
+      <div role="dialog">{children}</div>
+    </FocusScope>
+  ) : null;
+}
+```
+
 
 ### WCAG: Color Contrast — CRITICAL
 
@@ -1385,6 +1501,20 @@ Content must reflow without horizontal scrolling at 320px width:
 | Color-only error indication | Add icon + text alongside color |
 | Fixed-width layouts | Use responsive `max-width` + `width: 100%` |
 | Tiny touch targets | Minimum 24px, 44px for touch devices |
+
+**Incorrect — Insufficient text contrast:**
+```css
+.secondary-text {
+  color: #b3b3b3;  /* 2.1:1 ratio on white - fails WCAG AA */
+}
+```
+
+**Correct — Meeting 4.5:1 contrast minimum:**
+```css
+.secondary-text {
+  color: #595959;  /* 7.0:1 ratio on white - passes WCAG AA */
+}
+```
 
 
 ### WCAG: Semantic HTML — CRITICAL
@@ -1537,6 +1667,20 @@ Always follow h1-h6 order without skipping levels:
 - **Positive tabindex**: Using `tabIndex > 0` disrupts natural tab order
 - **Decorative images without alt=""**: Must use `alt=""` or `role="presentation"`
 
+**Incorrect — Skipping heading levels:**
+```tsx
+<h1>Page Title</h1>
+<h3>Subsection</h3>  {/* Skipped h2 */}
+// Screen readers rely on heading hierarchy
+```
+
+**Correct — Following h1-h6 order without skipping:**
+```tsx
+<h1>Page Title</h1>
+<h2>Section</h2>
+<h3>Subsection</h3>
+```
+
 
 ### WCAG: Accessibility Testing — CRITICAL
 
@@ -1639,6 +1783,31 @@ Test with at least one screen reader:
 | Testing only happy path | Test error states, loading states, empty states |
 | Not testing keyboard navigation | Tab through entire flow manually |
 | Ignoring screen reader announcements | Test with NVDA/VoiceOver for dynamic content |
+
+**Incorrect — Only running automated tests:**
+```typescript
+test('accessibility', async ({ page }) => {
+  await page.goto('/');
+  const results = await new AxeBuilder({ page }).analyze();
+  expect(results.violations).toEqual([]);
+  // Only catches ~30-50% of issues
+});
+```
+
+**Correct — Combining automated + manual testing:**
+```typescript
+test('accessibility - automated', async ({ page }) => {
+  await page.goto('/');
+  const results = await new AxeBuilder({ page }).analyze();
+  expect(results.violations).toEqual([]);
+});
+
+// Plus manual checklist:
+// - Tab through all interactive elements
+// - Test with screen reader (NVDA/VoiceOver)
+// - Verify focus indicators visible
+// - Test error state announcements
+```
 
 
 

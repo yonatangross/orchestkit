@@ -50,7 +50,7 @@ Hooks fire automatically. If a hook blocks an action unexpectedly:
 
 1. Check which hook blocked: the error message includes the hook name
 2. Hooks you can customize:
-   - **file-guard**: Protected file paths (edit `src/hooks/src/pretool/write-edit/file-guard.ts`)
+   - **file-guard**: Protected file paths and file size limits (override with `ORCHESTKIT_MAX_FILE_LINES` / `ORCHESTKIT_MAX_TEST_FILE_LINES` env vars)
    - **dangerous-command-blocker**: Blocked commands list
    - **permission auto-approve**: Safe command patterns
 

@@ -716,6 +716,26 @@ async def create_order(
 | Response caching | Status 2xx only | Don't cache errors |
 | Cleanup | Batch delete, daily job | Avoid long locks |
 
+**Incorrect — Check-then-act pattern has race condition between check and insert:**
+```typescript
+const existing = await db.query("SELECT * FROM idempotency_records WHERE key = $1", [key]);
+if (!existing) {
+  await processPayment(data);  // Race! Two processes both see "not existing"
+  await db.query("INSERT INTO idempotency_records (key, result) VALUES ($1, $2)", [key, result]);
+}
+```
+
+**Correct — Insert-first pattern atomically claims idempotency key:**
+```typescript
+try {
+  await db.query("INSERT INTO idempotency_records (key, status) VALUES ($1, 'processing')", [key]);
+  const result = await processPayment(data);
+  await db.query("UPDATE idempotency_records SET result = $1 WHERE key = $2", [result, key]);
+} catch (UniqueViolationError) {
+  return await db.query("SELECT result FROM idempotency_records WHERE key = $1", [key]);
+}
+```
+
 
 ### Idempotency: Request Deduplication — HIGH
 
@@ -851,6 +871,31 @@ async def good_process(key):
         pass  # Already processed
 ```
 
+**Incorrect — Redis-only deduplication loses state after restart:**
+```python
+async def process_event(event_id: str):
+    if await redis.exists(f"processed:{event_id}"):
+        return  # Already processed
+    await handle_event(event_id)
+    await redis.set(f"processed:{event_id}", "1", ex=86400)
+# Redis restart = all events reprocessed!
+```
+
+**Correct — Dual-layer dedup: Redis (fast) + database (durable):**
+```python
+async def process_event(event_id: str):
+    # Fast path: Redis check
+    if await redis.exists(f"processed:{event_id}"):
+        return
+    # Durable check: Database with unique constraint
+    try:
+        await db.execute("INSERT INTO processed_events (event_id) VALUES ($1)", event_id)
+        await handle_event(event_id)
+        await redis.set(f"processed:{event_id}", "1", ex=86400)
+    except UniqueViolationError:
+        pass  # Already processed
+```
+
 
 ### Idempotency: Key Generation — HIGH
 
@@ -979,6 +1024,22 @@ async def create_payment(data):
     return await process_payment(data)  # No idempotency!
 ```
 
+**Incorrect — Random UUID keys make retry detection impossible:**
+```python
+# Client generates new key on each retry
+key = str(uuid.uuid4())  # New key every time!
+await post("/api/orders", headers={"Idempotency-Key": key}, data=order)
+# Retry creates duplicate order
+```
+
+**Correct — Deterministic keys ensure retries are detected and deduplicated:**
+```python
+# Client generates same key for same operation
+key = hashlib.sha256(f"{order_id}:create:{json.dumps(order_data, sort_keys=True)}".encode()).hexdigest()
+await post("/api/orders", headers={"Idempotency-Key": key}, data=order)
+# Retry returns cached response
+```
+
 
 ### Locks: Fencing Tokens & Safety — CRITICAL
 
@@ -1088,6 +1149,25 @@ async def transfer_funds(session, from_account: int, to_account: int, amount):
 - Lock ordering for multiple locks
 - Retry with exponential backoff + jitter
 - Metrics: acquisition time, hold duration, failures
+
+**Incorrect — Releasing lock without owner validation can delete another process's lock:**
+```python
+await redis.delete(f"lock:{resource_id}")
+# If our lock expired and another process acquired it,
+# we just deleted their lock!
+```
+
+**Correct — Atomic owner validation via Lua ensures only owner can release:**
+```python
+RELEASE_SCRIPT = """
+if redis.call('get', KEYS[1]) == ARGV[1] then
+  return redis.call('del', KEYS[1])
+end
+return 0
+"""
+result = await redis.eval(RELEASE_SCRIPT, keys=[f"lock:{resource_id}"], args=[owner_id])
+# Only deletes if owner_id matches
+```
 
 
 ### Locks: PostgreSQL Advisory — CRITICAL
@@ -1223,6 +1303,21 @@ SELECT l.pid, l.objid as lock_id, l.granted,
 FROM pg_locks l
 JOIN pg_stat_activity a ON l.pid = a.pid
 WHERE l.locktype = 'advisory';
+```
+
+**Incorrect — Session-level lock without cleanup causes deadlock after crash:**
+```python
+await session.execute(text("SELECT pg_advisory_lock(:id)"), {"id": lock_id})
+await process_critical_section()
+# Process crashes before unlock - lock held forever!
+```
+
+**Correct — Transaction-level lock auto-releases on commit/rollback:**
+```python
+async with session.begin():
+    await session.execute(text("SELECT pg_advisory_xact_lock(:id)"), {"id": lock_id})
+    await process_critical_section()
+    # Auto-released on commit/rollback/disconnect
 ```
 
 
@@ -1363,6 +1458,18 @@ class Redlock:
 - Using single Redis for critical operations (SPOF)
 - Holding locks across slow external calls without heartbeat
 
+**Incorrect — SET without NX allows multiple processes to "acquire" same lock:**
+```python
+await redis.set(f"lock:{name}", owner_id, ex=30)
+# Two processes can both succeed!
+```
+
+**Correct — SET NX atomically acquires lock only if key doesn't exist:**
+```python
+acquired = await redis.set(f"lock:{name}", owner_id, nx=True, ex=30)
+# Only one process succeeds, others get False
+```
+
 
 ### Rate Limiting: Distributed & Tiered — HIGH
 
@@ -1502,6 +1609,26 @@ async def admin_endpoint():  # No rate limit = vulnerable
 # NEVER use fixed window without considering edge spikes
 ```
 
+**Incorrect — In-memory counters don't work in distributed systems:**
+```python
+counters = {}  # Per-instance state
+@app.post("/api/orders")
+async def create_order(user_id: str):
+    counters[user_id] = counters.get(user_id, 0) + 1
+    if counters[user_id] > 100:
+        raise RateLimitExceeded()
+# Multiple instances = no shared state
+```
+
+**Correct — Redis provides atomic distributed rate limiting across all instances:**
+```python
+@app.post("/api/orders")
+@limiter.limit("100/hour")
+async def create_order(request: Request, user_id: str):
+    # Shared Redis state across all instances
+    ...
+```
+
 
 ### Rate Limiting: Sliding Window — HIGH
 
@@ -1591,6 +1718,26 @@ end
 3. Set EXPIRE on the key to auto-cleanup inactive users
 4. Use pipeline or Lua script for atomicity
 5. Consider memory: each request stores a member in the sorted set
+
+**Incorrect — Fixed window allows 200 requests in 2 seconds with "100/min" limit:**
+```python
+# Fixed window resets at minute boundaries
+window_start = int(time.time() / 60) * 60
+if get_count(f"{user}:{window_start}") < 100:
+    allow()
+# User can send 100 at 0:59 and 100 at 1:01 = 200 in 2 seconds!
+```
+
+**Correct — Sliding window tracks individual timestamps for precise limiting:**
+```python
+now = time.time()
+window_start = now - 60  # Last 60 seconds
+await redis.zremrangebyscore(key, 0, window_start)  # Remove old
+count = await redis.zcard(key)  # Count current
+if count < 100:
+    await redis.zadd(key, {str(now): now})  # Add request
+# Exactly 100 requests per rolling 60-second window
+```
 
 
 ### Rate Limiting: Token Bucket — HIGH
@@ -1689,6 +1836,25 @@ class TokenBucketLimiter:
 | Memory | O(1) per key | O(n) timestamps |
 | Precision | Approximate | Exact |
 | Redis Operations | 1 HMSET | 1 ZADD + 1 ZREMRANGEBYSCORE |
+
+**Incorrect — Check-then-act pattern has race condition in token refill:**
+```typescript
+const bucket = await redis.get(`bucket:${user}`);
+const tokens = JSON.parse(bucket).tokens + elapsed * refillRate;
+if (tokens >= 1) {
+  // Race! Another request can pass this check too
+  await redis.set(`bucket:${user}`, JSON.stringify({tokens: tokens - 1}));
+}
+```
+
+**Correct — Atomic Lua script ensures thread-safe token bucket operations:**
+```typescript
+const result = await redis.eval(TOKEN_BUCKET_SCRIPT,
+  keys: [`bucket:${user}`],
+  args: [capacity, refillRate, tokensRequested, Date.now()]
+);
+// Single atomic operation, no race conditions
+```
 
 
 ### Resilience: Bulkhead Isolation — CRITICAL
@@ -1802,6 +1968,21 @@ async def run_analysis(content: str):
 - Too many bulkheads (per-endpoint instead of per-dependency)
 - Ignoring rejection handling (BulkheadFullError becomes 500)
 - No correlation with circuit breaker (slots stay blocked on slow service)
+
+**Incorrect — No isolation means slow downstream service blocks all operations:**
+```python
+async def fetch_data():
+    await slow_external_api()  # Takes 30s when degraded
+# All requests wait, entire system becomes slow
+```
+
+**Correct — Bulkhead isolates slow service, protecting critical operations:**
+```python
+@bulkhead(tier=Tier.OPTIONAL, max_concurrent=3, timeout=5)
+async def fetch_data():
+    await slow_external_api()
+# Only 3 concurrent + waiting queue, rest get fast rejection
+```
 
 
 ### Resilience: Circuit Breaker — CRITICAL
@@ -1930,6 +2111,22 @@ async def analyze():
 | External API | 5 | 30s | 10s |
 | Database | 2-3 | 15s | 5s |
 
+**Incorrect — No circuit breaker causes cascade failure when downstream is down:**
+```python
+async def call_payment_api():
+    return await http.post("https://api.payment.com/charge")
+    # Keeps trying even when API is down, causing 30s timeouts on every request
+# Entire service becomes unresponsive
+```
+
+**Correct — Circuit breaker trips on failures, returning fast failures and allowing recovery:**
+```python
+@circuit_breaker(failure_threshold=5, recovery_timeout=30)
+async def call_payment_api():
+    return await http.post("https://api.payment.com/charge")
+# After 5 failures, circuit opens and returns fallback immediately
+```
+
 
 ### Resilience: Retry & Backoff — CRITICAL
 
@@ -2048,6 +2245,26 @@ class RetryBudget:
 4. **Retry inside circuit breaker** -- circuit only sees final result
 5. **Use Retry-After header** -- respect server's backoff request
 6. **Log all retries** -- include trace ID for correlation
+
+**Incorrect — Fixed delay without jitter causes thundering herd when service recovers:**
+```python
+for attempt in range(3):
+    try:
+        return await api_call()
+    except Exception:
+        await asyncio.sleep(1)  # All clients retry at same time!
+# 1000 clients = 1000 simultaneous retries
+```
+
+**Correct — Exponential backoff with jitter spreads retries over time:**
+```python
+for attempt in range(3):
+    try:
+        return await api_call()
+    except Exception:
+        delay = min(2 ** attempt, 60)  # 1s, 2s, 4s...
+        await asyncio.sleep(random.uniform(0, delay))  # Jitter spreads load
+```
 
 
 

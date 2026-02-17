@@ -1,6 +1,6 @@
 {
   "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
-  "skill": "unit-testing",
+  "skill": "testing-patterns",
   "version": "1.0.0",
   "evaluations": [
     {

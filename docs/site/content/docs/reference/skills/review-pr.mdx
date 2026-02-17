@@ -271,6 +271,22 @@ SendMessage(type="shutdown_request", recipient="frontend-reviewer", content="Rev
 TeamDelete()
 ```
 
+**Incorrect — No team teardown:**
+```python
+# Agents keep running indefinitely
+Task(subagent_type="code-quality-reviewer", team_name="review-pr-123")
+Task(subagent_type="security-auditor", team_name="review-pr-123")
+# Missing shutdown_request calls!
+```
+
+**Correct — Proper team teardown:**
+```python
+# After review synthesis complete
+SendMessage(type="shutdown_request", recipient="quality-reviewer", content="Review complete")
+SendMessage(type="shutdown_request", recipient="security-reviewer", content="Review complete")
+TeamDelete()  # Clean shutdown
+```
+
 > **Fallback:** If team formation fails, use standard Task tool spawns from [agent-prompts-task-tool.md](agent-prompts-task-tool.md).
 
 
@@ -421,6 +437,24 @@ Task(
 )
 ```
 
+**Incorrect — Sequential agents:**
+```python
+# 6 reviewers run one-by-one (slow)
+Task(subagent_type="code-quality-reviewer", prompt="...")
+# Wait for completion
+Task(subagent_type="security-auditor", prompt="...")
+# Wait again...
+```
+
+**Correct — Parallel agents:**
+```python
+# All 6 agents in ONE message (fast)
+Task(subagent_type="code-quality-reviewer", prompt="...", run_in_background=True)
+Task(subagent_type="security-auditor", prompt="...", run_in_background=True)
+Task(subagent_type="test-generator", prompt="...", run_in_background=True)
+# All launch simultaneously
+```
+
 
 ### AI Code Review Agent — MEDIUM
 
@@ -446,6 +480,21 @@ Task(
   run_in_background=True,
   max_turns=25
 )
+```
+
+**Incorrect — Missing LLM review for AI code:**
+```python
+# PR modifies prompt.py but no LLM reviewer
+Task(subagent_type="code-quality-reviewer", ...)
+Task(subagent_type="security-auditor", ...)
+# Missing: LLM-specific review
+```
+
+**Correct — Add LLM reviewer for AI code:**
+```python
+# Detect AI/ML changes, add specialized reviewer
+if pr_contains_llm_code:
+    Task(subagent_type="llm-integrator", prompt="LLM CODE REVIEW...", run_in_background=True)
 ```
 
 

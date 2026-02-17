@@ -264,6 +264,23 @@ class DriftAlertPipeline:
 | Historical window | 30+ days for reliable dynamic thresholds |
 | Tool stack | Langfuse (traces) + Evidently/Phoenix (drift analysis) |
 
+**Incorrect — alerting on drift without quality correlation:**
+```python
+def check_drift(psi_score: float):
+    if psi_score > 0.2:  # Static threshold, no quality check
+        send_alert("CRITICAL: Drift detected")  # False alarms
+```
+
+**Correct — correlating drift with quality before alerting:**
+```python
+async def check_drift(psi_score: float, quality_score: float, baseline: float):
+    threshold = np.percentile(historical_psi, 95)  # Dynamic
+    if psi_score > threshold and quality_score < baseline * 0.9:
+        send_alert("CRITICAL: Drift + quality drop")  # High confidence
+    elif psi_score > threshold:
+        log_warning("Drift detected but quality stable")  # Monitor only
+```
+
 
 ### Drift: Quality Regression — HIGH
 
@@ -430,6 +447,23 @@ Monitor drift in RAG retrieval quality by comparing retrieved document overlap a
 | Canary frequency | Every 6 hours minimum |
 | Embedding method | Centroid distance for speed, cluster PSI for depth |
 
+**Incorrect — comparing quality to fixed threshold:**
+```python
+def check_quality(current_score: float):
+    if current_score < 0.7:  # Static threshold, no baseline
+        alert("Quality degradation")
+```
+
+**Correct — comparing against rolling baseline:**
+```python
+def check_quality(current_scores: list, baseline_scores: list):
+    current_mean = np.mean(current_scores)
+    baseline_mean = np.mean(baseline_scores)
+    drift_pct = (baseline_mean - current_mean) / baseline_mean
+    if drift_pct > 0.1:  # 10% drop from baseline
+        alert(f"Quality drift: {drift_pct:.1%} drop")
+```
+
 
 ### Drift: Statistical Methods — HIGH
 
@@ -582,6 +616,21 @@ def combined_drift_score(expected, actual, weights=None):
 | Active development | 0.3 | Moderate |
 | High variability | 0.1-0.15 | Very stable |
 | Sudden change detection | 0.4-0.5 | Quick response |
+
+**Incorrect — using KS test on large dataset:**
+```python
+from scipy import stats
+statistic, p_value = stats.ks_2samp(baseline, current)  # baseline/current have 10K+ samples
+if p_value < 0.05:
+    alert("Drift detected")  # Too sensitive, false alarms
+```
+
+**Correct — PSI for production monitoring:**
+```python
+psi = calculate_psi(baseline, current, bins=10)
+if psi >= 0.25:  # Stable threshold
+    alert("Significant drift detected")  # Reliable signal
+```
 
 
 ### LLM: Cost Tracking — HIGH
@@ -747,6 +796,26 @@ GROUP BY DATE(timestamp) ORDER BY date;
 6. **Use custom pricing** for self-hosted models
 7. **Use Metrics API** for programmatic queries instead of raw SQL
 
+**Incorrect — no cost tracking in LLM calls:**
+```python
+@observe()
+async def analyze(content: str):
+    response = await llm.generate(content)  # No usage tracking
+    return response  # Cost visibility lost
+```
+
+**Correct — tracking usage for cost attribution:**
+```python
+@observe()
+async def analyze(content: str):
+    response = await llm.generate(content)
+    get_client().update_current_observation(
+        model="claude-sonnet-4-5-20250929",
+        usage={"input": 1500, "output": 1000, "unit": "TOKENS"}
+    )
+    return response  # Cost auto-calculated in Langfuse
+```
+
 
 ### LLM: Evaluation Scoring — HIGH
 
@@ -896,6 +965,25 @@ ORDER BY date;
 7. **Track scores by prompt version** to measure improvements
 8. **Alert on quality drops** (e.g., avg_score &lt; 0.6 for 3 consecutive days)
 
+**Incorrect — no quality scoring in production:**
+```python
+@observe()
+async def analyze(query: str):
+    response = await llm.generate(query)
+    return response  # No quality metrics
+```
+
+**Correct — automated quality scoring:**
+```python
+@observe()
+async def analyze(query: str):
+    response = await llm.generate(query)
+    scores = await scorer.score(query, response, ["relevance", "depth"])
+    for criterion, score in scores.items():
+        get_client().score_current_trace(name=criterion, value=score)
+    return response
+```
+
 
 ### LLM: Langfuse Traces — HIGH
 
@@ -1040,6 +1128,31 @@ sdk.start();
 6. **Truncate large inputs/outputs** to 500-1000 chars
 7. **Tag production vs staging** traces for environment filtering
 
+**Incorrect — flat trace without nested spans:**
+```python
+@observe()
+async def analyze(content: str):
+    chunks = await retrieve(content)  # Not traced
+    result = await generate(chunks)   # Not traced
+    return result  # No visibility into sub-operations
+```
+
+**Correct — nested spans for full visibility:**
+```python
+@observe(name="content_analysis")
+async def analyze(content: str):
+    @observe(name="retrieval")
+    async def retrieve_context():
+        return await vector_db.search(content)
+
+    @observe(name="generation")
+    async def generate_analysis(chunks):
+        return await llm.generate(chunks)
+
+    chunks = await retrieve_context()
+    return await generate_analysis(chunks)
+```
+
 
 ### Monitoring: Alerting Rules — CRITICAL
 
@@ -1174,6 +1287,23 @@ Every alert must link to a runbook containing:
 | **Slack** | Warnings (team channel) | P3 |
 | **Email** | Low priority (daily digest) | P4 |
 
+**Incorrect — alert without for clause causes flapping:**
+```yaml
+- alert: HighErrorRate
+  expr: http_errors_total / http_requests_total > 0.05  # Immediate
+  labels:
+    severity: critical  # Pages on-call for brief spikes
+```
+
+**Correct — for clause prevents flapping:**
+```yaml
+- alert: HighErrorRate
+  expr: http_errors_total / http_requests_total > 0.05
+  for: 5m  # Must sustain 5min before firing
+  labels:
+    severity: critical
+```
+
 
 ### Monitoring: Grafana Dashboards — CRITICAL
 
@@ -1263,6 +1393,17 @@ sum(rate(http_request_duration_seconds_count[30d]))
 3. **Color code thresholds** — green/yellow/red
 4. **Include annotations** — deployments, incidents
 5. **Link to runbooks** — from alert panels
+
+**Incorrect — using average latency hides tail latency:**
+```text
+avg(http_request_duration_seconds)  # Misleading for user experience
+```
+
+**Correct — using percentiles shows tail latency:**
+```text
+histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))
+histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m]))
+```
 
 
 ### Monitoring: Prometheus Metrics — CRITICAL
@@ -1409,6 +1550,24 @@ histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))
 
 # Total cost per day by model
 sum(increase(llm_cost_dollars_total[1d])) by (model)
+```
+
+**Incorrect — unbounded label cardinality:**
+```python
+http_requests = Counter(
+    'http_requests_total',
+    ['method', 'endpoint', 'user_id']  # Millions of time series
+)
+http_requests.labels(method='GET', endpoint='/api', user_id='user_12345').inc()
+```
+
+**Correct — bounded labels only:**
+```python
+http_requests = Counter(
+    'http_requests_total',
+    ['method', 'endpoint', 'status']  # ~10K time series max
+)
+http_requests.labels(method='GET', endpoint='/api', status='200').inc()
 ```
 
 
