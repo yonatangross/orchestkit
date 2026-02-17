@@ -7,11 +7,11 @@ description: "Hooks triggered on Setup events (6 hooks)."
 
 **6 hooks** registered for the `Setup` lifecycle event.
 
-| Hook | Matcher | Scope | Notes |
-|------|---------|-------|-------|
-| `unified-dispatcher` | `*` | Global |  |
-| `setup-check` | `*` | Global | once |
-| `first-run-setup` | `*` | Global | once |
-| `setup-maintenance` | `*` | Global |  |
-| `setup-repair` | `*` | Global |  |
-| `monorepo-detector` | `*` | Global | once |
+| Hook | Matcher | Behavior | Description |
+|------|---------|----------|-------------|
+| `unified-dispatcher` | `*` | 🔥 Fire-and-forget | Consolidates one-time initialization hooks that only need to run |
+| `setup-check` | `*` | 🔇 Silent | Entry point for CC 2.1.11 Setup hooks |
+| `first-run-setup` | `*` | 🔇 Silent | Full setup with optional interactive wizard |
+| `setup-maintenance` | `*` | 🔇 Silent | Periodic maintenance tasks |
+| `setup-repair` | `*` | 🔇 Silent | Self-healing for broken installations |
+| `monorepo-detector` | `*` | 🔇 Silent | Runs once at plugin load. Checks for monorepo indicators and |

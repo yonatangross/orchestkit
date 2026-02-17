@@ -1,0 +1,58 @@
+---
+title: "Unified Advisory Dispatcher"
+description: "Consolidates 8 advisory hooks into a single process with budget-capped context injection"
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+
+<span className="badge badge-blue">Injects</span> <span className="badge badge-gray">Global</span>
+
+> Runs 8 advisory hooks in a single process spawn, merging their output into one context injection capped at 800 tokens.
+
+## When It Fires
+
+**Event:** PreToolUse · **Matcher:** `Bash` · **Bundle:** `pretool.mjs`
+
+## What It Does
+
+Every time Claude is about to run a Bash command, the unified advisory dispatcher executes up to 8 internal hooks in sequence and merges their output into a single `additionalContext` string. This replaces what would otherwise be 8 separate process spawns, significantly reducing latency.
+
+The dispatcher operates in three phases:
+
+1. **Input modification** --- `default-timeout-setter` runs first and may modify the command's timeout value. If it produces an `updatedInput`, that modification is passed through to Claude Code.
+
+2. **Blocking check** --- `agent-browser-safety` runs second and can **deny** the command (e.g., blocking browser automation for agents that should not use it). If it blocks, the dispatcher returns the denial immediately and skips all advisory hooks.
+
+3. **Advisory context** --- The remaining 6 hooks run in order, each producing optional context. The dispatcher accumulates context until the 800-token budget is reached, then skips remaining hooks.
+
+## Consolidated Hooks
+
+| Hook | Purpose |
+|------|---------|
+| `default-timeout-setter` | Adds default timeout to long-running commands |
+| `agent-browser-safety` | Blocks browser tools for non-browser agents |
+| `error-pattern-warner` | Warns about common error patterns in commands |
+| `issue-docs-requirement` | Reminds about documentation when working on issues |
+| `multi-instance-quality-gate` | Enforces quality when multiple Claude instances are active |
+| `gh-issue-creation-guide` | Provides guidance for GitHub issue/PR commands |
+| `license-compliance` | Warns about license implications of package installs |
+| `affected-tests-finder` | Suggests relevant tests to run based on changed files |
+
+<Callout type="info">
+Security-critical hooks (`dangerous-command-blocker`, `compound-command-validator`) are **not** part of this dispatcher. They run as standalone entries to ensure they can block before any advisory logic executes.
+</Callout>
+
+## Token Budget
+
+The dispatcher enforces an **800-token cap** on consolidated output. Each hook's context is measured with a token estimator before being appended. If adding a hook's output would exceed the budget, that hook is skipped and a log message is emitted.
+
+Context sections from multiple hooks are joined with `---` separators.
+
+## Configuration
+
+This hook has no user-configurable options. The token budget (800) and hook execution order are defined in source code.
+
+## Related Hooks
+
+- [dangerous-command-blocker](/docs/hooks/spotlights/dangerous-command-blocker) --- security blocker that runs before this dispatcher
+- [unified-dispatchers](/docs/hooks/spotlights/unified-dispatchers) --- overview of the dispatcher pattern used across all events

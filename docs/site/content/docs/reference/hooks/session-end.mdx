@@ -7,8 +7,8 @@ description: "Hooks triggered on SessionEnd events (3 hooks)."
 
 **3 hooks** registered for the `SessionEnd` lifecycle event.
 
-| Hook | Matcher | Scope | Notes |
-|------|---------|-------|-------|
-| `session-metrics-summary` | `*` | Global |  |
-| `session-cleanup` | `*` | Global |  |
-| `pattern-sync-push` | `*` | Global |  |
+| Hook | Matcher | Behavior | Description |
+|------|---------|----------|-------------|
+| `session-metrics-summary` | `*` | 🔇 Silent | Shows summary at session end |
+| `session-cleanup` | `*` | 🔇 Silent | Cleans up temporary files at session end |
+| `pattern-sync-push` | `*` | 🔇 Silent | Pushes project patterns to global on session end |

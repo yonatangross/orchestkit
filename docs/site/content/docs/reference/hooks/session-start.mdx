@@ -7,10 +7,10 @@ description: "Hooks triggered on SessionStart events (5 hooks)."
 
 **5 hooks** registered for the `SessionStart` lifecycle event.
 
-| Hook | Matcher | Scope | Notes |
-|------|---------|-------|-------|
-| `unified-dispatcher` | `*` | Global |  |
-| `session-context-loader` | `*` | Global |  |
-| `analytics-consent-check` | `*` | Global |  |
-| `pr-status-enricher` | `*` | Global |  |
-| `prefill-guard` | `*` | Global |  |
+| Hook | Matcher | Behavior | Description |
+|------|---------|----------|-------------|
+| `unified-dispatcher` | `*` | 🔥 Fire-and-forget | Consolidates session-specific async hooks into a single dispatcher. |
+| `session-context-loader` | `*` | 💡 Injects | Loads session context at session start |
+| `analytics-consent-check` | `*` | 💡 Injects | Check if user needs to be prompted for analytics consent |
+| `pr-status-enricher` | `*` | 💡 Injects | Runs at session start to provide PR context. Sets: |
+| `prefill-guard` | `*` | 🔇 Silent | Opus 4.6 removed support for response prefilling (prefilled assistant |

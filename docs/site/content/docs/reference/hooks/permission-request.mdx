@@ -7,8 +7,8 @@ description: "Hooks triggered on PermissionRequest events (3 hooks)."
 
 **3 hooks** registered for the `PermissionRequest` lifecycle event.
 
-| Hook | Matcher | Scope | Notes |
-|------|---------|-------|-------|
-| `auto-approve-safe-bash` | `Bash` | Global |  |
-| `learning-tracker` | `Bash` | Global |  |
-| `auto-approve-project-writes` | `Write|Edit` | Global |  |
+| Hook | Matcher | Behavior | Description |
+|------|---------|----------|-------------|
+| `auto-approve-safe-bash` | `Bash` | 🔇 Silent | Automatically approves safe bash commands |
+| `learning-tracker` | `Bash` | 🔇 Silent | Learns from user approval patterns |
+| `auto-approve-project-writes` | `Write\|Edit` | 🔇 Silent | Auto-approves writes within project directory |

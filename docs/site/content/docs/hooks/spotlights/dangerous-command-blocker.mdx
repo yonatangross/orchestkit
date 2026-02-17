@@ -1,0 +1,68 @@
+---
+title: "Dangerous Command Blocker"
+description: "Blocks catastrophic shell commands before they execute"
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+
+<span className="badge badge-red">Blocks</span> <span className="badge badge-gray">Global</span>
+
+> Prevents execution of commands that could cause catastrophic system damage, including filesystem destruction, device wiping, and history-rewriting git operations.
+
+## When It Fires
+
+**Event:** PreToolUse · **Matcher:** `Bash` · **Bundle:** `pretool.mjs`
+
+This hook runs as a **standalone entry** in hooks.json, separate from the unified advisory dispatcher. Because it is security-critical, it must evaluate and block before any advisory hooks run.
+
+## What It Does
+
+The dangerous command blocker normalizes incoming shell commands (collapsing whitespace, lowercasing, removing line continuations) and checks them against three categories of dangerous patterns. If any pattern matches, the command is **denied** immediately --- Claude sees a block message explaining why, and the command never executes.
+
+Unlike advisory hooks that inject guidance, this hook returns `continue: false` to hard-block the tool call. There is no override mechanism; the patterns are compiled into the hook source.
+
+## Blocked Patterns
+
+### Filesystem Destruction
+- `rm -rf /`, `rm -rf ~`, `rm -fr /`, `rm -fr ~`
+- `mv /* /dev/null`
+
+### Device Wiping
+- `> /dev/sda`, `mkfs.`, `dd if=/dev/zero of=/dev/`, `dd if=/dev/random of=/dev/`
+
+### Permission Abuse
+- `chmod -R 777 /`
+
+### Fork Bomb
+- `:()\{:|:&\};:`
+
+### Destructive Git Operations
+- `git reset --hard`, `git clean -fd`
+- `git push --force` / `git push -f` (regex match, catches flags anywhere in the command)
+
+### Database Destruction
+- `drop database`, `drop schema`, `truncate table`
+
+### Pipe-to-Shell
+- Any command piping output to `sh`, `bash`, `zsh`, or `dash` (e.g., `curl url | bash`)
+
+## What the User Sees
+
+When a command is blocked, Claude receives a denial message like:
+
+```
+Command matches dangerous pattern: rm -rf /
+
+This command could cause severe system damage and has been blocked.
+```
+
+For pipe-to-shell and force-push blocks, the message explains the specific risk (untrusted code execution or remote history rewriting).
+
+## Configuration
+
+This hook has no user-configurable options. The blocked patterns are hardcoded for maximum safety. To allow a blocked command, the user must run it manually outside Claude Code.
+
+## Related Hooks
+
+- [compound-command-validator](/docs/hooks/reference/pretool-bash#compound-command-validator) --- another security-critical blocker that runs standalone
+- [unified-advisory-dispatcher](/docs/hooks/spotlights/unified-advisory-dispatcher) --- the advisory dispatcher that runs *after* these security hooks

@@ -31,6 +31,14 @@ This agent activates for: investigating broken functionality, debugging regressi
 - [remember](/docs/reference/skills/remember)
 - [memory](/docs/reference/skills/memory)
 
+## Agent-Scoped Hooks
+
+These hooks activate exclusively when this agent runs, enforcing safety and compliance boundaries.
+
+| Hook | Behavior | Description |
+|------|----------|-------------|
+| `block-writes` | 🛑 Blocks | Blocks Write/Edit operations for read-only agents |
+
 ## Directive
 Perform systematic root cause analysis on bugs using scientific method. Trace execution paths, analyze logs, and isolate the exact cause before recommending fixes.
 
