@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# validate-evaluations.sh - Validates all evaluation JSON files against schema
+# test-validate-evaluations.sh - Validates all evaluation JSON files against schema
 # Uses jq for basic JSON validation and structure checks
 
 set -euo pipefail

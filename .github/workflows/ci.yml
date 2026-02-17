@@ -46,6 +46,14 @@ jobs:
       - name: Validate passive indexes
         run: bash tests/indexes/test-index-generation.sh
 
+      - name: Check for uncommitted build changes
+        run: |
+          if ! git diff --quiet plugins/; then
+            echo "::error::Build drift detected! Run 'npm run build' and commit the changes."
+            git diff --stat plugins/
+            exit 1
+          fi
+
       - name: Upload built plugins
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4  # v5
         with:
@@ -346,6 +354,75 @@ jobs:
           bash scripts/ci/run-tests.sh tests/subagents --verbose
 
   # ============================================================================
+  # STAGE 7b: Manifest, Schema & Hook Compliance
+  # Tests not previously covered in CI
+  # ============================================================================
+  manifest-schema-tests:
+    name: Manifests & Schemas
+    needs: [build-plugins]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
+
+      - name: Download built plugins
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5
+        with:
+          name: built-plugins
+          path: plugins/
+
+      - name: Setup environment
+        uses: ./.github/actions/setup
+        with:
+          build-plugins: 'false'
+          run-ci-setup: 'false'
+
+      - name: Run manifest tests
+        run: bash scripts/ci/run-tests.sh tests/manifests --verbose
+
+      - name: Run schema tests
+        run: bash scripts/ci/run-tests.sh tests/schemas --verbose
+
+      - name: Run hook compliance tests
+        run: bash scripts/ci/run-tests.sh tests/hooks --verbose
+
+      - name: Run index tests
+        run: bash scripts/ci/run-tests.sh tests/indexes --verbose
+
+  # ============================================================================
+  # STAGE 7c: Static Analysis Pipeline (eval:static)
+  # ============================================================================
+  eval-static:
+    name: Static Analysis Pipeline
+    needs: [build-plugins]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
+
+      - name: Download built plugins
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5
+        with:
+          name: built-plugins
+          path: plugins/
+
+      - name: Setup environment
+        uses: ./.github/actions/setup
+        with:
+          build-plugins: 'false'
+
+      - name: Run eval:static
+        run: npm run eval:static
+
+      - name: Upload results
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4  # v5
+        with:
+          name: static-analysis-results
+          path: tests/evaluations/results/static-analysis.json
+          retention-days: 30
+        if: always()
+
+  # ============================================================================
   # STAGE 8: System Tests
   # Uses dynamic test discovery
   # ============================================================================
@@ -429,7 +506,7 @@ jobs:
   # ============================================================================
   summary:
     name: CI Summary
-    needs: [lint, security-audit, secret-scanning, unit-tests, hook-typescript-tests, security-tests, integration-tests, performance-tests, compliance-tests, agent-skill-tests, system-tests, coverage-report]
+    needs: [lint, security-audit, secret-scanning, unit-tests, hook-typescript-tests, security-tests, integration-tests, performance-tests, compliance-tests, agent-skill-tests, manifest-schema-tests, eval-static, system-tests, coverage-report]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     if: always()
@@ -447,6 +524,8 @@ jobs:
           echo "Performance Tests: ${{ needs.performance-tests.result }}"
           echo "Compliance Tests: ${{ needs.compliance-tests.result }}"
           echo "Agent & Skill Tests: ${{ needs.agent-skill-tests.result }}"
+          echo "Manifests & Schemas: ${{ needs.manifest-schema-tests.result }}"
+          echo "Static Analysis Pipeline: ${{ needs.eval-static.result }}"
           echo "System Tests: ${{ needs.system-tests.result }}"
           echo "Coverage Report: ${{ needs.coverage-report.result }}"
 
@@ -463,6 +542,8 @@ jobs:
             "${{ needs.performance-tests.result }}" \
             "${{ needs.compliance-tests.result }}" \
             "${{ needs.agent-skill-tests.result }}" \
+            "${{ needs.manifest-schema-tests.result }}" \
+            "${{ needs.eval-static.result }}" \
             "${{ needs.system-tests.result }}"; do
             if [[ "$result" == "failure" || "$result" == "cancelled" ]]; then
               FAILED=1

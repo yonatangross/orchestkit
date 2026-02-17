@@ -25,7 +25,7 @@ pass() { echo -e "  ${GREEN}✓${NC} $1"; PASS_COUNT=$((PASS_COUNT + 1)); }
 fail() { echo -e "  ${RED}✗${NC} $1"; FAIL_COUNT=$((FAIL_COUNT + 1)); }
 
 # Valid categories (must match generate-indexes.sh CATEGORY_ORDER)
-VALID_CATEGORIES="backend frontend security devops llm testing product docs data git design other"
+VALID_CATEGORIES="backend frontend security devops llm testing product docs data git design research other"
 
 echo "=========================================="
 echo "  Agent Category Schema Validation"
