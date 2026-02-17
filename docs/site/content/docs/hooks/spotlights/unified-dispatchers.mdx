@@ -25,8 +25,8 @@ The unified dispatcher pattern solves this:
 | Event | Dispatcher | Internal Hooks | Behavior |
 |-------|-----------|----------------|----------|
 | PreToolUse (Bash) | `unified-advisory-dispatcher` | 8 hooks | Budget-capped context injection (800 tokens) |
-| PreToolUse (Write/Edit) | `unified-quality-dispatcher` | Quality checks on file writes |  Context + blocking |
-| PreToolUse (Task) | `unified-agent-safety-dispatcher` | Agent safety checks for task delegation | Context + blocking |
+| PreToolUse (Write/Edit) | `unified-quality-dispatcher` | 5 hooks | Context + blocking |
+| PreToolUse (Task) | `unified-agent-safety-dispatcher` | 4 hooks | Context + blocking |
 | PostToolUse | `unified-dispatcher` | Post-execution analysis hooks | Silent (fire-and-forget) |
 | PostToolUse (Write) | `unified-write-quality-dispatcher` | Post-write quality analysis | Context injection |
 | Stop | `unified-stop-dispatcher` | 23 hooks | Fire-and-forget via background worker |
