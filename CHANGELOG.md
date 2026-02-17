@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.0.18] - 2026-02-17
+
+### Fixed
+
+- Sync `package.json` version from 6.0.12 to 6.0.18 (was drifted from manifests)
+- Create 19 missing git tags for all historical versions (v5.2.4 through v6.0.17)
+- Fix all changelog compare links to resolve to valid tag comparisons
+- Update `[Unreleased]` link to point to `v6.0.18...HEAD`
+
+---
+
+
 ## [6.0.17] - 2026-02-17
 
 ### Added
@@ -535,6 +547,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+[6.0.18]: https://github.com/yonatangross/orchestkit/compare/v6.0.17...v6.0.18
 [6.0.17]: https://github.com/yonatangross/orchestkit/compare/v6.0.16...v6.0.17
 [6.0.16]: https://github.com/yonatangross/orchestkit/compare/v6.0.15...v6.0.16
 [6.0.15]: https://github.com/yonatangross/orchestkit/compare/v6.0.14...v6.0.15
@@ -550,7 +563,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [6.0.4]: https://github.com/yonatangross/orchestkit/compare/v6.0.2...v6.0.4
 [6.0.2]: https://github.com/yonatangross/orchestkit/compare/v6.0.0...v6.0.2
 [6.0.0]: https://github.com/yonatangross/orchestkit/compare/v5.7.1...v6.0.0
-[Unreleased]: https://github.com/yonatangross/orchestkit/compare/v6.0.17...HEAD
+[Unreleased]: https://github.com/yonatangross/orchestkit/compare/v6.0.18...HEAD
 [6.0.3]: https://github.com/yonatangross/orchestkit/compare/v6.0.2...v6.0.3
 [6.0.1]: https://github.com/yonatangross/orchestkit/compare/v6.0.0...v6.0.1
 [5.7.5]: https://github.com/yonatangross/orchestkit/compare/v5.7.1...v5.7.5
