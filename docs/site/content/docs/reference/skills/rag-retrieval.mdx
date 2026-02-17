@@ -304,6 +304,26 @@ async def adaptive_search(question: str, top_k: int = 10) -> list[dict]:
         return await web_search(question)
 ```
 
+**Incorrect — hardcoded single retrieval strategy:**
+```python
+async def search(question: str) -> list[dict]:
+    # Always uses HyDE regardless of query type
+    hyde_result = await hyde_service.generate(question)
+    return await retriever.search_by_embedding(hyde_result.embedding, top_k=10)
+```
+
+**Correct — adaptive routing based on query characteristics:**
+```python
+async def adaptive_search(question: str) -> list[dict]:
+    strategy = await route_query(question)  # Choose best approach
+
+    if strategy == "direct":
+        return await retriever.search(question, top_k=10)  # Fast path
+    elif strategy == "hyde":
+        hyde_result = await hyde_service.generate(question)
+        return await retriever.search_by_embedding(hyde_result.embedding, top_k=10)
+```
+
 **Key rules:**
 - Route queries to optimal sources based on query type
 - Direct search for simple factual queries (fastest)
@@ -365,6 +385,24 @@ def web_search(state: RAGState) -> dict:
     return {"documents": web_docs, "web_search_needed": False}
 ```
 
+**Incorrect — no fallback path or retry limits:**
+```python
+def route_after_grading(state: RAGState) -> str:
+    if state["web_search_needed"]:
+        return "transform_query"  # Infinite loop possible!
+    return "generate"
+```
+
+**Correct — bounded retries with web fallback:**
+```python
+def route_after_grading(state: RAGState) -> str:
+    if state["web_search_needed"]:
+        if state.get("retry_count", 0) < 2:  # Max 2 retries
+            return "transform_query"
+        return "web_search"  # Fallback to web
+    return "generate"
+```
+
 **Key rules:**
 - Fallback order: Rewrite query (2x max) -> Web search -> Abstain
 - Max 2-3 retries for query rewriting to prevent infinite loops
@@ -393,6 +431,22 @@ Query → [Entity Extraction] → [KG Lookup] → [Vector Search] → [Merge] �
 | CRAG | Need quality assurance | Document grading + web fallback |
 | GraphRAG | Entity-rich domains | Knowledge graph + vector hybrid |
 | Agentic | Complex multi-step | Full plan-route-act-verify loop |
+
+**Incorrect — vector-only search missing entity relationships:**
+```python
+async def search(query: str) -> list[dict]:
+    # Misses relationships between entities
+    return await vector_db.search(query, limit=10)
+```
+
+**Correct — hybrid KG + vector search:**
+```python
+async def graph_rag_search(query: str) -> list[dict]:
+    entities = await extract_entities(query)  # Extract entities from query
+    kg_results = await neo4j.lookup_entities(entities)  # KG lookup
+    vector_results = await vector_db.search(query, limit=10)  # Vector search
+    return merge_results(kg_results, vector_results)  # Combine both
+```
 
 **Key rules:**
 - Use GraphRAG when domain has rich entity relationships (people, organizations, products)
@@ -455,6 +509,27 @@ def grade_documents(state: RAGState) -> dict:
     }
 ```
 
+**Incorrect — no document grading, all docs used:**
+```python
+def generate(state: RAGState) -> dict:
+    # Uses all retrieved docs without quality check
+    context = "\n\n".join([d.page_content for d in state["documents"]])
+    return {"generation": llm.invoke(context)}
+```
+
+**Correct — grade documents before generation:**
+```python
+def grade_documents(state: RAGState) -> dict:
+    filtered_docs = []
+    for doc in state["documents"]:
+        score = grader.invoke({"question": state["question"], "document": doc.page_content})
+        if score.binary_score == "yes":  # Only keep relevant docs
+            filtered_docs.append(doc)
+
+    web_search_needed = len(filtered_docs) < len(state["documents"]) // 2
+    return {"documents": filtered_docs, "web_search_needed": web_search_needed}
+```
+
 **Key rules:**
 - Binary grading (yes/no) is simpler and more reliable than numeric scores
 - Trigger web search fallback when >50% of docs are filtered out
@@ -504,6 +579,27 @@ class HybridRetriever:
 | + Contextual embeddings | 3.5% |
 | + Contextual + BM25 hybrid | 1.9% |
 | + Contextual + BM25 + reranking | 1.3% |
+
+**Incorrect — vector-only search without BM25:**
+```python
+def search(query: str, query_embedding: np.ndarray, top_k: int = 20) -> list[int]:
+    # Misses exact-match queries
+    vector_scores = np.dot(self.embeddings, query_embedding)
+    return np.argsort(vector_scores)[::-1][:top_k]
+```
+
+**Correct — hybrid BM25 + vector with proper weighting:**
+```python
+def search(query: str, query_embedding: np.ndarray, top_k: int = 20) -> list[tuple[int, float]]:
+    bm25_scores = self.bm25.get_scores(query.lower().split())
+    bm25_norm = (bm25_scores - bm25_scores.min()) / (bm25_scores.max() - bm25_scores.min() + 1e-6)
+
+    vector_scores = np.dot(self.embeddings, query_embedding)
+    vector_norm = (vector_scores - vector_scores.min()) / (vector_scores.max() - vector_scores.min() + 1e-6)
+
+    combined = 0.4 * bm25_norm + 0.6 * vector_norm  # Research-backed weights
+    return [(i, combined[i]) for i in np.argsort(combined)[::-1][:top_k]]
+```
 
 **Key rules:**
 - 67% reduction in retrieval failures with full contextual retrieval pipeline
@@ -569,6 +665,30 @@ async def contextualize_parallel(document: str, chunks: list[str]) -> list[str]:
             context = await async_generate_context(document, chunk)
             return f"{context}\n\n{chunk}"
     return await asyncio.gather(*[process_chunk(c) for c in chunks])
+```
+
+**Incorrect — missing context generation and hybrid indexing:**
+```python
+def add_document(self, doc_id: str, text: str):
+    # No contextualization, no hybrid indexing
+    raw_chunks = self._chunk_text(text, 512)
+    embeddings = self.embed_model.embed(raw_chunks)
+    self.chunks.extend(embeddings)
+```
+
+**Correct — complete pipeline with contextualization and hybrid search:**
+```python
+def add_document(self, doc_id: str, text: str, chunk_size: int = 512):
+    raw_chunks = self._chunk_text(text, chunk_size)
+    contextualized = self._contextualize_batch(text, raw_chunks)  # Add context
+    embeddings = self.embed_model.embed(contextualized)  # Embed with context
+
+    for i, (raw, ctx, emb) in enumerate(zip(raw_chunks, contextualized, embeddings)):
+        self.chunks.append(ContextualChunk(
+            original=raw, contextualized=ctx, embedding=emb,
+            doc_id=doc_id, chunk_index=i
+        ))
+    self._rebuild_bm25()  # Hybrid BM25 + vector
 ```
 
 **Key rules:**
@@ -638,6 +758,29 @@ def contextualize_cached(document: str, chunk: str) -> str:
     return f"{response.content[0].text}\n\n{chunk}"
 ```
 
+**Incorrect — chunk without document context:**
+```python
+def index_chunk(chunk: str) -> str:
+    # Missing document context — retrieval will fail
+    embedding = embed_model.embed([chunk])[0]
+    return embedding
+```
+
+**Correct — prepend situational context before embedding:**
+```python
+def contextualize_chunk(document: str, chunk: str) -> str:
+    context = client.messages.create(
+        model="claude-sonnet-4-5-20251101",
+        max_tokens=150,
+        messages=[{"role": "user", "content": [
+            {"type": "text", "text": f"<document>\n{document}\n</document>",
+             "cache_control": {"type": "ephemeral"}},  # Cache for 90% cost reduction
+            {"type": "text", "text": f"Situate this chunk (1-2 sentences):\n<chunk>\n{chunk}\n</chunk>"}
+        ]}]
+    )
+    return f"{context.content[0].text}\n\n{chunk}"  # Prepend context
+```
+
 **Key rules:**
 - Good context: "This chunk is from ACME Corp's Q3 2024 earnings report, specifically the revenue section."
 - Bad context: "This is a chunk from the document." (too generic)
@@ -695,6 +838,34 @@ async def rag_with_citations(question: str) -> dict:
         "answer": response.content,
         "sources": [doc.metadata['source'] for doc in docs]
     }
+```
+
+**Incorrect — no citations, no grounding constraint:**
+```python
+async def rag_query(question: str) -> str:
+    docs = await vector_db.search(question, limit=5)
+    context = "\n\n".join([doc.text for doc in docs])  # No citations
+    response = await llm.chat([
+        {"role": "user", "content": f"{context}\n\n{question}"}  # No grounding instruction
+    ])
+    return response.content  # No source tracking
+```
+
+**Correct — citations with grounding constraint:**
+```python
+async def rag_with_citations(question: str) -> dict:
+    docs = await vector_db.search(question, limit=5)
+    context = "\n\n".join([
+        f"[{i+1}] {doc.text}\nSource: {doc.metadata['source']}"  # Numbered citations
+        for i, doc in enumerate(docs)
+    ])
+
+    response = await llm.chat([
+        {"role": "system", "content": "Answer with inline citations like [1], [2]. Use ONLY the provided context."},
+        {"role": "user", "content": f"Context:\n{context}\n\nQuestion: {question}"}
+    ])
+
+    return {"answer": response.content, "sources": [doc.metadata['source'] for doc in docs]}
 ```
 
 **Key rules:**
@@ -757,6 +928,31 @@ async def rag_with_sufficiency(question: str, top_k: int = 5) -> str:
     return await generate_with_context(question, context)
 ```
 
+**Incorrect — no token budget or sufficiency check:**
+```python
+async def rag_query(question: str) -> str:
+    docs = await vector_db.search(question, limit=100)  # No limit!
+    context = "\n\n".join([doc.text for doc in docs])  # Could exceed context window
+    return await generate_with_context(question, context)  # No sufficiency check
+```
+
+**Correct — token budget with sufficiency validation:**
+```python
+async def rag_with_sufficiency(question: str, top_k: int = 5) -> str:
+    docs = await vector_db.search(question, limit=top_k)
+    fitted = fit_context(docs, max_tokens=6000)  # Budget enforcement
+    context = "\n\n".join([f"[{i+1}] {doc.text}" for i, doc in enumerate(fitted)])
+
+    check = await llm.with_structured_output(SufficiencyCheck).ainvoke(
+        f"Does this context contain sufficient information?\nQuestion: {question}\nContext:\n{context}"
+    )
+
+    if not check.is_sufficient and check.confidence > 0.7:
+        return f"I don't have enough information. Missing: {check.missing_info}"
+
+    return await generate_with_context(question, context)
+```
+
 **Key rules:**
 - Keep context under 75% of model limit, reserve for system prompt + response
 - Prioritize highest-relevance documents first
@@ -809,6 +1005,29 @@ def multi_rrf(result_lists: list[list[dict]], k: int = 60) -> list[dict]:
 
     ranked_ids = sorted(scores.keys(), key=lambda x: scores[x], reverse=True)
     return [docs[doc_id] for doc_id in ranked_ids]
+```
+
+**Incorrect — no reciprocal rank fusion, just simple averaging:**
+```python
+def hybrid_search(query: str, top_k: int = 10) -> list:
+    semantic = vector_search(query, top_k)
+    keyword = bm25_search(query, top_k)
+    # Naive merge without RRF
+    return semantic[:5] + keyword[:5]
+```
+
+**Correct — proper RRF combination:**
+```python
+def reciprocal_rank_fusion(semantic_results: list, keyword_results: list, k: int = 60) -> list:
+    scores = {}
+    for rank, doc in enumerate(semantic_results):
+        scores[doc.id] = scores.get(doc.id, 0) + 1 / (k + rank + 1)
+
+    for rank, doc in enumerate(keyword_results):
+        scores[doc.id] = scores.get(doc.id, 0) + 1 / (k + rank + 1)
+
+    ranked_ids = sorted(scores.keys(), key=lambda x: scores[x], reverse=True)
+    return [get_doc(id) for id in ranked_ids]
 ```
 
 **Key rules:**
@@ -870,6 +1089,40 @@ class RAGPipeline:
             merged = await self.reranker.rerank(question, merged, top_k=top_k)
 
         return merged[:top_k]
+```
+
+**Incorrect — monolithic retrieval without composition:**
+```python
+async def query(question: str) -> list[dict]:
+    # No optional stages, fixed pipeline
+    docs = await retriever.search(question, top_k=10)
+    return docs
+```
+
+**Correct — composable pipeline with optional stages:**
+```python
+async def query(self, question: str, top_k: int = 10) -> list[dict]:
+    queries = [question]
+    if self.decomposer:  # Optional decomposition
+        concepts = await self.decomposer.decompose(question)
+        if len(concepts) > 1:
+            queries = concepts
+
+    all_results = []
+    for q in queries:
+        if self.hyde:  # Optional HyDE
+            hyde_result = await self.hyde.generate(q)
+            results = await self.retriever.search_by_embedding(hyde_result.embedding, top_k * 3)
+        else:
+            results = await self.retriever.search(q, top_k * 3)
+        all_results.append(results)
+
+    merged = reciprocal_rank_fusion(all_results) if len(all_results) > 1 else all_results[0]
+
+    if self.reranker:  # Optional reranking
+        merged = await self.reranker.rerank(question, merged, top_k)
+
+    return merged[:top_k]
 ```
 
 **Key rules:**
@@ -939,6 +1192,43 @@ response = client.embeddings.create(
 )
 ```
 
+**Incorrect — no caching or batching, wasteful API calls:**
+```python
+async def embed_texts(texts: list[str]) -> list[list[float]]:
+    results = []
+    for text in texts:  # One API call per text!
+        embedding = await client.embeddings.create(
+            model="text-embedding-3-large",
+            input=text
+        )
+        results.append(embedding.data[0].embedding)
+    return results
+```
+
+**Correct — cached batching with rate limiting:**
+```python
+async def batch_embed(texts: list[str], batch_size: int = 100) -> list[list[float]]:
+    results = []
+    for i in range(0, len(texts), batch_size):
+        batch = texts[i:i + batch_size]
+        # Check cache first
+        cached_keys = [cache.get(text) for text in batch]
+        uncached = [t for t, c in zip(batch, cached_keys) if not c]
+
+        if uncached:
+            embeddings = await client.embeddings.create(
+                model="text-embedding-3-large",
+                input=uncached,
+                dimensions=1536  # Matryoshka reduction
+            )
+            for text, emb in zip(uncached, embeddings.data):
+                cache.set(text, emb.embedding)  # Cache for reuse
+
+        results.extend([cached or cache.get(t) for t, cached in zip(batch, cached_keys)])
+        await asyncio.sleep(0.1)  # Rate limiting
+    return results
+```
+
 **Key rules:**
 - Late Chunking: Embed full document, extract chunk vectors from contextualized tokens
 - Cache aggressively — same text + model = same embedding, no need to recompute
@@ -1003,6 +1293,35 @@ def chunk_by_sentences(text: str, chunk_size: int = 512) -> list[str]:
     return chunks
 ```
 
+**Incorrect — fixed-size splits without overlap or semantic boundaries:**
+```python
+def chunk_text(text: str) -> list[str]:
+    # Arbitrary splits, no overlap, breaks mid-sentence
+    return [text[i:i+500] for i in range(0, len(text), 500)]
+```
+
+**Correct — semantic boundary chunking with overlap:**
+```python
+def chunk_by_sentences(text: str, chunk_size: int = 512, overlap: int = 75) -> list[str]:
+    sentences = text.split('. ')
+    chunks, current, current_len = [], [], 0
+
+    for sent in sentences:
+        if current_len + len(sent) > chunk_size and current:
+            chunk_text = '. '.join(current) + '.'
+            chunks.append(chunk_text)
+            # Keep last few sentences for overlap
+            overlap_sents = current[-2:] if len(current) > 2 else current
+            current, current_len = overlap_sents, sum(len(s) for s in overlap_sents)
+        else:
+            current.append(sent)
+            current_len += len(sent)
+
+    if current:
+        chunks.append('. '.join(current))
+    return chunks
+```
+
 **Key rules:**
 - Chunk size: 256-1024 tokens (512 typical sweet spot)
 - Overlap: 10-20% for context continuity between chunks
@@ -1058,6 +1377,36 @@ def cosine_similarity(a: list[float], b: list[float]) -> float:
 # 1.0 = identical, 0.0 = orthogonal
 ```
 
+**Incorrect — mixing different embedding models:**
+```python
+# Index with one model
+docs_embeddings = client.embeddings.create(
+    model="text-embedding-3-large",  # 3072 dims
+    input=documents
+)
+
+# Query with different model
+query_embedding = client.embeddings.create(
+    model="text-embedding-3-small",  # 1536 dims - MISMATCH!
+    input=query
+)
+# Results will be nonsensical due to dimension mismatch
+```
+
+**Correct — consistent model for queries and documents:**
+```python
+MODEL = "text-embedding-3-small"  # Use same model everywhere
+
+# Index
+docs_embeddings = client.embeddings.create(model=MODEL, input=documents)
+
+# Query
+query_embedding = client.embeddings.create(model=MODEL, input=query)
+
+# Now cosine similarity is meaningful
+similarity = cosine_similarity(query_embedding, docs_embeddings[0])
+```
+
 **Key rules:**
 - Embed queries and documents with the SAME model — never mix
 - Dimension reduction: Can truncate `text-embedding-3-large` to 1536 dims (Matryoshka)
@@ -1097,6 +1446,26 @@ async def hyde_with_fallback(
 - Set tight timeouts (2-3s) with fallback
 - Keep hypothetical docs concise (100-200 tokens)
 - Combine with query decomposition for best results
+
+**Incorrect — no timeout or fallback, blocking forever:**
+```python
+async def hyde_search(query: str) -> list[float]:
+    # No timeout! May hang indefinitely
+    result = await hyde_service.generate(query)
+    return result.embedding
+```
+
+**Correct — timeout with graceful fallback:**
+```python
+async def hyde_with_fallback(query: str, timeout: float = 3.0) -> list[float]:
+    try:
+        async with asyncio.timeout(timeout):
+            result = await hyde_service.generate(query)
+            return result.embedding
+    except TimeoutError:
+        # Fallback to direct query embedding
+        return await embed_fn(query)
+```
 
 **Key rules:**
 - Always implement timeout fallback — HyDE generation model may be slow or unavailable
@@ -1165,6 +1534,38 @@ async def generate_hyde(
 | Natural language questions | Yes |
 | Vocabulary mismatch suspected | Yes |
 
+**Incorrect — embedding the query instead of hypothetical document:**
+```python
+async def generate_hyde(query: str) -> HyDEResult:
+    response = await llm.chat.completions.create(
+        model="gpt-5.2-mini",
+        messages=[{"role": "user", "content": query}],
+        max_tokens=150
+    )
+    hypothetical_doc = response.choices[0].message.content
+    embedding = await embed_fn(query)  # WRONG: Embeds query, not hypothetical doc!
+    return HyDEResult(query, hypothetical_doc, embedding)
+```
+
+**Correct — embed the hypothetical document:**
+```python
+async def generate_hyde(query: str) -> HyDEResult:
+    response = await llm.chat.completions.create(
+        model="gpt-5.2-mini",
+        messages=[
+            {"role": "system", "content": "Write a short paragraph that would answer this query."},
+            {"role": "user", "content": query}
+        ],
+        max_tokens=150,
+        temperature=0.3
+    )
+
+    hypothetical_doc = response.choices[0].message.content
+    embedding = await embed_fn(hypothetical_doc)  # Embed the hypothetical doc!
+
+    return HyDEResult(query, hypothetical_doc, embedding)
+```
+
 **Key rules:**
 - Embed the hypothetical document, NOT the original query
 - Use fast/cheap model (gpt-5.2-mini, claude-haiku-4-5) for generation
@@ -1208,6 +1609,24 @@ class HyDEService:
         result = await generate_hyde(query, self.llm, self.embed_fn)
         self._cache[key] = result
         return result
+```
+
+**Incorrect — sequential HyDE generation, slow:**
+```python
+async def batch_hyde(concepts: list[str]) -> list[HyDEResult]:
+    results = []
+    for concept in concepts:  # Sequential! Slow for many concepts
+        result = await hyde_service.generate(concept)
+        results.append(result)
+    return results
+```
+
+**Correct — parallel HyDE generation:**
+```python
+async def batch_hyde(concepts: list[str]) -> list[HyDEResult]:
+    # Parallel generation for all concepts simultaneously
+    tasks = [hyde_service.generate(concept) for concept in concepts]
+    return await asyncio.gather(*tasks)
 ```
 
 **Key rules:**
@@ -1263,6 +1682,41 @@ def chunk_multimodal_document(pdf_path: str) -> list[Chunk]:
 
         if current_text.strip():
             chunks.append(Chunk(content=current_text.strip(), chunk_type="text", page=page_num))
+
+    return chunks
+```
+
+**Incorrect — text-only chunking, loses images and tables:**
+```python
+def chunk_pdf(pdf_path: str) -> list[str]:
+    import fitz
+    doc = fitz.open(pdf_path)
+    chunks = []
+    for page in doc:
+        chunks.append(page.get_text())  # Text only, images lost!
+    return chunks
+```
+
+**Correct — multimodal chunking with images and captions:**
+```python
+def chunk_multimodal_document(pdf_path: str) -> list[Chunk]:
+    import fitz
+    doc = fitz.open(pdf_path)
+    chunks = []
+
+    for page_num, page in enumerate(doc):
+        text_blocks = page.get_text("blocks")
+        for block in text_blocks:
+            if block[6] == 0:  # Text block
+                chunks.append(Chunk(content=block[4], chunk_type="text", page=page_num))
+            else:  # Image block
+                xref = block[7]
+                img = doc.extract_image(xref)
+                img_path = f"/tmp/page{page_num}_img{xref}.{img['ext']}"
+                with open(img_path, "wb") as f:
+                    f.write(img["image"])
+                caption = generate_image_caption(img_path)
+                chunks.append(Chunk(content=caption, chunk_type="image", page=page_num, image_path=img_path))
 
     return chunks
 ```
@@ -1333,6 +1787,25 @@ def embed_multimodal(texts=None, images=None) -> list[list[float]]:
     return client.multimodal_embed(inputs=inputs, model="voyage-multimodal-3").embeddings
 ```
 
+**Incorrect — using text-only embeddings for images:**
+```python
+def embed_image(image_path: str) -> list[float]:
+    # Using text embedding model for images - wrong modality!
+    caption = generate_caption(image_path)
+    return text_embed_model.embed([caption])[0]  # Loses visual features
+```
+
+**Correct — multimodal embeddings for cross-modal search:**
+```python
+def embed_image(image_path: str) -> list[float]:
+    image = Image.open(image_path)
+    inputs = processor(images=image, return_tensors="pt")
+    with torch.no_grad():
+        embeddings = model.get_image_features(**inputs)
+    embeddings = embeddings / embeddings.norm(dim=-1, keepdim=True)  # Normalize
+    return embeddings[0].tolist()
+```
+
 **Key rules:**
 - Normalize embeddings for cosine similarity (CLIP already normalized)
 - Voyage multimodal-3 for long documents (32K context)
@@ -1390,6 +1863,41 @@ async def generate_with_context(query: str, chunks: list[Chunk], model: str = "c
 
     response = client.messages.create(model=model, max_tokens=4096, messages=[{"role": "user", "content": content}])
     return response.content[0].text
+```
+
+**Incorrect — no deduplication, fragmented results:**
+```python
+async def retrieve(self, query: str, top_k: int = 10) -> list[dict]:
+    text_emb = embed_text(query)
+    text_results = await self.vector_db.search(embedding=text_emb, top_k=top_k)
+
+    img_emb = embed_image(query_image)
+    img_results = await self.vector_db.search(embedding=img_emb, top_k=top_k)
+
+    # No deduplication! Same doc may appear twice
+    return text_results + img_results
+```
+
+**Correct — deduplicated cross-modal results:**
+```python
+async def retrieve(self, query: str, query_image: str = None, top_k: int = 10) -> list[dict]:
+    results = []
+    text_emb = embed_text(query)
+    text_results = await self.vector_db.search(embedding=text_emb, top_k=top_k)
+    results.extend(text_results)
+
+    if query_image:
+        img_emb = embed_image(query_image)
+        img_results = await self.vector_db.search(embedding=img_emb, top_k=top_k)
+        results.extend(img_results)
+
+    # Dedupe by doc_id, keep highest score
+    seen = {}
+    for r in results:
+        doc_id = r["metadata"]["doc_id"]
+        if doc_id not in seen or r["score"] > seen[doc_id]["score"]:
+            seen[doc_id] = r
+    return sorted(seen.values(), key=lambda x: x["score"], reverse=True)[:top_k]
 ```
 
 **Key rules:**
@@ -1458,6 +1966,45 @@ async def hybrid_search(query: str, query_embedding: list[float], top_k: int = 1
 rrf_score = 1/(k + vector_rank) + 1/(k + keyword_rank)  # k=60 (standard)
 ```
 
+**Incorrect — separate queries without RRF fusion:**
+```python
+async def hybrid_search(query: str, embedding: list[float], top_k: int = 10):
+    # Separate queries, no fusion!
+    vector_results = await session.execute(
+        select(Chunk).order_by(Chunk.embedding.cosine_distance(embedding)).limit(top_k)
+    )
+    keyword_results = await session.execute(
+        select(Chunk).where(Chunk.content_tsvector.op("@@")(plainto_tsquery(query))).limit(top_k)
+    )
+    # Naive merge, no RRF
+    return list(vector_results) + list(keyword_results)
+```
+
+**Correct — RRF fusion with FULL OUTER JOIN:**
+```python
+async def hybrid_search(query: str, query_embedding: list[float], top_k: int = 10):
+    K = 60  # RRF smoothing constant
+
+    # Vector search subquery
+    vector_subq = select(Chunk.id, func.row_number().over(
+        order_by=Chunk.embedding.cosine_distance(query_embedding)
+    ).label("vector_rank")).limit(top_k * 3).subquery()
+
+    # Keyword search subquery
+    keyword_subq = select(Chunk.id, func.row_number().over(
+        order_by=func.ts_rank_cd(Chunk.content_tsvector, plainto_tsquery(query)).desc()
+    ).label("keyword_rank")).limit(top_k * 3).subquery()
+
+    # RRF fusion with FULL OUTER JOIN
+    rrf_subq = select(
+        func.coalesce(vector_subq.c.id, keyword_subq.c.id).label("chunk_id"),
+        (func.coalesce(1.0 / (K + vector_subq.c.vector_rank), 0.0) +
+         func.coalesce(1.0 / (K + keyword_subq.c.keyword_rank), 0.0)).label("rrf_score")
+    ).select_from(vector_subq.outerjoin(keyword_subq, ..., full=True)).order_by("rrf_score DESC").limit(top_k)
+
+    return await session.execute(select(Chunk).join(rrf_subq, Chunk.id == rrf_subq.c.chunk_id))
+```
+
 **Key rules:**
 - Use FULL OUTER JOIN to catch docs found by only one search method
 - 3x fetch multiplier for better RRF coverage (30 per method for top 10 final)
@@ -1504,6 +2051,30 @@ SET hnsw.iterative_scan = 'relaxed_order';
 | **Strengths** | Synonyms, concepts | Exact phrases, rare terms |
 | **Weaknesses** | Exact matches, technical terms | No semantic understanding |
 | **Index** | HNSW (pgvector) | GIN (tsvector) |
+
+**Incorrect — no index, sequential scan on every query:**
+```sql
+-- No index! Sequential scan is 17x slower
+SELECT * FROM chunks
+ORDER BY embedding <=> '[0.1, 0.2, ...]'::vector
+LIMIT 10;
+```
+
+**Correct — HNSW index for fast queries:**
+```sql
+-- Create HNSW index
+CREATE INDEX idx_chunks_embedding_hnsw ON chunks
+    USING hnsw (embedding vector_cosine_ops)
+    WITH (m = 16, ef_construction = 64);
+
+-- Query-time tuning
+SET hnsw.ef_search = 40;  -- Higher = better recall
+
+-- Now queries are 17x faster
+SELECT * FROM chunks
+ORDER BY embedding <=> '[0.1, 0.2, ...]'::vector
+LIMIT 10;
+```
 
 **Key rules:**
 - Use HNSW for production (scales to millions, 17x faster queries)
@@ -1552,6 +2123,28 @@ final = deduplicate_and_rerank(all_results)
 | **Persistence** | ACID | AOF/RDB |
 | **Max dataset** | Billions | Memory-bound (~100M) |
 
+**Incorrect — no metadata filtering, irrelevant results:**
+```python
+# Returns all content types mixed together
+results = await session.execute(
+    select(Chunk).order_by(Chunk.embedding.cosine_distance(embedding)).limit(10)
+)
+```
+
+**Correct — filtered search with similarity threshold:**
+```python
+# Filter by content_type and similarity threshold
+results = await session.execute(
+    select(Chunk)
+    .where(Chunk.content_type == "code_block")  # Pre-filter
+    .order_by(Chunk.embedding.cosine_distance(embedding))
+    .limit(50)
+)
+
+# Apply similarity threshold
+filtered = [r for r in results if (1 - r.vector_distance) >= 0.75][:10]
+```
+
 **Key rules:**
 - Metadata boosting (title/path matching) adds +6% MRR
 - Pre-filter by content_type for targeted search
@@ -1590,6 +2183,41 @@ CREATE INDEX idx_chunks_embedding ON chunks
 -- GIN index for keyword search
 CREATE INDEX idx_chunks_content_tsvector ON chunks
     USING gin (content_tsvector);
+```
+
+**Incorrect — computing tsvector at query time, slow:**
+```sql
+CREATE TABLE chunks (
+    id UUID PRIMARY KEY,
+    content TEXT NOT NULL,
+    embedding vector(1024)
+);
+
+-- Slow query: computes tsvector every time!
+SELECT * FROM chunks
+WHERE to_tsvector('english', content) @@ plainto_tsquery('search query');
+```
+
+**Correct — pre-computed tsvector as GENERATED column:**
+```sql
+CREATE TABLE chunks (
+    id UUID PRIMARY KEY,
+    content TEXT NOT NULL,
+    embedding vector(1024),
+    content_tsvector tsvector GENERATED ALWAYS AS (
+        to_tsvector('english', content)
+    ) STORED  -- Pre-computed, 5-10x faster
+);
+
+-- GIN index for fast keyword search
+CREATE INDEX idx_chunks_content_tsvector ON chunks USING gin (content_tsvector);
+
+-- HNSW index for fast vector search
+CREATE INDEX idx_chunks_embedding ON chunks
+    USING hnsw (embedding vector_cosine_ops) WITH (m = 16, ef_construction = 64);
+
+-- Fast query using pre-computed tsvector
+SELECT * FROM chunks WHERE content_tsvector @@ plainto_tsquery('search query');
 ```
 
 **Key rules:**
@@ -1648,6 +2276,33 @@ async def decomposed_search(query: str, search_fn, llm, top_k: int = 10) -> list
     return reciprocal_rank_fusion(results_per_concept, k=60)[:top_k]
 ```
 
+**Incorrect — no decomposition, single query for complex topics:**
+```python
+async def search(query: str, top_k: int = 10) -> list[dict]:
+    # "How does authentication affect database performance?"
+    # Single query misses one of the two concepts
+    return await vector_search(query, limit=top_k)
+```
+
+**Correct — decompose and fuse with RRF:**
+```python
+async def decomposed_search(query: str, top_k: int = 10) -> list[dict]:
+    if not is_multi_concept_heuristic(query):
+        return await search_fn(query, limit=top_k)  # Fast path
+
+    # Decompose: "authentication" + "database performance"
+    concepts = await decompose_query(query, llm)
+    if len(concepts) <= 1:
+        return await search_fn(query, limit=top_k)
+
+    # Parallel retrieval per concept
+    tasks = [search_fn(concept, limit=top_k) for concept in concepts]
+    results_per_concept = await asyncio.gather(*tasks)
+
+    # Fuse with RRF
+    return reciprocal_rank_fusion(results_per_concept, k=60)[:top_k]
+```
+
 **Key rules:**
 - Max 2-4 concepts per query (more increases latency without proportional benefit)
 - Use gpt-5.2-mini for decomposition (fast, cheap, good at concept extraction)
@@ -1687,6 +2342,31 @@ def is_multi_concept_heuristic(query: str) -> bool:
 | "Best practices for X" | No |
 | "X and Y in Z" | Yes |
 | "Difference between X, Y, Z" | Yes |
+
+**Incorrect — always decomposing, even for simple queries:**
+```python
+async def search(query: str, top_k: int = 10) -> list[dict]:
+    # Always calls LLM for decomposition, even for "What is React?"
+    concepts = await decompose_query(query, llm)  # Wasteful!
+    tasks = [search_fn(concept, limit=top_k) for concept in concepts]
+    return await asyncio.gather(*tasks)
+```
+
+**Correct — heuristic fast path before LLM decomposition:**
+```python
+async def search(query: str, top_k: int = 10) -> list[dict]:
+    if not is_multi_concept_heuristic(query):  # Sub-millisecond check
+        return await search_fn(query, limit=top_k)  # Fast path
+
+    # Only call LLM if heuristic detects multi-concept
+    concepts = await decompose_query(query, llm)
+    tasks = [search_fn(concept, limit=top_k) for concept in concepts]
+    return await asyncio.gather(*tasks)
+
+def is_multi_concept_heuristic(query: str) -> bool:
+    query_lower = query.lower()
+    return any(ind in query_lower for ind in [" vs ", " and ", "difference between"])
+```
 
 **Key rules:**
 - Heuristic first (sub-millisecond), LLM decomposition only if heuristic triggers
@@ -1728,6 +2408,38 @@ async def decomposed_hyde_search(
     results_per_concept = await asyncio.gather(*search_tasks)
 
     # Fuse results with RRF
+    return reciprocal_rank_fusion(results_per_concept)[:top_k]
+```
+
+**Incorrect — sequential decomposition and HyDE, slow:**
+```python
+async def search(query: str, top_k: int = 10) -> list[dict]:
+    concepts = await decompose_query(query, llm)
+    all_results = []
+    for concept in concepts:  # Sequential! Slow
+        hyde_result = await hyde_service.generate(concept)
+        results = await vector_search(embedding=hyde_result.embedding, limit=top_k)
+        all_results.append(results)
+    return reciprocal_rank_fusion(all_results)[:top_k]
+```
+
+**Correct — parallel HyDE generation and search:**
+```python
+async def decomposed_hyde_search(query: str, top_k: int = 10) -> list[dict]:
+    concepts = await decomposer.get_concepts(query)
+
+    # Generate HyDE for each concept in parallel
+    hyde_results = await asyncio.gather(*[
+        hyde_service.generate(concept) for concept in concepts
+    ])
+
+    # Search with HyDE embeddings in parallel
+    search_tasks = [
+        vector_search(embedding=hr.embedding, limit=top_k) for hr in hyde_results
+    ]
+    results_per_concept = await asyncio.gather(*search_tasks)
+
+    # Fuse with RRF
     return reciprocal_rank_fusion(results_per_concept)[:top_k]
 ```
 
@@ -1781,6 +2493,39 @@ class ReRankingService:
             return sorted(documents, key=lambda x: x.get("score", 0), reverse=True)[:top_k]
 ```
 
+**Incorrect — single scoring signal without timeout:**
+```python
+async def rerank(query: str, documents: list[dict], top_k: int = 10) -> list[dict]:
+    # Only uses LLM score, no timeout, no fallback
+    llm_scores = await llm_rerank(query, documents, llm)  # May hang!
+    return sorted(documents, key=lambda x: llm_scores.get(x["id"], 0), reverse=True)[:top_k]
+```
+
+**Correct — combined scoring with timeout fallback:**
+```python
+async def rerank(query: str, documents: list[dict], top_k: int = 10) -> list[dict]:
+    if len(documents) <= top_k:
+        return documents  # Skip if no benefit
+
+    try:
+        async with asyncio.timeout(5.0):  # 5s timeout
+            llm_scores = await llm_rerank(query, documents, llm)
+
+            # Combined scoring: 30% base + 50% LLM + 20% recency
+            scored = []
+            for doc in documents:
+                base = doc.get("score", 0.5)
+                llm = llm_scores.get(doc["id"], 0.5)
+                recency = calculate_recency_score(doc.get("created_at"))
+                final = 0.3 * base + 0.5 * llm + 0.2 * recency
+                scored.append({**doc, "score": final})
+
+            return sorted(scored, key=lambda x: x["score"], reverse=True)[:top_k]
+    except TimeoutError:
+        # Fallback to base ranking
+        return sorted(documents, key=lambda x: x.get("score", 0), reverse=True)[:top_k]
+```
+
 **Key rules:**
 - Default weights: 30% base retrieval + 50% LLM score + 20% recency
 - Always set timeout (5s) with fallback to base ranking
@@ -1819,6 +2564,29 @@ class CrossEncoderReranker:
 | `cross-encoder/ms-marco-MiniLM-L-6-v2` | ~50ms | Free | Good |
 | `BAAI/bge-reranker-large` | ~100ms | Free | Better |
 | `cohere rerank-english-v3.0` | ~200ms | $1/1K | Best |
+
+**Incorrect — retrieving few, no reranking:**
+```python
+async def search(query: str) -> list[dict]:
+    # Retrieve only 10, no reranking - misses good results
+    return await vector_search(query, limit=10)
+```
+
+**Correct — retrieve many, rerank to few:**
+```python
+async def search_with_reranking(query: str) -> list[dict]:
+    # Retrieve many candidates
+    candidates = await vector_search(query, limit=50)
+
+    # Rerank with cross-encoder
+    pairs = [(query, doc["content"][:400]) for doc in candidates]
+    scores = cross_encoder.predict(pairs)
+    scored_docs = list(zip(candidates, scores))
+    scored_docs.sort(key=lambda x: x[1], reverse=True)
+
+    # Return top 10 after reranking
+    return [{**doc, "score": float(score)} for doc, score in scored_docs[:10]]
+```
 
 **Key rules:**
 - Retrieve many (50-100), rerank to few (10) — "retrieve more, rerank less"
@@ -1878,6 +2646,42 @@ class CohereReranker:
             documents=[doc["content"] for doc in documents], top_n=top_k
         )
         return [{**documents[r.index], "score": r.relevance_score} for r in results.results]
+```
+
+**Incorrect — one LLM call per document, extremely slow:**
+```python
+async def llm_rerank(query: str, documents: list[dict]) -> list[dict]:
+    scores = []
+    for doc in documents:  # Sequential LLM calls!
+        response = await llm.chat.completions.create(
+            model="gpt-5.2-mini",
+            messages=[{"role": "user", "content": f"Rate relevance (0-1):\nQuery: {query}\nDoc: {doc['content']}"}]
+        )
+        scores.append(float(response.choices[0].message.content))
+    return sorted(zip(documents, scores), key=lambda x: x[1], reverse=True)
+```
+
+**Correct — batch all docs in one LLM call:**
+```python
+async def llm_rerank(query: str, documents: list[dict], top_k: int = 10) -> list[dict]:
+    # Batch all docs in ONE LLM call
+    docs_text = "\n\n".join([
+        f"[Doc {i+1}]\n{doc['content'][:300]}..."  # Truncate
+        for i, doc in enumerate(documents)
+    ])
+
+    response = await llm.chat.completions.create(
+        model="gpt-5.2-mini",
+        messages=[
+            {"role": "system", "content": "Rate each document's relevance (0.0-1.0). One score per line."},
+            {"role": "user", "content": f"Query: {query}\n\nDocuments:\n{docs_text}"}
+        ],
+        temperature=0
+    )
+
+    scores = parse_scores(response.choices[0].message.content, len(documents))
+    scored_docs = sorted(zip(documents, scores), key=lambda x: x[1], reverse=True)
+    return [{**doc, "score": score} for doc, score in scored_docs[:top_k]]
 ```
 
 **Key rules:**

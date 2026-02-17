@@ -475,6 +475,23 @@ If any subtask still scores Level 4+, decompose it again.
 - Each subtask should be **independently verifiable** with its own tests
 - Prefer **vertical slices** (end-to-end for one feature) over horizontal layers
 
+**Incorrect — Starting Level 5 task without decomposition:**
+```
+Task: "Migrate authentication to OAuth2"
+Complexity: 4.8 (Level 5)
+Action: Start implementing directly
+// High failure risk, scope creep likely
+```
+
+**Correct — Breaking into Level 1-3 subtasks:**
+```
+1. Research OAuth2 providers (Level 2, 1-2h)
+2. Add OAuth library dependency (Level 1, 30m)
+3. Implement OAuth callback handler (Level 2, 2-4h)
+4. Migrate existing sessions (Level 3, 4-8h)
+5. Add regression tests (Level 2, 2h)
+```
+
 
 ### Complexity Scoring Frameworks — HIGH
 
@@ -533,6 +550,29 @@ Score task complexity across 7 criteria (1-5 each) to determine if a task should
 - Level 4-5 tasks **must be decomposed** before starting implementation
 - Unknowns (criterion 5) is the **highest variance** factor — resolve unknowns first
 - Cross-cutting (criterion 6) indicates **coordination overhead** — account for it in estimates
+
+**Incorrect — Skipping complexity assessment:**
+```
+Task: "Add real-time notifications"
+Action: Start coding
+// No idea of scope, likely 3-5x over estimate
+```
+
+**Correct — Scoring all 7 criteria first:**
+```
+| Criterion | Score |
+|-----------|-------|
+| Lines of Code | 4/5 (800+ lines) |
+| Time Estimate | 4/5 (16+ hours) |
+| Files Affected | 3/5 (8 files) |
+| Dependencies | 4/5 (WebSockets, Redis) |
+| Unknowns | 3/5 (some research needed) |
+| Cross-Cutting | 4/5 (DB, API, UI, workers) |
+| Risk Level | 3/5 (testable) |
+| **Average** | **3.6 (Level 4 - Complex)** |
+
+Action: Decompose into subtasks before starting
+```
 
 
 

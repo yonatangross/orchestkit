@@ -530,8 +530,8 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "browser-tools": {
     "name": "browser-tools",
-    "description": "Browser automation and content capture patterns for Playwright, Puppeteer, web scraping, and structured data extraction. Use when automating browser workflows, capturing web content, or extracting structured data from web pages.",
-    "version": "2.0.0",
+    "description": "OrchestKit orchestration wrapper for browser automation. Adds security rules, rate limiting, and ethical scraping guardrails on top of the upstream agent-browser skill. Use when automating browser workflows, capturing web content, or extracting structured data from web pages.",
+    "version": "2.1.0",
     "author": "OrchestKit",
     "tags": [
       "browser",
@@ -547,16 +547,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "skills": [],
     "agent": "web-research-analyst",
     "structure": {
-      "references": [
-        "anti-bot-handling.md",
-        "auth-flows.md",
-        "content-extraction.md",
-        "page-interaction.md",
-        "playwright-setup.md",
-        "scraping-strategies.md",
-        "spa-extraction.md",
-        "structured-output.md"
-      ]
+      "references": []
     },
     "plugins": [
       "ork",

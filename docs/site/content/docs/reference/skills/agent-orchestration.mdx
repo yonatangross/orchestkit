@@ -381,6 +381,28 @@ from autogen_agentchat.teams import RoundRobinGroupChat
 5. Use try/except around team.run()
 6. Use run_stream() for real-time feedback
 
+**Incorrect — team without termination condition runs indefinitely:**
+```python
+team = RoundRobinGroupChat(
+    participants=[planner, executor, reviewer]
+    # No termination condition - infinite loop risk
+)
+result = await team.run(task="Complete task")
+```
+
+**Correct — explicit termination prevents infinite loops:**
+```python
+termination = OrTerminationCondition(
+    TextMentionTermination("APPROVED"),
+    MaxMessageTermination(max_messages=20)
+)
+team = RoundRobinGroupChat(
+    participants=[planner, executor, reviewer],
+    termination_condition=termination
+)
+result = await team.run(task="Complete task")
+```
+
 
 ### Frameworks: Comparison & Selection — HIGH
 
@@ -547,6 +569,25 @@ Task Duration > 1 hour?
 - Ignoring framework maturity (beta vs production)
 - No fallback strategy (framework lock-in)
 - Overcomplicating simple tasks (use single agent)
+
+**Incorrect — using multi-agent framework for simple task:**
+```python
+# Overkill: LangGraph for single-step task
+workflow = StateGraph(State)
+workflow.add_node("summarize", summarize_node)
+workflow.add_edge(START, "summarize")
+workflow.add_edge("summarize", END)
+app = workflow.compile()
+result = await app.ainvoke({"text": "..."})
+```
+
+**Correct — single LLM call for simple task:**
+```python
+# Simple task = single agent
+from langchain_openai import ChatOpenAI
+llm = ChatOpenAI(model="gpt-5.2")
+result = await llm.ainvoke("Summarize this text: ...")
+```
 
 
 ### Frameworks: CrewAI — HIGH
@@ -755,6 +796,25 @@ result = ResearchCrew().crew().kickoff(inputs={"topic": "AI Safety"})
 6. Role clarity: each agent has distinct, non-overlapping role
 7. One clear deliverable per task
 
+**Incorrect — sequential process without hierarchical manager:**
+```python
+crew = Crew(
+    agents=[researcher, writer, reviewer],
+    tasks=[research_task, write_task, review_task],
+    process=Process.sequential  # No delegation, rigid order
+)
+```
+
+**Correct — hierarchical process with manager delegation:**
+```python
+crew = Crew(
+    agents=[manager, researcher, writer, reviewer],
+    tasks=[project_task],
+    process=Process.hierarchical,  # Manager delegates dynamically
+    manager_llm="gpt-5.2"
+)
+```
+
 
 ### Loops: Plan-and-Execute — HIGH
 
@@ -929,6 +989,25 @@ export async function functionCallingAgent(task: string): Promise<AgentResult> {
 | Function Calling | Production APIs | Most reliable, requires tool schemas |
 | Self-Correction | Quality-critical output | Higher cost, better quality |
 
+**Incorrect — executing without planning first:**
+```python
+async def execute_goal(goal: str):
+    steps = ["step1", "step2", "step3"]  # Hardcoded, no reasoning
+    for step in steps:
+        await execute_step(step)
+```
+
+**Correct — LLM generates plan before execution:**
+```python
+async def plan_and_execute(goal: str):
+    plan = await llm.chat([{"role": "user", "content": f"Create plan for: {goal}"}])
+    steps = parse_plan(plan.content)
+    for step in steps:
+        result = await execute_step(step)
+        if should_replan(result):
+            return await plan_and_execute(f"{goal}\nProgress: {result}")
+```
+
 
 ### Loops: ReAct Pattern — HIGH
 
@@ -1064,6 +1143,27 @@ class AgentMemory:
 - No error recovery (crashes on tool failure)
 - Over-complex prompts (agent gets confused)
 
+**Incorrect — ReAct loop without step limit:**
+```python
+async def react_loop(question: str, tools: dict):
+    history = f"Question: {question}"
+    while True:  # Infinite loop risk
+        response = await llm.chat([{"role": "user", "content": history}])
+        if "Final Answer:" in response.content:
+            return response.content
+```
+
+**Correct — max_steps prevents infinite loops:**
+```python
+async def react_loop(question: str, tools: dict, max_steps: int = 10):
+    history = f"Question: {question}"
+    for step in range(max_steps):  # Bounded loop
+        response = await llm.chat([{"role": "user", "content": history}])
+        if "Final Answer:" in response.content:
+            return response.content.split("Final Answer:")[-1]
+    return "Max steps reached without answer"
+```
+
 
 ### Multi-Agent: Debate & Conflict Resolution — HIGH
 
@@ -1173,6 +1273,26 @@ class AgentBus:
 - Over-coordination (too much overhead)
 - Using Agent Teams for simple sequential work (use Task tool)
 - Broadcasting when a direct message suffices (wastes tokens)
+
+**Incorrect — no conflict resolution strategy:**
+```python
+async def multi_agent_analysis(task: str):
+    results = await asyncio.gather(agent1(task), agent2(task))
+    return results  # Return conflicting results without resolution
+```
+
+**Correct — LLM arbitration resolves conflicts:**
+```python
+async def multi_agent_analysis(task: str):
+    results = await asyncio.gather(agent1(task), agent2(task))
+    if results[0] != results[1]:  # Conflict detected
+        resolution = await llm.chat([{
+            "role": "user",
+            "content": f"Agent 1: {results[0]}\nAgent 2: {results[1]}\nWhich is correct?"
+        }])
+        return resolution.content
+    return results[0]
+```
 
 
 ### Multi-Agent: Supervisor Pattern — CRITICAL
@@ -1363,6 +1483,27 @@ SendMessage(type="broadcast",
 | Communication | Shared state, message bus, or SendMessage (CC 2.1.33+) |
 | Topology | Task tool (star) for simple; Agent Teams (mesh) for complex |
 
+**Incorrect — sequential execution of independent agents:**
+```python
+async def analyze(content: str):
+    security_result = await security_agent(content)  # Wait
+    perf_result = await performance_agent(content)   # Wait
+    quality_result = await quality_agent(content)    # Wait
+    return [security_result, perf_result, quality_result]
+```
+
+**Correct — parallel fan-out for independent agents:**
+```python
+async def analyze(content: str):
+    tasks = [
+        security_agent(content),
+        performance_agent(content),
+        quality_agent(content)
+    ]
+    results = await asyncio.gather(*tasks)  # Run in parallel
+    return results
+```
+
 
 ### Multi-Agent: Result Synthesis — HIGH
 
@@ -1514,6 +1655,24 @@ Generate actionable recommendations:
 - [ ] Set coordination strategy (central orchestrator with task queue)
 - [ ] Design failure handling (timeout per agent, error isolation)
 - [ ] Agent health checks and performance metrics
+
+**Incorrect — returning raw agent outputs without synthesis:**
+```python
+async def multi_agent_analysis(task: str):
+    results = await asyncio.gather(agent1(task), agent2(task), agent3(task))
+    return results  # Returns list of disconnected findings
+```
+
+**Correct — synthesizing results into coherent output:**
+```python
+async def multi_agent_analysis(task: str):
+    results = await asyncio.gather(agent1(task), agent2(task), agent3(task))
+    synthesis = await llm.chat([{
+        "role": "user",
+        "content": f"Synthesize these findings: {json.dumps(results)}"
+    }])
+    return parse_synthesis(synthesis.content)
+```
 
 
 ### Scenario: Multi-Scenario Orchestrator — MEDIUM
@@ -1690,6 +1849,26 @@ class SkillOrchestrator(ABC):
 - No synchronization (results appear disjointed)
 - Unclear difficulty scaling (differ in scale, not approach)
 - Missing aggregation (individual results lack comparative insights)
+
+**Incorrect — running scenarios sequentially:**
+```python
+async def orchestrate(skill_name: str):
+    simple = await run_scenario("simple", skill_name)  # Wait
+    medium = await run_scenario("medium", skill_name)  # Wait
+    complex = await run_scenario("complex", skill_name) # Wait
+    return [simple, medium, complex]
+```
+
+**Correct — parallel execution of all scenarios:**
+```python
+async def orchestrate(skill_name: str):
+    results = await asyncio.gather(
+        run_scenario("simple", skill_name),
+        run_scenario("medium", skill_name),
+        run_scenario("complex", skill_name)
+    )
+    return aggregate_results(results)
+```
 
 
 ### Scenario: Routing & Synchronization — MEDIUM
@@ -1913,6 +2092,27 @@ python run_scenario.py
 | Input scaling | 1x, 3x, 8x (exponential) |
 | Time budgets | 30s, 90s, 300s |
 | Checkpoint frequency | Every milestone + completion |
+
+**Incorrect — no timeout on skill invocation:**
+```python
+async def run_scenario(scenario_id: str, skill_name: str):
+    result = await invoke_skill(skill_name, get_input(scenario_id))  # Hangs forever
+    return result
+```
+
+**Correct — timeout prevents infinite hangs:**
+```python
+async def run_scenario(scenario_id: str, skill_name: str):
+    timeout = {"simple": 30, "medium": 90, "complex": 300}[scenario_id]
+    try:
+        result = await asyncio.wait_for(
+            invoke_skill(skill_name, get_input(scenario_id)),
+            timeout=timeout
+        )
+        return result
+    except asyncio.TimeoutError:
+        return {"error": "timeout", "scenario_id": scenario_id}
+```
 
 
 

@@ -738,6 +738,28 @@ const MyButton = (props) => <button {...props} />
 | **Switch** | On/off toggles |
 | **Slider** | Range selection |
 
+**Incorrect — No ref forwarding:**
+```tsx
+// asChild won't work - no ref support
+const MyButton = (props) => <button {...props} />
+
+<Button asChild>
+  <MyButton>Click</MyButton>
+</Button>
+```
+
+**Correct — Ref forwarding required:**
+```tsx
+// Forwards ref and spreads props
+const MyButton = React.forwardRef<HTMLButtonElement, Props>(
+  (props, ref) => <button ref={ref} {...props} />
+)
+
+<Button asChild>
+  <MyButton>Click</MyButton>
+</Button>
+```
+
 ### Disclosure Components
 | Primitive | Use Case |
 |-----------|----------|
@@ -918,6 +940,30 @@ export const DialogContent = React.forwardRef<
 @keyframes scaleOut { to { transform: scale(0.95); opacity: 0; } }
 ```
 
+**Incorrect — Using Dialog for destructive actions:**
+```tsx
+// Dialog closes on overlay click - unsafe for deletion
+<Dialog.Root>
+  <Dialog.Trigger>Delete Account</Dialog.Trigger>
+  <Dialog.Content>
+    <p>Delete your account?</p>
+    <Button onClick={deleteAccount}>Yes, delete</Button>
+  </Dialog.Content>
+</Dialog.Root>
+```
+
+**Correct — AlertDialog for destructive actions:**
+```tsx
+// AlertDialog requires explicit action - safe
+<AlertDialog.Root>
+  <AlertDialog.Trigger>Delete Account</AlertDialog.Trigger>
+  <AlertDialog.Content>
+    <AlertDialog.Title>Are you sure?</AlertDialog.Title>
+    <AlertDialog.Action onClick={deleteAccount}>Delete</AlertDialog.Action>
+  </AlertDialog.Content>
+</AlertDialog.Root>
+```
+
 ## Accessibility Built-in
 
 - Focus trapped within dialog
@@ -1094,6 +1140,18 @@ Every Radix primitive includes:
 <Button className="focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
 ```
 
+**Incorrect — Manual state styling:**
+```tsx
+// Hard to maintain, breaks when state changes
+<div className={isOpen ? "opacity-100" : "opacity-0"}>
+```
+
+**Correct — Data attribute styling:**
+```tsx
+// Uses Radix's built-in state tracking
+<Dialog.Content className="data-[state=open]:animate-in data-[state=closed]:animate-out">
+```
+
 ## Keyboard Shortcuts Reference
 
 | Component | Key | Action |
@@ -1257,6 +1315,35 @@ Button.displayName = 'Button'
 npx shadcn@latest init        # Initialize in project
 npx shadcn@latest add button  # Add components
 npx shadcn@latest add dialog card input label
+```
+
+**Incorrect — Modifying shadcn source files:**
+```tsx
+// Editing components/ui/button.tsx directly
+const buttonVariants = cva('...', {
+  variants: {
+    myCustomVariant: '...'  // Modified source!
+  }
+})
+```
+
+**Correct — Wrap, don't modify:**
+```tsx
+// Create wrapper component
+import { Button as ShadcnButton } from '@/components/ui/button'
+
+interface ExtendedButtonProps extends React.ComponentPropsWithoutRef<typeof ShadcnButton> {
+  loading?: boolean
+}
+
+const Button = React.forwardRef<HTMLButtonElement, ExtendedButtonProps>(
+  ({ loading, ...props }, ref) => (
+    <ShadcnButton ref={ref} {...props}>
+      {loading && <Loader />}
+      {props.children}
+    </ShadcnButton>
+  )
+)
 ```
 
 ## Best Practices
@@ -1423,6 +1510,20 @@ const columns: ColumnDef<User>[] = [
   onChange={(e) => table.getColumn('name')?.setFilterValue(e.target.value)}
   className="max-w-sm"
 />
+```
+
+**Incorrect — Missing flexRender:**
+```tsx
+// Direct rendering breaks custom cells
+<TableCell>{cell.column.columnDef.cell}</TableCell>
+```
+
+**Correct — Use flexRender:**
+```tsx
+// Properly renders custom cell components
+<TableCell>
+  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+</TableCell>
 ```
 
 ## Dependencies
@@ -1604,6 +1705,29 @@ export function ThemeAwareComponent() {
 
   return <div>Current theme: {resolvedTheme}</div>
 }
+```
+
+**Incorrect — Missing label association:**
+```tsx
+// Not accessible - label not linked to input
+<div>
+  <label>Email</label>
+  <input type="email" />
+</div>
+```
+
+**Correct — Proper label association:**
+```tsx
+// Accessible with htmlFor and id
+<div>
+  <Label htmlFor="email">Email</Label>
+  <Input
+    id="email"
+    type="email"
+    aria-describedby={error ? "email-error" : undefined}
+  />
+  {error && <p id="email-error">{error}</p>}
+</div>
 ```
 
 ## Dependencies

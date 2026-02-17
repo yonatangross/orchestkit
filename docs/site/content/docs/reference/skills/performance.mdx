@@ -479,6 +479,16 @@ Prevent Cumulative Layout Shift for the 2026 threshold of &lt;= 0.08.
 }
 ```
 
+**Incorrect — Image without dimensions causes layout shift:**
+```tsx
+<img src="/photo.jpg" alt="Photo" />
+```
+
+**Correct — Explicit dimensions reserve space:**
+```tsx
+<img src="/photo.jpg" width={800} height={600} alt="Photo" />
+```
+
 ## Key Rules
 
 1. **Always** set width/height on images
@@ -555,6 +565,26 @@ function SearchResults() {
 }}>Calculate</button>
 
 // GOOD: Defer heavy work
+<button onClick={() => {
+  setLoading(true);
+  requestIdleCallback(() => {
+    const result = heavyComputation();
+    setResult(result);
+    setLoading(false);
+  });
+}}>Calculate</button>
+```
+
+**Incorrect — Blocking click handler delays visual feedback:**
+```tsx
+<button onClick={() => {
+  const result = heavyComputation(); // Blocks paint
+  setResult(result);
+}}>Calculate</button>
+```
+
+**Correct — Deferred work keeps UI responsive:**
+```tsx
 <button onClick={() => {
   setLoading(true);
   requestIdleCallback(() => {
@@ -645,6 +675,22 @@ const [data, setData] = useState(null);
 useEffect(() => { fetchData().then(setData); }, []);
 ```
 
+**Incorrect — Lazy-loading LCP image delays paint:**
+```tsx
+<img src="/hero.webp" alt="Hero" loading="lazy" />
+```
+
+**Correct — Priority loading for LCP image:**
+```tsx
+<img
+  src="/hero.webp"
+  alt="Hero"
+  fetchpriority="high"
+  loading="eager"
+  decoding="async"
+/>
+```
+
 ## Key Rules
 
 1. **Never** lazy-load the LCP image
@@ -708,6 +754,20 @@ JPEG  80-85  — Legacy only, use progressive encoding
 
 Rule of thumb: lower quality for large hero images (more compression gain),
 higher quality for small thumbnails (already small files).
+```
+
+**Incorrect — Single JPEG format misses 30-50% compression savings:**
+```html
+<img src="/photo.jpg" alt="Photo" width="800" height="600" />
+```
+
+**Correct — Modern formats with fallback:**
+```html
+<picture>
+  <source srcset="/photo.avif" type="image/avif" />
+  <source srcset="/photo.webp" type="image/webp" />
+  <img src="/photo.jpg" alt="Photo" width="800" height="600" />
+</picture>
 ```
 
 **Key rules:**
@@ -803,6 +863,21 @@ export default function cloudflareLoader({
 </div>
 ```
 
+**Incorrect — Missing sizes causes incorrect srcset selection:**
+```tsx
+<Image src="/banner.jpg" alt="Banner" fill />
+```
+
+**Correct — Sizes hint ensures optimal image size:**
+```tsx
+<Image
+  src="/banner.jpg"
+  alt="Banner"
+  fill
+  sizes="(max-width: 768px) 100vw, 50vw"
+/>
+```
+
 **Key rules:**
 - **Set** `priority` on the LCP image (only one per page)
 - **Always** provide `sizes` for responsive images
@@ -887,6 +962,27 @@ function imgixUrl(src: string, width: number, quality = 80) {
 />
 ```
 
+**Incorrect — srcset without sizes lets browser guess:**
+```html
+<img
+  srcset="/photo-400.jpg 400w, /photo-800.jpg 800w"
+  src="/photo-800.jpg"
+  alt="Photo"
+/>
+```
+
+**Correct — sizes guides browser to optimal choice:**
+```html
+<img
+  srcset="/photo-400.jpg 400w, /photo-800.jpg 800w"
+  sizes="(max-width: 640px) 100vw, 50vw"
+  src="/photo-800.jpg"
+  alt="Photo"
+  width="800"
+  height="600"
+/>
+```
+
 **Key rules:**
 - **Always** provide `sizes` alongside `srcset` for width descriptors
 - **Use** 3-4 srcset breakpoints (400, 800, 1200, 1600) for most images
@@ -963,6 +1059,25 @@ def eval_quantized(client, test_cases):
     return sum(results) / len(results)
 
 # Accept quantization if quality >= 95% of FP16 baseline
+```
+
+**Incorrect — FP16 on smaller GPUs wastes VRAM:**
+```bash
+docker run --gpus all \
+  vllm/vllm-openai:latest \
+  --model meta-llama/Llama-3.1-70B-Instruct \
+  --tensor-parallel-size 8
+# Requires 140 GB VRAM
+```
+
+**Correct — FP8 quantization reduces VRAM by ~45%:**
+```bash
+docker run --gpus all \
+  vllm/vllm-openai:latest \
+  --model meta-llama/Llama-3.1-70B-Instruct \
+  --quantization fp8 \
+  --tensor-parallel-size 4
+# Requires 75 GB VRAM
 ```
 
 **Key rules:**
@@ -1050,6 +1165,24 @@ Draft model speculation:
   - Requires extra GPU memory for draft model
 ```
 
+**Incorrect — No speculation means sequential token generation:**
+```bash
+docker run --gpus '"device=0"' \
+  vllm/vllm-openai:latest \
+  --model meta-llama/Llama-3.1-8B-Instruct
+# 4 tokens = 4 forward passes
+```
+
+**Correct — N-gram speculation reduces passes by 30-60%:**
+```bash
+docker run --gpus '"device=0"' \
+  vllm/vllm-openai:latest \
+  --model meta-llama/Llama-3.1-8B-Instruct \
+  --speculative-model [ngram] \
+  --num-speculative-tokens 5
+# 4 tokens ≈ 1.3 forward passes
+```
+
 **Key rules:**
 - **Use** n-gram speculation for structured/repetitive output (free, no extra VRAM)
 - **Use** draft model speculation for general text with large target models
@@ -1121,6 +1254,24 @@ Tensor Parallelism:
   - Splits model across GPUs (--tensor-parallel-size N)
   - Rule: N = number of GPUs, must evenly divide model layers
   - Use for models > single GPU VRAM
+```
+
+**Incorrect — Default memory utilization wastes KV cache space:**
+```bash
+docker run --gpus '"device=0"' \
+  vllm/vllm-openai:latest \
+  --model meta-llama/Llama-3.1-8B-Instruct
+# Uses default 0.70 GPU memory
+```
+
+**Correct — Higher utilization enables more concurrent requests:**
+```bash
+docker run --gpus '"device=0"' \
+  vllm/vllm-openai:latest \
+  --model meta-llama/Llama-3.1-8B-Instruct \
+  --gpu-memory-utilization 0.90 \
+  --max-model-len 8192
+# 2-4x more concurrent requests
 ```
 
 **Key rules:**
@@ -1197,6 +1348,28 @@ function DashboardSkeleton() {
       <div className="h-8 bg-gray-200 rounded w-1/3" />
       <div className="h-64 bg-gray-200 rounded" />
     </div>
+  );
+}
+```
+
+**Incorrect — Missing Suspense fallback causes error:**
+```tsx
+const Dashboard = lazy(() => import('./Dashboard'));
+
+function App() {
+  return <Dashboard />; // Error: no Suspense boundary
+}
+```
+
+**Correct — Suspense with skeleton fallback:**
+```tsx
+const Dashboard = lazy(() => import('./Dashboard'));
+
+function App() {
+  return (
+    <Suspense fallback={<DashboardSkeleton />}>
+      <Dashboard />
+    </Suspense>
   );
 }
 ```
@@ -1290,6 +1463,30 @@ async function handleExport() {
 <button onClick={handleExport}>Export PDF</button>
 ```
 
+**Incorrect — No prefetching causes delayed navigation:**
+```tsx
+<a href="/dashboard">Dashboard</a>
+```
+
+**Correct — Hover prefetch gives 200-400ms head start:**
+```tsx
+function NavLink({ to, children }) {
+  const prefetchRef = useRef(false);
+
+  const handlePointerEnter = () => {
+    if (prefetchRef.current) return;
+    prefetchRef.current = true;
+    import(`./pages/${to}.tsx`);
+  };
+
+  return (
+    <a href={`/${to}`} onPointerEnter={handlePointerEnter}>
+      {children}
+    </a>
+  );
+}
+```
+
 **Key rules:**
 - **Use** `modulepreload` for critical JS the current page needs
 - **Use** `prefetch` for resources the user will likely need next
@@ -1364,6 +1561,28 @@ export default defineConfig({
     },
   },
 });
+```
+
+**Incorrect — Eager imports bundle all routes together:**
+```tsx
+import Home from './pages/Home';
+import Dashboard from './pages/Dashboard';
+import Settings from './pages/Settings';
+
+const router = createBrowserRouter([
+  { path: '/', element: <Home /> },
+  { path: '/dashboard', element: <Dashboard /> },
+  { path: '/settings', element: <Settings /> },
+]);
+```
+
+**Correct — Lazy routes split per-page bundles:**
+```tsx
+const router = createBrowserRouter([
+  { path: '/', lazy: () => import('./pages/Home') },
+  { path: '/dashboard', lazy: () => import('./pages/Dashboard') },
+  { path: '/settings', lazy: () => import('./pages/Settings') },
+]);
 ```
 
 **Key rules:**
@@ -1445,6 +1664,19 @@ async def profile_requests(request: Request, call_next):
         print(f"SLOW: {request.method} {request.url.path} took {duration:.2f}s")
     response.headers["X-Response-Time"] = f"{duration:.3f}"
     return response
+```
+
+**Incorrect — cProfile in production requires code changes:**
+```python
+# Must instrument code manually
+with cProfile.Profile() as pr:
+    result = expensive_function()
+```
+
+**Correct — py-spy attaches to running process with zero overhead:**
+```bash
+# No code changes, no restart needed
+py-spy record -o profile.svg --pid 12345 --duration 30
 ```
 
 **Key rules:**
@@ -1532,6 +1764,22 @@ const sorted = sortBy(items, 'name');
 const sorted = items.toSorted((a, b) => a.name.localeCompare(b.name));
 ```
 
+**Incorrect — Importing entire lodash adds 70 kB:**
+```typescript
+import _ from 'lodash';
+const sorted = _.sortBy(items, 'name');
+```
+
+**Correct — Import single function or use native API:**
+```typescript
+// Option 1: Import only what you need (4 kB)
+import sortBy from 'lodash/sortBy';
+const sorted = sortBy(items, 'name');
+
+// Option 2: Use native API (0 kB)
+const sorted = items.toSorted((a, b) => a.name.localeCompare(b.name));
+```
+
 **Key rules:**
 - **Run** bundle analysis on every release to catch regressions
 - **Set** CI performance budgets (fail build if exceeded)
@@ -1607,6 +1855,23 @@ MyComponent.whyDidYouRender = true;
 "Parent rendered"     → Parent re-renders, child doesn't memo
 "Context changed"     → Split context or use selectors
 "Hooks changed"       → useMemo/useCallback dependency changed
+```
+
+**Incorrect — Blind memoization without profiling:**
+```tsx
+const MemoizedComponent = memo(Component);
+const memoizedValue = useMemo(() => value, []);
+const callback = useCallback(() => {}, []);
+// Added optimization without measurement
+```
+
+**Correct — Profile first, then optimize actual bottlenecks:**
+```tsx
+// 1. Open React DevTools Profiler
+// 2. Record interaction
+// 3. Identify slow renders (yellow/red bars > 16ms)
+// 4. Check "Why did this render?"
+// 5. Apply targeted fix only where needed
 ```
 
 **Key rules:**
@@ -1856,6 +2121,25 @@ const nextConfig = {
 
 Open React DevTools and look for the "Memo ✨" badge on components. If present, the compiler is successfully memoizing that component.
 
+**Incorrect — Manual memoization when compiler is enabled:**
+```tsx
+// next.config.js has reactCompiler: true
+const value = useMemo(() => compute(data), [data]);
+const callback = useCallback(() => handle(), []);
+// Compiler already handles this automatically
+```
+
+**Correct — Let compiler auto-memoize:**
+```tsx
+// Compiler handles memoization automatically
+function Component({ data }) {
+  const value = compute(data); // Auto-memoized
+  const handle = () => {}; // Auto-memoized
+  return <div onClick={handle}>{value}</div>;
+}
+// Check DevTools for "Memo ✨" badge
+```
+
 ## Key Rules
 
 1. **Enable** React Compiler as the first step
@@ -1925,6 +2209,32 @@ function App() {
 3. **Verify**: Is the re-render actually causing perf issues?
 4. **Fix**: Apply targeted optimization
 5. **Measure**: Confirm improvement
+
+**Incorrect — State too high causes unnecessary re-renders:**
+```tsx
+function App() {
+  const [filter, setFilter] = useState('');
+  return (
+    <>
+      <Header />  {/* Re-renders on filter change! */}
+      <FilterInput value={filter} onChange={setFilter} />
+      <List filter={filter} />
+    </>
+  );
+}
+```
+
+**Correct — State colocated minimizes re-renders:**
+```tsx
+function App() {
+  return (
+    <>
+      <Header />
+      <FilterableList />  {/* State inside, Header unaffected */}
+    </>
+  );
+}
+```
 
 ## Key Rules
 
@@ -1999,6 +2309,52 @@ const virtualizer = useVirtualizer({
   overscan: 5,
   measureElement: (element) => element.getBoundingClientRect().height,
 })
+```
+
+**Incorrect — Rendering 1000 items causes scroll jank:**
+```tsx
+function List({ items }) {
+  return (
+    <div style={{ height: '400px', overflow: 'auto' }}>
+      {items.map(item => (
+        <div key={item.id}>{item.name}</div>
+      ))}
+    </div>
+  );
+}
+```
+
+**Correct — Virtualization renders only visible items:**
+```tsx
+import { useVirtualizer } from '@tanstack/react-virtual';
+
+function VirtualList({ items }) {
+  const parentRef = useRef(null);
+  const virtualizer = useVirtualizer({
+    count: items.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 50,
+    overscan: 5,
+  });
+
+  return (
+    <div ref={parentRef} style={{ height: '400px', overflow: 'auto' }}>
+      <div style={{ height: `${virtualizer.getTotalSize()}px`, position: 'relative' }}>
+        {virtualizer.getVirtualItems().map(virtualRow => (
+          <div
+            key={virtualRow.key}
+            style={{
+              position: 'absolute',
+              transform: `translateY(${virtualRow.start}px)`,
+            }}
+          >
+            {items[virtualRow.index].name}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 ```
 
 ## Key Rules

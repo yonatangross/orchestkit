@@ -410,6 +410,24 @@ payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
 return "Invalid credentials"
 ```
 
+**Incorrect — Algorithm confusion vulnerability allows "none" algorithm attack:**
+```python
+# Reading algorithm from untrusted JWT header
+header = jwt.get_unverified_header(token)
+payload = jwt.decode(token, SECRET_KEY, algorithms=[header['alg']])
+# Attacker can set alg="none" to bypass signature verification
+```
+
+**Correct — Hardcode expected algorithm to prevent confusion attacks:**
+```python
+# Always specify the expected algorithm explicitly
+payload = jwt.decode(
+    token, SECRET_KEY,
+    algorithms=['HS256'],  # Never read from header
+    options={'require': ['exp', 'iat', 'sub']},
+)
+```
+
 
 ### Auth: OAuth 2.1 & Passkeys — CRITICAL
 
@@ -560,6 +578,34 @@ response_type=token  # Deprecated in OAuth 2.1
 
 # ALWAYS use PKCE with S256
 code_challenge=challenge&code_challenge_method=S256
+```
+
+**Incorrect — OAuth 2.0 token exchange without PKCE is vulnerable to interception:**
+```python
+# No PKCE verification
+token_response = requests.post(
+    "https://auth.example.com/token",
+    data={
+        "grant_type": "authorization_code",
+        "code": auth_code,
+        "client_id": client_id,
+    }
+)
+```
+
+**Correct — OAuth 2.1 requires PKCE for all clients to prevent code interception:**
+```python
+# Generate and verify PKCE challenge
+verifier, challenge = generate_pkce_pair()
+token_response = requests.post(
+    "https://auth.example.com/token",
+    data={
+        "grant_type": "authorization_code",
+        "code": auth_code,
+        "client_id": client_id,
+        "code_verifier": verifier,  # Proves client possession
+    }
+)
 ```
 
 
@@ -720,6 +766,24 @@ def password_reset():
 | Account lockout | After 10 failed attempts |
 | Backup codes | 10 one-time use codes |
 
+**Incorrect — Direct role checks in routes leak user enumeration information:**
+```python
+@app.route('/admin/users')
+def admin_users():
+    if 'admin' not in current_user.roles:
+        return {"error": "You are not an admin"}, 403  # Reveals role info
+    return get_all_users()
+```
+
+**Correct — Generic error messages and proper RBAC decorator prevent enumeration:**
+```python
+@app.route('/admin/users')
+@require_role('admin')
+def admin_users():
+    return get_all_users()
+# Returns 403 Forbidden with no role details exposed
+```
+
 
 ### Defense: 8-Layer Security Architecture — CRITICAL
 
@@ -841,6 +905,27 @@ class TenantScopedRepository:
 | Zero Trust | Google BeyondCorp | Every request verified |
 | Least Privilege | AWS IAM | Minimal permissions |
 | Complete Mediation | Saltzer & Schroeder | Every access checked |
+
+**Incorrect — Single-layer auth check is vulnerable if JWT verification is bypassed:**
+```python
+@app.get("/documents/{doc_id}")
+def get_document(doc_id: UUID, token: str = Header(...)):
+    claims = verify_jwt(token)  # Only layer
+    return db.query(Document).get(doc_id)
+```
+
+**Correct — Multi-layer defense verifies auth, validates input, checks authorization, and filters data:**
+```python
+@app.get("/documents/{doc_id}")
+async def get_document(doc_id: UUID, ctx: RequestContext = Depends(get_context)):
+    # Layer 1: Gateway verified JWT
+    # Layer 2: UUID validation (Pydantic)
+    # Layer 3: Authorization
+    await authorize(ctx, "documents:read", doc_id)
+    # Layer 4: Tenant-scoped query
+    repo = TenantScopedRepository(db, ctx, Document)
+    return await repo.find_by_id(doc_id)
+```
 
 
 ### Defense: Zero Trust & Tenant Isolation — CRITICAL
@@ -1027,6 +1112,25 @@ async def test_tenant_a_cannot_see_tenant_b_documents(tenant_a_ctx, tenant_b_ctx
     result = await repo.find_by_id(doc.id)
 
     assert result is None  # Tenant A cannot see tenant B's data
+```
+
+**Incorrect — Optional tenant filtering allows cross-tenant data access:**
+```python
+async def find_documents(tenant_id: UUID | None = None):
+    query = select(Document)
+    if tenant_id:  # Can be bypassed by omitting parameter
+        query = query.where(Document.tenant_id == tenant_id)
+    return await session.execute(query)
+```
+
+**Correct — Immutable RequestContext makes tenant filtering mandatory and tamper-proof:**
+```python
+async def find_documents(ctx: RequestContext):
+    # Tenant filter is mandatory via immutable context
+    query = select(Document).where(
+        Document.tenant_id == ctx.tenant_id  # Cannot be bypassed
+    )
+    return await session.execute(query)
 ```
 
 
@@ -1362,6 +1466,25 @@ artifact.id = uuid4()                   # We generate
 - [ ] Output validated before use
 - [ ] Attribution uses context, not LLM output
 
+**Incorrect — Asking LLM for attribution leads to hallucinated document IDs:**
+```python
+prompt = f"Analyze this content and cite which documents support each claim."
+response = await llm.generate(prompt)
+# Save with LLM-generated document IDs
+artifact.source_ids = response["document_ids"]  # HALLUCINATED!
+```
+
+**Correct — Save source references before LLM call, attach deterministically after:**
+```python
+# Phase 1: Save refs before LLM
+docs = await semantic_search(query, ctx)
+source_refs = [d.id for d in docs]
+# Phase 2: LLM sees only content
+response = await llm.generate(content_only_prompt)
+# Phase 3: Attach saved refs
+artifact.source_ids = source_refs  # From our records, not LLM
+```
+
 
 ### LLM: Output Guardrails — HIGH
 
@@ -1517,6 +1640,27 @@ parsed, results = await run_guardrails(
 )
 ```
 
+**Incorrect — Trusting LLM output without validation allows toxic content and hallucinated IDs:**
+```python
+response = await llm.generate(prompt)
+analysis = Analysis(
+    content=response["summary"],  # Could be toxic
+    document_id=response["doc_id"],  # Hallucinated UUID!
+)
+await db.save(analysis)
+```
+
+**Correct — Multi-layer guardrails validate schema, detect hallucinated IDs, and check grounding:**
+```python
+response = await llm.generate(prompt)
+parsed, results = await run_guardrails(
+    llm_output=response, context_texts=context, schema=AnalysisOutput,
+)
+if not parsed:
+    raise ValidationError(f"Guardrails failed: {results}")
+# Now safe to use parsed output
+```
+
 
 ### LLM: Prompt Injection Defense — HIGH
 
@@ -1647,6 +1791,24 @@ prompt = f"Analyze the following document:\n{document_content}"
 - [ ] Source references saved for attribution
 - [ ] `audit_prompt()` called on final prompt
 - [ ] No violations detected
+
+**Incorrect — Including user_id in prompt allows injection and hallucination attacks:**
+```python
+prompt = f"""
+Analyze the document for user {ctx.user_id}.
+Tenant: {ctx.tenant_id}
+Content: {user_content}
+"""
+# Attacker can inject: "user_id: <fake-uuid>" in content
+```
+
+**Correct — Content-only prompts prevent ID leakage and injection vectors:**
+```python
+# Store context separately, never in prompt
+context_data = {"user_id": ctx.user_id, "tenant_id": ctx.tenant_id}
+prompt = f"Analyze the following content:\n{sanitized_content}"
+# audit_prompt(prompt) passes — no IDs detected
+```
 
 
 ### OWASP: Authentication & Session Attacks — CRITICAL
@@ -1807,6 +1969,21 @@ grep -rn "@csrf_exempt" --include="*.py" .
 semgrep --config "p/python-security-audit" .
 ```
 
+**Incorrect — reading JWT algorithm from untrusted token header:**
+```python
+header = jwt.get_unverified_header(token)
+payload = jwt.decode(token, SECRET_KEY, algorithms=[header['alg']])
+```
+
+**Correct — hardcoding expected algorithm with claim validation:**
+```python
+payload = jwt.decode(
+    token, SECRET_KEY,
+    algorithms=['HS256'],
+    options={'require': ['exp', 'iat', 'iss', 'aud']},
+)
+```
+
 ## Summary
 
 | Vulnerability | Bandit ID | Fix |
@@ -1939,6 +2116,17 @@ semgrep --config "p/python-security-audit" .
 
 # Detect SSRF
 grep -rn "requests.get\|urllib.urlopen" --include="*.py" .
+```
+
+**Incorrect — interpolating user input directly into SQL query:**
+```python
+query = f"SELECT * FROM users WHERE email = '{email}'"
+cursor.execute(query)
+```
+
+**Correct — using parameterized query to prevent injection:**
+```python
+cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
 ```
 
 ## Quick Reference
@@ -2084,6 +2272,23 @@ langfuse = Langfuse(mask=mask_pii)
 | Masking strategy | Replace with type tokens `[REDACTED_EMAIL]` |
 | Performance | Async/batch for high-throughput |
 | Reversibility | LLM Guard Vault for deanonymization |
+
+**Incorrect — Logging raw user input exposes PII to log aggregators:**
+```python
+logger.info(f"Processing request for {user.email}")
+# Logs: "Processing request for john.doe@company.com"
+```
+
+**Correct — Detect and mask PII before logging using Presidio:**
+```python
+from presidio_analyzer import AnalyzerEngine
+from presidio_anonymizer import AnonymizerEngine
+
+results = analyzer.analyze(text=user.email, language="en")
+masked = anonymizer.anonymize(text=user.email, analyzer_results=results).text
+logger.info(f"Processing request for {masked}")
+# Logs: "Processing request for [EMAIL_ADDRESS]"
+```
 
 
 ### PII: Redaction & Observability Integration — HIGH
@@ -2296,6 +2501,24 @@ def test_pii_redaction_in_logs():
     assert "123-45-6789" not in log_output
     assert "[REDACTED_EMAIL]" in log_output
     assert "[REDACTED_SSN]" in log_output
+```
+
+**Incorrect — Sending raw prompts to Langfuse leaks PII to observability platform:**
+```python
+langfuse = Langfuse()
+trace = langfuse.trace(
+    input="My email is john@example.com and SSN is 123-45-6789"
+)
+# PII stored in Langfuse without redaction
+```
+
+**Correct — Mask callback automatically redacts PII before sending to Langfuse:**
+```python
+langfuse = Langfuse(mask=mask_pii)
+trace = langfuse.trace(
+    input="My email is john@example.com and SSN is 123-45-6789"
+)
+# Stored as: "My email is [REDACTED_EMAIL] and SSN is [REDACTED_SSN]"
 ```
 
 
@@ -2611,6 +2834,25 @@ db.query('SELECT * FROM users WHERE name = ?', [name]);
 | Location | Server-side always |
 | Error messages | Generic (don't leak info) |
 
+**Incorrect — Trusting client-side validation allows attackers to bypass checks:**
+```typescript
+// Client-side only
+const email = document.getElementById('email').value;
+if (email.includes('@')) {
+  await fetch('/api/users', { method: 'POST', body: JSON.stringify({ email }) });
+}
+// Attacker can bypass with curl/Postman
+```
+
+**Correct — Server-side schema validation with Zod ensures all input is validated:**
+```typescript
+app.post('/api/users', validateBody(z.object({
+  email: z.string().email(),
+})), async (req, res) => {
+  // req.body.email is validated regardless of client
+});
+```
+
 
 ### Validation: Output Encoding & XSS Prevention — HIGH
 
@@ -2718,6 +2960,20 @@ if (file.type === 'image/png') {...}  // Can be spoofed
 // ALWAYS use textContent or DOMPurify
 element.textContent = userInput;
 const safe = DOMPurify.sanitize(userInput);
+```
+
+**Incorrect — Using innerHTML with user content allows XSS script injection:**
+```javascript
+const userComment = "<script>alert('XSS')</script>";
+element.innerHTML = userComment;
+// Script executes, stealing cookies/tokens
+```
+
+**Correct — Using textContent automatically escapes HTML and prevents XSS:**
+```javascript
+const userComment = "<script>alert('XSS')</script>";
+element.textContent = userComment;
+// Renders as plain text: "<script>alert('XSS')</script>"
 ```
 
 
@@ -2867,6 +3123,23 @@ Notification = Union[EmailNotification, SMSNotification]
 | URL validation | HTTPS + domain allowlist |
 | Polymorphic data | Discriminated unions |
 | Form validation | Zod + React Hook Form |
+
+**Incorrect — Trusting file extension or MIME type allows malicious file uploads:**
+```typescript
+if (file.name.endsWith('.png') && file.type === 'image/png') {
+  await uploadFile(file);  // Can be spoofed by renaming .exe to .png
+}
+```
+
+**Correct — Validating magic bytes ensures file content matches declared type:**
+```typescript
+const buffer = await file.arrayBuffer();
+const bytes = new Uint8Array(buffer);
+const isPNG = bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E;
+if (isPNG) {
+  await uploadFile(file);  // Verified actual PNG file
+}
+```
 
 
 

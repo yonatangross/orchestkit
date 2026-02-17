@@ -227,6 +227,20 @@ claude --from-pr 42    # Loads PR diff, comments, review status
 | PR to issue | `Closes #N` in PR body | Yes (GitHub) |
 | Issue to PR | `has-pr` label | Manual or hook |
 
+**Incorrect — Branch without issue number prefix:**
+```bash
+git checkout -b implement-feature
+git commit -m "Add user validation"
+# No automatic linking - reviewer lacks context
+```
+
+**Correct — Issue-prefixed branch with linked commit:**
+```bash
+git checkout -b issue/123-implement-feature
+git commit -m "feat(#123): Add user validation"
+# Auto-links: branch → issue, commit → issue
+```
+
 ### Key Rules
 
 - Always start branches with **issue number prefix** for automatic detection
@@ -300,6 +314,29 @@ Commit messages are matched against issue checkboxes using normalized text compa
 ### Sub-tasks Completed
 - [x] Add input validation
 - [x] Write unit tests
+```
+
+**Incorrect — Manual issue updates without automation:**
+```bash
+# Commit without issue reference
+git commit -m "Add validation"
+
+# Manually comment on issue #123:
+"Added validation - see commit abc1234"
+[Time-consuming, error-prone]
+```
+
+**Correct — Automated progress tracking:**
+```bash
+# Issue-prefixed branch
+git checkout -b issue/123-validation
+
+# Conventional commit
+git commit -m "feat(#123): Add input validation"
+
+# Hook auto-posts to issue:
+"[Session abc123] feat(#123): Add input validation
+Files: src/validation.ts (+45)"
 ```
 
 ### Key Rules

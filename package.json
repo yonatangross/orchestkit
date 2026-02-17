@@ -18,6 +18,7 @@
     "test:manifests:ordering": "bash tests/manifests/test-marketplace-ordering.sh",
     "test:manifests:orphans": "bash tests/manifests/test-plugin-orphan-skills.sh",
     "test:indexes": "bash tests/indexes/test-index-generation.sh",
+    "eval:static": "bash scripts/eval/static-analysis.sh",
     "typecheck": "cd src/hooks && npx tsc --noEmit",
     "verify:imports": "node scripts/verify-imports.js",
     "prepush": "./bin/git-hooks/pre-push"

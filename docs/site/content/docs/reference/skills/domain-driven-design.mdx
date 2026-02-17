@@ -333,6 +333,51 @@ class OrderAggregate:
         return events
 ```
 
+**Incorrect — no invariant checks, allows invalid state:**
+```python
+@dataclass
+class OrderAggregate:
+    id: UUID
+    _items: list["OrderItem"] = field(default_factory=list)
+    status: str = "draft"
+
+    def add_item(self, product_id: UUID, quantity: int, price: "Money") -> None:
+        # No checks! Allows negative quantity, submitted order modification
+        self._items.append(OrderItem(product_id, quantity, price))
+
+    def submit(self) -> None:
+        # No check for empty order!
+        self.status = "submitted"
+```
+
+**Correct — enforce invariants on every mutation:**
+```python
+@dataclass
+class OrderAggregate:
+    MAX_ITEMS = 100
+    id: UUID
+    _items: list["OrderItem"] = field(default_factory=list)
+    status: str = "draft"
+
+    def add_item(self, product_id: UUID, quantity: int, price: "Money") -> None:
+        self._ensure_modifiable()  # Guard clause
+        if len(self._items) >= self.MAX_ITEMS:
+            raise DomainError("Max items exceeded")
+        if quantity <= 0:
+            raise DomainError("Quantity must be positive")
+        self._items.append(OrderItem(product_id, quantity, price))
+
+    def submit(self) -> None:
+        self._ensure_modifiable()
+        if not self._items:
+            raise DomainError("Cannot submit empty order")
+        self.status = "submitted"
+
+    def _ensure_modifiable(self) -> None:
+        if self.status != "draft":
+            raise DomainError(f"Cannot modify {self.status} order")
+```
+
 ### Key Rules
 
 - Every mutation method **checks invariants** before modifying state

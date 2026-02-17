@@ -1,6 +1,6 @@
 {
   "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
-  "skill": "api-design-framework",
+  "skill": "api-design",
   "version": "1.0.0",
   "evaluations": [
     {

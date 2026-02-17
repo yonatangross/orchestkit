@@ -454,6 +454,24 @@ workflow = send_email.starmap([("user1@ex.com", "S1"), ("user2@ex.com", "S2")])
 workflow = process_item.chunks(items, batch_size=100)
 ```
 
+**Incorrect — Mutable signature in chord:**
+```python
+# Body receives polluted args from each parallel task
+chord(
+    [process_chunk.s(chunk) for chunk in chunks],
+    aggregate_results.s()  # Receives all chunk results concatenated!
+)
+```
+
+**Correct — Immutable signature in chord:**
+```python
+# Body receives clean list of results
+chord(
+    [process_chunk.si(chunk) for chunk in chunks],  # .si() = immutable
+    aggregate_results.s()  # Receives [result1, result2, result3]
+)
+```
+
 ## Error Handling
 
 - Chain stops when any task fails; subsequent tasks don't run
@@ -503,6 +521,28 @@ def generate_report(self, report_id: str) -> dict:
     pdf = render_pdf(data)
 
     return {"report_id": report_id, "size": len(pdf)}
+```
+
+**Incorrect — No progress updates:**
+```python
+@shared_task
+def generate_report(report_id: str):
+    # Long-running task with no feedback
+    data = fetch_report_data(report_id)
+    pdf = render_pdf(data)
+    return {"report_id": report_id}
+```
+
+**Correct — Progress updates:**
+```python
+@shared_task(bind=True)
+def generate_report(self, report_id: str):
+    self.update_state(state="PROGRESS", meta={"step": "fetching", "percent": 25})
+    data = fetch_report_data(report_id)
+
+    self.update_state(state="PROGRESS", meta={"step": "rendering", "percent": 75})
+    pdf = render_pdf(data)
+    return {"report_id": report_id}
 ```
 
 ## Celery Status Endpoint
@@ -564,6 +604,24 @@ async def create_user(data: UserCreate, background_tasks: BackgroundTasks):
 @router.post("/api/v1/exports")
 async def create_export(data: ExportRequest, arq: ArqRedis = Depends(get_arq_pool)):
     job = await arq.enqueue_job("export_data", data.dict())
+    return {"job_id": job.job_id}
+```
+
+**Incorrect — Using BackgroundTasks for long jobs:**
+```python
+# In-process task blocks other requests
+@router.post("/export")
+async def create_export(background_tasks: BackgroundTasks):
+    background_tasks.add_task(generate_large_export)  # 5+ minutes!
+    return {"status": "started"}
+```
+
+**Correct — Use distributed queue:**
+```python
+# Offload to worker, instant response
+@router.post("/export")
+async def create_export(arq: ArqRedis = Depends(get_arq_pool)):
+    job = await arq.enqueue_job("generate_large_export")
     return {"job_id": job.job_id}
 ```
 
@@ -647,6 +705,29 @@ def send_email(self, to: str, subject: str, body: str) -> dict:
         return {"status": "sent", "to": to}
     except Exception as exc:
         raise self.retry(exc=exc)
+```
+
+**Incorrect — No retry strategy:**
+```python
+# Fails permanently on first error
+@shared_task
+def send_email(to: str, subject: str):
+    response = requests.post(url, json=data)  # Network error = lost job
+    return response.json()
+```
+
+**Correct — Retry with exponential backoff:**
+```python
+# Retries with backoff
+@shared_task(bind=True, max_retries=3, default_retry_delay=60,
+    autoretry_for=(ConnectionError, TimeoutError))
+def send_email(self, to: str, subject: str):
+    try:
+        response = requests.post(url, json=data, timeout=30)
+        response.raise_for_status()
+        return response.json()
+    except Exception as exc:
+        raise self.retry(exc=exc, countdown=60 * (2 ** self.request.retries))
 ```
 
 ## Tool Selection
