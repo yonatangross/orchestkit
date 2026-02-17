@@ -8,9 +8,7 @@ color: red
 memory: local
 tools:
   - Read
-  - Write
   - Bash
-  - Edit
   - Grep
   - Glob
   - WebFetch

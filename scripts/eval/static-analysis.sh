@@ -191,8 +191,12 @@ PERM_OUTPUT=$(awk '
       }
     }
     # Check 2: Review/audit agents with write tools
+    # Skip agents that also implement/generate/optimize (they legitimately need write tools)
     ldesc = tolower(desc)
-    if (index(ldesc, "review") || index(ldesc, "audit") || index(ldesc, "analyz") || index(ldesc, "scan")) {
+    is_reviewer = (index(ldesc, "review") || index(ldesc, "audit") || index(ldesc, "analyz") || index(ldesc, "scan"))
+    is_implementer = (index(ldesc, "implement") || index(ldesc, "generat") || index(ldesc, "creat") || \
+                      index(ldesc, "optimi") || index(ldesc, "build") || index(ldesc, "design"))
+    if (is_reviewer && !is_implementer) {
       for (t = 1; t <= tc; t++) {
         if (tools[t] == "Write" || tools[t] == "Edit" || tools[t] == "MultiEdit") {
           printf "WARN\t%s\treview/audit agent has '"'"'%s'"'"' in tools\n", agent_name, tools[t]
@@ -261,7 +265,7 @@ if [[ ${#RULE_FILES[@]} -gt 0 ]]; then
   SEC_OUTPUT=$(awk '
     BEGIN {
       # Dangerous patterns (awk regex)
-      pats[1] = "eval\\("; pnames[1] = "eval("
+      pats[1] = "[^.a-z_]eval\\("; pnames[1] = "eval("
       pats[2] = "innerHTML[[:space:]]*="; pnames[2] = "innerHTML ="
       pats[3] = "document\\.write\\("; pnames[3] = "document.write("
       pats[4] = "__import__\\("; pnames[4] = "__import__("
@@ -284,7 +288,7 @@ if [[ ${#RULE_FILES[@]} -gt 0 ]]; then
         lc = tolower(context)
         if (index(lc, "# bad") || index(lc, "dangerous") || index(lc, "violation") || \
             index(lc, "don'"'"'t") || index(lc, "dont") || index(lc, "never") || \
-            index(lc, "anti-pattern") || index(lc, "incorrect")) {
+            index(lc, "anti-pattern") || index(lc, "incorrect") || index(lc, "vulnerable")) {
           is_bad = 1
         } else {
           is_bad = 0

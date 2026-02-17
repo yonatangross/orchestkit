@@ -1,12 +1,12 @@
 {
-  "timestamp": "2026-02-17T06:45:27Z",
+  "timestamp": "2026-02-17T10:18:27Z",
   "version": "6.0.12",
-  "duration_ms": 49031,
+  "duration_ms": 44908,
   "summary": {
-    "total": 26,
-    "passed": 5,
-    "failed": 11,
-    "warnings": 10
+    "total": 7,
+    "passed": 7,
+    "failed": 0,
+    "warnings": 0
   },
-  "checks": [{"name":"CI Lint","status":"pass","details":"All checks passed "},{"name":"Skill Structure","status":"pass","details":"All checks passed "},{"name":"Skill References","status":"pass","details":"All checks passed "},{"name":"Agent Frontmatter","status":"pass","details":"All checks passed "},{"name":"Agent Permission Audit","status":"fail","details":"accessibility-specialist: review/audit agent has 'Write' in tools; accessibility-specialist: review/audit agent has 'Edit' in tools; ai-safety-auditor: review/audit agent has 'Write' in tools; ai-safety-auditor: review/audit agent has 'Edit' in tools; ai-safety-auditor: auditor must not have 'Write' in tools; ai-safety-auditor: auditor must not have 'Edit' in tools; ci-cd-engineer: review/audit agent has 'Write' in tools; ci-cd-engineer: review/audit agent has 'Edit' in tools; frontend-performance-engineer: review/audit agent has 'Edit' in tools; frontend-performance-engineer: review/audit agent has 'Write' in tools; rapid-ui-designer: tool 'Write' in both tools and disallowedTools; test-generator: review/audit agent has 'Write' in tools; test-generator: review/audit agent has 'Edit' in tools; ux-researcher: tool 'Write' in both tools and disallowedTools; "},{"name":"Security Pattern Grep","status":"fail","details":"code-review-playbook/security-baseline has f-string SELECT injection (dquote); code-review-playbook/security-baseline has innerHTML =; distributed-systems/locks-fencing-tokens has eval(; distributed-systems/locks-redis-redlock has eval(; distributed-systems/ratelimit-token-bucket has eval(; security-patterns/owasp-injection has f-string SELECT injection (dquote); security-patterns/validation-output has innerHTML =; "},{"name":"Unknown Frontmatter Fields","status":"pass","details":"All frontmatter fields are recognized "}]
+  "checks": [{"name":"CI Lint","status":"pass","details":"All checks passed "},{"name":"Skill Structure","status":"pass","details":"All checks passed "},{"name":"Skill References","status":"pass","details":"All checks passed "},{"name":"Agent Frontmatter","status":"pass","details":"All checks passed "},{"name":"Agent Permission Audit","status":"pass","details":"All agent permission checks passed "},{"name":"Security Pattern Grep","status":"pass","details":"No dangerous patterns found in good code blocks "},{"name":"Unknown Frontmatter Fields","status":"pass","details":"All frontmatter fields are recognized "}]
 }

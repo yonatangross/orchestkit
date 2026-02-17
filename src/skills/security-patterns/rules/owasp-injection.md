@@ -10,10 +10,14 @@ tags: sql-injection, command-injection, ssrf, idor, owasp
 
 ## SQL Injection
 
+**Vulnerable — user input directly interpolated into query:**
 ```python
 # VULNERABLE: User input directly in query
 query = f"SELECT * FROM users WHERE email = '{email}'"
+```
 
+**Safe — parameterized query and ORM:**
+```python
 # SAFE: Parameterized query
 query = "SELECT * FROM users WHERE email = ?"
 db.execute(query, [email])
@@ -24,6 +28,7 @@ db.query(User).filter(User.name == name).first()
 
 ## SQL Injection Attack Demo
 
+**Vulnerable — f-string interpolation allows injection payload:**
 ```python
 # Vulnerable endpoint
 @app.get("/users/search")
@@ -37,8 +42,8 @@ def search_users(username: str = Query(...)):
 # Returns ALL users
 ```
 
+**Safe — parameterized query prevents injection:**
 ```python
-# Safe implementation
 @app.get("/users/search")
 def search_users(username: str = Query(..., min_length=1, max_length=50)):
     cursor.execute("SELECT * FROM users WHERE username = ?", (username,))

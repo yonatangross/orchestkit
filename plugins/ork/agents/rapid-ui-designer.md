@@ -7,7 +7,6 @@ context: fork
 color: cyan
 memory: project
 tools:
-  - Write
   - Read
   - Grep
   - Glob
