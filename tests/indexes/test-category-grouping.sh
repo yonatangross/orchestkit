@@ -34,7 +34,7 @@ declare -A EXPECTED_CATEGORIES=(
     ["event-driven-architect"]="backend"
     ["python-performance-engineer"]="backend"
     ["frontend-ui-developer"]="frontend"
-    ["performance-engineer"]="frontend"
+    ["frontend-performance-engineer"]="frontend"
     ["rapid-ui-designer"]="frontend"
     ["accessibility-specialist"]="frontend"
     ["security-auditor"]="security"
@@ -64,6 +64,7 @@ declare -A EXPECTED_CATEGORIES=(
     ["git-operations-engineer"]="git"
     ["demo-producer"]="design"
     ["system-design-reviewer"]="design"
+    ["web-research-analyst"]="research"
 )
 
 # Category to header label mapping
@@ -79,6 +80,7 @@ declare -A CATEGORY_LABELS=(
     ["data"]="Data Pipelines"
     ["git"]="Git Operations"
     ["design"]="Design & Architecture"
+    ["research"]="Research & Analysis"
 )
 
 echo "=========================================="
@@ -208,7 +210,7 @@ echo ""
 echo "▶ Test 4: Categories appear in correct order"
 echo "──────────────────────────────────────"
 
-EXPECTED_ORDER=("Backend & Data" "Frontend & UI" "Security" "DevOps & Infrastructure" "LLM & AI" "Testing & Quality" "Product & Strategy" "Data Pipelines" "Git Operations" "Design & Architecture" "Documentation")
+EXPECTED_ORDER=("Backend & Data" "Frontend & UI" "Security" "DevOps & Infrastructure" "LLM & AI" "Testing & Quality" "Product & Strategy" "Data Pipelines" "Git Operations" "Design & Architecture" "Research & Analysis" "Documentation")
 
 # Extract actual order from index
 ACTUAL_ORDER=()

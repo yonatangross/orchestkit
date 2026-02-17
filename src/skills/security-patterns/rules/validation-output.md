@@ -33,15 +33,19 @@ const sanitizedHtml = DOMPurify.sanitize(userInput, {
 
 ## XSS Prevention
 
+**Safe — textContent and React auto-escaping:**
 ```javascript
 // SAFE: textContent escapes HTML entities
 element.textContent = userInput;
 
-// DANGEROUS: innerHTML can execute scripts
-element.innerHTML = userInput;  // NEVER do this with user input
-
 // React is safe by default
 <div>{userInput}</div>  // Auto-escaped
+```
+
+**Dangerous — innerHTML and dangerouslySetInnerHTML bypass escaping:**
+```javascript
+// DANGEROUS: innerHTML can execute scripts
+element.innerHTML = userInput;  // NEVER do this with user input
 
 // DANGEROUS: bypasses React escaping
 <div dangerouslySetInnerHTML={{__html: userInput}} />

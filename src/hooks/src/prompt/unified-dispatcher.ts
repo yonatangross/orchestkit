@@ -8,11 +8,11 @@
  * Problem: 13 separate UserPromptSubmit hooks = 13 system-reminder tags per turn,
  * consuming 1500-3200 tokens/turn. Many are no-ops, duplicates, or silent analytics.
  *
- * Solution: Single dispatcher that runs all every-turn hooks internally,
- * collects their additionalContext outputs, merges into one consolidated response.
- * Reduces system-reminders from 13 to 4-5 per turn (3 once-only + 1 dispatcher + 1 silent).
+ * Solution: Single dispatcher that runs all hooks internally (both every-turn and
+ * once-per-session), collects their additionalContext outputs, merges into one
+ * consolidated response. Reduces UserPromptSubmit hooks.json entries from 5 to 2.
  *
- * Hooks consolidated here:
+ * Every-turn hooks consolidated here:
  * - context-injector (removed — no-op, only logs)
  * - todo-enforcer (removed — no-op, only logs)
  * - satisfaction-detector (silent analytics)
@@ -23,10 +23,12 @@
  * - context-pruning-advisor (context injection)
  * - pipeline-detector (context injection)
  *
+ * Once-per-session hooks consolidated here (file-based flag tracking):
+ * - profile-injector (run once via session flag)
+ * - memory-context-loader (run once via session flag)
+ * - queue-recovery (removed — no source file, was a ghost no-op)
+ *
  * NOT consolidated (remain separate in hooks.json):
- * - profile-injector (once: true)
- * - memory-context-loader (once: true)
- * - queue-recovery (once: true)
  * - capture-user-intent (uses run-hook-silent.mjs for background execution)
  *
  * CC 2.1.9 Compliant: Single additionalContext output
@@ -38,16 +40,24 @@ import {
   outputPromptContext,
   logHook,
   estimateTokenCount,
+  getProjectDir,
 } from '../lib/common.js';
 import { isImageOrBinaryPrompt, MAX_PROMPT_LENGTH } from '../lib/prompt-guards.js';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 
-// Import hook implementations
+// Import hook implementations — every-turn
 import { satisfactionDetector } from './satisfaction-detector.js';
 import { communicationStyleTracker } from './communication-style-tracker.js';
 import { antipatternWarning } from './antipattern-warning.js';
 import { memoryContext } from './memory-context.js';
 import { contextPruningAdvisor } from './context-pruning-advisor.js';
 import { pipelineDetector } from './pipeline-detector.js';
+
+// Import hook implementations — once-per-session
+import { profileInjector } from './profile-injector.js';
+import { memoryContextLoader } from './memory-context-loader.js';
+import { agentationContext } from './agentation-context.js';
 
 // -----------------------------------------------------------------------------
 // Constants
@@ -69,6 +79,8 @@ interface PromptHookConfig {
   fn: HookFn;
   /** Whether this hook produces context output (vs silent analytics) */
   producesContext: boolean;
+  /** If true, this hook runs only once per session (file-based flag tracking) */
+  runOnce?: boolean;
 }
 
 // -----------------------------------------------------------------------------
@@ -76,12 +88,18 @@ interface PromptHookConfig {
 // -----------------------------------------------------------------------------
 
 /**
- * Registry of every-turn UserPromptSubmit hooks.
+ * Registry of all UserPromptSubmit hooks managed by this dispatcher.
  *
  * Order matters for context producers — higher priority first.
  * Silent analytics hooks run but their output is discarded.
+ * runOnce hooks execute only on the first turn (file-based session flag).
  */
 const HOOKS: PromptHookConfig[] = [
+  // --- Once-per-session hooks (run on first turn only, file-flag gated) ---
+  { name: 'profile-injector', fn: profileInjector, producesContext: true, runOnce: true },
+  { name: 'memory-context-loader', fn: memoryContextLoader, producesContext: true, runOnce: true },
+  { name: 'agentation-context', fn: agentationContext, producesContext: true, runOnce: true },
+
   // --- Silent analytics (fire-and-forget, no context output) ---
   { name: 'satisfaction-detector', fn: satisfactionDetector, producesContext: false },
   { name: 'communication-style-tracker', fn: communicationStyleTracker, producesContext: false },
@@ -95,6 +113,30 @@ const HOOKS: PromptHookConfig[] = [
 
 /** Exposed for testing */
 export const registeredHookNames = () => HOOKS.map(h => h.name);
+
+// -----------------------------------------------------------------------------
+// Once-per-session Flag Tracking
+// -----------------------------------------------------------------------------
+
+/**
+ * Check if a once-per-session hook has already run.
+ * Uses file-based flags at: {project}/.claude/memory/sessions/{session_id}/once-flags/{hook}.done
+ */
+function hasOnceFlagRun(hookName: string, sessionId: string, projectDir: string): boolean {
+  const flagPath = join(projectDir, '.claude', 'memory', 'sessions', sessionId, 'once-flags', `${hookName}.done`);
+  return existsSync(flagPath);
+}
+
+/**
+ * Mark a once-per-session hook as having run.
+ */
+function setOnceFlagDone(hookName: string, sessionId: string, projectDir: string): void {
+  const flagDir = join(projectDir, '.claude', 'memory', 'sessions', sessionId, 'once-flags');
+  if (!existsSync(flagDir)) {
+    mkdirSync(flagDir, { recursive: true });
+  }
+  writeFileSync(join(flagDir, `${hookName}.done`), Date.now().toString(), 'utf8');
+}
 
 // -----------------------------------------------------------------------------
 // Context Extraction
@@ -141,9 +183,33 @@ export function unifiedPromptDispatcher(input: HookInput): HookResult {
   const contextParts: string[] = [];
   let totalTokens = 0;
 
+  // Resolve session/project for once-flag tracking
+  const sessionId = input.session_id || '';
+  const projectDir = input.project_dir || getProjectDir();
+
   for (const hook of HOOKS) {
     try {
+      // Once-per-session gate: skip if already run this session
+      if (hook.runOnce) {
+        if (!sessionId) {
+          // No session_id available — allow re-run (same as legacy behavior)
+          logHook(HOOK_NAME, `${hook.name}: no session_id, running without once-gate`);
+        } else if (hasOnceFlagRun(hook.name, sessionId, projectDir)) {
+          logHook(HOOK_NAME, `${hook.name}: already ran this session, skipping`);
+          continue;
+        }
+      }
+
       const result = hook.fn(input);
+
+      // Mark once-per-session hook as done after successful execution
+      if (hook.runOnce && sessionId) {
+        try {
+          setOnceFlagDone(hook.name, sessionId, projectDir);
+        } catch (flagErr) {
+          logHook(HOOK_NAME, `${hook.name}: failed to write once-flag: ${flagErr}`, 'warn');
+        }
+      }
 
       // Skip silent analytics hooks — they've done their work (logging/tracking)
       if (!hook.producesContext) {

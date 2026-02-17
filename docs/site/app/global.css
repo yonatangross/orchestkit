@@ -186,11 +186,16 @@ pre code {
 }
 
 /* ============================================================
-   SIDEBAR — Tighter spacing
+   SIDEBAR — Tighter spacing, flush left
    ============================================================ */
 
 nav[data-fumadocs-sidebar] a {
   padding-top: 0.375rem;
   padding-bottom: 0.375rem;
   font-size: 0.8125rem;
+}
+
+/* Expand docs layout to use full viewport width */
+#nd-docs-layout {
+  --fd-layout-width: 100%;
 }

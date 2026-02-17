@@ -70,7 +70,8 @@ function readLastLines(filePath: string, count: number): string[] {
 }
 
 /**
- * Parse JSONL lines into decision records, skipping malformed lines
+ * Parse JSONL lines into decision records, skipping malformed lines.
+ * Deduplicates by content.what (keeps most recent occurrence).
  */
 function parseDecisions(lines: string[]): StoredDecision[] {
   const decisions: StoredDecision[] = [];
@@ -84,7 +85,38 @@ function parseDecisions(lines: string[]): StoredDecision[] {
       // Skip malformed lines
     }
   }
-  return decisions;
+
+  // Deduplicate by content.what — keep the most recent (last) occurrence
+  const seen = new Map<string, number>();
+  for (let i = 0; i < decisions.length; i++) {
+    seen.set(decisions[i].content.what, i);
+  }
+  return decisions.filter((_, i) => {
+    const d = decisions[i];
+    return seen.get(d.content.what) === i;
+  });
+}
+
+/**
+ * Filter out noise entries — system warnings captured as user decisions.
+ * e.g., Next.js/CC warnings like "selected the directory of..."
+ */
+function filterNoiseDecisions(decisions: StoredDecision[]): StoredDecision[] {
+  const NOISE_PATTERNS = [
+    /^selected the directory of/i,
+    /^⚠\s*Warning:/i,
+    /^Error:/i,
+    /^inferred your workspace/i,
+  ];
+
+  return decisions.filter(d => {
+    const what = d.content.what;
+    // Skip entries that match noise patterns
+    if (NOISE_PATTERNS.some(p => p.test(what))) return false;
+    // Skip very short meaningless entries (< 10 chars after trimming)
+    if (what.trim().length < 10) return false;
+    return true;
+  });
 }
 
 /**
@@ -150,20 +182,25 @@ export function memoryContextLoader(input: HookInput): HookResult {
       return outputSilentSuccess();
     }
 
-    // Parse decisions (skip malformed)
+    // Parse decisions (skip malformed, deduplicate)
     const decisions = parseDecisions(lines);
     if (decisions.length === 0) {
       logHook(HOOK_NAME, 'No valid decisions found in file');
       return outputSilentSuccess();
     }
 
-    // Most recent first
-    decisions.reverse();
+    // Filter noise and reverse (most recent first)
+    const filtered = filterNoiseDecisions(decisions);
+    if (filtered.length === 0) {
+      logHook(HOOK_NAME, 'All decisions filtered as noise');
+      return outputSilentSuccess();
+    }
+    filtered.reverse();
 
     // Build context
-    const context = formatDecisionContext(decisions);
+    const context = formatDecisionContext(filtered);
 
-    logHook(HOOK_NAME, `Loaded ${decisions.length} recent decisions as context`);
+    logHook(HOOK_NAME, `Loaded ${filtered.length} decisions as context (${decisions.length - filtered.length} filtered/deduped)`);
     return outputPromptContext(context);
   } catch (err) {
     logHook(HOOK_NAME, `Error loading memory context: ${err}`, 'warn');

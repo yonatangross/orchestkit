@@ -5,6 +5,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import type { ReactNode } from "react";
 import type { Metadata } from "next";
 import { SITE, COUNTS, BANNER_TEXT } from "@/lib/constants";
+import { AgentationWrapper } from "@/components/agentation-wrapper";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist" });
 const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono" });
@@ -41,6 +42,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         <RootProvider>
           <div id="main-content">{children}</div>
         </RootProvider>
+        <AgentationWrapper />
       </body>
     </html>
   );

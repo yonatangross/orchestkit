@@ -7,7 +7,6 @@ context: fork
 color: pink
 memory: project
 tools:
-  - Write
   - Read
   - WebSearch
   - Grep

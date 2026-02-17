@@ -5,6 +5,27 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.0.17] - 2026-02-17
+
+### Added
+
+- CI: Add `manifest-schema-tests` job (manifests, schemas, hooks, indexes)
+- CI: Add `eval-static` job running `npm run eval:static` with artifact upload
+- CI: Add build drift detection (`git diff --quiet plugins/`) to `build-plugins` job
+
+### Fixed
+
+- Rename `validate-evaluations.sh` → `test-validate-evaluations.sh` so CI test discovery (`test-*.sh` pattern) finds it
+- Fix `test-agent-categories.sh`: add `research` to valid categories list
+- Fix `test-category-grouping.sh`: update stale agent name, add missing agent/category mappings, fix category order
+
+### Removed
+
+- Delete stale `test-json-output-compliance.sh` (hooks migrated to TypeScript, tested via vitest)
+- Delete stale `test-build-marketplace-sync.sh` (marketplace sync logic removed from build script)
+
+---
+
 ## [6.0.16] - 2026-02-16
 
 ### Added
@@ -70,24 +91,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Guard against image paste killing context window — 3-layer defense: stdin cap (512KB), prompt length guard (50K), image/binary detection (#620)
+- Guard against image paste killing context window — 3-layer defense: stdin cap (512KB), prompt length guard (50K), image/binary detection ([#620](https://github.com/yonatangross/orchestkit/issues/620))
 - Correct orkl skill count in marketplace.json (62 → 45)
 
 ### Changed
 
-- Rewrote `mcp-patterns` SKILL.md for 2025-11-25 MCP spec + AAIF governance (#613)
+- Rewrote `mcp-patterns` SKILL.md for 2025-11-25 MCP spec + AAIF governance ([#613](https://github.com/yonatangross/orchestkit/issues/613))
 - Updated `_sections.md` with 7 categories (14 rules) and priority levels
 - Updated agent skill-indexes for ai-safety-auditor, llm-integrator, security-auditor
 - Regenerated docs site pages and generated data files
-
----
-
-
-## [6.0.10] - 2026-02-15
-
-### Fixed
-
-- Bumped version to 6.0.10
 
 ---
 
@@ -102,16 +114,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Version reference 6.0.6→6.0.9 in CLAUDE.md
 - Fix "0 hooks" in README and CLAUDE.md hero line
 - Update docs-data.test.ts hardcoded assertions to match current counts
-- Close milestones #56 (Documentation Site) and #68 (Issue-Driven Git)
-
----
-
-
-## [6.0.8] - 2026-02-15
-
-### Fixed
-
-- Bumped version to 6.0.8
+- Close milestones [#56](https://github.com/yonatangross/orchestkit/milestone/56) (Documentation Site) and [#68](https://github.com/yonatangross/orchestkit/milestone/68) (Issue-Driven Git)
 
 ---
 
@@ -120,26 +123,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- 9 test-cases.json files for orchestration skills (commit, review-pr, fix-issue, implement, explore, create-pr, verify, assess, git-workflow) — 39 test cases total (#563)
-- Skill triggering test suite with trigger-cases.yaml + keyword overlap scoring (#571)
-- Rule validation test for YAML frontmatter compliance (#543)
-- "When NOT to Use" tier matrices for architecture-patterns, DDD, distributed-systems (#532)
-- Interview/take-home mode (STEP 0c) in implement skill (#533)
-- 5 new scripts: validate-conventional.sh, check-plugin-health.sh, scaffold-test.sh, scan-vulnerabilities.sh, run-lint-check.sh (#565)
-- Edit > Write memory pattern in memory + remember skills (#546)
-- Lazy loading wrappers for SkillBrowser, DemoGallery, AgentSelector (#438)
-- Docs CI workflow for auto-rebuild on src/ changes (#402)
-- Shared category-colors.ts palette for consistent UI (#439)
-- Database selection rule + 4 references in database-patterns (#535)
-- Railway deployment rule + 3 references in devops-deployment (#550)
-- Messaging integrations rule + 3 references in api-design (#551)
-- Payload CMS rule + 3 references in api-design (#552)
+- 9 test-cases.json files for orchestration skills (commit, review-pr, fix-issue, implement, explore, create-pr, verify, assess, git-workflow) — 39 test cases total ([#563](https://github.com/yonatangross/orchestkit/issues/563))
+- Skill triggering test suite with trigger-cases.yaml + keyword overlap scoring ([#571](https://github.com/yonatangross/orchestkit/issues/571))
+- Rule validation test for YAML frontmatter compliance ([#543](https://github.com/yonatangross/orchestkit/issues/543))
+- "When NOT to Use" tier matrices for architecture-patterns, DDD, distributed-systems ([#532](https://github.com/yonatangross/orchestkit/issues/532))
+- Interview/take-home mode (STEP 0c) in implement skill ([#533](https://github.com/yonatangross/orchestkit/issues/533))
+- 5 new scripts: validate-conventional.sh, check-plugin-health.sh, scaffold-test.sh, scan-vulnerabilities.sh, run-lint-check.sh ([#565](https://github.com/yonatangross/orchestkit/issues/565))
+- Edit > Write memory pattern in memory + remember skills ([#546](https://github.com/yonatangross/orchestkit/issues/546))
+- Lazy loading wrappers for SkillBrowser, DemoGallery, AgentSelector ([#438](https://github.com/yonatangross/orchestkit/issues/438))
+- Docs CI workflow for auto-rebuild on src/ changes ([#402](https://github.com/yonatangross/orchestkit/issues/402))
+- Shared category-colors.ts palette for consistent UI ([#439](https://github.com/yonatangross/orchestkit/issues/439))
+- Database selection rule + 4 references in database-patterns ([#535](https://github.com/yonatangross/orchestkit/issues/535))
+- Railway deployment rule + 3 references in devops-deployment ([#550](https://github.com/yonatangross/orchestkit/issues/550))
+- Messaging integrations rule + 3 references in api-design ([#551](https://github.com/yonatangross/orchestkit/issues/551))
+- Payload CMS rule + 3 references in api-design ([#552](https://github.com/yonatangross/orchestkit/issues/552))
 
 ### Fixed
 
-- Replaced ~50 hardcoded hex colors with fd-* design tokens in docs site (#440)
-- Fixed category color inconsistencies: ai (emerald→cyan), devops (violet→orange), research (indigo→teal) (#439)
-- Added aria-live="polite" on copy button feedback (#440)
+- Replaced ~50 hardcoded hex colors with fd-* design tokens in docs site ([#440](https://github.com/yonatangross/orchestkit/issues/440))
+- Fixed category color inconsistencies: ai (emerald→cyan), devops (violet→orange), research (indigo→teal) ([#439](https://github.com/yonatangross/orchestkit/issues/439))
+- Added aria-live="polite" on copy button feedback ([#440](https://github.com/yonatangross/orchestkit/issues/440))
 
 ---
 
@@ -148,15 +151,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Hooks**: Add type-error-indexer SessionStart hook — caches `tsc --noEmit` errors for agent awareness (#304)
-- **Skills**: Extract 27 rules from 7 reference-only tech skills (#559)
-- **Skills**: Add YAGNI gate to quality-gates, context-aware architecture-patterns (#530, #531)
-- **Skills**: Add scope-appropriate-architecture skill (#528, #529)
+- **Hooks**: Add type-error-indexer SessionStart hook — caches `tsc --noEmit` errors for agent awareness ([#304](https://github.com/yonatangross/orchestkit/issues/304))
+- **Skills**: Extract 27 rules from 7 reference-only tech skills ([#559](https://github.com/yonatangross/orchestkit/issues/559))
+- **Skills**: Add YAGNI gate to quality-gates, context-aware architecture-patterns ([#530](https://github.com/yonatangross/orchestkit/issues/530), [#531](https://github.com/yonatangross/orchestkit/issues/531))
+- **Skills**: Add scope-appropriate-architecture skill ([#528](https://github.com/yonatangross/orchestkit/issues/528), [#529](https://github.com/yonatangross/orchestkit/issues/529))
 
 ### Changed
 
-- **Agents**: Rename performance-engineer → frontend-performance-engineer to avoid confusion with python-performance-engineer (#587)
-- **CLAUDE.md**: Update CC format reference from 2.1.6 to 2.1.34 (#515)
+- **Agents**: Rename performance-engineer → frontend-performance-engineer to avoid confusion with python-performance-engineer ([#587](https://github.com/yonatangross/orchestkit/issues/587))
+- **CLAUDE.md**: Update CC format reference from 2.1.6 to 2.1.34 ([#515](https://github.com/yonatangross/orchestkit/issues/515))
 
 ### Fixed
 
@@ -182,16 +185,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **Bugs**: Close 11 open issues (#417, #418, #437, #450, #451, #452, #453, #454, #455, #456, #534)
-- **Skills**: Fix doctor "health diagnostics for health diagnostics" redundancy (#456)
-- **Skills**: Add skill name to explore description for semantic discovery (#456)
-- **Tests**: Rewrite MCP pretool hook tests for TypeScript — removes 14 dead skip() calls (#417)
-- **Tests**: Rewrite hook timing tests to measure TypeScript hooks via run-hook.mjs (#455)
+- **Bugs**: Close 11 open issues ([#417](https://github.com/yonatangross/orchestkit/issues/417), [#418](https://github.com/yonatangross/orchestkit/issues/418), [#437](https://github.com/yonatangross/orchestkit/issues/437), [#450](https://github.com/yonatangross/orchestkit/issues/450), [#451](https://github.com/yonatangross/orchestkit/issues/451), [#452](https://github.com/yonatangross/orchestkit/issues/452), [#453](https://github.com/yonatangross/orchestkit/issues/453), [#454](https://github.com/yonatangross/orchestkit/issues/454), [#455](https://github.com/yonatangross/orchestkit/issues/455), [#456](https://github.com/yonatangross/orchestkit/issues/456), [#534](https://github.com/yonatangross/orchestkit/issues/534))
+- **Skills**: Fix doctor "health diagnostics for health diagnostics" redundancy ([#456](https://github.com/yonatangross/orchestkit/issues/456))
+- **Skills**: Add skill name to explore description for semantic discovery ([#456](https://github.com/yonatangross/orchestkit/issues/456))
+- **Tests**: Rewrite MCP pretool hook tests for TypeScript — removes 14 dead skip() calls ([#417](https://github.com/yonatangross/orchestkit/issues/417))
+- **Tests**: Rewrite hook timing tests to measure TypeScript hooks via run-hook.mjs ([#455](https://github.com/yonatangross/orchestkit/issues/455))
 
 ### Changed
 
-- **CLAUDE.md**: Prune from 275 to 75 lines, link to docs instead of inline (#452)
-- **Hooks**: Consolidate 4 PostToolUse Write|Edit hooks into unified-write-quality-dispatcher (#453)
+- **CLAUDE.md**: Prune from 275 to 75 lines, link to docs instead of inline ([#452](https://github.com/yonatangross/orchestkit/issues/452))
+- **Hooks**: Consolidate 4 PostToolUse Write|Edit hooks into unified-write-quality-dispatcher ([#453](https://github.com/yonatangross/orchestkit/issues/453))
   - auto-lint, readme-sync, merge-conflict-predictor, coverage-predictor → 1 dispatcher
   - Hook count: 88 → 86 (63 global + 22 agent + 1 skill)
 - **README**: Fix stale counts (200→60 skills, 98→86 hooks), remove playground-demo.gif
@@ -201,14 +204,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **CI**: Remove deleted `evidence-verification` skill from `test-specific-skills.sh` (#555 aftermath)
+- **CI**: Remove deleted `evidence-verification` skill from `test-specific-skills.sh` ([#555](https://github.com/yonatangross/orchestkit/issues/555) aftermath)
 - **CI**: Add missing `version` field and `checklists/` directory to `mcp-patterns` skill for `test-ai-ml-skills.sh`
 
 ## [Unreleased]
 
 ### Changed
 
-- **Skill Consolidation** (#536): Restructured 200 skills into 103 through 16 consolidation batches
+- **Skill Consolidation** ([#536](https://github.com/yonatangross/orchestkit/issues/536)): Restructured 200 skills into 103 through 16 consolidation batches
   - **Batches 1-6**: LangGraph (10→1), RAG (9→1), Testing (13→1), Caching (4→1), Performance (6→1), Video (14→1)
   - **Batches 7-16**: Event-Driven (3→1), Golden-Dataset (3→1), Accessibility (3→1), Database-Patterns (4→1), LLM-Integration (7→1), API-Design (3→1), Distributed-Systems (4→1), Agent-Orchestration (3→1), Security-Patterns (6→1), Product-Frameworks (5→1)
   - **Additional groups**: Monitoring-Observability (2→1), Frontend-Animation (3→1), UI-Components (4→1), Data-Visualization (2→1), Python-Backend (5→1), Architecture-Patterns (2→1), Browser-Tools (2→1), Context-Optimization (2→1), Async-Jobs (2→1)
@@ -219,7 +222,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **TLDR-Lite File Summaries** (#463): New `PreToolUse[Read]` hook injects structural summaries for large files (>500 lines or >2000 tokens)
+- **TLDR-Lite File Summaries** ([#463](https://github.com/yonatangross/orchestkit/issues/463)): New `PreToolUse[Read]` hook injects structural summaries for large files (>500 lines or >2000 tokens)
   - Regex-based extractors for TypeScript/JS, Python, Go, Rust, Shell, Markdown
   - Extracts imports, functions, classes, types, exports as a navigation roadmap
   - ~500 token summary injected as `additionalContext` alongside full file content
@@ -238,13 +241,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Langfuse v3 Rewrite** (Milestone #58): Complete rewrite of `langfuse-observability` skill from deprecated SDK v2 to v3/v4 (OTEL-native)
+- **Langfuse v3 Rewrite** (Milestone [#58](https://github.com/yonatangross/orchestkit/milestone/58)): Complete rewrite of `langfuse-observability` skill from deprecated SDK v2 to v3/v4 (OTEL-native)
   - SKILL.md bumped to v2.0.0 with 3 new capability sections (agent-graphs, mcp-prompt-management, framework-integrations)
   - 3 new reference files: `agent-observability.md`, `framework-integrations.md`, `migration-v2-v3.md`
   - 7 existing reference files rewritten with v3 imports (`from langfuse import observe, get_client`)
   - All `langfuse_context` → `get_client()`, all `langfuse.decorators` → `langfuse` imports
   - New coverage: Agent Graphs, MCP Server, Experiment Runner SDK, dataset versioning, spend alerts, natural language filtering, evaluator execution tracing
-  - 18 tracking issues (#419-#436) under Milestone #58
+  - 18 tracking issues ([#419](https://github.com/yonatangross/orchestkit/issues/419)-[#436](https://github.com/yonatangross/orchestkit/issues/436)) under Milestone [#58](https://github.com/yonatangross/orchestkit/milestone/58)
 
 ### Fixed
 
@@ -260,23 +263,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **#328 (P1-C)**: `complexity: low|medium|high` field added to all 199 skill frontmatters for Opus 4.6 adaptive thinking alignment
-- **#337 (P2-E)**: New `upgrade-assessment` user-invocable skill — 6-phase readiness evaluation with structured JSON scoring across 6 dimensions
-- **#338 (P2-F)**: New `platform-upgrade-knowledge` reference skill with scoring rubrics and compatibility matrices
-- **#333 (P2-D)**: 128K output token guidance added to implement skill, context-engineering, and 3 agent definitions
-- **#331 (P2-B)**: New `model-cost-advisor` SubagentStart hook — analyzes task complexity and recommends optimal model for cost savings
-- **#325 (P0-B)**: Prefill-guard SessionStart hook warns about Opus 4.6 breaking change (prefilled assistant messages return 400 errors)
-- **#346 (P1-E)**: Agent `memory` frontmatter — all 36 agents (31 `project` scope, 5 `local` scope) (CC 2.1.33)
-- **#347 (P1-F)**: New `TeammateIdle` and `TaskCompleted` hook events with progress-reporter and completion-tracker handlers (CC 2.1.33)
-- **#335 (P3-B)**: New `/ork:audit-full` user-invocable skill — single-pass whole-codebase audit (security, architecture, dependencies) leveraging 1M context window with 4 references, 2 assets, 1 checklist, 1 script
+- **[#328](https://github.com/yonatangross/orchestkit/issues/328) (P1-C)**: `complexity: low|medium|high` field added to all 199 skill frontmatters for Opus 4.6 adaptive thinking alignment
+- **[#337](https://github.com/yonatangross/orchestkit/issues/337) (P2-E)**: New `upgrade-assessment` user-invocable skill — 6-phase readiness evaluation with structured JSON scoring across 6 dimensions
+- **[#338](https://github.com/yonatangross/orchestkit/issues/338) (P2-F)**: New `platform-upgrade-knowledge` reference skill with scoring rubrics and compatibility matrices
+- **[#333](https://github.com/yonatangross/orchestkit/issues/333) (P2-D)**: 128K output token guidance added to implement skill, context-engineering, and 3 agent definitions
+- **[#331](https://github.com/yonatangross/orchestkit/issues/331) (P2-B)**: New `model-cost-advisor` SubagentStart hook — analyzes task complexity and recommends optimal model for cost savings
+- **[#325](https://github.com/yonatangross/orchestkit/issues/325) (P0-B)**: Prefill-guard SessionStart hook warns about Opus 4.6 breaking change (prefilled assistant messages return 400 errors)
+- **[#346](https://github.com/yonatangross/orchestkit/issues/346) (P1-E)**: Agent `memory` frontmatter — all 36 agents (31 `project` scope, 5 `local` scope) (CC 2.1.33)
+- **[#347](https://github.com/yonatangross/orchestkit/issues/347) (P1-F)**: New `TeammateIdle` and `TaskCompleted` hook events with progress-reporter and completion-tracker handlers (CC 2.1.33)
+- **[#335](https://github.com/yonatangross/orchestkit/issues/335) (P3-B)**: New `/ork:audit-full` user-invocable skill — single-pass whole-codebase audit (security, architecture, dependencies) leveraging 1M context window with 4 references, 2 assets, 1 checklist, 1 script
 - Batch script `scripts/add-complexity.mjs` for applying complexity classifications
-- **#334 (P3-A)**: Agent Teams dual-mode orchestration — `/ork:implement` and 5 other user-invocable skills (assess, brainstorm, explore, fix-issue, review-pr, verify) support both Task tool (star topology) and Agent Teams (mesh topology) via `ORCHESTKIT_PREFER_TEAMS` env var
-- **#405**: TeamCreate, SendMessage, TeamDelete tools added to all 36 agents
-- **#406**: task-dependency-patterns skill updated with Agent Teams coordination patterns
-- **#407**: multi-agent-orchestration skill updated with mesh topology patterns
-- **#362**: 4 Agent Teams lifecycle hooks (team-formation-advisor, teammate-progress-reporter, teammate-completion-tracker, team-coordination-advisor)
-- **#391 (P2-B)**: Interactive Agent Selector playground with search, category/task filters, quiz wizard, and 10 scenario suggestions
-- **Fumadocs site scaffold** (Milestone #56): Fumadocs v16.5 + Next.js + MDX + Orama search, reference pages auto-generated for all 199 skills, 36 agents, 15 hook categories
+- **[#334](https://github.com/yonatangross/orchestkit/issues/334) (P3-A)**: Agent Teams dual-mode orchestration — `/ork:implement` and 5 other user-invocable skills (assess, brainstorm, explore, fix-issue, review-pr, verify) support both Task tool (star topology) and Agent Teams (mesh topology) via `ORCHESTKIT_PREFER_TEAMS` env var
+- **[#405](https://github.com/yonatangross/orchestkit/issues/405)**: TeamCreate, SendMessage, TeamDelete tools added to all 36 agents
+- **[#406](https://github.com/yonatangross/orchestkit/issues/406)**: task-dependency-patterns skill updated with Agent Teams coordination patterns
+- **[#407](https://github.com/yonatangross/orchestkit/issues/407)**: multi-agent-orchestration skill updated with mesh topology patterns
+- **[#362](https://github.com/yonatangross/orchestkit/issues/362)**: 4 Agent Teams lifecycle hooks (team-formation-advisor, teammate-progress-reporter, teammate-completion-tracker, team-coordination-advisor)
+- **[#391](https://github.com/yonatangross/orchestkit/issues/391) (P2-B)**: Interactive Agent Selector playground with search, category/task filters, quiz wizard, and 10 scenario suggestions
+- **Fumadocs site scaffold** (Milestone [#56](https://github.com/yonatangross/orchestkit/milestone/56)): Fumadocs v16.5 + Next.js + MDX + Orama search, reference pages auto-generated for all 199 skills, 36 agents, 15 hook categories
 
 - **Tavily Integration**: 3-tier web research workflow (WebFetch → Tavily → agent-browser) with curl patterns for search/extract/map APIs, graceful degradation when `TAVILY_API_KEY` is unset
 - **Tavily Site Discovery**: competitive-monitoring skill gains Tavily map+extract pre-step for competitor URL enumeration
@@ -290,14 +293,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **#348 (P2-G)**: `Task(agent_type)` restrictions on python-performance-engineer and demo-producer (CC 2.1.33)
-- **#349 (P1-G)**: CC minimum version bumped to >= 2.1.33 (from 2.1.32) for agent memory and new hook events
-- **#330 (P2-A)**: 13 agents migrated from `mcp__sequential-thinking` to Opus 4.6 native adaptive thinking
-- **#329 (P1-D)**: TOKEN_BUDGETS now scale dynamically with `CLAUDE_MAX_CONTEXT` (2% of context window per CC 2.1.32)
-- **#332 (P2-C)**: Enhanced `pre-compact-saver` v2.0 — preserves decision logs, memory tier snapshots, compaction frequency analytics
-- **#324 (P0-A)**: Replace hardcoded model string in multi-instance-init.ts with dynamic `detectModel()`
-- **#326 (P1-A)**: Memory context tier limits expanded (1200→3000 chars memory, 800→1200 chars profile)
-- **#327 (P1-B)**: CC minimum version updated to >= 2.1.33 across CLAUDE.md, README, hooks README, marketplace
+- **[#348](https://github.com/yonatangross/orchestkit/issues/348) (P2-G)**: `Task(agent_type)` restrictions on python-performance-engineer and demo-producer (CC 2.1.33)
+- **[#349](https://github.com/yonatangross/orchestkit/issues/349) (P1-G)**: CC minimum version bumped to >= 2.1.33 (from 2.1.32) for agent memory and new hook events
+- **[#330](https://github.com/yonatangross/orchestkit/issues/330) (P2-A)**: 13 agents migrated from `mcp__sequential-thinking` to Opus 4.6 native adaptive thinking
+- **[#329](https://github.com/yonatangross/orchestkit/issues/329) (P1-D)**: TOKEN_BUDGETS now scale dynamically with `CLAUDE_MAX_CONTEXT` (2% of context window per CC 2.1.32)
+- **[#332](https://github.com/yonatangross/orchestkit/issues/332) (P2-C)**: Enhanced `pre-compact-saver` v2.0 — preserves decision logs, memory tier snapshots, compaction frequency analytics
+- **[#324](https://github.com/yonatangross/orchestkit/issues/324) (P0-A)**: Replace hardcoded model string in multi-instance-init.ts with dynamic `detectModel()`
+- **[#326](https://github.com/yonatangross/orchestkit/issues/326) (P1-A)**: Memory context tier limits expanded (1200→3000 chars memory, 800→1200 chars profile)
+- **[#327](https://github.com/yonatangross/orchestkit/issues/327) (P1-B)**: CC minimum version updated to >= 2.1.33 across CLAUDE.md, README, hooks README, marketplace
 - MCP configuration docs updated with Opus 4.6 sequential-thinking deprecation note
 - CI workflow renames for clarity and pipeline parallelism
 - Skill count: 197 → 200 (added upgrade-assessment, platform-upgrade-knowledge, audit-full)
@@ -308,7 +311,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - Deprecated `sequential-thinking-auto` pretool hook (Opus 4.6 native adaptive thinking replaces MCP sequential-thinking)
-- **#362**: 6 coordination hooks removed as redundant with CC native Agent Teams (team-formation-hook, team-coordinator, teammate-monitor, team-cleanup, team-health-check, team-context-share)
+- **[#362](https://github.com/yonatangross/orchestkit/issues/362)**: 6 coordination hooks removed as redundant with CC native Agent Teams (team-formation-hook, team-coordinator, teammate-monitor, team-cleanup, team-health-check, team-context-share)
 
 ---
 
@@ -365,15 +368,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - CI report generation using tsx for ESM compatibility
-
----
-
-
-## [5.7.4] - 2026-02-04
-
-### Fixed
-
-- Bumped version to 5.7.4
 
 ---
 
@@ -538,3 +532,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Memory health check library** (`memory-health.ts`) — Validates JSONL integrity, tier status, queue depths, and file analysis for `/ork:doctor`
 - **Memory metrics collector** (`memory-metrics.ts`) — Counts decisions by category/type, queue depths, completed flows; appends timestamped snapshots to `memory-metrics.jsonl`
 - **Memory metrics lifecycle hook** (`memory-metrics-collector.ts`) — SessionStart hook that collects and persists memory metrics on every session
+
+---
+
+[6.0.16]: https://github.com/yonatangross/orchestkit/compare/v6.0.15...v6.0.16
+[6.0.15]: https://github.com/yonatangross/orchestkit/compare/v6.0.14...v6.0.15
+[6.0.14]: https://github.com/yonatangross/orchestkit/compare/v6.0.13...v6.0.14
+[6.0.13]: https://github.com/yonatangross/orchestkit/compare/v6.0.11...v6.0.13
+[6.0.11]: https://github.com/yonatangross/orchestkit/compare/v6.0.9...v6.0.11
+[6.0.9]: https://github.com/yonatangross/orchestkit/compare/v6.0.7...v6.0.9
+[6.0.7]: https://github.com/yonatangross/orchestkit/compare/v6.0.6...v6.0.7
+[6.0.6]: https://github.com/yonatangross/orchestkit/compare/v6.0.5...v6.0.6
+[6.0.5]: https://github.com/yonatangross/orchestkit/compare/v6.0.4...v6.0.5
+[6.0.4]: https://github.com/yonatangross/orchestkit/compare/v6.0.3...v6.0.4
+[Unreleased]: https://github.com/yonatangross/orchestkit/compare/v6.0.4...HEAD
+[6.0.3]: https://github.com/yonatangross/orchestkit/compare/v6.0.2...v6.0.3
+[6.0.2]: https://github.com/yonatangross/orchestkit/compare/v6.0.1...v6.0.2
+[6.0.1]: https://github.com/yonatangross/orchestkit/compare/v6.0.0...v6.0.1
+[6.0.0]: https://github.com/yonatangross/orchestkit/compare/v5.7.5...v6.0.0
+[5.7.5]: https://github.com/yonatangross/orchestkit/compare/v5.7.3...v5.7.5
+[5.7.3]: https://github.com/yonatangross/orchestkit/compare/v5.7.2...v5.7.3
+[5.7.2]: https://github.com/yonatangross/orchestkit/compare/v5.7.1...v5.7.2
+[5.7.1]: https://github.com/yonatangross/orchestkit/compare/v5.7.0...v5.7.1
+[5.7.0]: https://github.com/yonatangross/orchestkit/compare/v5.6.2...v5.7.0
+[5.6.2]: https://github.com/yonatangross/orchestkit/compare/v5.6.1...v5.6.2
+[5.6.1]: https://github.com/yonatangross/orchestkit/compare/v5.6.0...v5.6.1
+[5.6.0]: https://github.com/yonatangross/orchestkit/releases/tag/v5.6.0
