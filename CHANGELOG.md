@@ -535,26 +535,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+[6.0.17]: https://github.com/yonatangross/orchestkit/compare/v6.0.16...v6.0.17
 [6.0.16]: https://github.com/yonatangross/orchestkit/compare/v6.0.15...v6.0.16
 [6.0.15]: https://github.com/yonatangross/orchestkit/compare/v6.0.14...v6.0.15
 [6.0.14]: https://github.com/yonatangross/orchestkit/compare/v6.0.13...v6.0.14
-[6.0.13]: https://github.com/yonatangross/orchestkit/compare/v6.0.11...v6.0.13
+[6.0.13]: https://github.com/yonatangross/orchestkit/compare/v6.0.12...v6.0.13
+[6.0.12]: https://github.com/yonatangross/orchestkit/compare/v6.0.11...v6.0.12
 [6.0.11]: https://github.com/yonatangross/orchestkit/compare/v6.0.9...v6.0.11
-[6.0.9]: https://github.com/yonatangross/orchestkit/compare/v6.0.7...v6.0.9
+[6.0.9]: https://github.com/yonatangross/orchestkit/compare/v6.0.8...v6.0.9
+[6.0.8]: https://github.com/yonatangross/orchestkit/compare/v6.0.7...v6.0.8
 [6.0.7]: https://github.com/yonatangross/orchestkit/compare/v6.0.6...v6.0.7
 [6.0.6]: https://github.com/yonatangross/orchestkit/compare/v6.0.5...v6.0.6
 [6.0.5]: https://github.com/yonatangross/orchestkit/compare/v6.0.4...v6.0.5
-[6.0.4]: https://github.com/yonatangross/orchestkit/compare/v6.0.3...v6.0.4
-[Unreleased]: https://github.com/yonatangross/orchestkit/compare/v6.0.4...HEAD
+[6.0.4]: https://github.com/yonatangross/orchestkit/compare/v6.0.2...v6.0.4
+[6.0.2]: https://github.com/yonatangross/orchestkit/compare/v6.0.0...v6.0.2
+[6.0.0]: https://github.com/yonatangross/orchestkit/compare/v5.7.1...v6.0.0
+[Unreleased]: https://github.com/yonatangross/orchestkit/compare/v6.0.17...HEAD
 [6.0.3]: https://github.com/yonatangross/orchestkit/compare/v6.0.2...v6.0.3
-[6.0.2]: https://github.com/yonatangross/orchestkit/compare/v6.0.1...v6.0.2
 [6.0.1]: https://github.com/yonatangross/orchestkit/compare/v6.0.0...v6.0.1
-[6.0.0]: https://github.com/yonatangross/orchestkit/compare/v5.7.5...v6.0.0
-[5.7.5]: https://github.com/yonatangross/orchestkit/compare/v5.7.3...v5.7.5
+[5.7.5]: https://github.com/yonatangross/orchestkit/compare/v5.7.1...v5.7.5
 [5.7.3]: https://github.com/yonatangross/orchestkit/compare/v5.7.2...v5.7.3
 [5.7.2]: https://github.com/yonatangross/orchestkit/compare/v5.7.1...v5.7.2
 [5.7.1]: https://github.com/yonatangross/orchestkit/compare/v5.7.0...v5.7.1
-[5.7.0]: https://github.com/yonatangross/orchestkit/compare/v5.6.2...v5.7.0
+[5.7.0]: https://github.com/yonatangross/orchestkit/compare/v5.5.0...v5.7.0
 [5.6.2]: https://github.com/yonatangross/orchestkit/compare/v5.6.1...v5.6.2
 [5.6.1]: https://github.com/yonatangross/orchestkit/compare/v5.6.0...v5.6.1
 [5.6.0]: https://github.com/yonatangross/orchestkit/releases/tag/v5.6.0
+[5.5.0]: https://github.com/yonatangross/orchestkit/releases/tag/v5.5.0
+[5.2.4]: https://github.com/yonatangross/orchestkit/releases/tag/v5.2.4
