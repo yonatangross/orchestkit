@@ -62,19 +62,22 @@ function loadLearnedPatterns(): string[] {
 }
 
 /**
- * Check if command matches a learned auto-approve pattern
+ * Check if command matches a learned auto-approve pattern.
+ * SEC: Uses literal prefix matching only — never constructs RegExp from user data.
+ * Each pattern is treated as a literal command prefix (case-insensitive).
  */
 function shouldAutoApprove(command: string): boolean {
   const patterns = loadLearnedPatterns();
+  const normalizedCommand = command.toLowerCase().trim();
 
   for (const pattern of patterns) {
-    try {
-      const regex = new RegExp(pattern);
-      if (regex.test(command)) {
-        return true;
-      }
-    } catch {
-      // Invalid pattern, skip
+    // SEC: Only allow non-empty string patterns, no regex interpretation
+    if (typeof pattern !== 'string' || pattern.length === 0 || pattern.length > 200) {
+      continue;
+    }
+    // Literal prefix match only — safe from regex injection
+    if (normalizedCommand.startsWith(pattern.toLowerCase().trim())) {
+      return true;
     }
   }
 

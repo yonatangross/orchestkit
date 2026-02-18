@@ -172,12 +172,12 @@ describe('learningTracker', () => {
   // -----------------------------------------------------------------------
 
   describe('learned patterns from JSON file', () => {
-    test('auto-approves when command matches learned regex pattern', () => {
-      // Arrange
+    test('auto-approves when command matches learned literal prefix', () => {
+      // Arrange — patterns are literal prefixes, not regexes (SEC: no regex injection)
       (existsSync as ReturnType<typeof vi.fn>).mockReturnValue(true);
       (readFileSync as ReturnType<typeof vi.fn>).mockReturnValue(
         JSON.stringify({
-          autoApprovePatterns: ['^npm run build$', '^git status$'],
+          autoApprovePatterns: ['npm run build', 'git status'],
         })
       );
       const input = createBashInput('npm run build');
@@ -195,7 +195,7 @@ describe('learningTracker', () => {
       (existsSync as ReturnType<typeof vi.fn>).mockReturnValue(true);
       (readFileSync as ReturnType<typeof vi.fn>).mockReturnValue(
         JSON.stringify({
-          autoApprovePatterns: ['^npm run build$', '^git status'],
+          autoApprovePatterns: ['npm run build', 'git status'],
         })
       );
       const input = createBashInput('git status');
@@ -209,11 +209,11 @@ describe('learningTracker', () => {
     });
 
     test('returns silentSuccess when no pattern matches', () => {
-      // Arrange
+      // Arrange — 'npm run test' prefix does not match 'npm run build'
       (existsSync as ReturnType<typeof vi.fn>).mockReturnValue(true);
       (readFileSync as ReturnType<typeof vi.fn>).mockReturnValue(
         JSON.stringify({
-          autoApprovePatterns: ['^npm run test$'],
+          autoApprovePatterns: ['npm run test'],
         })
       );
       const input = createBashInput('npm run build');
@@ -231,7 +231,7 @@ describe('learningTracker', () => {
       // Arrange
       (existsSync as ReturnType<typeof vi.fn>).mockReturnValue(true);
       (readFileSync as ReturnType<typeof vi.fn>).mockReturnValue(
-        JSON.stringify({ autoApprovePatterns: ['^ls'] })
+        JSON.stringify({ autoApprovePatterns: ['ls'] })
       );
       const input = createBashInput('ls -la');
 
@@ -314,16 +314,16 @@ describe('learningTracker', () => {
   });
 
   // -----------------------------------------------------------------------
-  // 5. Invalid learned pattern (regex error)
+  // 5. Invalid/malicious learned patterns (SEC: no regex injection)
   // -----------------------------------------------------------------------
 
   describe('invalid learned patterns', () => {
-    test('skips invalid regex and returns silentSuccess', () => {
-      // Arrange - invalid regex pattern followed by valid one that does not match
+    test('skips empty string patterns', () => {
+      // Arrange - empty pattern should be skipped
       (existsSync as ReturnType<typeof vi.fn>).mockReturnValue(true);
       (readFileSync as ReturnType<typeof vi.fn>).mockReturnValue(
         JSON.stringify({
-          autoApprovePatterns: ['[invalid(regex', '^does-not-match$'],
+          autoApprovePatterns: ['', 'does-not-match'],
         })
       );
       const input = createBashInput('npm run build');
@@ -336,12 +336,12 @@ describe('learningTracker', () => {
       expect(result.suppressOutput).toBe(true);
     });
 
-    test('skips invalid regex but still matches valid patterns after it', () => {
-      // Arrange - invalid pattern followed by valid matching pattern
+    test('skips patterns longer than 200 chars', () => {
+      // Arrange - overly long pattern should be skipped (SEC: prevent abuse)
       (existsSync as ReturnType<typeof vi.fn>).mockReturnValue(true);
       (readFileSync as ReturnType<typeof vi.fn>).mockReturnValue(
         JSON.stringify({
-          autoApprovePatterns: ['[invalid(regex', '^npm run build$'],
+          autoApprovePatterns: ['a'.repeat(201), 'npm run build'],
         })
       );
       const input = createBashInput('npm run build');
@@ -349,7 +349,43 @@ describe('learningTracker', () => {
       // Act
       const result = learningTracker(input);
 
-      // Assert - the valid pattern after the invalid one should still match
+      // Assert - long pattern skipped, valid prefix matches
+      expect(result.continue).toBe(true);
+      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+    });
+
+    test('regex-like patterns are treated as literal prefixes (SEC: no regex injection)', () => {
+      // Arrange - '.*' is NOT a regex wildcard, it's a literal prefix
+      (existsSync as ReturnType<typeof vi.fn>).mockReturnValue(true);
+      (readFileSync as ReturnType<typeof vi.fn>).mockReturnValue(
+        JSON.stringify({
+          autoApprovePatterns: ['.*'],
+        })
+      );
+      const input = createBashInput('npm run build');
+
+      // Act
+      const result = learningTracker(input);
+
+      // Assert - '.*' as literal prefix does NOT match 'npm run build'
+      expect(result.continue).toBe(true);
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
+    });
+
+    test('skips non-string patterns', () => {
+      // Arrange - non-string pattern entries should be skipped
+      (existsSync as ReturnType<typeof vi.fn>).mockReturnValue(true);
+      (readFileSync as ReturnType<typeof vi.fn>).mockReturnValue(
+        JSON.stringify({
+          autoApprovePatterns: [42, null, 'npm run build'],
+        })
+      );
+      const input = createBashInput('npm run build');
+
+      // Act
+      const result = learningTracker(input);
+
+      // Assert - non-string skipped, valid prefix matches
       expect(result.continue).toBe(true);
       expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
     });
@@ -427,7 +463,7 @@ describe('learningTracker', () => {
           setupMocks: () => {
             (existsSync as ReturnType<typeof vi.fn>).mockReturnValue(true);
             (readFileSync as ReturnType<typeof vi.fn>).mockReturnValue(
-              JSON.stringify({ autoApprovePatterns: ['^npm test$'] })
+              JSON.stringify({ autoApprovePatterns: ['npm test'] })
             );
           },
         },
@@ -448,7 +484,7 @@ describe('learningTracker', () => {
       // Arrange - ensure a learned pattern match
       (existsSync as ReturnType<typeof vi.fn>).mockReturnValue(true);
       (readFileSync as ReturnType<typeof vi.fn>).mockReturnValue(
-        JSON.stringify({ autoApprovePatterns: ['^echo hello$'] })
+        JSON.stringify({ autoApprovePatterns: ['echo hello'] })
       );
       const input = createBashInput('echo hello');
 
