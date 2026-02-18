@@ -24,7 +24,7 @@ Query local analytics data from `~/.claude/analytics/`. All data is local-only, 
 
 | File | Contents | Key Fields |
 |------|----------|-----------|
-| `agent-usage.jsonl` | Agent spawn events | `ts, pid, agent, duration_ms, success, output_len, team?` |
+| `agent-usage.jsonl` | Agent spawn events | `ts, pid, agent, model, duration_ms, success, output_len, team?` |
 | `skill-usage.jsonl` | Skill invocations | `ts, pid, skill, team?` |
 | `hook-timing.jsonl` | Hook execution timing | `ts, hook, duration_ms, ok, pid, team?` |
 | `session-summary.jsonl` | Session end summaries | `ts, pid, total_tools, team?` |

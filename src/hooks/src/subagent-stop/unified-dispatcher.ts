@@ -76,11 +76,17 @@ function trackAgentResult(input: HookInput): void {
       context: input.agent_id,
     });
 
+    // Extract model from SubagentStop input or environment
+    const model = input.tool_input?.model as string
+      || process.env.CLAUDE_MODEL
+      || 'unknown';
+
     // Cross-project analytics (Issue #459)
     appendAnalytics('agent-usage.jsonl', {
       ts: new Date().toISOString(),
       pid: hashProject(process.env.CLAUDE_PROJECT_DIR || ''),
       agent: agentType,
+      model,
       duration_ms: durationMs,
       success,
       output_len: outputLength,
