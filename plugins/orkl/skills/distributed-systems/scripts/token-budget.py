@@ -9,7 +9,7 @@ Manages LLM context window limits with:
 
 Usage:
     guard = TokenBudgetGuard(
-        model="claude-sonnet-4-5-20251101",
+        model="claude-sonnet-4-6",
         context_limit=200000,
     )
 
@@ -195,7 +195,7 @@ class TokenBudgetGuard:
 
     Example:
         guard = TokenBudgetGuard(
-            model="claude-sonnet-4-5-20251101",
+            model="claude-sonnet-4-6",
             context_limit=200000,
         )
 
@@ -409,7 +409,7 @@ class TokenBudgetGuard:
         """Estimate cost based on model pricing."""
         # Pricing per 1M tokens (Dec 2025)
         PRICING = {
-            "claude-sonnet-4-5-20251101": {"input": 3.0, "output": 15.0},
+            "claude-sonnet-4-6": {"input": 3.0, "output": 15.0},
             "claude-haiku-4-5-20251101": {"input": 0.80, "output": 4.0},
             "gpt-5.2": {"input": 2.5, "output": 10.0},
             "gpt-5.2-mini": {"input": 0.15, "output": 0.60},
@@ -442,7 +442,7 @@ class TokenBudgetGuard:
 # Utility function for quick budget check
 def check_budget(
     content: str,
-    model: str = "claude-sonnet-4-5-20251101",
+    model: str = "claude-sonnet-4-6",
     context_limit: int = 200000,
 ) -> dict:
     """Quick check if content fits in context."""
@@ -462,7 +462,7 @@ def check_budget(
 if __name__ == "__main__":
     # Create budget guard
     guard = TokenBudgetGuard(
-        model="claude-sonnet-4-5-20251101",
+        model="claude-sonnet-4-6",
         context_limit=200000,
         allocation=BudgetAllocation(
             system_prompt=2000,

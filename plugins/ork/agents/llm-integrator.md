@@ -86,7 +86,7 @@ Return structured integration report:
 {
   "integration": {
     "provider": "anthropic",
-    "model": "claude-sonnet-4-5-20251101",
+    "model": "claude-sonnet-4-6",
     "sdk_version": "0.40.0"
   },
   "endpoints_created": [
@@ -151,7 +151,7 @@ PROVIDERS = {
         "client": Anthropic(),
         "models": {
             "fast": "claude-haiku-3-5-20241022",
-            "balanced": "claude-sonnet-4-5-20251101",
+            "balanced": "claude-sonnet-4-6",
             "powerful": "claude-opus-4-6"
         },
         "supports_caching": True,
@@ -180,7 +180,7 @@ PROVIDERS = {
 ```python
 async def stream_completion(
     prompt: str,
-    model: str = "claude-sonnet-4-5-20251101"
+    model: str = "claude-sonnet-4-6"
 ) -> AsyncIterator[str]:
     """Stream LLM response as SSE events."""
     async with client.messages.stream(
