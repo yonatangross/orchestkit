@@ -168,10 +168,11 @@ done
 2. **Non-interactive mode for automation** - Use `--title`, `--body` flags
 3. **Check rate limits before bulk operations** - `gh api rate_limit`
 4. **Use heredocs for multi-line content** - `--body "$(cat <<'EOF'...EOF)"`
-5. **Link issues in PRs** - `Closes #123`, `Fixes #456`
+5. **Link issues in PRs** - `Closes #123`, `Fixes #456` — GitHub auto-closes on merge
 6. **Use ISO 8601 dates** - `YYYY-MM-DDTHH:MM:SSZ` for milestone due_on
 7. **Close milestones, don't delete** - Preserve history
 8. **`--milestone` takes NAME, not number** - See [CLI-vs-API Identifiers](references/cli-vs-api-identifiers.md)
+9. **Never `gh issue close` directly** - Comment progress with `gh issue comment`; issues close only when their linked PR merges to the default branch
 
 ---
 
