@@ -12,6 +12,17 @@ description: "Query cross-project usage analytics. Use when reviewing agent, ski
 
 Query local analytics data from `~/.claude/analytics/`. All data is local-only, privacy-safe (hashed project IDs, no PII).
 
+## Data Files
+
+| File | Contents | Key Fields |
+|------|----------|-----------|
+| `agent-usage.jsonl` | Agent spawn events | `ts, pid, agent, model, duration_ms, success, output_len, team?` |
+| `skill-usage.jsonl` | Skill invocations | `ts, pid, skill, team?` |
+| `hook-timing.jsonl` | Hook execution timing | `ts, hook, duration_ms, ok, pid, team?` |
+| `session-summary.jsonl` | Session end summaries | `ts, pid, total_tools, team?` |
+| `task-usage.jsonl` | Task completions | `ts, pid, task_status, duration_ms, team?` |
+| `team-activity.jsonl` | Team spawns and idle | `ts, pid, event, agent, member?, idle_ms?, model?, team` |
+
 ## Subcommands
 
 Parse the user's argument to determine which report to show. If no argument provided, use AskUserQuestion to let them pick.
@@ -31,11 +42,13 @@ Parse the user's argument to determine which report to show. If no argument prov
 ### Quick Start Example
 
 ```bash
-# Top agents with model breakdown
-jq -s 'group_by(.agent) | map({agent: .[0].agent, count: length}) | sort_by(-.count)' ~/.claude/analytics/agent-usage.jsonl
+jq -s 'group_by(.agent) | map({agent: .[0].agent, count: length, avg_ms: (map(.duration_ms // 0) | add / length | floor), success_rate: (map(select(.success)) | length) / length * 100 | floor, models: (group_by(.model) | map({model: .[0].model, count: length}) | sort_by(-.count))}) | sort_by(-.count)' ~/.claude/analytics/agent-usage.jsonl
+```
 
-# All-time token costs
-jq '.modelUsage | to_entries | map({model: .key, input: .value.inputTokens, output: .value.outputTokens})' ~/.claude/stats-cache.json
+### `models` — Model delegation breakdown
+
+```bash
+jq -s 'group_by(.model) | map({model: .[0].model, count: length, avg_ms: (map(.duration_ms // 0) | add / length | floor), agents: ([.[].agent] | unique)}) | sort_by(-.count)' ~/.claude/analytics/agent-usage.jsonl
 ```
 
 ### Quick Subcommand Guide

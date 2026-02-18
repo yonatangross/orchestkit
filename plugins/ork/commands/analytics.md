@@ -11,6 +11,17 @@ allowed-tools: [Bash, Read, Grep, Glob, AskUserQuestion]
 
 Query local analytics data from `~/.claude/analytics/`. All data is local-only, privacy-safe (hashed project IDs, no PII).
 
+## Data Files
+
+| File | Contents | Key Fields |
+|------|----------|-----------|
+| `agent-usage.jsonl` | Agent spawn events | `ts, pid, agent, model, duration_ms, success, output_len, team?` |
+| `skill-usage.jsonl` | Skill invocations | `ts, pid, skill, team?` |
+| `hook-timing.jsonl` | Hook execution timing | `ts, hook, duration_ms, ok, pid, team?` |
+| `session-summary.jsonl` | Session end summaries | `ts, pid, total_tools, team?` |
+| `task-usage.jsonl` | Task completions | `ts, pid, task_status, duration_ms, team?` |
+| `team-activity.jsonl` | Team spawns and idle | `ts, pid, event, agent, member?, idle_ms?, model?, team` |
+
 ## Subcommands
 
 Parse the user's argument to determine which report to show. If no argument provided, use AskUserQuestion to let them pick.
