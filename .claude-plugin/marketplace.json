@@ -15,7 +15,7 @@
     {
       "name": "orkl",
       "description": "Universal AI development toolkit with 45 skills covering AI/LLM, backend, frontend, security, and testing patterns. Includes 36 specialized agents and 86 hooks.",
-      "version": "6.0.20",
+      "version": "6.0.22",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
@@ -26,7 +26,7 @@
     {
       "name": "ork-creative",
       "description": "Video production add-on — 3 skills, 1 agent. Demo recording, Remotion composition, storyboarding, and content creation tools.",
-      "version": "6.0.20",
+      "version": "6.0.22",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
@@ -37,7 +37,7 @@
     {
       "name": "ork",
       "description": "Full specialized toolkit — 62 skills, 37 agents, 86 hooks. Everything in orkl plus Python (FastAPI, SQLAlchemy), React (RSC, TanStack), LLM/RAG, LangGraph, and MCP patterns.",
-      "version": "6.0.20",
+      "version": "6.0.22",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
