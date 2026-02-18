@@ -1,12 +1,12 @@
 {
-  "timestamp": "2026-02-17T10:18:27Z",
-  "version": "6.0.12",
-  "duration_ms": 44908,
+  "timestamp": "2026-02-18T12:54:08Z",
+  "version": "6.0.17",
+  "duration_ms": 67036,
   "summary": {
-    "total": 7,
-    "passed": 7,
+    "total": 8,
+    "passed": 8,
     "failed": 0,
     "warnings": 0
   },
-  "checks": [{"name":"CI Lint","status":"pass","details":"All checks passed "},{"name":"Skill Structure","status":"pass","details":"All checks passed "},{"name":"Skill References","status":"pass","details":"All checks passed "},{"name":"Agent Frontmatter","status":"pass","details":"All checks passed "},{"name":"Agent Permission Audit","status":"pass","details":"All agent permission checks passed "},{"name":"Security Pattern Grep","status":"pass","details":"No dangerous patterns found in good code blocks "},{"name":"Unknown Frontmatter Fields","status":"pass","details":"All frontmatter fields are recognized "}]
+  "checks": [{"name":"CI Lint","status":"pass","details":"All checks passed "},{"name":"Skill Structure","status":"pass","details":"All checks passed "},{"name":"Skill References","status":"pass","details":"All checks passed "},{"name":"Agent Frontmatter","status":"pass","details":"All checks passed "},{"name":"Agent Permission Audit","status":"pass","details":"All agent permission checks passed "},{"name":"Security Pattern Grep","status":"pass","details":"No dangerous patterns found in good code blocks "},{"name":"Unknown Frontmatter Fields","status":"pass","details":"All frontmatter fields are recognized "},{"name":"CLI-vs-API Identifier Mapping","status":"pass","details":"All skills mixing gh CLI and REST API identifiers are documented "}]
 }

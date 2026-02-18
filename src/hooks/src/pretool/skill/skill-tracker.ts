@@ -14,7 +14,8 @@ import {
   logHook,
   getProjectDir,
 } from '../../lib/common.js';
-import { existsSync, appendFileSync, mkdirSync } from 'node:fs';
+import { existsSync, mkdirSync } from 'node:fs';
+import { bufferWrite } from '../../lib/analytics-buffer.js';
 import { join, dirname, basename } from 'node:path';
 
 /**
@@ -36,7 +37,7 @@ function ensureDir(dir: string): void {
 function appendSafe(file: string, content: string): void {
   try {
     ensureDir(dirname(file));
-    appendFileSync(file, content);
+    bufferWrite(file, content);
   } catch {
     // Ignore append errors
   }

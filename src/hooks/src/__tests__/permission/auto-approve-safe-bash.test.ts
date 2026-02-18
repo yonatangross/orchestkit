@@ -232,18 +232,18 @@ describe('auto-approve-safe-bash', () => {
       const input = createBashInput('  git status');
       const result = autoApproveSafeBash(input);
 
-      // Leading whitespace means pattern won't match
+      // Normalization trims whitespace, so pattern now matches (SEC improvement)
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
+      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
     });
 
-    test('handles command with trailing content', () => {
+    test('rejects compound commands (git status && rm -rf /)', () => {
       const input = createBashInput('git status && rm -rf /');
       const result = autoApproveSafeBash(input);
 
-      // git status pattern matches, but compound command is risky
-      // Current implementation matches on prefix, so it auto-approves
+      // SEC: Compound commands are never auto-approved — require manual review
       expect(result.continue).toBe(true);
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
     test('handles very long command', () => {
@@ -263,12 +263,13 @@ describe('auto-approve-safe-bash', () => {
       expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
     });
 
-    test('handles multiline command', () => {
+    test('rejects multiline commands (compound via newline)', () => {
       const input = createBashInput('git status\ngit diff');
       const result = autoApproveSafeBash(input);
 
+      // SEC: Multiline = compound command, requires manual review
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
   });
 

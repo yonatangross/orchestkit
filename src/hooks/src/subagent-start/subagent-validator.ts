@@ -9,7 +9,8 @@
  * Version: 1.0.0 (TypeScript port)
  */
 
-import { existsSync, readFileSync, mkdirSync, appendFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, mkdirSync, readdirSync } from 'node:fs';
+import { bufferWrite } from '../lib/analytics-buffer.js';
 import { join, dirname } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, outputWithContext, logHook, getProjectDir, getSessionId } from '../lib/common.js';
@@ -274,7 +275,7 @@ function logSpawn(subagentType: string, description: string, sessionId: string):
   };
 
   try {
-    appendFileSync(trackingLog, JSON.stringify(entry) + '\n');
+    bufferWrite(trackingLog, JSON.stringify(entry) + '\n');
   } catch {
     // Ignore
   }

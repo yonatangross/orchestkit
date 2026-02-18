@@ -82,15 +82,14 @@ hooks/
 │   ├── hooks.mjs           # Unified bundle for CLI tools (324KB)
 │   └── bundle-stats.json   # Build metrics
 ├── bin/
-│   ├── run-hook.mjs        # CLI runner (loads event-specific bundles)
-│   ├── run-hook-silent.mjs # Silent runner (no terminal output)
-│   ├── stop-fire-and-forget.mjs    # Fire-and-forget entry for Stop hooks
-│   └── background-worker.mjs       # Detached worker for async cleanup
+│   ├── run-hook.mjs               # CLI runner (loads event-specific bundles)
+│   ├── stop-uncommitted-check.mjs # Warns about unsaved work on exit
+│   └── decision-history.mjs       # Decision tracking utility
 ├── package.json            # NPM configuration
 ├── tsconfig.json           # TypeScript configuration
 └── esbuild.config.mjs      # Build configuration (split bundles)
 
-**Total:** 89 hooks (66 global + 22 agent-scoped + 1 skill-scoped, 7 fire-and-forget dispatchers)
+**Total:** 86 hooks (63 global + 22 agent-scoped + 1 skill-scoped, 8 async dispatchers)
 ```
 
 ---
@@ -409,29 +408,21 @@ export function myHook(input: HookInput): HookResult {
 
 ### Overview
 
-Fire-and-forget hooks spawn a detached background process and return immediately. This is used for Stop hooks to ensure **instant session exit** while cleanup runs in the background.
+Async hooks run in the background via CC's native `async: true` flag without blocking the conversation. Previously used fire-and-forget spawning (removed in #653). Now all 8 async hooks use `run-hook.mjs` with `async: true`.
 
 ### How It Works
 
 ```
 User types /exit
     ↓
-stop-fire-and-forget.mjs called
+run-hook.mjs stop/unified-dispatcher (async: true)
     ↓
-Writes work to temp file (.claude/hooks/pending/)
+CC runs hook in background, session exits immediately
     ↓
-Spawns detached background-worker.mjs
-    ↓
-Returns immediately: {"continue": true}
-    ↓
-Session exits instantly
-    ↓
-Background worker runs 29 cleanup hooks in parallel
+Unified dispatcher runs cleanup hooks in parallel
 ```
 
-### Stop Hooks (29 hooks via fire-and-forget)
-
-All stop hooks run in a single detached background process:
+### Stop Hooks (via async dispatcher)
 
 **Core Session (6):** auto-save-context, session-patterns, issue-work-summary, calibration-persist, session-profile-aggregator, session-end-tracking
 
@@ -451,20 +442,13 @@ All stop hooks run in a single detached background process:
 
 **SEC-003 — Atomic File Writes:** `multi-instance-lock` writes lock data to a temp file (`locks.json.<pid>.tmp`) then uses `renameSync` for atomic replacement, preventing TOCTOU race conditions when multiple instances write concurrently.
 
-### Background Worker Features
+### When to Use Async Hooks
 
-- **5-minute timeout** - Self-terminates to prevent hangs
-- **Orphan cleanup** - Removes temp files older than 10 minutes
-- **Debug logging** - Writes to `.claude/logs/hooks/background-worker.log`
-- **Parallel execution** - All hooks run via `Promise.allSettled`
-
-### When to Use Fire-and-Forget
-
-Use for hooks that:
-- Run at session exit (Stop event)
+Use `"async": true` for hooks that:
 - Don't need to block user interaction
 - Can fail silently without impact
-- Perform cleanup/sync operations
+- Perform analytics, metrics, or cleanup operations
+- Run at session exit (Stop event)
 
 ---
 

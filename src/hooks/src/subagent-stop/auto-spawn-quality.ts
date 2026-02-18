@@ -9,7 +9,8 @@
  * Version: 1.0.0 (TypeScript port)
  */
 
-import { existsSync, writeFileSync, mkdirSync, appendFileSync, readFileSync } from 'node:fs';
+import { existsSync, writeFileSync, mkdirSync, readFileSync } from 'node:fs';
+import { bufferWrite } from '../lib/analytics-buffer.js';
 import { dirname } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook, getProjectDir, getSessionId } from '../lib/common.js';
@@ -62,7 +63,7 @@ function logSpawn(message: string): void {
   const logFile = getSpawnLog();
   const timestamp = new Date().toISOString();
   try {
-    appendFileSync(logFile, `[${timestamp}] [auto-spawn-quality] ${message}\n`);
+    bufferWrite(logFile, `[${timestamp}] [auto-spawn-quality] ${message}\n`);
   } catch {
     // Ignore
   }

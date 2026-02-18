@@ -43,12 +43,29 @@ function loadOverrides(projectDir: string): HookOverrides | null {
 }
 
 /**
- * Check if a hook is disabled via overrides
+ * Security-critical hooks that CANNOT be disabled via hook-overrides.json.
+ * (mirrors run-hook.mjs SECURITY_HOOKS)
+ */
+const SECURITY_HOOKS = new Set([
+  'pretool/bash/dangerous-command-blocker',
+  'pretool/bash/compound-command-validator',
+  'pretool/write-edit/file-guard',
+  'pretool/Write/security-pattern-validator',
+  'skill/redact-secrets',
+]);
+
+/**
+ * Check if a hook is disabled via overrides.
+ * Security-critical hooks in SECURITY_HOOKS cannot be disabled.
  * (mirrors run-hook.mjs isHookDisabled)
  */
-function isHookDisabled(hookName: string, overrides: HookOverrides | null): boolean {
+function isHookDisabled(name: string, overrides: HookOverrides | null): boolean {
   if (!overrides?.disabled) return false;
-  return Array.isArray(overrides.disabled) && overrides.disabled.includes(hookName);
+  if (!Array.isArray(overrides.disabled) || !overrides.disabled.includes(name)) return false;
+  if (SECURITY_HOOKS.has(name)) {
+    return false;
+  }
+  return true;
 }
 
 // =============================================================================
@@ -525,5 +542,105 @@ describe('Hook Toggle Integration', () => {
     expect(overrides).not.toBeNull();
     expect(overrides!.timeouts!['posttool/unified-dispatcher']).toBe(30);
     expect(overrides!.timeouts!['prompt/skill-auto-suggest']).toBe(5);
+  });
+});
+
+// =============================================================================
+// SECURITY_HOOKS Allowlist (#686)
+// =============================================================================
+
+describe('SECURITY_HOOKS allowlist', () => {
+  const mockExistsSync = vi.mocked(existsSync);
+  const mockReadFileSync = vi.mocked(readFileSync);
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  function shouldHookExecute(name: string, projectDir: string): boolean {
+    const overrides = loadOverrides(projectDir);
+    if (isHookDisabled(name, overrides)) {
+      return false;
+    }
+    return true;
+  }
+
+  it('prevents disabling security-critical hooks via overrides', () => {
+    // Arrange — all security hooks listed in disabled
+    const overridesContent: HookOverrides = {
+      disabled: [
+        'pretool/bash/dangerous-command-blocker',
+        'pretool/bash/compound-command-validator',
+        'pretool/write-edit/file-guard',
+        'pretool/Write/security-pattern-validator',
+        'skill/redact-secrets',
+      ],
+    };
+    mockExistsSync.mockReturnValue(true);
+    mockReadFileSync.mockReturnValue(JSON.stringify(overridesContent));
+
+    // Act & Assert — every security hook must still execute
+    for (const hookName of SECURITY_HOOKS) {
+      expect(shouldHookExecute(hookName, '/proj')).toBe(true);
+    }
+  });
+
+  it('still allows disabling non-security hooks', () => {
+    // Arrange
+    const overridesContent: HookOverrides = {
+      disabled: ['prompt/skill-auto-suggest', 'prompt/antipattern-warning'],
+    };
+    mockExistsSync.mockReturnValue(true);
+    mockReadFileSync.mockReturnValue(JSON.stringify(overridesContent));
+
+    // Act & Assert
+    expect(shouldHookExecute('prompt/skill-auto-suggest', '/proj')).toBe(false);
+    expect(shouldHookExecute('prompt/antipattern-warning', '/proj')).toBe(false);
+  });
+
+  it('isHookDisabled returns false for every SECURITY_HOOKS member even when in disabled list', () => {
+    const overrides: HookOverrides = {
+      disabled: [...SECURITY_HOOKS],
+    };
+
+    for (const hookName of SECURITY_HOOKS) {
+      expect(isHookDisabled(hookName, overrides)).toBe(false);
+    }
+  });
+
+  it('mixed overrides: security hooks protected, non-security hooks disabled', () => {
+    // Arrange — mix of security and non-security hooks
+    const overridesContent: HookOverrides = {
+      disabled: [
+        'pretool/bash/dangerous-command-blocker',
+        'prompt/skill-auto-suggest',
+        'skill/redact-secrets',
+        'posttool/unified-dispatcher',
+      ],
+    };
+    mockExistsSync.mockReturnValue(true);
+    mockReadFileSync.mockReturnValue(JSON.stringify(overridesContent));
+
+    // Security hooks still execute
+    expect(shouldHookExecute('pretool/bash/dangerous-command-blocker', '/proj')).toBe(true);
+    expect(shouldHookExecute('skill/redact-secrets', '/proj')).toBe(true);
+
+    // Non-security hooks are disabled
+    expect(shouldHookExecute('prompt/skill-auto-suggest', '/proj')).toBe(false);
+    expect(shouldHookExecute('posttool/unified-dispatcher', '/proj')).toBe(false);
+  });
+
+  it('SECURITY_HOOKS set contains exactly the expected hooks', () => {
+    const expected = [
+      'pretool/bash/dangerous-command-blocker',
+      'pretool/bash/compound-command-validator',
+      'pretool/write-edit/file-guard',
+      'pretool/Write/security-pattern-validator',
+      'skill/redact-secrets',
+    ];
+    expect(SECURITY_HOOKS.size).toBe(expected.length);
+    for (const name of expected) {
+      expect(SECURITY_HOOKS.has(name)).toBe(true);
+    }
   });
 });

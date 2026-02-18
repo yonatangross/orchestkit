@@ -5,7 +5,8 @@
  * CC 2.1.7 Compliant
  */
 
-import { appendFileSync, mkdirSync } from 'node:fs';
+import { mkdirSync } from 'node:fs';
+import { bufferWrite } from '../lib/analytics-buffer.js';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, getLogDir } from '../lib/common.js';
 
@@ -42,7 +43,7 @@ Conventional comment prefixes used:
 
   // Write to log file (silent operation)
   try {
-    appendFileSync(logFile, logContent + '\n');
+    bufferWrite(logFile, logContent + '\n');
   } catch {
     // Ignore logging errors
   }

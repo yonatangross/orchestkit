@@ -646,12 +646,12 @@ from langfuse import observe, get_client
 @observe(name="security_audit")
 async def run_audit(content: str):
     response = await llm.generate(
-        model="claude-sonnet-4-5-20250929",
+        model="claude-sonnet-4-6",
         messages=[{"role": "user", "content": f"Analyze: {content}"}],
     )
 
     get_client().update_current_observation(
-        model="claude-sonnet-4-5-20250929",
+        model="claude-sonnet-4-6",
         usage={
             "input": 1500,
             "output": 1000,
@@ -670,7 +670,7 @@ from langfuse import Langfuse
 langfuse = Langfuse()
 
 langfuse.create_model(
-    model_name="claude-sonnet-4-5-20250929",
+    model_name="claude-sonnet-4-6",
     match_pattern="claude-sonnet-4.*",
     unit="TOKENS",
     input_price=0.000003,   # $3/MTok
@@ -810,7 +810,7 @@ async def analyze(content: str):
 async def analyze(content: str):
     response = await llm.generate(content)
     get_client().update_current_observation(
-        model="claude-sonnet-4-5-20250929",
+        model="claude-sonnet-4-6",
         usage={"input": 1500, "output": 1000, "unit": "TOKENS"}
     )
     return response  # Cost auto-calculated in Langfuse
@@ -879,7 +879,7 @@ async def evaluate_relevance(query: str, response: str):
     get_client().update_current_observation(
         input={"query": query[:500], "response": response[:500]},
         output={"score": score, "criteria": "relevance"},
-        model="claude-sonnet-4-5-20250929",
+        model="claude-sonnet-4-6",
     )
     return score
 ```
@@ -888,7 +888,7 @@ Result in Langfuse UI:
 ```
 evaluator:relevance_judge (0.8s, $0.01)
 +-- generation: judge_prompt -> score: 0.85
-+-- metadata: {criteria: "relevance", model: "claude-sonnet-4-5"}
++-- metadata: {criteria: "relevance", model: "claude-sonnet-4-6"}
 ```
 
 ## G-Eval Automated Scoring
@@ -1024,7 +1024,7 @@ async def analyze(content: str):
     async def generate_analysis(context):
         response = await llm.generate(content)
         get_client().update_current_observation(
-            model="claude-sonnet-4-5-20250929",
+            model="claude-sonnet-4-6",
             usage={"input_tokens": 1500, "output_tokens": 1000},
         )
         return response
@@ -1039,7 +1039,7 @@ content_analysis (2.3s, $0.045)
 +-- retrieval (0.1s)
 |   +-- metadata: {chunks_retrieved: 5}
 +-- generation (2.2s, $0.045)
-    +-- model: claude-sonnet-4-5-20250929
+    +-- model: claude-sonnet-4-6
     +-- tokens: 1500 input, 1000 output
 ```
 
@@ -1928,7 +1928,7 @@ In v3, tool calls within generations are rendered inline in the trace view:
 @observe(type="agent")
 async def coding_agent(task: str):
     response = await client.messages.create(
-        model="claude-sonnet-4-5-20250929",
+        model="claude-sonnet-4-6",
         tools=[
             {"name": "read_file", "description": "Read a file", "input_schema": {...}},
             {"name": "write_file", "description": "Write a file", "input_schema": {...}},
@@ -2280,12 +2280,12 @@ langfuse = Langfuse()
 async def run_audit(content: str):
     """Track costs automatically via @observe."""
     response = await llm.generate(
-        model="claude-sonnet-4-5-20250929",
+        model="claude-sonnet-4-6",
         messages=[{"role": "user", "content": f"Analyze for XSS: {content}"}],
     )
 
     get_client().update_current_observation(
-        model="claude-sonnet-4-5-20250929",
+        model="claude-sonnet-4-6",
         usage={
             "input": 1500,
             "output": 1000,
@@ -2305,7 +2305,7 @@ langfuse = Langfuse()
 
 # Custom model pricing
 langfuse.create_model(
-    model_name="claude-sonnet-4-5-20250929",
+    model_name="claude-sonnet-4-6",
     match_pattern="claude-sonnet-4.*",
     unit="TOKENS",
     input_price=0.000003,  # $3/MTok
@@ -3133,7 +3133,7 @@ async def evaluate_relevance(query: str, response: str):
     get_client().update_current_observation(
         input={"query": query[:500], "response": response[:500]},
         output={"score": score, "criteria": "relevance"},
-        model="claude-sonnet-4-5-20250929",
+        model="claude-sonnet-4-6",
     )
 
     # The evaluator's own LLM calls are visible in its trace
@@ -3144,7 +3144,7 @@ Result in Langfuse UI:
 ```
 evaluator:relevance_judge (0.8s, $0.01)
 ├── generation: judge_prompt → score: 0.85
-└── metadata: {criteria: "relevance", model: "claude-sonnet-4-5"}
+└── metadata: {criteria: "relevance", model: "claude-sonnet-4-6"}
 ```
 
 ## Score Analytics
@@ -3694,7 +3694,7 @@ async def ab_test_models(dataset_name: str):
     """Compare two model configurations."""
 
     configs = {
-        "sonnet": {"model": "claude-sonnet-4-5-20250929", "temperature": 0.7},
+        "sonnet": {"model": "claude-sonnet-4-6", "temperature": 0.7},
         "gpt5": {"model": "gpt-5.2", "temperature": 0.7},
     }
 
@@ -3865,7 +3865,7 @@ async def run_claude_agent(task: str):
 
     # Claude Agent SDK traces automatically via OTEL
     response = client.messages.create(
-        model="claude-sonnet-4-5-20250929",
+        model="claude-sonnet-4-6",
         max_tokens=4096,
         tools=[
             {
@@ -3882,7 +3882,7 @@ async def run_claude_agent(task: str):
     )
 
     get_client().update_current_observation(
-        model="claude-sonnet-4-5-20250929",
+        model="claude-sonnet-4-6",
         usage={
             "input_tokens": response.usage.input_tokens,
             "output_tokens": response.usage.output_tokens,
@@ -3903,7 +3903,7 @@ claude_agent (agent, 4.2s, $0.08)
 │   ├── tool_use: read_file(path="src/main.py")
 │   ├── tool_result: "def main():..."
 │   └── assistant: "The code has..."
-└── metadata: {model: claude-sonnet-4-5, tokens: 2500}
+└── metadata: {model: claude-sonnet-4-6, tokens: 2500}
 ```
 
 ## OpenAI Agents SDK
@@ -3965,7 +3965,7 @@ async def run_pydantic_agent(query: str):
         recommendations: list[str]
 
     agent = Agent(
-        "claude-sonnet-4-5-20250929",
+        "claude-sonnet-4-6",
         result_type=AnalysisResult,
         system_prompt="You are a security analyst.",
     )
@@ -4000,14 +4000,14 @@ async def run_crew(task_description: str):
         role="Senior Researcher",
         goal="Find comprehensive information",
         backstory="Expert researcher with 10 years experience",
-        llm="claude-sonnet-4-5-20250929",
+        llm="claude-sonnet-4-6",
     )
 
     writer = Agent(
         role="Technical Writer",
         goal="Create clear documentation",
         backstory="Technical writer specializing in developer docs",
-        llm="claude-sonnet-4-5-20250929",
+        llm="claude-sonnet-4-6",
     )
 
     research_task = Task(
@@ -4654,7 +4654,7 @@ trace = langfuse.trace(
     user_id="user_123",
     session_id="session_abc",
 )
-generation = trace.generation(name="llm_call", model="claude-sonnet-4-5")
+generation = trace.generation(name="llm_call", model="claude-sonnet-4-6")
 
 
 # ✅ v3: Auto-trace via @observe (preferred)
@@ -4671,7 +4671,7 @@ async def analysis(content: str):
 @observe(name="llm_call")
 async def llm_call(content: str):
     get_client().update_current_observation(
-        model="claude-sonnet-4-5-20250929",
+        model="claude-sonnet-4-6",
     )
     return await llm.generate(content)
 ```
@@ -4739,7 +4739,7 @@ const trace = langfuse.trace({ name: "analysis" });
 const span = trace.span({ name: "retrieval" });
 const generation = trace.generation({
   name: "llm_call",
-  model: "claude-sonnet-4-5",
+  model: "claude-sonnet-4-6",
   input: messages,
 });
 generation.end({ output: response });
@@ -4961,7 +4961,7 @@ async def depth_evaluator(trace_id: str, output: str) -> float:
     get_client().update_current_observation(
         input=output[:500],
         output={"score": score, "criterion": "depth"},
-        model="claude-sonnet-4-5-20250929",
+        model="claude-sonnet-4-6",
     )
 
     # Record score on the original trace
@@ -4979,7 +4979,7 @@ Result in Langfuse UI — the evaluator's own trace is inspectable:
 ```
 evaluator:depth_judge (0.6s, $0.008)
 ├── generation: depth_prompt → 0.85
-└── metadata: {criterion: "depth", model: "claude-sonnet-4-5"}
+└── metadata: {criterion: "depth", model: "claude-sonnet-4-6"}
 ```
 
 ## Existing OrchestKit Evaluators (v3 Updated)
@@ -6339,7 +6339,7 @@ async def analyze_content(content: str, agent_type: str):
         get_client().update_current_observation(
             input=content[:500],
             output=response[:500],
-            model="claude-sonnet-4-5-20250929",
+            model="claude-sonnet-4-6",
             usage={
                 "input_tokens": response.usage.input_tokens,
                 "output_tokens": response.usage.output_tokens,
@@ -6358,7 +6358,7 @@ analyze_content (2.3s, $0.045)
 ├── retrieval (0.1s)
 │   └── metadata: {chunks_retrieved: 5}
 └── generation (2.2s, $0.045)
-    └── model: claude-sonnet-4-5-20250929
+    └── model: claude-sonnet-4-6
     └── tokens: 1500 input, 1000 output
 ```
 
@@ -6483,7 +6483,7 @@ langfuse_handler = CallbackHandler(
 from langchain_anthropic import ChatAnthropic
 
 llm = ChatAnthropic(
-    model="claude-sonnet-4-5-20250929",
+    model="claude-sonnet-4-6",
     callbacks=[langfuse_handler],
 )
 
@@ -6741,7 +6741,7 @@ from anthropic import AsyncAnthropic
 anthropic_client = AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY)
 
 @observe(name="llm_call")
-async def call_claude(prompt: str, model: str = "claude-sonnet-4-5-20251101") -> str:
+async def call_claude(prompt: str, model: str = "claude-sonnet-4-6") -> str:
     """Call Claude with cost tracking."""
 
     # Log input
@@ -6884,7 +6884,7 @@ async def test_langfuse_trace_creation():
 
     generation = trace.generation(
         name="test_generation",
-        model="claude-sonnet-4-5-20251101",
+        model="claude-sonnet-4-6",
         input="Test prompt",
         output="Test response",
         usage={"input": 10, "output": 5, "unit": "TOKENS"}
@@ -7801,10 +7801,10 @@ content_analysis (session_id: analysis_550e8400)
     │   └── next_agent: tech_comparator
     ├── tech_comparator (2.1s, $0.018)
     │   ├── analyze_technologies (1.8s, $0.015)
-    │   │   └── model: claude-sonnet-4-5-20251101
+    │   │   └── model: claude-sonnet-4-6
     │   │   └── tokens: 1,500 input, 1,000 output
     │   └── compress_findings (0.2s, $0.003)
-    │       └── model: claude-sonnet-4-5-20251101
+    │       └── model: claude-sonnet-4-6
     │       └── tokens: 800 input, 400 output
     ├── supervisor_route_2 (0.1s)
     │   └── next_agent: security_auditor
@@ -7928,7 +7928,7 @@ from langfuse.decorators import observe, langfuse_context
 @observe(name="llm_call")
 async def call_anthropic(
     messages: list[dict],
-    model: str = "claude-sonnet-4-5-20251101",
+    model: str = "claude-sonnet-4-6",
     **kwargs
 ) -> str:
     """Call Anthropic with automatic Langfuse cost tracking."""
@@ -8277,7 +8277,7 @@ sum(increase(llm_cost_dollars_total[1h])) by (operation)
 **Example Results:**
 | Model | Daily Cost | Monthly (Projected) |
 |-------|------------|---------------------|
-| claude-sonnet-4-5-20251101 | $5.20 | $156 |
+| claude-sonnet-4-6 | $5.20 | $156 |
 | gemini-3-flash | $1.80 | $54 |
 | voyage-code-2 | $0.40 | $12 |
 | **Total** | **$7.40** | **$222** |
@@ -8469,7 +8469,7 @@ histogram_quantile(0.95,
 {
   "event": "llm_call_completed",
   "level": "info",
-  "model": "claude-sonnet-4-5-20251101",
+  "model": "claude-sonnet-4-6",
   "operation": "security_audit",
   "input_tokens": 1800,
   "output_tokens": 1200,

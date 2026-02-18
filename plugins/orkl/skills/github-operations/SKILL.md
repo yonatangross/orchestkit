@@ -61,6 +61,8 @@ claude --from-pr https://github.com/org/repo/pull/456
 
 ### Milestone Operations (REST API)
 
+> **Footgun:** `gh issue edit --milestone` takes a **NAME** (string), not a number. The REST API uses a **NUMBER** (integer). Never pass a number to `--milestone`. See [CLI-vs-API Identifiers](references/cli-vs-api-identifiers.md).
+
 ```bash
 # List milestones with progress
 gh api repos/:owner/:repo/milestones --jq '.[] | "\(.title): \(.closed_issues)/\(.open_issues + .closed_issues)"'
@@ -69,8 +71,12 @@ gh api repos/:owner/:repo/milestones --jq '.[] | "\(.title): \(.closed_issues)/\
 gh api -X POST repos/:owner/:repo/milestones \
   -f title="Sprint 8" -f due_on="2026-02-15T00:00:00Z"
 
-# Close milestone
-gh api -X PATCH repos/:owner/:repo/milestones/5 -f state=closed
+# Close milestone (API uses number, not name)
+MILESTONE_NUM=$(gh api repos/:owner/:repo/milestones --jq '.[] | select(.title=="Sprint 8") | .number')
+gh api -X PATCH repos/:owner/:repo/milestones/$MILESTONE_NUM -f state=closed
+
+# Assign issues to milestone (CLI uses name, not number)
+gh issue edit 123 124 125 --milestone "Sprint 8"
 ```
 
 ### Projects v2 Operations
@@ -127,15 +133,46 @@ Projects v2 uses GraphQL for setting custom fields (Status, Priority, Domain). B
 | [issue-tracking-automation](rules/issue-tracking-automation.md) | HIGH | Auto-progress from commits, sub-task completion, session summaries |
 | [issue-branch-linking](rules/issue-branch-linking.md) | MEDIUM | Branch naming, commit references, PR linking patterns |
 
+## Batch Issue Creation
+
+When creating multiple issues at once (e.g., seeding a sprint), use an array-driven loop:
+
+```bash
+# Define issues as an array of "title|labels|milestone" entries
+SPRINT="Sprint 9"
+ISSUES=(
+  "feat: Add user auth|enhancement,backend|$SPRINT"
+  "fix: Login redirect loop|bug,high|$SPRINT"
+  "chore: Update dependencies|maintenance|$SPRINT"
+)
+
+for entry in "${ISSUES[@]}"; do
+  IFS='|' read -r title labels milestone <<< "$entry"
+  NUM=$(gh issue create \
+    --title "$title" \
+    --label "$labels" \
+    --milestone "$milestone" \
+    --body "" \
+    --json number --jq '.number')
+  echo "Created #$NUM: $title"
+done
+```
+
+> **Tip:** Capture the created issue number with `--json number --jq '.number'` so you can reference it immediately (e.g., add to Projects v2, link in PRs).
+
+---
+
 ## Best Practices
 
 1. **Always use `--json` for scripting** - Parse with `--jq` for reliability
 2. **Non-interactive mode for automation** - Use `--title`, `--body` flags
 3. **Check rate limits before bulk operations** - `gh api rate_limit`
 4. **Use heredocs for multi-line content** - `--body "$(cat <<'EOF'...EOF)"`
-5. **Link issues in PRs** - `Closes #123`, `Fixes #456`
+5. **Link issues in PRs** - `Closes #123`, `Fixes #456` — GitHub auto-closes on merge
 6. **Use ISO 8601 dates** - `YYYY-MM-DDTHH:MM:SSZ` for milestone due_on
 7. **Close milestones, don't delete** - Preserve history
+8. **`--milestone` takes NAME, not number** - See [CLI-vs-API Identifiers](references/cli-vs-api-identifiers.md)
+9. **Never `gh issue close` directly** - Comment progress with `gh issue comment`; issues close only when their linked PR merges to the default branch
 
 ---
 
@@ -164,6 +201,7 @@ Projects v2 uses GraphQL for setting custom fields (Status, Priority, Domain). B
 - [Milestone API](references/milestone-api.md) - REST API patterns for milestone CRUD
 - [Projects v2](references/projects-v2.md) - Custom fields, GraphQL mutations
 - [GraphQL API](references/graphql-api.md) - Complex queries, pagination, bulk operations
+- [CLI vs API Identifiers](references/cli-vs-api-identifiers.md) - NAME vs NUMBER footguns, milestone/project ID mapping
 
 ## Examples
 

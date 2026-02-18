@@ -50,7 +50,7 @@ ls src/agents/ | wc -l
 ## Expected Output
 
 Environment snapshot including:
-- Current model ID (e.g., `claude-sonnet-4-5`)
+- Current model ID (e.g., `claude-sonnet-4-6`)
 - Current CC version (e.g., `2.1.33`)
 - Current OrchestKit version (e.g., `6.0.0`)
 - Hook count and bundle count

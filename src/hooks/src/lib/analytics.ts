@@ -11,7 +11,8 @@
  * Issue #459: Local Cross-Project Analytics System
  */
 
-import { appendFileSync, mkdirSync, statSync, renameSync } from 'node:fs';
+import { mkdirSync, statSync, renameSync } from 'node:fs';
+import { bufferWrite } from './analytics-buffer.js';
 import { createHash } from 'node:crypto';
 import { getHomeDir, joinPath } from './paths.js';
 
@@ -51,7 +52,7 @@ export function appendAnalytics(file: string, entry: Record<string, unknown>): v
     mkdirSync(dir, { recursive: true });
     const filePath = joinPath(dir, file);
     rotateIfNeeded(filePath);
-    appendFileSync(filePath, JSON.stringify(entry) + '\n');
+    bufferWrite(filePath, JSON.stringify(entry) + '\n');
   } catch {
     // Never block hooks
   }

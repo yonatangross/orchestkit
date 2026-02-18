@@ -59,11 +59,11 @@ describe('Dispatcher Registry Wiring E2E', () => {
       expect(hooksConfig.hooks[event].length, `${event} should have at least one hook group`).toBeGreaterThan(0);
     });
 
-    it('should have unified dispatcher using silent runner for each event (Issue #243)', () => {
-      // Issue #243: Async hooks converted to fire-and-forget using run-hook-silent.mjs
-      // This eliminates "Async hook X completed" messages while still running async work
-      // Note: Stop uses fire-and-forget script for non-blocking session exit
-      const silentEvents = ['SessionStart', 'PostToolUse', 'SubagentStop', 'Notification', 'Setup'];
+    it('should have unified dispatchers using native async: true (Issue #653)', () => {
+      // Issue #653: Migrated from fire-and-forget spawn pattern to native async: true.
+      // CC 2.1.40+ handles async hooks without terminal spam.
+      // Eliminates per-event process spawning — fixes Windows console flashing (#644).
+      const asyncEvents = ['SessionStart', 'PostToolUse', 'SubagentStop', 'Notification', 'Setup'];
       const expectedDispatcherPaths: Record<string, string> = {
         SessionStart: 'lifecycle/unified-dispatcher',
         PostToolUse: 'posttool/unified-dispatcher',
@@ -72,23 +72,21 @@ describe('Dispatcher Registry Wiring E2E', () => {
         Setup: 'setup/unified-dispatcher',
       };
 
-      for (const event of silentEvents) {
+      for (const event of asyncEvents) {
         const groups = hooksConfig.hooks[event] || [];
         const allHooks = groups.flatMap(g => g.hooks);
         const dispatcher = allHooks.find(h => h.command?.includes(expectedDispatcherPaths[event]));
 
         expect(dispatcher, `${event} should have unified dispatcher at ${expectedDispatcherPaths[event]}`).toBeDefined();
-        // Should use silent runner (not async flag) to avoid terminal spam
-        expect(dispatcher?.command, `${event} dispatcher should use run-hook-silent.mjs`).toContain('run-hook-silent.mjs');
-        expect(dispatcher?.async, `${event} dispatcher should NOT have async flag`).toBeUndefined();
+        expect(dispatcher?.command, `${event} dispatcher should use run-hook.mjs`).toContain('run-hook.mjs');
+        expect(dispatcher?.command, `${event} dispatcher should NOT use run-hook-silent.mjs`).not.toContain('run-hook-silent.mjs');
+        expect(dispatcher?.async, `${event} dispatcher should have async: true`).toBe(true);
       }
     });
 
-    it('should have Stop using fire-and-forget and uncommitted check for session exit (Issue #243)', () => {
+    it('should have Stop using async dispatcher and uncommitted check (Issue #653)', () => {
       // Stop hooks run cleanup tasks that should NOT block session exit.
-      // Fire-and-forget spawns a detached background worker that immediately returns.
-      // Uncommitted check warns about unsaved work on exit.
-      // Stop may also include prompt-type hooks (e.g., commit reminder).
+      // Now uses native async: true instead of fire-and-forget spawn.
       const stopGroups = hooksConfig.hooks.Stop || [];
       const allHooks = stopGroups.flatMap(g => g.hooks);
       const commandHooks = allHooks.filter(h => h.type === 'command');
@@ -96,9 +94,10 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // Should have exactly two command hooks
       expect(commandHooks.length, 'Stop should have two command hooks').toBe(2);
 
-      const fireAndForgetHook = commandHooks.find(h => h.command?.includes('stop-fire-and-forget.mjs'));
-      expect(fireAndForgetHook, 'Stop should have stop-fire-and-forget.mjs').toBeDefined();
-      expect(fireAndForgetHook!.async, 'fire-and-forget should NOT have async flag').toBeUndefined();
+      const stopDispatcher = commandHooks.find(h => h.command?.includes('stop/unified-dispatcher'));
+      expect(stopDispatcher, 'Stop should have stop/unified-dispatcher via run-hook.mjs').toBeDefined();
+      expect(stopDispatcher!.async, 'Stop dispatcher should have async: true').toBe(true);
+      expect(stopDispatcher!.command, 'Stop dispatcher should use run-hook.mjs').toContain('run-hook.mjs');
 
       const uncommittedCheckHook = commandHooks.find(h => h.command?.includes('stop-uncommitted-check.mjs'));
       expect(uncommittedCheckHook, 'Stop should have stop-uncommitted-check.mjs').toBeDefined();
@@ -222,9 +221,10 @@ describe('Dispatcher Registry Wiring E2E', () => {
     });
   });
 
-  describe('Silent Hook Configuration (Issue #243)', () => {
-    it('should have NO async hooks (all use silent runner)', () => {
-      // Issue #243: All async hooks converted to fire-and-forget using run-hook-silent.mjs
+  describe('Native Async Hook Configuration (Issue #653)', () => {
+    it('should have exactly 8 async hooks', () => {
+      // Issue #653: Migrated from fire-and-forget spawn pattern to native async: true.
+      // Eliminates per-event process spawning — fixes Windows console flashing (#644).
       const allHooks: Hook[] = [];
       for (const eventGroups of Object.values(hooksConfig.hooks)) {
         for (const group of eventGroups) {
@@ -233,16 +233,17 @@ describe('Dispatcher Registry Wiring E2E', () => {
       }
 
       const asyncHooks = allHooks.filter(h => h.async === true);
-      expect(asyncHooks.length, 'Should have no async hooks (use silent runner instead)').toBe(0);
+      expect(asyncHooks.length, 'Should have exactly 8 async hooks').toBe(8);
     });
 
-    it('should have notification dispatcher using silent runner', () => {
+    it('should have notification dispatcher using native async', () => {
       const notificationGroups = hooksConfig.hooks.Notification || [];
       const allHooks = notificationGroups.flatMap(g => g.hooks);
       const dispatcher = allHooks.find(h => h.command?.includes('notification/unified-dispatcher'));
 
       expect(dispatcher, 'Notification dispatcher should exist').toBeDefined();
-      expect(dispatcher?.command, 'Notification should use silent runner').toContain('run-hook-silent.mjs');
+      expect(dispatcher?.command, 'Notification should use run-hook.mjs').toContain('run-hook.mjs');
+      expect(dispatcher?.async, 'Notification should have async: true').toBe(true);
     });
   });
 
@@ -273,10 +274,11 @@ describe('Dispatcher Registry Wiring E2E', () => {
       expect(startGroups.length, 'SubagentStart should have hooks').toBeGreaterThan(0);
       expect(stopGroups.length, 'SubagentStop should have hooks').toBeGreaterThan(0);
 
-      // Issue #243: Stop dispatcher should use silent runner (not async flag)
+      // Issue #653: Stop dispatcher should use native async: true (not silent runner)
       const stopHooks = stopGroups.flatMap(g => g.hooks);
       const stopDispatcher = stopHooks.find(h => h.command?.includes('unified-dispatcher'));
-      expect(stopDispatcher?.command, 'SubagentStop dispatcher should use silent runner').toContain('run-hook-silent.mjs');
+      expect(stopDispatcher?.async, 'SubagentStop dispatcher should have async: true').toBe(true);
+      expect(stopDispatcher?.command, 'SubagentStop dispatcher should use run-hook.mjs').toContain('run-hook.mjs');
     });
 
     it('should have memory injection in SubagentStart', () => {
@@ -301,10 +303,10 @@ describe('Dispatcher Registry Wiring E2E', () => {
         }
       }
 
-      // Issue #243: All async hooks converted to fire-and-forget silent pattern.
-      // Now using run-hook-silent.mjs which spawns detached background processes.
-      // No "Async hook X completed" messages are printed since hooks are now sync.
-      expect(asyncCount).toBe(0);
+      // Issue #653: Migrated from fire-and-forget spawn pattern to native async: true.
+      // CC 2.1.40+ fixed "backgrounded hook commands not returning early" so native
+      // async hooks no longer produce spam. 8 hooks use async: true.
+      expect(asyncCount).toBe(8);
     });
 
     it('should have hooks for all critical security operations', () => {

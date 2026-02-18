@@ -303,7 +303,8 @@ describe('Cross-Bundle Consistency', () => {
     // mem0-analytics-dashboard, mem0-memory-inject)
     // Added stale-team-cleanup to lifecycle, stop has 24 hooks
     // 152 -> 155: issue-driven git workflow — commit-atomicity-checker, issue-reference-checker, issue-context-injector
-    expect(totalHooks).toBe(155);
+    // 155 -> 156: sync with current bundle exports
+    expect(totalHooks).toBe(156);
   });
 });
 

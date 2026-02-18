@@ -71,7 +71,7 @@ trace = langfuse.trace(
     user_id="user_123",
     session_id="session_abc",
 )
-generation = trace.generation(name="llm_call", model="claude-sonnet-4-5")
+generation = trace.generation(name="llm_call", model="claude-sonnet-4-6")
 
 
 # ✅ v3: Auto-trace via @observe (preferred)
@@ -88,7 +88,7 @@ async def analysis(content: str):
 @observe(name="llm_call")
 async def llm_call(content: str):
     get_client().update_current_observation(
-        model="claude-sonnet-4-5-20250929",
+        model="claude-sonnet-4-6",
     )
     return await llm.generate(content)
 ```
@@ -156,7 +156,7 @@ const trace = langfuse.trace({ name: "analysis" });
 const span = trace.span({ name: "retrieval" });
 const generation = trace.generation({
   name: "llm_call",
-  model: "claude-sonnet-4-5",
+  model: "claude-sonnet-4-6",
   input: messages,
 });
 generation.end({ output: response });

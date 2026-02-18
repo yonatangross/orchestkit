@@ -5,6 +5,7 @@ export default defineConfig({
   test: {
     globals: false,
     environment: 'node',
+    setupFiles: ['./vitest.setup.ts'],
     include: ['src/__tests__/**/*.test.ts'],
     exclude: ['**/node_modules/**', '**/dist/**'],
     // Allow importing .mjs files from bin/

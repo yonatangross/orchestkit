@@ -268,7 +268,7 @@ messages = [
 ```python
 # Claude prompt caching: static content first with cache_control
 response = await client.messages.create(
-    model="claude-sonnet-4-5-20250514",
+    model="claude-sonnet-4-6",
     system=[
         {
             "type": "text",
@@ -9694,7 +9694,7 @@ from anthropic import AsyncAnthropic
 async def call_claude_with_prompt_cache(
     system_prompt: str,
     user_message: str,
-    model: str = "claude-sonnet-4-5-20251101"
+    model: str = "claude-sonnet-4-6"
 ) -> str:
     """Call Claude with prompt caching for system prompts."""
 

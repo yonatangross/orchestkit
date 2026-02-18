@@ -2,11 +2,12 @@
 # Async Hooks Unit Tests
 # Tests async hook configuration in hooks.json
 #
-# Updated for unified dispatcher architecture (PR #236, #239):
+# Updated for native async:true architecture (#651, #653):
+# - Fire-and-forget script runners removed; async behavior uses "async": true flag
 # - Individual async hooks are now consolidated into unified dispatchers
 # - SessionStart, PostToolUse, Setup use async dispatchers
 # - Dispatchers internally route to multiple hooks via Promise.allSettled
-# - Async behavior is indicated by run-hook-silent.mjs or *-fire-and-forget.mjs runners
+# - Async behavior is indicated by "async": true on the inner hook command entry
 #
 # Usage: ./test-async-hooks.sh
 # Exit codes: 0 = pass, 1 = fail
@@ -44,81 +45,81 @@ else
     exit 1
 fi
 
-# Test 2: Count async hooks (identified by run-hook-silent.mjs or *-fire-and-forget.mjs)
-# With dispatcher architecture: ~5-10 async entries (dispatchers, not individual hooks)
+# Test 2: Count async hooks (identified by "async": true on inner hook entries)
+# With dispatcher architecture: ~5-10 async:true entries across events
 echo -n "  Async dispatchers exist (>= 5)... "
-ASYNC_COUNT=$(jq '[.. | strings | select(test("run-hook-silent\\.mjs|fire-and-forget\\.mjs"))] | length' "$HOOKS_JSON")
+ASYNC_COUNT=$(jq '[.hooks[][] | .hooks[]? | select(.async == true)] | length' "$HOOKS_JSON")
 if [[ $ASYNC_COUNT -ge 5 ]]; then
-    echo -e "${GREEN}PASS${NC} ($ASYNC_COUNT async dispatchers)"
+    echo -e "${GREEN}PASS${NC} ($ASYNC_COUNT async:true hooks)"
     PASSED=$((PASSED + 1))
 else
-    echo -e "${RED}FAIL${NC} (only $ASYNC_COUNT async dispatchers, expected >= 5)"
+    echo -e "${RED}FAIL${NC} (only $ASYNC_COUNT async:true hooks, expected >= 5)"
     FAILED=$((FAILED + 1))
 fi
 
-# Test 3: All async hooks use silent/fire-and-forget runners (no timeout needed since they're fire-and-forget)
-echo -n "  Async hooks use fire-and-forget runners... "
-ASYNC_RUNNERS=$(jq '[.. | strings | select(test("run-hook-silent\\.mjs|fire-and-forget\\.mjs"))] | length' "$HOOKS_JSON")
+# Test 3: Async hooks use native async:true flag (fire-and-forget runners were removed in #651)
+echo -n "  Async hooks use native async:true flag... "
+ASYNC_RUNNERS=$(jq '[.hooks[][] | .hooks[]? | select(.async == true)] | length' "$HOOKS_JSON")
 if [[ $ASYNC_RUNNERS -ge 1 ]]; then
-    echo -e "${GREEN}PASS${NC} ($ASYNC_RUNNERS fire-and-forget runners)"
+    echo -e "${GREEN}PASS${NC} ($ASYNC_RUNNERS async:true hooks)"
     PASSED=$((PASSED + 1))
 else
-    echo -e "${RED}FAIL${NC} (no fire-and-forget runners found)"
+    echo -e "${RED}FAIL${NC} (no async:true hooks found)"
     FAILED=$((FAILED + 1))
 fi
 
-# Test 4: PreToolUse hooks are NOT async (critical path) - no silent/fire-and-forget runners
+# Test 4: PreToolUse hooks are NOT async (critical path) - no async:true allowed
 echo -n "  PreToolUse hooks are NOT async... "
-PRETOOL_ASYNC=$(jq '[.hooks.PreToolUse[]?.hooks[]?.command // empty | select(test("run-hook-silent\\.mjs|fire-and-forget\\.mjs"))] | length' "$HOOKS_JSON")
+PRETOOL_ASYNC=$(jq '[.hooks.PreToolUse[]?.hooks[]? | select(.async == true)] | length' "$HOOKS_JSON")
 if [[ $PRETOOL_ASYNC -eq 0 ]]; then
     echo -e "${GREEN}PASS${NC}"
     PASSED=$((PASSED + 1))
 else
-    echo -e "${RED}FAIL${NC} ($PRETOOL_ASYNC PreToolUse hooks use async runners)"
+    echo -e "${RED}FAIL${NC} ($PRETOOL_ASYNC PreToolUse hooks have async:true)"
     FAILED=$((FAILED + 1))
 fi
 
 # Test 5: PermissionRequest hooks are NOT async (critical path)
 echo -n "  PermissionRequest hooks are NOT async... "
-PERMISSION_ASYNC=$(jq '[.hooks.PermissionRequest[]?.hooks[]?.command // empty | select(test("run-hook-silent\\.mjs|fire-and-forget\\.mjs"))] | length' "$HOOKS_JSON")
+PERMISSION_ASYNC=$(jq '[.hooks.PermissionRequest[]?.hooks[]? | select(.async == true)] | length' "$HOOKS_JSON")
 if [[ $PERMISSION_ASYNC -eq 0 ]]; then
     echo -e "${GREEN}PASS${NC}"
     PASSED=$((PASSED + 1))
 else
-    echo -e "${RED}FAIL${NC} ($PERMISSION_ASYNC PermissionRequest hooks use async runners)"
+    echo -e "${RED}FAIL${NC} ($PERMISSION_ASYNC PermissionRequest hooks have async:true)"
     FAILED=$((FAILED + 1))
 fi
 
-# Test 6: SessionStart has unified dispatcher (async via run-hook-silent.mjs)
+# Test 6: SessionStart has unified dispatcher with async:true
 echo -n "  SessionStart has async dispatcher... "
-SESSIONSTART_ASYNC=$(jq '[.hooks.SessionStart[]?.hooks[]?.command | select(test("run-hook-silent\\.mjs|fire-and-forget\\.mjs"))] | length' "$HOOKS_JSON")
+SESSIONSTART_ASYNC=$(jq '[.hooks.SessionStart[]?.hooks[]? | select(.async == true)] | length' "$HOOKS_JSON")
 if [[ $SESSIONSTART_ASYNC -ge 1 ]]; then
-    echo -e "${GREEN}PASS${NC} ($SESSIONSTART_ASYNC async dispatcher)"
+    echo -e "${GREEN}PASS${NC} ($SESSIONSTART_ASYNC async:true hook)"
     PASSED=$((PASSED + 1))
 else
-    echo -e "${RED}FAIL${NC} (no async dispatcher in SessionStart)"
+    echo -e "${RED}FAIL${NC} (no async:true hook in SessionStart)"
     FAILED=$((FAILED + 1))
 fi
 
-# Test 7: PostToolUse has unified dispatcher (async via run-hook-silent.mjs)
+# Test 7: PostToolUse has unified dispatcher with async:true
 echo -n "  PostToolUse has async dispatcher... "
-POSTTOOL_ASYNC=$(jq '[.hooks.PostToolUse[]?.hooks[]?.command | select(test("run-hook-silent\\.mjs|fire-and-forget\\.mjs"))] | length' "$HOOKS_JSON")
+POSTTOOL_ASYNC=$(jq '[.hooks.PostToolUse[]?.hooks[]? | select(.async == true)] | length' "$HOOKS_JSON")
 if [[ $POSTTOOL_ASYNC -ge 1 ]]; then
-    echo -e "${GREEN}PASS${NC} ($POSTTOOL_ASYNC async dispatcher)"
+    echo -e "${GREEN}PASS${NC} ($POSTTOOL_ASYNC async:true hook)"
     PASSED=$((PASSED + 1))
 else
-    echo -e "${RED}FAIL${NC} (no async dispatcher in PostToolUse)"
+    echo -e "${RED}FAIL${NC} (no async:true hook in PostToolUse)"
     FAILED=$((FAILED + 1))
 fi
 
-# Test 8: Setup has unified dispatcher (async via run-hook-silent.mjs) - Issue #239
+# Test 8: Setup has unified dispatcher with async:true - Issue #239
 echo -n "  Setup has async dispatcher... "
-SETUP_ASYNC=$(jq '[.hooks.Setup[]?.hooks[]?.command | select(test("run-hook-silent\\.mjs|fire-and-forget\\.mjs"))] | length' "$HOOKS_JSON")
+SETUP_ASYNC=$(jq '[.hooks.Setup[]?.hooks[]? | select(.async == true)] | length' "$HOOKS_JSON")
 if [[ $SETUP_ASYNC -ge 1 ]]; then
-    echo -e "${GREEN}PASS${NC} ($SETUP_ASYNC async dispatcher)"
+    echo -e "${GREEN}PASS${NC} ($SETUP_ASYNC async:true hook)"
     PASSED=$((PASSED + 1))
 else
-    echo -e "${RED}FAIL${NC} (no async dispatcher in Setup)"
+    echo -e "${RED}FAIL${NC} (no async:true hook in Setup)"
     FAILED=$((FAILED + 1))
 fi
 

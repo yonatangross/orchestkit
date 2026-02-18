@@ -12,7 +12,7 @@ import {
   logPermissionFeedback,
   getProjectDir,
 } from '../lib/common.js';
-import { resolve, isAbsolute, relative, normalize } from 'node:path';
+import { resolve, isAbsolute, relative, normalize, sep } from 'node:path';
 
 /**
  * Directories that should not be auto-approved for writes
@@ -55,7 +55,7 @@ export function autoApproveProjectWrites(input: HookInput): HookResult {
   if (isInsideProject) {
     // Check against excluded directories
     for (const dir of EXCLUDED_DIRS) {
-      if (filePath.includes(`/${dir}/`)) {
+      if (filePath.includes(`${sep}${dir}${sep}`)) {
         logHook('auto-approve-project-writes', `Write to excluded directory: ${dir}`);
         return outputSilentSuccess(); // Let user decide
       }

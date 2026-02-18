@@ -5,6 +5,33 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.0.20] - 2026-02-18
+
+### Added
+
+- **Hook: `mcp-health-check`** — new SessionStart hook that silently detects MCP misconfigurations at session start: warns if Tavily is enabled but `TAVILY_API_KEY` is unset, or if agentation is enabled but `agentation-mcp` package is not installed. Respects `ORCHESTKIT_SKIP_SLOW_HOOKS=1`.
+- **Skill: `github-operations`** — new `references/cli-vs-api-identifiers.md` mapping gh CLI identifiers (NAME) to REST API identifiers (NUMBER/node_id) for milestones, issues, PRs, and Projects v2 (#701)
+- **Static analysis: Section E** — `scripts/eval/static-analysis.sh` now enforces CLI-vs-API identifier documentation for any skill mixing `--milestone` CLI flags with REST API milestone paths
+
+### Fixed
+
+- **Windows: console flashing** — fix fire-and-forget hooks spawning visible `cmd.exe` windows (`detached: true` → `detached: false` + `unref()`) (#644)
+- **Windows: ENAMETOOLONG** — use `os.tmpdir()` for hook work files instead of deep project-dir paths (79 errors/session eliminated)
+- **MCP defaults** — Tavily and agentation are now `"disabled": true` in `.mcp.json`; users opt in explicitly to avoid surprise API costs
+- **MCP docs** — configure skill, doctor skill, installation.mdx, configuration.mdx, faq.mdx all updated to reflect accurate MCP status and setup instructions (#702)
+- **github-operations: `--milestone` footgun** — explicit warning that `gh issue edit --milestone` takes a NAME (string), not a number; REST API uses NUMBER (#699)
+- **issue-progress-tracking: close-on-merge rule** — added as Common Mistake #5; issues close only via `Closes #N` in PR body on merge, never via `gh issue close` directly
+
+### Improved
+
+- **Skill: `github-operations`** — batch issue creation pattern with array-driven loop and captured issue number (#700); Best Practice #9 (never close issues directly)
+- **Skill: `issue-progress-tracking`** — close-on-merge workflow documented in Common Mistakes
+- **Extract `spawn-worker.mjs`** — shared helper reduces 7 duplicated entry points (7 × 57 → 7 × 17 lines)
+- **Cursor compat note** — `marketplace.json` documents why Cursor misreads `author` field as MCP server (#698)
+
+---
+
+
 ## [6.0.19] - 2026-02-17
 
 ### Fixed

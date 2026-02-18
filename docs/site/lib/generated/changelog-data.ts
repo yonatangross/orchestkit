@@ -17,6 +17,34 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "6.0.20",
+    "date": "2026-02-17",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "Windows: fix console window flashing from fire-and-forget hooks (`detached: true` opens cmd.exe per spawn)",
+          "Windows: fix ENAMETOOLONG errors (79/session) by using `os.tmpdir()` for hook work files",
+          "Extract shared `spawn-worker.mjs` helper, reducing 7 duplicated entry points (7 × 57 → 7 × 17 lines)"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "6.0.19",
+    "date": "2026-02-17",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "TODO: Describe your changes here"
+        ]
+      }
+    ]
+  },
+  {
     "version": "6.0.18",
     "date": "2026-02-17",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v6.0.17...v6.0.18",

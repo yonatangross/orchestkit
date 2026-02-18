@@ -8,7 +8,8 @@
  * CC 2.1.7 compliant output format
  */
 
-import { mkdirSync, appendFileSync } from 'node:fs';
+import { mkdirSync } from 'node:fs';
+import { bufferWrite } from '../lib/analytics-buffer.js';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, getProjectDir, getSessionId } from '../lib/common.js';
 
@@ -37,7 +38,7 @@ export function securityCommandAudit(input: HookInput): HookResult {
       mkdirSync(`${projectDir}/.claude/logs`, { recursive: true });
 
       // Log the command execution
-      appendFileSync(logFile, `[${timestamp}] [${sessionId}] [${agentId}] CMD: ${command}\n`);
+      bufferWrite(logFile, `[${timestamp}] [${sessionId}] [${agentId}] CMD: ${command}\n`);
     } catch {
       // Ignore logging errors - don't block the operation
     }

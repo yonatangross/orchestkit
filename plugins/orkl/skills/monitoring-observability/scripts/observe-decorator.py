@@ -71,7 +71,7 @@ async def generate_analysis(content: str, context: list[str]) -> str:
     langfuse_context.update_current_observation(
         input={"content": content[:500], "context": context},  # Truncated
         output=response_text[:500],  # Truncated
-        model="claude-sonnet-4-5-20251101",
+        model="claude-sonnet-4-6",
         usage={"input_tokens": input_tokens, "output_tokens": output_tokens},
         metadata={"temperature": 1.0, "max_tokens": 4096},
     )

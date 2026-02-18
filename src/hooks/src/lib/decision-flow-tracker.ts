@@ -12,7 +12,8 @@
  * CC 2.1.16 Compliant
  */
 
-import { existsSync, readFileSync, writeFileSync, mkdirSync, appendFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { bufferWrite } from './analytics-buffer.js';
 import { join, dirname, basename } from 'node:path';
 import { getProjectDir, logHook } from './common.js';
 
@@ -187,7 +188,7 @@ function archiveFlow(flow: DecisionFlow): boolean {
     }
 
     const line = JSON.stringify(flow) + '\n';
-    appendFileSync(archivePath, line);
+    bufferWrite(archivePath, line);
     return true;
   } catch (err) {
     logHook('decision-flow-tracker', `Failed to archive flow: ${err}`, 'warn');

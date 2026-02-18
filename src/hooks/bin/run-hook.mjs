@@ -176,6 +176,19 @@ process.stdin.on('error', () => {
 });
 
 /**
+ * Security-critical hooks that CANNOT be disabled via hook-overrides.json.
+ * These hooks enforce security boundaries and must always run.
+ * See: https://github.com/yonatangross/orchestkit/issues/686
+ */
+const SECURITY_HOOKS = new Set([
+  'pretool/bash/dangerous-command-blocker',
+  'pretool/bash/compound-command-validator',
+  'pretool/write-edit/file-guard',
+  'pretool/Write/security-pattern-validator',
+  'skill/redact-secrets',
+]);
+
+/**
  * Load hook overrides from .claude/hook-overrides.json
  * Returns null if file doesn't exist or is invalid
  */
@@ -190,11 +203,17 @@ function loadOverrides(projectDir) {
 }
 
 /**
- * Check if a hook is disabled via overrides
+ * Check if a hook is disabled via overrides.
+ * Security-critical hooks in SECURITY_HOOKS cannot be disabled.
  */
-function isHookDisabled(hookName, overrides) {
+function isHookDisabled(name, overrides) {
   if (!overrides?.disabled) return false;
-  return Array.isArray(overrides.disabled) && overrides.disabled.includes(hookName);
+  if (!Array.isArray(overrides.disabled) || !overrides.disabled.includes(name)) return false;
+  if (SECURITY_HOOKS.has(name)) {
+    process.stderr.write(`[orchestkit] WARNING: cannot disable security hook "${name}" via hook-overrides.json — override ignored\n`);
+    return false;
+  }
+  return true;
 }
 
 // =============================================================================

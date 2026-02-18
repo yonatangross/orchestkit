@@ -206,7 +206,7 @@ from anthropic import AsyncAnthropic
 anthropic_client = AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY)
 
 @observe(name="llm_call")
-async def call_claude(prompt: str, model: str = "claude-sonnet-4-5-20251101") -> str:
+async def call_claude(prompt: str, model: str = "claude-sonnet-4-6") -> str:
     """Call Claude with cost tracking."""
 
     # Log input
@@ -349,7 +349,7 @@ async def test_langfuse_trace_creation():
 
     generation = trace.generation(
         name="test_generation",
-        model="claude-sonnet-4-5-20251101",
+        model="claude-sonnet-4-6",
         input="Test prompt",
         output="Test response",
         usage={"input": 10, "output": 5, "unit": "TOKENS"}

@@ -2,6 +2,12 @@
 
 GitHub CLI has NO native milestone commands. Use `gh api` REST calls for all milestone operations.
 
+> **Critical footgun — NAME vs NUMBER:**
+> - `gh issue edit --milestone` / `gh issue list --milestone` → accepts **milestone NAME** (string, e.g. `"Sprint 8"`)
+> - `gh api repos/:owner/:repo/milestones/:number` → accepts **milestone NUMBER** (integer, e.g. `5`)
+>
+> These are **different identifiers**. Passing a number to `--milestone` silently fails. To get a number from a name: `gh api repos/:owner/:repo/milestones --jq '.[] | select(.title=="Sprint 8") | .number'`
+
 ## API Endpoints
 
 | Operation | Method | Endpoint |

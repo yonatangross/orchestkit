@@ -5,7 +5,8 @@
  * CC 2.1.7 Compliant
  */
 
-import { existsSync, appendFileSync, mkdirSync, readdirSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync } from 'node:fs';
+import { bufferWrite } from '../lib/analytics-buffer.js';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, getLogDir, getProjectDir } from '../lib/common.js';
 
@@ -68,7 +69,7 @@ export function evidenceCollector(_input: HookInput): HookResult {
 
   // Write to log file (silent operation)
   try {
-    appendFileSync(logFile, logLines.join('\n') + '\n');
+    bufferWrite(logFile, logLines.join('\n') + '\n');
   } catch {
     // Ignore logging errors
   }

@@ -15,12 +15,12 @@ from langfuse import observe, get_client
 @observe(name="security_audit")
 async def run_audit(content: str):
     response = await llm.generate(
-        model="claude-sonnet-4-5-20250929",
+        model="claude-sonnet-4-6",
         messages=[{"role": "user", "content": f"Analyze: {content}"}],
     )
 
     get_client().update_current_observation(
-        model="claude-sonnet-4-5-20250929",
+        model="claude-sonnet-4-6",
         usage={
             "input": 1500,
             "output": 1000,
@@ -39,7 +39,7 @@ from langfuse import Langfuse
 langfuse = Langfuse()
 
 langfuse.create_model(
-    model_name="claude-sonnet-4-5-20250929",
+    model_name="claude-sonnet-4-6",
     match_pattern="claude-sonnet-4.*",
     unit="TOKENS",
     input_price=0.000003,   # $3/MTok
@@ -179,7 +179,7 @@ async def analyze(content: str):
 async def analyze(content: str):
     response = await llm.generate(content)
     get_client().update_current_observation(
-        model="claude-sonnet-4-5-20250929",
+        model="claude-sonnet-4-6",
         usage={"input": 1500, "output": 1000, "unit": "TOKENS"}
     )
     return response  # Cost auto-calculated in Langfuse

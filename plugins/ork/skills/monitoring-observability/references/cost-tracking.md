@@ -13,12 +13,12 @@ langfuse = Langfuse()
 async def run_audit(content: str):
     """Track costs automatically via @observe."""
     response = await llm.generate(
-        model="claude-sonnet-4-5-20250929",
+        model="claude-sonnet-4-6",
         messages=[{"role": "user", "content": f"Analyze for XSS: {content}"}],
     )
 
     get_client().update_current_observation(
-        model="claude-sonnet-4-5-20250929",
+        model="claude-sonnet-4-6",
         usage={
             "input": 1500,
             "output": 1000,
@@ -38,7 +38,7 @@ langfuse = Langfuse()
 
 # Custom model pricing
 langfuse.create_model(
-    model_name="claude-sonnet-4-5-20250929",
+    model_name="claude-sonnet-4-6",
     match_pattern="claude-sonnet-4.*",
     unit="TOKENS",
     input_price=0.000003,  # $3/MTok

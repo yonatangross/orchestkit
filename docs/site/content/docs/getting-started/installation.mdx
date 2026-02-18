@@ -40,26 +40,36 @@ Skills:     62 loaded (24 commands, 38 reference)
 Agents:     36 registered
 Hooks:      89 active (66 global, 22 agent, 1 skill-scoped)
 Memory:     Graph ✓  Local ✓  CC Native ✓
-MCP:        memory ✓
+MCP:        context7 ✓  memory ✓  tavily ○  agentation ○
 
 Status: Healthy
 ```
 
-`○` means optional and not configured. `✓` means active.
+`○` means optional and not configured. `✓` means active. `✗` means enabled but misconfigured.
 
-## Optional: Web Research
+## Optional: Web Research (Tavily)
 
-OrchestKit works out of the box with all 3 memory tiers (Graph, Local, CC Native). For web research capabilities:
+OrchestKit works out of the box with all 3 memory tiers (Graph, Local, CC Native). For enhanced web research, enable the Tavily MCP:
 
-| Feature | Env Variable | What It Adds |
-|---|---|---|
-| Tavily Search | `TAVILY_API_KEY` | Web research in workflows |
+**1. Get a free API key** at [app.tavily.com](https://app.tavily.com) (1,000 credits/month free)
 
-Set this in your shell profile (`~/.zshrc` or `~/.bashrc`):
+**2. Set the key** in your shell profile (`~/.zshrc` or `~/.bashrc`):
 
 ```bash
-export TAVILY_API_KEY="your-key-here"
+export TAVILY_API_KEY="tvly-your-key-here"
 ```
+
+**3. Enable the MCP** in `.mcp.json`:
+
+```json
+"tavily": {
+  "command": "sh",
+  "args": ["-c", "TAVILY_API_KEY=${TAVILY_API_KEY} exec npx -y tavily-mcp@latest"],
+  "disabled": false
+}
+```
+
+Without Tavily, web research falls back to WebFetch → agent-browser automatically.
 
 ## Requirements
 

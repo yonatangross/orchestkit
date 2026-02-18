@@ -39,7 +39,7 @@ Answer only with the context, nothing else.
 
 def contextualize_chunk(document: str, chunk: str) -> str:
     response = client.messages.create(
-        model="claude-sonnet-4-5-20251101",
+        model="claude-sonnet-4-6",
         max_tokens=150,
         messages=[{"role": "user",
                    "content": CONTEXT_PROMPT.format(document=document, chunk=chunk)}]
@@ -51,7 +51,7 @@ def contextualize_chunk(document: str, chunk: str) -> str:
 ```python
 def contextualize_cached(document: str, chunk: str) -> str:
     response = client.messages.create(
-        model="claude-sonnet-4-5-20251101",
+        model="claude-sonnet-4-6",
         max_tokens=150,
         messages=[{"role": "user", "content": [
             {"type": "text", "text": f"<document>\n{document}\n</document>",
@@ -74,7 +74,7 @@ def index_chunk(chunk: str) -> str:
 ```python
 def contextualize_chunk(document: str, chunk: str) -> str:
     context = client.messages.create(
-        model="claude-sonnet-4-5-20251101",
+        model="claude-sonnet-4-6",
         max_tokens=150,
         messages=[{"role": "user", "content": [
             {"type": "text", "text": f"<document>\n{document}\n</document>",

@@ -200,7 +200,7 @@ export default defineConfig({
   use: {
     aiAgents: {
       enabled: true,
-      model: 'claude-3.5-sonnet',  // or local Ollama
+      model: 'claude-sonnet-4-6',  // or local Ollama
       autoHeal: true,              // Auto-repair on CI failures
     }
   }

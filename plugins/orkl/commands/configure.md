@@ -81,14 +81,17 @@ Categories available:
 
 ## Step 5: Configure MCPs (Optional)
 
-All MCPs disabled by default. Enable selectively:
+`context7` and `memory` are enabled by default. `tavily` and `agentation` ship **disabled** (require API key / local package). `sequential-thinking` is disabled (Opus 4.6 has native reasoning built-in).
 
-| MCP | Purpose |
-|-----|---------|
-| context7 | Library documentation |
-| sequential-thinking | Complex reasoning |
-| memory | Cross-session persistence |
-| playwright | Browser automation |
+| MCP | Purpose | Default | Requires |
+|-----|---------|---------|----------|
+| context7 | Library documentation | enabled | Nothing |
+| memory | Cross-session persistence | enabled | Nothing |
+| sequential-thinking | Complex reasoning | disabled | Nothing |
+| tavily | Web search + extraction | disabled | API key (free tier: app.tavily.com) |
+| agentation | UI annotation tool | disabled | `npm install agentation-mcp` |
+
+**Already have these MCPs installed globally?** If Tavily or memory are already in your `~/.claude/mcp.json`, skip enabling them here to avoid duplicate entries. OrchestKit agents will use whichever instance Claude Code resolves first.
 
 ## Step 6: CC 2.1.7 Settings (New)
 

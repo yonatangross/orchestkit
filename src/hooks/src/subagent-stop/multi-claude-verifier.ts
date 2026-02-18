@@ -10,7 +10,8 @@
  * Version: 1.0.0 (TypeScript port)
  */
 
-import { writeFileSync, mkdirSync, appendFileSync } from 'node:fs';
+import { writeFileSync, mkdirSync } from 'node:fs';
+import { bufferWrite } from '../lib/analytics-buffer.js';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook, getProjectDir } from '../lib/common.js';
 
@@ -60,7 +61,7 @@ function logAction(agentName: string, action: string, details: string): void {
   const timestamp = new Date().toISOString();
 
   try {
-    appendFileSync(logFile, `[${timestamp}] [${agentName}] ${action}: ${details}\n`);
+    bufferWrite(logFile, `[${timestamp}] [${agentName}] ${action}: ${details}\n`);
   } catch {
     // Ignore
   }

@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OrchestKit Hook Architecture Explorer</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0d1117; --surface: #161b22; --surface2: #21262d; --border: #30363d;
+    --text: #e6edf3; --text-muted: #8b949e; --text-dim: #484f58;
+    --green: #3fb950; --green-bg: rgba(63,185,80,0.15);
+    --red: #f85149; --red-bg: rgba(248,81,73,0.15);
+    --yellow: #d29922; --yellow-bg: rgba(210,153,34,0.15);
+    --blue: #58a6ff; --blue-bg: rgba(88,166,255,0.15);
+    --purple: #bc8cff; --purple-bg: rgba(188,140,255,0.15);
+    --orange: #f0883e; --orange-bg: rgba(240,136,62,0.15);
+    --cyan: #39d353; --cyan-bg: rgba(57,211,83,0.1);
+    --radius: 8px; --mono: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; overflow-x: hidden; }
+
+  /* Header */
+  .header { padding: 24px 32px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 16px; }
+  .header h1 { font-size: 20px; font-weight: 600; }
+  .header .badge { font-size: 11px; padding: 2px 8px; border-radius: 12px; background: var(--red-bg); color: var(--red); font-weight: 500; }
+  .header .badge.ok { background: var(--green-bg); color: var(--green); }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); padding: 0 32px; background: var(--surface); position: sticky; top: 0; z-index: 100; }
+  .tab { padding: 12px 20px; font-size: 13px; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; font-weight: 500; }
+  .tab:hover { color: var(--text); background: var(--surface2); }
+  .tab.active { color: var(--text); border-bottom-color: var(--blue); }
+
+  /* Panels */
+  .panel { display: none; padding: 32px; max-width: 1400px; margin: 0 auto; }
+  .panel.active { display: block; animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Cards */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; }
+  .card h3 { font-size: 15px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .card h3 .indicator { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+
+  /* Flow diagrams */
+  .flow { display: flex; align-items: center; gap: 0; flex-wrap: wrap; padding: 16px 0; }
+  .flow-node { padding: 8px 14px; border-radius: 6px; font-family: var(--mono); font-size: 12px; white-space: nowrap; position: relative; border: 1px solid; }
+  .flow-node.file { background: var(--surface2); border-color: var(--border); color: var(--text); }
+  .flow-node.active { background: var(--green-bg); border-color: var(--green); color: var(--green); }
+  .flow-node.dead { background: var(--red-bg); border-color: var(--red); color: var(--red); opacity: 0.7; text-decoration: line-through; }
+  .flow-node.warn { background: var(--yellow-bg); border-color: var(--yellow); color: var(--yellow); }
+  .flow-node.blue { background: var(--blue-bg); border-color: var(--blue); color: var(--blue); }
+  .flow-node.purple { background: var(--purple-bg); border-color: var(--purple); color: var(--purple); }
+  .flow-arrow { color: var(--text-dim); padding: 0 8px; font-size: 16px; }
+  .flow-arrow.dead { color: var(--red); opacity: 0.5; }
+
+  /* Wiring diagram */
+  .wiring-grid { display: grid; grid-template-columns: 200px 1fr; gap: 1px; background: var(--border); border-radius: var(--radius); overflow: hidden; }
+  .wiring-event { padding: 12px 16px; background: var(--surface); font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 8px; }
+  .wiring-hooks { padding: 12px 16px; background: var(--surface); display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .hook-chip { padding: 3px 10px; border-radius: 4px; font-family: var(--mono); font-size: 11px; border: 1px solid; cursor: default; transition: transform 0.15s; }
+  .hook-chip:hover { transform: scale(1.05); }
+  .hook-chip.silent { background: var(--purple-bg); border-color: var(--purple); color: var(--purple); }
+  .hook-chip.sync { background: var(--blue-bg); border-color: var(--blue); color: var(--blue); }
+  .hook-chip.ff { background: var(--orange-bg); border-color: var(--orange); color: var(--orange); }
+  .hook-chip.dead { background: var(--red-bg); border-color: var(--red); color: var(--red); opacity: 0.6; text-decoration: line-through; }
+
+  /* Feature matrix */
+  .matrix { width: 100%; border-collapse: separate; border-spacing: 0; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); }
+  .matrix th, .matrix td { padding: 10px 14px; text-align: left; font-size: 13px; border-bottom: 1px solid var(--border); }
+  .matrix th { background: var(--surface2); color: var(--text-muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .matrix td { background: var(--surface); }
+  .matrix tr:last-child td { border-bottom: none; }
+  .matrix tr:hover td { background: var(--surface2); }
+  .cell-yes { color: var(--green); font-weight: 600; }
+  .cell-no { color: var(--red); }
+  .cell-dead { color: var(--text-dim); font-style: italic; }
+  .cell-improved { color: var(--cyan); font-weight: 600; }
+  .cell-preserved { color: var(--green); }
+  .cell-simplified { color: var(--blue); }
+  .cell-removed { color: var(--text-dim); text-decoration: line-through; }
+
+  /* Performance bars */
+  .perf-row { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+  .perf-label { width: 200px; font-size: 13px; color: var(--text-muted); text-align: right; flex-shrink: 0; }
+  .perf-bar-container { flex: 1; height: 32px; background: var(--surface2); border-radius: 4px; overflow: hidden; position: relative; }
+  .perf-bar { height: 100%; border-radius: 4px; display: flex; align-items: center; padding-left: 12px; font-family: var(--mono); font-size: 12px; font-weight: 600; transition: width 1.5s cubic-bezier(0.22, 1, 0.36, 1); }
+  .perf-bar.slow { background: linear-gradient(90deg, var(--red), var(--orange)); color: white; }
+  .perf-bar.fast { background: linear-gradient(90deg, var(--green), var(--cyan)); color: white; }
+
+  /* Before/After comparison */
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width: 900px) { .compare { grid-template-columns: 1fr; } }
+  .compare .card { position: relative; }
+  .compare .card.before { border-color: var(--red); }
+  .compare .card.after { border-color: var(--green); }
+  .compare .label { position: absolute; top: -10px; left: 16px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; padding: 0 8px; }
+  .compare .label.before { background: var(--bg); color: var(--red); }
+  .compare .label.after { background: var(--bg); color: var(--green); }
+
+  /* Process animation */
+  .process-anim { position: relative; height: 300px; background: var(--surface2); border-radius: var(--radius); overflow: hidden; margin: 16px 0; }
+  .spawn-dot { position: absolute; width: 10px; height: 10px; border-radius: 50%; background: var(--red); animation: spawnPulse 2s ease-in-out infinite; }
+  @keyframes spawnPulse { 0%,100% { opacity: 0.3; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } }
+  .daemon-dot { position: absolute; width: 16px; height: 16px; border-radius: 50%; background: var(--green); animation: daemonPulse 3s ease-in-out infinite; box-shadow: 0 0 20px rgba(63,185,80,0.4); }
+  @keyframes daemonPulse { 0%,100% { box-shadow: 0 0 10px rgba(63,185,80,0.2); } 50% { box-shadow: 0 0 30px rgba(63,185,80,0.6); } }
+  .msg-line { position: absolute; height: 2px; background: var(--green); opacity: 0; animation: msgSend 2s ease-in-out infinite; }
+  @keyframes msgSend { 0% { opacity: 0; width: 0; } 30% { opacity: 1; } 100% { opacity: 0; width: 100px; } }
+
+  /* Legend */
+  .legend { display: flex; gap: 20px; flex-wrap: wrap; padding: 12px 16px; background: var(--surface2); border-radius: var(--radius); margin-bottom: 20px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+
+  /* Tooltip */
+  .tooltip { position: relative; cursor: help; }
+  .tooltip .tip { display: none; position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; font-size: 12px; white-space: nowrap; z-index: 200; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+  .tooltip:hover .tip { display: block; }
+
+  /* Stats row */
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+  .stat .value { font-size: 28px; font-weight: 700; font-family: var(--mono); }
+  .stat .label { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+  .stat.bad .value { color: var(--red); }
+  .stat.good .value { color: var(--green); }
+  .stat.warn .value { color: var(--yellow); }
+  .stat.info .value { color: var(--blue); }
+
+  /* Prompt output */
+  .prompt-output { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-top: 24px; position: relative; }
+  .prompt-output pre { font-family: var(--mono); font-size: 12px; white-space: pre-wrap; color: var(--text-muted); line-height: 1.6; }
+  .copy-btn { position: absolute; top: 12px; right: 12px; background: var(--surface2); border: 1px solid var(--border); color: var(--text-muted); padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: all 0.2s; }
+  .copy-btn:hover { background: var(--border); color: var(--text); }
+
+  /* Section headers */
+  .section-title { font-size: 18px; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+  .section-subtitle { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
+  .divider { height: 1px; background: var(--border); margin: 32px 0; }
+
+  /* Count badges */
+  .count { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; border-radius: 10px; font-size: 11px; font-weight: 600; padding: 0 6px; }
+  .count.green { background: var(--green-bg); color: var(--green); }
+  .count.red { background: var(--red-bg); color: var(--red); }
+  .count.yellow { background: var(--yellow-bg); color: var(--yellow); }
+  .count.blue { background: var(--blue-bg); color: var(--blue); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>OrchestKit Hook Architecture</h1>
+  <span class="badge">2 redundant systems</span>
+  <span class="badge">6 dead files</span>
+  <span class="badge ok">Daemon fix planned</span>
+</div>
+
+<div class="tabs" id="tabs">
+  <div class="tab active" data-tab="overview">Overview</div>
+  <div class="tab" data-tab="wiring">Wiring Diagram</div>
+  <div class="tab" data-tab="features">Feature Matrix</div>
+  <div class="tab" data-tab="dead">Dead Code</div>
+  <div class="tab" data-tab="daemon">Daemon Architecture</div>
+  <div class="tab" data-tab="perf">Performance</div>
+  <div class="tab" data-tab="preservation">Preservation</div>
+</div>
+
+<!-- ======================== OVERVIEW ======================== -->
+<div class="panel active" id="panel-overview">
+  <div class="stats">
+    <div class="stat bad"><div class="value">2</div><div class="label">Redundant spawn systems</div></div>
+    <div class="stat warn"><div class="value">8</div><div class="label">Fire-and-forget hooks in hooks.json</div></div>
+    <div class="stat bad"><div class="value">6</div><div class="label">Dead entry point files</div></div>
+    <div class="stat bad"><div class="value">N</div><div class="label">Processes spawned per session</div></div>
+    <div class="stat info"><div class="value">428</div><div class="label">Lines in background worker</div></div>
+    <div class="stat good"><div class="value">1</div><div class="label">Daemon needed (proposed)</div></div>
+  </div>
+
+  <div class="section-title">System A: run-hook-silent <span class="count green">7 hooks</span> <span class="count blue">ACTIVE</span></div>
+  <div class="card">
+    <div class="flow">
+      <div class="flow-node warn">Hook Event</div>
+      <div class="flow-arrow">&rarr;</div>
+      <div class="flow-node active">run-hook-silent.mjs</div>
+      <div class="flow-arrow">&rarr;</div>
+      <div class="flow-node file">spawn('node', [...])</div>
+      <div class="flow-arrow">&rarr;</div>
+      <div class="flow-node active">run-hook-background.mjs</div>
+      <div class="flow-arrow">&rarr;</div>
+      <div class="flow-node blue">Bundle (posttool.mjs, etc.)</div>
+    </div>
+    <div style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">
+      <strong>Transport:</strong> Base64 CLI argument &nbsp;|&nbsp;
+      <strong>Spawn:</strong> <code style="color:var(--yellow)">detached: !IS_WINDOWS</code> &nbsp;|&nbsp;
+      <strong>Features:</strong> Metrics, PID tracking, debug config, input normalization, 60s timeout
+    </div>
+  </div>
+
+  <div class="section-title" style="margin-top: 32px;">System B: spawn-worker <span class="count red">1 hook</span> <span class="count red">6 DEAD</span></div>
+  <div class="card" style="border-color: var(--red); opacity: 0.8;">
+    <div class="flow">
+      <div class="flow-node warn">Hook Event</div>
+      <div class="flow-arrow">&rarr;</div>
+      <div class="flow-node dead">*-fire-and-forget.mjs</div>
+      <div class="flow-arrow dead">&rarr;</div>
+      <div class="flow-node dead">spawn-worker.mjs</div>
+      <div class="flow-arrow dead">&rarr;</div>
+      <div class="flow-node file">spawn('node', [...])</div>
+      <div class="flow-arrow dead">&rarr;</div>
+      <div class="flow-node dead">background-worker.mjs</div>
+      <div class="flow-arrow">&rarr;</div>
+      <div class="flow-node blue">Bundle (posttool.mjs, etc.)</div>
+    </div>
+    <div style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">
+      <strong>Transport:</strong> Temp JSON file in .claude/hooks/pending/ &nbsp;|&nbsp;
+      <strong>Spawn:</strong> <code style="color:var(--red)">detached: true</code> (always) &nbsp;|&nbsp;
+      <strong>Features:</strong> 5min timeout, orphan cleanup. <span style="color:var(--red)">NO metrics, NO PID, NO debug, NO normalization</span>
+    </div>
+    <div style="margin-top: 12px; padding: 8px 12px; background: var(--red-bg); border-radius: 4px; font-size: 12px; color: var(--red);">
+      Only <code>stop-fire-and-forget.mjs</code> is wired in hooks.json. The other 6 entry points are dead code.
+    </div>
+  </div>
+
+  <div class="section-title" style="margin-top: 32px;">System C: fire-and-forget.ts <span class="count red">DEAD CODE</span></div>
+  <div class="card" style="border-color: var(--red); opacity: 0.6;">
+    <div class="flow">
+      <div class="flow-node dead">fire-and-forget.ts</div>
+      <div class="flow-arrow dead">&rarr;</div>
+      <div class="flow-node dead">(never imported)</div>
+    </div>
+    <div style="font-size: 12px; color: var(--red); margin-top: 8px;">
+      0% test coverage. Zero imports in src/. Has ESM <code>__filename</code> bug. TypeScript duplicate of System B.
+    </div>
+  </div>
+</div>
+
+<!-- ======================== WIRING DIAGRAM ======================== -->
+<div class="panel" id="panel-wiring">
+  <div class="section-title">hooks.json Wiring Map</div>
+  <div class="section-subtitle">Every hook event and how it's executed. Purple = fire-and-forget (spawns background process). Blue = synchronous. Orange = fire-and-forget via System B.</div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div> run-hook-silent.mjs (System A, fire-and-forget)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div> run-hook.mjs (synchronous)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div> *-fire-and-forget.mjs (System B)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div> Dead code (not in hooks.json)</div>
+  </div>
+
+  <div class="wiring-grid">
+    <div class="wiring-event"><span style="color:var(--yellow)">&#9679;</span> Setup</div>
+    <div class="wiring-hooks">
+      <div class="hook-chip silent tooltip">setup/unified-dispatcher<span class="tip">System A: run-hook-silent.mjs &rarr; background</span></div>
+      <div class="hook-chip sync">setup/setup-check</div>
+      <div class="hook-chip sync">setup/first-run-setup</div>
+      <div class="hook-chip sync">setup/setup-maintenance</div>
+      <div class="hook-chip sync">setup/setup-repair</div>
+      <div class="hook-chip sync">setup/monorepo-detector</div>
+    </div>
+
+    <div class="wiring-event"><span style="color:var(--green)">&#9679;</span> SessionStart</div>
+    <div class="wiring-hooks">
+      <div class="hook-chip silent tooltip">lifecycle/unified-dispatcher<span class="tip">System A: 6 sub-hooks in parallel</span></div>
+      <div class="hook-chip sync">lifecycle/session-context-loader</div>
+      <div class="hook-chip sync">lifecycle/analytics-consent-check</div>
+      <div class="hook-chip sync">lifecycle/pr-status-enricher</div>
+      <div class="hook-chip sync">lifecycle/prefill-guard</div>
+    </div>
+
+    <div class="wiring-event" style="font-weight: 800; color: var(--red);"><span>&#128293;</span> PostToolUse</div>
+    <div class="wiring-hooks">
+      <div class="hook-chip silent tooltip" style="border-width:2px;">posttool/unified-dispatcher<span class="tip">HOT PATH! Fires on every tool call. 15 sub-hooks. System A spawn.</span></div>
+      <div class="hook-chip sync">posttool/context-budget-monitor</div>
+      <div class="hook-chip sync">posttool/unified-error-handler</div>
+      <div class="hook-chip sync">posttool/write/unified-write-quality-dispatcher</div>
+      <div class="hook-chip sync">skill/redact-secrets</div>
+      <div class="hook-chip sync">posttool/task/team-member-start</div>
+    </div>
+
+    <div class="wiring-event"><span style="color:var(--blue)">&#9679;</span> UserPromptSubmit</div>
+    <div class="wiring-hooks">
+      <div class="hook-chip sync">prompt/unified-dispatcher</div>
+      <div class="hook-chip silent tooltip">prompt/capture-user-intent<span class="tip">System A: fire-and-forget</span></div>
+    </div>
+
+    <div class="wiring-event"><span style="color:var(--purple)">&#9679;</span> PermissionRequest</div>
+    <div class="wiring-hooks">
+      <div class="hook-chip sync">permission/unified-dispatcher</div>
+      <div class="hook-chip sync">permission/dangerous-command-guard</div>
+      <div class="hook-chip sync">permission/write-guard</div>
+    </div>
+
+    <div class="wiring-event"><span style="color:var(--orange)">&#9679;</span> Stop</div>
+    <div class="wiring-hooks">
+      <div class="hook-chip ff tooltip">stop-fire-and-forget.mjs<span class="tip">System B: spawn-worker &rarr; background-worker. 23 sub-hooks.</span></div>
+      <div class="hook-chip sync">stop-uncommitted-check.mjs</div>
+    </div>
+
+    <div class="wiring-event"><span style="color:var(--blue)">&#9679;</span> SubagentStop</div>
+    <div class="wiring-hooks">
+      <div class="hook-chip silent">subagent-stop/unified-dispatcher</div>
+      <div class="hook-chip sync">lifecycle/session-metrics-updater</div>
+      <div class="hook-chip sync">subagent-stop/team-member-tracker</div>
+    </div>
+
+    <div class="wiring-event"><span style="color:var(--cyan)">&#9679;</span> Notification</div>
+    <div class="wiring-hooks">
+      <div class="hook-chip silent">notification/unified-dispatcher</div>
+      <div class="hook-chip silent">notification/sound</div>
+    </div>
+
+    <div class="wiring-event"><span style="color:var(--text-muted)">&#9679;</span> SessionEnd</div>
+    <div class="wiring-hooks">
+      <div class="hook-chip sync">lifecycle/session-metrics-summary</div>
+      <div class="hook-chip sync">lifecycle/session-cleanup</div>
+      <div class="hook-chip sync">lifecycle/pattern-sync-push</div>
+    </div>
+
+    <div class="wiring-event"><span style="color:var(--text-muted)">&#9679;</span> PreToolUse</div>
+    <div class="wiring-hooks">
+      <div class="hook-chip sync">14 sync hooks via run-hook.mjs</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top: 24px; border-color: var(--yellow);">
+    <h3 style="color: var(--yellow);">Key Insight</h3>
+    <p style="font-size: 13px; color: var(--text-muted);">
+      <strong>8 fire-and-forget hooks</strong> (7 System A + 1 System B) each spawn a new Node.js process per event.
+      The <strong>PostToolUse</strong> hot path alone fires on every <code>Bash|Write|Edit|Task|Skill|NotebookEdit</code> call,
+      spawning a fresh ~30MB Node.js process each time just to run 15 lightweight file-append sub-hooks.
+    </p>
+  </div>
+</div>
+
+<!-- ======================== FEATURE MATRIX ======================== -->
+<div class="panel" id="panel-features">
+  <div class="section-title">Feature Comparison: System A vs System B</div>
+  <div class="section-subtitle">Complete feature inventory across both background execution systems.</div>
+
+  <table class="matrix">
+    <thead>
+      <tr>
+        <th style="width: 220px;">Feature</th>
+        <th>System A (run-hook-silent)</th>
+        <th>System B (spawn-worker)</th>
+        <th>System C (fire-and-forget.ts)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Status</strong></td>
+        <td class="cell-yes">Active (7 hooks)</td>
+        <td class="cell-no">Mostly dead (1 of 7 hooks)</td>
+        <td class="cell-dead">Dead (0 imports)</td>
+      </tr>
+      <tr>
+        <td><strong>IPC Mechanism</strong></td>
+        <td>Base64 CLI argument</td>
+        <td>Temp JSON file (.claude/hooks/pending/)</td>
+        <td class="cell-dead">Same as System B</td>
+      </tr>
+      <tr>
+        <td><strong>Execution Timeout</strong></td>
+        <td class="cell-yes">60 seconds</td>
+        <td class="cell-yes">5 minutes (5x longer!)</td>
+        <td class="cell-dead">N/A</td>
+      </tr>
+      <tr>
+        <td><strong>Metrics Tracking</strong></td>
+        <td class="cell-yes">metrics.json (atomic write)</td>
+        <td class="cell-no">None</td>
+        <td class="cell-dead">N/A</td>
+      </tr>
+      <tr>
+        <td><strong>PID File Management</strong></td>
+        <td class="cell-yes">.claude/hooks/pids/*.pid</td>
+        <td class="cell-no">None</td>
+        <td class="cell-dead">N/A</td>
+      </tr>
+      <tr>
+        <td><strong>Debug Config</strong></td>
+        <td class="cell-yes">.claude/hooks/debug.json</td>
+        <td class="cell-no">None</td>
+        <td class="cell-dead">N/A</td>
+      </tr>
+      <tr>
+        <td><strong>Input Normalization</strong></td>
+        <td class="cell-yes">4 fields (camelCase/snake_case)</td>
+        <td class="cell-no">None (dispatchers handle it)</td>
+        <td class="cell-dead">N/A</td>
+      </tr>
+      <tr>
+        <td><strong>Hook Name Sanitization</strong></td>
+        <td class="cell-yes">SEC-001: regex replace</td>
+        <td class="cell-no">UUID-based (implicit)</td>
+        <td class="cell-dead">N/A</td>
+      </tr>
+      <tr>
+        <td><strong>Structured Logging</strong></td>
+        <td class="cell-yes">JSON to background-hooks.log</td>
+        <td class="cell-no">Plain text to background-worker.log</td>
+        <td class="cell-dead">console.error only</td>
+      </tr>
+      <tr>
+        <td><strong>Stale Process Cleanup</strong></td>
+        <td class="cell-yes">PID file scan on startup</td>
+        <td class="cell-yes">Orphaned file cleanup (10min)</td>
+        <td class="cell-dead">N/A</td>
+      </tr>
+      <tr>
+        <td><strong>Windows Spawn Strategy</strong></td>
+        <td style="color:var(--yellow)">detached: !IS_WINDOWS</td>
+        <td style="color:var(--red)">detached: true (always)</td>
+        <td class="cell-dead">detached: true (always)</td>
+      </tr>
+      <tr>
+        <td><strong>Stdin Handling</strong></td>
+        <td class="cell-yes">Event-based with 100ms timeout</td>
+        <td class="cell-no">Async iterator, no timeout</td>
+        <td class="cell-dead">N/A (TypeScript API)</td>
+      </tr>
+      <tr>
+        <td><strong>Bundle Loading</strong></td>
+        <td class="cell-yes">Map + hooks[name] lookup</td>
+        <td class="cell-no">Hardcoded dispatcher registry</td>
+        <td class="cell-dead">N/A</td>
+      </tr>
+      <tr>
+        <td><strong>Test Coverage</strong></td>
+        <td class="cell-yes">Extensive (16 exports tested)</td>
+        <td class="cell-no">Minimal (wiring test only)</td>
+        <td class="cell-dead">0%</td>
+      </tr>
+      <tr>
+        <td><strong>hooks.json Entries</strong></td>
+        <td class="cell-yes">7</td>
+        <td style="color:var(--yellow)">1 (stop only)</td>
+        <td class="cell-dead">0</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ======================== DEAD CODE ======================== -->
+<div class="panel" id="panel-dead">
+  <div class="section-title" style="color: var(--red);">Dead Code Inventory</div>
+  <div class="section-subtitle">Files that exist on disk but have zero runtime consumers. Safe to delete.</div>
+
+  <div class="stats">
+    <div class="stat bad"><div class="value">7</div><div class="label">Dead files</div></div>
+    <div class="stat bad"><div class="value">~350</div><div class="label">Dead lines of code</div></div>
+    <div class="stat warn"><div class="value">0%</div><div class="label">Test coverage</div></div>
+  </div>
+
+  <div class="card" style="border-color: var(--red);">
+    <h3><span class="indicator" style="background: var(--red);"></span> 6 Unused Fire-and-Forget Entry Points</h3>
+    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+      These scripts import from <code>spawn-worker.mjs</code> but are <strong>NOT referenced in hooks.json</strong>.
+      The actual hooks use <code>run-hook-silent.mjs</code> (System A) instead.
+    </p>
+    <div id="dead-files"></div>
+  </div>
+
+  <div class="card" style="border-color: var(--red); margin-top: 16px;">
+    <h3><span class="indicator" style="background: var(--red);"></span> fire-and-forget.ts (TypeScript Library)</h3>
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 12px;">
+      <div class="stat bad" style="padding: 12px;"><div class="value" style="font-size: 20px;">0%</div><div class="label">Coverage</div></div>
+      <div class="stat bad" style="padding: 12px;"><div class="value" style="font-size: 20px;">0</div><div class="label">Imports</div></div>
+      <div class="stat warn" style="padding: 12px;"><div class="value" style="font-size: 20px;">1</div><div class="label">ESM Bug</div></div>
+    </div>
+    <p style="font-size: 12px; color: var(--text-muted); margin-top: 12px;">
+      <code>src/hooks/src/lib/fire-and-forget.ts</code> — Uses <code>__filename</code> which is undefined in ESM.
+      Never imported by any source file. TypeScript duplicate of spawn-worker.mjs.
+    </p>
+  </div>
+
+  <div class="card" style="border-color: var(--yellow); margin-top: 16px;">
+    <h3><span class="indicator" style="background: var(--yellow);"></span> Near-Dead: spawn-worker.mjs + background-worker.mjs</h3>
+    <p style="font-size: 13px; color: var(--text-muted);">
+      Only consumed by <code>stop-fire-and-forget.mjs</code> (1 hook). After daemon migration, these become fully dead.
+      <strong>254 lines</strong> of code serving a single hook.
+    </p>
+  </div>
+</div>
+
+<!-- ======================== DAEMON ARCHITECTURE ======================== -->
+<div class="panel" id="panel-daemon">
+  <div class="section-title">Proposed: Persistent Hook Daemon</div>
+  <div class="section-subtitle">Replace per-event process spawning with a single long-running daemon using node:net IPC.</div>
+
+  <div class="compare">
+    <div class="card before">
+      <div class="label before">BEFORE</div>
+      <h3 style="color: var(--red); margin-top: 8px;">Per-Event Process Spawning</h3>
+      <div class="process-anim" id="anim-before" style="height: 240px;">
+        <div style="position:absolute; top:12px; left:12px; font-size:11px; color:var(--text-dim);">Each dot = new Node.js process (~30MB)</div>
+      </div>
+      <div style="font-size: 12px; color: var(--text-muted);">
+        <div style="margin-bottom: 4px;"><strong>Per tool call:</strong> spawn() &rarr; Node cold start &rarr; load bundle &rarr; execute &rarr; exit</div>
+        <div style="margin-bottom: 4px;"><strong>Overhead:</strong> ~50-100ms per event</div>
+        <div style="margin-bottom: 4px;"><strong>Memory:</strong> N &times; ~30MB concurrent processes</div>
+        <div style="color: var(--red);"><strong>Windows:</strong> Console window per spawn</div>
+      </div>
+    </div>
+
+    <div class="card after">
+      <div class="label after">AFTER</div>
+      <h3 style="color: var(--green); margin-top: 8px;">Persistent Daemon + Socket IPC</h3>
+      <div class="process-anim" id="anim-after" style="height: 240px;">
+        <div style="position:absolute; top:12px; left:12px; font-size:11px; color:var(--text-dim);">1 daemon, messages via Unix socket</div>
+      </div>
+      <div style="font-size: 12px; color: var(--text-muted);">
+        <div style="margin-bottom: 4px;"><strong>Per tool call:</strong> socket.connect() &rarr; send JSON &rarr; done</div>
+        <div style="margin-bottom: 4px;"><strong>Overhead:</strong> ~0.2ms per event (130&mu;s socket + JSON)</div>
+        <div style="margin-bottom: 4px;"><strong>Memory:</strong> 1 &times; ~50MB daemon (bundles cached)</div>
+        <div style="color: var(--green);"><strong>Windows:</strong> 1 spawn at session start (hidden)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top: 24px;">
+    <h3>Daemon Lifecycle</h3>
+    <div class="flow" style="flex-wrap: wrap; gap: 4px;">
+      <div class="flow-node blue">First hook fires</div>
+      <div class="flow-arrow">&rarr;</div>
+      <div class="flow-node file">Try socket connect</div>
+      <div class="flow-arrow">&rarr;</div>
+      <div class="flow-node warn">ECONNREFUSED</div>
+      <div class="flow-arrow">&rarr;</div>
+      <div class="flow-node active">Spawn daemon (once)</div>
+      <div class="flow-arrow">&rarr;</div>
+      <div class="flow-node purple">node:net server binds</div>
+      <div class="flow-arrow">&rarr;</div>
+      <div class="flow-node active">Ready for work</div>
+    </div>
+    <div class="flow" style="margin-top: 8px; flex-wrap: wrap; gap: 4px;">
+      <div class="flow-node blue">Subsequent hooks</div>
+      <div class="flow-arrow">&rarr;</div>
+      <div class="flow-node active">socket.connect()</div>
+      <div class="flow-arrow">&rarr;</div>
+      <div class="flow-node active">Send JSON</div>
+      <div class="flow-arrow">&rarr;</div>
+      <div class="flow-node active">Dispatch (cached bundle)</div>
+    </div>
+    <div class="flow" style="margin-top: 8px; flex-wrap: wrap; gap: 4px;">
+      <div class="flow-node file">SessionEnd</div>
+      <div class="flow-arrow">&rarr;</div>
+      <div class="flow-node warn">{"type":"shutdown"}</div>
+      <div class="flow-arrow">&rarr;</div>
+      <div class="flow-node file">Flush metrics</div>
+      <div class="flow-arrow">&rarr;</div>
+      <div class="flow-node file">Cleanup socket</div>
+      <div class="flow-arrow">&rarr;</div>
+      <div class="flow-node active">Exit</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top: 16px;">
+    <h3>Socket Path (Cross-Platform)</h3>
+    <div style="font-family: var(--mono); font-size: 12px; padding: 12px; background: var(--surface2); border-radius: 4px;">
+      <div style="color: var(--blue);">Unix/macOS: <span style="color: var(--text);">/tmp/orchestkit-{sessionId}.sock</span></div>
+      <div style="color: var(--purple); margin-top: 4px;">Windows: <span style="color: var(--text);">\\.\pipe\orchestkit-{sessionId}</span></div>
+    </div>
+    <div style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">
+      Same <code>node:net</code> API handles both. Zero external dependencies. Session-scoped = parallel sessions don't interfere.
+    </div>
+  </div>
+
+  <div class="card" style="margin-top: 16px; border-color: var(--yellow);">
+    <h3 style="color: var(--yellow);">Fallback Safety</h3>
+    <p style="font-size: 13px; color: var(--text-muted);">
+      If daemon fails to start (2s timeout), client falls back to <code>run-hook-background.mjs</code> spawn (current behavior).
+      <strong>Zero risk of lost functionality.</strong> Rollback = revert one file.
+    </p>
+  </div>
+</div>
+
+<!-- ======================== PERFORMANCE ======================== -->
+<div class="panel" id="panel-perf">
+  <div class="section-title">Performance Comparison</div>
+  <div class="section-subtitle">Per-event overhead: spawn-per-event vs persistent daemon with socket IPC.</div>
+
+  <div class="card">
+    <h3>Per-Event Overhead</h3>
+    <div style="margin-top: 16px;">
+      <div class="perf-row">
+        <div class="perf-label">Spawn-per-event</div>
+        <div class="perf-bar-container">
+          <div class="perf-bar slow" id="bar-spawn" style="width: 0%;">~75ms avg</div>
+        </div>
+      </div>
+      <div class="perf-row">
+        <div class="perf-label">Daemon (socket IPC)</div>
+        <div class="perf-bar-container">
+          <div class="perf-bar fast" id="bar-daemon" style="width: 0%;">~0.2ms</div>
+        </div>
+      </div>
+    </div>
+    <div style="text-align: center; font-size: 24px; font-weight: 700; color: var(--green); margin-top: 16px;">
+      375x faster per event
+    </div>
+  </div>
+
+  <div class="card" style="margin-top: 16px;">
+    <h3>Session Impact (100 tool calls)</h3>
+    <div style="margin-top: 16px;">
+      <div class="perf-row">
+        <div class="perf-label">Spawn overhead</div>
+        <div class="perf-bar-container">
+          <div class="perf-bar slow" id="bar-session-spawn" style="width: 0%;">~7.5 seconds total</div>
+        </div>
+      </div>
+      <div class="perf-row">
+        <div class="perf-label">Daemon overhead</div>
+        <div class="perf-bar-container">
+          <div class="perf-bar fast" id="bar-session-daemon" style="width: 0%;">~20ms total</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top: 16px;">
+    <h3>Memory Usage</h3>
+    <div style="margin-top: 16px;">
+      <div class="perf-row">
+        <div class="perf-label">Spawn (peak, 5 concurrent)</div>
+        <div class="perf-bar-container">
+          <div class="perf-bar slow" id="bar-mem-spawn" style="width: 0%;">~150MB (5 x 30MB)</div>
+        </div>
+      </div>
+      <div class="perf-row">
+        <div class="perf-label">Daemon (constant)</div>
+        <div class="perf-bar-container">
+          <div class="perf-bar fast" id="bar-mem-daemon" style="width: 0%;">~50MB (1 process)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top: 16px;">
+    <h3>Windows Console Windows</h3>
+    <div style="margin-top: 16px;">
+      <div class="perf-row">
+        <div class="perf-label">Spawn-per-event</div>
+        <div class="perf-bar-container">
+          <div class="perf-bar slow" id="bar-win-spawn" style="width: 0%;">~100+ windows (session)</div>
+        </div>
+      </div>
+      <div class="perf-row">
+        <div class="perf-label">Daemon</div>
+        <div class="perf-bar-container">
+          <div class="perf-bar fast" id="bar-win-daemon" style="width: 0%;">1 window (hidden)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======================== FEATURE PRESERVATION ======================== -->
+<div class="panel" id="panel-preservation">
+  <div class="section-title">Feature Preservation Matrix</div>
+  <div class="section-subtitle">Every feature from both systems mapped to its daemon equivalent. Nothing lost.</div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div> Preserved (same behavior)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--cyan)"></div> Improved (better in daemon)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div> Simplified (less complexity)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--text-dim)"></div> Removed (no consumers)</div>
+  </div>
+
+  <table class="matrix">
+    <thead>
+      <tr>
+        <th>Feature</th>
+        <th>Current</th>
+        <th>Daemon</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Silent JSON output</strong></td>
+        <td>run-hook-silent.mjs outputs before exit</td>
+        <td>Client still outputs before exit</td>
+        <td class="cell-preserved">Preserved</td>
+      </tr>
+      <tr>
+        <td><strong>Input normalization</strong></td>
+        <td>run-hook-background.mjs (4 fields)</td>
+        <td>Daemon normalizes on receive</td>
+        <td class="cell-preserved">Preserved</td>
+      </tr>
+      <tr>
+        <td><strong>Execution timeout</strong></td>
+        <td>60s per-process timeout</td>
+        <td>60s per-task timeout in daemon</td>
+        <td class="cell-preserved">Preserved</td>
+      </tr>
+      <tr>
+        <td><strong>Bundle loading</strong></td>
+        <td>Cold-load every event (~50ms)</td>
+        <td>Cached in Map, loaded once per session</td>
+        <td class="cell-improved">Improved (375x faster)</td>
+      </tr>
+      <tr>
+        <td><strong>Metrics tracking</strong></td>
+        <td>Atomic file write per event</td>
+        <td>In-memory, periodic flush to disk</td>
+        <td class="cell-improved">Improved (less I/O)</td>
+      </tr>
+      <tr>
+        <td><strong>Debug config</strong></td>
+        <td>Read from disk per event</td>
+        <td>Loaded once, hot-reload on SIGHUP</td>
+        <td class="cell-improved">Improved (less I/O)</td>
+      </tr>
+      <tr>
+        <td><strong>Error logging</strong></td>
+        <td>JSON lines to background-hooks.log</td>
+        <td>Same file, same format</td>
+        <td class="cell-preserved">Preserved</td>
+      </tr>
+      <tr>
+        <td><strong>Hook name sanitization</strong></td>
+        <td>SEC-001 regex in background worker</td>
+        <td>Same sanitizer in daemon</td>
+        <td class="cell-preserved">Preserved</td>
+      </tr>
+      <tr>
+        <td><strong>Stdin reading + timeout</strong></td>
+        <td>100ms timeout in run-hook-silent</td>
+        <td>Same pattern in client</td>
+        <td class="cell-preserved">Preserved</td>
+      </tr>
+      <tr>
+        <td><strong>Env var passthrough</strong></td>
+        <td>3 vars passed to child env</td>
+        <td>Sent in work payload</td>
+        <td class="cell-preserved">Preserved</td>
+      </tr>
+      <tr>
+        <td><strong>Windows behavior</strong></td>
+        <td>detached: !IS_WINDOWS (flaky)</td>
+        <td>No per-event spawn = no console windows</td>
+        <td class="cell-improved">Root cause eliminated</td>
+      </tr>
+      <tr>
+        <td><strong>PID tracking</strong></td>
+        <td>Per-hook PID files in .claude/hooks/pids/</td>
+        <td>Single daemon PID file</td>
+        <td class="cell-simplified">Simplified</td>
+      </tr>
+      <tr>
+        <td><strong>Stale PID cleanup</strong></td>
+        <td>Scan pids/ dir on every startup</td>
+        <td>Single daemon; idle timeout prevents orphans</td>
+        <td class="cell-simplified">Simplified</td>
+      </tr>
+      <tr>
+        <td><strong>Base64 CLI transport</strong></td>
+        <td>Input encoded as CLI arg</td>
+        <td>JSON over socket</td>
+        <td class="cell-removed">Replaced (internal)</td>
+      </tr>
+      <tr>
+        <td><strong>Temp file IPC</strong></td>
+        <td>.claude/hooks/pending/*.json</td>
+        <td>Direct socket send</td>
+        <td class="cell-removed">Replaced (internal)</td>
+      </tr>
+      <tr>
+        <td><strong>Orphan file cleanup</strong></td>
+        <td>10min sweep of pending/ dir</td>
+        <td>No temp files to orphan</td>
+        <td class="cell-removed">Not needed</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="card" style="margin-top: 24px; border-color: var(--green);">
+    <h3 style="color: var(--green);">Fallback Guarantee</h3>
+    <p style="font-size: 13px; color: var(--text-muted);">
+      <code>run-hook-background.mjs</code> is <strong>kept as fallback</strong>. If daemon is unreachable, client degrades to current spawn behavior.
+      Zero risk. Incremental rollout. Rollback = revert one file (<code>run-hook-silent.mjs</code>).
+    </p>
+  </div>
+
+  <div class="prompt-output">
+    <button class="copy-btn" onclick="copyPrompt()">Copy</button>
+    <pre id="prompt-text">Architecture Analysis Summary:
+
+CURRENT STATE:
+- 2 redundant spawn systems (System A: run-hook-silent, System B: spawn-worker)
+- 8 fire-and-forget hooks spawn a new Node.js process per event
+- 6 dead fire-and-forget entry points + 1 dead TypeScript file (fire-and-forget.ts)
+- PostToolUse hot path spawns ~30MB process on every tool call
+- Windows: console windows flash on each spawn
+
+PROPOSED FIX: Persistent hook daemon with node:net socket IPC
+- 1 daemon per session (lazy-start on first hook event)
+- Bundles cached in memory (375x faster per-event)
+- Unix domain socket (Unix/macOS) / named pipe (Windows)
+- Zero new dependencies (node:net is stdlib)
+- All 16 features preserved or improved
+- Fallback to current spawn if daemon unavailable
+
+FILES: Create hook-daemon.mjs + daemon-client.mjs, modify run-hook-silent.mjs,
+delete 7 dead files (6 entry points + fire-and-forget.ts)</pre>
+  </div>
+</div>
+
+<script>
+// Tab switching
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+
+    // Trigger animations for perf tab
+    if (tab.dataset.tab === 'perf') animatePerf();
+  });
+});
+
+// Dead files list
+const deadFiles = [
+  { name: 'posttool-fire-and-forget.mjs', lines: 21, hookEvent: 'PostToolUse' },
+  { name: 'lifecycle-fire-and-forget.mjs', lines: 21, hookEvent: 'SessionStart' },
+  { name: 'prompt-fire-and-forget.mjs', lines: 21, hookEvent: 'UserPromptSubmit' },
+  { name: 'setup-fire-and-forget.mjs', lines: 21, hookEvent: 'Setup' },
+  { name: 'notification-fire-and-forget.mjs', lines: 21, hookEvent: 'Notification' },
+  { name: 'subagent-stop-fire-and-forget.mjs', lines: 21, hookEvent: 'SubagentStop' },
+];
+
+const deadContainer = document.getElementById('dead-files');
+deadFiles.forEach(f => {
+  const el = document.createElement('div');
+  el.style.cssText = 'display:flex; align-items:center; gap:12px; padding:8px 12px; background:var(--red-bg); border-radius:4px; margin-bottom:6px; font-family:var(--mono); font-size:12px;';
+  el.innerHTML = `
+    <span style="color:var(--red); font-size:14px;">&#10060;</span>
+    <span style="color:var(--red); flex:1;">${f.name}</span>
+    <span style="color:var(--text-dim);">${f.lines} lines</span>
+    <span style="color:var(--text-dim);">Would handle: ${f.hookEvent}</span>
+    <span style="color:var(--red); font-size:11px; background:var(--surface2); padding:2px 8px; border-radius:3px;">NOT IN hooks.json</span>
+  `;
+  deadContainer.appendChild(el);
+});
+
+// Performance bar animations
+function animatePerf() {
+  setTimeout(() => {
+    document.getElementById('bar-spawn').style.width = '100%';
+    document.getElementById('bar-daemon').style.width = '0.3%';
+    document.getElementById('bar-session-spawn').style.width = '100%';
+    document.getElementById('bar-session-daemon').style.width = '0.3%';
+    document.getElementById('bar-mem-spawn').style.width = '100%';
+    document.getElementById('bar-mem-daemon').style.width = '33%';
+    document.getElementById('bar-win-spawn').style.width = '100%';
+    document.getElementById('bar-win-daemon').style.width = '1%';
+  }, 100);
+}
+
+// "Before" animation: many spawning dots
+const animBefore = document.getElementById('anim-before');
+for (let i = 0; i < 30; i++) {
+  const dot = document.createElement('div');
+  dot.className = 'spawn-dot';
+  dot.style.left = (10 + Math.random() * 80) + '%';
+  dot.style.top = (15 + Math.random() * 75) + '%';
+  dot.style.animationDelay = (Math.random() * 2) + 's';
+  dot.style.animationDuration = (1.5 + Math.random()) + 's';
+  animBefore.appendChild(dot);
+}
+// Labels
+const spawnLabel = document.createElement('div');
+spawnLabel.style.cssText = 'position:absolute;bottom:12px;left:12px;right:12px;text-align:center;font-size:12px;color:var(--red);font-weight:600;';
+spawnLabel.textContent = '~100+ process spawns per session';
+animBefore.appendChild(spawnLabel);
+
+// "After" animation: one daemon dot with message lines
+const animAfter = document.getElementById('anim-after');
+const daemonDot = document.createElement('div');
+daemonDot.className = 'daemon-dot';
+daemonDot.style.left = '50%';
+daemonDot.style.top = '45%';
+daemonDot.style.transform = 'translate(-50%, -50%)';
+animAfter.appendChild(daemonDot);
+
+// Message lines radiating from daemon
+for (let i = 0; i < 8; i++) {
+  const line = document.createElement('div');
+  line.className = 'msg-line';
+  const angle = (i / 8) * 360;
+  const rad = angle * Math.PI / 180;
+  const cx = 50, cy = 45;
+  const startX = cx + Math.cos(rad) * 5;
+  const startY = cy + Math.sin(rad) * 5;
+  line.style.left = startX + '%';
+  line.style.top = startY + '%';
+  line.style.transform = `rotate(${angle}deg)`;
+  line.style.transformOrigin = '0 50%';
+  line.style.animationDelay = (i * 0.3) + 's';
+  animAfter.appendChild(line);
+}
+
+// Small socket endpoint dots
+for (let i = 0; i < 8; i++) {
+  const angle = (i / 8) * 360;
+  const rad = angle * Math.PI / 180;
+  const d = document.createElement('div');
+  d.style.cssText = `position:absolute; width:6px; height:6px; border-radius:50%; background:var(--blue); opacity:0.5;`;
+  d.style.left = `calc(50% + ${Math.cos(rad) * 90}px - 3px)`;
+  d.style.top = `calc(45% + ${Math.sin(rad) * 80}px - 3px)`;
+  d.style.animation = `spawnPulse ${2 + Math.random()}s ease-in-out infinite`;
+  d.style.animationDelay = (i * 0.2) + 's';
+  animAfter.appendChild(d);
+}
+
+const daemonLabel = document.createElement('div');
+daemonLabel.style.cssText = 'position:absolute;bottom:12px;left:12px;right:12px;text-align:center;font-size:12px;color:var(--green);font-weight:600;';
+daemonLabel.textContent = '1 daemon + socket IPC messages';
+animAfter.appendChild(daemonLabel);
+
+// Copy prompt
+function copyPrompt() {
+  const text = document.getElementById('prompt-text').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy', 1500);
+  });
+}
+</script>
+</body>
+</html>

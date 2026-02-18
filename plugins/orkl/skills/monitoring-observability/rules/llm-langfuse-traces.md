@@ -41,7 +41,7 @@ async def analyze(content: str):
     async def generate_analysis(context):
         response = await llm.generate(content)
         get_client().update_current_observation(
-            model="claude-sonnet-4-5-20250929",
+            model="claude-sonnet-4-6",
             usage={"input_tokens": 1500, "output_tokens": 1000},
         )
         return response
@@ -56,7 +56,7 @@ content_analysis (2.3s, $0.045)
 +-- retrieval (0.1s)
 |   +-- metadata: {chunks_retrieved: 5}
 +-- generation (2.2s, $0.045)
-    +-- model: claude-sonnet-4-5-20250929
+    +-- model: claude-sonnet-4-6
     +-- tokens: 1500 input, 1000 output
 ```
 

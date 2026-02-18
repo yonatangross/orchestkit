@@ -11,16 +11,17 @@ Commands work without them - MCPs just add extra capabilities.
 | **sequential-thinking** | Structured reasoning | None | /brainstorm, /implement |
 | **memory** | Knowledge graph | Local file | Decisions, patterns, entities |
 | **tavily** | Web search, extract, crawl | Cloud (Tavily) | /explore, /implement, web-research agents |
+| **agentation** | UI annotation tool | Local daemon | UI feedback → automatic agent pickup |
 
 > **Opus 4.6 Note:** Sequential-thinking MCP is optional when using Opus 4.6+, which has native adaptive thinking built-in. The MCP tool remains useful for non-Opus models.
 
 ## Default State
 
-**All MCPs are disabled by default.** Enable only the ones you need.
+OrchestKit ships with `context7` and `memory` **enabled by default**. `tavily` and `agentation` ship **disabled** — they require an API key or local package install. `sequential-thinking` is also disabled (Opus 4.6 has native adaptive thinking built-in).
 
-## Enabling MCPs
+## Enabling/Disabling MCPs
 
-Edit `.mcp.json` and set `"disabled": false` for selected MCPs:
+Edit `.mcp.json` and set `"disabled": true` or `false` for each MCP. Defaults:
 
 ```json
 {
@@ -44,12 +45,20 @@ Edit `.mcp.json` and set `"disabled": false` for selected MCPs:
     },
     "tavily": {
       "command": "sh",
-      "args": ["-c", "TAVILY_API_KEY=$(op read 'op://Private/Tavily API Key/API Key') exec npx -y tavily-mcp@latest"],
+      "args": ["-c", "TAVILY_API_KEY=${TAVILY_API_KEY} exec npx -y tavily-mcp@latest"],
+      "disabled": true
+    },
+    "agentation": {
+      "command": "npx",
+      "args": ["-y", "agentation-mcp", "server"],
       "disabled": true
     }
   }
 }
 ```
+
+To enable `tavily`: set `TAVILY_API_KEY` in your shell profile, update the entry above to `"disabled": false`.
+To enable `agentation`: run `npm install -D agentation-mcp` in your project, then set `"disabled": false`.
 
 ## Tavily MCP
 

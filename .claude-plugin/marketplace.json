@@ -1,9 +1,9 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "orchestkit",
-  "version": "6.0.19",
-  "engine": ">=2.1.34",
-  "description": "The Complete AI Development Toolkit - 62 skills, 37 agents, 89 hooks for full-stack development",
+  "version": "6.0.20",
+  "engine": ">=2.1.45",
+  "description": "The Complete AI Development Toolkit - 62 skills, 37 agents, 86 hooks for full-stack development",
   "owner": {
     "name": "Yonatan Gross",
     "email": "yonatan2gross@gmail.com"
@@ -14,8 +14,8 @@
   "plugins": [
     {
       "name": "orkl",
-      "description": "Universal AI development toolkit with 45 skills covering AI/LLM, backend, frontend, security, and testing patterns. Includes 36 specialized agents and 89 hooks.",
-      "version": "6.0.18",
+      "description": "Universal AI development toolkit with 45 skills covering AI/LLM, backend, frontend, security, and testing patterns. Includes 36 specialized agents and 86 hooks.",
+      "version": "6.0.20",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
@@ -26,7 +26,7 @@
     {
       "name": "ork-creative",
       "description": "Video production add-on — 3 skills, 1 agent. Demo recording, Remotion composition, storyboarding, and content creation tools.",
-      "version": "6.0.18",
+      "version": "6.0.20",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
@@ -36,8 +36,8 @@
     },
     {
       "name": "ork",
-      "description": "Full specialized toolkit — 62 skills, 37 agents, 89 hooks. Everything in orkl plus Python (FastAPI, SQLAlchemy), React (RSC, TanStack), LLM/RAG, LangGraph, and MCP patterns.",
-      "version": "6.0.18",
+      "description": "Full specialized toolkit — 62 skills, 37 agents, 86 hooks. Everything in orkl plus Python (FastAPI, SQLAlchemy), React (RSC, TanStack), LLM/RAG, LangGraph, and MCP patterns.",
+      "version": "6.0.20",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"

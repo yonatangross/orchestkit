@@ -328,7 +328,7 @@ analysis_llm_chain = LLMFallbackChain(
     primary=AnthropicProvider(
         LLMConfig(
             name="primary",
-            model="claude-sonnet-4-5-20251101",
+            model="claude-sonnet-4-6",
             timeout=60.0,
             max_tokens=8192,
         )

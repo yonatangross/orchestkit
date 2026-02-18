@@ -4,7 +4,8 @@
  * CC 2.1.3 Feature: Post-write analysis
  */
 
-import { existsSync, appendFileSync, mkdirSync } from 'node:fs';
+import { existsSync, mkdirSync } from 'node:fs';
+import { bufferWrite } from '../../lib/analytics-buffer.js';
 import { execSync } from 'node:child_process';
 import { basename } from 'node:path';
 import type { HookInput, HookResult } from '../../types.js';
@@ -75,12 +76,12 @@ export function coveragePredictor(input: HookInput): HookResult {
     const timestamp = new Date().toISOString();
 
     if (testExists) {
-      appendFileSync(
+      bufferWrite(
         `${logDir}/coverage-predictor.log`,
         `[${timestamp}] COVERAGE_OK: ${filePath} has tests at ${testExists}\n`
       );
     } else {
-      appendFileSync(
+      bufferWrite(
         `${logDir}/coverage-predictor.log`,
         `[${timestamp}] COVERAGE_WARN: ${filePath} may lack test coverage (expected: ${testPattern})\n`
       );

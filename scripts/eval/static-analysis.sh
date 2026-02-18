@@ -408,7 +408,74 @@ else
 fi
 
 # ============================================================================
-# Section E: JSON Output
+# Section E: CLI-vs-API Identifier Mapping (NEW)
+# ============================================================================
+# Any skill that mixes gh CLI milestone flags (--milestone NAME) with REST API
+# milestone paths (milestones/NUMBER) must document the identifier difference.
+# Enforces the standard from references/cli-vs-api-identifiers.md
+# ============================================================================
+
+header "Section E: CLI-vs-API Identifier Mapping"
+
+CLI_API_FAILS=0
+CLI_API_DETAILS=""
+
+for skill_dir in "$SKILLS_DIR"/*/; do
+  [[ ! -d "$skill_dir" ]] && continue
+  skill_name=$(basename "$skill_dir")
+
+  # Collect all .md files for this skill (SKILL.md + references/ + rules/ + examples/)
+  skill_files=()
+  while IFS= read -r -d '' f; do
+    skill_files+=("$f")
+  done < <(find "$skill_dir" -name "*.md" -print0 2>/dev/null)
+  [[ ${#skill_files[@]} -eq 0 ]] && continue
+
+  # Check 1: does the skill use gh CLI milestone flag (--milestone)?
+  has_cli_milestone=false
+  for f in "${skill_files[@]}"; do
+    if grep -q -- '--milestone' "$f" 2>/dev/null; then
+      has_cli_milestone=true
+      break
+    fi
+  done
+
+  # Check 2: does the skill use gh api REST milestone path (milestones/ followed by a number or :number)?
+  has_api_milestone=false
+  for f in "${skill_files[@]}"; do
+    if grep -qE 'gh api.*(milestones/[0-9:$]|milestones/\$)' "$f" 2>/dev/null; then
+      has_api_milestone=true
+      break
+    fi
+  done
+
+  # If both patterns are present, the skill must document the identifier difference
+  if $has_cli_milestone && $has_api_milestone; then
+    # Check for a cli-vs-api note: reference to cli-vs-api-identifiers OR explicit NAME/NUMBER warning
+    has_note=false
+    for f in "${skill_files[@]}"; do
+      if grep -qiE 'cli-vs-api|takes.*NAME|NAME.*not.*number|milestone.*NAME.*number|milestone NUMBER' "$f" 2>/dev/null; then
+        has_note=true
+        break
+      fi
+    done
+    if ! $has_note; then
+      fail "Skill '$skill_name': mixes gh CLI (--milestone NAME) + REST API (milestones/NUMBER) without cli-vs-api identifier note"
+      CLI_API_DETAILS+="$skill_name: missing cli-vs-api identifier note; "
+      CLI_API_FAILS=$((CLI_API_FAILS + 1))
+    fi
+  fi
+done
+
+if [[ $CLI_API_FAILS -eq 0 ]]; then
+  pass "CLI-vs-API Identifier Mapping — all mixed-mode skills documented"
+  add_check "CLI-vs-API Identifier Mapping" "pass" "All skills mixing gh CLI and REST API identifiers are documented"
+else
+  add_check "CLI-vs-API Identifier Mapping" "fail" "$CLI_API_DETAILS"
+fi
+
+# ============================================================================
+# Section F: JSON Output
 # ============================================================================
 
 END_TIME=$(ms_now)

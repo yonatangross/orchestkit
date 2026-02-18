@@ -1,5 +1,5 @@
 ---
-description: "Query cross-project usage analytics. Use when reviewing agent, skill, hook, or team performance across OrchestKit projects."
+description: "Query cross-project usage analytics. Use when reviewing agent, skill, hook, or team performance across OrchestKit projects. Also replay sessions, estimate costs, and view model delegation trends."
 allowed-tools: [Bash, Read, Grep, Glob, AskUserQuestion]
 ---
 
@@ -11,71 +11,56 @@ allowed-tools: [Bash, Read, Grep, Glob, AskUserQuestion]
 
 Query local analytics data from `~/.claude/analytics/`. All data is local-only, privacy-safe (hashed project IDs, no PII).
 
-## Data Files
-
-| File | Contents | Key Fields |
-|------|----------|-----------|
-| `agent-usage.jsonl` | Agent spawn events | `ts, pid, agent, duration_ms, success, output_len, team?` |
-| `skill-usage.jsonl` | Skill invocations | `ts, pid, skill, team?` |
-| `hook-timing.jsonl` | Hook execution timing | `ts, hook, duration_ms, ok, pid, team?` |
-| `session-summary.jsonl` | Session end summaries | `ts, pid, total_tools, team?` |
-| `task-usage.jsonl` | Task completions | `ts, pid, task_status, duration_ms, team?` |
-| `team-activity.jsonl` | Team spawns and idle | `ts, pid, event, agent, member?, idle_ms?, model?, team` |
-
 ## Subcommands
 
 Parse the user's argument to determine which report to show. If no argument provided, use AskUserQuestion to let them pick.
 
-### `agents` — Top agents by frequency and average duration
+| Subcommand | Description | Data Source | Reference |
+|------------|-------------|-------------|-----------|
+| `agents` | Top agents by frequency, duration, model breakdown | `agent-usage.jsonl` | `references/jq-queries.md` |
+| `models` | Model delegation breakdown (opus/sonnet/haiku) | `agent-usage.jsonl` | `references/jq-queries.md` |
+| `skills` | Top skills by invocation count | `skill-usage.jsonl` | `references/jq-queries.md` |
+| `hooks` | Slowest hooks and failure rates | `hook-timing.jsonl` | `references/jq-queries.md` |
+| `teams` | Team spawn counts, idle time, task completions | `team-activity.jsonl` | `references/jq-queries.md` |
+| `session` | Replay a session timeline with tools, tokens, timing | CC session JSONL | `references/session-replay.md` |
+| `cost` | Token cost estimation with cache savings | `stats-cache.json` | `references/cost-estimation.md` |
+| `trends` | Daily activity, model delegation, peak hours | `stats-cache.json` | `references/trends-analysis.md` |
+| `summary` | Unified view of all categories | All files | `references/jq-queries.md` |
+
+### Quick Start Example
 
 ```bash
-jq -s 'group_by(.agent) | map({agent: .[0].agent, count: length, avg_ms: (map(.duration_ms // 0) | add / length | floor), success_rate: (map(select(.success)) | length) / length * 100 | floor}) | sort_by(-.count)' ~/.claude/analytics/agent-usage.jsonl
+# Top agents with model breakdown
+jq -s 'group_by(.agent) | map({agent: .[0].agent, count: length}) | sort_by(-.count)' ~/.claude/analytics/agent-usage.jsonl
+
+# All-time token costs
+jq '.modelUsage | to_entries | map({model: .key, input: .value.inputTokens, output: .value.outputTokens})' ~/.claude/stats-cache.json
 ```
 
-### `skills` — Top skills by invocation count
+### Quick Subcommand Guide
 
-```bash
-jq -s 'group_by(.skill) | map({skill: .[0].skill, count: length}) | sort_by(-.count)' ~/.claude/analytics/skill-usage.jsonl
-```
+**`agents`, `models`, `skills`, `hooks`, `teams`, `summary`** — Run the jq query from `references/jq-queries.md` for the matching subcommand. Present results as a markdown table.
 
-### `hooks` — Slowest hooks and failure rates
+**`session`** — Follow the 4-step process in `references/session-replay.md`: locate session file, resolve reference (latest/partial/full ID), parse JSONL, present timeline.
 
-```bash
-jq -s 'group_by(.hook) | map({hook: .[0].hook, count: length, avg_ms: (map(.duration_ms) | add / length | floor), fail_rate: (map(select(.ok == false)) | length) / length * 100 | floor}) | sort_by(-.avg_ms) | .[0:15]' ~/.claude/analytics/hook-timing.jsonl
-```
+**`cost`** — Apply model-specific pricing from `references/cost-estimation.md` to CC's stats-cache.json. Show per-model breakdown, totals, and cache savings.
 
-### `teams` — Team spawn counts, idle time, task completions
+**`trends`** — Follow the 4-step process in `references/trends-analysis.md`: daily activity, model delegation, peak hours, all-time stats.
 
-```bash
-# Team activity (spawns + idle)
-jq -s 'group_by(.team) | map({team: .[0].team, spawns: [.[] | select(.event == "spawn")] | length, idles: [.[] | select(.event == "idle")] | length, agents: [.[].agent] | unique}) | sort_by(-.spawns)' ~/.claude/analytics/team-activity.jsonl
+**`summary`** — Run all subcommands and present a unified view: total sessions, top 5 agents, top 5 skills, team activity, unique projects.
 
-# Task completions by team
-jq -s '[.[] | select(.team != null)] | group_by(.team) | map({team: .[0].team, tasks: length, avg_ms: (map(.duration_ms // 0) | add / length | floor)})' ~/.claude/analytics/task-usage.jsonl
-```
+## Data Files
 
-### `summary` — Overall cross-project summary
+See `references/data-locations.md` for complete data source documentation.
 
-Run all of the above and present a unified view:
-- Total sessions, total tool invocations
-- Top 5 agents, top 5 skills
-- Team activity overview (if team data exists)
-- Unique project hashes count
-
-```bash
-# Quick counts
-wc -l ~/.claude/analytics/*.jsonl 2>/dev/null
-# Unique projects
-jq -r .pid ~/.claude/analytics/agent-usage.jsonl 2>/dev/null | sort -u | wc -l
-```
-
-## Important Notes
-
-- All files are in JSONL (newline-delimited JSON) format
-- For large files (>50MB), use streaming `jq` without `-s` (slurp) flag
-- Rotated files follow pattern `<name>.<YYYY-MM>.jsonl` — include them in queries if historical data is needed
-- The `team` field is only present for entries recorded during team/swarm sessions
-- `pid` is a 12-char SHA256 hash of the project path — irreversible, used for grouping
+| File | Contents |
+|------|----------|
+| `agent-usage.jsonl` | Agent spawn events with model, duration, success |
+| `skill-usage.jsonl` | Skill invocations |
+| `hook-timing.jsonl` | Hook execution timing and failure rates |
+| `session-summary.jsonl` | Session end summaries |
+| `task-usage.jsonl` | Task completions |
+| `team-activity.jsonl` | Team spawns and idle events |
 
 ## Rules
 
@@ -83,17 +68,39 @@ Each category has individual rule files in `rules/` loaded on-demand:
 
 | Category | Rule | Impact | Key Pattern |
 |----------|------|--------|-------------|
-| Visualization | `rules/visualization-recharts.md` | HIGH | Recharts charts, ResponsiveContainer, custom tooltips |
-| Visualization | `rules/visualization-dashboards.md` | HIGH | Dashboard grids, stat cards, widget registry, SSE updates |
+| Data Integrity | `rules/data-privacy.md` | CRITICAL | Hash project IDs, never log PII, local-only |
+| Cost & Tokens | `rules/cost-calculation.md` | HIGH | Separate pricing per token type, cache savings |
+| Performance | `rules/large-file-streaming.md` | HIGH | Streaming jq for >50MB, rotation-aware queries |
+| Visualization | `rules/visualization-recharts.md` | HIGH | Recharts charts, ResponsiveContainer, tooltips |
+| Visualization | `rules/visualization-dashboards.md` | HIGH | Dashboard grids, stat cards, widget registry |
 
-**Total: 2 rules across 1 category**
+**Total: 5 rules across 4 categories**
+
+## References
+
+| Reference | Contents |
+|-----------|----------|
+| `references/jq-queries.md` | Ready-to-run jq queries for all JSONL subcommands |
+| `references/session-replay.md` | Session JSONL parsing, timeline extraction, presentation |
+| `references/cost-estimation.md` | Pricing table, cost formula, daily cost queries |
+| `references/trends-analysis.md` | Daily activity, model delegation, peak hours queries |
+| `references/data-locations.md` | All data sources, file formats, CC session structure |
+
+## Important Notes
+
+- All files are JSONL (newline-delimited JSON) format
+- For large files (>50MB), use streaming `jq` without `-s` — see `rules/large-file-streaming.md`
+- Rotated files: `<name>.<YYYY-MM>.jsonl` — include for historical queries
+- `team` field only present during team/swarm sessions
+- `pid` is a 12-char SHA256 hash — irreversible, for grouping only
 
 ## Output Format
 
-Present results as a clean markdown table. Include counts, percentages, and averages. If a file doesn't exist, note that no data has been collected yet for that category.
+Present results as clean markdown tables. Include counts, percentages, and averages. If a file doesn't exist, note that no data has been collected yet for that category.
 
 ## Related Skills
 
 - `explore` - Codebase exploration and analysis
 - `feedback` - Capture user feedback
 - `remember` - Store project knowledge
+- `doctor` - Health check diagnostics

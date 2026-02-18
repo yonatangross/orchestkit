@@ -13,7 +13,8 @@
  * Version: 2.0.0 - Consolidated from 3 hooks (~500 LOC → ~200 LOC)
  */
 
-import { existsSync, appendFileSync, readFileSync, writeFileSync, mkdirSync, statSync, renameSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync, statSync, renameSync } from 'node:fs';
+import { bufferWrite } from '../lib/analytics-buffer.js';
 import { createHash } from 'node:crypto';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, getProjectDir, getPluginRoot, getSessionId, getField, logHook } from '../lib/common.js';
@@ -148,7 +149,7 @@ function logError(input: HookInput, errorInfo: ErrorInfo): void {
       output_preview: errorInfo.errorText.substring(0, 1000),
     };
 
-    appendFileSync(errorLog, JSON.stringify(errorRecord) + '\n');
+    bufferWrite(errorLog, JSON.stringify(errorRecord) + '\n');
 
     // Update session metrics
     try {

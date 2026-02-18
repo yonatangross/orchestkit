@@ -27,7 +27,7 @@ export * from '../lib/multi-agent-coordinator.js';
 import { profileInjector } from '../prompt/profile-injector.js';
 import { memoryContextLoader } from '../prompt/memory-context-loader.js';
 
-// Background hook (uses run-hook-silent.mjs)
+// Background hook (async: true — CC handles background execution natively)
 import { captureUserIntent } from '../prompt/capture-user-intent.js';
 
 // --- Unified dispatcher (Issue #448) ---
