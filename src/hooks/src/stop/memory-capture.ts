@@ -9,7 +9,7 @@
  * Also nudges /ork:remember for sessions with >50 tool calls (Issue #705).
  */
 
-import { existsSync, readFileSync, mkdirSync, appendFileSync } from 'node:fs';
+import { existsSync, statSync, readFileSync, mkdirSync, appendFileSync, renameSync } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 import type { HookInput, HookResult } from '../types.js';
@@ -71,6 +71,10 @@ export function memoryCapture(input: HookInput): HookResult {
     };
 
     const decisionsFile = join(memoryDir, 'decisions.jsonl');
+    // Rotate if over 500KB — matches pattern in common.ts:rotateLogFile
+    if (existsSync(decisionsFile) && statSync(decisionsFile).size > 500 * 1024) {
+      renameSync(decisionsFile, `${decisionsFile}.old.${Date.now()}`);
+    }
     appendFileSync(decisionsFile, JSON.stringify(record) + '\n');
     logHook('memory-capture', `Captured session summary (${totalTools} tools) to decisions.jsonl`);
   } catch (error) {

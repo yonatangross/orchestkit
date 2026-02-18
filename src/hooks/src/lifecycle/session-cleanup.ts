@@ -12,6 +12,7 @@ import type { HookInput, HookResult } from '../types.js';
 import { logHook, getProjectDir, outputSilentSuccess } from '../lib/common.js';
 import { cleanupTeam } from '../lib/agent-teams.js';
 import { appendAnalytics, hashProject, getTeamContext } from '../lib/analytics.js';
+import { getMetricsFile } from '../lib/paths.js';
 
 interface SessionMetrics {
   tools?: Record<string, number>;
@@ -281,7 +282,7 @@ export function sessionCleanup(input: HookInput): HookResult {
   logHook('session-cleanup', 'Session cleanup starting');
 
   const projectDir = input.project_dir || getProjectDir();
-  const metricsFile = '/tmp/claude-session-metrics.json';
+  const metricsFile = getMetricsFile(); // cross-platform path via lib/paths.ts
   const archiveDir = `${projectDir}/.claude/logs/sessions`;
   const logDir = `${projectDir}/.claude/logs`;
 

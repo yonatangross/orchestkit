@@ -27,8 +27,9 @@ function isGitPushSuccess(input: HookInput): boolean {
 
   if (input.exit_code !== undefined && input.exit_code !== 0) return false;
 
-  const output = String(input.tool_output || '');
-  return /->/.test(output) || /\[new branch\]/.test(output) || input.exit_code === 0;
+  if (/--dry-run/.test(command)) return false;
+  // exit_code 0 is sufficient — output checks are unreliable (git push writes to stderr)
+  return true;
 }
 
 /**
