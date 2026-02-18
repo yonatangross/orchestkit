@@ -66,11 +66,10 @@ function loadLearnedPatterns(): string[] {
  * Check if command matches a learned auto-approve pattern.
  * SEC: Uses literal prefix matching only — never constructs RegExp from user data.
  * Each pattern is treated as a literal command prefix (case-insensitive).
- * SEC: Normalizes command before matching to prevent escape-based bypasses.
  */
 function shouldAutoApprove(command: string): boolean {
   const patterns = loadLearnedPatterns();
-  const normalizedCommand = normalizeSingle(command).toLowerCase();
+  const normalizedCommand = command.toLowerCase().trim();
 
   for (const pattern of patterns) {
     // SEC: Only allow non-empty string patterns, no regex interpretation
