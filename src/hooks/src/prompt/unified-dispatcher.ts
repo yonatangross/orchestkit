@@ -53,6 +53,7 @@ import { antipatternWarning } from './antipattern-warning.js';
 import { memoryContext } from './memory-context.js';
 import { contextPruningAdvisor } from './context-pruning-advisor.js';
 import { pipelineDetector } from './pipeline-detector.js';
+import { skillNudgePrompt } from './skill-nudge.js';
 
 // Import hook implementations — once-per-session
 import { profileInjector } from './profile-injector.js';
@@ -109,6 +110,7 @@ const HOOKS: PromptHookConfig[] = [
   { name: 'antipattern-warning', fn: antipatternWarning, producesContext: true },
   { name: 'memory-context', fn: memoryContext, producesContext: true },
   { name: 'pipeline-detector', fn: pipelineDetector, producesContext: true },
+  { name: 'skill-nudge-prompt', fn: skillNudgePrompt, producesContext: true },
 ];
 
 /** Exposed for testing */

@@ -18,15 +18,26 @@ export interface ChangelogEntry {
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "6.0.20",
-    "date": "2026-02-17",
+    "date": "2026-02-18",
     "compareUrl": "",
     "sections": [
       {
+        "type": "added",
+        "items": [
+          "**Hook: `mcp-health-check`** — new SessionStart hook that silently detects MCP misconfigurations at session start: warns if Tavily is enabled but `TAVILY_API_KEY` is unset, or if agentation is enabled but `agentation-mcp` package is not installed. Respects `ORCHESTKIT_SKIP_SLOW_HOOKS=1`.",
+          "**Skill: `github-operations`** — new `references/cli-vs-api-identifiers.md` mapping gh CLI identifiers (NAME) to REST API identifiers (NUMBER/node_id) for milestones, issues, PRs, and Projects v2 (#701)",
+          "**Static analysis: Section E** — `scripts/eval/static-analysis.sh` now enforces CLI-vs-API identifier documentation for any skill mixing `--milestone` CLI flags with REST API milestone paths"
+        ]
+      },
+      {
         "type": "fixed",
         "items": [
-          "Windows: fix console window flashing from fire-and-forget hooks (`detached: true` opens cmd.exe per spawn)",
-          "Windows: fix ENAMETOOLONG errors (79/session) by using `os.tmpdir()` for hook work files",
-          "Extract shared `spawn-worker.mjs` helper, reducing 7 duplicated entry points (7 × 57 → 7 × 17 lines)"
+          "**Windows: console flashing** — fix fire-and-forget hooks spawning visible `cmd.exe` windows (`detached: true` → `detached: false` + `unref()`) (#644)",
+          "**Windows: ENAMETOOLONG** — use `os.tmpdir()` for hook work files instead of deep project-dir paths (79 errors/session eliminated)",
+          "**MCP defaults** — Tavily and agentation are now `\"disabled\": true` in `.mcp.json`; users opt in explicitly to avoid surprise API costs",
+          "**MCP docs** — configure skill, doctor skill, installation.mdx, configuration.mdx, faq.mdx all updated to reflect accurate MCP status and setup instructions (#702)",
+          "**github-operations: `--milestone` footgun** — explicit warning that `gh issue edit --milestone` takes a NAME (string), not a number; REST API uses NUMBER (#699)",
+          "**issue-progress-tracking: close-on-merge rule** — added as Common Mistake #5; issues close only via `Closes #N` in PR body on merge, never via `gh issue close` directly"
         ]
       }
     ]

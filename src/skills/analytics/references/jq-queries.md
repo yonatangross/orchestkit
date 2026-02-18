@@ -64,6 +64,9 @@ jq -s '[.[] | select(.team != null)] | group_by(.team) | map({
 ## summary — Quick counts
 
 ```bash
+# Total sessions (excluding zero-tool sessions)
+jq -s '[.[] | select(.total_tools > 0)] | length' ~/.claude/analytics/session-summary.jsonl
+
 # Line counts per file
 wc -l ~/.claude/analytics/*.jsonl 2>/dev/null
 

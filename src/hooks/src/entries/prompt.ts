@@ -46,6 +46,7 @@ import { satisfactionDetector } from '../prompt/satisfaction-detector.js';
 import { todoEnforcer } from '../prompt/todo-enforcer.js';
 import { pipelineDetector } from '../prompt/pipeline-detector.js';
 import { communicationStyleTracker } from '../prompt/communication-style-tracker.js';
+import { skillNudgePrompt } from '../prompt/skill-nudge.js';
 
 import type { HookFn } from '../types.js';
 
@@ -72,6 +73,7 @@ export const hooks: Record<string, HookFn> = {
   'prompt/todo-enforcer': todoEnforcer,
   'prompt/pipeline-detector': pipelineDetector,
   'prompt/communication-style-tracker': communicationStyleTracker,
+  'prompt/skill-nudge': skillNudgePrompt,
 };
 
 export function getHook(name: string): HookFn | undefined {
