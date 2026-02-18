@@ -55,14 +55,23 @@ jobs:
           # Run shell-based tests
           npm test 2>&1 | tee -a test.log || true
 
-          # Extract test counts (vitest format: "N passed")
+          # Extract test counts from vitest ("N passed") and shell tests ("Total: N passed, M failed")
           # Use grep with || true to avoid pipefail, default to 0
-          passed="$(grep -oP '\d+(?=\s+passed)' test.log | tail -1)" || true
-          failed="$(grep -oP '\d+(?=\s+failed)' test.log | tail -1)" || true
-          skipped="$(grep -oP '\d+(?=\s+skipped)' test.log | tail -1)" || true
-          echo "passed=${passed:-0}" >> "$GITHUB_OUTPUT"
-          echo "failed=${failed:-0}" >> "$GITHUB_OUTPUT"
-          echo "skipped=${skipped:-0}" >> "$GITHUB_OUTPUT"
+          vitest_passed="$(grep -oP '\d+(?=\s+passed)' test.log | head -1)" || true
+          vitest_failed="$(grep -oP '\d+(?=\s+failed)' test.log | head -1)" || true
+          vitest_skipped="$(grep -oP '\d+(?=\s+skipped)' test.log | head -1)" || true
+
+          # Shell test format: "Total: N passed, M failed"
+          shell_passed="$(grep -oP 'Total:\s+\K\d+(?=\s+passed)' test.log | tail -1)" || true
+          shell_failed="$(grep -oP 'Total:\s+\d+\s+passed,\s+\K\d+(?=\s+failed)' test.log | tail -1)" || true
+
+          passed=$(( ${vitest_passed:-0} + ${shell_passed:-0} ))
+          failed=$(( ${vitest_failed:-0} + ${shell_failed:-0} ))
+          skipped="${vitest_skipped:-0}"
+
+          echo "passed=${passed}" >> "$GITHUB_OUTPUT"
+          echo "failed=${failed}" >> "$GITHUB_OUTPUT"
+          echo "skipped=${skipped}" >> "$GITHUB_OUTPUT"
 
           # Extract coverage from summary
           if [ -f coverage-summary.json ]; then
