@@ -12,204 +12,46 @@ description: "Query cross-project usage analytics. Use when reviewing agent, ski
 
 Query local analytics data from `~/.claude/analytics/`. All data is local-only, privacy-safe (hashed project IDs, no PII).
 
-## Data Files
-
-| File | Contents | Key Fields |
-|------|----------|-----------|
-| `agent-usage.jsonl` | Agent spawn events | `ts, pid, agent, model, duration_ms, success, output_len, team?` |
-| `skill-usage.jsonl` | Skill invocations | `ts, pid, skill, team?` |
-| `hook-timing.jsonl` | Hook execution timing | `ts, hook, duration_ms, ok, pid, team?` |
-| `session-summary.jsonl` | Session end summaries | `ts, pid, total_tools, team?` |
-| `task-usage.jsonl` | Task completions | `ts, pid, task_status, duration_ms, team?` |
-| `team-activity.jsonl` | Team spawns and idle | `ts, pid, event, agent, member?, idle_ms?, model?, team` |
-
 ## Subcommands
 
 Parse the user's argument to determine which report to show. If no argument provided, use AskUserQuestion to let them pick.
 
-Available subcommands: `agents`, `models`, `skills`, `hooks`, `teams`, `session`, `cost`, `trends`, `summary`.
+| Subcommand | Description | Data Source | Reference |
+|------------|-------------|-------------|-----------|
+| `agents` | Top agents by frequency, duration, model breakdown | `agent-usage.jsonl` | `references/jq-queries.md` |
+| `models` | Model delegation breakdown (opus/sonnet/haiku) | `agent-usage.jsonl` | `references/jq-queries.md` |
+| `skills` | Top skills by invocation count | `skill-usage.jsonl` | `references/jq-queries.md` |
+| `hooks` | Slowest hooks and failure rates | `hook-timing.jsonl` | `references/jq-queries.md` |
+| `teams` | Team spawn counts, idle time, task completions | `team-activity.jsonl` | `references/jq-queries.md` |
+| `session` | Replay a session timeline with tools, tokens, timing | CC session JSONL | `references/session-replay.md` |
+| `cost` | Token cost estimation with cache savings | `stats-cache.json` | `references/cost-estimation.md` |
+| `trends` | Daily activity, model delegation, peak hours | `stats-cache.json` | `references/trends-analysis.md` |
+| `summary` | Unified view of all categories | All files | `references/jq-queries.md` |
 
-### `agents` — Top agents by frequency and average duration
+### Quick Subcommand Guide
 
-```bash
-jq -s 'group_by(.agent) | map({agent: .[0].agent, count: length, avg_ms: (map(.duration_ms // 0) | add / length | floor), success_rate: (map(select(.success)) | length) / length * 100 | floor, models: (group_by(.model) | map({model: .[0].model, count: length}) | sort_by(-.count))}) | sort_by(-.count)' ~/.claude/analytics/agent-usage.jsonl
-```
+**`agents`, `models`, `skills`, `hooks`, `teams`, `summary`** — Run the jq query from `references/jq-queries.md` for the matching subcommand. Present results as a markdown table.
 
-### `models` — Model delegation breakdown
+**`session`** — Follow the 4-step process in `references/session-replay.md`: locate session file, resolve reference (latest/partial/full ID), parse JSONL, present timeline.
 
-```bash
-jq -s 'group_by(.model) | map({model: .[0].model, count: length, avg_ms: (map(.duration_ms // 0) | add / length | floor), agents: ([.[].agent] | unique)}) | sort_by(-.count)' ~/.claude/analytics/agent-usage.jsonl
-```
+**`cost`** — Apply model-specific pricing from `references/cost-estimation.md` to CC's stats-cache.json. Show per-model breakdown, totals, and cache savings.
 
-### `skills` — Top skills by invocation count
+**`trends`** — Follow the 4-step process in `references/trends-analysis.md`: daily activity, model delegation, peak hours, all-time stats.
 
-```bash
-jq -s 'group_by(.skill) | map({skill: .[0].skill, count: length}) | sort_by(-.count)' ~/.claude/analytics/skill-usage.jsonl
-```
+**`summary`** — Run all subcommands and present a unified view: total sessions, top 5 agents, top 5 skills, team activity, unique projects.
 
-### `hooks` — Slowest hooks and failure rates
+## Data Files
 
-```bash
-jq -s 'group_by(.hook) | map({hook: .[0].hook, count: length, avg_ms: (map(.duration_ms) | add / length | floor), fail_rate: (map(select(.ok == false)) | length) / length * 100 | floor}) | sort_by(-.avg_ms) | .[0:15]' ~/.claude/analytics/hook-timing.jsonl
-```
+See `references/data-locations.md` for complete data source documentation.
 
-### `teams` — Team spawn counts, idle time, task completions
-
-```bash
-# Team activity (spawns + idle)
-jq -s 'group_by(.team) | map({team: .[0].team, spawns: [.[] | select(.event == "spawn")] | length, idles: [.[] | select(.event == "idle")] | length, agents: [.[].agent] | unique}) | sort_by(-.spawns)' ~/.claude/analytics/team-activity.jsonl
-
-# Task completions by team
-jq -s '[.[] | select(.team != null)] | group_by(.team) | map({team: .[0].team, tasks: length, avg_ms: (map(.duration_ms // 0) | add / length | floor)})' ~/.claude/analytics/task-usage.jsonl
-```
-
-### `session` — Replay a session timeline
-
-Show what happened in a specific session: tool calls, agent spawns, hooks, token counts, timing.
-
-**Usage:** `/ork:analytics session latest` or `/ork:analytics session &lt;session-id&gt;`
-
-**How to implement this subcommand:**
-
-1. Find the CC session JSONL file. Sessions live at `~/.claude/projects/\{encoded-project-path\}/`.
-   The current project's encoded path: replace `/` with `-` in the project directory path.
-   Example: `/Users/foo/coding/bar` → `-Users-foo-coding-bar`
-
-2. Resolve the session reference:
-   - `latest` → find the most recently modified `.jsonl` file in the project directory
-   - Partial ID (e.g., `08ed1436`) → find file starting with that prefix
-   - Full UUID → exact match
-
-```bash
-# Find project session dir
-PROJECT_DIR=$(echo "$CLAUDE_PROJECT_DIR" | sed 's|/|-|g')
-SESSION_DIR="$HOME/.claude/projects/$PROJECT_DIR"
-
-# List recent sessions (newest first)
-ls -t "$SESSION_DIR"/*.jsonl 2>/dev/null | head -5
-
-# For "latest": use the first result
-LATEST=$(ls -t "$SESSION_DIR"/*.jsonl 2>/dev/null | head -1)
-```
-
-3. Parse the JSONL and extract a timeline. Each line is a JSON object. Key patterns:
-
-```bash
-# Count messages by role
-jq -r '.message.role // empty' "$SESSION_FILE" | sort | uniq -c | sort -rn
-
-# Extract tool calls with timestamps
-jq -r 'select(.message.role == "assistant") | .message.content[]? | select(.type == "tool_use") | .name' "$SESSION_FILE" | sort | uniq -c | sort -rn
-
-# Sum token usage
-jq -s '[.[].message.usage // empty | {i: .input_tokens, o: .output_tokens, cr: .cache_read_input_tokens, cw: .cache_creation_input_tokens}] | {input: (map(.i) | add), output: (map(.o) | add), cache_read: (map(.cr) | add), cache_write: (map(.cw) | add)}' "$SESSION_FILE"
-
-# Get session metadata (branch, version)
-jq -r 'select(.gitBranch) | .gitBranch' "$SESSION_FILE" | head -1
-jq -r 'select(.version) | .version' "$SESSION_FILE" | head -1
-
-# Get start/end timestamps
-jq -r '.timestamp' "$SESSION_FILE" | head -1   # start
-jq -r '.timestamp' "$SESSION_FILE" | tail -1   # end
-
-# Count agent spawns
-jq -r '.message.content[]? | select(.type == "tool_use" and .name == "Task") | .input.subagent_type' "$SESSION_FILE" | sort | uniq -c | sort -rn
-```
-
-4. Present as a readable timeline:
-
-```markdown
-## Session: 08ed1436 — 2026-02-18 10:50 → 11:35 (45min)
-**Branch:** bugfix/windows-spawn | **CC Version:** 2.1.45
-**Tokens:** 152K in, 38K out | **Cache hit rate:** 89%
-
-### Timeline
-| Time | Event | Details |
-|------|-------|---------|
-| 10:50:00 | SESSION START | branch: bugfix/windows-spawn |
-| 10:50:01 | HOOK | SessionStart:startup |
-| 10:50:05 | Read | src/hooks/bin/spawn-worker.mjs |
-| 10:50:08 | Grep | "spawn" in src/ |
-| 10:50:15 | Task (agent) | code-quality-reviewer |
-| 10:51:00 | Edit | src/hooks/bin/spawn-worker.mjs |
-| 10:52:30 | Bash | npm test → 8.3s |
-| 11:35:00 | SESSION END | 23 tool calls, 3 agents |
-
-### Tool Usage
-| Tool | Count |
-|------|-------|
-| Read | 12 |
-| Edit | 5 |
-| Bash | 4 |
-| Task | 2 |
-
-### Token Breakdown
-| Metric | Value |
-|--------|-------|
-| Input tokens | 152,340 |
-| Output tokens | 38,210 |
-| Cache read | 1,245,000 |
-| Cache write | 18,500 |
-| Cache hit rate | 89% |
-```
-
-### `cost` — Token cost estimation (Sprint 2)
-
-Estimate session costs using model-specific pricing. Uses CC's `~/.claude/stats-cache.json` for pre-aggregated model token data.
-
-```bash
-# Read stats-cache.json for model usage
-jq '.modelUsage' ~/.claude/stats-cache.json
-
-# Read daily model tokens
-jq '.dailyModelTokens[-7:]' ~/.claude/stats-cache.json
-```
-
-**Pricing table (Feb 2026):**
-| Model | Input/MTok | Output/MTok | Cache Read/MTok | Cache Write/MTok |
-|-------|-----------|------------|----------------|-----------------|
-| opus-4-6 | $5.00 | $25.00 | $0.50 | $6.25 |
-| sonnet-4-5 | $3.00 | $15.00 | $0.30 | $3.75 |
-| haiku-4-5 | $1.00 | $5.00 | $0.10 | $1.25 |
-
-Calculate: `(input_tokens / 1M * input_price) + (output_tokens / 1M * output_price) + cache costs`
-
-### `trends` — Usage trends over time (Sprint 2)
-
-Show daily token usage, session counts, and model delegation trends.
-
-```bash
-# Daily activity from stats-cache
-jq '.dailyActivity[-7:]' ~/.claude/stats-cache.json
-
-# Daily model tokens
-jq '.dailyModelTokens[-7:] | .[] | {date: .date, models: (.tokensByModel | to_entries | map({model: .key, tokens: .value}))}' ~/.claude/stats-cache.json
-```
-
-Present as sparklines or simple bar charts. Show 7-day and 30-day rolling averages.
-
-### `summary` — Overall cross-project summary
-
-Run all of the above and present a unified view:
-- Total sessions, total tool invocations
-- Top 5 agents, top 5 skills
-- Team activity overview (if team data exists)
-- Unique project hashes count
-
-```bash
-# Quick counts
-wc -l ~/.claude/analytics/*.jsonl 2>/dev/null
-# Unique projects
-jq -r .pid ~/.claude/analytics/agent-usage.jsonl 2>/dev/null | sort -u | wc -l
-```
-
-## Important Notes
-
-- All files are in JSONL (newline-delimited JSON) format
-- For large files (>50MB), use streaming `jq` without `-s` (slurp) flag
-- Rotated files follow pattern `&lt;name&gt;.&lt;YYYY-MM&gt;.jsonl` — include them in queries if historical data is needed
-- The `team` field is only present for entries recorded during team/swarm sessions
-- `pid` is a 12-char SHA256 hash of the project path — irreversible, used for grouping
+| File | Contents |
+|------|----------|
+| `agent-usage.jsonl` | Agent spawn events with model, duration, success |
+| `skill-usage.jsonl` | Skill invocations |
+| `hook-timing.jsonl` | Hook execution timing and failure rates |
+| `session-summary.jsonl` | Session end summaries |
+| `task-usage.jsonl` | Task completions |
+| `team-activity.jsonl` | Team spawns and idle events |
 
 ## Rules
 
@@ -217,23 +59,35 @@ Each category has individual rule files in `rules/` loaded on-demand:
 
 | Category | Rule | Impact | Key Pattern |
 |----------|------|--------|-------------|
-| Visualization | `rules/visualization-recharts.md` | HIGH | Recharts charts, ResponsiveContainer, custom tooltips |
-| Visualization | `rules/visualization-dashboards.md` | HIGH | Dashboard grids, stat cards, widget registry, SSE updates |
+| Data Integrity | `rules/data-privacy.md` | CRITICAL | Hash project IDs, never log PII, local-only |
+| Cost & Tokens | `rules/cost-calculation.md` | HIGH | Separate pricing per token type, cache savings |
+| Performance | `rules/large-file-streaming.md` | HIGH | Streaming jq for >50MB, rotation-aware queries |
+| Visualization | `rules/visualization-recharts.md` | HIGH | Recharts charts, ResponsiveContainer, tooltips |
+| Visualization | `rules/visualization-dashboards.md` | HIGH | Dashboard grids, stat cards, widget registry |
 
-**Total: 2 rules across 1 category**
+**Total: 5 rules across 4 categories**
+
+## References
+
+| Reference | Contents |
+|-----------|----------|
+| `references/jq-queries.md` | Ready-to-run jq queries for all JSONL subcommands |
+| `references/session-replay.md` | Session JSONL parsing, timeline extraction, presentation |
+| `references/cost-estimation.md` | Pricing table, cost formula, daily cost queries |
+| `references/trends-analysis.md` | Daily activity, model delegation, peak hours queries |
+| `references/data-locations.md` | All data sources, file formats, CC session structure |
+
+## Important Notes
+
+- All files are JSONL (newline-delimited JSON) format
+- For large files (>50MB), use streaming `jq` without `-s` — see `rules/large-file-streaming.md`
+- Rotated files: `&lt;name&gt;.&lt;YYYY-MM&gt;.jsonl` — include for historical queries
+- `team` field only present during team/swarm sessions
+- `pid` is a 12-char SHA256 hash — irreversible, for grouping only
 
 ## Output Format
 
-Present results as a clean markdown table. Include counts, percentages, and averages. If a file doesn't exist, note that no data has been collected yet for that category.
-
-## CC Session Data Locations
-
-| Source | Path | Contents |
-|--------|------|----------|
-| OrchestKit analytics | `~/.claude/analytics/*.jsonl` | Agent, skill, hook, team, task metrics |
-| CC session logs | `~/.claude/projects/\{encoded-path\}/*.jsonl` | Full conversation with token usage |
-| CC stats cache | `~/.claude/stats-cache.json` | Pre-aggregated daily model tokens, session counts |
-| CC history | `~/.claude/history.jsonl` | Command history across all projects |
+Present results as clean markdown tables. Include counts, percentages, and averages. If a file doesn't exist, note that no data has been collected yet for that category.
 
 ## Related Skills
 
@@ -245,7 +99,123 @@ Present results as a clean markdown table. Include counts, percentages, and aver
 
 ---
 
-## Rules (2)
+## Rules (5)
+
+### Token Cost Calculation — HIGH
+
+
+## Token Cost Calculation
+
+Calculate accurate token costs using model-specific pricing with cache-aware formulas.
+
+**Incorrect — treating all tokens equally:**
+```typescript
+// WRONG: ignores cache pricing difference (10x cheaper for reads)
+const cost = totalTokens / 1_000_000 * 5.00;
+```
+
+**Correct — separate pricing per token type:**
+```typescript
+const mtok = 1_000_000;
+const pricing = { input: 5.00, output: 25.00, cache_read: 0.50, cache_write: 6.25 };
+
+const cost =
+  (tokens.input / mtok) * pricing.input +
+  (tokens.output / mtok) * pricing.output +
+  (tokens.cache_read / mtok) * pricing.cache_read +
+  (tokens.cache_write / mtok) * pricing.cache_write;
+
+// Cache savings: what it would cost if cache reads were full-price input
+const withoutCache =
+  ((tokens.input + tokens.cache_read) / mtok) * pricing.input +
+  (tokens.output / mtok) * pricing.output;
+
+const savings = withoutCache - cost;
+```
+
+**Key rules:**
+- Always calculate 4 token types separately: input, output, cache_read, cache_write
+- Cache reads are 10x cheaper than regular input — this is the biggest cost factor
+- Show cache savings prominently — users want to know caching is working
+- When daily data only has total tokens (no split), estimate 70% input / 30% output
+- Use `formatCost()` from `cost-estimator.ts` for consistent formatting
+- Pricing is user-overridable via `~/.claude/orchestkit-pricing.json`
+
+
+### Analytics Data Privacy — CRITICAL
+
+
+## Analytics Data Privacy
+
+All analytics data must be local-only and privacy-safe. Never log PII or reversible identifiers.
+
+**Incorrect — logging raw paths and usernames:**
+```typescript
+// WRONG: raw project path is PII
+appendAnalytics('agent-usage.jsonl', {
+  project: process.env.CLAUDE_PROJECT_DIR,  // /Users/john/secret-project
+  user: os.userInfo().username,              // john
+  file: input.file_path,                     // /Users/john/secret-project/auth.ts
+});
+```
+
+**Correct — hashed identifiers, no PII:**
+```typescript
+// RIGHT: irreversible 12-char hash, no PII
+appendAnalytics('agent-usage.jsonl', {
+  ts: new Date().toISOString(),
+  pid: hashProject(process.env.CLAUDE_PROJECT_DIR || ''),  // "a3f8b2c1d4e5"
+  agent: agentType,       // "code-quality-reviewer" (not PII)
+  model: modelName,       // "claude-opus-4-6" (not PII)
+  duration_ms: durationMs,
+  success: true,
+});
+```
+
+**Key rules:**
+- Use `hashProject()` (12-char SHA256 truncation) for project identifiers — irreversible
+- Never log file paths, usernames, environment variables, or file contents
+- Agent names, skill names, and hook names are safe to log (not PII)
+- All data stays in `~/.claude/analytics/` — never transmitted externally
+- The `team` field uses team names (user-chosen), not paths
+
+
+### Large File Streaming — HIGH
+
+
+## Large File Streaming
+
+Handle large JSONL files (>50MB) with streaming queries and rotation-aware patterns.
+
+**Incorrect — slurping large files into memory:**
+```bash
+# WRONG: -s loads entire file into memory — OOM on 500MB file
+jq -s 'group_by(.agent) | map({agent: .[0].agent, count: length})' ~/.claude/analytics/agent-usage.jsonl
+```
+
+**Correct — streaming without slurp:**
+```bash
+# RIGHT: stream-process line by line, then aggregate
+jq -r '.agent' ~/.claude/analytics/agent-usage.jsonl | sort | uniq -c | sort -rn
+
+# RIGHT: for complex aggregations, use reduce
+jq -n '[inputs | .agent] | group_by(.) | map({agent: .[0], count: length}) | sort_by(-.count)' ~/.claude/analytics/agent-usage.jsonl
+```
+
+**Including rotated files for historical queries:**
+```bash
+# Rotated files follow pattern: <name>.<YYYY-MM>.jsonl
+# Include all months for full history
+jq -r '.agent' ~/.claude/analytics/agent-usage.*.jsonl ~/.claude/analytics/agent-usage.jsonl 2>/dev/null | sort | uniq -c | sort -rn
+```
+
+**Key rules:**
+- Check file size before querying: `ls -lh` the target file
+- Files >50MB: use streaming `jq` without `-s` (slurp) flag
+- Files &lt;50MB: `-s` is fine for `group_by` operations
+- Include rotated files (`*.YYYY-MM.jsonl`) when user asks for historical data
+- For date-range queries, filter by `ts` field before aggregating
+
 
 ### Dashboard Layout & Widgets — HIGH
 
@@ -481,4 +451,420 @@ function AccessibleChart({ data, title }: { data: ChartData[]; title: string }) 
 - Add `figure` role and `aria-label` for accessibility
 - Limit data points to prevent rendering performance issues
 - Memoize data calculations outside the render function
+
+
+
+---
+
+## References (5)
+
+### Cost Estimation
+
+# Cost Estimation
+
+Estimate token costs from CC's `~/.claude/stats-cache.json` using model-specific pricing.
+
+## Pricing Table (Feb 2026)
+
+| Model | Input/MTok | Output/MTok | Cache Read/MTok | Cache Write/MTok |
+|-------|-----------|------------|----------------|-----------------|
+| claude-opus-4-6 | $5.00 | $25.00 | $0.50 | $6.25 |
+| claude-sonnet-4-5 | $3.00 | $15.00 | $0.30 | $3.75 |
+| claude-haiku-4-5 | $1.00 | $5.00 | $0.10 | $1.25 |
+
+## Cost Formula
+
+```
+cost = (input_tokens / 1M * input_price)
+     + (output_tokens / 1M * output_price)
+     + (cache_read_tokens / 1M * cache_read_price)
+     + (cache_write_tokens / 1M * cache_write_price)
+```
+
+**Cache savings** = cost if all cache reads were full-price input minus actual cost.
+
+## All-Time Model Usage Query
+
+```bash
+jq '.modelUsage | to_entries | map({
+  model: .key,
+  input: .value.inputTokens,
+  output: .value.outputTokens,
+  cache_read: .value.cacheReadInputTokens,
+  cache_write: .value.cacheCreationInputTokens
+})' ~/.claude/stats-cache.json
+```
+
+## Daily Costs (Last 7 Days)
+
+```bash
+jq '.dailyModelTokens[-7:] | .[] | {date: .date, tokens: .tokensByModel}' ~/.claude/stats-cache.json
+```
+
+Note: `dailyModelTokens` only has total tokens per model, not split by type. Estimate with 70% input / 30% output ratio as a rough average for CC usage.
+
+## Presentation Format
+
+```markdown
+## Token Cost Estimate
+
+| Model | Input Tokens | Output Tokens | Cache Read | Cache Write | Est. Cost |
+|-------|-------------|--------------|------------|-------------|-----------|
+| claude-opus-4-6 | 5.2M | 1.4M | 42.0M | 2.1M | $16.20 |
+| claude-sonnet-4-5 | 200K | 50K | -- | -- | $1.85 |
+| **Total** | | | | | **$18.50** |
+
+**Cache savings:** $8.20 (what it would cost without prompt caching)
+
+### Daily Costs (Last 7 Days)
+| Date | Est. Cost |
+|------|-----------|
+| Feb 12 | $2.10 |
+| Feb 13 | $1.85 |
+| **Total** | **$18.50** |
+```
+
+## User-Overridable Config
+
+Users can override pricing by creating `~/.claude/orchestkit-pricing.json` — see `src/hooks/src/lib/cost-estimator.ts` for the schema.
+
+
+### Data Locations
+
+# Data Sources & File Locations
+
+All analytics data sources used by the analytics skill.
+
+## OrchestKit Analytics Files
+
+Location: `~/.claude/analytics/`
+
+| File | Contents | Key Fields |
+|------|----------|-----------|
+| `agent-usage.jsonl` | Agent spawn events | `ts, pid, agent, model, duration_ms, success, output_len, team?` |
+| `skill-usage.jsonl` | Skill invocations | `ts, pid, skill, team?` |
+| `hook-timing.jsonl` | Hook execution timing | `ts, hook, duration_ms, ok, pid, team?` |
+| `session-summary.jsonl` | Session end summaries | `ts, pid, total_tools, team?` |
+| `task-usage.jsonl` | Task completions | `ts, pid, task_status, duration_ms, team?` |
+| `team-activity.jsonl` | Team spawns and idle | `ts, pid, event, agent, member?, idle_ms?, model?, team` |
+
+## CC Native Data Sources
+
+| Source | Path | Contents |
+|--------|------|----------|
+| CC session logs | `~/.claude/projects/\{encoded-path\}/*.jsonl` | Full conversation with per-turn token usage |
+| CC stats cache | `~/.claude/stats-cache.json` | Pre-aggregated daily model tokens, session counts |
+| CC history | `~/.claude/history.jsonl` | Command history across all projects |
+
+## JSONL Format Notes
+
+- All OrchestKit files use newline-delimited JSON (JSONL)
+- Each line is a self-contained JSON object
+- Rotated files follow pattern `&lt;name&gt;.&lt;YYYY-MM&gt;.jsonl` — include them in queries for historical data
+- The `team` field is only present for entries recorded during team/swarm sessions
+- `pid` is a 12-char SHA256 hash of the project path — irreversible, used for grouping
+
+## CC Session JSONL Structure
+
+Each line in a CC session JSONL file is a JSON object. Key entry types:
+
+| Entry Pattern | How to Identify | Key Fields |
+|---------------|-----------------|------------|
+| Session metadata | Has `sessionId`, `gitBranch`, `version` | First entries in file |
+| Assistant message | `.message.role == "assistant"` | `.message.content[]`, `.message.usage` |
+| User message | `.message.role == "user"` | `.message.content` |
+| Tool use | `.message.content[].type == "tool_use"` | `.name`, `.input` |
+| Hook progress | `.type == "progress"` + `.data.type == "hook_progress"` | `.data.hookName` |
+
+## Encoded Project Path
+
+CC encodes project paths by replacing `/` with `-`:
+- `/Users/foo/coding/bar` becomes `-Users-foo-coding-bar`
+- The encoded path is the directory name under `~/.claude/projects/`
+
+
+### Jq Queries
+
+# Analytics jq Queries
+
+Ready-to-run jq queries for each analytics subcommand. All queries target `~/.claude/analytics/*.jsonl`.
+
+## agents — Top agents by frequency and duration
+
+```bash
+jq -s 'group_by(.agent) | map({
+  agent: .[0].agent,
+  count: length,
+  avg_ms: (map(.duration_ms // 0) | add / length | floor),
+  success_rate: (map(select(.success)) | length) / length * 100 | floor,
+  models: (group_by(.model) | map({model: .[0].model, count: length}) | sort_by(-.count))
+}) | sort_by(-.count)' ~/.claude/analytics/agent-usage.jsonl
+```
+
+## models — Model delegation breakdown
+
+```bash
+jq -s 'group_by(.model) | map({
+  model: .[0].model,
+  count: length,
+  avg_ms: (map(.duration_ms // 0) | add / length | floor),
+  agents: ([.[].agent] | unique)
+}) | sort_by(-.count)' ~/.claude/analytics/agent-usage.jsonl
+```
+
+## skills — Top skills by invocation count
+
+```bash
+jq -s 'group_by(.skill) | map({skill: .[0].skill, count: length}) | sort_by(-.count)' ~/.claude/analytics/skill-usage.jsonl
+```
+
+## hooks — Slowest hooks and failure rates
+
+```bash
+jq -s 'group_by(.hook) | map({
+  hook: .[0].hook,
+  count: length,
+  avg_ms: (map(.duration_ms) | add / length | floor),
+  fail_rate: (map(select(.ok == false)) | length) / length * 100 | floor
+}) | sort_by(-.avg_ms) | .[0:15]' ~/.claude/analytics/hook-timing.jsonl
+```
+
+## teams — Team spawn counts, idle time, task completions
+
+```bash
+# Team activity (spawns + idle)
+jq -s 'group_by(.team) | map({
+  team: .[0].team,
+  spawns: [.[] | select(.event == "spawn")] | length,
+  idles: [.[] | select(.event == "idle")] | length,
+  agents: [.[].agent] | unique
+}) | sort_by(-.spawns)' ~/.claude/analytics/team-activity.jsonl
+
+# Task completions by team
+jq -s '[.[] | select(.team != null)] | group_by(.team) | map({
+  team: .[0].team,
+  tasks: length,
+  avg_ms: (map(.duration_ms // 0) | add / length | floor)
+})' ~/.claude/analytics/task-usage.jsonl
+```
+
+## summary — Quick counts
+
+```bash
+# Line counts per file
+wc -l ~/.claude/analytics/*.jsonl 2>/dev/null
+
+# Unique projects
+jq -r .pid ~/.claude/analytics/agent-usage.jsonl 2>/dev/null | sort -u | wc -l
+```
+
+## Presentation Format
+
+Present all results as clean markdown tables with counts, percentages, and averages. If a file doesn't exist, note that no data has been collected yet for that category.
+
+Example output:
+
+```markdown
+| Agent | Count | Avg Duration | Success Rate | Top Model |
+|-------|-------|-------------|-------------|-----------|
+| code-quality-reviewer | 45 | 8.2s | 98% | opus |
+| test-generator | 32 | 12.1s | 94% | sonnet |
+```
+
+
+### Session Replay
+
+# Session Replay
+
+Parse and visualize CC session JSONL files to understand what happened in a session.
+
+## Usage
+
+- `/ork:analytics session latest` — most recent session
+- `/ork:analytics session &lt;partial-id&gt;` — match by prefix (e.g., `08ed1436`)
+- `/ork:analytics session &lt;full-uuid&gt;` — exact match
+
+## Step 1: Locate the Session File
+
+CC session logs live at `~/.claude/projects/\{encoded-project-path\}/`.
+
+The encoded path replaces `/` with `-` in the project directory path.
+Example: `/Users/foo/coding/bar` becomes `-Users-foo-coding-bar`
+
+```bash
+# Find project session dir
+PROJECT_DIR=$(echo "$CLAUDE_PROJECT_DIR" | sed 's|/|-|g')
+SESSION_DIR="$HOME/.claude/projects/$PROJECT_DIR"
+
+# List recent sessions (newest first)
+ls -t "$SESSION_DIR"/*.jsonl 2>/dev/null | head -5
+
+# For "latest": use the first result
+LATEST=$(ls -t "$SESSION_DIR"/*.jsonl 2>/dev/null | head -1)
+```
+
+## Step 2: Resolve the Session Reference
+
+- `latest` — find the most recently modified `.jsonl` file in the project directory
+- Partial ID (e.g., `08ed1436`) — find file starting with that prefix
+- Full UUID — exact match
+
+## Step 3: Parse JSONL and Extract Timeline
+
+Each line is a JSON object. Key extraction patterns:
+
+```bash
+# Count messages by role
+jq -r '.message.role // empty' "$SESSION_FILE" | sort | uniq -c | sort -rn
+
+# Extract tool calls with timestamps
+jq -r 'select(.message.role == "assistant") | .message.content[]? | select(.type == "tool_use") | .name' "$SESSION_FILE" | sort | uniq -c | sort -rn
+
+# Sum token usage
+jq -s '[.[].message.usage // empty | {
+  i: .input_tokens, o: .output_tokens,
+  cr: .cache_read_input_tokens, cw: .cache_creation_input_tokens
+}] | {
+  input: (map(.i) | add), output: (map(.o) | add),
+  cache_read: (map(.cr) | add), cache_write: (map(.cw) | add)
+}' "$SESSION_FILE"
+
+# Get session metadata
+jq -r 'select(.gitBranch) | .gitBranch' "$SESSION_FILE" | head -1
+jq -r 'select(.version) | .version' "$SESSION_FILE" | head -1
+
+# Get start/end timestamps
+jq -r '.timestamp' "$SESSION_FILE" | head -1   # start
+jq -r '.timestamp' "$SESSION_FILE" | tail -1   # end
+
+# Count agent spawns by type
+jq -r '.message.content[]? | select(.type == "tool_use" and .name == "Task") | .input.subagent_type' "$SESSION_FILE" | sort | uniq -c | sort -rn
+```
+
+## Step 4: Present as Timeline
+
+```markdown
+## Session: 08ed1436 — 2026-02-18 10:50 -> 11:35 (45min)
+**Branch:** bugfix/windows-spawn | **CC Version:** 2.1.45
+**Tokens:** 152K in, 38K out | **Cache hit rate:** 89%
+
+### Timeline
+| Time | Event | Details |
+|------|-------|---------|
+| 10:50:00 | SESSION START | branch: bugfix/windows-spawn |
+| 10:50:01 | HOOK | SessionStart:startup |
+| 10:50:05 | Read | src/hooks/bin/spawn-worker.mjs |
+| 10:50:08 | Grep | "spawn" in src/ |
+| 10:50:15 | Task (agent) | code-quality-reviewer |
+| 10:51:00 | Edit | src/hooks/bin/spawn-worker.mjs |
+| 10:52:30 | Bash | npm test -> 8.3s |
+| 11:35:00 | SESSION END | 23 tool calls, 3 agents |
+
+### Tool Usage
+| Tool | Count |
+|------|-------|
+| Read | 12 |
+| Edit | 5 |
+| Bash | 4 |
+| Task | 2 |
+
+### Token Breakdown
+| Metric | Value |
+|--------|-------|
+| Input tokens | 152,340 |
+| Output tokens | 38,210 |
+| Cache read | 1,245,000 |
+| Cache write | 18,500 |
+| Cache hit rate | 89% |
+```
+
+
+### Trends Analysis
+
+# Trends Analysis
+
+Show daily activity, model delegation trends, and cost patterns over time.
+
+## Usage
+
+- `/ork:analytics trends` — default 7 days
+- `/ork:analytics trends 30` — last 30 days
+
+## Step 1: Daily Activity (sessions, messages, tool calls)
+
+```bash
+jq '.dailyActivity[-7:]' ~/.claude/stats-cache.json
+```
+
+## Step 2: Daily Model Token Breakdown
+
+```bash
+jq '.dailyModelTokens[-7:] | .[] | {
+  date: .date,
+  models: (.tokensByModel | to_entries | map({model: .key, tokens: .value}) | sort_by(-.tokens))
+}' ~/.claude/stats-cache.json
+```
+
+## Step 3: Peak Productivity Hours
+
+```bash
+jq '.hourCounts | to_entries | sort_by(-.value) | .[0:5] | map({
+  hour: (.key + ":00"),
+  sessions: .value
+})' ~/.claude/stats-cache.json
+```
+
+## Step 4: All-Time Stats
+
+```bash
+jq '{
+  totalSessions: .totalSessions,
+  totalMessages: .totalMessages,
+  longestSession: {
+    id: .longestSession.sessionId,
+    duration_min: (.longestSession.duration / 60000 | floor),
+    messages: .longestSession.messageCount
+  }
+}' ~/.claude/stats-cache.json
+```
+
+## Presentation Format
+
+```markdown
+## Trends -- Last 7 Days
+
+### Daily Activity
+| Date | Sessions | Messages | Tools | Est. Cost |
+|------|----------|----------|-------|-----------|
+| Feb 12 | 6 | 1,200 | 450 | $2.10 |
+| Feb 13 | 5 | 980 | 380 | $1.85 |
+| ... | ... | ... | ... | ... |
+| **Total** | **42** | **8,380** | **3,390** | **$18.50** |
+
+### Model Delegation Trend
+| Date | opus | sonnet | haiku |
+|------|------|--------|-------|
+| Feb 12 | 452K | 31K | -- |
+| Feb 13 | 380K | 25K | 12K |
+| ... | ... | ... | ... |
+
+### Peak Productivity Hours
+| Hour | Sessions |
+|------|----------|
+| 10:00 | 78 |
+| 9:00 | 71 |
+| 14:00 | 65 |
+
+### All-Time Stats
+- **Total sessions:** [N]
+- **Total messages:** [N]
+- **Longest session:** [id] -- [N] min, [N] messages
+```
+
+## Cost Per Day
+
+Apply pricing from `references/cost-estimation.md` to daily token counts:
+- Split daily tokens by model
+- Apply per-model pricing (70/30 input/output estimate for daily totals)
+- Show daily cost in the activity table
 

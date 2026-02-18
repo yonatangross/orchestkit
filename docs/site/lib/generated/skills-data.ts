@@ -105,7 +105,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "analytics": {
     "name": "analytics",
     "description": "Query cross-project usage analytics. Use when reviewing agent, skill, hook, or team performance across OrchestKit projects. Also replay sessions, estimate costs, and view model delegation trends.",
-    "version": "2.0.0",
+    "version": "2.1.0",
     "author": "OrchestKit",
     "tags": [
       "analytics",
@@ -136,7 +136,15 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": "metrics-architect",
-    "structure": {},
+    "structure": {
+      "references": [
+        "cost-estimation.md",
+        "data-locations.md",
+        "jq-queries.md",
+        "session-replay.md",
+        "trends-analysis.md"
+      ]
+    },
     "plugins": [
       "ork"
     ],
