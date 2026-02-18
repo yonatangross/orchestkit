@@ -14,6 +14,34 @@ gh issue create \
   --milestone "Sprint 5"
 ```
 
+> **Note:** `--milestone` takes the milestone **NAME** (string), not a number. See [CLI vs API Identifiers](cli-vs-api-identifiers.md) for the full NAME/NUMBER mapping.
+
+### Batch Creation
+
+Create multiple issues from an array — useful for seeding sprints or creating related tasks:
+
+```bash
+SPRINT="Sprint 9"
+ISSUES=(
+  "feat: Add user auth|enhancement,backend"
+  "fix: Login redirect loop|bug,high"
+  "chore: Update CI dependencies|maintenance"
+)
+
+for entry in "${ISSUES[@]}"; do
+  IFS='|' read -r title labels <<< "$entry"
+  NUM=$(gh issue create \
+    --title "$title" \
+    --label "$labels" \
+    --milestone "$SPRINT" \
+    --body "" \
+    --json number --jq '.number')
+  echo "Created #$NUM: $title"
+done
+```
+
+Capture the issue number at creation with `--json number --jq '.number'` so you can immediately add it to Projects v2 or link it elsewhere.
+
 ### With Multi-line Body (Heredoc)
 
 ```bash

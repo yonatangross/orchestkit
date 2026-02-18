@@ -1306,6 +1306,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "agent": null,
     "structure": {
       "references": [
+        "cli-vs-api-identifiers.md",
         "graphql-api.md",
         "issue-management.md",
         "milestone-api.md",
