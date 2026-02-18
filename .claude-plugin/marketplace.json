@@ -8,7 +8,6 @@
     "name": "Yonatan Gross",
     "email": "yonatan2gross@gmail.com"
   },
-  "_cursor_compat_note": "Cursor may misread 'author' fields below as MCP servers. This is a Cursor bug — disable the 'author' MCP entry in Cursor settings if you see 'plugin-ork-author MCP fails'.",
   "metadata": {
     "pluginRoot": "./plugins"
   },
