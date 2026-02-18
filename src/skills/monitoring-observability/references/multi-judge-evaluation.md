@@ -64,7 +64,7 @@ async def depth_evaluator(trace_id: str, output: str) -> float:
     get_client().update_current_observation(
         input=output[:500],
         output={"score": score, "criterion": "depth"},
-        model="claude-sonnet-4-5-20250929",
+        model="claude-sonnet-4-6",
     )
 
     # Record score on the original trace
@@ -82,7 +82,7 @@ Result in Langfuse UI — the evaluator's own trace is inspectable:
 ```
 evaluator:depth_judge (0.6s, $0.008)
 ├── generation: depth_prompt → 0.85
-└── metadata: {criterion: "depth", model: "claude-sonnet-4-5"}
+└── metadata: {criterion: "depth", model: "claude-sonnet-4-6"}
 ```
 
 ## Existing OrchestKit Evaluators (v3 Updated)

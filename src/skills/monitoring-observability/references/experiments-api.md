@@ -285,7 +285,7 @@ async def ab_test_models(dataset_name: str):
     """Compare two model configurations."""
 
     configs = {
-        "sonnet": {"model": "claude-sonnet-4-5-20250929", "temperature": 0.7},
+        "sonnet": {"model": "claude-sonnet-4-6", "temperature": 0.7},
         "gpt5": {"model": "gpt-5.2", "temperature": 0.7},
     }
 

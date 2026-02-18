@@ -17,6 +17,7 @@ Model ID format changed from `claude-{version}-{variant}` to `claude-{variant}-{
 |------|----|-------------|
 | `claude-3-5-sonnet-20241022` | `claude-sonnet-4-20250514` | ID format change, +extended thinking |
 | `claude-sonnet-4-20250514` | `claude-sonnet-4-5-20250916` | +1M context |
+| `claude-sonnet-4-5-20250916` | `claude-sonnet-4-6` | Performance improvements |
 | `claude-opus-4-20250514` | `claude-opus-4-6-20260115` | +1M context, +128K output, +files API |
 
 ### Common Breaking Changes

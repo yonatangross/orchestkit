@@ -320,7 +320,7 @@ def get_llm_provider(task_type: TaskType = TaskType.REASONING) -> OllamaProvider
 
     model = {
         TaskType.REASONING: "gemini-3-flash-preview",
-        TaskType.CODING: "claude-sonnet-4-5-20251101",
+        TaskType.CODING: "claude-sonnet-4-6",
         TaskType.GENERAL: "gpt-5.2-mini",
     }.get(task_type, "gpt-5.2-mini")
 

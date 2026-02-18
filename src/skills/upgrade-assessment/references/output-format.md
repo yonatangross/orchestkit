@@ -13,7 +13,7 @@ The upgrade assessment produces a structured JSON report with the following sche
   },
   "environment": {
     "current": {
-      "model": "claude-sonnet-4-5",
+      "model": "claude-sonnet-4-6",
       "ccVersion": "2.1.32",
       "orkVersion": "6.0.0",
       "hooks": 121,

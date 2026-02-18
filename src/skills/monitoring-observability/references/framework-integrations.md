@@ -17,7 +17,7 @@ async def run_claude_agent(task: str):
 
     # Claude Agent SDK traces automatically via OTEL
     response = client.messages.create(
-        model="claude-sonnet-4-5-20250929",
+        model="claude-sonnet-4-6",
         max_tokens=4096,
         tools=[
             {
@@ -34,7 +34,7 @@ async def run_claude_agent(task: str):
     )
 
     get_client().update_current_observation(
-        model="claude-sonnet-4-5-20250929",
+        model="claude-sonnet-4-6",
         usage={
             "input_tokens": response.usage.input_tokens,
             "output_tokens": response.usage.output_tokens,
@@ -55,7 +55,7 @@ claude_agent (agent, 4.2s, $0.08)
 │   ├── tool_use: read_file(path="src/main.py")
 │   ├── tool_result: "def main():..."
 │   └── assistant: "The code has..."
-└── metadata: {model: claude-sonnet-4-5, tokens: 2500}
+└── metadata: {model: claude-sonnet-4-6, tokens: 2500}
 ```
 
 ## OpenAI Agents SDK
@@ -117,7 +117,7 @@ async def run_pydantic_agent(query: str):
         recommendations: list[str]
 
     agent = Agent(
-        "claude-sonnet-4-5-20250929",
+        "claude-sonnet-4-6",
         result_type=AnalysisResult,
         system_prompt="You are a security analyst.",
     )
@@ -152,14 +152,14 @@ async def run_crew(task_description: str):
         role="Senior Researcher",
         goal="Find comprehensive information",
         backstory="Expert researcher with 10 years experience",
-        llm="claude-sonnet-4-5-20250929",
+        llm="claude-sonnet-4-6",
     )
 
     writer = Agent(
         role="Technical Writer",
         goal="Create clear documentation",
         backstory="Technical writer specializing in developer docs",
-        llm="claude-sonnet-4-5-20250929",
+        llm="claude-sonnet-4-6",
     )
 
     research_task = Task(
