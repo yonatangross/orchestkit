@@ -44,6 +44,60 @@ OrchestKit has 3 memory tiers. All work automatically with zero configuration:
 
 High-confidence decisions (confidence >= 0.7) automatically promote from Graph to CC Native, ensuring they persist even without OrchestKit installed.
 
+## MCP Servers
+
+OrchestKit ships with 4 MCPs enabled by default in `.mcp.json`:
+
+| MCP | Purpose | Default |
+|-----|---------|---------|
+| `context7` | Up-to-date library docs (no key needed) | enabled |
+| `memory` | Knowledge graph — persists decisions across sessions | enabled |
+| `tavily` | Web search, extract, crawl (requires API key) | enabled |
+| `agentation` | UI annotation — browser feedback picked up automatically | enabled |
+| `sequential-thinking` | Complex reasoning (optional — Opus 4.6 has native thinking) | disabled |
+
+### Tavily Setup
+
+Tavily requires a free API key ([app.tavily.com](https://app.tavily.com) — 1,000 credits/month free).
+
+**Option A — 1Password (recommended):**
+```bash
+op item create --category "API Credential" --title "Tavily API Key" "API Key=tvly-..."
+```
+The `.mcp.json` entry uses `op read` to fetch it at startup — no key in config files.
+
+**Option B — environment variable:**
+```bash
+export TAVILY_API_KEY="tvly-your-key-here"
+```
+Then update `.mcp.json` to use `"${TAVILY_API_KEY}"` in the env block.
+
+**Option C — Remote MCP (no local process):**
+```json
+"tavily": {
+  "type": "url",
+  "url": "https://mcp.tavily.com/mcp/?tavilyApiKey=YOUR_KEY"
+}
+```
+
+### Disabling an MCP
+
+Set `"disabled": true` for any MCP in `.mcp.json`:
+```json
+"sequential-thinking": {
+  "command": "npx",
+  "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+  "disabled": true
+}
+```
+
+### Without MCPs
+
+All skills and agents work without MCPs — they add extra capabilities:
+- Without `context7`: `/implement` works but won't fetch latest library docs
+- Without `tavily`: web research falls back to `WebFetch` → `agent-browser`
+- Without `memory`: decisions persist via local files and CC Native memory
+
 ## Hook Behavior
 
 Hooks fire automatically. If a hook blocks an action unexpectedly:

@@ -155,6 +155,20 @@ By default, memory is project-scoped. Use `/ork:remember --global` to store patt
 
 ---
 
+## Cursor
+
+### Cursor shows "plugin-ork-author MCP fails -- No stored tokens"
+
+This is a known Cursor bug. Cursor misreads the `author` metadata field in OrchestKit's plugin manifest as an MCP server registration. OrchestKit has no MCP server named "author".
+
+**Workaround**: Open Cursor Settings, go to the MCP section, and disable the "author" entry. This does not affect OrchestKit functionality.
+
+<Callout type="info">
+This issue is tracked in [#698](https://github.com/yonatangross/orchestkit/issues/698). It only affects Cursor -- Claude Code handles the `author` field correctly.
+</Callout>
+
+---
+
 ## Compatibility
 
 ### Does OrchestKit work on Windows?

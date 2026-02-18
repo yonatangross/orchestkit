@@ -16,8 +16,21 @@
     "memory": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-memory"],
+      "env": { "MEMORY_FILE": ".claude/memory/memory.json" },
       "description": "Knowledge graph memory (PRIMARY) - zero-config, always available",
       "auto": "90"
+    },
+    "tavily": {
+      "command": "sh",
+      "args": ["-c", "TAVILY_API_KEY=$(op read 'op://Private/Tavily API Key/API Key') exec npx -y tavily-mcp@latest"],
+      "description": "Web search, extract, crawl, and deep research",
+      "auto": "70"
+    },
+    "agentation": {
+      "command": "npx",
+      "args": ["-y", "agentation-mcp", "server"],
+      "description": "UI annotation tool — browser feedback picked up automatically",
+      "auto": "65"
     }
   }
 }

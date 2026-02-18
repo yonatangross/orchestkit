@@ -19,10 +19,16 @@
       "description": "Local file-based memory via knowledge graph",
       "disabled": true
     },
-    "playwright": {
+    "tavily": {
+      "command": "sh",
+      "args": ["-c", "TAVILY_API_KEY=$(op read 'op://Private/Tavily API Key/API Key') exec npx -y tavily-mcp@latest"],
+      "description": "Web search, extract, crawl, and deep research (requires API key)",
+      "disabled": true
+    },
+    "agentation": {
       "command": "npx",
-      "args": ["-y", "@playwright/mcp"],
-      "description": "Browser automation for e2e testing and content capture",
+      "args": ["-y", "agentation-mcp", "server"],
+      "description": "UI annotation tool — browser feedback picked up automatically",
       "disabled": true
     }
   }

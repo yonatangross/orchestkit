@@ -1,11 +1,11 @@
 ---
 title: "SessionStart"
-description: "Hooks triggered on SessionStart events (5 hooks)."
+description: "Hooks triggered on SessionStart events (6 hooks)."
 ---
 
 # SessionStart Hooks
 
-**5 hooks** registered for the `SessionStart` lifecycle event.
+**6 hooks** registered for the `SessionStart` lifecycle event.
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
@@ -14,3 +14,4 @@ description: "Hooks triggered on SessionStart events (5 hooks)."
 | `analytics-consent-check` | `*` | 💡 Injects | Check if user needs to be prompted for analytics consent |
 | `pr-status-enricher` | `*` | 💡 Injects | Runs at session start to provide PR context. Sets: |
 | `prefill-guard` | `*` | 🔇 Silent | Opus 4.6 removed support for response prefilling (prefilled assistant |
+| `mcp-health-check` | `*` | 🔇 Silent | — |

@@ -120,6 +120,7 @@ gh issue edit $ARGUMENTS --add-label "status:in-review" --remove-label "status:i
 2. **Giant commits at the end** — makes review harder and history useless for bisect
 3. **Forgetting to link PR to issue** — issue stays open after merge
 4. **Not updating labels on PR creation** — issue shows "in-progress" during review
+5. **Closing issues manually with `gh issue close`** — issues are closed ONLY by merging a PR with `Closes #N` in the body. During work, comment progress with `gh issue comment`; never close directly.
 
 
 ## Related Skills
