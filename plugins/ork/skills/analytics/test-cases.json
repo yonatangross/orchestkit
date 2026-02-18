@@ -4,7 +4,6 @@
   "testCases": [
     {
       "id": "analytics-agents",
-      "rule": "analytics-agents",
       "query": "/ork:analytics agents",
       "expectedBehavior": [
         "Reads agent-usage.jsonl from ~/.claude/analytics/",
@@ -15,7 +14,6 @@
     },
     {
       "id": "analytics-session-latest",
-      "rule": "analytics-session",
       "query": "/ork:analytics session latest",
       "expectedBehavior": [
         "Finds CC session directory using encoded project path",
@@ -26,7 +24,6 @@
     },
     {
       "id": "analytics-cost",
-      "rule": "analytics-cost",
       "query": "/ork:analytics cost",
       "expectedBehavior": [
         "Reads ~/.claude/stats-cache.json for modelUsage data",
@@ -38,7 +35,6 @@
     },
     {
       "id": "analytics-trends",
-      "rule": "analytics-trends",
       "query": "/ork:analytics trends 30",
       "expectedBehavior": [
         "Reads dailyActivity and dailyModelTokens from stats-cache.json for last 30 days",
@@ -50,7 +46,6 @@
     },
     {
       "id": "analytics-no-trigger-general",
-      "rule": "analytics-trigger",
       "query": "How many tokens did I use today?",
       "expectedBehavior": [
         "Analytics skill should NOT activate for general token questions",
@@ -60,7 +55,6 @@
     },
     {
       "id": "analytics-no-subcommand",
-      "rule": "analytics-subcommands",
       "query": "/ork:analytics",
       "expectedBehavior": [
         "No subcommand provided — uses AskUserQuestion to let user pick",
@@ -69,7 +63,6 @@
     },
     {
       "id": "analytics-summary",
-      "rule": "analytics-summary",
       "query": "/ork:analytics summary",
       "expectedBehavior": [
         "Runs all subcommand queries and presents unified view",
