@@ -37,18 +37,20 @@ describe('Async Hooks Registry', () => {
     hooksConfig = JSON.parse(content);
   });
 
-  describe('Silent Hook Configuration (Issue #243)', () => {
-    it('should have unified dispatchers using silent runner (not async flag)', () => {
-      // Issue #243: Async hooks converted to fire-and-forget using run-hook-silent.mjs
-      // This eliminates "Async hook X completed" messages while still running async work
-      // in detached background processes.
-      const expectedSilentDispatchers = [
+  describe('Native Async Hook Configuration (Issue #653)', () => {
+    it('should have unified dispatchers using native async: true', () => {
+      // Issue #653: Migrated from fire-and-forget spawn pattern (run-hook-silent.mjs)
+      // to native CC async: true. Eliminates per-event process spawning entirely.
+      // Fixes Windows console flashing (#644) and reduces overhead from ~50ms to ~0ms per event.
+      const expectedAsyncDispatchers = [
         { path: 'lifecycle/unified-dispatcher', event: 'SessionStart' },
         { path: 'posttool/unified-dispatcher', event: 'PostToolUse' },
         { path: 'stop/unified-dispatcher', event: 'Stop' },
         { path: 'subagent-stop/unified-dispatcher', event: 'SubagentStop' },
         { path: 'notification/unified-dispatcher', event: 'Notification' },
         { path: 'setup/unified-dispatcher', event: 'Setup' },
+        { path: 'prompt/capture-user-intent', event: 'UserPromptSubmit' },
+        { path: 'notification/sound', event: 'Notification' },
       ];
 
       const allHooks: Hook[] = [];
@@ -58,15 +60,16 @@ describe('Async Hooks Registry', () => {
         }
       }
 
-      for (const { path: hookPath, event } of expectedSilentDispatchers) {
+      for (const { path: hookPath, event } of expectedAsyncDispatchers) {
         const hook = allHooks.find(h => h.command?.includes(hookPath));
         expect(hook, `Dispatcher ${hookPath} (${event}) should exist in hooks.json`).toBeDefined();
-        expect(hook?.command, `Dispatcher ${hookPath} (${event}) should use run-hook-silent.mjs`).toContain('run-hook-silent.mjs');
-        expect(hook?.async, `Dispatcher ${hookPath} (${event}) should NOT have async flag`).toBeUndefined();
+        expect(hook?.command, `Dispatcher ${hookPath} (${event}) should use run-hook.mjs (not silent)`).toContain('run-hook.mjs');
+        expect(hook?.command, `Dispatcher ${hookPath} should NOT use run-hook-silent.mjs`).not.toContain('run-hook-silent.mjs');
+        expect(hook?.async, `Dispatcher ${hookPath} (${event}) should have async: true`).toBe(true);
       }
     });
 
-    it('should have NO async hooks (all use silent runner)', () => {
+    it('should have exactly 8 async hooks', () => {
       const allHooks: Hook[] = [];
       for (const eventGroups of Object.values(hooksConfig.hooks)) {
         for (const group of eventGroups) {
@@ -75,7 +78,7 @@ describe('Async Hooks Registry', () => {
       }
 
       const asyncHooks = allHooks.filter(h => h.async === true);
-      expect(asyncHooks.length, 'All async hooks should be converted to silent pattern').toBe(0);
+      expect(asyncHooks.length, 'Should have exactly 8 async hooks').toBe(8);
     });
 
     it('should NOT have async: true for blocking hooks', () => {
@@ -110,21 +113,20 @@ describe('Async Hooks Registry', () => {
         }
       }
     });
-  });
 
-  describe('Async Hook Count', () => {
-    it('should have exactly the expected number of async hooks (one dispatcher per event)', () => {
-      let asyncCount = 0;
+    it('should NOT use run-hook-silent.mjs or stop-fire-and-forget.mjs', () => {
+      const allHooks: Hook[] = [];
       for (const eventGroups of Object.values(hooksConfig.hooks)) {
         for (const group of eventGroups) {
-          asyncCount += group.hooks.filter(h => h.async === true).length;
+          allHooks.push(...group.hooks);
         }
       }
 
-      // Issue #243: All async hooks converted to fire-and-forget silent pattern.
-      // Now using run-hook-silent.mjs which spawns detached background processes.
-      // No "Async hook X completed" messages are printed since hooks are now sync.
-      expect(asyncCount).toBe(0);
+      const silentHooks = allHooks.filter(h => h.command?.includes('run-hook-silent.mjs'));
+      expect(silentHooks.length, 'No hooks should use run-hook-silent.mjs (use async: true instead)').toBe(0);
+
+      const stopFafHooks = allHooks.filter(h => h.command?.includes('stop-fire-and-forget.mjs'));
+      expect(stopFafHooks.length, 'No hooks should use stop-fire-and-forget.mjs (use async: true instead)').toBe(0);
     });
   });
 
@@ -165,10 +167,10 @@ describe('Async Hooks Registry', () => {
     });
   });
 
-  describe('Silent Runner Configuration (Issue #243)', () => {
-    it('should have NO timeout values (silent runner manages its own lifecycle)', () => {
-      // Issue #243: Silent runner hooks don't use timeout field
-      // Background processes manage their own lifecycle independently
+  describe('Async Dispatcher Configuration (Issue #653)', () => {
+    it('should have all async dispatchers using run-hook.mjs with async: true', () => {
+      // Issue #653: Native async: true replaces fire-and-forget spawn pattern.
+      // No timeout field needed — CC manages async hook lifecycle natively.
       const allHooks: Hook[] = [];
       for (const eventGroups of Object.values(hooksConfig.hooks)) {
         for (const group of eventGroups) {
@@ -176,21 +178,23 @@ describe('Async Hooks Registry', () => {
         }
       }
 
-      // All dispatchers should use silent runner (no timeout field)
-      const silentDispatchers = [
+      const asyncDispatchers = [
         'lifecycle/unified-dispatcher',
         'posttool/unified-dispatcher',
         'stop/unified-dispatcher',
         'subagent-stop/unified-dispatcher',
         'notification/unified-dispatcher',
         'setup/unified-dispatcher',
+        'prompt/capture-user-intent',
+        'notification/sound',
       ];
 
-      for (const hookPath of silentDispatchers) {
+      for (const hookPath of asyncDispatchers) {
         const hook = allHooks.find(h => h.command?.includes(hookPath));
         expect(hook, `Dispatcher ${hookPath} should exist`).toBeDefined();
-        expect(hook!.command, `${hookPath} should use run-hook-silent.mjs`).toContain('run-hook-silent.mjs');
-        expect(hook!.timeout, `${hookPath} should NOT have timeout (silent runner)`).toBeUndefined();
+        expect(hook!.command, `${hookPath} should use run-hook.mjs`).toContain('run-hook.mjs');
+        expect(hook!.command, `${hookPath} should NOT use run-hook-silent.mjs`).not.toContain('run-hook-silent.mjs');
+        expect(hook!.async, `${hookPath} should have async: true`).toBe(true);
       }
     });
   });

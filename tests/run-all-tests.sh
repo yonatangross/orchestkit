@@ -223,7 +223,7 @@ if [[ "$RUN_SECURITY" == "true" ]]; then
     run_test "Symlink Attack Tests" "$SCRIPT_DIR/security/test-symlink-attacks.sh" || true
     run_test "Input Validation Tests" "$SCRIPT_DIR/security/test-input-validation.sh" || true
     run_test "Additional Security Tests" "$SCRIPT_DIR/security/test-additional-security.sh" || true
-    run_test "Mem0 Security Tests" "$SCRIPT_DIR/security/test-mem0-security.sh" || true
+    # Mem0 removed — security tests deleted
 fi
 
 # ============================================================
@@ -239,9 +239,7 @@ if [[ "$RUN_INTEGRATION" == "true" ]]; then
     run_test "Context System Integration" "$SCRIPT_DIR/integration/test-context-system.sh" || true
     run_test "Plugin Installation Validation" "$SCRIPT_DIR/integration/test-plugin-installation.sh" || true
 
-    # Mem0 Integration Tests (v4.12.0)
-    run_test "Mem0 Library Tests" "$SCRIPT_DIR/mem0/test-mem0-library.sh" || true
-    run_test "Mem0 Integration Tests" "$SCRIPT_DIR/mem0/test-mem0-integration.sh" || true
+    # Mem0 removed — integration tests deleted
 
     # External Installation Tests (v4.12.0)
     run_test "External Installation Tests" "$SCRIPT_DIR/external/test-installation.sh" || true
