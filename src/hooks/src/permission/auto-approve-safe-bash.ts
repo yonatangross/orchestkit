@@ -11,6 +11,16 @@ import {
   logHook,
   logPermissionFeedback,
 } from '../lib/common.js';
+import { isCompoundCommand, normalizeSingle } from '../lib/normalize-command.js';
+
+/**
+ * Patterns that should NEVER be auto-approved even if they match SAFE_PATTERNS.
+ * SEC: git checkout -- . discards all unstaged changes — destructive.
+ */
+const REJECT_PATTERNS: RegExp[] = [
+  /^git\s+checkout\s+--\s+\./, // git checkout -- . (discard all changes)
+  /^git\s+checkout\s+\.\s*$/,  // git checkout . (same effect)
+];
 
 /**
  * Safe command patterns that should be auto-approved
@@ -66,9 +76,26 @@ export function autoApproveSafeBash(input: HookInput): HookResult {
 
   logHook('auto-approve-safe-bash', `Evaluating bash command: ${command.slice(0, 50)}...`);
 
-  // Check against safe patterns
+  // SEC: Reject compound commands — "git status && rm -rf /" must NOT auto-approve
+  if (command && isCompoundCommand(command)) {
+    logHook('auto-approve-safe-bash', 'Compound command detected, requiring manual approval');
+    return outputSilentSuccess();
+  }
+
+  // Normalize the command (expand escapes, strip quotes) for pattern matching
+  const normalized = command ? normalizeSingle(command) : '';
+
+  // SEC: Check reject patterns first (e.g., git checkout -- .)
+  for (const pattern of REJECT_PATTERNS) {
+    if (pattern.test(normalized)) {
+      logHook('auto-approve-safe-bash', `Rejected: matches reject pattern ${pattern}`);
+      return outputSilentSuccess();
+    }
+  }
+
+  // Check against safe patterns using normalized command
   for (const pattern of SAFE_PATTERNS) {
-    if (pattern.test(command)) {
+    if (pattern.test(normalized)) {
       logHook('auto-approve-safe-bash', `Auto-approved: matches safe pattern ${pattern}`);
       logPermissionFeedback('allow', `Matches safe pattern: ${pattern}`, input);
       return outputSilentAllow();

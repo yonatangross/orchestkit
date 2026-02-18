@@ -10,8 +10,12 @@ import {
   outputDeny,
   logHook,
   logPermissionFeedback,
-  normalizeCommand,
+  normalizeCommand as normalizeCommandLegacy,
 } from '../../lib/common.js';
+import {
+  normalizeCommand as normalizeCommandSplit,
+  containsDangerousCommand,
+} from '../../lib/normalize-command.js';
 
 /**
  * Dangerous patterns - commands that can cause catastrophic system damage
@@ -64,20 +68,32 @@ export function dangerousCommandBlocker(input: HookInput): HookResult {
     return outputSilentSuccess();
   }
 
-  // Normalize: remove line continuations and collapse whitespace, lowercase for pattern matching
-  const normalizedCommand = normalizeCommand(command).toLowerCase();
+  // Normalize: expand escapes, strip quotes, split compound operators, then check each sub-command
+  const dangerousCheck = containsDangerousCommand(command, DANGEROUS_PATTERNS);
+  if (dangerousCheck.matches) {
+    const pattern = dangerousCheck.matched!;
+    logHook('dangerous-command-blocker', `BLOCKED: Dangerous pattern: ${pattern}`);
+    logPermissionFeedback('deny', `Dangerous pattern: ${pattern}`, input);
 
-  // Check command against each dangerous pattern (literal substring, case-insensitive)
-  for (const pattern of DANGEROUS_PATTERNS) {
-    if (normalizedCommand.includes(pattern.toLowerCase())) {
-      logHook('dangerous-command-blocker', `BLOCKED: Dangerous pattern: ${pattern}`);
-      logPermissionFeedback('deny', `Dangerous pattern: ${pattern}`, input);
+    return outputDeny(
+      `Command matches dangerous pattern: ${pattern}\n\n` +
+        'This command could cause severe system damage and has been blocked.'
+    );
+  }
 
-      return outputDeny(
-        `Command matches dangerous pattern: ${pattern}\n\n` +
-          'This command could cause severe system damage and has been blocked.'
-      );
-    }
+  // Legacy normalized form for regex checks and patterns that contain operators
+  const normalizedCommand = normalizeCommandLegacy(command).toLowerCase();
+
+  // Fork bomb detection — pattern contains | and ; so it can't be matched after splitting
+  if (normalizedCommand.includes(':(){:|:&};:')) {
+    const reason = 'Fork bomb detected';
+    logHook('dangerous-command-blocker', `BLOCKED: ${reason}`);
+    logPermissionFeedback('deny', reason, input);
+
+    return outputDeny(
+      `Command matches dangerous pattern: :(){:|:&};:\n\n` +
+        'This command could cause severe system damage and has been blocked.'
+    );
   }
 
   // Check for piping to shell interpreters (e.g., wget URL | sh, curl URL | bash)
