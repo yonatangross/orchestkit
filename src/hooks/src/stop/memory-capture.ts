@@ -9,35 +9,12 @@
  * Also nudges /ork:remember for sessions with >50 tool calls (Issue #705).
  */
 
-import { existsSync, statSync, readFileSync, mkdirSync, appendFileSync, renameSync } from 'node:fs';
+import { existsSync, statSync, mkdirSync, appendFileSync, renameSync } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook, getProjectDir } from '../lib/common.js';
-import { getMetricsFile } from '../lib/paths.js';
-
-interface SessionMetrics {
-  tools?: Record<string, number>;
-  [key: string]: unknown;
-}
-
-/**
- * Get total tool invocations from metrics file
- */
-function getTotalTools(): number {
-  const metricsFile = getMetricsFile();
-  if (!existsSync(metricsFile)) {
-    return 0;
-  }
-
-  try {
-    const metrics: SessionMetrics = JSON.parse(readFileSync(metricsFile, 'utf-8'));
-    const tools = metrics.tools || {};
-    return Object.values(tools).reduce((sum, count) => sum + count, 0);
-  } catch {
-    return 0;
-  }
-}
+import { getTotalTools } from '../lib/metrics.js';
 
 /**
  * Auto-capture session summary to ~/.claude/memory/decisions.jsonl

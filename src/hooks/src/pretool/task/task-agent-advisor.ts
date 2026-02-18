@@ -20,11 +20,8 @@ import { outputSilentSuccess, outputAllowWithContext, logHook } from '../../lib/
 const HOOK_NAME = 'task-agent-advisor';
 
 /**
- * Maps common ad-hoc subagent names to curated ork agents.
- * Keys are lowercase for case-insensitive matching.
- */
-/**
  * Ad-hoc names that should be replaced with curated ork agents.
+ * Keys are lowercase for case-insensitive matching.
  */
 const ORK_AGENT_SYNONYMS: Record<string, string> = {
   'frontend-dev': 'ork:frontend-ui-developer',
@@ -86,7 +83,7 @@ export function taskAgentAdvisor(input: HookInput): HookResult {
   if (casingFix) {
     logHook(HOOK_NAME, `Casing fix: "${agentType}" -> "${casingFix}"`);
     return outputAllowWithContext(
-      `\`${casingFix}\` (capital E) is the correct built-in name — lowercase \`${agentType}\` may not resolve correctly.`,
+      `\`${casingFix}\` is the correct built-in name — \`${agentType}\` is wrong-cased and may not resolve correctly (CC 2.1.45 spec).`,
     );
   }
 

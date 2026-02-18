@@ -13,10 +13,7 @@ import { logHook, getProjectDir, outputSilentSuccess } from '../lib/common.js';
 import { cleanupTeam } from '../lib/agent-teams.js';
 import { appendAnalytics, hashProject, getTeamContext } from '../lib/analytics.js';
 import { getMetricsFile } from '../lib/paths.js';
-
-interface SessionMetrics {
-  tools?: Record<string, number>;
-}
+import { getTotalTools } from '../lib/metrics.js';
 
 interface SessionEntry {
   sessionId: string;
@@ -31,23 +28,6 @@ interface SessionsIndex {
 }
 
 /**
- * Get total tool invocations from metrics
- */
-function getTotalTools(metricsFile: string): number {
-  if (!existsSync(metricsFile)) {
-    return 0;
-  }
-
-  try {
-    const metrics: SessionMetrics = JSON.parse(readFileSync(metricsFile, 'utf-8'));
-    const tools = metrics.tools || {};
-    return Object.values(tools).reduce((sum, count) => sum + count, 0);
-  } catch {
-    return 0;
-  }
-}
-
-/**
  * Archive session metrics if significant
  */
 function archiveMetrics(metricsFile: string, archiveDir: string): void {
@@ -55,7 +35,7 @@ function archiveMetrics(metricsFile: string, archiveDir: string): void {
     return;
   }
 
-  const totalTools = getTotalTools(metricsFile);
+  const totalTools = getTotalTools();
 
   // Only archive if there were more than 5 tool calls
   if (totalTools <= 5) {
@@ -308,7 +288,7 @@ export function sessionCleanup(input: HookInput): HookResult {
   }
 
   // Cross-project session summary (Issue #459, #707)
-  const totalTools = getTotalTools(metricsFile);
+  const totalTools = getTotalTools();
   if (totalTools > 0) {
     appendAnalytics('session-summary.jsonl', {
       ts: new Date().toISOString(),

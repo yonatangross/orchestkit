@@ -16,8 +16,8 @@ import { outputPromptContext, outputSilentSuccess, logHook } from '../lib/common
 
 const HOOK_NAME = 'skill-nudge-prompt';
 
-/** Match github.com/<owner>/<repo>/issues/<number> URLs */
-const ISSUE_URL_RE = /https?:\/\/github\.com\/[\w.-]+\/[\w.-]+\/issues\/\d+/;
+/** Match github.com/<owner>/<repo>/issues/<number> — anchored so sub-paths like /comments don't match */
+const ISSUE_URL_RE = /https?:\/\/github\.com\/[\w.-]+\/[\w.-]+\/issues\/\d+(?=[/?#]|$)/;
 
 /**
  * Detect GitHub issue URL in user prompt and nudge fix-issue skill
