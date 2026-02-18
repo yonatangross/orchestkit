@@ -172,7 +172,6 @@ done
 6. **Use ISO 8601 dates** - `YYYY-MM-DDTHH:MM:SSZ` for milestone due_on
 7. **Close milestones, don't delete** - Preserve history
 8. **`--milestone` takes NAME, not number** - See [CLI-vs-API Identifiers](references/cli-vs-api-identifiers.md)
-9. **Never `gh issue close` directly** - Comment progress with `gh issue comment`; issues close only when their linked PR merges to the default branch
 
 ---
 
