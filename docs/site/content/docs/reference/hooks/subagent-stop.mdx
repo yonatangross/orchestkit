@@ -9,7 +9,7 @@ description: "Hooks triggered on SubagentStop events (7 hooks)."
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
-| `unified-dispatcher` | `*` | 🔥 Fire-and-forget | Consolidates 4 async SubagentStop hooks into a single dispatcher. |
+| `unified-dispatcher` | `*` | 🔇 Silent | Consolidates 4 async SubagentStop hooks into a single dispatcher. |
 | `output-validator` | `*` | 🛑 Blocks | Validates agent output quality and completeness. |
 | `auto-spawn-quality` | `*` | 🔇 Silent | — |
 | `multi-claude-verifier` | `*` | 🔇 Silent | — |

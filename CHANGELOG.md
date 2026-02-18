@@ -9,7 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- TODO: Describe your changes here
+- Windows: fix console window flashing from fire-and-forget hooks (`detached: true` opens cmd.exe per spawn)
+- Windows: fix ENAMETOOLONG errors (79/session) by using `os.tmpdir()` for hook work files
+- Extract shared `spawn-worker.mjs` helper, reducing 7 duplicated entry points (7 × 57 → 7 × 17 lines)
 
 ---
 
