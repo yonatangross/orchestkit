@@ -12,7 +12,8 @@
  * Version: 2.0.0 (Task Integration)
  */
 
-import { existsSync, writeFileSync, mkdirSync, readFileSync, appendFileSync } from 'node:fs';
+import { existsSync, writeFileSync, mkdirSync, readFileSync } from 'node:fs';
+import { bufferWrite } from '../lib/analytics-buffer.js';
 import { dirname } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, getProjectDir, getSessionId } from '../lib/common.js';
@@ -46,7 +47,7 @@ function logFeedback(message: string): void {
   const logFile = getFeedbackLog();
   const timestamp = new Date().toISOString();
   try {
-    appendFileSync(logFile, `[${timestamp}] [feedback-loop] ${message}\n`);
+    bufferWrite(logFile, `[${timestamp}] [feedback-loop] ${message}\n`);
   } catch {
     // Ignore
   }

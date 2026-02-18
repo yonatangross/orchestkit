@@ -12,7 +12,8 @@ import {
   logPermissionFeedback,
   getLogDir,
 } from '../../lib/common.js';
-import { existsSync, readFileSync, writeFileSync, appendFileSync, statSync, renameSync, mkdirSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, statSync, renameSync, mkdirSync } from 'node:fs';
+import { bufferWrite } from '../../lib/analytics-buffer.js';
 import { join } from 'node:path';
 
 const MAX_LOG_SIZE = 102400; // 100KB
@@ -113,7 +114,7 @@ export function context7Tracker(input: HookInput): HookResult {
   const logEntry = `${timestamp} | tool=${toolName} | library=${libraryId} | query_length=${query.length}\n`;
 
   try {
-    appendFileSync(telemetryLog, logEntry);
+    bufferWrite(telemetryLog, logEntry);
   } catch {
     // Ignore log errors
   }

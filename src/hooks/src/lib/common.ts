@@ -3,7 +3,8 @@
  * Ported from hooks/_lib/common.sh
  */
 
-import { appendFileSync, existsSync, statSync, renameSync, mkdirSync, readSync } from 'node:fs';
+import { existsSync, statSync, renameSync, mkdirSync, readSync } from 'node:fs';
+import { bufferWrite } from './analytics-buffer.js';
 import { execSync } from 'node:child_process';
 import type { HookResult, HookInput } from '../types.js';
 import {
@@ -355,7 +356,7 @@ export function logHook(hookName: string, message: string, level: 'debug' | 'inf
     rotateLogFile(logFile, LOG_ROTATION_MAX_SIZE);
 
     const timestamp = new Date().toISOString().replace('T', ' ').slice(0, 19);
-    appendFileSync(logFile, `[${timestamp}] [${level.toUpperCase()}] [${hookName}] ${message}\n`);
+    bufferWrite(logFile, `[${timestamp}] [${level.toUpperCase()}] [${hookName}] ${message}\n`);
   } catch {
     // Ignore logging errors - don't block hook execution
   }
@@ -381,7 +382,7 @@ export function logPermissionFeedback(
     const toolName = (input as HookInput)?.tool_name || process.env.HOOK_TOOL_NAME || 'unknown';
     const sessionId = (input as HookInput)?.session_id || getSessionId();
 
-    appendFileSync(
+    bufferWrite(
       logFile,
       `${timestamp} | ${decision} | ${reason} | tool=${toolName} | session=${sessionId}\n`
     );

@@ -14,7 +14,8 @@
  * Version: 2.1.0 (graph-first)
  */
 
-import { existsSync, mkdirSync, appendFileSync, unlinkSync } from 'node:fs';
+import { existsSync, mkdirSync, unlinkSync } from 'node:fs';
+import { bufferWrite } from '../lib/analytics-buffer.js';
 import { basename, dirname } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook, getProjectDir } from '../lib/common.js';
@@ -235,7 +236,7 @@ export function agentMemoryStore(input: HookInput): HookResult {
     };
 
     try {
-      appendFileSync(patternsLog, JSON.stringify(entry) + '\n');
+      bufferWrite(patternsLog, JSON.stringify(entry) + '\n');
     } catch {
       // Ignore
     }

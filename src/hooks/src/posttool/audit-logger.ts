@@ -4,7 +4,8 @@
  * CC 2.1.7 Compliant
  */
 
-import { appendFileSync, existsSync, mkdirSync, statSync, renameSync } from 'node:fs';
+import { existsSync, mkdirSync, statSync, renameSync } from 'node:fs';
+import { bufferWrite } from '../lib/analytics-buffer.js';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, getLogDir, getField } from '../lib/common.js';
 
@@ -76,7 +77,7 @@ export function auditLogger(input: HookInput): HookResult {
       ? `[${timestamp}] ${toolName} | ${details}\n`
       : `[${timestamp}] ${toolName}\n`;
 
-    appendFileSync(auditLog, logEntry);
+    bufferWrite(auditLog, logEntry);
   } catch {
     // Ignore logging errors - don't block hook execution
   }

@@ -18,7 +18,8 @@
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook, getProjectDir, getSessionId } from '../lib/common.js';
 import { trackEvent } from '../lib/session-tracker.js';
-import { existsSync, readFileSync, writeFileSync, appendFileSync, mkdirSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { bufferWrite } from '../lib/analytics-buffer.js';
 import { join, dirname } from 'node:path';
 
 // Configuration
@@ -144,7 +145,7 @@ function logSatisfaction(sessionId: string, sentiment: string, context: string, 
   const logEntry = `${timestamp} | ${sessionId} | ${sentiment} | ${context}\n`;
 
   try {
-    appendFileSync(logFile, logEntry);
+    bufferWrite(logFile, logEntry);
   } catch {
     // Ignore logging errors
   }

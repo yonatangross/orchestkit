@@ -10,7 +10,8 @@
  * Version: 1.0.2 - TypeScript port
  */
 
-import { existsSync, readFileSync, appendFileSync, mkdirSync } from 'node:fs';
+import { existsSync, readFileSync, mkdirSync } from 'node:fs';
+import { bufferWrite } from '../lib/analytics-buffer.js';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, getField, getProjectDir, getSessionId, logHook } from '../lib/common.js';
 
@@ -103,7 +104,7 @@ function logEditPattern(
 
   try {
     mkdirSync(require('path').dirname(editPatternsFile), { recursive: true });
-    appendFileSync(editPatternsFile, JSON.stringify(entry) + '\n');
+    bufferWrite(editPatternsFile, JSON.stringify(entry) + '\n');
   } catch {
     // Ignore write errors
   }

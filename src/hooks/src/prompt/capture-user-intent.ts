@@ -38,7 +38,8 @@ import {
   createDecisionRecord,
   storeDecision,
 } from '../lib/memory-writer.js';
-import { existsSync, appendFileSync, mkdirSync } from 'node:fs';
+import { existsSync, mkdirSync } from 'node:fs';
+import { bufferWrite } from '../lib/analytics-buffer.js';
 import { join, dirname, basename } from 'node:path';
 
 // =============================================================================
@@ -111,7 +112,7 @@ function appendToJsonl(filePath: string, record: unknown): boolean {
     }
 
     const line = JSON.stringify(record) + '\n';
-    appendFileSync(filePath, line);
+    bufferWrite(filePath, line);
     return true;
   } catch (err) {
     logHook(HOOK_NAME, `Failed to write to ${filePath}: ${err}`, 'warn');

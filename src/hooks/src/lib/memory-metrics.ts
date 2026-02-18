@@ -4,7 +4,8 @@
  * Collects metrics from graph memory tier and CC Native MEMORY.md.
  */
 
-import { existsSync, readFileSync, appendFileSync, mkdirSync } from 'node:fs';
+import { existsSync, readFileSync, mkdirSync } from 'node:fs';
+import { bufferWrite } from './analytics-buffer.js';
 import { join, dirname } from 'node:path';
 import { getProjectDir, logHook } from './common.js';
 
@@ -151,7 +152,7 @@ export function appendMetricSnapshot(projectDir?: string, metrics?: MemoryMetric
     if (!existsSync(metricsDir)) {
       mkdirSync(metricsDir, { recursive: true });
     }
-    appendFileSync(metricsPath, JSON.stringify(snapshot) + '\n');
+    bufferWrite(metricsPath, JSON.stringify(snapshot) + '\n');
     logHook('memory-metrics', `Metrics snapshot appended: ${snapshot.decisions.total} decisions`, 'debug');
   } catch (error) {
     logHook('memory-metrics', `Failed to write metrics: ${error}`, 'warn');

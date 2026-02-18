@@ -8,7 +8,8 @@
  * Storage: .claude/memory/sessions/{session_id}/events.jsonl
  */
 
-import { existsSync, appendFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { bufferWrite } from './analytics-buffer.js';
 import { getProjectDir, getSessionId, logHook } from './common.js';
 import { getIdentityContext, type IdentityContext } from './user-identity.js';
 
@@ -288,7 +289,7 @@ export function trackEvent(
 
     ensureSessionDir();
     const eventsPath = getEventsPath();
-    appendFileSync(eventsPath, JSON.stringify(event) + '\n');
+    bufferWrite(eventsPath, JSON.stringify(event) + '\n');
 
     logHook('session-tracker', `Tracked ${eventType}: ${name}`, 'debug');
   } catch (error) {

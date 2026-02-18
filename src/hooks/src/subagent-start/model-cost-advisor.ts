@@ -8,7 +8,8 @@
  * Addresses: Issue #331
  */
 
-import { appendFileSync, mkdirSync, existsSync, readFileSync } from 'node:fs';
+import { mkdirSync, existsSync, readFileSync } from 'node:fs';
+import { bufferWrite } from '../lib/analytics-buffer.js';
 import { join, dirname } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, outputWarning, logHook, getProjectDir, getPluginRoot } from '../lib/common.js';
@@ -220,7 +221,7 @@ function logModelUsage(agentType: string, model: string, complexity: string, adv
   const logFile = join(getProjectDir(), '.claude', 'logs', 'model-usage.jsonl');
   try {
     mkdirSync(dirname(logFile), { recursive: true });
-    appendFileSync(logFile, JSON.stringify({
+    bufferWrite(logFile, JSON.stringify({
       timestamp: new Date().toISOString(),
       agent: agentType,
       model,

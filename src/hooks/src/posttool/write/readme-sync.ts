@@ -6,7 +6,8 @@
  * Issue: #140
  */
 
-import { existsSync, statSync, appendFileSync, mkdirSync } from 'node:fs';
+import { existsSync, statSync, mkdirSync } from 'node:fs';
+import { bufferWrite } from '../../lib/analytics-buffer.js';
 import { basename, dirname } from 'node:path';
 import type { HookInput, HookResult } from '../../types.js';
 import { outputSilentSuccess, getField, getProjectDir, logHook } from '../../lib/common.js';
@@ -227,7 +228,7 @@ export function readmeSync(input: HookInput): HookResult {
   try {
     mkdirSync(logDir, { recursive: true });
     const timestamp = new Date().toISOString();
-    appendFileSync(
+    bufferWrite(
       `${logDir}/readme-sync.log`,
       `[${timestamp}] README_SYNC: ${analysis.changeType} change in ${filePath} -> ${analysis.readmeSection}\n`
     );
