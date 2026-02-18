@@ -27,6 +27,16 @@ Parse the user's argument to determine which report to show. If no argument prov
 | `trends` | Daily activity, model delegation, peak hours | `stats-cache.json` | `references/trends-analysis.md` |
 | `summary` | Unified view of all categories | All files | `references/jq-queries.md` |
 
+### Quick Start Example
+
+```bash
+# Top agents with model breakdown
+jq -s 'group_by(.agent) | map({agent: .[0].agent, count: length}) | sort_by(-.count)' ~/.claude/analytics/agent-usage.jsonl
+
+# All-time token costs
+jq '.modelUsage | to_entries | map({model: .key, input: .value.inputTokens, output: .value.outputTokens})' ~/.claude/stats-cache.json
+```
+
 ### Quick Subcommand Guide
 
 **`agents`, `models`, `skills`, `hooks`, `teams`, `summary`** — Run the jq query from `references/jq-queries.md` for the matching subcommand. Present results as a markdown table.

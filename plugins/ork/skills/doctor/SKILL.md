@@ -33,6 +33,7 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 9. **Memory System** - Graph memory health
 10. **Claude Code Version** - Validates CC >= 2.1.34
 11. **External Dependencies** - Checks optional tool availability (agent-browser)
+12. **MCP Status** - Active vs disabled vs misconfigured, API key presence for paid MCPs
 
 ## When to Use
 
@@ -266,6 +267,45 @@ External Dependencies:
 - agent-browser: NOT INSTALLED (optional - install with: npx skills add vercel-labs/agent-browser)
 ```
 
+### 12. MCP Status
+
+Checks `.mcp.json` entries for enabled/disabled state and validates paid MCPs have their required credentials:
+
+```bash
+# Checks performed:
+# - Parse .mcp.json, list each server with enabled/disabled state
+# - For tavily: check TAVILY_API_KEY env var OR op CLI availability
+# - For memory: check MEMORY_FILE path is writable
+# - For agentation: check agentation-mcp package is installed (npx --yes dry-run)
+# - Flag any enabled MCP whose process would likely fail at startup
+```
+
+**Output (healthy):**
+```
+MCP Servers:
+- context7:           enabled  ✓
+- memory:             enabled  ✓
+- sequential-thinking: disabled ○
+- tavily:             disabled ○  (enable: set TAVILY_API_KEY, see /ork:configure)
+- agentation:         disabled ○
+```
+
+**Output (misconfigured — Tavily enabled but no key):**
+```
+MCP Servers:
+- context7:           enabled  ✓
+- memory:             enabled  ✓
+- tavily:             enabled  ✗  TAVILY_API_KEY not set — MCP will fail at startup
+                                  Fix: set TAVILY_API_KEY or set "disabled": true in .mcp.json
+```
+
+**Output (agentation enabled but not installed):**
+```
+MCP Servers:
+- agentation:         enabled  ✗  agentation-mcp package not found
+                                  Fix: npm install -D agentation-mcp  or  set "disabled": true
+```
+
 ## Report Format
 
 **Full ork plugin:**
@@ -279,13 +319,14 @@ External Dependencies:
 | Agents           | 36/36 valid                                    |
 | Hooks            | 89/89 entries (12 bundles)                     |
 | Memory           | Graph memory healthy                           |
+| MCP              | context7 ✓  memory ✓  tavily ○  agentation ○  |
 | Permissions      | 12/12 reachable                                |
 | Schemas          | 15/15 compliant                                |
 | Context          | 1850/2200 tokens (84%)                         |
 | Coordination     | 0 stale locks                                  |
 | CC Version       | {cc_version} (OK)                              |
 +===================================================================+
-| Status: HEALTHY (9/9 checks passed)                               |
+| Status: HEALTHY (10/10 checks passed)                             |
 +===================================================================+
 ```
 
@@ -325,6 +366,7 @@ External Dependencies:
     "agents": {"passed": true, "count": 36, "perPlugin": {"ork": 36}},
     "hooks": {"passed": true, "entries": 89, "bundles": 12, "source": "ork"},
     "memory": {"passed": true, "available": ["graph"]},
+    "mcp": {"passed": true, "servers": {"context7": "enabled", "memory": "enabled", "sequential-thinking": "disabled", "tavily": "disabled", "agentation": "disabled"}},
     "permissions": {"passed": true, "count": 12},
     "schemas": {"passed": true, "count": 15},
     "context": {"passed": true, "usage": 0.84},

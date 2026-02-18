@@ -29,7 +29,7 @@
  * - queue-recovery (removed — no source file, was a ghost no-op)
  *
  * NOT consolidated (remain separate in hooks.json):
- * - capture-user-intent (uses run-hook-silent.mjs for background execution)
+ * - capture-user-intent (async: true in hooks.json — CC handles background execution natively)
  *
  * CC 2.1.9 Compliant: Single additionalContext output
  */
