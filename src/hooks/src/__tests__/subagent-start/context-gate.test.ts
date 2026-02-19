@@ -2,9 +2,9 @@
  * Unit tests for context-gate SubagentStart hook
  *
  * Tests the context gate that prevents context overflow by:
- * - Limiting concurrent background agents (max 4)
- * - Limiting agents per response (max 6)
- * - Warning when approaching limits (>= 3 active)
+ * - Limiting concurrent background agents (max 6)
+ * - Limiting agents per response (max 8)
+ * - Warning when approaching limits (>= 5 active)
  * - Warning for expensive agent types with >= 2 active
  *
  * Issue #260: subagent-start coverage 33% -> 100%
@@ -157,13 +157,13 @@ describe('contextGate', () => {
   });
 
   // -----------------------------------------------------------------------
-  // 2. Response limit (>= 6 agents in 2s window)
+  // 2. Response limit (>= 8 agents in 2s window)
   // -----------------------------------------------------------------------
 
   describe('response agent limit', () => {
-    test('denies when 6+ agents spawned in last 2 seconds', () => {
-      // Arrange - spawn log with 6 very recent entries (within 2 seconds)
-      const recentEntries = generateSpawnEntries(6, 500);
+    test('denies when 8+ agents spawned in last 2 seconds', () => {
+      // Arrange - spawn log with 8 very recent entries (within 2 seconds)
+      const recentEntries = generateSpawnEntries(8, 500);
       (existsSync as ReturnType<typeof vi.fn>).mockImplementation((path: string) => {
         if (typeof path === 'string' && path.includes('subagent-spawns.jsonl')) return true;
         if (typeof path === 'string' && path.includes('agent-state.json')) return false;
@@ -188,9 +188,9 @@ describe('contextGate', () => {
       expect(result.hookSpecificOutput?.permissionDecision).toBe('deny');
     });
 
-    test('allows when fewer than 6 agents in response window', () => {
-      // Arrange - spawn log with 5 entries (just under limit)
-      const entries = generateSpawnEntries(5, 500);
+    test('allows when fewer than 8 agents in response window', () => {
+      // Arrange - spawn log with 7 entries (just under limit)
+      const entries = generateSpawnEntries(7, 500);
       (existsSync as ReturnType<typeof vi.fn>).mockImplementation((path: string) => {
         if (typeof path === 'string' && path.includes('subagent-spawns.jsonl')) return true;
         if (typeof path === 'string' && path.includes('agent-state.json')) return false;
@@ -214,7 +214,7 @@ describe('contextGate', () => {
 
     test('deny message includes attempted agent type and description', () => {
       // Arrange
-      const recentEntries = generateSpawnEntries(7, 500);
+      const recentEntries = generateSpawnEntries(9, 500);
       (existsSync as ReturnType<typeof vi.fn>).mockImplementation((path: string) => {
         if (typeof path === 'string' && path.includes('subagent-spawns.jsonl')) return true;
         return false;
@@ -239,13 +239,13 @@ describe('contextGate', () => {
   });
 
   // -----------------------------------------------------------------------
-  // 3. Background agent limit (>= 4 in 5 min window)
+  // 3. Background agent limit (>= 6 in 5 min window)
   // -----------------------------------------------------------------------
 
   describe('background agent limit', () => {
-    test('denies background spawn when 4+ active in last 5 minutes', () => {
-      // Arrange - spawn log with 4 entries within 5 minutes
-      const entries = generateSpawnEntries(4, 60_000); // 1 minute old
+    test('denies background spawn when 6+ active in last 5 minutes', () => {
+      // Arrange - spawn log with 6 entries within 5 minutes
+      const entries = generateSpawnEntries(6, 60_000); // 1 minute old
       (existsSync as ReturnType<typeof vi.fn>).mockImplementation((path: string) => {
         if (typeof path === 'string' && path.includes('subagent-spawns.jsonl')) return true;
         if (typeof path === 'string' && path.includes('agent-state.json')) return false;
@@ -270,9 +270,9 @@ describe('contextGate', () => {
       expect(result.stopReason).toContain('concurrent');
     });
 
-    test('allows foreground spawn even with 4+ active background agents', () => {
+    test('allows foreground spawn even with 6+ active background agents', () => {
       // Arrange
-      const entries = generateSpawnEntries(4, 60_000);
+      const entries = generateSpawnEntries(6, 60_000);
       (existsSync as ReturnType<typeof vi.fn>).mockImplementation((path: string) => {
         if (typeof path === 'string' && path.includes('subagent-spawns.jsonl')) return true;
         if (typeof path === 'string' && path.includes('agent-state.json')) return false;
@@ -297,7 +297,7 @@ describe('contextGate', () => {
 
     test('background limit deny message suggests solutions', () => {
       // Arrange
-      const entries = generateSpawnEntries(5, 60_000);
+      const entries = generateSpawnEntries(7, 60_000);
       (existsSync as ReturnType<typeof vi.fn>).mockImplementation((path: string) => {
         if (typeof path === 'string' && path.includes('subagent-spawns.jsonl')) return true;
         return false;
@@ -323,7 +323,7 @@ describe('contextGate', () => {
 
     test('accepts run_in_background as string "true"', () => {
       // Arrange
-      const entries = generateSpawnEntries(4, 60_000);
+      const entries = generateSpawnEntries(6, 60_000);
       (existsSync as ReturnType<typeof vi.fn>).mockImplementation((path: string) => {
         if (typeof path === 'string' && path.includes('subagent-spawns.jsonl')) return true;
         return false;
@@ -348,13 +348,13 @@ describe('contextGate', () => {
   });
 
   // -----------------------------------------------------------------------
-  // 4. Warning threshold (>= 3 active agents)
+  // 4. Warning threshold (>= 5 active agents)
   // -----------------------------------------------------------------------
 
   describe('warning threshold', () => {
-    test('warns when 3 agents are active', () => {
-      // Arrange - 3 entries within 5 minutes
-      const entries = generateSpawnEntries(3, 120_000);
+    test('warns when 5 agents are active', () => {
+      // Arrange - 5 entries within 5 minutes
+      const entries = generateSpawnEntries(5, 120_000);
       (existsSync as ReturnType<typeof vi.fn>).mockImplementation((path: string) => {
         if (typeof path === 'string' && path.includes('subagent-spawns.jsonl')) return true;
         if (typeof path === 'string' && path.includes('agent-state.json')) return false;
@@ -380,7 +380,7 @@ describe('contextGate', () => {
 
     test('warning includes current count and limit', () => {
       // Arrange
-      const entries = generateSpawnEntries(3, 120_000);
+      const entries = generateSpawnEntries(5, 120_000);
       (existsSync as ReturnType<typeof vi.fn>).mockImplementation((path: string) => {
         if (typeof path === 'string' && path.includes('subagent-spawns.jsonl')) return true;
         if (typeof path === 'string' && path.includes('agent-state.json')) return false;
@@ -399,8 +399,8 @@ describe('contextGate', () => {
       const result = contextGate(input);
 
       // Assert
-      expect(result.systemMessage).toContain('3');
-      expect(result.systemMessage).toContain('4'); // limit
+      expect(result.systemMessage).toContain('5');
+      expect(result.systemMessage).toContain('6'); // limit
     });
   });
 
@@ -479,9 +479,9 @@ describe('contextGate', () => {
 
   describe('non-background agents bypass background limit', () => {
     test('foreground agent allowed even with many active agents', () => {
-      // Arrange - 4 active agents (at background limit)
+      // Arrange - 6 active agents (at background limit)
       // but no entries within 2s (below response limit)
-      const entries = generateSpawnEntries(4, 120_000);
+      const entries = generateSpawnEntries(6, 120_000);
       (existsSync as ReturnType<typeof vi.fn>).mockImplementation((path: string) => {
         if (typeof path === 'string' && path.includes('subagent-spawns.jsonl')) return true;
         if (typeof path === 'string' && path.includes('agent-state.json')) return false;
@@ -579,7 +579,7 @@ describe('contextGate', () => {
   describe('CC compliance', () => {
     test('deny result has proper hookSpecificOutput with deny decision', () => {
       // Arrange - trigger response limit
-      const entries = generateSpawnEntries(7, 500);
+      const entries = generateSpawnEntries(9, 500);
       (existsSync as ReturnType<typeof vi.fn>).mockImplementation((path: string) => {
         if (typeof path === 'string' && path.includes('subagent-spawns.jsonl')) return true;
         return false;
@@ -605,7 +605,7 @@ describe('contextGate', () => {
 
     test('deny messages explain the limit and suggest solutions', () => {
       // Arrange - trigger background limit
-      const entries = generateSpawnEntries(5, 60_000);
+      const entries = generateSpawnEntries(7, 60_000);
       (existsSync as ReturnType<typeof vi.fn>).mockImplementation((path: string) => {
         if (typeof path === 'string' && path.includes('subagent-spawns.jsonl')) return true;
         return false;
@@ -630,7 +630,7 @@ describe('contextGate', () => {
 
     test('warning result has continue: true and systemMessage', () => {
       // Arrange
-      const entries = generateSpawnEntries(3, 120_000);
+      const entries = generateSpawnEntries(5, 120_000);
       (existsSync as ReturnType<typeof vi.fn>).mockImplementation((path: string) => {
         if (typeof path === 'string' && path.includes('subagent-spawns.jsonl')) return true;
         if (typeof path === 'string' && path.includes('agent-state.json')) return false;
@@ -753,7 +753,7 @@ describe('contextGate', () => {
 
     test('incrementBlockedCount updates state file when deny occurs', () => {
       // Arrange - trigger background limit
-      const entries = generateSpawnEntries(5, 60_000);
+      const entries = generateSpawnEntries(7, 60_000);
       (existsSync as ReturnType<typeof vi.fn>).mockImplementation((path: string) => {
         if (typeof path === 'string' && path.includes('subagent-spawns.jsonl')) return true;
         if (typeof path === 'string' && path.includes('agent-state.json')) return true;

@@ -267,7 +267,7 @@ export function getLastClassification(): ClassificationResult | undefined {
 const DEFAULT_CONFIG_VALUES: OrchestrationConfig = {
   enableAutoDispatch: true,
   enableSkillInjection: true,
-  maxSkillInjectionTokens: 800,
+  maxSkillInjectionTokens: 1200,
   enableCalibration: true,
   enablePipelines: true,
   maxRetries: 3,

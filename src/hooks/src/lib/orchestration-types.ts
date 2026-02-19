@@ -320,7 +320,7 @@ export interface OrchestrationConfig {
 export const DEFAULT_CONFIG: OrchestrationConfig = {
   enableAutoDispatch: true,
   enableSkillInjection: true,
-  maxSkillInjectionTokens: 800,
+  maxSkillInjectionTokens: 1200,
   enableCalibration: true,
   enablePipelines: true,
   maxRetries: 3,

@@ -36,7 +36,7 @@ vi.mock('../../lib/orchestration-state.js', () => ({
   loadConfig: vi.fn(() => ({
     enableAutoDispatch: true,
     enableSkillInjection: true,
-    maxSkillInjectionTokens: 800,
+    maxSkillInjectionTokens: 1200,
     enableCalibration: true,
     enablePipelines: true,
     maxRetries: 3,
@@ -247,7 +247,7 @@ describe('prompt/pipeline-detector', () => {
       vi.mocked(loadConfig).mockReturnValueOnce({
         enableAutoDispatch: true,
         enableSkillInjection: true,
-        maxSkillInjectionTokens: 800,
+        maxSkillInjectionTokens: 1200,
         enableCalibration: true,
         enablePipelines: false,
         maxRetries: 3,

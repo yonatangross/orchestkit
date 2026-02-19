@@ -457,7 +457,7 @@ describe('subagentContextStager', () => {
       expect(result.systemMessage).toContain('Implement user authentication');
     });
 
-    test('shows at most 3 pending tasks', () => {
+    test('shows at most 5 pending tasks', () => {
       // Arrange
       setupFileMocks({
         sessionState: mockSessionState([
@@ -466,6 +466,8 @@ describe('subagentContextStager', () => {
           'Task 3',
           'Task 4',
           'Task 5',
+          'Task 6',
+          'Task 7',
         ]),
       });
 
@@ -483,8 +485,10 @@ describe('subagentContextStager', () => {
       expect(result.systemMessage).toContain('Task 1');
       expect(result.systemMessage).toContain('Task 2');
       expect(result.systemMessage).toContain('Task 3');
-      expect(result.systemMessage).not.toContain('Task 4');
-      expect(result.systemMessage).not.toContain('Task 5');
+      expect(result.systemMessage).toContain('Task 4');
+      expect(result.systemMessage).toContain('Task 5');
+      expect(result.systemMessage).not.toContain('Task 6');
+      expect(result.systemMessage).not.toContain('Task 7');
     });
 
     test('skips pending tasks section when tasks_pending is empty', () => {
@@ -701,9 +705,9 @@ describe('subagentContextStager', () => {
       expect(result.systemMessage!.length).toBeGreaterThan(0);
     });
 
-    test('decisions are limited to 5 per category', () => {
-      // Arrange - 8 backend decisions
-      const manyDecisions = Array.from({ length: 8 }, (_, i) => ({
+    test('decisions are limited to 8 per category', () => {
+      // Arrange - 10 backend decisions
+      const manyDecisions = Array.from({ length: 10 }, (_, i) => ({
         category: 'backend',
         title: `Decision ${i + 1}`,
         status: 'active',
@@ -722,11 +726,11 @@ describe('subagentContextStager', () => {
       // Act
       const result = subagentContextStager(input);
 
-      // Assert - should contain at most 5 decisions
+      // Assert - should contain at most 8 decisions
       const decisionLines = result.systemMessage!
         .split('\n')
         .filter((line: string) => line.startsWith('- Decision'));
-      expect(decisionLines.length).toBeLessThanOrEqual(5);
+      expect(decisionLines.length).toBeLessThanOrEqual(8);
     });
   });
 });

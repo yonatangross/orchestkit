@@ -653,7 +653,7 @@ describe('loadConfig - configuration loading', () => {
 
     expect(config.enableAutoDispatch).toBe(true);
     expect(config.enableSkillInjection).toBe(true);
-    expect(config.maxSkillInjectionTokens).toBe(800);
+    expect(config.maxSkillInjectionTokens).toBe(1200);
     expect(config.enableCalibration).toBe(true);
     expect(config.enablePipelines).toBe(true);
     expect(config.maxRetries).toBe(3);
