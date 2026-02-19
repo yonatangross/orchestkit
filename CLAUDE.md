@@ -93,7 +93,7 @@ All plugins include 64 hooks. 28 skills are user-invocable via `/ork:skillname`.
 
 ## Version
 
-- **Current**: 6.0.23 · **Claude Code**: >= 2.1.47
+- **Current**: 6.0.24 · **Claude Code**: >= 2.1.47
 - **Hooks**: 64 entries (15 event types, 12 bundles, 9 native async)
 
 See `CHANGELOG.md` for history. See `src/hooks/README.md` for hook architecture.

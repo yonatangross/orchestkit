@@ -91,11 +91,30 @@ sync_versions() {
     echo "  ✓ pyproject.toml"
   fi
 
+  # package.json
+  local package_json="$PROJECT_ROOT/package.json"
+  if [[ -f "$package_json" ]]; then
+    jq --arg v "$version" '.version = $v' "$package_json" > "$package_json.tmp"
+    mv "$package_json.tmp" "$package_json"
+    echo "  ✓ package.json"
+  fi
+
+  # version.txt (release-please source of truth for simple type)
+  echo "$version" > "$PROJECT_ROOT/version.txt"
+  echo "  ✓ version.txt"
+
+  # .release-please-manifest.json
+  local rp_manifest="$PROJECT_ROOT/.release-please-manifest.json"
+  if [[ -f "$rp_manifest" ]]; then
+    jq --arg v "$version" '.["."] = $v' "$rp_manifest" > "$rp_manifest.tmp"
+    mv "$rp_manifest.tmp" "$rp_manifest"
+    echo "  ✓ .release-please-manifest.json"
+  fi
+
   # CLAUDE.md
   local claude_md="$PROJECT_ROOT/CLAUDE.md"
   if [[ -f "$claude_md" ]]; then
-    sed -i '' -E "s/(\*\*Current Version\*\*): [0-9]+\.[0-9]+\.[0-9]+/\1: $version/" "$claude_md"
-    sed -i '' -E "s/(\*\*Last Updated\*\*): [0-9]{4}-[0-9]{2}-[0-9]{2}/\1: $today/" "$claude_md"
+    sed -i '' -E "s/(\*\*Current\*\*): [0-9]+\.[0-9]+\.[0-9]+/\1: $version/" "$claude_md"
     echo "  ✓ CLAUDE.md"
   fi
 }
@@ -155,7 +174,8 @@ stage_changes() {
   cd "$PROJECT_ROOT"
   git add plugins/ork/.claude-plugin/plugin.json .claude-plugin/marketplace.json 2>/dev/null || true
   git add manifests/*.json 2>/dev/null || true
-  git add pyproject.toml CLAUDE.md CHANGELOG.md 2>/dev/null || true
+  git add pyproject.toml CLAUDE.md CHANGELOG.md package.json 2>/dev/null || true
+  git add version.txt .release-please-manifest.json 2>/dev/null || true
   echo "  ✓ Changes staged"
 }
 
