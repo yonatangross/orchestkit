@@ -246,6 +246,79 @@ describe('auto-approve-project-writes', () => {
     });
   });
 
+  describe('added_dirs support (CC 2.1.47)', () => {
+    test('auto-approves write inside an added_dir', () => {
+      const input: HookInput = {
+        tool_name: 'Write',
+        session_id: 'test-session-123',
+        tool_input: { file_path: '/other/service/src/main.ts', content: 'x' },
+        project_dir: '/test/project',
+        added_dirs: ['/other/service'],
+      };
+      const result = autoApproveProjectWrites(input);
+      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+    });
+
+    test('requires manual approval for paths outside both project_dir and added_dirs', () => {
+      const input: HookInput = {
+        tool_name: 'Write',
+        session_id: 'test-session-123',
+        tool_input: { file_path: '/unrelated/file.ts', content: 'x' },
+        project_dir: '/test/project',
+        added_dirs: ['/other/service'],
+      };
+      const result = autoApproveProjectWrites(input);
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
+    });
+
+    test('still blocks excluded dirs inside an added_dir', () => {
+      const input: HookInput = {
+        tool_name: 'Write',
+        session_id: 'test-session-123',
+        tool_input: { file_path: '/other/service/node_modules/pkg/index.js', content: 'x' },
+        project_dir: '/test/project',
+        added_dirs: ['/other/service'],
+      };
+      const result = autoApproveProjectWrites(input);
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
+    });
+
+    test('works correctly with empty added_dirs array', () => {
+      const input: HookInput = {
+        tool_name: 'Write',
+        session_id: 'test-session-123',
+        tool_input: { file_path: '/test/project/src/index.ts', content: 'x' },
+        project_dir: '/test/project',
+        added_dirs: [],
+      };
+      const result = autoApproveProjectWrites(input);
+      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+    });
+
+    test('works correctly when added_dirs is undefined', () => {
+      const input: HookInput = {
+        tool_name: 'Write',
+        session_id: 'test-session-123',
+        tool_input: { file_path: '/test/project/src/index.ts', content: 'x' },
+        project_dir: '/test/project',
+      };
+      const result = autoApproveProjectWrites(input);
+      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+    });
+
+    test('guards against prefix attack in added_dirs', () => {
+      const input: HookInput = {
+        tool_name: 'Write',
+        session_id: 'test-session-123',
+        tool_input: { file_path: '/other/service-evil/file.ts', content: 'x' },
+        project_dir: '/test/project',
+        added_dirs: ['/other/service'],
+      };
+      const result = autoApproveProjectWrites(input);
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
+    });
+  });
+
   describe('Different project directories', () => {
     test('handles root project directory', async () => {
       const common = await import('../../lib/common.js');
