@@ -320,7 +320,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "ascii-visualizer": {
     "name": "ascii-visualizer",
-    "description": "ASCII diagram patterns for architecture, workflows, file trees, and data visualizations. Provides box-drawing characters, layout rules, and structured diagram templates for terminal-rendered output.",
+    "description": "ASCII diagram patterns for architecture, workflows, file trees, and data visualizations. Use when creating terminal-rendered diagrams, box-drawing layouts, progress bars, swimlanes, or blast radius visualizations.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [

@@ -41,6 +41,12 @@ bash src/skills/validate-counts/scripts/count-all.sh
 
 - [Count Locations](references/count-locations.md) — Where every count lives and why drift happens
 
+## Related Skills
+
+- `release-checklist` — Uses validate-counts as step 5 of the release gate
+- `doctor` — Broader health check that includes count validation
+- `audit-skills` — Quality audit for skill structure and completeness
+
 ## Common Mistakes
 
 1. Counting from `plugins/` instead of `src/` — plugins/ may be empty after an interrupted build
@@ -99,6 +105,19 @@ These are NOT drift — do not flag them:
 | `manifests/ork-creative.json` skills &lt; `ork` | creative plugin is an add-on with its own subset |
 | Agent count in manifests = actual - 1 | Some agents may be internal-only and excluded from manifest |
 
+**Incorrect:**
+
+```
+DRIFT: CLAUDE.md has wrong hook count.
+```
+
+**Correct:**
+
+```
+DRIFT: CLAUDE.md Version section says "85 entries" but hooks.json has 87.
+  Fix: Update CLAUDE.md Version section (line ~42) to "87 entries"
+```
+
 ### Key Rules
 
 - If all counts match, output "All counts consistent." and stop
@@ -155,6 +174,20 @@ Derived sources:
 - `CLAUDE.md` Project Overview: "N agents"
 - `manifests/ork.json` — agent list length
 - `manifests/orkl.json` — agent list length
+
+**Incorrect:**
+
+```bash
+# Counting from generated plugins/ — stale if build was interrupted
+ls -d plugins/ork/skills/*/ | wc -l
+```
+
+**Correct:**
+
+```bash
+# Always count from src/ — the authoritative source
+ls -d src/skills/*/ | wc -l
+```
 
 ### Key Rules
 

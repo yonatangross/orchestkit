@@ -1,0 +1,61 @@
+{
+  "skill": "release-checklist",
+  "version": "2.0.0",
+  "testCases": [
+    {
+      "id": "clean-release",
+      "rule": null,
+      "query": "Walk me through releasing version 6.1.0",
+      "expectedBehavior": [
+        "Runs all pre-release gates sequentially: build, tests, security, TypeScript, validate-counts, diff review",
+        "Reports [PASS] for each gate step before proceeding to the next",
+        "Verifies changelog entry and version bump in package.json and CLAUDE.md",
+        "Stages specific files, commits with 'release: v6.1.0' format, tags, and confirms before push"
+      ]
+    },
+    {
+      "id": "build-fails",
+      "rule": "gate-build-and-test",
+      "query": "Start the release checklist for v6.1.0",
+      "expectedBehavior": [
+        "Runs npm run build as step 1 and detects failure",
+        "Reports [FAIL] for the build step and stops the release sequence",
+        "Suggests a fix (e.g., check TypeScript errors, run cd src/hooks && npm run build)",
+        "Does not proceed to tests or further gates until user confirms the build is fixed"
+      ]
+    },
+    {
+      "id": "tests-fail",
+      "rule": "gate-build-and-test",
+      "query": "Run the release checklist — build passed but tests are failing",
+      "expectedBehavior": [
+        "Skips build step if user confirms it already passed",
+        "Runs npm test and detects test failures",
+        "Reports [FAIL] for tests and stops before security or later gates",
+        "Refuses to continue with release until tests pass — security tests are non-negotiable"
+      ]
+    },
+    {
+      "id": "version-not-bumped",
+      "rule": "commit-staging",
+      "query": "Checklist says version bump — I updated package.json but forgot CLAUDE.md",
+      "expectedBehavior": [
+        "Checks both package.json and CLAUDE.md for version field",
+        "Detects that CLAUDE.md version does not match package.json version",
+        "Reports [FAIL] for the version bump step and stops the commit staging sequence",
+        "Instructs the user to update the Version line in CLAUDE.md to match package.json"
+      ]
+    },
+    {
+      "id": "changelog-missing",
+      "rule": "commit-staging",
+      "query": "I'm ready to cut the release but haven't written the changelog entry yet",
+      "expectedBehavior": [
+        "Checks CHANGELOG.md for an entry matching the target version",
+        "Reports [FAIL] for the changelog step when no matching entry is found",
+        "Stops before staging files or writing the release commit",
+        "Prompts the user to add a changelog entry before continuing"
+      ]
+    }
+  ]
+}

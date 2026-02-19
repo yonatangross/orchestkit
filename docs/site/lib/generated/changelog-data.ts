@@ -17,6 +17,39 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "6.0.23",
+    "date": "2026-02-19",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**CC 2.1.47 Full Adoption** — Milestone #75 (19 issues: #710–#728)",
+          "**`cc-version-matrix.ts`** — runtime feature compatibility matrix for 18 CC 2.1.47 features (`last_assistant_message`, `added_dirs`, deferred SessionStart, agent model in teams, worktree discovery, etc.)",
+          "**`added_dirs` support** — `session-tracking`, `session-cleanup`, `session-context-loader`, `memory-capture`, and `monorepo-detector` hooks now read and log the new `added_dirs` hook input field",
+          "**`last_assistant_message` support** — `memory-capture` uses `classifySessionOutcome()` for richer analytics; `session-cleanup` and `unified-dispatcher` log `last_msg_len`",
+          "**Prefill-guard caching** — scan results cached for 24 hours with `CACHE_VERSION` invalidation, skipping expensive filesystem scans on repeat sessions",
+          "**Worktree discovery tests** — 15 vitest path-resolution tests + 17 shell tests with real `git worktree add` creation/cleanup",
+          "**Agent model field validation** — shell test validates all 37 agents have valid `model:` field for CC 2.1.47 team spawns",
+          "**`hook-input-fields.test.ts`** — validates `added_dirs` type contract and confirms `enabledPlugins` is NOT a hook field",
+          "**`configure` skill** — documents `added_dirs`, clarifies `enabledPlugins` is CC-internal (not hook-accessible)",
+          "**`help` skill** — CC 2.1.47 keyboard shortcuts section (Ctrl+F, Shift+Down)",
+          "**`upgrade-assessment`** — CC 2.1.47 upgrade guide reference"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**Cross-platform `/tmp` hardcode** — 13 hook source files migrated from `/tmp/claude-*` to `paths.ts` helpers using `os.tmpdir()` and `path.join()` (#720)",
+          "**`ork:` prefix standardization** — ~120 violations fixed across 60 skill files for consistent cross-referencing (#716)",
+          "**Test assertions** — 8 test files updated for `os.tmpdir()` compatibility (macOS `/var/folders/.../T/` vs Linux `/tmp`)",
+          "**`node:path` mock** — test files now include proper default export when mocking `node:path`",
+          "**User-invocable count** — `EXPECTED_USER_INVOCABLE` updated 24→28 in skill validation test"
+        ]
+      }
+    ]
+  },
+  {
     "version": "6.0.22",
     "date": "2026-02-18",
     "compareUrl": "",

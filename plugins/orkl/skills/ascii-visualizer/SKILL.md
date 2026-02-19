@@ -2,7 +2,7 @@
 name: ascii-visualizer
 license: MIT
 compatibility: "Claude Code 2.1.47+."
-description: "ASCII diagram patterns for architecture, workflows, file trees, and data visualizations. Provides box-drawing characters, layout rules, and structured diagram templates for terminal-rendered output."
+description: "ASCII diagram patterns for architecture, workflows, file trees, and data visualizations. Use when creating terminal-rendered diagrams, box-drawing layouts, progress bars, swimlanes, or blast radius visualizations."
 tags: [ascii, diagrams, visualization, box-drawing, architecture, terminal]
 version: 1.0.0
 author: OrchestKit
@@ -155,3 +155,9 @@ Phase 4  [........????????]  IRREVERSIBLE        (drop column)
 | Annotated trees | File change manifests, directory structures |
 | Comparison tables | Cross-layer consistency, before/after |
 | Progress bars | Status tracking, completion metrics |
+
+## Related Skills
+
+- `brainstorming` — Design exploration where diagrams communicate ideas
+- `architecture-patterns` — System architecture that benefits from ASCII diagrams
+- `code-review-playbook` — Review comments with inline diagrams

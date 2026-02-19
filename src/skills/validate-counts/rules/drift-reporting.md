@@ -49,6 +49,19 @@ These are NOT drift — do not flag them:
 | `manifests/ork-creative.json` skills < `ork` | creative plugin is an add-on with its own subset |
 | Agent count in manifests = actual - 1 | Some agents may be internal-only and excluded from manifest |
 
+**Incorrect:**
+
+```
+DRIFT: CLAUDE.md has wrong hook count.
+```
+
+**Correct:**
+
+```
+DRIFT: CLAUDE.md Version section says "85 entries" but hooks.json has 87.
+  Fix: Update CLAUDE.md Version section (line ~42) to "87 entries"
+```
+
 ### Key Rules
 
 - If all counts match, output "All counts consistent." and stop

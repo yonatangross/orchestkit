@@ -42,6 +42,12 @@ bash src/skills/validate-counts/scripts/count-all.sh
 
 - [Count Locations](references/count-locations.md) — Where every count lives and why drift happens
 
+## Related Skills
+
+- `release-checklist` — Uses validate-counts as step 5 of the release gate
+- `doctor` — Broader health check that includes count validation
+- `audit-skills` — Quality audit for skill structure and completeness
+
 ## Common Mistakes
 
 1. Counting from `plugins/` instead of `src/` — plugins/ may be empty after an interrupted build

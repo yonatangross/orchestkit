@@ -52,6 +52,20 @@ Derived sources:
 - `manifests/ork.json` — agent list length
 - `manifests/orkl.json` — agent list length
 
+**Incorrect:**
+
+```bash
+# Counting from generated plugins/ — stale if build was interrupted
+ls -d plugins/ork/skills/*/ | wc -l
+```
+
+**Correct:**
+
+```bash
+# Always count from src/ — the authoritative source
+ls -d src/skills/*/ | wc -l
+```
+
 ### Key Rules
 
 - Never count `plugins/` — it's generated from `src/` and may be stale if build was interrupted
