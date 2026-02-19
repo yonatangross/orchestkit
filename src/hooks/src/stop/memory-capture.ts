@@ -38,6 +38,7 @@ export function memoryCapture(input: HookInput): HookResult {
       mkdirSync(memoryDir, { recursive: true });
     }
 
+    const lastMsg = input.last_assistant_message;
     const record = {
       ts: new Date().toISOString(),
       pid: input.session_id?.slice(0, 12) ?? 'unknown',
@@ -45,6 +46,9 @@ export function memoryCapture(input: HookInput): HookResult {
       cwd: projectDir,
       auto_captured: true,
       summary: `Session with ${totalTools} tool calls`,
+      ...(lastMsg !== undefined && {
+        last_assistant_message: lastMsg.slice(0, 500) + (lastMsg.length > 500 ? '...' : ''),
+      }),
     };
 
     const decisionsFile = join(memoryDir, 'decisions.jsonl');
