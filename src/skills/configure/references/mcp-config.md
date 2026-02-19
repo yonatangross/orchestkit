@@ -7,10 +7,10 @@ Commands work without them - MCPs just add extra capabilities.
 
 | MCP | Purpose | Storage | Enhances |
 |-----|---------|---------|----------|
-| **context7** | Up-to-date library docs | Cloud (Upstash) | /implement, /verify, /review-pr |
-| **sequential-thinking** | Structured reasoning | None | /brainstorm, /implement |
+| **context7** | Up-to-date library docs | Cloud (Upstash) | /ork:implement, /ork:verify, /ork:review-pr |
+| **sequential-thinking** | Structured reasoning | None | /ork:brainstorming, /ork:implement |
 | **memory** | Knowledge graph | Local file | Decisions, patterns, entities |
-| **tavily** | Web search, extract, crawl | Cloud (Tavily) | /explore, /implement, web-research agents |
+| **tavily** | Web search, extract, crawl | Cloud (Tavily) | /ork:explore, /ork:implement, web-research agents |
 | **agentation** | UI annotation tool | Local daemon | UI feedback → automatic agent pickup |
 
 > **Opus 4.6 Note:** Sequential-thinking MCP is optional when using Opus 4.6+, which has native adaptive thinking built-in. The MCP tool remains useful for non-Opus models.
@@ -126,14 +126,14 @@ OrchestKit agents and skills integrate with these MCPs:
 
 | Component | MCP Used | Purpose |
 |-----------|----------|---------|
-| /implement, /verify, /review-pr | context7 | Fetch current library docs |
+| /ork:implement, /ork:verify, /ork:review-pr | context7 | Fetch current library docs |
 | web-research-analyst, market-intelligence | tavily | Web search and content extraction |
-| /remember, /memory | memory | Persist decisions across sessions |
+| /ork:remember, /ork:memory | memory | Persist decisions across sessions |
 
 ## Without MCPs
 
 Commands still work - MCPs just enhance them:
-- `/implement` works, but without latest library docs (context7)
+- `/ork:implement` works, but without latest library docs (context7)
 - Web research works via WebFetch/WebSearch, but without raw markdown extraction (tavily)
 - Session continuity works via local files and knowledge graph
 

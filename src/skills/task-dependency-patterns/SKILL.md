@@ -175,11 +175,11 @@ SendMessage(type: "broadcast",
 
 ## Related Skills
 
-- `worktree-coordination` - Multi-instance task coordination across git worktrees
-- `implement` - Implementation workflow with task tracking and progress updates
-- `verify` - Verification tasks and completion checklists
-- `fix-issue` - Issue resolution with hypothesis-based RCA tracking
-- `brainstorming` - Design exploration with parallel agent tasks
+- `ork:worktree-coordination` - Multi-instance task coordination across git worktrees
+- `ork:implement` - Implementation workflow with task tracking and progress updates
+- `ork:verify` - Verification tasks and completion checklists
+- `ork:fix-issue` - Issue resolution with hypothesis-based RCA tracking
+- `ork:brainstorming` - Design exploration with parallel agent tasks
 
 ## References
 

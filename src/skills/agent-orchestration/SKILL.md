@@ -102,9 +102,9 @@ Orchestrate a single skill across 3 parallel scenarios (simple/medium/complex) w
 
 ## Related Skills
 
-- `langgraph` - LangGraph workflow patterns (supervisor, routing, state)
+- `ork:langgraph` - LangGraph workflow patterns (supervisor, routing, state)
 - `function-calling` - Tool definitions and execution
-- `task-dependency-patterns` - Task management with Agent Teams workflow
+- `ork:task-dependency-patterns` - Task management with Agent Teams workflow
 
 ## Capability Details
 

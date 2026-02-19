@@ -50,13 +50,13 @@
 
 1. **Key Lesson:** _Most important takeaway_
 2. **For Next Time:** _What to do differently_
-3. **To Remember:** _Store with `/remember`_
+3. **To Remember:** _Store with `/ork:remember`_
 
 ---
 
 ## Checklist Before Closing
 
-- [ ] Lessons stored in memory (`/remember`)
+- [ ] Lessons stored in memory (`/ork:remember`)
 - [ ] Reusable patterns documented
 - [ ] Tech debt tracked in issues
 - [ ] PR description updated with learnings

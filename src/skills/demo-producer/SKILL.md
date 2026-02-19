@@ -22,23 +22,23 @@ Universal demo video creation for any content type.
 ## Quick Start
 
 ```bash
-/demo-producer                    # Interactive mode - asks what to create
-/demo-producer skill explore      # Create demo for a skill
-/demo-producer plugin ork     # Create demo for a plugin
-/demo-producer tutorial "Building a REST API"  # Custom tutorial
+/ork:demo-producer                    # Interactive mode - asks what to create
+/ork:demo-producer skill explore      # Create demo for a skill
+/ork:demo-producer plugin ork     # Create demo for a plugin
+/ork:demo-producer tutorial "Building a REST API"  # Custom tutorial
 ```
 
 ## Supported Content Types
 
 | Type | Source | Example |
 |------|--------|---------|
-| `skill` | skills/{name}/SKILL.md | `/demo-producer skill commit` |
-| `agent` | agents/{name}.md | `/demo-producer agent debug-investigator` |
-| `plugin` | plugins/{name}/plugin.json | `/demo-producer plugin ork` |
-| `marketplace` | Marketplace install flow | `/demo-producer marketplace ork` |
-| `tutorial` | Custom description | `/demo-producer tutorial "Git workflow"` |
-| `cli` | Any CLI tool | `/demo-producer cli "npm create vite"` |
-| `code` | Code walkthrough | `/demo-producer code src/api/auth.ts` |
+| `skill` | skills/{name}/SKILL.md | `/ork:demo-producer skill commit` |
+| `agent` | agents/{name}.md | `/ork:demo-producer agent debug-investigator` |
+| `plugin` | plugins/{name}/plugin.json | `/ork:demo-producer plugin ork` |
+| `marketplace` | Marketplace install flow | `/ork:demo-producer marketplace ork` |
+| `tutorial` | Custom description | `/ork:demo-producer tutorial "Git workflow"` |
+| `cli` | Any CLI tool | `/ork:demo-producer cli "npm create vite"` |
+| `code` | Code walkthrough | `/ork:demo-producer code src/api/auth.ts` |
 
 ## Interactive Flow
 
@@ -125,7 +125,7 @@ Perfect for showcasing complexity levels in parallel:
 - **Format**: 3 split terminals (Simple → Medium → Advanced)
 - **Duration**: 15-20 seconds
 - **Components**: LiveFolderTree, LevelBadge, SkillReferences, CodePreview, ProgressPhases
-- **Example**: `/demo-producer skill explore --template tri-terminal-race`
+- **Example**: `/ork:demo-producer skill explore --template tri-terminal-race`
 
 **Key Features:**
 - Color-coded difficulty indicators (Green/Amber/Purple)
@@ -142,7 +142,7 @@ Ideal for step-by-step explanations:
 - **Format**: Zooming transitions, layered reveals
 - **Duration**: 20-30 seconds
 - **Components**: CodePreview, Highlights, Annotations, TimelineBar
-- **Example**: `/demo-producer tutorial "Building REST API" --template progressive-zoom`
+- **Example**: `/ork:demo-producer tutorial "Building REST API" --template progressive-zoom`
 
 **Key Features:**
 - Smooth zoom effects on code sections
@@ -159,7 +159,7 @@ Great for before/after and transformation stories:
 - **Format**: Split screen that merges to unified view
 - **Duration**: 15-25 seconds
 - **Components**: SplitScreen, MergeTransition, ContrastHighlight, ImpactMetrics
-- **Example**: `/demo-producer cli "npm run build" --template split-then-merge`
+- **Example**: `/ork:demo-producer cli "npm run build" --template split-then-merge`
 
 **Key Features:**
 - Split screen comparisons

@@ -178,11 +178,11 @@ done
 
 ## Related Skills
 
-- `create-pr` - Create pull requests with proper formatting and review assignments
-- `review-pr` - Comprehensive PR review with specialized agents
-- `release-management` - GitHub release workflow with semantic versioning and changelogs
+- `ork:create-pr` - Create pull requests with proper formatting and review assignments
+- `ork:review-pr` - Comprehensive PR review with specialized agents
+- `ork:release-management` - GitHub release workflow with semantic versioning and changelogs
 - `stacked-prs` - Manage dependent PRs with rebase coordination
-- `issue-progress-tracking` - Automatic issue progress updates from commits
+- `ork:issue-progress-tracking` - Automatic issue progress updates from commits
 
 ## Key Decisions
 

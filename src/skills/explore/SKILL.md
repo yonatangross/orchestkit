@@ -24,7 +24,7 @@ Multi-angle codebase exploration using 3-5 parallel agents.
 ## Quick Start
 
 ```bash
-/explore authentication
+/ork:explore authentication
 ```
 
 > **Opus 4.6**: Exploration agents use native adaptive thinking for deeper pattern recognition across large codebases.
@@ -161,7 +161,7 @@ See [Exploration Report Template](references/exploration-report-template.md).
 - "What's the workflow for content analysis?"
 
 ## Related Skills
-- implement: Implement after exploration
+- `ork:implement`: Implement after exploration
 ---
 
 **Version:** 2.1.0 (February 2026)

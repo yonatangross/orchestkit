@@ -181,12 +181,12 @@ See `test-cases.json` for 30 test cases across all categories.
 
 ## Related Skills
 
-- `langgraph` - LangGraph workflow patterns (for agentic RAG workflows)
+- `ork:langgraph` - LangGraph workflow patterns (for agentic RAG workflows)
 - `caching` - Cache RAG responses for repeated queries
-- `golden-dataset` - Evaluate retrieval quality
-- `llm-integration` - Local embeddings with nomic-embed-text
+- `ork:golden-dataset` - Evaluate retrieval quality
+- `ork:llm-integration` - Local embeddings with nomic-embed-text
 - `vision-language-models` - Image analysis for multimodal RAG
-- `database-patterns` - Schema design for vector search
+- `ork:database-patterns` - Schema design for vector search
 
 ## Capability Details
 

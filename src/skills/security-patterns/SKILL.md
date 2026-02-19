@@ -215,7 +215,7 @@ langfuse.trace(input=raw_prompt)                   # Unmasked observability data
 ## Related Skills
 
 - `api-design-framework` - API security patterns
-- `rag-retrieval` - RAG pipeline patterns requiring tenant-scoped retrieval
+- `ork:rag-retrieval` - RAG pipeline patterns requiring tenant-scoped retrieval
 - `llm-evaluation` - Output quality assessment including hallucination detection
 
 ## Capability Details

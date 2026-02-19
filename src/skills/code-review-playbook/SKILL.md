@@ -291,9 +291,9 @@ cache.set(key, value, CACHE_TTL_SECONDS);
 
 ## Related Skills
 
-- `architecture-patterns` - Enforce testing and architectural best practices during code review
+- `ork:architecture-patterns` - Enforce testing and architectural best practices during code review
 - `security-scanning` - Automated security checks to complement manual review
-- `testing-patterns` - Comprehensive testing patterns to verify during review
+- `ork:testing-patterns` - Comprehensive testing patterns to verify during review
 
 ## Capability Details
 
@@ -349,7 +349,7 @@ Each category has individual rule files in `rules/` loaded on-demand:
 
 - **`scripts/review-pr.md`** - Dynamic PR review with auto-fetched GitHub data
   - Auto-fetches: PR title, author, state, changed files, diff stats, comments count
-  - Usage: `/review-pr [PR-number]`
+  - Usage: `/ork:review-pr [PR-number]`
   - Requires: GitHub CLI (`gh`)
   - Uses `$ARGUMENTS` and `!command` for live PR data
 
