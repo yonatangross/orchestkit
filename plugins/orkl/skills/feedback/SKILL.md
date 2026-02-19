@@ -1,7 +1,7 @@
 ---
 name: feedback
 license: MIT
-compatibility: "Claude Code 2.1.34+."
+compatibility: "Claude Code 2.1.47+."
 description: "Manages OrchestKit feedback system. Use when providing feedback or viewing usage analytics."
 argument-hint: "[subcommand]"
 context: inherit

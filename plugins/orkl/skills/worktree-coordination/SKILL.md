@@ -1,7 +1,7 @@
 ---
 name: worktree-coordination
 license: MIT
-compatibility: "Claude Code 2.1.34+."
+compatibility: "Claude Code 2.1.47+."
 description: "Coordinates multiple Claude instances across worktrees. Use when managing parallel development."
 argument-hint: "[subcommand]"
 context: none

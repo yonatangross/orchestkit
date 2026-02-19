@@ -1,7 +1,7 @@
 ---
 name: code-review-playbook
 license: MIT
-compatibility: "Claude Code 2.1.34+."
+compatibility: "Claude Code 2.1.47+."
 description: Use this skill when conducting or improving code reviews. Provides structured review processes, conventional comments patterns, language-specific checklists, and feedback templates. Use when reviewing PRs or standardizing review practices.
 version: 2.0.0
 author: AI Agent Hub

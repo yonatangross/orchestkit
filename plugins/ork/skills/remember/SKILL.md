@@ -1,7 +1,7 @@
 ---
 name: remember
 license: MIT
-compatibility: "Claude Code 2.1.34+. Requires memory MCP server."
+compatibility: "Claude Code 2.1.47+. Requires memory MCP server."
 description: "Stores decisions and patterns in knowledge graph. Use when saving patterns, remembering outcomes, or recording decisions."
 argument-hint: "[decision-or-pattern]"
 context: none

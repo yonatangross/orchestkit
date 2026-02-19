@@ -1,7 +1,7 @@
 ---
 name: verify
 license: MIT
-compatibility: "Claude Code 2.1.34+. Requires memory MCP server."
+compatibility: "Claude Code 2.1.47+. Requires memory MCP server."
 description: "Comprehensive verification with parallel test agents. Use when verifying implementations or validating changes."
 argument-hint: "[feature-or-scope]"
 context: fork

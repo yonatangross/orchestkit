@@ -1,7 +1,7 @@
 ---
 name: skill-evolution
 license: MIT
-compatibility: "Claude Code 2.1.34+."
+compatibility: "Claude Code 2.1.47+."
 description: "Evolves skills based on usage patterns. Use when improving or rolling back skill definitions."
 argument-hint: "[subcommand] [skill-id]"
 context: inherit

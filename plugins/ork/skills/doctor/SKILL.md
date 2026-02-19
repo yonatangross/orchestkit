@@ -1,7 +1,7 @@
 ---
 name: doctor
 license: MIT
-compatibility: "Claude Code 2.1.34+."
+compatibility: "Claude Code 2.1.47+."
 description: "OrchestKit doctor for health diagnostics. Use when running checks on plugin health, diagnosing problems, or troubleshooting issues."
 argument-hint: "[--verbose]"
 context: inherit
@@ -31,7 +31,7 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 7. **Coordination System** - Checks lock health and registry integrity
 8. **Context Budget** - Monitors token usage against budget
 9. **Memory System** - Graph memory health
-10. **Claude Code Version** - Validates CC >= 2.1.34
+10. **Claude Code Version** - Validates CC >= 2.1.47
 11. **External Dependencies** - Checks optional tool availability (agent-browser)
 12. **MCP Status** - Active vs disabled vs misconfigured, API key presence for paid MCPs
 
@@ -241,8 +241,8 @@ Validates runtime version:
 
 **Output:**
 ```
-Claude Code: 2.1.42 (OK)
-- Minimum required: 2.1.34
+Claude Code: 2.1.47 (OK)
+- Minimum required: 2.1.47
 ```
 
 ### 11. External Dependencies
@@ -371,7 +371,7 @@ MCP Servers:
     "schemas": {"passed": true, "count": 15},
     "context": {"passed": true, "usage": 0.84},
     "coordination": {"passed": true, "staleLocks": 0},
-    "ccVersion": {"passed": true, "version": "2.1.42"}
+    "ccVersion": {"passed": true, "version": "2.1.47"}
   },
   "exitCode": 0
 }
