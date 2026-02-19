@@ -229,7 +229,7 @@ describe('pattern-sync-push', () => {
       const input = createHookInput();
 
       // Act
-      const result = patternSyncPush(input);
+      const _result = patternSyncPush(input);
 
       // Assert
       expect(readGlobalPatterns()).toHaveLength(1);

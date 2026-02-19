@@ -11,7 +11,7 @@
  * we mirror its pure functions and test the logic patterns.
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, } from 'vitest';
 
 // Mock node:fs before importing it
 vi.mock('node:fs', () => ({
@@ -72,7 +72,7 @@ function isHookDisabled(name: string, overrides: HookOverrides | null): boolean 
 // Test Utilities
 // =============================================================================
 
-function createHookInput(overrides: Partial<HookInput> = {}): HookInput {
+function _createHookInput(overrides: Partial<HookInput> = {}): HookInput {
   return {
     tool_name: 'Bash',
     session_id: 'test-session-123',
@@ -82,7 +82,7 @@ function createHookInput(overrides: Partial<HookInput> = {}): HookInput {
   };
 }
 
-const SILENT_SUCCESS = { continue: true, suppressOutput: true };
+const _SILENT_SUCCESS = { continue: true, suppressOutput: true };
 
 // =============================================================================
 // loadOverrides

@@ -78,7 +78,7 @@ function generateSpawnEntries(
       session_id: 'test-session-gate-001',
     }));
   }
-  return lines.join('\n') + '\n';
+  return `${lines.join('\n')}\n`;
 }
 
 // ---------------------------------------------------------------------------
@@ -760,7 +760,7 @@ describe('contextGate', () => {
         return false;
       });
 
-      let callCount = 0;
+      const _callCount = 0;
       (readFileSync as ReturnType<typeof vi.fn>).mockImplementation((path: string) => {
         if (typeof path === 'string' && path.includes('agent-state.json')) {
           return JSON.stringify({

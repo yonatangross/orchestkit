@@ -42,7 +42,7 @@ import type { HookInput } from '../types.js';
 // =============================================================================
 
 const TEST_PROJECT_DIR = join(tmpdir(), 'orchestration-integration-test');
-const TEST_SESSION_ID = 'integration-test-' + Date.now();
+const TEST_SESSION_ID = `integration-test-${Date.now()}`;
 
 let savedAgentTeams: string | undefined;
 
@@ -289,7 +289,7 @@ describe('orchestration workflow - calibration learning', () => {
     expect(calibrationData.records.length).toBe(initialCount + 10);
     expect(calibrationData.stats.totalDispatches).toBe(initialCount + 10);
     // Success rate should be 50% overall (5 success, 5 failure from our 10 records)
-    const expectedSuccesses = Math.floor((initialCount + 10) / 2) - Math.floor(initialCount / 2) + 5;
+    const _expectedSuccesses = Math.floor((initialCount + 10) / 2) - Math.floor(initialCount / 2) + 5;
     const actualSuccessRate = calibrationData.stats.successRate;
     expect(actualSuccessRate).toBeGreaterThanOrEqual(0.4); // Allow some variance
     expect(actualSuccessRate).toBeLessThanOrEqual(0.6);
@@ -303,7 +303,7 @@ describe('orchestration workflow - calibration learning', () => {
 describe('orchestration workflow - task integration', () => {
   test('registers tasks for dispatched agents', () => {
     const agent = 'backend-system-architect';
-    const taskId = 'task-' + Date.now();
+    const taskId = `task-${Date.now()}`;
 
     // Register task
     registerTask(taskId, agent, 88);
@@ -320,7 +320,7 @@ describe('orchestration workflow - task integration', () => {
 
   test('tracks task status updates with agent status', () => {
     const agent = 'test-generator';
-    const taskId = 'task-test-' + Date.now();
+    const taskId = `task-test-${Date.now()}`;
 
     registerTask(taskId, agent, 85);
     trackDispatchedAgent(agent, 85, taskId);

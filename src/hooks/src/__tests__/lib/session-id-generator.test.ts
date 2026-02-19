@@ -2,7 +2,7 @@
  * Tests for Smart Session ID Generator
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 // Mock modules
 vi.mock('node:fs', async () => {

@@ -14,7 +14,7 @@
  * Part of Context Engineering 2.0
  */
 
-import { existsSync, readFileSync, writeFileSync, mkdirSync, appendFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync, } from 'node:fs';
 import { dirname } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, outputDeny, outputWarning, logHook, getProjectDir } from '../lib/common.js';

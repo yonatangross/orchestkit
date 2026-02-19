@@ -12,7 +12,7 @@
 
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, logHook, getProjectDir, getSessionId } from '../lib/common.js';
+import { outputSilentSuccess, logHook, getProjectDir, } from '../lib/common.js';
 
 // -----------------------------------------------------------------------------
 // Path Helpers
@@ -69,7 +69,7 @@ function extractPendingTasks(): { count: number; summary: string } {
   }
 }
 
-function extractRelevantDecisions(taskDescription: string, category: string): string {
+function extractRelevantDecisions(_taskDescription: string, category: string): string {
   const decisionsFile = getDecisionsFile();
   if (!existsSync(decisionsFile)) {
     return '';

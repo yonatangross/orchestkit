@@ -28,7 +28,7 @@ vi.mock('../../posttool/user-tracking.js', () => ({ userTracking: vi.fn(() => ({
 vi.mock('../../posttool/solution-detector.js', () => ({ solutionDetector: vi.fn(() => ({ continue: true, suppressOutput: true })) }));
 vi.mock('../../posttool/tool-preference-learner.js', () => ({ toolPreferenceLearner: vi.fn(() => ({ continue: true, suppressOutput: true })) }));
 
-import { unifiedDispatcher, matchesTool, registeredHookNames, registeredHookMatchers } from '../../posttool/unified-dispatcher.js';
+import { unifiedDispatcher, matchesTool, registeredHookNames, } from '../../posttool/unified-dispatcher.js';
 import { appendAnalytics } from '../../lib/analytics.js';
 import type { HookInput } from '../../types.js';
 

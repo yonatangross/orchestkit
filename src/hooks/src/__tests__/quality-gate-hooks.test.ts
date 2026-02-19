@@ -1001,7 +1001,7 @@ describe('unifiedErrorHandler', () => {
   });
 
   test('detects error from exit code 127 (command not found)', () => {
-    const result = unifiedErrorHandler(
+    const _result = unifiedErrorHandler(
       createPostToolInput({
         tool_input: { command: 'nonexistent-cmd' },
         exit_code: 127,
@@ -1016,7 +1016,7 @@ describe('unifiedErrorHandler', () => {
   // -------------------------------------------------------------------------
 
   test('detects error from tool_error field', () => {
-    const result = unifiedErrorHandler(
+    const _result = unifiedErrorHandler(
       createPostToolInput({
         tool_input: { command: 'git push' },
         exit_code: 0,
@@ -1032,7 +1032,7 @@ describe('unifiedErrorHandler', () => {
   // -------------------------------------------------------------------------
 
   test('detects ERROR in tool output', () => {
-    const result = unifiedErrorHandler(
+    const _result = unifiedErrorHandler(
       createPostToolInput({
         tool_input: { command: 'npm run build' },
         exit_code: 0,

@@ -3,7 +3,7 @@
  * Tests how multiple hooks work together in realistic scenarios
  */
 
-import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, test, expect, vi, beforeEach, } from 'vitest';
 import type { HookInput, HookResult } from '../../types.js';
 
 // Import hooks for integration testing
@@ -156,7 +156,7 @@ describe('Hook Chain Integration Tests', () => {
   describe('Multi-Step Workflow Scenarios', () => {
     test('typical development workflow: read, modify, write', () => {
       // Step 1: User reads file (no permission needed for Read)
-      const readInput: HookInput = {
+      const _readInput: HookInput = {
         tool_name: 'Read',
         session_id: 'test-session',
         tool_input: { file_path: '/test/project/src/index.ts' },

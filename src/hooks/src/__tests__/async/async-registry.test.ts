@@ -5,8 +5,8 @@
  * @see https://docs.anthropic.com/en/docs/claude-code/hooks
  */
 import { describe, it, expect, beforeAll } from 'vitest';
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 
 interface Hook {
   type: string;

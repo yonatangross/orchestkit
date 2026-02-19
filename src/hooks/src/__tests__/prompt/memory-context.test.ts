@@ -4,7 +4,7 @@
  * Part of Memory Fabric v2.1 - Graph-First Architecture
  */
 
-import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, test, expect, beforeEach, afterEach, } from 'vitest';
 import type { HookInput } from '../../types.js';
 import { memoryContext } from '../../prompt/memory-context.js';
 
@@ -460,7 +460,7 @@ describe('prompt/memory-context', () => {
     });
 
     test('handles very long prompts', () => {
-      const longPrompt = 'Add a new feature ' + 'x'.repeat(5000);
+      const longPrompt = `Add a new feature ${'x'.repeat(5000)}`;
       const input = createPromptInput(longPrompt);
       const result = memoryContext(input);
 

@@ -45,7 +45,7 @@ function shouldRunTests(projectDir: string): boolean {
 /**
  * Detect project type and run appropriate tests
  */
-function runTests(projectDir: string, logFile: string): boolean {
+function runTests(projectDir: string, _logFile: string): boolean {
   let exitCode = 0;
 
   // Python project (pytest)

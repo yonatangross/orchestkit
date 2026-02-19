@@ -69,7 +69,7 @@ export function memoryCapture(input: HookInput): HookResult {
     if (existsSync(decisionsFile) && statSync(decisionsFile).size > 500 * 1024) {
       renameSync(decisionsFile, `${decisionsFile}.old.${Date.now()}`);
     }
-    appendFileSync(decisionsFile, JSON.stringify(record) + '\n');
+    appendFileSync(decisionsFile, `${JSON.stringify(record)}\n`);
     logHook('memory-capture', `Captured session summary (${totalTools} tools) to decisions.jsonl`);
   } catch (error) {
     logHook('memory-capture', `Error capturing memory: ${error}`, 'warn');

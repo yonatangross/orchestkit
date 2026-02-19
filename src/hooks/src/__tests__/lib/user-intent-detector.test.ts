@@ -21,8 +21,6 @@ import {
   hasDecisionLanguage,
   hasProblemLanguage,
   hasQuestionLanguage,
-  type IntentDetectionResult,
-  type UserIntent,
 } from '../../lib/user-intent-detector.js';
 
 // =============================================================================
@@ -350,7 +348,7 @@ describe('detectUserIntent', () => {
     });
 
     it('should have lower confidence for very short matches', () => {
-      const shortMatch = detectUserIntent('decided on X');
+      const _shortMatch = detectUserIntent('decided on X');
       const longMatch = detectUserIntent(
         'I decided on PostgreSQL with pgvector for vector search'
       );
@@ -472,7 +470,7 @@ describe('detectUserIntent', () => {
 
     it('should handle very long prompts', () => {
       const longPrompt =
-        'I decided to use PostgreSQL ' + 'for excellent performance. '.repeat(100);
+        `I decided to use PostgreSQL ${'for excellent performance. '.repeat(100)}`;
       const result = detectUserIntent(longPrompt);
       expect(result.decisions.length).toBeGreaterThan(0);
       // Text should be truncated to 300 chars
@@ -786,8 +784,8 @@ describe('extractRationale', () => {
   });
 
   it('should limit rationale to 200 characters', () => {
-    const longRationale = 'because ' + 'a'.repeat(300);
-    const text = 'I chose this ' + longRationale;
+    const longRationale = `because ${'a'.repeat(300)}`;
+    const text = `I chose this ${longRationale}`;
     const rationale = extractRationale(text, 0);
     expect(rationale).toBeDefined();
     expect(rationale!.length).toBeLessThanOrEqual(200);

@@ -9,7 +9,7 @@
  */
 
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, } from '../../types.js';
 
 // =============================================================================
 // Mocks - MUST be defined BEFORE imports
@@ -50,7 +50,7 @@ vi.mock('../../subagent-stop/agent-memory-store.js', () => ({
 }));
 
 import { unifiedSubagentStopDispatcher, registeredHookNames } from '../../subagent-stop/unified-dispatcher.js';
-import { outputSilentSuccess, logHook } from '../../lib/common.js';
+import { logHook } from '../../lib/common.js';
 import { trackEvent } from '../../lib/session-tracker.js';
 import { appendAnalytics } from '../../lib/analytics.js';
 import { contextPublisher } from '../../subagent-stop/context-publisher.js';

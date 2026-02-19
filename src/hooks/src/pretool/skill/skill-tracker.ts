@@ -71,7 +71,7 @@ export function skillTracker(input: HookInput): HookResult {
     project: basename(projectDir),
     phase: 'start',
   });
-  appendSafe(analyticsLog, analyticsEntry + '\n');
+  appendSafe(analyticsLog, `${analyticsEntry}\n`);
 
   logHook('skill-tracker', `Skill usage logged for ${skillName}`);
 

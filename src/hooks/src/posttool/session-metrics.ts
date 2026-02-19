@@ -10,7 +10,7 @@ import { outputSilentSuccess, logHook } from '../lib/common.js';
 import { getMetricsFile } from '../lib/paths.js';
 
 const METRICS_FILE = getMetricsFile();
-const LOCKFILE = `${METRICS_FILE}.lock`;
+const _LOCKFILE = `${METRICS_FILE}.lock`;
 
 interface SessionMetrics {
   tools: Record<string, number>;

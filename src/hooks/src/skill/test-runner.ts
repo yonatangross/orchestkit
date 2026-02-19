@@ -54,7 +54,7 @@ export function testRunner(input: HookInput): HookResult {
             stdio: ['pipe', 'pipe', 'pipe'],
           });
           const lines = result.split('\n').slice(-30);
-          process.stderr.write(lines.join('\n') + '\n');
+          process.stderr.write(`${lines.join('\n')}\n`);
         } catch {
           // Poetry not available, try pytest directly
         }
@@ -70,7 +70,7 @@ export function testRunner(input: HookInput): HookResult {
           stdio: ['pipe', 'pipe', 'pipe'],
         });
         const lines = result.split('\n').slice(-30);
-        process.stderr.write(lines.join('\n') + '\n');
+        process.stderr.write(`${lines.join('\n')}\n`);
       } catch {
         process.stderr.write('pytest not found - skipping auto-run\n');
       }
@@ -104,7 +104,7 @@ export function testRunner(input: HookInput): HookResult {
           stdio: ['pipe', 'pipe', 'pipe'],
         });
         const lines = result.split('\n').slice(-30);
-        process.stderr.write(lines.join('\n') + '\n');
+        process.stderr.write(`${lines.join('\n')}\n`);
       } catch (error) {
         // Test execution errors are logged but don't block
         if (error instanceof Error) {

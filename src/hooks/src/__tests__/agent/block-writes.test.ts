@@ -5,7 +5,7 @@
  * Security Focus: Validates that read-only agents cannot perform Write/Edit operations
  */
 
-import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, test, expect, beforeEach, afterEach, } from 'vitest';
 import type { HookInput } from '../../types.js';
 import { blockWrites } from '../../agent/block-writes.js';
 

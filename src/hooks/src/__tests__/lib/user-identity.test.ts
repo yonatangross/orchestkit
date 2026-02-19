@@ -16,7 +16,7 @@ import {
   getIdentityContext,
   clearIdentityCache,
 } from '../../lib/user-identity.js';
-import { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync, } from 'node:fs';
 import { execSync } from 'node:child_process';
 
 // Mock modules

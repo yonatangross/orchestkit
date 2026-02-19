@@ -324,7 +324,7 @@ function checkCriticalComponents(pluginRoot: string): boolean {
 /**
  * Setup repair hook
  */
-export function setupRepair(input: HookInput): HookResult {
+export function setupRepair(_input: HookInput): HookResult {
   const pluginRoot = getPluginRoot();
 
   logHook('setup-repair', 'Setup repair starting');
@@ -349,7 +349,7 @@ export function setupRepair(input: HookInput): HookResult {
   }
 
   if (repairsFailed.length > 0) {
-    repairSummary = `${repairSummary ? repairSummary + '. ' : ''}Issues: ${repairsFailed.join(', ')}`;
+    repairSummary = `${repairSummary ? `${repairSummary}. ` : ''}Issues: ${repairsFailed.join(', ')}`;
     notifyUser = true;
   }
 

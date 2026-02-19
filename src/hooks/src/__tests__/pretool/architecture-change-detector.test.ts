@@ -36,7 +36,7 @@ vi.mock('node:path', () => ({
 import { architectureChangeDetector } from '../../pretool/Write/architecture-change-detector.js';
 import type { HookInput } from '../../types.js';
 import { guardPathPattern, isDontAskMode } from '../../lib/guards.js';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, } from 'node:fs';
 
 function createWriteInput(filePath: string, content: string = ''): HookInput {
   return {

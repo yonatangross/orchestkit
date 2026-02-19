@@ -134,7 +134,7 @@ function getFeedbackCategory(agent: string): string {
  * Get instance ID consistently
  */
 function getInstanceId(): string {
-  return process.env.CLAUDE_INSTANCE_ID || `${require('os').hostname()}-${process.pid}`;
+  return process.env.CLAUDE_INSTANCE_ID || `${require('node:os').hostname()}-${process.pid}`;
 }
 
 function extractFindingsSummary(output: string): string {

@@ -221,14 +221,14 @@ function logModelUsage(agentType: string, model: string, complexity: string, adv
   const logFile = join(getProjectDir(), '.claude', 'logs', 'model-usage.jsonl');
   try {
     mkdirSync(dirname(logFile), { recursive: true });
-    bufferWrite(logFile, JSON.stringify({
+    bufferWrite(logFile, `${JSON.stringify({
       timestamp: new Date().toISOString(),
       agent: agentType,
       model,
       complexity,
       recommendation: advice?.recommended || null,
       potentialSavings: advice?.savingsPercent || 0,
-    }) + '\n');
+    })}\n`);
   } catch {
     // Non-critical
   }

@@ -16,7 +16,7 @@ interface SessionMetrics {
 /**
  * Session metrics summary hook
  */
-export function sessionMetricsSummary(input: HookInput): HookResult {
+export function sessionMetricsSummary(_input: HookInput): HookResult {
   logHook('session-metrics-summary', 'Session ending - generating summary');
 
   const metricsFile = getMetricsFile();

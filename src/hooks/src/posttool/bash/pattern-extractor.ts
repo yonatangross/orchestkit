@@ -132,7 +132,7 @@ function queuePattern(
   // Initialize queue file if needed
   if (!existsSync(patternsQueue)) {
     try {
-      mkdirSync(require('path').dirname(patternsQueue), { recursive: true });
+      mkdirSync(require('node:path').dirname(patternsQueue), { recursive: true });
       writeFileSync(patternsQueue, JSON.stringify({ patterns: [] }));
     } catch {
       return;
@@ -172,7 +172,7 @@ function handleGitCommit(command: string, exitCode: number, patternsQueue: strin
     return;
   }
 
-  const { tech, pattern } = extractPatternInfo(commitMsg);
+  const { tech, pattern: _pattern } = extractPatternInfo(commitMsg);
   const category = detectBestPracticeCategory(commitMsg);
   const outcome = exitCode === 0 ? 'success' : 'failed';
 

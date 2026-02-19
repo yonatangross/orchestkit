@@ -59,7 +59,7 @@ function extractPromptSummary(input: HookInput): string | undefined {
   const prompt = (toolInput as Record<string, unknown>).prompt;
   if (typeof prompt === 'string') {
     // Truncate to first 200 chars
-    return prompt.length > 200 ? prompt.slice(0, 200) + '...' : prompt;
+    return prompt.length > 200 ? `${prompt.slice(0, 200)}...` : prompt;
   }
 
   return undefined;

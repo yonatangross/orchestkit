@@ -35,7 +35,7 @@ const SKILL_OVERLAPS: Record<string, string> = {
 function initUsageFile(usageFile: string): void {
   if (!existsSync(usageFile)) {
     try {
-      mkdirSync(require('path').dirname(usageFile), { recursive: true });
+      mkdirSync(require('node:path').dirname(usageFile), { recursive: true });
       writeFileSync(usageFile, JSON.stringify({
         version: '1.0',
         skills: {},
@@ -198,7 +198,7 @@ export function skillUsageOptimizer(input: HookInput): HookResult {
   if (contextMsg) {
     // Truncate if too long
     if (contextMsg.length > 200) {
-      contextMsg = contextMsg.substring(0, 197) + '...';
+      contextMsg = `${contextMsg.substring(0, 197)}...`;
     }
 
     return {

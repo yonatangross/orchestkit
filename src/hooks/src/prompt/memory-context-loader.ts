@@ -78,7 +78,7 @@ function parseDecisions(lines: string[]): StoredDecision[] {
   for (const line of lines) {
     try {
       const parsed = JSON.parse(line);
-      if (parsed && parsed.content && parsed.content.what) {
+      if (parsed?.content?.what) {
         decisions.push(parsed);
       }
     } catch {

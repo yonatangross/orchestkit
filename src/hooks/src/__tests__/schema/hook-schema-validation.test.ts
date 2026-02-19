@@ -177,7 +177,7 @@ function createWriteInput(filePath: string, content: string = '', overrides: Par
   });
 }
 
-function createEditInput(filePath: string, overrides: Partial<HookInput> = {}): HookInput {
+function _createEditInput(filePath: string, overrides: Partial<HookInput> = {}): HookInput {
   return createHookInput({
     tool_name: 'Edit',
     tool_input: { file_path: filePath, old_string: 'old', new_string: 'new' },
@@ -318,7 +318,7 @@ describe('Hook Schema Validation', () => {
     process.env.ORCHESTKIT_BRANCH = 'feature/test';
   });
 
-  describe.each(Object.entries(hooksByCategory))('%s hooks', (category, hooks) => {
+  describe.each(Object.entries(hooksByCategory))('%s hooks', (_category, hooks) => {
     test.each(hooks.map(h => [h.name, h]))('%s returns valid HookResult', async (_, hook) => {
       try {
         const module = await import(hook.path);

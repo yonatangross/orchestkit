@@ -128,7 +128,7 @@ export function initPricingConfig(): void {
     mkdirSync(dirname(configPath), { recursive: true });
     writeFileSync(
       configPath,
-      JSON.stringify(DEFAULT_PRICING, null, 2) + '\n',
+      `${JSON.stringify(DEFAULT_PRICING, null, 2)}\n`,
     );
   } catch {
     // Non-critical

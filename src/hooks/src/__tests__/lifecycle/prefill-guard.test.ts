@@ -183,7 +183,7 @@ describe('prefill-guard', () => {
       const input = createHookInput();
 
       // Act
-      const result = prefillGuard(input);
+      const _result = prefillGuard(input);
 
       // Assert
       expect(outputWarning).toHaveBeenCalledWith(

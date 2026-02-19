@@ -586,7 +586,7 @@ describe('prompt/satisfaction-detector', () => {
       const input = createPromptInput('what time is it', { project_dir: tempDir });
       satisfactionDetector(input);
 
-      const logFile = join(tempDir, '.claude', 'feedback', 'satisfaction.log');
+      const _logFile = join(tempDir, '.claude', 'feedback', 'satisfaction.log');
       // Log file might exist from previous tests but shouldn't have new entries
       // Actually, for clean tempDir, it shouldn't exist
       // If it exists, it's from prior test - skip this assertion
@@ -745,7 +745,7 @@ describe('prompt/satisfaction-detector', () => {
 
     test('handles very long prompts', () => {
       vi.stubEnv('SATISFACTION_SAMPLE_RATE', '1');
-      const longPrompt = 'thank you ' + 'x'.repeat(10000);
+      const longPrompt = `thank you ${'x'.repeat(10000)}`;
       const input = createPromptInput(longPrompt, { project_dir: tempDir });
       const result = satisfactionDetector(input);
 
@@ -927,7 +927,7 @@ describe('prompt/satisfaction-detector', () => {
 
     test('completes within reasonable time for long prompts', () => {
       vi.stubEnv('SATISFACTION_SAMPLE_RATE', '1');
-      const longPrompt = 'thank you ' + 'x'.repeat(10000);
+      const longPrompt = `thank you ${'x'.repeat(10000)}`;
       const input = createPromptInput(longPrompt, { project_dir: tempDir });
 
       const start = performance.now();

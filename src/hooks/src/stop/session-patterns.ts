@@ -120,7 +120,7 @@ function detectWorkflowType(tools: string): string {
 /**
  * Detect dominant language from tool sequence (simplified)
  */
-function detectDominantLanguage(tools: string): string {
+function detectDominantLanguage(_tools: string): string {
   // In a real implementation, this would analyze file extensions from hook logs
   // For now, return 'unknown' as we don't have file access patterns in TS
   return 'unknown';

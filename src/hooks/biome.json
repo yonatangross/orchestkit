@@ -12,39 +12,39 @@
     "rules": {
       "recommended": true,
       "suspicious": {
-        "noExplicitAny": "warn",
+        "noExplicitAny": "off",
         "noConsole": "off",
         "useIterableCallbackReturn": "warn",
         "noTemplateCurlyInString": "warn",
-        "noPrototypeBuiltins": "warn",
-        "noImplicitAnyLet": "warn",
-        "noAssignInExpressions": "warn",
-        "noGlobalIsNan": "warn"
+        "noPrototypeBuiltins": "error",
+        "noImplicitAnyLet": "error",
+        "noAssignInExpressions": "error",
+        "noGlobalIsNan": "error"
       },
       "style": {
-        "noNonNullAssertion": "warn",
-        "useTemplate": "warn",
-        "useNodejsImportProtocol": "warn",
-        "useConst": "warn",
+        "noNonNullAssertion": "off",
+        "useTemplate": "error",
+        "useNodejsImportProtocol": "error",
+        "useConst": "error",
         "useImportType": "warn",
-        "useExponentiationOperator": "warn"
+        "useExponentiationOperator": "error"
       },
       "correctness": {
         "noUnusedVariables": "warn",
-        "noUnusedImports": "warn",
+        "noUnusedImports": "error",
         "noUnusedFunctionParameters": "warn",
-        "useParseIntRadix": "warn",
-        "noSwitchDeclarations": "warn"
+        "useParseIntRadix": "error",
+        "noSwitchDeclarations": "error"
       },
       "complexity": {
         "noForEach": "off",
-        "useOptionalChain": "warn",
-        "useLiteralKeys": "warn",
-        "noUselessContinue": "warn",
-        "noUselessSwitchCase": "warn",
-        "noUselessEscapeInRegex": "warn",
-        "noAdjacentSpacesInRegex": "warn",
-        "useIndexOf": "warn"
+        "useOptionalChain": "error",
+        "useLiteralKeys": "error",
+        "noUselessContinue": "error",
+        "noUselessSwitchCase": "error",
+        "noUselessEscapeInRegex": "error",
+        "noAdjacentSpacesInRegex": "error",
+        "useIndexOf": "error"
       }
     }
   },

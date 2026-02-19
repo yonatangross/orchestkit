@@ -45,7 +45,7 @@ const mockStatSync = vi.mocked(statSync);
 const mockMkdirSync = vi.mocked(mkdirSync);
 const mockAppendFileSync = vi.mocked(appendFileSync);
 const mockGetTotalTools = vi.mocked(getTotalTools);
-const mockOutputSilentSuccess = vi.mocked(outputSilentSuccess);
+const _mockOutputSilentSuccess = vi.mocked(outputSilentSuccess);
 
 function createHookInput(overrides: Partial<HookInput> = {}): HookInput {
   return {

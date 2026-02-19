@@ -3,8 +3,8 @@
  * Tests context loading at session start with Protocol 2.0 compliance
  */
 
-import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
-import { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync } from 'node:fs';
+import { describe, test, expect, beforeEach, afterEach, } from 'vitest';
+import { existsSync, writeFileSync, mkdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import type { HookInput } from '../../types.js';

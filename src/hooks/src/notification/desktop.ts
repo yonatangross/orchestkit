@@ -78,7 +78,7 @@ function buildSubtitle(branch: string, notificationType: string): string {
  */
 function truncateMessage(message: string, maxLen = 120): string {
   if (message.length <= maxLen) return message;
-  return message.substring(0, maxLen - 3) + '...';
+  return `${message.substring(0, maxLen - 3)}...`;
 }
 
 /**

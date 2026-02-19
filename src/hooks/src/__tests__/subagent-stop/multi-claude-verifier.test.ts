@@ -197,7 +197,7 @@ describe('multi-claude-verifier', () => {
       ['submit', 'Added submit handler'],
       ['auth', 'Created auth context'],
       ['login', 'Built login page'],
-    ])('triggers security-auditor for frontend with "%s"', (keyword, output) => {
+    ])('triggers security-auditor for frontend with "%s"', (_keyword, output) => {
       // Arrange
       const input = createSubagentStopInput('frontend-ui-developer', output);
 
@@ -252,7 +252,7 @@ describe('multi-claude-verifier', () => {
       ['auth', 'Implemented auth middleware'],
       ['jwt', 'Added JWT verification'],
       ['session', 'Configured session management'],
-    ])('triggers security-auditor for backend with "%s"', (keyword, output) => {
+    ])('triggers security-auditor for backend with "%s"', (_keyword, output) => {
       // Arrange
       const input = createSubagentStopInput('backend-system-architect', output);
 
@@ -303,7 +303,7 @@ describe('multi-claude-verifier', () => {
       ['.pem', 'Generated server.pem'],
       ['.key', 'Created private.key'],
       ['config.*prod', 'Updated config.prod.json'],
-    ])('triggers security-auditor for sensitive pattern "%s"', (pattern, output) => {
+    ])('triggers security-auditor for sensitive pattern "%s"', (_pattern, output) => {
       // Arrange
       const input = createSubagentStopInput('data-pipeline-engineer', output);
 
@@ -324,7 +324,7 @@ describe('multi-claude-verifier', () => {
       );
 
       // Act
-      const result = multiClaudeVerifier(input);
+      const _result = multiClaudeVerifier(input);
 
       // Assert
       const calls = vi.mocked(writeFileSync).mock.calls;
@@ -398,7 +398,7 @@ describe('multi-claude-verifier', () => {
       );
 
       // Act
-      const result = multiClaudeVerifier(input);
+      const _result = multiClaudeVerifier(input);
 
       // Assert
       const calls = vi.mocked(writeFileSync).mock.calls;

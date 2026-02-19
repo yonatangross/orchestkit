@@ -275,7 +275,7 @@ function logSpawn(subagentType: string, description: string, sessionId: string):
   };
 
   try {
-    bufferWrite(trackingLog, JSON.stringify(entry) + '\n');
+    bufferWrite(trackingLog, `${JSON.stringify(entry)}\n`);
   } catch {
     // Ignore
   }

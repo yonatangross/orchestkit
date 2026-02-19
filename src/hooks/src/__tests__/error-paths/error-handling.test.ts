@@ -7,7 +7,7 @@
  * Contributes ~5-7% additional coverage by testing catch blocks.
  */
 
-import { describe, test, expect, beforeEach, afterEach, vi, type Mock } from 'vitest';
+import { describe, test, expect, beforeEach, afterEach, vi, } from 'vitest';
 import type { HookInput, HookResult } from '../../types.js';
 
 // =============================================================================
@@ -118,7 +118,7 @@ function createBashInput(command: string, overrides: Partial<HookInput> = {}): H
   });
 }
 
-function createWriteInput(filePath: string, content: string = '', overrides: Partial<HookInput> = {}): HookInput {
+function _createWriteInput(filePath: string, content: string = '', overrides: Partial<HookInput> = {}): HookInput {
   return createHookInput({
     tool_name: 'Write',
     tool_input: { file_path: filePath, content },
@@ -399,9 +399,9 @@ describe('Error Path Coverage', () => {
     });
 
     test('cleanup hooks attempt best-effort cleanup on errors', async () => {
-      let cleanupAttempted = false;
+      let _cleanupAttempted = false;
       mockUnlinkSync.mockImplementation(() => {
-        cleanupAttempted = true;
+        _cleanupAttempted = true;
         throw new Error('Cleanup failed');
       });
       mockExistsSync.mockReturnValue(true);

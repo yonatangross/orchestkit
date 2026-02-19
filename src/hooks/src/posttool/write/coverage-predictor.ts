@@ -4,7 +4,7 @@
  * CC 2.1.3 Feature: Post-write analysis
  */
 
-import { existsSync, mkdirSync } from 'node:fs';
+import { mkdirSync } from 'node:fs';
 import { bufferWrite } from '../../lib/analytics-buffer.js';
 import { execSync } from 'node:child_process';
 import { basename } from 'node:path';

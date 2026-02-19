@@ -9,7 +9,7 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, } from '../../types.js';
 
 const METRICS_FILE = join(tmpdir(), 'claude-session-metrics.json');
 
@@ -169,7 +169,7 @@ describe('subagent-quality-gate', () => {
       });
 
       // Act
-      const result = subagentQualityGate(input);
+      const _result = subagentQualityGate(input);
 
       // Assert
       expect(outputSilentSuccess).toHaveBeenCalled();
@@ -182,7 +182,7 @@ describe('subagent-quality-gate', () => {
       });
 
       // Act
-      const result = subagentQualityGate(input);
+      const _result = subagentQualityGate(input);
 
       // Assert
       expect(outputSilentSuccess).toHaveBeenCalled();
@@ -195,7 +195,7 @@ describe('subagent-quality-gate', () => {
       });
 
       // Act
-      const result = subagentQualityGate(input);
+      const _result = subagentQualityGate(input);
 
       // Assert
       expect(outputSilentSuccess).toHaveBeenCalled();

@@ -719,7 +719,7 @@ describe('prompt/profile-injector', () => {
       mockGetTopAgents.mockReturnValue([]);
       mockGetRecentDecisions.mockReturnValue([]);
 
-      const longPrompt = 'Build an API ' + 'x'.repeat(10000);
+      const longPrompt = `Build an API ${'x'.repeat(10000)}`;
       const input = createPromptInput(longPrompt);
       const result = profileInjector(input);
 

@@ -38,7 +38,7 @@ vi.mock('../../lib/git.js', () => ({
 import { patternConsistencyEnforcer } from '../../skill/pattern-consistency-enforcer.js';
 import { outputSilentSuccess, outputBlock, getProjectDir } from '../../lib/common.js';
 import { getRepoRoot } from '../../lib/git.js';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, } from 'node:fs';
 
 // =============================================================================
 // Test Utilities

@@ -8,8 +8,8 @@
  */
 
 import { describe, it, expect, beforeAll } from 'vitest';
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 
 interface Hook {
   type: string;
@@ -144,7 +144,7 @@ describe('Dispatcher Registry Wiring E2E', () => {
         });
       });
 
-      const guardIndex = writeHooks.findIndex(h => h === 'file-guard');
+      const guardIndex = writeHooks.indexOf('file-guard');
       expect(guardIndex, 'file-guard should exist').toBeGreaterThanOrEqual(0);
 
       // Guard should be early in the chain

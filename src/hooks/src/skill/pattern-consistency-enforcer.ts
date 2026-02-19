@@ -4,7 +4,7 @@
  * CC 2.1.7 Compliant
  */
 
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, } from 'node:fs';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, outputBlock, getProjectDir } from '../lib/common.js';
 import { getRepoRoot } from '../lib/git.js';

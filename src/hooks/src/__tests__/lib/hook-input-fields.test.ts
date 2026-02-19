@@ -74,7 +74,9 @@ describe('HookInput field contracts (CC 2.1.47+)', () => {
         tool_input: { file_path: '/some/file' },
         added_dirs: dirs,
       };
-      input.added_dirs?.forEach((d) => expect(typeof d).toBe('string'));
+      for (const d of input.added_dirs ?? []) {
+        expect(typeof d).toBe('string');
+      }
     });
   });
 
@@ -109,7 +111,7 @@ describe('HookInput field contracts (CC 2.1.47+)', () => {
         tool_input: {},
         added_dirs: ['/some/dir'],
       };
-      expect(Object.prototype.hasOwnProperty.call(input, 'enabledPlugins')).toBe(false);
+      expect(Object.hasOwn(input, 'enabledPlugins')).toBe(false);
     });
   });
 });

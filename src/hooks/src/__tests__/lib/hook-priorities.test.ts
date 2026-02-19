@@ -104,9 +104,9 @@ describe('hook-priorities', () => {
     test('has expected categories', () => {
       expect(TOKEN_BUDGETS['skill-injection']).toBe(1200);
       expect(TOKEN_BUDGETS['memory-inject']).toBe(800);
-      expect(TOKEN_BUDGETS['suggestions']).toBe(400);
-      expect(TOKEN_BUDGETS['monitoring']).toBe(200);
-      expect(TOKEN_BUDGETS['total']).toBe(2600);
+      expect(TOKEN_BUDGETS.suggestions).toBe(400);
+      expect(TOKEN_BUDGETS.monitoring).toBe(200);
+      expect(TOKEN_BUDGETS.total).toBe(2600);
     });
   });
 

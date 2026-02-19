@@ -104,7 +104,7 @@ import type { HookInput } from '../../types.js';
 
 describe('Unified Stop Dispatcher Hook', () => {
   const mockLogHook = vi.mocked(logHook);
-  const mockOutputSilentSuccess = vi.mocked(outputSilentSuccess);
+  const _mockOutputSilentSuccess = vi.mocked(outputSilentSuccess);
   const mockAutoSaveContext = vi.mocked(autoSaveContext);
   const mockCalibrationPersist = vi.mocked(calibrationPersist);
 

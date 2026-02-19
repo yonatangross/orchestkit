@@ -107,7 +107,7 @@ function checkFileSizeAndBloat(input: HookInput): HookResult | null {
   if (lineCount > limit) {
     const fileType = isTestFile(filePath) ? 'test' : 'source';
     const bloatDetails = bloatSignals.length > 0
-      ? '\n\nBloat patterns detected:\n' + bloatSignals.map(s => `- ${s.name}: ${s.detail}`).join('\n')
+      ? `\n\nBloat patterns detected:\n${bloatSignals.map(s => `- ${s.name}: ${s.detail}`).join('\n')}`
       : '';
 
     return outputDeny(

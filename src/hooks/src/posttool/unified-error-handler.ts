@@ -150,7 +150,7 @@ function logError(input: HookInput, errorInfo: ErrorInfo): void {
       output_preview: errorInfo.errorText.substring(0, 1000),
     };
 
-    bufferWrite(errorLog, JSON.stringify(errorRecord) + '\n');
+    bufferWrite(errorLog, `${JSON.stringify(errorRecord)}\n`);
 
     // Update session metrics
     try {
@@ -203,7 +203,7 @@ function matchErrorPattern(errorText: string, solutionsFile: string): ErrorPatte
 function shouldSuggest(patternId: string, errorContext: string, dedupFile: string): boolean {
   if (!existsSync(dedupFile)) {
     try {
-      mkdirSync(require('path').dirname(dedupFile), { recursive: true });
+      mkdirSync(require('node:path').dirname(dedupFile), { recursive: true });
       writeFileSync(dedupFile, JSON.stringify({ suggestions: {}, prompt_count: 0 }));
     } catch {
       return true;
@@ -289,7 +289,7 @@ function buildSuggestionMessage(pattern: ErrorPattern, solutionsFile: string, sk
     msg += '\nUse `/ork:<skill-name>` or `Read skills/<skill-name>/SKILL.md`';
   }
 
-  return msg.length > MAX_CONTEXT_CHARS ? msg.substring(0, MAX_CONTEXT_CHARS - 20) + '...\n\n(truncated)' : msg;
+  return msg.length > MAX_CONTEXT_CHARS ? `${msg.substring(0, MAX_CONTEXT_CHARS - 20)}...\n\n(truncated)` : msg;
 }
 
 // =============================================================================

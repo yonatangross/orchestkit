@@ -595,7 +595,7 @@ export function formatTimeline(
   const grouped = groupDecisions(decisions, groupBy);
 
   let output = `\n${COLORS.bold}Decision History Timeline${COLORS.reset}\n`;
-  output += '═'.repeat(60) + '\n\n';
+  output += `${'═'.repeat(60)}\n\n`;
 
   // Sort groups by most recent date in each group
   const sortedGroups = Object.entries(grouped).sort((a, b) => {

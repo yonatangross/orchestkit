@@ -69,7 +69,7 @@ export function evidenceCollector(_input: HookInput): HookResult {
 
   // Write to log file (silent operation)
   try {
-    bufferWrite(logFile, logLines.join('\n') + '\n');
+    bufferWrite(logFile, `${logLines.join('\n')}\n`);
   } catch {
     // Ignore logging errors
   }

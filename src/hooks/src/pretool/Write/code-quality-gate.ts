@@ -21,7 +21,7 @@ import {
 } from '../../lib/common.js';
 import { guardCodeFiles, guardSkipInternal, runGuards, isDontAskMode } from '../../lib/guards.js';
 import { existsSync, readFileSync } from 'node:fs';
-import { join, dirname, extname, basename } from 'node:path';
+import { join, extname, basename } from 'node:path';
 
 // Thresholds
 const MAX_FUNCTION_LINES = 50;
@@ -253,7 +253,7 @@ export function codeQualityGate(input: HookInput): HookResult {
 
     // Truncate if too long
     if (qualityMsg.length > 350) {
-      qualityMsg = qualityMsg.slice(0, 347) + '...';
+      qualityMsg = `${qualityMsg.slice(0, 347)}...`;
     }
 
     // In dontAsk mode, show visible warning instead of silent context

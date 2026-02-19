@@ -11,10 +11,10 @@
  * 5. Create marker file
  */
 
-import { existsSync, mkdirSync, writeFileSync, readdirSync, chmodSync, statSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync, readdirSync, chmodSync, } from 'node:fs';
 import { execSync } from 'node:child_process';
 import type { HookInput, HookResult } from '../types.js';
-import { logHook, getProjectDir, getPluginRoot, outputWithContext, outputSilentSuccess } from '../lib/common.js';
+import { logHook, getPluginRoot, outputWithContext, } from '../lib/common.js';
 
 const CURRENT_VERSION = '4.25.0';
 
@@ -242,7 +242,7 @@ function getPresetConfig(preset: string): PresetConfig {
 /**
  * Apply configuration
  */
-function applyConfiguration(preset: string, envInfo: EnvironmentInfo, pluginRoot: string): PresetConfig {
+function applyConfiguration(preset: string, _envInfo: EnvironmentInfo, pluginRoot: string): PresetConfig {
   logHook('first-run-setup', `Phase 4: Applying configuration (preset: ${preset})`);
 
   const config = getPresetConfig(preset);
@@ -372,7 +372,7 @@ function createMarker(preset: string, envInfo: EnvironmentInfo, pluginRoot: stri
 /**
  * First run setup hook
  */
-export function firstRunSetup(input: HookInput): HookResult {
+export function firstRunSetup(_input: HookInput): HookResult {
   const pluginRoot = getPluginRoot();
   const mode = process.argv.includes('--silent') ? 'silent' : 'interactive';
 

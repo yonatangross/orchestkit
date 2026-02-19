@@ -71,18 +71,18 @@ function generateDeepNesting(depth: number, lang: 'ts' | 'py'): string {
   if (lang === 'py') {
     let code = 'def nested_function():\n';
     for (let i = 0; i < depth; i++) {
-      code += '    '.repeat(i + 1) + `if condition_${i}:\n`;
+      code += `${'    '.repeat(i + 1)}if condition_${i}:\n`;
     }
-    code += '    '.repeat(depth + 1) + 'pass\n';
+    code += `${'    '.repeat(depth + 1)}pass\n`;
     return code;
   } else {
     let code = 'function nestedFunction() {\n';
     for (let i = 0; i < depth; i++) {
-      code += '  '.repeat(i + 1) + `if (condition${i}) {\n`;
+      code += `${'  '.repeat(i + 1)}if (condition${i}) {\n`;
     }
-    code += '  '.repeat(depth + 1) + 'return;\n';
+    code += `${'  '.repeat(depth + 1)}return;\n`;
     for (let i = depth - 1; i >= 0; i--) {
-      code += '  '.repeat(i + 1) + '}\n';
+      code += `${'  '.repeat(i + 1)}}\n`;
     }
     code += '}\n';
     return code;

@@ -367,7 +367,7 @@ describe('agentMemoryStore', () => {
     });
 
     test('truncates individual patterns to 200 chars', () => {
-      const longLine = 'The team decided to ' + 'x'.repeat(300) + ' for the project.';
+      const longLine = `The team decided to ${'x'.repeat(300)} for the project.`;
       const input = makeInput({
         subagent_type: 'test-agent',
         tool_result: longLine,

@@ -428,7 +428,7 @@ export function outputPromptContextBudgeted(
 ): HookResult {
   const tokens = estimateTokenCount(ctx);
 
-  if (budgetChecker && budgetChecker.isOverBudget(category)) {
+  if (budgetChecker?.isOverBudget(category)) {
     logHook(hookName, `Budget exhausted for ${category}, suppressing ${tokens}t`);
     return outputSilentSuccess();
   }

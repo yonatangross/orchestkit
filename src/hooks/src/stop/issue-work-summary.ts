@@ -54,7 +54,7 @@ function isGitHubRepo(projectDir: string): boolean {
 /**
  * Generate markdown comment for an issue
  */
-function generateComment(issueNum: string, data: IssueProgress['issues'][string], sessionId: string): string {
+function generateComment(_issueNum: string, data: IssueProgress['issues'][string], sessionId: string): string {
   const commits = data.commits || [];
   if (commits.length === 0) {
     return '';

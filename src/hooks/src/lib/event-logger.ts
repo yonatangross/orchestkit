@@ -28,7 +28,7 @@ export function appendEventLog(
 
   try {
     const logPath = join(logsDir, filename);
-    writeFileSync(logPath, JSON.stringify(entry) + '\n', { flag: 'a' });
+    writeFileSync(logPath, `${JSON.stringify(entry)}\n`, { flag: 'a' });
   } catch {
     // Non-critical logging — don't block hook execution
   }

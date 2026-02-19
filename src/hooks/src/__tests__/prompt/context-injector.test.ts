@@ -3,7 +3,7 @@
  * Tests UserPromptSubmit hook that injects context hints based on prompt keywords
  */
 
-import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, test, expect, } from 'vitest';
 import type { HookInput } from '../../types.js';
 import { contextInjector } from '../../prompt/context-injector.js';
 

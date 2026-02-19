@@ -6,7 +6,7 @@
  */
 
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, } from '../../types.js';
 
 // =============================================================================
 // Mocks - MUST be defined BEFORE imports
@@ -27,7 +27,7 @@ vi.mock('../../lib/common.js', () => ({
 }));
 
 import { contextPublisher } from '../../subagent-stop/context-publisher.js';
-import { outputSilentSuccess, getProjectDir } from '../../lib/common.js';
+import { outputSilentSuccess, } from '../../lib/common.js';
 import { existsSync, writeFileSync, readFileSync, mkdirSync } from 'node:fs';
 
 // =============================================================================

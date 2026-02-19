@@ -12,7 +12,7 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import type { HookInput } from '../../types.js';
 
-const METRICS_FILE = join(tmpdir(), 'claude-session-metrics.json');
+const _METRICS_FILE = join(tmpdir(), 'claude-session-metrics.json');
 
 // =============================================================================
 // Mocks - MUST be before imports

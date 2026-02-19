@@ -3,7 +3,7 @@
  * Tests event tracking, session summaries, and cross-session queries
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 // Mock dependencies before importing the module
 vi.mock('../../lib/common.js', () => ({
@@ -561,9 +561,9 @@ describe('Session Event Tracker', () => {
       const event3 = JSON.parse((mockAppendFileSync.mock.calls[2][1] as string).trim());
 
       // Extract counter values from event IDs
-      const counter1 = parseInt(event1.event_id.split('-').pop());
-      const counter2 = parseInt(event2.event_id.split('-').pop());
-      const counter3 = parseInt(event3.event_id.split('-').pop());
+      const counter1 = parseInt(event1.event_id.split('-').pop(), 10);
+      const counter2 = parseInt(event2.event_id.split('-').pop(), 10);
+      const counter3 = parseInt(event3.event_id.split('-').pop(), 10);
 
       expect(counter1).toBe(1);
       expect(counter2).toBe(counter1 + 1);
@@ -605,7 +605,7 @@ describe('Session Event Tracker', () => {
 
       trackEvent('skill_invoked', 'first', { success: true });
       const event1 = JSON.parse((mockAppendFileSync.mock.calls[0][1] as string).trim());
-      const counter1 = parseInt(event1.event_id.split('-').pop());
+      const counter1 = parseInt(event1.event_id.split('-').pop(), 10);
       expect(counter1).toBe(1);
 
       // Reset counter and clear mocks
@@ -620,7 +620,7 @@ describe('Session Event Tracker', () => {
 
       trackEvent('skill_invoked', 'after-reset', { success: true });
       const event2 = JSON.parse((mockAppendFileSync.mock.calls[0][1] as string).trim());
-      const counter2 = parseInt(event2.event_id.split('-').pop());
+      const counter2 = parseInt(event2.event_id.split('-').pop(), 10);
 
       // Counter should restart from 1 after reset
       expect(counter2).toBe(1);

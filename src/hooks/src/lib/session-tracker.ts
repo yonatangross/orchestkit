@@ -289,7 +289,7 @@ export function trackEvent(
 
     ensureSessionDir();
     const eventsPath = getEventsPath();
-    bufferWrite(eventsPath, JSON.stringify(event) + '\n');
+    bufferWrite(eventsPath, `${JSON.stringify(event)}\n`);
 
     logHook('session-tracker', `Tracked ${eventType}: ${name}`, 'debug');
   } catch (error) {
@@ -608,7 +608,7 @@ export function generateSessionSummary(sessionId?: string): SessionSummary {
  */
 function truncate(str: string, maxLen: number): string {
   if (str.length <= maxLen) return str;
-  return str.slice(0, maxLen - 3) + '...';
+  return `${str.slice(0, maxLen - 3)}...`;
 }
 
 /**

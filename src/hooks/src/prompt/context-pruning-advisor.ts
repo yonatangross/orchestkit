@@ -23,7 +23,7 @@ import {
   getSessionId,
 } from '../lib/common.js';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { join, } from 'node:path';
 import { getContextTrackingFile } from '../lib/paths.js';
 
 // Configuration
@@ -63,7 +63,7 @@ function calculateRecencyScore(lastAccessed: string | undefined): number {
     lastEpoch = parseInt(lastAccessed, 10);
   } else {
     lastEpoch = new Date(lastAccessed).getTime();
-    if (isNaN(lastEpoch)) return 0;
+    if (Number.isNaN(lastEpoch)) return 0;
   }
 
   const ageMinutes = (currentTime - lastEpoch) / (1000 * 60);
@@ -185,7 +185,7 @@ function getContextUsagePercentage(state: StateFile): number {
   const envPercent = process.env.CLAUDE_CONTEXT_USAGE_PERCENT;
   if (envPercent) {
     const parsed = parseFloat(envPercent);
-    if (!isNaN(parsed)) return parsed;
+    if (!Number.isNaN(parsed)) return parsed;
   }
 
   // Fallback to state file estimate

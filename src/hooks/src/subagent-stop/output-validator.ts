@@ -81,11 +81,11 @@ export function outputValidator(input: HookInput): HookResult {
     + (lastMsgLength !== null ? `, Response length: ${lastMsgLength} chars` : '');
 
   if (validationErrors.length > 0) {
-    systemMessage += ' | Errors: ' + validationErrors.join('; ');
+    systemMessage += ` | Errors: ${validationErrors.join('; ')}`;
   }
 
   if (validationWarnings.length > 0) {
-    systemMessage += ' | Warnings: ' + validationWarnings.join('; ');
+    systemMessage += ` | Warnings: ${validationWarnings.join('; ')}`;
   }
 
   // Log to file

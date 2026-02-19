@@ -55,7 +55,7 @@ function countJsonlLines(filePath: string): number {
 /**
  * Parse JSONL file and count by field values
  */
-function countByField(filePath: string, field: string): Record<string, number> {
+function _countByField(filePath: string, field: string): Record<string, number> {
   const counts: Record<string, number> = {};
 
   if (!existsSync(filePath)) return counts;
@@ -152,7 +152,7 @@ export function appendMetricSnapshot(projectDir?: string, metrics?: MemoryMetric
     if (!existsSync(metricsDir)) {
       mkdirSync(metricsDir, { recursive: true });
     }
-    bufferWrite(metricsPath, JSON.stringify(snapshot) + '\n');
+    bufferWrite(metricsPath, `${JSON.stringify(snapshot)}\n`);
     logHook('memory-metrics', `Metrics snapshot appended: ${snapshot.decisions.total} decisions`, 'debug');
   } catch (error) {
     logHook('memory-metrics', `Failed to write metrics: ${error}`, 'warn');

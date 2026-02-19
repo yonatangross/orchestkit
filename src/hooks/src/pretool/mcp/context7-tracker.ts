@@ -12,7 +12,7 @@ import {
   logPermissionFeedback,
   getLogDir,
 } from '../../lib/common.js';
-import { existsSync, readFileSync, writeFileSync, statSync, renameSync, mkdirSync } from 'node:fs';
+import { existsSync, readFileSync, statSync, renameSync, mkdirSync } from 'node:fs';
 import { bufferWrite } from '../../lib/analytics-buffer.js';
 import { join } from 'node:path';
 
@@ -63,7 +63,7 @@ function calculateCacheContext(logFile: string): string {
     const librarySet = new Set<string>();
     for (const line of lines) {
       const match = line.match(/library=([^| ]+)/);
-      if (match && match[1] && match[1] !== '') {
+      if (match?.[1] && match[1] !== '') {
         librarySet.add(match[1]);
       }
     }
@@ -72,7 +72,7 @@ function calculateCacheContext(logFile: string): string {
     const recentLibraries: string[] = [];
     for (let i = lines.length - 1; i >= 0 && recentLibraries.length < 3; i--) {
       const match = lines[i].match(/library=([^| ]+)/);
-      if (match && match[1] && !recentLibraries.includes(match[1])) {
+      if (match?.[1] && !recentLibraries.includes(match[1])) {
         recentLibraries.push(match[1]);
       }
     }

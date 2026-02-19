@@ -190,7 +190,7 @@ describe('prompt/antipattern-detector', () => {
       ['database', 'add database postgres connection pooling'],
       ['api', 'implement api rest for resources'],
       ['api', 'add api graphql endpoint for users'],
-    ])('detects category "%s" for prompt: %s', (expectedCategory, prompt) => {
+    ])('detects category "%s" for prompt: %s', (_expectedCategory, prompt) => {
       // Arrange
       const input = createPromptInput(prompt);
 
@@ -240,7 +240,7 @@ describe('prompt/antipattern-detector', () => {
       delete (input as Record<string, unknown>).project_dir;
 
       // Act
-      const result = antipatternDetector(input);
+      const _result = antipatternDetector(input);
 
       // Assert
       expect(getProjectDir).toHaveBeenCalled();
@@ -257,7 +257,7 @@ describe('prompt/antipattern-detector', () => {
       ['short prompt', 'help me'],
       ['no keywords', 'What is the weather today in Paris?'],
       ['with keywords', 'implement pagination for the user list API'],
-      ['very long prompt', 'implement ' + 'a'.repeat(5000)],
+      ['very long prompt', `implement ${'a'.repeat(5000)}`],
     ])('always returns continue: true for %s', (_, prompt) => {
       // Arrange
       const input = createPromptInput(prompt);

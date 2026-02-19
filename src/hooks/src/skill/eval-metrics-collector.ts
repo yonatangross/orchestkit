@@ -74,7 +74,7 @@ export function evalMetricsCollector(_input: HookInput): HookResult {
 
   // Log to stderr for visibility during development
   for (const msg of messages) {
-    process.stderr.write(msg + '\n');
+    process.stderr.write(`${msg}\n`);
   }
 
   return outputSilentSuccess();

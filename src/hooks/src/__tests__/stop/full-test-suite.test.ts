@@ -32,14 +32,14 @@ vi.mock('../../lib/common.js', () => ({
 import { fullTestSuite } from '../../stop/full-test-suite.js';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { execSync } from 'node:child_process';
-import { logHook, outputSilentSuccess, getProjectDir } from '../../lib/common.js';
+import { logHook, } from '../../lib/common.js';
 import type { HookInput } from '../../types.js';
 
 describe('Full Test Suite Hook', () => {
   const mockExistsSync = vi.mocked(existsSync);
   const mockReadFileSync = vi.mocked(readFileSync);
   const mockWriteFileSync = vi.mocked(writeFileSync);
-  const mockMkdirSync = vi.mocked(mkdirSync);
+  const _mockMkdirSync = vi.mocked(mkdirSync);
   const mockExecSync = vi.mocked(execSync);
   const mockLogHook = vi.mocked(logHook);
 

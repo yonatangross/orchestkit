@@ -205,14 +205,14 @@ export function preCompactSaver(_input: HookInput): HookResult {
     // Also append to compaction log for cross-session analysis
     const compactionLog = join(getLogDir(), 'compaction-history.jsonl');
     try {
-      bufferWrite(compactionLog, JSON.stringify({
+      bufferWrite(compactionLog, `${JSON.stringify({
         session: getSessionId(),
         timestamp: now,
         count: state.compactionCount,
         avgIntervalMs: state.avgCompactionIntervalMs,
         localMemoryEntries: localEntries,
         decisionsPreserved: decisions.length,
-      }) + '\n');
+      })}\n`);
     } catch {
       // Non-critical
     }

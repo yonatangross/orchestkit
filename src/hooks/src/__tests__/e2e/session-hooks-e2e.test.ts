@@ -219,7 +219,7 @@ function readOpenProblems(): Array<Record<string, unknown>> {
 /**
  * Read user profile
  */
-function readUserProfile(userId: string): Record<string, unknown> | null {
+function _readUserProfile(userId: string): Record<string, unknown> | null {
   const sanitizedUserId = userId.replace(/[^a-zA-Z0-9@._-]/g, '_');
   const profilePath = path.join(
     process.env.HOME || testHomeDir,
@@ -817,7 +817,7 @@ describe('D. Real Hook Execution Simulation', () => {
         { name: 'sessionProfileAggregator', fn: sessionProfileAggregator, input: stopInput },
       ];
 
-      for (const { name, fn, input } of hooks) {
+      for (const { name: _name, fn, input } of hooks) {
         const result = fn(input);
 
         expect(result).toHaveProperty('continue');
@@ -1069,7 +1069,7 @@ describe('F. Error Handling and Edge Cases', () => {
       const { captureUserIntent } = await import('../../prompt/capture-user-intent.js');
 
       // Very long prompt that might cause issues
-      const longPrompt = 'I decided to use ' + 'x'.repeat(10000);
+      const longPrompt = `I decided to use ${'x'.repeat(10000)}`;
       const input = createUserPromptInput(longPrompt);
 
       const result = captureUserIntent(input);

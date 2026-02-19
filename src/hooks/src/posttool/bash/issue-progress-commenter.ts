@@ -117,7 +117,7 @@ function getLatestCommit(): CommitInfo | null {
 function initProgressFile(progressFile: string, sessionId: string): void {
   if (!existsSync(progressFile)) {
     try {
-      mkdirSync(require('path').dirname(progressFile), { recursive: true });
+      mkdirSync(require('node:path').dirname(progressFile), { recursive: true });
       writeFileSync(progressFile, JSON.stringify({
         session_id: sessionId,
         issues: {},

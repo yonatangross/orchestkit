@@ -139,7 +139,7 @@ function formatRecentDecisions(
 
   return decisions
     .map((d) => d.what)
-    .map((what) => (what.length > MAX_DECISION_LENGTH ? what.slice(0, MAX_DECISION_LENGTH - 3) + '...' : what))
+    .map((what) => (what.length > MAX_DECISION_LENGTH ? `${what.slice(0, MAX_DECISION_LENGTH - 3)}...` : what))
     .join('; ');
 }
 
@@ -251,7 +251,7 @@ function buildProfileContext(profile: UserProfile): string {
 
   // Truncate if exceeding budget
   if (context.length > MAX_CONTEXT_CHARS) {
-    context = context.slice(0, MAX_CONTEXT_CHARS - 3) + '...';
+    context = `${context.slice(0, MAX_CONTEXT_CHARS - 3)}...`;
     logHook('profile-injector', `Context truncated to ${MAX_CONTEXT_CHARS} chars`, 'debug');
   }
 

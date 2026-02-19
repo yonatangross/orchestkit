@@ -140,7 +140,7 @@ describe('file-guard size gate', () => {
       it('includes god-file detail when over limit with many exports', () => {
         const exports = generateExports(25);
         const padding = generateLines(400 - 25);
-        const input = createWriteInput('/src/god.ts', exports + '\n' + padding);
+        const input = createWriteInput('/src/god.ts', `${exports}\n${padding}`);
         const result = fileGuard(input);
         expect(result.continue).toBe(false);
         expect(result.stopReason).toContain('god-file');
@@ -151,7 +151,7 @@ describe('file-guard size gate', () => {
         const exports = generateExports(25);
         // 25 exports + enough padding to stay under 300
         const padding = generateLines(250 - 25);
-        const input = createWriteInput('/src/god.ts', exports + '\n' + padding);
+        const input = createWriteInput('/src/god.ts', `${exports}\n${padding}`);
         const result = fileGuard(input);
         expect(result.continue).toBe(true);
       });

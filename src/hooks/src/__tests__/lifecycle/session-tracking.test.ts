@@ -477,7 +477,7 @@ describe('session-tracking', () => {
   describe('edge cases', () => {
     test('handles very long branch names', () => {
       // Arrange
-      const longBranch = 'feature/' + 'a'.repeat(200);
+      const longBranch = `feature/${'a'.repeat(200)}`;
       vi.mocked(execSync).mockReturnValueOnce(longBranch);
       const input = createHookInput();
 

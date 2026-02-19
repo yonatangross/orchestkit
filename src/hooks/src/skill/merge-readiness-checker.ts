@@ -8,7 +8,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, getProjectDir } from '../lib/common.js';
-import { getRepoRoot, getCurrentBranch, getDefaultBranch, hasUncommittedChanges } from '../lib/git.js';
+import { getRepoRoot, getCurrentBranch, hasUncommittedChanges } from '../lib/git.js';
 
 /**
  * Execute git command safely
@@ -124,7 +124,7 @@ export function mergeReadinessChecker(input: HookInput): HookResult {
 
   // Generate report
   process.stderr.write('\n');
-  process.stderr.write('=' .repeat(60) + '\n');
+  process.stderr.write(`${'=' .repeat(60)}\n`);
   process.stderr.write('\nMERGE READINESS REPORT\n\n');
   process.stderr.write(`Branch: ${currentBranch} -> ${targetBranch}\n\n`);
 

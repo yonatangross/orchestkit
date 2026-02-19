@@ -425,7 +425,7 @@ describe('redact-secrets', () => {
 
     test('handles very long output', () => {
       // Arrange
-      const longOutput = 'x'.repeat(100000) + 'sk-1234567890abcdefghijklmn';
+      const longOutput = `${'x'.repeat(100000)}sk-1234567890abcdefghijklmn`;
       const input = createPostBashInput(longOutput);
 
       // Act
@@ -548,7 +548,7 @@ describe('redact-secrets', () => {
         { name: 'Slack', example: 'xoxb-1234567890-abcdef' },
       ];
 
-      for (const { name, example } of patterns) {
+      for (const { name: _name, example } of patterns) {
         // Arrange
         vi.clearAllMocks();
         stderrSpy.mockClear();

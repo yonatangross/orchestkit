@@ -215,7 +215,6 @@ function extractGo(content: string): ExtractedStructure {
     if (/^type\s+\w+\s+(?:struct|interface)/.test(trimmed)) {
       const m = trimmed.match(/^type\s+\w+\s+(?:struct|interface)/);
       if (m) types.push(m[0].trim());
-      continue;
     }
   }
 
@@ -248,7 +247,6 @@ function extractRust(content: string): ExtractedStructure {
     if (/^(?:pub\s+)?(?:struct|enum|trait|impl)\s+\w+/.test(trimmed)) {
       const m = trimmed.match(/^(?:pub\s+)?(?:struct|enum|trait|impl)\s+\w+(?:<[^>]+>)?(?:\s+for\s+\w+(?:<[^>]+>)?)?/);
       if (m) types.push(m[0].trim());
-      continue;
     }
   }
 

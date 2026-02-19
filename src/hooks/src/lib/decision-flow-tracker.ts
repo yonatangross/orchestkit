@@ -187,7 +187,7 @@ function archiveFlow(flow: DecisionFlow): boolean {
       mkdirSync(dir, { recursive: true });
     }
 
-    const line = JSON.stringify(flow) + '\n';
+    const line = `${JSON.stringify(flow)}\n`;
     bufferWrite(archivePath, line);
     return true;
   } catch (err) {

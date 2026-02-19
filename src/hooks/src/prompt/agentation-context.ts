@@ -55,7 +55,7 @@ function isAgentationConfigured(projectDir: string): boolean {
       const raw = readFileSync(mcpPath, 'utf8');
       const config = JSON.parse(raw);
       const servers = config.mcpServers || {};
-      const agentation = servers['agentation'];
+      const agentation = servers.agentation;
 
       if (agentation && agentation.disabled !== true) {
         return true;

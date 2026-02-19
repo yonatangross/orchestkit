@@ -86,7 +86,7 @@ function generateDecisionsJsonl(count: number): string {
   for (let i = 0; i < count; i++) {
     lines.push(generateDecisionLine(i));
   }
-  return lines.join('\n') + '\n';
+  return `${lines.join('\n')}\n`;
 }
 
 /**
@@ -104,7 +104,7 @@ function generateAnalyticsJsonl(count: number): string {
       })
     );
   }
-  return lines.join('\n') + '\n';
+  return `${lines.join('\n')}\n`;
 }
 
 /**
@@ -121,7 +121,7 @@ function generateCompletedFlowsJsonl(count: number): string {
       })
     );
   }
-  return lines.join('\n') + '\n';
+  return `${lines.join('\n')}\n`;
 }
 
 // =============================================================================
@@ -167,7 +167,7 @@ describe('Performance: Large JSONL Parsing', () => {
       }
     }
     const filePath = join(testDir, '.claude', 'memory', 'decisions.jsonl');
-    writeFileSync(filePath, lines.join('\n') + '\n');
+    writeFileSync(filePath, `${lines.join('\n')}\n`);
 
     // Act
     const start = performance.now();
@@ -192,7 +192,7 @@ describe('Performance: Large JSONL Parsing', () => {
     for (let i = 0; i < 50; i++) {
       graphLines.push(JSON.stringify({ type: 'create_entities', payload: {}, timestamp: new Date().toISOString() }));
     }
-    writeFileSync(graphQueuePath, graphLines.join('\n') + '\n');
+    writeFileSync(graphQueuePath, `${graphLines.join('\n')}\n`);
     writeFileSync(completedFlowsPath, generateCompletedFlowsJsonl(200));
     writeFileSync(analyticsPath, generateAnalyticsJsonl(500));
 
@@ -264,7 +264,7 @@ describe('Performance: Health Check with Bloated Files', () => {
     for (let i = 0; i < 500; i++) {
       graphLines.push(JSON.stringify({ type: 'create_entities', payload: {}, timestamp: new Date().toISOString() }));
     }
-    writeFileSync(join(memoryDir, 'graph-queue.jsonl'), graphLines.join('\n') + '\n');
+    writeFileSync(join(memoryDir, 'graph-queue.jsonl'), `${graphLines.join('\n')}\n`);
     writeFileSync(join(memoryDir, 'completed-flows.jsonl'), generateCompletedFlowsJsonl(1_000));
     writeFileSync(join(logsDir, 'analytics.jsonl'), generateAnalyticsJsonl(2_000));
 
@@ -563,7 +563,7 @@ describe('Performance: Edge Cases', () => {
       );
     }
     const filePath = join(testDir, '.claude', 'memory', 'long-lines.jsonl');
-    writeFileSync(filePath, lines.join('\n') + '\n');
+    writeFileSync(filePath, `${lines.join('\n')}\n`);
 
     // Act
     const start = performance.now();

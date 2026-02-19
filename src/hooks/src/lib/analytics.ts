@@ -58,7 +58,7 @@ export function appendAnalytics(file: string, entry: Record<string, unknown>): v
     mkdirSync(dir, { recursive: true });
     const filePath = joinPath(dir, file);
     rotateIfNeeded(filePath);
-    bufferWrite(filePath, JSON.stringify(entry) + '\n');
+    bufferWrite(filePath, `${JSON.stringify(entry)}\n`);
   } catch {
     // Never block hooks
   }

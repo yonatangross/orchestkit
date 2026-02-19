@@ -25,7 +25,7 @@ import type { HookInput } from '../types.js';
 // =============================================================================
 
 const TEST_PROJECT_DIR = join(tmpdir(), 'token-opt-e2e-test');
-const TEST_SESSION_ID = 'e2e-test-' + Date.now();
+const TEST_SESSION_ID = `e2e-test-${Date.now()}`;
 
 function makeSubagentInput(agentType: string): HookInput {
   return {
@@ -35,7 +35,7 @@ function makeSubagentInput(agentType: string): HookInput {
   };
 }
 
-function makePromptInput(prompt: string): HookInput {
+function _makePromptInput(prompt: string): HookInput {
   return {
     hook_event: 'UserPromptSubmit',
     tool_name: 'UserPromptSubmit',

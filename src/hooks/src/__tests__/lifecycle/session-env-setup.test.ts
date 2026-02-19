@@ -31,7 +31,7 @@ vi.mock('../../lib/common.js', async (importOriginal) => {
 // Import after mocks
 import { sessionEnvSetup } from '../../lifecycle/session-env-setup.js';
 import { execSync } from 'node:child_process';
-import { logHook, getProjectDir, getSessionId, outputSilentSuccess } from '../../lib/common.js';
+import { logHook, getProjectDir, } from '../../lib/common.js';
 
 // =============================================================================
 // Test Setup

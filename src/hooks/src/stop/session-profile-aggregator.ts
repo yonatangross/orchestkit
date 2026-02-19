@@ -27,7 +27,7 @@ import {
 /**
  * Aggregate session data into user profile
  */
-export function sessionProfileAggregator(input: HookInput): HookResult {
+export function sessionProfileAggregator(_input: HookInput): HookResult {
   try {
     // GAP-012: trackSessionEnd() removed - handled by session-end-tracking.ts hook
     // Both hooks run in Stop dispatcher, avoiding duplicate session_end events

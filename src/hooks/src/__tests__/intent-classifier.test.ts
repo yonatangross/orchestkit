@@ -174,7 +174,7 @@ describe('classifyIntent - keyword matching', () => {
       const authScore = result2.agents.find(a =>
         a.matchedKeywords.includes('authentication')
       )?.confidence || 0;
-      const apiScore = result1.agents[0].confidence;
+      const _apiScore = result1.agents[0].confidence;
 
       expect(authScore).toBeGreaterThan(0);
     }
@@ -199,7 +199,7 @@ describe('classifyIntent - phrase matching', () => {
     const result = classifyIntent(prompt);
 
     if (result.agents.length > 0) {
-      const hasPhrase = result.agents[0].signals.some(s => s.type === 'phrase');
+      const _hasPhrase = result.agents[0].signals.some(s => s.type === 'phrase');
       // May or may not have phrase matches depending on agent definitions
       expect(result.agents[0].signals).toBeDefined();
     }
@@ -259,7 +259,7 @@ describe('classifyIntent - context continuity', () => {
     for (const prompt of continuationWords) {
       const result = classifyIntent(prompt, ['previous context about backend']);
 
-      const contextSignal = result.signals.find(s =>
+      const _contextSignal = result.signals.find(s =>
         s.type === 'context' && s.source === 'continuation-keyword'
       );
 
@@ -323,7 +323,7 @@ describe('classifyIntent - negation detection', () => {
     for (const prompt of negations) {
       const result = classifyIntent(prompt);
 
-      const negationSignal = result.signals.find(s => s.type === 'negation');
+      const _negationSignal = result.signals.find(s => s.type === 'negation');
       // At least one should trigger negation
       if (result.agents.length > 0) {
         expect(result.signals).toBeDefined();
@@ -361,7 +361,7 @@ describe('classifyIntent - calibration adjustments', () => {
     const prompt = 'Design a REST API';
     const result = classifyIntent(prompt, [], adjustments);
 
-    const calibrationSignal = result.signals.find(
+    const _calibrationSignal = result.signals.find(
       s => s.source === 'calibration' && s.weight > 0
     );
 

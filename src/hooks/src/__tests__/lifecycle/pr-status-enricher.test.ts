@@ -30,7 +30,7 @@ vi.mock('../../lib/common.js', async (importOriginal) => {
 // Import after mocks
 import { prStatusEnricher } from '../../lifecycle/pr-status-enricher.js';
 import { execSync } from 'node:child_process';
-import { logHook, getProjectDir, getCachedBranch, outputSilentSuccess } from '../../lib/common.js';
+import { logHook, getCachedBranch, outputSilentSuccess } from '../../lib/common.js';
 
 // =============================================================================
 // Test Setup

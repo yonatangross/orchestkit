@@ -190,7 +190,7 @@ describe('auto-approve-project-writes', () => {
     });
 
     test('handles very long path', () => {
-      const longPath = '/test/project/' + 'subdir/'.repeat(100) + 'file.txt';
+      const longPath = `/test/project/${'subdir/'.repeat(100)}file.txt`;
       const input = createWriteInput(longPath);
       const result = autoApproveProjectWrites(input);
 

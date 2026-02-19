@@ -7,7 +7,7 @@
 import { existsSync, mkdirSync, statSync, renameSync } from 'node:fs';
 import { bufferWrite } from '../lib/analytics-buffer.js';
 import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, getLogDir, getField } from '../lib/common.js';
+import { outputSilentSuccess, getField } from '../lib/common.js';
 import { getReadCountFile } from '../lib/paths.js';
 
 // Track read count across invocations (per-session in memory)
