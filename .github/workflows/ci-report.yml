@@ -95,8 +95,10 @@ jobs:
       - name: Run linting
         id: lint
         run: |
-          # TypeScript type-check (no standalone lint script)
+          # TypeScript type-check
           cd src/hooks && npx tsc --noEmit 2>&1 | tee ../../lint.log || true
+          # Biome lint
+          npx biome check src/ 2>&1 | tee -a ../../lint.log || true
           cd ../..
           errors="$(grep -c ' error ' lint.log)" || true
           warnings="$(grep -c ' warning ' lint.log)" || true

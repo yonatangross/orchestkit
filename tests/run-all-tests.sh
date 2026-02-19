@@ -262,6 +262,7 @@ if [[ "$RUN_E2E" == "true" ]]; then
 
     run_test "Agent Lifecycle E2E" "$SCRIPT_DIR/e2e/test-agent-lifecycle.sh" || true
     run_test "Coordination System E2E" "$SCRIPT_DIR/e2e/test-coordination-e2e.sh" || true
+    run_test "Hook Execution E2E" "bash tests/e2e/test-hook-execution.sh" || true
 
     # Agent Lifecycle E2E Tests (v4.12.0)
     run_test "Agent Lifecycle E2E (New)" "$SCRIPT_DIR/agents/test-agent-lifecycle-e2e.sh" || true

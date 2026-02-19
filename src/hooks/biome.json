@@ -1,0 +1,62 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.4.2/schema.json",
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "off"
+      }
+    }
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "suspicious": {
+        "noExplicitAny": "warn",
+        "noConsole": "off",
+        "useIterableCallbackReturn": "warn",
+        "noTemplateCurlyInString": "warn",
+        "noPrototypeBuiltins": "warn",
+        "noImplicitAnyLet": "warn",
+        "noAssignInExpressions": "warn",
+        "noGlobalIsNan": "warn"
+      },
+      "style": {
+        "noNonNullAssertion": "warn",
+        "useTemplate": "warn",
+        "useNodejsImportProtocol": "warn",
+        "useConst": "warn",
+        "useImportType": "warn",
+        "useExponentiationOperator": "warn"
+      },
+      "correctness": {
+        "noUnusedVariables": "warn",
+        "noUnusedImports": "warn",
+        "noUnusedFunctionParameters": "warn",
+        "useParseIntRadix": "warn",
+        "noSwitchDeclarations": "warn"
+      },
+      "complexity": {
+        "noForEach": "off",
+        "useOptionalChain": "warn",
+        "useLiteralKeys": "warn",
+        "noUselessContinue": "warn",
+        "noUselessSwitchCase": "warn",
+        "noUselessEscapeInRegex": "warn",
+        "noAdjacentSpacesInRegex": "warn",
+        "useIndexOf": "warn"
+      }
+    }
+  },
+  "formatter": {
+    "enabled": false
+  },
+  "files": {
+    "includes": [
+      "src/**",
+      "!dist/**",
+      "!node_modules/**",
+      "!coverage/**"
+    ]
+  }
+}

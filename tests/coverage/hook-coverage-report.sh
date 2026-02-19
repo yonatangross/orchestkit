@@ -3,7 +3,10 @@
 # Hook Test Coverage Report
 # ============================================================================
 # Analyzes test coverage for all hook categories in OrchestKit.
-# Reports which hooks have dedicated tests vs which are untested.
+#
+# Primary: parses vitest coverage-summary.json (line coverage per file,
+#          grouped by category).
+# Fallback: grep-based heuristic when JSON is unavailable.
 # ============================================================================
 
 set -euo pipefail
@@ -12,6 +15,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
 HOOKS_DIR="$PROJECT_ROOT/src/hooks/src"  # TypeScript source directory
 TESTS_DIR="$PROJECT_ROOT/src/hooks/src/__tests__"  # TypeScript test directory
+COVERAGE_JSON="$PROJECT_ROOT/src/hooks/coverage/coverage-summary.json"
 
 # Colors
 RED='\033[0;31m'
@@ -29,6 +33,109 @@ UNTESTED_HOOKS=0
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "  Hook Test Coverage Report"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+
+# ============================================================================
+# Color helper: pick color based on percentage
+# ============================================================================
+pick_color() {
+    local pct="$1"
+    if [ "$pct" -ge 80 ]; then
+        echo "$GREEN"
+    elif [ "$pct" -ge 50 ]; then
+        echo "$YELLOW"
+    else
+        echo "$RED"
+    fi
+}
+
+# ============================================================================
+# PRIMARY: vitest coverage-summary.json
+# ============================================================================
+if [ -f "$COVERAGE_JSON" ] && command -v jq &>/dev/null; then
+    echo -e "  ${BLUE}Source: vitest coverage-summary.json${NC}"
+    echo ""
+    echo "▶ Line Coverage by Category"
+    echo "────────────────────────────────────────"
+
+    # Categories to report
+    CATEGORIES=(pretool posttool lifecycle permission notification stop subagent-start subagent-stop agent skill prompt lib)
+
+    TOTAL_LINES=0
+    TOTAL_COVERED=0
+
+    for category in "${CATEGORIES[@]}"; do
+        # Extract files matching this category path (src/<category>/)
+        # jq: filter keys containing /<category>/, sum lines total & covered
+        cat_data=$(jq -r --arg cat "$category" '
+            to_entries
+            | map(select(.key != "total" and (.key | test("/src/" + $cat + "/"))))
+            | {
+                total: (map(.value.lines.total) | add // 0),
+                covered: (map(.value.lines.covered) | add // 0),
+                files: length
+              }
+        ' "$COVERAGE_JSON")
+
+        cat_total=$(echo "$cat_data" | jq -r '.total')
+        cat_covered=$(echo "$cat_data" | jq -r '.covered')
+        cat_files=$(echo "$cat_data" | jq -r '.files')
+
+        if [ "$cat_files" -gt 0 ] && [ "$cat_total" -gt 0 ]; then
+            pct=$((cat_covered * 100 / cat_total))
+            color=$(pick_color "$pct")
+            printf "  %-25s %s%3d%%%s  (%d/%d lines, %d files)\n" \
+                "$category:" "$color" "$pct" "$NC" "$cat_covered" "$cat_total" "$cat_files"
+
+            TOTAL_LINES=$((TOTAL_LINES + cat_total))
+            TOTAL_COVERED=$((TOTAL_COVERED + cat_covered))
+        fi
+    done
+
+    # Overall from the "total" key
+    echo ""
+    echo "▶ Overall (from vitest)"
+    echo "────────────────────────────────────────"
+
+    overall_lines=$(jq -r '.total.lines.pct // 0' "$COVERAGE_JSON")
+    overall_functions=$(jq -r '.total.functions.pct // 0' "$COVERAGE_JSON")
+    overall_branches=$(jq -r '.total.branches.pct // 0' "$COVERAGE_JSON")
+    overall_statements=$(jq -r '.total.statements.pct // 0' "$COVERAGE_JSON")
+
+    echo -e "  Lines:        ${CYAN}${overall_lines}%${NC}"
+    echo -e "  Functions:    ${CYAN}${overall_functions}%${NC}"
+    echo -e "  Branches:     ${CYAN}${overall_branches}%${NC}"
+    echo -e "  Statements:   ${CYAN}${overall_statements}%${NC}"
+
+    echo ""
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "  Summary"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo ""
+
+    # Use the overall lines percentage for threshold check
+    # Strip decimal for integer comparison
+    overall_int=${overall_lines%.*}
+    overall_int=${overall_int:-0}
+    color=$(pick_color "$overall_int")
+
+    echo -e "  ${CYAN}Line Coverage:${NC}   $color${overall_lines}%$NC"
+    echo ""
+
+    THRESHOLD="${COVERAGE_THRESHOLD:-70}"
+    if [ "$overall_int" -lt "$THRESHOLD" ]; then
+        echo -e "  ${RED}COVERAGE BELOW THRESHOLD ($THRESHOLD%)${NC}"
+        exit 1
+    else
+        echo -e "  ${GREEN}COVERAGE MEETS THRESHOLD ($THRESHOLD%)${NC}"
+        exit 0
+    fi
+fi
+
+# ============================================================================
+# FALLBACK: grep-based heuristic (no coverage JSON available)
+# ============================================================================
+echo -e "  ${YELLOW}Source: grep-based heuristic (coverage-summary.json not found)${NC}"
 echo ""
 
 # Function to check if a hook is tested
@@ -92,12 +199,8 @@ report_category() {
         local percentage=$((category_tested * 100 / category_total))
 
         # Color based on coverage
-        local color="$RED"
-        if [ "$percentage" -ge 80 ]; then
-            color="$GREEN"
-        elif [ "$percentage" -ge 50 ]; then
-            color="$YELLOW"
-        fi
+        local color
+        color=$(pick_color "$percentage")
 
         printf "  %-25s %s%3d%%%s (%d/%d)\n" "$category:" "$color" "$percentage" "$NC" "$category_tested" "$category_total"
 
@@ -139,12 +242,7 @@ for subcategory in bash write-edit input-mod mcp task skill; do
 
         if [ "$count" -gt 0 ]; then
             percentage=$((tested * 100 / count))
-            color="$RED"
-            if [ "$percentage" -ge 80 ]; then
-                color="$GREEN"
-            elif [ "$percentage" -ge 50 ]; then
-                color="$YELLOW"
-            fi
+            color=$(pick_color "$percentage")
             printf "  pretool/%-15s %s%3d%%%s (%d/%d)\n" "$subcategory:" "$color" "$percentage" "$NC" "$tested" "$count"
         fi
     fi
@@ -161,12 +259,7 @@ if [ "$TOTAL_HOOKS" -gt 0 ]; then
     TOTAL_PERCENTAGE=$((TESTED_HOOKS * 100 / TOTAL_HOOKS))
 fi
 
-color="$RED"
-if [ "$TOTAL_PERCENTAGE" -ge 80 ]; then
-    color="$GREEN"
-elif [ "$TOTAL_PERCENTAGE" -ge 50 ]; then
-    color="$YELLOW"
-fi
+color=$(pick_color "$TOTAL_PERCENTAGE")
 
 echo -e "  Total Hooks:     $TOTAL_HOOKS"
 echo -e "  ${GREEN}Tested:${NC}          $TESTED_HOOKS"
