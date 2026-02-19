@@ -23,11 +23,12 @@ concurrency:
   group: docs-${{ github.ref }}
   cancel-in-progress: true
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   validate:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -57,6 +58,8 @@ jobs:
           fi
 
   build:
+    permissions:
+      contents: read
     needs: validate
     runs-on: ubuntu-latest
     timeout-minutes: 10

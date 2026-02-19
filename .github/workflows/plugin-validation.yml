@@ -5,7 +5,10 @@ on:
     branches: [main, dev, 'feature/**']
   pull_request:
     branches: [main, dev]
+  merge_group:
   workflow_dispatch:
+
+permissions: {}
 
 # Cancel in-progress runs on new commits
 concurrency:
@@ -21,6 +24,8 @@ jobs:
   # ============================================================================
   build:
     name: Build
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -42,6 +47,8 @@ jobs:
   # Job 1: Syntax and Structure Validation
   syntax-validation:
     name: Syntax & Structure
+    permissions:
+      contents: read
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -75,6 +82,8 @@ jobs:
   # Job 2: Schema Validation
   schema-validation:
     name: Schema Validation
+    permissions:
+      contents: read
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -108,6 +117,8 @@ jobs:
   # Job 3: Hook Unit Tests
   hook-unit-tests:
     name: Hook Unit Tests
+    permissions:
+      contents: read
     needs: [build, syntax-validation]
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -132,6 +143,8 @@ jobs:
   # Job 4: Integration Tests
   integration-tests:
     name: Integration Tests
+    permissions:
+      contents: read
     needs: [build, syntax-validation, hook-unit-tests]
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -160,6 +173,8 @@ jobs:
   # Job 5: Plugin Manifest Validation
   manifest-validation:
     name: Plugin Manifest
+    permissions:
+      contents: read
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -257,6 +272,8 @@ jobs:
   # Job 6: Component Counts Validation
   counts-validation:
     name: Component Counts
+    permissions:
+      contents: read
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -282,6 +299,8 @@ jobs:
   # Job 7: Skills Validation (flat structure)
   skills-validation:
     name: Skills Validation
+    permissions:
+      contents: read
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -336,6 +355,8 @@ jobs:
   # Job 8: Skill Sync Drift Detection
   skill-sync-validation:
     name: Skill Sync Drift
+    permissions:
+      contents: read
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -370,6 +391,8 @@ jobs:
   # Summary Job
   validation-summary:
     name: Validation Summary
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     timeout-minutes: 5
     needs: [syntax-validation, schema-validation, hook-unit-tests, integration-tests, manifest-validation, counts-validation, skills-validation, skill-sync-validation]
