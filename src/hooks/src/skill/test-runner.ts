@@ -5,10 +5,10 @@
  * CC 2.1.7 Compliant
  */
 
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, getProjectDir } from '../lib/common.js';
+import { outputSilentSuccess } from '../lib/common.js';
 import { basename, dirname } from 'node:path';
 
 /**
@@ -16,11 +16,13 @@ import { basename, dirname } from 'node:path';
  */
 function findProjectRoot(startDir: string): string | null {
   let dir = startDir;
-  while (dir !== '/') {
+  while (dir && dir !== '/' && dir.length > 0) {
     if (existsSync(`${dir}/package.json`)) {
       return dir;
     }
-    dir = dirname(dir);
+    const parent = dirname(dir);
+    if (parent === dir) break; // reached filesystem root
+    dir = parent;
   }
   return null;
 }

@@ -170,7 +170,7 @@ jobs:
             | Check | Result |
             |-------|--------|
             | Build | ${report.build.status === 'success' ? '✅ Passed' : '❌ Failed'} |
-            | Tests | ${report.tests.failed > 0 ? '❌' : '✅'} ${report.tests.passed}/${report.tests.total} passed |
+            | Tests | ${report.tests.failed > 0 ? '❌' : '✅'} ${report.tests.passed}/${report.tests.total} passed${report.tests.skipped > 0 ? ` (${report.tests.skipped} skipped)` : ''} |
             | Lint | ${report.lint.errors > 0 ? '❌' : report.lint.warnings > 0 ? '⚠️' : '✅'} ${report.lint.errors} errors, ${report.lint.warnings} warnings |
             | Security | ${report.security.critical > 0 ? '❌' : report.security.high > 0 ? '⚠️' : '✅'} ${report.security.critical} critical, ${report.security.high} high |
             | Coverage | ${coverageEmoji} ${report.coverage.current.toFixed(1)}% avg |
