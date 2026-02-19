@@ -17,6 +17,22 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "6.0.24",
+    "date": "2026-02-19",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**Release automation** — rewrite release-please for v4 manifest mode; was failing on every push to main since v6.0.17 due to invalid inline params (`package-name`, `changelog-types`, `extra-files` silently ignored by v4)",
+          "**Version sync** — create `version.txt` + `.release-please-config.json` with jsonpath for `package.json` and `marketplace.json` auto-update",
+          "**Version drift** — sync package.json 6.0.20 and manifest 4.27.5 to match CHANGELOG 6.0.23",
+          "**version-check** — skip validation for release-please automated PRs"
+        ]
+      }
+    ]
+  },
+  {
     "version": "6.0.23",
     "date": "2026-02-19",
     "compareUrl": "",

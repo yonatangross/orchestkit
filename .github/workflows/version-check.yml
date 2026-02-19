@@ -42,6 +42,13 @@ jobs:
             exit 0
           fi
 
+          # Skip release-please PRs (automated versioning)
+          if [[ "$BRANCH_NAME" =~ ^release-please ]]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "Skipping version check for release-please PR (automated)"
+            exit 0
+          fi
+
           # Check if only non-code files changed
           CHANGED_FILES=$(git diff --name-only origin/main...HEAD)
           CODE_CHANGES=$(echo "$CHANGED_FILES" | grep -vE '\.(md|txt)$|^docs/' || true)
