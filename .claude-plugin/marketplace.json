@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "orchestkit",
-  "version": "6.0.24",
+  "version": "7.0.0",
   "engine": ">=2.1.45",
   "description": "The Complete AI Development Toolkit - 67 skills, 37 agents, 87 hooks for full-stack development",
   "owner": {
