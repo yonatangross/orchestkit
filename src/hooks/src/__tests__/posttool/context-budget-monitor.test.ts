@@ -88,9 +88,9 @@ describe('contextBudgetMonitor', () => {
     // Act
     contextBudgetMonitor(makeInput());
 
-    // Assert - Should write the MCP defer state to /tmp
+    // Assert - Should write the MCP defer state to temp dir
     expect(mockWriteFileSync).toHaveBeenCalledWith(
-      expect.stringContaining('/tmp/claude-mcp-defer-state-'),
+      expect.stringContaining('claude-mcp-defer-state-'),
       expect.any(String),
     );
   });

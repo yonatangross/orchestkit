@@ -12,6 +12,16 @@
 
 import { describe, test, expect, beforeEach, vi } from 'vitest';
 import type { HookInput } from '../types.js';
+import { getMetricsFile, getSessionErrorsFile } from '../lib/paths.js';
+
+// ---------------------------------------------------------------------------
+// Mock node:os — ensures os.tmpdir() returns '/tmp' consistently in tests
+// ---------------------------------------------------------------------------
+vi.mock('node:os', () => ({
+  tmpdir: vi.fn(() => '/tmp'),
+  homedir: vi.fn(() => '/home/test'),
+  default: { tmpdir: () => '/tmp', homedir: () => '/home/test' },
+}));
 
 // ---------------------------------------------------------------------------
 // Mock node:fs
@@ -778,7 +788,7 @@ describe('subagentQualityGate', () => {
 
   test('increments error count when metrics file exists', () => {
     vi.mocked(existsSync).mockImplementation((path) =>
-      String(path) === '/tmp/claude-session-metrics.json',
+      String(path) === getMetricsFile(),
     );
     vi.mocked(readFileSync).mockReturnValue(JSON.stringify({ errors: 3 }));
 
@@ -790,14 +800,14 @@ describe('subagentQualityGate', () => {
     );
 
     expect(writeFileSync).toHaveBeenCalledWith(
-      '/tmp/claude-session-metrics.json',
+      getMetricsFile(),
       expect.stringContaining('"errors": 4'),
     );
   });
 
   test('initializes error count to 1 when metrics has no errors field', () => {
     vi.mocked(existsSync).mockImplementation((path) =>
-      String(path) === '/tmp/claude-session-metrics.json',
+      String(path) === getMetricsFile(),
     );
     vi.mocked(readFileSync).mockReturnValue(JSON.stringify({ other: 'data' }));
 
@@ -809,7 +819,7 @@ describe('subagentQualityGate', () => {
     );
 
     expect(writeFileSync).toHaveBeenCalledWith(
-      '/tmp/claude-session-metrics.json',
+      getMetricsFile(),
       expect.stringContaining('"errors": 1'),
     );
   });
@@ -838,7 +848,7 @@ describe('subagentQualityGate', () => {
 
   test('handles corrupt metrics file gracefully', () => {
     vi.mocked(existsSync).mockImplementation((path) =>
-      String(path) === '/tmp/claude-session-metrics.json',
+      String(path) === getMetricsFile(),
     );
     vi.mocked(readFileSync).mockReturnValue('not-valid-json');
 
@@ -1140,12 +1150,12 @@ describe('unifiedErrorHandler', () => {
     );
 
     expect(writeFileSync).toHaveBeenCalledWith(
-      '/tmp/claude-session-errors.json',
+      getSessionErrorsFile(),
       expect.any(String),
     );
 
     const metricsCall = vi.mocked(writeFileSync).mock.calls.find(
-      (c) => String(c[0]) === '/tmp/claude-session-errors.json',
+      (c) => String(c[0]) === getSessionErrorsFile(),
     );
     expect(metricsCall).toBeDefined();
     const metrics = JSON.parse(String(metricsCall![1]));
@@ -1155,10 +1165,10 @@ describe('unifiedErrorHandler', () => {
 
   test('increments existing error count in session metrics', () => {
     vi.mocked(existsSync).mockImplementation((path) =>
-      String(path) === '/tmp/claude-session-errors.json',
+      String(path) === getSessionErrorsFile(),
     );
     vi.mocked(readFileSync).mockImplementation((path) => {
-      if (String(path) === '/tmp/claude-session-errors.json') {
+      if (String(path) === getSessionErrorsFile()) {
         return JSON.stringify({ error_count: 5, last_error_tool: 'Read', last_error_time: '' });
       }
       return '';
@@ -1172,7 +1182,7 @@ describe('unifiedErrorHandler', () => {
     );
 
     const metricsCall = vi.mocked(writeFileSync).mock.calls.find(
-      (c) => String(c[0]) === '/tmp/claude-session-errors.json',
+      (c) => String(c[0]) === getSessionErrorsFile(),
     );
     expect(metricsCall).toBeDefined();
     const metrics = JSON.parse(String(metricsCall![1]));

@@ -17,9 +17,16 @@ vi.mock('node:child_process', () => ({
   execSync: (...args: unknown[]) => mockExecSync(...args),
 }));
 
-vi.mock('node:path', () => ({
-  dirname: vi.fn((p: string) => p.split('/').slice(0, -1).join('/')),
+vi.mock('node:os', () => ({
+  tmpdir: vi.fn(() => '/tmp'),
+  homedir: vi.fn(() => '/home/test'),
+  default: { tmpdir: () => '/tmp', homedir: () => '/home/test' },
 }));
+
+vi.mock('node:path', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('node:path')>();
+  return { ...actual, default: actual, dirname: vi.fn((p: string) => p.split('/').slice(0, -1).join('/')) };
+});
 
 vi.mock('../../lib/common.js', () => ({
   logHook: vi.fn(),
