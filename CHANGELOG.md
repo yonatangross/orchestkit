@@ -5,6 +5,21 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.0.25](https://github.com/yonatangross/orchestkit/compare/v6.0.24...v6.0.25) (2026-02-19)
+
+
+### Bug Fixes
+
+* **ci:** skip version check for Dependabot PRs ([#758](https://github.com/yonatangross/orchestkit/issues/758)) ([45c850f](https://github.com/yonatangross/orchestkit/commit/45c850fe890ad0a9900361baba8a6ad18c44fadf))
+
+
+### CI/CD
+
+* bump actions/download-artifact from 5.0.0 to 7.0.0 ([#755](https://github.com/yonatangross/orchestkit/issues/755)) ([c28f49b](https://github.com/yonatangross/orchestkit/commit/c28f49b0b8a7c7dc7ee80a3cfeb969f79d8fb387))
+* bump actions/upload-artifact from 5.0.0 to 6.0.0 ([#753](https://github.com/yonatangross/orchestkit/issues/753)) ([4a4f9e0](https://github.com/yonatangross/orchestkit/commit/4a4f9e0d8eb1a56f3c6551798695cc8422ad61ce))
+* bump gitleaks/gitleaks-action ([#756](https://github.com/yonatangross/orchestkit/issues/756)) ([b929e1b](https://github.com/yonatangross/orchestkit/commit/b929e1b872268f02b64a42a5e75bf9b5b60e4f86))
+* bump googleapis/release-please-action ([#754](https://github.com/yonatangross/orchestkit/issues/754)) ([8028579](https://github.com/yonatangross/orchestkit/commit/8028579b5178e18d08c9278fcce575e32e332d9d))
+
 ## [6.0.24] - 2026-02-19
 
 ### Fixed
