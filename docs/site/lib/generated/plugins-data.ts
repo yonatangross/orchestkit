@@ -6,11 +6,11 @@ import type { Plugin } from "./types";
 export const PLUGINS: Plugin[] = [
   {
     "name": "orkl",
-    "description": "Universal toolkit — 45 skills, 37 agents, 87 hooks. Language-agnostic, works for any stack.",
+    "description": "Universal toolkit — 46 skills, 37 agents, 87 hooks. Language-agnostic, works for any stack.",
     "fullDescription": "The universal OrchestKit toolkit. Includes all workflow skills (implement, explore, verify, review-pr, commit), all memory skills (remember, memory, mem0, fabric), product/UX skills, accessibility, and all specialized agents. Language-agnostic — works for any tech stack.",
     "category": "development",
     "version": "6.0.22",
-    "skillCount": 45,
+    "skillCount": 46,
     "agentCount": 37,
     "hooks": 87,
     "commandCount": 24,
@@ -107,11 +107,11 @@ export const PLUGINS: Plugin[] = [
   },
   {
     "name": "ork-creative",
-    "description": "Video production add-on — 3 skills, 1 agent. Demo recording, Remotion, storyboarding.",
+    "description": "Video production add-on — 2 skills, 1 agent. Demo recording, Remotion, storyboarding.",
     "fullDescription": "Video production toolkit for OrchestKit. Includes demo recording, Remotion composition, storyboarding, narration scripting, content recipes, and visual effects skills. Adds the demo-producer agent.",
     "category": "development",
     "version": "6.0.22",
-    "skillCount": 3,
+    "skillCount": 2,
     "agentCount": 1,
     "hooks": 87,
     "commandCount": 1,
@@ -120,8 +120,7 @@ export const PLUGINS: Plugin[] = [
     "recommended": false,
     "skills": [
       "demo-producer",
-      "video-production",
-      "ascii-visualizer"
+      "video-production"
     ],
     "agents": [
       "demo-producer"
@@ -132,11 +131,11 @@ export const PLUGINS: Plugin[] = [
   },
   {
     "name": "ork",
-    "description": "Full specialized toolkit — 62 skills, 37 agents, 87 hooks. Adds Python, React, LLM/RAG patterns.",
+    "description": "Full specialized toolkit — 63 skills, 37 agents, 87 hooks. Adds Python, React, LLM/RAG patterns.",
     "fullDescription": "The complete OrchestKit toolkit. Everything in orkl PLUS specialized patterns for Python (FastAPI, SQLAlchemy, Celery), React (RSC, TanStack, Zustand), LLM integration (function calling, streaming, fine-tuning), RAG retrieval, LangGraph workflows, and MCP server patterns.",
     "category": "development",
     "version": "6.0.22",
-    "skillCount": 62,
+    "skillCount": 63,
     "agentCount": 37,
     "hooks": 87,
     "commandCount": 24,
@@ -150,6 +149,7 @@ export const PLUGINS: Plugin[] = [
       "api-design",
       "architecture-decision-record",
       "architecture-patterns",
+      "ascii-visualizer",
       "assess",
       "async-jobs",
       "audit-full",
@@ -166,8 +166,7 @@ export const PLUGINS: Plugin[] = [
       "doctor",
       "domain-driven-design",
       "errors",
-      "explore",
-      "feedback"
+      "explore"
     ],
     "agents": [
       "accessibility-specialist",

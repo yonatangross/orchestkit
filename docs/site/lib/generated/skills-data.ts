@@ -318,6 +318,31 @@ export const SKILLS: Record<string, SkillMeta> = {
       "test-generator"
     ]
   },
+  "ascii-visualizer": {
+    "name": "ascii-visualizer",
+    "description": "ASCII diagram patterns for architecture, workflows, file trees, and data visualizations. Provides box-drawing characters, layout rules, and structured diagram templates for terminal-rendered output.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "ascii",
+      "diagrams",
+      "visualization",
+      "box-drawing",
+      "architecture",
+      "terminal"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "structure": {},
+    "plugins": [
+      "ork",
+      "orkl"
+    ],
+    "relatedAgents": []
+  },
   "assess": {
     "name": "assess",
     "description": "Assesses and rates quality 0-10 with pros/cons analysis. Use when evaluating code, designs, or approaches.",
