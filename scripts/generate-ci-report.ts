@@ -46,6 +46,7 @@ interface TestResult {
   failed: number;
   skipped: number;
   total: number;
+  fileCount?: number;
   failures: Array<{ name: string; error: string; file?: string }>;
   duration?: number;
 }
@@ -78,6 +79,7 @@ interface CoverageResult {
   functions: number;
   branches: number;
   statements: number;
+  scope: string;
   files?: Array<{ file: string; coverage: number; delta: number }>;
 }
 
@@ -239,6 +241,7 @@ function collectCoverageResults(): CoverageResult {
     functions: 0,
     branches: 0,
     statements: 0,
+    scope: 'TypeScript hooks (src/hooks/src/)',
   };
 
   // Try CI_COVERAGE env var first (detailed format from vitest)
@@ -259,6 +262,7 @@ function collectCoverageResults(): CoverageResult {
       functions,
       branches,
       statements,
+      scope: 'TypeScript hooks (src/hooks/src/)',
     };
   }
 
@@ -291,6 +295,7 @@ function collectCoverageResults(): CoverageResult {
             functions,
             branches,
             statements,
+            scope: 'TypeScript hooks (src/hooks/src/)',
           };
         }
       } catch {
@@ -338,14 +343,14 @@ function calculateScore(report: CIReport): number {
   // Test failures: -5 per failure (max -30)
   score -= Math.min(30, report.tests.failed * 5);
 
-  // Skipped tests: -1 per skip (max -5) — skipped tests hide risk
-  score -= Math.min(5, report.tests.skipped * 1);
+  // Skipped tests: -2 per skip (max -20) — skipped tests hide risk
+  score -= Math.min(20, report.tests.skipped * 2);
 
-  // Lint errors: -2 per error (max -20)
-  score -= Math.min(20, report.lint.errors * 2);
+  // Lint errors: -3 per error (max -30)
+  score -= Math.min(30, report.lint.errors * 3);
 
-  // Lint warnings: -1 per 5 warnings (max -5)
-  score -= Math.min(5, Math.floor(report.lint.warnings / 5));
+  // Lint warnings: -1 per 3 warnings (max -10)
+  score -= Math.min(10, Math.floor(report.lint.warnings / 3));
 
   // Security issues: -10 critical, -5 high, -2 medium, -1 low
   score -= report.security.critical * 10;
@@ -355,11 +360,11 @@ function calculateScore(report: CIReport): number {
 
   // Coverage scoring (graduated, honest thresholds)
   if (report.coverage.current > 0) {
-    if (report.coverage.current < 50) score -= 20;
-    else if (report.coverage.current < 60) score -= 15;
-    else if (report.coverage.current < 70) score -= 10;
-    else if (report.coverage.current < 80) score -= 8;
-    else if (report.coverage.current < 90) score -= 3;
+    if (report.coverage.current < 50) score -= 25;
+    else if (report.coverage.current < 60) score -= 20;
+    else if (report.coverage.current < 70) score -= 18;
+    else if (report.coverage.current < 80) score -= 12;
+    else if (report.coverage.current < 90) score -= 5;
     // 90%+ = no penalty
   }
 
@@ -526,7 +531,7 @@ function generateHtml(report: CIReport): string {
         <div class="text-2xl font-bold ${report.coverage.current >= 90 ? 'text-ci-green' : report.coverage.current >= 70 ? 'text-ci-yellow' : 'text-ci-red'}">
           ${report.coverage.current.toFixed(1)}%
         </div>
-        <div class="text-sm text-gray-400">Coverage (Avg)</div>
+        <div class="text-sm text-gray-400">Coverage (hooks only)</div>
         ${report.coverage.delta !== 0 ? `<div class="text-xs ${report.coverage.delta >= 0 ? 'text-ci-green' : 'text-ci-red'} mt-1">${report.coverage.delta >= 0 ? '+' : ''}${report.coverage.delta.toFixed(1)}%</div>` : ''}
       </div>
     </div>
@@ -715,11 +720,11 @@ function generateMarkdown(report: CIReport): string {
   if (report.tests.failed > 0)
     deductions.push(`${report.tests.failed} test failures: -${Math.min(30, report.tests.failed * 5)}`);
   if (report.tests.skipped > 0)
-    deductions.push(`${report.tests.skipped} skipped tests: -${Math.min(5, report.tests.skipped)}`);
+    deductions.push(`${report.tests.skipped} skipped tests: -${Math.min(20, report.tests.skipped * 2)}`);
   if (report.lint.errors > 0)
-    deductions.push(`${report.lint.errors} lint errors: -${Math.min(20, report.lint.errors * 2)}`);
+    deductions.push(`${report.lint.errors} lint errors: -${Math.min(30, report.lint.errors * 3)}`);
   if (report.lint.warnings > 0) {
-    const penalty = Math.min(5, Math.floor(report.lint.warnings / 5));
+    const penalty = Math.min(10, Math.floor(report.lint.warnings / 3));
     if (penalty > 0) deductions.push(`${report.lint.warnings} lint warnings: -${penalty}`);
   }
   if (report.security.critical > 0)
@@ -733,14 +738,14 @@ function generateMarkdown(report: CIReport): string {
   if (report.coverage.current > 0 && report.coverage.current < 90) {
     const covPenalty =
       report.coverage.current < 50
-        ? 20
+        ? 25
         : report.coverage.current < 60
-          ? 15
+          ? 20
           : report.coverage.current < 70
-            ? 10
+            ? 18
             : report.coverage.current < 80
-              ? 8
-              : 3;
+              ? 12
+              : 5;
     deductions.push(`Coverage ${report.coverage.current.toFixed(1)}% (< 90%): -${covPenalty}`);
   }
   if (report.coverage.delta < -1)
@@ -767,7 +772,7 @@ function generateMarkdown(report: CIReport): string {
 | Tests | ${testEmoji} ${report.tests.passed}/${report.tests.total} passed${report.tests.failed > 0 ? `, ${report.tests.failed} failed` : ''}${report.tests.skipped > 0 ? `, ${report.tests.skipped} skipped` : ''} |
 | Lint | ${lintEmoji} ${report.lint.errors} errors, ${report.lint.warnings} warnings |
 | Security | ${secEmoji} ${report.security.critical} critical, ${report.security.high} high, ${report.security.medium} medium, ${report.security.low} low |
-| Coverage | ${covEmoji} ${report.coverage.current.toFixed(1)}% avg |
+| Coverage | ${covEmoji} ${report.coverage.current.toFixed(1)}% (hooks only) |
 ${coverageTable}${scoreBreakdown}
 ---
 *Generated by OrchestKit CI Report • vitest + @vitest/coverage-v8*

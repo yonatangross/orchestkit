@@ -29,7 +29,6 @@ jobs:
 
       - name: Run build
         id: build
-        continue-on-error: true
         run: |
           if npm run build 2>&1 | tee build.log; then
             echo "status=success" >> "$GITHUB_OUTPUT"
@@ -39,7 +38,6 @@ jobs:
 
       - name: Run tests with coverage
         id: tests
-        continue-on-error: true
         run: |
           # Run hook tests with coverage (vitest + @vitest/coverage-v8 4.0.18)
           cd src/hooks
@@ -55,11 +53,14 @@ jobs:
           # Run shell-based tests
           npm test 2>&1 | tee -a test.log || true
 
-          # Extract test counts from vitest ("N passed") and shell tests ("Total: N passed, M failed")
-          # Use grep with || true to avoid pipefail, default to 0
-          vitest_passed="$(grep -oP '\d+(?=\s+passed)' test.log | head -1)" || true
-          vitest_failed="$(grep -oP '\d+(?=\s+failed)' test.log | head -1)" || true
-          vitest_skipped="$(grep -oP '\d+(?=\s+skipped)' test.log | head -1)" || true
+          # Extract test counts from vitest output which has two "passed" lines:
+          #   Test Files  194 passed (194)    <- file count (1st match)
+          #        Tests  6529 passed (6529)  <- individual test count (2nd match)
+          # Use sed -n '2p' to get individual tests, '1p' for file count
+          vitest_passed="$(grep -oP '\d+(?=\s+passed)' test.log | sed -n '2p')" || true
+          vitest_file_count="$(grep -oP '\d+(?=\s+passed)' test.log | sed -n '1p')" || true
+          vitest_failed="$(grep -oP '\d+(?=\s+failed)' test.log | sed -n '2p')" || true
+          vitest_skipped="$(grep -oP '\d+(?=\s+skipped)' test.log | sed -n '2p')" || true
 
           # Shell test format: "Total: N passed, M failed"
           shell_passed="$(grep -oP 'Total:\s+\K\d+(?=\s+passed)' test.log | tail -1)" || true
@@ -72,6 +73,7 @@ jobs:
           echo "passed=${passed}" >> "$GITHUB_OUTPUT"
           echo "failed=${failed}" >> "$GITHUB_OUTPUT"
           echo "skipped=${skipped}" >> "$GITHUB_OUTPUT"
+          echo "file_count=${vitest_file_count:-0}" >> "$GITHUB_OUTPUT"
 
           # Extract coverage from summary
           if [ -f coverage-summary.json ]; then
@@ -92,7 +94,6 @@ jobs:
 
       - name: Run linting
         id: lint
-        continue-on-error: true
         run: |
           # TypeScript type-check (no standalone lint script)
           cd src/hooks && npx tsc --noEmit 2>&1 | tee ../../lint.log || true
@@ -104,7 +105,6 @@ jobs:
 
       - name: Run security scan
         id: security
-        continue-on-error: true
         run: |
           npm audit --json > audit.json 2>/dev/null || true
           critical="$(jq -r '.metadata.vulnerabilities.critical // 0' audit.json)" || true
@@ -124,7 +124,7 @@ jobs:
           CI_COMMIT_SHA: ${{ github.sha }}
           CI_BRANCH: ${{ github.ref_name }}
           CI_PR_NUMBER: ${{ github.event.pull_request.number }}
-          CI_TEST_RESULTS: '{"passed": ${{ steps.tests.outputs.passed || 0 }}, "failed": ${{ steps.tests.outputs.failed || 0 }}, "skipped": ${{ steps.tests.outputs.skipped || 0 }}, "total": 0, "failures": []}'
+          CI_TEST_RESULTS: '{"passed": ${{ steps.tests.outputs.passed || 0 }}, "failed": ${{ steps.tests.outputs.failed || 0 }}, "skipped": ${{ steps.tests.outputs.skipped || 0 }}, "total": 0, "fileCount": ${{ steps.tests.outputs.file_count || 0 }}, "failures": []}'
           CI_LINT_RESULTS: '{"errors": ${{ steps.lint.outputs.errors || 0 }}, "warnings": ${{ steps.lint.outputs.warnings || 0 }}, "files": 0, "issues": []}'
           CI_SECURITY_RESULTS: '{"critical": ${{ steps.security.outputs.critical || 0 }}, "high": ${{ steps.security.outputs.high || 0 }}, "medium": ${{ steps.security.outputs.medium || 0 }}, "low": ${{ steps.security.outputs.low || 0 }}, "vulnerabilities": []}'
           CI_COVERAGE: '{"lines": ${{ steps.tests.outputs.coverage_lines || 0 }}, "functions": ${{ steps.tests.outputs.coverage_functions || 0 }}, "branches": ${{ steps.tests.outputs.coverage_branches || 0 }}, "statements": ${{ steps.tests.outputs.coverage_statements || 0 }}}'
@@ -170,10 +170,10 @@ jobs:
             | Check | Result |
             |-------|--------|
             | Build | ${report.build.status === 'success' ? '✅ Passed' : '❌ Failed'} |
-            | Tests | ${report.tests.failed > 0 ? '❌' : '✅'} ${report.tests.passed}/${report.tests.total} passed${report.tests.skipped > 0 ? ` (${report.tests.skipped} skipped)` : ''} |
+            | Tests | ${report.tests.failed > 0 ? '❌' : '✅'} ${report.tests.passed}/${report.tests.total} passed${report.tests.fileCount ? ` across ${report.tests.fileCount} files` : ''}${report.tests.skipped > 0 ? ` (${report.tests.skipped} skipped)` : ''} |
             | Lint | ${report.lint.errors > 0 ? '❌' : report.lint.warnings > 0 ? '⚠️' : '✅'} ${report.lint.errors} errors, ${report.lint.warnings} warnings |
             | Security | ${report.security.critical > 0 ? '❌' : report.security.high > 0 ? '⚠️' : '✅'} ${report.security.critical} critical, ${report.security.high} high |
-            | Coverage | ${coverageEmoji} ${report.coverage.current.toFixed(1)}% avg |
+            | Coverage | ${coverageEmoji} ${report.coverage.current.toFixed(1)}% (hooks only) |
             ${coverageDetail}
 
             📊 [View full report](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})

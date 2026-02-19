@@ -169,8 +169,11 @@ if [[ "$RUN_UNIT" == "true" ]]; then
     run_test "Context Schema Validation" "$SCRIPT_DIR/unit/test-context-schemas.sh" || true
     run_test "Graph Utils Unit Tests" "$SCRIPT_DIR/unit/test-graph-utils.sh" || true
 
-    # TypeScript hook tests (vitest) - if node_modules exist
-    if [[ -d "$PROJECT_ROOT/src/hooks/node_modules" ]]; then
+    # TypeScript hook tests (vitest)
+    if [[ -n "${CI:-}" ]]; then
+        echo -e "  ${CYAN}Vitest runs in dedicated CI job (hook-typescript-tests) — skipping here${NC}"
+        # Don't count as PASS or SKIP — vitest has its own CI job
+    elif [[ -d "$PROJECT_ROOT/src/hooks/node_modules" ]]; then
         echo ""
         echo -e "${BOLD}${CYAN}TYPESCRIPT HOOK TESTS (vitest)${NC}"
         echo ""
@@ -306,7 +309,7 @@ if [[ "$RUN_PERFORMANCE" == "true" ]]; then
     echo ""
 
     run_test "Token Budget Validation" "$SCRIPT_DIR/performance/test-token-budget.sh" || true
-    run_test "Hook Timing Tests" "$SCRIPT_DIR/performance/test-hook-timing.sh" "true" || true
+    run_test "Hook Timing Tests" "$SCRIPT_DIR/performance/test-hook-timing.sh" || true
 fi
 
 # ============================================================
