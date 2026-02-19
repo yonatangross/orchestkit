@@ -49,6 +49,13 @@ jobs:
             exit 0
           fi
 
+          # Skip Dependabot PRs (dependency updates, no version bump needed)
+          if [[ "$BRANCH_NAME" =~ ^dependabot/ ]]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "Skipping version check for Dependabot PR (automated dependency update)"
+            exit 0
+          fi
+
           # Check if only non-code files changed
           CHANGED_FILES=$(git diff --name-only origin/main...HEAD)
           CODE_CHANGES=$(echo "$CHANGED_FILES" | grep -vE '\.(md|txt)$|^docs/' || true)
