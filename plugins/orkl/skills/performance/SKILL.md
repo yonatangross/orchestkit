@@ -168,12 +168,12 @@ export default async function Page() {
 
 ## Related Skills
 
-- `react-server-components-framework` - Server-first rendering
-- `vite-advanced` - Build optimization
+- `ork:react-server-components-framework` - Server-first rendering
+- `ork:vite-advanced` - Build optimization
 - `caching` - Cache strategies for responses
-- `monitoring-observability` - Production monitoring and alerting
-- `database-patterns` - Query and index optimization
-- `llm-integration` - Local inference with Ollama
+- `ork:monitoring-observability` - Production monitoring and alerting
+- `ork:database-patterns` - Query and index optimization
+- `ork:llm-integration` - Local inference with Ollama
 
 ## Capability Details
 

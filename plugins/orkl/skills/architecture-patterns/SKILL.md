@@ -226,10 +226,10 @@ class UserService:
 
 ## Related Skills
 
-- `scope-appropriate-architecture` - Project tier detection that drives right-sizing enforcement
-- `quality-gates` - YAGNI gate uses tier context to validate complexity
-- `distributed-systems` - Distributed locking, resilience, idempotency patterns
-- `api-design` - REST API design, versioning, error handling
-- `testing-patterns` - Comprehensive testing patterns and strategies
-- `python-backend` - FastAPI, SQLAlchemy, asyncio patterns
-- `database-patterns` - Schema design, query optimization, migrations
+- `ork:scope-appropriate-architecture` - Project tier detection that drives right-sizing enforcement
+- `ork:quality-gates` - YAGNI gate uses tier context to validate complexity
+- `ork:distributed-systems` - Distributed locking, resilience, idempotency patterns
+- `ork:api-design` - REST API design, versioning, error handling
+- `ork:testing-patterns` - Comprehensive testing patterns and strategies
+- `ork:python-backend` - FastAPI, SQLAlchemy, asyncio patterns
+- `ork:database-patterns` - Schema design, query optimization, migrations

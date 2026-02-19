@@ -24,8 +24,8 @@ Deep code review using 6-7 parallel specialized agents.
 ## Quick Start
 
 ```bash
-/review-pr 123
-/review-pr feature-branch
+/ork:review-pr 123
+/ork:review-pr feature-branch
 ```
 
 > **Opus 4.6**: Parallel agents use native adaptive thinking for deeper analysis. Complexity-aware routing matches agent model to review difficulty.
@@ -192,9 +192,9 @@ Use these prefixes for comments:
 - `question:` -- Needs clarification
 
 ## Related Skills
-- commit: Create commits after review
-- create-pr: Create PRs for review
-- slack-integration: Team notifications for review events
+- `ork:commit`: Create commits after review
+- `ork:create-pr`: Create PRs for review
+- `slack-integration`: Team notifications for review events
 
 ## References
 

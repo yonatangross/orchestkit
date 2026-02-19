@@ -216,7 +216,7 @@ See `test-cases.json` for consolidated test cases across all categories.
 
 ## Related Skills
 
-- `agent-orchestration` - Higher-level multi-agent coordination, ReAct loop patterns, and framework comparisons
+- `ork:agent-orchestration` - Higher-level multi-agent coordination, ReAct loop patterns, and framework comparisons
 - `temporal-io` - Durable execution alternative
-- `llm-integration` - General LLM function calling
+- `ork:llm-integration` - General LLM function calling
 - `type-safety-validation` - Pydantic model patterns

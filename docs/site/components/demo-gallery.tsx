@@ -13,7 +13,6 @@ import {
   Monitor,
   Smartphone,
   Square,
-  Loader,
 } from "lucide-react";
 import { OptimizedThumbnail } from "@/components/optimized-thumbnail";
 import type { Composition } from "@/lib/generated/types";
@@ -327,10 +326,9 @@ function GalleryCard({
             <Play className="h-8 w-8 text-white opacity-0 drop-shadow-lg transition-opacity group-hover:opacity-90" />
           </div>
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-all group-hover:bg-black/10">
-            <span className="flex items-center gap-1.5 rounded-full bg-amber-500/80 px-2.5 py-1 text-[10px] font-semibold text-white opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100">
-              <Loader className="h-3 w-3 animate-spin" />
-              In production
+          <div className="absolute inset-0 flex items-center justify-center bg-black/5">
+            <span className="rounded-full bg-fd-muted-foreground/60 px-2.5 py-1 text-[10px] font-semibold text-white backdrop-blur-sm">
+              Coming soon
             </span>
           </div>
         )}
@@ -448,9 +446,8 @@ function CompositionModal({
                     placeholderSize={48}
                   />
                   <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
-                    <Loader className="h-6 w-6 animate-spin text-amber-500" />
-                    <span className="rounded-full bg-amber-500/90 px-3 py-1 text-xs font-semibold text-white shadow-sm">
-                      Video in production
+                    <span className="rounded-full bg-fd-muted-foreground/70 px-3 py-1 text-xs font-semibold text-white shadow-sm">
+                      Video coming soon
                     </span>
                   </div>
                 </>

@@ -24,8 +24,8 @@ Systematic issue resolution with hypothesis-based root cause analysis, similar i
 ## Quick Start
 
 ```bash
-/fix-issue 123
-/fix-issue 456
+/ork:fix-issue 123
+/ork:fix-issue 456
 ```
 
 > **Opus 4.6**: Root cause analysis uses native adaptive thinking. Dynamic token budgets scale with context window for thorough investigation.
@@ -464,10 +464,10 @@ claude                              # Shows resume hint
 
 ## Related Skills
 
-- `commit` - Commit issue fixes
+- `ork:commit` - Commit issue fixes
 - `debug-investigator` - Debug complex issues
-- `issue-progress-tracking` - Auto-updates from commits
-- `remember` - Store lessons learned
+- `ork:issue-progress-tracking` - Auto-updates from commits
+- `ork:remember` - Store lessons learned
 
 ---
 

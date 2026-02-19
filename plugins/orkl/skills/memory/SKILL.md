@@ -230,7 +230,7 @@ Format output appropriate to the operation.
 
 ## Related Skills
 
-- `remember` - Store decisions and patterns (write-side)
+- `ork:remember` - Store decisions and patterns (write-side)
 
 ---
 

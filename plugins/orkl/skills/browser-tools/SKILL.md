@@ -65,6 +65,6 @@ agent-browser get text body                    # Prefer targeted ref extraction
 ## Related Skills
 
 - `agent-browser` (upstream) - Full command reference and usage patterns
-- `web-research-workflow` - Unified decision tree for web research
-- `testing-patterns` - Comprehensive testing patterns including E2E and webapp testing
-- `api-design` - API design patterns for endpoints discovered during scraping
+- `ork:web-research-workflow` - Unified decision tree for web research
+- `ork:testing-patterns` - Comprehensive testing patterns including E2E and webapp testing
+- `ork:api-design` - API design patterns for endpoints discovered during scraping

@@ -21,7 +21,7 @@ Ceremony guide for tracking GitHub issue progress via `gh` CLI. Ensures issues s
 ## Quick Start
 
 ```bash
-/issue-progress-tracking 123
+/ork:issue-progress-tracking 123
 ```
 
 ---
@@ -140,7 +140,7 @@ gh issue edit $ARGUMENTS --add-label "status:in-review" --remove-label "status:i
 
 ## Related Skills
 
-- `commit` — Commit with conventional format
-- `fix-issue` — Full issue resolution workflow
-- `implement` — Feature implementation with parallel agents
-- `create-pr` — Create pull requests
+- `ork:commit` — Commit with conventional format
+- `ork:fix-issue` — Full issue resolution workflow
+- `ork:implement` — Feature implementation with parallel agents
+- `ork:create-pr` — Create pull requests

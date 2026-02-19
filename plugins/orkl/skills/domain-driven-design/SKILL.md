@@ -149,8 +149,8 @@ async def get(self, id: UUID) -> OrderModel:  # WRONG - return domain!
 ## Related Skills
 
 - `aggregate-patterns` - Deep dive on aggregate design
-- `distributed-systems` - Cross-aggregate coordination
-- `database-patterns` - Schema design for DDD
+- `ork:distributed-systems` - Cross-aggregate coordination
+- `ork:database-patterns` - Schema design for DDD
 
 ## References
 

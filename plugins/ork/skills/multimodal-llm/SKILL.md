@@ -123,6 +123,6 @@ response = client.messages.create(
 
 ## Related Skills
 
-- `rag-retrieval` - Multimodal RAG with image + text retrieval
-- `llm-integration` - General LLM function calling patterns
+- `ork:rag-retrieval` - Multimodal RAG with image + text retrieval
+- `ork:llm-integration` - General LLM function calling patterns
 - `streaming-api-patterns` - WebSocket patterns for real-time audio

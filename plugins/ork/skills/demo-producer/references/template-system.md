@@ -564,7 +564,7 @@ const rightPanelX = interpolate(mergeProgress, [0, 1], [960, 0]);
 ┌──────────────────────────────────────────────┐
 │        TITLE STAMP (0-3s)                    │
 │    "OrchestKit"                              │
-│    62 skills. 36 agents. One plugin.         │
+│    67 skills. 37 agents. One plugin.         │
 ├──────────────────────────────────────────────┤
 │    SOCIAL PROOF CARDS (3-7.5s)               │
 │    ┌─────────┐  ┌─────────┐  ┌─────────┐   │
@@ -875,5 +875,5 @@ remotion render Root MySkillDemo out/custom.mp4 \
 
 ## Related Skills
 
-- `demo-producer` - Main skill for orchestrating demo creation
+- `ork:demo-producer` - Main skill for orchestrating demo creation
 - `video-production` - Recording, composition, audio, and visual effects for demos

@@ -14,7 +14,7 @@ Simple, validated commit creation. Run checks locally, no agents needed for stan
 ## Quick Start
 
 ```bash
-/commit
+/ork:commit
 ```
 
 ## Workflow
@@ -106,10 +106,10 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 ```
 
 ## Related Skills
-- create-pr: Create pull requests from commits
-- review-pr: Review changes before committing
-- fix-issue: Fix issues and commit the fixes
-- issue-progress-tracking: Auto-updates GitHub issues with commit progress
+- `ork:create-pr`: Create pull requests from commits
+- `ork:review-pr`: Review changes before committing
+- `ork:fix-issue`: Fix issues and commit the fixes
+- `ork:issue-progress-tracking`: Auto-updates GitHub issues with commit progress
 
 ## Rules
 

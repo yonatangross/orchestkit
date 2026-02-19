@@ -34,9 +34,9 @@ describe("docs-data", () => {
     });
 
     it("matches expected counts", () => {
-      expect(TOTALS.skills).toBe(62);
-      expect(TOTALS.agents).toBe(36);
-      expect(TOTALS.hooks).toBe(89);
+      expect(TOTALS.skills).toBe(67);
+      expect(TOTALS.agents).toBe(37);
+      expect(TOTALS.hooks).toBe(87);
     });
   });
 
@@ -66,31 +66,31 @@ describe("docs-data", () => {
       expect(Array.isArray(plugin.agents)).toBe(true);
     });
 
-    it("orkl has 45 skills", () => {
+    it("orkl has 46 skills", () => {
       const orkl = PLUGINS.find((p) => p.name === "orkl");
       expect(orkl).toBeDefined();
-      expect(orkl!.skillCount).toBe(45);
+      expect(orkl!.skillCount).toBe(46);
     });
 
-    it("ork-creative has 3 skills", () => {
+    it("ork-creative has 2 skills", () => {
       const orkCreative = PLUGINS.find((p) => p.name === "ork-creative");
       expect(orkCreative).toBeDefined();
-      expect(orkCreative!.skillCount).toBe(3);
+      expect(orkCreative!.skillCount).toBe(2);
     });
 
-    it("ork has 62 skills", () => {
+    it("ork has 67 skills", () => {
       const ork = PLUGINS.find((p) => p.name === "ork");
       expect(ork).toBeDefined();
-      expect(ork!.skillCount).toBe(62);
+      expect(ork!.skillCount).toBe(67);
     });
   });
 
   // ── AGENTS ────────────────────────────────────────────────
 
   describe("AGENTS", () => {
-    it("is an array of 36 agents", () => {
+    it("is an array of 37 agents", () => {
       expect(Array.isArray(AGENTS)).toBe(true);
-      expect(AGENTS.length).toBe(36);
+      expect(AGENTS.length).toBe(37);
     });
 
     it("has correct AgentSummary shape", () => {
@@ -185,8 +185,8 @@ describe("docs-data", () => {
       expect(Object.keys(SKILLS).length).toBeGreaterThan(0);
     });
 
-    it("has 62 skills", () => {
-      expect(Object.keys(SKILLS).length).toBe(62);
+    it("has 67 skills", () => {
+      expect(Object.keys(SKILLS).length).toBe(67);
     });
 
     it("has correct SkillDetail shape", () => {

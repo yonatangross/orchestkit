@@ -171,7 +171,7 @@ Just describe your task naturally and OrchestKit will recommend the appropriate 
 
 - `/help` - Claude Code built-in help
 - `/config` - Claude Code configuration
-- `/doctor` - OrchestKit health check
+- `/ork:doctor` - OrchestKit health check
 
 ## References
 

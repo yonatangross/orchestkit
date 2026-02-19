@@ -155,6 +155,6 @@ async def search(query: str) -> str:
 
 ## Related Skills
 
-- `llm-integration` — LLM function calling patterns
-- `security-patterns` — General input sanitization and layered security
-- `api-design` — REST/GraphQL API design patterns
+- `ork:llm-integration` — LLM function calling patterns
+- `ork:security-patterns` — General input sanitization and layered security
+- `ork:api-design` — REST/GraphQL API design patterns

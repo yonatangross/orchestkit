@@ -25,7 +25,7 @@ Comprehensive PR creation with validation. All output goes directly to GitHub PR
 ## Quick Start
 
 ```bash
-/create-pr
+/ork:create-pr
 ```
 
 ---
@@ -268,8 +268,8 @@ Only use Task agents for:
 - Architecture review for large refactors
 
 ## Related Skills
-- commit: Create commits before PRs
-- review-pr: Review PRs after creation
+- `ork:commit`: Create commits before PRs
+- `ork:review-pr`: Review PRs after creation
 ## References
 
 - [PR Template](assets/pr-template.md)

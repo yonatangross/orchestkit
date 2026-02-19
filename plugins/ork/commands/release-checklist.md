@@ -22,6 +22,15 @@ See [references/release-flow.md](references/release-flow.md) for why the order m
 
 **Total: 4 rules across 2 categories**
 
+## Quick Start
+
+```bash
+# Run all pre-release gates in order (stop on first failure)
+npm run build && npm test && npm run test:security && npm run typecheck
+bash src/skills/validate-counts/scripts/validate-counts.sh
+git diff  # review before staging
+```
+
 ## Pre-Release Gates
 
 Must all pass before writing any release commit. See `rules/gate-build-and-test.md` and `rules/gate-counts-and-diff.md`.
@@ -47,6 +56,12 @@ Steps after all gates pass. See `rules/commit-staging.md` and `rules/commit-tag-
 | 10. Commit | `release: vX.Y.Z` conventional format | `rules/commit-tag-push.md` |
 | 11. Tag | `git tag vX.Y.Z` | `rules/commit-tag-push.md` |
 | 12. Push | Run `scripts/pre-push-confirm.sh` — confirm first | `rules/commit-tag-push.md` |
+
+## Related Skills
+
+- `validate-counts` — Count consistency check (step 5 of this checklist)
+- `audit-skills` — Broader skill quality audit (run before major releases)
+- `checkpoint-resume` — Rate-limit-resilient pipelines for long release sessions
 
 ## Common Mistakes
 

@@ -14,10 +14,10 @@ Comprehensive assessment skill for answering "is this good?" with structured eva
 ## Quick Start
 
 ```bash
-/assess backend/app/services/auth.py
-/assess our caching strategy
-/assess the current database schema
-/assess frontend/src/components/Dashboard
+/ork:assess backend/app/services/auth.py
+/ork:assess our caching strategy
+/ork:assess the current database schema
+/ork:assess frontend/src/components/Dashboard
 ```
 
 
@@ -374,9 +374,9 @@ See [Scoring Rubric](references/scoring-rubric.md) for full report template.
 ## Related Skills
 
 - `assess-complexity` - Task complexity assessment
-- `verify` - Post-implementation verification
-- `code-review-playbook` - Code review patterns
-- `quality-gates` - Quality gate patterns
+- `ork:verify` - Post-implementation verification
+- `ork:code-review-playbook` - Code review patterns
+- `ork:quality-gates` - Quality gate patterns
 
 
 **Version:** 1.1.0 (February 2026)

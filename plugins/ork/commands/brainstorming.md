@@ -256,10 +256,10 @@ TeamDelete()
 
 ## Related Skills
 
-- `architecture-decision-record` - Document key decisions made during brainstorming
-- `implement` - Execute the implementation plan after brainstorming completes
-- `explore` - Deep codebase exploration to understand existing patterns
-- `assess` - Rate quality 0-10 with dimension breakdown
+- `ork:architecture-decision-record` - Document key decisions made during brainstorming
+- `ork:implement` - Execute the implementation plan after brainstorming completes
+- `ork:explore` - Deep codebase exploration to understand existing patterns
+- `ork:assess` - Rate quality 0-10 with dimension breakdown
 
 ## References
 

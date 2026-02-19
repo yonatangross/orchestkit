@@ -191,10 +191,10 @@ The heartbeat hook will auto-register on first tool use. If issues persist:
 
 ## Related Skills
 
-- `git-workflow` - Git workflow patterns used within each coordinated worktree
-- `commit` - Create commits with proper conventional format in each worktree
+- `ork:git-workflow` - Git workflow patterns used within each coordinated worktree
+- `ork:commit` - Create commits with proper conventional format in each worktree
 - `stacked-prs` - Manage dependent PRs that may span multiple worktrees
-- `architecture-decision-record` - Document decisions shared via /worktree-decision
+- `ork:architecture-decision-record` - Document decisions shared via /worktree-decision
 
 ## Key Decisions
 

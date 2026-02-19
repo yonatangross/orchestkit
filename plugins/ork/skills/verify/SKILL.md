@@ -24,9 +24,9 @@ Comprehensive verification using parallel specialized agents with nuanced gradin
 ## Quick Start
 
 ```bash
-/verify authentication flow
-/verify user profile feature
-/verify --scope=backend database migrations
+/ork:verify authentication flow
+/ork:verify user profile feature
+/ork:verify --scope=backend database migrations
 ```
 
 > **Opus 4.6**: Agents use native adaptive thinking (no MCP sequential-thinking needed). Extended 128K output supports comprehensive verification reports.
@@ -330,10 +330,10 @@ Define verification rules in `.claude/policies/verification-policy.json`:
 
 ## Related Skills
 
-- `implement` - Full implementation with verification
-- `review-pr` - PR-specific verification
+- `ork:implement` - Full implementation with verification
+- `ork:review-pr` - PR-specific verification
 - `run-tests` - Detailed test execution
-- `quality-gates` - Quality gate patterns
+- `ork:quality-gates` - Quality gate patterns
 
 ---
 

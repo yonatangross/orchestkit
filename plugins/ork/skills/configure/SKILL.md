@@ -22,7 +22,7 @@ Interactive setup for customizing your OrchestKit installation.
 ## Quick Start
 
 ```bash
-/configure
+/ork:configure
 ```
 
 ## Step 1: Choose Preset
@@ -202,6 +202,8 @@ claude --add-dir /shared/team/plugins
 
 CC 2.1.45+ supports `plugin_hot_reload` — team members get updates without restarting their sessions.
 
+> **`enabledPlugins` vs `added_dirs`**: `enabledPlugins` is a CC-internal concept and is NOT exposed to hooks. The hook-accessible field for multi-directory awareness is `added_dirs` (available in `HookInput` since CC 2.1.47). Hooks can read `input.added_dirs` to detect which additional directories are active — useful for adapting behavior in multi-repo workspaces.
+
 ## Step 8: CC 2.1.23 Settings
 
 Configure CC 2.1.23-specific features:
@@ -314,7 +316,7 @@ Save to: `~/.claude/plugins/orchestkit/config.json`
 ```
 
 ## Related Skills
-- doctor: Diagnose configuration issues
+- `ork:doctor`: Diagnose configuration issues
 ## References
 
 - [Presets](references/presets.md)

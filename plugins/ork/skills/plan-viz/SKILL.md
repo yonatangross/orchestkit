@@ -24,9 +24,9 @@ Render planned changes as structured ASCII visualizations with risk analysis, ex
 **Core principle:** Encode judgment into visualization, not decoration.
 
 ```bash
-/plan-viz                          # Auto-detect from current branch
-/plan-viz billing module redesign  # Describe the plan
-/plan-viz #234                     # Pull from GitHub issue
+/ork:plan-viz                          # Auto-detect from current branch
+/ork:plan-viz billing module redesign  # Describe the plan
+/ork:plan-viz #234                     # Pull from GitHub issue
 ```
 
 ---
@@ -374,6 +374,6 @@ Sequential Block C (verification):
 
 ## Related Skills
 
-- `implement` - Execute planned changes
-- `explore` - Understand current architecture
-- `assess` - Evaluate complexity and risks
+- `ork:implement` - Execute planned changes
+- `ork:explore` - Understand current architecture
+- `ork:assess` - Evaluate complexity and risks

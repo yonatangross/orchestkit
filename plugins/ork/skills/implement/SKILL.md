@@ -24,9 +24,9 @@ Parallel subagent execution for feature implementation with scope control and re
 ## Quick Start
 
 ```bash
-/implement user authentication
-/implement real-time notifications
-/implement dashboard analytics
+/ork:implement user authentication
+/ork:implement real-time notifications
+/ork:implement dashboard analytics
 ```
 
 ---
@@ -154,10 +154,10 @@ If detected: run integration tests against real services, not just mocks. Refere
 
 ## Related Skills
 
-- explore: Explore codebase before implementing
-- verify: Verify implementations work correctly
-- worktree-coordination: Git worktree management patterns
-- issue-progress-tracking: Auto-updates GitHub issues with commit progress
+- `ork:explore`: Explore codebase before implementing
+- `ork:verify`: Verify implementations work correctly
+- `ork:worktree-coordination`: Git worktree management patterns
+- `ork:issue-progress-tracking`: Auto-updates GitHub issues with commit progress
 
 ## References
 

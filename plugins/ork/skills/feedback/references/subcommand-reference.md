@@ -1,6 +1,6 @@
 # Feedback Subcommand Reference
 
-Detailed actions and expected output for each `/feedback` subcommand.
+Detailed actions and expected output for each `/ork:feedback` subcommand.
 
 ## status (default)
 
@@ -40,7 +40,7 @@ Temporarily pause all learning without clearing data.
 Feedback learning paused
 
 Your existing patterns are preserved.
-Resume with: /feedback resume
+Resume with: /ork:feedback resume
 ```
 
 ## resume
@@ -131,10 +131,10 @@ shareAnonymized:      false  (share anonymous stats)
 retentionDays:        90     (data retention period)
 
 To change a setting, use:
-  /feedback settings <key> <value>
+  /ork:feedback settings <key> <value>
 
 Example:
-  /feedback settings retentionDays 30
+  /ork:feedback settings retentionDays 30
 ```
 
 ## opt-in
@@ -161,7 +161,7 @@ What we NEVER share:
   - Personal information
   - Memory data
 
-Disable anytime: /feedback opt-out
+Disable anytime: /ork:feedback opt-out
 ```
 
 ## opt-out
@@ -180,7 +180,7 @@ Anonymous analytics sharing disabled.
 Your feedback data stays completely local.
 No usage data is shared.
 
-Re-enable anytime: /feedback opt-in
+Re-enable anytime: /ork:feedback opt-in
 ```
 
 ## privacy
@@ -228,10 +228,10 @@ WHAT WE NEVER COLLECT
 YOUR RIGHTS
 ────────────────────────────────────────────────────────────────────
 
-  • Opt-out anytime:     /feedback opt-out
-  • View your data:      /feedback export-analytics
-  • Check status:        /feedback status
-  • View this policy:    /feedback privacy
+  • Opt-out anytime:     /ork:feedback opt-out
+  • View your data:      /ork:feedback export-analytics
+  • Check status:        /ork:feedback status
+  • View this policy:    /ork:feedback privacy
 ```
 
 ## export-analytics
@@ -240,7 +240,7 @@ Export anonymous analytics data to a file for review before sharing.
 
 **Usage:**
 ```
-/feedback export-analytics [path]
+/ork:feedback export-analytics [path]
 ```
 
 If no path is provided, exports to `.claude/feedback/analytics-exports/` with a timestamp.

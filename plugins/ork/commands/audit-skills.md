@@ -48,5 +48,5 @@ Or invoke manually — Claude scans `src/skills/`, applies checks, and renders t
 
 ## Related Skills
 
-- `skill-evolution` — Guidance on iterating and improving skills
-- `quality-gates` — Broader codebase quality checks
+- `ork:skill-evolution` — Guidance on iterating and improving skills
+- `ork:quality-gates` — Broader codebase quality checks

@@ -144,10 +144,10 @@ Focus on plugin structure:
 ## Related Skills
 
 - `platform-upgrade-knowledge` - Scoring rubric details and compatibility matrix
-- `doctor` - Post-upgrade health validation
-- `explore` - Codebase exploration for impact analysis
-- `verify` - Verification of changes after migration
-- `devops-deployment` - CI/CD pipeline updates
+- `ork:doctor` - Post-upgrade health validation
+- `ork:explore` - Codebase exploration for impact analysis
+- `ork:verify` - Verification of changes after migration
+- `ork:devops-deployment` - CI/CD pipeline updates
 
 ## References
 
