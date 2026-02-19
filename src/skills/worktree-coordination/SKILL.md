@@ -19,6 +19,8 @@ metadata:
 
 # Worktree Coordination Skill
 
+> **CC 2.1.47 Worktree Fixes:** Claude Code 2.1.47 resolved three critical worktree issues: skills/agents not discovered in worktrees, background tasks failing in worktrees, and Windows worktree session matching. Worktrees are now first-class citizens — no workarounds needed.
+
 > **Agent Teams (CC 2.1.33+):** When `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` is set, native Agent Teams provides built-in teammate lifecycle management, peer-to-peer messaging, and shared task lists. This skill's custom file locking and coordination registry are superseded by Teams' native coordination. Use this skill only for **non-Teams worktree scenarios** (e.g., multiple independent Claude Code sessions without a shared team).
 
 ## Commands
@@ -77,13 +79,13 @@ Before any Write or Edit operation:
 3. If unlocked → Acquire lock and proceed
 
 ### Heartbeat (Lifecycle Hook)
-Every 30 seconds:
+Every 30 seconds (requires CC 2.1.47+ for reliable execution in worktrees):
 1. Update this instance's heartbeat timestamp
 2. Clean up stale instances (no heartbeat > 5 min)
 3. Release orphaned locks
 
 ### Cleanup (Stop Hook)
-When Claude Code exits:
+When Claude Code exits (requires CC 2.1.47+ for reliable execution in worktrees):
 1. Release all file locks held by this instance
 2. Unregister from coordination registry
 
@@ -170,8 +172,22 @@ cc-worktree-sync [--check-conflicts] [--pull-decisions]
 
 ### "Instance not registered"
 The heartbeat hook will auto-register on first tool use. If issues persist:
-1. Check `.claude-local/instance-id.txt` exists
-2. Verify `.claude/coordination/` is symlinked correctly
+1. Confirm you are running CC 2.1.47+ (background tasks in worktrees required this fix)
+2. Check `.claude-local/instance-id.txt` exists
+3. Verify `.claude/coordination/` is symlinked correctly
+
+## Platform Support (CC 2.1.47+)
+
+| Platform | Worktree Status | Notes |
+|----------|----------------|-------|
+| macOS | Full support | All features work natively |
+| Linux | Full support | All features work natively |
+| Windows | Full support | CC 2.1.47 fixed session matching with drive letter casing |
+
+**CC 2.1.47 fixes that improved worktree support:**
+- Skills and agents are now discovered correctly from worktrees (previously only from main checkout)
+- Background tasks (`Task` tool) complete successfully from worktrees
+- Windows worktree session matching works with drive letter casing differences
 
 ## Related Skills
 
