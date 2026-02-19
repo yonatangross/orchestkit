@@ -10,12 +10,13 @@
 import { existsSync, writeFileSync, readFileSync } from 'node:fs';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, outputWarning, logHook } from '../lib/common.js';
+import { getMetricsFile } from '../lib/paths.js';
 
 // -----------------------------------------------------------------------------
 // Configuration
 // -----------------------------------------------------------------------------
 
-const METRICS_FILE = '/tmp/claude-session-metrics.json';
+const METRICS_FILE = getMetricsFile();
 
 // -----------------------------------------------------------------------------
 // Helper Functions

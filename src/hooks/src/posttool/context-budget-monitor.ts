@@ -12,6 +12,7 @@
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, getProjectDir, getSessionId, logHook, estimateTokenCount } from '../lib/common.js';
+import { getMcpDeferStateFile } from '../lib/paths.js';
 
 // Configuration
 const BUDGET_TOTAL = 2200; // Total token budget for context layer
@@ -80,7 +81,7 @@ function shouldDeferMcp(currentTokens: number): boolean {
  */
 function updateMcpDeferState(shouldDefer: boolean, currentTokens: number): void {
   const sessionId = getSessionId();
-  const stateFile = `/tmp/claude-mcp-defer-state-${sessionId}.json`;
+  const stateFile = getMcpDeferStateFile(sessionId);
   const effectiveWindow = getEffectiveContextWindow();
 
   const state = {

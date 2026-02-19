@@ -9,6 +9,7 @@ import { existsSync, readFileSync, unlinkSync, rmdirSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, getProjectDir, getSessionId, outputSilentSuccess } from '../lib/common.js';
+import { getSessionTempDir } from '../lib/paths.js';
 
 interface IssueProgress {
   issues: {
@@ -105,7 +106,7 @@ export function issueWorkSummary(input: HookInput): HookResult {
 
   // Sanitize session ID to prevent path traversal
   const safeSessionId = sessionId.replace(/[^a-zA-Z0-9_-]/g, '');
-  const sessionDir = `/tmp/claude-session-${safeSessionId}`;
+  const sessionDir = getSessionTempDir(safeSessionId);
   const progressFile = `${sessionDir}/issue-progress.json`;
 
   // Check if progress file exists

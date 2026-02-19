@@ -6,6 +6,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, outputSilentSuccess } from '../lib/common.js';
+import { getMetricsFile } from '../lib/paths.js';
 
 interface SessionMetrics {
   tools?: Record<string, number>;
@@ -18,7 +19,7 @@ interface SessionMetrics {
 export function sessionMetricsSummary(input: HookInput): HookResult {
   logHook('session-metrics-summary', 'Session ending - generating summary');
 
-  const metricsFile = '/tmp/claude-session-metrics.json';
+  const metricsFile = getMetricsFile();
 
   if (!existsSync(metricsFile)) {
     logHook('session-metrics-summary', 'No metrics file found');

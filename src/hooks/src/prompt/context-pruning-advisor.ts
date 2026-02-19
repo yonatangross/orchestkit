@@ -24,6 +24,7 @@ import {
 } from '../lib/common.js';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
+import { getContextTrackingFile } from '../lib/paths.js';
 
 // Configuration
 const CONTEXT_TRIGGER = 0.7; // Trigger at 70% context usage
@@ -146,8 +147,7 @@ function extractPromptKeywords(prompt: string): string[] {
  * Get state file path
  */
 function getStateFilePath(): string {
-  const sessionId = getSessionId();
-  return `/tmp/claude-context-tracking-${sessionId}.json`;
+  return getContextTrackingFile(getSessionId());
 }
 
 /**

@@ -8,9 +8,10 @@ import { existsSync, mkdirSync, statSync, renameSync } from 'node:fs';
 import { bufferWrite } from '../lib/analytics-buffer.js';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, getLogDir, getField } from '../lib/common.js';
+import { getReadCountFile } from '../lib/paths.js';
 
 // Track read count across invocations (per-session in memory)
-const readCountFile = '/tmp/claude-read-count';
+const readCountFile = getReadCountFile();
 
 /**
  * Log tool execution to audit file
