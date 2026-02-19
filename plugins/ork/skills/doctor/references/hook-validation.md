@@ -7,12 +7,31 @@ OrchestKit uses 66 global hook entries across 15 event types, compiled into 12 b
 ## Hook Architecture
 
 ```
-hooks.json (66 global entries)
+hooks.json (63 global + 22 agent-scoped + 1 skill-scoped entries)
     ↓
 12 TypeScript bundles (dist/*.mjs)
     ↓
-7 async hooks use fire-and-forget pattern
+9 async hooks use fire-and-forget pattern
 ```
+
+## Platform Support
+
+| Platform | Hook Status | Notes |
+|----------|------------|-------|
+| macOS | Full support | Native execution |
+| Linux | Full support | Native execution |
+| Windows | Full support (CC 2.1.47+) | Uses Git Bash instead of cmd.exe |
+
+**Windows support history:**
+- **Before CC 2.1.47**: All hooks silently failed on Windows (cmd.exe incompatible)
+- **CC 2.1.47**: Fixed by executing hooks via Git Bash instead of cmd.exe
+- **PR #645**: OrchestKit added Windows-safe spawning (no console flashing, no ENAMETOOLONG)
+
+**Cross-platform safety measures in OrchestKit hooks:**
+- `paths.ts` provides cross-platform path handling (`os.homedir()`, `os.tmpdir()`, `path.join()`)
+- CRLF normalization (`\r\n` → `\n`) in subagent-validator, decision-history, common.ts
+- Windows backslash path normalization in structure-location-validator
+- Windows-specific test cases for paths, CRLF, and permission handling
 
 ## Hook Categories
 
@@ -33,7 +52,7 @@ hooks.json (66 global entries)
 | PostToolUseFailure | 1 | Failed tool handling |
 | PreCompact | 1 | Before context compaction |
 | TaskCompleted | 1 | Task completion handling |
-| **Total** | **66** | |
+| **Total Global** | **66** | |
 
 ## Bundle Structure
 
@@ -73,7 +92,7 @@ ls -la src/hooks/dist/*.mjs
 Async hooks use fire-and-forget scripts:
 
 ```bash
-# 7 fire-and-forget scripts required
+# 9 fire-and-forget scripts required (updated CC 2.1.47)
 ls src/hooks/bin/*-fire-and-forget.mjs
 ```
 

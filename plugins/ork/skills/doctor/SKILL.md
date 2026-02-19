@@ -138,8 +138,9 @@ Verifies hooks are properly configured:
 # Checks performed:
 # - hooks.json schema valid
 # - Bundle files exist (12 .mjs bundles)
-# - Async hooks use fire-and-forget pattern (7 async)
+# - Async hooks use fire-and-forget pattern (9 async)
 # - Background hook metrics health (Issue #243)
+# - Windows-safe spawning (PR #645)
 ```
 
 **Output:**
@@ -237,12 +238,21 @@ Context Budget: 1850/2200 tokens (84%)
 
 ### 10. Claude Code Version
 
-Validates runtime version:
+Validates runtime version against the [Version Compatibility Matrix](references/version-compatibility.md):
 
-**Output:**
+**Output (OK):**
 ```
 Claude Code: 2.1.47 (OK)
 - Minimum required: 2.1.47
+- All 15 features available
+```
+
+**Output (degraded):**
+```
+Claude Code: 2.1.44 (DEGRADED)
+- Minimum required: 2.1.47
+- Missing: last_assistant_message, added_dirs, Windows hooks, worktree discovery
+- Upgrade: npm install -g @anthropic-ai/claude-code@latest
 ```
 
 ### 11. External Dependencies
@@ -434,3 +444,4 @@ ls -la .claude/memory/
 - [Memory Health](references/memory-health.md)
 - [Permission Rules](references/permission-rules.md)
 - [Schema Validation](references/schema-validation.md)
+- [Version Compatibility](references/version-compatibility.md)

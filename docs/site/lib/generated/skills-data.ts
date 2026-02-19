@@ -1018,7 +1018,8 @@ export const SKILLS: Record<string, SkillMeta> = {
         "memory-health.md",
         "permission-rules.md",
         "schema-validation.md",
-        "skills-validation.md"
+        "skills-validation.md",
+        "version-compatibility.md"
       ],
       "scripts": [
         "check-plugin-health.sh"
