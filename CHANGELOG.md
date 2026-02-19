@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.0.24] - 2026-02-19
+
+### Fixed
+
+- **Release automation** — rewrite release-please for v4 manifest mode; was failing on every push to main since v6.0.17 due to invalid inline params (`package-name`, `changelog-types`, `extra-files` silently ignored by v4)
+- **Version sync** — create `version.txt` + `.release-please-config.json` with jsonpath for `package.json` and `marketplace.json` auto-update
+- **Version drift** — sync package.json 6.0.20 and manifest 4.27.5 to match CHANGELOG 6.0.23
+- **version-check** — skip validation for release-please automated PRs
+
+---
+
+
 ## [6.0.23] - 2026-02-19
 
 ### Added

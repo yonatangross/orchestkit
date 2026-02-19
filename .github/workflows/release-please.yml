@@ -8,16 +8,17 @@
 # How it works:
 # 1. On every push to main, release-please analyzes commits
 # 2. It creates/updates a "Release PR" with version bump and changelog
-# 3. When you merge the Release PR, it creates a GitHub Release
+# 3. When you merge the Release PR, it creates a GitHub Release + tag
 #
-# Version sync strategy:
-# - Release-please updates: plugin.json (source of truth) + CHANGELOG.md
-# - Hook auto-syncs: marketplace.json, pyproject.toml, CLAUDE.md
+# Configuration lives in:
+# - .release-please-config.json (changelog sections, extra-files)
+# - .release-please-manifest.json (current version)
+# - version.txt (simple release type source of truth)
 #
-# Conventional Commits → Version Bumps:
-# - fix: → patch (1.0.0 → 1.0.1)
-# - feat: → minor (1.0.0 → 1.1.0)
-# - feat!: or BREAKING CHANGE → major (1.0.0 → 2.0.0)
+# Conventional Commits -> Version Bumps:
+# - fix: -> patch (6.0.23 -> 6.0.24)
+# - feat: -> minor (6.0.23 -> 6.1.0)
+# - feat!: or BREAKING CHANGE -> major (6.0.23 -> 7.0.0)
 #
 # Reference: https://github.com/googleapis/release-please
 
@@ -36,24 +37,71 @@ permissions:
 jobs:
   release-please:
     runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+      version: ${{ steps.release.outputs.version }}
     steps:
-      - uses: googleapis/release-please-action@c3fc4de07084f75a2b61a5b933069bda6edf3d5c  # v4
+      - id: release
+        uses: googleapis/release-please-action@c3fc4de07084f75a2b61a5b933069bda6edf3d5c  # v4
         with:
-          release-type: simple
-          package-name: orchestkit
+          config-file: .release-please-config.json
+          manifest-file: .release-please-manifest.json
 
-          # Changelog sections
-          changelog-types: |
-            [
-              {"type": "feat", "section": "Features", "hidden": false},
-              {"type": "fix", "section": "Bug Fixes", "hidden": false},
-              {"type": "chore", "section": "Miscellaneous", "hidden": false},
-              {"type": "docs", "section": "Documentation", "hidden": false},
-              {"type": "refactor", "section": "Code Refactoring", "hidden": false},
-              {"type": "perf", "section": "Performance", "hidden": false},
-              {"type": "ci", "section": "CI/CD", "hidden": false}
-            ]
+  # Sync version to manifest files after release
+  post-release:
+    needs: release-please
+    if: needs.release-please.outputs.release_created == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          ref: main
 
-          # Only update source of truth - hook syncs the rest
-          extra-files: |
-            .claude-plugin/plugin.json
+      - name: Sync version to manifest files
+        env:
+          VERSION: ${{ needs.release-please.outputs.version }}
+        run: |
+          # SEC-001: Validate version format before using in shell commands
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Invalid version format: $VERSION"
+            exit 1
+          fi
+          echo "Syncing version $VERSION to manifest files..."
+
+          # Update manifests/ork.json, orkl.json, ork-creative.json
+          for f in manifests/ork.json manifests/orkl.json manifests/ork-creative.json; do
+            if [ -f "$f" ]; then
+              jq --arg v "$VERSION" '.version = $v' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
+              echo "Updated $f"
+            fi
+          done
+
+          # Update pyproject.toml
+          if [ -f "pyproject.toml" ]; then
+            sed -i "s/^version = \"[0-9]\+\.[0-9]\+\.[0-9]\+\"/version = \"$VERSION\"/" pyproject.toml
+            echo "Updated pyproject.toml"
+          fi
+
+          # Update CLAUDE.md version line
+          if [ -f "CLAUDE.md" ]; then
+            sed -i "s/- \*\*Current\*\*: [0-9]\+\.[0-9]\+\.[0-9]\+/- **Current**: $VERSION/" CLAUDE.md
+            echo "Updated CLAUDE.md"
+          fi
+
+      - name: Commit version sync
+        env:
+          VERSION: ${{ needs.release-please.outputs.version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          # SEC-002: Only stage known files, not git add -A
+          git add manifests/ork.json manifests/orkl.json manifests/ork-creative.json pyproject.toml CLAUDE.md
+          if git diff --cached --quiet; then
+            echo "No version sync changes needed"
+          else
+            git commit -m "chore: sync version to $VERSION"
+            git push
+          fi
