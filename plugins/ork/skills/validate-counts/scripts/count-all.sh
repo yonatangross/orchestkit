@@ -9,7 +9,7 @@
 
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../.." && pwd)"
 
 # Argument parsing
 JSON_OUTPUT=false
@@ -51,7 +51,9 @@ if ! command -v jq &>/dev/null; then
     echo "Error: jq is required. Install with: brew install jq" >&2
     exit 1
 fi
-HOOK_COUNT=$(jq '.hooks | length' "$HOOKS_JSON")
+# hooks.json structure: event type → entries[] → each entry has .hooks[] commands
+# Count = total commands across all entries across all event types
+HOOK_COUNT=$(jq '[.hooks | to_entries[] | .value[] | .hooks | length] | add' "$HOOKS_JSON")
 
 # --- Output ---
 if $JSON_OUTPUT; then

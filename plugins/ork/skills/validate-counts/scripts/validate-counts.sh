@@ -8,7 +8,7 @@
 
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../.." && pwd)"
 DRIFT=0
 
 while [[ $# -gt 0 ]]; do
@@ -33,7 +33,9 @@ fi
 
 ACTUAL_SKILLS=$(find "$REPO_ROOT/src/skills" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')
 ACTUAL_AGENTS=$(find "$REPO_ROOT/src/agents" -maxdepth 1 -name "*.md" | wc -l | tr -d ' ')
-ACTUAL_HOOKS=$(jq '.hooks | length' "$REPO_ROOT/src/hooks/hooks.json")
+# hooks.json .hooks is an object keyed by event type → array of entries → each has .hooks array of commands
+# Count = total commands across all entries across all event types
+ACTUAL_HOOKS=$(jq '[.hooks | to_entries[] | .value[] | .hooks | length] | add' "$REPO_ROOT/src/hooks/hooks.json")
 
 # =============================================================================
 # CLAUDE.md — extract counts from Project Overview and Version section
@@ -47,24 +49,43 @@ CLAUDE_OV_SKILLS=$(echo "$CLAUDE_OVERVIEW" | grep -oE '[0-9]+ skills?' | grep -o
 CLAUDE_OV_AGENTS=$(echo "$CLAUDE_OVERVIEW" | grep -oE '[0-9]+ agents?' | grep -oE '[0-9]+' || echo "?")
 CLAUDE_OV_HOOKS=$(echo "$CLAUDE_OVERVIEW"  | grep -oE '[0-9]+ hooks?'  | grep -oE '[0-9]+' || echo "?")
 
-# Version section: "N entries (X global + Y agent-scoped + Z skill-scoped"
-CLAUDE_VER_HOOKS=$(grep -m1 'entries' "$CLAUDE_MD" | grep -oE '^[[:space:]]*\*\*Hooks\*\*:.*' | grep -oE '[0-9]+ entries' | grep -oE '[0-9]+' || \
-                   grep -oE 'Hooks.*[0-9]+ entries' "$CLAUDE_MD" | grep -oE '[0-9]+' | head -1 || echo "?")
+# Version section: "Hooks: 64 entries (...)"
+CLAUDE_VER_LINE=$(grep -m1 'Hooks.*entries' "$CLAUDE_MD" || true)
+if [[ -n "$CLAUDE_VER_LINE" ]]; then
+    CLAUDE_VER_HOOKS=$(echo "$CLAUDE_VER_LINE" | grep -oE '[0-9]+ entries' | grep -oE '[0-9]+' || echo "?")
+else
+    CLAUDE_VER_HOOKS="?"
+fi
 
 # =============================================================================
-# MANIFESTS — count arrays
+# MANIFESTS — handle both "all" shorthand and explicit arrays
 # =============================================================================
 
 ORK_JSON="$REPO_ROOT/manifests/ork.json"
 ORKL_JSON="$REPO_ROOT/manifests/orkl.json"
 
-ORK_SKILLS=$(jq '[.skills // [] | length] | .[0]' "$ORK_JSON" 2>/dev/null || echo "?")
-ORK_AGENTS=$(jq '[.agents // [] | length] | .[0]' "$ORK_JSON" 2>/dev/null || echo "?")
-ORK_HOOKS=$(jq '[.hooks // [] | length] | .[0]'  "$ORK_JSON" 2>/dev/null || echo "?")
+# Helper: if value is "all", return "all"; if array, return length; else "?"
+manifest_count() {
+    local file="$1" field="$2"
+    local val
+    val=$(jq -r ".$field | type" "$file" 2>/dev/null) || { echo "?"; return; }
+    case "$val" in
+        string)
+            local str
+            str=$(jq -r ".$field" "$file")
+            if [[ "$str" == "all" ]]; then echo "all"; else echo "?"; fi ;;
+        array)  jq ".$field | length" "$file" ;;
+        *)      echo "?" ;;
+    esac
+}
 
-ORKL_SKILLS=$(jq '[.skills // [] | length] | .[0]' "$ORKL_JSON" 2>/dev/null || echo "?")
-ORKL_AGENTS=$(jq '[.agents // [] | length] | .[0]' "$ORKL_JSON" 2>/dev/null || echo "?")
-ORKL_HOOKS=$(jq '[.hooks // [] | length] | .[0]'   "$ORKL_JSON" 2>/dev/null || echo "?")
+ORK_SKILLS=$(manifest_count "$ORK_JSON" skills)
+ORK_AGENTS=$(manifest_count "$ORK_JSON" agents)
+ORK_HOOKS=$(manifest_count "$ORK_JSON" hooks)
+
+ORKL_SKILLS=$(manifest_count "$ORKL_JSON" skills)
+ORKL_AGENTS=$(manifest_count "$ORKL_JSON" agents)
+ORKL_HOOKS=$(manifest_count "$ORKL_JSON" hooks)
 
 # =============================================================================
 # COMPARISON HELPERS
@@ -74,6 +95,8 @@ status() {
     local actual="$1" derived="$2"
     if [[ "$derived" == "?" ]]; then
         echo "SKIP"
+    elif [[ "$derived" == "all" ]]; then
+        echo "MATCH"  # "all" means it includes everything from src/
     elif [[ "$actual" == "$derived" ]]; then
         echo "MATCH"
     else
@@ -96,22 +119,23 @@ printf "%-32s %7s %7s %7s %8s\n" "src/agents/ (actual)"          "—"          
 printf "%-32s %7s %7s %7s %8s\n" "src/hooks/hooks.json (actual)" "—"              "—"              "$ACTUAL_HOOKS" "—"
 
 OV_STATUS=$(status "$ACTUAL_SKILLS" "$CLAUDE_OV_SKILLS")
-[[ "$ACTUAL_AGENTS" != "$CLAUDE_OV_AGENTS" ]] && { OV_STATUS="DRIFT"; DRIFT=1; }
-[[ "$ACTUAL_HOOKS"  != "$CLAUDE_OV_HOOKS"  ]] && { OV_STATUS="DRIFT"; DRIFT=1; }
+[[ $(status "$ACTUAL_AGENTS" "$CLAUDE_OV_AGENTS") == "DRIFT" ]] && { OV_STATUS="DRIFT"; DRIFT=1; }
+[[ $(status "$ACTUAL_HOOKS"  "$CLAUDE_OV_HOOKS")  == "DRIFT" ]] && { OV_STATUS="DRIFT"; DRIFT=1; }
 printf "%-32s %7s %7s %7s %8s\n" "CLAUDE.md Project Overview" "$CLAUDE_OV_SKILLS" "$CLAUDE_OV_AGENTS" "$CLAUDE_OV_HOOKS" "$OV_STATUS"
 
 VER_STATUS=$(status "$ACTUAL_HOOKS" "$CLAUDE_VER_HOOKS")
 printf "%-32s %7s %7s %7s %8s\n" "CLAUDE.md Version section" "—" "—" "$CLAUDE_VER_HOOKS" "$VER_STATUS"
 
-ORK_S=$(status "$ACTUAL_SKILLS" "$ORK_SKILLS")
-[[ "$ACTUAL_AGENTS" != "$ORK_AGENTS" ]] && { ORK_S="DRIFT"; DRIFT=1; }
-[[ "$ACTUAL_HOOKS"  != "$ORK_HOOKS"  ]] && { ORK_S="DRIFT"; DRIFT=1; }
+ORK_S="MATCH"
+[[ $(status "$ACTUAL_SKILLS" "$ORK_SKILLS") == "DRIFT" ]] && { ORK_S="DRIFT"; DRIFT=1; }
+[[ $(status "$ACTUAL_AGENTS" "$ORK_AGENTS") == "DRIFT" ]] && { ORK_S="DRIFT"; DRIFT=1; }
+[[ $(status "$ACTUAL_HOOKS"  "$ORK_HOOKS")  == "DRIFT" ]] && { ORK_S="DRIFT"; DRIFT=1; }
 printf "%-32s %7s %7s %7s %8s\n" "manifests/ork.json" "$ORK_SKILLS" "$ORK_AGENTS" "$ORK_HOOKS" "$ORK_S"
 
 # orkl skill count legitimately differs — only flag agents and hooks
 ORKL_S="NOTE"
-[[ "$ACTUAL_AGENTS" != "$ORKL_AGENTS" ]] && { ORKL_S="DRIFT"; DRIFT=1; }
-[[ "$ACTUAL_HOOKS"  != "$ORKL_HOOKS"  ]] && { ORKL_S="DRIFT"; DRIFT=1; }
+[[ $(status "$ACTUAL_AGENTS" "$ORKL_AGENTS") == "DRIFT" ]] && { ORKL_S="DRIFT"; DRIFT=1; }
+[[ $(status "$ACTUAL_HOOKS"  "$ORKL_HOOKS")  == "DRIFT" ]] && { ORKL_S="DRIFT"; DRIFT=1; }
 printf "%-32s %7s %7s %7s %8s\n" "manifests/orkl.json" "$ORKL_SKILLS" "$ORKL_AGENTS" "$ORKL_HOOKS" "$ORKL_S"
 
 echo ""

@@ -50,6 +50,7 @@ Phases with empty `dependencies` may run in parallel via Task sub-agents (when t
 ## References
 
 - [Pipeline State Schema](references/pipeline-state-schema.md) — full field-by-field schema with examples
+- [Pipeline State JSON Schema](references/pipeline-state.schema.json) — machine-readable JSON Schema for validation
 - [Resume Decision Tree](references/resume-decision-tree.md) — logic for resuming, picking phases, or restarting
 
 ## Scripts

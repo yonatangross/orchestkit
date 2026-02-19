@@ -1,0 +1,214 @@
+---
+title: "Validate Counts"
+description: "Validates hook, skill, and agent counts are consistent across CLAUDE.md, hooks.json, manifests, and source directories. Use when counts may be stale after adding or removing components, before releases, or when CLAUDE.md Project Overview looks wrong."
+---
+
+<span className="badge badge-blue">Command</span> <span className="badge badge-green">low</span>
+
+
+# Validate Counts
+
+Checks that hook, skill, and agent counts are consistent across all authoritative sources in OrchestKit. Outputs a comparison table and flags drift with precise file references.
+
+## Quick Start
+
+```bash
+# Full validation: counts src/ vs CLAUDE.md and manifests (run from repo root)
+bash src/skills/validate-counts/scripts/validate-counts.sh
+
+# Just get raw counts from src/
+bash src/skills/validate-counts/scripts/count-all.sh
+```
+
+## Rules
+
+| Category | Rule | Impact | Key Pattern |
+|----------|------|--------|-------------|
+| Count Sources | `rules/sources-authoritative.md` | HIGH | Filesystem is authoritative; derived sources must match |
+| Drift Detection | `rules/drift-reporting.md` | HIGH | Comparison table + flag with file:field references |
+
+**Total: 2 rules across 2 categories**
+
+## Workflow
+
+1. Run `scripts/validate-counts.sh` for full validation (counts + drift comparison), or `scripts/count-all.sh` for raw counts only
+2. Read `CLAUDE.md` — extract counts from Project Overview and Version section
+3. Read `manifests/ork.json` and `manifests/orkl.json` — check skill/agent/hook array lengths
+4. Build the comparison table (see `rules/drift-reporting.md` for format)
+5. Flag any mismatches with file + field references; otherwise output "All counts consistent."
+
+## References
+
+- [Count Locations](references/count-locations.md) — Where every count lives and why drift happens
+
+## Common Mistakes
+
+1. Counting from `plugins/` instead of `src/` — plugins/ may be empty after an interrupted build
+2. Flagging `orkl` vs `ork` skill differences as drift — `orkl` intentionally excludes some skills
+3. Forgetting the hook breakdown: global + agent-scoped + skill-scoped must sum to total
+
+
+---
+
+## Rules (2)
+
+### Drift Detection and Reporting — HIGH
+
+
+## Drift Detection and Reporting
+
+After counting all sources, compare them and report using a structured table. Flag every mismatch with a specific file and field reference.
+
+### Comparison Table Format
+
+Output one table row per source. Use MATCH or DRIFT in the Status column.
+
+```
+| Source                        | Skills | Agents | Hooks | Status |
+|-------------------------------|--------|--------|-------|--------|
+| src/skills/ (actual)          | 63     | —      | —     | —      |
+| src/agents/ (actual)          | —      | 37     | —     | —      |
+| src/hooks/hooks.json (actual) | —      | —      | 87    | —      |
+| CLAUDE.md Project Overview    | 63     | 37     | 87    | MATCH  |
+| CLAUDE.md Version section     | —      | —      | 85    | DRIFT  |
+| manifests/ork.json            | 63     | 36     | 87    | MATCH  |
+| manifests/orkl.json           | 46     | 36     | 87    | —      |
+```
+
+### Flagging Drift
+
+For each DRIFT row, output a specific fix instruction:
+
+```
+DRIFT: CLAUDE.md Version section says "85 entries" but hooks.json has 87.
+  Fix: Update src/hooks/README.md line ~5 and CLAUDE.md Version section to "87 entries"
+```
+
+Include:
+1. Which file has the wrong value
+2. What the correct value is
+3. Approximate line number or field name where the stale count appears
+
+### Known Legitimate Differences
+
+These are NOT drift — do not flag them:
+
+| Difference | Reason |
+|------------|--------|
+| `orkl` skills &lt; `ork` skills | `orkl` excludes Python/React/LLM/creative skills by design |
+| `manifests/ork-creative.json` skills &lt; `ork` | creative plugin is an add-on with its own subset |
+| Agent count in manifests = actual - 1 | Some agents may be internal-only and excluded from manifest |
+
+### Key Rules
+
+- If all counts match, output "All counts consistent." and stop
+- Always show the full table even when there is no drift — it confirms what was checked
+- Reference file + field, not just file, when flagging drift (e.g., "CLAUDE.md line 7, Project Overview")
+
+
+### Authoritative Count Sources — HIGH
+
+
+## Authoritative Count Sources
+
+Each count has exactly one authoritative source (the filesystem/JSON) and multiple derived sources (docs/manifests) that must stay in sync.
+
+### Hooks
+
+**Authoritative**: `src/hooks/hooks.json` — count entries in the top-level `hooks` array.
+
+```bash
+# Count hook entries
+jq '.hooks | length' src/hooks/hooks.json
+```
+
+Derived sources to check against:
+- `CLAUDE.md` Project Overview line: "N hooks (X global + Y agent-scoped + Z skill-scoped)"
+- `CLAUDE.md` Version section: "N entries (X global + Y agent-scoped + Z skill-scoped, ...)"
+- `src/hooks/hooks.json` top-level `description` field (may embed count)
+- `manifests/ork.json` and `manifests/orkl.json` — hook count in metadata
+
+### Skills
+
+**Authoritative**: `src/skills/` — count subdirectories (each directory = one skill).
+
+```bash
+# Count skill directories
+ls -d src/skills/*/ | wc -l
+```
+
+Derived sources:
+- `CLAUDE.md` Project Overview: "N skills"
+- `manifests/ork.json` — skill list length
+- `manifests/orkl.json` — skill list length (legitimately lower — excludes Python/React/LLM skills)
+
+### Agents
+
+**Authoritative**: `src/agents/` — count `.md` files.
+
+```bash
+# Count agent files
+ls src/agents/*.md | wc -l
+```
+
+Derived sources:
+- `CLAUDE.md` Project Overview: "N agents"
+- `manifests/ork.json` — agent list length
+- `manifests/orkl.json` — agent list length
+
+### Key Rules
+
+- Never count `plugins/` — it's generated from `src/` and may be stale if build was interrupted
+- `orkl` skill/agent counts WILL differ from `ork` — this is expected, not drift
+- Hook breakdown (global + agent-scoped + skill-scoped) must sum to the total count
+
+
+
+---
+
+## References (1)
+
+### Count Locations
+
+# Count Locations in OrchestKit
+
+Overview of every place counts appear and what they represent.
+
+## Where Counts Live
+
+### Source of Truth (filesystem)
+
+| What | Path | How to Count |
+|------|------|-------------|
+| Skills | `src/skills/*/` | Subdirectory count |
+| Agents | `src/agents/*.md` | `.md` file count |
+| Hooks | `src/hooks/hooks.json` → `.hooks[]` | Array length |
+
+### Derived Counts (must stay in sync)
+
+| File | Field | Example |
+|------|-------|---------|
+| `CLAUDE.md` | Project Overview line | "63 skills, 37 agents, 87 hooks" |
+| `CLAUDE.md` | Version section | "85 entries (63 global + 22 agent-scoped...)" |
+| `src/hooks/hooks.json` | top-level `description` | May embed hook count |
+| `manifests/ork.json` | `skills[]` length, `agents[]` length | Counted from arrays |
+| `manifests/orkl.json` | `skills[]` length, `agents[]` length | Subset of ork |
+
+## Why Counts Drift
+
+Counts in documentation and manifests must be updated manually after adding or removing components. Common drift scenarios:
+
+1. **Added a skill** — `src/skills/` count increases, but `CLAUDE.md` and manifests may not be updated until `npm run build` is run and CLAUDE.md is manually edited.
+2. **Added a hook** — `hooks.json` entry count increases, but the `description` field and CLAUDE.md still show the old count.
+3. **Interrupted build** — `plugins/` is emptied at build start; if build fails mid-run, plugins are gone but src counts are fine.
+
+## Hook Breakdown
+
+CLAUDE.md tracks hooks with a breakdown: `N hooks (X global + Y agent-scoped + Z skill-scoped)`.
+
+- **Global**: hooks that run on all Claude Code sessions
+- **Agent-scoped**: hooks only active during named agent sessions
+- **Skill-scoped**: hooks only active when a specific skill is running
+
+The three numbers must sum to the total. The authoritative breakdown comes from `src/hooks/hooks.json` — each entry has a `scope` field or equivalent.
+
