@@ -69,13 +69,13 @@ Before any Write or Edit operation:
 3. If unlocked → Acquire lock and proceed
 
 ### Heartbeat (Lifecycle Hook)
-Every 30 seconds:
+Every 30 seconds (requires CC 2.1.47+ for reliable execution in worktrees):
 1. Update this instance's heartbeat timestamp
 2. Clean up stale instances (no heartbeat > 5 min)
 3. Release orphaned locks
 
 ### Cleanup (Stop Hook)
-When Claude Code exits:
+When Claude Code exits (requires CC 2.1.47+ for reliable execution in worktrees):
 1. Release all file locks held by this instance
 2. Unregister from coordination registry
 
@@ -162,8 +162,9 @@ cc-worktree-sync [--check-conflicts] [--pull-decisions]
 
 ### "Instance not registered"
 The heartbeat hook will auto-register on first tool use. If issues persist:
-1. Check `.claude-local/instance-id.txt` exists
-2. Verify `.claude/coordination/` is symlinked correctly
+1. Confirm you are running CC 2.1.47+ (background tasks in worktrees required this fix)
+2. Check `.claude-local/instance-id.txt` exists
+3. Verify `.claude/coordination/` is symlinked correctly
 
 ## Platform Support (CC 2.1.47+)
 
