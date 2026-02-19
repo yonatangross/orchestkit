@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
         with:
           fetch-depth: 0
 
@@ -39,8 +39,10 @@ jobs:
 
       - name: Extract changelog notes
         id: changelog
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          TAG: ${{ steps.version.outputs.tag }}
         run: |
-          VERSION="${{ steps.version.outputs.version }}"
           CHANGELOG_FILE="CHANGELOG.md"
 
           # Extract section between ## [version] and next ## [
@@ -57,7 +59,8 @@ jobs:
           BODY=$(echo "$BODY" | sed -e '/./,$!d' -e :a -e '/^\n*$/{$d;N;ba;}')
 
           if [ -z "$BODY" ]; then
-            BODY="Release ${{ steps.version.outputs.tag }}"
+            echo "::warning::No changelog entry found for $VERSION, using fallback"
+            BODY="Release $TAG"
           fi
 
           # Write to file for multiline support

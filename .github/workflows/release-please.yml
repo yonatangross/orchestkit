@@ -56,7 +56,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
         with:
           ref: main
 
@@ -79,6 +79,12 @@ jobs:
             fi
           done
 
+          # Update pyproject.toml
+          if [ -f "pyproject.toml" ]; then
+            sed -i "s/^version = \"[0-9]\+\.[0-9]\+\.[0-9]\+\"/version = \"$VERSION\"/" pyproject.toml
+            echo "Updated pyproject.toml"
+          fi
+
           # Update CLAUDE.md version line
           if [ -f "CLAUDE.md" ]; then
             sed -i "s/- \*\*Current\*\*: [0-9]\+\.[0-9]\+\.[0-9]\+/- **Current**: $VERSION/" CLAUDE.md
@@ -92,7 +98,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           # SEC-002: Only stage known files, not git add -A
-          git add manifests/ork.json manifests/orkl.json manifests/ork-creative.json CLAUDE.md
+          git add manifests/ork.json manifests/orkl.json manifests/ork-creative.json pyproject.toml CLAUDE.md
           if git diff --cached --quiet; then
             echo "No version sync changes needed"
           else
