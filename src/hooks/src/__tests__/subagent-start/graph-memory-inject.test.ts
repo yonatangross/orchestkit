@@ -180,17 +180,17 @@ describe('graphMemoryInject', () => {
   // Fallback: type field
   // -----------------------------------------------------------------------
 
-  describe('agent type detection via type field', () => {
-    test('falls back to type field when subagent_type is absent', () => {
+  describe('agent type detection via type field (removed in CC 2.1.47)', () => {
+    test('no longer falls back to type field — returns silent success', () => {
       const input = makeInput({
         tool_input: { type: 'workflow-architect' },
       });
 
       const result = graphMemoryInject(input);
 
+      // CC 2.1.47: removed legacy toolInput.type fallback and prompt-scan
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput).toBeDefined();
-      expect(result.hookSpecificOutput!.additionalContext).toContain('workflow-architect');
+      expect(result.suppressOutput).toBe(true);
     });
   });
 
@@ -198,8 +198,8 @@ describe('graphMemoryInject', () => {
   // Fallback: prompt extraction
   // -----------------------------------------------------------------------
 
-  describe('agent type detection via prompt fallback', () => {
-    test('extracts agent type from prompt when subagent_type and type are missing', () => {
+  describe('agent type detection via prompt fallback (removed in CC 2.1.47)', () => {
+    test('no longer extracts agent type from prompt — returns silent success', () => {
       const input = makeInput({
         tool_input: {
           prompt: 'I need the database-engineer to review the schema',
@@ -208,9 +208,9 @@ describe('graphMemoryInject', () => {
 
       const result = graphMemoryInject(input);
 
+      // CC 2.1.47: subagent_type is reliably set, prompt-scan removed
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput).toBeDefined();
-      expect(result.hookSpecificOutput!.additionalContext).toContain('database-engineer');
+      expect(result.suppressOutput).toBe(true);
     });
 
     test('returns silent success when prompt does not contain known agent', () => {

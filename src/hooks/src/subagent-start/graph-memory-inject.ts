@@ -66,20 +66,8 @@ export function graphMemoryInject(input: HookInput): HookResult {
 
   // Extract agent type from hook input
   const toolInput = input.tool_input || {};
-  let agentType =
-    (toolInput.subagent_type as string) || (toolInput.type as string) || '';
-
-  // Fallback: try to extract from prompt
-  if (!agentType && toolInput.prompt) {
-    const prompt = (toolInput.prompt as string).toLowerCase();
-    const knownAgents = Object.keys(AGENT_DOMAINS);
-    for (const agent of knownAgents) {
-      if (prompt.includes(agent)) {
-        agentType = agent;
-        break;
-      }
-    }
-  }
+  // CC 2.1.47: subagent_type is reliably set in SubagentStart events
+  const agentType = (toolInput.subagent_type as string) || '';
 
   if (!agentType) {
     logHook('graph-memory-inject', 'No agent type detected, passing through');

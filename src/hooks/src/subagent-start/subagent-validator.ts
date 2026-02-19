@@ -13,7 +13,7 @@ import { existsSync, readFileSync, mkdirSync, readdirSync } from 'node:fs';
 import { bufferWrite } from '../lib/analytics-buffer.js';
 import { join, dirname } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, outputWithContext, logHook, getProjectDir, getSessionId } from '../lib/common.js';
+import { outputSilentSuccess, outputWithContext, logHook, getProjectDir } from '../lib/common.js';
 
 // -----------------------------------------------------------------------------
 // Configuration
@@ -289,7 +289,7 @@ export function subagentValidator(input: HookInput): HookResult {
   const toolInput = input.tool_input || {};
   const subagentType = (toolInput.subagent_type as string) || '';
   const description = (toolInput.description as string) || '';
-  const sessionId = input.session_id || getSessionId();
+  const sessionId = input.session_id; // CC 2.1.9+ guarantees session_id
 
   logHook('subagent-validator', `Task invocation: ${subagentType} - ${description}`);
 
