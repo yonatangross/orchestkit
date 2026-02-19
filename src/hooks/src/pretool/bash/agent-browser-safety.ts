@@ -360,7 +360,7 @@ function isAllowedByRobots(url: string): { allowed: boolean; reason?: string } {
       if (disallowed.includes('*')) {
         // Escape regex special chars first, then convert escaped glob wildcards (\*) back to .*
         const escaped = disallowed.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\\\*/g, '.*');
-        const regex = new RegExp('^' + escaped);
+        const regex = new RegExp(`^${escaped}`);
         if (regex.test(path)) {
           return {
             allowed: false,

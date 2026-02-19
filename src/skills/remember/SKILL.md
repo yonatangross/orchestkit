@@ -1,7 +1,7 @@
 ---
 name: remember
 license: MIT
-compatibility: "Claude Code 2.1.34+. Requires memory MCP server."
+compatibility: "Claude Code 2.1.47+. Requires memory MCP server."
 description: "Stores decisions and patterns in knowledge graph. Use when saving patterns, remembering outcomes, or recording decisions."
 argument-hint: "[decision-or-pattern]"
 context: none
@@ -42,15 +42,15 @@ The remember skill uses **knowledge graph** as storage:
 
 ### Store Decisions (Default)
 ```
-/remember <text>
-/remember --category <category> <text>
-/remember --success <text>     # Mark as successful pattern
-/remember --failed <text>      # Mark as anti-pattern
-/remember --success --category <category> <text>
+/ork:remember <text>
+/ork:remember --category <category> <text>
+/ork:remember --success <text>     # Mark as successful pattern
+/ork:remember --failed <text>      # Mark as anti-pattern
+/ork:remember --success --category <category> <text>
 
 # Agent-scoped memory
-/remember --agent <agent-id> <text>         # Store in agent-specific scope
-/remember --global <text>                   # Store as cross-project best practice
+/ork:remember --agent <agent-id> <text>         # Store in agent-specific scope
+/ork:remember --global <text>                   # Store as cross-project best practice
 ```
 
 ## Flags
@@ -283,7 +283,7 @@ When updating `.claude/memory/MEMORY.md` or project memory files:
 ---
 
 ## Related Skills
-- `memory` - Search, load, sync, visualize (read-side operations)
+- `ork:memory` - Search, load, sync, visualize (read-side operations)
 
 ## Error Handling
 

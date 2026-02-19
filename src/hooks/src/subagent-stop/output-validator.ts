@@ -9,7 +9,7 @@
 
 import { writeFileSync, mkdirSync } from 'node:fs';
 import type { HookInput, HookResult } from '../types.js';
-import { logHook, getProjectDir } from '../lib/common.js';
+import { getProjectDir } from '../lib/common.js';
 
 // -----------------------------------------------------------------------------
 // Path Helpers
@@ -73,15 +73,19 @@ export function outputValidator(input: HookInput): HookResult {
   // Build validation result
   const validationStatus = validationErrors.length > 0 ? 'failed' : 'passed';
 
+  // CC 2.1.47: last_assistant_message length as response quality signal
+  const lastMsgLength = input.last_assistant_message?.length ?? null;
+
   // Create system message
-  let systemMessage = `Output Validation [${validationStatus}] - Agent: ${agentName}, Timestamp: ${timestamp}, Output length: ${outputLength} chars`;
+  let systemMessage = `Output Validation [${validationStatus}] - Agent: ${agentName}, Timestamp: ${timestamp}, Output length: ${outputLength} chars`
+    + (lastMsgLength !== null ? `, Response length: ${lastMsgLength} chars` : '');
 
   if (validationErrors.length > 0) {
-    systemMessage += ' | Errors: ' + validationErrors.join('; ');
+    systemMessage += ` | Errors: ${validationErrors.join('; ')}`;
   }
 
   if (validationWarnings.length > 0) {
-    systemMessage += ' | Warnings: ' + validationWarnings.join('; ');
+    systemMessage += ` | Warnings: ${validationWarnings.join('; ')}`;
   }
 
   // Log to file
@@ -91,7 +95,7 @@ export function outputValidator(input: HookInput): HookResult {
 
   const logContent = `=== OUTPUT VALIDATION ===
 ${systemMessage}
-
+${lastMsgLength !== null ? `Response quality signal: last_assistant_message length = ${lastMsgLength}\n` : ''}
 === AGENT OUTPUT ===
 ${output}
 `;

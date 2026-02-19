@@ -1,7 +1,7 @@
 ---
 name: i18n-date-patterns
 license: MIT
-compatibility: "Claude Code 2.1.34+."
+compatibility: "Claude Code 2.1.47+."
 description: Implements internationalization (i18n) in React applications. Covers user-facing strings, date/time handling, locale-aware formatting, ICU MessageFormat, and RTL support. Use when building multilingual UIs or formatting dates/currency.
 context: fork
 agent: frontend-ui-developer
@@ -211,10 +211,10 @@ See `checklists/i18n-checklist.md` for complete implementation and review checkl
 
 ## Related Skills
 
-- `testing-patterns` - Comprehensive testing patterns including accessibility testing for i18n
+- `ork:testing-patterns` - Comprehensive testing patterns including accessibility testing for i18n
 - `type-safety-validation` - Zod schemas for validating translation key structures and locale configs
-- `react-server-components-framework` - Server-side locale detection and RSC i18n patterns
-- `accessibility` - RTL-aware focus management for bidirectional UI navigation
+- `ork:react-server-components-framework` - Server-side locale detection and RSC i18n patterns
+- `ork:accessibility` - RTL-aware focus management for bidirectional UI navigation
 
 ## Key Decisions
 

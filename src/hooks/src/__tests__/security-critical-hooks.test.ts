@@ -852,7 +852,7 @@ describe('gitValidator', () => {
 
     test('warns on long commit title', () => {
       process.env.ORCHESTKIT_BRANCH = 'feature/test';
-      const longTitle = 'feat: ' + 'a'.repeat(70); // 76 chars total, over 72
+      const longTitle = `feat: ${'a'.repeat(70)}`; // 76 chars total, over 72
       const result = gitValidator(createBashInput(`git commit -m "${longTitle}"`));
       expect(result.continue).toBe(true);
       // Should contain advisory about length

@@ -9,7 +9,7 @@
 
 import { writeFileSync, mkdirSync } from 'node:fs';
 import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, logHook, getProjectDir } from '../lib/common.js';
+import { outputSilentSuccess, getProjectDir } from '../lib/common.js';
 
 // -----------------------------------------------------------------------------
 // Configuration

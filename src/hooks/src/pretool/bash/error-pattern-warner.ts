@@ -118,11 +118,11 @@ export function errorPatternWarner(input: HookInput): HookResult {
 
   // CC 2.1.9: Inject additionalContext if we have pattern hints
   if (hints.length > 0) {
-    let contextMsg = 'Learned error patterns | ' + hints.join(' | ');
+    let contextMsg = `Learned error patterns | ${hints.join(' | ')}`;
 
     // Truncate if too long (keep under 200 chars for context budget)
     if (contextMsg.length > 200) {
-      contextMsg = contextMsg.slice(0, 197) + '...';
+      contextMsg = `${contextMsg.slice(0, 197)}...`;
     }
 
     return outputWithContext(contextMsg);

@@ -8,6 +8,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, getProjectDir, getSessionId, outputSilentSuccess, outputWithContext } from '../lib/common.js';
 import { getOrphanedTasks, formatTaskDeleteForClaude } from '../lib/task-integration.js';
+import { getActiveTodosFile } from '../lib/paths.js';
 
 interface TodoItem {
   status: string;
@@ -53,8 +54,8 @@ export function taskCompletionCheck(input: HookInput): HookResult {
     }
   }
 
-  // Legacy fallback: check /tmp/claude-active-todos.json
-  const todosFile = '/tmp/claude-active-todos.json';
+  // Legacy fallback: check platform-appropriate temp dir
+  const todosFile = getActiveTodosFile();
   if (existsSync(todosFile)) {
     try {
       const todos: TodoItem[] = JSON.parse(readFileSync(todosFile, 'utf-8'));

@@ -214,7 +214,7 @@ describe('evidence-collector', () => {
     test.each([
       ['pytest.xml', '/test/project/pytest.xml'],
       ['junit.xml', '/test/project/junit.xml'],
-    ])('detects %s test results', (name, filePath) => {
+    ])('detects %s test results', (_name, filePath) => {
       // Arrange
       const input = createInput();
       vi.mocked(existsSync).mockImplementation((path) => path === filePath);
@@ -276,7 +276,7 @@ describe('evidence-collector', () => {
     test.each([
       ['.coverage', '/test/project/.coverage'],
       ['coverage', '/test/project/coverage'],
-    ])('detects %s coverage data', (name, filePath) => {
+    ])('detects %s coverage data', (_name, filePath) => {
       // Arrange
       const input = createInput();
       vi.mocked(existsSync).mockImplementation((path) => path === filePath);
@@ -311,7 +311,7 @@ describe('evidence-collector', () => {
     test.each([
       ['lint-results.json', '/test/project/lint-results.json'],
       ['eslint-report.json', '/test/project/eslint-report.json'],
-    ])('detects %s lint results', (name, filePath) => {
+    ])('detects %s lint results', (_name, filePath) => {
       // Arrange
       const input = createInput();
       vi.mocked(existsSync).mockImplementation((path) => path === filePath);

@@ -4,7 +4,7 @@
  * CC 2.1.9 compliant with additionalContext injection
  */
 
-import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, test, expect, } from 'vitest';
 import type { HookInput } from '../../types.js';
 import { skillAutoSuggest } from '../../prompt/skill-auto-suggest.js';
 
@@ -389,7 +389,7 @@ describe('prompt/skill-auto-suggest', () => {
     });
 
     test('handles very long prompts', () => {
-      const longPrompt = 'Design an API ' + 'a'.repeat(5000);
+      const longPrompt = `Design an API ${'a'.repeat(5000)}`;
       const input = createPromptInput(longPrompt);
       const result = skillAutoSuggest(input);
 

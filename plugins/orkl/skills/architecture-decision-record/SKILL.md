@@ -1,7 +1,7 @@
 ---
 name: architecture-decision-record
 license: MIT
-compatibility: "Claude Code 2.1.34+."
+compatibility: "Claude Code 2.1.47+."
 description: Use this skill when documenting significant architectural decisions. Provides ADR templates following the Nygard format with sections for context, decision, consequences, and alternatives. Use when writing ADRs, recording decisions, or evaluating options.
 version: 2.0.0
 author: AI Agent Hub
@@ -189,8 +189,8 @@ Keep ADRs in version control alongside code:
 
 ## Related Skills
 
-- **api-design**: Use when designing APIs referenced in ADRs
-- **database-patterns**: Use when ADR involves database choices
+- **`ork:api-design`**: Use when designing APIs referenced in ADRs
+- **`ork:database-patterns`**: Use when ADR involves database choices
 - **security-checklist**: Consult when ADR has security implications
 
 ---

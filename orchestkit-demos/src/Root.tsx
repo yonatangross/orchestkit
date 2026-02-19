@@ -124,6 +124,11 @@ import {
   releaseNotesV602Config,
   releaseNotesV602SquareConfig,
 } from "./components/configs/release-notes-v602";
+import {
+  TerminalFlow,
+  terminalFlowSchema,
+} from "./components/terminal-flow";
+import { verifyTerminalFlowConfig } from "./components/configs/verify-terminal-flow";
 
 const FPS = 30;
 const WIDTH = 1920;
@@ -229,6 +234,9 @@ export const RemotionRoot: React.FC = () => {
             </Folder>
             <Folder name="ReleaseNotes">
               <Composition id="RN-v602" component={ReleaseNotes} durationInFrames={FPS * 14} fps={FPS} width={WIDTH} height={HEIGHT} schema={releaseNotesSchema} defaultProps={releaseNotesV602Config} />
+            </Folder>
+            <Folder name="TerminalFlow">
+              <Composition id="TF-Verify" component={TerminalFlow} durationInFrames={FPS * 20} fps={FPS} width={WIDTH} height={HEIGHT} schema={terminalFlowSchema} defaultProps={verifyTerminalFlowConfig} />
             </Folder>
           </Folder>
         </Folder>

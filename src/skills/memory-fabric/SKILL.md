@@ -1,7 +1,7 @@
 ---
 name: memory-fabric
 license: MIT
-compatibility: "Claude Code 2.1.34+. Requires memory MCP server."
+compatibility: "Claude Code 2.1.47+. Requires memory MCP server."
 description: Knowledge graph memory orchestration - entity extraction, query parsing, deduplication, and cross-reference boosting. Use when designing memory orchestration.
 context: inherit
 version: 2.1.0
@@ -257,8 +257,8 @@ MEMORY_FABRIC_MAX_RESULTS=20          # Max results per source
 
 ## Related Skills
 
-- `memory` - User-facing memory operations (search, load, sync, viz)
-- `remember` - User-facing memory storage
+- `ork:memory` - User-facing memory operations (search, load, sync, viz)
+- `ork:remember` - User-facing memory storage
 - `caching` - Caching layer that can use fabric
 
 ## Key Decisions

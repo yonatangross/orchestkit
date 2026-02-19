@@ -57,7 +57,7 @@ function stripQuotes(cmd: string): string {
  *
  * Does NOT split inside quotes (simplified: quotes are already stripped).
  */
-function splitCompound(cmd: string): string[] {
+function _splitCompound(cmd: string): string[] {
   // Split on &&, ||, ;, |, or newlines
   // Order matters: && and || before single & and |
   return cmd.split(/\s*(?:&&|\|\||\||;|\n)\s*/);

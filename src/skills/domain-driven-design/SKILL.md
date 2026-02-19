@@ -1,7 +1,7 @@
 ---
 name: domain-driven-design
 license: MIT
-compatibility: "Claude Code 2.1.34+."
+compatibility: "Claude Code 2.1.47+."
 description: Domain-Driven Design tactical patterns for complex business domains. Use when modeling entities, value objects, domain services, repositories, or establishing bounded contexts.
 context: fork
 agent: backend-system-architect
@@ -149,8 +149,8 @@ async def get(self, id: UUID) -> OrderModel:  # WRONG - return domain!
 ## Related Skills
 
 - `aggregate-patterns` - Deep dive on aggregate design
-- `distributed-systems` - Cross-aggregate coordination
-- `database-patterns` - Schema design for DDD
+- `ork:distributed-systems` - Cross-aggregate coordination
+- `ork:database-patterns` - Schema design for DDD
 
 ## References
 

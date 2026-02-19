@@ -1,7 +1,7 @@
 ---
 name: fix-issue
 license: MIT
-compatibility: "Claude Code 2.1.34+. Requires memory MCP server, context7 MCP server, gh CLI."
+compatibility: "Claude Code 2.1.47+. Requires memory MCP server, context7 MCP server, gh CLI."
 description: "Fixes GitHub issues with parallel analysis. Use to debug errors, resolve regressions, fix bugs, or triage issues."
 argument-hint: "[issue-number]"
 context: fork
@@ -24,8 +24,8 @@ Systematic issue resolution with hypothesis-based root cause analysis, similar i
 ## Quick Start
 
 ```bash
-/fix-issue 123
-/fix-issue 456
+/ork:fix-issue 123
+/ork:fix-issue 456
 ```
 
 > **Opus 4.6**: Root cause analysis uses native adaptive thinking. Dynamic token budgets scale with context window for thorough investigation.
@@ -464,10 +464,10 @@ claude                              # Shows resume hint
 
 ## Related Skills
 
-- `commit` - Commit issue fixes
+- `ork:commit` - Commit issue fixes
 - `debug-investigator` - Debug complex issues
-- `issue-progress-tracking` - Auto-updates from commits
-- `remember` - Store lessons learned
+- `ork:issue-progress-tracking` - Auto-updates from commits
+- `ork:remember` - Store lessons learned
 
 ---
 

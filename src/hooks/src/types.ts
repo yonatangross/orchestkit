@@ -93,6 +93,14 @@ export interface HookInput {
   message?: string;
   /** Notification type */
   notification_type?: string;
+
+  // Stop/SubagentStop specific fields (CC 2.1.47)
+  /** The final assistant message text (Stop and SubagentStop, CC 2.1.47+) */
+  last_assistant_message?: string;
+
+  // Workspace/statusline fields (CC 2.1.47)
+  /** Directories added via /add-dir, from statusline workspace section (CC 2.1.47+) */
+  added_dirs?: string[];
 }
 
 /**

@@ -1,7 +1,7 @@
 ---
 name: vite-advanced
 license: MIT
-compatibility: "Claude Code 2.1.34+."
+compatibility: "Claude Code 2.1.47+."
 author: OrchestKit
 description: Advanced Vite 7+ patterns including Environment API, plugin development, SSR configuration, library mode, and build optimization. Use when customizing build pipelines, creating plugins, or configuring multi-environment builds.
 context: fork
@@ -323,7 +323,7 @@ export default defineConfig({
 ## Related Skills
 
 - `biome-linting` - Fast linting alongside Vite
-- `react-server-components-framework` - SSR integration
+- `ork:react-server-components-framework` - SSR integration
 - `edge-computing-patterns` - Edge environment builds
 
 ## References

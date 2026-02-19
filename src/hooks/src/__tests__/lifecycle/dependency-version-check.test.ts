@@ -30,8 +30,8 @@ vi.mock('../../lib/common.js', async (importOriginal) => {
 // Test Setup
 // =============================================================================
 
-const TEST_PROJECT_DIR = join(tmpdir(), 'dependency-version-check-test-' + Date.now());
-const TEST_SESSION_ID = 'test-session-dep-' + Date.now();
+const TEST_PROJECT_DIR = join(tmpdir(), `dependency-version-check-test-${Date.now()}`);
+const TEST_SESSION_ID = `test-session-dep-${Date.now()}`;
 
 /**
  * Store original environment values

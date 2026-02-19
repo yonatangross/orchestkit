@@ -1,7 +1,7 @@
 ---
 name: responsive-patterns
 license: MIT
-compatibility: "Claude Code 2.1.34+."
+compatibility: "Claude Code 2.1.47+."
 description: Responsive design with Container Queries, fluid typography, cqi/cqb units, and mobile-first patterns for React applications. Use when building responsive layouts or container queries.
 tags: [responsive, container-queries, fluid-typography, mobile-first, css-grid, clamp, cqi, breakpoints, pwa, service-worker, workbox, offline-first, animation, motion, framer-motion, scroll-driven, view-transitions]
 context: fork
@@ -426,8 +426,8 @@ Each category has individual rule files in `rules/` loaded on-demand:
 ## Related Skills
 
 - `design-system-starter` - Building responsive design systems
-- `performance` - CLS, responsive images, and image optimization
-- `i18n-date-patterns` - RTL/LTR responsive considerations
+- `ork:performance` - CLS, responsive images, and image optimization
+- `ork:i18n-date-patterns` - RTL/LTR responsive considerations
 
 ## Capability Details
 

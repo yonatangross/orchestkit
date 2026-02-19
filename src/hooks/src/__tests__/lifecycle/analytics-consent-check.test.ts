@@ -5,7 +5,7 @@
  */
 
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
-import { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync } from 'node:fs';
+import { existsSync, writeFileSync, mkdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import type { HookInput } from '../../types.js';
@@ -29,8 +29,8 @@ vi.mock('../../lib/common.js', async (importOriginal) => {
 // Test Setup
 // =============================================================================
 
-const TEST_PROJECT_DIR = join(tmpdir(), 'analytics-consent-test-' + Date.now());
-const TEST_SESSION_ID = 'test-session-consent-' + Date.now();
+const TEST_PROJECT_DIR = join(tmpdir(), `analytics-consent-test-${Date.now()}`);
+const TEST_SESSION_ID = `test-session-consent-${Date.now()}`;
 
 /**
  * Create realistic HookInput for testing

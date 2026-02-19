@@ -1,7 +1,7 @@
 ---
 name: plan-viz
 license: MIT
-compatibility: "Claude Code 2.1.34+."
+compatibility: "Claude Code 2.1.47+."
 description: "Visualize planned changes before implementation. Use when reviewing plans, comparing before/after architecture, assessing risk, or analyzing execution order and impact."
 argument-hint: "[plan-or-issue]"
 context: fork
@@ -24,9 +24,9 @@ Render planned changes as structured ASCII visualizations with risk analysis, ex
 **Core principle:** Encode judgment into visualization, not decoration.
 
 ```bash
-/plan-viz                          # Auto-detect from current branch
-/plan-viz billing module redesign  # Describe the plan
-/plan-viz #234                     # Pull from GitHub issue
+/ork:plan-viz                          # Auto-detect from current branch
+/ork:plan-viz billing module redesign  # Describe the plan
+/ork:plan-viz #234                     # Pull from GitHub issue
 ```
 
 ---
@@ -374,6 +374,6 @@ Sequential Block C (verification):
 
 ## Related Skills
 
-- `implement` - Execute planned changes
-- `explore` - Understand current architecture
-- `assess` - Evaluate complexity and risks
+- `ork:implement` - Execute planned changes
+- `ork:explore` - Understand current architecture
+- `ork:assess` - Evaluate complexity and risks

@@ -1177,7 +1177,7 @@ describe('prompt/capture-user-intent', () => {
       const mockResult = createMockIntentResult();
       mockDetectUserIntent.mockReturnValue(mockResult);
 
-      const longPrompt = 'I decided to use PostgreSQL ' + 'a'.repeat(5000);
+      const longPrompt = `I decided to use PostgreSQL ${'a'.repeat(5000)}`;
       const input = createPromptInput(longPrompt);
       const result = captureUserIntent(input);
 

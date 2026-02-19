@@ -220,7 +220,7 @@ export function setupCheck(input: HookInput): HookResult {
       logHook('setup-check', 'Setup check passed (fast path)');
       return outputSilentSuccess();
 
-    case 1:
+    case 1: {
       // Validation failed - trigger repair in background
       logHook('setup-check', 'Validation failed - triggering self-healing repair');
       const repairScript = `${setupDir}/setup-repair.sh`;
@@ -232,8 +232,9 @@ export function setupCheck(input: HookInput): HookResult {
         child.unref();
       }
       return outputWithContext('OrchestKit setup validation failed. Repair running in background.');
+    }
 
-    case 2:
+    case 2: {
       // Version mismatch - run migration in background
       logHook('setup-check', 'Version mismatch - running migration');
       const maintenanceScript = `${setupDir}/setup-maintenance.sh`;
@@ -247,6 +248,7 @@ export function setupCheck(input: HookInput): HookResult {
 
       updateMarker(markerFile, 'version', CURRENT_VERSION);
       return outputWithContext(`OrchestKit upgraded to v${CURRENT_VERSION}.`);
+    }
 
     default:
       return outputSilentSuccess();

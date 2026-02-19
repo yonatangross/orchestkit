@@ -87,6 +87,9 @@ jobs:
       - name: Run lint checks
         run: bash tests/ci/lint.sh
 
+      - name: Biome lint
+        run: cd src/hooks && npx biome check src/
+
   # ============================================================================
   # STAGE 1b: Dependency Security Audit (BLOCKING)
   # ============================================================================

@@ -283,7 +283,7 @@ export function extractRationale(text: string, matchIndex: number): string | und
 
   for (const pattern of RATIONALE_PATTERNS) {
     const match = window.match(pattern);
-    if (match && match[1]) {
+    if (match?.[1]) {
       return match[1].trim().slice(0, 200); // Cap at 200 chars
     }
   }

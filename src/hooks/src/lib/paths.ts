@@ -73,6 +73,55 @@ export function getMetricsFile(): string {
 }
 
 /**
+ * Get the session error metrics file path (cross-platform)
+ */
+export function getSessionErrorsFile(): string {
+  return process.env.CLAUDE_SESSION_ERRORS_FILE || path.join(getTempDir(), 'claude-session-errors.json');
+}
+
+/**
+ * Get the error suggestions dedup file path for a session (cross-platform)
+ */
+export function getErrorSuggestionsDedupFile(sessionId: string): string {
+  return path.join(getTempDir(), `claude-error-suggestions-${sessionId}.json`);
+}
+
+/**
+ * Get the MCP defer state file path for a session (cross-platform)
+ */
+export function getMcpDeferStateFile(sessionId: string): string {
+  return path.join(getTempDir(), `claude-mcp-defer-state-${sessionId}.json`);
+}
+
+/**
+ * Get the session temp directory for a given session ID (cross-platform)
+ */
+export function getSessionTempDir(sessionId: string): string {
+  return path.join(getTempDir(), `claude-session-${sessionId}`);
+}
+
+/**
+ * Get the active todos file path (cross-platform)
+ */
+export function getActiveTodosFile(): string {
+  return path.join(getTempDir(), 'claude-active-todos.json');
+}
+
+/**
+ * Get the context tracking state file path for a session (cross-platform)
+ */
+export function getContextTrackingFile(sessionId: string): string {
+  return path.join(getTempDir(), `claude-context-tracking-${sessionId}.json`);
+}
+
+/**
+ * Get the read count temp file path (cross-platform)
+ */
+export function getReadCountFile(): string {
+  return path.join(getTempDir(), 'claude-read-count');
+}
+
+/**
  * Normalize a path for consistent comparison
  * Converts backslashes to forward slashes and removes trailing slashes
  */

@@ -103,8 +103,8 @@ function logEditPattern(
   };
 
   try {
-    mkdirSync(require('path').dirname(editPatternsFile), { recursive: true });
-    bufferWrite(editPatternsFile, JSON.stringify(entry) + '\n');
+    mkdirSync(require('node:path').dirname(editPatternsFile), { recursive: true });
+    bufferWrite(editPatternsFile, `${JSON.stringify(entry)}\n`);
   } catch {
     // Ignore write errors
   }

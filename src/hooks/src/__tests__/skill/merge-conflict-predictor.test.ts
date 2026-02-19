@@ -42,7 +42,7 @@ vi.mock('../../lib/git.js', () => ({
 }));
 
 import { mergeConflictPredictor } from '../../skill/merge-conflict-predictor.js';
-import { outputSilentSuccess, outputWithContext, getProjectDir } from '../../lib/common.js';
+import { outputSilentSuccess, outputWithContext, } from '../../lib/common.js';
 import { getRepoRoot, getCurrentBranch, getDefaultBranch } from '../../lib/git.js';
 import { existsSync, readFileSync } from 'node:fs';
 import { execSync } from 'node:child_process';
@@ -330,7 +330,7 @@ branch refs/heads/feature`;
       vi.mocked(readFileSync).mockReturnValue('line\n'.repeat(100)); // 50 lines different
 
       const worktreeOutput = 'worktree /test/project\nworktree /test/other-wt\n';
-      vi.mocked(execSync).mockImplementation((cmd, opts) => {
+      vi.mocked(execSync).mockImplementation((cmd, _opts) => {
         const command = cmd as string;
         if (command.includes('worktree list')) return worktreeOutput;
         if (command.includes('git status --short')) return ' M src/file.ts\n';
@@ -354,7 +354,7 @@ branch refs/heads/feature`;
       vi.mocked(readFileSync).mockReturnValue('line\n'.repeat(12)); // Only 2 lines different
 
       const worktreeOutput = 'worktree /test/project\nworktree /test/other-wt\n';
-      vi.mocked(execSync).mockImplementation((cmd, opts) => {
+      vi.mocked(execSync).mockImplementation((cmd, _opts) => {
         const command = cmd as string;
         if (command.includes('worktree list')) return worktreeOutput;
         if (command.includes('git status --short')) return ' M src/file.ts\n';
@@ -675,7 +675,7 @@ branch refs/heads/feature`;
       vi.mocked(execSync).mockImplementation((cmd) => {
         const command = cmd as string;
         if (command.includes('worktree list')) return worktreeOutput;
-        if (command.includes('git status --short')) return status + '\n';
+        if (command.includes('git status --short')) return `${status}\n`;
         if (command.includes('rev-parse --abbrev-ref HEAD')) return 'branch\n';
         return '';
       });

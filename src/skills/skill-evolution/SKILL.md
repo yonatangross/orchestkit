@@ -1,7 +1,7 @@
 ---
 name: skill-evolution
 license: MIT
-compatibility: "Claude Code 2.1.34+."
+compatibility: "Claude Code 2.1.47+."
 description: "Evolves skills based on usage patterns. Use when improving or rolling back skill definitions."
 argument-hint: "[subcommand] [skill-id]"
 context: inherit
@@ -337,6 +337,6 @@ Consider: /ork:skill-evolution rollback api-design-framework 1.1.0
 
 ## Related Skills
 
-- `configure` - Configure OrchestKit settings
-- `doctor` - Diagnose OrchestKit issues
+- `ork:configure` - Configure OrchestKit settings
+- `ork:doctor` - Diagnose OrchestKit issues
 - `feedback-dashboard` - View comprehensive feedback metrics

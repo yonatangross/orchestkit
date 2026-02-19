@@ -78,6 +78,17 @@ export function sessionContextLoader(input: HookInput): HookResult {
     }
   }
 
+  // CC 2.1.47: Scan added directories for context files
+  if (input.added_dirs && input.added_dirs.length > 0) {
+    for (const dir of input.added_dirs) {
+      const addedDirState = `${dir}/.claude/context/session/state.json`;
+      if (isValidJsonFile(addedDirState)) {
+        logHook('session-context-loader', `Additional context from added dir: ${dir}`);
+        contextLoaded++;
+      }
+    }
+  }
+
   // CC 2.1.20: Load compaction manifest from previous session
   const compactionManifest = `${projectDir}/.claude/context/session/compaction-manifest.json`;
   if (isValidJsonFile(compactionManifest)) {

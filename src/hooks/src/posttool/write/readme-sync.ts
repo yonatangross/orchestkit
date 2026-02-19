@@ -119,7 +119,7 @@ function analyzeFileChange(filePath: string, projectDir: string): ChangeAnalysis
     const fullPath = `${projectDir}/${filePath}`;
     if (existsSync(fullPath)) {
       try {
-        const { readFileSync } = require('fs');
+        const { readFileSync } = require('node:fs');
         const content = readFileSync(fullPath, 'utf8');
         const exportCount = (content.match(/^export/gm) || []).length;
         if (exportCount > 5) {

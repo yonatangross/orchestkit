@@ -1,7 +1,7 @@
 ---
 name: memory
 license: MIT
-compatibility: "Claude Code 2.1.34+. Requires memory MCP server."
+compatibility: "Claude Code 2.1.47+. Requires memory MCP server."
 description: "Read-side memory operations: search, recall, load, sync, history, visualize. Use when searching past decisions, loading session context, or viewing the knowledge graph."
 argument-hint: "[subcommand] [query]"
 context: fork
@@ -230,7 +230,7 @@ Format output appropriate to the operation.
 
 ## Related Skills
 
-- `remember` - Store decisions and patterns (write-side)
+- `ork:remember` - Store decisions and patterns (write-side)
 
 ---
 

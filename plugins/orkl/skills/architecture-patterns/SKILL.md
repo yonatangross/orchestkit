@@ -1,7 +1,7 @@
 ---
 name: architecture-patterns
 license: MIT
-compatibility: "Claude Code 2.1.34+."
+compatibility: "Claude Code 2.1.47+."
 description: Architecture validation and patterns for clean architecture, backend structure enforcement, project structure validation, test standards, and context-aware sizing. Use when designing system boundaries, enforcing layered architecture, validating project structure, defining test standards, or choosing the right architecture tier for project scope.
 tags: [architecture, clean-architecture, validation, structure, enforcement, testing-standards, right-sizing, over-engineering, context-aware]
 skills: [scope-appropriate-architecture]
@@ -226,10 +226,10 @@ class UserService:
 
 ## Related Skills
 
-- `scope-appropriate-architecture` - Project tier detection that drives right-sizing enforcement
-- `quality-gates` - YAGNI gate uses tier context to validate complexity
-- `distributed-systems` - Distributed locking, resilience, idempotency patterns
-- `api-design` - REST API design, versioning, error handling
-- `testing-patterns` - Comprehensive testing patterns and strategies
-- `python-backend` - FastAPI, SQLAlchemy, asyncio patterns
-- `database-patterns` - Schema design, query optimization, migrations
+- `ork:scope-appropriate-architecture` - Project tier detection that drives right-sizing enforcement
+- `ork:quality-gates` - YAGNI gate uses tier context to validate complexity
+- `ork:distributed-systems` - Distributed locking, resilience, idempotency patterns
+- `ork:api-design` - REST API design, versioning, error handling
+- `ork:testing-patterns` - Comprehensive testing patterns and strategies
+- `ork:python-backend` - FastAPI, SQLAlchemy, asyncio patterns
+- `ork:database-patterns` - Schema design, query optimization, migrations

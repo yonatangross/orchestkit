@@ -287,13 +287,16 @@ export function sessionCleanup(input: HookInput): HookResult {
       : `Warning: partial cleanup for team "${teamName}"`);
   }
 
-  // Cross-project session summary (Issue #459, #707)
+  // Cross-project session summary (Issue #459, #707, #727)
   const totalTools = getTotalTools();
   if (totalTools > 0) {
+    const lastMsgLen = input.last_assistant_message?.length ?? null;
     appendAnalytics('session-summary.jsonl', {
       ts: new Date().toISOString(),
       pid: hashProject(projectDir),
       total_tools: totalTools,
+      added_dirs_count: (input.added_dirs ?? []).length,
+      ...(lastMsgLen !== null && { last_msg_len: lastMsgLen }),
       ...getTeamContext(),
     });
   }

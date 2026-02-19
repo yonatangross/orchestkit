@@ -1,7 +1,7 @@
 ---
 name: create-pr
 license: MIT
-compatibility: "Claude Code 2.1.34+. Requires memory MCP server, gh CLI."
+compatibility: "Claude Code 2.1.47+. Requires memory MCP server, gh CLI."
 description: "Creates GitHub pull requests with validation. Use when opening PRs or submitting code for review."
 argument-hint: "[title]"
 context: fork
@@ -25,7 +25,7 @@ Comprehensive PR creation with validation. All output goes directly to GitHub PR
 ## Quick Start
 
 ```bash
-/create-pr
+/ork:create-pr
 ```
 
 ---
@@ -268,8 +268,8 @@ Only use Task agents for:
 - Architecture review for large refactors
 
 ## Related Skills
-- commit: Create commits before PRs
-- review-pr: Review PRs after creation
+- `ork:commit`: Create commits before PRs
+- `ork:review-pr`: Review PRs after creation
 ## References
 
 - [PR Template](assets/pr-template.md)

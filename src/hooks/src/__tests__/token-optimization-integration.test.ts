@@ -31,7 +31,7 @@ import {
 // =============================================================================
 
 const TEST_PROJECT_DIR = join(tmpdir(), 'token-optimization-integration-test');
-const TEST_SESSION_ID = 'token-opt-test-' + Date.now();
+const TEST_SESSION_ID = `token-opt-test-${Date.now()}`;
 
 beforeEach(() => {
   process.env.CLAUDE_PROJECT_DIR = TEST_PROJECT_DIR;

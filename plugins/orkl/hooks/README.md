@@ -506,6 +506,8 @@ Add `async: true` and `timeout` to hook definitions in `hooks.json`:
 - `decision-sync-pull` - Pull decision history
 - `dependency-version-check` - Check for outdated deps
 
+> **CC 2.1.47 Deferral**: SessionStart hooks fire ~500ms after session init. Async hooks are unaffected (fire-and-forget). Sync hooks still run before the first user prompt. Do not assume env vars set by async SessionStart hooks are available at first `UserPromptSubmit`.
+
 **PostToolUse Analytics (7 hooks)** - Non-blocking metrics:
 - `session-metrics` - Track tool usage
 - `audit-logger` - Log all operations

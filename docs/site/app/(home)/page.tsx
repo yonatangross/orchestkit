@@ -187,7 +187,7 @@ export default function HomePage() {
             Every command skill comes with a demo composition.
           </p>
           <div className="mt-6 flex gap-3 overflow-x-auto pb-4">
-            {COMPOSITIONS.filter(c => c.format === "landscape").slice(0, 6).map((comp) => (
+            {COMPOSITIONS.filter(c => c.format === "landscape" && c.videoCdn).slice(0, 6).map((comp) => (
               <Link
                 key={comp.id}
                 href="/docs/reference"

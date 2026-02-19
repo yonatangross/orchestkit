@@ -1,7 +1,7 @@
 ---
 name: agent-orchestration
 license: MIT
-compatibility: "Claude Code 2.1.34+."
+compatibility: "Claude Code 2.1.47+."
 description: Agent orchestration patterns for agentic loops, multi-agent coordination, alternative frameworks, and multi-scenario workflows. Use when building autonomous agent loops, coordinating multiple agents, evaluating CrewAI/AutoGen/Swarm, or orchestrating complex multi-step scenarios.
 tags: [agents, orchestration, multi-agent, agent-loops, crewai, autogen, swarm, coordination]
 context: fork
@@ -102,9 +102,9 @@ Orchestrate a single skill across 3 parallel scenarios (simple/medium/complex) w
 
 ## Related Skills
 
-- `langgraph` - LangGraph workflow patterns (supervisor, routing, state)
+- `ork:langgraph` - LangGraph workflow patterns (supervisor, routing, state)
 - `function-calling` - Tool definitions and execution
-- `task-dependency-patterns` - Task management with Agent Teams workflow
+- `ork:task-dependency-patterns` - Task management with Agent Teams workflow
 
 ## Capability Details
 

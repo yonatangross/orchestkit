@@ -1,7 +1,7 @@
 ---
 name: langgraph
 license: MIT
-compatibility: "Claude Code 2.1.34+."
+compatibility: "Claude Code 2.1.47+."
 description: LangGraph workflow patterns for state management, routing, parallel execution, supervisor-worker, tool calling, checkpointing, human-in-loop, streaming, subgraphs, and functional API. Use when building LangGraph pipelines, multi-agent systems, or AI workflows.
 tags: [langgraph, workflow, state, routing, parallel, supervisor, tools, checkpoints, streaming, subgraphs, functional]
 context: fork
@@ -216,7 +216,7 @@ See `test-cases.json` for consolidated test cases across all categories.
 
 ## Related Skills
 
-- `agent-orchestration` - Higher-level multi-agent coordination, ReAct loop patterns, and framework comparisons
+- `ork:agent-orchestration` - Higher-level multi-agent coordination, ReAct loop patterns, and framework comparisons
 - `temporal-io` - Durable execution alternative
-- `llm-integration` - General LLM function calling
+- `ork:llm-integration` - General LLM function calling
 - `type-safety-validation` - Pydantic model patterns

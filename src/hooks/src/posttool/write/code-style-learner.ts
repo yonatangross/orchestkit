@@ -71,7 +71,7 @@ function detectIndentation(content: string): { style: string; size: number } {
       tabCount++;
     } else if (line.startsWith('    ')) {
       space4Count++;
-    } else if (line.match(/^  [^ ]/)) {
+    } else if (line.match(/^ {2}[^ ]/)) {
       space2Count++;
     }
   }
@@ -113,7 +113,7 @@ function detectSemicolonStyle(content: string): string {
 
     if (/;\s*$/.test(line)) {
       withSemi++;
-    } else if (/[a-zA-Z0-9\)\]\'\"]\\s*$/.test(line)) {
+    } else if (/[a-zA-Z0-9)\]'"]\\s*$/.test(line)) {
       withoutSemi++;
     }
   }

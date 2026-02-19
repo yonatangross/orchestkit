@@ -318,6 +318,31 @@ export const SKILLS: Record<string, SkillMeta> = {
       "test-generator"
     ]
   },
+  "ascii-visualizer": {
+    "name": "ascii-visualizer",
+    "description": "ASCII diagram patterns for architecture, workflows, file trees, and data visualizations. Use when creating terminal-rendered diagrams, box-drawing layouts, progress bars, swimlanes, or blast radius visualizations.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "ascii",
+      "diagrams",
+      "visualization",
+      "box-drawing",
+      "architecture",
+      "terminal"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "structure": {},
+    "plugins": [
+      "ork",
+      "orkl"
+    ],
+    "relatedAgents": []
+  },
   "assess": {
     "name": "assess",
     "description": "Assesses and rates quality 0-10 with pros/cons analysis. Use when evaluating code, designs, or approaches.",
@@ -473,6 +498,36 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": []
   },
+  "audit-skills": {
+    "name": "audit-skills",
+    "description": "Audits all OrchestKit skills for quality, completeness, and compliance with authoring standards. Use when checking skill health, before releases, or after bulk skill edits to surface SKILL.md files that are too long, have missing frontmatter, lack rules/references, or are unregistered in manifests.",
+    "version": "2.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "audit",
+      "quality",
+      "skills",
+      "orchestkit"
+    ],
+    "userInvocable": true,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "structure": {
+      "references": [
+        "edge-cases.md",
+        "output-format.md"
+      ],
+      "scripts": [
+        "run-audit.sh"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
   "brainstorming": {
     "name": "brainstorming",
     "description": "Design exploration with parallel agents. Use when brainstorming ideas, exploring solutions, or comparing alternatives.",
@@ -569,6 +624,38 @@ export const SKILLS: Record<string, SkillMeta> = {
       "test-generator",
       "web-research-analyst"
     ]
+  },
+  "checkpoint-resume": {
+    "name": "checkpoint-resume",
+    "description": "Rate-limit-resilient pipeline with checkpoint/resume for long multi-phase sessions. Saves progress to .claude/pipeline-state.json after each phase. Use when starting a complex multi-phase task that risks hitting rate limits, when resuming an interrupted session, or when orchestrating work spanning commits, GitHub issues, and large file changes.",
+    "version": "2.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "resilience",
+      "checkpoint",
+      "pipeline",
+      "orchestkit"
+    ],
+    "userInvocable": true,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "structure": {
+      "references": [
+        "pipeline-state-schema.md",
+        "pipeline-state.schema.json",
+        "resume-decision-tree.md"
+      ],
+      "scripts": [
+        "init-pipeline.sh",
+        "show-status.sh"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
   },
   "code-review-playbook": {
     "name": "code-review-playbook",
@@ -993,7 +1080,8 @@ export const SKILLS: Record<string, SkillMeta> = {
         "memory-health.md",
         "permission-rules.md",
         "schema-validation.md",
-        "skills-validation.md"
+        "skills-validation.md",
+        "version-compatibility.md"
       ],
       "scripts": [
         "check-plugin-health.sh"
@@ -1394,7 +1482,11 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": null,
-    "structure": {},
+    "structure": {
+      "references": [
+        "cc-keyboard-shortcuts.md"
+      ]
+    },
     "plugins": [
       "ork",
       "orkl"
@@ -2313,6 +2405,34 @@ export const SKILLS: Record<string, SkillMeta> = {
       "frontend-ui-developer"
     ]
   },
+  "release-checklist": {
+    "name": "release-checklist",
+    "description": "Walks through the OrchestKit release checklist — build, test, validate counts, changelog, version bump, commit, tag, push. Use when preparing a release, cutting a version tag, or verifying release readiness before pushing to main.",
+    "version": "2.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "release",
+      "checklist",
+      "orchestkit"
+    ],
+    "userInvocable": true,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "structure": {
+      "references": [
+        "release-flow.md"
+      ],
+      "scripts": [
+        "pre-push-confirm.sh"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
   "release-management": {
     "name": "release-management",
     "description": "GitHub release workflow with semantic versioning, changelogs, and release automation using gh CLI. Use when creating releases, tagging versions, or publishing changelogs.",
@@ -2913,6 +3033,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "agent": null,
     "structure": {
       "references": [
+        "cc-2.1.47-upgrade-guide.md",
         "output-format.md",
         "recommendation-format.md",
         "scoring-rubric.md"
@@ -2921,6 +3042,35 @@ export const SKILLS: Record<string, SkillMeta> = {
     "plugins": [
       "ork",
       "orkl"
+    ],
+    "relatedAgents": []
+  },
+  "validate-counts": {
+    "name": "validate-counts",
+    "description": "Validates hook, skill, and agent counts are consistent across CLAUDE.md, hooks.json, manifests, and source directories. Use when counts may be stale after adding or removing components, before releases, or when CLAUDE.md Project Overview looks wrong.",
+    "version": "2.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "validation",
+      "consistency",
+      "orchestkit"
+    ],
+    "userInvocable": true,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "structure": {
+      "references": [
+        "count-locations.md"
+      ],
+      "scripts": [
+        "count-all.sh",
+        "validate-counts.sh"
+      ]
+    },
+    "plugins": [
+      "ork"
     ],
     "relatedAgents": []
   },

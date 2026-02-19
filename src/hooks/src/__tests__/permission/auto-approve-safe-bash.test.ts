@@ -247,7 +247,7 @@ describe('auto-approve-safe-bash', () => {
     });
 
     test('handles very long command', () => {
-      const longCommand = 'ls ' + 'a'.repeat(10000);
+      const longCommand = `ls ${'a'.repeat(10000)}`;
       const input = createBashInput(longCommand);
       const result = autoApproveSafeBash(input);
 
@@ -296,7 +296,7 @@ describe('auto-approve-safe-bash', () => {
     });
 
     test('approves echo with complex arguments', () => {
-      const input = createBashInput('echo "test $VAR ${ANOTHER:-default}"');
+      const input = createBashInput(`echo "test $VAR \${ANOTHER:-default}"`);
       const result = autoApproveSafeBash(input);
 
       expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');

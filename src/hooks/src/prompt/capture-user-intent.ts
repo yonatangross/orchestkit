@@ -111,7 +111,7 @@ function appendToJsonl(filePath: string, record: unknown): boolean {
       mkdirSync(dir, { recursive: true });
     }
 
-    const line = JSON.stringify(record) + '\n';
+    const line = `${JSON.stringify(record)}\n`;
     bufferWrite(filePath, line);
     return true;
   } catch (err) {

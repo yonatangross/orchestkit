@@ -4,10 +4,10 @@
  * CC 2.1.9 compliant with additionalContext injection
  */
 
-import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, test, expect, beforeEach, afterEach, } from 'vitest';
 import type { HookInput } from '../../types.js';
 import { antipatternWarning } from '../../prompt/antipattern-warning.js';
-import { existsSync, readFileSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 
@@ -392,7 +392,7 @@ describe('prompt/antipattern-warning', () => {
     });
 
     test('handles very long prompts', () => {
-      const longPrompt = 'Implement offset pagination ' + 'x'.repeat(5000);
+      const longPrompt = `Implement offset pagination ${'x'.repeat(5000)}`;
       const input = createPromptInput(longPrompt);
       const result = antipatternWarning(input);
 

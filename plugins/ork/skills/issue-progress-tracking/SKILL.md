@@ -1,7 +1,7 @@
 ---
 name: issue-progress-tracking
 license: MIT
-compatibility: "Claude Code 2.1.34+."
+compatibility: "Claude Code 2.1.47+."
 description: "Auto-updates GitHub issues with commit progress. Use when starting work on an issue, tracking progress during implementation, or completing work with a PR."
 context: inherit
 version: 1.0.0
@@ -21,7 +21,7 @@ Ceremony guide for tracking GitHub issue progress via `gh` CLI. Ensures issues s
 ## Quick Start
 
 ```bash
-/issue-progress-tracking 123
+/ork:issue-progress-tracking 123
 ```
 
 ---
@@ -140,7 +140,7 @@ gh issue edit $ARGUMENTS --add-label "status:in-review" --remove-label "status:i
 
 ## Related Skills
 
-- `commit` — Commit with conventional format
-- `fix-issue` — Full issue resolution workflow
-- `implement` — Feature implementation with parallel agents
-- `create-pr` — Create pull requests
+- `ork:commit` — Commit with conventional format
+- `ork:fix-issue` — Full issue resolution workflow
+- `ork:implement` — Feature implementation with parallel agents
+- `ork:create-pr` — Create pull requests

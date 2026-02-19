@@ -20,7 +20,7 @@ export function autoRememberContinuity(input: HookInput): HookResult {
   const projectDir = input.project_dir || getProjectDir();
   const projectId = basename(projectDir) || 'project';
 
-  const promptMsg = `Before ending this session, consider preserving important context in the knowledge graph:
+  const _promptMsg = `Before ending this session, consider preserving important context in the knowledge graph:
 
 1. **Session Continuity** - If there's unfinished work or next steps:
    \`mcp__memory__create_entities\` with:

@@ -26,7 +26,7 @@ vi.mock('../../lib/common.js', () => ({
 
 import { contextCompressor } from '../../stop/context-compressor.js';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { logHook, outputSilentSuccess, getProjectDir } from '../../lib/common.js';
+import { logHook, } from '../../lib/common.js';
 import type { HookInput } from '../../types.js';
 
 describe('Context Compressor Hook', () => {

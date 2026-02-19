@@ -7,11 +7,21 @@
  */
 
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
-import type { HookInput, HookResult } from '../../types.js';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import type { HookInput, } from '../../types.js';
+
+const METRICS_FILE = join(tmpdir(), 'claude-session-metrics.json');
 
 // =============================================================================
 // Mocks - MUST be defined BEFORE imports
 // =============================================================================
+
+vi.mock('node:os', () => ({
+  tmpdir: vi.fn(() => '/tmp'),
+  homedir: vi.fn(() => '/home/test'),
+  default: { tmpdir: () => '/tmp', homedir: () => '/home/test' },
+}));
 
 vi.mock('node:fs', () => ({
   existsSync: vi.fn(() => false),
@@ -159,7 +169,7 @@ describe('subagent-quality-gate', () => {
       });
 
       // Act
-      const result = subagentQualityGate(input);
+      const _result = subagentQualityGate(input);
 
       // Assert
       expect(outputSilentSuccess).toHaveBeenCalled();
@@ -172,7 +182,7 @@ describe('subagent-quality-gate', () => {
       });
 
       // Act
-      const result = subagentQualityGate(input);
+      const _result = subagentQualityGate(input);
 
       // Assert
       expect(outputSilentSuccess).toHaveBeenCalled();
@@ -185,7 +195,7 @@ describe('subagent-quality-gate', () => {
       });
 
       // Act
-      const result = subagentQualityGate(input);
+      const _result = subagentQualityGate(input);
 
       // Assert
       expect(outputSilentSuccess).toHaveBeenCalled();
@@ -271,7 +281,7 @@ describe('subagent-quality-gate', () => {
 
       // Assert
       expect(writeFileSync).toHaveBeenCalledWith(
-        '/tmp/claude-session-metrics.json',
+        METRICS_FILE,
         expect.stringContaining('"errors": 6')
       );
     });
@@ -289,7 +299,7 @@ describe('subagent-quality-gate', () => {
 
       // Assert
       expect(writeFileSync).toHaveBeenCalledWith(
-        '/tmp/claude-session-metrics.json',
+        METRICS_FILE,
         expect.stringContaining('"errors": 1')
       );
     });
@@ -571,7 +581,7 @@ describe('subagent-quality-gate', () => {
   // ---------------------------------------------------------------------------
 
   describe('metrics file path', () => {
-    test('uses /tmp/claude-session-metrics.json path', () => {
+    test('uses platform-appropriate metrics file path', () => {
       // Arrange
       vi.mocked(existsSync).mockReturnValue(true);
       vi.mocked(readFileSync).mockReturnValue(JSON.stringify({ errors: 0 }));
@@ -583,7 +593,7 @@ describe('subagent-quality-gate', () => {
       subagentQualityGate(input);
 
       // Assert
-      expect(existsSync).toHaveBeenCalledWith('/tmp/claude-session-metrics.json');
+      expect(existsSync).toHaveBeenCalledWith(METRICS_FILE);
     });
   });
 

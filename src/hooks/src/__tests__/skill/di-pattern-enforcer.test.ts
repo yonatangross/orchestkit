@@ -219,7 +219,7 @@ ${code}
       const input = createFileInput('/app/routers/users.py', content);
 
       // Act
-      const result = diPatternEnforcer(input);
+      const _result = diPatternEnforcer(input);
 
       // Assert
       expect(outputWithContext).toHaveBeenCalledWith(
@@ -270,7 +270,7 @@ ${code}
       const input = createFileInput('/app/routers/users.py', content);
 
       // Act
-      const result = diPatternEnforcer(input);
+      const _result = diPatternEnforcer(input);
 
       // Assert
       expect(outputWithContext).toHaveBeenCalled();
@@ -302,7 +302,7 @@ async def root():
       const input = createFileInput('/app/routers/users.py', content);
 
       // Act
-      const result = diPatternEnforcer(input);
+      const _result = diPatternEnforcer(input);
 
       // Assert
       expect(outputWithContext).toHaveBeenCalled();
@@ -349,7 +349,7 @@ async def get_users(db: AsyncSession):
       const input = createFileInput('/app/routers/users.py', content);
 
       // Act
-      const result = diPatternEnforcer(input);
+      const _result = diPatternEnforcer(input);
 
       // Assert
       expect(outputWithContext).toHaveBeenCalled();
@@ -389,7 +389,7 @@ def get_users(db: Session):
       const input = createFileInput('/app/routers/users.py', content);
 
       // Act
-      const result = diPatternEnforcer(input);
+      const _result = diPatternEnforcer(input);
 
       // Assert
       expect(outputWithContext).toHaveBeenCalled();
@@ -415,7 +415,7 @@ async def get_users(user_service: UserService):
       const input = createFileInput('/app/routers/users.py', content);
 
       // Act
-      const result = diPatternEnforcer(input);
+      const _result = diPatternEnforcer(input);
 
       // Assert
       expect(outputWithContext).toHaveBeenCalled();
@@ -435,7 +435,7 @@ async def create_user(user_repo: UserRepository):
       const input = createFileInput('/app/routers/users.py', content);
 
       // Act
-      const result = diPatternEnforcer(input);
+      const _result = diPatternEnforcer(input);
 
       // Assert
       expect(outputWithContext).toHaveBeenCalled();
@@ -482,7 +482,7 @@ async def get_users(db: AsyncSession = Depends(get_db)):
       const input = createFileInput('/app/routers/users.py', content);
 
       // Act
-      const result = diPatternEnforcer(input);
+      const _result = diPatternEnforcer(input);
 
       // Assert
       expect(outputWithContext).toHaveBeenCalled();
@@ -527,7 +527,7 @@ async def create_user(db: AsyncSession = Depends(get_db)):
       const input = createFileInput('/app/routers/users.py', content);
 
       // Act
-      const result = diPatternEnforcer(input);
+      const _result = diPatternEnforcer(input);
 
       // Assert
       expect(outputWithContext).toHaveBeenCalled();
@@ -596,7 +596,7 @@ async def create_user(db: AsyncSession = Depends(get_db)):
       } as any;
 
       // Act
-      const result = diPatternEnforcer(input);
+      const _result = diPatternEnforcer(input);
 
       // Assert
       expect(outputWithContext).toHaveBeenCalled();
@@ -733,7 +733,7 @@ async def handler(user_service: UserService):
       const input = createFileInput('/app/routers/users.py', content);
 
       // Act
-      const result = diPatternEnforcer(input);
+      const _result = diPatternEnforcer(input);
 
       // Assert
       expect(outputWithContext).toHaveBeenCalled();
@@ -751,7 +751,7 @@ async def handler(user_service: UserService):
       const input = createFileInput('/backend/app/routers/v2/users.py', content);
 
       // Act
-      const result = diPatternEnforcer(input);
+      const _result = diPatternEnforcer(input);
 
       // Assert
       expect(outputWithContext).toHaveBeenCalled();

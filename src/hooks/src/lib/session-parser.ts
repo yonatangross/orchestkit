@@ -168,7 +168,7 @@ export function parseSession(sessionFilePath: string): ParsedSession | null {
         } else if ((entry.message as Record<string, string>)?.role === 'user') {
           acc.messageCount++;
         }
-      } catch { continue; }
+      } catch { }
     }
     return buildSummary(acc, sessionFilePath);
   } catch { return null; }

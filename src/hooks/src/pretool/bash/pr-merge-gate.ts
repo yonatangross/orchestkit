@@ -8,7 +8,6 @@ import type { HookInput, HookResult } from '../../types.js';
 import {
   outputSilentSuccess,
   outputAllowWithContext,
-  outputDeny,
   logHook,
   logPermissionFeedback,
   getProjectDir,

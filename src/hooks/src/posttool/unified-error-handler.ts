@@ -18,6 +18,7 @@ import { bufferWrite } from '../lib/analytics-buffer.js';
 import { createHash } from 'node:crypto';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, getProjectDir, getPluginRoot, getSessionId, getField, logHook } from '../lib/common.js';
+import { getSessionErrorsFile, getErrorSuggestionsDedupFile } from '../lib/paths.js';
 
 // =============================================================================
 // CONSTANTS
@@ -130,7 +131,7 @@ function rotateLogFile(logFile: string): void {
 function logError(input: HookInput, errorInfo: ErrorInfo): void {
   const projectDir = getProjectDir();
   const errorLog = `${projectDir}/.claude/logs/errors.jsonl`;
-  const metricsFile = '/tmp/claude-session-errors.json';
+  const metricsFile = getSessionErrorsFile();
 
   try {
     mkdirSync(`${projectDir}/.claude/logs`, { recursive: true });
@@ -149,7 +150,7 @@ function logError(input: HookInput, errorInfo: ErrorInfo): void {
       output_preview: errorInfo.errorText.substring(0, 1000),
     };
 
-    bufferWrite(errorLog, JSON.stringify(errorRecord) + '\n');
+    bufferWrite(errorLog, `${JSON.stringify(errorRecord)}\n`);
 
     // Update session metrics
     try {
@@ -202,7 +203,7 @@ function matchErrorPattern(errorText: string, solutionsFile: string): ErrorPatte
 function shouldSuggest(patternId: string, errorContext: string, dedupFile: string): boolean {
   if (!existsSync(dedupFile)) {
     try {
-      mkdirSync(require('path').dirname(dedupFile), { recursive: true });
+      mkdirSync(require('node:path').dirname(dedupFile), { recursive: true });
       writeFileSync(dedupFile, JSON.stringify({ suggestions: {}, prompt_count: 0 }));
     } catch {
       return true;
@@ -288,7 +289,7 @@ function buildSuggestionMessage(pattern: ErrorPattern, solutionsFile: string, sk
     msg += '\nUse `/ork:<skill-name>` or `Read skills/<skill-name>/SKILL.md`';
   }
 
-  return msg.length > MAX_CONTEXT_CHARS ? msg.substring(0, MAX_CONTEXT_CHARS - 20) + '...\n\n(truncated)' : msg;
+  return msg.length > MAX_CONTEXT_CHARS ? `${msg.substring(0, MAX_CONTEXT_CHARS - 20)}...\n\n(truncated)` : msg;
 }
 
 // =============================================================================
@@ -321,7 +322,7 @@ export function unifiedErrorHandler(input: HookInput): HookResult {
     const pluginRoot = getPluginRoot();
     const solutionsFile = `${pluginRoot}/.claude/rules/error_solutions.json`;
     const skillsDir = `${pluginRoot}/skills`;
-    const dedupFile = `/tmp/claude-error-suggestions-${getSessionId()}.json`;
+    const dedupFile = getErrorSuggestionsDedupFile(getSessionId());
 
     const matchedPattern = matchErrorPattern(errorInfo.errorText.substring(0, 2000), solutionsFile);
 

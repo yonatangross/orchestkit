@@ -1,7 +1,7 @@
 ---
 name: mcp-patterns
 license: MIT
-compatibility: "Claude Code 2.1.34+."
+compatibility: "Claude Code 2.1.47+."
 author: OrchestKit
 description: MCP server building, advanced patterns, and security hardening. Use when building MCP servers, implementing tool handlers, adding authentication, creating interactive UIs, hardening MCP security, or debugging MCP integrations.
 version: 3.0.0
@@ -155,6 +155,6 @@ async def search(query: str) -> str:
 
 ## Related Skills
 
-- `llm-integration` — LLM function calling patterns
-- `security-patterns` — General input sanitization and layered security
-- `api-design` — REST/GraphQL API design patterns
+- `ork:llm-integration` — LLM function calling patterns
+- `ork:security-patterns` — General input sanitization and layered security
+- `ork:api-design` — REST/GraphQL API design patterns

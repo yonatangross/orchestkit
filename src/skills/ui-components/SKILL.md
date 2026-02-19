@@ -1,7 +1,7 @@
 ---
 name: ui-components
 license: MIT
-compatibility: "Claude Code 2.1.34+."
+compatibility: "Claude Code 2.1.47+."
 description: UI component library patterns for shadcn/ui and Radix Primitives. Use when building accessible component libraries, customizing shadcn components, using Radix unstyled primitives, or creating design system foundations.
 tags: [ui-components, shadcn, radix, component-library, design-system, accessible-components, react-hook-form, zod, forms, validation, server-actions, field-arrays]
 context: fork
@@ -156,5 +156,5 @@ React Hook Form v7 with Zod validation and React 19 Server Actions.
 
 ## Related Skills
 
-- `accessibility` - WCAG compliance and React Aria patterns
-- `testing-patterns` - Component testing patterns
+- `ork:accessibility` - WCAG compliance and React Aria patterns
+- `ork:testing-patterns` - Component testing patterns

@@ -16,7 +16,7 @@ import { existsSync, writeFileSync, mkdirSync, readFileSync } from 'node:fs';
 import { bufferWrite } from '../lib/analytics-buffer.js';
 import { dirname } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, getProjectDir, getSessionId } from '../lib/common.js';
+import { outputSilentSuccess, getProjectDir } from '../lib/common.js';
 import { getTaskByAgent, updateTaskStatus, getActivePipeline } from '../lib/task-integration.js';
 import { PIPELINES } from '../lib/multi-agent-coordinator.js';
 import { isAgentTeamsActive } from '../lib/agent-teams.js';
@@ -134,7 +134,7 @@ function getFeedbackCategory(agent: string): string {
  * Get instance ID consistently
  */
 function getInstanceId(): string {
-  return process.env.CLAUDE_INSTANCE_ID || `${require('os').hostname()}-${process.pid}`;
+  return process.env.CLAUDE_INSTANCE_ID || `${require('node:os').hostname()}-${process.pid}`;
 }
 
 function extractFindingsSummary(output: string): string {
@@ -313,7 +313,7 @@ export function feedbackLoop(input: HookInput): HookResult {
     input.subagent_type ||
     input.agent_type ||
     'unknown';
-  const sessionId = input.session_id || getSessionId();
+  const sessionId = input.session_id; // CC 2.1.9+ guarantees session_id
   const agentOutput = input.agent_output || input.output || '';
   const error = input.error || '';
 

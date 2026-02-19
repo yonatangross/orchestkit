@@ -1,7 +1,7 @@
 ---
 name: devops-deployment
 license: MIT
-compatibility: "Claude Code 2.1.34+."
+compatibility: "Claude Code 2.1.47+."
 description: Use when setting up CI/CD pipelines, containerizing applications, deploying to Kubernetes, or writing infrastructure as code. DevOps & Deployment covers GitHub Actions, Docker, Helm, and Terraform patterns.
 tags: [devops, ci-cd, docker, kubernetes, terraform]
 context: fork
@@ -223,8 +223,8 @@ charts/app/
 
 - `zero-downtime-migration` - Database migration patterns for zero-downtime deployments
 - `security-scanning` - Security scanning integration for CI/CD pipelines
-- `monitoring-observability` - Monitoring and alerting for deployed applications
-- `database-patterns` - Python/Alembic migration workflow for backend deployments
+- `ork:monitoring-observability` - Monitoring and alerting for deployed applications
+- `ork:database-patterns` - Python/Alembic migration workflow for backend deployments
 
 ## Key Decisions
 

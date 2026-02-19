@@ -15,6 +15,7 @@ import type { HookInput, HookResult } from '../types.js';
 import { logHook, getProjectDir, outputSilentSuccess } from '../lib/common.js';
 import { loadSessionEvents } from '../lib/session-tracker.js';
 import { getToolCategory } from '../lib/tool-categories.js';
+import { getMetricsFile } from '../lib/paths.js';
 
 interface WorkflowProfile {
   version: string;
@@ -119,7 +120,7 @@ function detectWorkflowType(tools: string): string {
 /**
  * Detect dominant language from tool sequence (simplified)
  */
-function detectDominantLanguage(tools: string): string {
+function detectDominantLanguage(_tools: string): string {
   // In a real implementation, this would analyze file extensions from hook logs
   // For now, return 'unknown' as we don't have file access patterns in TS
   return 'unknown';
@@ -413,7 +414,7 @@ export function sessionPatterns(input: HookInput): HookResult {
   logHook('session-patterns', 'Session ending, processing patterns...');
 
   const projectDir = input.project_dir || getProjectDir();
-  const metricsFile = '/tmp/claude-session-metrics.json';
+  const metricsFile = getMetricsFile();
   const workflowProfile = `${projectDir}/.claude/feedback/workflow-patterns.json`;
 
   // Ensure directories exist

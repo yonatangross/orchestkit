@@ -1,7 +1,7 @@
 ---
 name: scope-appropriate-architecture
 license: MIT
-compatibility: "Claude Code 2.1.34+"
+compatibility: "Claude Code 2.1.47+"
 description: "Right-sizes architecture to project scope. Prevents over-engineering by classifying projects into 6 tiers and constraining pattern choices accordingly. Use when designing architecture, selecting patterns, or when brainstorming/implement detect a project tier."
 tags: [architecture, yagni, over-engineering, scope, patterns]
 version: 1.0.0
@@ -139,10 +139,10 @@ The detected tier is passed as context to constrain downstream decisions.
 
 ## Related Skills
 
-- `brainstorming` - Uses tier detection in Phase 0 to constrain ideas
-- `implement` - Uses tier detection in Step 0 to constrain architecture
-- `quality-gates` - YAGNI gate references this skill's tier matrix
-- `architecture-patterns` - Architecture validation (constrained by tier)
+- `ork:brainstorming` - Uses tier detection in Phase 0 to constrain ideas
+- `ork:implement` - Uses tier detection in Step 0 to constrain architecture
+- `ork:quality-gates` - YAGNI gate references this skill's tier matrix
+- `ork:architecture-patterns` - Architecture validation (constrained by tier)
 
 ---
 

@@ -4,7 +4,7 @@
  * CC 2.1.7 Compliant - Silent operation
  */
 
-import { existsSync, mkdirSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, } from 'node:fs';
 import { bufferWrite } from '../lib/analytics-buffer.js';
 import { execSync } from 'node:child_process';
 import type { HookInput, HookResult } from '../types.js';
@@ -74,7 +74,7 @@ export function coverageCheck(_input: HookInput): HookResult {
 
   // Write to log file
   try {
-    bufferWrite(logFile, logLines.join('\n') + '\n');
+    bufferWrite(logFile, `${logLines.join('\n')}\n`);
   } catch {
     // Ignore logging errors
   }

@@ -1,7 +1,7 @@
 ---
 name: accessibility
 license: MIT
-compatibility: "Claude Code 2.1.34+."
+compatibility: "Claude Code 2.1.47+."
 description: Accessibility patterns for WCAG 2.2 compliance, keyboard focus management, and React Aria component patterns. Use when implementing screen reader support, keyboard navigation, ARIA patterns, focus traps, or accessible component libraries.
 tags: [accessibility, a11y, wcag, focus-management, react-aria, keyboard-navigation, screen-reader, aria]
 context: fork
@@ -120,7 +120,7 @@ Adobe React Aria hooks for building WCAG-compliant interactive UI.
 
 ## Related Skills
 
-- `testing-patterns` - Comprehensive testing patterns including accessibility testing
+- `ork:testing-patterns` - Comprehensive testing patterns including accessibility testing
 - `design-system-starter` - Accessible component library patterns
-- `i18n-date-patterns` - RTL layout and locale-aware formatting
+- `ork:i18n-date-patterns` - RTL layout and locale-aware formatting
 - `motion-animation-patterns` - Reduced motion and animation accessibility

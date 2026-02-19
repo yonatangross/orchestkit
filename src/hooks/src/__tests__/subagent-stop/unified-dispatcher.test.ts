@@ -9,7 +9,7 @@
  */
 
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, } from '../../types.js';
 
 // =============================================================================
 // Mocks - MUST be defined BEFORE imports
@@ -24,6 +24,12 @@ vi.mock('../../lib/common.js', () => ({
 
 vi.mock('../../lib/session-tracker.js', () => ({
   trackEvent: vi.fn(),
+}));
+
+vi.mock('../../lib/analytics.js', () => ({
+  appendAnalytics: vi.fn(),
+  hashProject: vi.fn(() => 'abc123def456'),
+  getTeamContext: vi.fn(() => undefined),
 }));
 
 // Mock the individual hooks that the dispatcher calls
@@ -44,8 +50,9 @@ vi.mock('../../subagent-stop/agent-memory-store.js', () => ({
 }));
 
 import { unifiedSubagentStopDispatcher, registeredHookNames } from '../../subagent-stop/unified-dispatcher.js';
-import { outputSilentSuccess, logHook } from '../../lib/common.js';
+import { logHook } from '../../lib/common.js';
 import { trackEvent } from '../../lib/session-tracker.js';
+import { appendAnalytics } from '../../lib/analytics.js';
 import { contextPublisher } from '../../subagent-stop/context-publisher.js';
 import { handoffPreparer } from '../../subagent-stop/handoff-preparer.js';
 import { feedbackLoop } from '../../subagent-stop/feedback-loop.js';
@@ -403,6 +410,7 @@ describe('unified-subagent-stop-dispatcher', () => {
     test('uses unknown when no agent type available', async () => {
       // Arrange
       const input = createSubagentStopInput({
+        tool_input: {},
         subagent_type: undefined,
         agent_type: undefined,
       });
@@ -414,6 +422,25 @@ describe('unified-subagent-stop-dispatcher', () => {
       expect(trackEvent).toHaveBeenCalledWith(
         'agent_spawned',
         'unknown',
+        expect.any(Object)
+      );
+    });
+
+    test('prefers tool_input.subagent_type over top-level fields', async () => {
+      // Arrange — CC puts the real agent type in tool_input.subagent_type
+      const input = createSubagentStopInput({
+        tool_input: { subagent_type: 'ork:test-generator', name: 'tester' },
+        subagent_type: 'general-purpose',
+        agent_type: 'Task',
+      });
+
+      // Act
+      await unifiedSubagentStopDispatcher(input);
+
+      // Assert
+      expect(trackEvent).toHaveBeenCalledWith(
+        'agent_spawned',
+        'ork:test-generator',
         expect.any(Object)
       );
     });
@@ -600,9 +627,10 @@ describe('unified-subagent-stop-dispatcher', () => {
 
   describe('agent type resolution', () => {
     test.each([
-      ['subagent_type', { subagent_type: 'primary', agent_type: 'secondary' }, 'primary'],
-      ['agent_type fallback', { subagent_type: undefined, agent_type: 'fallback' }, 'fallback'],
-      ['unknown fallback', { subagent_type: undefined, agent_type: undefined }, 'unknown'],
+      ['tool_input.subagent_type (highest priority)', { tool_input: { subagent_type: 'ork:test-generator' }, subagent_type: 'general-purpose', agent_type: 'secondary' }, 'ork:test-generator'],
+      ['top-level subagent_type fallback', { tool_input: {}, subagent_type: 'primary', agent_type: 'secondary' }, 'primary'],
+      ['agent_type fallback', { tool_input: {}, subagent_type: undefined, agent_type: 'fallback' }, 'fallback'],
+      ['unknown fallback', { tool_input: {}, subagent_type: undefined, agent_type: undefined }, 'unknown'],
     ])('%s: tracks correct agent name', async (_description, overrides, expectedAgent) => {
       // Arrange
       const input = createSubagentStopInput(overrides);
@@ -615,6 +643,46 @@ describe('unified-subagent-stop-dispatcher', () => {
         'agent_spawned',
         expectedAgent,
         expect.any(Object)
+      );
+    });
+
+    test('extracts agent name from tool_input.name for team agents', async () => {
+      // Arrange — reset trackEvent in case prior test set it to throw
+      vi.mocked(trackEvent).mockReset();
+      const input = createSubagentStopInput({
+        tool_input: { subagent_type: 'Explore', name: 'researcher' },
+      });
+
+      // Act
+      await unifiedSubagentStopDispatcher(input);
+
+      // Assert
+      expect(appendAnalytics).toHaveBeenCalledWith(
+        'agent-usage.jsonl',
+        expect.objectContaining({
+          agent: 'Explore',
+          agent_name: 'researcher',
+        })
+      );
+    });
+
+    test('sets agent_name to null when tool_input.name is absent', async () => {
+      // Arrange — reset trackEvent in case prior test set it to throw
+      vi.mocked(trackEvent).mockReset();
+      const input = createSubagentStopInput({
+        tool_input: { subagent_type: 'general-purpose' },
+      });
+
+      // Act
+      await unifiedSubagentStopDispatcher(input);
+
+      // Assert
+      expect(appendAnalytics).toHaveBeenCalledWith(
+        'agent-usage.jsonl',
+        expect.objectContaining({
+          agent: 'general-purpose',
+          agent_name: null,
+        })
       );
     });
   });

@@ -226,7 +226,7 @@ describe('auto-spawn-quality', () => {
       ['cookie', 'Set cookie security flags'],
       ['encryption', 'Added encryption layer'],
       ['crypto', 'Used crypto for hashing'],
-    ])('detects sensitive pattern "%s" and queues security-auditor', (pattern, output) => {
+    ])('detects sensitive pattern "%s" and queues security-auditor', (_pattern, output) => {
       // Arrange
       const input = createSubagentStopInput('frontend-ui-developer', output);
 
@@ -307,7 +307,7 @@ describe('auto-spawn-quality', () => {
       ['access control', 'Configured access control for endpoints'],
       ['rbac', 'Implemented RBAC with 3 roles'],
       ['acl', 'Set up ACL for resource permissions'],
-    ])('detects "%s" pattern and queues security-layer-auditor', (pattern, output) => {
+    ])('detects "%s" pattern and queues security-layer-auditor', (_pattern, output) => {
       // Arrange
       const input = createSubagentStopInput('backend-system-architect', output);
 
@@ -323,7 +323,7 @@ describe('auto-spawn-quality', () => {
     test.each([
       ['authentication', 'Designed authentication flow using JWT'],
       ['authorization', 'Implemented authorization checks'],
-    ])('"%s" triggers security-auditor (Rule 2 priority - contains "auth")', (pattern, output) => {
+    ])('"%s" triggers security-auditor (Rule 2 priority - contains "auth")', (_pattern, output) => {
       // Arrange - these contain 'auth' which matches SENSITIVE_PATTERNS
       const input = createSubagentStopInput('backend-system-architect', output);
 

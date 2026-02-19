@@ -6,7 +6,7 @@
  * and environment files are protected from writes/edits.
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, } from 'vitest';
 import type { HookInput } from '../../types.js';
 import { fileGuard } from '../../pretool/write-edit/file-guard.js';
 

@@ -40,7 +40,7 @@ Next steps:
 
   // Write to log file (silent operation)
   try {
-    bufferWrite(logFile, logContent + '\n');
+    bufferWrite(logFile, `${logContent}\n`);
   } catch {
     // Ignore logging errors
   }

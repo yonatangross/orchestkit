@@ -7,7 +7,7 @@
  */
 
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, } from '../../types.js';
 
 // =============================================================================
 // Mocks - MUST be defined BEFORE imports
@@ -194,7 +194,7 @@ describe('retry-handler', () => {
       const input = createSubagentStopInput();
 
       // Act
-      const result = retryHandler(input);
+      const _result = retryHandler(input);
 
       // Assert
       expect(outputSilentSuccess).toHaveBeenCalled();
@@ -786,7 +786,7 @@ describe('retry-handler', () => {
     test('limits output check to first 500 chars', () => {
       // Arrange
       const input = createSubagentStopInput({
-        agent_output: 'A'.repeat(400) + 'I cannot do this' + 'B'.repeat(200),
+        agent_output: `${'A'.repeat(400)}I cannot do this${'B'.repeat(200)}`,
       });
 
       // Act
@@ -804,7 +804,7 @@ describe('retry-handler', () => {
     test('pattern after 500 chars is not detected', () => {
       // Arrange
       const input = createSubagentStopInput({
-        agent_output: 'A'.repeat(501) + 'I cannot do this',
+        agent_output: `${'A'.repeat(501)}I cannot do this`,
       });
 
       // Act

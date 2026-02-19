@@ -5,7 +5,7 @@
  * Security Focus: Validates protected branch enforcement and commit message validation
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, } from 'vitest';
 import type { HookInput } from '../../types.js';
 import { gitValidator } from '../../pretool/bash/git-validator.js';
 import { isProtectedBranch, validateBranchName, extractIssueNumber } from '../../lib/git.js';
@@ -284,7 +284,7 @@ describe('gitValidator hook', () => {
 
     it('warns about long commit title', () => {
       // Arrange - title > 72 chars
-      const longTitle = 'feat: ' + 'A'.repeat(80);
+      const longTitle = `feat: ${'A'.repeat(80)}`;
       const input = createBashInput(`git commit -m "${longTitle}"`);
 
       // Act

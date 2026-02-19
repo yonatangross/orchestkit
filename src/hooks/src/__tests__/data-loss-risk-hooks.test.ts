@@ -87,7 +87,7 @@ const mockExistsSync = existsSync as Mock;
 const mockReadFileSync = readFileSync as Mock;
 const mockWriteFileSync = writeFileSync as Mock;
 const mockMkdirSync = mkdirSync as Mock;
-const mockAppendFileSync = appendFileSync as Mock;
+const _mockAppendFileSync = appendFileSync as Mock;
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -745,7 +745,7 @@ describe('retryHandler', () => {
     test('only checks first 500 chars for rejection patterns', () => {
       const input = createHookInput({
         subagent_type: 'test-generator',
-        agent_output: 'A'.repeat(501) + 'I cannot do this',
+        agent_output: `${'A'.repeat(501)}I cannot do this`,
       });
 
       // Rejection pattern is beyond 500-char boundary, should not match

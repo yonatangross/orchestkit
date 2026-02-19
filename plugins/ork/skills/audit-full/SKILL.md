@@ -1,7 +1,7 @@
 ---
 name: audit-full
 license: MIT
-compatibility: "Claude Code 2.1.34+. Requires memory MCP server."
+compatibility: "Claude Code 2.1.47+. Requires memory MCP server."
 description: "Full-codebase audit using 1M context window. Security, architecture, and dependency analysis in a single pass. Use when you need whole-project analysis."
 argument-hint: "[scope]"
 context: fork
@@ -24,10 +24,10 @@ Single-pass whole-project analysis leveraging Opus 4.6's extended context window
 ## Quick Start
 
 ```bash
-/audit-full                          # Full audit (all modes)
-/audit-full security                 # Security-focused audit
-/audit-full architecture             # Architecture review
-/audit-full dependencies             # Dependency audit
+/ork:audit-full                          # Full audit (all modes)
+/ork:audit-full security                 # Security-focused audit
+/ork:audit-full architecture             # Architecture review
+/ork:audit-full dependencies             # Dependency audit
 ```
 
 > **Opus 4.6**: Uses `complexity: max` for extended thinking across entire codebases. 1M context (beta, Tier 4+) enables cross-file reasoning that chunked approaches miss.
@@ -296,10 +296,10 @@ Before finalizing the report, verify with `checklists/audit-completion.md`.
 ## Related Skills
 
 - `security-scanning` — Automated scanner integration (npm audit, Semgrep, etc.)
-- `security-patterns` — Security architecture patterns and OWASP vulnerability classification
-- `architecture-patterns` — Architectural pattern reference
-- `quality-gates` — Quality assessment criteria
-- `verify` — Chunked multi-agent verification (fallback for large codebases)
+- `ork:security-patterns` — Security architecture patterns and OWASP vulnerability classification
+- `ork:architecture-patterns` — Architectural pattern reference
+- `ork:quality-gates` — Quality assessment criteria
+- `ork:verify` — Chunked multi-agent verification (fallback for large codebases)
 
 ## References
 

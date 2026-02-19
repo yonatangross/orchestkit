@@ -66,7 +66,7 @@ function createInput(overrides: Partial<HookInput> = {}): HookInput {
 function makeMcpConfig(agentationConfig: Record<string, unknown> | null = {}): string {
   const servers: Record<string, unknown> = {};
   if (agentationConfig !== null) {
-    servers['agentation'] = {
+    servers.agentation = {
       command: 'npx',
       args: ['-y', 'agentation-mcp', 'server'],
       disabled: false,

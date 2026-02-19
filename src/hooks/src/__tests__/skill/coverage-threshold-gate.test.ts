@@ -36,7 +36,7 @@ vi.mock('../../lib/common.js', () => ({
 }));
 
 import { coverageThresholdGate } from '../../skill/coverage-threshold-gate.js';
-import { outputSilentSuccess, outputBlock, getProjectDir } from '../../lib/common.js';
+import { outputSilentSuccess, getProjectDir } from '../../lib/common.js';
 
 // =============================================================================
 // Test Utilities

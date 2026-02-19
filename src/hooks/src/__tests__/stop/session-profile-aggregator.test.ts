@@ -6,7 +6,7 @@
  * global sharing, decision filtering, and error handling.
  */
 
-import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest';
+import { describe, it, expect, beforeEach, vi, } from 'vitest';
 
 // Mock common utilities
 vi.mock('../../lib/common.js', () => ({
@@ -46,7 +46,7 @@ import type { HookInput } from '../../types.js';
 describe('Session Profile Aggregator Hook', () => {
   // Type-cast mocks for better TypeScript support
   const mockLogHook = vi.mocked(logHook);
-  const mockOutputSilentSuccess = vi.mocked(outputSilentSuccess);
+  const _mockOutputSilentSuccess = vi.mocked(outputSilentSuccess);
   const mockResolveUserIdentity = vi.mocked(resolveUserIdentity);
   const mockCanShare = vi.mocked(canShare);
   const mockGetPrivacySettings = vi.mocked(getPrivacySettings);
@@ -159,7 +159,7 @@ describe('Session Profile Aggregator Hook', () => {
   describe('Happy Path - Full Aggregation Flow', () => {
     it('should aggregate session with skills, agents, and decisions successfully', () => {
       // Arrange
-      const summary = { ...defaultSummary };
+      const _summary = { ...defaultSummary };
 
       // Act
       const result = sessionProfileAggregator(defaultInput);

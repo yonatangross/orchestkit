@@ -36,7 +36,7 @@ vi.mock('../../lib/orchestration-state.js', () => ({
   loadConfig: vi.fn(() => ({
     enableAutoDispatch: true,
     enableSkillInjection: true,
-    maxSkillInjectionTokens: 800,
+    maxSkillInjectionTokens: 1200,
     enableCalibration: true,
     enablePipelines: true,
     maxRetries: 3,
@@ -225,7 +225,7 @@ describe('prompt/pipeline-detector', () => {
 
     test('does not filter long prompts ending with ?', () => {
       // Arrange - > 100 chars with ?
-      const longPrompt = 'a'.repeat(90) + ' should we build a new feature for user management?';
+      const longPrompt = `${'a'.repeat(90)} should we build a new feature for user management?`;
       const input = createPromptInput(longPrompt);
 
       // Act
@@ -247,7 +247,7 @@ describe('prompt/pipeline-detector', () => {
       vi.mocked(loadConfig).mockReturnValueOnce({
         enableAutoDispatch: true,
         enableSkillInjection: true,
-        maxSkillInjectionTokens: 800,
+        maxSkillInjectionTokens: 1200,
         enableCalibration: true,
         enablePipelines: false,
         maxRetries: 3,
@@ -307,7 +307,7 @@ describe('prompt/pipeline-detector', () => {
       const input = createPromptInput('should we build a new feature for user management');
 
       // Act
-      const result = pipelineDetector(input);
+      const _result = pipelineDetector(input);
 
       // Assert
       expect(detectPipeline).toHaveBeenCalled();
@@ -544,7 +544,7 @@ describe('prompt/pipeline-detector', () => {
 
     test('handles very long prompts', () => {
       // Arrange
-      const longPrompt = 'should we build ' + 'a'.repeat(5000);
+      const longPrompt = `should we build ${'a'.repeat(5000)}`;
       const input = createPromptInput(longPrompt);
 
       // Act & Assert

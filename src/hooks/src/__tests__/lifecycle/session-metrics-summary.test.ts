@@ -12,6 +12,8 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import type { HookInput } from '../../types.js';
 
+const _METRICS_FILE = join(tmpdir(), 'claude-session-metrics.json');
+
 // =============================================================================
 // Mocks - MUST be before imports
 // =============================================================================
@@ -22,13 +24,13 @@ let mockFileExists = false;
 
 vi.mock('node:fs', () => ({
   existsSync: vi.fn((path: string) => {
-    if (path === '/tmp/claude-session-metrics.json') {
+    if (path === join(tmpdir(), 'claude-session-metrics.json')) {
       return mockFileExists;
     }
     return false;
   }),
   readFileSync: vi.fn((path: string) => {
-    if (path === '/tmp/claude-session-metrics.json' && mockFileContent !== null) {
+    if (path === join(tmpdir(), 'claude-session-metrics.json') && mockFileContent !== null) {
       return mockFileContent;
     }
     throw new Error('File not found');

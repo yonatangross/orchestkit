@@ -13,6 +13,7 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import type { HookInput, HookResult } from '../../types.js';
 import { outputSilentSuccess, getField, getSessionId, logHook } from '../../lib/common.js';
+import { getSessionTempDir } from '../../lib/paths.js';
 
 interface ProgressFile {
   session_id: string;
@@ -304,7 +305,7 @@ export function issueSubtaskUpdater(input: HookInput): HookResult {
   // Check each unchecked task for a match
   let matched = false;
   const sessionId = (input.session_id || getSessionId()).replace(/[^a-zA-Z0-9_-]/g, '');
-  const progressFile = `/tmp/claude-session-${sessionId}/issue-progress.json`;
+  const progressFile = `${getSessionTempDir(sessionId)}/issue-progress.json`;
 
   for (const checkboxText of uncheckedTasks) {
     if (matchesCheckbox(commitTask, checkboxText)) {

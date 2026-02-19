@@ -498,9 +498,9 @@ describe('C. Session -> Profile Aggregation Flow', () => {
     // Assert
     expect(updated.sessions_count).toBe(1);
     expect(updated.aggregated_sessions).toContain('agg-session-001');
-    expect(updated.skill_usage['commit']).toBeDefined();
-    expect(updated.skill_usage['verify']).toBeDefined();
-    expect(updated.skill_usage['explore']).toBeDefined();
+    expect(updated.skill_usage.commit).toBeDefined();
+    expect(updated.skill_usage.verify).toBeDefined();
+    expect(updated.skill_usage.explore).toBeDefined();
     expect(updated.agent_usage['backend-architect']).toBeDefined();
     expect(updated.agent_usage['test-generator']).toBeDefined();
   });
@@ -599,9 +599,9 @@ describe('C. Session -> Profile Aggregation Flow', () => {
     modules.userProfile.aggregateSession(profile, summary2);
 
     // Assert
-    expect(profile.skill_usage['commit'].count).toBe(2);
-    expect(profile.skill_usage['verify'].count).toBe(1);
-    expect(profile.skill_usage['explore'].count).toBe(1);
+    expect(profile.skill_usage.commit.count).toBe(2);
+    expect(profile.skill_usage.verify.count).toBe(1);
+    expect(profile.skill_usage.explore.count).toBe(1);
   });
 
   it('C.8: getTopSkills returns most used skills', () => {
@@ -1451,7 +1451,7 @@ describe('H. End-to-End Integration Scenarios', () => {
     expect(summary.agents_spawned).toContain('backend-architect');
 
     expect(updatedProfile.sessions_count).toBe(1);
-    expect(updatedProfile.skill_usage['commit']).toBeDefined();
+    expect(updatedProfile.skill_usage.commit).toBeDefined();
     expect(updatedProfile.agent_usage['backend-architect']).toBeDefined();
 
     // Verify profile was persisted

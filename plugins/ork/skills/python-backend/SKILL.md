@@ -1,7 +1,7 @@
 ---
 name: python-backend
 license: MIT
-compatibility: "Claude Code 2.1.34+."
+compatibility: "Claude Code 2.1.47+."
 description: Python backend patterns for asyncio, FastAPI, SQLAlchemy 2.0 async, and connection pooling. Use when building async Python services, FastAPI endpoints, database sessions, or connection pool tuning.
 tags: [python, asyncio, fastapi, sqlalchemy, connection-pooling, async, postgresql]
 context: fork
@@ -157,7 +157,7 @@ pool_size = (concurrent_requests / avg_queries_per_request) * 1.5
 
 ## Related Skills
 
-- `architecture-patterns` - Clean architecture and layer separation
-- `async-jobs` - Celery/ARQ for background processing
+- `ork:architecture-patterns` - Clean architecture and layer separation
+- `ork:async-jobs` - Celery/ARQ for background processing
 - `streaming-api-patterns` - SSE/WebSocket async patterns
-- `database-patterns` - Database schema design
+- `ork:database-patterns` - Database schema design

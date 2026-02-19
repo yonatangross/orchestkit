@@ -1,7 +1,7 @@
 ---
 name: commit
 license: MIT
-compatibility: "Claude Code 2.1.34+."
+compatibility: "Claude Code 2.1.47+."
 description: "Creates commits with conventional format and validation. Use when committing changes or generating commit messages."
 argument-hint: "[message]"
 context: inherit
@@ -24,7 +24,7 @@ Simple, validated commit creation. Run checks locally, no agents needed for stan
 ## Quick Start
 
 ```bash
-/commit
+/ork:commit
 ```
 
 ## Workflow
@@ -116,10 +116,10 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 ```
 
 ## Related Skills
-- create-pr: Create pull requests from commits
-- review-pr: Review changes before committing
-- fix-issue: Fix issues and commit the fixes
-- issue-progress-tracking: Auto-updates GitHub issues with commit progress
+- `ork:create-pr`: Create pull requests from commits
+- `ork:review-pr`: Review changes before committing
+- `ork:fix-issue`: Fix issues and commit the fixes
+- `ork:issue-progress-tracking`: Auto-updates GitHub issues with commit progress
 
 ## Rules
 

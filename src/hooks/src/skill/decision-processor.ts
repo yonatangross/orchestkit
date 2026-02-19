@@ -15,9 +15,9 @@
 
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, getPluginRoot } from '../lib/common.js';
-import { execSync } from 'child_process';
-import { readFileSync, existsSync } from 'fs';
-import { join } from 'path';
+import { execSync } from 'node:child_process';
+import { readFileSync, existsSync } from 'node:fs';
+import { join } from 'node:path';
 
 // =============================================================================
 // CONSTANTS

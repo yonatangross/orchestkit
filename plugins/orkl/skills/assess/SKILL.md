@@ -1,7 +1,7 @@
 ---
 name: assess
 license: MIT
-compatibility: "Claude Code 2.1.34+. Requires memory MCP server."
+compatibility: "Claude Code 2.1.47+. Requires memory MCP server."
 description: "Assesses and rates quality 0-10 with pros/cons analysis. Use when evaluating code, designs, or approaches."
 context: fork
 version: 1.1.0
@@ -10,7 +10,7 @@ tags: [assessment, evaluation, quality, comparison, pros-cons, rating]
 user-invocable: true
 allowed-tools: [AskUserQuestion, Read, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskList, mcp__memory__search_nodes, Bash]
 skills: [code-review-playbook, assess-complexity, quality-gates, architecture-decision-record, memory]
-argument-hint: [code-path-or-topic]
+argument-hint: "[code-path-or-topic]"
 complexity: high
 metadata:
   category: document-asset-creation
@@ -24,10 +24,10 @@ Comprehensive assessment skill for answering "is this good?" with structured eva
 ## Quick Start
 
 ```bash
-/assess backend/app/services/auth.py
-/assess our caching strategy
-/assess the current database schema
-/assess frontend/src/components/Dashboard
+/ork:assess backend/app/services/auth.py
+/ork:assess our caching strategy
+/ork:assess the current database schema
+/ork:assess frontend/src/components/Dashboard
 ```
 
 ---
@@ -216,7 +216,7 @@ for dimension, agent_type in [
     ("PERFORMANCE + SCALABILITY", "python-performance-engineer"),  # Use python-performance-engineer for backend; frontend-performance-engineer for frontend
     ("TESTABILITY", "test-generator"),
 ]:
-    Task(subagent_type=agent_type, run_in_background=True, max_turns=15,
+    Task(subagent_type=agent_type, run_in_background=True, max_turns=25,
          prompt=f"""Assess {dimension} (0-10) for: {target}
 
 ## Scope Constraint
@@ -248,7 +248,7 @@ Do NOT use Glob or Grep to discover additional files.
 """
 
 Task(subagent_type="code-quality-reviewer", name="correctness-assessor",
-     team_name="assess-{target-slug}", max_turns=15,
+     team_name="assess-{target-slug}", max_turns=25,
      prompt=f"""Assess CORRECTNESS (0-10) and MAINTAINABILITY (0-10) for: {target}
      {SCOPE_INSTRUCTIONS}
      When you find issues that affect security, message security-assessor.
@@ -257,7 +257,7 @@ Task(subagent_type="code-quality-reviewer", name="correctness-assessor",
      significantly (>2 points), discuss the disagreement.""")
 
 Task(subagent_type="security-auditor", name="security-assessor",
-     team_name="assess-{target-slug}", max_turns=15,
+     team_name="assess-{target-slug}", max_turns=25,
      prompt=f"""Assess SECURITY (0-10) for: {target}
      {SCOPE_INSTRUCTIONS}
      When correctness-assessor flags security-relevant patterns, investigate deeper.
@@ -265,7 +265,7 @@ Task(subagent_type="security-auditor", name="security-assessor",
      Share your score and flag any cross-dimension trade-offs.""")
 
 Task(subagent_type="python-performance-engineer", name="perf-assessor",  # or frontend-performance-engineer for frontend
-     team_name="assess-{target-slug}", max_turns=15,
+     team_name="assess-{target-slug}", max_turns=25,
      prompt=f"""Assess PERFORMANCE (0-10) and SCALABILITY (0-10) for: {target}
      {SCOPE_INSTRUCTIONS}
      When security-assessor flags performance trade-offs, evaluate the impact.
@@ -273,7 +273,7 @@ Task(subagent_type="python-performance-engineer", name="perf-assessor",  # or fr
      Share your scores with reasoning for the composite calculation.""")
 
 Task(subagent_type="test-generator", name="test-assessor",
-     team_name="assess-{target-slug}", max_turns=15,
+     team_name="assess-{target-slug}", max_turns=25,
      prompt=f"""Assess TESTABILITY (0-10) for: {target}
      {SCOPE_INSTRUCTIONS}
      Evaluate test coverage, test quality, and ease of testing.
@@ -400,9 +400,9 @@ See [Scoring Rubric](references/scoring-rubric.md) for full report template.
 ## Related Skills
 
 - `assess-complexity` - Task complexity assessment
-- `verify` - Post-implementation verification
-- `code-review-playbook` - Code review patterns
-- `quality-gates` - Quality gate patterns
+- `ork:verify` - Post-implementation verification
+- `ork:code-review-playbook` - Code review patterns
+- `ork:quality-gates` - Quality gate patterns
 
 ---
 

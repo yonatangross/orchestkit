@@ -114,7 +114,7 @@ export function mergeConflictPredictor(input: HookInput): HookResult {
 
   const repoRoot = getRepoRoot() || getProjectDir();
   const currentWorktree = repoRoot;
-  const relPath = filePath.replace(repoRoot + '/', '').replace(repoRoot, '');
+  const relPath = filePath.replace(`${repoRoot}/`, '').replace(repoRoot, '');
 
   // Check each worktree for concurrent modifications
   for (const worktree of worktrees) {
@@ -154,7 +154,7 @@ export function mergeConflictPredictor(input: HookInput): HookResult {
   const baseBranch = getDefaultBranch();
 
   if (currentBranch !== baseBranch) {
-    const { ahead, behind } = getBranchDivergence(baseBranch, currentBranch);
+    const { ahead: _ahead, behind } = getBranchDivergence(baseBranch, currentBranch);
 
     if (behind > 10) {
       warnings.push(`DIVERGENCE: Current branch is ${behind} commits behind ${baseBranch}`);
@@ -185,7 +185,7 @@ export function mergeConflictPredictor(input: HookInput): HookResult {
   if (warnings.length > 0) {
     const ctx = `Potential merge conflicts detected in ${filePath}. Review warnings on stderr.`;
     // Log warnings to stderr
-    process.stderr.write(warnings.join('\n') + '\n');
+    process.stderr.write(`${warnings.join('\n')}\n`);
     return outputWithContext(ctx);
   }
 

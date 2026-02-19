@@ -57,7 +57,11 @@ export const registeredHookNames = () => HOOKS.map(h => h.name);
  */
 function trackAgentResult(input: HookInput): void {
   try {
-    const agentType = input.subagent_type || input.agent_type || 'unknown';
+    const agentType = input.tool_input?.subagent_type as string
+      || input.subagent_type
+      || input.agent_type
+      || 'unknown';
+    const agentName = input.tool_input?.name as string || undefined;
     const success = !input.error;
     const durationMs = input.duration_ms;
 
@@ -81,15 +85,17 @@ function trackAgentResult(input: HookInput): void {
       || process.env.CLAUDE_MODEL
       || 'unknown';
 
-    // Cross-project analytics (Issue #459)
+    // Cross-project analytics (Issue #459, #727)
     appendAnalytics('agent-usage.jsonl', {
       ts: new Date().toISOString(),
       pid: hashProject(process.env.CLAUDE_PROJECT_DIR || ''),
       agent: agentType,
+      agent_name: agentName ?? null,
       model,
       duration_ms: durationMs,
       success,
       output_len: outputLength,
+      last_msg_len: input.last_assistant_message?.length ?? null,
       ...getTeamContext(),
     });
   } catch {

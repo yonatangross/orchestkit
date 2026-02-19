@@ -38,7 +38,7 @@ interface Relation {
 /**
  * Extract entities from text for graph storage
  */
-function extractEntitiesFromText(text: string): Entity[] {
+function _extractEntitiesFromText(text: string): Entity[] {
   const textLower = text.toLowerCase();
   const entities: Entity[] = [];
 
@@ -77,7 +77,7 @@ function extractEntitiesFromText(text: string): Entity[] {
 /**
  * Extract relations from text
  */
-function extractRelationsFromText(text: string, entities: Entity[]): Relation[] {
+function _extractRelationsFromText(text: string, entities: Entity[]): Relation[] {
   const textLower = text.toLowerCase();
   const relations: Relation[] = [];
   const entityNames = entities.map(e => e.name);

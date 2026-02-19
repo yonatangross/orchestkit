@@ -9,10 +9,77 @@
  * Version: 1.1.0
  */
 
-import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
-import { join } from 'node:path';
+import { existsSync, readFileSync, writeFileSync, readdirSync, statSync, mkdirSync } from 'node:fs';
+import { join, dirname } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, getPluginRoot, outputSilentSuccess, outputWarning } from '../lib/common.js';
+
+const CACHE_VERSION = '1.0';
+
+interface PrefillScanCache {
+  version: string;
+  scannedAt: number;
+  results: {
+    warnings: string[];
+    count: number;
+  };
+}
+
+function getCacheFile(projectDir: string): string {
+  return `${projectDir}/.claude/cache/prefill-scan.json`;
+}
+
+function getSkillDirs(skillsDir: string): string[] {
+  if (!existsSync(skillsDir)) return [];
+  try {
+    return readdirSync(skillsDir).filter(d => {
+      try { return statSync(join(skillsDir, d)).isDirectory(); } catch { return false; }
+    });
+  } catch {
+    return [];
+  }
+}
+
+function isCacheFresh(cacheFile: string, skillsDir: string, skillDirs: string[]): boolean {
+  try {
+    if (!existsSync(cacheFile)) return false;
+    const cache: PrefillScanCache = JSON.parse(readFileSync(cacheFile, 'utf-8'));
+    if (cache.version !== CACHE_VERSION) return false;
+
+    const { scannedAt } = cache;
+    // Check if any SKILL.md is newer than the cache
+    for (const dir of skillDirs) {
+      const skillPath = join(skillsDir, dir, 'SKILL.md');
+      if (!existsSync(skillPath)) continue;
+      if (statSync(skillPath).mtimeMs > scannedAt) return false;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function readCache(cacheFile: string): PrefillScanCache | null {
+  try {
+    return JSON.parse(readFileSync(cacheFile, 'utf-8')) as PrefillScanCache;
+  } catch {
+    return null;
+  }
+}
+
+function writeCache(cacheFile: string, warnings: string[]): void {
+  try {
+    mkdirSync(dirname(cacheFile), { recursive: true });
+    const cache: PrefillScanCache = {
+      version: CACHE_VERSION,
+      scannedAt: Date.now(),
+      results: { warnings, count: warnings.length },
+    };
+    writeFileSync(cacheFile, JSON.stringify(cache, null, 2), 'utf-8');
+  } catch {
+    // Non-fatal — cache write failure is silently ignored
+  }
+}
 
 /** Patterns that indicate response prefilling usage */
 const PREFILL_PATTERNS = [
@@ -50,32 +117,21 @@ function hasOutputFormatPatterns(content: string): boolean {
 /**
  * Scan skills directory for files containing prefill patterns
  */
-function scanSkillsForPrefill(pluginRoot: string): string[] {
-  const skillsDir = join(pluginRoot, 'skills');
+function scanSkillsForPrefill(skillsDir: string, skillDirs: string[]): string[] {
   const matches: string[] = [];
 
-  if (!existsSync(skillsDir)) return matches;
+  for (const dir of skillDirs) {
+    const skillPath = join(skillsDir, dir, 'SKILL.md');
+    if (!existsSync(skillPath)) continue;
 
-  try {
-    const skillDirs = readdirSync(skillsDir).filter(d => {
-      try { return statSync(join(skillsDir, d)).isDirectory(); } catch { return false; }
-    });
-
-    for (const dir of skillDirs) {
-      const skillPath = join(skillsDir, dir, 'SKILL.md');
-      if (!existsSync(skillPath)) continue;
-
-      try {
-        const content = readFileSync(skillPath, 'utf-8');
-        if (hasPrefillPatterns(content) || hasOutputFormatPatterns(content)) {
-          matches.push(dir);
-        }
-      } catch {
-        // Skip unreadable files
+    try {
+      const content = readFileSync(skillPath, 'utf-8');
+      if (hasPrefillPatterns(content) || hasOutputFormatPatterns(content)) {
+        matches.push(dir);
       }
+    } catch {
+      // Skip unreadable files
     }
-  } catch {
-    // Skip if skills dir can't be read
   }
 
   return matches;
@@ -100,7 +156,31 @@ export function prefillGuard(_input: HookInput): HookResult {
   }
 
   const pluginRoot = getPluginRoot();
-  const affectedSkills = scanSkillsForPrefill(pluginRoot);
+  const skillsDir = join(pluginRoot, 'skills');
+  const cacheFile = getCacheFile(pluginRoot);
+
+  const skillDirs = getSkillDirs(skillsDir);
+
+  let affectedSkills: string[];
+
+  try {
+    if (isCacheFresh(cacheFile, skillsDir, skillDirs)) {
+      const cache = readCache(cacheFile);
+      if (cache) {
+        logHook('prefill-guard', 'Using cached scan results');
+        affectedSkills = cache.results.warnings;
+      } else {
+        affectedSkills = scanSkillsForPrefill(skillsDir, skillDirs);
+        writeCache(cacheFile, affectedSkills);
+      }
+    } else {
+      affectedSkills = scanSkillsForPrefill(skillsDir, skillDirs);
+      writeCache(cacheFile, affectedSkills);
+    }
+  } catch {
+    // Fall back to full scan on any unexpected error
+    affectedSkills = scanSkillsForPrefill(skillsDir, skillDirs);
+  }
 
   if (affectedSkills.length === 0) {
     logHook('prefill-guard', 'No prefilling patterns detected in skills');

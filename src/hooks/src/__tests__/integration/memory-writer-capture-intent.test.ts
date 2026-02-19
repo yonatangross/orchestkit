@@ -8,7 +8,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   buildGraphOperations,
-  DecisionRecord,
+  type DecisionRecord,
 } from '../../lib/memory-writer.js';
 
 // =============================================================================

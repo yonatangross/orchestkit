@@ -39,7 +39,7 @@ vi.mock('../../lib/guards.js', () => ({
 }));
 
 import { backendLayerValidator } from '../../skill/backend-layer-validator.js';
-import { outputSilentSuccess, outputBlock, logHook } from '../../lib/common.js';
+import { logHook } from '../../lib/common.js';
 import { guardPythonFiles } from '../../lib/guards.js';
 
 // =============================================================================

@@ -39,6 +39,7 @@ export function sessionTracking(input: HookInput): HookResult {
     trackSessionStart({
       project_dir: projectDir,
       git_branch: gitBranch,
+      added_dirs_count: (input.added_dirs ?? []).length,
     });
 
     logHook('session-tracking', `Tracked session start: branch=${gitBranch || 'unknown'}`, 'debug');

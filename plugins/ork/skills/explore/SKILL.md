@@ -1,7 +1,7 @@
 ---
 name: explore
 license: MIT
-compatibility: "Claude Code 2.1.34+. Requires memory MCP server."
+compatibility: "Claude Code 2.1.47+. Requires memory MCP server."
 description: "explore — Deep codebase exploration with parallel agents. Use when exploring a repo, discovering architecture, finding files, or analyzing design patterns."
 argument-hint: "[topic-or-feature]"
 context: fork
@@ -24,7 +24,7 @@ Multi-angle codebase exploration using 3-5 parallel agents.
 ## Quick Start
 
 ```bash
-/explore authentication
+/ork:explore authentication
 ```
 
 > **Opus 4.6**: Exploration agents use native adaptive thinking for deeper pattern recognition across large codebases.
@@ -161,7 +161,7 @@ See [Exploration Report Template](references/exploration-report-template.md).
 - "What's the workflow for content analysis?"
 
 ## Related Skills
-- implement: Implement after exploration
+- `ork:implement`: Implement after exploration
 ---
 
 **Version:** 2.1.0 (February 2026)

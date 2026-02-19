@@ -13,7 +13,7 @@ import { existsSync, writeFileSync, mkdirSync, readFileSync } from 'node:fs';
 import { bufferWrite } from '../lib/analytics-buffer.js';
 import { dirname } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, logHook, getProjectDir, getSessionId } from '../lib/common.js';
+import { outputSilentSuccess, getProjectDir } from '../lib/common.js';
 
 // -----------------------------------------------------------------------------
 // Configuration
@@ -272,7 +272,7 @@ export function autoSpawnQuality(input: HookInput): HookResult {
     input.subagent_type ||
     input.agent_type ||
     'unknown';
-  const sessionId = input.session_id || getSessionId();
+  const sessionId = input.session_id; // CC 2.1.9+ guarantees session_id
   const agentOutput = input.agent_output || input.output || '';
   const error = input.error || '';
 

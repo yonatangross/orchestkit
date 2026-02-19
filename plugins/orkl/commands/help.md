@@ -156,8 +156,23 @@ Just describe your task naturally and OrchestKit will recommend the appropriate 
 | **Total** | **23** | |
 
 
+## CC 2.1.47 Keyboard Shortcuts
+
+| Shortcut | Action | Since |
+|----------|--------|-------|
+| `Ctrl+F` | Find in output | CC 2.1.47 |
+| `Shift+Down` | Multi-line input entry | CC 2.1.47 |
+| `Ctrl+C` | Cancel current operation | CC 2.1.0+ |
+| `/exit` | Exit Claude Code session | CC 2.1.0+ |
+| `Esc` | Dismiss autocomplete / cancel edit | CC 2.1.0+ |
+
+
 ## Related Skills
 
 - `/help` - Claude Code built-in help
 - `/config` - Claude Code configuration
-- `/doctor` - OrchestKit health check
+- `/ork:doctor` - OrchestKit health check
+
+## References
+
+- [CC Keyboard Shortcuts](references/cc-keyboard-shortcuts.md)

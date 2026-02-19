@@ -1,7 +1,7 @@
 ---
 name: review-pr
 license: MIT
-compatibility: "Claude Code 2.1.34+. Requires memory MCP server, gh CLI."
+compatibility: "Claude Code 2.1.47+. Requires memory MCP server, gh CLI."
 description: "PR review with parallel specialized agents. Use when reviewing pull requests or code."
 argument-hint: "[pr-number-or-branch]"
 context: fork
@@ -24,8 +24,8 @@ Deep code review using 6-7 parallel specialized agents.
 ## Quick Start
 
 ```bash
-/review-pr 123
-/review-pr feature-branch
+/ork:review-pr 123
+/ork:review-pr feature-branch
 ```
 
 > **Opus 4.6**: Parallel agents use native adaptive thinking for deeper analysis. Complexity-aware routing matches agent model to review difficulty.
@@ -192,9 +192,9 @@ Use these prefixes for comments:
 - `question:` -- Needs clarification
 
 ## Related Skills
-- commit: Create commits after review
-- create-pr: Create PRs for review
-- slack-integration: Team notifications for review events
+- `ork:commit`: Create commits after review
+- `ork:create-pr`: Create PRs for review
+- `slack-integration`: Team notifications for review events
 
 ## References
 

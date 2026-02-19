@@ -47,7 +47,7 @@ import { memoryMetricsCollector } from '../../lifecycle/memory-metrics-collector
 // =============================================================================
 
 const TEST_PROJECT_DIR = join(tmpdir(), 'unified-dispatcher-test');
-const TEST_SESSION_ID = 'test-session-dispatcher-' + Date.now();
+const TEST_SESSION_ID = `test-session-dispatcher-${Date.now()}`;
 
 /**
  * Create realistic HookInput for testing

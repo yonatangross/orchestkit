@@ -35,7 +35,7 @@ describe('Auto-Save Context Hook', () => {
   const mockReadFileSync = vi.mocked(readFileSync);
   const mockWriteFileSync = vi.mocked(writeFileSync);
   const mockLogHook = vi.mocked(logHook);
-  const mockOutputSilentSuccess = vi.mocked(outputSilentSuccess);
+  const _mockOutputSilentSuccess = vi.mocked(outputSilentSuccess);
   const mockGetProjectDir = vi.mocked(getProjectDir);
 
   const defaultInput: HookInput = {

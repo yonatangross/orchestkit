@@ -436,7 +436,7 @@ describe('completion-tracker', () => {
 
     test('handles very long task subject', async () => {
       // Arrange
-      const longSubject = 'implement ' + 'a'.repeat(500);
+      const longSubject = `implement ${'a'.repeat(500)}`;
       const input = createTaskInput({
         task_subject: longSubject,
         task_status: 'completed',

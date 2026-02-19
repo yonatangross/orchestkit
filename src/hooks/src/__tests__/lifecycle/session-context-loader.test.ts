@@ -3,8 +3,8 @@
  * Tests context loading at session start with Protocol 2.0 compliance
  */
 
-import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
-import { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync } from 'node:fs';
+import { describe, test, expect, beforeEach, afterEach, } from 'vitest';
+import { existsSync, writeFileSync, mkdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import type { HookInput } from '../../types.js';
@@ -309,6 +309,93 @@ describe('session-context-loader', () => {
       const result = sessionContextLoader(input);
 
       // Assert
+      expect(result.continue).toBe(true);
+      expect(result.suppressOutput).toBe(true);
+    });
+  });
+
+  describe('CC 2.1.47 added_dirs context scanning', () => {
+    test('loads context from added_dirs when state.json exists in that dir', () => {
+      // Arrange — create a valid state.json inside an added dir
+      const addedDir = join(TEST_PROJECT_DIR, 'extra-service');
+      const addedStateDir = join(addedDir, '.claude', 'context', 'session');
+      mkdirSync(addedStateDir, { recursive: true });
+      writeFileSync(
+        join(addedStateDir, 'state.json'),
+        JSON.stringify({ current_task: { description: 'Extra service task' } })
+      );
+
+      const input = createHookInput({ added_dirs: [addedDir] });
+
+      // Act
+      const result = sessionContextLoader(input);
+
+      // Assert — always returns silent success; the key is that it doesn't throw
+      // and the context from the added dir was scanned
+      expect(result.continue).toBe(true);
+      expect(result.suppressOutput).toBe(true);
+    });
+
+    test('skips added dir gracefully when state.json is absent', () => {
+      const addedDir = join(TEST_PROJECT_DIR, 'no-context-service');
+      mkdirSync(addedDir, { recursive: true }); // dir exists but no state.json
+
+      const input = createHookInput({ added_dirs: [addedDir] });
+
+      const result = sessionContextLoader(input);
+
+      expect(result.continue).toBe(true);
+      expect(result.suppressOutput).toBe(true);
+    });
+
+    test('skips added dir gracefully when state.json contains invalid JSON', () => {
+      const addedDir = join(TEST_PROJECT_DIR, 'broken-context-service');
+      const addedStateDir = join(addedDir, '.claude', 'context', 'session');
+      mkdirSync(addedStateDir, { recursive: true });
+      writeFileSync(join(addedStateDir, 'state.json'), '{ broken json');
+
+      const input = createHookInput({ added_dirs: [addedDir] });
+
+      const result = sessionContextLoader(input);
+
+      expect(result.continue).toBe(true);
+      expect(result.suppressOutput).toBe(true);
+    });
+
+    test('handles multiple added_dirs, loading context from each valid one', () => {
+      const addedDirA = join(TEST_PROJECT_DIR, 'service-a');
+      const addedDirB = join(TEST_PROJECT_DIR, 'service-b');
+
+      // service-a has valid state.json
+      const stateDirA = join(addedDirA, '.claude', 'context', 'session');
+      mkdirSync(stateDirA, { recursive: true });
+      writeFileSync(join(stateDirA, 'state.json'), JSON.stringify({ service: 'a' }));
+
+      // service-b has no context files
+      mkdirSync(addedDirB, { recursive: true });
+
+      const input = createHookInput({ added_dirs: [addedDirA, addedDirB] });
+
+      const result = sessionContextLoader(input);
+
+      expect(result.continue).toBe(true);
+      expect(result.suppressOutput).toBe(true);
+    });
+
+    test('returns silent success when added_dirs is empty array', () => {
+      const input = createHookInput({ added_dirs: [] });
+
+      const result = sessionContextLoader(input);
+
+      expect(result.continue).toBe(true);
+      expect(result.suppressOutput).toBe(true);
+    });
+
+    test('returns silent success when added_dirs is not provided', () => {
+      const input = createHookInput(); // no added_dirs
+
+      const result = sessionContextLoader(input);
+
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
     });

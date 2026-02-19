@@ -76,8 +76,8 @@ function createFileInput(
 /**
  * Mock readdir to return specific files
  */
-function mockCodeFiles(files: string[]): void {
-  mockReaddirSync.mockImplementation((dir: string, opts?: { withFileTypes: boolean }) => {
+function _mockCodeFiles(files: string[]): void {
+  mockReaddirSync.mockImplementation((_dir: string, opts?: { withFileTypes: boolean }) => {
     if (opts?.withFileTypes) {
       return files.map((f) => ({
         name: basename(f),
@@ -126,7 +126,7 @@ describe('duplicate-code-detector', () => {
 
     test('returns continue: true for duplicates (warns instead of blocks)', () => {
       // Arrange
-      mockReaddirSync.mockImplementation((dir: string, opts?: { withFileTypes: boolean }) => {
+      mockReaddirSync.mockImplementation((_dir: string, opts?: { withFileTypes: boolean }) => {
         if (opts?.withFileTypes) {
           return [
             { name: 'other.ts', isDirectory: () => false, isFile: () => true },
@@ -204,7 +204,7 @@ describe('duplicate-code-detector', () => {
       ['export class ExportedClass {}', 'ExportedClass'],
     ])('extracts signature from: %s', (code, _expectedName) => {
       // Arrange
-      mockReaddirSync.mockImplementation((dir: string, opts?: { withFileTypes: boolean }) => {
+      mockReaddirSync.mockImplementation((_dir: string, opts?: { withFileTypes: boolean }) => {
         if (opts?.withFileTypes) {
           return [
             { name: 'existing.ts', isDirectory: () => false, isFile: () => true },
@@ -251,7 +251,7 @@ function myFunc() {} // duplicate declaration
       ['def _private_func():\n    pass', '_private_func'],
     ])('extracts signature from Python: %s', (code, _expectedName) => {
       // Arrange
-      mockReaddirSync.mockImplementation((dir: string, opts?: { withFileTypes: boolean }) => {
+      mockReaddirSync.mockImplementation((_dir: string, opts?: { withFileTypes: boolean }) => {
         if (opts?.withFileTypes) {
           return [
             { name: 'existing.py', isDirectory: () => false, isFile: () => true },
@@ -277,7 +277,7 @@ function myFunc() {} // duplicate declaration
   describe('duplicate detection', () => {
     test('detects duplicate function in another file', () => {
       // Arrange
-      mockReaddirSync.mockImplementation((dir: string, opts?: { withFileTypes: boolean }) => {
+      mockReaddirSync.mockImplementation((_dir: string, opts?: { withFileTypes: boolean }) => {
         if (opts?.withFileTypes) {
           return [
             { name: 'other.ts', isDirectory: () => false, isFile: () => true },
@@ -300,7 +300,7 @@ function myFunc() {} // duplicate declaration
 
     test('skips same file when checking duplicates', () => {
       // Arrange
-      mockReaddirSync.mockImplementation((dir: string, opts?: { withFileTypes: boolean }) => {
+      mockReaddirSync.mockImplementation((_dir: string, opts?: { withFileTypes: boolean }) => {
         if (opts?.withFileTypes) {
           return [
             { name: 'utils.ts', isDirectory: () => false, isFile: () => true },
@@ -324,7 +324,7 @@ function myFunc() {} // duplicate declaration
 
     test('ignores directories in search', () => {
       // Arrange
-      mockReaddirSync.mockImplementation((dir: string, opts?: { withFileTypes: boolean }) => {
+      mockReaddirSync.mockImplementation((_dir: string, opts?: { withFileTypes: boolean }) => {
         if (opts?.withFileTypes) {
           return [
             { name: 'node_modules', isDirectory: () => true, isFile: () => false },
@@ -570,7 +570,7 @@ def get_config():
 
     test('handles file read error gracefully', () => {
       // Arrange
-      mockReaddirSync.mockImplementation((dir: string, opts?: { withFileTypes: boolean }) => {
+      mockReaddirSync.mockImplementation((_dir: string, opts?: { withFileTypes: boolean }) => {
         if (opts?.withFileTypes) {
           return [
             { name: 'other.ts', isDirectory: () => false, isFile: () => true },
@@ -612,7 +612,7 @@ def get_config():
 
     test('handles regex special characters in function names', () => {
       // Arrange
-      mockReaddirSync.mockImplementation((dir: string, opts?: { withFileTypes: boolean }) => {
+      mockReaddirSync.mockImplementation((_dir: string, opts?: { withFileTypes: boolean }) => {
         if (opts?.withFileTypes) {
           return [
             { name: 'other.ts', isDirectory: () => false, isFile: () => true },
@@ -651,7 +651,7 @@ def get_config():
       '.git',
     ])('ignores %s directory', (ignoredDir) => {
       // Arrange
-      mockReaddirSync.mockImplementation((dir: string, opts?: { withFileTypes: boolean }) => {
+      mockReaddirSync.mockImplementation((_dir: string, opts?: { withFileTypes: boolean }) => {
         if (opts?.withFileTypes) {
           return [
             { name: ignoredDir, isDirectory: () => true, isFile: () => false },
@@ -682,7 +682,7 @@ def get_config():
   describe('warning message format', () => {
     test('detects duplicate in another file', () => {
       // Arrange
-      mockReaddirSync.mockImplementation((dir: string, opts?: { withFileTypes: boolean }) => {
+      mockReaddirSync.mockImplementation((_dir: string, opts?: { withFileTypes: boolean }) => {
         if (opts?.withFileTypes) {
           return [
             { name: 'helpers.ts', isDirectory: () => false, isFile: () => true },
@@ -705,7 +705,7 @@ def get_config():
 
     test('outputs context for detected duplicates', () => {
       // Arrange
-      mockReaddirSync.mockImplementation((dir: string, opts?: { withFileTypes: boolean }) => {
+      mockReaddirSync.mockImplementation((_dir: string, opts?: { withFileTypes: boolean }) => {
         if (opts?.withFileTypes) {
           return [
             { name: 'other.ts', isDirectory: () => false, isFile: () => true },

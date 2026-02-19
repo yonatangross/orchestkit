@@ -247,7 +247,7 @@ describe('output-validator', () => {
 
     test('does not warn for normal output', () => {
       // Arrange
-      const normalOutput = 'A'.repeat(100) + ' completed successfully';
+      const normalOutput = `${'A'.repeat(100)} completed successfully`;
       const input = createSubagentStopInput(normalOutput);
 
       // Act
@@ -266,7 +266,7 @@ describe('output-validator', () => {
   describe('check 4: JSON validation (backend-system-architect)', () => {
     test('warns for malformed JSON in output', () => {
       // Arrange
-      const badJson = 'A'.repeat(60) + ' {"name": "test" invalid}';
+      const badJson = `${'A'.repeat(60)} {"name": "test" invalid}`;
       const input = createSubagentStopInput(badJson, { subagent_type: 'backend-system-architect' });
 
       // Act
@@ -279,7 +279,7 @@ describe('output-validator', () => {
 
     test('no warning for valid JSON', () => {
       // Arrange
-      const validJson = 'A'.repeat(60) + ' {"name": "test"}';
+      const validJson = `${'A'.repeat(60)} {"name": "test"}`;
       const input = createSubagentStopInput(validJson, { subagent_type: 'backend-system-architect' });
 
       // Act
@@ -292,7 +292,7 @@ describe('output-validator', () => {
 
     test('no JSON check for non-backend agents', () => {
       // Arrange
-      const badJson = 'A'.repeat(60) + ' {"name": "test" invalid}';
+      const badJson = `${'A'.repeat(60)} {"name": "test" invalid}`;
       const input = createSubagentStopInput(badJson, { subagent_type: 'test-generator' });
 
       // Act
@@ -305,7 +305,7 @@ describe('output-validator', () => {
 
     test('no JSON check when no braces in output', () => {
       // Arrange
-      const noJson = 'A'.repeat(100) + ' API design complete';
+      const noJson = `${'A'.repeat(100)} API design complete`;
       const input = createSubagentStopInput(noJson, { subagent_type: 'backend-system-architect' });
 
       // Act
@@ -571,7 +571,7 @@ describe('output-validator', () => {
 
     test('handles special characters in output', () => {
       // Arrange
-      const specialOutput = '<script>alert("xss")</script>' + 'A'.repeat(50);
+      const specialOutput = `<script>alert("xss")</script>${'A'.repeat(50)}`;
       const input = createSubagentStopInput(specialOutput);
 
       // Act

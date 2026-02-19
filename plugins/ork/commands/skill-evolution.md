@@ -319,6 +319,6 @@ Consider: /ork:skill-evolution rollback api-design-framework 1.1.0
 
 ## Related Skills
 
-- `configure` - Configure OrchestKit settings
-- `doctor` - Diagnose OrchestKit issues
+- `ork:configure` - Configure OrchestKit settings
+- `ork:doctor` - Diagnose OrchestKit issues
 - `feedback-dashboard` - View comprehensive feedback metrics

@@ -110,8 +110,8 @@ function getAgentIndex(agentsDir: string): Map<string, AgentIndexEntry> {
           ? description.slice(0, description.indexOf('Activates for')).trim()
           : description;
 
-        let keywords: string[] = [];
-        let phrases: string[] = [];
+        const keywords: string[] = [];
+        const phrases: string[] = [];
 
         if (activatesMatch) {
           const keywordsStr = activatesMatch[1];

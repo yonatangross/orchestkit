@@ -12,7 +12,7 @@
 
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, logHook, getProjectDir, getSessionId } from '../lib/common.js';
+import { outputSilentSuccess, logHook, getProjectDir, } from '../lib/common.js';
 
 // -----------------------------------------------------------------------------
 // Path Helpers
@@ -62,14 +62,14 @@ function extractPendingTasks(): { count: number; summary: string } {
       return { count: 0, summary: '' };
     }
 
-    const summary = tasksPending.slice(0, 3).map((t) => `- ${t}`).join('\n');
+    const summary = tasksPending.slice(0, 5).map((t) => `- ${t}`).join('\n');
     return { count, summary };
   } catch {
     return { count: 0, summary: '' };
   }
 }
 
-function extractRelevantDecisions(taskDescription: string, category: string): string {
+function extractRelevantDecisions(_taskDescription: string, category: string): string {
   const decisionsFile = getDecisionsFile();
   if (!existsSync(decisionsFile)) {
     return '';
@@ -81,7 +81,7 @@ function extractRelevantDecisions(taskDescription: string, category: string): st
 
     const relevantDecisions = decisions
       .filter((d) => d.category === category || d.category === 'api' || d.category === 'database')
-      .slice(0, 5)
+      .slice(0, 8)
       .map((d) => `- ${d.title} (${d.status || 'unknown'})`);
 
     return relevantDecisions.join('\n');

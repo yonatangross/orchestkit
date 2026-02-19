@@ -4,16 +4,13 @@
  * CC 2.1.7 Compliant
  */
 
-import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
-import { execSync } from 'node:child_process';
+import { existsSync, readFileSync, } from 'node:fs';
 import type { HookInput, HookResult } from '../types.js';
 import {
   outputSilentSuccess,
   outputBlock,
   outputWithContext,
-  getProjectDir,
 } from '../lib/common.js';
-import { getRepoRoot } from '../lib/git.js';
 import { basename, dirname } from 'node:path';
 
 /**
@@ -103,7 +100,7 @@ function extractTestableUnits(content: string, filePath: string): string[] {
     const lines = content.split('\n');
     for (const line of lines) {
       const match = line.match(/^(def|class)\s+([A-Za-z][A-Za-z0-9_]*)/);
-      if (match && match[2]) {
+      if (match?.[2]) {
         units.push(match[2]);
       }
     }

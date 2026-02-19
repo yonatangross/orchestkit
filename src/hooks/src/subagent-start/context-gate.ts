@@ -14,7 +14,7 @@
  * Part of Context Engineering 2.0
  */
 
-import { existsSync, readFileSync, writeFileSync, mkdirSync, appendFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync, } from 'node:fs';
 import { dirname } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, outputDeny, outputWarning, logHook, getProjectDir } from '../lib/common.js';
@@ -23,9 +23,9 @@ import { outputSilentSuccess, outputDeny, outputWarning, logHook, getProjectDir 
 // Configuration
 // -----------------------------------------------------------------------------
 
-const MAX_CONCURRENT_BACKGROUND = 4;
-const MAX_AGENTS_PER_RESPONSE = 6;
-const WARNING_THRESHOLD = 3;
+const MAX_CONCURRENT_BACKGROUND = 6;
+const MAX_AGENTS_PER_RESPONSE = 8;
+const WARNING_THRESHOLD = 5;
 const EXPENSIVE_TYPES = /^(test-generator|backend-system-architect|workflow-architect|security-auditor|llm-integrator)$/;
 
 // State file paths

@@ -144,6 +144,22 @@ export async function unifiedDispatcher(input: HookInput): Promise<HookResult> {
     }
   }
 
+  // Task status tracking (Issue #740)
+  if (toolName === 'TaskUpdate') {
+    const status = input.tool_input?.status as string;
+    const taskId = input.tool_input?.taskId as string;
+    if (status && (status === 'completed' || status === 'in_progress')) {
+      appendAnalytics('task-usage.jsonl', {
+        ts: new Date().toISOString(),
+        pid: hashProject(process.env.CLAUDE_PROJECT_DIR || ''),
+        task_id: taskId || 'unknown',
+        task_status: status,
+        source: 'tool',
+        ...getTeamContext(),
+      });
+    }
+  }
+
   // Filter hooks that match this tool
   const matchingHooks = HOOKS.filter(h => matchesTool(toolName, h.matcher));
 

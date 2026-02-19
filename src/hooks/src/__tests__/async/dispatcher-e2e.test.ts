@@ -17,7 +17,7 @@
  */
 
 import { describe, it, expect, beforeAll } from 'vitest';
-import { execSync, spawn } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';

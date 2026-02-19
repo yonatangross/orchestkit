@@ -365,7 +365,7 @@ describe('summarizeCode — edge cases', () => {
     const manyImports = Array.from({ length: 100 }, (_, i) =>
       `import { Module${i} } from '@very-long-package-name/submodule-${i}/deep/path';`
     ).join('\n');
-    const content = manyImports + '\n\nexport function main() {}\n';
+    const content = `${manyImports}\n\nexport function main() {}\n`;
     const result = summarizeCode(content, 'big.ts')!;
     expect(result.length).toBeLessThanOrEqual(1600); // header + budget + small margin
   });

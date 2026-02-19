@@ -1,7 +1,7 @@
 ---
 name: brainstorming
 license: MIT
-compatibility: "Claude Code 2.1.34+. Requires memory MCP server."
+compatibility: "Claude Code 2.1.47+. Requires memory MCP server."
 description: "Design exploration with parallel agents. Use when brainstorming ideas, exploring solutions, or comparing alternatives."
 argument-hint: "[topic-or-idea]"
 tags: [planning, ideation, creativity, design]
@@ -276,10 +276,10 @@ TeamDelete()
 
 ## Related Skills
 
-- `architecture-decision-record` - Document key decisions made during brainstorming
-- `implement` - Execute the implementation plan after brainstorming completes
-- `explore` - Deep codebase exploration to understand existing patterns
-- `assess` - Rate quality 0-10 with dimension breakdown
+- `ork:architecture-decision-record` - Document key decisions made during brainstorming
+- `ork:implement` - Execute the implementation plan after brainstorming completes
+- `ork:explore` - Deep codebase exploration to understand existing patterns
+- `ork:assess` - Rate quality 0-10 with dimension breakdown
 
 ## References
 

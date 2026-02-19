@@ -23,17 +23,17 @@ View and manage the OrchestKit feedback system that learns from your usage.
 ## Usage
 
 ```
-/feedback                    # Same as status
-/feedback status             # Show current state
-/feedback pause              # Pause learning
-/feedback resume             # Resume learning
-/feedback reset              # Clear learned patterns
-/feedback export             # Export feedback data
-/feedback settings           # Show/edit settings
-/feedback opt-in             # Enable anonymous sharing
-/feedback opt-out            # Disable anonymous sharing
-/feedback privacy            # View privacy policy
-/feedback export-analytics   # Export anonymous analytics for review
+/ork:feedback                    # Same as status
+/ork:feedback status             # Show current state
+/ork:feedback pause              # Pause learning
+/ork:feedback resume             # Resume learning
+/ork:feedback reset              # Clear learned patterns
+/ork:feedback export             # Export feedback data
+/ork:feedback settings           # Show/edit settings
+/ork:feedback opt-in             # Enable anonymous sharing
+/ork:feedback opt-out            # Disable anonymous sharing
+/ork:feedback privacy            # View privacy policy
+/ork:feedback export-analytics   # Export anonymous analytics for review
 ```
 
 ## Subcommands
@@ -45,7 +45,7 @@ View and manage the OrchestKit feedback system that learns from your usage.
 | `resume` | Resume paused learning |
 | `reset` | Clear all learned patterns (requires "RESET" confirmation) |
 | `export` | Export all feedback data to `.claude/feedback/export-\{date\}.json` |
-| `settings` | Show/edit settings (usage: `/feedback settings &lt;key&gt; &lt;value&gt;`) |
+| `settings` | Show/edit settings (usage: `/ork:feedback settings &lt;key&gt; &lt;value&gt;`) |
 | `opt-in` | Enable anonymous analytics sharing (GDPR-compliant consent) |
 | `opt-out` | Disable anonymous analytics sharing (revokes consent) |
 | `privacy` | Display the full privacy policy |
@@ -59,7 +59,7 @@ See [Consent and Security Rules](rules/consent-and-security.md) for GDPR consent
 
 ## Related Skills
 
-- skill-evolution: Evolve skills based on feedback
+- `ork:skill-evolution`: Evolve skills based on feedback
 
 ## File Locations
 
@@ -507,7 +507,7 @@ This implementation follows GDPR requirements:
 
 # Feedback Subcommand Reference
 
-Detailed actions and expected output for each `/feedback` subcommand.
+Detailed actions and expected output for each `/ork:feedback` subcommand.
 
 ## status (default)
 
@@ -547,7 +547,7 @@ Temporarily pause all learning without clearing data.
 Feedback learning paused
 
 Your existing patterns are preserved.
-Resume with: /feedback resume
+Resume with: /ork:feedback resume
 ```
 
 ## resume
@@ -638,10 +638,10 @@ shareAnonymized:      false  (share anonymous stats)
 retentionDays:        90     (data retention period)
 
 To change a setting, use:
-  /feedback settings <key> <value>
+  /ork:feedback settings <key> <value>
 
 Example:
-  /feedback settings retentionDays 30
+  /ork:feedback settings retentionDays 30
 ```
 
 ## opt-in
@@ -668,7 +668,7 @@ What we NEVER share:
   - Personal information
   - Memory data
 
-Disable anytime: /feedback opt-out
+Disable anytime: /ork:feedback opt-out
 ```
 
 ## opt-out
@@ -687,7 +687,7 @@ Anonymous analytics sharing disabled.
 Your feedback data stays completely local.
 No usage data is shared.
 
-Re-enable anytime: /feedback opt-in
+Re-enable anytime: /ork:feedback opt-in
 ```
 
 ## privacy
@@ -735,10 +735,10 @@ WHAT WE NEVER COLLECT
 YOUR RIGHTS
 ────────────────────────────────────────────────────────────────────
 
-  • Opt-out anytime:     /feedback opt-out
-  • View your data:      /feedback export-analytics
-  • Check status:        /feedback status
-  • View this policy:    /feedback privacy
+  • Opt-out anytime:     /ork:feedback opt-out
+  • View your data:      /ork:feedback export-analytics
+  • Check status:        /ork:feedback status
+  • View this policy:    /ork:feedback privacy
 ```
 
 ## export-analytics
@@ -747,7 +747,7 @@ Export anonymous analytics data to a file for review before sharing.
 
 **Usage:**
 ```
-/feedback export-analytics [path]
+/ork:feedback export-analytics [path]
 ```
 
 If no path is provided, exports to `.claude/feedback/analytics-exports/` with a timestamp.

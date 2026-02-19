@@ -289,7 +289,7 @@ export function trackEvent(
 
     ensureSessionDir();
     const eventsPath = getEventsPath();
-    bufferWrite(eventsPath, JSON.stringify(event) + '\n');
+    bufferWrite(eventsPath, `${JSON.stringify(event)}\n`);
 
     logHook('session-tracker', `Tracked ${eventType}: ${name}`, 'debug');
   } catch (error) {
@@ -429,6 +429,8 @@ export interface SessionContext {
   git_branch?: string;
   /** Time of day category */
   time_of_day?: 'morning' | 'afternoon' | 'evening' | 'night';
+  /** CC 2.1.47: Number of /add-dir directories active */
+  added_dirs_count?: number;
   /** Timestamp */
   started_at: string;
 }
@@ -606,7 +608,7 @@ export function generateSessionSummary(sessionId?: string): SessionSummary {
  */
 function truncate(str: string, maxLen: number): string {
   if (str.length <= maxLen) return str;
-  return str.slice(0, maxLen - 3) + '...';
+  return `${str.slice(0, maxLen - 3)}...`;
 }
 
 /**

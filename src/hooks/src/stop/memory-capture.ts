@@ -17,6 +17,17 @@ import { outputSilentSuccess, logHook, getProjectDir } from '../lib/common.js';
 import { getTotalTools } from '../lib/metrics.js';
 
 /**
+ * Classify session outcome from last assistant message (CC 2.1.47)
+ */
+function classifySessionOutcome(msg: string): 'question' | 'summary' | 'code' | 'unknown' {
+  const trimmed = msg.trimEnd();
+  if (trimmed.endsWith('?')) return 'question';
+  if (trimmed.includes('```')) return 'code';
+  if (/\b(completed|summary|done|finished|implemented|fixed)\b/i.test(trimmed)) return 'summary';
+  return 'unknown';
+}
+
+/**
  * Auto-capture session summary to ~/.claude/memory/decisions.jsonl
  * Only fires when session had meaningful work (>20 tools)
  */
@@ -38,13 +49,19 @@ export function memoryCapture(input: HookInput): HookResult {
       mkdirSync(memoryDir, { recursive: true });
     }
 
+    const lastMsg = input.last_assistant_message;
     const record = {
       ts: new Date().toISOString(),
       pid: input.session_id?.slice(0, 12) ?? 'unknown',
       total_tools: totalTools,
       cwd: projectDir,
+      added_dirs_count: (input.added_dirs ?? []).length,
       auto_captured: true,
       summary: `Session with ${totalTools} tool calls`,
+      ...(lastMsg !== undefined && {
+        last_assistant_message: lastMsg.slice(0, 500) + (lastMsg.length > 500 ? '...' : ''),
+        session_outcome: classifySessionOutcome(lastMsg),
+      }),
     };
 
     const decisionsFile = join(memoryDir, 'decisions.jsonl');
@@ -52,7 +69,7 @@ export function memoryCapture(input: HookInput): HookResult {
     if (existsSync(decisionsFile) && statSync(decisionsFile).size > 500 * 1024) {
       renameSync(decisionsFile, `${decisionsFile}.old.${Date.now()}`);
     }
-    appendFileSync(decisionsFile, JSON.stringify(record) + '\n');
+    appendFileSync(decisionsFile, `${JSON.stringify(record)}\n`);
     logHook('memory-capture', `Captured session summary (${totalTools} tools) to decisions.jsonl`);
   } catch (error) {
     logHook('memory-capture', `Error capturing memory: ${error}`, 'warn');

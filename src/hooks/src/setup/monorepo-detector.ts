@@ -63,6 +63,12 @@ function countNestedPackageJsons(projectDir: string): number {
 export function monorepoDetector(input: HookInput): HookResult {
   logHook('monorepo-detector', 'Checking for monorepo structure');
 
+  // CC 2.1.47: Skip if user already added directories via --add-dir
+  if (input.added_dirs && input.added_dirs.length > 0) {
+    logHook('monorepo-detector', `Skipping: ${input.added_dirs.length} added_dirs already active`);
+    return outputSilentSuccess();
+  }
+
   // Skip if env var already set
   if (process.env.CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD === '1') {
     logHook('monorepo-detector', 'CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD already set, skipping');

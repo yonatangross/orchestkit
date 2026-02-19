@@ -33,7 +33,7 @@ vi.mock('../../lib/paths.js', () => ({
 }));
 
 import { appendFileSync, mkdirSync, statSync, renameSync } from 'node:fs';
-import { hashProject, appendAnalytics, getTeamContext, rotateIfNeeded } from '../../lib/analytics.js';
+import { hashProject, appendAnalytics, getTeamContext, rotateIfNeeded, isTestEnv } from '../../lib/analytics.js';
 
 describe('analytics', () => {
   const originalEnv = process.env;
@@ -126,6 +126,12 @@ describe('analytics', () => {
   });
 
   describe('appendAnalytics', () => {
+    beforeEach(() => {
+      // Remove test-env guard so we can test the actual write path
+      delete process.env.VITEST;
+      delete process.env.JEST_WORKER_ID;
+    });
+
     it('creates the analytics directory and appends JSONL', () => {
       appendAnalytics('agent-usage.jsonl', { agent: 'test-agent', duration_ms: 100 });
 
@@ -205,6 +211,40 @@ describe('analytics', () => {
       appendAnalytics('agent-usage.jsonl', { agent: 'test' });
       // statSync should have been called (rotation check)
       expect(statSync).toHaveBeenCalled();
+    });
+
+    it('is a no-op when VITEST env var is set', () => {
+      process.env.VITEST = 'true';
+      appendAnalytics('agent-usage.jsonl', { agent: 'test' });
+      expect(mkdirSync).not.toHaveBeenCalled();
+      expect(appendFileSync).not.toHaveBeenCalled();
+    });
+
+    it('is a no-op when JEST_WORKER_ID env var is set', () => {
+      delete process.env.VITEST;
+      process.env.JEST_WORKER_ID = '1';
+      appendAnalytics('agent-usage.jsonl', { agent: 'test' });
+      expect(mkdirSync).not.toHaveBeenCalled();
+      expect(appendFileSync).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('isTestEnv', () => {
+    it('returns true when VITEST is set', () => {
+      process.env.VITEST = 'true';
+      expect(isTestEnv()).toBe(true);
+    });
+
+    it('returns true when JEST_WORKER_ID is set', () => {
+      delete process.env.VITEST;
+      process.env.JEST_WORKER_ID = '1';
+      expect(isTestEnv()).toBe(true);
+    });
+
+    it('returns false when neither test env var is set', () => {
+      delete process.env.VITEST;
+      delete process.env.JEST_WORKER_ID;
+      expect(isTestEnv()).toBe(false);
     });
   });
 });

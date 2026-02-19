@@ -1,0 +1,123 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "pipeline-state.schema.json",
+  "title": "PipelineState",
+  "description": "Checkpoint state for the checkpoint-resume skill. Written to .claude/pipeline-state.json after each phase completes.",
+  "type": "object",
+  "required": ["completed_phases", "current_phase", "remaining_phases", "context_summary", "created_at", "updated_at"],
+  "additionalProperties": false,
+  "properties": {
+    "completed_phases": {
+      "type": "array",
+      "description": "Phases that have finished successfully, in completion order.",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "timestamp"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique phase identifier (e.g. 'phase-1', 'create-issues')."
+          },
+          "name": {
+            "type": "string",
+            "description": "Human-readable phase name."
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "ISO 8601 UTC timestamp when the phase completed."
+          },
+          "commit_sha": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{7,40}$",
+            "description": "Git commit SHA produced by this phase, if any."
+          }
+        }
+      }
+    },
+    "current_phase": {
+      "type": "object",
+      "description": "The phase currently being executed. Null when the pipeline is complete.",
+      "required": ["id", "name", "progress_description"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique phase identifier."
+        },
+        "name": {
+          "type": "string",
+          "description": "Human-readable phase name."
+        },
+        "progress_description": {
+          "type": "string",
+          "description": "Free-text description of what has been done so far within this phase."
+        }
+      }
+    },
+    "remaining_phases": {
+      "type": "array",
+      "description": "Phases not yet started, in intended execution order.",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "dependencies"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique phase identifier."
+          },
+          "name": {
+            "type": "string",
+            "description": "Human-readable phase name."
+          },
+          "dependencies": {
+            "type": "array",
+            "description": "IDs of phases that must complete before this phase can start.",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          }
+        }
+      }
+    },
+    "context_summary": {
+      "type": "object",
+      "description": "Snapshot of key context to restore after a rate-limit interruption.",
+      "required": ["branch", "key_decisions", "file_paths"],
+      "additionalProperties": false,
+      "properties": {
+        "branch": {
+          "type": "string",
+          "description": "Git branch the pipeline is running on."
+        },
+        "key_decisions": {
+          "type": "array",
+          "description": "Important decisions made during the pipeline (e.g. 'used postgres not mongo').",
+          "items": {
+            "type": "string"
+          }
+        },
+        "file_paths": {
+          "type": "array",
+          "description": "Absolute paths of files created or significantly modified so far.",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 UTC timestamp when the pipeline was first created."
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 UTC timestamp of the most recent state write."
+    }
+  }
+}

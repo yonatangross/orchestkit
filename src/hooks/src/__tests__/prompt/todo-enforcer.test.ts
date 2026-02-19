@@ -258,7 +258,7 @@ describe('prompt/todo-enforcer', () => {
 
     test('detects complex when both pattern and length match', () => {
       // Arrange
-      const input = createPromptInput('implement ' + 'a'.repeat(500)); // Both
+      const input = createPromptInput(`implement ${'a'.repeat(500)}`); // Both
 
       // Act
       todoEnforcer(input);
@@ -282,7 +282,7 @@ describe('prompt/todo-enforcer', () => {
       ['simple prompt', 'What is the weather?'],
       ['complex keyword', 'implement user authentication'],
       ['long prompt', 'a'.repeat(600)],
-      ['both complex', 'implement ' + 'a'.repeat(500)],
+      ['both complex', `implement ${'a'.repeat(500)}`],
     ])('always returns continue: true for %s', (_, prompt) => {
       // Arrange
       const input = createPromptInput(prompt);

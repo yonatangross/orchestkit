@@ -35,7 +35,7 @@ function setupTestDir(): string {
 
 function writeDecisions(dir: string, decisions: Array<Record<string, unknown>>): void {
   const path = join(dir, '.claude', 'memory', 'decisions.jsonl');
-  writeFileSync(path, decisions.map(d => JSON.stringify(d)).join('\n') + '\n');
+  writeFileSync(path, `${decisions.map(d => JSON.stringify(d)).join('\n')}\n`);
 }
 
 // =============================================================================
@@ -162,12 +162,12 @@ describe('E2E: Memory System Lifecycle', () => {
   describe('Phase 3: Corrupt data detection via analyzeJsonlFile', () => {
     it('detects corrupt lines in decisions', () => {
       const decisionsPath = join(testDir, '.claude', 'memory', 'decisions.jsonl');
-      writeFileSync(decisionsPath, [
+      writeFileSync(decisionsPath, `${[
         JSON.stringify({ type: 'decision', content: { what: 'Valid' } }),
         'NOT VALID JSON',
         JSON.stringify({ type: 'decision', content: { what: 'Also valid' } }),
         '{broken json...',
-      ].join('\n') + '\n');
+      ].join('\n')}\n`);
 
       const analysis = analyzeJsonlFile(decisionsPath);
       expect(analysis.exists).toBe(true);
@@ -177,11 +177,11 @@ describe('E2E: Memory System Lifecycle', () => {
 
     it('analyzeJsonlFile returns correct metrics for mixed content', () => {
       const filePath = join(testDir, '.claude', 'memory', 'test.jsonl');
-      writeFileSync(filePath, [
+      writeFileSync(filePath, `${[
         JSON.stringify({ valid: true }),
         'corrupt',
         JSON.stringify({ valid: true }),
-      ].join('\n') + '\n');
+      ].join('\n')}\n`);
 
       const health = analyzeJsonlFile(filePath);
       expect(health.exists).toBe(true);
@@ -207,7 +207,7 @@ describe('E2E: Memory System Lifecycle', () => {
         timestamp: new Date().toISOString(),
       }));
       const queuePath = join(testDir, '.claude', 'memory', 'graph-queue.jsonl');
-      writeFileSync(queuePath, manyOps.map(o => JSON.stringify(o)).join('\n') + '\n');
+      writeFileSync(queuePath, `${manyOps.map(o => JSON.stringify(o)).join('\n')}\n`);
 
       // Metrics should reflect queue depth
       const metrics = collectMemoryMetrics(testDir);
@@ -244,7 +244,7 @@ describe('E2E: Memory System Lifecycle', () => {
 
     it('handles graph queue with mixed valid and corrupt lines', () => {
       const queuePath = join(testDir, '.claude', 'memory', 'graph-queue.jsonl');
-      writeFileSync(queuePath, [
+      writeFileSync(queuePath, `${[
         JSON.stringify({
           type: 'create_entities',
           payload: { entities: [{ name: 'Valid', entityType: 'Tech', observations: ['ok'] }] },
@@ -256,7 +256,7 @@ describe('E2E: Memory System Lifecycle', () => {
           payload: { entities: [{ name: 'AlsoValid', entityType: 'Tech', observations: ['ok'] }] },
           timestamp: new Date().toISOString(),
         }),
-      ].join('\n') + '\n');
+      ].join('\n')}\n`);
 
       // analyzeJsonlFile should detect the corrupt line
       const health = analyzeJsonlFile(queuePath);

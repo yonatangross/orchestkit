@@ -5,8 +5,8 @@
  * @see https://docs.anthropic.com/en/docs/claude-code/hooks
  */
 import { describe, it, expect, beforeAll } from 'vitest';
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 
 interface Hook {
   type: string;
@@ -69,7 +69,7 @@ describe('Async Hooks Registry', () => {
       }
     });
 
-    it('should have exactly 8 async hooks', () => {
+    it('should have exactly 9 async hooks', () => {
       const allHooks: Hook[] = [];
       for (const eventGroups of Object.values(hooksConfig.hooks)) {
         for (const group of eventGroups) {
@@ -78,7 +78,7 @@ describe('Async Hooks Registry', () => {
       }
 
       const asyncHooks = allHooks.filter(h => h.async === true);
-      expect(asyncHooks.length, 'Should have exactly 8 async hooks').toBe(8);
+      expect(asyncHooks.length, 'Should have exactly 9 async hooks (8 original + pr-status-enricher)').toBe(9);
     });
 
     it('should NOT have async: true for blocking hooks', () => {

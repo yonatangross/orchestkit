@@ -32,7 +32,7 @@ vi.mock('../../lib/task-integration.js', () => ({
 
 import { taskCompletionCheck } from '../../stop/task-completion-check.js';
 import { existsSync, readFileSync } from 'node:fs';
-import { logHook, outputSilentSuccess, outputWithContext, getProjectDir, getSessionId } from '../../lib/common.js';
+import { logHook, outputSilentSuccess, outputWithContext, } from '../../lib/common.js';
 import { getOrphanedTasks, formatTaskDeleteForClaude } from '../../lib/task-integration.js';
 import type { HookInput } from '../../types.js';
 
@@ -40,7 +40,7 @@ describe('Task Completion Check Hook', () => {
   const mockExistsSync = vi.mocked(existsSync);
   const mockReadFileSync = vi.mocked(readFileSync);
   const mockLogHook = vi.mocked(logHook);
-  const mockOutputSilentSuccess = vi.mocked(outputSilentSuccess);
+  const _mockOutputSilentSuccess = vi.mocked(outputSilentSuccess);
   const mockOutputWithContext = vi.mocked(outputWithContext);
   const mockGetOrphanedTasks = vi.mocked(getOrphanedTasks);
   const mockFormatTaskDeleteForClaude = vi.mocked(formatTaskDeleteForClaude);
@@ -131,7 +131,7 @@ describe('Task Completion Check Hook', () => {
       mockGetOrphanedTasks.mockReturnValue([]);
 
       // Act
-      const result = taskCompletionCheck(defaultInput);
+      const _result = taskCompletionCheck(defaultInput);
 
       // Assert
       expect(mockLogHook).toHaveBeenCalledWith(
@@ -203,7 +203,7 @@ describe('Task Completion Check Hook', () => {
       mockFormatTaskDeleteForClaude.mockReturnValue('TaskUpdate({ taskId: "task-1", status: "deleted" })');
 
       // Act
-      const result = taskCompletionCheck(defaultInput);
+      const _result = taskCompletionCheck(defaultInput);
 
       // Assert
       expect(mockLogHook).toHaveBeenCalledWith(
@@ -248,7 +248,7 @@ describe('Task Completion Check Hook', () => {
       mockGetOrphanedTasks.mockReturnValue([]);
 
       // Act
-      const result = taskCompletionCheck(defaultInput);
+      const _result = taskCompletionCheck(defaultInput);
 
       // Assert
       expect(mockLogHook).toHaveBeenCalledWith(
@@ -267,7 +267,7 @@ describe('Task Completion Check Hook', () => {
       mockGetOrphanedTasks.mockReturnValue([]);
 
       // Act
-      const result = taskCompletionCheck(defaultInput);
+      const _result = taskCompletionCheck(defaultInput);
 
       // Assert
       expect(mockLogHook).toHaveBeenCalledWith(

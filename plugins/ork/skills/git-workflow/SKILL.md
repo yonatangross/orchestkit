@@ -1,7 +1,7 @@
 ---
 name: git-workflow
 license: MIT
-compatibility: "Claude Code 2.1.34+. Requires gh CLI."
+compatibility: "Claude Code 2.1.47+. Requires gh CLI."
 author: OrchestKit
 description: Complete git workflow patterns including GitHub Flow branching, atomic commits with interactive staging, merge and rebase strategies, and recovery operations using reflog. Essential patterns for clean history. Use when managing branches, defining branching strategy, or recovering git history.
 argument-hint: "[subcommand]"
@@ -173,10 +173,10 @@ Avoid:
 
 ## Related Skills
 
-- `commit` - Create commits with conventional format and pre-commit validation
+- `ork:commit` - Create commits with conventional format and pre-commit validation
 - `git-recovery` - Quick recovery from common git mistakes using reflog operations
 - `stacked-prs` - Multi-PR development for large features with dependent PRs
-- `create-pr` - Comprehensive PR creation with proper formatting
+- `ork:create-pr` - Comprehensive PR creation with proper formatting
 
 ## Key Decisions
 

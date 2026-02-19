@@ -1,0 +1,423 @@
+---
+title: "Checkpoint Resume"
+description: "Rate-limit-resilient pipeline with checkpoint/resume for long multi-phase sessions. Saves progress to .claude/pipeline-state.json after each phase. Use when starting a complex multi-phase task that risks hitting rate limits, when resuming an interrupted session, or when orchestrating work spanning commits, GitHub issues, and large file changes."
+---
+
+<span className="badge badge-blue">Command</span> <span className="badge badge-orange">high</span>
+
+
+# Checkpoint Resume
+
+Rate-limit-resilient pipeline orchestrator. Saves progress to `.claude/pipeline-state.json` after every phase so long sessions survive interruptions.
+
+## Quick Reference
+
+| Category | Rule | Impact | Key Pattern |
+|----------|------|--------|-------------|
+| Phase Ordering | `rules/ordering-priority.md` | CRITICAL | GitHub issues/commits first, file-heavy phases last |
+| State Writes | `rules/state-write-timing.md` | CRITICAL | Write after every phase, never batch |
+| Mini-Commits | `rules/checkpoint-mini-commit.md` | HIGH | Every 3 phases, checkpoint commit format |
+
+**Total: 3 rules across 3 categories**
+
+## On Invocation
+
+**If `.claude/pipeline-state.json` exists:** run `scripts/show-status.sh` to display progress, then ask to resume, pick a different phase, or restart. See `references/resume-decision-tree.md` for the full decision tree.
+
+**If no state file exists:** ask the user to describe the task, build an execution plan, write initial state via `scripts/init-pipeline.sh &lt;branch&gt;`, begin Phase 1.
+
+## Execution Plan Structure
+
+```json
+{
+  "phases": [
+    { "id": "create-issues", "name": "Create GitHub Issues", "dependencies": [], "status": "pending" },
+    { "id": "commit-scaffold", "name": "Commit Scaffold", "dependencies": [], "status": "pending" },
+    { "id": "write-source", "name": "Write Source Files", "dependencies": ["commit-scaffold"], "status": "pending" }
+  ]
+}
+```
+
+Phases with empty `dependencies` may run in parallel via Task sub-agents (when they don't share file writes).
+
+## After Each Phase
+
+1. Update `.claude/pipeline-state.json` — see `rules/state-write-timing.md`
+2. Every 3 phases: create a mini-commit — see `rules/checkpoint-mini-commit.md`
+
+## References
+
+- [Pipeline State Schema](references/pipeline-state-schema.md) — full field-by-field schema with examples
+- [Pipeline State JSON Schema](references/pipeline-state.schema.json) — machine-readable JSON Schema for validation
+- [Resume Decision Tree](references/resume-decision-tree.md) — logic for resuming, picking phases, or restarting
+
+## Scripts
+
+- `scripts/init-pipeline.sh &lt;branch&gt;` — print skeleton state JSON to stdout
+- `scripts/show-status.sh [path]` — print human-readable pipeline status (requires `jq`)
+
+## Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Phase granularity | One meaningful deliverable per phase (a commit, a set of issues, a feature) |
+| Parallelism | Task sub-agents only for phases with empty `dependencies` that don't share file writes |
+| Rate limit recovery | State is already saved — re-invoke `/checkpoint-resume` to continue |
+
+
+---
+
+## Rules (3)
+
+### Checkpoint Mini-Commit — HIGH
+
+
+## Checkpoint Mini-Commit
+
+Every 3 completed phases, create a mini-commit that captures work in progress. This provides a git recovery point even if later phases fail.
+
+**When to commit:**
+
+```
+Phase 1 done → state write only
+Phase 2 done → state write only
+Phase 3 done → state write + mini-commit  ← checkpoint
+Phase 4 done → state write only
+Phase 5 done → state write only
+Phase 6 done → state write + mini-commit  ← checkpoint
+```
+
+**Mini-commit format:**
+```bash
+git add -A
+git commit -m "checkpoint: phases N-M complete
+
+Completed:
+- Phase N: <name>
+- Phase N+1: <name>
+- Phase N+2: <name>
+
+Remaining: <count> phases
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+```
+
+**Incorrect — one giant commit at the end:**
+```bash
+# Do 12 phases of work...
+git add -A
+git commit -m "feat: complete all pipeline work"
+# If phases 10-12 fail, no checkpoint exists
+```
+
+**Correct — checkpoint every 3 phases:**
+```bash
+# After phase 3
+git commit -m "checkpoint: phases 1-3 complete\n\nCo-Authored-By: Claude <noreply@anthropic.com>"
+# After phase 6
+git commit -m "checkpoint: phases 4-6 complete\n\nCo-Authored-By: Claude <noreply@anthropic.com>"
+```
+
+**Key rules:**
+- Count is based on completed phases in the current pipeline run, not total commits
+- Stage everything (`git add -A`) — the checkpoint captures full work-in-progress state
+- Never skip a checkpoint because "almost done" — rate limits don't warn first
+- Include Co-Authored-By attribution in every checkpoint commit
+
+
+### Phase Ordering Priority — CRITICAL
+
+
+## Phase Ordering Priority
+
+When a rate limit hits, work done in the current session is lost. Order phases so the hardest-to-reconstruct work finishes first.
+
+**Priority order (highest → lowest value if lost):**
+
+1. GitHub issue creation (lost = no tracking, no auto-close links)
+2. Git commits with code changes (lost = untracked work)
+3. File creation / large edits (recoverable from context)
+4. Documentation / reference updates (lowest risk to lose last)
+
+**Incorrect — file-heavy phases scheduled before issue creation:**
+```json
+{
+  "phases": [
+    { "id": "write-files", "name": "Write all source files" },
+    { "id": "create-issues", "name": "Create GitHub issues" },
+    { "id": "commit", "name": "Commit changes" }
+  ]
+}
+```
+
+**Correct — issues and commits scheduled first:**
+```json
+{
+  "phases": [
+    { "id": "create-issues", "name": "Create GitHub issues" },
+    { "id": "commit-scaffold", "name": "Commit initial scaffold" },
+    { "id": "write-files", "name": "Write all source files" },
+    { "id": "commit-final", "name": "Commit completed work" }
+  ]
+}
+```
+
+**Key rules:**
+- Always schedule `gh issue create` calls in the first phase
+- Commits with `Closes #N` references come second — they link issues
+- Independent phases with no shared dependencies run in parallel via Task sub-agents
+- Never defer issue creation to "after the code is done"
+
+
+### State Write Timing — CRITICAL
+
+
+## State Write Timing
+
+Write `.claude/pipeline-state.json` immediately after every phase completes. Never accumulate updates.
+
+**Incorrect — batching state writes to the end:**
+```javascript
+// Run all phases, then save state once
+for (const phase of phases) {
+  await runPhase(phase);
+}
+await writeState({ completed_phases: phases }); // Lost if interrupted!
+```
+
+**Correct — write state after every phase:**
+```javascript
+for (const phase of phases) {
+  await runPhase(phase);
+  // Write immediately — before starting next phase
+  await writeState({
+    completed_phases: [...prev.completed_phases, { ...phase, timestamp: new Date().toISOString() }],
+    current_phase: nextPhase,
+    remaining_phases: phasesAfterNext,
+    updated_at: new Date().toISOString()
+  });
+}
+```
+
+**State write checklist (after each phase):**
+- [ ] Move completed phase into `completed_phases` with `timestamp`
+- [ ] Add `commit_sha` if the phase produced a git commit
+- [ ] Set `current_phase` to the next pending phase
+- [ ] Remove completed phase from `remaining_phases`
+- [ ] Update `updated_at`
+- [ ] Update `context_summary.file_paths` with any new files created
+
+**Key rules:**
+- Write state BEFORE starting the next phase, not after
+- Never batch multiple phase completions into one write
+- If a phase produces a commit, capture the SHA: `git rev-parse --short HEAD`
+- The state file is the source of truth for resume — it must be current
+
+
+
+---
+
+## References (2)
+
+### Pipeline State Schema
+
+# Pipeline State Schema
+
+The pipeline state file (`.claude/pipeline-state.json`) is the source of truth for checkpoint/resume. It is validated against `.claude/schemas/pipeline-state.schema.json`.
+
+## Top-Level Shape
+
+```json
+{
+  "completed_phases": [...],
+  "current_phase": {...},
+  "remaining_phases": [...],
+  "context_summary": {...},
+  "created_at": "2026-02-19T10:00:00Z",
+  "updated_at": "2026-02-19T10:45:00Z"
+}
+```
+
+## completed_phases
+
+Array of phases that finished successfully. Append-only — never remove entries.
+
+```json
+{
+  "id": "create-issues",
+  "name": "Create GitHub Issues",
+  "timestamp": "2026-02-19T10:05:00Z",
+  "commit_sha": "a1b2c3d"   // optional — only if phase produced a commit
+}
+```
+
+## current_phase
+
+The phase actively being executed. `progress_description` is a free-text note describing partial work done so far within this phase — helps resume after interruption.
+
+```json
+{
+  "id": "write-source",
+  "name": "Write Source Files",
+  "progress_description": "Completed auth module, starting billing module"
+}
+```
+
+Set `current_phase` to `null` when all phases are done.
+
+## remaining_phases
+
+Ordered list of phases not yet started. Remove a phase from here when it moves to `current_phase`.
+
+```json
+{
+  "id": "final-commit",
+  "name": "Final Commit",
+  "dependencies": ["write-source", "write-tests"]
+}
+```
+
+`dependencies`: IDs of phases that must complete before this one. Empty array = can run immediately or in parallel.
+
+## context_summary
+
+Compact context snapshot for restoring session state after interruption.
+
+```json
+{
+  "branch": "feat/issue-42-new-feature",
+  "key_decisions": [
+    "Used postgres not mongo for user storage",
+    "Chose REST over GraphQL for external API"
+  ],
+  "file_paths": [
+    "/Users/dev/project/src/auth/login.ts",
+    "/Users/dev/project/src/billing/invoice.ts"
+  ]
+}
+```
+
+Update `file_paths` each time a phase creates or significantly modifies files.
+
+## Full Example
+
+```json
+{
+  "completed_phases": [
+    {
+      "id": "create-issues",
+      "name": "Create GitHub Issues",
+      "timestamp": "2026-02-19T10:05:00Z"
+    },
+    {
+      "id": "scaffold-commit",
+      "name": "Commit Initial Scaffold",
+      "timestamp": "2026-02-19T10:20:00Z",
+      "commit_sha": "a1b2c3d"
+    }
+  ],
+  "current_phase": {
+    "id": "write-source",
+    "name": "Write Source Files",
+    "progress_description": "auth module done, starting billing"
+  },
+  "remaining_phases": [
+    {
+      "id": "write-tests",
+      "name": "Write Tests",
+      "dependencies": ["write-source"]
+    },
+    {
+      "id": "final-commit",
+      "name": "Final Commit",
+      "dependencies": ["write-source", "write-tests"]
+    }
+  ],
+  "context_summary": {
+    "branch": "feat/issue-42-dashboard",
+    "key_decisions": ["REST over GraphQL", "Postgres for storage"],
+    "file_paths": ["/project/src/auth/login.ts"]
+  },
+  "created_at": "2026-02-19T10:00:00Z",
+  "updated_at": "2026-02-19T10:22:00Z"
+}
+```
+
+
+### Resume Decision Tree
+
+# Resume Decision Tree
+
+Use this decision tree when `/checkpoint-resume` is invoked to determine the correct action.
+
+## On Invocation
+
+```
+Does .claude/pipeline-state.json exist?
+│
+├── NO → Ask user to describe the multi-phase task
+│         → Build execution plan
+│         → Write initial state file
+│         → Begin Phase 1
+│
+└── YES → Read the state file
+          → Show resume summary (see format below)
+          → Ask: "Resume from [current_phase.name]? (y/n/restart)"
+          │
+          ├── y → Continue from current_phase
+          │        (respect progress_description for partial phases)
+          │
+          ├── n → Ask: "Abandon pipeline or pick a different phase?"
+          │        ├── abandon → Delete state file, start fresh
+          │        └── pick    → List remaining_phases, let user choose
+          │
+          └── restart → Confirm with user → Delete state file → restart
+```
+
+## Resume Summary Format
+
+Show this before asking the user to confirm:
+
+```
+Pipeline: <task description from context_summary or phases>
+Branch: <context_summary.branch>
+
+Completed (N phases):
+  ✓ Phase 1: Create GitHub Issues  (10:05)
+  ✓ Phase 2: Commit Scaffold       (10:20, sha: a1b2c3d)
+
+In progress:
+  → Phase 3: Write Source Files
+    Progress: auth module done, starting billing
+
+Remaining (M phases):
+  · Phase 4: Write Tests
+  · Phase 5: Final Commit
+
+Resume from "Write Source Files"? (y/n/restart)
+```
+
+## When State File is Corrupted
+
+If `.claude/pipeline-state.json` fails JSON parse or schema validation:
+
+1. Warn the user: "State file is malformed"
+2. Show raw content so user can assess what was completed
+3. Ask: "Attempt manual recovery or start fresh?"
+4. Do NOT silently overwrite — the file may contain the only record of completed work
+
+## Parallel Phase Execution
+
+Phases with empty `dependencies` arrays can run concurrently via Task sub-agents:
+
+```
+Phase A (dependencies: [])  ─┐
+Phase B (dependencies: [])  ─┤─ Run in parallel via Task
+Phase C (dependencies: [A]) ─┘─ Wait for A, then run
+```
+
+Only parallelize when:
+- Both phases have empty or satisfied `dependencies`
+- Phases do NOT write to the same files
+- Phases do NOT both run `git commit` (would cause conflicts)
+

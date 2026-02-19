@@ -162,7 +162,7 @@ export function agentMemoryStore(input: HookInput): HookResult {
   logHook('agent-memory-store', 'Agent memory store hook starting');
 
   const toolInput = input.tool_input || {};
-  let agentType = input.subagent_type || (toolInput.subagent_type as string) || (toolInput.type as string) || '';
+  const agentType = input.subagent_type || (toolInput.subagent_type as string) || (toolInput.type as string) || '';
   const rawResult = input.tool_result;
   const agentOutput = typeof rawResult === 'string'
     ? rawResult
@@ -236,7 +236,7 @@ export function agentMemoryStore(input: HookInput): HookResult {
     };
 
     try {
-      bufferWrite(patternsLog, JSON.stringify(entry) + '\n');
+      bufferWrite(patternsLog, `${JSON.stringify(entry)}\n`);
     } catch {
       // Ignore
     }

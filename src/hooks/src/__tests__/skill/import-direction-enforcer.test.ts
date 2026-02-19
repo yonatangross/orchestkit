@@ -268,7 +268,7 @@ describe('import-direction-enforcer', () => {
       ['lib', '/src/lib/api.ts', 'import { Page } from "@/app/page"'],
       ['utils', '/src/utils/helpers.ts', 'import { Auth } from "@/features/auth"'],
       ['utils', '/src/utils/helpers.ts', 'import { App } from "@/app/main"'],
-    ])('%s layer blocks import from features/app: %s', (layer, path, content) => {
+    ])('%s layer blocks import from features/app: %s', (_layer, path, content) => {
       // Arrange
       const input = createWriteInput(path, content);
 
@@ -285,7 +285,7 @@ describe('import-direction-enforcer', () => {
       ['components', '/src/components/Modal.tsx', 'import { Layout } from "@/app/layout"'],
       ['hooks', '/src/hooks/useData.ts', 'import { Feature } from "@/features/data"'],
       ['hooks', '/src/hooks/useAuth.ts', 'import { Page } from "@/app/page"'],
-    ])('%s layer blocks import from features/app: %s', (layer, path, content) => {
+    ])('%s layer blocks import from features/app: %s', (_layer, path, content) => {
       // Arrange
       const input = createWriteInput(path, content);
 
@@ -341,7 +341,7 @@ describe('import-direction-enforcer', () => {
       ['features -> lib', '/src/features/data/Data.tsx', 'import { api } from "@/lib/api"'],
       ['app -> features', '/src/app/page.tsx', 'import { Auth } from "@/features/auth"'],
       ['app -> components', '/src/app/layout.tsx', 'import { Nav } from "@/components/Nav"'],
-    ])('allows %s import', (desc, path, content) => {
+    ])('allows %s import', (_desc, path, content) => {
       // Arrange
       const input = createWriteInput(path, content);
 

@@ -229,7 +229,7 @@ export function updateProblemStatus(
     });
 
     if (updated) {
-      writeFileSync(filePath, newLines.join('\n') + '\n');
+      writeFileSync(filePath, `${newLines.join('\n')}\n`);
     }
 
     return updated;
@@ -251,7 +251,7 @@ export function storeProblemSolutionPair(pair: ProblemSolutionPair): boolean {
       mkdirSync(dir, { recursive: true });
     }
 
-    const line = JSON.stringify(pair) + '\n';
+    const line = `${JSON.stringify(pair)}\n`;
     writeFileSync(filePath, line, { flag: 'a' });
 
     logHook(

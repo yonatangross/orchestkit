@@ -1,7 +1,7 @@
 ---
 name: analytics
 license: MIT
-compatibility: "Claude Code 2.1.34+."
+compatibility: "Claude Code 2.1.47+."
 author: OrchestKit
 description: "Query cross-project usage analytics. Use when reviewing agent, skill, hook, or team performance across OrchestKit projects. Also replay sessions, estimate costs, and view model delegation trends."
 argument-hint: "[agents|models|skills|hooks|teams|session|cost|trends|summary]"
@@ -109,7 +109,7 @@ Present results as clean markdown tables. Include counts, percentages, and avera
 
 ## Related Skills
 
-- `explore` - Codebase exploration and analysis
-- `feedback` - Capture user feedback
-- `remember` - Store project knowledge
-- `doctor` - Health check diagnostics
+- `ork:explore` - Codebase exploration and analysis
+- `ork:feedback` - Capture user feedback
+- `ork:remember` - Store project knowledge
+- `ork:doctor` - Health check diagnostics

@@ -14,7 +14,7 @@ Interactive setup for customizing your OrchestKit installation.
 ## Quick Start
 
 ```bash
-/configure
+/ork:configure
 ```
 
 ## Step 1: Choose Preset
@@ -175,6 +175,27 @@ Enable monorepo detection? [Y/n]: y
 
 Detects monorepo indicators and suggests `--add-dir` usage.
 
+> **CC 2.1.47**: When `added_dirs` are already active, the monorepo detector automatically skips the `--add-dir` suggestion. The `added_dirs` field is now available in hook inputs for multi-directory awareness.
+
+### Team Plugin Distribution (CC 2.1.45+)
+
+Share OrchestKit across a team using a shared directory:
+
+```bash
+# Create shared plugin directory
+mkdir -p /shared/team/plugins/orchestkit
+
+# Copy plugin files
+cp -r plugins/ork/* /shared/team/plugins/orchestkit/
+
+# Team members use --add-dir to pick up the shared plugin
+claude --add-dir /shared/team/plugins
+```
+
+CC 2.1.45+ supports `plugin_hot_reload` — team members get updates without restarting their sessions.
+
+> **`enabledPlugins` vs `added_dirs`**: `enabledPlugins` is a CC-internal concept and is NOT exposed to hooks. The hook-accessible field for multi-directory awareness is `added_dirs` (available in `HookInput` since CC 2.1.47). Hooks can read `input.added_dirs` to detect which additional directories are active — useful for adapting behavior in multi-repo workspaces.
+
 ## Step 8: CC 2.1.23 Settings
 
 Configure CC 2.1.23-specific features:
@@ -287,7 +308,7 @@ Save to: `~/.claude/plugins/orchestkit/config.json`
 ```
 
 ## Related Skills
-- doctor: Diagnose configuration issues
+- `ork:doctor`: Diagnose configuration issues
 ## References
 
 - [Presets](references/presets.md)

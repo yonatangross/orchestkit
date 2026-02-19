@@ -1,7 +1,7 @@
 ---
 name: release-management
 license: MIT
-compatibility: "Claude Code 2.1.34+. Requires gh CLI."
+compatibility: "Claude Code 2.1.47+. Requires gh CLI."
 description: GitHub release workflow with semantic versioning, changelogs, and release automation using gh CLI. Use when creating releases, tagging versions, or publishing changelogs.
 context: fork
 version: 1.0.0
@@ -324,8 +324,8 @@ Usage:
 
 ## Related Skills
 
-- github-operations: Milestones, issues, and CLI reference
-- git-workflow: Branching and recovery patterns
+- `ork:github-operations`: Milestones, issues, and CLI reference
+- `ork:git-workflow`: Branching and recovery patterns
 
 ## References
 

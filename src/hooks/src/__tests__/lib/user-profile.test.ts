@@ -311,7 +311,7 @@ describe('User Profile Management', () => {
       // First call: check new path (false), second: check legacy path (true)
       // Third: check new dir (false)
       let callCount = 0;
-      mockExistsSync.mockImplementation((path: any) => {
+      mockExistsSync.mockImplementation((_path: any) => {
         callCount++;
         if (callCount === 1) return false; // new path doesn't exist
         if (callCount === 2) return true;  // legacy path exists
@@ -336,7 +336,7 @@ describe('User Profile Management', () => {
         aggregated_sessions: [],
       }));
 
-      const profile = loadUserProfile('migrate@user.com');
+      const _profile = loadUserProfile('migrate@user.com');
 
       // Should have written to new location
       expect(mockWriteFileSync).toHaveBeenCalled();
@@ -347,7 +347,7 @@ describe('User Profile Management', () => {
       // First call: check new path (false), second: check legacy path (true)
       // Third: check new dir (true - exists)
       let callCount = 0;
-      mockExistsSync.mockImplementation((path: any) => {
+      mockExistsSync.mockImplementation((_path: any) => {
         callCount++;
         if (callCount === 1) return false; // new path doesn't exist
         if (callCount === 2) return true;  // legacy path exists
@@ -372,7 +372,7 @@ describe('User Profile Management', () => {
         aggregated_sessions: [],
       }));
 
-      const profile = loadUserProfile('migrate-dir-exists@user.com');
+      const _profile = loadUserProfile('migrate-dir-exists@user.com');
 
       // Should have written to new location but not created directory
       expect(mockWriteFileSync).toHaveBeenCalled();
@@ -703,7 +703,7 @@ describe('User Profile Management', () => {
       const updated = aggregateSession(profile, summary);
 
       expect(updated.sessions_count).toBe(1);
-      expect(updated.skill_usage['commit']).toBeDefined();
+      expect(updated.skill_usage.commit).toBeDefined();
     });
 
     it('should skip mixed workflow pattern', () => {
@@ -840,8 +840,8 @@ describe('User Profile Management', () => {
       const profile = aggregateCurrentSession();
 
       expect(profile.sessions_count).toBe(1);
-      expect(profile.skill_usage['commit']).toBeDefined();
-      expect(profile.skill_usage['verify']).toBeDefined();
+      expect(profile.skill_usage.commit).toBeDefined();
+      expect(profile.skill_usage.verify).toBeDefined();
       expect(profile.agent_usage['backend-architect']).toBeDefined();
       expect(mockWriteFileSync).toHaveBeenCalled();
     });

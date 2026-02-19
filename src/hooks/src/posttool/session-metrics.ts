@@ -7,9 +7,10 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook } from '../lib/common.js';
+import { getMetricsFile } from '../lib/paths.js';
 
-const METRICS_FILE = '/tmp/claude-session-metrics.json';
-const LOCKFILE = `${METRICS_FILE}.lock`;
+const METRICS_FILE = getMetricsFile();
+const _LOCKFILE = `${METRICS_FILE}.lock`;
 
 interface SessionMetrics {
   tools: Record<string, number>;

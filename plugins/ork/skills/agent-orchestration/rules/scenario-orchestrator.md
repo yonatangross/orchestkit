@@ -32,7 +32,7 @@ Run a single skill across 3 parallel scenarios (simple/medium/complex) with sync
 
 | Scenario | Example |
 |----------|---------|
-| **Skill demos** | Show `/implement` on simple, medium, complex tasks |
+| **Skill demos** | Show `/ork:implement` on simple, medium, complex tasks |
 | **Progressive testing** | Validate skill scales with complexity |
 | **Comparative analysis** | How does approach differ by difficulty? |
 | **Training/tutorials** | Show skill progression from easy to hard |

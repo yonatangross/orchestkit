@@ -9,7 +9,7 @@
  */
 
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, } from '../../types.js';
 
 // =============================================================================
 // Mocks - MUST be defined BEFORE imports
@@ -54,7 +54,6 @@ import {
   completePipelineStep,
   formatTaskUpdateForClaude,
   getTasksBlockedBy,
-  formatTaskDeleteForClaude,
 } from '../../lib/task-integration.js';
 import { updateAgentStatus, removeAgent } from '../../lib/orchestration-state.js';
 

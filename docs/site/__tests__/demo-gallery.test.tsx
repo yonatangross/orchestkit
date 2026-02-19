@@ -534,8 +534,8 @@ describe("DemoGallery", () => {
       "https://cdn.sanity.io/images/test/production/release-thumb.png",
     );
 
-    // Should show "Video in production" badge
-    expect(within(dialog).getByText("Video in production")).toBeInTheDocument();
+    // Should show "Video coming soon" badge
+    expect(within(dialog).getByText("Video coming soon")).toBeInTheDocument();
   });
 
   it("shows local thumbnail fallback in modal when no CDN fields", () => {
@@ -562,7 +562,7 @@ describe("DemoGallery", () => {
     );
 
     // "Coming soon" badge
-    expect(within(dialog).getByText("Video in production")).toBeInTheDocument();
+    expect(within(dialog).getByText("Video coming soon")).toBeInTheDocument();
   });
 
   it("video element has playsInline attribute", () => {
@@ -583,23 +583,23 @@ describe("DemoGallery", () => {
 
   // ── Card status indicators ──────────────────────────────
 
-  it("shows 'In production' on hover for cards without video", () => {
+  it("shows 'Coming soon' on cards without video", () => {
     render(<DemoGallery />);
 
     // MemoryFabricVertical has no videoCdn
     const card = screen.getByLabelText(
       "View details for Memory Fabric Vertical",
     );
-    // The "In production" text should exist in the card (visible on hover via CSS)
-    expect(within(card).getByText("In production")).toBeInTheDocument();
+    // The "Coming soon" text should exist in the card (visible on hover via CSS)
+    expect(within(card).getByText("Coming soon")).toBeInTheDocument();
   });
 
-  it("does not show 'In production' on cards with video", () => {
+  it("does not show 'Coming soon' on cards with video", () => {
     render(<DemoGallery />);
 
     // ScrapbookDemo has videoCdn
     const card = screen.getByLabelText("View details for Scrapbook Demo");
-    expect(within(card).queryByText("In production")).not.toBeInTheDocument();
+    expect(within(card).queryByText("Coming soon")).not.toBeInTheDocument();
   });
 
   it("dims thumbnail in modal when no video available", () => {

@@ -6,7 +6,7 @@
  * while legitimate commands are allowed through.
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, } from 'vitest';
 import type { HookInput } from '../../types.js';
 import { dangerousCommandBlocker } from '../../pretool/bash/dangerous-command-blocker.js';
 
@@ -397,7 +397,7 @@ describe('dangerous-command-blocker', () => {
 
     it('handles very long safe command', () => {
       // Arrange
-      const longCommand = 'npm run build ' + '--verbose '.repeat(100);
+      const longCommand = `npm run build ${'--verbose '.repeat(100)}`;
       const input = createBashInput(longCommand);
 
       // Act

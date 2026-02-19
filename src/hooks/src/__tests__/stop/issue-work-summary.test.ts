@@ -33,14 +33,14 @@ vi.mock('../../lib/common.js', () => ({
 import { issueWorkSummary } from '../../stop/issue-work-summary.js';
 import { existsSync, readFileSync, unlinkSync, rmdirSync } from 'node:fs';
 import { execSync } from 'node:child_process';
-import { logHook, outputSilentSuccess, getProjectDir, getSessionId } from '../../lib/common.js';
+import { logHook, } from '../../lib/common.js';
 import type { HookInput } from '../../types.js';
 
 describe('Issue Work Summary Hook', () => {
   const mockExistsSync = vi.mocked(existsSync);
   const mockReadFileSync = vi.mocked(readFileSync);
-  const mockUnlinkSync = vi.mocked(unlinkSync);
-  const mockRmdirSync = vi.mocked(rmdirSync);
+  const _mockUnlinkSync = vi.mocked(unlinkSync);
+  const _mockRmdirSync = vi.mocked(rmdirSync);
   const mockExecSync = vi.mocked(execSync);
   const mockLogHook = vi.mocked(logHook);
 
@@ -103,7 +103,7 @@ describe('Issue Work Summary Hook', () => {
   describe('gh CLI Not Available', () => {
     it('should skip when gh CLI is not available', () => {
       // Arrange - progress file exists, gh check fails
-      let callIdx = 0;
+      const _callIdx = 0;
       mockExistsSync.mockImplementation((path: PathLike) => {
         if (String(path).includes('issue-progress.json')) return true;
         return false;

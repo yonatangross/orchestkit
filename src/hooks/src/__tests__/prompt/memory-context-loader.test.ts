@@ -175,7 +175,7 @@ describe('prompt/memory-context-loader', () => {
   describe('loads recent decisions', () => {
     it('should return context with a single decision', () => {
       mockExistsSync.mockReturnValue(true);
-      mockReadFileSync.mockReturnValue(makeDecisionLine() + '\n');
+      mockReadFileSync.mockReturnValue(`${makeDecisionLine()}\n`);
 
       const result = memoryContextLoader(createInput());
 
@@ -188,7 +188,7 @@ describe('prompt/memory-context-loader', () => {
 
     it('should include rationale when present', () => {
       mockExistsSync.mockReturnValue(true);
-      mockReadFileSync.mockReturnValue(makeDecisionLine() + '\n');
+      mockReadFileSync.mockReturnValue(`${makeDecisionLine()}\n`);
 
       memoryContextLoader(createInput());
 
@@ -199,7 +199,7 @@ describe('prompt/memory-context-loader', () => {
 
     it('should include entities when present', () => {
       mockExistsSync.mockReturnValue(true);
-      mockReadFileSync.mockReturnValue(makeDecisionLine() + '\n');
+      mockReadFileSync.mockReturnValue(`${makeDecisionLine()}\n`);
 
       memoryContextLoader(createInput());
 
@@ -211,7 +211,7 @@ describe('prompt/memory-context-loader', () => {
     it('should include both decisions and preferences', () => {
       mockExistsSync.mockReturnValue(true);
       mockReadFileSync.mockReturnValue(
-        makeDecisionLine() + '\n' + makePreferenceLine() + '\n'
+        `${makeDecisionLine()}\n${makePreferenceLine()}\n`
       );
 
       memoryContextLoader(createInput());
@@ -223,11 +223,11 @@ describe('prompt/memory-context-loader', () => {
 
     it('should load multiple decisions', () => {
       mockExistsSync.mockReturnValue(true);
-      const lines = [
+      const lines = `${[
         makeDecisionLine({ content: { what: 'Use Redis for caching' }, entities: ['redis'] }),
         makeDecisionLine({ content: { what: 'Use FastAPI for backend' }, entities: ['fastapi'] }),
         makePreferenceLine({ content: { what: 'Prefer pytest' }, entities: ['pytest'] }),
-      ].join('\n') + '\n';
+      ].join('\n')}\n`;
 
       mockReadFileSync.mockReturnValue(lines);
 
@@ -241,7 +241,7 @@ describe('prompt/memory-context-loader', () => {
 
     it('should include header and MCP hint', () => {
       mockExistsSync.mockReturnValue(true);
-      mockReadFileSync.mockReturnValue(makeDecisionLine() + '\n');
+      mockReadFileSync.mockReturnValue(`${makeDecisionLine()}\n`);
 
       memoryContextLoader(createInput());
 
@@ -258,7 +258,7 @@ describe('prompt/memory-context-loader', () => {
     it('should skip malformed lines and process valid ones', () => {
       mockExistsSync.mockReturnValue(true);
       mockReadFileSync.mockReturnValue(
-        'this is not json\n' + makeDecisionLine() + '\n' + '{broken json\n'
+        `this is not json\n${makeDecisionLine()}\n{broken json\n`
       );
 
       memoryContextLoader(createInput());
@@ -288,7 +288,7 @@ describe('prompt/memory-context-loader', () => {
     it('should skip records missing content.what', () => {
       mockExistsSync.mockReturnValue(true);
       mockReadFileSync.mockReturnValue(
-        JSON.stringify({ id: 'test', type: 'decision', content: {} }) + '\n'
+        `${JSON.stringify({ id: 'test', type: 'decision', content: {} })}\n`
       );
 
       const result = memoryContextLoader(createInput());
@@ -306,7 +306,7 @@ describe('prompt/memory-context-loader', () => {
       mockExistsSync.mockReturnValue(true);
 
       // Create many long decisions to exceed the 2000 char limit
-      const lines = Array.from({ length: 20 }, (_, i) =>
+      const lines = `${Array.from({ length: 20 }, (_, i) =>
         makeDecisionLine({
           id: `decision-${i}`,
           content: {
@@ -315,7 +315,7 @@ describe('prompt/memory-context-loader', () => {
           },
           entities: [`tech-${i}`, `pattern-${i}`, `tool-${i}`],
         })
-      ).join('\n') + '\n';
+      ).join('\n')}\n`;
 
       mockReadFileSync.mockReturnValue(lines);
 
@@ -337,13 +337,13 @@ describe('prompt/memory-context-loader', () => {
       mockExistsSync.mockReturnValue(true);
 
       // Create 15 lines - only last 10 should be read
-      const lines = Array.from({ length: 15 }, (_, i) =>
+      const lines = `${Array.from({ length: 15 }, (_, i) =>
         makeDecisionLine({
           id: `decision-${i}`,
           content: { what: `Decision number ${i}` },
           entities: [],
         })
-      ).join('\n') + '\n';
+      ).join('\n')}\n`;
 
       mockReadFileSync.mockReturnValue(lines);
 
@@ -428,7 +428,7 @@ describe('prompt/memory-context-loader', () => {
     it('should log number of decisions loaded', () => {
       mockExistsSync.mockReturnValue(true);
       mockReadFileSync.mockReturnValue(
-        makeDecisionLine() + '\n' + makePreferenceLine() + '\n'
+        `${makeDecisionLine()}\n${makePreferenceLine()}\n`
       );
 
       memoryContextLoader(createInput());

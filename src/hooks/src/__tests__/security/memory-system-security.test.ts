@@ -18,8 +18,6 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import {
   mkdirSync,
   writeFileSync,
-  existsSync,
-  readFileSync,
   rmSync,
   symlinkSync,
 } from 'node:fs';
@@ -70,7 +68,7 @@ describe('Security: Symlink Attacks', () => {
 
   it('analyzeJsonlFile works on symlinked file', () => {
     const realPath = join(testDir, 'real-decisions.jsonl');
-    writeFileSync(realPath, JSON.stringify({ type: 'decision' }) + '\n');
+    writeFileSync(realPath, `${JSON.stringify({ type: 'decision' })}\n`);
 
     const symlinkPath = join(testDir, '.claude', 'memory', 'decisions.jsonl');
 
@@ -102,7 +100,7 @@ describe('Security: Resource Exhaustion', () => {
     );
 
     const filePath = join(testDir, '.claude', 'memory', 'decisions.jsonl');
-    writeFileSync(filePath, lines.join('\n') + '\n');
+    writeFileSync(filePath, `${lines.join('\n')}\n`);
 
     const result = analyzeJsonlFile(filePath);
     expect(result.lineCount).toBe(50_000);

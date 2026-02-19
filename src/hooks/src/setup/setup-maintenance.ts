@@ -21,6 +21,7 @@ import {
   renameSync,
   readdirSync,
   unlinkSync,
+  rmSync,
   statSync,
   chmodSync,
 } from 'node:fs';
@@ -261,7 +262,7 @@ function taskSessionCleanup(pluginRoot: string): void {
         const stats = statSync(fullPath);
         const ageDays = (Date.now() - stats.mtimeMs) / (1000 * 60 * 60 * 24);
         if (ageDays > 7 && stats.isDirectory()) {
-          execSync(`rm -rf "${fullPath}"`, { stdio: ['pipe', 'pipe', 'pipe'] });
+          rmSync(fullPath, { recursive: true, force: true });
         }
       } catch {
         // Ignore

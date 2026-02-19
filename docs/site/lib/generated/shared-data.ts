@@ -5,10 +5,10 @@ import type { Totals, AgentSummary, CategoryMeta } from "./types";
 
 export const TOTALS: Totals = {
   "plugins": 3,
-  "skills": 62,
+  "skills": 67,
   "agents": 37,
   "hooks": 87,
-  "commands": 24,
+  "commands": 28,
   "compositions": 14
 };
 

@@ -5,9 +5,9 @@
  */
 
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
-import { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync, } from 'node:fs';
 import { join } from 'node:path';
-import { tmpdir, homedir } from 'node:os';
+import { tmpdir, } from 'node:os';
 import type { HookInput } from '../../types.js';
 import { patternSyncPull } from '../../lifecycle/pattern-sync-pull.js';
 
@@ -235,7 +235,7 @@ describe('pattern-sync-pull', () => {
       const input = createHookInput();
 
       // Act
-      const result = patternSyncPull(input);
+      const _result = patternSyncPull(input);
 
       // Assert
       expect(readProjectPatterns()).toHaveLength(1);
@@ -378,7 +378,7 @@ describe('pattern-sync-pull', () => {
       [500 * 1024, true], // 500KB - under limit
       [1024 * 1024, true], // 1MB - at limit
       [1024 * 1024 + 1, false], // Just over limit
-    ])('file size %d bytes passes=%s', (size, shouldPass) => {
+    ])('file size %d bytes passes=%s', (size, _shouldPass) => {
       // Arrange
       const content = JSON.stringify({
         version: '1.0',

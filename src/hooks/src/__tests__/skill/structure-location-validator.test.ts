@@ -210,7 +210,7 @@ describe('structure-location-validator', () => {
       ['/project/src/a/b/c/d/e/file.ts', 6],
       ['/project/app/a/b/c/d/file.ts', 5],
       ['/project/src/level1/level2/level3/level4/level5/file.ts', 6],
-    ])('blocks path %s with depth %d (exceeds max 4)', (filePath, depth) => {
+    ])('blocks path %s with depth %d (exceeds max 4)', (filePath, _depth) => {
       // Arrange
       const input = createWriteInput(filePath);
 

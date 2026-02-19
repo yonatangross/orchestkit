@@ -1,7 +1,7 @@
 ---
 name: quality-gates
 license: MIT
-compatibility: "Claude Code 2.1.34+."
+compatibility: "Claude Code 2.1.47+."
 description: Use when assessing task complexity, before starting complex tasks, when stuck after multiple attempts, or reviewing code against best practices. Provides quality-gates scoring (1-5), escalation workflows, and pattern library management.
 context: fork
 agent: code-quality-reviewer
@@ -264,10 +264,10 @@ Track success/failure patterns across projects to prevent repeating mistakes and
 
 ## Related Skills
 
-- `scope-appropriate-architecture` - Project tier detection that feeds YAGNI gate
-- `architecture-patterns` - Enforce testing standards as part of quality gates
+- `ork:scope-appropriate-architecture` - Project tier detection that feeds YAGNI gate
+- `ork:architecture-patterns` - Enforce testing standards as part of quality gates
 - `llm-evaluation` - LLM-as-judge patterns for quality validation
-- `golden-dataset` - Validate datasets meet quality thresholds
+- `ork:golden-dataset` - Validate datasets meet quality thresholds
 
 ## Key Decisions
 

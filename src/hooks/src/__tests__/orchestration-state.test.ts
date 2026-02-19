@@ -4,7 +4,7 @@
  */
 
 import { describe, test, expect, beforeEach, afterEach } from 'vitest';
-import { existsSync, unlinkSync, mkdirSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import {
@@ -128,7 +128,7 @@ describe('loadState - state initialization', () => {
     mkdirSync(stateDir, { recursive: true });
 
     const stateFile = `${stateDir}/session-${TEST_SESSION_ID}.json`;
-    require('fs').writeFileSync(stateFile, 'invalid json {');
+    require('node:fs').writeFileSync(stateFile, 'invalid json {');
 
     const state = loadState();
 
@@ -653,7 +653,7 @@ describe('loadConfig - configuration loading', () => {
 
     expect(config.enableAutoDispatch).toBe(true);
     expect(config.enableSkillInjection).toBe(true);
-    expect(config.maxSkillInjectionTokens).toBe(800);
+    expect(config.maxSkillInjectionTokens).toBe(1200);
     expect(config.enableCalibration).toBe(true);
     expect(config.enablePipelines).toBe(true);
     expect(config.maxRetries).toBe(3);
@@ -734,7 +734,7 @@ describe('cleanupOldStates - stale file cleanup', () => {
     cleanupOldStates();
 
     // Count remaining files
-    const files = require('fs')
+    const files = require('node:fs')
       .readdirSync(stateDir)
       .filter((f: string) => f.startsWith('session-'));
 

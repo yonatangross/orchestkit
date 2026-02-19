@@ -1,7 +1,7 @@
 ---
 name: performance
 license: MIT
-compatibility: "Claude Code 2.1.34+."
+compatibility: "Claude Code 2.1.47+."
 description: Performance optimization patterns covering Core Web Vitals, React render optimization, lazy loading, image optimization, backend profiling, and LLM inference. Use when improving page speed, debugging slow renders, optimizing bundles, reducing image payload, profiling backend, or deploying LLMs efficiently.
 tags: [performance, core-web-vitals, lcp, inp, cls, react-compiler, virtualization, lazy-loading, code-splitting, image-optimization, avif, profiling, vllm, quantization, inference, caching, redis, prompt-caching, tanstack-query, prefetching, optimistic-updates]
 context: fork
@@ -168,12 +168,12 @@ export default async function Page() {
 
 ## Related Skills
 
-- `react-server-components-framework` - Server-first rendering
-- `vite-advanced` - Build optimization
+- `ork:react-server-components-framework` - Server-first rendering
+- `ork:vite-advanced` - Build optimization
 - `caching` - Cache strategies for responses
-- `monitoring-observability` - Production monitoring and alerting
-- `database-patterns` - Query and index optimization
-- `llm-integration` - Local inference with Ollama
+- `ork:monitoring-observability` - Production monitoring and alerting
+- `ork:database-patterns` - Query and index optimization
+- `ork:llm-integration` - Local inference with Ollama
 
 ## Capability Details
 

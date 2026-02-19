@@ -25,7 +25,7 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 7. **Coordination System** - Checks lock health and registry integrity
 8. **Context Budget** - Monitors token usage against budget
 9. **Memory System** - Graph memory health
-10. **Claude Code Version** - Validates CC >= 2.1.34
+10. **Claude Code Version** - Validates CC >= 2.1.47
 11. **External Dependencies** - Checks optional tool availability (agent-browser)
 12. **MCP Status** - Active vs disabled vs misconfigured, API key presence for paid MCPs
 
@@ -69,13 +69,13 @@ Auto-detects which OrchestKit plugins are installed:
 **Output (orkl):**
 ```
 Installed Plugins: 1
-- orkl: 45 skills, 36 agents, 89 hook entries
+- orkl: 46 skills, 37 agents, 87 hook entries
 ```
 
 **Output (ork full):**
 ```
 Installed Plugins: 1
-- ork: 62 skills, 36 agents, 89 hook entries
+- ork: 67 skills, 37 agents, 87 hook entries
 ```
 
 ### 1. Skills Validation
@@ -93,14 +93,14 @@ Validates skills in installed plugins (count varies by installation):
 
 **Output (full ork):**
 ```
-Skills: 62/62 valid
+Skills: 67/67 valid
 - User-invocable: 24 commands
 - Reference skills: 38
 ```
 
 **Output (orkl only):**
 ```
-Skills: 45/45 valid
+Skills: 46/46 valid
 - User-invocable: 24 commands
 - Reference skills: 21
 ```
@@ -132,13 +132,14 @@ Verifies hooks are properly configured:
 # Checks performed:
 # - hooks.json schema valid
 # - Bundle files exist (12 .mjs bundles)
-# - Async hooks use fire-and-forget pattern (7 async)
+# - Async hooks use fire-and-forget pattern (9 async)
 # - Background hook metrics health (Issue #243)
+# - Windows-safe spawning (PR #645)
 ```
 
 **Output:**
 ```
-Hooks: 89/89 entries valid (12 bundles)
+Hooks: 87/87 entries valid (12 bundles)
 - Global: 66 (PreToolUse: 14, PostToolUse: 6, SubagentStart: 7, SubagentStop: 7,
   Setup: 6, SessionStart: 5, UserPromptSubmit: 5, PermissionRequest: 3, ...)
 - Agent-scoped: 22, Skill-scoped: 1
@@ -186,7 +187,7 @@ Verifies plugins/ sync with src/:
 **Output:**
 ```
 Build System: in sync
-- Skills: 62 src/ = 62 plugins/
+- Skills: 67 src/ = 67 plugins/
 - Agents: 36 src/ = 36 plugins/
 - Last build: 2 minutes ago
 ```
@@ -231,12 +232,21 @@ Context Budget: 1850/2200 tokens (84%)
 
 ### 10. Claude Code Version
 
-Validates runtime version:
+Validates runtime version against the [Version Compatibility Matrix](references/version-compatibility.md):
 
-**Output:**
+**Output (OK):**
 ```
-Claude Code: 2.1.42 (OK)
-- Minimum required: 2.1.34
+Claude Code: 2.1.47 (OK)
+- Minimum required: 2.1.47
+- All 15 features available
+```
+
+**Output (degraded):**
+```
+Claude Code: 2.1.44 (DEGRADED)
+- Minimum required: 2.1.47
+- Missing: last_assistant_message, added_dirs, Windows hooks, worktree discovery
+- Upgrade: npm install -g @anthropic-ai/claude-code@latest
 ```
 
 ### 11. External Dependencies
@@ -309,9 +319,9 @@ MCP Servers:
 +===================================================================+
 | Version: {version}  |  CC: {cc_version}  |  Plugins: ork          |
 +===================================================================+
-| Skills           | 62/62 valid                                    |
-| Agents           | 36/36 valid                                    |
-| Hooks            | 89/89 entries (12 bundles)                     |
+| Skills           | 67/67 valid                                    |
+| Agents           | 37/37 valid                                    |
+| Hooks            | 87/87 entries (12 bundles)                     |
 | Memory           | Graph memory healthy                           |
 | MCP              | context7 ✓  memory ✓  tavily ○  agentation ○  |
 | Permissions      | 12/12 reachable                                |
@@ -335,7 +345,7 @@ MCP Servers:
 +===================================================================+
 | Skills           | 45/45 valid                                    |
 | Agents           | 36/36 valid                                    |
-| Hooks            | 89/89 entries (12 bundles)                     |
+| Hooks            | 87/87 entries (12 bundles)                     |
 | Memory           | Graph memory healthy                           |
 +===================================================================+
 ```
@@ -356,16 +366,16 @@ MCP Servers:
     "count": 1
   },
   "checks": {
-    "skills": {"passed": true, "count": 62, "perPlugin": {"ork": 62}},
-    "agents": {"passed": true, "count": 36, "perPlugin": {"ork": 36}},
-    "hooks": {"passed": true, "entries": 89, "bundles": 12, "source": "ork"},
+    "skills": {"passed": true, "count": 67, "perPlugin": {"ork": 67}},
+    "agents": {"passed": true, "count": 37, "perPlugin": {"ork": 37}},
+    "hooks": {"passed": true, "entries": 87, "bundles": 12, "source": "ork"},
     "memory": {"passed": true, "available": ["graph"]},
     "mcp": {"passed": true, "servers": {"context7": "enabled", "memory": "enabled", "sequential-thinking": "disabled", "tavily": "disabled", "agentation": "disabled"}},
     "permissions": {"passed": true, "count": 12},
     "schemas": {"passed": true, "count": 15},
     "context": {"passed": true, "usage": 0.84},
     "coordination": {"passed": true, "staleLocks": 0},
-    "ccVersion": {"passed": true, "version": "2.1.42"}
+    "ccVersion": {"passed": true, "version": "2.1.47"}
   },
   "exitCode": 0
 }
@@ -416,8 +426,8 @@ ls -la .claude/memory/
 
 ## Related Skills
 
-- `configure` - Configure plugin settings
-- `quality-gates` - CI/CD integration
+- `ork:configure` - Configure plugin settings
+- `ork:quality-gates` - CI/CD integration
 - `security-scanning` - Comprehensive audits
 
 ## References
@@ -428,11 +438,12 @@ ls -la .claude/memory/
 - [Memory Health](references/memory-health.md)
 - [Permission Rules](references/permission-rules.md)
 - [Schema Validation](references/schema-validation.md)
+- [Version Compatibility](references/version-compatibility.md)
 
 
 ---
 
-## References (6)
+## References (7)
 
 ### Agents Validation
 
@@ -440,7 +451,7 @@ ls -la .claude/memory/
 
 ## Overview
 
-OrchestKit includes 36 specialized agents validated against CC 2.1.34 frontmatter format.
+OrchestKit includes 36 specialized agents validated against CC 2.1.47 frontmatter format.
 
 ## Agent Structure
 
@@ -542,12 +553,31 @@ OrchestKit uses 66 global hook entries across 15 event types, compiled into 12 b
 ## Hook Architecture
 
 ```
-hooks.json (66 global entries)
+hooks.json (63 global + 22 agent-scoped + 1 skill-scoped entries)
     ↓
 12 TypeScript bundles (dist/*.mjs)
     ↓
-7 async hooks use fire-and-forget pattern
+9 async hooks use fire-and-forget pattern
 ```
+
+## Platform Support
+
+| Platform | Hook Status | Notes |
+|----------|------------|-------|
+| macOS | Full support | Native execution |
+| Linux | Full support | Native execution |
+| Windows | Full support (CC 2.1.47+) | Uses Git Bash instead of cmd.exe |
+
+**Windows support history:**
+- **Before CC 2.1.47**: All hooks silently failed on Windows (cmd.exe incompatible)
+- **CC 2.1.47**: Fixed by executing hooks via Git Bash instead of cmd.exe
+- **PR #645**: OrchestKit added Windows-safe spawning (no console flashing, no ENAMETOOLONG)
+
+**Cross-platform safety measures in OrchestKit hooks:**
+- `paths.ts` provides cross-platform path handling (`os.homedir()`, `os.tmpdir()`, `path.join()`)
+- CRLF normalization (`\r\n` → `\n`) in subagent-validator, decision-history, common.ts
+- Windows backslash path normalization in structure-location-validator
+- Windows-specific test cases for paths, CRLF, and permission handling
 
 ## Hook Categories
 
@@ -568,7 +598,7 @@ hooks.json (66 global entries)
 | PostToolUseFailure | 1 | Failed tool handling |
 | PreCompact | 1 | Before context compaction |
 | TaskCompleted | 1 | Task completion handling |
-| **Total** | **66** | |
+| **Total Global** | **66** | |
 
 ## Bundle Structure
 
@@ -608,7 +638,7 @@ ls -la src/hooks/dist/*.mjs
 Async hooks use fire-and-forget scripts:
 
 ```bash
-# 7 fire-and-forget scripts required
+# 9 fire-and-forget scripts required (updated CC 2.1.47)
 ls src/hooks/bin/*-fire-and-forget.mjs
 ```
 
@@ -1020,7 +1050,7 @@ jq '.properties | to_entries | map({key: .key, type: .value.type})' \
 
 ## Overview
 
-OrchestKit includes 62 skills validated against frontmatter requirements and content standards.
+OrchestKit includes 67 skills validated against frontmatter requirements and content standards.
 
 ## Skill Types
 
@@ -1109,4 +1139,84 @@ Split into SKILL.md + references/ directory.
 ### Broken reference link
 
 Ensure file exists at `references/filename.md`.
+
+
+### Version Compatibility
+
+# CC Version Compatibility Matrix
+
+## Overview
+
+OrchestKit requires Claude Code >= 2.1.47. This matrix documents which CC features OrchestKit depends on and their minimum version requirements.
+
+## Feature Matrix
+
+| Feature | Min CC Version | OrchestKit Usage | Degradation if Missing |
+|---------|---------------|-----------------|----------------------|
+| `subagent_type` in SubagentStart | 2.1.7 | Agent type detection in all SubagentStart hooks | Hooks fall back to prompt scanning (removed in v6.0) |
+| `session_id` guaranteed | 2.1.9 | Session tracking in all hooks | Session-scoped features fail |
+| Hook `continue` field | 2.1.7 | All hook responses | Hooks silently ignored |
+| Permission rules detection | 2.1.3 | Doctor unreachable rules check | Permission check skipped |
+| `sonnet-4-6` model | 2.1.45 | Agent model field in frontmatter | Falls back to older sonnet |
+| Plugin hot reload | 2.1.45 | Live plugin updates without restart | Must restart CC after changes |
+| `last_assistant_message` | 2.1.47 | Stop/SubagentStop context capture | Missing assistant context |
+| `added_dirs` statusline field | 2.1.47 | Multi-directory project support | Single-dir only in statusline |
+| Deferred SessionStart (500ms) | 2.1.47 | Hooks fire after env is ready | Race conditions on cold start |
+| Agent model in Teams | 2.1.47 | Model field respected in team spawns | Model ignored, uses default |
+| Worktree discovery | 2.1.47 | Skills/agents found from worktrees | Worktree sessions miss plugins |
+| Background tasks in worktrees | 2.1.47 | Task tool from worktrees | Background agents fail silently |
+| Windows hook execution | 2.1.47 | All 87 hooks on Windows | Hooks silently fail on Windows |
+| Windows worktree sessions | 2.1.47 | Drive letter casing match | Worktree sessions not matched |
+| Improved agent memory | 2.1.47 | Higher context limits | Conservative limits apply |
+| `Ctrl+F` find in output | 2.1.47 | Search through session output | No search capability |
+| `Shift+Down` multi-line input | 2.1.47 | Multi-line prompt entry | Single-line input only |
+
+## Version Detection
+
+The doctor skill checks the CC version at runtime:
+
+```bash
+# CC reports version via environment or CLI
+claude --version  # Returns e.g. "2.1.47"
+```
+
+## Compatibility Levels
+
+| CC Version | Support Level | Description |
+|-----------|--------------|-------------|
+| &lt; 2.1.7 | Unsupported | Core hook protocol missing |
+| 2.1.7 - 2.1.44 | Degraded | Missing memory improvements, worktree fixes, Windows support |
+| 2.1.45 - 2.1.46 | Partial | Missing 2.1.47 features but functional |
+| >= 2.1.47 | Full | All features available |
+
+## Doctor Check Implementation
+
+The doctor skill validates CC version in category 10:
+
+```
+Claude Code: 2.1.47 (OK)
+- Minimum required: 2.1.47
+```
+
+When CC version is below 2.1.47, doctor should show:
+
+```
+Claude Code: 2.1.44 (DEGRADED)
+- Minimum required: 2.1.47
+- Missing features:
+  - last_assistant_message (Stop/SubagentStop context)
+  - added_dirs (multi-directory support)
+  - Windows hook execution
+  - Worktree discovery
+  - Deferred SessionStart
+- Upgrade: npm install -g @anthropic-ai/claude-code@latest
+```
+
+## OrchestKit Version History
+
+| OrchestKit | Min CC | Key Changes |
+|-----------|--------|-------------|
+| v6.0.x | 2.1.47 | Full CC 2.1.47 adoption, relaxed context limits |
+| v5.x | 2.1.34 | Agent Teams support, unified dispatchers |
+| v4.x | 2.1.9 | Session tracking, TypeScript hooks |
 

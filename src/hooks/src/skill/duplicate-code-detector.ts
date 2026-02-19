@@ -4,8 +4,7 @@
  * CC 2.1.7 Compliant
  */
 
-import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
-import { execSync } from 'node:child_process';
+import { readFileSync, readdirSync, } from 'node:fs';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, outputWithContext, getProjectDir } from '../lib/common.js';
 import { getRepoRoot } from '../lib/git.js';
@@ -176,7 +175,7 @@ export function duplicateCodeDetector(input: HookInput): HookResult {
           if (regex.test(fileContent)) {
             // Check for exact signature match
             if (fileContent.includes(signature)) {
-              const relPath = codeFile.replace(projectRoot + '/', '');
+              const relPath = codeFile.replace(`${projectRoot}/`, '');
               warnings.push(`DUPLICATE: '${name}' already exists in:`);
               warnings.push(`  - ${relPath}`);
               warnings.push('  Consider:');

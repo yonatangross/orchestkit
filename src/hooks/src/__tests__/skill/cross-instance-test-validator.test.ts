@@ -484,7 +484,7 @@ def func_three():
       );
 
       // Act
-      const result = crossInstanceTestValidator(input);
+      const _result = crossInstanceTestValidator(input);
 
       // Assert
       expect(outputWithContext).toHaveBeenCalledWith(

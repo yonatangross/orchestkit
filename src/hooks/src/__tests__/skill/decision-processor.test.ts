@@ -30,10 +30,9 @@ vi.mock('../../lib/common.js', () => ({
 import {
   decisionProcessor,
   extractEnrichedDecisions,
-  type EnrichedDecision,
 } from '../../skill/decision-processor.js';
-import { outputSilentSuccess, getPluginRoot } from '../../lib/common.js';
-import { execSync } from 'child_process';
+import { outputSilentSuccess, } from '../../lib/common.js';
+import { execSync } from 'node:child_process';
 
 // =============================================================================
 // Test Utilities
@@ -455,7 +454,7 @@ describe('decision-processor', () => {
       ['frontend', 'react ui tailwind'],
       ['ai-ml', 'llm rag embedding'],
       ['architecture', 'architecture design pattern'],
-    ])('detects %s category', (expected, keywords) => {
+    ])('detects %s category', (_expected, keywords) => {
       // Arrange
       const output = `We decided to implement ${keywords}. This is the best approach.`.repeat(3);
       const input = createSkillCompleteInput(output);
@@ -476,7 +475,7 @@ describe('decision-processor', () => {
     test.each([
       ['high', 'critical security breaking migration architecture production'],
       ['medium', 'refactor optimize improve update enhance fix'],
-    ])('detects %s importance', (expected, keywords) => {
+    ])('detects %s importance', (_expected, keywords) => {
       // Arrange
       const output = `We decided this ${keywords.split(' ')[0]} change. Important decision.`.repeat(3);
       const input = createSkillCompleteInput(output);
@@ -687,7 +686,7 @@ describe('decision-processor', () => {
       ['dependency-injection', 'DI pattern'],
       ['rate-limiting', 'rate limit protection'],
       ['circuit-breaker', 'circuit breaker pattern'],
-    ])('detects %s best practice', (practice, phrase) => {
+    ])('detects %s best practice', (_practice, phrase) => {
       // Arrange
       const output = `We decided to implement ${phrase}. This is recommended.`.repeat(3);
       const input = createSkillCompleteInput(output);

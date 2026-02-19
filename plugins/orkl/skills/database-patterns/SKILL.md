@@ -1,7 +1,7 @@
 ---
 name: database-patterns
 license: MIT
-compatibility: "Claude Code 2.1.34+."
+compatibility: "Claude Code 2.1.47+."
 description: Database design and migration patterns for Alembic migrations, schema design (SQL/NoSQL), and database versioning. Use when creating migrations, designing schemas, normalizing data, managing database versions, or handling schema drift.
 tags: [database, migrations, alembic, schema-design, versioning, postgresql, sql, nosql]
 context: fork
@@ -154,6 +154,6 @@ Safe database schema changes without downtime using expand-contract pattern and 
 ## Related Skills
 
 - `sqlalchemy-2-async` - Async SQLAlchemy session patterns
-- `testing-patterns` - Comprehensive testing patterns including migration testing
+- `ork:testing-patterns` - Comprehensive testing patterns including migration testing
 - `caching` - Cache layer design to complement database performance
-- `performance` - Performance optimization patterns
+- `ork:performance` - Performance optimization patterns

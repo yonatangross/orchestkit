@@ -43,8 +43,7 @@ function parseTscOutput(output: string): TypeErrorEntry[] {
   const errors: TypeErrorEntry[] = [];
   const errorRegex = /^(.+?)\((\d+),(\d+)\):\s+error\s+(TS\d+):\s+(.+)$/gm;
 
-  let match;
-  while ((match = errorRegex.exec(output)) !== null) {
+  for (const match of output.matchAll(errorRegex)) {
     errors.push({
       file: match[1],
       line: parseInt(match[2], 10),

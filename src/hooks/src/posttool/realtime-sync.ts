@@ -121,7 +121,7 @@ function detectCategory(content: string): string {
 function initPendingQueue(pendingFile: string): void {
   if (!existsSync(pendingFile)) {
     try {
-      mkdirSync(require('path').dirname(pendingFile), { recursive: true });
+      mkdirSync(require('node:path').dirname(pendingFile), { recursive: true });
       writeFileSync(pendingFile, JSON.stringify({
         pending: [],
         created_at: new Date().toISOString(),
@@ -307,8 +307,6 @@ ${pendingFile}`,
 
       return outputSilentSuccess();
     }
-
-    case 'SESSION_END':
     default:
       // Let existing Stop hooks handle this
       return outputSilentSuccess();

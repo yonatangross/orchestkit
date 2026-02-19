@@ -1,7 +1,7 @@
 ---
 name: feedback
 license: MIT
-compatibility: "Claude Code 2.1.34+."
+compatibility: "Claude Code 2.1.47+."
 description: "Manages OrchestKit feedback system. Use when providing feedback or viewing usage analytics."
 argument-hint: "[subcommand]"
 context: inherit
@@ -32,17 +32,17 @@ View and manage the OrchestKit feedback system that learns from your usage.
 ## Usage
 
 ```
-/feedback                    # Same as status
-/feedback status             # Show current state
-/feedback pause              # Pause learning
-/feedback resume             # Resume learning
-/feedback reset              # Clear learned patterns
-/feedback export             # Export feedback data
-/feedback settings           # Show/edit settings
-/feedback opt-in             # Enable anonymous sharing
-/feedback opt-out            # Disable anonymous sharing
-/feedback privacy            # View privacy policy
-/feedback export-analytics   # Export anonymous analytics for review
+/ork:feedback                    # Same as status
+/ork:feedback status             # Show current state
+/ork:feedback pause              # Pause learning
+/ork:feedback resume             # Resume learning
+/ork:feedback reset              # Clear learned patterns
+/ork:feedback export             # Export feedback data
+/ork:feedback settings           # Show/edit settings
+/ork:feedback opt-in             # Enable anonymous sharing
+/ork:feedback opt-out            # Disable anonymous sharing
+/ork:feedback privacy            # View privacy policy
+/ork:feedback export-analytics   # Export anonymous analytics for review
 ```
 
 ## Subcommands
@@ -54,7 +54,7 @@ View and manage the OrchestKit feedback system that learns from your usage.
 | `resume` | Resume paused learning |
 | `reset` | Clear all learned patterns (requires "RESET" confirmation) |
 | `export` | Export all feedback data to `.claude/feedback/export-{date}.json` |
-| `settings` | Show/edit settings (usage: `/feedback settings <key> <value>`) |
+| `settings` | Show/edit settings (usage: `/ork:feedback settings <key> <value>`) |
 | `opt-in` | Enable anonymous analytics sharing (GDPR-compliant consent) |
 | `opt-out` | Disable anonymous analytics sharing (revokes consent) |
 | `privacy` | Display the full privacy policy |
@@ -68,7 +68,7 @@ See [Consent and Security Rules](rules/consent-and-security.md) for GDPR consent
 
 ## Related Skills
 
-- skill-evolution: Evolve skills based on feedback
+- `ork:skill-evolution`: Evolve skills based on feedback
 
 ## File Locations
 

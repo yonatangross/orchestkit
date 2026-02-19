@@ -13,7 +13,6 @@ import {
   normalizeCommand as normalizeCommandLegacy,
 } from '../../lib/common.js';
 import {
-  normalizeCommand as normalizeCommandSplit,
   containsDangerousCommand,
 } from '../../lib/normalize-command.js';
 

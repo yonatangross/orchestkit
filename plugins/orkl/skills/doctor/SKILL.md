@@ -1,7 +1,7 @@
 ---
 name: doctor
 license: MIT
-compatibility: "Claude Code 2.1.34+."
+compatibility: "Claude Code 2.1.47+."
 description: "OrchestKit doctor for health diagnostics. Use when running checks on plugin health, diagnosing problems, or troubleshooting issues."
 argument-hint: "[--verbose]"
 context: inherit
@@ -31,7 +31,7 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 7. **Coordination System** - Checks lock health and registry integrity
 8. **Context Budget** - Monitors token usage against budget
 9. **Memory System** - Graph memory health
-10. **Claude Code Version** - Validates CC >= 2.1.34
+10. **Claude Code Version** - Validates CC >= 2.1.47
 11. **External Dependencies** - Checks optional tool availability (agent-browser)
 12. **MCP Status** - Active vs disabled vs misconfigured, API key presence for paid MCPs
 
@@ -75,13 +75,13 @@ Auto-detects which OrchestKit plugins are installed:
 **Output (orkl):**
 ```
 Installed Plugins: 1
-- orkl: 45 skills, 36 agents, 89 hook entries
+- orkl: 46 skills, 37 agents, 87 hook entries
 ```
 
 **Output (ork full):**
 ```
 Installed Plugins: 1
-- ork: 62 skills, 36 agents, 89 hook entries
+- ork: 67 skills, 37 agents, 87 hook entries
 ```
 
 ### 1. Skills Validation
@@ -99,14 +99,14 @@ Validates skills in installed plugins (count varies by installation):
 
 **Output (full ork):**
 ```
-Skills: 62/62 valid
+Skills: 67/67 valid
 - User-invocable: 24 commands
 - Reference skills: 38
 ```
 
 **Output (orkl only):**
 ```
-Skills: 45/45 valid
+Skills: 46/46 valid
 - User-invocable: 24 commands
 - Reference skills: 21
 ```
@@ -138,13 +138,14 @@ Verifies hooks are properly configured:
 # Checks performed:
 # - hooks.json schema valid
 # - Bundle files exist (12 .mjs bundles)
-# - Async hooks use fire-and-forget pattern (7 async)
+# - Async hooks use fire-and-forget pattern (9 async)
 # - Background hook metrics health (Issue #243)
+# - Windows-safe spawning (PR #645)
 ```
 
 **Output:**
 ```
-Hooks: 89/89 entries valid (12 bundles)
+Hooks: 87/87 entries valid (12 bundles)
 - Global: 66 (PreToolUse: 14, PostToolUse: 6, SubagentStart: 7, SubagentStop: 7,
   Setup: 6, SessionStart: 5, UserPromptSubmit: 5, PermissionRequest: 3, ...)
 - Agent-scoped: 22, Skill-scoped: 1
@@ -192,7 +193,7 @@ Verifies plugins/ sync with src/:
 **Output:**
 ```
 Build System: in sync
-- Skills: 62 src/ = 62 plugins/
+- Skills: 67 src/ = 67 plugins/
 - Agents: 36 src/ = 36 plugins/
 - Last build: 2 minutes ago
 ```
@@ -237,12 +238,21 @@ Context Budget: 1850/2200 tokens (84%)
 
 ### 10. Claude Code Version
 
-Validates runtime version:
+Validates runtime version against the [Version Compatibility Matrix](references/version-compatibility.md):
 
-**Output:**
+**Output (OK):**
 ```
-Claude Code: 2.1.42 (OK)
-- Minimum required: 2.1.34
+Claude Code: 2.1.47 (OK)
+- Minimum required: 2.1.47
+- All 15 features available
+```
+
+**Output (degraded):**
+```
+Claude Code: 2.1.44 (DEGRADED)
+- Minimum required: 2.1.47
+- Missing: last_assistant_message, added_dirs, Windows hooks, worktree discovery
+- Upgrade: npm install -g @anthropic-ai/claude-code@latest
 ```
 
 ### 11. External Dependencies
@@ -315,9 +325,9 @@ MCP Servers:
 +===================================================================+
 | Version: {version}  |  CC: {cc_version}  |  Plugins: ork          |
 +===================================================================+
-| Skills           | 62/62 valid                                    |
-| Agents           | 36/36 valid                                    |
-| Hooks            | 89/89 entries (12 bundles)                     |
+| Skills           | 67/67 valid                                    |
+| Agents           | 37/37 valid                                    |
+| Hooks            | 87/87 entries (12 bundles)                     |
 | Memory           | Graph memory healthy                           |
 | MCP              | context7 ✓  memory ✓  tavily ○  agentation ○  |
 | Permissions      | 12/12 reachable                                |
@@ -341,7 +351,7 @@ MCP Servers:
 +===================================================================+
 | Skills           | 45/45 valid                                    |
 | Agents           | 36/36 valid                                    |
-| Hooks            | 89/89 entries (12 bundles)                     |
+| Hooks            | 87/87 entries (12 bundles)                     |
 | Memory           | Graph memory healthy                           |
 +===================================================================+
 ```
@@ -362,16 +372,16 @@ MCP Servers:
     "count": 1
   },
   "checks": {
-    "skills": {"passed": true, "count": 62, "perPlugin": {"ork": 62}},
-    "agents": {"passed": true, "count": 36, "perPlugin": {"ork": 36}},
-    "hooks": {"passed": true, "entries": 89, "bundles": 12, "source": "ork"},
+    "skills": {"passed": true, "count": 67, "perPlugin": {"ork": 67}},
+    "agents": {"passed": true, "count": 37, "perPlugin": {"ork": 37}},
+    "hooks": {"passed": true, "entries": 87, "bundles": 12, "source": "ork"},
     "memory": {"passed": true, "available": ["graph"]},
     "mcp": {"passed": true, "servers": {"context7": "enabled", "memory": "enabled", "sequential-thinking": "disabled", "tavily": "disabled", "agentation": "disabled"}},
     "permissions": {"passed": true, "count": 12},
     "schemas": {"passed": true, "count": 15},
     "context": {"passed": true, "usage": 0.84},
     "coordination": {"passed": true, "staleLocks": 0},
-    "ccVersion": {"passed": true, "version": "2.1.42"}
+    "ccVersion": {"passed": true, "version": "2.1.47"}
   },
   "exitCode": 0
 }
@@ -422,8 +432,8 @@ ls -la .claude/memory/
 
 ## Related Skills
 
-- `configure` - Configure plugin settings
-- `quality-gates` - CI/CD integration
+- `ork:configure` - Configure plugin settings
+- `ork:quality-gates` - CI/CD integration
 - `security-scanning` - Comprehensive audits
 
 ## References
@@ -434,3 +444,4 @@ ls -la .claude/memory/
 - [Memory Health](references/memory-health.md)
 - [Permission Rules](references/permission-rules.md)
 - [Schema Validation](references/schema-validation.md)
+- [Version Compatibility](references/version-compatibility.md)
