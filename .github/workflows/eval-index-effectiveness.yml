@@ -87,7 +87,7 @@ jobs:
           # jq is pre-installed on GitHub runners
 
       - name: Upload prepared workspace
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4  # v5
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f  # v6.0.0
         with:
           name: prepared-workspace
           path: |
@@ -136,7 +136,7 @@ jobs:
         timeout-minutes: 30
 
       - name: Upload with-index results
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4  # v5
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f  # v6.0.0
         with:
           name: results-with-index
           path: tests/evals/results/with-index/
@@ -190,7 +190,7 @@ jobs:
         timeout-minutes: 30
 
       - name: Upload without-index results
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4  # v5
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f  # v6.0.0
         with:
           name: results-without-index
           path: tests/evals/results/without-index/
@@ -226,7 +226,7 @@ jobs:
           ./tests/evals/scripts/compare.sh || echo "comparison_failed=true" >> $GITHUB_OUTPUT
 
       - name: Upload comparison results
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4  # v5
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f  # v6.0.0
         with:
           name: comparison-results
           path: tests/evals/comparison.json
