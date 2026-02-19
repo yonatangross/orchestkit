@@ -57,7 +57,11 @@ export const registeredHookNames = () => HOOKS.map(h => h.name);
  */
 function trackAgentResult(input: HookInput): void {
   try {
-    const agentType = input.subagent_type || input.agent_type || 'unknown';
+    const agentType = input.tool_input?.subagent_type as string
+      || input.subagent_type
+      || input.agent_type
+      || 'unknown';
+    const agentName = input.tool_input?.name as string || undefined;
     const success = !input.error;
     const durationMs = input.duration_ms;
 
@@ -86,6 +90,7 @@ function trackAgentResult(input: HookInput): void {
       ts: new Date().toISOString(),
       pid: hashProject(process.env.CLAUDE_PROJECT_DIR || ''),
       agent: agentType,
+      agent_name: agentName ?? null,
       model,
       duration_ms: durationMs,
       success,

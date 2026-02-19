@@ -45,8 +45,14 @@ export function rotateIfNeeded(filePath: string, maxBytes = 10_485_760): void {
   }
 }
 
+/** Returns true when running inside a test runner (vitest / jest). */
+export function isTestEnv(): boolean {
+  return !!(process.env.VITEST || process.env.JEST_WORKER_ID);
+}
+
 /** Append a JSONL entry to ~/.claude/analytics/<file>. Fire-and-forget. */
 export function appendAnalytics(file: string, entry: Record<string, unknown>): void {
+  if (isTestEnv()) return;
   try {
     const dir = getAnalyticsDir();
     mkdirSync(dir, { recursive: true });

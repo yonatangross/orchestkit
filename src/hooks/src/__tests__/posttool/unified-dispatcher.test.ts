@@ -5,6 +5,12 @@ vi.mock('../../lib/common.js', () => ({
   outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
 }));
 
+vi.mock('../../lib/analytics.js', () => ({
+  appendAnalytics: vi.fn(),
+  hashProject: vi.fn(() => 'hashed-project'),
+  getTeamContext: vi.fn(() => ({ agent: 'test-agent' })),
+}));
+
 // Mock all individual hooks to prevent side effects
 vi.mock('../../posttool/session-metrics.js', () => ({ sessionMetrics: vi.fn(() => ({ continue: true, suppressOutput: true })) }));
 vi.mock('../../posttool/audit-logger.js', () => ({ auditLogger: vi.fn(() => ({ continue: true, suppressOutput: true })) }));
@@ -23,6 +29,7 @@ vi.mock('../../posttool/solution-detector.js', () => ({ solutionDetector: vi.fn(
 vi.mock('../../posttool/tool-preference-learner.js', () => ({ toolPreferenceLearner: vi.fn(() => ({ continue: true, suppressOutput: true })) }));
 
 import { unifiedDispatcher, matchesTool, registeredHookNames, registeredHookMatchers } from '../../posttool/unified-dispatcher.js';
+import { appendAnalytics } from '../../lib/analytics.js';
 import type { HookInput } from '../../types.js';
 
 function makeInput(overrides: Partial<HookInput> = {}): HookInput {
@@ -92,5 +99,77 @@ describe('registeredHookNames', () => {
   it('includes solution-detector (GAP-011)', () => {
     const names = registeredHookNames();
     expect(names).toContain('solution-detector');
+  });
+});
+
+describe('TaskUpdate analytics tracking (Issue #740)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('tracks TaskUpdate with status "completed"', async () => {
+    await unifiedDispatcher(makeInput({
+      tool_name: 'TaskUpdate',
+      tool_input: { taskId: 'task-42', status: 'completed' },
+    }));
+
+    expect(appendAnalytics).toHaveBeenCalledWith('task-usage.jsonl', expect.objectContaining({
+      task_id: 'task-42',
+      task_status: 'completed',
+      source: 'tool',
+      pid: 'hashed-project',
+    }));
+  });
+
+  it('tracks TaskUpdate with status "in_progress"', async () => {
+    await unifiedDispatcher(makeInput({
+      tool_name: 'TaskUpdate',
+      tool_input: { taskId: 'task-7', status: 'in_progress' },
+    }));
+
+    expect(appendAnalytics).toHaveBeenCalledWith('task-usage.jsonl', expect.objectContaining({
+      task_id: 'task-7',
+      task_status: 'in_progress',
+      source: 'tool',
+    }));
+  });
+
+  it('does not track TaskUpdate with status "pending"', async () => {
+    await unifiedDispatcher(makeInput({
+      tool_name: 'TaskUpdate',
+      tool_input: { taskId: 'task-1', status: 'pending' },
+    }));
+
+    expect(appendAnalytics).not.toHaveBeenCalledWith('task-usage.jsonl', expect.anything());
+  });
+
+  it('does not track TaskUpdate with status "deleted"', async () => {
+    await unifiedDispatcher(makeInput({
+      tool_name: 'TaskUpdate',
+      tool_input: { taskId: 'task-1', status: 'deleted' },
+    }));
+
+    expect(appendAnalytics).not.toHaveBeenCalledWith('task-usage.jsonl', expect.anything());
+  });
+
+  it('uses "unknown" when taskId is missing', async () => {
+    await unifiedDispatcher(makeInput({
+      tool_name: 'TaskUpdate',
+      tool_input: { status: 'completed' },
+    }));
+
+    expect(appendAnalytics).toHaveBeenCalledWith('task-usage.jsonl', expect.objectContaining({
+      task_id: 'unknown',
+      task_status: 'completed',
+    }));
+  });
+
+  it('does not track when status is missing', async () => {
+    await unifiedDispatcher(makeInput({
+      tool_name: 'TaskUpdate',
+      tool_input: { taskId: 'task-1' },
+    }));
+
+    expect(appendAnalytics).not.toHaveBeenCalledWith('task-usage.jsonl', expect.anything());
   });
 });
