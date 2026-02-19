@@ -17,6 +17,17 @@ import { outputSilentSuccess, logHook, getProjectDir } from '../lib/common.js';
 import { getTotalTools } from '../lib/metrics.js';
 
 /**
+ * Classify session outcome from last assistant message (CC 2.1.47)
+ */
+function classifySessionOutcome(msg: string): 'question' | 'summary' | 'code' | 'unknown' {
+  const trimmed = msg.trimEnd();
+  if (trimmed.endsWith('?')) return 'question';
+  if (trimmed.includes('```')) return 'code';
+  if (/\b(completed|summary|done|finished|implemented|fixed)\b/i.test(trimmed)) return 'summary';
+  return 'unknown';
+}
+
+/**
  * Auto-capture session summary to ~/.claude/memory/decisions.jsonl
  * Only fires when session had meaningful work (>20 tools)
  */
@@ -44,10 +55,12 @@ export function memoryCapture(input: HookInput): HookResult {
       pid: input.session_id?.slice(0, 12) ?? 'unknown',
       total_tools: totalTools,
       cwd: projectDir,
+      added_dirs_count: (input.added_dirs ?? []).length,
       auto_captured: true,
       summary: `Session with ${totalTools} tool calls`,
       ...(lastMsg !== undefined && {
         last_assistant_message: lastMsg.slice(0, 500) + (lastMsg.length > 500 ? '...' : ''),
+        session_outcome: classifySessionOutcome(lastMsg),
       }),
     };
 

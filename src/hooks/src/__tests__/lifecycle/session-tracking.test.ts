@@ -97,6 +97,7 @@ describe('session-tracking', () => {
       expect(trackSessionStart).toHaveBeenCalledWith({
         project_dir: TEST_PROJECT_DIR,
         git_branch: 'feature-branch',
+        added_dirs_count: 0,
       });
     });
 
@@ -583,6 +584,7 @@ describe('session-tracking', () => {
       expect(trackSessionStart).toHaveBeenCalledWith({
         project_dir: '/custom/path',
         git_branch: 'develop',
+        added_dirs_count: 0,
       });
     });
   });

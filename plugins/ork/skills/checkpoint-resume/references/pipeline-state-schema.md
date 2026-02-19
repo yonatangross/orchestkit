@@ -1,72 +1,121 @@
----
-title: Pipeline State Schema
-tags: [checkpoint, schema, state]
----
-
 # Pipeline State Schema
 
-File: `.claude/pipeline-state.json`
+The pipeline state file (`.claude/pipeline-state.json`) is the source of truth for checkpoint/resume. It is validated against `.claude/schemas/pipeline-state.schema.json`.
 
-## Top-Level Fields
+## Top-Level Shape
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `completed_phases` | array | Phases that have finished |
-| `current_phase` | object | The phase currently in progress |
-| `remaining_phases` | array | Phases not yet started |
-| `context_summary` | object | Session context for resume |
-| `created_at` | string | ISO 8601 — when pipeline was first created |
-| `updated_at` | string | ISO 8601 — last state write timestamp |
+```json
+{
+  "completed_phases": [...],
+  "current_phase": {...},
+  "remaining_phases": [...],
+  "context_summary": {...},
+  "created_at": "2026-02-19T10:00:00Z",
+  "updated_at": "2026-02-19T10:45:00Z"
+}
+```
 
-## Phase Object
+## completed_phases
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `id` | string | yes | Unique identifier, e.g. `"phase-1"` |
-| `name` | string | yes | Human-readable name |
-| `description` | string | no | What this phase accomplishes |
-| `dependencies` | array | yes | IDs of phases that must complete first (empty = independent) |
-| `status` | string | yes | `pending`, `in_progress`, `completed`, or `failed` |
-| `timestamp` | string | on complete | ISO 8601 completion time |
-| `commit_sha` | string | if applicable | Git SHA of the checkpoint commit |
-| `progress_description` | string | current only | Human-readable progress note |
+Array of phases that finished successfully. Append-only — never remove entries.
 
-## context_summary Object
+```json
+{
+  "id": "create-issues",
+  "name": "Create GitHub Issues",
+  "timestamp": "2026-02-19T10:05:00Z",
+  "commit_sha": "a1b2c3d"   // optional — only if phase produced a commit
+}
+```
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `branch` | string | Current git branch |
-| `key_decisions` | array | Important decisions made during the pipeline |
-| `file_paths` | array | Key files created or modified |
+## current_phase
 
-## Example
+The phase actively being executed. `progress_description` is a free-text note describing partial work done so far within this phase — helps resume after interruption.
+
+```json
+{
+  "id": "write-source",
+  "name": "Write Source Files",
+  "progress_description": "Completed auth module, starting billing module"
+}
+```
+
+Set `current_phase` to `null` when all phases are done.
+
+## remaining_phases
+
+Ordered list of phases not yet started. Remove a phase from here when it moves to `current_phase`.
+
+```json
+{
+  "id": "final-commit",
+  "name": "Final Commit",
+  "dependencies": ["write-source", "write-tests"]
+}
+```
+
+`dependencies`: IDs of phases that must complete before this one. Empty array = can run immediately or in parallel.
+
+## context_summary
+
+Compact context snapshot for restoring session state after interruption.
+
+```json
+{
+  "branch": "feat/issue-42-new-feature",
+  "key_decisions": [
+    "Used postgres not mongo for user storage",
+    "Chose REST over GraphQL for external API"
+  ],
+  "file_paths": [
+    "/Users/dev/project/src/auth/login.ts",
+    "/Users/dev/project/src/billing/invoice.ts"
+  ]
+}
+```
+
+Update `file_paths` each time a phase creates or significantly modifies files.
+
+## Full Example
 
 ```json
 {
   "completed_phases": [
     {
-      "id": "phase-1",
-      "name": "Create GitHub issues",
-      "status": "completed",
-      "timestamp": "2026-02-19T10:00:00Z",
-      "commit_sha": "abc1234"
+      "id": "create-issues",
+      "name": "Create GitHub Issues",
+      "timestamp": "2026-02-19T10:05:00Z"
+    },
+    {
+      "id": "scaffold-commit",
+      "name": "Commit Initial Scaffold",
+      "timestamp": "2026-02-19T10:20:00Z",
+      "commit_sha": "a1b2c3d"
     }
   ],
   "current_phase": {
-    "id": "phase-2",
-    "name": "Implement feature",
-    "status": "in_progress",
-    "progress_description": "Writing tests"
+    "id": "write-source",
+    "name": "Write Source Files",
+    "progress_description": "auth module done, starting billing"
   },
   "remaining_phases": [
-    { "id": "phase-3", "name": "Update docs", "dependencies": ["phase-2"] }
+    {
+      "id": "write-tests",
+      "name": "Write Tests",
+      "dependencies": ["write-source"]
+    },
+    {
+      "id": "final-commit",
+      "name": "Final Commit",
+      "dependencies": ["write-source", "write-tests"]
+    }
   ],
   "context_summary": {
-    "branch": "feat/my-feature",
-    "key_decisions": ["Using TypeScript strict mode"],
-    "file_paths": ["src/hooks/src/lib/new-feature.ts"]
+    "branch": "feat/issue-42-dashboard",
+    "key_decisions": ["REST over GraphQL", "Postgres for storage"],
+    "file_paths": ["/project/src/auth/login.ts"]
   },
-  "created_at": "2026-02-19T09:45:00Z",
-  "updated_at": "2026-02-19T10:00:00Z"
+  "created_at": "2026-02-19T10:00:00Z",
+  "updated_at": "2026-02-19T10:22:00Z"
 }
 ```

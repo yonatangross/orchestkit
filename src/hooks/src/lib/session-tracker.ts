@@ -429,6 +429,8 @@ export interface SessionContext {
   git_branch?: string;
   /** Time of day category */
   time_of_day?: 'morning' | 'afternoon' | 'evening' | 'night';
+  /** CC 2.1.47: Number of /add-dir directories active */
+  added_dirs_count?: number;
   /** Timestamp */
   started_at: string;
 }

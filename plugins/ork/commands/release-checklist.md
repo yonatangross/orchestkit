@@ -1,5 +1,5 @@
 ---
-description: Walks through the OrchestKit release checklist - build, test, validate counts, changelog, version bump, commit, tag, push. Use when preparing a release or verifying release readiness.
+description: Walks through the OrchestKit release checklist — build, test, validate counts, changelog, version bump, commit, tag, push. Use when preparing a release, cutting a version tag, or verifying release readiness before pushing to main.
 allowed-tools: [Bash, Read, Write, Edit, Glob, Grep]
 ---
 
@@ -9,37 +9,49 @@ allowed-tools: [Bash, Read, Write, Edit, Glob, Grep]
 
 # Release Checklist
 
-Sequential release gate. Stop on first failure, suggest fix, report `[PASS]` or `[FAIL]` for each step.
+Sequential release gate for OrchestKit. Each step reports `[PASS]` or `[FAIL]`. Stop on first failure, suggest a fix, then continue after user confirmation.
 
-## Rules
-
-| Rule | File | Key Constraint |
-|------|------|----------------|
-| Gate ordering | `rules/gate-ordering.md` | Steps must run in sequence; stop on first FAIL |
-| Version consistency | `rules/version-consistency.md` | package.json and CLAUDE.md must match |
-| Push confirmation | `rules/push-confirmation.md` | Always confirm before git push |
-
-## References
-
-- [Release phase overview](references/release-phases.md)
+See [references/release-flow.md](references/release-flow.md) for why the order matters and hotfix guidance.
 
 ## Quick Reference
 
-Run `scripts/release-preflight.sh` to execute steps 1–5 automatically. Steps 6–12 require human judgment.
+| Category | Rules | Impact | When to Use |
+|----------|-------|--------|-------------|
+| [Pre-Release Gates](#pre-release-gates) | 2 | CRITICAL | Before every release commit |
+| [Release Commit](#release-commit) | 2 | HIGH | Staging, committing, tagging, pushing |
 
-## Steps
+**Total: 4 rules across 2 categories**
 
-| # | Step | Command | Pass Condition |
-|---|------|---------|----------------|
-| 1 | Build | `npm run build` | plugins/ populated, no errors |
-| 2 | Tests | `npm test` | All suites green |
-| 3 | Security | `npm run test:security` | Must pass — no exceptions |
-| 4 | TypeScript | `npm run typecheck` | Zero type errors |
-| 5 | Counts | `/validate-counts` | All counts consistent |
-| 6 | Changelog | Read CHANGELOG.md | Entry exists for this version |
-| 7 | Version | Read package.json + CLAUDE.md | Both match release version |
-| 8 | Diff review | `git diff` | Only expected changes |
-| 9 | Stage | `git add <files>` | Specific files staged |
-| 10 | Commit | `git commit -m "release: vX.Y.Z"` | Conventional format |
-| 11 | Tag | `git tag vX.Y.Z` | Matches package.json version |
-| 12 | Push | `git push --follow-tags` | **Confirm with user first** |
+## Pre-Release Gates
+
+Must all pass before writing any release commit. See `rules/gate-build-and-test.md` and `rules/gate-counts-and-diff.md`.
+
+| Step | Command | Rule File |
+|------|---------|-----------|
+| 1. Build | `npm run build` | `rules/gate-build-and-test.md` |
+| 2. Tests | `npm test` | `rules/gate-build-and-test.md` |
+| 3. Security | `npm run test:security` | `rules/gate-build-and-test.md` |
+| 4. TypeScript | `npm run typecheck` | `rules/gate-build-and-test.md` |
+| 5. Validate counts | `/validate-counts` | `rules/gate-counts-and-diff.md` |
+| 6. Diff review | `git diff` | `rules/gate-counts-and-diff.md` |
+
+## Release Commit
+
+Steps after all gates pass. See `rules/commit-staging.md` and `rules/commit-tag-push.md`.
+
+| Step | Action | Rule File |
+|------|--------|-----------|
+| 7. Changelog | Entry exists in `CHANGELOG.md` | `rules/commit-staging.md` |
+| 8. Version bump | `package.json` + `CLAUDE.md` both updated | `rules/commit-staging.md` |
+| 9. Stage files | `git add <specific files>` — never `-A` | `rules/commit-staging.md` |
+| 10. Commit | `release: vX.Y.Z` conventional format | `rules/commit-tag-push.md` |
+| 11. Tag | `git tag vX.Y.Z` | `rules/commit-tag-push.md` |
+| 12. Push | Run `scripts/pre-push-confirm.sh` — confirm first | `rules/commit-tag-push.md` |
+
+## Common Mistakes
+
+1. Running `npm test` before `npm run build` — tests run against stale dist
+2. Using `git add -A` — accidentally stages secrets or unrelated in-progress work
+3. Forgetting to bump `CLAUDE.md` version alongside `package.json`
+4. Pushing without explicit user confirmation — irreversible on shared remotes
+5. Skipping security tests — non-negotiable, even for patch releases

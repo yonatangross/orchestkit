@@ -1,5 +1,5 @@
 ---
-description: Rate-limit-resilient pipeline with checkpoint/resume for long multi-phase sessions. Use when starting a complex multi-phase task that risks hitting rate limits, when resuming an interrupted session, or when orchestrating work that spans commits, issues, and file changes across many steps.
+description: Rate-limit-resilient pipeline with checkpoint/resume for long multi-phase sessions. Saves progress to .claude/pipeline-state.json after each phase. Use when starting a complex multi-phase task that risks hitting rate limits, when resuming an interrupted session, or when orchestrating work spanning commits, GitHub issues, and large file changes.
 allowed-tools: [Bash, Read, Write, Edit, Glob, Grep]
 ---
 
@@ -9,37 +9,57 @@ allowed-tools: [Bash, Read, Write, Edit, Glob, Grep]
 
 # Checkpoint Resume
 
-Rate-limit-resilient pipeline orchestrator. Saves progress to `.claude/pipeline-state.json` after each phase so long sessions survive interruptions.
+Rate-limit-resilient pipeline orchestrator. Saves progress to `.claude/pipeline-state.json` after every phase so long sessions survive interruptions.
 
-## Rules
+## Quick Reference
 
-| Rule | File | Key Constraint |
-|------|------|----------------|
-| Phase ordering | `rules/phase-ordering.md` | GitHub issues and commits first; file-heavy work last |
-| State writes | `rules/state-writes.md` | Write state immediately after each phase, not at end |
-| Parallelism | `rules/parallelism.md` | Only parallelize phases with empty `dependencies` arrays |
-| Mini-commits | `rules/mini-commits.md` | Commit every 3 phases as recovery checkpoint |
+| Category | Rule | Impact | Key Pattern |
+|----------|------|--------|-------------|
+| Phase Ordering | `rules/ordering-priority.md` | CRITICAL | GitHub issues/commits first, file-heavy phases last |
+| State Writes | `rules/state-write-timing.md` | CRITICAL | Write after every phase, never batch |
+| Mini-Commits | `rules/checkpoint-mini-commit.md` | HIGH | Every 3 phases, checkpoint commit format |
 
-## References
-
-- [Pipeline state schema](references/pipeline-state-schema.md)
-- [Resume flow](references/resume-flow.md)
+**Total: 3 rules across 3 categories**
 
 ## On Invocation
 
-### If `.claude/pipeline-state.json` exists
+**If `.claude/pipeline-state.json` exists:** run `scripts/show-status.sh` to display progress, then ask to resume, pick a different phase, or restart. See `references/resume-decision-tree.md` for the full decision tree.
 
-1. Read and display resume summary (completed phases, current phase, remaining)
-2. Ask: **"Resume from [current_phase.name]? (y/n)"**
-3. On yes: continue from `current_phase`; on no: offer restart or abandon
+**If no state file exists:** ask the user to describe the task, build an execution plan, write initial state via `scripts/init-pipeline.sh <branch>`, begin Phase 1.
 
-### If no state file exists
+## Execution Plan Structure
 
-1. Ask user to describe the multi-phase task
-2. Build execution plan and write initial `.claude/pipeline-state.json`
-3. Begin execution from first phase
+```json
+{
+  "phases": [
+    { "id": "create-issues", "name": "Create GitHub Issues", "dependencies": [], "status": "pending" },
+    { "id": "commit-scaffold", "name": "Commit Scaffold", "dependencies": [], "status": "pending" },
+    { "id": "write-source", "name": "Write Source Files", "dependencies": ["commit-scaffold"], "status": "pending" }
+  ]
+}
+```
+
+Phases with empty `dependencies` may run in parallel via Task sub-agents (when they don't share file writes).
 
 ## After Each Phase
 
-1. Update `.claude/pipeline-state.json` — move phase to `completed_phases`, advance `current_phase`
-2. Every 3 completed phases: `checkpoint: phases N-M complete` mini-commit
+1. Update `.claude/pipeline-state.json` — see `rules/state-write-timing.md`
+2. Every 3 phases: create a mini-commit — see `rules/checkpoint-mini-commit.md`
+
+## References
+
+- [Pipeline State Schema](references/pipeline-state-schema.md) — full field-by-field schema with examples
+- [Resume Decision Tree](references/resume-decision-tree.md) — logic for resuming, picking phases, or restarting
+
+## Scripts
+
+- `scripts/init-pipeline.sh <branch>` — print skeleton state JSON to stdout
+- `scripts/show-status.sh [path]` — print human-readable pipeline status (requires `jq`)
+
+## Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Phase granularity | One meaningful deliverable per phase (a commit, a set of issues, a feature) |
+| Parallelism | Task sub-agents only for phases with empty `dependencies` that don't share file writes |
+| Rate limit recovery | State is already saved — re-invoke `/checkpoint-resume` to continue |

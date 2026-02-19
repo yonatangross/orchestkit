@@ -183,6 +183,25 @@ Enable monorepo detection? [Y/n]: y
 
 Detects monorepo indicators and suggests `--add-dir` usage.
 
+> **CC 2.1.47**: When `added_dirs` are already active, the monorepo detector automatically skips the `--add-dir` suggestion. The `added_dirs` field is now available in hook inputs for multi-directory awareness.
+
+### Team Plugin Distribution (CC 2.1.45+)
+
+Share OrchestKit across a team using a shared directory:
+
+```bash
+# Create shared plugin directory
+mkdir -p /shared/team/plugins/orchestkit
+
+# Copy plugin files
+cp -r plugins/ork/* /shared/team/plugins/orchestkit/
+
+# Team members use --add-dir to pick up the shared plugin
+claude --add-dir /shared/team/plugins
+```
+
+CC 2.1.45+ supports `plugin_hot_reload` — team members get updates without restarting their sessions.
+
 ## Step 8: CC 2.1.23 Settings
 
 Configure CC 2.1.23-specific features:
