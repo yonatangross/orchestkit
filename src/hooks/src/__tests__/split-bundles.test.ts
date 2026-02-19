@@ -304,7 +304,8 @@ describe('Cross-Bundle Consistency', () => {
     // Added stale-team-cleanup to lifecycle, stop has 24 hooks
     // 152 -> 155: issue-driven git workflow — commit-atomicity-checker, issue-reference-checker, issue-context-injector
     // 155 -> 156: sync with current bundle exports
-    expect(totalHooks).toBe(156);
+    // 156 -> 158: added pretool/task/task-agent-advisor (#706) + teammate hooks
+    expect(totalHooks).toBe(158);
   });
 });
 

@@ -46,6 +46,9 @@ import { failureHandler } from '../posttool/failure-handler.js';
 import { solutionDetector } from '../posttool/solution-detector.js';
 import { toolPreferenceLearner } from '../posttool/tool-preference-learner.js';
 
+// Issue #705: Skill nudges
+import { skillNudge } from '../posttool/skill-nudge.js';
+
 import type { HookFn } from '../types.js';
 
 /**
@@ -88,6 +91,9 @@ export const hooks: Record<string, HookFn> = {
   // Intelligent Decision Capture System
   'posttool/solution-detector': solutionDetector,
   'posttool/tool-preference-learner': toolPreferenceLearner,
+
+  // Issue #705: Skill nudges
+  'posttool/skill-nudge': skillNudge,
 };
 
 export function getHook(name: string): HookFn | undefined {

@@ -17,16 +17,52 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
-    "version": "6.0.20",
-    "date": "2026-02-17",
+    "version": "6.0.22",
+    "date": "2026-02-18",
     "compareUrl": "",
     "sections": [
       {
+        "type": "added",
+        "items": [
+          "**Hook: `memory-capture`** — new Stop hook that auto-captures session summaries to `~/.claude/memory/decisions.jsonl` for sessions with >20 tool calls; nudges `/ork:remember` for sessions with >50 tool calls (#708)",
+          "**Hook: `skill-nudge` (PostToolUse/Bash)** — nudges `/ork:create-pr` after a successful `git push` (#705)",
+          "**Hook: `skill-nudge` (UserPromptSubmit)** — nudges `/ork:fix-issue` when a GitHub issue URL is detected in the prompt (#705)",
+          "**Hook: `task-agent-advisor`** — PreToolUse[Task] hook that suggests curated ork agents for 14 common ad-hoc agent names and corrects 4 built-in casing errors (#704 #706)"
+        ]
+      },
+      {
         "type": "fixed",
         "items": [
-          "Windows: fix console window flashing from fire-and-forget hooks (`detached: true` opens cmd.exe per spawn)",
-          "Windows: fix ENAMETOOLONG errors (79/session) by using `os.tmpdir()` for hook work files",
-          "Extract shared `spawn-worker.mjs` helper, reducing 7 duplicated entry points (7 × 57 → 7 × 17 lines)"
+          "**Analytics: zero-tool sessions** — session-cleanup no longer writes to `session-summary.jsonl` when `total_tools == 0`, eliminating 57% noise from short/failed sessions (#707)",
+          "**Cross-platform: `/tmp` hardcode** — session-cleanup and memory-capture now use `getMetricsFile()` (via `os.tmpdir()`) instead of hardcoded `/tmp/claude-session-metrics.json` (#704)",
+          "**Analytics: jq-queries** — session count query now filters `total_tools > 0` to match corrected analytics data (#707)",
+          "**Tests: agent casing** — `tests/unit/test-pretool-all-hooks.sh` corrected `\"explore\"` → `\"Explore\"` per CC 2.1.45 built-in naming spec (#704)"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "6.0.20",
+    "date": "2026-02-18",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**Hook: `mcp-health-check`** — new SessionStart hook that silently detects MCP misconfigurations at session start: warns if Tavily is enabled but `TAVILY_API_KEY` is unset, or if agentation is enabled but `agentation-mcp` package is not installed. Respects `ORCHESTKIT_SKIP_SLOW_HOOKS=1`.",
+          "**Skill: `github-operations`** — new `references/cli-vs-api-identifiers.md` mapping gh CLI identifiers (NAME) to REST API identifiers (NUMBER/node_id) for milestones, issues, PRs, and Projects v2 (#701)",
+          "**Static analysis: Section E** — `scripts/eval/static-analysis.sh` now enforces CLI-vs-API identifier documentation for any skill mixing `--milestone` CLI flags with REST API milestone paths"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**Windows: console flashing** — fix fire-and-forget hooks spawning visible `cmd.exe` windows (`detached: true` → `detached: false` + `unref()`) (#644)",
+          "**Windows: ENAMETOOLONG** — use `os.tmpdir()` for hook work files instead of deep project-dir paths (79 errors/session eliminated)",
+          "**MCP defaults** — Tavily and agentation are now `\"disabled\": true` in `.mcp.json`; users opt in explicitly to avoid surprise API costs",
+          "**MCP docs** — configure skill, doctor skill, installation.mdx, configuration.mdx, faq.mdx all updated to reflect accurate MCP status and setup instructions (#702)",
+          "**github-operations: `--milestone` footgun** — explicit warning that `gh issue edit --milestone` takes a NAME (string), not a number; REST API uses NUMBER (#699)",
+          "**issue-progress-tracking: close-on-merge rule** — added as Common Mistake #5; issues close only via `Closes #N` in PR body on merge, never via `gh issue close` directly"
         ]
       }
     ]
@@ -39,7 +75,19 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       {
         "type": "fixed",
         "items": [
-          "TODO: Describe your changes here"
+          "**Hook: `memory-capture`** — new Stop hook that auto-captures session summaries to `~/.claude/memory/decisions.jsonl` for sessions with >20 tool calls; nudges `/ork:remember` for sessions with >50 tool calls (#708)",
+          "**Hook: `skill-nudge` (PostToolUse/Bash)** — nudges `/ork:create-pr` after a successful `git push` (#705)",
+          "**Hook: `skill-nudge` (UserPromptSubmit)** — nudges `/ork:fix-issue` when a GitHub issue URL is detected in the prompt (#705)",
+          "**Hook: `task-agent-advisor`** — PreToolUse[Task] hook that suggests curated ork agents for 14 common ad-hoc agent names and corrects 4 built-in casing errors (#704 #706)"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**Analytics: zero-tool sessions** — session-cleanup no longer writes to `session-summary.jsonl` when `total_tools == 0`, eliminating 57% noise from short/failed sessions (#707)",
+          "**Cross-platform: `/tmp` hardcode** — session-cleanup and memory-capture now use `getMetricsFile()` (via `os.tmpdir()`) instead of hardcoded `/tmp/claude-session-metrics.json` (#704)",
+          "**Analytics: jq-queries** — session count query now filters `total_tools > 0` to match corrected analytics data (#707)",
+          "**Tests: agent casing** — `tests/unit/test-pretool-all-hooks.sh` corrected `\"explore\"` → `\"Explore\"` per CC 2.1.45 built-in naming spec (#704)"
         ]
       }
     ]

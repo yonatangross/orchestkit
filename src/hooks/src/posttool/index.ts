@@ -31,3 +31,4 @@ export { patternExtractor } from './bash/pattern-extractor.js';
 export { skillUsageOptimizer } from './skill/skill-usage-optimizer.js';
 
 export { unifiedErrorHandler } from './unified-error-handler.js';
+export { skillNudge } from './skill-nudge.js';

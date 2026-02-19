@@ -12,10 +12,8 @@ import type { HookInput, HookResult } from '../types.js';
 import { logHook, getProjectDir, outputSilentSuccess } from '../lib/common.js';
 import { cleanupTeam } from '../lib/agent-teams.js';
 import { appendAnalytics, hashProject, getTeamContext } from '../lib/analytics.js';
-
-interface SessionMetrics {
-  tools?: Record<string, number>;
-}
+import { getMetricsFile } from '../lib/paths.js';
+import { getTotalTools } from '../lib/metrics.js';
 
 interface SessionEntry {
   sessionId: string;
@@ -30,23 +28,6 @@ interface SessionsIndex {
 }
 
 /**
- * Get total tool invocations from metrics
- */
-function getTotalTools(metricsFile: string): number {
-  if (!existsSync(metricsFile)) {
-    return 0;
-  }
-
-  try {
-    const metrics: SessionMetrics = JSON.parse(readFileSync(metricsFile, 'utf-8'));
-    const tools = metrics.tools || {};
-    return Object.values(tools).reduce((sum, count) => sum + count, 0);
-  } catch {
-    return 0;
-  }
-}
-
-/**
  * Archive session metrics if significant
  */
 function archiveMetrics(metricsFile: string, archiveDir: string): void {
@@ -54,7 +35,7 @@ function archiveMetrics(metricsFile: string, archiveDir: string): void {
     return;
   }
 
-  const totalTools = getTotalTools(metricsFile);
+  const totalTools = getTotalTools();
 
   // Only archive if there were more than 5 tool calls
   if (totalTools <= 5) {
@@ -281,7 +262,7 @@ export function sessionCleanup(input: HookInput): HookResult {
   logHook('session-cleanup', 'Session cleanup starting');
 
   const projectDir = input.project_dir || getProjectDir();
-  const metricsFile = '/tmp/claude-session-metrics.json';
+  const metricsFile = getMetricsFile(); // cross-platform path via lib/paths.ts
   const archiveDir = `${projectDir}/.claude/logs/sessions`;
   const logDir = `${projectDir}/.claude/logs`;
 
@@ -306,14 +287,16 @@ export function sessionCleanup(input: HookInput): HookResult {
       : `Warning: partial cleanup for team "${teamName}"`);
   }
 
-  // Cross-project session summary (Issue #459)
-  const totalTools = getTotalTools(metricsFile);
-  appendAnalytics('session-summary.jsonl', {
-    ts: new Date().toISOString(),
-    pid: hashProject(projectDir),
-    total_tools: totalTools,
-    ...getTeamContext(),
-  });
+  // Cross-project session summary (Issue #459, #707)
+  const totalTools = getTotalTools();
+  if (totalTools > 0) {
+    appendAnalytics('session-summary.jsonl', {
+      ts: new Date().toISOString(),
+      pid: hashProject(projectDir),
+      total_tools: totalTools,
+      ...getTeamContext(),
+    });
+  }
 
   logHook('session-cleanup', 'Session cleanup complete');
 

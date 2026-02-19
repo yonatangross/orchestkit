@@ -358,8 +358,9 @@ function calculateScore(report: CIReport): number {
     if (report.coverage.current < 50) score -= 20;
     else if (report.coverage.current < 60) score -= 15;
     else if (report.coverage.current < 70) score -= 10;
-    else if (report.coverage.current < 80) score -= 5;
-    // 80%+ = no penalty
+    else if (report.coverage.current < 80) score -= 8;
+    else if (report.coverage.current < 90) score -= 3;
+    // 90%+ = no penalty
   }
 
   // Coverage decrease: -5
@@ -374,7 +375,7 @@ function determineOverallStatus(report: CIReport): CIReport['overallStatus'] {
   if (report.security.critical > 0) return 'failure';
   if (report.lint.errors > 0) return 'warning';
   if (report.security.high > 0) return 'warning';
-  if (report.coverage.current > 0 && report.coverage.current < 60) return 'warning';
+  if (report.coverage.current > 0 && report.coverage.current < 70) return 'warning';
   return 'success';
 }
 
@@ -522,7 +523,7 @@ function generateHtml(report: CIReport): string {
 
       <!-- Coverage -->
       <div class="bg-gray-900 rounded-xl p-4 border border-gray-800 card-hover">
-        <div class="text-2xl font-bold ${report.coverage.current >= 80 ? 'text-ci-green' : report.coverage.current >= 60 ? 'text-ci-yellow' : 'text-ci-red'}">
+        <div class="text-2xl font-bold ${report.coverage.current >= 90 ? 'text-ci-green' : report.coverage.current >= 70 ? 'text-ci-yellow' : 'text-ci-red'}">
           ${report.coverage.current.toFixed(1)}%
         </div>
         <div class="text-sm text-gray-400">Coverage (Avg)</div>
@@ -541,45 +542,45 @@ function generateHtml(report: CIReport): string {
         <div>
           <div class="flex justify-between mb-1">
             <span class="text-sm text-gray-400">Lines</span>
-            <span class="text-sm font-medium ${report.coverage.lines >= 80 ? 'text-ci-green' : report.coverage.lines >= 60 ? 'text-ci-yellow' : 'text-ci-red'}">${report.coverage.lines.toFixed(1)}%</span>
+            <span class="text-sm font-medium ${report.coverage.lines >= 90 ? 'text-ci-green' : report.coverage.lines >= 70 ? 'text-ci-yellow' : 'text-ci-red'}">${report.coverage.lines.toFixed(1)}%</span>
           </div>
           <div class="w-full bg-gray-700 rounded-full h-3">
-            <div class="${report.coverage.lines >= 80 ? 'bg-ci-green' : report.coverage.lines >= 60 ? 'bg-ci-yellow' : 'bg-ci-red'} h-3 rounded-full transition-all" style="width: ${Math.min(100, report.coverage.lines)}%"></div>
+            <div class="${report.coverage.lines >= 90 ? 'bg-ci-green' : report.coverage.lines >= 70 ? 'bg-ci-yellow' : 'bg-ci-red'} h-3 rounded-full transition-all" style="width: ${Math.min(100, report.coverage.lines)}%"></div>
           </div>
         </div>
         <!-- Functions -->
         <div>
           <div class="flex justify-between mb-1">
             <span class="text-sm text-gray-400">Functions</span>
-            <span class="text-sm font-medium ${report.coverage.functions >= 80 ? 'text-ci-green' : report.coverage.functions >= 60 ? 'text-ci-yellow' : 'text-ci-red'}">${report.coverage.functions.toFixed(1)}%</span>
+            <span class="text-sm font-medium ${report.coverage.functions >= 90 ? 'text-ci-green' : report.coverage.functions >= 70 ? 'text-ci-yellow' : 'text-ci-red'}">${report.coverage.functions.toFixed(1)}%</span>
           </div>
           <div class="w-full bg-gray-700 rounded-full h-3">
-            <div class="${report.coverage.functions >= 80 ? 'bg-ci-green' : report.coverage.functions >= 60 ? 'bg-ci-yellow' : 'bg-ci-red'} h-3 rounded-full transition-all" style="width: ${Math.min(100, report.coverage.functions)}%"></div>
+            <div class="${report.coverage.functions >= 90 ? 'bg-ci-green' : report.coverage.functions >= 70 ? 'bg-ci-yellow' : 'bg-ci-red'} h-3 rounded-full transition-all" style="width: ${Math.min(100, report.coverage.functions)}%"></div>
           </div>
         </div>
         <!-- Branches -->
         <div>
           <div class="flex justify-between mb-1">
             <span class="text-sm text-gray-400">Branches</span>
-            <span class="text-sm font-medium ${report.coverage.branches >= 80 ? 'text-ci-green' : report.coverage.branches >= 60 ? 'text-ci-yellow' : 'text-ci-red'}">${report.coverage.branches.toFixed(1)}%</span>
+            <span class="text-sm font-medium ${report.coverage.branches >= 90 ? 'text-ci-green' : report.coverage.branches >= 70 ? 'text-ci-yellow' : 'text-ci-red'}">${report.coverage.branches.toFixed(1)}%</span>
           </div>
           <div class="w-full bg-gray-700 rounded-full h-3">
-            <div class="${report.coverage.branches >= 80 ? 'bg-ci-green' : report.coverage.branches >= 60 ? 'bg-ci-yellow' : 'bg-ci-red'} h-3 rounded-full transition-all" style="width: ${Math.min(100, report.coverage.branches)}%"></div>
+            <div class="${report.coverage.branches >= 90 ? 'bg-ci-green' : report.coverage.branches >= 70 ? 'bg-ci-yellow' : 'bg-ci-red'} h-3 rounded-full transition-all" style="width: ${Math.min(100, report.coverage.branches)}%"></div>
           </div>
         </div>
         <!-- Statements -->
         <div>
           <div class="flex justify-between mb-1">
             <span class="text-sm text-gray-400">Statements</span>
-            <span class="text-sm font-medium ${report.coverage.statements >= 80 ? 'text-ci-green' : report.coverage.statements >= 60 ? 'text-ci-yellow' : 'text-ci-red'}">${report.coverage.statements.toFixed(1)}%</span>
+            <span class="text-sm font-medium ${report.coverage.statements >= 90 ? 'text-ci-green' : report.coverage.statements >= 70 ? 'text-ci-yellow' : 'text-ci-red'}">${report.coverage.statements.toFixed(1)}%</span>
           </div>
           <div class="w-full bg-gray-700 rounded-full h-3">
-            <div class="${report.coverage.statements >= 80 ? 'bg-ci-green' : report.coverage.statements >= 60 ? 'bg-ci-yellow' : 'bg-ci-red'} h-3 rounded-full transition-all" style="width: ${Math.min(100, report.coverage.statements)}%"></div>
+            <div class="${report.coverage.statements >= 90 ? 'bg-ci-green' : report.coverage.statements >= 70 ? 'bg-ci-yellow' : 'bg-ci-red'} h-3 rounded-full transition-all" style="width: ${Math.min(100, report.coverage.statements)}%"></div>
           </div>
         </div>
       </div>
       <div class="mt-4 text-xs text-gray-500">
-        Thresholds: <span class="text-ci-green">≥80% Good</span> • <span class="text-ci-yellow">≥60% Warning</span> • <span class="text-ci-red">&lt;60% Needs Improvement</span>
+        Thresholds: <span class="text-ci-green">≥90% Good</span> • <span class="text-ci-yellow">≥70% Warning</span> • <span class="text-ci-red">&lt;70% Needs Improvement</span>
       </div>
     </div>
     `
@@ -706,7 +707,7 @@ function generateMarkdown(report: CIReport): string {
   const secEmoji =
     report.security.critical > 0 ? '❌' : report.security.high > 0 ? '⚠️' : '✅';
   const covEmoji =
-    report.coverage.current >= 80 ? '✅' : report.coverage.current >= 60 ? '⚠️' : '❌';
+    report.coverage.current >= 90 ? '✅' : report.coverage.current >= 70 ? '⚠️' : '❌';
 
   // Score breakdown — show what got deducted
   const deductions: string[] = [];
@@ -729,7 +730,7 @@ function generateMarkdown(report: CIReport): string {
     deductions.push(`${report.security.medium} medium vulns: -${report.security.medium * 2}`);
   if (report.security.low > 0)
     deductions.push(`${report.security.low} low vulns: -${Math.min(5, report.security.low)}`);
-  if (report.coverage.current > 0 && report.coverage.current < 80) {
+  if (report.coverage.current > 0 && report.coverage.current < 90) {
     const covPenalty =
       report.coverage.current < 50
         ? 20
@@ -737,8 +738,10 @@ function generateMarkdown(report: CIReport): string {
           ? 15
           : report.coverage.current < 70
             ? 10
-            : 5;
-    deductions.push(`Coverage ${report.coverage.current.toFixed(1)}% (< 80%): -${covPenalty}`);
+            : report.coverage.current < 80
+              ? 8
+              : 3;
+    deductions.push(`Coverage ${report.coverage.current.toFixed(1)}% (< 90%): -${covPenalty}`);
   }
   if (report.coverage.delta < -1)
     deductions.push(`Coverage decreased ${report.coverage.delta.toFixed(1)}%: -5`);

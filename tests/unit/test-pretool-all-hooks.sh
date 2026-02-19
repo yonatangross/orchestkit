@@ -235,7 +235,7 @@ test_task_context_validator() {
         skip "task-context-validator.sh not found"
     fi
 
-    local task_input='{"tool_name":"Task","tool_input":{"subagent_type":"explore","prompt":"find code"}}'
+    local task_input='{"tool_name":"Task","tool_input":{"subagent_type":"Explore","prompt":"find code"}}'
     local output
     output=$(echo "$task_input" | bash "$hook" 2>/dev/null) || true
 
