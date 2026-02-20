@@ -115,6 +115,12 @@ __pycache__/
 # Demo build artifacts
 orchestkit-demos/build/
 
+# Next.js build cache (docs site)
+.next/
+
+# Split bundle dist copies in plugins (source of truth is src/hooks/dist/)
+plugins/*/hooks/dist/
+
 # Vercel local project config
 
 # Feedback system (user-specific learning data)
