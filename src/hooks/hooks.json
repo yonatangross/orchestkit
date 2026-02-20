@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 65 global + 22 agent-scoped + 1 skill-scoped = 88 total hooks",
+  "description": "OrchestKit hooks - 58 global + 22 agent-scoped + 1 skill-scoped = 81 total hooks",
   "hooks": {
     "PreToolUse": [
       {
@@ -163,19 +163,11 @@
     ],
     "PermissionRequest": [
       {
-        "matcher": "Read|Glob|Grep",
-        "hooks": []
-      },
-      {
         "matcher": "Bash",
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs permission/auto-approve-safe-bash"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs permission/learning-tracker"
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs permission/unified-dispatcher"
           }
         ]
       },
@@ -274,31 +266,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-start/subagent-context-stager"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-start/graph-memory-inject"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-start/subagent-validator"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-start/context-gate"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-start/task-linker"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-start/model-cost-advisor"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-start/issue-context-injector"
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-start/unified-dispatcher"
           }
         ]
       }

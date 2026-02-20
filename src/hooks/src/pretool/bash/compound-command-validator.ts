@@ -10,8 +10,8 @@ import {
   outputDeny,
   logHook,
   logPermissionFeedback,
-  normalizeCommand,
 } from '../../lib/common.js';
+import { containsDangerousCommand, normalizeSingle } from '../../lib/normalize-command.js';
 
 /**
  * Dangerous segment patterns
@@ -28,45 +28,24 @@ const DANGEROUS_SEGMENTS = [
 ];
 
 /**
- * Validate a single segment of a compound command
- */
-function validateSegment(segment: string): boolean {
-  const trimmed = segment.trim();
-  if (!trimmed) return true;
-
-  for (const pattern of DANGEROUS_SEGMENTS) {
-    if (trimmed.includes(pattern)) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-/**
- * Validate compound command and return blocking reason if dangerous
+ * Validate compound command and return blocking reason if dangerous.
+ * Uses containsDangerousCommand from normalize-command.ts which handles
+ * hex/octal escape expansion, quote stripping, and compound operator splitting.
  */
 function validateCompoundCommand(command: string): string | null {
-  // Check for pipe-to-shell patterns BEFORE splitting
+  // Check for pipe-to-shell patterns BEFORE normalization splits on |
   // String-based checks avoid ReDoS from polynomial regex backtracking
+  const normalized = normalizeSingle(command).toLowerCase();
   const hasPipeShell = (cmd: string, fetcher: string): boolean =>
     cmd.includes(fetcher) && cmd.includes('|') && (cmd.includes('sh') || cmd.includes('bash'));
-  if (hasPipeShell(command, 'curl') || hasPipeShell(command, 'wget')) {
+  if (hasPipeShell(normalized, 'curl') || hasPipeShell(normalized, 'wget')) {
     return 'pipe-to-shell execution (curl/wget piped to sh/bash)';
   }
 
-  // Check if command contains compound operators
-  if (!command.includes('&&') && !command.includes('||') && !command.includes('|') && !command.includes(';')) {
-    return null; // Not a compound command
-  }
-
-  // Split on operators and check each segment
-  const segments = command.split(/&&|\|\||[|;]/);
-
-  for (const segment of segments) {
-    if (!validateSegment(segment)) {
-      return segment.trim();
-    }
+  // Use full normalizer: expands escapes, strips quotes, splits on operators
+  const result = containsDangerousCommand(command, DANGEROUS_SEGMENTS);
+  if (result.matches) {
+    return result.subCommand || result.matched || 'unknown dangerous segment';
   }
 
   return null;
@@ -82,11 +61,7 @@ export function compoundCommandValidator(input: HookInput): HookResult {
     return outputSilentSuccess();
   }
 
-  // Normalize command: remove line continuations
-  const normalizedCommand = normalizeCommand(command);
-
-  // Validate
-  const blockReason = validateCompoundCommand(normalizedCommand);
+  const blockReason = validateCompoundCommand(command);
 
   if (blockReason) {
     const errorMsg = `BLOCKED: Dangerous compound command detected.

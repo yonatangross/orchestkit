@@ -1,7 +1,7 @@
 ---
 name: ui-components
 license: MIT
-compatibility: "Claude Code 2.1.47+."
+compatibility: "Claude Code 2.1.49+."
 description: UI component library patterns for shadcn/ui and Radix Primitives. Use when building accessible component libraries, customizing shadcn components, using Radix unstyled primitives, or creating design system foundations.
 tags: [ui-components, shadcn, radix, component-library, design-system, accessible-components, react-hook-form, zod, forms, validation, server-actions, field-arrays]
 context: fork

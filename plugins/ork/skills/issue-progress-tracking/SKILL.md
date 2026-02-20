@@ -1,7 +1,7 @@
 ---
 name: issue-progress-tracking
 license: MIT
-compatibility: "Claude Code 2.1.47+."
+compatibility: "Claude Code 2.1.49+."
 description: "Auto-updates GitHub issues with commit progress. Use when starting work on an issue, tracking progress during implementation, or completing work with a PR."
 context: inherit
 version: 1.0.0

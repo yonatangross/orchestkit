@@ -136,10 +136,15 @@ it "returns continue: true" test_graph_inject_returns_continue
 describe "Hook Registration: hooks.json"
 
 test_graph_inject_registered() {
+    # graph-memory-inject is now consolidated into subagent-start/unified-dispatcher
     if grep -q "graph-memory-inject" "$PROJECT_ROOT/src/hooks/hooks.json" 2>/dev/null; then
         return 0
     fi
-    fail "graph-memory-inject should be registered in hooks.json"
+    # Check if unified-dispatcher (which includes graph-memory-inject) is registered
+    if grep -q "subagent-start/unified-dispatcher" "$PROJECT_ROOT/src/hooks/hooks.json" 2>/dev/null; then
+        return 0
+    fi
+    fail "graph-memory-inject (or its unified-dispatcher) should be registered in hooks.json"
 }
 
 test_mem0_inject_not_registered() {

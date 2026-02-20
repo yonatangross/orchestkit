@@ -14,6 +14,7 @@ export * from '../lib/guards.js';
 import { autoApproveSafeBash } from '../permission/auto-approve-safe-bash.js';
 import { autoApproveProjectWrites } from '../permission/auto-approve-project-writes.js';
 import { learningTracker } from '../permission/learning-tracker.js';
+import { unifiedPermissionBashDispatcher } from '../permission/unified-dispatcher.js';
 
 import type { HookFn } from '../types.js';
 
@@ -24,6 +25,7 @@ export const hooks: Record<string, HookFn> = {
   'permission/auto-approve-safe-bash': autoApproveSafeBash,
   'permission/auto-approve-project-writes': autoApproveProjectWrites,
   'permission/learning-tracker': learningTracker,
+  'permission/unified-dispatcher': unifiedPermissionBashDispatcher,
 };
 
 export function getHook(name: string): HookFn | undefined {

@@ -1,7 +1,7 @@
 ---
 name: brainstorming
 license: MIT
-compatibility: "Claude Code 2.1.47+. Requires memory MCP server."
+compatibility: "Claude Code 2.1.49+. Requires memory MCP server."
 description: "Design exploration with parallel agents. Use when brainstorming ideas, exploring solutions, or comparing alternatives."
 argument-hint: "[topic-or-idea]"
 tags: [planning, ideation, creativity, design]

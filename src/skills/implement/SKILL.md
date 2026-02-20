@@ -1,7 +1,7 @@
 ---
 name: implement
 license: MIT
-compatibility: "Claude Code 2.1.47+. Requires memory MCP server, context7 MCP server, network access."
+compatibility: "Claude Code 2.1.49+. Requires memory MCP server, context7 MCP server, network access."
 description: "Full-power feature implementation with parallel subagents. Use when implementing, building, or creating features."
 argument-hint: "[feature-description]"
 context: fork
@@ -139,9 +139,9 @@ Phase 5 test-generator MUST produce tests matching the change type:
 |-------------|---------------|--------------------------|
 | API endpoint | Unit + Integration + Contract | `integration-api`, `verification-contract`, `mocking-msw` |
 | DB schema/migration | Migration + Integration | `integration-database`, `data-seeding-cleanup` |
-| UI component | Unit + Snapshot + A11y | `unit-aaa-pattern`, `integration-component`, `a11y-jest-axe`, `e2e-playwright` |
-| Business logic | Unit + Property-based | `unit-aaa-pattern`, `pytest-markers`, `verification-property` |
-| LLM/AI feature | Unit + Eval | `llm-deepeval`, `llm-mocking`, `llm-structured` |
+| UI component | Unit + Snapshot + A11y | `unit-aaa-pattern`, `integration-component`, `a11y-testing`, `e2e-playwright` |
+| Business logic | Unit + Property-based | `unit-aaa-pattern`, `pytest-execution`, `verification-techniques` |
+| LLM/AI feature | Unit + Eval | `llm-evaluation`, `llm-mocking` |
 | Full-stack feature | All of the above | All matching rules |
 
 ### Real-Service Detection (Phase 6)

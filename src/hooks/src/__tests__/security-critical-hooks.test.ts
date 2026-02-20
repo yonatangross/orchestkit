@@ -13,6 +13,9 @@
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 import type { HookInput } from '../types.js';
 
+// Security registry
+import { SECURITY_HOOKS, isSecurityCritical, getSecurityHooks, assertCanToggle } from '../lib/security-hooks-registry.js';
+
 // Hook imports
 import { dangerousCommandBlocker } from '../pretool/bash/dangerous-command-blocker.js';
 import { fileGuard } from '../pretool/write-edit/file-guard.js';
@@ -515,6 +518,36 @@ describe('autoApproveSafeBash', () => {
     });
   });
 
+  describe('rejects destructive git commands (#662)', () => {
+    test.each([
+      'git checkout -f',
+      'git checkout --force main',
+      'git clean -fd',
+      'git reset --hard HEAD~1',
+      'git push --force origin main',
+      'git push -f origin main',
+    ])('requires manual review for destructive: %s', (command) => {
+      const result = autoApproveSafeBash(createBashInput(command));
+      expect(result.continue).toBe(true);
+      expect(result.suppressOutput).toBe(true);
+      // Should NOT auto-approve — let user decide
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
+    });
+  });
+
+  describe('requires manual review for gh milestone writes (#662)', () => {
+    test.each([
+      'gh milestone create "v2.0"',
+      'gh milestone edit 5',
+      'gh milestone delete 3',
+    ])('requires manual review for: %s', (command) => {
+      const result = autoApproveSafeBash(createBashInput(command));
+      expect(result.continue).toBe(true);
+      expect(result.suppressOutput).toBe(true);
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
+    });
+  });
+
   describe('returns silent success for unknown commands (manual review)', () => {
     test.each([
       'npm install express',
@@ -1002,5 +1035,57 @@ describe('securityCommandAudit', () => {
       const result = securityCommandAudit(input);
       expect(result.stopReason).toBeUndefined();
     });
+  });
+});
+
+// =============================================================================
+// 7. SECURITY HOOKS REGISTRY (#686)
+// =============================================================================
+
+describe('SECURITY_HOOKS registry', () => {
+  const EXPECTED_HOOKS = [
+    'dangerous-command-blocker',
+    'file-guard',
+    'auto-approve-safe-bash',
+    'redact-secrets',
+    'git-validator',
+    'security-command-audit',
+  ];
+
+  test('contains exactly the 6 known security hooks', () => {
+    expect(SECURITY_HOOKS.size).toBe(6);
+    for (const hook of EXPECTED_HOOKS) {
+      expect(SECURITY_HOOKS.has(hook as never)).toBe(true);
+    }
+  });
+
+  test('isSecurityCritical() returns true for all security hooks', () => {
+    for (const hook of EXPECTED_HOOKS) {
+      expect(isSecurityCritical(hook)).toBe(true);
+    }
+  });
+
+  test('isSecurityCritical() returns false for non-security hooks', () => {
+    expect(isSecurityCritical('learning-tracker')).toBe(false);
+    expect(isSecurityCritical('some-random-hook')).toBe(false);
+  });
+
+  test('getSecurityHooks() returns all 6 hooks', () => {
+    const hooks = getSecurityHooks();
+    expect(hooks).toHaveLength(6);
+    for (const hook of EXPECTED_HOOKS) {
+      expect(hooks).toContain(hook);
+    }
+  });
+
+  test('assertCanToggle() throws for security hooks', () => {
+    for (const hook of EXPECTED_HOOKS) {
+      expect(() => assertCanToggle(hook)).toThrow('Cannot disable security-critical hook');
+    }
+  });
+
+  test('assertCanToggle() does not throw for non-security hooks', () => {
+    expect(() => assertCanToggle('learning-tracker')).not.toThrow();
+    expect(() => assertCanToggle('pattern-sync-pull')).not.toThrow();
   });
 });

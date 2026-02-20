@@ -23,6 +23,7 @@ import { subagentValidator } from '../subagent-start/subagent-validator.js';
 import { taskLinker } from '../subagent-start/task-linker.js';
 import { modelCostAdvisor } from '../subagent-start/model-cost-advisor.js';
 import { issueContextInjector } from '../subagent-start/issue-context-injector.js';
+import { unifiedSubagentStartDispatcher } from '../subagent-start/unified-dispatcher.js';
 
 // SubagentStop hooks (11)
 import { agentMemoryStore } from '../subagent-stop/agent-memory-store.js';
@@ -51,6 +52,7 @@ export const hooks: Record<string, HookFn> = {
   'subagent-start/task-linker': taskLinker,
   'subagent-start/model-cost-advisor': modelCostAdvisor,
   'subagent-start/issue-context-injector': issueContextInjector,
+  'subagent-start/unified-dispatcher': unifiedSubagentStartDispatcher,
 
   // SubagentStop hooks (11)
   'subagent-stop/agent-memory-store': agentMemoryStore,

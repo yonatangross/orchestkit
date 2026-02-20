@@ -24,7 +24,8 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       {
         "type": "fixed",
         "items": [
-          "TODO: Describe your changes here"
+          "Stale model name in cost-estimation.md (claude-sonnet-4-5 → claude-sonnet-4-6)",
+          "CC version badge and FAQ updated from >=2.1.34 to >=2.1.49"
         ]
       }
     ]
@@ -37,7 +38,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       {
         "type": "fixed",
         "items": [
-          "TODO: Describe your changes here"
+          "Release-please configuration scoped to prevent major version bump"
         ]
       }
     ]

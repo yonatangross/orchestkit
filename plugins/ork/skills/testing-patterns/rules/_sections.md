@@ -29,21 +29,19 @@ End-to-end validation with Playwright 1.58+.
 - `e2e-ai-agents.md` — Planner/Generator/Healer agents, init-agents CLI
 - `e2e-page-objects.md` — Page object model, visual regression testing
 
-## 4. Pytest Advanced (pytest) — HIGH — 3 rules
+## 4. Pytest Advanced (pytest) — HIGH — 2 rules
 
 Advanced pytest infrastructure for scalable test suites.
 
-- `pytest-markers.md` — Custom markers (smoke/slow/integration), pyproject.toml
-- `pytest-xdist.md` — Parallel execution with loadscope, worker DB isolation
+- `pytest-execution.md` — Custom markers, pyproject.toml, pytest-xdist parallel execution, worker DB isolation
 - `pytest-plugins.md` — conftest plugins, factory fixtures, async mode
 
-## 5. API Mocking (mocking) — HIGH — 3 rules
+## 5. API Mocking (mocking) — HIGH — 2 rules
 
 Network-level mocking for deterministic tests.
 
 - `mocking-msw.md` — MSW 2.x http/graphql/ws handlers, runtime overrides
 - `mocking-vcr.md` — VCR.py record/replay cassettes, sensitive data filtering
-- `mocking-llm-apis.md` — Custom matchers for LLM APIs, async VCR, CI modes
 
 ## 6. Test Data (data) — MEDIUM — 3 rules
 
@@ -57,7 +55,7 @@ Fixture and factory patterns for test data management.
 
 Advanced verification beyond example-based testing.
 
-- `verification-property.md` — Hypothesis strategies, roundtrip and idempotence properties
+- `verification-techniques.md` — Evidence verification, Hypothesis strategies, roundtrip and idempotence properties
 - `verification-stateful.md` — RuleBasedStateMachine, Schemathesis API fuzzing
 - `verification-contract.md` — Pact consumer/provider tests, broker CI/CD
 
@@ -69,28 +67,25 @@ Load and stress testing for capacity validation.
 - `perf-locust.md` — Locust HttpUser tasks, on_start authentication
 - `perf-types.md` — Load/stress/spike/soak test profiles and when to use each
 
-## 9. LLM Testing (llm) — HIGH — 3 rules
+## 9. LLM Testing (llm) — HIGH — 2 rules
 
 Testing patterns for AI/LLM applications.
 
-- `llm-mocking.md` — AsyncMock, patch model_factory, deterministic fixtures
-- `llm-deepeval.md` — AnswerRelevancy, Faithfulness, Hallucination metrics
-- `llm-structured.md` — Schema validation, timeout testing, golden datasets
+- `llm-mocking.md` — AsyncMock, VCR.py cassettes, custom matchers, deterministic fixtures
+- `llm-evaluation.md` — DeepEval metrics, Pydantic schema validation, timeout testing
 
-## 10. Accessibility (a11y) — MEDIUM — 3 rules
+## 10. Accessibility (a11y) — MEDIUM — 2 rules
 
 Automated accessibility testing for WCAG compliance.
 
-- `a11y-jest-axe.md` — Component-level jest-axe validation
+- `a11y-testing.md` — CI/CD gates, jest-axe unit testing, PR blocking, component state testing
 - `a11y-playwright.md` — Page-level Playwright + axe-core scanning
-- `a11y-ci-gates.md` — CI/CD gates, PR blocking, regression prevention
 
-## 11. Execution (execution) — HIGH — 2 rules
+## 11. Execution (execution) — HIGH — 1 rule
 
-Test execution strategies for parallel runs, CI matrix sharding, and coverage collection.
+Test execution strategies for parallel runs, coverage collection, and CI optimization.
 
-- `execution-parallel.md` — pytest-xdist, CI matrix sharding, worker DB isolation, Vitest/Jest parallelism
-- `execution-coverage.md` — pytest-cov, Istanbul/v8, coverage thresholds, CI upload, per-module targets
+- `execution.md` — Coverage reporting, parallel execution, pytest-cov, failure analysis
 
 ## 12. Validation (validation) — HIGH — 2 rules
 
@@ -99,8 +94,6 @@ Schema validation testing with Zod, tRPC, Prisma, and end-to-end type safety.
 - `validation-zod-schema.md` — Zod schemas, branded types, exhaustive switches, safeParse testing
 - `validation-end-to-end.md` — tRPC end-to-end types, Pydantic, Python NewType, schema rejection tests
 
-## 13. Evidence Verification (evidence) — MEDIUM — 1 rule
+## 13. Evidence Verification
 
-Evidence collection for task completion verification.
-
-- `verification-evidence.md` — Exit code validation, test/build/quality evidence, collection protocol
+Merged into `verification-techniques.md` (Section 7).

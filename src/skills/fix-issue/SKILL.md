@@ -1,7 +1,7 @@
 ---
 name: fix-issue
 license: MIT
-compatibility: "Claude Code 2.1.47+. Requires memory MCP server, context7 MCP server, gh CLI."
+compatibility: "Claude Code 2.1.49+. Requires memory MCP server, context7 MCP server, gh CLI."
 description: "Fixes GitHub issues with parallel analysis. Use to debug errors, resolve regressions, fix bugs, or triage issues."
 argument-hint: "[issue-number]"
 context: fork
@@ -185,59 +185,7 @@ Each agent outputs structured JSON with findings and SUMMARY line.
 
 ### Phase 4 — Agent Teams Alternative
 
-In Agent Teams mode, form an investigation team where RCA agents share hypotheses and evidence in real-time:
-
-```python
-TeamCreate(team_name="fix-issue-{number}", description="RCA for issue #{number}")
-
-Task(subagent_type="debug-investigator", name="root-cause-tracer",
-     team_name="fix-issue-{number}",
-     prompt="""Trace the root cause for issue #{number}: {issue description}
-     Hypotheses: {hypothesis list from Phase 3}
-     Test each hypothesis. When you find evidence supporting or refuting a hypothesis,
-     message impact-analyst and the relevant domain expert (backend-expert or frontend-expert).
-     If you find conflicting evidence, share it with ALL teammates for debate.""")
-
-Task(subagent_type="debug-investigator", name="impact-analyst",
-     team_name="fix-issue-{number}",
-     prompt="""Analyze the impact and blast radius for issue #{number}.
-     When root-cause-tracer shares evidence, assess how many code paths are affected.
-     Message test-planner with affected paths so they can plan regression tests.
-     If the impact is larger than expected, message the lead immediately.""")
-
-Task(subagent_type="backend-system-architect", name="backend-expert",
-     team_name="fix-issue-{number}",
-     prompt="""Investigate backend aspects of issue #{number}.
-     When root-cause-tracer shares backend-related hypotheses, design the fix approach.
-     Message frontend-expert if the fix affects API contracts.
-     Share fix design with test-planner for test requirements.""")
-
-Task(subagent_type="frontend-ui-developer", name="frontend-expert",
-     team_name="fix-issue-{number}",
-     prompt="""Investigate frontend aspects of issue #{number}.
-     When root-cause-tracer shares frontend-related hypotheses, design the fix approach.
-     If backend-expert changes API contracts, adapt the frontend fix accordingly.
-     Share component changes with test-planner.""")
-
-Task(subagent_type="test-generator", name="test-planner",
-     team_name="fix-issue-{number}",
-     prompt="""Plan regression tests for issue #{number}.
-     When root-cause-tracer confirms the root cause, write a failing test that reproduces it.
-     When backend-expert or frontend-expert share fix designs, plan verification tests.
-     Start with the regression test BEFORE the fix is applied (TDD approach).""")
-```
-
-**Team teardown** after fix is implemented and validated:
-```python
-SendMessage(type="shutdown_request", recipient="root-cause-tracer", content="Fix validated")
-SendMessage(type="shutdown_request", recipient="impact-analyst", content="Fix validated")
-SendMessage(type="shutdown_request", recipient="backend-expert", content="Fix validated")
-SendMessage(type="shutdown_request", recipient="frontend-expert", content="Fix validated")
-SendMessage(type="shutdown_request", recipient="test-planner", content="Fix validated")
-TeamDelete()
-```
-
-> **Fallback:** If team formation fails, use standard Phase 4 Task spawns above.
+> See [references/agent-teams-rca.md](references/agent-teams-rca.md) for Agent Teams root cause analysis workflow.
 
 ---
 
@@ -397,60 +345,9 @@ gh pr create --base dev --title "fix(#$ARGUMENTS): [description]"
 
 ---
 
-## CC 2.1.27+ Enhancements
+## CC 2.1.49 Enhancements
 
-### Session Resume with PR Context
-
-When you create a PR for the fix, the session is automatically linked:
-
-```bash
-# Later: Resume with full PR context
-claude --from-pr 789
-```
-
-### Task Metrics (CC 2.1.30)
-
-Track RCA efficiency across the 5 parallel agents:
-
-```markdown
-## Phase 4 Metrics (Root Cause Analysis)
-| Agent | Tokens | Tools | Duration |
-|-------|--------|-------|----------|
-| debug-investigator #1 | 520 | 12 | 18s |
-| debug-investigator #2 | 480 | 10 | 15s |
-| backend-system-architect | 390 | 8 | 12s |
-
-**Root cause found in:** 45s total
-```
-
-### Tool Guidance (CC 2.1.31)
-
-When investigating root cause:
-
-| Task | Use | Avoid |
-|------|-----|-------|
-| Read logs/files | `Read(file_path=...)` | `bash cat` |
-| Search for errors | `Grep(pattern="ERROR")` | `bash grep` |
-| Find affected files | `Glob(pattern="**/*.py")` | `bash find` |
-| Check git history | `Bash git log/diff` | (git needs bash) |
-
-### Session Resume Hints (CC 2.1.31)
-
-Before ending fix sessions, capture investigation context:
-
-```bash
-/ork:remember Issue #$ARGUMENTS RCA findings:
-  Root cause: [one line]
-  Confirmed by: [key evidence]
-  Fix status: [implemented/pending]
-  Prevention: [recommendation]
-```
-
-Resume later:
-```bash
-claude                              # Shows resume hint
-/ork:memory search "issue $ARGUMENTS"  # Loads your findings
-```
+> See [references/cc-enhancements.md](references/cc-enhancements.md) for session resume, task metrics, tool guidance, worktree isolation, and adaptive thinking.
 
 ---
 

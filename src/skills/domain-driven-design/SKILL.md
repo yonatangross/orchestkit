@@ -1,7 +1,7 @@
 ---
 name: domain-driven-design
 license: MIT
-compatibility: "Claude Code 2.1.47+."
+compatibility: "Claude Code 2.1.49+."
 description: Domain-Driven Design tactical patterns for complex business domains. Use when modeling entities, value objects, domain services, repositories, or establishing bounded contexts.
 context: fork
 agent: backend-system-architect

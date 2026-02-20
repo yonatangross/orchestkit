@@ -33,288 +33,15 @@ Modern responsive design patterns using Container Queries, fluid typography, and
 
 ## CSS Patterns
 
-### 1. Container Query Basics
+> See [rules/css-patterns.md](rules/css-patterns.md) for complete CSS examples: container queries, cqi/cqb units, fluid typography with clamp(), mobile-first breakpoints, CSS Grid patterns, and scroll-queries.
 
-```css
-/* Define a query container */
-.card-container {
-  container-type: inline-size;
-  container-name: card;
-}
-
-/* Style based on container width */
-@container card (min-width: 400px) {
-  .card {
-    display: grid;
-    grid-template-columns: 200px 1fr;
-  }
-}
-
-@container card (max-width: 399px) {
-  .card {
-    display: flex;
-    flex-direction: column;
-  }
-}
-```
-
-### 2. Container Query Units (cqi, cqb)
-
-```css
-/* Use cqi (container query inline) over cqw */
-.card-title {
-  /* 5% of container's inline size */
-  font-size: clamp(1rem, 5cqi, 2rem);
-}
-
-.card-content {
-  /* Responsive padding based on container */
-  padding: 2cqi;
-}
-
-/* cqb for block dimension (height-aware containers) */
-.sidebar-item {
-  height: 10cqb;
-}
-```
-
-### 3. Fluid Typography with clamp()
-
-```css
-/* Accessible fluid typography */
-:root {
-  /* Base font respects user preferences (rem) */
-  --font-size-base: 1rem;
-
-  /* Fluid scale with min/max bounds */
-  --font-size-sm: clamp(0.875rem, 0.8rem + 0.25vw, 1rem);
-  --font-size-md: clamp(1rem, 0.9rem + 0.5vw, 1.25rem);
-  --font-size-lg: clamp(1.25rem, 1rem + 1vw, 2rem);
-  --font-size-xl: clamp(1.5rem, 1rem + 2vw, 3rem);
-  --font-size-2xl: clamp(2rem, 1rem + 3vw, 4rem);
-}
-
-h1 { font-size: var(--font-size-2xl); }
-h2 { font-size: var(--font-size-xl); }
-h3 { font-size: var(--font-size-lg); }
-p { font-size: var(--font-size-md); }
-small { font-size: var(--font-size-sm); }
-```
-
-### 4. Container-Based Fluid Typography
-
-```css
-/* For component-scoped fluid text */
-.widget {
-  container-type: inline-size;
-}
-
-.widget-title {
-  /* Fluid within container, respecting user rem */
-  font-size: clamp(1rem, 0.5rem + 5cqi, 2rem);
-}
-
-.widget-body {
-  font-size: clamp(0.875rem, 0.5rem + 3cqi, 1.125rem);
-}
-```
-
-### 5. Mobile-First Breakpoints
-
-```css
-/* Mobile-first: start small, add complexity */
-.layout {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-/* Tablet and up */
-@media (min-width: 768px) {
-  .layout {
-    flex-direction: row;
-  }
-}
-
-/* Desktop */
-@media (min-width: 1024px) {
-  .layout {
-    max-width: 1200px;
-    margin-inline: auto;
-  }
-}
-```
-
-### 6. CSS Grid Responsive Patterns
-
-```css
-/* Auto-fit grid (fills available space) */
-.card-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
-}
-
-/* Auto-fill grid (maintains minimum columns) */
-.icon-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  gap: 1rem;
-}
-
-/* Subgrid for nested alignment */
-.card {
-  display: grid;
-  grid-template-rows: subgrid;
-  grid-row: span 3;
-}
-```
-
-### 7. Container Scroll-Queries (Chrome 126+)
-
-```css
-/* Query based on scroll state */
-.scroll-container {
-  container-type: scroll-state;
-  container-name: scroller;
-}
-
-@container scroller scroll-state(scrollable: top) {
-  .scroll-indicator-top {
-    opacity: 0;
-  }
-}
-
-@container scroller scroll-state(scrollable: bottom) {
-  .scroll-indicator-bottom {
-    opacity: 0;
-  }
-}
-```
+**Key patterns covered:** Container Query basics, Container Query Units (cqi/cqb), Fluid Typography with clamp(), Container-Based Fluid Typography, Mobile-First Breakpoints, CSS Grid Responsive Patterns, Container Scroll-Queries (Chrome 126+).
 
 ## React Patterns
 
-### Responsive Component with Container Queries
+> See [rules/react-patterns.md](rules/react-patterns.md) for complete React examples: ResponsiveCard component, Tailwind container queries, useContainerQuery hook, and responsive images.
 
-```tsx
-import { cn } from '@/lib/utils';
-
-interface CardProps {
-  title: string;
-  description: string;
-  image: string;
-}
-
-export function ResponsiveCard({ title, description, image }: CardProps) {
-  return (
-    <div className="@container">
-      <article className={cn(
-        "flex flex-col gap-4",
-        "@md:flex-row @md:gap-6" // Container query breakpoints
-      )}>
-        <img
-          src={image}
-          alt=""
-          className="w-full @md:w-48 aspect-video object-cover rounded-lg"
-        />
-        <div className="flex flex-col gap-2">
-          <h3 className="text-[clamp(1rem,0.5rem+3cqi,1.5rem)] font-semibold">
-            {title}
-          </h3>
-          <p className="text-[clamp(0.875rem,0.5rem+2cqi,1rem)] text-muted-foreground">
-            {description}
-          </p>
-        </div>
-      </article>
-    </div>
-  );
-}
-```
-
-### Tailwind CSS Container Queries
-
-```tsx
-// @container enables container query variants (@sm, @md, @lg, etc.)
-<div className="@container">
-  <div className="flex flex-col @lg:flex-row @xl:gap-8">
-    <div className="@sm:p-4 @md:p-6 @lg:p-8">
-      Content adapts to container
-    </div>
-  </div>
-</div>
-```
-
-### useContainerQuery Hook
-
-```tsx
-import { useRef, useState, useEffect } from 'react';
-
-function useContainerQuery(breakpoint: number) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [isAbove, setIsAbove] = useState(false);
-
-  useEffect(() => {
-    const element = ref.current;
-    if (!element) return;
-
-    const observer = new ResizeObserver(([entry]) => {
-      setIsAbove(entry.contentRect.width >= breakpoint);
-    });
-
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, [breakpoint]);
-
-  return [ref, isAbove] as const;
-}
-
-// Usage
-function AdaptiveCard() {
-  const [containerRef, isWide] = useContainerQuery(400);
-
-  return (
-    <div ref={containerRef}>
-      {isWide ? <HorizontalLayout /> : <VerticalLayout />}
-    </div>
-  );
-}
-```
-
-### Responsive Images Pattern
-
-```tsx
-function ResponsiveImage({
-  src,
-  alt,
-  sizes = "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-}: {
-  src: string;
-  alt: string;
-  sizes?: string;
-}) {
-  return (
-    <picture>
-      {/* Art direction with different crops */}
-      <source
-        media="(max-width: 640px)"
-        srcSet={`${src}?w=640&aspect=1:1`}
-      />
-      <source
-        media="(max-width: 1024px)"
-        srcSet={`${src}?w=800&aspect=4:3`}
-      />
-      <img
-        src={`${src}?w=1200`}
-        alt={alt}
-        sizes={sizes}
-        loading="lazy"
-        decoding="async"
-        className="w-full h-auto object-cover"
-      />
-    </picture>
-  );
-}
-```
+**Key patterns covered:** Responsive Component with Container Queries, Tailwind CSS Container Queries, useContainerQuery Hook, Responsive Images Pattern.
 
 ## Accessibility Considerations
 
@@ -400,12 +127,14 @@ Each category has individual rule files in `rules/` loaded on-demand:
 
 | Category | Rule | Impact | Key Pattern |
 |----------|------|--------|-------------|
+| CSS | `rules/css-patterns.md` | HIGH | Container queries, cqi/cqb, fluid typography, grid, scroll-queries |
+| React | `rules/react-patterns.md` | HIGH | Container query components, Tailwind, useContainerQuery, responsive images |
 | PWA | `rules/pwa-service-worker.md` | HIGH | Workbox caching strategies, VitePWA, update management |
 | PWA | `rules/pwa-offline.md` | HIGH | Offline hooks, background sync, install prompts |
 | Animation | `rules/animation-motion.md` | HIGH | Motion presets, AnimatePresence, View Transitions |
 | Animation | `rules/animation-scroll.md` | MEDIUM | CSS scroll-driven animations, parallax, progressive enhancement |
 
-**Total: 4 rules across 2 categories**
+**Total: 6 rules across 4 categories**
 
 ## Key Decisions
 
@@ -458,7 +187,7 @@ Each category has individual rule files in `rules/` loaded on-demand:
 
 ---
 
-## Rules (4)
+## Rules (6)
 
 ### Use Motion library with centralized presets for 60fps animations and reduced-motion compliance — HIGH
 
@@ -655,6 +384,171 @@ window.addEventListener('scroll', () => {
 - Respect `prefers-reduced-motion` — disable parallax and motion effects
 
 
+### CSS Responsive Patterns — HIGH
+
+
+# CSS Responsive Patterns
+
+## 1. Container Query Basics
+
+```css
+/* Define a query container */
+.card-container {
+  container-type: inline-size;
+  container-name: card;
+}
+
+/* Style based on container width */
+@container card (min-width: 400px) {
+  .card {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+  }
+}
+
+@container card (max-width: 399px) {
+  .card {
+    display: flex;
+    flex-direction: column;
+  }
+}
+```
+
+## 2. Container Query Units (cqi, cqb)
+
+```css
+/* Use cqi (container query inline) over cqw */
+.card-title {
+  /* 5% of container's inline size */
+  font-size: clamp(1rem, 5cqi, 2rem);
+}
+
+.card-content {
+  /* Responsive padding based on container */
+  padding: 2cqi;
+}
+
+/* cqb for block dimension (height-aware containers) */
+.sidebar-item {
+  height: 10cqb;
+}
+```
+
+## 3. Fluid Typography with clamp()
+
+```css
+/* Accessible fluid typography */
+:root {
+  /* Base font respects user preferences (rem) */
+  --font-size-base: 1rem;
+
+  /* Fluid scale with min/max bounds */
+  --font-size-sm: clamp(0.875rem, 0.8rem + 0.25vw, 1rem);
+  --font-size-md: clamp(1rem, 0.9rem + 0.5vw, 1.25rem);
+  --font-size-lg: clamp(1.25rem, 1rem + 1vw, 2rem);
+  --font-size-xl: clamp(1.5rem, 1rem + 2vw, 3rem);
+  --font-size-2xl: clamp(2rem, 1rem + 3vw, 4rem);
+}
+
+h1 { font-size: var(--font-size-2xl); }
+h2 { font-size: var(--font-size-xl); }
+h3 { font-size: var(--font-size-lg); }
+p { font-size: var(--font-size-md); }
+small { font-size: var(--font-size-sm); }
+```
+
+## 4. Container-Based Fluid Typography
+
+```css
+/* For component-scoped fluid text */
+.widget {
+  container-type: inline-size;
+}
+
+.widget-title {
+  /* Fluid within container, respecting user rem */
+  font-size: clamp(1rem, 0.5rem + 5cqi, 2rem);
+}
+
+.widget-body {
+  font-size: clamp(0.875rem, 0.5rem + 3cqi, 1.125rem);
+}
+```
+
+## 5. Mobile-First Breakpoints
+
+```css
+/* Mobile-first: start small, add complexity */
+.layout {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Tablet and up */
+@media (min-width: 768px) {
+  .layout {
+    flex-direction: row;
+  }
+}
+
+/* Desktop */
+@media (min-width: 1024px) {
+  .layout {
+    max-width: 1200px;
+    margin-inline: auto;
+  }
+}
+```
+
+## 6. CSS Grid Responsive Patterns
+
+```css
+/* Auto-fit grid (fills available space) */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+/* Auto-fill grid (maintains minimum columns) */
+.icon-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 1rem;
+}
+
+/* Subgrid for nested alignment */
+.card {
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-row: span 3;
+}
+```
+
+## 7. Container Scroll-Queries (Chrome 126+)
+
+```css
+/* Query based on scroll state */
+.scroll-container {
+  container-type: scroll-state;
+  container-name: scroller;
+}
+
+@container scroller scroll-state(scrollable: top) {
+  .scroll-indicator-top {
+    opacity: 0;
+  }
+}
+
+@container scroller scroll-state(scrollable: bottom) {
+  .scroll-indicator-bottom {
+    opacity: 0;
+  }
+}
+```
+
+
 ### Configure PWA offline support, manifest, and background sync for native-like installability — HIGH
 
 
@@ -848,6 +742,134 @@ export default defineConfig({
 - CacheFirst for static assets, NetworkFirst for APIs, StaleWhileRevalidate for non-critical images
 - Never cache POST responses or authentication tokens
 - Include `navigateFallback: '/index.html'` for SPA offline support
+
+
+### React Responsive Patterns — HIGH
+
+
+# React Responsive Patterns
+
+## Responsive Component with Container Queries
+
+```tsx
+import { cn } from '@/lib/utils';
+
+interface CardProps {
+  title: string;
+  description: string;
+  image: string;
+}
+
+export function ResponsiveCard({ title, description, image }: CardProps) {
+  return (
+    <div className="@container">
+      <article className={cn(
+        "flex flex-col gap-4",
+        "@md:flex-row @md:gap-6" // Container query breakpoints
+      )}>
+        <img
+          src={image}
+          alt=""
+          className="w-full @md:w-48 aspect-video object-cover rounded-lg"
+        />
+        <div className="flex flex-col gap-2">
+          <h3 className="text-[clamp(1rem,0.5rem+3cqi,1.5rem)] font-semibold">
+            {title}
+          </h3>
+          <p className="text-[clamp(0.875rem,0.5rem+2cqi,1rem)] text-muted-foreground">
+            {description}
+          </p>
+        </div>
+      </article>
+    </div>
+  );
+}
+```
+
+## Tailwind CSS Container Queries
+
+```tsx
+// @container enables container query variants (@sm, @md, @lg, etc.)
+<div className="@container">
+  <div className="flex flex-col @lg:flex-row @xl:gap-8">
+    <div className="@sm:p-4 @md:p-6 @lg:p-8">
+      Content adapts to container
+    </div>
+  </div>
+</div>
+```
+
+## useContainerQuery Hook
+
+```tsx
+import { useRef, useState, useEffect } from 'react';
+
+function useContainerQuery(breakpoint: number) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [isAbove, setIsAbove] = useState(false);
+
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+
+    const observer = new ResizeObserver(([entry]) => {
+      setIsAbove(entry.contentRect.width >= breakpoint);
+    });
+
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [breakpoint]);
+
+  return [ref, isAbove] as const;
+}
+
+// Usage
+function AdaptiveCard() {
+  const [containerRef, isWide] = useContainerQuery(400);
+
+  return (
+    <div ref={containerRef}>
+      {isWide ? <HorizontalLayout /> : <VerticalLayout />}
+    </div>
+  );
+}
+```
+
+## Responsive Images Pattern
+
+```tsx
+function ResponsiveImage({
+  src,
+  alt,
+  sizes = "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+}: {
+  src: string;
+  alt: string;
+  sizes?: string;
+}) {
+  return (
+    <picture>
+      {/* Art direction with different crops */}
+      <source
+        media="(max-width: 640px)"
+        srcSet={`${src}?w=640&aspect=1:1`}
+      />
+      <source
+        media="(max-width: 1024px)"
+        srcSet={`${src}?w=800&aspect=4:3`}
+      />
+      <img
+        src={`${src}?w=1200`}
+        alt={alt}
+        sizes={sizes}
+        loading="lazy"
+        decoding="async"
+        className="w-full h-auto object-cover"
+      />
+    </picture>
+  );
+}
+```
 
 
 

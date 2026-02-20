@@ -50,13 +50,11 @@ PII detection and masking for LLM observability pipelines and logging.
 - `pii-detection.md` — Microsoft Presidio, regex patterns, LLM Guard Anonymize scanner
 - `pii-redaction.md` — Langfuse mask callback, structlog/loguru processors, Vault deanonymization
 
-## 7. Scanning (scanning) — HIGH — 3 rules
+## 7. Scanning (scanning) — HIGH — 1 rule
 
 Automated security scanning for dependencies, static analysis, and secret detection.
 
-- `scanning-dependency.md` — npm audit, pip-audit, Trivy, severity gating, CI integration
-- `scanning-sast.md` — Semgrep, Bandit, pre-commit SAST, custom rules
-- `scanning-secrets.md` — Gitleaks, TruffleHog, detect-secrets, baseline management
+- `scanning.md` — Dependency scanning (npm audit, pip-audit, Trivy), secret detection (Gitleaks, TruffleHog), SAST (Semgrep, Bandit)
 
 ## 8. Advanced Guardrails (guardrails) — CRITICAL — 2 rules
 

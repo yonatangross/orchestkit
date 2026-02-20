@@ -17,7 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- TODO: Describe your changes here
+- Stale model name in cost-estimation.md (claude-sonnet-4-5 → claude-sonnet-4-6)
+- CC version badge and FAQ updated from >=2.1.34 to >=2.1.49
 
 ---
 
@@ -26,7 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- TODO: Describe your changes here
+- Release-please configuration scoped to prevent major version bump
 
 ---
 
