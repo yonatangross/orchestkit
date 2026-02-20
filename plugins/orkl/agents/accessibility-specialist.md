@@ -26,6 +26,7 @@ skills:
   - task-dependency-patterns
   - remember
   - memory
+mcpServers: []
 ---
 ## Directive
 Audit and implement WCAG 2.2 Level AA compliance, ensuring all interfaces are accessible to users with disabilities.

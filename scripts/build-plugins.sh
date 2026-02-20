@@ -205,6 +205,13 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
         done < <(jq -r '.agents[]?' "$manifest")
     fi
 
+    # Copy plugin settings.json (CC 2.1.49 managed defaults)
+    SETTINGS_FILE="$SRC_DIR/settings/${PLUGIN_NAME}.settings.json"
+    if [[ -f "$SETTINGS_FILE" ]]; then
+        cp "$SETTINGS_FILE" "$PLUGIN_DIR/settings.json"
+        echo -e "    ${GREEN}Copied settings.json${NC}"
+    fi
+
     # Copy hooks (excluding node_modules)
     if [[ "$HOOKS_MODE" == "all" ]]; then
         rsync -a \

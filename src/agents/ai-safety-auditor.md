@@ -22,6 +22,7 @@ skills:
   - security-patterns
   - remember
   - memory
+mcpServers: [tavily, context7, memory]
 ---
 
 ## Directive

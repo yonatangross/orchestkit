@@ -8,7 +8,7 @@ Always respond in English. Never Hebrew. No exceptions.
 
 ## Project Overview
 
-**OrchestKit** — Claude Code plugin: **67 skills**, **37 agents**, **64 hooks** (15 event types, 12 bundles, 9 native async).
+**OrchestKit** — Claude Code plugin: **67 skills**, **37 agents**, **65 hooks** (15 event types, 12 bundles, 9 native async).
 
 **Purpose**: AI-assisted development with built-in best practices, security patterns, and quality gates.
 
@@ -17,7 +17,8 @@ Always respond in English. Never Hebrew. No exceptions.
 ```
 src/                    ← SOURCE (edit here!)
 ├── skills/<name>/SKILL.md    # 67 skills (YAML frontmatter + Markdown)
-├── agents/<name>.md          # 37 agents (CC 2.1.47 format)
+├── agents/<name>.md          # 37 agents (CC 2.1.49 format)
+├── settings/<plugin>.settings.json  # Plugin settings (permissions, keybindings)
 └── hooks/                    # TypeScript hooks (hooks.json + src/ + dist/)
 manifests/                    # Plugin definitions (JSON)
 plugins/                      # GENERATED (never edit!)
@@ -46,7 +47,7 @@ cd src/hooks && npm run build    # Compile TypeScript hooks
 
 **Skill**: See `src/skills/CONTRIBUTING-SKILLS.md` for full authoring standards. Create `src/skills/my-skill/SKILL.md` with YAML frontmatter (`name`, `description`, `tags`, `user-invocable`, `complexity`). SKILL.md body must stay under 500 lines. Add to `manifests/ork.json`, run `npm run build`.
 
-**Agent**: Create `src/agents/my-agent.md` with frontmatter (`name`, `description`, `model`, `tools`, `skills`). Add to manifest, rebuild.
+**Agent**: Create `src/agents/my-agent.md` with frontmatter (`name`, `description`, `model`, `tools`, `skills`). Add `background: true` for agents that never need interactive results. Add to manifest, rebuild.
 
 **Hook**: Create `src/hooks/src/<category>/my-hook.ts`, register in `src/hooks/hooks.json`, rebuild with `cd src/hooks && npm run build`. After adding/removing hooks, update the count in `hooks.json` description field and in the Version section below — these must stay in sync.
 
@@ -80,7 +81,7 @@ Commit after each logical unit of work — never batch all commits to end of ses
 | `ork-creative` | 2 | 1 | Video production add-on |
 | `ork` | 67 | 36 | Full — lite + creative + Python, React, LLM/RAG |
 
-All plugins include 64 hooks. 28 skills are user-invocable via `/ork:skillname`.
+All plugins include 65 hooks and a `settings.json` (permissions, keybindings, spinner). 28 skills are user-invocable via `/ork:skillname`.
 
 ## Quick Reference
 
@@ -93,7 +94,7 @@ All plugins include 64 hooks. 28 skills are user-invocable via `/ork:skillname`.
 
 ## Version
 
-- **Current**: 6.0.24 · **Claude Code**: >= 2.1.47
-- **Hooks**: 64 entries (15 event types, 12 bundles, 9 native async)
+- **Current**: 6.0.26 · **Claude Code**: >= 2.1.49
+- **Hooks**: 65 entries (15 event types, 12 bundles, 9 native async)
 
 See `CHANGELOG.md` for history. See `src/hooks/README.md` for hook architecture.

@@ -32,6 +32,7 @@ skills:
   - task-dependency-patterns
   - remember
   - memory
+mcpServers: [context7]
 ---
 ## Directive
 Profile, benchmark, and optimize Python application performance across CPU, memory, I/O, and database operations.

@@ -25,6 +25,7 @@ skills:
   - task-dependency-patterns
   - remember
   - memory
+mcpServers: [context7]
 ---
 ## Directive
 Analyze coverage gaps and generate comprehensive tests with meaningful assertions. Use MSW (frontend) and VCR.py (backend) for HTTP mocking.

@@ -23,6 +23,7 @@ skills:
   - errors
   - remember
   - memory
+mcpServers: []
 hooks:
   PreToolUse:
     - matcher: "Write|Edit"

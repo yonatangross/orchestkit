@@ -6,6 +6,7 @@ model: sonnet
 context: fork
 color: violet
 memory: project
+background: true
 tools:
   - Read
   - WebSearch
@@ -27,6 +28,7 @@ hooks:
   PreToolUse:
     - matcher: "Write|Edit"
       command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs agent/block-writes"
+mcpServers: [tavily, memory]
 ---
 ## Directive
 Research competitive landscape, market trends, and opportunities to provide strategic intelligence for product decisions.

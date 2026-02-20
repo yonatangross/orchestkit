@@ -17,6 +17,21 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "6.0.27",
+    "date": "2026-02-20",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "security",
+        "items": [
+          "Eliminate 30 CodeQL ReDoS vulnerabilities (js/polynomial-redos) across 12 hook files",
+          "Replace polynomial-time regex patterns with O(n) string operations",
+          "Dismiss 1 Dependabot alert (ajv ReDoS in demo project — tolerable risk)"
+        ]
+      }
+    ]
+  },
+  {
     "version": "6.0.24",
     "date": "2026-02-19",
     "compareUrl": "",

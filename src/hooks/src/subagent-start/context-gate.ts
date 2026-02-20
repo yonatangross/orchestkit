@@ -28,6 +28,19 @@ const MAX_AGENTS_PER_RESPONSE = 8;
 const WARNING_THRESHOLD = 5;
 const EXPENSIVE_TYPES = /^(test-generator|backend-system-architect|workflow-architect|security-auditor|llm-integrator)$/;
 
+// Worktree isolation: raise limits when in worktree (CC 2.1.49)
+function isInWorktree(): boolean {
+  const cwd = process.cwd();
+  return cwd.includes('.claude/worktrees/') || cwd.includes('/.git/worktrees/');
+}
+
+function getEffectiveLimits(): { maxBackground: number; maxPerResponse: number } {
+  if (isInWorktree()) {
+    return { maxBackground: 10, maxPerResponse: 12 };
+  }
+  return { maxBackground: MAX_CONCURRENT_BACKGROUND, maxPerResponse: MAX_AGENTS_PER_RESPONSE };
+}
+
 // State file paths
 function getStateFile(): string {
   return `${getProjectDir()}/.claude/logs/agent-state.json`;
@@ -183,15 +196,17 @@ export function contextGate(input: HookInput): HookResult {
 
   logHook('context-gate', `Active background: ${activeCount}, Current response: ${responseCount}`);
 
+  const limits = getEffectiveLimits();
+
   // Check 1: Too many agents in single response
-  if (responseCount >= MAX_AGENTS_PER_RESPONSE) {
-    logHook('context-gate', `BLOCKED: Too many agents in single response (${responseCount} >= ${MAX_AGENTS_PER_RESPONSE})`);
+  if (responseCount >= limits.maxPerResponse) {
+    logHook('context-gate', `BLOCKED: Too many agents in single response (${responseCount} >= ${limits.maxPerResponse})`);
 
     return outputDeny(`Context Overflow Protection
 
 Too many agents spawned in a single response (${responseCount} agents).
 
-Maximum allowed: ${MAX_AGENTS_PER_RESPONSE} per response
+Maximum allowed: ${limits.maxPerResponse} per response
 
 SOLUTION: Split into multiple responses or use sequential execution.
 Consider using the /context-optimization skill first.
@@ -200,8 +215,8 @@ Attempted: ${subagentType} - ${description}`);
   }
 
   // Check 2: Too many concurrent background agents
-  if (runInBackground && activeCount >= MAX_CONCURRENT_BACKGROUND) {
-    logHook('context-gate', `BLOCKED: Too many concurrent background agents (${activeCount} >= ${MAX_CONCURRENT_BACKGROUND})`);
+  if (runInBackground && activeCount >= limits.maxBackground) {
+    logHook('context-gate', `BLOCKED: Too many concurrent background agents (${activeCount} >= ${limits.maxBackground})`);
 
     incrementBlockedCount();
 
@@ -209,7 +224,7 @@ Attempted: ${subagentType} - ${description}`);
 
 Too many background agents running concurrently (${activeCount} active).
 
-Maximum allowed: ${MAX_CONCURRENT_BACKGROUND} concurrent background agents
+Maximum allowed: ${limits.maxBackground} concurrent background agents
 
 SOLUTION:
 1. Wait for existing agents to complete
@@ -228,7 +243,7 @@ Attempted: ${subagentType} - ${description}`);
 
     return outputWarning(`Context Budget Warning
 
-${activeCount} background agents active (limit: ${MAX_CONCURRENT_BACKGROUND}).
+${activeCount} background agents active (limit: ${limits.maxBackground}).
 
 Consider:
 - Running remaining agents sequentially

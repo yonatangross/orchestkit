@@ -1,0 +1,22 @@
+{
+  "$schema": "https://claude.ai/schemas/plugin-settings.json",
+  "permissions": {
+    "allow": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Bash",
+      "mcp__context7__*",
+      "mcp__memory__*"
+    ],
+    "deny": []
+  },
+  "spinnerVerbs": {
+    "mode": "append",
+    "verbs": [
+      "Producing",
+      "Rendering",
+      "Composing"
+    ]
+  }
+}

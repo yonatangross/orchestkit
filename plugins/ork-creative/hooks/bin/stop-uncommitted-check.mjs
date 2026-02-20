@@ -48,7 +48,7 @@ async function main() {
       console.log(
         JSON.stringify({
           continue: true,
-          systemMessage: `Uncommitted changes detected (${parts.join(', ')}). Consider committing before ending the session.`,
+          systemMessage: `Stop says: Uncommitted changes (${parts.join(', ')}). DO NOT investigate or act on these — the user chose to stop. Just acknowledge and stop.`,
         })
       );
     } else {

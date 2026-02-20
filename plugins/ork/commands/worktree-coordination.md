@@ -13,6 +13,26 @@ allowed-tools: [Read, Write, Bash, Grep, Glob]
 
 > **Agent Teams (CC 2.1.33+):** When `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` is set, native Agent Teams provides built-in teammate lifecycle management, peer-to-peer messaging, and shared task lists. This skill's custom file locking and coordination registry are superseded by Teams' native coordination. Use this skill only for **non-Teams worktree scenarios** (e.g., multiple independent Claude Code sessions without a shared team).
 
+## Native Worktree Support (CC 2.1.49)
+
+CC 2.1.49 added native worktree creation via the `EnterWorktree` tool and `--worktree (-w)` CLI flag:
+
+```bash
+# CLI flag — creates worktree and switches session into it
+claude --worktree          # auto-named worktree
+claude -w my-feature       # named worktree
+
+# Tool — available to agents and skills
+EnterWorktree(name="my-feature")  # creates .claude/worktrees/my-feature/
+```
+
+**Key behaviors:**
+- Worktrees are created inside `.claude/worktrees/` with a new branch based on HEAD
+- On session exit, user is prompted to keep or remove the worktree
+- Skills, agents, and hooks are fully discovered in worktrees (fixed in CC 2.1.47)
+
+> **When to use native vs this skill:** Use `EnterWorktree` for single-session isolation (quick feature branches). Use this skill's coordination registry for **multi-session** scenarios where multiple Claude instances need file locking and decision sharing.
+
 ## Commands
 
 ### /worktree-status

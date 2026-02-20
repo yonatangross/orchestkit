@@ -29,6 +29,7 @@ skills:
   - task-dependency-patterns
   - remember
   - memory
+mcpServers: [context7]
 ---
 ## Directive
 Design event-driven architectures with event sourcing, message queues, and CQRS patterns for scalable distributed systems.

@@ -20,6 +20,7 @@ skills:
   - security-patterns
   - remember
   - memory
+mcpServers: []
 hooks:
   PostToolUse:
     - matcher: "Bash"

@@ -25,6 +25,7 @@ skills:
   - release-management
   - remember
   - memory
+mcpServers: [context7, memory]
 ---
 
 ## Directive

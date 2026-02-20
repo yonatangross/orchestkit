@@ -116,6 +116,12 @@ export async function unifiedStopDispatcher(input: HookInput): Promise<HookResul
     return outputSilentSuccess();
   }
 
+  // CC 2.1.49: Log last assistant message snippet for audit trail
+  if (input.last_assistant_message) {
+    const snippet = input.last_assistant_message.substring(0, 200);
+    logHook('stop-dispatcher', `last_assistant_message (first 200): ${snippet}`);
+  }
+
   // Run all hooks in parallel
   const results = await Promise.allSettled(
     HOOKS.map(async hook => {

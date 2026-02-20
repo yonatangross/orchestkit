@@ -1,11 +1,11 @@
 ---
 title: "PostToolUse"
-description: "Hooks triggered on PostToolUse events (6 hooks)."
+description: "Hooks triggered on PostToolUse events (7 hooks)."
 ---
 
 # PostToolUse Hooks
 
-**6 hooks** registered for the `PostToolUse` lifecycle event.
+**7 hooks** registered for the `PostToolUse` lifecycle event.
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
@@ -15,3 +15,4 @@ description: "Hooks triggered on PostToolUse events (6 hooks)."
 | `redact-secrets` | `Bash` | 🔇 Silent | Runs after Bash commands in security-scanning skill |
 | `skill-nudge` | `Bash` | 💡 Injects | — |
 | `team-member-start` | `Task` | 🔇 Silent | — |
+| `security-auditor` | `Write\|Edit` | 🔇 Silent | — |

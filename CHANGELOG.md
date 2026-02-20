@@ -5,6 +5,14 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.0.27] - 2026-02-20
+
+### Security
+
+- Eliminate 30 CodeQL ReDoS vulnerabilities (js/polynomial-redos) across 12 hook files
+- Replace polynomial-time regex patterns with O(n) string operations
+- Dismiss 1 Dependabot alert (ajv ReDoS in demo project — tolerable risk)
+
 ## [6.0.26](https://github.com/yonatangross/orchestkit/compare/v6.0.25...v6.0.26) (2026-02-20)
 
 

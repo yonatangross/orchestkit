@@ -87,17 +87,23 @@ Categories available:
 - Team Coordination (locks, conflicts)
 - Notifications (desktop, sound)
 
+> **CC 2.1.49 Managed Settings:** OrchestKit ships plugin `settings.json` with default hook permissions. These are *managed defaults* — users can override them in project or user settings. Enterprise admins can lock managed settings via managed profiles.
+
 ## Step 5: Configure MCPs (Optional)
 
-`context7` and `memory` are enabled by default. `tavily` and `agentation` ship **disabled** (require API key / local package). `sequential-thinking` is disabled (Opus 4.6 has native reasoning built-in).
+All 5 MCPs ship **enabled by default**. Tavily requires an API key; agentation requires a local package install.
 
 | MCP | Purpose | Default | Requires |
 |-----|---------|---------|----------|
 | context7 | Library documentation | enabled | Nothing |
 | memory | Cross-session persistence | enabled | Nothing |
-| sequential-thinking | Complex reasoning | disabled | Nothing |
-| tavily | Web search + extraction | disabled | API key (free tier: app.tavily.com) |
-| agentation | UI annotation tool | disabled | `npm install agentation-mcp` |
+| sequential-thinking | Structured reasoning for subagents | enabled | Nothing |
+| tavily | Web search + extraction | enabled | API key (free tier: app.tavily.com) |
+| agentation | UI annotation tool | enabled | `npm install agentation-mcp` |
+
+> **Why all enabled?** OrchestKit ships 30+ Sonnet/Haiku subagents. While Opus 4.6 has native extended thinking, Sonnet and Haiku do not — they benefit from sequential-thinking. Tavily and agentation are used by specific agents (see `mcpServers` in agent frontmatter). CC's MCPSearch auto-defers schemas when overhead exceeds 10% of context, so token cost is managed automatically.
+
+> **Background agents:** MCP tools are NOT available in background subagents (hard CC platform limitation). Agents that need MCP tools must run in the foreground.
 
 **Already have these MCPs installed globally?** If Tavily or memory are already in your `~/.claude/mcp.json`, skip enabling them here to avoid duplicate entries. OrchestKit agents will use whichever instance Claude Code resolves first.
 
@@ -203,6 +209,18 @@ claude --add-dir /shared/team/plugins
 CC 2.1.45+ supports `plugin_hot_reload` — team members get updates without restarting their sessions.
 
 > **`enabledPlugins` vs `added_dirs`**: `enabledPlugins` is a CC-internal concept and is NOT exposed to hooks. The hook-accessible field for multi-directory awareness is `added_dirs` (available in `HookInput` since CC 2.1.47). Hooks can read `input.added_dirs` to detect which additional directories are active — useful for adapting behavior in multi-repo workspaces.
+
+### Monorepo Package Context (CC 2.1.49)
+
+When `added_dirs` are active, OrchestKit's monorepo detector surfaces package names from each directory as session context. This helps agents understand which packages are in scope:
+
+```
+Multi-directory context active (3 dirs)
+Packages: @myapp/api, @myapp/web, @myapp/shared
+Each directory may have its own CLAUDE.md with targeted instructions.
+```
+
+Use `claude --add-dir ./packages/api --add-dir ./packages/web` to include specific packages.
 
 ## Step 8: CC 2.1.23 Settings
 
