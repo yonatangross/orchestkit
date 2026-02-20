@@ -21,7 +21,7 @@ import {
 function extractCommitMessage(command: string): string | null {
   // Match -m followed by a quoted or unquoted message
   // Handles: -m "msg", -m 'msg', -m msg
-  const match = command.match(/-m\s+(?:"([^"]*(?:\\.[^"]*)*)"|'([^']*)'|(\S+))/);
+  const match = command.match(/-m\s+(?:"([^"\\]*(?:\\[\s\S][^"\\]*)*)"|'([^']*)'|(\S+))/);
   if (!match) return null;
   return match[1] ?? match[2] ?? match[3] ?? null;
 }

@@ -45,7 +45,7 @@ export function backendLayerValidator(input: HookInput): HookResult {
     }
 
     // Rule: No FastAPI Request/Response objects
-    if (/from fastapi import[^)]{0,200}(Request|Response)/.test(content)) {
+    if (content.includes('from fastapi import') && (/Request/.test(content) || /Response/.test(content))) {
       errors.push('HTTP: Request/Response types not allowed in services');
     }
   }

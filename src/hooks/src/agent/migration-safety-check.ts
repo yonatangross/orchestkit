@@ -12,14 +12,14 @@ import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, outputDeny } from '../lib/common.js';
 
 // Dangerous database patterns
-const DANGEROUS_PATTERNS = [
-  /DROP\s+TABLE/i,
-  /DROP\s+DATABASE/i,
-  /TRUNCATE/i,
-  /DELETE\s+FROM.*WHERE\s+1/i,
-  /DELETE\s+FROM\s+[^W]*$/i, // DELETE without WHERE
-  /--force/i,
-  /alembic\s+downgrade/i,
+const DANGEROUS_PATTERNS: Array<{ test: (s: string) => boolean; source: string }> = [
+  { test: (s) => /DROP\s+TABLE/i.test(s), source: 'DROP TABLE' },
+  { test: (s) => /DROP\s+DATABASE/i.test(s), source: 'DROP DATABASE' },
+  { test: (s) => /TRUNCATE/i.test(s), source: 'TRUNCATE' },
+  { test: (s) => /DELETE\s+FROM/i.test(s) && /WHERE\s+1/i.test(s), source: 'DELETE FROM...WHERE 1' },
+  { test: (s) => /DELETE\s+FROM/i.test(s) && !/WHERE/i.test(s), source: 'DELETE FROM (no WHERE)' },
+  { test: (s) => s.includes('--force'), source: '--force' },
+  { test: (s) => /alembic\s+downgrade/i.test(s), source: 'alembic downgrade' },
 ];
 
 /**

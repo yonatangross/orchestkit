@@ -12,14 +12,14 @@ import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, outputDeny, outputWithContext } from '../lib/common.js';
 
 // Production patterns that should be blocked
-const PRODUCTION_PATTERNS = [
-  /\bprod\b/i,
-  /production/i,
-  /--env.*prod/i,
-  /ENV=prod/i,
-  /ENVIRONMENT=prod/i,
-  /deploy.*main/i,
-  /deploy.*master/i,
+const PRODUCTION_PATTERNS: Array<{ test: (cmd: string) => boolean; source: string }> = [
+  { test: (cmd) => /\bprod\b/i.test(cmd), source: 'prod' },
+  { test: (cmd) => /production/i.test(cmd), source: 'production' },
+  { test: (cmd) => cmd.includes('--env') && /prod/i.test(cmd), source: '--env.*prod' },
+  { test: (cmd) => cmd.includes('ENV=prod'), source: 'ENV=prod' },
+  { test: (cmd) => cmd.includes('ENVIRONMENT=prod'), source: 'ENVIRONMENT=prod' },
+  { test: (cmd) => cmd.toLowerCase().includes('deploy') && cmd.toLowerCase().includes('main'), source: 'deploy.*main' },
+  { test: (cmd) => cmd.toLowerCase().includes('deploy') && cmd.toLowerCase().includes('master'), source: 'deploy.*master' },
 ];
 
 /**
@@ -45,7 +45,7 @@ export function deploymentSafetyCheck(input: HookInput): HookResult {
   }
 
   // Warn on infrastructure changes
-  if (/terraform|kubectl|helm|docker.*push/i.test(command)) {
+  if (/terraform|kubectl|helm/i.test(command) || (command.toLowerCase().includes('docker') && command.toLowerCase().includes('push'))) {
     return outputWithContext(
       'Deployment Safety: Infrastructure change detected. Verify changes in staging before production deployment.'
     );

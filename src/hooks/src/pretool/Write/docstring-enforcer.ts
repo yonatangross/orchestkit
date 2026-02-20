@@ -49,7 +49,7 @@ function findMissingPythonDocstrings(content: string): string[] {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     // Match public function definitions (not starting with _)
-    const funcMatch = line.match(/^(?:\s*)(?:async\s+)?def\s+([^_][a-zA-Z0-9_]*)\s*\(/);
+    const funcMatch = line.match(/^ *(?:async +)?def +([^_][a-zA-Z0-9_]*) *\(/);
 
     if (funcMatch) {
       const funcName = funcMatch[1];

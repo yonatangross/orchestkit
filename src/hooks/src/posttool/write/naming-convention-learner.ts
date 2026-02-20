@@ -93,11 +93,11 @@ function extractPythonIdentifiers(content: string): {
   const classes = (content.match(/class ([A-Za-z_][a-zA-Z0-9_]*)/g) || [])
     .map(m => m.replace('class ', ''));
 
-  const variables = (content.match(/^\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*=/gm) || [])
-    .map(m => m.replace(/\s*=.*/, '').trim());
+  const variables = (content.match(/^ *([a-zA-Z_]\w*) *=/gm) || [])
+    .map(m => m.replace(/ *=.*/, '').trim());
 
-  const constants = (content.match(/^([A-Z][A-Z0-9_]*)\s*=/gm) || [])
-    .map(m => m.replace(/\s*=.*/, '').trim());
+  const constants = (content.match(/^([A-Z][A-Z0-9_]*) *=/gm) || [])
+    .map(m => m.replace(/ *=.*/, '').trim());
 
   return { functions, classes, variables, constants };
 }
@@ -115,8 +115,8 @@ function extractJsIdentifiers(content: string): {
   const functions = [
     ...(content.match(/(function|async function) ([a-zA-Z_][a-zA-Z0-9_]*)/g) || [])
       .map(m => m.replace(/(async )?function /, '')),
-    ...(content.match(/const ([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*\(/g) || [])
-      .map(m => m.replace(/const /, '').replace(/\s*=.*/, '')),
+    ...(content.match(/const ([a-zA-Z_]\w*) *= *\(/g) || [])
+      .map(m => m.replace(/const /, '').replace(/ *=.*/, '')),
   ];
 
   const classes = (content.match(/class ([A-Za-z_][a-zA-Z0-9_]*)/g) || [])

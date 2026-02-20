@@ -8,15 +8,15 @@ import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook } from '../lib/common.js';
 
 // Complex task indicators (regex patterns)
-const COMPLEX_PATTERNS = [
-  /implement/i,
-  /refactor/i,
-  /add feature/i,
-  /create[\s\S]{0,100}component/i,
-  /build[\s\S]{0,100}system/i,
-  /fix[\s\S]{0,100}multiple/i,
-  /update[\s\S]{0,100}across/i,
-  /migrate/i,
+const COMPLEX_PATTERNS: Array<{ test: (s: string) => boolean }> = [
+  { test: (s) => /implement/i.test(s) },
+  { test: (s) => /refactor/i.test(s) },
+  { test: (s) => /add feature/i.test(s) },
+  { test: (s) => s.toLowerCase().includes('create') && s.toLowerCase().includes('component') },
+  { test: (s) => s.toLowerCase().includes('build') && s.toLowerCase().includes('system') },
+  { test: (s) => s.toLowerCase().includes('fix') && s.toLowerCase().includes('multiple') },
+  { test: (s) => s.toLowerCase().includes('update') && s.toLowerCase().includes('across') },
+  { test: (s) => /migrate/i.test(s) },
 ];
 
 // Threshold for long prompts (often indicate complex tasks)

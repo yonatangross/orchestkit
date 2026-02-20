@@ -40,16 +40,16 @@ const ALTERNATIVE_AGENTS: Record<string, string[]> = {
 };
 
 /** Error patterns that indicate retry is unlikely to help */
-const NON_RETRYABLE_ERRORS = [
-  /permission denied/i,
-  /access denied/i,
-  /not found.*(?:file|module|package)/i,
-  /(?:file|module|package)\s+not\s+found/i,
-  /missing required/i,
-  /invalid (?:api|token|key)/i,
-  /authentication failed/i,
-  /quota exceeded/i,
-  /rate limit/i,
+const NON_RETRYABLE_ERRORS: Array<{ test: (s: string) => boolean }> = [
+  { test: (s) => /permission denied/i.test(s) },
+  { test: (s) => /access denied/i.test(s) },
+  { test: (s) => /not found/i.test(s) && /file|module|package/i.test(s) },
+  { test: (s) => /(?:file|module|package)\s+not\s+found/i.test(s) },
+  { test: (s) => /missing required/i.test(s) },
+  { test: (s) => /invalid (?:api|token|key)/i.test(s) },
+  { test: (s) => /authentication failed/i.test(s) },
+  { test: (s) => /quota exceeded/i.test(s) },
+  { test: (s) => /rate limit/i.test(s) },
 ];
 
 /** Error patterns that suggest trying an alternative agent */

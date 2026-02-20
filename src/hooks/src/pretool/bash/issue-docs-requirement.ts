@@ -35,7 +35,7 @@ export function issueDocsRequirement(input: HookInput): HookResult {
 
   // Check if this is a feature (look for feat/feature labels or branch names)
   const isFeature =
-    /--label[\s\S]{0,100}feat/i.test(command) ||
+    (command.includes('--label') && /feat/i.test(command)) ||
     /feat|feature/.test(command);
 
   if (!isFeature) {

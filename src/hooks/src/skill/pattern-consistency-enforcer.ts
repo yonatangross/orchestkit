@@ -59,7 +59,7 @@ export function patternConsistencyEnforcer(input: HookInput): HookResult {
     }
 
     // Check: Pydantic v2 validators
-    if (/from pydantic import[\s\S]{0,100}BaseModel/.test(content)) {
+    if (content.includes('from pydantic import') && content.includes('BaseModel')) {
       if (/@validator\(/.test(content)) {
         errors.push('PATTERN: Using Pydantic v1 @validator decorator');
         errors.push('  Established pattern: Pydantic v2 with @field_validator');
@@ -101,7 +101,7 @@ export function patternConsistencyEnforcer(input: HookInput): HookResult {
     }
 
     // Check: Date formatting pattern
-    if (/new Date[\s\S]{0,100}toLocaleDateString|toLocaleString/.test(content)) {
+    if (content.includes('new Date') && (/toLocaleDateString/.test(content) || /toLocaleString/.test(content))) {
       errors.push('PATTERN: Direct date formatting instead of centralized utility');
       errors.push('  Established pattern: Use @/lib/dates helpers');
       errors.push("  Import: import { formatDate, formatDateShort } from '@/lib/dates'");
@@ -109,7 +109,7 @@ export function patternConsistencyEnforcer(input: HookInput): HookResult {
   }
 
   // Testing pattern consistency
-  if (/\.(test|spec)\.(ts|tsx|js|jsx)$/.test(filePath) || /test_.*\.py$/.test(filePath)) {
+  if (/\.(test|spec)\.(ts|tsx|js|jsx)$/.test(filePath) || /test_[^/]*\.py$/.test(filePath)) {
     // Check: AAA pattern presence
     if (!/\/\/ Arrange|\/\/ Act|\/\/ Assert|# Arrange|# Act|# Assert/i.test(content)) {
       warnings.push('PATTERN: AAA pattern comments missing');
@@ -119,7 +119,7 @@ export function patternConsistencyEnforcer(input: HookInput): HookResult {
 
     // Check: MSW for API mocking (TypeScript)
     if (/\.(ts|tsx|js|jsx)$/.test(filePath)) {
-      if (/jest\.mock[\s\S]{0,100}fetch|global\.fetch/.test(content)) {
+      if ((content.includes('jest.mock') && content.includes('fetch')) || content.includes('global.fetch')) {
         errors.push('PATTERN: Using jest.mock for fetch instead of MSW');
         errors.push('  Established pattern: Use MSW for API mocking');
         errors.push("  Import: import { http, HttpResponse } from 'msw'");
@@ -128,7 +128,7 @@ export function patternConsistencyEnforcer(input: HookInput): HookResult {
 
     // Check: Pytest fixtures (Python)
     if (filePath.endsWith('.py')) {
-      if (/class Test[\s\S]{0,200}setUp/.test(content)) {
+      if (content.includes('class Test') && content.includes('setUp')) {
         errors.push('PATTERN: Using unittest setUp instead of pytest fixtures');
         errors.push('  Established pattern: Use pytest fixtures');
         errors.push('  Convert: @pytest.fixture\\ndef setup_data():');
