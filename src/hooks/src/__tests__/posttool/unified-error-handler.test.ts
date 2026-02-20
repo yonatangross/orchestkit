@@ -139,7 +139,8 @@ describe('unifiedErrorHandler', () => {
       exit_code: 1,
     }));
     expect(result.continue).toBe(true);
-    expect(result.hookSpecificOutput?.additionalContext).toContain('File not found');
+    // Issue #684: error-handler now returns silent success (moved into async dispatcher)
+    expect(result.suppressOutput).toBe(true);
   });
 
   it('detects error patterns in tool output text', () => {

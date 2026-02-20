@@ -27,6 +27,8 @@ const mocks = vi.hoisted(() => {
     skillEditTracker: fn(), skillUsageOptimizer: fn(),
     memoryBridge: fn(), realtimeSync: fn(), userTracking: fn(), solutionDetector: fn(),
     toolPreferenceLearner: fn(),
+    // Issue #684: consolidated from separate PostToolUse hooks.json entries
+    redactSecrets: fn(), configChangeAuditor: fn(), teamMemberStart: fn(), errorLogger: fn(),
     // lifecycle (6) - Issue #362: removed instanceHeartbeat, multiInstanceInit; v7: removed cloud memory hooks
     patternSyncPull: fn(),
     sessionEnvSetup: fn(),
@@ -70,6 +72,11 @@ vi.mock('../../posttool/realtime-sync.js', () => ({ realtimeSync: mocks.realtime
 vi.mock('../../posttool/user-tracking.js', () => ({ userTracking: mocks.userTracking }));
 vi.mock('../../posttool/solution-detector.js', () => ({ solutionDetector: mocks.solutionDetector }));
 vi.mock('../../posttool/tool-preference-learner.js', () => ({ toolPreferenceLearner: mocks.toolPreferenceLearner }));
+// Issue #684: consolidated hooks
+vi.mock('../../skill/redact-secrets.js', () => ({ redactSecrets: mocks.redactSecrets }));
+vi.mock('../../posttool/config-change/security-auditor.js', () => ({ configChangeAuditor: mocks.configChangeAuditor }));
+vi.mock('../../posttool/task/team-member-start.js', () => ({ teamMemberStart: mocks.teamMemberStart }));
+vi.mock('../../posttool/unified-error-handler.js', () => ({ unifiedErrorHandler: mocks.errorLogger }));
 
 // lifecycle hooks
 vi.mock('../../lifecycle/pattern-sync-pull.js', () => ({ patternSyncPull: mocks.patternSyncPull }));
@@ -387,10 +394,10 @@ describe('Dispatcher Functional Tests', () => {
 
         await unifiedDispatcher(input('Bash'));
 
-        // Issue #243: Now 10 hooks for Bash after v7 cloud memory hook removal
+        // Issue #684: Now 12 hooks for Bash after consolidation (was 10)
         expect(mocks.logHook).toHaveBeenCalledWith(
           'posttool-dispatcher',
-          expect.stringMatching(/2\/10 hooks failed.*audit-logger.*session-metrics|2\/10 hooks failed.*session-metrics.*audit-logger/),
+          expect.stringMatching(/2\/12 hooks failed.*audit-logger.*session-metrics|2\/12 hooks failed.*session-metrics.*audit-logger/),
         );
       });
 
