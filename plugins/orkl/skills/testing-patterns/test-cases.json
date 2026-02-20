@@ -95,7 +95,7 @@
     },
     {
       "id": "pytest-markers",
-      "rule": "pytest-markers",
+      "rule": "pytest-execution",
       "query": "Categorize tests with custom pytest markers",
       "expectedBehavior": [
         "Defines markers in pyproject.toml",
@@ -105,7 +105,7 @@
     },
     {
       "id": "pytest-xdist",
-      "rule": "pytest-xdist",
+      "rule": "pytest-execution",
       "query": "Run tests in parallel with pytest-xdist",
       "expectedBehavior": [
         "Configures -n auto --dist loadscope",
@@ -145,7 +145,7 @@
     },
     {
       "id": "mocking-llm-apis",
-      "rule": "mocking-llm-apis",
+      "rule": "llm-mocking",
       "query": "Mock LLM API responses for testing",
       "expectedBehavior": [
         "Uses custom matchers ignoring dynamic fields",
@@ -185,7 +185,7 @@
     },
     {
       "id": "verification-property",
-      "rule": "verification-property",
+      "rule": "verification-techniques",
       "query": "Write property-based tests with Hypothesis",
       "expectedBehavior": [
         "Uses @given with appropriate strategies",
@@ -255,7 +255,7 @@
     },
     {
       "id": "llm-deepeval",
-      "rule": "llm-deepeval",
+      "rule": "llm-evaluation",
       "query": "Evaluate LLM output quality with DeepEval",
       "expectedBehavior": [
         "Creates LLMTestCase with input/output/context",
@@ -265,7 +265,7 @@
     },
     {
       "id": "llm-structured",
-      "rule": "llm-structured",
+      "rule": "llm-evaluation",
       "query": "Test structured LLM output and timeouts",
       "expectedBehavior": [
         "Validates JSON schema compliance",
@@ -275,7 +275,7 @@
     },
     {
       "id": "a11y-jest-axe",
-      "rule": "a11y-jest-axe",
+      "rule": "a11y-testing",
       "query": "Add accessibility tests to React components",
       "expectedBehavior": [
         "Uses jest-axe toHaveNoViolations matcher",
@@ -295,7 +295,7 @@
     },
     {
       "id": "a11y-ci-gates",
-      "rule": "a11y-ci-gates",
+      "rule": "a11y-testing",
       "query": "Set up CI gates for accessibility",
       "expectedBehavior": [
         "Blocks PRs with accessibility violations",

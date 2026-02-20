@@ -303,8 +303,8 @@ Task(subagent_type="test-generator", name="test-reviewer",
      2. Match change types to required test types (testing-patterns rules):
         - API → integration-api, verification-contract
         - DB → integration-database, data-seeding-cleanup
-        - UI → unit-aaa-pattern, a11y-jest-axe
-        - Logic → verification-property
+        - UI → unit-aaa-pattern, a11y-testing
+        - Logic → verification-techniques
      3. Evaluate test quality: meaningful assertions, no flaky patterns.
      4. When quality-reviewer flags test gaps, verify and suggest specific tests.
      Message backend-reviewer or frontend-reviewer with test requirements.
@@ -478,9 +478,9 @@ Task(
      Match changed code to required test types:
      - API endpoint changes → need integration tests (rule: integration-api)
      - DB schema changes → need migration + integration tests (rule: integration-database)
-     - UI component changes → need unit + a11y tests (rule: unit-aaa-pattern, a11y-jest-axe)
-     - Business logic → need unit + property tests (rule: verification-property)
-     - LLM/AI changes → need eval tests (rule: llm-deepeval)
+     - UI component changes → need unit + a11y tests (rule: unit-aaa-pattern, a11y-testing)
+     - Business logic → need unit + property tests (rule: verification-techniques)
+     - LLM/AI changes → need eval tests (rule: llm-evaluation)
 
   3. TEST QUALITY
      - Meaningful assertions (not just truthy/exists)

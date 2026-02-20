@@ -115,9 +115,9 @@ Task(
      Match changed code to required test types:
      - API endpoint changes → need integration tests (rule: integration-api)
      - DB schema changes → need migration + integration tests (rule: integration-database)
-     - UI component changes → need unit + a11y tests (rule: unit-aaa-pattern, a11y-jest-axe)
-     - Business logic → need unit + property tests (rule: verification-property)
-     - LLM/AI changes → need eval tests (rule: llm-deepeval)
+     - UI component changes → need unit + a11y tests (rule: unit-aaa-pattern, a11y-testing)
+     - Business logic → need unit + property tests (rule: verification-techniques)
+     - LLM/AI changes → need eval tests (rule: llm-evaluation)
 
   3. TEST QUALITY
      - Meaningful assertions (not just truthy/exists)

@@ -292,9 +292,9 @@ Task(
   IMPORTANT: Match test types to change type using the Test Requirements Matrix:
   - API endpoint → Unit + Integration + Contract (rules: integration-api, verification-contract, mocking-msw)
   - DB schema    → Migration + Integration (rules: integration-database, data-seeding-cleanup)
-  - UI component → Unit + Snapshot + A11y (rules: unit-aaa-pattern, integration-component, a11y-jest-axe)
-  - Business logic → Unit + Property-based (rules: unit-aaa-pattern, pytest-markers, verification-property)
-  - LLM/AI      → Unit + Eval (rules: llm-deepeval, llm-mocking, llm-structured)
+  - UI component → Unit + Snapshot + A11y (rules: unit-aaa-pattern, integration-component, a11y-testing)
+  - Business logic → Unit + Property-based (rules: unit-aaa-pattern, pytest-execution, verification-techniques)
+  - LLM/AI      → Unit + Eval (rules: llm-evaluation, llm-mocking)
   - Full-stack   → All of the above
 
   Follow the testing-patterns skill rules for each test type.
@@ -314,7 +314,7 @@ Task(
 
   3. CONTRACT / PROPERTY TESTS (if applicable)
      - Contract tests for API boundaries (verification-contract)
-     - Property-based tests for business logic (verification-property)
+     - Property-based tests for business logic (verification-techniques)
 
   4. FIXTURES & FACTORIES
      - conftest.py with shared fixtures

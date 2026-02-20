@@ -237,7 +237,6 @@ export const SKILLS: Record<string, SkillMeta> = {
         "adr-template.md"
       ],
       "scripts": [
-        "__pycache__",
         "adr-frontmatter.yaml",
         "adr-manager.py",
         "create-adr.md",
@@ -427,9 +426,7 @@ export const SKILLS: Record<string, SkillMeta> = {
         "retry-strategies.md",
         "scheduled-tasks.md",
         "task-routing.md"
-      ],
-      "scripts": [],
-      "checklists": []
+      ]
     },
     "plugins": [
       "ork"
@@ -683,7 +680,6 @@ export const SKILLS: Record<string, SkillMeta> = {
         "review-feedback-template.md"
       ],
       "scripts": [
-        "__pycache__",
         "fetch-pr-data.sh",
         "review-pr.md",
         "run-lint-check.sh",
@@ -2296,7 +2292,6 @@ export const SKILLS: Record<string, SkillMeta> = {
         "workflows.md"
       ],
       "scripts": [
-        "__pycache__",
         "analyze-codebase.sh",
         "assess-complexity.md",
         "complexity-assessment.md",
@@ -2462,7 +2457,6 @@ export const SKILLS: Record<string, SkillMeta> = {
         "semver.md"
       ],
       "scripts": [
-        "__pycache__",
         "create-release.md",
         "release-scripts.sh",
         "version-manager.py"
@@ -2808,7 +2802,6 @@ export const SKILLS: Record<string, SkillMeta> = {
         "status-workflow.md"
       ],
       "scripts": [
-        "__pycache__",
         "task-tree-visualizer.py"
       ],
       "checklists": [

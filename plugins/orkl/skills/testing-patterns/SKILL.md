@@ -98,8 +98,7 @@ Advanced pytest infrastructure for scalable test suites.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Custom Markers | `rules/pytest-markers.md` | smoke/slow/integration markers, pyproject.toml |
-| Parallel Execution | `rules/pytest-xdist.md` | xdist loadscope, worker DB isolation |
+| Markers + Parallel | `rules/pytest-execution.md` | Custom markers, pyproject.toml, xdist loadscope, worker DB isolation |
 | Plugins & Hooks | `rules/pytest-plugins.md` | conftest plugins, factory fixtures, async mode |
 
 ## API Mocking
@@ -110,7 +109,7 @@ Network-level mocking for deterministic tests.
 |------|------|-------------|
 | MSW 2.x | `rules/mocking-msw.md` | http/graphql/ws handlers, server.use() override |
 | VCR.py | `rules/mocking-vcr.md` | Record/replay cassettes, sensitive data filtering |
-| LLM API Mocking | `rules/mocking-llm-apis.md` | Custom matchers, async VCR, CI record modes |
+| LLM API Mocking | `rules/llm-mocking.md` | Custom matchers, async VCR, CI record modes |
 
 ## Test Data
 
@@ -128,7 +127,7 @@ Advanced verification patterns beyond example-based testing.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Property-Based | `rules/verification-property.md` | Hypothesis strategies, roundtrip/idempotence |
+| Property-Based | `rules/verification-techniques.md` | Hypothesis strategies, roundtrip/idempotence |
 | Stateful Testing | `rules/verification-stateful.md` | RuleBasedStateMachine, Schemathesis |
 | Contract Testing | `rules/verification-contract.md` | Pact consumer/provider, broker CI/CD |
 
@@ -149,8 +148,7 @@ Testing patterns for AI/LLM applications.
 | Rule | File | Key Pattern |
 |------|------|-------------|
 | Mock Responses | `rules/llm-mocking.md` | AsyncMock, patch model_factory |
-| DeepEval Quality | `rules/llm-deepeval.md` | AnswerRelevancy, Faithfulness, Hallucination |
-| Structured Output | `rules/llm-structured.md` | Schema validation, timeout testing |
+| LLM Evaluation | `rules/llm-evaluation.md` | DeepEval metrics, schema validation, timeout testing |
 
 ## Accessibility
 
@@ -158,9 +156,8 @@ Automated accessibility testing for WCAG compliance.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| jest-axe | `rules/a11y-jest-axe.md` | Component-level axe validation |
+| A11y Testing | `rules/a11y-testing.md` | jest-axe, CI gates, PR blocking, component-level validation |
 | Playwright axe | `rules/a11y-playwright.md` | Page-level wcag2aa scanning |
-| CI Gates | `rules/a11y-ci-gates.md` | PR blocking, regression prevention |
 
 ## Execution
 
@@ -168,8 +165,7 @@ Test execution strategies for parallel runs and coverage collection.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Parallel Execution | `rules/execution-parallel.md` | xdist, CI matrix sharding, worker DB isolation |
-| Coverage Collection | `rules/execution-coverage.md` | pytest-cov, v8, thresholds, CI upload |
+| Execution | `rules/execution.md` | Parallel execution, coverage reporting, CI optimization |
 
 ## Validation
 

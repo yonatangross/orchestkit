@@ -49,8 +49,8 @@ Task(subagent_type="test-generator", name="test-reviewer",
      2. Match change types to required test types (testing-patterns rules):
         - API → integration-api, verification-contract
         - DB → integration-database, data-seeding-cleanup
-        - UI → unit-aaa-pattern, a11y-jest-axe
-        - Logic → verification-property
+        - UI → unit-aaa-pattern, a11y-testing
+        - Logic → verification-techniques
      3. Evaluate test quality: meaningful assertions, no flaky patterns.
      4. When quality-reviewer flags test gaps, verify and suggest specific tests.
      Message backend-reviewer or frontend-reviewer with test requirements.
