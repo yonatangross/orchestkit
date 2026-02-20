@@ -84,7 +84,7 @@ export function errorPatternWarner(input: HookInput): HookResult {
   const hints: string[] = [];
 
   // Check for common database connection patterns that often fail
-  if (/psql.*-U\s+(postgres|orchestkit|root)/.test(command)) {
+  if (/psql[\s\S]{0,100}-U\s+(postgres|orchestkit|root)/.test(command)) {
     const dbRules = rules.filter(
       (r) => r.tool === 'Bash' && r.signature?.includes('role')
     );

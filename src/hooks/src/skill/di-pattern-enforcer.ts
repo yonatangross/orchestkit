@@ -18,7 +18,7 @@ export function diPatternEnforcer(input: HookInput): HookResult {
   if (!filePath || !content) return outputSilentSuccess();
 
   // Only validate Python files in routers/
-  if (!/\/routers\/.*\.py$/.test(filePath)) {
+  if (!/\/routers\/[\s\S]{0,100}\.py$/.test(filePath)) {
     return outputSilentSuccess();
   }
 
@@ -31,8 +31,8 @@ export function diPatternEnforcer(input: HookInput): HookResult {
   const errors: string[] = [];
 
   // Rule: No direct service/repository instantiation
-  if (/=\s*[A-Z][a-zA-Z]*Service\s*\(\s*\)/.test(content)) {
-    const match = content.match(/[A-Z][a-zA-Z]*Service\s*\(\s*\)/);
+  if (/=\s*[A-Z][a-zA-Z]{0,50}Service\s*\(\s*\)/.test(content)) {
+    const match = content.match(/[A-Z][a-zA-Z]{0,50}Service\s*\(\s*\)/);
     errors.push('INSTANTIATION: Direct service instantiation not allowed');
     errors.push(`  Found: ${match?.[0] || 'Service()'}`);
     errors.push('  ');
@@ -40,8 +40,8 @@ export function diPatternEnforcer(input: HookInput): HookResult {
     errors.push('    service: MyService = Depends(get_my_service)');
   }
 
-  if (/=\s*[A-Z][a-zA-Z]*(Repository|Repo)\s*\(\s*\)/.test(content)) {
-    const match = content.match(/[A-Z][a-zA-Z]*(Repository|Repo)\s*\(\s*\)/);
+  if (/=\s*[A-Z][a-zA-Z]{0,50}(Repository|Repo)\s*\(\s*\)/.test(content)) {
+    const match = content.match(/[A-Z][a-zA-Z]{0,50}(Repository|Repo)\s*\(\s*\)/);
     errors.push('INSTANTIATION: Direct repository instantiation not allowed');
     errors.push(`  Found: ${match?.[0] || 'Repository()'}`);
     errors.push('  ');
@@ -50,7 +50,7 @@ export function diPatternEnforcer(input: HookInput): HookResult {
   }
 
   // Rule: No global service/repository instances
-  if (/^[a-z_]+\s*=\s*[A-Z][a-zA-Z]*(Service|Repository|Repo)\s*\(/m.test(content)) {
+  if (/^[a-z_]+\s*=\s*[A-Z][a-zA-Z]{0,50}(Service|Repository|Repo)\s*\(/m.test(content)) {
     errors.push('GLOBAL: Global service/repository instance not allowed');
     errors.push('  ');
     errors.push('  Global instances cause:');
@@ -62,7 +62,7 @@ export function diPatternEnforcer(input: HookInput): HookResult {
   }
 
   // Rule: Database session must use Depends()
-  if (/:\s*(Async)?Session[^=]*\)/.test(content)) {
+  if (/:\s*(Async)?Session[^=)]{0,50}\)/.test(content)) {
     if (!/:\s*(Async)?Session\s*=\s*Depends/.test(content)) {
       errors.push('DI: Database session must use Depends()');
       errors.push('  ');
@@ -73,8 +73,8 @@ export function diPatternEnforcer(input: HookInput): HookResult {
 
   // Rule: Route handlers should use Depends for typed dependencies
   if (/@router\.(get|post|put|patch|delete)/.test(content)) {
-    if (/:\s*[A-Z][a-zA-Z]*(Service|Repository|Repo)[^=)]*\)/.test(content)) {
-      if (!/:\s*[A-Z][a-zA-Z]*(Service|Repository|Repo)\s*=\s*Depends/.test(content)) {
+    if (/:\s*[A-Z][a-zA-Z]{0,50}(Service|Repository|Repo)[^=)]{0,50}\)/.test(content)) {
+      if (!/:\s*[A-Z][a-zA-Z]{0,50}(Service|Repository|Repo)\s*=\s*Depends/.test(content)) {
         errors.push('DI: Service/Repository parameters must use Depends()');
         errors.push('  ');
         errors.push('  BAD:  async def create_user(user_service: UserService):');
@@ -87,7 +87,7 @@ export function diPatternEnforcer(input: HookInput): HookResult {
   if (/async def/.test(content)) {
     // Check for db.query() - sync SQLAlchemy 1.x pattern
     if (/db\.query\(/.test(content)) {
-      if (!/await.*db\.query\(/.test(content)) {
+      if (!/await[\s\S]{0,100}db\.query\(/.test(content)) {
         errors.push('ASYNC: Sync database call in async function');
         errors.push('  Found: db.query() (sync pattern)');
         errors.push('  ');

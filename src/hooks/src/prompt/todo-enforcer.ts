@@ -12,10 +12,10 @@ const COMPLEX_PATTERNS = [
   /implement/i,
   /refactor/i,
   /add feature/i,
-  /create.*component/i,
-  /build.*system/i,
-  /fix.*multiple/i,
-  /update.*across/i,
+  /create[\s\S]{0,100}component/i,
+  /build[\s\S]{0,100}system/i,
+  /fix[\s\S]{0,100}multiple/i,
+  /update[\s\S]{0,100}across/i,
   /migrate/i,
 ];
 

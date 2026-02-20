@@ -243,14 +243,13 @@ describe('test-runner', () => {
       );
     });
 
-    // NOTE: conftest.py and fixtures.py in tests/ directory ARE auto-run
-    // because the regex /test.*\.py$/ matches paths containing "test" anywhere
-    // BUG: Implementation regex is too broad - matches /tests/conftest.py
-    // because "tests/conftest.py" contains "test" followed by "s/conftest.py"
+    // NOTE: conftest.py and fixtures.py in tests/ directory are NOT auto-run
+    // The regex /test[^/]*\.py$/ correctly requires "test" at the start of the filename
+    // (not just anywhere in the path), so tests/conftest.py is excluded
     test.each([
       '/project/tests/conftest.py',
       '/project/tests/fixtures.py',
-    ])('auto-runs utility Python file in tests/ due to broad regex: %s', (filePath) => {
+    ])('correctly skips utility Python file in tests/: %s', (filePath) => {
       // Arrange
       const input = createWriteInput(filePath);
 
@@ -258,8 +257,8 @@ describe('test-runner', () => {
       testRunner(input);
 
       // Assert
-      // Implementation bug: these files ARE detected as test files
-      expect(stderrWriteSpy).toHaveBeenCalledWith(
+      // Fixed: regex /test[^/]*\.py$/ no longer matches utility files
+      expect(stderrWriteSpy).not.toHaveBeenCalledWith(
         expect.stringContaining('Auto-running Python test'),
       );
     });

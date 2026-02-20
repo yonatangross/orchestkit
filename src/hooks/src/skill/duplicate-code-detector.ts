@@ -98,7 +98,7 @@ function checkUtilityPatterns(content: string, filePath: string): { errors: stri
 
   if (/\.(ts|tsx|js|jsx)$/.test(filePath)) {
     // Check for date formatting
-    if (/new Date.*toLocaleDateString/.test(content)) {
+    if (/new Date[\s\S]{0,100}toLocaleDateString/.test(content)) {
       errors.push('UTILITY: Direct date formatting detected');
       errors.push("  Use centralized date utilities: import { formatDate } from '@/lib/dates'");
     }
@@ -111,7 +111,7 @@ function checkUtilityPatterns(content: string, filePath: string): { errors: stri
     }
 
     // Check for multiple inline validations
-    const validationCount = (content.match(/if\s*\([^)]*\.test\([^)]*\)/g) || []).length;
+    const validationCount = (content.match(/if\s*\([^)]{0,200}\.test\([^)]{0,200}\)/g) || []).length;
     if (validationCount > 3) {
       warnings.push(`UTILITY: Multiple inline validations detected (${validationCount})`);
       warnings.push('  Use Zod schemas: const schema = z.object({...})');
