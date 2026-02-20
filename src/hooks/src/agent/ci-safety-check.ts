@@ -10,6 +10,7 @@
 
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, outputDeny, outputWithContext, lineContainsAllCI } from '../lib/common.js';
+import { normalizeSingle } from '../lib/normalize-command.js';
 
 // Dangerous CI/CD patterns — each entry is [pattern, label]
 // String-based checks avoid ReDoS from polynomial regex backtracking
@@ -28,7 +29,10 @@ const DANGEROUS_PATTERNS: Array<{ test: (cmd: string) => boolean; source: string
  * CI safety check hook
  */
 export function ciSafetyCheck(input: HookInput): HookResult {
-  const command = input.tool_input.command || '';
+  const rawCommand = input.tool_input.command || '';
+
+  // Normalize: expand hex/octal escapes, strip quotes, collapse whitespace
+  const command = rawCommand ? normalizeSingle(rawCommand) : '';
 
   // Check for dangerous CI/CD patterns
   for (const pattern of DANGEROUS_PATTERNS) {

@@ -392,6 +392,31 @@ export function logPermissionFeedback(
 }
 
 // -----------------------------------------------------------------------------
+// Context Extraction (shared by all sync dispatchers)
+// -----------------------------------------------------------------------------
+
+/**
+ * Extract additionalContext from a hook result.
+ * Handles both the correct hookSpecificOutput.additionalContext format
+ * and the legacy bare systemMessage format.
+ *
+ * Issue #682: Deduplicated from 5 dispatchers into shared utility.
+ */
+export function extractContext(result: HookResult): string | null {
+  // Standard format: hookSpecificOutput.additionalContext
+  if (result.hookSpecificOutput?.additionalContext) {
+    return result.hookSpecificOutput.additionalContext as string;
+  }
+
+  // Legacy format: bare systemMessage (antipattern-detector bug)
+  if (result.systemMessage && typeof result.systemMessage === 'string') {
+    return result.systemMessage;
+  }
+
+  return null;
+}
+
+// -----------------------------------------------------------------------------
 // Token Estimation
 // -----------------------------------------------------------------------------
 

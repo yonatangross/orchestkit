@@ -24,6 +24,7 @@ import {
   outputAllowWithContext,
   logHook,
   estimateTokenCount,
+  extractContext,
 } from '../../lib/common.js';
 
 // Import hook implementations
@@ -71,22 +72,7 @@ const SAFETY_HOOKS: SafetyHookConfig[] = [
 /** Exposed for testing */
 export const registeredHookNames = () => SAFETY_HOOKS.map(h => h.name);
 
-// -----------------------------------------------------------------------------
-// Context Extraction
-// -----------------------------------------------------------------------------
-
-/**
- * Extract additionalContext from a hook result.
- */
-function extractContext(result: HookResult): string | null {
-  if (result.hookSpecificOutput?.additionalContext) {
-    return result.hookSpecificOutput.additionalContext as string;
-  }
-  if (result.systemMessage && typeof result.systemMessage === 'string') {
-    return result.systemMessage;
-  }
-  return null;
-}
+// extractContext imported from ../../lib/common.js (Issue #682)
 
 // -----------------------------------------------------------------------------
 // Dispatcher Implementation

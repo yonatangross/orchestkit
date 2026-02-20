@@ -380,6 +380,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "agent": null,
     "structure": {
       "references": [
+        "agent-teams-mode.md",
         "alternative-analysis.md",
         "improvement-prioritization.md",
         "scoring-rubric.md"
@@ -902,7 +903,8 @@ export const SKILLS: Record<string, SkillMeta> = {
         "content-types.md",
         "format-selection.md",
         "script-generation.md",
-        "template-system.md"
+        "template-system.md",
+        "terminal-simulation.md"
       ],
       "scripts": [
         "full-pipeline.sh",
@@ -1079,6 +1081,7 @@ export const SKILLS: Record<string, SkillMeta> = {
         "hook-validation.md",
         "memory-health.md",
         "permission-rules.md",
+        "report-format.md",
         "schema-validation.md",
         "skills-validation.md",
         "version-compatibility.md"
@@ -1296,6 +1299,8 @@ export const SKILLS: Record<string, SkillMeta> = {
     "agent": null,
     "structure": {
       "references": [
+        "agent-teams-rca.md",
+        "cc-enhancements.md",
         "hypothesis-rca.md",
         "prevention-patterns.md",
         "similar-issue-search.md"

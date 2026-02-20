@@ -209,8 +209,10 @@ describe('Dispatcher Registry Wiring E2E', () => {
       const permissionGroups = hooksConfig.hooks.PermissionRequest || [];
       const allHooks = permissionGroups.flatMap(g => g.hooks);
 
+      // auto-approve-safe-bash is consolidated into permission/unified-dispatcher
+      // auto-approve-project-writes remains standalone
       const autoApproveHooks = [
-        'auto-approve-safe-bash',
+        'permission/unified-dispatcher',
         'auto-approve-project-writes',
       ];
 
@@ -282,16 +284,17 @@ describe('Dispatcher Registry Wiring E2E', () => {
       expect(stopDispatcher?.command, 'SubagentStop dispatcher should use run-hook.mjs').toContain('run-hook.mjs');
     });
 
-    it('should have memory injection in SubagentStart', () => {
+    it('should have unified dispatcher in SubagentStart', () => {
+      // Issue #685: SubagentStart hooks consolidated into unified-dispatcher
+      // (includes graph-memory-inject, context-gate, subagent-validator, etc.)
       const startGroups = hooksConfig.hooks.SubagentStart || [];
       const allHooks = startGroups.flatMap(g => g.hooks);
 
-      const memoryHooks = allHooks.filter(h =>
-        h.command?.includes('memory-inject') ||
-        h.command?.includes('graph-memory')
+      const dispatcher = allHooks.find(h =>
+        h.command?.includes('subagent-start/unified-dispatcher')
       );
 
-      expect(memoryHooks.length, 'SubagentStart should have memory injection hooks').toBeGreaterThan(0);
+      expect(dispatcher, 'SubagentStart should have unified dispatcher').toBeDefined();
     });
   });
 

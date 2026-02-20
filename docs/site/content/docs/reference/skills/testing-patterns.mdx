@@ -218,9 +218,69 @@ Evidence collection for verifiable task completion.
 
 ---
 
-## Rules (35)
+## Rules (29)
 
-### Enforce automated accessibility testing in CI pipelines to catch WCAG violations — MEDIUM
+### Validate full-page accessibility compliance through Playwright E2E tests with axe-core — MEDIUM
+
+
+# Playwright + axe-core E2E
+
+```typescript
+import { test, expect } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
+
+test('page has no a11y violations', async ({ page }) => {
+  await page.goto('/');
+  const results = await new AxeBuilder({ page })
+    .withTags(['wcag2a', 'wcag2aa', 'wcag22aa'])
+    .analyze();
+  expect(results.violations).toEqual([]);
+});
+
+test('modal state has no violations', async ({ page }) => {
+  await page.goto('/');
+  await page.click('[data-testid="open-modal"]');
+  await page.waitForSelector('[role="dialog"]');
+
+  const results = await new AxeBuilder({ page })
+    .include('[role="dialog"]')
+    .withTags(['wcag2a', 'wcag2aa'])
+    .analyze();
+  expect(results.violations).toEqual([]);
+});
+```
+
+## Key Decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Test runner | Playwright + axe | Full page coverage |
+| WCAG level | AA (wcag2aa) | Industry standard |
+| State testing | Test all interactive states | Modal, error, loading |
+| Browser matrix | Chromium + Firefox | Cross-browser coverage |
+
+**Incorrect — Testing page without WCAG tags:**
+```typescript
+test('page has no violations', async ({ page }) => {
+  await page.goto('/');
+  const results = await new AxeBuilder({ page }).analyze();
+  expect(results.violations).toEqual([]);
+});
+```
+
+**Correct — Testing with WCAG 2.2 AA compliance:**
+```typescript
+test('page meets WCAG 2.2 AA', async ({ page }) => {
+  await page.goto('/');
+  const results = await new AxeBuilder({ page })
+    .withTags(['wcag2a', 'wcag2aa', 'wcag22aa'])
+    .analyze();
+  expect(results.violations).toEqual([]);
+});
+```
+
+
+### Enforce accessibility testing in CI pipelines and enable unit-level component testing with jest-axe — MEDIUM
 
 
 # CI/CD Accessibility Gates
@@ -287,9 +347,7 @@ jobs:
       - run: npx playwright test e2e/accessibility  # Blocks merge
 ```
 
-
-### Enable unit-level accessibility testing with jest-axe for fast development feedback — MEDIUM
-
+---
 
 # jest-axe Unit Testing
 
@@ -355,66 +413,6 @@ it('form is accessible in all states', async () => {
 
   rerender(<LoginForm loading={true} />);
   expect(await axe(container)).toHaveNoViolations();
-});
-```
-
-
-### Validate full-page accessibility compliance through Playwright E2E tests with axe-core — MEDIUM
-
-
-# Playwright + axe-core E2E
-
-```typescript
-import { test, expect } from '@playwright/test';
-import AxeBuilder from '@axe-core/playwright';
-
-test('page has no a11y violations', async ({ page }) => {
-  await page.goto('/');
-  const results = await new AxeBuilder({ page })
-    .withTags(['wcag2a', 'wcag2aa', 'wcag22aa'])
-    .analyze();
-  expect(results.violations).toEqual([]);
-});
-
-test('modal state has no violations', async ({ page }) => {
-  await page.goto('/');
-  await page.click('[data-testid="open-modal"]');
-  await page.waitForSelector('[role="dialog"]');
-
-  const results = await new AxeBuilder({ page })
-    .include('[role="dialog"]')
-    .withTags(['wcag2a', 'wcag2aa'])
-    .analyze();
-  expect(results.violations).toEqual([]);
-});
-```
-
-## Key Decisions
-
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| Test runner | Playwright + axe | Full page coverage |
-| WCAG level | AA (wcag2aa) | Industry standard |
-| State testing | Test all interactive states | Modal, error, loading |
-| Browser matrix | Chromium + Firefox | Cross-browser coverage |
-
-**Incorrect — Testing page without WCAG tags:**
-```typescript
-test('page has no violations', async ({ page }) => {
-  await page.goto('/');
-  const results = await new AxeBuilder({ page }).analyze();
-  expect(results.violations).toEqual([]);
-});
-```
-
-**Correct — Testing with WCAG 2.2 AA compliance:**
-```typescript
-test('page meets WCAG 2.2 AA', async ({ page }) => {
-  await page.goto('/');
-  const results = await new AxeBuilder({ page })
-    .withTags(['wcag2a', 'wcag2aa', 'wcag22aa'])
-    .analyze();
-  expect(results.violations).toEqual([]);
 });
 ```
 
@@ -887,7 +885,7 @@ await expect(page.getByRole('alert', { name: /success/i })).toBeVisible();
 ```
 
 
-### Track test coverage to identify untested critical paths that correlate with production bugs — HIGH
+### Track coverage and run tests in parallel to cut CI feedback time and identify untested critical paths — HIGH
 
 
 ## Coverage Reporting
@@ -938,9 +936,7 @@ npm run test -- --coverage --coverageReporters=text --coverageReporters=lcov
 - HTML coverage reports (`htmlcov/`) help visualize gap areas during development
 - Coverage numbers alone do not indicate test quality — pair with mutation testing for confidence
 
-
-### Run tests in parallel with failure analysis to cut CI feedback time significantly — HIGH
-
+---
 
 ## Parallel Test Execution
 
@@ -1212,7 +1208,7 @@ def db_session():
 ```
 
 
-### Validate LLM output quality using automated DeepEval metrics for relevancy and faithfulness — HIGH
+### Validate LLM output quality and structured schemas using DeepEval metrics and Pydantic testing — HIGH
 
 
 # DeepEval Quality Testing
@@ -1245,13 +1241,6 @@ assert_test(test_case, metrics)
 | Hallucination | &lt;= 0.3 | No fabricated facts |
 | Context Precision | >= 0.7 | Retrieved contexts relevant |
 
-## Key Decisions
-
-| Decision | Recommendation |
-|----------|----------------|
-| Quality metrics | Use multiple dimensions (3-5) |
-| Schema validation | Test both valid and invalid |
-
 **Incorrect — Testing only the output exists:**
 ```python
 def test_llm_response():
@@ -1273,8 +1262,71 @@ assert_test(test_case, [
 ])
 ```
 
+---
 
-### Mock LLM responses for deterministic fast unit tests using VCR recording patterns — HIGH
+# Structured Output and Timeout Testing
+
+## Timeout Testing
+
+```python
+import asyncio
+import pytest
+
+@pytest.mark.asyncio
+async def test_respects_timeout():
+    with pytest.raises(asyncio.TimeoutError):
+        async with asyncio.timeout(0.1):
+            await slow_llm_call()
+```
+
+## Schema Validation
+
+```python
+from pydantic import BaseModel, Field
+
+class LLMResponse(BaseModel):
+    answer: str = Field(min_length=1)
+    confidence: float = Field(ge=0.0, le=1.0)
+    sources: list[str] = Field(default_factory=list)
+
+@pytest.mark.asyncio
+async def test_structured_output():
+    result = await get_llm_response("test query")
+    parsed = LLMResponse.model_validate(result)
+    assert parsed.confidence > 0
+```
+
+## Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Quality metrics | Use multiple dimensions (3-5) |
+| Schema validation | Test both valid and invalid |
+| Timeout | Always test with &lt; 1s timeout |
+| Edge cases | Test all null/empty paths |
+
+**Incorrect — No schema validation on LLM output:**
+```python
+async def test_llm_response():
+    result = await get_llm_response("test query")
+    assert result["answer"]  # Crashes if "answer" missing
+    assert result["confidence"] > 0  # No type checking
+```
+
+**Correct — Pydantic validation ensures schema correctness:**
+```python
+class LLMResponse(BaseModel):
+    answer: str = Field(min_length=1)
+    confidence: float = Field(ge=0.0, le=1.0)
+
+async def test_structured_output():
+    result = await get_llm_response("test query")
+    parsed = LLMResponse.model_validate(result)
+    assert 0 <= parsed.confidence <= 1.0
+```
+
+
+### Mock LLM responses for deterministic fast unit tests using VCR recording patterns and custom matchers — HIGH
 
 
 # LLM Response Mocking
@@ -1346,75 +1398,9 @@ async def test_summarize(mock_llm):
     assert result["content"] == "Mocked summary"
 ```
 
+---
 
-### Validate LLM structured output schemas and timeout behavior with Pydantic testing — HIGH
-
-
-# Structured Output and Timeout Testing
-
-## Timeout Testing
-
-```python
-import asyncio
-import pytest
-
-@pytest.mark.asyncio
-async def test_respects_timeout():
-    with pytest.raises(asyncio.TimeoutError):
-        async with asyncio.timeout(0.1):
-            await slow_llm_call()
-```
-
-## Schema Validation
-
-```python
-from pydantic import BaseModel, Field
-
-class LLMResponse(BaseModel):
-    answer: str = Field(min_length=1)
-    confidence: float = Field(ge=0.0, le=1.0)
-    sources: list[str] = Field(default_factory=list)
-
-@pytest.mark.asyncio
-async def test_structured_output():
-    result = await get_llm_response("test query")
-    parsed = LLMResponse.model_validate(result)
-    assert parsed.confidence > 0
-```
-
-## Key Decisions
-
-| Decision | Recommendation |
-|----------|----------------|
-| Timeout | Always test with &lt; 1s timeout |
-| Schema validation | Test both valid and invalid |
-| Edge cases | Test all null/empty paths |
-
-**Incorrect — No schema validation on LLM output:**
-```python
-async def test_llm_response():
-    result = await get_llm_response("test query")
-    assert result["answer"]  # Crashes if "answer" missing
-    assert result["confidence"] > 0  # No type checking
-```
-
-**Correct — Pydantic validation ensures schema correctness:**
-```python
-class LLMResponse(BaseModel):
-    answer: str = Field(min_length=1)
-    confidence: float = Field(ge=0.0, le=1.0)
-
-async def test_structured_output():
-    result = await get_llm_response("test query")
-    parsed = LLMResponse.model_validate(result)
-    assert 0 <= parsed.confidence <= 1.0
-```
-
-
-### Record and replay LLM API calls with VCR.py cassettes and custom matchers — HIGH
-
-
-# LLM API Mocking
+# VCR.py for LLM API Recording
 
 ## Custom Matchers for LLM Requests
 
@@ -1877,7 +1863,7 @@ export const options = {
 ```
 
 
-### Enable selective test execution through custom pytest markers for categorized test runs — HIGH
+### Enable selective test execution through custom markers and accelerate suites with pytest-xdist parallel execution — HIGH
 
 
 # Custom Pytest Markers
@@ -1931,6 +1917,61 @@ markers = [
     "slow: marks tests as slow",
     "integration: marks tests requiring external services"
 ]
+```
+
+---
+
+# Parallel Execution with pytest-xdist
+
+## Configuration
+
+```toml
+[tool.pytest.ini_options]
+addopts = ["-n", "auto", "--dist", "loadscope"]
+```
+
+## Worker Database Isolation
+
+```python
+@pytest.fixture(scope="session")
+def db_engine(worker_id):
+    """Isolate database per worker."""
+    db_name = "test_db" if worker_id == "master" else f"test_db_{worker_id}"
+    engine = create_engine(f"postgresql://localhost/{db_name}")
+    yield engine
+```
+
+## Distribution Modes
+
+| Mode | Behavior | Use Case |
+|------|----------|----------|
+| loadscope | Group by module/class | DB-heavy tests |
+| load | Round-robin | Independent tests |
+| each | Send all to each worker | Cross-platform |
+
+## Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Workers | `-n auto` (match CPU cores) |
+| Distribution | `loadscope` for DB tests |
+| Fixture scope | `session` for expensive, `function` for mutable |
+| Async testing | pytest-asyncio with auto mode |
+
+**Incorrect — Shared database across workers causes conflicts:**
+```python
+@pytest.fixture(scope="session")
+def db_engine():
+    return create_engine("postgresql://localhost/test_db")
+    # Workers overwrite each other's data
+```
+
+**Correct — Isolated database per worker:**
+```python
+@pytest.fixture(scope="session")
+def db_engine(worker_id):
+    db_name = f"test_db_{worker_id}" if worker_id != "master" else "test_db"
+    return create_engine(f"postgresql://localhost/{db_name}")
 ```
 
 
@@ -2000,63 +2041,6 @@ def ml_model():
 @pytest.fixture(scope="session")
 def ml_model():
     return load_large_model()  # 5s, loaded ONCE
-```
-
-
-### Accelerate test suites through pytest-xdist parallel execution with proper worker isolation — HIGH
-
-
-# Parallel Execution with pytest-xdist
-
-## Configuration
-
-```toml
-[tool.pytest.ini_options]
-addopts = ["-n", "auto", "--dist", "loadscope"]
-```
-
-## Worker Database Isolation
-
-```python
-@pytest.fixture(scope="session")
-def db_engine(worker_id):
-    """Isolate database per worker."""
-    db_name = "test_db" if worker_id == "master" else f"test_db_{worker_id}"
-    engine = create_engine(f"postgresql://localhost/{db_name}")
-    yield engine
-```
-
-## Distribution Modes
-
-| Mode | Behavior | Use Case |
-|------|----------|----------|
-| loadscope | Group by module/class | DB-heavy tests |
-| load | Round-robin | Independent tests |
-| each | Send all to each worker | Cross-platform |
-
-## Key Decisions
-
-| Decision | Recommendation |
-|----------|----------------|
-| Workers | `-n auto` (match CPU cores) |
-| Distribution | `loadscope` for DB tests |
-| Fixture scope | `session` for expensive, `function` for mutable |
-| Async testing | pytest-asyncio with auto mode |
-
-**Incorrect — Shared database across workers causes conflicts:**
-```python
-@pytest.fixture(scope="session")
-def db_engine():
-    return create_engine("postgresql://localhost/test_db")
-    # Workers overwrite each other's data
-```
-
-**Correct — Isolated database per worker:**
-```python
-@pytest.fixture(scope="session")
-def db_engine(worker_id):
-    db_name = f"test_db_{worker_id}" if worker_id != "master" else "test_db"
-    return create_engine(f"postgresql://localhost/{db_name}")
 ```
 
 
@@ -2554,155 +2538,6 @@ pact-broker can-i-deploy \
 ```
 
 
-### Require evidence verification for task completion to detect hidden failures and regressions — MEDIUM
-
-
-## Evidence Verification for Task Completion
-
-**Incorrect -- claiming completion without proof:**
-```markdown
-"I've implemented the login feature. It should work correctly."
-# No tests run, no build verified, no evidence collected
-```
-
-**Correct -- evidence-backed task completion:**
-```markdown
-"I've implemented the login feature. Evidence:
-- Tests: Exit code 0, 12 tests passed, 0 failed
-- Build: Exit code 0, no errors
-- Coverage: 89%
-- Timestamp: 2026-02-13 10:30:15
-Task complete with verification."
-```
-
-**Evidence collection protocol:**
-```markdown
-## Before Marking Task Complete
-
-1. **Identify Verification Points**
-   - What needs to be proven?
-   - What could go wrong?
-
-2. **Execute Verification**
-   - Run tests (capture exit code)
-   - Run build (capture exit code)
-   - Run linters/type checkers
-
-3. **Capture Results**
-   - Record exit codes (0 = pass)
-   - Save output snippets
-   - Note timestamps
-
-4. **Minimum Requirements:**
-   - [ ] At least ONE verification type executed
-   - [ ] Exit code captured (0 = pass)
-   - [ ] Timestamp recorded
-
-5. **Production-Grade Requirements:**
-   - [ ] Tests pass (exit code 0)
-   - [ ] Coverage >= 70%
-   - [ ] Build succeeds (exit code 0)
-   - [ ] No critical linter errors
-   - [ ] Type checker passes
-```
-
-**Common commands for evidence collection:**
-```bash
-# JavaScript/TypeScript
-npm test                 # Run tests
-npm run build           # Build project
-npm run lint            # ESLint
-npm run typecheck       # TypeScript compiler
-
-# Python
-pytest                  # Run tests
-pytest --cov           # Tests with coverage
-ruff check .           # Linter
-mypy .                 # Type checker
-```
-
-Key principles:
-- Show, don't tell -- no task is complete without verifiable evidence
-- Never fake evidence or mark tasks complete on failed evidence
-- Exit code 0 is the universal success indicator
-- Re-collect evidence after any changes
-- Minimum coverage: 70% (production-grade), 80% (gold standard)
-
-
-### Discover edge cases through generative Hypothesis testing to validate universal properties — MEDIUM
-
-
-# Property-Based Testing with Hypothesis
-
-## Example-Based vs Property-Based
-
-```python
-# Property-based: Test properties for ALL inputs
-from hypothesis import given
-from hypothesis import strategies as st
-
-@given(st.lists(st.integers()))
-def test_sort_properties(lst):
-    result = sort(lst)
-    assert len(result) == len(lst)  # Same length
-    assert all(result[i] <= result[i+1] for i in range(len(result)-1))
-```
-
-## Common Strategies
-
-```python
-st.integers(min_value=0, max_value=100)
-st.text(min_size=1, max_size=50)
-st.lists(st.integers(), max_size=10)
-st.from_regex(r"[a-z]+@[a-z]+\.[a-z]+")
-
-@st.composite
-def user_strategy(draw):
-    return User(
-        name=draw(st.text(min_size=1, max_size=50)),
-        age=draw(st.integers(min_value=0, max_value=150)),
-    )
-```
-
-## Common Properties
-
-```python
-# Roundtrip (encode/decode)
-@given(st.dictionaries(st.text(), st.integers()))
-def test_json_roundtrip(data):
-    assert json.loads(json.dumps(data)) == data
-
-# Idempotence
-@given(st.text())
-def test_normalize_idempotent(text):
-    assert normalize(normalize(text)) == normalize(text)
-```
-
-## Key Decisions
-
-| Decision | Recommendation |
-|----------|----------------|
-| Example count | 100 for CI, 10 for dev, 1000 for release |
-| Deadline | Disable for slow tests, 200ms default |
-| Stateful tests | RuleBasedStateMachine for state machines |
-
-**Incorrect — Testing specific examples only:**
-```python
-def test_sort():
-    assert sort([3, 1, 2]) == [1, 2, 3]
-    # Only tests one specific case
-```
-
-**Correct — Testing universal properties for all inputs:**
-```python
-@given(st.lists(st.integers()))
-def test_sort_properties(lst):
-    result = sort(lst)
-    assert len(result) == len(lst)
-    assert all(result[i] <= result[i+1] for i in range(len(result)-1))
-```
-
-
 ### Validate complex state transitions and invariants through Hypothesis RuleBasedStateMachine tests — MEDIUM
 
 
@@ -2786,6 +2621,153 @@ class CartStateMachine(RuleBasedStateMachine):
         self.cart.add(item)
         self.expected_items.append(item)
         assert len(self.cart) == len(self.expected_items)
+```
+
+
+### Require evidence verification and discover edge cases through property-based testing with Hypothesis — MEDIUM
+
+
+## Evidence Verification for Task Completion
+
+**Incorrect -- claiming completion without proof:**
+```markdown
+"I've implemented the login feature. It should work correctly."
+# No tests run, no build verified, no evidence collected
+```
+
+**Correct -- evidence-backed task completion:**
+```markdown
+"I've implemented the login feature. Evidence:
+- Tests: Exit code 0, 12 tests passed, 0 failed
+- Build: Exit code 0, no errors
+- Coverage: 89%
+- Timestamp: 2026-02-13 10:30:15
+Task complete with verification."
+```
+
+**Evidence collection protocol:**
+```markdown
+## Before Marking Task Complete
+
+1. **Identify Verification Points**
+   - What needs to be proven?
+   - What could go wrong?
+
+2. **Execute Verification**
+   - Run tests (capture exit code)
+   - Run build (capture exit code)
+   - Run linters/type checkers
+
+3. **Capture Results**
+   - Record exit codes (0 = pass)
+   - Save output snippets
+   - Note timestamps
+
+4. **Minimum Requirements:**
+   - [ ] At least ONE verification type executed
+   - [ ] Exit code captured (0 = pass)
+   - [ ] Timestamp recorded
+
+5. **Production-Grade Requirements:**
+   - [ ] Tests pass (exit code 0)
+   - [ ] Coverage >= 70%
+   - [ ] Build succeeds (exit code 0)
+   - [ ] No critical linter errors
+   - [ ] Type checker passes
+```
+
+**Common commands for evidence collection:**
+```bash
+# JavaScript/TypeScript
+npm test                 # Run tests
+npm run build           # Build project
+npm run lint            # ESLint
+npm run typecheck       # TypeScript compiler
+
+# Python
+pytest                  # Run tests
+pytest --cov           # Tests with coverage
+ruff check .           # Linter
+mypy .                 # Type checker
+```
+
+Key principles:
+- Show, don't tell -- no task is complete without verifiable evidence
+- Never fake evidence or mark tasks complete on failed evidence
+- Exit code 0 is the universal success indicator
+- Re-collect evidence after any changes
+- Minimum coverage: 70% (production-grade), 80% (gold standard)
+
+---
+
+## Property-Based Testing with Hypothesis
+
+### Example-Based vs Property-Based
+
+```python
+# Property-based: Test properties for ALL inputs
+from hypothesis import given
+from hypothesis import strategies as st
+
+@given(st.lists(st.integers()))
+def test_sort_properties(lst):
+    result = sort(lst)
+    assert len(result) == len(lst)  # Same length
+    assert all(result[i] <= result[i+1] for i in range(len(result)-1))
+```
+
+### Common Strategies
+
+```python
+st.integers(min_value=0, max_value=100)
+st.text(min_size=1, max_size=50)
+st.lists(st.integers(), max_size=10)
+st.from_regex(r"[a-z]+@[a-z]+\.[a-z]+")
+
+@st.composite
+def user_strategy(draw):
+    return User(
+        name=draw(st.text(min_size=1, max_size=50)),
+        age=draw(st.integers(min_value=0, max_value=150)),
+    )
+```
+
+### Common Properties
+
+```python
+# Roundtrip (encode/decode)
+@given(st.dictionaries(st.text(), st.integers()))
+def test_json_roundtrip(data):
+    assert json.loads(json.dumps(data)) == data
+
+# Idempotence
+@given(st.text())
+def test_normalize_idempotent(text):
+    assert normalize(normalize(text)) == normalize(text)
+```
+
+### Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Example count | 100 for CI, 10 for dev, 1000 for release |
+| Deadline | Disable for slow tests, 200ms default |
+| Stateful tests | RuleBasedStateMachine for state machines |
+
+**Incorrect — Testing specific examples only:**
+```python
+def test_sort():
+    assert sort([3, 1, 2]) == [1, 2, 3]
+    # Only tests one specific case
+```
+
+**Correct — Testing universal properties for all inputs:**
+```python
+@given(st.lists(st.integers()))
+def test_sort_properties(lst):
+    result = sort(lst)
+    assert len(result) == len(lst)
+    assert all(result[i] <= result[i+1] for i in range(len(result)-1))
 ```
 
 

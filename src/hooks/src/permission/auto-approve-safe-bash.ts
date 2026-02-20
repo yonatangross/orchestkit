@@ -15,51 +15,68 @@ import { isCompoundCommand, normalizeSingle } from '../lib/normalize-command.js'
 
 /**
  * Patterns that should NEVER be auto-approved even if they match SAFE_PATTERNS.
- * SEC: git checkout -- . discards all unstaged changes — destructive.
+ * SEC: These destructive git operations discard work without warning.
  */
 const REJECT_PATTERNS: RegExp[] = [
-  /^git\s+checkout\s+--\s+\./, // git checkout -- . (discard all changes)
-  /^git\s+checkout\s+\.\s*$/,  // git checkout . (same effect)
+  /^git\s+checkout\s+--\s+\./,    // git checkout -- . (discard all unstaged changes)
+  /^git\s+checkout\s+\.\s*$/,      // git checkout . (same effect)
+  /^git\s+checkout\s+(-f|--force)/, // git checkout -f (force, discards local changes)
+  /^git\s+clean/,                   // git clean (deletes untracked files)
+  /^git\s+reset\s+--hard/,          // git reset --hard (discards all changes)
+  /^git\s+push\s+.*--force/,        // git push --force (rewrites remote history)
+  /^git\s+push\s+-f\b/,             // git push -f (short form of --force)
 ];
 
 /**
- * Safe command patterns that should be auto-approved
+ * Safe command patterns that should be auto-approved.
+ *
+ * SEC AUDIT (#662): Each pattern is safe because:
+ * - Compound commands (pipes, &&, ||, ;) are rejected BEFORE pattern matching
+ * - normalizeSingle() expands hex/octal escapes and strips quotes before matching
+ * - REJECT_PATTERNS are checked BEFORE SAFE_PATTERNS
  */
 const SAFE_PATTERNS: RegExp[] = [
-  // Git read operations
+  // Git read operations — safe: read-only, no data loss
   /^git (status|log|diff|branch|show|fetch|pull)/,
-  /^git checkout/,
+  // SEC: git checkout <branch/file> is safe for switching branches/restoring files.
+  // Destructive forms (checkout -f, checkout --, checkout .) are caught by REJECT_PATTERNS.
+  /^git checkout\s+\S/,
 
-  // Package managers - read operations
+  // Package managers — safe: read/run operations, no install/publish
   /^npm (list|ls|outdated|audit|run|test)/,
   /^pnpm (list|ls|outdated|audit|run|test)/,
   /^yarn (list|outdated|audit|run|test)/,
   /^poetry (show|run|env)/,
 
-  // Docker - read operations
+  // Docker — safe: read-only inspection commands
   /^docker (ps|images|logs|inspect)/,
   /^docker-compose (ps|logs)/,
   /^docker compose (ps|logs)/,
 
-  // Basic shell commands
+  // Basic shell commands — safe: read-only or output-only
   /^ls(\s|$)/,
   /^pwd$/,
+  // SEC: echo is safe — no file writes (pipes/redirects are compound, rejected above)
   /^echo\s/,
+  // SEC: cat/head/tail/wc are read-only (pipes/redirects rejected as compound)
   /^cat\s/,
   /^head\s/,
   /^tail\s/,
   /^wc\s/,
+  // SEC: find with -exec uses ; which triggers isCompoundCommand -> manual review
   /^find\s/,
   /^which\s/,
   /^type\s/,
   /^env$/,
   /^printenv/,
 
-  // GitHub CLI - read operations
+  // GitHub CLI — safe: read-only operations only
   /^gh (issue|pr|repo|workflow) (list|view|status)/,
-  /^gh milestone/,
+  // SEC (#662): Restrict gh milestone to read operations only.
+  // Previously /^gh milestone/ matched create/edit/delete too.
+  /^gh milestone (list|view)/,
 
-  // Testing and linting
+  // Testing and linting — safe: read-only analysis
   /^pytest/,
   /^poetry run pytest/,
   /^npm run (test|lint|typecheck|format)/,

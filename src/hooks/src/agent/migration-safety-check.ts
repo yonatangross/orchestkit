@@ -10,6 +10,7 @@
 
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, outputDeny } from '../lib/common.js';
+import { normalizeSingle } from '../lib/normalize-command.js';
 
 // Dangerous database patterns
 const DANGEROUS_PATTERNS: Array<{ test: (s: string) => boolean; source: string }> = [
@@ -33,7 +34,10 @@ export function migrationSafetyCheck(input: HookInput): HookResult {
     return outputSilentSuccess();
   }
 
-  const command = input.tool_input.command || '';
+  const rawCommand = input.tool_input.command || '';
+
+  // Normalize: expand hex/octal escapes, strip quotes, collapse whitespace
+  const command = rawCommand ? normalizeSingle(rawCommand) : '';
 
   // Check for dangerous patterns
   for (const pattern of DANGEROUS_PATTERNS) {

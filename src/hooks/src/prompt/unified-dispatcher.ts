@@ -41,6 +41,7 @@ import {
   logHook,
   estimateTokenCount,
   getProjectDir,
+  extractContext,
 } from '../lib/common.js';
 import { isImageOrBinaryPrompt, MAX_PROMPT_LENGTH } from '../lib/prompt-guards.js';
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
@@ -140,27 +141,7 @@ function setOnceFlagDone(hookName: string, sessionId: string, projectDir: string
   writeFileSync(join(flagDir, `${hookName}.done`), Date.now().toString(), 'utf8');
 }
 
-// -----------------------------------------------------------------------------
-// Context Extraction
-// -----------------------------------------------------------------------------
-
-/**
- * Extract additionalContext from a hook result.
- * Handles both the correct outputPromptContext format and the bare systemMessage format.
- */
-function extractContext(result: HookResult): string | null {
-  // Standard format: hookSpecificOutput.additionalContext
-  if (result.hookSpecificOutput?.additionalContext) {
-    return result.hookSpecificOutput.additionalContext as string;
-  }
-
-  // Legacy format: bare systemMessage (antipattern-detector bug)
-  if (result.systemMessage && typeof result.systemMessage === 'string') {
-    return result.systemMessage;
-  }
-
-  return null;
-}
+// extractContext imported from ../lib/common.js (Issue #682)
 
 // -----------------------------------------------------------------------------
 // Dispatcher Implementation
