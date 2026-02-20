@@ -20,6 +20,7 @@ vi.mock('node:fs', () => ({
 
 vi.mock('node:child_process', () => ({
   execSync: vi.fn(() => ''),
+  execFileSync: vi.fn(() => ''),
 }));
 
 vi.mock('../../lib/common.js', () => ({
@@ -30,7 +31,7 @@ vi.mock('../../lib/common.js', () => ({
 import { testRunner } from '../../skill/test-runner.js';
 import { outputSilentSuccess } from '../../lib/common.js';
 import { existsSync } from 'node:fs';
-import { execSync } from 'node:child_process';
+import { execSync, execFileSync } from 'node:child_process';
 
 // =============================================================================
 // Test Utilities
@@ -316,15 +317,16 @@ describe('test-runner', () => {
       vi.mocked(existsSync).mockImplementation((path) =>
         String(path).includes('pyproject.toml'),
       );
-      vi.mocked(execSync).mockReturnValue('PASSED');
+      vi.mocked(execFileSync).mockReturnValue('PASSED');
       const input = createWriteInput('/project/tests/test_user.py');
 
       // Act
       testRunner(input);
 
       // Assert
-      expect(execSync).toHaveBeenCalledWith(
-        expect.stringContaining('poetry run pytest'),
+      expect(execFileSync).toHaveBeenCalledWith(
+        'poetry',
+        expect.arrayContaining(['run', 'pytest', '/project/tests/test_user.py']),
         expect.objectContaining({
           cwd: '/project/tests',
           timeout: 60000,
@@ -335,15 +337,16 @@ describe('test-runner', () => {
     test('includes file path in pytest command', () => {
       // Arrange
       vi.mocked(existsSync).mockReturnValue(true);
-      vi.mocked(execSync).mockReturnValue('PASSED');
+      vi.mocked(execFileSync).mockReturnValue('PASSED');
       const input = createWriteInput('/project/tests/test_user.py');
 
       // Act
       testRunner(input);
 
       // Assert
-      expect(execSync).toHaveBeenCalledWith(
-        expect.stringContaining('/project/tests/test_user.py'),
+      expect(execFileSync).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.arrayContaining(['/project/tests/test_user.py']),
         expect.any(Object),
       );
     });
@@ -351,15 +354,16 @@ describe('test-runner', () => {
     test('uses -v --tb=short flags', () => {
       // Arrange
       vi.mocked(existsSync).mockReturnValue(true);
-      vi.mocked(execSync).mockReturnValue('PASSED');
+      vi.mocked(execFileSync).mockReturnValue('PASSED');
       const input = createWriteInput('/project/tests/test_user.py');
 
       // Act
       testRunner(input);
 
       // Assert
-      expect(execSync).toHaveBeenCalledWith(
-        expect.stringContaining('-v --tb=short'),
+      expect(execFileSync).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.arrayContaining(['-v', '--tb=short']),
         expect.any(Object),
       );
     });
@@ -418,15 +422,16 @@ describe('test-runner', () => {
       vi.mocked(existsSync).mockImplementation((path) =>
         String(path).includes('package.json'),
       );
-      vi.mocked(execSync).mockReturnValue('PASSED');
+      vi.mocked(execFileSync).mockReturnValue('PASSED');
       const input = createWriteInput('/project/tests/user.test.ts');
 
       // Act
       testRunner(input);
 
       // Assert
-      expect(execSync).toHaveBeenCalledWith(
-        expect.stringContaining('npm test'),
+      expect(execFileSync).toHaveBeenCalledWith(
+        'npm',
+        expect.arrayContaining(['test']),
         expect.any(Object),
       );
     });
@@ -436,15 +441,16 @@ describe('test-runner', () => {
       vi.mocked(existsSync).mockImplementation((path) =>
         String(path) === '/project/package.json',
       );
-      vi.mocked(execSync).mockReturnValue('PASSED');
+      vi.mocked(execFileSync).mockReturnValue('PASSED');
       const input = createWriteInput('/project/tests/unit/user.test.ts');
 
       // Act
       testRunner(input);
 
       // Assert
-      expect(execSync).toHaveBeenCalledWith(
+      expect(execFileSync).toHaveBeenCalledWith(
         expect.any(String),
+        expect.any(Array),
         expect.objectContaining({
           cwd: '/project',
         }),
@@ -509,25 +515,18 @@ describe('test-runner', () => {
     });
 
     test('handles pytest execution failure gracefully', () => {
-      // Arrange — existsSync false so no pyproject.toml, pytest throws on run
-      // Inner catch at line 72 catches the error and writes "pytest not found"
+      // Arrange — existsSync false so no pyproject.toml, execFileSync for pytest throws
       vi.mocked(existsSync).mockReturnValue(false);
-      vi.mocked(execSync).mockImplementation((cmd) => {
-        const cmdStr = String(cmd);
-        if (cmdStr.includes('command -v pytest')) {
-          return 'pytest';
-        }
-        if (cmdStr.includes('pytest')) {
-          throw new Error('Test failed');
-        }
-        return '';
+      vi.mocked(execSync).mockReturnValue('pytest'); // command -v pytest succeeds
+      vi.mocked(execFileSync).mockImplementation(() => {
+        throw new Error('Test failed');
       });
       const input = createWriteInput('/project/tests/test_user.py');
 
       // Act — should not throw
       expect(() => testRunner(input)).not.toThrow();
 
-      // Assert — inner catch writes "pytest not found" (outer catch unreachable)
+      // Assert — inner catch writes "pytest not found"
       expect(stderrWriteSpy).toHaveBeenCalledWith(
         'pytest not found - skipping auto-run\n',
       );
@@ -556,15 +555,16 @@ describe('test-runner', () => {
     test('sets 60 second timeout for Python tests', () => {
       // Arrange
       vi.mocked(existsSync).mockReturnValue(true);
-      vi.mocked(execSync).mockReturnValue('PASSED');
+      vi.mocked(execFileSync).mockReturnValue('PASSED');
       const input = createWriteInput('/project/tests/test_user.py');
 
       // Act
       testRunner(input);
 
       // Assert
-      expect(execSync).toHaveBeenCalledWith(
+      expect(execFileSync).toHaveBeenCalledWith(
         expect.any(String),
+        expect.any(Array),
         expect.objectContaining({
           timeout: 60000,
         }),
@@ -574,15 +574,16 @@ describe('test-runner', () => {
     test('sets 60 second timeout for TypeScript tests', () => {
       // Arrange
       vi.mocked(existsSync).mockReturnValue(true);
-      vi.mocked(execSync).mockReturnValue('PASSED');
+      vi.mocked(execFileSync).mockReturnValue('PASSED');
       const input = createWriteInput('/project/tests/user.test.ts');
 
       // Act
       testRunner(input);
 
       // Assert
-      expect(execSync).toHaveBeenCalledWith(
+      expect(execFileSync).toHaveBeenCalledWith(
         expect.any(String),
+        expect.any(Array),
         expect.objectContaining({
           timeout: 60000,
         }),

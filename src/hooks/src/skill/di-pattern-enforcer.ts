@@ -32,18 +32,34 @@ export function diPatternEnforcer(input: HookInput): HookResult {
 
   // Rule: No direct service/repository instantiation
   if (content.includes('Service()') && /=\s*[A-Z]/.test(content)) {
-    const match = content.match(/([A-Z]\w*Service)\(\s*\)/);
+    // Extract class name: find "XxxService()" pattern without regex backtracking
+    const serviceIdx = content.indexOf('Service()');
+    let className = 'Service()';
+    if (serviceIdx > 0) {
+      const before = content.substring(Math.max(0, serviceIdx - 50), serviceIdx + 9);
+      const parts = before.split(/[^A-Za-z]/);
+      const last = parts.filter((p: string) => p.endsWith('Service')).pop();
+      if (last) className = `${last}()`;
+    }
     errors.push('INSTANTIATION: Direct service instantiation not allowed');
-    errors.push(`  Found: ${match?.[0] || 'Service()'}`);
+    errors.push(`  Found: ${className}`);
     errors.push('  ');
     errors.push('  Use dependency injection:');
     errors.push('    service: MyService = Depends(get_my_service)');
   }
 
   if ((content.includes('Repository()') || content.includes('Repo()')) && /=\s*[A-Z]/.test(content)) {
-    const match = content.match(/([A-Z]\w*(?:Repository|Repo))\(\s*\)/);
+    // Extract class name without regex backtracking
+    const repoIdx = content.indexOf('Repository()') !== -1 ? content.indexOf('Repository()') : content.indexOf('Repo()');
+    let className = 'Repository()';
+    if (repoIdx > 0) {
+      const before = content.substring(Math.max(0, repoIdx - 50), repoIdx + 15);
+      const parts = before.split(/[^A-Za-z]/);
+      const last = parts.filter((p: string) => p.endsWith('Repository') || p.endsWith('Repo')).pop();
+      if (last) className = `${last}()`;
+    }
     errors.push('INSTANTIATION: Direct repository instantiation not allowed');
-    errors.push(`  Found: ${match?.[0] || 'Repository()'}`);
+    errors.push(`  Found: ${className}`);
     errors.push('  ');
     errors.push('  Use dependency injection:');
     errors.push('    repo: MyRepository = Depends(get_my_repository)');

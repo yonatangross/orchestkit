@@ -268,7 +268,7 @@ Store in knowledge graph with mcp__memory__create_entities:
   "entities": [{
     "name": "${category}-decision",
     "entityType": "Decision",
-    "observations": ["${decision.substring(0, 300).replace(/"/g, '\\"')}"]
+    "observations": ["${decision.substring(0, 300).replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"]
   }]
 }
 \`\`\`

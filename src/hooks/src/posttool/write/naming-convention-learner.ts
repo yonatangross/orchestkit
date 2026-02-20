@@ -94,12 +94,18 @@ function extractPythonIdentifiers(content: string): {
     .map(m => m.replace('class ', ''));
 
   const variables = content.split('\n')
-    .filter(line => /^[a-zA-Z_]\w*\s*=/.test(line.trim()))
-    .map(line => line.trim().split(/\s*=/)[0]);
+    .filter(line => {
+      const t = line.trim();
+      return /^[a-zA-Z_]\w*/.test(t) && t.includes('=');
+    })
+    .map(line => line.trim().split('=')[0].trim());
 
   const constants = content.split('\n')
-    .filter(line => /^[A-Z][A-Z0-9_]*\s*=/.test(line.trim()))
-    .map(line => line.trim().split(/\s*=/)[0]);
+    .filter(line => {
+      const t = line.trim();
+      return /^[A-Z][A-Z0-9_]*/.test(t) && t.includes('=');
+    })
+    .map(line => line.trim().split('=')[0].trim());
 
   return { functions, classes, variables, constants };
 }
