@@ -14,6 +14,12 @@ Create page object: $ARGUMENTS
 - **Playwright Version**: !`grep -r "@playwright/test" package.json 2>/dev/null | head -1 | grep -oE '@playwright/test[^"]*' || echo "Not detected"`
 - **Existing Patterns**: !`grep -r "getByRole\|getByLabel" tests/e2e/pages 2>/dev/null | head -3 || echo "No existing patterns found"`
 
+## Your Task
+
+Create a Playwright page object for: **$ARGUMENTS**
+
+Review the auto-detected test context above, then customize the template below with your page's locators and interaction methods.
+
 ## Page Object Template
 
 ```typescript

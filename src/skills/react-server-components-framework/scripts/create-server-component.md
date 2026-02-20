@@ -14,6 +14,12 @@ Create server component: $ARGUMENTS
 - **Existing Server Components**: !`find app -name "*.tsx" -o -name "*.ts" 2>/dev/null | xargs grep -l "async\|await" 2>/dev/null | wc -l | tr -d ' ' || echo "0"`
 - **Database Client**: !`grep -r "prisma\|drizzle\|sql" package.json 2>/dev/null | head -1 | grep -oE 'prisma|drizzle|@prisma' || echo "Not detected"`
 
+## Your Task
+
+Create a React Server Component: **$ARGUMENTS**
+
+Review the auto-detected Next.js context above, then customize the template below with your component's data fetching and rendering logic.
+
 ## Server Component Template
 
 ```typescript

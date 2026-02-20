@@ -14,6 +14,12 @@ Create LoRA config: $ARGUMENTS
 - **Training Setup**: !`find . -name "*train*.py" -o -name "*fine-tune*" 2>/dev/null | head -3 || echo "No training scripts found"`
 - **Model Path**: !`grep -r "MODEL_PATH\|model_name" .env* 2>/dev/null | head -1 | cut -d'=' -f2 || echo "Not found in .env"`
 
+## Your Task
+
+Create a LoRA fine-tuning configuration for model: **$ARGUMENTS**
+
+Review the auto-detected fine-tuning context above, then customize the template below with your model's target modules and training hyperparameters.
+
 ## LoRA Configuration
 
 ```yaml
