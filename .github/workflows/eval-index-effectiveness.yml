@@ -29,6 +29,7 @@ on:
       - 'src/agents/*.md'
       - 'manifests/*.json'
       - 'tests/evals/**'
+  merge_group:
 
   # Manual trigger
   workflow_dispatch:
@@ -37,6 +38,8 @@ on:
         description: 'Filter tests by tag (e.g., backend, frontend)'
         required: false
         default: ''
+
+permissions: {}
 
 env:
   EVAL_TIMEOUT: 300  # 5 minutes per test
@@ -47,6 +50,8 @@ jobs:
   # ============================================================================
   prepare:
     name: Prepare Evaluation Environment
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     outputs:
       has_claude: ${{ steps.check-claude.outputs.has_claude }}
@@ -101,6 +106,8 @@ jobs:
   # ============================================================================
   eval-with-index:
     name: Evaluate With Index
+    permissions:
+      contents: read
     needs: prepare
     runs-on: ubuntu-latest
     steps:
@@ -147,6 +154,8 @@ jobs:
   # ============================================================================
   eval-without-index:
     name: Evaluate Without Index
+    permissions:
+      contents: read
     needs: prepare
     runs-on: ubuntu-latest
     steps:
@@ -201,6 +210,8 @@ jobs:
   # ============================================================================
   compare:
     name: Compare Results
+    permissions:
+      contents: read
     needs: [eval-with-index, eval-without-index]
     runs-on: ubuntu-latest
     steps:
@@ -295,6 +306,7 @@ jobs:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     permissions:
+      contents: read
       pull-requests: write
     steps:
       - name: Download comparison results

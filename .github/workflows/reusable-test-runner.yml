@@ -36,11 +36,15 @@ on:
         type: boolean
         default: true
 
+permissions: {}
+
 env:
   CLAUDE_PROJECT_DIR: ${{ github.workspace }}
 
 jobs:
   run-tests:
+    permissions:
+      contents: read
     name: ${{ inputs.test-category }}${{ inputs.include-node-matrix && format(' (node {0})', matrix.node-version) || '' }}
     runs-on: ubuntu-latest
     timeout-minutes: ${{ inputs.timeout-minutes }}

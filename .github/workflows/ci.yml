@@ -5,10 +5,13 @@ on:
     branches: [main, dev]
   pull_request:
     branches: [main, dev]
+  merge_group:
   workflow_dispatch:
   schedule:
     # Nightly at 2 AM UTC
     - cron: '0 2 * * *'
+
+permissions: {}
 
 # Cancel in-progress runs on new commits to same branch
 concurrency:
@@ -25,6 +28,8 @@ jobs:
   # ============================================================================
   build-plugins:
     name: Build
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -66,6 +71,8 @@ jobs:
   # ============================================================================
   lint:
     name: Static Analysis
+    permissions:
+      contents: read
     needs: build-plugins
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -95,6 +102,8 @@ jobs:
   # ============================================================================
   security-audit:
     name: Dependency Audit
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -117,6 +126,8 @@ jobs:
   # ============================================================================
   secret-scanning:
     name: Secret Scanning
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -136,6 +147,8 @@ jobs:
   # ============================================================================
   unit-tests:
     name: Unit Tests (node ${{ matrix.node-version }})
+    permissions:
+      contents: read
     needs: lint
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -169,7 +182,9 @@ jobs:
   # Node version matrix
   # ============================================================================
   hook-typescript-tests:
-    name: TypeScript Tests (node ${{ matrix.node-version }})
+    name: TypeScript Tests (node ${{ matrix.node-version }}, shard ${{ matrix.shard }})
+    permissions:
+      contents: read
     needs: lint
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -177,6 +192,7 @@ jobs:
       fail-fast: false
       matrix:
         node-version: ['20', '22']
+        shard: ['1/4', '2/4', '3/4', '4/4']
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
 
@@ -191,7 +207,7 @@ jobs:
       - name: Run vitest
         shell: bash
         working-directory: src/hooks
-        run: npx vitest run --reporter=verbose
+        run: npx vitest run --reporter=verbose --shard=${{ matrix.shard }} --retry 2
 
   # ============================================================================
   # STAGE 3: Security Tests (< 3m)
@@ -199,6 +215,8 @@ jobs:
   # ============================================================================
   security-tests:
     name: Security Tests
+    permissions:
+      contents: read
     needs: [build-plugins]
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -228,6 +246,8 @@ jobs:
   # ============================================================================
   integration-tests:
     name: Integration Tests
+    permissions:
+      contents: read
     needs: [unit-tests, security-tests]
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -263,6 +283,8 @@ jobs:
   # ============================================================================
   performance-tests:
     name: Performance Tests
+    permissions:
+      contents: read
     needs: [build-plugins]
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -292,6 +314,8 @@ jobs:
   # ============================================================================
   compliance-tests:
     name: Compliance Tests
+    permissions:
+      contents: read
     needs: [build-plugins]
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -321,6 +345,8 @@ jobs:
   # ============================================================================
   agent-skill-tests:
     name: Agents & Skills
+    permissions:
+      contents: read
     needs: [build-plugins]
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -362,6 +388,8 @@ jobs:
   # ============================================================================
   manifest-schema-tests:
     name: Manifests & Schemas
+    permissions:
+      contents: read
     needs: [build-plugins]
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -397,6 +425,8 @@ jobs:
   # ============================================================================
   eval-static:
     name: Static Analysis Pipeline
+    permissions:
+      contents: read
     needs: [build-plugins]
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -431,6 +461,8 @@ jobs:
   # ============================================================================
   system-tests:
     name: System Tests
+    permissions:
+      contents: read
     needs: [build-plugins]
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -472,6 +504,8 @@ jobs:
   # ============================================================================
   coverage-report:
     name: Hook Coverage
+    permissions:
+      contents: read
     needs: [unit-tests, security-tests]
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -509,7 +543,9 @@ jobs:
   # ============================================================================
   summary:
     name: CI Summary
-    needs: [lint, security-audit, secret-scanning, unit-tests, hook-typescript-tests, security-tests, integration-tests, performance-tests, compliance-tests, agent-skill-tests, manifest-schema-tests, eval-static, system-tests, coverage-report]
+    permissions:
+      contents: read
+    needs: [build-plugins, lint, security-audit, secret-scanning, unit-tests, hook-typescript-tests, security-tests, integration-tests, performance-tests, compliance-tests, agent-skill-tests, manifest-schema-tests, eval-static, system-tests, coverage-report]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     if: always()
@@ -517,6 +553,7 @@ jobs:
       - name: Check all jobs
         run: |
           echo "=== CI Summary ==="
+          echo "Build: ${{ needs.build-plugins.result }}"
           echo "Lint: ${{ needs.lint.result }}"
           echo "Security Audit: ${{ needs.security-audit.result }}"
           echo "Secret Scanning: ${{ needs.secret-scanning.result }}"
@@ -535,6 +572,7 @@ jobs:
           # Fail only on explicit failures (skipped jobs are OK - they use path filters)
           FAILED=0
           for result in \
+            "${{ needs.build-plugins.result }}" \
             "${{ needs.lint.result }}" \
             "${{ needs.security-audit.result }}" \
             "${{ needs.secret-scanning.result }}" \
@@ -547,7 +585,8 @@ jobs:
             "${{ needs.agent-skill-tests.result }}" \
             "${{ needs.manifest-schema-tests.result }}" \
             "${{ needs.eval-static.result }}" \
-            "${{ needs.system-tests.result }}"; do
+            "${{ needs.system-tests.result }}" \
+            "${{ needs.coverage-report.result }}"; do
             if [[ "$result" == "failure" || "$result" == "cancelled" ]]; then
               FAILED=1
             fi

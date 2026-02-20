@@ -4,13 +4,15 @@ on:
   pull_request:
     branches: [main]
     types: [opened, synchronize]
+  merge_group:
 
-permissions:
-  contents: read
-  pull-requests: write
+permissions: {}
 
 jobs:
   check-version-and-changelog:
+    permissions:
+      contents: read
+      pull-requests: write
     name: Check Version Bump & Changelog
     runs-on: ubuntu-latest
     timeout-minutes: 10

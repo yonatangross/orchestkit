@@ -29,6 +29,8 @@ concurrency:
   group: release-video-${{ github.event.release.tag_name || github.event.inputs.version }}
   cancel-in-progress: true
 
+permissions: {}
+
 env:
   NODE_VERSION: '22'
 
@@ -38,6 +40,8 @@ jobs:
   # ============================================================================
   parse-changelog:
     name: Parse Changelog
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
@@ -103,6 +107,8 @@ jobs:
   # ============================================================================
   render-videos:
     name: Render Videos
+    permissions:
+      contents: read
     needs: parse-changelog
     runs-on: ubuntu-latest
     timeout-minutes: 30

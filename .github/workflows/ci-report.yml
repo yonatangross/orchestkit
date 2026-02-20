@@ -5,14 +5,16 @@ on:
     branches: [main, dev]
   pull_request:
     branches: [main, dev]
+  merge_group:
   workflow_dispatch:
 
-permissions:
-  contents: read
-  pull-requests: write
+permissions: {}
 
 jobs:
   generate-report:
+    permissions:
+      contents: read
+      pull-requests: write
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

@@ -16,11 +16,14 @@ on:
     tags:
       - 'v*'
 
-permissions:
-  contents: write
+permissions: {}
 
 jobs:
   create-release:
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
     name: GitHub Release
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -86,3 +89,32 @@ jobs:
             --notes-file /tmp/release-notes.md
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js for SBOM generation
+        if: steps.check.outputs.exists == 'false'
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238  # v6
+        with:
+          node-version: '20'
+
+      - name: Install production dependencies
+        if: steps.check.outputs.exists == 'false'
+        run: npm ci --ignore-scripts --production
+
+      - name: Generate SBOM (CycloneDX)
+        if: steps.check.outputs.exists == 'false'
+        uses: CycloneDX/gh-node-module-generatebom@27e13c2bf0fae78d66387b35ca9749d8cc853060  # v1
+        with:
+          output: bom.json
+
+      - name: Upload SBOM to release
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          gh release upload "${{ steps.version.outputs.tag }}" bom.json#sbom-cyclonedx.json
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Attest build provenance
+        if: steps.check.outputs.exists == 'false'
+        uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be  # v2
+        with:
+          subject-path: bom.json
