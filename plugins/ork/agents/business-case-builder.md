@@ -24,6 +24,7 @@ skills:
   - github-operations
   - remember
   - memory
+mcpServers: []
 ---
 ## Directive
 Build compelling business cases with ROI projections, cost-benefit analysis, and risk assessment to justify product investments.

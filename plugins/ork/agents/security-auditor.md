@@ -22,6 +22,7 @@ skills:
   - task-dependency-patterns
   - remember
   - memory
+mcpServers: []
 hooks:
   PostToolUse:
     - matcher: "Bash"

@@ -11,6 +11,8 @@
  */
 
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { homedir } from 'node:os';
+import { join } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook, getProjectDir, } from '../lib/common.js';
 
@@ -109,6 +111,92 @@ function findIssueDoc(issueNum: string): string {
 }
 
 // -----------------------------------------------------------------------------
+// Critical Rules Extraction
+// -----------------------------------------------------------------------------
+
+/**
+ * Extract condensed critical rules from global and project CLAUDE.md files.
+ * Sub-agents don't inherit ~/.claude/CLAUDE.md from the CC runtime,
+ * so we inject key rules via systemMessage to prevent drift.
+ *
+ * Budget: ~150 tokens max — enough for guardrails, not a full CLAUDE.md copy.
+ */
+function extractCriticalRules(): string {
+  const rules: string[] = [];
+
+  // Read global CLAUDE.md (~/.claude/CLAUDE.md)
+  const globalPath = join(homedir(), '.claude', 'CLAUDE.md');
+  const globalRules = safeReadFile(globalPath);
+  if (globalRules) {
+    // Extract bullet points and key directives
+    const extracted = extractRulesFromMarkdown(globalRules, 'global');
+    rules.push(...extracted);
+  }
+
+  // Read project CLAUDE.md
+  const projectPath = join(getProjectDir(), 'CLAUDE.md');
+  const projectRules = safeReadFile(projectPath);
+  if (projectRules) {
+    const extracted = extractRulesFromMarkdown(projectRules, 'project');
+    rules.push(...extracted);
+  }
+
+  if (rules.length === 0) return '';
+
+  // Deduplicate and cap at 12 rules (~150 tokens)
+  const unique = [...new Set(rules)].slice(0, 12);
+  return `CRITICAL RULES (inherited from CLAUDE.md):\n${unique.map(r => `- ${r}`).join('\n')}\n\n`;
+}
+
+function safeReadFile(filePath: string): string {
+  try {
+    if (!existsSync(filePath)) return '';
+    return readFileSync(filePath, 'utf8');
+  } catch {
+    return '';
+  }
+}
+
+/**
+ * Extract actionable rules from markdown content.
+ * Looks for: bullet points with imperative verbs, DO/DON'T blocks,
+ * and lines containing "always", "never", "must".
+ */
+function extractRulesFromMarkdown(content: string, _source: string): string[] {
+  const rules: string[] = [];
+  const lines = content.split('\n');
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+
+    // Skip headers, empty lines, code blocks
+    if (!trimmed || trimmed.startsWith('#') || trimmed.startsWith('```')) continue;
+
+    // Match bullet points with strong directives
+    if (/^[-*]\s+/.test(trimmed)) {
+      const bullet = trimmed.replace(/^[-*]\s+/, '').trim();
+
+      // Only keep rules with imperative/directive language
+      if (/\b(always|never|must|don't|do not|required|NEVER|MUST|DON'T)\b/i.test(bullet)) {
+        // Truncate long rules to ~80 chars
+        const truncated = bullet.length > 80 ? bullet.substring(0, 77) + '...' : bullet;
+        rules.push(truncated);
+      }
+    }
+
+    // Match bold DO/DON'T blocks
+    if (/^\*\*(DO|DON'T|DO NOT)\*\*:/.test(trimmed)) {
+      const directive = trimmed.replace(/\*\*/g, '').trim();
+      if (directive.length <= 80) {
+        rules.push(directive);
+      }
+    }
+  }
+
+  return rules;
+}
+
+// -----------------------------------------------------------------------------
 // Hook Implementation
 // -----------------------------------------------------------------------------
 
@@ -120,6 +208,13 @@ export function subagentContextStager(input: HookInput): HookResult {
   logHook('subagent-context-stager', `Staging context for ${subagentType}`);
 
   let stagedContext = '';
+
+  // === INJECT CRITICAL RULES FROM CLAUDE.md FILES ===
+  const criticalRules = extractCriticalRules();
+  if (criticalRules) {
+    stagedContext += criticalRules;
+    logHook('subagent-context-stager', 'Injected critical rules from CLAUDE.md');
+  }
 
   // === CHECK FOR ACTIVE TODOS (Context Protocol 2.0) ===
   const { count: pendingCount, summary: taskSummary } = extractPendingTasks();

@@ -33,6 +33,7 @@ skills:
   - task-dependency-patterns
   - remember
   - memory
+mcpServers: [agentation]
 ---
 ## Directive
 Process UI annotations from the agentation MCP server. Watch for new annotations, map annotated elements to source code, implement fixes, and resolve annotations with summaries of changes made.

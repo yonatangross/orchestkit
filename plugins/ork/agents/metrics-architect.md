@@ -23,6 +23,7 @@ skills:
   - testing-patterns
   - remember
   - memory
+mcpServers: []
 ---
 ## Directive
 Design measurable success criteria, define OKRs and KPIs, and create instrumentation plans to validate product hypotheses and track outcomes.

@@ -26,6 +26,7 @@ skills:
   - task-dependency-patterns
   - memory
   - remember
+mcpServers: [context7]
 ---
 
 ## Directive

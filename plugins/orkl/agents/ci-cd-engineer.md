@@ -37,6 +37,7 @@ hooks:
       command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs pretool/bash/git-validator"
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs pretool/bash/ci-simulation"
+mcpServers: [context7]
 ---
 ## Directive
 Design and implement CI/CD pipelines with GitHub Actions and GitLab CI, focusing on build optimization, security scanning, and reliable deployments.

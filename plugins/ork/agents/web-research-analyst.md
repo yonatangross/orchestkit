@@ -27,6 +27,7 @@ skills:
   - rag-retrieval
   - remember
   - memory
+mcpServers: [tavily]
 ---
 
 ## Directive

@@ -25,6 +25,7 @@ hooks:
   PreToolUse:
     - matcher: "Write|Edit"
       command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs agent/block-writes"
+mcpServers: [context7]
 ---
 ## Directive
 Create rapid UI prototypes with Tailwind CSS, establish design systems with tokens, and produce implementation-ready component specifications with accessibility compliance.
