@@ -11,6 +11,7 @@
     { "type": "perf", "section": "Performance", "hidden": false },
     { "type": "ci", "section": "CI/CD", "hidden": false }
   ],
+  "last-release-sha": "9ba1d5d2f53235a7d1e0ef0dbdcf132aa190b950",
   "packages": {
     ".": {
       "extra-files": [
