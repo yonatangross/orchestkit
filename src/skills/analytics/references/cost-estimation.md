@@ -7,7 +7,7 @@ Estimate token costs from CC's `~/.claude/stats-cache.json` using model-specific
 | Model | Input/MTok | Output/MTok | Cache Read/MTok | Cache Write/MTok |
 |-------|-----------|------------|----------------|-----------------|
 | claude-opus-4-6 | $5.00 | $25.00 | $0.50 | $6.25 |
-| claude-sonnet-4-5 | $3.00 | $15.00 | $0.30 | $3.75 |
+| claude-sonnet-4-6 | $3.00 | $15.00 | $0.30 | $3.75 |
 | claude-haiku-4-5 | $1.00 | $5.00 | $0.10 | $1.25 |
 
 ## Cost Formula
@@ -49,7 +49,7 @@ Note: `dailyModelTokens` only has total tokens per model, not split by type. Est
 | Model | Input Tokens | Output Tokens | Cache Read | Cache Write | Est. Cost |
 |-------|-------------|--------------|------------|-------------|-----------|
 | claude-opus-4-6 | 5.2M | 1.4M | 42.0M | 2.1M | $16.20 |
-| claude-sonnet-4-5 | 200K | 50K | -- | -- | $1.85 |
+| claude-sonnet-4-6 | 200K | 50K | -- | -- | $1.85 |
 | **Total** | | | | | **$18.50** |
 
 **Cache savings:** $8.20 (what it would cost without prompt caching)
