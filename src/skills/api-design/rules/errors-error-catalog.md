@@ -1,5 +1,5 @@
 ---
-title: Error Type Catalog
+title: Maintain a centralized error catalog for consistent error handling across all endpoints
 impact: HIGH
 impactDescription: "A centralized error catalog ensures consistent error handling across all endpoints — ad-hoc error creation leads to duplicate types, inconsistent URIs, and unpredictable client behavior"
 tags: error-catalog, problem-types, error-registry, client-handling, exception-classes

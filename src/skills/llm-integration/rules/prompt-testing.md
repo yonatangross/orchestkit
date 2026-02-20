@@ -1,5 +1,5 @@
 ---
-title: Prompt Testing and Optimization
+title: Test and version prompts systematically to prevent silent production regressions
 impact: HIGH
 impactDescription: "Untested prompts fail silently in production; versioning and optimization prevent regressions"
 tags: prompts, versioning, dspy, optimization, langfuse, a-b-testing

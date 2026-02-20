@@ -1,5 +1,5 @@
 ---
-title: Authoritative Count Sources
+title: Read from authoritative count sources to prevent false-positive drift detection
 impact: HIGH
 impactDescription: "Reading wrong sources produces false-positive drift and wastes debugging time"
 tags: hooks, skills, agents, counts, sources

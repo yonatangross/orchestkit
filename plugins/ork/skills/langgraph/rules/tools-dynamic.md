@@ -1,5 +1,5 @@
 ---
-title: Dynamic Tool Selection
+title: Filter tools dynamically by relevance to avoid context overflow from large sets
 impact: HIGH
 impactDescription: "Binding 50+ tools causes context overflow and poor selection — filter by relevance"
 tags: tools, dynamic, selection, embedding, relevance

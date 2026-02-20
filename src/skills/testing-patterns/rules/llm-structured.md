@@ -1,5 +1,5 @@
 ---
-title: "LLM: Structured Output"
+title: Validate LLM structured output schemas and timeout behavior with Pydantic testing
 category: llm
 impact: HIGH
 impactDescription: "Validates LLM response schemas and timeout behavior through Pydantic validation and async timeout testing"

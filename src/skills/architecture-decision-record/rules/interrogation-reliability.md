@@ -1,5 +1,5 @@
 ---
-title: Reliability Interrogation
+title: Interrogate architecture decisions for failure modes, data patterns, and reliability risks
 impact: HIGH
 impactDescription: "Ignoring failure modes and data patterns leads to brittle systems — production incidents from unhandled edge cases"
 tags: reliability, data, ux, coherence, failure-modes, architecture, interrogation

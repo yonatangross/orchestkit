@@ -1,5 +1,5 @@
 ---
-title: Lazy Component Loading
+title: Defer component loading with React.lazy to reduce initial bundle size and improve TTI
 impact: HIGH
 impactDescription: "React.lazy defers component loading until render time, reducing initial bundle size and improving Time to Interactive"
 tags: lazy, suspense, dynamic-import, skeleton, error-boundary, code-splitting

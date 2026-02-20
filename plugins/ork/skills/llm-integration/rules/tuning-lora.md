@@ -1,5 +1,5 @@
 ---
-title: "Fine-Tuning: LoRA/QLoRA Configuration"
+title: Configure LoRA and QLoRA to fine-tune large models on consumer hardware efficiently
 impact: HIGH
 impactDescription: "LoRA enables fine-tuning large models on consumer hardware with 0.5-2% of original parameters"
 tags: [lora, qlora, peft, unsloth, adapter, fine-tuning, training]

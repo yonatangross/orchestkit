@@ -386,7 +386,7 @@ After mastering React Server Components:
 
 ## Rules (5)
 
-### RSC: Cache Safety — CRITICAL
+### Scope RSC cache keys properly to prevent leaking user-specific data across requests — CRITICAL
 
 
 ## RSC: Cache Safety
@@ -450,7 +450,7 @@ async function Cached({ value }: { value: string }) {
 Reference: `references/cache-components.md` (Constraints, Common Pitfalls)
 
 
-### RSC: Client Boundaries — CRITICAL
+### Minimize RSC client boundaries to avoid shipping unnecessary JavaScript to the browser — CRITICAL
 
 
 ## RSC: Client Boundaries
@@ -525,7 +525,7 @@ export function ProductFilters() {
 Reference: `references/client-components.md` (Common Mistakes), `references/component-patterns.md` (Composition Rules)
 
 
-### RSC: Component Types — MEDIUM
+### Use correct React 19 component types instead of deprecated React.FC patterns — MEDIUM
 
 
 ## RSC: Component Types
@@ -601,7 +601,7 @@ const inputRef = useRef<HTMLInputElement>(null)
 Reference: `references/client-components.md` (React 19 Component Patterns, Ref as Prop)
 
 
-### RSC: Hydration — HIGH
+### Prevent RSC hydration mismatches that cause visual flicker and degraded performance — HIGH
 
 
 ## RSC: Hydration
@@ -675,7 +675,7 @@ function ScreenWidth() {
 Reference: `references/client-components.md` (Avoiding Hydration Mismatches, Client-Only Rendering)
 
 
-### RSC: Serialization — CRITICAL
+### Pass only serializable props across the RSC server-client boundary to avoid runtime errors — CRITICAL
 
 
 ## RSC: Serialization

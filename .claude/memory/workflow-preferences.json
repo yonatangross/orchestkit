@@ -1,14 +1,22 @@
 {
   "pattern_counts": {
-    "test-first": 12,
+    "test-first": 39,
     "explore-first": 0,
-    "iterate-fast": 132,
+    "iterate-fast": 188,
     "big-bang": 1,
-    "agent-delegate": 9,
+    "agent-delegate": 10,
     "mixed": 0
   },
   "pattern_success_rates": {
     "test-first": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
       1,
       1,
       1,
@@ -57,44 +65,45 @@
       1,
       1,
       1,
+      1,
       1
     ],
     "mixed": []
   },
-  "total_sessions": 154,
+  "total_sessions": 238,
   "preferences": [
     {
       "pattern": "iterate-fast",
-      "frequency": 0.8571428571428571,
-      "count": 132,
-      "total_sessions": 154,
+      "frequency": 0.7899159663865546,
+      "count": 188,
+      "total_sessions": 238,
       "avg_success_rate": 1,
-      "updated_at": "2026-02-19T11:10:24.112Z"
+      "updated_at": "2026-02-20T11:29:26.434Z"
     },
     {
       "pattern": "test-first",
-      "frequency": 0.07792207792207792,
-      "count": 12,
-      "total_sessions": 154,
+      "frequency": 0.1638655462184874,
+      "count": 39,
+      "total_sessions": 238,
       "avg_success_rate": 1,
-      "updated_at": "2026-02-19T11:10:24.112Z"
+      "updated_at": "2026-02-20T11:29:26.434Z"
     },
     {
       "pattern": "agent-delegate",
-      "frequency": 0.05844155844155844,
-      "count": 9,
-      "total_sessions": 154,
+      "frequency": 0.04201680672268908,
+      "count": 10,
+      "total_sessions": 238,
       "avg_success_rate": 1,
-      "updated_at": "2026-02-19T11:10:24.112Z"
+      "updated_at": "2026-02-20T11:29:26.434Z"
     },
     {
       "pattern": "big-bang",
-      "frequency": 0.006493506493506494,
+      "frequency": 0.004201680672268907,
       "count": 1,
-      "total_sessions": 154,
+      "total_sessions": 238,
       "avg_success_rate": 1,
-      "updated_at": "2026-02-19T11:10:24.112Z"
+      "updated_at": "2026-02-20T11:29:26.434Z"
     }
   ],
-  "updated_at": "2026-02-19T11:10:24.112Z"
+  "updated_at": "2026-02-20T11:29:26.434Z"
 }

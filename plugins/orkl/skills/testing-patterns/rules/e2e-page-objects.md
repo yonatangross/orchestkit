@@ -1,5 +1,5 @@
 ---
-title: "E2E: Page Objects"
+title: Encapsulate page interactions into reusable page object classes for maintainable E2E tests
 category: e2e
 impact: HIGH
 impactDescription: "Encapsulates page interactions into reusable classes for maintainable and DRY end-to-end tests"

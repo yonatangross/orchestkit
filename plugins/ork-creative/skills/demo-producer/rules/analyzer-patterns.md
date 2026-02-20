@@ -1,5 +1,5 @@
 ---
-title: Skill Analyzer Patterns
+title: Extract skill metadata accurately to produce demos that correctly represent capabilities
 impact: MEDIUM
 impactDescription: "Incorrect metadata extraction produces demos with wrong content — misrepresenting skill capabilities to users"
 tags: skill, metadata, parser, extraction, frontmatter, demo

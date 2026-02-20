@@ -1,5 +1,5 @@
 ---
-title: URL Path Versioning
+title: Implement URL path versioning for public APIs without routing conflicts or code duplication
 impact: HIGH
 impactDescription: "URL path versioning is the most common strategy for public APIs — incorrect implementation leads to routing conflicts, code duplication, and unmaintainable version sprawl"
 tags: url-versioning, path-versioning, fastapi, router, v1, v2

@@ -1,5 +1,5 @@
 ---
-title: Quality Validation
+title: Validate schema and content quality to prevent invalid entries from degrading evaluations
 impact: CRITICAL
 impactDescription: "Without schema and content quality validation, invalid entries degrade evaluation accuracy and produce misleading benchmark results"
 tags: schema, validation, content-quality, referential-integrity, quality

@@ -1,5 +1,5 @@
 ---
-title: Supervisor-Worker Pattern
+title: Build supervisor-worker pattern with Command API for coordinated state routing
 impact: HIGH
 impactDescription: "Missing worker→supervisor edges cause workers to exit instead of reporting back"
 tags: supervisor, worker, command, coordination, orchestration

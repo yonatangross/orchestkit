@@ -1,5 +1,5 @@
 ---
-title: Motion Library & View Transitions
+title: Use Motion library with centralized presets for 60fps animations and reduced-motion compliance
 impact: HIGH
 impactDescription: "Inconsistent animation implementations create janky UX and accessibility issues — Motion library with centralized presets ensures 60fps and reduced-motion compliance"
 tags: motion, framer-motion, view-transitions, AnimatePresence, page-transitions

@@ -32,6 +32,26 @@ Deep code review using 6-7 parallel specialized agents.
 
 ---
 
+## Argument Resolution
+
+The PR number or branch is passed as the skill argument. Resolve it immediately:
+
+```python
+PR_NUMBER = "$ARGUMENTS"  # e.g., "123" or "feature-branch"
+
+# If no argument provided, check environment
+if not PR_NUMBER:
+    PR_NUMBER = os.environ.get("ORCHESTKIT_PR_URL", "").split("/")[-1]
+
+# If still empty, detect from current branch
+if not PR_NUMBER:
+    PR_NUMBER = "$(gh pr view --json number -q .number 2>/dev/null)"
+```
+
+Use `PR_NUMBER` consistently in all subsequent commands and agent prompts.
+
+---
+
 ## STEP 0: Verify User Intent with AskUserQuestion
 
 **BEFORE creating tasks**, clarify review focus:
@@ -96,14 +116,28 @@ TaskUpdate(taskId="2", status="completed")    # When done
 
 ```bash
 # Get PR details
-gh pr view $ARGUMENTS --json title,body,files,additions,deletions,commits,author
+gh pr view $PR_NUMBER --json title,body,files,additions,deletions,commits,author
 
 # View the diff
-gh pr diff $ARGUMENTS
+gh pr diff $PR_NUMBER
 
 # Check CI status
-gh pr checks $ARGUMENTS
+gh pr checks $PR_NUMBER
 ```
+
+### Capture Scope for Agents
+
+```bash
+# Capture changed files for agent scope injection
+CHANGED_FILES=$(gh pr diff $PR_NUMBER --name-only)
+
+# Detect affected domains
+HAS_FRONTEND=$(echo "$CHANGED_FILES" | grep -qE '\.(tsx?|jsx?|css|scss)$' && echo true || echo false)
+HAS_BACKEND=$(echo "$CHANGED_FILES" | grep -qE '\.(py|go|rs|java)$' && echo true || echo false)
+HAS_AI=$(echo "$CHANGED_FILES" | grep -qE '(llm|ai|agent|prompt|embedding)' && echo true || echo false)
+```
+
+Pass `CHANGED_FILES` to every agent prompt in Phase 3. Pass domain flags to select which agents to spawn.
 
 Identify: total files changed, lines added/removed, affected domains (frontend, backend, AI).
 
@@ -137,6 +171,19 @@ Relevant skills activated automatically:
 
 ## Phase 3: Parallel Code Review (6 Agents)
 
+### Domain-Aware Agent Selection
+
+Only spawn agents relevant to the PR's changed domains:
+
+| Domain Detected | Agents to Spawn |
+|----------------|-----------------|
+| Backend only | code-quality (x2), security-auditor, test-generator, backend-system-architect |
+| Frontend only | code-quality (x2), security-auditor, test-generator, frontend-ui-developer |
+| Full-stack | All 6 agents |
+| AI/LLM code | All 6 + optional llm-integrator (7th) |
+
+Skip agents for domains not present in the diff. This saves ~33% tokens on domain-specific PRs.
+
 See [Agent Prompts -- Task Tool Mode](rules/agent-prompts-task-tool.md) for the 6 parallel agent prompts.
 
 See [Agent Prompts -- Agent Teams Mode](rules/agent-prompts-agent-teams.md) for the mesh alternative.
@@ -155,10 +202,10 @@ Combine all agent feedback into a structured report. See [Review Report Template
 
 ```bash
 # Approve
-gh pr review $ARGUMENTS --approve -b "Review message"
+gh pr review $PR_NUMBER --approve -b "Review message"
 
 # Request changes
-gh pr review $ARGUMENTS --request-changes -b "Review message"
+gh pr review $PR_NUMBER --request-changes -b "Review message"
 ```
 
 ## CC 2.1.20 Enhancements

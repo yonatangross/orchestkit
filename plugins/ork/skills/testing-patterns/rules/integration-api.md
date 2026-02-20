@@ -1,5 +1,5 @@
 ---
-title: "Integration: API Testing"
+title: Validate API contract correctness and error handling through HTTP-level integration tests
 category: integration
 impact: HIGH
 impactDescription: "Validates API contract correctness and error handling through HTTP-level integration tests"

@@ -1,5 +1,5 @@
 ---
-title: "Verification: Property-Based Testing"
+title: Discover edge cases through generative Hypothesis testing to validate universal properties
 category: verification
 impact: MEDIUM
 impactDescription: "Discovers edge cases through generative testing with Hypothesis to validate universal properties"

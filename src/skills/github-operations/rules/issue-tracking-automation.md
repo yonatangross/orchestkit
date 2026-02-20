@@ -1,5 +1,5 @@
 ---
-title: Automated Issue Progress Updates
+title: Automate issue progress updates so stakeholders always see current status
 impact: HIGH
 impactDescription: "Without automation, issue status drifts from reality — stakeholders see stale progress and make wrong decisions"
 tags: github, issues, progress, tracking, automation, commits, hooks

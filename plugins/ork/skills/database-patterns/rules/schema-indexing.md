@@ -1,5 +1,5 @@
 ---
-title: "Schema: Indexing Strategies"
+title: Design database indexes to optimize query performance without slowing writes
 category: schema
 impact: HIGH
 impactDescription: Proper indexing is the primary lever for query performance. Wrong indexes waste storage and slow writes; missing indexes cause full table scans.

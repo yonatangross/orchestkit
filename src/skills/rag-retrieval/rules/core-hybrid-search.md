@@ -1,5 +1,5 @@
 ---
-title: Hybrid Search (Semantic + Keyword)
+title: Combine semantic and keyword search with reciprocal rank fusion for best coverage
 impact: HIGH
 impactDescription: "Single retrieval method misses keyword matches or semantic similarity — hybrid with RRF provides best coverage"
 tags: hybrid, bm25, vector, fusion, rrf

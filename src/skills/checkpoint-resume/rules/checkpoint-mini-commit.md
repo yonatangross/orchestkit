@@ -1,5 +1,5 @@
 ---
-title: Checkpoint Mini-Commit
+title: Create periodic mini-commits so rate-limit hits do not lose uncommitted pipeline work
 impact: HIGH
 impactDescription: "Without periodic mini-commits, a rate-limit hit leaves all pipeline work uncommitted — git history has no recovery point"
 tags: checkpoint, git, commit, cadence

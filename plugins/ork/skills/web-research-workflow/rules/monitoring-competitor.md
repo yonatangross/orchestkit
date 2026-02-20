@@ -1,5 +1,5 @@
 ---
-title: Competitor Page Monitoring
+title: Monitor competitor pages for pricing and feature changes to enable timely strategic response
 impact: HIGH
 impactDescription: "Missing competitor pricing or feature changes delays strategic response by days or weeks"
 tags: competitive-intelligence, monitoring, pricing, features, snapshots

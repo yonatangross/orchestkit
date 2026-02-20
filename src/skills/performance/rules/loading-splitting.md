@@ -1,5 +1,5 @@
 ---
-title: Route-Based Code Splitting
+title: Split code at route boundaries so users only download code for the visited page
 impact: HIGH
 impactDescription: "Route-level splitting ensures users only download code for the page they visit, dramatically reducing initial load"
 tags: code-splitting, routes, react-router, lazy-routes, chunks, webpack, rollup

@@ -1,5 +1,5 @@
 ---
-title: Event Sourcing & CQRS
+title: Implement event sourcing with CQRS for full audit trails and temporal queries
 impact: HIGH
 impactDescription: "Storing only current state loses the complete audit trail — event sourcing preserves every state change and enables temporal queries"
 tags: event-sourcing, cqrs, event-store, projections, aggregate

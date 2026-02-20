@@ -1,5 +1,5 @@
 ---
-title: "Tasks: Dependency Validation"
+title: Validate task dependencies before starting to avoid wasted work on blocked tasks
 category: task
 impact: HIGH
 impactDescription: "Starting blocked tasks causes wasted work, merge conflicts, and broken assumptions about prerequisite state"

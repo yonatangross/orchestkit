@@ -1,5 +1,5 @@
 ---
-title: Agent Teams Mode
+title: Coordinate multi-agent exploration teams with real-time discovery sharing
 impact: HIGH
 impactDescription: "Enables coordinated multi-agent exploration with real-time discovery sharing"
 tags: agent-teams, orchestration, explore

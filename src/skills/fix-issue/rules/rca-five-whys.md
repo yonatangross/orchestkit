@@ -1,5 +1,5 @@
 ---
-title: 5 Whys Technique
+title: Apply the 5 Whys technique to reach root causes instead of fixing symptoms
 impact: HIGH
 impactDescription: "Stopping at symptoms instead of root causes leads to recurring bugs — the same issue returns in different forms"
 tags: rca, 5-whys, debugging, root-cause, investigation

@@ -1,5 +1,5 @@
 ---
-title: Pipeline Composition
+title: Compose retrieval pipeline stages in correct order to avoid redundant processing
 impact: MEDIUM
 impactDescription: "Combining retrieval techniques without clear composition order leads to redundant processing or missed optimizations"
 tags: pipeline, composition, architecture, patterns

@@ -1,5 +1,5 @@
 ---
-title: "FastAPI: Middleware"
+title: Order FastAPI middleware correctly since it affects every request in the application
 category: fastapi
 impact: HIGH
 impactDescription: Middleware ordering and implementation affect every request in the application

@@ -1,5 +1,5 @@
 ---
-title: Dependency Hotspot Analysis
+title: Identify highly-coupled code and dependency bottlenecks to reduce change risk
 impact: MEDIUM
 impactDescription: "Identifies highly-coupled code and dependency bottlenecks to reduce change risk"
 tags: dependencies, hotspots, analysis

@@ -14,7 +14,7 @@
  */
 
 import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, getPluginRoot } from '../lib/common.js';
+import { outputSilentSuccess, getPluginRoot, lineContainsAllCI } from '../lib/common.js';
 import { execSync } from 'node:child_process';
 import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
@@ -67,7 +67,7 @@ const BEST_PRACTICE_PATTERNS: [string, RegExp][] = [
   ['rate-limiting', /rate[- ]?limit|throttl/i],
   ['circuit-breaker', /circuit[- ]?breaker|resilience/i],
   ['event-sourcing', /event[- ]?sourc/i],
-  ['cqrs', /cqrs|command.*query.*separation/i],
+  ['cqrs', { test: (str: string) => /cqrs/i.test(str) || lineContainsAllCI(str, 'command', 'query', 'separation') } as RegExp],
   ['idempotency', /idempoten/i],
 ];
 

@@ -1,5 +1,5 @@
 ---
-title: "FastAPI: Dependencies"
+title: Design FastAPI dependency injection for testable and maintainable application architecture
 category: fastapi
 impact: HIGH
 impactDescription: Dependency injection is the foundation of testable, maintainable FastAPI applications

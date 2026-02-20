@@ -1,5 +1,5 @@
 ---
-title: Design System Token Architecture
+title: Define consistent design tokens to enable global theme changes without visual drift
 impact: HIGH
 impactDescription: "Consistent design tokens prevent visual inconsistencies and enable global theme changes"
 tags: design-tokens, css-variables, theme, colors, spacing, typography, tailwind

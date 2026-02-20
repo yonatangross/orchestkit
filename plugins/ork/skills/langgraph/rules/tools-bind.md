@@ -1,5 +1,5 @@
 ---
-title: Tool Binding to LLMs
+title: Bind tools to LLMs correctly with proper tool_choice to ensure invocation
 impact: CRITICAL
 impactDescription: "Unbinding tools or wrong tool_choice causes LLM to ignore available tools entirely"
 tags: tools, bind_tools, function-calling, tool_choice

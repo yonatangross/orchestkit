@@ -1,5 +1,5 @@
 ---
-title: Dataset Diversity
+title: Balance dataset coverage across difficulty levels, content types, and domains
 impact: HIGH
 impactDescription: "Without balanced coverage across difficulty levels, content types, and domains, evaluation metrics become biased and miss real-world retrieval failures"
 tags: diversity, difficulty, stratification, coverage, balance

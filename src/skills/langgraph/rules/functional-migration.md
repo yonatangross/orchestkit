@@ -1,5 +1,5 @@
 ---
-title: StateGraph to Functional API Migration
+title: Migrate from StateGraph to Functional API while preserving routing flexibility
 impact: MEDIUM
 impactDescription: "Migrating complex graphs with dynamic routing to Functional API loses topology flexibility"
 tags: functional, migration, stategraph, conversion, refactor

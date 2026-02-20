@@ -220,7 +220,7 @@ Evidence collection for verifiable task completion.
 
 ## Rules (35)
 
-### A11y: CI Gates — MEDIUM
+### Enforce automated accessibility testing in CI pipelines to catch WCAG violations — MEDIUM
 
 
 # CI/CD Accessibility Gates
@@ -288,7 +288,7 @@ jobs:
 ```
 
 
-### A11y: jest-axe Testing — MEDIUM
+### Enable unit-level accessibility testing with jest-axe for fast development feedback — MEDIUM
 
 
 # jest-axe Unit Testing
@@ -359,7 +359,7 @@ it('form is accessible in all states', async () => {
 ```
 
 
-### A11y: Playwright axe-core — MEDIUM
+### Validate full-page accessibility compliance through Playwright E2E tests with axe-core — MEDIUM
 
 
 # Playwright + axe-core E2E
@@ -419,7 +419,7 @@ test('page meets WCAG 2.2 AA', async ({ page }) => {
 ```
 
 
-### Data: Factory Patterns — MEDIUM
+### Build reusable test data factories with realistic randomization for isolated tests — MEDIUM
 
 
 # Test Data Factories
@@ -497,7 +497,7 @@ def test_create_user():
 ```
 
 
-### Data: JSON Fixtures — MEDIUM
+### Structure JSON fixtures with composition patterns for deterministic test data management — MEDIUM
 
 
 # JSON Fixtures and Composition
@@ -578,7 +578,7 @@ def admin_user(user):
 ```
 
 
-### Data: Seeding & Cleanup — MEDIUM
+### Automate database seeding and cleanup between test runs for proper isolation — MEDIUM
 
 
 # Database Seeding and Cleanup
@@ -647,7 +647,7 @@ async def clean_database(db_session):
 ```
 
 
-### E2E: AI Agents — HIGH
+### Use Playwright AI agent framework for test planning, generation, and self-healing — HIGH
 
 
 # Playwright AI Agents (1.58+)
@@ -720,7 +720,7 @@ test('example checkout flow', async ({ page }) => {
 ```
 
 
-### E2E: Page Objects — HIGH
+### Encapsulate page interactions into reusable page object classes for maintainable E2E tests — HIGH
 
 
 # Page Object Model
@@ -799,7 +799,7 @@ await checkout.expectConfirmation();
 ```
 
 
-### E2E: Playwright Core — HIGH
+### Apply semantic locator patterns and best practices for resilient Playwright E2E tests — HIGH
 
 
 # Playwright E2E Testing (1.58+)
@@ -887,7 +887,7 @@ await expect(page.getByRole('alert', { name: /success/i })).toBeVisible();
 ```
 
 
-### Coverage Reporting — HIGH
+### Track test coverage to identify untested critical paths that correlate with production bugs — HIGH
 
 
 ## Coverage Reporting
@@ -939,7 +939,7 @@ npm run test -- --coverage --coverageReporters=text --coverageReporters=lcov
 - Coverage numbers alone do not indicate test quality — pair with mutation testing for confidence
 
 
-### Parallel Test Execution — HIGH
+### Run tests in parallel with failure analysis to cut CI feedback time significantly — HIGH
 
 
 ## Parallel Test Execution
@@ -1001,7 +1001,7 @@ poetry run pytest tests/unit/ -k "test_name" -v
 - Use `--watch` mode during frontend development for continuous feedback
 
 
-### Integration: API Testing — HIGH
+### Validate API contract correctness and error handling through HTTP-level integration tests — HIGH
 
 
 # API Integration Testing
@@ -1093,7 +1093,7 @@ test('rejects invalid email', async () => {
 ```
 
 
-### Integration: Component Testing — HIGH
+### Test React components with providers and user interactions for realistic integration coverage — HIGH
 
 
 # React Component Integration Testing
@@ -1148,7 +1148,7 @@ test('form submits and shows success', async () => {
 ```
 
 
-### Integration: Database Testing — HIGH
+### Ensure database layer correctness through isolated integration tests with fresh state — HIGH
 
 
 # Database Integration Testing
@@ -1212,7 +1212,7 @@ def db_session():
 ```
 
 
-### LLM: DeepEval Quality — HIGH
+### Validate LLM output quality using automated DeepEval metrics for relevancy and faithfulness — HIGH
 
 
 # DeepEval Quality Testing
@@ -1274,7 +1274,7 @@ assert_test(test_case, [
 ```
 
 
-### LLM: Mock Responses — HIGH
+### Mock LLM responses for deterministic fast unit tests using VCR recording patterns — HIGH
 
 
 # LLM Response Mocking
@@ -1347,7 +1347,7 @@ async def test_summarize(mock_llm):
 ```
 
 
-### LLM: Structured Output — HIGH
+### Validate LLM structured output schemas and timeout behavior with Pydantic testing — HIGH
 
 
 # Structured Output and Timeout Testing
@@ -1411,7 +1411,7 @@ async def test_structured_output():
 ```
 
 
-### Mocking: LLM APIs — HIGH
+### Record and replay LLM API calls with VCR.py cassettes and custom matchers — HIGH
 
 
 # LLM API Mocking
@@ -1480,7 +1480,7 @@ def vcr_config():
 ```
 
 
-### Mocking: MSW 2.x — HIGH
+### Intercept network requests with Mock Service Worker 2.x for frontend HTTP mocking — HIGH
 
 
 # MSW (Mock Service Worker) 2.x
@@ -1574,7 +1574,7 @@ server.use(
 ```
 
 
-### Mocking: VCR.py — HIGH
+### Record and replay HTTP interactions for deterministic integration tests with data filtering — HIGH
 
 
 # VCR.py HTTP Recording
@@ -1662,7 +1662,7 @@ def vcr_config():
 ```
 
 
-### Performance: k6 Patterns — MEDIUM
+### Define load testing thresholds and patterns for API performance validation with k6 — MEDIUM
 
 
 # k6 Load Testing
@@ -1739,7 +1739,7 @@ export const options = {
 ```
 
 
-### Performance: Locust — MEDIUM
+### Build Python-based load tests with task weighting and authentication flows using Locust — MEDIUM
 
 
 # Locust Load Testing
@@ -1799,7 +1799,7 @@ class APIUser(HttpUser):
 ```
 
 
-### Performance: Test Types — MEDIUM
+### Define load, stress, spike, and soak testing patterns for comprehensive performance validation — MEDIUM
 
 
 # Performance Test Types
@@ -1877,7 +1877,7 @@ export const options = {
 ```
 
 
-### Pytest: Custom Markers — HIGH
+### Enable selective test execution through custom pytest markers for categorized test runs — HIGH
 
 
 # Custom Pytest Markers
@@ -1934,7 +1934,7 @@ markers = [
 ```
 
 
-### Pytest: Plugins & Hooks — HIGH
+### Build factory fixture patterns and pytest plugins for reusable test infrastructure — HIGH
 
 
 # Pytest Plugins and Hooks
@@ -2003,7 +2003,7 @@ def ml_model():
 ```
 
 
-### Pytest: Parallel Execution — HIGH
+### Accelerate test suites through pytest-xdist parallel execution with proper worker isolation — HIGH
 
 
 # Parallel Execution with pytest-xdist
@@ -2060,7 +2060,7 @@ def db_engine(worker_id):
 ```
 
 
-### Unit: AAA Pattern — CRITICAL
+### Enforce Arrange-Act-Assert structure for clear and maintainable isolated unit tests — CRITICAL
 
 
 # AAA Pattern (Arrange-Act-Assert)
@@ -2155,7 +2155,7 @@ test('updates user email', () => {
 ```
 
 
-### Unit: Fixture Scoping — CRITICAL
+### Optimize test performance through proper fixture scope selection while maintaining isolation — CRITICAL
 
 
 # Fixture Scoping
@@ -2214,7 +2214,7 @@ def compiled_regex():
 ```
 
 
-### Unit: Parametrized Tests — CRITICAL
+### Reduce test duplication and increase edge case coverage through parametrized test patterns — CRITICAL
 
 
 # Parametrized Tests
@@ -2298,7 +2298,7 @@ test.each([
 ```
 
 
-### End-to-End Type Safety Validation — HIGH
+### Validate end-to-end type safety across API layers to eliminate runtime type errors — HIGH
 
 
 ## End-to-End Type Safety Validation
@@ -2391,7 +2391,7 @@ Key decisions:
 - Always test validation schemas reject invalid data
 
 
-### Zod Schema Validation Testing — HIGH
+### Test Zod validation schemas to prevent invalid data from passing API boundaries — HIGH
 
 
 ## Zod Schema Validation Testing
@@ -2470,7 +2470,7 @@ Key principles:
 - Reuse schemas (don't create inline in hot paths)
 
 
-### Verification: Contract Testing — MEDIUM
+### Ensure API contract compatibility between consumers and providers using Pact testing — MEDIUM
 
 
 # Contract Testing with Pact
@@ -2554,7 +2554,7 @@ pact-broker can-i-deploy \
 ```
 
 
-### Evidence Verification for Task Completion — MEDIUM
+### Require evidence verification for task completion to detect hidden failures and regressions — MEDIUM
 
 
 ## Evidence Verification for Task Completion
@@ -2629,7 +2629,7 @@ Key principles:
 - Minimum coverage: 70% (production-grade), 80% (gold standard)
 
 
-### Verification: Property-Based Testing — MEDIUM
+### Discover edge cases through generative Hypothesis testing to validate universal properties — MEDIUM
 
 
 # Property-Based Testing with Hypothesis
@@ -2703,7 +2703,7 @@ def test_sort_properties(lst):
 ```
 
 
-### Verification: Stateful Testing — MEDIUM
+### Validate complex state transitions and invariants through Hypothesis RuleBasedStateMachine tests — MEDIUM
 
 
 # Stateful Testing

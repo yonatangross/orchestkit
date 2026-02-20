@@ -1,5 +1,5 @@
 ---
-title: Dataset Versioning
+title: Version golden datasets for reproducible evaluation across environments and recovery
 impact: HIGH
 impactDescription: "Without proper versioning and restore procedures, golden datasets cannot be reliably reproduced across environments or recovered after failures"
 tags: versioning, backup, restore, embeddings, disaster-recovery

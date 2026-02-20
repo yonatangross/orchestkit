@@ -33,6 +33,30 @@ vi.mock('node:child_process', () => ({
   execSync: vi.fn().mockReturnValue('main\n'),
 }));
 
+vi.mock('../../lib/analytics-buffer.js', async () => {
+  const fsMock = await vi.importMock<typeof import('node:fs')>('node:fs');
+  return {
+    bufferWrite: vi.fn((filePath: string, content: string) => {
+      fsMock.appendFileSync(filePath, content);
+    }),
+    flush: vi.fn(),
+    pendingCount: vi.fn(() => 0),
+    _resetForTesting: vi.fn(),
+  };
+});
+
+vi.mock('../../lib/common.js', () => ({
+  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
+  logHook: vi.fn(),
+  getProjectDir: vi.fn(() => process.env.CLAUDE_PROJECT_DIR || '/test/project'),
+  lineContainsAll: vi.fn((content: string, ...terms: string[]) =>
+    terms.every(t => content.includes(t))
+  ),
+  lineContainsAllCI: vi.fn((content: string, ...terms: string[]) =>
+    terms.every(t => content.toLowerCase().includes(t.toLowerCase()))
+  ),
+}));
+
 // =============================================================================
 // Import under test (after mocks)
 // =============================================================================

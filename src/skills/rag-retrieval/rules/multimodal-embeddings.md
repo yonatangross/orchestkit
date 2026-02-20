@@ -1,5 +1,5 @@
 ---
-title: Multimodal Embeddings
+title: Use multimodal embedding models for cross-modal search across text and images
 impact: HIGH
 impactDescription: "Using text-only embeddings for mixed content misses image information — multimodal models enable cross-modal search"
 tags: clip, siglip, voyage-multimodal, image-embedding, cross-modal

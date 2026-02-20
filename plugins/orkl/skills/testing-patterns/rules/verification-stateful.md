@@ -1,5 +1,5 @@
 ---
-title: "Verification: Stateful Testing"
+title: Validate complex state transitions and invariants through Hypothesis RuleBasedStateMachine tests
 category: verification
 impact: MEDIUM
 impactDescription: "Validates complex state transitions and invariants through Hypothesis RuleBasedStateMachine testing"

@@ -1,5 +1,5 @@
 ---
-title: "Rate Limiting: Sliding Window"
+title: Implement sliding window rate limiting with Redis sorted sets to prevent boundary spikes
 category: ratelimit
 impact: HIGH
 impactDescription: "Ensures precise rate limiting without boundary spikes by tracking individual request timestamps in Redis sorted sets"

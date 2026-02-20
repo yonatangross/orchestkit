@@ -1,5 +1,5 @@
 ---
-title: "Local Inference: Model Selection"
+title: Select the right local model for task and hardware to avoid OOM and maximize quality
 impact: HIGH
 impactDescription: "Choosing the right model for task and hardware avoids OOM errors and maximizes quality"
 tags: [model-selection, hardware, quantization, vram, ollama]

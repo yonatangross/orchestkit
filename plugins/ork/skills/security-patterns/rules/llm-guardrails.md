@@ -1,5 +1,5 @@
 ---
-title: "LLM: Output Guardrails"
+title: Apply output guardrails with schema validation, grounding checks, and content safety filtering
 category: llm
 impact: HIGH
 impactDescription: "Prevents unsafe LLM output through schema validation, grounding checks, and content safety filtering"

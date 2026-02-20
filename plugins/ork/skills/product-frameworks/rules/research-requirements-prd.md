@@ -1,5 +1,5 @@
 ---
-title: "Research: Requirements & PRD"
+title: Engineer requirements with INVEST user stories and comprehensive PRD documentation
 category: research
 impact: HIGH
 impactDescription: "Ensures proper requirement engineering with INVEST user stories and comprehensive PRD documentation"

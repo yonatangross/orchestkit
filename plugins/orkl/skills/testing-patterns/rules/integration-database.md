@@ -1,5 +1,5 @@
 ---
-title: "Integration: Database Testing"
+title: Ensure database layer correctness through isolated integration tests with fresh state
 category: integration
 impact: HIGH
 impactDescription: "Ensures database layer correctness through isolated integration tests with fresh state per test"

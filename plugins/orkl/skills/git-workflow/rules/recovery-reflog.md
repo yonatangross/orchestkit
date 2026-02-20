@@ -1,5 +1,5 @@
 ---
-title: Reflog Recovery
+title: Recover lost commits using git reflog within the 90-day retention window
 impact: HIGH
 impactDescription: "Assuming commits are lost after reset or branch deletion wastes hours — reflog preserves all HEAD movements for 90 days"
 tags: git, recovery, reflog, lost-commits, branch-recovery

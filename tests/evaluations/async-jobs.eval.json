@@ -1,0 +1,52 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "async-jobs",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "celery-setup",
+      "query": "Set up a production Celery app with Redis broker",
+      "expected_behavior": [
+        "Uses JSON serializer (never pickle)",
+        "Sets task_acks_late=True to prevent task loss",
+        "Configures both task_time_limit and task_soft_time_limit",
+        "Sets worker_prefetch_multiplier=1 for fair distribution"
+      ],
+      "should_not": [
+        "Use pickle serialization",
+        "Skip time limits"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "canvas-workflows",
+      "query": "Build an ETL pipeline with parallel processing and aggregation",
+      "expected_behavior": [
+        "Uses chain for sequential steps",
+        "Uses chord for parallel chunk processing with callback",
+        "Implements link_error for workflow-level error handling"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "retry-idempotency",
+      "query": "Implement a task with retry and idempotency protection",
+      "expected_behavior": [
+        "Uses autoretry_for with retry_backoff=True and retry_jitter=True",
+        "Implements idempotency key check before processing",
+        "Sets max_retries with retry_backoff_max ceiling"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "scheduled-tasks",
+      "query": "Configure periodic tasks with overlap prevention",
+      "expected_behavior": [
+        "Uses celery.schedules.crontab for time-based scheduling",
+        "Implements schedule lock to prevent overlap",
+        "Separates beat process from workers"
+      ],
+      "tags": ["happy-path"]
+    }
+  ]
+}

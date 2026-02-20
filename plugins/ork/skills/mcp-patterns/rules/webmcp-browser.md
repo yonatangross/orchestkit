@@ -1,5 +1,5 @@
 ---
-title: WebMCP Browser Integration
+title: Integrate WebMCP browser mediation correctly to avoid confusing it with standard MCP
 impact: LOW
 impactDescription: "Confusing WebMCP with MCP leads to wrong transport choice; skipping browser mediation exposes tools without user consent"
 tags: [webmcp, browser, navigator, client-side, w3c]

@@ -1,5 +1,5 @@
 ---
-title: Scalability Interrogation
+title: Interrogate architecture decisions for scalability limits and load-handling capacity
 impact: HIGH
 impactDescription: "Skipping scale questions leads to architectures that break under load — discovering limits in production is expensive"
 tags: scalability, scale, load, growth, capacity, architecture, interrogation

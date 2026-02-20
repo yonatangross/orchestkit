@@ -1,5 +1,5 @@
 ---
-title: Bundle Analysis
+title: Analyze bundles to reveal bloated dependencies and missed tree-shaking that inflate load times
 impact: MEDIUM
 impactDescription: "Bundle analysis reveals bloated dependencies and missed tree-shaking opportunities that silently inflate load times"
 tags: bundle, webpack, rollup, vite, tree-shaking, analyzer, budget, performance-budget

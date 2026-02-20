@@ -1,5 +1,5 @@
 ---
-title: "Mocking: MSW 2.x"
+title: Intercept network requests with Mock Service Worker 2.x for frontend HTTP mocking
 category: mocking
 impact: HIGH
 impactDescription: "Provides network-level HTTP mocking for frontend tests through Mock Service Worker's request interception"

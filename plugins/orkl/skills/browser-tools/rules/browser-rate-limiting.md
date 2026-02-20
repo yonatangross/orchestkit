@@ -1,5 +1,5 @@
 ---
-title: "Browser: Rate Limiting"
+title: Throttle browser requests to avoid 429 blocks, IP bans, and unreliable results
 category: browser
 impact: HIGH
 impactDescription: "Rapid-fire requests trigger 429 blocks, IP bans, and unreliable extraction results"

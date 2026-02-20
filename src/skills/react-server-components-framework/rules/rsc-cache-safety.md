@@ -1,5 +1,5 @@
 ---
-title: "RSC: Cache Safety"
+title: Scope RSC cache keys properly to prevent leaking user-specific data across requests
 category: rsc
 impact: CRITICAL
 impactDescription: "Caching user-specific data without proper cache keys leaks private data across users. Accessing runtime APIs (cookies, headers) inside 'use cache' blocks causes build errors or stale data."

@@ -5,7 +5,20 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+const { mockAppendFileSync } = vi.hoisted(() => ({
+  mockAppendFileSync: vi.fn(),
+}));
+
 // Mock dependencies before imports
+vi.mock('../../lib/analytics-buffer.js', () => ({
+  bufferWrite: vi.fn((filePath: string, content: string) => {
+    mockAppendFileSync(filePath, content);
+  }),
+  flush: vi.fn(),
+  pendingCount: vi.fn(() => 0),
+  _resetForTesting: vi.fn(),
+}));
+
 vi.mock('../../lib/common.js', () => ({
   logHook: vi.fn(),
   outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
@@ -14,7 +27,7 @@ vi.mock('../../lib/common.js', () => ({
 
 vi.mock('node:fs', () => ({
   existsSync: vi.fn(() => true),
-  appendFileSync: vi.fn(),
+  appendFileSync: (...args: unknown[]) => mockAppendFileSync(...args),
   mkdirSync: vi.fn(),
 }));
 
@@ -26,7 +39,7 @@ vi.mock('node:path', () => ({
 
 import { skillTracker } from '../../pretool/skill/skill-tracker.js';
 import type { HookInput } from '../../types.js';
-import { appendFileSync } from 'node:fs';
+// appendFileSync import removed — use mockAppendFileSync directly
 import { logHook } from '../../lib/common.js';
 
 function createSkillInput(skillName: string, args: string = ''): HookInput {
@@ -60,8 +73,8 @@ describe('skill-tracker', () => {
     const input = createSkillInput('unit-testing');
     skillTracker(input);
 
-    expect(appendFileSync).toHaveBeenCalledTimes(2); // usage log + analytics JSONL
-    const usageCall = vi.mocked(appendFileSync).mock.calls[0];
+    expect(mockAppendFileSync).toHaveBeenCalledTimes(2); // usage log + analytics JSONL
+    const usageCall = mockAppendFileSync.mock.calls[0];
     expect(String(usageCall[0])).toContain('skill-usage.log');
     expect(String(usageCall[1])).toContain('unit-testing');
   });
@@ -70,7 +83,7 @@ describe('skill-tracker', () => {
     const input = createSkillInput('remember', '--success database pattern');
     skillTracker(input);
 
-    const analyticsCall = vi.mocked(appendFileSync).mock.calls[1];
+    const analyticsCall = mockAppendFileSync.mock.calls[1];
     expect(String(analyticsCall[0])).toContain('skill-analytics.jsonl');
     const entry = JSON.parse(String(analyticsCall[1]));
     expect(entry.skill).toBe('remember');
@@ -100,7 +113,7 @@ describe('skill-tracker', () => {
     const input = createSkillInput('run-tests');
     skillTracker(input);
 
-    const usageCall = vi.mocked(appendFileSync).mock.calls[0];
+    const usageCall = mockAppendFileSync.mock.calls[0];
     expect(String(usageCall[1])).toContain('no args');
   });
 });

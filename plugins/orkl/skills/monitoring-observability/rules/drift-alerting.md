@@ -1,5 +1,5 @@
 ---
-title: "Drift: Alerting"
+title: Configure drift alert thresholds and correlation to avoid noise and missed issues
 impact: HIGH
 impactDescription: "Drift alerting connects detection to action — without proper thresholds and correlation, drift alerts either flood teams or miss real issues."
 tags: [drift, alerting, thresholds, dynamic, anti-patterns, correlation]

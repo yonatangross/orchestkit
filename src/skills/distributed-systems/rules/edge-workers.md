@@ -1,5 +1,5 @@
 ---
-title: Edge Workers & Runtime
+title: Deploy edge workers with V8 isolate runtime constraints and fallback handling
 impact: HIGH
 impactDescription: "Deploying to edge without understanding runtime constraints causes silent failures — Node.js APIs are unavailable in V8 isolates"
 tags: edge, cloudflare-workers, vercel-edge, deno-deploy, v8-isolates

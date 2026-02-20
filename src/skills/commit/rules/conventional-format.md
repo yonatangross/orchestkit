@@ -1,5 +1,5 @@
 ---
-title: Conventional Commit Format
+title: Format commit messages with conventional commit prefixes for automated changelogs
 impact: HIGH
 impactDescription: "Non-conventional messages break automated changelog generation and semantic version bumping"
 tags: conventional-commits, format, message, changelog, semver

@@ -1,5 +1,5 @@
 ---
-title: "Radix: Styling & Focus"
+title: Style Radix components using data attributes and state-driven focus management
 category: radix
 impact: HIGH
 impactDescription: "Provides state-driven styling patterns and focus management strategies through Radix data attributes"

@@ -1,5 +1,5 @@
 ---
-title: "Zustand: Slice Pattern"
+title: Use the Zustand slice pattern to keep stores maintainable and avoid merge conflicts
 category: zustand
 impact: HIGH
 impactDescription: "Monolithic stores become unmaintainable and cause merge conflicts. Missing slice types break TypeScript inference."

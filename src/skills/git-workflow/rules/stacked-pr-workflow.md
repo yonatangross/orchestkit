@@ -1,5 +1,5 @@
 ---
-title: Stacked PR Workflow
+title: Split large features into small, reviewable, independently mergeable stacked PRs
 impact: HIGH
 impactDescription: "Large PRs over 400 lines slow reviews and increase merge risk — stacked PRs break features into small, reviewable, independently mergeable chunks"
 tags: stacked-prs, pull-request, code-review, workflow, git

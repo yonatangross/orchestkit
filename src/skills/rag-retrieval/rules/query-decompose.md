@@ -1,5 +1,5 @@
 ---
-title: Query Decomposition + RRF Fusion
+title: Decompose complex multi-topic queries with parallel retrieval and RRF fusion
 impact: HIGH
 impactDescription: "Complex queries spanning multiple topics miss relevant documents — decomposition with parallel retrieval provides comprehensive coverage"
 tags: query, decomposition, concepts, rrf, parallel

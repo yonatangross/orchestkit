@@ -1,5 +1,5 @@
 ---
-title: "A11y: CI Gates"
+title: Enforce automated accessibility testing in CI pipelines to catch WCAG violations
 category: a11y
 impact: MEDIUM
 impactDescription: "Enforces automated accessibility testing in CI/CD pipelines to prevent WCAG violations from reaching production"

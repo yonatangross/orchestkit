@@ -1,5 +1,5 @@
 ---
-title: Cross-Thread Store Memory
+title: Use Store for cross-thread memory instead of per-thread checkpoints
 impact: HIGH
 impactDescription: "Using only checkpointer for user preferences loses them across threads — use Store for cross-thread data"
 tags: checkpoints, store, memory, cross-thread, long-term

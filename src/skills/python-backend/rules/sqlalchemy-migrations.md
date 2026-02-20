@@ -1,5 +1,5 @@
 ---
-title: "SQLAlchemy: Repository & Bulk Operations"
+title: Implement repository pattern and bulk operations for maintainable SQLAlchemy data access
 category: sqlalchemy
 impact: HIGH
 impactDescription: Repository pattern and bulk operations are essential for maintainable data access

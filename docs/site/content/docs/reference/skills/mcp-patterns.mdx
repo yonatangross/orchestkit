@@ -156,7 +156,7 @@ async def search(query: str) -> str:
 
 ## Rules (14)
 
-### Advanced Composition — MEDIUM
+### Compose multi-tool MCP workflows with error isolation to avoid brittle spaghetti code — MEDIUM
 
 
 ## Advanced Composition
@@ -249,7 +249,7 @@ result = await tools[tool_name](input_data)
 - Keep composition depth shallow (3-4 steps max)
 
 
-### Advanced Resources — MEDIUM
+### Manage MCP resource caching and lifecycles to prevent memory leaks and redundant calls — MEDIUM
 
 
 ## Advanced Resources
@@ -363,7 +363,7 @@ mcp = FastMCP("cached-server", lifespan=app_lifespan)
 - Parameterize queries -- never interpolate user input into SQL
 
 
-### MCP Apps UI — MEDIUM
+### Configure MCP Apps UI sandboxing, CSP declarations, and visibility controls correctly — MEDIUM
 
 
 ## MCP Apps UI
@@ -623,7 +623,7 @@ function handleInsufficientScope(wwwAuth: string) {
 - For high-security deployments, bind tokens to client certificates via mTLS (RFC 8705) to prevent token theft and replay
 
 
-### Client Patterns — MEDIUM
+### Implement MCP client patterns for reliable connections and multi-server orchestration — MEDIUM
 
 
 ## Client Patterns
@@ -761,7 +761,7 @@ async function connectServers(urls: string[]) {
 Reference: https://modelcontextprotocol.io/specification/2025-11-25/architecture
 
 
-### Elicitation — MEDIUM
+### Use MCP elicitation safely with consent handling and secure form-mode data collection — MEDIUM
 
 
 ## Elicitation
@@ -871,7 +871,7 @@ const client = new Client({
 Reference: https://modelcontextprotocol.io/specification/2025-11-25/client/elicitation
 
 
-### Registry Discovery — LOW
+### Vet MCP servers from registries to prevent supply-chain attacks and data exfiltration — LOW
 
 
 ## Registry Discovery
@@ -959,7 +959,7 @@ def search(query: str) -> str:
 - Use `vet_server()` checks programmatically when building multi-server orchestrations
 
 
-### Sampling with Tool Calling — MEDIUM
+### Bound MCP sampling loops with user approval to prevent unbounded LLM call chains — MEDIUM
 
 
 ## Sampling with Tool Calling
@@ -1071,7 +1071,7 @@ capabilities = {
 - Implement rate limiting on the client side to prevent runaway sampling loops
 
 
-### Security Hardening — HIGH
+### Apply zero-trust verification to MCP servers to prevent rug-pull and data exfiltration — HIGH
 
 
 ## Security Hardening
@@ -1202,7 +1202,7 @@ class ToolIntegrityMonitor:
 - Auto-suspend tools that fail integrity checks
 
 
-### Security Injection Defense — HIGH
+### Defend against prompt injection in MCP tool descriptions that can hijack LLM behavior — HIGH
 
 
 ## Security Injection Defense
@@ -1301,7 +1301,7 @@ def filter_tool_response(response: str) -> str:
 - Test with known attack payloads: base64, homoglyphs, HTML entities
 
 
-### Server Setup — HIGH
+### Set up MCP servers with proper lifecycle management and structured error handling — HIGH
 
 
 ## Server Setup
@@ -1387,7 +1387,7 @@ Tool(
 - Limit response sizes (Claude has context limits)
 
 
-### Server Transport — HIGH
+### Choose the right MCP transport for production multi-client and deployment requirements — HIGH
 
 
 ## Server Transport
@@ -1542,7 +1542,7 @@ createServer(async (req, res) => {
 - Prefer stateless mode (`stateless_http=True`) unless session persistence is required
 
 
-### Testing & Debugging — MEDIUM
+### Test and debug MCP servers to catch broken tools and transport failures before production — MEDIUM
 
 
 ## Testing & Debugging
@@ -1653,7 +1653,7 @@ npx @modelcontextprotocol/inspector -e API_KEY=xxx uv run server.py
 - Install test deps: `pip install inline-snapshot pytest anyio`
 
 
-### WebMCP Browser Integration — LOW
+### Integrate WebMCP browser mediation correctly to avoid confusing it with standard MCP — LOW
 
 
 ## WebMCP Browser Integration

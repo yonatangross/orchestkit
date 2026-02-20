@@ -1,5 +1,5 @@
 ---
-title: "Streaming: Backpressure & Cancellation"
+title: Apply backpressure in LLM streams to prevent memory exhaustion from slow consumers
 impact: MEDIUM
 impactDescription: "Backpressure prevents memory exhaustion when consumers are slower than producers"
 tags: [backpressure, buffer, cancellation, abort, asyncio-queue]

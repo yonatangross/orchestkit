@@ -1,5 +1,5 @@
 ---
-title: "Fine-Tuning: Dataset Preparation"
+title: Prepare high-quality training datasets since data quality determines fine-tuning success
 impact: HIGH
 impactDescription: "Training data quality determines fine-tuning success -- garbage in, garbage out"
 tags: [synthetic-data, dataset, quality, deduplication, teacher-model, formatting]

@@ -1,5 +1,5 @@
 ---
-title: PWA Service Worker & Workbox
+title: Configure service workers with Workbox 7.x caching strategies to prevent stale content
 impact: HIGH
 impactDescription: "Misconfigured service workers serve stale content indefinitely or break offline support — Workbox 7.x provides battle-tested caching strategies"
 tags: pwa, service-worker, workbox, cache-api, vite-pwa

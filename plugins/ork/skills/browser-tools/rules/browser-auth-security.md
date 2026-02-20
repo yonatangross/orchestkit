@@ -1,5 +1,5 @@
 ---
-title: "Browser: Auth Security"
+title: Secure browser automation credentials to prevent token leaks and account compromise
 category: browser
 impact: CRITICAL
 impactDescription: "Hardcoded credentials, logged tokens, or insecure state files lead to credential leaks and account compromise"

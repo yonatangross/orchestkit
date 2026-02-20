@@ -15,6 +15,12 @@ Create design document for: $ARGUMENTS
 - **Current Branch**: !`git branch --show-current || echo "main"`
 - **Recent Commits**: !`git log --oneline -5 2>/dev/null | head -3 || echo "No recent commits"`
 
+## Your Task
+
+Create a design document for: **$ARGUMENTS**
+
+Use the auto-filled context above and customize the template below with your feature's requirements, architecture, and implementation plan.
+
 # $ARGUMENTS Design Document
 
 **Date:** !`date +%Y-%m-%d`

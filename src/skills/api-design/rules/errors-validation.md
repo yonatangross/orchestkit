@@ -1,5 +1,5 @@
 ---
-title: Validation Error Handling
+title: Return field-level validation errors with clear details to reduce user confusion
 impact: HIGH
 impactDescription: "Validation errors are the most common API error — poor field-level details force users to guess which field failed and why, increasing support burden"
 tags: validation, field-errors, pydantic, 422, unprocessable-entity

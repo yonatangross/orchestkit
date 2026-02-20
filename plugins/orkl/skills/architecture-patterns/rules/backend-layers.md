@@ -1,5 +1,5 @@
 ---
-title: "Backend: Layer Separation"
+title: Separate backend layers to prevent coupling between HTTP, business logic, and data access
 category: backend
 impact: HIGH
 impactDescription: Layer separation prevents coupling between HTTP, business logic, and data access

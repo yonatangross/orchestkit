@@ -1,5 +1,5 @@
 ---
-title: Responsive Images
+title: Serve appropriately sized responsive images per viewport to avoid oversized mobile downloads
 impact: HIGH
 impactDescription: "Responsive images serve appropriately sized files per viewport, avoiding multi-megabyte images on mobile devices"
 tags: srcset, sizes, responsive, art-direction, picture, cdn, retina

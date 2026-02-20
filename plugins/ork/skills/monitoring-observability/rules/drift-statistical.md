@@ -1,5 +1,5 @@
 ---
-title: "Drift: Statistical Methods"
+title: Apply statistical methods to detect distribution shifts in LLM inputs and outputs
 impact: HIGH
 impactDescription: "Statistical drift detection catches distribution shifts in LLM inputs/outputs before they manifest as quality degradation visible to users."
 tags: [drift, psi, ks-test, kl-divergence, wasserstein, ewma, statistical]

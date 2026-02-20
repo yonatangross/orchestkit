@@ -1,5 +1,5 @@
 ---
-title: Migration Rollback and Monitoring
+title: Plan migration rollbacks and monitor execution to prevent extended outages
 impact: HIGH
 impactDescription: "Failed migrations without rollback plans cause extended production outages"
 tags: rollback, monitoring, pgroll, replication-lag, migration-safety

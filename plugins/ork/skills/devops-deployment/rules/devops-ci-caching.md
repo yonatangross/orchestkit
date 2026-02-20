@@ -1,5 +1,5 @@
 ---
-title: "CI/CD: Pipeline Caching"
+title: Cache CI/CD pipeline dependencies to avoid re-downloading and save minutes per run
 category: cicd
 impact: HIGH
 impactDescription: "Every CI run re-downloads and installs all dependencies from scratch — wasting 2-3 minutes per run and burning through CI minutes budget"

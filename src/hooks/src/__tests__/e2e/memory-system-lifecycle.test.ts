@@ -12,8 +12,34 @@
  *       detailed file inspection.
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mkdirSync, writeFileSync, existsSync, readFileSync, rmSync } from 'node:fs';
+
+// Mock analytics-buffer to use real appendFileSync (e2e uses real filesystem)
+// vi.hoisted ensures the helper fns are available inside the vi.mock factory
+const { _realWrite } = vi.hoisted(() => {
+  const nodefs = require('node:fs');
+  const nodepath = require('node:path');
+  return {
+    _realWrite: (filePath: string, content: string) => {
+      try {
+        nodefs.mkdirSync(nodepath.dirname(filePath), { recursive: true });
+        nodefs.appendFileSync(filePath, content);
+      } catch {
+        // ignore
+      }
+    },
+  };
+});
+
+vi.mock('../../lib/analytics-buffer.js', () => ({
+  bufferWrite: vi.fn((filePath: string, content: string) => {
+    _realWrite(filePath, content);
+  }),
+  flush: vi.fn(),
+  pendingCount: vi.fn(() => 0),
+  _resetForTesting: vi.fn(),
+}));
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 

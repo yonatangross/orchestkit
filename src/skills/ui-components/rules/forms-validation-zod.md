@@ -1,5 +1,5 @@
 ---
-title: Zod Validation & Server Actions
+title: Validate forms with Zod type-safe schemas on both client and server sides
 impact: HIGH
 impactDescription: "Client-only validation is bypassable and Yup has weaker TypeScript inference — Zod provides type-safe schemas that work on both client and server"
 tags: zod, validation, server-actions, useActionState, react-19, schema

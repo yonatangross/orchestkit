@@ -1,5 +1,5 @@
 ---
-title: Phase Ordering Priority
+title: Order pipeline phases to process high-value work first before rate limits hit
 impact: CRITICAL
 impactDescription: "Ordering file-heavy phases first means GitHub issues/commits—the highest-value, hardest-to-reconstruct work—are lost when a rate limit hits"
 tags: ordering, priority, rate-limit, phases

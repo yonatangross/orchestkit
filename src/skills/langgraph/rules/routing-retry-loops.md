@@ -1,5 +1,5 @@
 ---
-title: Retry Loop Pattern
+title: Implement retry loops with max counter to prevent infinite resource consumption
 impact: HIGH
 impactDescription: "No max retry counter creates infinite loops that consume resources forever"
 tags: routing, retry, loop, error-handling

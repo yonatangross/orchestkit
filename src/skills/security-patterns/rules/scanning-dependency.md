@@ -1,5 +1,5 @@
 ---
-title: Dependency Scanning
+title: Scan dependencies for known CVEs to prevent critical vulnerabilities reaching production
 impact: HIGH
 impactDescription: "Unscanned dependencies introduce known CVEs into production — a single critical vulnerability can lead to full compromise"
 tags: scanning, dependency, npm-audit, pip-audit, vulnerabilities, cve

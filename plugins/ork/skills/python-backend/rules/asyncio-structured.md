@@ -1,5 +1,5 @@
 ---
-title: "Asyncio: Structured Concurrency"
+title: Use semaphores and sync bridges to prevent resource exhaustion and event loop blocking
 category: asyncio
 impact: HIGH
 impactDescription: Semaphores and sync bridges prevent resource exhaustion and event loop blocking

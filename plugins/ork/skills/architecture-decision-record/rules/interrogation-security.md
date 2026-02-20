@@ -1,5 +1,5 @@
 ---
-title: Security Interrogation
+title: Interrogate architecture decisions for security gaps before deployment to prevent costly retrofits
 impact: HIGH
 impactDescription: "Missing security analysis in ADRs leads to vulnerabilities discovered post-deployment — retrofit security is 10x more expensive"
 tags: security, authorization, tenant-isolation, attack-surface, pii, architecture, interrogation

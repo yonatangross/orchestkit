@@ -1,5 +1,5 @@
 ---
-title: Fishbone Diagram (Ishikawa)
+title: Analyze multi-factor problems with fishbone diagrams to avoid single-cause fixation
 impact: MEDIUM
 impactDescription: "Multi-factor problems need structured category analysis — without it, investigation fixates on one cause and misses contributing factors"
 tags: rca, fishbone, ishikawa, debugging, multi-factor, categories

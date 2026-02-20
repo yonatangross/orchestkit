@@ -1,5 +1,5 @@
 ---
-title: "shadcn/ui: Customization"
+title: Customize shadcn/ui components with CVA variants, tailwind-merge, and OKLCH theming
 category: shadcn
 impact: HIGH
 impactDescription: "Establishes type-safe component variants and OKLCH theming patterns through CVA and tailwind-merge"

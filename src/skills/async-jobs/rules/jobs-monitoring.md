@@ -1,5 +1,5 @@
 ---
-title: "Jobs: Status Tracking"
+title: Track background job status and execution metrics for operational visibility
 category: jobs
 impact: HIGH
 impactDescription: Job status tracking provides visibility into background task execution

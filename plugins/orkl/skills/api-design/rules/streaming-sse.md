@@ -1,5 +1,5 @@
 ---
-title: Server-Sent Events (SSE) Streaming
+title: Stream server-sent events with auto-reconnect for LLM responses and notifications
 impact: HIGH
 impactDescription: "SSE provides simple, reliable server-to-client streaming with auto-reconnect for LLM responses and notifications"
 tags: sse, streaming, server-sent-events, real-time, llm-streaming

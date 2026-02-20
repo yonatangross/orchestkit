@@ -6,7 +6,9 @@ user-invocable: false
 
 # Quality Gate Check Template
 
-Copy and fill in this template before starting any task to ensure you have sufficient context.
+## Your Task
+
+Use this quality gate check template before starting any task to ensure you have sufficient context. Copy the template, fill in each section, and follow the decision tree to determine if the task can proceed.
 
 ---
 

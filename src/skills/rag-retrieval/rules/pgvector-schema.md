@@ -1,5 +1,5 @@
 ---
-title: PGVector Database Schema
+title: Design PGVector schema with pre-computed tsvector columns and proper index configuration
 impact: HIGH
 impactDescription: "Wrong schema design causes slow queries and missing features — pre-computed tsvector and proper indexes are essential"
 tags: pgvector, schema, postgresql, tsvector, chunks

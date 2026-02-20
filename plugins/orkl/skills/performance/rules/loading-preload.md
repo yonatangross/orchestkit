@@ -1,5 +1,5 @@
 ---
-title: Prefetch Strategies
+title: Prefetch resources before user needs them to make navigation feel instant
 impact: HIGH
 impactDescription: "Prefetching loads resources before the user needs them, making navigation feel instant"
 tags: prefetch, preload, modulepreload, hover, intersection, link-hints

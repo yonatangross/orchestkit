@@ -12,8 +12,21 @@ import type { HookInput } from '../../types.js';
 // Mocks - MUST come BEFORE imports
 // =============================================================================
 
+const { mockAppendFileSync } = vi.hoisted(() => ({
+  mockAppendFileSync: vi.fn(),
+}));
+
+vi.mock('../../lib/analytics-buffer.js', () => ({
+  bufferWrite: vi.fn((filePath: string, content: string) => {
+    mockAppendFileSync(filePath, content);
+  }),
+  flush: vi.fn(),
+  pendingCount: vi.fn(() => 0),
+  _resetForTesting: vi.fn(),
+}));
+
 vi.mock('node:fs', () => ({
-  appendFileSync: vi.fn(),
+  appendFileSync: mockAppendFileSync,
   mkdirSync: vi.fn(),
 }));
 

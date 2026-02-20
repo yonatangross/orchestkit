@@ -1,5 +1,5 @@
 ---
-title: RFC 9457 Problem Details
+title: Return RFC 9457 Problem Details for machine-readable, standardized API error responses
 impact: HIGH
 impactDescription: "Inconsistent error formats force every client to implement custom parsing — RFC 9457 Problem Details provides a universal, machine-readable standard"
 tags: rfc9457, problem-details, application-problem-json, error-response, fastapi

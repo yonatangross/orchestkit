@@ -1,9 +1,13 @@
 #!/bin/bash
 # Hook Unit Tests
-# Tests individual hooks with mocked inputs
+# Tests individual hooks with mocked inputs via run-hook.mjs
 #
 # Usage: ./test-hooks-unit.sh [--verbose]
 # Exit codes: 0 = all pass, 1 = failures found
+#
+# IMPORTANT: Every test entry here MUST correspond to an existing hook.
+# If a hook is removed, its test MUST be removed too.
+# A suite with 0 passed and 0 failed is a FAILURE — always run real tests.
 
 set -euo pipefail
 
@@ -11,6 +15,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 HOOKS_DIR="$PROJECT_ROOT/src/hooks"
 FIXTURES_DIR="$PROJECT_ROOT/tests/fixtures"
+RUN_HOOK="$HOOKS_DIR/bin/run-hook.mjs"
 
 VERBOSE="${1:-}"
 FAILED=0
@@ -27,6 +32,7 @@ NC='\033[0m'
 # Setup test environment
 export CLAUDE_PROJECT_DIR="$PROJECT_ROOT"
 export CLAUDE_SESSION_ID="test-session-$(date +%s)"
+export CLAUDE_PLUGIN_ROOT="$PROJECT_ROOT/plugins/ork"
 
 # Temp directory for test outputs
 TEST_TMP=$(mktemp -d)
@@ -37,172 +43,213 @@ echo "  Hook Unit Tests"
 echo "=========================================="
 echo ""
 
-# Test helper: run hook with JSON input
-# Uses perl for timeout (available on macOS and Linux)
-# Timeout increased to 15s for TypeScript hooks that need to load Node.js runtime
-run_hook() {
-    local hook_path="$1"
-    local input_json="$2"
-    local expected_exit="${3:-0}"
-
-    local output_file="$TEST_TMP/output.txt"
-    local error_file="$TEST_TMP/error.txt"
-
-    # Run hook with piped input (15 second timeout using perl for TypeScript hooks)
-    local actual_exit=0
-    echo "$input_json" | perl -e 'alarm 15; exec @ARGV' bash "$hook_path" > "$output_file" 2> "$error_file" || actual_exit=$?
-
-    # Exit code 142 = SIGALRM (timeout)
-    if [[ $actual_exit -eq 142 ]]; then
-        actual_exit=124  # Normalize to GNU timeout exit code
-    fi
-
-    if [[ $actual_exit -eq $expected_exit ]]; then
-        return 0
-    else
-        echo "Expected exit $expected_exit, got $actual_exit"
-        echo "STDOUT: $(cat "$output_file")"
-        echo "STDERR: $(cat "$error_file")"
-        return 1
-    fi
-}
-
-# Test helper: check hook output contains string
-output_contains() {
-    grep -q "$1" "$TEST_TMP/output.txt" 2>/dev/null
-}
-
-# Test helper: check hook stderr contains string
-stderr_contains() {
-    grep -q "$1" "$TEST_TMP/error.txt" 2>/dev/null
-}
-
 # Load fixtures
 FIXTURES=$(cat "$FIXTURES_DIR/hook-inputs.json")
 get_fixture() {
     echo "$FIXTURES" | jq -c ".$1"
 }
 
+# Test helper: run hook via run-hook.mjs with JSON input
+# Returns 0 on success, 1 on failure
+run_ts_hook() {
+    local hook_name="$1"
+    local input_json="$2"
+    local expected_exit="${3:-0}"
+
+    local output_file="$TEST_TMP/output.txt"
+    local error_file="$TEST_TMP/error.txt"
+
+    local actual_exit=0
+    # macOS has no `timeout` — use perl alarm as fallback
+    if command -v timeout &>/dev/null; then
+        echo "$input_json" | timeout 15 node "$RUN_HOOK" "$hook_name" > "$output_file" 2> "$error_file" || actual_exit=$?
+    elif command -v gtimeout &>/dev/null; then
+        echo "$input_json" | gtimeout 15 node "$RUN_HOOK" "$hook_name" > "$output_file" 2> "$error_file" || actual_exit=$?
+    else
+        echo "$input_json" | node "$RUN_HOOK" "$hook_name" > "$output_file" 2> "$error_file" || actual_exit=$?
+    fi
+
+    if [[ $actual_exit -eq $expected_exit ]]; then
+        return 0
+    else
+        if [[ "$VERBOSE" == "--verbose" ]]; then
+            echo ""
+            echo "    Expected exit $expected_exit, got $actual_exit"
+            echo "    STDOUT: $(cat "$output_file" | head -5)"
+            echo "    STDERR: $(cat "$error_file" | head -5)"
+        fi
+        return 1
+    fi
+}
+
+# =====================================================================
+# Test: Hook bundle existence and loadability
+# =====================================================================
+echo -e "${CYAN}Testing Hook Bundle Existence${NC}"
+echo "----------------------------------------"
+
+BUNDLES=(
+    "dist/pretool.mjs"
+    "dist/posttool.mjs"
+    "dist/permission.mjs"
+    "dist/prompt.mjs"
+    "dist/lifecycle.mjs"
+    "dist/agent.mjs"
+    "dist/notification.mjs"
+    "dist/skill.mjs"
+    "dist/stop.mjs"
+    "dist/subagent.mjs"
+    "dist/setup.mjs"
+)
+
+for bundle in "${BUNDLES[@]}"; do
+    echo -n "  $bundle... "
+    if [[ -f "$HOOKS_DIR/$bundle" && -s "$HOOKS_DIR/$bundle" ]]; then
+        echo -e "${GREEN}PASS${NC}"
+        PASSED=$((PASSED + 1))
+    else
+        echo -e "${RED}FAIL${NC} (not found or empty)"
+        FAILED=$((FAILED + 1))
+    fi
+done
+
+# =====================================================================
+# Test: hooks.json integrity
+# =====================================================================
+echo ""
+echo -e "${CYAN}Testing hooks.json Integrity${NC}"
+echo "----------------------------------------"
+
+HOOKS_JSON="$HOOKS_DIR/hooks.json"
+echo -n "  hooks.json valid JSON... "
+if jq empty "$HOOKS_JSON" 2>/dev/null; then
+    echo -e "${GREEN}PASS${NC}"
+    PASSED=$((PASSED + 1))
+else
+    echo -e "${RED}FAIL${NC}"
+    FAILED=$((FAILED + 1))
+fi
+
+echo -n "  hooks.json has hooks... "
+HOOK_COUNT=$(jq '[.hooks | to_entries[] | .value[] | if .hooks then .hooks[] else . end] | length' "$HOOKS_JSON" 2>/dev/null || echo 0)
+if [[ $HOOK_COUNT -gt 0 ]]; then
+    echo -e "${GREEN}PASS${NC} ($HOOK_COUNT hook entries)"
+    PASSED=$((PASSED + 1))
+else
+    echo -e "${RED}FAIL${NC} (no hooks found)"
+    FAILED=$((FAILED + 1))
+fi
+
+# =====================================================================
+# Test: PreToolUse hooks (dangerous command blocker)
+# =====================================================================
+echo ""
 echo -e "${CYAN}Testing PreToolUse Hooks${NC}"
 echo "----------------------------------------"
 
-# Test: git-branch-protection.sh (safe command)
-echo -n "  git-branch-protection (safe)... "
-if [[ -f "$HOOKS_DIR/pretool/bash/git-branch-protection.sh" ]]; then
-    input=$(get_fixture "pretool_bash_safe")
-    if run_hook "$HOOKS_DIR/pretool/bash/git-branch-protection.sh" "$input" 0; then
-        echo -e "${GREEN}PASS${NC}"
-        PASSED=$((PASSED + 1))
-    else
-        echo -e "${RED}FAIL${NC}"
-        FAILED=$((FAILED + 1))
-    fi
+echo -n "  dangerous-command-blocker (safe cmd)... "
+if run_ts_hook "pretool/bash/dangerous-command-blocker" "$(get_fixture pretool_bash_safe)" 0; then
+    echo -e "${GREEN}PASS${NC}"
+    PASSED=$((PASSED + 1))
 else
-    echo -e "${YELLOW}SKIP${NC} (not found)"
-    SKIPPED=$((SKIPPED + 1))
+    echo -e "${RED}FAIL${NC}"
+    FAILED=$((FAILED + 1))
 fi
 
-echo ""
-echo -e "${CYAN}Testing PostToolUse Hooks${NC}"
-echo "----------------------------------------"
-
-# Test: audit-logger.sh
-echo -n "  audit-logger (success)... "
-if [[ -f "$HOOKS_DIR/posttool/audit-logger.sh" ]]; then
-    input=$(get_fixture "posttool_success")
-    if run_hook "$HOOKS_DIR/posttool/audit-logger.sh" "$input" 0; then
-        echo -e "${GREEN}PASS${NC}"
-        PASSED=$((PASSED + 1))
-    else
-        echo -e "${RED}FAIL${NC}"
-        FAILED=$((FAILED + 1))
-    fi
+echo -n "  compound-command-validator (safe cmd)... "
+if run_ts_hook "pretool/bash/compound-command-validator" "$(get_fixture pretool_bash_safe)" 0; then
+    echo -e "${GREEN}PASS${NC}"
+    PASSED=$((PASSED + 1))
 else
-    echo -e "${YELLOW}SKIP${NC} (not found)"
-    SKIPPED=$((SKIPPED + 1))
+    echo -e "${RED}FAIL${NC}"
+    FAILED=$((FAILED + 1))
 fi
 
-# Test: error-tracker.sh with error
-echo -n "  error-tracker (with error)... "
-if [[ -f "$HOOKS_DIR/posttool/error-tracker.sh" ]]; then
-    input=$(get_fixture "posttool_error")
-    if run_hook "$HOOKS_DIR/posttool/error-tracker.sh" "$input" 0; then
-        echo -e "${GREEN}PASS${NC}"
-        PASSED=$((PASSED + 1))
-    else
-        echo -e "${RED}FAIL${NC}"
-        FAILED=$((FAILED + 1))
-    fi
-else
-    echo -e "${YELLOW}SKIP${NC} (not found)"
-    SKIPPED=$((SKIPPED + 1))
-fi
-
-# Test: session-metrics.sh
-echo -n "  session-metrics... "
-if [[ -f "$HOOKS_DIR/posttool/session-metrics.sh" ]]; then
-    input=$(get_fixture "posttool_success")
-    if run_hook "$HOOKS_DIR/posttool/session-metrics.sh" "$input" 0; then
-        echo -e "${GREEN}PASS${NC}"
-        PASSED=$((PASSED + 1))
-    else
-        echo -e "${RED}FAIL${NC}"
-        FAILED=$((FAILED + 1))
-    fi
-else
-    echo -e "${YELLOW}SKIP${NC} (not found)"
-    SKIPPED=$((SKIPPED + 1))
-fi
-
+# =====================================================================
+# Test: Permission hooks (auto-approve safe reads)
+# =====================================================================
 echo ""
 echo -e "${CYAN}Testing Permission Hooks${NC}"
 echo "----------------------------------------"
 
-# Test: auto-approve-readonly.sh
-echo -n "  auto-approve-readonly (Read)... "
-if [[ -f "$HOOKS_DIR/permission/auto-approve-readonly.sh" ]]; then
-    input=$(get_fixture "permission_read")
-    if run_hook "$HOOKS_DIR/permission/auto-approve-readonly.sh" "$input" 0; then
-        # Check if output indicates approval
-        if output_contains '"decision"' || output_contains 'approve'; then
-            echo -e "${GREEN}PASS${NC}"
-            PASSED=$((PASSED + 1))
-        else
-            echo -e "${GREEN}PASS${NC} (no decision output - may be passthrough)"
-            PASSED=$((PASSED + 1))
-        fi
-    else
-        echo -e "${RED}FAIL${NC}"
-        FAILED=$((FAILED + 1))
-    fi
+echo -n "  auto-approve-safe-bash (git status)... "
+if run_ts_hook "permission/auto-approve-safe-bash" "$(get_fixture pretool_bash_safe)" 0; then
+    echo -e "${GREEN}PASS${NC}"
+    PASSED=$((PASSED + 1))
 else
-    echo -e "${YELLOW}SKIP${NC} (not found)"
-    SKIPPED=$((SKIPPED + 1))
+    echo -e "${RED}FAIL${NC}"
+    FAILED=$((FAILED + 1))
 fi
 
+echo -n "  auto-approve-project-writes (Read)... "
+if run_ts_hook "permission/auto-approve-project-writes" "$(get_fixture permission_read)" 0; then
+    echo -e "${GREEN}PASS${NC}"
+    PASSED=$((PASSED + 1))
+else
+    echo -e "${RED}FAIL${NC}"
+    FAILED=$((FAILED + 1))
+fi
+
+# =====================================================================
+# Test: PostToolUse hooks (error handler, budget monitor)
+# =====================================================================
+echo ""
+echo -e "${CYAN}Testing PostToolUse Hooks${NC}"
+echo "----------------------------------------"
+
+echo -n "  unified-error-handler (success)... "
+if run_ts_hook "posttool/unified-error-handler" "$(get_fixture posttool_success)" 0; then
+    echo -e "${GREEN}PASS${NC}"
+    PASSED=$((PASSED + 1))
+else
+    echo -e "${RED}FAIL${NC}"
+    FAILED=$((FAILED + 1))
+fi
+
+echo -n "  context-budget-monitor (success)... "
+if run_ts_hook "posttool/context-budget-monitor" "$(get_fixture posttool_success)" 0; then
+    echo -e "${GREEN}PASS${NC}"
+    PASSED=$((PASSED + 1))
+else
+    echo -e "${RED}FAIL${NC}"
+    FAILED=$((FAILED + 1))
+fi
+
+# =====================================================================
+# Test: Lifecycle hooks (session context loader)
+# =====================================================================
 echo ""
 echo -e "${CYAN}Testing Lifecycle Hooks${NC}"
 echo "----------------------------------------"
 
-# Test: session-context-loader.sh
 echo -n "  session-context-loader... "
-if [[ -f "$HOOKS_DIR/lifecycle/session-context-loader.sh" ]]; then
-    if run_hook "$HOOKS_DIR/lifecycle/session-context-loader.sh" "{}" 0; then
-        echo -e "${GREEN}PASS${NC}"
-        PASSED=$((PASSED + 1))
-    else
-        echo -e "${RED}FAIL${NC}"
-        FAILED=$((FAILED + 1))
-    fi
+if run_ts_hook "lifecycle/session-context-loader" '{"session_id":"test"}' 0; then
+    echo -e "${GREEN}PASS${NC}"
+    PASSED=$((PASSED + 1))
 else
-    echo -e "${YELLOW}SKIP${NC} (not found)"
-    SKIPPED=$((SKIPPED + 1))
+    echo -e "${RED}FAIL${NC}"
+    FAILED=$((FAILED + 1))
+fi
+
+echo -n "  session-metrics-summary... "
+if run_ts_hook "lifecycle/session-metrics-summary" '{"session_id":"test"}' 0; then
+    echo -e "${GREEN}PASS${NC}"
+    PASSED=$((PASSED + 1))
+else
+    echo -e "${RED}FAIL${NC}"
+    FAILED=$((FAILED + 1))
 fi
 
 echo ""
 echo "=========================================="
 echo "  Results: $PASSED passed, $FAILED failed, $SKIPPED skipped"
 echo "=========================================="
+
+# CRITICAL: A test suite that runs zero tests is a failure
+if [[ $PASSED -eq 0 && $FAILED -eq 0 ]]; then
+    echo -e "${RED}FAILED: No tests ran — test suite is broken${NC}"
+    exit 1
+fi
 
 if [[ $FAILED -gt 0 ]]; then
     echo -e "${RED}FAILED: Some hook tests failed${NC}"

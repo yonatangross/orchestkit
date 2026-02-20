@@ -1,5 +1,5 @@
 ---
-title: Secret Detection
+title: Detect committed secrets in git history and enforce immediate credential rotation
 impact: CRITICAL
 impactDescription: "Committed secrets (API keys, credentials) are immediately exposed in git history — rotation required even after removal"
 tags: scanning, secrets, trufflehog, gitleaks, detect-secrets, credentials

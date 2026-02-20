@@ -1,5 +1,5 @@
 ---
-title: Silent Tool Skipping Detection
+title: Detect when agents silently skip expected tool calls and produce incorrect results
 impact: CRITICAL
 impactDescription: "Agents silently skipping expected tool calls produce plausible but wrong results — no error raised, just incorrect output"
 tags: monitoring, silent-failure, tool-skipping, agent, observability

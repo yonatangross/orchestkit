@@ -1,8 +1,22 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+const { mockAppendFileSync } = vi.hoisted(() => ({
+  mockAppendFileSync: vi.fn(),
+}));
+
+// Mock analytics-buffer before other mocks
+vi.mock('../../lib/analytics-buffer.js', () => ({
+  bufferWrite: vi.fn((filePath: string, content: string) => {
+    mockAppendFileSync(filePath, content);
+  }),
+  flush: vi.fn(),
+  pendingCount: vi.fn(() => 0),
+  _resetForTesting: vi.fn(),
+}));
+
 // Mock fs before import
 vi.mock('node:fs', () => ({
-  appendFileSync: vi.fn(),
+  appendFileSync: mockAppendFileSync,
   existsSync: vi.fn(() => true),
   mkdirSync: vi.fn(),
   statSync: vi.fn(() => ({ size: 100 })),

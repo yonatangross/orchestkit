@@ -89,12 +89,15 @@ function _extractRelationsFromText(text: string, entities: Entity[]): Relation[]
       if (entity1 === entity2) continue;
 
       const entity2Lower = entity2.toLowerCase().replace(/-/g, '.');
-      const relationPattern = new RegExp(
-        `${entity1Lower}.*(with|using|and|integrated|connected|for).*${entity2Lower}`,
-        'i'
+      // ReDoS-safe: use line-based includes instead of polynomial regex
+      const connectingWords = ['with', 'using', 'and', 'integrated', 'connected', 'for'];
+      const hasRelation = textLower.split('\n').some(line =>
+        line.includes(entity1Lower) &&
+        line.includes(entity2Lower) &&
+        connectingWords.some(w => line.includes(w))
       );
 
-      if (relationPattern.test(textLower)) {
+      if (hasRelation) {
         relations.push({
           from: entity1,
           to: entity2,

@@ -1,5 +1,5 @@
 ---
-title: Reset and Restore
+title: Use git reset and restore safely by saving a backup reference first
 impact: HIGH
 impactDescription: "Using reset with hard flag without a backup reference destroys work permanently — always save a ref first"
 tags: git, recovery, reset, restore, undo, soft-reset, hard-reset

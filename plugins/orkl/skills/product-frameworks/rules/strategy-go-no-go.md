@@ -1,5 +1,5 @@
 ---
-title: "Strategy: Go/No-Go & Build/Buy/Partner"
+title: Evaluate go/no-go decisions with stage gates and build/buy/partner strategic analysis
 category: strategy
 impact: HIGH
 impactDescription: "Ensures systematic evaluation using stage gates and strategic analysis for build/buy/partner decisions"

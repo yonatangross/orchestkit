@@ -1,5 +1,5 @@
 ---
-title: "DevOps: Database Migrations"
+title: Run database migrations safely during deployment to prevent downtime and data loss
 category: devops
 impact: CRITICAL
 impactDescription: "Destructive schema changes break running application instances during deployment — causing downtime, data loss, or failed rollbacks"

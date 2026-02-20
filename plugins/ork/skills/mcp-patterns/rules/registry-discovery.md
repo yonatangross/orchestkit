@@ -1,5 +1,5 @@
 ---
-title: Registry Discovery
+title: Vet MCP servers from registries to prevent supply-chain attacks and data exfiltration
 impact: LOW
 impactDescription: "Without proper vetting, blindly installing community MCP servers risks supply-chain attacks, data exfiltration, or rug-pull tool modifications"
 tags: registry, discovery, vetting, security, trust, smithery, mcp-run

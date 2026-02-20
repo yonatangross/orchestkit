@@ -1,5 +1,5 @@
 ---
-title: TanStack Query Optimistic Updates
+title: Apply TanStack Query optimistic updates for instant UI feedback with automatic rollback
 impact: HIGH
 impactDescription: "Waiting for server confirmation before updating UI creates perceived lag — optimistic updates provide instant feedback with automatic rollback on failure"
 tags: tanstack-query, optimistic-updates, useMutation, rollback, cache-invalidation

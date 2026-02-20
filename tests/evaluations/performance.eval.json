@@ -1,0 +1,65 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "performance",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "lcp-optimization",
+      "query": "My hero image loads slowly and LCP is above 4 seconds",
+      "expected_behavior": [
+        "Adds fetchpriority='high' and loading='eager' to LCP image",
+        "Preloads critical resources with link rel='preload'",
+        "Server-renders LCP content instead of client-side fetch"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "react-compiler",
+      "query": "Should I use React.memo everywhere in my React 19 app?",
+      "expected_behavior": [
+        "Recommends React Compiler as primary approach",
+        "Shows how to enable in Next.js and Expo",
+        "Explains Memo badge verification in DevTools"
+      ],
+      "should_not": [
+        "Recommend manual React.memo for all components",
+        "Ignore React Compiler availability"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "virtualization",
+      "query": "My list of 1000 items renders slowly",
+      "expected_behavior": [
+        "Recommends TanStack Virtual for 100+ items",
+        "Shows useVirtualizer setup with estimateSize and overscan",
+        "Covers dynamic height measurement"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "lazy-loading",
+      "query": "How do I lazy load a heavy chart component?",
+      "expected_behavior": [
+        "Uses React.lazy with dynamic import",
+        "Wraps in Suspense with skeleton fallback",
+        "Adds error boundary for network failures"
+      ],
+      "should_not": [
+        "Lazy load above-fold components",
+        "Lazy load tiny components"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "bundle-analysis",
+      "query": "My frontend bundle is too large, how do I analyze it?",
+      "expected_behavior": [
+        "Uses vite-bundle-visualizer or webpack-bundle-analyzer",
+        "Identifies large dependencies for tree shaking",
+        "Sets performance budgets in build config"
+      ],
+      "tags": ["happy-path"]
+    }
+  ]
+}

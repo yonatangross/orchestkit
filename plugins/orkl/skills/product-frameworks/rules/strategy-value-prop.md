@@ -1,5 +1,5 @@
 ---
-title: "Strategy: Value Proposition & JTBD"
+title: Define value propositions using Jobs-to-be-Done framework and product-market fit canvas
 category: strategy
 impact: HIGH
 impactDescription: "Ensures customer-first strategy using Jobs-to-be-Done framework and value proposition canvas for product-market fit"

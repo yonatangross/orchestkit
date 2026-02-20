@@ -1,0 +1,51 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "monitoring-observability",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "prometheus-metrics",
+      "query": "Add Prometheus metrics to my FastAPI application",
+      "expected_behavior": [
+        "Uses RED method (Rate, Errors, Duration)",
+        "Defines Counter for requests and Histogram for latency",
+        "Configures appropriate histogram buckets",
+        "Manages label cardinality to avoid explosions"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "grafana-dashboard",
+      "query": "Create a Grafana dashboard for my service",
+      "expected_behavior": [
+        "Includes Golden Signals panels",
+        "Defines SLO/SLI targets with error budgets",
+        "Adds health check endpoints",
+        "Shows RED method metrics in dashboard layout"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "langfuse-tracing",
+      "query": "Set up Langfuse tracing for my LLM application",
+      "expected_behavior": [
+        "Uses @observe decorator with get_client() API",
+        "Sets user_id and session_id via update_current_trace",
+        "Configures OpenTelemetry SpanProcessor",
+        "Uses observation types for Agent Graph rendering"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "drift-detection",
+      "query": "Detect distribution drift in LLM inputs",
+      "expected_behavior": [
+        "Implements PSI calculation",
+        "Applies correct PSI thresholds",
+        "Uses EWMA for dynamic threshold detection",
+        "Compares PSI vs KS test for different sample sizes"
+      ],
+      "tags": ["happy-path"]
+    }
+  ]
+}

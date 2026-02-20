@@ -1,5 +1,5 @@
 ---
-title: Contextual Retrieval — Hybrid BM25+Vector
+title: Combine contextual embeddings with BM25 hybrid search for maximum retrieval coverage
 impact: HIGH
 impactDescription: "Contextual embeddings alone miss exact-match queries — combining with BM25 achieves 67% reduction in retrieval failures"
 tags: contextual, hybrid, bm25, vector, anthropic

@@ -1,5 +1,5 @@
 ---
-title: Best Practices Pattern Library
+title: Track success and failure patterns in a library to prevent repeating architectural mistakes
 impact: HIGH
 impactDescription: "Without tracking success/failure patterns, teams repeat the same architectural mistakes across projects"
 tags: best-practices, patterns, anti-patterns, learning, memory

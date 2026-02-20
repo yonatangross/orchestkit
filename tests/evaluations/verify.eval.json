@@ -1,0 +1,53 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "verify",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "full-verification",
+      "query": "Verify the authentication flow implementation",
+      "expected_behavior": [
+        "Dispatches parallel verification agents",
+        "Produces 0-10 scores across code quality, security, coverage, API, and UI",
+        "Calculates weighted composite score and letter grade",
+        "Generates improvement suggestions with effort/impact prioritization"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "tests-only",
+      "query": "Just run the tests for the user profile feature",
+      "expected_behavior": [
+        "Runs backend and frontend test suites in parallel",
+        "Reports coverage data and pass/fail counts",
+        "Skips security audit and UI analysis phases",
+        "Focuses on test-generator agent only"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "security-audit",
+      "query": "Run a security audit on the payment module",
+      "expected_behavior": [
+        "Focuses on security-auditor agent",
+        "Checks OWASP Top 10 vulnerabilities",
+        "Validates secrets and credential handling"
+      ],
+      "tags": ["security"]
+    },
+    {
+      "id": "quick-check",
+      "query": "Quick check if my changes are ready to merge",
+      "expected_behavior": [
+        "Runs tests only without detailed analysis",
+        "Provides simple pass/fail verdict",
+        "Completes quickly compared to full verification"
+      ],
+      "should_not": [
+        "Run full verification for a quick check",
+        "Take as long as full verification"
+      ],
+      "tags": ["happy-path"]
+    }
+  ]
+}

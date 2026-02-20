@@ -1,5 +1,5 @@
 ---
-title: Small Commits with Issue References
+title: Make small commits with issue references to maintain traceability and enable bisect
 impact: HIGH
 impactDescription: "Large commits without issue references break traceability, make reviews harder, and prevent git bisect."
 tags: git, commits, issues, traceability

@@ -1,5 +1,5 @@
 ---
-title: "Clean: SOLID & Dependency Inversion"
+title: Apply SOLID principles and dependency inversion for maintainable testable abstractions
 category: clean
 impact: HIGH
 impactDescription: SOLID principles create maintainable, testable code through proper abstraction

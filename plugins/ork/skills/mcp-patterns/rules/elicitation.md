@@ -1,5 +1,5 @@
 ---
-title: "Elicitation"
+title: Use MCP elicitation safely with consent handling and secure form-mode data collection
 impact: "MEDIUM"
 impactDescription: "Requesting sensitive data via form mode exposes credentials to the LLM context; skipping user consent or mishandling cancel/decline breaks trust and leaves servers in inconsistent state"
 tags: [elicitation, form-mode, url-mode, security, json-schema, oauth]

@@ -1,5 +1,5 @@
 ---
-title: Security Injection Defense
+title: Defend against prompt injection in MCP tool descriptions that can hijack LLM behavior
 impact: HIGH
 impactDescription: "Unsanitized tool descriptions allow prompt injection attacks that can hijack LLM behavior, exfiltrate data, or override system instructions"
 tags: security, prompt-injection, sanitization, encoding, tool-descriptions

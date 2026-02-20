@@ -1,5 +1,5 @@
 ---
-title: Model Quantization
+title: Quantize models to reduce size 2-4x with minimal quality loss for fewer GPUs
 impact: MEDIUM
 impactDescription: "Quantization reduces model size 2-4x with minimal quality loss, enabling larger models on fewer GPUs"
 tags: quantization, awq, gptq, fp8, int8, vram, precision, llm

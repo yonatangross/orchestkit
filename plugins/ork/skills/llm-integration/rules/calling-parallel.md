@@ -1,5 +1,5 @@
 ---
-title: "Function Calling: Parallel Execution"
+title: Handle parallel function calls with careful strict mode coordination to reduce latency
 impact: HIGH
 impactDescription: "Parallel tool calls reduce latency but require careful handling with strict mode"
 tags: [parallel, concurrent, asyncio, tool-calls, batch]

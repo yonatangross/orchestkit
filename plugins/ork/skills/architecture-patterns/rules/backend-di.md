@@ -1,5 +1,5 @@
 ---
-title: "Backend: Dependency Injection"
+title: Apply dependency injection to ensure testable code and prevent tight coupling between layers
 category: backend
 impact: HIGH
 impactDescription: Proper DI ensures testable code and prevents tight coupling between layers

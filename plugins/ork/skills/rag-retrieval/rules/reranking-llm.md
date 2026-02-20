@@ -1,5 +1,5 @@
 ---
-title: LLM Reranking
+title: Use LLM reranking for domain-adaptive scoring without deploying a dedicated model
 impact: MEDIUM
 impactDescription: "LLM reranking scores all documents in a single call — slower but no model to deploy and adapts to any domain"
 tags: reranking, llm, batch, scoring, cohere

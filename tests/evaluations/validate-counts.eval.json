@@ -1,0 +1,42 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "validate-counts",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "all-counts-match",
+      "query": "Validate that all counts are consistent across OrchestKit",
+      "expected_behavior": [
+        "Runs scripts/validate-counts.sh from repo root",
+        "Compares skill, hook, and agent counts from src/ vs CLAUDE.md and manifests",
+        "Outputs a comparison table showing all sources agree",
+        "Reports all counts consistent with no drift flags"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "hook-count-drifted",
+      "query": "Check if counts are up to date after I added a new hook",
+      "expected_behavior": [
+        "Detects hook count in CLAUDE.md does not match hooks.json entry count",
+        "Flags drift with exact file and field reference",
+        "Suggests updating CLAUDE.md to match"
+      ],
+      "tags": ["edge-case"]
+    },
+    {
+      "id": "skill-count-drifted",
+      "query": "Validate counts — I just added a skill to src/skills/ but haven't rebuilt yet",
+      "expected_behavior": [
+        "Uses src/ filesystem as authoritative source, not plugins/",
+        "Detects skill count mismatch between src/skills/ and manifest",
+        "Flags drift with precise reference to manifests/ork.json"
+      ],
+      "should_not": [
+        "Use plugins/ directory as authoritative source",
+        "Flag orkl vs ork skill differences as drift"
+      ],
+      "tags": ["edge-case"]
+    }
+  ]
+}

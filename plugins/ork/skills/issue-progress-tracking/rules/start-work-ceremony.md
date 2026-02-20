@@ -1,5 +1,5 @@
 ---
-title: Start Work Ceremony
+title: Run the start-work ceremony to establish branch traceability and team visibility
 impact: HIGH
 impactDescription: "Without this ceremony, team loses visibility into active work and branches lack issue traceability."
 tags: github, issues, branching, labels

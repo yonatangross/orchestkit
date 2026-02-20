@@ -1,5 +1,5 @@
 ---
-title: "Integration: Component Testing"
+title: Test React components with providers and user interactions for realistic integration coverage
 category: integration
 impact: HIGH
 impactDescription: "Tests React components with providers and user interactions for realistic integration coverage"

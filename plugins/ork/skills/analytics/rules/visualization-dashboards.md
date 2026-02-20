@@ -1,5 +1,5 @@
 ---
-title: Dashboard Layout & Widgets
+title: Design dashboard layouts with shared query keys and grid widgets for performance
 impact: HIGH
 impactDescription: "Dashboards that fetch data per-widget or re-render entirely on single metric changes cause redundant requests and poor performance — shared query keys and grid layouts solve both"
 tags: dashboard, widgets, grid-layout, stat-cards, tanstack-query, sse

@@ -1,5 +1,5 @@
 ---
-title: PGVector Index Strategies
+title: Choose correct PGVector index type to avoid 17x slower queries in production
 impact: HIGH
 impactDescription: "Wrong index type causes 17x slower queries — HNSW is the default for production, IVFFlat only for high-volume"
 tags: pgvector, hnsw, ivfflat, index, performance

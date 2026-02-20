@@ -1,5 +1,5 @@
 ---
-title: "Vite: Library Mode"
+title: Configure Vite library mode with correct externals, exports, and type declarations
 category: vite
 impact: HIGH
 impactDescription: "Bundling peer dependencies into a library inflates consumer bundles with duplicates; missing exports or type declarations break downstream TypeScript projects."

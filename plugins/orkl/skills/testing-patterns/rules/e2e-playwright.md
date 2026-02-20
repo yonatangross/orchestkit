@@ -1,5 +1,5 @@
 ---
-title: "E2E: Playwright Core"
+title: Apply semantic locator patterns and best practices for resilient Playwright E2E tests
 category: e2e
 impact: HIGH
 impactDescription: "Establishes semantic locator patterns and best practices for resilient Playwright E2E tests"

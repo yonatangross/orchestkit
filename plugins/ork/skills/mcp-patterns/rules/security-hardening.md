@@ -1,5 +1,5 @@
 ---
-title: Security Hardening
+title: Apply zero-trust verification to MCP servers to prevent rug-pull and data exfiltration
 impact: HIGH
 impactDescription: "Without zero-trust verification, a compromised MCP server can silently change tool behavior (rug pull) or exfiltrate data through tool responses"
 tags: security, allowlist, hash-verification, rug-pull, capabilities, zero-trust, session

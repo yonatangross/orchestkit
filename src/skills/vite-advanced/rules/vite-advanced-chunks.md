@@ -1,5 +1,5 @@
 ---
-title: "Vite: Chunk Optimization"
+title: Split Vite chunks for granular caching and faster initial loads instead of single-bundle shipping
 category: vite
 impact: HIGH
 impactDescription: "Without chunk splitting, the entire app ships as one bundle — slow initial loads, no caching granularity, and vendor code re-downloaded on every app change."

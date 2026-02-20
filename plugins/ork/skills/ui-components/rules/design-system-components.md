@@ -1,5 +1,5 @@
 ---
-title: Design System Component Architecture
+title: Structure scalable component libraries using atomic design and composition patterns
 impact: HIGH
 impactDescription: "Atomic design structure and proper component patterns ensure scalable, maintainable component libraries"
 tags: atomic-design, components, compound-components, accessibility, storybook, wcag

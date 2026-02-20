@@ -1,5 +1,5 @@
 ---
-title: Audit Status Classification
+title: Classify audit status with correct severity mapping to avoid misleading results
 impact: MEDIUM
 impactDescription: "Wrong severity mapping produces misleading audit results — FATALs hidden as WARNs or vice versa"
 tags: audit, status, pass, warn, fail

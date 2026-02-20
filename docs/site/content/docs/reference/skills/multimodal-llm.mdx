@@ -125,7 +125,7 @@ response = client.messages.create(
 
 ## Rules (6)
 
-### Audio Model Selection — MEDIUM
+### Select the right audio model architecture to avoid unnecessary pipeline latency — MEDIUM
 
 
 ## Audio Model Selection
@@ -209,7 +209,7 @@ async with model.connect(config=config) as session:
 - For phone agents, &lt;1s time-to-first-audio is the quality threshold
 
 
-### Audio Speech-to-Text — HIGH
+### Configure speech-to-text with the right provider and model for accuracy and cost — HIGH
 
 
 ## Audio Speech-to-Text
@@ -293,7 +293,7 @@ transcript = aai.Transcriber().transcribe(audio_url, config=config)
 - Always specify language when known — improves accuracy significantly
 
 
-### Audio Text-to-Speech — MEDIUM
+### Configure text-to-speech voice selection and style prompts for natural-sounding output — MEDIUM
 
 
 ## Audio Text-to-Speech
@@ -368,7 +368,7 @@ config = live.LiveConnectConfig(
 - Test with real users — perceived quality varies by use case and language
 
 
-### Vision Document Understanding — HIGH
+### Process documents with vision models using page ranges to avoid context overflow — HIGH
 
 
 ## Vision Document Understanding
@@ -430,7 +430,7 @@ response = client.chat.completions.create(
 | Large PDF threshold | >10 pages |
 
 
-### Vision Image Analysis — HIGH
+### Encode images correctly with content array structure to prevent silent vision failures — HIGH
 
 
 ## Vision Image Analysis
@@ -526,7 +526,7 @@ response = model.generate_content([
 - Claude uses `media_type`, OpenAI uses `mime` in the data URI
 
 
-### Vision Model Selection — MEDIUM
+### Select the right vision model to balance cost against task complexity requirements — MEDIUM
 
 
 ## Vision Model Selection

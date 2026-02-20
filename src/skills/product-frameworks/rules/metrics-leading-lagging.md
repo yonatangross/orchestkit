@@ -1,5 +1,5 @@
 ---
-title: "Metrics: Leading & Lagging Indicators"
+title: Balance predictive leading indicators with outcome-based lagging indicators for product health
 category: metrics
 impact: HIGH
 impactDescription: "Ensures balanced use of predictive leading indicators paired with outcome-based lagging indicators"

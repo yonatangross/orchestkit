@@ -1,5 +1,5 @@
 ---
-title: Audio Speech-to-Text
+title: Configure speech-to-text with the right provider and model for accuracy and cost
 impact: HIGH
 impactDescription: "Using deprecated Whisper-1 or wrong provider for long audio causes poor accuracy and unnecessary cost"
 tags: audio, speech-to-text, transcription, diarization, stt, whisper

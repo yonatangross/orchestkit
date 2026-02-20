@@ -1,5 +1,5 @@
 ---
-title: Modern Image Formats
+title: Serve AVIF and WebP formats for 30-50% smaller files than JPEG at equivalent quality
 impact: HIGH
 impactDescription: "AVIF and WebP deliver 30-50% smaller files than JPEG at equivalent quality, directly reducing page weight and load time"
 tags: avif, webp, jpeg, format, quality, picture, fallback, compression

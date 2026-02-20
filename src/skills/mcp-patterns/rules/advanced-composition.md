@@ -1,5 +1,5 @@
 ---
-title: Advanced Composition
+title: Compose multi-tool MCP workflows with error isolation to avoid brittle spaghetti code
 impact: MEDIUM
 impactDescription: "Without composition patterns, complex multi-tool workflows become brittle spaghetti code with no error isolation"
 tags: composition, pipeline, parallel, branching, tool-orchestration

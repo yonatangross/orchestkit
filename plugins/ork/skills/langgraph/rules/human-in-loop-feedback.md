@@ -1,5 +1,5 @@
 ---
-title: Feedback Loop Pattern
+title: Build iterative feedback loops that refine output across multiple human rounds
 impact: MEDIUM
 impactDescription: "Feedback without iteration just collects comments — use loop for iterative refinement"
 tags: human-in-loop, feedback, loop, iteration, refinement

@@ -1,5 +1,5 @@
 ---
-title: Strawberry GraphQL Schema Design
+title: Design type-safe GraphQL schemas with Strawberry to prevent N+1 query problems
 impact: HIGH
 impactDescription: "Type-safe GraphQL with code-first schema prevents runtime type mismatches and N+1 query problems"
 tags: graphql, strawberry, python, code-first, dataloader

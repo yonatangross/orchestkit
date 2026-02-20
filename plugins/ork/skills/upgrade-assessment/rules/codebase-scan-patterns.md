@@ -1,5 +1,5 @@
 ---
-title: Codebase Scan Patterns
+title: Use grep patterns and severity classification to detect upgrade-breaking code changes
 impact: HIGH
 impactDescription: "Grep patterns and severity classification for detecting upgrade-breaking changes"
 tags: scan, grep, patterns, codebase

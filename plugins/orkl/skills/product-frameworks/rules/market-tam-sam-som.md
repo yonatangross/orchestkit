@@ -1,5 +1,5 @@
 ---
-title: "Market: TAM/SAM/SOM Sizing"
+title: Size markets accurately using top-down and bottom-up approaches with realistic SOM constraints
 category: market
 impact: HIGH
 impactDescription: "Ensures accurate market sizing using both top-down and bottom-up approaches with realistic SOM constraints"

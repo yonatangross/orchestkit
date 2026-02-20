@@ -1,5 +1,5 @@
 ---
-title: "Database Selection Guide"
+title: Select the right database engine based on workload requirements and trade-offs
 category: schema
 impact: HIGH
 impactDescription: Wrong database choice is expensive to reverse — migrations, retraining, and re-architecting cost weeks. Default to PostgreSQL unless you have validated reasons otherwise.

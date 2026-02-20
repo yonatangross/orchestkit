@@ -1,5 +1,5 @@
 ---
-title: Context Window Management
+title: Manage context window size with sufficiency checks to balance relevance and cost
 impact: HIGH
 impactDescription: "Context too large dilutes relevance and wastes tokens — too small misses information. Sufficiency check prevents hallucination"
 tags: context, tokens, budget, sufficiency, hallucination

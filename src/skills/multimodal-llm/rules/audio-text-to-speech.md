@@ -1,5 +1,5 @@
 ---
-title: Audio Text-to-Speech
+title: Configure text-to-speech voice selection and style prompts for natural-sounding output
 impact: MEDIUM
 impactDescription: "Missing voice config or wrong TTS model produces robotic output — proper voice selection and style prompts are essential"
 tags: audio, text-to-speech, tts, voice, synthesis, speech

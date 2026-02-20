@@ -1,0 +1,51 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "agent-orchestration",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "react-agent",
+      "query": "Build an agent that reasons step-by-step and uses tools to answer questions",
+      "expected_behavior": [
+        "Uses ReAct pattern with Thought/Action/Observation format",
+        "Includes max step limit to prevent infinite loops",
+        "Parses tool calls and executes them",
+        "Returns Final Answer when reasoning is complete"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "supervisor-routing",
+      "query": "Implement a supervisor that routes tasks to specialized agents",
+      "expected_behavior": [
+        "Uses LLM to determine agent routing",
+        "Supports parallel execution for independent agents",
+        "Passes context between sequential agents",
+        "Returns aggregated results from all agents"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "conflict-resolution",
+      "query": "Handle conflicting outputs from multiple agents",
+      "expected_behavior": [
+        "Detects conflicts between agent findings",
+        "Uses confidence scores or LLM arbitration",
+        "Records resolution reasoning",
+        "Applies resolutions to findings"
+      ],
+      "tags": ["edge-case"]
+    },
+    {
+      "id": "framework-selection",
+      "query": "Choose a multi-agent framework for a production customer support system",
+      "expected_behavior": [
+        "Evaluates requirements against framework capabilities",
+        "Considers team expertise and framework maturity",
+        "Provides decision tree or matrix",
+        "Documents trade-offs and migration paths"
+      ],
+      "tags": ["happy-path"]
+    }
+  ]
+}

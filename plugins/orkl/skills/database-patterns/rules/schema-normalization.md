@@ -1,5 +1,5 @@
 ---
-title: "Schema: Normalization"
+title: Apply normalization rules to eliminate data redundancy and update anomalies
 category: schema
 impact: HIGH
 impactDescription: Proper normalization eliminates data redundancy and ensures integrity. Incorrect normalization leads to update anomalies, data inconsistency, and storage waste.

@@ -61,9 +61,9 @@ const ISSUE_TEMPLATES: Record<string, string> = {
  * Detect issue type from command
  */
 function detectIssueType(command: string): string | null {
-  if (/--label.*bug|bug\s+report/i.test(command)) return 'bug';
-  if (/--label.*feature|feature\s+request/i.test(command)) return 'feature';
-  if (/--label.*chore|maintenance/i.test(command)) return 'chore';
+  if ((command.includes('--label') && /bug/i.test(command)) || /bug\s+report/i.test(command)) return 'bug';
+  if ((command.includes('--label') && /feature/i.test(command)) || /feature\s+request/i.test(command)) return 'feature';
+  if ((command.includes('--label') && /chore/i.test(command)) || /maintenance/i.test(command)) return 'chore';
   return null;
 }
 

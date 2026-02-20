@@ -1,5 +1,5 @@
 ---
-title: "Pooling: Monitoring & Tuning"
+title: Monitor connection pools to prevent silent exhaustion and stale connection errors
 category: pooling
 impact: MEDIUM
 impactDescription: Pool monitoring prevents silent connection exhaustion and stale connection errors

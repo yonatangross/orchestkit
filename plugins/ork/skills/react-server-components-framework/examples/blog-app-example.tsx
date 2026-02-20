@@ -123,6 +123,18 @@ export async function addComment(postId: string, content: string) {
   }
 }
 
+function sanitizeImageUrl(url: string): string {
+  try {
+    const parsed = new URL(url)
+    if (parsed.protocol === 'https:' || parsed.protocol === 'http:') {
+      return parsed.href
+    }
+  } catch {
+    // invalid URL
+  }
+  return ''
+}
+
 // ============================================
 // 3. BLOG LIST PAGE (app/blog/page.tsx)
 // ============================================
@@ -261,7 +273,7 @@ export default async function BlogPostPage({ params }: PageProps) {
 
         <div className="flex items-center gap-4 text-gray-600">
           <img
-            src={post.author.image}
+            src={sanitizeImageUrl(post.author.image)}
             alt={post.author.name}
             className="w-12 h-12 rounded-full"
           />
@@ -322,7 +334,7 @@ export async function CommentList({ postId }: { postId: string }) {
       {comments.map(comment => (
         <div key={comment.id} className="flex gap-4">
           <img
-            src={comment.author.image}
+            src={sanitizeImageUrl(comment.author.image)}
             alt={comment.author.name}
             className="w-10 h-10 rounded-full"
           />
@@ -437,7 +449,7 @@ export function PostCard({ post }: PostCardProps) {
       <div className="flex items-center justify-between text-sm text-gray-500">
         <div className="flex items-center gap-2">
           <img
-            src={post.author.image}
+            src={sanitizeImageUrl(post.author.image)}
             alt={post.author.name}
             className="w-6 h-6 rounded-full"
           />

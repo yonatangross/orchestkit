@@ -1,5 +1,5 @@
 ---
-title: "Backend: File Naming & Exceptions"
+title: Follow consistent file naming conventions and exception patterns for discoverable code
 category: backend
 impact: HIGH
 impactDescription: Consistent naming conventions make code discoverable and maintainable

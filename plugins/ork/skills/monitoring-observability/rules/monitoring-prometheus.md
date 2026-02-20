@@ -1,5 +1,5 @@
 ---
-title: "Monitoring: Prometheus Metrics"
+title: Instrument Prometheus metrics as the foundation for alerting and dashboard observability
 impact: CRITICAL
 impactDescription: "Prometheus metrics provide the foundation for all infrastructure monitoring — without proper metrics, alerting and dashboards are impossible."
 tags: [prometheus, metrics, counter, histogram, gauge, red-method, cardinality]

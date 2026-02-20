@@ -1,5 +1,5 @@
 ---
-title: "Alembic: Autogenerate Migrations"
+title: Configure Alembic autogenerate for safe schema migration from model changes
 category: alembic
 impact: CRITICAL
 impactDescription: Auto-generating migrations from model changes is the primary workflow for schema evolution. Misconfigured autogenerate leads to missed changes or destructive operations.

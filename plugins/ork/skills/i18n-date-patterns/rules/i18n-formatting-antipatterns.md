@@ -1,5 +1,5 @@
 ---
-title: "i18n: Formatting Anti-Patterns"
+title: Avoid hardcoded date and number formats that break in non-English locales
 category: i18n
 impact: CRITICAL
 impactDescription: "Hardcoded formats and string concatenation break when locale changes, producing garbled UI for non-English users"

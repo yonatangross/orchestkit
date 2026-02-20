@@ -1,5 +1,5 @@
 ---
-title: "Local Inference: GPU Optimization"
+title: Tune GPU settings and provider factory patterns for maximum local inference performance
 impact: HIGH
 impactDescription: "Proper GPU tuning and provider factory patterns maximize local inference performance"
 tags: [gpu, apple-silicon, ci, provider-factory, keep-alive, pre-warm]

@@ -26,6 +26,8 @@ vi.mock('../../lib/common.js', () => ({
   })),
   getProjectDir: vi.fn(() => '/test/project'),
   getSessionId: vi.fn(() => 'test-session-123'),
+  lineContainsAll: (content: string, ...terms: string[]) => content.split('\n').some(line => terms.every(t => line.includes(t))),
+  lineContainsAllCI: (content: string, ...terms: string[]) => content.split('\n').some(line => { const lower = line.toLowerCase(); return terms.every(t => lower.includes(t.toLowerCase())); }),
 }));
 
 vi.mock('../../lib/guards.js', () => ({

@@ -1,5 +1,5 @@
 ---
-title: "Focus: Keyboard Navigation"
+title: Ensure all interactive elements support keyboard navigation with roving tabindex
 category: focus
 impact: HIGH
 impactDescription: "Ensures all interactive elements are keyboard accessible with proper tab order and roving tabindex patterns"

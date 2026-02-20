@@ -1,5 +1,5 @@
 ---
-title: Speculative Decoding
+title: Apply speculative decoding to generate draft tokens in parallel and reduce inference latency
 impact: MEDIUM
 impactDescription: "Speculative decoding generates 2-3 draft tokens in parallel and verifies them in a single forward pass, reducing latency by 30-60%"
 tags: speculative, draft-model, ngram, acceptance-rate, latency, llm, decoding

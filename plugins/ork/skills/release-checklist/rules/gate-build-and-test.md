@@ -1,5 +1,5 @@
 ---
-title: Build and Test Gates
+title: Pass build and test gates before release to prevent shipping broken artifacts
 impact: CRITICAL
 impactDescription: "Shipping a broken build or failing security tests produces a broken release that requires an emergency hotfix"
 tags: build, test, security, typecheck, release-gate

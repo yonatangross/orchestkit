@@ -1,5 +1,5 @@
 ---
-title: "React Aria: Forms"
+title: Create accessible form controls with React Aria labels and keyboard navigation
 category: aria
 impact: HIGH
 impactDescription: "Ensures form controls like comboboxes, text fields, and listboxes have proper labels and keyboard navigation"

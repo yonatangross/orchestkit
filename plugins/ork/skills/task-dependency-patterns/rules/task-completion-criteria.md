@@ -1,5 +1,5 @@
 ---
-title: "Tasks: Completion Criteria"
+title: Verify task completion criteria before marking done to prevent cascading dependency failures
 category: task
 impact: HIGH
 impactDescription: "Premature completion unblocks dependent tasks that rely on incomplete work, cascading failures through the dependency chain"

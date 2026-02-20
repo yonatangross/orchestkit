@@ -1,5 +1,5 @@
 ---
-title: "WCAG: Semantic HTML"
+title: Use semantic HTML and ARIA attributes for proper screen reader document structure
 category: wcag
 impact: CRITICAL
 impactDescription: "Ensures proper document structure with semantic HTML and ARIA attributes for screen readers"

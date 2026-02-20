@@ -1,5 +1,5 @@
 ---
-title: Silent Quality Degradation Detection
+title: Detect silent quality degradation in agent outputs that pass basic error checks
 impact: HIGH
 impactDescription: "Agents producing gibberish or repetitive output pass basic checks — quality scoring catches what error handling misses"
 tags: monitoring, silent-failure, quality, gibberish, degradation, llm-judge

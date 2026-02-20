@@ -68,7 +68,7 @@ agent-browser get text body                    # Prefer targeted ref extraction
 
 ## Rules (4)
 
-### Browser: Auth Security — CRITICAL
+### Secure browser automation credentials to prevent token leaks and account compromise — CRITICAL
 
 
 ## Browser: Auth Security
@@ -143,7 +143,7 @@ CURRENT_URL=$(agent-browser get url)
 Reference: `references/auth-flows.md` (Security Considerations, Secure State Files)
 
 
-### Browser: Rate Limiting — HIGH
+### Throttle browser requests to avoid 429 blocks, IP bans, and unreliable results — HIGH
 
 
 ## Browser: Rate Limiting
@@ -220,7 +220,7 @@ fetch_with_retry() {
 Reference: `references/anti-bot-handling.md` (Rate Limiting, Adaptive Rate Limiting, Retry Logic)
 
 
-### Browser: Scraping Ethics — CRITICAL
+### Respect robots.txt and terms of service to avoid legal issues and IP bans — CRITICAL
 
 
 ## Browser: Scraping Ethics
@@ -280,7 +280,7 @@ agent-browser get text @e5  # Extract specific content area, not full page
 Reference: `references/anti-bot-handling.md` (Respectful Scraping Principles, Check robots.txt)
 
 
-### Browser: Snapshot Workflow — HIGH
+### Wait and snapshot browser content to avoid empty results and bloated page dumps — HIGH
 
 
 ## Browser: Snapshot Workflow

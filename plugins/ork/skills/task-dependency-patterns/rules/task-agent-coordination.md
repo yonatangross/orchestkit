@@ -1,5 +1,5 @@
 ---
-title: "Tasks: Agent Coordination"
+title: Coordinate agent task ownership to prevent duplicated work and orphaned tasks
 category: task
 impact: HIGH
 impactDescription: "Without clear ownership and coordination, multiple agents duplicate work, overwrite each other's changes, or leave tasks orphaned"

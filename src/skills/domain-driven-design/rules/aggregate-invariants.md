@@ -1,5 +1,5 @@
 ---
-title: Enforcing Business Invariants
+title: Enforce business invariants within aggregates to prevent invalid domain state propagation
 impact: HIGH
 impactDescription: "Unenforced invariants allow invalid domain state — data corruption that propagates through the system silently"
 tags: invariant, business-rule, validation, specification, ddd

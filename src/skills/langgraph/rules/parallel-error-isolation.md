@@ -1,5 +1,5 @@
 ---
-title: Error Isolation in Parallel Execution
+title: Isolate errors in parallel branches to preserve completed results on failure
 impact: HIGH
 impactDescription: "One failed branch without isolation kills all parallel work — wasting completed results"
 tags: parallel, error, isolation, timeout, gather

@@ -1,5 +1,5 @@
 ---
-title: Embedding Models & API
+title: Select embedding models and dimensions correctly to ensure index compatibility and quality
 impact: HIGH
 impactDescription: "Wrong embedding model or dimension mismatch causes poor retrieval quality or index incompatibility"
 tags: embeddings, models, openai, voyage, ollama, dimensions

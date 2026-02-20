@@ -31,7 +31,12 @@ const SECURITY_PATTERNS: SecurityPattern[] = [
   },
   {
     name: 'Potential SQL injection vulnerability',
-    pattern: /execute\s*\(\s*['"].*\+|f['"].*SELECT.*\{/,
+    // Split into two substring checks to avoid polynomial regex backtracking
+    pattern: {
+      test: (s: string) =>
+        (s.includes('execute') && /execute\s*\(\s*['"]/.test(s) && s.includes('+')) ||
+        (/f['"]/.test(s) && s.includes('SELECT') && s.includes('{')),
+    } as unknown as RegExp,
     severity: 'high',
   },
   {

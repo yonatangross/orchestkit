@@ -1,5 +1,5 @@
 ---
-title: Analytics Data Privacy
+title: Protect analytics data privacy by hashing identifiers and stripping sensitive fields
 impact: CRITICAL
 impactDescription: "Logging raw project paths, usernames, or file contents in analytics files leaks PII — always hash identifiers and strip sensitive fields"
 tags: privacy, hashing, pid, pii, local-only

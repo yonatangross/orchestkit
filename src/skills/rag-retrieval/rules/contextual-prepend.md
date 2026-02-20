@@ -1,5 +1,5 @@
 ---
-title: Contextual Retrieval — Context Prepending
+title: Prepend situational context to chunks before embedding to reduce retrieval failures
 impact: HIGH
 impactDescription: "Chunks lose document-level context during retrieval — prepending situational context reduces retrieval failures by 35%"
 tags: contextual, anthropic, context-prepend, chunks

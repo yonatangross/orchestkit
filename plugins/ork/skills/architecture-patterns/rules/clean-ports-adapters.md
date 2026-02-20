@@ -1,5 +1,5 @@
 ---
-title: "Clean: DDD Tactical Patterns"
+title: Model complex domains with DDD tactical patterns using clear boundaries and rich logic
 category: clean
 impact: HIGH
 impactDescription: DDD patterns model complex domains with clear boundaries and rich domain logic

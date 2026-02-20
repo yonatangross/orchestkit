@@ -495,6 +495,28 @@ export function getField<T>(input: HookInput, path: string): T | undefined {
 }
 
 // -----------------------------------------------------------------------------
+// ReDoS-Safe String Matching
+// -----------------------------------------------------------------------------
+
+/**
+ * Check if any single line contains all specified substrings (ReDoS-safe O(n)).
+ * Use instead of polynomial regexes like /A.*B.*C/.test(content).
+ */
+export function lineContainsAll(content: string, ...terms: string[]): boolean {
+  return content.split('\n').some(line => terms.every(t => line.includes(t)));
+}
+
+/**
+ * Check if any single line contains all specified substrings (case-insensitive, ReDoS-safe O(n)).
+ */
+export function lineContainsAllCI(content: string, ...terms: string[]): boolean {
+  return content.split('\n').some(line => {
+    const lower = line.toLowerCase();
+    return terms.every(t => lower.includes(t.toLowerCase()));
+  });
+}
+
+// -----------------------------------------------------------------------------
 // String Utilities
 // -----------------------------------------------------------------------------
 

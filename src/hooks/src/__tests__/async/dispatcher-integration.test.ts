@@ -44,6 +44,7 @@ vi.mock('node:child_process', () => ({
 // Import REAL dispatchers (hooks are NOT mocked)
 // ---------------------------------------------------------------------------
 
+import { flush as flushBuffer, _resetForTesting } from '../../lib/analytics-buffer.js';
 import { unifiedDispatcher } from '../../posttool/unified-dispatcher.js';
 import { unifiedSessionStartDispatcher } from '../../lifecycle/unified-dispatcher.js';
 import { unifiedStopDispatcher } from '../../stop/unified-dispatcher.js';
@@ -90,6 +91,8 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  _resetForTesting();
+
   // Restore env vars
   for (const key of ENV_KEYS) {
     if (savedEnv[key] === undefined) {
@@ -169,6 +172,7 @@ describe('Dispatcher Integration (real hooks, temp filesystem)', () => {
         tool_name: 'Bash',
         tool_input: { command: 'npm test' },
       }));
+      flushBuffer();
 
       const logDir = join(testDir, '.claude', 'logs');
       expect(existsSync(logDir)).toBe(true);

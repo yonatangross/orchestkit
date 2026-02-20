@@ -1,5 +1,5 @@
 ---
-title: ASCII Diagram Fundamentals
+title: Use consistent box-drawing characters and formatting for correct terminal rendering
 impact: MEDIUM
 impactDescription: "Consistent box-drawing characters and formatting ensure diagrams render correctly in all terminals"
 tags: ascii, diagrams, box-drawing, visualization, monospace

@@ -1,5 +1,5 @@
 ---
-title: "Testing: Coverage & Fixtures"
+title: Set coverage thresholds to ensure critical code paths are tested before deployment
 category: testing
 impact: MEDIUM
 impactDescription: Coverage thresholds ensure critical code paths are tested before deployment

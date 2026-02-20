@@ -1,5 +1,5 @@
 ---
-title: Server Setup
+title: Set up MCP servers with proper lifecycle management and structured error handling
 impact: HIGH
 impactDescription: "Missing lifecycle management causes resource leaks; wrong error handling crashes the server instead of returning useful feedback to Claude"
 tags: server, fastmcp, lifespan, tools, resources, prompts, error-handling

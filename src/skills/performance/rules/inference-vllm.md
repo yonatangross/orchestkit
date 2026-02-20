@@ -1,5 +1,5 @@
 ---
-title: vLLM Deployment
+title: Deploy vLLM with PagedAttention and continuous batching for 2-4x higher inference throughput
 impact: MEDIUM
 impactDescription: "vLLM delivers 2-4x higher throughput than naive inference through PagedAttention and continuous batching"
 tags: vllm, paged-attention, batching, tensor-parallel, llm, inference, gpu, serving

@@ -15,6 +15,12 @@ Create OpenAPI spec: $ARGUMENTS
 - **Framework**: !`grep -r "fastapi\|express\|next" package.json pyproject.toml 2>/dev/null | head -1 | grep -oE 'fastapi|express|next' || echo "FastAPI"`
 - **Version**: !`grep -r '"version"' package.json pyproject.toml 2>/dev/null | head -1 | grep -oE '"[0-9]+\.[0-9]+\.[0-9]+"' || echo '"1.0.0"'`
 
+## Your Task
+
+Create an OpenAPI 3.1 specification for: **$ARGUMENTS**
+
+Review the auto-detected endpoints above, then customize the template below with your API's paths, schemas, and security definitions.
+
 ## OpenAPI Specification
 
 ```yaml

@@ -1,5 +1,5 @@
 ---
-title: Self-RAG — Document Grading
+title: Grade document relevance with Self-RAG to prevent context contamination from irrelevant results
 impact: HIGH
 impactDescription: "Without relevance grading, irrelevant documents contaminate context and degrade generation quality"
 tags: self-rag, grading, relevance, adaptive-retrieval

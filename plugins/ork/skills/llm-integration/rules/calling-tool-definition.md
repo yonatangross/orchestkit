@@ -1,5 +1,5 @@
 ---
-title: "Function Calling: Tool Definition"
+title: Define tool schemas with strict mode to prevent hallucinated parameters and ensure reliability
 impact: CRITICAL
 impactDescription: "Strict mode schemas ensure reliable tool use and prevent hallucinated parameters"
 tags: [tool, function, schema, strict-mode, openai, anthropic, langchain]

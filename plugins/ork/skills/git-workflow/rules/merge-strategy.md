@@ -1,5 +1,5 @@
 ---
-title: Merge Strategy Rules
+title: Choose the right merge strategy for clean, bisectable commit history
 impact: HIGH
 impactDescription: "Wrong merge strategy creates noisy history that's hard to bisect and review"
 tags: rebase, merge, conflict, strategy, history

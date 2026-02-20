@@ -1,5 +1,5 @@
 ---
-title: Product Perspective
+title: Add business context and findability analysis to technical codebase exploration
 impact: MEDIUM
 impactDescription: "Adds business context and findability analysis to technical exploration"
 tags: product, perspective, assessment

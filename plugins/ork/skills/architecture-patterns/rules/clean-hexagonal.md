@@ -1,5 +1,5 @@
 ---
-title: "Clean: Hexagonal Architecture"
+title: Decouple domain logic from infrastructure with hexagonal architecture for testability
 category: clean
 impact: HIGH
 impactDescription: Hexagonal architecture decouples domain logic from infrastructure for testability

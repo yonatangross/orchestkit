@@ -1,5 +1,5 @@
 ---
-title: Invoke Subgraph from Node
+title: Invoke subgraph from node with state transformation to prevent schema mismatch
 impact: MEDIUM
 impactDescription: "Directly passing parent state to subgraph with different schema causes KeyError at runtime"
 tags: subgraphs, invoke, different-schema, isolation, transform

@@ -1,5 +1,5 @@
 ---
-title: Multimodal Document Chunking
+title: Chunk multimodal documents to preserve relationships between text, images, and tables
 impact: MEDIUM
 impactDescription: "Standard text chunking loses images, tables, and charts — multimodal chunking preserves mixed content relationships"
 tags: multimodal, chunking, pdf, images, tables

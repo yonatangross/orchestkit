@@ -1,5 +1,5 @@
 ---
-title: "Schema: NoSQL Patterns"
+title: Design NoSQL schemas with embed vs reference trade-offs for query performance
 category: schema
 impact: HIGH
 impactDescription: NoSQL schema decisions are hard to change after data is in production. Embed vs reference choices directly determine query performance and data consistency.

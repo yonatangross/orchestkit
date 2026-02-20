@@ -1,5 +1,5 @@
 ---
-title: "Client Patterns"
+title: Implement MCP client patterns for reliable connections and multi-server orchestration
 impact: "MEDIUM"
 impactDescription: "Without proper client patterns, connections leak, tool calls fail silently, and multi-server orchestration becomes brittle"
 tags: [client, session, transport, tool-discovery, reconnection, multi-server]

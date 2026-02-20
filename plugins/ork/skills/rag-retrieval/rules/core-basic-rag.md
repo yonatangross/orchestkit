@@ -1,5 +1,5 @@
 ---
-title: Basic RAG Pattern
+title: Construct basic RAG pipeline with proper context assembly and citation tracking
 impact: CRITICAL
 impactDescription: "Without proper context construction and citation tracking, RAG outputs are unverifiable and prone to hallucination"
 tags: rag, retrieval, context, citations, grounding

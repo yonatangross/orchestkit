@@ -1,5 +1,5 @@
 ---
-title: "React Aria: Overlays"
+title: Implement accessible overlays with React Aria focus trapping and restoration
 category: aria
 impact: HIGH
 impactDescription: "Ensures modals, tooltips, and popovers trap focus correctly and restore focus on close"

@@ -1,5 +1,5 @@
 ---
-title: Biome Linting Setup and Migration
+title: Set up Biome as a single-tool replacement for ESLint and Prettier with 10-25x speedup
 impact: HIGH
 impactDescription: "Biome replaces ESLint+Prettier with a single tool that is 10-25x faster with zero config complexity"
 tags: biome, linting, formatting, eslint-migration, code-quality

@@ -1,5 +1,5 @@
 ---
-title: Release Staging Rules
+title: Stage release files carefully to avoid accidentally committing secrets or debug artifacts
 impact: HIGH
 impactDescription: "Staging unreviewed files with git add -A can accidentally commit secrets, debug artifacts, or unrelated in-progress work"
 tags: git-add, staging, version-bump, release

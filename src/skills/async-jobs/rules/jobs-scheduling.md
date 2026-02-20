@@ -1,5 +1,5 @@
 ---
-title: "Jobs: Scheduling & Background Tasks"
+title: Schedule reliable periodic background tasks without overlap or timing drift
 category: jobs
 impact: HIGH
 impactDescription: Proper scheduling ensures reliable periodic execution without overlap or drift

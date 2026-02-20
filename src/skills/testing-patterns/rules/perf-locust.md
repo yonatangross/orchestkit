@@ -1,5 +1,5 @@
 ---
-title: "Performance: Locust"
+title: Build Python-based load tests with task weighting and authentication flows using Locust
 category: perf
 impact: MEDIUM
 impactDescription: "Defines Python-based load testing patterns with task weighting and authentication flows using Locust"

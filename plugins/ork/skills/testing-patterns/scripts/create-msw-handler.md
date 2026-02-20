@@ -14,6 +14,12 @@ Create MSW handler for: $ARGUMENTS
 - **API Base URL**: !`grep -r "API_URL\|VITE_API\|NEXT_PUBLIC_API" .env* 2>/dev/null | head -1 | cut -d'=' -f2 || echo "/api"`
 - **Handlers Location**: !`find . -type d -name "mocks" -o -name "handlers" 2>/dev/null | head -1 || echo "src/mocks"`
 
+## Your Task
+
+Create an MSW mock handler for endpoint: **$ARGUMENTS**
+
+Review the auto-detected handler context above, then customize the template below with your endpoint's request/response shapes.
+
 ## MSW Handler Template
 
 ```typescript

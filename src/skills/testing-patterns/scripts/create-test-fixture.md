@@ -14,6 +14,12 @@ Create pytest fixture: $ARGUMENTS
 - **Conftest Location**: !`find . -name "conftest.py" 2>/dev/null | head -1 || echo "tests/conftest.py"`
 - **Python Version**: !`python --version 2>/dev/null || echo "Python 3.x"`
 
+## Your Task
+
+Create a pytest fixture for: **$ARGUMENTS**
+
+Review the auto-detected fixture context above, then customize the template below with your fixture's setup and teardown logic.
+
 ## Fixture Template
 
 ```python

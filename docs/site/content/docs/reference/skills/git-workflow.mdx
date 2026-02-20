@@ -215,7 +215,7 @@ Each category has individual rule files in `rules/` loaded on-demand:
 
 ## Rules (9)
 
-### Branch Protection Rules — CRITICAL
+### Configure branch protection rules to prevent direct commits to protected branches — CRITICAL
 
 
 ## Branch Protection Rules
@@ -310,7 +310,7 @@ gh pr create --base main
 - Delete feature branches after merge
 
 
-### History Hygiene Rules — HIGH
+### Keep git history clean by squashing WIP commits and fixups before merge — HIGH
 
 
 ## History Hygiene Rules
@@ -409,7 +409,7 @@ abc1234 feat(#123): Add user validation with edge case handling
 - Commit messages should explain WHY, not just WHAT
 
 
-### Merge Strategy Rules — HIGH
+### Choose the right merge strategy for clean, bisectable commit history — HIGH
 
 
 ## Merge Strategy Rules
@@ -514,7 +514,7 @@ git push --force-with-lease
 - Abort rebase if unsure — you can always start over
 
 
-### Monorepo Context Patterns — MEDIUM
+### Scope Claude Code context in monorepos with per-service directories and CLAUDE.md — MEDIUM
 
 
 ## Monorepo Context Patterns
@@ -603,7 +603,7 @@ npm run test:api:e2e   # Integration tests
 - Keep service CLAUDE.md focused — avoid duplicating root-level rules
 
 
-### Reflog Recovery — HIGH
+### Recover lost commits using git reflog within the 90-day retention window — HIGH
 
 
 ## Reflog Recovery
@@ -668,7 +668,7 @@ git reset --hard ORIG_HEAD
 - Reflog is local only — not shared with remotes
 
 
-### Reset and Restore — HIGH
+### Use git reset and restore safely by saving a backup reference first — HIGH
 
 
 ## Reset and Restore
@@ -747,7 +747,7 @@ git reset HEAD path/to/file
 - `git restore` is the modern replacement for `git checkout -- file`
 
 
-### Stash Recovery — MEDIUM
+### Recover git stash entries using named stashes and reflog before garbage collection — MEDIUM
 
 
 ## Stash Recovery
@@ -805,7 +805,7 @@ git stash push -u -m "including new files"
 - Stash includes staged changes by default; use `--keep-index` to stash only unstaged
 
 
-### Stacked PR Rebase Management — HIGH
+### Rebase dependent PRs systematically after base branch changes to prevent conflicts — HIGH
 
 
 ## Stacked PR Rebase Management
@@ -884,7 +884,7 @@ echo "Stack rebased successfully!"
 - Never force push to already-approved PRs without re-requesting review
 
 
-### Stacked PR Workflow — HIGH
+### Split large features into small, reviewable, independently mergeable stacked PRs — HIGH
 
 
 ## Stacked PR Workflow

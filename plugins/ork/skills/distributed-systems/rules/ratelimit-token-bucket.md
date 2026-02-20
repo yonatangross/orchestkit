@@ -1,5 +1,5 @@
 ---
-title: "Rate Limiting: Token Bucket"
+title: Implement token bucket rate limiting with atomic Redis operations and burst capacity
 category: ratelimit
 impact: HIGH
 impactDescription: "Ensures API rate limiting with burst capacity using atomic Redis token bucket implementation with refill logic"

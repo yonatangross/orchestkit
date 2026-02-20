@@ -1,5 +1,5 @@
 ---
-title: "RSC: Serialization"
+title: Pass only serializable props across the RSC server-client boundary to avoid runtime errors
 category: rsc
 impact: CRITICAL
 impactDescription: "Passing non-serializable props (functions, class instances, Symbols) from Server to Client Components causes runtime errors or silent data loss at the server-client boundary."

@@ -1,5 +1,5 @@
 ---
-title: "Idempotency: Database-Backed"
+title: Store idempotency keys in PostgreSQL with ACID guarantees for safe retries
 category: idempotency
 impact: HIGH
 impactDescription: "Ensures API operations are safely retryable by storing idempotency keys in PostgreSQL with ACID guarantees"

@@ -1,5 +1,5 @@
 ---
-title: "Data: Seeding & Cleanup"
+title: Automate database seeding and cleanup between test runs for proper isolation
 category: data
 impact: MEDIUM
 impactDescription: "Ensures test isolation through automated database seeding and cleanup between test runs"

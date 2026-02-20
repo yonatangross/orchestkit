@@ -12,6 +12,19 @@ import type { HookInput } from '../../types.js';
 // MOCK SETUP
 // =============================================================================
 
+const { _mockAppendFileSync } = vi.hoisted(() => ({
+  _mockAppendFileSync: vi.fn(),
+}));
+
+vi.mock('../../lib/analytics-buffer.js', () => ({
+  bufferWrite: vi.fn((filePath: string, content: string) => {
+    _mockAppendFileSync(filePath, content);
+  }),
+  flush: vi.fn(),
+  pendingCount: vi.fn(() => 0),
+  _resetForTesting: vi.fn(),
+}));
+
 // Mock common.js functions
 vi.mock('../../lib/common.js', () => ({
   outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
@@ -57,7 +70,7 @@ vi.mock('node:fs', async () => {
   return {
     ...actual,
     existsSync: vi.fn(),
-    appendFileSync: vi.fn(),
+    appendFileSync: _mockAppendFileSync,
     mkdirSync: vi.fn(),
   };
 });

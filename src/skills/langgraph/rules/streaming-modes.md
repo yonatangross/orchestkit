@@ -1,5 +1,5 @@
 ---
-title: Stream Modes
+title: Choose the right stream mode for efficient real-time UI integration
 impact: MEDIUM
 impactDescription: "Default stream mode returns full state — use 'updates' or 'custom' for efficient UI integration"
 tags: streaming, modes, values, updates, messages, custom, debug

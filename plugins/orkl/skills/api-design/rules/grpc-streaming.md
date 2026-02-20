@@ -1,5 +1,5 @@
 ---
-title: gRPC Streaming and Interceptors
+title: Implement gRPC streaming patterns and interceptors for real-time data and observability
 impact: HIGH
 impactDescription: "gRPC streaming patterns enable real-time data flows while interceptors provide cross-cutting auth and observability"
 tags: grpc, streaming, interceptors, bidirectional, auth, retry

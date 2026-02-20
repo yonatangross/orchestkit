@@ -1,5 +1,5 @@
 ---
-title: Browser Patterns
+title: Use fallback browser automation patterns when WebFetch and Tavily are insufficient
 impact: MEDIUM
 impactDescription: "Fallback browser automation patterns when WebFetch and Tavily are insufficient"
 tags: browser, automation, fallback

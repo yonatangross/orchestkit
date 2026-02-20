@@ -20,6 +20,25 @@ import type { HookInput } from '../../types.js';
 const normalizePath = (p: string): string => p.replace(/\\/g, '/');
 
 // ---------------------------------------------------------------------------
+// Hoisted mocks — shared between analytics-buffer and node:fs mocks
+// ---------------------------------------------------------------------------
+const { mockAppendFileSync } = vi.hoisted(() => ({
+  mockAppendFileSync: vi.fn(),
+}));
+
+// ---------------------------------------------------------------------------
+// Mock analytics-buffer — bridges bufferWrite to mockAppendFileSync for assertions
+// ---------------------------------------------------------------------------
+vi.mock('../../lib/analytics-buffer.js', () => ({
+  bufferWrite: vi.fn((filePath: string, content: string) => {
+    mockAppendFileSync(filePath, content);
+  }),
+  flush: vi.fn(),
+  pendingCount: vi.fn(() => 0),
+  _resetForTesting: vi.fn(),
+}));
+
+// ---------------------------------------------------------------------------
 // Mock node:fs at module level before any hook imports
 // ---------------------------------------------------------------------------
 vi.mock('node:fs', () => ({
@@ -28,7 +47,7 @@ vi.mock('node:fs', () => ({
   readdirSync: vi.fn().mockReturnValue([]),
   writeFileSync: vi.fn(),
   mkdirSync: vi.fn(),
-  appendFileSync: vi.fn(),
+  appendFileSync: mockAppendFileSync,
   statSync: vi.fn().mockReturnValue({ size: 100 }),
   renameSync: vi.fn(),
   readSync: vi.fn().mockReturnValue(0),

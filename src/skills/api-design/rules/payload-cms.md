@@ -1,5 +1,5 @@
 ---
-title: "Payload CMS Patterns"
+title: Configure Payload CMS 3.0 collections and access control patterns for Next.js
 category: integration
 impact: HIGH
 impactDescription: Payload CMS 3.0 is tightly integrated with Next.js — wrong collection design or access control patterns create security gaps and performance issues that are hard to refactor.

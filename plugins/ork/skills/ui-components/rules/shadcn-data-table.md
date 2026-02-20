@@ -1,5 +1,5 @@
 ---
-title: "shadcn/ui: Data Table"
+title: Build sortable, filterable data tables with TanStack Table and shadcn/ui integration
 category: shadcn
 impact: HIGH
 impactDescription: "Integrates TanStack Table with shadcn/ui for sortable, filterable, paginated data tables"

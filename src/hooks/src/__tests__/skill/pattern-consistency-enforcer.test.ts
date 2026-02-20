@@ -29,6 +29,8 @@ vi.mock('../../lib/common.js', () => ({
     },
   })),
   getProjectDir: vi.fn(() => '/test/project'),
+  lineContainsAll: (content: string, ...terms: string[]) => content.split('\n').some(line => terms.every(t => line.includes(t))),
+  lineContainsAllCI: (content: string, ...terms: string[]) => content.split('\n').some(line => { const lower = line.toLowerCase(); return terms.every(t => lower.includes(t.toLowerCase())); }),
 }));
 
 vi.mock('../../lib/git.js', () => ({
@@ -720,9 +722,9 @@ const server = setupServer(
       expect(result.continue).toBe(false);
     });
 
-    test('does not catch setUp on different line (implementation limitation)', () => {
+    test('catches setUp on different line (multiline matching)', () => {
       // Arrange - Typical unittest pattern with setUp on different line
-      // Current regex /class Test.*setUp/ doesn't use `s` flag so this passes
+      // Regex /class Test[\s\S]{0,200}setUp/ matches across newlines
       const input = createWriteInput(
         '/project/tests/test_user_service.py',
         `
@@ -735,8 +737,8 @@ class TestUserService:
       // Act
       const result = patternConsistencyEnforcer(input);
 
-      // Assert - This is an implementation limitation, not a bug in test
-      expect(result.continue).toBe(true);
+      // Assert - Now correctly catches multiline unittest patterns
+      expect(result.continue).toBe(false);
     });
 
     test('allows pytest fixtures in Python tests', () => {

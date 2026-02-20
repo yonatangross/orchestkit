@@ -1,5 +1,5 @@
 ---
-title: "Business: ROI & Financial Metrics"
+title: Calculate accurate financial metrics using NPV, IRR, and ROI with time value
 category: business
 impact: HIGH
 impactDescription: "Ensures accurate financial analysis using NPV, IRR, and ROI calculations with time value of money"

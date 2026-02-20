@@ -1,5 +1,5 @@
 ---
-title: "Local Inference: Ollama Setup"
+title: Set up Ollama for local LLM inference to reduce costs and enable offline development
 impact: HIGH
 impactDescription: "Local LLMs reduce costs by 93% and enable offline development"
 tags: [ollama, setup, install, langchain, environment, local]

@@ -19,11 +19,27 @@ Launch SIX specialized reviewers in ONE message with `run_in_background: true`:
 | frontend-ui-developer | React 19, hooks, a11y |
 
 ```python
-# PARALLEL - All 6 agents in ONE message
+# DOMAIN-AWARE AGENT SELECTION
+# Only spawn agents relevant to detected domains.
+# CHANGED_FILES and domain flags (HAS_FRONTEND, HAS_BACKEND, HAS_AI)
+# are captured in Phase 1.
+
+# ALWAYS spawn these 4 core agents:
+# - code-quality-reviewer (readability)
+# - code-quality-reviewer (type safety)
+# - security-auditor
+# - test-generator
+
+# CONDITIONALLY spawn these based on domain:
+# - backend-system-architect  → only if HAS_BACKEND
+# - frontend-ui-developer     → only if HAS_FRONTEND
+# - llm-integrator (7th)      → only if HAS_AI
+
+# PARALLEL - All agents in ONE message
 Task(
   description="Review code quality",
   subagent_type="code-quality-reviewer",
-  prompt="""CODE QUALITY REVIEW for PR $ARGUMENTS
+  prompt="""CODE QUALITY REVIEW for PR $PR_NUMBER
 
   Review code readability and maintainability:
   1. Naming conventions and clarity
@@ -31,7 +47,10 @@ Task(
   3. DRY violations and code duplication
   4. SOLID principles adherence
 
-  Scope: ONLY read files directly relevant to the PR diff. Do NOT explore the entire codebase.
+  Scope: ONLY review the following changed files:
+  ${CHANGED_FILES}
+
+  Do NOT explore beyond these files. Focus your analysis on the diff.
 
   SUMMARY: End with: "RESULT: [PASS|WARN|FAIL] - [N] issues: [brief list]"
   """,
@@ -41,7 +60,7 @@ Task(
 Task(
   description="Review type safety",
   subagent_type="code-quality-reviewer",
-  prompt="""TYPE SAFETY REVIEW for PR $ARGUMENTS
+  prompt="""TYPE SAFETY REVIEW for PR $PR_NUMBER
 
   Review type safety and validation:
   1. TypeScript strict mode compliance
@@ -49,7 +68,10 @@ Task(
   3. No `any` types or type assertions
   4. Exhaustive switch/union handling
 
-  Scope: ONLY read files directly relevant to the PR diff. Do NOT explore the entire codebase.
+  Scope: ONLY review the following changed files:
+  ${CHANGED_FILES}
+
+  Do NOT explore beyond these files. Focus your analysis on the diff.
 
   SUMMARY: End with: "RESULT: [PASS|WARN|FAIL] - [N] type issues: [brief list]"
   """,
@@ -59,7 +81,7 @@ Task(
 Task(
   description="Security audit PR",
   subagent_type="security-auditor",
-  prompt="""SECURITY REVIEW for PR $ARGUMENTS
+  prompt="""SECURITY REVIEW for PR $PR_NUMBER
 
   Security audit:
   1. Secrets/credentials in code
@@ -67,7 +89,10 @@ Task(
   3. Authentication/authorization checks
   4. Dependency vulnerabilities
 
-  Scope: ONLY read files directly relevant to the PR diff. Do NOT explore the entire codebase.
+  Scope: ONLY review the following changed files:
+  ${CHANGED_FILES}
+
+  Do NOT explore beyond these files. Focus your analysis on the diff.
 
   SUMMARY: End with: "RESULT: [PASS|WARN|BLOCK] - [N] findings: [severity summary]"
   """,
@@ -77,7 +102,7 @@ Task(
 Task(
   description="Review test adequacy",
   subagent_type="test-generator",
-  prompt="""TEST ADEQUACY REVIEW for PR $ARGUMENTS
+  prompt="""TEST ADEQUACY REVIEW for PR $PR_NUMBER
 
   Evaluate whether this PR has sufficient tests:
 
@@ -104,7 +129,10 @@ Task(
      - Which changed functions/methods lack test coverage?
      - Which error paths are untested?
 
-  Scope: ONLY read files directly relevant to the PR diff.
+  Scope: ONLY review the following changed files:
+  ${CHANGED_FILES}
+
+  Do NOT explore beyond these files. Focus your analysis on the diff.
 
   SUMMARY: End with: "RESULT: [ADEQUATE|GAPS|MISSING] - [N] untested paths, [M] missing test types - [key gap]"
   """,
@@ -114,7 +142,7 @@ Task(
 Task(
   description="Review backend code",
   subagent_type="backend-system-architect",
-  prompt="""BACKEND REVIEW for PR $ARGUMENTS
+  prompt="""BACKEND REVIEW for PR $PR_NUMBER
 
   Review backend code:
   1. API design and REST conventions
@@ -122,7 +150,10 @@ Task(
   3. Database query efficiency (N+1)
   4. Transaction boundaries
 
-  Scope: ONLY read files directly relevant to the PR diff. Do NOT explore the entire codebase.
+  Scope: ONLY review the following changed files:
+  ${CHANGED_FILES}
+
+  Do NOT explore beyond these files. Focus your analysis on the diff.
 
   SUMMARY: End with: "RESULT: [PASS|WARN|FAIL] - [N] issues: [key concern]"
   """,
@@ -132,7 +163,7 @@ Task(
 Task(
   description="Review frontend code",
   subagent_type="frontend-ui-developer",
-  prompt="""FRONTEND REVIEW for PR $ARGUMENTS
+  prompt="""FRONTEND REVIEW for PR $PR_NUMBER
 
   Review frontend code:
   1. React 19 patterns (hooks, server components)
@@ -140,7 +171,10 @@ Task(
   3. Accessibility (a11y) compliance
   4. Performance (memoization, lazy loading)
 
-  Scope: ONLY read files directly relevant to the PR diff. Do NOT explore the entire codebase.
+  Scope: ONLY review the following changed files:
+  ${CHANGED_FILES}
+
+  Do NOT explore beyond these files. Focus your analysis on the diff.
 
   SUMMARY: End with: "RESULT: [PASS|WARN|FAIL] - [N] issues: [key concern]"
   """,

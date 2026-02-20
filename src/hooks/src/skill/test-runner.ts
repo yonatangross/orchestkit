@@ -6,7 +6,7 @@
  */
 
 import { existsSync } from 'node:fs';
-import { execSync } from 'node:child_process';
+import { execSync, execFileSync } from 'node:child_process';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess } from '../lib/common.js';
 import { basename, dirname } from 'node:path';
@@ -28,16 +28,24 @@ function findProjectRoot(startDir: string): string | null {
 }
 
 /**
+ * Validate file path contains only safe characters (no shell metacharacters)
+ */
+function isSafeFilePath(p: string): boolean {
+  // Allow alphanumeric, slashes, dots, hyphens, underscores, spaces (quoted)
+  return /^[\w./ -]+$/.test(p);
+}
+
+/**
  * Auto-run test file that was just created/modified
  */
 export function testRunner(input: HookInput): HookResult {
   const filePath = input.tool_input?.file_path || process.env.CC_TOOL_FILE_PATH || '';
 
-  // Early exit if no file path
-  if (!filePath) return outputSilentSuccess();
+  // Early exit if no file path or path contains shell metacharacters
+  if (!filePath || !isSafeFilePath(filePath)) return outputSilentSuccess();
 
   // Python test files
-  if (/test.*\.py$/.test(filePath) || /_test\.py$/.test(filePath)) {
+  if ((filePath.endsWith('.py') && /(?:^|\/)test[^/.]*\.py$/.test(filePath)) || /_test\.py$/.test(filePath)) {
     process.stderr.write(`::group::Auto-running Python test: ${basename(filePath)}\n`);
 
     const dir = dirname(filePath);
@@ -47,7 +55,7 @@ export function testRunner(input: HookInput): HookResult {
       if (existsSync(`${dir}/pyproject.toml`)) {
         try {
           execSync('command -v poetry', { stdio: ['pipe', 'pipe', 'pipe'] });
-          const result = execSync(`poetry run pytest "${filePath}" -v --tb=short`, {
+          const result = execFileSync('poetry', ['run', 'pytest', filePath, '-v', '--tb=short'], {
             cwd: dir,
             encoding: 'utf8',
             timeout: 60000,
@@ -63,7 +71,7 @@ export function testRunner(input: HookInput): HookResult {
       // Try pytest directly
       try {
         execSync('command -v pytest', { stdio: ['pipe', 'pipe', 'pipe'] });
-        const result = execSync(`pytest "${filePath}" -v --tb=short`, {
+        const result = execFileSync('pytest', [filePath, '-v', '--tb=short'], {
           cwd: dir,
           encoding: 'utf8',
           timeout: 60000,
@@ -97,7 +105,7 @@ export function testRunner(input: HookInput): HookResult {
           .replace(/\.[^.]+$/, '')
           .replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-        const result = execSync(`npm test -- --testPathPattern="${testPattern}"`, {
+        const result = execFileSync('npm', ['test', '--', `--testPathPattern=${testPattern}`], {
           cwd: projectRoot,
           encoding: 'utf8',
           timeout: 60000,

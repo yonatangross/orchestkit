@@ -1,5 +1,5 @@
 ---
-title: "MCP Apps UI"
+title: Configure MCP Apps UI sandboxing, CSP declarations, and visibility controls correctly
 impact: "MEDIUM"
 impactDescription: "Without proper sandbox and CSP declarations, UI resources render without network access or fail to load external assets; missing visibility controls expose internal tools to the model"
 tags: [mcp-apps, ui-resource, sandbox, csp, iframe, ext-apps, visibility]

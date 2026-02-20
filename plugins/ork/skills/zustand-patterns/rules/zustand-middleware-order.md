@@ -1,5 +1,5 @@
 ---
-title: "Zustand: Middleware Order"
+title: Nest Zustand middleware in the correct order to prevent devtools and persist failures
 category: zustand
 impact: CRITICAL
 impactDescription: "Wrong middleware nesting order causes devtools to miss actions, persist to serialize untransformed state, and immer drafts to leak outside their scope."

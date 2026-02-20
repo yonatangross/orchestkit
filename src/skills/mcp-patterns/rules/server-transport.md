@@ -1,5 +1,5 @@
 ---
-title: Server Transport
+title: Choose the right MCP transport for production multi-client and deployment requirements
 impact: HIGH
 impactDescription: "Wrong transport choice leads to connection failures in production or inability to serve multiple clients"
 tags: transport, stdio, sse, streamable-http, claude-desktop, configuration

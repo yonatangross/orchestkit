@@ -76,23 +76,23 @@ function classifyPriority(content: string): 'IMMEDIATE' | 'BATCHED' | 'SESSION_E
  * Extract the decision/insight from content
  */
 function extractDecision(content: string): string {
-  // Try to extract a meaningful decision statement
-  const patterns = [
-    /[^.]*\b(decided|chose|selected|will use|must|cannot|blocked|breaking)[^.]*/i,
-    /[^.]*\b(architecture|security|migration|deprecated)[^.]*/i,
-  ];
+  // Try to extract a meaningful decision statement by splitting into sentences
+  const keywords1 = /\b(decided|chose|selected|will use|must|cannot|blocked|breaking)\b/i;
+  const keywords2 = /\b(architecture|security|migration|deprecated)\b/i;
+  const sentenceList = content.split('.');
 
-  for (const pattern of patterns) {
-    const match = content.match(pattern);
-    if (match) {
-      return match[0].trim().substring(0, 300);
+  for (const keyword of [keywords1, keywords2]) {
+    for (const sentence of sentenceList) {
+      if (keyword.test(sentence)) {
+        return sentence.trim().substring(0, 300);
+      }
     }
   }
 
   // Final fallback: take first meaningful sentence
-  const sentences = content.match(/^[^.]{30,200}\./);
-  if (sentences) {
-    return sentences[0].trim();
+  const firstSentence = sentenceList.find(s => s.trim().length >= 30);
+  if (firstSentence) {
+    return `${firstSentence.trim().substring(0, 200)}.`;
   }
 
   return content.substring(0, 300).trim();
@@ -268,7 +268,7 @@ Store in knowledge graph with mcp__memory__create_entities:
   "entities": [{
     "name": "${category}-decision",
     "entityType": "Decision",
-    "observations": ["${decision.substring(0, 300).replace(/"/g, '\\"')}"]
+    "observations": ["${decision.substring(0, 300).replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"]
   }]
 }
 \`\`\`

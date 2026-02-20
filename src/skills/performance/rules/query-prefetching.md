@@ -1,5 +1,5 @@
 ---
-title: TanStack Query Prefetching
+title: Prefetch TanStack queries on hover or in route loaders for instant page transitions
 impact: HIGH
 impactDescription: "Users waiting for data on navigation causes perceived slowness — prefetching on hover or in route loaders enables instant page transitions"
 tags: tanstack-query, prefetch, ensureQueryData, loader, hover-prefetch

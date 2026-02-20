@@ -1,0 +1,54 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "git-workflow",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "branching-strategy",
+      "query": "Set up a branching strategy for our new project",
+      "expected_behavior": [
+        "Recommends GitHub Flow branching model",
+        "Uses descriptive branch naming convention",
+        "Enforces main is always deployable",
+        "Requires PR workflow for protected branches"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "stash-recovery",
+      "query": "I accidentally dropped my stash, how do I recover it?",
+      "expected_behavior": [
+        "Uses git reflog to find the dropped stash",
+        "Provides stash recovery commands",
+        "Explains stash management best practices"
+      ],
+      "tags": ["edge-case"]
+    },
+    {
+      "id": "rebase-vs-merge",
+      "query": "Should I merge or rebase my feature branch?",
+      "expected_behavior": [
+        "Recommends rebase over merge for clean history",
+        "Explains conflict resolution during rebase",
+        "Uses force-with-lease for safe pushing after rebase",
+        "Warns against rebasing shared branches"
+      ],
+      "should_not": [
+        "Recommend force push without --force-with-lease",
+        "Suggest rebasing shared/public branches"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "wrong-branch-commit",
+      "query": "I committed to the wrong branch, how do I move it?",
+      "expected_behavior": [
+        "Uses reflog to find the commit",
+        "Recommends cherry-pick to correct branch",
+        "Provides reset to remove from wrong branch",
+        "Distinguishes pushed vs unpushed recovery strategies"
+      ],
+      "tags": ["edge-case"]
+    }
+  ]
+}

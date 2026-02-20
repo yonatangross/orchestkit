@@ -1,5 +1,5 @@
 ---
-title: "SQLAlchemy: Sessions & Models"
+title: Configure SQLAlchemy sessions and engines correctly to prevent connection leaks and lazy load errors
 category: sqlalchemy
 impact: HIGH
 impactDescription: Correct session and engine configuration prevents connection leaks and lazy load errors

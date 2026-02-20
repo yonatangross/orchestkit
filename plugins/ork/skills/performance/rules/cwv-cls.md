@@ -1,5 +1,5 @@
 ---
-title: CLS Prevention
+title: Prevent Cumulative Layout Shift that causes content jumping and hurts search rankings
 impact: CRITICAL
 impactDescription: "Cumulative Layout Shift causes content jumping that frustrates users and hurts search rankings"
 tags: cls, layout-shift, dimensions, aspect-ratio, font-display, skeleton

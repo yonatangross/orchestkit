@@ -1,5 +1,5 @@
 ---
-title: "Mocking: LLM APIs"
+title: Record and replay LLM API calls with VCR.py cassettes and custom matchers
 category: mocking
 impact: HIGH
 impactDescription: "Enables deterministic LLM API testing through VCR.py cassette recording with custom matchers and sensitive data filtering"

@@ -1,5 +1,5 @@
 ---
-title: State Recovery and Debugging
+title: Recover interrupted workflow state and debug checkpoint history
 impact: HIGH
 impactDescription: "Without recovery logic, interrupted workflows require manual restart from scratch"
 tags: checkpoints, recovery, resume, debugging, history

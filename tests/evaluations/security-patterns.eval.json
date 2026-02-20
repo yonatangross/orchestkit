@@ -1,0 +1,70 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "security-patterns",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "jwt-auth",
+      "query": "Implement JWT authentication with access and refresh tokens",
+      "expected_behavior": [
+        "Uses Argon2id for password hashing",
+        "Access token expires in 15 minutes",
+        "Refresh token stored in HTTPOnly cookie",
+        "Hardcodes algorithm, never reads from header"
+      ],
+      "should_not": [
+        "Use MD5 or SHA for password hashing",
+        "Store tokens in localStorage",
+        "Read algorithm from JWT header"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "defense-in-depth",
+      "query": "Design a security architecture for an AI application",
+      "expected_behavior": [
+        "Includes all 8 layers (edge to observability)",
+        "Rate limiting at edge layer",
+        "JWT validation at gateway layer",
+        "No IDs in LLM prompts"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "input-validation",
+      "query": "Validate API request body with Zod",
+      "expected_behavior": [
+        "Uses z.object with typed fields",
+        "Includes min/max length constraints",
+        "Returns structured error with safeParse",
+        "Validates server-side, not just client"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "sql-injection-fix",
+      "query": "Fix SQL injection vulnerability in a search endpoint",
+      "expected_behavior": [
+        "Uses parameterized queries or ORM",
+        "Never concatenates user input into SQL",
+        "Uses subprocess with list args for commands"
+      ],
+      "should_not": [
+        "Use string concatenation for SQL",
+        "Use shell=True with subprocess"
+      ],
+      "tags": ["security"]
+    },
+    {
+      "id": "prompt-injection",
+      "query": "Implement context separation for LLM prompts",
+      "expected_behavior": [
+        "No user_id, tenant_id, or UUIDs in prompts",
+        "Uses SafePromptBuilder with audit",
+        "Stores context IDs separately for attribution",
+        "Runs audit_prompt() before every LLM call"
+      ],
+      "tags": ["security"]
+    }
+  ]
+}

@@ -310,7 +310,7 @@ Use Opus 4.6 adaptive thinking for:
 
 ## Rules (6)
 
-### CI/CD: Branch Protection — HIGH
+### Protect CI/CD branches from direct pushes to enforce code review and audit trails — HIGH
 
 
 ## CI/CD: Branch Protection
@@ -375,7 +375,7 @@ dev branch:
 Reference: `references/ci-cd-pipelines.md` (lines 5-21)
 
 
-### CI/CD: Pipeline Caching — HIGH
+### Cache CI/CD pipeline dependencies to avoid re-downloading and save minutes per run — HIGH
 
 
 ## CI/CD: Pipeline Caching
@@ -442,7 +442,7 @@ steps:
 Reference: `references/ci-cd-pipelines.md` (lines 23-68)
 
 
-### DevOps: Database Migrations — CRITICAL
+### Run database migrations safely during deployment to prevent downtime and data loss — CRITICAL
 
 
 ## DevOps: Database Migrations
@@ -515,7 +515,7 @@ ALTER TABLE users ALTER COLUMN email SET NOT NULL;
 Reference: `references/environment-management.md` (lines 115-162)
 
 
-### Docker: Layer Security — CRITICAL
+### Secure Docker layers by running as non-root and excluding secrets from image builds — CRITICAL
 
 
 ## Docker: Layer Security
@@ -588,7 +588,7 @@ tests/
 Reference: `references/docker-patterns.md` (lines 52-85)
 
 
-### Docker: Multi-Stage Builds — HIGH
+### Use Docker multi-stage builds to exclude dev dependencies and reduce image size by 4-5x — HIGH
 
 
 ## Docker: Multi-Stage Builds
@@ -651,7 +651,7 @@ CMD ["node", "dist/main.js"]
 Reference: `references/docker-patterns.md` (lines 7-50)
 
 
-### Railway Deployment — HIGH
+### Configure Railway PaaS deployment with correct Nixpacks, environment, and railway.json settings — HIGH
 
 
 # Railway Deployment Patterns

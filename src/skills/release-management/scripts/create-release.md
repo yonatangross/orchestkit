@@ -17,6 +17,12 @@ Create release: $ARGUMENTS
 - **Changed Files**: !`git diff --name-only $(git describe --tags --abbrev=0 2>/dev/null || echo "HEAD~10")..HEAD 2>/dev/null | head -20 || echo "No changes detected"`
 - **GitHub CLI Available**: !`which gh >/dev/null 2>&1 && echo "✅ Yes" || echo "❌ Not found"`
 
+## Your Task
+
+Create a GitHub release for version: **$ARGUMENTS**
+
+Review the auto-detected release context above, verify the checklist below, then run the release commands to create the tag and GitHub release.
+
 ## Release Information
 
 **Version**: $ARGUMENTS

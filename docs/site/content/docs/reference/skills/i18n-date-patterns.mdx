@@ -269,7 +269,7 @@ See `checklists/i18n-checklist.md` for complete implementation and review checkl
 
 ## Rules (3)
 
-### i18n: Formatting Anti-Patterns — CRITICAL
+### Avoid hardcoded date and number formats that break in non-English locales — CRITICAL
 
 
 ## i18n: Formatting Anti-Patterns
@@ -345,7 +345,7 @@ const formatted = formatNumber(number);
 Reference: `references/formatting-utilities.md` (lines 132-167)
 
 
-### i18n: ICU Plural Rules — HIGH
+### Use ICU plural rules to handle complex plural forms across all locales correctly — HIGH
 
 
 ## i18n: ICU Plural Rules
@@ -421,7 +421,7 @@ Hebrew uses a `two` (dual) form. Arabic uses `zero`, `one`, `two`, `few`, `many`
 Reference: `references/icu-messageformat.md` (lines 13-28, 141-165)
 
 
-### i18n: Trans Component — HIGH
+### Use the Trans component for JSX-embedded translations that preserve locale word order — HIGH
 
 
 ## i18n: Trans Component

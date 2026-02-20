@@ -1,5 +1,5 @@
 ---
-title: "@entrypoint Decorator"
+title: "Configure @entrypoint decorator with checkpointer for resumable workflows"
 impact: MEDIUM
 impactDescription: "Missing checkpointer on @entrypoint means interrupted workflows cannot resume"
 tags: functional, entrypoint, decorator, workflow, checkpoint

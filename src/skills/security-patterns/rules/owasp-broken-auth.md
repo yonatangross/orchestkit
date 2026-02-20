@@ -1,5 +1,5 @@
 ---
-title: "OWASP: Authentication & Session Attacks"
+title: Prevent JWT algorithm confusion, token sidejacking, CSRF, and session timing attacks
 category: owasp
 impact: CRITICAL
 impactDescription: "Prevents JWT algorithm confusion, token sidejacking, CSRF, and timing attacks through secure authentication patterns"

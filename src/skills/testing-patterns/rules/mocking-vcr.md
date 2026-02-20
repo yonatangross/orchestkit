@@ -1,5 +1,5 @@
 ---
-title: "Mocking: VCR.py"
+title: Record and replay HTTP interactions for deterministic integration tests with data filtering
 category: mocking
 impact: HIGH
 impactDescription: "Records and replays HTTP interactions for deterministic integration tests with sensitive data filtering"

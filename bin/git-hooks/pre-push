@@ -55,6 +55,22 @@ else
     echo "╚════════════════════════════════════════════════════════════╝"
     exit 1
   fi
+
+  # Verify branch version is GREATER than main (not just different)
+  # Sort with -V (version sort) and check that main comes first
+  HIGHER=$(printf '%s\n%s\n' "$MAIN_VERSION" "$PR_VERSION" | sort -V | tail -1)
+  if [[ "$HIGHER" != "$PR_VERSION" ]]; then
+    echo "FAILED"
+    echo ""
+    echo "╔════════════════════════════════════════════════════════════╗"
+    echo "║  Version $PR_VERSION is not greater than main ($MAIN_VERSION)!"
+    echo "╠════════════════════════════════════════════════════════════╣"
+    echo "║  Did you branch before a release merged to main?"
+    echo "║  Run: git fetch origin main && ./bin/bump-version.sh patch"
+    echo "╚════════════════════════════════════════════════════════════╝"
+    exit 1
+  fi
+
   echo "OK ($MAIN_VERSION → $PR_VERSION)"
 fi
 

@@ -1,5 +1,5 @@
 ---
-title: Count Validation and Diff Review
+title: Validate counts and review diffs before release to catch manifest errors and stale edits
 impact: HIGH
 impactDescription: "Inconsistent counts produce manifest errors at install time; stale or no-op edits in a release commit indicate an unfinished or incorrectly-scoped change"
 tags: validate-counts, diff-review, release-gate, hygiene

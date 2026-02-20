@@ -1,5 +1,5 @@
 ---
-title: List Virtualization
+title: Virtualize long lists to render only visible items for smooth scrolling performance
 impact: HIGH
 impactDescription: "Virtualization renders only visible items, enabling smooth scrolling for lists with hundreds or thousands of items"
 tags: virtual, tanstack, large-list, scroll, overscan, useVirtualizer

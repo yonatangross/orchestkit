@@ -1,5 +1,5 @@
 ---
-title: "Pytest: Custom Markers"
+title: Enable selective test execution through custom pytest markers for categorized test runs
 category: pytest
 impact: HIGH
 impactDescription: "Enables selective test execution through custom pytest markers for smoke, integration, and slow tests"

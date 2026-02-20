@@ -9,18 +9,19 @@
  */
 
 import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, outputDeny, outputWithContext } from '../lib/common.js';
+import { outputSilentSuccess, outputDeny, outputWithContext, lineContainsAllCI } from '../lib/common.js';
 
-// Dangerous CI/CD patterns
-const DANGEROUS_PATTERNS = [
-  /force.*push/i,
-  /push.*--force/i,
-  /--force-with-lease/i,
-  /workflow_dispatch/i,
-  /delete.*workflow/i,
-  /gh\s+secret\s+delete/i,
-  /gh\s+variable\s+delete/i,
-  /rm.*-rf.*\.github/i,
+// Dangerous CI/CD patterns — each entry is [pattern, label]
+// String-based checks avoid ReDoS from polynomial regex backtracking
+const DANGEROUS_PATTERNS: Array<{ test: (cmd: string) => boolean; source: string }> = [
+  { test: (cmd) => lineContainsAllCI(cmd, 'force', 'push'), source: 'force push' },
+  { test: (cmd) => lineContainsAllCI(cmd, 'push', '--force'), source: 'push --force' },
+  { test: (cmd) => cmd.includes('--force-with-lease'), source: '--force-with-lease' },
+  { test: (cmd) => cmd.toLowerCase().includes('workflow_dispatch'), source: 'workflow_dispatch' },
+  { test: (cmd) => lineContainsAllCI(cmd, 'delete', 'workflow'), source: 'delete workflow' },
+  { test: (cmd) => /gh\s+secret\s+delete/i.test(cmd), source: 'gh secret delete' },
+  { test: (cmd) => /gh\s+variable\s+delete/i.test(cmd), source: 'gh variable delete' },
+  { test: (cmd) => lineContainsAllCI(cmd, 'rm', '-rf', '.github'), source: 'rm -rf .github' },
 ];
 
 /**

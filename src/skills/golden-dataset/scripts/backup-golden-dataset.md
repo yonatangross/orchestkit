@@ -14,6 +14,12 @@ Backup golden dataset: $ARGUMENTS
 - **Python Version**: !`python --version 2>/dev/null || echo "Python 3.x"`
 - **Backup Directory**: !`pwd`
 
+## Your Task
+
+Create a backup script for golden dataset: **$ARGUMENTS**
+
+Review the auto-detected backup context above, then customize the template below with your dataset's structure and backup destination.
+
 ## Backup Script
 
 ```python

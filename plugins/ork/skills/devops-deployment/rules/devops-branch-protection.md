@@ -1,5 +1,5 @@
 ---
-title: "CI/CD: Branch Protection"
+title: Protect CI/CD branches from direct pushes to enforce code review and audit trails
 category: cicd
 impact: HIGH
 impactDescription: "Unprotected branches allow direct pushes to production — bypassing code review, CI checks, and audit trails"

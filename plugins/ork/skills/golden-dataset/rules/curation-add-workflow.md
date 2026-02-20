@@ -1,5 +1,5 @@
 ---
-title: Add to Golden Dataset Workflow
+title: Follow the full curation pipeline when adding entries to the golden dataset
 impact: HIGH
 impactDescription: "Adding documents without the full curation pipeline produces low-quality entries that degrade evaluation accuracy"
 tags: golden-dataset, curation, add-golden, workflow, quality-scoring, bias-detection

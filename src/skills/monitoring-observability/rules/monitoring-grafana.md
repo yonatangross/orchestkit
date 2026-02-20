@@ -1,5 +1,5 @@
 ---
-title: "Monitoring: Grafana Dashboards"
+title: Design Grafana dashboards for actionable incident response and capacity planning
 impact: CRITICAL
 impactDescription: "Grafana dashboards translate raw metrics into actionable insights — proper dashboard design is essential for incident response and capacity planning."
 tags: [grafana, dashboards, golden-signals, slo, sli, health-checks]

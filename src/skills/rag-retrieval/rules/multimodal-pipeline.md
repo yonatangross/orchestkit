@@ -1,5 +1,5 @@
 ---
-title: Multimodal RAG Pipeline
+title: Build unified multimodal RAG pipeline that merges cross-modal results with deduplication
 impact: MEDIUM
 impactDescription: "Separate text and image search without deduplication returns fragmented results — unified pipeline merges cross-modal results"
 tags: multimodal, pipeline, hybrid, generation, deduplication

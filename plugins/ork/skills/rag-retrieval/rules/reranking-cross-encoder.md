@@ -1,5 +1,5 @@
 ---
-title: Cross-Encoder Reranking
+title: Rerank results with cross-encoder models for accurate query-document relevance scoring
 impact: HIGH
 impactDescription: "Bi-encoder embeddings miss semantic nuance — cross-encoders process query+doc together for accurate relevance scoring"
 tags: reranking, cross-encoder, precision, ms-marco

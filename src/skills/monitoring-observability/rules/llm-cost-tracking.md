@@ -1,5 +1,5 @@
 ---
-title: "LLM: Cost Tracking"
+title: Track LLM token costs with spend alerts and per-operation cost attribution
 impact: HIGH
 impactDescription: "LLM costs can spike unexpectedly — cost tracking with spend alerts prevents budget overruns and enables per-operation cost attribution."
 tags: [langfuse, cost, tokens, pricing, spend-alerts, metrics-api, budget]

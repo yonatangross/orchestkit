@@ -16,6 +16,12 @@ Create FastAPI app: $ARGUMENTS
 - **Existing Structure**: !`ls -la 2>/dev/null | grep -E 'app|src|backend' | head -3 | awk '{print $NF}' || echo "No app/src/backend found"`
 - **Current Dependencies**: !`grep -r "fastapi\|uvicorn\|pydantic" pyproject.toml requirements.txt 2>/dev/null | head -3 || echo "No FastAPI deps found"`
 
+## Your Task
+
+Create a production-ready FastAPI application: **$ARGUMENTS**
+
+Review the auto-detected project context above, then customize the template below with your application's routes, middleware, and database configuration.
+
 ## FastAPI Application Template
 
 Generate a production-ready FastAPI application with the following structure:

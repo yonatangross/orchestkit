@@ -1,5 +1,5 @@
 ---
-title: "Vite: Environment API"
+title: Configure Vite environment API to separate client and SSR build targets correctly
 category: vite
 impact: MEDIUM
 impactDescription: "Mixing client and SSR configuration in a flat config causes wrong build targets, missing externals, or bundling server-only code into the client."

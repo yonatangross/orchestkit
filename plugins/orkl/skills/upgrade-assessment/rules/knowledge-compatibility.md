@@ -1,5 +1,5 @@
 ---
-title: Platform Compatibility Knowledge
+title: Check platform compatibility for model IDs, API changes, and format changes before upgrading
 impact: HIGH
 impactDescription: "Missing compatibility checks cause silent failures — model ID changes, removed APIs, and format changes break at runtime"
 tags: upgrade, compatibility, migration, breaking-changes, model, cc-version

@@ -1,5 +1,5 @@
 ---
-title: Silent Failure Alerting
+title: Alert on silent failures using statistical baselines and proactive health monitoring
 impact: HIGH
 impactDescription: "Silent failures produce no errors — without statistical baselines and proactive monitoring, degradation goes unnoticed for days"
 tags: monitoring, silent-failure, alerting, anomaly, baseline, z-score

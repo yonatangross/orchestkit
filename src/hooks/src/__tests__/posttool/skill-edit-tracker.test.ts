@@ -5,6 +5,15 @@ const mockReadFileSync = vi.fn();
 const mockAppendFileSync = vi.fn();
 const mockMkdirSync = vi.fn();
 
+vi.mock('../../lib/analytics-buffer.js', () => ({
+  bufferWrite: vi.fn((filePath: string, content: string) => {
+    mockAppendFileSync(filePath, content);
+  }),
+  flush: vi.fn(),
+  pendingCount: vi.fn(() => 0),
+  _resetForTesting: vi.fn(),
+}));
+
 vi.mock('node:fs', () => ({
   existsSync: (...args: unknown[]) => mockExistsSync(...args),
   readFileSync: (...args: unknown[]) => mockReadFileSync(...args),
@@ -30,6 +39,11 @@ vi.mock('../../lib/common.js', () => ({
   }),
   getProjectDir: vi.fn(() => '/test/project'),
   getSessionId: vi.fn(() => 'test-session-id'),
+  lineContainsAllCI: (content: string, ...terms: string[]) =>
+    content.split('\n').some(line => {
+      const lower = line.toLowerCase();
+      return terms.every(t => lower.includes(t.toLowerCase()));
+    }),
 }));
 
 import { skillEditTracker } from '../../posttool/skill-edit-tracker.js';

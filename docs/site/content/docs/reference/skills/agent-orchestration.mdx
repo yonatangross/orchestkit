@@ -404,7 +404,7 @@ result = await team.run(task="Complete task")
 ```
 
 
-### Frameworks: Comparison & Selection — HIGH
+### Compare and select multi-agent frameworks based on complexity, use case, and production needs — HIGH
 
 
 # Framework Comparison & Selection
@@ -590,7 +590,7 @@ result = await llm.ainvoke("Summarize this text: ...")
 ```
 
 
-### Frameworks: CrewAI — HIGH
+### Build role-based agent collaboration with CrewAI Flows, hierarchical crews, and structured outputs — HIGH
 
 
 # CrewAI Patterns (v1.8+)
@@ -816,7 +816,7 @@ crew = Crew(
 ```
 
 
-### Loops: Plan-and-Execute — HIGH
+### Generate multi-step plans before execution with replanning when conditions change — HIGH
 
 
 # Plan-and-Execute Pattern
@@ -1009,7 +1009,7 @@ async def plan_and_execute(goal: str):
 ```
 
 
-### Loops: ReAct Pattern — HIGH
+### Implement ReAct pattern where agents reason, act via tools, observe, and iterate — HIGH
 
 
 # ReAct Pattern (Reasoning + Acting)
@@ -1165,7 +1165,7 @@ async def react_loop(question: str, tools: dict, max_steps: int = 10):
 ```
 
 
-### Multi-Agent: Debate & Conflict Resolution — HIGH
+### Resolve agent disagreements through confidence scores, LLM arbitration, or majority voting — HIGH
 
 
 # Agent Debate & Conflict Resolution
@@ -1295,7 +1295,7 @@ async def multi_agent_analysis(task: str):
 ```
 
 
-### Multi-Agent: Supervisor Pattern — CRITICAL
+### Coordinate specialist agents through a central supervisor with parallel execution and timeouts — CRITICAL
 
 
 # Supervisor Pattern
@@ -1505,7 +1505,7 @@ async def analyze(content: str):
 ```
 
 
-### Multi-Agent: Result Synthesis — HIGH
+### Synthesize parallel agent outputs into coherent actionable results with quality metrics — HIGH
 
 
 # Result Synthesis
@@ -1675,7 +1675,7 @@ async def multi_agent_analysis(task: str):
 ```
 
 
-### Scenario: Multi-Scenario Orchestrator — MEDIUM
+### Test skills across three parallel scenarios with progressive difficulty and synchronized execution — MEDIUM
 
 
 # Multi-Scenario Orchestrator
@@ -1871,7 +1871,7 @@ async def orchestrate(skill_name: str):
 ```
 
 
-### Scenario: Routing & Synchronization — MEDIUM
+### Synchronize milestones, scale difficulty, and recover from failures across multi-scenario orchestration — MEDIUM
 
 
 # Scenario Routing & Synchronization

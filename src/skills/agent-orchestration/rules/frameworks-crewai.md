@@ -1,5 +1,5 @@
 ---
-title: "Frameworks: CrewAI"
+title: Build role-based agent collaboration with CrewAI Flows, hierarchical crews, and structured outputs
 category: frameworks
 impact: HIGH
 impactDescription: "Ensures role-based agent collaboration with Flows architecture, hierarchical crews, and structured outputs"

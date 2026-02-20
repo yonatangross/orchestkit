@@ -1,5 +1,5 @@
 ---
-title: LLM Token Streaming
+title: Filter LLM token streams by node or tags to avoid cross-node noise
 impact: MEDIUM
 impactDescription: "Unfiltered token streaming shows tokens from ALL nodes — filter by node or tags"
 tags: streaming, tokens, messages, llm, chat, filtering

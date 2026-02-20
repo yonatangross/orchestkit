@@ -1,5 +1,5 @@
 ---
-title: Event Messaging & Outbox
+title: Guarantee at-least-once delivery using transactional outbox and event messaging patterns
 impact: HIGH
 impactDescription: "Publishing events without transactional outbox causes lost messages on failures — the outbox pattern guarantees at-least-once delivery"
 tags: message-queue, kafka, rabbitmq, outbox, saga, event-driven

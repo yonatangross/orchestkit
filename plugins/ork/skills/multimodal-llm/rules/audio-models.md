@@ -1,5 +1,5 @@
 ---
-title: Audio Model Selection
+title: Select the right audio model architecture to avoid unnecessary pipeline latency
 impact: MEDIUM
 impactDescription: "Using STT+LLM+TTS pipeline instead of native speech-to-speech adds 2-5x latency — choose the right architecture"
 tags: audio, models, voice-agent, real-time, comparison, pricing

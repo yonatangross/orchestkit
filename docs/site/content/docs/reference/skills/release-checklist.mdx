@@ -75,7 +75,7 @@ Steps after all gates pass. See `rules/commit-staging.md` and `rules/commit-tag-
 
 ## Rules (4)
 
-### Release Staging Rules — HIGH
+### Stage release files carefully to avoid accidentally committing secrets or debug artifacts — HIGH
 
 
 ## Release Staging Rules
@@ -133,7 +133,7 @@ git add src/hooks/src/my-changed-hook.ts \
 - Version in `package.json` and `CLAUDE.md` must match before staging
 
 
-### Release Commit, Tag, and Push — HIGH
+### Format release commits, tags, and pushes correctly for CI changelog and semver automation — HIGH
 
 
 ## Release Commit, Tag, and Push
@@ -188,7 +188,7 @@ This pushes commits AND the version tag. On a shared remote this is effectively 
 - NEVER push without explicit user confirmation — even if user said "go ahead" earlier in the conversation
 
 
-### Build and Test Gates — CRITICAL
+### Pass build and test gates before release to prevent shipping broken artifacts — CRITICAL
 
 
 ## Build and Test Gates
@@ -255,7 +255,7 @@ npm run typecheck
 - A failed build leaves `plugins/` empty — re-run `npm run build` before retrying count validation
 
 
-### Count Validation and Diff Review — HIGH
+### Validate counts and review diffs before release to catch manifest errors and stale edits — HIGH
 
 
 ## Count Validation and Diff Review

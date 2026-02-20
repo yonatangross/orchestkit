@@ -1,5 +1,5 @@
 ---
-title: "Market: Competitive Analysis"
+title: Analyze competitive landscape using Porter Five Forces, SWOT, and positioning maps
 category: market
 impact: HIGH
 impactDescription: "Ensures thorough competitive analysis using Porter's Five Forces, SWOT, and competitive landscape mapping"

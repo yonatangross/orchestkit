@@ -1,5 +1,5 @@
 ---
-title: Temporal Activity and Worker Patterns
+title: Configure Temporal activity timeouts, heartbeats, and retry policies to prevent data loss
 impact: HIGH
 impactDescription: "Activities handle all I/O — correct timeout, heartbeat, and retry configuration prevents data loss"
 tags: temporal, activities, worker, heartbeat, retry, testing

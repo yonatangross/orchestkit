@@ -1,5 +1,5 @@
 ---
-title: Code Health Assessment
+title: Score code health across five quality dimensions with structured assessment criteria
 impact: MEDIUM
 impactDescription: "Provides structured code quality scoring across five key dimensions"
 tags: code-health, assessment, metrics

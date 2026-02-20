@@ -1,5 +1,5 @@
 ---
-title: Coverage Reporting
+title: Track test coverage to identify untested critical paths that correlate with production bugs
 impact: HIGH
 impactDescription: "No coverage tracking lets critical paths go untested — coverage gaps correlate directly with production bugs"
 tags: testing, coverage, pytest-cov, jest, reporting, gaps

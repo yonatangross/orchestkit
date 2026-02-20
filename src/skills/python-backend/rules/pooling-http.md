@@ -1,5 +1,5 @@
 ---
-title: "Pooling: HTTP Sessions"
+title: Reuse HTTP sessions with connection pooling to prevent churn and improve throughput
 category: pooling
 impact: MEDIUM
 impactDescription: Reusing HTTP sessions prevents connection churn and improves throughput

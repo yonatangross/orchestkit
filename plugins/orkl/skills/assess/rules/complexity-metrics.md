@@ -1,5 +1,5 @@
 ---
-title: Complexity Scoring Frameworks
+title: Score task complexity with structured frameworks to prevent scope creep and estimate drift
 impact: HIGH
 impactDescription: "Starting complex tasks without assessment leads to scope creep and blocked work — effort estimates miss by 3-5x"
 tags: complexity, scoring, metrics, assessment, estimation, criteria

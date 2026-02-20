@@ -1,5 +1,5 @@
 ---
-title: PWA Offline & Installability
+title: Configure PWA offline support, manifest, and background sync for native-like installability
 impact: HIGH
 impactDescription: "PWAs without proper offline support and manifest fail installability checks — background sync and proper manifests enable native-like experiences"
 tags: pwa, offline-first, background-sync, install-prompt, web-manifest

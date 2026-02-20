@@ -1,5 +1,5 @@
 ---
-title: Right-Sizing Aggregates
+title: Right-size aggregates to balance lock contention against consistency guarantee requirements
 impact: HIGH
 impactDescription: "Oversized aggregates cause lock contention and performance degradation — undersized ones lose consistency guarantees"
 tags: aggregate, sizing, performance, consistency, split, ddd

@@ -1,5 +1,5 @@
 ---
-title: Architecture Sizing Tiers
+title: Select the correct architecture sizing tier to avoid over-engineering or missing foundations
 impact: HIGH
 impactDescription: "Choosing the wrong architecture tier wastes days building unnecessary abstractions or leaves no foundation for growth"
 tags: right-sizing, architecture, interview, mvp, enterprise, over-engineering

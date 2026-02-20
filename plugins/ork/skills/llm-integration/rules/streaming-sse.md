@@ -1,5 +1,5 @@
 ---
-title: "Streaming: SSE Endpoints"
+title: Stream LLM responses via SSE endpoints to reduce time-to-first-byte and improve responsiveness
 impact: HIGH
 impactDescription: "SSE streaming reduces time-to-first-byte and improves perceived responsiveness"
 tags: [sse, server-sent-events, fastapi, streaming, frontend, async]

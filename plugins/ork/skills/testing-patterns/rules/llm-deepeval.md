@@ -1,5 +1,5 @@
 ---
-title: "LLM: DeepEval Quality"
+title: Validate LLM output quality using automated DeepEval metrics for relevancy and faithfulness
 category: llm
 impact: HIGH
 impactDescription: "Validates LLM output quality across multiple dimensions using automated metrics for relevancy, faithfulness, and hallucination"

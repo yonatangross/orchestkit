@@ -138,7 +138,7 @@ Each category has individual rule files in `rules/` loaded on-demand:
 
 ## Rules (4)
 
-### Atomic Commit Rules — CRITICAL
+### Create atomic commits that bundle one logical change for safe revert and bisect — CRITICAL
 
 
 ## Atomic Commit Rules
@@ -257,7 +257,7 @@ git commit -m "chore: Update webpack for tree shaking"
 - Never mix feature work with unrelated refactoring
 
 
-### Commit Splitting Strategies — HIGH
+### Split large mixed commits into focused, reviewable units with clean boundaries — HIGH
 
 
 ## Commit Splitting Strategies
@@ -387,7 +387,7 @@ git commit -m "chore: Update webpack config"
 - Each commit should pass tests independently
 
 
-### Conventional Commit Format — HIGH
+### Format commit messages with conventional commit prefixes for automated changelogs — HIGH
 
 
 ## Conventional Commit Format
@@ -500,7 +500,7 @@ EOF
 - Breaking changes must use `!` or `BREAKING CHANGE:` footer
 
 
-### Issue Reference Required — HIGH
+### Include issue references in commits to maintain traceability to GitHub issues — HIGH
 
 
 ## Issue Reference Required

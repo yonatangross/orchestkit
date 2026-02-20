@@ -1,5 +1,5 @@
 ---
-title: Zod Schema Validation Testing
+title: Test Zod validation schemas to prevent invalid data from passing API boundaries
 impact: HIGH
 impactDescription: "Untested validation schemas allow invalid data to pass through API boundaries causing runtime failures"
 tags: zod, validation, schema, typescript, type-safety, branded-types

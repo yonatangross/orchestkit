@@ -1,5 +1,5 @@
 ---
-title: "Verification: Contract Testing"
+title: Ensure API contract compatibility between consumers and providers using Pact testing
 category: verification
 impact: MEDIUM
 impactDescription: "Ensures API contract compatibility between consumers and providers using Pact-based contract testing"

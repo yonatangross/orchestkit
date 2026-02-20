@@ -1,5 +1,5 @@
 ---
-title: "i18n: Trans Component"
+title: Use the Trans component for JSX-embedded translations that preserve locale word order
 category: i18n
 impact: HIGH
 impactDescription: "Splitting translations around JSX elements breaks word order in non-English locales and tempts developers toward dangerouslySetInnerHTML"

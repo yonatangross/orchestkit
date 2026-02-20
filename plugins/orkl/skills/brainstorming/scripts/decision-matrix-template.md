@@ -4,6 +4,10 @@ description: Decision matrix template for option comparison
 user-invocable: false
 ---
 
+## Your Task
+
+Use this decision matrix template to systematically compare options and make a data-driven decision. Fill in the criteria, score each option, and document the rationale.
+
 # Decision Matrix: [Decision Name]
 
 **Date:** YYYY-MM-DD

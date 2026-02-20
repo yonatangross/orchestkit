@@ -1,5 +1,5 @@
 ---
-title: "Performance: Test Types"
+title: Define load, stress, spike, and soak testing patterns for comprehensive performance validation
 category: perf
 impact: MEDIUM
 impactDescription: "Defines load, stress, spike, and soak testing patterns for comprehensive performance validation"
