@@ -308,6 +308,66 @@ Evaluation scenarios to verify skill effectiveness.
 
 Include at least 3 scenarios per skill: a basic case, an edge case, and a case where the skill should NOT activate.
 
+## Prompt Cache-Friendly Patterns
+
+Claude Code's performance depends on prompt caching — prefix-matching that reuses computation across turns. Skills that break caching patterns increase cost and latency for users.
+
+### Why This Matters
+
+Prompt caching works by prefix matching: static system prompt, then tools, then CLAUDE.md, then session context, then messages. Any change to the prefix invalidates the cache for everything after it.
+
+### Rules
+
+1. **Use `context: fork` for complex skills.** Forked skills reuse the parent conversation's cached prefix (system prompt + tools + CLAUDE.md). The fork only adds the skill content as new tokens. This is the most cache-efficient pattern for skills that spawn subagents or do heavy work.
+
+2. **Never suggest model changes in skill instructions.** Switching models mid-conversation rebuilds the entire cache. Use subagents (`Task` tool) for different models — each subagent is a separate conversation with its own cache.
+
+3. **Never add or remove tools dynamically.** Tools are part of the cached prefix. Skills should use state transitions via messages (like `EnterPlanMode`), not tool-set changes.
+
+4. **Keep subagent prompts prefix-similar.** When spawning multiple subagents of the same type, put shared context first and dimension-specific instructions last. This maximizes cache reuse across subagents hitting the same model.
+
+5. **Don't add MCP servers mid-session.** MCP tools are part of the cached prefix. Adding a server invalidates the cache for the entire conversation.
+
+6. **Prefer `additionalContext` in messages over system prompt changes.** Hooks and skills should inject dynamic information via `<system-reminder>` tags in user messages, never by modifying the system prompt.
+
+### Reference
+
+Based on [Prompt Caching Lessons from Building Claude Code](https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching) — the Claude Code team monitors cache hit rate like uptime and declares incidents when it drops.
+
+## CC 2.1.49 Skill Patterns
+
+Features available since CC 2.1.49 that skills should leverage:
+
+### Worktree Isolation
+
+Skills that spawn teams or modify many files should offer `EnterWorktree` for isolated work:
+
+```python
+AskUserQuestion(questions=[{
+  "question": "Work in isolated worktree?",
+  "options": [
+    {"label": "Yes (Recommended)", "description": "Isolated branch, merge back when done"},
+    {"label": "No", "description": "Work directly on current branch"}
+  ]
+}])
+# If yes: EnterWorktree(name="feature-name")
+```
+
+### Agent Cleanup
+
+Skills that spawn background agents or teams **must** include cleanup guidance:
+
+- After `TeamDelete()`, add: "Press **Ctrl+F** twice to force-kill any orphaned background agents"
+- Skills using `run_in_background=True` should document the cleanup path
+
+### Background Agents
+
+Agent definitions can include `background: true` in frontmatter for agents that never need interactive results. When referencing these agents from skills, note they always run in background.
+
+### Plugin Settings
+
+OrchestKit ships `settings.json` per plugin (`src/settings/<plugin>.settings.json`). Skills can reference default permissions and keybindings defined there. The `chat:newline` keybinding (Shift+Enter) is available via settings.
+
 ## Checklist
 
 Before submitting a skill change:
@@ -320,5 +380,6 @@ Before submitting a skill change:
 - [ ] No content Claude already knows (the "Claude filter")
 - [ ] Area-prefixed filenames in `rules/`
 - [ ] Supporting files referenced from SKILL.md
+- [ ] Team-spawning skills include `Ctrl+F` cleanup note
 - [ ] `npm run build` passes
 - [ ] `npm run test:skills` passes

@@ -334,6 +334,40 @@ Prompt caching works by prefix matching: static system prompt, then tools, then 
 
 Based on [Prompt Caching Lessons from Building Claude Code](https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching) — the Claude Code team monitors cache hit rate like uptime and declares incidents when it drops.
 
+## CC 2.1.49 Skill Patterns
+
+Features available since CC 2.1.49 that skills should leverage:
+
+### Worktree Isolation
+
+Skills that spawn teams or modify many files should offer `EnterWorktree` for isolated work:
+
+```python
+AskUserQuestion(questions=[{
+  "question": "Work in isolated worktree?",
+  "options": [
+    {"label": "Yes (Recommended)", "description": "Isolated branch, merge back when done"},
+    {"label": "No", "description": "Work directly on current branch"}
+  ]
+}])
+# If yes: EnterWorktree(name="feature-name")
+```
+
+### Agent Cleanup
+
+Skills that spawn background agents or teams **must** include cleanup guidance:
+
+- After `TeamDelete()`, add: "Press **Ctrl+F** twice to force-kill any orphaned background agents"
+- Skills using `run_in_background=True` should document the cleanup path
+
+### Background Agents
+
+Agent definitions can include `background: true` in frontmatter for agents that never need interactive results. When referencing these agents from skills, note they always run in background.
+
+### Plugin Settings
+
+OrchestKit ships `settings.json` per plugin (`src/settings/<plugin>.settings.json`). Skills can reference default permissions and keybindings defined there. The `chat:newline` keybinding (Shift+Enter) is available via settings.
+
 ## Checklist
 
 Before submitting a skill change:
@@ -346,5 +380,6 @@ Before submitting a skill change:
 - [ ] No content Claude already knows (the "Claude filter")
 - [ ] Area-prefixed filenames in `rules/`
 - [ ] Supporting files referenced from SKILL.md
+- [ ] Team-spawning skills include `Ctrl+F` cleanup note
 - [ ] `npm run build` passes
 - [ ] `npm run test:skills` passes
