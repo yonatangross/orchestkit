@@ -5,6 +5,20 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.1.6] - 2026-02-20
+
+### Security
+
+- Fix 16 CodeQL shell injection alerts — convert execSync template strings to execFileSync array form
+- Fix 2 CodeQL incomplete string escaping alerts (issue-work-summary, session-cleanup)
+- Fix 1 CodeQL DOM XSS alert in coverage report (innerHTML → createElement)
+- Add shell.ts helpers: shellEscape(), isValidGitRef(), safeGitExec()
+- Harden GitHub Actions workflows: add explicit permissions blocks (least-privilege)
+- Pin jsonschema dependency version in plugin-validation workflow
+
+---
+
+
 ## [6.1.5] - 2026-02-20
 
 ### Fixed

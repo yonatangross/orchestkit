@@ -17,6 +17,39 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "6.1.6",
+    "date": "2026-02-20",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "security",
+        "items": [
+          "Fix 16 CodeQL shell injection alerts — convert execSync template strings to execFileSync array form",
+          "Fix 2 CodeQL incomplete string escaping alerts (issue-work-summary, session-cleanup)",
+          "Fix 1 CodeQL DOM XSS alert in coverage report (innerHTML → createElement)",
+          "Add shell.ts helpers: shellEscape(), isValidGitRef(), safeGitExec()",
+          "Harden GitHub Actions workflows: add explicit permissions blocks (least-privilege)",
+          "Pin jsonschema dependency version in plugin-validation workflow"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "6.1.5",
+    "date": "2026-02-20",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "Harden Scorecard workflow security: add explicit job-level permissions to release-please job (least-privilege)",
+          "Pin jsonschema dependency to v4.23.0 in plugin-validation workflow (Pinned-Dependencies alert)",
+          "Add --no-audit flags to npm commands in ci-setup.sh for reproducible builds"
+        ]
+      }
+    ]
+  },
+  {
     "version": "6.1.4",
     "date": "2026-02-20",
     "compareUrl": "",

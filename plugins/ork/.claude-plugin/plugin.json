@@ -1,6 +1,6 @@
 {
   "name": "ork",
-  "version": "6.1.5",
+  "version": "6.1.6",
   "description": "All-in-one (recommended) — 67 skills, 37 agents, 75 hooks. Includes everything: orkl + creative + Python/React/LLM/RAG specializations.",
   "author": {
     "name": "Yonatan Gross",
@@ -10,15 +10,7 @@
   "homepage": "https://github.com/yonatangross/orchestkit",
   "repository": "https://github.com/yonatangross/orchestkit",
   "license": "MIT",
-  "keywords": [
-    "ai-development",
-    "langgraph",
-    "fastapi",
-    "react",
-    "typescript",
-    "python",
-    "multi-agent"
-  ],
-  "skills": "./skills/",
-  "commands": "./commands/"
+  "keywords": ["ai-development", "langgraph", "fastapi", "react", "typescript", "python", "multi-agent"]
+  ,"skills": "./skills/"
+  ,"commands": "./commands/"
 }
