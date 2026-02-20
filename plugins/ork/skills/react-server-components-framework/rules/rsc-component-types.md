@@ -1,5 +1,5 @@
 ---
-title: "RSC: Component Types"
+title: Use correct React 19 component types instead of deprecated React.FC patterns
 category: rsc
 impact: MEDIUM
 impactDescription: "Using deprecated React.FC in React 19 projects leads to incorrect implicit children typing, inconsistent codebase patterns, and confusion about ref handling."

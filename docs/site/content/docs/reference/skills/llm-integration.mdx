@@ -195,7 +195,7 @@ Design, version, and optimize prompts for production LLM applications.
 
 ## Rules (18)
 
-### Function Calling: Parallel Execution — HIGH
+### Handle parallel function calls with careful strict mode coordination to reduce latency — HIGH
 
 
 # Parallel Tool Calls
@@ -288,7 +288,7 @@ results = await asyncio.gather(*[safe_execute(tc) for tc in response.tool_calls]
 ```
 
 
-### Function Calling: Tool Definition — CRITICAL
+### Define tool schemas with strict mode to prevent hallucinated parameters and ensure reliability — CRITICAL
 
 
 # Tool Definition (Strict Mode)
@@ -623,7 +623,7 @@ async def run_tools(user_message: str, max_iterations: int = 10):
 ```
 
 
-### Context Caching and Budget Scaling — HIGH
+### Apply context caching and budget allocation to reduce token costs by 60-80 percent — HIGH
 
 
 ## Context Caching and Budget Scaling
@@ -685,7 +685,7 @@ Key principles:
 - Test compression with probes (>90% pass rate), not ROUGE/BLEU similarity metrics
 
 
-### Context Window Management — HIGH
+### Manage context windows to avoid wasting 80 percent of token budget on irrelevant content — HIGH
 
 
 ## Context Window Management
@@ -818,7 +818,7 @@ Key principles:
 - Track evaluation scores over time for regression detection
 
 
-### LLM Evaluation Metrics — HIGH
+### Define LLM evaluation metrics to detect quality regressions before they reach production — HIGH
 
 
 ## LLM Evaluation Metrics
@@ -882,7 +882,7 @@ Key decisions:
 - Sample size: 50+ for reliable metrics
 
 
-### Local Inference: GPU Optimization — HIGH
+### Tune GPU settings and provider factory patterns for maximum local inference performance — HIGH
 
 
 # GPU Optimization & Provider Factory
@@ -1018,7 +1018,7 @@ llm = get_llm_provider(task_type="coding")
 | Cloud fallback | Provider factory pattern |
 
 
-### Local Inference: Model Selection — HIGH
+### Select the right local model for task and hardware to avoid OOM and maximize quality — HIGH
 
 
 # Model Selection Guide
@@ -1111,7 +1111,7 @@ llm = ChatOllama(model=model)
 ```
 
 
-### Local Inference: Ollama Setup — HIGH
+### Set up Ollama for local LLM inference to reduce costs and enable offline development — HIGH
 
 
 # Ollama Setup & LangChain Integration
@@ -1239,7 +1239,7 @@ response = await llm.ainvoke("Task 2")  # Instant (model still loaded)
 ```
 
 
-### Prompt Design Patterns — HIGH
+### Design effective prompts to improve LLM accuracy on complex reasoning tasks — HIGH
 
 
 ## Prompt Design Patterns
@@ -1318,7 +1318,7 @@ Key decisions:
 - Always use CoT for math/logic tasks
 
 
-### Prompt Testing and Optimization — HIGH
+### Test and version prompts systematically to prevent silent production regressions — HIGH
 
 
 ## Prompt Testing and Optimization
@@ -1401,7 +1401,7 @@ Key decisions:
 - Self-consistency: 5 paths for hard reasoning problems
 
 
-### Streaming: Backpressure & Cancellation — MEDIUM
+### Apply backpressure in LLM streams to prevent memory exhaustion from slow consumers — MEDIUM
 
 
 # Backpressure & Stream Cancellation
@@ -1520,7 +1520,7 @@ async def stream_tokens(prompt: str):
 ```
 
 
-### Streaming: SSE Endpoints — HIGH
+### Stream LLM responses via SSE endpoints to reduce time-to-first-byte and improve responsiveness — HIGH
 
 
 # SSE Streaming Endpoints
@@ -1638,7 +1638,7 @@ async def stream_chat(prompt: str):
 ```
 
 
-### Streaming: Structured & Tool Calls — HIGH
+### Accumulate tool call chunks carefully when handling structured output within LLM streams — HIGH
 
 
 # Streaming with Tool Calls & Structured Data
@@ -1754,7 +1754,7 @@ for tc in collected_tool_calls:
 ```
 
 
-### Fine-Tuning: Dataset Preparation — HIGH
+### Prepare high-quality training datasets since data quality determines fine-tuning success — HIGH
 
 
 # Dataset Preparation & Synthetic Data
@@ -1914,7 +1914,7 @@ async def generate_dataset(topic: str, num: int = 1000):
 ```
 
 
-### Fine-Tuning: DPO Alignment & Evaluation — HIGH
+### Align models with DPO and evaluate thoroughly before deploying fine-tuned versions — HIGH
 
 
 # DPO Alignment & Evaluation
@@ -2066,7 +2066,7 @@ if eval_results["mean_score"] >= 7.5:  # Quality threshold
 ```
 
 
-### Fine-Tuning: LoRA/QLoRA Configuration — HIGH
+### Configure LoRA and QLoRA to fine-tune large models on consumer hardware efficiently — HIGH
 
 
 # LoRA/QLoRA Fine-Tuning

@@ -1,5 +1,5 @@
 ---
-title: Fault Tree Analysis
+title: Map all failure paths with fault tree analysis to prevent recurring system failures
 impact: MEDIUM
 impactDescription: "Critical system failures need exhaustive path analysis — missing a failure path leaves the system vulnerable to the same class of failure"
 tags: rca, fault-tree, fta, critical-systems, safety, boolean-logic

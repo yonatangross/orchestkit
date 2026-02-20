@@ -158,7 +158,7 @@ See `test-cases.json` for 9 test cases across all categories.
 
 ## Rules (10)
 
-### Add to Golden Dataset Workflow — HIGH
+### Follow the full curation pipeline when adding entries to the golden dataset — HIGH
 
 
 ## Add to Golden Dataset Workflow
@@ -243,7 +243,7 @@ quality_score = (
 - Minimum requirements: 2+ domain tags, 3+ test queries per document
 
 
-### Multi-Agent Annotation — HIGH
+### Use multi-agent annotation for consistent and thorough curation quality decisions — HIGH
 
 
 ## Multi-Agent Annotation
@@ -441,7 +441,7 @@ results = await gather_task_results([quality_task, difficulty_task, domain_task,
 - Log all scores to Langfuse for audit trail
 
 
-### Content Collection — HIGH
+### Apply systematic collection criteria to maintain consistent golden dataset quality — HIGH
 
 
 ## Content Collection
@@ -544,7 +544,7 @@ analysis = Analysis(
 - Track provenance for full audit trail
 
 
-### Dataset Diversity — HIGH
+### Balance dataset coverage across difficulty levels, content types, and domains — HIGH
 
 
 ## Dataset Diversity
@@ -700,7 +700,7 @@ document["tags"] = ["ai-ml", "backend", "devops"]  # Minimum 2 tags
 - Target all 5 expected domains (ai-ml, backend, frontend, devops, security)
 
 
-### CI Integration — HIGH
+### Integrate golden dataset validation and backups into the CI/CD pipeline — HIGH
 
 
 ## CI Integration
@@ -880,7 +880,7 @@ fi
 - Include pre-deployment validation in release checklists
 
 
-### Storage Patterns — HIGH
+### Choose the right backup strategy and URL contract for golden dataset storage — HIGH
 
 
 ## Storage Patterns
@@ -1023,7 +1023,7 @@ await session.commit()
 - SQL dumps for local snapshots only, not version control
 
 
-### Dataset Versioning — HIGH
+### Version golden datasets for reproducible evaluation across environments and recovery — HIGH
 
 
 ## Dataset Versioning
@@ -1170,7 +1170,7 @@ chunk.embedding = embedding  # Fresh with current model
 - Test restore procedures in staging before production
 
 
-### Drift Detection — CRITICAL
+### Detect duplicate entries and coverage gaps that skew golden dataset evaluation results — CRITICAL
 
 
 ## Drift Detection
@@ -1329,7 +1329,7 @@ if normalize_url(new_url) == normalize_url(existing_url):
 - Truncate content to 8000 chars for embedding comparison
 
 
-### Quality Validation — CRITICAL
+### Validate schema and content quality to prevent invalid entries from degrading evaluations — CRITICAL
 
 
 ## Quality Validation
@@ -1507,7 +1507,7 @@ for chunk_id in query.get("expected_chunks", []):
 - Content quality checks are warnings (non-blocking) but should be addressed
 
 
-### Regression Testing — CRITICAL
+### Run regression tests and enforce difficulty distribution to maintain evaluation reliability — CRITICAL
 
 
 ## Regression Testing

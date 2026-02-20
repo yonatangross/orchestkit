@@ -1,5 +1,5 @@
 ---
-title: "Locks: Fencing Tokens & Safety"
+title: Validate lock ownership with fencing tokens and TTL to prevent data corruption
 category: locks
 impact: CRITICAL
 impactDescription: "Ensures distributed locks validate ownership with fencing tokens and TTL management to prevent data corruption"

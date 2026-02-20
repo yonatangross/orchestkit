@@ -1,5 +1,5 @@
 ---
-title: Vision Image Analysis
+title: Encode images correctly with content array structure to prevent silent vision failures
 impact: HIGH
 impactDescription: "Wrong image encoding or missing content array structure causes silent failures — model receives no image data"
 tags: vision, image, base64, multi-image, object-detection, captioning, vqa

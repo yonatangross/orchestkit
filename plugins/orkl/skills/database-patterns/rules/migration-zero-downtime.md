@@ -1,5 +1,5 @@
 ---
-title: Zero-Downtime Migration Patterns
+title: Apply zero-downtime migration patterns to avoid table locks and production outages
 impact: CRITICAL
 impactDescription: "Incorrect schema changes lock production tables and cause outages"
 tags: zero-downtime, expand-contract, pgroll, migration, production

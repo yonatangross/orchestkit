@@ -1,5 +1,5 @@
 ---
-title: Large File Streaming
+title: Stream large analytics files with jq instead of slurping to prevent OOM crashes
 impact: HIGH
 impactDescription: "Using jq -s (slurp) on analytics files over 50MB loads the entire file into memory, causing OOM crashes — use streaming jq without -s for large files"
 tags: jq, streaming, performance, rotation, large-files

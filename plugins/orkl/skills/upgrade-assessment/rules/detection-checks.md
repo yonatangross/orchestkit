@@ -1,5 +1,5 @@
 ---
-title: Detection Checks
+title: Run precondition verification and environment detection before starting upgrade scans
 impact: HIGH
 impactDescription: "Precondition verification and environment detection before upgrade scanning"
 tags: detection, environment, preconditions

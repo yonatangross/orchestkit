@@ -1,5 +1,5 @@
 ---
-title: Best Practices Review Checklist
+title: Run proactive anti-pattern detection to catch known bad patterns in new projects
 impact: HIGH
 impactDescription: "Without proactive anti-pattern detection, known bad patterns silently enter new projects"
 tags: best-practices, review, checklist, anti-patterns, proactive-warnings

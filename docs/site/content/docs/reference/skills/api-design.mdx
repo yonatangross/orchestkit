@@ -223,7 +223,7 @@ See `test-cases.json` for 9 test cases across all categories.
 
 ## Rules (17)
 
-### Error Type Catalog — HIGH
+### Maintain a centralized error catalog for consistent error handling across all endpoints — HIGH
 
 
 ## Error Type Catalog
@@ -444,7 +444,7 @@ raise NotFoundProblem(
 - Provide client handling examples in both Python and TypeScript
 
 
-### RFC 9457 Problem Details — HIGH
+### Return RFC 9457 Problem Details for machine-readable, standardized API error responses — HIGH
 
 
 ## RFC 9457 Problem Details
@@ -633,7 +633,7 @@ return JSONResponse(
 - Never expose stack traces or internal details in production
 
 
-### Validation Error Handling — HIGH
+### Return field-level validation errors with clear details to reduce user confusion — HIGH
 
 
 ## Validation Error Handling
@@ -796,7 +796,7 @@ return {
 - Map Pydantic error types to user-friendly codes where needed
 
 
-### OpenAPI Specifications — HIGH
+### Keep OpenAPI specifications complete and up-to-date as the API provider-consumer contract — HIGH
 
 
 ## OpenAPI Specifications
@@ -995,7 +995,7 @@ async def get_analysis(id: Annotated[str, Path(description="Analysis UUID")]) ->
 - Generate per-version documentation when versioning
 
 
-### Resource Modeling — HIGH
+### Model REST resources with proper nesting and filters to minimize client round-trips — HIGH
 
 
 ## Resource Modeling
@@ -1141,7 +1141,7 @@ GET /api/v1/analyses/abc-123/artifacts
 - Provide field selection for bandwidth optimization
 
 
-### REST API Conventions — HIGH
+### Follow REST conventions for naming, HTTP methods, and status codes consistently — HIGH
 
 
 ## REST API Conventions
@@ -1328,7 +1328,7 @@ Key decisions:
 - Context getter for dependency injection
 
 
-### Strawberry GraphQL Schema Design — HIGH
+### Design type-safe GraphQL schemas with Strawberry to prevent N+1 query problems — HIGH
 
 
 ## Strawberry GraphQL Schema Design
@@ -1421,7 +1421,7 @@ Key decisions:
 - Do NOT use when: Simple CRUD (use REST), internal microservices (use gRPC)
 
 
-### gRPC Service Definition and Implementation — HIGH
+### Define and implement gRPC services with compile-time type safety for microservices — HIGH
 
 
 ## gRPC Service Definition and Implementation
@@ -1510,7 +1510,7 @@ Key decisions:
 - Do NOT use when: Public APIs (use REST/GraphQL), simple CRUD, no HTTP/2
 
 
-### gRPC Streaming and Interceptors — HIGH
+### Implement gRPC streaming patterns and interceptors for real-time data and observability — HIGH
 
 
 ## gRPC Streaming and Interceptors
@@ -1587,7 +1587,7 @@ Key decisions:
 - Never skip deadline/timeout on client calls
 
 
-### Messaging Platform Integrations — HIGH
+### Integrate messaging platforms securely with webhook validation and delivery guarantees — HIGH
 
 
 # Messaging Platform Integrations
@@ -1664,7 +1664,7 @@ function verifyTelegramWebhook(req: Request): boolean {
 - `references/webhook-security.md` — Signature verification patterns per platform
 
 
-### Payload CMS Patterns — HIGH
+### Configure Payload CMS 3.0 collections and access control patterns for Next.js — HIGH
 
 
 # Payload CMS 3.0 Patterns
@@ -1735,7 +1735,7 @@ export const Posts: CollectionConfig = {
 - `references/payload-vs-sanity.md` — Detailed comparison, decision matrix, migration paths
 
 
-### Server-Sent Events (SSE) Streaming — HIGH
+### Stream server-sent events with auto-reconnect for LLM responses and notifications — HIGH
 
 
 ## Server-Sent Events (SSE) Streaming
@@ -1841,7 +1841,7 @@ Key decisions:
 - Exponential backoff for reconnection (1s to 30s)
 
 
-### WebSocket and Async Generator Patterns — HIGH
+### Implement WebSocket bidirectional streaming with async generator cleanup for resource safety — HIGH
 
 
 ## WebSocket and Async Generator Patterns
@@ -1924,7 +1924,7 @@ Key decisions:
 - Monitor buffer sizes, pause production when consumer is slow
 
 
-### Deprecation and Lifecycle — HIGH
+### Deprecate APIs gracefully with sunset headers, timelines, and migration documentation — HIGH
 
 
 ## Deprecation and Lifecycle
@@ -2095,7 +2095,7 @@ class UserResponseV2(BaseModel):
 - Track usage of deprecated versions and contact heavy users
 
 
-### Header-Based Versioning — HIGH
+### Implement header-based API versioning with clean URLs and content negotiation — HIGH
 
 
 ## Header-Based Versioning
@@ -2224,7 +2224,7 @@ async def get_version(
 - Always document which versions are supported
 
 
-### URL Path Versioning — HIGH
+### Implement URL path versioning for public APIs without routing conflicts or code duplication — HIGH
 
 
 ## URL Path Versioning

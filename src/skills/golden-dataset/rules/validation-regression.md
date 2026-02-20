@@ -1,5 +1,5 @@
 ---
-title: Regression Testing
+title: Run regression tests and enforce difficulty distribution to maintain evaluation reliability
 impact: CRITICAL
 impactDescription: "Without systematic regression testing and difficulty distribution enforcement, dataset changes silently degrade evaluation reliability"
 tags: regression, difficulty-distribution, pre-commit, full-validation, testing

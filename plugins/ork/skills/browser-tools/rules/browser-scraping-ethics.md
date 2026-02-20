@@ -1,5 +1,5 @@
 ---
-title: "Browser: Scraping Ethics"
+title: Respect robots.txt and terms of service to avoid legal issues and IP bans
 category: browser
 impact: CRITICAL
 impactDescription: "Violating robots.txt or ToS can lead to IP bans, legal action, or permanent API blocks"

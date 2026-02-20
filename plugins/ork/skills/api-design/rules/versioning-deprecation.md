@@ -1,5 +1,5 @@
 ---
-title: Deprecation and Lifecycle
+title: Deprecate APIs gracefully with sunset headers, timelines, and migration documentation
 impact: HIGH
 impactDescription: "Sunsetting APIs without proper deprecation destroys client trust — missing headers and unclear timelines cause outages and force emergency migrations"
 tags: deprecation, sunset, lifecycle, breaking-changes, backward-compatibility

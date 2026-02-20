@@ -1,5 +1,5 @@
 ---
-title: Atomic Commit Rules
+title: Create atomic commits that bundle one logical change for safe revert and bisect
 impact: CRITICAL
 impactDescription: "Non-atomic commits make git bisect useless, reverts dangerous, and PRs unreviewable"
 tags: atomic, commit, single-concern, related-changes

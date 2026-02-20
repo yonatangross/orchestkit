@@ -1,5 +1,5 @@
 ---
-title: "LLM: Evaluation Scoring"
+title: Score LLM evaluations systematically for quality monitoring and regression detection
 impact: HIGH
 impactDescription: "Systematic LLM evaluation scoring enables quality monitoring, regression detection, and data-driven prompt optimization."
 tags: [langfuse, scoring, evaluation, g-eval, multi-judge, quality, datasets]

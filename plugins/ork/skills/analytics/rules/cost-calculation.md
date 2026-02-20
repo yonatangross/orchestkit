@@ -1,5 +1,5 @@
 ---
-title: Token Cost Calculation
+title: Calculate token costs accurately by separating cache reads from regular input pricing
 impact: HIGH
 impactDescription: "Ignoring cache token types in cost calculations produces wildly inaccurate estimates — cache reads are 10x cheaper than regular input and must be calculated separately"
 tags: cost, tokens, pricing, cache, estimation

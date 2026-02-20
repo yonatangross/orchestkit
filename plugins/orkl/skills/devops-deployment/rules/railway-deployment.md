@@ -1,5 +1,5 @@
 ---
-title: "Railway Deployment"
+title: Configure Railway PaaS deployment with correct Nixpacks, environment, and railway.json settings
 category: devops
 impact: HIGH
 impactDescription: Railway simplifies PaaS deployment but misconfigured railway.json, Nixpacks, or environment variables cause failed deploys and unexpected costs.

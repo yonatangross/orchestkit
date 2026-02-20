@@ -1,5 +1,5 @@
 ---
-title: "Docker: Layer Security"
+title: Secure Docker layers by running as non-root and excluding secrets from image builds
 category: docker
 impact: CRITICAL
 impactDescription: "Containers run as root with secrets baked into image layers — a single container escape grants full host access and leaks credentials in any registry pull"

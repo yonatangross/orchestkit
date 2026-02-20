@@ -1,5 +1,5 @@
 ---
-title: ASCII Architecture Visualization Patterns
+title: Create structured ASCII architecture diagrams to communicate system design without external tools
 impact: MEDIUM
 impactDescription: "Structured architecture diagrams communicate system design clearly without external tools"
 tags: ascii, architecture, system-design, components, flow, comparison

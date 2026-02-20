@@ -1,5 +1,5 @@
 ---
-title: "RSC: Hydration"
+title: Prevent RSC hydration mismatches that cause visual flicker and degraded performance
 category: rsc
 impact: HIGH
 impactDescription: "Hydration mismatches cause React to discard server-rendered HTML and re-render on the client, producing visual flicker, layout shifts, and degraded performance."

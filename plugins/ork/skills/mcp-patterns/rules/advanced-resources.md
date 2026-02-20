@@ -1,5 +1,5 @@
 ---
-title: Advanced Resources
+title: Manage MCP resource caching and lifecycles to prevent memory leaks and redundant calls
 impact: MEDIUM
 impactDescription: "Without resource caching and lifecycle management, MCP servers leak memory and make redundant expensive calls"
 tags: resources, caching, ttl, lru, lifecycle, memory-management

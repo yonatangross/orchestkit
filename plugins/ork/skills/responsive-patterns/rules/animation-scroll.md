@@ -1,5 +1,5 @@
 ---
-title: Scroll-Driven Animations
+title: Use CSS scroll-driven animations on the compositor thread for guaranteed 60fps performance
 impact: MEDIUM
 impactDescription: "JavaScript-based scroll animations cause jank and battery drain — CSS Scroll-Driven Animations run on the compositor thread at guaranteed 60fps"
 tags: scroll-driven, scroll-timeline, parallax, css-animations, progressive-enhancement

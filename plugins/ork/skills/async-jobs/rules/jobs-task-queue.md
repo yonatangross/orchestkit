@@ -1,5 +1,5 @@
 ---
-title: "Jobs: Task Queue Setup"
+title: Set up task queues as the foundation for reliable background job processing
 category: jobs
 impact: HIGH
 impactDescription: Task queue setup is the foundation for reliable background processing

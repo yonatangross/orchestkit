@@ -189,7 +189,7 @@ request_counts = {}  # Lost on restart, not shared across instances
 
 ## Rules (16)
 
-### Edge Caching & CDN Patterns — HIGH
+### Configure edge caching with CDN invalidation, TTL, and stale-while-revalidate strategies — HIGH
 
 
 ## Edge Caching & CDN Patterns
@@ -280,7 +280,7 @@ Vary: Cookie, Authorization
 - Never cache authenticated/personalized responses without `Vary` or `private`
 
 
-### Edge Workers & Runtime — HIGH
+### Deploy edge workers with V8 isolate runtime constraints and fallback handling — HIGH
 
 
 ## Edge Workers & Runtime
@@ -357,7 +357,7 @@ export function middleware(request: NextRequest) {
 - Use Durable Objects for strong consistency when needed
 
 
-### Event Messaging & Outbox — HIGH
+### Guarantee at-least-once delivery using transactional outbox and event messaging patterns — HIGH
 
 
 ## Event Messaging & Outbox
@@ -456,7 +456,7 @@ async def handle_event(event: Event, db: AsyncSession):
 - Use dead letter queues (DLQ) for messages that fail after max retries
 
 
-### Event Sourcing & CQRS — HIGH
+### Implement event sourcing with CQRS for full audit trails and temporal queries — HIGH
 
 
 ## Event Sourcing & CQRS
@@ -561,7 +561,7 @@ class BalanceProjection:
 - Never delete events — use compensating events instead
 
 
-### Idempotency: Database-Backed — HIGH
+### Store idempotency keys in PostgreSQL with ACID guarantees for safe retries — HIGH
 
 
 # Database-Backed Idempotency
@@ -737,7 +737,7 @@ try {
 ```
 
 
-### Idempotency: Request Deduplication — HIGH
+### Deduplicate requests using dual-layer Redis and database exactly-once processing — HIGH
 
 
 # Event Consumer Deduplication
@@ -897,7 +897,7 @@ async def process_event(event_id: str):
 ```
 
 
-### Idempotency: Key Generation — HIGH
+### Generate deterministic idempotency keys using Stripe-style headers for safe retries — HIGH
 
 
 # Idempotency Key Generation & Stripe-Style Header
@@ -1041,7 +1041,7 @@ await post("/api/orders", headers={"Idempotency-Key": key}, data=order)
 ```
 
 
-### Locks: Fencing Tokens & Safety — CRITICAL
+### Validate lock ownership with fencing tokens and TTL to prevent data corruption — CRITICAL
 
 
 # Lock Safety: Fencing Tokens, TTL & Heartbeat
@@ -1170,7 +1170,7 @@ result = await redis.eval(RELEASE_SCRIPT, keys=[f"lock:{resource_id}"], args=[ow
 ```
 
 
-### Locks: PostgreSQL Advisory — CRITICAL
+### Use PostgreSQL advisory locks for session and transaction-level distributed locking — CRITICAL
 
 
 # PostgreSQL Advisory Locks
@@ -1321,7 +1321,7 @@ async with session.begin():
 ```
 
 
-### Locks: Redis & Redlock — CRITICAL
+### Implement distributed locking with Redis Lua scripts and multi-node Redlock algorithm — CRITICAL
 
 
 # Redis & Redlock Distributed Locks
@@ -1471,7 +1471,7 @@ acquired = await redis.set(f"lock:{name}", owner_id, nx=True, ex=30)
 ```
 
 
-### Rate Limiting: Distributed & Tiered — HIGH
+### Protect APIs with distributed rate limiting using SlowAPI, Redis, and tiered limits — HIGH
 
 
 # Distributed Rate Limiting with SlowAPI and Tiered Limits
@@ -1630,7 +1630,7 @@ async def create_order(request: Request, user_id: str):
 ```
 
 
-### Rate Limiting: Sliding Window — HIGH
+### Implement sliding window rate limiting with Redis sorted sets to prevent boundary spikes — HIGH
 
 
 # Sliding Window Rate Limiting
@@ -1740,7 +1740,7 @@ if count < 100:
 ```
 
 
-### Rate Limiting: Token Bucket — HIGH
+### Implement token bucket rate limiting with atomic Redis operations and burst capacity — HIGH
 
 
 # Token Bucket Rate Limiting
@@ -1857,7 +1857,7 @@ const result = await redis.eval(TOKEN_BUCKET_SCRIPT,
 ```
 
 
-### Resilience: Bulkhead Isolation — CRITICAL
+### Isolate failures with bulkhead partitioning and tier-based resource capacity limits — CRITICAL
 
 
 # Bulkhead Pattern
@@ -1985,7 +1985,7 @@ async def fetch_data():
 ```
 
 
-### Resilience: Circuit Breaker — CRITICAL
+### Prevent cascade failures with circuit breaker thresholds and recovery probe patterns — CRITICAL
 
 
 # Circuit Breaker Pattern
@@ -2128,7 +2128,7 @@ async def call_payment_api():
 ```
 
 
-### Resilience: Retry & Backoff — CRITICAL
+### Implement exponential backoff with jitter to prevent thundering herd on retries — CRITICAL
 
 
 # Retry with Exponential Backoff

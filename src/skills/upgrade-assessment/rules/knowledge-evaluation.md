@@ -1,5 +1,5 @@
 ---
-title: Platform Upgrade Evaluation
+title: Evaluate platform upgrades with structured analysis to catch breaking changes before production
 impact: HIGH
 impactDescription: "Upgrading without structured evaluation causes production breakage — missed breaking changes surface as runtime errors"
 tags: upgrade, evaluation, scoring, readiness, dimensions, assessment

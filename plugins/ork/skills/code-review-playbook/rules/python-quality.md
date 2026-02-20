@@ -1,5 +1,5 @@
 ---
-title: Python Quality Review Rules
+title: Review Python code for missing validators, untyped functions, and unsafe async patterns
 impact: HIGH
 impactDescription: "Missing validators, untyped code, and unsafe async patterns cause silent production failures"
 tags: python, pydantic, ruff, mypy, async, fastapi

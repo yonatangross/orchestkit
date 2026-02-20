@@ -1,5 +1,5 @@
 ---
-title: "Vite: Plugin Hooks"
+title: Use correct Vite plugin hooks with enforce and apply modifiers to avoid silent failures
 category: vite
 impact: MEDIUM
 impactDescription: "Using the wrong hook or missing enforce/apply modifiers causes plugins to silently fail, run at the wrong phase, or conflict with core Vite plugins."

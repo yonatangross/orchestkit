@@ -157,7 +157,7 @@ Safe database schema changes without downtime using expand-contract pattern and 
 
 ## Rules (12)
 
-### Alembic: Autogenerate Migrations — CRITICAL
+### Configure Alembic autogenerate for safe schema migration from model changes — CRITICAL
 
 
 # Alembic Autogenerate Migrations
@@ -304,7 +304,7 @@ def run_migrations_online():
 - Missing `target_metadata` configuration
 
 
-### Alembic: Branching & Merging — CRITICAL
+### Handle Alembic migration branch conflicts with proper merge strategies — CRITICAL
 
 
 # Alembic Branching & Merge Patterns
@@ -435,7 +435,7 @@ def upgrade():
 - Not using `--branch-label` for feature isolation
 
 
-### Alembic: Data Migration — CRITICAL
+### Run Alembic data migrations safely with batch processing and two-phase approaches — CRITICAL
 
 
 # Alembic Data Migration Patterns
@@ -565,7 +565,7 @@ def upgrade():
 - Skipping `FOR UPDATE SKIP LOCKED` in batch queries (deadlocks)
 
 
-### Database Selection Guide — HIGH
+### Select the right database engine based on workload requirements and trade-offs — HIGH
 
 
 # Database Selection Guide
@@ -638,7 +638,7 @@ Key strengths: JSONB (90% of MongoDB use cases), full-text search (tsvector), ex
 - `references/storage-and-cms.md` — CMS backends, file/blob storage decisions
 
 
-### Migration Rollback and Monitoring — HIGH
+### Plan migration rollbacks and monitor execution to prevent extended outages — HIGH
 
 
 ## Migration Rollback and Monitoring
@@ -730,7 +730,7 @@ FROM users;
 | Environment order | local -> CI -> staging -> production (never skip) |
 
 
-### Zero-Downtime Migration Patterns — CRITICAL
+### Apply zero-downtime migration patterns to avoid table locks and production outages — CRITICAL
 
 
 ## Zero-Downtime Migration Patterns
@@ -823,7 +823,7 @@ ALTER TABLE orders VALIDATE CONSTRAINT chk_amount_positive;
 | Index strategy | CONCURRENTLY always |
 
 
-### Schema: Indexing Strategies — HIGH
+### Design database indexes to optimize query performance without slowing writes — HIGH
 
 
 # Schema Indexing Strategies
@@ -953,7 +953,7 @@ CREATE INDEX idx_orders_customer ON orders(customer_id);
 - **FLOAT for money:** Use DECIMAL(10, 2) for financial values.
 
 
-### Schema: Normalization — HIGH
+### Apply normalization rules to eliminate data redundancy and update anomalies — HIGH
 
 
 # Schema Normalization Patterns
@@ -1081,7 +1081,7 @@ CREATE TABLE order_items (
 4. **Plan for scale from day one** - Indexing, partitioning, caching strategy
 
 
-### Schema: NoSQL Patterns — HIGH
+### Design NoSQL schemas with embed vs reference trade-offs for query performance — HIGH
 
 
 # NoSQL Schema Design Patterns
@@ -1206,7 +1206,7 @@ db.createCollection("users", {
 - Treating NoSQL as "no schema" (still needs design)
 
 
-### Versioning: Changelog & Audit Trails — HIGH
+### Track schema version history with changelogs and audit trails for rollback safety — HIGH
 
 
 # Versioning Changelog & Audit Trails
@@ -1337,7 +1337,7 @@ REVOKE DELETE, UPDATE ON change_log FROM app_user;
 | Semantic versioning | Clear impact communication |
 
 
-### Versioning: Drift Detection — HIGH
+### Detect schema drift between environments using checksum verification and coordination — HIGH
 
 
 # Versioning Drift Detection
@@ -1471,7 +1471,7 @@ alembic upgrade head  # Production
 - Versioning sensitive data in migrations (security risk)
 
 
-### Versioning: Rollback — HIGH
+### Test rollback paths with verified downgrade procedures and documented data loss risks — HIGH
 
 
 # Versioning Rollback Patterns

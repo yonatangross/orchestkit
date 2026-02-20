@@ -441,7 +441,7 @@ payload = jwt.decode(
 ```
 
 
-### Auth: OAuth 2.1 & Passkeys — CRITICAL
+### Implement OAuth 2.1 with mandatory PKCE, token rotation, and phishing-resistant passkeys — CRITICAL
 
 
 # OAuth 2.1 & Passkeys/WebAuthn
@@ -621,7 +621,7 @@ token_response = requests.post(
 ```
 
 
-### Auth: RBAC & MFA — CRITICAL
+### Enforce role-based access control with multi-factor authentication and rate limiting — CRITICAL
 
 
 # Role-Based Access Control & Multi-Factor Authentication
@@ -797,7 +797,7 @@ def admin_users():
 ```
 
 
-### Defense: 8-Layer Security Architecture — CRITICAL
+### Design defense-in-depth with eight security layers from edge protection to observability — CRITICAL
 
 
 # 8-Layer Security Architecture
@@ -1221,7 +1221,7 @@ Key decisions:
 - Always test multi-turn jailbreaking (GOAT-style attacks)
 
 
-### NeMo Guardrails and Guardrails AI — CRITICAL
+### Deploy NeMo Guardrails and Guardrails AI to defend against prompt injection and toxicity — CRITICAL
 
 
 ## NeMo Guardrails and Guardrails AI
@@ -1498,7 +1498,7 @@ artifact.source_ids = source_refs  # From our records, not LLM
 ```
 
 
-### LLM: Output Guardrails — HIGH
+### Apply output guardrails with schema validation, grounding checks, and content safety filtering — HIGH
 
 
 # Output Guardrails
@@ -1674,7 +1674,7 @@ if not parsed:
 ```
 
 
-### LLM: Prompt Injection Defense — HIGH
+### Defend against prompt injection by routing identifiers around the LLM, not through prompts — HIGH
 
 
 # Prompt Injection Defense
@@ -1823,7 +1823,7 @@ prompt = f"Analyze the following content:\n{sanitized_content}"
 ```
 
 
-### OWASP: Authentication & Session Attacks — CRITICAL
+### Prevent JWT algorithm confusion, token sidejacking, CSRF, and session timing attacks — CRITICAL
 
 
 # Authentication & Session Attacks
@@ -2007,7 +2007,7 @@ payload = jwt.decode(
 | CSRF | N/A | SameSite cookies, tokens |
 
 
-### OWASP: Injection Prevention — CRITICAL
+### Prevent SQL, command, and SSRF injection with parameterized queries and input validation — CRITICAL
 
 
 # Injection Prevention
@@ -2158,7 +2158,7 @@ cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
 | Insecure deserialization | JSON, not pickle |
 
 
-### PII: Detection Patterns — HIGH
+### Detect PII exposure through regex and ML-based patterns using Presidio and LLM Guard — HIGH
 
 
 # PII Detection Patterns
@@ -2308,7 +2308,7 @@ logger.info(f"Processing request for {masked}")
 ```
 
 
-### PII: Redaction & Observability Integration — HIGH
+### Redact PII from logs and traces automatically in Langfuse, structlog, and observability tools — HIGH
 
 
 # PII Redaction & Observability Integration
@@ -2539,7 +2539,7 @@ trace = langfuse.trace(
 ```
 
 
-### Dependency Scanning — HIGH
+### Scan dependencies for known CVEs to prevent critical vulnerabilities reaching production — HIGH
 
 
 ## Dependency Scanning
@@ -2598,7 +2598,7 @@ CRITICAL=$(cat trivy-scan.json | jq '[.Results[].Vulnerabilities[]? | select(.Se
 - Auto-fix with `npm audit fix` only for non-breaking updates; review breaking fixes manually
 
 
-### Static Analysis (SAST) — HIGH
+### Run static analysis with Semgrep to catch injection and insecure patterns before production — HIGH
 
 
 ## Static Analysis (SAST)
@@ -2667,7 +2667,7 @@ repos:
 - Block on ERROR severity; WARNING findings go to review queue
 
 
-### Secret Detection — CRITICAL
+### Detect committed secrets in git history and enforce immediate credential rotation — CRITICAL
 
 
 ## Secret Detection
@@ -2732,7 +2732,7 @@ detect-secrets audit .secrets.baseline
 - Run both pre-commit AND CI scanning — defense in depth
 
 
-### Validation: Input Schema Validation — HIGH
+### Validate input with server-side schemas using Zod and Pydantic with allowlist patterns — HIGH
 
 
 # Input Schema Validation

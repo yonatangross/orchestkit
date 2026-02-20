@@ -1,5 +1,5 @@
 ---
-title: "LLM: Langfuse Traces"
+title: Trace LLM call chains with Langfuse for debugging slow or incorrect responses
 impact: HIGH
 impactDescription: "Langfuse tracing provides visibility into LLM call chains — without it, debugging slow or incorrect LLM responses is nearly impossible."
 tags: [langfuse, tracing, observe, opentelemetry, otel, agent-graphs, spans]

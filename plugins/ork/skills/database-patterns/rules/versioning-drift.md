@@ -1,5 +1,5 @@
 ---
-title: "Versioning: Drift Detection"
+title: Detect schema drift between environments using checksum verification and coordination
 category: versioning
 impact: HIGH
 impactDescription: Schema drift between environments causes silent failures and deployment incidents. Checksum verification and environment coordination prevent unauthorized changes.

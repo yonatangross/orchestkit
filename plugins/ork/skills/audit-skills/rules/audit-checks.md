@@ -1,5 +1,5 @@
 ---
-title: Per-Skill Audit Checks
+title: Run all per-skill audit checks to produce complete and accurate quality assessments
 impact: HIGH
 impactDescription: "Skipping checks produces an incomplete audit that misses real quality issues"
 tags: audit, skills, frontmatter, manifest, rules

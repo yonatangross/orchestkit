@@ -1,5 +1,5 @@
 ---
-title: Vision Model Selection
+title: Select the right vision model to balance cost against task complexity requirements
 impact: MEDIUM
 impactDescription: "Wrong model selection wastes cost on simple tasks or produces low-quality results on complex vision tasks"
 tags: vision, models, comparison, cost, limits, provider

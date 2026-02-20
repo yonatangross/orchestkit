@@ -1,5 +1,5 @@
 ---
-title: State Write Timing
+title: Write state after each phase so rate-limit interruptions preserve all prior progress
 impact: CRITICAL
 impactDescription: "Batching state writes means a rate-limit hit between phases loses all progress since the last write — the session cannot be resumed"
 tags: state, checkpoint, pipeline-state, timing

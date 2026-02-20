@@ -1,5 +1,5 @@
 ---
-title: "Versioning: Changelog & Audit Trails"
+title: Track schema version history with changelogs and audit trails for rollback safety
 category: versioning
 impact: HIGH
 impactDescription: Schema version tracking provides full traceability and audit compliance. Missing version history makes rollbacks dangerous and debugging impossible.

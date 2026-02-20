@@ -1,5 +1,5 @@
 ---
-title: Drift Detection
+title: Detect duplicate entries and coverage gaps that skew golden dataset evaluation results
 impact: CRITICAL
 impactDescription: "Without duplicate detection and coverage monitoring, datasets accumulate redundant entries and develop blind spots that skew evaluation results"
 tags: duplicate-detection, semantic-similarity, coverage, drift, deduplication

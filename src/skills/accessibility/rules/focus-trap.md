@@ -1,5 +1,5 @@
 ---
-title: "Focus: Focus Trap"
+title: Trap keyboard focus within modal dialogs with Escape key dismissal support
 category: focus
 impact: HIGH
 impactDescription: "Ensures keyboard focus is trapped within modal dialogs and can be escaped with the Escape key"

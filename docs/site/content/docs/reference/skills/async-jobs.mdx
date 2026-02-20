@@ -393,7 +393,7 @@ Activity and worker patterns for Temporal.io I/O operations.
 
 ## Rules (6)
 
-### Celery: Canvas Workflows — HIGH
+### Compose multi-step task workflows using Celery canvas primitives and chains — HIGH
 
 
 # Canvas Workflows
@@ -479,7 +479,7 @@ chord(
 - Always use `si()` (immutable signatures) in chords to prevent arg pollution
 
 
-### Jobs: Status Tracking — HIGH
+### Track background job status and execution metrics for operational visibility — HIGH
 
 
 # Job Status Tracking
@@ -560,7 +560,7 @@ async def get_job(job_id: str):
 ```
 
 
-### Jobs: Scheduling & Background Tasks — HIGH
+### Schedule reliable periodic background tasks without overlap or timing drift — HIGH
 
 
 # Scheduling & Background Tasks
@@ -635,7 +635,7 @@ async def create_export(arq: ArqRedis = Depends(get_arq_pool)):
 | LLM workflows | LangGraph (not Celery) |
 
 
-### Jobs: Task Queue Setup — HIGH
+### Set up task queues as the foundation for reliable background job processing — HIGH
 
 
 # Task Queue Setup
@@ -740,7 +740,7 @@ def send_email(self, to: str, subject: str):
 | FastAPI BackgroundTasks | Quick in-process | None |
 
 
-### Temporal Activity and Worker Patterns — HIGH
+### Configure Temporal activity timeouts, heartbeats, and retry policies to prevent data loss — HIGH
 
 
 ## Temporal Activity and Worker Patterns
@@ -847,7 +847,7 @@ async def test_order_workflow(workflow_env):
 | Testing | `WorkflowEnvironment.start_local()` for integration tests |
 
 
-### Temporal Workflow Definitions — HIGH
+### Define deterministic Temporal workflows with correct signal and query patterns — HIGH
 
 
 ## Temporal Workflow Definitions

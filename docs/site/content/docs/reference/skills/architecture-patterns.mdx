@@ -236,7 +236,7 @@ class UserService:
 
 ## Rules (13)
 
-### Backend: Dependency Injection — HIGH
+### Apply dependency injection to ensure testable code and prevent tight coupling between layers — HIGH
 
 
 # Dependency Injection
@@ -307,7 +307,7 @@ async def get_user(
 ```
 
 
-### Backend: Layer Separation — HIGH
+### Separate backend layers to prevent coupling between HTTP, business logic, and data access — HIGH
 
 
 # Backend Layer Separation
@@ -380,7 +380,7 @@ async def create_user(
 ```
 
 
-### Backend: File Naming & Exceptions — HIGH
+### Follow consistent file naming conventions and exception patterns for discoverable code — HIGH
 
 
 # File Naming & Exceptions
@@ -432,7 +432,7 @@ async function getUser(db: AsyncSession, userId: number) {
 ```
 
 
-### Clean: SOLID & Dependency Inversion — HIGH
+### Apply SOLID principles and dependency inversion for maintainable testable abstractions — HIGH
 
 
 # SOLID Principles in Python
@@ -522,7 +522,7 @@ class AnalysisService:
 ```
 
 
-### Clean: Hexagonal Architecture — HIGH
+### Decouple domain logic from infrastructure with hexagonal architecture for testability — HIGH
 
 
 # Hexagonal Architecture (Ports & Adapters)
@@ -602,7 +602,7 @@ class AnalysisService:
 ```
 
 
-### Clean: DDD Tactical Patterns — HIGH
+### Model complex domains with DDD tactical patterns using clear boundaries and rich logic — HIGH
 
 
 # DDD Tactical Patterns
@@ -690,7 +690,7 @@ analysis_type.depth = 5  // FrozenInstanceError
 ```
 
 
-### Right-Sizing Decision Guide — HIGH
+### Choose the right ORM, auth, and error handling per tier to avoid unnecessary abstraction — HIGH
 
 
 ## Right-Sizing Decision Guide
@@ -765,7 +765,7 @@ supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 - Add abstractions only when pain appears, not preemptively
 
 
-### Architecture Sizing Tiers — HIGH
+### Select the correct architecture sizing tier to avoid over-engineering or missing foundations — HIGH
 
 
 ## Architecture Sizing Tiers
@@ -850,7 +850,7 @@ def list_todos():
 - User can override detected tier explicitly — respect manual overrides
 
 
-### Structure: Import Direction & Conventions — HIGH
+### Enforce unidirectional imports to prevent circular dependencies and maintain clean architecture — HIGH
 
 
 # Import Direction & Conventions
@@ -921,7 +921,7 @@ import { useAuth } from '@/hooks/useAuth';
 ```
 
 
-### Structure: Folder Organization — HIGH
+### Organize folders consistently to reduce cognitive load and improve codebase navigability — HIGH
 
 
 # Folder Organization
@@ -1000,7 +1000,7 @@ src/features/dashboard/charts/LineChart.tsx
 ```
 
 
-### Testing: AAA Pattern & Isolation — MEDIUM
+### Structure tests with Arrange-Act-Assert pattern for reliable and maintainable test suites — MEDIUM
 
 
 # AAA Pattern & Test Isolation
@@ -1093,7 +1093,7 @@ test('should apply 10% discount for orders over $100', () => {
 ```
 
 
-### Testing: Coverage & Fixtures — MEDIUM
+### Set coverage thresholds to ensure critical code paths are tested before deployment — MEDIUM
 
 
 # Coverage & Fixtures
@@ -1167,7 +1167,7 @@ def db_session():
 ```
 
 
-### Testing: Naming Conventions — MEDIUM
+### Name tests descriptively so they serve as documentation and aid debugging — MEDIUM
 
 
 # Test Naming Conventions

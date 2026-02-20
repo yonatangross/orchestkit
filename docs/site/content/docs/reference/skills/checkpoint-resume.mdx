@@ -69,7 +69,7 @@ Phases with empty `dependencies` may run in parallel via Task sub-agents (when t
 
 ## Rules (3)
 
-### Checkpoint Mini-Commit — HIGH
+### Create periodic mini-commits so rate-limit hits do not lose uncommitted pipeline work — HIGH
 
 
 ## Checkpoint Mini-Commit
@@ -125,7 +125,7 @@ git commit -m "checkpoint: phases 4-6 complete\n\nCo-Authored-By: Claude <norepl
 - Include Co-Authored-By attribution in every checkpoint commit
 
 
-### Phase Ordering Priority — CRITICAL
+### Order pipeline phases to process high-value work first before rate limits hit — CRITICAL
 
 
 ## Phase Ordering Priority
@@ -169,7 +169,7 @@ When a rate limit hits, work done in the current session is lost. Order phases s
 - Never defer issue creation to "after the code is done"
 
 
-### State Write Timing — CRITICAL
+### Write state after each phase so rate-limit interruptions preserve all prior progress — CRITICAL
 
 
 ## State Write Timing

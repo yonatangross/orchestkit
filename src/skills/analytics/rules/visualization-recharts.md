@@ -1,5 +1,5 @@
 ---
-title: Recharts Chart Components
+title: Configure Recharts with ResponsiveContainer and animation control for stable rendering
 impact: HIGH
 impactDescription: "Charts without ResponsiveContainer or with animations on real-time data cause layout overflow and rendering jank — proper container setup and animation control prevents both"
 tags: recharts, charts, line-chart, bar-chart, pie-chart, responsive-container

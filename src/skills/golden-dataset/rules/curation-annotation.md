@@ -1,5 +1,5 @@
 ---
-title: Multi-Agent Annotation
+title: Use multi-agent annotation for consistent and thorough curation quality decisions
 impact: HIGH
 impactDescription: "Without structured multi-agent analysis, curation decisions lack consistency and miss quality dimensions that single-pass review cannot catch"
 tags: multi-agent, annotation, consensus, langfuse, pipeline

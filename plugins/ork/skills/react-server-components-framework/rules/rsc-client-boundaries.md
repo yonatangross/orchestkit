@@ -1,5 +1,5 @@
 ---
-title: "RSC: Client Boundaries"
+title: Minimize RSC client boundaries to avoid shipping unnecessary JavaScript to the browser
 category: rsc
 impact: CRITICAL
 impactDescription: "Marking parent components as client components ships unnecessary JavaScript to the browser, disables server-side data fetching for the entire subtree, and defeats the purpose of RSC."

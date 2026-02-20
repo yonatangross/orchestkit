@@ -1,5 +1,5 @@
 ---
-title: REST API Conventions
+title: Follow REST conventions for naming, HTTP methods, and status codes consistently
 impact: HIGH
 impactDescription: "REST conventions form the foundation of API usability — inconsistent naming, wrong HTTP methods, or incorrect status codes confuse consumers and break integrations"
 tags: rest, http-methods, status-codes, pagination, naming

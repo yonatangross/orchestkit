@@ -1,5 +1,5 @@
 ---
-title: OpenAPI Specifications
+title: Keep OpenAPI specifications complete and up-to-date as the API provider-consumer contract
 impact: HIGH
 impactDescription: "OpenAPI specs are the contract between API providers and consumers — incomplete or outdated specs lead to integration failures and developer frustration"
 tags: openapi, documentation, schema, swagger, asyncapi

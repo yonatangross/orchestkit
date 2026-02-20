@@ -1,5 +1,5 @@
 ---
-title: Issue Reference Required
+title: Include issue references in commits to maintain traceability to GitHub issues
 impact: HIGH
 impactDescription: "Missing issue references break traceability between commits and GitHub issues"
 tags: issue-reference, traceability, commit-message, github

@@ -1,5 +1,5 @@
 ---
-title: "Drift: Quality Regression"
+title: Detect LLM output quality regression before users notice production degradation
 impact: HIGH
 impactDescription: "Quality drift detection catches LLM output degradation before users notice — essential for maintaining production LLM reliability."
 tags: [drift, quality, regression, baseline, canary, embedding, langfuse, scores]

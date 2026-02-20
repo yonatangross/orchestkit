@@ -1,5 +1,5 @@
 ---
-title: Consent Management and Security Rules
+title: Enforce GDPR consent requirements and block dangerous commands from auto-approval
 impact: HIGH
 impactDescription: "Enforces GDPR consent requirements and blocks dangerous commands from auto-approval"
 tags: consent, security, gdpr, privacy

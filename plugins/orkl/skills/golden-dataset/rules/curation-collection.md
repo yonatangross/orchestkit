@@ -1,5 +1,5 @@
 ---
-title: Content Collection
+title: Apply systematic collection criteria to maintain consistent golden dataset quality
 impact: HIGH
 impactDescription: "Without systematic collection criteria, golden datasets become inconsistent in quality, leading to unreliable evaluation metrics"
 tags: content-type, classification, quality-thresholds, duplicate-prevention, curation

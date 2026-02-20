@@ -1,5 +1,5 @@
 ---
-title: Tool Selection Rules
+title: Choose between WebFetch, Tavily, and browser tools using the decision matrix
 impact: HIGH
 impactDescription: "Decision matrix for choosing between WebFetch, Tavily, and agent-browser tools"
 tags: tool-selection, tavily, webfetch

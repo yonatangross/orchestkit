@@ -1,5 +1,5 @@
 ---
-title: "Monitoring: Alerting Rules"
+title: Define effective alerting rules to prevent alert fatigue and missed incidents
 impact: CRITICAL
 impactDescription: "Effective alerting rules are the first line of defense for production issues — poor alerting leads to alert fatigue or missed incidents."
 tags: [alerting, severity, escalation, inhibition, pagerduty, slack, runbook]

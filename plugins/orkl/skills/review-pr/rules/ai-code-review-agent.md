@@ -1,5 +1,5 @@
 ---
-title: AI Code Review Agent
+title: Configure an AI code review agent for prompt injection and token limit checks
 impact: MEDIUM
 impactDescription: "Optional 7th reviewer agent for AI/ML code covering prompt injection and token limits"
 tags: ai-review, code-review, agent

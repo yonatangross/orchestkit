@@ -131,7 +131,7 @@ Detection and alerting for silent failures in LLM agents.
 
 ## Rules (12)
 
-### Drift: Alerting — HIGH
+### Configure drift alert thresholds and correlation to avoid noise and missed issues — HIGH
 
 
 # Drift Alerting
@@ -282,7 +282,7 @@ async def check_drift(psi_score: float, quality_score: float, baseline: float):
 ```
 
 
-### Drift: Quality Regression — HIGH
+### Detect LLM output quality regression before users notice production degradation — HIGH
 
 
 # Quality Drift Detection
@@ -465,7 +465,7 @@ def check_quality(current_scores: list, baseline_scores: list):
 ```
 
 
-### Drift: Statistical Methods — HIGH
+### Apply statistical methods to detect distribution shifts in LLM inputs and outputs — HIGH
 
 
 # Statistical Drift Detection
@@ -633,7 +633,7 @@ if psi >= 0.25:  # Stable threshold
 ```
 
 
-### LLM: Cost Tracking — HIGH
+### Track LLM token costs with spend alerts and per-operation cost attribution — HIGH
 
 
 # LLM Cost Tracking
@@ -817,7 +817,7 @@ async def analyze(content: str):
 ```
 
 
-### LLM: Evaluation Scoring — HIGH
+### Score LLM evaluations systematically for quality monitoring and regression detection — HIGH
 
 
 # LLM Evaluation Scoring
@@ -985,7 +985,7 @@ async def analyze(query: str):
 ```
 
 
-### LLM: Langfuse Traces — HIGH
+### Trace LLM call chains with Langfuse for debugging slow or incorrect responses — HIGH
 
 
 # Langfuse Traces
@@ -1154,7 +1154,7 @@ async def analyze(content: str):
 ```
 
 
-### Monitoring: Alerting Rules — CRITICAL
+### Define effective alerting rules to prevent alert fatigue and missed incidents — CRITICAL
 
 
 # Alerting Rules
@@ -1305,7 +1305,7 @@ Every alert must link to a runbook containing:
 ```
 
 
-### Monitoring: Grafana Dashboards — CRITICAL
+### Design Grafana dashboards for actionable incident response and capacity planning — CRITICAL
 
 
 # Grafana Dashboards
@@ -1406,7 +1406,7 @@ histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m]))
 ```
 
 
-### Monitoring: Prometheus Metrics — CRITICAL
+### Instrument Prometheus metrics as the foundation for alerting and dashboard observability — CRITICAL
 
 
 # Prometheus Metrics
@@ -1571,7 +1571,7 @@ http_requests.labels(method='GET', endpoint='/api', status='200').inc()
 ```
 
 
-### Silent Failure Alerting — HIGH
+### Alert on silent failures using statistical baselines and proactive health monitoring — HIGH
 
 
 ## Silent Failure Alerting
@@ -1633,7 +1633,7 @@ class BaselineAnomalyDetector:
 - Combine statistical detection with proactive quality checks
 
 
-### Silent Quality Degradation Detection — HIGH
+### Detect silent quality degradation in agent outputs that pass basic error checks — HIGH
 
 
 ## Silent Quality Degradation Detection
@@ -1708,7 +1708,7 @@ class LoopDetector:
 - Not-empty and no-error are insufficient quality checks
 
 
-### Silent Tool Skipping Detection — CRITICAL
+### Detect when agents silently skip expected tool calls and produce incorrect results — CRITICAL
 
 
 ## Silent Tool Skipping Detection

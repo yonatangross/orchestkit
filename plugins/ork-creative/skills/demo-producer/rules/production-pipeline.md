@@ -1,5 +1,5 @@
 ---
-title: Video Production Pipeline
+title: Follow structured pre-production and recording workflow to prevent costly re-shoots
 impact: HIGH
 impactDescription: "Structured pre-production and recording workflow prevents costly re-shoots and editing rework"
 tags: video, storyboard, narration, hooks, pacing, recording, VHS, manim

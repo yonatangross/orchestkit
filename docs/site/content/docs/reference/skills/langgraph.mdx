@@ -220,7 +220,7 @@ See `test-cases.json` for consolidated test cases across all categories.
 
 ## Rules (32)
 
-### State Recovery and Debugging — HIGH
+### Recover interrupted workflow state and debug checkpoint history — HIGH
 
 
 ## State Recovery and Debugging
@@ -279,7 +279,7 @@ app.update_state(config, previous.values)
 Reference: [LangGraph Persistence](https://langchain-ai.github.io/langgraph/concepts/persistence/)
 
 
-### Checkpointer Setup — HIGH
+### Configure persistent checkpointer to survive crashes in production workflows — HIGH
 
 
 ## Checkpointer Setup
@@ -319,7 +319,7 @@ result = app.invoke(initial_state, config=config)
 Reference: [LangGraph Persistence](https://langchain-ai.github.io/langgraph/concepts/persistence/)
 
 
-### Cross-Thread Store Memory — HIGH
+### Use Store for cross-thread memory instead of per-thread checkpoints — HIGH
 
 
 ## Cross-Thread Store Memory
@@ -395,7 +395,7 @@ Thread 1 (chat-001)    Thread 2 (chat-002)
 Reference: [LangGraph Memory](https://langchain-ai.github.io/langgraph/concepts/memory/)
 
 
-### @entrypoint Decorator — MEDIUM
+### Configure @entrypoint decorator with checkpointer for resumable workflows — MEDIUM
 
 
 ## @entrypoint Decorator
@@ -460,7 +460,7 @@ for chunk in approval_workflow.stream(Command(resume=True), config):
 Reference: [LangGraph Functional API](https://langchain-ai.github.io/langgraph/concepts/functional_api/)
 
 
-### StateGraph to Functional API Migration — MEDIUM
+### Migrate from StateGraph to Functional API while preserving routing flexibility — MEDIUM
 
 
 ## StateGraph to Functional API Migration
@@ -585,7 +585,7 @@ def workflow(input: str) -> str:
 Reference: [LangGraph Functional API](https://langchain-ai.github.io/langgraph/concepts/functional_api/)
 
 
-### @task Decorator and Futures — MEDIUM
+### Use @task decorator correctly and always call .result() on futures — MEDIUM
 
 
 ## @task Decorator and Futures
@@ -646,7 +646,7 @@ def batch_workflow(items: list[dict]) -> list[dict]:
 Reference: [LangGraph Functional API](https://langchain-ai.github.io/langgraph/concepts/functional_api/)
 
 
-### Approval Gate Pattern — MEDIUM
+### Implement approval gate pattern with reject paths to prevent dead-end workflows — MEDIUM
 
 
 ## Approval Gate Pattern
@@ -711,7 +711,7 @@ app = workflow.compile(interrupt_before=["first_review", "final_review"])
 Reference: [LangGraph Human-in-the-Loop](https://langchain-ai.github.io/langgraph/concepts/human_in_the_loop/)
 
 
-### Feedback Loop Pattern — MEDIUM
+### Build iterative feedback loops that refine output across multiple human rounds — MEDIUM
 
 
 ## Feedback Loop Pattern
@@ -776,7 +776,7 @@ def get_valid_age(state):
 Reference: [LangGraph Human-in-the-Loop](https://langchain-ai.github.io/langgraph/concepts/human_in_the_loop/)
 
 
-### Dynamic Interrupt and Resume — MEDIUM
+### Use interrupt() for conditional pausing and Command for resuming workflows — MEDIUM
 
 
 ## Dynamic Interrupt and Resume
@@ -837,7 +837,7 @@ if "__interrupt__" in result:
 Reference: [LangGraph Human-in-the-Loop](https://langchain-ai.github.io/langgraph/concepts/human_in_the_loop/)
 
 
-### Error Isolation in Parallel Execution — HIGH
+### Isolate errors in parallel branches to preserve completed results on failure — HIGH
 
 
 ## Error Isolation in Parallel Execution
@@ -884,7 +884,7 @@ async def parallel_with_isolation(agents: list, content: str, timeout: int = 30)
 Reference: [LangGraph Parallel Execution](https://langchain-ai.github.io/langgraph/how-tos/map-reduce/)
 
 
-### Fan-Out/Fan-In Pattern — HIGH
+### Use Send API for dynamic fan-out and fan-in parallel branches — HIGH
 
 
 ## Fan-Out/Fan-In Pattern
@@ -941,7 +941,7 @@ builder.add_edge("generate_joke", END)  # All branches converge automatically
 Reference: [LangGraph Send API](https://langchain-ai.github.io/langgraph/concepts/low_level/#send)
 
 
-### Map-Reduce Pattern — HIGH
+### Apply map-reduce with asyncio.gather for independent parallel task processing — HIGH
 
 
 ## Map-Reduce Pattern
@@ -993,7 +993,7 @@ async def map_reduce_node(state: State) -> dict:
 Reference: [LangGraph Parallel Execution](https://langchain-ai.github.io/langgraph/how-tos/map-reduce/)
 
 
-### Conditional Edge Routing — HIGH
+### Define conditional edge routing with explicit mappings and END fallback — HIGH
 
 
 ## Conditional Edge Routing
@@ -1054,7 +1054,7 @@ Diamond:       A → (B, C) → D         (parallel then merge)
 Reference: [LangGraph Conditional Edges](https://langchain-ai.github.io/langgraph/concepts/low_level/#conditional-edges)
 
 
-### Retry Loop Pattern — HIGH
+### Implement retry loops with max counter to prevent infinite resource consumption — HIGH
 
 
 ## Retry Loop Pattern
@@ -1110,7 +1110,7 @@ workflow.add_conditional_edges("llm_call", should_retry, {
 Reference: [LangGraph Conditional Edges](https://langchain-ai.github.io/langgraph/concepts/low_level/#conditional-edges)
 
 
-### Semantic & Command Routing — HIGH
+### Route with embedding similarity or Command API instead of conditional edges — HIGH
 
 
 ## Semantic & Command Routing
@@ -1183,7 +1183,7 @@ def semantic_router(state) -> str:
 Reference: [LangGraph Command API](https://langchain-ai.github.io/langgraph/concepts/low_level/#command)
 
 
-### MessagesState Pattern — CRITICAL
+### Use MessagesState with add_messages reducer to preserve conversation history — CRITICAL
 
 
 ## MessagesState Pattern
@@ -1232,7 +1232,7 @@ def agent_node(state):
 Reference: [LangGraph MessagesState](https://langchain-ai.github.io/langgraph/concepts/low_level/#messagesstate)
 
 
-### Pydantic State Validation — HIGH
+### Apply Pydantic state validation at boundaries only to minimize runtime overhead — HIGH
 
 
 ## Pydantic State Validation
@@ -1281,7 +1281,7 @@ class WorkflowOutput(BaseModel):
 Reference: [LangGraph State Concepts](https://langchain-ai.github.io/langgraph/concepts/low_level/#state)
 
 
-### Custom Annotated Reducers — HIGH
+### Define custom Annotated reducers for merge, dedup, and last-value state patterns — HIGH
 
 
 ## Custom Annotated Reducers
@@ -1344,7 +1344,7 @@ def agent_node(state: WorkflowState, remaining: RemainingSteps):
 Reference: [LangGraph Reducers](https://langchain-ai.github.io/langgraph/concepts/low_level/#reducers)
 
 
-### TypedDict State Pattern — CRITICAL
+### Design TypedDict state with Annotated accumulators to prevent silent data loss — CRITICAL
 
 
 ## TypedDict State Pattern
@@ -1418,7 +1418,7 @@ graph = builder.compile(cache=InMemoryCache())
 Reference: [LangGraph State Concepts](https://langchain-ai.github.io/langgraph/concepts/low_level/#state)
 
 
-### Custom Event Streaming — MEDIUM
+### Emit custom streaming events to provide client visibility into node progress — MEDIUM
 
 
 ## Custom Event Streaming
@@ -1483,7 +1483,7 @@ async def stream_workflow(request: WorkflowRequest):
 Reference: [LangGraph Streaming](https://langchain-ai.github.io/langgraph/concepts/streaming/)
 
 
-### Stream Modes — MEDIUM
+### Choose the right stream mode for efficient real-time UI integration — MEDIUM
 
 
 ## Stream Modes
@@ -1534,7 +1534,7 @@ for namespace, chunk in graph.stream(inputs, subgraphs=True, stream_mode="update
 Reference: [LangGraph Streaming](https://langchain-ai.github.io/langgraph/concepts/streaming/)
 
 
-### LLM Token Streaming — MEDIUM
+### Filter LLM token streams by node or tags to avoid cross-node noise — MEDIUM
 
 
 ## LLM Token Streaming
@@ -1583,7 +1583,7 @@ def call_custom_llm(state):
 Reference: [LangGraph Streaming](https://langchain-ai.github.io/langgraph/concepts/streaming/)
 
 
-### Add Subgraph as Node (Shared State) — MEDIUM
+### Add subgraph directly as node when parent and child share the same state — MEDIUM
 
 
 ## Add Subgraph as Node (Shared State)
@@ -1632,7 +1632,7 @@ parent_builder.add_edge("agent_team", END)
 Reference: [LangGraph Subgraphs](https://langchain-ai.github.io/langgraph/concepts/low_level/#subgraphs)
 
 
-### Invoke Subgraph from Node — MEDIUM
+### Invoke subgraph from node with state transformation to prevent schema mismatch — MEDIUM
 
 
 ## Invoke Subgraph from Node
@@ -1692,7 +1692,7 @@ parent_builder.add_node("analysis", call_analysis)
 Reference: [LangGraph Subgraphs](https://langchain-ai.github.io/langgraph/concepts/low_level/#subgraphs)
 
 
-### Subgraph State Mapping — MEDIUM
+### Propagate config through subgraph state mapping for tracing and checkpointing — MEDIUM
 
 
 ## Subgraph State Mapping
@@ -1754,7 +1754,7 @@ for namespace, chunk in graph.stream(inputs, subgraphs=True, stream_mode="update
 Reference: [LangGraph Subgraphs](https://langchain-ai.github.io/langgraph/concepts/low_level/#subgraphs)
 
 
-### Supervisor-Worker Pattern — HIGH
+### Build supervisor-worker pattern with Command API for coordinated state routing — HIGH
 
 
 ## Supervisor-Worker Pattern
@@ -1818,7 +1818,7 @@ app = graph.compile()
 Reference: [LangGraph Supervisor](https://langchain-ai.github.io/langgraph/concepts/multi_agent/#supervisor)
 
 
-### Priority-Based Supervisor Routing — HIGH
+### Route supervisor tasks by priority to ensure critical-first execution order — HIGH
 
 
 ## Priority-Based Supervisor Routing
@@ -1883,7 +1883,7 @@ async def llm_supervisor(state):
 Reference: [LangGraph Supervisor](https://langchain-ai.github.io/langgraph/concepts/multi_agent/#supervisor)
 
 
-### Round-Robin Supervisor Dispatch — MEDIUM
+### Dispatch agents in round-robin order with completion tracking to avoid repeats — MEDIUM
 
 
 ## Round-Robin Supervisor Dispatch
@@ -1942,7 +1942,7 @@ for name in ALL_AGENTS:
 Reference: [LangGraph Multi-Agent](https://langchain-ai.github.io/langgraph/concepts/multi_agent/)
 
 
-### Tool Binding to LLMs — CRITICAL
+### Bind tools to LLMs correctly with proper tool_choice to ensure invocation — CRITICAL
 
 
 ## Tool Binding to LLMs
@@ -2001,7 +2001,7 @@ model.bind_tools(tools, tool_choice="search_database")  # Specific tool
 Reference: [LangGraph Tool Calling](https://langchain-ai.github.io/langgraph/concepts/agentic_concepts/#tool-calling-agent)
 
 
-### Dynamic Tool Selection — HIGH
+### Filter tools dynamically by relevance to avoid context overflow from large sets — HIGH
 
 
 ## Dynamic Tool Selection
@@ -2053,7 +2053,7 @@ def agent_with_dynamic_tools(state):
 Reference: [LangGraph Tool Calling](https://langchain-ai.github.io/langgraph/concepts/agentic_concepts/#tool-calling-agent)
 
 
-### Tool Interrupt Approval Gates — CRITICAL
+### Gate dangerous tool execution with interrupt-based human approval before proceeding — CRITICAL
 
 
 ## Tool Interrupt Approval Gates
@@ -2126,7 +2126,7 @@ def long_running_analysis(data: str) -> str:
 Reference: [LangGraph Human-in-the-Loop](https://langchain-ai.github.io/langgraph/concepts/human_in_the_loop/)
 
 
-### ToolNode Execution — CRITICAL
+### Use ToolNode for automatic parallel tool execution with built-in error handling — CRITICAL
 
 
 ## ToolNode Execution

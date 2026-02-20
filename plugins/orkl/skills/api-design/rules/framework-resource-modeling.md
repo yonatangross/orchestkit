@@ -1,5 +1,5 @@
 ---
-title: Resource Modeling
+title: Model REST resources with proper nesting and filters to minimize client round-trips
 impact: HIGH
 impactDescription: "Proper resource modeling determines API discoverability and usability — flat structures and missing filters force clients into multiple round-trips"
 tags: resource-modeling, filtering, sorting, field-selection, hierarchical

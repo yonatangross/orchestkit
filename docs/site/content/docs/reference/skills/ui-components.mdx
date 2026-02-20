@@ -158,7 +158,7 @@ React Hook Form v7 with Zod validation and React 19 Server Actions.
 
 ## Rules (10)
 
-### Design System Component Architecture — HIGH
+### Structure scalable component libraries using atomic design and composition patterns — HIGH
 
 
 ## Design System Component Architecture
@@ -250,7 +250,7 @@ const buttonVariants = cva(
 | Class merging | Always use cn() for Tailwind conflicts |
 
 
-### Design System Token Architecture — HIGH
+### Define consistent design tokens to enable global theme changes without visual drift — HIGH
 
 
 ## Design System Token Architecture
@@ -327,7 +327,7 @@ const tokens = {
 | Dark mode | Tailwind `@theme` with CSS variables |
 
 
-### React Hook Form Patterns — HIGH
+### Build performant forms with React Hook Form v7 controlled renders and validation — HIGH
 
 
 ## React Hook Form Patterns
@@ -447,7 +447,7 @@ import { Controller } from 'react-hook-form';
 - Use `aria-invalid` and `role="alert"` for accessibility
 
 
-### Zod Validation & Server Actions — HIGH
+### Validate forms with Zod type-safe schemas on both client and server sides — HIGH
 
 
 ## Zod Validation & Server Actions
@@ -565,7 +565,7 @@ const paymentSchema = z.discriminatedUnion('method', [
 - Custom error messages in every `.email()`, `.min()`, `.refine()` call
 
 
-### Radix: Composition — HIGH
+### Compose polymorphic components using Radix asChild pattern and nested triggers — HIGH
 
 
 # Radix Composition Patterns
@@ -768,7 +768,7 @@ const MyButton = React.forwardRef<HTMLButtonElement, Props>(
 | **Tabs** | Tabbed interfaces |
 
 
-### Radix: Dialog Patterns — HIGH
+### Build accessible modal dialogs with Radix primitives and focus management — HIGH
 
 
 # Radix Dialog Patterns
@@ -974,7 +974,7 @@ export const DialogContent = React.forwardRef<
 - Screen reader announcements
 
 
-### Radix: Styling & Focus — HIGH
+### Style Radix components using data attributes and state-driven focus management — HIGH
 
 
 # Radix Styling & Focus Management
@@ -1167,7 +1167,7 @@ Every Radix primitive includes:
 | Select | Enter | Select option |
 
 
-### shadcn/ui: Customization — HIGH
+### Customize shadcn/ui components with CVA variants, tailwind-merge, and OKLCH theming — HIGH
 
 
 # shadcn/ui Customization
@@ -1355,7 +1355,7 @@ const Button = React.forwardRef<HTMLButtonElement, ExtendedButtonProps>(
 5. **Preserve displayName**: Helps with debugging
 
 
-### shadcn/ui: Data Table — HIGH
+### Build sortable, filterable data tables with TanStack Table and shadcn/ui integration — HIGH
 
 
 # shadcn/ui Data Table
@@ -1534,7 +1534,7 @@ npx shadcn@latest add table badge dropdown-menu button input
 ```
 
 
-### shadcn/ui: Forms — HIGH
+### Create accessible shadcn/ui form fields with proper labels and validation errors — HIGH
 
 
 # shadcn/ui Form Patterns

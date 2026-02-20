@@ -1,5 +1,5 @@
 ---
-title: "Resilience: Circuit Breaker"
+title: Prevent cascade failures with circuit breaker thresholds and recovery probe patterns
 category: resilience
 impact: CRITICAL
 impactDescription: "Prevents cascade failures by tripping circuit when downstream service exceeds failure thresholds with recovery probes"

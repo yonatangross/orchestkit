@@ -1,5 +1,5 @@
 ---
-title: "Alembic: Branching & Merging"
+title: Handle Alembic migration branch conflicts with proper merge strategies
 category: alembic
 impact: CRITICAL
 impactDescription: Parallel development creates migration branch conflicts. Proper merge strategies prevent lost migrations and deployment failures.

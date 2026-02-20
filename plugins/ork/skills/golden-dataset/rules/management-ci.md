@@ -1,5 +1,5 @@
 ---
-title: CI Integration
+title: Integrate golden dataset validation and backups into the CI/CD pipeline
 impact: HIGH
 impactDescription: "Without automated CI/CD integration, golden dataset backups become stale, validation gaps go undetected, and deployment risks increase"
 tags: ci-cd, github-actions, automation, scheduled-backup, deployment

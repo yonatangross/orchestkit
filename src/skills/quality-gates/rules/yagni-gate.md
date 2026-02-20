@@ -1,5 +1,5 @@
 ---
-title: YAGNI Gate
+title: Apply the YAGNI gate to prevent over-engineering patterns that never get used
 impact: HIGH
 impactDescription: "Over-engineering wastes 30-70% of implementation time on patterns that never get used"
 tags: yagni, over-engineering, justified-complexity, scope, pre-implementation

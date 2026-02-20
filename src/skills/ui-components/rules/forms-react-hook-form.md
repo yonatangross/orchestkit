@@ -1,5 +1,5 @@
 ---
-title: React Hook Form Patterns
+title: Build performant forms with React Hook Form v7 controlled renders and validation
 impact: HIGH
 impactDescription: "Forms without proper library support re-render on every keystroke and lack validation — React Hook Form v7 provides controlled renders and type-safe validation"
 tags: react-hook-form, forms, useForm, field-arrays, multi-step, file-upload

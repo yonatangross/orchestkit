@@ -180,7 +180,7 @@ async def get(self, id: UUID) -> OrderModel:  # WRONG - return domain!
 
 ## Rules (3)
 
-### Aggregate Root Boundaries and Consistency — HIGH
+### Define aggregate root boundaries correctly to prevent cross-transaction data corruption — HIGH
 
 
 ## Aggregate Root Boundaries and Consistency
@@ -251,7 +251,7 @@ def items(self) -> list:
 - One aggregate = one repository = one transaction boundary
 
 
-### Enforcing Business Invariants — HIGH
+### Enforce business invariants within aggregates to prevent invalid domain state propagation — HIGH
 
 
 ## Enforcing Business Invariants
@@ -388,7 +388,7 @@ class OrderAggregate:
 - Status transitions follow explicit state machine rules
 
 
-### Right-Sizing Aggregates — HIGH
+### Right-size aggregates to balance lock contention against consistency guarantee requirements — HIGH
 
 
 ## Right-Sizing Aggregates

@@ -1,5 +1,5 @@
 ---
-title: Storage Patterns
+title: Choose the right backup strategy and URL contract for golden dataset storage
 impact: HIGH
 impactDescription: "Choosing the wrong backup strategy or violating the URL contract leads to data loss, broken restores, and unrecoverable golden datasets"
 tags: storage, backup-strategy, url-contract, data-integrity, json

@@ -1,5 +1,5 @@
 ---
-title: "Alembic: Data Migration"
+title: Run Alembic data migrations safely with batch processing and two-phase approaches
 category: alembic
 impact: CRITICAL
 impactDescription: Data migrations on production tables can lock tables, cause downtime, or corrupt data if done incorrectly. Batch processing and two-phase approaches are essential.

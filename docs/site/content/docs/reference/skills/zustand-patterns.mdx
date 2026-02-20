@@ -341,7 +341,7 @@ function Dashboard() {
 
 ## Rules (3)
 
-### Zustand: Middleware Order — CRITICAL
+### Nest Zustand middleware in the correct order to prevent devtools and persist failures — CRITICAL
 
 
 ## Zustand: Middleware Order
@@ -404,7 +404,7 @@ const useStore = create<AppState>()(
 Reference: `references/middleware-composition.md` (Middleware Execution Order, Why Order Matters)
 
 
-### Zustand: Middleware Pitfalls — HIGH
+### Avoid Zustand middleware pitfalls that cause silent reactivity breaks and hydration failures — HIGH
 
 
 ## Zustand: Middleware Pitfalls
@@ -479,7 +479,7 @@ persist((set) => ({ theme: 'light', fontSize: 14 }), {
 Reference: `references/middleware-composition.md` (Common Pitfalls)
 
 
-### Zustand: Slice Pattern — HIGH
+### Use the Zustand slice pattern to keep stores maintainable and avoid merge conflicts — HIGH
 
 
 ## Zustand: Slice Pattern

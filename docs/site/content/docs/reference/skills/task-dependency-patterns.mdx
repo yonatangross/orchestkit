@@ -186,7 +186,7 @@ SendMessage(type: "broadcast",
 
 ## Rules (3)
 
-### Tasks: Agent Coordination — HIGH
+### Coordinate agent task ownership to prevent duplicated work and orphaned tasks — HIGH
 
 
 ## Tasks: Agent Coordination
@@ -247,7 +247,7 @@ SendMessage(
 Reference: [Multi-Agent Coordination](../references/multi-agent-coordination.md) — Best Practices (lines 110-116), Agent Workflow (lines 47-70)
 
 
-### Tasks: Completion Criteria — HIGH
+### Verify task completion criteria before marking done to prevent cascading dependency failures — HIGH
 
 
 ## Tasks: Completion Criteria
@@ -319,7 +319,7 @@ TaskUpdate(taskId: "1", status: "completed")
 Reference: [Status Workflow](../references/status-workflow.md) — Completion Criteria (lines 71-78), Anti-Patterns (lines 80-105)
 
 
-### Tasks: Dependency Validation — HIGH
+### Validate task dependencies before starting to avoid wasted work on blocked tasks — HIGH
 
 
 ## Tasks: Dependency Validation

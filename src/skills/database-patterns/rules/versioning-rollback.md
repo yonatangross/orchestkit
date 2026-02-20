@@ -1,5 +1,5 @@
 ---
-title: "Versioning: Rollback"
+title: Test rollback paths with verified downgrade procedures and documented data loss risks
 category: versioning
 impact: HIGH
 impactDescription: Untested rollbacks in production lead to extended outages. Every migration must have a verified downgrade path with documented data loss risks.

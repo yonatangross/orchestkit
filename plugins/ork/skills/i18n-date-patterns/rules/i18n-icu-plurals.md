@@ -1,5 +1,5 @@
 ---
-title: "i18n: ICU Plural Rules"
+title: Use ICU plural rules to handle complex plural forms across all locales correctly
 category: i18n
 impact: HIGH
 impactDescription: "Hardcoded plural logic fails for locales with complex plural forms (Arabic has 6, Hebrew has dual), producing grammatically incorrect text"

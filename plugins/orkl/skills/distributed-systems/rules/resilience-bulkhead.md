@@ -1,5 +1,5 @@
 ---
-title: "Resilience: Bulkhead Isolation"
+title: Isolate failures with bulkhead partitioning and tier-based resource capacity limits
 category: resilience
 impact: CRITICAL
 impactDescription: "Ensures failure isolation by partitioning resources into independent pools with tier-based capacity limits"

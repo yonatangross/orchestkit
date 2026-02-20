@@ -1,5 +1,5 @@
 ---
-title: Security Baseline Review Rules
+title: Apply security baseline checks during code review to prevent data breaches and unauthorized access
 impact: CRITICAL
 impactDescription: "Security violations in code review lead to data breaches, unauthorized access, and compliance failures"
 tags: security, owasp, secrets, authentication, injection

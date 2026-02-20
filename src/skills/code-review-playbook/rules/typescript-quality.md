@@ -1,5 +1,5 @@
 ---
-title: TypeScript Quality Review Rules
+title: Review TypeScript code for any types, missing validation, and weak type usage
 impact: HIGH
 impactDescription: "Weak TypeScript usage (any types, missing validation) causes runtime crashes that static analysis should prevent"
 tags: typescript, zod, react-19, exhaustive, type-safety

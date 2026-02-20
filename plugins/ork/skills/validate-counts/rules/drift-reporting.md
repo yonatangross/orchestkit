@@ -1,5 +1,5 @@
 ---
-title: Drift Detection and Reporting
+title: Report drift accurately so CLAUDE.md counts reflect the actual codebase state
 impact: HIGH
 impactDescription: "Unreported drift causes incorrect CLAUDE.md counts that mislead Claude about the codebase"
 tags: drift, reporting, consistency, validation

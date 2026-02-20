@@ -1,5 +1,5 @@
 ---
-title: "Zustand: Middleware Pitfalls"
+title: Avoid Zustand middleware pitfalls that cause silent reactivity breaks and hydration failures
 category: zustand
 impact: HIGH
 impactDescription: "Silent reactivity breaks, hydration failures, TS errors, and corrupted persisted state."

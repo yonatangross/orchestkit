@@ -1,5 +1,5 @@
 ---
-title: Temporal Workflow Definitions
+title: Define deterministic Temporal workflows with correct signal and query patterns
 impact: HIGH
 impactDescription: "Durable workflow execution requires deterministic definitions and correct signal/query patterns"
 tags: temporal, workflow, durable-execution, saga, orchestration

@@ -1,5 +1,5 @@
 ---
-title: Monorepo Context Patterns
+title: Scope Claude Code context in monorepos with per-service directories and CLAUDE.md
 impact: MEDIUM
 impactDescription: "Working in monorepos without per-service context causes Claude Code to miss service-specific patterns — --add-dir and per-service CLAUDE.md solve this"
 tags: monorepo, multi-directory, workspace, add-dir, context

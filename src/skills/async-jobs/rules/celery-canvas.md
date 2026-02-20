@@ -1,5 +1,5 @@
 ---
-title: "Celery: Canvas Workflows"
+title: Compose multi-step task workflows using Celery canvas primitives and chains
 category: celery
 impact: HIGH
 impactDescription: Canvas primitives enable complex multi-step task orchestration

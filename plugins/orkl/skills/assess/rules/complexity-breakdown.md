@@ -1,5 +1,5 @@
 ---
-title: Task Decomposition Strategies
+title: Decompose complex tasks into isolated subtasks to reduce failure risk and enable parallelism
 impact: HIGH
 impactDescription: "Complex tasks attempted without decomposition fail 60% more often — subtask isolation reduces risk and enables parallel work"
 tags: complexity, decomposition, breakdown, subtasks, planning, risk

@@ -1,5 +1,5 @@
 ---
-title: Change Detection and Site Discovery
+title: Automate change detection and site discovery to catch competitor changes immediately
 impact: HIGH
 impactDescription: "Without automated diff detection, significant competitor changes go unnoticed until a customer or sales rep reports them"
 tags: competitive-intelligence, diff, change-detection, tavily, site-discovery

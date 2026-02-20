@@ -1,5 +1,5 @@
 ---
-title: "Idempotency: Request Deduplication"
+title: Deduplicate requests using dual-layer Redis and database exactly-once processing
 category: idempotency
 impact: HIGH
 impactDescription: "Ensures events are processed exactly once using dual-layer deduplication with Redis and database"

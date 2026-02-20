@@ -1,5 +1,5 @@
 ---
-title: "Focus: Focus Restoration"
+title: Restore focus to the correct element after closing overlays or submitting forms
 category: focus
 impact: HIGH
 impactDescription: "Ensures focus returns to the correct element after closing overlays or submitting forms"

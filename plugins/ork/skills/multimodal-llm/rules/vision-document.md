@@ -1,5 +1,5 @@
 ---
-title: Vision Document Understanding
+title: Process documents with vision models using page ranges to avoid context overflow
 impact: HIGH
 impactDescription: "Processing large PDFs without page ranges causes timeouts or context overflow — incremental processing required"
 tags: vision, document, pdf, ocr, chart, diagram, table

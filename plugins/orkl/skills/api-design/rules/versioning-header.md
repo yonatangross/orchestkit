@@ -1,5 +1,5 @@
 ---
-title: Header-Based Versioning
+title: Implement header-based API versioning with clean URLs and content negotiation
 impact: HIGH
 impactDescription: "Header versioning keeps URLs clean but is invisible to browsers and harder to test — choosing the wrong strategy causes confusion and integration friction"
 tags: header-versioning, content-negotiation, x-api-version, accept-header

@@ -1,5 +1,5 @@
 ---
-title: "Testing & Debugging"
+title: Test and debug MCP servers to catch broken tools and transport failures before production
 impact: "MEDIUM"
 impactDescription: "Untested MCP servers ship broken tools and opaque transport failures that are impossible to diagnose in production"
 tags: [testing, debugging, pytest, inspector, fixtures]

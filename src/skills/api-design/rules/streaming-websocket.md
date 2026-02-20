@@ -1,5 +1,5 @@
 ---
-title: WebSocket and Async Generator Patterns
+title: Implement WebSocket bidirectional streaming with async generator cleanup for resource safety
 impact: HIGH
 impactDescription: "WebSockets enable bidirectional real-time communication; async generator cleanup prevents resource leaks"
 tags: websocket, bidirectional, real-time, async-generator, aclosing, backpressure

@@ -1,5 +1,5 @@
 ---
-title: Stacked PR Rebase Management
+title: Rebase dependent PRs systematically after base branch changes to prevent conflicts
 impact: HIGH
 impactDescription: "Failing to rebase dependent PRs after base changes causes merge conflicts and broken CI — systematic rebase keeps the entire stack clean"
 tags: stacked-prs, rebase, force-with-lease, git, merge-conflicts

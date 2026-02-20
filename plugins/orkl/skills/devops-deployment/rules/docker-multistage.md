@@ -1,5 +1,5 @@
 ---
-title: "Docker: Multi-Stage Builds"
+title: Use Docker multi-stage builds to exclude dev dependencies and reduce image size by 4-5x
 category: docker
 impact: HIGH
 impactDescription: "Production images ship with build tools, dev dependencies, and source files — bloating images by 4-5x and expanding the attack surface"

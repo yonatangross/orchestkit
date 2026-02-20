@@ -1,5 +1,5 @@
 ---
-title: Commit Splitting Strategies
+title: Split large mixed commits into focused, reviewable units with clean boundaries
 impact: HIGH
 impactDescription: "Large mixed commits create unreviewable PRs and make git history useless for debugging"
 tags: splitting, interactive-staging, hunk, git-add-p

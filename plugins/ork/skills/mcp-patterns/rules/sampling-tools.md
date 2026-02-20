@@ -1,5 +1,5 @@
 ---
-title: Sampling with Tool Calling
+title: Bound MCP sampling loops with user approval to prevent unbounded LLM call chains
 impact: MEDIUM
 impactDescription: "Without bounded loops and user approval, sampling-based agents run unbounded LLM calls, skip human review, and leak sensitive tool results"
 tags: sampling, tools, agent-loop, security, human-in-the-loop

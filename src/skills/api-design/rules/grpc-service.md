@@ -1,5 +1,5 @@
 ---
-title: gRPC Service Definition and Implementation
+title: Define and implement gRPC services with compile-time type safety for microservices
 impact: HIGH
 impactDescription: "gRPC provides 10x lower latency than REST for internal microservice communication with compile-time type safety"
 tags: grpc, protobuf, microservices, rpc, python

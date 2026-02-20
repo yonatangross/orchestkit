@@ -1,5 +1,5 @@
 ---
-title: "React Aria: Components"
+title: Build accessible buttons, dialogs, and menus with React Aria keyboard support
 category: aria
 impact: HIGH
 impactDescription: "Ensures buttons, dialogs, and menus are fully accessible with keyboard support and ARIA attributes"

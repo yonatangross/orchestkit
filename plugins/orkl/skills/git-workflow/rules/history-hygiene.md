@@ -1,5 +1,5 @@
 ---
-title: History Hygiene Rules
+title: Keep git history clean by squashing WIP commits and fixups before merge
 impact: HIGH
 impactDescription: "Dirty history with WIP commits and fixups makes bisect impossible and reviews painful"
 tags: squash, fixup, interactive-rebase, clean-history

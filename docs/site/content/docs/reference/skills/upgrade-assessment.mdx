@@ -160,7 +160,7 @@ Focus on plugin structure:
 
 ## Rules (4)
 
-### Codebase Scan Patterns — HIGH
+### Use grep patterns and severity classification to detect upgrade-breaking code changes — HIGH
 
 
 # Codebase Scan Patterns
@@ -213,7 +213,7 @@ grep -r "200000\|200_000" src/ --include="*.ts" --include="*.md"
 ```
 
 
-### Detection Checks — HIGH
+### Run precondition verification and environment detection before starting upgrade scans — HIGH
 
 
 # Detection Checks
@@ -283,7 +283,7 @@ grep -r "claude-" src/skills/ --include="*.md"
 ```
 
 
-### Platform Compatibility Knowledge — HIGH
+### Check platform compatibility for model IDs, API changes, and format changes before upgrading — HIGH
 
 
 ## Platform Compatibility Knowledge
@@ -358,7 +358,7 @@ const response = await anthropic.messages.create({
 ```
 
 
-### Platform Upgrade Evaluation — HIGH
+### Evaluate platform upgrades with structured analysis to catch breaking changes before production — HIGH
 
 
 ## Platform Upgrade Evaluation

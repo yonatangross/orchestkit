@@ -1,5 +1,5 @@
 ---
-title: Release Commit, Tag, and Push
+title: Format release commits, tags, and pushes correctly for CI changelog and semver automation
 impact: HIGH
 impactDescription: "Wrong commit format breaks CI changelog automation; wrong tag name breaks semver tooling; pushing without confirmation is irreversible on shared remotes"
 tags: git-commit, git-tag, git-push, release, conventional-commits

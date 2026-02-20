@@ -1,5 +1,5 @@
 ---
-title: "Messaging Platform Integrations"
+title: Integrate messaging platforms securely with webhook validation and delivery guarantees
 category: integration
 impact: HIGH
 impactDescription: Messaging integrations (WhatsApp, Telegram, Slack) handle user-facing communication where failures are immediately visible. Webhook security gaps expose your system to spoofed messages.

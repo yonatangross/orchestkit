@@ -460,7 +460,7 @@ Each category has individual rule files in `rules/` loaded on-demand:
 
 ## Rules (4)
 
-### Motion Library & View Transitions — HIGH
+### Use Motion library with centralized presets for 60fps animations and reduced-motion compliance — HIGH
 
 
 ## Motion Library & View Transitions
@@ -547,7 +547,7 @@ function ProductCard({ product }: { product: Product }) {
 - Use View Transitions API for page navigation, Motion for component animations
 
 
-### Scroll-Driven Animations — MEDIUM
+### Use CSS scroll-driven animations on the compositor thread for guaranteed 60fps performance — MEDIUM
 
 
 ## Scroll-Driven Animations
@@ -655,7 +655,7 @@ window.addEventListener('scroll', () => {
 - Respect `prefers-reduced-motion` — disable parallax and motion effects
 
 
-### PWA Offline & Installability — HIGH
+### Configure PWA offline support, manifest, and background sync for native-like installability — HIGH
 
 
 ## PWA Offline & Installability
@@ -758,7 +758,7 @@ registerRoute(
 - Test offline behavior in Chrome DevTools Application tab
 
 
-### PWA Service Worker & Workbox — HIGH
+### Configure service workers with Workbox 7.x caching strategies to prevent stale content — HIGH
 
 
 ## PWA Service Worker & Workbox

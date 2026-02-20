@@ -1,5 +1,5 @@
 ---
-title: Edge Caching & CDN Patterns
+title: Configure edge caching with CDN invalidation, TTL, and stale-while-revalidate strategies
 impact: HIGH
 impactDescription: "Edge caching without proper invalidation strategies serves stale data indefinitely — cache-aside with TTL and stale-while-revalidate prevents this"
 tags: edge-cache, cdn, cache-control, stale-while-revalidate, cloudflare-kv

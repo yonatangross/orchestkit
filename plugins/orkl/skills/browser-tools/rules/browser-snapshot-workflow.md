@@ -1,5 +1,5 @@
 ---
-title: "Browser: Snapshot Workflow"
+title: Wait and snapshot browser content to avoid empty results and bloated page dumps
 category: browser
 impact: HIGH
 impactDescription: "Extracting content without waiting or snapshotting produces empty results, stale refs, or bloated context from full-page dumps"

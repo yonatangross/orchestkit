@@ -1,5 +1,5 @@
 ---
-title: Branch Protection Rules
+title: Configure branch protection rules to prevent direct commits to protected branches
 impact: CRITICAL
 impactDescription: "Direct commits to protected branches can break deployments and overwrite team work"
 tags: branch, protection, main, dev, workflow

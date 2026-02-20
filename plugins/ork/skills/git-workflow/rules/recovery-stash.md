@@ -1,5 +1,5 @@
 ---
-title: Stash Recovery
+title: Recover git stash entries using named stashes and reflog before garbage collection
 impact: MEDIUM
 impactDescription: "Lost stash entries cannot be recovered after garbage collection — name stashes and check reflog promptly"
 tags: git, recovery, stash, save, pop, lost-work

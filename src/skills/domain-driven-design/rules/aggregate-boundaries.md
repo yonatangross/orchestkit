@@ -1,5 +1,5 @@
 ---
-title: Aggregate Root Boundaries and Consistency
+title: Define aggregate root boundaries correctly to prevent cross-transaction data corruption
 impact: HIGH
 impactDescription: "Wrong aggregate boundaries cause data corruption — multiple transactions modifying shared state leads to inconsistency"
 tags: aggregate, root, boundary, consistency, transactional, ddd

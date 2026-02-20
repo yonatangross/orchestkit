@@ -1,5 +1,5 @@
 ---
-title: Video Composition and Audio
+title: Compose video with professional audio mixing to maximize viewer retention and engagement
 impact: HIGH
 impactDescription: "Professional composition with proper audio mixing determines viewer retention and engagement"
 tags: remotion, composition, audio, mixing, thumbnails, captions, effects

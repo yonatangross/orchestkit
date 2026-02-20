@@ -1,5 +1,5 @@
 ---
-title: "Radix: Dialog Patterns"
+title: Build accessible modal dialogs with Radix primitives and focus management
 category: radix
 impact: HIGH
 impactDescription: "Implements accessible modal dialogs with built-in focus management and keyboard navigation using Radix primitives"
