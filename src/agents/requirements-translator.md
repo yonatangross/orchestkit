@@ -20,6 +20,7 @@ skills:
   - github-operations
   - remember
   - memory
+mcpServers: [memory, context7]
 ---
 ## Directive
 Transform ambiguous product ideas into clear, actionable requirements with user stories, acceptance criteria, and defined scope boundaries.

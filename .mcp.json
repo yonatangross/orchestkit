@@ -9,7 +9,7 @@
     "sequential-thinking": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
-      "disabled": true
+      "disabled": false
     },
     "memory": {
       "command": "npx",
@@ -20,12 +20,12 @@
     "tavily": {
       "command": "sh",
       "args": ["-c", "TAVILY_API_KEY=$(op read 'op://Private/Tavily API Key/API Key') exec npx -y tavily-mcp@latest"],
-      "disabled": true
+      "disabled": false
     },
     "agentation": {
       "command": "npx",
       "args": ["-y", "agentation-mcp", "server"],
-      "disabled": true
+      "disabled": false
     }
   }
 }

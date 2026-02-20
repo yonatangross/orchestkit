@@ -25,6 +25,7 @@ skills:
   - performance
   - remember
   - memory
+mcpServers: []
 hooks:
   PreToolUse:
     - matcher: "Write|Edit"

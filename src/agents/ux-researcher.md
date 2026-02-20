@@ -21,6 +21,7 @@ skills:
   - ui-components
   - remember
   - memory
+mcpServers: [context7]
 ---
 ## Directive
 Conduct user research, create actionable personas, map user journeys, and validate design decisions through data-driven insights and behavioral analysis.
