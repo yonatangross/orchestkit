@@ -29,6 +29,26 @@ Deep code review using 6-7 parallel specialized agents.
 
 ---
 
+## Argument Resolution
+
+The PR number or branch is passed as the skill argument. Resolve it immediately:
+
+```python
+PR_NUMBER = "$ARGUMENTS"  # e.g., "123" or "feature-branch"
+
+# If no argument provided, check environment
+if not PR_NUMBER:
+    PR_NUMBER = os.environ.get("ORCHESTKIT_PR_URL", "").split("/")[-1]
+
+# If still empty, detect from current branch
+if not PR_NUMBER:
+    PR_NUMBER = "$(gh pr view --json number -q .number 2>/dev/null)"
+```
+
+Use `PR_NUMBER` consistently in all subsequent commands and agent prompts.
+
+---
+
 ## STEP 0: Verify User Intent with AskUserQuestion
 
 **BEFORE creating tasks**, clarify review focus:
@@ -93,14 +113,28 @@ TaskUpdate(taskId="2", status="completed")    # When done
 
 ```bash
 # Get PR details
-gh pr view $ARGUMENTS --json title,body,files,additions,deletions,commits,author
+gh pr view $PR_NUMBER --json title,body,files,additions,deletions,commits,author
 
 # View the diff
-gh pr diff $ARGUMENTS
+gh pr diff $PR_NUMBER
 
 # Check CI status
-gh pr checks $ARGUMENTS
+gh pr checks $PR_NUMBER
 ```
+
+### Capture Scope for Agents
+
+```bash
+# Capture changed files for agent scope injection
+CHANGED_FILES=$(gh pr diff $PR_NUMBER --name-only)
+
+# Detect affected domains
+HAS_FRONTEND=$(echo "$CHANGED_FILES" | grep -qE '\.(tsx?|jsx?|css|scss)$' && echo true || echo false)
+HAS_BACKEND=$(echo "$CHANGED_FILES" | grep -qE '\.(py|go|rs|java)$' && echo true || echo false)
+HAS_AI=$(echo "$CHANGED_FILES" | grep -qE '(llm|ai|agent|prompt|embedding)' && echo true || echo false)
+```
+
+Pass `CHANGED_FILES` to every agent prompt in Phase 3. Pass domain flags to select which agents to spawn.
 
 Identify: total files changed, lines added/removed, affected domains (frontend, backend, AI).
 
@@ -134,6 +168,19 @@ Relevant skills activated automatically:
 
 ## Phase 3: Parallel Code Review (6 Agents)
 
+### Domain-Aware Agent Selection
+
+Only spawn agents relevant to the PR's changed domains:
+
+| Domain Detected | Agents to Spawn |
+|----------------|-----------------|
+| Backend only | code-quality (x2), security-auditor, test-generator, backend-system-architect |
+| Frontend only | code-quality (x2), security-auditor, test-generator, frontend-ui-developer |
+| Full-stack | All 6 agents |
+| AI/LLM code | All 6 + optional llm-integrator (7th) |
+
+Skip agents for domains not present in the diff. This saves ~33% tokens on domain-specific PRs.
+
 See [Agent Prompts -- Task Tool Mode](rules/agent-prompts-task-tool.md) for the 6 parallel agent prompts.
 
 See [Agent Prompts -- Agent Teams Mode](rules/agent-prompts-agent-teams.md) for the mesh alternative.
@@ -152,10 +199,10 @@ Combine all agent feedback into a structured report. See [Review Report Template
 
 ```bash
 # Approve
-gh pr review $ARGUMENTS --approve -b "Review message"
+gh pr review $PR_NUMBER --approve -b "Review message"
 
 # Request changes
-gh pr review $ARGUMENTS --request-changes -b "Review message"
+gh pr review $PR_NUMBER --request-changes -b "Review message"
 ```
 
 ## CC 2.1.20 Enhancements
@@ -217,25 +264,41 @@ Use these prefixes for comments:
 In Agent Teams mode, form a review team where reviewers cross-reference findings directly:
 
 ```python
-TeamCreate(team_name="review-pr-{number}", description="Review PR #{number}")
+# DOMAIN-AWARE AGENT SELECTION
+# Core agents (always spawn): quality-reviewer, security-reviewer, test-reviewer
+# Conditional: backend-reviewer (if HAS_BACKEND), frontend-reviewer (if HAS_FRONTEND)
+
+# Capture scope from Phase 1
+CHANGED_FILES = "$(gh pr diff $PR_NUMBER --name-only)"
+
+TeamCreate(team_name="review-pr-$PR_NUMBER", description="Review PR #$PR_NUMBER")
 
 Task(subagent_type="code-quality-reviewer", name="quality-reviewer",
-     team_name="review-pr-{number}",
-     prompt="""Review code quality and type safety for PR #{number}.
+     team_name="review-pr-$PR_NUMBER",
+     prompt="""Review code quality and type safety for PR #$PR_NUMBER.
+     Scope: ONLY review the following changed files:
+     ${CHANGED_FILES}
+     Do NOT explore beyond these files.
      When you find patterns that overlap with security concerns,
      message security-reviewer with the finding.
      When you find test gaps, message test-reviewer.""")
 
 Task(subagent_type="security-auditor", name="security-reviewer",
-     team_name="review-pr-{number}",
-     prompt="""Security audit for PR #{number}.
+     team_name="review-pr-$PR_NUMBER",
+     prompt="""Security audit for PR #$PR_NUMBER.
+     Scope: ONLY review the following changed files:
+     ${CHANGED_FILES}
+     Do NOT explore beyond these files.
      Cross-reference with quality-reviewer for injection risks in code patterns.
      When you find issues, message the responsible reviewer (backend-reviewer
      for API issues, frontend-reviewer for XSS).""")
 
 Task(subagent_type="test-generator", name="test-reviewer",
-     team_name="review-pr-{number}",
-     prompt="""Review TEST ADEQUACY for PR #{number}.
+     team_name="review-pr-$PR_NUMBER",
+     prompt="""Review TEST ADEQUACY for PR #$PR_NUMBER.
+     Scope: ONLY review the following changed files:
+     ${CHANGED_FILES}
+     Do NOT explore beyond these files.
      1. Check: Does the PR add/modify code WITHOUT adding tests? Flag as MISSING.
      2. Match change types to required test types (testing-patterns rules):
         - API → integration-api, verification-contract
@@ -247,26 +310,38 @@ Task(subagent_type="test-generator", name="test-reviewer",
      Message backend-reviewer or frontend-reviewer with test requirements.
      End with: RESULT: [ADEQUATE|GAPS|MISSING] - summary""")
 
+# Only spawn if backend files detected (HAS_BACKEND)
 Task(subagent_type="backend-system-architect", name="backend-reviewer",
-     team_name="review-pr-{number}",
-     prompt="""Review backend code for PR #{number}.
+     team_name="review-pr-$PR_NUMBER",
+     prompt="""Review backend code for PR #$PR_NUMBER.
+     Scope: ONLY review the following changed files:
+     ${CHANGED_FILES}
+     Do NOT explore beyond these files.
      When security-reviewer flags API issues, validate and suggest fixes.
      Share API pattern findings with frontend-reviewer for consistency.""")
 
+# Only spawn if frontend files detected (HAS_FRONTEND)
 Task(subagent_type="frontend-ui-developer", name="frontend-reviewer",
-     team_name="review-pr-{number}",
-     prompt="""Review frontend code for PR #{number}.
+     team_name="review-pr-$PR_NUMBER",
+     prompt="""Review frontend code for PR #$PR_NUMBER.
+     Scope: ONLY review the following changed files:
+     ${CHANGED_FILES}
+     Do NOT explore beyond these files.
      When backend-reviewer shares API patterns, verify frontend matches.
      When security-reviewer flags XSS risks, validate and suggest fixes.""")
 ```
 
-**Team teardown** after synthesis:
+**Team teardown** after synthesis (only shut down agents that were actually spawned):
 ```python
 # After collecting all findings and producing the review
+# Core agents — always shut down
 SendMessage(type="shutdown_request", recipient="quality-reviewer", content="Review complete")
 SendMessage(type="shutdown_request", recipient="security-reviewer", content="Review complete")
 SendMessage(type="shutdown_request", recipient="test-reviewer", content="Review complete")
+# Conditional agents — only shut down if spawned
+# if HAS_BACKEND:
 SendMessage(type="shutdown_request", recipient="backend-reviewer", content="Review complete")
+# if HAS_FRONTEND:
 SendMessage(type="shutdown_request", recipient="frontend-reviewer", content="Review complete")
 TeamDelete()
 ```
@@ -274,8 +349,8 @@ TeamDelete()
 **Incorrect — No team teardown:**
 ```python
 # Agents keep running indefinitely
-Task(subagent_type="code-quality-reviewer", team_name="review-pr-123")
-Task(subagent_type="security-auditor", team_name="review-pr-123")
+Task(subagent_type="code-quality-reviewer", team_name="review-pr-$PR_NUMBER")
+Task(subagent_type="security-auditor", team_name="review-pr-$PR_NUMBER")
 # Missing shutdown_request calls!
 ```
 
@@ -307,11 +382,27 @@ Launch SIX specialized reviewers in ONE message with `run_in_background: true`:
 | frontend-ui-developer | React 19, hooks, a11y |
 
 ```python
-# PARALLEL - All 6 agents in ONE message
+# DOMAIN-AWARE AGENT SELECTION
+# Only spawn agents relevant to detected domains.
+# CHANGED_FILES and domain flags (HAS_FRONTEND, HAS_BACKEND, HAS_AI)
+# are captured in Phase 1.
+
+# ALWAYS spawn these 4 core agents:
+# - code-quality-reviewer (readability)
+# - code-quality-reviewer (type safety)
+# - security-auditor
+# - test-generator
+
+# CONDITIONALLY spawn these based on domain:
+# - backend-system-architect  → only if HAS_BACKEND
+# - frontend-ui-developer     → only if HAS_FRONTEND
+# - llm-integrator (7th)      → only if HAS_AI
+
+# PARALLEL - All agents in ONE message
 Task(
   description="Review code quality",
   subagent_type="code-quality-reviewer",
-  prompt="""CODE QUALITY REVIEW for PR $ARGUMENTS
+  prompt="""CODE QUALITY REVIEW for PR $PR_NUMBER
 
   Review code readability and maintainability:
   1. Naming conventions and clarity
@@ -319,7 +410,10 @@ Task(
   3. DRY violations and code duplication
   4. SOLID principles adherence
 
-  Scope: ONLY read files directly relevant to the PR diff. Do NOT explore the entire codebase.
+  Scope: ONLY review the following changed files:
+  ${CHANGED_FILES}
+
+  Do NOT explore beyond these files. Focus your analysis on the diff.
 
   SUMMARY: End with: "RESULT: [PASS|WARN|FAIL] - [N] issues: [brief list]"
   """,
@@ -329,7 +423,7 @@ Task(
 Task(
   description="Review type safety",
   subagent_type="code-quality-reviewer",
-  prompt="""TYPE SAFETY REVIEW for PR $ARGUMENTS
+  prompt="""TYPE SAFETY REVIEW for PR $PR_NUMBER
 
   Review type safety and validation:
   1. TypeScript strict mode compliance
@@ -337,7 +431,10 @@ Task(
   3. No `any` types or type assertions
   4. Exhaustive switch/union handling
 
-  Scope: ONLY read files directly relevant to the PR diff. Do NOT explore the entire codebase.
+  Scope: ONLY review the following changed files:
+  ${CHANGED_FILES}
+
+  Do NOT explore beyond these files. Focus your analysis on the diff.
 
   SUMMARY: End with: "RESULT: [PASS|WARN|FAIL] - [N] type issues: [brief list]"
   """,
@@ -347,7 +444,7 @@ Task(
 Task(
   description="Security audit PR",
   subagent_type="security-auditor",
-  prompt="""SECURITY REVIEW for PR $ARGUMENTS
+  prompt="""SECURITY REVIEW for PR $PR_NUMBER
 
   Security audit:
   1. Secrets/credentials in code
@@ -355,7 +452,10 @@ Task(
   3. Authentication/authorization checks
   4. Dependency vulnerabilities
 
-  Scope: ONLY read files directly relevant to the PR diff. Do NOT explore the entire codebase.
+  Scope: ONLY review the following changed files:
+  ${CHANGED_FILES}
+
+  Do NOT explore beyond these files. Focus your analysis on the diff.
 
   SUMMARY: End with: "RESULT: [PASS|WARN|BLOCK] - [N] findings: [severity summary]"
   """,
@@ -365,7 +465,7 @@ Task(
 Task(
   description="Review test adequacy",
   subagent_type="test-generator",
-  prompt="""TEST ADEQUACY REVIEW for PR $ARGUMENTS
+  prompt="""TEST ADEQUACY REVIEW for PR $PR_NUMBER
 
   Evaluate whether this PR has sufficient tests:
 
@@ -392,7 +492,10 @@ Task(
      - Which changed functions/methods lack test coverage?
      - Which error paths are untested?
 
-  Scope: ONLY read files directly relevant to the PR diff.
+  Scope: ONLY review the following changed files:
+  ${CHANGED_FILES}
+
+  Do NOT explore beyond these files. Focus your analysis on the diff.
 
   SUMMARY: End with: "RESULT: [ADEQUATE|GAPS|MISSING] - [N] untested paths, [M] missing test types - [key gap]"
   """,
@@ -402,7 +505,7 @@ Task(
 Task(
   description="Review backend code",
   subagent_type="backend-system-architect",
-  prompt="""BACKEND REVIEW for PR $ARGUMENTS
+  prompt="""BACKEND REVIEW for PR $PR_NUMBER
 
   Review backend code:
   1. API design and REST conventions
@@ -410,7 +513,10 @@ Task(
   3. Database query efficiency (N+1)
   4. Transaction boundaries
 
-  Scope: ONLY read files directly relevant to the PR diff. Do NOT explore the entire codebase.
+  Scope: ONLY review the following changed files:
+  ${CHANGED_FILES}
+
+  Do NOT explore beyond these files. Focus your analysis on the diff.
 
   SUMMARY: End with: "RESULT: [PASS|WARN|FAIL] - [N] issues: [key concern]"
   """,
@@ -420,7 +526,7 @@ Task(
 Task(
   description="Review frontend code",
   subagent_type="frontend-ui-developer",
-  prompt="""FRONTEND REVIEW for PR $ARGUMENTS
+  prompt="""FRONTEND REVIEW for PR $PR_NUMBER
 
   Review frontend code:
   1. React 19 patterns (hooks, server components)
@@ -428,7 +534,10 @@ Task(
   3. Accessibility (a11y) compliance
   4. Performance (memoization, lazy loading)
 
-  Scope: ONLY read files directly relevant to the PR diff. Do NOT explore the entire codebase.
+  Scope: ONLY review the following changed files:
+  ${CHANGED_FILES}
+
+  Do NOT explore beyond these files. Focus your analysis on the diff.
 
   SUMMARY: End with: "RESULT: [PASS|WARN|FAIL] - [N] issues: [key concern]"
   """,
