@@ -94,7 +94,7 @@ All plugins include 65 hooks and a `settings.json` (permissions, keybindings, sp
 
 ## Version
 
-- **Current**: 6.0.26 · **Claude Code**: >= 2.1.49
+- **Current**: 6.0.28 · **Claude Code**: >= 2.1.49
 - **Hooks**: 65 entries (15 event types, 12 bundles, 9 native async)
 
 See `CHANGELOG.md` for history. See `src/hooks/README.md` for hook architecture.
