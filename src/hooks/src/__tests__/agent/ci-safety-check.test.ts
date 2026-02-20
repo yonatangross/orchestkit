@@ -35,6 +35,13 @@ vi.mock('../../lib/common.js', () => ({
   })),
   getProjectDir: vi.fn(() => '/test/project'),
   getSessionId: vi.fn(() => 'test-session-123'),
+  lineContainsAll: (content: string, ...terms: string[]) =>
+    content.split('\n').some((line) => terms.every((t) => line.includes(t))),
+  lineContainsAllCI: (content: string, ...terms: string[]) =>
+    content.split('\n').some((line) => {
+      const lower = line.toLowerCase();
+      return terms.every((t) => lower.includes(t.toLowerCase()));
+    }),
 }));
 
 import { ciSafetyCheck } from '../../agent/ci-safety-check.js';
@@ -237,7 +244,7 @@ describe('ci-safety-check', () => {
 
       // Assert
       expect(result.stopReason).toContain('Pattern:');
-      expect(result.stopReason).toContain('gh\\s+secret\\s+delete');
+      expect(result.stopReason).toContain('gh secret delete');
     });
 
     test('deny output mentions user approval', () => {
@@ -401,7 +408,7 @@ describe('ci-safety-check', () => {
 
       // Assert - first match (gh secret delete) triggers deny
       expect(result.continue).toBe(false);
-      expect(result.stopReason).toContain('gh\\s+secret\\s+delete');
+      expect(result.stopReason).toContain('gh secret delete');
     });
   });
 

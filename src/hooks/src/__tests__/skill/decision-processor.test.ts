@@ -25,6 +25,8 @@ vi.mock('child_process', () => ({
 vi.mock('../../lib/common.js', () => ({
   outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
   getPluginRoot: vi.fn(() => '/test/plugin'),
+  lineContainsAll: (content: string, ...terms: string[]) => content.split('\n').some(line => terms.every(t => line.includes(t))),
+  lineContainsAllCI: (content: string, ...terms: string[]) => content.split('\n').some(line => { const lower = line.toLowerCase(); return terms.every(t => lower.includes(t.toLowerCase())); }),
 }));
 
 import {

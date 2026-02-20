@@ -29,6 +29,13 @@ vi.mock('../../lib/common.js', () => ({
     continue: true,
     systemMessage: msg,
   })),
+  lineContainsAll: (content: string, ...terms: string[]) =>
+    content.split('\n').some(line => terms.every(t => line.includes(t))),
+  lineContainsAllCI: (content: string, ...terms: string[]) =>
+    content.split('\n').some(line => {
+      const lower = line.toLowerCase();
+      return terms.every(t => lower.includes(t.toLowerCase()));
+    }),
 }));
 
 import { prefillGuard } from '../../lifecycle/prefill-guard.js';

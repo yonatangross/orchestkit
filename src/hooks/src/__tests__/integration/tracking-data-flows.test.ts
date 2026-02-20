@@ -56,6 +56,32 @@ afterAll(() => {
 // MOCK SETUP: Minimal mocks for controlled testing
 // =============================================================================
 
+// Mock analytics-buffer to use real appendFileSync (integration uses real filesystem)
+// vi.hoisted ensures the helper fns are available inside the vi.mock factory
+const { _realWrite } = vi.hoisted(() => {
+  const nodefs = require('node:fs');
+  const nodepath = require('node:path');
+  return {
+    _realWrite: (filePath: string, content: string) => {
+      try {
+        nodefs.mkdirSync(nodepath.dirname(filePath), { recursive: true });
+        nodefs.appendFileSync(filePath, content);
+      } catch {
+        // ignore
+      }
+    },
+  };
+});
+
+vi.mock('../../lib/analytics-buffer.js', () => ({
+  bufferWrite: vi.fn((filePath: string, content: string) => {
+    _realWrite(filePath, content);
+  }),
+  flush: vi.fn(),
+  pendingCount: vi.fn(() => 0),
+  _resetForTesting: vi.fn(),
+}));
+
 // Mock git commands for user-identity resolution
 vi.mock('node:child_process', () => ({
   execSync: vi.fn((cmd: string) => {

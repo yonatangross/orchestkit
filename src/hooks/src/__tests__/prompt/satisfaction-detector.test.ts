@@ -5,6 +5,17 @@
  */
 
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
+
+vi.mock('../../lib/analytics-buffer.js', () => ({
+  bufferWrite: vi.fn((filePath: string, content: string) => {
+    const { appendFileSync } = require('node:fs');
+    appendFileSync(filePath, content);
+  }),
+  flush: vi.fn(),
+  pendingCount: vi.fn(() => 0),
+  _resetForTesting: vi.fn(),
+}));
+
 import type { HookInput } from '../../types.js';
 import { satisfactionDetector } from '../../prompt/satisfaction-detector.js';
 import { existsSync, mkdirSync, writeFileSync, readFileSync, rmSync } from 'node:fs';

@@ -29,6 +29,8 @@ vi.mock('../../lib/common.js', () => ({
     },
   })),
   getProjectDir: vi.fn(() => '/test/project'),
+  lineContainsAll: (content: string, ...terms: string[]) => content.split('\n').some(line => terms.every(t => line.includes(t))),
+  lineContainsAllCI: (content: string, ...terms: string[]) => content.split('\n').some(line => { const lower = line.toLowerCase(); return terms.every(t => lower.includes(t.toLowerCase())); }),
 }));
 
 vi.mock('../../lib/git.js', () => ({

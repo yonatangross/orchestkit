@@ -12,11 +12,25 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { collectMemoryMetrics, appendMetricSnapshot } from '../../lib/memory-metrics.js';
 
+// Use vi.hoisted so _mockAppendFileSync is available in vi.mock factory closures
+const { _mockAppendFileSync } = vi.hoisted(() => ({
+  _mockAppendFileSync: vi.fn(),
+}));
+
+vi.mock('../../lib/analytics-buffer.js', () => ({
+  bufferWrite: vi.fn((filePath: string, content: string) => {
+    _mockAppendFileSync(filePath, content);
+  }),
+  flush: vi.fn(),
+  pendingCount: vi.fn(() => 0),
+  _resetForTesting: vi.fn(),
+}));
+
 // Mock node:fs
 vi.mock('node:fs', () => ({
   existsSync: vi.fn(),
   readFileSync: vi.fn(),
-  appendFileSync: vi.fn(),
+  appendFileSync: _mockAppendFileSync,
   mkdirSync: vi.fn(),
 }));
 

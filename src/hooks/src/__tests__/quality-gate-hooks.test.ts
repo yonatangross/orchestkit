@@ -15,6 +15,25 @@ import type { HookInput } from '../types.js';
 import { getMetricsFile, getSessionErrorsFile } from '../lib/paths.js';
 
 // ---------------------------------------------------------------------------
+// Hoisted mocks — shared between analytics-buffer and node:fs mocks
+// ---------------------------------------------------------------------------
+const { mockAppendFileSync } = vi.hoisted(() => ({
+  mockAppendFileSync: vi.fn(),
+}));
+
+// ---------------------------------------------------------------------------
+// Mock analytics-buffer — bridges bufferWrite to mockAppendFileSync for assertions
+// ---------------------------------------------------------------------------
+vi.mock('../lib/analytics-buffer.js', () => ({
+  bufferWrite: vi.fn((filePath: string, content: string) => {
+    mockAppendFileSync(filePath, content);
+  }),
+  flush: vi.fn(),
+  pendingCount: vi.fn(() => 0),
+  _resetForTesting: vi.fn(),
+}));
+
+// ---------------------------------------------------------------------------
 // Mock node:os — ensures os.tmpdir() returns '/tmp' consistently in tests
 // ---------------------------------------------------------------------------
 vi.mock('node:os', () => ({
@@ -30,7 +49,7 @@ vi.mock('node:fs', () => ({
   existsSync: vi.fn(() => false),
   readFileSync: vi.fn(() => ''),
   writeFileSync: vi.fn(),
-  appendFileSync: vi.fn(),
+  appendFileSync: mockAppendFileSync,
   mkdirSync: vi.fn(),
   statSync: vi.fn(() => ({ size: 0 })),
   renameSync: vi.fn(),

@@ -22,6 +22,7 @@ import { tmpdir } from 'node:os';
 
 import { analyzeJsonlFile, checkMemoryHealth } from '../../lib/memory-health.js';
 import { collectMemoryMetrics, appendMetricSnapshot } from '../../lib/memory-metrics.js';
+import { flush as flushBuffer, _resetForTesting } from '../../lib/analytics-buffer.js';
 
 // =============================================================================
 // HELPERS
@@ -302,8 +303,10 @@ describe('Performance: Health Check with Bloated Files', () => {
 describe('Performance: Metrics Persistence', () => {
   beforeEach(() => {
     testDir = createTestDir();
+    _resetForTesting();
   });
   afterEach(() => {
+    _resetForTesting();
     rmSync(testDir, { recursive: true, force: true });
   });
 
@@ -317,6 +320,7 @@ describe('Performance: Metrics Persistence', () => {
       const metrics = collectMemoryMetrics(testDir);
       appendMetricSnapshot(testDir, metrics);
     }
+    flushBuffer();
     const elapsed = performance.now() - start;
 
     // Assert
@@ -347,6 +351,7 @@ describe('Performance: Metrics Persistence', () => {
     // Act
     const metrics = collectMemoryMetrics(testDir);
     appendMetricSnapshot(testDir, metrics);
+    flushBuffer();
 
     // Assert
     expect(existsSync(logsDir)).toBe(true);
@@ -368,6 +373,7 @@ describe('Performance: Metrics Persistence', () => {
       const metrics = collectMemoryMetrics(testDir);
       appendMetricSnapshot(testDir, metrics);
     }
+    flushBuffer();
 
     // Assert
     const metricsPath = join(testDir, '.claude', 'logs', 'memory-metrics.jsonl');

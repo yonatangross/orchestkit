@@ -13,6 +13,22 @@ import type { HookInput } from '../../types.js';
 // Mocks
 // =============================================================================
 
+// Use vi.hoisted() so mock fns are available in vi.mock() factory closures
+// (vi.mock calls are hoisted to top of file before const declarations)
+const { _mockMkdirSync, _mockAppendFileSync } = vi.hoisted(() => ({
+  _mockMkdirSync: vi.fn(),
+  _mockAppendFileSync: vi.fn(),
+}));
+
+vi.mock('../../lib/analytics-buffer.js', () => ({
+  bufferWrite: vi.fn((filePath: string, content: string) => {
+    _mockAppendFileSync(filePath, content);
+  }),
+  flush: vi.fn(),
+  pendingCount: vi.fn(() => 0),
+  _resetForTesting: vi.fn(),
+}));
+
 vi.mock('../../lib/common.js', () => ({
   logHook: vi.fn(),
   outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
@@ -38,8 +54,8 @@ vi.mock('../../lib/common.js', () => ({
 }));
 
 vi.mock('node:fs', () => ({
-  mkdirSync: vi.fn(),
-  appendFileSync: vi.fn(),
+  mkdirSync: _mockMkdirSync,
+  appendFileSync: _mockAppendFileSync,
 }));
 
 import { securityCommandAudit } from '../../agent/security-command-audit.js';

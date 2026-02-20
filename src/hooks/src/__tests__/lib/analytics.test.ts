@@ -16,11 +16,25 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
+// Use vi.hoisted so _mockAppendFileSync is available in vi.mock factory closures
+const { _mockAppendFileSync } = vi.hoisted(() => ({
+  _mockAppendFileSync: vi.fn(),
+}));
+
+vi.mock('../../lib/analytics-buffer.js', () => ({
+  bufferWrite: vi.fn((filePath: string, content: string) => {
+    _mockAppendFileSync(filePath, content);
+  }),
+  flush: vi.fn(),
+  pendingCount: vi.fn(() => 0),
+  _resetForTesting: vi.fn(),
+}));
+
 vi.mock('node:fs', async () => {
   const actual = await vi.importActual('node:fs');
   return {
     ...actual,
-    appendFileSync: vi.fn(),
+    appendFileSync: _mockAppendFileSync,
     mkdirSync: vi.fn(),
     statSync: vi.fn(() => ({ size: 100 })),
     renameSync: vi.fn(),
