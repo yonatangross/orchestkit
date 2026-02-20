@@ -7,16 +7,16 @@
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook } from '../lib/common.js';
 
-// Complex task indicators (keyword pairs checked via includes)
-const COMPLEX_KEYWORDS: string[][] = [
-  ['implement'],
-  ['refactor'],
-  ['add feature'],
-  ['create', 'component'],
-  ['build', 'system'],
-  ['fix', 'multiple'],
-  ['update', 'across'],
-  ['migrate'],
+// Complex task indicators (regex patterns)
+const COMPLEX_PATTERNS = [
+  /implement/i,
+  /refactor/i,
+  /add feature/i,
+  /create.*component/i,
+  /build.*system/i,
+  /fix.*multiple/i,
+  /update.*across/i,
+  /migrate/i,
 ];
 
 // Threshold for long prompts (often indicate complex tasks)
@@ -33,10 +33,9 @@ export function todoEnforcer(input: HookInput): HookResult {
 
   let isComplex = false;
 
-  // Check for complex task patterns (ReDoS-safe string checks)
-  const lowerPrompt = prompt.toLowerCase();
-  for (const keywords of COMPLEX_KEYWORDS) {
-    if (keywords.every(k => lowerPrompt.includes(k))) {
+  // Check for complex task patterns
+  for (const pattern of COMPLEX_PATTERNS) {
+    if (pattern.test(prompt)) {
       isComplex = true;
       break;
     }

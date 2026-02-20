@@ -37,7 +37,7 @@ export function testRunner(input: HookInput): HookResult {
   if (!filePath) return outputSilentSuccess();
 
   // Python test files
-  if ((filePath.includes('test') && filePath.endsWith('.py')) || filePath.endsWith('_test.py')) {
+  if (/test.*\.py$/.test(filePath) || /_test\.py$/.test(filePath)) {
     process.stderr.write(`::group::Auto-running Python test: ${basename(filePath)}\n`);
 
     const dir = dirname(filePath);

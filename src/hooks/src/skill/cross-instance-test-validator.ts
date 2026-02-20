@@ -19,7 +19,7 @@ import { basename, dirname } from 'node:path';
 function isTestFile(filePath: string): boolean {
   return (
     /\.(test|spec)\.(ts|tsx|js|jsx)$/.test(filePath) ||
-    (filePath.includes('test_') && filePath.endsWith('.py')) ||
+    /test_.*\.py$/.test(filePath) ||
     /_test\.py$/.test(filePath)
   );
 }

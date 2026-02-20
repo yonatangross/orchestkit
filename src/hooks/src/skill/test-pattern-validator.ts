@@ -77,8 +77,7 @@ export function testPatternValidator(input: HookInput): HookResult {
 
     // Rule: No .skip() without explanation
     if (/(test|it|describe)\.skip\(/.test(content)) {
-      const lower = content.toLowerCase();
-      if (!lower.includes('todo') && !lower.includes('fixme') && !lower.includes('temporarily') && !(lower.includes('skip') && lower.includes('because'))) {
+      if (!/TODO|FIXME|skip.*because|temporarily/i.test(content)) {
         errors.push('.skip() found without explanation:');
         errors.push('  Add a comment explaining why the test is skipped');
         errors.push("  Example: test.skip('reason: waiting for API fix')");
@@ -103,7 +102,7 @@ export function testPatternValidator(input: HookInput): HookResult {
     }
 
     // Rule: No class-level mutable defaults
-    if (content.includes('class Test') && content.includes(':')) {
+    if (/class Test.*:/.test(content)) {
       if (/^\s+[a-z_]+ = \[\]/m.test(content) || /^\s+[a-z_]+ = \{\}/m.test(content)) {
         errors.push('Class-level mutable defaults can cause test pollution:');
         errors.push('  BAD:  class TestUser:\\n            items = []');

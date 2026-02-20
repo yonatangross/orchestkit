@@ -70,6 +70,30 @@ Use `AskUserQuestion` to verify scope (full-stack / backend-only / frontend-only
 - Task tool (star) otherwise; `ORCHESTKIT_FORCE_TASK_TOOL=1` to override
 - See [Orchestration Modes](references/orchestration-modes.md)
 
+### Worktree Isolation (CC 2.1.49)
+
+For features touching 5+ files, offer worktree isolation to prevent conflicts with the main working tree:
+
+```python
+AskUserQuestion(questions=[{
+  "question": "Isolate this feature in a git worktree?",
+  "header": "Isolation",
+  "options": [
+    {"label": "Yes — worktree (Recommended)", "description": "Creates isolated branch via EnterWorktree, merges back on completion"},
+    {"label": "No — work in-place", "description": "Edit files directly in current branch"}
+  ],
+  "multiSelect": false
+}])
+```
+
+If worktree selected:
+1. Call `EnterWorktree(name: "feat-{slug}")` to create isolated branch
+2. All agents work in the worktree directory
+3. On completion, merge back: `git checkout {original-branch} && git merge feat-{slug}`
+4. If merge conflicts arise, present diff to user via `AskUserQuestion`
+
+See [Worktree Isolation Mode](references/worktree-isolation-mode.md) for detailed workflow.
+
 ---
 
 ## Task Management (MANDATORY)
@@ -174,3 +198,4 @@ If detected: run integration tests against real services, not just mocks. Refere
 - [Scope Creep Detection](references/scope-creep-detection.md)
 - [Worktree Workflow](references/worktree-workflow.md)
 - [E2E Verification](references/e2e-verification.md)
+- [Worktree Isolation Mode](references/worktree-isolation-mode.md)
