@@ -83,7 +83,7 @@ export function configChangeAuditor(input: HookInput): HookResult {
     };
 
     // Log the config change
-    bufferWrite(auditFile, JSON.stringify(entry) + '\n');
+    bufferWrite(auditFile, `${JSON.stringify(entry)}\n`);
     logHook('config-change-auditor', `Config change: ${toolName} -> ${filePath}`);
 
     // Check for dangerous patterns in the content being written/edited

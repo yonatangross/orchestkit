@@ -305,7 +305,8 @@ describe('Cross-Bundle Consistency', () => {
     // 152 -> 155: issue-driven git workflow — commit-atomicity-checker, issue-reference-checker, issue-context-injector
     // 155 -> 156: sync with current bundle exports
     // 156 -> 158: added pretool/task/task-agent-advisor (#706) + teammate hooks
-    expect(totalHooks).toBe(158);
+    // 158 -> 159: #780 CC 2.1.49 adoption — added config-change/security-auditor
+    expect(totalHooks).toBe(159);
   });
 });
 

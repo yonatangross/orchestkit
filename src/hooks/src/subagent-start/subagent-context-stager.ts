@@ -179,7 +179,7 @@ function extractRulesFromMarkdown(content: string, _source: string): string[] {
       // Only keep rules with imperative/directive language
       if (/\b(always|never|must|don't|do not|required|NEVER|MUST|DON'T)\b/i.test(bullet)) {
         // Truncate long rules to ~80 chars
-        const truncated = bullet.length > 80 ? bullet.substring(0, 77) + '...' : bullet;
+        const truncated = bullet.length > 80 ? `${bullet.substring(0, 77)}...` : bullet;
         rules.push(truncated);
       }
     }
