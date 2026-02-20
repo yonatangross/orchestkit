@@ -1,6 +1,6 @@
 {
   "name": "ork-creative",
-  "version": "6.1.1",
+  "version": "6.1.2",
   "description": "Video add-on (requires orkl) — 2 skills, 1 agent. Demo recording, Remotion, storyboarding, content creation.",
   "dependencies": [
     "orkl"
