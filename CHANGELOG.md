@@ -5,6 +5,26 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.2.0](https://github.com/yonatangross/orchestkit/compare/v6.1.4...v6.2.0) (2026-02-20)
+
+
+### Features
+
+* dead code cleanup & PostToolUse consolidation ([#684](https://github.com/yonatangross/orchestkit/issues/684)) ([#790](https://github.com/yonatangross/orchestkit/issues/790)) ([da245ac](https://github.com/yonatangross/orchestkit/commit/da245ac82c587763b95269c62bf2b9f3c44115d3))
+* security hardening & hook consolidation (Milestone [#72](https://github.com/yonatangross/orchestkit/issues/72)) ([#788](https://github.com/yonatangross/orchestkit/issues/788)) ([5f014b4](https://github.com/yonatangross/orchestkit/commit/5f014b477d7e4aad04fbaeb13d8b72db08edc19a))
+
+
+### Bug Fixes
+
+* eliminate 91 CodeQL alerts + fix 30 pre-existing test failures ([#782](https://github.com/yonatangross/orchestkit/issues/782)) ([ca47641](https://github.com/yonatangross/orchestkit/commit/ca476416b81c217998af5e9b5305b44a4b6ffa8a))
+* **release:** scope release-please from v6.1.0 to prevent 7.0.0 ([#786](https://github.com/yonatangross/orchestkit/issues/786)) ([83a248b](https://github.com/yonatangross/orchestkit/commit/83a248b522313c453fa9fbdeb5e020998542350f))
+
+
+### Miscellaneous
+
+* **main:** release 6.1.3 ([#787](https://github.com/yonatangross/orchestkit/issues/787)) ([612ad89](https://github.com/yonatangross/orchestkit/commit/612ad8939f4a456ea5714212f96dab9cf6eca75a))
+* **main:** release 6.2.0 ([#789](https://github.com/yonatangross/orchestkit/issues/789)) ([54042ff](https://github.com/yonatangross/orchestkit/commit/54042ff5f4a4e654e9bb05708a752cd71ce10a97))
+
 ## [6.1.4] - 2026-02-20
 
 ### Changed
