@@ -5,6 +5,17 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.1.5] - 2026-02-20
+
+### Fixed
+
+- Harden Scorecard workflow security: add explicit job-level permissions to release-please job (least-privilege)
+- Pin jsonschema dependency to v4.23.0 in plugin-validation workflow (Pinned-Dependencies alert)
+- Add --no-audit flags to npm commands in ci-setup.sh for reproducible builds
+
+---
+
+
 ## [6.2.0](https://github.com/yonatangross/orchestkit/compare/v6.1.4...v6.2.0) (2026-02-20)
 
 
