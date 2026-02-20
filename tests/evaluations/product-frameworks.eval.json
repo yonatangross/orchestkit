@@ -1,0 +1,48 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "product-frameworks",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "roi-calculation",
+      "query": "Calculate the ROI for a $500K software investment with $200K annual benefits over 5 years",
+      "expected_behavior": [
+        "Uses ROI formula: (Net Benefits - Total Costs) / Total Costs x 100%",
+        "Calculates NPV with discount rate",
+        "Provides IRR and payback period"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "rice-prioritization",
+      "query": "Prioritize these features: search improvements, dark mode, API v2, mobile app",
+      "expected_behavior": [
+        "Scores each feature with Reach, Impact, Confidence, Effort",
+        "Calculates RICE score for each feature",
+        "Ranks features by score",
+        "Documents scoring rationale"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "okr-writing",
+      "query": "Write OKRs for a team focused on improving customer retention",
+      "expected_behavior": [
+        "Creates qualitative, inspiring objectives",
+        "Defines quantitative key results with baselines and targets",
+        "Key results are outcome-focused, not output-focused"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "user-persona",
+      "query": "Create a user persona for a DevOps engineer using our CI/CD platform",
+      "expected_behavior": [
+        "Includes demographics, goals, pain points, behaviors",
+        "Adds characteristic quote capturing mindset",
+        "Provides key insight for design decisions"
+      ],
+      "tags": ["happy-path"]
+    }
+  ]
+}

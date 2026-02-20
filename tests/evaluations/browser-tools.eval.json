@@ -1,0 +1,52 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "browser-tools",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "page-interaction",
+      "query": "Fill out a multi-step form and submit it using agent-browser",
+      "expected_behavior": [
+        "Uses snapshot to discover interactive elements",
+        "References elements by refs, not CSS selectors",
+        "Re-snapshots after each navigation or significant DOM change",
+        "Waits for networkidle after form submission"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "content-extraction",
+      "query": "Extract the main article text from a web page",
+      "expected_behavior": [
+        "Uses targeted ref extraction over full body",
+        "Removes noise elements before extraction",
+        "Falls back to eval with querySelector for custom extraction"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "auth-flows",
+      "query": "Capture content from a login-protected documentation site",
+      "expected_behavior": [
+        "Navigates to login page and discovers form with snapshot",
+        "Fills credentials from environment variables, never hardcoded",
+        "Saves authenticated state for reuse"
+      ],
+      "should_not": [
+        "Hardcode credentials in code",
+        "Skip saving session state"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "ethical-scraping",
+      "query": "Crawl a website for content extraction",
+      "expected_behavior": [
+        "Checks robots.txt before crawling",
+        "Respects Terms of Service and site policies",
+        "Limits crawl scope to necessary pages only"
+      ],
+      "tags": ["happy-path"]
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "analytics",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "analytics-agents",
+      "query": "/ork:analytics agents",
+      "expected_behavior": [
+        "Reads agent-usage.jsonl from ~/.claude/analytics/",
+        "Runs jq query from references/jq-queries.md agents section",
+        "Presents results as markdown table with agent name, count, avg duration, success rate"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "analytics-cost",
+      "query": "/ork:analytics cost",
+      "expected_behavior": [
+        "Reads ~/.claude/stats-cache.json for modelUsage data",
+        "Applies model-specific pricing to token types",
+        "Calculates cache savings",
+        "Shows daily costs for last 7 days"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "analytics-no-subcommand",
+      "query": "/ork:analytics",
+      "expected_behavior": [
+        "No subcommand provided — prompts user to pick",
+        "Offers all available subcommands"
+      ],
+      "should_not": [
+        "Run all subcommands without user confirmation",
+        "Fail silently"
+      ],
+      "tags": ["edge-case"]
+    },
+    {
+      "id": "analytics-not-triggered",
+      "query": "How many tokens did I use today?",
+      "expected_behavior": [
+        "Analytics skill should NOT activate for general token questions",
+        "Claude should answer from context or suggest using /ork:analytics cost"
+      ],
+      "should_not": [
+        "Activate analytics skill for conversational questions"
+      ],
+      "tags": ["edge-case"]
+    }
+  ]
+}

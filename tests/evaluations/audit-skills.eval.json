@@ -1,0 +1,47 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "audit-skills",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "full-audit",
+      "query": "Run a full audit of all OrchestKit skills",
+      "expected_behavior": [
+        "Globs src/skills/*/SKILL.md to discover all skills",
+        "Runs all audit checks in parallel",
+        "Renders a table with skill name, line count, frontmatter status, manifest status",
+        "Shows totals summary at bottom"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "over-500-lines",
+      "query": "Audit skills and flag any that are too long",
+      "expected_behavior": [
+        "Checks each SKILL.md body line count excluding frontmatter",
+        "Marks any skill over 500 lines as FAIL",
+        "Reports exact line count alongside the 500-line limit"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "missing-frontmatter",
+      "query": "Check if all skills have required frontmatter fields",
+      "expected_behavior": [
+        "Validates each SKILL.md has name, description, tags, user-invocable, and complexity fields",
+        "Marks skills with missing required fields as FAIL",
+        "Lists which specific fields are absent"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "not-in-manifest",
+      "query": "Find any skills that exist in src/ but are not registered in the manifests",
+      "expected_behavior": [
+        "Compares src/skills/ directories against manifests/ork.json",
+        "Marks skills absent from both ork.json and orkl.json as FAIL"
+      ],
+      "tags": ["edge-case"]
+    }
+  ]
+}

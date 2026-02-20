@@ -1,0 +1,58 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "release-checklist",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "clean-release",
+      "query": "Walk me through releasing version 6.1.0",
+      "expected_behavior": [
+        "Runs all pre-release gates sequentially",
+        "Reports PASS for each gate step before proceeding",
+        "Verifies changelog entry and version bump",
+        "Stages specific files and commits with release format"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "build-fails",
+      "query": "Start the release checklist for v6.1.0",
+      "context": {
+        "build_state": "failing"
+      },
+      "expected_behavior": [
+        "Runs npm run build as step 1 and detects failure",
+        "Reports FAIL for the build step and stops the release",
+        "Suggests a fix",
+        "Does not proceed to tests or further gates"
+      ],
+      "should_not": [
+        "Continue to test or security gates after build failure",
+        "Skip the build step"
+      ],
+      "tags": ["edge-case"]
+    },
+    {
+      "id": "version-not-bumped",
+      "query": "Checklist says version bump — I updated package.json but forgot CLAUDE.md",
+      "expected_behavior": [
+        "Checks both package.json and CLAUDE.md for version field",
+        "Detects version mismatch between the two files",
+        "Reports FAIL for the version bump step",
+        "Instructs updating CLAUDE.md to match package.json"
+      ],
+      "tags": ["edge-case"]
+    },
+    {
+      "id": "changelog-missing",
+      "query": "I'm ready to cut the release but haven't written the changelog entry yet",
+      "expected_behavior": [
+        "Checks CHANGELOG.md for an entry matching the target version",
+        "Reports FAIL when no matching entry is found",
+        "Stops before staging files",
+        "Prompts user to add a changelog entry"
+      ],
+      "tags": ["edge-case"]
+    }
+  ]
+}

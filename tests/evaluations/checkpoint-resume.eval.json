@@ -1,0 +1,43 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "checkpoint-resume",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "fresh-start",
+      "query": "I need to implement a large feature spanning 10+ files and several GitHub issues",
+      "expected_behavior": [
+        "Detects no pipeline-state.json exists and prompts for task description",
+        "Asks the user to describe all phases of the task",
+        "Writes initial state with all phases set to pending",
+        "Begins Phase 1 after state is initialized"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "resume-interrupted",
+      "query": "Resume my interrupted migration pipeline",
+      "expected_behavior": [
+        "Detects pipeline-state.json exists and displays progress summary",
+        "Shows completed, in-progress, and pending phases",
+        "Asks whether to resume, pick a different phase, or restart",
+        "Continues from the correct phase, not from Phase 1"
+      ],
+      "should_not": [
+        "Restart from Phase 1 without user confirmation",
+        "Rerun already-completed phases"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "all-phases-complete",
+      "query": "Check the pipeline status — I think everything is done",
+      "expected_behavior": [
+        "Finds all phases marked as completed",
+        "Reports the pipeline as fully complete with summary",
+        "Does not prompt for resume or additional phases"
+      ],
+      "tags": ["edge-case"]
+    }
+  ]
+}

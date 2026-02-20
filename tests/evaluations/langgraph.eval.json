@@ -1,0 +1,72 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "langgraph",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "state-accumulating",
+      "query": "Design state that accumulates findings from multiple agents",
+      "expected_behavior": [
+        "Uses TypedDict for state schema",
+        "Uses Annotated[list, add] for accumulating fields",
+        "Nodes return partial updates, not full state"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "conditional-routing",
+      "query": "Add conditional routing based on whether content needs review",
+      "expected_behavior": [
+        "Uses add_conditional_edges with routing function",
+        "Returns string matching edge names",
+        "Includes all possible routes in edge map",
+        "Has fallback or END condition"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "parallel-fanout",
+      "query": "Process a list of items in parallel with separate worker nodes",
+      "expected_behavior": [
+        "Uses Send() to dispatch to workers",
+        "Returns list of Send objects from router",
+        "Each Send includes state subset",
+        "Workers run in parallel"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "supervisor-basic",
+      "query": "Create a supervisor that coordinates two workers: analyzer and validator",
+      "expected_behavior": [
+        "Uses StateGraph with supervisor node",
+        "Creates worker nodes for analyzer and validator",
+        "Workers have edges back to supervisor",
+        "Includes END condition in routing"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "human-approval",
+      "query": "Add human approval before executing a dangerous operation",
+      "expected_behavior": [
+        "Uses interrupt() function from langgraph.types",
+        "Passes approval request data to interrupt()",
+        "Resumes with Command(resume=response)",
+        "Handles approval and rejection cases"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "functional-api",
+      "query": "Create a simple workflow using the Functional API",
+      "expected_behavior": [
+        "Imports entrypoint and task from langgraph.func",
+        "Decorates worker functions with @task",
+        "Decorates main function with @entrypoint",
+        "Calls task().result() to get values"
+      ],
+      "tags": ["happy-path"]
+    }
+  ]
+}

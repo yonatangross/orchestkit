@@ -1,0 +1,47 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "python-backend",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "async-taskgroup",
+      "query": "Run multiple HTTP requests concurrently with error handling",
+      "expected_behavior": [
+        "Uses asyncio.TaskGroup for structured concurrency",
+        "Wraps in asyncio.timeout for deadline",
+        "Handles ExceptionGroup with except*"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "fastapi-dependencies",
+      "query": "Create FastAPI dependency injection for services",
+      "expected_behavior": [
+        "Uses Depends() for database sessions",
+        "Creates class-based service dependencies",
+        "Implements authentication dependency chain"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "sqlalchemy-sessions",
+      "query": "Set up async SQLAlchemy sessions with FastAPI",
+      "expected_behavior": [
+        "Creates engine with pool_pre_ping=True",
+        "Uses async_sessionmaker with expire_on_commit=False",
+        "Implements get_db dependency with commit/rollback"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "connection-pooling",
+      "query": "Configure database connection pooling for production",
+      "expected_behavior": [
+        "Sets pool_size, max_overflow, pool_pre_ping",
+        "Configures pool_recycle and pool_timeout",
+        "Uses pool sizing formula"
+      ],
+      "tags": ["happy-path"]
+    }
+  ]
+}

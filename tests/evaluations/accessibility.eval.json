@@ -1,0 +1,62 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "accessibility",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "color-contrast-tokens",
+      "query": "Set up color contrast tokens for a design system",
+      "expected_behavior": [
+        "Uses 4.5:1 ratio for normal text",
+        "Uses 3:1 ratio for large text and UI components",
+        "Focus indicator has 3:1 contrast against background",
+        "Includes CSS custom properties with documented contrast ratios"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "semantic-html-layout",
+      "query": "Build an accessible page layout with navigation",
+      "expected_behavior": [
+        "Uses semantic landmarks (main, nav, header, footer, article)",
+        "Heading hierarchy follows h1-h6 order without skipping",
+        "Form inputs have associated labels with htmlFor",
+        "ARIA attributes used only when semantic HTML is insufficient"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "focus-trap-modal",
+      "query": "Implement focus trapping for a modal dialog",
+      "expected_behavior": [
+        "Focus is trapped within modal using Tab/Shift+Tab wrapping",
+        "First focusable element receives focus on open",
+        "Escape key closes modal and releases trap",
+        "Uses role=dialog and aria-modal=true"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "keyboard-navigation",
+      "query": "Add keyboard navigation to a toolbar component",
+      "expected_behavior": [
+        "Uses roving tabindex pattern (active=0, others=-1)",
+        "Arrow keys navigate between items",
+        "Home/End keys jump to first/last item",
+        "Includes skip link for bypassing navigation"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "aria-combobox",
+      "query": "Create an accessible combobox/autocomplete component",
+      "expected_behavior": [
+        "Uses useComboBox + useComboBoxState from React Aria",
+        "Label properly associated with input via labelProps",
+        "Arrow keys navigate options, Enter selects",
+        "Uses useFilter for type-ahead filtering"
+      ],
+      "tags": ["happy-path"]
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "ui-components",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "shadcn-variants",
+      "query": "Create a custom button component with CVA variants and OKLCH theming",
+      "expected_behavior": [
+        "Uses CVA for type-safe variant definitions",
+        "Uses cn() utility for class merging without Tailwind conflicts",
+        "OKLCH color variables for perceptually uniform theming",
+        "Component extension wraps original without modifying source"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "shadcn-data-table",
+      "query": "Create a sortable data table with shadcn and TanStack Table",
+      "expected_behavior": [
+        "Uses TanStack Table useReactTable for state management",
+        "Column definitions use accessorKey with header render functions",
+        "Sorting toggles via header click with visual indicator",
+        "Pagination controls use shadcn Button components"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "radix-dialog",
+      "query": "Implement a confirmation dialog for a destructive action",
+      "expected_behavior": [
+        "Uses AlertDialog (not Dialog) for destructive confirmations",
+        "Has Dialog.Title and Dialog.Description for accessibility",
+        "Cancel and Action buttons with proper variant styling",
+        "Focus trapped within dialog, returns to trigger on close"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "radix-composition",
+      "query": "Create a button that is also a link using asChild composition",
+      "expected_behavior": [
+        "Uses asChild prop to render Link as the button element",
+        "Child component forwards refs with React.forwardRef",
+        "Props and event handlers merge correctly via Slot",
+        "No extra wrapper div in the DOM output"
+      ],
+      "tags": ["happy-path"]
+    }
+  ]
+}

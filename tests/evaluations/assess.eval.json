@@ -1,0 +1,40 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "assess",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "code-quality",
+      "query": "Assess the quality of backend/app/services/auth.py",
+      "expected_behavior": [
+        "Rates 6 dimensions: correctness, maintainability, performance, security, scalability, testability",
+        "Uses 7-criterion scoring with 1-5 scale per criterion",
+        "Produces weighted composite score (0-10)",
+        "Limits scope to MAX 30 files to prevent context exhaustion"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "architecture-assessment",
+      "query": "Assess our current microservices architecture",
+      "expected_behavior": [
+        "Decomposes architecture into assessable components",
+        "Identifies risk factors and complexity hotspots",
+        "Provides pros/cons analysis with evidence",
+        "Compares current approach against alternatives with scores"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "design-review",
+      "query": "Is our caching strategy good?",
+      "expected_behavior": [
+        "Answers with structured evaluation",
+        "Produces overall score with grade interpretation",
+        "Generates actionable improvement suggestions with effort/impact",
+        "Stores assessment results in memory for trend tracking"
+      ],
+      "tags": ["happy-path"]
+    }
+  ]
+}

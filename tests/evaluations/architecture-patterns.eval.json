@@ -1,0 +1,51 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "architecture-patterns",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "hexagonal-architecture",
+      "query": "Structure a FastAPI app with hexagonal architecture",
+      "expected_behavior": [
+        "Creates domain layer with entities and value objects",
+        "Defines output port Protocols for repositories",
+        "Separates driving adapters from driven adapters"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "dependency-inversion",
+      "query": "Apply SOLID dependency inversion in Python",
+      "expected_behavior": [
+        "Uses Protocol for interface segregation",
+        "Services depend on abstractions not concretions",
+        "Uses FastAPI Depends() for injection"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "folder-structure",
+      "query": "Organize a React/Next.js project with proper folder structure",
+      "expected_behavior": [
+        "Uses feature-based organization",
+        "Limits nesting to 4 levels from src/",
+        "Avoids barrel files (index.ts re-exports)"
+      ],
+      "should_not": [
+        "Recommend deeply nested directory structures",
+        "Use barrel files for re-exports"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "test-patterns",
+      "query": "Write tests following AAA pattern",
+      "expected_behavior": [
+        "Uses Arrange-Act-Assert structure",
+        "Includes clear section comments",
+        "Tests behavior not implementation"
+      ],
+      "tags": ["happy-path"]
+    }
+  ]
+}

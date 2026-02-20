@@ -1,0 +1,51 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "llm-integration",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "tool-definition",
+      "query": "Define a tool schema for a document search function",
+      "expected_behavior": [
+        "Uses strict: true for schema validation",
+        "Sets additionalProperties: false",
+        "All properties listed in required array",
+        "Includes clear description"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "streaming-sse",
+      "query": "Create a FastAPI SSE endpoint for streaming LLM responses",
+      "expected_behavior": [
+        "Uses EventSourceResponse from sse-starlette",
+        "Yields event/data pairs for each token",
+        "Sends done event on completion",
+        "Uses async iterator for token generation"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "ollama-setup",
+      "query": "Set up Ollama for local LLM inference in a Python project",
+      "expected_behavior": [
+        "Installs Ollama via official script",
+        "Pulls recommended models for task types",
+        "Configures environment variables",
+        "Integrates with LangChain via ChatOllama"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "fine-tuning",
+      "query": "Fine-tune a Llama model with QLoRA using Unsloth",
+      "expected_behavior": [
+        "Loads model with load_in_4bit=True for QLoRA",
+        "Configures LoRA with appropriate rank and alpha",
+        "Targets attention and MLP projection modules",
+        "Uses SFTTrainer from TRL for training"
+      ],
+      "tags": ["happy-path"]
+    }
+  ]
+}

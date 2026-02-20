@@ -1,0 +1,50 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "distributed-systems",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "redis-distributed-lock",
+      "query": "Implement a distributed lock using Redis for payment processing",
+      "expected_behavior": [
+        "Uses Lua scripts for atomic acquire/release",
+        "Includes SET NX with PX expiry",
+        "Validates owner ID before release",
+        "Describes Redlock quorum for HA"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "circuit-breaker",
+      "query": "Add a circuit breaker to an external API integration",
+      "expected_behavior": [
+        "Implements CLOSED/OPEN/HALF_OPEN state machine",
+        "Uses sliding window for failure tracking",
+        "Provides fallback response when circuit is open",
+        "Includes state change observability callbacks"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "idempotency-keys",
+      "query": "Make a POST payment endpoint idempotent",
+      "expected_behavior": [
+        "Accepts Idempotency-Key header from client",
+        "Generates deterministic keys via SHA-256 hash",
+        "Caches successful responses",
+        "Returns cached response with replay header"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "rate-limiting",
+      "query": "Implement token bucket rate limiting with Redis",
+      "expected_behavior": [
+        "Uses atomic Lua script for check-and-consume",
+        "Calculates token refill based on elapsed time",
+        "Returns allowed status and retry_after seconds"
+      ],
+      "tags": ["happy-path"]
+    }
+  ]
+}

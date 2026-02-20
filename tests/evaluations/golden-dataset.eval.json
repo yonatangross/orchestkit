@@ -1,0 +1,51 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "golden-dataset",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "add-documents",
+      "query": "How do I add new documents to the golden dataset with quality checks?",
+      "expected_behavior": [
+        "Classifies content type",
+        "Applies quality thresholds (minimum 0.70 quality score)",
+        "Checks for duplicates",
+        "Requires at least 2 domain tags and 3 test queries"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "diversity-balance",
+      "query": "Ensure the golden dataset has balanced coverage across difficulty levels",
+      "expected_behavior": [
+        "Stratifies entries into difficulty levels",
+        "Enforces minimum counts per difficulty level",
+        "Checks domain coverage",
+        "Flags over-representation of specific content types"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "backup-restore",
+      "query": "Backup the golden dataset to JSON and restore it in a new environment",
+      "expected_behavior": [
+        "Exports analyses, chunks, and artifacts to JSON",
+        "Validates backup structure with required keys",
+        "Regenerates embeddings on restore",
+        "Verifies counts match metadata after restore"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "duplicate-detection",
+      "query": "Detect duplicate content in the golden dataset",
+      "expected_behavior": [
+        "Runs semantic similarity check against existing embeddings",
+        "Blocks entries with >=0.90 similarity",
+        "Warns on >=0.85 similarity",
+        "Normalizes URLs for exact duplicate detection"
+      ],
+      "tags": ["happy-path"]
+    }
+  ]
+}
