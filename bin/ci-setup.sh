@@ -89,7 +89,7 @@ build_typescript_hooks() {
     pushd "$hooks_dir" > /dev/null
 
     log_info "Installing hook dependencies..."
-    npm ci --silent 2>/dev/null || npm install --silent
+    npm ci --silent --no-audit 2>/dev/null || npm install --silent --no-audit
 
     log_info "Building hook bundle..."
     if npm run build --silent; then
