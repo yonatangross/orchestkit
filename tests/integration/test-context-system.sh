@@ -217,65 +217,62 @@ else
 fi
 
 # =============================================================================
-# Test 5: Context loader execution
+# Test 5: Context directory is usable
 # =============================================================================
 echo ""
-echo -e "${CYAN}Test 5: Context Loader Execution${NC}"
+echo -e "${CYAN}Test 5: Context Directory Usable${NC}"
 echo "----------------------------------------"
 
-echo -n "  context-loader.sh... "
-if [[ -f "$HOOKS_DIR/lifecycle/context-loader.sh" ]]; then
-    output=$(bash "$HOOKS_DIR/lifecycle/context-loader.sh" 2>&1) && exit_code=0 || exit_code=$?
-    if [[ $exit_code -eq 0 ]]; then
-        # Verify output contains expected sections
-        if echo "$output" | grep -q "IDENTITY\|CURRENT_SESSION"; then
-            echo -e "${GREEN}PASS${NC}"
-            PASSED=$((PASSED + 1))
-            if [[ "$VERBOSE" == "--verbose" ]]; then
-                echo "  Output preview:"
-                echo "$output" | head -10 | sed 's/^/    /'
-            fi
-        else
-            echo -e "${YELLOW}WARN${NC} (no output sections)"
-            PASSED=$((PASSED + 1))
-        fi
+echo -n "  knowledge/index.json exists... "
+if [[ -f "$CONTEXT_DIR/knowledge/index.json" ]]; then
+    if jq empty "$CONTEXT_DIR/knowledge/index.json" 2>/dev/null; then
+        echo -e "${GREEN}PASS${NC}"
+        PASSED=$((PASSED + 1))
     else
-        echo -e "${RED}FAIL${NC} (exit $exit_code)"
+        echo -e "${RED}FAIL${NC} (invalid JSON)"
         FAILED=$((FAILED + 1))
     fi
 else
-    echo -e "${YELLOW}SKIP${NC} (not found)"
+    echo -e "${RED}FAIL${NC} (not found)"
+    FAILED=$((FAILED + 1))
 fi
 
 # =============================================================================
-# Test 6: Budget monitor execution
+# Test 6: Context hooks exist as TypeScript bundles
 # =============================================================================
 echo ""
-echo -e "${CYAN}Test 6: Budget Monitor Execution${NC}"
+echo -e "${CYAN}Test 6: Context Hook Bundles${NC}"
 echo "----------------------------------------"
 
-echo -n "  context-budget-monitor.sh... "
-if [[ -f "$HOOKS_DIR/posttool/context-budget-monitor.sh" ]]; then
-    # CC 2.1.9: CLAUDE_SESSION_ID is required (no fallback)
-    export CLAUDE_SESSION_ID="${CLAUDE_SESSION_ID:-test-context-session}"
-    output=$(bash "$HOOKS_DIR/posttool/context-budget-monitor.sh" 2>&1) && exit_code=0 || exit_code=$?
-    if [[ $exit_code -eq 0 ]]; then
-        # Try to parse JSON output
-        if echo "$output" | jq empty 2>/dev/null; then
-            tokens=$(echo "$output" | jq -r '.tokens // "N/A"')
-            budget=$(echo "$output" | jq -r '.budget // "N/A"')
-            echo -e "${GREEN}PASS${NC} (tokens: $tokens, budget: $budget)"
-            PASSED=$((PASSED + 1))
-        else
-            echo -e "${GREEN}PASS${NC} (non-JSON output)"
-            PASSED=$((PASSED + 1))
-        fi
+RUN_HOOK="$HOOKS_DIR/bin/run-hook.mjs"
+
+echo -n "  context-loader hook (lifecycle bundle)... "
+if [[ -f "$RUN_HOOK" ]] && node "$RUN_HOOK" 2>&1 | grep -q "Usage\|hook-name" || [[ -f "$HOOKS_DIR/dist/lifecycle.mjs" ]]; then
+    # Verify the hook is registered in hooks.json
+    if jq -e '.hooks' "$HOOKS_DIR/hooks.json" 2>/dev/null | grep -q "session-context-loader"; then
+        echo -e "${GREEN}PASS${NC} (registered in hooks.json)"
+        PASSED=$((PASSED + 1))
     else
-        echo -e "${RED}FAIL${NC} (exit $exit_code)"
+        echo -e "${RED}FAIL${NC} (not registered in hooks.json)"
         FAILED=$((FAILED + 1))
     fi
 else
-    echo -e "${YELLOW}SKIP${NC} (not found)"
+    echo -e "${RED}FAIL${NC} (lifecycle bundle missing)"
+    FAILED=$((FAILED + 1))
+fi
+
+echo -n "  budget-monitor hook (posttool bundle)... "
+if [[ -f "$HOOKS_DIR/dist/posttool.mjs" ]]; then
+    if jq -e '.hooks' "$HOOKS_DIR/hooks.json" 2>/dev/null | grep -q "context-budget-monitor"; then
+        echo -e "${GREEN}PASS${NC} (registered in hooks.json)"
+        PASSED=$((PASSED + 1))
+    else
+        echo -e "${RED}FAIL${NC} (not registered in hooks.json)"
+        FAILED=$((FAILED + 1))
+    fi
+else
+    echo -e "${RED}FAIL${NC} (posttool bundle missing)"
+    FAILED=$((FAILED + 1))
 fi
 
 echo ""

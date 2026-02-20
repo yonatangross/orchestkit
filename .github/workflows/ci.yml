@@ -149,7 +149,7 @@ jobs:
     name: Unit Tests (node ${{ matrix.node-version }})
     permissions:
       contents: read
-    needs: lint
+    needs: build-plugins
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
@@ -185,7 +185,7 @@ jobs:
     name: TypeScript Tests (node ${{ matrix.node-version }}, shard ${{ matrix.shard }})
     permissions:
       contents: read
-    needs: lint
+    needs: build-plugins
     runs-on: ubuntu-latest
     timeout-minutes: 20
     strategy:
