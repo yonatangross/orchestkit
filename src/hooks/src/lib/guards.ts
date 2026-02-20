@@ -24,7 +24,7 @@ function globMatch(glob: string, str: string): boolean {
   for (const part of parts) {
     if (part === '') continue;
     // Handle ? by replacing with single-char search
-    let searchPart = part;
+    const searchPart = part;
     const qIdx = searchPart.indexOf('?');
     if (qIdx >= 0) {
       // For segments with ?, match char-by-char
