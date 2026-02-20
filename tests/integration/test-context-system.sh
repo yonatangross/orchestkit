@@ -130,14 +130,14 @@ estimate_tokens() {
     fi
 }
 
-# Use the same calculation as context-budget-monitor.sh
+# Token budget estimation for context files
 # Only count files that are ALWAYS loaded (not all knowledge files)
 total_tokens=0
-budget_limit=2200  # From context-budget-monitor.sh
+budget_limit=2200  # Static budget limit for context layer
 
 echo "  Token estimates (always-loaded files only):"
 
-# Always loaded files (matches context-budget-monitor.sh)
+# Always loaded context files
 always_loaded=(
     "$CONTEXT_DIR/identity.json"
     "$CONTEXT_DIR/knowledge/index.json"
@@ -261,9 +261,9 @@ else
     FAILED=$((FAILED + 1))
 fi
 
-echo -n "  budget-monitor hook (posttool bundle)... "
+echo -n "  unified-dispatcher hook (posttool bundle)... "
 if [[ -f "$HOOKS_DIR/dist/posttool.mjs" ]]; then
-    if jq -e '.. | .command? // empty | select(test("context-budget-monitor"))' "$HOOKS_DIR/hooks.json" >/dev/null 2>&1; then
+    if jq -e '.. | .command? // empty | select(test("unified-dispatcher"))' "$HOOKS_DIR/hooks.json" >/dev/null 2>&1; then
         echo -e "${GREEN}PASS${NC} (registered in hooks.json)"
         PASSED=$((PASSED + 1))
     else

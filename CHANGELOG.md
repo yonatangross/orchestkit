@@ -5,6 +5,27 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.1.4] - 2026-02-20
+
+### Changed
+
+- Consolidate PostToolUse hooks.json entries from 4 to 1 async dispatcher (#684)
+- Move redact-secrets, config-change-auditor, team-member-start, error-logger into unified-dispatcher
+- Strip solution-suggestion machinery from unified-error-handler (~250 LOC)
+
+### Removed
+
+- Dead hooks: context-budget-monitor (225 LOC), posttool/skill-nudge (47 LOC), context-compressor (159 LOC)
+- Dead context/ files: 7 agent JSONs, 1 orphaned archive session
+- Dead path helpers: getMcpDeferStateFile, getErrorSuggestionsDedupFile
+
+### Fixed
+
+- skill-edit-tracker path bug (missing `context/` segment in session state path)
+
+---
+
+
 ## [6.2.0](https://github.com/yonatangross/orchestkit/compare/v6.1.3...v6.2.0) (2026-02-20)
 
 

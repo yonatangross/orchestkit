@@ -135,7 +135,6 @@ import { soundNotification } from './notification/sound.js';
 // Stop hooks (9)
 import { autoRememberContinuity } from './stop/auto-remember-continuity.js';
 import { autoSaveContext } from './stop/auto-save-context.js';
-import { contextCompressor } from './stop/context-compressor.js';
 import { fullTestSuite } from './stop/full-test-suite.js';
 import { issueWorkSummary } from './stop/issue-work-summary.js';
 import { securityScanAggregator } from './stop/security-scan-aggregator.js';
@@ -160,7 +159,6 @@ import { securityCommandAudit } from './agent/security-command-audit.js';
 import { auditLogger } from './posttool/audit-logger.js';
 import { unifiedErrorHandler } from './posttool/unified-error-handler.js';
 import { autoLint } from './posttool/auto-lint.js';
-import { contextBudgetMonitor } from './posttool/context-budget-monitor.js';
 import { memoryBridge } from './posttool/memory-bridge.js';
 import { realtimeSync } from './posttool/realtime-sync.js';
 import { sessionMetrics } from './posttool/session-metrics.js';
@@ -319,7 +317,6 @@ export const hooks: Record<string, HookFn> = {
   // Stop hooks (10)
   'stop/auto-remember-continuity': autoRememberContinuity,
   'stop/auto-save-context': autoSaveContext,
-  'stop/context-compressor': contextCompressor,
   'stop/full-test-suite': fullTestSuite,
   'stop/issue-work-summary': issueWorkSummary,
   'stop/security-scan-aggregator': securityScanAggregator,
@@ -344,7 +341,6 @@ export const hooks: Record<string, HookFn> = {
   'posttool/audit-logger': auditLogger,
   'posttool/unified-error-handler': unifiedErrorHandler,
   'posttool/auto-lint': autoLint,
-  'posttool/context-budget-monitor': contextBudgetMonitor,
   'posttool/memory-bridge': memoryBridge,
   'posttool/realtime-sync': realtimeSync,
   'posttool/session-metrics': sessionMetrics,

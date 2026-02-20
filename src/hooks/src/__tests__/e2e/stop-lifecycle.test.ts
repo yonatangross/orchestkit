@@ -57,7 +57,6 @@ vi.mock('../../lib/common.js', async () => {
 
 // Import stop hooks
 import { autoSaveContext } from '../../stop/auto-save-context.js';
-import { contextCompressor } from '../../stop/context-compressor.js';
 import { sessionPatterns } from '../../stop/session-patterns.js';
 import { taskCompletionCheck } from '../../stop/task-completion-check.js';
 import { unifiedStopDispatcher } from '../../stop/unified-dispatcher.js';
@@ -125,33 +124,9 @@ describe('Stop Hook Lifecycle E2E', () => {
     });
   });
 
-  describe('Context Compressor', () => {
-    test('should compress context when usage is high', async () => {
-      const input = createStopInput();
-
-      const result = await Promise.resolve(contextCompressor(input));
-
-      expect(result.continue).toBe(true);
-    });
-
-    test('should skip compression when context is small', async () => {
-      const input = createStopInput();
-
-      const result = await Promise.resolve(contextCompressor(input));
-
-      expect(result.continue).toBe(true);
-      // Should not write compressed output for small context
-    });
-
-    test('should handle compression errors gracefully', async () => {
-      mockReadFileSync.mockImplementation(() => {
-        throw new Error('File read error');
-      });
-      const input = createStopInput();
-
-      const result = await Promise.resolve(contextCompressor(input));
-
-      expect(result.continue).toBe(true);
+  describe('Context Compressor (removed)', () => {
+    test('placeholder — context-compressor removed (dead code cleanup)', () => {
+      expect(true).toBe(true);
     });
   });
 
@@ -218,7 +193,6 @@ describe('Stop Hook Lifecycle E2E', () => {
 
       // Simulate the stop lifecycle sequence
       results.push(await Promise.resolve(autoSaveContext(input)));
-      results.push(await Promise.resolve(contextCompressor(input)));
       results.push(await Promise.resolve(sessionPatterns(input)));
       results.push(await Promise.resolve(taskCompletionCheck(input)));
 
@@ -239,7 +213,7 @@ describe('Stop Hook Lifecycle E2E', () => {
 
       // Subsequent hooks should still work
       mockWriteFileSync.mockImplementation(() => {});
-      const result2 = await Promise.resolve(contextCompressor(input));
+      const result2 = await Promise.resolve(sessionPatterns(input));
       expect(result2.continue).toBe(true);
     });
 
@@ -249,7 +223,7 @@ describe('Stop Hook Lifecycle E2E', () => {
       // Simulate rapid stop
       const stopResults = await Promise.all([
         Promise.resolve(autoSaveContext(input)),
-        Promise.resolve(contextCompressor(input)),
+        Promise.resolve(sessionPatterns(input)),
       ]);
 
       expect(stopResults.every(r => r.continue)).toBe(true);
@@ -272,7 +246,7 @@ describe('Stop Hook Lifecycle E2E', () => {
 
       await Promise.all([
         Promise.resolve(autoSaveContext(input)),
-        Promise.resolve(contextCompressor(input)),
+        Promise.resolve(sessionPatterns(input)),
       ]);
 
       const elapsed = Date.now() - startTime;
@@ -286,7 +260,6 @@ describe('Stop Hook Lifecycle E2E', () => {
       const input = createStopInput();
       const hooks = [
         autoSaveContext,
-        contextCompressor,
         sessionPatterns,
         taskCompletionCheck,
       ];

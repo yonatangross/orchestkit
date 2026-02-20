@@ -169,10 +169,8 @@ describe('team-member-start', () => {
 
       // Assert
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.additionalContext).toContain('audit-team');
-      expect(result.hookSpecificOutput?.additionalContext).toContain('auditor');
-      expect(result.hookSpecificOutput?.additionalContext).toContain('security-auditor');
-      expect(result.hookSpecificOutput?.additionalContext).toContain('opus');
+      // Issue #684: team-member-start now returns silent success (moved into async dispatcher)
+      expect(result.suppressOutput).toBe(true);
     });
   });
 

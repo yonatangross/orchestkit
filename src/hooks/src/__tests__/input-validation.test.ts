@@ -250,7 +250,6 @@ describe('validateHookInput', () => {
     // -- stop/setup/lifecycle hooks (lenient) --
     describe('stop/setup/lifecycle hooks (lenient)', () => {
       test.each([
-        ['stop/context-compressor'],
         ['setup/unified-dispatcher'],
         ['lifecycle/session-context-loader'],
       ])('%s: no warnings with minimal input', (hookName) => {

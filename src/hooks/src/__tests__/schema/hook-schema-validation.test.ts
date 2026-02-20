@@ -263,7 +263,6 @@ const hookTestCases: HookTestCase[] = [
   { name: 'file-guard', path: '../../pretool/write-edit/file-guard.js', createInput: () => createWriteInput('/test/file.ts', 'content'), category: 'pretool-write' },
 
   // PostToolUse hooks
-  { name: 'context-budget-monitor', path: '../../posttool/context-budget-monitor.js', createInput: () => createBashInput('echo done', { tool_result: 'done' }), category: 'posttool' },
   { name: 'unified-error-handler', path: '../../posttool/unified-error-handler.js', createInput: () => createBashInput('exit 1', { tool_result: 'error', is_error: true }), category: 'posttool' },
 
   // Permission hooks
@@ -281,7 +280,6 @@ const hookTestCases: HookTestCase[] = [
 
   // Stop hooks
   { name: 'task-completion-check', path: '../../stop/task-completion-check.js', createInput: () => createHookInput({ tool_name: 'Stop' }), category: 'stop' },
-  { name: 'context-compressor', path: '../../stop/context-compressor.js', createInput: () => createHookInput({ tool_name: 'Stop' }), category: 'stop' },
   // Subagent hooks
   { name: 'subagent-context-stager', path: '../../subagent-start/subagent-context-stager.js', createInput: () => createSubagentInput('agent-123'), category: 'subagent-start' },
   { name: 'graph-memory-inject', path: '../../subagent-start/graph-memory-inject.js', createInput: () => createSubagentInput('agent-123'), category: 'subagent-start' },

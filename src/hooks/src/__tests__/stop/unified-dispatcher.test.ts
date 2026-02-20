@@ -45,9 +45,6 @@ vi.mock('../../stop/workflow-preference-learner.js', () => ({
 vi.mock('../../stop/task-completion-check.js', () => ({
   taskCompletionCheck: vi.fn(() => ({ continue: true, suppressOutput: true })),
 }));
-vi.mock('../../stop/context-compressor.js', () => ({
-  contextCompressor: vi.fn(() => ({ continue: true, suppressOutput: true })),
-}));
 vi.mock('../../stop/auto-remember-continuity.js', () => ({
   autoRememberContinuity: vi.fn(() => ({ continue: true, suppressOutput: true })),
 }));

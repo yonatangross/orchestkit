@@ -14,7 +14,6 @@ export * from '../lib/git.js';
 import { auditLogger } from '../posttool/audit-logger.js';
 import { unifiedErrorHandler } from '../posttool/unified-error-handler.js';
 import { autoLint } from '../posttool/auto-lint.js';
-import { contextBudgetMonitor } from '../posttool/context-budget-monitor.js';
 import { memoryBridge } from '../posttool/memory-bridge.js';
 import { realtimeSync } from '../posttool/realtime-sync.js';
 import { userTracking } from '../posttool/user-tracking.js';
@@ -46,9 +45,6 @@ import { failureHandler } from '../posttool/failure-handler.js';
 import { solutionDetector } from '../posttool/solution-detector.js';
 import { toolPreferenceLearner } from '../posttool/tool-preference-learner.js';
 
-// Issue #705: Skill nudges
-import { skillNudge } from '../posttool/skill-nudge.js';
-
 // Issue #772: Config change security auditor
 import { configChangeAuditor } from '../posttool/config-change/security-auditor.js';
 
@@ -62,7 +58,6 @@ export const hooks: Record<string, HookFn> = {
   'posttool/audit-logger': auditLogger,
   'posttool/unified-error-handler': unifiedErrorHandler,
   'posttool/auto-lint': autoLint,
-  'posttool/context-budget-monitor': contextBudgetMonitor,
   'posttool/memory-bridge': memoryBridge,
   'posttool/realtime-sync': realtimeSync,
   'posttool/user-tracking': userTracking,
@@ -94,9 +89,6 @@ export const hooks: Record<string, HookFn> = {
   // Intelligent Decision Capture System
   'posttool/solution-detector': solutionDetector,
   'posttool/tool-preference-learner': toolPreferenceLearner,
-
-  // Issue #705: Skill nudges
-  'posttool/skill-nudge': skillNudge,
 
   // Issue #772: Config change security auditor
   'posttool/config-change/security-auditor': configChangeAuditor,

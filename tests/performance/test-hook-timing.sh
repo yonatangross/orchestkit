@@ -123,16 +123,16 @@ echo ""
 echo "▶ Test 2: PostToolUse Hook Latency"
 echo "────────────────────────────────────────"
 
-# Test context-budget-monitor
+# Test unified-error-handler (replaced context-budget-monitor — removed in dead code cleanup)
 test_input='{"tool_name":"Bash","tool_input":{"command":"echo test"},"tool_result":"test"}'
-duration=$(time_command bash -c "echo '$test_input' | node '$HOOKS_BIN' posttool/context-budget-monitor")
+duration=$(time_command bash -c "echo '$test_input' | node '$HOOKS_BIN' posttool/unified-error-handler")
 
 if [[ "$duration" -lt "$HOOK_LATENCY_TARGET" ]]; then
-    pass "context-budget-monitor: ${duration}ms (<${HOOK_LATENCY_TARGET}ms)"
+    pass "unified-error-handler: ${duration}ms (<${HOOK_LATENCY_TARGET}ms)"
 elif [[ "$duration" -lt "$DISPATCHER_TARGET" ]]; then
-    warn "context-budget-monitor: ${duration}ms (acceptable but >target)"
+    warn "unified-error-handler: ${duration}ms (acceptable but >target)"
 else
-    fail "context-budget-monitor: ${duration}ms (exceeds ${DISPATCHER_TARGET}ms)"
+    fail "unified-error-handler: ${duration}ms (exceeds ${DISPATCHER_TARGET}ms)"
 fi
 
 # Test unified-error-handler

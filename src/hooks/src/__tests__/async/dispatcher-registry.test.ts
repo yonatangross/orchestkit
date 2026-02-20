@@ -35,6 +35,11 @@ describe('Dispatcher Registry Wiring', () => {
         'solution-detector',
         // Issue #243: Tool preference learner moved here to reduce async hook spam
         'tool-preference-learner',
+        // Issue #684: Consolidated from separate PostToolUse hooks.json entries
+        'redact-secrets',
+        'config-change-auditor',
+        'team-member-start',
+        'error-logger',
       ]);
     });
 
@@ -71,6 +76,12 @@ describe('Dispatcher Registry Wiring', () => {
 
       // Solution detector (GAP-011)
       expect(byName['solution-detector']).toEqual(['Bash', 'Write', 'Edit', 'Task']);
+
+      // Issue #684: Consolidated hooks
+      expect(byName['redact-secrets']).toBe('Bash');
+      expect(byName['config-change-auditor']).toEqual(['Write', 'Edit']);
+      expect(byName['team-member-start']).toBe('Task');
+      expect(byName['error-logger']).toEqual(['Bash', 'Write', 'Edit', 'Task']);
     });
   });
 
@@ -103,7 +114,6 @@ describe('Dispatcher Registry Wiring', () => {
         'workflow-preference-learner',
         'task-completion-check',
         // Analysis hooks
-        'context-compressor',
         'auto-remember-continuity',
         'security-scan-aggregator',
         // Skill validation hooks (run at stop time)
@@ -197,10 +207,10 @@ describe('Dispatcher Registry Wiring', () => {
         notificationHooks().length +
         setupHooks().length;
 
-      // posttool: 15, lifecycle: 6, stop: 24, subagent-stop: 4, notification: 2, setup: 1
+      // posttool: 19 (15 + 4 from Issue #684), lifecycle: 6, stop: 23 (removed context-compressor), subagent-stop: 4, notification: 2, setup: 1
       // v7: removed graph-queue-sync from stop dispatcher (mem0 cloud removed)
       // lifecycle: added stale-team-cleanup, type-error-indexer
-      expect(total).toBe(52);
+      expect(total).toBe(55);
     });
   });
 });

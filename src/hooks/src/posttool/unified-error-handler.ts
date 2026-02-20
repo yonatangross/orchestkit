@@ -1,66 +1,38 @@
 /**
- * Unified Error Handler - Consolidated error handling hook
- * Combines: error-collector + error-tracker + error-solution-suggester
+ * Error Logger — Detects and logs errors from tool outputs
  *
- * Hook: PostToolUse (*)
+ * Hook: PostToolUse (Bash|Write|Edit|Task) — via unified-dispatcher
  *
  * Purpose:
  * 1. Detect errors from any tool (exit code, tool_error, output patterns)
  * 2. Log structured errors to JSONL for analysis
- * 3. Suggest solutions via additionalContext when patterns match
  *
- * CC 2.1.9 Compliant: Uses hookSpecificOutput.additionalContext
- * Version: 2.0.0 - Consolidated from 3 hooks (~500 LOC → ~200 LOC)
+ * Stripped from unified-error-handler v2.0.0:
+ * - Removed solution-suggestion machinery (matchErrorPattern, shouldSuggest,
+ *   getSkillDescription, buildSuggestionMessage, dedup system ~250 LOC)
+ * - Now always returns outputSilentSuccess() (no additionalContext)
+ *
+ * Version: 3.0.0 — Simplified to error-logger
  */
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync, statSync, renameSync } from 'node:fs';
 import { bufferWrite } from '../lib/analytics-buffer.js';
 import { createHash } from 'node:crypto';
 import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, getProjectDir, getPluginRoot, getSessionId, getField, logHook } from '../lib/common.js';
-import { getSessionErrorsFile, getErrorSuggestionsDedupFile } from '../lib/paths.js';
+import { outputSilentSuccess, getProjectDir, getSessionId, getField, logHook } from '../lib/common.js';
+import { getSessionErrorsFile } from '../lib/paths.js';
 
 // =============================================================================
 // CONSTANTS
 // =============================================================================
 
-// Error detection regex (shared across all detection)
 const ERROR_PATTERN = /error:|Error:|ERROR|FATAL|exception|failed|denied|not found|does not exist|connection refused|timeout|ENOENT|EACCES|EPERM/i;
-
-// Trivial commands that don't need tracking
 const TRIVIAL_COMMANDS = /^(echo |ls |ls$|pwd|cat |head |tail |wc |date|whoami)/;
-
-// Configuration
-const MAX_CONTEXT_CHARS = 2000;
-const DEDUP_PROMPT_THRESHOLD = 10;
-const MAX_SKILLS = 3;
 const MAX_LOG_BYTES = 1000 * 1024; // 1MB
 
 // =============================================================================
 // TYPES
 // =============================================================================
-
-interface ErrorPattern {
-  id: string;
-  regex: string;
-  category?: string;
-  severity?: string;
-  skills?: string[];
-  solution?: {
-    brief?: string;
-    steps?: string[];
-  };
-}
-
-interface SolutionsFile {
-  patterns: ErrorPattern[];
-  categories?: Record<string, { related_skills?: string[] }>;
-}
-
-interface DedupFile {
-  suggestions: Record<string, { pattern_id: string; prompt_count: number }>;
-  prompt_count: number;
-}
 
 interface ErrorInfo {
   isError: boolean;
@@ -70,7 +42,7 @@ interface ErrorInfo {
 }
 
 // =============================================================================
-// ERROR DETECTION (from error-collector + error-tracker)
+// ERROR DETECTION
 // =============================================================================
 
 function detectError(input: HookInput): ErrorInfo {
@@ -113,7 +85,7 @@ function detectError(input: HookInput): ErrorInfo {
 }
 
 // =============================================================================
-// ERROR LOGGING (from error-collector)
+// ERROR LOGGING
 // =============================================================================
 
 function rotateLogFile(logFile: string): void {
@@ -166,130 +138,10 @@ function logError(input: HookInput, errorInfo: ErrorInfo): void {
       // Ignore metrics errors
     }
 
-    logHook('unified-error-handler', `ERROR: ${input.tool_name} - ${errorInfo.errorType}`);
+    logHook('error-logger', `ERROR: ${input.tool_name} - ${errorInfo.errorType}`);
   } catch {
-    logHook('unified-error-handler', `ERROR (fallback): ${input.tool_name}`);
+    logHook('error-logger', `ERROR (fallback): ${input.tool_name}`);
   }
-}
-
-// =============================================================================
-// SOLUTION SUGGESTIONS (from error-solution-suggester)
-// =============================================================================
-
-function matchErrorPattern(errorText: string, solutionsFile: string): ErrorPattern | null {
-  if (!existsSync(solutionsFile)) return null;
-
-  try {
-    const content: SolutionsFile = JSON.parse(readFileSync(solutionsFile, 'utf8'));
-    const errorLower = errorText.toLowerCase();
-
-    for (const pattern of content.patterns || []) {
-      if (pattern.regex) {
-        try {
-          if (new RegExp(pattern.regex, 'i').test(errorLower)) {
-            return pattern;
-          }
-        } catch {
-          // Invalid regex
-        }
-      }
-    }
-  } catch {
-    // Parse error
-  }
-  return null;
-}
-
-function shouldSuggest(patternId: string, errorContext: string, dedupFile: string): boolean {
-  if (!existsSync(dedupFile)) {
-    try {
-      mkdirSync(require('node:path').dirname(dedupFile), { recursive: true });
-      writeFileSync(dedupFile, JSON.stringify({ suggestions: {}, prompt_count: 0 }));
-    } catch {
-      return true;
-    }
-  }
-
-  try {
-    const dedup: DedupFile = JSON.parse(readFileSync(dedupFile, 'utf8'));
-    const suggestionHash = createHash('md5')
-      .update(`${patternId}|${errorContext.substring(0, 100)}`)
-      .digest('hex');
-
-    const currentCount = (dedup.prompt_count || 0) + 1;
-    dedup.prompt_count = currentCount;
-
-    const lastSuggestedAt = dedup.suggestions[suggestionHash]?.prompt_count || 0;
-
-    if (lastSuggestedAt === 0 || (currentCount - lastSuggestedAt) >= DEDUP_PROMPT_THRESHOLD) {
-      dedup.suggestions[suggestionHash] = { pattern_id: patternId, prompt_count: currentCount };
-      writeFileSync(dedupFile, JSON.stringify(dedup, null, 2));
-      return true;
-    }
-
-    writeFileSync(dedupFile, JSON.stringify(dedup, null, 2));
-    return false;
-  } catch {
-    return true;
-  }
-}
-
-function getSkillDescription(skillName: string, skillsDir: string): string {
-  const skillFile = `${skillsDir}/${skillName}/SKILL.md`;
-  if (!existsSync(skillFile)) return '';
-
-  try {
-    const content = readFileSync(skillFile, 'utf8');
-    const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
-    if (frontmatterMatch) {
-      const descMatch = frontmatterMatch[1].match(/description:\s*(.+)/);
-      if (descMatch) return descMatch[1].trim();
-    }
-  } catch {
-    // Ignore
-  }
-  return '';
-}
-
-function buildSuggestionMessage(pattern: ErrorPattern, solutionsFile: string, skillsDir: string): string {
-  const brief = pattern.solution?.brief || 'An error was detected.';
-  const steps = pattern.solution?.steps || [];
-
-  let msg = '## Error Solution\n\n';
-  msg += `**${brief}**\n\n`;
-
-  if (steps.length > 0) {
-    msg += '### Quick Fixes\n\n';
-    steps.forEach((step, i) => {
-      msg += `  ${i + 1}. ${step}\n`;
-    });
-    msg += '\n';
-  }
-
-  // Get skills
-  const patternSkills = pattern.skills || [];
-  let categorySkills: string[] = [];
-  if (pattern.category && existsSync(solutionsFile)) {
-    try {
-      const content: SolutionsFile = JSON.parse(readFileSync(solutionsFile, 'utf8'));
-      categorySkills = content.categories?.[pattern.category]?.related_skills || [];
-    } catch {
-      // Ignore
-    }
-  }
-
-  const allSkills = [...new Set([...patternSkills, ...categorySkills])].slice(0, MAX_SKILLS);
-
-  if (allSkills.length > 0) {
-    msg += '### Related Skills\n\n';
-    for (const skill of allSkills) {
-      const desc = getSkillDescription(skill, skillsDir);
-      msg += desc ? `- **${skill}**: ${desc}\n` : `- **${skill}**\n`;
-    }
-    msg += '\nUse `/ork:<skill-name>` or `Read skills/<skill-name>/SKILL.md`';
-  }
-
-  return msg.length > MAX_CONTEXT_CHARS ? `${msg.substring(0, MAX_CONTEXT_CHARS - 20)}...\n\n(truncated)` : msg;
 }
 
 // =============================================================================
@@ -316,30 +168,6 @@ export function unifiedErrorHandler(input: HookInput): HookResult {
 
   // Log the error (always)
   logError(input, errorInfo);
-
-  // Try to suggest solutions (Bash only, with dedup)
-  if (toolName === 'Bash') {
-    const pluginRoot = getPluginRoot();
-    const solutionsFile = `${pluginRoot}/.claude/rules/error_solutions.json`;
-    const skillsDir = `${pluginRoot}/skills`;
-    const dedupFile = getErrorSuggestionsDedupFile(getSessionId());
-
-    const matchedPattern = matchErrorPattern(errorInfo.errorText.substring(0, 2000), solutionsFile);
-
-    if (matchedPattern && shouldSuggest(matchedPattern.id, errorInfo.errorText, dedupFile)) {
-      const suggestionMessage = buildSuggestionMessage(matchedPattern, solutionsFile, skillsDir);
-
-      if (suggestionMessage) {
-        logHook('unified-error-handler', `Suggesting solution for pattern: ${matchedPattern.id}`);
-        return {
-          continue: true,
-          hookSpecificOutput: {
-            additionalContext: suggestionMessage,
-          },
-        };
-      }
-    }
-  }
 
   return outputSilentSuccess();
 }

@@ -17,6 +17,35 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "6.1.4",
+    "date": "2026-02-20",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "Consolidate PostToolUse hooks.json entries from 4 to 1 async dispatcher (#684)",
+          "Move redact-secrets, config-change-auditor, team-member-start, error-logger into unified-dispatcher",
+          "Strip solution-suggestion machinery from unified-error-handler (~250 LOC)"
+        ]
+      },
+      {
+        "type": "removed",
+        "items": [
+          "Dead hooks: context-budget-monitor (225 LOC), posttool/skill-nudge (47 LOC), context-compressor (159 LOC)",
+          "Dead context/ files: 7 agent JSONs, 1 orphaned archive session",
+          "Dead path helpers: getMcpDeferStateFile, getErrorSuggestionsDedupFile"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "skill-edit-tracker path bug (missing `context/` segment in session state path)"
+        ]
+      }
+    ]
+  },
+  {
     "version": "6.1.2",
     "date": "2026-02-20",
     "compareUrl": "",

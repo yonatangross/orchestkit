@@ -183,16 +183,8 @@ describe('Error Path Coverage', () => {
         expectGracefulDegradation(result);
       });
 
-      test('context-budget-monitor handles corrupted state file', async () => {
-        mockExistsSync.mockReturnValue(true);
-        mockReadFileSync.mockReturnValue('{ invalid json }}}');
-
-        const { contextBudgetMonitor } = await import('../../posttool/context-budget-monitor.js');
-        const input = createBashInput('echo test', { tool_result: 'test output' });
-        const result = contextBudgetMonitor(input);
-
-        expectValidResult(result);
-        expectGracefulDegradation(result);
+      test('placeholder — context-budget-monitor removed (dead code cleanup)', () => {
+        expect(true).toBe(true);
       });
 
     });
@@ -211,19 +203,8 @@ describe('Error Path Coverage', () => {
         expectGracefulDegradation(result);
       });
 
-      test('context-compressor handles disk full errors', async () => {
-        mockExistsSync.mockReturnValue(true);
-        mockReadFileSync.mockReturnValue('{}');
-        mockWriteFileSync.mockImplementation(() => {
-          throw new Error('ENOSPC: no space left on device');
-        });
-
-        const { contextCompressor } = await import('../../stop/context-compressor.js');
-        const input = createHookInput({ tool_name: 'Stop' });
-        const result = contextCompressor(input);
-
-        expectValidResult(result);
-        expectGracefulDegradation(result);
+      test('placeholder — context-compressor removed (dead code cleanup)', () => {
+        expect(true).toBe(true);
       });
     });
 
@@ -255,15 +236,8 @@ describe('Error Path Coverage', () => {
       expectGracefulDegradation(result);
     });
 
-    test('context-budget-monitor handles empty JSON file', async () => {
-      mockExistsSync.mockReturnValue(true);
-      mockReadFileSync.mockReturnValue('');
-
-      const { contextBudgetMonitor } = await import('../../posttool/context-budget-monitor.js');
-      const input = createBashInput('echo test', { tool_result: 'output' });
-      const result = contextBudgetMonitor(input);
-
-      expectGracefulDegradation(result);
+    test('placeholder — context-budget-monitor removed (dead code cleanup)', () => {
+      expect(true).toBe(true);
     });
 
     test('session-context-loader handles JSON with wrong structure', async () => {
@@ -292,9 +266,9 @@ describe('Error Path Coverage', () => {
     test('hooks handle missing CLAUDE_PLUGIN_ROOT', async () => {
       delete process.env.CLAUDE_PLUGIN_ROOT;
 
-      const { contextBudgetMonitor } = await import('../../posttool/context-budget-monitor.js');
+      const { unifiedErrorHandler } = await import('../../posttool/unified-error-handler.js');
       const input = createBashInput('echo test', { tool_result: 'output' });
-      const result = contextBudgetMonitor(input);
+      const result = unifiedErrorHandler(input);
 
       expectValidResult(result);
     });
@@ -353,14 +327,14 @@ describe('Error Path Coverage', () => {
       { name: 'special chars in session_id', input: { session_id: 'session-<>&"\'' } },
     ];
 
-    test.each(edgeCases)('context-budget-monitor handles $name', async ({ input }) => {
-      const { contextBudgetMonitor } = await import('../../posttool/context-budget-monitor.js');
+    test.each(edgeCases)('unified-error-handler handles $name', async ({ input }) => {
+      const { unifiedErrorHandler } = await import('../../posttool/unified-error-handler.js');
       const hookInput = createBashInput('echo test', { ...input, tool_result: 'output' });
 
       // Should not throw
       let result: HookResult;
       try {
-        result = contextBudgetMonitor(hookInput);
+        result = unifiedErrorHandler(hookInput);
         expectValidResult(result);
       } catch (error) {
         // If it throws, that's a test failure
@@ -390,9 +364,9 @@ describe('Error Path Coverage', () => {
         throw new Error('Simulated read error');
       });
 
-      const { contextBudgetMonitor } = await import('../../posttool/context-budget-monitor.js');
+      const { unifiedErrorHandler } = await import('../../posttool/unified-error-handler.js');
       const input = createBashInput('echo test', { tool_result: 'output' });
-      const result = contextBudgetMonitor(input);
+      const result = unifiedErrorHandler(input);
 
       // Hook should recover and allow continuation
       expect(result.continue).toBe(true);

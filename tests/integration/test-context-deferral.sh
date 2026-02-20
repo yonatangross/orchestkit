@@ -62,48 +62,8 @@ test_deferral_threshold() {
 }
 test_deferral_threshold
 
-log_section "Test 3: Context budget monitor has CC 2.1.7 features"
-test_context_monitor_has_cc217_features() {
-  local context_monitor="$PROJECT_ROOT/src/hooks/posttool/context-budget-monitor.sh"
-
-  if [[ ! -f "$context_monitor" ]]; then
-    log_skip "Context budget monitor not found"
-    return 0
-  fi
-
-  # Since v5.1.0, hooks may delegate to TypeScript
-  if grep -q "run-hook.mjs" "$context_monitor" 2>/dev/null; then
-    # TypeScript version - check TS source for features
-    local ts_source="$PROJECT_ROOT/src/hooks/src/posttool/context-budget-monitor.ts"
-    if [[ -f "$ts_source" ]]; then
-      if grep -qiE "mcp|defer|context|window" "$ts_source"; then
-        log_pass "Context monitor (TypeScript) has CC 2.1.7 features"
-        return 0
-      fi
-    fi
-    # TypeScript handles features internally
-    log_pass "Context monitor delegates to TypeScript (CC 2.1.7 features handled internally)"
-    return 0
-  fi
-
-  local has_mcp_defer=false
-  local has_effective_window=false
-
-  if grep -q "MCP_DEFER_TRIGGER\|should_defer_mcp\|update_mcp_defer_state" "$context_monitor"; then
-    has_mcp_defer=true
-  fi
-
-  if grep -q "get_effective_context_window\|effective_window\|CLAUDE_MAX_CONTEXT" "$context_monitor"; then
-    has_effective_window=true
-  fi
-
-  if [[ "$has_mcp_defer" == "true" ]] && [[ "$has_effective_window" == "true" ]]; then
-    log_pass "Context monitor has CC 2.1.7 features (MCP defer + effective window)"
-  else
-    log_fail "Missing CC 2.1.7 features: mcp_defer=$has_mcp_defer, effective_window=$has_effective_window"
-  fi
-}
-test_context_monitor_has_cc217_features
+log_section "Test 3: Context budget monitor (removed — dead code cleanup)"
+log_skip "context-budget-monitor removed — CC 2.1.49 has native context management"
 
 log_section "Test 4: Common library has permission feedback functions"
 test_common_has_permission_feedback() {

@@ -131,7 +131,7 @@ export function skillEditTracker(input: HookInput): HookResult {
 
   // Get recently used skill
   const projectDir = getProjectDir();
-  const sessionStateFile = `${projectDir}/.claude/session/state.json`;
+  const sessionStateFile = `${projectDir}/.claude/context/session/state.json`;
   const skillId = getRecentSkill(sessionStateFile);
 
   if (!skillId) {
