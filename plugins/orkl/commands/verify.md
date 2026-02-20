@@ -181,6 +181,8 @@ TeamDelete()
 
 > **Fallback:** If team formation fails, use standard Phase 2 Task spawns above.
 
+> **Manual cleanup:** If `TeamDelete()` doesn't terminate all agents, press `Ctrl+F` twice to force-kill remaining background agents.
+
 
 ## Phase 3: Parallel Test Execution
 

@@ -165,6 +165,18 @@ Production LLM safety with NeMo Guardrails, Guardrails AI validators, and DeepTe
 
 **Key Decisions:** NeMo for flows, Guardrails AI for validators | Toxicity 0.5 threshold | Red-team pre-release + quarterly
 
+## Managed Hook Hierarchy (CC 2.1.49)
+
+Plugin settings follow a 3-tier precedence:
+
+| Tier | Source | Overridable? |
+|------|--------|-------------|
+| 1. Managed (plugin `settings.json`) | Plugin author ships defaults | Yes, by user |
+| 2. Project (`.claude/settings.json`) | Repository config | Yes, by user |
+| 3. User (`~/.claude/settings.json`) | Personal preferences | Final authority |
+
+Security hooks shipped by OrchestKit are **managed defaults** — users can disable them but are warned. Enterprise admins can lock settings via managed profiles.
+
 ## Anti-Patterns (FORBIDDEN)
 
 ```python

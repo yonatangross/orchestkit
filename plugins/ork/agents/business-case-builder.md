@@ -6,6 +6,7 @@ model: sonnet
 context: fork
 color: indigo
 memory: project
+background: true
 tools:
   - Read
   - Write

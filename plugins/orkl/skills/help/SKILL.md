@@ -175,15 +175,16 @@ Just describe your task naturally and OrchestKit will recommend the appropriate 
 
 ---
 
-## CC 2.1.47 Keyboard Shortcuts
+## Keyboard Shortcuts
 
 | Shortcut | Action | Since |
 |----------|--------|-------|
-| `Ctrl+F` | Find in output | CC 2.1.47 |
+| `Ctrl+F` | Kill all background agents (press twice to force-kill) | CC 2.1.49 |
+| `Esc` | Dismiss autocomplete / cancel edit / stop generation | CC 2.1.0+ |
+| `Shift+Enter` | Newline in chat input (configurable via `chat:newline` keybinding) | CC 2.1.49 |
 | `Shift+Down` | Multi-line input entry | CC 2.1.47 |
 | `Ctrl+C` | Cancel current operation | CC 2.1.0+ |
 | `/exit` | Exit Claude Code session | CC 2.1.0+ |
-| `Esc` | Dismiss autocomplete / cancel edit | CC 2.1.0+ |
 
 ---
 

@@ -6,6 +6,7 @@ model: sonnet
 context: fork
 color: green
 memory: project
+background: true
 tools:
   - Bash
   - Read

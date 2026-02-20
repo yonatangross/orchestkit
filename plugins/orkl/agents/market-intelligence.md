@@ -6,6 +6,7 @@ model: sonnet
 context: fork
 color: violet
 memory: project
+background: true
 tools:
   - Read
   - WebSearch

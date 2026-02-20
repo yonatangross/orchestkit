@@ -79,6 +79,8 @@ Categories available:
 - Team Coordination (locks, conflicts)
 - Notifications (desktop, sound)
 
+> **CC 2.1.49 Managed Settings:** OrchestKit ships plugin `settings.json` with default hook permissions. These are *managed defaults* — users can override them in project or user settings. Enterprise admins can lock managed settings via managed profiles.
+
 ## Step 5: Configure MCPs (Optional)
 
 `context7` and `memory` are enabled by default. `tavily` and `agentation` ship **disabled** (require API key / local package). `sequential-thinking` is disabled (Opus 4.6 has native reasoning built-in).

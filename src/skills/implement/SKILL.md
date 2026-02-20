@@ -149,6 +149,7 @@ If detected: run integration tests against real services, not just mocks. Refere
 - **Detect scope creep** (phase 7) — score 0-10, split PR if significant
 - **Real services when available** — if docker-compose/testcontainers exist, use them in Phase 6
 - **Reflect and capture lessons** (phase 10) — persist to memory graph
+- **Clean up agents** — use `TeamDelete()` after completion; press `Ctrl+F` twice as manual fallback
 
 ---
 

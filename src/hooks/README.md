@@ -971,9 +971,19 @@ const bundleMap = {
 - **Project README:** `/Users/yonatangross/coding/projects/orchestkit/README.md`
 - **CLAUDE.md:** `/Users/yonatangross/coding/projects/orchestkit/CLAUDE.md`
 
+## Managed vs User Settings (CC 2.1.49)
+
+Plugin `settings.json` provides **managed defaults** for hooks. Three tiers of precedence:
+
+1. **Managed** (plugin `settings.json`) — shipped by OrchestKit, user can override
+2. **Project** (`.claude/settings.json`) — repository-level config
+3. **User** (`~/.claude/settings.json`) — personal preferences, highest priority
+
+OrchestKit hooks are managed defaults. Users retain full control to disable any hook.
+
 ---
 
-**Last Updated:** 2026-01-26
+**Last Updated:** 2026-02-20
 **Version:** 2.1.0 (Async hooks support)
 **Architecture:** 12 split bundles (381KB total) + 1 unified (324KB)
 **Hooks:** 89 hooks (66 global + 22 agent-scoped + 1 skill-scoped, 7 async)

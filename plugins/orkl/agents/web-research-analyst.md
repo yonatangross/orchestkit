@@ -7,6 +7,7 @@ maxTurns: 25
 context: fork
 color: cyan
 memory: project
+background: true
 tools:
   - Bash
   - Read
