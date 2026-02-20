@@ -19,7 +19,7 @@ import { basename, dirname } from 'node:path';
 function isTestFile(filePath: string): boolean {
   return (
     /\.(test|spec)\.(ts|tsx|js|jsx)$/.test(filePath) ||
-    /test_[^/]*\.py$/.test(filePath) ||
+    /test_[^/]{0,200}\.py$/.test(filePath) ||
     /_test\.py$/.test(filePath)
   );
 }
