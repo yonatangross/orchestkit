@@ -1,18 +1,12 @@
 ---
 title: "PostToolUse"
-description: "Hooks triggered on PostToolUse events (7 hooks)."
+description: "Hooks triggered on PostToolUse events (1 hooks)."
 ---
 
 # PostToolUse Hooks
 
-**7 hooks** registered for the `PostToolUse` lifecycle event.
+**1 hooks** registered for the `PostToolUse` lifecycle event.
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
 | `unified-dispatcher` | `Bash\|Write\|Edit\|Task\|Skill\|NotebookEdit` | 🔇 Silent | Consolidates multiple async PostToolUse hooks into a single dispatcher. |
-| `context-budget-monitor` | `Bash\|Write\|Edit\|Task\|Skill\|NotebookEdit` | 🔇 Silent | Monitors context usage and triggers compression when threshold exceeded |
-| `unified-error-handler` | `Bash\|Write\|Edit\|Task\|Skill\|NotebookEdit` | 💡 Injects | Combines: error-collector + error-tracker + error-solution-suggester |
-| `redact-secrets` | `Bash` | 🔇 Silent | Runs after Bash commands in security-scanning skill |
-| `skill-nudge` | `Bash` | 💡 Injects | — |
-| `team-member-start` | `Task` | 🔇 Silent | — |
-| `security-auditor` | `Write\|Edit` | 🔇 Silent | — |

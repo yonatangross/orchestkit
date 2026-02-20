@@ -34,6 +34,12 @@ import { userTracking } from './user-tracking.js';
 // GAP-011: Wire solution-detector to enable problem-tracker functionality
 import { solutionDetector } from './solution-detector.js';
 
+// Issue #684: Hooks moved from separate PostToolUse entries into dispatcher
+import { redactSecrets } from '../skill/redact-secrets.js';
+import { configChangeAuditor } from './config-change/security-auditor.js';
+import { teamMemberStart } from './task/team-member-start.js';
+import { unifiedErrorHandler } from './unified-error-handler.js';
+
 // Issue #243: Consolidate tool-preference-learner to reduce async hook spam
 import { toolPreferenceLearner } from './tool-preference-learner.js';
 
@@ -89,6 +95,12 @@ const HOOKS: HookConfig[] = [
 
   // Issue #243: Tool preference learner - previously separate async hook causing spam
   { name: 'tool-preference-learner', fn: toolPreferenceLearner, matcher: '*' },
+
+  // Issue #684: Consolidated from separate PostToolUse hooks.json entries
+  { name: 'redact-secrets', fn: redactSecrets, matcher: 'Bash' },
+  { name: 'config-change-auditor', fn: configChangeAuditor, matcher: ['Write', 'Edit'] },
+  { name: 'team-member-start', fn: teamMemberStart, matcher: 'Task' },
+  { name: 'error-logger', fn: unifiedErrorHandler, matcher: ['Bash', 'Write', 'Edit', 'Task'] },
 ];
 
 /** Exposed for registry wiring tests */

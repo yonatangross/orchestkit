@@ -80,20 +80,6 @@ export function getSessionErrorsFile(): string {
 }
 
 /**
- * Get the error suggestions dedup file path for a session (cross-platform)
- */
-export function getErrorSuggestionsDedupFile(sessionId: string): string {
-  return path.join(getTempDir(), `claude-error-suggestions-${sessionId}.json`);
-}
-
-/**
- * Get the MCP defer state file path for a session (cross-platform)
- */
-export function getMcpDeferStateFile(sessionId: string): string {
-  return path.join(getTempDir(), `claude-mcp-defer-state-${sessionId}.json`);
-}
-
-/**
  * Get the session temp directory for a given session ID (cross-platform)
  */
 export function getSessionTempDir(sessionId: string): string {

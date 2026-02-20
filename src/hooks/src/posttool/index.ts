@@ -9,7 +9,6 @@
 export { auditLogger } from './audit-logger.js';
 export { autoLint } from './auto-lint.js';
 export { calibrationTracker } from './calibration-tracker.js';
-export { contextBudgetMonitor } from './context-budget-monitor.js';
 export { memoryBridge } from './memory-bridge.js';
 export { realtimeSync } from './realtime-sync.js';
 export { sessionMetrics } from './session-metrics.js';
@@ -31,4 +30,3 @@ export { patternExtractor } from './bash/pattern-extractor.js';
 export { skillUsageOptimizer } from './skill/skill-usage-optimizer.js';
 
 export { unifiedErrorHandler } from './unified-error-handler.js';
-export { skillNudge } from './skill-nudge.js';

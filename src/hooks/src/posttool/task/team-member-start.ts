@@ -12,7 +12,7 @@
  */
 
 import type { HookInput, HookResult } from '../../types.js';
-import { outputSilentSuccess, outputWithContext, logHook } from '../../lib/common.js';
+import { outputSilentSuccess, logHook } from '../../lib/common.js';
 import { appendEventLog } from '../../lib/event-logger.js';
 import { appendAnalytics, hashProject } from '../../lib/analytics.js';
 
@@ -54,7 +54,5 @@ export function teamMemberStart(input: HookInput): HookResult {
     team: teamName,
   });
 
-  return outputWithContext(
-    `Team "${teamName}": teammate "${memberName}" (${subagentType}, model=${model}) spawned.`,
-  );
+  return outputSilentSuccess();
 }

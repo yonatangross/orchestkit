@@ -13,7 +13,7 @@
 import { existsSync, mkdirSync } from 'node:fs';
 import { bufferWrite } from '../../lib/analytics-buffer.js';
 import type { HookInput, HookResult } from '../../types.js';
-import { outputSilentSuccess, outputWithContext, logHook, getProjectDir, getField } from '../../lib/common.js';
+import { outputSilentSuccess, logHook, getProjectDir, getField } from '../../lib/common.js';
 
 /** Patterns that indicate potentially dangerous config modifications */
 const DANGEROUS_PATTERNS = [
@@ -101,7 +101,6 @@ export function configChangeAuditor(input: HookInput): HookResult {
     if (findings.length > 0) {
       const auditNote = `Config audit: ${findings.join('; ')} in ${filePath}`;
       logHook('config-change-auditor', `DANGEROUS: ${auditNote}`, 'warn');
-      return outputWithContext(`[Security Audit] ${auditNote}`);
     }
   } catch (err) {
     // Never block on audit errors

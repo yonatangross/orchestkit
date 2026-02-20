@@ -103,7 +103,6 @@ describe('Dispatcher Registry Wiring', () => {
         'workflow-preference-learner',
         'task-completion-check',
         // Analysis hooks
-        'context-compressor',
         'auto-remember-continuity',
         'security-scan-aggregator',
         // Skill validation hooks (run at stop time)

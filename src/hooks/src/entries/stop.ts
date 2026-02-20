@@ -15,7 +15,6 @@ export * from '../lib/calibration-engine.js';
 // Stop hooks (9)
 import { autoRememberContinuity } from '../stop/auto-remember-continuity.js';
 import { autoSaveContext } from '../stop/auto-save-context.js';
-import { contextCompressor } from '../stop/context-compressor.js';
 import { fullTestSuite } from '../stop/full-test-suite.js';
 import { issueWorkSummary } from '../stop/issue-work-summary.js';
 import { securityScanAggregator } from '../stop/security-scan-aggregator.js';
@@ -36,7 +35,6 @@ import type { HookFn } from '../types.js';
 export const hooks: Record<string, HookFn> = {
   'stop/auto-remember-continuity': autoRememberContinuity,
   'stop/auto-save-context': autoSaveContext,
-  'stop/context-compressor': contextCompressor,
   'stop/full-test-suite': fullTestSuite,
   'stop/issue-work-summary': issueWorkSummary,
   'stop/security-scan-aggregator': securityScanAggregator,

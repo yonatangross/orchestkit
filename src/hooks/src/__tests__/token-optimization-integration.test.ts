@@ -178,7 +178,7 @@ describe('Hook Priority Integration', () => {
     expect(isPriorityThrottlingEnabled()).toBe(false);
     // Should never throttle when disabled
     expect(shouldThrottle('subagent-start/graph-memory-inject')).toBe(false);
-    expect(shouldThrottle('posttool/context-budget-monitor')).toBe(false);
+    expect(shouldThrottle('prompt/context-pruning-advisor')).toBe(false);
   });
 
   test('P0 hooks never throttled even when enabled and over budget', () => {
@@ -202,7 +202,7 @@ describe('Hook Priority Integration', () => {
     trackTokenUsage('filler', 'skill-injection', 1560);
 
     // P3 throttles at 50%, so should be throttled at 60%
-    expect(shouldThrottle('posttool/context-budget-monitor')).toBe(true);
+    expect(shouldThrottle('prompt/context-pruning-advisor')).toBe(true);
     // P1 throttles at 90%, so should NOT be throttled at 60%
     expect(shouldThrottle('subagent-start/graph-memory-inject')).toBe(false);
   });
@@ -215,7 +215,7 @@ describe('Hook Priority Integration', () => {
     trackTokenUsage('filler', 'skill-injection', 1950);
 
     // P2 throttles at 70%
-    expect(shouldThrottle('stop/context-compressor')).toBe(true);
+    expect(shouldThrottle('stop/auto-save-context')).toBe(true);
     // P1 still OK at 90%
     expect(shouldThrottle('subagent-start/graph-memory-inject')).toBe(false);
   });
@@ -223,7 +223,7 @@ describe('Hook Priority Integration', () => {
   test('priority assignments are correct for all known hooks', () => {
     expect(getHookPriority('pretool/bash/dangerous-command-blocker')).toBe('P0');
     expect(getHookPriority('subagent-start/graph-memory-inject')).toBe('P1');
-    expect(getHookPriority('posttool/context-budget-monitor')).toBe('P3');
+    expect(getHookPriority('prompt/context-pruning-advisor')).toBe('P3');
     expect(getHookPriority('unknown-hook')).toBe('P2'); // default
   });
 });

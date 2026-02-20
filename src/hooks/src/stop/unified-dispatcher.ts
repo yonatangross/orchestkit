@@ -22,7 +22,6 @@ import { sessionEndTracking } from './session-end-tracking.js';
 import { workflowPreferenceLearner } from './workflow-preference-learner.js';
 // Issue #243: Additional stop hooks previously run separately
 import { taskCompletionCheck } from './task-completion-check.js';
-import { contextCompressor } from './context-compressor.js';
 import { autoRememberContinuity } from './auto-remember-continuity.js';
 import { fullTestSuite } from './full-test-suite.js';
 import { securityScanAggregator } from './security-scan-aggregator.js';
@@ -77,7 +76,6 @@ const HOOKS: HookConfig[] = [
   { name: 'task-completion-check', fn: taskCompletionCheck },
 
   // --- Analysis hooks ---
-  { name: 'context-compressor', fn: contextCompressor },
   { name: 'auto-remember-continuity', fn: autoRememberContinuity },
   { name: 'security-scan-aggregator', fn: securityScanAggregator },
 

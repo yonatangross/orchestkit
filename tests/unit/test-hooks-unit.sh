@@ -206,8 +206,8 @@ else
     FAILED=$((FAILED + 1))
 fi
 
-echo -n "  context-budget-monitor (success)... "
-if run_ts_hook "posttool/context-budget-monitor" "$(get_fixture posttool_success)" 0; then
+echo -n "  unified-error-handler (success)... "
+if run_ts_hook "posttool/unified-error-handler" "$(get_fixture posttool_success)" 0; then
     echo -e "${GREEN}PASS${NC}"
     PASSED=$((PASSED + 1))
 else
