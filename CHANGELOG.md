@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.1.0](https://github.com/yonatangross/orchestkit/compare/v6.0.26...v6.1.0) (2026-02-20)
+
+
+### Features
+
+* CC 2.1.49 full adoption — hooks, agents, MCP overhaul ([#780](https://github.com/yonatangross/orchestkit/issues/780)) ([1234c46](https://github.com/yonatangross/orchestkit/commit/1234c462436aafcfa9027b08d93324db407219e2))
+
 ## [6.0.27] - 2026-02-20
 
 ### Security
