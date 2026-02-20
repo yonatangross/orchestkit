@@ -1,5 +1,5 @@
 ---
-title: "Validation: Input Schema Validation"
+title: Validate input with server-side schemas using Zod and Pydantic with allowlist patterns
 category: validation
 impact: HIGH
 impactDescription: "Prevents malicious input through server-side schema validation using Zod and Pydantic with allowlist patterns"

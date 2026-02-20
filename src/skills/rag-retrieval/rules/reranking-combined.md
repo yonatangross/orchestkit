@@ -1,5 +1,5 @@
 ---
-title: Combined Scoring & Reranking Service
+title: Combine base, LLM, and recency scores for robust multi-signal reranking
 impact: MEDIUM
 impactDescription: "Single scoring signal is unreliable — combining base, LLM, and recency scores provides robust ranking"
 tags: reranking, combined, scoring, service, timeout

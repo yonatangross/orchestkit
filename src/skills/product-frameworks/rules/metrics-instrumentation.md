@@ -1,5 +1,5 @@
 ---
-title: "Metrics: Instrumentation & Definition"
+title: Instrument metrics with formal definitions, event naming conventions, and alerting thresholds
 category: metrics
 impact: HIGH
 impactDescription: "Ensures proper metric instrumentation with formal definitions, event naming conventions, and alerting thresholds"

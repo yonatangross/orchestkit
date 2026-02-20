@@ -1,5 +1,5 @@
 ---
-title: "Multi-Agent: Result Synthesis"
+title: Synthesize parallel agent outputs into coherent actionable results with quality metrics
 category: multi
 impact: HIGH
 impactDescription: "Ensures parallel agent outputs are combined into coherent, actionable results with quality metrics"

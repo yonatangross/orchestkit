@@ -1,5 +1,5 @@
 ---
-title: "SQLAlchemy: Relationships & Eager Loading"
+title: Configure eager loading for SQLAlchemy relationships to prevent N+1 query performance problems
 category: sqlalchemy
 impact: HIGH
 impactDescription: Proper eager loading prevents N+1 query problems that destroy async performance

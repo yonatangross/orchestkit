@@ -1,5 +1,5 @@
 ---
-title: Subgraph State Mapping
+title: Propagate config through subgraph state mapping for tracing and checkpointing
 impact: MEDIUM
 impactDescription: "Forgetting config propagation breaks tracing and checkpointing in nested graphs"
 tags: subgraphs, state-mapping, boundaries, checkpointing, nesting

@@ -1,5 +1,5 @@
 ---
-title: "PII: Detection Patterns"
+title: Detect PII exposure through regex and ML-based patterns using Presidio and LLM Guard
 category: pii
 impact: HIGH
 impactDescription: "Prevents PII exposure through regex and ML-based detection using Presidio and LLM Guard"

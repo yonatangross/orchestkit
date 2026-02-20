@@ -1,5 +1,5 @@
 ---
-title: Python Backend Profiling
+title: Profile Python backends with py-spy to find CPU hotspots and memory leaks in production
 impact: MEDIUM
 impactDescription: "Production profiling with py-spy identifies CPU hotspots and memory leaks without modifying code or restarting services"
 tags: py-spy, cprofile, memory-profiler, python, sampling, profiling, flamegraph

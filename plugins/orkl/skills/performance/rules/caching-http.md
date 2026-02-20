@@ -1,5 +1,5 @@
 ---
-title: HTTP & Prompt Caching
+title: Configure HTTP and LLM prompt caching with correct breakpoint ordering for maximum savings
 impact: HIGH
 impactDescription: "LLM prompt caching can save 90% on token costs — incorrect breakpoint ordering wastes the entire cache prefix"
 tags: http-cache, prompt-caching, cache-control, claude, openai, semantic-cache

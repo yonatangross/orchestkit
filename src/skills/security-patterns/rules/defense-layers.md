@@ -1,5 +1,5 @@
 ---
-title: "Defense: 8-Layer Security Architecture"
+title: Design defense-in-depth with eight security layers from edge protection to observability
 category: defense
 impact: CRITICAL
 impactDescription: "Ensures defense-in-depth with 8 security layers from edge protection to observability"

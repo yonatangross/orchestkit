@@ -1,5 +1,5 @@
 ---
-title: Fan-Out/Fan-In Pattern
+title: Use Send API for dynamic fan-out and fan-in parallel branches
 impact: HIGH
 impactDescription: "Without Send API, parallel branches run sequentially — losing concurrency benefits"
 tags: parallel, fanout, fanin, send, concurrent

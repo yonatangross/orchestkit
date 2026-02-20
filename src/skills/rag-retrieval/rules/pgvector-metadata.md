@@ -1,5 +1,5 @@
 ---
-title: PGVector Metadata Filtering & Patterns
+title: Filter PGVector results by metadata and boost scores for improved retrieval relevance
 impact: MEDIUM
 impactDescription: "Without metadata filtering, search returns irrelevant content types — filtered search and score boosting improve relevance by 6% MRR"
 tags: pgvector, metadata, filtering, boosting, patterns

@@ -1,5 +1,5 @@
 ---
-title: Round-Robin Supervisor Dispatch
+title: Dispatch agents in round-robin order with completion tracking to avoid repeats
 impact: MEDIUM
 impactDescription: "Without completion tracking, supervisor dispatches same agent repeatedly"
 tags: supervisor, round-robin, completion, tracking

@@ -1,5 +1,5 @@
 ---
-title: HyDE Generation
+title: Bridge query-document vocabulary mismatch with hypothetical document embeddings via HyDE
 impact: HIGH
 impactDescription: "Direct query embedding fails when queries don't match document vocabulary — HyDE bridges the gap with hypothetical documents"
 tags: hyde, hypothetical, vocabulary-mismatch, generation

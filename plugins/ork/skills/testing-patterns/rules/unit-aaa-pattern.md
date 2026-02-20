@@ -1,5 +1,5 @@
 ---
-title: "Unit: AAA Pattern"
+title: Enforce Arrange-Act-Assert structure for clear and maintainable isolated unit tests
 category: unit
 impact: CRITICAL
 impactDescription: "Enforces Arrange-Act-Assert structure for clear, maintainable unit tests with proper isolation"

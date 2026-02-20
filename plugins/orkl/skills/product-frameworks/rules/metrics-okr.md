@@ -1,5 +1,5 @@
 ---
-title: "Metrics: OKR Framework"
+title: Structure OKRs with qualitative objectives and quantitative outcome-focused key results
 category: metrics
 impact: HIGH
 impactDescription: "Ensures proper OKR structure with qualitative objectives and quantitative, outcome-focused key results"

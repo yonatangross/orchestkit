@@ -1,5 +1,5 @@
 ---
-title: "A11y: Playwright axe-core"
+title: Validate full-page accessibility compliance through Playwright E2E tests with axe-core
 category: a11y
 impact: MEDIUM
 impactDescription: "Validates full-page accessibility compliance including interactive states through E2E testing with axe-core"

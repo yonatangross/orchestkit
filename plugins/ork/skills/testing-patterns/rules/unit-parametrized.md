@@ -1,5 +1,5 @@
 ---
-title: "Unit: Parametrized Tests"
+title: Reduce test duplication and increase edge case coverage through parametrized test patterns
 category: unit
 impact: CRITICAL
 impactDescription: "Reduces test duplication and increases edge case coverage through parametrized test patterns"

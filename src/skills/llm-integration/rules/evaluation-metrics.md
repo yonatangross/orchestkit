@@ -1,5 +1,5 @@
 ---
-title: LLM Evaluation Metrics
+title: Define LLM evaluation metrics to detect quality regressions before they reach production
 impact: HIGH
 impactDescription: "Without proper evaluation metrics, LLM quality regressions go undetected until production failures"
 tags: evaluation, llm-as-judge, ragas, faithfulness, hallucination

@@ -1,5 +1,5 @@
 ---
-title: React Compiler
+title: Let React Compiler auto-memoize components, values, callbacks, and JSX automatically
 impact: HIGH
 impactDescription: "React Compiler auto-memoizes components, values, callbacks, and JSX — eliminating most manual optimization"
 tags: react-compiler, auto-memo, memoization, react-19

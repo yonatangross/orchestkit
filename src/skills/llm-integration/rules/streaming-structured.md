@@ -1,5 +1,5 @@
 ---
-title: "Streaming: Structured & Tool Calls"
+title: Accumulate tool call chunks carefully when handling structured output within LLM streams
 impact: HIGH
 impactDescription: "Handling tool calls within streams requires careful chunk accumulation"
 tags: [streaming, tool-calls, partial-json, chunk-accumulation, structured]

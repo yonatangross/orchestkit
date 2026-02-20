@@ -1,5 +1,5 @@
 ---
-title: "Multi-Agent: Debate & Conflict Resolution"
+title: Resolve agent disagreements through confidence scores, LLM arbitration, or majority voting
 category: multi
 impact: HIGH
 impactDescription: "Ensures agent disagreements are resolved through confidence scores, LLM arbitration, or majority voting"

@@ -1,5 +1,5 @@
 ---
-title: "Auth: RBAC & MFA"
+title: Enforce role-based access control with multi-factor authentication and rate limiting
 category: auth
 impact: CRITICAL
 impactDescription: "Prevents unauthorized access through role-based permissions, multi-factor authentication, and rate limiting"

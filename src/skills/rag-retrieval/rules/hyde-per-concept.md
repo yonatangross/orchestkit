@@ -1,5 +1,5 @@
 ---
-title: Per-Concept HyDE
+title: Generate separate HyDE documents per concept for multi-topic vocabulary bridging
 impact: MEDIUM
 impactDescription: "Multi-concept queries need separate HyDE generation per concept for proper vocabulary bridging across topics"
 tags: hyde, multi-concept, parallel, batch

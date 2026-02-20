@@ -1,5 +1,5 @@
 ---
-title: Context Caching and Budget Scaling
+title: Apply context caching and budget allocation to reduce token costs by 60-80 percent
 impact: HIGH
 impactDescription: "Proper caching and budget allocation reduces token costs by 60-80% while maintaining task quality"
 tags: context, caching, budget, compression, skill-scaling

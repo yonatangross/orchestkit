@@ -1,5 +1,5 @@
 ---
-title: Static Analysis (SAST)
+title: Run static analysis with Semgrep to catch injection and insecure patterns before production
 impact: HIGH
 impactDescription: "Skipping SAST lets SQL injection, command injection, and insecure patterns reach production — Semgrep catches what linters miss"
 tags: scanning, sast, semgrep, bandit, static-analysis, code-security

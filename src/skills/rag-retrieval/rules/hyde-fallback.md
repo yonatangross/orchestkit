@@ -1,5 +1,5 @@
 ---
-title: HyDE Fallback Strategy
+title: Configure HyDE fallback strategy to avoid latency degradation from slow generation
 impact: MEDIUM
 impactDescription: "HyDE adds latency — without a fallback, slow generation degrades user experience"
 tags: hyde, fallback, timeout, graceful-degradation

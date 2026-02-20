@@ -1,5 +1,5 @@
 ---
-title: "Scenario: Multi-Scenario Orchestrator"
+title: Test skills across three parallel scenarios with progressive difficulty and synchronized execution
 category: scenario
 impact: MEDIUM
 impactDescription: "Ensures skills are tested across three parallel scenarios with progressive difficulty and synchronized execution"

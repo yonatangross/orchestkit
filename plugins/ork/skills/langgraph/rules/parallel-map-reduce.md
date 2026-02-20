@@ -1,5 +1,5 @@
 ---
-title: Map-Reduce Pattern
+title: Apply map-reduce with asyncio.gather for independent parallel task processing
 impact: HIGH
 impactDescription: "Using sequential processing for independent tasks wastes time — use asyncio.gather"
 tags: parallel, map-reduce, asyncio, gather, concurrent

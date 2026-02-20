@@ -1,5 +1,5 @@
 ---
-title: "Loops: ReAct Pattern"
+title: Implement ReAct pattern where agents reason, act via tools, observe, and iterate
 category: loops
 impact: HIGH
 impactDescription: "Ensures agents reason step-by-step, take actions via tools, observe results, and iterate until reaching a final answer"

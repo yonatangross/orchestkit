@@ -1,5 +1,5 @@
 ---
-title: ToolNode Execution
+title: Use ToolNode for automatic parallel tool execution with built-in error handling
 impact: CRITICAL
 impactDescription: "Manual tool dispatch misses parallel execution and error handling that ToolNode provides"
 tags: tools, toolnode, prebuilt, execution, parallel

@@ -1,5 +1,5 @@
 ---
-title: Redis & Backend Caching
+title: Implement Redis cache-aside pattern with TTL and stampede prevention for backend caching
 impact: HIGH
 impactDescription: "Caching without TTL or stampede prevention causes memory leaks and thundering herd problems — proper cache-aside with invalidation prevents both"
 tags: redis, cache-aside, write-through, invalidation, stampede

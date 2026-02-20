@@ -1,5 +1,5 @@
 ---
-title: Parallel Test Execution
+title: Run tests in parallel with failure analysis to cut CI feedback time significantly
 impact: HIGH
 impactDescription: "Running all tests sequentially wastes CI minutes — parallel execution with failure analysis cuts feedback time by 3-5x"
 tags: testing, execution, parallel, pytest, coverage, maxfail, failure-analysis

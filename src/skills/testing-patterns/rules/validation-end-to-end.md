@@ -1,5 +1,5 @@
 ---
-title: End-to-End Type Safety Validation
+title: Validate end-to-end type safety across API layers to eliminate runtime type errors
 impact: HIGH
 impactDescription: "Type gaps between API layers cause runtime errors that compile-time validation eliminates entirely"
 tags: trpc, prisma, type-safety, end-to-end, pydantic, python, typescript

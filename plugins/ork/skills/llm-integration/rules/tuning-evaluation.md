@@ -1,5 +1,5 @@
 ---
-title: "Fine-Tuning: DPO Alignment & Evaluation"
+title: Align models with DPO and evaluate thoroughly before deploying fine-tuned versions
 impact: HIGH
 impactDescription: "DPO aligns models to preferences without reward model training; evaluation prevents deploying degraded models"
 tags: [dpo, alignment, evaluation, preference, anti-patterns, decision-framework]

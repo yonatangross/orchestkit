@@ -1,5 +1,5 @@
 ---
-title: Custom Annotated Reducers
+title: Define custom Annotated reducers for merge, dedup, and last-value state patterns
 impact: HIGH
 impactDescription: "Default behavior replaces values — custom reducers needed for merge, last-value, and dedup patterns"
 tags: state, reducers, annotated, merge, custom

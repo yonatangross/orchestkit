@@ -1,5 +1,5 @@
 ---
-title: Semantic & Command Routing
+title: Route with embedding similarity or Command API instead of conditional edges
 impact: HIGH
 impactDescription: "Using conditional edges when updating state causes split logic — use Command API instead"
 tags: routing, semantic, command, embedding, llm

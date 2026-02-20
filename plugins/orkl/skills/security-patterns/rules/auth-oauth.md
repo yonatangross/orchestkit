@@ -1,5 +1,5 @@
 ---
-title: "Auth: OAuth 2.1 & Passkeys"
+title: Implement OAuth 2.1 with mandatory PKCE, token rotation, and phishing-resistant passkeys
 category: auth
 impact: CRITICAL
 impactDescription: "Prevents authorization vulnerabilities through mandatory PKCE, token rotation, and phishing-resistant passkeys"

@@ -1,5 +1,5 @@
 ---
-title: "Unit: Fixture Scoping"
+title: Optimize test performance through proper fixture scope selection while maintaining isolation
 category: unit
 impact: CRITICAL
 impactDescription: "Optimizes test performance through proper fixture scope selection while maintaining test isolation"

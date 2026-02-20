@@ -1,5 +1,5 @@
 ---
-title: Contextual Retrieval — Complete Pipeline
+title: Build complete contextual retrieval pipeline integrating context generation, embedding, and hybrid search
 impact: MEDIUM
 impactDescription: "Without a complete pipeline integrating context generation, embedding, and hybrid search, individual components don't deliver full quality improvement"
 tags: contextual, pipeline, indexing, parallel, production

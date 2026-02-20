@@ -1,5 +1,5 @@
 ---
-title: Knowledge Graph RAG (GraphRAG)
+title: Build knowledge graph RAG for multi-hop reasoning over entity-rich domains
 impact: MEDIUM
 impactDescription: "Vector search misses entity relationships — knowledge graphs enable multi-hop reasoning for entity-rich domains"
 tags: graphrag, knowledge-graph, neo4j, entity, multi-hop

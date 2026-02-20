@@ -1,5 +1,5 @@
 ---
-title: Prompt Design Patterns
+title: Design effective prompts to improve LLM accuracy on complex reasoning tasks
 impact: HIGH
 impactDescription: "Effective prompt design improves LLM accuracy by 20-40% on complex reasoning tasks"
 tags: prompts, chain-of-thought, few-shot, zero-shot, structured-output

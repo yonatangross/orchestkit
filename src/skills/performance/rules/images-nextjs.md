@@ -1,5 +1,5 @@
 ---
-title: Next.js Image Component
+title: Use Next.js Image component for automatic lazy loading, responsive sizing, and format negotiation
 impact: HIGH
 impactDescription: "Next.js Image handles lazy loading, responsive sizing, format negotiation, and blur placeholders automatically"
 tags: nextjs, image, priority, blur, sizes, loader, cdn, optimization

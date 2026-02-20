@@ -1,5 +1,5 @@
 ---
-title: Chunking Strategies
+title: Choose chunking strategies carefully since chunk boundaries determine retrieval quality
 impact: HIGH
 impactDescription: "Poor chunking loses semantic context and hurts retrieval quality — chunk boundaries determine what can be found"
 tags: chunking, splitting, overlap, semantic-boundaries

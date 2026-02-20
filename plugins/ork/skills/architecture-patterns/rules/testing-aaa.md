@@ -1,5 +1,5 @@
 ---
-title: "Testing: AAA Pattern & Isolation"
+title: Structure tests with Arrange-Act-Assert pattern for reliable and maintainable test suites
 category: testing
 impact: MEDIUM
 impactDescription: Structured test patterns ensure reliable, maintainable test suites

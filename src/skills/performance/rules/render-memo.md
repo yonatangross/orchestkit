@@ -1,5 +1,5 @@
 ---
-title: Manual Memoization Escape Hatches
+title: Use manual useMemo and useCallback escape hatches when React Compiler cannot optimize
 impact: HIGH
 impactDescription: "When React Compiler can't handle a case, targeted useMemo/useCallback and state colocation prevent unnecessary re-renders"
 tags: usememo, usecallback, memo, state-colocation, escape-hatch

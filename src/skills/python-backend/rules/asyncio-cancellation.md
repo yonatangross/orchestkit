@@ -1,5 +1,5 @@
 ---
-title: "Asyncio: Cancellation Handling"
+title: Handle asyncio cancellation correctly for proper TaskGroup and timeout behavior
 category: asyncio
 impact: HIGH
 impactDescription: Proper cancellation handling is critical for TaskGroup and timeout correctness

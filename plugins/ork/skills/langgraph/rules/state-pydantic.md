@@ -1,5 +1,5 @@
 ---
-title: Pydantic State Validation
+title: Apply Pydantic state validation at boundaries only to minimize runtime overhead
 impact: HIGH
 impactDescription: "Using Pydantic everywhere adds runtime overhead — use at boundaries only"
 tags: state, pydantic, validation, basemodel

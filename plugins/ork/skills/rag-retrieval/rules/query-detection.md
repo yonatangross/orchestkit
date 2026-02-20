@@ -1,5 +1,5 @@
 ---
-title: Multi-Concept Query Detection
+title: Detect multi-concept queries with heuristic fast-path to avoid unnecessary LLM decomposition
 impact: MEDIUM
 impactDescription: "Decomposing simple queries wastes LLM calls — heuristic detection provides sub-millisecond fast-path for single-concept queries"
 tags: query, detection, heuristic, multi-concept

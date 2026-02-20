@@ -1,5 +1,5 @@
 ---
-title: "Business: Cost-Benefit & TCO"
+title: Perform comprehensive cost-benefit analysis including build vs buy TCO comparisons
 category: business
 impact: HIGH
 impactDescription: "Ensures comprehensive cost-benefit analysis including build vs. buy TCO comparisons and hidden costs"

@@ -1,5 +1,5 @@
 ---
-title: Priority-Based Supervisor Routing
+title: Route supervisor tasks by priority to ensure critical-first execution order
 impact: HIGH
 impactDescription: "Round-robin dispatch misses critical-first execution order when priorities matter"
 tags: supervisor, priority, routing, ordering

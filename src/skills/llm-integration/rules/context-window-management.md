@@ -1,5 +1,5 @@
 ---
-title: Context Window Management
+title: Manage context windows to avoid wasting 80 percent of token budget on irrelevant content
 impact: HIGH
 impactDescription: "Mismanaged context windows waste 80% of token budget and degrade LLM task completion"
 tags: context, tokens, compression, attention, lost-in-the-middle

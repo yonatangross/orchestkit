@@ -1,5 +1,5 @@
 ---
-title: "Prioritize: RICE & ICE Scoring"
+title: Prioritize features with RICE and ICE scoring using Reach, Impact, Confidence, and Effort
 category: prioritize
 impact: HIGH
 impactDescription: "Ensures data-driven feature prioritization using Reach, Impact, Confidence, and Effort scores"

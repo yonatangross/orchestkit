@@ -1,5 +1,5 @@
 ---
-title: "Data: JSON Fixtures"
+title: Structure JSON fixtures with composition patterns for deterministic test data management
 category: data
 impact: MEDIUM
 impactDescription: "Establishes structured JSON fixtures and composition patterns for deterministic test data management"

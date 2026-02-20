@@ -1,5 +1,5 @@
 ---
-title: Advanced Embedding Patterns
+title: Implement production embedding pipelines with batching, caching, and cost optimization
 impact: MEDIUM
 impactDescription: "Production embedding pipelines need batching, caching, and cost optimization to be practical at scale"
 tags: late-chunking, batch, cache, matryoshka, production

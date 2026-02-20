@@ -1,5 +1,5 @@
 ---
-title: "Multi-Agent: Supervisor Pattern"
+title: Coordinate specialist agents through a central supervisor with parallel execution and timeouts
 category: multi
 impact: CRITICAL
 impactDescription: "Ensures central coordinator routes tasks to specialist agents with parallel execution and timeout handling"

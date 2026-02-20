@@ -1,5 +1,5 @@
 ---
-title: Decomposition + HyDE Combo
+title: Combine query decomposition with HyDE for comprehensive vocabulary-bridged retrieval coverage
 impact: MEDIUM
 impactDescription: "Decomposition without vocabulary bridging still misses terminology mismatches — combining with HyDE provides best coverage"
 tags: query, hyde, decomposition, combo, advanced

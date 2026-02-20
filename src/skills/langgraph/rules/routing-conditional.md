@@ -1,5 +1,5 @@
 ---
-title: Conditional Edge Routing
+title: Define conditional edge routing with explicit mappings and END fallback
 impact: HIGH
 impactDescription: "Missing edge mappings cause runtime KeyError — always include END fallback"
 tags: routing, conditional, edges, branching

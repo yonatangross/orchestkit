@@ -1,5 +1,5 @@
 ---
-title: "Pytest: Parallel Execution"
+title: Accelerate test suites through pytest-xdist parallel execution with proper worker isolation
 category: pytest
 impact: HIGH
 impactDescription: "Accelerates test suites through pytest-xdist parallel execution with proper worker isolation"

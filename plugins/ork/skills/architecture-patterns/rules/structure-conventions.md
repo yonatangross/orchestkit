@@ -1,5 +1,5 @@
 ---
-title: "Structure: Import Direction & Conventions"
+title: Enforce unidirectional imports to prevent circular dependencies and maintain clean architecture
 category: structure
 impact: HIGH
 impactDescription: Unidirectional imports prevent circular dependencies and maintain clean architecture

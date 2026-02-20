@@ -1,5 +1,5 @@
 ---
-title: Add Subgraph as Node (Shared State)
+title: Add subgraph directly as node when parent and child share the same state
 impact: MEDIUM
 impactDescription: "Using invoke pattern when states are shared adds unnecessary transformation code"
 tags: subgraphs, add-node, shared-state, messages, coordination

@@ -1,5 +1,5 @@
 ---
-title: "FastAPI: Lifespan & Health"
+title: Configure FastAPI lifespan management to prevent resource leaks during startup and shutdown
 category: fastapi
 impact: HIGH
 impactDescription: Proper lifespan management prevents resource leaks and ensures clean startup/shutdown

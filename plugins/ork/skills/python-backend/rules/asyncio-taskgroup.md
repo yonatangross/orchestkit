@@ -1,5 +1,5 @@
 ---
-title: "Asyncio: TaskGroup & Timeout"
+title: Apply TaskGroup for structured concurrency with automatic cancellation on failure
 category: asyncio
 impact: HIGH
 impactDescription: TaskGroup provides structured concurrency with automatic cancellation on failure

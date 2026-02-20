@@ -1,5 +1,5 @@
 ---
-title: INP Optimization
+title: Optimize Interaction to Next Paint to ensure responsive button clicks and interactions
 impact: CRITICAL
 impactDescription: "Interaction to Next Paint measures responsiveness — poor INP causes sluggish button clicks and interactions"
 tags: inp, interaction, responsiveness, long-task, transition, yield, scheduler

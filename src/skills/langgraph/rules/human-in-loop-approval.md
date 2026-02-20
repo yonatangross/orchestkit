@@ -1,5 +1,5 @@
 ---
-title: Approval Gate Pattern
+title: Implement approval gate pattern with reject paths to prevent dead-end workflows
 impact: MEDIUM
 impactDescription: "Approval gates without reject paths create dead-end workflows"
 tags: human-in-loop, approval, gate, review, interrupt-before

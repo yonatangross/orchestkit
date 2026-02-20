@@ -1,5 +1,5 @@
 ---
-title: Custom Event Streaming
+title: Emit custom streaming events to provide client visibility into node progress
 impact: MEDIUM
 impactDescription: "Without custom events, clients have no visibility into node progress between state updates"
 tags: streaming, custom, events, progress, stream-writer

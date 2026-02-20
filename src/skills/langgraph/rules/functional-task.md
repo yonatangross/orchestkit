@@ -1,5 +1,5 @@
 ---
-title: "@task Decorator and Futures"
+title: "Use @task decorator correctly and always call .result() on futures"
 impact: MEDIUM
 impactDescription: "Forgetting .result() on task futures silently returns a Future object instead of the actual value"
 tags: functional, task, futures, parallel, result

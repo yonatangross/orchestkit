@@ -1,5 +1,5 @@
 ---
-title: "Loops: Plan-and-Execute"
+title: Generate multi-step plans before execution with replanning when conditions change
 category: loops
 impact: HIGH
 impactDescription: "Ensures agents generate multi-step plans before execution with replanning capability when conditions change"

@@ -1,5 +1,5 @@
 ---
-title: "Structure: Folder Organization"
+title: Organize folders consistently to reduce cognitive load and improve codebase navigability
 category: structure
 impact: HIGH
 impactDescription: Consistent folder structure reduces cognitive load and improves codebase navigability

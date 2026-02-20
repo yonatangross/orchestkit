@@ -1,5 +1,5 @@
 ---
-title: MessagesState Pattern
+title: Use MessagesState with add_messages reducer to preserve conversation history
 impact: CRITICAL
 impactDescription: "Without add_messages reducer, conversation history overwrites on every node update"
 tags: state, messages, add_messages, chat, conversation

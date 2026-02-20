@@ -1,5 +1,5 @@
 ---
-title: Corrective RAG (CRAG)
+title: Apply corrective RAG with quality assurance and web fallback for self-correction
 impact: HIGH
 impactDescription: "Without quality assurance and fallback paths, bad queries produce bad results — CRAG provides self-correction with web fallback"
 tags: crag, corrective, web-fallback, query-rewriting, langgraph

@@ -1,5 +1,5 @@
 ---
-title: "Pooling: Database"
+title: Configure database connection pools correctly to prevent connection exhaustion under load
 category: pooling
 impact: MEDIUM
 impactDescription: Proper pool configuration prevents connection exhaustion under load

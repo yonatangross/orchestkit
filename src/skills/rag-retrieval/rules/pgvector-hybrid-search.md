@@ -1,5 +1,5 @@
 ---
-title: PGVector Hybrid Search (SQL)
+title: Implement PGVector hybrid search with FULL OUTER JOIN and RRF fusion ranking
 impact: HIGH
 impactDescription: "Separate vector and keyword queries without RRF fusion miss cross-method matches — FULL OUTER JOIN with RRF provides unified ranking"
 tags: pgvector, hybrid, rrf, sqlalchemy, full-outer-join

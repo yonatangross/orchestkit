@@ -1,5 +1,5 @@
 ---
-title: "Pytest: Plugins & Hooks"
+title: Build factory fixture patterns and pytest plugins for reusable test infrastructure
 category: pytest
 impact: HIGH
 impactDescription: "Establishes factory fixture patterns and plugin best practices for reusable, maintainable test infrastructure"

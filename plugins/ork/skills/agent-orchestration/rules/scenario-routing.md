@@ -1,5 +1,5 @@
 ---
-title: "Scenario: Routing & Synchronization"
+title: Synchronize milestones, scale difficulty, and recover from failures across multi-scenario orchestration
 category: scenario
 impact: MEDIUM
 impactDescription: "Ensures milestone synchronization, difficulty scaling, and failure recovery across multi-scenario orchestration"

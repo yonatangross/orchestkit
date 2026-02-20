@@ -1,5 +1,5 @@
 ---
-title: "Frameworks: Comparison & Selection"
+title: Compare and select multi-agent frameworks based on complexity, use case, and production needs
 category: frameworks
 impact: HIGH
 impactDescription: "Ensures appropriate multi-agent framework selection based on complexity, use case, and production requirements"

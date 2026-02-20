@@ -1,5 +1,5 @@
 ---
-title: "Research: User Interviews & Testing"
+title: Conduct rigorous user research through structured interviews and systematic insight collection
 category: research
 impact: HIGH
 impactDescription: "Ensures rigorous user research through structured interviews, usability testing, and systematic insight collection"

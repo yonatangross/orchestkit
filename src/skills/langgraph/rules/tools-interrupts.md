@@ -1,5 +1,5 @@
 ---
-title: Tool Interrupt Approval Gates
+title: Gate dangerous tool execution with interrupt-based human approval before proceeding
 impact: CRITICAL
 impactDescription: "Dangerous tools without approval gates can execute destructive operations unchecked"
 tags: tools, interrupt, approval, gate, human-review

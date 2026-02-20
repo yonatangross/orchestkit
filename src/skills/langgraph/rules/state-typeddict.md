@@ -1,5 +1,5 @@
 ---
-title: TypedDict State Pattern
+title: Design TypedDict state with Annotated accumulators to prevent silent data loss
 impact: CRITICAL
 impactDescription: "Wrong state schema causes silent data loss across nodes — fields overwrite instead of accumulating"
 tags: state, typeddict, annotated, reducers, accumulate

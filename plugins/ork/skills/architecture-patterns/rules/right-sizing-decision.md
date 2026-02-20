@@ -1,5 +1,5 @@
 ---
-title: Right-Sizing Decision Guide
+title: Choose the right ORM, auth, and error handling per tier to avoid unnecessary abstraction
 impact: HIGH
 impactDescription: "Wrong ORM, auth, or error handling choice per tier adds 200-2000 LOC of unnecessary abstraction"
 tags: right-sizing, decision, orm, authentication, error-handling, testing, pragmatic

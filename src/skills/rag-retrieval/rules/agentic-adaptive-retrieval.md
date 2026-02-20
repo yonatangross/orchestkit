@@ -1,5 +1,5 @@
 ---
-title: Adaptive Retrieval
+title: Route queries to the best retrieval strategy using adaptive selection per query type
 impact: MEDIUM
 impactDescription: "Single retrieval strategy can't handle all query types — adaptive routing selects the best approach per query"
 tags: adaptive, routing, multi-source, orchestration

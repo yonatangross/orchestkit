@@ -1,5 +1,5 @@
 ---
-title: "Data: Factory Patterns"
+title: Build reusable test data factories with realistic randomization for isolated tests
 category: data
 impact: MEDIUM
 impactDescription: "Provides reusable test data builders with realistic randomization for isolated, maintainable tests"

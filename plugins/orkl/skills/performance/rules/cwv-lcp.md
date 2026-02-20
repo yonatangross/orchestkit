@@ -1,5 +1,5 @@
 ---
-title: LCP Optimization
+title: Optimize Largest Contentful Paint to improve search rankings and perceived page speed
 impact: CRITICAL
 impactDescription: "Largest Contentful Paint directly affects search rankings and user perception of page speed"
 tags: lcp, largest-contentful-paint, hero, preload, priority, ssr, ttfb

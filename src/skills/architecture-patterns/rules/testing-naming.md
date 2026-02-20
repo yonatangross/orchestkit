@@ -1,5 +1,5 @@
 ---
-title: "Testing: Naming Conventions"
+title: Name tests descriptively so they serve as documentation and aid debugging
 category: testing
 impact: MEDIUM
 impactDescription: Descriptive test names serve as documentation and aid debugging

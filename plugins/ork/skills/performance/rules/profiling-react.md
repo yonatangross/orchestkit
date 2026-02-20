@@ -1,5 +1,5 @@
 ---
-title: React DevTools Profiler
+title: Profile React components with DevTools to identify unnecessary re-renders and their causes
 impact: MEDIUM
 impactDescription: "The React Profiler reveals exactly which components re-render, why, and how long they take — essential for targeted optimization"
 tags: profiler, devtools, flamegraph, render, wdyr, why-did-you-render, react

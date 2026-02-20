@@ -1,5 +1,5 @@
 ---
-title: "LLM: Prompt Injection Defense"
+title: Defend against prompt injection by routing identifiers around the LLM, not through prompts
 category: llm
 impact: HIGH
 impactDescription: "Prevents prompt injection attacks by ensuring identifiers flow around the LLM, not through prompts"

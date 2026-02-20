@@ -1,5 +1,5 @@
 ---
-title: Evidence Verification for Task Completion
+title: Require evidence verification for task completion to detect hidden failures and regressions
 impact: MEDIUM
 impactDescription: "Tasks marked complete without evidence often contain undetected failures and quality regressions"
 tags: evidence, verification, testing, quality, exit-code, coverage

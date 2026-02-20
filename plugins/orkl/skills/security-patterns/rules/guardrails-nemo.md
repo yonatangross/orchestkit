@@ -1,5 +1,5 @@
 ---
-title: NeMo Guardrails and Guardrails AI
+title: Deploy NeMo Guardrails and Guardrails AI to defend against prompt injection and toxicity
 impact: CRITICAL
 impactDescription: "Production LLM systems without guardrails are vulnerable to prompt injection, toxicity, and hallucination attacks"
 tags: nemo, guardrails, colang, safety, rails, validators, toxicity, pii

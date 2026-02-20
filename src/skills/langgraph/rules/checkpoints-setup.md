@@ -1,5 +1,5 @@
 ---
-title: Checkpointer Setup
+title: Configure persistent checkpointer to survive crashes in production workflows
 impact: HIGH
 impactDescription: "No checkpointer in production means losing all progress on crash — unrecoverable workflows"
 tags: checkpoints, persistence, memorysaver, postgressaver, setup

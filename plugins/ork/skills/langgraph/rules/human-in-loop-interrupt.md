@@ -1,5 +1,5 @@
 ---
-title: Dynamic Interrupt and Resume
+title: Use interrupt() for conditional pausing and Command for resuming workflows
 impact: MEDIUM
 impactDescription: "Wrapping interrupt() in try/except catches the interrupt exception and breaks the mechanism"
 tags: human-in-loop, interrupt, resume, command, pause

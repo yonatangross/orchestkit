@@ -1,5 +1,5 @@
 ---
-title: "Prioritize: WSJF & MoSCoW"
+title: Prioritize backlogs with WSJF Cost of Delay and MoSCoW scope management
 category: prioritize
 impact: HIGH
 impactDescription: "Ensures optimal prioritization using Cost of Delay and MoSCoW scope management"
