@@ -307,7 +307,8 @@ describe('Cross-Bundle Consistency', () => {
     // 156 -> 158: added pretool/task/task-agent-advisor (#706) + teammate hooks
     // 158 -> 159: #780 CC 2.1.49 adoption — added config-change/security-auditor
     // 159 -> 161: #72 milestone — added subagent-start/unified-dispatcher + permission/unified-dispatcher
-    expect(totalHooks).toBe(161);
+    // 161 -> 158: #684 — removed context-budget-monitor, posttool/skill-nudge, context-compressor
+    expect(totalHooks).toBe(158);
   });
 });
 

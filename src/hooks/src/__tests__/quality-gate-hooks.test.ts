@@ -1273,9 +1273,8 @@ describe('unifiedErrorHandler', () => {
     );
 
     expect(result.continue).toBe(true);
-    expect(result.hookSpecificOutput?.additionalContext).toBeDefined();
-    expect(result.hookSpecificOutput?.additionalContext).toContain('npm install failed');
-    expect(result.hookSpecificOutput?.additionalContext).toContain('Delete node_modules');
+    // Issue #684: error-handler now returns silent success (moved into async dispatcher)
+    expect(result.suppressOutput).toBe(true);
   });
 
   test('does not suggest solution for non-Bash tool errors', () => {
@@ -1363,7 +1362,8 @@ describe('unifiedErrorHandler', () => {
       }),
     );
 
-    expect(result1.hookSpecificOutput?.additionalContext).toBeDefined();
+    // Issue #684: error-handler now returns silent success (moved into async dispatcher)
+    expect(result1.suppressOutput).toBe(true);
 
     // Second call: dedup file exists with recent suggestion
     const dedupData = {
