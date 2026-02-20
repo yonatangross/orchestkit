@@ -1,0 +1,23 @@
+{
+  "$schema": "https://claude.ai/schemas/plugin-settings.json",
+  "permissions": {
+    "allow": [
+      "Read",
+      "Glob",
+      "Grep",
+      "mcp__context7__*",
+      "mcp__memory__*"
+    ],
+    "deny": []
+  },
+  "spinnerVerbs": {
+    "mode": "append",
+    "verbs": [
+      "Orchestrating",
+      "Coordinating",
+      "Synthesizing",
+      "Architecting",
+      "Dispatching"
+    ]
+  }
+}

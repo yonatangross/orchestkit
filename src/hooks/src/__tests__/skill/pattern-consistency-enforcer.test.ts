@@ -720,9 +720,9 @@ const server = setupServer(
       expect(result.continue).toBe(false);
     });
 
-    test('does not catch setUp on different line (implementation limitation)', () => {
+    test('catches setUp on different line (improved with string checks)', () => {
       // Arrange - Typical unittest pattern with setUp on different line
-      // Current regex /class Test.*setUp/ doesn't use `s` flag so this passes
+      // String-based includes() check catches this across lines (unlike old regex)
       const input = createWriteInput(
         '/project/tests/test_user_service.py',
         `
@@ -735,8 +735,8 @@ class TestUserService:
       // Act
       const result = patternConsistencyEnforcer(input);
 
-      // Assert - This is an implementation limitation, not a bug in test
-      expect(result.continue).toBe(true);
+      // Assert - Now correctly detected after ReDoS fix improved detection
+      expect(result.continue).toBe(false);
     });
 
     test('allows pytest fixtures in Python tests', () => {

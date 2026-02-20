@@ -206,6 +206,18 @@ CC 2.1.45+ supports `plugin_hot_reload` — team members get updates without res
 
 > **`enabledPlugins` vs `added_dirs`**: `enabledPlugins` is a CC-internal concept and is NOT exposed to hooks. The hook-accessible field for multi-directory awareness is `added_dirs` (available in `HookInput` since CC 2.1.47). Hooks can read `input.added_dirs` to detect which additional directories are active — useful for adapting behavior in multi-repo workspaces.
 
+### Monorepo Package Context (CC 2.1.49)
+
+When `added_dirs` are active, OrchestKit's monorepo detector surfaces package names from each directory as session context. This helps agents understand which packages are in scope:
+
+```
+Multi-directory context active (3 dirs)
+Packages: @myapp/api, @myapp/web, @myapp/shared
+Each directory may have its own CLAUDE.md with targeted instructions.
+```
+
+Use `claude --add-dir ./packages/api --add-dir ./packages/web` to include specific packages.
+
 ## Step 8: CC 2.1.23 Settings
 
 Configure CC 2.1.23-specific features:

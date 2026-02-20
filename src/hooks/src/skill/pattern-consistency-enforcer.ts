@@ -9,6 +9,11 @@ import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, outputBlock, getProjectDir } from '../lib/common.js';
 import { getRepoRoot } from '../lib/git.js';
 
+/** Check if any single line contains all specified substrings (ReDoS-safe) */
+function lineContainsAll(content: string, ...terms: string[]): boolean {
+  return content.split('\n').some(line => terms.every(t => line.includes(t)));
+}
+
 /**
  * Enforce pattern consistency across codebase
  */
@@ -33,7 +38,7 @@ export function patternConsistencyEnforcer(input: HookInput): HookResult {
   if (filePath.endsWith('.py') && (filePath.includes('/backend/') || filePath.includes('/api/'))) {
     // Check: Clean Architecture layers
     if (filePath.includes('/routers/')) {
-      if (/from.*repositories.*import/.test(content)) {
+      if (lineContainsAll(content, 'from', 'repositories', 'import')) {
         errors.push('PATTERN: Router imports repository directly');
         errors.push('  Established pattern: routers -> services -> repositories');
         errors.push('  Import from services/ layer instead');
@@ -41,7 +46,7 @@ export function patternConsistencyEnforcer(input: HookInput): HookResult {
     }
 
     if (filePath.includes('/services/')) {
-      if (/from.*routers.*import/.test(content)) {
+      if (lineContainsAll(content, 'from', 'routers', 'import')) {
         errors.push('PATTERN: Service imports router (circular dependency)');
         errors.push('  Established pattern: Services are independent of HTTP layer');
       }
@@ -59,7 +64,7 @@ export function patternConsistencyEnforcer(input: HookInput): HookResult {
     }
 
     // Check: Pydantic v2 validators
-    if (/from pydantic import.*BaseModel/.test(content)) {
+    if (lineContainsAll(content, 'from pydantic import', 'BaseModel')) {
       if (/@validator\(/.test(content)) {
         errors.push('PATTERN: Using Pydantic v1 @validator decorator');
         errors.push('  Established pattern: Pydantic v2 with @field_validator');
@@ -101,7 +106,7 @@ export function patternConsistencyEnforcer(input: HookInput): HookResult {
     }
 
     // Check: Date formatting pattern
-    if (/new Date.*toLocaleDateString|toLocaleString/.test(content)) {
+    if (content.includes('toLocaleDateString') || content.includes('toLocaleString')) {
       errors.push('PATTERN: Direct date formatting instead of centralized utility');
       errors.push('  Established pattern: Use @/lib/dates helpers');
       errors.push("  Import: import { formatDate, formatDateShort } from '@/lib/dates'");
@@ -109,7 +114,7 @@ export function patternConsistencyEnforcer(input: HookInput): HookResult {
   }
 
   // Testing pattern consistency
-  if (/\.(test|spec)\.(ts|tsx|js|jsx)$/.test(filePath) || /test_.*\.py$/.test(filePath)) {
+  if (/\.(test|spec)\.(ts|tsx|js|jsx)$/.test(filePath) || (filePath.includes('test_') && filePath.endsWith('.py'))) {
     // Check: AAA pattern presence
     if (!/\/\/ Arrange|\/\/ Act|\/\/ Assert|# Arrange|# Act|# Assert/i.test(content)) {
       warnings.push('PATTERN: AAA pattern comments missing');
@@ -119,7 +124,7 @@ export function patternConsistencyEnforcer(input: HookInput): HookResult {
 
     // Check: MSW for API mocking (TypeScript)
     if (/\.(ts|tsx|js|jsx)$/.test(filePath)) {
-      if (/jest\.mock.*fetch|global\.fetch/.test(content)) {
+      if ((content.includes('jest.mock') && content.includes('fetch')) || content.includes('global.fetch')) {
         errors.push('PATTERN: Using jest.mock for fetch instead of MSW');
         errors.push('  Established pattern: Use MSW for API mocking');
         errors.push("  Import: import { http, HttpResponse } from 'msw'");
@@ -128,7 +133,7 @@ export function patternConsistencyEnforcer(input: HookInput): HookResult {
 
     // Check: Pytest fixtures (Python)
     if (filePath.endsWith('.py')) {
-      if (/class Test.*setUp/.test(content)) {
+      if (content.includes('class Test') && content.includes('setUp')) {
         errors.push('PATTERN: Using unittest setUp instead of pytest fixtures');
         errors.push('  Established pattern: Use pytest fixtures');
         errors.push('  Convert: @pytest.fixture\\ndef setup_data():');
@@ -139,14 +144,14 @@ export function patternConsistencyEnforcer(input: HookInput): HookResult {
   // AI Integration pattern consistency
   if (filePath.includes('/llm/') || filePath.includes('/ai/') || filePath.includes('/agent/')) {
     // Check: IDs flow around LLM
-    if (/prompt.*\{.*id.*\}|f".*\{.*\.id\}.*"/.test(content)) {
+    if (lineContainsAll(content, 'prompt', '{', 'id', '}') || lineContainsAll(content, 'f"', '.id}')) {
       errors.push('PATTERN: Database IDs in LLM prompts');
       errors.push('  Established pattern: IDs flow around LLM, not through it');
       errors.push('  Pass IDs via metadata, join results after LLM processing');
     }
 
     // Check: Async timeout protection
-    if (/await.*openai|await.*anthropic|await.*llm/.test(content)) {
+    if (content.includes('await') && (content.includes('openai') || content.includes('anthropic') || content.includes('llm'))) {
       if (!/asyncio\.timeout|asyncio\.wait_for|Promise\.race/.test(content)) {
         errors.push('PATTERN: LLM call without timeout protection');
         errors.push('  Established pattern: Wrap all LLM calls with timeout');

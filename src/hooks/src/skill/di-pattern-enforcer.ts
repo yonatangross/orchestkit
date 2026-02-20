@@ -18,7 +18,7 @@ export function diPatternEnforcer(input: HookInput): HookResult {
   if (!filePath || !content) return outputSilentSuccess();
 
   // Only validate Python files in routers/
-  if (!/\/routers\/.*\.py$/.test(filePath)) {
+  if (!(filePath.includes('/routers/') && filePath.endsWith('.py'))) {
     return outputSilentSuccess();
   }
 
@@ -31,22 +31,21 @@ export function diPatternEnforcer(input: HookInput): HookResult {
   const errors: string[] = [];
 
   // Rule: No direct service/repository instantiation
-  if (/=\s*[A-Z][a-zA-Z]*Service\s*\(\s*\)/.test(content)) {
-    const match = content.match(/[A-Z][a-zA-Z]*Service\s*\(\s*\)/);
-    errors.push('INSTANTIATION: Direct service instantiation not allowed');
-    errors.push(`  Found: ${match?.[0] || 'Service()'}`);
-    errors.push('  ');
-    errors.push('  Use dependency injection:');
-    errors.push('    service: MyService = Depends(get_my_service)');
-  }
-
-  if (/=\s*[A-Z][a-zA-Z]*(Repository|Repo)\s*\(\s*\)/.test(content)) {
-    const match = content.match(/[A-Z][a-zA-Z]*(Repository|Repo)\s*\(\s*\)/);
-    errors.push('INSTANTIATION: Direct repository instantiation not allowed');
-    errors.push(`  Found: ${match?.[0] || 'Repository()'}`);
-    errors.push('  ');
-    errors.push('  Use dependency injection:');
-    errors.push('    repo: MyRepository = Depends(get_my_repository)');
+  // Use line-by-line string checks to avoid ReDoS from [a-zA-Z]*Service patterns
+  for (const line of content.split('\n')) {
+    const trimmed = line.trim();
+    if (trimmed.includes('Service(') && /=\s*\w+Service\s*\(/.test(trimmed)) {
+      errors.push('INSTANTIATION: Direct service instantiation not allowed');
+      errors.push('  Use dependency injection:');
+      errors.push('    service: MyService = Depends(get_my_service)');
+      break;
+    }
+    if ((trimmed.includes('Repository(') || trimmed.includes('Repo(')) && /=\s*\w+(Repository|Repo)\s*\(/.test(trimmed)) {
+      errors.push('INSTANTIATION: Direct repository instantiation not allowed');
+      errors.push('  Use dependency injection:');
+      errors.push('    repo: MyRepository = Depends(get_my_repository)');
+      break;
+    }
   }
 
   // Rule: No global service/repository instances
@@ -62,8 +61,8 @@ export function diPatternEnforcer(input: HookInput): HookResult {
   }
 
   // Rule: Database session must use Depends()
-  if (/:\s*(Async)?Session[^=]*\)/.test(content)) {
-    if (!/:\s*(Async)?Session\s*=\s*Depends/.test(content)) {
+  if ((content.includes('Session') || content.includes('AsyncSession')) && content.includes(')')) {
+    if (!content.includes('= Depends')) {
       errors.push('DI: Database session must use Depends()');
       errors.push('  ');
       errors.push('  BAD:  async def get_users(db: AsyncSession):');
@@ -72,22 +71,21 @@ export function diPatternEnforcer(input: HookInput): HookResult {
   }
 
   // Rule: Route handlers should use Depends for typed dependencies
-  if (/@router\.(get|post|put|patch|delete)/.test(content)) {
-    if (/:\s*[A-Z][a-zA-Z]*(Service|Repository|Repo)[^=)]*\)/.test(content)) {
-      if (!/:\s*[A-Z][a-zA-Z]*(Service|Repository|Repo)\s*=\s*Depends/.test(content)) {
-        errors.push('DI: Service/Repository parameters must use Depends()');
-        errors.push('  ');
-        errors.push('  BAD:  async def create_user(user_service: UserService):');
-        errors.push('  GOOD: async def create_user(user_service: UserService = Depends(get_user_service)):');
-      }
+  if (content.includes('@router.')) {
+    const hasTypedDep = content.includes('Service') || content.includes('Repository') || content.includes('Repo');
+    if (hasTypedDep && !content.includes('= Depends')) {
+      errors.push('DI: Service/Repository parameters must use Depends()');
+      errors.push('  ');
+      errors.push('  BAD:  async def create_user(user_service: UserService):');
+      errors.push('  GOOD: async def create_user(user_service: UserService = Depends(get_user_service)):');
     }
   }
 
   // Rule: No sync DB calls in async functions
   if (/async def/.test(content)) {
     // Check for db.query() - sync SQLAlchemy 1.x pattern
-    if (/db\.query\(/.test(content)) {
-      if (!/await.*db\.query\(/.test(content)) {
+    if (content.includes('db.query(')) {
+      if (!content.includes('await') || !content.split('\n').some((l: string) => l.includes('await') && l.includes('db.query('))) {
         errors.push('ASYNC: Sync database call in async function');
         errors.push('  Found: db.query() (sync pattern)');
         errors.push('  ');

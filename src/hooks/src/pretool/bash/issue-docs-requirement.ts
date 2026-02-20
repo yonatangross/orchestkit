@@ -34,9 +34,10 @@ export function issueDocsRequirement(input: HookInput): HookResult {
   }
 
   // Check if this is a feature (look for feat/feature labels or branch names)
+  const lower = command.toLowerCase();
   const isFeature =
-    /--label.*feat/i.test(command) ||
-    /feat|feature/.test(command);
+    (lower.includes('--label') && lower.includes('feat')) ||
+    lower.includes('feat') || lower.includes('feature');
 
   if (!isFeature) {
     return outputSilentSuccess();

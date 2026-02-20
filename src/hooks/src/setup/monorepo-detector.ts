@@ -6,7 +6,7 @@
  * notifies users about multi-directory context support.
  */
 
-import { existsSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, getProjectDir, outputSilentSuccess, outputWithContext } from '../lib/common.js';
 
@@ -63,9 +63,32 @@ function countNestedPackageJsons(projectDir: string): number {
 export function monorepoDetector(input: HookInput): HookResult {
   logHook('monorepo-detector', 'Checking for monorepo structure');
 
-  // CC 2.1.47: Skip if user already added directories via --add-dir
+  // CC 2.1.49: When added_dirs are active, surface package context instead of skipping
   if (input.added_dirs && input.added_dirs.length > 0) {
-    logHook('monorepo-detector', `Skipping: ${input.added_dirs.length} added_dirs already active`);
+    logHook('monorepo-detector', `${input.added_dirs.length} added_dirs active, surfacing context`);
+
+    // Extract package names from added directories
+    const packageNames: string[] = [];
+    for (const dir of input.added_dirs) {
+      try {
+        const pkgPath = `${dir}/package.json`;
+        if (existsSync(pkgPath)) {
+          const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'));
+          if (pkg.name) packageNames.push(pkg.name);
+        }
+      } catch {
+        // Ignore unreadable packages
+      }
+    }
+
+    if (packageNames.length > 0) {
+      return outputWithContext(
+        `**Multi-directory context active** (${input.added_dirs.length} dirs)\n\n` +
+        `Packages: ${packageNames.join(', ')}\n\n` +
+        'Each directory may have its own CLAUDE.md with targeted instructions.'
+      );
+    }
+
     return outputSilentSuccess();
   }
 

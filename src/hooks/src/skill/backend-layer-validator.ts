@@ -45,7 +45,7 @@ export function backendLayerValidator(input: HookInput): HookResult {
     }
 
     // Rule: No FastAPI Request/Response objects
-    if (/from fastapi import.*(Request|Response)/.test(content)) {
+    if (content.includes('from fastapi import') && (content.includes('Request') || content.includes('Response'))) {
       errors.push('HTTP: Request/Response types not allowed in services');
     }
   }
@@ -58,7 +58,7 @@ export function backendLayerValidator(input: HookInput): HookResult {
     }
 
     // Rule: No service/router imports
-    if (/from.*(services|routers).*import/.test(content)) {
+    if ((content.includes('services') || content.includes('routers')) && content.includes('import') && content.includes('from')) {
       errors.push('IMPORT: Repositories cannot import from services or routers');
     }
   }

@@ -59,7 +59,9 @@ export function outputValidator(input: HookInput): HookResult {
   if (agentName === 'backend-system-architect') {
     if (output.includes('{')) {
       // Try to extract and validate JSON
-      const jsonMatch = output.match(/\{[^}]*\}/);
+      const openIdx = output.indexOf('{');
+      const closeIdx = openIdx >= 0 ? output.indexOf('}', openIdx) : -1;
+      const jsonMatch = openIdx >= 0 && closeIdx >= 0 ? [output.substring(openIdx, closeIdx + 1)] : null;
       if (jsonMatch) {
         try {
           JSON.parse(jsonMatch[0]);
