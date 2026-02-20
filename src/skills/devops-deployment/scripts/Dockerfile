@@ -1,6 +1,6 @@
 # Multi-stage build for Node.js application
 # Stage 1: Dependencies
-FROM node:20-alpine AS deps
+FROM node:20-alpine@sha256:09e2b3d9726018aecf269bd35325f46bf75046a643a66d28360ec71132750ec8 AS deps
 WORKDIR /app
 
 # Copy package files
@@ -10,7 +10,7 @@ COPY package.json package-lock.json ./
 RUN npm ci --only=production
 
 # Stage 2: Build
-FROM node:20-alpine AS builder
+FROM node:20-alpine@sha256:09e2b3d9726018aecf269bd35325f46bf75046a643a66d28360ec71132750ec8 AS builder
 WORKDIR /app
 
 # Copy all package files
@@ -24,7 +24,7 @@ COPY . .
 RUN npm run build
 
 # Stage 3: Production
-FROM node:20-alpine AS runner
+FROM node:20-alpine@sha256:09e2b3d9726018aecf269bd35325f46bf75046a643a66d28360ec71132750ec8 AS runner
 WORKDIR /app
 
 # Create non-root user

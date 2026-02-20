@@ -48,7 +48,10 @@ function validateSegment(segment: string): boolean {
  */
 function validateCompoundCommand(command: string): string | null {
   // Check for pipe-to-shell patterns BEFORE splitting
-  if (/curl.*\|.*(sh|bash)/.test(command) || /wget.*\|.*(sh|bash)/.test(command)) {
+  // String-based checks avoid ReDoS from polynomial regex backtracking
+  const hasPipeShell = (cmd: string, fetcher: string): boolean =>
+    cmd.includes(fetcher) && cmd.includes('|') && (cmd.includes('sh') || cmd.includes('bash'));
+  if (hasPipeShell(command, 'curl') || hasPipeShell(command, 'wget')) {
     return 'pipe-to-shell execution (curl/wget piped to sh/bash)';
   }
 

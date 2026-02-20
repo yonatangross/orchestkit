@@ -5,7 +5,7 @@
  */
 
 import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, outputBlock, logHook } from '../lib/common.js';
+import { outputSilentSuccess, outputBlock, logHook, lineContainsAll } from '../lib/common.js';
 import { guardPythonFiles } from '../lib/guards.js';
 import { basename } from 'node:path';
 
@@ -58,7 +58,7 @@ export function backendLayerValidator(input: HookInput): HookResult {
     }
 
     // Rule: No service/router imports
-    if (/from.*(services|routers).*import/.test(content)) {
+    if (lineContainsAll(content, 'from', 'services', 'import') || lineContainsAll(content, 'from', 'routers', 'import')) {
       errors.push('IMPORT: Repositories cannot import from services or routers');
     }
   }

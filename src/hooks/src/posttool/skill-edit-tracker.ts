@@ -13,35 +13,36 @@
 import { existsSync, readFileSync, mkdirSync } from 'node:fs';
 import { bufferWrite } from '../lib/analytics-buffer.js';
 import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, getField, getProjectDir, getSessionId, logHook } from '../lib/common.js';
+import { outputSilentSuccess, getField, getProjectDir, getSessionId, logHook, lineContainsAllCI } from '../lib/common.js';
 
 // Edit pattern categories with detection patterns
-const PATTERN_DEFINITIONS: Array<{ name: string; regex: RegExp }> = [
+// Uses test functions instead of RegExp to avoid ReDoS-vulnerable polynomial patterns
+const PATTERN_DEFINITIONS: Array<{ name: string; test: (s: string) => boolean }> = [
   // API/Backend patterns
-  { name: 'add_pagination', regex: /limit.*offset|page.*size|cursor.*pagination|paginate|Paginated/i },
-  { name: 'add_rate_limiting', regex: /rate.?limit|throttl|RateLimiter|requests.?per/i },
-  { name: 'add_caching', regex: /@cache|cache_key|TTL|redis|memcache|@cached/i },
-  { name: 'add_retry_logic', regex: /retry|backoff|max_attempts|tenacity|Retry/i },
+  { name: 'add_pagination', test: (s) => lineContainsAllCI(s, 'limit', 'offset') || lineContainsAllCI(s, 'page', 'size') || lineContainsAllCI(s, 'cursor', 'pagination') || /paginate|Paginated/i.test(s) },
+  { name: 'add_rate_limiting', test: (s) => /rate.?limit|throttl|RateLimiter|requests.?per/i.test(s) },
+  { name: 'add_caching', test: (s) => /[@]cache|cache_key|TTL|redis|memcache|[@]cached/i.test(s) },
+  { name: 'add_retry_logic', test: (s) => /retry|backoff|max_attempts|tenacity|Retry/i.test(s) },
   // Error handling patterns
-  { name: 'add_error_handling', regex: /try.*catch|except|raise.*Exception|throw.*Error|error.*handler/i },
-  { name: 'add_validation', regex: /validate|Validator|@validate|Pydantic|Zod|yup|schema/i },
-  { name: 'add_logging', regex: /logger[.]|logging[.]|console[.]log|winston|pino|structlog/i },
+  { name: 'add_error_handling', test: (s) => lineContainsAllCI(s, 'try', 'catch') || /except/i.test(s) || lineContainsAllCI(s, 'raise', 'Exception') || lineContainsAllCI(s, 'throw', 'Error') || lineContainsAllCI(s, 'error', 'handler') },
+  { name: 'add_validation', test: (s) => /validate|Validator|[@]validate|Pydantic|Zod|yup|schema/i.test(s) },
+  { name: 'add_logging', test: (s) => /logger[.]|logging[.]|console[.]log|winston|pino|structlog/i.test(s) },
   // Type safety patterns
-  { name: 'add_types', regex: /: *(str|int|bool|List|Dict|Optional)|interface |type .*=/i },
-  { name: 'add_type_guards', regex: /isinstance|typeof|is.*Type|assert.*type/i },
+  { name: 'add_types', test: (s) => /: *(str|int|bool|List|Dict|Optional)|interface |type .*=/i.test(s) },
+  { name: 'add_type_guards', test: (s) => /isinstance|typeof/i.test(s) || lineContainsAllCI(s, 'is', 'Type') || lineContainsAllCI(s, 'assert', 'type') },
   // Code quality patterns
-  { name: 'add_docstring', regex: /docstring|"""[^"]+"""|\/\*\*/i },
-  { name: 'remove_comments', regex: /^-.*#|^-.*\/\/|^-.*\*/m },
+  { name: 'add_docstring', test: (s) => /docstring|"""[^"]+"""|\/\*\*/i.test(s) },
+  { name: 'remove_comments', test: (s) => s.split('\n').some(line => /^-.*#|^-.*\/\/|^-.*\*/.test(line)) },
   // Security patterns
-  { name: 'add_auth_check', regex: /@auth|@require_auth|isAuthenticated|requiresAuth|@login_required/i },
-  { name: 'add_input_sanitization', regex: /escape|sanitize|htmlspecialchars|DOMPurify/i },
+  { name: 'add_auth_check', test: (s) => /[@]auth|[@]require_auth|isAuthenticated|requiresAuth|[@]login_required/i.test(s) },
+  { name: 'add_input_sanitization', test: (s) => /escape|sanitize|htmlspecialchars|DOMPurify/i.test(s) },
   // Testing patterns
-  { name: 'add_test_case', regex: /def test_|it\(|describe\(|expect\(|assert|@pytest/i },
-  { name: 'add_mock', regex: /Mock|patch|jest[.]mock|vi[.]mock|MagicMock/i },
+  { name: 'add_test_case', test: (s) => /def test_|it\(|describe\(|expect\(|assert|[@]pytest/i.test(s) },
+  { name: 'add_mock', test: (s) => /Mock|patch|jest[.]mock|vi[.]mock|MagicMock/i.test(s) },
   // Import/dependency patterns
-  { name: 'modify_imports', regex: /^[+-].*import|^[+-].*from.*import|^[+-].*require\(/m },
+  { name: 'modify_imports', test: (s) => s.split('\n').some(line => /^[+-].*import/.test(line) || /^[+-].*require\(/.test(line)) },
   // Async patterns
-  { name: 'add_async', regex: /async |await |Promise|asyncio|async def/i },
+  { name: 'add_async', test: (s) => /async |await |Promise|asyncio|async def/i.test(s) },
 ];
 
 /**
@@ -73,8 +74,8 @@ function getRecentSkill(sessionStateFile: string): string {
 function detectPatterns(diffContent: string): string[] {
   const detected: string[] = [];
 
-  for (const { name, regex } of PATTERN_DEFINITIONS) {
-    if (regex.test(diffContent)) {
+  for (const { name, test } of PATTERN_DEFINITIONS) {
+    if (test(diffContent)) {
       detected.push(name);
     }
   }

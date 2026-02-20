@@ -12,7 +12,7 @@
 import { existsSync, readFileSync, writeFileSync, readdirSync, statSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
-import { logHook, getPluginRoot, outputSilentSuccess, outputWarning } from '../lib/common.js';
+import { logHook, getPluginRoot, outputSilentSuccess, outputWarning, lineContainsAllCI } from '../lib/common.js';
 
 const CACHE_VERSION = '1.0';
 
@@ -82,12 +82,14 @@ function writeCache(cacheFile: string, warnings: string[]): void {
 }
 
 /** Patterns that indicate response prefilling usage */
-const PREFILL_PATTERNS = [
+const PREFILL_PATTERNS: Array<RegExp | ((s: string) => boolean)> = [
   /\bprefill\b/i,
   /\bpre-fill\b/i,
-  /assistant.*content.*:\s*["']/i,
+  // ReDoS-safe: replace assistant.*content.*: with line-based includes
+  (s: string) => lineContainsAllCI(s, 'assistant', 'content', ':'),
   /\bprefilled?\s+(assistant|response|message)/i,
-  /role.*assistant.*content.*(?!$)/i,
+  // ReDoS-safe: replace role.*assistant.*content with line-based includes
+  (s: string) => lineContainsAllCI(s, 'role', 'assistant', 'content'),
 ];
 
 /** Patterns that indicate deprecated output_format API parameter usage */
@@ -101,7 +103,9 @@ const OUTPUT_FORMAT_PATTERNS = [
  * Scan a file's content for prefilling patterns
  */
 function hasPrefillPatterns(content: string): boolean {
-  return PREFILL_PATTERNS.some(pattern => pattern.test(content));
+  return PREFILL_PATTERNS.some(pattern =>
+    typeof pattern === 'function' ? pattern(content) : pattern.test(content)
+  );
 }
 
 /**

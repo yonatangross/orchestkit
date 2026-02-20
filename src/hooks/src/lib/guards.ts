@@ -11,6 +11,50 @@ import { outputSilentSuccess } from './common.js';
 import { isAgentTeamsActive } from './agent-teams.js';
 
 /**
+ * Simple glob matcher using indexOf with position tracking.
+ * Splits glob on `*`, checks each literal part appears in order.
+ * `?` matches any single character via single-char skip.
+ * Avoids polynomial regex from chained `.*` patterns.
+ */
+function globMatch(glob: string, str: string): boolean {
+  // Split on * to get literal segments
+  const parts = glob.split('*');
+  let pos = 0;
+
+  for (const part of parts) {
+    if (part === '') continue;
+    // Handle ? by replacing with single-char search
+    let searchPart = part;
+    const qIdx = searchPart.indexOf('?');
+    if (qIdx >= 0) {
+      // For segments with ?, match char-by-char
+      let matched = false;
+      for (let i = pos; i <= str.length - searchPart.length; i++) {
+        let ok = true;
+        for (let j = 0; j < searchPart.length; j++) {
+          if (searchPart[j] !== '?' && searchPart[j] !== str[i + j]) {
+            ok = false;
+            break;
+          }
+        }
+        if (ok) {
+          pos = i + searchPart.length;
+          matched = true;
+          break;
+        }
+      }
+      if (!matched) return false;
+    } else {
+      const idx = str.indexOf(searchPart, pos);
+      if (idx === -1) return false;
+      pos = idx + searchPart.length;
+    }
+  }
+
+  return true;
+}
+
+/**
  * Guard result type - either continue (null) or skip with result
  */
 export type GuardResult = HookResult | null;
@@ -124,9 +168,9 @@ export function guardPathPattern(input: HookInput, ...patterns: (string | RegExp
 
   for (const pattern of patterns) {
     if (typeof pattern === 'string') {
-      // Simple glob-like matching
-      const regex = new RegExp(pattern.replace(/\*/g, '.*').replace(/\?/g, '.'));
-      if (regex.test(filePath)) return null;
+      // Simple glob-like matching using indexOf with position tracking
+      // Avoids polynomial regex from .* chains
+      if (globMatch(pattern, filePath)) return null;
     } else {
       if (pattern.test(filePath)) return null;
     }

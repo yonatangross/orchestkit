@@ -18,7 +18,7 @@ import { existsSync, mkdirSync, unlinkSync } from 'node:fs';
 import { bufferWrite } from '../lib/analytics-buffer.js';
 import { basename, dirname } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, logHook, getProjectDir } from '../lib/common.js';
+import { outputSilentSuccess, logHook, getProjectDir, lineContainsAll } from '../lib/common.js';
 
 // -----------------------------------------------------------------------------
 // Configuration
@@ -115,7 +115,7 @@ function detectPatternCategory(text: string): string {
   if (/llm|\brag\b|embedding|vector|semantic|\bai\b|\bml\b|langchain|langgraph|openai|anthropic/.test(textLower)) {
     return 'ai-ml';
   }
-  if (/etl|data.*pipeline|streaming|batch.*processing|dataflow|spark/.test(textLower)) {
+  if (/etl|streaming|dataflow|spark/.test(textLower) || lineContainsAll(textLower, 'data', 'pipeline') || lineContainsAll(textLower, 'batch', 'processing')) {
     return 'data-pipeline';
   }
   if (/architecture|design|structure/.test(textLower)) {
@@ -138,8 +138,11 @@ function extractPatterns(output: string): string[] {
   }
 
   for (const pattern of DECISION_PATTERNS) {
-    const regex = new RegExp(`^.*${pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}.*$`, 'gim');
-    const matches = output.match(regex) || [];
+    // ReDoS-safe: use line-based includes instead of polynomial regex ^.*pattern.*$
+    const patternLower = pattern.toLowerCase();
+    const matches = output.split('\n').filter(line =>
+      line.toLowerCase().includes(patternLower)
+    );
 
     for (const match of matches) {
       const cleaned = match.trim().substring(0, 200);

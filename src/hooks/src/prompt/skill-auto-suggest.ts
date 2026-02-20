@@ -240,6 +240,33 @@ const KEYWORD_MAPPINGS: Array<[string, string, number]> = [
   ['problem.*detail', 'api-design', 90],
 ];
 
+/**
+ * Safe keyword matching without constructing RegExp from untrusted patterns.
+ * Keywords containing `.*` are split into parts and matched in order using indexOf.
+ * Keywords with `\\.` are matched literally as `.`.
+ * Simple keywords use direct substring includes.
+ */
+function safeKeywordMatch(text: string, keyword: string): boolean {
+  // Handle escaped dots: next\.js → next.js (literal match)
+  const normalized = keyword.replace(/\\\./g, '.');
+
+  if (normalized.includes('.*')) {
+    // Split on .* and check each part appears in order
+    const parts = normalized.split('.*');
+    let pos = 0;
+    for (const part of parts) {
+      if (part === '') continue;
+      const idx = text.indexOf(part, pos);
+      if (idx === -1) return false;
+      pos = idx + part.length;
+    }
+    return true;
+  }
+
+  // Simple substring match
+  return text.includes(normalized);
+}
+
 interface SkillMatch {
   skill: string;
   confidence: number;
@@ -254,10 +281,9 @@ export function findMatchingSkills(prompt: string): SkillMatch[] {
   const skillScores = new Map<string, number>();
 
   for (const [keyword, skill, confidence] of KEYWORD_MAPPINGS) {
-    // Convert keyword to regex pattern
-    const regex = new RegExp(keyword, 'i');
-
-    if (regex.test(promptLower)) {
+    // Use safe matching: keywords with .* are split on .* and each part checked in order
+    // Simple keywords use direct substring match — avoids ReDoS from new RegExp()
+    if (safeKeywordMatch(promptLower, keyword)) {
       const currentScore = skillScores.get(skill) || 0;
       if (confidence > currentScore) {
         skillScores.set(skill, confidence);

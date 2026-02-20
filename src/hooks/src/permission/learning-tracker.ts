@@ -24,16 +24,17 @@ import { join } from 'node:path';
 /**
  * Security blocklist - commands that should never be auto-approved
  */
-const SECURITY_BLOCKLIST: RegExp[] = [
+const SECURITY_BLOCKLIST: Array<RegExp | { test: (cmd: string) => boolean }> = [
   /rm\s+-rf\s+[/~]/,
   /sudo\s/,
   /chmod\s+-R\s+777/,
   />\s*\/dev\/sd/,
   /mkfs\./,
   /dd\s+if=/,
-  /:.*\(\).*\{.*\|.*&.*\}/,
-  /curl.*\|\s*sh/,
-  /wget.*\|\s*sh/,
+  // Fork bomb / dangerous shell function pattern — string-based to avoid ReDoS
+  { test: (cmd: string) => cmd.includes(':') && cmd.includes('()') && cmd.includes('{') && cmd.includes('|') && cmd.includes('&') && cmd.includes('}') },
+  { test: (cmd: string) => cmd.includes('curl') && /\|\s*sh/.test(cmd) },
+  { test: (cmd: string) => cmd.includes('wget') && /\|\s*sh/.test(cmd) },
 ];
 
 /**

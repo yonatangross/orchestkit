@@ -30,6 +30,11 @@ vi.mock('../../lib/common.js', () => ({
   }),
   getProjectDir: vi.fn(() => '/test/project'),
   getSessionId: vi.fn(() => 'test-session-id'),
+  lineContainsAllCI: (content: string, ...terms: string[]) =>
+    content.split('\n').some(line => {
+      const lower = line.toLowerCase();
+      return terms.every(t => lower.includes(t.toLowerCase()));
+    }),
 }));
 
 import { skillEditTracker } from '../../posttool/skill-edit-tracker.js';

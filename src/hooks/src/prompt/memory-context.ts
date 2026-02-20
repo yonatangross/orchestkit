@@ -41,15 +41,16 @@ const MEMORY_TRIGGER_KEYWORDS = [
 ];
 
 // Keywords that suggest graph search would be valuable
-const GRAPH_TRIGGER_KEYWORDS = [
+// Each entry is either a simple string or [part1, part2] for ordered substring matching
+const GRAPH_TRIGGER_KEYWORDS: Array<string | [string, string]> = [
   'relationship',
   'related',
   'connected',
   'depends',
   'uses',
   'recommends',
-  'what does.*recommend',
-  'how does.*work with',
+  ['what does', 'recommend'],
+  ['how does', 'work with'],
 ];
 
 // Minimum prompt length to trigger memory search
@@ -77,8 +78,16 @@ function hasGraphTrigger(prompt: string): boolean {
   const promptLower = prompt.toLowerCase();
 
   for (const keyword of GRAPH_TRIGGER_KEYWORDS) {
-    if (new RegExp(keyword, 'i').test(promptLower)) {
-      return true;
+    if (typeof keyword === 'string') {
+      if (promptLower.includes(keyword)) {
+        return true;
+      }
+    } else {
+      // Ordered substring match: both parts must appear in order
+      const idx = promptLower.indexOf(keyword[0]);
+      if (idx !== -1 && promptLower.indexOf(keyword[1], idx + keyword[0].length) !== -1) {
+        return true;
+      }
     }
   }
 

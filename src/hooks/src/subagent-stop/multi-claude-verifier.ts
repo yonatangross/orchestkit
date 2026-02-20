@@ -19,21 +19,23 @@ import { outputSilentSuccess, getProjectDir } from '../lib/common.js';
 // Configuration
 // -----------------------------------------------------------------------------
 
+// Sensitive file patterns — plain substring checks to avoid ReDoS
 const SENSITIVE_PATTERNS = [
-  '\\.env',
+  '.env',
   'auth',
   'secret',
   'credential',
   'password',
   'token',
-  'api[_-]?key',
+  'apikey',
+  'api_key',
+  'api-key',
   'jwt',
   'session',
   'oauth',
   'permission',
-  '\\.pem$',
-  '\\.key$',
-  'config.*prod',
+  '.pem',
+  '.key',
 ];
 
 // -----------------------------------------------------------------------------
@@ -68,11 +70,15 @@ function logAction(agentName: string, action: string, details: string): void {
 }
 
 function containsSensitiveFiles(output: string): boolean {
+  const outputLower = output.toLowerCase();
   for (const pattern of SENSITIVE_PATTERNS) {
-    const regex = new RegExp(pattern, 'i');
-    if (regex.test(output)) {
+    if (outputLower.includes(pattern)) {
       return true;
     }
+  }
+  // Check config+prod combination (previously config.*prod regex)
+  if (outputLower.includes('config') && outputLower.includes('prod')) {
+    return true;
   }
   return false;
 }
