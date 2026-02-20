@@ -10,7 +10,7 @@ export * from '../types.js';
 export * from '../lib/common.js';
 export * from '../lib/git.js';
 
-// PostTool hooks - Root (12)
+// PostTool hooks - Root (13)
 import { auditLogger } from '../posttool/audit-logger.js';
 import { unifiedErrorHandler } from '../posttool/unified-error-handler.js';
 import { autoLint } from '../posttool/auto-lint.js';
@@ -49,13 +49,16 @@ import { toolPreferenceLearner } from '../posttool/tool-preference-learner.js';
 // Issue #705: Skill nudges
 import { skillNudge } from '../posttool/skill-nudge.js';
 
+// Issue #772: Config change security auditor
+import { configChangeAuditor } from '../posttool/config-change/security-auditor.js';
+
 import type { HookFn } from '../types.js';
 
 /**
  * PostTool hooks registry
  */
 export const hooks: Record<string, HookFn> = {
-  // PostTool hooks - Root (11)
+  // PostTool hooks - Root (12)
   'posttool/audit-logger': auditLogger,
   'posttool/unified-error-handler': unifiedErrorHandler,
   'posttool/auto-lint': autoLint,
@@ -94,6 +97,9 @@ export const hooks: Record<string, HookFn> = {
 
   // Issue #705: Skill nudges
   'posttool/skill-nudge': skillNudge,
+
+  // Issue #772: Config change security auditor
+  'posttool/config-change/security-auditor': configChangeAuditor,
 };
 
 export function getHook(name: string): HookFn | undefined {

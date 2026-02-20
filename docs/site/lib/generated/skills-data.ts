@@ -1588,6 +1588,7 @@ export const SKILLS: Record<string, SkillMeta> = {
         "orchestration-modes.md",
         "scope-creep-detection.md",
         "team-worktree-setup.md",
+        "worktree-isolation-mode.md",
         "worktree-workflow.md"
       ],
       "assets": [
