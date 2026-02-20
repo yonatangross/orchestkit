@@ -32,7 +32,7 @@ export function diPatternEnforcer(input: HookInput): HookResult {
 
   // Rule: No direct service/repository instantiation
   if (content.includes('Service()') && /=\s*[A-Z]/.test(content)) {
-    const match = content.match(/([A-Z][a-zA-Z]*Service)\s*\(\s*\)/);
+    const match = content.match(/([A-Z]\w*Service)\(\s*\)/);
     errors.push('INSTANTIATION: Direct service instantiation not allowed');
     errors.push(`  Found: ${match?.[0] || 'Service()'}`);
     errors.push('  ');
@@ -41,7 +41,7 @@ export function diPatternEnforcer(input: HookInput): HookResult {
   }
 
   if ((content.includes('Repository()') || content.includes('Repo()')) && /=\s*[A-Z]/.test(content)) {
-    const match = content.match(/([A-Z][a-zA-Z]*(?:Repository|Repo))\s*\(\s*\)/);
+    const match = content.match(/([A-Z]\w*(?:Repository|Repo))\(\s*\)/);
     errors.push('INSTANTIATION: Direct repository instantiation not allowed');
     errors.push(`  Found: ${match?.[0] || 'Repository()'}`);
     errors.push('  ');
@@ -51,7 +51,7 @@ export function diPatternEnforcer(input: HookInput): HookResult {
 
   // Rule: No global service/repository instances
   if ((content.includes('Service(') || content.includes('Repository(') || content.includes('Repo(')) &&
-      /^[a-z_]+\s*=\s*[A-Z]/.test(content)) {
+      /^[a-z_]+\s*=\s*[A-Z]/m.test(content)) {
     errors.push('GLOBAL: Global service/repository instance not allowed');
     errors.push('  ');
     errors.push('  Global instances cause:');

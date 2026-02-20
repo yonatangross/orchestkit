@@ -179,7 +179,7 @@ function checkConditionals(content: string): string[] {
 
   const ifCount = (content.match(/\b(if|elif|else if)\b/g) || []).length;
   const switchCount = (content.match(/\b(switch|match)\b/g) || []).length;
-  const ternaryCount = content.split('\n').filter(line => /\?[^:]*:/.test(line)).length;
+  const ternaryCount = content.split('\n').filter(line => line.includes('?') && line.includes(':') && /\?/.test(line.split(':')[0])).length;
 
   const totalConditionals = ifCount + switchCount + ternaryCount;
 

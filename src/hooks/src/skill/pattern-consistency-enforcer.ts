@@ -109,7 +109,7 @@ export function patternConsistencyEnforcer(input: HookInput): HookResult {
   }
 
   // Testing pattern consistency
-  if (/\.(test|spec)\.(ts|tsx|js|jsx)$/.test(filePath) || /test_[^/]*\.py$/.test(filePath)) {
+  if (/\.(test|spec)\.(ts|tsx|js|jsx)$/.test(filePath) || (filePath.includes('test_') && filePath.endsWith('.py'))) {
     // Check: AAA pattern presence
     if (!/\/\/ Arrange|\/\/ Act|\/\/ Assert|# Arrange|# Act|# Assert/i.test(content)) {
       warnings.push('PATTERN: AAA pattern comments missing');

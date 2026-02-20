@@ -125,17 +125,17 @@ describe('migration-safety-check', () => {
 
   describe('dangerous SQL patterns blocked', () => {
     test.each([
-      ['DROP TABLE users', 'DROP\\s+TABLE'],
-      ['DROP TABLE IF EXISTS orders', 'DROP\\s+TABLE'],
-      ['drop table products', 'DROP\\s+TABLE'],
-      ['DROP DATABASE mydb', 'DROP\\s+DATABASE'],
-      ['DROP DATABASE IF EXISTS testdb', 'DROP\\s+DATABASE'],
-      ['drop database production', 'DROP\\s+DATABASE'],
+      ['DROP TABLE users', 'DROP TABLE'],
+      ['DROP TABLE IF EXISTS orders', 'DROP TABLE'],
+      ['drop table products', 'DROP TABLE'],
+      ['DROP DATABASE mydb', 'DROP DATABASE'],
+      ['DROP DATABASE IF EXISTS testdb', 'DROP DATABASE'],
+      ['drop database production', 'DROP DATABASE'],
       ['TRUNCATE orders', 'TRUNCATE'],
       ['TRUNCATE TABLE sessions', 'TRUNCATE'],
       ['truncate logs', 'TRUNCATE'],
-      ['DELETE FROM users WHERE 1=1', 'DELETE\\s+FROM.*WHERE\\s+1'],
-      ['DELETE FROM orders WHERE 1 = 1', 'DELETE\\s+FROM.*WHERE\\s+1'],
+      ['DELETE FROM users WHERE 1=1', 'DELETE FROM...WHERE 1'],
+      ['DELETE FROM orders WHERE 1 = 1', 'DELETE FROM...WHERE 1'],
     ])('blocks dangerous SQL: %s', (command, _expectedPattern) => {
       // Arrange
       const input = createToolInput('Bash', { command });
@@ -303,7 +303,7 @@ describe('migration-safety-check', () => {
 
       // Assert
       expect(result.stopReason).toContain('Pattern:');
-      expect(result.stopReason).toContain('DROP\\s+DATABASE');
+      expect(result.stopReason).toContain('DROP DATABASE');
     });
 
     test('deny output asks for confirmation', () => {
@@ -430,7 +430,7 @@ describe('migration-safety-check', () => {
 
       // Assert - first pattern match triggers deny
       expect(result.continue).toBe(false);
-      expect(result.stopReason).toContain('DROP\\s+TABLE');
+      expect(result.stopReason).toContain('DROP TABLE');
     });
 
     test('embedded SQL in psql command is still caught', () => {
