@@ -99,8 +99,15 @@ jobs:
             echo "bumped=false" >> $GITHUB_OUTPUT
             echo "::error::Version not bumped! Current: $MAIN_VERSION"
           else
-            echo "bumped=true" >> $GITHUB_OUTPUT
-            echo "Version bumped: $MAIN_VERSION -> $PR_VERSION"
+            # Verify branch version is GREATER than main (not just different)
+            HIGHER=$(printf '%s\n%s\n' "$MAIN_VERSION" "$PR_VERSION" | sort -V | tail -1)
+            if [[ "$HIGHER" != "$PR_VERSION" ]]; then
+              echo "bumped=false" >> $GITHUB_OUTPUT
+              echo "::error::Version $PR_VERSION is not greater than main ($MAIN_VERSION). Rebase on main and re-bump."
+            else
+              echo "bumped=true" >> $GITHUB_OUTPUT
+              echo "Version bumped: $MAIN_VERSION -> $PR_VERSION"
+            fi
           fi
 
       - name: Check CHANGELOG updated
