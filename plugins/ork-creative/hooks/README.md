@@ -408,7 +408,7 @@ export function myHook(input: HookInput): HookResult {
 
 ### Overview
 
-Async hooks run in the background via CC's native `async: true` flag without blocking the conversation. Previously used fire-and-forget spawning (removed in #653). Now all 8 async hooks use `run-hook.mjs` with `async: true`.
+Async hooks run in the background via CC's native `async: true` flag without blocking the conversation. Previously used fire-and-forget spawning (removed in #653). Now all 9 async hooks use `run-hook.mjs` with `async: true`.
 
 ### How It Works
 
