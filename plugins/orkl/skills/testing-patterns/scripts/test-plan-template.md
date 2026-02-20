@@ -6,6 +6,10 @@ user-invocable: false
 
 # Test Plan: [Project/Feature Name]
 
+## Your Task
+
+Use this test plan template to define the testing strategy for your project or feature. Fill in each section with your test levels, environments, schedules, and acceptance criteria.
+
 **Version**: 1.0
 **Date**: YYYY-MM-DD
 **Author(s)**: [Your Name]

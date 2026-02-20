@@ -6,6 +6,10 @@ user-invocable: false
 
 # Test Case Template
 
+## Your Task
+
+Use this test case template to document a manual or automated test case. Fill in each section with the specifics of your test scenario, including preconditions, steps, and expected results.
+
 ## Test Case ID: TC-[NUMBER]
 
 **Module/Feature**: [Feature Name]

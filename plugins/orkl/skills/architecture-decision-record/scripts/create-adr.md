@@ -15,6 +15,12 @@ Create ADR $ARGUMENTS
 - **Total ADRs**: !`ls docs/adr/*.md 2>/dev/null | wc -l | tr -d ' ' || echo "0"`
 - **Current Branch**: !`git branch --show-current || echo "main"`
 
+## Your Task
+
+Create an Architecture Decision Record for: **$ARGUMENTS**
+
+Use the auto-filled context above and the template below. Fill in each section with the specifics of your architectural decision. Save to `docs/adr/` with the next ADR number.
+
 ## ADR Template
 
 # ADR-$ARGUMENTS: [Decision Title]

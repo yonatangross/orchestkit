@@ -14,6 +14,12 @@ Create integration test: $ARGUMENTS
 - **Test Framework**: !`grep -r "pytest\|unittest" pyproject.toml requirements.txt 2>/dev/null | head -1 | grep -oE 'pytest|unittest' || echo "pytest"`
 - **API Client**: !`grep -r "httpx\|requests\|testclient" requirements.txt 2>/dev/null | head -1 || echo "httpx (recommended)"`
 
+## Your Task
+
+Create an integration test for: **$ARGUMENTS**
+
+Review the auto-detected test context above, then customize the template below with your test's setup, assertions, and teardown logic.
+
 ## Integration Test Template
 
 ```python

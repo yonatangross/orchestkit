@@ -4,6 +4,10 @@ description: Design document template for feature planning
 user-invocable: false
 ---
 
+## Your Task
+
+Use this design document template to plan a new feature or system. Fill in each section with the specifics of your design, including requirements, architecture, and deployment plan.
+
 # [Feature Name] Design Document
 
 **Date:** YYYY-MM-DD

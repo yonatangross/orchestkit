@@ -14,6 +14,12 @@ Create Alembic migration: $ARGUMENTS
 - **Python Version**: !`python --version 2>/dev/null || echo "Python 3.x"`
 - **Alembic Version**: !`alembic --version 2>/dev/null || echo "Alembic not found"`
 
+## Your Task
+
+Create an Alembic database migration for: **$ARGUMENTS**
+
+Review the auto-detected migration context above, then customize the template below with your schema changes and rollback logic.
+
 ## Migration Template
 
 ```python

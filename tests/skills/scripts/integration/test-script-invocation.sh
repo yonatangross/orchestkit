@@ -226,27 +226,26 @@ echo ""
 echo -e "${CYAN}Test: Skill Invocation Simulation${NC}"
 echo "────────────────────────────────────────────────────────────────────────────"
 
-# Test the 25 script-enhanced skills we created
+# Test the 18 script-enhanced skills we created
 TEST_SKILLS=(
     "architecture-decision-record/scripts/create-adr.md:ADR-001"
     "code-review-playbook/scripts/review-pr.md:123"
     "brainstorming/scripts/create-design-doc.md:user-profile"
     "quality-gates/scripts/assess-complexity.md:src/components"
-    "fastapi-advanced/scripts/create-fastapi-app.md:my-api"
-    "alembic-migrations/scripts/create-migration.md:add_user_table"
-    "golden-dataset-management/scripts/backup-golden-dataset.md:dataset-v1"
-    "unit-testing/scripts/create-test-fixture.md:User"
-    "integration-testing/scripts/create-integration-test.md:auth-flow"
+    "python-backend/scripts/create-fastapi-app.md:my-api"
+    "database-patterns/scripts/create-migration.md:add_user_table"
+    "golden-dataset/scripts/backup-golden-dataset.md:dataset-v1"
+    "testing-patterns/scripts/create-test-fixture.md:User"
+    "testing-patterns/scripts/create-integration-test.md:auth-flow"
     "release-management/scripts/create-release.md:1.2.3"
-    "browser-content-capture/scripts/multi-page-crawl.md:https://example.com/docs"
-    "e2e-testing/scripts/create-page-object.md:LoginPage"
-    "unit-testing/scripts/create-test-case.md:calculateTotal"
-    "msw-mocking/scripts/create-msw-handler.md:/api/users"
+    "testing-patterns/scripts/create-page-object.md:LoginPage"
+    "testing-patterns/scripts/create-test-case.md:calculateTotal"
+    "testing-patterns/scripts/create-msw-handler.md:/api/users"
     "react-server-components-framework/scripts/create-server-component.md:UserProfile"
-    "api-design-framework/scripts/create-openapi-spec.md:/users"
+    "api-design/scripts/create-openapi-spec.md:/users"
     "devops-deployment/scripts/create-ci-pipeline.md:backend"
     "devops-deployment/scripts/create-docker-compose.md:webapp"
-    "fine-tuning-customization/scripts/create-lora-config.md:gpt-3.5-turbo"
+    "llm-integration/scripts/create-lora-config.md:gpt-3.5-turbo"
 )
 
 FAILED_INVOCATIONS=()
