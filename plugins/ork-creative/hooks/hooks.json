@@ -163,10 +163,6 @@
     ],
     "PermissionRequest": [
       {
-        "matcher": "Read|Glob|Grep",
-        "hooks": []
-      },
-      {
         "matcher": "Bash",
         "hooks": [
           {

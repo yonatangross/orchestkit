@@ -19,7 +19,7 @@
  *   - model-cost-advisor (cost optimization warnings)
  *   - issue-context-injector (GitHub issue context from branch name)
  *
- * CC 2.1.9 Compliant: Single consolidated output with 800-token budget
+ * CC 2.1.49 Compliant: Single consolidated output with 800-token budget
  */
 
 import type { HookInput, HookResult } from '../types.js';
@@ -157,6 +157,9 @@ export function unifiedSubagentStartDispatcher(input: HookInput): HookResult {
   const result: HookResult = { continue: true };
 
   if (hasSystemMessage) {
+    // Intentional: concatenate all system messages. In practice only subagent-validator
+    // emits systemMessage (permission profile). If multiple hooks emit, first-wins may
+    // be preferable — monitor for verbose output.
     result.systemMessage = systemMessages.join('\n\n');
   }
 

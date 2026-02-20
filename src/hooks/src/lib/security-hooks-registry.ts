@@ -9,7 +9,8 @@
  * The 6 security-critical hooks (validated by security-critical-hooks.test.ts):
  * 1. dangerous-command-blocker — Blocks destructive system commands
  * 2. file-guard — Protects sensitive files from writes
- * 3. auto-approve-safe-bash — Auto-approves known-safe commands (security: rejects dangerous)
+ * 3. auto-approve-safe-bash — Dual-role: rejects dangerous commands via REJECT_PATTERNS first,
+ *    then auto-approves known-safe commands. Despite the name, this is a security gate.
  * 4. redact-secrets — Detects and warns on leaked secrets
  * 5. git-validator — Branch/commit protection
  * 6. security-command-audit — Audit logs Bash commands

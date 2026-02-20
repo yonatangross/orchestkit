@@ -318,9 +318,9 @@ gh pr create --base dev --title "fix(#$ARGUMENTS): [description]"
 | Runbook generation | Template-based | Consistent documentation |
 
 
-## CC 2.1.27+ Enhancements
+## CC 2.1.49 Enhancements
 
-> See [references/cc-enhancements.md](references/cc-enhancements.md) for session resume, task metrics, tool guidance, and session resume hints.
+> See [references/cc-enhancements.md](references/cc-enhancements.md) for session resume, task metrics, tool guidance, worktree isolation, and adaptive thinking.
 
 
 ## Rules Quick Reference

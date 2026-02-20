@@ -14,7 +14,7 @@
  * Logic: If auto-approve-safe-bash returns an allow decision, skip learning-tracker.
  * If it passes through, try learning-tracker. If neither approves, pass through to user.
  *
- * CC 2.1.6 Compliant: includes continue field and permissionDecision in all outputs
+ * CC 2.1.49 Compliant: includes continue field and permissionDecision in all outputs
  */
 
 import type { HookInput, HookResult } from '../types.js';

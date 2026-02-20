@@ -1,7 +1,7 @@
 ---
 name: demo-producer
 license: MIT
-compatibility: "Claude Code 2.1.47+."
+compatibility: "Claude Code 2.1.49+."
 description: "Creates polished demo videos for skills, tutorials, and CLI demonstrations. Use when producing video showcases, marketing content, or terminal recordings."
 argument-hint: "[topic-or-feature]"
 user-invocable: true

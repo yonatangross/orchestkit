@@ -1,7 +1,7 @@
 ---
 name: fix-issue
 license: MIT
-compatibility: "Claude Code 2.1.47+. Requires memory MCP server, context7 MCP server, gh CLI."
+compatibility: "Claude Code 2.1.49+. Requires memory MCP server, context7 MCP server, gh CLI."
 description: "Fixes GitHub issues with parallel analysis. Use to debug errors, resolve regressions, fix bugs, or triage issues."
 argument-hint: "[issue-number]"
 context: fork
@@ -345,9 +345,9 @@ gh pr create --base dev --title "fix(#$ARGUMENTS): [description]"
 
 ---
 
-## CC 2.1.27+ Enhancements
+## CC 2.1.49 Enhancements
 
-> See [references/cc-enhancements.md](references/cc-enhancements.md) for session resume, task metrics, tool guidance, and session resume hints.
+> See [references/cc-enhancements.md](references/cc-enhancements.md) for session resume, task metrics, tool guidance, worktree isolation, and adaptive thinking.
 
 ---
 
