@@ -17,10 +17,10 @@ import { outputSilentSuccess, outputWithContext, logHook, getProjectDir, getFiel
 
 /** Patterns that indicate potentially dangerous config modifications */
 const DANGEROUS_PATTERNS = [
-  { pattern: /"allow".*"Bash"/, label: 'permission-escalation: Bash added to allow list' },
+  { pattern: /"allow"\s*:.*"Bash"/, label: 'permission-escalation: Bash added to allow list' },
   { pattern: /--no-verify/, label: 'hook-bypass: --no-verify detected' },
-  { pattern: /(API_KEY|SECRET|TOKEN|PASSWORD)/i, label: 'secret-exposure: credential pattern in config' },
-  { pattern: /"deny"\s*:\s*\[\]/, label: 'permission-gap: empty deny list' },
+  { pattern: /["'](API_KEY|SECRET_KEY|AUTH_TOKEN|DB_PASSWORD)["']\s*[:=]/i, label: 'secret-exposure: credential key in config' },
+  { pattern: /"deny"\s*:\s*\[\s*\]/, label: 'permission-gap: empty deny list' },
 ];
 
 /**
@@ -28,9 +28,9 @@ const DANGEROUS_PATTERNS = [
  */
 function isClaudeConfig(filePath: string): boolean {
   if (!filePath) return false;
-  // Match both absolute and relative .claude/ paths
   const normalized = filePath.replace(/\\/g, '/');
-  return /\/(\.claude|\.claude\/)/.test(normalized) || normalized.startsWith('.claude/');
+  // Match .claude/ as directory component in absolute or relative paths
+  return /\/\.claude(\/|$)/.test(normalized) || normalized.startsWith('.claude/');
 }
 
 /**
@@ -91,6 +91,10 @@ export function configChangeAuditor(input: HookInput): HookResult {
       getField<string>(input, 'tool_input.content') ||
       getField<string>(input, 'tool_input.new_string') ||
       '';
+
+    if (!content) {
+      logHook('config-change-auditor', `Warning: empty content for ${toolName} on ${filePath} — pattern detection skipped`);
+    }
 
     const findings = detectDangerousPatterns(content);
 

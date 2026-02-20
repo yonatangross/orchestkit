@@ -89,7 +89,7 @@ hooks/
 ├── tsconfig.json           # TypeScript configuration
 └── esbuild.config.mjs      # Build configuration (split bundles)
 
-**Total:** 87 hooks (64 global + 22 agent-scoped + 1 skill-scoped, 8 async dispatchers)
+**Total:** 88 hooks (65 global + 22 agent-scoped + 1 skill-scoped, 9 native async)
 ```
 
 ---
@@ -408,7 +408,7 @@ export function myHook(input: HookInput): HookResult {
 
 ### Overview
 
-Async hooks run in the background via CC's native `async: true` flag without blocking the conversation. Previously used fire-and-forget spawning (removed in #653). Now all 8 async hooks use `run-hook.mjs` with `async: true`.
+Async hooks run in the background via CC's native `async: true` flag without blocking the conversation. Previously used fire-and-forget spawning (removed in #653). Now all 9 async hooks use `run-hook.mjs` with `async: true`.
 
 ### How It Works
 
@@ -498,7 +498,7 @@ Add `async: true` and `timeout` to hook definitions in `hooks.json`:
 - Context injection (must add context before tool runs)
 - Quality gates (must validate before allowing writes)
 
-### Current Async Hooks (6 hooks.json entries dispatching individual hooks)
+### Current Async Hooks (9 hooks.json entries dispatching individual hooks)
 
 **SessionStart (4 hooks)** - Startup optimization:
 - `pattern-sync-pull` - Pull learned patterns
@@ -855,6 +855,31 @@ export function myHook(input: HookInput): HookResult {
 5. **Skip trivial:** Use guards to skip echo, ls, pwd, etc.
 6. **Bundle-aware:** Place hooks in correct entry point for optimal loading
 
+### 7. Preserve Prompt Cache
+
+Claude Code uses prefix-based prompt caching. Hooks interact with caching in two ways:
+
+**Safe (preserves cache):**
+- Injecting `additionalContext` via `outputPromptContext()` or `outputAllowWithContext()` — these add to the current user message, not the system prompt prefix
+- Using `<system-reminder>` tags in tool results — appended to messages, not the prefix
+- `async: true` hooks — run in background, don't affect the conversation prefix
+
+**Dangerous (breaks cache):**
+- Anything that would modify the system prompt, tool definitions, or tool ordering
+- Adding/removing MCP servers mid-session (changes the tool set in the prefix)
+- Hooks that suggest switching models mid-conversation (each model has its own cache)
+
+```typescript
+// CORRECT: Inject via additionalContext (appended to message, cache-safe)
+return outputPromptContext('Updated context: project uses React 19');
+
+// WRONG: Using systemMessage for dynamic updates (visible to user, not cache-related
+// but wasteful — additionalContext is the right channel for hook-injected guidance)
+return { continue: true, systemMessage: 'Updated context: project uses React 19' };
+```
+
+**Why this matters:** The Claude Code team monitors cache hit rate like uptime. A few percentage points of cache miss can dramatically affect cost and latency for users.
+
 ---
 
 ## Troubleshooting
@@ -986,7 +1011,7 @@ OrchestKit hooks are managed defaults. Users retain full control to disable any 
 **Last Updated:** 2026-02-20
 **Version:** 2.1.0 (Async hooks support)
 **Architecture:** 12 split bundles (381KB total) + 1 unified (324KB)
-**Hooks:** 90 hooks (67 global + 22 agent-scoped + 1 skill-scoped, 7 async)
+**Hooks:** 88 hooks (65 global + 22 agent-scoped + 1 skill-scoped, 9 native async)
 **Average Bundle:** ~35KB per event
 **Claude Code Requirement:** >= 2.1.34
 
