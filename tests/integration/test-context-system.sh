@@ -249,7 +249,7 @@ RUN_HOOK="$HOOKS_DIR/bin/run-hook.mjs"
 echo -n "  context-loader hook (lifecycle bundle)... "
 if [[ -f "$RUN_HOOK" ]] && node "$RUN_HOOK" 2>&1 | grep -q "Usage\|hook-name" || [[ -f "$HOOKS_DIR/dist/lifecycle.mjs" ]]; then
     # Verify the hook is registered in hooks.json
-    if jq -e '.hooks' "$HOOKS_DIR/hooks.json" 2>/dev/null | grep -q "session-context-loader"; then
+    if jq -e '.. | .command? // empty | select(test("session-context-loader"))' "$HOOKS_DIR/hooks.json" >/dev/null 2>&1; then
         echo -e "${GREEN}PASS${NC} (registered in hooks.json)"
         PASSED=$((PASSED + 1))
     else
@@ -263,7 +263,7 @@ fi
 
 echo -n "  budget-monitor hook (posttool bundle)... "
 if [[ -f "$HOOKS_DIR/dist/posttool.mjs" ]]; then
-    if jq -e '.hooks' "$HOOKS_DIR/hooks.json" 2>/dev/null | grep -q "context-budget-monitor"; then
+    if jq -e '.. | .command? // empty | select(test("context-budget-monitor"))' "$HOOKS_DIR/hooks.json" >/dev/null 2>&1; then
         echo -e "${GREEN}PASS${NC} (registered in hooks.json)"
         PASSED=$((PASSED + 1))
     else

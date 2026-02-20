@@ -101,7 +101,7 @@ export function patternConsistencyEnforcer(input: HookInput): HookResult {
     }
 
     // Check: Date formatting pattern
-    if (/new Date.*toLocaleDateString|toLocaleString/.test(content)) {
+    if (/new Date[^)]*\.toLocaleDateString|toLocaleString/.test(content)) {
       errors.push('PATTERN: Direct date formatting instead of centralized utility');
       errors.push('  Established pattern: Use @/lib/dates helpers');
       errors.push("  Import: import { formatDate, formatDateShort } from '@/lib/dates'");
@@ -119,7 +119,7 @@ export function patternConsistencyEnforcer(input: HookInput): HookResult {
 
     // Check: MSW for API mocking (TypeScript)
     if (/\.(ts|tsx|js|jsx)$/.test(filePath)) {
-      if (/jest\.mock.*fetch|global\.fetch/.test(content)) {
+      if (/jest\.mock[^)]*fetch|global\.fetch/.test(content)) {
         errors.push('PATTERN: Using jest.mock for fetch instead of MSW');
         errors.push('  Established pattern: Use MSW for API mocking');
         errors.push("  Import: import { http, HttpResponse } from 'msw'");
@@ -128,7 +128,7 @@ export function patternConsistencyEnforcer(input: HookInput): HookResult {
 
     // Check: Pytest fixtures (Python)
     if (filePath.endsWith('.py')) {
-      if (/class Test.*setUp/.test(content)) {
+      if (/class Test[^:]*setUp/.test(content)) {
         errors.push('PATTERN: Using unittest setUp instead of pytest fixtures');
         errors.push('  Established pattern: Use pytest fixtures');
         errors.push('  Convert: @pytest.fixture\\ndef setup_data():');
