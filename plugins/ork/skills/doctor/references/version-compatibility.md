@@ -25,6 +25,8 @@ OrchestKit requires Claude Code >= 2.1.47. This matrix documents which CC featur
 | Improved agent memory | 2.1.47 | Higher context limits | Conservative limits apply |
 | `Ctrl+F` find in output | 2.1.47 | Search through session output | No search capability |
 | `Shift+Down` multi-line input | 2.1.47 | Multi-line prompt entry | Single-line input only |
+| Memory leak fixes (8 leaks) | 2.1.50 | Stable long-running sessions | Memory grows unbounded over time |
+| `claude_agents_cli` | 2.1.50 | Doctor agent registration check | Agent registration check skipped |
 
 ## Version Detection
 
@@ -42,7 +44,8 @@ claude --version  # Returns e.g. "2.1.47"
 | < 2.1.7 | Unsupported | Core hook protocol missing |
 | 2.1.7 - 2.1.44 | Degraded | Missing memory improvements, worktree fixes, Windows support |
 | 2.1.45 - 2.1.46 | Partial | Missing 2.1.47 features but functional |
-| >= 2.1.47 | Full | All features available |
+| 2.1.47 - 2.1.49 | Full | All features available, memory leak risk in long sessions |
+| >= 2.1.50 | Full + Stable | All features available, memory leaks fixed |
 
 ## Doctor Check Implementation
 
@@ -64,6 +67,29 @@ Claude Code: 2.1.44 (DEGRADED)
   - Windows hook execution
   - Worktree discovery
   - Deferred SessionStart
+- Upgrade: npm install -g @anthropic-ai/claude-code@latest
+```
+
+## Memory Leak Warning (CC < 2.1.50)
+
+CC 2.1.50 fixed 8 memory leaks affecting long-running sessions:
+- Agent teams: completed teammate tasks never garbage collected
+- Task state objects never removed from AppState
+- TaskOutput retained data after cleanup
+- CircularBuffer cleared items retained in backing array
+- Shell execution: ChildProcess/AbortController refs retained after cleanup
+- LSP diagnostic data never cleaned up after delivery
+- File history snapshots: unbounded growth
+- Internal caches not cleared after compaction
+
+**Recommendation:** If CC version < 2.1.50, warn user to upgrade for long sessions.
+
+Doctor should display when CC < 2.1.50:
+
+```
+Claude Code: 2.1.4x (MEMORY LEAK RISK)
+- 8 memory leaks fixed in 2.1.50 affect long-running sessions
+- Symptoms: increasing memory usage, slower responses over time
 - Upgrade: npm install -g @anthropic-ai/claude-code@latest
 ```
 

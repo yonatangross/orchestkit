@@ -91,3 +91,31 @@ Ensure skill exists in `src/skills/` directory.
 ### Invalid tool name
 
 Check tool spelling matches CC tool names exactly.
+
+## Agent Registration Check (CC 2.1.50+)
+
+Run `claude agents` to list all registered agents and compare against the expected count from manifests.
+
+**Gate:** Only run if CC >= 2.1.50 (feature: `claude_agents_cli`). Skip with a note if version is older.
+
+```bash
+# Check registered agent count matches expected
+expected_count=$(grep -c '"agents/' manifests/ork.json 2>/dev/null || echo 0)
+registered_count=$(claude agents 2>/dev/null | wc -l | tr -d ' ')
+
+if [ "$registered_count" -ne "$expected_count" ]; then
+  echo "WARN: Agent count mismatch — expected $expected_count, got $registered_count"
+  # List missing agents for investigation
+  claude agents 2>/dev/null | sort > /tmp/ork-registered.txt
+  ls src/agents/*.md 2>/dev/null | xargs -I{} basename {} .md | sort > /tmp/ork-expected.txt
+  echo "Missing agents:"
+  comm -23 /tmp/ork-expected.txt /tmp/ork-registered.txt
+fi
+```
+
+**Check:** `claude agents | wc -l` should match expected agent count (37).
+
+**Fail action:** List missing agents for manual investigation. Common causes:
+- Plugin not installed or not rebuilt after adding agents
+- Agent frontmatter parse error preventing registration
+- CC version too old (< 2.1.50) to support `claude agents` CLI

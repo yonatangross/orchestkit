@@ -34,6 +34,9 @@ import { teamQualityGate } from '../teammate-idle/team-quality-gate.js';
 // TaskCompleted hooks (CC 2.1.33)
 import { completionTracker } from '../task-completed/completion-tracker.js';
 
+// WorktreeCreate/WorktreeRemove hooks (CC 2.1.50)
+import { worktreeLifecycleLogger } from '../worktree/worktree-lifecycle-logger.js';
+
 import type { HookFn } from '../types.js';
 
 /**
@@ -62,6 +65,9 @@ export const hooks: Record<string, HookFn> = {
 
   // TaskCompleted hooks (CC 2.1.33)
   'task-completed/completion-tracker': completionTracker,
+
+  // WorktreeCreate/WorktreeRemove hooks (CC 2.1.50)
+  'worktree/worktree-lifecycle-logger': worktreeLifecycleLogger,
 };
 
 export function getHook(name: string): HookFn | undefined {

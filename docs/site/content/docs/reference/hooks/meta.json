@@ -16,6 +16,8 @@
     "pre-compact",
     "teammate-idle",
     "task-completed",
+    "worktree-create",
+    "worktree-remove",
     "setup",
     "spotlights"
   ]

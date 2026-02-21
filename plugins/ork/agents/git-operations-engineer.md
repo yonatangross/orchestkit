@@ -3,6 +3,7 @@ name: git-operations-engineer
 description: Git operations specialist who manages branches, commits, rebases, merges, stacked PRs, and recovery operations. Ensures clean commit history and proper branching workflows. Auto Mode keywords - git, branch, commit, rebase, merge, stacked, recovery, reflog, cherry-pick, worktree, squash, reset
 category: git
 model: haiku
+isolation: worktree
 memory: project
 context: fork
 color: orange

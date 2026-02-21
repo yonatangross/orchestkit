@@ -71,9 +71,16 @@ describe('cc-version-matrix', () => {
   });
 
   describe('getAvailableFeatures', () => {
-    test('all features available at 2.1.47', () => {
-      const features = getAvailableFeatures('2.1.47');
+    test('all features available at latest version', () => {
+      const features = getAvailableFeatures('2.1.50');
       expect(features.length).toBe(CC_FEATURE_MATRIX.length);
+    });
+
+    test('2.1.47 has all features up to 2.1.47', () => {
+      const features = getAvailableFeatures('2.1.47');
+      expect(features.every(f => compareCCVersions(f.minVersion, '2.1.47') <= 0)).toBe(true);
+      expect(features.length).toBeGreaterThan(0);
+      expect(features.length).toBeLessThan(CC_FEATURE_MATRIX.length);
     });
 
     test('no features available at 2.0.0', () => {
@@ -91,9 +98,15 @@ describe('cc-version-matrix', () => {
   });
 
   describe('getMissingFeatures', () => {
-    test('no missing features at 2.1.47', () => {
-      const missing = getMissingFeatures('2.1.47');
+    test('no missing features at 2.1.50', () => {
+      const missing = getMissingFeatures('2.1.50');
       expect(missing.length).toBe(0);
+    });
+
+    test('2.1.47 missing 2.1.49+ features', () => {
+      const missing = getMissingFeatures('2.1.47');
+      expect(missing.length).toBeGreaterThan(0);
+      expect(missing.every(f => compareCCVersions(f.minVersion, '2.1.47') > 0)).toBe(true);
     });
 
     test('all missing at 2.0.0', () => {
@@ -101,9 +114,11 @@ describe('cc-version-matrix', () => {
       expect(missing.length).toBe(CC_FEATURE_MATRIX.length);
     });
 
-    test('2.1.45 missing 2.1.47 features only', () => {
+    test('2.1.45 missing 2.1.47+ features', () => {
       const missing = getMissingFeatures('2.1.45');
-      expect(missing.every(f => f.minVersion === '2.1.47')).toBe(true);
+      expect(missing.every(f => compareCCVersions(f.minVersion, '2.1.45') > 0)).toBe(true);
+      expect(missing.some(f => f.minVersion === '2.1.47')).toBe(true);
+      expect(missing.some(f => f.minVersion === '2.1.50')).toBe(true);
     });
   });
 

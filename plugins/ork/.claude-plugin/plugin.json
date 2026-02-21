@@ -1,7 +1,7 @@
 {
   "name": "ork",
   "version": "6.1.6",
-  "description": "All-in-one (recommended) — 67 skills, 37 agents, 75 hooks. Includes everything: orkl + creative + Python/React/LLM/RAG specializations.",
+  "description": "All-in-one (recommended) — 67 skills, 37 agents, 77 hooks. Includes everything: orkl + creative + Python/React/LLM/RAG specializations.",
   "author": {
     "name": "Yonatan Gross",
     "email": "yonatan2gross@gmail.com",

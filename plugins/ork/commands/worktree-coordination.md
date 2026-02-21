@@ -33,6 +33,25 @@ EnterWorktree(name="my-feature")  # creates .claude/worktrees/my-feature/
 
 > **When to use native vs this skill:** Use `EnterWorktree` for single-session isolation (quick feature branches). Use this skill's coordination registry for **multi-session** scenarios where multiple Claude instances need file locking and decision sharing.
 
+## Worktree Lifecycle Hooks (CC 2.1.50)
+
+CC 2.1.50 added `WorktreeCreate` and `WorktreeRemove` hook events, enabling automated lifecycle management:
+
+- **WorktreeCreate**: Fires when a worktree is created via `EnterWorktree` or `--worktree` flag. Use for auto-registration, config copying.
+- **WorktreeRemove**: Fires when a worktree is cleaned up. Use for lock cleanup, registry removal.
+
+These hooks are the preferred approach for lifecycle management — they replace file-watching workarounds.
+
+### Agent Isolation (CC 2.1.50)
+
+Agents can now declare `isolation: worktree` in frontmatter to automatically run in an isolated worktree:
+
+```yaml
+isolation: worktree  # Agent gets its own worktree automatically
+```
+
+This is preferred over manual `EnterWorktree` calls for agents that modify files.
+
 ## Commands
 
 ### /worktree-status

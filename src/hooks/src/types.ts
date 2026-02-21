@@ -21,7 +21,9 @@ export type HookEvent =
   | 'Notification'
   | 'PreCompact'
   | 'TeammateIdle'
-  | 'TaskCompleted';
+  | 'TaskCompleted'
+  | 'WorktreeCreate'
+  | 'WorktreeRemove';
 
 /**
  * Hook input envelope from Claude Code (sent via stdin as JSON)
