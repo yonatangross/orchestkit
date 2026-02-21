@@ -102,7 +102,7 @@ jobs:
           python-version: '3.12'
 
       - name: Install jsonschema
-        run: pip install jsonschema
+        run: pip install jsonschema==4.23.0
 
       - name: Setup environment
         uses: ./.github/actions/setup
