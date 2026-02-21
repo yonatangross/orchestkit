@@ -77,6 +77,7 @@ const prefixToBundleMap: Record<string, { name: string; hooks: Record<string, un
   'agent': { name: 'agent', hooks: agentBundle.hooks },
   'teammate-idle': { name: 'lifecycle', hooks: lifecycleBundle.hooks },
   'task-completed': { name: 'lifecycle', hooks: lifecycleBundle.hooks },
+  'worktree': { name: 'lifecycle', hooks: lifecycleBundle.hooks },
 };
 
 function getBundleForHook(hookPath: string): { name: string; hooks: Record<string, unknown> } | null {
@@ -230,6 +231,8 @@ describe('Cross-Reference Validation: hooks.json <-> bundles', () => {
       TeammateIdle: ['teammate-idle'],
       TaskCompleted: ['task-completed'],
       Setup: ['setup'],
+      WorktreeCreate: ['worktree'],
+      WorktreeRemove: ['worktree'],
     };
 
     for (const [eventType, entries] of Object.entries(hooksJson.hooks)) {

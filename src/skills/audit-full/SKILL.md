@@ -32,6 +32,8 @@ Single-pass whole-project analysis leveraging Opus 4.6's extended context window
 
 > **Opus 4.6**: Uses `complexity: max` for extended thinking across entire codebases. 1M context (beta, Tier 4+) enables cross-file reasoning that chunked approaches miss.
 
+> **1M Context Required:** If `CLAUDE_CODE_DISABLE_1M_CONTEXT` is set, audit-full cannot perform full-codebase analysis. Check: `echo $CLAUDE_CODE_DISABLE_1M_CONTEXT` — if non-empty, either unset it (`unset CLAUDE_CODE_DISABLE_1M_CONTEXT`) or use `/ork:verify` for chunked analysis instead.
+
 ---
 
 ## STEP 0: Verify User Intent with AskUserQuestion

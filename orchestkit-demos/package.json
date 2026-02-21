@@ -65,7 +65,8 @@
     "vitest": "^4.0.18"
   },
   "overrides": {
-    "webpack": "^5.104.1"
+    "webpack": "^5.104.1",
+    "ajv": "^8.17.1"
   },
   "private": true
 }

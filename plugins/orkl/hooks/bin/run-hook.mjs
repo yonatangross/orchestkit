@@ -35,6 +35,7 @@ function getBundleName(hookName) {
     'subagent-stop': 'subagent',
     'teammate-idle': 'lifecycle',
     'task-completed': 'lifecycle',
+    worktree: 'lifecycle',
     notification: 'notification',
     setup: 'setup',
     skill: 'skill',
@@ -296,7 +297,7 @@ function trackHookTriggered(trackedHookName, success, durationMs, projectDir) {
  */
 function validateInput(input, hookName) {
   if (typeof input !== 'object' || input === null || Array.isArray(input)) {
-    return { valid: false, errors: [`Input must be an object, got ${input === null ? 'null' : typeof input}`] };
+    return { valid: false, errors: [`${hookName}: input must be an object, got ${input === null ? 'null' : typeof input}`] };
   }
   return { valid: true, errors: [] };
 }

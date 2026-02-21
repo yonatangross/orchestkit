@@ -17,6 +17,32 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "6.2.1",
+    "date": "2026-02-21",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "WorktreeCreate and WorktreeRemove hook events with lifecycle logger handler (CC 2.1.50)",
+          "`isolation: worktree` frontmatter on test-generator, demo-producer, git-operations-engineer agents",
+          "CC feature matrix entries for 2.1.49 (EnterWorktree tool) and 2.1.50 (7 features)",
+          "Doctor skill memory leak warning for CC < 2.1.50 (8 leaks fixed)",
+          "Doctor agent registration health check using `claude agents` CLI (CC 2.1.50)",
+          "audit-full guard for `CLAUDE_CODE_DISABLE_1M_CONTEXT` env var"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "Hook counts: 52 → 54 global, 75 → 77 total, 15 → 17 event types",
+          "upgrade-assessment skill updated with 2.1.50 breaking changes and memory leak note",
+          "worktree-coordination skill updated with lifecycle hooks section and compatibility bump to 2.1.50"
+        ]
+      }
+    ]
+  },
+  {
     "version": "6.1.6",
     "date": "2026-02-20",
     "compareUrl": "",

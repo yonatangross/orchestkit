@@ -109,7 +109,7 @@ describe('Split Bundle Entry Points', () => {
       const hookNames = Object.keys(lifecycleBundle.hooks);
       expect(hookNames.length).toBeGreaterThan(0);
       // Lifecycle bundle includes lifecycle/* plus related event hooks (teammate-idle, task-completed)
-      const validPrefixes = ['lifecycle/', 'teammate-idle/', 'task-completed/'];
+      const validPrefixes = ['lifecycle/', 'teammate-idle/', 'task-completed/', 'worktree/'];
       expect(hookNames.every(name => validPrefixes.some(p => name.startsWith(p)))).toBe(true);
     });
 
@@ -308,7 +308,8 @@ describe('Cross-Bundle Consistency', () => {
     // 158 -> 159: #780 CC 2.1.49 adoption — added config-change/security-auditor
     // 159 -> 161: #72 milestone — added subagent-start/unified-dispatcher + permission/unified-dispatcher
     // 161 -> 158: #684 — removed context-budget-monitor, posttool/skill-nudge, context-compressor
-    expect(totalHooks).toBe(158);
+    // 158 -> 159: CC 2.1.50 — added worktree/worktree-lifecycle-logger to lifecycle bundle
+    expect(totalHooks).toBe(159);
   });
 });
 

@@ -19,6 +19,7 @@ Model ID format changed from `claude-{version}-{variant}` to `claude-{variant}-{
 | `claude-sonnet-4-20250514` | `claude-sonnet-4-5-20250916` | +1M context |
 | `claude-sonnet-4-5-20250916` | `claude-sonnet-4-6` | Performance improvements |
 | `claude-opus-4-20250514` | `claude-opus-4-6-20260115` | +1M context, +128K output, +files API |
+| `claude-opus-4-6-20260115` | `claude-opus-4-6` | Opus 4.6 fast mode gains 1M context |
 
 ### Common Breaking Changes
 
@@ -31,6 +32,9 @@ Model ID format changed from `claude-{version}-{variant}` to `claude-{variant}-{
 | Changed hook signature | Hook handler functions | CRITICAL |
 | New required frontmatter | Skill/agent YAML | WARNING |
 | Deprecated config field | `.claude/settings.json` | WARNING |
+| New env var disables 1M | `grep "CLAUDE_CODE_DISABLE_1M_CONTEXT"` | WARNING |
+| New hook event types | WorktreeCreate/WorktreeRemove in hooks.json | INFO |
+| New agent frontmatter field | `isolation: worktree` | INFO |
 
 ### Migration Effort Estimation
 
@@ -59,6 +63,7 @@ total_hours = sum(
 - Hook type and format changes can **silently break** — test all hooks after upgrade
 - Use the **detection patterns** above as a pre-upgrade checklist
 - Track each axis **independently** — model, CC version, and OrchestKit can upgrade separately
+- **CC 2.1.50** includes 8 memory leak fixes — long sessions (4+ hours) that previously degraded should be retested after upgrading
 
 **Incorrect — Hardcoded model ID breaks when upgrading to new Claude version:**
 ```typescript
