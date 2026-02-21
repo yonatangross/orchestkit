@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [6.3.0](https://github.com/yonatangross/orchestkit/compare/v6.2.1...v6.3.0) (2026-02-21)
 
 
+### Bug Fixes
+
+* sync manifests and pyproject.toml to v6.3.0 (release-please gap)
+
+
 ### Features
 
 * dead code cleanup & PostToolUse consolidation ([#684](https://github.com/yonatangross/orchestkit/issues/684)) ([#790](https://github.com/yonatangross/orchestkit/issues/790)) ([da245ac](https://github.com/yonatangross/orchestkit/commit/da245ac82c587763b95269c62bf2b9f3c44115d3))
