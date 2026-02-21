@@ -49,7 +49,7 @@ else
 fi
 
 # 3. All hook event types are valid Claude Code events
-VALID_EVENTS="PreToolUse PostToolUse PostToolUseFailure Notification PermissionRequest UserPromptSubmit SessionStart SessionEnd PreCompact Stop SubagentStop SubagentStart TeammateIdle TaskCompleted Setup"
+VALID_EVENTS="PreToolUse PostToolUse PostToolUseFailure Notification PermissionRequest UserPromptSubmit SessionStart SessionEnd PreCompact Stop SubagentStop SubagentStart TeammateIdle TaskCompleted Setup WorktreeCreate WorktreeRemove"
 INVALID_EVENTS=$(python3 -c "
 import json
 valid = set('$VALID_EVENTS'.split())
@@ -108,6 +108,8 @@ for f in os.listdir(dist):
     if f.endswith('.mjs'):
         bundles.add(f.replace('.mjs', ''))
 # Extract category names from hook commands (e.g., 'pretool', 'posttool', 'prompt')
+# Some prefixes map to a different bundle (e.g., worktree -> lifecycle)
+alias_map = {'worktree': 'lifecycle', 'teammate-idle': 'lifecycle', 'task-completed': 'lifecycle', 'subagent-start': 'subagent', 'subagent-stop': 'subagent'}
 categories = set()
 for event, entries in data.get('hooks', {}).items():
     for entry in entries:
@@ -115,7 +117,8 @@ for event, entries in data.get('hooks', {}).items():
             cmd = hook.get('command', '')
             m = re.search(r'run-hook\.mjs\s+(\w+)/', cmd)
             if m:
-                categories.add(m.group(1))
+                cat = m.group(1)
+                categories.add(alias_map.get(cat, cat))
 missing = [c for c in categories if c not in bundles]
 if missing: print(' '.join(sorted(missing)))
 " 2>/dev/null || true)
