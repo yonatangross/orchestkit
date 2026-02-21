@@ -24,6 +24,29 @@
           "type": "json",
           "path": ".claude-plugin/marketplace.json",
           "jsonpath": "$.version"
+        },
+        {
+          "type": "json",
+          "path": "manifests/ork.json",
+          "jsonpath": "$.version"
+        },
+        {
+          "type": "json",
+          "path": "manifests/orkl.json",
+          "jsonpath": "$.version"
+        },
+        {
+          "type": "json",
+          "path": "manifests/ork-creative.json",
+          "jsonpath": "$.version"
+        },
+        {
+          "type": "generic",
+          "path": "pyproject.toml"
+        },
+        {
+          "type": "generic",
+          "path": "CLAUDE.md"
         }
       ]
     }

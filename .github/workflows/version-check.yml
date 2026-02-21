@@ -219,3 +219,35 @@ jobs:
         run: |
           echo "::error::PR blocked: CHANGELOG.md must have entry for version ${{ steps.pr_version.outputs.version }}"
           exit 1
+
+      - name: Check version sync across all files
+        if: steps.check_required.outputs.skip != 'true' && steps.version_check.outputs.bumped == 'true'
+        env:
+          PR_VERSION: ${{ steps.pr_version.outputs.version }}
+        run: |
+          echo "Checking all version files match $PR_VERSION..."
+          MISMATCHED=""
+
+          for f in manifests/ork.json manifests/orkl.json manifests/ork-creative.json; do
+            if [ -f "$f" ]; then
+              FILE_VERSION=$(jq -r '.version' "$f")
+              if [ "$FILE_VERSION" != "$PR_VERSION" ]; then
+                MISMATCHED="$MISMATCHED\n  $f: $FILE_VERSION"
+              fi
+            fi
+          done
+
+          if [ -f "pyproject.toml" ]; then
+            PYVER=$(grep '^version = ' pyproject.toml | head -1 | sed 's/version = "\([^"]*\)".*/\1/')
+            if [ "$PYVER" != "$PR_VERSION" ]; then
+              MISMATCHED="$MISMATCHED\n  pyproject.toml: $PYVER"
+            fi
+          fi
+
+          if [ -n "$MISMATCHED" ]; then
+            echo "::error::Version mismatch! Expected $PR_VERSION but found:$MISMATCHED"
+            echo "Run: ./bin/bump-version.sh to sync all version files"
+            exit 1
+          fi
+
+          echo "All version files in sync at $PR_VERSION"
