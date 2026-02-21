@@ -52,60 +52,7 @@ jobs:
           manifest-file: .release-please-manifest.json
           token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
 
-  # Sync version to manifest files after release
-  post-release:
-    needs: release-please
-    if: needs.release-please.outputs.release_created == 'true'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
-        with:
-          ref: main
-
-      - name: Sync version to manifest files
-        env:
-          VERSION: ${{ needs.release-please.outputs.version }}
-        run: |
-          # SEC-001: Validate version format before using in shell commands
-          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "::error::Invalid version format: $VERSION"
-            exit 1
-          fi
-          echo "Syncing version $VERSION to manifest files..."
-
-          # Update manifests/ork.json, orkl.json, ork-creative.json
-          for f in manifests/ork.json manifests/orkl.json manifests/ork-creative.json; do
-            if [ -f "$f" ]; then
-              jq --arg v "$VERSION" '.version = $v' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
-              echo "Updated $f"
-            fi
-          done
-
-          # Update pyproject.toml
-          if [ -f "pyproject.toml" ]; then
-            sed -i "s/^version = \"[0-9]\+\.[0-9]\+\.[0-9]\+\"/version = \"$VERSION\"/" pyproject.toml
-            echo "Updated pyproject.toml"
-          fi
-
-          # Update CLAUDE.md version line
-          if [ -f "CLAUDE.md" ]; then
-            sed -i "s/- \*\*Current\*\*: [0-9]\+\.[0-9]\+\.[0-9]\+/- **Current**: $VERSION/" CLAUDE.md
-            echo "Updated CLAUDE.md"
-          fi
-
-      - name: Commit version sync
-        env:
-          VERSION: ${{ needs.release-please.outputs.version }}
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          # SEC-002: Only stage known files, not git add -A
-          git add manifests/ork.json manifests/orkl.json manifests/ork-creative.json pyproject.toml CLAUDE.md
-          if git diff --cached --quiet; then
-            echo "No version sync changes needed"
-          else
-            git commit -m "chore: sync version to $VERSION"
-            git push
-          fi
+  # NOTE: Version sync to manifests, pyproject.toml, and CLAUDE.md is handled
+  # by release-please extra-files in .release-please-config.json.
+  # The previous post-release job was removed because it failed on protected
+  # branches (GH006: cannot push directly to main).
