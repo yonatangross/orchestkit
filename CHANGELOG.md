@@ -5,6 +5,29 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.3.0](https://github.com/yonatangross/orchestkit/compare/v6.2.1...v6.3.0) (2026-02-21)
+
+
+### Features
+
+* dead code cleanup & PostToolUse consolidation ([#684](https://github.com/yonatangross/orchestkit/issues/684)) ([#790](https://github.com/yonatangross/orchestkit/issues/790)) ([da245ac](https://github.com/yonatangross/orchestkit/commit/da245ac82c587763b95269c62bf2b9f3c44115d3))
+* integrate Claude Code 2.1.50 features ([#805](https://github.com/yonatangross/orchestkit/issues/805)) ([60a16d2](https://github.com/yonatangross/orchestkit/commit/60a16d210227a343364266c7e3b0ee544f80af0e))
+* security hardening & hook consolidation (Milestone [#72](https://github.com/yonatangross/orchestkit/issues/72)) ([#788](https://github.com/yonatangross/orchestkit/issues/788)) ([5f014b4](https://github.com/yonatangross/orchestkit/commit/5f014b477d7e4aad04fbaeb13d8b72db08edc19a))
+
+
+### Bug Fixes
+
+* eliminate 32 code scanning alerts (19 CodeQL + 13 Scorecard) ([#792](https://github.com/yonatangross/orchestkit/issues/792)) ([12e796b](https://github.com/yonatangross/orchestkit/commit/12e796b5a715b930f43eaa8e08d9fa38603e867d))
+* eliminate 91 CodeQL alerts + fix 30 pre-existing test failures ([#782](https://github.com/yonatangross/orchestkit/issues/782)) ([ca47641](https://github.com/yonatangross/orchestkit/commit/ca476416b81c217998af5e9b5305b44a4b6ffa8a))
+* **release:** scope release-please from v6.1.0 to prevent 7.0.0 ([#786](https://github.com/yonatangross/orchestkit/issues/786)) ([83a248b](https://github.com/yonatangross/orchestkit/commit/83a248b522313c453fa9fbdeb5e020998542350f))
+
+
+### Miscellaneous
+
+* **main:** release 6.1.3 ([#787](https://github.com/yonatangross/orchestkit/issues/787)) ([612ad89](https://github.com/yonatangross/orchestkit/commit/612ad8939f4a456ea5714212f96dab9cf6eca75a))
+* **main:** release 6.2.0 ([#789](https://github.com/yonatangross/orchestkit/issues/789)) ([54042ff](https://github.com/yonatangross/orchestkit/commit/54042ff5f4a4e654e9bb05708a752cd71ce10a97))
+* **main:** release 6.2.0 ([#791](https://github.com/yonatangross/orchestkit/issues/791)) ([a37b5d4](https://github.com/yonatangross/orchestkit/commit/a37b5d40ec2c5d3af330af6e3263d16a2b961685))
+
 ## [6.2.1] - 2026-02-21
 
 ### Added
