@@ -36,7 +36,7 @@ describe("docs-data", () => {
     it("matches expected counts", () => {
       expect(TOTALS.skills).toBe(67);
       expect(TOTALS.agents).toBe(37);
-      expect(TOTALS.hooks).toBe(87);
+      expect(TOTALS.hooks).toBe(77);
     });
   });
 
