@@ -1,1 +1,0 @@
-../../agents/backend-system-architect.md
