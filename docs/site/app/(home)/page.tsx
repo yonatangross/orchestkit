@@ -5,6 +5,20 @@ import { SITE, COUNTS } from "@/lib/constants";
 import { COMPOSITIONS } from "@/lib/generated/compositions-data";
 import { OptimizedThumbnail } from "@/components/optimized-thumbnail";
 
+async function getStarCount(): Promise<number | null> {
+  try {
+    const res = await fetch("https://api.github.com/repos/yonatangross/orchestkit", {
+      next: { revalidate: 3600 },
+      headers: { Accept: "application/vnd.github+json" },
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.stargazers_count ?? null;
+  } catch {
+    return null;
+  }
+}
+
 const PRIMITIVES = [
   {
     letter: "S",
@@ -36,7 +50,8 @@ const QUICK_PATHS = [
   { title: "Cookbook", desc: "Real workflow walkthroughs", href: "/docs/cookbook/implement-feature" },
 ] as const;
 
-export default function HomePage() {
+export default async function HomePage() {
+  const stars = await getStarCount();
   return (
     <main>
       {/* Hero — left-aligned, dot-grid background */}
@@ -67,6 +82,18 @@ export default function HomePage() {
               Get Started
             </Link>
             <CopyInstallButton />
+            <a
+              href={SITE.github}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex h-10 items-center gap-2 rounded-lg border border-fd-border bg-fd-card px-4 text-sm font-medium text-fd-foreground transition-colors hover:bg-fd-secondary"
+              aria-label="Star OrchestKit on GitHub"
+            >
+              <svg className="h-4 w-4" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                <path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z" />
+              </svg>
+              Star on GitHub
+            </a>
           </div>
 
           {/* Circuit-trace stat bar */}
@@ -112,6 +139,36 @@ export default function HomePage() {
               </div>
             ))}
           </dl>
+        </div>
+      </section>
+
+      {/* Social proof */}
+      <section aria-label="Community traction" className="border-t border-fd-border bg-fd-card/30">
+        <div className="mx-auto flex max-w-[1024px] items-center justify-center gap-6 px-6 py-4 text-[13px] text-fd-muted-foreground sm:gap-8">
+          <a
+            href={`${SITE.github}/stargazers`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 transition-colors hover:text-fd-foreground"
+          >
+            <svg className="h-3.5 w-3.5 text-fd-primary" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+              <path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z" />
+            </svg>
+            {stars !== null && <span className="font-mono font-medium tabular-nums">{stars}</span>}{" "}stars on GitHub
+          </a>
+          <span className="h-3 w-px bg-fd-border" aria-hidden="true" />
+          <span className="flex items-center gap-1.5">
+            Open source · MIT-style license
+          </span>
+          <span className="hidden h-3 w-px bg-fd-border sm:block" aria-hidden="true" />
+          <a
+            href={`${SITE.github}/network/members`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hidden items-center gap-1.5 transition-colors hover:text-fd-foreground sm:flex"
+          >
+            Community-driven
+          </a>
         </div>
       </section>
 
