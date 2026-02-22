@@ -1,1 +1,0 @@
-../../agents/multimodal-specialist.md

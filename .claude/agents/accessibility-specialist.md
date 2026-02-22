@@ -1,1 +1,0 @@
-../../agents/accessibility-specialist.md

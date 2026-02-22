@@ -1,1 +1,0 @@
-../../agents/infrastructure-architect.md
