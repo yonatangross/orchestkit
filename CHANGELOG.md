@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.4.0](https://github.com/yonatangross/orchestkit/compare/v6.3.0...v6.4.0) (2026-02-22)
+
+
+### Features
+
+* **docs:** add Vercel Analytics, Speed Insights, and dynamic social proof ([#809](https://github.com/yonatangross/orchestkit/issues/809), [#810](https://github.com/yonatangross/orchestkit/issues/810)) ([#812](https://github.com/yonatangross/orchestkit/issues/812)) ([714af85](https://github.com/yonatangross/orchestkit/commit/714af856d4983c2d87d7b5c936c9284e549b003f))
+
+
+### Bug Fixes
+
+* sync manifests and pyproject.toml to v6.3.0 ([#806](https://github.com/yonatangross/orchestkit/issues/806)) ([d06661d](https://github.com/yonatangross/orchestkit/commit/d06661d18a3386367c8a1c3ae06b071a657c885c))
+
 ## [6.3.0](https://github.com/yonatangross/orchestkit/compare/v6.2.1...v6.3.0) (2026-02-21)
 
 
