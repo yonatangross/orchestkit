@@ -30,9 +30,7 @@ on:
       - main
   workflow_dispatch:
 
-permissions:
-  contents: write
-  pull-requests: write
+permissions: read-all
 
 jobs:
   release-please:
