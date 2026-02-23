@@ -101,7 +101,7 @@ function cleanupRotatedLogs(logDir: string): void {
 
   for (const pattern of patterns) {
     try {
-      const prefix = pattern.replace('*', '');
+      const prefix = pattern.replace(/\*/g, '');
       const files = readdirSync(logDir)
         .filter((f) => f.startsWith(prefix))
         .sort()

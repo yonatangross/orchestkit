@@ -9,6 +9,7 @@ import { execSync } from 'node:child_process';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, getProjectDir } from '../lib/common.js';
 import { getRepoRoot, getCurrentBranch, hasUncommittedChanges } from '../lib/git.js';
+import { assertSafeGitRef } from '../lib/sanitize-shell.js';
 
 /**
  * Execute git command safely
@@ -37,8 +38,9 @@ export function mergeReadinessChecker(input: HookInput): HookResult {
     return outputSilentSuccess();
   }
 
-  const targetBranch = (input.tool_input as any).target_branch || 'main';
-  const currentBranch = getCurrentBranch();
+  const rawTargetBranch = (input.tool_input as any).target_branch || 'main';
+  const targetBranch = assertSafeGitRef(rawTargetBranch, 'target branch');
+  const currentBranch = assertSafeGitRef(getCurrentBranch(), 'current branch');
 
   if (currentBranch === targetBranch) {
     process.stderr.write(`Already on target branch ${targetBranch}\n`);

@@ -12,6 +12,7 @@ import { execSync } from 'node:child_process';
 import { basename } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook, getProjectDir, getCachedBranch } from '../lib/common.js';
+import { assertSafeCommandName, shellQuote } from '../lib/sanitize-shell.js';
 
 // -----------------------------------------------------------------------------
 // Configuration
@@ -33,6 +34,7 @@ function escapeForAppleScript(str: string): string {
 
 function hasCommand(command: string): boolean {
   try {
+    assertSafeCommandName(command);
     execSync(`command -v ${command}`, { stdio: 'ignore' });
     return true;
   } catch {
@@ -95,10 +97,8 @@ function sendMacNotification(
     const s = escapeForAppleScript(subtitle);
     const m = escapeForAppleScript(truncateMessage(message));
 
-    execSync(
-      `osascript -e 'display notification "${m}" with title "${t}" subtitle "${s}" sound name "${sound}"'`,
-      { stdio: 'ignore', timeout: 5000 }
-    );
+    const script = `display notification "${m}" with title "${t}" subtitle "${s}" sound name "${sound}"`;
+    execSync(`osascript -e ${shellQuote(script)}`, { stdio: 'ignore', timeout: 5000 });
     return true;
   } catch {
     return false;
@@ -111,7 +111,7 @@ function sendMacNotification(
 function sendLinuxNotification(title: string, subtitle: string, message: string): boolean {
   try {
     const fullMessage = `${subtitle}\n${message}`;
-    execSync(`notify-send -- "${title}" "${fullMessage}"`, { stdio: 'ignore', timeout: 5000 });
+    execSync(`notify-send -- ${shellQuote(title)} ${shellQuote(fullMessage)}`, { stdio: 'ignore', timeout: 5000 });
     return true;
   } catch {
     return false;
