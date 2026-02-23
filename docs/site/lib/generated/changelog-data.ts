@@ -17,6 +17,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "6.6.2",
+    "date": "2026-02-23",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "Use `npm ci` instead of `npm install` in CI for lockfile-based integrity hashes",
+          "Remove unnecessary Python/pip dependency from schema validation (uses built-in basic validator)"
+        ]
+      }
+    ]
+  },
+  {
     "version": "6.6.1",
     "date": "2026-02-23",
     "compareUrl": "",
