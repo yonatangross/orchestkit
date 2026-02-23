@@ -9,6 +9,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync } from 
 import { execSync } from 'node:child_process';
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, getProjectDir, outputSilentSuccess } from '../lib/common.js';
+import { assertSafeShellArg } from '../lib/sanitize-shell.js';
 
 interface SecurityResults {
   npmAudit: { critical: number; high: number } | null;
@@ -147,7 +148,8 @@ function runBandit(projectDir: string, resultsDir: string): number | null {
 
   logHook('security-scan', 'Running bandit...');
   try {
-    execSync(`bandit -r . -f json -o ${resultsDir}/bandit.json`, {
+    const safeResultsDir = assertSafeShellArg(resultsDir, 'results dir');
+    execSync(`bandit -r . -f json -o ${safeResultsDir}/bandit.json`, {
       cwd: projectDir,
       encoding: 'utf8',
       timeout: 120000,

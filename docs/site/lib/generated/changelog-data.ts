@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "6.6.3",
+    "date": "2026-02-23",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "Sanitize `resultsDir` in security-scan-aggregator bandit command (CodeQL alert #43)"
+        ]
+      }
+    ]
+  },
+  {
     "version": "6.6.2",
     "date": "2026-02-23",
     "compareUrl": "",
