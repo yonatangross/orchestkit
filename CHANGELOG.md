@@ -5,6 +5,45 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.6.0](https://github.com/yonatangross/orchestkit/compare/v6.5.3...v6.6.0) (2026-02-23)
+
+
+### Features
+
+* dead code cleanup & PostToolUse consolidation ([#684](https://github.com/yonatangross/orchestkit/issues/684)) ([#790](https://github.com/yonatangross/orchestkit/issues/790)) ([da245ac](https://github.com/yonatangross/orchestkit/commit/da245ac82c587763b95269c62bf2b9f3c44115d3))
+* **docs:** add Vercel Analytics, Speed Insights, and dynamic social proof ([#809](https://github.com/yonatangross/orchestkit/issues/809), [#810](https://github.com/yonatangross/orchestkit/issues/810)) ([#812](https://github.com/yonatangross/orchestkit/issues/812)) ([714af85](https://github.com/yonatangross/orchestkit/commit/714af856d4983c2d87d7b5c936c9284e549b003f))
+* integrate Claude Code 2.1.50 features ([#805](https://github.com/yonatangross/orchestkit/issues/805)) ([60a16d2](https://github.com/yonatangross/orchestkit/commit/60a16d210227a343364266c7e3b0ee544f80af0e))
+* security hardening & hook consolidation (Milestone [#72](https://github.com/yonatangross/orchestkit/issues/72)) ([#788](https://github.com/yonatangross/orchestkit/issues/788)) ([5f014b4](https://github.com/yonatangross/orchestkit/commit/5f014b477d7e4aad04fbaeb13d8b72db08edc19a))
+* **skills:** add presentation-builder skill ([#817](https://github.com/yonatangross/orchestkit/issues/817)) ([93cacda](https://github.com/yonatangross/orchestkit/commit/93cacda9e19322126cbd8e01af69b2d98bb16146))
+
+
+### Bug Fixes
+
+* add plugins/ plugin.json to release-please extra-files ([#822](https://github.com/yonatangross/orchestkit/issues/822)) ([8eb27cb](https://github.com/yonatangross/orchestkit/commit/8eb27cbb258bb1b8d6d0f175691b2c240c3c060b))
+* eliminate 32 code scanning alerts (19 CodeQL + 13 Scorecard) ([#792](https://github.com/yonatangross/orchestkit/issues/792)) ([12e796b](https://github.com/yonatangross/orchestkit/commit/12e796b5a715b930f43eaa8e08d9fa38603e867d))
+* eliminate 91 CodeQL alerts + fix 30 pre-existing test failures ([#782](https://github.com/yonatangross/orchestkit/issues/782)) ([ca47641](https://github.com/yonatangross/orchestkit/commit/ca476416b81c217998af5e9b5305b44a4b6ffa8a))
+* **release:** scope release-please from v6.1.0 to prevent 7.0.0 ([#786](https://github.com/yonatangross/orchestkit/issues/786)) ([83a248b](https://github.com/yonatangross/orchestkit/commit/83a248b522313c453fa9fbdeb5e020998542350f))
+* remove 35 broken symlinks from .claude/ ([#813](https://github.com/yonatangross/orchestkit/issues/813)) ([3bd179c](https://github.com/yonatangross/orchestkit/commit/3bd179c919b8367fbe100f0080fe3e263b002472))
+* sync manifests and pyproject.toml to v6.3.0 ([#806](https://github.com/yonatangross/orchestkit/issues/806)) ([d06661d](https://github.com/yonatangross/orchestkit/commit/d06661d18a3386367c8a1c3ae06b071a657c885c))
+* use jq for plugin.json generation to match release-please format ([#824](https://github.com/yonatangross/orchestkit/issues/824)) ([0a37a07](https://github.com/yonatangross/orchestkit/commit/0a37a07a411c17e2503d135ffbca2423ea0e9624))
+
+
+### Miscellaneous
+
+* **main:** release 6.1.3 ([#787](https://github.com/yonatangross/orchestkit/issues/787)) ([612ad89](https://github.com/yonatangross/orchestkit/commit/612ad8939f4a456ea5714212f96dab9cf6eca75a))
+* **main:** release 6.2.0 ([#789](https://github.com/yonatangross/orchestkit/issues/789)) ([54042ff](https://github.com/yonatangross/orchestkit/commit/54042ff5f4a4e654e9bb05708a752cd71ce10a97))
+* **main:** release 6.2.0 ([#791](https://github.com/yonatangross/orchestkit/issues/791)) ([a37b5d4](https://github.com/yonatangross/orchestkit/commit/a37b5d40ec2c5d3af330af6e3263d16a2b961685))
+* **main:** release 6.3.0 ([#793](https://github.com/yonatangross/orchestkit/issues/793)) ([737982c](https://github.com/yonatangross/orchestkit/commit/737982c15349dcd24a92cd04993b46c09b2a37a0))
+* **main:** release 6.4.0 ([#808](https://github.com/yonatangross/orchestkit/issues/808)) ([bfbdbf3](https://github.com/yonatangross/orchestkit/commit/bfbdbf3c6d4d8c6945ddc0430cb52d28ba5e132b))
+* **main:** release 6.5.0 ([#814](https://github.com/yonatangross/orchestkit/issues/814)) ([05cf210](https://github.com/yonatangross/orchestkit/commit/05cf2100e0a1365551ee7406ca681de18f983a6c))
+
+
+### CI/CD
+
+* bump actions/attest-build-provenance from 2.4.0 to 3.2.0 ([#816](https://github.com/yonatangross/orchestkit/issues/816)) ([04a2cee](https://github.com/yonatangross/orchestkit/commit/04a2cee77500cb544e35bd02dc85a397f8f3c810))
+* bump github/codeql-action from 4.32.3 to 4.32.4 ([#815](https://github.com/yonatangross/orchestkit/issues/815)) ([e31096e](https://github.com/yonatangross/orchestkit/commit/e31096e7624424e1c37c2e7baaabccf8c6b782d6))
+* restrict workflow-level permissions to read-all in release-please ([#820](https://github.com/yonatangross/orchestkit/issues/820)) ([8e03fe5](https://github.com/yonatangross/orchestkit/commit/8e03fe5eca022aa71a65820e47cd5dac652380f9))
+
 ## [6.5.3] - 2026-02-23
 
 ### Fixed
