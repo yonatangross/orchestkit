@@ -72,7 +72,7 @@ Installed Plugins: 1
 **Output (ork full):**
 ```
 Installed Plugins: 1
-- ork: 67 skills, 37 agents, 87 hook entries
+- ork: 68 skills, 37 agents, 87 hook entries
 ```
 
 ### 1. Skills Validation

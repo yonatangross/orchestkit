@@ -3,7 +3,7 @@
   "name": "orchestkit",
   "version": "6.5.0",
   "engine": ">=2.1.49",
-  "description": "The Complete AI Development Toolkit - 67 skills, 37 agents, 81 hooks for full-stack development",
+  "description": "The Complete AI Development Toolkit - 68 skills, 37 agents, 81 hooks for full-stack development",
   "owner": {
     "name": "Yonatan Gross",
     "email": "yonatan2gross@gmail.com"
@@ -15,7 +15,7 @@
     {
       "name": "orkl",
       "description": "Universal AI development toolkit with 46 skills covering AI/LLM, backend, frontend, security, and testing patterns. Includes 37 specialized agents and 81 hooks.",
-      "version": "6.4.0",
+      "version": "6.5.0",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
@@ -26,7 +26,7 @@
     {
       "name": "ork-creative",
       "description": "Video production add-on — 3 skills, 1 agent. Demo recording, Remotion composition, storyboarding, and content creation tools.",
-      "version": "6.4.0",
+      "version": "6.5.0",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
@@ -36,8 +36,8 @@
     },
     {
       "name": "ork",
-      "description": "Full specialized toolkit — 67 skills, 37 agents, 81 hooks. Everything in orkl plus Python (FastAPI, SQLAlchemy), React (RSC, TanStack), LLM/RAG, LangGraph, and MCP patterns.",
-      "version": "6.4.0",
+      "description": "Full specialized toolkit — 68 skills, 37 agents, 81 hooks. Everything in orkl plus Python (FastAPI, SQLAlchemy), React (RSC, TanStack), LLM/RAG, LangGraph, and MCP patterns.",
+      "version": "6.5.0",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"

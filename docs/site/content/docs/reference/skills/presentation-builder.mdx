@@ -1,0 +1,876 @@
+---
+title: "Presentation Builder"
+description: "Creates zero-dependency, animation-rich HTML presentations from scratch or by converting PowerPoint files. Use when the user wants to build a presentation, convert a PPT/PPTX to web slides, or create a slide deck for a talk, pitch, or tutorial. Generates single self-contained HTML files with inline CSS/JS."
+---
+
+<span className="badge badge-blue">Command</span> <span className="badge badge-yellow">medium</span>
+
+
+# Presentation Builder
+
+Create zero-dependency, animation-rich HTML presentations that run entirely in the browser.
+
+Based on [zarazhangrui/frontend-slides](https://github.com/zarazhangrui/frontend-slides), restructured for OrchestKit.
+
+## Core Philosophy
+
+1. **Zero Dependencies** -- Single HTML files with inline CSS/JS. No npm, no build tools.
+2. **Show, Don't Tell** -- Generate visual previews, not abstract choices. People discover preferences by seeing.
+3. **Distinctive Design** -- Avoid generic "AI slop" aesthetics. Every presentation should feel custom-crafted.
+4. **Production Quality** -- Well-commented, accessible, performant code.
+5. **Viewport Fitting** -- Every slide MUST fit exactly within the viewport. No scrolling within slides, ever.
+
+## Phase 0: Detect Mode
+
+Determine what the user wants:
+
+| Mode | Trigger | Next Phase |
+|------|---------|------------|
+| **A: New Presentation** | Create slides from scratch | Phase 1 |
+| **B: PPT Conversion** | Has a .ppt/.pptx file | [PPT Conversion](references/pptx-conversion.md) then Phase 2 |
+| **C: Enhancement** | Has existing HTML presentation | Read file, understand structure, enhance |
+
+---
+
+## Phase 1: Content Discovery
+
+Before designing, understand the content. Use `AskUserQuestion`:
+
+**Question 1: Purpose**
+- Header: "Purpose"
+- Options: "Pitch deck", "Teaching/Tutorial", "Conference talk", "Internal presentation"
+
+**Question 2: Slide Count**
+- Header: "Length"
+- Options: "Short (5-10)", "Medium (10-20)", "Long (20+)"
+
+**Question 3: Content Readiness**
+- Header: "Content"
+- Options: "I have all content ready", "I have rough notes", "I have a topic only"
+
+If user has content, ask them to share it. If topic only, help structure an outline.
+
+---
+
+## Phase 2: Style Discovery
+
+**This is the "show, don't tell" phase.**
+
+### Step 2.0: Style Path Selection
+
+Ask how the user wants to choose their style:
+
+- **"Show me options"** -- Generate 3 previews based on mood (recommended)
+- **"I know what I want"** -- Pick from preset list directly
+
+**Available Presets** (see [Style Presets](references/style-presets.md) for full details):
+
+| Preset | Vibe | Best For |
+|--------|------|----------|
+| Bold Signal | Confident, high-impact | Pitch decks, keynotes |
+| Electric Studio | Clean, professional | Agency presentations |
+| Creative Voltage | Energetic, retro-modern | Creative pitches |
+| Dark Botanical | Elegant, sophisticated | Premium brands |
+| Notebook Tabs | Editorial, organized | Reports, reviews |
+| Pastel Geometry | Friendly, approachable | Product overviews |
+| Split Pastel | Playful, modern | Creative agencies |
+| Vintage Editorial | Witty, personality-driven | Personal brands |
+| Neon Cyber | Futuristic, techy | Tech startups |
+| Terminal Green | Developer-focused | Dev tools, APIs |
+| Swiss Modern | Minimal, precise | Corporate, data |
+| Paper & Ink | Literary, thoughtful | Storytelling |
+
+### Step 2.1: Mood Selection (Guided Discovery)
+
+If "Show me options", ask via `AskUserQuestion`:
+
+**Question: Vibe**
+- "What feeling should the audience have?"
+- Options (multiSelect: true, pick up to 2):
+  - "Impressed/Confident" -- Professional, trustworthy
+  - "Excited/Energized" -- Innovative, bold
+  - "Calm/Focused" -- Clear, easy to follow
+  - "Inspired/Moved" -- Emotional, memorable
+
+**Mood-to-Style Mapping:**
+
+| Mood | Suggested Styles |
+|------|-----------------|
+| Impressed/Confident | Bold Signal, Electric Studio, Dark Botanical |
+| Excited/Energized | Creative Voltage, Neon Cyber, Split Pastel |
+| Calm/Focused | Notebook Tabs, Paper & Ink, Swiss Modern |
+| Inspired/Moved | Dark Botanical, Vintage Editorial, Pastel Geometry |
+
+### Step 2.2: Generate Style Previews
+
+Generate **3 distinct mini HTML files** in `.claude-design/slide-previews/`:
+
+```
+.claude-design/slide-previews/
+├── style-a.html   # ~50-100 lines, single title slide
+├── style-b.html
+└── style-c.html
+```
+
+Each preview: self-contained, inline CSS/JS, animated title slide showing typography, colors, and motion style.
+
+### Step 2.3: Present Previews
+
+Show user the 3 options and ask via `AskUserQuestion`:
+- "Which style preview do you prefer?"
+- Options: Style A, Style B, Style C, "Mix elements"
+
+---
+
+## Phase 3: Generate Presentation
+
+Generate the full presentation based on content (Phase 1) and style (Phase 2).
+
+### File Output
+
+```
+presentation.html    # Self-contained presentation
+assets/              # Images if any (PPT conversion)
+```
+
+### HTML Architecture
+
+Every presentation follows this structure:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Presentation Title</title>
+    <!-- Fonts from Fontshare or Google Fonts -->
+    <style>
+        /* Theme variables in :root */
+        /* Base styles + viewport fitting (see rules/viewport-fitting.md) */
+        /* Slide container styles */
+        /* Animations */
+        /* Responsive breakpoints */
+    </style>
+</head>
+<body>
+    <div class="progress-bar"></div>
+    <nav class="nav-dots"><!-- JS generated --></nav>
+    <section class="slide title-slide">...</section>
+    <section class="slide">...</section>
+    <!-- More slides -->
+    <script>
+        /* SlidePresentation class with navigation */
+    </script>
+</body>
+</html>
+```
+
+### Critical: Viewport Fitting
+
+**Every slide MUST fit exactly in the viewport. See [Viewport Fitting Rules](rules/viewport-fitting.md).**
+
+Quick checklist:
+- Every `.slide` has `height: 100vh; height: 100dvh; overflow: hidden;`
+- All font sizes use `clamp(min, preferred, max)`
+- All spacing uses `clamp()` or viewport units
+- Content respects [density limits](rules/content-density.md)
+- Breakpoints exist for heights: 700px, 600px, 500px
+- When content doesn't fit: **split into multiple slides, never scroll**
+
+Also see `responsive-patterns` skill for advanced clamp()/container query patterns.
+
+### Required JavaScript Features
+
+1. **SlidePresentation Class** -- Keyboard (arrows, space), touch/swipe, mouse wheel, progress bar, nav dots
+2. **Intersection Observer** -- Add `.visible` class on scroll for CSS animations
+3. **Optional enhancements** (style-dependent): Custom cursor, particle backgrounds, parallax, 3D tilt, magnetic buttons
+
+### Code Quality
+
+- Every CSS/JS section has clear comments explaining what, why, and how to modify
+- Semantic HTML (`&lt;section&gt;`, `&lt;nav&gt;`, `&lt;main&gt;`)
+- Keyboard navigation works
+- ARIA labels where needed
+- Reduced motion support: `@media (prefers-reduced-motion: reduce)`
+
+### Anti-Patterns (DO NOT USE)
+
+- **Fonts:** Inter, Roboto, Arial, system fonts as display
+- **Colors:** `#6366f1` (generic indigo), purple gradients on white
+- **Layouts:** Everything centered, generic hero sections, identical card grids
+- **Decorations:** Realistic illustrations, gratuitous glassmorphism
+
+---
+
+## Phase 4: Delivery
+
+1. **Clean up** `.claude-design/slide-previews/` if it exists
+2. **Open** the presentation: `open [filename].html`
+3. **Provide summary:**
+
+```
+Your presentation is ready!
+
+File: [filename].html
+Style: [Style Name]
+Slides: [count]
+
+Navigation:
+- Arrow keys or Space to navigate
+- Scroll/swipe also works
+- Click dots on the right to jump
+
+To customize:
+- Colors: :root CSS variables at top
+- Fonts: Change the font link
+- Animations: Modify .reveal class timings
+```
+
+---
+
+## Style Reference: Effect-to-Feeling Mapping
+
+| Feeling | Animation Style | Visual Approach |
+|---------|----------------|-----------------|
+| Dramatic/Cinematic | Slow fade-ins (1-1.5s), large scale transitions | Dark BG, spotlight effects, parallax |
+| Techy/Futuristic | Neon glow, glitch/scramble text | Particle systems, grid patterns, monospace accents |
+| Playful/Friendly | Bouncy easing, floating animations | Pastel/bright colors, rounded corners |
+| Professional/Corporate | Subtle fast animations (200-300ms) | Clean sans-serif, navy/slate, data viz focus |
+| Calm/Minimal | Very slow subtle motion | High whitespace, muted palette, serif typography |
+| Editorial/Magazine | Strong typography hierarchy | Pull quotes, grid-breaking layouts, B&W + accent |
+
+---
+
+## Troubleshooting
+
+| Issue | Solution |
+|-------|---------|
+| Fonts not loading | Check Fontshare/Google Fonts URL, verify font names match CSS |
+| Animations not triggering | Verify Intersection Observer is running, check `.visible` class |
+| Scroll snap not working | Ensure `scroll-snap-type` on html, `scroll-snap-align` on slides |
+| Mobile issues | Disable heavy effects at 768px, test touch events, reduce particles |
+| Performance | Use `will-change` sparingly, prefer `transform`/`opacity` animations |
+
+---
+
+## Related Skills
+
+- `ork:responsive-patterns` -- Advanced clamp(), container queries, responsive breakpoints
+- `ork:accessibility` -- WCAG 2.2 compliance, keyboard navigation, ARIA patterns
+- `ork:ui-components` -- shadcn/ui and Radix component patterns
+- `ork:demo-producer` -- Terminal recording and video demos
+
+## Rules
+
+- [Viewport Fitting](rules/viewport-fitting.md) -- Mandatory CSS for viewport-locked slides
+- [Content Density](rules/content-density.md) -- Maximum content per slide type
+
+## References
+
+- [Style Presets](references/style-presets.md) -- 12 curated visual themes with CSS variables
+- [PPT Conversion](references/pptx-conversion.md) -- PowerPoint extraction and conversion workflow
+
+
+---
+
+## Rules (2)
+
+### Enforce maximum content per slide type to prevent overflow — HIGH
+
+
+# Content Density Rules
+
+To guarantee viewport fitting, enforce these limits per slide type.
+
+## Maximum Content Per Slide
+
+| Slide Type | Maximum Content |
+|------------|-----------------|
+| Title slide | 1 heading + 1 subtitle + optional tagline |
+| Content slide | 1 heading + 4-6 bullet points OR 1 heading + 2 paragraphs |
+| Feature grid | 1 heading + 6 cards maximum (2x3 or 3x2 grid) |
+| Code slide | 1 heading + 8-10 lines of code maximum |
+| Quote slide | 1 quote (max 3 lines) + attribution |
+| Image slide | 1 heading + 1 image (max 60vh height) |
+
+## Rules
+
+1. **If content exceeds these limits, split into multiple slides.** Never scroll.
+2. Each bullet point should be 1-2 lines maximum.
+3. Code slides should show focused snippets, not full files.
+4. Feature grids use `auto-fit` with `minmax()` -- stack vertically on narrow screens.
+5. Images always have `max-height` constraints using `min(50vh, 400px)` or similar.
+
+## When to Split
+
+- More than 6 bullet points -> split into "Part 1" / "Part 2"
+- Code longer than 10 lines -> split by logical section or use a "highlights" approach
+- More than 6 feature cards -> use multiple grid slides
+- A quote longer than 3 lines -> shorten or attribute on a separate line
+
+
+### Lock every slide to exactly one viewport height with no scrolling — CRITICAL
+
+
+# Viewport Fitting Rules
+
+Every slide MUST fit exactly within the viewport. No scrolling within slides, ever. This is non-negotiable.
+
+## The Golden Rule
+
+```
+Each slide = exactly one viewport height (100vh/100dvh)
+Content overflows? -> Split into multiple slides or reduce content
+Never scroll within a slide.
+```
+
+## Required CSS Architecture
+
+Every presentation MUST include this base CSS:
+
+```css
+/* ============================================
+   VIEWPORT FITTING: MANDATORY BASE STYLES
+   ============================================ */
+
+/* 1. Lock html/body to viewport */
+html, body {
+    height: 100%;
+    overflow-x: hidden;
+}
+
+html {
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+}
+
+/* 2. Each slide = exact viewport height */
+.slide {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh; /* Dynamic viewport height for mobile browsers */
+    overflow: hidden; /* CRITICAL: Prevent ANY overflow */
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+/* 3. Content container with flex for centering */
+.slide-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    max-height: 100%;
+    overflow: hidden; /* Double-protection against overflow */
+    padding: var(--slide-padding);
+}
+
+/* 4. ALL typography uses clamp() for responsive scaling */
+:root {
+    --title-size: clamp(1.5rem, 5vw, 4rem);
+    --h2-size: clamp(1.25rem, 3.5vw, 2.5rem);
+    --h3-size: clamp(1rem, 2.5vw, 1.75rem);
+    --body-size: clamp(0.75rem, 1.5vw, 1.125rem);
+    --small-size: clamp(0.65rem, 1vw, 0.875rem);
+    --slide-padding: clamp(1rem, 4vw, 4rem);
+    --content-gap: clamp(0.5rem, 2vw, 2rem);
+    --element-gap: clamp(0.25rem, 1vw, 1rem);
+}
+
+/* 5. Cards/containers use viewport-relative max sizes */
+.card, .container, .content-box {
+    max-width: min(90vw, 1000px);
+    max-height: min(80vh, 700px);
+}
+
+/* 6. Lists auto-scale with viewport */
+.feature-list, .bullet-list {
+    gap: clamp(0.4rem, 1vh, 1rem);
+}
+
+.feature-list li, .bullet-list li {
+    font-size: var(--body-size);
+    line-height: 1.4;
+}
+
+/* 7. Grids adapt to available space */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+    gap: clamp(0.5rem, 1.5vw, 1rem);
+}
+
+/* 8. Images constrained to viewport */
+img, .image-container {
+    max-width: 100%;
+    max-height: min(50vh, 400px);
+    object-fit: contain;
+}
+```
+
+## Responsive Breakpoints
+
+```css
+/* Short viewports (< 700px height) */
+@media (max-height: 700px) {
+    :root {
+        --slide-padding: clamp(0.75rem, 3vw, 2rem);
+        --content-gap: clamp(0.4rem, 1.5vw, 1rem);
+        --title-size: clamp(1.25rem, 4.5vw, 2.5rem);
+        --h2-size: clamp(1rem, 3vw, 1.75rem);
+    }
+}
+
+/* Very short viewports (< 600px height) */
+@media (max-height: 600px) {
+    :root {
+        --slide-padding: clamp(0.5rem, 2.5vw, 1.5rem);
+        --content-gap: clamp(0.3rem, 1vw, 0.75rem);
+        --title-size: clamp(1.1rem, 4vw, 2rem);
+        --body-size: clamp(0.7rem, 1.2vw, 0.95rem);
+    }
+    .nav-dots, .keyboard-hint, .decorative { display: none; }
+}
+
+/* Extremely short - landscape phones (< 500px height) */
+@media (max-height: 500px) {
+    :root {
+        --slide-padding: clamp(0.4rem, 2vw, 1rem);
+        --title-size: clamp(1rem, 3.5vw, 1.5rem);
+        --h2-size: clamp(0.9rem, 2.5vw, 1.25rem);
+        --body-size: clamp(0.65rem, 1vw, 0.85rem);
+    }
+}
+
+/* Narrow viewports (< 600px width) */
+@media (max-width: 600px) {
+    :root { --title-size: clamp(1.25rem, 7vw, 2.5rem); }
+    .grid { grid-template-columns: 1fr; }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.2s !important;
+    }
+    html { scroll-behavior: auto; }
+}
+```
+
+## Overflow Prevention Checklist
+
+Before generating any presentation, verify:
+
+1. Every `.slide` has `height: 100vh; height: 100dvh; overflow: hidden;`
+2. All font sizes use `clamp(min, preferred, max)`
+3. All spacing uses `clamp()` or viewport units
+4. Content containers have `max-height` constraints
+5. Images have `max-height: min(50vh, 400px)` or similar
+6. Grids use `auto-fit` with `minmax()` for responsive columns
+7. Breakpoints exist for heights: 700px, 600px, 500px
+8. No fixed pixel heights on content elements
+9. Content per slide respects density limits (see content-density.md)
+
+## When Content Doesn't Fit
+
+**DO:**
+- Split into multiple slides
+- Reduce bullet points (max 5-6 per slide)
+- Shorten text (aim for 1-2 lines per bullet)
+- Use smaller code snippets
+- Create a "continued" slide
+
+**DON'T:**
+- Reduce font size below readable limits
+- Remove padding/spacing entirely
+- Allow any scrolling
+- Cram content to fit
+
+## Testing Viewport Fit
+
+Recommend testing at these sizes:
+- **Desktop:** 1920x1080, 1440x900, 1280x720
+- **Tablet:** 1024x768, 768x1024 (portrait)
+- **Mobile:** 375x667, 414x896
+- **Landscape phone:** 667x375, 896x414
+
+
+
+---
+
+## References (2)
+
+### Pptx Conversion
+
+# PPT/PPTX Conversion
+
+When converting PowerPoint files to HTML presentations.
+
+## Step 1: Extract Content
+
+Use Python with `python-pptx` to extract slides, text, and images:
+
+```python
+from pptx import Presentation
+from pptx.util import Inches, Pt
+import json
+import os
+import base64
+
+def extract_pptx(file_path, output_dir):
+    """Extract all content from a PowerPoint file."""
+    prs = Presentation(file_path)
+    slides_data = []
+
+    assets_dir = os.path.join(output_dir, 'assets')
+    os.makedirs(assets_dir, exist_ok=True)
+
+    for slide_num, slide in enumerate(prs.slides):
+        slide_data = {
+            'number': slide_num + 1,
+            'title': '',
+            'content': [],
+            'images': [],
+            'notes': ''
+        }
+
+        for shape in slide.shapes:
+            if shape.has_text_frame:
+                if shape == slide.shapes.title:
+                    slide_data['title'] = shape.text
+                else:
+                    slide_data['content'].append({
+                        'type': 'text',
+                        'content': shape.text
+                    })
+
+            if shape.shape_type == 13:  # Picture
+                image = shape.image
+                image_bytes = image.blob
+                image_ext = image.ext
+                image_name = f"slide{slide_num + 1}_img{len(slide_data['images']) + 1}.{image_ext}"
+                image_path = os.path.join(assets_dir, image_name)
+
+                with open(image_path, 'wb') as f:
+                    f.write(image_bytes)
+
+                slide_data['images'].append({
+                    'path': f"assets/{image_name}",
+                    'width': shape.width,
+                    'height': shape.height
+                })
+
+        if slide.has_notes_slide:
+            notes_frame = slide.notes_slide.notes_text_frame
+            slide_data['notes'] = notes_frame.text
+
+        slides_data.append(slide_data)
+
+    return slides_data
+```
+
+## Step 2: Confirm Content Structure
+
+Present extracted content to user for verification:
+
+```
+I've extracted the following from your PowerPoint:
+
+Slide 1: [Title]
+- [Content summary]
+- Images: [count]
+
+Slide 2: [Title]
+...
+
+All images saved to assets folder. Does this look correct?
+```
+
+## Step 3: Style Selection
+
+Proceed to Phase 2 (Style Discovery) in the main workflow with the extracted content in mind.
+
+## Step 4: Generate HTML
+
+Convert extracted content into the chosen style, preserving:
+- All text content and slide order
+- All images (referenced from assets/ folder)
+- Speaker notes as HTML comments or separate file
+
+## Notes
+
+- `python-pptx` must be installed: `pip install python-pptx`
+- Images are extracted as-is (no re-encoding)
+- Complex shapes (SmartArt, charts) may need manual recreation
+- Grouped shapes are flattened -- check output for missing content
+
+
+### Style Presets
+
+# Style Presets Reference
+
+12 curated visual styles for presentations. Each preset is inspired by real design references. **Abstract shapes only -- no illustrations.**
+
+## Dark Themes
+
+### 1. Bold Signal
+
+**Vibe:** Confident, bold, modern, high-impact
+
+**Layout:** Colored card on dark gradient. Number top-left, navigation top-right.
+
+**Typography:** `Archivo Black` (900) + `Space Grotesk` (400/500)
+
+```css
+:root {
+    --bg-primary: #1a1a1a;
+    --bg-gradient: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
+    --card-bg: #FF5722;
+    --text-primary: #ffffff;
+    --text-on-card: #1a1a1a;
+}
+```
+
+**Signature:** Bold colored card as focal point, large section numbers, navigation breadcrumbs.
+
+---
+
+### 2. Electric Studio
+
+**Vibe:** Bold, clean, professional, high contrast
+
+**Layout:** Split panel -- white top, blue bottom. Brand marks in corners.
+
+**Typography:** `Manrope` (800) + `Manrope` (400/500)
+
+```css
+:root {
+    --bg-dark: #0a0a0a;
+    --bg-white: #ffffff;
+    --accent-blue: #4361ee;
+    --text-dark: #0a0a0a;
+    --text-light: #ffffff;
+}
+```
+
+**Signature:** Two-panel vertical split, accent bar on edge, quote typography as hero element.
+
+---
+
+### 3. Creative Voltage
+
+**Vibe:** Bold, creative, energetic, retro-modern
+
+**Layout:** Split panels -- electric blue left, dark right. Script accents.
+
+**Typography:** `Syne` (700/800) + `Space Mono` (400/700)
+
+```css
+:root {
+    --bg-primary: #0066ff;
+    --bg-dark: #1a1a2e;
+    --accent-neon: #d4ff00;
+    --text-light: #ffffff;
+}
+```
+
+**Signature:** Electric blue + neon yellow contrast, halftone textures, neon badges, script typography.
+
+---
+
+### 4. Dark Botanical
+
+**Vibe:** Elegant, sophisticated, artistic, premium
+
+**Layout:** Centered content on dark. Abstract soft shapes in corner.
+
+**Typography:** `Cormorant` (400/600) + `IBM Plex Sans` (300/400)
+
+```css
+:root {
+    --bg-primary: #0f0f0f;
+    --text-primary: #e8e4df;
+    --text-secondary: #9a9590;
+    --accent-warm: #d4a574;
+    --accent-pink: #e8b4b8;
+    --accent-gold: #c9b896;
+}
+```
+
+**Signature:** Abstract soft gradient circles, warm color accents (pink, gold), thin vertical lines, italic signature typography. No illustrations.
+
+---
+
+## Light Themes
+
+### 5. Notebook Tabs
+
+**Vibe:** Editorial, organized, elegant, tactile
+
+**Layout:** Cream paper card on dark background. Colorful tabs on right edge.
+
+**Typography:** `Bodoni Moda` (400/700) + `DM Sans` (400/500)
+
+```css
+:root {
+    --bg-outer: #2d2d2d;
+    --bg-page: #f8f6f1;
+    --text-primary: #1a1a1a;
+    --tab-1: #98d4bb; /* Mint */
+    --tab-2: #c7b8ea; /* Lavender */
+    --tab-3: #f4b8c5; /* Pink */
+    --tab-4: #a8d8ea; /* Sky */
+    --tab-5: #ffe6a7; /* Cream */
+}
+```
+
+**Signature:** Paper container with shadow, colorful section tabs on right (vertical text), binder holes on left. Tab text scales: `font-size: clamp(0.5rem, 1vh, 0.7rem)`.
+
+---
+
+### 6. Pastel Geometry
+
+**Vibe:** Friendly, organized, modern, approachable
+
+**Layout:** White card on pastel background. Vertical pills on right edge.
+
+**Typography:** `Plus Jakarta Sans` (700/800) + `Plus Jakarta Sans` (400/500)
+
+```css
+:root {
+    --bg-primary: #c8d9e6;
+    --card-bg: #faf9f7;
+    --pill-pink: #f0b4d4;
+    --pill-mint: #a8d4c4;
+    --pill-sage: #5a7c6a;
+    --pill-lavender: #9b8dc4;
+    --pill-violet: #7c6aad;
+}
+```
+
+**Signature:** Rounded card with soft shadow, vertical pills on right edge with varying heights.
+
+---
+
+### 7. Split Pastel
+
+**Vibe:** Playful, modern, friendly, creative
+
+**Layout:** Two-color vertical split (peach left, lavender right).
+
+**Typography:** `Outfit` (700/800) + `Outfit` (400/500)
+
+```css
+:root {
+    --bg-peach: #f5e6dc;
+    --bg-lavender: #e4dff0;
+    --text-dark: #1a1a1a;
+    --badge-mint: #c8f0d8;
+    --badge-yellow: #f0f0c8;
+    --badge-pink: #f0d4e0;
+}
+```
+
+**Signature:** Split background colors, playful badge pills with icons, grid pattern overlay.
+
+---
+
+### 8. Vintage Editorial
+
+**Vibe:** Witty, confident, editorial, personality-driven
+
+**Layout:** Centered content on cream. Abstract geometric shapes as accent.
+
+**Typography:** `Fraunces` (700/900) + `Work Sans` (400/500)
+
+```css
+:root {
+    --bg-cream: #f5f3ee;
+    --text-primary: #1a1a1a;
+    --text-secondary: #555;
+    --accent-warm: #e8d4c0;
+}
+```
+
+**Signature:** Abstract geometric shapes (circle outline + line + dot), bold bordered CTA boxes, witty conversational tone. No illustrations.
+
+---
+
+## Specialty Themes
+
+### 9. Neon Cyber
+
+**Vibe:** Futuristic, techy, confident
+
+**Typography:** `Clash Display` + `Satoshi` (Fontshare)
+
+**Colors:** Deep navy (#0a0f1c), cyan accent (#00ffcc), magenta (#ff00aa)
+
+**Signature:** Particle backgrounds, neon glow, grid patterns
+
+---
+
+### 10. Terminal Green
+
+**Vibe:** Developer-focused, hacker aesthetic
+
+**Typography:** `JetBrains Mono` (monospace only)
+
+**Colors:** GitHub dark (#0d1117), terminal green (#39d353)
+
+**Signature:** Scan lines, blinking cursor, code syntax styling
+
+---
+
+### 11. Swiss Modern
+
+**Vibe:** Clean, precise, Bauhaus-inspired
+
+**Typography:** `Archivo` (800) + `Nunito` (400)
+
+**Colors:** Pure white, pure black, red accent (#ff3300)
+
+**Signature:** Visible grid, asymmetric layouts, geometric shapes
+
+---
+
+### 12. Paper & Ink
+
+**Vibe:** Editorial, literary, thoughtful
+
+**Typography:** `Cormorant Garamond` + `Source Serif 4`
+
+**Colors:** Warm cream (#faf9f7), charcoal (#1a1a1a), crimson accent (#c41e3a)
+
+**Signature:** Drop caps, pull quotes, elegant horizontal rules
+
+---
+
+## Font Pairing Quick Reference
+
+| Preset | Display Font | Body Font | Source |
+|--------|--------------|-----------|--------|
+| Bold Signal | Archivo Black | Space Grotesk | Google |
+| Electric Studio | Manrope | Manrope | Google |
+| Creative Voltage | Syne | Space Mono | Google |
+| Dark Botanical | Cormorant | IBM Plex Sans | Google |
+| Notebook Tabs | Bodoni Moda | DM Sans | Google |
+| Pastel Geometry | Plus Jakarta Sans | Plus Jakarta Sans | Google |
+| Split Pastel | Outfit | Outfit | Google |
+| Vintage Editorial | Fraunces | Work Sans | Google |
+| Neon Cyber | Clash Display | Satoshi | Fontshare |
+| Terminal Green | JetBrains Mono | JetBrains Mono | JetBrains |
+| Swiss Modern | Archivo | Nunito | Google |
+| Paper & Ink | Cormorant Garamond | Source Serif 4 | Google |
+
+## DO NOT USE (Generic AI Patterns)
+
+- **Fonts:** Inter, Roboto, Arial, system fonts as display
+- **Colors:** `#6366f1` (generic indigo), purple gradients on white
+- **Layouts:** Everything centered, generic hero sections, identical card grids
+- **Decorations:** Realistic illustrations, gratuitous glassmorphism, drop shadows without purpose
+
