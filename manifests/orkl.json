@@ -1,6 +1,6 @@
 {
   "name": "orkl",
-  "version": "6.5.0",
+  "version": "6.5.1",
   "description": "Standalone base — 46 skills, 37 agents, 77 hooks. Any stack. Add ork-creative for video or use ork for everything.",
   "skills": [
     "explore",

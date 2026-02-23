@@ -2132,6 +2132,45 @@ export const SKILLS: Record<string, SkillMeta> = {
       "system-design-reviewer"
     ]
   },
+  "presentation-builder": {
+    "name": "presentation-builder",
+    "description": "Creates zero-dependency, animation-rich HTML presentations from scratch or by converting PowerPoint files. Use when the user wants to build a presentation, convert a PPT/PPTX to web slides, or create a slide deck for a talk, pitch, or tutorial. Generates single self-contained HTML files with inline CSS/JS.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "presentation",
+      "slides",
+      "html",
+      "pptx",
+      "design",
+      "animation",
+      "zero-dependency"
+    ],
+    "userInvocable": true,
+    "context": "fork",
+    "allowedTools": [
+      "AskUserQuestion",
+      "Bash",
+      "Read",
+      "Write",
+      "Edit",
+      "Grep",
+      "Glob",
+      "Task"
+    ],
+    "skills": [],
+    "agent": null,
+    "structure": {
+      "references": [
+        "pptx-conversion.md",
+        "style-presets.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
   "product-frameworks": {
     "name": "product-frameworks",
     "description": "Product management frameworks for business cases, market analysis, strategy, prioritization, OKRs/KPIs, personas, requirements, and user research. Use when building ROI projections, competitive analysis, RICE scoring, OKR trees, user personas, PRDs, or usability testing plans.",

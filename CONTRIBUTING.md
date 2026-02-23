@@ -36,7 +36,7 @@ OrchestKit uses a **build system** to assemble modular plugins from source files
 
 ```
 src/
-├── skills/               # 67 skills in flat CC 2.1.7 structure
+├── skills/               # 68 skills in flat CC 2.1.7 structure
 │   └── <skill-name>/
 │       ├── SKILL.md           # Required: Patterns and best practices
 │       ├── references/        # Optional: Specific implementations
@@ -49,7 +49,7 @@ src/
 manifests/                # Plugin definitions (3 JSON files)
 ├── orkl.json             # Universal toolkit (46 skills)
 ├── ork-creative.json     # Video production add-on (2 skills)
-└── ork.json              # Full specialized (67 skills)
+└── ork.json              # Full specialized (68 skills)
 ```
 
 ### Generated Files (Do Not Edit)
