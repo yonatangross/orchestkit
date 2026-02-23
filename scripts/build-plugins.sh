@@ -234,28 +234,33 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
         cp -R "$SRC_DIR/shared" "$PLUGIN_DIR/"
     fi
 
-    # Generate plugin.json
-    {
-        echo '{'
-        echo "  \"name\": \"$PLUGIN_NAME\","
-        echo "  \"version\": \"$PLUGIN_VERSION\","
-        echo "  \"description\": \"$PLUGIN_DESC\","
-        echo '  "author": {'
-        echo '    "name": "Yonatan Gross",'
-        echo '    "email": "yonatan2gross@gmail.com",'
-        echo '    "url": "https://github.com/yonatangross/orchestkit"'
-        echo '  },'
-        echo '  "homepage": "https://github.com/yonatangross/orchestkit",'
-        echo '  "repository": "https://github.com/yonatangross/orchestkit",'
-        echo '  "license": "MIT",'
-        echo '  "keywords": ["ai-development", "langgraph", "fastapi", "react", "typescript", "python", "multi-agent"]'
-        [[ -d "$PLUGIN_DIR/skills" ]] && echo '  ,"skills": "./skills/"'
-        [[ -d "$PLUGIN_DIR/commands" ]] && echo '  ,"commands": "./commands/"'
-        # Note: "hooks" field not needed - CC auto-discovers hooks/hooks.json
-        # Note: "agents" field removed - Claude Code doesn't support this field
-        # Agents are auto-discovered from the agents/ directory
-        echo '}'
-    } > "$PLUGIN_DIR/.claude-plugin/plugin.json"
+    # Generate plugin.json using jq for consistent formatting.
+    # release-please updates the version field in this file via extra-files,
+    # so the output format must match jq's default (2-space indent) to avoid
+    # build drift on release PRs.
+    jq -n \
+        --arg name "$PLUGIN_NAME" \
+        --arg version "$PLUGIN_VERSION" \
+        --arg desc "$PLUGIN_DESC" \
+        --argjson has_skills "$([[ -d "$PLUGIN_DIR/skills" ]] && echo true || echo false)" \
+        --argjson has_commands "$([[ -d "$PLUGIN_DIR/commands" ]] && echo true || echo false)" \
+        '{
+          name: $name,
+          version: $version,
+          description: $desc,
+          author: {
+            name: "Yonatan Gross",
+            email: "yonatan2gross@gmail.com",
+            url: "https://github.com/yonatangross/orchestkit"
+          },
+          homepage: "https://github.com/yonatangross/orchestkit",
+          repository: "https://github.com/yonatangross/orchestkit",
+          license: "MIT",
+          keywords: ["ai-development","langgraph","fastapi","react","typescript","python","multi-agent"]
+        }
+        + if $has_skills then {skills: "./skills/"} else {} end
+        + if $has_commands then {commands: "./commands/"} else {} end' \
+        > "$PLUGIN_DIR/.claude-plugin/plugin.json"
 
     TOTAL_SKILLS_COPIED=$((TOTAL_SKILLS_COPIED + skill_count))
     TOTAL_AGENTS_COPIED=$((TOTAL_AGENTS_COPIED + agent_count))
