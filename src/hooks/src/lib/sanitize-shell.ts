@@ -59,6 +59,18 @@ export function assertSafeCommandName(cmd: string): string {
 }
 
 /**
+ * Validate that a string is a safe filename glob pattern.
+ * Allows: alphanumeric, dots, underscores, hyphens, asterisks (for globs).
+ * For use with `find -name` inside double quotes (shell won't expand globs).
+ */
+export function assertSafeGlobPattern(pattern: string, label = 'glob pattern'): string {
+  if (!pattern || !/^[a-zA-Z0-9._*-]+$/.test(pattern)) {
+    throw new Error(`Unsafe ${label}: ${JSON.stringify(pattern)}`);
+  }
+  return pattern;
+}
+
+/**
  * Validate that a string looks like a GitHub issue number (digits only).
  */
 export function assertSafeIssueNumber(num: string): string {

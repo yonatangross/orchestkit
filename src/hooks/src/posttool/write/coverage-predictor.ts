@@ -10,7 +10,7 @@ import { execSync } from 'node:child_process';
 import { basename } from 'node:path';
 import type { HookInput, HookResult } from '../../types.js';
 import { outputSilentSuccess, getField, getProjectDir } from '../../lib/common.js';
-import { assertSafeShellArg } from '../../lib/sanitize-shell.js';
+import { assertSafeShellArg, assertSafeGlobPattern } from '../../lib/sanitize-shell.js';
 
 /**
  * Predict test coverage for written files
@@ -62,9 +62,9 @@ export function coveragePredictor(input: HookInput): HookResult {
   let testExists = '';
   try {
     const safeDir = assertSafeShellArg(projectDir, 'project dir');
-    // testPattern is internally generated (basename + .test.*), not user input — safe to use quoted
+    const safePattern = assertSafeGlobPattern(testPattern, 'test pattern');
     const findResult = execSync(
-      `find "${safeDir}" -type f -name "${testPattern}" 2>/dev/null | head -1`,
+      `find "${safeDir}" -type f -name "${safePattern}" 2>/dev/null | head -1`,
       { encoding: 'utf8', timeout: 5000 }
     ).trim();
     testExists = findResult;
