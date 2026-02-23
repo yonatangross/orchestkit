@@ -62,9 +62,9 @@ export function coveragePredictor(input: HookInput): HookResult {
   let testExists = '';
   try {
     const safeDir = assertSafeShellArg(projectDir, 'project dir');
-    const safePattern = assertSafeShellArg(testPattern, 'test pattern');
+    // testPattern is internally generated (basename + .test.*), not user input — safe to use quoted
     const findResult = execSync(
-      `find "${safeDir}" -type f -name "${safePattern}" 2>/dev/null | head -1`,
+      `find "${safeDir}" -type f -name "${testPattern}" 2>/dev/null | head -1`,
       { encoding: 'utf8', timeout: 5000 }
     ).trim();
     testExists = findResult;

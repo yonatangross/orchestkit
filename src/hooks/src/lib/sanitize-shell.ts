@@ -13,7 +13,7 @@
  * hyphens, underscores, tildes, equals, colons, at-signs.
  * Rejects anything containing shell metacharacters.
  */
-const SAFE_ARG_RE = /^[a-zA-Z0-9._/\-~=:@]+$/;
+const SAFE_ARG_RE = /^[a-zA-Z0-9._/~=:@-]+$/;
 
 /**
  * Validate that a string is safe to interpolate into a shell command.
@@ -41,7 +41,7 @@ export function shellQuote(arg: string): string {
  * Rejects shell metacharacters, spaces, and anything suspicious.
  */
 export function assertSafeGitRef(ref: string, label = 'git ref'): string {
-  if (!ref || !/^[a-zA-Z0-9._/\-]+$/.test(ref)) {
+  if (!ref || !/^[a-zA-Z0-9._/-]+$/.test(ref)) {
     throw new Error(`Unsafe ${label}: ${JSON.stringify(ref)}`);
   }
   return ref;
