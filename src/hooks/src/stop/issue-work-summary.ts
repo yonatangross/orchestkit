@@ -10,6 +10,7 @@ import { execSync } from 'node:child_process';
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, getProjectDir, getSessionId, outputSilentSuccess } from '../lib/common.js';
 import { getSessionTempDir } from '../lib/paths.js';
+import { assertSafeIssueNumber } from '../lib/sanitize-shell.js';
 
 interface IssueProgress {
   issues: {
@@ -84,7 +85,13 @@ ${tasksSection}
  */
 function postComment(issueNum: string, comment: string): boolean {
   try {
-    execSync(`gh issue comment ${issueNum} --body "${comment.replace(/"/g, '\\"')}"`, {
+    // Sanitize issueNum to digits only to prevent command injection
+    const safeIssueNum = issueNum.replace(/[^0-9]/g, '');
+    if (!safeIssueNum) return false;
+
+    // Use stdin to pass comment body, avoiding shell escaping issues entirely
+    execSync(`gh issue comment ${safeIssueNum} --body-file -`, {
+      input: comment,
       encoding: 'utf8',
       timeout: 30000,
       stdio: ['pipe', 'pipe', 'pipe'],
@@ -155,7 +162,7 @@ export function issueWorkSummary(input: HookInput): HookResult {
 
     // Verify issue exists
     try {
-      execSync(`gh issue view ${issueNum} --json number`, {
+      execSync(`gh issue view ${assertSafeIssueNumber(issueNum)} --json number`, {
         encoding: 'utf8',
         timeout: 10000,
         stdio: ['pipe', 'pipe', 'pipe'],

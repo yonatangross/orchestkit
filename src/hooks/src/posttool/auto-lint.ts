@@ -13,6 +13,7 @@ import { execSync } from 'node:child_process';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, getField, logHook } from '../lib/common.js';
 import { basename } from 'node:path';
+import { assertSafeCommandName, assertSafeShellArg } from '../lib/sanitize-shell.js';
 
 /**
  * Get language from file extension
@@ -43,6 +44,7 @@ function getLanguage(filePath: string): string | null {
  */
 function commandExists(cmd: string): boolean {
   try {
+    assertSafeCommandName(cmd);
     execSync(`which ${cmd}`, { stdio: 'ignore' });
     return true;
   } catch {
@@ -92,19 +94,20 @@ export function autoLint(input: HookInput): HookResult {
 
   let lintIssues = 0;
   let fixesApplied = false;
+  const safePath = assertSafeShellArg(fullPath, 'file path');
 
   try {
     switch (language) {
       case 'python':
         if (commandExists('ruff')) {
           try {
-            const ruffCheck = execSync(`timeout 5s ruff check --output-format=concise "${fullPath}" 2>&1`, {
+            const ruffCheck = execSync(`timeout 5s ruff check --output-format=concise "${safePath}" 2>&1`, {
               encoding: 'utf8',
               stdio: ['pipe', 'pipe', 'pipe'],
             });
             if (ruffCheck) {
               lintIssues = ruffCheck.split('\n').filter(Boolean).length;
-              execSync(`timeout 5s ruff check --fix --unsafe-fixes=false "${fullPath}" 2>/dev/null`, {
+              execSync(`timeout 5s ruff check --fix --unsafe-fixes=false "${safePath}" 2>/dev/null`, {
                 stdio: 'ignore',
               });
               fixesApplied = true;
@@ -113,7 +116,7 @@ export function autoLint(input: HookInput): HookResult {
             // ruff check returns non-zero when issues found
           }
           try {
-            execSync(`timeout 5s ruff format "${fullPath}" 2>/dev/null`, { stdio: 'ignore' });
+            execSync(`timeout 5s ruff format "${safePath}" 2>/dev/null`, { stdio: 'ignore' });
           } catch {
             // Ignore format errors
           }
@@ -124,7 +127,7 @@ export function autoLint(input: HookInput): HookResult {
       case 'javascript':
         if (commandExists('biome')) {
           try {
-            const biomeOut = execSync(`timeout 5s biome check --write "${fullPath}" 2>&1`, {
+            const biomeOut = execSync(`timeout 5s biome check --write "${safePath}" 2>&1`, {
               encoding: 'utf8',
               stdio: ['pipe', 'pipe', 'pipe'],
             });
@@ -144,7 +147,7 @@ export function autoLint(input: HookInput): HookResult {
       case 'css':
         if (commandExists('biome')) {
           try {
-            execSync(`timeout 5s biome format --write "${fullPath}" 2>/dev/null`, {
+            execSync(`timeout 5s biome format --write "${safePath}" 2>/dev/null`, {
               stdio: 'ignore',
             });
             fixesApplied = true;

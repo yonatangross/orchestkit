@@ -9,6 +9,7 @@ import { execSync } from 'node:child_process';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, outputWithContext, getProjectDir } from '../lib/common.js';
 import { getRepoRoot, getCurrentBranch, getDefaultBranch } from '../lib/git.js';
+import { assertSafeGitRef, assertSafeShellArg } from '../lib/sanitize-shell.js';
 
 interface ConflictInfo {
   worktree: string;
@@ -57,7 +58,8 @@ function getWorktreeBranch(worktree: string): string {
  */
 function isFileModified(worktree: string, relPath: string): boolean {
   try {
-    const status = execSync(`git status --short "${relPath}"`, {
+    const safePath = assertSafeShellArg(relPath, 'relative path');
+    const status = execSync(`git status --short "${safePath}"`, {
       cwd: worktree,
       encoding: 'utf8',
       timeout: 5000,
@@ -74,8 +76,10 @@ function isFileModified(worktree: string, relPath: string): boolean {
  */
 function getBranchDivergence(baseBranch: string, currentBranch: string): { ahead: number; behind: number } {
   try {
+    const safeBase = assertSafeGitRef(baseBranch, 'base branch');
+    const safeCurrent = assertSafeGitRef(currentBranch, 'current branch');
     const ahead = parseInt(
-      execSync(`git rev-list --count ${baseBranch}..${currentBranch}`, {
+      execSync(`git rev-list --count ${safeBase}..${safeCurrent}`, {
         encoding: 'utf8',
         timeout: 5000,
         stdio: ['pipe', 'pipe', 'pipe'],
@@ -83,7 +87,7 @@ function getBranchDivergence(baseBranch: string, currentBranch: string): { ahead
       10
     );
     const behind = parseInt(
-      execSync(`git rev-list --count ${currentBranch}..${baseBranch}`, {
+      execSync(`git rev-list --count ${safeCurrent}..${safeBase}`, {
         encoding: 'utf8',
         timeout: 5000,
         stdio: ['pipe', 'pipe', 'pipe'],
