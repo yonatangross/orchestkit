@@ -1,6 +1,6 @@
 {
   "name": "orkl",
-  "version": "6.5.2",
+  "version": "6.5.3",
   "description": "Standalone base — 46 skills, 37 agents, 77 hooks. Any stack. Add ork-creative for video or use ork for everything.",
   "author": {
     "name": "Yonatan Gross",
@@ -10,7 +10,15 @@
   "homepage": "https://github.com/yonatangross/orchestkit",
   "repository": "https://github.com/yonatangross/orchestkit",
   "license": "MIT",
-  "keywords": ["ai-development", "langgraph", "fastapi", "react", "typescript", "python", "multi-agent"]
-  ,"skills": "./skills/"
-  ,"commands": "./commands/"
+  "keywords": [
+    "ai-development",
+    "langgraph",
+    "fastapi",
+    "react",
+    "typescript",
+    "python",
+    "multi-agent"
+  ],
+  "skills": "./skills/",
+  "commands": "./commands/"
 }
