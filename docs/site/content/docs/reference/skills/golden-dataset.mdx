@@ -395,22 +395,31 @@ def aggregate_results(
     )
 ```
 
-**Langfuse Integration:**
+**Langfuse Integration (v3):**
 ```python
-trace = langfuse.trace(
-    name="golden-dataset-curation",
-    metadata={"source_url": url, "document_id": doc_id}
-)
+from langfuse import observe, get_client
 
-# Log individual dimension scores
-trace.score(name="accuracy", value=0.85)
-trace.score(name="coherence", value=0.90)
-trace.score(name="depth", value=0.78)
-trace.score(name="relevance", value=0.92)
+@observe(name="golden-dataset-curation")
+async def curate_with_tracing(url: str, doc_id: str, consensus: CurationConsensus) -> dict:
+    """Trace curation decisions to Langfuse for audit trail."""
+    get_client().update_current_trace(
+        metadata={"source_url": url, "document_id": doc_id}
+    )
 
-# Final aggregated score
-trace.score(name="quality_total", value=0.87)
-trace.event(name="curation_decision", metadata={"decision": "include"})
+    # Log individual dimension scores against the current trace
+    lf = get_client()
+    trace_id = lf.get_current_trace_id()
+    lf.score(trace_id=trace_id, name="accuracy", value=0.85)
+    lf.score(trace_id=trace_id, name="coherence", value=0.90)
+    lf.score(trace_id=trace_id, name="depth", value=0.78)
+    lf.score(trace_id=trace_id, name="relevance", value=0.92)
+
+    # Final aggregated score
+    lf.score(trace_id=trace_id, name="quality_total", value=consensus.quality_score)
+    get_client().update_current_observation(
+        metadata={"curation_decision": consensus.decision}
+    )
+    return {"decision": consensus.decision, "score": consensus.quality_score}
 ```
 
 **Incorrect — Sequential agent execution:**

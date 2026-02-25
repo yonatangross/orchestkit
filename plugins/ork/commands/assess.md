@@ -50,34 +50,11 @@ AskUserQuestion(
 
 ## STEP 0b: Select Orchestration Mode
 
-Choose **Agent Teams** (mesh — assessors cross-validate scores) or **Task tool** (star — all report to lead):
+See [Orchestration Mode](references/orchestration-mode.md) for env var check logic, Agent Teams vs Task Tool comparison, and mode selection rules.
 
-```python
-import os
-teams_available = os.environ.get("CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS") is not None
-force_task_tool = os.environ.get("ORCHESTKIT_FORCE_TASK_TOOL") == "1"
-
-if force_task_tool or not teams_available:
-    mode = "task_tool"
-else:
-    # Teams available — use for full multi-dimensional assessment
-    mode = "agent_teams" if dimensions == "full" else "task_tool"
-```
-
-1. `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` set → **Agent Teams mode** (for full assessment)
-2. Flag not set → **Task tool mode** (default)
-3. Quick score or single-dimension → **Task tool** (regardless of flag)
-
-| Aspect | Task Tool | Agent Teams |
-|--------|-----------|-------------|
-| Score calibration | Lead normalizes independently | Assessors discuss disagreements |
-| Cross-dimension findings | Lead correlates after completion | Security assessor alerts performance assessor of overlap |
-| Cost | ~200K tokens | ~500K tokens |
-| Best for | Quick scores, single dimension | Full multi-dimensional assessment |
+Choose **Agent Teams** (mesh — assessors cross-validate scores) or **Task tool** (star — all report to lead) based on the orchestration mode reference.
 
 > **Context window:** For full codebase assessments (>20 files), use the 1M context window to avoid agent context exhaustion. On 200K context, the scope discovery in Phase 1.5 limits files to prevent overflow.
-
-> **Fallback:** If Agent Teams encounters issues, fall back to Task tool for remaining assessment.
 
 
 ## Task Management (CC 2.1.16)
@@ -172,18 +149,9 @@ file_list = "\n".join(f"- {f}" for f in scope_files)
 
 ## Phase 2: Quality Rating (6 Dimensions)
 
-Rate each dimension 0-10 with weighted composite score. See [Scoring Rubric](references/scoring-rubric.md) for details.
+Rate each dimension 0-10 with weighted composite score. See [Quality Model](references/quality-model.md) for scoring dimensions, weights, and grade interpretation. See [Scoring Rubric](references/scoring-rubric.md) for detailed per-dimension criteria.
 
-| Dimension | Weight | What It Measures |
-|-----------|--------|------------------|
-| Correctness | 0.20 | Does it work correctly? |
-| Maintainability | 0.20 | Easy to understand/modify? |
-| Performance | 0.15 | Efficient, no bottlenecks? |
-| Security | 0.15 | Follows best practices? |
-| Scalability | 0.15 | Handles growth? |
-| Testability | 0.15 | Easy to test? |
-
-**Composite Score:** Weighted average of all dimensions.
+**Composite Score:** Weighted average of all 7 dimensions (see quality-model.md).
 
 Launch parallel agents with `run_in_background=True`. **Always include the scoped file list from Phase 1.5** in every agent prompt — agents without scope constraints will exhaust their context windows.
 
@@ -284,14 +252,7 @@ See [Scoring Rubric](references/scoring-rubric.md) for full report template.
 
 ## Grade Interpretation
 
-| Score | Grade | Verdict |
-|-------|-------|---------|
-| 9.0-10.0 | A+ | EXCELLENT |
-| 8.0-8.9 | A | GOOD |
-| 7.0-7.9 | B | GOOD |
-| 6.0-6.9 | C | ADEQUATE |
-| 5.0-5.9 | D | NEEDS WORK |
-| 0.0-4.9 | F | CRITICAL |
+See [Quality Model](references/quality-model.md) for scoring dimensions, weights, and grade interpretation.
 
 
 ## Key Decisions

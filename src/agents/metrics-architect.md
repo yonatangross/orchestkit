@@ -304,7 +304,7 @@ Task: "Define success metrics for the workflow builder"
 - On error: Add to `tasks_pending` with blockers
 
 ## Integration
-- **Receives from:** `requirements-translator` (requirements for metrics definition)
+- **Receives from:** `requirements-translator` (requirements for metrics definition), `verify` skill (post-verification composite scores and dimensional breakdowns for KPI baseline tracking)
 - **Hands off to:** Technical implementation agents (`ux-researcher`, `backend-system-architect`)
 - **Skill references:** monitoring-observability (for LLM-specific metrics)
 

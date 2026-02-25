@@ -382,6 +382,8 @@ export const SKILLS: Record<string, SkillMeta> = {
         "agent-teams-mode.md",
         "alternative-analysis.md",
         "improvement-prioritization.md",
+        "orchestration-mode.md",
+        "quality-model.md",
         "scoring-rubric.md"
       ],
       "assets": [
@@ -1461,7 +1463,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "orkl"
     ],
     "relatedAgents": [
-      "data-pipeline-engineer"
+      "data-pipeline-engineer",
+      "eval-runner"
     ]
   },
   "help": {
@@ -1812,6 +1815,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "demo-producer",
       "deployment-manager",
       "documentation-specialist",
+      "eval-runner",
       "event-driven-architect",
       "frontend-performance-engineer",
       "frontend-ui-developer",
@@ -1902,6 +1906,7 @@ export const SKILLS: Record<string, SkillMeta> = {
         "agent-observability.md",
         "alerting-dashboards.md",
         "alerting-strategies.md",
+        "annotation-queues.md",
         "cost-tracking.md",
         "dashboards.md",
         "distributed-tracing.md",
@@ -1915,6 +1920,7 @@ export const SKILLS: Record<string, SkillMeta> = {
         "metrics-collection.md",
         "migration-v2-v3.md",
         "multi-judge-evaluation.md",
+        "online-evaluators.md",
         "prompt-management.md",
         "session-tracking.md",
         "statistical-methods.md",
@@ -1944,6 +1950,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ci-cd-engineer",
       "debug-investigator",
       "deployment-manager",
+      "eval-runner",
       "frontend-performance-engineer",
       "infrastructure-architect",
       "llm-integrator",
@@ -2560,6 +2567,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "demo-producer",
       "deployment-manager",
       "documentation-specialist",
+      "eval-runner",
       "event-driven-architect",
       "frontend-performance-engineer",
       "frontend-ui-developer",
@@ -2860,6 +2868,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "database-engineer",
       "demo-producer",
       "deployment-manager",
+      "eval-runner",
       "event-driven-architect",
       "frontend-performance-engineer",
       "frontend-ui-developer",
@@ -2969,6 +2978,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "relatedAgents": [
       "accessibility-specialist",
       "code-quality-reviewer",
+      "eval-runner",
       "frontend-ui-developer",
       "metrics-architect",
       "monitoring-engineer",
@@ -3155,7 +3165,9 @@ export const SKILLS: Record<string, SkillMeta> = {
       "references": [
         "alternative-comparison.md",
         "grading-rubric.md",
+        "orchestration-mode.md",
         "policy-as-code.md",
+        "quality-model.md",
         "report-template.md",
         "verification-checklist.md"
       ],

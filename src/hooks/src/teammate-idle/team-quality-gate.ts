@@ -5,7 +5,8 @@
  * Team Quality Gate - TeammateIdle Hook
  *
  * Aggregates quality signals from idle teammates.
- * Surfaces a warning if a teammate goes idle without completing their task.
+ * Surfaces a warning only if a teammate goes idle without producing meaningful output
+ * AND has no recent task completion signal.
  *
  * @hook TeammateIdle
  * @since CC 2.1.33
@@ -19,8 +20,56 @@ import { getTeamName } from '../lib/agent-teams.js';
 import { appendEventLog } from '../lib/event-logger.js';
 
 /** Window within which completions count as "recent" */
-const COMPLETION_WINDOW_MS = 120_000;
+const COMPLETION_WINDOW_MS = 300_000;
 
+/** Minimum output length to consider as productive work */
+const MEANINGFUL_OUTPUT_MIN_CHARS = 100;
+
+/**
+ * Check if the teammate produced meaningful output (primary signal).
+ * Uses last_assistant_message or agent_output from the hook input.
+ */
+function hasProductiveOutput(input: HookInput): boolean {
+  const output = input.last_assistant_message || input.agent_output || input.output || '';
+  return output.length >= MEANINGFUL_OUTPUT_MIN_CHARS;
+}
+
+/**
+ * Check task-completions.jsonl for recent completion events (secondary signal).
+ * Gracefully returns false if the file doesn't exist or can't be read.
+ */
+function hasRecentCompletion(projectDir: string): boolean {
+  const completionsPath = join(projectDir, '.claude', 'logs', 'task-completions.jsonl');
+
+  if (!existsSync(completionsPath)) {
+    return false;
+  }
+
+  const cutoff = new Date(Date.now() - COMPLETION_WINDOW_MS).toISOString();
+
+  try {
+    const content = readFileSync(completionsPath, 'utf-8');
+    const lines = content.trim().split('\n').filter(Boolean);
+    const recent = lines.slice(-30);
+
+    for (const line of recent) {
+      try {
+        const entry = JSON.parse(line);
+        if (entry.timestamp && entry.timestamp >= cutoff) {
+          return true;
+        }
+      } catch {
+        // Skip invalid lines
+      }
+    }
+  } catch {
+    // Non-critical — proceed without completion data
+  }
+
+  return false;
+}
+
+/** Team quality gate for idle teammate detection. */
 export function teamQualityGate(input: HookInput): HookResult {
   const teamName = getTeamName();
   if (!teamName) {
@@ -35,37 +84,11 @@ export function teamQualityGate(input: HookInput): HookResult {
   const teammateId = input.teammate_id || input.agent_id || 'unknown';
   const teammateType = input.teammate_type || input.subagent_type || 'unknown';
 
-  // Check if this teammate recently completed a task
-  const completionsPath = join(projectDir, '.claude', 'logs', 'task-completions.jsonl');
-  let hasRecentCompletion = false;
+  // Primary signal: did the teammate produce meaningful output?
+  const productive = hasProductiveOutput(input);
 
-  if (existsSync(completionsPath)) {
-    const cutoff = new Date(Date.now() - COMPLETION_WINDOW_MS).toISOString();
-
-    try {
-      const content = readFileSync(completionsPath, 'utf-8');
-      const lines = content.trim().split('\n').filter(Boolean);
-      const recent = lines.slice(-30);
-
-      for (const line of recent) {
-        try {
-          const entry = JSON.parse(line);
-          if (
-            entry.event === 'task_completed' &&
-            entry.timestamp &&
-            entry.timestamp >= cutoff
-          ) {
-            hasRecentCompletion = true;
-            break;
-          }
-        } catch {
-          // Skip invalid lines
-        }
-      }
-    } catch {
-      // Non-critical — proceed without completion data
-    }
-  }
+  // Secondary signal: any recent completion events in the log?
+  const recentCompletion = hasRecentCompletion(projectDir);
 
   // Log quality status
   appendEventLog('team-quality.jsonl', {
@@ -74,18 +97,20 @@ export function teamQualityGate(input: HookInput): HookResult {
     team_name: teamName,
     teammate_id: teammateId,
     teammate_type: teammateType,
-    has_recent_completion: hasRecentCompletion,
+    has_productive_output: productive,
+    has_recent_completion: recentCompletion,
     session_id: input.session_id,
   });
 
-  if (!hasRecentCompletion) {
+  // Only warn if BOTH signals are negative: no meaningful output AND no recent completion
+  if (!productive && !recentCompletion) {
     logHook(
       'team-quality-gate',
-      `Teammate "${teammateId}" (${teammateType}) idle without recent task completion`,
+      `Teammate "${teammateId}" (${teammateType}) idle without productive output or recent completion`,
     );
     return outputWithContext(
       `Teammate "${teammateType}" (${teammateId}) went idle without completing a task. ` +
-      `Check if their work is stuck or needs reassignment.`,
+        `Check if their work is stuck or needs reassignment.`,
     );
   }
 

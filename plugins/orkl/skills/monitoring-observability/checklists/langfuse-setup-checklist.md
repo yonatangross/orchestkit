@@ -20,20 +20,47 @@ Complete guide for setting up Langfuse observability in your application, based 
 
 ### Option B: Self-Hosted (Recommended for Production)
 
+Langfuse v3 requires ClickHouse (analytics), Redis (queuing), MinIO (blob storage), and Postgres.
+
 - [ ] Create `docker-compose.yml` for Langfuse:
   ```yaml
   services:
-    langfuse-server:
-      image: langfuse/langfuse:latest
+    langfuse-web:
+      image: langfuse/langfuse:3
       ports:
         - "3000:3000"
       environment:
         DATABASE_URL: postgresql://langfuse:password@postgres:5432/langfuse
+        CLICKHOUSE_URL: http://clickhouse:8123
+        REDIS_URL: redis://redis:6379
+        LANGFUSE_S3_UPLOAD_BUCKET: langfuse
+        LANGFUSE_S3_ENDPOINT: http://minio:9000
+        LANGFUSE_S3_ACCESS_KEY_ID: minio
+        LANGFUSE_S3_SECRET_ACCESS_KEY: miniosecret
         NEXTAUTH_SECRET: your-secret-key-here  # Generate: openssl rand -base64 32
         NEXTAUTH_URL: http://localhost:3000
         SALT: your-salt-here  # Generate: openssl rand -base64 32
       depends_on:
         - postgres
+        - clickhouse
+        - redis
+        - minio
+
+    langfuse-worker:
+      image: langfuse/langfuse-worker:3
+      environment:
+        DATABASE_URL: postgresql://langfuse:password@postgres:5432/langfuse
+        CLICKHOUSE_URL: http://clickhouse:8123
+        REDIS_URL: redis://redis:6379
+        LANGFUSE_S3_UPLOAD_BUCKET: langfuse
+        LANGFUSE_S3_ENDPOINT: http://minio:9000
+        LANGFUSE_S3_ACCESS_KEY_ID: minio
+        LANGFUSE_S3_SECRET_ACCESS_KEY: miniosecret
+      depends_on:
+        - postgres
+        - clickhouse
+        - redis
+        - minio
 
     postgres:
       image: postgres:15
@@ -44,8 +71,33 @@ Complete guide for setting up Langfuse observability in your application, based 
       volumes:
         - langfuse-postgres:/var/lib/postgresql/data
 
+    clickhouse:
+      image: clickhouse/clickhouse-server:24
+      environment:
+        CLICKHOUSE_DB: langfuse
+        CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: "1"
+      volumes:
+        - langfuse-clickhouse:/var/lib/clickhouse
+
+    redis:
+      image: redis:7-alpine
+      volumes:
+        - langfuse-redis:/data
+
+    minio:
+      image: minio/minio
+      command: server /data --console-address ":9001"
+      environment:
+        MINIO_ROOT_USER: minio
+        MINIO_ROOT_PASSWORD: miniosecret
+      volumes:
+        - langfuse-minio:/data
+
   volumes:
     langfuse-postgres:
+    langfuse-clickhouse:
+    langfuse-redis:
+    langfuse-minio:
   ```
 
 - [ ] Start Langfuse: `docker-compose up -d`
@@ -57,13 +109,13 @@ Complete guide for setting up Langfuse observability in your application, based 
 
 ### Python (FastAPI/Flask/Django)
 
-- [ ] Install SDK: `pip install langfuse`
-- [ ] Add to requirements.txt: `langfuse>=2.0.0`
+- [ ] Install SDK: `pip install "langfuse>=3.13.0"`
+- [ ] Add to requirements.txt: `langfuse>=3.13.0`
 
 ### Node.js (Express/Next.js)
 
-- [ ] Install SDK: `npm install langfuse`
-- [ ] Add to package.json: `"langfuse": "^3.0.0"`
+- [ ] Install SDK: `npm install @langfuse/core`
+- [ ] Add to package.json: `"@langfuse/core": "^3.0.0"`
 
 ## Phase 3: Configuration
 
@@ -135,7 +187,7 @@ langfuse_client = Langfuse(
 **File:** `src/lib/langfuse.ts`
 
 ```typescript
-import { Langfuse } from 'langfuse';
+import { Langfuse } from '@langfuse/core';
 
 export const langfuse = new Langfuse({
   publicKey: process.env.LANGFUSE_PUBLIC_KEY!,
@@ -158,14 +210,14 @@ export const langfuse = new Langfuse({
 **Example:** `backend/app/services/analysis.py`
 
 ```python
-from langfuse.decorators import observe, langfuse_context
+from langfuse import observe, get_client
 
 @observe(name="analyze_content")
 async def analyze_content(url: str, content: str) -> AnalysisResult:
     """Analyze content with automatic Langfuse tracing."""
 
     # Set trace-level metadata
-    langfuse_context.update_current_trace(
+    get_client().update_current_trace(
         name="content_analysis",
         session_id=f"analysis_{analysis_id}",
         user_id="system",
@@ -200,7 +252,7 @@ async def analyze_content(url: str, content: str) -> AnalysisResult:
 ### Anthropic Claude
 
 ```python
-from langfuse.decorators import observe, langfuse_context
+from langfuse import observe, get_client
 from anthropic import AsyncAnthropic
 
 anthropic_client = AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY)
@@ -210,7 +262,7 @@ async def call_claude(prompt: str, model: str = "claude-sonnet-4-6") -> str:
     """Call Claude with cost tracking."""
 
     # Log input
-    langfuse_context.update_current_observation(
+    get_client().update_current_observation(
         input=prompt[:2000],  # Truncate large prompts
         model=model
     )
@@ -226,11 +278,11 @@ async def call_claude(prompt: str, model: str = "claude-sonnet-4-6") -> str:
     input_tokens = response.usage.input_tokens
     output_tokens = response.usage.output_tokens
 
-    # Calculate cost (Claude Sonnet 4.5: $3/MTok input, $15/MTok output)
+    # Calculate cost (Claude Sonnet 4.6: $3/MTok input, $15/MTok output)
     cost_usd = (input_tokens / 1_000_000) * 3.00 + (output_tokens / 1_000_000) * 15.00
 
     # Log output and usage
-    langfuse_context.update_current_observation(
+    get_client().update_current_observation(
         output=response.content[0].text[:2000],
         usage={
             "input": input_tokens,
@@ -256,7 +308,7 @@ async def call_claude(prompt: str, model: str = "claude-sonnet-4-6") -> str:
 async def call_openai(prompt: str, model: str = "gpt-5.2") -> str:
     """Call OpenAI with cost tracking."""
 
-    langfuse_context.update_current_observation(
+    get_client().update_current_observation(
         input=prompt[:2000],
         model=model
     )
@@ -271,7 +323,7 @@ async def call_openai(prompt: str, model: str = "gpt-5.2") -> str:
     output_tokens = response.usage.completion_tokens
     cost_usd = (input_tokens / 1_000_000) * 2.50 + (output_tokens / 1_000_000) * 10.00
 
-    langfuse_context.update_current_observation(
+    get_client().update_current_observation(
         output=response.choices[0].message.content[:2000],
         usage={
             "input": input_tokens,
@@ -293,7 +345,7 @@ async def call_openai(prompt: str, model: str = "gpt-5.2") -> str:
 ### Add Evaluation Scores
 
 ```python
-from langfuse.decorators import langfuse_context
+from langfuse import observe, get_client
 
 @observe(name="evaluate_quality")
 async def evaluate_response(query: str, response: str) -> dict:
@@ -307,8 +359,11 @@ async def evaluate_response(query: str, response: str) -> dict:
     }
 
     # Add scores to current trace
+    lf = get_client()
+    trace_id = lf.get_current_trace_id()
     for criterion, score in scores.items():
-        langfuse_context.score(
+        lf.score(
+            trace_id=trace_id,
             name=criterion,
             value=score,
             comment=f"Evaluated {criterion} of response"
@@ -316,7 +371,8 @@ async def evaluate_response(query: str, response: str) -> dict:
 
     # Add overall score
     overall = sum(scores.values()) / len(scores)
-    langfuse_context.score(
+    lf.score(
+        trace_id=trace_id,
         name="overall_quality",
         value=overall,
         comment="Average of all criteria"
@@ -414,10 +470,10 @@ HAVING SUM(calculated_total_cost) > 100;
 ### Prompt Management
 
 - [ ] Create prompts in Langfuse UI
-- [ ] Version prompts (v1, v2, etc.)
-- [ ] Use `langfuse.get_prompt()` in code
+- [ ] Version prompts using labels (`production`, `staging`, custom)
+- [ ] Use `get_client().get_prompt()` in code with `fallback=` for resilience
 - [ ] A/B test prompt versions
-- [ ] Promote winning prompts to production
+- [ ] Promote winning prompts to production label
 
 ### Dataset Evaluation
 
@@ -454,4 +510,4 @@ HAVING SUM(calculated_total_cost) > 100;
 - [Python SDK Guide](https://langfuse.com/docs/sdk/python)
 - [Self-Hosting Guide](https://langfuse.com/docs/deployment/self-host)
 - [Cost Tracking](https://langfuse.com/docs/model-usage-and-cost)
-- Template: `../scripts/langfuse-decorator-pattern.py`
+- Template: `../scripts/observe-decorator.py`

@@ -44,7 +44,7 @@ AskUserQuestion(
 ```
 
 **Based on answer, adjust workflow:**
-- **Full verification**: All 8 phases, all 5 parallel agents
+- **Full verification**: All 8 phases, all 6 parallel agents
 - **Tests only**: Skip phases 2 (security), 5 (UI/UX analysis)
 - **Security audit**: Focus on security-auditor agent
 - **Code quality**: Focus on code-quality-reviewer agent
@@ -53,20 +53,9 @@ AskUserQuestion(
 
 ## STEP 0b: Select Orchestration Mode
 
-Choose **Agent Teams** (mesh — verifiers share findings) or **Task tool** (star — all report to lead):
+See [Orchestration Mode](references/orchestration-mode.md) for env var check logic, Agent Teams vs Task Tool comparison, and mode selection rules.
 
-1. `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` → **Agent Teams mode**
-2. Agent Teams unavailable → **Task tool mode** (default)
-3. Otherwise: Full verification with cross-domain concerns → recommend **Agent Teams**; Single-scope verification → **Task tool**
-
-| Aspect | Task Tool | Agent Teams |
-|--------|-----------|-------------|
-| Finding correlation | Lead cross-references scores | Agents discuss overlapping concerns |
-| Security + test overlap | Independent scoring | security-auditor alerts test-generator about gaps |
-| Cost | ~200K tokens | ~500K tokens |
-| Best for | Focused verification | Full-stack verification with 5 agents |
-
-> **Fallback:** If Agent Teams encounters issues, fall back to Task tool for remaining verification.
+Choose **Agent Teams** (mesh — verifiers share findings) or **Task tool** (star — all report to lead) based on the orchestration mode reference.
 
 
 ## Task Management (CC 2.1.16)
@@ -93,7 +82,7 @@ for phase in phases:
 | Phase | Activities | Output |
 |-------|------------|--------|
 | **1. Context Gathering** | Git diff, commit history | Changes summary |
-| **2. Parallel Agent Dispatch** | 5 agents evaluate | 0-10 scores |
+| **2. Parallel Agent Dispatch** | 6 agents evaluate | 0-10 scores |
 | **3. Test Execution** | Backend + frontend tests | Coverage data |
 | **4. Nuanced Grading** | Composite score calculation | Grade (A-F) |
 | **5. Improvement Suggestions** | Effort vs impact analysis | Prioritized list |
@@ -112,7 +101,7 @@ git diff main --name-only | sort -u
 ```
 
 
-## Phase 2: Parallel Agent Dispatch (5 Agents)
+## Phase 2: Parallel Agent Dispatch (6 Agents)
 
 Launch ALL agents in ONE message with `run_in_background=True` and `max_turns=25`.
 
@@ -123,6 +112,9 @@ Launch ALL agents in ONE message with `run_in_background=True` and `max_turns=25
 | test-generator | Coverage, test quality | Coverage 0-10 |
 | backend-system-architect | API design, async | API 0-10 |
 | frontend-ui-developer | React 19, Zod, a11y | UI 0-10 |
+| python-performance-engineer | Latency, resources, scaling | Performance 0-10 |
+
+Use `python-performance-engineer` for backend-focused verification or `frontend-performance-engineer` for frontend-focused verification. See [Quality Model](references/quality-model.md) for Performance (0.12) and Scalability (0.10) weights.
 
 See [Grading Rubric](references/grading-rubric.md) for detailed scoring criteria.
 
@@ -166,6 +158,15 @@ Task(subagent_type="frontend-ui-developer", name="ui-verifier",
      When api-verifier shares API patterns, verify frontend matches.
      Check React 19 patterns, accessibility, and loading states.
      Share findings with quality-verifier for overall assessment.""")
+
+# Conditional 6th agent — use python-performance-engineer for backend,
+# frontend-performance-engineer for frontend
+Task(subagent_type="python-performance-engineer", name="perf-verifier",
+     team_name="verify-{feature}",
+     prompt="""Verify performance and scalability for {feature}. Score 0-10.
+     Assess latency, resource usage, caching, and scaling patterns.
+     When security-verifier flags resource-intensive endpoints, profile them.
+     Share performance findings with api-verifier and quality-verifier.""")
 ```
 
 **Team teardown** after report compilation:
@@ -176,6 +177,7 @@ SendMessage(type="shutdown_request", recipient="security-verifier", content="Ver
 SendMessage(type="shutdown_request", recipient="test-verifier", content="Verification complete")
 SendMessage(type="shutdown_request", recipient="api-verifier", content="Verification complete")
 SendMessage(type="shutdown_request", recipient="ui-verifier", content="Verification complete")
+SendMessage(type="shutdown_request", recipient="perf-verifier", content="Verification complete")
 TeamDelete()
 ```
 
@@ -195,42 +197,12 @@ cd frontend && npm run test -- --coverage
 
 ## Phase 4: Nuanced Grading
 
-See [Grading Rubric](references/grading-rubric.md) for full scoring details.
-
-**Weights:**
-| Dimension | Weight |
-|-----------|--------|
-| Code Quality | 20% |
-| Security | 25% |
-| Test Coverage | 20% |
-| API Compliance | 20% |
-| UI Compliance | 15% |
-
-**Grade Interpretation:**
-
-| Score | Grade | Action |
-|-------|-------|--------|
-| 9.0-10.0 | A+ | Ship it! |
-| 8.0-8.9 | A | Ready for merge |
-| 7.0-7.9 | B | Minor improvements optional |
-| 6.0-6.9 | C | Consider improvements |
-| 5.0-5.9 | D | Improvements recommended |
-| 0.0-4.9 | F | Do not merge |
+See [Quality Model](references/quality-model.md) for scoring dimensions, weights, and grade interpretation. See [Grading Rubric](references/grading-rubric.md) for detailed per-agent scoring criteria.
 
 
 ## Phase 5: Improvement Suggestions
 
-Each suggestion includes effort (1-5) and impact (1-5) with priority = impact/effort.
-
-| Points | Effort | Impact |
-|--------|--------|--------|
-| 1 | < 15 min | Minimal |
-| 2 | 15-60 min | Low |
-| 3 | 1-4 hrs | Medium |
-| 4 | 4-8 hrs | High |
-| 5 | 1+ days | Critical |
-
-**Quick Wins:** Effort <= 2 AND Impact >= 4
+Each suggestion includes effort (1-5) and impact (1-5) with priority = impact/effort. See [Quality Model](references/quality-model.md) for scale definitions and quick wins formula.
 
 
 ## Phase 6: Alternative Comparison (Optional)
@@ -275,6 +247,30 @@ See [Report Template](references/report-template.md) for full format.
 ```
 
 
+## Phase 8.5: Post-Verification Feedback (metrics-architect)
+
+After report compilation, send scores to `metrics-architect` for KPI baseline tracking and trend analysis:
+
+```python
+Task(subagent_type="metrics-architect", run_in_background=True, max_turns=15,
+     prompt=f"""Receive verification scores for {feature}:
+
+Composite: {composite_score}/10 (Grade: {grade})
+Dimensional breakdown:
+- Correctness: {scores['correctness']}/10
+- Maintainability: {scores['maintainability']}/10
+- Performance: {scores['performance']}/10
+- Security: {scores['security']}/10
+- Scalability: {scores['scalability']}/10
+- Testability: {scores['testability']}/10
+- Compliance: {scores['compliance']}/10
+
+Update KPI baselines with these scores. Store trend data in memory
+for historical comparison. Flag any dimensions that dropped below
+their historical average.""")
+```
+
+
 ## Policy-as-Code
 
 See [Policy-as-Code](references/policy-as-code.md) for configuration.
@@ -313,4 +309,4 @@ Define verification rules in `.claude/policies/verification-policy.json`:
 - `ork:quality-gates` - Quality gate patterns
 
 
-**Version:** 3.0.0 (January 2026)
+**Version:** 3.1.0 (January 2026)

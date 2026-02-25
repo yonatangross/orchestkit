@@ -23,7 +23,7 @@ Comprehensive patterns for building production LangGraph workflows. Each categor
 | Category | Rules | Impact | When to Use |
 |----------|-------|--------|-------------|
 | [State Management](#state-management) | 4 | CRITICAL | Designing workflow state schemas, accumulators, reducers |
-| [Routing & Branching](#routing--branching) | 3 | HIGH | Dynamic routing, retry loops, semantic routing |
+| [Routing & Branching](#routing--branching) | 4 | HIGH | Dynamic routing, retry loops, semantic routing, cross-graph |
 | [Parallel Execution](#parallel-execution) | 3 | HIGH | Fan-out/fan-in, map-reduce, concurrent agents |
 | [Supervisor Patterns](#supervisor-patterns) | 3 | HIGH | Central coordinators, round-robin, priority dispatch |
 | [Tool Calling](#tool-calling) | 4 | CRITICAL | Binding tools, ToolNode, dynamic selection, approvals |
@@ -32,8 +32,9 @@ Comprehensive patterns for building production LangGraph workflows. Each categor
 | [Streaming](#streaming) | 3 | MEDIUM | Real-time updates, token streaming, custom events |
 | [Subgraphs](#subgraphs) | 3 | MEDIUM | Modular composition, nested graphs, state mapping |
 | [Functional API](#functional-api) | 3 | MEDIUM | @entrypoint/@task decorators, migration from StateGraph |
+| [Platform](#platform) | 3 | HIGH | Deployment, RemoteGraph, double-texting strategies |
 
-**Total: 32 rules across 10 categories**
+**Total: 36 rules across 11 categories**
 
 ## State Management
 
@@ -55,6 +56,7 @@ Control flow between nodes. Always include END fallback to prevent hangs.
 | Conditional Edges | `rules/routing-conditional.md` | `add_conditional_edges` with explicit mapping |
 | Retry Loops | `rules/routing-retry-loops.md` | Loop-back edges with max retry counter |
 | Semantic Routing | `rules/routing-semantic.md` | Embedding similarity or `Command` API routing |
+| Cross-Graph Navigation | `rules/routing-cross-graph.md` | `Command(graph=Command.PARENT)` for parent/sibling routing |
 
 ## Parallel Execution
 
@@ -136,6 +138,16 @@ Build workflows using `@entrypoint` and `@task` decorators instead of explicit g
 | @entrypoint | `rules/functional-entrypoint.md` | Workflow entry point with optional checkpointer |
 | @task | `rules/functional-task.md` | Returns futures, `.result()` to block |
 | Migration | `rules/functional-migration.md` | `StateGraph` to Functional API conversion |
+
+## Platform
+
+Deploy graphs as managed APIs with persistence, streaming, and multi-tenancy.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Deployment | `rules/platform-deployment.md` | `langgraph.json` + CLI + Assistants API |
+| RemoteGraph | `rules/platform-remote-graph.md` | `RemoteGraph` for calling deployed graphs |
+| Double Texting | `rules/platform-double-texting.md` | 4 strategies: reject, rollback, enqueue, interrupt |
 
 ## Quick Start Example
 

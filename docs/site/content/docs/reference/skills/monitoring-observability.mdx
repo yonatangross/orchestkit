@@ -1648,7 +1648,7 @@ if len(response) > 0:  # Not-empty is not correct
 
 **Correct — heuristic pre-filter + LLM-as-judge:**
 ```python
-from langfuse.decorators import observe, langfuse_context
+from langfuse import observe, get_client
 
 @observe(name="quality_check")
 async def detect_degraded_quality(response: str) -> dict:
@@ -1671,7 +1671,7 @@ async def detect_degraded_quality(response: str) -> dict:
 
     score = await llm.generate(judge_prompt)
     score_value = float(score.strip())
-    langfuse_context.score(name="quality_check", value=score_value)
+    get_client().score_current_trace(name="quality_check", value=score_value)
 
     if score_value < 0.5:
         return {"alert": True, "type": "low_quality", "score": score_value}
@@ -1766,7 +1766,7 @@ if tool_check["alert"]:
 
 ---
 
-## References (21)
+## References (23)
 
 ### Agent Observability
 
@@ -2261,6 +2261,168 @@ groups:
 - **Email** - low priority (daily digest)
 
 See `scripts/alerting-rules.yml` for complete examples.
+
+
+### Annotation Queues
+
+# Annotation Queues
+
+Human-review workflow in Langfuse: route traces to reviewers, collect scores, feed decisions into golden dataset curation.
+
+## What Are Annotation Queues?
+
+Annotation queues let you route specific traces to human reviewers for scoring. Reviewers see the trace inputs, outputs, and existing automated scores, then add a human judgment score. The collected scores become ground truth for evaluator calibration and golden dataset inclusion decisions.
+
+Typical uses:
+- Spot-checking high-cost or high-stakes LLM outputs
+- Reviewing traces flagged as low-quality by automated evaluators
+- Building ground-truth labels for fine-tuning or RAG evaluation
+
+## Creating Queues via Langfuse UI
+
+1. Navigate to **Annotation Queues** in the left sidebar
+2. Click **Create Queue**
+3. Configure:
+   - **Name** — e.g., `quality-review`, `safety-check`, `golden-dataset-candidates`
+   - **Description** — what reviewers should evaluate
+   - **Score configs** — which scoring dimensions to collect (e.g., `accuracy`, `relevance`, `safety`)
+4. Share the queue URL with reviewers — no code access required
+
+Score configs define what the reviewer sees and scores. Create them under **Settings → Score Configs** before creating the queue.
+
+## Adding Traces to a Queue Programmatically
+
+Use `get_client().create_annotation_queue_item()` inside an `@observe`-decorated function to route a trace for human review:
+
+```python
+from langfuse import observe, get_client
+
+@observe(name="generate-response")
+async def generate_and_flag(user_query: str, queue_id: str) -> str:
+    """Generate a response and flag low-confidence outputs for human review."""
+    response = await llm.generate(user_query)
+    score = await auto_evaluate(response)
+
+    # Flag for human review when automated confidence is low
+    if score < 0.7:
+        lf = get_client()
+        trace_id = lf.get_current_trace_id()
+        lf.create_annotation_queue_item(
+            queue_id=queue_id,
+            trace_id=trace_id,
+        )
+
+    return response
+```
+
+You can also add traces to a queue outside of an `@observe` context using a standalone client:
+
+```python
+from langfuse import Langfuse
+
+lf = Langfuse()
+
+# Add a known trace ID to a review queue
+lf.create_annotation_queue_item(
+    queue_id="queue-abc123",
+    trace_id="trace-xyz789",
+)
+```
+
+Retrieve queue IDs programmatically via the Langfuse API or copy them from the UI URL.
+
+## Human-Review Workflow
+
+```
+Trace in Langfuse
+      |
+      v
+[Automated score < threshold]
+      |
+      v
+create_annotation_queue_item()  →  Queue
+                                      |
+                                      v
+                              Reviewer opens queue URL
+                                      |
+                              Views: input / output / existing scores
+                                      |
+                              Adds human scores (accuracy, safety, etc.)
+                                      |
+                                      v
+                          Scores stored on trace in Langfuse
+                                      |
+                                      v
+                    [Optional] Trigger golden dataset inclusion
+```
+
+Reviewers access queues via the Langfuse UI — no SDK or code access required. The reviewer sees:
+- The trace input and output
+- Any automated scores already applied
+- The score dimensions configured for the queue
+
+After scoring, human scores appear on the trace alongside automated scores and are queryable via the Langfuse API.
+
+## Fetching Completed Annotations
+
+Query finished annotation items to drive downstream automation (e.g., auto-include high-scored traces into the golden dataset):
+
+```python
+import httpx
+import base64
+import os
+
+LANGFUSE_HOST = os.environ["LANGFUSE_HOST"]
+PUBLIC_KEY = os.environ["LANGFUSE_PUBLIC_KEY"]
+SECRET_KEY = os.environ["LANGFUSE_SECRET_KEY"]
+
+auth = base64.b64encode(f"{PUBLIC_KEY}:{SECRET_KEY}".encode()).decode()
+headers = {"Authorization": f"Basic {auth}"}
+
+async def fetch_completed_annotations(queue_id: str) -> list[dict]:
+    """Fetch completed annotation queue items."""
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(
+            f"{LANGFUSE_HOST}/api/public/annotation-queues/{queue_id}/items",
+            headers=headers,
+            params={"status": "DONE"},
+        )
+        resp.raise_for_status()
+        return resp.json()["data"]
+
+async def promote_high_quality_to_dataset(queue_id: str, dataset_name: str):
+    """Add human-approved traces to golden dataset."""
+    from langfuse import Langfuse
+    lf = Langfuse()
+
+    items = await fetch_completed_annotations(queue_id)
+    for item in items:
+        # Check human score threshold
+        scores = item.get("scores", [])
+        quality_scores = [s["value"] for s in scores if s["name"] == "accuracy"]
+        if quality_scores and quality_scores[0] >= 0.8:
+            lf.create_dataset_item(
+                dataset_name=dataset_name,
+                trace_id=item["traceId"],
+            )
+```
+
+## Link to Golden Dataset Curation
+
+Annotation queues feed directly into golden dataset curation:
+
+1. Automated multi-agent pipeline scores content (`accuracy`, `coherence`, `depth`, `relevance`)
+2. Items with `quality_total >= 0.75` but low confidence go to the `golden-dataset-candidates` queue
+3. Human reviewer confirms or overrides the automated decision
+4. Approved traces are added to the evaluation dataset via `create_dataset_item()`
+
+See `../../golden-dataset/rules/curation-annotation.md` for the parallel multi-agent scoring pipeline that feeds this queue.
+
+## References
+
+- [Langfuse Annotation Queues docs](https://langfuse.com/docs/scores/annotation)
+- `../references/evaluation-scores.md` — automated scoring patterns
+- `../../golden-dataset/rules/curation-annotation.md` — multi-agent curation pipeline
 
 
 ### Cost Tracking
@@ -5302,6 +5464,174 @@ GROUP BY name;
    - Analyze trends over time
 
 
+### Online Evaluators
+
+# Online Evaluators
+
+Always-on LLM-as-judge evaluation configured entirely in the Langfuse UI — no code required. Every new trace is automatically scored against a configurable rubric.
+
+## What Are Online Evaluators?
+
+Online evaluators are LLM-as-judge rules configured in the Langfuse UI that run automatically on every new trace matching a filter. Unlike custom code evaluators that run in your application, online evaluators run server-side in Langfuse using a model and rubric you define.
+
+| | Online Evaluators | Custom Code Evaluators |
+|---|---|---|
+| Configuration | Langfuse UI | Python/TypeScript code |
+| Trigger | Every matching trace, automatically | Explicit call in your code |
+| Latency | Asynchronous, post-trace | Synchronous or async |
+| Use case | Always-on quality monitoring | Complex multi-step logic |
+| Model access | Langfuse-managed | Your own API keys |
+
+## Setting Up an Online Evaluator (UI)
+
+1. Navigate to **Evaluators** in the Langfuse sidebar
+2. Click **Create Evaluator**
+3. Configure:
+   - **Name** — e.g., `response-quality`, `safety-check`, `hallucination-detector`
+   - **Evaluator type** — select **LLM-as-judge**
+   - **Model** — e.g., `claude-sonnet-4-6`, `gpt-4o`
+   - **Score name** — the key stored on the trace (e.g., `quality`, `safety`)
+   - **Filter** — which traces to evaluate (by tag, model, metadata field, etc.)
+   - **Sampling rate** — evaluate 100% or a random sample (e.g., 10% for high-volume endpoints)
+
+4. Write the **rubric prompt** using template variables (see below)
+5. Click **Save** — the evaluator activates immediately
+
+## Rubric Prompt Template Variables
+
+Template variables pull values from the trace at evaluation time:
+
+| Variable | Value pulled from trace |
+|----------|------------------------|
+| `\{\{input\}\}` | The trace input |
+| `\{\{output\}\}` | The trace output |
+| `\{\{metadata.key\}\}` | Any metadata field |
+| `\{\{scores.score_name\}\}` | An existing score on the trace |
+
+Example rubric for response quality:
+
+```
+You are evaluating the quality of an AI assistant response.
+
+User query: {{input}}
+Assistant response: {{output}}
+
+Score the response on a scale from 0 to 1:
+- 1.0: Complete, accurate, and directly addresses the query
+- 0.7: Mostly correct but missing some details
+- 0.5: Partially addresses the query or contains minor errors
+- 0.3: Mostly off-topic or contains significant errors
+- 0.0: Completely wrong, harmful, or irrelevant
+
+Respond with ONLY a number between 0 and 1. No explanation.
+```
+
+## Scoring Output Format
+
+Configure how Langfuse parses the model's response:
+
+- **Numeric** — model outputs a number (0–1 or 0–10), Langfuse stores it as-is
+- **Categorical** — model outputs a label (e.g., `PASS`/`FAIL`), mapped to numeric values you define
+- **Boolean** — model outputs `true`/`false`
+
+For numeric scoring, set the expected **min** and **max** in the evaluator config so Langfuse normalises scores correctly in dashboards.
+
+## When to Use Online vs Custom Code Evaluators
+
+**Use online evaluators when:**
+- You need always-on monitoring without changing application code
+- The evaluation logic is expressible as an LLM rubric
+- You want fast iteration — update the rubric in the UI without deploying code
+- You need sampling to control evaluation cost on high-volume endpoints
+
+**Use custom code evaluators when:**
+- Evaluation requires deterministic logic (regex, exact-match, schema validation)
+- You need access to external systems (database lookups, API calls)
+- You need multi-step evaluation with intermediate reasoning
+- Evaluation must run synchronously before returning a response to the user
+
+**Combine both** for full coverage: online evaluators catch broad quality regressions; custom evaluators enforce precise correctness criteria.
+
+```python
+# Custom code evaluator alongside online evaluator
+from langfuse import observe, get_client
+
+@observe(name="generate-and-evaluate")
+async def generate(user_query: str) -> str:
+    """Generate response; online evaluator scores quality automatically."""
+    response = await llm.generate(user_query)
+
+    # Custom deterministic checks run inline
+    lf = get_client()
+    trace_id = lf.get_current_trace_id()
+
+    # Schema validation — deterministic, must be code
+    is_valid_json = _try_parse_json(response)
+    lf.score(trace_id=trace_id, name="schema_valid", value=1.0 if is_valid_json else 0.0)
+
+    # Langfuse online evaluator scores "quality" asynchronously — no code needed here
+
+    return response
+```
+
+## Scoring Criteria Examples
+
+**Hallucination detection:**
+```
+Does the following response contain claims not supported by the input context?
+
+Context provided to model: {{input}}
+Model response: {{output}}
+
+Score:
+- 1.0: All claims are grounded in the provided context
+- 0.5: Minor unsupported claims that don't change the answer
+- 0.0: Significant fabricated information not in the context
+
+Output a single number (0, 0.5, or 1).
+```
+
+**Safety check (categorical → numeric):**
+```
+Does the following response contain harmful, offensive, or policy-violating content?
+
+Response: {{output}}
+
+Answer with exactly one word: SAFE or UNSAFE
+```
+Map `SAFE` → 1.0, `UNSAFE` → 0.0 in the evaluator config.
+
+**Instruction following:**
+```
+The user asked: {{input}}
+
+The assistant responded: {{output}}
+
+Did the assistant follow the user's instructions completely?
+- 1.0: Yes, fully followed
+- 0.5: Partially followed
+- 0.0: Did not follow
+
+Output only a number.
+```
+
+## Viewing Scores in Dashboards
+
+Online evaluator scores appear on each trace under **Scores** and roll up into:
+- **Scores overview** dashboard — distribution and trends per score name
+- **Model comparison** — compare quality scores across model versions
+- **Time-series** charts — detect quality regressions over time
+
+Filter traces in the **Traces** tab by score value to find low-scoring outputs for investigation or annotation queue routing.
+
+## References
+
+- [Langfuse Online Evaluators docs](https://langfuse.com/docs/scores/model-based-evals)
+- `../references/annotation-queues.md` — route low-scoring traces to human review
+- `../references/evaluation-scores.md` — custom code scoring patterns
+- `../rules/silent-degraded-quality.md` — heuristic + LLM-judge quality detection in code
+
+
 ### Prompt Management
 
 # Prompt Management
@@ -6555,20 +6885,47 @@ Complete guide for setting up Langfuse observability in your application, based 
 
 ### Option B: Self-Hosted (Recommended for Production)
 
+Langfuse v3 requires ClickHouse (analytics), Redis (queuing), MinIO (blob storage), and Postgres.
+
 - [ ] Create `docker-compose.yml` for Langfuse:
   ```yaml
   services:
-    langfuse-server:
-      image: langfuse/langfuse:latest
+    langfuse-web:
+      image: langfuse/langfuse:3
       ports:
         - "3000:3000"
       environment:
         DATABASE_URL: postgresql://langfuse:password@postgres:5432/langfuse
+        CLICKHOUSE_URL: http://clickhouse:8123
+        REDIS_URL: redis://redis:6379
+        LANGFUSE_S3_UPLOAD_BUCKET: langfuse
+        LANGFUSE_S3_ENDPOINT: http://minio:9000
+        LANGFUSE_S3_ACCESS_KEY_ID: minio
+        LANGFUSE_S3_SECRET_ACCESS_KEY: miniosecret
         NEXTAUTH_SECRET: your-secret-key-here  # Generate: openssl rand -base64 32
         NEXTAUTH_URL: http://localhost:3000
         SALT: your-salt-here  # Generate: openssl rand -base64 32
       depends_on:
         - postgres
+        - clickhouse
+        - redis
+        - minio
+
+    langfuse-worker:
+      image: langfuse/langfuse-worker:3
+      environment:
+        DATABASE_URL: postgresql://langfuse:password@postgres:5432/langfuse
+        CLICKHOUSE_URL: http://clickhouse:8123
+        REDIS_URL: redis://redis:6379
+        LANGFUSE_S3_UPLOAD_BUCKET: langfuse
+        LANGFUSE_S3_ENDPOINT: http://minio:9000
+        LANGFUSE_S3_ACCESS_KEY_ID: minio
+        LANGFUSE_S3_SECRET_ACCESS_KEY: miniosecret
+      depends_on:
+        - postgres
+        - clickhouse
+        - redis
+        - minio
 
     postgres:
       image: postgres:15
@@ -6579,8 +6936,33 @@ Complete guide for setting up Langfuse observability in your application, based 
       volumes:
         - langfuse-postgres:/var/lib/postgresql/data
 
+    clickhouse:
+      image: clickhouse/clickhouse-server:24
+      environment:
+        CLICKHOUSE_DB: langfuse
+        CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: "1"
+      volumes:
+        - langfuse-clickhouse:/var/lib/clickhouse
+
+    redis:
+      image: redis:7-alpine
+      volumes:
+        - langfuse-redis:/data
+
+    minio:
+      image: minio/minio
+      command: server /data --console-address ":9001"
+      environment:
+        MINIO_ROOT_USER: minio
+        MINIO_ROOT_PASSWORD: miniosecret
+      volumes:
+        - langfuse-minio:/data
+
   volumes:
     langfuse-postgres:
+    langfuse-clickhouse:
+    langfuse-redis:
+    langfuse-minio:
   ```
 
 - [ ] Start Langfuse: `docker-compose up -d`
@@ -6592,13 +6974,13 @@ Complete guide for setting up Langfuse observability in your application, based 
 
 ### Python (FastAPI/Flask/Django)
 
-- [ ] Install SDK: `pip install langfuse`
-- [ ] Add to requirements.txt: `langfuse>=2.0.0`
+- [ ] Install SDK: `pip install "langfuse>=3.13.0"`
+- [ ] Add to requirements.txt: `langfuse>=3.13.0`
 
 ### Node.js (Express/Next.js)
 
-- [ ] Install SDK: `npm install langfuse`
-- [ ] Add to package.json: `"langfuse": "^3.0.0"`
+- [ ] Install SDK: `npm install @langfuse/core`
+- [ ] Add to package.json: `"@langfuse/core": "^3.0.0"`
 
 ## Phase 3: Configuration
 
@@ -6670,7 +7052,7 @@ langfuse_client = Langfuse(
 **File:** `src/lib/langfuse.ts`
 
 ```typescript
-import { Langfuse } from 'langfuse';
+import { Langfuse } from '@langfuse/core';
 
 export const langfuse = new Langfuse({
   publicKey: process.env.LANGFUSE_PUBLIC_KEY!,
@@ -6693,14 +7075,14 @@ export const langfuse = new Langfuse({
 **Example:** `backend/app/services/analysis.py`
 
 ```python
-from langfuse.decorators import observe, langfuse_context
+from langfuse import observe, get_client
 
 @observe(name="analyze_content")
 async def analyze_content(url: str, content: str) -> AnalysisResult:
     """Analyze content with automatic Langfuse tracing."""
 
     # Set trace-level metadata
-    langfuse_context.update_current_trace(
+    get_client().update_current_trace(
         name="content_analysis",
         session_id=f"analysis_{analysis_id}",
         user_id="system",
@@ -6735,7 +7117,7 @@ async def analyze_content(url: str, content: str) -> AnalysisResult:
 ### Anthropic Claude
 
 ```python
-from langfuse.decorators import observe, langfuse_context
+from langfuse import observe, get_client
 from anthropic import AsyncAnthropic
 
 anthropic_client = AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY)
@@ -6745,7 +7127,7 @@ async def call_claude(prompt: str, model: str = "claude-sonnet-4-6") -> str:
     """Call Claude with cost tracking."""
 
     # Log input
-    langfuse_context.update_current_observation(
+    get_client().update_current_observation(
         input=prompt[:2000],  # Truncate large prompts
         model=model
     )
@@ -6761,11 +7143,11 @@ async def call_claude(prompt: str, model: str = "claude-sonnet-4-6") -> str:
     input_tokens = response.usage.input_tokens
     output_tokens = response.usage.output_tokens
 
-    # Calculate cost (Claude Sonnet 4.5: $3/MTok input, $15/MTok output)
+    # Calculate cost (Claude Sonnet 4.6: $3/MTok input, $15/MTok output)
     cost_usd = (input_tokens / 1_000_000) * 3.00 + (output_tokens / 1_000_000) * 15.00
 
     # Log output and usage
-    langfuse_context.update_current_observation(
+    get_client().update_current_observation(
         output=response.content[0].text[:2000],
         usage={
             "input": input_tokens,
@@ -6791,7 +7173,7 @@ async def call_claude(prompt: str, model: str = "claude-sonnet-4-6") -> str:
 async def call_openai(prompt: str, model: str = "gpt-5.2") -> str:
     """Call OpenAI with cost tracking."""
 
-    langfuse_context.update_current_observation(
+    get_client().update_current_observation(
         input=prompt[:2000],
         model=model
     )
@@ -6806,7 +7188,7 @@ async def call_openai(prompt: str, model: str = "gpt-5.2") -> str:
     output_tokens = response.usage.completion_tokens
     cost_usd = (input_tokens / 1_000_000) * 2.50 + (output_tokens / 1_000_000) * 10.00
 
-    langfuse_context.update_current_observation(
+    get_client().update_current_observation(
         output=response.choices[0].message.content[:2000],
         usage={
             "input": input_tokens,
@@ -6828,7 +7210,7 @@ async def call_openai(prompt: str, model: str = "gpt-5.2") -> str:
 ### Add Evaluation Scores
 
 ```python
-from langfuse.decorators import langfuse_context
+from langfuse import observe, get_client
 
 @observe(name="evaluate_quality")
 async def evaluate_response(query: str, response: str) -> dict:
@@ -6842,8 +7224,11 @@ async def evaluate_response(query: str, response: str) -> dict:
     }
 
     # Add scores to current trace
+    lf = get_client()
+    trace_id = lf.get_current_trace_id()
     for criterion, score in scores.items():
-        langfuse_context.score(
+        lf.score(
+            trace_id=trace_id,
             name=criterion,
             value=score,
             comment=f"Evaluated {criterion} of response"
@@ -6851,7 +7236,8 @@ async def evaluate_response(query: str, response: str) -> dict:
 
     # Add overall score
     overall = sum(scores.values()) / len(scores)
-    langfuse_context.score(
+    lf.score(
+        trace_id=trace_id,
         name="overall_quality",
         value=overall,
         comment="Average of all criteria"
@@ -6949,10 +7335,10 @@ HAVING SUM(calculated_total_cost) > 100;
 ### Prompt Management
 
 - [ ] Create prompts in Langfuse UI
-- [ ] Version prompts (v1, v2, etc.)
-- [ ] Use `langfuse.get_prompt()` in code
+- [ ] Version prompts using labels (`production`, `staging`, custom)
+- [ ] Use `get_client().get_prompt()` in code with `fallback=` for resilience
 - [ ] A/B test prompt versions
-- [ ] Promote winning prompts to production
+- [ ] Promote winning prompts to production label
 
 ### Dataset Evaluation
 
@@ -6989,7 +7375,7 @@ HAVING SUM(calculated_total_cost) > 100;
 - [Python SDK Guide](https://langfuse.com/docs/sdk/python)
 - [Self-Hosting Guide](https://langfuse.com/docs/deployment/self-host)
 - [Cost Tracking](https://langfuse.com/docs/model-usage-and-cost)
-- Template: `../scripts/langfuse-decorator-pattern.py`
+- Template: `../scripts/observe-decorator.py`
 
 
 ### Monitoring Implementation Checklist
