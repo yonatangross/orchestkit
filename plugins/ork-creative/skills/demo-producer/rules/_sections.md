@@ -19,3 +19,9 @@ Full video production pipeline covering pre-production, recording, composition, 
 |------|--------|------|
 | Video Production Pipeline | HIGH | `production-pipeline.md` |
 | Video Composition and Audio | HIGH | `production-composition.md` |
+
+## 3. Slop Avoidance (quality) — HIGH — 1 rule
+
+Eliminating verbose, generic, or redundant text from demo videos. Text density rules, timing compression, hook styles.
+
+- `slop-avoidance.md` — Common slop patterns, text density rules, timing compression, hook styles

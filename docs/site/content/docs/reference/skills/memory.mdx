@@ -47,7 +47,147 @@ AskUserQuestion(
 
 ## Subcommands
 
-### `search` - Search Knowledge Graph
+See [Memory Commands Reference](references/memory-commands.md) for full usage, flags, output formats, and context-aware result limits for each subcommand.
+
+| Subcommand | Purpose |
+|------------|---------|
+| `search` | Search past decisions, patterns, entities. Supports `--category`, `--limit`, `--agent`, `--global` flags |
+| `load` | Auto-load relevant memories at session start. Supports `--project`, `--global` |
+| `history` | Decision timeline with table, Mermaid, or JSON output. Supports `--since`, `--mermaid` |
+| `viz` | Render knowledge graph as Mermaid diagram. See also [mermaid-patterns.md](references/mermaid-patterns.md) |
+| `status` | Memory system health check |
+
+---
+
+## Workflow
+
+### 1. Parse Subcommand
+```
+Extract first argument as subcommand
+If no subcommand -> AskUserQuestion
+Validate subcommand is one of: search, load, history, viz, status
+Parse remaining flags
+```
+
+### 2. Execute Subcommand
+Route to appropriate handler based on subcommand.
+
+### 3. Report Results
+Format output appropriate to the operation.
+
+---
+
+## Rules Quick Reference
+
+| Rule | Impact | What It Covers |
+|------|--------|----------------|
+| [entity-extraction-patterns](rules/entity-extraction-patterns.md) | HIGH | Entity types, relation types, graph query semantics |
+| [deduplication-strategy](rules/deduplication-strategy.md) | HIGH | Edit-over-Write pattern, anchor-based insertion, verification |
+
+---
+
+## Session Resume
+
+See [Session Resume Patterns](references/session-resume-patterns.md) for CC 2.1.31 resume hints, context capture before ending, and resume workflows for PRs, issues, and implementations.
+
+---
+
+## Related Skills
+
+- `ork:remember` - Store decisions and patterns (write-side)
+
+---
+
+## Error Handling
+
+- If graph empty for viz: Show helpful message about using /ork:remember
+- If subcommand invalid: Show usage help
+- If memory files corrupt: Report and offer repair
+- If search query empty: Show recent entities instead
+- If no search results: Suggest alternatives
+
+
+---
+
+## Rules (2)
+
+### Deduplication Strategy
+
+# Deduplication Strategy
+
+When loading or searching memories, prevent duplicate context injection.
+
+## Rules
+
+1. **Edit over Write** -- When updating `.claude/memory/MEMORY.md` or project memory files, prefer `Edit` over `Write` to preserve existing content and avoid accidental overwrites.
+
+2. **Anchor-based insertion** -- Always verify the target section header exists before inserting:
+   - `## Recent Decisions`
+   - `## Patterns`
+   - `## Preferences`
+   - `## Detailed Notes`
+
+3. **Surgical edits** -- Use `Edit(file_path, old_string=anchor_line, new_string=anchor_line + "\n" + new_content)` to append under a section header without overwriting the rest.
+
+4. **Verify after edit** -- Always `Read(file_path)` after editing to confirm the edit applied correctly.
+
+## Why Edit Over Write
+
+| Approach | Risk | Permission |
+|----------|------|-----------|
+| Write (overwrite) | Loses existing content if template incomplete | Requires approval |
+| Edit (surgical) | Only modifies target section | Often auto-approved |
+
+## Hook Exception
+
+The `memory-writer.ts` hook uses Node.js `writeFileSync` -- this is correct for hooks context where full file control is needed. The Edit pattern above is for agent-side SKILL.md operations.
+
+
+### Entity Extraction Patterns
+
+# Entity Extraction Patterns
+
+When searching or visualizing the knowledge graph, recognize these entity types and their typical observations.
+
+## Entity Types
+
+| Type | Examples | Typical Observations |
+|------|----------|---------------------|
+| `Technology` | pgvector, PostgreSQL, React | Version, use case, project association |
+| `Agent` | database-engineer, backend-system-architect | Capabilities, scope, assigned tasks |
+| `Pattern` | cursor-pagination, connection-pooling | When to use, trade-offs, implementation notes |
+| `Decision` | "Use PostgreSQL for DB" | Rationale, alternatives considered, date |
+| `Project` | Project-specific context | Stack, status, team, constraints |
+| `AntiPattern` | Failed or abandoned patterns | Why it failed, what replaced it |
+| `Constraint` | Budget, timeline, compliance | Source, severity, workarounds |
+| `Preference` | "Prefer TypeScript strict" | Strength, scope, exceptions |
+
+## Relation Types
+
+| Relation | Semantic | Arrow Style |
+|----------|----------|-------------|
+| USES | Active dependency | Solid |
+| RECOMMENDS | Suggested approach | Solid |
+| REQUIRES | Hard dependency | Solid |
+| ENABLES | Unlocks capability | Solid |
+| PREFERS | Stated preference | Solid |
+| CHOSE_OVER | Rejected alternative | Dashed |
+| USED_FOR | Purpose link | Solid |
+| CONFLICTS_WITH | Incompatibility | Dashed |
+
+
+
+---
+
+## References (3)
+
+### Memory Commands
+
+# Memory Subcommand Reference
+
+Complete usage, flags, and output format details for each `/ork:memory` subcommand.
+
+## `search` - Search Knowledge Graph
 
 Search past decisions, patterns, and entities from the knowledge graph.
 
@@ -85,9 +225,9 @@ Result limits automatically adjust based on `context_window.used_percentage`:
 1. Parse flags (--category, --limit, --agent, --global)
 2. Build filters from flags:
    ```
-   Check for --category <cat> flag → metadata.category: "<cat>"
-   Check for --agent <agent-id> flag → agent_id: "ork:{agent-id}"
-   Check for --global flag → user_id: "orchestkit-global-best-practices"
+   Check for --category <cat> flag -> metadata.category: "<cat>"
+   Check for --agent <agent-id> flag -> agent_id: "ork:{agent-id}"
+   Check for --global flag -> user_id: "orchestkit-global-best-practices"
    ```
 3. Search knowledge graph via `mcp__memory__search_nodes`:
    ```json
@@ -124,7 +264,7 @@ Try:
 
 ---
 
-### `load` - Load Session Context
+## `load` - Load Session Context
 
 Auto-load relevant memories at session start from knowledge graph.
 
@@ -143,7 +283,7 @@ Auto-load relevant memories at session start from knowledge graph.
 
 ---
 
-### `history` - Decision Timeline
+## `history` - Decision Timeline
 
 Visualize architecture decisions over time, tracking evolution and rationale.
 
@@ -162,9 +302,9 @@ Visualize architecture decisions over time, tracking evolution and rationale.
 
 ---
 
-### `viz` - Knowledge Graph Visualization
+## `viz` - Knowledge Graph Visualization
 
-Render the local knowledge graph as a Mermaid diagram.
+Render the local knowledge graph as a Mermaid diagram. See [mermaid-patterns.md](mermaid-patterns.md) for complete rendering reference.
 
 **Usage:**
 ```bash
@@ -182,7 +322,7 @@ Render the local knowledge graph as a Mermaid diagram.
 
 ---
 
-### `status` - Memory Health Check
+## `status` - Memory Health Check
 
 Show memory system status and health.
 
@@ -198,118 +338,6 @@ Memory System Status:
   Queue Depth:   3 pending
 ```
 
----
-
-## Workflow
-
-### 1. Parse Subcommand
-```
-Extract first argument as subcommand
-If no subcommand -> AskUserQuestion
-Validate subcommand is one of: search, load, history, viz, status
-Parse remaining flags
-```
-
-### 2. Execute Subcommand
-Route to appropriate handler based on subcommand.
-
-### 3. Report Results
-Format output appropriate to the operation.
-
----
-
-## Related Skills
-
-- `ork:remember` - Store decisions and patterns (write-side)
-
----
-
-## Permission-Free File Operations
-
-When updating `.claude/memory/MEMORY.md` or project memory files, **prefer Edit over Write** to preserve existing content and avoid accidental overwrites:
-
-### Recommended Pattern
-
-1. **Read** — `Read(file_path)` to get current content
-2. **Verify anchor** — Confirm section header exists: `## Recent Decisions`, `## Patterns`, `## Preferences`
-3. **Edit** — `Edit(file_path, old_string=anchor_line, new_string=anchor_line + "\n" + new_content)`
-4. **Verify** — `Read(file_path)` to confirm edit applied correctly
-
-### Why Edit Over Write
-
-| Approach | Risk | Permission |
-|----------|------|-----------|
-| Write (overwrite) | Loses existing content if template incomplete | Requires approval |
-| Edit (surgical) | Only modifies target section | Often auto-approved |
-
-### Anchor Lines for MEMORY.md
-
-Stable anchors that persist across sessions:
-- `## Recent Decisions` — for project decisions
-- `## Patterns` — for recurring code patterns
-- `## Preferences` — for user preferences
-- `## Detailed Notes` — for topic file links
-
-> **Note**: The `memory-writer.ts` hook uses Node.js `writeFileSync` — this is correct for hooks context where full file control is needed. The Edit pattern above is for agent-side SKILL.md operations.
-
----
-
-## CC 2.1.31 Session Resume Hints
-
-At session end, Claude shows resume hints. To maximize resume effectiveness:
-
-### Capture Context Before Ending
-
-```bash
-# Store key decisions and context
-/ork:remember Key decisions for next session:
-  - Decision 1: [brief]
-  - Decision 2: [brief]
-  - Next steps: [what remains]
-```
-
-### Resume Patterns
-
-```bash
-# For PR work: Use --from-pr (CC 2.1.27)
-/ork:create-pr
-# Later: claude --from-pr 123
-
-# For issue fixing: Use memory load
-/ork:fix-issue 456
-# Later: /ork:memory load   # Reloads investigation context
-
-# For implementation: Use memory search
-/ork:implement user-auth
-# Later: /ork:memory search "user-auth implementation"
-```
-
-### Best Practice
-
-Always store investigation findings before session end:
-
-```bash
-/ork:remember Session summary for {task}:
-  Completed: [what was done]
-  Findings: [key discoveries]
-  Next steps: [what remains]
-  Blockers: [if any]
-```
-
----
-
-## Error Handling
-
-- If graph empty for viz: Show helpful message about using /ork:remember
-- If subcommand invalid: Show usage help
-- If memory files corrupt: Report and offer repair
-- If search query empty: Show recent entities instead
-- If no search results: Suggest alternatives
-
-
----
-
-## References (1)
 
 ### Mermaid Patterns
 
@@ -605,4 +633,49 @@ graph TD
 - Use `graph LR` (left-right) for sequential/timeline or very wide graphs
 - Empty subgraphs should be omitted from output
 - Self-referential edges (entity -> itself) should be excluded
+
+
+### Session Resume Patterns
+
+# CC 2.1.31 Session Resume Hints
+
+At session end, Claude shows resume hints. To maximize resume effectiveness:
+
+## Capture Context Before Ending
+
+```bash
+# Store key decisions and context
+/ork:remember Key decisions for next session:
+  - Decision 1: [brief]
+  - Decision 2: [brief]
+  - Next steps: [what remains]
+```
+
+## Resume Patterns
+
+```bash
+# For PR work: Use --from-pr (CC 2.1.27)
+/ork:create-pr
+# Later: claude --from-pr 123
+
+# For issue fixing: Use memory load
+/ork:fix-issue 456
+# Later: /ork:memory load   # Reloads investigation context
+
+# For implementation: Use memory search
+/ork:implement user-auth
+# Later: /ork:memory search "user-auth implementation"
+```
+
+## Best Practice
+
+Always store investigation findings before session end:
+
+```bash
+/ork:remember Session summary for {task}:
+  Completed: [what was done]
+  Findings: [key discoveries]
+  Next steps: [what remains]
+  Blockers: [if any]
+```
 

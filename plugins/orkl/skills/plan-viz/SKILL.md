@@ -87,7 +87,7 @@ Task(
 
 ## STEP 2: Render Tier 1 Header (Always)
 
-Use `assets/tier1-header.md` template. Fill in from gathered data. This is always shown first.
+Use `assets/tier1-header.md` template. See [references/visualization-tiers.md](references/visualization-tiers.md) for field computation (risk level, confidence, reversibility).
 
 ```
 PLAN: {plan_name} ({issue_ref})  |  {phase_count} phases  |  {file_count} files  |  +{added} -{removed} lines
@@ -96,10 +96,6 @@ Branch: {branch} -> {base_branch}
 
 [1] Changes  [2] Execution  [3] Risks  [4] Decisions  [5] Impact  [all]
 ```
-
-**Risk level** = highest risk across all phases (LOW/MEDIUM/HIGH/CRITICAL).
-**Confidence** = LOW if >50% of changes are in untested code, MEDIUM if mixed, HIGH if well-tested paths.
-**Reversible until** = last phase before an irreversible operation (DROP, DELETE data, breaking API change).
 
 ---
 
@@ -125,130 +121,15 @@ AskUserQuestion(
 
 ## STEP 4: Render Requested Sections
 
-### Section [1]: Change Manifest
+Render each requested section following [rules/section-rendering.md](rules/section-rendering.md) conventions. Use the corresponding reference for ASCII patterns:
 
-Use `references/change-manifest-patterns.md`. Render a Terraform-style annotated file tree:
-
-```
-src/
-├── api/
-│   ├── routes.py          [M] +45 -12    !! high-traffic path
-│   └── schemas.py         [M] +20 -5
-├── services/
-│   └── billing.py         [A] +180       ** new file
-├── models/
-│   └── invoice.py         [A] +95        ** new file
-└── tests/
-    └── test_billing.py    [A] +120       ** new file
-
-Legend: [A]dd [M]odify [D]elete  !! Risk  ** New
-Summary: +460 -17  |  3 new  |  2 modified  |  0 deleted
-```
-
-**Rules:**
-- Use `[A]`/`[M]`/`[D]` prefix symbols (Terraform convention)
-- Show `+N -N` line counts per file
-- Flag high-risk files with `!!` and annotation
-- Mark new files with `**`
-- Always end with a summary line
-
-### Section [2]: Execution Swimlane
-
-Use `references/execution-swimlane-patterns.md`. Show phases as horizontal lanes with dependency lines:
-
-```
-Backend  ===[Schema]======[API]===========================[Deploy]====>
-                |            |                                ^
-                |            +------blocks------+             |
-                |                               |             |
-Frontend ------[Wait]--------[Components]=======[Integration]=+
-                                                      |
-Tests    ------[Wait]--------[Wait]-----------[E2E Tests]========>
-
-=== Active work   --- Blocked/waiting   | Dependency
-Critical path: Schema -> API -> Deploy (estimated: 4-6 hours)
-```
-
-**Rules:**
-- `===` for active work, `---` for blocked/waiting
-- Vertical `|` for dependencies with `blocks` annotations
-- Identify and label the critical path
-- Show parallel opportunities explicitly
-
-### Section [3]: Risk Dashboard
-
-Use `references/risk-dashboard-patterns.md`. Two parts: reversibility timeline + pre-mortem.
-
-**Part A: Reversibility Timeline**
-```
-REVERSIBILITY TIMELINE
-Phase 1  [================]  FULLY REVERSIBLE    (add column, nullable)
-Phase 2  [================]  FULLY REVERSIBLE    (new endpoint, additive)
-Phase 3  [============....] PARTIALLY           (backfill data)
-              --- POINT OF NO RETURN ---
-Phase 4  [........????????]  IRREVERSIBLE        (drop old column)
-Phase 5  [================]  FULLY REVERSIBLE    (frontend toggle)
-```
-
-**Part B: Pre-Mortem (3 scenarios)**
-```
-PRE-MORTEM: This plan failed because...
-
-1. {scenario_description}
-   Probability: {level} | Impact: {level}
-   Mitigation: {action}
-   Rollback: {steps} ({time_estimate})
-
-2. ...
-3. ...
-```
-
-**Rules:**
-- Always identify the point of no return
-- Generate exactly 3 pre-mortem scenarios (most likely, most severe, most subtle)
-- Each scenario needs a concrete mitigation, not generic advice
-
-### Section [4]: Decision Log
-
-Use `references/decision-log-patterns.md`. ADR-lite format for each non-obvious choice:
-
-```
-DECISION LOG
-
-#1: {decision_title}
-    Context:      {why this decision exists}
-    Decision:     {what was chosen}
-    Alternatives: {what was rejected and why}
-    Tradeoff:     + {gain}  - {cost}
-
-#2: ...
-```
-
-**Rules:**
-- Only document non-obvious decisions (skip "we need a database table for invoices")
-- Always show at least one rejected alternative
-- Tradeoffs must be honest — show the cost, not just the benefit
-
-### Section [5]: Impact Summary
-
-Use `assets/impact-dashboard.md` template:
-
-```
-IMPACT SUMMARY
-+=========+==========+===========+
-| Category | Files   | Lines     |
-+=========+==========+===========+
-| Added    |    3    |    +395   |
-| Modified |    2    |  +65 -17  |
-| Deleted  |    0    |      0    |
-+---------+----------+-----------+
-| NET      |    5    |    +443   |
-+---------+----------+-----------+
-
-Tests:    2 new  |  1 modified  |  Coverage: 73% -> 68% (needs +4 tests)
-API:      2 new endpoints  |  0 breaking changes
-Deps:     +1 (stripe-python)  |  0 removed
-```
+| Section | Reference | Key Convention |
+|---------|-----------|----------------|
+| [1] Change Manifest | [change-manifest-patterns.md](references/change-manifest-patterns.md) | `[A]`/`[M]`/`[D]` + `+N -N` per file |
+| [2] Execution Swimlane | [execution-swimlane-patterns.md](references/execution-swimlane-patterns.md) | `===` active, `---` blocked, `\|` deps |
+| [3] Risk Dashboard | [risk-dashboard-patterns.md](references/risk-dashboard-patterns.md) | Reversibility timeline + 3 pre-mortems |
+| [4] Decision Log | [decision-log-patterns.md](references/decision-log-patterns.md) | ADR-lite: Context/Decision/Alternatives/Tradeoff |
+| [5] Impact Summary | [assets/impact-dashboard.md](assets/impact-dashboard.md) | Table: Added/Modified/Deleted/NET + tests/API/deps |
 
 ---
 
@@ -272,71 +153,21 @@ AskUserQuestion(
 )
 ```
 
-**Write to file:** Save full report to `designs/{branch-name}.md` using the `assets/plan-report.md` template.
+**Write to file:** Save full report to `designs/{branch-name}.md` using `assets/plan-report.md` template.
 
-**Generate issues:** For each execution phase, create a GitHub issue with:
-- Title: `[{component}] {phase_description}`
-- Labels: component label + `risk:{level}`
-- Milestone: current milestone if set
-- Body: relevant plan sections
-- Blocked-by references to dependency issues
+**Generate issues:** For each execution phase, create a GitHub issue with title `[{component}] {phase_description}`, labels (component + `risk:{level}`), milestone, body from plan sections, and blocked-by references.
 
 ---
 
-## DEEP DIVES (Tier 3, on request)
+## Deep Dives (Tier 3, on request)
 
-### [6] Blast Radius
+Available when user selects "Drill deeper". See [references/deep-dives.md](references/deep-dives.md) for cross-layer and migration patterns.
 
-Use `references/blast-radius-patterns.md`. Show concentric rings of impact:
-
-```
-                    Ring 3: Tests (8 files)
-               +-------------------------------+
-               |    Ring 2: Transitive (5)      |
-               |   +------------------------+   |
-               |   |  Ring 1: Direct (3)     |   |
-               |   |   +--------------+      |   |
-               |   |   | CHANGED FILE |      |   |
-               |   |   +--------------+      |   |
-               |   +------------------------+   |
-               +-------------------------------+
-
-Direct dependents:   auth.py, routes.py, middleware.py
-Transitive:          app.py, config.py, utils.py, cli.py, server.py
-Test files:          test_auth.py, test_routes.py, ... (+6 more)
-```
-
-### [7] Cross-Layer Consistency
-
-Verify frontend/backend alignment:
-
-```
-CROSS-LAYER CONSISTENCY
-Backend Endpoint          Frontend Consumer     Status
-POST /invoices            createInvoice()       PLANNED
-GET  /invoices/:id        useInvoice(id)        PLANNED
-GET  /invoices            InvoiceList.tsx        MISSING  !!
-```
-
-### [8] Migration Checklist
-
-Generate ordered runbook with constraints:
-
-```
-MIGRATION CHECKLIST
-
-Sequential Block A (database):
-  1. [ ] Backup production database                    [~5 min]
-  2. [ ] Run migration: 001_add_invoices.sql           [~30s]   <- blocks #4
-
-Parallel Block B (after #2):
-  3. [ ] Deploy API v2.1.0                             [~3 min]
-  4. [ ] Update frontend bundle                        [~2 min]
-
-Sequential Block C (verification):
-  5. [ ] Smoke test                                    [~2 min]
-  6. [ ] Monitor error rate 15 min                     [~15 min]
-```
+| Section | What It Shows | Reference |
+|---------|--------------|-----------|
+| [6] Blast Radius | Concentric rings of impact (direct -> transitive -> tests) | [blast-radius-patterns.md](references/blast-radius-patterns.md) |
+| [7] Cross-Layer Consistency | Frontend/backend endpoint alignment with gap detection | [deep-dives.md](references/deep-dives.md) |
+| [8] Migration Checklist | Ordered runbook with sequential/parallel blocks and time estimates | [deep-dives.md](references/deep-dives.md) |
 
 ---
 
@@ -355,16 +186,18 @@ Sequential Block C (verification):
 
 | Rule | Impact | What It Covers |
 |------|--------|----------------|
-| [ascii-diagrams](rules/ascii-diagrams.md) | MEDIUM | Box-drawing characters, file trees, progress bars, workflow diagrams |
-| [ascii-architecture](rules/ascii-architecture.md) | MEDIUM | Layered architecture, blast radius, reversibility timelines, comparisons |
+| [section-rendering](rules/section-rendering.md) | HIGH | Rendering conventions for all 5 core sections |
+| ASCII diagrams | MEDIUM | Via `ascii-visualizer` skill (box-drawing, file trees, workflows) |
 
 ## References
 
+- [Visualization Tiers](references/visualization-tiers.md) — Progressive disclosure tiers and header field computation
 - [Change Manifest Patterns](references/change-manifest-patterns.md)
 - [Execution Swimlane Patterns](references/execution-swimlane-patterns.md)
 - [Risk Dashboard Patterns](references/risk-dashboard-patterns.md)
 - [Decision Log Patterns](references/decision-log-patterns.md)
 - [Blast Radius Patterns](references/blast-radius-patterns.md)
+- [Deep Dives](references/deep-dives.md) — Cross-layer consistency and migration checklist
 
 ## Assets
 

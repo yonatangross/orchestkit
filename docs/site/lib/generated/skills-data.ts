@@ -378,11 +378,14 @@ export const SKILLS: Record<string, SkillMeta> = {
     "agent": null,
     "structure": {
       "references": [
+        "agent-spawn-definitions.md",
         "agent-teams-mode.md",
         "alternative-analysis.md",
         "improvement-prioritization.md",
         "orchestration-mode.md",
+        "phase-templates.md",
         "quality-model.md",
+        "scope-discovery.md",
         "scoring-rubric.md"
       ],
       "assets": [
@@ -900,8 +903,11 @@ export const SKILLS: Record<string, SkillMeta> = {
     "structure": {
       "references": [
         "content-types.md",
+        "demo-pipeline.md",
         "format-selection.md",
+        "remotion-composition.md",
         "script-generation.md",
+        "skill-category-mapping.md",
         "template-system.md",
         "terminal-simulation.md"
       ],
@@ -1077,9 +1083,11 @@ export const SKILLS: Record<string, SkillMeta> = {
     "structure": {
       "references": [
         "agents-validation.md",
+        "health-check-outputs.md",
         "hook-validation.md",
         "memory-health.md",
         "permission-rules.md",
+        "remediation-guide.md",
         "report-format.md",
         "schema-validation.md",
         "skills-validation.md",
@@ -1296,8 +1304,10 @@ export const SKILLS: Record<string, SkillMeta> = {
     "agent": null,
     "structure": {
       "references": [
+        "agent-selection.md",
         "agent-teams-rca.md",
         "cc-enhancements.md",
+        "fix-phases.md",
         "hypothesis-rca.md",
         "prevention-patterns.md",
         "similar-issue-search.md"
@@ -1786,7 +1796,9 @@ export const SKILLS: Record<string, SkillMeta> = {
     "agent": null,
     "structure": {
       "references": [
-        "mermaid-patterns.md"
+        "memory-commands.md",
+        "mermaid-patterns.md",
+        "session-resume-patterns.md"
       ],
       "scripts": [
         "graph-utils.mjs",
@@ -2114,8 +2126,10 @@ export const SKILLS: Record<string, SkillMeta> = {
         "blast-radius-patterns.md",
         "change-manifest-patterns.md",
         "decision-log-patterns.md",
+        "deep-dives.md",
         "execution-swimlane-patterns.md",
-        "risk-dashboard-patterns.md"
+        "risk-dashboard-patterns.md",
+        "visualization-tiers.md"
       ],
       "assets": [
         "impact-dashboard.md",
@@ -2810,6 +2824,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "structure": {
       "references": [
         "evolution-analysis.md",
+        "evolution-commands.md",
         "version-management.md"
       ]
     },
@@ -3159,7 +3174,8 @@ export const SKILLS: Record<string, SkillMeta> = {
         "policy-as-code.md",
         "quality-model.md",
         "report-template.md",
-        "verification-checklist.md"
+        "verification-checklist.md",
+        "verification-phases.md"
       ],
       "assets": [
         "quality-policy.yaml",

@@ -226,5 +226,5 @@ Read the specific file before advising. Do NOT rely on training data.
 |vite-advanced:{SKILL.md,references/{chunk-optimization.md,environment-api.md,library-mode.md,plugin-development.md,ssr-configuration.md}}|vite,build,bundler,plugins,ssr,library-mode,environment-api,optimization
 |task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,cc-2.1.16,workflow,coordination
 |remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory
-|memory:{SKILL.md,references/{mermaid-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
+|memory:{SKILL.md,references/{memory-commands.md,mermaid-patterns.md,session-resume-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
 ```

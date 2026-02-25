@@ -22,3 +22,9 @@ Multi-factor root cause visualization using category-based brainstorming. Best f
 Top-down deductive analysis for critical systems. Maps all paths to failure using boolean logic.
 
 - `rca-fault-tree.md` — AND/OR gates, FTA symbols, when to use for safety-critical systems
+
+## 4. Evidence Gathering (evidence) — HIGH — 1 rule
+
+User intent verification, hypothesis confidence scoring, and key decision constraints.
+
+- `evidence-gathering.md` — AskUserQuestion flow, confidence scale, mandatory decisions
