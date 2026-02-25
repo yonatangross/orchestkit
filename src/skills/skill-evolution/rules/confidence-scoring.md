@@ -1,3 +1,8 @@
+---
+title: "Confidence Scoring"
+impact: high
+---
+
 # Confidence Scoring & Suggestion Thresholds
 
 ## Thresholds

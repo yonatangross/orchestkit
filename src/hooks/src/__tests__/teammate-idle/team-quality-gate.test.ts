@@ -197,8 +197,8 @@ describe('team-quality-gate', () => {
       vi.mocked(getTeamName).mockReturnValue('my-team');
       vi.mocked(existsSync).mockReturnValue(true);
 
-      // Completion from 5 minutes ago (outside 2-minute window)
-      const oldTimestamp = new Date(Date.now() - 300_000).toISOString();
+      // Completion from 6+ minutes ago (outside 5-minute COMPLETION_WINDOW_MS)
+      const oldTimestamp = new Date(Date.now() - 400_000).toISOString();
       vi.mocked(readFileSync).mockReturnValue(
         makeCompletionLog([
           { event: 'task_completed', timestamp: oldTimestamp },

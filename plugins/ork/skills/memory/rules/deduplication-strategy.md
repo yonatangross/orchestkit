@@ -1,3 +1,8 @@
+---
+title: "Deduplication Strategy"
+impact: medium
+---
+
 # Deduplication Strategy
 
 When loading or searching memories, prevent duplicate context injection.

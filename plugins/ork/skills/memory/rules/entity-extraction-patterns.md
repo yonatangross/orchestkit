@@ -1,3 +1,8 @@
+---
+title: "Entity Extraction Patterns"
+impact: medium
+---
+
 # Entity Extraction Patterns
 
 When searching or visualizing the knowledge graph, recognize these entity types and their typical observations.

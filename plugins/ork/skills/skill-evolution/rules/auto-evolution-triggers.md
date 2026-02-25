@@ -1,3 +1,8 @@
+---
+title: "Auto-Evolution Triggers"
+impact: high
+---
+
 # Auto-Evolution Safety & Trigger Criteria
 
 ## Safety Mechanisms

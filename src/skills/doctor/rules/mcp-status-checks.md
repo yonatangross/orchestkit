@@ -1,3 +1,8 @@
+---
+title: "MCP Status Checks"
+impact: high
+---
+
 # MCP Status Checks
 
 Validates `.mcp.json` entries for enabled/disabled state and required credentials.

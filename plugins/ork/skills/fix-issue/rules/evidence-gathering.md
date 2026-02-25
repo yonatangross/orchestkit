@@ -1,3 +1,8 @@
+---
+title: "Evidence Gathering"
+impact: high
+---
+
 # Evidence Gathering Patterns
 
 ## Verify User Intent (STEP 0)

@@ -1,3 +1,8 @@
+---
+title: "Diagnostic Checks"
+impact: critical
+---
+
 # Diagnostic Check Procedures
 
 Detailed procedures for each health check category in `/ork:doctor`.

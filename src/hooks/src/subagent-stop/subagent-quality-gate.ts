@@ -56,23 +56,22 @@ function extractScores(text: string): ExtractedScore[] {
 
   // Pattern 1: "Dimension: N/M" or "**Dimension:** N/M"
   const slashPattern = /\*{0,2}(\w[\w\s]{0,30}?)\*{0,2}\s*:\s*(\d+(?:\.\d+)?)\s*\/\s*(\d+)/g;
-  let match: RegExpExecArray | null;
 
-  while ((match = slashPattern.exec(text)) !== null) {
+  for (const match of text.matchAll(slashPattern)) {
     const dimension = match[1].trim().toLowerCase();
     const value = parseFloat(match[2]);
     const max = parseFloat(match[3]);
-    if (!isNaN(value) && !isNaN(max) && max > 0) {
+    if (!Number.isNaN(value) && !Number.isNaN(max) && max > 0) {
       scores.push({ value, max, dimension: dimension === 'score' ? null : dimension });
     }
   }
 
   // Pattern 2: JSON-style "score": N or "score": N.N
   const jsonPattern = /"(\w+_?score|score)"\s*:\s*(\d+(?:\.\d+)?)/gi;
-  while ((match = jsonPattern.exec(text)) !== null) {
+  for (const match of text.matchAll(jsonPattern)) {
     const key = match[1].toLowerCase();
     const value = parseFloat(match[2]);
-    if (!isNaN(value)) {
+    if (!Number.isNaN(value)) {
       const dimension = key === 'score' ? null : key.replace(/_score$/, '');
       scores.push({ value, max: 10, dimension });
     }
