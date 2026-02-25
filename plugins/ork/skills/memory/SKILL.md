@@ -61,7 +61,7 @@ See [Memory Commands Reference](references/memory-commands.md) for full usage, f
 
 | Subcommand | Purpose |
 |------------|---------|
-| `search` | Search past decisions, patterns, entities. Supports `--category`, `--limit`, `--agent`, `--global` filter flags |
+| `search` | Search past decisions, patterns, entities. Supports `--category` (maps to metadata.category), `--limit`, `--agent` (scopes by agent_id), `--global` filter flags |
 | `load` | Auto-load relevant memories at session start. Supports `--project`, `--global` |
 | `history` | Decision timeline with table, Mermaid, or JSON output. Supports `--since`, `--mermaid` |
 | `viz` | Render knowledge graph as Mermaid diagram. See also [mermaid-patterns.md](references/mermaid-patterns.md) |
@@ -77,6 +77,7 @@ Extract first argument as subcommand
 If no subcommand -> AskUserQuestion
 Validate subcommand is one of: search, load, history, viz, status
 Parse remaining flags
+Check for --agent <agent-id> flag → agent_id: "ork:{agent-id}"
 ```
 
 ### 2. Execute Subcommand

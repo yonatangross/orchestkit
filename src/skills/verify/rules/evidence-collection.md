@@ -1,3 +1,8 @@
+---
+title: "Evidence Collection Patterns"
+impact: HIGH
+---
+
 # Evidence Collection Patterns
 
 ## Phase 1: Context Gathering

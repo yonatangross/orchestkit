@@ -1,6 +1,6 @@
 ---
 title: "Diagnostic Checks"
-impact: critical
+impact: CRITICAL
 ---
 
 # Diagnostic Check Procedures

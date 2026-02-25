@@ -1,6 +1,6 @@
 ---
 title: "Confidence Scoring"
-impact: high
+impact: HIGH
 ---
 
 # Confidence Scoring & Suggestion Thresholds

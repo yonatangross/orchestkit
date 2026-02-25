@@ -1,3 +1,8 @@
+---
+title: "Scoring Rubric"
+impact: HIGH
+---
+
 # Scoring Rubric
 
 ## Composite Score

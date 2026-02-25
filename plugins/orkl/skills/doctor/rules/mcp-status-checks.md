@@ -1,6 +1,6 @@
 ---
 title: "MCP Status Checks"
-impact: high
+impact: HIGH
 ---
 
 # MCP Status Checks

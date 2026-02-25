@@ -228,6 +228,5 @@ export function subagentQualityGate(input: HookInput): HookResult {
     // Don't block — just warn. Missing structure is a quality signal, not a hard gate.
   }
 
-  updateMetrics('check');
   return outputSilentSuccess();
 }

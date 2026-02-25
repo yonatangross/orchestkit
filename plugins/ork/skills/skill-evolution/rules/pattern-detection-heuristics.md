@@ -1,3 +1,8 @@
+---
+title: "Pattern Detection Heuristics"
+impact: HIGH
+---
+
 # Edit Pattern Detection Heuristics
 
 The system tracks these common edit patterns users apply after skill output:

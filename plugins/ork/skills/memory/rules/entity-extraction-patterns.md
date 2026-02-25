@@ -1,6 +1,6 @@
 ---
 title: "Entity Extraction Patterns"
-impact: medium
+impact: MEDIUM
 ---
 
 # Entity Extraction Patterns

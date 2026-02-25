@@ -1,6 +1,6 @@
 ---
 title: "Evidence Gathering"
-impact: high
+impact: HIGH
 ---
 
 # Evidence Gathering Patterns

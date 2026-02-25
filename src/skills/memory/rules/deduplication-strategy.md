@@ -1,6 +1,6 @@
 ---
 title: "Deduplication Strategy"
-impact: medium
+impact: MEDIUM
 ---
 
 # Deduplication Strategy

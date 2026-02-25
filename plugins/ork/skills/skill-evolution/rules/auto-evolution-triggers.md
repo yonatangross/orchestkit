@@ -1,6 +1,6 @@
 ---
 title: "Auto-Evolution Triggers"
-impact: high
+impact: HIGH
 ---
 
 # Auto-Evolution Safety & Trigger Criteria
