@@ -11,7 +11,7 @@ author: OrchestKit
 tags: [visualization, planning, before-after, architecture, diff, risk, impact, migration]
 user-invocable: true
 allowed-tools: [Read, Grep, Glob, Task, AskUserQuestion, Bash, Write]
-skills: [ascii-visualizer, explore, architecture-decision-record, assess-complexity]
+skills: [ascii-visualizer, explore, architecture-decision-record]
 complexity: medium
 metadata:
   category: document-asset-creation

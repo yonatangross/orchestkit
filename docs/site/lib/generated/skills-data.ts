@@ -371,7 +371,6 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [
       "code-review-playbook",
-      "assess-complexity",
       "quality-gates",
       "architecture-decision-record",
       "memory"
@@ -469,7 +468,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "mcp__memory__search_nodes"
     ],
     "skills": [
-      "security-scanning",
       "security-patterns",
       "architecture-patterns",
       "quality-gates"
@@ -555,10 +553,8 @@ export const SKILLS: Record<string, SkillMeta> = {
     "skills": [
       "architecture-decision-record",
       "api-design",
-      "design-system-starter",
       "memory",
       "remember",
-      "assess-complexity",
       "scope-appropriate-architecture",
       "testing-patterns"
     ],
@@ -718,7 +714,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "Bash"
     ],
     "skills": [
-      "git-recovery"
+      ""
     ],
     "agent": "git-operations-engineer",
     "structure": {
@@ -796,7 +792,6 @@ export const SKILLS: Record<string, SkillMeta> = {
     "skills": [
       "commit",
       "review-pr",
-      "security-scanning",
       "memory"
     ],
     "agent": "git-operations-engineer",
@@ -1200,8 +1195,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ascii-visualizer",
       "architecture-decision-record",
       "memory",
-      "architecture-patterns",
-      "assess-complexity"
+      "architecture-patterns"
     ],
     "agent": null,
     "structure": {
@@ -1296,7 +1290,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "commit",
       "explore",
       "verify",
-      "debug-investigator",
       "memory",
       "remember"
     ],
@@ -1575,7 +1568,6 @@ export const SKILLS: Record<string, SkillMeta> = {
     "skills": [
       "api-design",
       "react-server-components-framework",
-      "type-safety-validation",
       "testing-patterns",
       "explore",
       "verify",
@@ -2114,8 +2106,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "skills": [
       "ascii-visualizer",
       "explore",
-      "architecture-decision-record",
-      "assess-complexity"
+      "architecture-decision-record"
     ],
     "agent": "workflow-architect",
     "structure": {
@@ -2673,8 +2664,6 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [
       "code-review-playbook",
-      "security-scanning",
-      "type-safety-validation",
       "testing-patterns",
       "memory"
     ],
@@ -3077,7 +3066,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "WebFetch"
     ],
     "skills": [
-      "platform-upgrade-knowledge",
       "explore",
       "verify",
       "remember",
@@ -3158,9 +3146,6 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [
       "code-review-playbook",
-      "security-scanning",
-      "evidence-verification",
-      "run-tests",
       "testing-patterns",
       "memory",
       "quality-gates"

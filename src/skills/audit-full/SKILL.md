@@ -10,7 +10,7 @@ author: OrchestKit
 tags: [security, architecture, audit, dependencies, 1m-context, cross-file]
 user-invocable: true
 allowed-tools: [AskUserQuestion, Read, Grep, Glob, Bash, Task, TaskCreate, TaskUpdate, TaskList, mcp__memory__search_nodes]
-skills: [security-scanning, security-patterns, architecture-patterns, quality-gates]
+skills: [security-patterns, architecture-patterns, quality-gates]
 complexity: max
 metadata:
   category: document-asset-creation

@@ -10,7 +10,7 @@ author: OrchestKit
 tags: [code-review, pull-request, quality, security, testing]
 user-invocable: true
 allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, mcp__memory__search_nodes]
-skills: [code-review-playbook, security-scanning, type-safety-validation, testing-patterns, memory]
+skills: [code-review-playbook, testing-patterns, memory]
 complexity: medium
 metadata:
   category: workflow-automation

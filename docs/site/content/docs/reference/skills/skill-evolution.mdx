@@ -38,8 +38,8 @@ The skill evolution system operates in three phases:
 COLLECT                    ANALYZE                    ACT
 ───────                    ───────                    ───
 ┌─────────────┐           ┌─────────────┐           ┌─────────────┐
-│ PostTool    │──────────▶│ Evolution   │──────────▶│ /ork:skill  │
-│ Edit        │  patterns │ Analyzer    │ suggest   │ evolve      │
+│ PostTool    │──────────▶│ Evolution   │──────────▶│ /ork:skill- │
+│ Edit        │  patterns │ Analyzer    │ suggest   │ evolution   │
 │ Tracker     │           │ Engine      │           │ command     │
 └─────────────┘           └─────────────┘           └─────────────┘
      │                          │                          │

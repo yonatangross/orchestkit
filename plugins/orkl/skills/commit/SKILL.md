@@ -11,7 +11,7 @@ author: OrchestKit
 tags: [git, commit, version-control, conventional-commits]
 user-invocable: true
 allowed-tools: [Bash]
-skills: [git-recovery]
+skills: []
 complexity: low
 metadata:
   category: workflow-automation
