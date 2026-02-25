@@ -2,12 +2,13 @@
  * Sound Notifications - Notification Hook
  * CC 2.1.7 Compliant: outputs JSON with suppressOutput
  *
- * Plays sounds for task completion.
+ * Plays sounds for task completion using detached child processes
+ * that survive after the hook's Node process exits.
  *
- * Version: 1.0.0 (TypeScript port)
+ * Version: 2.0.0 (spawn + detach for reliable playback)
  */
 
-import { execSync } from 'node:child_process';
+import { execSync, spawn } from 'node:child_process';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook } from '../lib/common.js';
 
@@ -36,10 +37,15 @@ function hasAfplay(): boolean {
 
 function playSound(soundFile: string): void {
   try {
-    // Run in background (non-blocking)
-    execSync(`afplay "${soundFile}" &`, { stdio: 'ignore' });
+    // Spawn detached process so sound continues playing even after
+    // this Node process exits (critical for async hooks).
+    const child = spawn('afplay', [soundFile], {
+      stdio: 'ignore',
+      detached: true,
+    });
+    child.unref();
   } catch {
-    // Ignore errors
+    // Ignore errors — notification sounds are best-effort
   }
 }
 

@@ -1,14 +1,25 @@
 /**
  * Unit tests for sound notification hook
- * Tests macOS sound playback via afplay, sound mapping, and error resilience.
+ * Tests macOS sound playback via detached afplay spawn, sound mapping, and error resilience.
  *
  * CC 2.1.7 Compliance: All code paths must return { continue: true, suppressOutput: true }
  *
  * Issue #257: notification hooks 0% -> 100% coverage
+ * Fix: execSync + & replaced with spawn({ detached: true }) for reliable playback
  */
 
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { HookInput } from '../../types.js';
+
+// =============================================================================
+// Hoisted mocks (vi.hoisted runs before vi.mock factory)
+// =============================================================================
+
+const { mockUnref, mockSpawn } = vi.hoisted(() => {
+  const mockUnref = vi.fn();
+  const mockSpawn = vi.fn(() => ({ unref: mockUnref }));
+  return { mockUnref, mockSpawn };
+});
 
 // =============================================================================
 // Mocks
@@ -25,6 +36,7 @@ vi.mock('../../lib/common.js', async () => {
 
 vi.mock('node:child_process', () => ({
   execSync: vi.fn(),
+  spawn: mockSpawn,
 }));
 
 // =============================================================================
@@ -32,7 +44,7 @@ vi.mock('node:child_process', () => ({
 // =============================================================================
 
 import { soundNotification } from '../../notification/sound.js';
-import { outputSilentSuccess } from '../../lib/common.js';
+import { outputSilentSuccess, logHook } from '../../lib/common.js';
 import { execSync } from 'node:child_process';
 
 // =============================================================================
@@ -73,10 +85,9 @@ describe('notification/sound', () => {
     // Default: afplay is available
     vi.mocked(execSync).mockImplementation((cmd: string) => {
       if (cmd === 'command -v afplay') return Buffer.from('/usr/bin/afplay');
-      // afplay calls succeed silently
-      if (typeof cmd === 'string' && cmd.includes('afplay')) return Buffer.from('');
       return Buffer.from('');
     });
+    mockSpawn.mockReturnValue({ unref: mockUnref });
   });
 
   afterEach(() => {
@@ -96,14 +107,11 @@ describe('notification/sound', () => {
       soundNotification(input);
 
       // Assert
-      const afplayCalls = vi.mocked(execSync).mock.calls.filter(
-        ([cmd]) => typeof cmd === 'string' && cmd.includes('afplay'),
+      expect(mockSpawn).toHaveBeenCalledWith(
+        'afplay',
+        ['/System/Library/Sounds/Sosumi.aiff'],
+        expect.objectContaining({ stdio: 'ignore', detached: true }),
       );
-      const playCall = afplayCalls.find(
-        ([cmd]) => typeof cmd === 'string' && !cmd.includes('command -v'),
-      );
-      expect(playCall).toBeDefined();
-      expect(playCall![0]).toContain('/System/Library/Sounds/Sosumi.aiff');
     });
 
     test('plays Ping for idle_prompt', () => {
@@ -114,11 +122,11 @@ describe('notification/sound', () => {
       soundNotification(input);
 
       // Assert
-      const afplayCalls = vi.mocked(execSync).mock.calls.filter(
-        ([cmd]) => typeof cmd === 'string' && cmd.includes('afplay') && !cmd.includes('command -v'),
+      expect(mockSpawn).toHaveBeenCalledWith(
+        'afplay',
+        ['/System/Library/Sounds/Ping.aiff'],
+        expect.objectContaining({ stdio: 'ignore', detached: true }),
       );
-      expect(afplayCalls.length).toBe(1);
-      expect(afplayCalls[0][0]).toContain('/System/Library/Sounds/Ping.aiff');
     });
 
     test('plays Glass for auth_success', () => {
@@ -129,11 +137,11 @@ describe('notification/sound', () => {
       soundNotification(input);
 
       // Assert
-      const afplayCalls = vi.mocked(execSync).mock.calls.filter(
-        ([cmd]) => typeof cmd === 'string' && cmd.includes('afplay') && !cmd.includes('command -v'),
+      expect(mockSpawn).toHaveBeenCalledWith(
+        'afplay',
+        ['/System/Library/Sounds/Glass.aiff'],
+        expect.objectContaining({ stdio: 'ignore', detached: true }),
       );
-      expect(afplayCalls.length).toBe(1);
-      expect(afplayCalls[0][0]).toContain('/System/Library/Sounds/Glass.aiff');
     });
 
     test.each([
@@ -148,11 +156,11 @@ describe('notification/sound', () => {
       soundNotification(input);
 
       // Assert
-      const playCalls = vi.mocked(execSync).mock.calls.filter(
-        ([cmd]) => typeof cmd === 'string' && cmd.includes('afplay') && !cmd.includes('command -v'),
+      expect(mockSpawn).toHaveBeenCalledWith(
+        'afplay',
+        [expectedPath],
+        expect.objectContaining({ stdio: 'ignore', detached: true }),
       );
-      expect(playCalls.length).toBe(1);
-      expect(playCalls[0][0]).toContain(expectedPath);
     });
   });
 
@@ -175,11 +183,8 @@ describe('notification/sound', () => {
       // Act
       soundNotification(input);
 
-      // Assert - only the hasAfplay check should have been called, no actual play
-      const playCalls = vi.mocked(execSync).mock.calls.filter(
-        ([cmd]) => typeof cmd === 'string' && cmd.includes('afplay') && !cmd.includes('command -v'),
-      );
-      expect(playCalls.length).toBe(0);
+      // Assert - spawn should not have been called
+      expect(mockSpawn).not.toHaveBeenCalled();
     });
 
     test('does not play sound when notification_type is missing from tool_input', () => {
@@ -192,10 +197,7 @@ describe('notification/sound', () => {
       soundNotification(input);
 
       // Assert
-      const playCalls = vi.mocked(execSync).mock.calls.filter(
-        ([cmd]) => typeof cmd === 'string' && cmd.includes('afplay') && !cmd.includes('command -v'),
-      );
-      expect(playCalls.length).toBe(0);
+      expect(mockSpawn).not.toHaveBeenCalled();
     });
   });
 
@@ -226,11 +228,8 @@ describe('notification/sound', () => {
       // Act
       const result = soundNotification(input);
 
-      // Assert - no afplay call made
-      const playCalls = vi.mocked(execSync).mock.calls.filter(
-        ([cmd]) => typeof cmd === 'string' && cmd.includes('afplay') && !cmd.includes('command -v'),
-      );
-      expect(playCalls.length).toBe(0);
+      // Assert - spawn should not have been called
+      expect(mockSpawn).not.toHaveBeenCalled();
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
     });
@@ -243,10 +242,95 @@ describe('notification/sound', () => {
       soundNotification(input);
 
       // Assert
-      const playCalls = vi.mocked(execSync).mock.calls.filter(
-        ([cmd]) => typeof cmd === 'string' && cmd.includes('afplay') && !cmd.includes('command -v'),
+      expect(mockSpawn).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Detached process behavior (the core fix)
+  // ---------------------------------------------------------------------------
+
+  describe('detached process behavior', () => {
+    test('spawns afplay with detached: true so it survives parent exit', () => {
+      // Arrange
+      const input = createSoundInput('permission_prompt');
+
+      // Act
+      soundNotification(input);
+
+      // Assert
+      expect(mockSpawn).toHaveBeenCalledWith(
+        'afplay',
+        expect.any(Array),
+        expect.objectContaining({ detached: true }),
       );
-      expect(playCalls.length).toBe(1);
+    });
+
+    test('calls unref() on spawned child to allow parent process to exit', () => {
+      // Arrange
+      const input = createSoundInput('permission_prompt');
+
+      // Act
+      soundNotification(input);
+
+      // Assert
+      expect(mockUnref).toHaveBeenCalledTimes(1);
+    });
+
+    test('passes sound file as argv argument (not shell-interpolated)', () => {
+      // Arrange
+      const input = createSoundInput('permission_prompt');
+
+      // Act
+      soundNotification(input);
+
+      // Assert - second arg is an array with the sound path (no shell interpolation)
+      expect(mockSpawn).toHaveBeenCalledWith(
+        'afplay',
+        ['/System/Library/Sounds/Sosumi.aiff'],
+        expect.any(Object),
+      );
+    });
+
+    test('uses stdio: ignore to prevent fd leaks', () => {
+      // Arrange
+      const input = createSoundInput('idle_prompt');
+
+      // Act
+      soundNotification(input);
+
+      // Assert
+      expect(mockSpawn).toHaveBeenCalledWith(
+        'afplay',
+        expect.any(Array),
+        expect.objectContaining({ stdio: 'ignore' }),
+      );
+    });
+
+    test('does not call unref when no sound is played (unmapped type)', () => {
+      // Arrange
+      const input = createSoundInput('unknown_type');
+
+      // Act
+      soundNotification(input);
+
+      // Assert
+      expect(mockUnref).not.toHaveBeenCalled();
+    });
+
+    test('does not call unref when afplay is unavailable', () => {
+      // Arrange
+      vi.mocked(execSync).mockImplementation(() => {
+        throw new Error('not found');
+      });
+      const input = createSoundInput('permission_prompt');
+
+      // Act
+      soundNotification(input);
+
+      // Assert
+      expect(mockSpawn).not.toHaveBeenCalled();
+      expect(mockUnref).not.toHaveBeenCalled();
     });
   });
 
@@ -255,14 +339,10 @@ describe('notification/sound', () => {
   // ---------------------------------------------------------------------------
 
   describe('error handling', () => {
-    test('returns silentSuccess when afplay command fails', () => {
+    test('returns silentSuccess when spawn throws', () => {
       // Arrange
-      vi.mocked(execSync).mockImplementation((cmd: string) => {
-        if (cmd === 'command -v afplay') return Buffer.from('/usr/bin/afplay');
-        if (typeof cmd === 'string' && cmd.includes('afplay')) {
-          throw new Error('afplay: failed to play sound');
-        }
-        return Buffer.from('');
+      mockSpawn.mockImplementation(() => {
+        throw new Error('spawn ENOENT');
       });
       const input = createSoundInput('permission_prompt');
 
@@ -274,14 +354,10 @@ describe('notification/sound', () => {
       expect(result.suppressOutput).toBe(true);
     });
 
-    test('returns silentSuccess when sound file does not exist', () => {
+    test('returns silentSuccess when unref throws', () => {
       // Arrange
-      vi.mocked(execSync).mockImplementation((cmd: string) => {
-        if (cmd === 'command -v afplay') return Buffer.from('/usr/bin/afplay');
-        if (typeof cmd === 'string' && cmd.includes('afplay') && !cmd.includes('command -v')) {
-          throw new Error('afplay: file not found');
-        }
-        return Buffer.from('');
+      mockUnref.mockImplementation(() => {
+        throw new Error('unref failed');
       });
       const input = createSoundInput('permission_prompt');
 
@@ -301,6 +377,47 @@ describe('notification/sound', () => {
 
       // Act & Assert - should not throw
       expect(() => soundNotification(input)).not.toThrow();
+    });
+
+    test('handles null tool_input gracefully', () => {
+      // Arrange
+      const input = createToolInput({
+        tool_input: null as unknown as Record<string, unknown>,
+      });
+
+      // Act & Assert - should not throw
+      expect(() => soundNotification(input)).not.toThrow();
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Logging
+  // ---------------------------------------------------------------------------
+
+  describe('logging', () => {
+    test('logs notification type on every invocation', () => {
+      // Arrange
+      const input = createSoundInput('permission_prompt');
+
+      // Act
+      soundNotification(input);
+
+      // Assert
+      expect(logHook).toHaveBeenCalledWith(
+        'sound',
+        expect.stringContaining('permission_prompt'),
+      );
+    });
+
+    test('logs empty string for missing notification_type', () => {
+      // Arrange
+      const input = createSoundInput('');
+
+      // Act
+      soundNotification(input);
+
+      // Assert
+      expect(logHook).toHaveBeenCalledWith('sound', expect.stringContaining('[]'));
     });
   });
 
@@ -362,27 +479,6 @@ describe('notification/sound', () => {
       // Assert
       expect(result.stopReason).toBeUndefined();
       expect(result.systemMessage).toBeUndefined();
-    });
-  });
-
-  // ---------------------------------------------------------------------------
-  // Background playback
-  // ---------------------------------------------------------------------------
-
-  describe('background playback', () => {
-    test('plays sound with background flag (&)', () => {
-      // Arrange
-      const input = createSoundInput('permission_prompt');
-
-      // Act
-      soundNotification(input);
-
-      // Assert - the afplay call should include & for background execution
-      const playCalls = vi.mocked(execSync).mock.calls.filter(
-        ([cmd]) => typeof cmd === 'string' && cmd.includes('afplay') && !cmd.includes('command -v'),
-      );
-      expect(playCalls.length).toBe(1);
-      expect(playCalls[0][0]).toContain('&');
     });
   });
 });
