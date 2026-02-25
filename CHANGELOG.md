@@ -5,6 +5,29 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.7.1] - 2026-02-25
+
+### Breaking Changes
+
+- **skills:** Remove `worktree-coordination` skill — fully superseded by native CC 2.1.56 EnterWorktree tool and Task(isolation:"worktree") (#830)
+
+### Features
+
+- **eval:** Overhaul eval skills, agents, and LangGraph/Langfuse compatibility
+- **skills:** Extract `create-pr` into 7 rules + 4 references (274→156 lines)
+- **skills:** Compress 8 bloated skills (demo-producer, plan-viz, doctor, fix-issue, skill-evolution, verify, memory, assess) with content preserved in rules/references
+- **testing:** Add 3 new test suites: agent skill refs, build drift, cross-skill refs
+
+### Fixed
+
+- Fix 20 broken cross-skill references across 12 skills
+- Fix 5 weak skill descriptions (configure, feedback, help, release-checklist, skill-evolution)
+- Bump minimum Claude Code version to 2.1.56
+- Resolve all verification findings (Langfuse v2 remnants, credential warnings, sync guards)
+
+---
+
+
 ## [6.7.0](https://github.com/yonatangross/orchestkit/compare/v6.6.3...v6.7.0) (2026-02-23)
 
 
