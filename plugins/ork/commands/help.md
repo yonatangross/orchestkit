@@ -1,5 +1,5 @@
 ---
-description: "OrchestKit skill directory. Use when you want to see available skills or need help."
+description: "OrchestKit skill directory with categorized listings. Use when discovering skills for a task, finding the right workflow, or browsing capabilities."
 allowed-tools: [AskUserQuestion]
 ---
 

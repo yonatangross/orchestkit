@@ -740,7 +740,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "configure": {
     "name": "configure",
-    "description": "Configures OrchestKit settings. Use when customizing MCP servers, plugin options, or preferences.",
+    "description": "Configures OrchestKit plugin settings, MCP servers, hook permissions, and keybindings. Use when customizing plugin behavior or managing settings.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -801,6 +801,12 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "agent": "git-operations-engineer",
     "structure": {
+      "references": [
+        "ci-integration.md",
+        "multi-commit-pr.md",
+        "parallel-validation.md",
+        "pr-body-templates.md"
+      ],
       "assets": [
         "pr-template.md"
       ]
@@ -1221,7 +1227,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "feedback": {
     "name": "feedback",
-    "description": "Manages OrchestKit feedback system. Use when providing feedback or viewing usage analytics.",
+    "description": "Manages OrchestKit usage analytics, learning preferences, and privacy settings. Use when reviewing patterns, pausing learning, or managing consent.",
     "version": "1.2.0",
     "author": "OrchestKit",
     "tags": [
@@ -1469,7 +1475,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "help": {
     "name": "help",
-    "description": "OrchestKit skill directory. Use when you want to see available skills or need help.",
+    "description": "OrchestKit skill directory with categorized listings. Use when discovering skills for a task, finding the right workflow, or browsing capabilities.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -2453,7 +2459,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "release-checklist": {
     "name": "release-checklist",
-    "description": "Walks through the OrchestKit release checklist — build, test, validate counts, changelog, version bump, commit, tag, push. Use when preparing a release, cutting a version tag, or verifying release readiness before pushing to main.",
+    "description": "Validates release readiness with gated checklist — build, test, count validation, changelog, version bump. Use when preparing a release.",
     "version": "2.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -2792,7 +2798,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "skill-evolution": {
     "name": "skill-evolution",
-    "description": "Evolves skills based on usage patterns. Use when improving or rolling back skill definitions.",
+    "description": "Analyzes skill usage patterns and suggests improvements. Use when reviewing skill performance, applying auto-suggested changes, or rolling back versions.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [

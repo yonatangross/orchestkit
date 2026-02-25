@@ -1,5 +1,5 @@
 ---
-description: "Configures OrchestKit settings. Use when customizing MCP servers, plugin options, or preferences."
+description: "Configures OrchestKit plugin settings, MCP servers, hook permissions, and keybindings. Use when customizing plugin behavior or managing settings."
 allowed-tools: [Bash, Read, Grep, Glob]
 ---
 
