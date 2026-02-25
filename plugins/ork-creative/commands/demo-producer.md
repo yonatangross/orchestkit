@@ -34,7 +34,7 @@ Universal demo video creation for any content type.
 
 ## Interactive Flow
 
-When invoked without arguments, asks:
+When invoked without arguments, asks 4 questions:
 
 ### Question 1: Content Type
 ```
@@ -79,226 +79,30 @@ Audio preferences?
 
 ## Pipeline Architecture
 
-```
-┌──────────────────────────────────────────────────────────────────┐
-│                     Demo Producer Pipeline                        │
-├──────────────────────────────────────────────────────────────────┤
-│                                                                   │
-│  ┌─────────────┐    ┌──────────────┐    ┌─────────────────────┐  │
-│  │   Content   │───▶│   Content    │───▶│   Script Generator  │  │
-│  │   Detector  │    │   Analyzer   │    │   (per type)        │  │
-│  └─────────────┘    └──────────────┘    └──────────┬──────────┘  │
-│                                                     │             │
-│                                                     ▼             │
-│  ┌─────────────┐    ┌──────────────┐    ┌─────────────────────┐  │
-│  │  Remotion   │◀───│    VHS       │◀───│   Terminal Script   │  │
-│  │  Composer   │    │   Recorder   │    │   (.sh + .tape)     │  │
-│  └──────┬──────┘    └──────────────┘    └─────────────────────┘  │
-│         │                                                         │
-│         ▼                                                         │
-│  ┌─────────────────────────────────────────────────────────────┐ │
-│  │                    Final Outputs                             │ │
-│  │  • horizontal/{Name}Demo.mp4                                 │ │
-│  │  • vertical/{Name}Demo-Vertical.mp4                          │ │
-│  │  • square/{Name}Demo-Square.mp4 (optional)                   │ │
-│  └─────────────────────────────────────────────────────────────┘ │
-└──────────────────────────────────────────────────────────────────┘
-```
+> See [references/demo-pipeline.md](references/demo-pipeline.md) for the full pipeline diagram, generation commands, and output structure.
+
+Content Detector -> Content Analyzer -> Script Generator -> Terminal Script -> VHS Recorder -> Remotion Composer -> Final Outputs (horizontal/vertical/square).
 
 ## Template System
 
-The demo-producer skill offers three distinct template architectures for different demo styles:
+Four template architectures for different demo styles. See [references/template-system.md](references/template-system.md) for detailed configuration and the SkillDemoConfig interface.
 
-### 1. TriTerminalRace (3-Panel Racing)
+| Template | Use Case | Duration | Key Feature |
+|----------|----------|----------|-------------|
+| **TriTerminalRace** | Complexity comparisons | 15-20s | 3-panel split, color-coded difficulty |
+| **ProgressiveZoom** | Tutorials, walkthroughs | 20-30s | Zoom transitions, layered reveals |
+| **SplitThenMerge** | Before/after, transformations | 15-25s | Split screen -> unified merge |
+| **ScrapbookDemo** | Product launches, social proof | 15-35s | Warm paper aesthetic, fast cuts |
 
-Perfect for showcasing complexity levels in parallel:
+Content type templates (skill, agent, plugin, tutorial, cli, code) are mapped in [references/skill-category-mapping.md](references/skill-category-mapping.md).
 
-- **Use case**: Feature comparisons, skill showcases, progressive tutorials
-- **Format**: 3 split terminals (Simple → Medium → Advanced)
-- **Duration**: 15-20 seconds
-- **Components**: LiveFolderTree, LevelBadge, SkillReferences, CodePreview, ProgressPhases
-- **Example**: `/ork:demo-producer skill explore --template tri-terminal-race`
+## Remotion Composition
 
-**Key Features:**
-- Color-coded difficulty indicators (Green/Amber/Purple)
-- Real-time project structure animation
-- Parallel progress tracking
-- Comparative metrics display
-- Side-by-side summary cards
+> See [references/remotion-composition.md](references/remotion-composition.md) for folder structure, adding new compositions, and format variant prefixes.
 
-### 2. ProgressiveZoom (Tutorial Style)
-
-Ideal for step-by-step explanations:
-
-- **Use case**: Tutorials, code walkthroughs, feature deep-dives
-- **Format**: Zooming transitions, layered reveals
-- **Duration**: 20-30 seconds
-- **Components**: CodePreview, Highlights, Annotations, TimelineBar
-- **Example**: `/ork:demo-producer tutorial "Building REST API" --template progressive-zoom`
-
-**Key Features:**
-- Smooth zoom effects on code sections
-- Progressive annotation reveals
-- Contextual highlighting
-- Timeline markers for phases
-- Caption overlays
-
-### 3. SplitThenMerge (Dramatic Style)
-
-Great for before/after and transformation stories:
-
-- **Use case**: Problem → Solution demos, transformations, workflow changes
-- **Format**: Split screen that merges to unified view
-- **Duration**: 15-25 seconds
-- **Components**: SplitScreen, MergeTransition, ContrastHighlight, ImpactMetrics
-- **Example**: `/ork:demo-producer cli "npm run build" --template split-then-merge`
-
-**Key Features:**
-- Split screen comparisons
-- Dramatic merge transitions
-- Side-by-side metrics
-- Impact indicators (faster, better, safer)
-- Before/after snapshots
-
-### 4. ScrapbookDemo (Anthropic-Style Collage)
-
-Warm paper aesthetic inspired by Anthropic's Claude Opus 4.6 announcement:
-
-- **Use case**: Product launches, social proof, brand showcases
-- **Format**: Sequence of title stamp, social cards, terminal captures, stats reveal, CTA
-- **Duration**: 15-35 seconds
-- **Components**: PaperTexture, KineticText, SocialCard, CollageFrame, StatsCounter
-- **Example**: `/demo-producer plugin ork --template scrapbook`
-
-**Key Features:**
-- Warm cream background (#F0F0E8), NOT dark
-- Serif typography with spring "stamp" pop-in
-- Social proof cards sliding in from different directions
-- Tilted collage frames for screenshots
-- Animated stat counters with accent underlines
-- Fast cuts (100-200ms transitions)
-
-See `references/template-system.md` for detailed configuration guide and SkillDemoConfig interface.
-
-## Original Content Type Templates (Supported)
-
-### Skill Template
-Shows: Skill activation → Task creation → Phase execution → Results
-
-### Agent Template
-Shows: Agent spawning → Tool usage → Parallel execution → Synthesis
-
-### Plugin Template
-Shows: /plugin install → Configuration → Features showcase
-
-### Tutorial Template
-Shows: Problem statement → Code writing → Execution → Result
-
-### CLI Template
-Shows: Command entry → Execution → Output explanation
-
-### Code Walkthrough Template
-Shows: File overview → Key sections → Pattern explanation
-
-## Generation Commands
-
-```bash
-# After interactive selection, generates:
-
-# 1. Terminal script
-./skills/demo-producer/scripts/generate-script.sh \
-  --type=skill \
-  --name=explore \
-  --style=standard \
-  --output=orchestkit-demos/scripts/
-
-# 2. VHS tape files
-./skills/demo-producer/scripts/generate-tape.sh \
-  --script=demo-explore.sh \
-  --format=horizontal,vertical \
-  --output=orchestkit-demos/tapes/
-
-# 3. Record VHS
-cd orchestkit-demos/tapes && vhs sim-explore.tape
-
-# 4. Add Remotion composition
-./skills/demo-producer/scripts/add-composition.sh \
-  --name=explore \
-  --type=skill \
-  --formats=horizontal,vertical
-
-# 5. Render final videos
-cd orchestkit-demos && npx remotion render ExploreDemo --output=out/horizontal/ExploreDemo.mp4
-npx remotion render ExploreDemo-Vertical --output=out/vertical/ExploreDemo-Vertical.mp4
-```
-
-## Output Structure
-
-```
-orchestkit-demos/out/
-├── horizontal/
-│   └── {Name}Demo.mp4          # 1920x1080 16:9
-├── vertical/
-│   └── {Name}Demo-Vertical.mp4  # 1080x1920 9:16
-└── square/
-    └── {Name}Demo-Square.mp4    # 1080x1080 1:1 (optional)
-```
-
-## Remotion Folder Structure
-
-Compositions are organized in `orchestkit-demos/src/Root.tsx` using this hierarchy:
-
-```
-Production/                    # Ready-to-render videos
-├── Landscape-16x9/           # YouTube, Website (1920x1080)
-│   ├── Core-Skills/          # implement, verify, commit, explore
-│   ├── Memory-Skills/        # remember, memory
-│   ├── Review-Skills/        # review-pr, create-pr, fix-issue
-│   ├── DevOps-Skills/        # doctor, configure, run-tests, feedback
-│   ├── AI-Skills/            # brainstorming, assess, assess-complexity
-│   ├── Advanced-Skills/      # worktree-coordination, skill-evolution, demo-producer, add-golden
-│   └── Styles/               # Alternative visualizations (ProgressiveZoom, SplitMerge, etc.)
-├── Vertical-9x16/            # TikTok, Reels, Shorts (1080x1920)
-├── Square-1x1/               # Instagram, LinkedIn (1080x1080)
-└── Marketing/                # Brand & intro videos
-Templates/                    # Reference examples for each component style
-Experiments/                  # Work in progress, testing new ideas
-```
-
-### Skill Category Mapping
-
-| Category | Skills |
-|----------|--------|
-| Core-Skills | implement, verify, commit, explore |
-| Memory-Skills | remember, memory |
-| Review-Skills | review-pr, create-pr, fix-issue |
-| DevOps-Skills | doctor, configure, run-tests, feedback |
-| AI-Skills | brainstorming, assess, assess-complexity |
-| Advanced-Skills | worktree-coordination, skill-evolution, demo-producer, add-golden |
-
-### Adding New Compositions
-
-1. **Determine skill category** from mapping above
-2. **Add to correct folder** in Root.tsx:
-   ```tsx
-   <Folder name="Production">
-     <Folder name="Landscape-16x9">
-       <Folder name="{Category}-Skills">
-         <Composition id="{SkillName}" ... />
-       </Folder>
-     </Folder>
-   </Folder>
-   ```
-3. **Use unique composition IDs** - IDs must be globally unique across all folders
-4. **Add vertical/square variants** in their respective format folders with prefixes (e.g., `V-TTR-`, `SQ-TTR-`)
+Compositions organized under `Production/` by format (Landscape, Vertical, Square) and skill category.
 
 ## Customization Options
-
-### Hook Styles
-- **Question**: "Tired of [pain point]?"
-- **Statistic**: "[X]% of developers miss this"
-- **Contrarian**: "Stop [common practice]"
-- **Transformation**: "From [bad] to [good] in [time]"
 
 ### Visual Themes
 - **Dark mode** (default): Dark backgrounds, neon accents
@@ -325,42 +129,11 @@ Experiments/                  # Work in progress, testing new ideas
 
 > See [references/terminal-simulation.md](references/terminal-simulation.md) for TypeScript patterns: pinned header + scrolling content, agent color palette, and task spinner animation.
 
-## Slop Avoidance Patterns
+## Slop Avoidance
 
-### Common Slop to Eliminate
+> See [rules/slop-avoidance.md](rules/slop-avoidance.md) for text density rules, timing compression, common slop patterns, and hook styles.
 
-| Slop Pattern | Example | Fix |
-|-------------|---------|-----|
-| Verbose phase names | "Divergent Exploration" | "Ideas" or "Generating 12 ideas" |
-| Redundant sub-descriptions | Phase title + description | Combine into single line |
-| Repetitive completions | "✓ Task #2 completed: patterns analyzed" | "✓ #2 patterns" |
-| Generic transitions | "Now let's see..." | Cut directly |
-| Empty lines for spacing | Multiple blank lines | CSS padding instead |
-
-### Text Density Rules
-
-```
-TERMINAL TEXT DENSITY
-=====================
-✓ "Analyzing topic → 3 patterns found"     (action → result)
-✗ "Phase 1: Topic Analysis"                (title only)
-✗ "   └─ Keywords: real-time, notifications" (sub-detail)
-
-✓ "✓ #2 patterns"                          (compact completion)
-✗ "✓ Task #2 completed: patterns analyzed" (verbose completion)
-```
-
-### Timing Compression
-
-```
-15-SECOND VIDEO BREAKDOWN
-=========================
-0-7s:   Terminal demo (action-packed)
-7-11s:  Result visualization (payoff)
-11-15s: CTA (install command + stats)
-
-Rule: If content doesn't earn its screen time, cut it.
-```
+Core rule: If content doesn't earn its screen time, cut it.
 
 ## Rules Quick Reference
 
@@ -369,6 +142,7 @@ Rule: If content doesn't earn its screen time, cut it.
 | [analyzer-patterns](rules/analyzer-patterns.md) | MEDIUM | Frontmatter parsing, phase detection, example extraction |
 | [production-pipeline](rules/production-pipeline.md) | HIGH | Pre-production, storyboarding, recording, VHS, manim |
 | [production-composition](rules/production-composition.md) | HIGH | Remotion composition, audio mixing, thumbnails, captions |
+| [slop-avoidance](rules/slop-avoidance.md) | HIGH | Text density, timing compression, hook styles |
 
 ## Related Skills
 
@@ -380,3 +154,6 @@ Rule: If content doesn't earn its screen time, cut it.
 - `references/content-types.md` - Detailed content type specs
 - `references/format-selection.md` - Platform requirements and multi-format support
 - `references/script-generation.md` - Script templates and generation patterns
+- `references/demo-pipeline.md` - Pipeline architecture, generation commands, output structure
+- `references/remotion-composition.md` - Remotion folder structure and composition guide
+- `references/skill-category-mapping.md` - Skill category mapping and content type templates

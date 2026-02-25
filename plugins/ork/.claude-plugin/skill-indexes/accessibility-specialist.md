@@ -10,4 +10,4 @@
 |i18n-date-patterns:{SKILL.md,references/{formatting-utilities.md,icu-messageformat.md,trans-component.md}}|i18n,internationalization,dayjs,dates,react-i18next,localization,rtl,useTranslation,useFormatting,ICU,Trans
 |task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,cc-2.1.16,workflow,coordination
 |remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory
-|memory:{SKILL.md,references/{mermaid-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
+|memory:{SKILL.md,references/{memory-commands.md,mermaid-patterns.md,session-resume-patterns.md}}|memory,graph,session,context,sync,visualization,history,search

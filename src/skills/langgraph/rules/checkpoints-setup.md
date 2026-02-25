@@ -17,7 +17,7 @@ result = app.invoke(state)  # Can't resume if interrupted
 
 **Correct — environment-appropriate checkpointer:**
 ```python
-from langgraph.checkpoint import MemorySaver
+from langgraph.checkpoint.memory import MemorySaver
 from langgraph.checkpoint.postgres import PostgresSaver
 
 # Development: In-memory (fast, no setup)

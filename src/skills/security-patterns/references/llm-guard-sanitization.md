@@ -111,7 +111,7 @@ def check_output_for_pii(prompt: str, output: str) -> tuple[str, bool, float]:
 from llm_guard.input_scanners import Anonymize
 from llm_guard.output_scanners import Deanonymize, Sensitive
 from llm_guard.vault import Vault
-from langfuse.decorators import observe, langfuse_context
+from langfuse import observe, get_client
 
 class SecureLLMPipeline:
     def __init__(self):
@@ -127,7 +127,7 @@ class SecureLLMPipeline:
         # Step 1: Anonymize input
         sanitized_input, input_valid, input_risk = self.anonymize.scan(user_input)
 
-        langfuse_context.update_current_observation(
+        get_client().update_current_observation(
             metadata={
                 "input_risk_score": input_risk,
                 "pii_detected_in_input": not input_valid
@@ -146,7 +146,7 @@ class SecureLLMPipeline:
         # Step 4: Deanonymize for user (restore original names)
         final_output = self.deanonymize.scan(sanitized_input, checked_output)[0]
 
-        langfuse_context.update_current_observation(
+        get_client().update_current_observation(
             metadata={
                 "output_risk_score": output_risk,
                 "pii_leaked_in_output": not output_valid

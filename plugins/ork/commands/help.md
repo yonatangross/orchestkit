@@ -1,5 +1,5 @@
 ---
-description: "OrchestKit skill directory. Use when you want to see available skills or need help."
+description: "OrchestKit skill directory with categorized listings. Use when discovering skills for a task, finding the right workflow, or browsing capabilities."
 allowed-tools: [AskUserQuestion]
 ---
 
@@ -66,7 +66,7 @@ AskUserQuestion(
 | `/ork:create-pr` | Create GitHub pull requests with validation | `/ork:create-pr` |
 | `/ork:review-pr` | PR review with parallel specialized agents | `/ork:review-pr 123` |
 | `/ork:fix-issue` | Fix GitHub issues with parallel analysis | `/ork:fix-issue 456` |
-| `/ork:git-recovery` | Recovery from git mistakes | `/ork:git-recovery` |
+| `/ork:git-workflow` | Git workflow with recovery support | `/ork:git-workflow` |
 
 
 ### MEMORY (2 skills)
@@ -84,15 +84,14 @@ AskUserQuestion(
 - `viz` - Visualize knowledge graph
 
 
-### QUALITY (4 skills)
+### QUALITY (3 skills)
 *Assessment and diagnostics*
 
 | Skill | Description | Example |
 |-------|-------------|---------|
 | `/ork:assess` | Rate quality 0-10 with pros/cons | `/ork:assess src/api/` |
-| `/ork:assess-complexity` | Assess task complexity with metrics | `/ork:assess-complexity src/auth/` |
 | `/ork:doctor` | OrchestKit health diagnostics | `/ork:doctor` |
-| `/ork:add-golden` | Add documents to golden dataset | `/ork:add-golden` |
+| `/ork:golden-dataset` | Add documents to golden dataset | `/ork:golden-dataset` |
 
 
 ### CONFIG (3 skills)
@@ -111,7 +110,6 @@ AskUserQuestion(
 | Skill | Description | Example |
 |-------|-------------|---------|
 | `/ork:explore` | Deep codebase exploration with agents | `/ork:explore authentication` |
-| `/ork:worktree-coordination` | Coordinate multiple Claude instances | `/ork:worktree-coordination status` |
 
 
 ### MEDIA (1 skill)
@@ -147,13 +145,13 @@ Just describe your task naturally and OrchestKit will recommend the appropriate 
 | BUILD | 3 | Feature development |
 | GIT | 5 | Version control |
 | MEMORY | 2 | Knowledge persistence |
-| QUALITY | 4 | Assessment & diagnostics |
+| QUALITY | 3 | Assessment & diagnostics |
 | CONFIG | 3 | Plugin management |
 | EXPLORE | 2 | Code exploration |
 | MEDIA | 1 | Content creation |
 | META | 1 | This help skill |
 | UPGRADE | 1 | Platform upgrade assessment |
-| **Total** | **23** | |
+| **Total** | **22** | |
 
 
 ## Keyboard Shortcuts

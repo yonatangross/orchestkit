@@ -1,7 +1,7 @@
 ---
 name: commit
 license: MIT
-compatibility: "Claude Code 2.1.49+."
+compatibility: "Claude Code 2.1.56+."
 description: "Creates commits with conventional format and validation. Use when committing changes or generating commit messages."
 argument-hint: "[message]"
 context: inherit
@@ -11,7 +11,7 @@ author: OrchestKit
 tags: [git, commit, version-control, conventional-commits]
 user-invocable: true
 allowed-tools: [Bash]
-skills: [git-recovery]
+skills: []
 complexity: low
 metadata:
   category: workflow-automation

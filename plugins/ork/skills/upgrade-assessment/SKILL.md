@@ -1,7 +1,7 @@
 ---
 name: upgrade-assessment
 license: MIT
-compatibility: "Claude Code 2.1.49+. Requires network access."
+compatibility: "Claude Code 2.1.56+. Requires network access."
 description: "Assess platform upgrade readiness for Claude model and CC version changes. Use when evaluating upgrades."
 argument-hint: "[--json]"
 context: fork
@@ -10,7 +10,7 @@ author: OrchestKit
 tags: [upgrade, assessment, platform, compatibility, migration]
 user-invocable: true
 allowed-tools: [AskUserQuestion, Bash, Read, Grep, Glob, Task, WebSearch, WebFetch]
-skills: [platform-upgrade-knowledge, explore, verify, remember, memory]
+skills: [explore, verify, remember, memory]
 complexity: max
 metadata:
   category: document-asset-creation

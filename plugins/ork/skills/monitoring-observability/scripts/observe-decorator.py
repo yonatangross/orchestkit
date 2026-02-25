@@ -5,7 +5,7 @@ This template shows common patterns for using the @observe decorator
 to automatically trace async functions with nested operations.
 """
 
-from langfuse.decorators import langfuse_context, observe
+from langfuse import observe, get_client
 
 
 @observe()  # Automatic tracing for top-level function
@@ -18,7 +18,7 @@ async def analyze_content(content: str, agent_type: str) -> dict:
     """
 
     # Update trace metadata
-    langfuse_context.update_current_trace(
+    get_client().update_current_trace(
         session_id=f"session_{content[:20]}",
         user_id="user_123",
         metadata={
@@ -48,7 +48,7 @@ async def retrieve_context(content: str) -> list[str]:
     chunks = ["chunk1", "chunk2", "chunk3"]
 
     # Add metadata to current span
-    langfuse_context.update_current_observation(
+    get_client().update_current_observation(
         metadata={"chunks_retrieved": len(chunks)}, input=content[:100]  # Truncated
     )
 
@@ -68,7 +68,7 @@ async def generate_analysis(content: str, context: list[str]) -> str:
     output_tokens = 1000
 
     # Update span with LLM details
-    langfuse_context.update_current_observation(
+    get_client().update_current_observation(
         input={"content": content[:500], "context": context},  # Truncated
         output=response_text[:500],  # Truncated
         model="claude-sonnet-4-6",
@@ -98,7 +98,7 @@ async def operation_that_might_fail(data: str) -> dict:
     except Exception as e:
         # Exception is automatically captured by Langfuse
         # But you can add custom error metadata
-        langfuse_context.update_current_observation(
+        get_client().update_current_observation(
             metadata={"error_type": type(e).__name__, "error_message": str(e)},
             level="ERROR",
         )
@@ -112,14 +112,14 @@ async def operation_with_early_return(condition: bool) -> str:
     Early returns are handled correctly by @observe.
     """
     if not condition:
-        langfuse_context.update_current_observation(
+        get_client().update_current_observation(
             metadata={"early_return": True, "reason": "condition_false"}
         )
         return "skipped"
 
     result = await expensive_operation()
 
-    langfuse_context.update_current_observation(
+    get_client().update_current_observation(
         metadata={"early_return": False, "operation_completed": True}
     )
 
@@ -142,6 +142,7 @@ if __name__ == "__main__":
     import asyncio
 
     async def main():
+        """Run the observe decorator example."""
         result = await analyze_content(
             content="Sample article about Langfuse observability...",
             agent_type="security_auditor",

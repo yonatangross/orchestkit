@@ -19,7 +19,7 @@ from agents import Agent, Runner, handoff, tool, trace
 from agents.exceptions import InputGuardrailException, OutputGuardrailException
 from agents.extensions.handoff_prompt import RECOMMENDED_PROMPT_PREFIX
 from agents.guardrails import InputGuardrail, OutputGuardrail
-from langfuse.decorators import langfuse_context, observe
+from langfuse import observe, get_client
 
 logger = structlog.get_logger()
 
@@ -259,7 +259,7 @@ async def run_support_workflow(user_message: str, session_id: str) -> dict[str, 
     Returns:
         Dictionary with workflow result and metadata
     """
-    langfuse_context.update_current_trace(
+    get_client().update_current_trace(
         name="openai_agents_support",
         session_id=session_id,
         metadata={"initial_message": user_message[:100]}
@@ -273,7 +273,7 @@ async def run_support_workflow(user_message: str, session_id: str) -> dict[str, 
         with trace.span("support_workflow"):
             result = await runner.run(orchestrator, user_message)
 
-            langfuse_context.update_current_observation(
+            get_client().update_current_observation(
                 output={"status": "success", "trace_id": result.trace_id},
                 metadata={"handoffs": result.handoff_count if hasattr(result, 'handoff_count') else 0}
             )
@@ -302,7 +302,7 @@ async def run_support_workflow(user_message: str, session_id: str) -> dict[str, 
     except Exception as e:
         logger.error("Support workflow failed", error=str(e))
 
-        langfuse_context.update_current_observation(
+        get_client().update_current_observation(
             output={"status": "error", "error": str(e)},
             level="error"
         )

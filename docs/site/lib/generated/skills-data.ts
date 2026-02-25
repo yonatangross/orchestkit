@@ -371,7 +371,6 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [
       "code-review-playbook",
-      "assess-complexity",
       "quality-gates",
       "architecture-decision-record",
       "memory"
@@ -379,9 +378,14 @@ export const SKILLS: Record<string, SkillMeta> = {
     "agent": null,
     "structure": {
       "references": [
+        "agent-spawn-definitions.md",
         "agent-teams-mode.md",
         "alternative-analysis.md",
         "improvement-prioritization.md",
+        "orchestration-mode.md",
+        "phase-templates.md",
+        "quality-model.md",
+        "scope-discovery.md",
         "scoring-rubric.md"
       ],
       "assets": [
@@ -467,7 +471,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "mcp__memory__search_nodes"
     ],
     "skills": [
-      "security-scanning",
       "security-patterns",
       "architecture-patterns",
       "quality-gates"
@@ -553,10 +556,8 @@ export const SKILLS: Record<string, SkillMeta> = {
     "skills": [
       "architecture-decision-record",
       "api-design",
-      "design-system-starter",
       "memory",
       "remember",
-      "assess-complexity",
       "scope-appropriate-architecture",
       "testing-patterns"
     ],
@@ -716,7 +717,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "Bash"
     ],
     "skills": [
-      "git-recovery"
+      ""
     ],
     "agent": "git-operations-engineer",
     "structure": {
@@ -738,7 +739,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "configure": {
     "name": "configure",
-    "description": "Configures OrchestKit settings. Use when customizing MCP servers, plugin options, or preferences.",
+    "description": "Configures OrchestKit plugin settings, MCP servers, hook permissions, and keybindings. Use when customizing plugin behavior or managing settings.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -794,11 +795,16 @@ export const SKILLS: Record<string, SkillMeta> = {
     "skills": [
       "commit",
       "review-pr",
-      "security-scanning",
       "memory"
     ],
     "agent": "git-operations-engineer",
     "structure": {
+      "references": [
+        "ci-integration.md",
+        "multi-commit-pr.md",
+        "parallel-validation.md",
+        "pr-body-templates.md"
+      ],
       "assets": [
         "pr-template.md"
       ]
@@ -897,8 +903,11 @@ export const SKILLS: Record<string, SkillMeta> = {
     "structure": {
       "references": [
         "content-types.md",
+        "demo-pipeline.md",
         "format-selection.md",
+        "remotion-composition.md",
         "script-generation.md",
+        "skill-category-mapping.md",
         "template-system.md",
         "terminal-simulation.md"
       ],
@@ -1074,9 +1083,11 @@ export const SKILLS: Record<string, SkillMeta> = {
     "structure": {
       "references": [
         "agents-validation.md",
+        "health-check-outputs.md",
         "hook-validation.md",
         "memory-health.md",
         "permission-rules.md",
+        "remediation-guide.md",
         "report-format.md",
         "schema-validation.md",
         "skills-validation.md",
@@ -1192,8 +1203,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ascii-visualizer",
       "architecture-decision-record",
       "memory",
-      "architecture-patterns",
-      "assess-complexity"
+      "architecture-patterns"
     ],
     "agent": null,
     "structure": {
@@ -1219,7 +1229,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "feedback": {
     "name": "feedback",
-    "description": "Manages OrchestKit feedback system. Use when providing feedback or viewing usage analytics.",
+    "description": "Manages OrchestKit usage analytics, learning preferences, and privacy settings. Use when reviewing patterns, pausing learning, or managing consent.",
     "version": "1.2.0",
     "author": "OrchestKit",
     "tags": [
@@ -1288,15 +1298,16 @@ export const SKILLS: Record<string, SkillMeta> = {
       "commit",
       "explore",
       "verify",
-      "debug-investigator",
       "memory",
       "remember"
     ],
     "agent": null,
     "structure": {
       "references": [
+        "agent-selection.md",
         "agent-teams-rca.md",
         "cc-enhancements.md",
+        "fix-phases.md",
         "hypothesis-rca.md",
         "prevention-patterns.md",
         "similar-issue-search.md"
@@ -1461,12 +1472,13 @@ export const SKILLS: Record<string, SkillMeta> = {
       "orkl"
     ],
     "relatedAgents": [
-      "data-pipeline-engineer"
+      "data-pipeline-engineer",
+      "eval-runner"
     ]
   },
   "help": {
     "name": "help",
-    "description": "OrchestKit skill directory. Use when you want to see available skills or need help.",
+    "description": "OrchestKit skill directory with categorized listings. Use when discovering skills for a task, finding the right workflow, or browsing capabilities.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -1566,12 +1578,10 @@ export const SKILLS: Record<string, SkillMeta> = {
     "skills": [
       "api-design",
       "react-server-components-framework",
-      "type-safety-validation",
       "testing-patterns",
       "explore",
       "verify",
       "memory",
-      "worktree-coordination",
       "scope-appropriate-architecture"
     ],
     "agent": null,
@@ -1786,7 +1796,9 @@ export const SKILLS: Record<string, SkillMeta> = {
     "agent": null,
     "structure": {
       "references": [
-        "mermaid-patterns.md"
+        "memory-commands.md",
+        "mermaid-patterns.md",
+        "session-resume-patterns.md"
       ],
       "scripts": [
         "graph-utils.mjs",
@@ -1812,6 +1824,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "demo-producer",
       "deployment-manager",
       "documentation-specialist",
+      "eval-runner",
       "event-driven-architect",
       "frontend-performance-engineer",
       "frontend-ui-developer",
@@ -1902,6 +1915,7 @@ export const SKILLS: Record<string, SkillMeta> = {
         "agent-observability.md",
         "alerting-dashboards.md",
         "alerting-strategies.md",
+        "annotation-queues.md",
         "cost-tracking.md",
         "dashboards.md",
         "distributed-tracing.md",
@@ -1915,6 +1929,7 @@ export const SKILLS: Record<string, SkillMeta> = {
         "metrics-collection.md",
         "migration-v2-v3.md",
         "multi-judge-evaluation.md",
+        "online-evaluators.md",
         "prompt-management.md",
         "session-tracking.md",
         "statistical-methods.md",
@@ -1944,6 +1959,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ci-cd-engineer",
       "debug-investigator",
       "deployment-manager",
+      "eval-runner",
       "frontend-performance-engineer",
       "infrastructure-architect",
       "llm-integrator",
@@ -2102,8 +2118,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "skills": [
       "ascii-visualizer",
       "explore",
-      "architecture-decision-record",
-      "assess-complexity"
+      "architecture-decision-record"
     ],
     "agent": "workflow-architect",
     "structure": {
@@ -2111,8 +2126,10 @@ export const SKILLS: Record<string, SkillMeta> = {
         "blast-radius-patterns.md",
         "change-manifest-patterns.md",
         "decision-log-patterns.md",
+        "deep-dives.md",
         "execution-swimlane-patterns.md",
-        "risk-dashboard-patterns.md"
+        "risk-dashboard-patterns.md",
+        "visualization-tiers.md"
       ],
       "assets": [
         "impact-dashboard.md",
@@ -2447,7 +2464,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "release-checklist": {
     "name": "release-checklist",
-    "description": "Walks through the OrchestKit release checklist — build, test, validate counts, changelog, version bump, commit, tag, push. Use when preparing a release, cutting a version tag, or verifying release readiness before pushing to main.",
+    "description": "Validates release readiness with gated checklist — build, test, count validation, changelog, version bump. Use when preparing a release.",
     "version": "2.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -2560,6 +2577,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "demo-producer",
       "deployment-manager",
       "documentation-specialist",
+      "eval-runner",
       "event-driven-architect",
       "frontend-performance-engineer",
       "frontend-ui-developer",
@@ -2660,8 +2678,6 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [
       "code-review-playbook",
-      "security-scanning",
-      "type-safety-validation",
       "testing-patterns",
       "memory"
     ],
@@ -2785,7 +2801,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "skill-evolution": {
     "name": "skill-evolution",
-    "description": "Evolves skills based on usage patterns. Use when improving or rolling back skill definitions.",
+    "description": "Analyzes skill usage patterns and suggests improvements. Use when reviewing skill performance, applying auto-suggested changes, or rolling back versions.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -2808,6 +2824,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "structure": {
       "references": [
         "evolution-analysis.md",
+        "evolution-commands.md",
         "version-management.md"
       ]
     },
@@ -2860,6 +2877,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "database-engineer",
       "demo-producer",
       "deployment-manager",
+      "eval-runner",
       "event-driven-architect",
       "frontend-performance-engineer",
       "frontend-ui-developer",
@@ -2969,6 +2987,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "relatedAgents": [
       "accessibility-specialist",
       "code-quality-reviewer",
+      "eval-runner",
       "frontend-ui-developer",
       "metrics-architect",
       "monitoring-engineer",
@@ -3062,7 +3081,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "WebFetch"
     ],
     "skills": [
-      "platform-upgrade-knowledge",
       "explore",
       "verify",
       "remember",
@@ -3143,9 +3161,6 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [
       "code-review-playbook",
-      "security-scanning",
-      "evidence-verification",
-      "run-tests",
       "testing-patterns",
       "memory",
       "quality-gates"
@@ -3155,9 +3170,12 @@ export const SKILLS: Record<string, SkillMeta> = {
       "references": [
         "alternative-comparison.md",
         "grading-rubric.md",
+        "orchestration-mode.md",
         "policy-as-code.md",
+        "quality-model.md",
         "report-template.md",
-        "verification-checklist.md"
+        "verification-checklist.md",
+        "verification-phases.md"
       ],
       "assets": [
         "quality-policy.yaml",
@@ -3255,42 +3273,6 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": [
       "web-research-analyst"
-    ]
-  },
-  "worktree-coordination": {
-    "name": "worktree-coordination",
-    "description": "Coordinates multiple Claude instances across worktrees. Use when managing parallel development.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "coordination",
-      "worktree",
-      "multi-instance",
-      "locking",
-      "parallel-development"
-    ],
-    "userInvocable": true,
-    "context": "none",
-    "allowedTools": [
-      "Read",
-      "Write",
-      "Bash",
-      "Grep",
-      "Glob"
-    ],
-    "skills": [
-      "git-workflow",
-      "commit",
-      "stacked-prs"
-    ],
-    "agent": "git-operations-engineer",
-    "structure": {},
-    "plugins": [
-      "ork",
-      "orkl"
-    ],
-    "relatedAgents": [
-      "git-operations-engineer"
     ]
   },
   "zustand-patterns": {

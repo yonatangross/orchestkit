@@ -22,7 +22,7 @@ def process_all(state):
 **Correct — true parallel with Send API:**
 ```python
 from langgraph.graph import StateGraph, START, END
-from langgraph.constants import Send
+from langgraph.types import Send
 from typing import TypedDict, Annotated
 from operator import add
 

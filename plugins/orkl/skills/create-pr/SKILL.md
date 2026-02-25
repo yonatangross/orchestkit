@@ -1,7 +1,7 @@
 ---
 name: create-pr
 license: MIT
-compatibility: "Claude Code 2.1.49+. Requires memory MCP server, gh CLI."
+compatibility: "Claude Code 2.1.56+. Requires memory MCP server, gh CLI."
 description: "Creates GitHub pull requests with validation. Use when opening PRs or submitting code for review."
 argument-hint: "[title]"
 context: fork
@@ -11,7 +11,7 @@ author: OrchestKit
 tags: [git, github, pull-request, pr, code-review]
 user-invocable: true
 allowed-tools: [AskUserQuestion, Bash, Task, TaskCreate, TaskUpdate, mcp__memory__search_nodes]
-skills: [commit, review-pr, security-scanning, memory]
+skills: [commit, review-pr, memory]
 complexity: medium
 metadata:
   category: workflow-automation
@@ -30,27 +30,10 @@ Comprehensive PR creation with validation. All output goes directly to GitHub PR
 
 ---
 
-## STEP 0: Verify User Intent with AskUserQuestion
+## STEP 0: Verify User Intent
 
-**BEFORE creating tasks**, clarify PR type:
+**BEFORE creating tasks**, clarify PR type with AskUserQuestion:
 
-```python
-AskUserQuestion(
-  questions=[{
-    "question": "What type of PR is this?",
-    "header": "Type",
-    "options": [
-      {"label": "Feature (Recommended)", "description": "New functionality with full validation"},
-      {"label": "Bug fix", "description": "Fix for existing issue"},
-      {"label": "Refactor", "description": "Code improvement, no behavior change"},
-      {"label": "Quick", "description": "Skip validation, just create PR"}
-    ],
-    "multiSelect": false
-  }]
-)
-```
-
-**Based on answer, adjust workflow:**
 - **Feature**: Full validation with all agents
 - **Bug fix**: Focus on test verification
 - **Refactor**: Skip new feature validation
@@ -58,27 +41,16 @@ AskUserQuestion(
 
 ---
 
-## ⚠️ CRITICAL: Task Management is MANDATORY (CC 2.1.16)
+## STEP 1: Create Tasks (MANDATORY)
 
-**BEFORE doing ANYTHING else, create tasks to show progress:**
+Create tasks immediately to show progress:
 
 ```python
-# 1. Create main PR task IMMEDIATELY
-TaskCreate(
-  subject="Create PR for {branch}",
-  description="PR creation with parallel validation agents",
-  activeForm="Creating pull request"
-)
-
-# 2. Create subtasks for phases
+TaskCreate(subject="Create PR for {branch}", description="PR creation with validation", activeForm="Creating pull request")
 TaskCreate(subject="Pre-flight checks", activeForm="Running pre-flight checks")
-TaskCreate(subject="Run parallel validation agents", activeForm="Validating with agents")
+TaskCreate(subject="Run validation agents", activeForm="Validating with agents")
 TaskCreate(subject="Run local tests", activeForm="Running local tests")
 TaskCreate(subject="Create PR on GitHub", activeForm="Creating GitHub PR")
-
-# 3. Update status as you progress
-TaskUpdate(taskId="2", status="in_progress")  # When starting phase
-TaskUpdate(taskId="2", status="completed")    # When phase done
 ```
 
 ---
@@ -87,111 +59,55 @@ TaskUpdate(taskId="2", status="completed")    # When phase done
 
 ### Phase 1: Pre-Flight Checks
 
+See `rules/preflight-validation.md` for the full checklist.
+
 ```bash
-# Verify branch
 BRANCH=$(git branch --show-current)
-if [[ "$BRANCH" == "dev" || "$BRANCH" == "main" ]]; then
-  echo "Cannot create PR from dev/main. Create a feature branch first."
-  exit 1
-fi
+[[ "$BRANCH" == "dev" || "$BRANCH" == "main" ]] && echo "Cannot PR from dev/main" && exit 1
+[[ -n $(git status --porcelain) ]] && echo "Uncommitted changes" && exit 1
 
-# Check for uncommitted changes
-if [[ -n $(git status --porcelain) ]]; then
-  echo "Uncommitted changes detected. Commit or stash first."
-  exit 1
-fi
-
-# Push branch if needed
 git fetch origin
-if ! git rev-parse --verify origin/$BRANCH &>/dev/null; then
-  git push -u origin $BRANCH
-fi
+git rev-parse --verify "origin/$BRANCH" &>/dev/null || git push -u origin "$BRANCH"
 ```
 
-### Phase 2: Parallel Pre-PR Validation (3 Agents)
+### Phase 2: Parallel Validation (Feature/Bug fix PRs)
 
-Launch validation agents in ONE message BEFORE creating PR:
+Launch agents in ONE message. See `references/parallel-validation.md` for full agent configs.
 
-```python
-# PARALLEL - All 3 in ONE message
-Task(
-  subagent_type="security-auditor",
-  prompt="""Security audit for PR changes:
-  1. Check for secrets/credentials in diff
-  2. Dependency vulnerabilities (npm audit/pip-audit)
-  3. OWASP Top 10 quick scan
-  Return: {status: PASS/BLOCK, issues: [...]}
+| PR Type | Agents to launch |
+|---------|-----------------|
+| Feature | security-auditor + test-generator + code-quality-reviewer |
+| Bug fix | test-generator only |
+| Refactor | code-quality-reviewer only |
+| Quick | None |
 
-  Scope: ONLY read files directly relevant to the PR diff. Do NOT explore the entire codebase.
-
-  SUMMARY: End with: "RESULT: [PASS|WARN|BLOCK] - [N] issues: [brief list or 'clean']"
-  """,
-  run_in_background=True,
-  max_turns=25
-)
-Task(
-  subagent_type="test-generator",
-  prompt="""Test coverage verification:
-  1. Run test suite with coverage
-  2. Identify untested code in changed files
-  Return: {coverage: N%, passed: N/N, gaps: [...]}
-
-  Scope: ONLY read files directly relevant to the PR diff. Do NOT explore the entire codebase.
-
-  SUMMARY: End with: "RESULT: [N]% coverage, [passed]/[total] tests - [status]"
-  """,
-  run_in_background=True,
-  max_turns=25
-)
-Task(
-  subagent_type="code-quality-reviewer",
-  prompt="""Code quality check:
-  1. Run linting (ruff/eslint)
-  2. Type checking (mypy/tsc)
-  3. Check for anti-patterns
-  Return: {lint_errors: N, type_errors: N, issues: [...]}
-
-  Scope: ONLY read files directly relevant to the PR diff. Do NOT explore the entire codebase.
-
-  SUMMARY: End with: "RESULT: [PASS|WARN|FAIL] - [N] lint, [M] type errors"
-  """,
-  run_in_background=True,
-  max_turns=25
-)
-```
-
-Wait for agents, then run local validation:
+After agents complete, run local validation:
 
 ```bash
-# Backend
-cd backend
-poetry run ruff format --check app/
-poetry run ruff check app/
-poetry run pytest tests/unit/ -v --tb=short -x
-
-# Frontend
-cd ../frontend
-npm run lint && npm run typecheck
+# Adapt to project stack
+npm run lint && npm run typecheck && npm test -- --bail
+# or: ruff check . && pytest tests/unit/ -v --tb=short -x
 ```
 
 ### Phase 3: Gather Context
 
 ```bash
 BRANCH=$(git branch --show-current)
-ISSUE=$(echo $BRANCH | grep -oE '[0-9]+' | head -1)
-
+ISSUE=$(echo "$BRANCH" | grep -oE '[0-9]+' | head -1)
 git log --oneline dev..HEAD
 git diff dev...HEAD --stat
 ```
 
 ### Phase 4: Create PR
 
+Follow `rules/pr-title-format.md` and `rules/pr-body-structure.md`. Use HEREDOC pattern from `references/pr-body-templates.md`.
+
 ```bash
 TYPE="feat"  # Determine: feat/fix/refactor/docs/test/chore
-
 gh pr create --base dev \
   --title "$TYPE(#$ISSUE): Brief description" \
-  --body "## Summary
+  --body "$(cat <<'EOF'
+## Summary
 [1-2 sentence description]
 
 ## Changes
@@ -205,7 +121,9 @@ gh pr create --base dev \
 Closes #$ISSUE
 
 ---
-Generated with [Claude Code](https://claude.com/claude-code)"
+Generated with [Claude Code](https://claude.com/claude-code)
+EOF
+)"
 ```
 
 ### Phase 5: Verify
@@ -213,63 +131,26 @@ Generated with [Claude Code](https://claude.com/claude-code)"
 ```bash
 PR_URL=$(gh pr view --json url -q .url)
 echo "PR created: $PR_URL"
-gh pr view --web
 ```
 
-## CC 2.1.27+ Enhancements
-
-### Auto PR Linking
-
-Sessions created via `gh pr create` are now automatically linked to the PR. Use `--from-pr <number|url>` to resume sessions linked to a specific PR:
-
-```bash
-claude --from-pr 123          # Resume session linked to PR #123
-claude --from-pr https://github.com/org/repo/pull/123
-```
-
-This means PR context (diff, comments, review status) is available when resuming.
-
-### Task Metrics (CC 2.1.30)
-
-Task tool results now include `token_count`, `tool_uses`, and `duration_ms`. Report validation efficiency:
-
-```markdown
-## Pre-PR Validation Metrics
-| Agent | Tokens | Tools | Duration |
-|-------|--------|-------|----------|
-| security-auditor | 520 | 10 | 15s |
-| test-generator | 380 | 6 | 12s |
-| code-quality-reviewer | 450 | 8 | 10s |
-
-**Total:** 1,350 tokens in 37s
-```
-
-### Session Resume Hints (CC 2.1.31)
-
-At session end, Claude shows resume hints. Before ending PR creation sessions:
-
-```bash
-# Store PR context for future sessions
-/ork:remember PR #123 created: [brief description], pending review from [team]
-```
+---
 
 ## Rules
 
-1. **NO junk files** - Don't create files in repo root
-2. **Run validation locally** - Don't spawn agents for lint/test
-3. **All content goes to GitHub** - PR body via `gh pr create --body`
-4. **Keep it simple** - One command to create PR
-
-## Agent Usage
-
-Only use Task agents for:
-- Complex code analysis requiring multiple files
-- Security review of sensitive changes
-- Architecture review for large refactors
+1. **NO junk files** — Don't create files in repo root
+2. **Run validation locally** — Don't spawn agents for lint/test
+3. **All content goes to GitHub** — PR body via `gh pr create --body`
+4. **Keep it simple** — One command to create PR
 
 ## Related Skills
-- `ork:commit`: Create commits before PRs
-- `ork:review-pr`: Review PRs after creation
+
+- `ork:commit` — Create commits before PRs
+- `ork:review-pr` — Review PRs after creation
+
 ## References
 
-- [PR Template](assets/pr-template.md)
+- [PR Body Templates](references/pr-body-templates.md)
+- [Parallel Validation Agents](references/parallel-validation.md)
+- [CI Integration Patterns](references/ci-integration.md)
+- [Multi-Commit PR Guidance](references/multi-commit-pr.md)
+- [PR Template (legacy)](assets/pr-template.md)

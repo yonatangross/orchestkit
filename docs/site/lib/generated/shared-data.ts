@@ -5,10 +5,10 @@ import type { Totals, AgentSummary, CategoryMeta } from "./types";
 
 export const TOTALS: Totals = {
   "plugins": 3,
-  "skills": 68,
-  "agents": 37,
+  "skills": 67,
+  "agents": 38,
   "hooks": 77,
-  "commands": 29,
+  "commands": 28,
   "compositions": 14
 };
 
@@ -132,6 +132,16 @@ export const AGENTS: AgentSummary[] = [
       "orkl"
     ],
     "model": "haiku",
+    "category": "development"
+  },
+  {
+    "name": "eval-runner",
+    "description": "LLM evaluation specialist who runs structured eval datasets, computes quality metrics using DeepEval/RAGAS, tracks regression across model versions, and reports to Langfuse for tracing and scoring.",
+    "plugins": [
+      "ork",
+      "orkl"
+    ],
+    "model": "sonnet",
     "category": "development"
   },
   {

@@ -5,9 +5,9 @@
 
 ### Stop explaining your stack. Start shipping.
 
-**68 skills · 37 agents · 81 hooks · 3 plugins**
+**67 skills · 37 agents · 81 hooks · 3 plugins**
 
-[![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.49-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
+[![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.56-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/yonatangross/orchestkit?style=for-the-badge&logo=github)](https://github.com/yonatangross/orchestkit)
 
@@ -85,11 +85,11 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 /plugin install ork
 ```
 
-**orkl** (46 skills) — All workflows, agents, hooks. Architecture, security, product, accessibility, memory.
+**orkl** (45 skills) — All workflows, agents, hooks. Architecture, security, product, accessibility, memory.
 
 **ork-creative** (2 skills) — Video production add-on. Demo recording, Remotion, storyboarding, content creation.
 
-**ork** (68 skills) — Everything in lite + creative + Python (FastAPI, SQLAlchemy), React (RSC, TanStack), LLM/RAG, LangGraph, MCP.
+**ork** (67 skills) — Everything in lite + creative + Python (FastAPI, SQLAlchemy), React (RSC, TanStack), LLM/RAG, LangGraph, MCP.
 
 ---
 
@@ -134,7 +134,7 @@ Run `/ork:doctor` to diagnose.
 <details>
 <summary><strong>Claude Code version?</strong></summary>
 
-Requires **≥2.1.49**. Check with `claude --version`.
+Requires **≥2.1.56**. Check with `claude --version`.
 </details>
 
 ---
@@ -157,9 +157,9 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **v6.0.0** — Three-tier plugin architecture
 
 - **Breaking**: Simplified from 26 plugins to 3 (`orkl`, `ork-creative`, and `ork`)
-- `orkl` (46 skills) — Universal toolkit, all workflows work out of the box
+- `orkl` (45 skills) — Universal toolkit, all workflows work out of the box
 - `ork-creative` (2 skills) — Video production add-on for demo recording and content creation
-- `ork` (68 skills) — Full specialized with Python, React, LLM/RAG patterns
+- `ork` (67 skills) — Full specialized with Python, React, LLM/RAG patterns
 - All 37 agents and 81 hooks included in orkl and ork
 
 [Full Changelog →](./CHANGELOG.md)

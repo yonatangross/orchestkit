@@ -1,7 +1,7 @@
 ---
 name: explore
 license: MIT
-compatibility: "Claude Code 2.1.49+. Requires memory MCP server."
+compatibility: "Claude Code 2.1.56+. Requires memory MCP server."
 description: "explore — Deep codebase exploration with parallel agents. Use when exploring a repo, discovering architecture, finding files, or analyzing design patterns."
 argument-hint: "[topic-or-feature]"
 context: fork
@@ -10,7 +10,7 @@ author: OrchestKit
 tags: [exploration, code-search, architecture, codebase, health-assessment]
 user-invocable: true
 allowed-tools: [AskUserQuestion, Read, Grep, Glob, Task, TaskCreate, TaskUpdate, mcp__memory__search_nodes, Bash]
-skills: [ascii-visualizer, architecture-decision-record, memory, architecture-patterns, assess-complexity]
+skills: [ascii-visualizer, architecture-decision-record, memory, architecture-patterns]
 complexity: high
 metadata:
   category: workflow-automation

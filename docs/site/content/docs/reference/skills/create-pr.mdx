@@ -11,7 +11,6 @@ description: "Creates GitHub pull requests with validation. Use when opening PRs
 
 - [commit](/docs/reference/skills/commit)
 - [review-pr](/docs/reference/skills/review-pr)
-- [security-scanning](/docs/reference/skills/security-scanning)
 - [memory](/docs/reference/skills/memory)
 
 
@@ -27,27 +26,10 @@ Comprehensive PR creation with validation. All output goes directly to GitHub PR
 
 ---
 
-## STEP 0: Verify User Intent with AskUserQuestion
+## STEP 0: Verify User Intent
 
-**BEFORE creating tasks**, clarify PR type:
+**BEFORE creating tasks**, clarify PR type with AskUserQuestion:
 
-```python
-AskUserQuestion(
-  questions=[{
-    "question": "What type of PR is this?",
-    "header": "Type",
-    "options": [
-      {"label": "Feature (Recommended)", "description": "New functionality with full validation"},
-      {"label": "Bug fix", "description": "Fix for existing issue"},
-      {"label": "Refactor", "description": "Code improvement, no behavior change"},
-      {"label": "Quick", "description": "Skip validation, just create PR"}
-    ],
-    "multiSelect": false
-  }]
-)
-```
-
-**Based on answer, adjust workflow:**
 - **Feature**: Full validation with all agents
 - **Bug fix**: Focus on test verification
 - **Refactor**: Skip new feature validation
@@ -55,27 +37,16 @@ AskUserQuestion(
 
 ---
 
-## ⚠️ CRITICAL: Task Management is MANDATORY (CC 2.1.16)
+## STEP 1: Create Tasks (MANDATORY)
 
-**BEFORE doing ANYTHING else, create tasks to show progress:**
+Create tasks immediately to show progress:
 
 ```python
-# 1. Create main PR task IMMEDIATELY
-TaskCreate(
-  subject="Create PR for {branch}",
-  description="PR creation with parallel validation agents",
-  activeForm="Creating pull request"
-)
-
-# 2. Create subtasks for phases
+TaskCreate(subject="Create PR for {branch}", description="PR creation with validation", activeForm="Creating pull request")
 TaskCreate(subject="Pre-flight checks", activeForm="Running pre-flight checks")
-TaskCreate(subject="Run parallel validation agents", activeForm="Validating with agents")
+TaskCreate(subject="Run validation agents", activeForm="Validating with agents")
 TaskCreate(subject="Run local tests", activeForm="Running local tests")
 TaskCreate(subject="Create PR on GitHub", activeForm="Creating GitHub PR")
-
-# 3. Update status as you progress
-TaskUpdate(taskId="2", status="in_progress")  # When starting phase
-TaskUpdate(taskId="2", status="completed")    # When phase done
 ```
 
 ---
@@ -84,33 +55,492 @@ TaskUpdate(taskId="2", status="completed")    # When phase done
 
 ### Phase 1: Pre-Flight Checks
 
+See `rules/preflight-validation.md` for the full checklist.
+
 ```bash
-# Verify branch
 BRANCH=$(git branch --show-current)
-if [[ "$BRANCH" == "dev" || "$BRANCH" == "main" ]]; then
-  echo "Cannot create PR from dev/main. Create a feature branch first."
-  exit 1
-fi
+[[ "$BRANCH" == "dev" || "$BRANCH" == "main" ]] && echo "Cannot PR from dev/main" && exit 1
+[[ -n $(git status --porcelain) ]] && echo "Uncommitted changes" && exit 1
 
-# Check for uncommitted changes
-if [[ -n $(git status --porcelain) ]]; then
-  echo "Uncommitted changes detected. Commit or stash first."
-  exit 1
-fi
-
-# Push branch if needed
 git fetch origin
-if ! git rev-parse --verify origin/$BRANCH &>/dev/null; then
-  git push -u origin $BRANCH
-fi
+git rev-parse --verify "origin/$BRANCH" &>/dev/null || git push -u origin "$BRANCH"
 ```
 
-### Phase 2: Parallel Pre-PR Validation (3 Agents)
+### Phase 2: Parallel Validation (Feature/Bug fix PRs)
 
-Launch validation agents in ONE message BEFORE creating PR:
+Launch agents in ONE message. See `references/parallel-validation.md` for full agent configs.
+
+| PR Type | Agents to launch |
+|---------|-----------------|
+| Feature | security-auditor + test-generator + code-quality-reviewer |
+| Bug fix | test-generator only |
+| Refactor | code-quality-reviewer only |
+| Quick | None |
+
+After agents complete, run local validation:
+
+```bash
+# Adapt to project stack
+npm run lint && npm run typecheck && npm test -- --bail
+# or: ruff check . && pytest tests/unit/ -v --tb=short -x
+```
+
+### Phase 3: Gather Context
+
+```bash
+BRANCH=$(git branch --show-current)
+ISSUE=$(echo "$BRANCH" | grep -oE '[0-9]+' | head -1)
+git log --oneline dev..HEAD
+git diff dev...HEAD --stat
+```
+
+### Phase 4: Create PR
+
+Follow `rules/pr-title-format.md` and `rules/pr-body-structure.md`. Use HEREDOC pattern from `references/pr-body-templates.md`.
+
+```bash
+TYPE="feat"  # Determine: feat/fix/refactor/docs/test/chore
+gh pr create --base dev \
+  --title "$TYPE(#$ISSUE): Brief description" \
+  --body "$(cat <<'EOF'
+## Summary
+[1-2 sentence description]
+
+## Changes
+- [Change 1]
+- [Change 2]
+
+## Test Plan
+- [x] Unit tests pass
+- [x] Lint/type checks pass
+
+Closes #$ISSUE
+
+---
+Generated with [Claude Code](https://claude.com/claude-code)
+EOF
+)"
+```
+
+### Phase 5: Verify
+
+```bash
+PR_URL=$(gh pr view --json url -q .url)
+echo "PR created: $PR_URL"
+```
+
+---
+
+## Rules
+
+1. **NO junk files** — Don't create files in repo root
+2. **Run validation locally** — Don't spawn agents for lint/test
+3. **All content goes to GitHub** — PR body via `gh pr create --body`
+4. **Keep it simple** — One command to create PR
+
+## Related Skills
+
+- `ork:commit` — Create commits before PRs
+- `ork:review-pr` — Review PRs after creation
+
+## References
+
+- [PR Body Templates](references/pr-body-templates.md)
+- [Parallel Validation Agents](references/parallel-validation.md)
+- [CI Integration Patterns](references/ci-integration.md)
+- [Multi-Commit PR Guidance](references/multi-commit-pr.md)
+- [PR Template (legacy)](assets/pr-template.md)
+
+
+---
+
+## Rules (6)
+
+### Branch Naming Conventions — MEDIUM
+
+
+## Branch Naming Conventions
+
+Branch names enable automated issue extraction and PR categorization.
+
+**Pattern:** `&lt;type&gt;/&lt;issue&gt;-&lt;short-description&gt;`
+
+**Examples:**
+```
+feat/123-user-profile-page
+fix/456-login-race-condition
+refactor/789-extract-auth-module
+chore/update-deps
+docs/improve-api-docs
+```
+
+**Key rules:**
+- Use lowercase with hyphens (no underscores, no camelCase)
+- Include issue number when one exists
+- Keep description to 3-5 words
+- Type prefix matches conventional commit types: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`
+- Protected branches (`main`, `dev`) cannot be PR source branches
+
+**Issue extraction:**
+```bash
+# Extract issue number from branch name
+BRANCH=$(git branch --show-current)
+ISSUE=$(echo "$BRANCH" | grep -oE '[0-9]+' | head -1)
+```
+
+**Edge cases:**
+- No issue: omit number — `chore/update-deps`
+- Multiple issues: use primary issue number, mention others in PR body
+- Long descriptions: truncate — branch names are for identification, not documentation
+
+
+### Diff Size Guidelines — MEDIUM
+
+
+## Diff Size Guidelines
+
+Smaller PRs get better reviews, merge faster, and are easier to revert.
+
+**Size thresholds:**
+
+| Lines changed | Category | Action |
+|---------------|----------|--------|
+| &lt; 50 | Tiny | Merge quickly |
+| 50-200 | Small | Ideal PR size |
+| 200-400 | Medium | Acceptable, consider splitting |
+| 400-800 | Large | Split if possible |
+| > 800 | Too large | Must split (except generated/vendored files) |
+
+**Key rules:**
+- Aim for under 400 lines of meaningful change
+- Generated files (lockfiles, build output) don't count toward the limit
+- One logical change per PR (same principle as atomic commits)
+- If a feature requires 800+ lines, split into stacked PRs
+
+**Splitting strategies:**
+- Separate infrastructure/config changes from feature code
+- Split backend and frontend into separate PRs
+- Extract refactoring into a prep PR, then add the feature
+- Split by module/domain boundary
+
+**When large PRs are acceptable:**
+- Auto-generated code (migrations, protobuf, lockfiles)
+- Bulk renames or reformatting (use a dedicated PR with no logic changes)
+- Initial project scaffolding
+- Dependency updates with lockfile changes
+
+**Checking diff size:**
+```bash
+git diff dev...HEAD --stat          # File-level summary
+git diff dev...HEAD --shortstat     # One-line total
+```
+
+
+### PR Body Structure — HIGH
+
+
+## PR Body Structure
+
+Every PR body must include standard sections. Use `gh pr create --body` with a HEREDOC for correct formatting.
+
+**Required sections:**
+
+1. **Summary** — 1-2 sentences describing what and why (not how)
+2. **Changes** — Bulleted list of what changed (for quick scanning)
+3. **Test Plan** — Checkbox list of verification steps taken
+4. **Issue reference** — `Closes #N` to auto-close the linked issue on merge
+
+**Optional sections (include when relevant):**
+
+- **Breaking Changes** — Migration steps if behavior changes
+- **Screenshots** — For UI changes
+- **Deployment Notes** — Environment variables, migrations, infrastructure
+
+**Key rules:**
+- Always use `Closes #N` (not `Fixes` or `Resolves`) for consistency with CI auto-close
+- End body with `Generated with [Claude Code](https://claude.com/claude-code)` footer
+- Use `--body "$(cat &lt;&lt;'EOF' ... EOF)"` HEREDOC pattern for multi-line bodies
+- Keep Summary focused on "why" — the diff shows "what"
+- Test Plan checkboxes should reflect actual verification, not aspirational items
+
+**Anti-patterns:**
+- Empty PR body (even for tiny changes, include Summary + Test Plan)
+- Copy-pasting the full diff into the body
+- Generic "Updated files" without specifics
+- Unchecked test plan items (means tests were not actually run)
+
+Reference: See `references/pr-body-templates.md` for full template examples.
+
+
+### PR Title Format — HIGH
+
+
+## PR Title Format
+
+PR titles must be concise, scannable, and follow conventional commit prefixes for automated tooling.
+
+**Incorrect:**
+```
+Updated the user profile page to add avatar upload functionality and fixed a bug
+```
+
+**Correct:**
+```
+feat(#456): add user profile page with avatar upload
+```
+
+**Key rules:**
+- Under 70 characters total (GitHub truncates at ~72)
+- Use conventional prefix: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `ci`, `perf`
+- Include issue number in scope when available: `feat(#123): ...`
+- Use imperative mood: "add", "fix", "update" (not "added", "fixes", "updating")
+- No trailing period
+- Lowercase after prefix (unless proper noun)
+
+**Prefix selection:**
+
+| Prefix | Use when |
+|--------|----------|
+| `feat` | New user-facing functionality |
+| `fix` | Bug fix for existing behavior |
+| `refactor` | Code change with no behavior change |
+| `docs` | Documentation only |
+| `test` | Test additions or corrections |
+| `chore` | Build, CI, dependency updates |
+| `ci` | CI configuration changes |
+| `perf` | Performance improvement |
+
+**Edge cases:**
+- Breaking changes: add `!` after scope — `feat(#123)!: redesign auth flow`
+- Multiple issues: use primary issue — `fix(#123): resolve race condition`
+- No issue: omit scope parens — `chore: update dependencies`
+
+
+### Pre-Flight Validation — CRITICAL
+
+
+## Pre-Flight Validation
+
+Every PR creation must pass these checks before the `gh pr create` command runs.
+
+**Checklist (all must pass):**
+
+1. **Branch check** — Not on `main` or `dev`. Create a feature branch first.
+2. **Clean working tree** — No uncommitted changes (`git status --porcelain` is empty). Commit or stash first.
+3. **Remote push** — Branch exists on remote. Push with `-u` if needed.
+4. **Tests pass** — Run the project's test suite. At minimum: unit tests with `-x` (fail fast).
+5. **Lint clean** — No linting errors from the project's linter (ruff, eslint, etc.).
+6. **Type check clean** — No type errors (mypy, tsc, pyright) if project uses type checking.
+7. **No secrets** — No API keys, tokens, or credentials in the diff. Check with `git diff --cached` patterns.
+
+**Key rules:**
+- Run checks locally, not via agents (faster, no token cost)
+- Fail fast: stop at first blocking error
+- For "Quick" PR type, skip validation steps 4-7 but always check 1-3
+- Report failures clearly with actionable fix instructions
+
+**Validation commands (adapt to project):**
+```bash
+# Universal checks
+git status --porcelain              # Must be empty
+git branch --show-current           # Must not be main/dev
+
+# Python projects
+ruff format --check . && ruff check .
+pytest tests/unit/ -v --tb=short -x
+
+# Node projects
+npm run lint && npm run typecheck
+npm test -- --bail
+```
+
+**Blocking vs warning:**
+- Steps 1-3: **BLOCK** — Cannot proceed
+- Steps 4-6: **BLOCK** for Feature/Bug fix, **WARN** for Quick
+- Step 7 (secrets): **ALWAYS BLOCK** — No exceptions
+
+
+### Review Readiness Criteria — HIGH
+
+
+## Review Readiness Criteria
+
+Determine whether a PR should be created as draft or ready for review.
+
+**Create as DRAFT when:**
+- Tests are not yet passing
+- Implementation is partial (WIP)
+- You want early feedback on approach before finishing
+- CI has not been verified locally
+
+**Create as READY when:**
+- All pre-flight checks pass (see `preflight-validation.md`)
+- Self-review is complete (you read your own diff)
+- PR body is filled out with Summary, Changes, Test Plan
+- No TODO/FIXME comments in changed lines (unless intentional and explained)
+
+**Self-review checklist (do before marking ready):**
+- [ ] Read the full diff (`git diff dev...HEAD`) as if reviewing someone else's code
+- [ ] No debug statements (console.log, print, debugger) left in
+- [ ] No commented-out code without explanation
+- [ ] Variable/function names are clear
+- [ ] No unrelated changes mixed in
+
+**Key rules:**
+- Use `gh pr create --draft` for draft PRs
+- Convert draft to ready with `gh pr ready`
+- Never force-request review on a draft PR
+- If unsure, default to draft — it is easier to mark ready than to un-request review
+
+**Agent validation:**
+- For Feature PRs: launch security-auditor + test-generator + code-quality-reviewer agents
+- For Bug fix PRs: focus on test-generator only
+- For Refactor PRs: focus on code-quality-reviewer only
+- For Quick PRs: skip agent validation entirely
+
+
+
+---
+
+## References (4)
+
+### CI Integration Patterns
+
+
+# CI Integration Patterns
+
+## Auto PR Linking (CC 2.1.27+)
+
+Sessions created via `gh pr create` are automatically linked to the PR. Resume linked sessions with:
+
+```bash
+claude --from-pr 123          # Resume session linked to PR #123
+claude --from-pr https://github.com/org/repo/pull/123
+```
+
+PR context (diff, comments, review status) is available when resuming.
+
+## Task Metrics (CC 2.1.30+)
+
+Task tool results include `token_count`, `tool_uses`, and `duration_ms`. Report validation efficiency in PR comments:
+
+```markdown
+## Pre-PR Validation Metrics
+| Agent | Tokens | Tools | Duration |
+|-------|--------|-------|----------|
+| security-auditor | 520 | 10 | 15s |
+| test-generator | 380 | 6 | 12s |
+| code-quality-reviewer | 450 | 8 | 10s |
+
+**Total:** 1,350 tokens in 37s
+```
+
+## Session Resume Hints (CC 2.1.31+)
+
+Before ending PR creation sessions, store context for future sessions:
+
+```bash
+/ork:remember PR #123 created: [brief description], pending review from [team]
+```
+
+## Post-Creation Verification
+
+After `gh pr create`, always verify:
+
+```bash
+PR_URL=$(gh pr view --json url -q .url)
+echo "PR created: $PR_URL"
+
+# Check CI status (wait a moment for checks to start)
+gh pr checks
+```
+
+## Issue Auto-Close
+
+Using `Closes #N` in the PR body auto-closes the issue when the PR merges to the default branch. This is handled by GitHub, not CI — but only works when merging to `main`/`dev` (the repository's default branch).
+
+
+### Multi-Commit PR Guidance
+
+
+# Multi-Commit PR Guidance
+
+## When PRs Have Multiple Commits
+
+Most PRs should have a clean commit history. The PR title summarizes the overall change; individual commits tell the story of how you got there.
+
+## Gathering Context
+
+Before writing the PR body, review the full commit history:
+
+```bash
+BRANCH=$(git branch --show-current)
+ISSUE=$(echo "$BRANCH" | grep -oE '[0-9]+' | head -1)
+
+# See all commits on this branch
+git log --oneline dev..HEAD
+
+# See overall diff stats
+git diff dev...HEAD --stat
+
+# See full diff for PR body writing
+git diff dev...HEAD
+```
+
+## PR Body for Multi-Commit PRs
+
+When the PR has multiple commits, the Changes section should group by logical area, not list each commit:
+
+```markdown
+## Summary
+Implement user authentication with JWT tokens.
+
+## Changes
+
+### Backend
+- Add JWT token generation and validation
+- Create login/logout API endpoints
+- Add auth middleware for protected routes
+
+### Frontend
+- Create login form component
+- Add auth context provider
+- Implement protected route wrapper
+
+### Infrastructure
+- Add JWT_SECRET to environment config
+- Update Docker compose with auth service
+
+## Commit History
+- `abc1234` feat: add JWT auth backend
+- `def5678` feat: add login form frontend
+- `ghi9012` chore: configure JWT environment
+- `jkl3456` test: add auth integration tests
+```
+
+## Squash vs Merge
+
+- **Squash merge**: All commits become one. PR title becomes the commit message. Best for feature branches.
+- **Merge commit**: Preserves individual commits. Best when commit history is clean and tells a story.
+- **Rebase merge**: Linear history. Best for small, single-commit PRs.
+
+Let the repository's merge strategy setting guide this — do not override per-PR unless there is a reason.
+
+
+### Parallel Validation Agents
+
+
+# Parallel Validation Agents
+
+## Overview
+
+For Feature and Bug fix PRs, launch validation agents in parallel BEFORE creating the PR. All three agents run in ONE message using `run_in_background=True`.
+
+## Agent Configuration
+
+### Security Auditor
 
 ```python
-# PARALLEL - All 3 in ONE message
 Task(
   subagent_type="security-auditor",
   prompt="""Security audit for PR changes:
@@ -126,6 +556,11 @@ Task(
   run_in_background=True,
   max_turns=25
 )
+```
+
+### Test Generator
+
+```python
 Task(
   subagent_type="test-generator",
   prompt="""Test coverage verification:
@@ -140,6 +575,11 @@ Task(
   run_in_background=True,
   max_turns=25
 )
+```
+
+### Code Quality Reviewer
+
+```python
 Task(
   subagent_type="code-quality-reviewer",
   prompt="""Code quality check:
@@ -157,116 +597,136 @@ Task(
 )
 ```
 
-Wait for agents, then run local validation:
+## When to Use Agents
 
-```bash
-# Backend
-cd backend
-poetry run ruff format --check app/
-poetry run ruff check app/
-poetry run pytest tests/unit/ -v --tb=short -x
+| PR Type | Agents |
+|---------|--------|
+| Feature | All 3 (security + tests + quality) |
+| Bug fix | test-generator only |
+| Refactor | code-quality-reviewer only |
+| Quick | None — skip agent validation |
 
-# Frontend
-cd ../frontend
-npm run lint && npm run typecheck
-```
+## After Agent Results
 
-### Phase 3: Gather Context
+Wait for all agents to complete, then run local validation (lint + test) to confirm. Agent results inform the PR body's Test Plan section.
 
-```bash
-BRANCH=$(git branch --show-current)
-ISSUE=$(echo $BRANCH | grep -oE '[0-9]+' | head -1)
 
-git log --oneline dev..HEAD
-git diff dev...HEAD --stat
-```
+### PR Body Templates
 
-### Phase 4: Create PR
 
-```bash
-TYPE="feat"  # Determine: feat/fix/refactor/docs/test/chore
+# PR Body Templates
 
-gh pr create --base dev \
-  --title "$TYPE(#$ISSUE): Brief description" \
-  --body "## Summary
-[1-2 sentence description]
+## Standard Template
+
+For most PRs (features, bug fixes, refactors):
+
+```markdown
+## Summary
+[1-2 sentence description of what this PR does and why]
 
 ## Changes
 - [Change 1]
 - [Change 2]
 
+## Type
+- [ ] Feature
+- [ ] Bug fix
+- [ ] Refactor
+- [ ] Docs
+- [ ] Test
+- [ ] Chore
+
+## Breaking Changes
+- [ ] None
+- [ ] Yes: [describe migration steps]
+
+## Related Issues
+- Closes #ISSUE
+
 ## Test Plan
 - [x] Unit tests pass
 - [x] Lint/type checks pass
-
-Closes #$ISSUE
+- [ ] Manual testing: [describe]
 
 ---
-Generated with [Claude Code](https://claude.com/claude-code)"
+Generated with [Claude Code](https://claude.com/claude-code)
 ```
 
-### Phase 5: Verify
+## Minimal Template
 
-```bash
-PR_URL=$(gh pr view --json url -q .url)
-echo "PR created: $PR_URL"
-gh pr view --web
-```
-
-## CC 2.1.27+ Enhancements
-
-### Auto PR Linking
-
-Sessions created via `gh pr create` are now automatically linked to the PR. Use `--from-pr &lt;number|url&gt;` to resume sessions linked to a specific PR:
-
-```bash
-claude --from-pr 123          # Resume session linked to PR #123
-claude --from-pr https://github.com/org/repo/pull/123
-```
-
-This means PR context (diff, comments, review status) is available when resuming.
-
-### Task Metrics (CC 2.1.30)
-
-Task tool results now include `token_count`, `tool_uses`, and `duration_ms`. Report validation efficiency:
+For small fixes and chores (under 50 lines changed):
 
 ```markdown
-## Pre-PR Validation Metrics
-| Agent | Tokens | Tools | Duration |
-|-------|--------|-------|----------|
-| security-auditor | 520 | 10 | 15s |
-| test-generator | 380 | 6 | 12s |
-| code-quality-reviewer | 450 | 8 | 10s |
+## Summary
+Fix typo in error message
 
-**Total:** 1,350 tokens in 37s
+## Test Plan
+- [x] Unit tests pass
+
+Closes #123
+
+---
+Generated with [Claude Code](https://claude.com/claude-code)
 ```
 
-### Session Resume Hints (CC 2.1.31)
+## Feature Template
 
-At session end, Claude shows resume hints. Before ending PR creation sessions:
+For new features with UI, infrastructure, or deployment implications:
+
+```markdown
+## Summary
+Add user profile page with avatar upload
+
+## Changes
+- Create ProfilePage component
+- Add profile API endpoint
+- Implement avatar upload with S3
+- Add unit and integration tests
+
+## Screenshots
+[If applicable — paste screenshots of UI changes]
+
+## Test Plan
+- [x] Unit tests: 15 new tests
+- [x] Integration tests: 3 new tests
+- [x] Manual testing: Verified upload works
+- [x] Accessibility: Keyboard navigation works
+
+## Deployment Notes
+- Requires S3 bucket configuration
+- Run migration: `alembic upgrade head`
+
+Closes #456
+
+---
+Generated with [Claude Code](https://claude.com/claude-code)
+```
+
+## HEREDOC Pattern for `gh pr create`
+
+Always use HEREDOC to avoid shell escaping issues:
 
 ```bash
-# Store PR context for future sessions
-/ork:remember PR #123 created: [brief description], pending review from [team]
+gh pr create --base dev \
+  --title "feat(#123): add user profile page" \
+  --body "$(cat <<'EOF'
+## Summary
+Add user profile page with avatar upload and S3 integration.
+
+## Changes
+- Create ProfilePage component
+- Add profile API endpoint
+- Implement avatar upload with S3
+
+## Test Plan
+- [x] Unit tests pass (15 new)
+- [x] Lint/type checks clean
+
+Closes #123
+
+---
+Generated with [Claude Code](https://claude.com/claude-code)
+EOF
+)"
 ```
 
-## Rules
-
-1. **NO junk files** - Don't create files in repo root
-2. **Run validation locally** - Don't spawn agents for lint/test
-3. **All content goes to GitHub** - PR body via `gh pr create --body`
-4. **Keep it simple** - One command to create PR
-
-## Agent Usage
-
-Only use Task agents for:
-- Complex code analysis requiring multiple files
-- Security review of sensitive changes
-- Architecture review for large refactors
-
-## Related Skills
-- `ork:commit`: Create commits before PRs
-- `ork:review-pr`: Review PRs after creation
-## References
-
-- [PR Template](assets/pr-template.md)

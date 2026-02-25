@@ -43,7 +43,7 @@ ACTUAL_HOOKS=$(jq '[.hooks | to_entries[] | .value[] | .hooks | length] | add' "
 
 CLAUDE_MD="$REPO_ROOT/CLAUDE.md"
 
-# Project Overview line: "63 skills, 37 agents, 87 hooks"
+# Project Overview line: "68 skills, 38 agents, 77 hooks"
 CLAUDE_OVERVIEW=$(grep -m1 'skills.*agents.*hooks' "$CLAUDE_MD" || true)
 CLAUDE_OV_SKILLS=$(echo "$CLAUDE_OVERVIEW" | grep -oE '[0-9]+ skills?' | grep -oE '[0-9]+' || echo "?")
 CLAUDE_OV_AGENTS=$(echo "$CLAUDE_OVERVIEW" | grep -oE '[0-9]+ agents?' | grep -oE '[0-9]+' || echo "?")

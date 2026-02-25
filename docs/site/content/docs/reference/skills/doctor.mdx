@@ -14,7 +14,7 @@ description: "OrchestKit doctor for health diagnostics. Use when running checks 
 
 ## Overview
 
-The `/ork:doctor` command performs comprehensive health checks on your OrchestKit installation. It auto-detects installed plugins and validates 11 categories:
+The `/ork:doctor` command performs comprehensive health checks on your OrchestKit installation. It auto-detects installed plugins and validates 12 categories:
 
 1. **Installed Plugins** - Detects orkl or ork
 2. **Skills Validation** - Frontmatter, references, token budget (dynamic count)
@@ -55,7 +55,89 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 
 ## Health Check Categories
 
-### 0. Installed Plugins Detection
+> **Detailed check procedures**: See [rules/diagnostic-checks.md](rules/diagnostic-checks.md) for bash commands and validation logic per category.
+>
+> **MCP-specific checks**: See [rules/mcp-status-checks.md](rules/mcp-status-checks.md) for credential validation and misconfiguration detection.
+>
+> **Output examples**: See [references/health-check-outputs.md](references/health-check-outputs.md) for sample output per category.
+
+### Categories 0-3: Core Validation
+
+| Category | What It Checks | Reference |
+|----------|---------------|-----------|
+| **0. Installed Plugins** | Auto-detects orkl or ork, counts skills/agents | [diagnostic-checks](rules/diagnostic-checks.md) |
+| **1. Skills** | Frontmatter, context field, token budget, links | [skills-validation](references/skills-validation.md) |
+| **2. Agents** | Frontmatter, model, skill refs, tool refs | [agents-validation](references/agents-validation.md) |
+| **3. Hooks** | hooks.json schema, bundles, async patterns | [hook-validation](references/hook-validation.md) |
+
+### Categories 4-5: System Health
+
+| Category | What It Checks | Reference |
+|----------|---------------|-----------|
+| **4. Memory** | .claude/memory/ exists, decisions.jsonl integrity, queue depth | [memory-health](references/memory-health.md) |
+| **5. Build** | plugins/ sync with src/, manifest counts, orphans | [diagnostic-checks](rules/diagnostic-checks.md) |
+
+### Categories 6-9: Infrastructure
+
+| Category | What It Checks |
+|----------|---------------|
+| **6. Permission Rules** | Unreachable rules detection (CC 2.1.3) |
+| **7. Schema Compliance** | JSON files against schemas |
+| **8. Coordination** | Multi-worktree lock health, stale locks |
+| **9. Context Budget** | Token usage against budget |
+
+### Categories 10-12: Environment
+
+| Category | What It Checks | Reference |
+|----------|---------------|-----------|
+| **10. CC Version** | Runtime version against minimum required | [version-compatibility](references/version-compatibility.md) |
+| **11. External Deps** | Optional tools (agent-browser) | [diagnostic-checks](rules/diagnostic-checks.md) |
+| **12. MCP Status** | Enabled/disabled state, credential checks | [mcp-status-checks](rules/mcp-status-checks.md) |
+
+## Report Format
+
+> See [references/report-format.md](references/report-format.md) for ASCII report templates (ork and orkl), JSON CI output schema, and exit codes.
+
+## Interpreting Results & Troubleshooting
+
+> See [references/remediation-guide.md](references/remediation-guide.md) for the full results interpretation table and troubleshooting steps for common failures (skills validation, build sync, memory).
+
+## Related Skills
+
+- `ork:configure` - Configure plugin settings
+- `ork:quality-gates` - CI/CD integration
+- `security-scanning` - Comprehensive audits
+
+## References
+
+- [Diagnostic Checks](rules/diagnostic-checks.md)
+- [MCP Status Checks](rules/mcp-status-checks.md)
+- [Remediation Guide](references/remediation-guide.md)
+- [Health Check Outputs](references/health-check-outputs.md)
+- [Skills Validation](references/skills-validation.md)
+- [Agents Validation](references/agents-validation.md)
+- [Hook Validation](references/hook-validation.md)
+- [Memory Health](references/memory-health.md)
+- [Permission Rules](references/permission-rules.md)
+- [Schema Validation](references/schema-validation.md)
+- [Report Format](references/report-format.md)
+- [Version Compatibility](references/version-compatibility.md)
+
+
+---
+
+## Rules (2)
+
+### Diagnostic Checks — CRITICAL
+
+
+# Diagnostic Check Procedures
+
+Detailed procedures for each health check category in `/ork:doctor`.
+
+---
+
+## 0. Installed Plugins Detection
 
 Auto-detects which OrchestKit plugins are installed:
 
@@ -66,19 +148,9 @@ Auto-detects which OrchestKit plugins are installed:
 # - Counts skills/agents per installed plugin
 ```
 
-**Output (orkl):**
-```
-Installed Plugins: 1
-- orkl: 46 skills, 37 agents, 87 hook entries
-```
+---
 
-**Output (ork full):**
-```
-Installed Plugins: 1
-- ork: 68 skills, 37 agents, 87 hook entries
-```
-
-### 1. Skills Validation
+## 1. Skills Validation
 
 Validates skills in installed plugins (count varies by installation):
 
@@ -91,21 +163,9 @@ Validates skills in installed plugins (count varies by installation):
 # - Related Skills references exist
 ```
 
-**Output (full ork):**
-```
-Skills: 67/67 valid
-- User-invocable: 24 commands
-- Reference skills: 38
-```
+---
 
-**Output (orkl only):**
-```
-Skills: 46/46 valid
-- User-invocable: 24 commands
-- Reference skills: 21
-```
-
-### 2. Agents Validation
+## 2. Agents Validation
 
 Validates agents in installed plugins:
 
@@ -117,14 +177,9 @@ Validates agents in installed plugins:
 # - Tools are valid CC tools
 ```
 
-**Output:**
-```
-Agents: 36/36 valid
-- Models: 12 sonnet, 15 haiku, 8 opus
-- All skill references valid
-```
+---
 
-### 3. Hook Health
+## 3. Hook Health
 
 Verifies hooks are properly configured:
 
@@ -137,19 +192,9 @@ Verifies hooks are properly configured:
 # - Windows-safe spawning (PR #645)
 ```
 
-**Output:**
-```
-Hooks: 87/87 entries valid (12 bundles)
-- Global: 66 (PreToolUse: 14, PostToolUse: 6, SubagentStart: 7, SubagentStop: 7,
-  Setup: 6, SessionStart: 5, UserPromptSubmit: 5, PermissionRequest: 3, ...)
-- Agent-scoped: 22, Skill-scoped: 1
-- Async hooks: 7 (fire-and-forget)
-- Error Rate: 0.3%
-```
+---
 
-See [Hook Validation](references/hook-validation.md) for details.
-
-### 4. Memory System (NEW)
+## 4. Memory System
 
 Validates graph memory with file-level integrity checks:
 
@@ -165,15 +210,11 @@ ls -la .claude/memory/ 2>/dev/null || echo "Memory directory missing"
 
 Read `.claude/memory/decisions.jsonl` directly to validate JSONL integrity (each line must parse as valid JSON). Count total lines, corrupt lines, and report per-category breakdown.
 
-**Output:**
-```
-Memory System: healthy
-- Graph Memory: 42 decisions, 0 corrupt, queue depth 3
-```
+See [Memory Health](../references/memory-health.md) for details.
 
-See [Memory Health](references/memory-health.md) for details.
+---
 
-### 5. Build System (NEW)
+## 5. Build System
 
 Verifies plugins/ sync with src/:
 
@@ -184,72 +225,39 @@ Verifies plugins/ sync with src/:
 # - No orphaned skills/agents
 ```
 
-**Output:**
-```
-Build System: in sync
-- Skills: 67 src/ = 67 plugins/
-- Agents: 36 src/ = 36 plugins/
-- Last build: 2 minutes ago
-```
+---
 
-### 6. Permission Rules
+## 6. Permission Rules
 
-Leverages CC 2.1.3's unreachable permission rules detection:
+Leverages CC 2.1.3's unreachable permission rules detection.
 
-**Output:**
-```
-Permission Rules: 12/12 reachable
-```
+---
 
-### 7. Schema Compliance
+## 7. Schema Compliance
 
-Validates JSON files against schemas:
+Validates JSON files against schemas.
 
-**Output:**
-```
-Schemas: 15/15 compliant
-```
+---
 
-### 8. Coordination System
+## 8. Coordination System
 
-Checks multi-worktree coordination health:
+Checks multi-worktree coordination health (active instances, stale locks).
 
-**Output:**
-```
-Coordination: healthy
-- Active instances: 1
-- Stale locks: 0
-```
+---
 
-### 9. Context Budget
+## 9. Context Budget
 
-Monitors token usage:
+Monitors token usage against budget.
 
-**Output:**
-```
-Context Budget: 1850/2200 tokens (84%)
-```
+---
 
-### 10. Claude Code Version
+## 10. Claude Code Version
 
-Validates runtime version against the [Version Compatibility Matrix](references/version-compatibility.md):
+Validates runtime version against the [Version Compatibility Matrix](../references/version-compatibility.md).
 
-**Output (OK):**
-```
-Claude Code: 2.1.47 (OK)
-- Minimum required: 2.1.47
-- All 15 features available
-```
+---
 
-**Output (degraded):**
-```
-Claude Code: 2.1.44 (DEGRADED)
-- Minimum required: 2.1.47
-- Missing: last_assistant_message, added_dirs, Windows hooks, worktree discovery
-- Upgrade: npm install -g @anthropic-ai/claude-code@latest
-```
-
-### 11. External Dependencies
+## 11. External Dependencies
 
 Checks optional tool availability:
 
@@ -259,21 +267,15 @@ Checks optional tool availability:
 # - Validates symlink exists at ~/.claude/skills/agent-browser
 ```
 
-**Output:**
-```
-External Dependencies:
-- agent-browser: installed (OK)
-```
 
-**Output (not installed):**
-```
-External Dependencies:
-- agent-browser: NOT INSTALLED (optional - install with: npx skills add vercel-labs/agent-browser)
-```
+### MCP Status Checks — HIGH
 
-### 12. MCP Status
 
-Checks `.mcp.json` entries for enabled/disabled state and validates paid MCPs have their required credentials:
+# MCP Status Checks
+
+Validates `.mcp.json` entries for enabled/disabled state and required credentials.
+
+## Check Procedure
 
 ```bash
 # Checks performed:
@@ -284,7 +286,9 @@ Checks `.mcp.json` entries for enabled/disabled state and validates paid MCPs ha
 # - Flag any enabled MCP whose process would likely fail at startup
 ```
 
-**Output (healthy):**
+## Output Examples
+
+**Healthy:**
 ```
 MCP Servers:
 - context7:           enabled  ✓
@@ -294,7 +298,7 @@ MCP Servers:
 - agentation:         disabled ○
 ```
 
-**Output (misconfigured — Tavily enabled but no key):**
+**Misconfigured (Tavily enabled but no key):**
 ```
 MCP Servers:
 - context7:           enabled  ✓
@@ -303,73 +307,18 @@ MCP Servers:
                                   Fix: set TAVILY_API_KEY or set "disabled": true in .mcp.json
 ```
 
-**Output (agentation enabled but not installed):**
+**Misconfigured (agentation enabled but not installed):**
 ```
 MCP Servers:
 - agentation:         enabled  ✗  agentation-mcp package not found
                                   Fix: npm install -D agentation-mcp  or  set "disabled": true
 ```
 
-## Report Format
-
-> See [references/report-format.md](references/report-format.md) for ASCII report templates (ork and orkl), JSON CI output schema, and exit codes.
-
-## Interpreting Results
-
-| Status | Meaning | Action |
-|--------|---------|--------|
-| All checks pass | Plugin healthy | None required |
-| Skills warning | Invalid frontmatter | Run `npm run test:skills` |
-| Agents warning | Invalid frontmatter | Run `npm run test:agents` |
-| Hook error | Missing/broken hook | Check hooks.json and bundles |
-| Memory warning | Graph unavailable | Check .claude/memory/ directory |
-| Build warning | Out of sync | Run `npm run build` |
-| Permission warning | Unreachable rules | Review `.claude/settings.json` |
-
-## Troubleshooting
-
-### "Skills validation failed"
-
-```bash
-# Run skill structure tests
-npm run test:skills
-./tests/skills/structure/test-skill-md.sh
-```
-
-### "Build out of sync"
-
-```bash
-# Rebuild plugins from source
-npm run build
-```
-
-### "Memory unavailable"
-
-```bash
-# Check graph memory
-ls -la .claude/memory/
-```
-
-## Related Skills
-
-- `ork:configure` - Configure plugin settings
-- `ork:quality-gates` - CI/CD integration
-- `security-scanning` - Comprehensive audits
-
-## References
-
-- [Skills Validation](references/skills-validation.md)
-- [Agents Validation](references/agents-validation.md)
-- [Hook Validation](references/hook-validation.md)
-- [Memory Health](references/memory-health.md)
-- [Permission Rules](references/permission-rules.md)
-- [Schema Validation](references/schema-validation.md)
-- [Version Compatibility](references/version-compatibility.md)
 
 
 ---
 
-## References (8)
+## References (10)
 
 ### Agents Validation
 
@@ -494,6 +443,135 @@ fi
 - Plugin not installed or not rebuilt after adding agents
 - Agent frontmatter parse error preventing registration
 - CC version too old (&lt; 2.1.50) to support `claude agents` CLI
+
+
+### Health Check Outputs
+
+# Health Check Output Examples
+
+Reference output examples for each `/ork:doctor` check category.
+
+## Installed Plugins
+
+**orkl:**
+```
+Installed Plugins: 1
+- orkl: 46 skills, 38 agents, 87 hook entries
+```
+
+**ork (full):**
+```
+Installed Plugins: 1
+- ork: 68 skills, 38 agents, 87 hook entries
+```
+
+## Skills Validation
+
+**Full ork:**
+```
+Skills: 67/67 valid
+- User-invocable: 24 commands
+- Reference skills: 38
+```
+
+**orkl only:**
+```
+Skills: 46/46 valid
+- User-invocable: 24 commands
+- Reference skills: 21
+```
+
+## Agents Validation
+
+```
+Agents: 36/36 valid
+- Models: 12 sonnet, 15 haiku, 8 opus
+- All skill references valid
+```
+
+## Hook Health
+
+```
+Hooks: 87/87 entries valid (12 bundles)
+- Global: 66 (PreToolUse: 14, PostToolUse: 6, SubagentStart: 7, SubagentStop: 7,
+  Setup: 6, SessionStart: 5, UserPromptSubmit: 5, PermissionRequest: 3, ...)
+- Agent-scoped: 22, Skill-scoped: 1
+- Async hooks: 7 (fire-and-forget)
+- Error Rate: 0.3%
+```
+
+## Memory System
+
+```
+Memory System: healthy
+- Graph Memory: 42 decisions, 0 corrupt, queue depth 3
+```
+
+## Build System
+
+```
+Build System: in sync
+- Skills: 67 src/ = 67 plugins/
+- Agents: 36 src/ = 36 plugins/
+- Last build: 2 minutes ago
+```
+
+## Permission Rules
+
+```
+Permission Rules: 12/12 reachable
+```
+
+## Schema Compliance
+
+```
+Schemas: 15/15 compliant
+```
+
+## Coordination System
+
+```
+Coordination: healthy
+- Active instances: 1
+- Stale locks: 0
+```
+
+## Context Budget
+
+```
+Context Budget: 1850/2200 tokens (84%)
+```
+
+## Claude Code Version
+
+**OK:**
+```
+Claude Code: 2.1.47 (OK)
+- Minimum required: 2.1.47
+- All 15 features available
+```
+
+**Degraded:**
+```
+Claude Code: 2.1.44 (DEGRADED)
+- Minimum required: 2.1.47
+- Missing: last_assistant_message, added_dirs, Windows hooks, worktree discovery
+- Upgrade: npm install -g @anthropic-ai/claude-code@latest
+```
+
+## External Dependencies
+
+**Installed:**
+```
+External Dependencies:
+- agent-browser: installed (OK)
+```
+
+**Not installed:**
+```
+External Dependencies:
+- agent-browser: NOT INSTALLED (optional - install with: npx skills add vercel-labs/agent-browser)
+```
 
 
 ### Hook Validation
@@ -876,6 +954,49 @@ jq '.permissions // [] | map(.matcher) | unique' .claude/settings.json
 2. Use explicit deny rules before catch-all allow rules
 3. Test rules with actual tool invocations
 4. Review rules after plugin updates
+
+### Remediation Guide
+
+# Remediation Guide
+
+Quick remediation steps for common `/ork:doctor` findings.
+
+## Interpreting Results
+
+| Status | Meaning | Action |
+|--------|---------|--------|
+| All checks pass | Plugin healthy | None required |
+| Skills warning | Invalid frontmatter | Run `npm run test:skills` |
+| Agents warning | Invalid frontmatter | Run `npm run test:agents` |
+| Hook error | Missing/broken hook | Check hooks.json and bundles |
+| Memory warning | Graph unavailable | Check .claude/memory/ directory |
+| Build warning | Out of sync | Run `npm run build` |
+| Permission warning | Unreachable rules | Review `.claude/settings.json` |
+
+## Troubleshooting
+
+### "Skills validation failed"
+
+```bash
+# Run skill structure tests
+npm run test:skills
+./tests/skills/structure/test-skill-md.sh
+```
+
+### "Build out of sync"
+
+```bash
+# Rebuild plugins from source
+npm run build
+```
+
+### "Memory unavailable"
+
+```bash
+# Check graph memory
+ls -la .claude/memory/
+```
+
 
 ### Report Format
 

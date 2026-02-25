@@ -180,7 +180,7 @@ while IFS= read -r md_file; do
     skill_name=$(basename "$skill_dir")
     
     # Determine the skill root (parent of references/, examples/, etc.)
-    if [[ "$skill_dir" =~ /(references|examples|checklists)$ ]]; then
+    if [[ "$skill_dir" =~ /(references|examples|checklists|rules)$ ]]; then
         skill_root=$(dirname "$skill_dir")
     else
         skill_root="$skill_dir"

@@ -1,5 +1,5 @@
 ---
-description: Walks through the OrchestKit release checklist — build, test, validate counts, changelog, version bump, commit, tag, push. Use when preparing a release, cutting a version tag, or verifying release readiness before pushing to main.
+description: "Validates release readiness with gated checklist — build, test, count validation, changelog, version bump. Use when preparing a release."
 allowed-tools: [Bash, Read, Write, Edit, Glob, Grep]
 ---
 

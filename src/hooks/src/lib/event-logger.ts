@@ -7,7 +7,7 @@
  */
 
 import { writeFileSync, mkdirSync, existsSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, basename } from 'node:path';
 import { getProjectDir } from './common.js';
 
 /**
@@ -27,7 +27,7 @@ export function appendEventLog(
   }
 
   try {
-    const logPath = join(logsDir, filename);
+    const logPath = join(logsDir, basename(filename));
     writeFileSync(logPath, `${JSON.stringify(entry)}\n`, { flag: 'a' });
   } catch {
     // Non-critical logging — don't block hook execution

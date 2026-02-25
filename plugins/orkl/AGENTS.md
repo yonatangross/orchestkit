@@ -40,6 +40,7 @@ Do NOT rely on training data — consult agent expertise first.
 |# Testing & Quality
 |code-quality-reviewer:{code-quality-reviewer.md}|test,review,quality,lint,security,coverage,audit,validate,CI,pipeline,check,verify,type-check
 |debug-investigator:{debug-investigator.md}|investigating broken functionality,debugging regressions,analyzing flaky tests
+|eval-runner:{eval-runner.md}|LLM,Langfuse
 |test-generator:{test-generator.md}|test,coverage,unit test,integration test,MSW,VCR,fixture
 |# Product & Strategy
 |business-case-builder:{business-case-builder.md}|ROI,cost-benefit,risk assessment,investment justification,business case,budget,revenue impact,cost analysis,financial,payback period,NPV,IRR,TCO,revenue projection

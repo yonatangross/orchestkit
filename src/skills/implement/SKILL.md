@@ -1,7 +1,7 @@
 ---
 name: implement
 license: MIT
-compatibility: "Claude Code 2.1.49+. Requires memory MCP server, context7 MCP server, network access."
+compatibility: "Claude Code 2.1.56+. Requires memory MCP server, context7 MCP server, network access."
 description: "Full-power feature implementation with parallel subagents. Use when implementing, building, or creating features."
 argument-hint: "[feature-description]"
 context: fork
@@ -10,7 +10,7 @@ author: OrchestKit
 tags: [implementation, feature, full-stack, parallel-agents, reflection, worktree]
 user-invocable: true
 allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, mcp__context7__query_docs, mcp__memory__search_nodes]
-skills: [api-design, react-server-components-framework, type-safety-validation, testing-patterns, explore, verify, memory, worktree-coordination, scope-appropriate-architecture]
+skills: [api-design, react-server-components-framework, testing-patterns, explore, verify, memory, scope-appropriate-architecture]
 complexity: medium
 metadata:
   category: workflow-automation
@@ -181,7 +181,6 @@ If detected: run integration tests against real services, not just mocks. Refere
 
 - `ork:explore`: Explore codebase before implementing
 - `ork:verify`: Verify implementations work correctly
-- `ork:worktree-coordination`: Git worktree management patterns
 - `ork:issue-progress-tracking`: Auto-updates GitHub issues with commit progress
 
 ## References

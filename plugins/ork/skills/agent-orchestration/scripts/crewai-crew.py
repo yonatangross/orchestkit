@@ -17,7 +17,7 @@ from typing import Any
 import structlog
 from crewai import Agent, Crew, Process, Task
 from crewai.tools import tool
-from langfuse.decorators import langfuse_context, observe
+from langfuse import observe, get_client
 
 logger = structlog.get_logger()
 
@@ -264,7 +264,7 @@ def run_research_crew(topic: str) -> dict[str, Any]:
     Returns:
         Dictionary with crew results and metadata
     """
-    langfuse_context.update_current_trace(
+    get_client().update_current_trace(
         name="crewai_research",
         metadata={"topic": topic}
     )
@@ -288,7 +288,7 @@ def run_research_crew(topic: str) -> dict[str, Any]:
             tasks_completed=len(tasks)
         )
 
-        langfuse_context.update_current_observation(
+        get_client().update_current_observation(
             output={"status": "success", "tasks_completed": len(tasks)},
             metadata={"topic": topic}
         )
@@ -304,7 +304,7 @@ def run_research_crew(topic: str) -> dict[str, Any]:
     except Exception as e:
         logger.error("Research crew failed", topic=topic, error=str(e))
 
-        langfuse_context.update_current_observation(
+        get_client().update_current_observation(
             output={"status": "error", "error": str(e)},
             level="error"
         )

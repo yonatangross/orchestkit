@@ -17,7 +17,7 @@ if len(response) > 0:  # Not-empty is not correct
 
 **Correct — heuristic pre-filter + LLM-as-judge:**
 ```python
-from langfuse.decorators import observe, langfuse_context
+from langfuse import observe, get_client
 
 @observe(name="quality_check")
 async def detect_degraded_quality(response: str) -> dict:
@@ -40,7 +40,7 @@ async def detect_degraded_quality(response: str) -> dict:
 
     score = await llm.generate(judge_prompt)
     score_value = float(score.strip())
-    langfuse_context.score(name="quality_check", value=score_value)
+    get_client().score_current_trace(name="quality_check", value=score_value)
 
     if score_value < 0.5:
         return {"alert": True, "type": "low_quality", "score": score_value}

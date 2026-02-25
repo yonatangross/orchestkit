@@ -17,6 +17,22 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "6.7.1",
+    "date": "2026-02-25",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "Fix 20 broken cross-skill references across 12 skills",
+          "Fix 5 weak skill descriptions (configure, feedback, help, release-checklist, skill-evolution)",
+          "Bump minimum Claude Code version to 2.1.56",
+          "Resolve all verification findings (Langfuse v2 remnants, credential warnings, sync guards)"
+        ]
+      }
+    ]
+  },
+  {
     "version": "6.6.3",
     "date": "2026-02-23",
     "compareUrl": "",

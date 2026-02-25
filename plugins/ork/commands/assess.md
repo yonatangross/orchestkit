@@ -50,51 +50,17 @@ AskUserQuestion(
 
 ## STEP 0b: Select Orchestration Mode
 
-Choose **Agent Teams** (mesh — assessors cross-validate scores) or **Task tool** (star — all report to lead):
-
-```python
-import os
-teams_available = os.environ.get("CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS") is not None
-force_task_tool = os.environ.get("ORCHESTKIT_FORCE_TASK_TOOL") == "1"
-
-if force_task_tool or not teams_available:
-    mode = "task_tool"
-else:
-    # Teams available — use for full multi-dimensional assessment
-    mode = "agent_teams" if dimensions == "full" else "task_tool"
-```
-
-1. `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` set → **Agent Teams mode** (for full assessment)
-2. Flag not set → **Task tool mode** (default)
-3. Quick score or single-dimension → **Task tool** (regardless of flag)
-
-| Aspect | Task Tool | Agent Teams |
-|--------|-----------|-------------|
-| Score calibration | Lead normalizes independently | Assessors discuss disagreements |
-| Cross-dimension findings | Lead correlates after completion | Security assessor alerts performance assessor of overlap |
-| Cost | ~200K tokens | ~500K tokens |
-| Best for | Quick scores, single dimension | Full multi-dimensional assessment |
-
-> **Context window:** For full codebase assessments (>20 files), use the 1M context window to avoid agent context exhaustion. On 200K context, the scope discovery in Phase 1.5 limits files to prevent overflow.
-
-> **Fallback:** If Agent Teams encounters issues, fall back to Task tool for remaining assessment.
+See [Orchestration Mode](references/orchestration-mode.md) for env var check logic, Agent Teams vs Task Tool comparison, and mode selection rules.
 
 
 ## Task Management (CC 2.1.16)
 
 ```python
-# Create main assessment task
 TaskCreate(
   subject="Assess: {target}",
   description="Comprehensive evaluation with quality scores and recommendations",
   activeForm="Assessing {target}"
 )
-
-# Create subtasks for 7-phase process
-for phase in ["Understand target", "Rate quality", "List pros/cons",
-              "Compare alternatives", "Generate suggestions",
-              "Estimate effort", "Compile report"]:
-    TaskCreate(subject=phase, activeForm=f"{phase}ing")
 ```
 
 
@@ -114,7 +80,8 @@ for phase in ["Understand target", "Rate quality", "List pros/cons",
 | Phase | Activities | Output |
 |-------|------------|--------|
 | **1. Target Understanding** | Read code/design, identify scope | Context summary |
-| **2. Quality Rating** | 6-dimension scoring (0-10) | Scores with reasoning |
+| **1.5. Scope Discovery** | Build bounded file list | Scoped file list |
+| **2. Quality Rating** | 7-dimension scoring (0-10) | Scores with reasoning |
 | **3. Pros/Cons Analysis** | Strengths and weaknesses | Balanced evaluation |
 | **4. Alternative Comparison** | Score alternatives | Comparison matrix |
 | **5. Improvement Suggestions** | Actionable recommendations | Prioritized list |
@@ -124,7 +91,7 @@ for phase in ["Understand target", "Rate quality", "List pros/cons",
 
 ## Phase 1: Target Understanding
 
-Identify what's being assessed (code, design, approach, decision, pattern) and gather context:
+Identify what's being assessed and gather context:
 
 ```python
 # PARALLEL - Gather context
@@ -134,173 +101,39 @@ mcp__memory__search_nodes(query="$ARGUMENTS")  # Past decisions
 ```
 
 
-## Phase 1.5: Scope Discovery (CRITICAL — prevents context exhaustion)
+## Phase 1.5: Scope Discovery
 
-**Before spawning any agents**, build a bounded file list. Agents that receive unbounded targets will exhaust their context windows reading the entire codebase.
-
-```python
-# 1. Discover target files
-if is_file(target):
-    scope_files = [target]
-elif is_directory(target):
-    scope_files = Glob(f"{target}/**/*.{{py,ts,tsx,js,jsx,go,rs,java}}")
-else:
-    # Concept/topic — search for relevant files
-    scope_files = Grep(pattern=target, output_mode="files_with_matches", head_limit=50)
-
-# 2. Apply limits — MAX 30 files for agent assessment
-MAX_FILES = 30
-if len(scope_files) > MAX_FILES:
-    # Prioritize: entry points, configs, security-critical, then sample rest
-    # Skip: test files (except for testability agent), generated files, vendor/
-    prioritized = prioritize_files(scope_files)  # entry points first
-    scope_files = prioritized[:MAX_FILES]
-    # Tell user about sampling
-    print(f"Target has {len(scope_files)} files. Sampling {MAX_FILES} representative files.")
-
-# 3. Format as file list string for agent prompts
-file_list = "\n".join(f"- {f}" for f in scope_files)
-```
-
-**Sampling priorities** (when >30 files):
-1. Entry points (main, index, app, server)
-2. Config files (settings, env, config)
-3. Security-sensitive (auth, middleware, api routes)
-4. Core business logic (services, models, domain)
-5. Representative samples from remaining directories
+See [Scope Discovery](references/scope-discovery.md) for the full file discovery, limit application (MAX 30 files), and sampling priority logic. **Always include the scoped file list** in every agent prompt.
 
 
-## Phase 2: Quality Rating (6 Dimensions)
+## Phase 2: Quality Rating (7 Dimensions)
 
-Rate each dimension 0-10 with weighted composite score. See [Scoring Rubric](references/scoring-rubric.md) for details.
+Rate each dimension 0-10 with weighted composite score. See [Quality Model](references/quality-model.md) for dimensions, weights, and grade interpretation. See [Scoring Rubric](references/scoring-rubric.md) for per-dimension criteria.
 
-| Dimension | Weight | What It Measures |
-|-----------|--------|------------------|
-| Correctness | 0.20 | Does it work correctly? |
-| Maintainability | 0.20 | Easy to understand/modify? |
-| Performance | 0.15 | Efficient, no bottlenecks? |
-| Security | 0.15 | Follows best practices? |
-| Scalability | 0.15 | Handles growth? |
-| Testability | 0.15 | Easy to test? |
+See [Agent Spawn Definitions](references/agent-spawn-definitions.md) for Task Tool mode spawn patterns and Agent Teams alternative.
 
-**Composite Score:** Weighted average of all dimensions.
-
-Launch parallel agents with `run_in_background=True`. **Always include the scoped file list from Phase 1.5** in every agent prompt — agents without scope constraints will exhaust their context windows.
-
-### Phase 2 — Task Tool Mode (Default)
-
-For each dimension, spawn a background agent with **scope constraints**:
-
-```python
-for dimension, agent_type in [
-    ("CORRECTNESS + MAINTAINABILITY", "code-quality-reviewer"),
-    ("SECURITY", "security-auditor"),
-    ("PERFORMANCE + SCALABILITY", "python-performance-engineer"),  # Use python-performance-engineer for backend; frontend-performance-engineer for frontend
-    ("TESTABILITY", "test-generator"),
-]:
-    Task(subagent_type=agent_type, run_in_background=True, max_turns=25,
-         prompt=f"""Assess {dimension} (0-10) for: {target}
-
-## Scope Constraint
-ONLY read and analyze the following {len(scope_files)} files — do NOT explore beyond this list:
-{file_list}
-
-Budget: Use at most 15 tool calls. Read files from the list above, then produce your score
-with reasoning, evidence, and 2-3 specific improvement suggestions.
-Do NOT use Glob or Grep to discover additional files.""")
-```
-
-Then collect results from all agents and proceed to Phase 3.
-
-### Phase 2 — Agent Teams Alternative
-
-> See [references/agent-teams-mode.md](references/agent-teams-mode.md) for Agent Teams assessment workflow with cross-validation and team teardown.
+**Composite Score:** Weighted average of all 7 dimensions (see quality-model.md).
 
 
-## Phase 3: Pros/Cons Analysis
+## Phases 3-7: Analysis, Comparison & Report
 
-```markdown
-## Pros (Strengths)
-| # | Strength | Impact | Evidence |
-|---|----------|--------|----------|
-| 1 | [strength] | High/Med/Low | [example] |
+See [Phase Templates](references/phase-templates.md) for output templates for pros/cons, alternatives, improvements, effort, and the final report.
 
-## Cons (Weaknesses)
-| # | Weakness | Severity | Evidence |
-|---|----------|----------|----------|
-| 1 | [weakness] | High/Med/Low | [example] |
-
-**Net Assessment:** [Strengths outweigh / Balanced / Weaknesses dominate]
-**Recommended action:** [Keep as-is / Improve / Reconsider / Rewrite]
-```
-
-
-## Phase 4: Alternative Comparison
-
-See [Alternative Analysis](references/alternative-analysis.md) for full comparison template.
-
-| Criteria | Current | Alternative A | Alternative B |
-|----------|---------|---------------|---------------|
-| Composite | [N.N] | [N.N] | [N.N] |
-| Migration Effort | N/A | [1-5] | [1-5] |
-
-
-## Phase 5: Improvement Suggestions
-
-See [Improvement Prioritization](references/improvement-prioritization.md) for effort/impact guidelines.
-
-| Suggestion | Effort (1-5) | Impact (1-5) | Priority (I/E) |
-|------------|--------------|--------------|----------------|
-| [action] | [N] | [N] | [ratio] |
-
-**Quick Wins** = Effort <= 2 AND Impact >= 4. Always highlight these first.
-
-
-## Phase 6: Effort Estimation
-
-| Timeframe | Tasks | Total |
-|-----------|-------|-------|
-| Quick wins (< 1hr) | [list] | X min |
-| Short-term (< 1 day) | [list] | X hrs |
-| Medium-term (1-3 days) | [list] | X days |
-
-
-## Phase 7: Assessment Report
-
-See [Scoring Rubric](references/scoring-rubric.md) for full report template.
-
-```markdown
-# Assessment Report: $ARGUMENTS
-
-**Overall Score: [N.N]/10** (Grade: [A+/A/B/C/D/F])
-
-**Verdict:** [EXCELLENT | GOOD | ADEQUATE | NEEDS WORK | CRITICAL]
-
-## Answer: Is This Good?
-**[YES / MOSTLY / SOMEWHAT / NO]**
-[Reasoning]
-```
+See also: [Alternative Analysis](references/alternative-analysis.md) | [Improvement Prioritization](references/improvement-prioritization.md)
 
 
 ## Grade Interpretation
 
-| Score | Grade | Verdict |
-|-------|-------|---------|
-| 9.0-10.0 | A+ | EXCELLENT |
-| 8.0-8.9 | A | GOOD |
-| 7.0-7.9 | B | GOOD |
-| 6.0-6.9 | C | ADEQUATE |
-| 5.0-5.9 | D | NEEDS WORK |
-| 0.0-4.9 | F | CRITICAL |
+See [Quality Model](references/quality-model.md) for scoring dimensions, weights, and grade interpretation.
 
 
 ## Key Decisions
 
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
-| 6 dimensions | Comprehensive coverage | All quality aspects without overwhelming |
+| 7 dimensions | Comprehensive coverage | All quality aspects without overwhelming |
 | 0-10 scale | Industry standard | Easy to understand and compare |
-| Parallel assessment | 4 agents (6 dimensions) | Fast, thorough evaluation |
+| Parallel assessment | 4 agents (7 dimensions) | Fast, thorough evaluation |
 | Effort/Impact scoring | 1-5 scale | Simple prioritization math |
 
 

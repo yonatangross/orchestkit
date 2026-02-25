@@ -1,7 +1,7 @@
 ---
 name: brainstorming
 license: MIT
-compatibility: "Claude Code 2.1.49+. Requires memory MCP server."
+compatibility: "Claude Code 2.1.56+. Requires memory MCP server."
 description: "Design exploration with parallel agents. Use when brainstorming ideas, exploring solutions, or comparing alternatives."
 argument-hint: "[topic-or-idea]"
 tags: [planning, ideation, creativity, design]
@@ -10,7 +10,7 @@ version: 4.2.0
 author: OrchestKit
 user-invocable: true
 allowed-tools: [AskUserQuestion, Task, Read, Grep, Glob, TaskCreate, TaskUpdate, TaskList, mcp__memory__search_nodes]
-skills: [architecture-decision-record, api-design, design-system-starter, memory, remember, assess-complexity, scope-appropriate-architecture, testing-patterns]
+skills: [architecture-decision-record, api-design, memory, remember, scope-appropriate-architecture, testing-patterns]
 complexity: medium
 metadata:
   category: workflow-automation
