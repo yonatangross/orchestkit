@@ -69,19 +69,6 @@ TaskList
 TaskList
 ```
 
-## Coordination with Worktrees
-
-When using OrchestKit's worktree-coordination:
-
-```bash
-# Check coordination status
-.claude/coordination/lib/coordination.sh status
-
-# Task management complements file locks
-# - Tasks track WHAT work is being done
-# - Locks track WHICH files are being modified
-```
-
 ## Handoff Patterns
 
 ### Sequential Handoff
@@ -119,6 +106,5 @@ Agent-C completes #4 ─┘
 
 The task system integrates with:
 
-- **worktree-coordination**: File-level locking
 - **context-compression**: Task context in compressed summaries
 - **agent handoff hooks**: Auto-document in decision log

@@ -1,7 +1,7 @@
 ---
 name: explore
 license: MIT
-compatibility: "Claude Code 2.1.49+. Requires memory MCP server."
+compatibility: "Claude Code 2.1.56+. Requires memory MCP server."
 description: "explore — Deep codebase exploration with parallel agents. Use when exploring a repo, discovering architecture, finding files, or analyzing design patterns."
 argument-hint: "[topic-or-feature]"
 context: fork

@@ -1,7 +1,7 @@
 ---
 name: analytics
 license: MIT
-compatibility: "Claude Code 2.1.49+."
+compatibility: "Claude Code 2.1.56+."
 author: OrchestKit
 description: "Query cross-project usage analytics. Use when reviewing agent, skill, hook, or team performance across OrchestKit projects. Also replay sessions, estimate costs, and view model delegation trends."
 argument-hint: "[agents|models|skills|hooks|teams|session|cost|trends|summary]"

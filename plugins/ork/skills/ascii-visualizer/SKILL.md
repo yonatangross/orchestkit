@@ -1,7 +1,7 @@
 ---
 name: ascii-visualizer
 license: MIT
-compatibility: "Claude Code 2.1.49+."
+compatibility: "Claude Code 2.1.56+."
 description: "ASCII diagram patterns for architecture, workflows, file trees, and data visualizations. Use when creating terminal-rendered diagrams, box-drawing layouts, progress bars, swimlanes, or blast radius visualizations."
 tags: [ascii, diagrams, visualization, box-drawing, architecture, terminal]
 version: 1.0.0

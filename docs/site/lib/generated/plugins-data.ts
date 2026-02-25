@@ -6,14 +6,14 @@ import type { Plugin } from "./types";
 export const PLUGINS: Plugin[] = [
   {
     "name": "orkl",
-    "description": "Universal toolkit — 46 skills, 38 agents, 77 hooks. Language-agnostic, works for any stack.",
+    "description": "Universal toolkit — 45 skills, 38 agents, 77 hooks. Language-agnostic, works for any stack.",
     "fullDescription": "The universal OrchestKit toolkit. Includes all workflow skills (implement, explore, verify, review-pr, commit), all memory skills (remember, memory, mem0, fabric), product/UX skills, accessibility, and all specialized agents. Language-agnostic — works for any tech stack.",
     "category": "development",
     "version": "6.6.3",
-    "skillCount": 46,
+    "skillCount": 45,
     "agentCount": 38,
     "hooks": 77,
-    "commandCount": 29,
+    "commandCount": 28,
     "color": "#8b5cf6",
     "required": false,
     "recommended": true,
@@ -33,11 +33,11 @@ export const PLUGINS: Plugin[] = [
       "memory-fabric",
       "brainstorming",
       "plan-viz",
-      "worktree-coordination",
       "help",
       "configure",
       "feedback",
-      "api-design"
+      "api-design",
+      "architecture-patterns"
     ],
     "agents": [
       "accessibility-specialist",
@@ -107,8 +107,7 @@ export const PLUGINS: Plugin[] = [
       "skill-evolution",
       "upgrade-assessment",
       "validate-counts",
-      "verify",
-      "worktree-coordination"
+      "verify"
     ]
   },
   {
@@ -137,14 +136,14 @@ export const PLUGINS: Plugin[] = [
   },
   {
     "name": "ork",
-    "description": "Full specialized toolkit — 68 skills, 38 agents, 77 hooks. Adds Python, React, LLM/RAG patterns.",
+    "description": "Full specialized toolkit — 67 skills, 38 agents, 77 hooks. Adds Python, React, LLM/RAG patterns.",
     "fullDescription": "The complete OrchestKit toolkit. Everything in orkl PLUS specialized patterns for Python (FastAPI, SQLAlchemy, Celery), React (RSC, TanStack, Zustand), LLM integration (function calling, streaming, fine-tuning), RAG retrieval, LangGraph workflows, and MCP server patterns.",
     "category": "development",
     "version": "6.6.3",
-    "skillCount": 68,
+    "skillCount": 67,
     "agentCount": 38,
     "hooks": 77,
-    "commandCount": 29,
+    "commandCount": 28,
     "color": "#06b6d4",
     "required": false,
     "recommended": false,
@@ -242,8 +241,7 @@ export const PLUGINS: Plugin[] = [
       "skill-evolution",
       "upgrade-assessment",
       "validate-counts",
-      "verify",
-      "worktree-coordination"
+      "verify"
     ]
   }
 ];

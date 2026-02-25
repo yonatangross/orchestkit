@@ -1,7 +1,7 @@
 ---
 name: plan-viz
 license: MIT
-compatibility: "Claude Code 2.1.49+."
+compatibility: "Claude Code 2.1.56+."
 description: "Visualize planned changes before implementation. Use when reviewing plans, comparing before/after architecture, assessing risk, or analyzing execution order and impact."
 argument-hint: "[plan-or-issue]"
 context: fork

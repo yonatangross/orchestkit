@@ -165,7 +165,6 @@ If detected: run integration tests against real services, not just mocks. Refere
 
 - `ork:explore`: Explore codebase before implementing
 - `ork:verify`: Verify implementations work correctly
-- `ork:worktree-coordination`: Git worktree management patterns
 - `ork:issue-progress-tracking`: Auto-updates GitHub issues with commit progress
 
 ## References

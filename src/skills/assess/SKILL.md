@@ -1,7 +1,7 @@
 ---
 name: assess
 license: MIT
-compatibility: "Claude Code 2.1.49+. Requires memory MCP server."
+compatibility: "Claude Code 2.1.56+. Requires memory MCP server."
 description: "Assesses and rates quality 0-10 with pros/cons analysis. Use when evaluating code, designs, or approaches."
 context: fork
 version: 1.1.0

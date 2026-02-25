@@ -1,7 +1,7 @@
 ---
 name: i18n-date-patterns
 license: MIT
-compatibility: "Claude Code 2.1.49+."
+compatibility: "Claude Code 2.1.56+."
 description: Implements internationalization (i18n) in React applications. Covers user-facing strings, date/time handling, locale-aware formatting, ICU MessageFormat, and RTL support. Use when building multilingual UIs or formatting dates/currency.
 context: fork
 agent: frontend-ui-developer

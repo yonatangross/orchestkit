@@ -21,7 +21,6 @@ tools:
 skills:
   - git-workflow
   - github-operations
-  - worktree-coordination
   - commit
   - release-management
   - architecture-decision-record
@@ -295,4 +294,4 @@ gh pr create --base feat/auth-models --title "feat(auth): add authentication end
 ## Integration
 - **Receives from:** All developers (commit requests), code-quality-reviewer (merge approval), release-management workflow
 - **Hands off to:** code-quality-reviewer (PR review), deployment-manager (release tags), original developer (conflict resolution in application code)
-- **Skill references:** git-workflow, github-operations, worktree-coordination, commit, release-management
+- **Skill references:** git-workflow, github-operations, commit, release-management

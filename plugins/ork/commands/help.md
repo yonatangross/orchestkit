@@ -111,7 +111,6 @@ AskUserQuestion(
 | Skill | Description | Example |
 |-------|-------------|---------|
 | `/ork:explore` | Deep codebase exploration with agents | `/ork:explore authentication` |
-| `/ork:worktree-coordination` | Coordinate multiple Claude instances | `/ork:worktree-coordination status` |
 
 
 ### MEDIA (1 skill)

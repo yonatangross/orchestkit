@@ -1,7 +1,7 @@
 ---
 name: help
 license: MIT
-compatibility: "Claude Code 2.1.49+."
+compatibility: "Claude Code 2.1.56+."
 description: "OrchestKit skill directory. Use when you want to see available skills or need help."
 argument-hint: "[category]"
 context: fork
@@ -126,7 +126,6 @@ AskUserQuestion(
 | Skill | Description | Example |
 |-------|-------------|---------|
 | `/ork:explore` | Deep codebase exploration with agents | `/ork:explore authentication` |
-| `/ork:worktree-coordination` | Coordinate multiple Claude instances | `/ork:worktree-coordination status` |
 
 ---
 

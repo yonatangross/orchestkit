@@ -1574,7 +1574,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "explore",
       "verify",
       "memory",
-      "worktree-coordination",
       "scope-appropriate-architecture"
     ],
     "agent": null,
@@ -3267,42 +3266,6 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": [
       "web-research-analyst"
-    ]
-  },
-  "worktree-coordination": {
-    "name": "worktree-coordination",
-    "description": "Coordinates multiple Claude instances across worktrees. Use when managing parallel development.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "coordination",
-      "worktree",
-      "multi-instance",
-      "locking",
-      "parallel-development"
-    ],
-    "userInvocable": true,
-    "context": "none",
-    "allowedTools": [
-      "Read",
-      "Write",
-      "Bash",
-      "Grep",
-      "Glob"
-    ],
-    "skills": [
-      "git-workflow",
-      "commit",
-      "stacked-prs"
-    ],
-    "agent": "git-operations-engineer",
-    "structure": {},
-    "plugins": [
-      "ork",
-      "orkl"
-    ],
-    "relatedAgents": [
-      "git-operations-engineer"
     ]
   },
   "zustand-patterns": {

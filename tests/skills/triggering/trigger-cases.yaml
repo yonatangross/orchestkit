@@ -261,12 +261,3 @@ skills:
       - "fix this bug"
       - "run the linter"
 
-  worktree-coordination:
-    should_trigger:
-      - "set up a git worktree"
-      - "coordinate worktrees"
-      - "manage worktree branches"
-    should_not_trigger:
-      - "implement a feature"
-      - "fix this bug"
-      - "commit my changes"

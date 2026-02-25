@@ -1,7 +1,7 @@
 ---
 name: architecture-decision-record
 license: MIT
-compatibility: "Claude Code 2.1.49+."
+compatibility: "Claude Code 2.1.56+."
 description: Use this skill when documenting significant architectural decisions. Provides ADR templates following the Nygard format with sections for context, decision, consequences, and alternatives. Use when writing ADRs, recording decisions, or evaluating options.
 version: 2.0.0
 author: AI Agent Hub

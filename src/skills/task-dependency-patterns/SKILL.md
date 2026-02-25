@@ -1,7 +1,7 @@
 ---
 name: task-dependency-patterns
 license: MIT
-compatibility: "Claude Code 2.1.49+."
+compatibility: "Claude Code 2.1.56+."
 description: CC 2.1.16 Task Management patterns with TaskCreate, TaskUpdate, TaskGet, TaskList tools. Decompose complex work into trackable tasks with dependency chains. Use when managing multi-step implementations, coordinating parallel work, or tracking completion status.
 context: fork
 version: 1.0.0
@@ -175,7 +175,6 @@ SendMessage(type: "broadcast",
 
 ## Related Skills
 
-- `ork:worktree-coordination` - Multi-instance task coordination across git worktrees
 - `ork:implement` - Implementation workflow with task tracking and progress updates
 - `ork:verify` - Verification tasks and completion checklists
 - `ork:fix-issue` - Issue resolution with hypothesis-based RCA tracking

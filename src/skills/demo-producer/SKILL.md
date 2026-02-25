@@ -1,7 +1,7 @@
 ---
 name: demo-producer
 license: MIT
-compatibility: "Claude Code 2.1.49+."
+compatibility: "Claude Code 2.1.56+."
 description: "Creates polished demo videos for skills, tutorials, and CLI demonstrations. Use when producing video showcases, marketing content, or terminal recordings."
 argument-hint: "[topic-or-feature]"
 user-invocable: true
@@ -264,7 +264,7 @@ Production/                    # Ready-to-render videos
 │   ├── Review-Skills/        # review-pr, create-pr, fix-issue
 │   ├── DevOps-Skills/        # doctor, configure, run-tests, feedback
 │   ├── AI-Skills/            # brainstorming, assess, assess-complexity
-│   ├── Advanced-Skills/      # worktree-coordination, skill-evolution, demo-producer, add-golden
+│   ├── Advanced-Skills/      # skill-evolution, demo-producer, add-golden
 │   └── Styles/               # Alternative visualizations (ProgressiveZoom, SplitMerge, etc.)
 ├── Vertical-9x16/            # TikTok, Reels, Shorts (1080x1920)
 ├── Square-1x1/               # Instagram, LinkedIn (1080x1080)
@@ -282,7 +282,7 @@ Experiments/                  # Work in progress, testing new ideas
 | Review-Skills | review-pr, create-pr, fix-issue |
 | DevOps-Skills | doctor, configure, run-tests, feedback |
 | AI-Skills | brainstorming, assess, assess-complexity |
-| Advanced-Skills | worktree-coordination, skill-evolution, demo-producer, add-golden |
+| Advanced-Skills | skill-evolution, demo-producer, add-golden |
 
 ### Adding New Compositions
 
