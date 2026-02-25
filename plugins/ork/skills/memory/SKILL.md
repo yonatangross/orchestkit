@@ -61,7 +61,7 @@ See [Memory Commands Reference](references/memory-commands.md) for full usage, f
 
 | Subcommand | Purpose |
 |------------|---------|
-| `search` | Search past decisions, patterns, entities. Supports `--category`, `--limit`, `--agent`, `--global` flags |
+| `search` | Search past decisions, patterns, entities. Supports `--category`, `--limit`, `--agent`, `--global` filter flags |
 | `load` | Auto-load relevant memories at session start. Supports `--project`, `--global` |
 | `history` | Decision timeline with table, Mermaid, or JSON output. Supports `--since`, `--mermaid` |
 | `viz` | Render knowledge graph as Mermaid diagram. See also [mermaid-patterns.md](references/mermaid-patterns.md) |
