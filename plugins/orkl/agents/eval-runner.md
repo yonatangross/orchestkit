@@ -153,7 +153,7 @@ result = ragas_evaluate(
 ### Langfuse Reporting
 
 ```python
-from langfuse.decorators import observe, langfuse_context
+from langfuse import observe, get_client
 
 @observe(type="evaluator")
 def run_eval(dataset_path: str, model_version: str):
@@ -161,7 +161,7 @@ def run_eval(dataset_path: str, model_version: str):
 
     # Report scores to Langfuse
     for metric_name, score in scores.items():
-        langfuse_context.score_current_trace(
+        get_client().score_current_trace(
             name=metric_name,
             value=score,
             comment=f"Model {model_version} on {dataset_path}",

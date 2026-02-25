@@ -1,3 +1,4 @@
+<!-- SHARED: keep in sync with ../../../verify/references/quality-model.md -->
 # Quality Model
 
 Canonical scoring reference for assess and verify skills. Defines unified dimensions, weights, grade thresholds, and improvement prioritization.

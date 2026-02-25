@@ -30,13 +30,13 @@ Langfuse v3 requires ClickHouse (analytics), Redis (queuing), MinIO (blob storag
       ports:
         - "3000:3000"
       environment:
-        DATABASE_URL: postgresql://langfuse:password@postgres:5432/langfuse
+        DATABASE_URL: postgresql://langfuse:CHANGE_ME_strong_password@postgres:5432/langfuse  # CHANGE ME
         CLICKHOUSE_URL: http://clickhouse:8123
         REDIS_URL: redis://redis:6379
         LANGFUSE_S3_UPLOAD_BUCKET: langfuse
         LANGFUSE_S3_ENDPOINT: http://minio:9000
-        LANGFUSE_S3_ACCESS_KEY_ID: minio
-        LANGFUSE_S3_SECRET_ACCESS_KEY: miniosecret
+        LANGFUSE_S3_ACCESS_KEY_ID: minio  # CHANGE ME for production
+        LANGFUSE_S3_SECRET_ACCESS_KEY: miniosecret  # CHANGE ME for production
         NEXTAUTH_SECRET: your-secret-key-here  # Generate: openssl rand -base64 32
         NEXTAUTH_URL: http://localhost:3000
         SALT: your-salt-here  # Generate: openssl rand -base64 32
@@ -49,13 +49,13 @@ Langfuse v3 requires ClickHouse (analytics), Redis (queuing), MinIO (blob storag
     langfuse-worker:
       image: langfuse/langfuse-worker:3
       environment:
-        DATABASE_URL: postgresql://langfuse:password@postgres:5432/langfuse
+        DATABASE_URL: postgresql://langfuse:CHANGE_ME_strong_password@postgres:5432/langfuse  # CHANGE ME
         CLICKHOUSE_URL: http://clickhouse:8123
         REDIS_URL: redis://redis:6379
         LANGFUSE_S3_UPLOAD_BUCKET: langfuse
         LANGFUSE_S3_ENDPOINT: http://minio:9000
-        LANGFUSE_S3_ACCESS_KEY_ID: minio
-        LANGFUSE_S3_SECRET_ACCESS_KEY: miniosecret
+        LANGFUSE_S3_ACCESS_KEY_ID: minio  # CHANGE ME for production
+        LANGFUSE_S3_SECRET_ACCESS_KEY: miniosecret  # CHANGE ME for production
       depends_on:
         - postgres
         - clickhouse

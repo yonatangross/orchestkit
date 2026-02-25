@@ -340,20 +340,20 @@ poetry run pytest tests/integration/test_retrieval_quality.py -v
 
 ```python
 # Log all searches to Langfuse
-from langfuse.decorators import observe
+from langfuse import observe, get_client
 
 @observe()
 async def search(request: SearchQuery):
     """Traced search with Langfuse."""
 
-    langfuse_context.update_current_observation(
+    get_client().update_current_observation(
         input={"query": request.query, "top_k": request.top_k},
         metadata={"filters": request.content_type_filter}
     )
 
     results = await search_service.search(request)
 
-    langfuse_context.update_current_observation(
+    get_client().update_current_observation(
         output={"results_count": len(results.results), "took_ms": results.took_ms}
     )
 

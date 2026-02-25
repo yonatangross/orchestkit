@@ -1,3 +1,4 @@
+<!-- SHARED: keep in sync with ../../../assess/references/orchestration-mode.md -->
 # Orchestration Mode Selection
 
 Shared logic for choosing between Agent Teams and Task tool orchestration in assess/verify skills.

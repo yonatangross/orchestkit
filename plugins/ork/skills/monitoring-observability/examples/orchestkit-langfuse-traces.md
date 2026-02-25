@@ -61,7 +61,7 @@ content_analysis (session_id: analysis_550e8400)
 **File:** `backend/app/domains/analysis/workflows/content_analysis.py`
 
 ```python
-from langfuse.decorators import observe, langfuse_context
+from langfuse import observe, get_client
 from app.shared.services.langfuse.client import langfuse_client
 
 @observe(name="content_analysis_workflow")
@@ -69,7 +69,7 @@ async def run_content_analysis(analysis_id: str, url: str) -> AnalysisResult:
     """Analyze content with 8-agent supervisor workflow."""
 
     # Set session-level metadata
-    langfuse_context.update_current_trace(
+    get_client().update_current_trace(
         name="content_analysis",
         session_id=f"analysis_{analysis_id}",
         user_id="system",
@@ -93,7 +93,7 @@ async def run_content_analysis(analysis_id: str, url: str) -> AnalysisResult:
 
     # Track total cost
     total_cost = sum(f.cost_usd for f in findings)
-    langfuse_context.update_current_observation(
+    get_client().update_current_observation(
         metadata={
             "total_agents": len(findings),
             "total_cost_usd": total_cost,
@@ -118,7 +118,7 @@ async def execute_agent(
     """Execute single agent with Langfuse tracing."""
 
     # Set agent-specific context
-    langfuse_context.update_current_observation(
+    get_client().update_current_observation(
         name=f"agent_{agent_type}",
         metadata={
             "agent_type": agent_type,
@@ -139,7 +139,7 @@ async def execute_agent(
 
     # Add scores to trace
     for criterion, score in quality_scores.items():
-        langfuse_context.score(
+        get_client().score(
             name=f"{agent_type}_{criterion}",
             value=score,
             data_type="NUMERIC"
@@ -153,7 +153,7 @@ async def execute_agent(
 **File:** `backend/app/shared/services/llm/anthropic_client.py`
 
 ```python
-from langfuse.decorators import observe, langfuse_context
+from langfuse import observe, get_client
 
 @observe(name="llm_call")
 async def call_anthropic(
@@ -164,7 +164,7 @@ async def call_anthropic(
     """Call Anthropic with automatic Langfuse cost tracking."""
 
     # Log input (truncated for large prompts)
-    langfuse_context.update_current_observation(
+    get_client().update_current_observation(
         input=str(messages)[:2000],
         model=model,
         metadata={
@@ -190,7 +190,7 @@ async def call_anthropic(
     total_cost = input_cost + output_cost
 
     # Log output and costs to Langfuse
-    langfuse_context.update_current_observation(
+    get_client().update_current_observation(
         output=response.content[0].text[:2000],
         usage={
             "input": input_tokens,
@@ -225,7 +225,7 @@ async def call_anthropic(
 async def quality_gate_node(state: AnalysisState) -> AnalysisState:
     """Evaluate aggregated findings with G-Eval scoring."""
 
-    langfuse_context.update_current_observation(
+    get_client().update_current_observation(
         metadata={
             "findings_count": len(state["findings"]),
             "analysis_id": state["analysis_id"]
@@ -244,7 +244,7 @@ async def quality_gate_node(state: AnalysisState) -> AnalysisState:
     score_dict = {}
     for criterion, score in zip(criteria, scores):
         score_dict[criterion] = score
-        langfuse_context.score(
+        get_client().score(
             name=f"quality_{criterion}",
             value=score,
             comment=f"G-Eval score for {criterion} criterion"
@@ -258,7 +258,7 @@ async def quality_gate_node(state: AnalysisState) -> AnalysisState:
         score_dict["depth"] * 0.2
     )
 
-    langfuse_context.score(
+    get_client().score(
         name="quality_overall",
         value=overall_quality,
         comment="Weighted average of all criteria"
