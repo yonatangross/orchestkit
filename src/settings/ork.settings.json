@@ -17,7 +17,10 @@
       "Coordinating",
       "Synthesizing",
       "Architecting",
-      "Dispatching"
+      "Dispatching",
+      "Producing",
+      "Rendering",
+      "Composing"
     ]
   }
 }

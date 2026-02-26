@@ -5,7 +5,6 @@
       "Read",
       "Glob",
       "Grep",
-      "Bash",
       "mcp__context7__*",
       "mcp__memory__*"
     ],
@@ -14,6 +13,11 @@
   "spinnerVerbs": {
     "mode": "append",
     "verbs": [
+      "Orchestrating",
+      "Coordinating",
+      "Synthesizing",
+      "Architecting",
+      "Dispatching",
       "Producing",
       "Rendering",
       "Composing"

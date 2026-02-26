@@ -1,16 +1,8 @@
 {
   "name": "ork-creative",
   "version": "6.7.2",
-  "description": "Video add-on (requires orkl) — 2 skills, 1 agent. Demo recording, Remotion, storyboarding, content creation.",
-  "dependencies": [
-    "orkl"
-  ],
-  "skills": [
-    "demo-producer",
-    "video-production"
-  ],
-  "agents": [
-    "demo-producer"
-  ],
+  "description": "Deprecated — use ork instead. All creative skills are now included in the main plugin.",
+  "skills": "all",
+  "agents": "all",
   "hooks": "all"
 }
