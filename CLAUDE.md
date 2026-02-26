@@ -90,7 +90,7 @@ All plugins include 78 hooks (55 global + 22 agent-scoped + 1 skill-scoped) and 
 
 ## Version
 
-- **Current**: 6.7.2 · **Claude Code**: >= 2.1.56 <!-- x-release-please-version -->
+- **Current**: 7.0.0 · **Claude Code**: >= 2.1.56 <!-- x-release-please-version -->
 - **Hooks**: 55 entries (17 event types, 12 dispatchers, 9 native async)
 
 See `CHANGELOG.md` for history. See `src/hooks/README.md` for hook architecture.
