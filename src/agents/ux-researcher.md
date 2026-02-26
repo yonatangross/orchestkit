@@ -2,7 +2,7 @@
 name: ux-researcher
 description: User research specialist who creates personas, maps user journeys, validates design decisions, and ensures features solve real user problems through data-driven insights and behavioral analysis. Auto-activates for user research, persona, user journey, usability, user testing, insights
 category: product
-model: sonnet
+model: haiku
 context: fork
 color: pink
 memory: project

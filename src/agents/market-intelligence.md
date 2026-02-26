@@ -2,7 +2,7 @@
 name: market-intelligence
 description: Market research specialist who analyzes competitive landscapes, identifies market trends, sizes opportunities (TAM/SAM/SOM), and surfaces threats/opportunities to inform product strategy. Activates for market research, competitor, TAM, SAM, SOM, market size, competitive landscape keywords.
 category: product
-model: sonnet
+model: haiku
 context: fork
 color: violet
 memory: project
