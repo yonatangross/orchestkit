@@ -297,7 +297,7 @@ describe('notification/desktop', () => {
   // ---------------------------------------------------------------------------
 
   describe('subtitle building', () => {
-    test('includes permission label for permission_prompt', () => {
+    test('includes approval title for permission_prompt', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('main');
       const input = createNotificationInput('permission_prompt');
@@ -311,10 +311,10 @@ describe('notification/desktop', () => {
       );
       expect(osascriptCalls.length).toBeGreaterThan(0);
       const osascriptCmd = osascriptCalls[0][0] as string;
-      expect(osascriptCmd).toContain('Permission needed');
+      expect(osascriptCmd).toContain('needs approval');
     });
 
-    test('includes waiting label for idle_prompt', () => {
+    test('includes waiting title for idle_prompt', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('main');
       const input = createNotificationInput('idle_prompt');
@@ -328,7 +328,7 @@ describe('notification/desktop', () => {
       );
       expect(osascriptCalls.length).toBeGreaterThan(0);
       const osascriptCmd = osascriptCalls[0][0] as string;
-      expect(osascriptCmd).toContain('Waiting');
+      expect(osascriptCmd).toContain('waiting for you');
     });
 
     test('includes issue number and branch in subtitle when available', () => {

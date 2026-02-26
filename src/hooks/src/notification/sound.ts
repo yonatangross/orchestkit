@@ -63,8 +63,10 @@ function playSound(soundFile: string): void {
 // -----------------------------------------------------------------------------
 
 export function soundNotification(input: HookInput): HookResult {
-  const toolInput = input.tool_input || {};
-  const notificationType = (toolInput.notification_type as string) || '';
+  // CC sends notification_type at root level, not inside tool_input
+  const notificationType = (input.tool_input?.notification_type as string)
+    || input.notification_type
+    || '';
 
   logHook('sound', `Sound notification check: [${notificationType}]`);
 
