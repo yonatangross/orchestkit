@@ -148,3 +148,6 @@ viral-posts/09-security-validation.md
 viral-posts/10-zero-config.md
 viral-posts/README.md
 tests/skills/functional/results/
+
+# Playground prototypes (design artifacts, not shipped)
+playground-*.html
