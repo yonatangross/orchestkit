@@ -32,6 +32,7 @@ Personalized onboarding that scans your codebase, detects your stack, recommends
 /ork:setup --rescan     # Re-scan after changes (skip safety phase)
 /ork:setup --score-only # Just show readiness score
 /ork:setup --plan-only  # Just show improvement plan
+/ork:setup --channel    # Just show release channel
 ```
 
 ## The Seven Phases
@@ -132,6 +133,48 @@ Detected Stack:
 | Security concerns | `security-patterns` |
 
 **All stacks get**: `explore`, `implement`, `verify`, `commit`, `review-pr`, `fix-issue`, `doctor`, `remember`, `brainstorming`, `help`
+
+## Phase 2b: Channel Detection
+
+Detect the user's release channel from the OrchestKit version string in the plugin manifest:
+
+```python
+# Read version from the installed plugin manifest
+Grep(pattern="\"version\"", path="manifests/ork.json", output_mode="content")
+```
+
+### Classification Rules
+
+| Version Pattern | Channel | Description |
+|----------------|---------|-------------|
+| `X.Y.Z-alpha.*` | **Alpha** | Bleeding-edge, may include incomplete features |
+| `X.Y.Z-beta.*` | **Beta** | Feature-complete previews, may have rough edges |
+| `X.Y.Z` (no suffix) | **Stable** | Production-ready, fully tested |
+
+### Channel Display
+
+Present the detected channel alongside the stack profile:
+
+```
+Release Channel: stable (v6.7.2)
+  You're on the stable channel — production-ready releases only.
+```
+
+If on a prerelease channel:
+
+```
+Release Channel: beta (v6.8.0-beta.1)
+  You're on the beta channel — early access to upcoming features.
+  To switch to stable: /plugin install ork@latest
+```
+
+```
+Release Channel: alpha (v6.9.0-alpha.3)
+  You're on the alpha channel — bleeding-edge, expect breaking changes.
+  To switch to stable: /plugin install ork@latest
+```
+
+Use `--channel` flag to show only the channel detection (skip all other phases).
 
 ## Phase 3: Safety Check
 
@@ -238,7 +281,7 @@ Compute a composite score (0-10) from 6 dimensions:
 ### Score Presentation
 
 ```
-OrchestKit Readiness Score: 7.2 / 10
+OrchestKit Readiness Score: 7.2 / 10  (stable channel, v6.7.2)
 
   Stack Coverage  ████████░░  9/10  Python + React fully covered
   Hook Protection ████████░░  8/10  78 hooks active
@@ -316,6 +359,7 @@ mcp__memory__create_entities(entities=[{
 | `--rescan` | Re-run scan + score, skip safety phase |
 | `--score-only` | Show current readiness score (Phase 6 only) |
 | `--plan-only` | Show improvement plan (Phase 7 only) |
+| `--channel` | Show detected release channel only |
 
 ## Related Skills
 

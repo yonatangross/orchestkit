@@ -25,7 +25,7 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 7. **Coordination System** - Checks lock health and registry integrity
 8. **Context Budget** - Monitors token usage against budget
 9. **Memory System** - Graph memory health
-10. **Claude Code Version** - Validates CC >= 2.1.47
+10. **Claude Code Version & Channel** - Validates CC >= 2.1.47, detects release channel (stable/beta/alpha)
 11. **External Dependencies** - Checks optional tool availability (agent-browser)
 12. **MCP Status** - Active vs disabled vs misconfigured, API key presence for paid MCPs
 
@@ -90,7 +90,7 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 
 | Category | What It Checks | Reference |
 |----------|---------------|-----------|
-| **10. CC Version** | Runtime version against minimum required | [version-compatibility](references/version-compatibility.md) |
+| **10. CC Version & Channel** | Runtime version against minimum required, release channel (stable/beta/alpha) | [version-compatibility](references/version-compatibility.md) |
 | **11. External Deps** | Optional tools (agent-browser) | [diagnostic-checks](rules/diagnostic-checks.md) |
 | **12. MCP Status** | Enabled/disabled state, credential checks | [mcp-status-checks](rules/mcp-status-checks.md) |
 
@@ -450,6 +450,31 @@ fi
 # Health Check Output Examples
 
 Reference output examples for each `/ork:doctor` check category.
+
+## Channel Detection
+
+**Stable:**
+```
+Channel: stable (v6.7.2)
+```
+
+**Beta:**
+```
+Channel: beta (v7.0.0-beta.3)
+⚠ You are on the beta channel. Report issues at github.com/yonatangross/orchestkit/issues
+```
+
+**Alpha:**
+```
+Channel: alpha (v7.0.0-alpha.1)
+⚠ You are on the alpha channel. Expect breaking changes. Report issues at github.com/yonatangross/orchestkit/issues
+```
+
+**Detection logic:**
+1. Read version from `.claude-plugin/plugin.json` (`version` field) or `version.txt`
+2. If version contains `-alpha` → alpha channel
+3. If version contains `-beta` → beta channel
+4. Otherwise → stable channel
 
 ## Installed Plugins
 
@@ -1392,6 +1417,33 @@ Claude Code: 2.1.4x (MEMORY LEAK RISK)
 - 8 memory leaks fixed in 2.1.50 affect long-running sessions
 - Symptoms: increasing memory usage, slower responses over time
 - Upgrade: npm install -g @anthropic-ai/claude-code@latest
+```
+
+## Release Channel Detection
+
+Doctor should detect and display the release channel alongside the CC version check. The version is read from `.claude-plugin/plugin.json` or `version.txt`.
+
+| Version Pattern | Channel | Stability |
+|----------------|---------|-----------|
+| `X.Y.Z` (no suffix) | stable | Production-ready |
+| `X.Y.Z-beta.N` | beta | Feature-complete, may have bugs |
+| `X.Y.Z-alpha.N` | alpha | Experimental, expect breaking changes |
+
+When on beta or alpha, doctor should append a pre-release reminder to the compatibility output:
+
+```
+Claude Code: 2.1.56 (OK)
+- Minimum required: 2.1.56
+- OrchestKit channel: beta (v7.0.0-beta.3)
+  ⚠ Pre-release version — some features may be unstable. Report issues at github.com/yonatangross/orchestkit/issues
+```
+
+On stable, no extra warning is needed — just include the channel line:
+
+```
+Claude Code: 2.1.56 (OK)
+- Minimum required: 2.1.56
+- OrchestKit channel: stable (v6.7.2)
 ```
 
 ## OrchestKit Version History
