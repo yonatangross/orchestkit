@@ -8,7 +8,7 @@
  * CC 2.1.19 Compliant: Single async hook with internal routing
  */
 
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult, HookFn } from '../types.js';
 import { outputSilentSuccess, logHook } from '../lib/common.js';
 
 // Import individual hook implementations
@@ -18,8 +18,6 @@ import { soundNotification } from './sound.js';
 // -----------------------------------------------------------------------------
 // Types
 // -----------------------------------------------------------------------------
-
-type HookFn = (input: HookInput) => HookResult | Promise<HookResult>;
 
 interface HookConfig {
   name: string;
@@ -66,9 +64,9 @@ export async function unifiedNotificationDispatcher(input: HookInput): Promise<H
     })
   );
 
-  // Log summary for debugging (only errors)
+  // Inner try/catch guarantees all promises resolve; only check fulfilled error status
   const errors = results.filter(
-    r => r.status === 'rejected' || (r.status === 'fulfilled' && r.value.status === 'error')
+    r => r.status === 'fulfilled' && r.value.status === 'error'
   );
 
   if (errors.length > 0) {

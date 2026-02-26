@@ -26,13 +26,22 @@ const SOUND_MAP: Record<string, string> = {
 // Helper Functions
 // -----------------------------------------------------------------------------
 
+let _hasAfplay: boolean | null = null;
+
 function hasAfplay(): boolean {
+  if (_hasAfplay !== null) return _hasAfplay;
   try {
     execSync('command -v afplay', { stdio: 'ignore' });
-    return true;
+    _hasAfplay = true;
   } catch {
-    return false;
+    _hasAfplay = false;
   }
+  return _hasAfplay;
+}
+
+/** @internal Test-only: reset the afplay cache */
+export function _resetAfplayCacheForTesting(): void {
+  _hasAfplay = null;
 }
 
 function playSound(soundFile: string): void {

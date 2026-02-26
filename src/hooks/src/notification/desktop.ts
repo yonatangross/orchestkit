@@ -15,16 +15,6 @@ import { outputSilentSuccess, logHook, getProjectDir, getCachedBranch } from '..
 import { assertSafeCommandName, shellQuote } from '../lib/sanitize-shell.js';
 
 // -----------------------------------------------------------------------------
-// Configuration
-// -----------------------------------------------------------------------------
-
-const SOUNDS: Record<string, string> = {
-  permission_prompt: 'Sosumi',  // Attention-grabbing
-  idle_prompt: 'Ping',          // Gentle
-  default: 'Ping',
-};
-
-// -----------------------------------------------------------------------------
 // Helper Functions
 // -----------------------------------------------------------------------------
 
@@ -32,14 +22,26 @@ function escapeForAppleScript(str: string): string {
   return str.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
 }
 
+const _commandCache = new Map<string, boolean>();
+
+/** Check if a command exists. assertSafeCommandName guards against injection if callers change. */
 function hasCommand(command: string): boolean {
+  const cached = _commandCache.get(command);
+  if (cached !== undefined) return cached;
   try {
     assertSafeCommandName(command);
     execSync(`command -v ${command}`, { stdio: 'ignore' });
+    _commandCache.set(command, true);
     return true;
   } catch {
+    _commandCache.set(command, false);
     return false;
   }
+}
+
+/** @internal Test-only: reset the command cache */
+export function _resetCommandCacheForTesting(): void {
+  _commandCache.clear();
 }
 
 /**
@@ -84,20 +86,20 @@ function truncateMessage(message: string, maxLen = 120): string {
 }
 
 /**
- * Send macOS notification with title, subtitle, and message
+ * Send macOS notification with title, subtitle, and message.
+ * Sound is handled separately by sound.ts to avoid double-sound.
  */
 function sendMacNotification(
   title: string,
   subtitle: string,
   message: string,
-  sound: string
 ): boolean {
   try {
     const t = escapeForAppleScript(title);
     const s = escapeForAppleScript(subtitle);
     const m = escapeForAppleScript(truncateMessage(message));
 
-    const script = `display notification "${m}" with title "${t}" subtitle "${s}" sound name "${sound}"`;
+    const script = `display notification "${m}" with title "${t}" subtitle "${s}"`;
     execSync(`osascript -e ${shellQuote(script)}`, { stdio: 'ignore', timeout: 5000 });
     return true;
   } catch {
@@ -138,11 +140,10 @@ export function desktopNotification(input: HookInput): HookResult {
   const repoName = getRepoName();
   const branch = getCachedBranch();
   const subtitle = buildSubtitle(branch, notificationType);
-  const sound = SOUNDS[notificationType] || SOUNDS.default;
 
-  // Send platform-appropriate notification
+  // Send platform-appropriate notification (sound handled by sound.ts)
   if (hasCommand('osascript')) {
-    sendMacNotification(repoName, subtitle, message, sound);
+    sendMacNotification(repoName, subtitle, message);
   } else if (hasCommand('notify-send')) {
     sendLinuxNotification(repoName, subtitle, message);
   }
