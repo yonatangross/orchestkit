@@ -50,12 +50,21 @@ bump_version() {
   echo "$major.$minor.$patch"
 }
 
-# Update plugin.json (source of truth)
+# Update plugin.json (source of truth + alias plugins)
 update_plugin_json() {
   local new_version="$1"
   jq --arg v "$new_version" '.version = $v' "$PLUGIN_JSON" > "$PLUGIN_JSON.tmp"
   mv "$PLUGIN_JSON.tmp" "$PLUGIN_JSON"
   echo "  ✓ plugin.json (source of truth)"
+
+  # Also update alias plugin.json files to prevent build drift
+  for alias_plugin in "$PROJECT_ROOT"/plugins/orkl/.claude-plugin/plugin.json \
+                      "$PROJECT_ROOT"/plugins/ork-creative/.claude-plugin/plugin.json; do
+    if [[ -f "$alias_plugin" ]]; then
+      jq --arg v "$new_version" '.version = $v' "$alias_plugin" > "$alias_plugin.tmp"
+      mv "$alias_plugin.tmp" "$alias_plugin"
+    fi
+  done
 }
 
 # Sync all other version files
@@ -172,7 +181,7 @@ add_changelog_entry() {
 stage_changes() {
   echo "Staging changes..."
   cd "$PROJECT_ROOT"
-  git add plugins/ork/.claude-plugin/plugin.json .claude-plugin/marketplace.json 2>/dev/null || true
+  git add plugins/ork/.claude-plugin/plugin.json plugins/orkl/.claude-plugin/plugin.json plugins/ork-creative/.claude-plugin/plugin.json .claude-plugin/marketplace.json 2>/dev/null || true
   git add manifests/*.json 2>/dev/null || true
   git add pyproject.toml CLAUDE.md CHANGELOG.md package.json 2>/dev/null || true
   git add version.txt .release-please-manifest.json 2>/dev/null || true
