@@ -5,11 +5,36 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **setup:** New setup wizard skill (`/ork:setup`) — scans codebase, detects stack, recommends skills and MCPs, generates readiness score
+- **notifications:** Satisfaction detector bug nudge — suggests `/ork:feedback bug` after 2+ negative signals per session
+- **mcp:** NotebookLM MCP integration — skill, hooks, rules for NotebookLM workflows
+
+### Changed
+
+- **plugins:** Unified plugin architecture — orkl and ork-creative are now aliases for ork; all 3 install identical content (69 skills, 38 agents, 78 hooks)
+- **settings:** Unified all plugin settings: identical spinner verbs and permissions across all plugins
+- **notifications:** Desktop notification sound handling delegated to dedicated sound.ts module with command cache for performance
+- **hooks:** Unified notification dispatcher with simplified error filtering and HookFn type usage
+- **manifests:** Composite index budget bumped from 16KB to 20KB to accommodate unified plugins
+
+### Fixed
+
+- Sound notifications now use detached spawn to survive async hook exit
+- Bump Hono from 4.12.0 to 4.12.2 (CVE-2026-27700)
+
+---
+
 ## [6.7.2] - 2026-02-26
 
 ### Fixed
 
-- TODO: Describe your changes here
+- Bump skill count 68 → 69 across manifests and docs
+- Bump Hono 4.12.0 → 4.12.2 (CVE-2026-27700)
+- Bump to v6.7.2
 
 ---
 

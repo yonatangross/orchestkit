@@ -27,10 +27,15 @@
 ```bash
 /plugin marketplace add yonatangross/orchestkit
 /plugin install ork
+```
+
+Then start your personalized onboarding:
+
+```bash
 /ork:setup
 ```
 
-**That's it.** The setup wizard scans your codebase, recommends skills for your stack, and creates a personalized improvement plan.
+The setup wizard scans your codebase, detects your tech stack, recommends skills for your needs, configures MCP servers, and creates a readiness score — all in one command.
 
 ---
 
@@ -51,13 +56,15 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 
 ## What You Get
 
-| Component | Count | Examples |
-|-----------|-------|----------|
-| **Skills** | 68 | RAG patterns, FastAPI, React 19, testing, security |
-| **Agents** | 38 | backend-architect, frontend-dev, security-auditor |
-| **Hooks** | 78 | Pre-commit checks, git protection, quality gates |
+**One unified plugin, everything included.**
 
-Skills load on-demand — zero overhead. Hooks protect automatically. Agents route by task.
+| Component | Details |
+|-----------|---------|
+| **69 Skills** | RAG patterns, FastAPI, React 19, testing, security, database design, ML integration — loaded on-demand, zero overhead |
+| **38 Agents** | Specialized personas (backend-architect, frontend-dev, security-auditor) — route tasks to the right expert |
+| **78 Hooks** | Pre-commit checks, git protection, quality gates — ship with confidence |
+
+All available in a single `/plugin install ork`. Skills load on-demand. Hooks work automatically.
 
 **[Browse everything in the Docs →](https://orchestkit.vercel.app/docs/skills/overview)**
 
@@ -96,6 +103,22 @@ The setup wizard (`/ork:setup`) will recommend MCPs based on your stack.
 
 ---
 
+## Plugin Names — All the Same Thing
+
+**orkl**, **ork-creative**, and **ork** are identical. They're all aliases for the same complete toolkit.
+
+- Old `orkl` users: Just install `ork`
+- Old `ork-creative` users: No separate video skills — everything is in `ork`
+- New users: Install `ork` once, get all 69 skills, 38 agents, 78 hooks
+
+```bash
+/plugin install ork
+```
+
+No tiering. No version confusion. Just one powerful plugin.
+
+---
+
 ## FAQ
 
 <details>
@@ -119,12 +142,6 @@ Run `/ork:doctor` to diagnose.
 Requires **≥2.1.56**. Check with `claude --version`.
 </details>
 
-<details>
-<summary><strong>Migrating from orkl or ork-creative?</strong></summary>
-
-Both names still work as aliases. Just run `/plugin install ork` — you get everything.
-</details>
-
 ---
 
 ## Development
@@ -140,13 +157,13 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 ---
 
-## What's New
+## What's New in v7
 
-**v7.0.0** — Single Plugin + Setup Wizard
+**v7.0.0** — Unified Plugin Architecture
 
-- **Breaking**: Collapsed 3 plugins into 1. `orkl` and `ork-creative` are now aliases for `ork`.
-- **New**: `/ork:setup` — personalized onboarding wizard (scan, stack detection, skill recommendations, MCP setup, readiness score)
-- All 69 skills, 38 agents, 78 hooks in one install. Zero overhead — skills load on-demand.
+- **Simplified**: One plugin for everything. No more orkl vs ork-creative confusion. All 69 skills, 38 agents, 78 hooks in `/plugin install ork`.
+- **Setup Wizard**: Run `/ork:setup` for personalized onboarding — stack detection, skill recommendations, MCP configuration, readiness scoring.
+- **Zero Overhead**: Skills load on-demand. Hooks activate automatically. No performance penalty.
 
 [Full Changelog →](./CHANGELOG.md)
 
