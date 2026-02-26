@@ -8,7 +8,7 @@ Always respond in English. Never Hebrew. No exceptions.
 
 ## Project Overview
 
-**OrchestKit** — Claude Code plugin: **69 skills**, **38 agents**, **55 hooks** (17 event types, 12 dispatchers, 9 native async).
+**OrchestKit** — Claude Code plugin: **69 skills**, **38 agents**, **54 hooks** (17 event types, 12 dispatchers, 9 native async).
 
 **Purpose**: AI-assisted development with built-in best practices, security patterns, and quality gates.
 
@@ -75,9 +75,9 @@ Commit after each logical unit of work — never batch all commits to end of ses
 
 ## Plugin Architecture
 
-**Single plugin**: `ork` — all 69 skills, 38 agents, 78 hooks. `orkl` and `ork-creative` are aliases that install the same thing.
+**Single plugin**: `ork` — all 69 skills, 38 agents, 77 hooks. `orkl` and `ork-creative` are aliases that install the same thing.
 
-All plugins include 78 hooks (55 global + 22 agent-scoped + 1 skill-scoped) and a `settings.json` (permissions, keybindings, spinner). 29 skills are user-invocable via `/ork:skillname`.
+All plugins include 77 hooks (54 global + 22 agent-scoped + 1 skill-scoped) and a `settings.json` (permissions, keybindings, spinner). 29 skills are user-invocable via `/ork:skillname`.
 
 ## Quick Reference
 
@@ -91,6 +91,6 @@ All plugins include 78 hooks (55 global + 22 agent-scoped + 1 skill-scoped) and 
 ## Version
 
 - **Current**: 7.0.0 · **Claude Code**: >= 2.1.56 <!-- x-release-please-version -->
-- **Hooks**: 55 entries (17 event types, 12 dispatchers, 9 native async)
+- **Hooks**: 54 entries (17 event types, 12 dispatchers, 9 native async)
 
 See `CHANGELOG.md` for history. See `src/hooks/README.md` for hook architecture.

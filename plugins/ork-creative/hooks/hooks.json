@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 55 global + 22 agent-scoped + 1 skill-scoped = 78 total hooks",
+  "description": "OrchestKit hooks - 54 global + 22 agent-scoped + 1 skill-scoped = 77 total hooks",
   "hooks": {
     "PreToolUse": [
       {
@@ -282,16 +282,6 @@
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs notification/unified-dispatcher",
-            "async": true
-          }
-        ]
-      },
-      {
-        "matcher": "permission_prompt|idle_prompt|auth_success",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs notification/sound",
             "async": true
           }
         ]
