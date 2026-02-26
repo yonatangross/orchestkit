@@ -6,7 +6,7 @@ Reference output examples for each `/ork:doctor` check category.
 
 **Stable:**
 ```
-Channel: stable (v6.7.2)
+Channel: stable (v7.0.0)
 ```
 
 **Beta:**

@@ -117,7 +117,7 @@ On stable, no extra warning is needed — just include the channel line:
 ```
 Claude Code: 2.1.56 (OK)
 - Minimum required: 2.1.56
-- OrchestKit channel: stable (v6.7.2)
+- OrchestKit channel: stable (v7.0.0)
 ```
 
 ## OrchestKit Version History
