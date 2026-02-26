@@ -290,11 +290,11 @@ echo ""
 echo "▶ Test 7: Size budget check"
 echo "──────────────────────────────────────"
 
-# Composite index should be <16KB (contains duplicates across plugins)
-if [[ "$COMPOSITE_SIZE" -lt 16384 ]]; then
-    pass "Composite index within 16KB budget (${COMPOSITE_SIZE} bytes)"
+# Composite index should be <20KB (contains duplicates across plugins — all plugins are aliases now)
+if [[ "$COMPOSITE_SIZE" -lt 20480 ]]; then
+    pass "Composite index within 20KB budget (${COMPOSITE_SIZE} bytes)"
 else
-    fail "Composite index exceeds 16KB budget (${COMPOSITE_SIZE} bytes)"
+    fail "Composite index exceeds 20KB budget (${COMPOSITE_SIZE} bytes)"
 fi
 
 # Per-plugin Tier 1 check (already done above, just report)
