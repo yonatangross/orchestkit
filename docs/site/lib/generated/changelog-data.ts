@@ -24,7 +24,9 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       {
         "type": "fixed",
         "items": [
-          "TODO: Describe your changes here"
+          "Bump skill count 68 → 69 across manifests and docs",
+          "Bump Hono 4.12.0 → 4.12.2 (CVE-2026-27700)",
+          "Bump to v6.7.2"
         ]
       }
     ]

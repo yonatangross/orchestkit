@@ -20,7 +20,7 @@ OrchestKit requires Claude Code >= 2.1.47. This matrix documents which CC featur
 | Agent model in Teams | 2.1.47 | Model field respected in team spawns | Model ignored, uses default |
 | Worktree discovery | 2.1.47 | Skills/agents found from worktrees | Worktree sessions miss plugins |
 | Background tasks in worktrees | 2.1.47 | Task tool from worktrees | Background agents fail silently |
-| Windows hook execution | 2.1.47 | All 87 hooks on Windows | Hooks silently fail on Windows |
+| Windows hook execution | 2.1.47 | All 78 hooks on Windows | Hooks silently fail on Windows |
 | Windows worktree sessions | 2.1.47 | Drive letter casing match | Worktree sessions not matched |
 | Improved agent memory | 2.1.47 | Higher context limits | Conservative limits apply |
 | `Ctrl+F` find in output | 2.1.47 | Search through session output | No search capability |

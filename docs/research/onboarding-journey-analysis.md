@@ -36,7 +36,7 @@ The aha moment for OrchestKit is when Claude silently does the right thing witho
 3. See value on the first real task, not just a health check
 
 **Pain Points:**
-1. "67 skills · 37 agents · 81 hooks" lands as noise — she does not know what a skill vs agent vs hook is in this context
+1. "69 skills · 38 agents · 78 hooks" lands as noise — she does not know what a skill vs agent vs hook is in this context
 2. The `orkl` vs `ork` split forces a decision she does not yet have the context to make
 3. After `/ork:doctor` passes, she has no obvious next step — the tool is silent until she knows the right commands
 
@@ -86,7 +86,7 @@ The aha moment for OrchestKit is when Claude silently does the right thing witho
 2. Know whether it is worth the setup cost
 
 **Pain Points:**
-1. The README leads with tagline + numbers ("67 skills · 37 agents · 81 hooks") — numbers without meaning are not compelling to an evaluator.
+1. The README leads with tagline + numbers ("69 skills · 38 agents · 78 hooks") — numbers without meaning are not compelling to an evaluator.
 2. There is no demo video, no interactive playground, no "try it in 30 seconds" path.
 3. The docs link points to a full docs site — overwhelming for someone who just wants a taste.
 4. The decision tree between `orkl`, `ork-creative`, and `ork` is confusing. Why are there three? Is creative something he needs?
@@ -153,7 +153,7 @@ The aha moment for OrchestKit is when Claude silently does the right thing witho
 
 **Friction score: 8/10 — this is the primary drop-off point.**
 
-The critical insight: **all three plugins include identical agents (38) and identical hooks (77). The only difference is which skill documents are loaded.** The README does not communicate this. Users assume they are choosing between meaningfully different tool sets, when they are actually choosing between knowledge bundles that add near-zero runtime overhead.
+The critical insight: **all three plugins include identical agents (38) and identical hooks (78). The only difference is which skill documents are loaded.** The README does not communicate this. Users assume they are choosing between meaningfully different tool sets, when they are actually choosing between knowledge bundles that add near-zero runtime overhead.
 
 ---
 
@@ -230,7 +230,7 @@ For Farida: Her `git commit` is intercepted by the pre-commit hook checking for 
 | F-08 | Hooks are invisible — users do not know what ran or why | First Use | MEDIUM | Transparency |
 | F-09 | `/ork:implement` asks complex questions (worktree) before user has context | First Use | MEDIUM | Cognitive load |
 | F-10 | No team install documentation for Team Lead persona | Consideration | MEDIUM | Missing content |
-| F-11 | README numbers ("67 skills · 37 agents · 81 hooks") convey volume not value | Discovery | LOW | Messaging |
+| F-11 | README numbers ("69 skills · 38 agents · 78 hooks") convey volume not value | Discovery | LOW | Messaging |
 
 ---
 
@@ -238,7 +238,7 @@ For Farida: Her `git commit` is intercepted by the pre-commit hook checking for 
 
 **Verdict: It is hurting.**
 
-The core product insight that the research surfaces: **the only meaningful difference between `orkl` and `ork` is which Markdown skill documents are included.** Agents (38) and hooks (77) are identical across both. Skills are loaded on-demand — they add near-zero runtime overhead when unused.
+The core product insight that the research surfaces: **the only meaningful difference between `orkl` and `ork` is which Markdown skill documents are included.** Agents (38) and hooks (78) are identical across both. Skills are loaded on-demand — they add near-zero runtime overhead when unused.
 
 This means the user is being asked to make a permanent-feeling architectural decision (`orkl` vs `ork`) over what is effectively a documentation filter. That is backwards.
 
@@ -407,7 +407,7 @@ Carlos (the evaluator) represents a real and large segment of developer tool ado
 | F-09: `/ork:implement` first-run complexity | Add first-time detection; simplify initial dialog to 2 questions max | MEDIUM | MEDIUM | PLAN |
 | F-10: No team install docs | Add "Team Setup" section to docs site | MEDIUM | LOW | PLAN |
 | F-07: `ork-creative` confusion | Visually separate creative tier as add-on with its own callout box | LOW | LOW | MAYBE |
-| F-11: README numbers without meaning | Replace "67 skills · 37 agents · 81 hooks" with outcome statements in the hero | LOW | LOW | MAYBE |
+| F-11: README numbers without meaning | Replace "69 skills · 38 agents · 78 hooks" with outcome statements in the hero | LOW | LOW | MAYBE |
 
 ---
 

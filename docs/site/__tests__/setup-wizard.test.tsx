@@ -20,9 +20,9 @@ vi.mock("@/lib/generated/plugins-data", () => {
       fullDescription: "Language-agnostic toolkit",
       category: "universal",
       version: "6.0.3",
-      skillCount: 44,
-      agentCount: 36,
-      hooks: 87,
+      skillCount: 69,
+      agentCount: 38,
+      hooks: 78,
       commandCount: 23,
       color: "#7c3aed",
       required: false,
@@ -37,9 +37,9 @@ vi.mock("@/lib/generated/plugins-data", () => {
       fullDescription: "Full specialized toolkit",
       category: "specialized",
       version: "6.0.3",
-      skillCount: 61,
-      agentCount: 36,
-      hooks: 87,
+      skillCount: 69,
+      agentCount: 38,
+      hooks: 78,
       commandCount: 0,
       color: "#0891b2",
       required: false,
@@ -267,8 +267,8 @@ describe("SetupWizard", () => {
   it("shows plugin skill count in stats", () => {
     render(<SetupWizard />);
 
-    // orkl has 44 skills (rendered as plugin.skillCount)
-    expect(screen.getByText("44")).toBeInTheDocument();
+    // orkl has 69 skills (rendered as plugin.skillCount)
+    expect(screen.getByText("69")).toBeInTheDocument();
   });
 
   // ── Install command and copy ──────────────────────────────

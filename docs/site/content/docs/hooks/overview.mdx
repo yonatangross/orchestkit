@@ -1,5 +1,5 @@
 ---
-title: "89 Hooks: What Fires When"
+title: "78 Hooks: What Fires When"
 description: "TypeScript functions that intercept every Claude Code lifecycle event -- blocking dangerous commands, injecting context, and syncing memory, all invisibly."
 ---
 
@@ -31,12 +31,12 @@ type HookFn = (input: HookInput) => HookResult | Promise<HookResult>;
 
 | Category | Count | Description |
 |----------|-------|-------------|
-| **Global hooks** | 66 | Fire on every matching event regardless of agent |
+| **Global hooks** | 55 | Fire on every matching event regardless of agent |
 | **Agent-scoped hooks** | 22 | Fire only when a specific agent is active |
 | **Skill-scoped hooks** | 1 | Fire only during specific skill operations |
-| **Total** | **89** | Registered in `hooks.json`, compiled into 11 split bundles |
+| **Total** | **78** | Registered in `hooks.json`, compiled into 11 split bundles |
 
-All 89 hooks are written in TypeScript, compiled via esbuild into ESM bundles, and executed by Node.js. Zero external dependencies in production.
+All 78 hooks are written in TypeScript, compiled via esbuild into ESM bundles, and executed by Node.js. Zero external dependencies in production.
 
 ## Hook Events: The Full Timeline
 
@@ -179,7 +179,7 @@ OrchestKit does not load all hooks into memory for every event. Instead, esbuild
 | `agent.mjs` | 8 KB | 5 | Agent operations |
 | `hooks.mjs` (unified) | 324 KB | all | CLI tools only |
 
-**Result:** 89% per-load savings. A typical hook invocation loads ~35 KB instead of 324 KB.
+**Result:** ~89% per-load savings. A typical hook invocation loads ~35 KB instead of 324 KB.
 
 The CLI runner (`bin/run-hook.mjs`) maps hook name prefixes to bundles automatically:
 

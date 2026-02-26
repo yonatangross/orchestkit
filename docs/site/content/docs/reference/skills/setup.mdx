@@ -189,7 +189,7 @@ Detected patterns that could become custom skills:
   83 React comps  → Create "component" skill (auto-generate: component + props + story + test)
   8 deploy steps  → Create "deploy-checklist" skill (automate your DEPLOY.md)
 
-To create any of these: /ork:skill-creator "describe your pattern"
+To create any of these: see CONTRIBUTING-SKILLS.md in the plugin for authoring standards
 ```
 
 ## Phase 5: MCP Recommendations
@@ -283,8 +283,8 @@ P1 (this week):
   $ /ork:configure mcp tavily
   → Enables web research for up-to-date library docs.
 
-  $ /ork:skill-creator "FastAPI endpoint with Pydantic schema, Alembic migration, and pytest"
-  → Creates a custom skill for your most repeated pattern (47 routes detected).
+  Create a custom skill per CONTRIBUTING-SKILLS.md for your most repeated pattern (47 routes detected).
+  → e.g., "FastAPI endpoint with Pydantic schema, Alembic migration, and pytest"
 
 P2 (ongoing):
   $ /ork:explore architecture
@@ -324,4 +324,3 @@ mcp__memory__create_entities(entities=[{
 - `ork:remember` — Knowledge persistence (wizard seeds initial patterns)
 - `ork:explore` — Deep codebase analysis (wizard links for follow-up)
 - `ork:help` — Skill directory (wizard surfaces relevant subset)
-- `ork:skill-creator` — Custom skill authoring (wizard suggests what to create)

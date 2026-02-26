@@ -17,7 +17,7 @@ Overview of every place counts appear and what they represent.
 | File | Field | Example |
 |------|-------|---------|
 | `CLAUDE.md` | Project Overview line | "69 skills, 38 agents, 78 hooks" |
-| `CLAUDE.md` | Version section | "85 entries (63 global + 22 agent-scoped...)" |
+| `CLAUDE.md` | Version section | "55 entries (17 event types, 12 dispatchers, 9 native async)" |
 | `src/hooks/hooks.json` | top-level `description` | May embed hook count |
 | `manifests/ork.json` | `skills[]` length, `agents[]` length | Counted from arrays |
 | `manifests/orkl.json` | `skills[]` length, `agents[]` length | Subset of ork |
