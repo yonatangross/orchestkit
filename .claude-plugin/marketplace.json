@@ -15,7 +15,7 @@
     {
       "name": "ork",
       "description": "The Complete AI Development Toolkit — 69 skills, 38 agents, 78 hooks. Python, React, LLM/RAG, security, testing, and more.",
-      "version": "6.7.2",
+      "version": "7.0.0",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
@@ -26,7 +26,7 @@
     {
       "name": "orkl",
       "description": "Alias for ork — installs the full toolkit. Use ork instead.",
-      "version": "6.7.2",
+      "version": "7.0.0",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
@@ -37,7 +37,7 @@
     {
       "name": "ork-creative",
       "description": "Deprecated — use ork instead. All creative skills included in main plugin.",
-      "version": "6.7.2",
+      "version": "7.0.0",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"

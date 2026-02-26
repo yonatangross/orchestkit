@@ -17,6 +17,38 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.0.0",
+    "date": "2026-02-26",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**setup:** New setup wizard skill (`/ork:setup`) — scans codebase, detects stack, recommends skills and MCPs, generates readiness score",
+          "**notifications:** Satisfaction detector bug nudge — suggests `/ork:feedback bug` after 2+ negative signals per session",
+          "**mcp:** NotebookLM MCP integration — skill, hooks, rules for NotebookLM workflows",
+          "**release:** Release channels (alpha/beta/stable) with branch-based CI workflows and `--ref` marketplace flag"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**settings:** Unified all plugin settings: identical spinner verbs and permissions across all plugins",
+          "**notifications:** Desktop notification sound handling delegated to dedicated sound.ts module with command cache for performance",
+          "**hooks:** Unified notification dispatcher with simplified error filtering and HookFn type usage",
+          "**manifests:** Composite index budget bumped from 16KB to 20KB to accommodate unified plugins"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "Sound notifications now use detached spawn to survive async hook exit",
+          "Bump Hono from 4.12.0 to 4.12.2 (CVE-2026-27700)"
+        ]
+      }
+    ]
+  },
+  {
     "version": "6.7.2",
     "date": "2026-02-26",
     "compareUrl": "",
