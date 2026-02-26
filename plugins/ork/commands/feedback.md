@@ -1,6 +1,6 @@
 ---
 description: "Manages OrchestKit usage analytics, learning preferences, and privacy settings. Use when reviewing patterns, pausing learning, or managing consent."
-allowed-tools: [Read, Write, Edit, Grep, Glob]
+allowed-tools: [Read, Write, Edit, Grep, Glob, Bash, AskUserQuestion]
 ---
 
 # Auto-generated from skills/feedback/SKILL.md
@@ -20,6 +20,7 @@ View and manage the OrchestKit feedback system that learns from your usage.
 - Managing privacy settings
 - Enabling/disabling anonymous analytics sharing
 - Viewing privacy policy
+- Filing bug reports as GitHub issues
 
 ## Usage
 
@@ -35,6 +36,8 @@ View and manage the OrchestKit feedback system that learns from your usage.
 /ork:feedback opt-out            # Disable anonymous sharing
 /ork:feedback privacy            # View privacy policy
 /ork:feedback export-analytics   # Export anonymous analytics for review
+/ork:feedback bug                # File a bug report as a GitHub issue
+/ork:feedback bug [description]  # File with pre-filled description
 ```
 
 ## Subcommands
@@ -51,8 +54,9 @@ View and manage the OrchestKit feedback system that learns from your usage.
 | `opt-out` | Disable anonymous analytics sharing (revokes consent) |
 | `privacy` | Display the full privacy policy |
 | `export-analytics` | Export anonymous analytics to file for review before sharing |
+| `bug` | File a bug report as a GitHub issue with auto-collected context |
 
-**Output:** Each subcommand displays formatted status, confirmation prompts, or exported file paths. See [Subcommand Reference](references/subcommand-reference.md) for detailed actions and expected output for each subcommand.
+**Output:** Each subcommand displays formatted status, confirmation prompts, or exported file paths. See [Subcommand Reference](references/subcommand-reference.md) for detailed actions and expected output for each subcommand. See [Bug Report Reference](references/bug-report-reference.md) for the bug filing workflow.
 
 ## Consent and Security
 

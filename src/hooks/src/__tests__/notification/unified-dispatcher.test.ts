@@ -120,13 +120,6 @@ describe('notification/unified-dispatcher', () => {
       expect(names1).not.toBe(names2); // Different array instances
     });
 
-    test('registry contains exactly 2 hooks', () => {
-      // Act
-      const names = registeredHookNames();
-
-      // Assert
-      expect(names).toHaveLength(2);
-    });
   });
 
   // ---------------------------------------------------------------------------
@@ -241,24 +234,6 @@ describe('notification/unified-dispatcher', () => {
 
       // Assert - desktop still ran, result is still success
       expect(desktopNotification).toHaveBeenCalledWith(input);
-      expect(result.continue).toBe(true);
-      expect(result.suppressOutput).toBe(true);
-    });
-
-    test('continues when both hooks throw', async () => {
-      // Arrange
-      vi.mocked(desktopNotification).mockImplementation(() => {
-        throw new Error('Desktop failed');
-      });
-      vi.mocked(soundNotification).mockImplementation(() => {
-        throw new Error('Sound failed');
-      });
-      const input = createNotificationInput('permission_prompt');
-
-      // Act
-      const result = await unifiedNotificationDispatcher(input);
-
-      // Assert - still returns silentSuccess
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
     });

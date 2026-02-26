@@ -1,11 +1,11 @@
 ---
 title: "PreToolUse"
-description: "Hooks triggered on PreToolUse events (14 hooks)."
+description: "Hooks triggered on PreToolUse events (15 hooks)."
 ---
 
 # PreToolUse Hooks
 
-**14 hooks** registered for the `PreToolUse` lifecycle event.
+**15 hooks** registered for the `PreToolUse` lifecycle event.
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
@@ -20,6 +20,7 @@ description: "Hooks triggered on PreToolUse events (14 hooks)."
 | `skill-tracker` | `Skill` | 🔇 Silent | Logs Skill tool invocations with analytics |
 | `context7-tracker` | `mcp__context7__*` | 💡 Injects | Tracks context7 library lookups and injects cache state as additionalContext |
 | `memory-validator` | `mcp__memory__*` | 🔇 Silent | Validates memory operations to prevent accidental data loss |
+| `notebooklm-advisor` | `mcp__notebooklm-mcp__*` | 🛑 Blocks | Advisory warnings for destructive/slow NotebookLM operations |
 | `unified-agent-safety-dispatcher` | `Task` | 💡 Injects | — |
 | `team-size-gate` | `Task` | 🛑 Blocks | — |
 | `tldr-summary` | `Read` | 💡 Injects | — |

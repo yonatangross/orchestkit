@@ -1,0 +1,445 @@
+---
+title: "Notebooklm"
+description: "NotebookLM integration patterns for external RAG, research synthesis, studio content generation, and knowledge management via the notebooklm-mcp-cli MCP server."
+---
+
+<span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
+
+
+# NotebookLM
+
+NotebookLM = external RAG engine that offloads reading from your context window. Uses the `notebooklm-mcp-cli` MCP server (PyPI) to create notebooks, manage sources, generate content, and query with grounded AI responses.
+
+> **Disclaimer**: Uses internal undocumented Google APIs via browser authentication. Sessions last ~20 minutes. API may change without notice.
+
+## Prerequisites
+
+1. **Install**: `uv tool install notebooklm-mcp-cli` (or `pip install notebooklm-mcp-cli`)
+2. **Authenticate**: `nlm login` (opens browser, session ~20 min)
+3. **Configure MCP**: `nlm setup add claude-code` (auto-configures `.mcp.json`)
+4. **Alternative**: `nlm skill install` for guided setup with verification
+5. **Verify**: `nlm login --check` to confirm active session
+
+## Decision Tree — Which Rule to Read
+
+```
+What are you trying to do?
+│
+├── Create / manage notebooks
+│   ├── List / get / rename ──────► notebook_list, notebook_get, notebook_rename
+│   ├── Create new notebook ──────► notebook_create
+│   └── Delete notebook ──────────► notebook_delete (irreversible!)
+│
+├── Add sources to a notebook
+│   ├── URL / YouTube ────────────► source_add(type=url)
+│   ├── Plain text ───────────────► source_add(type=text)
+│   ├── Local file ───────────────► source_add(type=file)
+│   ├── Google Drive ─────────────► source_add(type=drive)
+│   └── Manage sources ──────────► rules/setup-quickstart.md
+│
+├── Query a notebook (AI chat)
+│   ├── Ask questions ────────────► notebook_query
+│   └── Configure chat style ────► chat_configure
+│
+├── Generate studio content
+│   └── 9 artifact types ────────► rules/workflow-studio-content.md
+│
+├── Research & discovery
+│   └── Web/Drive research ──────► rules/workflow-research-discovery.md
+│
+├── Notes (capture insights)
+│   └── Create/list/update/delete ► note (unified tool)
+│
+├── Sharing & collaboration
+│   └── Public links / invites ──► rules/workflow-sharing-collaboration.md
+│
+└── Workflow patterns
+    ├── Second brain ─────────────► rules/workflow-second-brain.md
+    ├── Research offload ─────────► rules/workflow-research-offload.md
+    └── Knowledge base ──────────► rules/workflow-knowledge-base.md
+```
+
+## Quick Reference
+
+| Category | Rule | Impact | Key Pattern |
+|----------|------|--------|-------------|
+| **Setup** | `setup-quickstart.md` | HIGH | Auth, MCP config, source management, session refresh |
+| **Workflows** | `workflow-second-brain.md` | HIGH | Decision docs, project hub, agent interop |
+| **Workflows** | `workflow-research-offload.md` | HIGH | Synthesis, onboarding, token savings |
+| **Workflows** | `workflow-knowledge-base.md` | HIGH | Debugging KB, security handbook, team knowledge |
+| **Workflows** | `workflow-studio-content.md` | MEDIUM | 9 artifact types (audio overview, deep dive, slides...) |
+| **Research** | `workflow-research-discovery.md` | HIGH | Web/Drive research async flow |
+| **Collaboration** | `workflow-sharing-collaboration.md` | MEDIUM | Public links, collaborator invites |
+
+**Total: 7 rules across 3 categories**
+
+## MCP Tools by API Group
+
+| Group | Tools | Count |
+|-------|-------|-------|
+| Notebooks | notebook_list, notebook_create, notebook_get, notebook_describe, notebook_rename, notebook_delete | 6 |
+| Sources | source_list, source_add, source_list_drive, source_sync_drive, source_delete, source_describe, source_get_content | 7 |
+| Querying | notebook_query, chat_configure | 2 |
+| Studio | studio_create, studio_status, studio_delete | 3 |
+| Research | research_start, research_status, research_import | 3 |
+| Sharing | notebook_share_status, notebook_share_public, notebook_share_invite | 3 |
+| Notes | note (unified: list/create/update/delete) | 1 (4 actions) |
+| Downloads | download_artifact | 1 |
+| Auth | save_auth_tokens, refresh_auth | 2 |
+
+**Total: 29 tools across 9 groups**
+
+## Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| New notebook vs existing | One notebook per project/topic; add sources to existing |
+| Source type | URL for web, text for inline, file for local docs, drive for Google Docs |
+| Large sources | Split >50K chars into multiple sources for better retrieval |
+| Auth expired? | `nlm login --check`; sessions last ~20 min, re-auth with `nlm login` |
+| Studio content | Use studio_create, poll with studio_status (generation takes 2-5 min) |
+| Research discovery | research_start for web/Drive discovery, then research_import to add findings |
+| Query vs search | notebook_query for AI-grounded answers; source_get_content for raw text |
+| Notes vs sources | Notes for your insights/annotations; sources for external documents |
+
+## Example
+
+```bash
+# 1. Create a notebook for your project
+notebook_create(title="Auth Refactor Research")
+
+# 2. Add sources (docs, articles, existing code analysis)
+source_add(notebook_id="...", type="url", url="https://oauth.net/2.1/")
+source_add(notebook_id="...", type="text", content="Our current auth uses...")
+source_add(notebook_id="...", type="file", path="/docs/auth-design.md")
+
+# 3. Query with grounded AI responses
+notebook_query(notebook_id="...", query="What are the key differences between OAuth 2.0 and 2.1?")
+
+# 4. Generate a deep dive audio overview
+studio_create(notebook_id="...", type="deep_dive")
+studio_status(notebook_id="...")  # Poll until complete
+
+# 5. Capture insights as notes
+note(notebook_id="...", action="create", content="Key takeaway: PKCE is mandatory in 2.1")
+```
+
+## Common Mistakes
+
+- **Forgetting auth expiry** — Sessions last ~20 min. Always check with `nlm login --check` before long workflows. Re-auth with `nlm login`.
+- **One giant notebook** — Split by project/topic. One notebook with 50 sources degrades retrieval quality.
+- **Huge single sources** — Split documents >50K characters into logical sections for better chunking and retrieval.
+- **Not polling studio_status** — Studio content generation takes 2-5 minutes. Poll `studio_status` instead of assuming instant results.
+- **Ignoring source types** — Use `type=url` for web pages (auto-extracts), `type=file` for local files. Using `type=text` for a URL gives you the URL string, not the page content.
+- **Deleting notebooks without checking** — `notebook_delete` is irreversible. List contents with `source_list` and `note(action=list)` first.
+- **Skipping research_import** — `research_start` discovers content but does not add it. Use `research_import` to actually add findings as sources.
+- **Raw queries on empty notebooks** — `notebook_query` returns poor results with no sources. Add sources before querying.
+
+## Related Skills
+
+- `ork:mcp-patterns` — MCP server building, security, and composition patterns
+- `ork:web-research-workflow` — Web research strategies and source evaluation
+- `ork:memory` — Memory fabric for cross-session knowledge persistence
+- `ork:security-patterns` — Input sanitization and layered security
+
+
+---
+
+## Rules (7)
+
+### NotebookLM Quick Setup — HIGH
+
+
+## Quick Setup
+
+Authenticate with Google via `nlm login`, then register the MCP server with Claude Code. Auth sessions expire after ~20 minutes of inactivity.
+
+**Incorrect -- manually editing .mcp.json with wrong server path:**
+```json
+{
+  "mcpServers": {
+    "notebooklm": {
+      "command": "node",
+      "args": ["./some/wrong/path/server.js"]
+    }
+  }
+}
+```
+
+**Correct -- using CLI setup command:**
+```bash
+# 1. Authenticate (opens browser for Google OAuth)
+nlm login
+
+# 2. Register MCP server with Claude Code
+nlm setup add claude-code
+
+# 3. Verify auth is active
+nlm login --check
+```
+
+**Manual .mcp.json fallback** (if `nlm setup` is unavailable):
+```json
+{
+  "mcpServers": {
+    "notebooklm": {
+      "command": "nlm",
+      "args": ["mcp"]
+    }
+  }
+}
+```
+
+**Alternative -- skill-based install:**
+```bash
+nlm skill install
+```
+
+**Key rules:**
+- Always authenticate with `nlm login` before first use -- browser OAuth flow required
+- Auth sessions last ~20 minutes; re-run `nlm login` if tools start failing
+- Use `nlm login --check` to verify session status before long workflows
+- Prefer `nlm setup add claude-code` over manual .mcp.json editing
+- If setup command fails, use the manual .mcp.json fallback with `"command": "nlm"`
+
+
+### Knowledge Base Pattern — HIGH
+
+
+## Knowledge Base Pattern
+
+Build dedicated notebooks as curated knowledge bases for debugging, security, and onboarding. Add incident reports, advisories, and runbooks as sources for grounded, verified answers.
+
+**Incorrect -- re-investigating a known issue from scratch:**
+```
+User: "Production is throwing OOM errors again"
+Claude: "Let me research possible causes..."
+# Wastes time if this was already diagnosed and documented
+```
+
+**Correct -- query the debugging knowledge base:**
+```
+# 1. Create dedicated KB notebooks
+notebook_create(name="Debugging KB")
+notebook_create(name="Security Handbook")
+
+# 2. Add incident reports and advisories as sources
+source_add(notebook_id="debug_kb", content="INC-042: OOM caused by unbounded cache. Fix: add TTL...")
+source_add(notebook_id="security_kb", content="SEC-007: SQL injection in search endpoint. Fix: parameterize...")
+
+# 3. Query for grounded answers
+notebook_query(notebook_id="debug_kb", query="What causes OOM errors and how were they fixed?")
+notebook_query(notebook_id="security_kb", query="Known SQL injection patterns in our codebase")
+```
+
+**Key rules:**
+- Create separate notebooks for debugging, security, and onboarding domains
+- Add incident reports, post-mortems, and security advisories as sources
+- Query KB notebooks before re-investigating known issues
+- Keep sources current -- add new incidents as they are resolved
+- Use for onboarding: new team members query the KB instead of asking around
+
+
+### Research Discovery Pattern — HIGH
+
+
+## Research Discovery Pattern
+
+Use the research API for automated web and Google Drive discovery. The flow is async: start a research task, poll for status, then import discovered sources into your notebook.
+
+**Incorrect -- manually searching and adding URLs one by one:**
+```
+# Tedious and misses relevant content
+source_add(notebook_id="...", url="https://example.com/article1")
+source_add(notebook_id="...", url="https://example.com/article2")
+source_add(notebook_id="...", url="https://example.com/article3")
+# Missed 20 other relevant articles
+```
+
+**Correct -- automated research flow:**
+```
+# 1. Start research (searches web and/or Google Drive)
+task = research_start(
+    notebook_id="...",
+    topic="Latest developments in WebAssembly component model",
+    sources=["web", "drive"]
+)
+
+# 2. Poll for completion (uses Google API quota)
+status = research_status(task_id=task.id)
+# status: "searching" | "analyzing" | "completed"
+
+# 3. Import discovered sources into notebook
+research_import(task_id=task.id, notebook_id="...")
+# Adds the most relevant discovered sources automatically
+```
+
+**Key rules:**
+- Use `research_start` for broad topic discovery instead of manual URL hunting
+- Always poll with `research_status` -- research takes 1-3 minutes
+- Research uses Google API quota -- avoid running many parallel research tasks
+- Import results with `research_import` to add discovered sources to your notebook
+- Combine web and Drive sources for comprehensive coverage
+- Follow up with `notebook_query` to synthesize the newly imported sources
+
+
+### Research Offload Pattern — HIGH
+
+
+## Research Offload Pattern
+
+Add large documents, codebases, and references as notebook sources instead of pasting them into chat. Use `notebook_query` for targeted synthesis without consuming context window.
+
+**Incorrect -- pasting large content directly into chat:**
+```
+User: "Here's our entire codebase (100K chars)... now explain the auth flow"
+# Wastes context, may hit token limits, loses nuance in truncation
+```
+
+**Correct -- add as source, query for synthesis:**
+```
+# 1. Add large docs as sources (use RepoMix for codebases)
+source_add(notebook_id="...", url="https://docs.example.com/api-reference")
+source_add(notebook_id="...", content=repomix_output)
+
+# 2. Query for specific synthesis
+notebook_query(notebook_id="...", query="How does the authentication middleware chain work?")
+
+# 3. Follow up with targeted questions
+notebook_query(notebook_id="...", query="What error codes does the auth endpoint return?")
+```
+
+**Key rules:**
+- Add large documents as sources rather than pasting into chat context
+- Use RepoMix to bundle codebases into a single source for onboarding
+- Query the notebook for synthesis -- NotebookLM reads the full source each time
+- Multiple targeted queries are cheaper than one massive context load
+- Combine with second-brain pattern to build persistent project knowledge
+
+
+### Second Brain Pattern — HIGH
+
+
+## Second Brain Pattern
+
+Create a dedicated notebook per project to capture decisions, design docs, and insights. Query the notebook for grounded answers instead of relying on ephemeral chat context.
+
+**Incorrect -- relying on Claude's memory for past decisions:**
+```
+User: "What did we decide about the auth architecture last week?"
+Claude: "I don't have context from previous sessions..."
+```
+
+**Correct -- add decisions as sources, query later:**
+```
+# 1. Create a project notebook
+notebook_create(name="Project Alpha Decisions")
+
+# 2. Add decision documents as sources
+source_add(notebook_id="...", content="ADR-001: Use JWT for auth because...")
+source_add(notebook_id="...", content="ADR-002: PostgreSQL over MongoDB for...")
+
+# 3. Capture new insights with notes
+note(notebook_id="...", content="Perf test showed 2x latency with Redis cache miss")
+
+# 4. Query for grounded answers
+notebook_query(notebook_id="...", query="What auth approach did we choose and why?")
+```
+
+**Key rules:**
+- One notebook per project or domain -- avoid mixing unrelated topics
+- Add decision records, design docs, and meeting notes as sources
+- Use `note` tool to capture in-session insights for future retrieval
+- Use `notebook_query` for grounded answers backed by actual sources
+- Periodically prune outdated sources to keep answers relevant
+
+
+### Sharing & Collaboration — MEDIUM
+
+
+## Sharing & Collaboration
+
+Control notebook access with sharing tools. Always check current sharing status before modifying access -- public links expose all notebook content.
+
+**Incorrect -- sharing publicly without reviewing content:**
+```
+# Dangerous: makes everything in the notebook publicly accessible
+notebook_share_public(notebook_id="...", enabled=true)
+# Notebook contains internal security advisories -- now exposed
+```
+
+**Correct -- check status, review, then share deliberately:**
+```
+# 1. Check current sharing settings
+status = notebook_share_status(notebook_id="...")
+# Shows: public link (on/off), list of collaborators, permission levels
+
+# 2. Review notebook content for sensitive material
+notebook_query(notebook_id="...", query="Does this notebook contain credentials or internal secrets?")
+
+# 3a. Share with specific collaborators (preferred)
+notebook_share_invite(
+    notebook_id="...",
+    email="colleague@company.com",
+    role="reader"  # or "editor"
+)
+
+# 3b. Or enable public link (use with caution)
+notebook_share_public(notebook_id="...", enabled=true)
+```
+
+**Key rules:**
+- Always call `notebook_share_status` before modifying sharing settings
+- Prefer `notebook_share_invite` with specific collaborators over public links
+- Review notebook content for sensitive material before enabling public access
+- Use `role="reader"` by default -- only grant `"editor"` when collaboration is needed
+- Disable public links when no longer needed: `notebook_share_public(enabled=false)`
+
+
+### Studio Content Generation — MEDIUM
+
+
+## Studio Content Generation
+
+NotebookLM Studio generates 9 artifact types from notebook sources. All generation is async -- create, poll status, then download.
+
+**Incorrect -- calling studio_create and waiting synchronously:**
+```
+# Blocks for 2-5 minutes with no feedback
+result = studio_create(notebook_id="...", type="audio_overview")
+# User sees nothing until completion or timeout
+```
+
+**Correct -- create, poll, download:**
+```
+# 1. Create the artifact (returns immediately with artifact ID)
+artifact = studio_create(notebook_id="...", type="audio_overview")
+
+# 2. Poll for completion
+status = studio_status(artifact_id=artifact.id)
+# status: "pending" | "processing" | "completed" | "failed"
+
+# 3. Download when completed
+download_artifact(artifact_id=artifact.id, path="./output/podcast.mp3")
+```
+
+**All 9 studio artifact types:**
+| Type | Output | Use case |
+|------|--------|----------|
+| `audio_overview` | MP3 podcast | Summarize sources as conversational audio |
+| `video_overview` | MP4 video | Visual summary with narration |
+| `mind_map` | SVG/PNG | Visual topic relationships |
+| `quiz` | JSON | Test comprehension of sources |
+| `flashcards` | JSON | Study aid from source material |
+| `slide_deck` | PDF/PPTX | Presentation from sources |
+| `infographic` | PNG | Visual data summary |
+| `data_table` | CSV/JSON | Structured data extraction |
+| `report` | PDF/Markdown | Comprehensive written summary |
+
+**Key rules:**
+- Always use the poll pattern: `studio_create` -> `studio_status` -> `download_artifact`
+- Generation takes 2-5 minutes -- inform the user and poll periodically
+- Check `studio_status` before attempting download -- downloading a pending artifact fails
+- Use `audio_overview` for quick summaries, `report` for comprehensive analysis
+- All artifact types require at least one source in the notebook
+

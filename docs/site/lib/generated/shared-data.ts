@@ -5,9 +5,9 @@ import type { Totals, AgentSummary, CategoryMeta } from "./types";
 
 export const TOTALS: Totals = {
   "plugins": 3,
-  "skills": 67,
+  "skills": 68,
   "agents": 38,
-  "hooks": 77,
+  "hooks": 78,
   "commands": 28,
   "compositions": 14
 };
@@ -503,6 +503,9 @@ export const SKILLS_SUMMARY = {
       "testing-patterns",
       "golden-dataset",
       "performance"
+    ],
+    "rag": [
+      "notebooklm"
     ],
     "backend": [
       "explore",

@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 54 global + 22 agent-scoped + 1 skill-scoped = 77 total hooks",
+  "description": "OrchestKit hooks - 55 global + 22 agent-scoped + 1 skill-scoped = 78 total hooks",
   "hooks": {
     "PreToolUse": [
       {
@@ -73,6 +73,15 @@
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/mcp/memory-validator"
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__notebooklm-mcp__*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/mcp/notebooklm-advisor"
           }
         ]
       },

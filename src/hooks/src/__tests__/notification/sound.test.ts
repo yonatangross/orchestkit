@@ -43,7 +43,7 @@ vi.mock('node:child_process', () => ({
 // Imports (after mocks)
 // =============================================================================
 
-import { soundNotification } from '../../notification/sound.js';
+import { soundNotification, _resetAfplayCacheForTesting } from '../../notification/sound.js';
 import { outputSilentSuccess, logHook } from '../../lib/common.js';
 import { execSync } from 'node:child_process';
 
@@ -82,6 +82,7 @@ function createSoundInput(notificationType: string): HookInput {
 describe('notification/sound', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    _resetAfplayCacheForTesting();
     // Default: afplay is available
     vi.mocked(execSync).mockImplementation((cmd: string) => {
       if (cmd === 'command -v afplay') return Buffer.from('/usr/bin/afplay');
@@ -99,51 +100,6 @@ describe('notification/sound', () => {
   // ---------------------------------------------------------------------------
 
   describe('sound mapping', () => {
-    test('plays Sosumi for permission_prompt', () => {
-      // Arrange
-      const input = createSoundInput('permission_prompt');
-
-      // Act
-      soundNotification(input);
-
-      // Assert
-      expect(mockSpawn).toHaveBeenCalledWith(
-        'afplay',
-        ['/System/Library/Sounds/Sosumi.aiff'],
-        expect.objectContaining({ stdio: 'ignore', detached: true }),
-      );
-    });
-
-    test('plays Ping for idle_prompt', () => {
-      // Arrange
-      const input = createSoundInput('idle_prompt');
-
-      // Act
-      soundNotification(input);
-
-      // Assert
-      expect(mockSpawn).toHaveBeenCalledWith(
-        'afplay',
-        ['/System/Library/Sounds/Ping.aiff'],
-        expect.objectContaining({ stdio: 'ignore', detached: true }),
-      );
-    });
-
-    test('plays Glass for auth_success', () => {
-      // Arrange
-      const input = createSoundInput('auth_success');
-
-      // Act
-      soundNotification(input);
-
-      // Assert
-      expect(mockSpawn).toHaveBeenCalledWith(
-        'afplay',
-        ['/System/Library/Sounds/Glass.aiff'],
-        expect.objectContaining({ stdio: 'ignore', detached: true }),
-      );
-    });
-
     test.each([
       ['permission_prompt', '/System/Library/Sounds/Sosumi.aiff'],
       ['idle_prompt', '/System/Library/Sounds/Ping.aiff'],
@@ -388,6 +344,19 @@ describe('notification/sound', () => {
       // Act & Assert - should not throw
       expect(() => soundNotification(input)).not.toThrow();
     });
+
+    test('handles spawn returning object without unref method', () => {
+      // Arrange - spawn returns object with no unref (TypeError caught by try/catch)
+      mockSpawn.mockReturnValue({});
+      const input = createSoundInput('permission_prompt');
+
+      // Act
+      const result = soundNotification(input);
+
+      // Assert - TypeError from missing unref is swallowed
+      expect(result.continue).toBe(true);
+      expect(result.suppressOutput).toBe(true);
+    });
   });
 
   // ---------------------------------------------------------------------------
@@ -479,6 +448,43 @@ describe('notification/sound', () => {
       // Assert
       expect(result.stopReason).toBeUndefined();
       expect(result.systemMessage).toBeUndefined();
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Caching behavior
+  // ---------------------------------------------------------------------------
+
+  describe('afplay availability caching', () => {
+    test('caches hasAfplay result across multiple calls', () => {
+      // Arrange
+      const input = createSoundInput('permission_prompt');
+
+      // Act - call twice
+      soundNotification(input);
+      soundNotification(input);
+
+      // Assert - command -v afplay should only be called once (cached)
+      const checkCalls = vi.mocked(execSync).mock.calls.filter(
+        ([cmd]) => cmd === 'command -v afplay',
+      );
+      expect(checkCalls).toHaveLength(1);
+    });
+
+    test('cache is reset by _resetAfplayCacheForTesting', () => {
+      // Arrange - first call caches the result
+      const input = createSoundInput('permission_prompt');
+      soundNotification(input);
+
+      // Act - reset cache, call again
+      _resetAfplayCacheForTesting();
+      soundNotification(input);
+
+      // Assert - command -v afplay called twice (once before reset, once after)
+      const checkCalls = vi.mocked(execSync).mock.calls.filter(
+        ([cmd]) => cmd === 'command -v afplay',
+      );
+      expect(checkCalls).toHaveLength(2);
     });
   });
 });

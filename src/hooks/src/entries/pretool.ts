@@ -41,9 +41,10 @@ import { codeQualityGate } from '../pretool/Write/code-quality-gate.js';
 import { docstringEnforcer } from '../pretool/Write/docstring-enforcer.js';
 import { securityPatternValidator } from '../pretool/Write/security-pattern-validator.js';
 
-// PreTool/MCP hooks (2)
+// PreTool/MCP hooks (3)
 import { context7Tracker } from '../pretool/mcp/context7-tracker.js';
 import { memoryValidator } from '../pretool/mcp/memory-validator.js';
+import { notebooklmAdvisor } from '../pretool/mcp/notebooklm-advisor.js';
 
 // PreTool/InputMod hooks (1)
 import { writeHeaders } from '../pretool/input-mod/write-headers.js';
@@ -98,9 +99,10 @@ export const hooks: Record<string, HookFn> = {
   'pretool/Write/docstring-enforcer': docstringEnforcer,
   'pretool/Write/security-pattern-validator': securityPatternValidator,
 
-  // PreTool/MCP hooks (2)
+  // PreTool/MCP hooks (3)
   'pretool/mcp/context7-tracker': context7Tracker,
   'pretool/mcp/memory-validator': memoryValidator,
+  'pretool/mcp/notebooklm-advisor': notebooklmAdvisor,
 
   // PreTool/InputMod hooks (1)
   'pretool/input-mod/write-headers': writeHeaders,

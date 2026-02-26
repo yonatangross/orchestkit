@@ -351,6 +351,7 @@ Commands work without them - MCPs just add extra capabilities.
 | **memory** | Knowledge graph | Local file | Decisions, patterns, entities |
 | **tavily** | Web search, extract, crawl | Cloud (Tavily) | /ork:explore, /ork:implement, web-research agents |
 | **agentation** | UI annotation tool | Local daemon | UI feedback → automatic agent pickup |
+| **notebooklm-mcp** | Google NotebookLM RAG | Cloud (Google) | External knowledge base, research synthesis, studio content |
 
 > **Subagent Model Note:** Sequential-thinking MCP is redundant for Opus 4.6+ (which has native adaptive thinking), but OrchestKit ships 30+ Sonnet/Haiku subagents that **do not** have native extended thinking. These subagents benefit from sequential-thinking for complex multi-step reasoning. Enable it for the subagent mix, not the parent model.
 
@@ -520,6 +521,7 @@ Agents fall back to WebFetch (Haiku-summarized) → agent-browser (full headless
 | memory | None (creates `.claude/memory/` automatically) |
 | tavily | 1Password: `op read 'op://Private/Tavily API Key/API Key'` (free: https://app.tavily.com) |
 | agentation | `npm install -D agentation-mcp` in project |
+| notebooklm-mcp | `uv tool install notebooklm-mcp-cli` + `nlm login` + `nlm setup add claude-code` |
 
 ## Plugin Integration
 
@@ -531,6 +533,7 @@ OrchestKit agents and skills integrate with these MCPs:
 | web-research-analyst, market-intelligence | tavily | Web search and content extraction |
 | /ork:remember, /ork:memory | memory | Persist decisions across sessions |
 | ui-feedback | agentation | Browser UI annotations → code fixes |
+| notebooklm (skill) | notebooklm-mcp | External RAG, research, studio content |
 | Sonnet/Haiku subagents | sequential-thinking | Structured reasoning for non-Opus models |
 
 ## Without MCPs

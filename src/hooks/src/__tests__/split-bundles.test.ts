@@ -309,7 +309,8 @@ describe('Cross-Bundle Consistency', () => {
     // 159 -> 161: #72 milestone — added subagent-start/unified-dispatcher + permission/unified-dispatcher
     // 161 -> 158: #684 — removed context-budget-monitor, posttool/skill-nudge, context-compressor
     // 158 -> 159: CC 2.1.50 — added worktree/worktree-lifecycle-logger to lifecycle bundle
-    expect(totalHooks).toBe(159);
+    // 159 -> 160: added _resetCommandCacheForTesting export to notification bundle
+    expect(totalHooks).toBe(160);
   });
 });
 

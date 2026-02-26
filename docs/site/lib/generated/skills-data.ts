@@ -1248,12 +1248,15 @@ export const SKILLS: Record<string, SkillMeta> = {
       "Write",
       "Edit",
       "Grep",
-      "Glob"
+      "Glob",
+      "Bash",
+      "AskUserQuestion"
     ],
     "skills": [],
     "agent": null,
     "structure": {
       "references": [
+        "bug-report-reference.md",
         "file-locations.md",
         "privacy-policy.md",
         "subcommand-reference.md"
@@ -1996,6 +1999,32 @@ export const SKILLS: Record<string, SkillMeta> = {
     "relatedAgents": [
       "multimodal-specialist"
     ]
+  },
+  "notebooklm": {
+    "name": "notebooklm",
+    "description": "NotebookLM integration patterns for external RAG, research synthesis, studio content generation, and knowledge management via the notebooklm-mcp-cli MCP server.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "notebooklm",
+      "mcp",
+      "rag",
+      "google",
+      "podcast",
+      "research",
+      "knowledge-management"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "structure": {},
+    "plugins": [
+      "ork",
+      "orkl"
+    ],
+    "relatedAgents": []
   },
   "performance": {
     "name": "performance",
