@@ -119,6 +119,30 @@ No tiering. No version confusion. Just one powerful plugin.
 
 ---
 
+## Release Channels
+
+| Channel | Stability | Install |
+|---------|-----------|---------|
+| **Stable** | Production-ready | `/plugin install ork` |
+| **Beta** | May have rough edges | See below |
+| **Alpha** | Experimental, may break | See below |
+
+To install beta or alpha:
+
+```bash
+# Beta channel
+/plugin marketplace add yonatangross/orchestkit --ref beta --name orchestkit-beta
+/plugin install ork@orchestkit-beta
+
+# Alpha channel
+/plugin marketplace add yonatangross/orchestkit --ref alpha --name orchestkit-alpha
+/plugin install ork@orchestkit-alpha
+```
+
+Run `/ork:doctor` to check which channel you're on. [Full docs](https://orchestkit.vercel.app/docs/getting-started/release-channels).
+
+---
+
 ## FAQ
 
 <details>

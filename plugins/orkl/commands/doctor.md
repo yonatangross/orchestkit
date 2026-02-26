@@ -22,7 +22,7 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 7. **Coordination System** - Checks lock health and registry integrity
 8. **Context Budget** - Monitors token usage against budget
 9. **Memory System** - Graph memory health
-10. **Claude Code Version** - Validates CC >= 2.1.47
+10. **Claude Code Version & Channel** - Validates CC >= 2.1.47, detects release channel (stable/beta/alpha)
 11. **External Dependencies** - Checks optional tool availability (agent-browser)
 12. **MCP Status** - Active vs disabled vs misconfigured, API key presence for paid MCPs
 
@@ -87,7 +87,7 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 
 | Category | What It Checks | Reference |
 |----------|---------------|-----------|
-| **10. CC Version** | Runtime version against minimum required | [version-compatibility](references/version-compatibility.md) |
+| **10. CC Version & Channel** | Runtime version against minimum required, release channel (stable/beta/alpha) | [version-compatibility](references/version-compatibility.md) |
 | **11. External Deps** | Optional tools (agent-browser) | [diagnostic-checks](rules/diagnostic-checks.md) |
 | **12. MCP Status** | Enabled/disabled state, credential checks | [mcp-status-checks](rules/mcp-status-checks.md) |
 

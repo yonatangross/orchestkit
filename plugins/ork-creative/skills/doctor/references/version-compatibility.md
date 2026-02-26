@@ -93,6 +93,33 @@ Claude Code: 2.1.4x (MEMORY LEAK RISK)
 - Upgrade: npm install -g @anthropic-ai/claude-code@latest
 ```
 
+## Release Channel Detection
+
+Doctor should detect and display the release channel alongside the CC version check. The version is read from `.claude-plugin/plugin.json` or `version.txt`.
+
+| Version Pattern | Channel | Stability |
+|----------------|---------|-----------|
+| `X.Y.Z` (no suffix) | stable | Production-ready |
+| `X.Y.Z-beta.N` | beta | Feature-complete, may have bugs |
+| `X.Y.Z-alpha.N` | alpha | Experimental, expect breaking changes |
+
+When on beta or alpha, doctor should append a pre-release reminder to the compatibility output:
+
+```
+Claude Code: 2.1.56 (OK)
+- Minimum required: 2.1.56
+- OrchestKit channel: beta (v7.0.0-beta.3)
+  ⚠ Pre-release version — some features may be unstable. Report issues at github.com/yonatangross/orchestkit/issues
+```
+
+On stable, no extra warning is needed — just include the channel line:
+
+```
+Claude Code: 2.1.56 (OK)
+- Minimum required: 2.1.56
+- OrchestKit channel: stable (v6.7.2)
+```
+
 ## OrchestKit Version History
 
 | OrchestKit | Min CC | Key Changes |

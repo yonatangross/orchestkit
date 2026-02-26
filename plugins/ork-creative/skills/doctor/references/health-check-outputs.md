@@ -2,6 +2,31 @@
 
 Reference output examples for each `/ork:doctor` check category.
 
+## Channel Detection
+
+**Stable:**
+```
+Channel: stable (v6.7.2)
+```
+
+**Beta:**
+```
+Channel: beta (v7.0.0-beta.3)
+⚠ You are on the beta channel. Report issues at github.com/yonatangross/orchestkit/issues
+```
+
+**Alpha:**
+```
+Channel: alpha (v7.0.0-alpha.1)
+⚠ You are on the alpha channel. Expect breaking changes. Report issues at github.com/yonatangross/orchestkit/issues
+```
+
+**Detection logic:**
+1. Read version from `.claude-plugin/plugin.json` (`version` field) or `version.txt`
+2. If version contains `-alpha` → alpha channel
+3. If version contains `-beta` → beta channel
+4. Otherwise → stable channel
+
 ## Installed Plugins
 
 **orkl:**

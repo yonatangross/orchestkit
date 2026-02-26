@@ -1,0 +1,252 @@
+---
+title: Release Channels
+description: Install OrchestKit from stable, beta, or alpha release channels for different levels of stability and features.
+---
+
+import { Card, Cards } from 'fumadocs-ui/components/card';
+
+OrchestKit uses three release channels to let you choose between stability and early access to new features. The **stable** channel is the default and recommended for most users.
+
+## Channel Comparison
+
+| Channel | Stability | When to Use | Who Should Use |
+|---------|-----------|------------|----------------|
+| **Stable** (default) | Production-ready | Daily development, production systems | All users |
+| **Beta** | Mostly functional | Testing upcoming features, feedback | Early adopters, experienced users |
+| **Alpha** | Experimental | Bleeding edge, may break | Contributors, advanced users only |
+
+## Stable Channel (Default)
+
+Stable is the default when you install OrchestKit. It's thoroughly tested, recommended for production, and receives updates with new features and bug fixes.
+
+```bash
+# Install stable (default)
+claude install orchestkit/ork
+
+# Or explicitly specify stable
+/plugin marketplace add yonatangross/orchestkit --ref stable --name orchestkit-stable
+/plugin install ork@orchestkit-stable
+```
+
+**What you get:**
+- Fully tested features
+- Regular bug fixes and security patches
+- Performance optimizations
+- Compatible with Claude Code >= 2.1.56
+- All 69 skills, 38 agents, 78 hooks
+
+**Update frequency:** Weekly or as needed for bug fixes and security patches.
+
+## Beta Channel
+
+Beta contains the next version of OrchestKit with new features and improvements. It's largely functional but may have rough edges. Perfect for users who want to test upcoming features and provide feedback.
+
+### Install from Beta
+
+```bash
+# Add the beta marketplace
+/plugin marketplace add yonatangross/orchestkit --ref beta --name orchestkit-beta
+
+# Install from beta
+/plugin install ork@orchestkit-beta
+```
+
+### Switch from Stable to Beta
+
+If you already have stable installed:
+
+```bash
+# Remove the old marketplace (stable)
+/plugin marketplace remove orchestkit
+
+# Add the beta marketplace
+/plugin marketplace add yonatangross/orchestkit --ref beta --name orchestkit-beta
+
+# Reinstall from beta
+/plugin uninstall ork
+/plugin install ork@orchestkit-beta
+```
+
+**What you get:**
+- New features before stable release
+- Latest bug fixes and improvements
+- May have incomplete features or minor issues
+- Same 69 skills, 38 agents, 78 hooks (with beta enhancements)
+
+**Update frequency:** Multiple times per week as development progresses.
+
+## Alpha Channel
+
+Alpha is cutting-edge and experimental. It's for contributors and advanced users only. Alpha builds may break, have missing features, or require manual fixes. Only use this if you're helping develop OrchestKit or want the absolute latest changes.
+
+### Install from Alpha
+
+```bash
+# Add the alpha marketplace
+/plugin marketplace add yonatangross/orchestkit --ref alpha --name orchestkit-alpha
+
+# Install from alpha
+/plugin install ork@orchestkit-alpha
+```
+
+### Switch from Another Channel to Alpha
+
+```bash
+# Remove the old marketplace
+/plugin marketplace remove orchestkit
+
+# Add the alpha marketplace
+/plugin marketplace add yonatangross/orchestkit --ref alpha --name orchestkit-alpha
+
+# Reinstall from alpha
+/plugin uninstall ork
+/plugin install ork@orchestkit-alpha
+```
+
+**What you get:**
+- Bleeding-edge changes from development
+- New features being tested in real code
+- May have breaking changes without notice
+- May be partially implemented
+- Requires patience and troubleshooting
+
+**Update frequency:** Multiple times per day as commits land.
+
+## Version Format
+
+OrchestKit uses semantic versioning with pre-release designations:
+
+```
+MAJOR.MINOR.PATCH-CHANNEL.BUILD
+
+Examples:
+  7.0.0              Stable release
+  7.1.0-beta.3       Beta build 3 of v7.1.0
+  7.1.0-alpha.142    Alpha build 142 of v7.1.0
+  6.7.2              Current stable version
+```
+
+**Reading versions:**
+- `7.0.0` = Version 7 (major), no new features (0 minor), no bug fixes (0 patch)
+- `7.1.0` = Version 7 (major), has new features (1 minor), no bug fixes (0 patch)
+- `7.1.2` = Version 7, new features, plus 2 bug fix releases
+- `7.1.0-beta.3` = Pre-release: beta test 3 of the upcoming 7.1.0
+- `7.1.0-alpha.142` = Pre-release: development build 142
+
+## Checking Your Channel
+
+Run the health check to see which channel you're on:
+
+```bash
+/ork:doctor
+```
+
+Look for the version line:
+
+```
+Plugin:     ork v6.7.2 (stable)
+            or
+Plugin:     ork v7.0.0-beta.2 (beta)
+            or
+Plugin:     ork v7.0.0-alpha.145 (alpha)
+```
+
+## Switching Channels
+
+To switch from one channel to another:
+
+### From Stable to Beta
+
+```bash
+/plugin marketplace remove orchestkit
+/plugin marketplace add yonatangross/orchestkit --ref beta --name orchestkit-beta
+/plugin uninstall ork
+/plugin install ork@orchestkit-beta
+```
+
+### From Beta/Alpha Back to Stable
+
+```bash
+/plugin marketplace remove orchestkit-beta
+# or
+/plugin marketplace remove orchestkit-alpha
+
+/plugin marketplace add yonatangross/orchestkit --ref stable --name orchestkit-stable
+/plugin uninstall ork
+/plugin install ork@orchestkit-stable
+```
+
+**Note:** When downgrading from beta/alpha to stable, you may need to restart Claude Code for the change to take effect.
+
+## Compatibility
+
+All three channels support:
+- macOS, Linux, Windows
+- Claude Code >= 2.1.56
+- Node.js >= 18 (for hooks)
+- Git (for commit/PR workflows)
+
+**Pre-release beta and alpha builds** may require a newer Claude Code version if they include new features that need unreleased Claude Code capabilities. The doctor health check will warn you if there's a version mismatch.
+
+## Reporting Issues
+
+If you find a problem in beta or alpha:
+
+1. **Check what version you're on:**
+   ```bash
+   /ork:doctor
+   ```
+
+2. **Include the full version** when reporting (e.g., `v7.0.0-beta.3`)
+
+3. **Report on GitHub Issues** with:
+   - Your OrchestKit version and channel
+   - Claude Code version
+   - Steps to reproduce
+   - Expected vs actual behavior
+
+**Beta issues** are tracked for inclusion in the next stable release.
+
+**Alpha issues** help shape development — this feedback is valuable.
+
+## Channel Stability Guarantee
+
+- **Stable**: No breaking changes within a major version (e.g., 6.x → 7.0 is breaking, but 6.7 → 6.8 is not)
+- **Beta**: Breaking changes possible before stable release
+- **Alpha**: All changes possible, including breaking changes, at any time
+
+## Reverting to Previous Versions
+
+If you need to revert to a specific older stable version:
+
+```bash
+# Remove current version
+/plugin uninstall ork
+
+# Reinstall a specific version (if available)
+/plugin install ork@orchestkit-stable@6.7.0
+```
+
+Not all older versions remain available on the marketplace. For critical compatibility issues, contact the OrchestKit team.
+
+## Staying Updated
+
+OrchestKit updates are installed automatically when you restart Claude Code. No manual action needed.
+
+- **Stable**: Check for updates weekly or as needed
+- **Beta**: May update multiple times per week
+- **Alpha**: May update multiple times per day
+
+To check for updates without restarting:
+
+```bash
+/plugin marketplace list
+```
+
+## Next Steps
+
+<Cards>
+  <Card title="Installation" href="/docs/getting-started/installation" description="Full installation instructions for all channels" />
+  <Card title="Your First 10 Minutes" href="/docs/getting-started/first-10-minutes" description="Get started with OrchestKit after installation" />
+  <Card title="Configuration" href="/docs/getting-started/configuration" description="Configure memory, MCP, and environment variables" />
+</Cards>
