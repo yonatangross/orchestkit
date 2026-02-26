@@ -1,0 +1,73 @@
+---
+description: "Manages OrchestKit usage analytics, learning preferences, and privacy settings. Use when reviewing patterns, pausing learning, or managing consent."
+allowed-tools: [Read, Write, Edit, Grep, Glob, Bash, AskUserQuestion]
+---
+
+# Auto-generated from skills/feedback/SKILL.md
+# Source: https://github.com/yonatangross/orchestkit
+
+
+# Feedback - Manage Learning System
+
+View and manage the OrchestKit feedback system that learns from your usage.
+
+## Overview
+
+- Checking feedback system status
+- Pausing/resuming learning
+- Resetting learned patterns
+- Exporting feedback data
+- Managing privacy settings
+- Enabling/disabling anonymous analytics sharing
+- Viewing privacy policy
+- Filing bug reports as GitHub issues
+
+## Usage
+
+```
+/ork:feedback                    # Same as status
+/ork:feedback status             # Show current state
+/ork:feedback pause              # Pause learning
+/ork:feedback resume             # Resume learning
+/ork:feedback reset              # Clear learned patterns
+/ork:feedback export             # Export feedback data
+/ork:feedback settings           # Show/edit settings
+/ork:feedback opt-in             # Enable anonymous sharing
+/ork:feedback opt-out            # Disable anonymous sharing
+/ork:feedback privacy            # View privacy policy
+/ork:feedback export-analytics   # Export anonymous analytics for review
+/ork:feedback bug                # File a bug report as a GitHub issue
+/ork:feedback bug [description]  # File with pre-filled description
+```
+
+## Subcommands
+
+| Subcommand | Description |
+|------------|-------------|
+| `status` (default) | Show current feedback system state, learned patterns, agent performance |
+| `pause` | Temporarily pause learning without clearing data |
+| `resume` | Resume paused learning |
+| `reset` | Clear all learned patterns (requires "RESET" confirmation) |
+| `export` | Export all feedback data to `.claude/feedback/export-{date}.json` |
+| `settings` | Show/edit settings (usage: `/ork:feedback settings <key> <value>`) |
+| `opt-in` | Enable anonymous analytics sharing (GDPR-compliant consent) |
+| `opt-out` | Disable anonymous analytics sharing (revokes consent) |
+| `privacy` | Display the full privacy policy |
+| `export-analytics` | Export anonymous analytics to file for review before sharing |
+| `bug` | File a bug report as a GitHub issue with auto-collected context |
+
+**Output:** Each subcommand displays formatted status, confirmation prompts, or exported file paths. See [Subcommand Reference](references/subcommand-reference.md) for detailed actions and expected output for each subcommand. See [Bug Report Reference](references/bug-report-reference.md) for the bug filing workflow.
+
+## Consent and Security
+
+See [Consent and Security Rules](rules/consent-and-security.md) for GDPR consent management, security restrictions, and analytics data sharing policies.
+
+## Related Skills
+
+- `ork:skill-evolution`: Evolve skills based on feedback
+
+## File Locations
+
+See [File Locations](references/file-locations.md) for storage details.
+
+See [Privacy Policy](references/privacy-policy.md) for full privacy documentation.

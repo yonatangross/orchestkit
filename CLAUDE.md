@@ -8,7 +8,7 @@ Always respond in English. Never Hebrew. No exceptions.
 
 ## Project Overview
 
-**OrchestKit** — Claude Code plugin: **68 skills**, **38 agents**, **55 hooks** (17 event types, 12 dispatchers, 9 native async).
+**OrchestKit** — Claude Code plugin: **69 skills**, **38 agents**, **55 hooks** (17 event types, 12 dispatchers, 9 native async).
 
 **Purpose**: AI-assisted development with built-in best practices, security patterns, and quality gates.
 
@@ -16,7 +16,7 @@ Always respond in English. Never Hebrew. No exceptions.
 
 ```
 src/                    ← SOURCE (edit here!)
-├── skills/<name>/SKILL.md    # 68 skills (YAML frontmatter + Markdown)
+├── skills/<name>/SKILL.md    # 69 skills (YAML frontmatter + Markdown)
 ├── agents/<name>.md          # 38 agents (CC 2.1.56 format)
 ├── settings/<plugin>.settings.json  # Plugin settings (permissions, keybindings)
 └── hooks/                    # TypeScript hooks (hooks.json + src/ + dist/)
@@ -73,15 +73,11 @@ Commit after each logical unit of work — never batch all commits to end of ses
 - NEVER `gh issue close` — issues close only when a PR merges to main via CI (`Closes #N` in PR body).
 - Use `gh issue comment` for progress updates, not close/reopen.
 
-## Three-Tier Plugins
+## Plugin Architecture
 
-| Plugin | Skills | Agents | Description |
-|--------|--------|--------|-------------|
-| `orkl` | 46 | 38 | Universal toolkit — any stack |
-| `ork-creative` | 2 | 1 | Video production add-on |
-| `ork` | 68 | 38 | Full — lite + creative + Python, React, LLM/RAG |
+**Single plugin**: `ork` — all 69 skills, 38 agents, 78 hooks. `orkl` and `ork-creative` are aliases that install the same thing.
 
-All plugins include 78 hooks (55 global + 22 agent-scoped + 1 skill-scoped) and a `settings.json` (permissions, keybindings, spinner). 28 skills are user-invocable via `/ork:skillname`.
+All plugins include 78 hooks (55 global + 22 agent-scoped + 1 skill-scoped) and a `settings.json` (permissions, keybindings, spinner). 29 skills are user-invocable via `/ork:skillname`.
 
 ## Quick Reference
 

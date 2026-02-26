@@ -1,7 +1,7 @@
 {
   "name": "ork",
   "version": "6.7.2",
-  "description": "All-in-one (recommended) — 68 skills, 38 agents, 78 hooks. Includes everything: orkl + creative + Python/React/LLM/RAG specializations.",
+  "description": "The Complete AI Development Toolkit — 69 skills, 38 agents, 78 hooks for full-stack development.",
   "skills": "all",
   "agents": "all",
   "hooks": "all"

@@ -5,7 +5,7 @@
 
 ### Stop explaining your stack. Start shipping.
 
-**67 skills · 37 agents · 81 hooks · 3 plugins**
+**69 skills · 38 agents · 78 hooks**
 
 [![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.56-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
@@ -27,10 +27,10 @@
 ```bash
 /plugin marketplace add yonatangross/orchestkit
 /plugin install ork
-/ork:doctor
+/ork:setup
 ```
 
-**That's it.** Skills auto-activate. Hooks protect automatically.
+**That's it.** The setup wizard scans your codebase, recommends skills for your stack, and creates a personalized improvement plan.
 
 ---
 
@@ -53,10 +53,11 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 
 | Component | Count | Examples |
 |-----------|-------|----------|
-| **Skills** | 67 | RAG patterns, FastAPI, React 19, testing, security |
-| **Agents** | 37 | backend-architect, frontend-dev, security-auditor |
-| **Hooks** | 81 | Pre-commit checks, git protection, quality gates |
-| **Plugins** | 3 | `orkl` (universal), `ork-creative` (video), `ork` (full) |
+| **Skills** | 68 | RAG patterns, FastAPI, React 19, testing, security |
+| **Agents** | 38 | backend-architect, frontend-dev, security-auditor |
+| **Hooks** | 78 | Pre-commit checks, git protection, quality gates |
+
+Skills load on-demand — zero overhead. Hooks protect automatically. Agents route by task.
 
 **[Browse everything in the Docs →](https://orchestkit.vercel.app/docs/skills/overview)**
 
@@ -65,8 +66,9 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 ## Key Commands
 
 ```bash
+/ork:setup        # Personalized onboarding wizard
 /ork:implement    # Full-stack implementation with parallel agents
-/ork:verify       # 36 agents validate your feature
+/ork:verify       # Multi-agent validation
 /ork:commit       # Conventional commit with pre-checks
 /ork:explore      # Analyze unfamiliar codebase
 /ork:remember     # Save to persistent memory
@@ -75,42 +77,22 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 
 ---
 
-## Install Options
-
-```bash
-# Universal toolkit (works for any stack)
-/plugin install orkl
-
-# Full toolkit (adds Python, React, LLM/RAG specializations)
-/plugin install ork
-```
-
-**orkl** (45 skills) — All workflows, agents, hooks. Architecture, security, product, accessibility, memory.
-
-**ork-creative** (2 skills) — Video production add-on. Demo recording, Remotion, storyboarding, content creation.
-
-**ork** (67 skills) — Everything in lite + creative + Python (FastAPI, SQLAlchemy), React (RSC, TanStack), LLM/RAG, LangGraph, MCP.
-
----
-
 ## Configuration
-
-### Optional MCP Servers
 
 ```bash
 /ork:configure
 ```
 
-| Server | Purpose |
-|--------|---------|
-| Context7 | Up-to-date library docs |
-| Memory | Knowledge graph |
+### Recommended MCP Servers
 
-### Environment
+| Server | Purpose | Required? |
+|--------|---------|-----------|
+| Context7 | Up-to-date library docs | Recommended |
+| Memory | Knowledge graph persistence | Recommended |
+| Sequential Thinking | Structured reasoning for subagents | Optional |
+| Tavily | Web search and extraction | Optional |
 
-```bash
-CLAUDE_PROJECT_DIR    # Your project
-```
+The setup wizard (`/ork:setup`) will recommend MCPs based on your stack.
 
 ---
 
@@ -137,6 +119,12 @@ Run `/ork:doctor` to diagnose.
 Requires **≥2.1.56**. Check with `claude --version`.
 </details>
 
+<details>
+<summary><strong>Migrating from orkl or ork-creative?</strong></summary>
+
+Both names still work as aliases. Just run `/plugin install ork` — you get everything.
+</details>
+
 ---
 
 ## Development
@@ -154,13 +142,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 ## What's New
 
-**v6.0.0** — Three-tier plugin architecture
+**v7.0.0** — Single Plugin + Setup Wizard
 
-- **Breaking**: Simplified from 26 plugins to 3 (`orkl`, `ork-creative`, and `ork`)
-- `orkl` (45 skills) — Universal toolkit, all workflows work out of the box
-- `ork-creative` (2 skills) — Video production add-on for demo recording and content creation
-- `ork` (67 skills) — Full specialized with Python, React, LLM/RAG patterns
-- All 37 agents and 81 hooks included in orkl and ork
+- **Breaking**: Collapsed 3 plugins into 1. `orkl` and `ork-creative` are now aliases for `ork`.
+- **New**: `/ork:setup` — personalized onboarding wizard (scan, stack detection, skill recommendations, MCP setup, readiness score)
+- All 69 skills, 38 agents, 78 hooks in one install. Zero overhead — skills load on-demand.
 
 [Full Changelog →](./CHANGELOG.md)
 

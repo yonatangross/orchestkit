@@ -1,0 +1,319 @@
+---
+description: "Personalized onboarding wizard. Scans your codebase, detects your stack, recommends skills and MCPs, generates a readiness score and improvement plan."
+allowed-tools: [Read, Grep, Glob, Bash, AskUserQuestion, mcp__memory__search_nodes, mcp__memory__create_entities, mcp__memory__create_relations]
+---
+
+# Auto-generated from skills/setup/SKILL.md
+# Source: https://github.com/yonatangross/orchestkit
+
+
+# OrchestKit Setup Wizard
+
+Personalized onboarding that scans your codebase, detects your stack, recommends skills and MCPs, and generates an actionable improvement plan.
+
+## When to Use
+
+- First time after installing OrchestKit (`/plugin install ork`)
+- Joining a new project and want OrchestKit tuned for it
+- Periodically with `--rescan` to track improvement
+- Enterprise users who need safe, user-scoped install confirmation
+
+## Quick Start
+
+```bash
+/ork:setup              # Full 7-phase wizard
+/ork:setup --rescan     # Re-scan after changes (skip safety phase)
+/ork:setup --score-only # Just show readiness score
+/ork:setup --plan-only  # Just show improvement plan
+```
+
+## The Seven Phases
+
+| Phase | What | Tools Used | Output |
+|-------|------|-----------|--------|
+| 1. Scan | Detect languages, frameworks, infra, existing config | Glob, Grep, Read | Raw scan data |
+| 2. Stack | Classify detected stack, confidence levels | — | Stack profile |
+| 3. Safety | Check existing config, confirm scope (user/project) | Read, AskUserQuestion | Install confirmation |
+| 4. Skills | Match stack to skills, suggest custom skills | Grep, Glob | Skill recommendations |
+| 5. MCPs | Recommend MCPs based on stack and gaps | Read, Bash | MCP recommendations |
+| 6. Score | Compute readiness score (0-10, 6 dimensions) | All above data | Readiness score |
+| 7. Plan | Prioritized improvements with runnable commands | — | Action plan |
+
+
+## Phase 1: Scan
+
+Run ALL scan commands in **one parallel batch** for speed:
+
+```python
+# PARALLEL — launch all in ONE message
+Glob(pattern="**/package.json")
+Glob(pattern="**/pyproject.toml")
+Glob(pattern="**/go.mod")
+Glob(pattern="**/Cargo.toml")
+Glob(pattern="**/pom.xml")
+Glob(pattern="**/*.csproj")
+Glob(pattern="**/Gemfile")
+Glob(pattern="**/composer.json")
+Glob(pattern="**/.claude/settings.json")
+Glob(pattern="**/.mcp.json")
+Glob(pattern="**/docker-compose*.yml")
+Glob(pattern="**/Dockerfile*")
+Glob(pattern="**/.github/workflows/*.yml")
+Glob(pattern="**/terraform/**/*.tf")
+Glob(pattern="**/k8s/**/*.yaml")
+Glob(pattern="**/CONTRIBUTING.md")
+Glob(pattern="**/tsconfig.json")
+Glob(pattern="**/next.config.*")
+Glob(pattern="**/vite.config.*")
+Glob(pattern="**/alembic.ini")
+```
+
+Then read key dependency files found:
+
+```python
+# PARALLEL — read detected package manifests
+Read(file_path="package.json")       # if found
+Read(file_path="pyproject.toml")     # if found
+Read(file_path="requirements.txt")   # if found
+Read(file_path=".mcp.json")          # if found
+Read(file_path=".claude/settings.json")  # if found
+```
+
+### Pattern Detection (for custom skill suggestions)
+
+```python
+# PARALLEL — count repeated patterns
+Grep(pattern="@app\\.(route|get|post|put|delete|patch)", glob="**/*.py", output_mode="count")
+Grep(pattern="@router\\.(get|post|put|delete|patch)", glob="**/*.py", output_mode="count")
+Grep(pattern="export (default |)function", glob="**/*.tsx", output_mode="count")
+Grep(pattern="export (default |)function", glob="**/*.jsx", output_mode="count")
+Grep(pattern="class.*Model\\)", glob="**/*.py", output_mode="count")
+Grep(pattern="def test_", glob="**/*.py", output_mode="count")
+Grep(pattern="(describe|it|test)\\(", glob="**/*.{ts,tsx,js}", output_mode="count")
+```
+
+## Phase 2: Stack Detection
+
+Classify scan results into a stack profile. Present to user:
+
+```
+Detected Stack:
+  Languages:   Python 3.12, TypeScript 5.6, SQL
+  Frameworks:  FastAPI 0.115, React 19, Next.js 16
+  Database:    PostgreSQL (via Alembic), Redis
+  Infra:       Docker, GitHub Actions (3 workflows)
+  Testing:     pytest, Playwright
+  Existing CC: .claude/settings.json found, no conflicts
+```
+
+### Stack-to-Skill Mapping
+
+| Detected | Recommended Skills |
+|----------|--------------------|
+| Python | `python-backend`, `async-jobs`, `database-patterns` |
+| FastAPI | `api-design`, `testing-patterns` |
+| React | `react-server-components-framework`, `ui-components`, `responsive-patterns` |
+| Next.js | `react-server-components-framework`, `performance`, `vite-advanced` |
+| Zustand | `zustand-patterns` |
+| SQLAlchemy/Alembic | `database-patterns` |
+| Docker/K8s | `devops-deployment`, `distributed-systems` |
+| Terraform | `devops-deployment` |
+| GitHub Actions | `devops-deployment` |
+| LLM/AI deps | `llm-integration`, `rag-retrieval`, `langgraph`, `mcp-patterns` |
+| Test frameworks | `testing-patterns`, `golden-dataset` |
+| Security concerns | `security-patterns` |
+
+**All stacks get**: `explore`, `implement`, `verify`, `commit`, `review-pr`, `fix-issue`, `doctor`, `remember`, `brainstorming`, `help`
+
+## Phase 3: Safety Check
+
+Use `AskUserQuestion` to confirm installation scope:
+
+```python
+AskUserQuestion(questions=[{
+  "question": "How should OrchestKit be installed?",
+  "header": "Install scope",
+  "options": [
+    {"label": "User-only (Recommended)", "description": "Plugin loads only for you. Invisible to teammates. Safe for enterprise."},
+    {"label": "Project-wide", "description": "Adds to .claude/plugins — loads for everyone in this repo."},
+    {"label": "Already installed", "description": "Skip installation, just configure."}
+  ],
+  "multiSelect": false
+}])
+```
+
+### Conflict Detection
+
+Check for existing OrchestKit installs or conflicting plugins:
+
+```python
+Grep(pattern="ork", path="~/.claude/settings.json", output_mode="content")
+Glob(pattern="~/.claude/plugins/ork*")
+```
+
+Report: "No conflicts detected" or "Found existing orkl install — will upgrade to ork (same skills, no data loss)."
+
+## Phase 4: Skill Recommendations
+
+Present in 3 tiers using `AskUserQuestion`:
+
+```python
+AskUserQuestion(questions=[{
+  "question": "Which skill categories should we prioritize? (all are available, this helps focus the improvement plan)",
+  "header": "Focus areas",
+  "options": [
+    {"label": "Full-stack (Recommended)", "description": "All detected stack skills + security + testing"},
+    {"label": "Backend focus", "description": "API, database, async, security patterns"},
+    {"label": "Frontend focus", "description": "React, UI components, performance, accessibility"},
+    {"label": "DevOps focus", "description": "CI/CD, deployment, monitoring, infrastructure"}
+  ],
+  "multiSelect": false
+}])
+```
+
+### Custom Skill Suggestions
+
+Based on pattern detection from Phase 1:
+
+```
+Detected patterns that could become custom skills:
+  47 API routes   → Create "api-endpoint" skill (auto-generate: route + schema + migration + test)
+  83 React comps  → Create "component" skill (auto-generate: component + props + story + test)
+  8 deploy steps  → Create "deploy-checklist" skill (automate your DEPLOY.md)
+
+To create any of these: /ork:skill-creator "describe your pattern"
+```
+
+## Phase 5: MCP Recommendations
+
+Check what's installed vs recommended:
+
+```python
+# Read existing MCP config
+Read(file_path=".mcp.json")  # project-level
+Bash(command="cat ~/.claude/settings.json 2>/dev/null | python3 -c \"import json,sys; d=json.load(sys.stdin); print(json.dumps(d.get('mcpServers',{}), indent=2))\"")
+```
+
+### MCP Recommendation Matrix
+
+| MCP | When to Recommend | Install Effort |
+|-----|-------------------|---------------|
+| **Context7** | Always — eliminates doc hallucination | Zero (cloud, free) |
+| **Memory** | Always — knowledge graph persistence | Low (local npx) |
+| **Sequential Thinking** | If using Sonnet/Haiku subagents | Low (local npx) |
+| **Tavily** | If web-research-workflow relevant | Medium (needs API key, free tier) |
+| **NotebookLM** | If many docs/READMEs for team RAG | Medium (Google auth) |
+| **Agentation** | If frontend UI work detected | Medium (npm install) |
+
+Present as toggles with impact labels. Show install commands for selected MCPs:
+
+```
+MCP Setup Commands:
+  Context7:  Already configured ✓
+  Memory:    /ork:configure mcp memory
+  Tavily:    Sign up at app.tavily.com → /ork:configure mcp tavily
+```
+
+## Phase 6: Readiness Score
+
+Compute a composite score (0-10) from 6 dimensions:
+
+| Dimension | Weight | Calculation |
+|-----------|--------|-------------|
+| **Stack Coverage** | 25% | matched_skills / relevant_skills_for_detected_stack |
+| **Hook Protection** | 20% | hooks_active / total_hooks (from /ork:doctor logic) |
+| **MCP Enhancement** | 15% | installed_mcps / recommended_mcps |
+| **Memory Depth** | 15% | entity_count from `mcp__memory__search_nodes` (target: 50+) |
+| **Custom Skills** | 15% | custom_skills_created / suggested_customs |
+| **Agent Utilization** | 10% | 1.0 if agents accessible, 0.5 if no MCPs limit agent capability |
+
+### Score Presentation
+
+```
+OrchestKit Readiness Score: 7.2 / 10
+
+  Stack Coverage  ████████░░  9/10  Python + React fully covered
+  Hook Protection ████████░░  8/10  78 hooks active
+  MCP Enhancement ██████░░░░  6/10  2/3 recommended MCPs active
+  Memory Depth    ████░░░░░░  4/10  12 entities (target: 50+)
+  Custom Skills   ██░░░░░░░░  2/10  0/3 suggested skills created
+  Agent Utilization████████░░  8/10  38 agents available
+
+  Top improvement: Add /ork:remember patterns → +1.5 points
+```
+
+### Memory Integration
+
+Store the score for tracking over time:
+
+```python
+mcp__memory__create_entities(entities=[{
+  "name": "OrchestKit Setup Score",
+  "entityType": "metric",
+  "observations": [
+    "Score: 7.2/10 on 2026-02-26",
+    "Stack: Python + React + Next.js",
+    "Gap: Memory depth (12/50 entities), Custom skills (0/3)"
+  ]
+}])
+```
+
+## Phase 7: Improvement Plan
+
+Generate prioritized, **runnable** recommendations:
+
+```
+Your Personalized Improvement Plan:
+
+P0 (do now):
+  $ /ork:remember "our API uses cursor pagination, never offset"
+  $ /ork:remember "FastAPI + SQLAlchemy 2.0 async + Alembic migrations"
+  $ /ork:remember "React 19 + TanStack Query + Zustand for state"
+  → Seeds your knowledge graph. Agents use this context automatically.
+
+P1 (this week):
+  $ /ork:configure mcp tavily
+  → Enables web research for up-to-date library docs.
+
+  $ /ork:skill-creator "FastAPI endpoint with Pydantic schema, Alembic migration, and pytest"
+  → Creates a custom skill for your most repeated pattern (47 routes detected).
+
+P2 (ongoing):
+  $ /ork:explore architecture
+  → Deep analysis of your codebase structure.
+
+  $ /ork:setup --rescan
+  → Re-run in 2 weeks to track score improvement.
+```
+
+### Save Plan to Memory
+
+```python
+mcp__memory__create_entities(entities=[{
+  "name": "OrchestKit Improvement Plan",
+  "entityType": "plan",
+  "observations": [
+    "P0: Seed knowledge graph with 3 core patterns",
+    "P1: Add Tavily MCP, create api-endpoint custom skill",
+    "P2: Run /ork:explore architecture, rescan in 2 weeks"
+  ]
+}])
+```
+
+## CLI Flags
+
+| Flag | Behavior |
+|------|----------|
+| (none) | Full 7-phase wizard |
+| `--rescan` | Re-run scan + score, skip safety phase |
+| `--score-only` | Show current readiness score (Phase 6 only) |
+| `--plan-only` | Show improvement plan (Phase 7 only) |
+
+## Related Skills
+
+- `ork:doctor` — Health diagnostics (wizard uses its checks)
+- `ork:configure` — Detailed configuration (wizard recommends then links here)
+- `ork:remember` — Knowledge persistence (wizard seeds initial patterns)
+- `ork:explore` — Deep codebase analysis (wizard links for follow-up)
+- `ork:help` — Skill directory (wizard surfaces relevant subset)
+- `ork:skill-creator` — Custom skill authoring (wizard suggests what to create)

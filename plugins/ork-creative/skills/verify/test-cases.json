@@ -1,0 +1,50 @@
+{
+  "skill": "verify",
+  "version": "3.1.0",
+  "testCases": [
+    {
+      "id": "full-verification",
+      "rule": null,
+      "query": "Verify the authentication flow implementation",
+      "expectedBehavior": [
+        "Dispatches 5 parallel verification agents",
+        "Produces 0-10 scores across code quality, security, coverage, API, and UI",
+        "Calculates weighted composite score and letter grade (A-F)",
+        "Generates improvement suggestions with effort/impact prioritization"
+      ]
+    },
+    {
+      "id": "tests-only",
+      "rule": null,
+      "query": "Just run the tests for the user profile feature",
+      "expectedBehavior": [
+        "Runs backend and frontend test suites in parallel",
+        "Reports coverage data and pass/fail counts",
+        "Skips security audit and UI/UX analysis phases",
+        "Focuses on test-generator agent only"
+      ]
+    },
+    {
+      "id": "security-audit",
+      "rule": null,
+      "query": "Run a security audit on the payment module",
+      "expectedBehavior": [
+        "Focuses on security-auditor agent",
+        "Checks OWASP Top 10 vulnerabilities",
+        "Validates secrets and credential handling",
+        "Applies blocking rules from policy-as-code if configured"
+      ]
+    },
+    {
+      "id": "quick-check",
+      "rule": null,
+      "query": "Quick check if my changes are ready to merge",
+      "expectedBehavior": [
+        "Runs tests only without detailed analysis",
+        "Skips nuanced grading and improvement suggestions",
+        "Provides simple pass/fail verdict",
+        "Completes quickly compared to full verification"
+      ]
+    }
+  ]
+}

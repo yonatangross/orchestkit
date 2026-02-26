@@ -1,0 +1,61 @@
+{
+  "skill": "browser-tools",
+  "version": "2.1.0",
+  "testCases": [
+    {
+      "id": "page-interaction",
+      "rule": "browser-snapshot-workflow",
+      "query": "Fill out a multi-step form and submit it using agent-browser",
+      "expectedBehavior": [
+        "Uses snapshot -i to discover interactive elements",
+        "References elements by @e# refs, not CSS selectors",
+        "Re-snapshots after each navigation or significant DOM change",
+        "Waits for networkidle after form submission"
+      ]
+    },
+    {
+      "id": "content-extraction",
+      "rule": "browser-snapshot-workflow",
+      "query": "Extract the main article text from a web page",
+      "expectedBehavior": [
+        "Uses targeted ref extraction (get text @e#) over full body",
+        "Removes noise elements (nav, header, footer, ads) before extraction",
+        "Falls back to eval with querySelector for custom extraction",
+        "Caches extracted content to avoid re-scraping"
+      ]
+    },
+    {
+      "id": "auth-flows",
+      "rule": "browser-auth-security",
+      "query": "Capture content from a login-protected documentation site",
+      "expectedBehavior": [
+        "Navigates to login page and discovers form with snapshot",
+        "Fills credentials from environment variables, never hardcoded",
+        "Saves authenticated state with state save for reuse",
+        "Uses headed mode for OAuth/SSO flows requiring user interaction"
+      ]
+    },
+    {
+      "id": "rate-limiting",
+      "rule": "browser-rate-limiting",
+      "query": "Scrape multiple pages without overwhelming the server",
+      "expectedBehavior": [
+        "Adds delays between page navigations",
+        "Implements exponential backoff on 429 responses",
+        "Respects concurrency limits for parallel sessions",
+        "Monitors and adjusts rate based on server responses"
+      ]
+    },
+    {
+      "id": "ethical-scraping",
+      "rule": "browser-scraping-ethics",
+      "query": "Crawl a website for content extraction",
+      "expectedBehavior": [
+        "Checks robots.txt before crawling",
+        "Respects Terms of Service and site policies",
+        "Uses identifiable user-agent string",
+        "Limits crawl scope to necessary pages only"
+      ]
+    }
+  ]
+}

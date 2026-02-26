@@ -1,0 +1,50 @@
+{
+  "skill": "fix-issue",
+  "version": "2.1.0",
+  "testCases": [
+    {
+      "id": "bug-fix-rca",
+      "rule": "rca-five-whys",
+      "query": "Fix issue #123 where users get a 500 error on login",
+      "expectedBehavior": [
+        "Uses 5 Whys iterative causal analysis",
+        "Forms hypotheses with confidence scores (0-100%)",
+        "Launches 5 parallel RCA agents",
+        "Creates regression test BEFORE implementing fix",
+        "Creates feature branch, never commits to main/dev"
+      ]
+    },
+    {
+      "id": "regression-detection",
+      "rule": "rca-fishbone",
+      "query": "Fix issue #456 that was already fixed in #101 but came back",
+      "expectedBehavior": [
+        "Searches for similar past issues before hypothesis formation",
+        "Identifies this as a regression from a previously closed issue",
+        "Uses multi-factor Ishikawa analysis for root cause",
+        "Includes prevention recommendations to break recurrence cycle"
+      ]
+    },
+    {
+      "id": "multi-file-fix",
+      "rule": "rca-fault-tree",
+      "query": "Fix issue #789 that affects both the API endpoint and the React component",
+      "expectedBehavior": [
+        "Uses fault tree analysis with AND/OR gates",
+        "Launches both backend-system-architect and frontend-ui-developer agents",
+        "Designs fix across multiple files with rollback plan",
+        "Validates fix with both backend and frontend test suites"
+      ]
+    },
+    {
+      "id": "should-not-trigger-feature",
+      "rule": null,
+      "query": "Add a new dashboard widget for analytics",
+      "expectedBehavior": [
+        "Does NOT trigger fix-issue workflow",
+        "Recognizes this is a feature request, not a bug",
+        "Suggests using the implement skill instead"
+      ]
+    }
+  ]
+}

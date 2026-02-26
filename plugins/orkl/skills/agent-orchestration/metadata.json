@@ -1,0 +1,14 @@
+{
+  "version": "2.0.0",
+  "organization": "OrchestKit",
+  "date": "February 2026",
+  "abstract": "Agent orchestration patterns covering agentic loops (ReAct, plan-and-execute), multi-agent coordination (supervisor, debate, synthesis), alternative frameworks (CrewAI, AutoGen, OpenAI SDK, GPT-5.2-Codex), and multi-scenario orchestration (parallel difficulty scaling, milestone sync, result aggregation).",
+  "ruleCount": 10,
+  "categories": 4,
+  "consolidatedFrom": [
+    "agent-loops",
+    "alternative-agent-frameworks",
+    "multi-agent-orchestration",
+    "multi-scenario-orchestration"
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "skill": "explore",
+  "version": "2.1.0",
+  "testCases": [
+    {
+      "id": "full-exploration",
+      "rule": "exploration-agents",
+      "query": "Explore the authentication system in this codebase",
+      "expectedBehavior": [
+        "Launches 4 parallel exploration agents (structure, data flow, backend, frontend)",
+        "Includes code health assessment with 0-10 scoring across 5 dimensions",
+        "Maps dependency hotspots with coupling scores",
+        "Generates structured exploration report with file locations and architecture"
+      ]
+    },
+    {
+      "id": "quick-search",
+      "rule": "exploration-agents",
+      "query": "Just find the files related to payment processing",
+      "expectedBehavior": [
+        "Skips deep agent analysis",
+        "Uses Grep and Glob for quick file discovery",
+        "Returns file list without full exploration phases",
+        "Completes phases 1-2 only"
+      ]
+    },
+    {
+      "id": "data-flow-trace",
+      "rule": "exploration-agents",
+      "query": "Trace how user data flows from the API to the database",
+      "expectedBehavior": [
+        "Focuses data flow explorer agent on tracing entry points",
+        "Maps processing pipeline from API to storage",
+        "Identifies data transformations at each hop",
+        "Produces entry-to-storage flow diagram"
+      ]
+    },
+    {
+      "id": "architecture-patterns",
+      "rule": "exploration-agents",
+      "query": "What design patterns does the backend use?",
+      "expectedBehavior": [
+        "Focuses backend-system-architect agent on pattern analysis",
+        "Identifies architectural patterns and integrations",
+        "Reports on dependency graph and coupling",
+        "Checks memory for prior architecture decisions"
+      ]
+    }
+  ]
+}

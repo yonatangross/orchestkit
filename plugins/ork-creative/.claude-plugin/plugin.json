@@ -1,7 +1,7 @@
 {
   "name": "ork-creative",
-  "version": "6.7.1",
-  "description": "Video add-on (requires orkl) — 2 skills, 1 agent. Demo recording, Remotion, storyboarding, content creation.",
+  "version": "6.7.2",
+  "description": "Deprecated — use ork instead. All creative skills are now included in the main plugin.",
   "author": {
     "name": "Yonatan Gross",
     "email": "yonatan2gross@gmail.com",

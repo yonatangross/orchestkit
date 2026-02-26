@@ -1,7 +1,7 @@
 {
   "name": "orkl",
-  "version": "6.7.1",
-  "description": "Standalone base — 46 skills, 38 agents, 78 hooks. Any stack. Add ork-creative for video or use ork for everything.",
+  "version": "6.7.2",
+  "description": "Alias for ork — installs the full OrchestKit toolkit. Use /plugin install ork instead.",
   "author": {
     "name": "Yonatan Gross",
     "email": "yonatan2gross@gmail.com",

@@ -1,0 +1,336 @@
+{
+  "skill": "rag-retrieval",
+  "version": "2.0.0",
+  "testCases": [
+    {
+      "id": "core-basic-rag",
+      "rule": "core-basic-rag",
+      "query": "Build a RAG pipeline that answers questions with citations",
+      "expectedBehavior": [
+        "Retrieves documents with vector search",
+        "Constructs numbered context [1], [2]",
+        "Generates with system prompt constraining to context",
+        "Returns inline citations and source list"
+      ]
+    },
+    {
+      "id": "core-hybrid-search",
+      "rule": "core-hybrid-search",
+      "query": "Combine vector and keyword search for better coverage",
+      "expectedBehavior": [
+        "Implements Reciprocal Rank Fusion (RRF)",
+        "Uses k=60 smoothing constant",
+        "Retrieves from both semantic and keyword methods",
+        "Merges results by document ID"
+      ]
+    },
+    {
+      "id": "core-context-management",
+      "rule": "core-context-management",
+      "query": "How do I prevent hallucinations when context is insufficient?",
+      "expectedBehavior": [
+        "Implements sufficiency check before generation",
+        "Abstains when confidence > 0.7 and context insufficient",
+        "Keeps context under 75% of model limit",
+        "Prioritizes highest-relevance documents"
+      ]
+    },
+    {
+      "id": "core-pipeline-composition",
+      "rule": "core-pipeline-composition",
+      "query": "Design a composable RAG pipeline with multiple stages",
+      "expectedBehavior": [
+        "Follows Decompose → HyDE → Retrieve → Rerank → Fit → Generate order",
+        "Each stage is optional and composable",
+        "Uses RRF for multi-query fusion",
+        "Implements timeout fallbacks for slow stages"
+      ]
+    },
+    {
+      "id": "embeddings-models",
+      "rule": "embeddings-models",
+      "query": "Which embedding model should I use for production?",
+      "expectedBehavior": [
+        "Recommends text-embedding-3-small for general purpose",
+        "Lists model dimensions and costs",
+        "Shows batch embedding API usage",
+        "Mentions Ollama for local/CI"
+      ]
+    },
+    {
+      "id": "embeddings-chunking",
+      "rule": "embeddings-chunking",
+      "query": "How should I chunk documents for embedding?",
+      "expectedBehavior": [
+        "Recommends 256-1024 tokens (512 typical)",
+        "Uses 10-20% overlap for continuity",
+        "Prefers semantic boundaries over fixed-size",
+        "Includes metadata with chunks"
+      ]
+    },
+    {
+      "id": "embeddings-advanced",
+      "rule": "embeddings-advanced",
+      "query": "How do I cache embeddings and reduce costs?",
+      "expectedBehavior": [
+        "Implements Redis-based embedding cache",
+        "Uses batch processing with rate limiting",
+        "Mentions Matryoshka dimension reduction",
+        "Avoids re-embedding unchanged content"
+      ]
+    },
+    {
+      "id": "contextual-prepend",
+      "rule": "contextual-prepend",
+      "query": "Chunks lose context when retrieved — how to fix?",
+      "expectedBehavior": [
+        "Prepends situational context to chunks",
+        "Uses Claude for context generation",
+        "Uses prompt caching for 90% cost reduction",
+        "Context is 1-2 sentences focused on retrieval"
+      ]
+    },
+    {
+      "id": "contextual-hybrid",
+      "rule": "contextual-hybrid",
+      "query": "What's the best retrieval technique according to Anthropic?",
+      "expectedBehavior": [
+        "Contextual embeddings + BM25 hybrid",
+        "40% BM25 / 60% vector weight split",
+        "67% reduction in retrieval failures",
+        "Adding reranking reduces failures further to 1.3%"
+      ]
+    },
+    {
+      "id": "contextual-pipeline",
+      "rule": "contextual-pipeline",
+      "query": "Build a complete contextual retrieval system",
+      "expectedBehavior": [
+        "Indexes documents with contextual chunks",
+        "Builds hybrid BM25 + vector retriever",
+        "Processes chunks in parallel with semaphore",
+        "Uses prompt caching for cost reduction"
+      ]
+    },
+    {
+      "id": "hyde-generation",
+      "rule": "hyde-generation",
+      "query": "Queries don't match document terminology — how to improve retrieval?",
+      "expectedBehavior": [
+        "Generates hypothetical answer document",
+        "Embeds the hypothetical doc, NOT the query",
+        "Uses fast model (gpt-5.2-mini)",
+        "Temperature 0.3 for consistency"
+      ]
+    },
+    {
+      "id": "hyde-per-concept",
+      "rule": "hyde-per-concept",
+      "query": "Apply HyDE to each concept in a multi-topic query",
+      "expectedBehavior": [
+        "Decomposes query into concepts first",
+        "Generates HyDE per concept in parallel",
+        "Caches results with hash key",
+        "Uses asyncio.gather for parallelism"
+      ]
+    },
+    {
+      "id": "hyde-fallback",
+      "rule": "hyde-fallback",
+      "query": "What if HyDE generation is too slow?",
+      "expectedBehavior": [
+        "Implements timeout (2-3s)",
+        "Falls back to direct query embedding",
+        "Uses asyncio.timeout for clean timeout handling",
+        "Logs fallback events for monitoring"
+      ]
+    },
+    {
+      "id": "agentic-self-rag",
+      "rule": "agentic-self-rag",
+      "query": "Filter out irrelevant documents before generation",
+      "expectedBehavior": [
+        "Grades documents with binary yes/no score",
+        "Filters to relevant docs only",
+        "Triggers web search if >50% filtered out",
+        "Tracks relevance scores for debugging"
+      ]
+    },
+    {
+      "id": "agentic-corrective-rag",
+      "rule": "agentic-corrective-rag",
+      "query": "Build a self-correcting RAG with web fallback",
+      "expectedBehavior": [
+        "Implements CRAG workflow with LangGraph",
+        "Rewrites query up to 2 times before web fallback",
+        "Uses Tavily for web search",
+        "Includes retry_count to prevent infinite loops"
+      ]
+    },
+    {
+      "id": "agentic-knowledge-graph",
+      "rule": "agentic-knowledge-graph",
+      "query": "When should I use knowledge graph RAG?",
+      "expectedBehavior": [
+        "Recommends for entity-rich domains",
+        "Combines KG entity lookup with vector search",
+        "Uses structured output for entity extraction",
+        "Compares Self-RAG, CRAG, GraphRAG, Agentic patterns"
+      ]
+    },
+    {
+      "id": "agentic-adaptive-retrieval",
+      "rule": "agentic-adaptive-retrieval",
+      "query": "Route queries to the best retrieval strategy",
+      "expectedBehavior": [
+        "Routes between direct, HyDE, decompose, web strategies",
+        "Uses structured output for query classification",
+        "Direct search for simple queries (fastest)",
+        "HyDE for vocabulary mismatch, decompose for multi-concept"
+      ]
+    },
+    {
+      "id": "multimodal-embeddings",
+      "rule": "multimodal-embeddings",
+      "query": "How do I embed images for cross-modal search?",
+      "expectedBehavior": [
+        "Uses CLIP for image and text embedding",
+        "Recommends Voyage multimodal-3 for long docs",
+        "Normalizes embeddings for cosine similarity",
+        "Shows both CLIP and Voyage API usage"
+      ]
+    },
+    {
+      "id": "multimodal-chunking",
+      "rule": "multimodal-chunking",
+      "query": "How to chunk PDFs with images and tables?",
+      "expectedBehavior": [
+        "Uses PyMuPDF for extraction",
+        "Separates text and image blocks",
+        "Generates captions for images",
+        "Preserves page numbers for citation"
+      ]
+    },
+    {
+      "id": "multimodal-pipeline",
+      "rule": "multimodal-pipeline",
+      "query": "Build multimodal RAG with image and text retrieval",
+      "expectedBehavior": [
+        "Searches both text and image embeddings",
+        "Deduplicates by document ID",
+        "Places images before text in generation prompt",
+        "Uses Claude for multimodal generation"
+      ]
+    },
+    {
+      "id": "query-detection",
+      "rule": "query-detection",
+      "query": "How to detect if a query needs decomposition?",
+      "expectedBehavior": [
+        "Uses heuristic indicators (vs, compared to, affect)",
+        "Sub-millisecond fast path for simple queries",
+        "Skips LLM decomposition for single-concept queries",
+        "Lists query types that do/don't need decomposition"
+      ]
+    },
+    {
+      "id": "query-decompose",
+      "rule": "query-decompose",
+      "query": "Break complex queries into concepts for better retrieval",
+      "expectedBehavior": [
+        "Uses LLM to extract 2-4 concepts",
+        "Retrieves per concept in parallel",
+        "Fuses with RRF",
+        "Caches decomposition results"
+      ]
+    },
+    {
+      "id": "query-hyde-combo",
+      "rule": "query-hyde-combo",
+      "query": "Combine query decomposition with HyDE",
+      "expectedBehavior": [
+        "Decomposes first, then HyDE per concept",
+        "Parallel search with HyDE embeddings",
+        "Fuses results with RRF",
+        "Notes this is the most expensive path"
+      ]
+    },
+    {
+      "id": "reranking-cross-encoder",
+      "rule": "reranking-cross-encoder",
+      "query": "Improve search precision with reranking",
+      "expectedBehavior": [
+        "Uses cross-encoder model for pair-wise scoring",
+        "Recommends ms-marco-MiniLM-L-6-v2 as default",
+        "Retrieve 50-100, rerank to 10",
+        "Lists model options with latency and cost"
+      ]
+    },
+    {
+      "id": "reranking-llm",
+      "rule": "reranking-llm",
+      "query": "Use LLM to score document relevance",
+      "expectedBehavior": [
+        "Batches all docs in one LLM call",
+        "Parses scores defensively (default 0.5 on error)",
+        "Truncates docs to 200-400 chars",
+        "Shows Cohere rerank API alternative"
+      ]
+    },
+    {
+      "id": "reranking-combined",
+      "rule": "reranking-combined",
+      "query": "Combine multiple scoring signals for ranking",
+      "expectedBehavior": [
+        "Weighted average: base + LLM + recency",
+        "Default weights: 30/50/20",
+        "Timeout fallback to base ranking",
+        "Stores score components for debugging"
+      ]
+    },
+    {
+      "id": "pgvector-schema",
+      "rule": "pgvector-schema",
+      "query": "Design a database schema for hybrid search",
+      "expectedBehavior": [
+        "Uses vector(1024) with HNSW index",
+        "Pre-computes tsvector as GENERATED column",
+        "Creates GIN index for keyword search",
+        "Includes document_id FK and content_type"
+      ]
+    },
+    {
+      "id": "pgvector-hybrid-search",
+      "rule": "pgvector-hybrid-search",
+      "query": "Implement hybrid search with pgvector in SQLAlchemy",
+      "expectedBehavior": [
+        "Uses FULL OUTER JOIN for RRF fusion",
+        "3x fetch multiplier for coverage",
+        "Uses plainto_tsquery for user input",
+        "Coalesces NULL ranks to 0"
+      ]
+    },
+    {
+      "id": "pgvector-indexing",
+      "rule": "pgvector-indexing",
+      "query": "HNSW vs IVFFlat — which pgvector index should I use?",
+      "expectedBehavior": [
+        "Recommends HNSW for production",
+        "Notes 17x faster queries than IVFFlat",
+        "Lists m=16, ef_construction=64 defaults",
+        "Mentions iterative_scan for filtered queries"
+      ]
+    },
+    {
+      "id": "pgvector-metadata",
+      "rule": "pgvector-metadata",
+      "query": "Filter search results by content type and boost by metadata",
+      "expectedBehavior": [
+        "Shows filtered search by content_type",
+        "Similarity threshold at 0.75",
+        "Metadata boosting adds +6% MRR",
+        "Compares pgvector vs Redis 8 FT.HYBRID"
+      ]
+    }
+  ]
+}

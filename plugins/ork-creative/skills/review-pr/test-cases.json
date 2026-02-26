@@ -1,0 +1,61 @@
+{
+  "skill": "review-pr",
+  "version": "1.4.0",
+  "testCases": [
+    {
+      "id": "full-review",
+      "rule": "agent-prompts-task-tool",
+      "query": "Review PR #42 thoroughly",
+      "expectedBehavior": [
+        "Launches 6 parallel specialized review agents",
+        "Covers code quality, type safety, security, tests, backend, and frontend",
+        "Produces structured review report with status per area",
+        "Uses conventional comment prefixes (praise, nitpick, suggestion, issue)"
+      ]
+    },
+    {
+      "id": "security-focus",
+      "rule": "agent-prompts-task-tool",
+      "query": "Review PR #99 with focus on security vulnerabilities",
+      "expectedBehavior": [
+        "Prioritizes security-auditor agent",
+        "Checks for secrets and credentials in diff",
+        "Scans for injection vulnerabilities (SQL, XSS)",
+        "Validates authentication and authorization checks"
+      ]
+    },
+    {
+      "id": "quick-review",
+      "rule": "agent-prompts-task-tool",
+      "query": "Give me a quick review of PR #15",
+      "expectedBehavior": [
+        "Uses single code-quality-reviewer agent only",
+        "Skips deep multi-agent analysis",
+        "Provides high-level review summary",
+        "Completes faster than full review"
+      ]
+    },
+    {
+      "id": "ai-code-review",
+      "rule": "ai-code-review-agent",
+      "query": "Review PR #77 that adds LLM integration code",
+      "expectedBehavior": [
+        "Adds 7th agent: llm-integrator for AI code review",
+        "Checks prompt injection prevention",
+        "Validates token limit handling",
+        "Reviews caching strategy and error fallbacks"
+      ]
+    },
+    {
+      "id": "type-safety-review",
+      "rule": "agent-prompts-task-tool",
+      "query": "Review type safety in PR #33",
+      "expectedBehavior": [
+        "Checks TypeScript strict mode compliance",
+        "Validates Zod or Pydantic schema usage",
+        "Flags any types or type assertions",
+        "Verifies exhaustive switch/union handling"
+      ]
+    }
+  ]
+}
