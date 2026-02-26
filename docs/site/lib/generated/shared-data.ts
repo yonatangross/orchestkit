@@ -54,7 +54,7 @@ export const AGENTS: AgentSummary[] = [
       "ork-creative",
       "orkl"
     ],
-    "model": "sonnet",
+    "model": "haiku",
     "category": "product"
   },
   {
@@ -65,7 +65,7 @@ export const AGENTS: AgentSummary[] = [
       "ork-creative",
       "orkl"
     ],
-    "model": "haiku",
+    "model": "sonnet",
     "category": "devops"
   },
   {
@@ -87,7 +87,7 @@ export const AGENTS: AgentSummary[] = [
       "ork-creative",
       "orkl"
     ],
-    "model": "sonnet",
+    "model": "haiku",
     "category": "data"
   },
   {
@@ -131,7 +131,7 @@ export const AGENTS: AgentSummary[] = [
       "ork-creative",
       "orkl"
     ],
-    "model": "sonnet",
+    "model": "haiku",
     "category": "devops"
   },
   {
@@ -153,7 +153,7 @@ export const AGENTS: AgentSummary[] = [
       "ork-creative",
       "orkl"
     ],
-    "model": "sonnet",
+    "model": "haiku",
     "category": "development"
   },
   {
@@ -230,7 +230,7 @@ export const AGENTS: AgentSummary[] = [
       "ork-creative",
       "orkl"
     ],
-    "model": "sonnet",
+    "model": "haiku",
     "category": "product"
   },
   {
@@ -241,7 +241,7 @@ export const AGENTS: AgentSummary[] = [
       "ork-creative",
       "orkl"
     ],
-    "model": "sonnet",
+    "model": "haiku",
     "category": "product"
   },
   {
@@ -252,7 +252,7 @@ export const AGENTS: AgentSummary[] = [
       "ork-creative",
       "orkl"
     ],
-    "model": "sonnet",
+    "model": "haiku",
     "category": "devops"
   },
   {
@@ -318,7 +318,7 @@ export const AGENTS: AgentSummary[] = [
       "ork-creative",
       "orkl"
     ],
-    "model": "sonnet",
+    "model": "haiku",
     "category": "frontend"
   },
   {
@@ -340,7 +340,7 @@ export const AGENTS: AgentSummary[] = [
       "ork-creative",
       "orkl"
     ],
-    "model": "haiku",
+    "model": "sonnet",
     "category": "product"
   },
   {
@@ -406,7 +406,7 @@ export const AGENTS: AgentSummary[] = [
       "ork-creative",
       "orkl"
     ],
-    "model": "sonnet",
+    "model": "haiku",
     "category": "frontend"
   },
   {
