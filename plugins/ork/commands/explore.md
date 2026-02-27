@@ -101,14 +101,14 @@ TaskCreate(subject="Generate exploration report", activeForm="Generating report"
 
 ```python
 # PARALLEL - Quick searches
-Grep(pattern="$ARGUMENTS", output_mode="files_with_matches")
-Glob(pattern="**/*$ARGUMENTS*")
+Grep(pattern="$ARGUMENTS[0]", output_mode="files_with_matches")
+Glob(pattern="**/*$ARGUMENTS[0]*")
 ```
 
 ### Phase 2: Memory Check
 
 ```python
-mcp__memory__search_nodes(query="$ARGUMENTS")
+mcp__memory__search_nodes(query="$ARGUMENTS[0]")
 mcp__memory__search_nodes(query="architecture")
 ```
 

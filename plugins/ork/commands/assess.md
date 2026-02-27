@@ -95,9 +95,9 @@ Identify what's being assessed and gather context:
 
 ```python
 # PARALLEL - Gather context
-Read(file_path="$ARGUMENTS")  # If file path
-Grep(pattern="$ARGUMENTS", output_mode="files_with_matches")
-mcp__memory__search_nodes(query="$ARGUMENTS")  # Past decisions
+Read(file_path="$ARGUMENTS[0]")  # If file path
+Grep(pattern="$ARGUMENTS[0]", output_mode="files_with_matches")
+mcp__memory__search_nodes(query="$ARGUMENTS[0]")  # Past decisions
 ```
 
 

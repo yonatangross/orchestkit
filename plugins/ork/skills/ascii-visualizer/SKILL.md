@@ -8,6 +8,7 @@ version: 1.0.0
 author: OrchestKit
 user-invocable: false
 complexity: low
+model: haiku
 metadata:
   category: document-asset-creation
 ---

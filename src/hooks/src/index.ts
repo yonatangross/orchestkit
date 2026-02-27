@@ -192,10 +192,11 @@ import { sessionMetricsSummary } from './lifecycle/session-metrics-summary.js';
 import { dependencyVersionCheck } from './lifecycle/dependency-version-check.js';
 import { prefillGuard } from './lifecycle/prefill-guard.js';
 
-// TeammateIdle hooks (CC 2.1.33)
+// TeammateIdle hooks (CC 2.1.33) — consolidated into unified dispatcher (#853)
 import { progressReporter } from './teammate-idle/progress-reporter.js';
 import { teamSynthesisTrigger } from './teammate-idle/team-synthesis-trigger.js';
 import { teamQualityGate } from './teammate-idle/team-quality-gate.js';
+import { unifiedTeammateIdleDispatcher } from './teammate-idle/unified-dispatcher.js';
 
 // TaskCompleted hooks (CC 2.1.33)
 import { completionTracker } from './task-completed/completion-tracker.js';
@@ -375,7 +376,8 @@ export const hooks: Record<string, HookFn> = {
   'lifecycle/dependency-version-check': dependencyVersionCheck,
   'lifecycle/prefill-guard': prefillGuard,
 
-  // TeammateIdle hooks (CC 2.1.33)
+  // TeammateIdle hooks (CC 2.1.33) — unified dispatcher (#853)
+  'teammate-idle/unified-dispatcher': unifiedTeammateIdleDispatcher,
   'teammate-idle/progress-reporter': progressReporter,
   'teammate-idle/team-synthesis-trigger': teamSynthesisTrigger,
   'teammate-idle/team-quality-gate': teamQualityGate,

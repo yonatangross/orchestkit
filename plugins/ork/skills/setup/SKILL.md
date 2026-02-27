@@ -9,6 +9,7 @@ version: 1.0.0
 author: OrchestKit
 tags: [onboarding, setup, wizard, configuration, stack-detection, mcp, personalization]
 user-invocable: true
+disable-model-invocation: true
 allowed-tools: [Read, Grep, Glob, Bash, AskUserQuestion, mcp__memory__search_nodes, mcp__memory__create_entities, mcp__memory__create_relations]
 skills: [doctor, configure, remember, explore, help]
 complexity: medium

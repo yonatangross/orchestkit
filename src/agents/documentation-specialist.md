@@ -3,6 +3,8 @@ name: documentation-specialist
 description: Technical writing and documentation expert. API docs, READMEs, technical guides, ADRs, changelogs, OpenAPI specs. Use for documentation, readme, api-docs, technical-writing, adr, changelog, openapi, swagger, doc-generation.
 category: docs
 model: haiku
+background: true
+maxTurns: 10
 context: fork
 color: gray
 memory: project

@@ -9,8 +9,10 @@ version: 1.0.0
 author: OrchestKit
 tags: [configuration, setup, wizard, customization]
 user-invocable: true
+disable-model-invocation: true
 allowed-tools: [Bash, Read, Grep, Glob]
 complexity: low
+model: haiku
 metadata:
   category: workflow-automation
 ---

@@ -12,6 +12,7 @@ user-invocable: false
 allowed-tools: [AskUserQuestion, Read, Grep, Glob, Bash, Task, TaskCreate, TaskUpdate, TaskList, mcp__memory__search_nodes]
 skills: [security-patterns, architecture-patterns, quality-gates]
 complexity: max
+model: opus
 metadata:
   category: document-asset-creation
   mcp-server: memory

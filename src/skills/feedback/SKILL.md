@@ -9,8 +9,10 @@ version: 1.2.0
 author: OrchestKit
 tags: [feedback, learning, patterns, metrics, privacy, analytics, consent]
 user-invocable: false
+disable-model-invocation: true
 allowed-tools: [Read, Write, Edit, Grep, Glob, Bash, AskUserQuestion]
 complexity: low
+model: haiku
 metadata:
   category: document-asset-creation
 ---

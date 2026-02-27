@@ -2,6 +2,8 @@
 name: eval-runner
 description: "LLM evaluation specialist who runs structured eval datasets, computes quality metrics using DeepEval/RAGAS, tracks regression across model versions, and reports to Langfuse for tracing and scoring."
 model: haiku
+background: true
+maxTurns: 10
 context: fork
 category: testing
 color: green

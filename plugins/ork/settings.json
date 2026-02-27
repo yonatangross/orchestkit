@@ -1,5 +1,7 @@
 {
   "$schema": "https://claude.ai/schemas/plugin-settings.json",
+  "respectGitignore": true,
+  "plansDirectory": ".claude/plans",
   "permissions": {
     "allow": [
       "Read",

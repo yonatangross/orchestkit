@@ -3,6 +3,7 @@ name: ui-feedback
 description: Processes UI annotations from agentation. Watches for new annotations, maps element paths to source code, implements fixes, and resolves annotations with summaries.
 category: frontend
 model: sonnet
+maxTurns: 15
 context: fork
 color: teal
 memory: project

@@ -10,6 +10,7 @@ version: 2.0.0
 author: OrchestKit
 user-invocable: false
 complexity: high
+model: opus
 metadata:
   category: document-asset-creation
 ---

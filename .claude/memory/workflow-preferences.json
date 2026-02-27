@@ -1,10 +1,10 @@
 {
   "pattern_counts": {
-    "test-first": 43,
+    "test-first": 80,
     "explore-first": 0,
-    "iterate-fast": 269,
+    "iterate-fast": 348,
     "big-bang": 1,
-    "agent-delegate": 10,
+    "agent-delegate": 31,
     "mixed": 0
   },
   "pattern_success_rates": {
@@ -66,44 +66,54 @@
       1,
       1,
       1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
       1
     ],
     "mixed": []
   },
-  "total_sessions": 323,
+  "total_sessions": 460,
   "preferences": [
     {
       "pattern": "iterate-fast",
-      "frequency": 0.8328173374613003,
-      "count": 269,
-      "total_sessions": 323,
+      "frequency": 0.7565217391304347,
+      "count": 348,
+      "total_sessions": 460,
       "avg_success_rate": 1,
-      "updated_at": "2026-02-25T08:48:23.147Z"
+      "updated_at": "2026-02-27T16:32:15.269Z"
     },
     {
       "pattern": "test-first",
-      "frequency": 0.13312693498452013,
-      "count": 43,
-      "total_sessions": 323,
+      "frequency": 0.17391304347826086,
+      "count": 80,
+      "total_sessions": 460,
       "avg_success_rate": 1,
-      "updated_at": "2026-02-25T08:48:23.147Z"
+      "updated_at": "2026-02-27T16:32:15.269Z"
     },
     {
       "pattern": "agent-delegate",
-      "frequency": 0.030959752321981424,
-      "count": 10,
-      "total_sessions": 323,
+      "frequency": 0.06739130434782609,
+      "count": 31,
+      "total_sessions": 460,
       "avg_success_rate": 1,
-      "updated_at": "2026-02-25T08:48:23.147Z"
+      "updated_at": "2026-02-27T16:32:15.269Z"
     },
     {
       "pattern": "big-bang",
-      "frequency": 0.0030959752321981426,
+      "frequency": 0.002173913043478261,
       "count": 1,
-      "total_sessions": 323,
+      "total_sessions": 460,
       "avg_success_rate": 1,
-      "updated_at": "2026-02-25T08:48:23.147Z"
+      "updated_at": "2026-02-27T16:32:15.269Z"
     }
   ],
-  "updated_at": "2026-02-25T08:48:23.147Z"
+  "updated_at": "2026-02-27T16:32:15.269Z"
 }

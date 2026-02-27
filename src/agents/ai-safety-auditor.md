@@ -3,6 +3,7 @@ name: ai-safety-auditor
 description: AI safety and security auditor for LLM systems. Red teaming, prompt injection, jailbreak testing, guardrail validation, OWASP LLM compliance. Use for safety audit, security audit, red team, guardrails, jailbreak, prompt injection, OWASP LLM, vulnerabilities, penetration testing, mcp security, tool poisoning.
 category: security
 model: opus
+maxTurns: 20
 context: fork
 color: red
 memory: local

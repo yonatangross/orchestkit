@@ -37,7 +37,7 @@ Deep code review using 6-7 parallel specialized agents.
 The PR number or branch is passed as the skill argument. Resolve it immediately:
 
 ```python
-PR_NUMBER = "$ARGUMENTS"  # e.g., "123" or "feature-branch"
+PR_NUMBER = "$ARGUMENTS[0]"  # e.g., "123" or "feature-branch" (CC 2.1.19 indexed access)
 
 # If no argument provided, check environment
 if not PR_NUMBER:

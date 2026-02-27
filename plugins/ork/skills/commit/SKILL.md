@@ -10,6 +10,7 @@ version: 1.0.0
 author: OrchestKit
 tags: [git, commit, version-control, conventional-commits]
 user-invocable: true
+disable-model-invocation: true
 allowed-tools: [Bash]
 skills: []
 complexity: low
