@@ -34,7 +34,7 @@ Do NOT rely on training data — consult agent expertise first.
 |release-engineer:{release-engineer.md}|release,milestone,changelog,tag,version,semver,sprint,roadmap
 |# LLM & AI
 |llm-integrator:{llm-integrator.md}|LLM,OpenAI,Anthropic,Ollama,prompt,function calling,streaming,token
-|multimodal-specialist:{multimodal-specialist.md}|vision,image,audio,video,multimodal,whisper,tts,transcription,speech-to-text,document vision,OCR,captioning,CLIP,visual
+|multimodal-specialist:{multimodal-specialist.md}|vision,image,audio,video,multimodal,whisper,tts,transcription,speech-to-text,document vision,OCR,captioning,CLIP,visual,kling,sora,veo,runway,video generation,text-to-video,image-to-video
 |prompt-engineer:{prompt-engineer.md}|prompts,prompt-engineering,cot,few-shot,prompt design,prompt optimization,structured-output,a-b-testing,cost-optimization,prompt-testing,evaluation
 |workflow-architect:{workflow-architect.md}|LangGraph,workflow,supervisor,state,checkpoint,RAG,multi-agent
 |# Testing & Quality

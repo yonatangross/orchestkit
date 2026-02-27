@@ -247,6 +247,7 @@ Bash(command="cat ~/.claude/settings.json 2>/dev/null | python3 -c \"import json
 | **Tavily** | If web-research-workflow relevant | Medium (needs API key, free tier) |
 | **NotebookLM** | If many docs/READMEs for team RAG | Medium (Google auth) |
 | **Agentation** | If frontend UI work detected | Medium (npm install) |
+| **Phoenix/Langfuse** | If LLM observability desired (local tracing, cost tracking) | Medium (Docker, optional) |
 
 Present as toggles with impact labels. Show install commands for selected MCPs:
 

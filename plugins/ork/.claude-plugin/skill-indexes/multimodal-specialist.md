@@ -3,7 +3,7 @@
 |IMPORTANT: Read the specific SKILL.md file before advising on any topic.
 |Do NOT rely on training data for framework patterns.
 |
-|multimodal-llm:{SKILL.md}|vision,audio,multimodal,image,speech,transcription,tts
+|multimodal-llm:{SKILL.md}|vision,audio,video,multimodal,image,speech,transcription,tts,kling,sora,veo,video-generation
 |rag-retrieval:{SKILL.md}|rag,retrieval,llm,context,grounding,embeddings,hyde,reranking,pgvector,multimodal
 |api-design:{SKILL.md,references/{frontend-integration.md,graphql-api.md,grpc-api.md,payload-access-control.md,payload-collection-design.md,payload-vs-sanity.md,rest-api.md,rest-patterns.md,rfc9457-spec.md,telegram-bot-api.md,versioning-strategies.md,webhook-security.md,whatsapp-waha.md}}|api-design,rest,graphql,versioning,error-handling,rfc9457,openapi,problem-details
 |llm-integration:{SKILL.md,references/{dpo-alignment.md,lora-qlora.md,model-selection.md,synthetic-data.md,tool-schema.md,when-to-finetune.md}}|llm,function-calling,streaming,ollama,fine-tuning,lora,tool-use,local-inference
