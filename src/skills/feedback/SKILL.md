@@ -8,7 +8,7 @@ context: inherit
 version: 1.2.0
 author: OrchestKit
 tags: [feedback, learning, patterns, metrics, privacy, analytics, consent]
-user-invocable: true
+user-invocable: false
 allowed-tools: [Read, Write, Edit, Grep, Glob, Bash, AskUserQuestion]
 complexity: low
 metadata:

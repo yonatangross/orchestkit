@@ -24,7 +24,7 @@ Total: N skills | PASS: X | WARN: Y | FAIL: Z
 | FM | 4 chars, right-aligned | `OK` / `WARN` | All required frontmatter present? |
 | Rules | 5 chars, right-aligned | integer | Non-template rule files in `rules/` |
 | Refs | 4 chars, right-aligned | integer | Files in `references/` |
-| Mfst | 5 chars, right-aligned | `YES` / `NO` | Registered in ork.json or orkl.json? |
+| Mfst | 5 chars, right-aligned | `YES` / `NO` | Registered in ork.json? |
 | Status | — | `PASS` / `WARN` / `FAIL` | Overall result |
 
 ## Detail Lines

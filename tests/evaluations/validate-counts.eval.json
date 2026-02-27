@@ -34,7 +34,7 @@
       ],
       "should_not": [
         "Use plugins/ directory as authoritative source",
-        "Flag orkl vs ork skill differences as drift"
+        "Compare against deleted alias manifests"
       ],
       "tags": ["edge-case"]
     }

@@ -42,9 +42,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "accessibility-specialist",
@@ -97,9 +95,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "workflow-architect"
@@ -128,7 +124,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "tokens",
       "model-delegation"
     ],
-    "userInvocable": true,
+    "userInvocable": false,
     "context": "fork",
     "allowedTools": [
       "Bash",
@@ -149,9 +145,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -207,9 +201,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "backend-system-architect",
@@ -253,9 +245,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "backend-system-architect",
@@ -314,9 +304,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "backend-system-architect",
@@ -345,9 +333,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "agent": null,
     "structure": {},
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -406,9 +392,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -443,9 +427,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "backend-system-architect",
@@ -468,7 +450,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "1m-context",
       "cross-file"
     ],
-    "userInvocable": true,
+    "userInvocable": false,
     "context": "fork",
     "allowedTools": [
       "AskUserQuestion",
@@ -507,9 +489,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -524,7 +504,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "skills",
       "orchestkit"
     ],
-    "userInvocable": true,
+    "userInvocable": false,
     "context": "fork",
     "allowedTools": [],
     "skills": [],
@@ -539,9 +519,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -603,9 +581,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "business-case-builder",
@@ -632,9 +608,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "agent": "web-research-analyst",
     "structure": {},
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "data-pipeline-engineer",
@@ -653,7 +627,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "pipeline",
       "orchestkit"
     ],
-    "userInvocable": true,
+    "userInvocable": false,
     "context": "fork",
     "allowedTools": [],
     "skills": [],
@@ -670,9 +644,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -711,9 +683,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "ci-cd-engineer",
@@ -751,9 +721,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "git-operations-engineer"
@@ -787,9 +755,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -833,9 +799,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -884,9 +848,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "backend-system-architect",
@@ -909,7 +871,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "showcase",
       "tutorial"
     ],
-    "userInvocable": true,
+    "userInvocable": false,
     "context": "fork",
     "allowedTools": [
       "AskUserQuestion",
@@ -942,9 +904,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "demo-producer"
@@ -996,9 +956,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "ci-cd-engineer",
@@ -1068,9 +1026,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "backend-system-architect",
@@ -1126,9 +1082,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -1167,9 +1121,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "backend-system-architect"
@@ -1197,9 +1149,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "agent": "debug-investigator",
     "structure": {},
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "debug-investigator"
@@ -1253,9 +1203,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -1273,7 +1221,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "analytics",
       "consent"
     ],
-    "userInvocable": true,
+    "userInvocable": false,
     "context": "inherit",
     "allowedTools": [
       "Read",
@@ -1295,9 +1243,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -1361,9 +1307,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "debug-investigator",
@@ -1412,9 +1356,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "documentation-specialist",
@@ -1453,9 +1395,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "business-case-builder",
@@ -1507,9 +1447,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "data-pipeline-engineer",
@@ -1541,9 +1479,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -1581,9 +1517,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "accessibility-specialist"
@@ -1657,9 +1591,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -1675,7 +1607,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "tracking",
       "workflow"
     ],
-    "userInvocable": true,
+    "userInvocable": false,
     "context": "inherit",
     "allowedTools": [
       "Bash"
@@ -1684,9 +1616,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "agent": null,
     "structure": {},
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "git-operations-engineer"
@@ -1717,9 +1647,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "agent": "workflow-architect",
     "structure": {},
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "workflow-architect"
@@ -1768,9 +1696,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "llm-integrator",
@@ -1807,9 +1733,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "ai-safety-auditor",
@@ -1859,9 +1783,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "accessibility-specialist",
@@ -1934,9 +1856,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "data-pipeline-engineer"
@@ -2006,9 +1926,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "backend-system-architect",
@@ -2052,9 +1970,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "agent": null,
     "structure": {},
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "multimodal-specialist"
@@ -2081,9 +1997,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "agent": null,
     "structure": {},
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -2163,9 +2077,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "backend-system-architect",
@@ -2233,9 +2145,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "system-design-reviewer"
@@ -2255,7 +2165,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "animation",
       "zero-dependency"
     ],
-    "userInvocable": true,
+    "userInvocable": false,
     "context": "fork",
     "allowedTools": [
       "AskUserQuestion",
@@ -2276,9 +2186,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -2342,9 +2250,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "business-case-builder",
@@ -2402,9 +2308,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "backend-system-architect",
@@ -2457,9 +2361,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "code-quality-reviewer"
@@ -2500,9 +2402,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "data-pipeline-engineer",
@@ -2556,9 +2456,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "frontend-ui-developer"
@@ -2574,7 +2472,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "checklist",
       "orchestkit"
     ],
-    "userInvocable": true,
+    "userInvocable": false,
     "context": "fork",
     "allowedTools": [],
     "skills": [],
@@ -2588,9 +2486,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -2623,9 +2519,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "deployment-manager",
@@ -2666,9 +2560,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "accessibility-specialist",
@@ -2747,9 +2639,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "accessibility-specialist",
@@ -2799,9 +2689,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -2831,9 +2719,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -2893,9 +2779,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "ai-safety-auditor",
@@ -2949,9 +2833,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -2966,7 +2848,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "versioning",
       "analytics"
     ],
-    "userInvocable": true,
+    "userInvocable": false,
     "context": "inherit",
     "allowedTools": [
       "Read",
@@ -2985,9 +2867,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -3024,9 +2904,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "accessibility-specialist",
@@ -3140,9 +3018,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "accessibility-specialist",
@@ -3206,9 +3082,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "accessibility-specialist",
@@ -3230,7 +3104,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "compatibility",
       "migration"
     ],
-    "userInvocable": true,
+    "userInvocable": false,
     "context": "fork",
     "allowedTools": [
       "AskUserQuestion",
@@ -3258,9 +3132,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -3274,7 +3146,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "consistency",
       "orchestkit"
     ],
-    "userInvocable": true,
+    "userInvocable": false,
     "context": "fork",
     "allowedTools": [],
     "skills": [],
@@ -3289,9 +3161,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -3351,9 +3221,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -3395,9 +3263,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "ci-cd-engineer",
@@ -3436,9 +3302,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "web-research-analyst"
@@ -3480,9 +3344,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "frontend-ui-developer"

@@ -7,7 +7,7 @@ context: inherit
 version: 1.0.0
 author: OrchestKit
 tags: [git, github, issues, tracking, workflow]
-user-invocable: true
+user-invocable: false
 allowed-tools: [Bash]
 complexity: low
 metadata:

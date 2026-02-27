@@ -235,26 +235,16 @@ function generateSkillsSummary(skillsDetailed, manifestData, allSkillNames) {
   };
 
   const summary = {
-    orkl: {},
-    'ork-creative': {},
-    ork: { includesAllOrkLite: true }
+    ork: {}
   };
 
-  // Get skills for each plugin
-  const orklManifest = manifestData['orkl'];
-  const orkCreativeManifest = manifestData['ork-creative'];
+  // Get skills for the single plugin
   const orkManifest = manifestData['ork'];
-
-  const orklSkills = orklManifest ? getManifestSkills(orklManifest, allSkillNames) : [];
-  const orkCreativeSkills = orkCreativeManifest ? getManifestSkills(orkCreativeManifest, allSkillNames) : [];
   const orkSkills = orkManifest ? getManifestSkills(orkManifest, allSkillNames) : [];
 
-  // Find ork-only skills (not in orkl or ork-creative)
-  const orkOnlySkills = orkSkills.filter(s => !orklSkills.includes(s) && !orkCreativeSkills.includes(s));
-
-  // Categorize orkl skills
+  // Categorize ork skills
   for (const [category, keywords] of Object.entries(categoryMappings)) {
-    const matchingSkills = orklSkills.filter(skillName => {
+    const matchingSkills = orkSkills.filter(skillName => {
       const skill = skillsDetailed[skillName];
       if (!skill) return false;
       const tags = skill.tags || [];
@@ -267,26 +257,6 @@ function generateSkillsSummary(skillsDetailed, manifestData, allSkillNames) {
 
     if (matchingSkills.length > 0) {
       // Take top 8 representative skills per category
-      summary.orkl[category] = matchingSkills.slice(0, 8);
-    }
-  }
-
-  // Categorize ork-only skills (specialized)
-  const specializedCategories = ['python', 'react', 'llm', 'rag', 'backend'];
-  for (const category of specializedCategories) {
-    const keywords = categoryMappings[category];
-    const matchingSkills = orkOnlySkills.filter(skillName => {
-      const skill = skillsDetailed[skillName];
-      if (!skill) return false;
-      const tags = skill.tags || [];
-      const name = skillName.toLowerCase();
-      return keywords.some(kw =>
-        tags.some(t => t.toLowerCase().includes(kw)) ||
-        name.includes(kw)
-      );
-    });
-
-    if (matchingSkills.length > 0) {
       summary.ork[category] = matchingSkills.slice(0, 8);
     }
   }
@@ -642,14 +612,12 @@ function generate() {
   // Step 6: Generate data structure
   console.log(`${CYAN}[6/6] Generating data.js...${NC}`);
 
-  // Calculate plugin skill counts from manifests
-  const orklSkills = getManifestSkills(manifestData['orkl'], allSkillNames);
-  const orkCreativeSkills = getManifestSkills(manifestData['ork-creative'], allSkillNames);
+  // Calculate plugin skill counts from manifest
   const orkSkills = getManifestSkills(manifestData['ork'], allSkillNames);
 
   // Build totals
   const totals = {
-    plugins: 3,
+    plugins: 1,
     skills: allSkillNames.length,
     agents: agentFiles.length,
     hooks: hookCounts.total,
@@ -660,55 +628,18 @@ function generate() {
   // Build plugins array with dynamic skillCounts
   const plugins = [
     {
-      name: "orkl",
-      description: `Universal toolkit — ${orklSkills.length} skills, ${agentFiles.length} agents, ${hookCounts.total} hooks. Language-agnostic, works for any stack.`,
-      fullDescription: "The universal OrchestKit toolkit. Includes all workflow skills (implement, explore, verify, review-pr, commit), all memory skills (remember, memory, mem0, fabric), product/UX skills, accessibility, and all specialized agents. Language-agnostic — works for any tech stack.",
-      category: "development",
-      version: manifestData['orkl'].version || "6.0.0",
-      skillCount: orklSkills.length,
-      agentCount: agentFiles.length,
-      hooks: hookCounts.total,
-      commandCount: userInvocableCount,
-      color: "#8b5cf6",
-      required: false,
-      recommended: true,
-      skills: orklSkills.slice(0, 20),  // Sample for display
-      agents: Object.keys(agentsData).sort(),
-      commands: Object.entries(skillsDetailed)
-        .filter(([_, s]) => s.userInvocable)
-        .map(([name]) => name)
-        .sort()
-    },
-    {
-      name: "ork-creative",
-      description: `Video production add-on — ${orkCreativeSkills.length} skills, 1 agent. Demo recording, Remotion, storyboarding.`,
-      fullDescription: "Video production toolkit for OrchestKit. Includes demo recording, Remotion composition, storyboarding, narration scripting, content recipes, and visual effects skills. Adds the demo-producer agent.",
-      category: "development",
-      version: manifestData['ork-creative'].version || "6.0.0",
-      skillCount: orkCreativeSkills.length,
-      agentCount: 1,
-      hooks: hookCounts.total,
-      commandCount: 1,
-      color: "#ec4899",
-      required: false,
-      recommended: false,
-      skills: orkCreativeSkills,
-      agents: ["demo-producer"],
-      commands: ["demo-producer"]
-    },
-    {
       name: "ork",
-      description: `Full specialized toolkit — ${orkSkills.length} skills, ${agentFiles.length} agents, ${hookCounts.total} hooks. Adds Python, React, LLM/RAG patterns.`,
-      fullDescription: "The complete OrchestKit toolkit. Everything in orkl PLUS specialized patterns for Python (FastAPI, SQLAlchemy, Celery), React (RSC, TanStack, Zustand), LLM integration (function calling, streaming, fine-tuning), RAG retrieval, LangGraph workflows, and MCP server patterns.",
+      description: `The complete AI development toolkit — ${orkSkills.length} skills, ${agentFiles.length} agents, ${hookCounts.total} hooks.`,
+      fullDescription: "The complete OrchestKit toolkit. Includes all workflow skills (implement, explore, verify, review-pr, commit), all memory skills (remember, memory, mem0, fabric), product/UX skills, accessibility, specialized patterns for Python (FastAPI, SQLAlchemy, Celery), React (RSC, TanStack, Zustand), LLM integration, RAG retrieval, and all specialized agents.",
       category: "development",
-      version: manifestData['ork'].version || "6.0.0",
+      version: manifestData['ork'].version || "7.0.0",
       skillCount: orkSkills.length,
       agentCount: agentFiles.length,
       hooks: hookCounts.total,
       commandCount: userInvocableCount,
       color: "#06b6d4",
       required: false,
-      recommended: false,
+      recommended: true,
       skills: orkSkills.slice(0, 24),  // Sample for display
       agents: Object.keys(agentsData).sort(),
       commands: Object.entries(skillsDetailed)
@@ -797,20 +728,20 @@ function generate() {
 
   // Static compositions (demo gallery items)
   const compositions = [
-    { id: "Implement", skill: "implement", command: "/ork:implement", hook: "Add auth in seconds, not hours", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/Core-Skills", category: "core", primaryColor: "#8b5cf6", relatedPlugin: "orkl", tags: ["core","landscape","tri-terminal"] },
-    { id: "Verify", skill: "verify", command: "/ork:verify", hook: "6 agents validate your feature", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/Core-Skills", category: "core", primaryColor: "#22c55e", relatedPlugin: "orkl", tags: ["core","landscape","tri-terminal"] },
-    { id: "Commit", skill: "commit", command: "/ork:commit", hook: "Conventional commits in seconds", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/Core-Skills", category: "core", primaryColor: "#06b6d4", relatedPlugin: "orkl", tags: ["core","landscape","tri-terminal"] },
-    { id: "Explore", skill: "explore", command: "/ork:explore", hook: "Understand codebases in minutes", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/Core-Skills", category: "core", primaryColor: "#06b6d4", relatedPlugin: "orkl", tags: ["core","landscape","tri-terminal"] },
-    { id: "Remember", skill: "remember", command: "/ork:remember", hook: "Build your team's knowledge base", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/Memory-Skills", category: "memory", primaryColor: "#8b5cf6", relatedPlugin: "orkl", tags: ["memory","landscape","tri-terminal"] },
-    { id: "Memory", skill: "memory", command: "/ork:memory", hook: "Search, load, sync, visualize your knowledge", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/Memory-Skills", category: "memory", primaryColor: "#06b6d4", relatedPlugin: "orkl", tags: ["memory","landscape","tri-terminal"] },
-    { id: "ReviewPR", skill: "review-pr", command: "/ork:review-pr", hook: "Expert PR review in minutes", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/Review-Skills", category: "review", primaryColor: "#f97316", relatedPlugin: "orkl", tags: ["review","landscape","tri-terminal"] },
-    { id: "CreatePR", skill: "create-pr", command: "/ork:create-pr", hook: "PRs that pass review the first time", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/Review-Skills", category: "review", primaryColor: "#22c55e", relatedPlugin: "orkl", tags: ["review","landscape","tri-terminal"] },
-    { id: "FixIssue", skill: "fix-issue", command: "/ork:fix-issue", hook: "From bug report to merged fix in minutes", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/Review-Skills", category: "review", primaryColor: "#ef4444", relatedPlugin: "orkl", tags: ["review","landscape","tri-terminal"] },
-    { id: "Doctor", skill: "doctor", command: "/ork:doctor", hook: "Health diagnostics for OrchestKit systems", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/DevOps-Skills", category: "devops", primaryColor: "#ef4444", relatedPlugin: "orkl", tags: ["devops","landscape","tri-terminal"] },
-    { id: "Configure", skill: "configure", command: "/ork:configure", hook: "Your AI toolkit, your rules", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/DevOps-Skills", category: "devops", primaryColor: "#f59e0b", relatedPlugin: "orkl", tags: ["devops","landscape","tri-terminal"] },
-    { id: "Brainstorming", skill: "brainstorming", command: "/ork:brainstorming", hook: "Generate ideas in parallel. 4 specialists.", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/AI-Skills", category: "ai", primaryColor: "#f59e0b", relatedPlugin: "orkl", tags: ["ai","landscape","tri-terminal"] },
-    { id: "Assess", skill: "assess", command: "/ork:assess", hook: "Evaluate quality across 6 dimensions", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/AI-Skills", category: "ai", primaryColor: "#22c55e", relatedPlugin: "orkl", tags: ["ai","landscape","tri-terminal"] },
-    { id: "DemoProducer", skill: "demo-producer", command: "/ork:demo-producer", hook: "Professional demos in minutes, not days", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/Advanced-Skills", category: "advanced", primaryColor: "#ec4899", relatedPlugin: "orkl", tags: ["advanced","landscape","tri-terminal"] }
+    { id: "Implement", skill: "implement", command: "/ork:implement", hook: "Add auth in seconds, not hours", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/Core-Skills", category: "core", primaryColor: "#8b5cf6", relatedPlugin: "ork", tags: ["core","landscape","tri-terminal"] },
+    { id: "Verify", skill: "verify", command: "/ork:verify", hook: "6 agents validate your feature", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/Core-Skills", category: "core", primaryColor: "#22c55e", relatedPlugin: "ork", tags: ["core","landscape","tri-terminal"] },
+    { id: "Commit", skill: "commit", command: "/ork:commit", hook: "Conventional commits in seconds", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/Core-Skills", category: "core", primaryColor: "#06b6d4", relatedPlugin: "ork", tags: ["core","landscape","tri-terminal"] },
+    { id: "Explore", skill: "explore", command: "/ork:explore", hook: "Understand codebases in minutes", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/Core-Skills", category: "core", primaryColor: "#06b6d4", relatedPlugin: "ork", tags: ["core","landscape","tri-terminal"] },
+    { id: "Remember", skill: "remember", command: "/ork:remember", hook: "Build your team's knowledge base", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/Memory-Skills", category: "memory", primaryColor: "#8b5cf6", relatedPlugin: "ork", tags: ["memory","landscape","tri-terminal"] },
+    { id: "Memory", skill: "memory", command: "/ork:memory", hook: "Search, load, sync, visualize your knowledge", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/Memory-Skills", category: "memory", primaryColor: "#06b6d4", relatedPlugin: "ork", tags: ["memory","landscape","tri-terminal"] },
+    { id: "ReviewPR", skill: "review-pr", command: "/ork:review-pr", hook: "Expert PR review in minutes", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/Review-Skills", category: "review", primaryColor: "#f97316", relatedPlugin: "ork", tags: ["review","landscape","tri-terminal"] },
+    { id: "CreatePR", skill: "create-pr", command: "/ork:create-pr", hook: "PRs that pass review the first time", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/Review-Skills", category: "review", primaryColor: "#22c55e", relatedPlugin: "ork", tags: ["review","landscape","tri-terminal"] },
+    { id: "FixIssue", skill: "fix-issue", command: "/ork:fix-issue", hook: "From bug report to merged fix in minutes", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/Review-Skills", category: "review", primaryColor: "#ef4444", relatedPlugin: "ork", tags: ["review","landscape","tri-terminal"] },
+    { id: "Doctor", skill: "doctor", command: "/ork:doctor", hook: "Health diagnostics for OrchestKit systems", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/DevOps-Skills", category: "devops", primaryColor: "#ef4444", relatedPlugin: "ork", tags: ["devops","landscape","tri-terminal"] },
+    { id: "Configure", skill: "configure", command: "/ork:configure", hook: "Your AI toolkit, your rules", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/DevOps-Skills", category: "devops", primaryColor: "#f59e0b", relatedPlugin: "ork", tags: ["devops","landscape","tri-terminal"] },
+    { id: "Brainstorming", skill: "brainstorming", command: "/ork:brainstorming", hook: "Generate ideas in parallel. 4 specialists.", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/AI-Skills", category: "ai", primaryColor: "#f59e0b", relatedPlugin: "ork", tags: ["ai","landscape","tri-terminal"] },
+    { id: "Assess", skill: "assess", command: "/ork:assess", hook: "Evaluate quality across 6 dimensions", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/AI-Skills", category: "ai", primaryColor: "#22c55e", relatedPlugin: "ork", tags: ["ai","landscape","tri-terminal"] },
+    { id: "DemoProducer", skill: "demo-producer", command: "/ork:demo-producer", hook: "Professional demos in minutes, not days", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/Advanced-Skills", category: "advanced", primaryColor: "#ec4899", relatedPlugin: "ork", tags: ["advanced","landscape","tri-terminal"] }
   ];
 
   // Merge CDN URLs from orchestkit-demos/out/cdn-urls.json (if it exists)
@@ -863,7 +794,6 @@ function generate() {
   console.log(`  Total agents:           ${GREEN}${agentFiles.length}${NC}`);
   console.log(`  Total hooks:            ${GREEN}${hookCounts.total}${NC}`);
   console.log(`  User-invocable:         ${GREEN}${userInvocableCount}${NC}`);
-  console.log(`  orkl skill count:       ${GREEN}${orklSkills.length}${NC}`);
   console.log(`  ork skill count:        ${GREEN}${orkSkills.length}${NC}`);
   console.log(`  Output:                 ${GREEN}${TS_OUTPUT_FILE}${NC}`);
   console.log(`${CYAN}============================================================${NC}`);

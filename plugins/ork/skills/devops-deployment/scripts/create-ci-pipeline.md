@@ -1,7 +1,7 @@
 ---
 name: create-ci-pipeline
 description: Create GitHub Actions CI/CD pipeline with auto-detected project type. Use when setting up CI/CD.
-user-invocable: true
+user-invocable: false
 argument-hint: [workflow-name]
 ---
 

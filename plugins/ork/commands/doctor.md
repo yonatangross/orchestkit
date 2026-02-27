@@ -13,7 +13,7 @@ allowed-tools: [Bash, Read, Grep, Glob]
 
 The `/ork:doctor` command performs comprehensive health checks on your OrchestKit installation. It auto-detects installed plugins and validates 12 categories:
 
-1. **Installed Plugins** - Detects orkl or ork
+1. **Installed Plugins** - Detects ork plugin
 2. **Skills Validation** - Frontmatter, references, token budget (dynamic count)
 3. **Agents Validation** - Frontmatter, tool refs, skill refs (dynamic count)
 4. **Hook Health** - Registration, bundles, async patterns
@@ -62,7 +62,7 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 
 | Category | What It Checks | Reference |
 |----------|---------------|-----------|
-| **0. Installed Plugins** | Auto-detects orkl or ork, counts skills/agents | [diagnostic-checks](rules/diagnostic-checks.md) |
+| **0. Installed Plugins** | Auto-detects ork plugin, counts skills/agents | [diagnostic-checks](rules/diagnostic-checks.md) |
 | **1. Skills** | Frontmatter, context field, token budget, links | [skills-validation](references/skills-validation.md) |
 | **2. Agents** | Frontmatter, model, skill refs, tool refs | [agents-validation](references/agents-validation.md) |
 | **3. Hooks** | hooks.json schema, bundles, async patterns | [hook-validation](references/hook-validation.md) |
@@ -93,7 +93,7 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 
 ## Report Format
 
-> See [references/report-format.md](references/report-format.md) for ASCII report templates (ork and orkl), JSON CI output schema, and exit codes.
+> See [references/report-format.md](references/report-format.md) for ASCII report templates, JSON CI output schema, and exit codes.
 
 ## Interpreting Results & Troubleshooting
 

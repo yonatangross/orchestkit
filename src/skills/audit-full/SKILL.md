@@ -8,7 +8,7 @@ context: fork
 version: 1.0.0
 author: OrchestKit
 tags: [security, architecture, audit, dependencies, 1m-context, cross-file]
-user-invocable: true
+user-invocable: false
 allowed-tools: [AskUserQuestion, Read, Grep, Glob, Bash, Task, TaskCreate, TaskUpdate, TaskList, mcp__memory__search_nodes]
 skills: [security-patterns, architecture-patterns, quality-gates]
 complexity: max

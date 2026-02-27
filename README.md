@@ -103,13 +103,7 @@ The setup wizard (`/ork:setup`) will recommend MCPs based on your stack.
 
 ---
 
-## Plugin Names — All the Same Thing
-
-**orkl**, **ork-creative**, and **ork** are identical. They're all aliases for the same complete toolkit.
-
-- Old `orkl` users: Just install `ork`
-- Old `ork-creative` users: No separate video skills — everything is in `ork`
-- New users: Install `ork` once, get all 69 skills, 38 agents, 78 hooks
+## Install
 
 ```bash
 /plugin install ork
@@ -185,7 +179,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 **v7.0.0** — Unified Plugin Architecture
 
-- **Simplified**: One plugin for everything. No more orkl vs ork-creative confusion. All 69 skills, 38 agents, 78 hooks in `/plugin install ork`.
+- **Simplified**: One plugin for everything. All 69 skills, 38 agents, 78 hooks in `/plugin install ork`.
 - **Setup Wizard**: Run `/ork:setup` for personalized onboarding — stack detection, skill recommendations, MCP configuration, readiness scoring.
 - **Zero Overhead**: Skills load on-demand. Hooks activate automatically. No performance penalty.
 

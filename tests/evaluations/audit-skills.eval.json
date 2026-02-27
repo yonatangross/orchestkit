@@ -39,7 +39,7 @@
       "query": "Find any skills that exist in src/ but are not registered in the manifests",
       "expected_behavior": [
         "Compares src/skills/ directories against manifests/ork.json",
-        "Marks skills absent from both ork.json and orkl.json as FAIL"
+        "Marks skills absent from ork.json as FAIL"
       ],
       "tags": ["edge-case"]
     }

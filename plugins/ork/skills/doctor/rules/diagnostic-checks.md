@@ -16,7 +16,7 @@ Auto-detects which OrchestKit plugins are installed:
 ```bash
 # Detection logic:
 # - Scans for .claude-plugin/plugin.json in plugin paths
-# - Identifies orkl or ork
+# - Identifies ork plugin
 # - Counts skills/agents per installed plugin
 ```
 

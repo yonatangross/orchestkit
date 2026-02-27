@@ -16,7 +16,7 @@ description: "OrchestKit doctor for health diagnostics. Use when running checks 
 
 The `/ork:doctor` command performs comprehensive health checks on your OrchestKit installation. It auto-detects installed plugins and validates 12 categories:
 
-1. **Installed Plugins** - Detects orkl or ork
+1. **Installed Plugins** - Detects ork plugin
 2. **Skills Validation** - Frontmatter, references, token budget (dynamic count)
 3. **Agents Validation** - Frontmatter, tool refs, skill refs (dynamic count)
 4. **Hook Health** - Registration, bundles, async patterns
@@ -65,7 +65,7 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 
 | Category | What It Checks | Reference |
 |----------|---------------|-----------|
-| **0. Installed Plugins** | Auto-detects orkl or ork, counts skills/agents | [diagnostic-checks](rules/diagnostic-checks.md) |
+| **0. Installed Plugins** | Auto-detects ork plugin, counts skills/agents | [diagnostic-checks](rules/diagnostic-checks.md) |
 | **1. Skills** | Frontmatter, context field, token budget, links | [skills-validation](references/skills-validation.md) |
 | **2. Agents** | Frontmatter, model, skill refs, tool refs | [agents-validation](references/agents-validation.md) |
 | **3. Hooks** | hooks.json schema, bundles, async patterns | [hook-validation](references/hook-validation.md) |
@@ -96,7 +96,7 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 
 ## Report Format
 
-> See [references/report-format.md](references/report-format.md) for ASCII report templates (ork and orkl), JSON CI output schema, and exit codes.
+> See [references/report-format.md](references/report-format.md) for ASCII report templates, JSON CI output schema, and exit codes.
 
 ## Interpreting Results & Troubleshooting
 
@@ -144,7 +144,7 @@ Auto-detects which OrchestKit plugins are installed:
 ```bash
 # Detection logic:
 # - Scans for .claude-plugin/plugin.json in plugin paths
-# - Identifies orkl or ork
+# - Identifies ork plugin
 # - Counts skills/agents per installed plugin
 ```
 
@@ -478,32 +478,17 @@ Channel: alpha (v7.0.0-alpha.1)
 
 ## Installed Plugins
 
-**orkl:**
 ```
 Installed Plugins: 1
-- orkl: 69 skills, 38 agents, 78 hook entries
-```
-
-**ork (full):**
-```
-Installed Plugins: 1
-- ork: 69 skills, 38 agents, 78 hook entries
+- ork: 69 skills, 38 agents, 85 hook entries
 ```
 
 ## Skills Validation
 
-**Full ork:**
 ```
 Skills: 69/69 valid
-- User-invocable: 29 commands
-- Reference skills: 40
-```
-
-**orkl only:**
-```
-Skills: 69/69 valid
-- User-invocable: 29 commands
-- Reference skills: 40
+- User-invocable: 17 commands
+- Reference skills: 52
 ```
 
 ## Agents Validation
@@ -1051,19 +1036,6 @@ ls -la .claude/memory/
 
 > **Note:** `\{version\}` is read from `package.json` at runtime. `\{cc_version\}` is detected from Claude Code. Counts reflect installed plugin — dynamic, not hardcoded.
 
-**orkl plugin (lite):**
-```
-+===================================================================+
-|                    OrchestKit Health Report                        |
-+===================================================================+
-| Version: {version}  |  CC: {cc_version}  |  Plugins: orkl         |
-+===================================================================+
-| Skills           | 45/45 valid                                    |
-| Agents           | 36/36 valid                                    |
-| Hooks            | 87/87 entries (12 bundles)                     |
-| Memory           | Graph memory healthy                           |
-+===================================================================+
-```
 
 ## JSON Output (CI Integration)
 
@@ -1237,8 +1209,8 @@ OrchestKit includes 69 skills validated against frontmatter requirements and con
 
 | Type | Count | Frontmatter |
 |------|-------|-------------|
-| User-invocable | 24 | `user-invocable: true` |
-| Reference | 38 | `user-invocable: false` |
+| User-invocable | 17 | `user-invocable: true` |
+| Internal | 52 | `user-invocable: false` |
 
 ## Validation Checks
 

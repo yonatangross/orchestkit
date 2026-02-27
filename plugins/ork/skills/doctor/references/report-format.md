@@ -26,19 +26,6 @@
 
 > **Note:** `{version}` is read from `package.json` at runtime. `{cc_version}` is detected from Claude Code. Counts reflect installed plugin — dynamic, not hardcoded.
 
-**orkl plugin (lite):**
-```
-+===================================================================+
-|                    OrchestKit Health Report                        |
-+===================================================================+
-| Version: {version}  |  CC: {cc_version}  |  Plugins: orkl         |
-+===================================================================+
-| Skills           | 45/45 valid                                    |
-| Agents           | 36/36 valid                                    |
-| Hooks            | 87/87 entries (12 bundles)                     |
-| Memory           | Graph memory healthy                           |
-+===================================================================+
-```
 
 ## JSON Output (CI Integration)
 

@@ -22,7 +22,7 @@ Derived sources to check against:
 - `CLAUDE.md` Project Overview line: "N hooks (X global + Y agent-scoped + Z skill-scoped)"
 - `CLAUDE.md` Version section: "N entries (X global + Y agent-scoped + Z skill-scoped, ...)"
 - `src/hooks/hooks.json` top-level `description` field (may embed count)
-- `manifests/ork.json` and `manifests/orkl.json` — hook count in metadata
+- `manifests/ork.json` — hook count in metadata
 
 ### Skills
 
@@ -36,7 +36,6 @@ ls -d src/skills/*/ | wc -l
 Derived sources:
 - `CLAUDE.md` Project Overview: "N skills"
 - `manifests/ork.json` — skill list length
-- `manifests/orkl.json` — skill list length (legitimately lower — excludes Python/React/LLM skills)
 
 ### Agents
 
@@ -50,7 +49,6 @@ ls src/agents/*.md | wc -l
 Derived sources:
 - `CLAUDE.md` Project Overview: "N agents"
 - `manifests/ork.json` — agent list length
-- `manifests/orkl.json` — agent list length
 
 **Incorrect:**
 
@@ -69,5 +67,5 @@ ls -d src/skills/*/ | wc -l
 ### Key Rules
 
 - Never count `plugins/` — it's generated from `src/` and may be stale if build was interrupted
-- `orkl` skill/agent counts WILL differ from `ork` — this is expected, not drift
+- Only `manifests/ork.json` exists in v7 — no alias manifests to compare
 - Hook breakdown (global + agent-scoped + skill-scoped) must sum to the total count

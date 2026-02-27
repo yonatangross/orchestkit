@@ -22,28 +22,6 @@
       },
       "category": "development",
       "source": "./plugins/ork"
-    },
-    {
-      "name": "orkl",
-      "description": "Alias for ork — installs the full toolkit. Use ork instead.",
-      "version": "7.0.0",
-      "author": {
-        "name": "Yonatan Gross",
-        "email": "yonatan2gross@gmail.com"
-      },
-      "category": "development",
-      "source": "./plugins/orkl"
-    },
-    {
-      "name": "ork-creative",
-      "description": "Deprecated — use ork instead. All creative skills included in main plugin.",
-      "version": "7.0.0",
-      "author": {
-        "name": "Yonatan Gross",
-        "email": "yonatan2gross@gmail.com"
-      },
-      "category": "development",
-      "source": "./plugins/ork-creative"
     }
   ]
 }

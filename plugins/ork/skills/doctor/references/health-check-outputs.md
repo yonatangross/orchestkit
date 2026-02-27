@@ -29,32 +29,17 @@ Channel: alpha (v7.0.0-alpha.1)
 
 ## Installed Plugins
 
-**orkl:**
 ```
 Installed Plugins: 1
-- orkl: 69 skills, 38 agents, 78 hook entries
-```
-
-**ork (full):**
-```
-Installed Plugins: 1
-- ork: 69 skills, 38 agents, 78 hook entries
+- ork: 69 skills, 38 agents, 85 hook entries
 ```
 
 ## Skills Validation
 
-**Full ork:**
 ```
 Skills: 69/69 valid
-- User-invocable: 29 commands
-- Reference skills: 40
-```
-
-**orkl only:**
-```
-Skills: 69/69 valid
-- User-invocable: 29 commands
-- Reference skills: 40
+- User-invocable: 17 commands
+- Reference skills: 52
 ```
 
 ## Agents Validation

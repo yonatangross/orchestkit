@@ -194,7 +194,7 @@ Grep(pattern="ork", path="~/.claude/settings.json", output_mode="content")
 Glob(pattern="~/.claude/plugins/ork*")
 ```
 
-Report: "No conflicts detected" or "Found existing orkl install — will upgrade to ork (same skills, no data loss)."
+Report: "No conflicts detected" or "Found existing ork install — version {version}."
 
 ## Phase 4: Skill Recommendations
 

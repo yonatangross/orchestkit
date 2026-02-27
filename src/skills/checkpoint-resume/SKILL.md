@@ -4,7 +4,7 @@ description: Rate-limit-resilient pipeline with checkpoint/resume for long multi
 tags: [resilience, checkpoint, pipeline, orchestkit]
 version: 2.0.0
 author: OrchestKit
-user-invocable: true
+user-invocable: false
 complexity: high
 ---
 

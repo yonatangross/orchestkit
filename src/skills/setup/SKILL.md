@@ -204,7 +204,7 @@ Grep(pattern="ork", path="~/.claude/settings.json", output_mode="content")
 Glob(pattern="~/.claude/plugins/ork*")
 ```
 
-Report: "No conflicts detected" or "Found existing orkl install — will upgrade to ork (same skills, no data loss)."
+Report: "No conflicts detected" or "Found existing ork install — version {version}."
 
 ## Phase 4: Skill Recommendations
 
@@ -257,6 +257,7 @@ Bash(command="cat ~/.claude/settings.json 2>/dev/null | python3 -c \"import json
 | **Tavily** | If web-research-workflow relevant | Medium (needs API key, free tier) |
 | **NotebookLM** | If many docs/READMEs for team RAG | Medium (Google auth) |
 | **Agentation** | If frontend UI work detected | Medium (npm install) |
+| **Phoenix/Langfuse** | If LLM observability desired (local tracing, cost tracking) | Medium (Docker, optional) |
 
 Present as toggles with impact labels. Show install commands for selected MCPs:
 

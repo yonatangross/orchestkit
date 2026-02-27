@@ -75,9 +75,9 @@ Commit after each logical unit of work — never batch all commits to end of ses
 
 ## Plugin Architecture
 
-**Single plugin**: `ork` — all 69 skills, 38 agents, 85 hooks. `orkl` and `ork-creative` are aliases that install the same thing.
+**Single plugin**: `ork` — all 69 skills, 38 agents, 85 hooks.
 
-All plugins include 85 hooks (56 global + 28 agent-scoped + 1 skill-scoped) and a `settings.json` (permissions, keybindings, spinner). 29 skills are user-invocable via `/ork:skillname`.
+The plugin includes 85 hooks (56 global + 28 agent-scoped + 1 skill-scoped) and a `settings.json` (permissions, keybindings, spinner). 17 skills are user-invocable via `/ork:skillname`.
 
 ## Quick Reference
 

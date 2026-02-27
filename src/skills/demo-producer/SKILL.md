@@ -4,7 +4,7 @@ license: MIT
 compatibility: "Claude Code 2.1.59+."
 description: "Creates polished demo videos for skills, tutorials, and CLI demonstrations. Use when producing video showcases, marketing content, or terminal recordings."
 argument-hint: "[topic-or-feature]"
-user-invocable: true
+user-invocable: false
 allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate]
 context: fork
 version: 1.0.0

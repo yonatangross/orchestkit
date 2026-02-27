@@ -1,7 +1,7 @@
 ---
 name: create-migration
 description: Create an Alembic migration with auto-detected model changes. Use when creating database migrations.
-user-invocable: true
+user-invocable: false
 argument-hint: [migration-name]
 ---
 

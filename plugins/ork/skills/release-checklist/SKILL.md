@@ -4,7 +4,7 @@ description: "Validates release readiness with gated checklist — build, test, 
 tags: [release, checklist, orchestkit]
 version: 2.0.0
 author: OrchestKit
-user-invocable: true
+user-invocable: false
 complexity: medium
 ---
 

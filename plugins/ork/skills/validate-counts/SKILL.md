@@ -4,7 +4,7 @@ description: Validates hook, skill, and agent counts are consistent across CLAUD
 tags: [validation, consistency, orchestkit]
 version: 2.0.0
 author: OrchestKit
-user-invocable: true
+user-invocable: false
 complexity: low
 ---
 
@@ -35,7 +35,7 @@ bash src/skills/validate-counts/scripts/count-all.sh
 
 1. Run `scripts/validate-counts.sh` for full validation (counts + drift comparison), or `scripts/count-all.sh` for raw counts only
 2. Read `CLAUDE.md` — extract counts from Project Overview and Version section
-3. Read `manifests/ork.json` and `manifests/orkl.json` — check skill/agent/hook array lengths
+3. Read `manifests/ork.json` — check skill/agent/hook array lengths
 4. Build the comparison table (see `rules/drift-reporting.md` for format)
 5. Flag any mismatches with file + field references; otherwise output "All counts consistent."
 
@@ -52,5 +52,5 @@ bash src/skills/validate-counts/scripts/count-all.sh
 ## Common Mistakes
 
 1. Counting from `plugins/` instead of `src/` — plugins/ may be empty after an interrupted build
-2. Flagging `orkl` vs `ork` skill differences as drift — `orkl` intentionally excludes some skills
+2. Comparing against deleted alias manifests — only `manifests/ork.json` exists in v7
 3. Forgetting the hook breakdown: global + agent-scoped + skill-scoped must sum to total

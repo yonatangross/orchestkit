@@ -32,27 +32,7 @@
         },
         {
           "type": "json",
-          "path": "manifests/orkl.json",
-          "jsonpath": "$.version"
-        },
-        {
-          "type": "json",
-          "path": "manifests/ork-creative.json",
-          "jsonpath": "$.version"
-        },
-        {
-          "type": "json",
           "path": "plugins/ork/.claude-plugin/plugin.json",
-          "jsonpath": "$.version"
-        },
-        {
-          "type": "json",
-          "path": "plugins/orkl/.claude-plugin/plugin.json",
-          "jsonpath": "$.version"
-        },
-        {
-          "type": "json",
-          "path": "plugins/ork-creative/.claude-plugin/plugin.json",
           "jsonpath": "$.version"
         },
         {

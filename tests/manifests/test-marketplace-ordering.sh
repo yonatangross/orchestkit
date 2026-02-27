@@ -5,13 +5,11 @@
 # Validates that plugins are ordered correctly in marketplace.json:
 # if plugin A depends on plugin B, B must appear BEFORE A in the list.
 #
-# v7 unified architecture: ork is the primary plugin listed first,
-# orkl and ork-creative are aliases listed after.
+# v7 unified architecture: ork is the single plugin.
 #
 # Tests:
-# 1. ork (primary) must be the first plugin listed
-# 2. Aliases (orkl, ork-creative) must appear after ork
-# 3. Dependencies must appear before their dependents
+# 1. ork must be the first plugin listed
+# 2. Dependencies must appear before their dependents
 #
 # Related: GitHub Issue #252 (Plugin Consolidation)
 # Usage: ./test-marketplace-ordering.sh [--verbose]
@@ -89,31 +87,11 @@ else
 fi
 
 # ============================================================================
-# CHECK 2: aliases (orkl, ork-creative) must appear after ork
+# CHECK 2: Dependencies must appear before dependents
 # ============================================================================
 echo ""
 echo "───────────────────────────────────────────────────────────────"
-echo "  Check 2: aliases should appear after primary plugin"
-echo "───────────────────────────────────────────────────────────────"
-
-ork_pos=$(get_position "ork")
-for alias_name in orkl ork-creative; do
-    alias_pos=$(get_position "$alias_name")
-    if [[ -n "$alias_pos" && -n "$ork_pos" && "$alias_pos" -gt "$ork_pos" ]]; then
-        log_pass "$alias_name (pos $alias_pos) listed after ork (pos $ork_pos)"
-    elif [[ -z "$alias_pos" ]]; then
-        log_info "$alias_name not in marketplace (OK if removed)"
-    else
-        log_fail "$alias_name (pos $alias_pos) should be after ork (pos $ork_pos)"
-    fi
-done
-
-# ============================================================================
-# CHECK 3: Dependencies must appear before dependents
-# ============================================================================
-echo ""
-echo "───────────────────────────────────────────────────────────────"
-echo "  Check 3: Dependency ordering (deps before dependents)"
+echo "  Check 2: Dependency ordering (deps before dependents)"
 echo "───────────────────────────────────────────────────────────────"
 
 for manifest in "$MANIFESTS_DIR"/*.json; do
@@ -146,11 +124,11 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
 done
 
 # ============================================================================
-# CHECK 4: All plugins have consistent versions
+# CHECK 3: All plugins have consistent versions
 # ============================================================================
 echo ""
 echo "───────────────────────────────────────────────────────────────"
-echo "  Check 4: Version consistency across marketplace entries"
+echo "  Check 3: Version consistency across marketplace entries"
 echo "───────────────────────────────────────────────────────────────"
 
 unique_versions=$(jq -r '.plugins[].version' "$MARKETPLACE_JSON" | sort -u | wc -l | tr -d ' ')

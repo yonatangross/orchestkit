@@ -9,7 +9,7 @@ context: fork
 agent: metrics-architect
 version: 2.1.0
 tags: [analytics, metrics, usage, teams, agents, skills, hooks, data-visualization, dashboard, recharts, charts, widgets, session, cost, tokens, model-delegation]
-user-invocable: true
+user-invocable: false
 allowed-tools: [Bash, Read, Grep, Glob, AskUserQuestion]
 complexity: low
 metadata:

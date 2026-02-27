@@ -47,10 +47,8 @@ describe("docs-data", () => {
       expect(Array.isArray(PLUGINS)).toBe(true);
     });
 
-    it("contains orkl, ork-creative, and ork plugins", () => {
+    it("contains ork plugin", () => {
       const names = PLUGINS.map((p) => p.name);
-      expect(names).toContain("orkl");
-      expect(names).toContain("ork-creative");
       expect(names).toContain("ork");
     });
 
@@ -64,18 +62,6 @@ describe("docs-data", () => {
       expect(typeof plugin.hooks).toBe("number");
       expect(Array.isArray(plugin.skills)).toBe(true);
       expect(Array.isArray(plugin.agents)).toBe(true);
-    });
-
-    it("orkl has 69 skills", () => {
-      const orkl = PLUGINS.find((p) => p.name === "orkl");
-      expect(orkl).toBeDefined();
-      expect(orkl!.skillCount).toBe(69);
-    });
-
-    it("ork-creative has 69 skills", () => {
-      const orkCreative = PLUGINS.find((p) => p.name === "ork-creative");
-      expect(orkCreative).toBeDefined();
-      expect(orkCreative!.skillCount).toBe(69);
     });
 
     it("ork has 69 skills", () => {
@@ -207,7 +193,7 @@ describe("docs-data", () => {
     });
 
     it("every skill has valid plugins array", () => {
-      const validPlugins = ["orkl", "ork", "ork-creative"];
+      const validPlugins = ["ork"];
       for (const skill of Object.values(SKILLS)) {
         expect(skill.plugins.length).toBeGreaterThan(0);
         for (const plugin of skill.plugins) {
@@ -225,9 +211,8 @@ describe("docs-data", () => {
       expect(Object.keys(SKILLS_SUMMARY).length).toBeGreaterThan(0);
     });
 
-    it("contains orkl and ork keys", () => {
+    it("contains ork key", () => {
       const keys = Object.keys(SKILLS_SUMMARY);
-      expect(keys).toContain("orkl");
       expect(keys).toContain("ork");
     });
   });

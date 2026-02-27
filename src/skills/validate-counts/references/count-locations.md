@@ -20,7 +20,6 @@ Overview of every place counts appear and what they represent.
 | `CLAUDE.md` | Version section | "55 entries (17 event types, 12 dispatchers, 9 native async)" |
 | `src/hooks/hooks.json` | top-level `description` | May embed hook count |
 | `manifests/ork.json` | `skills[]` length, `agents[]` length | Counted from arrays |
-| `manifests/orkl.json` | `skills[]` length, `agents[]` length | Subset of ork |
 
 ## Why Counts Drift
 

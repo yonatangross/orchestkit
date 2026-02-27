@@ -1,38 +1,17 @@
 ---
 title: Choosing a Plugin
-description: "OrchestKit is one unified plugin — ork. orkl and ork-creative are backward-compatible aliases."
+description: "OrchestKit is one unified plugin — ork."
 ---
 
 ## One Plugin
 
-OrchestKit ships as a single plugin: **ork** — 69 skills, 38 agents, 78 hooks. There is no longer a tiered system to choose between.
+OrchestKit ships as a single plugin: **ork** — 69 skills, 38 agents, 85 hooks.
 
 ```bash
 claude install orchestkit/ork
 ```
 
-That is all you need.
-
-## Backward-Compatible Aliases
-
-The names `orkl` and `ork-creative` are preserved as install aliases. All three names install the exact same plugin with identical skills, agents, and hooks:
-
-| Name | What It Installs |
-|------|-----------------|
-| `ork` | 69 skills, 38 agents, 78 hooks |
-| `orkl` | Same as ork (alias) |
-| `ork-creative` | Same as ork (alias) |
-
-If you previously installed `orkl` or `ork-creative`, they continue to work. Upgrading to `ork` is non-destructive — it is the same content.
-
-## Install
-
-```bash
-# Any of these install the same plugin
-claude install orchestkit/ork
-claude install orchestkit/orkl
-claude install orchestkit/ork-creative
-```
+That is all you need. Skills load on-demand, so there is no overhead from unused skills.
 
 ## Next Steps
 
