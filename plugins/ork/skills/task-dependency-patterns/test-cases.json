@@ -1,0 +1,32 @@
+[
+  {
+    "skills": ["task-dependency-patterns"],
+    "query": "I need to implement a full authentication system: user model, auth endpoints, JWT tokens, middleware, and integration tests. Help me break this down into trackable tasks with proper dependencies.",
+    "expected_behavior": [
+      "Claude decomposes the work into atomic tasks using TaskCreate",
+      "Establishes dependency chains with addBlockedBy (e.g., auth endpoints blocked by user model)",
+      "Sets proper status workflow: pending for all initially, then in_progress as work begins",
+      "Provides activeForm for each task (e.g., 'Creating User model', 'Implementing JWT tokens')",
+      "Uses TaskUpdate to track progress as tasks complete"
+    ]
+  },
+  {
+    "skills": ["task-dependency-patterns"],
+    "query": "We have a cross-cutting refactor that needs a backend architect and frontend dev working simultaneously on shared contracts. Should I use Task tool subagents or Agent Teams?",
+    "expected_behavior": [
+      "Claude evaluates the criteria table: cross-cutting changes, agents need to communicate",
+      "Recommends Agent Teams over Task tool for this scenario due to mesh communication needs",
+      "Explains TeamCreate, peer-to-peer SendMessage, and shared task list patterns",
+      "Warns about the higher cost (~2.5x) of Agent Teams vs Task tool subagents"
+    ]
+  },
+  {
+    "skills": ["task-dependency-patterns"],
+    "query": "Change the button color from blue to green in the header component",
+    "expected_behavior": [
+      "Claude does NOT invoke the task-dependency-patterns skill",
+      "Makes the simple CSS/style change directly without task decomposition",
+      "Does not create TaskCreate calls for trivial single-step work"
+    ]
+  }
+]

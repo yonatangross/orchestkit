@@ -1,0 +1,34 @@
+[
+  {
+    "skills": ["presentation-builder"],
+    "query": "Create an HTML presentation for my conference talk about building real-time collaborative editors",
+    "expected_behavior": [
+      "Claude runs Phase 1 content discovery: asks purpose, slide count, and content readiness via AskUserQuestion",
+      "Runs Phase 2 style discovery: asks for mood/vibe selection, generates 3 style preview HTML files in .claude-design/slide-previews/",
+      "Generates a single self-contained HTML file with inline CSS and JS, no external dependencies",
+      "Every slide uses height: 100vh with overflow: hidden (viewport fitting)",
+      "Includes SlidePresentation class with keyboard, touch, and scroll navigation",
+      "Opens the final HTML file in the browser"
+    ]
+  },
+  {
+    "skills": ["presentation-builder"],
+    "query": "Convert my existing quarterly-review.pptx file into a web presentation",
+    "expected_behavior": [
+      "Claude detects Mode B (PPT Conversion) from the .pptx file reference",
+      "Follows the PPTX conversion reference workflow to extract content",
+      "Proceeds to Phase 2 for style selection after extraction",
+      "Generates a self-contained HTML file preserving the original slide content",
+      "Creates an assets/ directory for any extracted images"
+    ]
+  },
+  {
+    "skills": ["presentation-builder"],
+    "query": "Write unit tests for the UserService class in our Node.js backend",
+    "expected_behavior": [
+      "Claude does NOT invoke the presentation-builder skill",
+      "Uses standard testing patterns (Jest, Vitest, etc.) instead",
+      "No HTML file generation, style previews, or slide-related output"
+    ]
+  }
+]

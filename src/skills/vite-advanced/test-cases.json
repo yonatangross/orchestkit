@@ -1,0 +1,33 @@
+[
+  {
+    "skills": ["vite-advanced"],
+    "query": "I need to configure Vite to build for three targets: browser client, Node.js SSR server, and Cloudflare edge workers. How do I set up multi-environment builds?",
+    "expected_behavior": [
+      "Claude uses the Vite 7 Environment API with the environments config key",
+      "Configures separate client, ssr, and edge environment blocks",
+      "Sets appropriate build targets (e.g., node20 for SSR, edge/worker conditions for edge)",
+      "Uses separate outDir for each environment (dist/client, dist/server, dist/edge)",
+      "Mentions that each environment has its own module graph"
+    ]
+  },
+  {
+    "skills": ["vite-advanced"],
+    "query": "Our Vite 7 build takes 46 seconds and we're considering Vite 8 with Rolldown. Show me how to migrate manualChunks to the new advancedChunks API.",
+    "expected_behavior": [
+      "Claude explains the migration from manualChunks to advancedChunks with declarative groups",
+      "Provides advancedChunks config with priority, minSize, maxSize, and minShareCount fields",
+      "Mentions the rolldown-vite gradual migration path as an option",
+      "References performance benchmarks (7.7x build speed improvement)",
+      "Includes the migration checklist items"
+    ]
+  },
+  {
+    "skills": ["vite-advanced"],
+    "query": "Write a React component that displays a data table with sorting and filtering",
+    "expected_behavior": [
+      "Claude does NOT invoke the vite-advanced skill",
+      "Implements a standard React data table component",
+      "Uses UI component patterns without build configuration concerns"
+    ]
+  }
+]

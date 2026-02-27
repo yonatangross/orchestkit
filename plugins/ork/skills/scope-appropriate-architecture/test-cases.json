@@ -1,0 +1,31 @@
+[
+  {
+    "skills": ["scope-appropriate-architecture"],
+    "query": "I'm building a take-home assignment for a job interview - it's a todo app with a REST API. Should I use hexagonal architecture with CQRS and a message queue?",
+    "expected_behavior": [
+      "Claude detects Tier 1 (Interview/Take-home) based on context signals",
+      "Classifies hexagonal architecture, CQRS, and message queues as OVERKILL for this tier",
+      "Recommends flat files, SQLite or JSON storage, no auth, and 8-15 focused tests",
+      "Suggests the simplest viable architecture to demonstrate competence without over-engineering"
+    ]
+  },
+  {
+    "skills": ["scope-appropriate-architecture"],
+    "query": "Our monorepo has a packages/ directory with Kubernetes manifests, Terraform configs, and 40+ dependencies. We're debating whether to add DI containers and bounded contexts.",
+    "expected_behavior": [
+      "Claude detects Tier 4-5 (Growth/Enterprise) from monorepo, K8s, and Terraform signals",
+      "Classifies DI containers and bounded contexts as APPROPRIATE or SELECTIVE for this tier",
+      "Provides tier-appropriate recommendations rather than blanket approval or rejection",
+      "References the Pattern Appropriateness Matrix for the detected tier"
+    ]
+  },
+  {
+    "skills": ["scope-appropriate-architecture"],
+    "query": "Fix the null pointer exception in our UserService.java on line 42",
+    "expected_behavior": [
+      "Claude does NOT invoke the scope-appropriate-architecture skill",
+      "Focuses on debugging the specific null pointer exception",
+      "Uses standard code analysis tools to find and fix the bug"
+    ]
+  }
+]

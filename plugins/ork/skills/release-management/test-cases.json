@@ -1,0 +1,33 @@
+[
+  {
+    "skills": ["release-management"],
+    "query": "Create a new release for version 2.1.0 with auto-generated notes from merged PRs. We also need to close the milestone and upload the dist/app.zip build artifact.",
+    "expected_behavior": [
+      "Claude ensures main is up to date (git checkout main, git pull)",
+      "Creates and pushes a git tag v2.1.0",
+      "Runs gh release create v2.1.0 --generate-notes with the build artifact",
+      "Closes the milestone via gh api (not --milestone flag)",
+      "Follows the standard release workflow order: tag -> release -> milestone close"
+    ]
+  },
+  {
+    "skills": ["release-management"],
+    "query": "We found a critical security vulnerability in production on v1.5.3. We need to ship a hotfix release immediately.",
+    "expected_behavior": [
+      "Claude follows the hotfix release workflow: branch from release tag v1.5.3",
+      "Creates hotfix branch (hotfix/v1.5.4), applies fix, commits",
+      "Tags v1.5.4 and creates a GitHub release with clear security hotfix notes",
+      "Cherry-picks the fix back to main to keep branches in sync",
+      "Uses semantic versioning patch bump (1.5.3 -> 1.5.4)"
+    ]
+  },
+  {
+    "skills": ["release-management"],
+    "query": "Add a new endpoint to the users API that returns paginated results with cursor-based pagination",
+    "expected_behavior": [
+      "Claude does NOT invoke the release-management skill",
+      "Implements the API endpoint using standard backend patterns",
+      "No release creation, version tagging, or changelog generation"
+    ]
+  }
+]

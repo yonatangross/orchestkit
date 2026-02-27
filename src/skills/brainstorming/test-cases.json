@@ -1,0 +1,36 @@
+[
+  {
+    "skills": ["brainstorming"],
+    "query": "Brainstorm how we should design the notification system for our app.",
+    "expected_behavior": [
+      "Detects project tier via codebase scanning before starting",
+      "Clarifies brainstorming constraints with AskUserQuestion",
+      "Creates TaskCreate with subtasks for all seven phases",
+      "Selects 3-5 relevant agents dynamically based on topic keywords",
+      "Generates 10+ divergent ideas before filtering",
+      "Runs feasibility fast-check including testability scoring",
+      "Synthesizes top 2-3 approaches with trade-off table and test strategy"
+    ]
+  },
+  {
+    "skills": ["brainstorming"],
+    "query": "Compare these two approaches for our caching layer: Redis with TTL vs in-memory LRU cache.",
+    "expected_behavior": [
+      "Detects this is a comparison mode, not open exploration",
+      "Skips divergent ideation phase since user already has specific approaches",
+      "Jumps to evaluation phase with the two provided options",
+      "Rates each approach on 6 dimensions including testability",
+      "Presents structured comparison with trade-offs and recommendation"
+    ]
+  },
+  {
+    "skills": ["brainstorming"],
+    "query": "The login page throws a 500 error when I click submit. Fix it urgently.",
+    "expected_behavior": [
+      "Claude does NOT invoke the brainstorming skill",
+      "Treats this as an urgent bug fix requiring immediate debugging",
+      "Uses standard debugging tools (Read, Grep, Bash) to investigate",
+      "Brainstorming is inappropriate for time-sensitive bug fixes"
+    ]
+  }
+]

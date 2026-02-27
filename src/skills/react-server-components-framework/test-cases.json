@@ -1,0 +1,34 @@
+[
+  {
+    "skills": ["react-server-components-framework"],
+    "query": "I am building a Next.js 16 app and need to create a product listing page that fetches data from my database, caches it with revalidation, and has an interactive filter sidebar",
+    "expected_behavior": [
+      "Claude uses Server Component for the product listing (async, direct DB access, no client JS)",
+      "Uses the 'use cache' directive with cacheLife and cacheTag for data caching instead of legacy fetch options",
+      "Extracts the interactive filter sidebar as a Client Component with 'use client' directive",
+      "Passes Server Components as children to Client Components where needed",
+      "Uses async params pattern (await params) per Next.js 16 requirements",
+      "Wraps async data in Suspense boundaries for streaming"
+    ]
+  },
+  {
+    "skills": ["react-server-components-framework"],
+    "query": "I am migrating from Next.js 15 to 16 and getting errors about params being undefined and experimental_ppr not being a valid export",
+    "expected_behavior": [
+      "Claude references the nextjs-16-upgrade guide for breaking changes",
+      "Shows how to convert params from sync to async (add await before params)",
+      "Explains that experimental_ppr is removed and replaced by Cache Components with 'use cache' directive",
+      "Covers the cacheComponents: true config in next.config.ts",
+      "Mentions other breaking changes: async cookies/headers, middleware.ts to proxy.ts"
+    ]
+  },
+  {
+    "skills": ["react-server-components-framework"],
+    "query": "Set up a Python Flask API with SQLAlchemy ORM and JWT authentication",
+    "expected_behavior": [
+      "Claude does NOT invoke the react-server-components-framework skill",
+      "Uses standard Python/Flask knowledge instead",
+      "No references to Server Components, App Router, React 19, or Next.js patterns"
+    ]
+  }
+]

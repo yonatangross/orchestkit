@@ -1,0 +1,33 @@
+[
+  {
+    "skills": ["web-research-workflow"],
+    "query": "I need to research the pricing page of three competitor SaaS products and extract their plan details into a comparison table",
+    "expected_behavior": [
+      "Claude follows the 3-tier decision tree: tries WebFetch first for each URL",
+      "Falls back to Tavily extract if WebFetch returns empty or partial content (<500 chars)",
+      "Escalates to agent-browser only for JS-rendered or auth-required pages",
+      "Extracts structured data (plan names, prices, features) from each competitor page",
+      "Produces a comparison table with change classification for monitoring"
+    ]
+  },
+  {
+    "skills": ["web-research-workflow"],
+    "query": "Monitor our competitor's changelog page weekly and alert me when they ship a major feature update - it's a React SPA that requires JavaScript rendering",
+    "expected_behavior": [
+      "Claude identifies the SPA characteristic and plans for agent-browser fallback",
+      "Sets up snapshot capture with structured data extraction",
+      "Applies change classification: Critical for major feature changes, High for new features",
+      "Handles the JS-rendered content with wait --load networkidle pattern",
+      "Suggests a recurring monitoring workflow"
+    ]
+  },
+  {
+    "skills": ["web-research-workflow"],
+    "query": "Optimize the SQL query in our analytics dashboard - it's timing out on the monthly report",
+    "expected_behavior": [
+      "Claude does NOT invoke the web-research-workflow skill",
+      "Analyzes and optimizes the SQL query using standard database patterns",
+      "Uses code analysis tools without web fetching or browser automation"
+    ]
+  }
+]

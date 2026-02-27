@@ -1,0 +1,33 @@
+[
+  {
+    "skills": ["github-operations"],
+    "query": "Create 5 issues for Sprint 9 with labels, assign them to the milestone, and then list all open issues in that milestone with their progress.",
+    "expected_behavior": [
+      "Claude uses gh issue create with --title, --label, and --milestone flags",
+      "Claude passes milestone by NAME (not number) to --milestone flag",
+      "Claude captures created issue numbers with --json number --jq '.number'",
+      "Claude uses gh api repos/:owner/:repo/milestones --jq for progress display",
+      "Claude uses non-interactive mode with explicit flags for all operations"
+    ]
+  },
+  {
+    "skills": ["github-operations"],
+    "query": "Close milestone 'Sprint 7' using the REST API and find all approved PRs with passing CI that are ready to merge.",
+    "expected_behavior": [
+      "Claude looks up milestone NUMBER via gh api (not using name directly in API)",
+      "Claude uses gh api -X PATCH with the milestone number to close it",
+      "Claude queries PRs with --json reviewDecision,statusCheckRollupState",
+      "Claude filters for APPROVED reviewDecision and SUCCESS statusCheckRollupState",
+      "Claude does NOT use gh issue close on any issues (issues close only via PR merge)"
+    ]
+  },
+  {
+    "skills": ["github-operations"],
+    "query": "Write unit tests for the UserService class that cover the login, logout, and password reset methods.",
+    "expected_behavior": [
+      "Claude does NOT invoke the github-operations skill",
+      "Claude writes test files using standard tools (Read, Write, Bash)",
+      "Claude does not run any gh CLI commands for a testing task"
+    ]
+  }
+]
