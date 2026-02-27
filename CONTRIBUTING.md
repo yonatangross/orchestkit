@@ -153,7 +153,7 @@ Create code templates in `assets/`:
 
 ### 5. Add to Plugin Manifest
 
-All three plugins are identical aliases, so add your skill to any one manifest (e.g., `manifests/ork.json`) — the build script uses `"skills": "all"` for all plugins:
+Add your skill to the manifest (`manifests/ork.json`) — the build script uses `"skills": "all"`:
 
 ```bash
 vim manifests/ork.json

@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Breaking Changes
 
-- **plugins:** Unified plugin architecture — `orkl` and `ork-creative` are now aliases for `ork`. All 3 install identical content (69 skills, 38 agents, 55 hooks). Existing `orkl`/`ork-creative` users get automatic migration.
+- **plugins:** Unified plugin architecture — `orkl` and `ork-creative` removed, consolidated into single `ork` plugin (69 skills, 38 agents, 85 hooks). Migration: `claude plugin uninstall orkl && claude plugin install ork`.
 
 ### Added
 
