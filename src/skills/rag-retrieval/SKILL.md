@@ -1,7 +1,7 @@
 ---
 name: rag-retrieval
 license: MIT
-compatibility: "Claude Code 2.1.56+."
+compatibility: "Claude Code 2.1.59+."
 description: Retrieval-Augmented Generation patterns for grounded LLM responses. Use when building RAG pipelines, embedding documents, implementing hybrid search, contextual retrieval, HyDE, agentic RAG, multimodal RAG, query decomposition, reranking, or pgvector search.
 tags: [rag, retrieval, llm, context, grounding, embeddings, hyde, reranking, pgvector, multimodal]
 context: fork

@@ -1,7 +1,7 @@
 ---
 name: setup
 license: MIT
-compatibility: "Claude Code 2.1.56+."
+compatibility: "Claude Code 2.1.59+."
 description: "Personalized onboarding wizard. Scans your codebase, detects your stack, recommends skills and MCPs, generates a readiness score and improvement plan."
 argument-hint: "[--rescan] [--score-only] [--plan-only] [--channel]"
 context: inherit
@@ -353,11 +353,25 @@ mcp__memory__create_entities(entities=[{
 }])
 ```
 
+## Phase 7b: CLAUDE.md Health Check
+
+After the improvement plan, check if the user's CLAUDE.md could benefit from CC 2.1.59+ modular structure.
+
+See [CLAUDE.md Health Check](references/claude-md-health.md) for analysis steps, thresholds, @import syntax, and `.claude/rules/` path-scoped rules.
+
+```python
+# Quick check
+Bash(command="wc -l CLAUDE.md 2>/dev/null | awk '{print $1}'")
+Glob(pattern=".claude/rules/*.md")
+```
+
+If CLAUDE.md > 200 lines and no `.claude/rules/` exist, recommend splitting. Show the output template from the reference doc.
+
 ## CLI Flags
 
 | Flag | Behavior |
 |------|----------|
-| (none) | Full 7-phase wizard |
+| (none) | Full 7-phase wizard (includes 7b health check) |
 | `--rescan` | Re-run scan + score, skip safety phase |
 | `--score-only` | Show current readiness score (Phase 6 only) |
 | `--plan-only` | Show improvement plan (Phase 7 only) |

@@ -1,7 +1,7 @@
 ---
 name: help
 license: MIT
-compatibility: "Claude Code 2.1.56+."
+compatibility: "Claude Code 2.1.59+."
 description: "OrchestKit skill directory with categorized listings. Use when discovering skills for a task, finding the right workflow, or browsing capabilities."
 argument-hint: "[category]"
 context: fork

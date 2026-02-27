@@ -1,7 +1,7 @@
 ---
 name: commit
 license: MIT
-compatibility: "Claude Code 2.1.56+."
+compatibility: "Claude Code 2.1.59+."
 description: "Creates commits with conventional format and validation. Use when committing changes or generating commit messages."
 argument-hint: "[message]"
 context: inherit

@@ -1,7 +1,7 @@
 ---
 name: multimodal-llm
 license: MIT
-compatibility: "Claude Code 2.1.56+."
+compatibility: "Claude Code 2.1.59+."
 author: OrchestKit
 version: 1.0.0
 description: Vision, audio, and multimodal LLM integration patterns. Use when processing images, transcribing audio, generating speech, or building multimodal AI pipelines.

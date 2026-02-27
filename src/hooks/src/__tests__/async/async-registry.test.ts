@@ -68,7 +68,7 @@ describe('Async Hooks Registry', () => {
       }
     });
 
-    it('should have exactly 8 async hooks', () => {
+    it('should have exactly 9 async hooks', () => {
       const allHooks: Hook[] = [];
       for (const eventGroups of Object.values(hooksConfig.hooks)) {
         for (const group of eventGroups) {
@@ -77,7 +77,7 @@ describe('Async Hooks Registry', () => {
       }
 
       const asyncHooks = allHooks.filter(h => h.async === true);
-      expect(asyncHooks.length, 'Should have exactly 8 async hooks (7 original + pr-status-enricher)').toBe(8);
+      expect(asyncHooks.length, 'Should have exactly 9 async hooks (7 original + pr-status-enricher + config-change)').toBe(9);
     });
 
     it('should NOT have async: true for blocking hooks', () => {

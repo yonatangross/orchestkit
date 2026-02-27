@@ -1,7 +1,7 @@
 ---
 name: testing-patterns
 license: MIT
-compatibility: "Claude Code 2.1.56+."
+compatibility: "Claude Code 2.1.59+."
 description: Comprehensive testing patterns for unit, integration, E2E, pytest, API mocking (MSW/VCR), test data, property/contract testing, performance, LLM, and accessibility testing. Use when writing tests, setting up test infrastructure, or validating application quality.
 tags: [testing, unit, integration, e2e, pytest, msw, vcr, property, contract, performance, llm, a11y]
 context: fork

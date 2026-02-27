@@ -1,7 +1,7 @@
 ---
 name: implement
 license: MIT
-compatibility: "Claude Code 2.1.56+. Requires memory MCP server, context7 MCP server, network access."
+compatibility: "Claude Code 2.1.59+. Requires memory MCP server, context7 MCP server, network access."
 description: "Full-power feature implementation with parallel subagents. Use when implementing, building, or creating features."
 argument-hint: "[feature-description]"
 context: fork

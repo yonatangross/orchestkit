@@ -1,7 +1,7 @@
 ---
 name: scope-appropriate-architecture
 license: MIT
-compatibility: "Claude Code 2.1.56+"
+compatibility: "Claude Code 2.1.59+"
 description: "Right-sizes architecture to project scope. Prevents over-engineering by classifying projects into 6 tiers and constraining pattern choices accordingly. Use when designing architecture, selecting patterns, or when brainstorming/implement detect a project tier."
 tags: [architecture, yagni, over-engineering, scope, patterns]
 version: 1.0.0

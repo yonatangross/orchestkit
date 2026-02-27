@@ -1,7 +1,7 @@
 ---
 name: doctor
 license: MIT
-compatibility: "Claude Code 2.1.56+."
+compatibility: "Claude Code 2.1.59+."
 description: "OrchestKit doctor for health diagnostics. Use when running checks on plugin health, diagnosing problems, or troubleshooting issues."
 argument-hint: "[--verbose]"
 context: inherit

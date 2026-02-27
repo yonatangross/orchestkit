@@ -1,7 +1,7 @@
 ---
 name: skill-evolution
 license: MIT
-compatibility: "Claude Code 2.1.56+."
+compatibility: "Claude Code 2.1.59+."
 description: "Analyzes skill usage patterns and suggests improvements. Use when reviewing skill performance, applying auto-suggested changes, or rolling back versions."
 argument-hint: "[subcommand] [skill-id]"
 context: inherit

@@ -2936,7 +2936,11 @@ export const SKILLS: Record<string, SkillMeta> = {
       "help"
     ],
     "agent": null,
-    "structure": {},
+    "structure": {
+      "references": [
+        "claude-md-health.md"
+      ]
+    },
     "plugins": [
       "ork-creative",
       "ork",

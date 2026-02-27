@@ -37,6 +37,9 @@ import { completionTracker } from '../task-completed/completion-tracker.js';
 // WorktreeCreate/WorktreeRemove hooks (CC 2.1.50)
 import { worktreeLifecycleLogger } from '../worktree/worktree-lifecycle-logger.js';
 
+// ConfigChange hooks (CC 2.1.50)
+import { settingsReload } from '../config-change/settings-reload.js';
+
 import type { HookFn } from '../types.js';
 
 /**
@@ -68,6 +71,9 @@ export const hooks: Record<string, HookFn> = {
 
   // WorktreeCreate/WorktreeRemove hooks (CC 2.1.50)
   'worktree/worktree-lifecycle-logger': worktreeLifecycleLogger,
+
+  // ConfigChange hooks (CC 2.1.50)
+  'config-change/settings-reload': settingsReload,
 };
 
 export function getHook(name: string): HookFn | undefined {
