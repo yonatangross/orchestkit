@@ -50,7 +50,6 @@ describe('Async Hooks Registry', () => {
         { path: 'notification/unified-dispatcher', event: 'Notification' },
         { path: 'setup/unified-dispatcher', event: 'Setup' },
         { path: 'prompt/capture-user-intent', event: 'UserPromptSubmit' },
-        { path: 'notification/sound', event: 'Notification' },
       ];
 
       const allHooks: Hook[] = [];
@@ -69,7 +68,7 @@ describe('Async Hooks Registry', () => {
       }
     });
 
-    it('should have exactly 9 async hooks', () => {
+    it('should have exactly 8 async hooks', () => {
       const allHooks: Hook[] = [];
       for (const eventGroups of Object.values(hooksConfig.hooks)) {
         for (const group of eventGroups) {
@@ -78,7 +77,7 @@ describe('Async Hooks Registry', () => {
       }
 
       const asyncHooks = allHooks.filter(h => h.async === true);
-      expect(asyncHooks.length, 'Should have exactly 9 async hooks (8 original + pr-status-enricher)').toBe(9);
+      expect(asyncHooks.length, 'Should have exactly 8 async hooks (7 original + pr-status-enricher)').toBe(8);
     });
 
     it('should NOT have async: true for blocking hooks', () => {
@@ -186,7 +185,6 @@ describe('Async Hooks Registry', () => {
         'notification/unified-dispatcher',
         'setup/unified-dispatcher',
         'prompt/capture-user-intent',
-        'notification/sound',
       ];
 
       for (const hookPath of asyncDispatchers) {
