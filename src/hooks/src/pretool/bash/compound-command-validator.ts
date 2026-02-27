@@ -11,7 +11,7 @@ import {
   logHook,
   logPermissionFeedback,
 } from '../../lib/common.js';
-import { containsDangerousCommand, normalizeSingle } from '../../lib/normalize-command.js';
+import { containsDangerousCommand, normalizeSingle, detectSuspiciousShellFeatures } from '../../lib/normalize-command.js';
 
 /**
  * Dangerous segment patterns
@@ -59,6 +59,23 @@ export function compoundCommandValidator(input: HookInput): HookResult {
 
   if (!command) {
     return outputSilentSuccess();
+  }
+
+  // Check for suspicious shell features first (process substitution, brace expansion, etc.)
+  const suspiciousFeatures = detectSuspiciousShellFeatures(command);
+  if (suspiciousFeatures.length > 0) {
+    const reason = suspiciousFeatures.join('; ');
+    logPermissionFeedback('deny', `Suspicious shell feature: ${reason}`, input);
+    logHook('compound-command-validator', `BLOCKED: ${reason}`);
+
+    return outputDeny(
+      `BLOCKED: Suspicious shell feature detected.
+
+Finding: ${reason}
+
+These shell features can bypass command validation and are not permitted.
+Please rewrite the command using standard shell syntax.`
+    );
   }
 
   const blockReason = validateCompoundCommand(command);

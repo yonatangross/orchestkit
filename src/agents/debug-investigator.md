@@ -28,6 +28,8 @@ hooks:
   PreToolUse:
     - matcher: "Write|Edit"
       command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs agent/block-writes"
+    - matcher: "Bash"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs agent/restrict-bash"
 ---
 ## Directive
 Perform systematic root cause analysis on bugs using scientific method. Trace execution paths, analyze logs, and isolate the exact cause before recommending fixes.

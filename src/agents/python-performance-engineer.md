@@ -7,6 +7,7 @@ maxTurns: 20
 context: fork
 color: orange
 memory: project
+isolation: worktree
 tools:
   - Read
   - Edit

@@ -7,6 +7,7 @@ permissionMode: plan
 context: fork
 color: cyan
 memory: project
+isolation: worktree
 tools:
   - Bash
   - Read

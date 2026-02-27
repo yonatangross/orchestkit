@@ -7,6 +7,7 @@ permissionMode: plan
 context: fork
 color: yellow
 memory: project
+isolation: worktree
 tools:
   - Read
   - Edit

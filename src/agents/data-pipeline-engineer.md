@@ -6,6 +6,7 @@ model: haiku
 context: fork
 color: green
 memory: project
+isolation: worktree
 background: true
 tools:
   - Bash
