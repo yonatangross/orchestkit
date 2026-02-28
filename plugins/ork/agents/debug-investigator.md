@@ -3,7 +3,7 @@ name: debug-investigator
 description: Debug specialist who performs systematic root cause analysis on bugs, errors, exceptions, crashes, and failures. Uses scientific method to isolate issues, traces execution paths, analyzes logs and stack traces. Use when investigating broken functionality, debugging regressions, or analyzing flaky tests.
 category: testing
 model: sonnet
-maxTurns: 15
+maxTurns: 30
 context: inherit
 color: orange
 memory: local

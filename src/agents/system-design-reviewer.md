@@ -3,7 +3,7 @@ name: system-design-reviewer
 description: System design reviewer who evaluates implementation plans against scale, data, security, UX, and coherence criteria before code is written. Auto Mode keywords: system design, architecture review, scale, security review, implementation plan
 category: design
 model: opus
-maxTurns: 20
+maxTurns: 40
 permissionMode: plan
 context: inherit
 color: cyan

@@ -3,7 +3,7 @@ name: product-strategist
 description: Product strategy specialist who validates value propositions, aligns features with business goals, evaluates build/buy/partner decisions, and recommends go/no-go with strategic rationale. Activates for product strategy, value proposition, build/buy/partner, go/no-go
 category: product
 model: sonnet
-maxTurns: 15
+maxTurns: 30
 context: fork
 color: purple
 memory: project

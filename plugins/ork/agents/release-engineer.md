@@ -4,7 +4,7 @@ description: Release and versioning specialist who manages GitHub releases, mile
 category: devops
 model: haiku
 background: true
-maxTurns: 10
+maxTurns: 20
 memory: project
 context: fork
 color: purple

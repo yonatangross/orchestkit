@@ -4,7 +4,7 @@ description: Test specialist who analyzes code coverage gaps, generates unit/int
 category: testing
 model: sonnet
 isolation: worktree
-maxTurns: 15
+maxTurns: 30
 context: fork
 color: green
 memory: project

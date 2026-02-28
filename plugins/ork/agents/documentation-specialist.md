@@ -4,7 +4,7 @@ description: Technical writing and documentation expert. API docs, READMEs, tech
 category: docs
 model: haiku
 background: true
-maxTurns: 10
+maxTurns: 20
 context: fork
 color: gray
 memory: project

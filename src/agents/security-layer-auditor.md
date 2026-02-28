@@ -3,7 +3,7 @@ name: security-layer-auditor
 description: Security layer auditor who verifies defense-in-depth implementation across 8 security layers, from edge to storage, ensuring comprehensive protection. Auto Mode keywords - security layer, defense-in-depth, security audit, 8 layers
 category: security
 model: opus
-maxTurns: 20
+maxTurns: 40
 context: fork
 color: red
 memory: local

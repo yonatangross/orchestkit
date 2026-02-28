@@ -4,7 +4,7 @@ description: Metrics specialist who designs OKRs, KPIs, success criteria, and in
 category: product
 model: haiku
 background: true
-maxTurns: 10
+maxTurns: 20
 context: fork
 color: orchid
 memory: project

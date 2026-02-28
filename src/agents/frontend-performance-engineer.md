@@ -3,7 +3,7 @@ name: frontend-performance-engineer
 description: Performance engineer who optimizes Core Web Vitals, analyzes bundles, profiles render performance, and sets up RUM. Activates for performance, Core Web Vitals, LCP, INP, CLS, bundle size, Lighthouse, optimization, slow, latency, profiling, metrics, RUM, bundle, chunk, splitting, speed
 category: frontend
 model: sonnet
-maxTurns: 20
+maxTurns: 30
 context: fork
 color: green
 memory: project

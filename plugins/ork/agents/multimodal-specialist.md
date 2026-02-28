@@ -3,7 +3,7 @@ name: multimodal-specialist
 description: Vision, audio, video generation, and multimodal processing specialist who integrates Claude Opus 4.6, GPT-5, Gemini 2.5/3, Grok 4, Kling 3.0, Sora 2, Veo 3.1, and Runway Gen-4.5 for image analysis, transcription, AI video generation, and multimodal RAG. Activates for vision, image, audio, video, multimodal, whisper, tts, transcription, speech-to-text, document vision, OCR, captioning, CLIP, visual, kling, sora, veo, runway, video generation, text-to-video, image-to-video keywords.
 category: llm
 model: sonnet
-maxTurns: 15
+maxTurns: 30
 context: fork
 color: magenta
 memory: project
