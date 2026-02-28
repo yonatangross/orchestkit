@@ -135,6 +135,26 @@ function handleInsufficientScope(wwwAuth: string) {
 }
 ```
 
+**Correct -- OAuth URL paste fallback (headless/SSH environments):**
+```typescript
+// 9. When browser can't open (SSH, containers, headless), print URL for manual paste
+async function authorizeWithFallback(authUrl: string) {
+  const canOpenBrowser = process.env.DISPLAY || process.platform === "darwin";
+  if (canOpenBrowser) {
+    await open(authUrl); // Opens default browser
+  } else {
+    // Fallback: print URL for user to paste in their local browser
+    console.log("\nOpen this URL in your browser to authorize:");
+    console.log(`\n  ${authUrl}\n`);
+    console.log("After authorizing, paste the callback URL here:");
+    const callbackUrl = await readline.question("> ");
+    const code = new URL(callbackUrl).searchParams.get("code");
+    if (!code) throw new Error("No authorization code found in callback URL");
+    return code;
+  }
+}
+```
+
 **Key rules:**
 - PKCE with S256 is mandatory; refuse to proceed if AS lacks `code_challenge_methods_supported`
 - Include `resource` parameter (RFC 8707) in both authorization and token requests, set to the MCP server's canonical URI

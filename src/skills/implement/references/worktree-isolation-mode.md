@@ -58,6 +58,17 @@ When running in a worktree, the `context-gate` SubagentStart hook raises concurr
 
 This is safe because worktree agents operate on an isolated file tree.
 
+## Config Sharing (CC 2.1.63+)
+
+Since CC 2.1.63, project configs and auto-memory are **automatically shared** across git worktrees. No manual copying needed:
+
+- `.claude/settings.json` — shared across all worktrees
+- `.claude/memory/` — auto-memory persists across worktrees
+- `CLAUDE.md` — project instructions available in every worktree
+- Plugin configs — plugins discovered from any worktree
+
+For CC < 2.1.63, configs must be manually copied to each worktree directory.
+
 ## CLI Alternative
 
 Users can also start worktrees manually:
