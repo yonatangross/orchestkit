@@ -58,10 +58,10 @@ AskUserQuestion(questions=[{
   "question": "What kind of project is this?",
   "header": "Project tier",
   "options": [
-    {"label": "Interview / take-home", "description": "8-15 files, 200-600 LOC, simple architecture"},
-    {"label": "Startup / MVP", "description": "MVC monolith, managed services, ship fast"},
-    {"label": "Growth / enterprise", "description": "Modular monolith or DDD, full observability"},
-    {"label": "Open source library", "description": "Minimal API surface, exhaustive tests"}
+    {"label": "Interview / take-home", "description": "8-15 files, 200-600 LOC, simple architecture", "markdown": "```\nTier 1: Interview / Take-Home\n─────────────────────────────\nFiles:    8-15 max\nLOC:      200-600\nArch:     Flat structure, no abstractions\nPatterns: Direct imports, inline logic\nTests:    Unit only, co-located\n```"},
+    {"label": "Startup / MVP", "description": "MVC monolith, managed services, ship fast", "markdown": "```\nTier 3: Startup / MVP\n─────────────────────\nArch:     MVC monolith\nDB:       Managed (RDS/Supabase)\nCI:       GitHub Actions (1-2 workflows)\nPatterns: Service layer, repository pattern\nDeploy:   Vercel / Railway / Fly.io\n```"},
+    {"label": "Growth / enterprise", "description": "Modular monolith or DDD, full observability", "markdown": "```\nTier 4-5: Growth / Enterprise\n─────────────────────────────\nArch:     Modular monolith or DDD\nInfra:    K8s, Terraform, Redis, queues\nCI:       Multi-stage pipelines\nPatterns: Hexagonal, CQRS, event-driven\nObserve:  Structured logging, tracing\n```"},
+    {"label": "Open source library", "description": "Minimal API surface, exhaustive tests", "markdown": "```\nTier 6: Open Source Library\n──────────────────────────\nAPI:      Minimal public surface\nTests:    100% coverage, property-based\nDocs:     README, API docs, examples\nCI:       Matrix builds, release automation\nPatterns: Semver, CONTRIBUTING.md\n```"}
   ],
   "multiSelect": false
 }])
@@ -84,10 +84,10 @@ AskUserQuestion(
       "question": "What type of design exploration?",
       "header": "Type",
       "options": [
-        {"label": "Open exploration (Recommended)", "description": "Generate 10+ ideas, evaluate all, synthesize top 3"},
-        {"label": "Constrained design", "description": "I have specific requirements to work within"},
-        {"label": "Comparison", "description": "Compare 2-3 specific approaches I have in mind"},
-        {"label": "Quick ideation", "description": "Generate ideas fast, skip deep evaluation"}
+        {"label": "Open exploration (Recommended)", "description": "Generate 10+ ideas, evaluate all, synthesize top 3", "markdown": "```\nOpen Exploration (7 phases)\n──────────────────────────\n  Diverge        Evaluate       Synthesize\n  ┌─────┐       ┌─────┐       ┌─────┐\n  │ 10+ │──────▶│Rate │──────▶│Top 3│\n  │ideas│       │0-10 │       │picks│\n  └─────┘       └─────┘       └─────┘\n  3-5 agents    Devil's        Trade-off\n  in parallel   advocate       table\n```"},
+        {"label": "Constrained design", "description": "I have specific requirements to work within", "markdown": "```\nConstrained Design\n──────────────────\n  Requirements ──▶ Feasibility ──▶ Design\n  ┌──────────┐    ┌──────────┐    ┌──────┐\n  │ Fixed    │    │ Check    │    │ Best │\n  │ bounds   │    │ fit      │    │ fit  │\n  └──────────┘    └──────────┘    └──────┘\n  Skip divergent phase, focus on\n  feasibility within constraints\n```"},
+        {"label": "Comparison", "description": "Compare 2-3 specific approaches I have in mind", "markdown": "```\nComparison Mode\n───────────────\n  Approach A ──┐\n  Approach B ──┼──▶ Rate 0-10 ──▶ Winner\n  Approach C ──┘    (6 dims)\n\n  Skip ideation, jump straight\n  to evaluation + trade-off table\n```"},
+        {"label": "Quick ideation", "description": "Generate ideas fast, skip deep evaluation", "markdown": "```\nQuick Ideation\n──────────────\n  Braindump ──▶ Light filter ──▶ List\n  ┌────────┐   ┌────────────┐   ┌────┐\n  │ 10+    │   │ Viable?    │   │ 5-7│\n  │ ideas  │   │ Y/N only   │   │ out│\n  └────────┘   └────────────┘   └────┘\n  Fast pass, no deep scoring\n```"}
       ],
       "multiSelect": false
     },

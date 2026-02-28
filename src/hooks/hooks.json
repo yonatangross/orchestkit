@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 36 global (32 command + 4 http) + 28 agent-scoped + 1 skill-scoped = 65 total hooks",
+  "description": "OrchestKit hooks - 36 global (32 command + 4 http) + 46 agent-scoped + 4 skill-scoped = 86 total hooks",
   "hooks": {
     "PreToolUse": [
       {

@@ -28,14 +28,14 @@ Personalized onboarding that scans your codebase, detects your stack, recommends
 ## Quick Start
 
 ```bash
-/ork:setup              # Full 7-phase wizard
+/ork:setup              # Full 8-phase wizard
 /ork:setup --rescan     # Re-scan after changes (skip safety phase)
 /ork:setup --score-only # Just show readiness score
 /ork:setup --plan-only  # Just show improvement plan
 /ork:setup --channel    # Just show release channel
 ```
 
-## The Seven Phases
+## The Eight Phases
 
 | Phase | What | Tools Used | Output |
 |-------|------|-----------|--------|
@@ -46,6 +46,7 @@ Personalized onboarding that scans your codebase, detects your stack, recommends
 | 5. MCPs | Recommend MCPs based on stack and gaps | Read, Bash | MCP recommendations |
 | 6. Score | Compute readiness score (0-10, 6 dimensions) | All above data | Readiness score |
 | 7. Plan | Prioritized improvements with runnable commands | — | Action plan |
+| 8. Keys | Install recommended keyboard shortcuts | Read, Bash, AskUserQuestion | Keybindings |
 
 ---
 
@@ -185,9 +186,9 @@ AskUserQuestion(questions=[{
   "question": "How should OrchestKit be installed?",
   "header": "Install scope",
   "options": [
-    {"label": "User-only (Recommended)", "description": "Plugin loads only for you. Invisible to teammates. Safe for enterprise."},
-    {"label": "Project-wide", "description": "Adds to .claude/plugins — loads for everyone in this repo."},
-    {"label": "Already installed", "description": "Skip installation, just configure."}
+    {"label": "User-only (Recommended)", "description": "Plugin loads only for you. Invisible to teammates. Safe for enterprise.", "markdown": "```\nUser-Only Install\n─────────────────\n~/.claude/\n  └── plugins/\n        └── ork/    ← only YOU see this\n\nTeammates: unaffected\nGit:       nothing committed\nEnterprise: safe, no repo changes\n```"},
+    {"label": "Project-wide", "description": "Adds to .claude/plugins — loads for everyone in this repo.", "markdown": "```\nProject-Wide Install\n────────────────────\nyour-repo/\n  └── .claude/\n        └── plugins/\n              └── ork/  ← everyone sees this\n\nTeammates: auto-loaded for all\nGit:       committed to repo\nRequires:  team buy-in\n```"},
+    {"label": "Already installed", "description": "Skip installation, just configure.", "markdown": "```\nSkip to Configure\n─────────────────\n✓ Plugin already installed\n→ Jump to Phase 4: Skill recommendations\n→ Then Phase 5: MCP setup\n→ Then Phase 6: Readiness score\n```"}
   ],
   "multiSelect": false
 }])
@@ -213,10 +214,10 @@ AskUserQuestion(questions=[{
   "question": "Which skill categories should we prioritize? (all are available, this helps focus the improvement plan)",
   "header": "Focus areas",
   "options": [
-    {"label": "Full-stack (Recommended)", "description": "All detected stack skills + security + testing"},
-    {"label": "Backend focus", "description": "API, database, async, security patterns"},
-    {"label": "Frontend focus", "description": "React, UI components, performance, accessibility"},
-    {"label": "DevOps focus", "description": "CI/CD, deployment, monitoring, infrastructure"}
+    {"label": "Full-stack (Recommended)", "description": "All detected stack skills + security + testing", "markdown": "```\nFull-Stack Focus\n────────────────\nBackend:   api-design, database-patterns\nFrontend:  react-server-components, ui-components\nSecurity:  security-patterns, testing-patterns\nDevOps:    devops-deployment\nWorkflow:  implement, verify, commit\n```"},
+    {"label": "Backend focus", "description": "API, database, async, security patterns", "markdown": "```\nBackend Focus\n─────────────\nCore:      api-design, database-patterns\nAsync:     async-jobs, distributed-systems\nSecurity:  security-patterns\nTesting:   testing-patterns (integration)\nSkipped:   UI, components, accessibility\n```"},
+    {"label": "Frontend focus", "description": "React, UI components, performance, accessibility", "markdown": "```\nFrontend Focus\n──────────────\nCore:      react-server-components\nUI:        ui-components, responsive-patterns\nPerf:      performance, vite-advanced\nA11y:      accessibility patterns\nSkipped:   database, async, infra\n```"},
+    {"label": "DevOps focus", "description": "CI/CD, deployment, monitoring, infrastructure", "markdown": "```\nDevOps Focus\n────────────\nCI/CD:     devops-deployment\nInfra:     distributed-systems\nMonitor:   observability patterns\nSecurity:  security-patterns\nSkipped:   UI, components, API design\n```"}
   ],
   "multiSelect": false
 }])
@@ -366,11 +367,48 @@ Glob(pattern=".claude/rules/*.md")
 
 If CLAUDE.md > 200 lines and no `.claude/rules/` exist, recommend splitting. Show the output template from the reference doc.
 
+## Phase 8: Keybindings
+
+Check for existing keybindings and offer to install recommended shortcuts:
+
+```python
+# Check existing keybindings
+Bash(command="cat ~/.claude/keybindings.json 2>/dev/null || echo '[]'")
+```
+
+Prompt the user:
+
+```python
+AskUserQuestion(questions=[{
+  "question": "Install recommended keybindings for top OrchestKit skills?",
+  "header": "Keyboard shortcuts",
+  "options": [
+    {"label": "Yes, install keybindings (Recommended)", "description": "Adds 5 shortcuts: commit, verify, implement, explore, review-pr"},
+    {"label": "Skip", "description": "No keyboard shortcuts"}
+  ],
+  "multiSelect": false
+}])
+```
+
+If **Yes**: write or merge into `~/.claude/keybindings.json`:
+
+```json
+[
+  {"key": "ctrl+shift+c", "command": "/ork:commit", "description": "Git commit with validation"},
+  {"key": "ctrl+shift+v", "command": "/ork:verify", "description": "Run verification suite"},
+  {"key": "ctrl+shift+i", "command": "/ork:implement", "description": "Implement feature"},
+  {"key": "ctrl+shift+e", "command": "/ork:explore", "description": "Deep codebase exploration"},
+  {"key": "ctrl+shift+r", "command": "/ork:review-pr", "description": "Review pull request"}
+]
+```
+
+If the file already exists, **merge** — read existing entries, add only keybindings whose `key` is not already bound, then write back. Never overwrite user-defined bindings.
+
 ## CLI Flags
 
 | Flag | Behavior |
 |------|----------|
-| (none) | Full 7-phase wizard (includes 7b health check) |
+| (none) | Full 8-phase wizard (includes 7b health check) |
 | `--rescan` | Re-run scan + score, skip safety phase |
 | `--score-only` | Show current readiness score (Phase 6 only) |
 | `--plan-only` | Show improvement plan (Phase 7 only) |

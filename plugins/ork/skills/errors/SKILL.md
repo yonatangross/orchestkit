@@ -11,6 +11,7 @@ tags: [errors, debugging, troubleshooting, patterns]
 user-invocable: false
 allowed-tools: [Read, Bash, Grep]
 complexity: low
+model: haiku
 metadata:
   category: document-asset-creation
   mcp-server: memory

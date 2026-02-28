@@ -14,6 +14,10 @@ disable-model-invocation: true
 allowed-tools: [Bash]
 skills: []
 complexity: low
+hooks:
+  PreToolUse:
+    - matcher: "Bash(git commit*)"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs pretool/bash/git-protector"
 metadata:
   category: workflow-automation
 ---

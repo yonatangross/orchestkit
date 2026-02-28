@@ -10,6 +10,7 @@ author: Yonatan Gross
 tags: [i18n, internationalization, dayjs, dates, react-i18next, localization, rtl, useTranslation, useFormatting, ICU, Trans]
 user-invocable: false
 complexity: low
+model: haiku
 metadata:
   category: document-asset-creation
 allowed-tools:

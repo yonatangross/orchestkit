@@ -12,6 +12,10 @@ user-invocable: true
 allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskOutput, mcp__context7__query_docs, mcp__memory__search_nodes]
 skills: [api-design, react-server-components-framework, testing-patterns, explore, verify, memory, scope-appropriate-architecture]
 complexity: medium
+hooks:
+  PostToolUse:
+    - matcher: "Write|Edit"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs skill/pattern-consistency-enforcer"
 metadata:
   category: workflow-automation
   mcp-server: memory, context7
@@ -79,8 +83,8 @@ AskUserQuestion(questions=[{
   "question": "Isolate this feature in a git worktree?",
   "header": "Isolation",
   "options": [
-    {"label": "Yes — worktree (Recommended)", "description": "Creates isolated branch via EnterWorktree, merges back on completion"},
-    {"label": "No — work in-place", "description": "Edit files directly in current branch"}
+    {"label": "Yes — worktree (Recommended)", "description": "Creates isolated branch via EnterWorktree, merges back on completion", "markdown": "```\nWorktree Isolation\n──────────────────\nmain ─────────────────────────────▶\n  \\                              /\n   └─ feat-{slug} (worktree) ───┘\n      ├── Isolated directory\n      ├── Own branch + index\n      └── Auto-merge on completion\n\nSafe: main stays untouched until done\n```"},
+    {"label": "No — work in-place", "description": "Edit files directly in current branch", "markdown": "```\nIn-Place Editing\n────────────────\nmain ──[edit]──[edit]──[edit]───▶\n       ▲       ▲       ▲\n       │       │       │\n     direct modifications\n\nFast: no branch overhead\nRisk: changes visible immediately\n```"}
   ],
   "multiSelect": false
 }])

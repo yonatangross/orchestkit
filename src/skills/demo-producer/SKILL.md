@@ -11,6 +11,7 @@ version: 1.0.0
 author: OrchestKit
 tags: [demo, video, marketing, vhs, remotion, terminal, showcase, tutorial]
 complexity: low
+model: haiku
 metadata:
   category: document-asset-creation
 ---

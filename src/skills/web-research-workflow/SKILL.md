@@ -11,6 +11,7 @@ tags: [research, browser, webfetch, tavily, automation, scraping, content-extrac
 user-invocable: false
 allowed-tools: [Bash, Read, Write, WebFetch]
 complexity: low
+model: haiku
 metadata:
   category: mcp-enhancement
 ---

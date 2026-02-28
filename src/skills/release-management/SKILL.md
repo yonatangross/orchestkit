@@ -9,6 +9,7 @@ author: OrchestKit
 tags: [git, github, releases, versioning, changelog, automation]
 user-invocable: false
 complexity: low
+model: haiku
 metadata:
   category: document-asset-creation
 allowed-tools:

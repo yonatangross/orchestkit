@@ -11,6 +11,7 @@ allowed-tools: [Read, Write, Grep, Glob]
 author: OrchestKit
 user-invocable: false
 complexity: low
+model: haiku
 metadata:
   category: document-asset-creation
 ---

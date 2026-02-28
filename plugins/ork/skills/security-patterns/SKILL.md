@@ -11,6 +11,10 @@ author: OrchestKit
 user-invocable: false
 complexity: high
 model: opus
+hooks:
+  PreToolUse:
+    - matcher: "Bash"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
 metadata:
   category: document-asset-creation
 allowed-tools:
