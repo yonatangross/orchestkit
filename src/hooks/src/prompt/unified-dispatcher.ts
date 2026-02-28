@@ -145,6 +145,29 @@ function setOnceFlagDone(hookName: string, sessionId: string, projectDir: string
 // extractContext imported from ../lib/common.js (Issue #682)
 
 // -----------------------------------------------------------------------------
+// Noise Filter
+// -----------------------------------------------------------------------------
+
+/**
+ * Detect noisy/low-value context that shouldn't consume token budget.
+ * Returns true if the context is only bracket-enclosed markers or
+ * cross-project context lines with no actionable content.
+ */
+function isNoisyOutput(context: string): boolean {
+  const lines = context.split('\n').filter(l => l.trim().length > 0);
+  if (lines.length === 0) return true;
+
+  return lines.every(line => {
+    const trimmed = line.trim();
+    // [Cross-project context:...] lines
+    if (/^\[Cross-project context:.*\]$/.test(trimmed)) return true;
+    // Bracket-enclosed timestamp markers like [2026-02-28 08:45]
+    if (/^\[\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}.*\]$/.test(trimmed)) return true;
+    return false;
+  });
+}
+
+// -----------------------------------------------------------------------------
 // Dispatcher Implementation
 // -----------------------------------------------------------------------------
 
@@ -203,6 +226,12 @@ export function unifiedPromptDispatcher(input: HookInput): HookResult {
       // Extract context from the result
       const context = extractContext(result);
       if (!context) {
+        continue;
+      }
+
+      // Filter noisy/low-value context before consuming budget
+      if (isNoisyOutput(context)) {
+        logHook(HOOK_NAME, `${hook.name}: noisy output filtered`);
         continue;
       }
 

@@ -15,21 +15,12 @@ import { outputSilentSuccess, outputPromptContext, logHook, getProjectDir } from
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-// Keywords that suggest memory search would be valuable
+// Keywords that suggest memory search would be valuable (require 2+ matches)
 const MEMORY_TRIGGER_KEYWORDS = [
-  'add',
-  'implement',
-  'create',
-  'build',
   'design',
   'refactor',
-  'update',
-  'modify',
-  'fix',
-  'change',
   'continue',
   'resume',
-  'remember',
   'previous',
   'last time',
   'before',
@@ -38,6 +29,14 @@ const MEMORY_TRIGGER_KEYWORDS = [
   'decision',
   'how did we',
   'what did we',
+];
+
+// Strong single keywords that bypass the 2-match threshold
+const STRONG_SINGLE_KEYWORDS = [
+  'remember',
+  'how did we',
+  'what did we',
+  'last time',
 ];
 
 // Keywords that suggest graph search would be valuable
@@ -62,9 +61,21 @@ const MIN_PROMPT_LENGTH = 20;
 function shouldSearchMemory(prompt: string): boolean {
   const promptLower = prompt.toLowerCase();
 
-  for (const keyword of MEMORY_TRIGGER_KEYWORDS) {
+  // Strong single keywords bypass the 2-match threshold
+  for (const keyword of STRONG_SINGLE_KEYWORDS) {
     if (promptLower.includes(keyword)) {
       return true;
+    }
+  }
+
+  // Require 2+ keyword matches to reduce false positives
+  let matchCount = 0;
+  for (const keyword of MEMORY_TRIGGER_KEYWORDS) {
+    if (promptLower.includes(keyword)) {
+      matchCount++;
+      if (matchCount >= 2) {
+        return true;
+      }
     }
   }
 

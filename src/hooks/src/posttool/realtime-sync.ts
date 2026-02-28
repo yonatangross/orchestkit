@@ -21,11 +21,11 @@ import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, getField, getProjectDir, getSessionId, logHook } from '../lib/common.js';
 
 // Priority keywords
-const IMMEDIATE_KEYWORDS = /decided|chose|architecture|security|blocked|breaking|critical|must|cannot|deprecated|removed|migration/i;
+const IMMEDIATE_KEYWORDS = /decided|chose|architecture|security|blocked|breaking|critical|deprecated|removed|migration/i;
 const BATCHED_KEYWORDS = /pattern|convention|preference|style|format|naming/i;
 
 // Minimum content length to consider
-const MIN_CONTENT_LENGTH = 30;
+const MIN_CONTENT_LENGTH = 60;
 
 // Context pressure thresholds
 const CONTEXT_EMERGENCY_THRESHOLD = 85;
