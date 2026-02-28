@@ -64,6 +64,11 @@ import { unifiedBashAdvisoryDispatcher } from '../pretool/bash/unified-advisory-
 import { unifiedWriteEditQualityDispatcher } from '../pretool/write-edit/unified-quality-dispatcher.js';
 import { unifiedAgentSafetyDispatcher } from '../pretool/task/unified-agent-safety-dispatcher.js';
 
+// Sync dispatchers (3) — consolidate per-matcher hooks into single process (#868)
+import { syncBashDispatcher } from '../pretool/bash/sync-bash-dispatcher.js';
+import { syncWriteEditDispatcher } from '../pretool/write-edit/sync-write-edit-dispatcher.js';
+import { syncTaskDispatcher } from '../pretool/task/sync-task-dispatcher.js';
+
 import type { HookFn } from '../types.js';
 
 /**
@@ -122,6 +127,11 @@ export const hooks: Record<string, HookFn> = {
   'pretool/bash/unified-advisory-dispatcher': unifiedBashAdvisoryDispatcher,
   'pretool/write-edit/unified-quality-dispatcher': unifiedWriteEditQualityDispatcher,
   'pretool/task/unified-agent-safety-dispatcher': unifiedAgentSafetyDispatcher,
+
+  // Sync dispatchers (3) — per-matcher consolidation (#868)
+  'pretool/bash/sync-bash-dispatcher': syncBashDispatcher,
+  'pretool/write-edit/sync-write-edit-dispatcher': syncWriteEditDispatcher,
+  'pretool/task/sync-task-dispatcher': syncTaskDispatcher,
 };
 
 export function getHook(name: string): HookFn | undefined {

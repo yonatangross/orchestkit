@@ -16,6 +16,7 @@ import { monorepoDetector } from '../setup/monorepo-detector.js';
 import { setupCheck } from '../setup/setup-check.js';
 import { setupMaintenance } from '../setup/setup-maintenance.js';
 import { setupRepair } from '../setup/setup-repair.js';
+import { syncSetupDispatcher } from '../setup/sync-setup-dispatcher.js';
 
 import type { HookFn } from '../types.js';
 
@@ -29,6 +30,7 @@ export const hooks: Record<string, HookFn> = {
   'setup/setup-check': setupCheck,
   'setup/setup-maintenance': setupMaintenance,
   'setup/setup-repair': setupRepair,
+  'setup/sync-setup-dispatcher': syncSetupDispatcher,
 };
 
 export function getHook(name: string): HookFn | undefined {

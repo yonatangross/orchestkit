@@ -37,6 +37,7 @@ import { subagentQualityGate } from '../subagent-stop/subagent-quality-gate.js';
 import { taskCompleter } from '../subagent-stop/task-completer.js';
 import { retryHandler } from '../subagent-stop/retry-handler.js';
 import { unifiedSubagentStopDispatcher } from '../subagent-stop/unified-dispatcher.js';
+import { syncSubagentStopDispatcher } from '../subagent-stop/sync-subagent-stop-dispatcher.js';
 
 import type { HookFn } from '../types.js';
 
@@ -66,6 +67,7 @@ export const hooks: Record<string, HookFn> = {
   'subagent-stop/task-completer': taskCompleter,
   'subagent-stop/retry-handler': retryHandler,
   'subagent-stop/unified-dispatcher': unifiedSubagentStopDispatcher,
+  'subagent-stop/sync-subagent-stop-dispatcher': syncSubagentStopDispatcher,
 };
 
 export function getHook(name: string): HookFn | undefined {

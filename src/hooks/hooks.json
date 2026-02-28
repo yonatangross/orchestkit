@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 55 global (51 command + 4 http) + 28 agent-scoped + 1 skill-scoped = 84 total hooks",
+  "description": "OrchestKit hooks - 37 global (33 command + 4 http) + 28 agent-scoped + 1 skill-scoped = 66 total hooks",
   "hooks": {
     "PreToolUse": [
       {
@@ -7,17 +7,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker",
-            "timeout": 10000
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/compound-command-validator",
-            "timeout": 10000
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/unified-advisory-dispatcher",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/sync-bash-dispatcher",
             "timeout": 15000
           }
         ]
@@ -42,22 +32,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/write-edit/content-secret-scanner",
-            "timeout": 10000
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/write-edit/file-guard",
-            "timeout": 10000
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/input-mod/write-headers",
-            "timeout": 10000
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/write-edit/unified-quality-dispatcher",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/write-edit/sync-write-edit-dispatcher",
             "timeout": 15000
           }
         ]
@@ -107,13 +82,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/task/unified-agent-safety-dispatcher",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/task/sync-task-dispatcher",
             "timeout": 15000
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/task/team-size-gate",
-            "timeout": 10000
           }
         ]
       },
@@ -221,8 +191,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/session-metrics-summary",
-            "timeout": 15000,
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/sync-session-end-dispatcher",
+            "timeout": 30000,
             "run_on_fail": true
           },
           {
@@ -234,17 +204,6 @@
               "Authorization": "Bearer $ORCHESTKIT_HOOK_TOKEN"
             },
             "allowedEnvVars": ["ORCHESTKIT_HOOK_TOKEN", "ORCHESTKIT_HOOK_URL"]
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/session-cleanup",
-            "timeout": 15000,
-            "run_on_fail": true
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/pattern-sync-push",
-            "timeout": 30000
           },
           {
             "type": "http",
@@ -299,33 +258,8 @@
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-stop/output-validator",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-stop/sync-subagent-stop-dispatcher",
             "timeout": 15000
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-stop/auto-spawn-quality",
-            "timeout": 10000
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-stop/multi-claude-verifier",
-            "timeout": 15000
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-stop/subagent-quality-gate",
-            "timeout": 15000
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-stop/task-completer",
-            "timeout": 10000
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-stop/retry-handler",
-            "timeout": 10000
           }
         ]
       }
@@ -432,37 +366,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs setup/unified-dispatcher",
-            "async": true,
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs setup/sync-setup-dispatcher",
             "timeout": 120000
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs setup/setup-check",
-            "once": true,
-            "timeout": 15000
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs setup/first-run-setup",
-            "once": true,
-            "timeout": 30000
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs setup/setup-maintenance",
-            "timeout": 15000
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs setup/setup-repair",
-            "timeout": 15000
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs setup/monorepo-detector",
-            "once": true,
-            "timeout": 10000
           }
         ]
       }

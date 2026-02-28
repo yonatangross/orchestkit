@@ -192,6 +192,14 @@ import { sessionMetricsSummary } from './lifecycle/session-metrics-summary.js';
 import { dependencyVersionCheck } from './lifecycle/dependency-version-check.js';
 import { prefillGuard } from './lifecycle/prefill-guard.js';
 import { syncSessionDispatcher } from './lifecycle/sync-session-dispatcher.js';
+import { syncSessionEndDispatcher } from './lifecycle/sync-session-end-dispatcher.js';
+
+// Sync dispatchers — consolidate per-matcher hooks into single process (#867-#871)
+import { syncSubagentStopDispatcher } from './subagent-stop/sync-subagent-stop-dispatcher.js';
+import { syncBashDispatcher } from './pretool/bash/sync-bash-dispatcher.js';
+import { syncWriteEditDispatcher } from './pretool/write-edit/sync-write-edit-dispatcher.js';
+import { syncTaskDispatcher } from './pretool/task/sync-task-dispatcher.js';
+import { syncSetupDispatcher } from './setup/sync-setup-dispatcher.js';
 
 // TeammateIdle hooks (CC 2.1.33) — consolidated into unified dispatcher (#853)
 import { progressReporter } from './teammate-idle/progress-reporter.js';
@@ -377,6 +385,14 @@ export const hooks: Record<string, HookFn> = {
   'lifecycle/dependency-version-check': dependencyVersionCheck,
   'lifecycle/prefill-guard': prefillGuard,
   'lifecycle/sync-session-dispatcher': syncSessionDispatcher,
+  'lifecycle/sync-session-end-dispatcher': syncSessionEndDispatcher,
+
+  // Sync dispatchers (#867-#871)
+  'subagent-stop/sync-subagent-stop-dispatcher': syncSubagentStopDispatcher,
+  'pretool/bash/sync-bash-dispatcher': syncBashDispatcher,
+  'pretool/write-edit/sync-write-edit-dispatcher': syncWriteEditDispatcher,
+  'pretool/task/sync-task-dispatcher': syncTaskDispatcher,
+  'setup/sync-setup-dispatcher': syncSetupDispatcher,
 
   // TeammateIdle hooks (CC 2.1.33) — unified dispatcher (#853)
   'teammate-idle/unified-dispatcher': unifiedTeammateIdleDispatcher,

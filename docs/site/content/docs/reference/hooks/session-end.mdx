@@ -1,16 +1,14 @@
 ---
 title: "SessionEnd"
-description: "Hooks triggered on SessionEnd events (5 hooks)."
+description: "Hooks triggered on SessionEnd events (3 hooks)."
 ---
 
 # SessionEnd Hooks
 
-**5 hooks** registered for the `SessionEnd` lifecycle event.
+**3 hooks** registered for the `SessionEnd` lifecycle event.
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
-| `session-metrics-summary` | `*` | 🔇 Silent | Shows summary at session end |
+| `sync-session-end-dispatcher` | `*` | 🛑 Blocks | — |
 | `` | `*` | 🔇 Silent | — |
-| `session-cleanup` | `*` | 🔇 Silent | Cleans up temporary files at session end |
-| `pattern-sync-push` | `*` | 🔇 Silent | Pushes project patterns to global on session end |
 | `` | `*` | 🔇 Silent | — |

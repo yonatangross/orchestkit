@@ -1,7 +1,7 @@
 {
   "name": "ork",
   "version": "7.0.0",
-  "description": "The Complete AI Development Toolkit — 69 skills, 38 agents, 84 hooks for full-stack development.",
+  "description": "The Complete AI Development Toolkit — 69 skills, 38 agents, 66 hooks for full-stack development.",
   "skills": "all",
   "agents": "all",
   "hooks": "all"
