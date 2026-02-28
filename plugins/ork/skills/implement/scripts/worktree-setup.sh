@@ -62,6 +62,8 @@ create_worktree() {
     echo "  cd $worktree_path"
     echo "  # ... work on your feature ..."
     echo "  $0 cleanup $feature_name"
+    echo ""
+    echo -e "${GREEN}Note: CC 2.1.63+ automatically shares project configs across worktrees.${NC}"
 }
 
 cleanup_worktree() {

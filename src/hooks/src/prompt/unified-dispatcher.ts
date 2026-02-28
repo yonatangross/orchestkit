@@ -41,6 +41,7 @@ import {
   logHook,
   estimateTokenCount,
   getProjectDir,
+  getSessionId,
   extractContext,
 } from '../lib/common.js';
 import { isImageOrBinaryPrompt, MAX_PROMPT_LENGTH } from '../lib/prompt-guards.js';
@@ -167,7 +168,7 @@ export function unifiedPromptDispatcher(input: HookInput): HookResult {
   let totalTokens = 0;
 
   // Resolve session/project for once-flag tracking
-  const sessionId = input.session_id || '';
+  const sessionId = input.session_id || getSessionId();
   const projectDir = input.project_dir || getProjectDir();
 
   for (const hook of HOOKS) {

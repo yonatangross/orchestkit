@@ -109,6 +109,14 @@ All 5 MCPs ship **enabled by default**. Tavily requires an API key; agentation r
 
 **Already have these MCPs installed globally?** If Tavily or memory are already in your `~/.claude/mcp.json`, skip enabling them here to avoid duplicate entries. OrchestKit agents will use whichever instance Claude Code resolves first.
 
+**Opt out of claude.ai MCP servers (CC 2.1.63+):** Claude Code may load MCP servers from claude.ai by default. To disable this and only use locally-configured MCPs:
+
+```bash
+export ENABLE_CLAUDEAI_MCP_SERVERS=false
+```
+
+Add to your shell profile (`~/.zshrc` or `~/.bashrc`) to persist across sessions.
+
 ## Step 6: CC 2.1.7 Settings (New)
 
 Configure CC 2.1.7-specific features:

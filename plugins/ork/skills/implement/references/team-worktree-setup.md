@@ -158,6 +158,18 @@ Do NOT modify: src/components/, src/features/, src/hooks/
 
 ---
 
+## Config Sharing (CC 2.1.63+)
+
+Since CC 2.1.63, project configs and auto-memory are **automatically shared** across worktrees. This simplifies team worktree setup:
+
+- No need to copy `.claude/settings.json` or `CLAUDE.md` to each worktree
+- Auto-memory persists — teammates inherit learned patterns
+- Plugins are discovered from any worktree
+
+For CC < 2.1.63, the lead must manually copy configs to each worktree directory.
+
+---
+
 ## Worktree + Agent Teams Checklist
 
 Before spawning teammates:
