@@ -750,6 +750,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "agent": null,
     "structure": {
       "references": [
+        "http-hooks.md",
         "mcp-config.md",
         "presets.md"
       ]

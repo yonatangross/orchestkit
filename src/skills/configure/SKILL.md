@@ -341,3 +341,4 @@ Save to: `~/.claude/plugins/orchestkit/config.json`
 
 - [Presets](references/presets.md)
 - [MCP Configuration](references/mcp-config.md)
+- [HTTP Hooks](references/http-hooks.md) — CC 2.1.63+ observability hooks (Langfuse, Datadog, custom endpoints)

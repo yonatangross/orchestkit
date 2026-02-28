@@ -31,6 +31,12 @@ OrchestKit requires Claude Code >= 2.1.59. This matrix documents which CC featur
 | Auto-memory | 2.1.59 | Claude saves learnings across sessions | Manual CLAUDE.md only |
 | `@import` in CLAUDE.md | 2.1.59 | Modular instruction files | Single monolithic CLAUDE.md |
 | `.claude/rules/` with `paths:` | 2.1.59 | Path-scoped rules per directory | All rules loaded always |
+| HTTP hooks (`type: "http"`) | 2.1.63 | Observability hooks POST to remote endpoints | Falls back to command hooks (local JSONL) |
+| Worktree config sharing | 2.1.63 | Project configs shared across worktrees | Manual config copy needed |
+| `/clear` resets skills | 2.1.63 | Fixes stale skill content after edits | Restart CC to clear cache |
+| Teammate memory fix | 2.1.63 | Safe for 5+ teammate swarms | Memory grows in long team sessions |
+| `/simplify`, `/batch` built-in | 2.1.63 | Bundled CC slash commands | Not available |
+| `ENABLE_CLAUDEAI_MCP_SERVERS` | 2.1.63 | Opt out of claude.ai MCP servers | All claude.ai MCPs always loaded |
 
 ## Version Detection
 
@@ -50,7 +56,8 @@ claude --version  # Returns e.g. "2.1.47"
 | 2.1.45 - 2.1.46 | Partial | Missing 2.1.47 features but functional |
 | 2.1.47 - 2.1.49 | Partial | All hook features, memory leak risk in long sessions |
 | 2.1.50 - 2.1.58 | Partial | Memory leaks fixed, missing auto-memory and @imports |
-| >= 2.1.59 | Full | All features: auto-memory, @imports, .claude/rules/, ConfigChange |
+| 2.1.59 - 2.1.62 | Full | All features: auto-memory, @imports, .claude/rules/, ConfigChange |
+| >= 2.1.63 | Full+ | HTTP hooks, worktree config sharing, teammate stability, /simplify, /batch |
 
 ## Doctor Check Implementation
 
@@ -129,7 +136,7 @@ Claude Code: 2.1.56 (OK)
 
 | OrchestKit | Min CC | Key Changes |
 |-----------|--------|-------------|
-| v7.0.x | 2.1.59 | Auto-memory, @imports guidance, ConfigChange hook, unified plugin |
+| v7.0.x | 2.1.59 | Auto-memory, @imports, ConfigChange, HTTP hooks (2.1.63+), unified plugin |
 | v6.0.x | 2.1.47 | Full CC 2.1.47 adoption, relaxed context limits |
 | v5.x | 2.1.34 | Agent Teams support, unified dispatchers |
 | v4.x | 2.1.9 | Session tracking, TypeScript hooks |
