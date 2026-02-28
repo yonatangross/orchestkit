@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seeing Like an Agent — OrchestKit Lessons</title>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface2: #1a1a26;
+    --border: #2a2a3a;
+    --text: #e0e0e8;
+    --text-dim: #8888a0;
+    --accent: #6366f1;
+    --accent-glow: rgba(99, 102, 241, 0.15);
+    --green: #22c55e;
+    --yellow: #eab308;
+    --red: #ef4444;
+    --orange: #f97316;
+    --cyan: #06b6d4;
+    --pink: #ec4899;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', monospace;
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: hidden;
+    line-height: 1.6;
+  }
+
+  /* Header */
+  .hero {
+    padding: 60px 40px 40px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at 50% 80%, var(--accent-glow) 0%, transparent 50%);
+    animation: pulse 8s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.7; }
+  }
+  .hero h1 {
+    font-size: 2.4rem;
+    font-weight: 700;
+    position: relative;
+    background: linear-gradient(135deg, var(--accent), var(--cyan));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+  }
+  .hero .subtitle {
+    font-size: 0.95rem;
+    color: var(--text-dim);
+    position: relative;
+  }
+  .hero .source {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    margin-top: 12px;
+    position: relative;
+    opacity: 0.6;
+  }
+
+  /* Nav */
+  .nav {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    padding: 0 20px 30px;
+    flex-wrap: wrap;
+    position: relative;
+  }
+  .nav button {
+    padding: 8px 16px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text-dim);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.78rem;
+    transition: all 0.2s;
+  }
+  .nav button:hover { border-color: var(--accent); color: var(--text); }
+  .nav button.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+
+  /* Panels */
+  .panel {
+    display: none;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px 60px;
+  }
+  .panel.active { display: block; }
+
+  /* Comparison view */
+  .comparison {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 30px;
+  }
+  @media (max-width: 768px) {
+    .comparison { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    transition: all 0.3s;
+  }
+  .card:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 30px var(--accent-glow);
+  }
+  .card h3 {
+    font-size: 1rem;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card p, .card li {
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    line-height: 1.7;
+  }
+  .card ul { padding-left: 18px; }
+  .card li { margin-bottom: 4px; }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+  }
+  .badge-cc { background: rgba(99,102,241,0.2); color: var(--accent); }
+  .badge-ok { background: rgba(34,197,94,0.2); color: var(--green); }
+  .badge-gap { background: rgba(239,68,68,0.2); color: var(--red); }
+  .badge-partial { background: rgba(234,179,8,0.2); color: var(--yellow); }
+
+  /* Issue mapping */
+  .issue-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 16px;
+  }
+  .issue-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .issue-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+  .issue-card .issue-num {
+    font-size: 0.75rem;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+  .issue-card h4 {
+    font-size: 0.88rem;
+    margin-bottom: 8px;
+  }
+  .issue-card .milestone {
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    padding: 2px 8px;
+    background: var(--surface2);
+    border-radius: 4px;
+    display: inline-block;
+    margin-top: 8px;
+  }
+  .issue-card .relevance {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  .relevance-high { background: rgba(34,197,94,0.15); color: var(--green); }
+  .relevance-medium { background: rgba(234,179,8,0.15); color: var(--yellow); }
+
+  /* Principle cards */
+  .principle {
+    background: var(--surface);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 10px 10px 0;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+  .principle h3 {
+    font-size: 0.95rem;
+    margin-bottom: 6px;
+  }
+  .principle .quote {
+    font-style: italic;
+    color: var(--cyan);
+    font-size: 0.82rem;
+    margin-bottom: 10px;
+    padding-left: 12px;
+    border-left: 2px solid var(--cyan);
+  }
+  .principle p {
+    font-size: 0.82rem;
+    color: var(--text-dim);
+  }
+
+  /* Sankey-style flow */
+  .flow-container {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 30px;
+    margin-bottom: 24px;
+    overflow-x: auto;
+  }
+  .flow-container h3 {
+    font-size: 1rem;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  svg text { font-family: inherit; }
+
+  /* Action plan */
+  .action-row {
+    display: grid;
+    grid-template-columns: 40px 1fr 80px 80px auto;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    transition: all 0.3s;
+    cursor: pointer;
+  }
+  .action-row:hover {
+    border-color: var(--accent);
+  }
+  .action-row .priority {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.85rem;
+  }
+  .p1 { background: rgba(239,68,68,0.2); color: var(--red); }
+  .p2 { background: rgba(249,115,22,0.2); color: var(--orange); }
+  .p3 { background: rgba(234,179,8,0.2); color: var(--yellow); }
+  .p4 { background: rgba(6,182,212,0.2); color: var(--cyan); }
+  .p5 { background: rgba(99,102,241,0.2); color: var(--accent); }
+  .action-row .title { font-size: 0.85rem; }
+  .action-row .effort, .action-row .impact {
+    font-size: 0.75rem;
+    text-align: center;
+    padding: 4px 8px;
+    border-radius: 4px;
+    background: var(--surface2);
+  }
+  .action-row .issues {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .action-row .issues span {
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(99,102,241,0.15);
+    color: var(--accent);
+  }
+
+  /* Stats bar */
+  .stats-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 30px;
+  }
+  @media (max-width: 768px) {
+    .stats-bar { grid-template-columns: repeat(2, 1fr); }
+  }
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+  }
+  .stat .num {
+    font-size: 2rem;
+    font-weight: 700;
+  }
+  .stat .label {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+  .stat.cc .num { color: var(--accent); }
+  .stat.ok .num { color: var(--green); }
+
+  /* Detail expand */
+  .detail {
+    display: none;
+    padding: 16px 20px;
+    margin: -4px 0 8px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 10px 10px;
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    line-height: 1.8;
+  }
+  .detail.open { display: block; }
+
+  .section-header {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 30px 0 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* Donut chart */
+  .donut-row {
+    display: flex;
+    gap: 40px;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    margin: 20px 0;
+  }
+  .donut-label {
+    text-align: center;
+  }
+  .donut-label .name {
+    font-size: 0.9rem;
+    margin-top: 8px;
+  }
+  .donut-label .count {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>Seeing Like an Agent</h1>
+  <div class="subtitle">Lessons from Claude Code applied to OrchestKit</div>
+  <div class="source">Source: Thariq @trq212 &mdash; "Lessons from Building Claude Code" (Feb 2026)</div>
+</div>
+
+<div class="nav">
+  <button class="active" onclick="show('overview')">Overview</button>
+  <button onclick="show('principles')">6 Principles</button>
+  <button onclick="show('gaps')">Gap Analysis</button>
+  <button onclick="show('issues')">Issue Map</button>
+  <button onclick="show('actions')">Action Plan</button>
+</div>
+
+<!-- OVERVIEW -->
+<div id="overview" class="panel active">
+  <div class="stats-bar">
+    <div class="stat cc">
+      <div class="num">~20</div>
+      <div class="label">CC Tools</div>
+    </div>
+    <div class="stat ok">
+      <div class="num">164</div>
+      <div class="label">OrchestKit Components</div>
+    </div>
+    <div class="stat cc">
+      <div class="num">6</div>
+      <div class="label">Key Principles</div>
+    </div>
+    <div class="stat ok">
+      <div class="num">14</div>
+      <div class="label">Related Issues</div>
+    </div>
+  </div>
+
+  <div class="flow-container">
+    <h3>Component Comparison: Claude Code vs OrchestKit</h3>
+    <svg viewBox="0 0 900 320" width="100%" height="320">
+      <!-- CC side -->
+      <text x="100" y="30" fill="#8888a0" font-size="13" text-anchor="middle">Claude Code</text>
+      <rect x="30" y="45" width="140" height="36" rx="6" fill="rgba(99,102,241,0.2)" stroke="#6366f1" stroke-width="1"/>
+      <text x="100" y="68" fill="#e0e0e8" font-size="12" text-anchor="middle">~20 Tools</text>
+
+      <rect x="30" y="95" width="140" height="28" rx="6" fill="rgba(99,102,241,0.1)" stroke="#6366f1" stroke-width="0.5"/>
+      <text x="100" y="114" fill="#8888a0" font-size="11" text-anchor="middle">Skills (progressive)</text>
+
+      <rect x="30" y="135" width="140" height="28" rx="6" fill="rgba(99,102,241,0.1)" stroke="#6366f1" stroke-width="0.5"/>
+      <text x="100" y="154" fill="#8888a0" font-size="11" text-anchor="middle">Subagents (few)</text>
+
+      <!-- Arrow -->
+      <line x1="200" y1="100" x2="310" y2="100" stroke="#2a2a3a" stroke-width="2" stroke-dasharray="6,4"/>
+      <text x="255" y="90" fill="#8888a0" font-size="10" text-anchor="middle">lessons</text>
+      <polygon points="306,96 314,100 306,104" fill="#2a2a3a"/>
+
+      <!-- OK side -->
+      <text x="530" y="30" fill="#8888a0" font-size="13" text-anchor="middle">OrchestKit</text>
+
+      <!-- Skills -->
+      <rect x="340" y="45" width="160" height="36" rx="6" fill="rgba(34,197,94,0.15)" stroke="#22c55e" stroke-width="1"/>
+      <text x="420" y="63" fill="#22c55e" font-size="12" text-anchor="middle" font-weight="600">69 Skills</text>
+      <text x="420" y="76" fill="#8888a0" font-size="9" text-anchor="middle">all listed in prompt</text>
+
+      <!-- Agents -->
+      <rect x="340" y="95" width="160" height="36" rx="6" fill="rgba(249,115,22,0.15)" stroke="#f97316" stroke-width="1"/>
+      <text x="420" y="113" fill="#f97316" font-size="12" text-anchor="middle" font-weight="600">38 Agents</text>
+      <text x="420" y="126" fill="#8888a0" font-size="9" text-anchor="middle">some may be redundant</text>
+
+      <!-- Hooks -->
+      <rect x="340" y="145" width="160" height="36" rx="6" fill="rgba(6,182,212,0.15)" stroke="#06b6d4" stroke-width="1"/>
+      <text x="420" y="163" fill="#06b6d4" font-size="12" text-anchor="middle" font-weight="600">57 Hooks</text>
+      <text x="420" y="176" fill="#8888a0" font-size="9" text-anchor="middle">context injected every turn</text>
+
+      <!-- Arrows to improvements -->
+      <line x1="520" y1="63" x2="620" y2="63" stroke="#22c55e" stroke-width="1" stroke-dasharray="4,3"/>
+      <line x1="520" y1="113" x2="620" y2="113" stroke="#f97316" stroke-width="1" stroke-dasharray="4,3"/>
+      <line x1="520" y1="163" x2="620" y2="163" stroke="#06b6d4" stroke-width="1" stroke-dasharray="4,3"/>
+
+      <!-- Improvements -->
+      <rect x="630" y="45" width="240" height="36" rx="6" fill="rgba(34,197,94,0.08)" stroke="#22c55e" stroke-width="0.5"/>
+      <text x="750" y="63" fill="#22c55e" font-size="11" text-anchor="middle">Tiered discovery (~15 shown)</text>
+      <text x="750" y="76" fill="#8888a0" font-size="9" text-anchor="middle">progressive disclosure of skills</text>
+
+      <rect x="630" y="95" width="240" height="36" rx="6" fill="rgba(249,115,22,0.08)" stroke="#f97316" stroke-width="0.5"/>
+      <text x="750" y="113" fill="#f97316" font-size="11" text-anchor="middle">Audit &amp; demote to skills</text>
+      <text x="750" y="126" fill="#8888a0" font-size="9" text-anchor="middle">shaped to model abilities</text>
+
+      <rect x="630" y="145" width="240" height="36" rx="6" fill="rgba(6,182,212,0.08)" stroke="#06b6d4" stroke-width="0.5"/>
+      <text x="750" y="163" fill="#06b6d4" font-size="11" text-anchor="middle">Context gating (skip empty)</text>
+      <text x="750" y="176" fill="#8888a0" font-size="9" text-anchor="middle">reduce prompt bloat</text>
+
+      <!-- Bottom comparison -->
+      <rect x="30" y="220" width="840" height="80" rx="10" fill="var(--surface2)" stroke="var(--border)" stroke-width="1"/>
+      <text x="450" y="245" fill="#e0e0e8" font-size="13" text-anchor="middle" font-weight="600">Key Insight</text>
+      <text x="450" y="268" fill="#8888a0" font-size="11" text-anchor="middle">"CC has ~20 tools and questions if that's too many."</text>
+      <text x="450" y="286" fill="#8888a0" font-size="11" text-anchor="middle">The answer isn't to delete — it's to make most invisible until needed.</text>
+    </svg>
+  </div>
+
+  <div class="comparison">
+    <div class="card">
+      <h3><span class="badge badge-cc">CC</span> Claude Code Approach</h3>
+      <ul>
+        <li>~20 carefully curated tools</li>
+        <li>High bar to add new tools</li>
+        <li>Progressive disclosure via skills</li>
+        <li>Subagents over system prompt bloat</li>
+        <li>Tools evolve as models improve</li>
+        <li>Model reads own outputs to learn</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="badge badge-ok">OK</span> OrchestKit Current State</h3>
+      <ul>
+        <li>69 skills listed in every prompt</li>
+        <li>38 agents with potential redundancy</li>
+        <li>Progressive disclosure in skill content</li>
+        <li>~800 tokens hook injection per turn</li>
+        <li>Agent routing analysis done (not applied)</li>
+        <li>Eval coverage added (not running)</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- PRINCIPLES -->
+<div id="principles" class="panel">
+  <div class="principle">
+    <h3>1. Shape Tools to Model Abilities</h3>
+    <div class="quote">"You want to give it tools shaped to its own abilities."</div>
+    <p>Don't build tools for what you think the model needs. Watch how it actually uses them. The AskUserQuestion tool went through 3 iterations because the first two didn't match how Claude naturally communicates. <strong>OrchestKit lesson:</strong> Some agents may be forcing Claude into patterns it doesn't need anymore (e.g., requirements-translator, documentation-specialist).</p>
+  </div>
+
+  <div class="principle">
+    <h3>2. Evolve with Capabilities</h3>
+    <div class="quote">"Tools that your models once needed might now be constraining them."</div>
+    <p>TodoWrite was perfect for earlier models. TaskTool replaced it because Opus 4.5 outgrew it. <strong>OrchestKit lesson:</strong> Our 38 agents were designed for Sonnet 3.5/4. With Opus 4.6, some are overhead. The agent routing analysis identified 10 for Haiku shift — but some should be eliminated entirely.</p>
+  </div>
+
+  <div class="principle">
+    <h3>3. Let the Model Build Context</h3>
+    <div class="quote">"Claude went from not being able to build its own context, to nested search across several layers."</div>
+    <p>CC moved from RAG (pre-built context) to Grep (self-built context). <strong>OrchestKit alignment:</strong> Our rules/ + references/ pattern is exactly progressive disclosure. The model reads SKILL.md, discovers references, reads deeper. This is our strongest alignment with CC's philosophy.</p>
+  </div>
+
+  <div class="principle">
+    <h3>4. Progressive Disclosure > More Tools</h3>
+    <div class="quote">"Progressive disclosure is now a common technique we use to add new functionality without adding a tool."</div>
+    <p>The Claude Code Guide agent added capability without adding a tool to the action space. Skills that reference other files achieve the same thing. <strong>OrchestKit gap:</strong> We do this for content, but not for skill-to-skill discovery. A skill doesn't dynamically discover related skills.</p>
+  </div>
+
+  <div class="principle">
+    <h3>5. Fight Prompt Bloat</h3>
+    <div class="quote">"~20 tools and we are constantly asking ourselves if we need all of them."</div>
+    <p>If CC worries about 20 tools, we should worry about 69 skill listings + every-turn hook injections. The system prompt is prime real estate — every token there competes with the user's actual task. <strong>OrchestKit action:</strong> Tiered skill listing + context injection gating.</p>
+  </div>
+
+  <div class="principle">
+    <h3>6. Read Your Outputs</h3>
+    <div class="quote">"Experiment often, read your outputs, try new things. See like an agent."</div>
+    <p>The CC team watches how Claude uses tools and iterates. We have eval infrastructure (test-cases.json, promptfoo pipeline design) but haven't closed the loop. <strong>OrchestKit action:</strong> Run evals, track misroutes, measure which skills actually improve outcomes.</p>
+  </div>
+</div>
+
+<!-- GAP ANALYSIS -->
+<div id="gaps" class="panel">
+  <div class="section-header">Alignment Score by Principle</div>
+
+  <div class="donut-row">
+    <svg width="120" height="120" viewBox="0 0 120 120">
+      <circle cx="60" cy="60" r="50" fill="none" stroke="#2a2a3a" stroke-width="10"/>
+      <circle cx="60" cy="60" r="50" fill="none" stroke="#22c55e" stroke-width="10"
+              stroke-dasharray="267" stroke-dashoffset="54" transform="rotate(-90 60 60)"/>
+      <text x="60" y="56" fill="#22c55e" font-size="22" text-anchor="middle" font-weight="700">80%</text>
+      <text x="60" y="72" fill="#8888a0" font-size="9" text-anchor="middle">Context</text>
+    </svg>
+    <svg width="120" height="120" viewBox="0 0 120 120">
+      <circle cx="60" cy="60" r="50" fill="none" stroke="#2a2a3a" stroke-width="10"/>
+      <circle cx="60" cy="60" r="50" fill="none" stroke="#eab308" stroke-width="10"
+              stroke-dasharray="189" stroke-dashoffset="54" transform="rotate(-90 60 60)"/>
+      <text x="60" y="56" fill="#eab308" font-size="22" text-anchor="middle" font-weight="700">43%</text>
+      <text x="60" y="72" fill="#8888a0" font-size="9" text-anchor="middle">Discipline</text>
+    </svg>
+    <svg width="120" height="120" viewBox="0 0 120 120">
+      <circle cx="60" cy="60" r="50" fill="none" stroke="#2a2a3a" stroke-width="10"/>
+      <circle cx="60" cy="60" r="50" fill="none" stroke="#f97316" stroke-width="10"
+              stroke-dasharray="173" stroke-dashoffset="54" transform="rotate(-90 60 60)"/>
+      <text x="60" y="56" fill="#f97316" font-size="22" text-anchor="middle" font-weight="700">38%</text>
+      <text x="60" y="72" fill="#8888a0" font-size="9" text-anchor="middle">Evolution</text>
+    </svg>
+    <svg width="120" height="120" viewBox="0 0 120 120">
+      <circle cx="60" cy="60" r="50" fill="none" stroke="#2a2a3a" stroke-width="10"/>
+      <circle cx="60" cy="60" r="50" fill="none" stroke="#ef4444" stroke-width="10"
+              stroke-dasharray="94" stroke-dashoffset="54" transform="rotate(-90 60 60)"/>
+      <text x="60" y="56" fill="#ef4444" font-size="22" text-anchor="middle" font-weight="700">13%</text>
+      <text x="60" y="72" fill="#8888a0" font-size="9" text-anchor="middle">Feedback</text>
+    </svg>
+  </div>
+
+  <div class="comparison" style="grid-template-columns: 1fr;">
+    <table style="width:100%; border-collapse: collapse; font-size: 0.82rem;">
+      <thead>
+        <tr style="border-bottom: 1px solid var(--border);">
+          <th style="text-align:left; padding: 12px; color: var(--text-dim);">CC Principle</th>
+          <th style="text-align:left; padding: 12px; color: var(--text-dim);">OrchestKit Status</th>
+          <th style="text-align:center; padding: 12px; color: var(--text-dim);">Score</th>
+          <th style="text-align:left; padding: 12px; color: var(--text-dim);">Gap</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom: 1px solid var(--surface2);">
+          <td style="padding: 12px;">Progressive disclosure (content)</td>
+          <td style="padding: 12px;"><span class="badge badge-ok">ALIGNED</span> rules/ + references/ pattern</td>
+          <td style="padding: 12px; text-align:center; color: var(--green);">80%</td>
+          <td style="padding: 12px; color: var(--text-dim);">No skill-to-skill discovery</td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--surface2);">
+          <td style="padding: 12px;">Self-built context (search)</td>
+          <td style="padding: 12px;"><span class="badge badge-ok">ALIGNED</span> Grep/Glob available</td>
+          <td style="padding: 12px; text-align:center; color: var(--green);">80%</td>
+          <td style="padding: 12px; color: var(--text-dim);">Skills can't search for other skills</td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--surface2);">
+          <td style="padding: 12px;">Tool count discipline</td>
+          <td style="padding: 12px;"><span class="badge badge-gap">GAP</span> 69 skills in prompt</td>
+          <td style="padding: 12px; text-align:center; color: var(--yellow);">43%</td>
+          <td style="padding: 12px; color: var(--text-dim);">All skills listed every turn — need tiering</td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--surface2);">
+          <td style="padding: 12px;">Capability evolution</td>
+          <td style="padding: 12px;"><span class="badge badge-gap">GAP</span> analysis done, not applied</td>
+          <td style="padding: 12px; text-align:center; color: var(--orange);">38%</td>
+          <td style="padding: 12px; color: var(--text-dim);">Agent routing analysis exists but no agents demoted</td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--surface2);">
+          <td style="padding: 12px;">Prompt bloat resistance</td>
+          <td style="padding: 12px;"><span class="badge badge-partial">PARTIAL</span> once: true hooks help</td>
+          <td style="padding: 12px; text-align:center; color: var(--yellow);">50%</td>
+          <td style="padding: 12px; color: var(--text-dim);">Every-turn hooks inject ~800 tokens even when empty</td>
+        </tr>
+        <tr>
+          <td style="padding: 12px;">Output reading / feedback loop</td>
+          <td style="padding: 12px;"><span class="badge badge-gap">GAP</span> infra built, not running</td>
+          <td style="padding: 12px; text-align:center; color: var(--red);">13%</td>
+          <td style="padding: 12px; color: var(--text-dim);">test-cases.json added, eval pipeline not executing</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ISSUE MAP -->
+<div id="issues" class="panel">
+  <div class="section-header">Related Open Issues (14 found)</div>
+
+  <div style="margin-bottom: 20px;">
+    <button class="filter-btn active" onclick="filterIssues('all')" style="padding:6px 12px; border:1px solid var(--border); border-radius:6px; background:var(--accent); color:white; cursor:pointer; font-family:inherit; font-size:0.75rem; margin-right:4px;">All (14)</button>
+    <button class="filter-btn" onclick="filterIssues('agent')" style="padding:6px 12px; border:1px solid var(--border); border-radius:6px; background:var(--surface); color:var(--text-dim); cursor:pointer; font-family:inherit; font-size:0.75rem; margin-right:4px;">Agent Routing (4)</button>
+    <button class="filter-btn" onclick="filterIssues('context')" style="padding:6px 12px; border:1px solid var(--border); border-radius:6px; background:var(--surface); color:var(--text-dim); cursor:pointer; font-family:inherit; font-size:0.75rem; margin-right:4px;">Context (3)</button>
+    <button class="filter-btn" onclick="filterIssues('eval')" style="padding:6px 12px; border:1px solid var(--border); border-radius:6px; background:var(--surface); color:var(--text-dim); cursor:pointer; font-family:inherit; font-size:0.75rem; margin-right:4px;">Eval Pipeline (5)</button>
+    <button class="filter-btn" onclick="filterIssues('skill')" style="padding:6px 12px; border:1px solid var(--border); border-radius:6px; background:var(--surface); color:var(--text-dim); cursor:pointer; font-family:inherit; font-size:0.75rem; margin-right:4px;">Skill Design (2)</button>
+  </div>
+
+  <div class="issue-grid" id="issueGrid">
+    <!-- Agent routing -->
+    <div class="issue-card" data-cat="agent" onclick="window.open('https://github.com/yonatangross/orchestkit/issues/838')">
+      <span class="relevance relevance-high">Direct</span>
+      <div class="issue-num">#838</div>
+      <h4>Agent model routing docs & per-release tracking</h4>
+      <p style="font-size:0.78rem; color:var(--text-dim);">CC lesson: tools evolve with model capabilities. Track which agents need which model tier.</p>
+      <span class="milestone">Unassigned</span>
+    </div>
+    <div class="issue-card" data-cat="agent" onclick="window.open('https://github.com/yonatangross/orchestkit/issues/486')">
+      <span class="relevance relevance-high">Direct</span>
+      <div class="issue-num">#486</div>
+      <h4>Implement routing grader (agent keyword matching)</h4>
+      <p style="font-size:0.78rem; color:var(--text-dim);">CC lesson: "see like an agent" — measure if Claude routes to the right agent.</p>
+      <span class="milestone">Auto-Evaluation System</span>
+    </div>
+    <div class="issue-card" data-cat="agent" onclick="window.open('https://github.com/yonatangross/orchestkit/issues/850')">
+      <span class="relevance relevance-high">Direct</span>
+      <div class="issue-num">#850</div>
+      <h4>Per-skill model overrides for cost optimization</h4>
+      <p style="font-size:0.78rem; color:var(--text-dim);">CC lesson: shape tools to abilities — let skills specify which model they need.</p>
+      <span class="milestone">Unassigned</span>
+    </div>
+    <div class="issue-card" data-cat="agent" onclick="window.open('https://github.com/yonatangross/orchestkit/issues/690')">
+      <span class="relevance relevance-medium">Related</span>
+      <div class="issue-num">#690</div>
+      <h4>Model delegation tracking hook</h4>
+      <p style="font-size:0.78rem; color:var(--text-dim);">CC lesson: read your outputs — track which model handles which task.</p>
+      <span class="milestone">Session Analytics</span>
+    </div>
+
+    <!-- Context -->
+    <div class="issue-card" data-cat="context" onclick="window.open('https://github.com/yonatangross/orchestkit/issues/663')">
+      <span class="relevance relevance-high">Direct</span>
+      <div class="issue-num">#663</div>
+      <h4>1M context window calibration & budget optimization</h4>
+      <p style="font-size:0.78rem; color:var(--text-dim);">CC lesson: fight prompt bloat — optimize what goes into the context window.</p>
+      <span class="milestone">v7.0 Architecture</span>
+    </div>
+    <div class="issue-card" data-cat="context" onclick="window.open('https://github.com/yonatangross/orchestkit/issues/465')">
+      <span class="relevance relevance-medium">Related</span>
+      <div class="issue-num">#465</div>
+      <h4>Context pressure detection — warn before compaction</h4>
+      <p style="font-size:0.78rem; color:var(--text-dim);">CC lesson: let model build own context — be smart about what's in the window.</p>
+      <span class="milestone">Context Intelligence</span>
+    </div>
+    <div class="issue-card" data-cat="context" onclick="window.open('https://github.com/yonatangross/orchestkit/issues/656')">
+      <span class="relevance relevance-medium">Related</span>
+      <div class="issue-num">#656</div>
+      <h4>Audit 391 rules for Sonnet 4.6 redundancy</h4>
+      <p style="font-size:0.78rem; color:var(--text-dim);">CC lesson: evolve with capabilities — rules written for older models may be noise now.</p>
+      <span class="milestone">v7.0 Architecture</span>
+    </div>
+
+    <!-- Eval -->
+    <div class="issue-card" data-cat="eval" onclick="window.open('https://github.com/yonatangross/orchestkit/issues/507')">
+      <span class="relevance relevance-high">Direct</span>
+      <div class="issue-num">#507</div>
+      <h4>GitHub Actions workflow for tiered eval pipeline</h4>
+      <p style="font-size:0.78rem; color:var(--text-dim);">CC lesson: "read your outputs" — automated eval is the feedback loop.</p>
+      <span class="milestone">Auto-Evaluation System</span>
+    </div>
+    <div class="issue-card" data-cat="eval" onclick="window.open('https://github.com/yonatangross/orchestkit/issues/518')">
+      <span class="relevance relevance-high">Direct</span>
+      <div class="issue-num">#518</div>
+      <h4>Stage 2: promptfoo + Claude Haiku Skill Evaluation</h4>
+      <p style="font-size:0.78rem; color:var(--text-dim);">CC lesson: experiment often — run evals to see what works.</p>
+      <span class="milestone">Auto-Evaluation System</span>
+    </div>
+    <div class="issue-card" data-cat="eval" onclick="window.open('https://github.com/yonatangross/orchestkit/issues/696')">
+      <span class="relevance relevance-medium">Related</span>
+      <div class="issue-num">#696</div>
+      <h4>Per-tool execution timing</h4>
+      <p style="font-size:0.78rem; color:var(--text-dim);">CC lesson: measure overhead — know which tools/agents cost time.</p>
+      <span class="milestone">Session Analytics</span>
+    </div>
+    <div class="issue-card" data-cat="eval" onclick="window.open('https://github.com/yonatangross/orchestkit/issues/697')">
+      <span class="relevance relevance-medium">Related</span>
+      <div class="issue-num">#697</div>
+      <h4>Error rate tracking and aggregation</h4>
+      <p style="font-size:0.78rem; color:var(--text-dim);">CC lesson: see like an agent — track failures to improve tools.</p>
+      <span class="milestone">Session Analytics</span>
+    </div>
+    <div class="issue-card" data-cat="eval" onclick="window.open('https://github.com/yonatangross/orchestkit/issues/490')">
+      <span class="relevance relevance-medium">Related</span>
+      <div class="issue-num">#490</div>
+      <h4>Write 20-50 golden test cases from real failures</h4>
+      <p style="font-size:0.78rem; color:var(--text-dim);">CC lesson: learn from mistakes — curate real failure data for eval.</p>
+      <span class="milestone">Auto-Evaluation System</span>
+    </div>
+
+    <!-- Skill design -->
+    <div class="issue-card" data-cat="skill" onclick="window.open('https://github.com/yonatangross/orchestkit/issues/524')">
+      <span class="relevance relevance-high">Direct</span>
+      <div class="issue-num">#524</div>
+      <h4>Dependency graph index — skill-to-library mapping</h4>
+      <p style="font-size:0.78rem; color:var(--text-dim);">CC lesson: progressive disclosure — let skills discover related skills dynamically.</p>
+      <span class="milestone">Auto-Evaluation System</span>
+    </div>
+    <div class="issue-card" data-cat="skill" onclick="window.open('https://github.com/yonatangross/orchestkit/issues/669')">
+      <span class="relevance relevance-medium">Related</span>
+      <div class="issue-num">#669</div>
+      <h4>Consolidate 6 skills with 24+ supporting files</h4>
+      <p style="font-size:0.78rem; color:var(--text-dim);">CC lesson: tool count discipline — fewer, better skills.</p>
+      <span class="milestone">v6.2 Security</span>
+    </div>
+  </div>
+</div>
+
+<!-- ACTION PLAN -->
+<div id="actions" class="panel">
+  <div class="section-header">Prioritized Action Plan</div>
+  <p style="font-size:0.82rem; color:var(--text-dim); margin-bottom:20px;">Click each action to see details and linked issues.</p>
+
+  <div class="action-row" onclick="toggleDetail('d1')">
+    <div class="priority p1">1</div>
+    <div class="title">Audit agent necessity — demote redundant agents to skills</div>
+    <div class="effort">Medium</div>
+    <div class="impact" style="color:var(--green)">High</div>
+    <div class="issues"><span>#838</span><span>#486</span><span>#850</span></div>
+  </div>
+  <div class="detail" id="d1">
+    <strong>CC principle:</strong> "Tools shaped to abilities" + "Evolve with capabilities"<br><br>
+    <strong>Action:</strong> For each of the 38 agents, ask: "Does this agent do something the main Claude loop can't do in 2-3 tool calls?" Candidates for demotion to skill instructions: requirements-translator, documentation-specialist, rapid-ui-designer, prioritization-analyst, business-case-builder.<br><br>
+    <strong>Impact:</strong> Reduces routing complexity, faster agent selection, lower spawn overhead. Every unnecessary agent is a wrong turn Claude might take.
+  </div>
+
+  <div class="action-row" onclick="toggleDetail('d2')">
+    <div class="priority p2">2</div>
+    <div class="title">Tiered skill discovery — only ~15 skills in prompt listing</div>
+    <div class="effort">Medium</div>
+    <div class="impact" style="color:var(--green)">High</div>
+    <div class="issues"><span>#663</span><span>#656</span></div>
+  </div>
+  <div class="detail" id="d2">
+    <strong>CC principle:</strong> "The bar to add a new tool is high" + "Progressive disclosure"<br><br>
+    <strong>Action:</strong> Categorize 69 skills into Tier 1 (always shown, ~15 high-frequency: commit, explore, implement, review-pr, fix-issue, etc.) and Tier 2 (discoverable via /ork:help or contextual triggers). Use CC's own pattern: Claude Code Guide subagent for skill discovery.<br><br>
+    <strong>Impact:</strong> Dramatically reduces choice paralysis. Claude sees 15 options instead of 69. The rest are one hop away via progressive disclosure.<br><br>
+    <strong>Open question:</strong> CC controls the system prompt listing. Can OrchestKit as a plugin control which skills appear? Needs investigation.
+  </div>
+
+  <div class="action-row" onclick="toggleDetail('d3')">
+    <div class="priority p3">3</div>
+    <div class="title">Context injection gating — skip empty/irrelevant hook output</div>
+    <div class="effort">Low</div>
+    <div class="impact" style="color:var(--yellow)">Medium</div>
+    <div class="issues"><span>#663</span><span>#465</span></div>
+  </div>
+  <div class="detail" id="d3">
+    <strong>CC principle:</strong> "If users rarely ask about something, don't put it in the system prompt"<br><br>
+    <strong>Action:</strong> Audit every-turn hooks. If cross-project context is empty ("[SESSION-END]" repeated 5x), skip injection entirely. If UI annotations have nothing pending, skip that block. Return empty string from hook = no injection.<br><br>
+    <strong>Impact:</strong> Reduces per-turn prompt overhead from ~800 to ~200 tokens on average. Cleaner context window = better task focus.
+  </div>
+
+  <div class="action-row" onclick="toggleDetail('d4')">
+    <div class="priority p4">4</div>
+    <div class="title">Skill graph discovery — discovers: field in frontmatter</div>
+    <div class="effort">Low</div>
+    <div class="impact" style="color:var(--yellow)">Medium</div>
+    <div class="issues"><span>#524</span><span>#669</span></div>
+  </div>
+  <div class="detail" id="d4">
+    <strong>CC principle:</strong> "Progressive disclosure for functionality, not just content"<br><br>
+    <strong>Action:</strong> Add optional <code>discovers: [assess, implement]</code> to skill frontmatter. When a skill loads, inject a one-liner: "Related: /ork:assess (rate quality), /ork:implement (execute plan)". This makes the skill graph navigable without listing everything upfront.<br><br>
+    <strong>Impact:</strong> Skills become interconnected. Claude can chain brainstorm → assess → implement naturally. Enables the tiered discovery model (action #2).
+  </div>
+
+  <div class="action-row" onclick="toggleDetail('d5')">
+    <div class="priority p5">5</div>
+    <div class="title">Close the eval feedback loop — run the pipeline</div>
+    <div class="effort">High</div>
+    <div class="impact" style="color:var(--green)">High (long-term)</div>
+    <div class="issues"><span>#507</span><span>#518</span><span>#490</span><span>#696</span><span>#697</span></div>
+  </div>
+  <div class="detail" id="d5">
+    <strong>CC principle:</strong> "Experiment often, read your outputs, try new things"<br><br>
+    <strong>Action:</strong> The eval infrastructure exists (test-cases.json on 36 skills, promptfoo design, golden test cases plan). What's missing is execution. Priority: get #507 (GH Actions eval pipeline) running, then #518 (promptfoo + Haiku eval). This creates the feedback loop the CC team uses daily.<br><br>
+    <strong>Impact:</strong> Data-driven skill improvement. Know which skills misroute, which agents add overhead, which rules are redundant. Without this, all other improvements are guesswork.
+  </div>
+
+  <div style="margin-top:30px; padding:20px; background:var(--surface); border:1px solid var(--border); border-radius:10px;">
+    <h3 style="font-size:0.95rem; margin-bottom:10px;">Meta-Lesson</h3>
+    <p style="font-size:0.85rem; color:var(--text-dim); line-height:1.8;">
+      The CC team built 20 tools and constantly asks "do we need all of them?"<br>
+      OrchestKit has 164 components.<br><br>
+      The answer isn't deletion — it's <strong>progressive disclosure of the plugin itself</strong>.<br>
+      Make most components invisible until needed. The skill listing, the hook injection, the agent roster — all should follow the same principle the CC team discovered for everything else:<br><br>
+      <span style="color:var(--cyan); font-style:italic;">"Add functionality without adding cognitive load."</span>
+    </p>
+  </div>
+</div>
+
+<script>
+function show(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function toggleDetail(id) {
+  const el = document.getElementById(id);
+  el.classList.toggle('open');
+}
+
+function filterIssues(cat) {
+  document.querySelectorAll('.filter-btn').forEach(b => {
+    b.style.background = 'var(--surface)';
+    b.style.color = 'var(--text-dim)';
+  });
+  event.target.style.background = 'var(--accent)';
+  event.target.style.color = 'white';
+
+  document.querySelectorAll('.issue-card').forEach(card => {
+    if (cat === 'all' || card.dataset.cat === cat) {
+      card.style.display = 'block';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+}
+</script>
+
+</body>
+</html>

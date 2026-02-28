@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OrchestKit Model Router — PinchBench Intelligence</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0d1117; --surface: #161b22; --border: #30363d; --text: #e6edf3;
+    --text-dim: #8b949e; --accent: #58a6ff; --orange: #f0883e; --green: #3fb950;
+    --blue: #58a6ff; --gray: #8b949e; --red: #f85149; --purple: #bc8cff;
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  .header { padding: 20px 24px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .header h1 { font-size: 18px; font-weight: 600; white-space: nowrap; }
+  .header .subtitle { color: var(--text-dim); font-size: 13px; }
+
+  .tabs { display: flex; gap: 2px; padding: 8px 24px 0; border-bottom: 1px solid var(--border); }
+  .tab { padding: 8px 16px; font-size: 13px; color: var(--text-dim); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; background: none; border-top: none; border-left: none; border-right: none; font-family: inherit; }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--text); border-bottom-color: var(--orange); }
+
+  .main { display: flex; height: calc(100vh - 110px); }
+  .panel-left { width: 320px; min-width: 280px; border-right: 1px solid var(--border); overflow-y: auto; padding: 16px; }
+  .panel-right { flex: 1; overflow-y: auto; padding: 16px; }
+
+  .section { margin-bottom: 20px; }
+  .section-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-dim); margin-bottom: 8px; font-weight: 600; }
+
+  .control-group { margin-bottom: 12px; }
+  .control-group label { display: block; font-size: 12px; color: var(--text-dim); margin-bottom: 4px; }
+  .control-group select, .control-group input[type=range] { width: 100%; }
+  select { background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 6px 8px; border-radius: 6px; font-size: 13px; cursor: pointer; }
+  select:focus { outline: none; border-color: var(--accent); }
+  input[type=range] { -webkit-appearance: none; height: 4px; background: var(--border); border-radius: 2px; outline: none; }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--accent); cursor: pointer; }
+
+  .checkbox-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 13px; cursor: pointer; }
+  .checkbox-row input { accent-color: var(--accent); }
+
+  .preset-btn { background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; transition: all 0.15s; font-family: inherit; }
+  .preset-btn:hover { border-color: var(--accent); background: #1c2333; }
+  .preset-btn.active { border-color: var(--orange); background: rgba(240,136,62,0.1); }
+  .presets { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+
+  /* Chart */
+  .chart-container { position: relative; width: 100%; aspect-ratio: 16/10; min-height: 400px; }
+  canvas { width: 100% !important; height: 100% !important; border-radius: 8px; }
+
+  .tooltip { position: fixed; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; font-size: 12px; pointer-events: none; z-index: 100; opacity: 0; transition: opacity 0.15s; box-shadow: 0 8px 24px rgba(0,0,0,0.4); max-width: 260px; }
+  .tooltip.visible { opacity: 1; }
+  .tooltip .name { font-weight: 600; font-size: 13px; margin-bottom: 4px; }
+  .tooltip .row { display: flex; justify-content: space-between; gap: 16px; color: var(--text-dim); }
+  .tooltip .val { color: var(--text); font-weight: 500; }
+
+  /* Router simulator */
+  .router-view { display: none; }
+  .router-view.active { display: block; }
+  .chart-view { display: block; }
+  .chart-view.hidden { display: none; }
+
+  .agent-group { margin-bottom: 16px; }
+  .agent-group-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .agent-group-title { font-size: 13px; font-weight: 600; }
+  .agent-group-assign { display: flex; gap: 4px; }
+  .tier-btn { padding: 3px 10px; border-radius: 4px; font-size: 11px; border: 1px solid var(--border); background: var(--surface); color: var(--text-dim); cursor: pointer; transition: all 0.15s; font-family: inherit; }
+  .tier-btn:hover { border-color: var(--text-dim); }
+  .tier-btn.selected { border-color: var(--orange); color: var(--orange); background: rgba(240,136,62,0.1); }
+
+  .agent-item { display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; border-radius: 6px; font-size: 12px; margin-bottom: 2px; transition: background 0.15s; }
+  .agent-item:hover { background: rgba(255,255,255,0.03); }
+  .agent-name { color: var(--text-dim); flex: 1; }
+  .agent-tier { display: flex; gap: 2px; }
+  .agent-tier button { padding: 2px 8px; border-radius: 3px; font-size: 10px; border: 1px solid transparent; background: none; color: var(--text-dim); cursor: pointer; transition: all 0.15s; font-family: inherit; }
+  .agent-tier button:hover { color: var(--text); }
+  .agent-tier button.h { color: var(--green); border-color: var(--green); background: rgba(63,185,80,0.1); }
+  .agent-tier button.s { color: var(--accent); border-color: var(--accent); background: rgba(88,166,255,0.1); }
+  .agent-tier button.o { color: var(--orange); border-color: var(--orange); background: rgba(240,136,62,0.1); }
+
+  .savings-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+  .savings-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; }
+  .savings-label { color: var(--text-dim); }
+  .savings-value { font-weight: 600; font-variant-numeric: tabular-nums; }
+  .savings-pct { font-size: 28px; font-weight: 700; text-align: center; margin: 12px 0 4px; }
+  .savings-pct.good { color: var(--green); }
+  .savings-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-top: 8px; }
+  .savings-bar-fill { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-dim); }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  /* Prompt output */
+  .prompt-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--border); padding: 12px 24px; display: flex; align-items: center; gap: 12px; z-index: 50; }
+  .prompt-text { flex: 1; font-size: 12px; color: var(--text-dim); font-family: 'SF Mono', 'Fira Code', monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .copy-btn { background: var(--orange); color: #fff; border: none; padding: 6px 16px; border-radius: 6px; font-size: 12px; cursor: pointer; white-space: nowrap; font-family: inherit; font-weight: 500; transition: all 0.15s; }
+  .copy-btn:hover { filter: brightness(1.1); }
+  .copy-btn.copied { background: var(--green); }
+
+  .pareto-label { position: absolute; font-size: 10px; color: var(--orange); pointer-events: none; }
+
+  .stats-row { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; flex: 1; min-width: 120px; }
+  .stat-value { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat-label { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>OrchestKit Model Router</h1>
+  <span class="subtitle">PinchBench Intelligence — Cost vs Performance for 16 Models</span>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="chart">Scatter Plot</button>
+  <button class="tab" data-tab="router">Router Simulator</button>
+</div>
+
+<div class="main">
+  <div class="panel-left" id="sidebar"></div>
+  <div class="panel-right">
+    <div class="chart-view" id="chartView">
+      <div class="stats-row" id="statsRow"></div>
+      <div class="chart-container"><canvas id="canvas"></canvas></div>
+      <div class="legend" id="legend"></div>
+    </div>
+    <div class="router-view" id="routerView"></div>
+  </div>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+<div class="prompt-bar">
+  <div class="prompt-text" id="promptText">Adjust controls to generate a routing recommendation.</div>
+  <button class="copy-btn" id="copyBtn" onclick="copyPrompt()">Copy</button>
+</div>
+
+<script>
+// ── Data ──
+const models = [
+  { name: 'Gemini-3-Flash', provider: 'google', score: 95.38, cost: 0.15, speed: 180 },
+  { name: 'Minimax M2.1', provider: 'other', score: 95.37, cost: 0.186, speed: 200 },
+  { name: 'DeepSeek V3.2', provider: 'other', score: 95.17, cost: 0.14, speed: 1149 },
+  { name: 'Kimi K2.5', provider: 'other', score: 95.15, cost: 0.20, speed: 250 },
+  { name: 'Gemini-3-Pro', provider: 'google', score: 95.13, cost: 0.80, speed: 300 },
+  { name: 'Sonnet-4.5', provider: 'anthropic', score: 95.13, cost: 3.38, speed: 387 },
+  { name: 'Opus-4.6', provider: 'anthropic', score: 94.66, cost: 6.37, speed: 771 },
+  { name: 'Sonnet-4', provider: 'anthropic', score: 94.66, cost: 1.88, speed: 498 },
+  { name: 'Opus-4.5', provider: 'anthropic', score: 94.66, cost: 6.02, speed: 307 },
+  { name: 'GPT-5-nano', provider: 'openai', score: 94.27, cost: 0.044, speed: 220 },
+  { name: 'Haiku-4.5', provider: 'anthropic', score: 94.07, cost: 0.83, speed: 234 },
+  { name: 'GPT-4o', provider: 'openai', score: 93.50, cost: 1.20, speed: 350 },
+  { name: 'Devstral', provider: 'other', score: 92.80, cost: 0.10, speed: 218 },
+  { name: 'Mistral-Large', provider: 'other', score: 91.50, cost: 0.80, speed: 280 },
+  { name: 'Qwen-3', provider: 'other', score: 90.20, cost: 0.05, speed: 190 },
+  { name: 'Llama-4-Scout', provider: 'other', score: 88.50, cost: 0.03, speed: 160 },
+];
+
+const providerColors = { anthropic: '#f0883e', openai: '#3fb950', google: '#58a6ff', other: '#8b949e' };
+const providerNames = { anthropic: 'Anthropic', openai: 'OpenAI', google: 'Google', other: 'Others' };
+
+// OrchestKit agents grouped by complexity
+const agentGroups = {
+  low: {
+    label: 'Low Complexity',
+    desc: 'Search, read, format tasks',
+    agents: ['Explore', 'code-quality-reviewer', 'documentation-specialist', 'git-operations-engineer', 'accessibility-specialist', 'rapid-ui-designer', 'requirements-translator', 'prioritization-analyst', 'ux-researcher', 'market-intelligence', 'metrics-architect', 'business-case-builder']
+  },
+  medium: {
+    label: 'Medium Complexity',
+    desc: 'Analysis, generation, review',
+    agents: ['frontend-ui-developer', 'backend-system-architect', 'test-generator', 'database-engineer', 'security-auditor', 'ci-cd-engineer', 'deployment-manager', 'data-pipeline-engineer', 'debug-investigator', 'prompt-engineer', 'monitoring-engineer', 'llm-integrator', 'frontend-performance-engineer', 'python-performance-engineer']
+  },
+  high: {
+    label: 'High Complexity',
+    desc: 'Architecture, orchestration, multi-step',
+    agents: ['system-design-reviewer', 'workflow-architect', 'event-driven-architect', 'infrastructure-architect', 'ai-safety-auditor', 'eval-runner', 'multimodal-specialist', 'web-research-analyst', 'release-engineer', 'demo-producer', 'product-strategist', 'security-layer-auditor']
+  }
+};
+
+const tierCosts = { haiku: 0.83, sonnet: 1.88, opus: 6.37 };
+const tierDefaults = { low: 'haiku', medium: 'sonnet', high: 'opus' };
+
+// ── State ──
+const state = {
+  tab: 'chart',
+  showPareto: true,
+  showLabels: true,
+  highlightProvider: 'all',
+  sizeBy: 'speed', // speed or uniform
+  agentTiers: {},
+  invocationsPerMonth: 200,
+  hovered: null,
+};
+
+// Init agent tiers
+Object.entries(agentGroups).forEach(([tier, g]) => {
+  g.agents.forEach(a => { state.agentTiers[a] = tierDefaults[tier]; });
+});
+
+// ── Pareto frontier ──
+function computePareto() {
+  const sorted = [...models].sort((a, b) => a.cost - b.cost);
+  const frontier = [];
+  let bestScore = -1;
+  for (const m of sorted) {
+    if (m.score > bestScore) { frontier.push(m); bestScore = m.score; }
+  }
+  return frontier;
+}
+
+// ── Chart rendering ──
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let bubbles = []; // stored for hit testing
+
+function renderChart() {
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  ctx.scale(dpr, dpr);
+  const W = rect.width, H = rect.height;
+  const pad = { top: 30, right: 30, bottom: 50, left: 60 };
+  const cw = W - pad.left - pad.right;
+  const ch = H - pad.top - pad.bottom;
+
+  ctx.clearRect(0, 0, W, H);
+
+  // Scales (log x)
+  const minCost = 0.02, maxCost = 10;
+  const minScore = 87, maxScore = 96;
+  const logMin = Math.log10(minCost), logMax = Math.log10(maxCost);
+
+  function xPos(cost) { return pad.left + ((Math.log10(Math.max(cost, minCost)) - logMin) / (logMax - logMin)) * cw; }
+  function yPos(score) { return pad.top + (1 - (score - minScore) / (maxScore - minScore)) * ch; }
+
+  // Grid
+  ctx.strokeStyle = 'rgba(48,54,61,0.5)';
+  ctx.lineWidth = 1;
+  const xTicks = [0.03, 0.05, 0.1, 0.2, 0.5, 1, 2, 5];
+  xTicks.forEach(v => {
+    const x = xPos(v);
+    ctx.beginPath(); ctx.moveTo(x, pad.top); ctx.lineTo(x, H - pad.bottom); ctx.stroke();
+    ctx.fillStyle = '#8b949e'; ctx.font = '11px -apple-system, sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('$' + v, x, H - pad.bottom + 18);
+  });
+  const yTicks = [88, 89, 90, 91, 92, 93, 94, 95, 96];
+  yTicks.forEach(v => {
+    const y = yPos(v);
+    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(W - pad.right, y); ctx.stroke();
+    ctx.fillStyle = '#8b949e'; ctx.font = '11px -apple-system, sans-serif'; ctx.textAlign = 'right';
+    ctx.fillText(v + '%', pad.left - 8, y + 4);
+  });
+
+  // Axis labels
+  ctx.fillStyle = '#8b949e'; ctx.font = '12px -apple-system, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('Cost per Run (USD, log scale)', pad.left + cw / 2, H - 6);
+  ctx.save(); ctx.translate(14, pad.top + ch / 2); ctx.rotate(-Math.PI / 2);
+  ctx.fillText('Success Rate (%)', 0, 0); ctx.restore();
+
+  // Pareto frontier
+  const pareto = computePareto();
+  if (state.showPareto && pareto.length > 1) {
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(240,136,62,0.4)';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 4]);
+    pareto.forEach((m, i) => {
+      const x = xPos(m.cost), y = yPos(m.score);
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // Bubbles
+  bubbles = [];
+  const maxSpeed = Math.max(...models.map(m => m.speed));
+  models.forEach(m => {
+    const x = xPos(m.cost), y = yPos(m.score);
+    const r = state.sizeBy === 'speed' ? 6 + (m.speed / maxSpeed) * 18 : 10;
+    const color = providerColors[m.provider];
+    const dimmed = state.highlightProvider !== 'all' && m.provider !== state.highlightProvider;
+    const alpha = dimmed ? 0.15 : 0.75;
+    const isPareto = pareto.includes(m);
+
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fillStyle = color + (dimmed ? '26' : 'bb');
+    ctx.fill();
+    if (isPareto && state.showPareto) {
+      ctx.strokeStyle = '#f0883e'; ctx.lineWidth = 2; ctx.stroke();
+    }
+    if (state.hovered === m.name) {
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
+    }
+
+    if (state.showLabels && !dimmed) {
+      ctx.fillStyle = dimmed ? 'rgba(139,148,158,0.3)' : 'rgba(230,237,243,0.85)';
+      ctx.font = '10px -apple-system, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(m.name, x, y - r - 5);
+    }
+
+    bubbles.push({ model: m, x, y, r });
+  });
+}
+
+// Stats row
+function renderStats() {
+  const pareto = computePareto();
+  const best = models.reduce((a, b) => a.score > b.score ? a : b);
+  const cheapest = models.reduce((a, b) => a.cost < b.cost ? a : b);
+  const bestValue = models.reduce((a, b) => (a.score / a.cost) > (b.score / b.cost) ? a : b);
+  document.getElementById('statsRow').innerHTML = `
+    <div class="stat-card"><div class="stat-value">${models.length}</div><div class="stat-label">Models Tested</div></div>
+    <div class="stat-card"><div class="stat-value" style="color:var(--green)">${best.name}</div><div class="stat-label">Top Score: ${best.score}%</div></div>
+    <div class="stat-card"><div class="stat-value" style="color:var(--accent)">${bestValue.name}</div><div class="stat-label">Best Value: ${(bestValue.score / bestValue.cost).toFixed(0)} pts/$</div></div>
+    <div class="stat-card"><div class="stat-value" style="color:var(--orange)">${pareto.length}</div><div class="stat-label">On Pareto Frontier</div></div>
+  `;
+}
+
+// Legend
+function renderLegend() {
+  document.getElementById('legend').innerHTML = Object.entries(providerColors).map(([k, c]) =>
+    `<div class="legend-item"><div class="legend-dot" style="background:${c}"></div>${providerNames[k]}</div>`
+  ).join('') + (state.showPareto ? '<div class="legend-item"><div class="legend-dot" style="background:var(--orange);border:1px dashed var(--orange)"></div>Pareto Frontier</div>' : '') +
+  (state.sizeBy === 'speed' ? '<div class="legend-item" style="opacity:0.6">Bubble size = execution time (bigger = slower)</div>' : '');
+}
+
+// ── Sidebar ──
+function renderSidebar() {
+  const el = document.getElementById('sidebar');
+  if (state.tab === 'chart') {
+    el.innerHTML = `
+      <div class="section">
+        <div class="section-title">Presets</div>
+        <div class="presets">
+          <button class="preset-btn" onclick="applyPreset('all')">All Models</button>
+          <button class="preset-btn" onclick="applyPreset('anthropic')">Anthropic Only</button>
+          <button class="preset-btn" onclick="applyPreset('value')">Value Leaders</button>
+          <button class="preset-btn" onclick="applyPreset('pareto')">Pareto Only</button>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-title">Display</div>
+        <label class="checkbox-row"><input type="checkbox" ${state.showPareto ? 'checked' : ''} onchange="state.showPareto=this.checked;updateAll()"> Show Pareto Frontier</label>
+        <label class="checkbox-row"><input type="checkbox" ${state.showLabels ? 'checked' : ''} onchange="state.showLabels=this.checked;updateAll()"> Show Labels</label>
+        <div class="control-group" style="margin-top:8px">
+          <label>Bubble Size</label>
+          <select onchange="state.sizeBy=this.value;updateAll()">
+            <option value="speed" ${state.sizeBy==='speed'?'selected':''}>Execution Time</option>
+            <option value="uniform" ${state.sizeBy==='uniform'?'selected':''}>Uniform</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label>Highlight Provider</label>
+          <select onchange="state.highlightProvider=this.value;updateAll()">
+            <option value="all">All</option>
+            <option value="anthropic">Anthropic</option>
+            <option value="openai">OpenAI</option>
+            <option value="google">Google</option>
+            <option value="other">Others</option>
+          </select>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-title">Key Insight</div>
+        <div style="font-size:12px;color:var(--text-dim);line-height:1.5" id="insightBox"></div>
+      </div>
+      <div class="section">
+        <div class="section-title">Anthropic Breakdown</div>
+        <div style="font-size:12px;line-height:1.8" id="anthropicBreakdown"></div>
+      </div>
+    `;
+    renderInsight();
+    renderAnthropicBreakdown();
+  } else {
+    el.innerHTML = `
+      <div class="section">
+        <div class="section-title">Quick Assign All</div>
+        <div class="presets">
+          <button class="preset-btn" onclick="assignAll('haiku')">All Haiku</button>
+          <button class="preset-btn" onclick="assignAll('sonnet')">All Sonnet</button>
+          <button class="preset-btn" onclick="assignAll('opus')">All Opus</button>
+          <button class="preset-btn active" onclick="assignSmart()">Smart Default</button>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-title">Monthly Invocations</div>
+        <div class="control-group">
+          <label>Per agent: <strong id="invoLabel">${state.invocationsPerMonth}</strong></label>
+          <input type="range" min="50" max="1000" step="50" value="${state.invocationsPerMonth}" oninput="state.invocationsPerMonth=+this.value;document.getElementById('invoLabel').textContent=this.value;updateAll()">
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-title">Cost Model</div>
+        <div style="font-size:11px;color:var(--text-dim);line-height:1.6">
+          Haiku: <span style="color:var(--green)">$0.83</span>/run<br>
+          Sonnet: <span style="color:var(--accent)">$1.88</span>/run<br>
+          Opus: <span style="color:var(--orange)">$6.37</span>/run<br>
+          <span style="font-size:10px;margin-top:4px;display:block">Based on PinchBench avg cost per run</span>
+        </div>
+      </div>
+    `;
+  }
+}
+
+function renderInsight() {
+  const box = document.getElementById('insightBox');
+  if (!box) return;
+  const pareto = computePareto();
+  const claudeBest = models.find(m => m.name === 'Sonnet-4.5');
+  const cheapBest = models.find(m => m.name === 'GPT-5-nano');
+  if (state.highlightProvider === 'anthropic') {
+    box.innerHTML = `Claude models range from <span style="color:var(--orange)">94.07%</span> (Haiku) to <span style="color:var(--orange)">95.13%</span> (Sonnet-4.5). Only <strong>1.06%</strong> spread across a <strong>7.7x</strong> cost range ($0.83 → $6.37). <br><br><strong>Haiku is the value play.</strong>`;
+  } else {
+    box.innerHTML = `The top 11 models are within <strong>1.31%</strong> of each other (95.38% → 94.07%) but cost ranges <strong>160x</strong> ($0.04 → $6.37). <br><br>Performance has plateaued. <strong>Cost and speed are the real differentiators.</strong>`;
+  }
+}
+
+function renderAnthropicBreakdown() {
+  const box = document.getElementById('anthropicBreakdown');
+  if (!box) return;
+  const claude = models.filter(m => m.provider === 'anthropic').sort((a, b) => b.score - a.score);
+  box.innerHTML = claude.map(m => {
+    const valueRatio = (m.score / m.cost).toFixed(0);
+    return `<div style="display:flex;justify-content:space-between;align-items:center">
+      <span style="color:var(--orange)">${m.name}</span>
+      <span style="color:var(--text-dim);font-size:11px">${m.score}% · $${m.cost} · ${valueRatio} pts/$</span>
+    </div>`;
+  }).join('');
+}
+
+// ── Router view ──
+function renderRouter() {
+  const view = document.getElementById('routerView');
+
+  // Calculate costs
+  const totalAgents = Object.keys(state.agentTiers).length;
+  const baselineCost = totalAgents * tierCosts.opus * state.invocationsPerMonth;
+  let currentCost = 0;
+  Object.values(state.agentTiers).forEach(t => { currentCost += tierCosts[t] * state.invocationsPerMonth; });
+  const savings = baselineCost - currentCost;
+  const savingsPct = ((savings / baselineCost) * 100).toFixed(1);
+
+  // Tier counts
+  const counts = { haiku: 0, sonnet: 0, opus: 0 };
+  Object.values(state.agentTiers).forEach(t => counts[t]++);
+
+  let html = `
+    <div class="savings-card">
+      <div class="savings-row"><span class="savings-label">All-Opus Baseline</span><span class="savings-value">$${baselineCost.toLocaleString()}/mo</span></div>
+      <div class="savings-row"><span class="savings-label">Current Config</span><span class="savings-value" style="color:var(--accent)">$${currentCost.toLocaleString()}/mo</span></div>
+      <div class="savings-pct ${savings > 0 ? 'good' : ''}">${savings > 0 ? '-' : ''}${savingsPct}% ${savings > 0 ? 'savings' : ''}</div>
+      <div style="text-align:center;font-size:12px;color:var(--text-dim)">$${savings.toLocaleString()} saved/month</div>
+      <div class="savings-bar"><div class="savings-bar-fill" style="width:${100 - savingsPct}%;background:linear-gradient(90deg,var(--green),var(--accent))"></div></div>
+      <div style="display:flex;justify-content:space-between;margin-top:10px;font-size:11px;color:var(--text-dim)">
+        <span><span style="color:var(--green)">${counts.haiku}</span> Haiku</span>
+        <span><span style="color:var(--accent)">${counts.sonnet}</span> Sonnet</span>
+        <span><span style="color:var(--orange)">${counts.opus}</span> Opus</span>
+      </div>
+    </div>
+  `;
+
+  Object.entries(agentGroups).forEach(([tier, group]) => {
+    const tierColor = tier === 'low' ? 'var(--green)' : tier === 'medium' ? 'var(--accent)' : 'var(--orange)';
+    html += `<div class="agent-group">
+      <div class="agent-group-header">
+        <div>
+          <span class="agent-group-title" style="color:${tierColor}">${group.label}</span>
+          <span style="font-size:11px;color:var(--text-dim);margin-left:6px">${group.desc}</span>
+        </div>
+        <div class="agent-group-assign">
+          <button class="tier-btn ${group.agents.every(a => state.agentTiers[a]==='haiku') ? 'selected' : ''}" onclick="assignGroup('${tier}','haiku')">H</button>
+          <button class="tier-btn ${group.agents.every(a => state.agentTiers[a]==='sonnet') ? 'selected' : ''}" onclick="assignGroup('${tier}','sonnet')">S</button>
+          <button class="tier-btn ${group.agents.every(a => state.agentTiers[a]==='opus') ? 'selected' : ''}" onclick="assignGroup('${tier}','opus')">O</button>
+        </div>
+      </div>`;
+    group.agents.forEach(agent => {
+      const t = state.agentTiers[agent];
+      html += `<div class="agent-item">
+        <span class="agent-name">${agent}</span>
+        <div class="agent-tier">
+          <button class="${t === 'haiku' ? 'h' : ''}" onclick="setAgent('${agent}','haiku')">H</button>
+          <button class="${t === 'sonnet' ? 's' : ''}" onclick="setAgent('${agent}','sonnet')">S</button>
+          <button class="${t === 'opus' ? 'o' : ''}" onclick="setAgent('${agent}','opus')">O</button>
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+  });
+
+  view.innerHTML = html;
+}
+
+// ── Prompt ──
+function updatePrompt() {
+  const el = document.getElementById('promptText');
+  if (state.tab === 'chart') {
+    const pareto = computePareto();
+    const paretoNames = pareto.map(m => m.name).join(', ');
+    const highlighted = state.highlightProvider !== 'all' ? ` Highlighting: ${providerNames[state.highlightProvider]}.` : '';
+    el.textContent = `PinchBench analysis: ${models.length} models, Pareto frontier: [${paretoNames}].${highlighted} Top value: GPT-5-nano (94.27% at $0.04). Claude's best: Sonnet-4.5 (95.13% at $3.38). Haiku-4.5 delivers 94.07% at $0.83 — use it for OrchestKit subagents.`;
+  } else {
+    const counts = { haiku: 0, sonnet: 0, opus: 0 };
+    Object.values(state.agentTiers).forEach(t => counts[t]++);
+    const totalAgents = Object.keys(state.agentTiers).length;
+    const baselineCost = totalAgents * tierCosts.opus * state.invocationsPerMonth;
+    let currentCost = 0;
+    Object.values(state.agentTiers).forEach(t => { currentCost += tierCosts[t] * state.invocationsPerMonth; });
+    const pct = ((1 - currentCost / baselineCost) * 100).toFixed(0);
+    el.textContent = `Route OrchestKit's ${totalAgents} agents: ${counts.haiku} on Haiku, ${counts.sonnet} on Sonnet, ${counts.opus} on Opus. At ${state.invocationsPerMonth} invocations/agent/month: $${currentCost.toLocaleString()}/mo (${pct}% cheaper than all-Opus). Apply via agent model field in src/agents/.`;
+  }
+}
+
+// ── Actions ──
+function applyPreset(preset) {
+  if (preset === 'all') { state.highlightProvider = 'all'; state.showPareto = true; }
+  else if (preset === 'anthropic') { state.highlightProvider = 'anthropic'; }
+  else if (preset === 'value') { state.highlightProvider = 'all'; state.showPareto = true; state.sizeBy = 'uniform'; }
+  else if (preset === 'pareto') { state.showPareto = true; state.highlightProvider = 'all'; }
+  updateAll();
+}
+
+function assignAll(tier) {
+  Object.keys(state.agentTiers).forEach(a => { state.agentTiers[a] = tier; }); updateAll();
+}
+function assignSmart() {
+  Object.entries(agentGroups).forEach(([tier, g]) => {
+    g.agents.forEach(a => { state.agentTiers[a] = tierDefaults[tier]; });
+  }); updateAll();
+}
+function assignGroup(group, tier) {
+  agentGroups[group].agents.forEach(a => { state.agentTiers[a] = tier; }); updateAll();
+}
+function setAgent(agent, tier) { state.agentTiers[agent] = tier; updateAll(); }
+
+function copyPrompt() {
+  const text = document.getElementById('promptText').textContent;
+  navigator.clipboard.writeText(text);
+  const btn = document.getElementById('copyBtn');
+  btn.textContent = 'Copied!'; btn.classList.add('copied');
+  setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1500);
+}
+
+// ── Tabs ──
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    state.tab = tab.dataset.tab;
+    document.getElementById('chartView').classList.toggle('hidden', state.tab !== 'chart');
+    document.getElementById('routerView').classList.toggle('active', state.tab === 'router');
+    updateAll();
+  });
+});
+
+// ── Tooltip ──
+canvas.addEventListener('mousemove', (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+  let hit = null;
+  for (const b of bubbles) {
+    const dx = mx - b.x, dy = my - b.y;
+    if (dx * dx + dy * dy <= b.r * b.r) { hit = b; break; }
+  }
+  const tip = document.getElementById('tooltip');
+  if (hit) {
+    const m = hit.model;
+    state.hovered = m.name;
+    const valueRatio = (m.score / m.cost).toFixed(0);
+    tip.innerHTML = `<div class="name" style="color:${providerColors[m.provider]}">${m.name}</div>
+      <div class="row"><span>Score</span><span class="val">${m.score}%</span></div>
+      <div class="row"><span>Cost</span><span class="val">$${m.cost}</span></div>
+      <div class="row"><span>Speed</span><span class="val">${m.speed}s</span></div>
+      <div class="row"><span>Value</span><span class="val">${valueRatio} pts/$</span></div>`;
+    tip.style.left = (e.clientX + 12) + 'px';
+    tip.style.top = (e.clientY - 10) + 'px';
+    tip.classList.add('visible');
+    canvas.style.cursor = 'pointer';
+    renderChart();
+  } else {
+    if (state.hovered) { state.hovered = null; renderChart(); }
+    tip.classList.remove('visible');
+    canvas.style.cursor = 'default';
+  }
+});
+canvas.addEventListener('mouseleave', () => {
+  state.hovered = null;
+  document.getElementById('tooltip').classList.remove('visible');
+  renderChart();
+});
+
+// ── Master update ──
+function updateAll() {
+  renderSidebar();
+  renderStats();
+  renderLegend();
+  renderChart();
+  renderRouter();
+  updatePrompt();
+}
+
+window.addEventListener('resize', () => { renderChart(); });
+updateAll();
+</script>
+</body>
+</html>

@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OrchestKit Token Overhead — Reality Check</title>
+<style>
+  :root {
+    --bg: #0d1117; --surface: #161b22; --surface2: #21262d; --border: #30363d;
+    --text: #e6edf3; --text2: #8b949e; --red: #f85149; --green: #3fb950;
+    --yellow: #d29922; --blue: #58a6ff; --purple: #bc8cff; --orange: #d18616;
+    --cyan: #39d353;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  .header { padding: 24px 32px 0; }
+  .header h1 { font-size: 22px; font-weight: 600; }
+  .header p { color: var(--text2); margin-top: 4px; font-size: 14px; }
+
+  .tabs { display: flex; gap: 2px; padding: 16px 32px 0; border-bottom: 1px solid var(--border); }
+  .tab { padding: 10px 20px; cursor: pointer; color: var(--text2); font-size: 14px; font-weight: 500; border-bottom: 2px solid transparent; transition: all 0.2s; background: none; border-top: none; border-left: none; border-right: none; }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+
+  .panel { display: none; padding: 24px 32px; }
+  .panel.active { display: block; }
+
+  /* Tab 1: Architecture Gap */
+  .arch-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 16px; }
+  .arch-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+  .arch-card h3 { font-size: 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .arch-card.expected h3 { color: var(--green); }
+  .arch-card.reality h3 { color: var(--red); }
+
+  .flow-diagram { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; line-height: 1.8; background: var(--bg); padding: 16px; border-radius: 8px; white-space: pre; overflow-x: auto; }
+  .flow-diagram .dim { color: var(--text2); }
+  .flow-diagram .highlight { color: var(--yellow); }
+  .flow-diagram .good { color: var(--green); }
+  .flow-diagram .bad { color: var(--red); }
+  .flow-diagram .blue { color: var(--blue); }
+
+  .gap-callout { margin-top: 24px; background: linear-gradient(135deg, rgba(248,81,73,0.08), rgba(248,81,73,0.02)); border: 1px solid rgba(248,81,73,0.3); border-radius: 12px; padding: 20px; }
+  .gap-callout h3 { color: var(--red); font-size: 15px; margin-bottom: 12px; }
+  .gap-callout ul { list-style: none; padding: 0; }
+  .gap-callout li { padding: 6px 0; color: var(--text2); font-size: 13px; padding-left: 20px; position: relative; }
+  .gap-callout li::before { content: ''; position: absolute; left: 0; top: 12px; width: 8px; height: 8px; border-radius: 50%; background: var(--red); }
+
+  /* Tab 2: Budget Breakdown */
+  .budget-container { display: grid; grid-template-columns: 1fr 300px; gap: 24px; margin-top: 16px; }
+  .chart-area { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+  .legend-area { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+
+  .bar-row { display: flex; align-items: center; margin-bottom: 12px; gap: 12px; }
+  .bar-label { width: 140px; font-size: 12px; color: var(--text2); text-align: right; flex-shrink: 0; }
+  .bar-track { flex: 1; height: 32px; background: var(--bg); border-radius: 6px; position: relative; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 6px; transition: width 0.8s ease; display: flex; align-items: center; padding-left: 8px; font-size: 11px; font-weight: 600; }
+  .bar-value { width: 60px; font-size: 12px; font-weight: 600; flex-shrink: 0; }
+  .budget-line { position: absolute; right: 0; top: -4px; bottom: -4px; width: 2px; background: var(--red); z-index: 2; }
+  .budget-label { position: absolute; right: 4px; top: -18px; font-size: 10px; color: var(--red); white-space: nowrap; }
+
+  .legend-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .legend-item:last-child { border-bottom: none; }
+  .legend-dot { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+  .legend-text { font-size: 13px; }
+  .legend-value { margin-left: auto; font-size: 13px; font-weight: 600; font-family: 'SF Mono', monospace; }
+
+  .verdict { margin-top: 16px; padding: 16px; border-radius: 8px; font-size: 14px; }
+  .verdict.over { background: rgba(248,81,73,0.1); border: 1px solid rgba(248,81,73,0.3); color: var(--red); }
+  .verdict.under { background: rgba(63,185,80,0.1); border: 1px solid rgba(63,185,80,0.3); color: var(--green); }
+
+  /* Tab 3: Waterfall */
+  .waterfall { margin-top: 16px; }
+  .wf-phase { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 16px; overflow: hidden; }
+  .wf-header { padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
+  .wf-header h3 { font-size: 15px; }
+  .wf-header .badge { padding: 4px 12px; border-radius: 99px; font-size: 12px; font-weight: 600; }
+  .wf-header .badge.once { background: rgba(63,185,80,0.15); color: var(--green); }
+  .wf-header .badge.every { background: rgba(248,81,73,0.15); color: var(--red); }
+  .wf-items { padding: 12px 20px; }
+  .wf-item { display: flex; align-items: center; padding: 8px 0; gap: 12px; border-bottom: 1px solid var(--surface2); }
+  .wf-item:last-child { border-bottom: none; }
+  .wf-item-name { font-size: 13px; flex: 1; }
+  .wf-item-bar { width: 200px; height: 20px; background: var(--bg); border-radius: 4px; overflow: hidden; }
+  .wf-item-fill { height: 100%; border-radius: 4px; }
+  .wf-item-tokens { font-size: 12px; font-family: 'SF Mono', monospace; width: 60px; text-align: right; color: var(--text2); }
+
+  .wf-scenario { margin-top: 24px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+  .wf-scenario h3 { font-size: 15px; margin-bottom: 16px; }
+  .scenario-timeline { display: flex; gap: 2px; align-items: flex-end; height: 120px; }
+  .scenario-bar { flex: 1; min-width: 40px; border-radius: 4px 4px 0 0; position: relative; display: flex; flex-direction: column; justify-content: flex-end; cursor: pointer; transition: opacity 0.2s; }
+  .scenario-bar:hover { opacity: 0.85; }
+  .scenario-bar .seg { transition: height 0.6s ease; }
+  .scenario-label { text-align: center; font-size: 10px; color: var(--text2); margin-top: 6px; }
+  .scenario-value { text-align: center; font-size: 11px; font-weight: 600; margin-top: 2px; }
+
+  /* Tab 4: Agent Audit */
+  .agent-grid { margin-top: 16px; }
+  .agent-row { display: flex; align-items: center; padding: 8px 12px; border-radius: 6px; margin-bottom: 4px; gap: 12px; font-size: 13px; }
+  .agent-row.over { background: rgba(248,81,73,0.06); }
+  .agent-row.under { background: rgba(63,185,80,0.06); }
+  .agent-name { width: 240px; font-family: 'SF Mono', monospace; font-size: 12px; }
+  .agent-bar-track { flex: 1; height: 18px; background: var(--bg); border-radius: 4px; position: relative; overflow: visible; }
+  .agent-bar-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+  .agent-bar-limit { position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--yellow); z-index: 2; }
+  .agent-bytes { width: 70px; text-align: right; font-family: 'SF Mono', monospace; font-size: 12px; }
+  .agent-status { width: 24px; text-align: center; font-size: 14px; }
+
+  .agent-summary { display: flex; gap: 16px; margin-top: 16px; }
+  .agent-stat { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px 20px; flex: 1; text-align: center; }
+  .agent-stat .num { font-size: 28px; font-weight: 700; }
+  .agent-stat .label { font-size: 12px; color: var(--text2); margin-top: 4px; }
+
+  .controls { margin-top: 16px; display: flex; gap: 12px; align-items: center; }
+  .controls label { font-size: 13px; color: var(--text2); }
+  .controls select { background: var(--surface2); color: var(--text); border: 1px solid var(--border); padding: 6px 10px; border-radius: 6px; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>OrchestKit Token Overhead — Reality Check</h1>
+  <p>Why your "hello" costs ~8,100 tokens before Claude even reads it</p>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="showTab('arch')">Architecture Gap</button>
+  <button class="tab" onclick="showTab('budget')">Budget Breakdown</button>
+  <button class="tab" onclick="showTab('waterfall')">Load Waterfall</button>
+  <button class="tab" onclick="showTab('agents')">Agent Audit</button>
+</div>
+
+<!-- TAB 1: Architecture Gap -->
+<div id="tab-arch" class="panel active">
+  <div class="arch-grid">
+    <div class="arch-card expected">
+      <h3><span style="font-size:20px">&#10003;</span> What We Thought</h3>
+      <div class="flow-diagram"><span class="dim">User types "hello"</span>
+    <span class="dim">│</span>
+    <span class="dim">▼</span>
+<span class="blue">┌─────────────────────────────┐</span>
+<span class="blue">│  Main Agent (lean)          │</span>
+<span class="blue">│  ├─ CLAUDE.md    ~1,150t    │</span>
+<span class="blue">│  └─ routing logic    ~200t  │</span>
+<span class="blue">│                             │</span>
+<span class="blue">│  Total: <span class="good">~1,350 tokens</span>       │</span>
+<span class="blue">└─────────┬───────────────────┘</span>
+          <span class="dim">│ only when needed</span>
+          <span class="dim">▼</span>
+<span class="good">┌─────────────────────────────┐</span>
+<span class="good">│  Subagent (specialized)     │</span>
+<span class="good">│  ├─ Own agent.md    ~300t   │</span>
+<span class="good">│  ├─ Relevant skills ~500t   │</span>
+<span class="good">│  └─ Task context    ~200t   │</span>
+<span class="good">│                             │</span>
+<span class="good">│  Loaded: only on spawn      │</span>
+<span class="good">└─────────────────────────────┘</span></div>
+    </div>
+
+    <div class="arch-card reality">
+      <h3><span style="font-size:20px">&#10007;</span> What Actually Happens</h3>
+      <div class="flow-diagram"><span class="dim">User types "hello"</span>
+    <span class="dim">│</span>
+    <span class="dim">▼</span>
+<span class="bad">┌──────────────────────────────────┐</span>
+<span class="bad">│  Main Agent (OVERLOADED)         │</span>
+<span class="bad">│  ├─ CLAUDE.md         ~1,159t   │</span>
+<span class="bad">│  ├─ MEMORY.md         ~1,873t   │</span>
+<span class="bad">│  ├─ 38 agent descs    ~2,929t   │</span><span class="highlight"> ← ALL loaded</span>
+<span class="bad">│  ├─ 17 skill descs    ~1,360t   │</span><span class="highlight"> ← ALL loaded</span>
+<span class="bad">│  ├─ Hook context        ~800t   │</span><span class="highlight"> ← EVERY turn</span>
+<span class="bad">│  │                              │</span>
+<span class="bad">│  │  Total: <span class="bad">~8,121 tokens</span>        │</span>
+<span class="bad">│  │  Budget: 5,000 tokens        │</span>
+<span class="bad">│  │  <span class="bad">OVER BY: +3,121t (62%)</span>      │</span>
+<span class="bad">└──────────┬───────────────────────┘</span>
+           <span class="dim">│ same bloated context</span>
+           <span class="dim">▼</span>
+<span class="dim">┌──────────────────────────────────┐</span>
+<span class="dim">│  Subagent gets own copy          │</span>
+<span class="dim">│  (separate context — fine)       │</span>
+<span class="dim">└──────────────────────────────────┘</span></div>
+    </div>
+  </div>
+
+  <div class="gap-callout">
+    <h3>The Fundamental Gap</h3>
+    <ul>
+      <li><strong>Agent descriptions are a routing table, not a feature.</strong> CC needs all 38 descriptions in the system prompt so it knows which subagent to spawn. You pay ~2,929 tokens for a menu you rarely use.</li>
+      <li><strong>Subagents don't reduce main agent overhead.</strong> Each subagent gets its own clean context, but the main agent still carries the full routing catalog on every turn.</li>
+      <li><strong>MEMORY.md is auto-loaded in full.</strong> Debug notes from weeks ago, resolved pitfalls, old analysis — all ~1,873 tokens sit in context permanently.</li>
+      <li><strong>Hook dispatcher runs analysis on every prompt.</strong> Even "hello" triggers memory search (41 keywords), antipattern scanning (13 patterns), pipeline detection, and context pruning scoring.</li>
+      <li><strong>The "disable globally, enable per-project" fix only prevents loading in OTHER repos.</strong> In this repo, you still pay the full 8,121 token tax.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- TAB 2: Budget Breakdown -->
+<div id="tab-budget" class="panel">
+  <div class="budget-container">
+    <div class="chart-area">
+      <h3 style="margin-bottom:20px">Per-Session Token Overhead</h3>
+      <div id="budget-bars"></div>
+      <div id="budget-verdict" class="verdict over" style="margin-top:20px"></div>
+    </div>
+    <div class="legend-area">
+      <h3 style="margin-bottom:16px">Breakdown</h3>
+      <div id="budget-legend"></div>
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px"><span style="color:var(--text2)">Budget</span><span style="font-weight:700">5,000t</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px"><span style="color:var(--text2)">Current</span><span style="font-weight:700;color:var(--red)" id="legend-total"></span></div>
+        <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--text2)">Overage</span><span style="font-weight:700;color:var(--red)" id="legend-overage"></span></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:24px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px">
+    <h3 style="margin-bottom:16px">After Fixes (Target)</h3>
+    <div id="budget-bars-target"></div>
+    <div id="budget-verdict-target" class="verdict under" style="margin-top:16px"></div>
+  </div>
+</div>
+
+<!-- TAB 3: Waterfall -->
+<div id="tab-waterfall" class="panel">
+  <div class="waterfall">
+    <div class="wf-phase">
+      <div class="wf-header">
+        <h3>Phase 1: Session Start (one-time load)</h3>
+        <span class="badge once">Loads once</span>
+      </div>
+      <div class="wf-items" id="wf-session"></div>
+    </div>
+
+    <div class="wf-phase">
+      <div class="wf-header">
+        <h3>Phase 2: First Prompt (once-per-session hooks)</h3>
+        <span class="badge once">First turn only</span>
+      </div>
+      <div class="wf-items" id="wf-first"></div>
+    </div>
+
+    <div class="wf-phase">
+      <div class="wf-header">
+        <h3>Phase 3: Every Turn (per-message overhead)</h3>
+        <span class="badge every">EVERY message</span>
+      </div>
+      <div class="wf-items" id="wf-every"></div>
+    </div>
+  </div>
+
+  <div class="wf-scenario">
+    <h3>7-Message Session Simulation</h3>
+    <p style="color:var(--text2);font-size:13px;margin-bottom:16px">Total tokens consumed by OrchestKit overhead across a typical 7-message session</p>
+    <div class="scenario-timeline" id="scenario-bars"></div>
+    <div style="display:flex;gap:2px;margin-top:4px" id="scenario-labels"></div>
+    <div style="margin-top:16px;display:flex;gap:24px;font-size:13px" id="scenario-totals"></div>
+  </div>
+</div>
+
+<!-- TAB 4: Agent Audit -->
+<div id="tab-agents" class="panel">
+  <div class="controls">
+    <label>Sort by:</label>
+    <select id="agent-sort" onchange="renderAgents()">
+      <option value="size-desc">Size (largest first)</option>
+      <option value="size-asc">Size (smallest first)</option>
+      <option value="name">Name (A-Z)</option>
+    </select>
+    <label style="margin-left:16px">Show:</label>
+    <select id="agent-filter" onchange="renderAgents()">
+      <option value="all">All agents</option>
+      <option value="over">Over limit only</option>
+      <option value="under">Under limit only</option>
+    </select>
+  </div>
+  <div class="agent-summary" id="agent-summary"></div>
+  <div class="agent-grid" id="agent-grid" style="margin-top:16px"></div>
+</div>
+
+<script>
+// ============================================================================
+// DATA
+// ============================================================================
+
+const BUDGET = 5000;
+const AGENT_LIMIT = 250;
+
+const overhead = [
+  { name: 'CLAUDE.md', tokens: 1159, color: '#58a6ff', desc: 'Project instructions loaded into system prompt' },
+  { name: 'MEMORY.md', tokens: 1873, color: '#bc8cff', desc: 'Auto-memory with stale debug notes & old pitfalls' },
+  { name: 'Agent descriptions', tokens: 2929, color: '#f85149', desc: 'All 38 agent descriptions in Task tool routing table' },
+  { name: 'Invocable skills', tokens: 1360, color: '#d29922', desc: '17 user-invocable skill descriptions in system prompt' },
+];
+
+const overheadTarget = [
+  { name: 'CLAUDE.md', tokens: 1159, color: '#58a6ff' },
+  { name: 'MEMORY.md', tokens: 1100, color: '#bc8cff' },
+  { name: 'Agent descriptions', tokens: 1500, color: '#f85149' },
+  { name: 'Invocable skills', tokens: 1100, color: '#d29922' },
+];
+
+const hookPerTurn = 800;
+
+const sessionLoad = [
+  { name: 'CLAUDE.md', tokens: 1159, color: '#58a6ff' },
+  { name: 'MEMORY.md', tokens: 1873, color: '#bc8cff' },
+  { name: '38 agent descriptions', tokens: 2929, color: '#f85149' },
+  { name: '17 skill descriptions', tokens: 1360, color: '#d29922' },
+];
+
+const firstTurnHooks = [
+  { name: 'profile-injector', tokens: 200, color: '#3fb950' },
+  { name: 'memory-context-loader', tokens: 150, color: '#3fb950' },
+  { name: 'agentation-context', tokens: 50, color: '#3fb950' },
+];
+
+const everyTurnHooks = [
+  { name: 'memory-context (graph search)', tokens: 300, color: '#f85149' },
+  { name: 'antipattern-warning (13 patterns)', tokens: 100, color: '#f85149' },
+  { name: 'context-pruning-advisor', tokens: 200, color: '#d29922' },
+  { name: 'pipeline-detector', tokens: 100, color: '#d29922' },
+  { name: 'skill-nudge-prompt', tokens: 50, color: '#d29922' },
+  { name: 'satisfaction-detector', tokens: 0, color: '#8b949e', note: 'silent' },
+  { name: 'communication-tracker', tokens: 0, color: '#8b949e', note: 'silent' },
+];
+
+const agents = [
+  {name:'multimodal-specialist',bytes:485},{name:'backend-system-architect',bytes:485},
+  {name:'data-pipeline-engineer',bytes:417},{name:'frontend-ui-developer',bytes:414},
+  {name:'python-performance-engineer',bytes:397},{name:'event-driven-architect',bytes:372},
+  {name:'business-case-builder',bytes:361},{name:'ci-cd-engineer',bytes:360},
+  {name:'security-auditor',bytes:350},{name:'code-quality-reviewer',bytes:349},
+  {name:'accessibility-specialist',bytes:337},{name:'database-engineer',bytes:334},
+  {name:'deployment-manager',bytes:321},{name:'infrastructure-architect',bytes:313},
+  {name:'demo-producer',bytes:313},{name:'prompt-engineer',bytes:312},
+  {name:'ai-safety-auditor',bytes:309},{name:'web-research-analyst',bytes:306},
+  {name:'debug-investigator',bytes:304},{name:'test-generator',bytes:294},
+  {name:'git-operations-engineer',bytes:293},{name:'llm-integrator',bytes:291},
+  {name:'market-intelligence',bytes:290},{name:'rapid-ui-designer',bytes:288},
+  {name:'workflow-architect',bytes:285},{name:'ux-researcher',bytes:285},
+  {name:'frontend-performance-engineer',bytes:285},{name:'prioritization-analyst',bytes:274},
+  {name:'product-strategist',bytes:266},{name:'monitoring-engineer',bytes:260},
+  {name:'release-engineer',bytes:250},{name:'requirements-translator',bytes:247},
+  {name:'system-design-reviewer',bytes:239},{name:'security-layer-auditor',bytes:230},
+  {name:'documentation-specialist',bytes:223},{name:'metrics-architect',bytes:216},
+  {name:'eval-runner',bytes:197},{name:'ui-feedback',bytes:164},
+];
+
+// ============================================================================
+// TAB SWITCHING
+// ============================================================================
+
+function showTab(id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ============================================================================
+// TAB 2: Budget Bars
+// ============================================================================
+
+function renderBudgetBars(items, containerId, verdictId, budget) {
+  const total = items.reduce((s, i) => s + i.tokens, 0);
+  const maxVal = Math.max(total, budget) * 1.1;
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+
+  // Stacked bar
+  const row = document.createElement('div');
+  row.style.cssText = 'position:relative;height:48px;background:var(--bg);border-radius:8px;overflow:visible;display:flex;';
+
+  items.forEach(item => {
+    const pct = (item.tokens / maxVal) * 100;
+    const seg = document.createElement('div');
+    seg.style.cssText = `width:${pct}%;height:100%;background:${item.color};opacity:0.85;position:relative;`;
+    seg.title = `${item.name}: ${item.tokens}t`;
+    row.appendChild(seg);
+  });
+
+  // Budget line
+  const budgetPct = (budget / maxVal) * 100;
+  const line = document.createElement('div');
+  line.style.cssText = `position:absolute;left:${budgetPct}%;top:-6px;bottom:-6px;width:2px;background:var(--red);z-index:5;`;
+  const label = document.createElement('div');
+  label.style.cssText = 'position:absolute;top:-20px;left:-20px;font-size:10px;color:var(--red);white-space:nowrap;';
+  label.textContent = `Budget: ${budget.toLocaleString()}t`;
+  line.appendChild(label);
+  row.appendChild(line);
+
+  container.appendChild(row);
+
+  // Verdict
+  const over = total > budget;
+  const v = document.getElementById(verdictId);
+  v.className = 'verdict ' + (over ? 'over' : 'under');
+  v.innerHTML = over
+    ? `Over budget by <strong>+${(total - budget).toLocaleString()} tokens</strong> (${Math.round((total/budget)*100 - 100)}% over)`
+    : `Within budget: <strong>${total.toLocaleString()} / ${budget.toLocaleString()} tokens</strong> (${Math.round((1 - total/budget)*100)}% headroom)`;
+
+  return total;
+}
+
+function renderBudgetLegend() {
+  const container = document.getElementById('budget-legend');
+  container.innerHTML = '';
+  overhead.forEach(item => {
+    const el = document.createElement('div');
+    el.className = 'legend-item';
+    el.innerHTML = `<div class="legend-dot" style="background:${item.color}"></div><div class="legend-text">${item.name}<br><span style="font-size:11px;color:var(--text2)">${item.desc}</span></div><div class="legend-value">${item.tokens.toLocaleString()}t</div>`;
+    container.appendChild(el);
+  });
+
+  const total = overhead.reduce((s, i) => s + i.tokens, 0);
+  document.getElementById('legend-total').textContent = total.toLocaleString() + 't';
+  document.getElementById('legend-overage').textContent = '+' + (total - BUDGET).toLocaleString() + 't';
+}
+
+// ============================================================================
+// TAB 3: Waterfall
+// ============================================================================
+
+function renderWaterfall(items, containerId, maxTokens) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  items.forEach(item => {
+    const pct = Math.max((item.tokens / maxTokens) * 100, 1);
+    const el = document.createElement('div');
+    el.className = 'wf-item';
+    el.innerHTML = `
+      <div class="wf-item-name">${item.name}${item.note ? ` <span style="color:var(--text2);font-size:11px">(${item.note})</span>` : ''}</div>
+      <div class="wf-item-bar"><div class="wf-item-fill" style="width:${pct}%;background:${item.color}"></div></div>
+      <div class="wf-item-tokens">${item.tokens}t</div>`;
+    container.appendChild(el);
+  });
+}
+
+function renderScenario() {
+  const container = document.getElementById('scenario-bars');
+  const labels = document.getElementById('scenario-labels');
+  const totals = document.getElementById('scenario-totals');
+  container.innerHTML = '';
+  labels.innerHTML = '';
+
+  const sessionTokens = sessionLoad.reduce((s, i) => s + i.tokens, 0);
+  const firstHookTokens = firstTurnHooks.reduce((s, i) => s + i.tokens, 0);
+  const maxBar = sessionTokens + hookPerTurn + firstHookTokens;
+
+  let cumulative = 0;
+  const turns = [];
+  for (let i = 1; i <= 7; i++) {
+    let turnTotal = hookPerTurn;
+    if (i === 1) turnTotal += sessionTokens + firstHookTokens;
+    cumulative += turnTotal;
+    turns.push({ turn: i, tokens: turnTotal, cumulative });
+  }
+
+  turns.forEach(t => {
+    const bar = document.createElement('div');
+    bar.className = 'scenario-bar';
+    const h = (t.tokens / maxBar) * 100;
+
+    if (t.turn === 1) {
+      const sessionH = (sessionTokens / maxBar) * 100;
+      const hookH = ((firstHookTokens + hookPerTurn) / maxBar) * 100;
+      bar.innerHTML = `
+        <div class="seg" style="height:${hookH}%;background:var(--yellow);border-radius:4px 4px 0 0;"></div>
+        <div class="seg" style="height:${sessionH}%;background:var(--red);"></div>`;
+    } else {
+      bar.innerHTML = `<div class="seg" style="height:${(hookPerTurn/maxBar)*100}%;background:var(--yellow);border-radius:4px 4px 0 0;"></div>`;
+    }
+    container.appendChild(bar);
+
+    const lbl = document.createElement('div');
+    lbl.className = 'scenario-label';
+    lbl.innerHTML = `Turn ${t.turn}<div class="scenario-value">${t.tokens.toLocaleString()}t</div>`;
+    labels.appendChild(lbl);
+  });
+
+  totals.innerHTML = `
+    <div><span style="color:var(--text2)">Session total:</span> <strong style="color:var(--red)">${cumulative.toLocaleString()}t</strong> overhead</div>
+    <div><span style="color:var(--text2)">Turn 1 spike:</span> <strong>${turns[0].tokens.toLocaleString()}t</strong></div>
+    <div><span style="color:var(--text2)">Turns 2-7:</span> <strong>${hookPerTurn}t</strong>/turn</div>
+  `;
+}
+
+// ============================================================================
+// TAB 4: Agent Audit
+// ============================================================================
+
+function renderAgents() {
+  const sort = document.getElementById('agent-sort').value;
+  const filter = document.getElementById('agent-filter').value;
+  const maxBytes = 500;
+
+  let data = [...agents];
+  if (filter === 'over') data = data.filter(a => a.bytes > AGENT_LIMIT);
+  if (filter === 'under') data = data.filter(a => a.bytes <= AGENT_LIMIT);
+
+  if (sort === 'size-desc') data.sort((a, b) => b.bytes - a.bytes);
+  if (sort === 'size-asc') data.sort((a, b) => a.bytes - b.bytes);
+  if (sort === 'name') data.sort((a, b) => a.name.localeCompare(b.name));
+
+  const grid = document.getElementById('agent-grid');
+  grid.innerHTML = '';
+
+  const limitPct = (AGENT_LIMIT / maxBytes) * 100;
+
+  data.forEach(a => {
+    const over = a.bytes > AGENT_LIMIT;
+    const pct = Math.min((a.bytes / maxBytes) * 100, 100);
+    const color = over ? 'var(--red)' : 'var(--green)';
+    const row = document.createElement('div');
+    row.className = 'agent-row ' + (over ? 'over' : 'under');
+    row.innerHTML = `
+      <div class="agent-status">${over ? '&#10007;' : '&#10003;'}</div>
+      <div class="agent-name">${a.name}</div>
+      <div class="agent-bar-track">
+        <div class="agent-bar-fill" style="width:${pct}%;background:${color};opacity:0.6"></div>
+        <div class="agent-bar-limit" style="left:${limitPct}%"></div>
+      </div>
+      <div class="agent-bytes" style="color:${color}">${a.bytes}B</div>`;
+    grid.appendChild(row);
+  });
+
+  // Summary
+  const overCount = agents.filter(a => a.bytes > AGENT_LIMIT).length;
+  const underCount = agents.length - overCount;
+  const totalBytes = agents.reduce((s, a) => s + a.bytes, 0);
+  const targetBytes = 6000;
+
+  document.getElementById('agent-summary').innerHTML = `
+    <div class="agent-stat"><div class="num" style="color:var(--red)">${overCount}</div><div class="label">Over ${AGENT_LIMIT}B limit</div></div>
+    <div class="agent-stat"><div class="num" style="color:var(--green)">${underCount}</div><div class="label">Within limit</div></div>
+    <div class="agent-stat"><div class="num" style="color:var(--red)">${(totalBytes/1000).toFixed(1)}KB</div><div class="label">Total (target: ${(targetBytes/1000).toFixed(0)}KB)</div></div>
+    <div class="agent-stat"><div class="num" style="color:var(--text)">${Math.round(totalBytes/4)}</div><div class="label">Estimated tokens</div></div>
+  `;
+}
+
+// ============================================================================
+// INIT
+// ============================================================================
+
+renderBudgetBars(overhead, 'budget-bars', 'budget-verdict', BUDGET);
+renderBudgetBars(overheadTarget, 'budget-bars-target', 'budget-verdict-target', BUDGET);
+renderBudgetLegend();
+renderWaterfall(sessionLoad, 'wf-session', 3000);
+renderWaterfall(firstTurnHooks, 'wf-first', 3000);
+renderWaterfall(everyTurnHooks, 'wf-every', 3000);
+renderScenario();
+renderAgents();
+</script>
+</body>
+</html>
