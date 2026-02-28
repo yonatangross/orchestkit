@@ -25,6 +25,7 @@ import { unifiedSessionStartDispatcher } from '../lifecycle/unified-dispatcher.j
 import { preCompactSaver } from '../lifecycle/pre-compact-saver.js';
 import { prefillGuard } from '../lifecycle/prefill-guard.js';
 import { mcpHealthCheck } from '../lifecycle/mcp-health-check.js';
+import { syncSessionDispatcher } from '../lifecycle/sync-session-dispatcher.js';
 
 // TeammateIdle hooks (CC 2.1.33) — consolidated into unified dispatcher (#853)
 import { progressReporter } from '../teammate-idle/progress-reporter.js';
@@ -61,6 +62,7 @@ export const hooks: Record<string, HookFn> = {
   'lifecycle/pre-compact-saver': preCompactSaver,
   'lifecycle/prefill-guard': prefillGuard,
   'lifecycle/mcp-health-check': mcpHealthCheck,
+  'lifecycle/sync-session-dispatcher': syncSessionDispatcher,
 
   // TeammateIdle hooks (CC 2.1.33)
   'teammate-idle/unified-dispatcher': unifiedTeammateIdleDispatcher,

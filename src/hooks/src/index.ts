@@ -191,6 +191,7 @@ import { sessionEnvSetup } from './lifecycle/session-env-setup.js';
 import { sessionMetricsSummary } from './lifecycle/session-metrics-summary.js';
 import { dependencyVersionCheck } from './lifecycle/dependency-version-check.js';
 import { prefillGuard } from './lifecycle/prefill-guard.js';
+import { syncSessionDispatcher } from './lifecycle/sync-session-dispatcher.js';
 
 // TeammateIdle hooks (CC 2.1.33) — consolidated into unified dispatcher (#853)
 import { progressReporter } from './teammate-idle/progress-reporter.js';
@@ -375,6 +376,7 @@ export const hooks: Record<string, HookFn> = {
   'lifecycle/session-metrics-summary': sessionMetricsSummary,
   'lifecycle/dependency-version-check': dependencyVersionCheck,
   'lifecycle/prefill-guard': prefillGuard,
+  'lifecycle/sync-session-dispatcher': syncSessionDispatcher,
 
   // TeammateIdle hooks (CC 2.1.33) — unified dispatcher (#853)
   'teammate-idle/unified-dispatcher': unifiedTeammateIdleDispatcher,

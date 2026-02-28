@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 58 global (54 command + 4 http) + 28 agent-scoped + 1 skill-scoped = 87 total hooks",
+  "description": "OrchestKit hooks - 55 global (51 command + 4 http) + 28 agent-scoped + 1 skill-scoped = 84 total hooks",
   "hooks": {
     "PreToolUse": [
       {
@@ -204,29 +204,14 @@
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/session-context-loader",
-            "timeout": 15000
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/analytics-consent-check",
-            "timeout": 10000
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/sync-session-dispatcher",
+            "timeout": 20000
           },
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/pr-status-enricher",
             "async": true,
             "timeout": 30000
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/prefill-guard",
-            "timeout": 10000
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/mcp-health-check",
-            "timeout": 15000
           }
         ]
       }
