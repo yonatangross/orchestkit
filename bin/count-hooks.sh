@@ -3,7 +3,7 @@
 # Single source of truth for hook counting
 # =============================================================================
 # Counts hooks from:
-#   1. hooks.json entries (global) — "type": "command" entries
+#   1. hooks.json entries (global) — "type": "command" and "type": "http" entries
 #   2. Agent frontmatter — command:.*run-hook lines between --- markers
 #   3. Skill frontmatter — command:.*run-hook lines between --- markers
 #
@@ -20,8 +20,10 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-# Global hooks: count "type": "command" entries in hooks.json
-GLOBAL=$(grep -c '"type": "command"' "$PROJECT_ROOT/src/hooks/hooks.json" 2>/dev/null || echo "0")
+# Global hooks: count "type": "command" and "type": "http" entries in hooks.json
+GLOBAL_CMD=$(grep -c '"type": "command"' "$PROJECT_ROOT/src/hooks/hooks.json" 2>/dev/null || echo "0")
+GLOBAL_HTTP=$(grep -c '"type": "http"' "$PROJECT_ROOT/src/hooks/hooks.json" 2>/dev/null || echo "0")
+GLOBAL=$((GLOBAL_CMD + GLOBAL_HTTP))
 
 # Agent-scoped hooks: command:.*run-hook in YAML frontmatter
 # Single grep across all files instead of per-file awk (96 forks → 2)

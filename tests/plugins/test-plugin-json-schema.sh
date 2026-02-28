@@ -190,30 +190,48 @@ validate_plugin_schema() {
     # ============================================================================
     # Test 6: Hook entries have required command field (CC 2.1.19)
     # ============================================================================
-    echo "Test 6: Hook Command Field Validation"
+    echo "Test 6: Hook Command/URL Field Validation"
     echo "────────────────────────────────────────"
 
     if [[ "$hooks_type" == "object" ]]; then
-        # Check all hook entries with type="command" have a command field
+        # Check all hook entries: type="command" must have command, type="http" must have url
         local missing_command=0
+        local missing_url=0
         local hook_locations=""
 
         # Iterate through all hook events and their entries
         for event in $(jq -r '.hooks | keys[]' "$PLUGIN_JSON" 2>/dev/null); do
-            # Check array-style hooks (e.g., SessionStart with hooks array)
+            # Check command hooks missing command field
             local entries=$(jq -r ".hooks[\"$event\"][] | .hooks[]? // . | select(.type == \"command\" and .command == null) | \"$event\"" "$PLUGIN_JSON" 2>/dev/null | wc -l | tr -d ' ')
             if [[ "$entries" -gt 0 ]]; then
                 missing_command=$((missing_command + entries))
-                hook_locations+="$event, "
+                hook_locations+="$event(command), "
+            fi
+            # Check http hooks missing url field
+            local http_entries=$(jq -r ".hooks[\"$event\"][] | .hooks[]? // . | select(.type == \"http\" and .url == null) | \"$event\"" "$PLUGIN_JSON" 2>/dev/null | wc -l | tr -d ' ')
+            if [[ "$http_entries" -gt 0 ]]; then
+                missing_url=$((missing_url + http_entries))
+                hook_locations+="$event(http), "
             fi
         done
 
-        if [[ $missing_command -eq 0 ]]; then
-            echo -e "  ${GREEN}PASS${NC}: All hook entries with type='command' have command field"
+        local total_missing=$((missing_command + missing_url))
+        if [[ $total_missing -eq 0 ]]; then
+            # Count http hooks for info
+            local http_count=$(jq '[.hooks[][] | .hooks[]? // . | select(.type == "http")] | length' "$PLUGIN_JSON" 2>/dev/null || echo 0)
+            local cmd_count=$(jq '[.hooks[][] | .hooks[]? // . | select(.type == "command")] | length' "$PLUGIN_JSON" 2>/dev/null || echo 0)
+            echo -e "  ${GREEN}PASS${NC}: All command hooks ($cmd_count) have command field"
+            if [[ "$http_count" -gt 0 ]]; then
+                echo -e "  ${GREEN}PASS${NC}: All HTTP hooks ($http_count) have url field"
+            fi
         else
-            echo -e "  ${RED}FAIL${NC}: $missing_command hook(s) missing 'command' field"
+            if [[ $missing_command -gt 0 ]]; then
+                echo -e "  ${RED}FAIL${NC}: $missing_command hook(s) missing 'command' field"
+            fi
+            if [[ $missing_url -gt 0 ]]; then
+                echo -e "  ${RED}FAIL${NC}: $missing_url hook(s) missing 'url' field"
+            fi
             echo "        Events with issues: ${hook_locations%, }"
-            echo "        Fix: Add 'command' field to each hook with type='command'"
             FAILED=$((FAILED + 1))
         fi
     else

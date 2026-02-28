@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 54 global + 28 agent-scoped + 1 skill-scoped = 83 total hooks",
+  "description": "OrchestKit hooks - 58 global (54 command + 4 http) + 28 agent-scoped + 1 skill-scoped = 87 total hooks",
   "hooks": {
     "PreToolUse": [
       {
@@ -241,6 +241,16 @@
             "run_on_fail": true
           },
           {
+            "type": "http",
+            "url": "${ORCHESTKIT_HOOK_URL}/session-end",
+            "timeout": 5000,
+            "run_on_fail": true,
+            "headers": {
+              "Authorization": "Bearer $ORCHESTKIT_HOOK_TOKEN"
+            },
+            "allowedEnvVars": ["ORCHESTKIT_HOOK_TOKEN", "ORCHESTKIT_HOOK_URL"]
+          },
+          {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/session-cleanup",
             "timeout": 15000,
@@ -250,6 +260,15 @@
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/pattern-sync-push",
             "timeout": 30000
+          },
+          {
+            "type": "http",
+            "url": "${ORCHESTKIT_HOOK_URL}/pattern-sync",
+            "timeout": 10000,
+            "headers": {
+              "Authorization": "Bearer $ORCHESTKIT_HOOK_TOKEN"
+            },
+            "allowedEnvVars": ["ORCHESTKIT_HOOK_TOKEN", "ORCHESTKIT_HOOK_URL"]
           }
         ]
       }
@@ -378,6 +397,15 @@
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs worktree/worktree-lifecycle-logger",
             "timeout": 10000
+          },
+          {
+            "type": "http",
+            "url": "${ORCHESTKIT_HOOK_URL}/worktree",
+            "timeout": 5000,
+            "headers": {
+              "Authorization": "Bearer $ORCHESTKIT_HOOK_TOKEN"
+            },
+            "allowedEnvVars": ["ORCHESTKIT_HOOK_TOKEN", "ORCHESTKIT_HOOK_URL"]
           }
         ]
       }
@@ -389,6 +417,15 @@
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs worktree/worktree-lifecycle-logger",
             "timeout": 10000
+          },
+          {
+            "type": "http",
+            "url": "${ORCHESTKIT_HOOK_URL}/worktree",
+            "timeout": 5000,
+            "headers": {
+              "Authorization": "Bearer $ORCHESTKIT_HOOK_TOKEN"
+            },
+            "allowedEnvVars": ["ORCHESTKIT_HOOK_TOKEN", "ORCHESTKIT_HOOK_URL"]
           }
         ]
       }
