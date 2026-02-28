@@ -34,6 +34,14 @@ Comprehensive verification using parallel specialized agents with nuanced gradin
 /ork:verify --scope=backend database migrations
 ```
 
+## Argument Resolution
+
+```python
+SCOPE = "$ARGUMENTS"       # Full argument string, e.g., "authentication flow"
+SCOPE_TOKEN = "$ARGUMENTS[0]"  # First token for flag detection (e.g., "--scope=backend")
+# $ARGUMENTS[0], $ARGUMENTS[1] etc. for indexed access (CC 2.1.59)
+```
+
 > **Opus 4.6**: Agents use native adaptive thinking (no MCP sequential-thinking needed). Extended 128K output supports comprehensive verification reports.
 
 ---

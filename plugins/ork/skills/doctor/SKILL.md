@@ -21,6 +21,14 @@ metadata:
 
 # OrchestKit Health Diagnostics
 
+## Argument Resolution
+
+```python
+FLAGS = "$ARGUMENTS"         # Full argument string, e.g., "--verbose" or "--json"
+FLAG = "$ARGUMENTS[0]"       # First token: -v, --verbose, --json, --category=X
+# $ARGUMENTS[0], $ARGUMENTS[1] for indexed access (CC 2.1.59)
+```
+
 ## Overview
 
 The `/ork:doctor` command performs comprehensive health checks on your OrchestKit installation. It auto-detects installed plugins and validates 12 categories:

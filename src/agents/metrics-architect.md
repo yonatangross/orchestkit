@@ -27,6 +27,10 @@ skills:
   - testing-patterns
   - remember
   - memory
+hooks:
+  PreToolUse:
+    - matcher: "Bash"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs agent/restrict-bash"
 mcpServers: []
 ---
 ## Directive

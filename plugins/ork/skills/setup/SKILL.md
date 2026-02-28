@@ -39,6 +39,14 @@ Personalized onboarding that scans your codebase, detects your stack, recommends
 /ork:setup --channel    # Just show release channel
 ```
 
+## Argument Resolution
+
+```python
+FLAG = "$ARGUMENTS[0]"  # First token: --rescan, --score-only, --plan-only, --channel
+# If no arguments, run full 8-phase wizard.
+# $ARGUMENTS is the full string (CC 2.1.59 indexed access)
+```
+
 ## The Eight Phases
 
 | Phase | What | Tools Used | Output |

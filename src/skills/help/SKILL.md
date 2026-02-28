@@ -29,6 +29,14 @@ Interactive guide to all user-invocable skills organized by category.
 /ork:help git       # Show GIT skills only
 ```
 
+## Argument Resolution
+
+```python
+CATEGORY = "$ARGUMENTS[0]"  # Optional category filter: build, git, memory, quality, config, explore, media
+# If provided, skip AskUserQuestion and show that category directly.
+# $ARGUMENTS is the full string (CC 2.1.59 indexed access)
+```
+
 ---
 
 ## CRITICAL: Use AskUserQuestion for Category Selection

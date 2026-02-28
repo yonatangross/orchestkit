@@ -11,6 +11,14 @@ allowed-tools: [Read, Grep, Glob, Bash, AskUserQuestion, mcp__memory__search_nod
 
 Unified read-side memory skill with subcommands for searching, loading, syncing, history, and visualization.
 
+## Argument Resolution
+
+```python
+SUBCOMMAND = "$ARGUMENTS[0]"  # First token: search, load, history, viz, status
+QUERY = "$ARGUMENTS[1]"       # Second token onward: search query or flags
+# $ARGUMENTS is the full string (CC 2.1.59 indexed access)
+```
+
 ## Usage
 
 ```bash

@@ -26,6 +26,16 @@ Interactive setup for customizing your OrchestKit installation.
 
 ```bash
 /ork:configure
+/ork:configure mcp memory
+```
+
+## Argument Resolution
+
+```python
+PRESET = "$ARGUMENTS[0]"   # Optional preset name or subcommand, e.g., "mcp"
+TARGET = "$ARGUMENTS[1]"   # Optional target, e.g., "memory"
+# If no arguments, run interactive wizard.
+# $ARGUMENTS is the full string (CC 2.1.59 indexed access)
 ```
 
 ## Step 1: Choose Preset
