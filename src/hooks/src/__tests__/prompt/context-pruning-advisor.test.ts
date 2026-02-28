@@ -1,9 +1,9 @@
 /**
  * Unit tests for context-pruning-advisor hook
- * Tests UserPromptSubmit hook that recommends context pruning when usage exceeds 70%
+ * Tests UserPromptSubmit hook that recommends context pruning when usage exceeds 85%
  *
  * Features tested:
- * - Context usage threshold detection (70%, 95% critical)
+ * - Context usage threshold detection (85%, 95% critical)
  * - Recency, frequency, relevance scoring
  * - Pruning recommendations generation
  * - CC 2.1.9 compliance
@@ -102,7 +102,7 @@ describe('prompt/context-pruning-advisor', () => {
   });
 
   // ---------------------------------------------------------------------------
-  // Context usage below threshold (< 70%)
+  // Context usage below threshold (< 85%)
   // ---------------------------------------------------------------------------
 
   describe('context usage below threshold', () => {
@@ -136,11 +136,26 @@ describe('prompt/context-pruning-advisor', () => {
       expect(outputSilentSuccess).toHaveBeenCalled();
     });
 
-    test('returns silent success when context usage is 69%', () => {
+    test('returns silent success when context usage is 70% (below new 85% threshold)', () => {
       // Arrange
-      process.env.CLAUDE_CONTEXT_USAGE_PERCENT = '0.69';
+      process.env.CLAUDE_CONTEXT_USAGE_PERCENT = '0.7';
       vi.mocked(existsSync).mockReturnValue(true);
-      vi.mocked(readFileSync).mockReturnValue(createStateFile({ totalTokens: 8280, budget: 12000 }));
+      vi.mocked(readFileSync).mockReturnValue(createStateFile({ totalTokens: 8400, budget: 12000 }));
+      const input = createPromptInput('Design an API');
+
+      // Act
+      const result = contextPruningAdvisor(input);
+
+      // Assert
+      expect(result.continue).toBe(true);
+      expect(outputSilentSuccess).toHaveBeenCalled();
+    });
+
+    test('returns silent success when context usage is 84%', () => {
+      // Arrange
+      process.env.CLAUDE_CONTEXT_USAGE_PERCENT = '0.84';
+      vi.mocked(existsSync).mockReturnValue(true);
+      vi.mocked(readFileSync).mockReturnValue(createStateFile({ totalTokens: 10080, budget: 12000 }));
       const input = createPromptInput('Design an API');
 
       // Act
@@ -153,17 +168,17 @@ describe('prompt/context-pruning-advisor', () => {
   });
 
   // ---------------------------------------------------------------------------
-  // Context usage at warning threshold (70-95%)
+  // Context usage at warning threshold (85-95%)
   // ---------------------------------------------------------------------------
 
   describe('context usage at warning threshold', () => {
-    test('triggers pruning at exactly 70%', () => {
+    test('triggers pruning at exactly 85%', () => {
       // Arrange
-      process.env.CLAUDE_CONTEXT_USAGE_PERCENT = '0.7';
+      process.env.CLAUDE_CONTEXT_USAGE_PERCENT = '0.85';
       vi.mocked(existsSync).mockReturnValue(true);
       vi.mocked(readFileSync).mockReturnValue(
         createStateFile({
-          totalTokens: 8400,
+          totalTokens: 10200,
           budget: 12000,
           items: [
             { id: 'skill:old-skill', tags: ['old'], access_count: 0, estimated_tokens: 500 },
@@ -180,13 +195,13 @@ describe('prompt/context-pruning-advisor', () => {
       // May or may not output context depending on candidates
     });
 
-    test('triggers pruning at 80%', () => {
+    test('triggers pruning at 90%', () => {
       // Arrange
-      process.env.CLAUDE_CONTEXT_USAGE_PERCENT = '0.8';
+      process.env.CLAUDE_CONTEXT_USAGE_PERCENT = '0.9';
       vi.mocked(existsSync).mockReturnValue(true);
       vi.mocked(readFileSync).mockReturnValue(
         createStateFile({
-          totalTokens: 9600,
+          totalTokens: 10800,
           budget: 12000,
           items: [
             { id: 'skill:unused-skill', tags: [], access_count: 0, estimated_tokens: 800 },
@@ -267,7 +282,7 @@ describe('prompt/context-pruning-advisor', () => {
     test('recently accessed items get high recency score', () => {
       // Arrange
       const recentTime = Date.now() - 2 * 60 * 1000; // 2 minutes ago
-      process.env.CLAUDE_CONTEXT_USAGE_PERCENT = '0.75';
+      process.env.CLAUDE_CONTEXT_USAGE_PERCENT = '0.9';
       vi.mocked(existsSync).mockReturnValue(true);
       vi.mocked(readFileSync).mockReturnValue(
         createStateFile({
@@ -297,7 +312,7 @@ describe('prompt/context-pruning-advisor', () => {
     test('old items get low recency score and are pruning candidates', () => {
       // Arrange
       const oldTime = Date.now() - 3 * 60 * 60 * 1000; // 3 hours ago
-      process.env.CLAUDE_CONTEXT_USAGE_PERCENT = '0.75';
+      process.env.CLAUDE_CONTEXT_USAGE_PERCENT = '0.9';
       vi.mocked(existsSync).mockReturnValue(true);
       vi.mocked(readFileSync).mockReturnValue(
         createStateFile({
@@ -331,7 +346,7 @@ describe('prompt/context-pruning-advisor', () => {
   describe('frequency scoring', () => {
     test('frequently accessed items get high frequency score', () => {
       // Arrange
-      process.env.CLAUDE_CONTEXT_USAGE_PERCENT = '0.75';
+      process.env.CLAUDE_CONTEXT_USAGE_PERCENT = '0.9';
       vi.mocked(existsSync).mockReturnValue(true);
       vi.mocked(readFileSync).mockReturnValue(
         createStateFile({
@@ -358,7 +373,7 @@ describe('prompt/context-pruning-advisor', () => {
 
     test('never accessed items are high priority pruning candidates', () => {
       // Arrange
-      process.env.CLAUDE_CONTEXT_USAGE_PERCENT = '0.75';
+      process.env.CLAUDE_CONTEXT_USAGE_PERCENT = '0.9';
       vi.mocked(existsSync).mockReturnValue(true);
       vi.mocked(readFileSync).mockReturnValue(
         createStateFile({
@@ -391,7 +406,7 @@ describe('prompt/context-pruning-advisor', () => {
   describe('relevance scoring', () => {
     test('items matching prompt keywords get high relevance score', () => {
       // Arrange
-      process.env.CLAUDE_CONTEXT_USAGE_PERCENT = '0.75';
+      process.env.CLAUDE_CONTEXT_USAGE_PERCENT = '0.9';
       vi.mocked(existsSync).mockReturnValue(true);
       vi.mocked(readFileSync).mockReturnValue(
         createStateFile({
@@ -418,7 +433,7 @@ describe('prompt/context-pruning-advisor', () => {
 
     test('items with no matching keywords are pruning candidates', () => {
       // Arrange
-      process.env.CLAUDE_CONTEXT_USAGE_PERCENT = '0.75';
+      process.env.CLAUDE_CONTEXT_USAGE_PERCENT = '0.9';
       vi.mocked(existsSync).mockReturnValue(true);
       vi.mocked(readFileSync).mockReturnValue(
         createStateFile({
@@ -451,7 +466,7 @@ describe('prompt/context-pruning-advisor', () => {
   describe('no prompt handling', () => {
     test('returns silent success when prompt is empty', () => {
       // Arrange
-      process.env.CLAUDE_CONTEXT_USAGE_PERCENT = '0.75';
+      process.env.CLAUDE_CONTEXT_USAGE_PERCENT = '0.9';
       vi.mocked(existsSync).mockReturnValue(true);
       vi.mocked(readFileSync).mockReturnValue(createStateFile({ totalTokens: 9000, budget: 12000 }));
       const input = createPromptInput('');
@@ -466,7 +481,7 @@ describe('prompt/context-pruning-advisor', () => {
 
     test('returns silent success when prompt is undefined', () => {
       // Arrange
-      process.env.CLAUDE_CONTEXT_USAGE_PERCENT = '0.75';
+      process.env.CLAUDE_CONTEXT_USAGE_PERCENT = '0.9';
       vi.mocked(existsSync).mockReturnValue(true);
       vi.mocked(readFileSync).mockReturnValue(createStateFile({ totalTokens: 9000, budget: 12000 }));
       const input = createPromptInput('');
@@ -560,8 +575,8 @@ describe('prompt/context-pruning-advisor', () => {
   describe('CC 2.1.7 compliance', () => {
     test.each([
       ['below threshold', '0.5'],
-      ['at threshold', '0.7'],
-      ['above threshold', '0.85'],
+      ['at threshold', '0.85'],
+      ['above threshold', '0.9'],
       ['critical', '0.95'],
       ['maximum', '1.0'],
     ])('always returns continue: true at %s context usage', (_, usagePercent) => {
@@ -642,7 +657,7 @@ describe('prompt/context-pruning-advisor', () => {
 
     test('handles empty items array', () => {
       // Arrange
-      process.env.CLAUDE_CONTEXT_USAGE_PERCENT = '0.75';
+      process.env.CLAUDE_CONTEXT_USAGE_PERCENT = '0.9';
       vi.mocked(existsSync).mockReturnValue(true);
       vi.mocked(readFileSync).mockReturnValue(createStateFile({ totalTokens: 9000, budget: 12000, items: [] }));
       const input = createPromptInput('Design an API');
@@ -656,7 +671,7 @@ describe('prompt/context-pruning-advisor', () => {
 
     test('handles items with missing fields', () => {
       // Arrange
-      process.env.CLAUDE_CONTEXT_USAGE_PERCENT = '0.75';
+      process.env.CLAUDE_CONTEXT_USAGE_PERCENT = '0.9';
       vi.mocked(existsSync).mockReturnValue(true);
       vi.mocked(readFileSync).mockReturnValue(
         createStateFile({
@@ -676,7 +691,7 @@ describe('prompt/context-pruning-advisor', () => {
 
     test('handles prompts with special characters', () => {
       // Arrange
-      process.env.CLAUDE_CONTEXT_USAGE_PERCENT = '0.75';
+      process.env.CLAUDE_CONTEXT_USAGE_PERCENT = '0.9';
       vi.mocked(existsSync).mockReturnValue(true);
       vi.mocked(readFileSync).mockReturnValue(createStateFile({ totalTokens: 9000, budget: 12000, items: [] }));
       const input = createPromptInput('Design API with $pecial ch@rs <>&');
@@ -687,7 +702,7 @@ describe('prompt/context-pruning-advisor', () => {
 
     test('limits recommendations to MAX_RECOMMENDATIONS (5)', () => {
       // Arrange
-      process.env.CLAUDE_CONTEXT_USAGE_PERCENT = '0.75';
+      process.env.CLAUDE_CONTEXT_USAGE_PERCENT = '0.9';
       vi.mocked(existsSync).mockReturnValue(true);
       vi.mocked(readFileSync).mockReturnValue(
         createStateFile({
@@ -717,8 +732,8 @@ describe('prompt/context-pruning-advisor', () => {
 
   describe('threshold boundary tests', () => {
     test.each([
-      [0.69, false, false],
-      [0.7, true, false],
+      [0.84, false, false],
+      [0.85, true, false],
       [0.94, true, false],
       [0.95, true, true],
       [0.99, true, true],
