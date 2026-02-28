@@ -1,11 +1,22 @@
 ---
+name: configure
+license: MIT
+compatibility: "Claude Code 2.1.59+."
 description: "Configures OrchestKit plugin settings, MCP servers, hook permissions, and keybindings. Use when customizing plugin behavior or managing settings."
+argument-hint: "[preset-name]"
+context: inherit
+version: 1.0.0
+author: OrchestKit
+tags: [configuration, setup, wizard, customization]
+user-invocable: true
+disable-model-invocation: true
 allowed-tools: [Bash, Read, Grep, Glob]
+complexity: low
+discovers: [doctor, setup]
+model: haiku
+metadata:
+  category: workflow-automation
 ---
-
-# Auto-generated from skills/configure/SKILL.md
-# Source: https://github.com/yonatangross/orchestkit
-
 
 # OrchestKit Configuration
 
@@ -105,7 +116,7 @@ All 5 MCPs ship **enabled by default**. Tavily requires an API key; agentation r
 export ENABLE_CLAUDEAI_MCP_SERVERS=false
 ```
 
-Add to your shell profile (`~/.zshrc` or `~/.bashrc`) to persist across sessions.
+Add to your shell profile (`~/.zshrc` or `~/.bashrc`) to persist across sessions. This only affects MCP servers sourced from claude.ai — locally-configured MCPs in `.mcp.json` and `~/.claude/mcp.json` are unaffected.
 
 ## Step 6: CC 2.1.7 Settings (New)
 

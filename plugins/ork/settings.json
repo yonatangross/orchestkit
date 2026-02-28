@@ -13,11 +13,17 @@
     "deny": [
       "Bash(rm -rf /)",
       "Bash(rm -rf ~)",
+      "Bash(rm -rf .)",
       "Bash(chmod 777 *)",
+      "Bash(chmod -R 777 *)",
       "Bash(git push --force origin main)",
       "Bash(git push --force origin master)",
       "Bash(git push -f origin main)",
-      "Bash(git push -f origin master)"
+      "Bash(git push -f origin master)",
+      "Bash(mkfs*)",
+      "Bash(dd if=*)",
+      "Bash(> /dev/sd*)",
+      "Bash(:(){ :|:& };:)"
     ]
   },
   "spinnerVerbs": {

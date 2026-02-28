@@ -186,6 +186,7 @@ These are Claude Code built-in slash commands — not OrchestKit skills:
 | `/help` | Claude Code built-in help | CC 2.1.0+ |
 | `/config` | Claude Code configuration | CC 2.1.0+ |
 | `/clear` | Clear conversation and reset cached skills | CC 2.1.63 |
+| `/fast` | Toggle fast mode (same model, faster output) | CC 2.1.59+ |
 
 ---
 

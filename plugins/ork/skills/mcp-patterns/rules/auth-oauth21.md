@@ -164,3 +164,4 @@ async function authorizeWithFallback(authUrl: string) {
 - Prefer Client ID Metadata Documents over Dynamic Client Registration (RFC 7591) for new implementations
 - Handle `403 insufficient_scope` by re-authorizing with scopes from the `WWW-Authenticate` header
 - For high-security deployments, bind tokens to client certificates via mTLS (RFC 8705) to prevent token theft and replay
+- In headless environments (SSH, containers, CI), implement URL paste fallback — print the auth URL for the user to open manually and accept the callback URL pasted back (see example 9 above)
