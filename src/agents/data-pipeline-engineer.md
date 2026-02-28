@@ -22,6 +22,7 @@ tools:
   - TaskCreate
   - TaskUpdate
   - TaskList
+  - TaskOutput
 skills:
   - rag-retrieval
   - golden-dataset

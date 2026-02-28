@@ -11,6 +11,12 @@ context: fork
 complexity: high
 metadata:
   category: mcp-enhancement
+allowed-tools:
+  - Read
+  - Glob
+  - Grep
+  - WebFetch
+  - WebSearch
 ---
 
 # Multimodal LLM Patterns

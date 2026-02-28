@@ -9,7 +9,7 @@ version: 2.3.0
 author: OrchestKit
 tags: [implementation, feature, full-stack, parallel-agents, reflection, worktree]
 user-invocable: true
-allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, mcp__context7__query_docs, mcp__memory__search_nodes]
+allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskOutput, mcp__context7__query_docs, mcp__memory__search_nodes]
 skills: [api-design, react-server-components-framework, testing-patterns, explore, verify, memory, scope-appropriate-architecture]
 complexity: medium
 metadata:

@@ -12,6 +12,12 @@ user-invocable: false
 complexity: medium
 metadata:
   category: workflow-automation
+allowed-tools:
+  - Read
+  - Glob
+  - Grep
+  - WebFetch
+  - WebSearch
 ---
 
 # Async Jobs

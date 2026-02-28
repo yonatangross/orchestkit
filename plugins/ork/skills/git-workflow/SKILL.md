@@ -12,6 +12,7 @@ tags: [git, branch, commit, recovery, workflow, reflog, staging, stacked-prs, mo
 user-invocable: true
 allowed-tools: [AskUserQuestion, Bash, Read, Grep, Glob]
 complexity: medium
+model: haiku
 metadata:
   category: workflow-automation
 ---

@@ -19,6 +19,7 @@ tools:
   - TaskCreate
   - TaskUpdate
   - TaskList
+  - TaskOutput
 disallowedTools: [Write, Edit, MultiEdit]
 skills:
   - product-frameworks

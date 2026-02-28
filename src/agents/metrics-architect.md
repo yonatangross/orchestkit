@@ -18,6 +18,7 @@ tools:
   - TaskCreate
   - TaskUpdate
   - TaskList
+  - TaskOutput
 skills:
   - product-frameworks
   - monitoring-observability

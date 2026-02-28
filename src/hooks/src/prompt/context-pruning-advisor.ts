@@ -278,6 +278,14 @@ export function contextPruningAdvisor(input: HookInput): HookResult {
     }
   }
 
+  // Early exit: if no env var and no state file, skip entirely (nothing to prune)
+  const envPercent = process.env.CLAUDE_CONTEXT_USAGE_PERCENT;
+  const stateFile = getStateFilePath();
+  if (!envPercent && !existsSync(stateFile)) {
+    logHook('context-pruning-advisor', 'No context tracking data, skipping');
+    return outputSilentSuccess();
+  }
+
   // Initialize/load state
   const state = loadOrInitState();
 

@@ -11,6 +11,7 @@ tags: [memory, graph, session, context, sync, visualization, history, search]
 user-invocable: true
 allowed-tools: [Read, Grep, Glob, Bash, AskUserQuestion, mcp__memory__search_nodes, mcp__memory__read_graph]
 complexity: low
+model: haiku
 metadata:
   category: mcp-enhancement
   mcp-server: memory

@@ -12,6 +12,12 @@ complexity: high
 metadata:
   category: mcp-enhancement
   spec-version: "2025-11-25"
+allowed-tools:
+  - Read
+  - Glob
+  - Grep
+  - WebFetch
+  - WebSearch
 ---
 
 # MCP Patterns

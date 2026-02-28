@@ -45,12 +45,6 @@ vi.mock('../../stop/workflow-preference-learner.js', () => ({
 vi.mock('../../stop/task-completion-check.js', () => ({
   taskCompletionCheck: vi.fn(() => ({ continue: true, suppressOutput: true })),
 }));
-vi.mock('../../stop/auto-remember-continuity.js', () => ({
-  autoRememberContinuity: vi.fn(() => ({ continue: true, suppressOutput: true })),
-}));
-vi.mock('../../stop/full-test-suite.js', () => ({
-  fullTestSuite: vi.fn(() => ({ continue: true, suppressOutput: true })),
-}));
 vi.mock('../../stop/security-scan-aggregator.js', () => ({
   securityScanAggregator: vi.fn(() => ({ continue: true, suppressOutput: true })),
 }));
@@ -88,9 +82,6 @@ vi.mock('../../skill/security-summary.js', () => ({
 }));
 vi.mock('../../skill/test-pattern-validator.js', () => ({
   testPatternValidator: vi.fn(() => ({ continue: true, suppressOutput: true })),
-}));
-vi.mock('../../skill/test-runner.js', () => ({
-  testRunner: vi.fn(() => ({ continue: true, suppressOutput: true })),
 }));
 
 import { unifiedStopDispatcher, registeredHookNames } from '../../stop/unified-dispatcher.js';
@@ -301,7 +292,6 @@ describe('Unified Stop Dispatcher Hook', () => {
       expect(names).toContain('session-end-tracking');
       // v7: graph-queue-sync removed (mem0 cloud removed)
       expect(names).toContain('task-completion-check');
-      expect(names).toContain('full-test-suite');
     });
 
     it('should include skill hook names', () => {
@@ -310,7 +300,6 @@ describe('Unified Stop Dispatcher Hook', () => {
 
       // Assert
       expect(names).toContain('coverage-check');
-      expect(names).toContain('test-runner');
       expect(names).toContain('security-summary');
     });
 

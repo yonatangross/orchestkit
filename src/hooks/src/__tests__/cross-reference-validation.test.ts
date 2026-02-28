@@ -78,6 +78,7 @@ const prefixToBundleMap: Record<string, { name: string; hooks: Record<string, un
   'teammate-idle': { name: 'lifecycle', hooks: lifecycleBundle.hooks },
   'task-completed': { name: 'lifecycle', hooks: lifecycleBundle.hooks },
   'worktree': { name: 'lifecycle', hooks: lifecycleBundle.hooks },
+  'config-change': { name: 'lifecycle', hooks: lifecycleBundle.hooks },
 };
 
 function getBundleForHook(hookPath: string): { name: string; hooks: Record<string, unknown> } | null {
@@ -233,6 +234,7 @@ describe('Cross-Reference Validation: hooks.json <-> bundles', () => {
       Setup: ['setup'],
       WorktreeCreate: ['worktree'],
       WorktreeRemove: ['worktree'],
+      ConfigChange: ['config-change'],
     };
 
     for (const [eventType, entries] of Object.entries(hooksJson.hooks)) {
@@ -263,16 +265,21 @@ describe('Cross-Reference Validation: hooks.json <-> bundles', () => {
   });
 
   describe('hooks.json structural integrity', () => {
-    test('all hook entries have valid command format', () => {
+    test('all hook entries have valid command or http format', () => {
       const invalid: string[] = [];
       for (const [eventType, entries] of Object.entries(hooksJson.hooks)) {
-        for (const entry of entries as Array<{ hooks?: Array<{ type?: string; command?: string }> }>) {
+        for (const entry of entries as Array<{ hooks?: Array<{ type?: string; command?: string; url?: string }> }>) {
           for (const hook of entry.hooks || []) {
-            if (hook.type !== 'command') {
-              invalid.push(`${eventType}: hook has type "${hook.type}" instead of "command"`);
-            }
-            if (typeof hook.command !== 'string' || hook.command.length === 0) {
-              invalid.push(`${eventType}: hook has empty or non-string command`);
+            if (hook.type === 'command') {
+              if (typeof hook.command !== 'string' || hook.command.length === 0) {
+                invalid.push(`${eventType}: command hook has empty or non-string command`);
+              }
+            } else if (hook.type === 'http') {
+              if (typeof hook.url !== 'string' || hook.url.length === 0) {
+                invalid.push(`${eventType}: http hook has empty or non-string url`);
+              }
+            } else {
+              invalid.push(`${eventType}: hook has unknown type "${hook.type}"`);
             }
           }
         }

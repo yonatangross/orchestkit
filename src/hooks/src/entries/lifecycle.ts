@@ -14,7 +14,6 @@ export * from '../lib/git.js';
 import { analyticsConsentCheck } from '../lifecycle/analytics-consent-check.js';
 import { patternSyncPull } from '../lifecycle/pattern-sync-pull.js';
 import { patternSyncPush } from '../lifecycle/pattern-sync-push.js';
-import { prStatusEnricher } from '../lifecycle/pr-status-enricher.js';
 import { sessionCleanup } from '../lifecycle/session-cleanup.js';
 import { sessionContextLoader } from '../lifecycle/session-context-loader.js';
 import { sessionEnvSetup } from '../lifecycle/session-env-setup.js';
@@ -52,7 +51,6 @@ export const hooks: Record<string, HookFn> = {
   'lifecycle/analytics-consent-check': analyticsConsentCheck,
   'lifecycle/pattern-sync-pull': patternSyncPull,
   'lifecycle/pattern-sync-push': patternSyncPush,
-  'lifecycle/pr-status-enricher': prStatusEnricher,
   'lifecycle/session-cleanup': sessionCleanup,
   'lifecycle/session-context-loader': sessionContextLoader,
   'lifecycle/session-env-setup': sessionEnvSetup,

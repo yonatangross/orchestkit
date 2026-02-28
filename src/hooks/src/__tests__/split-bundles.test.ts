@@ -109,7 +109,7 @@ describe('Split Bundle Entry Points', () => {
       const hookNames = Object.keys(lifecycleBundle.hooks);
       expect(hookNames.length).toBeGreaterThan(0);
       // Lifecycle bundle includes lifecycle/* plus related event hooks (teammate-idle, task-completed)
-      const validPrefixes = ['lifecycle/', 'teammate-idle/', 'task-completed/', 'worktree/'];
+      const validPrefixes = ['lifecycle/', 'teammate-idle/', 'task-completed/', 'worktree/', 'config-change/'];
       expect(hookNames.every(name => validPrefixes.some(p => name.startsWith(p)))).toBe(true);
     });
 
@@ -310,7 +310,9 @@ describe('Cross-Bundle Consistency', () => {
     // 161 -> 158: #684 — removed context-budget-monitor, posttool/skill-nudge, context-compressor
     // 158 -> 159: CC 2.1.50 — added worktree/worktree-lifecycle-logger to lifecycle bundle
     // 159 -> 160: added _resetCommandCacheForTesting export to notification bundle
-    expect(totalHooks).toBe(160);
+    // 160 -> 159: removed pr-status-enricher from lifecycle bundle (dead code)
+    // 159 -> 170: sync with actual bundle exports after v7 hook architecture redesign
+    expect(totalHooks).toBe(170);
   });
 });
 

@@ -11,6 +11,16 @@ user-invocable: false
 complexity: low
 metadata:
   category: document-asset-creation
+allowed-tools:
+  - Read
+  - Glob
+  - Grep
+  - Bash
+  - Write
+  - Edit
+  - TaskCreate
+  - TaskUpdate
+  - TaskList
 ---
 
 # Release Management

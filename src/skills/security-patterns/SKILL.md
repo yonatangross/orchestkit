@@ -13,6 +13,12 @@ complexity: high
 model: opus
 metadata:
   category: document-asset-creation
+allowed-tools:
+  - Read
+  - Glob
+  - Grep
+  - WebFetch
+  - WebSearch
 ---
 
 # Security Patterns

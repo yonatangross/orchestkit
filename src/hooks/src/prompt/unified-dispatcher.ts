@@ -21,7 +21,6 @@
  * - antipattern-warning (merged — deduplicated logic)
  * - memory-context (context injection)
  * - context-pruning-advisor (context injection)
- * - pipeline-detector (context injection)
  *
  * Once-per-session hooks consolidated here (file-based flag tracking):
  * - profile-injector (run once via session flag)
@@ -54,7 +53,6 @@ import { communicationStyleTracker } from './communication-style-tracker.js';
 import { antipatternWarning } from './antipattern-warning.js';
 import { memoryContext } from './memory-context.js';
 import { contextPruningAdvisor } from './context-pruning-advisor.js';
-import { pipelineDetector } from './pipeline-detector.js';
 import { skillNudgePrompt } from './skill-nudge.js';
 
 // Import hook implementations — once-per-session
@@ -111,7 +109,6 @@ const HOOKS: PromptHookConfig[] = [
   { name: 'context-pruning-advisor', fn: contextPruningAdvisor, producesContext: true },
   { name: 'antipattern-warning', fn: antipatternWarning, producesContext: true },
   { name: 'memory-context', fn: memoryContext, producesContext: true },
-  { name: 'pipeline-detector', fn: pipelineDetector, producesContext: true },
   { name: 'skill-nudge-prompt', fn: skillNudgePrompt, producesContext: true },
 ];
 

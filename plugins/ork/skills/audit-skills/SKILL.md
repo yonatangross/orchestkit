@@ -7,6 +7,16 @@ author: OrchestKit
 user-invocable: false
 disable-model-invocation: true
 complexity: medium
+allowed-tools:
+  - Read
+  - Glob
+  - Grep
+  - Bash
+  - Write
+  - Edit
+  - TaskCreate
+  - TaskUpdate
+  - TaskList
 ---
 
 # audit-skills

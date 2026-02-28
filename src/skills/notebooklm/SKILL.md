@@ -11,6 +11,16 @@ context: fork
 complexity: medium
 metadata:
   category: mcp-enhancement
+allowed-tools:
+  - Read
+  - Glob
+  - Grep
+  - Bash
+  - Write
+  - Edit
+  - TaskCreate
+  - TaskUpdate
+  - TaskList
 ---
 
 # NotebookLM

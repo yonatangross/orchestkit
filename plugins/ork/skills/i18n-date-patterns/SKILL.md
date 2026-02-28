@@ -12,6 +12,12 @@ user-invocable: false
 complexity: low
 metadata:
   category: document-asset-creation
+allowed-tools:
+  - Read
+  - Glob
+  - Grep
+  - WebFetch
+  - WebSearch
 ---
 
 # i18n and Localization Patterns

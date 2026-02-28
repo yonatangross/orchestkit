@@ -16,6 +16,12 @@ hooks:
 complexity: low
 metadata:
   category: document-asset-creation
+allowed-tools:
+  - Read
+  - Glob
+  - Grep
+  - WebFetch
+  - WebSearch
 ---
 
 # Code Review Playbook

@@ -19,6 +19,7 @@ tools:
   - TaskCreate
   - TaskUpdate
   - TaskList
+  - TaskOutput
 disallowedTools:
   - Edit
   - MultiEdit

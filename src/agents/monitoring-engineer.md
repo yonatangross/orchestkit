@@ -21,6 +21,7 @@ tools:
   - TaskCreate
   - TaskUpdate
   - TaskList
+  - TaskOutput
 skills:
   - monitoring-observability
   - performance

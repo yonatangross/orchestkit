@@ -19,6 +19,7 @@ tools:
   - TaskCreate
   - TaskUpdate
   - TaskList
+  - TaskOutput
 skills:
   - product-frameworks
   - brainstorming

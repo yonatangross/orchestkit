@@ -1,6 +1,6 @@
 ---
 description: "Full-power feature implementation with parallel subagents. Use when implementing, building, or creating features."
-allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, mcp__context7__query_docs, mcp__memory__search_nodes]
+allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskOutput, mcp__context7__query_docs, mcp__memory__search_nodes]
 ---
 
 # Auto-generated from skills/implement/SKILL.md

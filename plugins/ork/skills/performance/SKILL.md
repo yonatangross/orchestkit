@@ -12,6 +12,12 @@ user-invocable: false
 complexity: high
 metadata:
   category: document-asset-creation
+allowed-tools:
+  - Read
+  - Glob
+  - Grep
+  - WebFetch
+  - WebSearch
 ---
 
 # Performance

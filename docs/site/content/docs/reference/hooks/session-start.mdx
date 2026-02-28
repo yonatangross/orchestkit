@@ -1,14 +1,13 @@
 ---
 title: "SessionStart"
-description: "Hooks triggered on SessionStart events (3 hooks)."
+description: "Hooks triggered on SessionStart events (2 hooks)."
 ---
 
 # SessionStart Hooks
 
-**3 hooks** registered for the `SessionStart` lifecycle event.
+**2 hooks** registered for the `SessionStart` lifecycle event.
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
 | `unified-dispatcher` | `*` | 🔇 Silent | Consolidates session-specific async hooks into a single dispatcher. |
 | `sync-session-dispatcher` | `*` | 💡 Injects | — |
-| `pr-status-enricher` | `*` | 💡 Injects | Runs at session start to provide PR context. Sets: |

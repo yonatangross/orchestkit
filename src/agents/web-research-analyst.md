@@ -20,6 +20,7 @@ tools:
   - TaskCreate
   - TaskUpdate
   - TaskList
+  - TaskOutput
 skills:
   - web-research-workflow
   - browser-tools

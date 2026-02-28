@@ -21,7 +21,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "accessibility-specialist",
     "structure": {
@@ -67,7 +73,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "workflow-architect",
     "structure": {
@@ -166,7 +178,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "backend-system-architect",
     "structure": {
@@ -224,7 +242,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "backend-system-architect",
     "structure": {
@@ -272,7 +296,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [
       "scope-appropriate-architecture"
     ],
@@ -411,7 +441,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "python-performance-engineer",
     "structure": {
@@ -506,7 +542,17 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Bash",
+      "Write",
+      "Edit",
+      "TaskCreate",
+      "TaskUpdate",
+      "TaskList"
+    ],
     "skills": [],
     "agent": null,
     "structure": {
@@ -603,7 +649,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "web-research-analyst",
     "structure": {},
@@ -629,7 +681,18 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Bash",
+      "Read",
+      "Write",
+      "Edit",
+      "Grep",
+      "Glob",
+      "TaskCreate",
+      "TaskUpdate",
+      "TaskList",
+      "TaskOutput"
+    ],
     "skills": [],
     "agent": null,
     "structure": {
@@ -661,7 +724,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "code-quality-reviewer",
     "structure": {
@@ -821,7 +890,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "database-engineer",
     "structure": {
@@ -925,7 +1000,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "data-pipeline-engineer",
     "structure": {
@@ -992,7 +1073,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "backend-system-architect",
     "structure": {
@@ -1102,7 +1189,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "backend-system-architect",
     "structure": {
@@ -1382,7 +1475,17 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Bash",
+      "Write",
+      "Edit",
+      "TaskCreate",
+      "TaskUpdate",
+      "TaskList"
+    ],
     "skills": [],
     "agent": null,
     "structure": {
@@ -1425,7 +1528,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "data-pipeline-engineer",
     "structure": {
@@ -1504,7 +1613,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "frontend-ui-developer",
     "structure": {
@@ -1550,6 +1665,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "Task",
       "TaskCreate",
       "TaskUpdate",
+      "TaskOutput",
       "mcp__context7__query_docs",
       "mcp__memory__search_nodes"
     ],
@@ -1643,7 +1759,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "workflow-architect",
     "structure": {},
@@ -1671,7 +1793,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "llm-integrator",
     "structure": {
@@ -1725,7 +1853,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": null,
     "structure": {
@@ -1881,7 +2015,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "metrics-architect",
     "structure": {
@@ -1966,7 +2106,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": null,
     "structure": {},
@@ -1993,7 +2139,17 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Bash",
+      "Write",
+      "Edit",
+      "TaskCreate",
+      "TaskUpdate",
+      "TaskList"
+    ],
     "skills": [],
     "agent": null,
     "structure": {},
@@ -2032,7 +2188,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "frontend-ui-developer",
     "structure": {
@@ -2212,7 +2374,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "product-strategist",
     "structure": {
@@ -2280,7 +2448,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "backend-system-architect",
     "structure": {
@@ -2336,7 +2510,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [
       "scope-appropriate-architecture"
     ],
@@ -2387,7 +2567,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "data-pipeline-engineer",
     "structure": {
@@ -2428,7 +2614,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "frontend-ui-developer",
     "structure": {
@@ -2506,7 +2698,17 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Bash",
+      "Write",
+      "Edit",
+      "TaskCreate",
+      "TaskUpdate",
+      "TaskList"
+    ],
     "skills": [],
     "agent": null,
     "structure": {
@@ -2630,7 +2832,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "frontend-ui-developer",
     "structure": {
@@ -2708,7 +2916,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": null,
     "structure": {
@@ -2743,7 +2957,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "security-auditor",
     "structure": {
@@ -2887,7 +3107,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "workflow-architect",
     "structure": {
@@ -2955,7 +3181,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "test-generator",
     "structure": {
@@ -3053,7 +3285,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "frontend-ui-developer",
     "structure": {
@@ -3193,6 +3431,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "TaskCreate",
       "TaskUpdate",
       "TaskList",
+      "TaskOutput",
       "mcp__memory__search_nodes"
     ],
     "skills": [
@@ -3243,7 +3482,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "frontend-ui-developer",
     "structure": {

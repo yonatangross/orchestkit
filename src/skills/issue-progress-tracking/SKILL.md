@@ -10,6 +10,7 @@ tags: [git, github, issues, tracking, workflow]
 user-invocable: false
 allowed-tools: [Bash]
 complexity: low
+model: haiku
 metadata:
   category: workflow-automation
 ---

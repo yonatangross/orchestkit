@@ -12,7 +12,6 @@
  * - issue-docs-requirement (context)
  * - multi-instance-quality-gate (context)
  * - gh-issue-creation-guide (context)
- * - license-compliance (context)
  * - affected-tests-finder (context)
  *
  * NOT consolidated (remain separate in hooks.json):
@@ -39,7 +38,6 @@ import { errorPatternWarner } from './error-pattern-warner.js';
 import { issueDocsRequirement } from './issue-docs-requirement.js';
 import { multiInstanceQualityGate } from './multi-instance-quality-gate.js';
 import { ghIssueCreationGuide } from './gh-issue-creation-guide.js';
-import { licenseCompliance } from './license-compliance.js';
 import { affectedTestsFinder } from './affected-tests-finder.js';
 
 // -----------------------------------------------------------------------------
@@ -71,7 +69,6 @@ const ADVISORY_HOOKS: AdvisoryHookConfig[] = [
   { name: 'issue-docs-requirement', fn: issueDocsRequirement },
   { name: 'multi-instance-quality-gate', fn: multiInstanceQualityGate },
   { name: 'gh-issue-creation-guide', fn: ghIssueCreationGuide },
-  { name: 'license-compliance', fn: licenseCompliance },
   { name: 'affected-tests-finder', fn: affectedTestsFinder },
 ];
 

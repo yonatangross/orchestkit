@@ -20,6 +20,7 @@ tools:
   - TaskCreate
   - TaskUpdate
   - TaskList
+  - TaskOutput
 skills:
   - api-design
   - architecture-decision-record

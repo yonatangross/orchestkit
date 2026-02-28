@@ -10,6 +10,12 @@ user-invocable: false
 complexity: low
 metadata:
   category: architecture
+allowed-tools:
+  - Read
+  - Glob
+  - Grep
+  - WebFetch
+  - WebSearch
 ---
 
 # Scope-Appropriate Architecture

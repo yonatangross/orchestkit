@@ -8,7 +8,15 @@
       "mcp__context7__*",
       "mcp__memory__*"
     ],
-    "deny": []
+    "deny": [
+      "Bash(rm -rf /)",
+      "Bash(rm -rf ~)",
+      "Bash(chmod 777 *)",
+      "Bash(git push --force origin main)",
+      "Bash(git push --force origin master)",
+      "Bash(git push -f origin main)",
+      "Bash(git push -f origin master)"
+    ]
   },
   "spinnerVerbs": {
     "mode": "append",

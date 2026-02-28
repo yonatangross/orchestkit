@@ -63,13 +63,13 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // Issue #653: Migrated from fire-and-forget spawn pattern to native async: true.
       // CC 2.1.40+ handles async hooks without terminal spam.
       // Eliminates per-event process spawning — fixes Windows console flashing (#644).
-      const asyncEvents = ['SessionStart', 'PostToolUse', 'SubagentStop', 'Notification', 'Setup'];
+      // Setup uses sync-setup-dispatcher (not async) — excluded from this test
+      const asyncEvents = ['SessionStart', 'PostToolUse', 'SubagentStop', 'Notification'];
       const expectedDispatcherPaths: Record<string, string> = {
         SessionStart: 'lifecycle/unified-dispatcher',
         PostToolUse: 'posttool/unified-dispatcher',
         SubagentStop: 'subagent-stop/unified-dispatcher',
         Notification: 'notification/unified-dispatcher',
-        Setup: 'setup/unified-dispatcher',
       };
 
       for (const event of asyncEvents) {
@@ -105,11 +105,12 @@ describe('Dispatcher Registry Wiring E2E', () => {
   });
 
   describe('PreToolUse Hook Chain Ordering', () => {
-    it('should have dangerous-command-blocker before other Bash hooks', () => {
+    it('should have sync-bash-dispatcher as first Bash hook', () => {
+      // Post-consolidation (#867-#871): dangerous-command-blocker is now internal
+      // to sync-bash-dispatcher, which must be first in the chain.
       const preToolGroups = hooksConfig.hooks.PreToolUse || [];
       const bashGroups = preToolGroups.filter(g => g.matcher === 'Bash' || !g.matcher);
 
-      // Find all Bash hooks across groups
       const bashHooks: { name: string; groupIndex: number; hookIndex: number }[] = [];
       bashGroups.forEach((group, groupIndex) => {
         group.hooks.forEach((hook, hookIndex) => {
@@ -120,15 +121,17 @@ describe('Dispatcher Registry Wiring E2E', () => {
         });
       });
 
-      const blockerIndex = bashHooks.findIndex(h => h.name === 'dangerous-command-blocker');
-      expect(blockerIndex, 'dangerous-command-blocker should exist').toBeGreaterThanOrEqual(0);
+      const dispatcherIndex = bashHooks.findIndex(h => h.name === 'sync-bash-dispatcher');
+      expect(dispatcherIndex, 'sync-bash-dispatcher should exist').toBeGreaterThanOrEqual(0);
 
-      // Blocker should be in first position or early
-      const blockerPosition = bashHooks[blockerIndex];
-      expect(blockerPosition.groupIndex).toBeLessThanOrEqual(1);
+      // Dispatcher should be first (contains dangerous-command-blocker internally)
+      const dispatcherPosition = bashHooks[dispatcherIndex];
+      expect(dispatcherPosition.groupIndex).toBeLessThanOrEqual(1);
     });
 
-    it('should have file-guard before other Write/Edit hooks', () => {
+    it('should have sync-write-edit-dispatcher for Write/Edit hooks', () => {
+      // Post-consolidation (#867-#871): file-guard is now internal
+      // to sync-write-edit-dispatcher.
       const preToolGroups = hooksConfig.hooks.PreToolUse || [];
       const writeGroups = preToolGroups.filter(g =>
         g.matcher === 'Write' || g.matcher === 'Edit' || g.matcher === 'Write|Edit'
@@ -144,11 +147,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
         });
       });
 
-      const guardIndex = writeHooks.indexOf('file-guard');
-      expect(guardIndex, 'file-guard should exist').toBeGreaterThanOrEqual(0);
-
-      // Guard should be early in the chain
-      expect(guardIndex).toBeLessThanOrEqual(2);
+      const dispatcherIndex = writeHooks.indexOf('sync-write-edit-dispatcher');
+      expect(dispatcherIndex, 'sync-write-edit-dispatcher should exist').toBeGreaterThanOrEqual(0);
     });
   });
 
@@ -224,11 +224,10 @@ describe('Dispatcher Registry Wiring E2E', () => {
   });
 
   describe('Native Async Hook Configuration (Issue #653)', () => {
-    it('should have exactly 9 async hooks', () => {
+    it('should have exactly 7 async hooks', () => {
       // Issue #653: Migrated from fire-and-forget spawn pattern to native async: true.
-      // Eliminates per-event process spawning — fixes Windows console flashing (#644).
-      // CC 2.1.47: pr-status-enricher promoted to async (#722).
-      // v7.0.0: ConfigChange/settings-reload added as async hook.
+      // v7.0.0: pr-status-enricher removed (dead code).
+      // 7 async hooks: lifecycle, posttool, stop, subagent-stop, notification, capture-user-intent, config-change
       const allHooks: Hook[] = [];
       for (const eventGroups of Object.values(hooksConfig.hooks)) {
         for (const group of eventGroups) {
@@ -237,7 +236,7 @@ describe('Dispatcher Registry Wiring E2E', () => {
       }
 
       const asyncHooks = allHooks.filter(h => h.async === true);
-      expect(asyncHooks.length, 'Should have exactly 9 async hooks (7 original + pr-status-enricher + config-change)').toBe(9);
+      expect(asyncHooks.length, 'Should have exactly 7 async hooks').toBe(7);
     });
 
     it('should have notification dispatcher using native async', () => {
@@ -310,8 +309,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
 
       // Issue #653: Migrated from fire-and-forget spawn pattern to native async: true.
       // CC 2.1.40+ fixed "backgrounded hook commands not returning early" so native
-      // async hooks no longer produce spam. 9 hooks use async: true (7 original + pr-status-enricher + config-change).
-      expect(asyncCount).toBe(9);
+      // async hooks no longer produce spam. 7 hooks use async: true.
+      expect(asyncCount).toBe(7);
     });
 
     it('should have hooks for all critical security operations', () => {
@@ -319,10 +318,10 @@ describe('Dispatcher Registry Wiring E2E', () => {
       const bashGroups = preToolGroups.filter(g => g.matcher === 'Bash' || !g.matcher);
       const bashHooks = bashGroups.flatMap(g => g.hooks);
 
-      // Actual security hooks defined in hooks.json (global scope)
-      // Note: git-validator moved to agent-scoped hooks in v5.5.0
+      // Post-consolidation (#867-#871): security hooks are inside sync dispatchers
+      // sync-bash-dispatcher contains dangerous-command-blocker internally
       const securityHooks = [
-        'dangerous-command-blocker',
+        'sync-bash-dispatcher',
       ];
 
       for (const hookName of securityHooks) {

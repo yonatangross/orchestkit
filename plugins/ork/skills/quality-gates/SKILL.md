@@ -13,6 +13,12 @@ user-invocable: false
 complexity: max
 metadata:
   category: document-asset-creation
+allowed-tools:
+  - Read
+  - Glob
+  - Grep
+  - WebFetch
+  - WebSearch
 ---
 
 # Quality Gates
