@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 36 global (32 command + 4 http) + 54 agent-scoped + 7 skill-scoped = 97 total hooks",
+  "description": "OrchestKit hooks - 35 global (33 command + 2 http) + 54 agent-scoped + 7 skill-scoped = 96 total hooks",
   "hooks": {
     "PreToolUse": [
       {
@@ -190,23 +190,10 @@
             "run_on_fail": true
           },
           {
-            "type": "http",
-            "url": "${ORCHESTKIT_HOOK_URL}/session-end",
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/session-end-reporter",
             "timeout": 5000,
-            "run_on_fail": true,
-            "headers": {
-              "Authorization": "Bearer $ORCHESTKIT_HOOK_TOKEN"
-            },
-            "allowedEnvVars": ["ORCHESTKIT_HOOK_TOKEN", "ORCHESTKIT_HOOK_URL"]
-          },
-          {
-            "type": "http",
-            "url": "${ORCHESTKIT_HOOK_URL}/pattern-sync",
-            "timeout": 10000,
-            "headers": {
-              "Authorization": "Bearer $ORCHESTKIT_HOOK_TOKEN"
-            },
-            "allowedEnvVars": ["ORCHESTKIT_HOOK_TOKEN", "ORCHESTKIT_HOOK_URL"]
+            "run_on_fail": true
           }
         ]
       }

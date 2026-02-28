@@ -11,8 +11,7 @@
  * - pattern-sync-push (normal — skips if a run_on_fail hook returned continue: false)
  *
  * NOT consolidated (remain separate in hooks.json):
- * - HTTP: session-end webhook
- * - HTTP: pattern-sync webhook
+ * - session-end-reporter (command hook — POSTs token usage + metrics to HQ API)
  *
  * CC 2.1.9 Compliant: Single sync hook with merged systemMessage output.
  * run_on_fail semantics: metrics-summary and session-cleanup always run (try/catch + continue).
