@@ -183,9 +183,13 @@ export function context7Tracker(input: HookInput): HookResult {
   logPermissionFeedback('allow', `Documentation lookup: ${libraryId}`, input);
   logHook('context7-tracker', `Query: ${toolName} library=${libraryId}`);
 
-  // CC 2.1.9: Inject cache context if available
+  // Skip cache context injection for first 2 queries — not useful yet (#token-reduction)
   if (cacheContext) {
-    return outputWithContext(cacheContext);
+    const queryCount = cacheContext.match(/(\d+) queries/);
+    const totalQueries = queryCount ? parseInt(queryCount[1], 10) : 0;
+    if (totalQueries >= 3) {
+      return outputWithContext(cacheContext);
+    }
   }
 
   return outputSilentSuccess();

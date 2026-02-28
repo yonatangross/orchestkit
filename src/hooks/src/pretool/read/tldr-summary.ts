@@ -26,7 +26,7 @@ import {
 import { isSummarizable, summarizeCode } from '../../lib/code-summarizer.js';
 
 const HOOK_NAME = 'tldr-summary';
-const LINE_THRESHOLD = 500;
+const LINE_THRESHOLD = 1000; // Raised from 500 — #token-reduction
 const TOKEN_THRESHOLD = 2000;
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB safety cap
 

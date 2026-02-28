@@ -42,9 +42,10 @@ import {
   getProjectDir,
   getSessionId,
   extractContext,
+  fnv1aHash,
 } from '../lib/common.js';
 import { isImageOrBinaryPrompt, MAX_PROMPT_LENGTH } from '../lib/prompt-guards.js';
-import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 // Import hook implementations — every-turn
@@ -256,6 +257,30 @@ export function unifiedPromptDispatcher(input: HookInput): HookResult {
 
   // Single consolidated output
   const consolidated = contextParts.join('\n\n---\n\n');
+
+  // Delta detection: skip injection if consolidated output is unchanged from last turn (#token-reduction)
+  const consolidatedHash = fnv1aHash(consolidated);
+  const hashDir = join(projectDir, '.claude', 'memory', 'sessions', sessionId);
+  const hashFile = join(hashDir, 'prompt-hash.txt');
+
+  try {
+    if (existsSync(hashFile)) {
+      const lastHash = readFileSync(hashFile, 'utf8').trim();
+      if (lastHash === consolidatedHash) {
+        logHook(HOOK_NAME, `Delta skip: consolidated output unchanged (hash=${consolidatedHash})`);
+        return outputSilentSuccess();
+      }
+    }
+    // Write new hash
+    if (!existsSync(hashDir)) {
+      mkdirSync(hashDir, { recursive: true });
+    }
+    writeFileSync(hashFile, consolidatedHash, 'utf8');
+  } catch (err) {
+    logHook(HOOK_NAME, `Delta detection error: ${err}`, 'warn');
+    // Proceed with injection on error
+  }
+
   logHook(HOOK_NAME, `Consolidated ${contextParts.length} hooks into ${totalTokens}t`);
 
   return outputPromptContext(consolidated);

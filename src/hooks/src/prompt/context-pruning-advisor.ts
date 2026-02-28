@@ -27,7 +27,7 @@ import { join, } from 'node:path';
 import { getContextTrackingFile } from '../lib/paths.js';
 
 // Configuration
-const CONTEXT_TRIGGER = 0.7; // Trigger at 70% context usage
+const CONTEXT_TRIGGER = 0.85; // Trigger at 85% context usage (raised from 70% — #token-reduction)
 const CONTEXT_CRITICAL = 0.95; // Critical threshold
 const PRUNE_THRESHOLD_HIGH = 8; // Score 0-8: High priority pruning
 const PRUNE_THRESHOLD_MED = 15; // Score 9-15: Medium priority pruning
@@ -254,7 +254,7 @@ function buildRecommendationMessage(candidates: PruneCandidate[]): string {
     lines.push(`  ${i + 1}. [${priority}] ${displayName} (score: ${score}, saves ~${tokens}t)`);
   }
 
-  return `Context usage >70%. Pruning recommendations:
+  return `Context usage >85%. Pruning recommendations:
 ${lines.join('\n')}
 
 Potential savings: ~${totalSavings} tokens

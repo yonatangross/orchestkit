@@ -1,6 +1,6 @@
 /**
  * NotebookLM MCP Advisor Hook
- * Advisory warnings for destructive/slow NotebookLM operations
+ * Advisory warnings for destructive NotebookLM operations
  * Non-blocking — never uses outputBlock() or outputDeny()
  */
 
@@ -8,19 +8,10 @@ import type { HookInput, HookResult } from '../../types.js';
 import {
   outputSilentSuccess,
   outputWarning,
-  outputWithContext,
   logHook,
 } from '../../lib/common.js';
 
 const HOOK_NAME = 'notebooklm-advisor';
-
-/** Slow operations — provide advisory context */
-const SLOW_OPS: Record<string, string> = {
-  studio_create:
-    'Studio generation takes 2-5 minutes. Use studio_status to poll progress. Do not wait synchronously.',
-  research_start:
-    'Research uses Google quota and may take several minutes. Use research_status to poll progress.',
-};
 
 /** Destructive / sensitive operations — emit warnings */
 const WARN_OPS: Record<string, string> = {
@@ -42,12 +33,6 @@ export function notebooklmAdvisor(input: HookInput): HookResult {
   }
 
   const op = toolName.replace('mcp__notebooklm-mcp__', '');
-
-  // Slow operations — advisory context
-  if (SLOW_OPS[op]) {
-    logHook(HOOK_NAME, `Advisory: ${op}`);
-    return outputWithContext(SLOW_OPS[op]);
-  }
 
   // Destructive / sensitive operations — warnings
   if (WARN_OPS[op]) {

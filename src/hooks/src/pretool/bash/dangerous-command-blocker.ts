@@ -19,12 +19,13 @@ import {
 /**
  * Dangerous patterns - commands that can cause catastrophic system damage
  * These are matched as literal substrings via normalizedCommand.includes()
+ *
+ * NOTE: Root-path rm patterns (rm -rf /, rm -fr /) are in DANGEROUS_REGEX_PATTERNS
+ * below to avoid false positives on legitimate paths like /tmp, /var/log, etc.
  */
 const DANGEROUS_PATTERNS: string[] = [
-  // Filesystem destruction
-  'rm -rf /',
+  // Filesystem destruction (relative paths only — absolute root uses regex below)
   'rm -rf ~',
-  'rm -fr /',
   'rm -fr ~',
   'mv /* /dev/null',
   // Device wiping
@@ -46,10 +47,25 @@ const DANGEROUS_PATTERNS: string[] = [
 ];
 
 /**
- * Shell interpreters that should never receive piped input from download commands.
- * Catches: wget URL | sh, curl URL | bash, etc.
+ * Regex patterns for root-path destruction commands.
+ * These need anchored matching to avoid false positives:
+ * - "rm -rf /" (bare root) → BLOCKED
+ * - "rm -rf /tmp/build" → ALLOWED (legitimate path)
+ * - "rm -rf /*" → BLOCKED (glob root)
  */
-const PIPE_TO_SHELL_RE = /\|\s*(sh|bash|zsh|dash)\b/i;
+const DANGEROUS_REGEX_PATTERNS: { pattern: RegExp; label: string }[] = [
+  // rm -rf / or rm -rf /* but NOT rm -rf /tmp/...
+  // Matches: rm -rf /, rm -rf /*, rm -rf / &&, rm -rf / ;
+  // Does NOT match: rm -rf /tmp, rm -rf /var/log
+  { pattern: /\brm\s+-r[f]\s+\/(\s|$|\*|\))/i, label: 'rm -rf /' },
+  { pattern: /\brm\s+-[f]r\s+\/(\s|$|\*|\))/i, label: 'rm -fr /' },
+];
+
+/**
+ * Shell and script interpreters that should never receive piped input.
+ * Catches: wget URL | sh, curl URL | bash, cat file | python3, etc.
+ */
+const PIPE_TO_SHELL_RE = /\|\s*(sh|bash|zsh|dash|python[23]?|node|perl|ruby|tclsh)\b/i;
 
 /**
  * Git force-push patterns that rewrite remote history.
@@ -78,6 +94,20 @@ export function dangerousCommandBlocker(input: HookInput): HookResult {
       `Command matches dangerous pattern: ${pattern}\n\n` +
         'This command could cause severe system damage and has been blocked.'
     );
+  }
+
+  // Check regex patterns for root-path destruction (anchored to avoid false positives)
+  const normalizedForRegex = normalizeCommandLegacy(command);
+  for (const { pattern, label } of DANGEROUS_REGEX_PATTERNS) {
+    if (pattern.test(normalizedForRegex)) {
+      logHook('dangerous-command-blocker', `BLOCKED: Dangerous pattern: ${label}`);
+      logPermissionFeedback('deny', `Dangerous pattern: ${label}`, input);
+
+      return outputDeny(
+        `Command matches dangerous pattern: ${label}\n\n` +
+          'This command could cause severe system damage and has been blocked.'
+      );
+    }
   }
 
   // Legacy normalized form for regex checks and patterns that contain operators

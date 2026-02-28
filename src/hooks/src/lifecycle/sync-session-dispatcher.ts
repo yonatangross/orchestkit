@@ -19,13 +19,16 @@
  */
 
 import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, logHook, extractContext } from '../lib/common.js';
+import { outputSilentSuccess, logHook, extractContext, getProjectDir } from '../lib/common.js';
 
 // Import consolidated hook implementations
 import { sessionContextLoader } from './session-context-loader.js';
 import { analyticsConsentCheck } from './analytics-consent-check.js';
 import { prefillGuard } from './prefill-guard.js';
 import { mcpHealthCheck } from './mcp-health-check.js';
+
+// Rules materialization (token-reduction: write static content to .claude/rules/ at session start)
+import { materializeAntipatternRules } from '../prompt/antipattern-warning.js';
 
 const HOOK_NAME = 'sync-session-dispatcher';
 
@@ -50,6 +53,14 @@ const SYNC_HOOKS: SyncHookConfig[] = [
  * Runs all sync hooks sequentially and merges their systemMessage outputs.
  */
 export function syncSessionDispatcher(input: HookInput): HookResult {
+  // Materialize static rules files at session start (#token-reduction)
+  try {
+    const projectDir = input.project_dir || getProjectDir();
+    materializeAntipatternRules(projectDir);
+  } catch (err) {
+    logHook(HOOK_NAME, `Rules materialization failed: ${err}`, 'warn');
+  }
+
   const messages: string[] = [];
 
   for (const hook of SYNC_HOOKS) {
