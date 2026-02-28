@@ -12,6 +12,7 @@ user-invocable: true
 allowed-tools: [AskUserQuestion, Task, Read, Grep, Glob, TaskCreate, TaskUpdate, TaskList, mcp__memory__search_nodes]
 skills: [architecture-decision-record, api-design, memory, remember, scope-appropriate-architecture, testing-patterns]
 complexity: medium
+discovers: [assess, implement, plan-viz]
 metadata:
   category: workflow-automation
   mcp-server: memory

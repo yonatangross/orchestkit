@@ -12,6 +12,7 @@ user-invocable: true
 allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskOutput, mcp__context7__query_docs, mcp__memory__search_nodes]
 skills: [api-design, react-server-components-framework, testing-patterns, explore, verify, memory, scope-appropriate-architecture]
 complexity: medium
+discovers: [verify, commit, create-pr]
 hooks:
   PostToolUse:
     - matcher: "Write|Edit"

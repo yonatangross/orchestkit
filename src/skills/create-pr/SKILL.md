@@ -13,6 +13,7 @@ user-invocable: true
 allowed-tools: [AskUserQuestion, Bash, Task, TaskCreate, TaskUpdate, mcp__memory__search_nodes]
 skills: [commit, review-pr, memory]
 complexity: medium
+discovers: [review-pr]
 metadata:
   category: workflow-automation
   mcp-server: memory

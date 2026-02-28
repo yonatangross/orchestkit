@@ -12,6 +12,7 @@ user-invocable: true
 allowed-tools: [AskUserQuestion, Read, Grep, Glob, Task, TaskCreate, TaskUpdate, mcp__memory__search_nodes, Bash]
 skills: [ascii-visualizer, architecture-decision-record, memory, architecture-patterns]
 complexity: high
+discovers: [implement, fix-issue, assess]
 metadata:
   category: workflow-automation
   mcp-server: memory

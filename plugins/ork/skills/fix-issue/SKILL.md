@@ -12,6 +12,7 @@ user-invocable: true
 allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Task, TaskCreate, TaskUpdate, Grep, Glob, mcp__memory__search_nodes, mcp__context7__get_library_docs]
 skills: [commit, explore, verify, memory, remember]
 complexity: medium
+discovers: [verify, commit, create-pr]
 metadata:
   category: workflow-automation
   mcp-server: memory, context7

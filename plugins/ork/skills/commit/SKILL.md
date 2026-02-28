@@ -14,6 +14,7 @@ disable-model-invocation: true
 allowed-tools: [Bash]
 skills: []
 complexity: low
+discovers: [create-pr]
 hooks:
   PreToolUse:
     - matcher: "Bash(git commit*)"

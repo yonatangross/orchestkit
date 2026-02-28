@@ -358,7 +358,11 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Grep",
+      "Glob"
+    ],
     "skills": [],
     "agent": null,
     "structure": {},
@@ -2667,7 +2671,12 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Bash",
+      "Grep",
+      "Glob"
+    ],
     "skills": [],
     "agent": null,
     "structure": {
@@ -3387,7 +3396,12 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Bash",
+      "Grep",
+      "Glob"
+    ],
     "skills": [],
     "agent": null,
     "structure": {

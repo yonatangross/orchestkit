@@ -33,7 +33,7 @@ OrchestKit requires Claude Code >= 2.1.59. This matrix documents which CC featur
 | `.claude/rules/` with `paths:` | 2.1.59 | Path-scoped rules per directory | All rules loaded always |
 | HTTP hooks (`type: "http"`) | 2.1.63 | Observability hooks POST to remote endpoints | Falls back to command hooks (local JSONL) |
 | Worktree config sharing | 2.1.63 | Project configs shared across worktrees | Manual config copy needed |
-| `/clear` resets skills | 2.1.63 | Fixes stale skill content after edits | Restart CC to clear cache |
+| `/clear` resets skills | 2.1.63 | Fixes stale skill content after edits | Native since 2.1.63; no workaround needed |
 | Teammate memory fix | 2.1.63 | Safe for 5+ teammate swarms | Memory grows in long team sessions |
 | `/simplify`, `/batch` built-in | 2.1.63 | Bundled CC slash commands | Not available |
 | `ENABLE_CLAUDEAI_MCP_SERVERS` | 2.1.63 | Opt out of claude.ai MCP servers | All claude.ai MCPs always loaded |
@@ -92,7 +92,7 @@ CC 2.1.50 fixed 8 memory leaks affecting long-running sessions:
 - Shell execution: ChildProcess/AbortController refs retained after cleanup
 - LSP diagnostic data never cleaned up after delivery
 - File history snapshots: unbounded growth
-- Internal caches not cleared after compaction
+- Internal caches not cleared after compaction (fixed in 2.1.63)
 
 **Recommendation:** If CC version < 2.1.50, warn user to upgrade for long sessions.
 

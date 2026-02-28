@@ -13,6 +13,7 @@ disable-model-invocation: true
 allowed-tools: [Bash, Read, Grep, Glob]
 skills: [configure]
 complexity: low
+discovers: [configure, setup]
 metadata:
   category: document-asset-creation
 ---
