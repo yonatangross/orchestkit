@@ -27,3 +27,9 @@ Discovery, collaboration, and sharing patterns.
 
 - `workflow-research-discovery.md` — Web/Drive research async flow (start -> status -> import)
 - `workflow-sharing-collaboration.md` — Public links, collaborator invites, access control
+
+## 4. Release (release) — HIGH — 1 rule
+
+Per-release knowledge management.
+
+- `workflow-versioned-notebooks.md` — Versioned notebooks with changelog, skill diffs, migration guides

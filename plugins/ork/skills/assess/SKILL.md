@@ -12,6 +12,7 @@ allowed-tools: [AskUserQuestion, Read, Grep, Glob, Task, TaskCreate, TaskUpdate,
 skills: [code-review-playbook, quality-gates, architecture-decision-record, memory]
 argument-hint: "[code-path-or-topic]"
 complexity: high
+model: sonnet
 discovers: [implement, brainstorming, fix-issue]
 metadata:
   category: document-asset-creation

@@ -21,6 +21,7 @@ tools:
   - TaskUpdate
   - TaskList
   - TaskOutput
+  - TaskStop
 skills:
   - web-research-workflow
   - browser-tools

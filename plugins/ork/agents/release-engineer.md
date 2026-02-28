@@ -21,6 +21,7 @@ tools:
   - TaskUpdate
   - TaskList
   - TaskOutput
+  - TaskStop
 skills:
   - release-management
   - github-operations

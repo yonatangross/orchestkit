@@ -9,6 +9,7 @@ version: 1.0.0
 author: OrchestKit
 tags: [upgrade, assessment, platform, compatibility, migration]
 user-invocable: false
+disable-model-invocation: true
 allowed-tools: [AskUserQuestion, Bash, Read, Grep, Glob, Task, WebSearch, WebFetch]
 skills: [explore, verify, remember, memory]
 complexity: max

@@ -13,6 +13,10 @@ allowed-tools: [AskUserQuestion, Read, Grep, Glob, Bash, Task, TaskCreate, TaskU
 skills: [security-patterns, architecture-patterns, quality-gates]
 complexity: max
 model: opus
+hooks:
+  PreToolUse:
+    - matcher: "Read"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs skill/audit-context-loader"
 metadata:
   category: document-asset-creation
   mcp-server: memory

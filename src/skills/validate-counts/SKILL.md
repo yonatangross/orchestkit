@@ -8,6 +8,7 @@ user-invocable: false
 disable-model-invocation: true
 allowed-tools: [Read, Bash, Grep, Glob]
 complexity: low
+model: haiku
 ---
 
 # Validate Counts

@@ -27,6 +27,14 @@ Systematic issue resolution with hypothesis-based root cause analysis, similar i
 
 > **Opus 4.6**: Root cause analysis uses native adaptive thinking. Dynamic token budgets scale with context window for thorough investigation.
 
+## Argument Resolution
+
+```python
+ISSUE_NUMBER = "$ARGUMENTS[0]"  # e.g., "123" (CC 2.1.59 indexed access)
+# $ARGUMENTS contains the full argument string
+# $ARGUMENTS[0] is the first space-separated token
+```
+
 ## STEP 0: Verify User Intent
 
 **BEFORE creating tasks**, clarify fix approach using AskUserQuestion. See [rules/evidence-gathering.md](rules/evidence-gathering.md) for the full prompt template and workflow adjustments per approach (Proper fix, Quick fix, Investigate first, Hotfix).

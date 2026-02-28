@@ -595,6 +595,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "TaskCreate",
       "TaskUpdate",
       "TaskList",
+      "TaskOutput",
+      "TaskStop",
       "mcp__memory__search_nodes"
     ],
     "skills": [
@@ -1275,6 +1277,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "Task",
       "TaskCreate",
       "TaskUpdate",
+      "TaskOutput",
+      "TaskStop",
       "mcp__memory__search_nodes",
       "Bash"
     ],
@@ -1369,6 +1373,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "Task",
       "TaskCreate",
       "TaskUpdate",
+      "TaskOutput",
+      "TaskStop",
       "Grep",
       "Glob",
       "mcp__memory__search_nodes",
@@ -1670,6 +1676,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "TaskCreate",
       "TaskUpdate",
       "TaskOutput",
+      "TaskStop",
       "mcp__context7__query_docs",
       "mcp__memory__search_nodes"
     ],
@@ -2889,6 +2896,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "Task",
       "TaskCreate",
       "TaskUpdate",
+      "TaskOutput",
+      "TaskStop",
       "mcp__memory__search_nodes"
     ],
     "skills": [
@@ -3446,6 +3455,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "TaskUpdate",
       "TaskList",
       "TaskOutput",
+      "TaskStop",
       "mcp__memory__search_nodes"
     ],
     "skills": [

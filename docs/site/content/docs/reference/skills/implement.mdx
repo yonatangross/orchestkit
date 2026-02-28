@@ -30,6 +30,15 @@ Parallel subagent execution for feature implementation with scope control and re
 
 ---
 
+## Argument Resolution
+
+```python
+FEATURE_DESC = "$ARGUMENTS"  # Full argument string, e.g., "user authentication"
+# $ARGUMENTS[0] is the first token, $ARGUMENTS[1] second, etc. (CC 2.1.59)
+```
+
+---
+
 ## Step 0: Project Context Discovery
 
 **BEFORE any work**, detect the project tier. This becomes the complexity ceiling for all patterns.
@@ -1879,13 +1888,11 @@ Do NOT modify: src/components/, src/features/, src/hooks/
 
 ## Config Sharing (CC 2.1.63+)
 
-Since CC 2.1.63, project configs and auto-memory are **automatically shared** across worktrees. This simplifies team worktree setup:
+Project configs and auto-memory are **automatically shared** across worktrees (CC 2.1.63+). No manual setup needed:
 
-- No need to copy `.claude/settings.json` or `CLAUDE.md` to each worktree
+- `.claude/settings.json` and `CLAUDE.md` available in every worktree
 - Auto-memory persists — teammates inherit learned patterns
 - Plugins are discovered from any worktree
-
-For CC &lt; 2.1.63, the lead must manually copy configs to each worktree directory.
 
 ---
 
@@ -1973,14 +1980,12 @@ This is safe because worktree agents operate on an isolated file tree.
 
 ## Config Sharing (CC 2.1.63+)
 
-Since CC 2.1.63, project configs and auto-memory are **automatically shared** across git worktrees. No manual copying needed:
+Project configs and auto-memory are **automatically shared** across git worktrees. No manual copying needed:
 
 - `.claude/settings.json` — shared across all worktrees
 - `.claude/memory/` — auto-memory persists across worktrees
 - `CLAUDE.md` — project instructions available in every worktree
 - Plugin configs — plugins discovered from any worktree
-
-For CC &lt; 2.1.63, configs must be manually copied to each worktree directory.
 
 ## CLI Alternative
 

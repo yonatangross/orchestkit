@@ -20,6 +20,7 @@ tools:
   - TaskUpdate
   - TaskList
   - TaskOutput
+  - TaskStop
 skills:
   - product-frameworks
   - brainstorming

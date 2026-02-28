@@ -1,22 +1,11 @@
 ---
-name: configure
-license: MIT
-compatibility: "Claude Code 2.1.59+."
 description: "Configures OrchestKit plugin settings, MCP servers, hook permissions, and keybindings. Use when customizing plugin behavior or managing settings."
-argument-hint: "[preset-name]"
-context: inherit
-version: 1.0.0
-author: OrchestKit
-tags: [configuration, setup, wizard, customization]
-user-invocable: true
-disable-model-invocation: true
 allowed-tools: [Bash, Read, Grep, Glob]
-complexity: low
-discovers: [doctor, setup]
-model: haiku
-metadata:
-  category: workflow-automation
 ---
+
+# Auto-generated from skills/configure/SKILL.md
+# Source: https://github.com/yonatangross/orchestkit
+
 
 # OrchestKit Configuration
 

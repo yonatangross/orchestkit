@@ -22,6 +22,7 @@ tools:
   - TaskUpdate
   - TaskList
   - TaskOutput
+  - TaskStop
 skills:
   - monitoring-observability
   - performance

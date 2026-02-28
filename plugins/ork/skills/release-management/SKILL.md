@@ -8,6 +8,7 @@ version: 1.0.0
 author: OrchestKit
 tags: [git, github, releases, versioning, changelog, automation]
 user-invocable: false
+disable-model-invocation: true
 complexity: low
 model: haiku
 metadata:

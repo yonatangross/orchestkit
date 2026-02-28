@@ -19,6 +19,8 @@ hooks:
   PreToolUse:
     - matcher: "Bash(git commit*)"
       command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs pretool/bash/git-protector"
+    - matcher: "Bash(git *)"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs skill/commit-operation-validator"
 metadata:
   category: workflow-automation
 ---
@@ -31,6 +33,15 @@ Simple, validated commit creation. Run checks locally, no agents needed for stan
 
 ```bash
 /ork:commit
+/ork:commit fix typo in auth module
+```
+
+## Argument Resolution
+
+```python
+COMMIT_MSG = "$ARGUMENTS"  # Optional commit message, e.g., "fix typo in auth module"
+# If provided, use as commit message. If empty, generate from staged changes.
+# $ARGUMENTS[0] is the first token (CC 2.1.59 indexed access)
 ```
 
 ## Workflow

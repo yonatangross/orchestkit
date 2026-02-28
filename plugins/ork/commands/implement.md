@@ -1,6 +1,6 @@
 ---
 description: "Full-power feature implementation with parallel subagents. Use when implementing, building, or creating features."
-allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskOutput, mcp__context7__query_docs, mcp__memory__search_nodes]
+allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskOutput, TaskStop, mcp__context7__query_docs, mcp__memory__search_nodes]
 ---
 
 # Auto-generated from skills/implement/SKILL.md
@@ -17,6 +17,14 @@ Parallel subagent execution for feature implementation with scope control and re
 /ork:implement user authentication
 /ork:implement real-time notifications
 /ork:implement dashboard analytics
+```
+
+
+## Argument Resolution
+
+```python
+FEATURE_DESC = "$ARGUMENTS"  # Full argument string, e.g., "user authentication"
+# $ARGUMENTS[0] is the first token, $ARGUMENTS[1] second, etc. (CC 2.1.59)
 ```
 
 

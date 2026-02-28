@@ -70,8 +70,9 @@ What are you trying to do?
 | **Workflows** | `workflow-studio-content.md` | MEDIUM | 9 artifact types (audio overview, deep dive, slides...) |
 | **Research** | `workflow-research-discovery.md` | HIGH | Web/Drive research async flow |
 | **Collaboration** | `workflow-sharing-collaboration.md` | MEDIUM | Public links, collaborator invites |
+| **Release** | `workflow-versioned-notebooks.md` | HIGH | Per-release notebooks with changelog + diffs |
 
-**Total: 7 rules across 3 categories**
+**Total: 8 rules across 4 categories**
 
 ## MCP Tools by API Group
 
@@ -99,6 +100,7 @@ What are you trying to do?
 | Auth expired? | `nlm login --check`; sessions last ~20 min, re-auth with `nlm login` |
 | Studio content | Use studio_create, poll with studio_status (generation takes 2-5 min) |
 | Research discovery | research_start for web/Drive discovery, then research_import to add findings |
+| Release notebooks | One notebook per minor version; upload CHANGELOG + key skill diffs as sources |
 | Query vs search | notebook_query for AI-grounded answers; source_get_content for raw text |
 | Notes vs sources | Notes for your insights/annotations; sources for external documents |
 
@@ -145,7 +147,7 @@ note(notebook_id="...", action="create", content="Key takeaway: PKCE is mandator
 
 ---
 
-## Rules (7)
+## Rules (8)
 
 ### NotebookLM Quick Setup — HIGH
 
@@ -442,4 +444,83 @@ download_artifact(artifact_id=artifact.id, path="./output/podcast.mp3")
 - Check `studio_status` before attempting download -- downloading a pending artifact fails
 - Use `audio_overview` for quick summaries, `report` for comprehensive analysis
 - All artifact types require at least one source in the notebook
+
+
+### Versioned Notebooks Per Release — HIGH
+
+
+## Versioned Notebooks Per Release
+
+Create a dedicated NotebookLM notebook for each OrchestKit release to preserve release context, changelog details, and key skill diffs as a queryable knowledge base.
+
+### When to Create
+
+- On every minor or major release (e.g., v7.0.0, v7.1.0)
+- Patch releases can be appended to the existing minor notebook
+
+### Notebook Naming
+
+```
+OrchestKit v{MAJOR}.{MINOR} Release Notes
+```
+
+Examples: `OrchestKit v7.0 Release Notes`, `OrchestKit v7.1 Release Notes`
+
+### Sources to Upload
+
+For each release notebook, add these sources:
+
+| Source | Type | Purpose |
+|--------|------|---------|
+| `CHANGELOG.md` (release section) | text | Full changelog for the release |
+| Key skill diffs | text | Before/after for skills with significant changes |
+| Migration guide (if breaking) | text | Breaking changes and migration steps |
+| PR descriptions | text | Merged PR summaries for context |
+| Updated CLAUDE.md | file | Current project instructions snapshot |
+
+### Workflow
+
+```python
+# 1. Create release notebook
+notebook_create(title="OrchestKit v7.0 Release Notes")
+
+# 2. Add changelog section
+source_add(notebook_id="...", type="text",
+  title="CHANGELOG v7.0.0",
+  content="<paste relevant CHANGELOG.md section>")
+
+# 3. Add key skill diffs (significant changes only)
+source_add(notebook_id="...", type="text",
+  title="Skill Changes: implement",
+  content="<diff summary of implement skill changes>")
+
+# 4. Add migration guide for breaking changes
+source_add(notebook_id="...", type="text",
+  title="Migration Guide v6 to v7",
+  content="<breaking changes and migration steps>")
+
+# 5. Share with team
+notebook_share_invite(notebook_id="...",
+  email="yonatan2gross@gmail.com", role="writer")
+```
+
+### Key Rules
+
+- One notebook per minor version — do not mix v7.0 and v7.1 content
+- Upload CHANGELOG section as `type=text` (not file) for better chunking
+- Include skill diffs only for skills with significant functional changes (not cosmetic edits)
+- Add a note summarizing the release theme after uploading sources
+- Generate an audio overview via `studio_create(type="deep_dive")` for each release
+
+### Querying Release History
+
+```python
+# Query specific release context
+notebook_query(notebook_id="...",
+  query="What changed in the implement skill for v7.0?")
+
+# Compare across releases (query the relevant notebook)
+notebook_query(notebook_id="...",
+  query="What breaking changes were introduced?")
+```
 

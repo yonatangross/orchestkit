@@ -1,6 +1,6 @@
 ---
 description: "Design exploration with parallel agents. Use when brainstorming ideas, exploring solutions, or comparing alternatives."
-allowed-tools: [AskUserQuestion, Task, Read, Grep, Glob, TaskCreate, TaskUpdate, TaskList, mcp__memory__search_nodes]
+allowed-tools: [AskUserQuestion, Task, Read, Grep, Glob, TaskCreate, TaskUpdate, TaskList, TaskOutput, TaskStop, mcp__memory__search_nodes]
 ---
 
 # Auto-generated from skills/brainstorming/SKILL.md
@@ -12,6 +12,13 @@ allowed-tools: [AskUserQuestion, Task, Read, Grep, Glob, TaskCreate, TaskUpdate,
 Transform rough ideas into fully-formed designs through intelligent agent selection and structured exploration.
 
 **Core principle:** Analyze the topic, select relevant agents dynamically, explore alternatives in parallel, present design incrementally.
+
+## Argument Resolution
+
+```python
+TOPIC = "$ARGUMENTS"  # Full argument string, e.g., "API design for payments"
+# $ARGUMENTS[0] is the first token (CC 2.1.59 indexed access)
+```
 
 
 ## STEP 0: Project Context Discovery

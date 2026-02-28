@@ -23,6 +23,7 @@ tools:
   - TaskUpdate
   - TaskList
   - TaskOutput
+  - TaskStop
 skills:
   - rag-retrieval
   - golden-dataset

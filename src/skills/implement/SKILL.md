@@ -9,9 +9,10 @@ version: 2.3.0
 author: OrchestKit
 tags: [implementation, feature, full-stack, parallel-agents, reflection, worktree]
 user-invocable: true
-allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskOutput, mcp__context7__query_docs, mcp__memory__search_nodes]
+allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskOutput, TaskStop, mcp__context7__query_docs, mcp__memory__search_nodes]
 skills: [api-design, react-server-components-framework, testing-patterns, explore, verify, memory, scope-appropriate-architecture]
 complexity: medium
+model: sonnet
 discovers: [verify, commit, create-pr]
 hooks:
   PostToolUse:
@@ -32,6 +33,15 @@ Parallel subagent execution for feature implementation with scope control and re
 /ork:implement user authentication
 /ork:implement real-time notifications
 /ork:implement dashboard analytics
+```
+
+---
+
+## Argument Resolution
+
+```python
+FEATURE_DESC = "$ARGUMENTS"  # Full argument string, e.g., "user authentication"
+# $ARGUMENTS[0] is the first token, $ARGUMENTS[1] second, etc. (CC 2.1.59)
 ```
 
 ---

@@ -9,9 +9,10 @@ context: fork
 version: 4.2.0
 author: OrchestKit
 user-invocable: true
-allowed-tools: [AskUserQuestion, Task, Read, Grep, Glob, TaskCreate, TaskUpdate, TaskList, mcp__memory__search_nodes]
+allowed-tools: [AskUserQuestion, Task, Read, Grep, Glob, TaskCreate, TaskUpdate, TaskList, TaskOutput, TaskStop, mcp__memory__search_nodes]
 skills: [architecture-decision-record, api-design, memory, remember, scope-appropriate-architecture, testing-patterns]
 complexity: medium
+model: sonnet
 discovers: [assess, implement, plan-viz]
 metadata:
   category: workflow-automation
@@ -23,6 +24,13 @@ metadata:
 Transform rough ideas into fully-formed designs through intelligent agent selection and structured exploration.
 
 **Core principle:** Analyze the topic, select relevant agents dynamically, explore alternatives in parallel, present design incrementally.
+
+## Argument Resolution
+
+```python
+TOPIC = "$ARGUMENTS"  # Full argument string, e.g., "API design for payments"
+# $ARGUMENTS[0] is the first token (CC 2.1.59 indexed access)
+```
 
 ---
 

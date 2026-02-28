@@ -26,6 +26,15 @@ Render planned changes as structured ASCII visualizations with risk analysis, ex
 /ork:plan-viz #234                     # Pull from GitHub issue
 ```
 
+## Argument Resolution
+
+```python
+PLAN_INPUT = "$ARGUMENTS"    # Full argument string
+PLAN_TOKEN = "$ARGUMENTS[0]" # First token — could be issue "#234" or plan description
+# If starts with "#", treat as GitHub issue number. Otherwise, plan description.
+# $ARGUMENTS (full string) for multi-word descriptions (CC 2.1.59 indexed access)
+```
+
 ---
 
 ## STEP 0: Detect or Clarify Plan Context

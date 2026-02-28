@@ -87,8 +87,9 @@ What are you trying to do?
 | **Workflows** | `workflow-studio-content.md` | MEDIUM | 9 artifact types (audio overview, deep dive, slides...) |
 | **Research** | `workflow-research-discovery.md` | HIGH | Web/Drive research async flow |
 | **Collaboration** | `workflow-sharing-collaboration.md` | MEDIUM | Public links, collaborator invites |
+| **Release** | `workflow-versioned-notebooks.md` | HIGH | Per-release notebooks with changelog + diffs |
 
-**Total: 7 rules across 3 categories**
+**Total: 8 rules across 4 categories**
 
 ## MCP Tools by API Group
 
@@ -116,6 +117,7 @@ What are you trying to do?
 | Auth expired? | `nlm login --check`; sessions last ~20 min, re-auth with `nlm login` |
 | Studio content | Use studio_create, poll with studio_status (generation takes 2-5 min) |
 | Research discovery | research_start for web/Drive discovery, then research_import to add findings |
+| Release notebooks | One notebook per minor version; upload CHANGELOG + key skill diffs as sources |
 | Query vs search | notebook_query for AI-grounded answers; source_get_content for raw text |
 | Notes vs sources | Notes for your insights/annotations; sources for external documents |
 

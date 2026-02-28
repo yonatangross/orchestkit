@@ -21,6 +21,7 @@ tools:
   - TaskUpdate
   - TaskList
   - TaskOutput
+  - TaskStop
 skills:
   - api-design
   - architecture-decision-record

@@ -1,21 +1,11 @@
 ---
-name: help
-license: MIT
-compatibility: "Claude Code 2.1.59+."
 description: "OrchestKit skill directory with categorized listings. Use when discovering skills for a task, finding the right workflow, or browsing capabilities."
-argument-hint: "[category]"
-context: fork
-version: 1.0.0
-author: OrchestKit
-tags: [help, documentation, skills, discovery, meta]
-user-invocable: true
 allowed-tools: [AskUserQuestion]
-complexity: low
-discovers: [explore, setup, implement]
-model: haiku
-metadata:
-  category: document-asset-creation
 ---
+
+# Auto-generated from skills/help/SKILL.md
+# Source: https://github.com/yonatangross/orchestkit
+
 
 # OrchestKit Skill Directory
 
@@ -29,7 +19,6 @@ Interactive guide to all user-invocable skills organized by category.
 /ork:help git       # Show GIT skills only
 ```
 
----
 
 ## CRITICAL: Use AskUserQuestion for Category Selection
 
@@ -55,7 +44,6 @@ AskUserQuestion(
 )
 ```
 
----
 
 ## Skill Categories
 
@@ -68,7 +56,6 @@ AskUserQuestion(
 | `/ork:brainstorming` | Design exploration with parallel agents | `/ork:brainstorming API design for payments` |
 | `/ork:verify` | Comprehensive verification with parallel test agents | `/ork:verify authentication flow` |
 
----
 
 ### GIT (5 skills)
 *Version control and GitHub operations*
@@ -81,7 +68,6 @@ AskUserQuestion(
 | `/ork:fix-issue` | Fix GitHub issues with parallel analysis | `/ork:fix-issue 456` |
 | `/ork:git-workflow` | Git workflow with recovery support | `/ork:git-workflow` |
 
----
 
 ### MEMORY (2 skills)
 *Knowledge persistence and retrieval*
@@ -97,7 +83,6 @@ AskUserQuestion(
 - `history` - View decision timeline
 - `viz` - Visualize knowledge graph
 
----
 
 ### QUALITY (3 skills)
 *Assessment and diagnostics*
@@ -108,7 +93,6 @@ AskUserQuestion(
 | `/ork:doctor` | OrchestKit health diagnostics | `/ork:doctor` |
 | `/ork:golden-dataset` | Add documents to golden dataset | `/ork:golden-dataset` |
 
----
 
 ### CONFIG (3 skills)
 *Plugin configuration and management*
@@ -119,7 +103,6 @@ AskUserQuestion(
 | `/ork:feedback` | Manage feedback system | `/ork:feedback` |
 | `/ork:skill-evolution` | Evolve skills based on usage | `/ork:skill-evolution` |
 
----
 
 ### EXPLORE (2 skills)
 *Codebase exploration and coordination*
@@ -128,7 +111,6 @@ AskUserQuestion(
 |-------|-------------|---------|
 | `/ork:explore` | Deep codebase exploration with agents | `/ork:explore authentication` |
 
----
 
 ### MEDIA (1 skill)
 *Content creation*
@@ -137,7 +119,6 @@ AskUserQuestion(
 |-------|-------------|---------|
 | `/ork:demo-producer` | Create polished demo videos | `/ork:demo-producer commit skill` |
 
----
 
 ## Pro Tip: Just Describe What You Want
 
@@ -156,7 +137,6 @@ User: "Review PR 123"
 
 Just describe your task naturally and OrchestKit will recommend the appropriate skill or agent.
 
----
 
 ## Skill Count by Category
 
@@ -173,7 +153,6 @@ Just describe your task naturally and OrchestKit will recommend the appropriate 
 | UPGRADE | 1 | Platform upgrade assessment |
 | **Total** | **22** | |
 
----
 
 ## CC Built-in Commands (2.1.63+)
 
@@ -188,7 +167,6 @@ These are Claude Code built-in slash commands — not OrchestKit skills:
 | `/clear` | Clear conversation and reset cached skills | CC 2.1.63 |
 | `/fast` | Toggle fast mode (same model, faster output) | CC 2.1.59+ |
 
----
 
 ## Keyboard Shortcuts
 
@@ -201,7 +179,6 @@ These are Claude Code built-in slash commands — not OrchestKit skills:
 | `Ctrl+C` | Cancel current operation | CC 2.1.0+ |
 | `/exit` | Exit Claude Code session | CC 2.1.0+ |
 
----
 
 ## Related Skills
 

@@ -10,6 +10,7 @@ version: 2.3.0
 author: OrchestKit
 tags: [git, github, pull-request, pr, code-review]
 user-invocable: true
+disable-model-invocation: true
 allowed-tools: [AskUserQuestion, Bash, Task, TaskCreate, TaskUpdate, mcp__memory__search_nodes]
 skills: [commit, review-pr, memory]
 complexity: medium

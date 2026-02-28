@@ -21,6 +21,13 @@ Transform rough ideas into fully-formed designs through intelligent agent select
 
 **Core principle:** Analyze the topic, select relevant agents dynamically, explore alternatives in parallel, present design incrementally.
 
+## Argument Resolution
+
+```python
+TOPIC = "$ARGUMENTS"  # Full argument string, e.g., "API design for payments"
+# $ARGUMENTS[0] is the first token (CC 2.1.59 indexed access)
+```
+
 ---
 
 ## STEP 0: Project Context Discovery

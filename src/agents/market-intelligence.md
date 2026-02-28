@@ -20,6 +20,7 @@ tools:
   - TaskUpdate
   - TaskList
   - TaskOutput
+  - TaskStop
 disallowedTools: [Write, Edit, MultiEdit]
 skills:
   - product-frameworks

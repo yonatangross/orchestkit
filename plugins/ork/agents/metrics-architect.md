@@ -19,6 +19,7 @@ tools:
   - TaskUpdate
   - TaskList
   - TaskOutput
+  - TaskStop
 skills:
   - product-frameworks
   - monitoring-observability
