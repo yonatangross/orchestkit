@@ -1,31 +1,38 @@
-[
-  {
-    "skills": ["plan-viz"],
-    "query": "/ork:plan-viz billing module redesign",
-    "expected_behavior": [
-      "Claude runs the detect-plan-context script to gather branch and change data",
-      "Runs analyze-impact.sh to get file counts, line changes, and dependency info",
-      "Renders the Tier 1 header with plan name, phase count, file count, risk level, and confidence",
-      "Uses AskUserQuestion to ask which sections to expand (Changes, Execution, Risks, Decisions, Impact)",
-      "Offers follow-up actions: write to designs/, generate GitHub issues, or drill deeper"
-    ]
-  },
-  {
-    "skills": ["plan-viz"],
-    "query": "/ork:plan-viz #234",
-    "expected_behavior": [
-      "Claude detects the GitHub issue reference and pulls plan context from issue #234",
-      "Proceeds with auto-detection rather than asking for clarification",
-      "Renders visualization sections based on the issue content and branch changes"
-    ]
-  },
-  {
-    "skills": ["plan-viz"],
-    "query": "Fix the typo in the README file on line 42",
-    "expected_behavior": [
-      "Claude does NOT invoke the plan-viz skill",
-      "Directly edits the file since this is a trivial single-line fix",
-      "No plan visualization, risk analysis, or impact assessment generated"
-    ]
-  }
-]
+{
+  "skill": "plan-viz",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "basic-orkplanviz-billing-module-redesign",
+      "rule": "",
+      "query": "/ork:plan-viz billing module redesign",
+      "expectedBehavior": [
+        "Claude runs the detect-plan-context script to gather branch and change data",
+        "Runs analyze-impact.sh to get file counts, line changes, and dependency info",
+        "Renders the Tier 1 header with plan name, phase count, file count, risk level, and confidence",
+        "Uses AskUserQuestion to ask which sections to expand (Changes, Execution, Risks, Decisions, Impact)",
+        "Offers follow-up actions: write to designs/, generate GitHub issues, or drill deeper"
+      ]
+    },
+    {
+      "id": "edge-orkplanviz-234",
+      "rule": "",
+      "query": "/ork:plan-viz #234",
+      "expectedBehavior": [
+        "Claude detects the GitHub issue reference and pulls plan context from issue #234",
+        "Proceeds with auto-detection rather than asking for clarification",
+        "Renders visualization sections based on the issue content and branch changes"
+      ]
+    },
+    {
+      "id": "negative-fix-the-typo-in",
+      "rule": "",
+      "query": "Fix the typo in the README file on line 42",
+      "expectedBehavior": [
+        "Claude does NOT invoke the plan-viz skill",
+        "Directly edits the file since this is a trivial single-line fix",
+        "No plan visualization, risk analysis, or impact assessment generated"
+      ]
+    }
+  ]
+}

@@ -1,34 +1,41 @@
-[
-  {
-    "skills": ["ascii-visualizer"],
-    "query": "Draw an architecture diagram showing our React frontend connecting to a FastAPI backend with Redis cache and PostgreSQL database.",
-    "expected_behavior": [
-      "Produces ASCII box-drawing diagram with standard weight characters",
-      "Uses directional arrows to show data flow between components",
-      "Labels each box with component name and technology",
-      "Keeps diagram under 80 characters wide for terminal compatibility",
-      "Uses monospace-safe characters only"
-    ]
-  },
-  {
-    "skills": ["ascii-visualizer"],
-    "query": "Show the blast radius of changing src/api/auth.ts — which files are directly affected, transitively affected, and which tests need updating?",
-    "expected_behavior": [
-      "Uses concentric rings blast radius pattern",
-      "Shows CHANGED FILE in center ring",
-      "Ring 1 shows direct dependents with file count",
-      "Ring 2 shows transitive dependents",
-      "Ring 3 shows affected test files",
-      "Includes legend explaining ring meaning"
-    ]
-  },
-  {
-    "skills": ["ascii-visualizer"],
-    "query": "Generate a PNG diagram of our microservices architecture for the README",
-    "expected_behavior": [
-      "Claude does NOT invoke the ascii-visualizer skill",
-      "Suggests using Mermaid, PlantUML, or an image generation tool instead",
-      "ASCII visualizer is for terminal-rendered monospace output, not image files"
-    ]
-  }
-]
+{
+  "skill": "ascii-visualizer",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "basic-draw-an-architecture-diagram",
+      "rule": "",
+      "query": "Draw an architecture diagram showing our React frontend connecting to a FastAPI backend with Redis cache and PostgreSQL database.",
+      "expectedBehavior": [
+        "Produces ASCII box-drawing diagram with standard weight characters",
+        "Uses directional arrows to show data flow between components",
+        "Labels each box with component name and technology",
+        "Keeps diagram under 80 characters wide for terminal compatibility",
+        "Uses monospace-safe characters only"
+      ]
+    },
+    {
+      "id": "edge-show-the-blast-radius",
+      "rule": "",
+      "query": "Show the blast radius of changing src/api/auth.ts \u2014 which files are directly affected, transitively affected, and which tests need updating?",
+      "expectedBehavior": [
+        "Uses concentric rings blast radius pattern",
+        "Shows CHANGED FILE in center ring",
+        "Ring 1 shows direct dependents with file count",
+        "Ring 2 shows transitive dependents",
+        "Ring 3 shows affected test files",
+        "Includes legend explaining ring meaning"
+      ]
+    },
+    {
+      "id": "negative-generate-a-png-diagram",
+      "rule": "",
+      "query": "Generate a PNG diagram of our microservices architecture for the README",
+      "expectedBehavior": [
+        "Claude does NOT invoke the ascii-visualizer skill",
+        "Suggests using Mermaid, PlantUML, or an image generation tool instead",
+        "ASCII visualizer is for terminal-rendered monospace output, not image files"
+      ]
+    }
+  ]
+}

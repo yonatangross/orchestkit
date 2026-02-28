@@ -1,33 +1,40 @@
-[
-  {
-    "skills": ["zustand-patterns"],
-    "query": "I have a React app with auth state and a shopping cart that need to share a store. The cart has deeply nested item variants. Set up the Zustand store with proper TypeScript types.",
-    "expected_behavior": [
-      "Claude uses the slices pattern with separate AuthSlice and CartSlice using StateCreator",
-      "Combines slices into a single store with create<AuthSlice & CartSlice>()",
-      "Applies Immer middleware for deeply nested cart item variant updates",
-      "Uses proper TypeScript generics with the double-call pattern create<State>()()",
-      "Does NOT destructure the entire store; uses individual selectors or useShallow"
-    ]
-  },
-  {
-    "skills": ["zustand-patterns"],
-    "query": "My Zustand store re-renders every component whenever any state changes. I'm selecting 3 values from the store in each component. How do I fix the performance issue?",
-    "expected_behavior": [
-      "Claude identifies the anti-pattern of destructuring the entire store",
-      "Recommends useShallow from zustand/react/shallow for selecting multiple values",
-      "Does NOT use the deprecated shallow import from zustand/shallow",
-      "Shows the correct pattern: useShallow((state) => ({ a: state.a, b: state.b, c: state.c }))",
-      "Explains that computed/derived state should use selectors, not stored values"
-    ]
-  },
-  {
-    "skills": ["zustand-patterns"],
-    "query": "Set up a PostgreSQL connection pool with retry logic for our Node.js backend",
-    "expected_behavior": [
-      "Claude does NOT invoke the zustand-patterns skill",
-      "Implements database connection pooling using standard Node.js patterns",
-      "Uses backend infrastructure tools without any Zustand or React state management"
-    ]
-  }
-]
+{
+  "skill": "zustand-patterns",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "negative-i-have-a-react",
+      "rule": "",
+      "query": "I have a React app with auth state and a shopping cart that need to share a store. The cart has deeply nested item variants. Set up the Zustand store with proper TypeScript types.",
+      "expectedBehavior": [
+        "Claude uses the slices pattern with separate AuthSlice and CartSlice using StateCreator",
+        "Combines slices into a single store with create<AuthSlice & CartSlice>()",
+        "Applies Immer middleware for deeply nested cart item variant updates",
+        "Uses proper TypeScript generics with the double-call pattern create<State>()()",
+        "Does NOT destructure the entire store; uses individual selectors or useShallow"
+      ]
+    },
+    {
+      "id": "negative-my-zustand-store-rerenders",
+      "rule": "",
+      "query": "My Zustand store re-renders every component whenever any state changes. I'm selecting 3 values from the store in each component. How do I fix the performance issue?",
+      "expectedBehavior": [
+        "Claude identifies the anti-pattern of destructuring the entire store",
+        "Recommends useShallow from zustand/react/shallow for selecting multiple values",
+        "Does NOT use the deprecated shallow import from zustand/shallow",
+        "Shows the correct pattern: useShallow((state) => ({ a: state.a, b: state.b, c: state.c }))",
+        "Explains that computed/derived state should use selectors, not stored values"
+      ]
+    },
+    {
+      "id": "negative-set-up-a-postgresql",
+      "rule": "",
+      "query": "Set up a PostgreSQL connection pool with retry logic for our Node.js backend",
+      "expectedBehavior": [
+        "Claude does NOT invoke the zustand-patterns skill",
+        "Implements database connection pooling using standard Node.js patterns",
+        "Uses backend infrastructure tools without any Zustand or React state management"
+      ]
+    }
+  ]
+}

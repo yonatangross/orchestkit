@@ -1,35 +1,42 @@
-[
-  {
-    "skills": ["code-review-playbook"],
-    "query": "Review this pull request for code quality, security, and best practices.",
-    "expected_behavior": [
-      "Follows structured review process: high-level review then detailed review",
-      "Uses conventional comments format with labels (praise, nitpick, issue, security, bug)",
-      "Checks general code quality: readability, naming, DRY, SOLID, complexity",
-      "Runs security checklist: auth, authorization, input sanitization, secrets",
-      "Verifies test coverage for new code",
-      "Provides clear decision: Approve, Comment, or Request Changes"
-    ]
-  },
-  {
-    "skills": ["code-review-playbook"],
-    "query": "Review this 800-line PR that refactors the entire auth module and adds a new payment system.",
-    "expected_behavior": [
-      "Flags the PR as too large (> 500 lines) and suggests splitting",
-      "Still performs thorough review despite size concern",
-      "Allocates 1-2 hours of review time for large PR",
-      "Checks for breaking changes across the refactored auth module",
-      "Uses security [blocking] label for any auth-related vulnerabilities"
-    ]
-  },
-  {
-    "skills": ["code-review-playbook"],
-    "query": "Implement a new user registration endpoint with email validation.",
-    "expected_behavior": [
-      "Claude does NOT invoke the code-review-playbook skill",
-      "Treats this as a feature implementation task, not a code review",
-      "Uses standard code generation and editing tools",
-      "Code review is for reviewing existing code, not writing new code"
-    ]
-  }
-]
+{
+  "skill": "code-review-playbook",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "basic-review-this-pull-request",
+      "rule": "",
+      "query": "Review this pull request for code quality, security, and best practices.",
+      "expectedBehavior": [
+        "Follows structured review process: high-level review then detailed review",
+        "Uses conventional comments format with labels (praise, nitpick, issue, security, bug)",
+        "Checks general code quality: readability, naming, DRY, SOLID, complexity",
+        "Runs security checklist: auth, authorization, input sanitization, secrets",
+        "Verifies test coverage for new code",
+        "Provides clear decision: Approve, Comment, or Request Changes"
+      ]
+    },
+    {
+      "id": "edge-review-this-800line-pr",
+      "rule": "",
+      "query": "Review this 800-line PR that refactors the entire auth module and adds a new payment system.",
+      "expectedBehavior": [
+        "Flags the PR as too large (> 500 lines) and suggests splitting",
+        "Still performs thorough review despite size concern",
+        "Allocates 1-2 hours of review time for large PR",
+        "Checks for breaking changes across the refactored auth module",
+        "Uses security [blocking] label for any auth-related vulnerabilities"
+      ]
+    },
+    {
+      "id": "negative-implement-a-new-user",
+      "rule": "",
+      "query": "Implement a new user registration endpoint with email validation.",
+      "expectedBehavior": [
+        "Claude does NOT invoke the code-review-playbook skill",
+        "Treats this as a feature implementation task, not a code review",
+        "Uses standard code generation and editing tools",
+        "Code review is for reviewing existing code, not writing new code"
+      ]
+    }
+  ]
+}

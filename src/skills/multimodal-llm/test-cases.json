@@ -1,31 +1,38 @@
-[
-  {
-    "skills": ["multimodal-llm"],
-    "query": "I need to build an image captioning pipeline that processes user-uploaded photos and returns descriptions. Which vision model should I use and how do I send base64 images?",
-    "expected_behavior": [
-      "Claude references the vision-image-analysis and vision-models rules",
-      "Recommends a vision model based on accuracy/cost tradeoffs (e.g., Claude Opus for high accuracy, Gemini Flash for cost efficiency)",
-      "Shows base64 encoding pattern with max_tokens set and image resizing guidance",
-      "Warns about not sending oversized images (>2048px)"
-    ]
-  },
-  {
-    "skills": ["multimodal-llm"],
-    "query": "I want to generate a 6-scene product video with consistent character identity across all clips using Kling 3.0",
-    "expected_behavior": [
-      "Claude references video-multi-shot and video-generation-patterns rules",
-      "Explains Character Elements 3.0 for identity binding across scenes",
-      "Covers async task polling pattern (not synchronous calls)",
-      "Mentions storyboarding workflow for multi-shot consistency"
-    ]
-  },
-  {
-    "skills": ["multimodal-llm"],
-    "query": "Help me set up a REST API with Express.js and connect it to a PostgreSQL database",
-    "expected_behavior": [
-      "Claude does NOT invoke the multimodal-llm skill",
-      "Uses standard backend development knowledge instead",
-      "No references to vision, audio, video generation, or multimodal patterns"
-    ]
-  }
-]
+{
+  "skill": "multimodal-llm",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "basic-i-need-to-build",
+      "rule": "",
+      "query": "I need to build an image captioning pipeline that processes user-uploaded photos and returns descriptions. Which vision model should I use and how do I send base64 images?",
+      "expectedBehavior": [
+        "Claude references the vision-image-analysis and vision-models rules",
+        "Recommends a vision model based on accuracy/cost tradeoffs (e.g., Claude Opus for high accuracy, Gemini Flash for cost efficiency)",
+        "Shows base64 encoding pattern with max_tokens set and image resizing guidance",
+        "Warns about not sending oversized images (>2048px)"
+      ]
+    },
+    {
+      "id": "edge-i-want-to-generate",
+      "rule": "",
+      "query": "I want to generate a 6-scene product video with consistent character identity across all clips using Kling 3.0",
+      "expectedBehavior": [
+        "Claude references video-multi-shot and video-generation-patterns rules",
+        "Explains Character Elements 3.0 for identity binding across scenes",
+        "Covers async task polling pattern (not synchronous calls)",
+        "Mentions storyboarding workflow for multi-shot consistency"
+      ]
+    },
+    {
+      "id": "negative-help-me-set-up",
+      "rule": "",
+      "query": "Help me set up a REST API with Express.js and connect it to a PostgreSQL database",
+      "expectedBehavior": [
+        "Claude does NOT invoke the multimodal-llm skill",
+        "Uses standard backend development knowledge instead",
+        "No references to vision, audio, video generation, or multimodal patterns"
+      ]
+    }
+  ]
+}

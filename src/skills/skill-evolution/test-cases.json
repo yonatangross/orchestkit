@@ -1,31 +1,38 @@
-[
-  {
-    "skills": ["skill-evolution"],
-    "query": "Analyze how the implement skill has been performing - are users frequently editing its output and what patterns emerge?",
-    "expected_behavior": [
-      "Claude reads .claude/feedback/edit-patterns.jsonl for the implement skill",
-      "Identifies recurring edit patterns with frequency and confidence scores",
-      "Reports success rate and usage count from metrics.json",
-      "Suggests improvements based on detected patterns with confidence thresholds"
-    ]
-  },
-  {
-    "skills": ["skill-evolution"],
-    "query": "The last evolution update to the verify skill broke things - roll it back to the previous version",
-    "expected_behavior": [
-      "Claude reads the version manifest from skills/verify/versions/manifest.json",
-      "Shows available version history with performance metrics per version",
-      "Creates a backup of the current version before restoring",
-      "Restores the previous version after user confirmation"
-    ]
-  },
-  {
-    "skills": ["skill-evolution"],
-    "query": "Add a new endpoint to the users API that returns a list of active sessions",
-    "expected_behavior": [
-      "Claude does NOT invoke the skill-evolution skill",
-      "Implements the API endpoint using standard backend patterns",
-      "Uses code editing tools rather than skill analytics tools"
-    ]
-  }
-]
+{
+  "skill": "skill-evolution",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "basic-analyze-how-the-implement",
+      "rule": "",
+      "query": "Analyze how the implement skill has been performing - are users frequently editing its output and what patterns emerge?",
+      "expectedBehavior": [
+        "Claude reads .claude/feedback/edit-patterns.jsonl for the implement skill",
+        "Identifies recurring edit patterns with frequency and confidence scores",
+        "Reports success rate and usage count from metrics.json",
+        "Suggests improvements based on detected patterns with confidence thresholds"
+      ]
+    },
+    {
+      "id": "edge-the-last-evolution-update",
+      "rule": "",
+      "query": "The last evolution update to the verify skill broke things - roll it back to the previous version",
+      "expectedBehavior": [
+        "Claude reads the version manifest from skills/verify/versions/manifest.json",
+        "Shows available version history with performance metrics per version",
+        "Creates a backup of the current version before restoring",
+        "Restores the previous version after user confirmation"
+      ]
+    },
+    {
+      "id": "negative-add-a-new-endpoint",
+      "rule": "",
+      "query": "Add a new endpoint to the users API that returns a list of active sessions",
+      "expectedBehavior": [
+        "Claude does NOT invoke the skill-evolution skill",
+        "Implements the API endpoint using standard backend patterns",
+        "Uses code editing tools rather than skill analytics tools"
+      ]
+    }
+  ]
+}

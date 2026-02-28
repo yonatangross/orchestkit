@@ -1,35 +1,42 @@
-[
-  {
-    "skills": ["domain-driven-design"],
-    "query": "I need to model an Order entity with line items and a Money value object for our e-commerce domain. The order should enforce a maximum of 50 items and validate currency consistency.",
-    "expected_behavior": [
-      "Claude creates an Order entity with identity equality (by ID, not attributes)",
-      "Claude creates a Money value object with frozen=True dataclass",
-      "Claude models line items as part of the Order aggregate",
-      "Claude enforces the 50-item invariant inside the aggregate root",
-      "Claude uses domain events for state transitions (e.g., OrderSubmitted)",
-      "Claude does NOT leak infrastructure concerns into the domain model"
-    ]
-  },
-  {
-    "skills": ["domain-driven-design"],
-    "query": "We have 15 entities with complex invariants spanning multiple objects. I need to define bounded contexts for our payment, inventory, and shipping subdomains with an anti-corruption layer between them.",
-    "expected_behavior": [
-      "Claude defines separate bounded contexts for each subdomain",
-      "Claude implements an Anti-Corruption Layer (ACL) at context boundaries",
-      "Claude references entities by ID across aggregates, not direct object references",
-      "Claude establishes ubiquitous language per context",
-      "Claude uses context mapping patterns (upstream/downstream, conformist, etc.)"
-    ]
-  },
-  {
-    "skills": ["domain-driven-design"],
-    "query": "I'm building a simple CRUD todo app with just a Task model that has title, description, and done fields. No complex business rules.",
-    "expected_behavior": [
-      "Claude does NOT invoke the domain-driven-design skill",
-      "Claude uses plain dataclasses or a simple ORM model",
-      "Claude avoids DDD ceremony (aggregates, repositories, domain events) for this trivial domain",
-      "Claude may suggest a straightforward SQLAlchemy or Django model instead"
-    ]
-  }
-]
+{
+  "skill": "domain-driven-design",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "negative-i-need-to-model",
+      "rule": "",
+      "query": "I need to model an Order entity with line items and a Money value object for our e-commerce domain. The order should enforce a maximum of 50 items and validate currency consistency.",
+      "expectedBehavior": [
+        "Claude creates an Order entity with identity equality (by ID, not attributes)",
+        "Claude creates a Money value object with frozen=True dataclass",
+        "Claude models line items as part of the Order aggregate",
+        "Claude enforces the 50-item invariant inside the aggregate root",
+        "Claude uses domain events for state transitions (e.g., OrderSubmitted)",
+        "Claude does NOT leak infrastructure concerns into the domain model"
+      ]
+    },
+    {
+      "id": "edge-we-have-15-entities",
+      "rule": "",
+      "query": "We have 15 entities with complex invariants spanning multiple objects. I need to define bounded contexts for our payment, inventory, and shipping subdomains with an anti-corruption layer between them.",
+      "expectedBehavior": [
+        "Claude defines separate bounded contexts for each subdomain",
+        "Claude implements an Anti-Corruption Layer (ACL) at context boundaries",
+        "Claude references entities by ID across aggregates, not direct object references",
+        "Claude establishes ubiquitous language per context",
+        "Claude uses context mapping patterns (upstream/downstream, conformist, etc.)"
+      ]
+    },
+    {
+      "id": "negative-im-building-a-simple",
+      "rule": "",
+      "query": "I'm building a simple CRUD todo app with just a Task model that has title, description, and done fields. No complex business rules.",
+      "expectedBehavior": [
+        "Claude does NOT invoke the domain-driven-design skill",
+        "Claude uses plain dataclasses or a simple ORM model",
+        "Claude avoids DDD ceremony (aggregates, repositories, domain events) for this trivial domain",
+        "Claude may suggest a straightforward SQLAlchemy or Django model instead"
+      ]
+    }
+  ]
+}

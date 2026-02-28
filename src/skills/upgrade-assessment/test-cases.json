@@ -1,33 +1,40 @@
-[
-  {
-    "skills": ["upgrade-assessment"],
-    "query": "We want to upgrade from Claude Sonnet 4 to Opus 4.6 across our team. Assess our readiness.",
-    "expected_behavior": [
-      "Claude runs the 6-phase assessment workflow starting with scope definition",
-      "Phase 1 detects current model references in agent files and configuration",
-      "Phase 2 researches Opus 4.6 capabilities and breaking changes via WebSearch",
-      "Phase 3 scans codebase for patterns affected by the model change (agent model: fields, context window assumptions)",
-      "Phase 4 produces a 0-10 readiness score across 6 dimensions",
-      "Phase 5 generates prioritized recommendations with effort estimates"
-    ]
-  },
-  {
-    "skills": ["upgrade-assessment"],
-    "query": "We're on OrchestKit 5.x and want to go to 7.x. What will break? Give me the assessment in JSON format.",
-    "expected_behavior": [
-      "Claude scopes to OrchestKit-only upgrade assessment",
-      "Focuses on manifest schema changes, skill/agent renames or removals, and hook migration",
-      "Reads CHANGELOG.md to identify breaking changes between versions",
-      "Outputs structured JSON report with --json format including readiness score and action items"
-    ]
-  },
-  {
-    "skills": ["upgrade-assessment"],
-    "query": "Refactor the checkout flow to use the strategy pattern instead of if/else chains",
-    "expected_behavior": [
-      "Claude does NOT invoke the upgrade-assessment skill",
-      "Performs a standard code refactoring using design patterns",
-      "Uses code editing tools without running platform compatibility checks"
-    ]
-  }
-]
+{
+  "skill": "upgrade-assessment",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "basic-we-want-to-upgrade",
+      "rule": "",
+      "query": "We want to upgrade from Claude Sonnet 4 to Opus 4.6 across our team. Assess our readiness.",
+      "expectedBehavior": [
+        "Claude runs the 6-phase assessment workflow starting with scope definition",
+        "Phase 1 detects current model references in agent files and configuration",
+        "Phase 2 researches Opus 4.6 capabilities and breaking changes via WebSearch",
+        "Phase 3 scans codebase for patterns affected by the model change (agent model: fields, context window assumptions)",
+        "Phase 4 produces a 0-10 readiness score across 6 dimensions",
+        "Phase 5 generates prioritized recommendations with effort estimates"
+      ]
+    },
+    {
+      "id": "edge-were-on-orchestkit-5x",
+      "rule": "",
+      "query": "We're on OrchestKit 5.x and want to go to 7.x. What will break? Give me the assessment in JSON format.",
+      "expectedBehavior": [
+        "Claude scopes to OrchestKit-only upgrade assessment",
+        "Focuses on manifest schema changes, skill/agent renames or removals, and hook migration",
+        "Reads CHANGELOG.md to identify breaking changes between versions",
+        "Outputs structured JSON report with --json format including readiness score and action items"
+      ]
+    },
+    {
+      "id": "negative-refactor-the-checkout-flow",
+      "rule": "",
+      "query": "Refactor the checkout flow to use the strategy pattern instead of if/else chains",
+      "expectedBehavior": [
+        "Claude does NOT invoke the upgrade-assessment skill",
+        "Performs a standard code refactoring using design patterns",
+        "Uses code editing tools without running platform compatibility checks"
+      ]
+    }
+  ]
+}

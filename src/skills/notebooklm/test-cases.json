@@ -1,31 +1,38 @@
-[
-  {
-    "skills": ["notebooklm"],
-    "query": "Create a NotebookLM notebook for my auth refactor project, add the OAuth 2.1 spec as a source, and query it for key differences from OAuth 2.0",
-    "expected_behavior": [
-      "Claude calls notebook_create with a descriptive title",
-      "Calls source_add with source_type=url for the OAuth spec URL",
-      "Calls notebook_query with the comparison question",
-      "Follows the correct order: create -> add source -> query"
-    ]
-  },
-  {
-    "skills": ["notebooklm"],
-    "query": "Generate an audio overview podcast from my notebook but the session expired",
-    "expected_behavior": [
-      "Claude detects auth expiry concern and suggests running nlm login --check",
-      "Advises re-authenticating with nlm login before proceeding",
-      "Explains that sessions last approximately 20 minutes",
-      "After re-auth, calls studio_create with artifact_type=audio and polls studio_status"
-    ]
-  },
-  {
-    "skills": ["notebooklm"],
-    "query": "Write a Python script that reads a CSV file and generates a bar chart with matplotlib",
-    "expected_behavior": [
-      "Claude does NOT invoke any NotebookLM MCP tools",
-      "Uses standard Python/matplotlib knowledge instead",
-      "No references to notebooks, sources, or studio content generation"
-    ]
-  }
-]
+{
+  "skill": "notebooklm",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "basic-create-a-notebooklm-notebook",
+      "rule": "",
+      "query": "Create a NotebookLM notebook for my auth refactor project, add the OAuth 2.1 spec as a source, and query it for key differences from OAuth 2.0",
+      "expectedBehavior": [
+        "Claude calls notebook_create with a descriptive title",
+        "Calls source_add with source_type=url for the OAuth spec URL",
+        "Calls notebook_query with the comparison question",
+        "Follows the correct order: create -> add source -> query"
+      ]
+    },
+    {
+      "id": "edge-generate-an-audio-overview",
+      "rule": "",
+      "query": "Generate an audio overview podcast from my notebook but the session expired",
+      "expectedBehavior": [
+        "Claude detects auth expiry concern and suggests running nlm login --check",
+        "Advises re-authenticating with nlm login before proceeding",
+        "Explains that sessions last approximately 20 minutes",
+        "After re-auth, calls studio_create with artifact_type=audio and polls studio_status"
+      ]
+    },
+    {
+      "id": "negative-write-a-python-script",
+      "rule": "",
+      "query": "Write a Python script that reads a CSV file and generates a bar chart with matplotlib",
+      "expectedBehavior": [
+        "Claude does NOT invoke any NotebookLM MCP tools",
+        "Uses standard Python/matplotlib knowledge instead",
+        "No references to notebooks, sources, or studio content generation"
+      ]
+    }
+  ]
+}

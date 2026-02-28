@@ -1,31 +1,38 @@
-[
-  {
-    "skills": ["responsive-patterns"],
-    "query": "I need to make this card component adapt its layout based on where it's placed - sometimes it's in a sidebar, sometimes in the main content area",
-    "expected_behavior": [
-      "Claude uses container queries instead of media queries for component-level responsiveness",
-      "Applies container-type: inline-size on the parent wrapper",
-      "Uses cqi/cqb logical units instead of cqw/cqh",
-      "Provides a mobile-first base style with @container progressive enhancement"
-    ]
-  },
-  {
-    "skills": ["responsive-patterns"],
-    "query": "My font sizes look terrible on mobile and desktop - I want smooth scaling without defining 5 breakpoints for each heading level",
-    "expected_behavior": [
-      "Claude implements fluid typography using clamp() with rem + vw units",
-      "Does NOT use viewport-only units like 5vw for font-size",
-      "Includes rem base to respect user font preferences for accessibility",
-      "Provides a type scale covering h1-h6 and body text"
-    ]
-  },
-  {
-    "skills": ["responsive-patterns"],
-    "query": "Write a Python FastAPI endpoint that returns user data with pagination",
-    "expected_behavior": [
-      "Claude does NOT invoke the responsive-patterns skill",
-      "Implements a standard FastAPI route with query parameters",
-      "Uses backend patterns without any CSS or responsive design content"
-    ]
-  }
-]
+{
+  "skill": "responsive-patterns",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "basic-i-need-to-make",
+      "rule": "",
+      "query": "I need to make this card component adapt its layout based on where it's placed - sometimes it's in a sidebar, sometimes in the main content area",
+      "expectedBehavior": [
+        "Claude uses container queries instead of media queries for component-level responsiveness",
+        "Applies container-type: inline-size on the parent wrapper",
+        "Uses cqi/cqb logical units instead of cqw/cqh",
+        "Provides a mobile-first base style with @container progressive enhancement"
+      ]
+    },
+    {
+      "id": "negative-my-font-sizes-look",
+      "rule": "",
+      "query": "My font sizes look terrible on mobile and desktop - I want smooth scaling without defining 5 breakpoints for each heading level",
+      "expectedBehavior": [
+        "Claude implements fluid typography using clamp() with rem + vw units",
+        "Does NOT use viewport-only units like 5vw for font-size",
+        "Includes rem base to respect user font preferences for accessibility",
+        "Provides a type scale covering h1-h6 and body text"
+      ]
+    },
+    {
+      "id": "negative-write-a-python-fastapi",
+      "rule": "",
+      "query": "Write a Python FastAPI endpoint that returns user data with pagination",
+      "expectedBehavior": [
+        "Claude does NOT invoke the responsive-patterns skill",
+        "Implements a standard FastAPI route with query parameters",
+        "Uses backend patterns without any CSS or responsive design content"
+      ]
+    }
+  ]
+}
