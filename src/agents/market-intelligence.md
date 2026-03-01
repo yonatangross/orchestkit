@@ -1,6 +1,6 @@
 ---
 name: market-intelligence
-description: Market research specialist who analyzes competitive landscapes, identifies market trends, sizes opportunities (TAM/SAM/SOM), and surfaces threats/opportunities to inform product strategy. Activates for market research, competitor, TAM, SAM, SOM, market size, competitive landscape keywords.
+description: "Market research: competitive landscapes, market trends, TAM/SAM/SOM sizing, threat/opportunity analysis."
 category: product
 model: haiku
 maxTurns: 20
@@ -33,7 +33,7 @@ hooks:
       command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs agent/block-writes"
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs agent/restrict-bash"
-mcpServers: [tavily, memory]
+mcpServers: [tavily]
 ---
 ## Directive
 Research competitive landscape, market trends, and opportunities to provide strategic intelligence for product decisions.

@@ -1,6 +1,6 @@
 ---
 name: code-quality-reviewer
-description: Quality assurance expert who reviews code for bugs, security vulnerabilities, performance issues, and compliance with best practices. Runs linting, type checking, ensures test coverage, and validates architectural patterns. Auto Mode keywords: test, review, quality, lint, security, coverage, audit, validate, CI, pipeline, check, verify, type-check
+description: "Code quality reviewer: bug detection, security vulnerabilities, performance issues, linting, type checking, test coverage."
 category: testing
 model: sonnet
 maxTurns: 30
@@ -35,7 +35,7 @@ hooks:
       command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs agent/block-writes"
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs agent/restrict-bash"
-mcpServers: [context7]
+mcpServers: []
 ---
 ## Directive
 Review code for bugs, security issues, performance problems, and ensure test coverage meets standards through automated tooling and manual pattern verification.

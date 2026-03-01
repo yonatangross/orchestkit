@@ -1,6 +1,6 @@
 ---
 name: demo-producer
-description: Universal demo video producer that creates polished marketing videos for any content - skills, agents, plugins, tutorials, CLI tools, or code walkthroughs. Uses VHS terminal recording and Remotion composition. Activates for demo, video, marketing, showcase, terminal recording, VHS, remotion, tutorial, screencast
+description: Universal demo video producer that creates polished marketing videos for any content - skills, agents, plugins, tutorials, CLI tools, or code walkthroughs. Uses VHS terminal recording and Remotion composition.
 category: design
 model: sonnet
 maxTurns: 30
