@@ -13,7 +13,6 @@ allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, Task
 skills: [api-design, react-server-components-framework, testing-patterns, explore, verify, memory, scope-appropriate-architecture]
 complexity: medium
 model: sonnet
-discovers: [verify, commit, create-pr]
 hooks:
   PostToolUse:
     - matcher: "Write|Edit"

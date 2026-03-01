@@ -12,7 +12,6 @@ user-invocable: true
 allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskList, TaskOutput, TaskStop, mcp__memory__search_nodes]
 skills: [code-review-playbook, testing-patterns, memory, quality-gates]
 complexity: high
-discovers: [commit, create-pr]
 hooks:
   PostToolUse:
     - matcher: "Bash"

@@ -13,7 +13,6 @@ allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Task, TaskCreate, Task
 skills: [commit, explore, verify, memory, remember]
 complexity: medium
 model: sonnet
-discovers: [verify, commit, create-pr]
 metadata:
   category: workflow-automation
   mcp-server: memory, context7

@@ -13,7 +13,6 @@ skills: [code-review-playbook, quality-gates, architecture-decision-record, memo
 argument-hint: "[code-path-or-topic]"
 complexity: high
 model: sonnet
-discovers: [implement, brainstorming, fix-issue]
 metadata:
   category: document-asset-creation
   mcp-server: memory

@@ -12,7 +12,6 @@ user-invocable: true
 disable-model-invocation: true
 allowed-tools: [Bash, Read, Grep, Glob]
 complexity: low
-discovers: [doctor, setup]
 model: haiku
 metadata:
   category: workflow-automation

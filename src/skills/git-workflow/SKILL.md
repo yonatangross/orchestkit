@@ -13,7 +13,6 @@ user-invocable: true
 disable-model-invocation: true
 allowed-tools: [AskUserQuestion, Bash, Read, Grep, Glob]
 complexity: medium
-discovers: [commit, create-pr]
 model: haiku
 metadata:
   category: workflow-automation

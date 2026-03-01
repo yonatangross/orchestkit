@@ -13,7 +13,6 @@ disable-model-invocation: true
 allowed-tools: [Read, Grep, Glob, Bash, AskUserQuestion, mcp__memory__search_nodes, mcp__memory__create_entities, mcp__memory__create_relations]
 skills: [doctor, configure, remember, explore, help]
 complexity: medium
-discovers: [configure, help, doctor]
 metadata:
   category: configuration
 ---

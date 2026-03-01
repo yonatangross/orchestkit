@@ -13,7 +13,6 @@ allowed-tools: [AskUserQuestion, Task, Read, Grep, Glob, TaskCreate, TaskUpdate,
 skills: [architecture-decision-record, api-design, memory, remember, scope-appropriate-architecture, testing-patterns]
 complexity: medium
 model: sonnet
-discovers: [assess, implement, plan-viz]
 metadata:
   category: workflow-automation
   mcp-server: memory

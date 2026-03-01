@@ -14,7 +14,6 @@ allowed-tools: [Bash, Read, Grep, Glob]
 skills: [configure]
 complexity: low
 model: haiku
-discovers: [configure, setup]
 metadata:
   category: document-asset-creation
 ---

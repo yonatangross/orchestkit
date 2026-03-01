@@ -13,7 +13,6 @@ user-invocable: true
 allowed-tools: [Read, Grep, Glob, Task, AskUserQuestion, Bash, Write]
 skills: [ascii-visualizer, explore, architecture-decision-record]
 complexity: medium
-discovers: [implement]
 metadata:
   category: document-asset-creation
 ---
