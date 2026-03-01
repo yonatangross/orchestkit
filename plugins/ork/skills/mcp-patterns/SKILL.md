@@ -7,6 +7,7 @@ description: MCP server building, advanced patterns, and security hardening. Use
 version: 3.0.0
 tags: [mcp, server, tools, resources, security, prompt-injection, oauth, elicitation, sampling, mcp-apps]
 user-invocable: false
+disable-model-invocation: true
 context: fork
 complexity: high
 metadata:

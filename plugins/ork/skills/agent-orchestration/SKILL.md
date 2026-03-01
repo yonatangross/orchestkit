@@ -9,6 +9,7 @@ agent: workflow-architect
 version: 2.0.0
 author: OrchestKit
 user-invocable: false
+disable-model-invocation: true
 complexity: high
 metadata:
   category: workflow-automation

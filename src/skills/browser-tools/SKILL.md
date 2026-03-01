@@ -9,6 +9,7 @@ agent: web-research-analyst
 version: 2.1.0
 author: OrchestKit
 user-invocable: false
+disable-model-invocation: true
 complexity: medium
 metadata:
   category: mcp-enhancement

@@ -9,6 +9,7 @@ version: 1.3.0
 author: OrchestKit AI Agent Hub
 tags: [research, browser, webfetch, tavily, automation, scraping, content-extraction, competitive-intelligence, monitoring]
 user-invocable: false
+disable-model-invocation: true
 allowed-tools: [Bash, Read, Write, WebFetch]
 complexity: low
 model: haiku

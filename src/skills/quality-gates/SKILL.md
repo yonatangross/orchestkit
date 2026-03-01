@@ -10,6 +10,7 @@ author: OrchestKit AI Agent Hub
 tags: [quality, complexity, planning, escalation, blocking, best-practices, patterns, yagni, over-engineering]
 skills: [scope-appropriate-architecture]
 user-invocable: false
+disable-model-invocation: true
 complexity: max
 metadata:
   category: document-asset-creation

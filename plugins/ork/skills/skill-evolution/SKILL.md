@@ -9,6 +9,7 @@ version: 1.0.0
 author: OrchestKit
 tags: [skill-management, evolution, versioning, analytics]
 user-invocable: false
+disable-model-invocation: true
 allowed-tools: [Read, Write, Edit, Grep, Glob]
 complexity: medium
 metadata:

@@ -10,6 +10,7 @@ version: 1.0.0
 allowed-tools: [Read, Write, Grep, Glob]
 author: OrchestKit
 user-invocable: false
+disable-model-invocation: true
 complexity: low
 model: haiku
 metadata:

@@ -8,6 +8,7 @@ version: 2.1.0
 author: OrchestKit
 tags: [memory, orchestration, graph-first, graph, unified-search, deduplication, cross-reference]
 user-invocable: false
+disable-model-invocation: true
 allowed-tools: [Read, Bash, mcp__memory__search_nodes]
 complexity: high
 metadata:

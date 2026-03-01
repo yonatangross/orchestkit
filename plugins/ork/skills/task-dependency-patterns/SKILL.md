@@ -9,6 +9,7 @@ author: OrchestKit
 agent: workflow-architect
 tags: [task-management, dependencies, orchestration, cc-2.1.16, workflow, coordination]
 user-invocable: false
+disable-model-invocation: true
 complexity: medium
 metadata:
   category: workflow-automation

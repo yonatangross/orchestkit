@@ -9,6 +9,7 @@ tags: [code-review, quality, collaboration, best-practices]
 context: fork
 agent: code-quality-reviewer
 user-invocable: false
+disable-model-invocation: true
 hooks:
   PostToolUse:
     - matcher: "Write|Edit"

@@ -5,6 +5,7 @@ compatibility: "Claude Code 2.1.59+."
 description: "Creates zero-dependency, animation-rich HTML presentations from scratch or by converting PowerPoint files. Use when the user wants to build a presentation, convert a PPT/PPTX to web slides, or create a slide deck for a talk, pitch, or tutorial. Generates single self-contained HTML files with inline CSS/JS."
 argument-hint: "[topic-or-description]"
 user-invocable: false
+disable-model-invocation: true
 allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task]
 context: fork
 version: 1.0.0

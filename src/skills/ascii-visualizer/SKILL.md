@@ -7,6 +7,7 @@ tags: [ascii, diagrams, visualization, box-drawing, architecture, terminal]
 version: 1.0.0
 author: OrchestKit
 user-invocable: false
+disable-model-invocation: true
 allowed-tools: [Read, Grep, Glob]
 complexity: low
 model: haiku

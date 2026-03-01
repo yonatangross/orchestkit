@@ -7,6 +7,7 @@ description: NotebookLM integration patterns for external RAG, research synthesi
 version: 1.0.0
 tags: [notebooklm, mcp, rag, google, podcast, research, knowledge-management]
 user-invocable: false
+disable-model-invocation: true
 context: fork
 complexity: medium
 metadata:

@@ -9,6 +9,7 @@ version: 1.4.0
 author: AI Agent Hub
 tags: [frontend, react, react-19.2, nextjs-16, server-components, streaming, cache-components]
 user-invocable: false
+disable-model-invocation: true
 complexity: medium
 metadata:
   category: document-asset-creation

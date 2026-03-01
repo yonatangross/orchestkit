@@ -10,6 +10,7 @@ agent: git-operations-engineer
 version: 1.0.0
 tags: [git, branch, commit, recovery, workflow, reflog, staging, stacked-prs, monorepo, add-dir, code-review]
 user-invocable: true
+disable-model-invocation: true
 allowed-tools: [AskUserQuestion, Bash, Read, Grep, Glob]
 complexity: medium
 discovers: [commit, create-pr]

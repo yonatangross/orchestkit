@@ -10,6 +10,7 @@ agent: backend-system-architect
 version: 2.1.0
 author: OrchestKit
 user-invocable: false
+disable-model-invocation: true
 complexity: high
 metadata:
   category: document-asset-creation
