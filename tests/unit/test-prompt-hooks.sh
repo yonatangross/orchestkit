@@ -7,8 +7,9 @@
 # - todo-enforcer.ts
 # - memory-context.ts
 # - satisfaction-detector.ts
-# (context-pruning-advisor removed — dead code, #663)
 # - antipattern-warning.ts
+# (context-pruning-advisor removed — dead code, #663)
+# (skill-auto-suggest removed — dead code, context optimization)
 #
 # Updated for TypeScript hook architecture (v5.1.0+)
 # Shell script hooks migrated to TypeScript and compiled to prompt.mjs
@@ -204,22 +205,6 @@ test_prompt_bundle_not_empty() {
         return 0
     fi
     fail "prompt.mjs should have substantial content (got $size bytes)"
-}
-
-# ============================================================================
-# SKILL HOOKS (Additional TypeScript coverage)
-# ============================================================================
-
-describe "Skill Hooks (TypeScript)"
-
-test_skill_auto_suggest_exists() {
-    assert_file_exists "$TS_HOOKS_DIR/skill-auto-suggest.ts"
-}
-
-test_skill_auto_suggest_exports_handler() {
-    if [[ -f "$TS_HOOKS_DIR/skill-auto-suggest.ts" ]]; then
-        assert_file_contains "$TS_HOOKS_DIR/skill-auto-suggest.ts" "export"
-    fi
 }
 
 # ============================================================================
