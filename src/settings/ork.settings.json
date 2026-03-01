@@ -1,6 +1,9 @@
 {
   "$schema": "https://claude.ai/schemas/plugin-settings.json",
   "respectGitignore": true,
+  "env": {
+    "ENABLE_TOOL_SEARCH": "auto:5"
+  },
   "plansDirectory": ".claude/plans",
   "permissions": {
     "allow": [
