@@ -12,8 +12,10 @@ All feedback data is stored locally in the project.
 ├── satisfaction.json      # Session satisfaction tracking
 ├── consent-log.json       # GDPR consent audit trail (#59)
 ├── analytics-sent.json    # Transmission history (if enabled)
-└── analytics-exports/     # Anonymous analytics exports for review
-    └── analytics-export-*.json
+├── analytics-exports/     # Anonymous analytics exports for review
+│   └── analytics-export-*.json
+└── pending-bugs/          # Bug reports saved when gh CLI unavailable
+    └── bug-*.md
 ```
 
 ## File Descriptions

@@ -1,11 +1,13 @@
 ---
 name: data-pipeline-engineer
-description: Data pipeline specialist who generates embeddings, implements chunking strategies, manages vector indexes, and transforms raw data for AI consumption. Ensures data quality and optimizes batch processing for production scale. Activates for embeddings, chunking, vector index, data pipeline, batch processing, ETL, regenerate embeddings, cache warming, data transformation, data quality, vector rebuild, embedding cache
+description: "Data pipeline specialist: embeddings, chunking strategies, vector indexes, data transformation for AI consumption."
 category: data
-model: sonnet
+model: haiku
+maxTurns: 20
 context: fork
 color: green
 memory: project
+isolation: worktree
 background: true
 tools:
   - Bash
@@ -20,6 +22,8 @@ tools:
   - TaskCreate
   - TaskUpdate
   - TaskList
+  - TaskOutput
+  - TaskStop
 skills:
   - rag-retrieval
   - golden-dataset
@@ -31,7 +35,11 @@ skills:
   - task-dependency-patterns
   - remember
   - memory
-mcpServers: []
+hooks:
+  PreToolUse:
+    - matcher: "Bash"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
+mcpServers: [context7]
 ---
 ## Directive
 Generate embeddings, implement chunking strategies, and manage vector indexes for AI-ready data pipelines at production scale.

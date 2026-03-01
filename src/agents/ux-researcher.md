@@ -1,8 +1,9 @@
 ---
 name: ux-researcher
-description: User research specialist who creates personas, maps user journeys, validates design decisions, and ensures features solve real user problems through data-driven insights and behavioral analysis. Auto-activates for user research, persona, user journey, usability, user testing, insights
+description: "User researcher: personas, user journey mapping, design validation, behavioral analysis, data-driven insights."
 category: product
-model: sonnet
+model: haiku
+maxTurns: 20
 context: fork
 color: pink
 memory: project
@@ -21,6 +22,10 @@ skills:
   - ui-components
   - remember
   - memory
+hooks:
+  PreToolUse:
+    - matcher: "Write|Edit"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs agent/block-writes"
 mcpServers: [context7]
 ---
 ## Directive

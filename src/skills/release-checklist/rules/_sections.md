@@ -13,7 +13,7 @@ All four pre-release checks — build, full test suite, security tests, TypeScri
 
 ## 2. Count Validation and Diff Review (gates-counts) — HIGH — 1 rule
 
-After gates pass, verify hook/skill/agent counts are consistent across all three plugins, then review the full diff for secrets, no-op edits, and forbidden direct edits to `plugins/`.
+After gates pass, verify hook/skill/agent counts are consistent across the `ork` plugin, then review the full diff for secrets, no-op edits, and forbidden direct edits to `plugins/`.
 
 - `gate-counts-and-diff.md` — Count validation command, diff review checklist, forbidden file patterns
 

@@ -396,24 +396,7 @@ function generateClaudeMd() {
   console.log(`${GREEN}  Generated CLAUDE.md for ${count} plugins${NC}`);
 }
 
-// ============================================================================
-// Stage 5: Generate AGENTS.md (cross-tool compat: Cursor, Codex, Amp, Zed)
-// ============================================================================
-
-function generateAgentsMd() {
-  let count = 0;
-  const pluginDirs = getPluginDirs();
-
-  for (const pluginDir of pluginDirs) {
-    const claudeMdPath = path.join(pluginDir, 'CLAUDE.md');
-    if (!fs.existsSync(claudeMdPath)) continue;
-
-    fs.copyFileSync(claudeMdPath, path.join(pluginDir, 'AGENTS.md'));
-    count++;
-  }
-
-  console.log(`${GREEN}  Generated AGENTS.md for ${count} plugins (cross-tool compat)${NC}`);
-}
+// Stage 5: AGENTS.md generation removed in v7.0.0 (token overhead — duplicate of CLAUDE.md)
 
 // ============================================================================
 // Stage 6: Inject Tier 2 skill indexes into agent markdown files
@@ -505,8 +488,7 @@ function main() {
   // Stage 4: CLAUDE.md
   generateClaudeMd();
 
-  // Stage 5: AGENTS.md
-  generateAgentsMd();
+  // Stage 5: AGENTS.md — removed in v7.0.0 (was duplicate of CLAUDE.md)
 
   // Stage 6: Inject Tier 2 into agent files
   injectSkillIndexes();

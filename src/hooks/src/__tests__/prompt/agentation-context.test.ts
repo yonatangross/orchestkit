@@ -130,20 +130,20 @@ describe('prompt/agentation-context', () => {
       const result = agentationContext(createInput());
 
       expect(mockOutputPromptContext).toHaveBeenCalledWith(
-        expect.stringContaining('UI Annotations Available')
+        expect.stringContaining('agentation_get_all_pending')
       );
       expect(result.continue).toBe(true);
       expect(result.hookSpecificOutput?.additionalContext).toContain('agentation_get_all_pending');
     });
 
-    it('should mention ui-feedback agent in the context', () => {
+    it('should mention Agentation in the context', () => {
       mockExistsSync.mockReturnValue(true);
       mockReadFileSync.mockReturnValue(makeMcpConfig());
 
       agentationContext(createInput());
 
       expect(mockOutputPromptContext).toHaveBeenCalledWith(
-        expect.stringContaining('ui-feedback')
+        expect.stringContaining('Agentation')
       );
     });
 

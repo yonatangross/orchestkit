@@ -3,7 +3,7 @@ title: "Audit Skills"
 description: "Audits all OrchestKit skills for quality, completeness, and compliance with authoring standards. Use when checking skill health, before releases, or after bulk skill edits to surface SKILL.md files that are too long, have missing frontmatter, lack rules/references, or are unregistered in manifests."
 ---
 
-<span className="badge badge-blue">Command</span> <span className="badge badge-yellow">medium</span>
+<span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
 
 # audit-skills
@@ -92,7 +92,7 @@ name, description, tags, version, author, user-invocable, complexity
 name: my-skill
 description: Does something
 tags: [tag]
-user-invocable: true
+user-invocable: false
 complexity: low
 ```
 
@@ -103,7 +103,7 @@ description: Does something. Use when X.
 tags: [tag1, tag2]
 version: 2.0.0
 author: OrchestKit
-user-invocable: true
+user-invocable: false
 complexity: low
 ```
 
@@ -138,12 +138,7 @@ Exception: orchestration skills (`implement`, `explore`, `verify`, `brainstormin
 
 ### Check 6: Manifest Registration
 
-Check whether the skill appears in `manifests/ork.json` or `manifests/orkl.json`.
-
-**Incorrect:**
-```bash
-# Checking only orkl.json — misses skills covered by ork.json "all"
-```
+Check whether the skill appears in `manifests/ork.json`.
 
 **Correct:**
 ```python
@@ -261,7 +256,7 @@ my-skill-2                                 210  WARN     0    0   YES WARN
 { "skills": "all" }
 ```
 
-`manifests/orkl.json` lists skills explicitly. A skill absent from orkl.json but covered by ork.json's `"all"` is still `YES`.
+When `manifests/ork.json` has `"skills": "all"`, every skill in `src/skills/` is registered.
 
 ## Orchestration Skills with 0 Rules
 
@@ -330,7 +325,7 @@ Total: N skills | PASS: X | WARN: Y | FAIL: Z
 | FM | 4 chars, right-aligned | `OK` / `WARN` | All required frontmatter present? |
 | Rules | 5 chars, right-aligned | integer | Non-template rule files in `rules/` |
 | Refs | 4 chars, right-aligned | integer | Files in `references/` |
-| Mfst | 5 chars, right-aligned | `YES` / `NO` | Registered in ork.json or orkl.json? |
+| Mfst | 5 chars, right-aligned | `YES` / `NO` | Registered in ork.json? |
 | Status | — | `PASS` / `WARN` / `FAIL` | Overall result |
 
 ## Detail Lines

@@ -5,7 +5,6 @@
  * - Memory injection on SubagentStart
  * - Context gating and validation
  * - Pattern extraction on SubagentStop
- * - Task linking and completion
  *
  * Critical for ensuring agent coordination works correctly.
  */
@@ -55,24 +54,11 @@ vi.mock('../../lib/orchestration-state.js', () => ({
   getAgentStatus: vi.fn().mockReturnValue(null),
 }));
 
-// Mock task-integration module
-vi.mock('../../lib/task-integration.js', () => ({
-  getTaskByAgent: vi.fn().mockReturnValue(null),
-  updateTaskStatus: vi.fn(),
-  getPipelineTasks: vi.fn().mockReturnValue([]),
-  completePipelineStep: vi.fn().mockReturnValue(null),
-  formatTaskUpdateForClaude: vi.fn().mockReturnValue(''),
-  getTasksBlockedBy: vi.fn().mockReturnValue([]),
-  formatTaskDeleteForClaude: vi.fn().mockReturnValue(''),
-}));
-
 // Import subagent hooks
 import { graphMemoryInject } from '../../subagent-start/graph-memory-inject.js';
 import { contextGate } from '../../subagent-start/context-gate.js';
-import { taskLinker } from '../../subagent-start/task-linker.js';
 import { agentMemoryStore } from '../../subagent-stop/agent-memory-store.js';
 import { outputValidator } from '../../subagent-stop/output-validator.js';
-import { taskCompleter } from '../../subagent-stop/task-completer.js';
 
 /**
  * Create a mock HookInput for SubagentStart event
@@ -219,30 +205,6 @@ describe('Subagent Lifecycle E2E', () => {
     });
   });
 
-  describe('SubagentStart: Task Linker', () => {
-    test('should link subagent to parent task', async () => {
-      mockExistsSync.mockReturnValue(true);
-      mockReadFileSync.mockReturnValue(JSON.stringify({
-        tasks: [{ id: '1', status: 'in_progress', subject: 'Parent task' }],
-      }));
-
-      const input = createSubagentStartInput();
-      const result = await Promise.resolve(taskLinker(input));
-
-      expect(result.continue).toBe(true);
-    });
-
-    test('should handle orphan subagent gracefully', async () => {
-      mockExistsSync.mockReturnValue(true);
-      mockReadFileSync.mockReturnValue(JSON.stringify({ tasks: [] }));
-
-      const input = createSubagentStartInput();
-      const result = await Promise.resolve(taskLinker(input));
-
-      expect(result.continue).toBe(true);
-    });
-  });
-
   describe('SubagentStop: Agent Memory Store', () => {
     test('should store agent patterns on completion', async () => {
       const input = createSubagentStopInput();
@@ -323,28 +285,6 @@ describe('Subagent Lifecycle E2E', () => {
     });
   });
 
-  describe('SubagentStop: Task Completer', () => {
-    test('should handle task completion with mocked dependencies', async () => {
-      // Task completer uses task-integration module (mocked above)
-      const input = createSubagentStopInput();
-
-      const result = await Promise.resolve(taskCompleter(input));
-
-      // With mocked dependencies, should return silent success
-      expect(result.continue).toBe(true);
-    });
-
-    test('should handle missing agent type gracefully', async () => {
-      const input = createSubagentStopInput({
-        tool_input: {}, // No subagent_type
-      });
-
-      const result = await Promise.resolve(taskCompleter(input));
-
-      expect(result.continue).toBe(true);
-    });
-  });
-
   describe('Complete Subagent Lifecycle Flow', () => {
     test('should execute full spawn → complete lifecycle', async () => {
       // Phase 1: SubagentStart
@@ -353,7 +293,6 @@ describe('Subagent Lifecycle E2E', () => {
 
       startResults.push(await Promise.resolve(graphMemoryInject(startInput)));
       startResults.push(await Promise.resolve(contextGate(startInput)));
-      startResults.push(await Promise.resolve(taskLinker(startInput)));
 
       expect(startResults.every(r => r.continue)).toBe(true);
 
@@ -368,7 +307,6 @@ describe('Subagent Lifecycle E2E', () => {
 
       stopResults.push(await Promise.resolve(outputValidator(stopInput)));
       stopResults.push(await Promise.resolve(agentMemoryStore(stopInput)));
-      stopResults.push(await Promise.resolve(taskCompleter(stopInput)));
 
       expect(stopResults.every(r => r.continue)).toBe(true);
     });
@@ -466,12 +404,10 @@ describe('Subagent Lifecycle E2E', () => {
       const startInput = createSubagentStartInput();
       await Promise.resolve(graphMemoryInject(startInput));
       await Promise.resolve(contextGate(startInput));
-      await Promise.resolve(taskLinker(startInput));
 
       const stopInput = createSubagentStopInput();
       await Promise.resolve(outputValidator(stopInput));
       await Promise.resolve(agentMemoryStore(stopInput));
-      await Promise.resolve(taskCompleter(stopInput));
 
       const elapsed = Date.now() - startTime;
       expect(elapsed).toBeLessThan(500);
@@ -481,7 +417,7 @@ describe('Subagent Lifecycle E2E', () => {
   describe('CC 2.1.7 Compliance', () => {
     test('all SubagentStart hooks return valid HookResult', async () => {
       const input = createSubagentStartInput();
-      const hooks = [graphMemoryInject, contextGate, taskLinker];
+      const hooks = [graphMemoryInject, contextGate];
 
       for (const hook of hooks) {
         const result = await Promise.resolve(hook(input));
@@ -493,7 +429,7 @@ describe('Subagent Lifecycle E2E', () => {
 
     test('all SubagentStop hooks return valid HookResult', async () => {
       const input = createSubagentStopInput();
-      const hooks = [outputValidator, agentMemoryStore, taskCompleter];
+      const hooks = [outputValidator, agentMemoryStore];
 
       for (const hook of hooks) {
         const result = await Promise.resolve(hook(input));

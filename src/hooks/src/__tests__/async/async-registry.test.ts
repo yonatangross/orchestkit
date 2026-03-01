@@ -48,9 +48,8 @@ describe('Async Hooks Registry', () => {
         { path: 'stop/unified-dispatcher', event: 'Stop' },
         { path: 'subagent-stop/unified-dispatcher', event: 'SubagentStop' },
         { path: 'notification/unified-dispatcher', event: 'Notification' },
-        { path: 'setup/unified-dispatcher', event: 'Setup' },
         { path: 'prompt/capture-user-intent', event: 'UserPromptSubmit' },
-        { path: 'notification/sound', event: 'Notification' },
+        { path: 'config-change/settings-reload', event: 'ConfigChange' },
       ];
 
       const allHooks: Hook[] = [];
@@ -69,7 +68,7 @@ describe('Async Hooks Registry', () => {
       }
     });
 
-    it('should have exactly 9 async hooks', () => {
+    it('should have exactly 7 async hooks', () => {
       const allHooks: Hook[] = [];
       for (const eventGroups of Object.values(hooksConfig.hooks)) {
         for (const group of eventGroups) {
@@ -78,7 +77,7 @@ describe('Async Hooks Registry', () => {
       }
 
       const asyncHooks = allHooks.filter(h => h.async === true);
-      expect(asyncHooks.length, 'Should have exactly 9 async hooks (8 original + pr-status-enricher)').toBe(9);
+      expect(asyncHooks.length, 'Should have exactly 7 async hooks').toBe(7);
     });
 
     it('should NOT have async: true for blocking hooks', () => {
@@ -184,9 +183,8 @@ describe('Async Hooks Registry', () => {
         'stop/unified-dispatcher',
         'subagent-stop/unified-dispatcher',
         'notification/unified-dispatcher',
-        'setup/unified-dispatcher',
         'prompt/capture-user-intent',
-        'notification/sound',
+        'config-change/settings-reload',
       ];
 
       for (const hookPath of asyncDispatchers) {

@@ -15,16 +15,6 @@ import { outputSilentSuccess, logHook, getProjectDir, getCachedBranch } from '..
 import { assertSafeCommandName, shellQuote } from '../lib/sanitize-shell.js';
 
 // -----------------------------------------------------------------------------
-// Configuration
-// -----------------------------------------------------------------------------
-
-const SOUNDS: Record<string, string> = {
-  permission_prompt: 'Sosumi',  // Attention-grabbing
-  idle_prompt: 'Ping',          // Gentle
-  default: 'Ping',
-};
-
-// -----------------------------------------------------------------------------
 // Helper Functions
 // -----------------------------------------------------------------------------
 
@@ -32,14 +22,26 @@ function escapeForAppleScript(str: string): string {
   return str.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
 }
 
+const _commandCache = new Map<string, boolean>();
+
+/** Check if a command exists. assertSafeCommandName guards against injection if callers change. */
 function hasCommand(command: string): boolean {
+  const cached = _commandCache.get(command);
+  if (cached !== undefined) return cached;
   try {
     assertSafeCommandName(command);
     execSync(`command -v ${command}`, { stdio: 'ignore' });
+    _commandCache.set(command, true);
     return true;
   } catch {
+    _commandCache.set(command, false);
     return false;
   }
+}
+
+/** @internal Test-only: reset the command cache */
+export function _resetCommandCacheForTesting(): void {
+  _commandCache.clear();
 }
 
 /**
@@ -63,16 +65,37 @@ function getRepoName(): string {
 }
 
 /**
- * Build subtitle with branch and optional issue number
+ * Build a clean, actionable notification title
  */
-function buildSubtitle(branch: string, notificationType: string): string {
-  const issue = extractIssueFromBranch(branch);
-  const typeLabel = notificationType === 'permission_prompt' ? '⏸ Permission needed' : '💤 Waiting';
-
-  if (issue) {
-    return `${typeLabel} · ${issue} · ${branch}`;
+function buildTitle(repoName: string, notificationType: string): string {
+  if (notificationType === 'permission_prompt') {
+    return `${repoName} needs approval`;
   }
-  return `${typeLabel} · ${branch}`;
+  return `${repoName} is waiting for you`;
+}
+
+/**
+ * Build subtitle with branch context
+ */
+function buildSubtitle(branch: string): string {
+  if (!branch || branch === 'unknown') return '';
+  const issue = extractIssueFromBranch(branch);
+  return issue ? `${branch} (${issue})` : branch;
+}
+
+/**
+ * Build a useful message body from CC's notification message
+ */
+function buildMessage(message: string, notificationType: string): string {
+  // If CC provided a real message, use it
+  if (message && message !== 'test' && message.length > 5) {
+    return message;
+  }
+  // Fallback to actionable default
+  if (notificationType === 'permission_prompt') {
+    return 'A tool needs your permission to proceed.';
+  }
+  return 'Claude is idle and waiting for your response.';
 }
 
 /**
@@ -84,20 +107,42 @@ function truncateMessage(message: string, maxLen = 120): string {
 }
 
 /**
- * Send macOS notification with title, subtitle, and message
+ * Map TERM_PROGRAM env var to macOS app name for activation
+ */
+function getTerminalAppName(): string {
+  const termProgram = process.env.TERM_PROGRAM || '';
+  const map: Record<string, string> = {
+    'WarpTerminal': 'Warp',
+    'iTerm.app': 'iTerm2',
+    'Apple_Terminal': 'Terminal',
+    'Alacritty': 'Alacritty',
+    'kitty': 'kitty',
+    'tmux': 'Terminal',
+  };
+  return map[termProgram] || 'Terminal';
+}
+
+/**
+ * Send macOS notification with title, subtitle, and message.
+ * Sound is handled separately by sound.ts to avoid double-sound.
+ * Activates the terminal app so the user lands back in the right window.
  */
 function sendMacNotification(
   title: string,
   subtitle: string,
   message: string,
-  sound: string
 ): boolean {
   try {
     const t = escapeForAppleScript(title);
     const s = escapeForAppleScript(subtitle);
     const m = escapeForAppleScript(truncateMessage(message));
+    const appName = escapeForAppleScript(getTerminalAppName());
 
-    const script = `display notification "${m}" with title "${t}" subtitle "${s}" sound name "${sound}"`;
+    // Display notification AND activate terminal app
+    const script = [
+      `display notification "${m}" with title "${t}" subtitle "${s}"`,
+      `tell application "${appName}" to activate`,
+    ].join('\n');
     execSync(`osascript -e ${shellQuote(script)}`, { stdio: 'ignore', timeout: 5000 });
     return true;
   } catch {
@@ -137,14 +182,15 @@ export function desktopNotification(input: HookInput): HookResult {
   // Build rich notification content
   const repoName = getRepoName();
   const branch = getCachedBranch();
-  const subtitle = buildSubtitle(branch, notificationType);
-  const sound = SOUNDS[notificationType] || SOUNDS.default;
+  const title = buildTitle(repoName, notificationType);
+  const subtitle = buildSubtitle(branch);
+  const body = buildMessage(message, notificationType);
 
-  // Send platform-appropriate notification
+  // Send platform-appropriate notification (sound handled by sound.ts)
   if (hasCommand('osascript')) {
-    sendMacNotification(repoName, subtitle, message, sound);
+    sendMacNotification(title, subtitle, body);
   } else if (hasCommand('notify-send')) {
-    sendLinuxNotification(repoName, subtitle, message);
+    sendLinuxNotification(title, subtitle, body);
   }
 
   return outputSilentSuccess();

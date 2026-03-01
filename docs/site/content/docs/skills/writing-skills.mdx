@@ -11,7 +11,7 @@ Good candidates for skills:
 
 - Team conventions that differ from defaults (naming patterns, directory structure, error formats).
 - Domain-specific patterns unique to your project (your auth flow, your deployment pipeline).
-- Technology knowledge not covered by OrchestKit's 59 built-in skills.
+- Technology knowledge not covered by OrchestKit's 69 built-in skills.
 - Checklists and decision frameworks your team uses repeatedly.
 
 ---
@@ -149,6 +149,20 @@ tags: [pagination, cursor, offset, api, performance, database]
 
 ### Optional Fields
 
+**`argument-hint`** -- Autocomplete hint shown after `/ork:skill-name`. Helps users know what arguments the skill accepts.
+
+```yaml
+argument-hint: "[issue-number]"       # /ork:fix-issue [issue-number]
+argument-hint: "[file-or-topic]"      # /ork:assess [file-or-topic]
+argument-hint: "[search|load|history]" # /ork:memory [search|load|history]
+```
+
+**`disable-model-invocation`** -- Set to `true` to hide the skill from Claude's prompt listing. The skill is still available via `/ork:skill-name` and agent `skills:` arrays, but Claude won't see it in its context window. Use for niche or rarely-needed skills to save tokens (~2,630 tokens/turn saved by hiding 42 of 69 skills).
+
+```yaml
+disable-model-invocation: true  # Hidden from prompt listing, still invocable
+```
+
 **`agent`** -- Which agent primarily uses this skill. Set this for reference skills to create the agent-skill binding.
 
 ```yaml
@@ -233,6 +247,44 @@ Telling Claude what NOT to do is as important as telling it what to do:
 | Storing passwords as MD5 | bcrypt with cost 12 | MD5 is cryptographically broken |
 ```
 
+### Use AskUserQuestion with Markdown Previews
+
+For command skills that offer mode selection, use `AskUserQuestion` with `markdown` preview panes. This gives users a side-by-side view of what each option does:
+
+```python
+AskUserQuestion(
+  questions=[{
+    "question": "What scope?",
+    "header": "Scope",
+    "options": [
+      {
+        "label": "Full analysis (Recommended)",
+        "description": "All dimensions scored",
+        "markdown": "```\nFull Analysis\n────────────\n  Phase 1: Gather context\n  Phase 2: Score dimensions\n  Phase 3: Generate report\n  Agents: 4 parallel\n```"
+      },
+      {
+        "label": "Quick check",
+        "description": "Single-pass brief output",
+        "markdown": "```\nQuick Check\n───────────\n  Single pass, 2 min\n  Score + top 3 issues\n  No agent spawning\n```"
+      }
+    ],
+    "multiSelect": false
+  }]
+)
+```
+
+Use `multiSelect: true` when options can be combined (e.g., "which checks to run?" where a user might want both tests and security). Keep `multiSelect: false` for mutually exclusive modes (e.g., "full" vs "quick").
+
+### Offer Plan Mode for Complex Skills
+
+For skills that modify code, offer a "Plan first" option that uses `EnterPlanMode`:
+
+```python
+{"label": "Plan first", "description": "Research in plan mode before coding"}
+```
+
+When selected, call `EnterPlanMode`, do read-only research (Read, Grep, Glob), then `ExitPlanMode` with a plan for user approval before implementing.
+
 ### Add a Capability Details Section
 
 For reference skills, a `Capability Details` section at the end helps the auto-suggest hook match prompts:
@@ -277,7 +329,7 @@ This runs `tests/skills/structure/test-skill-md.sh`, which validates:
 - Required fields are present: `name`, `description`, `tags`, `user-invocable`.
 - The `name` field matches the directory name.
 - Tags is an array with at least one entry.
-- The skill count matches the expected total (currently 60).
+- The skill count matches the expected total (currently 69).
 
 ### Common Test Failures
 

@@ -1,7 +1,7 @@
 ---
 name: remember
 license: MIT
-compatibility: "Claude Code 2.1.56+. Requires memory MCP server."
+compatibility: "Claude Code 2.1.59+. Requires memory MCP server."
 description: "Stores decisions and patterns in knowledge graph. Use when saving patterns, remembering outcomes, or recording decisions."
 argument-hint: "[decision-or-pattern]"
 context: none
@@ -11,6 +11,7 @@ tags: [memory, decisions, patterns, best-practices, graph-memory]
 user-invocable: true
 allowed-tools: [Read, Grep, Glob, Bash, mcp__memory__create_entities, mcp__memory__create_relations, mcp__memory__add_observations, mcp__memory__search_nodes]
 complexity: low
+model: haiku
 metadata:
   category: workflow-automation
   mcp-server: memory
@@ -19,6 +20,15 @@ metadata:
 # Remember - Store Decisions and Patterns
 
 Store important decisions, patterns, or context in the knowledge graph for future sessions. Supports tracking success/failure outcomes for building a Best Practice Library.
+
+## Argument Resolution
+
+```python
+TEXT = "$ARGUMENTS"        # Full argument string, e.g., "We use cursor pagination"
+FLAG = "$ARGUMENTS[0]"     # First token — check for --success, --failed, --category, --agent
+# Parse flags from $ARGUMENTS[0], $ARGUMENTS[1] etc. (CC 2.1.59 indexed access)
+# Remaining tokens after flags = the text to remember
+```
 
 ## Architecture
 

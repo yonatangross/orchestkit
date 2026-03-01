@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OrchestKit v7.0.0 — State of the Union</title>
+<style>
+:root {
+  --bg: #0d1117; --surface: #161b22; --surface2: #21262d; --border: #30363d;
+  --text: #e6edf3; --text2: #8b949e; --text3: #484f58;
+  --red: #f85149; --green: #3fb950; --yellow: #d29922; --blue: #58a6ff;
+  --purple: #bc8cff; --orange: #d18616; --cyan: #39d2c0; --pink: #f778ba;
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --mono: 'SF Mono', 'Fira Code', monospace;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); line-height: 1.6; }
+
+/* Header */
+.header { padding: 24px 32px; border-bottom: 1px solid var(--border); }
+.header h1 { font-size: 22px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+.header h1 .ver { color: var(--blue); font-family: var(--mono); font-size: 14px; background: rgba(88,166,255,0.1); padding: 2px 10px; border-radius: 6px; }
+.header p { color: var(--text2); font-size: 13px; margin-top: 4px; }
+
+/* Score cards */
+.scores { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; padding: 16px 32px; }
+.sc { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px; text-align: center; }
+.sc .n { font-size: 28px; font-weight: 800; font-family: var(--mono); }
+.sc .l { font-size: 10px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+.sc.red .n { color: var(--red); }
+.sc.yellow .n { color: var(--yellow); }
+.sc.green .n { color: var(--green); }
+.sc.blue .n { color: var(--blue); }
+.sc.purple .n { color: var(--purple); }
+.sc.orange .n { color: var(--orange); }
+
+/* Tabs */
+.tabs { display: flex; border-bottom: 1px solid var(--border); padding: 0 32px; overflow-x: auto; }
+.tab { padding: 12px 18px; cursor: pointer; font-size: 13px; color: var(--text2); border-bottom: 2px solid transparent; white-space: nowrap; transition: all 0.2s; user-select: none; }
+.tab:hover { color: var(--text); background: var(--surface); }
+.tab.active { color: var(--text); border-bottom-color: var(--blue); }
+.tab .badge { background: var(--surface2); color: var(--text2); font-size: 10px; padding: 1px 6px; border-radius: 8px; margin-left: 6px; }
+.tab .badge.red { background: rgba(248,81,73,0.15); color: var(--red); }
+
+/* Panels */
+.content { padding: 24px 32px; max-width: 1400px; margin: 0 auto; }
+.panel { display: none; animation: fadeIn 0.3s ease; }
+.panel.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* Cards */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 16px; overflow: hidden; }
+.card-head { padding: 16px 20px; display: flex; align-items: center; gap: 12px; cursor: pointer; }
+.card-head:hover { background: var(--surface2); }
+.card-body { padding: 0 20px 20px; font-size: 13px; line-height: 1.7; color: var(--text2); display: none; border-top: 1px solid var(--border); }
+.card-body.open { display: block; padding-top: 16px; }
+.sev { padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; flex-shrink: 0; }
+.sev.bug { background: rgba(248,81,73,0.15); color: var(--red); }
+.sev.gap { background: rgba(210,150,34,0.15); color: var(--yellow); }
+.sev.opportunity { background: rgba(88,166,255,0.15); color: var(--blue); }
+.sev.done { background: rgba(63,185,80,0.15); color: var(--green); }
+.card-title { font-size: 14px; font-weight: 600; flex: 1; color: var(--text); }
+.card-tag { font-size: 11px; color: var(--text2); background: var(--surface2); padding: 2px 8px; border-radius: 4px; }
+.card-arrow { color: var(--text3); transition: transform 0.2s; }
+.card-head.open .card-arrow { transform: rotate(90deg); }
+
+/* Code blocks */
+.code { font-family: var(--mono); font-size: 12px; background: var(--bg); padding: 14px 16px; border-radius: 8px; margin: 10px 0; overflow-x: auto; white-space: pre; line-height: 1.6; }
+.dim { color: var(--text3); }
+.hi { color: var(--yellow); }
+.bad { color: var(--red); }
+.good { color: var(--green); }
+.bl { color: var(--blue); }
+.pu { color: var(--purple); }
+
+/* Grid layouts */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-top: 16px; }
+
+/* Section headers */
+.section-head { font-size: 16px; font-weight: 700; margin: 24px 0 12px; display: flex; align-items: center; gap: 8px; }
+.section-head:first-child { margin-top: 0; }
+
+/* Table */
+table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 12px 0; }
+th { text-align: left; padding: 10px 12px; border-bottom: 2px solid var(--border); color: var(--text2); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+tr:hover td { background: var(--surface); }
+
+/* Callout */
+.callout { padding: 16px 20px; border-radius: 10px; margin: 16px 0; font-size: 13px; }
+.callout.red { background: rgba(248,81,73,0.06); border: 1px solid rgba(248,81,73,0.2); }
+.callout.yellow { background: rgba(210,150,34,0.06); border: 1px solid rgba(210,150,34,0.2); }
+.callout.blue { background: rgba(88,166,255,0.06); border: 1px solid rgba(88,166,255,0.2); }
+.callout.green { background: rgba(63,185,80,0.06); border: 1px solid rgba(63,185,80,0.2); }
+.callout h4 { margin-bottom: 8px; }
+
+/* Issue link */
+.issue { font-family: var(--mono); font-size: 12px; color: var(--green); }
+
+/* Milestone bar */
+.ms-bar { display: flex; align-items: center; gap: 10px; margin: 6px 0; }
+.ms-bar .track { flex: 1; height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
+.ms-bar .fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+.ms-bar .pct { font-family: var(--mono); font-size: 12px; color: var(--text2); min-width: 40px; text-align: right; }
+
+/* Flow diagram */
+.flow { font-family: var(--mono); font-size: 12px; line-height: 1.8; background: var(--surface); padding: 20px; border-radius: 10px; margin: 12px 0; overflow-x: auto; white-space: pre; border: 1px solid var(--border); }
+
+/* Legend */
+.legend { display: flex; gap: 16px; flex-wrap: wrap; margin: 12px 0; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text2); }
+.legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+
+@media (max-width: 900px) {
+  .scores { grid-template-columns: repeat(3, 1fr); }
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>OrchestKit — State of the Union <span class="ver">v7.0.0</span></h1>
+  <p>Synthesized from 8 playground analyses, 96 open issues, 12 milestones &bull; Feb 28, 2026</p>
+</div>
+
+<div class="scores">
+  <div class="sc red"><div class="n">6</div><div class="l">Active Bugs</div></div>
+  <div class="sc yellow"><div class="n">9</div><div class="l">Design Gaps</div></div>
+  <div class="sc blue"><div class="n">8</div><div class="l">Opportunities</div></div>
+  <div class="sc green"><div class="n">8</div><div class="l">Playgrounds</div></div>
+  <div class="sc purple"><div class="n">96</div><div class="l">Open Issues</div></div>
+  <div class="sc orange"><div class="n">12</div><div class="l">Milestones</div></div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" data-tab="bugs">Bugs <span class="badge red">6</span></div>
+  <div class="tab" data-tab="gaps">Design Gaps <span class="badge">9</span></div>
+  <div class="tab" data-tab="opportunities">Opportunities <span class="badge">8</span></div>
+  <div class="tab" data-tab="context-flow">Context Flow</div>
+  <div class="tab" data-tab="milestones">Milestones</div>
+  <div class="tab" data-tab="playgrounds">Playgrounds</div>
+  <div class="tab" data-tab="action-plan">Action Plan</div>
+</div>
+
+<div class="content">
+
+<!-- ==================== BUGS ==================== -->
+<div class="panel active" id="bugs">
+  <div class="callout red">
+    <h4 style="color:var(--red)">Context over-injection is the #1 bug class</h4>
+    Every "hello" costs ~8,121 tokens before Claude reads it (budget: 5,000). The model pays a 62% tax on every session just to start working.
+  </div>
+
+  <div class="card">
+    <div class="card-head" onclick="toggle(this)">
+      <span class="sev bug">BUG</span>
+      <span class="card-title">Triple "SessionStart: Success" message noise</span>
+      <span class="card-tag">cosmetic</span>
+      <span class="card-arrow">&#9654;</span>
+    </div>
+    <div class="card-body">
+      <p><strong>Root cause:</strong> 3 synchronous SessionStart hooks (<code>session-context-loader</code>, <code>analytics-consent-check</code>, <code>prefill-guard</code>) each return <code>outputSilentSuccess()</code>. CC logs "startup hook success: Success" for each one separately.</p>
+      <p><strong>Impact:</strong> 3 identical lines in every session start. Users see noise, not signal.</p>
+      <div class="code"><span class="dim">// What the user sees:</span>
+<span class="bad">SessionStart:startup hook success: Success</span>
+<span class="bad">SessionStart:startup hook success: Success</span>
+<span class="bad">SessionStart:startup hook success: Success</span></div>
+      <p><strong>Fix:</strong> Consolidate 3 sync SessionStart hooks into 1 dispatcher (same pattern as UserPromptSubmit). Single entry = single "Success" message.</p>
+      <p><span class="issue">#646</span> refactor(hooks): persistent daemon architecture — would eliminate this entirely.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head" onclick="toggle(this)">
+      <span class="sev bug">BUG</span>
+      <span class="card-title">memory-context keyword gate is too permissive — fires on nearly every prompt</span>
+      <span class="card-tag">every-turn</span>
+      <span class="card-arrow">&#9654;</span>
+    </div>
+    <div class="card-body">
+      <p><strong>File:</strong> <code>src/hooks/src/prompt/memory-context.ts</code></p>
+      <p><strong>Root cause:</strong> Trigger keywords include <code>add</code>, <code>fix</code>, <code>create</code>, <code>build</code>, <code>update</code>, <code>change</code>, <code>continue</code>, <code>resume</code> — these match virtually every dev prompt.</p>
+      <div class="code"><span class="dim">// These keywords match almost everything:</span>
+MEMORY_TRIGGER_KEYWORDS = [
+  <span class="bad">'add', 'implement', 'create', 'build', 'design',</span>
+  <span class="bad">'refactor', 'update', 'modify', 'fix', 'change',</span>
+  <span class="bad">'continue', 'resume'</span>, ...
+]</div>
+      <p><strong>Result:</strong> "[Memory Context] For relevant past project decisions..." injected on ~90% of turns. Even "hello" matches "continue" patterns.</p>
+      <p><strong>Fix:</strong> Replace broad keyword match with semantic intent detection, or require 2+ keyword matches, or only fire on first 3 turns per session.</p>
+      <p><span class="issue">#865</span> feat(hooks): context injection gating</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head" onclick="toggle(this)">
+      <span class="sev bug">BUG</span>
+      <span class="card-title">realtime-sync PostToolUse injects on "must" / "cannot" in any Bash output</span>
+      <span class="card-tag">every-tool-call</span>
+      <span class="card-arrow">&#9654;</span>
+    </div>
+    <div class="card-body">
+      <p><strong>File:</strong> <code>src/hooks/src/posttool/realtime-sync.ts</code></p>
+      <p><strong>Root cause:</strong> IMMEDIATE_KEYWORDS regex includes <code>must</code>, <code>cannot</code>, <code>critical</code>, <code>removed</code> — common in CLI output, error messages, package changelogs.</p>
+      <p><strong>Impact:</strong> 120-150 tokens of "[IMMEDIATE SYNC] Critical decision detected..." injected into context when Claude just ran <code>npm install</code> and the output said "must be installed as peer dependency".</p>
+      <div class="code"><span class="dim">// npm install output triggers this:</span>
+"<span class="bad">must</span> be installed as peer dependency"
+  → [IMMEDIATE SYNC] Critical decision detected <span class="bad">(~150 tokens wasted)</span></div>
+      <p><strong>Fix:</strong> Require context: was this a user action or a routine command? Add tool-name + content-length thresholds. "npm install" output should never trigger "critical decision" injection.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head" onclick="toggle(this)">
+      <span class="sev bug">BUG</span>
+      <span class="card-title">"UI Annotations Available" injected every session even with 0 annotations</span>
+      <span class="card-tag">once/session</span>
+      <span class="card-arrow">&#9654;</span>
+    </div>
+    <div class="card-body">
+      <p><strong>File:</strong> <code>src/hooks/src/prompt/agentation-context.ts</code></p>
+      <p><strong>Root cause:</strong> Hook checks if Agentation MCP server is configured in <code>.mcp.json</code>, but cannot call <code>agentation_get_all_pending</code> to check if annotations actually exist (hooks can't call MCP tools).</p>
+      <p><strong>Impact:</strong> ~45 tokens injected at session start telling Claude to "check for pending UI annotations" when there are none 95% of the time.</p>
+      <p><strong>Fix:</strong> Either (a) cache last annotation count in a file that the hook reads, or (b) remove the injection entirely — Claude already has the MCP tool in its tool list and will use it when prompted by a skill.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head" onclick="toggle(this)">
+      <span class="sev bug">BUG</span>
+      <span class="card-title">once-per-session gate bypassed when session_id is empty</span>
+      <span class="card-tag">edge case</span>
+      <span class="card-arrow">&#9654;</span>
+    </div>
+    <div class="card-body">
+      <p><strong>File:</strong> <code>src/hooks/src/prompt/unified-dispatcher.ts</code> (lines 177-179)</p>
+      <p><strong>Root cause:</strong> Once-flags use path <code>.claude/memory/sessions/{session_id}/once-flags/{hook}.done</code>. If <code>session_id</code> is empty/undefined, the path breaks and the flag check is skipped — causing <code>profile-injector</code>, <code>memory-context-loader</code>, and <code>agentation-context</code> to fire on <em>every turn</em> instead of once.</p>
+      <p><strong>Impact:</strong> ~1,100 tokens injected every turn instead of once per session in environments where CLAUDE_SESSION_ID isn't set.</p>
+      <p><strong>Fix:</strong> Fallback to process PID or random UUID when session_id is missing. Or use a simpler flag mechanism (write to a known path, not session-dependent).</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head" onclick="toggle(this)">
+      <span class="sev bug">BUG</span>
+      <span class="card-title">Cross-project context injects "[SESSION-END]" noise on every turn</span>
+      <span class="card-tag">every-turn</span>
+      <span class="card-arrow">&#9654;</span>
+    </div>
+    <div class="card-body">
+      <p><strong>Symptom:</strong> UserPromptSubmit hook outputs include lines like:</p>
+      <div class="code"><span class="bad">[Cross-project context: Other projects today: 07:29] [SESSION-END] 07:34] [SESSION-END] 07:40] [SESSION-END]</span></div>
+      <p><strong>Root cause:</strong> The cross-project context hook reads session logs from other repos, and most entries are just SESSION-END markers with no actionable content. The hook doesn't filter out empty/end-only sessions.</p>
+      <p><strong>Impact:</strong> ~40-80 tokens of pure noise injected every turn. Claude can't do anything useful with "[SESSION-END]" timestamps from other projects.</p>
+      <p><strong>Fix:</strong> Skip injection entirely if the only entries are SESSION-END markers. Only inject if there's actual cross-project context worth sharing (e.g., "built auth module in project X, relevant to current work").</p>
+      <p><span class="issue">#865</span> feat(hooks): context injection gating</p>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== DESIGN GAPS ==================== -->
+<div class="panel" id="gaps">
+  <div class="callout yellow">
+    <h4 style="color:var(--yellow)">Architecture gaps from 8 playground analyses</h4>
+    These aren't bugs — they're structural weaknesses where OrchestKit isn't using CC's capabilities well or has outgrown its original design.
+  </div>
+
+  <div class="card">
+    <div class="card-head" onclick="toggle(this)">
+      <span class="sev gap">GAP</span>
+      <span class="card-title">All 69 skill names listed in every prompt — choice paralysis</span>
+      <span class="card-tag">progressive disclosure</span>
+      <span class="card-arrow">&#9654;</span>
+    </div>
+    <div class="card-body">
+      <p><strong>Source:</strong> seeing-like-an-agent analysis</p>
+      <p>CC team has ~20 tools and questions if that's too many. OrchestKit lists 69 skills in every system reminder. Claude must "choose" from 69 options before starting work.</p>
+      <div class="code"><span class="dim">// Current: 69 skills in every prompt listing</span>
+<span class="bad">~1,360 tokens</span> of skill names + descriptions per turn
+
+<span class="dim">// Target: tiered discovery</span>
+<span class="good">Tier 1: ~15 high-frequency skills in prompt (~300 tokens)</span>
+<span class="good">Tier 2: rest discoverable via /ork:help or search</span></div>
+      <p><span class="issue">#864</span> feat(skills): tiered skill discovery</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head" onclick="toggle(this)">
+      <span class="sev gap">GAP</span>
+      <span class="card-title">38 agent descriptions loaded as routing table every session (~2,929 tokens)</span>
+      <span class="card-tag">token overhead</span>
+      <span class="card-arrow">&#9654;</span>
+    </div>
+    <div class="card-body">
+      <p><strong>Source:</strong> token-overhead-viz analysis</p>
+      <p>All 38 agents with full descriptions are loaded into context as the Agent tool's routing table. 30 of 38 exceed the 250-byte description limit.</p>
+      <p>CC's "Seeing Like an Agent" lesson: models don't need tools shaped for older capabilities. Some of these agents (requirements-translator, documentation-specialist, rapid-ui-designer) may be overhead for Opus 4.6.</p>
+      <p><span class="issue">#863</span> feat(agents): audit agent necessity — demote redundant agents to skills</p>
+      <p><span class="issue">#838</span> feat(agents): model routing documentation and per-release tracking</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head" onclick="toggle(this)">
+      <span class="sev gap">GAP</span>
+      <span class="card-title">28 agent-scoped hooks declared but never wired — 0 safety gates</span>
+      <span class="card-tag">security</span>
+      <span class="card-arrow">&#9654;</span>
+    </div>
+    <div class="card-body">
+      <p><strong>Source:</strong> architecture-reality-check analysis</p>
+      <p>Handler TS files exist for 28 agent-scoped hooks but they have zero entries in <code>hooks.json</code>. This means subagents run with NO safety gates — any spawned agent can execute any command.</p>
+      <p>CC 2.1.59+ supports agent-scoped hooks but OrchestKit never activated them.</p>
+      <p><span class="issue">#843</span> feat(security): add worktree isolation for team-spawning agents</p>
+      <p><span class="issue">#841</span> feat(security): restrict Bash allowlist for read-only agents</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head" onclick="toggle(this)">
+      <span class="sev gap">GAP</span>
+      <span class="card-title">72% dead code rate — 122 of 169 compiled handlers never invoked</span>
+      <span class="card-tag">build system</span>
+      <span class="card-arrow">&#9654;</span>
+    </div>
+    <div class="card-body">
+      <p><strong>Source:</strong> architecture-reality-check analysis</p>
+      <p>Every <code>npm run build</code> compiles 169 TypeScript handlers. Only 47 are actually referenced in <code>hooks.json</code>. Worst: Stop hooks (86% dead), Skill-scoped (93% dead), Agent-scoped (100% dead).</p>
+      <p><strong>Impact:</strong> Build time, binary size, cognitive complexity. New contributors see 169 handlers and can't tell which 47 matter.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head" onclick="toggle(this)">
+      <span class="sev gap">GAP</span>
+      <span class="card-title">60% of active hooks have zero behavioral impact — write to JSONL nobody reads</span>
+      <span class="card-tag">observability</span>
+      <span class="card-arrow">&#9654;</span>
+    </div>
+    <div class="card-body">
+      <p><strong>Source:</strong> architecture-reality-check + observability-decision</p>
+      <p>Hooks like <code>satisfaction-detector</code>, <code>communication-tracker</code>, <code>code-style-learner</code> write to JSONL files that have no consumer. They cost 200-400ms per session with zero feedback loop.</p>
+      <p>The observability-decision concluded: OrchestKit should PRODUCE telemetry (JSONL), not consume it. But the current JSONL files aren't consumed by anything.</p>
+      <p><span class="issue">#690</span> feat(analytics): model delegation tracking</p>
+      <p><span class="issue">#696</span> feat(analytics): per-tool execution timing</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head" onclick="toggle(this)">
+      <span class="sev gap">GAP</span>
+      <span class="card-title">No skill-to-skill discovery — skills can't find related skills</span>
+      <span class="card-tag">progressive disclosure</span>
+      <span class="card-arrow">&#9654;</span>
+    </div>
+    <div class="card-body">
+      <p><strong>Source:</strong> seeing-like-an-agent analysis</p>
+      <p>CC's insight: skills reference files which reference more files — nested progressive disclosure. OrchestKit skills have <code>rules/</code> and <code>references/</code> for content, but no mechanism to discover other skills. When Claude loads <code>ork:brainstorming</code>, it doesn't know <code>ork:assess</code> or <code>ork:implement</code> exist as next steps.</p>
+      <p><strong>Fix:</strong> Add <code>discovers: [assess, implement]</code> frontmatter field. When a skill loads, Claude gets a nudge about related capabilities.</p>
+      <p><span class="issue">#866</span> feat(skills): add discovers: field</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head" onclick="toggle(this)">
+      <span class="sev gap">GAP</span>
+      <span class="card-title">No eval pipeline execution — test-cases.json exist but never run</span>
+      <span class="card-tag">quality</span>
+      <span class="card-arrow">&#9654;</span>
+    </div>
+    <div class="card-body">
+      <p><strong>Source:</strong> seeing-like-an-agent + cc-capability-audit</p>
+      <p>36 skills got <code>test-cases.json</code> added. But the eval pipeline to actually run them doesn't exist yet. CC team's lesson: "Read your outputs, experiment often." We built the infrastructure but don't use it.</p>
+      <p><span class="issue">#518</span> Stage 2: promptfoo + Haiku eval</p>
+      <p><span class="issue">#507</span> GitHub Actions workflow for tiered eval pipeline</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head" onclick="toggle(this)">
+      <span class="sev gap">GAP</span>
+      <span class="card-title">0 of 56 hooks have explicit timeout tuning — all use defaults</span>
+      <span class="card-tag">reliability</span>
+      <span class="card-arrow">&#9654;</span>
+    </div>
+    <div class="card-body">
+      <p><strong>Source:</strong> cc-capability-audit</p>
+      <p>While hooks DO have timeout fields in hooks.json (10s, 15s, 30s, 60s), the audit found these are all set to round-number defaults, not tuned to actual execution times. A security hook that takes 50ms has a 10,000ms timeout. A hung network hook blocks the session for its full timeout before CC can proceed.</p>
+      <p><span class="issue">#846</span> feat(hooks): add explicit timeout fields to all 56 hooks</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head" onclick="toggle(this)">
+      <span class="sev gap">GAP</span>
+      <span class="card-title">33 of 38 agents lack maxTurns — runaway cost risk</span>
+      <span class="card-tag">cost</span>
+      <span class="card-arrow">&#9654;</span>
+    </div>
+    <div class="card-body">
+      <p><strong>Source:</strong> cc-capability-audit</p>
+      <p>Without <code>maxTurns</code>, a spawned agent can loop indefinitely. At Opus pricing, a runaway agent costs real money.</p>
+      <p><span class="issue">#849</span> feat(agents): add maxTurns to 33 agents</p>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== OPPORTUNITIES ==================== -->
+<div class="panel" id="opportunities">
+  <div class="callout blue">
+    <h4 style="color:var(--blue)">Underutilized capabilities and architectural improvements</h4>
+    Things we should be doing better — from CC features we're not using to design patterns we should adopt.
+  </div>
+
+  <div class="card">
+    <div class="card-head" onclick="toggle(this)">
+      <span class="sev opportunity">USE</span>
+      <span class="card-title">HTTP hooks — migrate 17 observability hooks from command to HTTP</span>
+      <span class="card-tag">CC 2.1.63</span>
+      <span class="card-arrow">&#9654;</span>
+    </div>
+    <div class="card-body">
+      <p><strong>Source:</strong> http-hooks-plan</p>
+      <p>CC 2.1.63 supports <code>type: "http"</code> hooks. OrchestKit already has 4 HTTP hooks (SessionEnd, WorktreeCreate/Remove, PatternSync). 17 more observability hooks are candidates — they write analytics data that could POST to an endpoint instead of spawning a Node process.</p>
+      <p>Benefit: eliminate per-event Node process spawning for advisory hooks (50-300ms → 5-15ms).</p>
+      <p><span class="issue">#856</span> feat(hooks): prototype HTTP hooks</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head" onclick="toggle(this)">
+      <span class="sev opportunity">USE</span>
+      <span class="card-title">Persistent daemon architecture — eliminate per-hook Node spawns</span>
+      <span class="card-tag">performance</span>
+      <span class="card-arrow">&#9654;</span>
+    </div>
+    <div class="card-body">
+      <p><strong>Source:</strong> architecture-reality-check + observability-decision</p>
+      <p>Every hook currently spawns a fresh Node.js process (3-50ms). A long-lived daemon could handle all hooks via IPC, eliminating cold-start overhead entirely. SDK init once, not per-event.</p>
+      <p>This also solves the observability gap — a daemon can hold a Langfuse client initialized once and flush spans in batches.</p>
+      <p><span class="issue">#646</span> refactor(hooks): persistent daemon architecture</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head" onclick="toggle(this)">
+      <span class="sev opportunity">USE</span>
+      <span class="card-title">Haiku model routing — shift 10 agents from Sonnet to Haiku (12.7% savings)</span>
+      <span class="card-tag">cost optimization</span>
+      <span class="card-arrow">&#9654;</span>
+    </div>
+    <div class="card-body">
+      <p><strong>Source:</strong> MEMORY.md agent routing analysis</p>
+      <p>Haiku 4.5 scores 90.8% on PinchBench (vs Sonnet 4 at 77.5%). For deterministic, pattern-based agents (test-generator, ui-feedback, data-pipeline-engineer, etc.), Haiku is cheaper and nearly as capable.</p>
+      <p>Projected savings: $1,478/year, 1.9% quality delta on eligible agents.</p>
+      <p><span class="issue">#838</span> feat(agents): model routing documentation</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head" onclick="toggle(this)">
+      <span class="sev opportunity">USE</span>
+      <span class="card-title">dev-agent-lens integration — adopt as companion infra, don't compete</span>
+      <span class="card-tag">observability</span>
+      <span class="card-arrow">&#9654;</span>
+    </div>
+    <div class="card-body">
+      <p><strong>Source:</strong> dev-agent-lens-integration</p>
+      <p>LiteLLM proxy + Phoenix UI gives real-time cost tracking and trace visualization. OrchestKit's JSONL has unique per-tool granularity that the proxy can't see. They're complementary, not competing.</p>
+      <p>Quick wins: phoenix-exporter PostToolUse hook, add to /ork:setup wizard, Docker profile for Phoenix.</p>
+      <p><span class="issue">#845</span> feat: observability reference docs</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head" onclick="toggle(this)">
+      <span class="sev opportunity">USE</span>
+      <span class="card-title">CC native OTLP — 3 env vars, zero latency, free</span>
+      <span class="card-tag">observability</span>
+      <span class="card-arrow">&#9654;</span>
+    </div>
+    <div class="card-body">
+      <p><strong>Source:</strong> observability-decision</p>
+      <p>CC supports native OpenTelemetry export via <code>OTEL_EXPORTER_OTLP_ENDPOINT</code>, <code>OTEL_EXPORTER_OTLP_HEADERS</code>, <code>OTEL_SERVICE_NAME</code>. Zero code change, zero latency added to OrchestKit. Just document it in /ork:setup.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head" onclick="toggle(this)">
+      <span class="sev opportunity">USE</span>
+      <span class="card-title">Stack profile files — team-specific context at UserPromptSubmit</span>
+      <span class="card-tag">collaboration</span>
+      <span class="card-arrow">&#9654;</span>
+    </div>
+    <div class="card-body">
+      <p><strong>Source:</strong> collaboration-brainstorm</p>
+      <p><code>.claude/stack-profile.json</code> injected at UserPromptSubmit for team-specific facts (framework versions, API patterns, naming conventions). Hours of effort, 9/10 feasibility.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head" onclick="toggle(this)">
+      <span class="sev opportunity">USE</span>
+      <span class="card-title">Agent handoff bus — JSON convention for agent-to-agent state passing</span>
+      <span class="card-tag">collaboration</span>
+      <span class="card-arrow">&#9654;</span>
+    </div>
+    <div class="card-body">
+      <p><strong>Source:</strong> collaboration-brainstorm</p>
+      <p><code>$ORK_SCRATCH_DIR/{agent-name}.json</code> — typed relay packets with 30-minute TTL. Zero infrastructure, convention-based coordination.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head" onclick="toggle(this)">
+      <span class="sev opportunity">USE</span>
+      <span class="card-title">1M context window calibration — context budget for long sessions</span>
+      <span class="card-tag">architecture</span>
+      <span class="card-arrow">&#9654;</span>
+    </div>
+    <div class="card-body">
+      <p><strong>Source:</strong> token-overhead-viz</p>
+      <p>A 7-message session accumulates 11,321 tokens of hook overhead. With 1M context window, that's manageable — but with PreCompact firing at 70%, every token of overhead accelerates the compaction cycle.</p>
+      <p><span class="issue">#663</span> feat: 1M context window calibration</p>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== CONTEXT FLOW ==================== -->
+<div class="panel" id="context-flow">
+  <div class="section-head">Token Budget Breakdown — First Message</div>
+
+  <div class="flow"><span class="dim">┌─────────────────────────────────────────────────────────────────┐</span>
+<span class="dim">│</span>  <span class="pu">User types "hello"</span>                                            <span class="dim">│</span>
+<span class="dim">└──────────────────────────┬──────────────────────────────────────┘</span>
+                           <span class="dim">│</span>
+                           <span class="dim">▼</span>
+<span class="dim">┌─────────────────────────────────────────────────────────────────┐</span>
+<span class="dim">│</span>  <span class="hi">ALWAYS LOADED (before any hook fires)</span>                        <span class="dim">│</span>
+<span class="dim">│</span>                                                                 <span class="dim">│</span>
+<span class="dim">│</span>  Agent routing table (38 agents)  <span class="bad">2,929 tokens</span>                 <span class="dim">│</span>
+<span class="dim">│</span>  MEMORY.md (auto-memory)          <span class="bad">1,873 tokens</span>                 <span class="dim">│</span>
+<span class="dim">│</span>  Skill listing (69 skills)        <span class="bad">1,360 tokens</span>                 <span class="dim">│</span>
+<span class="dim">│</span>  CLAUDE.md (project)              <span class="hi">1,159 tokens</span>                 <span class="dim">│</span>
+<span class="dim">│</span>                                   ─────────────                 <span class="dim">│</span>
+<span class="dim">│</span>  Subtotal:                        <span class="bad">7,321 tokens</span>                 <span class="dim">│</span>
+<span class="dim">└──────────────────────────┬──────────────────────────────────────┘</span>
+                           <span class="dim">│</span>
+                           <span class="dim">▼</span>
+<span class="dim">┌─────────────────────────────────────────────────────────────────┐</span>
+<span class="dim">│</span>  <span class="hi">SESSIONSTART HOOKS (once per session)</span>                        <span class="dim">│</span>
+<span class="dim">│</span>                                                                 <span class="dim">│</span>
+<span class="dim">│</span>  unified-dispatcher (async)       <span class="good">situation brief ~400t</span>        <span class="dim">│</span>
+<span class="dim">│</span>  session-context-loader            <span class="good">0t (silent)</span>                <span class="dim">│</span>
+<span class="dim">│</span>  analytics-consent-check           <span class="good">~20t</span>                       <span class="dim">│</span>
+<span class="dim">│</span>  prefill-guard                     <span class="good">0t (silent)</span>                <span class="dim">│</span>
+<span class="dim">│</span>  pr-status-enricher (async)        <span class="good">0-50t</span>                     <span class="dim">│</span>
+<span class="dim">│</span>  mcp-health-check                  <span class="good">0-30t</span>                     <span class="dim">│</span>
+<span class="dim">│</span>                                                                 <span class="dim">│</span>
+<span class="dim">│</span>  <span class="dim">3x "Success" messages appear here (cosmetic bug)</span>              <span class="dim">│</span>
+<span class="dim">└──────────────────────────┬──────────────────────────────────────┘</span>
+                           <span class="dim">│</span>
+                           <span class="dim">▼</span>
+<span class="dim">┌─────────────────────────────────────────────────────────────────┐</span>
+<span class="dim">│</span>  <span class="hi">USERPROMPTSUBMIT — ONCE PER SESSION</span>                          <span class="dim">│</span>
+<span class="dim">│</span>                                                                 <span class="dim">│</span>
+<span class="dim">│</span>  profile-injector                  <span class="hi">~300 tokens</span>                <span class="dim">│</span>
+<span class="dim">│</span>  memory-context-loader (decisions) <span class="hi">~400 tokens</span>                <span class="dim">│</span>
+<span class="dim">│</span>  agentation-context                <span class="hi">~45 tokens</span>                 <span class="dim">│</span>
+<span class="dim">│</span>                                                                 <span class="dim">│</span>
+<span class="dim">│</span>  <span class="bad">BUG: once-gate bypassed if session_id empty</span>                  <span class="dim">│</span>
+<span class="dim">└──────────────────────────┬──────────────────────────────────────┘</span>
+                           <span class="dim">│</span>
+                           <span class="dim">▼</span>
+<span class="dim">┌─────────────────────────────────────────────────────────────────┐</span>
+<span class="dim">│</span>  <span class="bad">USERPROMPTSUBMIT — EVERY TURN</span>                                <span class="dim">│</span>
+<span class="dim">│</span>                                                                 <span class="dim">│</span>
+<span class="dim">│</span>  memory-context (keyword search)   <span class="bad">~20t (fires ~90% of turns)</span> <span class="dim">│</span>
+<span class="dim">│</span>  cross-project context             <span class="bad">~60t (SESSION-END noise)</span>   <span class="dim">│</span>
+<span class="dim">│</span>  antipattern-warning               <span class="good">0-40t (conditional)</span>        <span class="dim">│</span>
+<span class="dim">│</span>  context-pruning-advisor           <span class="good">0-30t (>70% context)</span>       <span class="dim">│</span>
+<span class="dim">│</span>  satisfaction-detector             <span class="good">0t (analytics only)</span>        <span class="dim">│</span>
+<span class="dim">│</span>  communication-style-tracker       <span class="good">0t (analytics only)</span>        <span class="dim">│</span>
+<span class="dim">│</span>                                                                 <span class="dim">│</span>
+<span class="dim">│</span>  Cap: 800 tokens combined                                      <span class="dim">│</span>
+<span class="dim">│</span>  <span class="bad">Actual first turn: ~800 tokens (at cap)</span>                      <span class="dim">│</span>
+<span class="dim">└──────────────────────────┬──────────────────────────────────────┘</span>
+                           <span class="dim">│</span>
+                           <span class="dim">▼</span>
+<span class="dim">┌─────────────────────────────────────────────────────────────────┐</span>
+<span class="dim">│</span>  <span class="bad">TOTAL FIRST MESSAGE: ~8,121 tokens</span>                           <span class="dim">│</span>
+<span class="dim">│</span>  Budget: 5,000 tokens                                          <span class="dim">│</span>
+<span class="dim">│</span>  <span class="bad">Over budget by: +62%</span>                                         <span class="dim">│</span>
+<span class="dim">│</span>                                                                 <span class="dim">│</span>
+<span class="dim">│</span>  <span class="good">Target after fixes: ~4,859 tokens</span>                            <span class="dim">│</span>
+<span class="dim">│</span>  Savings: trim agents (-1,500t), tier skills (-900t),          <span class="dim">│</span>
+<span class="dim">│</span>           gate empty hooks (-400t), trim MEMORY.md (-500t)      <span class="dim">│</span>
+<span class="dim">└─────────────────────────────────────────────────────────────────┘</span></div>
+
+  <div class="section-head">Per-Turn Overhead (Turn 2+)</div>
+  <div class="flow"><span class="dim">Turn N user message arrives</span>
+  <span class="dim">│</span>
+  <span class="dim">├──</span> <span class="hi">UserPromptSubmit dispatcher</span>
+  <span class="dim">│   ├──</span> memory-context (keyword match)     <span class="bad">~20t — fires ~90% of turns</span>
+  <span class="dim">│   ├──</span> cross-project context              <span class="bad">~60t — SESSION-END noise</span>
+  <span class="dim">│   ├──</span> antipattern-warning                <span class="good">~0-40t — conditional</span>
+  <span class="dim">│   └──</span> satisfaction/communication          <span class="good">0t — analytics-only</span>
+  <span class="dim">│</span>
+  <span class="dim">├──</span> <span class="hi">PostToolUse (per tool call)</span>
+  <span class="dim">│   ├──</span> unified-dispatcher (async)          <span class="good">0t usually</span>
+  <span class="dim">│   └──</span> realtime-sync                      <span class="bad">0-150t — "must"/"cannot" trigger</span>
+  <span class="dim">│</span>
+  <span class="dim">├──</span> <span class="dim">SubagentStop (per agent return)</span>
+  <span class="dim">│   ├──</span> output-validator                    <span class="good">0-30t</span>
+  <span class="dim">│   └──</span> quality gates (5 hooks)             <span class="good">mostly async/0t</span>
+  <span class="dim">│</span>
+  <span class="dim">Per-turn overhead: <span class="hi">80-270 tokens</span></span>
+  <span class="dim">7-turn session total: <span class="bad">~11,321 tokens of overhead</span></span></div>
+</div>
+
+<!-- ==================== MILESTONES ==================== -->
+<div class="panel" id="milestones">
+  <div class="section-head">Open Milestones — 96 issues across 12 milestones</div>
+
+  <div class="card" style="padding:20px">
+    <div class="ms-item">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <strong>v7.0 — Architecture & Performance</strong>
+        <span class="issue">7 open — #646 #656 #663 #863 #864 #865 #866</span>
+      </div>
+      <div class="ms-bar"><div class="track"><div class="fill" style="width:30%;background:var(--red)"></div></div><div class="pct">~30%</div></div>
+      <p style="font-size:12px;color:var(--text2);margin-top:8px">Core: daemon architecture, skill tiering, agent audit, context gating, discovers: field. The "big ticket" milestone.</p>
+    </div>
+  </div>
+
+  <div class="card" style="padding:20px">
+    <div class="ms-item">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <strong>CC 2.1.63 Integration</strong>
+        <span class="issue">7 open — #856-#862</span>
+      </div>
+      <div class="ms-bar"><div class="track"><div class="fill" style="width:50%;background:var(--yellow)"></div></div><div class="pct">~50%</div></div>
+      <p style="font-size:12px;color:var(--text2);margin-top:8px">HTTP hooks prototype, version matrix update, doctor fixes, docs for new CC features.</p>
+    </div>
+  </div>
+
+  <div class="card" style="padding:20px">
+    <div class="ms-item">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <strong>Auto-Evaluation System</strong>
+        <span class="issue">17 open — #483-#527</span>
+      </div>
+      <div class="ms-bar"><div class="track"><div class="fill" style="width:20%;background:var(--red)"></div></div><div class="pct">~20%</div></div>
+      <p style="font-size:12px;color:var(--text2);margin-top:8px">promptfoo eval, dependency graph, CC changelog checker, GitHub Actions pipeline. Infrastructure built but not executing.</p>
+    </div>
+  </div>
+
+  <div class="card" style="padding:20px">
+    <div class="ms-item">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <strong>Version Management & Rollback</strong>
+        <span class="issue">12 open — #670-#681</span>
+      </div>
+      <div class="ms-bar"><div class="track"><div class="fill" style="width:10%;background:var(--red)"></div></div><div class="pct">~10%</div></div>
+      <p style="font-size:12px;color:var(--text2);margin-top:8px">Rollback, snapshots, version picker, time travel slider, stability heatmap. Ambitious but mostly unstarted.</p>
+    </div>
+  </div>
+
+  <div class="card" style="padding:20px">
+    <div class="ms-item">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <strong>Video Gallery Overhaul</strong>
+        <span class="issue">7 open — #729-#735</span>
+      </div>
+      <div class="ms-bar"><div class="track"><div class="fill" style="width:15%;background:var(--red)"></div></div><div class="pct">~15%</div></div>
+    </div>
+  </div>
+
+  <div class="card" style="padding:20px">
+    <div class="ms-item">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <strong>Eval v2 — Advanced Analytics</strong>
+        <span class="issue">6 open — #497-#511</span>
+      </div>
+      <div class="ms-bar"><div class="track"><div class="fill" style="width:15%;background:var(--red)"></div></div><div class="pct">~15%</div></div>
+    </div>
+  </div>
+
+  <div class="card" style="padding:20px">
+    <div class="ms-item">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <strong>v7.0 — Behavioral Intelligence</strong>
+        <span class="issue">6 open — #470-#516</span>
+      </div>
+      <div class="ms-bar"><div class="track"><div class="fill" style="width:25%;background:var(--red)"></div></div><div class="pct">~25%</div></div>
+    </div>
+  </div>
+
+  <div class="card" style="padding:20px">
+    <div class="ms-item">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <strong>Other milestones</strong>
+        <span class="issue">NotebookLM (4) + Session Analytics (4) + Context Intel (2) + CI (2) + Security (1)</span>
+      </div>
+      <div class="ms-bar"><div class="track"><div class="fill" style="width:35%;background:var(--yellow)"></div></div><div class="pct">~35%</div></div>
+    </div>
+  </div>
+
+  <div class="callout yellow" style="margin-top:24px">
+    <h4 style="color:var(--yellow)">21 issues have no milestone</h4>
+    <p style="margin-top:4px">Including: #846 (timeout fields), #847 (test-cases), #848 (disable-model-invocation), #849 (maxTurns), #838 (model routing docs) — these are all from the CC capability audit and should be assigned to v7.0 milestones.</p>
+  </div>
+</div>
+
+<!-- ==================== PLAYGROUNDS ==================== -->
+<div class="panel" id="playgrounds">
+  <div class="section-head">8 Playground Analyses (Feb 26-28, 2026)</div>
+
+  <table>
+    <thead>
+      <tr><th>File</th><th>Date</th><th>Key Finding</th><th>Issues Linked</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>seeing-like-an-agent</strong></td>
+        <td>Feb 28</td>
+        <td>CC team's 5 lessons mapped to OrchestKit — we have 164 components vs CC's 20 tools. Progressive disclosure of skills themselves is the gap.</td>
+        <td>#863 #864 #865 #866</td>
+      </tr>
+      <tr>
+        <td><strong>http-hooks-plan</strong></td>
+        <td>Feb 28</td>
+        <td>17 HTTP hook candidates, 3-tier user model, dual-mode env vars. Zero-config backward compat required.</td>
+        <td>#856</td>
+      </tr>
+      <tr>
+        <td><strong>cc-capability-audit</strong></td>
+        <td>Feb 27</td>
+        <td>82% CC compliance. Gaps: no timeouts, no maxTurns, no disable-model-invocation, no test-cases on 36 skills.</td>
+        <td>#846 #847 #848 #849</td>
+      </tr>
+      <tr>
+        <td><strong>architecture-reality-check</strong></td>
+        <td>Feb 27</td>
+        <td>28 agent-scoped hooks unwired, 72% dead code rate, 60% hooks zero behavioral impact.</td>
+        <td>#841 #843 #646</td>
+      </tr>
+      <tr>
+        <td><strong>token-overhead-viz</strong></td>
+        <td>Feb 27</td>
+        <td>8,121 tokens on "hello" (budget: 5,000). Agents: 2,929t, MEMORY: 1,873t, Skills: 1,360t.</td>
+        <td>#663 #864</td>
+      </tr>
+      <tr>
+        <td><strong>observability-decision</strong></td>
+        <td>Feb 27</td>
+        <td>3-layer architecture: CC OTLP (free) → JSONL (local) → LiteLLM bridge (opt-in). OrchestKit produces, doesn't consume.</td>
+        <td>#845 #690 #696</td>
+      </tr>
+      <tr>
+        <td><strong>dev-agent-lens-integration</strong></td>
+        <td>Feb 27</td>
+        <td>Adopt dev-agent-lens as companion infra, don't compete. 60% overlap on cost tracking, 0% on tool-level latency.</td>
+        <td>#845</td>
+      </tr>
+      <tr>
+        <td><strong>collaboration-brainstorm</strong></td>
+        <td>Feb 27</td>
+        <td>22 ideas across 7 clusters. Top wins: stack profiles, agent handoff bus, typed relay packets. All use existing CC primitives.</td>
+        <td>—</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout green" style="margin-top:16px">
+    <h4 style="color:var(--green)">Consistent themes across all 8 analyses</h4>
+    <ol style="margin-top:8px;padding-left:20px;line-height:2">
+      <li><strong>Context bloat</strong> — agents, skills, and hooks all inject too much (token-overhead, architecture-reality, seeing-like-an-agent)</li>
+      <li><strong>Build but don't use</strong> — eval pipeline, agent-scoped hooks, analytics JSONL, 72% dead handlers (cc-audit, architecture-reality)</li>
+      <li><strong>Progressive disclosure</strong> is the answer, not deletion — tier skills, gate hooks, lazy-load agents (seeing-like-an-agent, collaboration)</li>
+      <li><strong>Observability needs a consumer</strong> — produce JSONL is solved, reading it is not (observability-decision, dev-agent-lens)</li>
+    </ol>
+  </div>
+</div>
+
+<!-- ==================== ACTION PLAN ==================== -->
+<div class="panel" id="action-plan">
+  <div class="section-head">Prioritized Action Plan</div>
+
+  <div class="callout blue">
+    <h4 style="color:var(--blue)">Sequencing principle</h4>
+    Fix the bugs first (they cost tokens every turn), then close design gaps (they constrain quality), then capture opportunities (they add capabilities).
+  </div>
+
+  <div class="section-head" style="color:var(--red)">P0 — Fix Now (Context Bleeding)</div>
+
+  <div class="card">
+    <div class="card-head" onclick="toggle(this)">
+      <span class="sev bug">P0-1</span>
+      <span class="card-title">Gate empty hook output — skip injection when content is noise</span>
+      <span class="card-tag">#865</span>
+      <span class="card-arrow">&#9654;</span>
+    </div>
+    <div class="card-body">
+      <p><strong>Changes:</strong></p>
+      <ul style="margin:8px 0 8px 20px">
+        <li><code>memory-context.ts</code>: Replace broad keyword list with 2+ keyword threshold or first-3-turns-only</li>
+        <li>Cross-project hook: Skip if only SESSION-END markers found</li>
+        <li><code>realtime-sync.ts</code>: Add tool-name context — "must" in npm output ≠ architectural decision</li>
+        <li><code>agentation-context.ts</code>: Remove entirely or cache last annotation count</li>
+      </ul>
+      <p><strong>Impact:</strong> -200 to -400 tokens per turn. Cumulative over 7 turns: -1,400 to -2,800 tokens saved.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head" onclick="toggle(this)">
+      <span class="sev bug">P0-2</span>
+      <span class="card-title">Fix once-gate session_id fallback</span>
+      <span class="card-tag">edge case</span>
+      <span class="card-arrow">&#9654;</span>
+    </div>
+    <div class="card-body">
+      <p>Add fallback to <code>process.ppid</code> or random UUID when <code>CLAUDE_SESSION_ID</code> is empty. Prevents 1,100 tokens/turn leak in non-standard environments.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head" onclick="toggle(this)">
+      <span class="sev bug">P0-3</span>
+      <span class="card-title">Consolidate 3 sync SessionStart hooks into 1 dispatcher</span>
+      <span class="card-tag">cosmetic</span>
+      <span class="card-arrow">&#9654;</span>
+    </div>
+    <div class="card-body">
+      <p>Merge <code>session-context-loader</code>, <code>analytics-consent-check</code>, <code>prefill-guard</code> into a single sync SessionStart entry. One hook = one "Success" message.</p>
+    </div>
+  </div>
+
+  <div class="section-head" style="color:var(--yellow)">P1 — Design Gaps (Next Sprint)</div>
+
+  <div class="card">
+    <div class="card-head" onclick="toggle(this)">
+      <span class="sev gap">P1-1</span>
+      <span class="card-title">Tiered skill discovery — reduce prompt from 69 to ~15</span>
+      <span class="card-tag">#864</span>
+      <span class="card-arrow">&#9654;</span>
+    </div>
+    <div class="card-body">
+      <p>Tier 1 (~15 skills): commit, explore, implement, review-pr, fix-issue, verify, brainstorming, assess, help, setup, doctor, create-pr, plan-viz, remember, memory.</p>
+      <p>Tier 2 (54 skills): discoverable via <code>/ork:help</code> search or skill-to-skill <code>discovers:</code> links.</p>
+      <p><strong>Impact:</strong> -1,060 tokens from skill listing per session.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head" onclick="toggle(this)">
+      <span class="sev gap">P1-2</span>
+      <span class="card-title">Audit 38 agents — demote ≤10 to skills, trim descriptions</span>
+      <span class="card-tag">#863 #838</span>
+      <span class="card-arrow">&#9654;</span>
+    </div>
+    <div class="card-body">
+      <p>Candidates for demotion: requirements-translator, documentation-specialist, rapid-ui-designer, prioritization-analyst, business-case-builder, ux-researcher.</p>
+      <p>All 38 descriptions must fit 250 bytes. Current: 30 of 38 exceed limit.</p>
+      <p><strong>Impact:</strong> -1,500 tokens from agent routing table.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head" onclick="toggle(this)">
+      <span class="sev gap">P1-3</span>
+      <span class="card-title">Add maxTurns to 33 agents + timeout tuning for 56 hooks</span>
+      <span class="card-tag">#849 #846</span>
+      <span class="card-arrow">&#9654;</span>
+    </div>
+    <div class="card-body">
+      <p>Agents: Add maxTurns (10-50 range based on agent type). Hooks: Profile actual execution times, set timeouts to 2x p99.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head" onclick="toggle(this)">
+      <span class="sev gap">P1-4</span>
+      <span class="card-title">Wire agent-scoped hooks — activate 28 unwired safety gates</span>
+      <span class="card-tag">#843 #841</span>
+      <span class="card-arrow">&#9654;</span>
+    </div>
+    <div class="card-body">
+      <p>Add agent-scoped entries to hooks.json for read-only agents (Explore, Plan) and team-spawning agents. Start with Bash allowlists for read-only agents.</p>
+    </div>
+  </div>
+
+  <div class="section-head" style="color:var(--blue)">P2 — Opportunities (Next Quarter)</div>
+
+  <div class="card">
+    <div class="card-head" onclick="toggle(this)">
+      <span class="sev opportunity">P2-1</span>
+      <span class="card-title">HTTP hooks migration — 17 candidates</span>
+      <span class="card-tag">#856</span>
+      <span class="card-arrow">&#9654;</span>
+    </div>
+    <div class="card-body">
+      <p>Move observability hooks from command → HTTP. Eliminates Node spawn overhead for advisory hooks. Already proven with 4 existing HTTP hooks.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head" onclick="toggle(this)">
+      <span class="sev opportunity">P2-2</span>
+      <span class="card-title">Eval pipeline execution — actually run test-cases.json</span>
+      <span class="card-tag">#518 #507</span>
+      <span class="card-arrow">&#9654;</span>
+    </div>
+    <div class="card-body">
+      <p>promptfoo + Haiku eval for 36 skills with test-cases.json. GitHub Actions workflow. "Read your outputs" loop.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head" onclick="toggle(this)">
+      <span class="sev opportunity">P2-3</span>
+      <span class="card-title">Persistent daemon architecture</span>
+      <span class="card-tag">#646</span>
+      <span class="card-arrow">&#9654;</span>
+    </div>
+    <div class="card-body">
+      <p>Long-lived Node process for all hooks via IPC. Eliminates cold-start, enables Langfuse SDK init once, solves observability consumer gap.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head" onclick="toggle(this)">
+      <span class="sev opportunity">P2-4</span>
+      <span class="card-title">Haiku model routing for 10 agents</span>
+      <span class="card-tag">#838</span>
+      <span class="card-arrow">&#9654;</span>
+    </div>
+    <div class="card-body">
+      <p>Shift data-driven agents to Haiku 4.5. A/B test over 4 weeks. $1,478/year savings, 1.9% quality delta.</p>
+    </div>
+  </div>
+
+  <div class="section-head" style="margin-top:32px">Expected Impact</div>
+
+  <div class="grid-2">
+    <div class="card" style="padding:20px;text-align:center">
+      <div style="font-size:36px;font-weight:800;color:var(--green);font-family:var(--mono)">-3,262</div>
+      <div style="font-size:12px;color:var(--text2);margin-top:4px">TOKENS SAVED PER SESSION (P0+P1)</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:8px">8,121 → 4,859 (within 5K budget)</div>
+    </div>
+    <div class="card" style="padding:20px;text-align:center">
+      <div style="font-size:36px;font-weight:800;color:var(--green);font-family:var(--mono)">-40%</div>
+      <div style="font-size:12px;color:var(--text2);margin-top:4px">CONTEXT OVERHEAD REDUCTION</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:8px">agents (-1,500) + skills (-1,060) + hooks (-400) + MEMORY (-500)</div>
+    </div>
+  </div>
+</div>
+
+</div><!-- content -->
+
+<script>
+// Tab switching
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.tab).classList.add('active');
+  });
+});
+
+// Card expand/collapse
+function toggle(head) {
+  const body = head.nextElementSibling;
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open');
+  head.classList.toggle('open');
+}
+
+// Auto-open first card in active panel
+document.querySelector('.panel.active .card-head')?.click();
+</script>
+
+</body>
+</html>

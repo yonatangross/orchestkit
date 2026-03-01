@@ -12,11 +12,19 @@ description: "OrchestKit doctor for health diagnostics. Use when running checks 
 
 # OrchestKit Health Diagnostics
 
+## Argument Resolution
+
+```python
+FLAGS = "$ARGUMENTS"         # Full argument string, e.g., "--verbose" or "--json"
+FLAG = "$ARGUMENTS[0]"       # First token: -v, --verbose, --json, --category=X
+# $ARGUMENTS[0], $ARGUMENTS[1] for indexed access (CC 2.1.59)
+```
+
 ## Overview
 
 The `/ork:doctor` command performs comprehensive health checks on your OrchestKit installation. It auto-detects installed plugins and validates 12 categories:
 
-1. **Installed Plugins** - Detects orkl or ork
+1. **Installed Plugins** - Detects ork plugin
 2. **Skills Validation** - Frontmatter, references, token budget (dynamic count)
 3. **Agents Validation** - Frontmatter, tool refs, skill refs (dynamic count)
 4. **Hook Health** - Registration, bundles, async patterns
@@ -25,7 +33,7 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 7. **Coordination System** - Checks lock health and registry integrity
 8. **Context Budget** - Monitors token usage against budget
 9. **Memory System** - Graph memory health
-10. **Claude Code Version** - Validates CC >= 2.1.47
+10. **Claude Code Version & Channel** - Validates CC >= 2.1.47, detects release channel (stable/beta/alpha)
 11. **External Dependencies** - Checks optional tool availability (agent-browser)
 12. **MCP Status** - Active vs disabled vs misconfigured, API key presence for paid MCPs
 
@@ -65,7 +73,7 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 
 | Category | What It Checks | Reference |
 |----------|---------------|-----------|
-| **0. Installed Plugins** | Auto-detects orkl or ork, counts skills/agents | [diagnostic-checks](rules/diagnostic-checks.md) |
+| **0. Installed Plugins** | Auto-detects ork plugin, counts skills/agents | [diagnostic-checks](rules/diagnostic-checks.md) |
 | **1. Skills** | Frontmatter, context field, token budget, links | [skills-validation](references/skills-validation.md) |
 | **2. Agents** | Frontmatter, model, skill refs, tool refs | [agents-validation](references/agents-validation.md) |
 | **3. Hooks** | hooks.json schema, bundles, async patterns | [hook-validation](references/hook-validation.md) |
@@ -90,13 +98,13 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 
 | Category | What It Checks | Reference |
 |----------|---------------|-----------|
-| **10. CC Version** | Runtime version against minimum required | [version-compatibility](references/version-compatibility.md) |
+| **10. CC Version & Channel** | Runtime version against minimum required, release channel (stable/beta/alpha) | [version-compatibility](references/version-compatibility.md) |
 | **11. External Deps** | Optional tools (agent-browser) | [diagnostic-checks](rules/diagnostic-checks.md) |
 | **12. MCP Status** | Enabled/disabled state, credential checks | [mcp-status-checks](rules/mcp-status-checks.md) |
 
 ## Report Format
 
-> See [references/report-format.md](references/report-format.md) for ASCII report templates (ork and orkl), JSON CI output schema, and exit codes.
+> See [references/report-format.md](references/report-format.md) for ASCII report templates, JSON CI output schema, and exit codes.
 
 ## Interpreting Results & Troubleshooting
 
@@ -144,7 +152,7 @@ Auto-detects which OrchestKit plugins are installed:
 ```bash
 # Detection logic:
 # - Scans for .claude-plugin/plugin.json in plugin paths
-# - Identifies orkl or ork
+# - Identifies ork plugin
 # - Counts skills/agents per installed plugin
 ```
 
@@ -326,7 +334,7 @@ MCP Servers:
 
 ## Overview
 
-OrchestKit includes 36 specialized agents validated against CC 2.1.47 frontmatter format.
+OrchestKit includes 38 specialized agents validated against CC 2.1.59 frontmatter format.
 
 ## Agent Structure
 
@@ -335,7 +343,7 @@ src/agents/
 ├── backend-system-architect.md
 ├── code-quality-reviewer.md
 ├── frontend-ui-developer.md
-└── ... (36 total)
+└── ... (38 total)
 ```
 
 ## Validation Checks
@@ -437,7 +445,11 @@ if [ "$registered_count" -ne "$expected_count" ]; then
 fi
 ```
 
-**Check:** `claude agents | wc -l` should match expected agent count (37).
+**Check:** `claude agents | wc -l` should match expected agent count (38).
+
+## Model Routing
+
+See [docs/model-routing.md](../../../../docs/model-routing.md) for per-agent model assignment rationale and version history.
 
 **Fail action:** List missing agents for manual investigation. Common causes:
 - Plugin not installed or not rebuilt after adding agents
@@ -451,40 +463,50 @@ fi
 
 Reference output examples for each `/ork:doctor` check category.
 
+## Channel Detection
+
+**Stable:**
+```
+Channel: stable (v7.0.0)
+```
+
+**Beta:**
+```
+Channel: beta (v7.0.0-beta.3)
+⚠ You are on the beta channel. Report issues at github.com/yonatangross/orchestkit/issues
+```
+
+**Alpha:**
+```
+Channel: alpha (v7.0.0-alpha.1)
+⚠ You are on the alpha channel. Expect breaking changes. Report issues at github.com/yonatangross/orchestkit/issues
+```
+
+**Detection logic:**
+1. Read version from `.claude-plugin/plugin.json` (`version` field) or `version.txt`
+2. If version contains `-alpha` → alpha channel
+3. If version contains `-beta` → beta channel
+4. Otherwise → stable channel
+
 ## Installed Plugins
 
-**orkl:**
 ```
 Installed Plugins: 1
-- orkl: 46 skills, 38 agents, 87 hook entries
-```
-
-**ork (full):**
-```
-Installed Plugins: 1
-- ork: 68 skills, 38 agents, 87 hook entries
+- ork: 69 skills, 38 agents, 85 hook entries
 ```
 
 ## Skills Validation
 
-**Full ork:**
 ```
-Skills: 67/67 valid
-- User-invocable: 24 commands
-- Reference skills: 38
-```
-
-**orkl only:**
-```
-Skills: 46/46 valid
-- User-invocable: 24 commands
-- Reference skills: 21
+Skills: 69/69 valid
+- User-invocable: 17 commands
+- Reference skills: 52
 ```
 
 ## Agents Validation
 
 ```
-Agents: 36/36 valid
+Agents: 38/38 valid
 - Models: 12 sonnet, 15 haiku, 8 opus
 - All skill references valid
 ```
@@ -492,11 +514,9 @@ Agents: 36/36 valid
 ## Hook Health
 
 ```
-Hooks: 87/87 entries valid (12 bundles)
-- Global: 66 (PreToolUse: 14, PostToolUse: 6, SubagentStart: 7, SubagentStop: 7,
-  Setup: 6, SessionStart: 5, UserPromptSubmit: 5, PermissionRequest: 3, ...)
-- Agent-scoped: 22, Skill-scoped: 1
-- Async hooks: 7 (fire-and-forget)
+Hooks: 78/78 entries valid (12 bundles)
+- Global: 55, Agent-scoped: 22, Skill-scoped: 1
+- Async hooks: 9 (native async)
 - Error Rate: 0.3%
 ```
 
@@ -511,8 +531,8 @@ Memory System: healthy
 
 ```
 Build System: in sync
-- Skills: 67 src/ = 67 plugins/
-- Agents: 36 src/ = 36 plugins/
+- Skills: 69 src/ = 69 plugins/
+- Agents: 38 src/ = 38 plugins/
 - Last build: 2 minutes ago
 ```
 
@@ -1028,19 +1048,6 @@ ls -la .claude/memory/
 
 > **Note:** `\{version\}` is read from `package.json` at runtime. `\{cc_version\}` is detected from Claude Code. Counts reflect installed plugin — dynamic, not hardcoded.
 
-**orkl plugin (lite):**
-```
-+===================================================================+
-|                    OrchestKit Health Report                        |
-+===================================================================+
-| Version: {version}  |  CC: {cc_version}  |  Plugins: orkl         |
-+===================================================================+
-| Skills           | 45/45 valid                                    |
-| Agents           | 36/36 valid                                    |
-| Hooks            | 87/87 entries (12 bundles)                     |
-| Memory           | Graph memory healthy                           |
-+===================================================================+
-```
 
 ## JSON Output (CI Integration)
 
@@ -1208,14 +1215,14 @@ jq '.properties | to_entries | map({key: .key, type: .value.type})' \
 
 ## Overview
 
-OrchestKit includes 68 skills validated against frontmatter requirements and content standards.
+OrchestKit includes 69 skills validated against frontmatter requirements and content standards.
 
 ## Skill Types
 
 | Type | Count | Frontmatter |
 |------|-------|-------------|
-| User-invocable | 24 | `user-invocable: true` |
-| Reference | 38 | `user-invocable: false` |
+| User-invocable | 17 | `user-invocable: true` |
+| Internal | 52 | `user-invocable: false` |
 
 ## Validation Checks
 
@@ -1305,7 +1312,7 @@ Ensure file exists at `references/filename.md`.
 
 ## Overview
 
-OrchestKit requires Claude Code >= 2.1.47. This matrix documents which CC features OrchestKit depends on and their minimum version requirements.
+OrchestKit requires Claude Code >= 2.1.59. This matrix documents which CC features OrchestKit depends on and their minimum version requirements.
 
 ## Feature Matrix
 
@@ -1323,13 +1330,23 @@ OrchestKit requires Claude Code >= 2.1.47. This matrix documents which CC featur
 | Agent model in Teams | 2.1.47 | Model field respected in team spawns | Model ignored, uses default |
 | Worktree discovery | 2.1.47 | Skills/agents found from worktrees | Worktree sessions miss plugins |
 | Background tasks in worktrees | 2.1.47 | Task tool from worktrees | Background agents fail silently |
-| Windows hook execution | 2.1.47 | All 87 hooks on Windows | Hooks silently fail on Windows |
+| Windows hook execution | 2.1.47 | All hooks on Windows | Hooks silently fail on Windows |
 | Windows worktree sessions | 2.1.47 | Drive letter casing match | Worktree sessions not matched |
 | Improved agent memory | 2.1.47 | Higher context limits | Conservative limits apply |
 | `Ctrl+F` find in output | 2.1.47 | Search through session output | No search capability |
 | `Shift+Down` multi-line input | 2.1.47 | Multi-line prompt entry | Single-line input only |
 | Memory leak fixes (8 leaks) | 2.1.50 | Stable long-running sessions | Memory grows unbounded over time |
 | `claude_agents_cli` | 2.1.50 | Doctor agent registration check | Agent registration check skipped |
+| ConfigChange hook event | 2.1.50 | Detect mid-session settings changes | Stale config until restart |
+| Auto-memory | 2.1.59 | Claude saves learnings across sessions | Manual CLAUDE.md only |
+| `@import` in CLAUDE.md | 2.1.59 | Modular instruction files | Single monolithic CLAUDE.md |
+| `.claude/rules/` with `paths:` | 2.1.59 | Path-scoped rules per directory | All rules loaded always |
+| HTTP hooks (`type: "http"`) | 2.1.63 | Observability hooks POST to remote endpoints | Falls back to command hooks (local JSONL) |
+| Worktree config sharing | 2.1.63 | Project configs shared across worktrees | Manual config copy needed |
+| `/clear` resets skills | 2.1.63 | Fixes stale skill content after edits | Native since 2.1.63; no workaround needed |
+| Teammate memory fix | 2.1.63 | Safe for 5+ teammate swarms | Memory grows in long team sessions |
+| `/simplify`, `/batch` built-in | 2.1.63 | Bundled CC slash commands | Not available |
+| `ENABLE_CLAUDEAI_MCP_SERVERS` | 2.1.63 | Opt out of claude.ai MCP servers | All claude.ai MCPs always loaded |
 
 ## Version Detection
 
@@ -1347,8 +1364,10 @@ claude --version  # Returns e.g. "2.1.47"
 | &lt; 2.1.7 | Unsupported | Core hook protocol missing |
 | 2.1.7 - 2.1.44 | Degraded | Missing memory improvements, worktree fixes, Windows support |
 | 2.1.45 - 2.1.46 | Partial | Missing 2.1.47 features but functional |
-| 2.1.47 - 2.1.49 | Full | All features available, memory leak risk in long sessions |
-| >= 2.1.50 | Full + Stable | All features available, memory leaks fixed |
+| 2.1.47 - 2.1.49 | Partial | All hook features, memory leak risk in long sessions |
+| 2.1.50 - 2.1.58 | Partial | Memory leaks fixed, missing auto-memory and @imports |
+| 2.1.59 - 2.1.62 | Full | All features: auto-memory, @imports, .claude/rules/, ConfigChange |
+| >= 2.1.63 | Full+ | HTTP hooks, worktree config sharing, teammate stability, /simplify, /batch |
 
 ## Doctor Check Implementation
 
@@ -1383,7 +1402,7 @@ CC 2.1.50 fixed 8 memory leaks affecting long-running sessions:
 - Shell execution: ChildProcess/AbortController refs retained after cleanup
 - LSP diagnostic data never cleaned up after delivery
 - File history snapshots: unbounded growth
-- Internal caches not cleared after compaction
+- Internal caches not cleared after compaction (fixed in 2.1.63)
 
 **Recommendation:** If CC version &lt; 2.1.50, warn user to upgrade for long sessions.
 
@@ -1396,10 +1415,38 @@ Claude Code: 2.1.4x (MEMORY LEAK RISK)
 - Upgrade: npm install -g @anthropic-ai/claude-code@latest
 ```
 
+## Release Channel Detection
+
+Doctor should detect and display the release channel alongside the CC version check. The version is read from `.claude-plugin/plugin.json` or `version.txt`.
+
+| Version Pattern | Channel | Stability |
+|----------------|---------|-----------|
+| `X.Y.Z` (no suffix) | stable | Production-ready |
+| `X.Y.Z-beta.N` | beta | Feature-complete, may have bugs |
+| `X.Y.Z-alpha.N` | alpha | Experimental, expect breaking changes |
+
+When on beta or alpha, doctor should append a pre-release reminder to the compatibility output:
+
+```
+Claude Code: 2.1.56 (OK)
+- Minimum required: 2.1.56
+- OrchestKit channel: beta (v7.0.0-beta.3)
+  ⚠ Pre-release version — some features may be unstable. Report issues at github.com/yonatangross/orchestkit/issues
+```
+
+On stable, no extra warning is needed — just include the channel line:
+
+```
+Claude Code: 2.1.56 (OK)
+- Minimum required: 2.1.56
+- OrchestKit channel: stable (v7.0.0)
+```
+
 ## OrchestKit Version History
 
 | OrchestKit | Min CC | Key Changes |
 |-----------|--------|-------------|
+| v7.0.x | 2.1.59 | Auto-memory, @imports, ConfigChange, HTTP hooks (2.1.63+), unified plugin |
 | v6.0.x | 2.1.47 | Full CC 2.1.47 adoption, relaxed context limits |
 | v5.x | 2.1.34 | Agent Teams support, unified dispatchers |
 | v4.x | 2.1.9 | Session tracking, TypeScript hooks |

@@ -21,7 +21,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "accessibility-specialist",
     "structure": {
@@ -42,8 +48,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "accessibility-specialist",
@@ -68,7 +73,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "workflow-architect",
     "structure": {
@@ -125,7 +136,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "tokens",
       "model-delegation"
     ],
-    "userInvocable": true,
+    "userInvocable": false,
     "context": "fork",
     "allowedTools": [
       "Bash",
@@ -167,7 +178,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "backend-system-architect",
     "structure": {
@@ -202,8 +219,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "backend-system-architect",
@@ -226,7 +242,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "backend-system-architect",
     "structure": {
@@ -247,8 +269,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "backend-system-architect",
@@ -275,7 +296,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [
       "scope-appropriate-architecture"
     ],
@@ -307,8 +334,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "backend-system-architect",
@@ -332,13 +358,16 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Grep",
+      "Glob"
+    ],
     "skills": [],
     "agent": null,
     "structure": {},
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -397,8 +426,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -417,7 +445,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "python-performance-engineer",
     "structure": {
@@ -456,7 +490,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "1m-context",
       "cross-file"
     ],
-    "userInvocable": true,
+    "userInvocable": false,
     "context": "fork",
     "allowedTools": [
       "AskUserQuestion",
@@ -510,9 +544,19 @@ export const SKILLS: Record<string, SkillMeta> = {
       "skills",
       "orchestkit"
     ],
-    "userInvocable": true,
+    "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Bash",
+      "Write",
+      "Edit",
+      "TaskCreate",
+      "TaskUpdate",
+      "TaskList"
+    ],
     "skills": [],
     "agent": null,
     "structure": {
@@ -551,6 +595,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "TaskCreate",
       "TaskUpdate",
       "TaskList",
+      "TaskOutput",
+      "TaskStop",
       "mcp__memory__search_nodes"
     ],
     "skills": [
@@ -587,8 +633,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "business-case-builder",
@@ -610,13 +655,18 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "web-research-analyst",
     "structure": {},
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "data-pipeline-engineer",
@@ -635,9 +685,20 @@ export const SKILLS: Record<string, SkillMeta> = {
       "pipeline",
       "orchestkit"
     ],
-    "userInvocable": true,
+    "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Bash",
+      "Read",
+      "Write",
+      "Edit",
+      "Grep",
+      "Glob",
+      "TaskCreate",
+      "TaskUpdate",
+      "TaskList",
+      "TaskOutput"
+    ],
     "skills": [],
     "agent": null,
     "structure": {
@@ -669,7 +730,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "code-quality-reviewer",
     "structure": {
@@ -691,8 +758,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "ci-cd-engineer",
@@ -730,8 +796,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "git-operations-engineer"
@@ -760,13 +825,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     "agent": null,
     "structure": {
       "references": [
+        "http-hooks.md",
         "mcp-config.md",
         "presets.md"
       ]
     },
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -810,8 +875,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -832,7 +896,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "database-engineer",
     "structure": {
@@ -860,8 +930,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "backend-system-architect",
@@ -884,7 +953,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "showcase",
       "tutorial"
     ],
-    "userInvocable": true,
+    "userInvocable": false,
     "context": "fork",
     "allowedTools": [
       "AskUserQuestion",
@@ -917,7 +986,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork-creative",
       "ork"
     ],
     "relatedAgents": [
@@ -938,7 +1006,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "data-pipeline-engineer",
     "structure": {
@@ -970,8 +1044,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "ci-cd-engineer",
@@ -1006,7 +1079,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "backend-system-architect",
     "structure": {
@@ -1041,8 +1120,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "backend-system-architect",
@@ -1098,8 +1176,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -1118,7 +1195,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "backend-system-architect",
     "structure": {
@@ -1138,8 +1221,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "backend-system-architect"
@@ -1167,8 +1249,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "agent": "debug-investigator",
     "structure": {},
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "debug-investigator"
@@ -1196,6 +1277,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "Task",
       "TaskCreate",
       "TaskUpdate",
+      "TaskOutput",
+      "TaskStop",
       "mcp__memory__search_nodes",
       "Bash"
     ],
@@ -1222,8 +1305,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -1241,27 +1323,29 @@ export const SKILLS: Record<string, SkillMeta> = {
       "analytics",
       "consent"
     ],
-    "userInvocable": true,
+    "userInvocable": false,
     "context": "inherit",
     "allowedTools": [
       "Read",
       "Write",
       "Edit",
       "Grep",
-      "Glob"
+      "Glob",
+      "Bash",
+      "AskUserQuestion"
     ],
     "skills": [],
     "agent": null,
     "structure": {
       "references": [
+        "bug-report-reference.md",
         "file-locations.md",
         "privacy-policy.md",
         "subcommand-reference.md"
       ]
     },
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -1289,6 +1373,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "Task",
       "TaskCreate",
       "TaskUpdate",
+      "TaskOutput",
+      "TaskStop",
       "Grep",
       "Glob",
       "mcp__memory__search_nodes",
@@ -1325,8 +1411,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "debug-investigator",
@@ -1375,8 +1460,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "documentation-specialist",
@@ -1401,7 +1485,17 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Bash",
+      "Write",
+      "Edit",
+      "TaskCreate",
+      "TaskUpdate",
+      "TaskList"
+    ],
     "skills": [],
     "agent": null,
     "structure": {
@@ -1415,8 +1509,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "business-case-builder",
@@ -1445,7 +1538,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "data-pipeline-engineer",
     "structure": {
@@ -1468,8 +1567,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "data-pipeline-engineer",
@@ -1501,8 +1599,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -1526,7 +1623,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "frontend-ui-developer",
     "structure": {
@@ -1572,6 +1675,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "Task",
       "TaskCreate",
       "TaskUpdate",
+      "TaskOutput",
+      "TaskStop",
       "mcp__context7__query_docs",
       "mcp__memory__search_nodes"
     ],
@@ -1614,8 +1719,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -1631,7 +1735,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "tracking",
       "workflow"
     ],
-    "userInvocable": true,
+    "userInvocable": false,
     "context": "inherit",
     "allowedTools": [
       "Bash"
@@ -1640,8 +1744,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "agent": null,
     "structure": {},
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "git-operations-engineer"
@@ -1667,7 +1770,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "workflow-architect",
     "structure": {},
@@ -1695,7 +1804,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "llm-integrator",
     "structure": {
@@ -1749,7 +1864,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": null,
     "structure": {
@@ -1808,8 +1929,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "accessibility-specialist",
@@ -1882,8 +2002,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "data-pipeline-engineer"
@@ -1907,7 +2026,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "metrics-architect",
     "structure": {
@@ -1918,6 +2043,7 @@ export const SKILLS: Record<string, SkillMeta> = {
         "annotation-queues.md",
         "cost-tracking.md",
         "dashboards.md",
+        "dev-agent-lens.md",
         "distributed-tracing.md",
         "embedding-drift.md",
         "evaluation-scores.md",
@@ -1929,6 +2055,7 @@ export const SKILLS: Record<string, SkillMeta> = {
         "metrics-collection.md",
         "migration-v2-v3.md",
         "multi-judge-evaluation.md",
+        "observability-layers.md",
         "online-evaluators.md",
         "prompt-management.md",
         "session-tracking.md",
@@ -1951,8 +2078,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "backend-system-architect",
@@ -1972,21 +2098,32 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "multimodal-llm": {
     "name": "multimodal-llm",
-    "description": "Vision, audio, and multimodal LLM integration patterns. Use when processing images, transcribing audio, generating speech, or building multimodal AI pipelines.",
-    "version": "1.0.0",
+    "description": "Vision, audio, video generation, and multimodal LLM integration patterns. Use when processing images, transcribing audio, generating speech, generating AI video (Kling, Sora, Veo, Runway), or building multimodal AI pipelines.",
+    "version": "2.0.0",
     "author": "OrchestKit",
     "tags": [
       "vision",
       "audio",
+      "video",
       "multimodal",
       "image",
       "speech",
       "transcription",
-      "tts"
+      "tts",
+      "kling",
+      "sora",
+      "veo",
+      "video-generation"
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": null,
     "structure": {},
@@ -1996,6 +2133,41 @@ export const SKILLS: Record<string, SkillMeta> = {
     "relatedAgents": [
       "multimodal-specialist"
     ]
+  },
+  "notebooklm": {
+    "name": "notebooklm",
+    "description": "NotebookLM integration patterns for external RAG, research synthesis, studio content generation, and knowledge management via the notebooklm-mcp-cli MCP server.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "notebooklm",
+      "mcp",
+      "rag",
+      "google",
+      "podcast",
+      "research",
+      "knowledge-management"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Bash",
+      "Write",
+      "Edit",
+      "TaskCreate",
+      "TaskUpdate",
+      "TaskList"
+    ],
+    "skills": [],
+    "agent": null,
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
   },
   "performance": {
     "name": "performance",
@@ -2027,7 +2199,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "frontend-ui-developer",
     "structure": {
@@ -2073,8 +2251,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "backend-system-architect",
@@ -2142,8 +2319,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "system-design-reviewer"
@@ -2163,7 +2339,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "animation",
       "zero-dependency"
     ],
-    "userInvocable": true,
+    "userInvocable": false,
     "context": "fork",
     "allowedTools": [
       "AskUserQuestion",
@@ -2209,7 +2385,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "product-strategist",
     "structure": {
@@ -2248,8 +2430,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "business-case-builder",
@@ -2278,7 +2459,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "backend-system-architect",
     "structure": {
@@ -2334,7 +2521,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [
       "scope-appropriate-architecture"
     ],
@@ -2360,8 +2553,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "code-quality-reviewer"
@@ -2386,7 +2578,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "data-pipeline-engineer",
     "structure": {
@@ -2427,7 +2625,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "frontend-ui-developer",
     "structure": {
@@ -2472,9 +2676,14 @@ export const SKILLS: Record<string, SkillMeta> = {
       "checklist",
       "orchestkit"
     ],
-    "userInvocable": true,
+    "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Bash",
+      "Grep",
+      "Glob"
+    ],
     "skills": [],
     "agent": null,
     "structure": {
@@ -2505,7 +2714,17 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Bash",
+      "Write",
+      "Edit",
+      "TaskCreate",
+      "TaskUpdate",
+      "TaskList"
+    ],
     "skills": [],
     "agent": null,
     "structure": {
@@ -2519,8 +2738,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "deployment-manager",
@@ -2561,8 +2779,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "accessibility-specialist",
@@ -2631,7 +2848,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "frontend-ui-developer",
     "structure": {
@@ -2641,8 +2864,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "accessibility-specialist",
@@ -2674,6 +2896,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "Task",
       "TaskCreate",
       "TaskUpdate",
+      "TaskOutput",
+      "TaskStop",
       "mcp__memory__search_nodes"
     ],
     "skills": [
@@ -2692,8 +2916,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -2711,7 +2934,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": null,
     "structure": {
@@ -2723,8 +2952,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -2747,7 +2975,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "security-auditor",
     "structure": {
@@ -2784,8 +3018,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "ai-safety-auditor",
@@ -2799,6 +3032,50 @@ export const SKILLS: Record<string, SkillMeta> = {
       "system-design-reviewer"
     ]
   },
+  "setup": {
+    "name": "setup",
+    "description": "Personalized onboarding wizard. Scans your codebase, detects your stack, recommends skills and MCPs, generates a readiness score and improvement plan.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "onboarding",
+      "setup",
+      "wizard",
+      "configuration",
+      "stack-detection",
+      "mcp",
+      "personalization"
+    ],
+    "userInvocable": true,
+    "context": "inherit",
+    "allowedTools": [
+      "Read",
+      "Grep",
+      "Glob",
+      "Bash",
+      "AskUserQuestion",
+      "mcp__memory__search_nodes",
+      "mcp__memory__create_entities",
+      "mcp__memory__create_relations"
+    ],
+    "skills": [
+      "doctor",
+      "configure",
+      "remember",
+      "explore",
+      "help"
+    ],
+    "agent": null,
+    "structure": {
+      "references": [
+        "claude-md-health.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
   "skill-evolution": {
     "name": "skill-evolution",
     "description": "Analyzes skill usage patterns and suggests improvements. Use when reviewing skill performance, applying auto-suggested changes, or rolling back versions.",
@@ -2810,7 +3087,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "versioning",
       "analytics"
     ],
-    "userInvocable": true,
+    "userInvocable": false,
     "context": "inherit",
     "allowedTools": [
       "Read",
@@ -2848,7 +3125,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "workflow-architect",
     "structure": {
@@ -2866,8 +3149,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "accessibility-specialist",
@@ -2917,7 +3199,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "test-generator",
     "structure": {
@@ -2981,8 +3269,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "accessibility-specialist",
@@ -3016,7 +3303,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "frontend-ui-developer",
     "structure": {
@@ -3068,7 +3361,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "compatibility",
       "migration"
     ],
-    "userInvocable": true,
+    "userInvocable": false,
     "context": "fork",
     "allowedTools": [
       "AskUserQuestion",
@@ -3096,8 +3389,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -3111,9 +3403,14 @@ export const SKILLS: Record<string, SkillMeta> = {
       "consistency",
       "orchestkit"
     ],
-    "userInvocable": true,
+    "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Bash",
+      "Grep",
+      "Glob"
+    ],
     "skills": [],
     "agent": null,
     "structure": {
@@ -3157,6 +3454,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "TaskCreate",
       "TaskUpdate",
       "TaskList",
+      "TaskOutput",
+      "TaskStop",
       "mcp__memory__search_nodes"
     ],
     "skills": [
@@ -3186,8 +3485,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -3208,7 +3506,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "userInvocable": false,
     "context": "fork",
-    "allowedTools": [],
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
     "skills": [],
     "agent": "frontend-ui-developer",
     "structure": {
@@ -3268,8 +3572,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": [
       "web-research-analyst"

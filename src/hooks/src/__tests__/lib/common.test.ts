@@ -2,12 +2,13 @@
 // Created: 2026-02-12
 
 /**
- * Unit tests for common.ts output helpers
+ * Unit tests for common.ts utilities
  *
- * Tests the outputStderrWarning helper (CC 2.1.39)
+ * Tests outputStderrWarning (CC 2.1.39) and fnv1aHash/writeRulesFile (token-reduction)
  */
 
 import { describe, test, expect, vi, beforeEach } from 'vitest';
+import { fnv1aHash } from '../../lib/common.js';
 
 describe('outputStderrWarning', () => {
   let mockExit: ReturnType<typeof vi.spyOn>;
@@ -56,5 +57,27 @@ describe('outputStderrWarning', () => {
 
     // Assert
     expect(callOrder).toEqual(['stderr', 'exit']);
+  });
+});
+
+describe('fnv1aHash', () => {
+  test('returns consistent 8-char hex string', () => {
+    const hash = fnv1aHash('hello world');
+    expect(hash).toMatch(/^[0-9a-f]{8}$/);
+    expect(fnv1aHash('hello world')).toBe(hash);
+  });
+
+  test('different inputs produce different hashes', () => {
+    expect(fnv1aHash('hello')).not.toBe(fnv1aHash('world'));
+  });
+
+  test('empty string produces valid hash', () => {
+    const hash = fnv1aHash('');
+    expect(hash).toMatch(/^[0-9a-f]{8}$/);
+  });
+
+  test('handles unicode content', () => {
+    const hash = fnv1aHash('Hello \u4e16\u754c');
+    expect(hash).toMatch(/^[0-9a-f]{8}$/);
   });
 });

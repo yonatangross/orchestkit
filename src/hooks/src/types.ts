@@ -23,7 +23,8 @@ export type HookEvent =
   | 'TeammateIdle'
   | 'TaskCompleted'
   | 'WorktreeCreate'
-  | 'WorktreeRemove';
+  | 'WorktreeRemove'
+  | 'ConfigChange';
 
 /**
  * Hook input envelope from Claude Code (sent via stdin as JSON)

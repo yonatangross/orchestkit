@@ -2,12 +2,13 @@
  * Sound Notifications - Notification Hook
  * CC 2.1.7 Compliant: outputs JSON with suppressOutput
  *
- * Plays sounds for task completion.
+ * Plays sounds for task completion using detached child processes
+ * that survive after the hook's Node process exits.
  *
- * Version: 1.0.0 (TypeScript port)
+ * Version: 2.0.0 (spawn + detach for reliable playback)
  */
 
-import { execSync } from 'node:child_process';
+import { execSync, spawn } from 'node:child_process';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook } from '../lib/common.js';
 
@@ -25,21 +26,35 @@ const SOUND_MAP: Record<string, string> = {
 // Helper Functions
 // -----------------------------------------------------------------------------
 
+let _hasAfplay: boolean | null = null;
+
 function hasAfplay(): boolean {
+  if (_hasAfplay !== null) return _hasAfplay;
   try {
     execSync('command -v afplay', { stdio: 'ignore' });
-    return true;
+    _hasAfplay = true;
   } catch {
-    return false;
+    _hasAfplay = false;
   }
+  return _hasAfplay;
+}
+
+/** @internal Test-only: reset the afplay cache */
+export function _resetAfplayCacheForTesting(): void {
+  _hasAfplay = null;
 }
 
 function playSound(soundFile: string): void {
   try {
-    // Run in background (non-blocking)
-    execSync(`afplay "${soundFile}" &`, { stdio: 'ignore' });
+    // Spawn detached process so sound continues playing even after
+    // this Node process exits (critical for async hooks).
+    const child = spawn('afplay', [soundFile], {
+      stdio: 'ignore',
+      detached: true,
+    });
+    child.unref();
   } catch {
-    // Ignore errors
+    // Ignore errors — notification sounds are best-effort
   }
 }
 
@@ -48,8 +63,10 @@ function playSound(soundFile: string): void {
 // -----------------------------------------------------------------------------
 
 export function soundNotification(input: HookInput): HookResult {
-  const toolInput = input.tool_input || {};
-  const notificationType = (toolInput.notification_type as string) || '';
+  // CC sends notification_type at root level, not inside tool_input
+  const notificationType = (input.tool_input?.notification_type as string)
+    || input.notification_type
+    || '';
 
   logHook('sound', `Sound notification check: [${notificationType}]`);
 

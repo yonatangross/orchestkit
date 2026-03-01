@@ -1,7 +1,7 @@
 ---
 name: create-integration-test
 description: Create integration test with auto-detected test patterns. Use when creating integration tests.
-user-invocable: true
+user-invocable: false
 argument-hint: [test-name]
 ---
 

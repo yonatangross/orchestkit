@@ -1,7 +1,7 @@
 ---
 name: zustand-patterns
 license: MIT
-compatibility: "Claude Code 2.1.56+."
+compatibility: "Claude Code 2.1.59+."
 description: Zustand 5.x state management with slices, middleware, Immer, useShallow, and persistence patterns for React applications. Use when building state management with Zustand.
 tags: [zustand, state-management, react, immer, middleware, persistence, slices]
 context: fork
@@ -10,7 +10,9 @@ version: 1.0.0
 allowed-tools: [Read, Write, Grep, Glob]
 author: OrchestKit
 user-invocable: false
+disable-model-invocation: true
 complexity: low
+model: haiku
 metadata:
   category: document-asset-creation
 ---

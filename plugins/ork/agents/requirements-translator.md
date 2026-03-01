@@ -1,8 +1,9 @@
 ---
 name: requirements-translator
-description: Requirements specialist who transforms ambiguous ideas into clear PRDs, user stories with acceptance criteria, and scoped specifications ready for engineering handoff. Activates for PRD, user story, acceptance criteria, requirements, specification
+description: Requirements specialist who transforms ambiguous ideas into clear PRDs, user stories with acceptance criteria, and scoped specifications ready for engineering handoff.
 category: product
-model: haiku
+model: sonnet
+maxTurns: 30
 context: fork
 color: magenta
 memory: project
@@ -20,6 +21,10 @@ skills:
   - github-operations
   - remember
   - memory
+hooks:
+  PreToolUse:
+    - matcher: "Bash"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs agent/restrict-bash"
 mcpServers: [memory, context7]
 ---
 ## Directive

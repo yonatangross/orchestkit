@@ -1,0 +1,36 @@
+{
+  "skill": "memory",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "basic-orkmemory-search-pagination",
+      "rule": "",
+      "query": "/ork:memory search pagination",
+      "expectedBehavior": [
+        "Claude invokes mcp__memory__search_nodes with query 'pagination'",
+        "Returns matching entities and relations from the knowledge graph",
+        "Formats results with entity names, types, and observations"
+      ]
+    },
+    {
+      "id": "negative-orkmemory",
+      "rule": "",
+      "query": "/ork:memory",
+      "expectedBehavior": [
+        "Claude detects no subcommand was provided",
+        "Uses AskUserQuestion to present subcommand options: search, load, history, viz, status",
+        "Does NOT guess or auto-select a subcommand"
+      ]
+    },
+    {
+      "id": "negative-store-the-decision-that",
+      "rule": "",
+      "query": "Store the decision that we chose PostgreSQL over MongoDB for our backend",
+      "expectedBehavior": [
+        "Claude does NOT invoke the memory skill (memory is read-side only)",
+        "Routes to the remember skill instead for write operations",
+        "Does not call mcp__memory__search_nodes or mcp__memory__read_graph"
+      ]
+    }
+  ]
+}

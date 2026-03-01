@@ -1,7 +1,7 @@
 ---
 name: create-lora-config
 description: Create LoRA fine-tuning configuration with auto-detected model type. Use when setting up model fine-tuning.
-user-invocable: true
+user-invocable: false
 argument-hint: [model-name]
 ---
 

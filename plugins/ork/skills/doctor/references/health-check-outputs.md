@@ -2,40 +2,50 @@
 
 Reference output examples for each `/ork:doctor` check category.
 
+## Channel Detection
+
+**Stable:**
+```
+Channel: stable (v7.0.0)
+```
+
+**Beta:**
+```
+Channel: beta (v7.0.0-beta.3)
+⚠ You are on the beta channel. Report issues at github.com/yonatangross/orchestkit/issues
+```
+
+**Alpha:**
+```
+Channel: alpha (v7.0.0-alpha.1)
+⚠ You are on the alpha channel. Expect breaking changes. Report issues at github.com/yonatangross/orchestkit/issues
+```
+
+**Detection logic:**
+1. Read version from `.claude-plugin/plugin.json` (`version` field) or `version.txt`
+2. If version contains `-alpha` → alpha channel
+3. If version contains `-beta` → beta channel
+4. Otherwise → stable channel
+
 ## Installed Plugins
 
-**orkl:**
 ```
 Installed Plugins: 1
-- orkl: 46 skills, 38 agents, 87 hook entries
-```
-
-**ork (full):**
-```
-Installed Plugins: 1
-- ork: 68 skills, 38 agents, 87 hook entries
+- ork: 69 skills, 38 agents, 85 hook entries
 ```
 
 ## Skills Validation
 
-**Full ork:**
 ```
-Skills: 67/67 valid
-- User-invocable: 24 commands
-- Reference skills: 38
-```
-
-**orkl only:**
-```
-Skills: 46/46 valid
-- User-invocable: 24 commands
-- Reference skills: 21
+Skills: 69/69 valid
+- User-invocable: 17 commands
+- Reference skills: 52
 ```
 
 ## Agents Validation
 
 ```
-Agents: 36/36 valid
+Agents: 38/38 valid
 - Models: 12 sonnet, 15 haiku, 8 opus
 - All skill references valid
 ```
@@ -43,11 +53,9 @@ Agents: 36/36 valid
 ## Hook Health
 
 ```
-Hooks: 87/87 entries valid (12 bundles)
-- Global: 66 (PreToolUse: 14, PostToolUse: 6, SubagentStart: 7, SubagentStop: 7,
-  Setup: 6, SessionStart: 5, UserPromptSubmit: 5, PermissionRequest: 3, ...)
-- Agent-scoped: 22, Skill-scoped: 1
-- Async hooks: 7 (fire-and-forget)
+Hooks: 78/78 entries valid (12 bundles)
+- Global: 55, Agent-scoped: 22, Skill-scoped: 1
+- Async hooks: 9 (native async)
 - Error Rate: 0.3%
 ```
 
@@ -62,8 +70,8 @@ Memory System: healthy
 
 ```
 Build System: in sync
-- Skills: 67 src/ = 67 plugins/
-- Agents: 36 src/ = 36 plugins/
+- Skills: 69 src/ = 69 plugins/
+- Agents: 38 src/ = 38 plugins/
 - Last build: 2 minutes ago
 ```
 

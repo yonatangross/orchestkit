@@ -1,8 +1,9 @@
 ---
 name: prioritization-analyst
-description: Prioritization specialist who scores features using RICE/ICE/WSJF frameworks, analyzes opportunity costs, manages backlog ranking, and recommends what to build next based on value and effort. Activates for RICE, ICE, WSJF, prioritization, backlog, opportunity cost keywords.
+description: Prioritization specialist who scores features using RICE/ICE/WSJF frameworks, analyzes opportunity costs, manages backlog ranking, and recommends what to build next based on value and effort.
 category: product
 model: haiku
+maxTurns: 20
 context: fork
 color: plum
 memory: project
@@ -25,7 +26,9 @@ hooks:
   PreToolUse:
     - matcher: "Write|Edit"
       command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs agent/block-writes"
-mcpServers: [memory]
+    - matcher: "Bash"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs agent/restrict-bash"
+mcpServers: []
 ---
 ## Directive
 Score and rank product opportunities using quantitative frameworks, analyze trade-offs, and recommend optimal sequencing for maximum value delivery.

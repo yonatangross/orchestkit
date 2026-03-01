@@ -1,12 +1,14 @@
 ---
 name: backend-system-architect
-description: Backend architect who designs REST/GraphQL APIs, database schemas, microservice boundaries, and distributed systems. Focuses on scalability, security, performance optimization, and clean architecture patterns. Activates for API design, database schema, microservice, backend architecture, REST, GraphQL, distributed systems, endpoint, route, model, migration, authentication, authorization, JWT, OAuth, rate limiting, middleware, service layer, repository pattern, dependency injection
+description: "Backend architect: REST/GraphQL APIs, database schemas, microservice boundaries, distributed systems, clean architecture."
 category: backend
 model: sonnet
+maxTurns: 40
 permissionMode: plan
 context: fork
 color: yellow
 memory: project
+isolation: worktree
 tools:
   - Read
   - Edit
@@ -37,6 +39,10 @@ skills:
   - task-dependency-patterns
   - remember
   - memory
+hooks:
+  PreToolUse:
+    - matcher: "Bash"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
 mcpServers: [context7]
 ---
 ## Directive

@@ -26,7 +26,6 @@ import { codeStyleLearner } from './write/code-style-learner.js';
 import { namingConventionLearner } from './write/naming-convention-learner.js';
 import { skillEditTracker } from './skill-edit-tracker.js';
 import { skillUsageOptimizer } from './skill/skill-usage-optimizer.js';
-import { memoryBridge } from './memory-bridge.js';
 import { realtimeSync } from './realtime-sync.js';
 import { issueProgressCommenter } from './bash/issue-progress-commenter.js';
 import { issueSubtaskUpdater } from './bash/issue-subtask-updater.js';
@@ -80,9 +79,6 @@ const HOOKS: HookConfig[] = [
 
   // Skill-specific
   { name: 'skill-usage-optimizer', fn: skillUsageOptimizer, matcher: 'Skill' },
-
-  // MCP memory-specific (graph memory)
-  { name: 'memory-bridge', fn: memoryBridge, matcher: ['mcp__memory__create_entities'] },
 
   // Multi-tool matcher
   { name: 'realtime-sync', fn: realtimeSync, matcher: ['Bash', 'Write', 'Edit', 'Skill', 'Task'] },

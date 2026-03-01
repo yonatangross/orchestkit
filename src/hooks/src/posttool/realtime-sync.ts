@@ -21,11 +21,11 @@ import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, getField, getProjectDir, getSessionId, logHook } from '../lib/common.js';
 
 // Priority keywords
-const IMMEDIATE_KEYWORDS = /decided|chose|architecture|security|blocked|breaking|critical|must|cannot|deprecated|removed|migration/i;
+const IMMEDIATE_KEYWORDS = /decided|chose|architecture|security|blocked|breaking|critical|deprecated|removed|migration/i;
 const BATCHED_KEYWORDS = /pattern|convention|preference|style|format|naming/i;
 
 // Minimum content length to consider
-const MIN_CONTENT_LENGTH = 30;
+const MIN_CONTENT_LENGTH = 60;
 
 // Context pressure thresholds
 const CONTEXT_EMERGENCY_THRESHOLD = 85;
@@ -224,22 +224,11 @@ export function realtimeSync(input: HookInput): HookResult {
     logHook('realtime-sync', `EMERGENCY: Context at ${contextPressure}%, upgrading BATCHED to IMMEDIATE`);
   }
 
-  // If critical (>90%), flush pending queue immediately
+  // If critical (>90%), log warning (async hooks cannot use systemMessage — CC ignores it)
   if (contextPressure >= CONTEXT_CRITICAL_THRESHOLD) {
     const pendingCount = getPendingCount(pendingFile);
     if (pendingCount > 0) {
-      logHook('realtime-sync', `CRITICAL: Context at ${contextPressure}%, flushing ${pendingCount} pending items`);
-
-      return {
-        continue: true,
-        systemMessage: `[CRITICAL SYNC] Context at ${contextPressure}% - compaction imminent!
-
-${pendingCount} items in pending queue need immediate sync to knowledge graph.
-Pending sync file: ${pendingFile}
-
-Execute mcp__memory__create_entities for each item in the pending file NOW
-to preserve session context in the knowledge graph before compaction.`,
-      };
+      logHook('realtime-sync', `CRITICAL: Context at ${contextPressure}%, ${pendingCount} pending items need sync. File: ${pendingFile}`);
     }
   }
 
@@ -253,31 +242,11 @@ to preserve session context in the knowledge graph before compaction.`,
       }
 
       const category = detectCategory(decision);
-      logHook('realtime-sync', `IMMEDIATE sync triggered: category=${category}`);
-
-      return {
-        continue: true,
-        systemMessage: `[IMMEDIATE SYNC] Critical decision detected - store in knowledge graph now.
-
-Category: ${category}
-Decision: "${decision.substring(0, 200)}"
-
-Store in knowledge graph with mcp__memory__create_entities:
-\`\`\`json
-{
-  "entities": [{
-    "name": "${category}-decision",
-    "entityType": "Decision",
-    "observations": ["${decision.substring(0, 300).replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"]
-  }]
-}
-\`\`\`
-
-This decision is critical and should be synced immediately for:
-- Session continuity if interrupted
-- Cross-agent knowledge sharing
-- Future reference in similar contexts`,
-      };
+      // Async hooks cannot use systemMessage — CC silently ignores it.
+      // Instead, queue for Stop-time sync and log for audit trail.
+      addToPendingQueue(decision, category, pendingFile);
+      logHook('realtime-sync', `IMMEDIATE decision queued: category=${category}, decision="${decision.substring(0, 100)}"`);
+      return outputSilentSuccess();
     }
 
     case 'BATCHED': {
@@ -286,23 +255,8 @@ This decision is critical and should be synced immediately for:
       if (decision && decision.length >= 20) {
         const category = detectCategory(decision);
         addToPendingQueue(decision, category, pendingFile);
-
         const pendingCount = getPendingCount(pendingFile);
-
-        // Auto-sync when queue reaches threshold (5+ items)
-        if (pendingCount >= 5) {
-          logHook('realtime-sync', `BATCHED queue has ${pendingCount} items - triggering batch sync`);
-
-          return {
-            continue: true,
-            systemMessage: `[BATCHED SYNC] ${pendingCount} patterns/conventions queued for graph sync.
-
-Latest: "${decision.substring(0, 100)}..." (${category})
-
-These will be synced to knowledge graph at session end, or trigger batch sync now with mcp__memory__create_entities for each item in:
-${pendingFile}`,
-          };
-        }
+        logHook('realtime-sync', `BATCHED queued: ${pendingCount} items, latest="${decision.substring(0, 100)}" (${category})`);
       }
 
       return outputSilentSuccess();

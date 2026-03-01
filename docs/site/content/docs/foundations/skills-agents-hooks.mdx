@@ -13,14 +13,14 @@ A skill is a markdown file containing expert knowledge about a specific topic. T
 src/skills/fastapi-advanced/SKILL.md
 ```
 
-**67 skills** covering: FastAPI, React, SQLAlchemy, RAG, LangGraph, OWASP, Terraform, and more.
+**69 skills** covering: FastAPI, React, SQLAlchemy, RAG, LangGraph, OWASP, Terraform, and more.
 
 ### Two Types
 
 | Type | Count | How It Works | Example |
 |---|---|---|---|
 | **Command** | 23 | You invoke directly: `/ork:commit` | `/ork:verify`, `/ork:implement` |
-| **Reference** | 37 | Auto-injected into agents | `fastapi-advanced`, `owasp-top-10` |
+| **Reference** | 40 | Auto-injected into agents | `fastapi-advanced`, `owasp-top-10` |
 
 Command skills are what you type. Reference skills are what agents read. You never need to invoke a reference skill — the right agent loads the right skills automatically.
 
@@ -43,7 +43,7 @@ agent: backend-system-architect  # Which agent uses this
 
 An agent is a **specialized Claude instance** with a specific role, tools, and injected skills. When you say "design a database schema", OrchestKit spawns the `database-engineer` agent — pre-loaded with schema design skills, migration patterns, and normalization knowledge.
 
-**36 agents** covering: backend architecture, frontend UI, security auditing, test generation, debugging, deployment, and more.
+**38 agents** covering: backend architecture, frontend UI, security auditing, test generation, debugging, deployment, and more.
 
 ### How Agents Activate
 
@@ -91,7 +91,7 @@ Some commands spawn **multiple agents in parallel**. When you run `/ork:review-p
 
 Hooks are TypeScript functions that **fire automatically** on lifecycle events. You never invoke them — they run in the background on every prompt, tool call, and session transition.
 
-**89 hooks** across 11 categories:
+**78 hooks** across 11 categories:
 
 | Category | Count | What It Does |
 |---|---|---|
@@ -168,5 +168,5 @@ git push
 
 ## Next Steps
 
-- **[orkl vs ork](/docs/foundations/choosing-a-plugin)** — Which plugin to install
+- **[Choosing a Plugin](/docs/foundations/choosing-a-plugin)** — Plugin installation options
 - **[Installation](/docs/getting-started/installation)** — Get started in 2 minutes

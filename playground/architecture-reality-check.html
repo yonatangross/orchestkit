@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OrchestKit v7.0.0 — Architecture Reality Check</title>
+<style>
+  :root {
+    --bg: #0d1117; --surface: #161b22; --surface2: #21262d; --border: #30363d;
+    --text: #e6edf3; --text2: #8b949e; --red: #f85149; --green: #3fb950;
+    --yellow: #d29922; --blue: #58a6ff; --purple: #bc8cff; --orange: #d18616;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); }
+  .header { padding: 24px 32px 0; }
+  .header h1 { font-size: 22px; font-weight: 600; }
+  .header .subtitle { color: var(--text2); margin-top: 4px; font-size: 14px; }
+  .score-row { display: flex; gap: 12px; margin-top: 16px; }
+  .score-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; flex: 1; text-align: center; }
+  .score-card .num { font-size: 32px; font-weight: 800; }
+  .score-card .lbl { font-size: 11px; color: var(--text2); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .tabs { display: flex; gap: 2px; padding: 16px 32px 0; border-bottom: 1px solid var(--border); overflow-x: auto; }
+  .tab { padding: 10px 16px; cursor: pointer; color: var(--text2); font-size: 13px; font-weight: 500; border: none; border-bottom: 2px solid transparent; background: none; white-space: nowrap; }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+  .panel { display: none; padding: 24px 32px; }
+  .panel.active { display: block; }
+
+  .issue { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 16px; overflow: hidden; }
+  .issue-header { padding: 16px 20px; display: flex; align-items: center; gap: 12px; cursor: pointer; }
+  .issue-header:hover { background: var(--surface2); }
+  .sev { padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; flex-shrink: 0; }
+  .sev.critical { background: rgba(248,81,73,0.15); color: var(--red); }
+  .sev.high { background: rgba(210,150,34,0.15); color: var(--yellow); }
+  .sev.medium { background: rgba(88,166,255,0.15); color: var(--blue); }
+  .sev.low { background: rgba(139,148,158,0.15); color: var(--text2); }
+  .issue-title { font-size: 14px; font-weight: 600; flex: 1; }
+  .issue-tag { font-size: 11px; color: var(--text2); background: var(--surface2); padding: 2px 8px; border-radius: 4px; }
+  .issue-body { padding: 0 20px 20px; font-size: 13px; line-height: 1.7; color: var(--text2); border-top: 1px solid var(--border); }
+  .issue-body.open { display: block; }
+  .issue-body.closed { display: none; }
+
+  .code { font-family: 'SF Mono','Fira Code',monospace; font-size: 12px; background: var(--bg); padding: 12px 16px; border-radius: 6px; margin: 8px 0; overflow-x: auto; white-space: pre; line-height: 1.6; }
+  .dim { color: var(--text2); }
+  .hi { color: var(--yellow); }
+  .bad { color: var(--red); }
+  .good { color: var(--green); }
+
+  .hook-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; margin-top: 16px; }
+  .hook-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
+  .hook-card h4 { font-size: 13px; margin-bottom: 6px; display: flex; justify-content: space-between; }
+  .hook-card p { font-size: 12px; color: var(--text2); line-height: 1.5; }
+  .hook-card .val { font-size: 11px; padding: 2px 8px; border-radius: 99px; font-weight: 600; }
+  .hook-card .val.high { background: rgba(63,185,80,0.15); color: var(--green); }
+  .hook-card .val.med { background: rgba(210,150,34,0.15); color: var(--yellow); }
+  .hook-card .val.low { background: rgba(248,81,73,0.15); color: var(--red); }
+  .hook-card .val.zero { background: rgba(139,148,158,0.15); color: var(--text2); }
+
+  .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; text-align: center; }
+  .stat .n { font-size: 28px; font-weight: 800; }
+  .stat .l { font-size: 11px; color: var(--text2); margin-top: 4px; }
+
+  .bar-h { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
+  .bar-h-label { width: 160px; font-size: 12px; color: var(--text2); text-align: right; flex-shrink: 0; }
+  .bar-h-track { flex: 1; height: 22px; background: var(--bg); border-radius: 4px; overflow: hidden; position: relative; }
+  .bar-h-fill { height: 100%; border-radius: 4px; }
+  .bar-h-val { width: 40px; font-size: 12px; font-family: monospace; }
+
+  .timeline { position: relative; padding-left: 24px; margin: 16px 0; }
+  .timeline::before { content: ''; position: absolute; left: 8px; top: 0; bottom: 0; width: 2px; background: var(--border); }
+  .tl-item { position: relative; padding: 12px 0 12px 20px; }
+  .tl-item::before { content: ''; position: absolute; left: -20px; top: 18px; width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--border); background: var(--bg); }
+  .tl-item.done::before { background: var(--green); border-color: var(--green); }
+  .tl-item.broken::before { background: var(--red); border-color: var(--red); }
+  .tl-item.missing::before { background: var(--yellow); border-color: var(--yellow); }
+  .tl-item .tl-title { font-size: 13px; font-weight: 600; }
+  .tl-item .tl-desc { font-size: 12px; color: var(--text2); margin-top: 2px; }
+
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+  th { text-align: left; padding: 8px 12px; border-bottom: 2px solid var(--border); color: var(--text2); font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px; }
+  td { padding: 8px 12px; border-bottom: 1px solid var(--surface2); }
+  tr:hover td { background: var(--surface); }
+
+  .legend { display: flex; gap: 16px; margin: 12px 0; font-size: 12px; color: var(--text2); }
+  .legend span { display: flex; align-items: center; gap: 4px; }
+  .legend .dot { width: 10px; height: 10px; border-radius: 50%; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>OrchestKit v7.0.0 — Architecture Reality Check</h1>
+  <p class="subtitle">Not just token overhead — the real structural issues blocking a clean v7 release</p>
+  <div class="score-row">
+    <div class="score-card"><div class="num" style="color:var(--red)">4</div><div class="lbl">Critical Issues</div></div>
+    <div class="score-card"><div class="num" style="color:var(--yellow)">122</div><div class="lbl">Orphan Hook Files</div></div>
+    <div class="score-card"><div class="num" style="color:var(--red)">0/28</div><div class="lbl">Agent Hooks Wired</div></div>
+    <div class="score-card"><div class="num" style="color:var(--yellow)">60%</div><div class="lbl">Hooks Zero Value</div></div>
+    <div class="score-card"><div class="num" style="color:var(--text2)">2.1.50</div><div class="lbl">Max CC API Used</div></div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="showTab('issues')">Critical Issues</button>
+  <button class="tab" onclick="showTab('hooks')">Hook Value Audit</button>
+  <button class="tab" onclick="showTab('dead')">Dead Code Map</button>
+  <button class="tab" onclick="showTab('cc')">CC 2.1.62 Gap</button>
+  <button class="tab" onclick="showTab('plan')">Fix Roadmap</button>
+</div>
+
+<!-- TAB 1: CRITICAL ISSUES -->
+<div id="tab-issues" class="panel active">
+  <p style="color:var(--text2);margin-bottom:16px">These aren't cosmetic — they're broken promises in the architecture that affect every user.</p>
+
+  <div class="issue">
+    <div class="issue-header" onclick="toggle(this)">
+      <span class="sev critical">CRITICAL</span>
+      <span class="issue-title">28 Agent-Scoped Hooks: Declared But Never Wired</span>
+      <span class="issue-tag">safety</span>
+    </div>
+    <div class="issue-body open">
+      <p style="margin-top:12px">The manifest claims <strong>"56 global + 28 agent-scoped + 1 skill-scoped = 85 total hooks"</strong>. Reality: only 56 execute. The 28 agent-scoped hooks have handler files but zero hooks.json entries.</p>
+      <div class="code"><span class="dim">// These handler files exist but NEVER execute:</span>
+<span class="bad">agent/block-writes.ts</span>       <span class="dim">← Should restrict write access for read-only agents</span>
+<span class="bad">agent/ci-safety-check.ts</span>    <span class="dim">← Should gate CI-affecting commands</span>
+<span class="bad">agent/deployment-safety.ts</span>  <span class="dim">← Should block production deployments from wrong agents</span>
+<span class="bad">agent/migration-safety.ts</span>   <span class="dim">← Should require confirmation for DB migrations</span>
+<span class="bad">agent/restrict-bash.ts</span>     <span class="dim">← Should limit bash access per agent type</span>
+<span class="bad">agent/security-audit.ts</span>    <span class="dim">← Should enforce security scanning per agent</span>
+
+<span class="hi">Impact: ANY subagent can run ANY command. No safety gates.</span></div>
+      <p>This means your <code>security-auditor</code> agent can <code>rm -rf</code> just as easily as your <code>debug-investigator</code>. The agent permission model is theater — declared but not enforced.</p>
+    </div>
+  </div>
+
+  <div class="issue">
+    <div class="issue-header" onclick="toggle(this)">
+      <span class="sev critical">CRITICAL</span>
+      <span class="issue-title">122 Orphaned Hook Handlers: Compiled but Never Called</span>
+      <span class="issue-tag">dead-code</span>
+    </div>
+    <div class="issue-body closed">
+      <p style="margin-top:12px">169 TypeScript handler files exist in <code>src/hooks/src/</code>. Only 47 are referenced by hooks.json dispatchers. The remaining <strong>122 files</strong> are compiled into dist/ on every build, shipped in the plugin, but never invoked.</p>
+      <div class="stat-grid">
+        <div class="stat"><div class="n" style="color:var(--green)">47</div><div class="l">Wired handlers</div></div>
+        <div class="stat"><div class="n" style="color:var(--red)">122</div><div class="l">Orphaned handlers</div></div>
+        <div class="stat"><div class="n">169</div><div class="l">Total handler files</div></div>
+        <div class="stat"><div class="n" style="color:var(--red)">72%</div><div class="l">Dead code rate</div></div>
+      </div>
+      <p>Categories with most dead code: <strong>Stop hooks</strong> (18 orphaned skill validators), <strong>PostToolUse</strong> (code-style-learner, naming-convention-learner, etc.), <strong>Agent hooks</strong> (all 6 safety gates).</p>
+    </div>
+  </div>
+
+  <div class="issue">
+    <div class="issue-header" onclick="toggle(this)">
+      <span class="sev critical">CRITICAL</span>
+      <span class="issue-title">60% of Active Hooks Have Zero Behavioral Impact</span>
+      <span class="issue-tag">overhead</span>
+    </div>
+    <div class="issue-body closed">
+      <p style="margin-top:12px">Of the 56 hooks that DO run, analysis shows ~34 are "silent analytics" — they track data but never influence Claude's behavior. No feedback loop exists.</p>
+      <div class="code"><span class="dim">// satisfaction-detector runs EVERY 3rd turn:</span>
+<span class="bad">1.</span> Samples user sentiment from prompt text
+<span class="bad">2.</span> Writes to .claude/feedback/satisfaction.jsonl
+<span class="bad">3.</span> Increments session negative counter
+<span class="bad">4.</span> <span class="hi">...and then nothing happens.</span>
+<span class="dim">   No hook reads this data. No behavior changes.</span>
+<span class="dim">   The bug nudge feature (satisfaction-detector) isn't even wired.</span>
+
+<span class="dim">// Same pattern repeats for:</span>
+<span class="bad">- communication-style-tracker</span>  <span class="dim">(profiles → never read)</span>
+<span class="bad">- code-style-learner</span>           <span class="dim">(patterns → never applied)</span>
+<span class="bad">- naming-convention-learner</span>    <span class="dim">(conventions → never enforced)</span>
+<span class="bad">- tool-preference-learner</span>      <span class="dim">(preferences → never used)</span>
+<span class="bad">- skill-usage-optimizer</span>        <span class="dim">(analytics → never queried)</span></div>
+      <p>These hooks cost <strong>200-400ms per session</strong> in file I/O with zero ROI. They were designed for a feedback loop that was never closed.</p>
+    </div>
+  </div>
+
+  <div class="issue">
+    <div class="issue-header" onclick="toggle(this)">
+      <span class="sev high">HIGH</span>
+      <span class="issue-title">CC 2.1.50 API Ceiling — 12 Versions Behind</span>
+      <span class="issue-tag">compatibility</span>
+    </div>
+    <div class="issue-body closed">
+      <p style="margin-top:12px">OrchestKit declares <code>>= 2.1.59</code> minimum but the highest CC API actually referenced in code is <strong>2.1.50</strong>. Features from 2.1.51–2.1.62 are not used.</p>
+      <table>
+        <tr><th>CC Version</th><th>Feature</th><th>OrchestKit Status</th></tr>
+        <tr><td>2.1.50</td><td>ConfigChange, WorktreeCreate/Remove hooks</td><td style="color:var(--green)">Used</td></tr>
+        <tr><td>2.1.51-58</td><td>Unknown (not documented in codebase)</td><td style="color:var(--yellow)">Not investigated</td></tr>
+        <tr><td>2.1.59</td><td>@import directive for modular .claude files</td><td style="color:var(--red)">Declared, not used</td></tr>
+        <tr><td>2.1.60-62</td><td>Unknown latest features</td><td style="color:var(--red)">Not investigated</td></tr>
+      </table>
+      <p>The <code>@import</code> directive could split CLAUDE.md into modular files — directly reducing the token overhead. But it's not implemented.</p>
+    </div>
+  </div>
+
+  <div class="issue">
+    <div class="issue-header" onclick="toggle(this)">
+      <span class="sev high">HIGH</span>
+      <span class="issue-title">hook-timing.jsonl Analytics Never Implemented</span>
+      <span class="issue-tag">analytics</span>
+    </div>
+    <div class="issue-body closed">
+      <p style="margin-top:12px">The <code>/ork:analytics hooks</code> command promises "slowest hooks and failure rates". The analytics skill references <code>hook-timing.jsonl</code>. But <strong>zero code writes to this file</strong>. The entire hook performance metrics category is vaporware.</p>
+    </div>
+  </div>
+
+  <div class="issue">
+    <div class="issue-header" onclick="toggle(this)">
+      <span class="sev high">HIGH</span>
+      <span class="issue-title">Token Overhead: 7,321t vs 5,000t Budget (+46%)</span>
+      <span class="issue-tag">tokens</span>
+    </div>
+    <div class="issue-body closed">
+      <p style="margin-top:12px">Per-session overhead breakdown (main agent system prompt):</p>
+      <div id="token-bars" style="margin:12px 0"></div>
+      <p>Agent descriptions (~2,929t) are the biggest single vector. 30 of 38 agents exceed the 250-byte description limit. MEMORY.md carries stale debug notes from weeks ago.</p>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 2: HOOK VALUE AUDIT -->
+<div id="tab-hooks" class="panel">
+  <p style="color:var(--text2);margin-bottom:8px">Value assessment of every active hook in the unified dispatchers.</p>
+  <div class="legend">
+    <span><span class="dot" style="background:var(--green)"></span> HIGH — Real user value</span>
+    <span><span class="dot" style="background:var(--yellow)"></span> MEDIUM — Conditional value</span>
+    <span><span class="dot" style="background:var(--red)"></span> LOW — Marginal/noise</span>
+    <span><span class="dot" style="background:var(--text2)"></span> ZERO — Pure overhead</span>
+  </div>
+  <div class="hook-grid" id="hook-audit"></div>
+
+  <div style="margin-top:24px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px">
+    <h3 style="margin-bottom:12px">Value Distribution</h3>
+    <div id="value-distribution"></div>
+  </div>
+</div>
+
+<!-- TAB 3: DEAD CODE MAP -->
+<div id="tab-dead" class="panel">
+  <p style="color:var(--text2);margin-bottom:16px">122 handler files compile but never execute. Here's where the dead code lives.</p>
+  <div class="stat-grid">
+    <div class="stat"><div class="n" style="color:var(--red)">18</div><div class="l">Dead Stop hooks</div></div>
+    <div class="stat"><div class="n" style="color:var(--red)">12</div><div class="l">Dead PostToolUse</div></div>
+    <div class="stat"><div class="n" style="color:var(--red)">6</div><div class="l">Dead Agent hooks</div></div>
+    <div class="stat"><div class="n" style="color:var(--red)">86</div><div class="l">Dead Other hooks</div></div>
+  </div>
+  <table>
+    <tr><th>Category</th><th>Handler Files</th><th>Wired</th><th>Orphaned</th><th>Dead Rate</th></tr>
+    <tr><td>Stop (session end)</td><td>21</td><td>3</td><td style="color:var(--red)">18</td><td style="color:var(--red)">86%</td></tr>
+    <tr><td>PostToolUse</td><td>20</td><td>8</td><td style="color:var(--red)">12</td><td style="color:var(--red)">60%</td></tr>
+    <tr><td>Agent-scoped</td><td>6</td><td>0</td><td style="color:var(--red)">6</td><td style="color:var(--red)">100%</td></tr>
+    <tr><td>Skill-scoped</td><td>15</td><td>1</td><td style="color:var(--red)">14</td><td style="color:var(--red)">93%</td></tr>
+    <tr><td>Prompt</td><td>14</td><td>10</td><td style="color:var(--yellow)">4</td><td style="color:var(--yellow)">29%</td></tr>
+    <tr><td>PreToolUse</td><td>18</td><td>12</td><td style="color:var(--yellow)">6</td><td style="color:var(--yellow)">33%</td></tr>
+    <tr><td>Lifecycle</td><td>12</td><td>6</td><td style="color:var(--yellow)">6</td><td>50%</td></tr>
+    <tr><td>Notification</td><td>8</td><td>3</td><td style="color:var(--yellow)">5</td><td>63%</td></tr>
+    <tr><td>SubagentStart</td><td>9</td><td>5</td><td style="color:var(--yellow)">4</td><td>44%</td></tr>
+    <tr><td>SubagentStop</td><td>8</td><td>4</td><td style="color:var(--yellow)">4</td><td>50%</td></tr>
+    <tr><td>Other</td><td>38</td><td style="color:var(--green)">0</td><td style="color:var(--text2)">38</td><td style="color:var(--text2)">100%</td></tr>
+  </table>
+  <div style="margin-top:16px;background:rgba(248,81,73,0.06);border:1px solid rgba(248,81,73,0.2);border-radius:8px;padding:16px">
+    <p style="font-size:14px;font-weight:600;color:var(--red)">Decision Required</p>
+    <p style="font-size:13px;color:var(--text2);margin-top:8px">For each orphaned handler: <strong>wire it</strong> (if it provides value) or <strong>delete it</strong> (if it doesn't). The current state — compiled but never called — is the worst option: build cost with zero value.</p>
+  </div>
+</div>
+
+<!-- TAB 4: CC 2.1.62 GAP -->
+<div id="tab-cc" class="panel">
+  <p style="color:var(--text2);margin-bottom:16px">Gap between CC features OrchestKit uses vs what's available.</p>
+
+  <div class="timeline">
+    <div class="tl-item done">
+      <div class="tl-title">CC 2.1.3–2.1.9 — Basic Hooks</div>
+      <div class="tl-desc">Hook output format, suppressOutput, additionalContext</div>
+    </div>
+    <div class="tl-item done">
+      <div class="tl-title">CC 2.1.16–2.1.25 — Task Tools + Permissions</div>
+      <div class="tl-desc">TaskCreate/Update, updatedInput, permissionMode (dontAsk, acceptEdits)</div>
+    </div>
+    <div class="tl-item done">
+      <div class="tl-title">CC 2.1.30–2.1.40 — Team Coordination</div>
+      <div class="tl-desc">teammate_id, teammate_type, task tracking, tool metadata</div>
+    </div>
+    <div class="tl-item done">
+      <div class="tl-title">CC 2.1.45–2.1.50 — Async + Workspace</div>
+      <div class="tl-desc">async/once/timeout schema, added_dirs, ConfigChange hooks</div>
+    </div>
+    <div class="tl-item missing">
+      <div class="tl-title">CC 2.1.59 — @import Directive</div>
+      <div class="tl-desc">Modular .claude files. OrchestKit setup wizard mentions it but doesn't use it. Could split CLAUDE.md to save ~500t.</div>
+    </div>
+    <div class="tl-item broken">
+      <div class="tl-title">CC 2.1.51–2.1.62 — Unknown Features</div>
+      <div class="tl-desc">12 versions of potential new APIs, hook events, and capabilities that OrchestKit has never investigated. No research exists in the codebase.</div>
+    </div>
+  </div>
+
+  <div style="margin-top:24px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px">
+    <h3 style="margin-bottom:12px">What This Means</h3>
+    <p style="font-size:13px;color:var(--text2);line-height:1.7">OrchestKit bumped its minimum to 2.1.59 for the <code>@import</code> directive support, but <strong>never actually implemented @import</strong>. The codebase effectively targets CC 2.1.50 features. Users on CC 2.1.62 get zero additional benefit from their newer version — OrchestKit doesn't leverage any of the 12 versions of improvements between 2.1.50 and 2.1.62.</p>
+    <p style="font-size:13px;color:var(--text2);line-height:1.7;margin-top:8px">The <code>hook timeout</code> field is defined in types.ts but zero hooks use it. The <code>hook overrides</code> system is documented but not implemented.</p>
+  </div>
+</div>
+
+<!-- TAB 5: FIX ROADMAP -->
+<div id="tab-plan" class="panel">
+  <p style="color:var(--text2);margin-bottom:16px">Prioritized fix plan — what to do before v7.0.0 ships.</p>
+
+  <div class="issue">
+    <div class="issue-header" onclick="toggle(this)">
+      <span class="sev critical">P0</span>
+      <span class="issue-title">Honest Count: Fix manifest to match reality (56 hooks, not 85)</span>
+      <span class="issue-tag">~30 min</span>
+    </div>
+    <div class="issue-body open">
+      <p style="margin-top:12px">Either wire the 28 agent-scoped hooks or stop claiming they exist. Current state is misrepresentation.</p>
+      <p style="margin-top:8px"><strong>Option A</strong>: Delete the 6 agent handler files + update count to 56. Honest.</p>
+      <p><strong>Option B</strong>: Wire them in hooks.json with proper matchers. Real safety gates.</p>
+      <p style="margin-top:8px;color:var(--yellow)">Recommendation: Option A for v7.0.0, Option B for v7.1.0</p>
+    </div>
+  </div>
+
+  <div class="issue">
+    <div class="issue-header" onclick="toggle(this)">
+      <span class="sev critical">P0</span>
+      <span class="issue-title">Purge dead code: Delete or wire 122 orphaned handlers</span>
+      <span class="issue-tag">~2 hrs</span>
+    </div>
+    <div class="issue-body closed">
+      <p style="margin-top:12px">Audit each orphaned file. If it was designed for a feature that shipped → wire it. If it was aspirational → delete it. Ship only code that runs.</p>
+    </div>
+  </div>
+
+  <div class="issue">
+    <div class="issue-header" onclick="toggle(this)">
+      <span class="sev critical">P0</span>
+      <span class="issue-title">Kill analytics hooks with no feedback loop</span>
+      <span class="issue-tag">~1 hr</span>
+    </div>
+    <div class="issue-body closed">
+      <p style="margin-top:12px">Remove from dispatchers: satisfaction-detector, communication-style-tracker, code-style-learner, naming-convention-learner, tool-preference-learner, skill-usage-optimizer. They collect data nobody reads. Saves ~400ms/session.</p>
+    </div>
+  </div>
+
+  <div class="issue">
+    <div class="issue-header" onclick="toggle(this)">
+      <span class="sev high">P1</span>
+      <span class="issue-title">Trim agent descriptions to < 250 bytes each</span>
+      <span class="issue-tag">~1 hr</span>
+    </div>
+    <div class="issue-body closed">
+      <p style="margin-top:12px">30 of 38 agents over limit. Saves ~1,400 tokens/session. TDD test already written.</p>
+    </div>
+  </div>
+
+  <div class="issue">
+    <div class="issue-header" onclick="toggle(this)">
+      <span class="sev high">P1</span>
+      <span class="issue-title">Trim MEMORY.md: Remove resolved pitfalls and stale analysis</span>
+      <span class="issue-tag">~30 min</span>
+    </div>
+    <div class="issue-body closed">
+      <p style="margin-top:12px">7,490 bytes → target 5,000 bytes. Remove Pre-push Hook Pitfalls (already known), CI Pitfalls (memorized), Agent Routing Analysis ref (link to file instead).</p>
+    </div>
+  </div>
+
+  <div class="issue">
+    <div class="issue-header" onclick="toggle(this)">
+      <span class="sev medium">P2</span>
+      <span class="issue-title">Investigate CC 2.1.51–2.1.62 features</span>
+      <span class="issue-tag">~1 hr</span>
+    </div>
+    <div class="issue-body closed">
+      <p style="margin-top:12px">Run <code>claude --version</code>, check CC changelog, identify what new hook events and APIs are available. We may be missing significant improvements.</p>
+    </div>
+  </div>
+
+  <div class="issue">
+    <div class="issue-header" onclick="toggle(this)">
+      <span class="sev medium">P2</span>
+      <span class="issue-title">Add build-time validation: handler files must match hooks.json</span>
+      <span class="issue-tag">~1 hr</span>
+    </div>
+    <div class="issue-body closed">
+      <p style="margin-top:12px">CI test that fails if any .ts handler exists in src/hooks/src/ without a corresponding hooks.json reference. Prevents dead code accumulation.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+function showTab(id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function toggle(header) {
+  const body = header.nextElementSibling;
+  body.classList.toggle('open');
+  body.classList.toggle('closed');
+}
+
+// Token bars
+const tokenItems = [
+  { name: 'Agent descriptions', tokens: 2929, color: '#f85149' },
+  { name: 'MEMORY.md', tokens: 1873, color: '#bc8cff' },
+  { name: 'Invocable skills', tokens: 1360, color: '#d29922' },
+  { name: 'CLAUDE.md', tokens: 1159, color: '#58a6ff' },
+];
+const maxT = 3000;
+const tbars = document.getElementById('token-bars');
+tokenItems.forEach(i => {
+  const pct = Math.min((i.tokens / maxT) * 100, 100);
+  tbars.innerHTML += `<div class="bar-h"><div class="bar-h-label">${i.name}</div><div class="bar-h-track"><div class="bar-h-fill" style="width:${pct}%;background:${i.color};opacity:0.7"></div></div><div class="bar-h-val">${i.tokens}t</div></div>`;
+});
+
+// Hook audit
+const hooks = [
+  { name: 'dangerous-command-blocker', cat: 'PreToolUse', value: 'high', desc: 'Blocks rm -rf, force push, fork bombs. Non-negotiable safety.' },
+  { name: 'compound-command-validator', cat: 'PreToolUse', value: 'high', desc: 'Validates chained bash commands for safety.' },
+  { name: 'memory-bridge', cat: 'PostToolUse', value: 'high', desc: 'Syncs MCP memory operations to knowledge graph.' },
+  { name: 'context-gate', cat: 'SubagentStart', value: 'high', desc: 'Prevents too many concurrent agents. Essential.' },
+  { name: 'subagent-validator', cat: 'SubagentStart', value: 'high', desc: 'Permission enforcement per agent type.' },
+  { name: 'progress-reporter', cat: 'TeammateIdle', value: 'high', desc: 'Reports idle agent progress to user.' },
+  { name: 'memory-context', cat: 'Prompt', value: 'med', desc: 'Suggests knowledge graph searches. Arguably redundant with CC 2.1.59+ native memory.' },
+  { name: 'antipattern-warning', cat: 'Prompt', value: 'med', desc: '7 hardcoded patterns + learned failures. Limited coverage.' },
+  { name: 'context-pruning-advisor', cat: 'Prompt', value: 'med', desc: 'Fires at >70% context usage. Useful but rare.' },
+  { name: 'pipeline-detector', cat: 'Prompt', value: 'med', desc: 'Detects multi-agent workflows from phrases.' },
+  { name: 'profile-injector', cat: 'Prompt', value: 'med', desc: 'User profile hints. Once per session.' },
+  { name: 'handoff-preparer', cat: 'SubagentStop', value: 'med', desc: 'Prepares state for agent handoffs.' },
+  { name: 'skill-nudge-prompt', cat: 'Prompt', value: 'low', desc: 'Nudges /ork:fix-issue when GitHub URLs detected. Too specific.' },
+  { name: 'agentation-context', cat: 'Prompt', value: 'low', desc: 'UI annotation bootstrap. Very niche.' },
+  { name: 'model-cost-advisor', cat: 'SubagentStart', value: 'low', desc: 'Cost warnings users ignore.' },
+  { name: 'satisfaction-detector', cat: 'Prompt', value: 'zero', desc: 'Samples sentiment. Writes to file. Nobody reads it. No feedback loop.' },
+  { name: 'communication-tracker', cat: 'Prompt', value: 'zero', desc: 'Tracks communication style. No consumer. Pure overhead.' },
+  { name: 'code-style-learner', cat: 'PostToolUse', value: 'zero', desc: 'Learns code patterns. Never applied. Dead feedback loop.' },
+  { name: 'naming-convention-learner', cat: 'PostToolUse', value: 'zero', desc: 'Learns naming conventions. Never enforced.' },
+  { name: 'tool-preference-learner', cat: 'PostToolUse', value: 'zero', desc: 'Tracks tool preferences. Never used for routing.' },
+  { name: 'skill-usage-optimizer', cat: 'PostToolUse', value: 'zero', desc: 'Analytics without behavioral change.' },
+];
+
+const hgrid = document.getElementById('hook-audit');
+hooks.forEach(h => {
+  hgrid.innerHTML += `<div class="hook-card"><h4>${h.name} <span class="val ${h.value}">${h.value.toUpperCase()}</span></h4><p>${h.desc}</p><p style="margin-top:4px;font-size:11px;color:var(--border)">${h.cat}</p></div>`;
+});
+
+// Value distribution
+const counts = { high: 0, med: 0, low: 0, zero: 0 };
+hooks.forEach(h => counts[h.value]++);
+const total = hooks.length;
+const vd = document.getElementById('value-distribution');
+const colors = { high: 'var(--green)', med: 'var(--yellow)', low: 'var(--red)', zero: 'var(--text2)' };
+const labels = { high: 'HIGH — Keep', med: 'MEDIUM — Conditional', low: 'LOW — Marginal', zero: 'ZERO — Remove' };
+Object.keys(counts).forEach(k => {
+  const pct = Math.round((counts[k] / total) * 100);
+  vd.innerHTML += `<div class="bar-h"><div class="bar-h-label">${labels[k]}</div><div class="bar-h-track"><div class="bar-h-fill" style="width:${pct}%;background:${colors[k]};opacity:0.7"></div></div><div class="bar-h-val">${counts[k]} (${pct}%)</div></div>`;
+});
+</script>
+</body>
+</html>

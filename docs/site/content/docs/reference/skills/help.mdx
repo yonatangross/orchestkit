@@ -18,6 +18,14 @@ Interactive guide to all user-invocable skills organized by category.
 /ork:help git       # Show GIT skills only
 ```
 
+## Argument Resolution
+
+```python
+CATEGORY = "$ARGUMENTS[0]"  # Optional category filter: build, git, memory, quality, config, explore, media
+# If provided, skip AskUserQuestion and show that category directly.
+# $ARGUMENTS is the full string (CC 2.1.59 indexed access)
+```
+
 ---
 
 ## CRITICAL: Use AskUserQuestion for Category Selection
@@ -30,14 +38,14 @@ AskUserQuestion(
     "question": "What type of task are you working on?",
     "header": "Category",
     "options": [
-      {"label": "BUILD", "description": "Implement features, brainstorm, verify"},
-      {"label": "GIT", "description": "Commits, PRs, issues, recovery"},
-      {"label": "MEMORY", "description": "Store decisions, search, sync context"},
-      {"label": "QUALITY", "description": "Assess code, health checks, golden datasets"},
-      {"label": "CONFIG", "description": "Configure OrchestKit, feedback, skill evolution"},
-      {"label": "EXPLORE", "description": "Explore codebase, coordinate worktrees"},
-      {"label": "MEDIA", "description": "Create demo videos"},
-      {"label": "Show all", "description": "List all 21 skills"}
+      {"label": "BUILD", "description": "Implement features, brainstorm, verify", "markdown": "```\nBUILD Skills\n────────────\n/ork:implement     Feature impl\n/ork:brainstorming Design explore\n/ork:verify        Test & grade\n```"},
+      {"label": "GIT", "description": "Commits, PRs, issues, recovery", "markdown": "```\nGIT Skills\n──────────\n/ork:commit       Conventional commit\n/ork:create-pr    PR with validation\n/ork:fix-issue    Debug + fix + PR\n/ork:git-workflow  Branch patterns\n```"},
+      {"label": "MEMORY", "description": "Store decisions, search, sync context", "markdown": "```\nMEMORY Skills\n─────────────\n/ork:remember  Store decisions\n/ork:memory    Search & recall\n```"},
+      {"label": "QUALITY", "description": "Assess code, health checks, golden datasets", "markdown": "```\nQUALITY Skills\n──────────────\n/ork:assess     Rate 0-10 + report\n/ork:review-pr  PR review (6 agents)\n/ork:audit-full 1M context audit\n```"},
+      {"label": "CONFIG", "description": "Configure OrchestKit, feedback, skill evolution", "markdown": "```\nCONFIG Skills\n─────────────\n/ork:setup      Onboarding wizard\n/ork:configure  Plugin settings\n/ork:doctor     Health diagnostics\n/ork:feedback   Learning prefs\n```"},
+      {"label": "EXPLORE", "description": "Explore codebase, coordinate worktrees", "markdown": "```\nEXPLORE Skills\n──────────────\n/ork:explore   Deep codebase search\n               4 parallel explorers\n               Code health scoring\n```"},
+      {"label": "MEDIA", "description": "Create demo videos", "markdown": "```\nMEDIA Skills\n────────────\n/ork:demo-producer  Video creation\n  Supports: skill, agent, plugin,\n  tutorial, CLI, code walkthrough\n```"},
+      {"label": "Show all", "description": "List all skills"}
     ],
     "multiSelect": false
   }]
@@ -164,11 +172,26 @@ Just describe your task naturally and OrchestKit will recommend the appropriate 
 
 ---
 
+## CC Built-in Commands (2.1.63+)
+
+These are Claude Code built-in slash commands — not OrchestKit skills:
+
+| Command | Description | Since |
+|---------|-------------|-------|
+| `/simplify` | Review changed code for reuse, quality, and efficiency, then fix issues | CC 2.1.63 |
+| `/batch` | Run batch operations across multiple files | CC 2.1.63 |
+| `/help` | Claude Code built-in help | CC 2.1.0+ |
+| `/config` | Claude Code configuration | CC 2.1.0+ |
+| `/clear` | Clear conversation and reset cached skills | CC 2.1.63 |
+| `/fast` | Toggle fast mode (same model, faster output) | CC 2.1.59+ |
+
+---
+
 ## Keyboard Shortcuts
 
 | Shortcut | Action | Since |
 |----------|--------|-------|
-| `Ctrl+F` | Kill all background agents (press twice to force-kill) | CC 2.1.49 |
+| `Ctrl+F` | Find in session output | CC 2.1.47 |
 | `Esc` | Dismiss autocomplete / cancel edit / stop generation | CC 2.1.0+ |
 | `Shift+Enter` | Newline in chat input (configurable via `chat:newline` keybinding) | CC 2.1.49 |
 | `Shift+Down` | Multi-line input entry | CC 2.1.47 |

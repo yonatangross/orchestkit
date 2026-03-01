@@ -43,7 +43,7 @@ ACTUAL_HOOKS=$(jq '[.hooks | to_entries[] | .value[] | .hooks | length] | add' "
 
 CLAUDE_MD="$REPO_ROOT/CLAUDE.md"
 
-# Project Overview line: "68 skills, 38 agents, 77 hooks"
+# Project Overview line: "69 skills, 38 agents, 78 hooks"
 CLAUDE_OVERVIEW=$(grep -m1 'skills.*agents.*hooks' "$CLAUDE_MD" || true)
 CLAUDE_OV_SKILLS=$(echo "$CLAUDE_OVERVIEW" | grep -oE '[0-9]+ skills?' | grep -oE '[0-9]+' || echo "?")
 CLAUDE_OV_AGENTS=$(echo "$CLAUDE_OVERVIEW" | grep -oE '[0-9]+ agents?' | grep -oE '[0-9]+' || echo "?")
@@ -62,7 +62,6 @@ fi
 # =============================================================================
 
 ORK_JSON="$REPO_ROOT/manifests/ork.json"
-ORKL_JSON="$REPO_ROOT/manifests/orkl.json"
 
 # Helper: if value is "all", return "all"; if array, return length; else "?"
 manifest_count() {
@@ -83,9 +82,6 @@ ORK_SKILLS=$(manifest_count "$ORK_JSON" skills)
 ORK_AGENTS=$(manifest_count "$ORK_JSON" agents)
 ORK_HOOKS=$(manifest_count "$ORK_JSON" hooks)
 
-ORKL_SKILLS=$(manifest_count "$ORKL_JSON" skills)
-ORKL_AGENTS=$(manifest_count "$ORKL_JSON" agents)
-ORKL_HOOKS=$(manifest_count "$ORKL_JSON" hooks)
 
 # =============================================================================
 # COMPARISON HELPERS
@@ -132,12 +128,6 @@ ORK_S="MATCH"
 [[ $(status "$ACTUAL_HOOKS"  "$ORK_HOOKS")  == "DRIFT" ]] && { ORK_S="DRIFT"; DRIFT=1; }
 printf "%-32s %7s %7s %7s %8s\n" "manifests/ork.json" "$ORK_SKILLS" "$ORK_AGENTS" "$ORK_HOOKS" "$ORK_S"
 
-# orkl skill count legitimately differs — only flag agents and hooks
-ORKL_S="NOTE"
-[[ $(status "$ACTUAL_AGENTS" "$ORKL_AGENTS") == "DRIFT" ]] && { ORKL_S="DRIFT"; DRIFT=1; }
-[[ $(status "$ACTUAL_HOOKS"  "$ORKL_HOOKS")  == "DRIFT" ]] && { ORKL_S="DRIFT"; DRIFT=1; }
-printf "%-32s %7s %7s %7s %8s\n" "manifests/orkl.json" "$ORKL_SKILLS" "$ORKL_AGENTS" "$ORKL_HOOKS" "$ORKL_S"
-
 echo ""
 
 # =============================================================================
@@ -151,6 +141,6 @@ else
     echo "DRIFT DETECTED — update the stale sources listed above."
     echo "  - CLAUDE.md Project Overview: skills, agents, hooks counts"
     echo "  - CLAUDE.md Version section: hooks entries count"
-    echo "  - manifests/ork.json and manifests/orkl.json: after npm run build"
+    echo "  - manifests/ork.json: after npm run build"
     exit 1
 fi

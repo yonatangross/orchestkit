@@ -2,8 +2,8 @@
  * Unified Stop Dispatcher
  * Issue #235: Hook Architecture Refactor
  *
- * Consolidates 4 async Stop hooks into a single dispatcher.
- * Reduces "Async hook Stop completed" messages from 4 to 1.
+ * Consolidates async Stop hooks into a single dispatcher.
+ * Reduces "Async hook Stop completed" messages to 1.
  *
  * CC 2.1.19 Compliant: Single async hook with internal routing
  */
@@ -22,8 +22,6 @@ import { sessionEndTracking } from './session-end-tracking.js';
 import { workflowPreferenceLearner } from './workflow-preference-learner.js';
 // Issue #243: Additional stop hooks previously run separately
 import { taskCompletionCheck } from './task-completion-check.js';
-import { autoRememberContinuity } from './auto-remember-continuity.js';
-import { fullTestSuite } from './full-test-suite.js';
 import { securityScanAggregator } from './security-scan-aggregator.js';
 
 // Import skill hooks that run at stop time
@@ -38,7 +36,6 @@ import { migrationValidator } from '../skill/migration-validator.js';
 import { reviewSummaryGenerator } from '../skill/review-summary-generator.js';
 import { securitySummary } from '../skill/security-summary.js';
 import { testPatternValidator } from '../skill/test-pattern-validator.js';
-import { testRunner } from '../skill/test-runner.js';
 
 // -----------------------------------------------------------------------------
 // Types
@@ -76,7 +73,6 @@ const HOOKS: HookConfig[] = [
   { name: 'task-completion-check', fn: taskCompletionCheck },
 
   // --- Analysis hooks ---
-  { name: 'auto-remember-continuity', fn: autoRememberContinuity },
   { name: 'security-scan-aggregator', fn: securityScanAggregator },
 
   // --- Skill validation hooks (run at stop time) ---
@@ -91,10 +87,6 @@ const HOOKS: HookConfig[] = [
   { name: 'review-summary-generator', fn: reviewSummaryGenerator },
   { name: 'security-summary', fn: securitySummary },
   { name: 'test-pattern-validator', fn: testPatternValidator },
-  { name: 'test-runner', fn: testRunner },
-
-  // --- Heavy analysis hooks (run last, optional) ---
-  { name: 'full-test-suite', fn: fullTestSuite },
 ];
 
 /** Exposed for registry wiring tests */

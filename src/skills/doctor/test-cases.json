@@ -1,0 +1,44 @@
+{
+  "skill": "doctor",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "basic-orkdoctor",
+      "rule": "",
+      "query": "/ork:doctor",
+      "expectedBehavior": [
+        "Auto-detects installed ork plugin",
+        "Validates all 12 health check categories in sequence",
+        "Checks skills frontmatter, agents validation, hook registration",
+        "Verifies permission rules for unreachable entries",
+        "Checks Claude Code version meets minimum >= 2.1.59",
+        "Reports MCP server status: active, disabled, or misconfigured",
+        "Produces formatted health report with pass/warn/fail per category"
+      ]
+    },
+    {
+      "id": "edge-orkdoctor-categoryhooks",
+      "rule": "",
+      "query": "/ork:doctor --category=hooks",
+      "expectedBehavior": [
+        "Runs only the Hook Health category check (category 3)",
+        "Validates hooks.json schema compliance",
+        "Checks hook bundles exist and are compiled",
+        "Verifies async hook patterns are correct",
+        "Skips all other 11 categories for faster execution",
+        "Reports hook-specific pass/warn/fail results"
+      ]
+    },
+    {
+      "id": "negative-add-a-new-rest",
+      "rule": "",
+      "query": "Add a new REST endpoint for fetching user profiles.",
+      "expectedBehavior": [
+        "Claude does NOT invoke the doctor skill",
+        "Treats this as a feature implementation task",
+        "Uses standard code generation and API design patterns",
+        "Doctor is for plugin health diagnostics, not application development"
+      ]
+    }
+  ]
+}

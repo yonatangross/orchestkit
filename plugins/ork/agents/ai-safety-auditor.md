@@ -1,8 +1,9 @@
 ---
 name: ai-safety-auditor
-description: AI safety and security auditor for LLM systems. Red teaming, prompt injection, jailbreak testing, guardrail validation, OWASP LLM compliance. Use for safety audit, security audit, red team, guardrails, jailbreak, prompt injection, OWASP LLM, vulnerabilities, penetration testing, mcp security, tool poisoning.
+description: AI safety and security auditor for LLM systems. Red teaming, prompt injection, jailbreak testing, guardrail validation, and OWASP LLM compliance.
 category: security
 model: opus
+maxTurns: 40
 context: fork
 color: red
 memory: local
@@ -22,7 +23,13 @@ skills:
   - security-patterns
   - remember
   - memory
-mcpServers: [tavily, context7, memory]
+hooks:
+  PreToolUse:
+    - matcher: "Bash"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs agent/restrict-bash"
+    - matcher: "Bash"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs agent/security-command-audit"
+mcpServers: [tavily]
 ---
 
 ## Directive

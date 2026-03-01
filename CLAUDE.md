@@ -8,7 +8,7 @@ Always respond in English. Never Hebrew. No exceptions.
 
 ## Project Overview
 
-**OrchestKit** — Claude Code plugin: **67 skills**, **38 agents**, **54 hooks** (17 event types, 12 dispatchers, 9 native async).
+**OrchestKit** — Claude Code plugin: **69 skills**, **38 agents**, **96 hooks** (35 global + 54 agent-scoped + 7 skill-scoped).
 
 **Purpose**: AI-assisted development with built-in best practices, security patterns, and quality gates.
 
@@ -16,8 +16,8 @@ Always respond in English. Never Hebrew. No exceptions.
 
 ```
 src/                    ← SOURCE (edit here!)
-├── skills/<name>/SKILL.md    # 67 skills (YAML frontmatter + Markdown)
-├── agents/<name>.md          # 38 agents (CC 2.1.56 format)
+├── skills/<name>/SKILL.md    # 69 skills (YAML frontmatter + Markdown)
+├── agents/<name>.md          # 38 agents (CC 2.1.59 format)
 ├── settings/<plugin>.settings.json  # Plugin settings (permissions, keybindings)
 └── hooks/                    # TypeScript hooks (hooks.json + src/ + dist/)
 manifests/                    # Plugin definitions (JSON)
@@ -73,15 +73,11 @@ Commit after each logical unit of work — never batch all commits to end of ses
 - NEVER `gh issue close` — issues close only when a PR merges to main via CI (`Closes #N` in PR body).
 - Use `gh issue comment` for progress updates, not close/reopen.
 
-## Three-Tier Plugins
+## Plugin Architecture
 
-| Plugin | Skills | Agents | Description |
-|--------|--------|--------|-------------|
-| `orkl` | 45 | 38 | Universal toolkit — any stack |
-| `ork-creative` | 2 | 1 | Video production add-on |
-| `ork` | 67 | 38 | Full — lite + creative + Python, React, LLM/RAG |
+**Single plugin**: `ork` — all 69 skills, 38 agents, 96 hooks.
 
-All plugins include 77 hooks (54 global + 22 agent-scoped + 1 skill-scoped) and a `settings.json` (permissions, keybindings, spinner). 28 skills are user-invocable via `/ork:skillname`.
+The plugin includes 96 hooks (35 global [33 command + 2 HTTP] + 54 agent-scoped + 7 skill-scoped) and a `settings.json` (permissions, keybindings, spinner). 17 skills are user-invocable via `/ork:skillname`.
 
 ## Quick Reference
 
@@ -94,7 +90,7 @@ All plugins include 77 hooks (54 global + 22 agent-scoped + 1 skill-scoped) and 
 
 ## Version
 
-- **Current**: 6.7.1 · **Claude Code**: >= 2.1.56 <!-- x-release-please-version -->
-- **Hooks**: 54 entries (17 event types, 12 dispatchers, 9 native async)
+- **Current**: 7.0.0 · **Claude Code**: >= 2.1.59 <!-- x-release-please-version -->
+- **Hooks**: 96 total (35 global [18 event types, 20 dispatchers, 7 native async, 2 HTTP] + 54 agent-scoped + 7 skill-scoped)
 
 See `CHANGELOG.md` for history. See `src/hooks/README.md` for hook architecture.

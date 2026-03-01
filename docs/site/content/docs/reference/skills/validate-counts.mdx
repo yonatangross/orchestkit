@@ -3,7 +3,7 @@ title: "Validate Counts"
 description: "Validates hook, skill, and agent counts are consistent across CLAUDE.md, hooks.json, manifests, and source directories. Use when counts may be stale after adding or removing components, before releases, or when CLAUDE.md Project Overview looks wrong."
 ---
 
-<span className="badge badge-blue">Command</span> <span className="badge badge-green">low</span>
+<span className="badge badge-gray">Reference</span> <span className="badge badge-green">low</span>
 
 
 # Validate Counts
@@ -33,7 +33,7 @@ bash src/skills/validate-counts/scripts/count-all.sh
 
 1. Run `scripts/validate-counts.sh` for full validation (counts + drift comparison), or `scripts/count-all.sh` for raw counts only
 2. Read `CLAUDE.md` — extract counts from Project Overview and Version section
-3. Read `manifests/ork.json` and `manifests/orkl.json` — check skill/agent/hook array lengths
+3. Read `manifests/ork.json` — check skill/agent/hook array lengths
 4. Build the comparison table (see `rules/drift-reporting.md` for format)
 5. Flag any mismatches with file + field references; otherwise output "All counts consistent."
 
@@ -50,7 +50,7 @@ bash src/skills/validate-counts/scripts/count-all.sh
 ## Common Mistakes
 
 1. Counting from `plugins/` instead of `src/` — plugins/ may be empty after an interrupted build
-2. Flagging `orkl` vs `ork` skill differences as drift — `orkl` intentionally excludes some skills
+2. Comparing against deleted alias manifests — only `manifests/ork.json` exists in v7
 3. Forgetting the hook breakdown: global + agent-scoped + skill-scoped must sum to total
 
 
@@ -78,7 +78,6 @@ Output one table row per source. Use MATCH or DRIFT in the Status column.
 | CLAUDE.md Project Overview    | 63     | 37     | 87    | MATCH  |
 | CLAUDE.md Version section     | —      | —      | 85    | DRIFT  |
 | manifests/ork.json            | 63     | 36     | 87    | MATCH  |
-| manifests/orkl.json           | 46     | 36     | 87    | —      |
 ```
 
 ### Flagging Drift
@@ -101,8 +100,6 @@ These are NOT drift — do not flag them:
 
 | Difference | Reason |
 |------------|--------|
-| `orkl` skills &lt; `ork` skills | `orkl` excludes Python/React/LLM/creative skills by design |
-| `manifests/ork-creative.json` skills &lt; `ork` | creative plugin is an add-on with its own subset |
 | Agent count in manifests = actual - 1 | Some agents may be internal-only and excluded from manifest |
 
 **Incorrect:**
@@ -145,7 +142,7 @@ Derived sources to check against:
 - `CLAUDE.md` Project Overview line: "N hooks (X global + Y agent-scoped + Z skill-scoped)"
 - `CLAUDE.md` Version section: "N entries (X global + Y agent-scoped + Z skill-scoped, ...)"
 - `src/hooks/hooks.json` top-level `description` field (may embed count)
-- `manifests/ork.json` and `manifests/orkl.json` — hook count in metadata
+- `manifests/ork.json` — hook count in metadata
 
 ### Skills
 
@@ -159,7 +156,6 @@ ls -d src/skills/*/ | wc -l
 Derived sources:
 - `CLAUDE.md` Project Overview: "N skills"
 - `manifests/ork.json` — skill list length
-- `manifests/orkl.json` — skill list length (legitimately lower — excludes Python/React/LLM skills)
 
 ### Agents
 
@@ -173,7 +169,6 @@ ls src/agents/*.md | wc -l
 Derived sources:
 - `CLAUDE.md` Project Overview: "N agents"
 - `manifests/ork.json` — agent list length
-- `manifests/orkl.json` — agent list length
 
 **Incorrect:**
 
@@ -192,7 +187,7 @@ ls -d src/skills/*/ | wc -l
 ### Key Rules
 
 - Never count `plugins/` — it's generated from `src/` and may be stale if build was interrupted
-- `orkl` skill/agent counts WILL differ from `ork` — this is expected, not drift
+- Only `manifests/ork.json` exists in v7 — no alias manifests to compare
 - Hook breakdown (global + agent-scoped + skill-scoped) must sum to the total count
 
 
@@ -221,11 +216,10 @@ Overview of every place counts appear and what they represent.
 
 | File | Field | Example |
 |------|-------|---------|
-| `CLAUDE.md` | Project Overview line | "68 skills, 38 agents, 77 hooks" |
-| `CLAUDE.md` | Version section | "85 entries (63 global + 22 agent-scoped...)" |
+| `CLAUDE.md` | Project Overview line | "69 skills, 38 agents, 78 hooks" |
+| `CLAUDE.md` | Version section | "55 entries (17 event types, 12 dispatchers, 9 native async)" |
 | `src/hooks/hooks.json` | top-level `description` | May embed hook count |
 | `manifests/ork.json` | `skills[]` length, `agents[]` length | Counted from arrays |
-| `manifests/orkl.json` | `skills[]` length, `agents[]` length | Subset of ork |
 
 ## Why Counts Drift
 

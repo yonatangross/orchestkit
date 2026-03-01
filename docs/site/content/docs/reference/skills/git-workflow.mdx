@@ -12,6 +12,14 @@ description: "Complete git workflow patterns including GitHub Flow branching, at
 
 Complete git workflow patterns: GitHub Flow branching, atomic commits, and recovery operations. Essential for maintaining clean, reviewable history.
 
+## Argument Resolution
+
+```python
+SUBCOMMAND = "$ARGUMENTS[0]"  # Optional subcommand, e.g., "recovery", "branch", "stacked"
+# If no arguments, show full workflow reference.
+# $ARGUMENTS is the full string (CC 2.1.59 indexed access)
+```
+
 ## Branch Naming Convention
 
 ```bash

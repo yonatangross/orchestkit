@@ -15,6 +15,16 @@ Interactive setup for customizing your OrchestKit installation.
 
 ```bash
 /ork:configure
+/ork:configure mcp memory
+```
+
+## Argument Resolution
+
+```python
+PRESET = "$ARGUMENTS[0]"   # Optional preset name or subcommand, e.g., "mcp"
+TARGET = "$ARGUMENTS[1]"   # Optional target, e.g., "memory"
+# If no arguments, run interactive wizard.
+# $ARGUMENTS is the full string (CC 2.1.59 indexed access)
 ```
 
 ## Step 1: Choose Preset
@@ -98,6 +108,14 @@ All 5 MCPs ship **enabled by default**. Tavily requires an API key; agentation r
 > **Background agents:** MCP tools are NOT available in background subagents (hard CC platform limitation). Agents that need MCP tools must run in the foreground.
 
 **Already have these MCPs installed globally?** If Tavily or memory are already in your `~/.claude/mcp.json`, skip enabling them here to avoid duplicate entries. OrchestKit agents will use whichever instance Claude Code resolves first.
+
+**Opt out of claude.ai MCP servers (CC 2.1.63+):** Claude Code may load MCP servers from claude.ai by default. To disable this and only use locally-configured MCPs:
+
+```bash
+export ENABLE_CLAUDEAI_MCP_SERVERS=false
+```
+
+Add to your shell profile (`~/.zshrc` or `~/.bashrc`) to persist across sessions. This only affects MCP servers sourced from claude.ai — locally-configured MCPs in `.mcp.json` and `~/.claude/mcp.json` are unaffected.
 
 ## Step 6: CC 2.1.7 Settings (New)
 
@@ -331,3 +349,4 @@ Save to: `~/.claude/plugins/orchestkit/config.json`
 
 - [Presets](references/presets.md)
 - [MCP Configuration](references/mcp-config.md)
+- [HTTP Hooks](references/http-hooks.md) — CC 2.1.63+ observability hooks (Langfuse, Datadog, custom endpoints)

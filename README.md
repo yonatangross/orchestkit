@@ -5,9 +5,9 @@
 
 ### Stop explaining your stack. Start shipping.
 
-**67 skills · 37 agents · 81 hooks · 3 plugins**
+**69 skills · 38 agents · 85 hooks**
 
-[![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.56-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
+[![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.59-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/yonatangross/orchestkit?style=for-the-badge&logo=github)](https://github.com/yonatangross/orchestkit)
 
@@ -27,10 +27,15 @@
 ```bash
 /plugin marketplace add yonatangross/orchestkit
 /plugin install ork
-/ork:doctor
 ```
 
-**That's it.** Skills auto-activate. Hooks protect automatically.
+Then start your personalized onboarding:
+
+```bash
+/ork:setup
+```
+
+The setup wizard scans your codebase, detects your tech stack, recommends skills for your needs, configures MCP servers, and creates a readiness score — all in one command.
 
 ---
 
@@ -51,12 +56,15 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 
 ## What You Get
 
-| Component | Count | Examples |
-|-----------|-------|----------|
-| **Skills** | 67 | RAG patterns, FastAPI, React 19, testing, security |
-| **Agents** | 37 | backend-architect, frontend-dev, security-auditor |
-| **Hooks** | 81 | Pre-commit checks, git protection, quality gates |
-| **Plugins** | 3 | `orkl` (universal), `ork-creative` (video), `ork` (full) |
+**One unified plugin, everything included.**
+
+| Component | Details |
+|-----------|---------|
+| **69 Skills** | RAG patterns, FastAPI, React 19, testing, security, database design, ML integration — loaded on-demand, zero overhead |
+| **38 Agents** | Specialized personas (backend-architect, frontend-dev, security-auditor) — route tasks to the right expert |
+| **85 Hooks** | Pre-commit checks, git protection, quality gates — ship with confidence |
+
+All available in a single `/plugin install ork`. Skills load on-demand. Hooks work automatically.
 
 **[Browse everything in the Docs →](https://orchestkit.vercel.app/docs/skills/overview)**
 
@@ -65,8 +73,9 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 ## Key Commands
 
 ```bash
+/ork:setup        # Personalized onboarding wizard
 /ork:implement    # Full-stack implementation with parallel agents
-/ork:verify       # 36 agents validate your feature
+/ork:verify       # Multi-agent validation
 /ork:commit       # Conventional commit with pre-checks
 /ork:explore      # Analyze unfamiliar codebase
 /ork:remember     # Save to persistent memory
@@ -75,42 +84,56 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 
 ---
 
-## Install Options
-
-```bash
-# Universal toolkit (works for any stack)
-/plugin install orkl
-
-# Full toolkit (adds Python, React, LLM/RAG specializations)
-/plugin install ork
-```
-
-**orkl** (45 skills) — All workflows, agents, hooks. Architecture, security, product, accessibility, memory.
-
-**ork-creative** (2 skills) — Video production add-on. Demo recording, Remotion, storyboarding, content creation.
-
-**ork** (67 skills) — Everything in lite + creative + Python (FastAPI, SQLAlchemy), React (RSC, TanStack), LLM/RAG, LangGraph, MCP.
-
----
-
 ## Configuration
-
-### Optional MCP Servers
 
 ```bash
 /ork:configure
 ```
 
-| Server | Purpose |
-|--------|---------|
-| Context7 | Up-to-date library docs |
-| Memory | Knowledge graph |
+### Recommended MCP Servers
 
-### Environment
+| Server | Purpose | Required? |
+|--------|---------|-----------|
+| Context7 | Up-to-date library docs | Recommended |
+| Memory | Knowledge graph persistence | Recommended |
+| Sequential Thinking | Structured reasoning for subagents | Optional |
+| Tavily | Web search and extraction | Optional |
+
+The setup wizard (`/ork:setup`) will recommend MCPs based on your stack.
+
+---
+
+## Install
 
 ```bash
-CLAUDE_PROJECT_DIR    # Your project
+/plugin install ork
 ```
+
+No tiering. No version confusion. Just one powerful plugin.
+
+---
+
+## Release Channels
+
+| Channel | Stability | Install |
+|---------|-----------|---------|
+| **Stable** | Production-ready | `/plugin install ork` |
+| **Beta** | May have rough edges | See below |
+| **Alpha** | Experimental, may break | See below |
+
+To install beta or alpha:
+
+```bash
+# Beta channel
+/plugin marketplace add yonatangross/orchestkit --ref beta --name orchestkit-beta
+/plugin install ork@orchestkit-beta
+
+# Alpha channel
+/plugin marketplace add yonatangross/orchestkit --ref alpha --name orchestkit-alpha
+/plugin install ork@orchestkit-alpha
+```
+
+Run `/ork:doctor` to check which channel you're on. [Full docs](https://orchestkit.vercel.app/docs/getting-started/release-channels).
 
 ---
 
@@ -134,7 +157,7 @@ Run `/ork:doctor` to diagnose.
 <details>
 <summary><strong>Claude Code version?</strong></summary>
 
-Requires **≥2.1.56**. Check with `claude --version`.
+Requires **≥2.1.59**. Check with `claude --version`.
 </details>
 
 ---
@@ -152,15 +175,13 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 ---
 
-## What's New
+## What's New in v7
 
-**v6.0.0** — Three-tier plugin architecture
+**v7.0.0** — Unified Plugin Architecture
 
-- **Breaking**: Simplified from 26 plugins to 3 (`orkl`, `ork-creative`, and `ork`)
-- `orkl` (45 skills) — Universal toolkit, all workflows work out of the box
-- `ork-creative` (2 skills) — Video production add-on for demo recording and content creation
-- `ork` (67 skills) — Full specialized with Python, React, LLM/RAG patterns
-- All 37 agents and 81 hooks included in orkl and ork
+- **Simplified**: One plugin for everything. All 69 skills, 38 agents, 85 hooks in `/plugin install ork`.
+- **Setup Wizard**: Run `/ork:setup` for personalized onboarding — stack detection, skill recommendations, MCP configuration, readiness scoring.
+- **Zero Overhead**: Skills load on-demand. Hooks activate automatically. No performance penalty.
 
 [Full Changelog →](./CHANGELOG.md)
 

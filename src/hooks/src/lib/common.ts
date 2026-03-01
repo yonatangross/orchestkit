@@ -3,7 +3,8 @@
  * Ported from hooks/_lib/common.sh
  */
 
-import { existsSync, statSync, renameSync, mkdirSync, readSync } from 'node:fs';
+import { existsSync, statSync, renameSync, mkdirSync, readSync, readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { bufferWrite } from './analytics-buffer.js';
 import { execSync } from 'node:child_process';
 import type { HookResult, HookInput } from '../types.js';
@@ -463,6 +464,64 @@ export function outputPromptContextBudgeted(
   }
 
   return outputPromptContext(ctx);
+}
+
+// -----------------------------------------------------------------------------
+// Rules File Utilities (Token Reduction — materialize to .claude/rules/)
+// -----------------------------------------------------------------------------
+
+/**
+ * FNV-1a 32-bit hash — fast, non-cryptographic hash for delta detection.
+ * Used to skip writing rules files when content hasn't changed.
+ */
+export function fnv1aHash(str: string): string {
+  let hash = 0x811c9dc5; // FNV offset basis
+  for (let i = 0; i < str.length; i++) {
+    hash ^= str.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193); // FNV prime
+  }
+  return (hash >>> 0).toString(16).padStart(8, '0');
+}
+
+/**
+ * Write a rules file atomically with hash-guard skip.
+ * Skips write if file content hash is unchanged (avoids unnecessary I/O).
+ *
+ * @param rulesDir - Directory to write to (e.g., ~/.claude/rules/ or {project}/.claude/rules/)
+ * @param filename - File name (e.g., 'user-profile.md')
+ * @param content - Content to write
+ * @param hookName - Hook name for logging
+ * @returns true if file was written, false if skipped (unchanged)
+ */
+export function writeRulesFile(
+  rulesDir: string,
+  filename: string,
+  content: string,
+  hookName: string,
+): boolean {
+  const filePath = join(rulesDir, filename);
+
+  // Hash-guard: skip write if content unchanged
+  if (existsSync(filePath)) {
+    try {
+      const existing = readFileSync(filePath, 'utf8');
+      if (fnv1aHash(existing) === fnv1aHash(content)) {
+        logHook(hookName, `Rules file ${filename} unchanged, skipping write`);
+        return false;
+      }
+    } catch {
+      // Can't read existing — proceed with write
+    }
+  }
+
+  // Ensure directory exists
+  if (!existsSync(rulesDir)) {
+    mkdirSync(rulesDir, { recursive: true });
+  }
+
+  writeFileSync(filePath, content, 'utf8');
+  logHook(hookName, `Wrote rules file: ${filePath}`);
+  return true;
 }
 
 // -----------------------------------------------------------------------------

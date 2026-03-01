@@ -136,6 +136,60 @@ export function containsDangerousCommand(
 }
 
 /**
+ * Detect suspicious shell features that bypass simple operator splitting.
+ * Returns array of finding descriptions, empty if clean.
+ *
+ * Detects: process substitution, brace expansion (command form), here-strings,
+ * IFS manipulation, and nested command substitution.
+ */
+export function detectSuspiciousShellFeatures(cmd: string): string[] {
+  const findings: string[] = [];
+
+  // 1. Process substitution: <(cmd) or >(cmd)
+  if (/[<>]\([^)]+\)/.test(cmd)) {
+    findings.push('process substitution detected (<(...) or >(...))');
+  }
+
+  // 2. Brace expansion (command form): {cat,/etc/passwd}
+  // Heuristic: flag when the first element looks like a command binary (3+ chars,
+  // no dots/slashes, starts alpha). Short elements like {ts,js} are file extensions.
+  const braceMatch = cmd.match(/\{([^},]+),([^}]+)\}/g);
+  if (braceMatch) {
+    for (const m of braceMatch) {
+      const inner = m.slice(1, -1);
+      const firstElement = inner.split(',')[0].trim();
+      // Skip file extension globs (1-2 char tokens like {ts,js}) and paths with dots/slashes
+      const isLikelyExtension = firstElement.length <= 2;
+      const hasPathChars = firstElement.includes('.') || firstElement.includes('/');
+      // Also check if preceded by a dot or glob (*.{ts,js}) — definitely a file glob
+      const braceIdx = cmd.indexOf(m);
+      const charBefore = braceIdx > 0 ? cmd[braceIdx - 1] : '';
+      const isPrecededByGlob = charBefore === '.' || charBefore === '*' || charBefore === '/';
+      if (firstElement && !isLikelyExtension && !hasPathChars && !isPrecededByGlob && /^[a-zA-Z]/.test(firstElement)) {
+        findings.push(`brace expansion with command-like pattern: ${m}`);
+      }
+    }
+  }
+
+  // 3. Here-strings: <<<
+  if (/<<</.test(cmd)) {
+    findings.push('here-string detected (<<<)');
+  }
+
+  // 4. IFS manipulation: ${IFS} or IFS= assignment
+  if (/\$\{?IFS\}?/.test(cmd) || /\bIFS=/.test(cmd)) {
+    findings.push('IFS manipulation detected');
+  }
+
+  // 5. Nested command substitution: $(echo `cmd`) or $(`cmd`)
+  if (/\$\([^)]*`[^`]*`[^)]*\)/.test(cmd)) {
+    findings.push('nested command substitution detected ($(..`..`..))');
+  }
+
+  return findings;
+}
+
+/**
  * Check if a command is a compound command (contains operators like &&, ||, ;, |, or newlines).
  */
 export function isCompoundCommand(cmd: string): boolean {

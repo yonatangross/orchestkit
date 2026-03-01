@@ -1,7 +1,7 @@
 ---
 name: review-pr
 description: Review a pull request with auto-fetched context from GitHub. Use when reviewing pull requests.
-user-invocable: true
+user-invocable: false
 argument-hint: [PR-number]
 allowed-tools: Bash, Read, Grep
 ---

@@ -1,0 +1,44 @@
+{
+  "skill": "demo-producer",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "basic-create-a-demo-video",
+      "rule": "",
+      "query": "Create a demo video showcasing the explore skill for our YouTube channel.",
+      "expectedBehavior": [
+        "Detects content type as skill demo",
+        "Asks format preference (horizontal 16:9 for YouTube)",
+        "Asks style preference (Quick Demo, Standard Demo, Tutorial, Cinematic, Scrapbook)",
+        "Asks audio preferences",
+        "Reads the explore SKILL.md to extract phases and capabilities",
+        "Generates VHS terminal recording script",
+        "Produces Remotion composition with appropriate template"
+      ]
+    },
+    {
+      "id": "negative-create-a-vertical-tiktokstyle",
+      "rule": "",
+      "query": "Create a vertical TikTok-style demo of running npm create vite from the CLI.",
+      "expectedBehavior": [
+        "Detects content type as CLI tool demo",
+        "Sets format to vertical 9:16 for TikTok",
+        "Uses Quick Demo or Standard Demo style for short-form content",
+        "Generates terminal simulation with realistic typing and output",
+        "Applies slop avoidance rules: cuts content that does not earn screen time",
+        "Keeps under 60 seconds for social platform constraints"
+      ]
+    },
+    {
+      "id": "negative-write-unit-tests-for",
+      "rule": "",
+      "query": "Write unit tests for the billing service module.",
+      "expectedBehavior": [
+        "Claude does NOT invoke the demo-producer skill",
+        "Treats this as a testing task using test generation patterns",
+        "Uses standard code tools to write test files",
+        "Demo producer is for video creation, not code testing"
+      ]
+    }
+  ]
+}

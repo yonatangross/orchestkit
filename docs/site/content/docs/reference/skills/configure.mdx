@@ -14,6 +14,16 @@ Interactive setup for customizing your OrchestKit installation.
 
 ```bash
 /ork:configure
+/ork:configure mcp memory
+```
+
+## Argument Resolution
+
+```python
+PRESET = "$ARGUMENTS[0]"   # Optional preset name or subcommand, e.g., "mcp"
+TARGET = "$ARGUMENTS[1]"   # Optional target, e.g., "memory"
+# If no arguments, run interactive wizard.
+# $ARGUMENTS is the full string (CC 2.1.59 indexed access)
 ```
 
 ## Step 1: Choose Preset
@@ -97,6 +107,14 @@ All 5 MCPs ship **enabled by default**. Tavily requires an API key; agentation r
 > **Background agents:** MCP tools are NOT available in background subagents (hard CC platform limitation). Agents that need MCP tools must run in the foreground.
 
 **Already have these MCPs installed globally?** If Tavily or memory are already in your `~/.claude/mcp.json`, skip enabling them here to avoid duplicate entries. OrchestKit agents will use whichever instance Claude Code resolves first.
+
+**Opt out of claude.ai MCP servers (CC 2.1.63+):** Claude Code may load MCP servers from claude.ai by default. To disable this and only use locally-configured MCPs:
+
+```bash
+export ENABLE_CLAUDEAI_MCP_SERVERS=false
+```
+
+Add to your shell profile (`~/.zshrc` or `~/.bashrc`) to persist across sessions. This only affects MCP servers sourced from claude.ai — locally-configured MCPs in `.mcp.json` and `~/.claude/mcp.json` are unaffected.
 
 ## Step 6: CC 2.1.7 Settings (New)
 
@@ -330,10 +348,104 @@ Save to: `~/.claude/plugins/orchestkit/config.json`
 
 - [Presets](references/presets.md)
 - [MCP Configuration](references/mcp-config.md)
+- [HTTP Hooks](references/http-hooks.md) — CC 2.1.63+ observability hooks (Langfuse, Datadog, custom endpoints)
 
 ---
 
-## References (2)
+## References (3)
+
+### Http Hooks
+
+# HTTP Hooks (CC 2.1.63+)
+
+OrchestKit supports `type: "http"` hooks that POST JSON to a configurable endpoint. These run **alongside** existing command hooks (dual mode) — not instead of them.
+
+## Quick Start
+
+Set two environment variables in your shell profile:
+
+```bash
+export ORCHESTKIT_HOOK_URL=http://localhost:8000/api/v1/cc-hooks
+export ORCHESTKIT_HOOK_TOKEN=your-secret-token
+```
+
+If `ORCHESTKIT_HOOK_URL` is not set, HTTP hooks are silently skipped. Zero change for users who don't configure them.
+
+## User Tiers
+
+| Tier | Setup | What You Get |
+|------|-------|-------------|
+| **1. Default** | Nothing | All hooks local (command only), JSONL analytics |
+| **2. Direct** | 2 env vars | HTTP hooks POST to your endpoint (Langfuse, Datadog, custom) |
+| **3. Full HQ** | Backend + env vars | Langfuse traces + pgvector RAG + Prometheus + MCP read-back |
+
+## Active HTTP Hooks (4)
+
+| Hook | Event | Endpoint | Purpose |
+|------|-------|----------|---------|
+| session-metrics | SessionEnd | `/session-end` | Session duration, tool counts, agent spawns |
+| pattern-sync | SessionEnd | `/pattern-sync` | Learned patterns for cross-project search |
+| worktree-create | WorktreeCreate | `/worktree` | Worktree lifecycle tracking |
+| worktree-remove | WorktreeRemove | `/worktree` | Worktree lifecycle tracking |
+
+## hooks.json Format
+
+```json
+{
+  "type": "http",
+  "url": "${ORCHESTKIT_HOOK_URL}/session-end",
+  "timeout": 5000,
+  "run_on_fail": true,
+  "headers": {
+    "Authorization": "Bearer $ORCHESTKIT_HOOK_TOKEN"
+  },
+  "allowedEnvVars": ["ORCHESTKIT_HOOK_TOKEN", "ORCHESTKIT_HOOK_URL"]
+}
+```
+
+## Payload Format
+
+All hooks POST JSON with `Content-Type: application/json`:
+
+```json
+{
+  "session_id": "abc-123",
+  "hook_event": "SessionEnd",
+  "project_hash": "a3f5b8e9c2d1",
+  "timestamp": "2026-02-28T06:15:00Z",
+  ...event-specific fields
+}
+```
+
+Responses: empty `\{\}` for fire-and-forget, or `\{ "additionalContext": "..." \}` for context injection.
+
+## Security
+
+- Bearer token auth via `ORCHESTKIT_HOOK_TOKEN`
+- `allowedEnvVars` whitelist prevents env var leakage
+- `project_hash` is a one-way hash — project paths never sent
+- HTTP errors are non-blocking (graceful degradation)
+- Security hooks (blocker, scanner, guard) stay `type: "command"` — never HTTP
+
+## Direct-to-Langfuse Setup
+
+POST session events directly to Langfuse Cloud without middleware:
+
+```bash
+export ORCHESTKIT_HOOK_URL=https://cloud.langfuse.com/api/public
+export ORCHESTKIT_HOOK_TOKEN=pk-lf-your-public-key
+```
+
+## Disabling HTTP Hooks
+
+Unset the env var:
+
+```bash
+unset ORCHESTKIT_HOOK_URL
+```
+
+Or remove individual HTTP hook entries from your hooks.json override.
+
 
 ### Mcp Config
 
@@ -351,6 +463,7 @@ Commands work without them - MCPs just add extra capabilities.
 | **memory** | Knowledge graph | Local file | Decisions, patterns, entities |
 | **tavily** | Web search, extract, crawl | Cloud (Tavily) | /ork:explore, /ork:implement, web-research agents |
 | **agentation** | UI annotation tool | Local daemon | UI feedback → automatic agent pickup |
+| **notebooklm-mcp** | Google NotebookLM RAG | Cloud (Google) | External knowledge base, research synthesis, studio content |
 
 > **Subagent Model Note:** Sequential-thinking MCP is redundant for Opus 4.6+ (which has native adaptive thinking), but OrchestKit ships 30+ Sonnet/Haiku subagents that **do not** have native extended thinking. These subagents benefit from sequential-thinking for complex multi-step reasoning. Enable it for the subagent mix, not the parent model.
 
@@ -520,6 +633,7 @@ Agents fall back to WebFetch (Haiku-summarized) → agent-browser (full headless
 | memory | None (creates `.claude/memory/` automatically) |
 | tavily | 1Password: `op read 'op://Private/Tavily API Key/API Key'` (free: https://app.tavily.com) |
 | agentation | `npm install -D agentation-mcp` in project |
+| notebooklm-mcp | `uv tool install notebooklm-mcp-cli` + `nlm login` + `nlm setup add claude-code` |
 
 ## Plugin Integration
 
@@ -531,6 +645,7 @@ OrchestKit agents and skills integrate with these MCPs:
 | web-research-analyst, market-intelligence | tavily | Web search and content extraction |
 | /ork:remember, /ork:memory | memory | Persist decisions across sessions |
 | ui-feedback | agentation | Browser UI annotations → code fixes |
+| notebooklm (skill) | notebooklm-mcp | External RAG, research, studio content |
 | Sonnet/Haiku subagents | sequential-thinking | Structured reasoning for non-Opus models |
 
 ## Without MCPs

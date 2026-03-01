@@ -7,8 +7,9 @@
 # - todo-enforcer.ts
 # - memory-context.ts
 # - satisfaction-detector.ts
-# - context-pruning-advisor.ts
 # - antipattern-warning.ts
+# (context-pruning-advisor removed — dead code, #663)
+# (skill-auto-suggest removed — dead code, context optimization)
 #
 # Updated for TypeScript hook architecture (v5.1.0+)
 # Shell script hooks migrated to TypeScript and compiled to prompt.mjs
@@ -129,27 +130,6 @@ test_satisfaction_detector_has_detection_logic() {
 }
 
 # ============================================================================
-# CONTEXT-PRUNING-ADVISOR TESTS
-# ============================================================================
-
-describe "context-pruning-advisor.ts"
-
-test_context_pruning_advisor_exists() {
-    assert_file_exists "$TS_HOOKS_DIR/context-pruning-advisor.ts"
-}
-
-test_context_pruning_advisor_exports_handler() {
-    assert_file_contains "$TS_HOOKS_DIR/context-pruning-advisor.ts" "export"
-}
-
-test_context_pruning_advisor_has_threshold_logic() {
-    if grep -qiE "context|prune|threshold|percent|usage" "$TS_HOOKS_DIR/context-pruning-advisor.ts" 2>/dev/null; then
-        return 0
-    fi
-    fail "context-pruning-advisor.ts should have context threshold logic"
-}
-
-# ============================================================================
 # ANTIPATTERN-WARNING TESTS
 # ============================================================================
 
@@ -182,7 +162,6 @@ test_all_prompt_hooks_have_suppress_output() {
         "todo-enforcer.ts"
         "memory-context.ts"
         "satisfaction-detector.ts"
-        "context-pruning-advisor.ts"
     )
 
     for hook in "${hooks[@]}"; do
@@ -226,22 +205,6 @@ test_prompt_bundle_not_empty() {
         return 0
     fi
     fail "prompt.mjs should have substantial content (got $size bytes)"
-}
-
-# ============================================================================
-# SKILL HOOKS (Additional TypeScript coverage)
-# ============================================================================
-
-describe "Skill Hooks (TypeScript)"
-
-test_skill_auto_suggest_exists() {
-    assert_file_exists "$TS_HOOKS_DIR/skill-auto-suggest.ts"
-}
-
-test_skill_auto_suggest_exports_handler() {
-    if [[ -f "$TS_HOOKS_DIR/skill-auto-suggest.ts" ]]; then
-        assert_file_contains "$TS_HOOKS_DIR/skill-auto-suggest.ts" "export"
-    fi
 }
 
 # ============================================================================

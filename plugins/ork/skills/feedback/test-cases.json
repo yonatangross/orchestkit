@@ -1,0 +1,40 @@
+{
+  "skill": "feedback",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "negative-show-me-the-current",
+      "rule": "",
+      "query": "Show me the current status of the OrchestKit feedback system and what patterns it has learned from my usage.",
+      "expectedBehavior": [
+        "Claude reads the feedback system configuration files",
+        "Claude displays current feedback state (active/paused)",
+        "Claude lists learned patterns and agent performance metrics",
+        "Claude shows privacy settings and consent status",
+        "Claude does NOT modify any settings without explicit request"
+      ]
+    },
+    {
+      "id": "edge-i-want-to-opt",
+      "rule": "",
+      "query": "I want to opt out of anonymous analytics sharing and then export all my feedback data before resetting everything.",
+      "expectedBehavior": [
+        "Claude executes opt-out to disable anonymous analytics sharing",
+        "Claude exports feedback data to .claude/feedback/export-{date}.json",
+        "Claude requires explicit RESET confirmation before clearing learned patterns",
+        "Claude follows GDPR-compliant consent revocation flow",
+        "Claude handles the multi-step sequence in correct order (opt-out, export, then reset)"
+      ]
+    },
+    {
+      "id": "negative-refactor-the-authentication-middleware",
+      "rule": "",
+      "query": "Refactor the authentication middleware to use JWT tokens instead of session cookies.",
+      "expectedBehavior": [
+        "Claude does NOT invoke the feedback skill",
+        "Claude implements the JWT refactoring using standard code editing tools",
+        "Claude does not access feedback configuration or analytics files"
+      ]
+    }
+  ]
+}

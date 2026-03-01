@@ -612,6 +612,26 @@ function handleInsufficientScope(wwwAuth: string) {
 }
 ```
 
+**Correct -- OAuth URL paste fallback (headless/SSH environments):**
+```typescript
+// 9. When browser can't open (SSH, containers, headless), print URL for manual paste
+async function authorizeWithFallback(authUrl: string) {
+  const canOpenBrowser = process.env.DISPLAY || process.platform === "darwin";
+  if (canOpenBrowser) {
+    await open(authUrl); // Opens default browser
+  } else {
+    // Fallback: print URL for user to paste in their local browser
+    console.log("\nOpen this URL in your browser to authorize:");
+    console.log(`\n  ${authUrl}\n`);
+    console.log("After authorizing, paste the callback URL here:");
+    const callbackUrl = await readline.question("> ");
+    const code = new URL(callbackUrl).searchParams.get("code");
+    if (!code) throw new Error("No authorization code found in callback URL");
+    return code;
+  }
+}
+```
+
 **Key rules:**
 - PKCE with S256 is mandatory; refuse to proceed if AS lacks `code_challenge_methods_supported`
 - Include `resource` parameter (RFC 8707) in both authorization and token requests, set to the MCP server's canonical URI
@@ -621,6 +641,7 @@ function handleInsufficientScope(wwwAuth: string) {
 - Prefer Client ID Metadata Documents over Dynamic Client Registration (RFC 7591) for new implementations
 - Handle `403 insufficient_scope` by re-authorizing with scopes from the `WWW-Authenticate` header
 - For high-security deployments, bind tokens to client certificates via mTLS (RFC 8705) to prevent token theft and replay
+- In headless environments (SSH, containers, CI), implement URL paste fallback — print the auth URL for the user to open manually and accept the callback URL pasted back (see example 9 above)
 
 
 ### Implement MCP client patterns for reliable connections and multi-server orchestration — MEDIUM

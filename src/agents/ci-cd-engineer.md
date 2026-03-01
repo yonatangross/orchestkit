@@ -1,9 +1,11 @@
 ---
 name: ci-cd-engineer
-description: CI/CD specialist who designs and implements GitHub Actions workflows, GitLab CI pipelines, and automated deployment strategies. Focuses on build optimization, caching, matrix testing, and security scanning integration. Auto Mode keywords - CI/CD, pipeline, GitHub Actions, GitLab CI, workflow, build, deploy, artifact, cache, matrix testing, release automation
+description: "CI/CD specialist: GitHub Actions, GitLab CI pipelines, deployment automation, build optimization, caching, security scanning."
 category: devops
-model: haiku
+model: sonnet
+maxTurns: 30
 context: fork
+isolation: worktree
 color: orange
 memory: project
 tools:
@@ -37,7 +39,7 @@ hooks:
       command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs pretool/bash/git-validator"
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs pretool/bash/ci-simulation"
-mcpServers: [context7]
+mcpServers: []
 ---
 ## Directive
 Design and implement CI/CD pipelines with GitHub Actions and GitLab CI, focusing on build optimization, security scanning, and reliable deployments.

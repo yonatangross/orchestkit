@@ -1,5 +1,10 @@
 {
   "$schema": "https://claude.ai/schemas/plugin-settings.json",
+  "respectGitignore": true,
+  "env": {
+    "ENABLE_TOOL_SEARCH": "auto:5"
+  },
+  "plansDirectory": ".claude/plans",
   "permissions": {
     "allow": [
       "Read",
@@ -8,8 +13,36 @@
       "mcp__context7__*",
       "mcp__memory__*"
     ],
-    "deny": []
+    "deny": [
+      "Bash(rm -rf /)",
+      "Bash(rm -rf ~)",
+      "Bash(rm -rf .)",
+      "Bash(chmod 777 *)",
+      "Bash(chmod -R 777 *)",
+      "Bash(git push --force origin main)",
+      "Bash(git push --force origin master)",
+      "Bash(git push -f origin main)",
+      "Bash(git push -f origin master)",
+      "Bash(mkfs*)",
+      "Bash(dd if=*)",
+      "Bash(> /dev/sd*)",
+      "Bash(:(){ :|:& };:)"
+    ]
   },
+  "statusLine": {
+    "type": "command",
+    "command": "echo \"ork v$(jq -r .version package.json 2>/dev/null || echo '?') │ $(git branch --show-current 2>/dev/null || echo 'no-git') │ $(git status --porcelain 2>/dev/null | wc -l | tr -d ' ') uncommitted\""
+  },
+  "keybindings": [
+    { "key": "ctrl+k ctrl+f", "skill": "fix-issue" },
+    { "key": "ctrl+k ctrl+i", "skill": "implement" },
+    { "key": "ctrl+k ctrl+e", "skill": "explore" },
+    { "key": "ctrl+k ctrl+r", "skill": "review-pr" },
+    { "key": "ctrl+k ctrl+m", "skill": "memory" },
+    { "key": "ctrl+k ctrl+a", "skill": "assess" },
+    { "key": "ctrl+k ctrl+c", "skill": "commit" },
+    { "key": "ctrl+k ctrl+h", "skill": "help" }
+  ],
   "spinnerVerbs": {
     "mode": "append",
     "verbs": [
@@ -17,7 +50,25 @@
       "Coordinating",
       "Synthesizing",
       "Architecting",
-      "Dispatching"
+      "Dispatching",
+      "Producing",
+      "Rendering",
+      "Composing"
+    ]
+  },
+  "spinnerTipsOverride": {
+    "excludeDefault": false,
+    "tips": [
+      "/ork:memory search to find past decisions",
+      "ctrl+k ctrl+f to quick-fix an issue",
+      "/ork:analytics shows usage patterns",
+      "/ork:explore for deep codebase understanding",
+      "/ork:verify after implementation to validate",
+      "/ork:assess rates code quality 0-10",
+      "/ork:doctor checks plugin health",
+      "/ork:brainstorming for design exploration",
+      "Use /ork:commit for conventional commits",
+      "/ork:help lists all available skills"
     ]
   }
 }

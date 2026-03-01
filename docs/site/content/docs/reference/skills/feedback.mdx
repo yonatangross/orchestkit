@@ -3,7 +3,7 @@ title: "Feedback"
 description: "Manages OrchestKit usage analytics, learning preferences, and privacy settings. Use when reviewing patterns, pausing learning, or managing consent."
 ---
 
-<span className="badge badge-blue">Command</span> <span className="badge badge-green">low</span>
+<span className="badge badge-gray">Reference</span> <span className="badge badge-green">low</span>
 
 
 # Feedback - Manage Learning System
@@ -19,6 +19,7 @@ View and manage the OrchestKit feedback system that learns from your usage.
 - Managing privacy settings
 - Enabling/disabling anonymous analytics sharing
 - Viewing privacy policy
+- Filing bug reports as GitHub issues
 
 ## Usage
 
@@ -34,6 +35,8 @@ View and manage the OrchestKit feedback system that learns from your usage.
 /ork:feedback opt-out            # Disable anonymous sharing
 /ork:feedback privacy            # View privacy policy
 /ork:feedback export-analytics   # Export anonymous analytics for review
+/ork:feedback bug                # File a bug report as a GitHub issue
+/ork:feedback bug [description]  # File with pre-filled description
 ```
 
 ## Subcommands
@@ -50,8 +53,9 @@ View and manage the OrchestKit feedback system that learns from your usage.
 | `opt-out` | Disable anonymous analytics sharing (revokes consent) |
 | `privacy` | Display the full privacy policy |
 | `export-analytics` | Export anonymous analytics to file for review before sharing |
+| `bug` | File a bug report as a GitHub issue with auto-collected context |
 
-**Output:** Each subcommand displays formatted status, confirmation prompts, or exported file paths. See [Subcommand Reference](references/subcommand-reference.md) for detailed actions and expected output for each subcommand.
+**Output:** Each subcommand displays formatted status, confirmation prompts, or exported file paths. See [Subcommand Reference](references/subcommand-reference.md) for detailed actions and expected output for each subcommand. See [Bug Report Reference](references/bug-report-reference.md) for the bug filing workflow.
 
 ## Consent and Security
 
@@ -133,7 +137,172 @@ fi
 
 ---
 
-## References (3)
+## References (4)
+
+### Bug Report Reference
+
+# Bug Report Reference
+
+Workflow for `/ork:feedback bug` — filing GitHub issues with auto-collected context.
+
+## Flow
+
+### Step 1: Gather Description
+
+If no description argument provided, use AskUserQuestion:
+
+```python
+AskUserQuestion(questions=[
+  {
+    "question": "What went wrong?",
+    "header": "Bug Description",
+    "options": [
+      {"label": "Skill issue", "description": "A skill (/ork:*) didn't work as expected"},
+      {"label": "Agent issue", "description": "A spawned agent produced wrong results or failed"},
+      {"label": "Hook issue", "description": "A hook blocked something it shouldn't, or missed something"},
+      {"label": "Build/install issue", "description": "Plugin build, installation, or setup problem"},
+      {"label": "Other", "description": "Something else went wrong"}
+    ],
+    "multiSelect": false
+  }
+])
+```
+
+Then ask the user to describe the issue in their own words if they haven't already.
+
+### Step 2: Collect Environment Context (automatic)
+
+Read these files — never prompt the user for info that's already available:
+
+```python
+# Version from package.json
+Read(file_path="{project_dir}/package.json")  # extract "version" field
+
+# OS info
+Bash(command="uname -s -r")
+
+# Claude Code version (if available)
+Bash(command="claude --version 2>/dev/null || echo 'unknown'")
+
+# Git branch
+Bash(command="git branch --show-current 2>/dev/null || echo 'unknown'")
+```
+
+From `.claude/feedback/metrics.json` (if exists):
+- Last skill used and its success rate
+- Last agent spawned and its success rate
+
+### Step 3: Check for Duplicates
+
+Before creating, search existing issues:
+
+```bash
+gh issue list -R yonatangross/orchestkit \
+  --search "{keywords from description}" \
+  --state open \
+  --json number,title,url \
+  --limit 5
+```
+
+If potential duplicates found, show them to the user:
+- "Found N similar open issues. Is yours one of these?"
+- If yes, comment on the existing issue instead of creating a new one
+- If no, proceed to create
+
+### Step 4: PII Sanitization
+
+Before including any auto-collected context, strip:
+- Absolute paths containing `/Users/` or `/home/` — replace with `~`
+- Email addresses
+- URLs with tokens or API keys
+- Anything matching `password`, `secret`, `token`, `key` in values
+- Git remote URLs (may contain tokens)
+
+### Step 5: Create the Issue
+
+```bash
+gh issue create -R yonatangross/orchestkit \
+  --title "Bug: {concise_title}" \
+  --label "bug" \
+  --body "$(cat <<'EOF'
+## Bug Report
+
+**Description:** {user_description}
+
+**Category:** {skill|agent|hook|build|other}
+
+## Steps to Reproduce
+
+{user_provided_steps_or "1. [Please describe steps to reproduce]"}
+
+## Expected Behavior
+
+{user_provided_or "N/A"}
+
+## Actual Behavior
+
+{user_description_of_what_happened}
+
+## Environment
+
+| Field | Value |
+|-------|-------|
+| OrchestKit | {version} |
+| Claude Code | {cc_version} |
+| OS | {os_info} |
+| Branch | {branch} |
+
+## Context
+
+{if metrics available:}
+- Last skill: `{skill_name}` ({success_rate}% success rate)
+- Last agent: `{agent_name}` ({success_rate}% success rate)
+
+---
+*Filed via `/ork:feedback bug`*
+EOF
+)"
+```
+
+### Step 6: Confirm to User
+
+Show the created issue URL and number:
+
+```
+Bug report filed!
+
+  Issue: #123
+  URL:   https://github.com/yonatangross/orchestkit/issues/123
+  Title: Bug: {title}
+
+Track progress or add details at the URL above.
+```
+
+## Fallback: gh Not Authenticated
+
+If `gh auth status` fails:
+
+1. Write issue body to `.claude/feedback/pending-bugs/bug-\{timestamp\}.md`
+2. Tell the user:
+
+```
+Could not create GitHub issue (gh CLI not authenticated).
+
+Bug report saved to:
+  .claude/feedback/pending-bugs/bug-20260226-143000.md
+
+To file manually:
+  1. Run: gh auth login
+  2. Then: gh issue create -R yonatangross/orchestkit --body-file .claude/feedback/pending-bugs/bug-20260226-143000.md --title "Bug: {title}" --label bug
+```
+
+## Privacy Rules
+
+- NEVER include file contents, code snippets, or conversation history in the issue
+- ONLY include: version numbers, OS type, skill/agent names, success rates
+- All paths sanitized to relative or `~`
+- User reviews the issue body before submission (show it, ask "Create this issue?")
+
 
 ### File Locations
 
@@ -151,8 +320,10 @@ All feedback data is stored locally in the project.
 ├── satisfaction.json      # Session satisfaction tracking
 ├── consent-log.json       # GDPR consent audit trail (#59)
 ├── analytics-sent.json    # Transmission history (if enabled)
-└── analytics-exports/     # Anonymous analytics exports for review
-    └── analytics-export-*.json
+├── analytics-exports/     # Anonymous analytics exports for review
+│   └── analytics-export-*.json
+└── pending-bugs/          # Bug reports saved when gh CLI unavailable
+    └── bug-*.md
 ```
 
 ## File Descriptions
@@ -740,6 +911,54 @@ YOUR RIGHTS
   • Check status:        /ork:feedback status
   • View this policy:    /ork:feedback privacy
 ```
+
+## bug
+
+File a bug report as a GitHub issue with auto-collected environment context.
+
+**Usage:**
+```
+/ork:feedback bug
+/ork:feedback bug Something broke when I ran /ork:verify
+```
+
+**Action:**
+1. Prompt for category (skill/agent/hook/build/other) via AskUserQuestion
+2. Collect description from user (or use argument if provided)
+3. Auto-collect environment: OrchestKit version, CC version, OS, git branch
+4. Auto-collect last skill/agent from metrics.json (if available)
+5. Sanitize all context (strip PII, absolute paths, credentials)
+6. Search for duplicate issues via `gh issue list --search`
+7. Show issue preview and ask for confirmation
+8. Create issue via `gh issue create` with structured template
+9. If `gh` not authenticated, save to `.claude/feedback/pending-bugs/` for later
+
+**Output:**
+```
+Bug report filed!
+
+  Issue: #456
+  URL:   https://github.com/yonatangross/orchestkit/issues/456
+  Title: Bug: verify skill fails on monorepo with pnpm workspaces
+
+Track progress or add details at the URL above.
+```
+
+**Output (gh not authenticated):**
+```
+Could not create GitHub issue (gh CLI not authenticated).
+
+Bug report saved to:
+  .claude/feedback/pending-bugs/bug-20260226-143000.md
+
+To file manually:
+  1. Run: gh auth login
+  2. Then: gh issue create -R yonatangross/orchestkit \
+       --body-file .claude/feedback/pending-bugs/bug-20260226-143000.md \
+       --title "Bug: ..." --label bug
+```
+
+See [Bug Report Reference](bug-report-reference.md) for full workflow details.
 
 ## export-analytics
 

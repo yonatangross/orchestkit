@@ -11,6 +11,15 @@ allowed-tools: [Read, Grep, Glob, Bash, mcp__memory__create_entities, mcp__memor
 
 Store important decisions, patterns, or context in the knowledge graph for future sessions. Supports tracking success/failure outcomes for building a Best Practice Library.
 
+## Argument Resolution
+
+```python
+TEXT = "$ARGUMENTS"        # Full argument string, e.g., "We use cursor pagination"
+FLAG = "$ARGUMENTS[0]"     # First token — check for --success, --failed, --category, --agent
+# Parse flags from $ARGUMENTS[0], $ARGUMENTS[1] etc. (CC 2.1.59 indexed access)
+# Remaining tokens after flags = the text to remember
+```
+
 ## Architecture
 
 The remember skill uses **knowledge graph** as storage:

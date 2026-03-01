@@ -1,8 +1,10 @@
 ---
 name: metrics-architect
-description: Metrics specialist who designs OKRs, KPIs, success criteria, and instrumentation plans to measure product outcomes and validate hypotheses. Activates for OKR, KPI, metrics, success criteria, instrumentation keywords.
+description: Metrics specialist who designs OKRs, KPIs, success criteria, and instrumentation plans to measure product outcomes and validate hypotheses.
 category: product
-model: sonnet
+model: haiku
+background: true
+maxTurns: 20
 context: fork
 color: orchid
 memory: project
@@ -16,6 +18,8 @@ tools:
   - TaskCreate
   - TaskUpdate
   - TaskList
+  - TaskOutput
+  - TaskStop
 skills:
   - product-frameworks
   - monitoring-observability
@@ -23,6 +27,10 @@ skills:
   - testing-patterns
   - remember
   - memory
+hooks:
+  PreToolUse:
+    - matcher: "Bash"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs agent/restrict-bash"
 mcpServers: []
 ---
 ## Directive
@@ -346,7 +354,7 @@ Read the specific file before advising. Do NOT rely on training data.
 |Do NOT rely on training data for framework patterns.
 |
 |product-frameworks:{SKILL.md,references/{build-buy-partner-decision.md,competitive-analysis-guide.md,interview-guide-template.md,journey-map-workshop.md,okr-workshop-guide.md,rice-scoring-guide.md,roi-calculation-guide.md,tam-sam-som-guide.md,user-story-workshop-guide.md,value-prop-canvas-guide.md,wsjf-guide.md}}|product,strategy,business-case,market-analysis,prioritization,okr,kpi,persona,requirements,user-research,rice,prd
-|monitoring-observability:{SKILL.md,references/{agent-observability.md,alerting-dashboards.md,alerting-strategies.md,annotation-queues.md,cost-tracking.md,dashboards.md,distributed-tracing.md,embedding-drift.md,evaluation-scores.md,ewma-baselines.md,experiments-api.md,framework-integrations.md,langfuse-evidently-integration.md,logging-patterns.md,metrics-collection.md,migration-v2-v3.md,multi-judge-evaluation.md,online-evaluators.md,prompt-management.md,session-tracking.md,statistical-methods.md,structured-logging.md,tracing-setup.md}}|monitoring,observability,prometheus,grafana,langfuse,tracing,metrics,drift-detection,logging
+|monitoring-observability:{SKILL.md,references/{agent-observability.md,alerting-dashboards.md,alerting-strategies.md,annotation-queues.md,cost-tracking.md,dashboards.md,dev-agent-lens.md,distributed-tracing.md,embedding-drift.md,evaluation-scores.md,ewma-baselines.md,experiments-api.md,framework-integrations.md,langfuse-evidently-integration.md,logging-patterns.md,metrics-collection.md,migration-v2-v3.md,multi-judge-evaluation.md,observability-layers.md,online-evaluators.md,prompt-management.md,session-tracking.md,statistical-methods.md,structured-logging.md,tracing-setup.md}}|monitoring,observability,prometheus,grafana,langfuse,tracing,metrics,drift-detection,logging
 |performance:{SKILL.md,references/{caching-strategies.md,cdn-setup.md,core-web-vitals.md,database-optimization.md,devtools-profiler-workflow.md,edge-deployment.md,frontend-performance.md,memoization-escape-hatches.md,profiling.md,quantization-guide.md,react-compiler-migration.md,route-splitting.md,rum-setup.md,speculative-decoding.md,state-colocation.md,tanstack-virtual-patterns.md,vllm-deployment.md}}|performance,core-web-vitals,lcp,inp,cls,react-compiler,virtualization,lazy-loading,code-splitting,image-optimization,avif,profiling,vllm,quantization,inference,caching,redis,prompt-caching,tanstack-query,prefetching,optimistic-updates
 |testing-patterns:{SKILL.md,references/{a11y-testing-tools.md,aaa-pattern.md,consumer-tests.md,custom-plugins.md,deepeval-ragas-api.md,factory-patterns.md,generator-agent.md,healer-agent.md,k6-patterns.md,msw-2x-api.md,pact-broker.md,planner-agent.md,playwright-1.57-api.md,playwright-setup.md,provider-verification.md,stateful-testing.md,strategies-guide.md,visual-regression.md,xdist-parallel.md}}|testing,unit,integration,e2e,pytest,msw,vcr,property,contract,performance,llm,a11y
 |remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory

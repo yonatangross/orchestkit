@@ -28,7 +28,6 @@ describe('Dispatcher Registry Wiring', () => {
         'naming-convention-learner',
         'skill-edit-tracker',
         'skill-usage-optimizer',
-        'memory-bridge',
         'realtime-sync',
         'user-tracking',
         // GAP-011: Solution detector for problem-solution pairing
@@ -64,9 +63,6 @@ describe('Dispatcher Registry Wiring', () => {
 
       // Skill hook
       expect(byName['skill-usage-optimizer']).toBe('Skill');
-
-      // MCP memory hook (graph MCP)
-      expect(byName['memory-bridge']).toEqual(['mcp__memory__create_entities']);
 
       // Multi-tool hook
       expect(byName['realtime-sync']).toEqual(['Bash', 'Write', 'Edit', 'Skill', 'Task']);
@@ -110,11 +106,10 @@ describe('Dispatcher Registry Wiring', () => {
         'calibration-persist',
         'session-profile-aggregator',
         'session-end-tracking',
-        // Memory sync hooks (v7: removed graph-queue-sync — mem0 cloud removed)
+        // Memory sync hooks
         'workflow-preference-learner',
         'task-completion-check',
         // Analysis hooks
-        'auto-remember-continuity',
         'security-scan-aggregator',
         // Skill validation hooks (run at stop time)
         'coverage-check',
@@ -128,9 +123,6 @@ describe('Dispatcher Registry Wiring', () => {
         'review-summary-generator',
         'security-summary',
         'test-pattern-validator',
-        'test-runner',
-        // Heavy analysis hooks (run last)
-        'full-test-suite',
       ]);
     });
   });
@@ -207,10 +199,9 @@ describe('Dispatcher Registry Wiring', () => {
         notificationHooks().length +
         setupHooks().length;
 
-      // posttool: 19 (15 + 4 from Issue #684), lifecycle: 6, stop: 23 (removed context-compressor), subagent-stop: 4, notification: 2, setup: 1
-      // v7: removed graph-queue-sync from stop dispatcher (mem0 cloud removed)
-      // lifecycle: added stale-team-cleanup, type-error-indexer
-      expect(total).toBe(55);
+      // posttool: 18, lifecycle: 6, stop: 20, subagent-stop: 4, notification: 2, setup: 1
+      // v7: removed memory-bridge, auto-remember-continuity, test-runner, full-test-suite
+      expect(total).toBe(51);
     });
   });
 });

@@ -41,7 +41,7 @@ vi.mock('node:path', async () => {
 // Imports (after mocks)
 // =============================================================================
 
-import { desktopNotification } from '../../notification/desktop.js';
+import { desktopNotification, _resetCommandCacheForTesting } from '../../notification/desktop.js';
 import { outputSilentSuccess, getProjectDir, getCachedBranch } from '../../lib/common.js';
 import { execSync } from 'node:child_process';
 
@@ -86,6 +86,7 @@ function createNotificationInput(
 describe('notification/desktop', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    _resetCommandCacheForTesting();
     // Default: osascript available, notify-send not available
     vi.mocked(execSync).mockImplementation((cmd: string) => {
       if (cmd === 'command -v osascript') return Buffer.from('/usr/bin/osascript');
@@ -243,6 +244,11 @@ describe('notification/desktop', () => {
       ['fix/42-broken-hook', '#42'],
       ['bug/1001-critical-failure', '#1001'],
       ['issue/7-design-update', '#7'],
+      // Case-insensitive matching (regex /i flag)
+      ['Feature/99-upper-case', '#99'],
+      ['FIX/100-uppercase-fix', '#100'],
+      ['BUG/101-uppercase-bug', '#101'],
+      ['ISSUE/102-uppercase-issue', '#102'],
     ])('extracts issue number from branch %s as %s', (branch, expectedIssue) => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue(branch);
@@ -291,7 +297,7 @@ describe('notification/desktop', () => {
   // ---------------------------------------------------------------------------
 
   describe('subtitle building', () => {
-    test('includes permission label for permission_prompt', () => {
+    test('includes approval title for permission_prompt', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('main');
       const input = createNotificationInput('permission_prompt');
@@ -305,10 +311,10 @@ describe('notification/desktop', () => {
       );
       expect(osascriptCalls.length).toBeGreaterThan(0);
       const osascriptCmd = osascriptCalls[0][0] as string;
-      expect(osascriptCmd).toContain('Permission needed');
+      expect(osascriptCmd).toContain('needs approval');
     });
 
-    test('includes waiting label for idle_prompt', () => {
+    test('includes waiting title for idle_prompt', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('main');
       const input = createNotificationInput('idle_prompt');
@@ -322,7 +328,7 @@ describe('notification/desktop', () => {
       );
       expect(osascriptCalls.length).toBeGreaterThan(0);
       const osascriptCmd = osascriptCalls[0][0] as string;
-      expect(osascriptCmd).toContain('Waiting');
+      expect(osascriptCmd).toContain('waiting for you');
     });
 
     test('includes issue number and branch in subtitle when available', () => {
@@ -577,20 +583,6 @@ describe('notification/desktop', () => {
       expect(() => desktopNotification(input)).not.toThrow();
     });
 
-    test('handles getProjectDir failure gracefully', () => {
-      // Arrange
-      vi.mocked(getProjectDir).mockImplementation(() => {
-        throw new Error('no project dir');
-      });
-      const input = createNotificationInput('permission_prompt');
-
-      // Act
-      const result = desktopNotification(input);
-
-      // Assert - falls back to "Claude Code" as repo name
-      expect(result.continue).toBe(true);
-      expect(result.suppressOutput).toBe(true);
-    });
   });
 
   // ---------------------------------------------------------------------------
@@ -645,28 +637,38 @@ describe('notification/desktop', () => {
   });
 
   // ---------------------------------------------------------------------------
-  // Sound mapping in notification
+  // No sound in osascript (sound handled by sound.ts)
   // ---------------------------------------------------------------------------
 
-  describe('sound selection', () => {
-    test('uses Sosumi sound for permission_prompt', () => {
+  describe('no sound in osascript', () => {
+    test('osascript command does not include sound name parameter', () => {
       // Arrange
       const input = createNotificationInput('permission_prompt');
 
       // Act
       desktopNotification(input);
 
-      // Assert
+      // Assert - sound.ts handles sound, desktop.ts should not include sound name
       const osascriptCalls = vi.mocked(execSync).mock.calls.filter(
         ([cmd]) => typeof cmd === 'string' && cmd.includes('display notification'),
       );
       expect(osascriptCalls.length).toBe(1);
-      expect(osascriptCalls[0][0]).toContain('Sosumi');
+      expect(osascriptCalls[0][0]).not.toContain('sound name');
     });
+  });
 
-    test('uses Ping sound for idle_prompt', () => {
-      // Arrange
-      const input = createNotificationInput('idle_prompt');
+  // ---------------------------------------------------------------------------
+  // Input field fallbacks
+  // ---------------------------------------------------------------------------
+
+  describe('input field fallbacks', () => {
+    test('falls back to input.message when tool_input.message is absent', () => {
+      // Arrange - tool_input has notification_type but no message
+      const input = createToolInput({
+        tool_input: { notification_type: 'permission_prompt' },
+        message: 'Fallback message from input',
+        notification_type: 'permission_prompt',
+      });
 
       // Act
       desktopNotification(input);
@@ -676,7 +678,62 @@ describe('notification/desktop', () => {
         ([cmd]) => typeof cmd === 'string' && cmd.includes('display notification'),
       );
       expect(osascriptCalls.length).toBe(1);
-      expect(osascriptCalls[0][0]).toContain('Ping');
+      expect(osascriptCalls[0][0]).toContain('Fallback message from input');
+    });
+
+    test('falls back to input.notification_type when tool_input.notification_type is absent', () => {
+      // Arrange - tool_input has message but no notification_type
+      const input = createToolInput({
+        tool_input: { message: 'some message' },
+        notification_type: 'permission_prompt',
+        message: 'some message',
+      });
+
+      // Act
+      desktopNotification(input);
+
+      // Assert - should have triggered because input.notification_type = 'permission_prompt'
+      const osascriptCalls = vi.mocked(execSync).mock.calls.filter(
+        ([cmd]) => typeof cmd === 'string' && cmd.includes('display notification'),
+      );
+      expect(osascriptCalls.length).toBe(1);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Command cache behavior
+  // ---------------------------------------------------------------------------
+
+  describe('command cache behavior', () => {
+    test('caches hasCommand result across multiple calls', () => {
+      // Arrange
+      const input = createNotificationInput('permission_prompt');
+
+      // Act - call twice
+      desktopNotification(input);
+      desktopNotification(input);
+
+      // Assert - command -v osascript should only be called once (cached)
+      const checkCalls = vi.mocked(execSync).mock.calls.filter(
+        ([cmd]) => cmd === 'command -v osascript',
+      );
+      expect(checkCalls).toHaveLength(1);
+    });
+
+    test('cache is reset by _resetCommandCacheForTesting', () => {
+      // Arrange - first call caches the result
+      const input = createNotificationInput('permission_prompt');
+      desktopNotification(input);
+
+      // Act - reset cache, call again
+      _resetCommandCacheForTesting();
+      desktopNotification(input);
+
+      // Assert - command -v osascript called twice (once before reset, once after)
+      const checkCalls = vi.mocked(execSync).mock.calls.filter(
+        ([cmd]) => cmd === 'command -v osascript',
+      );
+      expect(checkCalls).toHaveLength(2);
     });
   });
 

@@ -5,6 +5,56 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.0.0] - 2026-02-26
+
+### Breaking Changes
+
+- **plugins:** Unified plugin architecture — `orkl` and `ork-creative` removed, consolidated into single `ork` plugin (69 skills, 38 agents, 96 hooks). Migration: `claude plugin uninstall orkl && claude plugin install ork`.
+
+### Added
+
+- **setup:** New setup wizard skill (`/ork:setup`) — scans codebase, detects stack, recommends skills and MCPs, generates readiness score
+- **notifications:** Satisfaction detector bug nudge — suggests `/ork:feedback bug` after 2+ negative signals per session
+- **mcp:** NotebookLM MCP integration — skill, hooks, rules for NotebookLM workflows
+- **release:** Release channels (alpha/beta/stable) with branch-based CI workflows and `--ref` marketplace flag
+- **settings:** 8 chord keybindings for top skills (`ctrl+k ctrl+f` → fix-issue, `ctrl+k ctrl+i` → implement, etc.)
+- **settings:** StatusLine showing ork version, git branch, and uncommitted file count
+- **settings:** 10 spinner tips for skill discovery (e.g., "/ork:memory search to find past decisions")
+- **skills:** AskUserQuestion markdown previews on 12 skills — side-by-side ASCII diagrams showing what each mode does (assess, verify, explore, review-pr, fix-issue, audit-full, help, memory, brainstorming, implement, plan-viz, setup)
+- **skills:** `multiSelect: true` on audit-full (combinable audit modes), verify (combinable checks), setup (combinable focus areas)
+- **skills:** EnterPlanMode "Plan first" option on implement, fix-issue, brainstorming — research before coding
+- **skills:** Skill listing demotion — 58 → 16 listed skills via `disable-model-invocation: true` (~2,630 tokens/turn saved)
+- **tests:** `test-settings-validation.sh` — validates keybindings, statusLine, spinnerVerbs, spinnerTips, permissions
+- **tests:** `test-skill-cc-features.sh` — validates AUQ previews, multiSelect, EnterPlanMode, argument-hints, listing balance
+
+### Changed
+
+- **settings:** Unified all plugin settings: identical spinner verbs and permissions across all plugins
+- **notifications:** Desktop notification sound handling delegated to dedicated sound.ts module with command cache for performance
+- **hooks:** Unified notification dispatcher with simplified error filtering and HookFn type usage
+- **hooks:** Replaced 2 HTTP session-end hooks with command hook (HMAC-signed POST)
+- **hooks:** Consolidated 55 → 37 global hooks via 6 sync dispatchers, then expanded to 96 total (35 global + 54 agent-scoped + 7 skill-scoped)
+- **manifests:** Composite index budget bumped from 16KB to 20KB to accommodate unified plugins
+
+### Fixed
+
+- Sound notifications now use detached spawn to survive async hook exit
+- Bump Hono from 4.12.0 to 4.12.2 (CVE-2026-27700)
+- 6 Bash security hook vulnerabilities fixed (#879-#883)
+
+---
+
+## [6.7.2] - 2026-02-26
+
+### Fixed
+
+- Bump skill count 68 → 69 across manifests and docs
+- Bump Hono 4.12.0 → 4.12.2 (CVE-2026-27700)
+- Bump to v6.7.2
+
+---
+
+
 ## [6.7.1] - 2026-02-25
 
 ### Breaking Changes

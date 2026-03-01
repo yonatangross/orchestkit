@@ -1031,78 +1031,7 @@ describe('lifecycle/session-env-setup', () => {
 // =============================================================================
 
 // Routing hooks removed — replaced by passive index (passive-index-migration)
-import { skillAutoSuggest } from '../prompt/skill-auto-suggest.js';
-
-/**
- * Create UserPromptSubmit input
- */
-function createPromptInput(prompt: string, overrides: Partial<HookInput> = {}): HookInput {
-  return createHookInput({
-    hook_event: 'UserPromptSubmit',
-    prompt,
-    ...overrides,
-  });
-}
-
-// agent-auto-suggest tests removed — hook replaced by passive index (passive-index-migration)
-
-describe('prompt/skill-auto-suggest', () => {
-  describe('basic behavior', () => {
-    test('returns silent success for empty prompt', () => {
-      const input = createPromptInput('');
-      const result = skillAutoSuggest(input);
-
-      expect(result.continue).toBe(true);
-      expect(result.suppressOutput).toBe(true);
-    });
-
-    test('returns silent success for short prompt', () => {
-      const input = createPromptInput('help');
-      const result = skillAutoSuggest(input);
-
-      expect(result.continue).toBe(true);
-      expect(result.suppressOutput).toBe(true);
-    });
-  });
-
-  describe('keyword matching', () => {
-    test('suggests skills for matching keywords', () => {
-      // Keywords that should match e2e-testing or integration-testing
-      const input = createPromptInput('Help me write e2e tests with playwright for browser automation');
-      const result = skillAutoSuggest(input);
-
-      expect(result.continue).toBe(true);
-      if (result.hookSpecificOutput?.additionalContext) {
-        expect(result.hookSpecificOutput.additionalContext).toContain('skill');
-      }
-    });
-
-    test('always returns continue:true', () => {
-      const inputs = [
-        'Write unit tests',
-        'Deploy to kubernetes',
-        'Random unrelated prompt',
-      ];
-
-      for (const prompt of inputs) {
-        const input = createPromptInput(prompt);
-        const result = skillAutoSuggest(input);
-        expect(result.continue).toBe(true);
-      }
-    });
-  });
-
-  describe('CC 2.1.9 compliance', () => {
-    test('uses hookEventName: UserPromptSubmit when providing context', () => {
-      const input = createPromptInput('Help me write e2e tests with playwright');
-      const result = skillAutoSuggest(input);
-
-      if (result.hookSpecificOutput?.additionalContext) {
-        expect(result.hookSpecificOutput.hookEventName).toBe('UserPromptSubmit');
-      }
-    });
-  });
-});
+// skill-auto-suggest removed — dead code, never registered in hooks.json
 
 // =============================================================================
 // Consolidated Hooks Tests (Issue #219)

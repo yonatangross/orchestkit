@@ -30,6 +30,15 @@ Parallel subagent execution for feature implementation with scope control and re
 
 ---
 
+## Argument Resolution
+
+```python
+FEATURE_DESC = "$ARGUMENTS"  # Full argument string, e.g., "user authentication"
+# $ARGUMENTS[0] is the first token, $ARGUMENTS[1] second, etc. (CC 2.1.59)
+```
+
+---
+
 ## Step 0: Project Context Discovery
 
 **BEFORE any work**, detect the project tier. This becomes the complexity ceiling for all patterns.
@@ -78,12 +87,15 @@ AskUserQuestion(questions=[{
   "question": "Isolate this feature in a git worktree?",
   "header": "Isolation",
   "options": [
-    {"label": "Yes — worktree (Recommended)", "description": "Creates isolated branch via EnterWorktree, merges back on completion"},
-    {"label": "No — work in-place", "description": "Edit files directly in current branch"}
+    {"label": "Yes — worktree (Recommended)", "description": "Creates isolated branch via EnterWorktree, merges back on completion", "markdown": "```\nWorktree Isolation\n──────────────────\nmain ─────────────────────────────▶\n  \\                              /\n   └─ feat-{slug} (worktree) ───┘\n      ├── Isolated directory\n      ├── Own branch + index\n      └── Auto-merge on completion\n\nSafe: main stays untouched until done\n```"},
+    {"label": "No — work in-place", "description": "Edit files directly in current branch", "markdown": "```\nIn-Place Editing\n────────────────\nmain ──[edit]──[edit]──[edit]───▶\n       ▲       ▲       ▲\n       │       │       │\n     direct modifications\n\nFast: no branch overhead\nRisk: changes visible immediately\n```"},
+    {"label": "Plan first", "description": "Research and design in plan mode before writing code", "markdown": "```\nPlan Mode Flow\n──────────────\n  1. EnterPlanMode\n  2. Read existing code\n  3. Research patterns\n  4. Design approach\n  5. ExitPlanMode → plan\n  6. User approves plan\n  7. Execute implementation\n\n  Best for: Large features,\n  unfamiliar codebases,\n  architectural decisions\n```"}
   ],
   "multiSelect": false
 }])
 ```
+
+**If 'Plan first' selected:** Call `EnterPlanMode`, perform research using Read/Grep/Glob only, then `ExitPlanMode` with the plan for user approval before proceeding.
 
 If worktree selected:
 1. Call `EnterWorktree(name: "feat-\{slug\}")` to create isolated branch
@@ -1877,6 +1889,16 @@ Do NOT modify: src/components/, src/features/, src/hooks/
 
 ---
 
+## Config Sharing (CC 2.1.63+)
+
+Project configs and auto-memory are **automatically shared** across worktrees (CC 2.1.63+). No manual setup needed:
+
+- `.claude/settings.json` and `CLAUDE.md` available in every worktree
+- Auto-memory persists — teammates inherit learned patterns
+- Plugins are discovered from any worktree
+
+---
+
 ## Worktree + Agent Teams Checklist
 
 Before spawning teammates:
@@ -1958,6 +1980,15 @@ When running in a worktree, the `context-gate` SubagentStart hook raises concurr
 - `MAX_AGENTS_PER_RESPONSE`: 8 → 12
 
 This is safe because worktree agents operate on an isolated file tree.
+
+## Config Sharing (CC 2.1.63+)
+
+Project configs and auto-memory are **automatically shared** across git worktrees. No manual copying needed:
+
+- `.claude/settings.json` — shared across all worktrees
+- `.claude/memory/` — auto-memory persists across worktrees
+- `CLAUDE.md` — project instructions available in every worktree
+- Plugin configs — plugins discovered from any worktree
 
 ## CLI Alternative
 

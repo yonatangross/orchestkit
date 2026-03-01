@@ -89,7 +89,7 @@ hooks/
 ├── tsconfig.json           # TypeScript configuration
 └── esbuild.config.mjs      # Build configuration (split bundles)
 
-**Total:** 81 hooks (58 global + 22 agent-scoped + 1 skill-scoped, 9 native async)
+**Total:** 66 hooks (37 global + 28 agent-scoped + 1 skill-scoped, 9 native async)
 ```
 
 ---
@@ -1008,10 +1008,10 @@ OrchestKit hooks are managed defaults. Users retain full control to disable any 
 
 ---
 
-**Last Updated:** 2026-02-20
+**Last Updated:** 2026-02-28
 **Version:** 2.1.0 (Async hooks support)
 **Architecture:** 12 split bundles (381KB total) + 1 unified (324KB)
-**Hooks:** 81 hooks (58 global + 22 agent-scoped + 1 skill-scoped, 9 native async)
+**Hooks:** 66 hooks (37 global + 28 agent-scoped + 1 skill-scoped, 9 native async)
 **Average Bundle:** ~35KB per event
 **Claude Code Requirement:** >= 2.1.49
 

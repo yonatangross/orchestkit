@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 54 global + 22 agent-scoped + 1 skill-scoped = 77 total hooks",
+  "description": "OrchestKit hooks - 35 global (33 command + 2 http) + 54 agent-scoped + 7 skill-scoped = 96 total hooks",
   "hooks": {
     "PreToolUse": [
       {
@@ -7,15 +7,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/compound-command-validator"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/unified-advisory-dispatcher"
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/sync-bash-dispatcher",
+            "timeout": 15000
           }
         ]
       },
@@ -24,11 +17,13 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/commit-atomicity-checker"
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/commit-atomicity-checker",
+            "timeout": 10000
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/issue-reference-checker"
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/issue-reference-checker",
+            "timeout": 10000
           }
         ]
       },
@@ -37,15 +32,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/write-edit/file-guard"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/input-mod/write-headers"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/write-edit/unified-quality-dispatcher"
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/write-edit/sync-write-edit-dispatcher",
+            "timeout": 15000
           }
         ]
       },
@@ -54,7 +42,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/skill/skill-tracker"
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/skill/skill-tracker",
+            "timeout": 10000
           }
         ]
       },
@@ -63,7 +52,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/mcp/context7-tracker"
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/mcp/context7-tracker",
+            "timeout": 10000
           }
         ]
       },
@@ -72,7 +62,18 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/mcp/memory-validator"
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/mcp/memory-validator",
+            "timeout": 10000
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__notebooklm-mcp__*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/mcp/notebooklm-advisor",
+            "timeout": 15000
           }
         ]
       },
@@ -81,11 +82,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/task/unified-agent-safety-dispatcher"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/task/team-size-gate"
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/task/sync-task-dispatcher",
+            "timeout": 15000
           }
         ]
       },
@@ -94,7 +92,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/read/tldr-summary"
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/read/tldr-summary",
+            "timeout": 15000
           }
         ]
       }
@@ -106,7 +105,9 @@
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/unified-dispatcher",
-            "async": true
+            "async": true,
+            "timeout": 60000,
+            "run_on_fail": true
           }
         ]
       }
@@ -117,7 +118,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/failure-handler"
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/failure-handler",
+            "timeout": 10000
           }
         ]
       }
@@ -128,7 +130,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs permission/unified-dispatcher"
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs permission/unified-dispatcher",
+            "timeout": 10000
           }
         ]
       },
@@ -137,7 +140,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs permission/auto-approve-project-writes"
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs permission/auto-approve-project-writes",
+            "timeout": 10000
           }
         ]
       }
@@ -147,12 +151,14 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs prompt/unified-dispatcher"
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs prompt/unified-dispatcher",
+            "timeout": 15000
           },
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs prompt/capture-user-intent",
-            "async": true
+            "async": true,
+            "timeout": 30000
           }
         ]
       }
@@ -163,28 +169,13 @@
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/unified-dispatcher",
-            "async": true
+            "async": true,
+            "timeout": 60000
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/session-context-loader"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/analytics-consent-check"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/pr-status-enricher",
-            "async": true
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/prefill-guard"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/mcp-health-check"
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/sync-session-dispatcher",
+            "timeout": 20000
           }
         ]
       }
@@ -194,15 +185,15 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/session-metrics-summary"
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/sync-session-end-dispatcher",
+            "timeout": 30000,
+            "run_on_fail": true
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/session-cleanup"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/pattern-sync-push"
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/session-end-reporter",
+            "timeout": 5000,
+            "run_on_fail": true
           }
         ]
       }
@@ -213,11 +204,14 @@
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs stop/unified-dispatcher",
-            "async": true
+            "async": true,
+            "timeout": 60000,
+            "run_on_fail": true
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/stop-uncommitted-check.mjs"
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/stop-uncommitted-check.mjs",
+            "timeout": 10000
           }
         ]
       }
@@ -227,7 +221,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-start/unified-dispatcher"
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-start/unified-dispatcher",
+            "timeout": 10000
           }
         ]
       }
@@ -238,31 +233,14 @@
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-stop/unified-dispatcher",
-            "async": true
+            "async": true,
+            "timeout": 60000,
+            "run_on_fail": true
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-stop/output-validator"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-stop/auto-spawn-quality"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-stop/multi-claude-verifier"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-stop/subagent-quality-gate"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-stop/task-completer"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-stop/retry-handler"
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-stop/sync-subagent-stop-dispatcher",
+            "timeout": 15000
           }
         ]
       }
@@ -273,17 +251,8 @@
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs notification/unified-dispatcher",
-            "async": true
-          }
-        ]
-      },
-      {
-        "matcher": "permission_prompt|idle_prompt|auth_success",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs notification/sound",
-            "async": true
+            "async": true,
+            "timeout": 30000
           }
         ]
       }
@@ -293,7 +262,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/pre-compact-saver"
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/pre-compact-saver",
+            "timeout": 10000
           }
         ]
       }
@@ -303,15 +273,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs teammate-idle/progress-reporter"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs teammate-idle/team-synthesis-trigger"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs teammate-idle/team-quality-gate"
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs teammate-idle/unified-dispatcher",
+            "timeout": 15000
           }
         ]
       }
@@ -321,7 +284,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs task-completed/completion-tracker"
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs task-completed/completion-tracker",
+            "timeout": 10000
           }
         ]
       }
@@ -331,7 +295,17 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs worktree/worktree-lifecycle-logger"
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs worktree/worktree-lifecycle-logger",
+            "timeout": 10000
+          },
+          {
+            "type": "http",
+            "url": "${ORCHESTKIT_HOOK_URL}/worktree",
+            "timeout": 5000,
+            "headers": {
+              "Authorization": "Bearer $ORCHESTKIT_HOOK_TOKEN"
+            },
+            "allowedEnvVars": ["ORCHESTKIT_HOOK_TOKEN", "ORCHESTKIT_HOOK_URL"]
           }
         ]
       }
@@ -341,7 +315,29 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs worktree/worktree-lifecycle-logger"
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs worktree/worktree-lifecycle-logger",
+            "timeout": 10000
+          },
+          {
+            "type": "http",
+            "url": "${ORCHESTKIT_HOOK_URL}/worktree",
+            "timeout": 5000,
+            "headers": {
+              "Authorization": "Bearer $ORCHESTKIT_HOOK_TOKEN"
+            },
+            "allowedEnvVars": ["ORCHESTKIT_HOOK_TOKEN", "ORCHESTKIT_HOOK_URL"]
+          }
+        ]
+      }
+    ],
+    "ConfigChange": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs config-change/settings-reload",
+            "async": true,
+            "timeout": 30000
           }
         ]
       }
@@ -351,31 +347,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs setup/unified-dispatcher",
-            "async": true
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs setup/setup-check",
-            "once": true
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs setup/first-run-setup",
-            "once": true
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs setup/setup-maintenance"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs setup/setup-repair"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs setup/monorepo-detector",
-            "once": true
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs setup/sync-setup-dispatcher",
+            "timeout": 120000
           }
         ]
       }

@@ -1,64 +1,19 @@
 ---
 title: Choosing a Plugin
-description: "orkl vs ork — start universal, upgrade when you need specialized skills."
+description: "OrchestKit is one unified plugin — ork."
 ---
 
-OrchestKit ships as three plugins. Both orkl and ork include **all 37 agents** and **87 hooks**. The difference is skill coverage.
+## One Plugin
 
-## Quick Decision
-
-```
-Do you use Python, React, LLM/RAG, or LangGraph?
-  │
-  ├─ YES ──▶ Install ork (67 skills, full specialized)
-  │
-  └─ NO ───▶ Install orkl (46 skills, universal toolkit)
-              └─ Need video production? Add ork-creative (2 skills)
-```
-
-## Comparison
-
-| | **orkl** (Universal) | **ork-creative** (Video) | **ork** (Full) |
-|---|---|---|---|
-| **Skills** | 46 | 2 | 67 |
-| **Agents** | 37 | 1 | 37 |
-| **Hooks** | 87 | 87 | 87 |
-| **Workflows** | All (/commit, /verify, /implement...) | - | All |
-| **Memory** | All 3 tiers | - | All 3 tiers |
-| **Security** | OWASP, defense-in-depth | - | All + LLM safety |
-| **Git** | Full workflow | - | Full workflow |
-| **CI/CD** | GitHub Actions, deployment | - | All |
-| **Video** | - | Storyboarding, Remotion, demos | All |
-| **Python/FastAPI** | - | - | SQLAlchemy, Celery, Alembic, asyncio |
-| **React/Next.js** | - | - | RSC, TanStack, Radix, shadcn, Motion |
-| **LLM/RAG** | - | - | LangGraph, embeddings, evals, RAG |
-| **MCP** | - | - | MCP servers, security hardening |
-| **GraphQL** | - | - | Strawberry, gRPC |
-
-## Install
+OrchestKit ships as a single plugin: **ork** — 69 skills, 38 agents, 85 hooks.
 
 ```bash
-# Universal — works for any stack
-claude install orchestkit/orkl
-
-# Video production add-on
-claude install orchestkit/ork-creative
-
-# Full — includes Python, React, LLM/RAG specializations
 claude install orchestkit/ork
 ```
 
-You can switch at any time. Installing `ork` over `orkl` is non-destructive — it adds skills, never removes.
-
-## Recommendation
-
-**Start with `orkl`** if you're unsure. It covers all workflows, security, memory, and CI/CD. Upgrade to `ork` when you need deep Python, React, or AI/LLM expertise.
-
-**Add `ork-creative`** if you need video production — demo recording, Remotion compositions, storyboarding, and content creation tools.
-
-**Start with `ork`** if you're building with FastAPI, React/Next.js, or LLM-powered applications. The extra 17 skills give agents significantly deeper knowledge in these domains.
+That is all you need. Skills load on-demand, so there is no overhead from unused skills.
 
 ## Next Steps
 
-- **[Installation](/docs/getting-started/installation)** — Install your chosen plugin
+- **[Installation](/docs/getting-started/installation)** — Full install guide with verification
 - **[First 10 Minutes](/docs/getting-started/first-10-minutes)** — Guided first session

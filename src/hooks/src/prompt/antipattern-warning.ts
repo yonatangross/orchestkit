@@ -7,7 +7,7 @@
  */
 
 import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, outputPromptContext, logHook, getProjectDir } from '../lib/common.js';
+import { outputSilentSuccess, outputPromptContext, logHook, getProjectDir, writeRulesFile } from '../lib/common.js';
 import { getHomeDir } from '../lib/paths.js';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -96,18 +96,22 @@ function isImplementationPrompt(prompt: string): boolean {
 }
 
 /**
- * Search local patterns for anti-patterns
+ * Materialize static KNOWN_ANTIPATTERNS to a rules file (called once at session start).
+ * This replaces per-turn runtime matching with a static file Claude reads automatically.
+ */
+export function materializeAntipatternRules(projectDir: string): void {
+  const lines = KNOWN_ANTIPATTERNS.map(({ pattern, warning }) => `- **${pattern}**: ${warning}`);
+  const content = `# Anti-Pattern Warnings\n\nAvoid these known anti-patterns:\n\n${lines.join('\n')}\n`;
+  const rulesDir = join(projectDir, '.claude', 'rules');
+  writeRulesFile(rulesDir, 'antipatterns.md', content, 'antipattern-warning');
+}
+
+/**
+ * Search local patterns for anti-patterns (dynamic learned patterns only — static patterns are in rules file)
  */
 function searchLocalAntipatterns(prompt: string, projectDir: string): string[] {
   const promptLower = prompt.toLowerCase();
   const warnings: string[] = [];
-
-  // Check known anti-patterns
-  for (const { pattern, warning } of KNOWN_ANTIPATTERNS) {
-    if (promptLower.includes(pattern)) {
-      warnings.push(warning);
-    }
-  }
 
   // Check learned patterns file
   const patternsFile = join(projectDir, '.claude', 'feedback', 'learned-patterns.json');

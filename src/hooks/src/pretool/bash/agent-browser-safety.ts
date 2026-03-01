@@ -22,7 +22,7 @@ import {
 } from '../../lib/common.js';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 
 // =============================================================================
 // Configuration
@@ -46,12 +46,22 @@ const ROBOTS_CACHE_TTL = parseInt(process.env.AGENT_BROWSER_ROBOTS_CACHE_TTL || 
  * Blocked URL patterns for agent-browser
  */
 const BLOCKED_URL_PATTERNS = [
-  /localhost.*admin/i,
-  /127\.0\.0\.1.*admin/i,
+  /localhost/i,
+  /127\.0\.0\.1/i,
   /internal\./i,
   /intranet\./i,
   /\.local\//i,
   /file:\/\//i,
+  // Cloud metadata endpoints (SSRF prevention)
+  /169\.254\.169\.254/i,
+  /metadata\.google\.internal/i,
+  /100\.100\.100\.200/i,
+  /\[::1\]/i,
+  /^https?:\/\/0\.0\.0\.0/i,
+  // Private network ranges (RFC 1918)
+  /^https?:\/\/10\.\d+\.\d+\.\d+/i,
+  /^https?:\/\/172\.(1[6-9]|2\d|3[01])\.\d+\.\d+/i,
+  /^https?:\/\/192\.168\.\d+\.\d+/i,
   // Auth/OAuth provider domains - sensitive login pages
   /accounts\.google\.com/i,
   /login\.microsoftonline\.com/i,
@@ -298,12 +308,8 @@ function fetchRobotsTxt(origin: string): RobotsCacheEntry | null {
   // Fetch robots.txt (synchronous with timeout)
   const robotsUrl = `${origin}/robots.txt`;
   try {
-    // Reject URLs containing shell metacharacters to prevent command injection
-    if (/[`$\\;"'|&<>(){}!\n\r]/.test(robotsUrl)) {
-      return null;
-    }
-    // Use curl with timeout for synchronous fetch
-    const result = execSync(`curl -sL --max-time 5 "${robotsUrl}"`, {
+    // Use execFileSync to avoid shell injection — arguments are passed directly
+    const result = execFileSync('curl', ['-sL', '--max-time', '5', robotsUrl], {
       encoding: 'utf-8',
       timeout: 6000,
       stdio: ['pipe', 'pipe', 'pipe'],

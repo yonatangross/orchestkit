@@ -1,7 +1,7 @@
 ---
 name: browser-tools
 license: MIT
-compatibility: "Claude Code 2.1.56+. Requires network access."
+compatibility: "Claude Code 2.1.59+. Requires network access."
 description: OrchestKit orchestration wrapper for browser automation. Adds security rules, rate limiting, and ethical scraping guardrails on top of the upstream agent-browser skill. Use when automating browser workflows, capturing web content, or extracting structured data from web pages.
 tags: [browser, automation, playwright, puppeteer, scraping, content-capture]
 context: fork
@@ -9,9 +9,16 @@ agent: web-research-analyst
 version: 2.1.0
 author: OrchestKit
 user-invocable: false
+disable-model-invocation: true
 complexity: medium
 metadata:
   category: mcp-enhancement
+allowed-tools:
+  - Read
+  - Glob
+  - Grep
+  - WebFetch
+  - WebSearch
 ---
 
 # Browser Tools

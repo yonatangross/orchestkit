@@ -32,7 +32,8 @@ import { agentBrowserSafety } from '../pretool/bash/agent-browser-safety.js';
 import { commitAtomicityChecker } from '../pretool/bash/commit-atomicity-checker.js';
 import { issueReferenceChecker } from '../pretool/bash/issue-reference-checker.js';
 
-// PreTool/Write-Edit hooks (1)
+// PreTool/Write-Edit hooks (2)
+import { contentSecretScanner } from '../pretool/write-edit/content-secret-scanner.js';
 import { fileGuard } from '../pretool/write-edit/file-guard.js';
 
 // PreTool/Write hooks (4)
@@ -41,9 +42,10 @@ import { codeQualityGate } from '../pretool/Write/code-quality-gate.js';
 import { docstringEnforcer } from '../pretool/Write/docstring-enforcer.js';
 import { securityPatternValidator } from '../pretool/Write/security-pattern-validator.js';
 
-// PreTool/MCP hooks (2)
+// PreTool/MCP hooks (3)
 import { context7Tracker } from '../pretool/mcp/context7-tracker.js';
 import { memoryValidator } from '../pretool/mcp/memory-validator.js';
+import { notebooklmAdvisor } from '../pretool/mcp/notebooklm-advisor.js';
 
 // PreTool/InputMod hooks (1)
 import { writeHeaders } from '../pretool/input-mod/write-headers.js';
@@ -61,6 +63,11 @@ import { teamSizeGate } from '../pretool/task/team-size-gate.js';
 import { unifiedBashAdvisoryDispatcher } from '../pretool/bash/unified-advisory-dispatcher.js';
 import { unifiedWriteEditQualityDispatcher } from '../pretool/write-edit/unified-quality-dispatcher.js';
 import { unifiedAgentSafetyDispatcher } from '../pretool/task/unified-agent-safety-dispatcher.js';
+
+// Sync dispatchers (3) — consolidate per-matcher hooks into single process (#868)
+import { syncBashDispatcher } from '../pretool/bash/sync-bash-dispatcher.js';
+import { syncWriteEditDispatcher } from '../pretool/write-edit/sync-write-edit-dispatcher.js';
+import { syncTaskDispatcher } from '../pretool/task/sync-task-dispatcher.js';
 
 import type { HookFn } from '../types.js';
 
@@ -89,7 +96,8 @@ export const hooks: Record<string, HookFn> = {
   'pretool/bash/commit-atomicity-checker': commitAtomicityChecker,
   'pretool/bash/issue-reference-checker': issueReferenceChecker,
 
-  // PreTool/Write-Edit hooks (1)
+  // PreTool/Write-Edit hooks (2)
+  'pretool/write-edit/content-secret-scanner': contentSecretScanner,
   'pretool/write-edit/file-guard': fileGuard,
 
   // PreTool/Write hooks (4)
@@ -98,9 +106,10 @@ export const hooks: Record<string, HookFn> = {
   'pretool/Write/docstring-enforcer': docstringEnforcer,
   'pretool/Write/security-pattern-validator': securityPatternValidator,
 
-  // PreTool/MCP hooks (2)
+  // PreTool/MCP hooks (3)
   'pretool/mcp/context7-tracker': context7Tracker,
   'pretool/mcp/memory-validator': memoryValidator,
+  'pretool/mcp/notebooklm-advisor': notebooklmAdvisor,
 
   // PreTool/InputMod hooks (1)
   'pretool/input-mod/write-headers': writeHeaders,
@@ -118,6 +127,11 @@ export const hooks: Record<string, HookFn> = {
   'pretool/bash/unified-advisory-dispatcher': unifiedBashAdvisoryDispatcher,
   'pretool/write-edit/unified-quality-dispatcher': unifiedWriteEditQualityDispatcher,
   'pretool/task/unified-agent-safety-dispatcher': unifiedAgentSafetyDispatcher,
+
+  // Sync dispatchers (3) — per-matcher consolidation (#868)
+  'pretool/bash/sync-bash-dispatcher': syncBashDispatcher,
+  'pretool/write-edit/sync-write-edit-dispatcher': syncWriteEditDispatcher,
+  'pretool/task/sync-task-dispatcher': syncTaskDispatcher,
 };
 
 export function getHook(name: string): HookFn | undefined {

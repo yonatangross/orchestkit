@@ -4,132 +4,119 @@
 import type { Totals, AgentSummary, CategoryMeta } from "./types";
 
 export const TOTALS: Totals = {
-  "plugins": 3,
-  "skills": 67,
+  "plugins": 1,
+  "skills": 69,
   "agents": 38,
-  "hooks": 77,
-  "commands": 28,
+  "hooks": 96,
+  "commands": 17,
   "compositions": 14
 };
 
 export const AGENTS: AgentSummary[] = [
   {
     "name": "accessibility-specialist",
-    "description": "Accessibility expert who audits and implements WCAG 2.2 compliance, screen reader compatibility, and keyboard navigation patterns. Focuses on inclusive design, ARIA patterns, and automated a11y testing. Auto Mode keywords - accessibility, a11y, WCAG, screen reader, keyboard navigation, ARIA, inclusive design, contrast, focus management",
+    "description": "Accessibility expert: WCAG 2.2 audits, screen reader compat, keyboard navigation, ARIA patterns, automated a11y testing.",
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "model": "sonnet",
     "category": "frontend"
   },
   {
     "name": "ai-safety-auditor",
-    "description": "AI safety and security auditor for LLM systems. Red teaming, prompt injection, jailbreak testing, guardrail validation, OWASP LLM compliance. Use for safety audit, security audit, red team, guardrails, jailbreak, prompt injection, OWASP LLM, vulnerabilities, penetration testing, mcp security, tool poisoning.",
+    "description": "AI safety and security auditor for LLM systems. Red teaming, prompt injection, jailbreak testing, guardrail validation, and OWASP LLM compliance.",
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "model": "opus",
     "category": "security"
   },
   {
     "name": "backend-system-architect",
-    "description": "Backend architect who designs REST/GraphQL APIs, database schemas, microservice boundaries, and distributed systems. Focuses on scalability, security, performance optimization, and clean architecture patterns. Activates for API design, database schema, microservice, backend architecture, REST, GraphQL, distributed systems, endpoint, route, model, migration, authentication, authorization, JWT, OAuth, rate limiting, middleware, service layer, repository pattern, dependency injection",
+    "description": "Backend architect: REST/GraphQL APIs, database schemas, microservice boundaries, distributed systems, clean architecture.",
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "model": "sonnet",
     "category": "backend"
   },
   {
     "name": "business-case-builder",
-    "description": "Business analyst who builds ROI projections, cost-benefit analyses, risk assessments, and investment justifications to support product decisions with financial rationale. Activates for ROI, cost-benefit, risk assessment, investment justification, business case, budget, revenue impact, cost analysis, financial, payback period, NPV, IRR, TCO, revenue projection",
+    "description": "Business analyst who builds ROI projections, cost-benefit analyses, risk assessments, and investment justifications to support product decisions with financial rationale.",
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
-    "model": "sonnet",
+    "model": "haiku",
     "category": "product"
   },
   {
     "name": "ci-cd-engineer",
-    "description": "CI/CD specialist who designs and implements GitHub Actions workflows, GitLab CI pipelines, and automated deployment strategies. Focuses on build optimization, caching, matrix testing, and security scanning integration. Auto Mode keywords - CI/CD, pipeline, GitHub Actions, GitLab CI, workflow, build, deploy, artifact, cache, matrix testing, release automation",
+    "description": "CI/CD specialist: GitHub Actions, GitLab CI pipelines, deployment automation, build optimization, caching, security scanning.",
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
-    "model": "haiku",
+    "model": "sonnet",
     "category": "devops"
   },
   {
     "name": "code-quality-reviewer",
-    "description": "Quality assurance expert who reviews code for bugs, security vulnerabilities, performance issues, and compliance with best practices. Runs linting, type checking, ensures test coverage, and validates architectural patterns. Auto Mode keywords: test, review, quality, lint, security, coverage, audit, validate, CI, pipeline, check, verify, type-check",
+    "description": "Code quality reviewer: bug detection, security vulnerabilities, performance issues, linting, type checking, test coverage.",
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "model": "sonnet",
     "category": "testing"
   },
   {
     "name": "data-pipeline-engineer",
-    "description": "Data pipeline specialist who generates embeddings, implements chunking strategies, manages vector indexes, and transforms raw data for AI consumption. Ensures data quality and optimizes batch processing for production scale. Activates for embeddings, chunking, vector index, data pipeline, batch processing, ETL, regenerate embeddings, cache warming, data transformation, data quality, vector rebuild, embedding cache",
+    "description": "Data pipeline specialist: embeddings, chunking strategies, vector indexes, data transformation for AI consumption.",
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
-    "model": "sonnet",
+    "model": "haiku",
     "category": "data"
   },
   {
     "name": "database-engineer",
-    "description": "PostgreSQL specialist who designs schemas, creates migrations, optimizes queries, and configures pgvector/full-text search. Uses pg-aiguide MCP for best practices and produces Alembic migrations with proper constraints and indexes. Auto Mode keywords: database, schema, migration, PostgreSQL, pgvector, SQL, Alembic, index, constraint",
+    "description": "PostgreSQL specialist: schema design, migrations, query optimization, pgvector/full-text search, Alembic migrations.",
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "model": "sonnet",
     "category": "backend"
   },
   {
     "name": "debug-investigator",
-    "description": "Debug specialist who performs systematic root cause analysis on bugs, errors, exceptions, crashes, and failures. Uses scientific method to isolate issues, traces execution paths, analyzes logs and stack traces. Use when investigating broken functionality, debugging regressions, or analyzing flaky tests.",
+    "description": "Debug specialist: systematic root cause analysis, execution path tracing, log and stack trace analysis.",
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "model": "sonnet",
     "category": "testing"
   },
   {
     "name": "demo-producer",
-    "description": "Universal demo video producer that creates polished marketing videos for any content - skills, agents, plugins, tutorials, CLI tools, or code walkthroughs. Uses VHS terminal recording and Remotion composition. Activates for demo, video, marketing, showcase, terminal recording, VHS, remotion, tutorial, screencast",
+    "description": "Universal demo video producer that creates polished marketing videos for any content - skills, agents, plugins, tutorials, CLI tools, or code walkthroughs. Uses VHS terminal recording and Remotion composition.",
     "plugins": [
-      "ork",
-      "ork-creative",
-      "orkl"
+      "ork"
     ],
     "model": "sonnet",
     "category": "development"
   },
   {
     "name": "deployment-manager",
-    "description": "Release and deployment specialist who manages production releases, rollback procedures, feature flags, and blue-green deployments. Focuses on zero-downtime deployments and incident response. Auto Mode keywords - deployment, release, rollback, blue-green, canary, feature flag, zero-downtime, production, rollout, incident",
+    "description": "Deployment specialist: production releases, rollback procedures, feature flags, blue-green/zero-downtime deployments.",
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
-    "model": "sonnet",
+    "model": "haiku",
     "category": "devops"
   },
   {
     "name": "documentation-specialist",
-    "description": "Technical writing and documentation expert. API docs, READMEs, technical guides, ADRs, changelogs, OpenAPI specs. Use for documentation, readme, api-docs, technical-writing, adr, changelog, openapi, swagger, doc-generation.",
+    "description": "Technical writing and documentation expert. API docs, READMEs, technical guides, ADRs, changelogs, and OpenAPI specs.",
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "model": "haiku",
     "category": "development"
@@ -138,218 +125,196 @@ export const AGENTS: AgentSummary[] = [
     "name": "eval-runner",
     "description": "LLM evaluation specialist who runs structured eval datasets, computes quality metrics using DeepEval/RAGAS, tracks regression across model versions, and reports to Langfuse for tracing and scoring.",
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
-    "model": "sonnet",
+    "model": "haiku",
     "category": "development"
   },
   {
     "name": "event-driven-architect",
-    "description": "Event-driven architecture specialist who designs event sourcing systems, message queue topologies, and CQRS patterns. Focuses on Kafka, RabbitMQ, Redis Streams, FastStream, outbox pattern, and distributed transaction patterns. Auto Mode keywords - event sourcing, message queue, Kafka, RabbitMQ, pub/sub, CQRS, event-driven, async, saga, event store, outbox, CDC, Debezium",
+    "description": "Event-driven architecture specialist who designs event sourcing systems, message queue topologies, and CQRS patterns. Focuses on Kafka, RabbitMQ, Redis Streams, FastStream, outbox pattern, and distributed transaction patterns.",
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "model": "opus",
     "category": "backend"
   },
   {
     "name": "frontend-performance-engineer",
-    "description": "Performance engineer who optimizes Core Web Vitals, analyzes bundles, profiles render performance, and sets up RUM. Activates for performance, Core Web Vitals, LCP, INP, CLS, bundle size, Lighthouse, optimization, slow, latency, profiling, metrics, RUM, bundle, chunk, splitting, speed",
+    "description": "Performance engineer who optimizes Core Web Vitals, analyzes bundles, profiles render performance, and sets up RUM.",
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "model": "sonnet",
     "category": "development"
   },
   {
     "name": "frontend-ui-developer",
-    "description": "Frontend developer who builds React 19/TypeScript components with optimistic updates, concurrent features, Zod-validated APIs, exhaustive type safety, and modern 2026 patterns. Activates for React, TypeScript, component, UI, frontend, optimistic updates, Zod, concurrent, TSX, hook, TanStack, Suspense, skeleton, form, validation, mutation, lazy loading, view transitions, scroll animations, PWA, charts, dashboard",
+    "description": "Frontend developer: React 19/TypeScript components, optimistic updates, Zod-validated APIs, modern 2026 patterns.",
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "model": "sonnet",
     "category": "frontend"
   },
   {
     "name": "git-operations-engineer",
-    "description": "Git operations specialist who manages branches, commits, rebases, merges, stacked PRs, and recovery operations. Ensures clean commit history and proper branching workflows. Auto Mode keywords - git, branch, commit, rebase, merge, stacked, recovery, reflog, cherry-pick, worktree, squash, reset",
+    "description": "Git operations: branch management, rebases, merges, stacked PRs, recovery operations, clean commit history.",
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "model": "haiku",
     "category": "development"
   },
   {
     "name": "infrastructure-architect",
-    "description": "Infrastructure as Code specialist who designs Terraform modules, Kubernetes manifests, and cloud architecture. Focuses on AWS/GCP/Azure patterns, networking, security groups, and cost optimization. Auto Mode keywords - infrastructure, Terraform, Kubernetes, AWS, GCP, Azure, VPC, EKS, RDS, cloud architecture, IaC",
+    "description": "Infrastructure as Code specialist who designs Terraform modules, Kubernetes manifests, and cloud architecture. Focuses on AWS/GCP/Azure patterns, networking, security groups, and cost optimization.",
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "model": "sonnet",
     "category": "devops"
   },
   {
     "name": "llm-integrator",
-    "description": "LLM integration specialist who connects to OpenAI/Anthropic/Ollama APIs, designs prompt templates, implements function calling and streaming, and optimizes token costs with caching strategies. Activates for LLM, OpenAI, Anthropic, Ollama, prompt, function calling, streaming, token keywords.",
+    "description": "LLM integration: OpenAI/Anthropic/Ollama APIs, prompt templates, function calling, streaming, token cost optimization.",
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "model": "sonnet",
     "category": "ai"
   },
   {
     "name": "market-intelligence",
-    "description": "Market research specialist who analyzes competitive landscapes, identifies market trends, sizes opportunities (TAM/SAM/SOM), and surfaces threats/opportunities to inform product strategy. Activates for market research, competitor, TAM, SAM, SOM, market size, competitive landscape keywords.",
+    "description": "Market research: competitive landscapes, market trends, TAM/SAM/SOM sizing, threat/opportunity analysis.",
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
-    "model": "sonnet",
+    "model": "haiku",
     "category": "product"
   },
   {
     "name": "metrics-architect",
-    "description": "Metrics specialist who designs OKRs, KPIs, success criteria, and instrumentation plans to measure product outcomes and validate hypotheses. Activates for OKR, KPI, metrics, success criteria, instrumentation keywords.",
+    "description": "Metrics specialist who designs OKRs, KPIs, success criteria, and instrumentation plans to measure product outcomes and validate hypotheses.",
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
-    "model": "sonnet",
+    "model": "haiku",
     "category": "product"
   },
   {
     "name": "monitoring-engineer",
-    "description": "Observability and monitoring specialist. Prometheus metrics, Grafana dashboards, alerting rules, distributed tracing, log aggregation, SLOs/SLIs. Use for monitoring, prometheus, grafana, alerting, tracing, opentelemetry, metrics, observability, logs, slo, sli.",
+    "description": "Observability and monitoring specialist. Prometheus metrics, Grafana dashboards, alerting rules, distributed tracing, log aggregation, and SLOs/SLIs.",
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
-    "model": "sonnet",
+    "model": "haiku",
     "category": "devops"
   },
   {
     "name": "multimodal-specialist",
-    "description": "Vision, audio, and video processing specialist who integrates GPT-5, Claude 4.5, Gemini 3, and Grok 4 for image analysis, transcription, and multimodal RAG. Activates for vision, image, audio, video, multimodal, whisper, tts, transcription, speech-to-text, document vision, OCR, captioning, CLIP, visual keywords.",
+    "description": "Vision, audio, video generation, and multimodal processing specialist who integrates Claude Opus 4.6, GPT-5, Gemini 2.5/3, Grok 4, Kling 3.0, Sora 2, Veo 3.1, and Runway Gen-4.5 for image analysis, transcription, AI video generation, and multimodal RAG.",
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "model": "sonnet",
     "category": "ai"
   },
   {
     "name": "prioritization-analyst",
-    "description": "Prioritization specialist who scores features using RICE/ICE/WSJF frameworks, analyzes opportunity costs, manages backlog ranking, and recommends what to build next based on value and effort. Activates for RICE, ICE, WSJF, prioritization, backlog, opportunity cost keywords.",
+    "description": "Prioritization specialist who scores features using RICE/ICE/WSJF frameworks, analyzes opportunity costs, manages backlog ranking, and recommends what to build next based on value and effort.",
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "model": "haiku",
     "category": "product"
   },
   {
     "name": "product-strategist",
-    "description": "Product strategy specialist who validates value propositions, aligns features with business goals, evaluates build/buy/partner decisions, and recommends go/no-go with strategic rationale. Activates for product strategy, value proposition, build/buy/partner, go/no-go",
+    "description": "Product strategist: value proposition validation, feature-business alignment, build/buy/partner decisions, go/no-go.",
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "model": "sonnet",
     "category": "product"
   },
   {
     "name": "prompt-engineer",
-    "description": "Expert prompt designer and optimizer. Chain-of-thought, few-shot learning, structured outputs, prompt versioning, A/B testing, cost optimization. Use for prompts, prompt-engineering, cot, few-shot, prompt design, prompt optimization, structured-output, a-b-testing, cost-optimization, prompt-testing, evaluation.",
+    "description": "Expert prompt designer and optimizer. Chain-of-thought, few-shot learning, structured outputs, prompt versioning, A/B testing, and cost optimization.",
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "model": "sonnet",
     "category": "ai"
   },
   {
     "name": "python-performance-engineer",
-    "description": "Python performance specialist who profiles, optimizes, and benchmarks Python applications. Focuses on memory optimization, async performance, database query optimization, caching strategies, and load testing. Activates for performance, profiling, memory leak, slow query, optimization, bottleneck, benchmark, latency, throughput, cProfile, memory_profiler, scalability, connection pool, cache, N+1",
+    "description": "Python performance: profiling, memory optimization, async performance, database query optimization, caching, load testing.",
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "model": "sonnet",
     "category": "backend"
   },
   {
     "name": "rapid-ui-designer",
-    "description": "UI/UX designer specializing in rapid prototyping with Tailwind CSS. Creates design systems, component specifications, responsive layouts, and accessibility-compliant mockups that bridge design and implementation. Activates for UI, UX, prototype, Tailwind, design system, component, mockup",
+    "description": "UI/UX designer: rapid Tailwind CSS prototyping, design systems, component specs, responsive layouts, accessible mockups.",
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
-    "model": "sonnet",
+    "model": "haiku",
     "category": "frontend"
   },
   {
     "name": "release-engineer",
-    "description": "Release and versioning specialist who manages GitHub releases, milestones, changelogs, and semantic versioning. Handles release automation and project tracking. Auto Mode keywords - release, milestone, changelog, tag, version, semver, sprint, roadmap",
+    "description": "Release and versioning specialist who manages GitHub releases, milestones, changelogs, and semantic versioning. Handles release automation and project tracking.",
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "model": "haiku",
     "category": "devops"
   },
   {
     "name": "requirements-translator",
-    "description": "Requirements specialist who transforms ambiguous ideas into clear PRDs, user stories with acceptance criteria, and scoped specifications ready for engineering handoff. Activates for PRD, user story, acceptance criteria, requirements, specification",
+    "description": "Requirements specialist who transforms ambiguous ideas into clear PRDs, user stories with acceptance criteria, and scoped specifications ready for engineering handoff.",
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
-    "model": "haiku",
+    "model": "sonnet",
     "category": "product"
   },
   {
     "name": "security-auditor",
-    "description": "Security specialist who scans for vulnerabilities, audits dependencies, checks OWASP Top 10 compliance, and identifies secrets/credentials in code. Returns actionable findings with severity and remediation steps. Auto Mode keywords - security, vulnerability, CVE, audit, OWASP, injection, XSS, CSRF, secrets, credentials, npm audit, pip-audit, bandit",
+    "description": "Security auditor: vulnerability scanning, dependency audits, OWASP Top 10 compliance, secrets detection, remediation.",
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "model": "opus",
     "category": "security"
   },
   {
     "name": "security-layer-auditor",
-    "description": "Security layer auditor who verifies defense-in-depth implementation across 8 security layers, from edge to storage, ensuring comprehensive protection. Auto Mode keywords - security layer, defense-in-depth, security audit, 8 layers",
+    "description": "Security layer auditor who verifies defense-in-depth implementation across 8 security layers, from edge to storage, ensuring comprehensive protection.",
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "model": "opus",
     "category": "security"
   },
   {
     "name": "system-design-reviewer",
-    "description": "System design reviewer who evaluates implementation plans against scale, data, security, UX, and coherence criteria before code is written. Auto Mode keywords: system design, architecture review, scale, security review, implementation plan",
+    "description": "System design reviewer who evaluates implementation plans against scale, data, security, UX, and coherence criteria before code is written.",
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "model": "opus",
     "category": "development"
   },
   {
     "name": "test-generator",
-    "description": "Test specialist who analyzes code coverage gaps, generates unit/integration tests, and creates test fixtures. Uses MSW for API mocking and VCR.py for HTTP recording. Produces runnable tests with meaningful assertions. Activates for test, coverage, unit test, integration test, MSW, VCR, fixture",
+    "description": "Test specialist: coverage gap analysis, unit/integration test generation, fixtures, API mocking (MSW), HTTP recording.",
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "model": "sonnet",
     "category": "testing"
@@ -358,38 +323,34 @@ export const AGENTS: AgentSummary[] = [
     "name": "ui-feedback",
     "description": "Processes UI annotations from agentation. Watches for new annotations, maps element paths to source code, implements fixes, and resolves annotations with summaries.",
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "model": "sonnet",
     "category": "development"
   },
   {
     "name": "ux-researcher",
-    "description": "User research specialist who creates personas, maps user journeys, validates design decisions, and ensures features solve real user problems through data-driven insights and behavioral analysis. Auto-activates for user research, persona, user journey, usability, user testing, insights",
+    "description": "User researcher: personas, user journey mapping, design validation, behavioral analysis, data-driven insights.",
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
-    "model": "sonnet",
+    "model": "haiku",
     "category": "frontend"
   },
   {
     "name": "web-research-analyst",
-    "description": "Web research specialist using browser automation and Tavily API for competitive intelligence, market research, documentation capture, and technical reconnaissance. Activates for web research, scraping, competitor analysis, documentation capture, browser automation, web scraping, content extraction, tavily",
+    "description": "Web research: browser automation, Tavily API, competitive intelligence, documentation capture, technical recon.",
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "model": "sonnet",
     "category": "research"
   },
   {
     "name": "workflow-architect",
-    "description": "Multi-agent workflow specialist who designs LangGraph pipelines, implements supervisor-worker patterns, manages state and checkpointing, and orchestrates RAG retrieval flows for complex AI systems. Auto-activates for LangGraph, workflow, supervisor, state, checkpoint, RAG, multi-agent",
+    "description": "Multi-agent workflow: LangGraph pipelines, supervisor-worker patterns, state/checkpointing, RAG orchestration.",
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "model": "opus",
     "category": "ai"
@@ -440,39 +401,43 @@ export const CATEGORIES: Record<string, CategoryMeta> = {
 };
 
 export const SKILLS_SUMMARY = {
-  "orkl": {
+  "ork": {
     "workflows": [
-      "explore",
-      "implement",
-      "verify",
       "commit",
+      "explore",
       "git-workflow",
+      "implement",
+      "issue-progress-tracking",
+      "langgraph",
       "task-dependency-patterns",
-      "web-research-workflow",
-      "issue-progress-tracking"
+      "verify"
     ],
     "memory": [
       "doctor",
-      "remember",
       "memory",
-      "memory-fabric"
+      "memory-fabric",
+      "remember"
     ],
     "product": [
       "product-frameworks"
     ],
     "git": [
-      "review-pr",
-      "create-pr",
-      "commit",
-      "fix-issue",
+      "api-design",
       "assess",
-      "remember",
+      "code-review-playbook",
+      "commit",
+      "create-pr",
+      "demo-producer",
       "feedback",
-      "api-design"
+      "fix-issue"
+    ],
+    "video": [
+      "demo-producer",
+      "multimodal-llm"
     ],
     "accessibility": [
-      "testing-patterns",
-      "accessibility"
+      "accessibility",
+      "testing-patterns"
     ],
     "devops": [
       "devops-deployment",
@@ -480,69 +445,56 @@ export const SKILLS_SUMMARY = {
       "web-research-workflow"
     ],
     "testing": [
-      "verify",
-      "review-pr",
       "architecture-patterns",
+      "golden-dataset",
+      "llm-integration",
+      "review-pr",
       "testing-patterns",
-      "golden-dataset"
+      "verify"
     ],
     "security": [
+      "audit-full",
+      "mcp-patterns",
       "review-pr",
       "security-patterns"
     ],
     "python": [
+      "async-jobs",
       "domain-driven-design",
+      "python-backend",
       "testing-patterns"
     ],
     "react": [
       "accessibility",
-      "performance"
-    ],
-    "llm": [
-      "security-patterns",
-      "testing-patterns",
-      "golden-dataset",
-      "performance"
-    ],
-    "backend": [
-      "explore",
-      "plan-viz",
-      "api-design",
-      "architecture-patterns",
-      "domain-driven-design",
-      "distributed-systems",
-      "github-operations",
-      "scope-appropriate-architecture"
-    ]
-  },
-  "ork-creative": {},
-  "ork": {
-    "includesAllOrkLite": true,
-    "python": [
-      "async-jobs",
-      "python-backend"
-    ],
-    "react": [
       "i18n-date-patterns",
+      "performance",
       "react-server-components-framework",
       "ui-components",
       "zustand-patterns"
     ],
     "llm": [
+      "golden-dataset",
       "langgraph",
       "llm-integration",
       "mcp-patterns",
       "multimodal-llm",
+      "performance",
       "rag-retrieval",
       "react-server-components-framework"
     ],
     "rag": [
+      "notebooklm",
       "rag-retrieval"
     ],
     "backend": [
+      "api-design",
+      "architecture-decision-record",
+      "architecture-patterns",
+      "ascii-visualizer",
       "audit-full",
-      "python-backend",
-      "vite-advanced"
+      "browser-tools",
+      "distributed-systems",
+      "domain-driven-design"
     ]
   }
 };

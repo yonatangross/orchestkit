@@ -20,8 +20,6 @@
  * - antipattern-detector (merged with antipattern-warning)
  * - antipattern-warning (merged — deduplicated logic)
  * - memory-context (context injection)
- * - context-pruning-advisor (context injection)
- * - pipeline-detector (context injection)
  *
  * Once-per-session hooks consolidated here (file-based flag tracking):
  * - profile-injector (run once via session flag)
@@ -41,10 +39,12 @@ import {
   logHook,
   estimateTokenCount,
   getProjectDir,
+  getSessionId,
   extractContext,
+  fnv1aHash,
 } from '../lib/common.js';
 import { isImageOrBinaryPrompt, MAX_PROMPT_LENGTH } from '../lib/prompt-guards.js';
-import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 // Import hook implementations — every-turn
@@ -52,8 +52,6 @@ import { satisfactionDetector } from './satisfaction-detector.js';
 import { communicationStyleTracker } from './communication-style-tracker.js';
 import { antipatternWarning } from './antipattern-warning.js';
 import { memoryContext } from './memory-context.js';
-import { contextPruningAdvisor } from './context-pruning-advisor.js';
-import { pipelineDetector } from './pipeline-detector.js';
 import { skillNudgePrompt } from './skill-nudge.js';
 
 // Import hook implementations — once-per-session
@@ -107,10 +105,8 @@ const HOOKS: PromptHookConfig[] = [
   { name: 'communication-style-tracker', fn: communicationStyleTracker, producesContext: false },
 
   // --- Context producers (output merged into single additionalContext) ---
-  { name: 'context-pruning-advisor', fn: contextPruningAdvisor, producesContext: true },
   { name: 'antipattern-warning', fn: antipatternWarning, producesContext: true },
   { name: 'memory-context', fn: memoryContext, producesContext: true },
-  { name: 'pipeline-detector', fn: pipelineDetector, producesContext: true },
   { name: 'skill-nudge-prompt', fn: skillNudgePrompt, producesContext: true },
 ];
 
@@ -144,6 +140,29 @@ function setOnceFlagDone(hookName: string, sessionId: string, projectDir: string
 // extractContext imported from ../lib/common.js (Issue #682)
 
 // -----------------------------------------------------------------------------
+// Noise Filter
+// -----------------------------------------------------------------------------
+
+/**
+ * Detect noisy/low-value context that shouldn't consume token budget.
+ * Returns true if the context is only bracket-enclosed markers or
+ * cross-project context lines with no actionable content.
+ */
+function isNoisyOutput(context: string): boolean {
+  const lines = context.split('\n').filter(l => l.trim().length > 0);
+  if (lines.length === 0) return true;
+
+  return lines.every(line => {
+    const trimmed = line.trim();
+    // [Cross-project context:...] lines
+    if (/^\[Cross-project context:.*\]$/.test(trimmed)) return true;
+    // Bracket-enclosed timestamp markers like [2026-02-28 08:45]
+    if (/^\[\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}.*\]$/.test(trimmed)) return true;
+    return false;
+  });
+}
+
+// -----------------------------------------------------------------------------
 // Dispatcher Implementation
 // -----------------------------------------------------------------------------
 
@@ -167,7 +186,7 @@ export function unifiedPromptDispatcher(input: HookInput): HookResult {
   let totalTokens = 0;
 
   // Resolve session/project for once-flag tracking
-  const sessionId = input.session_id || '';
+  const sessionId = input.session_id || getSessionId();
   const projectDir = input.project_dir || getProjectDir();
 
   for (const hook of HOOKS) {
@@ -205,6 +224,12 @@ export function unifiedPromptDispatcher(input: HookInput): HookResult {
         continue;
       }
 
+      // Filter noisy/low-value context before consuming budget
+      if (isNoisyOutput(context)) {
+        logHook(HOOK_NAME, `${hook.name}: noisy output filtered`);
+        continue;
+      }
+
       // Budget check: don't exceed max output tokens
       const contextTokens = estimateTokenCount(context);
       if (totalTokens + contextTokens > MAX_OUTPUT_TOKENS) {
@@ -229,6 +254,30 @@ export function unifiedPromptDispatcher(input: HookInput): HookResult {
 
   // Single consolidated output
   const consolidated = contextParts.join('\n\n---\n\n');
+
+  // Delta detection: skip injection if consolidated output is unchanged from last turn (#token-reduction)
+  const consolidatedHash = fnv1aHash(consolidated);
+  const hashDir = join(projectDir, '.claude', 'memory', 'sessions', sessionId);
+  const hashFile = join(hashDir, 'prompt-hash.txt');
+
+  try {
+    if (existsSync(hashFile)) {
+      const lastHash = readFileSync(hashFile, 'utf8').trim();
+      if (lastHash === consolidatedHash) {
+        logHook(HOOK_NAME, `Delta skip: consolidated output unchanged (hash=${consolidatedHash})`);
+        return outputSilentSuccess();
+      }
+    }
+    // Write new hash
+    if (!existsSync(hashDir)) {
+      mkdirSync(hashDir, { recursive: true });
+    }
+    writeFileSync(hashFile, consolidatedHash, 'utf8');
+  } catch (err) {
+    logHook(HOOK_NAME, `Delta detection error: ${err}`, 'warn');
+    // Proceed with injection on error
+  }
+
   logHook(HOOK_NAME, `Consolidated ${contextParts.length} hooks into ${totalTokens}t`);
 
   return outputPromptContext(consolidated);

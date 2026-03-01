@@ -1,16 +1,28 @@
 ---
 name: release-management
 license: MIT
-compatibility: "Claude Code 2.1.56+. Requires gh CLI."
+compatibility: "Claude Code 2.1.59+. Requires gh CLI."
 description: GitHub release workflow with semantic versioning, changelogs, and release automation using gh CLI. Use when creating releases, tagging versions, or publishing changelogs.
 context: fork
 version: 1.0.0
 author: OrchestKit
 tags: [git, github, releases, versioning, changelog, automation]
 user-invocable: false
+disable-model-invocation: true
 complexity: low
+model: haiku
 metadata:
   category: document-asset-creation
+allowed-tools:
+  - Read
+  - Glob
+  - Grep
+  - Bash
+  - Write
+  - Edit
+  - TaskCreate
+  - TaskUpdate
+  - TaskList
 ---
 
 # Release Management

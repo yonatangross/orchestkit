@@ -1,0 +1,42 @@
+{
+  "skill": "architecture-decision-record",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "basic-we-need-to-decide",
+      "rule": "",
+      "query": "We need to decide between PostgreSQL and MongoDB for our user service. Document this as an ADR.",
+      "expectedBehavior": [
+        "Creates ADR following Nygard template with numbered title (ADR-NNNN)",
+        "Includes Context section with problem statement and constraints",
+        "Documents Decision with specific actionable language",
+        "Lists Consequences (positive, negative, neutral)",
+        "Documents at least 2 Alternatives Considered with rationale for rejection",
+        "Sets Status to Proposed"
+      ]
+    },
+    {
+      "id": "negative-we-previously-decided-on",
+      "rule": "",
+      "query": "We previously decided on REST (ADR-0003) but now want to move to GraphQL. Create an ADR that supersedes the old one.",
+      "expectedBehavior": [
+        "Creates new ADR with next sequential number, does NOT edit ADR-0003",
+        "Sets Status to Proposed with reference to superseded ADR-0003",
+        "Explains why the original REST decision is being revisited",
+        "Documents the evolution context and new forces at play",
+        "Links back to ADR-0003 in References section"
+      ]
+    },
+    {
+      "id": "negative-fix-the-bug-in",
+      "rule": "",
+      "query": "Fix the bug in our login endpoint that returns 500 when email is null",
+      "expectedBehavior": [
+        "Claude does NOT invoke the architecture-decision-record skill",
+        "Treats this as a bug fix, not an architectural decision",
+        "Uses standard debugging and code editing tools instead",
+        "Does not create an ADR document"
+      ]
+    }
+  ]
+}

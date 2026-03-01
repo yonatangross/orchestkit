@@ -1,7 +1,7 @@
 ---
 name: create-openapi-spec
 description: Create OpenAPI specification with auto-detected API endpoints. Use when creating API documentation.
-user-invocable: true
+user-invocable: false
 argument-hint: [api-name]
 ---
 

@@ -1,0 +1,42 @@
+{
+  "skill": "mcp-patterns",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "negative-build-an-mcp-server",
+      "rule": "",
+      "query": "Build an MCP server that exposes a document search tool and a user profile resource. It needs OAuth 2.1 authentication and should use Streamable HTTP transport for production deployment.",
+      "expectedBehavior": [
+        "Claude uses FastMCP with lifespan for resource management",
+        "Claude implements @mcp.tool() for the search tool with input validation",
+        "Claude implements a Resource for user profiles",
+        "Claude configures OAuth 2.1 with PKCE (S256) and RFC 8707 resource indicators",
+        "Claude uses Streamable HTTP transport (not deprecated SSE)",
+        "Claude returns errors as text content for Claude to interpret",
+        "Claude does NOT return secrets or API keys in tool output"
+      ]
+    },
+    {
+      "id": "negative-im-worried-about-prompt",
+      "rule": "",
+      "query": "I'm worried about prompt injection attacks on my MCP server. How do I harden the tool descriptions and implement zero-trust verification for tool invocations?",
+      "expectedBehavior": [
+        "Claude applies description sanitization and encoding normalization",
+        "Claude implements zero-trust allowlist for tool invocations",
+        "Claude adds hash verification to detect rug pull attacks on tool definitions",
+        "Claude references rules/security-injection.md and rules/security-hardening.md patterns",
+        "Claude does NOT trust tool descriptions without sanitization"
+      ]
+    },
+    {
+      "id": "negative-create-a-rest-api",
+      "rule": "",
+      "query": "Create a REST API with Express.js for a blog application with CRUD endpoints for posts and comments.",
+      "expectedBehavior": [
+        "Claude does NOT invoke the mcp-patterns skill",
+        "Claude builds a standard Express.js REST API",
+        "Claude does not use FastMCP, MCP tools, or MCP transport patterns for a regular REST API"
+      ]
+    }
+  ]
+}

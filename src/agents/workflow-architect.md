@@ -1,12 +1,14 @@
 ---
 name: workflow-architect
-description: Multi-agent workflow specialist who designs LangGraph pipelines, implements supervisor-worker patterns, manages state and checkpointing, and orchestrates RAG retrieval flows for complex AI systems. Auto-activates for LangGraph, workflow, supervisor, state, checkpoint, RAG, multi-agent
+description: "Multi-agent workflow: LangGraph pipelines, supervisor-worker patterns, state/checkpointing, RAG orchestration."
 category: llm
 model: opus
+maxTurns: 40
 permissionMode: plan
 context: fork
 color: blue
 memory: project
+isolation: worktree
 tools:
   - Bash
   - Read
@@ -30,7 +32,11 @@ skills:
   - task-dependency-patterns
   - remember
   - memory
-mcpServers: [memory, context7]
+hooks:
+  PreToolUse:
+    - matcher: "Bash"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
+mcpServers: [context7]
 ---
 ## Directive
 Design LangGraph 1.0 workflow graphs, implement supervisor-worker coordination with Command API, manage state with checkpointing and Store, and orchestrate RAG pipelines for production AI systems.

@@ -1,8 +1,9 @@
 ---
 name: product-strategist
-description: Product strategy specialist who validates value propositions, aligns features with business goals, evaluates build/buy/partner decisions, and recommends go/no-go with strategic rationale. Activates for product strategy, value proposition, build/buy/partner, go/no-go
+description: "Product strategist: value proposition validation, feature-business alignment, build/buy/partner decisions, go/no-go."
 category: product
 model: sonnet
+maxTurns: 30
 context: fork
 color: purple
 memory: project
@@ -27,7 +28,11 @@ skills:
   - github-operations
   - remember
   - memory
-mcpServers: [tavily, memory, context7]
+hooks:
+  PreToolUse:
+    - matcher: "Bash"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs agent/restrict-bash"
+mcpServers: [tavily]
 ---
 ## Directive
 Evaluate product opportunities, validate value propositions, and provide strategic go/no-go recommendations grounded in market context and business goals.

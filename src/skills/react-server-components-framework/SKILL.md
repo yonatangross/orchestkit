@@ -1,7 +1,7 @@
 ---
 name: react-server-components-framework
 license: MIT
-compatibility: "Claude Code 2.1.56+."
+compatibility: "Claude Code 2.1.59+."
 description: Use when building Next.js 16+ apps with React Server Components. Covers App Router, Cache Components (replacing experimental_ppr), streaming SSR, Server Actions, and React 19 patterns for server-first architecture.
 context: fork
 agent: frontend-ui-developer
@@ -9,9 +9,16 @@ version: 1.4.0
 author: AI Agent Hub
 tags: [frontend, react, react-19.2, nextjs-16, server-components, streaming, cache-components]
 user-invocable: false
+disable-model-invocation: true
 complexity: medium
 metadata:
   category: document-asset-creation
+allowed-tools:
+  - Read
+  - Glob
+  - Grep
+  - WebFetch
+  - WebSearch
 ---
 
 # React Server Components Framework

@@ -21,17 +21,9 @@ Upgrade if needed:
 npm install -g @anthropic-ai/claude-code@latest
 ```
 
-### What is the difference between `ork` and `orkl`?
+### How do I install OrchestKit?
 
-OrchestKit ships three plugin tiers:
-
-| Plugin | Skills | Description |
-|--------|--------|-------------|
-| `orkl` | 45 | Universal toolkit -- works for any stack |
-| `ork-creative` | 1 | Video production add-on -- demo recording |
-| `ork` | 62 | Full specialized -- includes orkl + creative + Python, React, LLM/RAG, LangGraph, MCP skills |
-
-Both tiers include all 36 agents, 89 hooks, and all memory skills. The difference is only in specialized reference skills. If you work with Python, React, or LLM pipelines, use `ork`. If you want a lighter install for general development, use `orkl`.
+OrchestKit is a single plugin: **ork** — 69 skills, 38 agents, 85 hooks. Install with `claude install orchestkit/ork`.
 
 ### Can I use OrchestKit with other Claude Code plugins?
 
@@ -51,7 +43,7 @@ This is opt-in via an environment variable. Without it, OrchestKit operates enti
 
 ### How many skills are there?
 
-62 total: 24 command skills (user-invocable via `/ork:skillname`) and 38 reference skills (knowledge modules auto-injected by agents and hooks).
+69 total: 17 command skills (user-invocable via `/ork:skillname`) and 52 reference skills (knowledge modules auto-injected by agents and hooks).
 
 ### What does `complexity: low|medium|high|max` mean?
 
@@ -111,7 +103,7 @@ Yes. Create a markdown file in `src/agents/your-agent.md` with YAML frontmatter.
 
 ### How many hooks are there?
 
-89 total: 66 global hooks, 22 agent-scoped hooks, and 1 skill-scoped hook. They are compiled into 12 split bundles for faster loading.
+78 total: 55 global hooks, 22 agent-scoped hooks, and 1 skill-scoped hook. They are compiled into 12 split bundles for faster loading.
 
 ### What are fire-and-forget hooks?
 

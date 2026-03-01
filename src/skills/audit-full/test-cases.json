@@ -1,0 +1,43 @@
+{
+  "skill": "audit-full",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "basic-run-a-full-security",
+      "rule": "",
+      "query": "Run a full security audit on this entire codebase.",
+      "expectedBehavior": [
+        "Verifies user intent with AskUserQuestion for audit mode and scope",
+        "Creates TaskCreate for main audit and phase subtasks",
+        "Estimates token budget before loading files",
+        "Loads codebase into context in prioritized batches",
+        "Performs cross-file security analysis: data flow tracing, auth boundary verification, secret detection",
+        "Generates structured audit report with severity-classified findings",
+        "Maps findings to OWASP Top 10 categories"
+      ]
+    },
+    {
+      "id": "edge-audit-only-the-files",
+      "rule": "",
+      "query": "Audit only the files changed in this branch compared to main.",
+      "expectedBehavior": [
+        "Scopes audit to git diff against main branch only",
+        "Uses git diff --name-only main...HEAD to identify changed files",
+        "Loads only changed files into context, reducing token budget",
+        "Still performs full security, architecture, and dependency checks on scoped files",
+        "Reports findings relative to the changed file set"
+      ]
+    },
+    {
+      "id": "negative-check-if-this-single",
+      "rule": "",
+      "query": "Check if this single function in src/utils/format.ts handles edge cases correctly.",
+      "expectedBehavior": [
+        "Claude does NOT invoke the audit-full skill",
+        "Uses direct Read and analysis for a single-file targeted check",
+        "audit-full is for whole-project analysis, not individual function review",
+        "Standard tools are more efficient for small scope"
+      ]
+    }
+  ]
+}

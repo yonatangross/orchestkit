@@ -1,7 +1,7 @@
 ---
 name: create-design-doc
 description: Create a design document with auto-filled project context. Use when designing new features or systems.
-user-invocable: true
+user-invocable: false
 argument-hint: [feature-name]
 ---
 

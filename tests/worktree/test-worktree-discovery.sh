@@ -65,27 +65,23 @@ else
 fi
 
 # 4. plugins/ directory exists and contains expected plugin names
-for plugin in ork orkl ork-creative; do
-  if [ -d "$PLUGINS_DIR/$plugin" ]; then
-    pass "plugins/$plugin directory exists"
-  else
-    fail "plugins/$plugin directory missing — run: npm run build"
-  fi
-done
+if [ -d "$PLUGINS_DIR/ork" ]; then
+  pass "plugins/ork directory exists"
+else
+  fail "plugins/ork directory missing — run: npm run build"
+fi
 
-# 5. Each plugin has skills/ and agents/ directories
-for plugin in ork orkl; do
-  if [ -d "$PLUGINS_DIR/$plugin/skills" ]; then
-    pass "plugins/$plugin/skills/ exists"
-  else
-    fail "plugins/$plugin/skills/ missing"
-  fi
-  if [ -d "$PLUGINS_DIR/$plugin/agents" ]; then
-    pass "plugins/$plugin/agents/ exists"
-  else
-    fail "plugins/$plugin/agents/ missing"
-  fi
-done
+# 5. Plugin has skills/ and agents/ directories
+if [ -d "$PLUGINS_DIR/ork/skills" ]; then
+  pass "plugins/ork/skills/ exists"
+else
+  fail "plugins/ork/skills/ missing"
+fi
+if [ -d "$PLUGINS_DIR/ork/agents" ]; then
+  pass "plugins/ork/agents/ exists"
+else
+  fail "plugins/ork/agents/ missing"
+fi
 
 # 6. Skills contain SKILL.md files (not empty directories)
 SKILL_COUNT=$(find "$PLUGINS_DIR/ork/skills" -name "SKILL.md" 2>/dev/null | wc -l | tr -d ' ')

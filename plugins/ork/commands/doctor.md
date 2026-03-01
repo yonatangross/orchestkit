@@ -9,11 +9,19 @@ allowed-tools: [Bash, Read, Grep, Glob]
 
 # OrchestKit Health Diagnostics
 
+## Argument Resolution
+
+```python
+FLAGS = "$ARGUMENTS"         # Full argument string, e.g., "--verbose" or "--json"
+FLAG = "$ARGUMENTS[0]"       # First token: -v, --verbose, --json, --category=X
+# $ARGUMENTS[0], $ARGUMENTS[1] for indexed access (CC 2.1.59)
+```
+
 ## Overview
 
 The `/ork:doctor` command performs comprehensive health checks on your OrchestKit installation. It auto-detects installed plugins and validates 12 categories:
 
-1. **Installed Plugins** - Detects orkl or ork
+1. **Installed Plugins** - Detects ork plugin
 2. **Skills Validation** - Frontmatter, references, token budget (dynamic count)
 3. **Agents Validation** - Frontmatter, tool refs, skill refs (dynamic count)
 4. **Hook Health** - Registration, bundles, async patterns
@@ -22,7 +30,7 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 7. **Coordination System** - Checks lock health and registry integrity
 8. **Context Budget** - Monitors token usage against budget
 9. **Memory System** - Graph memory health
-10. **Claude Code Version** - Validates CC >= 2.1.47
+10. **Claude Code Version & Channel** - Validates CC >= 2.1.47, detects release channel (stable/beta/alpha)
 11. **External Dependencies** - Checks optional tool availability (agent-browser)
 12. **MCP Status** - Active vs disabled vs misconfigured, API key presence for paid MCPs
 
@@ -62,7 +70,7 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 
 | Category | What It Checks | Reference |
 |----------|---------------|-----------|
-| **0. Installed Plugins** | Auto-detects orkl or ork, counts skills/agents | [diagnostic-checks](rules/diagnostic-checks.md) |
+| **0. Installed Plugins** | Auto-detects ork plugin, counts skills/agents | [diagnostic-checks](rules/diagnostic-checks.md) |
 | **1. Skills** | Frontmatter, context field, token budget, links | [skills-validation](references/skills-validation.md) |
 | **2. Agents** | Frontmatter, model, skill refs, tool refs | [agents-validation](references/agents-validation.md) |
 | **3. Hooks** | hooks.json schema, bundles, async patterns | [hook-validation](references/hook-validation.md) |
@@ -87,13 +95,13 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 
 | Category | What It Checks | Reference |
 |----------|---------------|-----------|
-| **10. CC Version** | Runtime version against minimum required | [version-compatibility](references/version-compatibility.md) |
+| **10. CC Version & Channel** | Runtime version against minimum required, release channel (stable/beta/alpha) | [version-compatibility](references/version-compatibility.md) |
 | **11. External Deps** | Optional tools (agent-browser) | [diagnostic-checks](rules/diagnostic-checks.md) |
 | **12. MCP Status** | Enabled/disabled state, credential checks | [mcp-status-checks](rules/mcp-status-checks.md) |
 
 ## Report Format
 
-> See [references/report-format.md](references/report-format.md) for ASCII report templates (ork and orkl), JSON CI output schema, and exit codes.
+> See [references/report-format.md](references/report-format.md) for ASCII report templates, JSON CI output schema, and exit codes.
 
 ## Interpreting Results & Troubleshooting
 

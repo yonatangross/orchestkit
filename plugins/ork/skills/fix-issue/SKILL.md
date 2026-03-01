@@ -1,7 +1,7 @@
 ---
 name: fix-issue
 license: MIT
-compatibility: "Claude Code 2.1.56+. Requires memory MCP server, context7 MCP server, gh CLI."
+compatibility: "Claude Code 2.1.59+. Requires memory MCP server, context7 MCP server, gh CLI."
 description: "Fixes GitHub issues with parallel analysis. Use to debug errors, resolve regressions, fix bugs, or triage issues."
 argument-hint: "[issue-number]"
 context: fork
@@ -9,9 +9,10 @@ version: 2.1.0
 author: OrchestKit
 tags: [issue, bug-fix, github, debugging, rca, prevention]
 user-invocable: true
-allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Task, TaskCreate, TaskUpdate, Grep, Glob, mcp__memory__search_nodes, mcp__context7__get_library_docs]
+allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Task, TaskCreate, TaskUpdate, TaskOutput, TaskStop, Grep, Glob, mcp__memory__search_nodes, mcp__context7__get_library_docs]
 skills: [commit, explore, verify, memory, remember]
 complexity: medium
+model: sonnet
 metadata:
   category: workflow-automation
   mcp-server: memory, context7
@@ -29,6 +30,14 @@ Systematic issue resolution with hypothesis-based root cause analysis, similar i
 ```
 
 > **Opus 4.6**: Root cause analysis uses native adaptive thinking. Dynamic token budgets scale with context window for thorough investigation.
+
+## Argument Resolution
+
+```python
+ISSUE_NUMBER = "$ARGUMENTS[0]"  # e.g., "123" (CC 2.1.59 indexed access)
+# $ARGUMENTS contains the full argument string
+# $ARGUMENTS[0] is the first space-separated token
+```
 
 ## STEP 0: Verify User Intent
 

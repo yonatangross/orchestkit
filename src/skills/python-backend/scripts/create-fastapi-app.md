@@ -1,7 +1,7 @@
 ---
 name: create-fastapi-app
 description: Generate a FastAPI application template with project-specific configuration. Use when creating new FastAPI applications.
-user-invocable: true
+user-invocable: false
 argument-hint: [app-name]
 ---
 

@@ -22,7 +22,6 @@ Output one table row per source. Use MATCH or DRIFT in the Status column.
 | CLAUDE.md Project Overview    | 63     | 37     | 87    | MATCH  |
 | CLAUDE.md Version section     | —      | —      | 85    | DRIFT  |
 | manifests/ork.json            | 63     | 36     | 87    | MATCH  |
-| manifests/orkl.json           | 46     | 36     | 87    | —      |
 ```
 
 ### Flagging Drift
@@ -45,8 +44,6 @@ These are NOT drift — do not flag them:
 
 | Difference | Reason |
 |------------|--------|
-| `orkl` skills < `ork` skills | `orkl` excludes Python/React/LLM/creative skills by design |
-| `manifests/ork-creative.json` skills < `ork` | creative plugin is an add-on with its own subset |
 | Agent count in manifests = actual - 1 | Some agents may be internal-only and excluded from manifest |
 
 **Incorrect:**

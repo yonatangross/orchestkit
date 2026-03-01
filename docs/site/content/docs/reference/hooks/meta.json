@@ -18,6 +18,7 @@
     "task-completed",
     "worktree-create",
     "worktree-remove",
+    "config-change",
     "setup",
     "spotlights"
   ]

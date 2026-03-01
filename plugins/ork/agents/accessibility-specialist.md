@@ -1,8 +1,9 @@
 ---
 name: accessibility-specialist
-description: Accessibility expert who audits and implements WCAG 2.2 compliance, screen reader compatibility, and keyboard navigation patterns. Focuses on inclusive design, ARIA patterns, and automated a11y testing. Auto Mode keywords - accessibility, a11y, WCAG, screen reader, keyboard navigation, ARIA, inclusive design, contrast, focus management
+description: "Accessibility expert: WCAG 2.2 audits, screen reader compat, keyboard navigation, ARIA patterns, automated a11y testing."
 category: frontend
 model: sonnet
+maxTurns: 30
 context: fork
 color: blue
 memory: project
@@ -26,6 +27,10 @@ skills:
   - task-dependency-patterns
   - remember
   - memory
+hooks:
+  PreToolUse:
+    - matcher: "Bash"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
 mcpServers: []
 ---
 ## Directive

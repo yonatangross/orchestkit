@@ -1,0 +1,40 @@
+{
+  "skill": "issue-progress-tracking",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "negative-start-working-on-issue",
+      "rule": "",
+      "query": "Start working on issue #247 - it's a new API endpoint for user preferences. Track my progress through implementation.",
+      "expectedBehavior": [
+        "Claude adds status:in-progress label and removes status:todo via gh issue edit",
+        "Claude posts a starting comment via gh issue comment",
+        "Claude creates a feature branch named issue/247-user-preferences",
+        "Claude makes atomic commits referencing the issue: feat(#247): description",
+        "Claude does NOT work directly on main or dev branch"
+      ]
+    },
+    {
+      "id": "negative-ive-been-working-on",
+      "rule": "",
+      "query": "I've been working on issue #312 for a while now. Post a progress update showing what's done and what remains, then create the PR to close it.",
+      "expectedBehavior": [
+        "Claude posts a progress comment via gh issue comment with completed/in-progress/remaining sections",
+        "Claude creates a PR with 'Closes #312' in the body to auto-close on merge",
+        "Claude updates labels from status:in-progress to status:in-review",
+        "Claude does NOT use gh issue close to close the issue directly",
+        "Claude includes a test plan section in the PR body"
+      ]
+    },
+    {
+      "id": "negative-optimize-the-database-queries",
+      "rule": "",
+      "query": "Optimize the database queries in the search service - they're running slow on large datasets.",
+      "expectedBehavior": [
+        "Claude does NOT invoke the issue-progress-tracking skill",
+        "Claude analyzes and optimizes SQL queries using standard tools",
+        "Claude does not create branches, update labels, or post issue comments when no issue number is referenced"
+      ]
+    }
+  ]
+}

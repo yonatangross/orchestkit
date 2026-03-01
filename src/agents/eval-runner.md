@@ -1,7 +1,9 @@
 ---
 name: eval-runner
 description: "LLM evaluation specialist who runs structured eval datasets, computes quality metrics using DeepEval/RAGAS, tracks regression across model versions, and reports to Langfuse for tracing and scoring."
-model: sonnet
+model: haiku
+background: true
+maxTurns: 20
 context: fork
 category: testing
 color: green
@@ -17,6 +19,8 @@ tools:
   - TaskCreate
   - TaskUpdate
   - TaskList
+  - TaskOutput
+  - TaskStop
 disallowedTools:
   - Edit
   - MultiEdit
@@ -27,6 +31,10 @@ skills:
   - task-dependency-patterns
   - remember
   - memory
+hooks:
+  PreToolUse:
+    - matcher: "Bash"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
 mcpServers: [context7]
 ---
 

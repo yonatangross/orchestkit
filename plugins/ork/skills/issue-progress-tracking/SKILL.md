@@ -1,15 +1,17 @@
 ---
 name: issue-progress-tracking
 license: MIT
-compatibility: "Claude Code 2.1.56+."
+compatibility: "Claude Code 2.1.59+."
 description: "Auto-updates GitHub issues with commit progress. Use when starting work on an issue, tracking progress during implementation, or completing work with a PR."
 context: inherit
 version: 1.0.0
 author: OrchestKit
 tags: [git, github, issues, tracking, workflow]
-user-invocable: true
+user-invocable: false
+disable-model-invocation: true
 allowed-tools: [Bash]
 complexity: low
+model: haiku
 metadata:
   category: workflow-automation
 ---
@@ -32,11 +34,11 @@ Label the issue and create a feature branch:
 
 ```bash
 # Move issue to in-progress
-gh issue edit $ARGUMENTS --add-label "status:in-progress" --remove-label "status:todo"
-gh issue comment $ARGUMENTS --body "Starting work on this issue."
+gh issue edit $ARGUMENTS[0] --add-label "status:in-progress" --remove-label "status:todo"
+gh issue comment $ARGUMENTS[0] --body "Starting work on this issue."
 
 # Create feature branch
-git checkout -b issue/$ARGUMENTS-brief-description
+git checkout -b issue/$ARGUMENTS[0]-brief-description
 ```
 
 **Rules:**
@@ -52,7 +54,7 @@ Commit after each logical step, not at the end. Every commit references the issu
 
 ```bash
 # Each commit references the issue number
-git commit -m "feat(#$ARGUMENTS): add user model
+git commit -m "feat(#$ARGUMENTS[0]): add user model
 
 Co-Authored-By: Claude <noreply@anthropic.com>"
 ```
@@ -69,7 +71,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 For multi-step work, post progress updates:
 
 ```bash
-gh issue comment $ARGUMENTS --body "Progress update:
+gh issue comment $ARGUMENTS[0] --body "Progress update:
 - Completed: database schema, API endpoints
 - In progress: frontend components
 - Remaining: tests, documentation"
@@ -89,8 +91,8 @@ Create the PR and update labels:
 ```bash
 # Create PR that closes the issue
 gh pr create \
-  --title "feat(#$ARGUMENTS): brief description" \
-  --body "Closes #$ARGUMENTS
+  --title "feat(#$ARGUMENTS[0]): brief description" \
+  --body "Closes #$ARGUMENTS[0]
 
 ## Changes
 - Change 1
@@ -101,7 +103,7 @@ gh pr create \
 - [ ] Manual verification"
 
 # Update issue status
-gh issue edit $ARGUMENTS --add-label "status:in-review" --remove-label "status:in-progress"
+gh issue edit $ARGUMENTS[0] --add-label "status:in-review" --remove-label "status:in-progress"
 ```
 
 ---

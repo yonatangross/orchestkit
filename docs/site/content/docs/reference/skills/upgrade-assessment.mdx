@@ -3,7 +3,7 @@ title: "Upgrade Assessment"
 description: "Assess platform upgrade readiness for Claude model and CC version changes. Use when evaluating upgrades."
 ---
 
-<span className="badge badge-blue">Command</span> <span className="badge badge-red">max</span>
+<span className="badge badge-gray">Reference</span> <span className="badge badge-red">max</span>
 
 ## Related Skills
 
@@ -344,6 +344,8 @@ total_hours = sum(
 - Use the **detection patterns** above as a pre-upgrade checklist
 - Track each axis **independently** — model, CC version, and OrchestKit can upgrade separately
 - **CC 2.1.50** includes 8 memory leak fixes — long sessions (4+ hours) that previously degraded should be retested after upgrading
+- **CC 2.1.63** adds HTTP hooks, worktree config sharing, `/simplify`, `/batch`, teammate memory fix, and `ENABLE_CLAUDEAI_MCP_SERVERS` env var
+- See the [full CC version matrix](../../doctor/references/version-compatibility.md) for feature-by-feature compatibility
 
 **Incorrect — Hardcoded model ID breaks when upgrading to new Claude version:**
 ```typescript

@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>dev-agent-lens x OrchestKit — Integration Playground</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0d1117; --bg-card: #161b22; --border: #30363d; --border-light: #484f58;
+    --text: #c9d1d9; --text-dim: #8b949e; --text-bright: #f0f6fc;
+    --blue: #58a6ff; --green: #3fb950; --red: #f85149; --yellow: #d29922;
+    --purple: #bc8cff; --cyan: #39d2c0; --orange: #f0883e;
+    --card-radius: 12px; --transition: 0.25s ease;
+  }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; line-height: 1.6; }
+  a { color: var(--blue); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* Header */
+  .hero { text-align: center; padding: 60px 20px 40px; border-bottom: 1px solid var(--border); }
+  .hero h1 { font-size: 2.4rem; color: var(--text-bright); margin-bottom: 8px; }
+  .hero h1 .accent { color: var(--blue); }
+  .hero h1 .x { color: var(--text-dim); font-weight: 300; margin: 0 8px; }
+  .hero .subtitle { color: var(--text-dim); font-size: 1.1rem; max-width: 680px; margin: 0 auto; }
+  .hero .badges { margin-top: 16px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; }
+  .badge-blue { background: rgba(88,166,255,0.15); color: var(--blue); border: 1px solid rgba(88,166,255,0.3); }
+  .badge-green { background: rgba(63,185,80,0.15); color: var(--green); border: 1px solid rgba(63,185,80,0.3); }
+  .badge-purple { background: rgba(188,140,255,0.15); color: var(--purple); border: 1px solid rgba(188,140,255,0.3); }
+
+  /* Navigation */
+  .nav { position: sticky; top: 0; z-index: 100; background: rgba(13,17,23,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 0 20px; }
+  .nav-inner { max-width: 1200px; margin: 0 auto; display: flex; gap: 4px; overflow-x: auto; padding: 8px 0; }
+  .nav a { padding: 8px 14px; border-radius: 8px; color: var(--text-dim); font-size: 0.85rem; font-weight: 500; white-space: nowrap; transition: var(--transition); text-decoration: none; }
+  .nav a:hover { color: var(--text); background: rgba(255,255,255,0.05); text-decoration: none; }
+  .nav a.active { color: var(--blue); background: rgba(88,166,255,0.1); }
+
+  /* Layout */
+  .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+  section { padding: 48px 0; border-bottom: 1px solid var(--border); }
+  section:last-child { border-bottom: none; }
+  .section-title { font-size: 1.6rem; color: var(--text-bright); margin-bottom: 6px; }
+  .section-desc { color: var(--text-dim); margin-bottom: 28px; font-size: 0.95rem; }
+
+  /* Cards */
+  .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--card-radius); padding: 24px; transition: var(--transition); }
+  .card:hover { border-color: var(--border-light); }
+  .card h3 { color: var(--text-bright); font-size: 1.1rem; margin-bottom: 8px; }
+
+  /* Architecture Diagram */
+  .arch-container { position: relative; }
+  .arch-svg { width: 100%; max-width: 1100px; margin: 0 auto; display: block; }
+  .arch-node { cursor: pointer; transition: var(--transition); }
+  .arch-node:hover rect, .arch-node:hover ellipse { filter: brightness(1.3); }
+  .arch-node.selected rect, .arch-node.selected ellipse { stroke-width: 2.5; }
+  .node-detail { margin-top: 20px; transition: var(--transition); }
+  .node-detail .card { border-left: 3px solid var(--blue); }
+  .node-detail h4 { color: var(--blue); margin-bottom: 6px; }
+  .node-detail ul { padding-left: 20px; }
+  .node-detail li { color: var(--text-dim); margin-bottom: 4px; font-size: 0.9rem; }
+
+  /* Feature Matrix */
+  .matrix-wrap { overflow-x: auto; }
+  .matrix { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+  .matrix th { background: rgba(88,166,255,0.08); color: var(--blue); padding: 12px 14px; text-align: left; border-bottom: 2px solid var(--border); font-weight: 600; white-space: nowrap; }
+  .matrix td { padding: 12px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .matrix tr:hover td { background: rgba(255,255,255,0.02); }
+  .matrix .feature-name { color: var(--text-bright); font-weight: 500; min-width: 140px; }
+  .cell-strong { color: var(--green); }
+  .cell-partial { color: var(--yellow); }
+  .cell-gap { color: var(--red); }
+  .cell-tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; margin-right: 6px; }
+  .tag-green { background: rgba(63,185,80,0.15); color: var(--green); }
+  .tag-yellow { background: rgba(210,153,34,0.15); color: var(--yellow); }
+  .tag-red { background: rgba(248,81,73,0.15); color: var(--red); }
+  .matrix td .detail { display: none; margin-top: 8px; font-size: 0.82rem; color: var(--text-dim); line-height: 1.5; padding: 8px; background: rgba(0,0,0,0.2); border-radius: 6px; }
+  .matrix tr.expanded td .detail { display: block; }
+  .matrix .expand-hint { color: var(--text-dim); font-size: 0.75rem; cursor: pointer; opacity: 0.6; }
+  .matrix .expand-hint:hover { opacity: 1; }
+
+  /* Timeline */
+  .timeline { position: relative; padding-left: 32px; }
+  .timeline::before { content: ''; position: absolute; left: 12px; top: 0; bottom: 0; width: 2px; background: var(--border); }
+  .timeline-item { position: relative; margin-bottom: 28px; }
+  .timeline-item::before { content: ''; position: absolute; left: -26px; top: 6px; width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--border); background: var(--bg); }
+  .timeline-item.high::before { border-color: var(--red); background: rgba(248,81,73,0.2); }
+  .timeline-item.medium::before { border-color: var(--yellow); background: rgba(210,153,34,0.2); }
+  .timeline-item.low::before { border-color: var(--green); background: rgba(63,185,80,0.2); }
+  .timeline-item.none::before { border-color: var(--text-dim); }
+  .tl-header { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .tl-label { font-weight: 600; color: var(--text-bright); }
+  .tl-date { font-size: 0.82rem; color: var(--text-dim); }
+  .overlap-bar { height: 6px; border-radius: 3px; background: var(--border); margin-top: 8px; overflow: hidden; max-width: 200px; }
+  .overlap-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
+  .tl-body { margin-top: 6px; color: var(--text-dim); font-size: 0.9rem; }
+  .issue-list { margin-top: 16px; display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+  .issue-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 14px; font-size: 0.85rem; }
+  .issue-card .issue-id { color: var(--blue); font-weight: 600; }
+  .issue-card .overlap-score { float: right; font-weight: 700; }
+
+  /* Decision Matrix */
+  .decision-grid { display: grid; grid-template-columns: 280px 1fr; gap: 24px; align-items: start; }
+  @media (max-width: 800px) { .decision-grid { grid-template-columns: 1fr; } }
+  .strategy-list { display: flex; flex-direction: column; gap: 8px; }
+  .strategy-btn { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; text-align: left; cursor: pointer; transition: var(--transition); color: var(--text); font-size: 0.9rem; }
+  .strategy-btn:hover { border-color: var(--border-light); }
+  .strategy-btn.active { border-color: var(--blue); background: rgba(88,166,255,0.06); }
+  .strategy-btn .strat-name { font-weight: 600; color: var(--text-bright); }
+  .strategy-btn .strat-desc { font-size: 0.8rem; color: var(--text-dim); margin-top: 2px; }
+  .radar-panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--card-radius); padding: 24px; }
+  .radar-panel h3 { color: var(--text-bright); margin-bottom: 16px; }
+  .slider-group { margin-bottom: 14px; }
+  .slider-group label { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-dim); margin-bottom: 4px; }
+  .slider-group label .val { color: var(--blue); font-weight: 600; }
+  input[type="range"] { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; background: var(--border); outline: none; }
+  input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--blue); cursor: pointer; }
+  .radar-canvas-wrap { display: flex; justify-content: center; margin-top: 20px; }
+  .radar-canvas-wrap canvas { max-width: 100%; }
+  .score-total { text-align: center; margin-top: 12px; font-size: 1.3rem; font-weight: 700; }
+  .score-total .num { color: var(--blue); }
+
+  /* Quick Wins */
+  .wins-grid { display: grid; gap: 12px; }
+  .win-item { display: flex; gap: 14px; align-items: flex-start; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 18px; transition: var(--transition); }
+  .win-item:hover { border-color: var(--border-light); transform: translateY(-1px); }
+  .win-num { width: 32px; height: 32px; border-radius: 50%; background: rgba(88,166,255,0.12); color: var(--blue); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; flex-shrink: 0; }
+  .win-content h4 { color: var(--text-bright); font-size: 0.95rem; margin-bottom: 4px; }
+  .win-content p { color: var(--text-dim); font-size: 0.85rem; }
+  .win-tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.72rem; font-weight: 600; margin-top: 6px; }
+  .win-tag-hook { background: rgba(188,140,255,0.15); color: var(--purple); }
+  .win-tag-skill { background: rgba(57,210,192,0.15); color: var(--cyan); }
+  .win-tag-infra { background: rgba(240,136,62,0.15); color: var(--orange); }
+  .win-tag-docs { background: rgba(88,166,255,0.15); color: var(--blue); }
+
+  /* Code Preview */
+  .code-tabs { display: flex; gap: 2px; margin-bottom: 0; }
+  .code-tab { padding: 10px 18px; background: rgba(22,27,34,0.6); border: 1px solid var(--border); border-bottom: none; border-radius: 8px 8px 0 0; cursor: pointer; color: var(--text-dim); font-size: 0.85rem; font-weight: 500; transition: var(--transition); }
+  .code-tab:hover { color: var(--text); }
+  .code-tab.active { background: var(--bg-card); color: var(--blue); border-bottom-color: var(--bg-card); }
+  .code-block { background: var(--bg-card); border: 1px solid var(--border); border-radius: 0 var(--card-radius) var(--card-radius) var(--card-radius); padding: 20px; overflow-x: auto; display: none; }
+  .code-block.active { display: block; }
+  .code-block pre { font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace; font-size: 0.82rem; line-height: 1.7; color: var(--text); white-space: pre; }
+  .code-block .comment { color: var(--text-dim); }
+  .code-block .keyword { color: var(--purple); }
+  .code-block .string { color: var(--green); }
+  .code-block .type { color: var(--cyan); }
+  .code-block .func { color: var(--blue); }
+  .code-block .num { color: var(--orange); }
+  .code-block .tag { color: var(--red); }
+
+  /* Footer */
+  .footer { text-align: center; padding: 32px 20px; color: var(--text-dim); font-size: 0.82rem; border-top: 1px solid var(--border); }
+
+  /* Strategy comparison panel */
+  .comparison-wrap { margin-top: 24px; }
+  .comparison-wrap h4 { color: var(--text-bright); margin-bottom: 12px; }
+  .comparison-bars { display: flex; flex-direction: column; gap: 6px; }
+  .comp-row { display: flex; align-items: center; gap: 10px; font-size: 0.82rem; }
+  .comp-label { width: 80px; text-align: right; color: var(--text-dim); flex-shrink: 0; }
+  .comp-bar-track { flex: 1; height: 20px; background: var(--border); border-radius: 4px; overflow: hidden; position: relative; }
+  .comp-bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; font-size: 0.72rem; font-weight: 700; color: var(--bg); }
+  .comp-score { width: 28px; text-align: center; font-weight: 600; color: var(--text-bright); flex-shrink: 0; }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    .hero h1 { font-size: 1.6rem; }
+    .section-title { font-size: 1.3rem; }
+    section { padding: 32px 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Hero -->
+<div class="hero">
+  <h1><span class="accent">dev-agent-lens</span><span class="x">&times;</span>OrchestKit</h1>
+  <p class="subtitle">Exploring how a LiteLLM observability proxy complements a Claude Code plugin system with hooks, skills, and agents.</p>
+  <div class="badges">
+    <span class="badge badge-blue">LiteLLM Proxy</span>
+    <span class="badge badge-green">56 Hooks</span>
+    <span class="badge badge-purple">OpenTelemetry</span>
+  </div>
+</div>
+
+<!-- Nav -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="#architecture" class="active" data-nav>Architecture</a>
+    <a href="#matrix" data-nav>Feature Matrix</a>
+    <a href="#timeline" data-nav>Milestones</a>
+    <a href="#decision" data-nav>Decision Matrix</a>
+    <a href="#quickwins" data-nav>Quick Wins</a>
+    <a href="#code" data-nav>Code Preview</a>
+  </div>
+</nav>
+
+<!-- 1. Architecture -->
+<section id="architecture">
+<div class="container">
+  <h2 class="section-title">Architecture &amp; Data Flow</h2>
+  <p class="section-desc">Click any node to see details about the data flowing through it.</p>
+  <div class="arch-container">
+    <svg class="arch-svg" viewBox="0 0 1060 480" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#484f58"/></marker>
+        <marker id="arrow-blue" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#58a6ff"/></marker>
+        <marker id="arrow-green" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#3fb950"/></marker>
+        <marker id="arrow-purple" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#bc8cff"/></marker>
+      </defs>
+
+      <!-- Connections -->
+      <line x1="140" y1="80" x2="290" y2="80" stroke="#484f58" stroke-width="1.5" marker-end="url(#arrow)"/>
+      <line x1="470" y1="80" x2="570" y2="80" stroke="#484f58" stroke-width="1.5" marker-end="url(#arrow)"/>
+      <line x1="760" y1="80" x2="890" y2="80" stroke="#484f58" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+      <!-- Down arrows from hooks -->
+      <line x1="380" y1="110" x2="380" y2="190" stroke="#bc8cff" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#arrow-purple)"/>
+      <!-- Down arrows from proxy -->
+      <line x1="665" y1="110" x2="665" y2="190" stroke="#3fb950" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#arrow-green)"/>
+
+      <!-- Down to dashboards -->
+      <line x1="380" y1="330" x2="380" y2="400" stroke="#bc8cff" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#arrow-purple)"/>
+      <line x1="665" y1="330" x2="665" y2="400" stroke="#3fb950" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#arrow-green)"/>
+
+      <!-- Nodes: User -->
+      <g class="arch-node" data-node="user">
+        <rect x="40" y="55" width="100" height="50" rx="10" fill="#161b22" stroke="#484f58" stroke-width="1.5"/>
+        <text x="90" y="85" text-anchor="middle" fill="#c9d1d9" font-size="14" font-weight="600">User</text>
+      </g>
+
+      <!-- Claude Code CLI -->
+      <g class="arch-node" data-node="cli">
+        <rect x="290" y="50" width="180" height="60" rx="10" fill="#161b22" stroke="#58a6ff" stroke-width="1.5"/>
+        <text x="380" y="76" text-anchor="middle" fill="#58a6ff" font-size="13" font-weight="600">Claude Code CLI</text>
+        <text x="380" y="96" text-anchor="middle" fill="#8b949e" font-size="11">+ OrchestKit Hooks</text>
+      </g>
+
+      <!-- LiteLLM Proxy -->
+      <g class="arch-node" data-node="proxy">
+        <rect x="570" y="50" width="190" height="60" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1.5"/>
+        <text x="665" y="76" text-anchor="middle" fill="#3fb950" font-size="13" font-weight="600">LiteLLM Proxy</text>
+        <text x="665" y="96" text-anchor="middle" fill="#8b949e" font-size="11">dev-agent-lens</text>
+      </g>
+
+      <!-- Anthropic API -->
+      <g class="arch-node" data-node="api">
+        <rect x="890" y="55" width="140" height="50" rx="10" fill="#161b22" stroke="#d29922" stroke-width="1.5"/>
+        <text x="960" y="85" text-anchor="middle" fill="#d29922" font-size="13" font-weight="600">Anthropic API</text>
+      </g>
+
+      <!-- Hook Analytics -->
+      <g class="arch-node" data-node="hook-analytics">
+        <rect x="270" y="200" width="220" height="120" rx="10" fill="#161b22" stroke="#bc8cff" stroke-width="1.5"/>
+        <text x="380" y="225" text-anchor="middle" fill="#bc8cff" font-size="13" font-weight="600">Hook Analytics</text>
+        <text x="380" y="250" text-anchor="middle" fill="#8b949e" font-size="11">Tool timing (#696)</text>
+        <text x="380" y="268" text-anchor="middle" fill="#8b949e" font-size="11">Model routing (#690)</text>
+        <text x="380" y="286" text-anchor="middle" fill="#8b949e" font-size="11">Error rates (#697)</text>
+        <text x="380" y="304" text-anchor="middle" fill="#8b949e" font-size="11">Permission decisions</text>
+      </g>
+
+      <!-- OTel Traces -->
+      <g class="arch-node" data-node="otel">
+        <rect x="555" y="200" width="220" height="120" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1.5"/>
+        <text x="665" y="225" text-anchor="middle" fill="#3fb950" font-size="13" font-weight="600">OpenTelemetry Traces</text>
+        <text x="665" y="250" text-anchor="middle" fill="#8b949e" font-size="11">API call traces</text>
+        <text x="665" y="268" text-anchor="middle" fill="#8b949e" font-size="11">Cost tracking</text>
+        <text x="665" y="286" text-anchor="middle" fill="#8b949e" font-size="11">Latency metrics</text>
+        <text x="665" y="304" text-anchor="middle" fill="#8b949e" font-size="11">Model + token counts</text>
+      </g>
+
+      <!-- OrchestKit Dashboard -->
+      <g class="arch-node" data-node="ork-dash">
+        <rect x="270" y="410" width="220" height="50" rx="10" fill="#161b22" stroke="#bc8cff" stroke-width="1.5"/>
+        <text x="380" y="440" text-anchor="middle" fill="#bc8cff" font-size="13" font-weight="600">OrchestKit Dashboard</text>
+      </g>
+
+      <!-- Phoenix / Arize -->
+      <g class="arch-node" data-node="phoenix">
+        <rect x="555" y="410" width="220" height="50" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1.5"/>
+        <text x="665" y="440" text-anchor="middle" fill="#3fb950" font-size="13" font-weight="600">Phoenix / Arize AI</text>
+      </g>
+
+      <!-- Labels -->
+      <text x="530" y="45" text-anchor="middle" fill="#484f58" font-size="10" font-style="italic">requests pass through</text>
+      <text x="820" y="72" text-anchor="middle" fill="#484f58" font-size="10" font-style="italic">forwarded</text>
+    </svg>
+  </div>
+
+  <div class="node-detail" id="nodeDetail" style="display:none;">
+    <div class="card">
+      <h4 id="nodeTitle"></h4>
+      <p id="nodeDesc" style="color:var(--text-dim);margin-bottom:10px;font-size:0.9rem;"></p>
+      <ul id="nodePoints"></ul>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- 2. Feature Matrix -->
+<section id="matrix">
+<div class="container">
+  <h2 class="section-title">Feature Overlap Matrix</h2>
+  <p class="section-desc">Click any row to expand the detailed analysis. Color coding: <span class="cell-strong">strong</span>, <span class="cell-partial">partial</span>, <span class="cell-gap">gap</span>.</p>
+  <div class="matrix-wrap">
+    <table class="matrix" id="featureMatrix">
+      <thead>
+        <tr>
+          <th>Feature</th>
+          <th>OrchestKit (hooks)</th>
+          <th>dev-agent-lens (proxy)</th>
+          <th>Combined Value</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+</section>
+
+<!-- 3. Milestone Timeline -->
+<section id="timeline">
+<div class="container">
+  <h2 class="section-title">Milestone Mapping</h2>
+  <p class="section-desc">How dev-agent-lens maps to OrchestKit's open milestones and issues.</p>
+
+  <div class="timeline" id="milestoneTimeline"></div>
+
+  <h3 style="color:var(--text-bright);margin-top:36px;margin-bottom:16px;font-size:1.1rem;">Related Issues</h3>
+  <div class="issue-list" id="issueList"></div>
+</div>
+</section>
+
+<!-- 4. Decision Matrix -->
+<section id="decision">
+<div class="container">
+  <h2 class="section-title">Strategy Decision Matrix</h2>
+  <p class="section-desc">Score each strategy on 5 dimensions. Pre-filled with recommended scores — adjust freely.</p>
+  <div class="decision-grid">
+    <div class="strategy-list" id="strategyList"></div>
+    <div class="radar-panel">
+      <h3 id="radarTitle">Select a strategy</h3>
+      <div id="sliderArea"></div>
+      <div class="radar-canvas-wrap"><canvas id="radarCanvas" width="360" height="360"></canvas></div>
+      <div class="score-total">Total: <span class="num" id="totalScore">0</span> / 25</div>
+      <div class="comparison-wrap">
+        <h4>All Strategies Compared</h4>
+        <div class="comparison-bars" id="comparisonBars"></div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- 5. Quick Wins -->
+<section id="quickwins">
+<div class="container">
+  <h2 class="section-title">Quick Wins</h2>
+  <p class="section-desc">Actionable items that could be implemented today.</p>
+  <div class="wins-grid" id="winsGrid"></div>
+</div>
+</section>
+
+<!-- 6. Code Preview -->
+<section id="code">
+<div class="container">
+  <h2 class="section-title">Integration Code Preview</h2>
+  <p class="section-desc">Key integration points showing how OrchestKit hooks could export to Phoenix.</p>
+  <div class="code-tabs" id="codeTabs"></div>
+  <div id="codeBlocks"></div>
+</div>
+</section>
+
+<div class="footer">
+  Built for the OrchestKit &times; dev-agent-lens integration analysis &mdash; Feb 2026
+</div>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+
+const nodeData = {
+  user: {
+    title: 'User',
+    desc: 'Developer using Claude Code with OrchestKit installed.',
+    points: ['Types prompts and slash commands', 'Triggers skills like /ork:setup, /ork:verify', 'Sees hook-enforced guardrails (security blocks, permission checks)']
+  },
+  cli: {
+    title: 'Claude Code CLI + OrchestKit Hooks',
+    desc: 'Claude Code runs with OrchestKit\'s 56 hooks intercepting every event.',
+    points: [
+      '18 event types: PreToolUse, PostToolUse, UserPromptSubmit, Stop, etc.',
+      '12 dispatchers aggregate hook outputs per event',
+      '9 native async hooks for background work (sound, memory, logging)',
+      'Hooks see semantic context: project name, branch, user intent, tool arguments',
+      'Can block, modify, or annotate any tool call before it executes'
+    ]
+  },
+  proxy: {
+    title: 'LiteLLM Proxy (dev-agent-lens)',
+    desc: 'Sits between Claude Code and Anthropic API, intercepting all LLM requests.',
+    points: [
+      'Transparent HTTP proxy — Claude Code points ANTHROPIC_BASE_URL here',
+      'Records every API call: model, tokens in/out, latency, cost',
+      'Exports traces via OpenTelemetry (OTLP) to any compatible backend',
+      'Pre-built Phoenix/Arize integration for trace visualization',
+      'No code changes needed in Claude Code itself — pure infrastructure'
+    ]
+  },
+  api: {
+    title: 'Anthropic API',
+    desc: 'The upstream Claude API that processes all LLM requests.',
+    points: ['Receives requests forwarded by the proxy', 'Returns completions with token usage metadata', 'Rate limits and errors are visible to the proxy layer']
+  },
+  'hook-analytics': {
+    title: 'Hook Analytics Layer',
+    desc: 'Data collected by OrchestKit hooks during Claude Code sessions.',
+    points: [
+      'Tool timing (#696): PreToolUse/PostToolUse timestamps give per-tool latency',
+      'Model routing (#690): Hooks see which agent delegated to which model and why',
+      'Error rates (#697): Permission denials, blocked commands, tool failures',
+      'Session context: project, branch, skill invoked, user intent from prompt analysis',
+      'Currently writes to local JSONL — no real-time dashboard yet (M#74)'
+    ]
+  },
+  otel: {
+    title: 'OpenTelemetry Traces',
+    desc: 'Structured trace data exported by the LiteLLM proxy.',
+    points: [
+      'OTLP-compatible spans for every API call',
+      'Attributes: model, token_count, cost, latency, status_code',
+      'Exportable to Phoenix, Arize, Jaeger, Datadog, or any OTLP collector',
+      'Cannot see tool-level details (only API-level)',
+      'No semantic context about WHY a call was made'
+    ]
+  },
+  'ork-dash': {
+    title: 'OrchestKit Dashboard',
+    desc: 'Planned analytics dashboard for hook-collected data (Milestone #74).',
+    points: [
+      'Session Analytics & LLM Observability — due 2026-04-14',
+      'Would show tool usage patterns, model routing decisions, error trends',
+      'Currently: JSONL logs only, no UI',
+      'Integration opportunity: export hook data TO Phoenix instead of building custom UI'
+    ]
+  },
+  phoenix: {
+    title: 'Phoenix / Arize AI',
+    desc: 'Open-source LLM observability platform with rich trace visualization.',
+    points: [
+      'Trace waterfall views, cost dashboards, latency percentiles',
+      'Eval framework for scoring LLM outputs',
+      'Self-hosted (Docker) or Arize cloud',
+      'Far more mature UI than building from scratch',
+      'Could serve as the backend for both proxy traces AND hook analytics'
+    ]
+  }
+};
+
+const featureRows = [
+  {
+    feature: 'Token cost tracking',
+    ork: { strength: 'partial', text: 'Hooks parse JSONL logs post-hoc' },
+    dal: { strength: 'strong', text: 'Proxy intercepts API responses in real-time' },
+    combined: 'Both — proxy is real-time, hooks add project/skill context to costs',
+    detail: 'The proxy captures exact token counts and costs per API call as they happen. OrchestKit hooks can enrich this with context: which skill triggered the call, which agent was active, what the user\'s intent was. Together they provide cost-per-feature analytics.'
+  },
+  {
+    feature: 'Model delegation',
+    ork: { strength: 'strong', text: 'Hooks see internal routing decisions' },
+    dal: { strength: 'partial', text: 'Proxy sees actual model in request' },
+    combined: 'Hooks see WHY (routing logic), proxy sees WHAT (actual model used)',
+    detail: 'OrchestKit\'s agent system routes to different models (Opus/Sonnet/Haiku) based on task complexity. Hooks capture the routing decision and rationale. The proxy only sees the final model string in the API request. Combined: full traceability from decision to execution.'
+  },
+  {
+    feature: 'Per-tool timing',
+    ork: { strength: 'strong', text: 'PreToolUse/PostToolUse hook pair' },
+    dal: { strength: 'gap', text: 'Proxy sees API latency only' },
+    combined: 'Hooks have tool-level granularity the proxy cannot see',
+    detail: 'OrchestKit fires hooks before and after every tool use (Bash, Write, Edit, Read, etc.). This gives per-tool latency. The proxy only sees the LLM API call — it has no visibility into what happens between API responses. This is a unique OrchestKit advantage.'
+  },
+  {
+    feature: 'Error tracking',
+    ork: { strength: 'strong', text: 'Tool failures, permission denials, blocked commands' },
+    dal: { strength: 'strong', text: 'API errors, rate limits, 5xx responses' },
+    combined: 'Complementary — different error layers',
+    detail: 'OrchestKit catches application-level errors: a blocked dangerous command, a failed file write, a permission denial. The proxy catches infrastructure-level errors: API rate limits, network timeouts, malformed requests. Neither can see the other\'s errors without integration.'
+  },
+  {
+    feature: 'Trace visualization',
+    ork: { strength: 'gap', text: 'Local JSONL files, no UI' },
+    dal: { strength: 'strong', text: 'Phoenix/Arize waterfall UI' },
+    combined: 'Phoenix UI far superior to JSONL parsing',
+    detail: 'OrchestKit currently writes analytics to local JSONL files with no visualization. dev-agent-lens exports to Phoenix which has rich trace waterfalls, cost dashboards, and latency charts. The clear win: pipe OrchestKit hook data into Phoenix too.'
+  },
+  {
+    feature: 'Eval pipeline',
+    ork: { strength: 'strong', text: 'Hooks + skill quality tests + eval skills' },
+    dal: { strength: 'gap', text: 'Not an eval tool' },
+    combined: 'OrchestKit is the eval layer; dev-agent-lens is not',
+    detail: 'OrchestKit has evaluation skills (ork:verify, ork:assess) and Milestone #62 plans a full auto-evaluation system. dev-agent-lens has no eval capability — it\'s purely observability. Phoenix does have an eval framework that could complement OrchestKit\'s.'
+  },
+  {
+    feature: 'Session context',
+    ork: { strength: 'strong', text: 'Project, branch, user intent, skill context' },
+    dal: { strength: 'gap', text: 'Raw API calls only' },
+    combined: 'Hooks add semantic meaning to proxy traces',
+    detail: 'OrchestKit hooks know which project you\'re in, what branch, which skill was invoked, and can even infer user intent from prompt analysis. The proxy sees anonymous API calls with no business context. Attaching hook metadata to proxy traces would make Phoenix traces actually useful for debugging.'
+  },
+  {
+    feature: 'Team observability',
+    ork: { strength: 'partial', text: 'Single-user analytics' },
+    dal: { strength: 'strong', text: 'Multi-user dashboard via Phoenix' },
+    combined: 'Combined is ideal for teams',
+    detail: 'OrchestKit is a per-developer plugin with local analytics. dev-agent-lens + Phoenix provides a centralized dashboard where a team lead can see all developers\' LLM usage, costs, and patterns. For team settings, the proxy approach scales better.'
+  }
+];
+
+const milestones = [
+  { id: 'M#62', name: 'Auto-Evaluation System', date: '2026-03-31', overlap: 0, level: 'none', desc: 'Zero overlap — dev-agent-lens doesn\'t do eval. OrchestKit owns this entirely.' },
+  { id: 'M#74', name: 'Session Analytics & LLM Observability', date: '2026-04-14', overlap: 60, level: 'high', desc: '60% overlap — proxy handles cost/latency tracking. Hooks handle tool-level analytics. Phoenix could be the shared visualization backend.' },
+  { id: 'M#70', name: 'Eval v2 — Advanced Analytics', date: '2026-06-29', overlap: 20, level: 'low', desc: '20% overlap — Phoenix could serve as trace backend instead of Langfuse for the analytics portion.' }
+];
+
+const issues = [
+  { id: '#500', title: 'Langfuse trace collection', overlap: 100, color: 'var(--red)', note: 'Phoenix/Arize could REPLACE Langfuse entirely' },
+  { id: '#690', title: 'Model delegation tracking', overlap: 50, color: 'var(--yellow)', note: 'Proxy sees model, hooks see routing logic' },
+  { id: '#696', title: 'Per-tool timing', overlap: 0, color: 'var(--green)', note: 'Hooks only — proxy cannot see tool-level' },
+  { id: '#697', title: 'Error rate tracking', overlap: 30, color: 'var(--yellow)', note: 'Different error layers, complementary' }
+];
+
+const strategies = {
+  ignore:   { name: 'Ignore',    desc: 'Develop independently, no integration',          scores: [1, 1, 1, 2, 5], color: '#8b949e' },
+  integrate:{ name: 'Integrate', desc: 'Make OrchestKit hooks export to Phoenix',         scores: [3, 5, 2, 5, 3], color: '#3fb950' },
+  adopt:    { name: 'Adopt',     desc: 'Recommend dev-agent-lens as companion infra',     scores: [1, 4, 1, 4, 5], color: '#58a6ff' },
+  compete:  { name: 'Compete',   desc: 'Build our own proxy layer',                       scores: [5, 3, 5, 2, 1], color: '#f85149' },
+  absorb:   { name: 'Absorb',    desc: 'Fork and integrate into OrchestKit',              scores: [4, 4, 4, 3, 2], color: '#d29922' }
+};
+
+const dimensions = ['Dev effort', 'User value', 'Maint. burden', 'Strategic align', 'Time to market'];
+
+const quickWins = [
+  { title: 'Add phoenix-exporter hook', desc: 'PostToolUse hook that writes OTLP spans with tool name, latency, and session context. Bridges the gap between hook analytics and Phoenix visualization.', tag: 'Hook', tagClass: 'win-tag-hook' },
+  { title: 'Add dev-agent-lens to /ork:setup wizard', desc: 'Optional infrastructure step in the setup wizard: detect if ANTHROPIC_BASE_URL points to a proxy, offer to configure Phoenix export.', tag: 'Skill', tagClass: 'win-tag-skill' },
+  { title: 'Create ork:observability skill', desc: 'New skill that configures Phoenix + hooks together. Generates docker-compose overlay, sets env vars, validates the pipeline end-to-end.', tag: 'Skill', tagClass: 'win-tag-skill' },
+  { title: 'Update M#74 issues to reference dev-agent-lens', desc: 'Add comments to Session Analytics milestone issues noting dev-agent-lens as an optional backend, reducing custom dashboard work.', tag: 'Docs', tagClass: 'win-tag-docs' },
+  { title: 'Add Docker profile for Phoenix', desc: 'Add a phoenix profile to the dev docker-compose: Phoenix UI + OTLP collector. One command: docker compose --profile phoenix up.', tag: 'Infra', tagClass: 'win-tag-infra' }
+];
+
+const codeSnippets = [
+  {
+    tab: 'phoenix-exporter.ts',
+    lang: 'typescript',
+    code: `<span class="comment">// src/hooks/src/posttool/phoenix-exporter.ts</span>
+<span class="comment">// PostToolUse hook — exports OTLP spans to Phoenix</span>
+
+<span class="keyword">import</span> { <span class="type">HookResult</span>, <span class="type">PostToolUseInput</span> } <span class="keyword">from</span> <span class="string">'../lib/types'</span>;
+
+<span class="keyword">const</span> OTLP_ENDPOINT = process.env.OTEL_EXPORTER_OTLP_ENDPOINT
+  || <span class="string">'http://localhost:6006/v1/traces'</span>;
+
+<span class="keyword">interface</span> <span class="type">OTLPSpan</span> {
+  traceId: <span class="type">string</span>;
+  spanId: <span class="type">string</span>;
+  name: <span class="type">string</span>;
+  startTimeUnixNano: <span class="type">string</span>;
+  endTimeUnixNano: <span class="type">string</span>;
+  attributes: { key: <span class="type">string</span>; value: { stringValue?: <span class="type">string</span>; intValue?: <span class="type">string</span> } }[];
+}
+
+<span class="keyword">export default async function</span> <span class="func">phoenixExporter</span>(
+  input: <span class="type">PostToolUseInput</span>
+): <span class="type">Promise</span>&lt;<span class="type">HookResult</span>&gt; {
+  <span class="keyword">const</span> { tool_name, tool_input, duration_ms, session_id } = input;
+
+  <span class="keyword">const</span> span: <span class="type">OTLPSpan</span> = {
+    traceId: session_id,
+    spanId: <span class="func">crypto</span>.<span class="func">randomUUID</span>().<span class="func">replace</span>(/-/g, <span class="string">''</span>).<span class="func">slice</span>(<span class="num">0</span>, <span class="num">16</span>),
+    name: <span class="string">\`tool.\${tool_name}\`</span>,
+    startTimeUnixNano: <span class="func">String</span>((<span class="func">Date</span>.<span class="func">now</span>() - duration_ms) * <span class="num">1_000_000</span>),
+    endTimeUnixNano: <span class="func">String</span>(<span class="func">Date</span>.<span class="func">now</span>() * <span class="num">1_000_000</span>),
+    attributes: [
+      { key: <span class="string">'tool.name'</span>, value: { stringValue: tool_name } },
+      { key: <span class="string">'tool.duration_ms'</span>, value: { intValue: <span class="func">String</span>(duration_ms) } },
+      { key: <span class="string">'orchestkit.session'</span>, value: { stringValue: session_id } },
+    ],
+  };
+
+  <span class="comment">// Fire-and-forget — don't block tool execution</span>
+  <span class="func">fetch</span>(OTLP_ENDPOINT, {
+    method: <span class="string">'POST'</span>,
+    headers: { <span class="string">'Content-Type'</span>: <span class="string">'application/json'</span> },
+    body: <span class="func">JSON</span>.<span class="func">stringify</span>({
+      resourceSpans: [{ scopeSpans: [{ spans: [span] }] }]
+    }),
+  }).<span class="func">catch</span>(() =&gt; {}); <span class="comment">// Silently fail if Phoenix is down</span>
+
+  <span class="keyword">return</span> { <span class="comment">/* no output — background export */</span> };
+}`
+  },
+  {
+    tab: 'docker-compose.yml',
+    lang: 'yaml',
+    code: `<span class="comment"># Docker Compose overlay for Phoenix + dev-agent-lens</span>
+<span class="comment"># Usage: docker compose -f docker-compose.yml -f docker-compose.phoenix.yml up</span>
+
+<span class="tag">version</span>: <span class="string">"3.8"</span>
+
+<span class="tag">services</span>:
+  <span class="tag">phoenix</span>:
+    <span class="tag">image</span>: <span class="string">arizephoenix/phoenix:latest</span>
+    <span class="tag">ports</span>:
+      - <span class="string">"6006:6006"</span>    <span class="comment"># Phoenix UI</span>
+      - <span class="string">"4317:4317"</span>    <span class="comment"># OTLP gRPC</span>
+      - <span class="string">"4318:4318"</span>    <span class="comment"># OTLP HTTP</span>
+    <span class="tag">environment</span>:
+      <span class="tag">PHOENIX_WORKING_DIR</span>: <span class="string">/data</span>
+    <span class="tag">volumes</span>:
+      - <span class="string">phoenix-data:/data</span>
+    <span class="tag">profiles</span>:
+      - <span class="string">phoenix</span>
+
+  <span class="tag">litellm-proxy</span>:
+    <span class="tag">image</span>: <span class="string">ghcr.io/berriai/litellm:main-latest</span>
+    <span class="tag">ports</span>:
+      - <span class="string">"4000:4000"</span>    <span class="comment"># Proxy endpoint</span>
+    <span class="tag">environment</span>:
+      <span class="tag">ANTHROPIC_API_KEY</span>: <span class="string">\${ANTHROPIC_API_KEY}</span>
+      <span class="tag">OTEL_EXPORTER_OTLP_ENDPOINT</span>: <span class="string">http://phoenix:4318</span>
+    <span class="tag">volumes</span>:
+      - <span class="string">./litellm-config.yaml:/app/config.yaml</span>
+    <span class="tag">command</span>: <span class="string">--config /app/config.yaml</span>
+    <span class="tag">depends_on</span>:
+      - <span class="string">phoenix</span>
+    <span class="tag">profiles</span>:
+      - <span class="string">phoenix</span>
+
+<span class="tag">volumes</span>:
+  <span class="tag">phoenix-data</span>:`
+  },
+  {
+    tab: 'setup-wizard.ts',
+    lang: 'typescript',
+    code: `<span class="comment">// Addition to /ork:setup wizard — Phase 8: Observability (optional)</span>
+
+<span class="keyword">async function</span> <span class="func">setupObservability</span>(ctx: <span class="type">SetupContext</span>): <span class="type">Promise</span>&lt;<span class="type">void</span>&gt; {
+  <span class="keyword">const</span> baseUrl = process.env.ANTHROPIC_BASE_URL;
+
+  <span class="keyword">if</span> (baseUrl?.includes(<span class="string">'localhost:4000'</span>)) {
+    ctx.<span class="func">log</span>(<span class="string">'Detected LiteLLM proxy at ANTHROPIC_BASE_URL'</span>);
+    ctx.<span class="func">log</span>(<span class="string">'Enabling Phoenix trace export from OrchestKit hooks...'</span>);
+
+    <span class="comment">// Check if Phoenix is reachable</span>
+    <span class="keyword">try</span> {
+      <span class="keyword">const</span> res = <span class="keyword">await</span> <span class="func">fetch</span>(<span class="string">'http://localhost:6006/healthz'</span>);
+      <span class="keyword">if</span> (res.ok) {
+        ctx.<span class="func">log</span>(<span class="string">'Phoenix UI running at http://localhost:6006'</span>);
+        ctx.<span class="func">setConfig</span>(<span class="string">'observability.phoenix.enabled'</span>, <span class="keyword">true</span>);
+        ctx.<span class="func">setConfig</span>(<span class="string">'observability.phoenix.endpoint'</span>,
+          <span class="string">'http://localhost:6006/v1/traces'</span>);
+      }
+    } <span class="keyword">catch</span> {
+      ctx.<span class="func">log</span>(<span class="string">'Phoenix not running. Start with:'</span>);
+      ctx.<span class="func">log</span>(<span class="string">'  docker compose --profile phoenix up -d'</span>);
+    }
+  } <span class="keyword">else</span> {
+    ctx.<span class="func">log</span>(<span class="string">'No LiteLLM proxy detected. Skipping observability setup.'</span>);
+    ctx.<span class="func">log</span>(<span class="string">'To enable: see https://github.com/jdon/dev-agent-lens'</span>);
+  }
+}`
+  }
+];
+
+
+// ============================================================
+// RENDER
+// ============================================================
+
+// --- Architecture node clicks ---
+document.querySelectorAll('.arch-node').forEach(node => {
+  node.addEventListener('click', () => {
+    const key = node.dataset.node;
+    const data = nodeData[key];
+    if (!data) return;
+    document.querySelectorAll('.arch-node').forEach(n => n.classList.remove('selected'));
+    node.classList.add('selected');
+    const detail = document.getElementById('nodeDetail');
+    document.getElementById('nodeTitle').textContent = data.title;
+    document.getElementById('nodeDesc').textContent = data.desc;
+    const ul = document.getElementById('nodePoints');
+    ul.innerHTML = data.points.map(p => `<li>${p}</li>`).join('');
+    detail.style.display = 'block';
+  });
+});
+
+// --- Feature Matrix ---
+(function renderMatrix() {
+  const tbody = document.querySelector('#featureMatrix tbody');
+  featureRows.forEach((row, i) => {
+    const tr = document.createElement('tr');
+    tr.style.cursor = 'pointer';
+    tr.addEventListener('click', () => tr.classList.toggle('expanded'));
+
+    const strengthTag = (s) => {
+      const cls = s === 'strong' ? 'tag-green' : s === 'partial' ? 'tag-yellow' : 'tag-red';
+      const label = s === 'strong' ? 'Strong' : s === 'partial' ? 'Partial' : 'Gap';
+      return `<span class="cell-tag ${cls}">${label}</span>`;
+    };
+
+    tr.innerHTML = `
+      <td class="feature-name">${row.feature} <span class="expand-hint">(click)</span></td>
+      <td>${strengthTag(row.ork.strength)} ${row.ork.text}<div class="detail">${row.detail}</div></td>
+      <td>${strengthTag(row.dal.strength)} ${row.dal.text}</td>
+      <td>${row.combined}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+})();
+
+// --- Milestones ---
+(function renderTimeline() {
+  const el = document.getElementById('milestoneTimeline');
+  milestones.forEach(m => {
+    const overlapColor = m.overlap >= 50 ? 'var(--red)' : m.overlap >= 20 ? 'var(--yellow)' : 'var(--green)';
+    el.innerHTML += `
+      <div class="timeline-item ${m.level}">
+        <div class="tl-header">
+          <span class="tl-label">${m.id} — ${m.name}</span>
+          <span class="tl-date">Due ${m.date}</span>
+          <span class="badge badge-blue">${m.overlap}% overlap</span>
+        </div>
+        <div class="overlap-bar"><div class="overlap-fill" style="width:${m.overlap}%;background:${overlapColor};"></div></div>
+        <div class="tl-body">${m.desc}</div>
+      </div>`;
+  });
+})();
+
+(function renderIssues() {
+  const el = document.getElementById('issueList');
+  issues.forEach(iss => {
+    el.innerHTML += `
+      <div class="issue-card">
+        <span class="issue-id">${iss.id}</span>
+        <span class="overlap-score" style="color:${iss.color}">${iss.overlap}%</span>
+        <div style="margin-top:6px;font-weight:500;color:var(--text-bright)">${iss.title}</div>
+        <div style="margin-top:4px;color:var(--text-dim);font-size:0.82rem">${iss.note}</div>
+      </div>`;
+  });
+})();
+
+// --- Decision Matrix ---
+let currentStrategy = null;
+let currentScores = {};
+
+function renderStrategies() {
+  const el = document.getElementById('strategyList');
+  el.innerHTML = '';
+  Object.entries(strategies).forEach(([key, s]) => {
+    const btn = document.createElement('button');
+    btn.className = `strategy-btn${currentStrategy === key ? ' active' : ''}`;
+    btn.innerHTML = `<div class="strat-name" style="color:${s.color}">${s.name}</div><div class="strat-desc">${s.desc}</div>`;
+    btn.addEventListener('click', () => selectStrategy(key));
+    el.appendChild(btn);
+  });
+}
+
+function selectStrategy(key) {
+  currentStrategy = key;
+  currentScores[key] = currentScores[key] || [...strategies[key].scores];
+  renderStrategies();
+  renderSliders();
+  renderRadar();
+  renderComparison();
+}
+
+function renderSliders() {
+  const el = document.getElementById('sliderArea');
+  const title = document.getElementById('radarTitle');
+  if (!currentStrategy) { el.innerHTML = ''; title.textContent = 'Select a strategy'; return; }
+  title.textContent = strategies[currentStrategy].name;
+  title.style.color = strategies[currentStrategy].color;
+  const scores = currentScores[currentStrategy];
+  el.innerHTML = dimensions.map((dim, i) => `
+    <div class="slider-group">
+      <label><span>${dim}</span><span class="val" id="val-${i}">${scores[i]}</span></label>
+      <input type="range" min="1" max="5" value="${scores[i]}" data-idx="${i}">
+    </div>
+  `).join('');
+  el.querySelectorAll('input[type="range"]').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const idx = parseInt(inp.dataset.idx);
+      currentScores[currentStrategy][idx] = parseInt(inp.value);
+      document.getElementById(`val-${idx}`).textContent = inp.value;
+      renderRadar();
+      renderComparison();
+    });
+  });
+}
+
+function renderRadar() {
+  const canvas = document.getElementById('radarCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const cx = W / 2, cy = H / 2, R = 140;
+  ctx.clearRect(0, 0, W, H);
+
+  // Grid
+  for (let level = 1; level <= 5; level++) {
+    const r = (R / 5) * level;
+    ctx.beginPath();
+    for (let i = 0; i <= 5; i++) {
+      const angle = (Math.PI * 2 / 5) * i - Math.PI / 2;
+      const x = cx + r * Math.cos(angle);
+      const y = cy + r * Math.sin(angle);
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.strokeStyle = 'rgba(48,54,61,0.8)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  // Axes + labels
+  dimensions.forEach((dim, i) => {
+    const angle = (Math.PI * 2 / 5) * i - Math.PI / 2;
+    const x2 = cx + R * Math.cos(angle);
+    const y2 = cy + R * Math.sin(angle);
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(x2, y2);
+    ctx.strokeStyle = 'rgba(48,54,61,0.5)'; ctx.stroke();
+    const lx = cx + (R + 22) * Math.cos(angle);
+    const ly = cy + (R + 22) * Math.sin(angle);
+    ctx.fillStyle = '#8b949e'; ctx.font = '11px -apple-system, sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(dim, lx, ly);
+  });
+
+  if (!currentStrategy) return;
+
+  // Draw all strategies faintly for comparison
+  Object.entries(strategies).forEach(([key, s]) => {
+    if (key === currentStrategy) return;
+    const scores = currentScores[key] || s.scores;
+    ctx.beginPath();
+    scores.forEach((val, i) => {
+      const angle = (Math.PI * 2 / 5) * i - Math.PI / 2;
+      const r = (R / 5) * val;
+      const x = cx + r * Math.cos(angle);
+      const y = cy + r * Math.sin(angle);
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    });
+    ctx.closePath();
+    ctx.strokeStyle = s.color + '40';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  });
+
+  // Draw current strategy
+  const scores = currentScores[currentStrategy];
+  const color = strategies[currentStrategy].color;
+  ctx.beginPath();
+  scores.forEach((val, i) => {
+    const angle = (Math.PI * 2 / 5) * i - Math.PI / 2;
+    const r = (R / 5) * val;
+    const x = cx + r * Math.cos(angle);
+    const y = cy + r * Math.sin(angle);
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  ctx.closePath();
+  ctx.fillStyle = color + '25';
+  ctx.fill();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+
+  // Dots
+  scores.forEach((val, i) => {
+    const angle = (Math.PI * 2 / 5) * i - Math.PI / 2;
+    const r = (R / 5) * val;
+    const x = cx + r * Math.cos(angle);
+    const y = cy + r * Math.sin(angle);
+    ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2);
+    ctx.fillStyle = color; ctx.fill();
+  });
+
+  // Total
+  const total = scores.reduce((a, b) => a + b, 0);
+  document.getElementById('totalScore').textContent = total;
+}
+
+function renderComparison() {
+  const el = document.getElementById('comparisonBars');
+  el.innerHTML = '';
+  const entries = Object.entries(strategies).map(([key, s]) => {
+    const scores = currentScores[key] || s.scores;
+    const total = scores.reduce((a, b) => a + b, 0);
+    return { key, name: s.name, color: s.color, total };
+  }).sort((a, b) => b.total - a.total);
+
+  entries.forEach(e => {
+    const pct = (e.total / 25) * 100;
+    const isCurrent = e.key === currentStrategy;
+    el.innerHTML += `
+      <div class="comp-row" style="${isCurrent ? 'font-weight:700' : ''}">
+        <span class="comp-label" style="color:${e.color}">${e.name}</span>
+        <div class="comp-bar-track">
+          <div class="comp-bar-fill" style="width:${pct}%;background:${e.color};">${e.total}</div>
+        </div>
+        <span class="comp-score">${e.total}</span>
+      </div>`;
+  });
+}
+
+renderStrategies();
+selectStrategy('integrate');
+
+// --- Quick Wins ---
+(function renderWins() {
+  const el = document.getElementById('winsGrid');
+  quickWins.forEach((w, i) => {
+    el.innerHTML += `
+      <div class="win-item">
+        <div class="win-num">${i + 1}</div>
+        <div class="win-content">
+          <h4>${w.title}</h4>
+          <p>${w.desc}</p>
+          <span class="win-tag ${w.tagClass}">${w.tag}</span>
+        </div>
+      </div>`;
+  });
+})();
+
+// --- Code Preview ---
+(function renderCode() {
+  const tabs = document.getElementById('codeTabs');
+  const blocks = document.getElementById('codeBlocks');
+  codeSnippets.forEach((snip, i) => {
+    const tab = document.createElement('button');
+    tab.className = `code-tab${i === 0 ? ' active' : ''}`;
+    tab.textContent = snip.tab;
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.code-block').forEach(b => b.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById(`code-${i}`).classList.add('active');
+    });
+    tabs.appendChild(tab);
+
+    const block = document.createElement('div');
+    block.className = `code-block${i === 0 ? ' active' : ''}`;
+    block.id = `code-${i}`;
+    block.innerHTML = `<pre>${snip.code}</pre>`;
+    blocks.appendChild(block);
+  });
+})();
+
+// --- Sticky nav highlight ---
+const sections = document.querySelectorAll('section[id]');
+const navLinks = document.querySelectorAll('.nav a[data-nav]');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      navLinks.forEach(l => l.classList.remove('active'));
+      const link = document.querySelector(`.nav a[href="#${entry.target.id}"]`);
+      if (link) link.classList.add('active');
+    }
+  });
+}, { rootMargin: '-100px 0px -60% 0px', threshold: 0 });
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

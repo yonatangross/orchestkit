@@ -1,0 +1,40 @@
+{
+  "skill": "quality-gates",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "basic-implement-a-new-microservice",
+      "rule": "",
+      "query": "Implement a new microservice that handles payment processing, webhook delivery, retry logic, and integrates with Stripe, PayPal, and our internal billing system",
+      "expectedBehavior": [
+        "Claude auto-activates quality gates due to complex feature implementation",
+        "Assesses complexity as Level 4-5 (multiple dependencies, significant unknowns)",
+        "Runs YAGNI gate check (Step 0) to evaluate justified complexity ratio",
+        "BLOCKS with requirement for upfront plan and decomposition into smaller subtasks",
+        "Identifies critical unanswered questions and blocked dependencies",
+        "Outputs a Quality Gate template with complexity score, status, and can-proceed decision"
+      ]
+    },
+    {
+      "id": "negative-i-have-been-trying",
+      "rule": "",
+      "query": "I have been trying to fix this flaky test for 3 attempts now and it still fails intermittently. The test depends on timing and an external API mock that sometimes times out.",
+      "expectedBehavior": [
+        "Claude detects stuck condition (3 failed attempts at same task)",
+        "Triggers BLOCK and ESCALATE per stuck-detection threshold",
+        "Generates escalation template with what was tried and what guidance is needed",
+        "Does NOT suggest trying the same approach a fourth time"
+      ]
+    },
+    {
+      "id": "negative-change-the-button-color",
+      "rule": "",
+      "query": "Change the button color from blue to green in the header component",
+      "expectedBehavior": [
+        "Claude does NOT invoke the quality-gates skill",
+        "Directly makes the trivial CSS change (Level 1 complexity, no unknowns)",
+        "No complexity scoring, gate checks, or escalation templates generated"
+      ]
+    }
+  ]
+}

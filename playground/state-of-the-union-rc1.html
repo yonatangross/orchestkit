@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OrchestKit v7.0.0-rc.1 — State of the Union</title>
+<style>
+:root {
+  --bg: #0d1117; --surface: #161b22; --surface2: #21262d; --border: #30363d;
+  --text: #e6edf3; --text2: #8b949e; --text3: #484f58;
+  --red: #f85149; --green: #3fb950; --yellow: #d29922; --blue: #58a6ff;
+  --purple: #bc8cff; --orange: #d18616; --cyan: #39d2c0; --pink: #f778ba;
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --mono: 'SF Mono', 'Fira Code', monospace;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh; }
+
+.header { padding: 24px 32px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.header-left h1 { font-size: 22px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+.header-left h1 .ver { color: var(--blue); font-family: var(--mono); font-size: 14px; background: rgba(88,166,255,0.1); padding: 2px 10px; border-radius: 6px; }
+.header-left h1 .rc { color: var(--orange); font-family: var(--mono); font-size: 11px; background: rgba(209,134,22,0.15); padding: 2px 8px; border-radius: 6px; animation: pulse 2s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+.header-left p { color: var(--text2); font-size: 13px; margin-top: 4px; }
+.header-right { text-align: right; font-size: 12px; color: var(--text2); font-family: var(--mono); }
+.header-right .commit { color: var(--blue); }
+
+.scores { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; padding: 16px 32px; }
+@media (max-width: 900px) { .scores { grid-template-columns: repeat(4, 1fr); } }
+.sc { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px; text-align: center; transition: transform 0.2s, border-color 0.2s; }
+.sc:hover { transform: translateY(-2px); border-color: var(--text3); }
+.sc .n { font-size: 28px; font-weight: 800; font-family: var(--mono); }
+.sc .l { font-size: 10px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+.sc.green .n { color: var(--green); } .sc.blue .n { color: var(--blue); }
+.sc.purple .n { color: var(--purple); } .sc.orange .n { color: var(--orange); }
+.sc.cyan .n { color: var(--cyan); } .sc.red .n { color: var(--red); }
+.sc.yellow .n { color: var(--yellow); }
+
+.tabs { display: flex; border-bottom: 1px solid var(--border); padding: 0 32px; overflow-x: auto; }
+.tab { padding: 12px 18px; cursor: pointer; font-size: 13px; color: var(--text2); border-bottom: 2px solid transparent; white-space: nowrap; transition: all 0.2s; user-select: none; }
+.tab:hover { color: var(--text); background: var(--surface); }
+.tab.active { color: var(--text); border-bottom-color: var(--blue); }
+.tab .badge { font-size: 10px; padding: 1px 6px; border-radius: 8px; margin-left: 6px; }
+.tab .badge.green { background: rgba(63,185,80,0.15); color: var(--green); }
+.tab .badge.orange { background: rgba(209,134,22,0.15); color: var(--orange); }
+.tab .badge.red { background: rgba(248,81,73,0.15); color: var(--red); }
+
+.content { padding: 24px 32px; max-width: 1400px; margin: 0 auto; }
+.panel { display: none; animation: fadeIn 0.3s ease; }
+.panel.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 12px; overflow: hidden; }
+.card-head { padding: 14px 20px; display: flex; align-items: center; gap: 12px; cursor: pointer; }
+.card-head:hover { background: var(--surface2); }
+.card-body { padding: 0 20px 20px; font-size: 13px; line-height: 1.7; color: var(--text2); display: none; border-top: 1px solid var(--border); }
+.card-body.open { display: block; padding-top: 16px; }
+.card-title { font-size: 14px; font-weight: 600; flex: 1; color: var(--text); }
+.card-arrow { color: var(--text3); transition: transform 0.2s; font-size: 12px; }
+.card-head.open .card-arrow { transform: rotate(90deg); }
+
+.tag { padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 600; letter-spacing: 0.3px; flex-shrink: 0; }
+.tag.done { background: rgba(63,185,80,0.15); color: var(--green); }
+.tag.wip { background: rgba(88,166,255,0.15); color: var(--blue); }
+.tag.todo { background: rgba(210,150,34,0.15); color: var(--yellow); }
+.tag.blocked { background: rgba(248,81,73,0.15); color: var(--red); }
+.tag.stale { background: rgba(72,79,88,0.3); color: var(--text3); }
+.tag.critical { background: rgba(248,81,73,0.15); color: var(--red); }
+
+.code { font-family: var(--mono); font-size: 12px; background: var(--bg); padding: 14px 16px; border-radius: 8px; margin: 10px 0; overflow-x: auto; white-space: pre; line-height: 1.6; }
+.dim { color: var(--text3); } .hi { color: var(--yellow); } .bad { color: var(--red); }
+.good { color: var(--green); } .bl { color: var(--blue); } .pu { color: var(--purple); }
+.cy { color: var(--cyan); } .or { color: var(--orange); }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 12px; }
+@media (max-width: 800px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+.section-title { font-size: 16px; font-weight: 700; margin: 20px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+.section-title .icon { font-size: 18px; }
+
+.bar-chart { margin: 12px 0; }
+.bar-row { display: flex; align-items: center; gap: 10px; margin: 6px 0; font-size: 12px; }
+.bar-label { width: 140px; color: var(--text2); text-align: right; flex-shrink: 0; }
+.bar-track { flex: 1; height: 20px; background: var(--surface2); border-radius: 4px; overflow: hidden; position: relative; }
+.bar-fill { height: 100%; border-radius: 4px; transition: width 1s ease; display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; font-size: 10px; font-weight: 700; font-family: var(--mono); }
+.bar-fill.green { background: linear-gradient(90deg, rgba(63,185,80,0.3), rgba(63,185,80,0.6)); color: var(--green); }
+.bar-fill.blue { background: linear-gradient(90deg, rgba(88,166,255,0.3), rgba(88,166,255,0.6)); color: var(--blue); }
+.bar-fill.purple { background: linear-gradient(90deg, rgba(188,140,255,0.3), rgba(188,140,255,0.6)); color: var(--purple); }
+.bar-fill.orange { background: linear-gradient(90deg, rgba(209,134,22,0.3), rgba(209,134,22,0.6)); color: var(--orange); }
+.bar-fill.red { background: linear-gradient(90deg, rgba(248,81,73,0.3), rgba(248,81,73,0.6)); color: var(--red); }
+.bar-fill.cyan { background: linear-gradient(90deg, rgba(57,210,192,0.3), rgba(57,210,192,0.6)); color: var(--cyan); }
+
+.progress-ring { display: inline-block; position: relative; width: 80px; height: 80px; }
+.progress-ring svg { transform: rotate(-90deg); }
+.progress-ring .label { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800; font-family: var(--mono); }
+
+.issue-row { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 6px; font-size: 13px; transition: background 0.15s; }
+.issue-row:hover { background: var(--surface2); }
+.issue-num { font-family: var(--mono); color: var(--text3); width: 45px; flex-shrink: 0; }
+.issue-title { flex: 1; }
+.issue-ms { font-size: 11px; color: var(--text3); max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.donut-container { display: flex; align-items: center; gap: 24px; margin: 16px 0; }
+.donut { position: relative; width: 120px; height: 120px; flex-shrink: 0; }
+.donut svg { transform: rotate(-90deg); }
+.donut .center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.donut .center .big { font-size: 24px; font-weight: 800; font-family: var(--mono); }
+.donut .center .small { font-size: 10px; color: var(--text2); }
+.legend { display: flex; flex-direction: column; gap: 6px; }
+.legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+.legend-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+
+.timeline { position: relative; padding-left: 20px; margin: 16px 0; }
+.timeline::before { content: ''; position: absolute; left: 6px; top: 0; bottom: 0; width: 2px; background: var(--border); }
+.tl-item { position: relative; margin-bottom: 16px; padding-left: 20px; }
+.tl-item::before { content: ''; position: absolute; left: -17px; top: 6px; width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--border); background: var(--bg); }
+.tl-item.done::before { background: var(--green); border-color: var(--green); }
+.tl-item.current::before { background: var(--blue); border-color: var(--blue); box-shadow: 0 0 8px rgba(88,166,255,0.5); }
+.tl-item .tl-date { font-size: 11px; color: var(--text3); font-family: var(--mono); }
+.tl-item .tl-text { font-size: 13px; margin-top: 2px; }
+
+.mini-table { width: 100%; font-size: 12px; border-collapse: collapse; margin: 10px 0; }
+.mini-table th { text-align: left; color: var(--text3); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; font-size: 10px; padding: 6px 10px; border-bottom: 1px solid var(--border); }
+.mini-table td { padding: 8px 10px; border-bottom: 1px solid rgba(48,54,61,0.4); }
+.mini-table tr:hover td { background: var(--surface2); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>OrchestKit <span class="ver">v7.0.0</span> <span class="rc">RC.1</span> State of the Union</h1>
+    <p>Release candidate assessment &mdash; branch feat/v7-unified-plugin &mdash; 2026-03-01</p>
+  </div>
+  <div class="header-right">
+    <div>HEAD <span class="commit">d8d46ec5</span></div>
+    <div>68 commits ahead of main</div>
+    <div>PR #835 &middot; CI green</div>
+  </div>
+</div>
+
+<div class="scores">
+  <div class="sc blue"><div class="n">69</div><div class="l">Skills</div></div>
+  <div class="sc purple"><div class="n">38</div><div class="l">Agents</div></div>
+  <div class="sc cyan"><div class="n">96</div><div class="l">Hooks</div></div>
+  <div class="sc green"><div class="n">36</div><div class="l">Tests Pass</div></div>
+  <div class="sc orange"><div class="n">591</div><div class="l">Issues Closed</div></div>
+  <div class="sc yellow"><div class="n">85</div><div class="l">Genuinely Open</div></div>
+  <div class="sc green"><div class="n">0</div><div class="l">Critical</div></div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" data-tab="overview">Overview</div>
+  <div class="tab" data-tab="components">Components <span class="badge green">69+38+96</span></div>
+  <div class="tab" data-tab="issues">Issue Triage <span class="badge orange">85</span></div>
+  <div class="tab" data-tab="milestones">Milestones</div>
+  <div class="tab" data-tab="done">Done in Branch <span class="badge green">34</span></div>
+  <div class="tab" data-tab="blockers">Blockers <span class="badge orange">0</span></div>
+  <div class="tab" data-tab="timeline">Timeline</div>
+</div>
+
+<div class="content">
+
+<!-- OVERVIEW -->
+<div class="panel active" id="overview">
+  <div class="section-title"><span class="icon">&#9881;</span> Release Readiness</div>
+
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-head"><div class="card-title">Build & Tests</div><span class="tag done">PASS</span></div>
+      <div class="card-body open">
+        <div class="code"><span class="good">36 passed</span>, <span class="bad">0 failed</span>, 1 skipped
+<span class="dim">Pre-push: version bump OK, typecheck OK, security OK</span>
+<span class="dim">CI: green on all checks</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title">Alpha Testing</div><span class="tag wip">IN PROGRESS</span></div>
+      <div class="card-body open">
+        <div class="code"><span class="bl">rc.1 tagged</span> at d8d46ec5
+<span class="dim">Target repos: yonatan-hq, portfolio</span>
+<span class="dim">Test areas: NotebookLM, /ork:setup, hooks</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title">Merge Decision</div><span class="tag todo">PENDING</span></div>
+      <div class="card-body open">
+        <div class="code"><span class="or">Requires:</span> explicit approval from Yonatan
+<span class="dim">After alpha testing validates in real repos</span>
+<span class="dim">3 CRITICAL issues can land as v7.0.x patches</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title"><span class="icon">&#128202;</span> What Changed Since v6.7.1</div>
+  <div class="code"><span class="bl">Unified plugin</span>    3 plugins &rarr; 1 (ork = orkl = ork-creative)
+<span class="bl">Skills</span>            69 total (17 user-invocable, 52 internal)
+<span class="bl">Agents</span>            38 total (19 Sonnet, 13 Haiku, 6 Opus) &mdash; all with maxTurns
+<span class="bl">Hooks</span>             96 total (35 global + 54 agent-scoped + 7 skill-scoped)
+<span class="bl">Rules</span>             560 rule files across 58 skills
+<span class="bl">Context savings</span>   58&rarr;16 skills in prompt listing (~42 fewer metadata entries)
+<span class="bl">Security</span>          permissions.deny: 13 patterns, 6 vulns fixed, 38 agent hooks
+<span class="bl">Quality gates</span>     69/69 test-cases.json, 35/35 hook timeouts, 38/38 maxTurns
+<span class="bl">Dead code killed</span>  discovers: field, 3 dead hooks, skill-auto-suggest
+<span class="bl">Files changed</span>     1,841 files, +30K / -188K lines (massive consolidation)
+<span class="bl">Min CC version</span>    &ge; 2.1.59</div>
+
+  <div class="section-title"><span class="icon">&#9989;</span> Former Blockers — All Resolved</div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-head"><span class="tag done">RESOLVED</span><div class="card-title">Quality gaps — all 3 critical issues done</div></div>
+      <div class="card-body open">
+        <div style="margin-top:4px"><span class="good">#847</span> — 69/69 skills have test-cases.json (100% eval coverage)</div>
+        <div><span class="good">#846</span> — 35/35 hooks have explicit timeout fields (10s-120s)</div>
+        <div><span class="good">#849</span> — 38/38 agents have maxTurns (Haiku:20, Sonnet:30, Opus:40)</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><span class="tag blocked">UPSTREAM</span><div class="card-title">CC bug #20802 — commands/ duplication</div></div>
+      <div class="card-body open">~1.4k tokens wasted per session. CC copies skills to both <code>skills/</code> and <code>commands/</code>. No workaround. Must wait for Anthropic fix. Not a blocker for merge.</div>
+    </div>
+  </div>
+</div>
+
+<!-- COMPONENTS -->
+<div class="panel" id="components">
+  <div class="section-title"><span class="icon">&#128736;</span> Component Breakdown</div>
+
+  <div class="grid-2">
+    <div>
+      <h3 style="font-size:14px;margin-bottom:12px;color:var(--blue)">Skills (69)</h3>
+      <div class="donut-container">
+        <div class="donut">
+          <svg width="120" height="120" viewBox="0 0 120 120">
+            <circle cx="60" cy="60" r="50" fill="none" stroke="var(--surface2)" stroke-width="12"/>
+            <circle cx="60" cy="60" r="50" fill="none" stroke="var(--blue)" stroke-width="12" stroke-dasharray="77 237" stroke-linecap="round"/>
+            <circle cx="60" cy="60" r="50" fill="none" stroke="var(--purple)" stroke-width="12" stroke-dasharray="241 73" stroke-dashoffset="-77" stroke-linecap="round"/>
+          </svg>
+          <div class="center"><div class="big" style="color:var(--blue)">69</div><div class="small">total</div></div>
+        </div>
+        <div class="legend">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div> 17 User-invocable (/ork:name)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div> 52 Internal (agent-triggered)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--text3)"></div> 53 with disable-model-invocation</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div> 26 with model: overrides</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--cyan)"></div> 560 rule files across 58 skills</div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <h3 style="font-size:14px;margin-bottom:12px;color:var(--purple)">Agents (38)</h3>
+      <div class="bar-chart">
+        <div class="bar-row"><span class="bar-label">Sonnet (reasoning)</span><div class="bar-track"><div class="bar-fill blue" style="width:50%">19</div></div></div>
+        <div class="bar-row"><span class="bar-label">Haiku (fast/cheap)</span><div class="bar-track"><div class="bar-fill green" style="width:34%">13</div></div></div>
+        <div class="bar-row"><span class="bar-label">Opus (critical)</span><div class="bar-track"><div class="bar-fill purple" style="width:16%">6</div></div></div>
+      </div>
+      <div style="font-size:12px;color:var(--text2);margin-top:12px">
+        All 38 scoped with explicit <code>mcpServers</code> declarations<br>
+        38 have <code>hooks:</code> in frontmatter<br>
+        Cost optimization: Sonnet&rarr;Haiku shift saves ~$1.5k/yr
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title" style="margin-top:24px"><span class="icon">&#9875;</span> Hooks (96)</div>
+  <div class="bar-chart">
+    <div class="bar-row"><span class="bar-label">Global hooks</span><div class="bar-track"><div class="bar-fill cyan" style="width:36%">35</div></div></div>
+    <div class="bar-row"><span class="bar-label">Agent-scoped</span><div class="bar-track"><div class="bar-fill purple" style="width:56%">54</div></div></div>
+    <div class="bar-row"><span class="bar-label">Skill-scoped</span><div class="bar-track"><div class="bar-fill orange" style="width:7%">7</div></div></div>
+  </div>
+  <div class="grid-3" style="margin-top:12px">
+    <div class="card"><div class="card-head"><div class="card-title" style="font-size:13px">33 command hooks</div></div></div>
+    <div class="card"><div class="card-head"><div class="card-title" style="font-size:13px">2 HTTP hooks</div></div></div>
+    <div class="card"><div class="card-head"><div class="card-title" style="font-size:13px">18 event types</div></div></div>
+  </div>
+
+  <div class="section-title" style="margin-top:24px"><span class="icon">&#128171;</span> Context Budget</div>
+  <div class="code"><span class="dim">Token consumers (estimated per session):</span>
+<span class="bl">Skill metadata</span>       ~15.9k chars (69 &times; 230 avg)  <span class="good">&larr; reduced from 58 listed to 16</span>
+<span class="or">MCP tool defs</span>        ~16.9k tokens               <span class="good">&larr; agents scoped, TOOL_SEARCH on</span>
+<span class="bad">commands/ dupe</span>       ~1.4k tokens                <span class="bad">&larr; CC bug #20802, can't fix</span>
+<span class="pu">Hook context</span>         ~1.1k tokens (within 2.2k budget)
+<span class="dim">NotebookLM MCP</span>       ~6k tokens (25 tools)       <span class="or">&larr; rarely used, consider scoping</span></div>
+</div>
+
+<!-- ISSUES -->
+<div class="panel" id="issues">
+  <div class="section-title"><span class="icon">&#128269;</span> Issue Triage — 119 Open &rarr; 85 Genuine</div>
+  <div class="code"><span class="good">34 done in branch</span> (commented, will auto-close when PR #835 merges)
+<span class="dim"> 5 stale/deferred</span> (video pipeline — post-v7)
+<span class="or"> 3 superseded</span> (#866 discovers, #885 umbrella, #889 upstream bug)
+<span class="good"> 3 critical resolved</span> (#847 evals, #846 timeouts, #849 maxTurns)
+<span class="or">85 genuinely open</span> across 13 milestones</div>
+
+  <div class="section-title" style="margin-top:20px">Genuine Open by Milestone</div>
+  <div class="bar-chart">
+    <div class="bar-row"><span class="bar-label">No Milestone</span><div class="bar-track"><div class="bar-fill orange" style="width:20%">17</div></div></div>
+    <div class="bar-row"><span class="bar-label">Auto-Eval System</span><div class="bar-track"><div class="bar-fill purple" style="width:20%">17</div></div></div>
+    <div class="bar-row"><span class="bar-label">Version Mgmt</span><div class="bar-track"><div class="bar-fill blue" style="width:14%">12</div></div></div>
+    <div class="bar-row"><span class="bar-label">v7.0 Arch & Perf</span><div class="bar-track"><div class="bar-fill cyan" style="width:7%">6</div></div></div>
+    <div class="bar-row"><span class="bar-label">Behavioral Intel</span><div class="bar-track"><div class="bar-fill cyan" style="width:7%">6</div></div></div>
+    <div class="bar-row"><span class="bar-label">Eval v2 Analytics</span><div class="bar-track"><div class="bar-fill green" style="width:7%">6</div></div></div>
+    <div class="bar-row"><span class="bar-label">v6.2 Security</span><div class="bar-track"><div class="bar-fill red" style="width:5%">4</div></div></div>
+    <div class="bar-row"><span class="bar-label">Session Analytics</span><div class="bar-track"><div class="bar-fill purple" style="width:5%">4</div></div></div>
+    <div class="bar-row"><span class="bar-label">NotebookLM CLI</span><div class="bar-track"><div class="bar-fill orange" style="width:5%">4</div></div></div>
+    <div class="bar-row"><span class="bar-label">CC 2.1.63</span><div class="bar-track"><div class="bar-fill blue" style="width:4%">3</div></div></div>
+    <div class="bar-row"><span class="bar-label">Video Gallery</span><div class="bar-track"><div class="bar-fill orange" style="width:2%">2</div></div></div>
+    <div class="bar-row"><span class="bar-label">Context Intel</span><div class="bar-track"><div class="bar-fill cyan" style="width:2%">2</div></div></div>
+    <div class="bar-row"><span class="bar-label">Self-Healing CI</span><div class="bar-track"><div class="bar-fill green" style="width:2%">2</div></div></div>
+  </div>
+</div>
+
+<!-- DONE IN BRANCH -->
+<div class="panel" id="done">
+  <div class="section-title"><span class="icon">&#9989;</span> Implemented in Branch (34 issues commented)</div>
+  <p style="font-size:13px;color:var(--text2);margin-bottom:16px">These will auto-close when PR #835 merges to main via <code>Closes #N</code> in the PR body.</p>
+
+  <div class="section-title" style="font-size:14px">Context Optimization (v7.0)</div>
+  <div class="issue-row"><span class="issue-num">#886</span><span class="tag done">DONE</span><span class="issue-title">ENABLE_TOOL_SEARCH=auto:5 in settings</span></div>
+  <div class="issue-row"><span class="issue-num">#887</span><span class="tag done">DONE</span><span class="issue-title">Scope all 38 agents with mcpServers</span></div>
+  <div class="issue-row"><span class="issue-num">#888</span><span class="tag done">DONE</span><span class="issue-title">Haiku agents MCP tool scoping</span></div>
+  <div class="issue-row"><span class="issue-num">#864</span><span class="tag done">DONE</span><span class="issue-title">Tiered skill discovery (58&rarr;16 listed)</span></div>
+
+  <div class="section-title" style="font-size:14px">Security & Hooks (v6.2)</div>
+  <div class="issue-row"><span class="issue-num">#873</span><span class="tag done">DONE</span><span class="issue-title">permissions.deny expanded to 13 patterns</span></div>
+  <div class="issue-row"><span class="issue-num">#874</span><span class="tag done">DONE</span><span class="issue-title">Agent-scoped hooks for 18+ agents</span></div>
+  <div class="issue-row"><span class="issue-num">#876</span><span class="tag done">DONE</span><span class="issue-title">Skill-scoped hooks expanded</span></div>
+  <div class="issue-row"><span class="issue-num">#875</span><span class="tag done">DONE</span><span class="issue-title">AUQ markdown previews (8 skills)</span></div>
+  <div class="issue-row"><span class="issue-num">#850</span><span class="tag done">DONE</span><span class="issue-title">Per-skill model overrides (26 skills)</span></div>
+  <div class="issue-row"><span class="issue-num">#854</span><span class="tag done">DONE</span><span class="issue-title">Keybindings, spinner, plansDirectory</span></div>
+  <div class="issue-row"><span class="issue-num">#848</span><span class="tag done">DONE</span><span class="issue-title">disable-model-invocation (53 skills)</span></div>
+
+  <div class="section-title" style="font-size:14px">Security Fixes</div>
+  <div class="issue-row"><span class="issue-num">#879</span><span class="tag done">DONE</span><span class="issue-title">SEC-003: execSync command injection fix</span></div>
+  <div class="issue-row"><span class="issue-num">#880</span><span class="tag done">DONE</span><span class="issue-title">SEC-006: PIPE_TO_SHELL_RE interpreters</span></div>
+  <div class="issue-row"><span class="issue-num">#881</span><span class="tag done">DONE</span><span class="issue-title">SEC-004: false positive tmp dir fix</span></div>
+  <div class="issue-row"><span class="issue-num">#882</span><span class="tag done">DONE</span><span class="issue-title">SEC-015: SSRF URL blocklist</span></div>
+  <div class="issue-row"><span class="issue-num">#883</span><span class="tag done">DONE</span><span class="issue-title">SEC-010: Pattern list deduplication</span></div>
+
+  <div class="section-title" style="font-size:14px">CC 2.1.63 Docs</div>
+  <div class="issue-row"><span class="issue-num">#857</span><span class="tag done">DONE</span><span class="issue-title">Version matrix update</span></div>
+  <div class="issue-row"><span class="issue-num">#859</span><span class="tag done">DONE</span><span class="issue-title">Built-in commands docs (/simplify, /batch)</span></div>
+  <div class="issue-row"><span class="issue-num">#861</span><span class="tag done">DONE</span><span class="issue-title">CLAUDEAI_MCP env var docs</span></div>
+  <div class="issue-row"><span class="issue-num">#862</span><span class="tag done">DONE</span><span class="issue-title">OAuth fallback auth rule</span></div>
+  <div class="issue-row"><span class="issue-num">#838</span><span class="tag done">DONE</span><span class="issue-title">Model routing documentation</span></div>
+  <div class="issue-row"><span class="issue-num">#839</span><span class="tag done">DONE</span><span class="issue-title">Stage docs/site build artifacts</span></div>
+
+  <div class="section-title" style="font-size:14px">Quality Gates (formerly Critical)</div>
+  <div class="issue-row"><span class="issue-num">#847</span><span class="tag done">DONE</span><span class="issue-title">test-cases.json &mdash; 69/69 skills (100% coverage)</span></div>
+  <div class="issue-row"><span class="issue-num">#846</span><span class="tag done">DONE</span><span class="issue-title">Hook timeouts &mdash; 35/35 hooks (10s-120s by tier)</span></div>
+  <div class="issue-row"><span class="issue-num">#849</span><span class="tag done">DONE</span><span class="issue-title">Agent maxTurns &mdash; 38/38 (Haiku:20, Sonnet:30, Opus:40)</span></div>
+
+  <div class="section-title" style="font-size:14px">Superseded / Dead</div>
+  <div class="issue-row"><span class="issue-num">#866</span><span class="tag stale">DEAD</span><span class="issue-title">discovers: field &mdash; not a CC feature, YAML removed</span></div>
+  <div class="issue-row"><span class="issue-num">#885</span><span class="tag stale">SUPERSEDED</span><span class="issue-title">Context bloat umbrella &mdash; replaced by #886+#887+#888</span></div>
+  <div class="issue-row"><span class="issue-num">#889</span><span class="tag blocked">UPSTREAM</span><span class="issue-title">commands/ dupe &mdash; CC bug #20802</span></div>
+  <div class="issue-row"><span class="issue-num">#871</span><span class="tag stale">SUPERSEDED</span><span class="issue-title">README hook count &mdash; CLAUDE.md is source of truth</span></div>
+
+  <div class="section-title" style="font-size:14px">Stale / Deferred</div>
+  <div class="issue-row"><span class="issue-num">#731</span><span class="tag stale">DEFERRED</span><span class="issue-title">Hero video montage</span></div>
+  <div class="issue-row"><span class="issue-num">#732</span><span class="tag stale">DEFERRED</span><span class="issue-title">CI video generation</span></div>
+  <div class="issue-row"><span class="issue-num">#733</span><span class="tag stale">DEFERRED</span><span class="issue-title">TerminalFlow reusability bugs</span></div>
+  <div class="issue-row"><span class="issue-num">#734</span><span class="tag stale">DEFERRED</span><span class="issue-title">TerminalFlow configs</span></div>
+  <div class="issue-row"><span class="issue-num">#735</span><span class="tag stale">DEFERRED</span><span class="issue-title">TerminalFlow variants</span></div>
+</div>
+
+<!-- MILESTONES -->
+<div class="panel" id="milestones">
+  <div class="section-title"><span class="icon">&#127919;</span> Milestone Status</div>
+
+  <div class="card">
+    <div class="card-head" onclick="toggle(this)"><span class="tag wip">6 open</span><div class="card-title">v7.0 &mdash; Architecture & Performance</div><span class="card-arrow">&#9654;</span></div>
+    <div class="card-body">
+      <div style="margin-bottom:8px"><strong>Done in branch:</strong> #886, #887, #888, #864, #866 (7 of 13)</div>
+      <div><strong>Remaining:</strong></div>
+      <div class="issue-row"><span class="issue-num">#890</span><span class="issue-title">NotebookLM 6k tokens &mdash; scope MCP</span></div>
+      <div class="issue-row"><span class="issue-num">#863</span><span class="issue-title">Agent necessity audit (17 orphans)</span></div>
+      <div class="issue-row"><span class="issue-num">#865</span><span class="issue-title">Context injection gating</span></div>
+      <div class="issue-row"><span class="issue-num">#889</span><span class="issue-title">commands/ dupe (upstream blocker)</span></div>
+      <div class="issue-row"><span class="issue-num">#885</span><span class="issue-title">Context bloat umbrella (superseded)</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head" onclick="toggle(this)"><span class="tag wip">4 open</span><div class="card-title">v6.2 &mdash; Security Hardening & Hook Consolidation</div><span class="card-arrow">&#9654;</span></div>
+    <div class="card-body">
+      <div style="margin-bottom:8px"><strong>Done in branch:</strong> #873, #874, #875, #876, #850, #854 (6 of 10)</div>
+      <div><strong>Remaining:</strong></div>
+      <div class="issue-row"><span class="issue-num">#872</span><span class="issue-title">allowed-tools for 40 unrestricted skills</span></div>
+      <div class="issue-row"><span class="issue-num">#877</span><span class="issue-title">argument-hint for invocable skills</span></div>
+      <div class="issue-row"><span class="issue-num">#878</span><span class="issue-title">TaskOutput/TaskStop for bg agents</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head" onclick="toggle(this)"><span class="tag wip">3 open</span><div class="card-title">CC 2.1.63 Integration</div><span class="card-arrow">&#9654;</span></div>
+    <div class="card-body">
+      <div style="margin-bottom:8px"><strong>Done in branch:</strong> #857, #859, #861, #862 (4 of 7)</div>
+      <div><strong>Remaining:</strong></div>
+      <div class="issue-row"><span class="issue-num">#856</span><span class="issue-title">HTTP hooks prototype</span></div>
+      <div class="issue-row"><span class="issue-num">#858</span><span class="issue-title">Doctor stale advice removal</span></div>
+      <div class="issue-row"><span class="issue-num">#860</span><span class="issue-title">Simplify worktree-setup.sh</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head" onclick="toggle(this)"><span class="tag todo">12 open</span><div class="card-title">Version Management & Rollback</div><span class="card-arrow">&#9654;</span></div>
+    <div class="card-body">Full milestone &mdash; 12 issues, all genuinely open. Covers release channels, rollback mechanisms, version pinning.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-head" onclick="toggle(this)"><span class="tag todo">8 open</span><div class="card-title">Auto-Evaluation System</div><span class="card-arrow">&#9654;</span></div>
+    <div class="card-body">Full milestone &mdash; 8 issues. Covers automated skill/agent evaluation, quality scoring, regression detection.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-head" onclick="toggle(this)"><span class="tag todo">5 open</span><div class="card-title">Eval v2 &mdash; Advanced Analytics & Drift Detection</div><span class="card-arrow">&#9654;</span></div>
+    <div class="card-body">Full milestone &mdash; 5 issues. Drift detection, A/B testing, advanced eval metrics.</div>
+  </div>
+</div>
+
+<!-- BLOCKERS -->
+<div class="panel" id="blockers">
+  <div class="section-title"><span class="icon">&#9989;</span> No Critical Blockers Remaining</div>
+
+  <div class="card">
+    <div class="card-head" onclick="toggle(this)"><span class="tag done">RESOLVED</span><div class="card-title">#847 &mdash; test-cases.json: 69/69 skills covered</div><span class="card-arrow">&#9654;</span></div>
+    <div class="card-body">
+      <p>All 69 skills have <code>test-cases.json</code> with basic, edge, and negative scenarios. 100% eval coverage achieved.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head" onclick="toggle(this)"><span class="tag done">RESOLVED</span><div class="card-title">#846 &mdash; Hook timeouts: 35/35 hooks have explicit timeout</div><span class="card-arrow">&#9654;</span></div>
+    <div class="card-body">
+      <p>Every hook entry has an explicit <code>timeout</code> field. Sync validators: 10-15s, Network I/O: 30s, Async dispatchers: 60s, Setup: 120s, HTTP: 5s.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head" onclick="toggle(this)"><span class="tag done">RESOLVED</span><div class="card-title">#849 &mdash; Agent maxTurns: 38/38 agents have turn limits</div><span class="card-arrow">&#9654;</span></div>
+    <div class="card-body">
+      <p>All agents have explicit <code>maxTurns</code>. Haiku: 20, Sonnet: 30, Opus: 40. UI-feedback (sonnet) set to 20 as exception.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head" onclick="toggle(this)"><span class="tag blocked">UPSTREAM</span><div class="card-title">CC bug #20802 &mdash; commands/ directory duplication (non-blocking)</div><span class="card-arrow">&#9654;</span></div>
+    <div class="card-body">
+      <p>CC copies all user-invocable skills into both <code>skills/</code> and <code>commands/</code> directories, wasting ~1.4k tokens per session. No workaround available. Waiting on Anthropic to fix. <strong>Not a merge blocker.</strong></p>
+    </div>
+  </div>
+</div>
+
+<!-- TIMELINE -->
+<div class="panel" id="timeline">
+  <div class="section-title"><span class="icon">&#128197;</span> v7 Release Timeline</div>
+
+  <div class="timeline">
+    <div class="tl-item done">
+      <div class="tl-date">Feb 15-22</div>
+      <div class="tl-text">Plugin unification (3&rarr;1), agent model routing, hook consolidation</div>
+    </div>
+    <div class="tl-item done">
+      <div class="tl-date">Feb 23-25</div>
+      <div class="tl-text">Security hardening (6 vulns), permissions.deny, agent-scoped hooks</div>
+    </div>
+    <div class="tl-item done">
+      <div class="tl-date">Feb 26-27</div>
+      <div class="tl-text">CC feature utilization (keybindings, AUQ previews, model overrides, skill hooks)</div>
+    </div>
+    <div class="tl-item done">
+      <div class="tl-date">Feb 28</div>
+      <div class="tl-text">Context optimization (mcpServers scoping, TOOL_SEARCH, tiered discovery)</div>
+    </div>
+    <div class="tl-item done">
+      <div class="tl-date">Mar 1 AM</div>
+      <div class="tl-text">Dead code cleanup (discovers:, 3 dead hooks, skill-auto-suggest)</div>
+    </div>
+    <div class="tl-item done">
+      <div class="tl-date">Mar 1</div>
+      <div class="tl-text"><strong>v7.0.0-rc.1 tagged</strong> &mdash; Issue triage, 34 issues commented as done</div>
+    </div>
+    <div class="tl-item current">
+      <div class="tl-date">Mar 1</div>
+      <div class="tl-text"><strong>All critical issues resolved</strong> &mdash; #847 evals, #846 timeouts, #849 maxTurns confirmed done. Zero blockers.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-date">Mar 1-3</div>
+      <div class="tl-text">Alpha testing in yonatan-hq + portfolio repos</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-date">TBD</div>
+      <div class="tl-text">Merge PR #835 to main &rarr; 34 issues auto-close &rarr; v7.0.0 release</div>
+    </div>
+  </div>
+
+  <div class="section-title" style="margin-top:24px"><span class="icon">&#128200;</span> Recent Commits</div>
+  <div class="code"><span class="bl">d8d46ec5</span> refactor(skills): remove dead discovers: field from 17 skills (#866)
+<span class="bl">2e707912</span> test: remove skill-auto-suggest from prompt hooks test
+<span class="bl">c049a5bd</span> chore: rebuild plugins, hooks dist, and docs site
+<span class="bl">8de3051b</span> feat(settings): add ENABLE_TOOL_SEARCH and update compliance tests
+<span class="bl">151a9563</span> refactor(hooks): remove dead hooks &mdash; skill-auto-suggest, task-linker, task-completer
+<span class="bl">4c8ecca7</span> feat(agents): scope mcpServers and model routing for all 38 agents
+<span class="bl">c07db06a</span> docs: update changelog, configuration, navigating, skills guides
+<span class="bl">e8751f14</span> test: add settings validation and CC feature coverage tests
+<span class="bl">be4219a3</span> feat(settings+skills): CC feature utilization &mdash; keybindings, statusLine, spinner
+<span class="bl">ec4b0bfb</span> feat(skills): add AskUserQuestion markdown previews to 8 skills</div>
+</div>
+
+</div><!-- /content -->
+
+<script>
+// Tab switching
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.tab).classList.add('active');
+  });
+});
+
+// Card expand/collapse
+function toggle(head) {
+  head.classList.toggle('open');
+  const body = head.nextElementSibling;
+  body.classList.toggle('open');
+}
+document.querySelectorAll('.card-head').forEach(h => {
+  if (!h.getAttribute('onclick')) {
+    h.addEventListener('click', () => toggle(h));
+  }
+});
+
+// Animate bars on load
+setTimeout(() => {
+  document.querySelectorAll('.bar-fill').forEach(bar => {
+    const w = bar.style.width;
+    bar.style.width = '0%';
+    requestAnimationFrame(() => { bar.style.width = w; });
+  });
+}, 100);
+</script>
+</body>
+</html>

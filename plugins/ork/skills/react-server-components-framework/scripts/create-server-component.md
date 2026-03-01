@@ -1,7 +1,7 @@
 ---
 name: create-server-component
 description: Create React Server Component with auto-detected Next.js version. Use when creating server components.
-user-invocable: true
+user-invocable: false
 argument-hint: [component-name]
 ---
 

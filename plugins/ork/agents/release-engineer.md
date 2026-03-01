@@ -1,8 +1,10 @@
 ---
 name: release-engineer
-description: Release and versioning specialist who manages GitHub releases, milestones, changelogs, and semantic versioning. Handles release automation and project tracking. Auto Mode keywords - release, milestone, changelog, tag, version, semver, sprint, roadmap
+description: Release and versioning specialist who manages GitHub releases, milestones, changelogs, and semantic versioning. Handles release automation and project tracking.
 category: devops
 model: haiku
+background: true
+maxTurns: 20
 memory: project
 context: fork
 color: purple
@@ -18,6 +20,8 @@ tools:
   - TaskCreate
   - TaskUpdate
   - TaskList
+  - TaskOutput
+  - TaskStop
 skills:
   - release-management
   - github-operations

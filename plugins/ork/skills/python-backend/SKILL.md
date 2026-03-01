@@ -1,7 +1,7 @@
 ---
 name: python-backend
 license: MIT
-compatibility: "Claude Code 2.1.56+."
+compatibility: "Claude Code 2.1.59+."
 description: Python backend patterns for asyncio, FastAPI, SQLAlchemy 2.0 async, and connection pooling. Use when building async Python services, FastAPI endpoints, database sessions, or connection pool tuning.
 tags: [python, asyncio, fastapi, sqlalchemy, connection-pooling, async, postgresql]
 context: fork
@@ -9,9 +9,16 @@ agent: backend-system-architect
 version: 2.0.0
 author: OrchestKit
 user-invocable: false
+disable-model-invocation: true
 complexity: medium
 metadata:
   category: document-asset-creation
+allowed-tools:
+  - Read
+  - Glob
+  - Grep
+  - WebFetch
+  - WebSearch
 ---
 
 # Python Backend
