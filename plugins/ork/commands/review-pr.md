@@ -50,10 +50,10 @@ AskUserQuestion(
     "question": "What type of review do you need?",
     "header": "Focus",
     "options": [
-      {"label": "Full review (Recommended)", "description": "Security + code quality + tests + architecture"},
-      {"label": "Security focus", "description": "Prioritize security vulnerabilities"},
-      {"label": "Performance focus", "description": "Focus on performance implications"},
-      {"label": "Quick review", "description": "High-level review, skip deep analysis"}
+      {"label": "Full review (Recommended)", "description": "Security + code quality + tests + architecture", "markdown": "```\nFull Review (6 agents)\n──────────────────────\n  PR diff ──▶ 6 parallel agents:\n  ┌────────────┐ ┌────────────┐\n  │ Quality x2 │ │ Security   │\n  ├────────────┤ ├────────────┤\n  │ Test Gen   │ │ Backend    │\n  ├────────────┤ ├────────────┤\n  │ Frontend   │ │ (optional) │\n  └────────────┘ └────────────┘\n         ▼\n  Synthesized review comment\n  with conventional comments:\n  praise/suggestion/issue/nitpick\n```"},
+      {"label": "Security focus", "description": "Prioritize security vulnerabilities", "markdown": "```\nSecurity Review\n───────────────\n  PR diff ──▶ security-auditor:\n  ┌─────────────────────────┐\n  │ Auth changes       ✓/✗ │\n  │ Input validation   ✓/✗ │\n  │ SQL/XSS/CSRF       ✓/✗ │\n  │ Secrets in diff    ✓/✗ │\n  │ Dependency risk    ✓/✗ │\n  └─────────────────────────┘\n  Output: Security-focused\n  review with fix suggestions\n```"},
+      {"label": "Performance focus", "description": "Focus on performance implications", "markdown": "```\nPerformance Review\n──────────────────\n  PR diff ──▶ perf analysis:\n  ┌─────────────────────────┐\n  │ N+1 queries        ✓/✗ │\n  │ Bundle size impact  ±KB │\n  │ Render performance  ✓/✗ │\n  │ Memory leaks       ✓/✗ │\n  │ Caching gaps       ✓/✗ │\n  └─────────────────────────┘\n  Agent: frontend-performance\n  or python-performance\n```"},
+      {"label": "Quick review", "description": "High-level review, skip deep analysis", "markdown": "```\nQuick Review (~2 min)\n─────────────────────\n  PR diff ──▶ Single pass\n\n  Output:\n  ├── Approve / Request changes\n  ├── Top 3 concerns\n  └── 1-paragraph summary\n  1 agent: code-quality-reviewer\n  No deep security/perf scan\n```"}
     ],
     "multiSelect": false
   }]

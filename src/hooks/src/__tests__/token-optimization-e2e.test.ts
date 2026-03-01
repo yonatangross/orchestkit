@@ -201,7 +201,7 @@ describe('E2E: Priority Throttling', () => {
     // Even with high usage, nothing should throttle
     trackTokenUsage('filler', 'skill-injection', 5000);
 
-    expect(shouldThrottle('prompt/context-pruning-advisor')).toBe(false);
+    expect(shouldThrottle('prompt/satisfaction-detector')).toBe(false);
     expect(shouldThrottle('subagent-start/graph-memory-inject')).toBe(false);
   });
 
@@ -220,12 +220,12 @@ describe('E2E: Priority Throttling', () => {
 
     // Phase 1: under 50% - nothing throttled
     trackTokenUsage('fill', 'skill-injection', 1200); // 46% < 50%
-    expect(shouldThrottle('prompt/context-pruning-advisor')).toBe(false); // P3
+    expect(shouldThrottle('prompt/satisfaction-detector')).toBe(false); // P3
     expect(shouldThrottle('subagent-start/graph-memory-inject')).toBe(false); // P1
 
     // Phase 2: above 50% - P3 throttled
     trackTokenUsage('fill', 'skill-injection', 200); // total 1400 = 54% > 50%
-    expect(shouldThrottle('prompt/context-pruning-advisor')).toBe(true); // P3 throttled
+    expect(shouldThrottle('prompt/satisfaction-detector')).toBe(true); // P3 throttled
     expect(shouldThrottle('subagent-start/graph-memory-inject')).toBe(false); // P1 OK
 
     // Phase 3: above 70% - P2 throttled too

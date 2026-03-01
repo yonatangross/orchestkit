@@ -100,7 +100,6 @@ import { testRunner } from './skill/test-runner.js';
 import { antipatternDetector } from './prompt/antipattern-detector.js';
 import { antipatternWarning } from './prompt/antipattern-warning.js';
 import { contextInjector } from './prompt/context-injector.js';
-import { contextPruningAdvisor } from './prompt/context-pruning-advisor.js';
 import { memoryContext } from './prompt/memory-context.js';
 import { satisfactionDetector } from './prompt/satisfaction-detector.js';
 import { skillAutoSuggest } from './prompt/skill-auto-suggest.js';
@@ -269,7 +268,6 @@ export const hooks: Record<string, HookFn> = {
   'prompt/antipattern-detector': antipatternDetector,
   'prompt/antipattern-warning': antipatternWarning,
   'prompt/context-injector': contextInjector,
-  'prompt/context-pruning-advisor': contextPruningAdvisor,
   'prompt/memory-context': memoryContext,
   'prompt/satisfaction-detector': satisfactionDetector,
   'prompt/skill-auto-suggest': skillAutoSuggest,

@@ -33,14 +33,13 @@ import { captureUserIntent } from '../prompt/capture-user-intent.js';
 // --- Unified dispatcher (Issue #448) ---
 // Consolidates: context-injector, todo-enforcer, satisfaction-detector,
 // communication-style-tracker, antipattern-detector, antipattern-warning,
-// memory-context, context-pruning-advisor, pipeline-detector
+// memory-context, pipeline-detector
 import { unifiedPromptDispatcher } from '../prompt/unified-dispatcher.js';
 
 // --- Legacy hooks kept in bundle for backward compat (not in hooks.json) ---
 import { antipatternDetector } from '../prompt/antipattern-detector.js';
 import { antipatternWarning } from '../prompt/antipattern-warning.js';
 import { contextInjector } from '../prompt/context-injector.js';
-import { contextPruningAdvisor } from '../prompt/context-pruning-advisor.js';
 import { memoryContext } from '../prompt/memory-context.js';
 import { satisfactionDetector } from '../prompt/satisfaction-detector.js';
 import { todoEnforcer } from '../prompt/todo-enforcer.js';
@@ -67,7 +66,6 @@ export const hooks: Record<string, HookFn> = {
   'prompt/antipattern-detector': antipatternDetector,
   'prompt/antipattern-warning': antipatternWarning,
   'prompt/context-injector': contextInjector,
-  'prompt/context-pruning-advisor': contextPruningAdvisor,
   'prompt/memory-context': memoryContext,
   'prompt/satisfaction-detector': satisfactionDetector,
   'prompt/todo-enforcer': todoEnforcer,

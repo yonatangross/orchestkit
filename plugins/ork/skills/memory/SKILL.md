@@ -52,11 +52,11 @@ AskUserQuestion(
     "question": "What memory operation do you need?",
     "header": "Operation",
     "options": [
-      {"label": "search", "description": "Search decisions and patterns in knowledge graph"},
-      {"label": "load", "description": "Load relevant context for this session"},
-      {"label": "history", "description": "View decision timeline"},
-      {"label": "viz", "description": "Visualize knowledge graph as Mermaid"},
-      {"label": "status", "description": "Check memory system health"}
+      {"label": "search", "description": "Search decisions and patterns in knowledge graph", "markdown": "```\nSearch Knowledge Graph\n──────────────────────\n  query ──▶ mcp__memory ──▶ results\n\n  Flags:\n  --category  Filter by type\n  --agent     Scope to agent\n  --limit N   Max results\n  --global    Cross-project\n```"},
+      {"label": "load", "description": "Load relevant context for this session", "markdown": "```\nLoad Session Context\n────────────────────\n  Auto-detect project ──▶\n  ┌────────────────────┐\n  │ Recent decisions   │\n  │ Active patterns    │\n  │ Project entities   │\n  └────────────────────┘\n  Flags: --project, --global\n```"},
+      {"label": "history", "description": "View decision timeline", "markdown": "```\nDecision Timeline\n─────────────────\n  ┌──── Feb 28 ────────────┐\n  │ Used Postgres over Mongo│\n  ├──── Feb 27 ────────────┤\n  │ Adopted MVC pattern     │\n  ├──── Feb 26 ────────────┤\n  │ Chose JWT over sessions │\n  └────────────────────────┘\n  Flags: --since, --mermaid\n```"},
+      {"label": "viz", "description": "Visualize knowledge graph as Mermaid", "markdown": "```\nKnowledge Graph Viz\n───────────────────\n  Entities ──▶ Mermaid diagram\n\n  [Project] ──uses──▶ [Postgres]\n      │                    │\n      └──has──▶ [Auth] ──uses──▶ [JWT]\n\n  Output: Mermaid code block\n```"},
+      {"label": "status", "description": "Check memory system health", "markdown": "```\nMemory Health Check\n───────────────────\n  ┌─────────────────────┐\n  │ MCP server    ✓/✗   │\n  │ Entity count  N     │\n  │ Relation count N    │\n  │ Last write    date  │\n  │ Graph size    N KB  │\n  └─────────────────────┘\n```"}
     ],
     "multiSelect": false
   }]

@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-02-28T17:17:04.772Z",
-  "buildTimeMs": 86,
+  "generatedAt": "2026-03-01T06:03:54.892Z",
+  "buildTimeMs": 91,
   "mode": "split",
   "bundles": {
     "permission": {
@@ -19,8 +19,8 @@
       "exports": 52
     },
     "prompt": {
-      "size": 84062,
-      "sizeKB": "82.09",
+      "size": 80776,
+      "sizeKB": "78.88",
       "exports": 108
     },
     "lifecycle": {
@@ -59,14 +59,14 @@
       "exports": 57
     },
     "hooks": {
-      "size": 347235,
-      "sizeKB": "339.10",
+      "size": 344037,
+      "sizeKB": "335.97",
       "exports": 159,
       "unified": true
     }
   },
-  "totalSize": 585760,
-  "totalSizeKB": "572.03",
+  "totalSize": 582474,
+  "totalSizeKB": "568.82",
   "inputs": 55,
-  "avgBundleSizeKB": "52.00"
+  "avgBundleSizeKB": "51.71"
 }

@@ -312,7 +312,8 @@ describe('Cross-Bundle Consistency', () => {
     // 159 -> 160: added _resetCommandCacheForTesting export to notification bundle
     // 160 -> 159: removed pr-status-enricher from lifecycle bundle (dead code)
     // 159 -> 170: sync with actual bundle exports after v7 hook architecture redesign
-    expect(totalHooks).toBe(170);
+    // 170 -> 169: removed context-pruning-advisor (dead code, #663)
+    expect(totalHooks).toBe(169);
   });
 });
 

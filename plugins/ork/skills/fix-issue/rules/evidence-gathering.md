@@ -15,10 +15,10 @@ AskUserQuestion(
     "question": "What approach for this fix?",
     "header": "Approach",
     "options": [
-      {"label": "Proper fix (Recommended)", "description": "Full RCA, tests, prevention recommendations"},
-      {"label": "Quick fix", "description": "Minimal fix to resolve the immediate issue"},
-      {"label": "Investigate first", "description": "Understand the issue before deciding on approach"},
-      {"label": "Hotfix", "description": "Emergency patch, minimal testing"}
+      {"label": "Proper fix (Recommended)", "description": "Full RCA, tests, prevention recommendations", "markdown": "```\nProper Fix (11 phases)\n──────────────────────\n  Issue ──▶ RCA ──▶ Fix ──▶ Prevent\n  ┌─────┐  ┌─────┐  ┌─────┐  ┌───────┐\n  │Read │  │5-Why│  │Code │  │Tests  │\n  │issue│  │Fish │  │impl │  │Runbook│\n  │+hist│  │bone │  │+test│  │Lessons│\n  └─────┘  └─────┘  └─────┘  └───────┘\n  5 parallel agents for RCA\n  Regression test BEFORE fix\n  Prevention + lessons learned\n```"},
+      {"label": "Quick fix", "description": "Minimal fix to resolve the immediate issue", "markdown": "```\nQuick Fix (phases 1-7)\n──────────────────────\n  Issue ──▶ Diagnose ──▶ Fix\n  ┌─────┐   ┌────────┐  ┌─────┐\n  │Read │   │Focused │  │Code │\n  │issue│   │RCA     │  │+test│\n  └─────┘   └────────┘  └─────┘\n  Skip: prevention, runbook,\n  lessons learned phases\n  Still requires regression test\n```"},
+      {"label": "Investigate first", "description": "Understand the issue before deciding on approach", "markdown": "```\nInvestigate Only (phases 1-4)\n─────────────────────────────\n  Issue ──▶ Search ──▶ Hypotheses\n  ┌─────┐  ┌──────┐  ┌──────────┐\n  │Read │  │Find  │  │Rank by   │\n  │issue│  │similar│  │confidence│\n  └─────┘  └──────┘  └──────────┘\n  Output: Root cause analysis\n  NO code changes made\n  Decide approach after findings\n```"},
+      {"label": "Hotfix", "description": "Emergency patch, minimal testing", "markdown": "```\nHotfix (minimal)\n────────────────\n  Issue ──▶ Fix ──▶ Ship\n  ┌─────┐  ┌────┐  ┌────┐\n  │Skim │  │Min │  │Push│\n  │issue│  │fix │  │now │\n  └─────┘  └────┘  └────┘\n  Skip: similar issue search,\n  deep RCA, prevention\n  ⚠ Follow up with proper fix\n```"}
     ],
     "multiSelect": false
   }]
