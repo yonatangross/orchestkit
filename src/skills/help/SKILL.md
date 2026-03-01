@@ -49,14 +49,14 @@ AskUserQuestion(
     "question": "What type of task are you working on?",
     "header": "Category",
     "options": [
-      {"label": "BUILD", "description": "Implement features, brainstorm, verify"},
-      {"label": "GIT", "description": "Commits, PRs, issues, recovery"},
-      {"label": "MEMORY", "description": "Store decisions, search, sync context"},
-      {"label": "QUALITY", "description": "Assess code, health checks, golden datasets"},
-      {"label": "CONFIG", "description": "Configure OrchestKit, feedback, skill evolution"},
-      {"label": "EXPLORE", "description": "Explore codebase, coordinate worktrees"},
-      {"label": "MEDIA", "description": "Create demo videos"},
-      {"label": "Show all", "description": "List all 21 skills"}
+      {"label": "BUILD", "description": "Implement features, brainstorm, verify", "markdown": "```\nBUILD Skills\n────────────\n/ork:implement     Feature impl\n/ork:brainstorming Design explore\n/ork:verify        Test & grade\n```"},
+      {"label": "GIT", "description": "Commits, PRs, issues, recovery", "markdown": "```\nGIT Skills\n──────────\n/ork:commit       Conventional commit\n/ork:create-pr    PR with validation\n/ork:fix-issue    Debug + fix + PR\n/ork:git-workflow  Branch patterns\n```"},
+      {"label": "MEMORY", "description": "Store decisions, search, sync context", "markdown": "```\nMEMORY Skills\n─────────────\n/ork:remember  Store decisions\n/ork:memory    Search & recall\n```"},
+      {"label": "QUALITY", "description": "Assess code, health checks, golden datasets", "markdown": "```\nQUALITY Skills\n──────────────\n/ork:assess     Rate 0-10 + report\n/ork:review-pr  PR review (6 agents)\n/ork:audit-full 1M context audit\n```"},
+      {"label": "CONFIG", "description": "Configure OrchestKit, feedback, skill evolution", "markdown": "```\nCONFIG Skills\n─────────────\n/ork:setup      Onboarding wizard\n/ork:configure  Plugin settings\n/ork:doctor     Health diagnostics\n/ork:feedback   Learning prefs\n```"},
+      {"label": "EXPLORE", "description": "Explore codebase, coordinate worktrees", "markdown": "```\nEXPLORE Skills\n──────────────\n/ork:explore   Deep codebase search\n               4 parallel explorers\n               Code health scoring\n```"},
+      {"label": "MEDIA", "description": "Create demo videos", "markdown": "```\nMEDIA Skills\n────────────\n/ork:demo-producer  Video creation\n  Supports: skill, agent, plugin,\n  tutorial, CLI, code walkthrough\n```"},
+      {"label": "Show all", "description": "List all skills"}
     ],
     "multiSelect": false
   }]
