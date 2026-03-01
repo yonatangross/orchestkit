@@ -1,6 +1,6 @@
 ---
 name: requirements-translator
-description: Requirements specialist who transforms ambiguous ideas into clear PRDs, user stories with acceptance criteria, and scoped specifications ready for engineering handoff. Activates for PRD, user story, acceptance criteria, requirements, specification
+description: Requirements specialist who transforms ambiguous ideas into clear PRDs, user stories with acceptance criteria, and scoped specifications ready for engineering handoff.
 category: product
 model: sonnet
 maxTurns: 30

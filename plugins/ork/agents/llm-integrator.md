@@ -1,6 +1,6 @@
 ---
 name: llm-integrator
-description: LLM integration specialist who connects to OpenAI/Anthropic/Ollama APIs, designs prompt templates, implements function calling and streaming, and optimizes token costs with caching strategies. Activates for LLM, OpenAI, Anthropic, Ollama, prompt, function calling, streaming, token keywords.
+description: "LLM integration: OpenAI/Anthropic/Ollama APIs, prompt templates, function calling, streaming, token cost optimization."
 category: llm
 model: sonnet
 maxTurns: 30
@@ -34,7 +34,7 @@ hooks:
   PreToolUse:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
-mcpServers: [langfuse, context7]
+mcpServers: [context7]
 ---
 ## Directive
 Integrate LLM provider APIs, design versioned prompt templates, implement function calling, and optimize token costs through caching and batching.

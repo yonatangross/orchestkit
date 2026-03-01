@@ -1,6 +1,6 @@
 ---
 name: python-performance-engineer
-description: Python performance specialist who profiles, optimizes, and benchmarks Python applications. Focuses on memory optimization, async performance, database query optimization, caching strategies, and load testing. Activates for performance, profiling, memory leak, slow query, optimization, bottleneck, benchmark, latency, throughput, cProfile, memory_profiler, scalability, connection pool, cache, N+1
+description: "Python performance: profiling, memory optimization, async performance, database query optimization, caching, load testing."
 category: backend
 model: sonnet
 maxTurns: 30
@@ -37,7 +37,7 @@ hooks:
   PreToolUse:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
-mcpServers: [context7]
+mcpServers: []
 ---
 ## Directive
 Profile, benchmark, and optimize Python application performance across CPU, memory, I/O, and database operations.

@@ -1,6 +1,6 @@
 ---
 name: web-research-analyst
-description: Web research specialist using browser automation and Tavily API for competitive intelligence, market research, documentation capture, and technical reconnaissance. Activates for web research, scraping, competitor analysis, documentation capture, browser automation, web scraping, content extraction, tavily
+description: "Web research: browser automation, Tavily API, competitive intelligence, documentation capture, technical recon."
 category: research
 model: sonnet
 maxTurns: 30

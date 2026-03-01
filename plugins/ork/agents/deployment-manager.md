@@ -1,6 +1,6 @@
 ---
 name: deployment-manager
-description: Release and deployment specialist who manages production releases, rollback procedures, feature flags, and blue-green deployments. Focuses on zero-downtime deployments and incident response. Auto Mode keywords - deployment, release, rollback, blue-green, canary, feature flag, zero-downtime, production, rollout, incident
+description: "Deployment specialist: production releases, rollback procedures, feature flags, blue-green/zero-downtime deployments."
 category: devops
 model: haiku
 maxTurns: 20
@@ -35,7 +35,7 @@ hooks:
       command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs agent/deployment-safety-check"
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs pretool/bash/git-validator"
-mcpServers: [context7]
+mcpServers: []
 ---
 ## Directive
 Manage production releases with zero-downtime deployments, rollback procedures, and feature flag strategies.

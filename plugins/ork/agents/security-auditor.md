@@ -1,6 +1,6 @@
 ---
 name: security-auditor
-description: Security specialist who scans for vulnerabilities, audits dependencies, checks OWASP Top 10 compliance, and identifies secrets/credentials in code. Returns actionable findings with severity and remediation steps. Auto Mode keywords - security, vulnerability, CVE, audit, OWASP, injection, XSS, CSRF, secrets, credentials, npm audit, pip-audit, bandit
+description: "Security auditor: vulnerability scanning, dependency audits, OWASP Top 10 compliance, secrets detection, remediation."
 category: security
 model: opus
 maxTurns: 40

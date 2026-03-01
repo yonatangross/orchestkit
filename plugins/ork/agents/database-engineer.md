@@ -1,6 +1,6 @@
 ---
 name: database-engineer
-description: PostgreSQL specialist who designs schemas, creates migrations, optimizes queries, and configures pgvector/full-text search. Uses pg-aiguide MCP for best practices and produces Alembic migrations with proper constraints and indexes. Auto Mode keywords: database, schema, migration, PostgreSQL, pgvector, SQL, Alembic, index, constraint
+description: "PostgreSQL specialist: schema design, migrations, query optimization, pgvector/full-text search, Alembic migrations."
 category: backend
 model: sonnet
 maxTurns: 30
