@@ -110,6 +110,51 @@ Hooks fire automatically. If a hook blocks an action unexpectedly:
 
 Most users never need to customize hooks. They're designed to be transparent.
 
+## Keybindings
+
+OrchestKit ships with 8 chord keybindings for the most-used skills. Press the first key combo, release, then press the second:
+
+| Shortcut | Skill | What It Does |
+|---|---|---|
+| `ctrl+k ctrl+f` | `/ork:fix-issue` | Fix a GitHub issue |
+| `ctrl+k ctrl+i` | `/ork:implement` | Implement a feature |
+| `ctrl+k ctrl+e` | `/ork:explore` | Deep codebase exploration |
+| `ctrl+k ctrl+r` | `/ork:review-pr` | Review a pull request |
+| `ctrl+k ctrl+m` | `/ork:memory` | Search/load memory |
+| `ctrl+k ctrl+a` | `/ork:assess` | Quality assessment |
+| `ctrl+k ctrl+c` | `/ork:commit` | Conventional commit |
+| `ctrl+k ctrl+h` | `/ork:help` | Skill directory |
+
+These are defined in `settings.json` and can be customized via `/ork:configure` or by editing `src/settings/ork.settings.json`.
+
+## Status Line
+
+OrchestKit configures a persistent status line at the bottom of your terminal showing:
+
+```
+ork v7.0.0 │ feat/my-branch │ 3 uncommitted
+```
+
+This updates automatically and shows the plugin version, current git branch, and uncommitted file count.
+
+## Spinner Customization
+
+### Custom Verbs
+
+While Claude thinks, the spinner shows custom verbs: *Orchestrating*, *Coordinating*, *Synthesizing*, *Architecting*, *Dispatching*, *Producing*, *Rendering*, *Composing*.
+
+### Spinner Tips
+
+Between tasks, the spinner shows OrchestKit tips to help discover features:
+
+- `/ork:memory search` to find past decisions
+- `ctrl+k ctrl+f` to quick-fix an issue
+- `/ork:analytics` shows usage patterns
+- `/ork:explore` for deep codebase understanding
+- `/ork:assess` rates code quality 0-10
+
+Tips are additive — Claude Code's default tips still appear alongside OrchestKit's.
+
 ## Plugin Settings
 
 Run `/ork:configure` to adjust:
@@ -118,6 +163,7 @@ Run `/ork:configure` to adjust:
 - Memory sync frequency
 - Hook toggle system (enable/disable specific hooks)
 - Agent model preferences
+- Keybindings and spinner customization
 
 ## Next Steps
 
