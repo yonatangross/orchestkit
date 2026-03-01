@@ -10,7 +10,6 @@
  * - auto-spawn-quality (may return systemMessage)
  * - multi-claude-verifier (may return systemMessage)
  * - subagent-quality-gate (may block via outputWarning)
- * - task-completer (may return additionalContext via outputWithContext)
  * - retry-handler (may return additionalContext via outputWithContext)
  *
  * NOT consolidated (remains separate in hooks.json):
@@ -27,7 +26,6 @@ import { outputValidator } from './output-validator.js';
 import { autoSpawnQuality } from './auto-spawn-quality.js';
 import { multiClaudeVerifier } from './multi-claude-verifier.js';
 import { subagentQualityGate } from './subagent-quality-gate.js';
-import { taskCompleter } from './task-completer.js';
 import { retryHandler } from './retry-handler.js';
 
 const HOOK_NAME = 'sync-subagent-stop-dispatcher';
@@ -46,7 +44,6 @@ const SYNC_HOOKS: SyncHookConfig[] = [
   { name: 'auto-spawn-quality', fn: autoSpawnQuality },
   { name: 'multi-claude-verifier', fn: multiClaudeVerifier },
   { name: 'subagent-quality-gate', fn: subagentQualityGate },
-  { name: 'task-completer', fn: taskCompleter },
   { name: 'retry-handler', fn: retryHandler },
 ];
 
@@ -75,7 +72,7 @@ export function syncSubagentStopDispatcher(input: HookInput): HookResult {
         logHook(HOOK_NAME, `${hook.name}: systemMessage collected`);
       }
 
-      // Collect additionalContext (task-completer and retry-handler use outputWithContext)
+      // Collect additionalContext (retry-handler uses outputWithContext)
       const context = extractContext(result);
       if (context && !result.systemMessage) {
         messages.push(context);
