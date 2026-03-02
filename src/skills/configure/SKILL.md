@@ -283,24 +283,26 @@ Adds to `.claude/settings.json`:
 
 **OrchestKit-themed verbs** focus on orchestration, architecture, and engineering actions.
 
-## Step 9: Webhook Configuration
+## Step 9: Webhook & Telemetry Configuration
 
-Configure webhook endpoints for hook event delivery (worktree lifecycle, session metrics).
+Configure dual-channel telemetry for streaming session data to HQ or your own API.
 
 ```python
 AskUserQuestion(questions=[{
-  "question": "Set up webhook endpoint for hook event delivery?",
-  "header": "Webhooks",
+  "question": "Set up session telemetry?",
+  "header": "Telemetry",
   "options": [
-    {"label": "Yes — configure URL", "description": "POST hook events (session end, worktree) to your API"},
-    {"label": "Skip", "description": "No webhook delivery — hooks run locally only"}
+    {"label": "Full streaming (Recommended)", "description": "All 18 events stream via native HTTP + enriched summaries"},
+    {"label": "Summary only", "description": "SessionEnd and worktree events only (command hooks)"},
+    {"label": "Skip", "description": "No telemetry — hooks run locally only"}
   ],
   "multiSelect": false
 }])
 ```
 
-**If yes**, ask for the webhook URL:
+### If "Full streaming"
 
+1. Ask for webhook URL:
 ```python
 AskUserQuestion(questions=[{
   "question": "What is your webhook endpoint URL?",
@@ -312,26 +314,32 @@ AskUserQuestion(questions=[{
 }])
 ```
 
-**Save the URL** to the orchestration config (NOT the token — that stays in env vars):
-
+2. Run the HTTP hook generator:
 ```bash
-# Write webhookUrl to config
-# File: .claude/orchestration/config.json
-saveConfig({ webhookUrl: "https://user-provided-url.com/hooks" })
+npm run generate:http-hooks -- <webhook-url> --write
 ```
 
-**Remind the user** to set the auth token as an env var:
+3. Save webhookUrl to orchestration config for command hooks:
+```bash
+# File: .claude/orchestration/config.json
+saveConfig({ webhookUrl: "<webhook-url>" })
+```
 
+4. Remind the user to set the auth token:
 ```
 Set ORCHESTKIT_HOOK_TOKEN in your environment (never in config files):
-  export ORCHESTKIT_HOOK_TOKEN=your-hmac-secret
+  export ORCHESTKIT_HOOK_TOKEN=your-secret
 
-Resolution order:
-  URL:   config.json webhookUrl → ORCHESTKIT_HOOK_URL env var → no-op
-  Token: ORCHESTKIT_HOOK_TOKEN env var only (secret)
-
-Events delivered: SessionEnd (token usage), WorktreeCreate/Remove (worktree lifecycle)
+Two channels now active:
+  Channel 1 (HTTP):    All 18 events → /cc-event (Bearer auth, zero overhead)
+  Channel 2 (Command): SessionEnd → /ingest (HMAC auth, enriched data)
 ```
+
+### If "Summary only"
+
+Save webhookUrl to config and remind about env var (same as above, skip generator step).
+
+See [HTTP Hooks reference](references/http-hooks.md) for architecture details.
 
 ## Step 10: Optional Integrations
 
