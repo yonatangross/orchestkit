@@ -1,24 +1,11 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 const mockExistsSync = vi.fn();
 const mockReadFileSync = vi.fn();
-const mockAppendFileSync = vi.fn();
-const mockMkdirSync = vi.fn();
-
-vi.mock('../../lib/analytics-buffer.js', () => ({
-  bufferWrite: vi.fn((filePath: string, content: string) => {
-    mockAppendFileSync(filePath, content);
-  }),
-  flush: vi.fn(),
-  pendingCount: vi.fn(() => 0),
-  _resetForTesting: vi.fn(),
-}));
 
 vi.mock('node:fs', () => ({
   existsSync: (...args: unknown[]) => mockExistsSync(...args),
   readFileSync: (...args: unknown[]) => mockReadFileSync(...args),
-  appendFileSync: (...args: unknown[]) => mockAppendFileSync(...args),
-  mkdirSync: (...args: unknown[]) => mockMkdirSync(...args),
 }));
 
 vi.mock('node:path', () => ({
@@ -47,6 +34,7 @@ vi.mock('../../lib/common.js', () => ({
 }));
 
 import { skillEditTracker } from '../../posttool/skill-edit-tracker.js';
+import { logHook } from '../../lib/common.js';
 import type { HookInput } from '../../types.js';
 
 function makeInput(overrides: Partial<HookInput> = {}): HookInput {
@@ -61,7 +49,7 @@ function makeInput(overrides: Partial<HookInput> = {}): HookInput {
 describe('skillEditTracker', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    delete process.env.CLAUDE_HOOK_DEBUG;
+    process.env.CLAUDE_HOOK_DEBUG = '1';
     // Default: session state with recent skill
     mockExistsSync.mockReturnValue(true);
     mockReadFileSync.mockReturnValue(JSON.stringify({
@@ -71,11 +59,14 @@ describe('skillEditTracker', () => {
     }));
   });
 
+  afterEach(() => {
+    delete process.env.CLAUDE_HOOK_DEBUG;
+  });
+
   it('returns silent success for non-Write/Edit tools', () => {
     const result = skillEditTracker(makeInput({ tool_name: 'Read' }));
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
-    expect(mockAppendFileSync).not.toHaveBeenCalled();
   });
 
   it('returns silent success when no file path provided', () => {
@@ -83,22 +74,20 @@ describe('skillEditTracker', () => {
       tool_input: { content: 'some code' },
     }));
     expect(result.continue).toBe(true);
-    expect(mockAppendFileSync).not.toHaveBeenCalled();
   });
 
   it('returns silent success when no recent skill usage', () => {
     mockReadFileSync.mockReturnValue(JSON.stringify({ recentSkills: [] }));
     const result = skillEditTracker(makeInput());
     expect(result.continue).toBe(true);
-    expect(mockAppendFileSync).not.toHaveBeenCalled();
   });
 
   it('detects logging patterns in written content', () => {
     skillEditTracker(makeInput({
       tool_input: { file_path: '/test/project/src/app.py', content: 'import logging\nlogger.info("test")' },
     }));
-    expect(mockAppendFileSync).toHaveBeenCalledWith(
-      expect.stringContaining('edit-patterns.jsonl'),
+    expect(logHook).toHaveBeenCalledWith(
+      'skill-edit-tracker',
       expect.stringContaining('add_logging'),
     );
   });
@@ -112,8 +101,8 @@ describe('skillEditTracker', () => {
         new_string: 'try { doSomething() } catch (error) { handleError(error) }',
       },
     }));
-    expect(mockAppendFileSync).toHaveBeenCalledWith(
-      expect.stringContaining('edit-patterns.jsonl'),
+    expect(logHook).toHaveBeenCalledWith(
+      'skill-edit-tracker',
       expect.stringContaining('add_error_handling'),
     );
   });
@@ -126,6 +115,6 @@ describe('skillEditTracker', () => {
     }));
     const result = skillEditTracker(makeInput());
     expect(result.continue).toBe(true);
-    expect(mockAppendFileSync).not.toHaveBeenCalled();
+    expect(result.suppressOutput).toBe(true);
   });
 });

@@ -16,7 +16,7 @@ import {
 } from '../../lib/common.js';
 import { existsSync, mkdirSync } from 'node:fs';
 import { bufferWrite } from '../../lib/analytics-buffer.js';
-import { join, dirname, basename } from 'node:path';
+import { join, dirname } from 'node:path';
 
 /**
  * Ensure directory exists
@@ -61,17 +61,6 @@ export function skillTracker(input: HookInput): HookResult {
   const usageLog = join(projectDir, '.claude', 'logs', 'skill-usage.log');
   const timestamp = new Date().toISOString();
   appendSafe(usageLog, `${timestamp} | ${skillName} | ${skillArgs || 'no args'}\n`);
-
-  // Log to JSONL for detailed analytics
-  const analyticsLog = join(projectDir, '.claude', 'logs', 'skill-analytics.jsonl');
-  const analyticsEntry = JSON.stringify({
-    skill: skillName,
-    args: skillArgs || '',
-    timestamp,
-    project: basename(projectDir),
-    phase: 'start',
-  });
-  appendSafe(analyticsLog, `${analyticsEntry}\n`);
 
   logHook('skill-tracker', `Skill usage logged for ${skillName}`);
 

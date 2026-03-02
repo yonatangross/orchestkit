@@ -7,7 +7,7 @@
  *
  * Modules under test:
  * - memory-health.ts: checkMemoryHealth, analyzeJsonlFile
- * - memory-metrics.ts: collectMemoryMetrics, appendMetricSnapshot
+ * - memory-metrics.ts: collectMemoryMetrics
  *
  * v7: Removed queue-processor tests (mem0 cloud integration removed)
  *
@@ -16,13 +16,12 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { mkdirSync, writeFileSync, existsSync, readFileSync, rmSync } from 'node:fs';
+import { mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 
 import { analyzeJsonlFile, checkMemoryHealth } from '../../lib/memory-health.js';
-import { collectMemoryMetrics, appendMetricSnapshot } from '../../lib/memory-metrics.js';
-import { flush as flushBuffer, _resetForTesting } from '../../lib/analytics-buffer.js';
+import { collectMemoryMetrics } from '../../lib/memory-metrics.js';
 
 // =============================================================================
 // HELPERS
@@ -293,101 +292,6 @@ describe('Performance: Health Check with Bloated Files', () => {
     // Assert
     expect(report.tiers.graph.status).toBe('healthy');
     expect(elapsed).toBeLessThan(300);
-  });
-});
-
-// =============================================================================
-// METRICS PERSISTENCE PERFORMANCE
-// =============================================================================
-
-describe('Performance: Metrics Persistence', () => {
-  beforeEach(() => {
-    testDir = createTestDir();
-    _resetForTesting();
-  });
-  afterEach(() => {
-    _resetForTesting();
-    rmSync(testDir, { recursive: true, force: true });
-  });
-
-  it('rapidly appends 100 metric snapshots and completes within 2000ms', () => {
-    // Arrange
-    const metricsPath = join(testDir, '.claude', 'logs', 'memory-metrics.jsonl');
-
-    // Act
-    const start = performance.now();
-    for (let i = 0; i < 100; i++) {
-      const metrics = collectMemoryMetrics(testDir);
-      appendMetricSnapshot(testDir, metrics);
-    }
-    flushBuffer();
-    const elapsed = performance.now() - start;
-
-    // Assert
-    expect(existsSync(metricsPath)).toBe(true);
-    const content = readFileSync(metricsPath, 'utf8');
-    const writtenLines = content.trim().split('\n').filter(line => line.trim());
-    expect(writtenLines).toHaveLength(100);
-
-    // Verify each line is valid JSON
-    let validCount = 0;
-    for (const line of writtenLines) {
-      const parsed = JSON.parse(line);
-      expect(parsed.timestamp).toBeTruthy();
-      expect(parsed.decisions).toBeDefined();
-      validCount++;
-    }
-    expect(validCount).toBe(100);
-
-    expect(elapsed).toBeLessThan(2000);
-  });
-
-  it('appendMetricSnapshot creates logs directory if missing', () => {
-    // Arrange: remove the logs directory
-    const logsDir = join(testDir, '.claude', 'logs');
-    rmSync(logsDir, { recursive: true, force: true });
-    expect(existsSync(logsDir)).toBe(false);
-
-    // Act
-    const metrics = collectMemoryMetrics(testDir);
-    appendMetricSnapshot(testDir, metrics);
-    flushBuffer();
-
-    // Assert
-    expect(existsSync(logsDir)).toBe(true);
-    const metricsPath = join(logsDir, 'memory-metrics.jsonl');
-    expect(existsSync(metricsPath)).toBe(true);
-    const content = readFileSync(metricsPath, 'utf8').trim();
-    const parsed = JSON.parse(content);
-    expect(parsed.decisions).toBeDefined();
-    expect(parsed.timestamp).toBeTruthy();
-  });
-
-  it('100 snapshots produce consistent incrementing timestamps', () => {
-    // Arrange
-    const decisionsPath = join(testDir, '.claude', 'memory', 'decisions.jsonl');
-    writeFileSync(decisionsPath, generateDecisionsJsonl(10));
-
-    // Act
-    for (let i = 0; i < 100; i++) {
-      const metrics = collectMemoryMetrics(testDir);
-      appendMetricSnapshot(testDir, metrics);
-    }
-    flushBuffer();
-
-    // Assert
-    const metricsPath = join(testDir, '.claude', 'logs', 'memory-metrics.jsonl');
-    const content = readFileSync(metricsPath, 'utf8');
-    const lines = content.trim().split('\n').filter(line => line.trim());
-    expect(lines).toHaveLength(100);
-
-    // Timestamps should be non-decreasing
-    let prevTimestamp = '';
-    for (const line of lines) {
-      const parsed = JSON.parse(line);
-      expect(parsed.timestamp >= prevTimestamp).toBe(true);
-      prevTimestamp = parsed.timestamp;
-    }
   });
 });
 

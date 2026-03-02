@@ -12,39 +12,14 @@
  *       detailed file inspection.
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { mkdirSync, writeFileSync, existsSync, readFileSync, rmSync } from 'node:fs';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { mkdirSync, writeFileSync, rmSync } from 'node:fs';
 
-// Mock analytics-buffer to use real appendFileSync (e2e uses real filesystem)
-// vi.hoisted ensures the helper fns are available inside the vi.mock factory
-const { _realWrite } = vi.hoisted(() => {
-  const nodefs = require('node:fs');
-  const nodepath = require('node:path');
-  return {
-    _realWrite: (filePath: string, content: string) => {
-      try {
-        nodefs.mkdirSync(nodepath.dirname(filePath), { recursive: true });
-        nodefs.appendFileSync(filePath, content);
-      } catch {
-        // ignore
-      }
-    },
-  };
-});
-
-vi.mock('../../lib/analytics-buffer.js', () => ({
-  bufferWrite: vi.fn((filePath: string, content: string) => {
-    _realWrite(filePath, content);
-  }),
-  flush: vi.fn(),
-  pendingCount: vi.fn(() => 0),
-  _resetForTesting: vi.fn(),
-}));
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 
 import { checkMemoryHealth, analyzeJsonlFile } from '../../lib/memory-health.js';
-import { collectMemoryMetrics, appendMetricSnapshot } from '../../lib/memory-metrics.js';
+import { collectMemoryMetrics } from '../../lib/memory-metrics.js';
 
 // =============================================================================
 // HELPERS
@@ -167,18 +142,6 @@ describe('E2E: Memory System Lifecycle', () => {
       expect(report.tiers.graph.status).toBe('healthy');
     });
 
-    it('appendMetricSnapshot writes to metrics log', () => {
-      const metrics = collectMemoryMetrics(testDir);
-      appendMetricSnapshot(testDir, metrics);
-
-      const metricsPath = join(testDir, '.claude', 'logs', 'memory-metrics.jsonl');
-      expect(existsSync(metricsPath)).toBe(true);
-
-      const content = readFileSync(metricsPath, 'utf8');
-      const parsed = JSON.parse(content.trim());
-      expect(parsed.decisions).toBeDefined();
-      expect(parsed.queues.graphQueueDepth).toBe(0);
-    });
   });
 
   // ---------------------------------------------------------------------------

@@ -8,9 +8,8 @@
  * Addresses: Issue #331
  */
 
-import { mkdirSync, existsSync, readFileSync } from 'node:fs';
-import { bufferWrite } from '../lib/analytics-buffer.js';
-import { join, dirname } from 'node:path';
+import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, outputWarning, logHook, getProjectDir, getPluginRoot } from '../lib/common.js';
 
@@ -217,23 +216,6 @@ function getModelAdvice(agentType: string, description: string): ModelAdvice | n
   return null;
 }
 
-function logModelUsage(agentType: string, model: string, complexity: string, advice: ModelAdvice | null): void {
-  const logFile = join(getProjectDir(), '.claude', 'logs', 'model-usage.jsonl');
-  try {
-    mkdirSync(dirname(logFile), { recursive: true });
-    bufferWrite(logFile, `${JSON.stringify({
-      timestamp: new Date().toISOString(),
-      agent: agentType,
-      model,
-      complexity,
-      recommendation: advice?.recommended || null,
-      potentialSavings: advice?.savingsPercent || 0,
-    })}\n`);
-  } catch {
-    // Non-critical
-  }
-}
-
 export function modelCostAdvisor(input: HookInput): HookResult {
   const toolInput = input.tool_input || {};
   const agentType = (toolInput.subagent_type as string) || '';
@@ -246,8 +228,6 @@ export function modelCostAdvisor(input: HookInput): HookResult {
   const complexity = analyzeComplexity(agentType, description);
   const currentModel = resolveEffectiveModel(agentType);
   const advice = getModelAdvice(agentType, description);
-
-  logModelUsage(agentType, currentModel, complexity, advice);
 
   if (!advice) {
     logHook('model-cost-advisor', `${agentType}: ${currentModel} appropriate for ${complexity} task`);

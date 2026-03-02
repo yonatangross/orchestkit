@@ -38,14 +38,9 @@ vi.mock('../../lib/agent-teams.js', () => ({
   getTeamName: vi.fn(() => null),
 }));
 
-vi.mock('../../lib/event-logger.js', () => ({
-  appendEventLog: vi.fn(),
-}));
-
 import { teamQualityGate } from '../../teammate-idle/team-quality-gate.js';
 import { getProjectDir } from '../../lib/common.js';
 import { getTeamName } from '../../lib/agent-teams.js';
-import { appendEventLog } from '../../lib/event-logger.js';
 import { existsSync, readFileSync } from 'node:fs';
 import type { HookInput } from '../../types.js';
 
@@ -93,7 +88,6 @@ describe('team-quality-gate', () => {
       // Assert
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
-      expect(appendEventLog).not.toHaveBeenCalled();
     });
 
     test('returns silent success when no project dir', () => {
@@ -137,38 +131,6 @@ describe('team-quality-gate', () => {
       expect(result.suppressOutput).toBe(true);
     });
 
-    test('logs quality check event even on success', () => {
-      // Arrange
-      vi.mocked(getTeamName).mockReturnValue('my-team');
-      vi.mocked(existsSync).mockReturnValue(true);
-
-      const now = new Date().toISOString();
-      vi.mocked(readFileSync).mockReturnValue(
-        makeCompletionLog([
-          { event: 'task_completed', timestamp: now },
-        ]),
-      );
-
-      const input = createIdleInput({
-        teammate_id: 'agent-1',
-        teammate_type: 'code-reviewer',
-      });
-
-      // Act
-      teamQualityGate(input);
-
-      // Assert
-      expect(appendEventLog).toHaveBeenCalledWith(
-        'team-quality.jsonl',
-        expect.objectContaining({
-          event: 'teammate_quality_check',
-          team_name: 'my-team',
-          teammate_id: 'agent-1',
-          teammate_type: 'code-reviewer',
-          has_recent_completion: true,
-        }),
-      );
-    });
   });
 
   describe('teammate idle without completion', () => {
@@ -217,27 +179,6 @@ describe('team-quality-gate', () => {
       expect(result.hookSpecificOutput?.additionalContext).toContain('without completing');
     });
 
-    test('logs quality check with has_recent_completion=false', () => {
-      // Arrange
-      vi.mocked(getTeamName).mockReturnValue('my-team');
-      vi.mocked(existsSync).mockReturnValue(false);
-
-      const input = createIdleInput({
-        teammate_id: 'agent-1',
-        teammate_type: 'researcher',
-      });
-
-      // Act
-      teamQualityGate(input);
-
-      // Assert
-      expect(appendEventLog).toHaveBeenCalledWith(
-        'team-quality.jsonl',
-        expect.objectContaining({
-          has_recent_completion: false,
-        }),
-      );
-    });
   });
 
   describe('fallback fields', () => {
@@ -250,13 +191,10 @@ describe('team-quality-gate', () => {
       });
 
       // Act
-      teamQualityGate(input);
+      const result = teamQualityGate(input);
 
-      // Assert
-      expect(appendEventLog).toHaveBeenCalledWith(
-        'team-quality.jsonl',
-        expect.objectContaining({ teammate_id: 'fallback-id' }),
-      );
+      // Assert — fallback-id appears in the warning context
+      expect(result.hookSpecificOutput?.additionalContext).toContain('fallback-id');
     });
 
     test('defaults to "unknown" when no id fields set', () => {
@@ -268,13 +206,10 @@ describe('team-quality-gate', () => {
       });
 
       // Act
-      teamQualityGate(input);
+      const result = teamQualityGate(input);
 
-      // Assert
-      expect(appendEventLog).toHaveBeenCalledWith(
-        'team-quality.jsonl',
-        expect.objectContaining({ teammate_id: 'unknown' }),
-      );
+      // Assert — "unknown" appears in the warning context
+      expect(result.hookSpecificOutput?.additionalContext).toContain('unknown');
     });
 
     test('falls back to subagent_type when teammate_type not set', () => {
@@ -286,13 +221,10 @@ describe('team-quality-gate', () => {
       });
 
       // Act
-      teamQualityGate(input);
+      const result = teamQualityGate(input);
 
-      // Assert
-      expect(appendEventLog).toHaveBeenCalledWith(
-        'team-quality.jsonl',
-        expect.objectContaining({ teammate_type: 'code-reviewer' }),
-      );
+      // Assert — subagent_type fallback appears in the warning context
+      expect(result.hookSpecificOutput?.additionalContext).toContain('code-reviewer');
     });
   });
 });

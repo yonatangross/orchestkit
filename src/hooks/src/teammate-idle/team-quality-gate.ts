@@ -17,7 +17,6 @@ import { join } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, outputWithContext, logHook, getProjectDir } from '../lib/common.js';
 import { getTeamName } from '../lib/agent-teams.js';
-import { appendEventLog } from '../lib/event-logger.js';
 
 /** Window within which completions count as "recent" */
 const COMPLETION_WINDOW_MS = 300_000;
@@ -89,18 +88,6 @@ export function teamQualityGate(input: HookInput): HookResult {
 
   // Secondary signal: any recent completion events in the log?
   const recentCompletion = hasRecentCompletion(projectDir);
-
-  // Log quality status
-  appendEventLog('team-quality.jsonl', {
-    timestamp: new Date().toISOString(),
-    event: 'teammate_quality_check',
-    team_name: teamName,
-    teammate_id: teammateId,
-    teammate_type: teammateType,
-    has_productive_output: productive,
-    has_recent_completion: recentCompletion,
-    session_id: input.session_id,
-  });
 
   // Only warn if BOTH signals are negative: no meaningful output AND no recent completion
   if (!productive && !recentCompletion) {

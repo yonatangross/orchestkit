@@ -6,23 +6,13 @@
  */
 
 import type { HookInput, HookResult } from '../types.js';
-import { getProjectDir, logHook, outputSilentSuccess } from '../lib/common.js';
-import { collectMemoryMetrics, appendMetricSnapshot } from '../lib/memory-metrics.js';
+import { logHook, outputSilentSuccess } from '../lib/common.js';
 
 /**
- * Collect and persist memory metrics
+ * Collect and log memory metrics (snapshot only, no JSONL persistence)
  */
-export function memoryMetricsCollector(input: HookInput): HookResult {
-  logHook('memory-metrics-collector', 'Collecting memory metrics');
-
-  try {
-    const projectDir = input.project_dir || getProjectDir();
-    const metrics = collectMemoryMetrics(projectDir);
-    appendMetricSnapshot(projectDir, metrics);
-  } catch (error) {
-    logHook('memory-metrics-collector', `Failed to collect metrics: ${error}`, 'warn');
-  }
-
+export function memoryMetricsCollector(_input: HookInput): HookResult {
+  logHook('memory-metrics-collector', 'Memory metrics collector — no-op (orphan write removed #919)');
   return outputSilentSuccess();
 }
 

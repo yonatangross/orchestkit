@@ -14,9 +14,7 @@
  * Version: 2.1.0 (graph-first)
  */
 
-import { existsSync, mkdirSync, unlinkSync } from 'node:fs';
-import { bufferWrite } from '../lib/analytics-buffer.js';
-import { basename, dirname } from 'node:path';
+import { existsSync, unlinkSync } from 'node:fs';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook, getProjectDir, lineContainsAll } from '../lib/common.js';
 
@@ -40,16 +38,6 @@ const DECISION_PATTERNS = [
   'learned that',
 ];
 
-const SCOPE_DECISIONS = 'decisions';
-
-// -----------------------------------------------------------------------------
-// Path Helpers
-// -----------------------------------------------------------------------------
-
-function getPatternsLog(): string {
-  return `${getProjectDir()}/.claude/logs/agent-patterns.jsonl`;
-}
-
 function getAgentTrackingDir(): string {
   return `${getProjectDir()}/.claude/session`;
 }
@@ -57,21 +45,6 @@ function getAgentTrackingDir(): string {
 // -----------------------------------------------------------------------------
 // Helper Functions
 // -----------------------------------------------------------------------------
-
-function getProjectId(): string {
-  const projectDir = getProjectDir();
-  const projectName = basename(projectDir) || 'default-project';
-  return projectName
-    .toLowerCase()
-    .replace(/ /g, '-')
-    .replace(/[^a-z0-9-]/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .replace(/-+/g, '-');
-}
-
-function scopedId(scope: string): string {
-  return `${getProjectId()}-${scope}`;
-}
 
 /**
  * Detect pattern category from text content
@@ -211,39 +184,8 @@ export function agentMemoryStore(input: HookInput): HookResult {
     return outputSilentSuccess();
   }
 
-  // Log patterns for storage
-  const patternsLog = getPatternsLog();
-  const logDir = dirname(patternsLog);
-  try {
-    mkdirSync(logDir, { recursive: true });
-  } catch {
-    // Ignore
-  }
-
-  const projectId = getProjectId();
-  const timestamp = new Date().toISOString();
-  const decisionsId = scopedId(SCOPE_DECISIONS);
-
   for (const pattern of extractedPatterns) {
     const category = detectPatternCategory(pattern);
-
-    const entry = {
-      agent: agentType,
-      agent_id: agentId,
-      pattern: pattern,
-      project: projectId,
-      timestamp: timestamp,
-      scope_id: decisionsId,
-      category: category,
-      pending_graph_sync: true,
-    };
-
-    try {
-      bufferWrite(patternsLog, `${JSON.stringify(entry)}\n`);
-    } catch {
-      // Ignore
-    }
-
     logHook('agent-memory-store', `Extracted pattern (${category}): ${pattern.substring(0, 50)}...`);
   }
 
