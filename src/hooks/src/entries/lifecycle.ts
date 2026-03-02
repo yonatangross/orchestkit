@@ -26,6 +26,7 @@ import { prefillGuard } from '../lifecycle/prefill-guard.js';
 import { mcpHealthCheck } from '../lifecycle/mcp-health-check.js';
 import { syncSessionDispatcher } from '../lifecycle/sync-session-dispatcher.js';
 import { syncSessionEndDispatcher } from '../lifecycle/sync-session-end-dispatcher.js';
+import { sessionEndReporter } from '../lifecycle/session-end-reporter.js';
 
 // TeammateIdle hooks (CC 2.1.33) — consolidated into unified dispatcher (#853)
 import { progressReporter } from '../teammate-idle/progress-reporter.js';
@@ -64,6 +65,7 @@ export const hooks: Record<string, HookFn> = {
   'lifecycle/mcp-health-check': mcpHealthCheck,
   'lifecycle/sync-session-dispatcher': syncSessionDispatcher,
   'lifecycle/sync-session-end-dispatcher': syncSessionEndDispatcher,
+  'lifecycle/session-end-reporter': sessionEndReporter,
 
   // TeammateIdle hooks (CC 2.1.33)
   'teammate-idle/unified-dispatcher': unifiedTeammateIdleDispatcher,

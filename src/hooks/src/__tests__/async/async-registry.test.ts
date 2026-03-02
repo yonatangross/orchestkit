@@ -162,7 +162,8 @@ describe('Async Hooks Registry', () => {
         g.hooks.some(h => h.command?.includes('posttool/unified-dispatcher'))
       );
       expect(dispatcherGroup, 'unified-dispatcher group should exist').toBeDefined();
-      expect(dispatcherGroup!.matcher).toBe('Bash|Write|Edit|Task|Skill|NotebookEdit');
+      // #902: expanded to include TaskUpdate|TaskCreate|Agent
+      expect(dispatcherGroup!.matcher).toBe('Bash|Write|Edit|Task|TaskUpdate|TaskCreate|Agent|Skill|NotebookEdit');
     });
   });
 

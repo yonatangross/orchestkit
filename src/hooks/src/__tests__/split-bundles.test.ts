@@ -313,7 +313,9 @@ describe('Cross-Bundle Consistency', () => {
     // 160 -> 159: removed pr-status-enricher from lifecycle bundle (dead code)
     // 159 -> 170: sync with actual bundle exports after v7 hook architecture redesign
     // 170 -> 169: removed context-pruning-advisor (dead code, #663)
-    expect(totalHooks).toBe(169);
+    // 169 -> 166: #922 — removed 4 dead posttool entries (auto-lint, memory-bridge, coverage-predictor, readme-sync)
+    // 166 -> 167: added missing lifecycle/session-end-reporter to entry file
+    expect(totalHooks).toBe(167);
   });
 });
 
