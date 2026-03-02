@@ -37,7 +37,7 @@ const mocks = vi.hoisted(() => {
     staleTeamCleanup: fn(),
     typeErrorIndexer: fn(),
     // stop (4)
-    autoSaveContext: fn(), sessionPatterns: fn(), issueWorkSummary: fn(), calibrationPersist: fn(),
+    handoffWriter: fn(), sessionPatterns: fn(), issueWorkSummary: fn(), calibrationPersist: fn(),
     // subagent-stop (4)
     contextPublisher: fn(), handoffPreparer: fn(), feedbackLoop: fn(), agentMemoryStore: fn(),
     // notification (2)
@@ -86,7 +86,7 @@ vi.mock('../../lifecycle/stale-team-cleanup.js', () => ({ staleTeamCleanup: mock
 vi.mock('../../lifecycle/type-error-indexer.js', () => ({ typeErrorIndexer: mocks.typeErrorIndexer }));
 
 // stop hooks
-vi.mock('../../stop/auto-save-context.js', () => ({ autoSaveContext: mocks.autoSaveContext }));
+vi.mock('../../stop/handoff-writer.js', () => ({ handoffWriter: mocks.handoffWriter }));
 vi.mock('../../stop/session-patterns.js', () => ({ sessionPatterns: mocks.sessionPatterns }));
 vi.mock('../../stop/issue-work-summary.js', () => ({ issueWorkSummary: mocks.issueWorkSummary }));
 vi.mock('../../stop/calibration-persist.js', () => ({ calibrationPersist: mocks.calibrationPersist }));
@@ -123,7 +123,7 @@ import { sessionMetrics } from '../../posttool/session-metrics.js';
 import { auditLogger } from '../../posttool/audit-logger.js';
 import { patternExtractor } from '../../posttool/bash/pattern-extractor.js';
 import { codeStyleLearner } from '../../posttool/write/code-style-learner.js';
-import { autoSaveContext } from '../../stop/auto-save-context.js';
+import { handoffWriter } from '../../stop/handoff-writer.js';
 import { contextPublisher } from '../../subagent-stop/context-publisher.js';
 import { desktopNotification } from '../../notification/desktop.js';
 import { dependencyVersionCheck } from '../../lifecycle/dependency-version-check.js';
@@ -173,7 +173,7 @@ const lifecycleMap: Record<string, ReturnType<typeof vi.fn>> = {
 };
 
 const stopMap: Record<string, ReturnType<typeof vi.fn>> = {
-  'auto-save-context': mocks.autoSaveContext,
+  'handoff-writer': mocks.handoffWriter,
   'session-patterns': mocks.sessionPatterns,
   'issue-work-summary': mocks.issueWorkSummary,
   'calibration-persist': mocks.calibrationPersist,
@@ -217,7 +217,7 @@ describe('Dispatcher Functional Tests', () => {
       expect(vi.isMockFunction(auditLogger)).toBe(true);
       expect(vi.isMockFunction(patternExtractor)).toBe(true);
       expect(vi.isMockFunction(codeStyleLearner)).toBe(true);
-      expect(vi.isMockFunction(autoSaveContext)).toBe(true);
+      expect(vi.isMockFunction(handoffWriter)).toBe(true);
       expect(vi.isMockFunction(contextPublisher)).toBe(true);
       expect(vi.isMockFunction(desktopNotification)).toBe(true);
       expect(vi.isMockFunction(dependencyVersionCheck)).toBe(true);
@@ -448,7 +448,7 @@ describe('Dispatcher Functional Tests', () => {
     });
 
     it('isolates errors — other hooks run when one throws', async () => {
-      mocks.autoSaveContext.mockImplementationOnce(() => { throw new Error('disk full'); });
+      mocks.handoffWriter.mockImplementationOnce(() => { throw new Error('disk full'); });
 
       await unifiedStopDispatcher(input());
 

@@ -12,7 +12,7 @@ import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook } from '../lib/common.js';
 
 // Import individual stop hook implementations
-import { autoSaveContext } from './auto-save-context.js';
+import { handoffWriter } from './handoff-writer.js';
 import { sessionPatterns } from './session-patterns.js';
 import { issueWorkSummary } from './issue-work-summary.js';
 import { calibrationPersist } from './calibration-persist.js';
@@ -59,7 +59,7 @@ interface HookConfig {
  */
 const HOOKS: HookConfig[] = [
   // --- Core session hooks ---
-  { name: 'auto-save-context', fn: autoSaveContext },
+  { name: 'handoff-writer', fn: handoffWriter },
   { name: 'session-patterns', fn: sessionPatterns },
   { name: 'issue-work-summary', fn: issueWorkSummary },
   { name: 'calibration-persist', fn: calibrationPersist },

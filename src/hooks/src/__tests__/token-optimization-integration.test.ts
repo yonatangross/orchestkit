@@ -215,7 +215,7 @@ describe('Hook Priority Integration', () => {
     trackTokenUsage('filler', 'skill-injection', 1950);
 
     // P2 throttles at 70%
-    expect(shouldThrottle('stop/auto-save-context')).toBe(true);
+    expect(shouldThrottle('stop/handoff-writer')).toBe(true);
     // P1 still OK at 90%
     expect(shouldThrottle('subagent-start/graph-memory-inject')).toBe(false);
   });

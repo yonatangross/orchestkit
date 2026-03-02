@@ -55,6 +55,7 @@ import { memoryContext } from './memory-context.js';
 import { skillNudgePrompt } from './skill-nudge.js';
 
 // Import hook implementations — once-per-session
+import { handoffInjector } from './handoff-injector.js';
 import { profileInjector } from './profile-injector.js';
 import { memoryContextLoader } from './memory-context-loader.js';
 import { agentationContext } from './agentation-context.js';
@@ -96,6 +97,8 @@ interface PromptHookConfig {
  */
 const HOOKS: PromptHookConfig[] = [
   // --- Once-per-session hooks (run on first turn only, file-flag gated) ---
+  // Handoff injector runs FIRST — restores context from previous session's HANDOFF.md
+  { name: 'handoff-injector', fn: handoffInjector, producesContext: true, runOnce: true },
   { name: 'profile-injector', fn: profileInjector, producesContext: true, runOnce: true },
   { name: 'memory-context-loader', fn: memoryContextLoader, producesContext: true, runOnce: true },
   { name: 'agentation-context', fn: agentationContext, producesContext: true, runOnce: true },

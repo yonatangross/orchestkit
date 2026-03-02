@@ -6,7 +6,6 @@
  * Consolidates 4 synchronous SessionStart hooks into a single dispatcher.
  *
  * Consolidated hooks:
- * - session-context-loader (silent — loads context files, sets env vars)
  * - analytics-consent-check (may return systemMessage)
  * - prefill-guard (may return systemMessage via outputWarning)
  * - mcp-health-check (may return additionalContext via outputWithContext)
@@ -22,7 +21,6 @@ import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook, extractContext, getProjectDir } from '../lib/common.js';
 
 // Import consolidated hook implementations
-import { sessionContextLoader } from './session-context-loader.js';
 import { analyticsConsentCheck } from './analytics-consent-check.js';
 import { prefillGuard } from './prefill-guard.js';
 import { mcpHealthCheck } from './mcp-health-check.js';
@@ -39,10 +37,8 @@ interface SyncHookConfig {
 
 /**
  * Registry of sync SessionStart hooks, executed sequentially.
- * Order matters — context loader runs first to set up env vars.
  */
 const SYNC_HOOKS: SyncHookConfig[] = [
-  { name: 'session-context-loader', fn: sessionContextLoader },
   { name: 'analytics-consent-check', fn: analyticsConsentCheck },
   { name: 'prefill-guard', fn: prefillGuard },
   { name: 'mcp-health-check', fn: mcpHealthCheck },

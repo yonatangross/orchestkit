@@ -11,7 +11,6 @@ import { autoApproveSafeBash } from '../permission/auto-approve-safe-bash.js';
 import { gitValidator } from '../pretool/bash/git-validator.js';
 import { dangerousCommandBlocker } from '../pretool/bash/dangerous-command-blocker.js';
 import { fileGuard } from '../pretool/write-edit/file-guard.js';
-import { sessionContextLoader } from '../lifecycle/session-context-loader.js';
 import { sessionEnvSetup } from '../lifecycle/session-env-setup.js';
 
 // Consolidated hooks (Issue #219)
@@ -894,66 +893,6 @@ describe('lib/guards.ts', () => {
 // =============================================================================
 // Lifecycle Hooks Tests
 // =============================================================================
-
-describe('lifecycle/session-context-loader', () => {
-  test('loads context when all files exist', () => {
-    const input = createHookInput({
-      project_dir: '/Users/yonatangross/coding/projects/orchestkit',
-    });
-    const result = sessionContextLoader(input);
-
-    expect(result.continue).toBe(true);
-    expect(result.suppressOutput).toBe(true);
-  });
-
-  test('handles missing context files gracefully', () => {
-    const input = createHookInput({
-      project_dir: '/nonexistent/path',
-    });
-    const result = sessionContextLoader(input);
-
-    expect(result.continue).toBe(true);
-    expect(result.suppressOutput).toBe(true);
-  });
-
-  test('uses default project dir when not provided', () => {
-    const input = createHookInput({});
-    const result = sessionContextLoader(input);
-
-    expect(result.continue).toBe(true);
-    expect(result.suppressOutput).toBe(true);
-  });
-
-  test('loads agent-specific context when agent_type set', () => {
-    const originalEnv = process.env.AGENT_TYPE;
-    process.env.AGENT_TYPE = 'backend-system-architect';
-
-    const input = createHookInput({
-      project_dir: '/Users/yonatangross/coding/projects/orchestkit',
-    });
-    const result = sessionContextLoader(input);
-
-    expect(result.continue).toBe(true);
-    expect(result.suppressOutput).toBe(true);
-
-    // Cleanup
-    if (originalEnv !== undefined) {
-      process.env.AGENT_TYPE = originalEnv;
-    } else {
-      delete process.env.AGENT_TYPE;
-    }
-  });
-
-  test('handles invalid JSON files gracefully', () => {
-    const input = createHookInput({
-      project_dir: '/tmp',
-    });
-    const result = sessionContextLoader(input);
-
-    expect(result.continue).toBe(true);
-    expect(result.suppressOutput).toBe(true);
-  });
-});
 
 describe('lifecycle/session-env-setup', () => {
   test('initializes session metrics', () => {

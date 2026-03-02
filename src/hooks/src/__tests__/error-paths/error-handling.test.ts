@@ -170,17 +170,8 @@ describe('Error Path Coverage', () => {
 
   describe('File System Error Handling', () => {
     describe('readFileSync errors', () => {
-      test('session-context-loader handles missing config file gracefully', async () => {
-        mockExistsSync.mockReturnValue(false);
-        mockReadFileSync.mockImplementation(() => {
-          throw new Error('ENOENT: no such file or directory');
-        });
-
-        const { sessionContextLoader } = await import('../../lifecycle/session-context-loader.js');
-        const input = createHookInput({ tool_name: 'SessionStart' });
-        const result = sessionContextLoader(input);
-
-        expectGracefulDegradation(result);
+      test('placeholder — session-context-loader removed (replaced by handoff-injector)', () => {
+        expect(true).toBe(true);
       });
 
       test('placeholder — context-budget-monitor removed (dead code cleanup)', () => {
@@ -240,15 +231,8 @@ describe('Error Path Coverage', () => {
       expect(true).toBe(true);
     });
 
-    test('session-context-loader handles JSON with wrong structure', async () => {
-      mockExistsSync.mockReturnValue(true);
-      mockReadFileSync.mockReturnValue('{"unexpected": "structure", "array": [1,2,3]}');
-
-      const { sessionContextLoader } = await import('../../lifecycle/session-context-loader.js');
-      const input = createHookInput({ tool_name: 'SessionStart' });
-      const result = sessionContextLoader(input);
-
-      expectGracefulDegradation(result);
+    test('placeholder — session-context-loader removed (replaced by handoff-injector)', () => {
+      expect(true).toBe(true);
     });
   });
 
@@ -256,9 +240,9 @@ describe('Error Path Coverage', () => {
     test('hooks handle missing CLAUDE_PROJECT_DIR', async () => {
       delete process.env.CLAUDE_PROJECT_DIR;
 
-      const { sessionContextLoader } = await import('../../lifecycle/session-context-loader.js');
-      const input = createHookInput({ tool_name: 'SessionStart', project_dir: '' });
-      const result = sessionContextLoader(input);
+      const { sessionCleanup } = await import('../../lifecycle/session-cleanup.js');
+      const input = createHookInput({ tool_name: 'SessionEnd', project_dir: '' });
+      const result = sessionCleanup(input);
 
       expectValidResult(result);
     });

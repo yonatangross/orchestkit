@@ -315,7 +315,8 @@ describe('Cross-Bundle Consistency', () => {
     // 170 -> 169: removed context-pruning-advisor (dead code, #663)
     // 169 -> 166: #922 — removed 4 dead posttool entries (auto-lint, memory-bridge, coverage-predictor, readme-sync)
     // 166 -> 167: added missing lifecycle/session-end-reporter to entry file
-    expect(totalHooks).toBe(167);
+    // 167 -> 165: removed auto-remember-continuity (stop) + session-context-loader (lifecycle)
+    expect(totalHooks).toBe(165);
   });
 });
 

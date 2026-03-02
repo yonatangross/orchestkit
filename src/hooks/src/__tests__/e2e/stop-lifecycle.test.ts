@@ -56,7 +56,7 @@ vi.mock('../../lib/common.js', async () => {
 });
 
 // Import stop hooks
-import { autoSaveContext } from '../../stop/auto-save-context.js';
+import { handoffWriter } from '../../stop/handoff-writer.js';
 import { sessionPatterns } from '../../stop/session-patterns.js';
 import { taskCompletionCheck } from '../../stop/task-completion-check.js';
 import { unifiedStopDispatcher } from '../../stop/unified-dispatcher.js';
@@ -93,11 +93,11 @@ describe('Stop Hook Lifecycle E2E', () => {
     process.env = originalEnv;
   });
 
-  describe('Auto Save Context', () => {
+  describe('Handoff Writer', () => {
     test('should save session context on stop', async () => {
       const input = createStopInput();
 
-      const result = await Promise.resolve(autoSaveContext(input));
+      const result = await Promise.resolve(handoffWriter(input));
 
       expect(result.continue).toBe(true);
     });
@@ -106,7 +106,7 @@ describe('Stop Hook Lifecycle E2E', () => {
       mockExistsSync.mockReturnValue(false);
       const input = createStopInput();
 
-      const result = await Promise.resolve(autoSaveContext(input));
+      const result = await Promise.resolve(handoffWriter(input));
 
       expect(result.continue).toBe(true);
     });
@@ -117,7 +117,7 @@ describe('Stop Hook Lifecycle E2E', () => {
       });
       const input = createStopInput();
 
-      const result = await Promise.resolve(autoSaveContext(input));
+      const result = await Promise.resolve(handoffWriter(input));
 
       // Should continue even on error
       expect(result.continue).toBe(true);
@@ -192,7 +192,7 @@ describe('Stop Hook Lifecycle E2E', () => {
       const results: HookResult[] = [];
 
       // Simulate the stop lifecycle sequence
-      results.push(await Promise.resolve(autoSaveContext(input)));
+      results.push(await Promise.resolve(handoffWriter(input)));
       results.push(await Promise.resolve(sessionPatterns(input)));
       results.push(await Promise.resolve(taskCompletionCheck(input)));
 
@@ -208,7 +208,7 @@ describe('Stop Hook Lifecycle E2E', () => {
         throw new Error('First write failed');
       });
 
-      const result1 = await Promise.resolve(autoSaveContext(input));
+      const result1 = await Promise.resolve(handoffWriter(input));
       expect(result1.continue).toBe(true);
 
       // Subsequent hooks should still work
@@ -222,7 +222,7 @@ describe('Stop Hook Lifecycle E2E', () => {
 
       // Simulate rapid stop
       const stopResults = await Promise.all([
-        Promise.resolve(autoSaveContext(input)),
+        Promise.resolve(handoffWriter(input)),
         Promise.resolve(sessionPatterns(input)),
       ]);
 
@@ -233,7 +233,7 @@ describe('Stop Hook Lifecycle E2E', () => {
       vi.clearAllMocks();
 
       const newInput = createStopInput({ session_id: 'new-session-789' });
-      const newResult = await Promise.resolve(autoSaveContext(newInput));
+      const newResult = await Promise.resolve(handoffWriter(newInput));
 
       expect(newResult.continue).toBe(true);
     });
@@ -245,7 +245,7 @@ describe('Stop Hook Lifecycle E2E', () => {
       const startTime = Date.now();
 
       await Promise.all([
-        Promise.resolve(autoSaveContext(input)),
+        Promise.resolve(handoffWriter(input)),
         Promise.resolve(sessionPatterns(input)),
       ]);
 
@@ -259,7 +259,7 @@ describe('Stop Hook Lifecycle E2E', () => {
     test('all stop hooks return valid HookResult structure', async () => {
       const input = createStopInput();
       const hooks = [
-        autoSaveContext,
+        handoffWriter,
         sessionPatterns,
         taskCompletionCheck,
       ];

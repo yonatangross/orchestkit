@@ -270,12 +270,11 @@ const hookTestCases: HookTestCase[] = [
   { name: 'auto-approve-project-writes', path: '../../permission/auto-approve-project-writes.js', createInput: () => createWriteInput('/test/project/src/file.ts', 'content'), category: 'permission' },
 
   // Prompt hooks
-  { name: 'context-injector', path: '../../prompt/context-injector.js', createInput: () => createPromptInput('help me with code'), category: 'prompt' },
+  { name: 'handoff-injector', path: '../../prompt/handoff-injector.js', createInput: () => createPromptInput('help me with code'), category: 'prompt' },
   // skill-resolver removed in v6.0.2 (CC natively injects agent skills)
   { name: 'antipattern-warning', path: '../../prompt/antipattern-warning.js', createInput: () => createPromptInput('fix the bug'), category: 'prompt' },
 
   // Lifecycle hooks
-  { name: 'session-context-loader', path: '../../lifecycle/session-context-loader.js', createInput: () => createHookInput({ tool_name: 'SessionStart' }), category: 'lifecycle' },
   { name: 'session-cleanup', path: '../../lifecycle/session-cleanup.js', createInput: () => createHookInput({ tool_name: 'SessionEnd' }), category: 'lifecycle' },
 
   // Stop hooks

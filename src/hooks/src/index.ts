@@ -99,7 +99,7 @@ import { testRunner } from './skill/test-runner.js';
 // Prompt hooks (UserPromptSubmit)
 import { antipatternDetector } from './prompt/antipattern-detector.js';
 import { antipatternWarning } from './prompt/antipattern-warning.js';
-import { contextInjector } from './prompt/context-injector.js';
+import { handoffInjector } from './prompt/handoff-injector.js';
 import { memoryContext } from './prompt/memory-context.js';
 import { satisfactionDetector } from './prompt/satisfaction-detector.js';
 import { todoEnforcer } from './prompt/todo-enforcer.js';
@@ -129,8 +129,7 @@ import { desktopNotification } from './notification/desktop.js';
 import { soundNotification } from './notification/sound.js';
 
 // Stop hooks (9)
-import { autoRememberContinuity } from './stop/auto-remember-continuity.js';
-import { autoSaveContext } from './stop/auto-save-context.js';
+import { handoffWriter } from './stop/handoff-writer.js';
 import { fullTestSuite } from './stop/full-test-suite.js';
 import { issueWorkSummary } from './stop/issue-work-summary.js';
 import { securityScanAggregator } from './stop/security-scan-aggregator.js';
@@ -182,7 +181,6 @@ import { analyticsConsentCheck } from './lifecycle/analytics-consent-check.js';
 import { patternSyncPull } from './lifecycle/pattern-sync-pull.js';
 import { patternSyncPush } from './lifecycle/pattern-sync-push.js';
 import { sessionCleanup } from './lifecycle/session-cleanup.js';
-import { sessionContextLoader } from './lifecycle/session-context-loader.js';
 import { sessionEnvSetup } from './lifecycle/session-env-setup.js';
 import { sessionMetricsSummary } from './lifecycle/session-metrics-summary.js';
 import { dependencyVersionCheck } from './lifecycle/dependency-version-check.js';
@@ -264,7 +262,7 @@ export const hooks: Record<string, HookFn> = {
   // Prompt hooks (12) - UserPromptSubmit
   'prompt/antipattern-detector': antipatternDetector,
   'prompt/antipattern-warning': antipatternWarning,
-  'prompt/context-injector': contextInjector,
+  'prompt/handoff-injector': handoffInjector,
   'prompt/memory-context': memoryContext,
   'prompt/satisfaction-detector': satisfactionDetector,
   'prompt/todo-enforcer': todoEnforcer,
@@ -317,8 +315,7 @@ export const hooks: Record<string, HookFn> = {
   'skill/test-runner': testRunner,
 
   // Stop hooks (10)
-  'stop/auto-remember-continuity': autoRememberContinuity,
-  'stop/auto-save-context': autoSaveContext,
+  'stop/handoff-writer': handoffWriter,
   'stop/full-test-suite': fullTestSuite,
   'stop/issue-work-summary': issueWorkSummary,
   'stop/security-scan-aggregator': securityScanAggregator,
@@ -371,7 +368,6 @@ export const hooks: Record<string, HookFn> = {
   'lifecycle/pattern-sync-pull': patternSyncPull,
   'lifecycle/pattern-sync-push': patternSyncPush,
   'lifecycle/session-cleanup': sessionCleanup,
-  'lifecycle/session-context-loader': sessionContextLoader,
   'lifecycle/session-env-setup': sessionEnvSetup,
   'lifecycle/session-metrics-summary': sessionMetricsSummary,
   'lifecycle/dependency-version-check': dependencyVersionCheck,

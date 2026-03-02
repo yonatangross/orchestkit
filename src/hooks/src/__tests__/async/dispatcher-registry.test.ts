@@ -104,7 +104,7 @@ describe('Dispatcher Registry Wiring', () => {
       // Fire-and-forget pattern runs these in background without blocking session exit
       expect(stopHooks()).toEqual([
         // Core session hooks
-        'auto-save-context',
+        'handoff-writer',
         'session-patterns',
         'issue-work-summary',
         'calibration-persist',

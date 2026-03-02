@@ -13,8 +13,7 @@ export * from '../lib/common.js';
 export * from '../lib/calibration-engine.js';
 
 // Stop hooks (9)
-import { autoRememberContinuity } from '../stop/auto-remember-continuity.js';
-import { autoSaveContext } from '../stop/auto-save-context.js';
+import { handoffWriter } from '../stop/handoff-writer.js';
 import { fullTestSuite } from '../stop/full-test-suite.js';
 import { issueWorkSummary } from '../stop/issue-work-summary.js';
 import { securityScanAggregator } from '../stop/security-scan-aggregator.js';
@@ -33,8 +32,7 @@ import type { HookFn } from '../types.js';
  * Stop hooks registry
  */
 export const hooks: Record<string, HookFn> = {
-  'stop/auto-remember-continuity': autoRememberContinuity,
-  'stop/auto-save-context': autoSaveContext,
+  'stop/handoff-writer': handoffWriter,
   'stop/full-test-suite': fullTestSuite,
   'stop/issue-work-summary': issueWorkSummary,
   'stop/security-scan-aggregator': securityScanAggregator,
