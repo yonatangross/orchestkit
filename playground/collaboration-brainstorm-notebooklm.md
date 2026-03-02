@@ -8,7 +8,7 @@
 
 ## What Is OrchestKit and Why Does Collaboration Matter?
 
-OrchestKit is a Claude Code plugin — think of it as a professional toolkit that sits inside your AI coding assistant. It ships with 69 skills (specialized knowledge modules), 38 agents (AI sub-processes that can run in parallel), and 55 hooks (event-driven listeners that watch what you do and react intelligently).
+OrchestKit is a Claude Code plugin — think of it as a professional toolkit that sits inside your AI coding assistant. It ships with 69 skills (specialized knowledge modules), 38 agents (AI sub-processes that can run in parallel), and 96 hooks (event-driven listeners that watch what you do and react intelligently).
 
 The pitch is compelling: instead of a generic AI assistant, you get one that knows API design patterns, database engineering, security best practices, release management, and dozens of other domains out of the box.
 
@@ -36,7 +36,7 @@ There's no structured data passing between agents. No shared workspace. No way f
 
 **Gap Three: Hooks Collect But Don't Feed Back**
 
-This is the sneaky one. The 55 hooks are impressive: they track tool usage patterns, catch errors, log skill invocations, monitor agent output quality, record session timings. All of this intelligence gets written to log files.
+This is the sneaky one. The 96 hooks are impressive: they track tool usage patterns, catch errors, log skill invocations, monitor agent output quality, record session timings. All of this intelligence gets written to log files.
 
 And then... nothing. The intelligence is never fed back to improve agent behavior. It's like having a world-class analytics team that produces beautiful reports that no one reads.
 
@@ -369,7 +369,7 @@ The sequencing insight is important: many of the highest-impact ideas are also t
 
 Stepping back, all 22 ideas are expressions of the same fundamental insight:
 
-**OrchestKit has built excellent observation infrastructure (55 hooks), excellent execution infrastructure (38 agents, 69 skills), and a significant gap in the middle — the layer that feeds observations back to improve execution.**
+**OrchestKit has built excellent observation infrastructure (96 hooks), excellent execution infrastructure (38 agents, 69 skills), and a significant gap in the middle — the layer that feeds observations back to improve execution.**
 
 The Bridge Layer closes the gap between the user's world and OrchestKit's generic knowledge. Structured Handoffs close the gap between parallel agent execution and coherent multi-agent output. Hook Intelligence closes the gap between what hooks observe and what agents do next.
 

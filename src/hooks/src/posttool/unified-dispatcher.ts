@@ -81,22 +81,26 @@ const HOOKS: HookConfig[] = [
   { name: 'skill-usage-optimizer', fn: skillUsageOptimizer, matcher: 'Skill' },
 
   // Multi-tool matcher
-  { name: 'realtime-sync', fn: realtimeSync, matcher: ['Bash', 'Write', 'Edit', 'Skill', 'Task'] },
+  // #902: Accept both Task and Agent tool names
+  { name: 'realtime-sync', fn: realtimeSync, matcher: ['Bash', 'Write', 'Edit', 'Skill', 'Task', 'Agent'] },
 
   // User tracking (Issue #245) - tracks all tool usage, skills, and agents
   { name: 'user-tracking', fn: userTracking, matcher: '*' },
 
   // GAP-011: Solution detector - pairs tool outputs with open problems
-  { name: 'solution-detector', fn: solutionDetector, matcher: ['Bash', 'Write', 'Edit', 'Task'] },
+  // #902: Accept both Task and Agent tool names
+  { name: 'solution-detector', fn: solutionDetector, matcher: ['Bash', 'Write', 'Edit', 'Task', 'Agent'] },
 
   // Issue #243: Tool preference learner - previously separate async hook causing spam
   { name: 'tool-preference-learner', fn: toolPreferenceLearner, matcher: '*' },
 
   // Issue #684: Consolidated from separate PostToolUse hooks.json entries
-  { name: 'redact-secrets', fn: redactSecrets, matcher: 'Bash' },
+  // #909: Expanded from Bash-only to include Write|Edit
+  { name: 'redact-secrets', fn: redactSecrets, matcher: ['Bash', 'Write', 'Edit'] },
   { name: 'config-change-auditor', fn: configChangeAuditor, matcher: ['Write', 'Edit'] },
-  { name: 'team-member-start', fn: teamMemberStart, matcher: 'Task' },
-  { name: 'error-logger', fn: unifiedErrorHandler, matcher: ['Bash', 'Write', 'Edit', 'Task'] },
+  // #902: Accept both Task and Agent tool names
+  { name: 'team-member-start', fn: teamMemberStart, matcher: ['Task', 'Agent'] },
+  { name: 'error-logger', fn: unifiedErrorHandler, matcher: ['Bash', 'Write', 'Edit', 'Task', 'Agent'] },
 ];
 
 /** Exposed for registry wiring tests */

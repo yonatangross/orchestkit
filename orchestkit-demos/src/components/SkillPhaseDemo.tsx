@@ -1699,7 +1699,7 @@ const PluginOutro: React.FC<PluginOutroProps> = ({ primaryColor, currentCommand 
             marginTop: 12,
           }}
         >
-          62 skills • 36 agents • 89 hooks
+          69 skills • 38 agents • 96 hooks
         </div>
       </div>
 

@@ -218,13 +218,10 @@ const PRESET_KEYS: PresetKey[] = [
 // ── Recommendation logic ─────────────────────────────────────
 
 function getRecommendedPlugin(
-  stack: StackOption | null,
-  focus: FocusOption | null,
-): "ork" | "orkl" {
-  if (stack === "python") return "ork";
-  if (focus === "ai") return "ork";
-  if (focus === "security") return "ork";
-  return "orkl";
+  _stack: StackOption | null,
+  _focus: FocusOption | null,
+): "ork" {
+  return "ork";
 }
 
 function findPlugin(name: string): Plugin | undefined {

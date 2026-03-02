@@ -36,7 +36,7 @@ OrchestKit uses a **build system** to assemble modular plugins from source files
 
 ```
 src/
-├── skills/               # 69 skills in flat CC 2.1.7 structure
+├── skills/               # 69 skills in flat CC 2.1.59 structure
 │   └── <skill-name>/
 │       ├── SKILL.md           # Required: Patterns and best practices
 │       ├── references/        # Optional: Specific implementations
@@ -44,10 +44,10 @@ src/
 │       ├── assets/            # Optional: Templates and copyable files
 │       └── checklists/        # Optional: Implementation checklists
 ├── agents/               # 38 specialized AI personas
-└── hooks/                # 78 TypeScript hooks in 12 split bundles
+└── hooks/                # 96 TypeScript hooks in 12 split bundles
 
 manifests/                # Plugin definition
-└── ork.json              # Single plugin (69 skills, 38 agents, 85 hooks)
+└── ork.json              # Single plugin (69 skills, 38 agents, 96 hooks)
 ```
 
 ### Generated Files (Do Not Edit)
@@ -89,9 +89,9 @@ bash scripts/build-plugins.sh
 4. Verify: `/ork:doctor`
 5. Commit: Only commit changes to `src/` and `manifests/` (not `plugins/`)
 
-## Adding New Skills (CC 2.1.7)
+## Adding New Skills (CC 2.1.59)
 
-Skills use the CC 2.1.7 native flat structure with SKILL.md as the only required file.
+Skills use the CC 2.1.59 native flat structure with SKILL.md as the only required file.
 
 **Important:** Create skills in `src/skills/`, not `skills/` (which is a symlink).
 
@@ -241,7 +241,7 @@ Hooks provide lifecycle automation for Claude Code.
    set -euo pipefail
    ```
 
-2. **CC 2.1.6 JSON output** (for pretool hooks):
+2. **JSON output** (for pretool hooks):
    ```bash
    echo '{"continue": true, "suppressOutput": true}'
    exit 0

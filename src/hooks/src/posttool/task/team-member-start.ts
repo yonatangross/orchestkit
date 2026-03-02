@@ -15,9 +15,75 @@ import type { HookInput, HookResult } from '../../types.js';
 import { outputSilentSuccess, logHook } from '../../lib/common.js';
 import { appendEventLog } from '../../lib/event-logger.js';
 import { appendAnalytics, hashProject } from '../../lib/analytics.js';
+import { recordOutcome } from '../../lib/calibration-engine.js';
+import { getTaskById } from '../../lib/task-integration.js';
+import { getLastClassification, loadConfig } from '../../lib/orchestration-state.js';
+
+/**
+ * Handle calibration tracking for TaskUpdate completions.
+ * Issue #904: calibration-tracker registered with matcher '*' but only acts on TaskUpdate,
+ * which never reaches the PostToolUse dispatcher (hooks.json uses Bash|Write|Edit|Task|Skill|NotebookEdit).
+ * Fix: detect TaskUpdate-equivalent task completions here, where Task PostToolUse already fires.
+ *
+ * A Task tool call with tool_input.status === 'completed' and tool_input.taskId present
+ * signals the same completion event as a TaskUpdate would have.
+ */
+function trackCalibrationIfTaskCompleted(input: HookInput): void {
+  const toolInput = input.tool_input || {};
+
+  // Only process when a task is being marked completed
+  const status = toolInput.status as string | undefined;
+  const taskId = toolInput.taskId as string | undefined;
+  if (!taskId || status !== 'completed') {
+    return;
+  }
+
+  const config = loadConfig();
+  if (!config.enableCalibration) {
+    return;
+  }
+
+  logHook('team-member-start', `Calibration tracking task ${taskId} completion (Issue #904)`);
+
+  const task = getTaskById(taskId);
+  if (!task) {
+    logHook('team-member-start', `Calibration: task ${taskId} not found in registry`);
+    return;
+  }
+
+  const agent = task.agent;
+  if (!agent) {
+    logHook('team-member-start', `Calibration: no agent associated with task ${taskId}`);
+    return;
+  }
+
+  const lastClassification = getLastClassification();
+  const agentMatch = lastClassification?.agents.find((a: { agent: string }) => a.agent === agent);
+  const matchedKeywords = agentMatch?.matchedKeywords || [];
+  const confidence = task.confidence || agentMatch?.confidence || 0;
+
+  const durationMs = task.createdAt
+    ? Date.now() - new Date(task.createdAt).getTime()
+    : undefined;
+
+  recordOutcome(
+    '', // Prompt not available in PostTool context
+    agent,
+    matchedKeywords,
+    confidence,
+    'success',
+    durationMs
+  );
+
+  logHook('team-member-start', `Calibration recorded: ${agent} -> success (conf: ${confidence})`);
+}
 
 export function teamMemberStart(input: HookInput): HookResult {
   const toolInput = input.tool_input || {};
+
+  // Issue #904: calibration-tracker can never fire (TaskUpdate not in dispatcher matcher list).
+  // Track calibration data here, where Task PostToolUse already fires reliably.
+  trackCalibrationIfTaskCompleted(input);
 
   // Only track team spawns
   const teamName = toolInput.team_name as string | undefined;

@@ -1,6 +1,6 @@
 # OrchestKit Hook Architecture: Current State (February 2026)
 
-This document describes how OrchestKit's 55 hooks currently handle agent collaboration, context sharing, and pipeline coordination. It covers the actual TypeScript implementation — what works, what's broken, and where the gaps are.
+This document describes how OrchestKit's 96 hooks currently handle agent collaboration, context sharing, and pipeline coordination. It covers the actual TypeScript implementation — what works, what's broken, and where the gaps are.
 
 ## Overview: 18 Event Types
 

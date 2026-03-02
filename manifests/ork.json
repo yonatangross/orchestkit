@@ -2,6 +2,23 @@
   "name": "ork",
   "version": "7.0.0",
   "description": "The Complete AI Development Toolkit — 69 skills, 38 agents, 96 hooks for full-stack development.",
+  "author": {
+    "name": "Yonatan Gross",
+    "url": "https://github.com/yonatangross"
+  },
+  "homepage": "https://github.com/yonatangross/orchestkit",
+  "repository": "https://github.com/yonatangross/orchestkit",
+  "license": "MIT",
+  "keywords": [
+    "ai-development",
+    "code-quality",
+    "hooks",
+    "agents",
+    "skills",
+    "orchestration",
+    "claude-code",
+    "plugin"
+  ],
   "skills": "all",
   "agents": "all",
   "hooks": "all"

@@ -170,7 +170,7 @@ function categorizeSkill(skill: SkillMeta): string {
 }
 
 // ── Plugin filter type ──────────────────────────────────────
-type PluginFilter = "all" | "orkl" | "ork";
+type PluginFilter = "all" | "ork";
 
 // ── Skill entry with computed category ──────────────────────
 interface SkillEntry {
@@ -260,7 +260,7 @@ export function SkillBrowser() {
           role="group"
           aria-label="Filter by plugin"
         >
-          {(["all", "orkl", "ork"] as const).map((p) => {
+          {(["all", "ork"] as const).map((p) => {
             const active = pluginFilter === p;
             const label = p === "all" ? "All" : p;
             return (
@@ -507,11 +507,7 @@ function SkillCard({
               {skill.plugins.map((plugin) => (
                 <span
                   key={plugin}
-                  className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase leading-none tracking-wide ${
-                    plugin === "orkl"
-                      ? "bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-300"
-                      : "bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300"
-                  }`}
+                  className="inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase leading-none tracking-wide bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300"
                 >
                   {plugin}
                 </span>

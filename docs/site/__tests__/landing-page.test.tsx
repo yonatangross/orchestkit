@@ -29,7 +29,7 @@ vi.mock("..//lib/constants", () => ({
     github: "https://github.com/yonatangross/orchestkit",
     installCommand: "claude install orchestkit/ork",
   },
-  COUNTS: { skills: 69, agents: 38, hooks: 78 },
+  COUNTS: { skills: 69, agents: 38, hooks: 96 },
 }));
 
 vi.mock("..//lib/generated/compositions-data", () => ({
@@ -124,7 +124,7 @@ describe("landing page content", () => {
     render(result);
 
     // Hero text uses COUNTS
-    expect(screen.getByText(/69 skills, 38 agents, and 78 hooks/)).toBeTruthy();
+    expect(screen.getByText(/69 skills, 38 agents, and 96 hooks/)).toBeTruthy();
   });
 
   it("has Star on GitHub button linking to repo", async () => {

@@ -209,7 +209,8 @@ function getToolCategories(toolId: string): ToolCategory[] {
  * Get path to preferences file
  */
 function getPreferencesPath(): string {
-  return join(getProjectDir(), '.claude', 'memory', 'tool-preferences.json');
+  // Fix #908: consolidated to .claude/feedback/ (same as session-patterns.ts)
+  return join(getProjectDir(), '.claude', 'feedback', 'tool-preferences.json');
 }
 
 /**

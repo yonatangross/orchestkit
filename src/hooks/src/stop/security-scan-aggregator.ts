@@ -265,32 +265,98 @@ function aggregateResults(resultsDir: string, results: SecurityResults): void {
 }
 
 /**
- * Security scan aggregator hook
+ * Wrap a synchronous scan function in a Promise with a per-scan timeout.
+ * If the scan exceeds the timeout, it resolves with the fallback value rather
+ * than throwing, so the aggregator can report partial results.
+ *
+ * Issue #905: 4 sequential scans (660s total) exceeded the 60s dispatcher timeout.
  */
-export function securityScanAggregator(input: HookInput): HookResult {
-  logHook('security-scan', '=== Security Scan Started ===');
+function runWithTimeout<T>(
+  scanFn: () => T,
+  fallback: T,
+  timeoutMs: number,
+  scanName: string
+): Promise<T> {
+  return new Promise<T>((resolve) => {
+    const timer = setTimeout(() => {
+      logHook('security-scan', `${scanName} timed out after ${timeoutMs}ms — using fallback`);
+      resolve(fallback);
+    }, timeoutMs);
+
+    try {
+      const result = scanFn();
+      clearTimeout(timer);
+      resolve(result);
+    } catch (err) {
+      clearTimeout(timer);
+      logHook('security-scan', `${scanName} threw an error: ${err}`);
+      resolve(fallback);
+    }
+  });
+}
+
+// Issue #905: Per-scan timeout chosen so all 4 fit within the 60s dispatcher window.
+// 45 000 ms each leaves ~15 s headroom for aggregation and overhead.
+const SCAN_TIMEOUT_MS = 45_000;
+
+/**
+ * Security scan aggregator hook
+ * Issue #905: previously ran 4 scans sequentially (660s total), exceeding the 60s
+ * dispatcher timeout. Fixed by running all 4 in parallel via Promise.all, each
+ * guarded by a 45s per-scan timeout. Partial results are reported gracefully.
+ */
+export async function securityScanAggregator(input: HookInput): Promise<HookResult> {
+  logHook('security-scan', '=== Security Scan Started (parallel mode) ===');
 
   const projectDir = input.project_dir || getProjectDir();
   const resultsDir = `${projectDir}/.claude/hooks/logs/security`;
 
   mkdirSync(resultsDir, { recursive: true });
 
+  // Issue #905: Run all 4 scans in parallel. Each is wrapped with an individual
+  // 45s timeout so the combined wall-clock time stays within the 60s dispatcher limit.
+  const [npmAudit, pipAudit, semgrep, bandit, secrets] = await Promise.all([
+    runWithTimeout(
+      () => runNpmAudit(projectDir, resultsDir),
+      null,
+      SCAN_TIMEOUT_MS,
+      'npm-audit'
+    ),
+    runWithTimeout(
+      () => runPipAudit(projectDir, resultsDir),
+      null,
+      SCAN_TIMEOUT_MS,
+      'pip-audit'
+    ),
+    runWithTimeout(
+      () => runSemgrep(projectDir, resultsDir),
+      null,
+      SCAN_TIMEOUT_MS,
+      'semgrep'
+    ),
+    runWithTimeout(
+      () => runBandit(projectDir, resultsDir),
+      null,
+      SCAN_TIMEOUT_MS,
+      'bandit'
+    ),
+    runWithTimeout(
+      () => runSecretScan(projectDir, resultsDir),
+      0,
+      SCAN_TIMEOUT_MS,
+      'secret-scan'
+    ),
+  ]);
+
   const results: SecurityResults = {
-    npmAudit: null,
-    pipAudit: null,
-    semgrep: null,
-    bandit: null,
-    secrets: 0,
+    npmAudit,
+    pipAudit,
+    semgrep,
+    bandit,
+    secrets,
   };
 
-  // Run scans (sequentially in TS to avoid complexity, but could be parallelized)
-  results.npmAudit = runNpmAudit(projectDir, resultsDir);
-  results.pipAudit = runPipAudit(projectDir, resultsDir);
-  results.semgrep = runSemgrep(projectDir, resultsDir);
-  results.bandit = runBandit(projectDir, resultsDir);
-  results.secrets = runSecretScan(projectDir, resultsDir);
-
-  // Aggregate results
+  // Aggregate whatever results completed before the timeouts
   aggregateResults(resultsDir, results);
 
   return outputSilentSuccess();

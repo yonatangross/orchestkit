@@ -78,7 +78,7 @@
         ]
       },
       {
-        "matcher": "Task",
+        "matcher": "Task|Agent",
         "hooks": [
           {
             "type": "command",
@@ -100,7 +100,7 @@
     ],
     "PostToolUse": [
       {
-        "matcher": "Bash|Write|Edit|Task|Skill|NotebookEdit",
+        "matcher": "Bash|Write|Edit|Task|Agent|Skill|NotebookEdit",
         "hooks": [
           {
             "type": "command",

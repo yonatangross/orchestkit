@@ -286,7 +286,7 @@ Compute a composite score (0-10) from 6 dimensions:
 OrchestKit Readiness Score: 7.2 / 10  (stable channel, v7.0.0)
 
   Stack Coverage  ████████░░  9/10  Python + React fully covered
-  Hook Protection ████████░░  8/10  78 hooks active
+  Hook Protection ████████░░  8/10  96 hooks active
   MCP Enhancement ██████░░░░  6/10  2/3 recommended MCPs active
   Memory Depth    ████░░░░░░  4/10  12 entities (target: 50+)
   Custom Skills   ██░░░░░░░░  2/10  0/3 suggested skills created

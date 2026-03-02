@@ -64,7 +64,7 @@ function buildPayload(input: HookInput): HookPayload {
   const sessionMetrics = loadSessionMetrics();
 
   return {
-    event: 'Stop',
+    event: input.hook_event ?? 'SessionEnd', // Fix #906: use actual hook event
     session_id: sessionId,
     project: getProjectSlug(),
     timestamp: new Date().toISOString(),

@@ -306,9 +306,7 @@ For reference skills, a `Capability Details` section at the end helps the auto-s
 
 After creating the skill, add it to the appropriate manifest so it gets included in the plugin build.
 
-For most skills, edit `manifests/ork.json`. Since OrchestKit uses `"skills": "all"`, any skill in `src/skills/` is automatically included. You only need to explicitly list skills if a manifest uses selective inclusion.
-
-For the `orkl` (lite) manifest, you may need to add the skill name to `manifests/orkl.json` if it should be available in the universal toolkit.
+Edit `manifests/ork.json`. Since OrchestKit uses `"skills": "all"`, any skill in `src/skills/` is automatically included. You only need to explicitly list skills if a manifest uses selective inclusion.
 
 ---
 

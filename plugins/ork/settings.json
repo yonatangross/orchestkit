@@ -56,6 +56,22 @@
       "Composing"
     ]
   },
+  "sandbox": {
+    "autoAllowBashIfSandboxed": true,
+    "filesystem": {
+      "allowWrite": ["${projectDir}", "/tmp", "~/.claude"],
+      "denyRead": ["~/.aws/credentials", "~/.ssh/*", "~/.gnupg/*"]
+    },
+    "network": {
+      "allowedDomains": [
+        "github.com",
+        "*.npmjs.org",
+        "*.pypi.org",
+        "registry.terraform.io",
+        "api.anthropic.com"
+      ]
+    }
+  },
   "spinnerTipsOverride": {
     "excludeDefault": false,
     "tips": [

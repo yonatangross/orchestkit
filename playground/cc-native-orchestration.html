@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OrchestKit — CC-Native Orchestration</title>
+<style>
+:root {
+  --bg: #0d1117; --surface: #161b22; --surface2: #21262d; --surface3: #2d333b;
+  --border: #30363d; --border2: #3d444d;
+  --text: #e6edf3; --text2: #8b949e; --text3: #484f58;
+  --blue: #58a6ff; --green: #3fb950; --yellow: #d29922;
+  --red: #f85149; --purple: #bc8cff; --orange: #e3b341;
+  --cyan: #39d2c0; --pink: #f778ba; --teal: #2ea78a;
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --mono: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); line-height: 1.5; min-height: 100vh; }
+
+/* ── LAYOUT ── */
+.app { display: grid; grid-template-rows: auto auto 1fr; height: 100vh; overflow: hidden; }
+.content-area { display: grid; grid-template-columns: 300px 1fr 320px; overflow: hidden; }
+
+/* ── HEADER ── */
+.header { padding: 12px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 16px; background: var(--surface); }
+.header-logo { display: flex; align-items: center; gap: 10px; }
+.logo-badge { background: linear-gradient(135deg, #1f6feb, #388bfd); color: white; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; font-family: var(--mono); letter-spacing: 0.5px; }
+.header h1 { font-size: 16px; font-weight: 600; }
+.header .subtitle { color: var(--text2); font-size: 12px; }
+.header-stats { margin-left: auto; display: flex; gap: 20px; }
+.hstat { text-align: center; }
+.hstat-n { font-size: 18px; font-weight: 700; font-family: var(--mono); }
+.hstat-l { font-size: 10px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; }
+.hstat.blue .hstat-n { color: var(--blue); }
+.hstat.green .hstat-n { color: var(--green); }
+.hstat.purple .hstat-n { color: var(--purple); }
+.hstat.orange .hstat-n { color: var(--orange); }
+
+/* ── TABS ── */
+.tab-bar { display: flex; gap: 0; border-bottom: 1px solid var(--border); background: var(--surface); padding: 0 24px; }
+.tab-btn { padding: 10px 18px; cursor: pointer; font-size: 12px; color: var(--text2); border-bottom: 2px solid transparent; white-space: nowrap; transition: all 0.18s; user-select: none; background: none; border-top: none; border-left: none; border-right: none; font-family: var(--font); }
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active { color: var(--text); border-bottom-color: var(--blue); }
+.tab-badge { font-size: 10px; padding: 1px 6px; border-radius: 10px; margin-left: 5px; background: rgba(88,166,255,0.15); color: var(--blue); }
+
+/* ── LEFT PANEL: Agent List ── */
+.left-panel { border-right: 1px solid var(--border); overflow-y: auto; background: var(--surface); display: flex; flex-direction: column; }
+.panel-header { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+.panel-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text2); font-weight: 600; }
+
+.agent-search { width: 100%; padding: 8px 12px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 12px; font-family: var(--font); margin-bottom: 4px; }
+.agent-search:focus { outline: none; border-color: var(--blue); }
+.agent-search::placeholder { color: var(--text3); }
+
+.agent-list { flex: 1; overflow-y: auto; padding: 8px; }
+.agent-item { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: background 0.12s; border: 1px solid transparent; }
+.agent-item:hover { background: var(--surface2); }
+.agent-item.active { background: rgba(88,166,255,0.1); border-color: rgba(88,166,255,0.3); color: var(--blue); }
+.agent-item.highlighted { background: rgba(63,185,80,0.08); border-color: rgba(63,185,80,0.2); }
+.agent-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.agent-name { flex: 1; font-family: var(--mono); font-size: 11px; }
+.agent-skill-count { font-size: 10px; color: var(--text3); background: var(--surface3); padding: 1px 6px; border-radius: 8px; flex-shrink: 0; }
+
+/* ── MAIN PANEL ── */
+.main-panel { overflow-y: auto; display: flex; flex-direction: column; }
+
+/* Tab Views */
+.tab-view { display: none; flex: 1; }
+.tab-view.active { display: flex; flex-direction: column; }
+
+/* Architecture View */
+.arch-view { padding: 24px; flex: 1; }
+
+.layer { margin-bottom: 20px; }
+.layer-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text2); font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+.layer-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* Layer 1: User-invocable skills */
+.user-skills-grid { display: flex; flex-wrap: wrap; gap: 6px; padding: 16px; background: rgba(63,185,80,0.04); border: 1px solid rgba(63,185,80,0.15); border-radius: 10px; }
+.skill-pill { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-family: var(--mono); cursor: pointer; transition: all 0.15s; border: 1px solid; }
+.skill-pill.user { background: rgba(63,185,80,0.08); border-color: rgba(63,185,80,0.25); color: var(--green); }
+.skill-pill.user:hover { background: rgba(63,185,80,0.2); border-color: var(--green); }
+
+/* CC Orchestrator */
+.cc-node { background: linear-gradient(135deg, rgba(88,166,255,0.1) 0%, rgba(88,166,255,0.04) 100%); border: 2px solid rgba(88,166,255,0.4); border-radius: 14px; padding: 20px 24px; text-align: center; position: relative; margin: 8px 0; }
+.cc-node-title { font-size: 15px; font-weight: 700; color: var(--blue); margin-bottom: 4px; }
+.cc-node-sub { font-size: 11px; color: var(--text2); }
+.cc-node-badge { position: absolute; top: 10px; right: 14px; font-size: 10px; background: rgba(88,166,255,0.15); color: var(--blue); padding: 2px 8px; border-radius: 10px; font-family: var(--mono); }
+
+/* Agent grid (layer 3 "above" skills) */
+.agent-chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 16px; background: rgba(88,166,255,0.03); border: 1px solid rgba(88,166,255,0.12); border-radius: 10px; }
+.agent-chip { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-family: var(--mono); cursor: pointer; transition: all 0.15s; border: 1px solid rgba(88,166,255,0.2); color: var(--blue); background: rgba(88,166,255,0.06); }
+.agent-chip:hover { background: rgba(88,166,255,0.15); border-color: var(--blue); }
+.agent-chip.selected { background: rgba(88,166,255,0.25); border-color: var(--blue); box-shadow: 0 0 8px rgba(88,166,255,0.25); }
+.agent-chip.routing { animation: pulse-blue 0.8s ease infinite; }
+@keyframes pulse-blue { 0%,100% { box-shadow: 0 0 0 rgba(88,166,255,0); } 50% { box-shadow: 0 0 12px rgba(88,166,255,0.5); } }
+
+/* Internal skills */
+.internal-skills-grid { display: flex; flex-wrap: wrap; gap: 5px; padding: 14px; background: rgba(188,140,255,0.03); border: 1px solid rgba(188,140,255,0.12); border-radius: 10px; }
+.skill-pill.internal { background: rgba(188,140,255,0.06); border-color: rgba(188,140,255,0.2); color: var(--purple); font-size: 10px; padding: 3px 8px; }
+.skill-pill.internal:hover { background: rgba(188,140,255,0.15); border-color: var(--purple); }
+.skill-pill.internal.lit { background: rgba(188,140,255,0.25); border-color: var(--purple); box-shadow: 0 0 8px rgba(188,140,255,0.3); animation: pulse-purple 1s ease infinite; }
+@keyframes pulse-purple { 0%,100% { box-shadow: 0 0 4px rgba(188,140,255,0.2); } 50% { box-shadow: 0 0 14px rgba(188,140,255,0.5); } }
+
+/* Flow animation area */
+.flow-lines { position: relative; height: 32px; display: flex; align-items: center; justify-content: center; }
+.flow-arrow { width: 2px; background: linear-gradient(to bottom, transparent, var(--blue), transparent); height: 100%; margin: 0 4px; animation: flow-down 1.5s ease infinite; opacity: 0; }
+.flow-arrow.active { opacity: 1; }
+@keyframes flow-down { 0% { opacity: 0; transform: scaleY(0) translateY(-50%); } 50% { opacity: 1; transform: scaleY(1) translateY(0); } 100% { opacity: 0; transform: scaleY(0) translateY(50%); } }
+
+/* ── TASK SIMULATOR ── */
+.simulator { padding: 20px 24px; border-top: 1px solid var(--border); background: var(--surface); flex-shrink: 0; }
+.sim-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text2); font-weight: 600; margin-bottom: 10px; }
+.sim-input-row { display: flex; gap: 8px; }
+.sim-input { flex: 1; padding: 8px 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 13px; font-family: var(--font); }
+.sim-input:focus { outline: none; border-color: var(--blue); }
+.sim-btn { padding: 8px 16px; background: rgba(88,166,255,0.15); border: 1px solid rgba(88,166,255,0.3); border-radius: 8px; color: var(--blue); font-size: 12px; cursor: pointer; font-family: var(--font); font-weight: 600; transition: all 0.15s; white-space: nowrap; }
+.sim-btn:hover { background: rgba(88,166,255,0.25); }
+.sim-presets { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+.preset-btn { padding: 3px 10px; border-radius: 12px; font-size: 11px; background: var(--surface2); border: 1px solid var(--border); color: var(--text2); cursor: pointer; font-family: var(--mono); transition: all 0.12s; }
+.preset-btn:hover { border-color: var(--blue); color: var(--text); }
+.sim-output { margin-top: 12px; min-height: 36px; }
+.sim-log { font-size: 11px; font-family: var(--mono); color: var(--text2); line-height: 1.8; }
+.sim-log .step { display: flex; align-items: flex-start; gap: 8px; }
+.sim-log .step-icon { width: 16px; flex-shrink: 0; text-align: center; }
+.sim-log .step-text { flex: 1; }
+.sim-log .agent-ref { color: var(--blue); }
+.sim-log .skill-ref { color: var(--purple); }
+.sim-log .hook-ref { color: var(--orange); }
+.sim-log .step.done .step-icon { color: var(--green); }
+.sim-log .step.running { color: var(--text); }
+.sim-log .step.running .step-icon { color: var(--yellow); }
+
+/* ── COMPARISON TAB ── */
+.comparison-view { padding: 24px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.compare-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.compare-card-head { padding: 14px 16px; border-bottom: 1px solid var(--border); }
+.compare-card-head h3 { font-size: 13px; font-weight: 600; }
+.compare-card-head .tag { font-size: 10px; padding: 2px 8px; border-radius: 10px; margin-top: 4px; display: inline-block; }
+.tag.red { background: rgba(248,81,73,0.15); color: var(--red); }
+.tag.green { background: rgba(63,185,80,0.15); color: var(--green); }
+.tag.blue { background: rgba(88,166,255,0.15); color: var(--blue); }
+.compare-card-body { padding: 16px; font-size: 12px; color: var(--text2); line-height: 1.7; }
+.compare-card-body ul { list-style: none; }
+.compare-card-body ul li { padding: 3px 0; display: flex; align-items: flex-start; gap: 6px; }
+.compare-card-body ul li::before { content: ''; flex-shrink: 0; width: 6px; height: 6px; border-radius: 50%; margin-top: 6px; }
+.compare-card-body ul.bad li::before { background: var(--red); }
+.compare-card-body ul.good li::before { background: var(--green); }
+.compare-card-body ul.neutral li::before { background: var(--blue); }
+.compare-stat { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.compare-stat:last-child { border-bottom: none; }
+.compare-stat-label { font-size: 12px; color: var(--text2); }
+.compare-stat-val { font-size: 13px; font-weight: 600; font-family: var(--mono); }
+.compare-stat-val.red { color: var(--red); }
+.compare-stat-val.green { color: var(--green); }
+.compare-stat-val.yellow { color: var(--yellow); }
+
+/* token bars */
+.token-bar-row { margin-bottom: 10px; }
+.token-bar-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--text2); margin-bottom: 4px; }
+.token-bar-track { height: 10px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
+.token-bar-fill { height: 100%; border-radius: 4px; transition: width 0.8s ease; }
+.bar-blue { background: var(--blue); }
+.bar-green { background: var(--green); }
+.bar-red { background: var(--red); }
+.bar-yellow { background: var(--yellow); }
+
+/* ── RIGHT PANEL: Skill Navigator ── */
+.right-panel { border-left: 1px solid var(--border); overflow-y: auto; background: var(--surface); display: flex; flex-direction: column; }
+.skill-nav { flex: 1; overflow-y: auto; padding: 8px; }
+.skill-nav-empty { padding: 24px 16px; text-align: center; color: var(--text3); font-size: 12px; }
+.skill-nav-agent-title { font-size: 13px; font-weight: 600; color: var(--blue); padding: 8px 10px 4px; font-family: var(--mono); }
+.skill-nav-section { font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text3); padding: 8px 10px 4px; font-weight: 600; }
+.skill-nav-item { display: flex; align-items: center; gap: 8px; padding: 5px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; transition: background 0.12s; }
+.skill-nav-item:hover { background: var(--surface2); }
+.skill-nav-item.expanded { background: var(--surface2); }
+.skill-nav-item .nav-icon { font-size: 10px; color: var(--text3); width: 12px; text-align: center; }
+.skill-nav-item .nav-name { flex: 1; font-family: var(--mono); color: var(--text); }
+.skill-nav-item .nav-type { font-size: 9px; padding: 1px 5px; border-radius: 6px; }
+.nav-type.skill { background: rgba(188,140,255,0.15); color: var(--purple); }
+.nav-type.ref { background: rgba(88,166,255,0.1); color: var(--blue); }
+.nav-type.rule { background: rgba(227,179,65,0.1); color: var(--orange); }
+
+.skill-nav-children { padding-left: 20px; }
+.skill-nav-child { display: flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 4px; font-size: 10px; font-family: var(--mono); color: var(--text2); cursor: pointer; transition: background 0.1s; }
+.skill-nav-child:hover { background: var(--surface2); color: var(--text); }
+.skill-nav-child .child-icon { color: var(--text3); width: 10px; }
+.skill-nav-child.ref-item .child-icon { color: var(--blue); }
+.skill-nav-child.rule-item .child-icon { color: var(--orange); }
+
+/* ── FLOW TAB ── */
+.flow-view { padding: 24px; }
+.flow-diagram { display: flex; flex-direction: column; align-items: center; gap: 0; }
+.flow-node { border-radius: 10px; padding: 14px 20px; text-align: center; position: relative; width: 100%; max-width: 560px; }
+.flow-node.human { background: rgba(63,185,80,0.08); border: 1px solid rgba(63,185,80,0.3); }
+.flow-node.cc { background: rgba(88,166,255,0.08); border: 2px solid rgba(88,166,255,0.4); }
+.flow-node.agents { background: rgba(188,140,255,0.06); border: 1px solid rgba(188,140,255,0.25); }
+.flow-node.skills { background: rgba(227,179,65,0.06); border: 1px solid rgba(227,179,65,0.2); }
+.flow-node.hooks { background: rgba(248,81,73,0.06); border: 1px solid rgba(248,81,73,0.2); }
+.flow-node-title { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+.flow-node.human .flow-node-title { color: var(--green); }
+.flow-node.cc .flow-node-title { color: var(--blue); }
+.flow-node.agents .flow-node-title { color: var(--purple); }
+.flow-node.skills .flow-node-title { color: var(--orange); }
+.flow-node.hooks .flow-node-title { color: var(--red); }
+.flow-node-desc { font-size: 11px; color: var(--text2); }
+.flow-connector { width: 2px; height: 32px; background: linear-gradient(to bottom, rgba(88,166,255,0.5), rgba(88,166,255,0.2)); margin: 0 auto; position: relative; }
+.flow-connector::after { content: '▼'; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); font-size: 9px; color: var(--blue); }
+.flow-connector.bidirectional::before { content: '▲'; position: absolute; top: -8px; left: 50%; transform: translateX(-50%); font-size: 9px; color: var(--blue); }
+.flow-label { font-size: 10px; font-family: var(--mono); color: var(--text3); text-align: center; padding: 4px; }
+
+.flow-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px; max-width: 720px; }
+.flow-detail-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
+.flow-detail-card h4 { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text2); margin-bottom: 10px; }
+.flow-detail-card ul { list-style: none; }
+.flow-detail-card ul li { font-size: 11px; padding: 3px 0; display: flex; gap: 6px; align-items: flex-start; }
+.flow-detail-card ul li span.dot { width: 5px; height: 5px; border-radius: 50%; background: var(--blue); margin-top: 6px; flex-shrink: 0; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text3); }
+
+/* Misc */
+.sep { height: 1px; background: var(--border); margin: 10px 8px; }
+.empty-state { padding: 32px; text-align: center; color: var(--text3); font-size: 12px; }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-logo">
+      <span class="logo-badge">ork</span>
+      <div>
+        <h1>CC-Native Orchestration</h1>
+        <div class="subtitle">v7.0.0 — Architecture Visualizer</div>
+      </div>
+    </div>
+    <div class="header-stats">
+      <div class="hstat blue"><div class="hstat-n">38</div><div class="hstat-l">Agents</div></div>
+      <div class="hstat green"><div class="hstat-n">17</div><div class="hstat-l">User Skills</div></div>
+      <div class="hstat purple"><div class="hstat-n">52</div><div class="hstat-l">Internal Skills</div></div>
+      <div class="hstat orange"><div class="hstat-n">96</div><div class="hstat-l">Hooks</div></div>
+    </div>
+  </header>
+
+  <!-- TAB BAR -->
+  <nav class="tab-bar">
+    <button class="tab-btn active" data-tab="architecture">Architecture<span class="tab-badge">3 layers</span></button>
+    <button class="tab-btn" data-tab="comparison">Comparison<span class="tab-badge">A/B/C</span></button>
+    <button class="tab-btn" data-tab="flow">Turn Flow</button>
+  </nav>
+
+  <!-- CONTENT AREA -->
+  <div class="content-area">
+
+    <!-- LEFT: Agent list -->
+    <aside class="left-panel">
+      <div class="panel-header">
+        <span class="panel-title">Agents</span>
+        <span style="font-size:10px;color:var(--text3)">38 total</span>
+      </div>
+      <div style="padding:8px;">
+        <input class="agent-search" type="text" placeholder="Filter agents..." id="agentSearch" />
+      </div>
+      <div class="agent-list" id="agentList"></div>
+    </aside>
+
+    <!-- MAIN PANEL -->
+    <main class="main-panel">
+
+      <!-- ARCHITECTURE TAB -->
+      <div class="tab-view active" id="tab-architecture">
+        <div class="arch-view" id="archView">
+
+          <!-- Layer 1: Human Interface -->
+          <div class="layer">
+            <div class="layer-label" style="color:var(--green)">Layer 1 — Human Interface (17 user-invocable skills)</div>
+            <div class="user-skills-grid" id="userSkillsGrid"></div>
+          </div>
+
+          <!-- Flow arrows down -->
+          <div class="flow-lines">
+            <div style="text-align:center;font-size:10px;color:var(--text3);font-family:var(--mono)">
+              /ork:&lt;skill&gt; → CC reads skill instructions → CC decides delegation
+            </div>
+          </div>
+          <div style="height:2px;background:linear-gradient(to right,transparent,rgba(88,166,255,0.4),transparent);margin:4px 0 12px;"></div>
+
+          <!-- Layer 2: CC Orchestrator -->
+          <div class="layer">
+            <div class="layer-label" style="color:var(--blue)">Layer 2 — CC Orchestrator (main agent instance)</div>
+            <div class="cc-node">
+              <div class="cc-node-badge">Sees ALL 38 agents</div>
+              <div class="cc-node-title">Claude Code Main Instance</div>
+              <div class="cc-node-sub">Reads skill instructions on invocation · Picks best-fit agents · Coordinates via Task tool</div>
+            </div>
+          </div>
+
+          <div style="height:2px;background:linear-gradient(to right,transparent,rgba(188,140,255,0.35),transparent);margin:4px 0 12px;"></div>
+          <div style="text-align:center;font-size:10px;color:var(--text3);font-family:var(--mono);margin-bottom:8px;">
+            CC delegates → agents load their skills[] on start → hooks inject context every turn
+          </div>
+
+          <!-- Layer 3 part A: Agents -->
+          <div class="layer">
+            <div class="layer-label" style="color:var(--blue)">Layer 3a — 38 Agents (all reachable by CC)</div>
+            <div class="agent-chips" id="agentChips"></div>
+          </div>
+
+          <!-- Layer 3 part B: Internal skills -->
+          <div class="layer" style="margin-top:14px;">
+            <div class="layer-label" style="color:var(--purple)">Layer 3b — 52 Internal Skills (agent knowledge, not user tools)</div>
+            <div class="internal-skills-grid" id="internalSkillsGrid"></div>
+          </div>
+
+        </div>
+
+        <!-- Task Simulator -->
+        <div class="simulator">
+          <div class="sim-title">Task Simulator</div>
+          <div class="sim-input-row">
+            <input class="sim-input" type="text" id="simInput" placeholder="Describe a task e.g. fix auth bug in login service..." />
+            <button class="sim-btn" id="simRun">Route Task</button>
+          </div>
+          <div class="sim-presets">
+            <button class="preset-btn" data-task="fix auth bug in login service">fix auth bug</button>
+            <button class="preset-btn" data-task="design REST API for user profiles">design API</button>
+            <button class="preset-btn" data-task="build React dashboard with charts">build UI</button>
+            <button class="preset-btn" data-task="optimize slow database queries">optimize DB</button>
+            <button class="preset-btn" data-task="write E2E tests for checkout flow">write tests</button>
+            <button class="preset-btn" data-task="review pull request for security issues">review PR</button>
+            <button class="preset-btn" data-task="deploy to production with zero downtime">deploy</button>
+            <button class="preset-btn" data-task="analyze LLM prompt for token efficiency">analyze LLM</button>
+          </div>
+          <div class="sim-output">
+            <div class="sim-log" id="simLog">
+              <div class="step" style="color:var(--text3)">
+                <span class="step-icon">&#9655;</span>
+                <span class="step-text">Enter a task above or click a preset to simulate CC orchestration routing.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COMPARISON TAB -->
+      <div class="tab-view" id="tab-comparison">
+        <div class="comparison-view">
+
+          <!-- Tab A: Current -->
+          <div class="compare-card">
+            <div class="compare-card-head">
+              <h3>Tab A — Current State</h3>
+              <div class="tag red">21-agent manifest (hypothetical)</div>
+            </div>
+            <div class="compare-card-body">
+              <div class="compare-stat">
+                <span class="compare-stat-label">Agents reachable</span>
+                <span class="compare-stat-val red">21 / 38</span>
+              </div>
+              <div class="compare-stat">
+                <span class="compare-stat-label">Skills as user tools</span>
+                <span class="compare-stat-val red">69 polluting menu</span>
+              </div>
+              <div class="compare-stat">
+                <span class="compare-stat-label">Unreachable agents</span>
+                <span class="compare-stat-val red">17 dark</span>
+              </div>
+              <div class="compare-stat">
+                <span class="compare-stat-label">Skill loading</span>
+                <span class="compare-stat-val yellow">Always eager</span>
+              </div>
+              <div style="margin-top:12px;">
+                <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:8px;">Problems:</div>
+                <ul class="bad">
+                  <li>17 agents unreachable — CC cannot delegate to them</li>
+                  <li>All 69 skills appear as user commands in the menu</li>
+                  <li>Skills load context even when irrelevant to the task</li>
+                  <li>Internal skills intended as agent knowledge are exposed</li>
+                  <li>Token budget wasted on context that doesn't apply</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab B: CC-Native -->
+          <div class="compare-card">
+            <div class="compare-card-head">
+              <h3>Tab B — CC-Native (v7)</h3>
+              <div class="tag green">38-agent manifest, skills as knowledge</div>
+            </div>
+            <div class="compare-card-body">
+              <div class="compare-stat">
+                <span class="compare-stat-label">Agents reachable</span>
+                <span class="compare-stat-val green">38 / 38</span>
+              </div>
+              <div class="compare-stat">
+                <span class="compare-stat-label">User-invocable skills</span>
+                <span class="compare-stat-val green">17 clean</span>
+              </div>
+              <div class="compare-stat">
+                <span class="compare-stat-label">Internal skills</span>
+                <span class="compare-stat-val green">52 as agent knowledge</span>
+              </div>
+              <div class="compare-stat">
+                <span class="compare-stat-label">Skill loading</span>
+                <span class="compare-stat-val green">On-demand, progressive</span>
+              </div>
+              <div style="margin-top:12px;">
+                <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:8px;">Benefits:</div>
+                <ul class="good">
+                  <li>All 38 agents reachable — CC picks best fit for any task</li>
+                  <li>Clean user menu: only 17 intentional /ork: commands</li>
+                  <li>Skills load rules/ and references/ progressively on demand</li>
+                  <li>Internal skills stay as agent knowledge, invisible to users</li>
+                  <li>96 hooks inject context at the right moment per turn</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab C: Token Budget -->
+          <div class="compare-card">
+            <div class="compare-card-head">
+              <h3>Tab C — Token Budget</h3>
+              <div class="tag blue">Context cost comparison</div>
+            </div>
+            <div class="compare-card-body">
+              <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:12px;">Approach A (eager load all skills):</div>
+              <div class="token-bar-row">
+                <div class="token-bar-label"><span>Skills (69 × ~300 tok)</span><span style="color:var(--red)">~20,700</span></div>
+                <div class="token-bar-track"><div class="token-bar-fill bar-red" style="width:100%"></div></div>
+              </div>
+              <div class="token-bar-row">
+                <div class="token-bar-label"><span>Agent prompts (38)</span><span style="color:var(--yellow)">~15,000</span></div>
+                <div class="token-bar-track"><div class="token-bar-fill bar-yellow" style="width:72%"></div></div>
+              </div>
+              <div class="token-bar-row">
+                <div class="token-bar-label"><span>Hooks (96)</span><span style="color:var(--orange)">~8,000</span></div>
+                <div class="token-bar-track"><div class="token-bar-fill bar-yellow" style="width:38%"></div></div>
+              </div>
+              <div style="font-size:11px;font-weight:600;color:var(--text);margin:14px 0 10px;">Approach B (CC-native, on-demand):</div>
+              <div class="token-bar-row">
+                <div class="token-bar-label"><span>Active skill only (1×)</span><span style="color:var(--green)">~300</span></div>
+                <div class="token-bar-track"><div class="token-bar-fill bar-green" style="width:2%"></div></div>
+              </div>
+              <div class="token-bar-row">
+                <div class="token-bar-label"><span>Selected agents (1-3)</span><span style="color:var(--green)">~2,000</span></div>
+                <div class="token-bar-track"><div class="token-bar-fill bar-green" style="width:10%"></div></div>
+              </div>
+              <div class="token-bar-row">
+                <div class="token-bar-label"><span>Relevant hooks only</span><span style="color:var(--green)">~1,500</span></div>
+                <div class="token-bar-track"><div class="token-bar-fill bar-green" style="width:7%"></div></div>
+              </div>
+              <div style="margin-top:12px;padding:10px;background:rgba(63,185,80,0.06);border:1px solid rgba(63,185,80,0.2);border-radius:8px;font-size:11px;">
+                <span style="color:var(--green);font-weight:600;">~93% token reduction</span>
+                <span style="color:var(--text2)"> per task turn on average</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- FLOW TAB -->
+      <div class="tab-view" id="tab-flow">
+        <div class="flow-view">
+          <div style="max-width:720px;margin:0 auto;">
+            <div style="margin-bottom:20px;">
+              <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;">CC Turn Flow</div>
+              <div style="font-size:11px;color:var(--text2)">How a request travels through the CC-native orchestration stack.</div>
+            </div>
+
+            <div class="flow-diagram">
+              <div class="flow-node human">
+                <div class="flow-node-title">Human</div>
+                <div class="flow-node-desc">/ork:implement "add OAuth login" · /ork:review-pr 892 · natural language task</div>
+              </div>
+              <div class="flow-connector"></div>
+              <div class="flow-label">user-invocable skill instructions load (1×, ~300 tokens)</div>
+              <div class="flow-node cc">
+                <div class="flow-node-title">CC Orchestrator (Main Instance)</div>
+                <div class="flow-node-desc">
+                  Reads skill instructions · UserPromptSubmit hooks fire · intent captured ·
+                  memory context loaded · CC analyzes task → picks 1-3 best-fit agents
+                </div>
+              </div>
+              <div class="flow-connector"></div>
+              <div class="flow-label">PreAgentCall hooks fire · agent spawned with Task tool</div>
+              <div class="flow-node agents">
+                <div class="flow-node-title">Selected Agent(s)</div>
+                <div class="flow-node-desc">Agent loads its skills[] on start · each skill loads rules/ + references/ on-demand · hooks inject context per turn</div>
+              </div>
+              <div class="flow-connector bidirectional"></div>
+              <div class="flow-label">skills loaded progressively · rules/ + references/ on-demand only</div>
+              <div class="flow-node skills">
+                <div class="flow-node-title">Internal Skill Knowledge</div>
+                <div class="flow-node-desc">52 skills as agent knowledge (never user commands) · each has rules/ (enforcement) + references/ (deep docs) + scripts/ (templates)</div>
+              </div>
+              <div class="flow-connector"></div>
+              <div class="flow-label">PostToolUse hooks · session-end-reporter</div>
+              <div class="flow-node hooks">
+                <div class="flow-node-title">96 Hooks (35 global + 54 agent + 7 skill)</div>
+                <div class="flow-node-desc">Context injection · intent capture · memory load · queue recovery · HMAC-signed session reporting to HQ API</div>
+              </div>
+            </div>
+
+            <div class="flow-detail-grid">
+              <div class="flow-detail-card">
+                <h4>Hook Firing Order</h4>
+                <ul>
+                  <li><span class="dot"></span>UserPromptSubmit → 5 unified hooks (intent, memory, profile, queue, context)</li>
+                  <li><span class="dot"></span>PreToolUse → 18 agent-scoped guards</li>
+                  <li><span class="dot"></span>PostToolUse → output capture + validation</li>
+                  <li><span class="dot"></span>session-end → HMAC POST to HQ API</li>
+                </ul>
+              </div>
+              <div class="flow-detail-card">
+                <h4>Skill Loading Strategy</h4>
+                <ul>
+                  <li><span class="dot"></span>Skill SKILL.md: ~300 tokens (always, on agent start)</li>
+                  <li><span class="dot"></span>rules/ files: ~2-5KB each (on demand, when relevant)</li>
+                  <li><span class="dot"></span>references/ files: unlimited (only when deep info needed)</li>
+                  <li><span class="dot"></span>scripts/ templates: on explicit request</li>
+                </ul>
+              </div>
+              <div class="flow-detail-card">
+                <h4>Agent Selection Logic</h4>
+                <ul>
+                  <li><span class="dot"></span>CC reads task intent from UserPromptSubmit hooks</li>
+                  <li><span class="dot"></span>CC sees all 38 agents in manifest</li>
+                  <li><span class="dot"></span>Selects 1-3 best-fit agents per task domain</li>
+                  <li><span class="dot"></span>Uses Task tool with subagent_type for routing</li>
+                </ul>
+              </div>
+              <div class="flow-detail-card">
+                <h4>Key Invariants</h4>
+                <ul>
+                  <li><span class="dot"></span>Skills are never user commands (except 17 /ork: ones)</li>
+                  <li><span class="dot"></span>CC is always the orchestrator, never a direct executor</li>
+                  <li><span class="dot"></span>Hooks fire at defined lifecycle points, not ad hoc</li>
+                  <li><span class="dot"></span>Memory persists via knowledge graph across sessions</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- RIGHT PANEL: Skill Navigator -->
+    <aside class="right-panel">
+      <div class="panel-header">
+        <span class="panel-title">Skill Navigator</span>
+      </div>
+      <div class="skill-nav" id="skillNav">
+        <div class="skill-nav-empty">Click an agent to explore its skills and knowledge files.</div>
+      </div>
+    </aside>
+
+  </div>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────────
+
+const USER_SKILLS = [
+  'assess','brainstorming','commit','configure','create-pr','doctor','explore',
+  'fix-issue','git-workflow','help','implement','memory','plan-viz','remember',
+  'review-pr','setup','verify'
+];
+
+const INTERNAL_SKILLS = [
+  'accessibility','agent-orchestration','analytics','api-design',
+  'architecture-decision-record','architecture-patterns','ascii-visualizer',
+  'async-jobs','audit-full','audit-skills','browser-tools','checkpoint-resume',
+  'code-review-playbook','database-patterns','demo-producer','devops-deployment',
+  'distributed-systems','domain-driven-design','errors','feedback',
+  'github-operations','golden-dataset','i18n-date-patterns',
+  'issue-progress-tracking','langgraph','llm-integration','mcp-patterns',
+  'memory-fabric','monitoring-observability','multimodal-llm','notebooklm',
+  'performance','presentation-builder','product-frameworks','python-backend',
+  'quality-gates','rag-retrieval','react-server-components-framework',
+  'release-checklist','release-management','responsive-patterns',
+  'scope-appropriate-architecture','security-patterns','skill-evolution',
+  'task-dependency-patterns','testing-patterns','ui-components',
+  'upgrade-assessment','validate-counts','vite-advanced','web-research-workflow',
+  'zustand-patterns'
+];
+
+// Agent data: name → { color, skills, domain }
+const AGENTS = [
+  { name: 'accessibility-specialist', color: '#3fb950', domain: 'frontend', skills: ['accessibility','testing-patterns','ui-components'] },
+  { name: 'ai-safety-auditor', color: '#f85149', domain: 'ai', skills: ['audit-full','security-patterns','llm-integration'] },
+  { name: 'backend-system-architect', color: '#58a6ff', domain: 'backend', skills: ['architecture-patterns','api-design','distributed-systems','python-backend','database-patterns'] },
+  { name: 'business-case-builder', color: '#d29922', domain: 'product', skills: ['product-frameworks','analytics','presentation-builder'] },
+  { name: 'ci-cd-engineer', color: '#e3b341', domain: 'devops', skills: ['devops-deployment','github-operations','quality-gates'] },
+  { name: 'code-quality-reviewer', color: '#58a6ff', domain: 'quality', skills: ['code-review-playbook','testing-patterns','architecture-patterns'] },
+  { name: 'data-pipeline-engineer', color: '#39d2c0', domain: 'data', skills: ['python-backend','async-jobs','monitoring-observability'] },
+  { name: 'database-engineer', color: '#58a6ff', domain: 'backend', skills: ['database-patterns','architecture-patterns','python-backend'] },
+  { name: 'debug-investigator', color: '#f85149', domain: 'quality', skills: ['errors','checkpoint-resume','audit-full'] },
+  { name: 'demo-producer', color: '#bc8cff', domain: 'product', skills: ['demo-producer','ascii-visualizer','presentation-builder'] },
+  { name: 'deployment-manager', color: '#e3b341', domain: 'devops', skills: ['devops-deployment','release-management','monitoring-observability'] },
+  { name: 'documentation-specialist', color: '#8b949e', domain: 'docs', skills: ['feedback','ascii-visualizer'] },
+  { name: 'eval-runner', color: '#39d2c0', domain: 'ai', skills: ['golden-dataset','testing-patterns','analytics'] },
+  { name: 'event-driven-architect', color: '#58a6ff', domain: 'backend', skills: ['async-jobs','distributed-systems','architecture-patterns'] },
+  { name: 'frontend-performance-engineer', color: '#3fb950', domain: 'frontend', skills: ['performance','vite-advanced','react-server-components-framework'] },
+  { name: 'frontend-ui-developer', color: '#3fb950', domain: 'frontend', skills: ['react-server-components-framework','ui-components','testing-patterns','accessibility','zustand-patterns'] },
+  { name: 'git-operations-engineer', color: '#e3b341', domain: 'devops', skills: ['github-operations','validate-counts','agent-orchestration'] },
+  { name: 'infrastructure-architect', color: '#58a6ff', domain: 'devops', skills: ['devops-deployment','distributed-systems','monitoring-observability'] },
+  { name: 'llm-integrator', color: '#bc8cff', domain: 'ai', skills: ['llm-integration','rag-retrieval','multimodal-llm','mcp-patterns'] },
+  { name: 'market-intelligence', color: '#d29922', domain: 'product', skills: ['web-research-workflow','product-frameworks','analytics'] },
+  { name: 'metrics-architect', color: '#39d2c0', domain: 'data', skills: ['monitoring-observability','analytics','distributed-systems'] },
+  { name: 'monitoring-engineer', color: '#39d2c0', domain: 'devops', skills: ['monitoring-observability','errors','checkpoint-resume'] },
+  { name: 'multimodal-specialist', color: '#bc8cff', domain: 'ai', skills: ['multimodal-llm','llm-integration','notebooklm'] },
+  { name: 'prioritization-analyst', color: '#d29922', domain: 'product', skills: ['product-frameworks','issue-progress-tracking','skill-evolution'] },
+  { name: 'product-strategist', color: '#d29922', domain: 'product', skills: ['product-frameworks','presentation-builder','analytics'] },
+  { name: 'prompt-engineer', color: '#bc8cff', domain: 'ai', skills: ['llm-integration','rag-retrieval','golden-dataset','mcp-patterns'] },
+  { name: 'python-performance-engineer', color: '#3fb950', domain: 'backend', skills: ['python-backend','performance','monitoring-observability'] },
+  { name: 'rapid-ui-designer', color: '#f778ba', domain: 'frontend', skills: ['ui-components','responsive-patterns','accessibility'] },
+  { name: 'release-engineer', color: '#e3b341', domain: 'devops', skills: ['release-management','release-checklist','github-operations','validate-counts'] },
+  { name: 'requirements-translator', color: '#d29922', domain: 'product', skills: ['product-frameworks','api-design','feedback'] },
+  { name: 'security-auditor', color: '#f85149', domain: 'security', skills: ['security-patterns','audit-full','architecture-patterns'] },
+  { name: 'security-layer-auditor', color: '#f85149', domain: 'security', skills: ['security-patterns','audit-skills','errors'] },
+  { name: 'system-design-reviewer', color: '#58a6ff', domain: 'backend', skills: ['architecture-patterns','distributed-systems','api-design','scope-appropriate-architecture'] },
+  { name: 'test-generator', color: '#3fb950', domain: 'quality', skills: ['testing-patterns','golden-dataset','quality-gates'] },
+  { name: 'ui-feedback', color: '#f778ba', domain: 'frontend', skills: ['feedback','ui-components','responsive-patterns'] },
+  { name: 'ux-researcher', color: '#f778ba', domain: 'frontend', skills: ['feedback','product-frameworks','analytics'] },
+  { name: 'web-research-analyst', color: '#39d2c0', domain: 'data', skills: ['web-research-workflow','browser-tools','analytics'] },
+  { name: 'workflow-architect', color: '#bc8cff', domain: 'ai', skills: ['agent-orchestration','task-dependency-patterns','mcp-patterns','langgraph'] },
+];
+
+// Skill-level knowledge files (representative sample)
+const SKILL_FILES = {
+  'react-server-components-framework': {
+    refs: ['cache-components.md','client-components.md','react-19-patterns.md','routing-patterns.md','server-actions.md','server-components.md','streaming-patterns.md','tanstack-router-patterns.md'],
+    rules: []
+  },
+  'ui-components': {
+    refs: ['aschild-composition.md','cva-variant-system.md','dialog-modal-patterns.md','focus-management.md','oklch-theming.md'],
+    rules: ['design-system-tokens.md','shadcn-customization.md','forms-react-hook-form.md']
+  },
+  'testing-patterns': {
+    refs: ['msw-2x-api.md','playwright-1.57-api.md','factory-patterns.md','strategies-guide.md'],
+    rules: ['unit-aaa-pattern.md','mocking-msw.md','e2e-playwright.md']
+  },
+  'architecture-patterns': {
+    refs: ['clean-hexagonal-ports-adapters.md','clean-ddd-tactical-patterns.md','structure-folder-conventions.md'],
+    rules: ['right-sizing-tiers.md','backend-layer-separation.md']
+  },
+  'performance': {
+    refs: ['core-web-vitals.md','tanstack-virtual-patterns.md','rum-setup.md'],
+    rules: ['cwv-lcp.md','render-compiler.md','query-prefetching.md']
+  },
+  'security-patterns': {
+    refs: [],
+    rules: ['auth-patterns.md','input-validation.md','secrets-management.md']
+  },
+  'monitoring-observability': {
+    refs: ['opentelemetry-setup.md','alerting-patterns.md'],
+    rules: ['metrics-collection.md','distributed-tracing.md']
+  },
+  'database-patterns': {
+    refs: ['query-optimization.md','schema-design.md','migrations.md'],
+    rules: ['index-strategy.md','connection-pooling.md']
+  },
+  'python-backend': {
+    refs: ['fastapi-patterns.md','sqlalchemy-async.md','pydantic-v2.md'],
+    rules: ['async-patterns.md','dependency-injection.md']
+  },
+  'llm-integration': {
+    refs: ['prompt-engineering.md','output-parsing.md','streaming.md'],
+    rules: ['cost-control.md','fallback-strategy.md']
+  }
+};
+
+// Task routing table
+const TASK_ROUTES = [
+  { keywords: ['auth','oauth','login','jwt','session','token','permission','role','access'], agents: ['security-auditor','backend-system-architect','security-layer-auditor'], skills: ['security-patterns','architecture-patterns','errors'] },
+  { keywords: ['api','rest','endpoint','graphql','route','swagger','openapi'], agents: ['backend-system-architect','system-design-reviewer','requirements-translator'], skills: ['api-design','architecture-patterns','python-backend'] },
+  { keywords: ['ui','react','component','frontend','css','tailwind','dashboard','chart','modal'], agents: ['frontend-ui-developer','rapid-ui-designer','frontend-performance-engineer'], skills: ['react-server-components-framework','ui-components','performance'] },
+  { keywords: ['database','sql','postgres','query','index','migration','schema'], agents: ['database-engineer','backend-system-architect'], skills: ['database-patterns','python-backend','architecture-patterns'] },
+  { keywords: ['test','e2e','unit','coverage','playwright','vitest','jest','msw'], agents: ['test-generator','code-quality-reviewer'], skills: ['testing-patterns','quality-gates','golden-dataset'] },
+  { keywords: ['deploy','ci','cd','pipeline','docker','kubernetes','release'], agents: ['deployment-manager','ci-cd-engineer','release-engineer'], skills: ['devops-deployment','release-management','github-operations'] },
+  { keywords: ['performance','slow','optimize','speed','latency','cache','bundle'], agents: ['frontend-performance-engineer','python-performance-engineer','metrics-architect'], skills: ['performance','monitoring-observability','database-patterns'] },
+  { keywords: ['llm','prompt','model','embedding','rag','vector','openai','anthropic'], agents: ['llm-integrator','prompt-engineer','ai-safety-auditor'], skills: ['llm-integration','rag-retrieval','security-patterns'] },
+  { keywords: ['review','pr','pull request','code review','feedback'], agents: ['code-quality-reviewer','security-auditor','system-design-reviewer'], skills: ['code-review-playbook','security-patterns','architecture-patterns'] },
+  { keywords: ['monitor','alert','metric','log','trace','observability'], agents: ['monitoring-engineer','metrics-architect','infrastructure-architect'], skills: ['monitoring-observability','errors','distributed-systems'] },
+  { keywords: ['design','architect','system','diagram','diagram','plan'], agents: ['system-design-reviewer','backend-system-architect','workflow-architect'], skills: ['architecture-patterns','distributed-systems','scope-appropriate-architecture'] },
+  { keywords: ['research','analyze','market','competitor','user'], agents: ['web-research-analyst','market-intelligence','ux-researcher'], skills: ['web-research-workflow','product-frameworks','analytics'] },
+];
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+
+let selectedAgent = null;
+let highlightedAgents = [];
+let highlightedSkills = [];
+
+function getDomainColor(domain) {
+  const map = { frontend: '#3fb950', backend: '#58a6ff', devops: '#e3b341', ai: '#bc8cff', data: '#39d2c0', security: '#f85149', product: '#d29922', quality: '#58a6ff', docs: '#8b949e' };
+  return map[domain] || '#8b949e';
+}
+
+function renderAgentList() {
+  const list = document.getElementById('agentList');
+  list.innerHTML = '';
+  const query = document.getElementById('agentSearch').value.toLowerCase();
+  AGENTS.filter(a => a.name.includes(query)).forEach(agent => {
+    const item = document.createElement('div');
+    item.className = 'agent-item' + (selectedAgent === agent.name ? ' active' : '') + (highlightedAgents.includes(agent.name) ? ' highlighted' : '');
+    item.dataset.agent = agent.name;
+    item.innerHTML = `
+      <span class="agent-dot" style="background:${getDomainColor(agent.domain)}"></span>
+      <span class="agent-name">${agent.name}</span>
+      <span class="agent-skill-count">${agent.skills.length}</span>
+    `;
+    item.addEventListener('click', () => selectAgent(agent.name));
+    list.appendChild(item);
+  });
+}
+
+function renderUserSkills() {
+  const grid = document.getElementById('userSkillsGrid');
+  USER_SKILLS.forEach(s => {
+    const pill = document.createElement('span');
+    pill.className = 'skill-pill user';
+    pill.textContent = `/ork:${s}`;
+    pill.title = `User-invocable skill: ${s}`;
+    grid.appendChild(pill);
+  });
+}
+
+function renderAgentChips() {
+  const chips = document.getElementById('agentChips');
+  AGENTS.forEach(agent => {
+    const chip = document.createElement('span');
+    chip.className = 'agent-chip';
+    chip.id = `chip-${agent.name}`;
+    chip.textContent = agent.name;
+    chip.title = `${agent.name} — ${agent.skills.length} skills`;
+    chip.addEventListener('click', () => selectAgent(agent.name));
+    chips.appendChild(chip);
+  });
+}
+
+function renderInternalSkills() {
+  const grid = document.getElementById('internalSkillsGrid');
+  INTERNAL_SKILLS.forEach(s => {
+    const pill = document.createElement('span');
+    pill.className = 'skill-pill internal';
+    pill.id = `skill-pill-${s}`;
+    pill.textContent = s;
+    pill.title = `Internal skill: ${s}`;
+    grid.appendChild(pill);
+  });
+}
+
+function selectAgent(name) {
+  selectedAgent = name;
+  renderAgentList();
+
+  // Update chips
+  document.querySelectorAll('.agent-chip').forEach(c => c.classList.remove('selected'));
+  const chip = document.getElementById(`chip-${name}`);
+  if (chip) chip.classList.add('selected');
+
+  // Render skill navigator
+  renderSkillNav(name);
+
+  // Highlight relevant skills
+  const agent = AGENTS.find(a => a.name === name);
+  if (!agent) return;
+  document.querySelectorAll('.skill-pill.internal').forEach(p => p.classList.remove('lit'));
+  agent.skills.forEach(s => {
+    const pill = document.getElementById(`skill-pill-${s}`);
+    if (pill) pill.classList.add('lit');
+  });
+}
+
+function renderSkillNav(agentName) {
+  const nav = document.getElementById('skillNav');
+  const agent = AGENTS.find(a => a.name === agentName);
+  if (!agent) { nav.innerHTML = '<div class="skill-nav-empty">Agent not found.</div>'; return; }
+
+  let html = `<div class="skill-nav-agent-title">${agentName}</div>`;
+  html += `<div class="skill-nav-section">Skills loaded (${agent.skills.length})</div>`;
+
+  agent.skills.forEach(skillName => {
+    const files = SKILL_FILES[skillName] || { refs: [], rules: [] };
+    const hasFiles = files.refs.length > 0 || files.rules.length > 0;
+    const id = `nav-${agentName}-${skillName}`.replace(/[^a-z0-9-]/g, '-');
+
+    html += `
+      <div class="skill-nav-item" id="${id}" onclick="toggleSkillDetail('${id}','${skillName}')">
+        <span class="nav-icon">${hasFiles ? '▶' : '─'}</span>
+        <span class="nav-name">${skillName}</span>
+        <span class="nav-type skill">skill</span>
+      </div>
+      <div class="skill-nav-children" id="${id}-children" style="display:none;">
+    `;
+
+    if (files.rules.length > 0) {
+      html += `<div style="font-size:9px;text-transform:uppercase;letter-spacing:0.8px;color:var(--text3);padding:4px 10px;">rules/ (enforcement)</div>`;
+      files.rules.forEach(f => {
+        html += `<div class="skill-nav-child rule-item"><span class="child-icon">■</span>${f}<span style="margin-left:auto;font-size:9px;color:var(--orange);opacity:0.7">rule</span></div>`;
+      });
+    }
+    if (files.refs.length > 0) {
+      html += `<div style="font-size:9px;text-transform:uppercase;letter-spacing:0.8px;color:var(--text3);padding:4px 10px;">references/ (deep docs)</div>`;
+      files.refs.forEach(f => {
+        html += `<div class="skill-nav-child ref-item"><span class="child-icon">◆</span>${f}<span style="margin-left:auto;font-size:9px;color:var(--blue);opacity:0.7">ref</span></div>`;
+      });
+    }
+    if (!hasFiles) {
+      html += `<div class="skill-nav-child" style="color:var(--text3)"><span class="child-icon">·</span>No inline file tree (loads on demand)</div>`;
+    }
+
+    html += `</div>`;
+  });
+
+  html += `<div class="sep"></div>`;
+  html += `<div class="skill-nav-section">Domain</div>`;
+  html += `<div style="padding:4px 10px 8px;font-size:11px;color:${getDomainColor(agent.domain)};font-family:var(--mono);">${agent.domain}</div>`;
+
+  nav.innerHTML = html;
+}
+
+function toggleSkillDetail(id, skillName) {
+  const item = document.getElementById(id);
+  const children = document.getElementById(`${id}-children`);
+  if (!children) return;
+  const open = children.style.display !== 'none';
+  children.style.display = open ? 'none' : 'block';
+  const icon = item.querySelector('.nav-icon');
+  if (icon) icon.textContent = open ? '▶' : '▼';
+  item.classList.toggle('expanded', !open);
+}
+
+// ── TAB SWITCHING ─────────────────────────────────────────────────────────────
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
+  });
+});
+
+// ── AGENT SEARCH ──────────────────────────────────────────────────────────────
+
+document.getElementById('agentSearch').addEventListener('input', renderAgentList);
+
+// ── TASK SIMULATOR ────────────────────────────────────────────────────────────
+
+function clearHighlights() {
+  document.querySelectorAll('.agent-chip').forEach(c => c.classList.remove('selected','routing'));
+  document.querySelectorAll('.skill-pill.internal').forEach(p => p.classList.remove('lit'));
+  highlightedAgents = [];
+  highlightedSkills = [];
+}
+
+function routeTask(task) {
+  clearHighlights();
+  const lower = task.toLowerCase();
+
+  // Find matching routes
+  let matched = [];
+  for (const route of TASK_ROUTES) {
+    const hits = route.keywords.filter(k => lower.includes(k)).length;
+    if (hits > 0) matched.push({ ...route, hits });
+  }
+  if (matched.length === 0) {
+    // Fallback
+    matched = [TASK_ROUTES[1]];
+  }
+  matched.sort((a, b) => b.hits - a.hits);
+  const top = matched[0];
+
+  const log = document.getElementById('simLog');
+  const agents = top.agents.slice(0, 3);
+  const skills = top.skills;
+
+  highlightedAgents = agents;
+  highlightedSkills = skills;
+
+  // Animate steps
+  let steps = [
+    { icon: '▶', text: `CC reads task: "<span style="color:var(--text)">${task}</span>"`, delay: 0 },
+    { icon: '◉', text: `Analyzing intent... matched keywords: <span class="skill-ref">[${top.keywords.slice(0,4).join(', ')}]</span>`, delay: 350 },
+    { icon: '→', text: `Routing to <span class="agent-ref">${agents.join('</span>, <span class="agent-ref">')}</span>`, delay: 700 },
+    { icon: '◈', text: `Agents loading skills: <span class="skill-ref">${skills.join('</span>, <span class="skill-ref">')}</span>`, delay: 1050 },
+    { icon: '⚡', text: `<span style="color:var(--orange)">96 hooks</span> active: intent-capture, memory-load, context-inject`, delay: 1400 },
+  ];
+
+  log.innerHTML = '';
+
+  steps.forEach((step, i) => {
+    setTimeout(() => {
+      const div = document.createElement('div');
+      div.className = 'step running';
+      div.innerHTML = `<span class="step-icon">${step.icon}</span><span class="step-text">${step.text}</span>`;
+      log.appendChild(div);
+      if (i === steps.length - 1) {
+        // Final step: mark done
+        setTimeout(() => {
+          log.querySelectorAll('.step').forEach(s => {
+            s.classList.remove('running');
+            s.classList.add('done');
+            s.querySelector('.step-icon').textContent = '✓';
+          });
+          // Highlight agents in chip grid
+          agents.forEach(a => {
+            const chip = document.getElementById(`chip-${a}`);
+            if (chip) { chip.classList.add('routing'); setTimeout(() => { chip.classList.remove('routing'); chip.classList.add('selected'); }, 1500); }
+          });
+          // Highlight skills
+          skills.forEach(s => {
+            const pill = document.getElementById(`skill-pill-${s}`);
+            if (pill) pill.classList.add('lit');
+          });
+          // Update left panel
+          renderAgentList();
+        }, 300);
+      }
+    }, step.delay);
+  });
+}
+
+document.getElementById('simRun').addEventListener('click', () => {
+  const val = document.getElementById('simInput').value.trim();
+  if (val) routeTask(val);
+});
+
+document.getElementById('simInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    const val = e.target.value.trim();
+    if (val) routeTask(val);
+  }
+});
+
+document.querySelectorAll('.preset-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const task = btn.dataset.task;
+    document.getElementById('simInput').value = task;
+    routeTask(task);
+  });
+});
+
+// ── BOOT ─────────────────────────────────────────────────────────────────────
+
+renderUserSkills();
+renderAgentChips();
+renderInternalSkills();
+renderAgentList();
+</script>
+</body>
+</html>

@@ -299,7 +299,7 @@ Location: ~/.claude/plugins/orchestkit/config.json
       "",
       "• Base: Monorepo preset",
       "• All categories enabled",
-      "• All 36 agents enabled",
+      "• All 38 agents enabled",
       "• CC 2.1.20 features configured",
       "• 4 MCPs with custom settings",
     ],
@@ -312,7 +312,7 @@ Step 1: Choose Preset
 
 Step 2: Customize Skill Categories
 ──────────────────────────────────
-All categories enabled (62 skills):
+All categories enabled (69 skills):
   [x] AI/ML (26 skills)
   [x] Backend (15 skills)
   [x] Frontend (8 skills)
@@ -327,7 +327,7 @@ All categories enabled (62 skills):
 
 Step 3: Enable Agents
 ─────────────────────
-All 36 agents enabled:
+All 38 agents enabled:
 
 Product Agents (6):
   [x] market-intelligence
@@ -358,7 +358,7 @@ Specialist Agents (15):
 
 Step 4: Configure Hooks
 ───────────────────────
-All hook categories enabled (89 hooks):
+All hook categories enabled (96 hooks):
 
 Safety (Always On):
   ✓ git-branch-protection
@@ -500,9 +500,9 @@ config.json (excerpt):
 
 SUMMARY
 ───────
-✓ 62 skills enabled
+✓ 69 skills enabled
 ✓ 36 agents enabled
-✓ 89 hooks configured (6 async)
+✓ 96 hooks configured (7 async)
 ✓ 4 MCPs configured
 ✓ CC 2.1.20 features enabled
 ✓ CC 2.1.7 optimizations enabled

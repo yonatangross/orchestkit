@@ -129,6 +129,10 @@ export interface UserProfile {
   display_name: string;
   /** Team/org if known */
   team_id?: string;
+  /** CC account UUID from CLAUDE_CODE_ACCOUNT_UUID (#898) */
+  accountUuid?: string;
+  /** CC organization UUID from CLAUDE_CODE_ORGANIZATION_UUID (#898) */
+  organizationUuid?: string;
   /** Total sessions analyzed */
   sessions_count: number;
   /** First seen timestamp */
@@ -333,6 +337,8 @@ function createEmptyProfile(userId: string): UserProfile {
     anonymous_id: identity.anonymous_id,
     display_name: identity.display_name,
     team_id: identity.team_id,
+    accountUuid: identity.accountUuid,
+    organizationUuid: identity.organizationUuid,
     sessions_count: 0,
     first_seen: now,
     last_seen: now,

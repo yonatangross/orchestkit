@@ -108,25 +108,24 @@ export function unifiedBashAdvisoryDispatcher(input: HookInput): HookResult {
   }
 
   // --- Phase 2: Blocking check (agent-browser-safety) ---
+  // Fix #907: collect browser context without short-circuiting advisory hooks
+  let browserContext: string | null = null;
   try {
     const browserResult = agentBrowserSafety(input);
     if (!browserResult.continue) {
       // Blocked — return the deny immediately
       return browserResult;
     }
-    // If it produced context, collect it
-    const browserContext = extractContext(browserResult);
-    if (browserContext) {
-      // Browser safety context is high-priority, prepend to advisory output
-      return mergeAdvisoryContext(input, updatedInput, browserContext);
-    }
+    // If it produced context, capture it for prepending (don't return early)
+    browserContext = extractContext(browserResult);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     logHook(HOOK_NAME, `agent-browser-safety failed: ${message}`, 'warn');
   }
 
   // --- Phase 3: Advisory hooks (context producers) ---
-  return mergeAdvisoryContext(input, updatedInput, null);
+  // Always run all advisory hooks, prepend browser safety context if present
+  return mergeAdvisoryContext(input, updatedInput, browserContext);
 }
 
 /**
