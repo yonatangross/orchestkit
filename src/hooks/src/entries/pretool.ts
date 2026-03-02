@@ -31,6 +31,8 @@ import { multiInstanceQualityGate } from '../pretool/bash/multi-instance-quality
 import { agentBrowserSafety } from '../pretool/bash/agent-browser-safety.js';
 import { commitAtomicityChecker } from '../pretool/bash/commit-atomicity-checker.js';
 import { issueReferenceChecker } from '../pretool/bash/issue-reference-checker.js';
+import { ghLabelEnforcer } from '../pretool/bash/gh-label-enforcer.js';
+import { ghMilestoneEnforcer } from '../pretool/bash/gh-milestone-enforcer.js';
 
 // PreTool/Write-Edit hooks (2)
 import { contentSecretScanner } from '../pretool/write-edit/content-secret-scanner.js';
@@ -95,6 +97,8 @@ export const hooks: Record<string, HookFn> = {
   'pretool/bash/agent-browser-safety': agentBrowserSafety,
   'pretool/bash/commit-atomicity-checker': commitAtomicityChecker,
   'pretool/bash/issue-reference-checker': issueReferenceChecker,
+  'pretool/bash/gh-label-enforcer': ghLabelEnforcer,
+  'pretool/bash/gh-milestone-enforcer': ghMilestoneEnforcer,
 
   // PreTool/Write-Edit hooks (2)
   'pretool/write-edit/content-secret-scanner': contentSecretScanner,

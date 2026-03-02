@@ -1,17 +1,15 @@
 ---
 title: "PreToolUse"
-description: "Hooks triggered on PreToolUse events (10 hooks)."
+description: "Hooks triggered on PreToolUse events (8 hooks)."
 ---
 
 # PreToolUse Hooks
 
-**10 hooks** registered for the `PreToolUse` lifecycle event.
+**8 hooks** registered for the `PreToolUse` lifecycle event.
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
 | `sync-bash-dispatcher` | `Bash` | 💡 Injects | — |
-| `commit-atomicity-checker` | `Bash(git commit*)` | 💡 Injects | — |
-| `issue-reference-checker` | `Bash(git commit*)` | 🔇 Silent | — |
 | `sync-write-edit-dispatcher` | `Write\|Edit` | 💡 Injects | — |
 | `skill-tracker` | `Skill` | 🔇 Silent | Logs Skill tool invocations with analytics |
 | `context7-tracker` | `mcp__context7__*` | 🛑 Blocks | Tracks context7 library lookups and injects cache state as additionalContext |
