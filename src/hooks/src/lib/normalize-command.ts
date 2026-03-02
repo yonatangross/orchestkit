@@ -51,19 +51,6 @@ function stripQuotes(cmd: string): string {
 }
 
 /**
- * Split a command string on compound operators: && || ; | and newlines.
- * Pipe (|) is included because `safe | dangerous` should not auto-approve
- * based on the safe prefix alone.
- *
- * Does NOT split inside quotes (simplified: quotes are already stripped).
- */
-function _splitCompound(cmd: string): string[] {
-  // Split on &&, ||, ;, |, or newlines
-  // Order matters: && and || before single & and |
-  return cmd.split(/\s*(?:&&|\|\||\||;|\n)\s*/);
-}
-
-/**
  * Normalize a single sub-command (no splitting, just cleaning).
  * - Expand hex/octal escapes
  * - Strip backslash escapes
@@ -182,8 +169,16 @@ export function detectSuspiciousShellFeatures(cmd: string): string[] {
   }
 
   // 5. Nested command substitution: $(echo `cmd`) or $(`cmd`)
-  if (/\$\([^)]*`[^`]*`[^)]*\)/.test(cmd)) {
-    findings.push('nested command substitution detected ($(..`..`..))');
+  // Use indexOf-based detection to avoid ReDoS (CodeQL SEC-003)
+  const dpIdx = cmd.indexOf('$(');
+  if (dpIdx >= 0) {
+    const cpIdx = cmd.indexOf(')', dpIdx + 2);
+    if (cpIdx > dpIdx) {
+      const inner = cmd.substring(dpIdx + 2, cpIdx);
+      if (inner.includes('`')) {
+        findings.push('nested command substitution detected ($(..`..`..))');
+      }
+    }
   }
 
   return findings;

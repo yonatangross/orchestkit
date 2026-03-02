@@ -13,8 +13,10 @@ vi.mock('node:fs', () => ({
 }));
 
 const mockExecSync = vi.fn();
+const mockExecFileSync = vi.fn();
 vi.mock('node:child_process', () => ({
   execSync: (...args: unknown[]) => mockExecSync(...args),
+  execFileSync: (...args: unknown[]) => mockExecFileSync(...args),
 }));
 
 vi.mock('node:os', () => ({
@@ -71,6 +73,8 @@ describe('issueProgressCommenter', () => {
       if (typeof cmd === 'string' && cmd.includes('gh issue view')) return '{"number": 123}';
       return '';
     });
+    // execFileSync is used for gh issue view (command injection fix)
+    mockExecFileSync.mockReturnValue('{"number": 123}');
   });
 
   it('returns silent success for non-Bash tools', () => {

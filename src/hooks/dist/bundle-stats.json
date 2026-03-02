@@ -1,72 +1,72 @@
 {
-  "generatedAt": "2026-03-02T15:28:09.647Z",
-  "buildTimeMs": 76,
+  "generatedAt": "2026-03-02T16:46:09.924Z",
+  "buildTimeMs": 87,
   "mode": "split",
   "bundles": {
     "permission": {
-      "size": 16131,
-      "sizeKB": "15.75",
+      "size": 16166,
+      "sizeKB": "15.79",
       "exports": 57
     },
     "pretool": {
-      "size": 85375,
-      "sizeKB": "83.37",
+      "size": 85471,
+      "sizeKB": "83.47",
       "exports": 68
     },
     "posttool": {
-      "size": 68321,
-      "sizeKB": "66.72",
+      "size": 68586,
+      "sizeKB": "66.98",
       "exports": 52
     },
     "prompt": {
-      "size": 82384,
-      "sizeKB": "80.45",
+      "size": 82139,
+      "sizeKB": "80.21",
       "exports": 109
     },
     "lifecycle": {
-      "size": 54186,
-      "sizeKB": "52.92",
+      "size": 54271,
+      "sizeKB": "53.00",
       "exports": 52
     },
     "stop": {
-      "size": 71234,
-      "sizeKB": "69.56",
+      "size": 70986,
+      "sizeKB": "69.32",
       "exports": 50
     },
     "subagent": {
-      "size": 74857,
+      "size": 74859,
       "sizeKB": "73.10",
       "exports": 82
     },
     "notification": {
-      "size": 11836,
-      "sizeKB": "11.56",
+      "size": 11871,
+      "sizeKB": "11.59",
       "exports": 41
     },
     "setup": {
-      "size": 34219,
-      "sizeKB": "33.42",
+      "size": 34289,
+      "sizeKB": "33.49",
       "exports": 41
     },
     "skill": {
-      "size": 59797,
-      "sizeKB": "58.40",
+      "size": 59832,
+      "sizeKB": "58.43",
       "exports": 52
     },
     "agent": {
-      "size": 17036,
-      "sizeKB": "16.64",
+      "size": 17071,
+      "sizeKB": "16.67",
       "exports": 57
     },
     "hooks": {
-      "size": 331170,
-      "sizeKB": "323.41",
+      "size": 331442,
+      "sizeKB": "323.67",
       "exports": 160,
       "unified": true
     }
   },
-  "totalSize": 575376,
-  "totalSizeKB": "561.89",
+  "totalSize": 575541,
+  "totalSizeKB": "562.05",
   "inputs": 57,
-  "avgBundleSizeKB": "51.08"
+  "avgBundleSizeKB": "51.10"
 }

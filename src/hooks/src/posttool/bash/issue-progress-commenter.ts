@@ -10,7 +10,7 @@
  */
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
-import { execSync } from 'node:child_process';
+import { execFileSync, execSync } from 'node:child_process';
 import type { HookInput, HookResult } from '../../types.js';
 import { outputSilentSuccess, getField, getSessionId, logHook } from '../../lib/common.js';
 import { getSessionTempDir } from '../../lib/paths.js';
@@ -117,7 +117,9 @@ function getLatestCommit(): CommitInfo | null {
 function initProgressFile(progressFile: string, sessionId: string): void {
   if (!existsSync(progressFile)) {
     try {
-      mkdirSync(require('node:path').dirname(progressFile), { recursive: true });
+      const lastSlash = progressFile.lastIndexOf('/');
+      const dirPath = lastSlash > 0 ? progressFile.substring(0, lastSlash) : '.';
+      mkdirSync(dirPath, { recursive: true });
       writeFileSync(progressFile, JSON.stringify({
         session_id: sessionId,
         issues: {},
@@ -240,7 +242,7 @@ export function issueProgressCommenter(input: HookInput): HookResult {
 
   // Verify issue exists (quick check)
   try {
-    execSync(`gh issue view ${issueNum} --json number`, { stdio: 'ignore', timeout: 5000 });
+    execFileSync('gh', ['issue', 'view', issueNum, '--json', 'number'], { stdio: ['pipe', 'pipe', 'pipe'], timeout: 5000 });
   } catch {
     logHook('issue-progress-commenter', `Issue #${issueNum} not found or not accessible`);
     return outputSilentSuccess();

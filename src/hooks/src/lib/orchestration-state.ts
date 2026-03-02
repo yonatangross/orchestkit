@@ -9,7 +9,7 @@
  * - State persistence across hook invocations
  */
 
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync, unlinkSync, readdirSync, statSync } from 'node:fs';
 import { getProjectDir, getSessionId, logHook } from './common.js';
 import type {
   OrchestrationState,
@@ -330,7 +330,6 @@ export function clearSessionState(): void {
 
   try {
     if (existsSync(stateFile)) {
-      const { unlinkSync } = require('node:fs');
       unlinkSync(stateFile);
       logHook('orchestration-state', 'Cleared session state');
     }
@@ -348,7 +347,6 @@ export function cleanupOldStates(): void {
   if (!existsSync(dir)) return;
 
   try {
-    const { readdirSync, statSync, unlinkSync } = require('node:fs');
     const files = readdirSync(dir)
       .filter((f: string) => f.startsWith('session-') && f.endsWith('.json'))
       .map((f: string) => ({

@@ -322,7 +322,7 @@ function rotateLogFile(logFile: string, maxSize: number): void {
   try {
     const stats = statSync(logFile);
     if (stats.size > maxSize) {
-      const rotated = `${logFile}.old.${Date.now()}`;
+      const rotated = `${logFile}.old.${new Date().toISOString().replace(/[:.]/g, '-')}`;
       renameSync(logFile, rotated);
     }
   } catch {

@@ -137,7 +137,7 @@ function setOnceFlagDone(hookName: string, sessionId: string, projectDir: string
   if (!existsSync(flagDir)) {
     mkdirSync(flagDir, { recursive: true });
   }
-  writeFileSync(join(flagDir, `${hookName}.done`), Date.now().toString(), 'utf8');
+  writeFileSync(join(flagDir, `${hookName}.done`), new Date().toISOString(), 'utf8');
 }
 
 // extractContext imported from ../lib/common.js (Issue #682)

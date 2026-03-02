@@ -110,7 +110,7 @@ function taskLogRotation(pluginRoot: string): void {
           const stats = statSync(filePath);
           if (stats.size > 204800) {
             // 200KB
-            const rotatedName = `${filePath}.old.${Date.now()}`;
+            const rotatedName = `${filePath}.old.${new Date().toISOString().replace(/[:.]/g, '-')}`;
             renameSync(filePath, rotatedName);
             rotated++;
 
