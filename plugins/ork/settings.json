@@ -72,6 +72,10 @@
       ]
     }
   },
+  "fileSuggestion": {
+    "type": "command",
+    "command": "${CLAUDE_PLUGIN_ROOT}/hooks/bin/file-suggestion.sh"
+  },
   "spinnerTipsOverride": {
     "excludeDefault": false,
     "tips": [
