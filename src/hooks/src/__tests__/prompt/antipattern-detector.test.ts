@@ -10,22 +10,20 @@
  */
 
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
-import type { HookInput } from '../../types.js';
+import type { HookInput, HookResult } from '../../types.js';
 
 // =============================================================================
 // Mocks - MUST be before imports
+// Uses mockCommonReal: real output helpers, stubbed side effects.
+// This means outputPromptContext returns the REAL shape (hookSpecificOutput.additionalContext),
+// not the wrong shape (systemMessage) that was here before.
 // =============================================================================
 
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  outputPromptContext: vi.fn((ctx: string) => ({ continue: true, systemMessage: ctx })),
-  getProjectDir: vi.fn(() => '/test/project'),
-  getSessionId: vi.fn(() => 'test-session-123'),
-}));
+import { mockCommonReal } from '../fixtures/mock-common.js';
+vi.mock('../../lib/common.js', async () => mockCommonReal());
 
 import { antipatternDetector } from '../../prompt/antipattern-detector.js';
-import { outputSilentSuccess, getProjectDir } from '../../lib/common.js';
+import { getProjectDir } from '../../lib/common.js';
 
 // =============================================================================
 // Test Utilities
@@ -44,6 +42,11 @@ function createPromptInput(prompt: string, overrides: Partial<HookInput> = {}): 
     prompt,
     ...overrides,
   };
+}
+
+/** Extract injected context from a HookResult (real outputPromptContext shape) */
+function getContext(result: HookResult): string | undefined {
+  return result.hookSpecificOutput?.additionalContext as string | undefined;
 }
 
 // =============================================================================
@@ -76,7 +79,7 @@ describe('prompt/antipattern-detector', () => {
       // Assert
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
-      expect(outputSilentSuccess).toHaveBeenCalledTimes(1);
+      expect(getContext(result)).toBeUndefined();
     });
 
     test('returns silent success for empty prompt', () => {
@@ -88,7 +91,8 @@ describe('prompt/antipattern-detector', () => {
 
       // Assert
       expect(result.continue).toBe(true);
-      expect(outputSilentSuccess).toHaveBeenCalledTimes(1);
+      expect(result.suppressOutput).toBe(true);
+      expect(getContext(result)).toBeUndefined();
     });
 
     test('returns silent success for exactly 29 chars', () => {
@@ -100,7 +104,8 @@ describe('prompt/antipattern-detector', () => {
 
       // Assert
       expect(result.continue).toBe(true);
-      expect(outputSilentSuccess).toHaveBeenCalledTimes(1);
+      expect(result.suppressOutput).toBe(true);
+      expect(getContext(result)).toBeUndefined();
     });
 
     test('processes prompt with exactly 30 chars containing keyword', () => {
@@ -112,7 +117,7 @@ describe('prompt/antipattern-detector', () => {
 
       // Assert
       expect(result.continue).toBe(true);
-      expect(result.systemMessage).toBeDefined();
+      expect(getContext(result)).toBeDefined();
     });
   });
 
@@ -143,8 +148,8 @@ describe('prompt/antipattern-detector', () => {
 
       // Assert
       expect(result.continue).toBe(true);
-      expect(result.systemMessage).toContain('Antipattern Check');
-      expect(result.systemMessage).toContain(keyword);
+      expect(getContext(result)).toContain('Antipattern Check');
+      expect(getContext(result)).toContain(keyword);
     });
 
     test('returns silent success when no implementation keywords found', () => {
@@ -156,8 +161,8 @@ describe('prompt/antipattern-detector', () => {
 
       // Assert
       expect(result.continue).toBe(true);
-      expect(outputSilentSuccess).toHaveBeenCalledTimes(1);
-      expect(result.systemMessage).toBeUndefined();
+      expect(result.suppressOutput).toBe(true);
+      expect(getContext(result)).toBeUndefined();
     });
 
     test('keyword matching is case insensitive', () => {
@@ -168,7 +173,7 @@ describe('prompt/antipattern-detector', () => {
       const result = antipatternDetector(input);
 
       // Assert
-      expect(result.systemMessage).toContain('implement');
+      expect(getContext(result)).toContain('implement');
     });
   });
 
@@ -200,7 +205,7 @@ describe('prompt/antipattern-detector', () => {
       // Assert
       expect(result.continue).toBe(true);
       // The systemMessage contains the search suggestion with category context
-      expect(result.systemMessage).toBeDefined();
+      expect(getContext(result)).toBeDefined();
     });
 
     test('defaults to general category when no specific category matches', () => {
@@ -212,7 +217,7 @@ describe('prompt/antipattern-detector', () => {
 
       // Assert
       expect(result.continue).toBe(true);
-      expect(result.systemMessage).toContain('Antipattern Check');
+      expect(getContext(result)).toContain('Antipattern Check');
     });
   });
 
@@ -231,7 +236,7 @@ describe('prompt/antipattern-detector', () => {
       const result = antipatternDetector(input);
 
       // Assert
-      expect(result.systemMessage).toContain('mcp__memory__search_nodes');
+      expect(getContext(result)).toContain('mcp__memory__search_nodes');
     });
 
     test('falls back to getProjectDir when project_dir not in input', () => {
@@ -317,7 +322,7 @@ describe('prompt/antipattern-detector', () => {
 
       // Assert
       expect(result.continue).toBe(true);
-      expect(result.systemMessage).toContain('implement');
+      expect(getContext(result)).toContain('implement');
     });
 
     test('handles prompt with unicode characters', () => {
@@ -338,7 +343,7 @@ describe('prompt/antipattern-detector', () => {
 
       // Assert
       expect(result.continue).toBe(true);
-      expect(outputSilentSuccess).toHaveBeenCalled();
+      expect(result.suppressOutput).toBe(true);
     });
 
     test('first matching keyword is used', () => {
@@ -350,7 +355,7 @@ describe('prompt/antipattern-detector', () => {
 
       // Assert
       // "implement" comes before "create" in IMPLEMENTATION_KEYWORDS array
-      expect(result.systemMessage).toContain('implement failed');
+      expect(getContext(result)).toContain('implement failed');
     });
 
     test('handles multiple matching categories in prompt', () => {
@@ -362,7 +367,7 @@ describe('prompt/antipattern-detector', () => {
 
       // Assert
       expect(result.continue).toBe(true);
-      expect(result.systemMessage).toBeDefined();
+      expect(getContext(result)).toBeDefined();
     });
   });
 
@@ -379,7 +384,7 @@ describe('prompt/antipattern-detector', () => {
       const result = antipatternDetector(input);
 
       // Assert
-      expect(result.systemMessage).toContain('implement');
+      expect(getContext(result)).toContain('implement');
     });
 
     test('matches keyword at end of prompt', () => {
@@ -390,7 +395,7 @@ describe('prompt/antipattern-detector', () => {
       const result = antipatternDetector(input);
 
       // Assert
-      expect(result.systemMessage).toContain('implement');
+      expect(getContext(result)).toContain('implement');
     });
 
     test('matches keyword in middle of prompt', () => {
@@ -401,7 +406,7 @@ describe('prompt/antipattern-detector', () => {
       const result = antipatternDetector(input);
 
       // Assert
-      expect(result.systemMessage).toContain('implement');
+      expect(getContext(result)).toContain('implement');
     });
 
     test('matches keyword as substring (implementation contains implement)', () => {
@@ -412,7 +417,7 @@ describe('prompt/antipattern-detector', () => {
       const result = antipatternDetector(input);
 
       // Assert
-      expect(result.systemMessage).toContain('implement');
+      expect(getContext(result)).toContain('implement');
     });
   });
 
@@ -444,7 +449,7 @@ describe('prompt/antipattern-detector', () => {
       const result = antipatternDetector(input);
 
       // Assert
-      expect(result.systemMessage).toContain('Antipattern Check');
+      expect(getContext(result)).toContain('Antipattern Check');
     });
   });
 });
