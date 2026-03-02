@@ -102,9 +102,9 @@ test_dispatcher_integration() {
 
   # Prefer TypeScript implementation if it exists
   if [[ -f "$ts_impl" ]]; then
-    # Check that TypeScript uses normalizeCommand function
-    if grep -q "normalizeCommand" "$ts_impl"; then
-      log_pass "TypeScript hook uses normalizeCommand function"
+    # Check that TypeScript uses a normalization function (normalizeSingle or normalizeCommand)
+    if grep -q "normalizeSingle\|normalizeCommand" "$ts_impl"; then
+      log_pass "TypeScript hook uses normalization function"
     else
       log_fail "TypeScript hook missing normalization"
     fi

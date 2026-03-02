@@ -10,10 +10,10 @@ import {
   outputDeny,
   logHook,
   logPermissionFeedback,
-  normalizeCommand as normalizeCommandLegacy,
 } from '../../lib/common.js';
 import {
   containsDangerousCommand,
+  normalizeSingle,
 } from '../../lib/normalize-command.js';
 
 /**
@@ -35,8 +35,10 @@ const DANGEROUS_PATTERNS: string[] = [
   'dd if=/dev/random of=/dev/',
   // Permission abuse
   'chmod -R 777 /',
-  // Fork bomb
-  ':(){:|:&};:',
+  // Fork bomb — NOTE: pattern contains | and ; so it CANNOT be matched after
+  // compound-splitting in containsDangerousCommand(). Matched separately below
+  // via normalizeSingle() which preserves operators. Do NOT add it here.
+  // ':(){:|:&};:',  — removed: dead code, see fork bomb check at line ~117
   // Destructive git operations (data loss)
   'git reset --hard',
   'git clean -fd',
@@ -97,7 +99,7 @@ export function dangerousCommandBlocker(input: HookInput): HookResult {
   }
 
   // Check regex patterns for root-path destruction (anchored to avoid false positives)
-  const normalizedForRegex = normalizeCommandLegacy(command);
+  const normalizedForRegex = normalizeSingle(command);
   for (const { pattern, label } of DANGEROUS_REGEX_PATTERNS) {
     if (pattern.test(normalizedForRegex)) {
       logHook('dangerous-command-blocker', `BLOCKED: Dangerous pattern: ${label}`);
@@ -110,10 +112,13 @@ export function dangerousCommandBlocker(input: HookInput): HookResult {
     }
   }
 
-  // Legacy normalized form for regex checks and patterns that contain operators
-  const normalizedCommand = normalizeCommandLegacy(command).toLowerCase();
+  // Single-string normalized form for patterns that contain compound operators (| ; &&).
+  // normalizeSingle() expands escapes + strips quotes but does NOT split on operators,
+  // so patterns like the fork bomb ':(){:|:&};:' remain intact for substring matching.
+  const normalizedCommand = normalizeSingle(command).toLowerCase();
 
-  // Fork bomb detection — pattern contains | and ; so it can't be matched after splitting
+  // Fork bomb detection — pattern contains | and ; so it can't be matched via
+  // containsDangerousCommand() which splits on those operators. Must use normalizeSingle.
   if (normalizedCommand.includes(':(){:|:&};:')) {
     const reason = 'Fork bomb detected';
     logHook('dangerous-command-blocker', `BLOCKED: ${reason}`);

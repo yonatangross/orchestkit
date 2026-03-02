@@ -607,6 +607,10 @@ export function lineContainsAllCI(content: string, ...terms: string[]): boolean 
 /**
  * Normalize command: remove line continuations and collapse whitespace
  * Prevents bypassing detection with backslash-newline tricks (CC 2.1.6 fix)
+ *
+ * @deprecated Use normalizeSingle() from normalize-command.ts instead — it also
+ * expands hex/octal escapes and strips quotes, which is strictly better.
+ * Kept only for backward compatibility with external consumers.
  */
 export function normalizeCommand(command: string): string {
   return command
