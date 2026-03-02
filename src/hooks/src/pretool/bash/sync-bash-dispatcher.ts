@@ -24,6 +24,13 @@ import { dangerousCommandBlocker } from './dangerous-command-blocker.js';
 import { compoundCommandValidator } from './compound-command-validator.js';
 import { unifiedBashAdvisoryDispatcher } from './unified-advisory-dispatcher.js';
 
+// Phase 2: Git/GH enforcement hooks (merged from separate spawns — #912, #913, #914)
+import { gitValidator } from './git-validator.js';
+import { issueReferenceChecker } from './issue-reference-checker.js';
+// Phase 2: New GH enforcement hooks (#916)
+import { ghLabelEnforcer } from './gh-label-enforcer.js';
+import { ghMilestoneEnforcer } from './gh-milestone-enforcer.js';
+
 const HOOK_NAME = 'sync-bash-dispatcher';
 
 interface BlockingHookConfig {
@@ -33,11 +40,23 @@ interface BlockingHookConfig {
 
 /**
  * Registry of Bash PreToolUse hooks, executed in security-first order.
- * Blockers run first; advisory dispatcher runs last.
+ *
+ * Phase 1: Security (block dangerous commands)
+ * Phase 2: Git enforcement (block invalid commits, warn on missing refs)
+ * Phase 3: Advisory dispatcher (800t budget context injection)
+ *
+ * Short-circuit: any block in Phase 1 or 2 skips remaining phases.
  */
 const BASH_HOOKS: BlockingHookConfig[] = [
+  // Phase 1: Security
   { name: 'dangerous-command-blocker', fn: dangerousCommandBlocker },
   { name: 'compound-command-validator', fn: compoundCommandValidator },
+  // Phase 2: Git/GH enforcement (previously separate process spawns + new)
+  { name: 'git-validator', fn: gitValidator },
+  { name: 'issue-reference-checker', fn: issueReferenceChecker },
+  { name: 'gh-label-enforcer', fn: ghLabelEnforcer },
+  { name: 'gh-milestone-enforcer', fn: ghMilestoneEnforcer },
+  // Phase 3: Advisory
   { name: 'unified-advisory-dispatcher', fn: unifiedBashAdvisoryDispatcher },
 ];
 

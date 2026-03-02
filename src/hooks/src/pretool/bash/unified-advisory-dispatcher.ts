@@ -35,8 +35,8 @@ import {
 import { defaultTimeoutSetter } from './default-timeout-setter.js';
 import { agentBrowserSafety } from './agent-browser-safety.js';
 import { errorPatternWarner } from './error-pattern-warner.js';
-import { issueDocsRequirement } from './issue-docs-requirement.js';
-import { multiInstanceQualityGate } from './multi-instance-quality-gate.js';
+// issue-docs-requirement: moved to pr-merge-gate (#915)
+// multi-instance-quality-gate: moved to pr-merge-gate (#915)
 import { ghIssueCreationGuide } from './gh-issue-creation-guide.js';
 import { affectedTestsFinder } from './affected-tests-finder.js';
 
@@ -66,8 +66,8 @@ interface AdvisoryHookConfig {
 
 const ADVISORY_HOOKS: AdvisoryHookConfig[] = [
   { name: 'error-pattern-warner', fn: errorPatternWarner },
-  { name: 'issue-docs-requirement', fn: issueDocsRequirement },
-  { name: 'multi-instance-quality-gate', fn: multiInstanceQualityGate },
+  // issue-docs-requirement: moved to pr-merge-gate (#915)
+  // multi-instance-quality-gate: moved to pr-merge-gate (#915)
   { name: 'gh-issue-creation-guide', fn: ghIssueCreationGuide },
   { name: 'affected-tests-finder', fn: affectedTestsFinder },
 ];
@@ -78,6 +78,10 @@ export const registeredHookNames = () => [
   'agent-browser-safety',
   ...ADVISORY_HOOKS.map(h => h.name),
 ];
+
+// Hooks moved out (#915) — still available for agent-scoped use via entries
+// - issue-docs-requirement → pr-merge-gate
+// - multi-instance-quality-gate → pr-merge-gate
 
 // extractContext imported from ../../lib/common.js (Issue #682)
 

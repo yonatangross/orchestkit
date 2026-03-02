@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 35 global + 54 agent-scoped + 7 skill-scoped = 96 total hooks",
+  "description": "OrchestKit hooks - 33 global + 54 agent-scoped + 7 skill-scoped = 94 total hooks",
   "hooks": {
     "PreToolUse": [
       {
@@ -9,21 +9,6 @@
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/sync-bash-dispatcher",
             "timeout": 15000
-          }
-        ]
-      },
-      {
-        "matcher": "Bash(git commit*)",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/commit-atomicity-checker",
-            "timeout": 10000
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/issue-reference-checker",
-            "timeout": 10000
           }
         ]
       },

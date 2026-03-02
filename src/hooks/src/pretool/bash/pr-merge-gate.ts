@@ -1,6 +1,9 @@
 /**
  * PR Merge Gate Hook
- * Checks PR status before merge commands
+ * Checks PR status before merge commands.
+ * Also handles feature docs reminder and multi-instance quality gates
+ * (moved from advisory dispatcher — #915, they only fire on merge commands).
+ *
  * CC 2.1.9: Injects PR status via additionalContext
  */
 
@@ -12,7 +15,10 @@ import {
   logPermissionFeedback,
   getProjectDir,
 } from '../../lib/common.js';
+import { isAgentTeamsActive } from '../../lib/agent-teams.js';
 import { execSync } from 'node:child_process';
+import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 interface PRStatus {
   number: number;
@@ -92,12 +98,42 @@ export function prMergeGate(input: HookInput): HookResult {
     issues.push('Changes requested by reviewer');
   }
 
+  // --- Feature docs reminder (moved from issue-docs-requirement — #915) ---
+  const isFeature =
+    (command.includes('--label') && /feat/i.test(command)) ||
+    /feat|feature/.test(command);
+
+  if (isFeature) {
+    issues.push(
+      'Feature merge — verify docs are updated: README, JSDoc, CHANGELOG, examples'
+    );
+    logHook('pr-merge-gate', 'Feature docs reminder added');
+  }
+
+  // --- Multi-instance quality gate (moved from multi-instance-quality-gate — #915) ---
+  if (!isAgentTeamsActive()) {
+    const dbPath = join(projectDir, '.claude', 'coordination', '.claude.db');
+    if (existsSync(dbPath)) {
+      try {
+        const registryPath = join(projectDir, '.claude', 'coordination', 'work-registry.json');
+        if (existsSync(registryPath)) {
+          const data = JSON.parse(readFileSync(registryPath, 'utf8'));
+          const gates = data.qualityGates || {};
+          const requiredGates = ['tests', 'lint', 'typecheck'];
+          const failedGates = requiredGates.filter((g: string) => !gates[g]);
+          if (failedGates.length > 0) {
+            issues.push(`Quality gates failed: ${failedGates.join(', ')} — run before merging`);
+            logHook('pr-merge-gate', `Quality gates: ${failedGates.join(', ')}`);
+          }
+        }
+      } catch {
+        // Ignore registry read errors
+      }
+    }
+  }
+
   if (issues.length > 0) {
-    const context = `PR #${status.number} has issues:
-${issues.join('\n')}
-
-Resolve these before merging.`;
-
+    const context = `PR #${status.number} pre-merge check:\n${issues.join('\n')}\n\nResolve these before merging.`;
     logPermissionFeedback('allow', `PR issues: ${issues.join(', ')}`, input);
     logHook('pr-merge-gate', `PR #${status.number} has ${issues.length} issues`);
     return outputAllowWithContext(context);
