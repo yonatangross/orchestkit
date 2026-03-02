@@ -1184,6 +1184,27 @@ run = await client.runs.create(
 ```
 **Use case:** Interactive agents where context should accumulate across interruptions.
 
+**Incorrect:**
+```python
+# No multitask_strategy — concurrent messages corrupt state
+run = await client.runs.create(
+    thread_id=thread["thread_id"],
+    assistant_id="my_agent",
+    input={"messages": [{"role": "user", "content": "Analyze Q2"}]},
+)
+```
+
+**Correct:**
+```python
+# Explicit strategy prevents race conditions
+run = await client.runs.create(
+    thread_id=thread["thread_id"],
+    assistant_id="my_agent",
+    input={"messages": [{"role": "user", "content": "Analyze Q2"}]},
+    multitask_strategy="reject",  # or rollback/enqueue/interrupt
+)
+```
+
 **Key rules:**
 - Set `multitask_strategy` on every `runs.create` call (no global default)
 - `reject` — safest, returns 409 if busy; client must retry

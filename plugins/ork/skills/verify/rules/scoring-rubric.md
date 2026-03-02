@@ -1,6 +1,8 @@
 ---
 title: "Scoring Rubric"
 impact: HIGH
+impactDescription: "Inconsistent scoring across dimensions makes composite scores unreliable and incomparable"
+tags: verification, scoring, rubric, quality-dimensions
 ---
 
 # Scoring Rubric
@@ -27,6 +29,18 @@ Each agent produces a 0-10 score with decimals for nuance. The composite score i
 | Improvement priority | Impact / Effort ratio | Do high-value first |
 | Alternative comparison | Optional phase | Only when multiple valid approaches |
 | Metrics persistence | Memory MCP | Track trends over time |
+
+**Incorrect:**
+```
+Security: "looks fine"  → 8/10    # No evidence, subjective
+Performance: "fast enough" → 7/10  # No benchmarks
+```
+
+**Correct:**
+```
+Security: "11/11 injection tests pass, 13 deny patterns, 0 CVEs" → 9/10
+Performance: "p99 latency 142ms (budget: 300ms), 0 N+1 queries" → 8.5/10
+```
 
 ## Improvement Suggestions
 

@@ -28,7 +28,7 @@ hooks:
       command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs agent/block-writes"
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs agent/restrict-bash"
-mcpServers: []
+mcpServers: [context7]
 ---
 ## Directive
 Create rapid UI prototypes with Tailwind CSS, establish design systems with tokens, and produce implementation-ready component specifications with accessibility compliance.

@@ -1,6 +1,8 @@
 ---
 title: Slop Avoidance Patterns
 impact: HIGH
+impactDescription: "Verbose or generic terminal output wastes screen time and makes demo videos unwatchable"
+tags: demo, quality, conciseness, terminal-output
 category: quality
 description: Rules for eliminating verbose, generic, or redundant text in demo videos.
 ---
@@ -21,15 +23,18 @@ Demo videos have limited screen time. Every line of terminal text must earn its 
 
 ## Text Density Rules
 
+**Incorrect:**
 ```
-TERMINAL TEXT DENSITY
-=====================
-✓ "Analyzing topic → 3 patterns found"     (action → result)
-✗ "Phase 1: Topic Analysis"                (title only)
-✗ "   └─ Keywords: real-time, notifications" (sub-detail)
+Phase 1: Topic Analysis
+   └─ Keywords: real-time, notifications
+✓ Task #2 completed: patterns analyzed
+Now let's move on to the next step...
+```
 
-✓ "✓ #2 patterns"                          (compact completion)
-✗ "✓ Task #2 completed: patterns analyzed" (verbose completion)
+**Correct:**
+```
+Analyzing topic → 3 patterns found
+✓ #2 patterns
 ```
 
 ## Timing Compression

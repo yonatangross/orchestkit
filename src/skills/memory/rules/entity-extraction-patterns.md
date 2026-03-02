@@ -1,6 +1,8 @@
 ---
 title: "Entity Extraction Patterns"
 impact: MEDIUM
+impactDescription: "Incorrect entity types produce a noisy knowledge graph that returns irrelevant search results"
+tags: memory, entities, knowledge-graph, extraction
 ---
 
 # Entity Extraction Patterns
@@ -19,6 +21,19 @@ When searching or visualizing the knowledge graph, recognize these entity types 
 | `AntiPattern` | Failed or abandoned patterns | Why it failed, what replaced it |
 | `Constraint` | Budget, timeline, compliance | Source, severity, workarounds |
 | `Preference` | "Prefer TypeScript strict" | Strength, scope, exceptions |
+
+**Incorrect:**
+```python
+# Vague entity type, no useful observations
+create_entities([{"name": "thing", "entityType": "misc", "observations": ["used it"]}])
+```
+
+**Correct:**
+```python
+# Specific type with actionable observations
+create_entities([{"name": "pgvector", "entityType": "Technology",
+    "observations": ["v0.7.0", "Used for RAG embeddings in yonatan-hq", "Requires PostgreSQL 15+"]}])
+```
 
 ## Relation Types
 

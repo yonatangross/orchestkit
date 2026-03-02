@@ -1,6 +1,8 @@
 ---
 title: "Pattern Detection Heuristics"
 impact: HIGH
+impactDescription: "Missing or wrong heuristics fail to detect user edit patterns, blocking skill improvement"
+tags: evolution, pattern-detection, heuristics, edit-tracking
 ---
 
 # Edit Pattern Detection Heuristics
@@ -17,6 +19,18 @@ The system tracks these common edit patterns users apply after skill output:
 | `add_logging` | User adds logging/observability | `logger\.`, `console.log` |
 | `remove_comments` | User removes generated comments | Pattern removal detection |
 | `add_auth_check` | User adds authentication checks | `@auth`, `@require_auth` |
+
+**Incorrect:**
+```python
+# Generic pattern — matches too broadly
+{"pattern": "add_.*", "regex": ".*"}  # Matches everything, useless signal
+```
+
+**Correct:**
+```python
+# Specific pattern with focused regex
+{"pattern": "add_pagination", "regex": r"limit.*offset|cursor.*pagination"}
+```
 
 ## How Detection Works
 

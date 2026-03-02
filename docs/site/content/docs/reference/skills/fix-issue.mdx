@@ -1,6 +1,6 @@
 ---
 title: "Fix Issue"
-description: "Fixes GitHub issues with parallel analysis. Use to debug errors, resolve regressions, fix bugs, or triage issues."
+description: "Fixes GitHub issues with parallel analysis. Use when debugging errors, resolving regressions, fixing bugs, or triaging issues."
 ---
 
 <span className="badge badge-blue">Command</span> <span className="badge badge-yellow">medium</span>
@@ -140,6 +140,20 @@ AskUserQuestion(
 - **Quick fix**: Skip phases 8-10 (prevention, runbook, lessons)
 - **Investigate first**: Only phases 1-4 (understand, search, hypotheses, analyze)
 - **Hotfix**: Minimal phases, skip similar issue search
+
+**Incorrect:**
+```python
+# Jump straight to code without understanding the issue
+Edit(file_path="src/auth.py", old_string="return token", new_string="return new_token")
+```
+
+**Correct:**
+```python
+# Gather evidence first: read issue, search codebase, form hypotheses
+Read(file_path="src/auth.py")
+Grep(pattern="token.*expir", path="src/")
+# Hypothesis: token refresh skips validation (confidence: 75%)
+```
 
 ## Hypothesis Confidence Scale
 

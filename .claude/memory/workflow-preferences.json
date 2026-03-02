@@ -1,8 +1,8 @@
 {
   "pattern_counts": {
-    "test-first": 81,
+    "test-first": 105,
     "explore-first": 0,
-    "iterate-fast": 353,
+    "iterate-fast": 406,
     "big-bang": 1,
     "agent-delegate": 35,
     "mixed": 0
@@ -80,40 +80,40 @@
     ],
     "mixed": []
   },
-  "total_sessions": 470,
+  "total_sessions": 547,
   "preferences": [
     {
       "pattern": "iterate-fast",
-      "frequency": 0.7510638297872341,
-      "count": 353,
-      "total_sessions": 470,
+      "frequency": 0.7422303473491774,
+      "count": 406,
+      "total_sessions": 547,
       "avg_success_rate": 1,
-      "updated_at": "2026-02-28T05:43:21.088Z"
+      "updated_at": "2026-03-02T06:28:38.607Z"
     },
     {
       "pattern": "test-first",
-      "frequency": 0.1723404255319149,
-      "count": 81,
-      "total_sessions": 470,
+      "frequency": 0.19195612431444242,
+      "count": 105,
+      "total_sessions": 547,
       "avg_success_rate": 1,
-      "updated_at": "2026-02-28T05:43:21.088Z"
+      "updated_at": "2026-03-02T06:28:38.607Z"
     },
     {
       "pattern": "agent-delegate",
-      "frequency": 0.07446808510638298,
+      "frequency": 0.06398537477148081,
       "count": 35,
-      "total_sessions": 470,
+      "total_sessions": 547,
       "avg_success_rate": 1,
-      "updated_at": "2026-02-28T05:43:21.088Z"
+      "updated_at": "2026-03-02T06:28:38.607Z"
     },
     {
       "pattern": "big-bang",
-      "frequency": 0.002127659574468085,
+      "frequency": 0.0018281535648994515,
       "count": 1,
-      "total_sessions": 470,
+      "total_sessions": 547,
       "avg_success_rate": 1,
-      "updated_at": "2026-02-28T05:43:21.088Z"
+      "updated_at": "2026-03-02T06:28:38.607Z"
     }
   ],
-  "updated_at": "2026-02-28T05:43:21.088Z"
+  "updated_at": "2026-03-02T06:28:38.607Z"
 }

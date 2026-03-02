@@ -29,6 +29,29 @@ Every PR body must include standard sections. Use `gh pr create --body` with a H
 - Keep Summary focused on "why" — the diff shows "what"
 - Test Plan checkboxes should reflect actual verification, not aspirational items
 
+**Incorrect:**
+```markdown
+## PR
+Updated some files. Fixed the thing.
+```
+
+**Correct:**
+```markdown
+## Summary
+Add JWT refresh token rotation to prevent token replay attacks.
+
+## Changes
+- Add refresh token rotation on each use
+- Store token family for replay detection
+- Add 7-day absolute expiry
+
+## Test plan
+- [x] Unit tests for token rotation
+- [x] Integration test for replay detection
+
+Closes #456
+```
+
 **Anti-patterns:**
 - Empty PR body (even for tiny changes, include Summary + Test Plan)
 - Copy-pasting the full diff into the body

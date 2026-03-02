@@ -60,6 +60,21 @@ notebook_share_invite(notebook_id="...",
   email="yonatan2gross@gmail.com", role="writer")
 ```
 
+**Incorrect:**
+```python
+# Dump everything into one shared notebook
+source_add(notebook_id="shared", type="text", title="v7 + v6 + v5 notes",
+  content="<all changelogs mixed together>")
+```
+
+**Correct:**
+```python
+# One notebook per minor version with focused sources
+notebook_create(title="OrchestKit v7.0 Release Notes")
+source_add(notebook_id="v7", type="text", title="CHANGELOG v7.0.0",
+  content="<v7.0.0 changelog section only>")
+```
+
 ### Key Rules
 
 - One notebook per minor version — do not mix v7.0 and v7.1 content

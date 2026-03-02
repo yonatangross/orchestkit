@@ -1,6 +1,6 @@
 ---
 title: "Notebooklm"
-description: "NotebookLM integration patterns for external RAG, research synthesis, studio content generation, and knowledge management via the notebooklm-mcp-cli MCP server."
+description: "NotebookLM integration patterns for external RAG, research synthesis, studio content generation, and knowledge management. Use when creating notebooks, adding sources, generating audio/video, or querying NotebookLM via MCP."
 ---
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
@@ -502,6 +502,21 @@ source_add(notebook_id="...", type="text",
 # 5. Share with team
 notebook_share_invite(notebook_id="...",
   email="yonatan2gross@gmail.com", role="writer")
+```
+
+**Incorrect:**
+```python
+# Dump everything into one shared notebook
+source_add(notebook_id="shared", type="text", title="v7 + v6 + v5 notes",
+  content="<all changelogs mixed together>")
+```
+
+**Correct:**
+```python
+# One notebook per minor version with focused sources
+notebook_create(title="OrchestKit v7.0 Release Notes")
+source_add(notebook_id="v7", type="text", title="CHANGELOG v7.0.0",
+  content="<v7.0.0 changelog section only>")
 ```
 
 ### Key Rules

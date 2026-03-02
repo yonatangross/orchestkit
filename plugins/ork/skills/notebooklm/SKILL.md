@@ -3,7 +3,7 @@ name: notebooklm
 license: MIT
 compatibility: "Claude Code 2.1.59+."
 author: OrchestKit
-description: NotebookLM integration patterns for external RAG, research synthesis, studio content generation, and knowledge management via the notebooklm-mcp-cli MCP server.
+description: "NotebookLM integration patterns for external RAG, research synthesis, studio content generation, and knowledge management. Use when creating notebooks, adding sources, generating audio/video, or querying NotebookLM via MCP."
 version: 1.0.0
 tags: [notebooklm, mcp, rag, google, podcast, research, knowledge-management]
 user-invocable: false

@@ -1351,7 +1351,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "fix-issue": {
     "name": "fix-issue",
-    "description": "Fixes GitHub issues with parallel analysis. Use to debug errors, resolve regressions, fix bugs, or triage issues.",
+    "description": "Fixes GitHub issues with parallel analysis. Use when debugging errors, resolving regressions, fixing bugs, or triaging issues.",
     "version": "2.1.0",
     "author": "OrchestKit",
     "tags": [
@@ -2136,7 +2136,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "notebooklm": {
     "name": "notebooklm",
-    "description": "NotebookLM integration patterns for external RAG, research synthesis, studio content generation, and knowledge management via the notebooklm-mcp-cli MCP server.",
+    "description": "NotebookLM integration patterns for external RAG, research synthesis, studio content generation, and knowledge management. Use when creating notebooks, adding sources, generating audio/video, or querying NotebookLM via MCP.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -3034,7 +3034,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "setup": {
     "name": "setup",
-    "description": "Personalized onboarding wizard. Scans your codebase, detects your stack, recommends skills and MCPs, generates a readiness score and improvement plan.",
+    "description": "Personalized onboarding wizard. Use when setting up OrchestKit for a new project, configuring plugins, or generating a readiness score and improvement plan.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [

@@ -1,6 +1,8 @@
 ---
 title: "Diagnostic Checks"
 impact: CRITICAL
+impactDescription: "Skipping health checks lets broken configs, missing deps, and stale hooks go undetected"
+tags: diagnostics, health-check, plugin-validation, troubleshooting
 ---
 
 # Diagnostic Check Procedures
@@ -8,6 +10,18 @@ impact: CRITICAL
 Detailed procedures for each health check category in `/ork:doctor`.
 
 ---
+
+**Incorrect:**
+```
+✓ Plugins OK    (no actual validation — just assumed healthy)
+```
+
+**Correct:**
+```
+✓ Skills: 69/69 valid (frontmatter, token budget, links)
+✗ Hooks: dist/memory-writer.mjs missing — run: cd src/hooks && npm run build
+✓ Agents: 38/38 CC 2.1.6 compliant
+```
 
 ## 0. Installed Plugins Detection
 

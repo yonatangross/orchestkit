@@ -25,6 +25,20 @@ Smaller PRs get better reviews, merge faster, and are easier to revert.
 - One logical change per PR (same principle as atomic commits)
 - If a feature requires 800+ lines, split into stacked PRs
 
+**Incorrect:**
+```bash
+# Single PR with 1200 lines: refactor + feature + config changes
+gh pr create --title "Add auth, refactor middleware, update config"
+```
+
+**Correct:**
+```bash
+# Split into 3 focused PRs
+gh pr create --title "refactor: extract auth middleware"     # PR 1: 180 lines
+gh pr create --title "feat: add JWT authentication"          # PR 2: 250 lines
+gh pr create --title "chore: update auth config"             # PR 3: 40 lines
+```
+
 **Splitting strategies:**
 - Separate infrastructure/config changes from feature code
 - Split backend and frontend into separate PRs

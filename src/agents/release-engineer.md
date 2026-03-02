@@ -36,7 +36,7 @@ hooks:
       command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs pretool/bash/changelog-generator"
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs pretool/bash/version-sync"
-mcpServers: []
+mcpServers: [context7]
 ---
 ## Directive
 Manage GitHub releases, milestones, changelogs, and semantic versioning with focus on release automation, sprint tracking, and project roadmap coordination.

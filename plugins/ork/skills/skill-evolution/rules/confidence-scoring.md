@@ -1,6 +1,8 @@
 ---
 title: "Confidence Scoring"
 impact: HIGH
+impactDescription: "Without confidence thresholds, low-signal patterns get applied as skill changes causing regressions"
+tags: evolution, confidence, thresholds, scoring
 ---
 
 # Confidence Scoring & Suggestion Thresholds
@@ -25,6 +27,19 @@ confidence = pattern_frequency / total_uses
 - Below 70%: Pattern tracked but no suggestion generated
 - 70%-84%: Suggestion generated, requires human approval via `evolve` subcommand
 - 85%+: Auto-apply eligible (still requires human confirmation via AskUserQuestion)
+
+**Incorrect:**
+```
+# Apply pattern with only 2 data points
+pattern_frequency: 2/3 (67%) → auto-apply  # Too few samples, unreliable
+```
+
+**Correct:**
+```
+# Wait for minimum samples before generating suggestions
+pattern_frequency: 6/8 (75%) → suggest (requires approval)
+pattern_frequency: 2/3 (67%) → track only (below 5 minimum samples)
+```
 
 ## Suggestion States
 

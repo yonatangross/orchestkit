@@ -2,7 +2,7 @@
 name: setup
 license: MIT
 compatibility: "Claude Code 2.1.59+."
-description: "Personalized onboarding wizard. Scans your codebase, detects your stack, recommends skills and MCPs, generates a readiness score and improvement plan."
+description: "Personalized onboarding wizard. Use when setting up OrchestKit for a new project, configuring plugins, or generating a readiness score and improvement plan."
 argument-hint: "[--rescan] [--score-only] [--plan-only] [--channel]"
 context: inherit
 version: 1.0.0

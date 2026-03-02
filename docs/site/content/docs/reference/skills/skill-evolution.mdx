@@ -147,6 +147,19 @@ WARNING: api-design-framework success rate dropped from 94% to 71%
 Consider: /ork:skill-evolution rollback api-design-framework 1.1.0
 ```
 
+**Incorrect:**
+```
+# Auto-apply pattern after 2 uses, no rollback tracking
+confidence: 60%, samples: 2 → APPLY
+```
+
+**Correct:**
+```
+# Require minimum samples and high confidence before suggesting
+confidence: 85%, samples: 8 → SUGGEST (requires human approval)
+confidence: 60%, samples: 2 → TRACK ONLY (below threshold)
+```
+
 ## When Auto-Evolution Activates
 
 - Pattern frequency exceeds the Add Threshold (70%)
@@ -187,6 +200,19 @@ confidence = pattern_frequency / total_uses
 - 70%-84%: Suggestion generated, requires human approval via `evolve` subcommand
 - 85%+: Auto-apply eligible (still requires human confirmation via AskUserQuestion)
 
+**Incorrect:**
+```
+# Apply pattern with only 2 data points
+pattern_frequency: 2/3 (67%) → auto-apply  # Too few samples, unreliable
+```
+
+**Correct:**
+```
+# Wait for minimum samples before generating suggestions
+pattern_frequency: 6/8 (75%) → suggest (requires approval)
+pattern_frequency: 2/3 (67%) → track only (below 5 minimum samples)
+```
+
 ## Suggestion States
 
 Suggestions progress through: `pending` → `applied` | `rejected`
@@ -212,6 +238,18 @@ The system tracks these common edit patterns users apply after skill output:
 | `add_logging` | User adds logging/observability | `logger\.`, `console.log` |
 | `remove_comments` | User removes generated comments | Pattern removal detection |
 | `add_auth_check` | User adds authentication checks | `@auth`, `@require_auth` |
+
+**Incorrect:**
+```python
+# Generic pattern — matches too broadly
+{"pattern": "add_.*", "regex": ".*"}  # Matches everything, useless signal
+```
+
+**Correct:**
+```python
+# Specific pattern with focused regex
+{"pattern": "add_pagination", "regex": r"limit.*offset|cursor.*pagination"}
+```
 
 ## How Detection Works
 

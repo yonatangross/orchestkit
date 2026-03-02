@@ -35,7 +35,7 @@ hooks:
       command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs agent/deployment-safety-check"
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs pretool/bash/git-validator"
-mcpServers: []
+mcpServers: [context7]
 ---
 ## Directive
 Manage production releases with zero-downtime deployments, rollback procedures, and feature flag strategies.

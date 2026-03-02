@@ -1,6 +1,8 @@
 ---
 title: "Evidence Gathering"
 impact: HIGH
+impactDescription: "Fixing without evidence leads to wrong root cause, wasted effort, and regressions"
+tags: debugging, root-cause, investigation, reproduction
 ---
 
 # Evidence Gathering Patterns
@@ -33,6 +35,20 @@ AskUserQuestion(
 - **Quick fix**: Skip phases 8-10 (prevention, runbook, lessons)
 - **Investigate first**: Only phases 1-4 (understand, search, hypotheses, analyze)
 - **Hotfix**: Minimal phases, skip similar issue search
+
+**Incorrect:**
+```python
+# Jump straight to code without understanding the issue
+Edit(file_path="src/auth.py", old_string="return token", new_string="return new_token")
+```
+
+**Correct:**
+```python
+# Gather evidence first: read issue, search codebase, form hypotheses
+Read(file_path="src/auth.py")
+Grep(pattern="token.*expir", path="src/")
+# Hypothesis: token refresh skips validation (confidence: 75%)
+```
 
 ## Hypothesis Confidence Scale
 

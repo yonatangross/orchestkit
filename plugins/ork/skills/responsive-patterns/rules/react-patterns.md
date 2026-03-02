@@ -7,6 +7,27 @@ tags: [react, responsive, hooks, container-queries]
 
 # React Responsive Patterns
 
+**Incorrect:**
+```tsx
+// Hardcoded breakpoints with window.innerWidth
+function Card() {
+  const isMobile = window.innerWidth < 768;
+  return <div className={isMobile ? "flex-col" : "flex-row"}>...</div>;
+}
+```
+
+**Correct:**
+```tsx
+// Container queries via Tailwind — no JS needed
+function Card() {
+  return (
+    <div className="@container">
+      <div className="flex flex-col @md:flex-row">...</div>
+    </div>
+  );
+}
+```
+
 ## Responsive Component with Container Queries
 
 ```tsx

@@ -26,7 +26,6 @@ skills:
   - distributed-systems
   - api-design
   - async-jobs
-  - distributed-systems
   - python-backend
   - task-dependency-patterns
   - remember
@@ -35,7 +34,7 @@ hooks:
   PreToolUse:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
-mcpServers: []
+mcpServers: [context7]
 ---
 ## Directive
 Design event-driven architectures with event sourcing, message queues, and CQRS patterns for scalable distributed systems.
