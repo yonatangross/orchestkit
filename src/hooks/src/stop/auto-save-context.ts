@@ -8,20 +8,9 @@
  * - _meta: For attention positioning and token budgets
  */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import type { HookInput, HookResult } from '../types.js';
-import { logHook, getProjectDir, getSessionId, outputSilentSuccess } from '../lib/common.js';
-
-interface PendingItem {
-  content: string;
-  category: string;
-  queued_at: string;
-}
-
-interface PendingFile {
-  pending: PendingItem[];
-  created_at: string;
-}
+import { logHook, getProjectDir, outputSilentSuccess } from '../lib/common.js';
 
 interface SessionState {
   $schema: string;
@@ -44,43 +33,6 @@ interface SessionState {
 }
 
 /**
- * Consume and log the pending sync queue written by realtime-sync PostToolUse hook.
- * Issue #903: pending-sync queue was orphaned — never read at session end.
- *
- * Reads .claude/logs/.pending-sync-{sessionId}.json, logs each queued item,
- * and deletes the file so it does not accumulate across sessions.
- */
-function consumePendingSyncQueue(projectDir: string, sessionId: string): void {
-  const pendingFile = `${projectDir}/.claude/logs/.pending-sync-${sessionId}.json`;
-  if (!existsSync(pendingFile)) {
-    return;
-  }
-
-  try {
-    const data: PendingFile = JSON.parse(readFileSync(pendingFile, 'utf-8'));
-    const items = data.pending || [];
-
-    if (items.length === 0) {
-      logHook('auto-save-context', 'Pending sync queue was empty, removing file');
-    } else {
-      logHook('auto-save-context', `Consuming ${items.length} pending-sync item(s) from ${pendingFile}`);
-      for (const item of items) {
-        logHook(
-          'auto-save-context',
-          `[pending-sync] category=${item.category} queued_at=${item.queued_at} content="${item.content.substring(0, 120)}"`
-        );
-      }
-    }
-
-    // Remove the file so it does not persist into the next session
-    unlinkSync(pendingFile);
-    logHook('auto-save-context', 'Pending sync queue consumed and removed');
-  } catch (error) {
-    logHook('auto-save-context', `Error consuming pending-sync queue: ${error}`);
-  }
-}
-
-/**
  * Auto-save context on session stop
  */
 export function autoSaveContext(input: HookInput): HookResult {
@@ -88,10 +40,6 @@ export function autoSaveContext(input: HookInput): HookResult {
 
   const projectDir = input.project_dir || getProjectDir();
 
-  // Issue #903: Consume pending-sync queue written by realtime-sync PostToolUse hook.
-  // The queue is never read otherwise — consuming it here prevents orphaned data.
-  const sessionId = getSessionId();
-  consumePendingSyncQueue(projectDir, sessionId);
   const sessionDir = `${projectDir}/.claude/context/session`;
   const sessionState = `${sessionDir}/state.json`;
 

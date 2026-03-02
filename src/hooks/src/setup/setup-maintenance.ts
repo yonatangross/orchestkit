@@ -280,39 +280,10 @@ function taskSessionCleanup(pluginRoot: string): void {
 /**
  * Task: Memory Fabric cleanup
  */
-function taskMemoryFabricCleanup(projectDir: string): void {
-  logHook('setup-maintenance', 'Task: Memory Fabric cleanup');
-
-  let cleaned = 0;
-  const logsDir = `${projectDir}/.claude/logs`;
-
-  // Clean up old pending sync files (older than 7 days)
-  if (existsSync(logsDir)) {
-    try {
-      const files = readdirSync(logsDir);
-      for (const file of files) {
-        if (!file.startsWith('.pending-sync-')) continue;
-
-        const fullPath = `${logsDir}/${file}`;
-        try {
-          const stats = statSync(fullPath);
-          const ageDays = (Date.now() - stats.mtimeMs) / (1000 * 60 * 60 * 24);
-          if (ageDays > 7) {
-            unlinkSync(fullPath);
-            cleaned++;
-          }
-        } catch {
-          // Ignore
-        }
-      }
-    } catch {
-      // Ignore
-    }
-  }
-
-  if (cleaned > 0) {
-    tasksCompleted.push(`Cleaned ${cleaned} Memory Fabric files`);
-  }
+function taskMemoryFabricCleanup(_projectDir: string): void {
+  // Fix #903: pending-sync files are no longer written by realtime-sync.
+  // No cleanup needed — the dead queue was removed entirely.
+  logHook('setup-maintenance', 'Memory Fabric cleanup: no-op (pending-sync removed in #903)');
 }
 
 /**
