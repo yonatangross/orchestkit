@@ -112,25 +112,25 @@ else
     FAILED=$((FAILED + 1))
 fi
 
-# Test 8: Setup has unified dispatcher with async:true - Issue #239
-echo -n "  Setup has async dispatcher... "
-SETUP_ASYNC=$(jq '[.hooks.Setup[]?.hooks[]? | select(.async == true)] | length' "$HOOKS_JSON")
-if [[ $SETUP_ASYNC -ge 1 ]]; then
-    echo -e "${GREEN}PASS${NC} ($SETUP_ASYNC async:true hook)"
+# Test 8: Setup uses sync dispatcher (not async — runs once during setup, no need for fire-and-forget)
+echo -n "  Setup has sync dispatcher... "
+SETUP_HOOKS=$(jq '[.hooks.Setup[]?.hooks[]?] | length' "$HOOKS_JSON")
+if [[ $SETUP_HOOKS -ge 1 ]]; then
+    echo -e "${GREEN}PASS${NC} ($SETUP_HOOKS hook entry)"
     PASSED=$((PASSED + 1))
 else
-    echo -e "${RED}FAIL${NC} (no async:true hook in Setup)"
+    echo -e "${RED}FAIL${NC} (no hooks in Setup)"
     FAILED=$((FAILED + 1))
 fi
 
-# Test 9: Setup dispatcher references unified-dispatcher
-echo -n "  Setup uses unified-dispatcher... "
-SETUP_UNIFIED=$(jq '[.hooks.Setup[]?.hooks[]?.command | select(contains("setup/unified-dispatcher"))] | length' "$HOOKS_JSON")
-if [[ $SETUP_UNIFIED -ge 1 ]]; then
+# Test 9: Setup dispatcher references sync-setup-dispatcher
+echo -n "  Setup uses sync-setup-dispatcher... "
+SETUP_SYNC=$(jq '[.hooks.Setup[]?.hooks[]?.command | select(contains("setup/sync-setup-dispatcher"))] | length' "$HOOKS_JSON")
+if [[ $SETUP_SYNC -ge 1 ]]; then
     echo -e "${GREEN}PASS${NC}"
     PASSED=$((PASSED + 1))
 else
-    echo -e "${RED}FAIL${NC} (Setup doesn't use unified-dispatcher)"
+    echo -e "${RED}FAIL${NC} (Setup doesn't use sync-setup-dispatcher)"
     FAILED=$((FAILED + 1))
 fi
 

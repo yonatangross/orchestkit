@@ -49,7 +49,7 @@ else
 fi
 
 # 3. All hook event types are valid Claude Code events
-VALID_EVENTS="PreToolUse PostToolUse PostToolUseFailure Notification PermissionRequest UserPromptSubmit SessionStart SessionEnd PreCompact Stop SubagentStop SubagentStart TeammateIdle TaskCompleted Setup WorktreeCreate WorktreeRemove"
+VALID_EVENTS="PreToolUse PostToolUse PostToolUseFailure Notification PermissionRequest UserPromptSubmit SessionStart SessionEnd PreCompact Stop SubagentStop SubagentStart TeammateIdle TaskCompleted Setup WorktreeCreate WorktreeRemove ConfigChange"
 INVALID_EVENTS=$(python3 -c "
 import json
 valid = set('$VALID_EVENTS'.split())

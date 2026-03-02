@@ -32,7 +32,7 @@ vi.mock('../../lib/common.js', () => ({
   getProjectDir: vi.fn(() => '/test/project'),
 }));
 
-import { toolPreferenceLearner } from '../../posttool/tool-preference-learner.js';
+import { toolPreferenceLearner, flushPendingPreferences } from '../../posttool/tool-preference-learner.js';
 import type { HookInput } from '../../types.js';
 
 function makeInput(overrides: Partial<HookInput> = {}): HookInput {
@@ -59,6 +59,7 @@ describe('toolPreferenceLearner', () => {
 
   it('tracks Grep as content_search category', () => {
     toolPreferenceLearner(makeInput({ tool_name: 'Grep' }));
+    flushPendingPreferences(); // Force flush in-memory accumulator (#917)
     expect(mockWriteFileSync).toHaveBeenCalled();
     const written = JSON.parse(mockWriteFileSync.mock.calls[0][1] as string);
     expect(written.usage.content_search.Grep).toBe(1);
@@ -69,6 +70,7 @@ describe('toolPreferenceLearner', () => {
       tool_name: 'Bash',
       tool_input: { command: 'git status' },
     }));
+    flushPendingPreferences(); // Force flush in-memory accumulator (#917)
     expect(mockWriteFileSync).toHaveBeenCalled();
     const written = JSON.parse(mockWriteFileSync.mock.calls[0][1] as string);
     expect(written.usage.git_operations['Bash:git']).toBe(1);
@@ -111,6 +113,7 @@ describe('toolPreferenceLearner', () => {
       updated_at: new Date().toISOString(),
     }));
     toolPreferenceLearner(makeInput({ tool_name: 'Grep' }));
+    flushPendingPreferences(); // Force flush in-memory accumulator (#917)
     const written = JSON.parse(mockWriteFileSync.mock.calls[0][1] as string);
     expect(written.usage.content_search.Grep).toBe(6);
   });
@@ -120,6 +123,7 @@ describe('toolPreferenceLearner', () => {
       tool_name: 'Bash',
       tool_input: { command: 'pytest tests/ -v' },
     }));
+    flushPendingPreferences(); // Force flush in-memory accumulator (#917)
     const written = JSON.parse(mockWriteFileSync.mock.calls[0][1] as string);
     expect(written.usage.testing['Bash:pytest']).toBe(1);
   });

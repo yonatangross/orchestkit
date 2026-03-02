@@ -187,7 +187,7 @@ Examples:
   if (!existsSync(dir)) {
     mkdirSync(dir, { recursive: true });
   }
-  writeFileSync(settingsPath, output + '\n', 'utf8');
+  writeFileSync(settingsPath, `${output}\n`, 'utf8');
 
   console.log(`Written ${CC_HOOK_EVENTS.length} HTTP hooks to ${settingsPath}`);
   console.log(`Webhook URL: ${webhookUrl}/cc-event`);

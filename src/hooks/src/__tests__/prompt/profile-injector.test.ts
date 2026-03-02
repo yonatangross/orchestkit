@@ -32,6 +32,12 @@ vi.mock('../../lib/common.js', () => ({
     },
   })),
   estimateTokenCount: vi.fn((content: string) => Math.ceil(content.length / 3.5)),
+  writeRulesFile: vi.fn(),
+}));
+
+// Mock paths module
+vi.mock('../../lib/paths.js', () => ({
+  getHomeDir: vi.fn(() => '/test/home'),
 }));
 
 // Mock user-profile module
@@ -45,7 +51,7 @@ vi.mock('../../lib/user-profile.js', () => ({
 // Import after mocks are set up
 import { profileInjector } from '../../prompt/profile-injector.js';
 import { loadUserProfile, getTopSkills, getTopAgents, getRecentDecisions } from '../../lib/user-profile.js';
-import { outputSilentSuccess, outputPromptContext } from '../../lib/common.js';
+import { outputSilentSuccess, outputPromptContext, writeRulesFile } from '../../lib/common.js';
 
 // =============================================================================
 // Test Utilities
@@ -179,6 +185,7 @@ describe('prompt/profile-injector', () => {
   const mockGetRecentDecisions = vi.mocked(getRecentDecisions);
   const mockOutputSilentSuccess = vi.mocked(outputSilentSuccess);
   const mockOutputPromptContext = vi.mocked(outputPromptContext);
+  const mockWriteRulesFile = vi.mocked(writeRulesFile);
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -294,7 +301,7 @@ describe('prompt/profile-injector', () => {
   });
 
   describe('full profile (returning user with skills, agents, decisions)', () => {
-    test('injects context for user with full profile', () => {
+    test('writes profile context to rules file for user with full profile', () => {
       const fullProfile = createFullProfile();
       mockLoadUserProfile.mockReturnValue(fullProfile);
       mockGetTopSkills.mockReturnValue([
@@ -315,11 +322,12 @@ describe('prompt/profile-injector', () => {
       const result = profileInjector(input);
 
       expect(result.continue).toBe(true);
-      expect(mockOutputPromptContext).toHaveBeenCalled();
-      expect(result.hookSpecificOutput?.additionalContext).toBeDefined();
+      // Profile injector now writes to rules file instead of additionalContext (#token-reduction)
+      expect(mockWriteRulesFile).toHaveBeenCalled();
+      expect(mockOutputSilentSuccess).toHaveBeenCalled();
     });
 
-    test('includes top skills in context', () => {
+    test('includes top skills in rules file context', () => {
       mockLoadUserProfile.mockReturnValue(createFullProfile());
       mockGetTopSkills.mockReturnValue([
         { skill: 'api-design', stats: createMockUsageStats(50) },
@@ -329,14 +337,15 @@ describe('prompt/profile-injector', () => {
       mockGetRecentDecisions.mockReturnValue([]);
 
       const input = createPromptInput('Help me with the project');
-      const result = profileInjector(input);
+      profileInjector(input);
 
-      const context = result.hookSpecificOutput?.additionalContext || '';
+      expect(mockWriteRulesFile).toHaveBeenCalled();
+      const context = mockWriteRulesFile.mock.calls[0][2] as string;
       expect(context).toContain('api-design');
       expect(context).toContain('database-patterns');
     });
 
-    test('includes top agents in context', () => {
+    test('includes top agents in rules file context', () => {
       mockLoadUserProfile.mockReturnValue(createFullProfile());
       mockGetTopSkills.mockReturnValue([]);
       mockGetTopAgents.mockReturnValue([
@@ -346,14 +355,15 @@ describe('prompt/profile-injector', () => {
       mockGetRecentDecisions.mockReturnValue([]);
 
       const input = createPromptInput('Help me with the project');
-      const result = profileInjector(input);
+      profileInjector(input);
 
-      const context = result.hookSpecificOutput?.additionalContext || '';
+      expect(mockWriteRulesFile).toHaveBeenCalled();
+      const context = mockWriteRulesFile.mock.calls[0][2] as string;
       expect(context).toContain('backend-system-architect');
       expect(context).toContain('database-engineer');
     });
 
-    test('includes recent decisions in context', () => {
+    test('includes recent decisions in rules file context', () => {
       mockLoadUserProfile.mockReturnValue(createFullProfile());
       mockGetTopSkills.mockReturnValue([]);
       mockGetTopAgents.mockReturnValue([]);
@@ -363,14 +373,15 @@ describe('prompt/profile-injector', () => {
       ]);
 
       const input = createPromptInput('Continue with the database work');
-      const result = profileInjector(input);
+      profileInjector(input);
 
-      const context = result.hookSpecificOutput?.additionalContext || '';
+      expect(mockWriteRulesFile).toHaveBeenCalled();
+      const context = mockWriteRulesFile.mock.calls[0][2] as string;
       expect(context).toContain('cursor-based pagination');
       expect(context).toContain('PostgreSQL');
     });
 
-    test('uses CC 2.1.9 additionalContext format', () => {
+    test('writes to rules file with user-profile.md filename', () => {
       mockLoadUserProfile.mockReturnValue(createFullProfile());
       mockGetTopSkills.mockReturnValue([
         { skill: 'api-design', stats: createMockUsageStats(50) },
@@ -379,10 +390,14 @@ describe('prompt/profile-injector', () => {
       mockGetRecentDecisions.mockReturnValue([]);
 
       const input = createPromptInput('Build an API');
-      const result = profileInjector(input);
+      profileInjector(input);
 
-      expect(result.hookSpecificOutput?.hookEventName).toBe('UserPromptSubmit');
-      expect(result.hookSpecificOutput?.additionalContext).toBeDefined();
+      expect(mockWriteRulesFile).toHaveBeenCalledWith(
+        expect.stringContaining('.claude/rules'),
+        'user-profile.md',
+        expect.any(String),
+        'profile-injector',
+      );
     });
   });
 
@@ -401,7 +416,7 @@ describe('prompt/profile-injector', () => {
       const result = profileInjector(input);
 
       expect(result.continue).toBe(true);
-      const context = result.hookSpecificOutput?.additionalContext || '';
+      const context = (mockWriteRulesFile.mock.calls[0]?.[2] as string) || '';
       expect(context).toContain('api-design');
       expect(context).toContain('python-backend');
       // Should not crash or include undefined agents
@@ -428,7 +443,7 @@ describe('prompt/profile-injector', () => {
       const result = profileInjector(input);
 
       expect(result.continue).toBe(true);
-      const context = result.hookSpecificOutput?.additionalContext || '';
+      const context = (mockWriteRulesFile.mock.calls[0]?.[2] as string) || '';
       expect(context).toContain('test-generator');
     });
 
@@ -450,7 +465,7 @@ describe('prompt/profile-injector', () => {
       const result = profileInjector(input);
 
       expect(result.continue).toBe(true);
-      const context = result.hookSpecificOutput?.additionalContext || '';
+      const context = (mockWriteRulesFile.mock.calls[0]?.[2] as string) || '';
       expect(context).toContain('TypeScript');
     });
   });
@@ -474,9 +489,9 @@ describe('prompt/profile-injector', () => {
       ]);
 
       const input = createPromptInput('Build a comprehensive API');
-      const result = profileInjector(input);
+      profileInjector(input);
 
-      const context = result.hookSpecificOutput?.additionalContext || '';
+      const context = (mockWriteRulesFile.mock.calls[0]?.[2] as string) || '';
       // Estimate tokens (approximately 3.5 chars per token)
       const estimatedTokens = Math.ceil(context.length / 3.5);
 
@@ -524,9 +539,9 @@ describe('prompt/profile-injector', () => {
       );
 
       const input = createPromptInput('Start a complex project');
-      const result = profileInjector(input);
+      profileInjector(input);
 
-      const context = result.hookSpecificOutput?.additionalContext || '';
+      const context = (mockWriteRulesFile.mock.calls[0]?.[2] as string) || '';
       const estimatedTokens = Math.ceil(context.length / 3.5);
 
       expect(estimatedTokens).toBeLessThanOrEqual(200);
@@ -549,9 +564,9 @@ describe('prompt/profile-injector', () => {
       mockGetRecentDecisions.mockReturnValue([longDecision]);
 
       const input = createPromptInput('Continue the work');
-      const result = profileInjector(input);
+      profileInjector(input);
 
-      const context = result.hookSpecificOutput?.additionalContext || '';
+      const context = (mockWriteRulesFile.mock.calls[0]?.[2] as string) || '';
       const estimatedTokens = Math.ceil(context.length / 3.5);
 
       expect(estimatedTokens).toBeLessThanOrEqual(200);
@@ -806,9 +821,9 @@ describe('prompt/profile-injector', () => {
       mockGetRecentDecisions.mockReturnValue([]);
 
       const input = createPromptInput('Start work');
-      const result = profileInjector(input);
+      profileInjector(input);
 
-      const context = result.hookSpecificOutput?.additionalContext || '';
+      const context = (mockWriteRulesFile.mock.calls[0]?.[2] as string) || '';
       // Should have some form of list or mention of skills
       expect(context).toMatch(/api-design|database-patterns/);
     });
@@ -822,9 +837,9 @@ describe('prompt/profile-injector', () => {
       mockGetRecentDecisions.mockReturnValue([]);
 
       const input = createPromptInput('Design system');
-      const result = profileInjector(input);
+      profileInjector(input);
 
-      const context = result.hookSpecificOutput?.additionalContext || '';
+      const context = (mockWriteRulesFile.mock.calls[0]?.[2] as string) || '';
       expect(context).toContain('backend-system-architect');
     });
 
@@ -837,9 +852,9 @@ describe('prompt/profile-injector', () => {
       ]);
 
       const input = createPromptInput('Work on pagination');
-      const result = profileInjector(input);
+      profileInjector(input);
 
-      const context = result.hookSpecificOutput?.additionalContext || '';
+      const context = (mockWriteRulesFile.mock.calls[0]?.[2] as string) || '';
       expect(context).toContain('cursor-based pagination');
     });
   });

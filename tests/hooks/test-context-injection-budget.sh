@@ -281,10 +281,10 @@ SESSION_START_HOOKS=$(node -e "
   console.log(ss.length);
 " 2>/dev/null)
 
-if [ "$SESSION_START_HOOKS" = "3" ]; then
-  pass "SessionStart has 3 hooks (was 6): async-dispatcher, sync-dispatcher, pr-status-enricher"
+if [ "$SESSION_START_HOOKS" = "2" ]; then
+  pass "SessionStart has 2 hooks: unified-dispatcher (async), sync-session-dispatcher"
 else
-  fail "SessionStart has $SESSION_START_HOOKS hooks (expected 3)"
+  fail "SessionStart has $SESSION_START_HOOKS hooks (expected 2)"
 fi
 
 # Verify sync-session-dispatcher exists

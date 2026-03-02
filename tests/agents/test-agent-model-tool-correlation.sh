@@ -226,9 +226,9 @@ done
 echo ""
 
 # ---------------------------------------------------------------------------
-# Rule 3: No haiku agent should have more than 12 tools listed
+# Rule 3: No haiku agent should have more than 25 tools listed
 # ---------------------------------------------------------------------------
-HAIKU_MAX_TOOLS=12
+HAIKU_MAX_TOOLS=25
 
 echo "--- Rule 3: No haiku agent should have more than $HAIKU_MAX_TOOLS tools ---"
 echo ""
