@@ -195,7 +195,7 @@ elements.forEach((el, i) => {
 **Fixes:**
 - Debounce expensive operations
 - Use Web Workers for heavy computation
-- Split long tasks with `setTimeout()` or `scheduler.postTask()`
+- Split long tasks with `setTimeout()` or `scheduler.postAgent()`
 
 ### CLS (Cumulative Layout Shift) - Target: < 0.1
 

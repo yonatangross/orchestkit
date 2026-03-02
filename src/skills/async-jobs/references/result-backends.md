@@ -180,7 +180,7 @@ class RateLimitManager:
 from celery import Task
 import time
 
-class TokenBucketTask(Task):
+class TokenBucketAgent(Task):
     """Distributed token bucket rate limiting."""
     abstract = True
     rate_limit_key: str = None

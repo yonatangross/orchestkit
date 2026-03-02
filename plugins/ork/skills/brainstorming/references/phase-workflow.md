@@ -70,9 +70,9 @@ Glob(pattern="**/*{topic}*")
 
 ```python
 # Launch ALL agents in ONE message
-Task(subagent_type="workflow-architect", prompt="...", run_in_background=True)
-Task(subagent_type="security-auditor", prompt="...", run_in_background=True)
-Task(subagent_type="backend-system-architect", prompt="...", run_in_background=True)
+Agent(subagent_type="workflow-architect", prompt="...", run_in_background=True)
+Agent(subagent_type="security-auditor", prompt="...", run_in_background=True)
+Agent(subagent_type="backend-system-architect", prompt="...", run_in_background=True)
 ```
 
 **Divergent mindset instruction for agents:**

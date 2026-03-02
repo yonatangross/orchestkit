@@ -12,8 +12,8 @@ tools:
   - Bash
   - Grep
   - Glob
-  - Task(test-generator)
-  - Task(security-auditor)
+  - Agent(test-generator)
+  - Agent(security-auditor)
   - TeamCreate
   - SendMessage
   - TaskCreate

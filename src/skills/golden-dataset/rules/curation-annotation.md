@@ -44,7 +44,7 @@ INPUT: URL/Content
 
 **Quality Evaluator Agent:**
 ```python
-Task(
+Agent(
     subagent_type="code-quality-reviewer",
     prompt="""GOLDEN DATASET QUALITY EVALUATION
 
@@ -193,10 +193,10 @@ query_result = await generate_queries(content)
 **Correct — Parallel agent execution:**
 ```python
 # Parallel - all agents run concurrently
-quality_task = Task(subagent_type="code-quality-reviewer", prompt=quality_prompt, run_in_background=True)
-difficulty_task = Task(subagent_type="classifier", prompt=difficulty_prompt, run_in_background=True)
-domain_task = Task(subagent_type="tagger", prompt=domain_prompt, run_in_background=True)
-query_task = Task(subagent_type="query-generator", prompt=query_prompt, run_in_background=True)
+quality_task = Agent(subagent_type="code-quality-reviewer", prompt=quality_prompt, run_in_background=True)
+difficulty_task = Agent(subagent_type="classifier", prompt=difficulty_prompt, run_in_background=True)
+domain_task = Agent(subagent_type="tagger", prompt=domain_prompt, run_in_background=True)
+query_task = Agent(subagent_type="query-generator", prompt=query_prompt, run_in_background=True)
 
 # Wait for all results
 results = await gather_task_results([quality_task, difficulty_task, domain_task, query_task])

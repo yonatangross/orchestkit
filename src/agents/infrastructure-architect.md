@@ -16,8 +16,8 @@ tools:
   - Edit
   - Grep
   - Glob
-  - Task(ci-cd-engineer)
-  - Task(deployment-manager)
+  - Agent(ci-cd-engineer)
+  - Agent(deployment-manager)
   - TeamCreate
   - SendMessage
   - TaskCreate

@@ -85,7 +85,7 @@ This produces: files by action (add/modify/delete), line counts, test files affe
 For architecture-level understanding, spawn an Explore agent on the affected directories:
 
 ```python
-Task(
+Agent(
   subagent_type="Explore",
   prompt="Explore the architecture of {affected_directories}. Return: component diagram, key data flows, health scores per module. Use the ascii-visualizer skill for diagrams.",
   model="haiku"

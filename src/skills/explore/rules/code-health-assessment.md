@@ -10,7 +10,7 @@ tags: code-health, assessment, metrics
 Rate found code quality 0-10 with specific dimensions. See [code-health-rubric.md](../references/code-health-rubric.md) for scoring criteria.
 
 ```python
-Task(
+Agent(
   subagent_type="code-quality-reviewer",
   prompt="""CODE HEALTH ASSESSMENT for files related to: $ARGUMENTS
 

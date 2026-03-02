@@ -14,7 +14,7 @@ tools:
   - Write
   - Grep
   - Glob
-  - Task(data-pipeline-engineer)
+  - Agent(data-pipeline-engineer)
   - SendMessage
   - TaskCreate
   - TaskUpdate

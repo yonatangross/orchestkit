@@ -60,7 +60,7 @@ Query trends: `mcp__memory__search_nodes(query="VerificationMetrics")`
 After report compilation, send scores to `metrics-architect` for KPI baseline tracking:
 
 ```python
-Task(subagent_type="metrics-architect", run_in_background=True, max_turns=15,
+Agent(subagent_type="metrics-architect", run_in_background=True, max_turns=15,
      prompt=f"""Receive verification scores for {feature}:
 
 Composite: {composite_score}/10 (Grade: {grade})

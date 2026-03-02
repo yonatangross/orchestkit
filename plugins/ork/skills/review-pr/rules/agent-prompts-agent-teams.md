@@ -19,7 +19,7 @@ CHANGED_FILES = "$(gh pr diff $PR_NUMBER --name-only)"
 
 TeamCreate(team_name="review-pr-$PR_NUMBER", description="Review PR #$PR_NUMBER")
 
-Task(subagent_type="code-quality-reviewer", name="quality-reviewer",
+Agent(subagent_type="code-quality-reviewer", name="quality-reviewer",
      team_name="review-pr-$PR_NUMBER",
      prompt="""Review code quality and type safety for PR #$PR_NUMBER.
      Scope: ONLY review the following changed files:
@@ -29,7 +29,7 @@ Task(subagent_type="code-quality-reviewer", name="quality-reviewer",
      message security-reviewer with the finding.
      When you find test gaps, message test-reviewer.""")
 
-Task(subagent_type="security-auditor", name="security-reviewer",
+Agent(subagent_type="security-auditor", name="security-reviewer",
      team_name="review-pr-$PR_NUMBER",
      prompt="""Security audit for PR #$PR_NUMBER.
      Scope: ONLY review the following changed files:
@@ -39,7 +39,7 @@ Task(subagent_type="security-auditor", name="security-reviewer",
      When you find issues, message the responsible reviewer (backend-reviewer
      for API issues, frontend-reviewer for XSS).""")
 
-Task(subagent_type="test-generator", name="test-reviewer",
+Agent(subagent_type="test-generator", name="test-reviewer",
      team_name="review-pr-$PR_NUMBER",
      prompt="""Review TEST ADEQUACY for PR #$PR_NUMBER.
      Scope: ONLY review the following changed files:
@@ -57,7 +57,7 @@ Task(subagent_type="test-generator", name="test-reviewer",
      End with: RESULT: [ADEQUATE|GAPS|MISSING] - summary""")
 
 # Only spawn if backend files detected (HAS_BACKEND)
-Task(subagent_type="backend-system-architect", name="backend-reviewer",
+Agent(subagent_type="backend-system-architect", name="backend-reviewer",
      team_name="review-pr-$PR_NUMBER",
      prompt="""Review backend code for PR #$PR_NUMBER.
      Scope: ONLY review the following changed files:
@@ -67,7 +67,7 @@ Task(subagent_type="backend-system-architect", name="backend-reviewer",
      Share API pattern findings with frontend-reviewer for consistency.""")
 
 # Only spawn if frontend files detected (HAS_FRONTEND)
-Task(subagent_type="frontend-ui-developer", name="frontend-reviewer",
+Agent(subagent_type="frontend-ui-developer", name="frontend-reviewer",
      team_name="review-pr-$PR_NUMBER",
      prompt="""Review frontend code for PR #$PR_NUMBER.
      Scope: ONLY review the following changed files:
@@ -95,8 +95,8 @@ TeamDelete()
 **Incorrect — No team teardown:**
 ```python
 # Agents keep running indefinitely
-Task(subagent_type="code-quality-reviewer", team_name="review-pr-$PR_NUMBER")
-Task(subagent_type="security-auditor", team_name="review-pr-$PR_NUMBER")
+Agent(subagent_type="code-quality-reviewer", team_name="review-pr-$PR_NUMBER")
+Agent(subagent_type="security-auditor", team_name="review-pr-$PR_NUMBER")
 # Missing shutdown_request calls!
 ```
 

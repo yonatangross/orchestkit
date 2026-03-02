@@ -154,7 +154,7 @@ TaskCreate(subject="Design API schema", description="...")
 TaskCreate(subject="Build React components", description="...", addBlockedBy=["1"])
 
 # 3. Spawn teammates
-Task(prompt="You are the backend architect...",
+Agent(prompt="You are the backend architect...",
      team_name="feature-auth", name="backend-dev",
      subagent_type="backend-system-architect")
 ```

@@ -16,7 +16,7 @@ tools:
   - Edit
   - Grep
   - Glob
-  - Task(database-engineer)
+  - Agent(database-engineer)
   - TeamCreate
   - SendMessage
   - TaskCreate

@@ -15,7 +15,7 @@ tools:
   - Edit
   - Grep
   - Glob
-  - Task(deployment-manager)
+  - Agent(deployment-manager)
   - TeamCreate
   - SendMessage
   - TaskCreate

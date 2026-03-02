@@ -44,7 +44,7 @@ writer = Agent(
 )
 
 # Manager-led task
-project_task = Task(
+project_task = Agent(
     description="Create a comprehensive market analysis report",
     expected_output="Executive summary, analysis, recommendations",
     agent=manager
@@ -128,7 +128,7 @@ class ReportOutput(BaseModel):
     findings: list[str]
     confidence: float
 
-task = Task(
+task = Agent(
     description="Analyze market trends",
     expected_output="Structured market analysis",
     agent=analyst,
@@ -149,7 +149,7 @@ def validate_length(result: TaskOutput) -> tuple[bool, any]:
         return (False, "Content too brief, expand analysis")
     return (True, result.raw)
 
-task = Task(
+task = Agent(
     description="Write comprehensive analysis",
     expected_output="Detailed analysis (100+ words)",
     agent=writer,
@@ -190,7 +190,7 @@ class ResearchCrew:
 
     @task
     def research_task(self) -> Task:
-        return Task(config=self.tasks_config['research'])
+        return Agent(config=self.tasks_config['research'])
 
     @crew
     def crew(self) -> Crew:

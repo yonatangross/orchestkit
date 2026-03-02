@@ -265,7 +265,7 @@ Query trends: `mcp__memory__search_nodes(query="VerificationMetrics")`
 After report compilation, send scores to `metrics-architect` for KPI baseline tracking:
 
 ```python
-Task(subagent_type="metrics-architect", run_in_background=True, max_turns=15,
+Agent(subagent_type="metrics-architect", run_in_background=True, max_turns=15,
      prompt=f"""Receive verification scores for {feature}:
 
 Composite: {composite_score}/10 (Grade: {grade})
@@ -1178,34 +1178,34 @@ In Agent Teams mode, form a verification team where agents share findings and co
 ```python
 TeamCreate(team_name="verify-{feature}", description="Verify {feature}")
 
-Task(subagent_type="code-quality-reviewer", name="quality-verifier",
+Agent(subagent_type="code-quality-reviewer", name="quality-verifier",
      team_name="verify-{feature}",
      prompt="""Verify code quality for {feature}. Score 0-10.
      When you find patterns that affect security, message security-verifier.
      When you find untested code paths, message test-verifier.
      Share your quality score with all teammates for composite calculation.""")
 
-Task(subagent_type="security-auditor", name="security-verifier",
+Agent(subagent_type="security-auditor", name="security-verifier",
      team_name="verify-{feature}",
      prompt="""Security verification for {feature}. Score 0-10.
      When quality-verifier flags security-relevant patterns, investigate deeper.
      When you find vulnerabilities in API endpoints, message api-verifier.
      Share severity findings with test-verifier for test gap analysis.""")
 
-Task(subagent_type="test-generator", name="test-verifier",
+Agent(subagent_type="test-generator", name="test-verifier",
      team_name="verify-{feature}",
      prompt="""Verify test coverage for {feature}. Score 0-10.
      When quality-verifier or security-verifier flag untested paths, quantify the gap.
      Run existing tests and report coverage metrics.
      Message the lead with coverage data for composite scoring.""")
 
-Task(subagent_type="backend-system-architect", name="api-verifier",
+Agent(subagent_type="backend-system-architect", name="api-verifier",
      team_name="verify-{feature}",
      prompt="""Verify API design and backend patterns for {feature}. Score 0-10.
      When security-verifier flags endpoint issues, validate and score.
      Share API compliance findings with ui-verifier for consistency check.""")
 
-Task(subagent_type="frontend-ui-developer", name="ui-verifier",
+Agent(subagent_type="frontend-ui-developer", name="ui-verifier",
      team_name="verify-{feature}",
      prompt="""Verify frontend implementation for {feature}. Score 0-10.
      When api-verifier shares API patterns, verify frontend matches.
@@ -1214,7 +1214,7 @@ Task(subagent_type="frontend-ui-developer", name="ui-verifier",
 
 # Conditional 6th agent — use python-performance-engineer for backend,
 # frontend-performance-engineer for frontend
-Task(subagent_type="python-performance-engineer", name="perf-verifier",
+Agent(subagent_type="python-performance-engineer", name="perf-verifier",
      team_name="verify-{feature}",
      prompt="""Verify performance and scalability for {feature}. Score 0-10.
      Assess latency, resource usage, caching, and scaling patterns.

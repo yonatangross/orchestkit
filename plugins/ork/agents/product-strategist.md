@@ -15,8 +15,8 @@ tools:
   - Grep
   - Glob
   - Bash
-  - Task(market-intelligence)
-  - Task(ux-researcher)
+  - Agent(market-intelligence)
+  - Agent(ux-researcher)
   - TeamCreate
   - SendMessage
   - TaskCreate

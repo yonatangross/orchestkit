@@ -15,8 +15,8 @@ tools:
   - Bash
   - Grep
   - Glob
-  - Task(frontend-ui-developer)
-  - Task(rapid-ui-designer)
+  - Agent(frontend-ui-developer)
+  - Agent(rapid-ui-designer)
   - TeamCreate
   - SendMessage
   - TaskCreate

@@ -196,7 +196,7 @@ In Agent Teams mode, form a brainstorming team where agents debate ideas in real
 TeamCreate(team_name="brainstorm-{topic-slug}", description="Brainstorm {topic}")
 
 # Always include the system design lead
-Task(subagent_type="workflow-architect", name="system-designer",
+Agent(subagent_type="workflow-architect", name="system-designer",
      team_name="brainstorm-{topic-slug}",
      prompt="""You are the system design lead for brainstorming: {topic}
      DIVERGENT MODE: Generate 3-4 architectural approaches.
@@ -205,7 +205,7 @@ Task(subagent_type="workflow-architect", name="system-designer",
      After divergent phase, help synthesize the top approaches.""")
 
 # Domain-specific teammates (select 2-3 based on topic keywords)
-Task(subagent_type="backend-system-architect", name="backend-thinker",
+Agent(subagent_type="backend-system-architect", name="backend-thinker",
      team_name="brainstorm-{topic-slug}",
      prompt="""Brainstorm backend approaches for: {topic}
      DIVERGENT MODE: Generate 3-4 backend-specific ideas.
@@ -213,7 +213,7 @@ Task(subagent_type="backend-system-architect", name="backend-thinker",
      Challenge ideas from other teammates with implementation reality checks.
      Play devil's advocate on complexity vs simplicity trade-offs.""")
 
-Task(subagent_type="frontend-ui-developer", name="frontend-thinker",
+Agent(subagent_type="frontend-ui-developer", name="frontend-thinker",
      team_name="brainstorm-{topic-slug}",
      prompt="""Brainstorm frontend approaches for: {topic}
      DIVERGENT MODE: Generate 3-4 UI/UX ideas.
@@ -222,7 +222,7 @@ Task(subagent_type="frontend-ui-developer", name="frontend-thinker",
      Advocate for progressive disclosure and accessibility.""")
 
 # Always include: testability assessor
-Task(subagent_type="test-generator", name="testability-assessor",
+Agent(subagent_type="test-generator", name="testability-assessor",
      team_name="brainstorm-{topic-slug}",
      prompt="""Assess testability for each brainstormed approach: {topic}
      For every idea shared by teammates, evaluate:

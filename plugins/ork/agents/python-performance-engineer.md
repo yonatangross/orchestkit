@@ -16,8 +16,8 @@ tools:
   - Bash
   - Grep
   - Glob
-  - Task(test-generator)
-  - Task(database-engineer)
+  - Agent(test-generator)
+  - Agent(database-engineer)
   - TeamCreate
   - SendMessage
   - TaskCreate

@@ -16,8 +16,8 @@ tools:
   - Edit
   - Grep
   - Glob
-  - Task(llm-integrator)
-  - Task(data-pipeline-engineer)
+  - Agent(llm-integrator)
+  - Agent(data-pipeline-engineer)
   - TeamCreate
   - SendMessage
   - TaskCreate

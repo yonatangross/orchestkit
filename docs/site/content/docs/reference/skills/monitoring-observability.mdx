@@ -2002,7 +2002,7 @@ async def run_crew(task: str):
 
     crew = Crew(
         agents=[researcher, writer],
-        tasks=[Task(description=task, agent=researcher)],
+        tasks=[Agent(description=task, agent=researcher)],
     )
     # CrewAI has built-in Langfuse integration via callbacks
     return crew.kickoff()
@@ -4320,13 +4320,13 @@ async def run_crew(task_description: str):
         llm="claude-sonnet-4-6",
     )
 
-    research_task = Task(
+    research_task = Agent(
         description=f"Research: {task_description}",
         agent=researcher,
         expected_output="Comprehensive research findings",
     )
 
-    writing_task = Task(
+    writing_task = Agent(
         description="Write documentation from research",
         agent=writer,
         expected_output="Polished documentation",

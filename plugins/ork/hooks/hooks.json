@@ -63,7 +63,7 @@
         ]
       },
       {
-        "matcher": "Task|Agent",
+        "matcher": "Agent",
         "hooks": [
           {
             "type": "command",
@@ -85,7 +85,7 @@
     ],
     "PostToolUse": [
       {
-        "matcher": "Bash|Write|Edit|Task|TaskUpdate|TaskCreate|Agent|Skill|NotebookEdit",
+        "matcher": "Bash|Write|Edit|Agent|TaskUpdate|TaskCreate|Skill|NotebookEdit",
         "hooks": [
           {
             "type": "command",
@@ -99,7 +99,7 @@
     ],
     "PostToolUseFailure": [
       {
-        "matcher": "Bash|Write|Edit|Task",
+        "matcher": "Bash|Write|Edit|Agent",
         "hooks": [
           {
             "type": "command",

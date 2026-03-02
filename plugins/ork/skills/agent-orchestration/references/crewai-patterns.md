@@ -150,7 +150,7 @@ class CrewFlow(Flow):
             backstory="Expert researcher with domain knowledge"
         )
 
-        task = Task(
+        task = Agent(
             description=f"Research {inputs['topic']} at {inputs['depth']} level",
             expected_output="Comprehensive research report",
             agent=researcher
@@ -355,7 +355,7 @@ class ReportOutput(BaseModel):
     findings: list[str]
     confidence: float
 
-task = Task(
+task = Agent(
     description="Analyze market trends and create report",
     expected_output="Structured market analysis report",
     agent=analyst,
@@ -374,14 +374,14 @@ print(report.title, report.confidence)
 from crewai import Task
 
 # Parallel research tasks
-research_task1 = Task(
+research_task1 = Agent(
     description="Research topic A",
     expected_output="Research findings",
     agent=researcher,
     async_execution=True  # Non-blocking
 )
 
-research_task2 = Task(
+research_task2 = Agent(
     description="Research topic B",
     expected_output="Research findings",
     agent=researcher,
@@ -389,7 +389,7 @@ research_task2 = Task(
 )
 
 # Dependent task waits for async tasks
-synthesis_task = Task(
+synthesis_task = Agent(
     description="Synthesize all research",
     expected_output="Integrated analysis",
     agent=analyst,
@@ -409,7 +409,7 @@ def validate_length(result: TaskOutput) -> tuple[bool, any]:
         return (False, "Content too brief, expand analysis")
     return (True, result.raw)
 
-task = Task(
+task = Agent(
     description="Write comprehensive analysis",
     expected_output="Detailed analysis (100+ words)",
     agent=writer,
@@ -418,7 +418,7 @@ task = Task(
 )
 
 # Multiple guardrails
-task = Task(
+task = Agent(
     description="Generate report",
     expected_output="Validated report",
     agent=analyst,
@@ -433,7 +433,7 @@ task = Task(
 ### Human Input Tasks
 
 ```python
-task = Task(
+task = Agent(
     description="Review and approve recommendations",
     expected_output="Approved recommendations",
     agent=reviewer,
@@ -451,7 +451,7 @@ def task_callback(output: TaskOutput):
     print(f"Result: {output.raw[:100]}...")
     # Send notifications, log metrics, etc.
 
-task = Task(
+task = Agent(
     description="Analyze data",
     expected_output="Analysis results",
     agent=analyst,
@@ -675,11 +675,11 @@ class ResearchCrew:
 
     @task
     def research_task(self) -> Task:
-        return Task(config=self.tasks_config['research'])
+        return Agent(config=self.tasks_config['research'])
 
     @task
     def analysis_task(self) -> Task:
-        return Task(
+        return Agent(
             config=self.tasks_config['analysis'],
             context=[self.research_task()]
         )

@@ -271,7 +271,7 @@ CHANGED_FILES = "$(gh pr diff $PR_NUMBER --name-only)"
 
 TeamCreate(team_name="review-pr-$PR_NUMBER", description="Review PR #$PR_NUMBER")
 
-Task(subagent_type="code-quality-reviewer", name="quality-reviewer",
+Agent(subagent_type="code-quality-reviewer", name="quality-reviewer",
      team_name="review-pr-$PR_NUMBER",
      prompt="""Review code quality and type safety for PR #$PR_NUMBER.
      Scope: ONLY review the following changed files:
@@ -281,7 +281,7 @@ Task(subagent_type="code-quality-reviewer", name="quality-reviewer",
      message security-reviewer with the finding.
      When you find test gaps, message test-reviewer.""")
 
-Task(subagent_type="security-auditor", name="security-reviewer",
+Agent(subagent_type="security-auditor", name="security-reviewer",
      team_name="review-pr-$PR_NUMBER",
      prompt="""Security audit for PR #$PR_NUMBER.
      Scope: ONLY review the following changed files:
@@ -291,7 +291,7 @@ Task(subagent_type="security-auditor", name="security-reviewer",
      When you find issues, message the responsible reviewer (backend-reviewer
      for API issues, frontend-reviewer for XSS).""")
 
-Task(subagent_type="test-generator", name="test-reviewer",
+Agent(subagent_type="test-generator", name="test-reviewer",
      team_name="review-pr-$PR_NUMBER",
      prompt="""Review TEST ADEQUACY for PR #$PR_NUMBER.
      Scope: ONLY review the following changed files:
@@ -309,7 +309,7 @@ Task(subagent_type="test-generator", name="test-reviewer",
      End with: RESULT: [ADEQUATE|GAPS|MISSING] - summary""")
 
 # Only spawn if backend files detected (HAS_BACKEND)
-Task(subagent_type="backend-system-architect", name="backend-reviewer",
+Agent(subagent_type="backend-system-architect", name="backend-reviewer",
      team_name="review-pr-$PR_NUMBER",
      prompt="""Review backend code for PR #$PR_NUMBER.
      Scope: ONLY review the following changed files:
@@ -319,7 +319,7 @@ Task(subagent_type="backend-system-architect", name="backend-reviewer",
      Share API pattern findings with frontend-reviewer for consistency.""")
 
 # Only spawn if frontend files detected (HAS_FRONTEND)
-Task(subagent_type="frontend-ui-developer", name="frontend-reviewer",
+Agent(subagent_type="frontend-ui-developer", name="frontend-reviewer",
      team_name="review-pr-$PR_NUMBER",
      prompt="""Review frontend code for PR #$PR_NUMBER.
      Scope: ONLY review the following changed files:
@@ -347,8 +347,8 @@ TeamDelete()
 **Incorrect — No team teardown:**
 ```python
 # Agents keep running indefinitely
-Task(subagent_type="code-quality-reviewer", team_name="review-pr-$PR_NUMBER")
-Task(subagent_type="security-auditor", team_name="review-pr-$PR_NUMBER")
+Agent(subagent_type="code-quality-reviewer", team_name="review-pr-$PR_NUMBER")
+Agent(subagent_type="security-auditor", team_name="review-pr-$PR_NUMBER")
 # Missing shutdown_request calls!
 ```
 
@@ -397,7 +397,7 @@ Launch SIX specialized reviewers in ONE message with `run_in_background: true`:
 # - llm-integrator (7th)      → only if HAS_AI
 
 # PARALLEL - All agents in ONE message
-Task(
+Agent(
   description="Review code quality",
   subagent_type="code-quality-reviewer",
   prompt="""CODE QUALITY REVIEW for PR $PR_NUMBER
@@ -418,7 +418,7 @@ Task(
   run_in_background=True,
   max_turns=25
 )
-Task(
+Agent(
   description="Review type safety",
   subagent_type="code-quality-reviewer",
   prompt="""TYPE SAFETY REVIEW for PR $PR_NUMBER
@@ -439,7 +439,7 @@ Task(
   run_in_background=True,
   max_turns=25
 )
-Task(
+Agent(
   description="Security audit PR",
   subagent_type="security-auditor",
   prompt="""SECURITY REVIEW for PR $PR_NUMBER
@@ -460,7 +460,7 @@ Task(
   run_in_background=True,
   max_turns=25
 )
-Task(
+Agent(
   description="Review test adequacy",
   subagent_type="test-generator",
   prompt="""TEST ADEQUACY REVIEW for PR $PR_NUMBER
@@ -500,7 +500,7 @@ Task(
   run_in_background=True,
   max_turns=25
 )
-Task(
+Agent(
   description="Review backend code",
   subagent_type="backend-system-architect",
   prompt="""BACKEND REVIEW for PR $PR_NUMBER
@@ -521,7 +521,7 @@ Task(
   run_in_background=True,
   max_turns=25
 )
-Task(
+Agent(
   description="Review frontend code",
   subagent_type="frontend-ui-developer",
   prompt="""FRONTEND REVIEW for PR $PR_NUMBER
@@ -547,18 +547,18 @@ Task(
 **Incorrect — Sequential agents:**
 ```python
 # 6 reviewers run one-by-one (slow)
-Task(subagent_type="code-quality-reviewer", prompt="...")
+Agent(subagent_type="code-quality-reviewer", prompt="...")
 # Wait for completion
-Task(subagent_type="security-auditor", prompt="...")
+Agent(subagent_type="security-auditor", prompt="...")
 # Wait again...
 ```
 
 **Correct — Parallel agents:**
 ```python
 # All 6 agents in ONE message (fast)
-Task(subagent_type="code-quality-reviewer", prompt="...", run_in_background=True)
-Task(subagent_type="security-auditor", prompt="...", run_in_background=True)
-Task(subagent_type="test-generator", prompt="...", run_in_background=True)
+Agent(subagent_type="code-quality-reviewer", prompt="...", run_in_background=True)
+Agent(subagent_type="security-auditor", prompt="...", run_in_background=True)
+Agent(subagent_type="test-generator", prompt="...", run_in_background=True)
 # All launch simultaneously
 ```
 
@@ -571,7 +571,7 @@ Task(subagent_type="test-generator", prompt="...", run_in_background=True)
 If PR includes AI/ML code, add a 7th agent:
 
 ```python
-Task(
+Agent(
   description="Review LLM integration",
   subagent_type="llm-integrator",
   prompt="""LLM CODE REVIEW for PR $ARGUMENTS
@@ -592,8 +592,8 @@ Task(
 **Incorrect — Missing LLM review for AI code:**
 ```python
 # PR modifies prompt.py but no LLM reviewer
-Task(subagent_type="code-quality-reviewer", ...)
-Task(subagent_type="security-auditor", ...)
+Agent(subagent_type="code-quality-reviewer", ...)
+Agent(subagent_type="security-auditor", ...)
 # Missing: LLM-specific review
 ```
 
@@ -601,7 +601,7 @@ Task(subagent_type="security-auditor", ...)
 ```python
 # Detect AI/ML changes, add specialized reviewer
 if pr_contains_llm_code:
-    Task(subagent_type="llm-integrator", prompt="LLM CODE REVIEW...", run_in_background=True)
+    Agent(subagent_type="llm-integrator", prompt="LLM CODE REVIEW...", run_in_background=True)
 ```
 
 
