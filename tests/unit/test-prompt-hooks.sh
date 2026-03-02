@@ -3,7 +3,6 @@
 # Prompt Hooks Unit Tests (TypeScript Architecture)
 # ============================================================================
 # Tests TypeScript prompt hooks in hooks/src/prompt/:
-# - context-injector.ts
 # - todo-enforcer.ts
 # - memory-context.ts
 # - satisfaction-detector.ts
@@ -43,27 +42,6 @@ test_prompt_bundle_has_content() {
     if [[ "$size" -lt 1000 ]]; then
         fail "prompt.mjs seems too small ($size bytes)"
     fi
-}
-
-# ============================================================================
-# CONTEXT-INJECTOR TESTS
-# ============================================================================
-
-describe "context-injector.ts"
-
-test_context_injector_exists() {
-    assert_file_exists "$TS_HOOKS_DIR/context-injector.ts"
-}
-
-test_context_injector_exports_handler() {
-    assert_file_contains "$TS_HOOKS_DIR/context-injector.ts" "export"
-}
-
-test_context_injector_has_context_handling() {
-    if grep -qiE "context|inject|prompt" "$TS_HOOKS_DIR/context-injector.ts" 2>/dev/null; then
-        return 0
-    fi
-    fail "context-injector.ts should handle context injection"
 }
 
 # ============================================================================
@@ -158,7 +136,6 @@ describe "CC 2.1.7 TypeScript Compliance"
 
 test_all_prompt_hooks_have_suppress_output() {
     local hooks=(
-        "context-injector.ts"
         "todo-enforcer.ts"
         "memory-context.ts"
         "satisfaction-detector.ts"
