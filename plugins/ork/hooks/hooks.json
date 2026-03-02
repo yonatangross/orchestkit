@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 35 global (33 command + 2 http) + 54 agent-scoped + 7 skill-scoped = 96 total hooks",
+  "description": "OrchestKit hooks - 35 global + 54 agent-scoped + 7 skill-scoped = 96 total hooks",
   "hooks": {
     "PreToolUse": [
       {
@@ -299,13 +299,9 @@
             "timeout": 10000
           },
           {
-            "type": "http",
-            "url": "${ORCHESTKIT_HOOK_URL}/worktree",
-            "timeout": 5000,
-            "headers": {
-              "Authorization": "Bearer $ORCHESTKIT_HOOK_TOKEN"
-            },
-            "allowedEnvVars": ["ORCHESTKIT_HOOK_TOKEN", "ORCHESTKIT_HOOK_URL"]
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs worktree/worktree-webhook-reporter",
+            "timeout": 10000
           }
         ]
       }
@@ -319,13 +315,9 @@
             "timeout": 10000
           },
           {
-            "type": "http",
-            "url": "${ORCHESTKIT_HOOK_URL}/worktree",
-            "timeout": 5000,
-            "headers": {
-              "Authorization": "Bearer $ORCHESTKIT_HOOK_TOKEN"
-            },
-            "allowedEnvVars": ["ORCHESTKIT_HOOK_TOKEN", "ORCHESTKIT_HOOK_URL"]
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs worktree/worktree-webhook-reporter",
+            "timeout": 10000
           }
         ]
       }

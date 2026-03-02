@@ -272,6 +272,7 @@ const DEFAULT_CONFIG_VALUES: OrchestrationConfig = {
   enablePipelines: true,
   maxRetries: 3,
   retryDelayBaseMs: 1000,
+  webhookUrl: undefined,
 };
 
 /**
@@ -306,6 +307,15 @@ export function saveConfig(config: Partial<OrchestrationConfig>): void {
   } catch (err) {
     logHook('orchestration-state', `Failed to save config: ${err}`);
   }
+}
+
+/**
+ * Resolve webhook URL: config.webhookUrl first, ORCHESTKIT_HOOK_URL env var fallback.
+ * Returns undefined if neither is set.
+ */
+export function getWebhookUrl(): string | undefined {
+  const config = loadConfig();
+  return config.webhookUrl || process.env.ORCHESTKIT_HOOK_URL || undefined;
 }
 
 // -----------------------------------------------------------------------------

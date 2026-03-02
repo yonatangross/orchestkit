@@ -314,6 +314,8 @@ export interface OrchestrationConfig {
   maxRetries: number;
   /** Retry delay base in ms */
   retryDelayBaseMs: number;
+  /** Webhook URL for hook event delivery (optional, env var fallback: ORCHESTKIT_HOOK_URL) */
+  webhookUrl?: string;
 }
 
 /** Default orchestration configuration */

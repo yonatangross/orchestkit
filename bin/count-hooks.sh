@@ -21,9 +21,11 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 # Global hooks: count "type": "command" and "type": "http" entries in hooks.json
-GLOBAL_CMD=$(grep -c '"type": "command"' "$PROJECT_ROOT/src/hooks/hooks.json" 2>/dev/null || echo "0")
-GLOBAL_HTTP=$(grep -c '"type": "http"' "$PROJECT_ROOT/src/hooks/hooks.json" 2>/dev/null || echo "0")
-GLOBAL=$((GLOBAL_CMD + GLOBAL_HTTP))
+GLOBAL_CMD=$(grep -c '"type": "command"' "$PROJECT_ROOT/src/hooks/hooks.json" 2>/dev/null || true)
+GLOBAL_CMD=${GLOBAL_CMD:-0}
+GLOBAL_HTTP=$(grep -c '"type": "http"' "$PROJECT_ROOT/src/hooks/hooks.json" 2>/dev/null || true)
+GLOBAL_HTTP=${GLOBAL_HTTP:-0}
+GLOBAL=$(( GLOBAL_CMD + GLOBAL_HTTP ))
 
 # Agent-scoped hooks: command:.*run-hook in YAML frontmatter
 # Single grep across all files instead of per-file awk (96 forks → 2)

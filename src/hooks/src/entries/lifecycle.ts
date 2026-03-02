@@ -38,6 +38,7 @@ import { completionTracker } from '../task-completed/completion-tracker.js';
 
 // WorktreeCreate/WorktreeRemove hooks (CC 2.1.50)
 import { worktreeLifecycleLogger } from '../worktree/worktree-lifecycle-logger.js';
+import { worktreeWebhookReporter } from '../worktree/worktree-webhook-reporter.js';
 
 // ConfigChange hooks (CC 2.1.50)
 import { settingsReload } from '../config-change/settings-reload.js';
@@ -75,6 +76,7 @@ export const hooks: Record<string, HookFn> = {
 
   // WorktreeCreate/WorktreeRemove hooks (CC 2.1.50)
   'worktree/worktree-lifecycle-logger': worktreeLifecycleLogger,
+  'worktree/worktree-webhook-reporter': worktreeWebhookReporter,
 
   // ConfigChange hooks (CC 2.1.50)
   'config-change/settings-reload': settingsReload,

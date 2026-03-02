@@ -283,7 +283,57 @@ Adds to `.claude/settings.json`:
 
 **OrchestKit-themed verbs** focus on orchestration, architecture, and engineering actions.
 
-## Step 9: Optional Integrations
+## Step 9: Webhook Configuration
+
+Configure webhook endpoints for hook event delivery (worktree lifecycle, session metrics).
+
+```python
+AskUserQuestion(questions=[{
+  "question": "Set up webhook endpoint for hook event delivery?",
+  "header": "Webhooks",
+  "options": [
+    {"label": "Yes — configure URL", "description": "POST hook events (session end, worktree) to your API"},
+    {"label": "Skip", "description": "No webhook delivery — hooks run locally only"}
+  ],
+  "multiSelect": false
+}])
+```
+
+**If yes**, ask for the webhook URL:
+
+```python
+AskUserQuestion(questions=[{
+  "question": "What is your webhook endpoint URL?",
+  "header": "Webhook URL",
+  "options": [
+    {"label": "Custom URL", "description": "Enter your API endpoint (e.g., https://api.example.com/hooks)"}
+  ],
+  "multiSelect": false
+}])
+```
+
+**Save the URL** to the orchestration config (NOT the token — that stays in env vars):
+
+```bash
+# Write webhookUrl to config
+# File: .claude/orchestration/config.json
+saveConfig({ webhookUrl: "https://user-provided-url.com/hooks" })
+```
+
+**Remind the user** to set the auth token as an env var:
+
+```
+Set ORCHESTKIT_HOOK_TOKEN in your environment (never in config files):
+  export ORCHESTKIT_HOOK_TOKEN=your-hmac-secret
+
+Resolution order:
+  URL:   config.json webhookUrl → ORCHESTKIT_HOOK_URL env var → no-op
+  Token: ORCHESTKIT_HOOK_TOKEN env var only (secret)
+
+Events delivered: SessionEnd (token usage), WorktreeCreate/Remove (worktree lifecycle)
+```
+
+## Step 10: Optional Integrations
 
 Use AskUserQuestion to offer optional third-party integrations:
 
@@ -338,7 +388,7 @@ Enable Agentation UI annotation tool? [y/N]: y
 
 5. **CSP update** (only if the project has a Content-Security-Policy): add `http://localhost:4747` to the `connect-src` directive for development mode only.
 
-## Step 10: Preview & Save
+## Step 11: Preview & Save
 
 Save to: `~/.claude/plugins/orchestkit/config.json`
 
