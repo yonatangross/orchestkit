@@ -11,13 +11,32 @@
 
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { existsSync, readFileSync, appendFileSync, mkdirSync } from 'node:fs';
+import { existsSync, readFileSync, appendFile, mkdirSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { createHash } from 'node:crypto';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const distDir = join(__dirname, '..', 'dist');
+
+/** t0: process start reference (nanoseconds via hrtime.bigint) */
+const t0 = process.hrtime.bigint();
+
+/** Module-level cache for the project hash (computed once per process). */
+let cachedPid = null;
+
+/**
+ * Return a 12-char SHA-256 hex prefix of projectDir, computing it only once.
+ *
+ * @param {string} projectDir - Absolute path to the project root
+ * @returns {string} 12-character hex string
+ */
+function getProjectHash(projectDir) {
+  if (cachedPid === null) {
+    cachedPid = createHash('sha256').update(projectDir).digest('hex').slice(0, 12);
+  }
+  return cachedPid;
+}
 
 /**
  * Map hook name prefix to bundle name
@@ -92,6 +111,9 @@ try {
   console.log('{"continue":true,"suppressOutput":true}');
   process.exit(0);
 }
+
+/** t1: after bundle import */
+const t1 = process.hrtime.bigint();
 
 if (!hooks) {
   console.log('{"continue":true,"suppressOutput":true}');
@@ -242,9 +264,10 @@ function isValidSessionId(sessionId) {
  * @param {boolean} success - Whether the hook executed successfully
  * @param {number} durationMs - Execution duration in milliseconds
  * @param {string} projectDir - Project directory path
+ * @param {{ t_bundle_ms: number, t_stdin_ms: number, t_exec_ms: number, _t3: bigint }} [timing] - Pipeline stage timings
  * @returns {void}
  */
-function trackHookTriggered(trackedHookName, success, durationMs, projectDir) {
+function trackHookTriggered(trackedHookName, success, durationMs, projectDir, timing) {
   try {
     const sessionId = process.env.CLAUDE_SESSION_ID;
     if (!sessionId) return; // No session, skip tracking
@@ -276,15 +299,26 @@ function trackHookTriggered(trackedHookName, success, durationMs, projectDir) {
       },
     };
 
-    appendFileSync(eventsPath, JSON.stringify(event) + '\n');
+    // #920: Fire-and-forget async writes — result is already on stdout,
+    // so these don't block the tool execution pipeline. Node.js keeps the
+    // event loop alive until pending I/O callbacks complete before exiting.
+    appendFile(eventsPath, JSON.stringify(event) + '\n', () => {});
 
     // Cross-project analytics (Issue #459)
     const analyticsDir = join(homedir(), '.claude', 'analytics');
     mkdirSync(analyticsDir, { recursive: true });
-    const pid = createHash('sha256').update(projectDir).digest('hex').slice(0, 12);
+    const pid = getProjectHash(projectDir);
     const team = process.env.CLAUDE_CODE_TEAM_NAME || undefined;
-    appendFileSync(join(analyticsDir, 'hook-timing.jsonl'),
-      JSON.stringify({ ts: new Date().toISOString(), hook: trackedHookName, duration_ms: durationMs, ok: success, pid, ...(team ? { team } : {}) }) + '\n');
+    /** t4: right before the JSONL write — measures tracking overhead (t3→t4) */
+    const t4 = timing?._t3 !== undefined ? process.hrtime.bigint() : undefined;
+    const stageTimings = timing ? {
+      t_bundle_ms: timing.t_bundle_ms,
+      t_stdin_ms: timing.t_stdin_ms,
+      t_exec_ms: timing.t_exec_ms,
+      t_track_ms: t4 !== undefined ? Number(t4 - timing._t3) / 1e6 : undefined,
+    } : {};
+    appendFile(join(analyticsDir, 'hook-timing.jsonl'),
+      JSON.stringify({ ts: new Date().toISOString(), hook: trackedHookName, duration_ms: durationMs, ok: success, pid, ...(team ? { team } : {}), ...stageTimings }) + '\n', () => {});
   } catch {
     // Silent failure - tracking should never break hooks
   }
@@ -328,10 +362,19 @@ async function runHook(parsedInput) {
   const startTime = Date.now();
   let success = true;
 
+  /** t2: after stdin parsed and input ready for execution */
+  const t2 = process.hrtime.bigint();
+
+  let t3 = t2;
+
   try {
     const result = await hookFn(parsedInput);
+    /** t3: after hook function executed */
+    t3 = process.hrtime.bigint();
     console.log(JSON.stringify(result));
   } catch (err) {
+    /** t3: captured even on error so timing is always recorded */
+    t3 = process.hrtime.bigint();
     success = false;
     // On any error, output silent success to not block Claude Code
     console.log(JSON.stringify({
@@ -341,6 +384,12 @@ async function runHook(parsedInput) {
   } finally {
     // Track hook execution (Issue #245)
     const durationMs = Date.now() - startTime;
-    trackHookTriggered(hookName, success, durationMs, projectDir);
+    const timing = {
+      t_bundle_ms: Number(t1 - t0) / 1e6,
+      t_stdin_ms: Number(t2 - t1) / 1e6,
+      t_exec_ms: Number(t3 - t2) / 1e6,
+      _t3: t3, // passed through so trackHookTriggered can measure its own overhead
+    };
+    trackHookTriggered(hookName, success, durationMs, projectDir, timing);
   }
 }

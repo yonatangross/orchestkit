@@ -65,19 +65,23 @@ describe('Dispatcher Registry Wiring', () => {
       expect(byName['skill-usage-optimizer']).toBe('Skill');
 
       // Multi-tool hook
-      expect(byName['realtime-sync']).toEqual(['Bash', 'Write', 'Edit', 'Skill', 'Task']);
+      // #902: Accept both Task and Agent tool names
+      expect(byName['realtime-sync']).toEqual(['Bash', 'Write', 'Edit', 'Skill', 'Task', 'Agent']);
 
       // User tracking (Issue #245)
       expect(byName['user-tracking']).toBe('*');
 
       // Solution detector (GAP-011)
-      expect(byName['solution-detector']).toEqual(['Bash', 'Write', 'Edit', 'Task']);
+      // #902: Accept both Task and Agent tool names
+      expect(byName['solution-detector']).toEqual(['Bash', 'Write', 'Edit', 'Task', 'Agent']);
 
       // Issue #684: Consolidated hooks
-      expect(byName['redact-secrets']).toBe('Bash');
+      // #909: redact-secrets expanded from Bash-only to include Write|Edit
+      expect(byName['redact-secrets']).toEqual(['Bash', 'Write', 'Edit']);
       expect(byName['config-change-auditor']).toEqual(['Write', 'Edit']);
-      expect(byName['team-member-start']).toBe('Task');
-      expect(byName['error-logger']).toEqual(['Bash', 'Write', 'Edit', 'Task']);
+      // #902: Accept both Task and Agent tool names
+      expect(byName['team-member-start']).toEqual(['Task', 'Agent']);
+      expect(byName['error-logger']).toEqual(['Bash', 'Write', 'Edit', 'Task', 'Agent']);
     });
   });
 
