@@ -83,7 +83,7 @@ export function handoffInjector(input: HookInput): HookResult {
   if (tokens > MAX_TOKENS) {
     // Truncate to roughly MAX_TOKENS worth of content
     const maxChars = MAX_TOKENS * 3; // ~3 chars per token
-    content = content.substring(0, maxChars) + '\n\n[...truncated for token budget]';
+    content = `${content.substring(0, maxChars)}\n\n[...truncated for token budget]`;
     logHook(HOOK_NAME, `Truncated from ${tokens}t to ~${MAX_TOKENS}t`);
   }
 

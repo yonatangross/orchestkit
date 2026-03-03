@@ -35,7 +35,7 @@ const mockFetch = vi.fn();
 vi.stubGlobal('fetch', mockFetch);
 
 import { worktreeWebhookReporter } from '../../worktree/worktree-webhook-reporter.js';
-import { logHook, outputSilentSuccess } from '../../lib/common.js';
+import { logHook, } from '../../lib/common.js';
 import { getWebhookUrl } from '../../lib/orchestration-state.js';
 
 // ---------------------------------------------------------------------------

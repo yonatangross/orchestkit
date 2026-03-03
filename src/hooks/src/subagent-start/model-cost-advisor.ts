@@ -11,7 +11,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, outputWarning, logHook, getProjectDir, getPluginRoot } from '../lib/common.js';
+import { outputSilentSuccess, outputWarning, logHook, getPluginRoot } from '../lib/common.js';
 
 // Keyword signals for complexity detection (fallback when frontmatter unavailable)
 const HIGH_COMPLEXITY_SIGNALS = [

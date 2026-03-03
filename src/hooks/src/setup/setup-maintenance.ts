@@ -24,7 +24,7 @@ import {
   statSync,
   chmodSync,
 } from 'node:fs';
-import { execSync, execFileSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, getPluginRoot, getProjectDir, outputSilentSuccess, outputWithContext } from '../lib/common.js';
 import { getHomeDir, getTempDir } from '../lib/paths.js';

@@ -126,7 +126,7 @@ export function handoffWriter(input: HookInput): HookResult {
 
     const branch = getCachedBranch(projectDir);
     const sessionId = input.session_id || getSessionId();
-    const now = new Date().toISOString().replace('T', ' ').slice(0, 19) + ' UTC';
+    const now = `${new Date().toISOString().replace('T', ' ').slice(0, 19)} UTC`;
     const lastMessage = input.last_assistant_message || '';
 
     // Gather data
@@ -166,7 +166,7 @@ export function handoffWriter(input: HookInput): HookResult {
       sections.push('', `## Recent Tasks`, tasks.map(t => `- ${t}`).join('\n'));
     }
 
-    const content = sections.join('\n') + '\n';
+    const content = `${sections.join('\n')}\n`;
     atomicWriteSync(handoffPath, content);
 
     logHook(HOOK_NAME, `Wrote ${handoffPath} (${content.length} chars, ${modifiedFiles.length} files, ${learnings.length} learnings)`);

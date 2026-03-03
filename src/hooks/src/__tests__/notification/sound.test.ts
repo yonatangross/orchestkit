@@ -717,14 +717,14 @@ describe('notification/sound', () => {
 
   describe('env var sound overrides', () => {
     afterEach(() => {
-      delete process.env['ORK_SOUND_PERMISSION_PROMPT'];
-      delete process.env['ORK_SOUND_IDLE_PROMPT'];
-      delete process.env['ORK_SOUND_AUTH_SUCCESS'];
+      delete process.env.ORK_SOUND_PERMISSION_PROMPT;
+      delete process.env.ORK_SOUND_IDLE_PROMPT;
+      delete process.env.ORK_SOUND_AUTH_SUCCESS;
     });
 
     test('uses ORK_SOUND_PERMISSION_PROMPT when set (macOS)', () => {
       // Arrange
-      process.env['ORK_SOUND_PERMISSION_PROMPT'] = '/custom/alert.wav';
+      process.env.ORK_SOUND_PERMISSION_PROMPT = '/custom/alert.wav';
       const input = createSoundInput('permission_prompt');
 
       // Act
@@ -740,7 +740,7 @@ describe('notification/sound', () => {
 
     test('uses ORK_SOUND_IDLE_PROMPT when set (macOS)', () => {
       // Arrange
-      process.env['ORK_SOUND_IDLE_PROMPT'] = '/custom/ping.wav';
+      process.env.ORK_SOUND_IDLE_PROMPT = '/custom/ping.wav';
       const input = createSoundInput('idle_prompt');
 
       // Act
@@ -756,7 +756,7 @@ describe('notification/sound', () => {
 
     test('uses ORK_SOUND_AUTH_SUCCESS when set (macOS)', () => {
       // Arrange
-      process.env['ORK_SOUND_AUTH_SUCCESS'] = '/custom/success.wav';
+      process.env.ORK_SOUND_AUTH_SUCCESS = '/custom/success.wav';
       const input = createSoundInput('auth_success');
 
       // Act
@@ -792,7 +792,7 @@ describe('notification/sound', () => {
         if (cmd === 'command -v pw-play') return Buffer.from('/usr/bin/pw-play');
         return Buffer.from('');
       });
-      process.env['ORK_SOUND_PERMISSION_PROMPT'] = '/custom/linux-alert.oga';
+      process.env.ORK_SOUND_PERMISSION_PROMPT = '/custom/linux-alert.oga';
       const input = createSoundInput('permission_prompt');
 
       // Act

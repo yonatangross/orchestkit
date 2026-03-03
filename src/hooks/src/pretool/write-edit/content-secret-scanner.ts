@@ -78,7 +78,7 @@ function scanForSecrets(content: string): { name: string; snippet: string } | nu
       // Mask the secret for logging (show first 8 chars + "...")
       const snippet = match[0].length > 12
         ? `${match[0].substring(0, 8)}...`
-        : match[0].substring(0, 4) + '...';
+        : `${match[0].substring(0, 4)}...`;
       return { name, snippet };
     }
   }

@@ -257,7 +257,7 @@ describe('stop/handoff-writer', () => {
         if (p === '/test/project/.claude/logs/decisions.jsonl') return true;
         return false;
       });
-      mockReadFileSync.mockReturnValue(decisionsEntry + '\n');
+      mockReadFileSync.mockReturnValue(`${decisionsEntry}\n`);
       vi.mocked(formatLearnings).mockReturnValue(''); // no learnings
 
       const input = createStopInput();

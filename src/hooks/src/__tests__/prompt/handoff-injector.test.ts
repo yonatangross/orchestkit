@@ -299,7 +299,7 @@ describe('prompt/handoff-injector', () => {
   describe('token budget truncation', () => {
     it('truncates content when it exceeds MAX_TOKENS', () => {
       // Create content that will exceed MAX_TOKENS (600 tokens ~ 1800 chars)
-      const longContent = '# Session Handoff\n' + 'word '.repeat(500); // ~2500 chars
+      const longContent = `# Session Handoff\n${'word '.repeat(500)}`; // ~2500 chars
       mockFreshHandoff(longContent);
 
       const input = createPromptInput();
@@ -320,7 +320,7 @@ describe('prompt/handoff-injector', () => {
     });
 
     it('logs truncation when it occurs', () => {
-      const longContent = '# Handoff\n' + 'x'.repeat(MAX_CHARS + 100);
+      const longContent = `# Handoff\n${'x'.repeat(MAX_CHARS + 100)}`;
       mockFreshHandoff(longContent);
 
       const input = createPromptInput();

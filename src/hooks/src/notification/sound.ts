@@ -47,7 +47,7 @@ export function _resetAfplayCacheForTesting(): void {
   _hasAfplay = null;
 }
 
-let _linuxPlayer: string | null | undefined = undefined; // undefined = not checked
+let _linuxPlayer: string | null | undefined ; // undefined = not checked
 
 function getLinuxPlayer(): string | null {
   if (_linuxPlayer !== undefined) return _linuxPlayer;

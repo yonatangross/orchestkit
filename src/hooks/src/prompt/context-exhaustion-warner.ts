@@ -94,7 +94,7 @@ function readContextPercentage(sessionId: string): number | null {
     const content = readFileSync(filePath, 'utf8').trim();
     const pct = Math.round(parseFloat(content));
 
-    if (isNaN(pct) || pct < 0 || pct > 100) {
+    if (Number.isNaN(pct) || pct < 0 || pct > 100) {
       return null;
     }
 

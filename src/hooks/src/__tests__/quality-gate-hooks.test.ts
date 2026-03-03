@@ -12,7 +12,7 @@
 
 import { describe, test, expect, beforeEach, vi } from 'vitest';
 import type { HookInput } from '../types.js';
-import { getMetricsFile, getSessionErrorsFile } from '../lib/paths.js';
+import { getMetricsFile, } from '../lib/paths.js';
 
 // ---------------------------------------------------------------------------
 // Hoisted mocks — shared between analytics-buffer, node:fs, and atomic-write mocks
@@ -84,9 +84,8 @@ vi.mock('node:crypto', () => ({
 // ---------------------------------------------------------------------------
 // Imports (after mocks are declared)
 // ---------------------------------------------------------------------------
-import { existsSync, readFileSync, writeFileSync, appendFileSync, mkdirSync, statSync, renameSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, statSync, } from 'node:fs';
 import { execSync } from 'node:child_process';
-import { createHash } from 'node:crypto';
 
 import { coverageThresholdGate } from '../skill/coverage-threshold-gate.js';
 import { mergeReadinessChecker } from '../skill/merge-readiness-checker.js';
