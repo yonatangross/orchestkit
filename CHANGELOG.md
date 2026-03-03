@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.0.1] - 2026-03-03
+
+### Fixed
+
+- Add agents/hooks paths to plugin.json and build script (#900)
+- Add metadata.description and tags to marketplace.json (#900)
+- Fix 3 agents with empty mcpServers that use memory skills (#887)
+- Fix localhost regex false positive on *.localhost TLD (#935)
+
+---
+
+
 ## [7.0.0] - 2026-02-26
 
 ### Breaking Changes

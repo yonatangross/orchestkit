@@ -17,6 +17,22 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.0.1",
+    "date": "2026-03-03",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "Add agents/hooks paths to plugin.json and build script (#900)",
+          "Add metadata.description and tags to marketplace.json (#900)",
+          "Fix 3 agents with empty mcpServers that use memory skills (#887)",
+          "Fix localhost regex false positive on *.localhost TLD (#935)"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.0.0",
     "date": "2026-02-26",
     "compareUrl": "",

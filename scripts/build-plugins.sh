@@ -246,8 +246,6 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
         --arg desc "$PLUGIN_DESC" \
         --argjson has_skills "$([[ -d "$PLUGIN_DIR/skills" ]] && echo true || echo false)" \
         --argjson has_commands "$([[ -d "$PLUGIN_DIR/commands" ]] && echo true || echo false)" \
-        --argjson has_agents "$([[ -d "$PLUGIN_DIR/agents" ]] && echo true || echo false)" \
-        --argjson has_hooks "$([[ -f "$PLUGIN_DIR/hooks/hooks.json" ]] && echo true || echo false)" \
         '{
           name: $name,
           version: $version,
@@ -263,9 +261,7 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
           keywords: ["ai-development","langgraph","fastapi","react","typescript","python","multi-agent"]
         }
         + if $has_skills then {skills: "./skills/"} else {} end
-        + if $has_commands then {commands: "./commands/"} else {} end
-        + if $has_agents then {agents: "./agents/"} else {} end
-        + if $has_hooks then {hooks: "./hooks/hooks.json"} else {} end' \
+        + if $has_commands then {commands: "./commands/"} else {} end' \
         > "$PLUGIN_DIR/.claude-plugin/plugin.json"
 
     TOTAL_SKILLS_COPIED=$((TOTAL_SKILLS_COPIED + skill_count))
