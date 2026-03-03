@@ -5,6 +5,23 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.0.2] - 2026-03-03
+
+### Added
+
+- **Session handoffs** (#464): Structured YAML handoffs on SessionEnd with auto-injection on SessionStart for cross-session continuity
+- **Release notebook skill** (#836): `release-notebook` skill creates versioned NotebookLM notebooks per release with changelog, manifest, and CLAUDE.md sources
+- **Release notebook script** (#836): `scripts/create-release-notebook.sh` for manual/CI invocation
+
+### Changed
+
+- **Native HTTP hooks** (#896): Converted 3 HQ reporters (session-end, worktree-create, worktree-remove) from type:command to type:http — eliminates ~200ms Node spawn per fire
+- Hook count: 95 -> 97 (36 global + 54 agent-scoped + 7 skill-scoped)
+- Skill count: 69 -> 70
+
+---
+
+
 ## [7.0.1] - 2026-03-03
 
 ### Fixed
