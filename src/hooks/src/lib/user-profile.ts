@@ -14,7 +14,8 @@
  * Migration: Profiles are migrated from old project-local path on first access
  */
 
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { existsSync, readFileSync, mkdirSync } from 'node:fs';
+import { atomicWriteSync } from './atomic-write.js';
 import { join, dirname } from 'node:path';
 import { getProjectDir, logHook } from './common.js';
 import { getHomeDir as getHomeDirFromPaths } from './paths.js';
@@ -306,7 +307,7 @@ function migrateProfileIfNeeded(userId: string): boolean {
       const profile = JSON.parse(content);
 
       // Write to new location
-      writeFileSync(newPath, JSON.stringify(profile, null, 2));
+      atomicWriteSync(newPath, JSON.stringify(profile, null, 2));
 
       // Log with sanitized user ID to avoid PII in logs
       const sanitizedId = userId.replace(/@.*$/, '@***');
@@ -401,7 +402,7 @@ export function saveUserProfile(profile: UserProfile): boolean {
     }
 
     profile.last_seen = new Date().toISOString();
-    writeFileSync(profilePath, JSON.stringify(profile, null, 2));
+    atomicWriteSync(profilePath, JSON.stringify(profile, null, 2));
 
     // Log with anonymous_id to avoid PII in logs
     logHook('user-profile', `Saved profile for ${profile.anonymous_id}`, 'debug');

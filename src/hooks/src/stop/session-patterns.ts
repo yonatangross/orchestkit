@@ -10,7 +10,8 @@
  * CC 2.1.7 Compliant: Uses suppressOutput for silent operation
  */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync } from 'node:fs';
+import { atomicWriteSync } from '../lib/atomic-write.js';
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, getProjectDir, outputSilentSuccess } from '../lib/common.js';
 import { loadSessionEvents } from '../lib/session-tracker.js';
@@ -199,7 +200,7 @@ function updateWorkflowProfile(
   }
 
   mkdirSync(profilePath.replace(/\/[^/]+$/, ''), { recursive: true });
-  writeFileSync(profilePath, JSON.stringify(profile, null, 2));
+  atomicWriteSync(profilePath, JSON.stringify(profile, null, 2));
 }
 
 /**
@@ -332,7 +333,7 @@ function updateToolPreferences(projectDir: string): void {
   existingPrefs.sessions_aggregated += 1;
 
   mkdirSync(`${projectDir}/.claude/feedback`, { recursive: true });
-  writeFileSync(prefsPath, JSON.stringify(existingPrefs, null, 2));
+  atomicWriteSync(prefsPath, JSON.stringify(existingPrefs, null, 2));
 
   const prefCount = Object.keys(existingPrefs.preferences).length;
   logHook('session-patterns', `Updated tool preferences: ${prefCount} categories`);
@@ -400,11 +401,11 @@ function mergePatterns(projectDir: string): void {
   };
 
   mkdirSync(patternsPath.replace(/\/[^/]+$/, ''), { recursive: true });
-  writeFileSync(patternsPath, JSON.stringify(updated, null, 2));
+  atomicWriteSync(patternsPath, JSON.stringify(updated, null, 2));
   logHook('session-patterns', 'Merged patterns successfully');
 
   // Clear the queue
-  writeFileSync(queuePath, JSON.stringify({ patterns: [] }));
+  atomicWriteSync(queuePath, JSON.stringify({ patterns: [] }));
 }
 
 /**

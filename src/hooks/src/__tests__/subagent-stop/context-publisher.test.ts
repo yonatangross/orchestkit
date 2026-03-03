@@ -9,14 +9,25 @@ import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { HookInput, } from '../../types.js';
 
 // =============================================================================
+// Hoisted mocks — shared between node:fs and atomic-write mocks
+// =============================================================================
+const { mockWriteFileSync } = vi.hoisted(() => ({
+  mockWriteFileSync: vi.fn(),
+}));
+
+// =============================================================================
 // Mocks - MUST be defined BEFORE imports
 // =============================================================================
 
 vi.mock('node:fs', () => ({
   existsSync: vi.fn(() => false),
-  writeFileSync: vi.fn(),
+  writeFileSync: mockWriteFileSync,
   mkdirSync: vi.fn(),
   readFileSync: vi.fn(() => '{}'),
+}));
+
+vi.mock('../../lib/atomic-write.js', () => ({
+  atomicWriteSync: (path: string, content: string) => mockWriteFileSync(path, content),
 }));
 
 vi.mock('../../lib/common.js', () => ({

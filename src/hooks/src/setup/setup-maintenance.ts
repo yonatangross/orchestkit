@@ -17,7 +17,6 @@ import {
   existsSync,
   mkdirSync,
   readFileSync,
-  writeFileSync,
   renameSync,
   readdirSync,
   unlinkSync,
@@ -25,11 +24,12 @@ import {
   statSync,
   chmodSync,
 } from 'node:fs';
-import { execSync } from 'node:child_process';
+import { execSync, execFileSync } from 'node:child_process';
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, getPluginRoot, getProjectDir, outputSilentSuccess, outputWithContext } from '../lib/common.js';
 import { getHomeDir, getTempDir } from '../lib/paths.js';
 import { isAgentTeamsActive } from '../lib/agent-teams.js';
+import { atomicWriteSync } from '../lib/atomic-write.js';
 
 const CURRENT_VERSION = '4.25.0';
 
@@ -62,7 +62,7 @@ function updateMarkerField(markerFile: string, field: string, value: unknown): v
   try {
     const content = JSON.parse(readFileSync(markerFile, 'utf-8'));
     content[field.replace(/^\./, '')] = value;
-    writeFileSync(markerFile, JSON.stringify(content, null, 2));
+    atomicWriteSync(markerFile, JSON.stringify(content, null, 2));
   } catch {
     // Ignore
   }
@@ -114,9 +114,9 @@ function taskLogRotation(pluginRoot: string): void {
             renameSync(filePath, rotatedName);
             rotated++;
 
-            // Try to gzip
+            // Try to gzip (use execFileSync to avoid shell injection via filenames)
             try {
-              execSync(`gzip "${rotatedName}"`, { stdio: ['pipe', 'pipe', 'pipe'] });
+              execFileSync('gzip', [rotatedName], { stdio: ['pipe', 'pipe', 'pipe'] });
             } catch {
               // gzip not available
             }
@@ -157,16 +157,16 @@ function taskStaleLockCleanup(pluginRoot: string): void {
 
   if (existsSync(coordDb) && !isAgentTeamsActive()) {
     try {
-      execSync(`sqlite3 "${coordDb}" "DELETE FROM file_locks WHERE datetime(acquired_at) < datetime('now', '-24 hours');"`, {
+      execFileSync('sqlite3', [coordDb, "DELETE FROM file_locks WHERE datetime(acquired_at) < datetime('now', '-24 hours');"], {
         timeout: 5000,
         stdio: ['pipe', 'pipe', 'pipe'],
       });
 
-      const lockCount = execSync(`sqlite3 "${coordDb}" "SELECT COUNT(*) FROM file_locks;"`, {
+      const lockCount = execFileSync('sqlite3', [coordDb, "SELECT COUNT(*) FROM file_locks;"], {
         encoding: 'utf8',
         timeout: 5000,
         stdio: ['pipe', 'pipe', 'pipe'],
-      }).trim();
+      }).toString().trim();
 
       logHook('setup-maintenance', `Coordination locks remaining: ${lockCount}`);
       cleaned = 1;

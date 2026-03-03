@@ -3,7 +3,8 @@
  * Ported from hooks/_lib/common.sh
  */
 
-import { existsSync, statSync, renameSync, mkdirSync, readSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, statSync, renameSync, mkdirSync, readSync, readFileSync } from 'node:fs';
+import { atomicWriteSync } from './atomic-write.js';
 import { join } from 'node:path';
 import { bufferWrite } from './analytics-buffer.js';
 import { execSync } from 'node:child_process';
@@ -519,7 +520,7 @@ export function writeRulesFile(
     mkdirSync(rulesDir, { recursive: true });
   }
 
-  writeFileSync(filePath, content, 'utf8');
+  atomicWriteSync(filePath, content);
   logHook(hookName, `Wrote rules file: ${filePath}`);
   return true;
 }

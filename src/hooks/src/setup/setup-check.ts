@@ -9,7 +9,8 @@
  * 3. Triggers appropriate sub-hook based on state
  */
 
-import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { atomicWriteSync } from '../lib/atomic-write.js';
 import { spawn } from 'node:child_process';
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, getPluginRoot, outputSilentSuccess, outputWithContext } from '../lib/common.js';
@@ -131,7 +132,7 @@ function updateMarker(markerFile: string, field: string, value: unknown): void {
   try {
     const content = JSON.parse(readFileSync(markerFile, 'utf-8'));
     content[field] = value;
-    writeFileSync(markerFile, JSON.stringify(content, null, 2));
+    atomicWriteSync(markerFile, JSON.stringify(content, null, 2));
   } catch {
     // Ignore
   }

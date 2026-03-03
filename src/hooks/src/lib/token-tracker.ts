@@ -7,7 +7,8 @@
  * Used by Phase 3 budget enforcement to throttle low-priority hooks.
  */
 
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { existsSync, readFileSync, mkdirSync } from 'node:fs';
+import { atomicWriteSync } from './atomic-write.js';
 import { getProjectDir, getSessionId, logHook } from './common.js';
 
 // -----------------------------------------------------------------------------
@@ -78,7 +79,7 @@ function saveTokenState(state: SessionTokenState): void {
   const stateFile = getTokenStateFile();
 
   try {
-    writeFileSync(stateFile, JSON.stringify(state, null, 2));
+    atomicWriteSync(stateFile, JSON.stringify(state, null, 2));
   } catch {
     logHook('token-tracker', 'Failed to save token state');
   }

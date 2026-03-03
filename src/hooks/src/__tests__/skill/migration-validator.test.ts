@@ -20,6 +20,7 @@ vi.mock('node:fs', () => ({
 
 vi.mock('node:child_process', () => ({
   execSync: vi.fn(),
+  execFileSync: vi.fn(),
 }));
 
 vi.mock('../../lib/common.js', () => ({
@@ -38,7 +39,7 @@ vi.mock('../../lib/common.js', () => ({
 import { migrationValidator } from '../../skill/migration-validator.js';
 import { outputSilentSuccess, outputWithContext, logHook } from '../../lib/common.js';
 import { existsSync, readFileSync } from 'node:fs';
-import { execSync } from 'node:child_process';
+import { execSync, execFileSync } from 'node:child_process';
 
 // =============================================================================
 // Test Utilities
@@ -119,6 +120,7 @@ describe('migration-validator', () => {
     vi.mocked(existsSync).mockReturnValue(true);
     vi.mocked(readFileSync).mockReturnValue(createValidMigration());
     vi.mocked(execSync).mockReturnValue('');
+    vi.mocked(execFileSync).mockReturnValue('');
   });
 
   afterEach(() => {
@@ -393,15 +395,16 @@ def downgrade():
     test('passes when Python syntax is valid', () => {
       // Arrange
       const input = createWriteInput('/test/project/alembic/versions/001.py');
-      vi.mocked(execSync).mockReturnValue(''); // No error
+      vi.mocked(execFileSync).mockReturnValue(''); // No error
 
       // Act
       const result = migrationValidator(input);
 
       // Assert
       expect(result.continue).toBe(true);
-      expect(execSync).toHaveBeenCalledWith(
-        expect.stringContaining('python3 -m py_compile'),
+      expect(execFileSync).toHaveBeenCalledWith(
+        'python3',
+        ['-m', 'py_compile', '/test/project/alembic/versions/001.py'],
         expect.any(Object)
       );
     });
@@ -409,7 +412,7 @@ def downgrade():
     test('fails when Python syntax is invalid', () => {
       // Arrange
       const input = createWriteInput('/test/project/alembic/versions/001.py');
-      vi.mocked(execSync).mockImplementation(() => {
+      vi.mocked(execFileSync).mockImplementation(() => {
         throw new Error('SyntaxError: invalid syntax');
       });
 
@@ -430,8 +433,9 @@ def downgrade():
       migrationValidator(input);
 
       // Assert
-      expect(execSync).toHaveBeenCalledWith(
-        `python3 -m py_compile "${filePath}"`,
+      expect(execFileSync).toHaveBeenCalledWith(
+        'python3',
+        ['-m', 'py_compile', filePath],
         expect.any(Object)
       );
     });
@@ -446,7 +450,7 @@ def downgrade():
       // Arrange
       const input = createWriteInput('/test/project/alembic/versions/001.py');
       vi.mocked(readFileSync).mockReturnValue('# Empty file');
-      vi.mocked(execSync).mockImplementation(() => {
+      vi.mocked(execFileSync).mockImplementation(() => {
         throw new Error('SyntaxError');
       });
 
@@ -647,8 +651,9 @@ def downgrade():
       migrationValidator(input);
 
       // Assert
-      expect(execSync).toHaveBeenCalledWith(
-        expect.any(String),
+      expect(execFileSync).toHaveBeenCalledWith(
+        'python3',
+        expect.any(Array),
         expect.objectContaining({ timeout: 10000 })
       );
     });

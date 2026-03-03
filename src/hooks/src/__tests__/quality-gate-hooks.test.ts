@@ -15,10 +15,11 @@ import type { HookInput } from '../types.js';
 import { getMetricsFile, getSessionErrorsFile } from '../lib/paths.js';
 
 // ---------------------------------------------------------------------------
-// Hoisted mocks — shared between analytics-buffer and node:fs mocks
+// Hoisted mocks — shared between analytics-buffer, node:fs, and atomic-write mocks
 // ---------------------------------------------------------------------------
-const { mockAppendFileSync } = vi.hoisted(() => ({
+const { mockAppendFileSync, mockWriteFileSync } = vi.hoisted(() => ({
   mockAppendFileSync: vi.fn(),
+  mockWriteFileSync: vi.fn(),
 }));
 
 // ---------------------------------------------------------------------------
@@ -48,12 +49,19 @@ vi.mock('node:os', () => ({
 vi.mock('node:fs', () => ({
   existsSync: vi.fn(() => false),
   readFileSync: vi.fn(() => ''),
-  writeFileSync: vi.fn(),
+  writeFileSync: mockWriteFileSync,
   appendFileSync: mockAppendFileSync,
   mkdirSync: vi.fn(),
   statSync: vi.fn(() => ({ size: 0 })),
   renameSync: vi.fn(),
   readSync: vi.fn(() => 0),
+}));
+
+// ---------------------------------------------------------------------------
+// Mock atomic-write — delegates to mocked writeFileSync
+// ---------------------------------------------------------------------------
+vi.mock('../lib/atomic-write.js', () => ({
+  atomicWriteSync: (path: string, content: string) => mockWriteFileSync(path, content),
 }));
 
 // ---------------------------------------------------------------------------

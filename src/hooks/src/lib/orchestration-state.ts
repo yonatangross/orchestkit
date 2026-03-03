@@ -9,7 +9,8 @@
  * - State persistence across hook invocations
  */
 
-import { existsSync, readFileSync, writeFileSync, mkdirSync, unlinkSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, mkdirSync, unlinkSync, readdirSync, statSync } from 'node:fs';
+import { atomicWriteSync } from './atomic-write.js';
 import { getProjectDir, getSessionId, logHook } from './common.js';
 import type {
   OrchestrationState,
@@ -89,7 +90,7 @@ export function saveState(state: OrchestrationState): void {
   state.updatedAt = new Date().toISOString();
 
   try {
-    writeFileSync(stateFile, JSON.stringify(state, null, 2));
+    atomicWriteSync(stateFile, JSON.stringify(state, null, 2));
   } catch (err) {
     logHook('orchestration-state', `Failed to save state: ${err}`);
   }
@@ -303,7 +304,7 @@ export function saveConfig(config: Partial<OrchestrationConfig>): void {
   const merged = { ...current, ...config };
 
   try {
-    writeFileSync(configFile, JSON.stringify(merged, null, 2));
+    atomicWriteSync(configFile, JSON.stringify(merged, null, 2));
   } catch (err) {
     logHook('orchestration-state', `Failed to save config: ${err}`);
   }

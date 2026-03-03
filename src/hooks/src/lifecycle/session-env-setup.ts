@@ -4,7 +4,8 @@
  * CC 2.1.6 Compliant - Supports agent_type field
  */
 
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { existsSync, readFileSync, mkdirSync } from 'node:fs';
+import { atomicWriteSync } from '../lib/atomic-write.js';
 import { execSync } from 'node:child_process';
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, getProjectDir, getSessionId, outputSilentSuccess } from '../lib/common.js';
@@ -76,7 +77,7 @@ export function sessionEnvSetup(input: HookInput): HookResult {
   };
 
   try {
-    writeFileSync(metricsFile, JSON.stringify(metrics, null, 2));
+    atomicWriteSync(metricsFile, JSON.stringify(metrics, null, 2));
     logHook('session-env-setup', 'Initialized session metrics');
   } catch (err) {
     logHook('session-env-setup', `Failed to initialize metrics: ${err}`);
@@ -90,7 +91,7 @@ export function sessionEnvSetup(input: HookInput): HookResult {
       state.agent_type = agentType;
       state.session_id = sessionId;
       state.last_activity = new Date().toISOString();
-      writeFileSync(sessionState, JSON.stringify(state, null, 2));
+      atomicWriteSync(sessionState, JSON.stringify(state, null, 2));
       logHook('session-env-setup', `Updated session state with agent_type: ${agentType}`);
     } catch (err) {
       logHook('session-env-setup', `Failed to update session state: ${err}`);

@@ -8,7 +8,8 @@
  * Storage: .claude/memory/sessions/{session_id}/events.jsonl
  */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync } from 'node:fs';
+import { atomicWriteSync } from './atomic-write.js';
 import { bufferWrite } from './analytics-buffer.js';
 import { getProjectDir, getSessionId, logHook } from './common.js';
 import { getIdentityContext, type IdentityContext } from './user-identity.js';
@@ -187,7 +188,7 @@ function persistCounter(sessionId?: string, projectDir?: string): void {
   try {
     ensureSessionDir(sessionId, projectDir);
     const counterPath = getCounterPath(sessionId, projectDir);
-    writeFileSync(counterPath, JSON.stringify({
+    atomicWriteSync(counterPath, JSON.stringify({
       counter: eventCounter,
       updated_at: new Date().toISOString(),
     }));
@@ -226,7 +227,7 @@ export function flushEventCounter(): void {
     try {
       ensureSessionDir();
       const counterPath = getCounterPath();
-      writeFileSync(counterPath, JSON.stringify({
+      atomicWriteSync(counterPath, JSON.stringify({
         counter: eventCounter,
         updated_at: new Date().toISOString(),
       }));

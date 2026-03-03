@@ -7,7 +7,8 @@
  * Optimized with timeout and file size checks to prevent startup hangs
  */
 
-import { existsSync, readFileSync, writeFileSync, statSync, mkdirSync } from 'node:fs';
+import { existsSync, readFileSync, statSync, mkdirSync } from 'node:fs';
+import { atomicWriteSync } from '../lib/atomic-write.js';
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, getProjectDir, outputSilentSuccess } from '../lib/common.js';
 import { getHomeDir } from '../lib/paths.js';
@@ -116,7 +117,7 @@ function pullGlobalPatterns(projectDir: string): void {
     mkdirSync(`${projectDir}/.claude/feedback`, { recursive: true });
 
     // Write updated patterns
-    writeFileSync(projectPatternsFile, JSON.stringify(projectPatterns, null, 2));
+    atomicWriteSync(projectPatternsFile, JSON.stringify(projectPatterns, null, 2));
     logHook('pattern-sync-pull', `Pulled ${newPatterns.length} new patterns from global`);
   } catch (err) {
     logHook('pattern-sync-pull', `Failed to pull global patterns: ${err}`);

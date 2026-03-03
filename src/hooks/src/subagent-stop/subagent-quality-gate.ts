@@ -10,7 +10,8 @@
  * Version: 2.0.0 (TypeScript port + schema validation)
  */
 
-import { existsSync, writeFileSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
+import { atomicWriteSync } from '../lib/atomic-write.js';
 import { join } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, outputWarning, logHook, getProjectDir } from '../lib/common.js';
@@ -166,7 +167,7 @@ function updateMetrics(type: 'error' | 'threshold_failure' | 'check'): void {
     }
     metrics.quality_checks = (metrics.quality_checks || 0) + 1;
 
-    writeFileSync(METRICS_FILE, JSON.stringify(metrics, null, 2));
+    atomicWriteSync(METRICS_FILE, JSON.stringify(metrics, null, 2));
   } catch {
     // Ignore
   }

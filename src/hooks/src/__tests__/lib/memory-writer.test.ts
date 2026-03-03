@@ -39,7 +39,7 @@ vi.mock('node:fs', async () => {
 vi.mock('../../lib/atomic-write.js', async () => {
   const fs = await import('node:fs');
   return {
-    atomicWriteSync: (path: string, content: string) => fs.writeFileSync(path, content),
+    atomicWriteSync: (path: string, content: string) => fs.writeFileSync(path, content, 'utf8'),
   };
 });
 

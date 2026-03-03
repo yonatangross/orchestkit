@@ -13,7 +13,8 @@
  * Storage: User profiles stored locally in .claude/memory/users/
  */
 
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { existsSync, readFileSync, mkdirSync } from 'node:fs';
+import { atomicWriteSync } from './atomic-write.js';
 import { execSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { basename } from 'node:path';
@@ -430,7 +431,7 @@ export function saveUserIdentityConfig(
       mkdirSync(configDir, { recursive: true });
     }
 
-    writeFileSync(configPath, JSON.stringify(config, null, 2));
+    atomicWriteSync(configPath, JSON.stringify(config, null, 2));
 
     // Clear cache to pick up new config
     clearIdentityCache();

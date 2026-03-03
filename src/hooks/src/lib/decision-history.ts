@@ -7,7 +7,8 @@
  * Issues: #203, #206, #207, #208
  */
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
+import { readFileSync, existsSync, mkdirSync } from 'node:fs';
+import { atomicWriteSync } from './atomic-write.js';
 import { createHash } from 'node:crypto';
 import { getProjectDir, getPluginRoot } from './common.js';
 import { isAgentTeamsActive } from './agent-teams.js';
@@ -451,7 +452,7 @@ export function loadChangelogDecisions(): Decision[] {
       mkdirSync(cacheDir, { recursive: true });
     }
 
-    writeFileSync(
+    atomicWriteSync(
       cacheFile,
       JSON.stringify({ ...parsed, decisions }, null, 2)
     );

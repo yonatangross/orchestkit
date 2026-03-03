@@ -463,20 +463,22 @@ function storeToCCNativeMemory(decision: DecisionRecord): boolean {
     }
 
     // Insert after header (keep most recent at top)
-    const headerEnd = existingContent.indexOf(header) + header.length;
+    const headerIdx = existingContent.indexOf(header);
+    const headerEnd = headerIdx >= 0 ? headerIdx + header.length : 0;
     const newContent =
       existingContent.slice(0, headerEnd) +
       formattedDecision + '\n' +
       existingContent.slice(headerEnd);
 
     // Limit to ~50 entries to keep system prompt small (CC injects entire file)
-    const lines = newContent.split('\n');
-    const decisionLines = lines.filter(l => l.startsWith('- **['));
+    const contentLines = newContent.split('\n');
+    const decisionLines = contentLines.filter(l => l.startsWith('- **['));
     if (decisionLines.length > 50) {
-      // Truncate oldest entries
-      const truncateIndex = newContent.lastIndexOf('- **[', newContent.length - 1);
-      const trimmedContent = newContent.slice(0, truncateIndex) +
-        '\n_...older decisions archived..._\n';
+      // Find the 50th decision line (0-indexed) — the oldest entry to keep
+      const lastKeep = decisionLines[49];
+      const lastKeepIdx = newContent.indexOf(lastKeep);
+      const trimmedContent = newContent.slice(0, lastKeepIdx + lastKeep.length) +
+        '\n\n_...older decisions archived..._\n';
       atomicWriteSync(memoryPath, trimmedContent);
     } else {
       atomicWriteSync(memoryPath, newContent);

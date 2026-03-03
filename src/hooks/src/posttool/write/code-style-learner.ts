@@ -13,7 +13,8 @@
  * Memory Fabric v2.1: Cross-project learning via patterns queue
  */
 
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { existsSync, readFileSync, mkdirSync } from 'node:fs';
+import { atomicWriteSync } from '../../lib/atomic-write.js';
 import type { HookInput, HookResult } from '../../types.js';
 import { outputSilentSuccess, getField, getProjectDir, logHook } from '../../lib/common.js';
 
@@ -343,7 +344,7 @@ export function codeStyleLearner(input: HookInput): HookResult {
     mkdirSync(`${projectDir}/.claude/feedback`, { recursive: true });
     const profile = loadProfile(profilePath);
     updateProfile(profile, language, indentation, quoteStyle, semiStyle, trailingComma, typeHints, docstringStyle);
-    writeFileSync(profilePath, JSON.stringify(profile, null, 2));
+    atomicWriteSync(profilePath, JSON.stringify(profile, null, 2));
   } catch (error) {
     logHook('code-style-learner', `Error updating profile: ${error}`);
   }

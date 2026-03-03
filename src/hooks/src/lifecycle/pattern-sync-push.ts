@@ -6,7 +6,8 @@
  * Part of Cross-Project Patterns (#48)
  */
 
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { existsSync, readFileSync, mkdirSync } from 'node:fs';
+import { atomicWriteSync } from '../lib/atomic-write.js';
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, getProjectDir, outputSilentSuccess } from '../lib/common.js';
 import { getHomeDir } from '../lib/paths.js';
@@ -88,7 +89,7 @@ function pushProjectPatterns(projectDir: string): void {
     mkdirSync(`${home}/.claude`, { recursive: true });
 
     // Write updated patterns
-    writeFileSync(globalPatternsFile, JSON.stringify(globalPatterns, null, 2));
+    atomicWriteSync(globalPatternsFile, JSON.stringify(globalPatterns, null, 2));
     logHook('pattern-sync-push', `Pushed ${newPatterns.length} new patterns to global`);
   } catch (err) {
     logHook('pattern-sync-push', `Failed to push project patterns: ${err}`);

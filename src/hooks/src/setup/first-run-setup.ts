@@ -11,7 +11,8 @@
  * 5. Create marker file
  */
 
-import { existsSync, mkdirSync, writeFileSync, readdirSync, chmodSync, } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, chmodSync, } from 'node:fs';
+import { atomicWriteSync } from '../lib/atomic-write.js';
 import { execSync } from 'node:child_process';
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, getPluginRoot, outputWithContext, } from '../lib/common.js';
@@ -266,7 +267,7 @@ function applyConfiguration(preset: string, _envInfo: EnvironmentInfo, pluginRoo
   // Write config if it doesn't exist
   const configFile = `${pluginRoot}/.claude/defaults/config.json`;
   if (!existsSync(configFile)) {
-    writeFileSync(configFile, JSON.stringify(config, null, 2));
+    atomicWriteSync(configFile, JSON.stringify(config, null, 2));
     logHook('first-run-setup', `Created config file: ${configFile}`);
   }
 
@@ -365,7 +366,7 @@ function createMarker(preset: string, envInfo: EnvironmentInfo, pluginRoot: stri
   };
 
   const markerFile = `${pluginRoot}/.setup-complete`;
-  writeFileSync(markerFile, JSON.stringify(marker, null, 2));
+  atomicWriteSync(markerFile, JSON.stringify(marker, null, 2));
   logHook('first-run-setup', `Marker file created: ${markerFile}`);
 }
 

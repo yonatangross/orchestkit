@@ -12,18 +12,29 @@ import { describe, test, expect, beforeEach, vi } from 'vitest';
 import type { HookInput } from '../../types.js';
 
 // =============================================================================
+// Hoisted mocks — shared between node:fs and atomic-write mocks
+// =============================================================================
+const { mockWriteFileSync } = vi.hoisted(() => ({
+  mockWriteFileSync: vi.fn(),
+}));
+
+// =============================================================================
 // Mocks - MUST be before imports
 // =============================================================================
 
 vi.mock('node:fs', () => ({
   existsSync: vi.fn().mockReturnValue(false),
   readFileSync: vi.fn().mockReturnValue('{}'),
-  writeFileSync: vi.fn(),
+  writeFileSync: mockWriteFileSync,
   mkdirSync: vi.fn(),
   appendFileSync: vi.fn(),
   statSync: vi.fn().mockReturnValue({ size: 500 }),
   renameSync: vi.fn(),
   readSync: vi.fn().mockReturnValue(0),
+}));
+
+vi.mock('../../lib/atomic-write.js', () => ({
+  atomicWriteSync: (path: string, content: string) => mockWriteFileSync(path, content),
 }));
 
 vi.mock('node:child_process', () => ({
