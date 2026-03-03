@@ -46,7 +46,7 @@ const ROBOTS_CACHE_TTL = parseInt(process.env.AGENT_BROWSER_ROBOTS_CACHE_TTL || 
  * Blocked URL patterns for agent-browser
  */
 const BLOCKED_URL_PATTERNS = [
-  /localhost/i,
+  /\blocalhost(?::\d+)?\b/i,
   /127\.0\.0\.1/i,
   /internal\./i,
   /intranet\./i,
