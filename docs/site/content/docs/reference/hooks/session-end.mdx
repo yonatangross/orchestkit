@@ -1,13 +1,14 @@
 ---
 title: "SessionEnd"
-description: "Hooks triggered on SessionEnd events (2 hooks)."
+description: "Hooks triggered on SessionEnd events (3 hooks)."
 ---
 
 # SessionEnd Hooks
 
-**2 hooks** registered for the `SessionEnd` lifecycle event.
+**3 hooks** registered for the `SessionEnd` lifecycle event.
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
 | `sync-session-end-dispatcher` | `*` | 🛑 Blocks | — |
-| `session-end-reporter` | `*` | 🔇 Silent | — |
+| `` | `*` | 🔇 Silent | — |
+| `session-handoff-generator` | `*` | 🔇 Silent | — |
