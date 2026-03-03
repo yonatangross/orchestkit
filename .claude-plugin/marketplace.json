@@ -1,21 +1,22 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "orchestkit",
-  "version": "7.0.0",
+  "version": "7.0.1",
   "engine": ">=2.1.59",
-  "description": "The Complete AI Development Toolkit — 69 skills, 38 agents, 96 hooks for full-stack development",
+  "description": "The Complete AI Development Toolkit — 69 skills, 38 agents, 95 hooks for full-stack development",
   "owner": {
     "name": "Yonatan Gross",
     "email": "yonatan2gross@gmail.com"
   },
   "metadata": {
+    "description": "AI-assisted development plugin with built-in best practices, security patterns, quality gates, and multi-agent orchestration for Claude Code.",
     "pluginRoot": "./plugins"
   },
   "plugins": [
     {
       "name": "ork",
-      "description": "The Complete AI Development Toolkit — 69 skills, 38 agents, 96 hooks. Python, React, LLM/RAG, security, testing, and more.",
-      "version": "7.0.0",
+      "description": "The Complete AI Development Toolkit — 69 skills, 38 agents, 95 hooks. Python, React, LLM/RAG, security, testing, and more.",
+      "version": "7.0.1",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
