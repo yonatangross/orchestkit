@@ -381,7 +381,7 @@ describe('edge cases', () => {
       JSON.stringify({ id: 2, type: 'pattern' }),
       JSON.stringify({ id: 3, type: 'learning' }),
     ];
-    const jsonlData = lines.join('\n') + '\n';
+    const jsonlData = `${lines.join('\n')}\n`;
 
     atomicWriteSync(filePath, jsonlData);
 

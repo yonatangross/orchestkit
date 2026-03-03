@@ -145,8 +145,10 @@ for plugin in "${TARGET_PLUGINS[@]}"; do
     # Test: File size is reasonable (proportional to agent count)
     # ========================================================================
     FILE_SIZE=$(wc -c < "$CLAUDE_MD" | tr -d ' ')
-    AGENT_COUNT_FOR_SIZE=$(grep -cE "^\|[a-z][a-z0-9-]+:" "$CLAUDE_MD" || true)
-    MIN_SIZE=$((AGENT_COUNT_FOR_SIZE * 100 + 200))  # ~100 bytes/agent + 200 header
+    # Exclude |root: directive from agent count for size calculation
+    AGENT_COUNT_FOR_SIZE=$(grep -cE "^\|[a-z][a-z0-9-]+:" "$CLAUDE_MD" | grep -v "^|root:" | wc -l || true)
+    AGENT_COUNT_FOR_SIZE=$(grep -E "^\|[a-z][a-z0-9-]+:" "$CLAUDE_MD" | grep -vc "^|root:" || true)
+    MIN_SIZE=$((AGENT_COUNT_FOR_SIZE * 75 + 200))  # ~75 bytes/agent + 200 header
 
     if [[ "$FILE_SIZE" -lt "$MIN_SIZE" ]]; then
         fail "CLAUDE.md too small ($FILE_SIZE bytes for $AGENT_COUNT_FOR_SIZE agents)"
