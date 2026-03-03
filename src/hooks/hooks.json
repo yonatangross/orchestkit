@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 36 global + 54 agent-scoped + 7 skill-scoped = 97 total hooks (3 reporters migrated to native http)",
+  "description": "OrchestKit hooks - 37 global + 54 agent-scoped + 7 skill-scoped = 98 total hooks (3 reporters migrated to native http)",
   "hooks": {
     "PreToolUse": [
       {
@@ -103,6 +103,16 @@
             "async": true,
             "timeout": 60000,
             "run_on_fail": true
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/release-notebook-trigger",
+            "timeout": 5000
           }
         ]
       }

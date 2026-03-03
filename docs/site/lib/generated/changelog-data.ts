@@ -17,6 +17,29 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.0.2",
+    "date": "2026-03-03",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**Session handoffs** (#464): Structured YAML handoffs on SessionEnd with auto-injection on SessionStart for cross-session continuity",
+          "**Release notebook skill** (#836): `release-notebook` skill creates versioned NotebookLM notebooks per release with changelog, manifest, and CLAUDE.md sources",
+          "**Release notebook script** (#836): `scripts/create-release-notebook.sh` for manual/CI invocation"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**Native HTTP hooks** (#896): Converted 3 HQ reporters (session-end, worktree-create, worktree-remove) from type:command to type:http — eliminates ~200ms Node spawn per fire",
+          "Hook count: 95 -> 97 (36 global + 54 agent-scoped + 7 skill-scoped)",
+          "Skill count: 69 -> 70"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.0.1",
     "date": "2026-03-03",
     "compareUrl": "",

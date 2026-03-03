@@ -45,6 +45,9 @@ import { toolPreferenceLearner } from '../posttool/tool-preference-learner.js';
 // Issue #772: Config change security auditor
 import { configChangeAuditor } from '../posttool/config-change/security-auditor.js';
 
+// Issue #837: Release notebook trigger on git push to main
+import releaseNotebookTrigger from '../posttool/release-notebook-trigger.js';
+
 import type { HookFn } from '../types.js';
 
 /**
@@ -86,6 +89,9 @@ export const hooks: Record<string, HookFn> = {
 
   // Issue #772: Config change security auditor
   'posttool/config-change/security-auditor': configChangeAuditor,
+
+  // Issue #837: Release notebook trigger
+  'posttool/release-notebook-trigger': releaseNotebookTrigger,
 };
 
 export function getHook(name: string): HookFn | undefined {
