@@ -16,7 +16,8 @@
 
 import { execSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { existsSync, readFileSync, mkdirSync } from 'node:fs';
+import { atomicWriteSync } from './atomic-write.js';
 import { join, basename } from 'node:path';
 
 // =============================================================================
@@ -188,7 +189,7 @@ export function cacheSessionId(sessionId: string, projectDir?: string): void {
       mkdirSync(instanceDir, { recursive: true });
     }
 
-    writeFileSync(cachePath, JSON.stringify({
+    atomicWriteSync(cachePath, JSON.stringify({
       session_id: sessionId,
       created_at: new Date().toISOString(),
     }, null, 2));

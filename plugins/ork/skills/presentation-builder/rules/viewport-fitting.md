@@ -18,6 +18,24 @@ Content overflows? -> Split into multiple slides or reduce content
 Never scroll within a slide.
 ```
 
+**Incorrect:**
+```css
+.slide {
+    min-height: 100vh;  /* allows overflow beyond viewport */
+    overflow: auto;      /* enables scrolling within slide */
+}
+```
+
+**Correct:**
+```css
+.slide {
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;    /* CRITICAL: no scrolling */
+    scroll-snap-align: start;
+}
+```
+
 ## Required CSS Architecture
 
 Every presentation MUST include this base CSS:

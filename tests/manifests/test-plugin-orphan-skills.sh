@@ -136,7 +136,7 @@ if [[ "$ORPHAN_COUNT" -gt 0 ]]; then
 else
     echo -e "${GREEN}PASSED${NC} — All $TOTAL_SKILLS skills have a delivery path."
     if [[ "$CLAIMED_VIA_ALL" -gt 0 ]]; then
-        echo -e "  ${YELLOW}Info:${NC} $CLAIMED_VIA_ALL skills only available in '$ALL_PLUGIN_NAME' (not in orkl/ork-creative)."
+        echo -e "  ${YELLOW}Info:${NC} $CLAIMED_VIA_ALL skills delivered via '$ALL_PLUGIN_NAME' skills: \"all\" directive."
     fi
     exit 0
 fi

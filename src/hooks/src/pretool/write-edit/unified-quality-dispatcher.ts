@@ -8,8 +8,6 @@
  * Hooks consolidated here:
  * - security-pattern-validator (can block — runs first)
  * - architecture-change-detector (context)
- * - docstring-enforcer (context)
- * - code-quality-gate (context)
  *
  * NOT consolidated (remain separate in hooks.json):
  * - file-guard (security-critical guard, must block early)
@@ -30,8 +28,6 @@ import {
 // Import hook implementations
 import { securityPatternValidator } from '../Write/security-pattern-validator.js';
 import { architectureChangeDetector } from '../Write/architecture-change-detector.js';
-import { docstringEnforcer } from '../Write/docstring-enforcer.js';
-import { codeQualityGate } from '../Write/code-quality-gate.js';
 
 // -----------------------------------------------------------------------------
 // Constants
@@ -59,8 +55,6 @@ interface QualityHookConfig {
 
 const QUALITY_HOOKS: QualityHookConfig[] = [
   { name: 'architecture-change-detector', fn: architectureChangeDetector },
-  { name: 'docstring-enforcer', fn: docstringEnforcer },
-  { name: 'code-quality-gate', fn: codeQualityGate },
 ];
 
 /** Exposed for testing */

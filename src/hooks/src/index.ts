@@ -99,24 +99,21 @@ import { testRunner } from './skill/test-runner.js';
 // Prompt hooks (UserPromptSubmit)
 import { antipatternDetector } from './prompt/antipattern-detector.js';
 import { antipatternWarning } from './prompt/antipattern-warning.js';
-import { contextInjector } from './prompt/context-injector.js';
-import { contextPruningAdvisor } from './prompt/context-pruning-advisor.js';
+import { handoffInjector } from './prompt/handoff-injector.js';
 import { memoryContext } from './prompt/memory-context.js';
 import { satisfactionDetector } from './prompt/satisfaction-detector.js';
-import { skillAutoSuggest } from './prompt/skill-auto-suggest.js';
 import { todoEnforcer } from './prompt/todo-enforcer.js';
 // Routing hooks removed — replaced by passive index (passive-index-migration)
 import { pipelineDetector } from './prompt/pipeline-detector.js';
 
-// SubagentStart hooks (6)
+// SubagentStart hooks (5)
 import { graphMemoryInject } from './subagent-start/graph-memory-inject.js';
 import { contextGate } from './subagent-start/context-gate.js';
 import { subagentContextStager } from './subagent-start/subagent-context-stager.js';
 import { subagentValidator } from './subagent-start/subagent-validator.js';
-import { taskLinker } from './subagent-start/task-linker.js';
 import { modelCostAdvisor } from './subagent-start/model-cost-advisor.js';
 
-// SubagentStop hooks (11)
+// SubagentStop hooks (9)
 import { agentMemoryStore } from './subagent-stop/agent-memory-store.js';
 import { autoSpawnQuality } from './subagent-stop/auto-spawn-quality.js';
 import { contextPublisher } from './subagent-stop/context-publisher.js';
@@ -125,7 +122,6 @@ import { handoffPreparer } from './subagent-stop/handoff-preparer.js';
 import { multiClaudeVerifier } from './subagent-stop/multi-claude-verifier.js';
 import { outputValidator } from './subagent-stop/output-validator.js';
 import { subagentQualityGate } from './subagent-stop/subagent-quality-gate.js';
-import { taskCompleter } from './subagent-stop/task-completer.js';
 import { retryHandler } from './subagent-stop/retry-handler.js';
 
 // Notification hooks (2)
@@ -133,8 +129,7 @@ import { desktopNotification } from './notification/desktop.js';
 import { soundNotification } from './notification/sound.js';
 
 // Stop hooks (9)
-import { autoRememberContinuity } from './stop/auto-remember-continuity.js';
-import { autoSaveContext } from './stop/auto-save-context.js';
+import { handoffWriter } from './stop/handoff-writer.js';
 import { fullTestSuite } from './stop/full-test-suite.js';
 import { issueWorkSummary } from './stop/issue-work-summary.js';
 import { securityScanAggregator } from './stop/security-scan-aggregator.js';
@@ -186,16 +181,25 @@ import { analyticsConsentCheck } from './lifecycle/analytics-consent-check.js';
 import { patternSyncPull } from './lifecycle/pattern-sync-pull.js';
 import { patternSyncPush } from './lifecycle/pattern-sync-push.js';
 import { sessionCleanup } from './lifecycle/session-cleanup.js';
-import { sessionContextLoader } from './lifecycle/session-context-loader.js';
 import { sessionEnvSetup } from './lifecycle/session-env-setup.js';
 import { sessionMetricsSummary } from './lifecycle/session-metrics-summary.js';
 import { dependencyVersionCheck } from './lifecycle/dependency-version-check.js';
 import { prefillGuard } from './lifecycle/prefill-guard.js';
+import { syncSessionDispatcher } from './lifecycle/sync-session-dispatcher.js';
+import { syncSessionEndDispatcher } from './lifecycle/sync-session-end-dispatcher.js';
 
-// TeammateIdle hooks (CC 2.1.33)
+// Sync dispatchers — consolidate per-matcher hooks into single process (#867-#871)
+import { syncSubagentStopDispatcher } from './subagent-stop/sync-subagent-stop-dispatcher.js';
+import { syncBashDispatcher } from './pretool/bash/sync-bash-dispatcher.js';
+import { syncWriteEditDispatcher } from './pretool/write-edit/sync-write-edit-dispatcher.js';
+import { syncTaskDispatcher } from './pretool/task/sync-task-dispatcher.js';
+import { syncSetupDispatcher } from './setup/sync-setup-dispatcher.js';
+
+// TeammateIdle hooks (CC 2.1.33) — consolidated into unified dispatcher (#853)
 import { progressReporter } from './teammate-idle/progress-reporter.js';
 import { teamSynthesisTrigger } from './teammate-idle/team-synthesis-trigger.js';
 import { teamQualityGate } from './teammate-idle/team-quality-gate.js';
+import { unifiedTeammateIdleDispatcher } from './teammate-idle/unified-dispatcher.js';
 
 // TaskCompleted hooks (CC 2.1.33)
 import { completionTracker } from './task-completed/completion-tracker.js';
@@ -258,23 +262,20 @@ export const hooks: Record<string, HookFn> = {
   // Prompt hooks (12) - UserPromptSubmit
   'prompt/antipattern-detector': antipatternDetector,
   'prompt/antipattern-warning': antipatternWarning,
-  'prompt/context-injector': contextInjector,
-  'prompt/context-pruning-advisor': contextPruningAdvisor,
+  'prompt/handoff-injector': handoffInjector,
   'prompt/memory-context': memoryContext,
   'prompt/satisfaction-detector': satisfactionDetector,
-  'prompt/skill-auto-suggest': skillAutoSuggest,
   'prompt/todo-enforcer': todoEnforcer,
   'prompt/pipeline-detector': pipelineDetector,
 
-  // SubagentStart hooks (6)
+  // SubagentStart hooks (5)
   'subagent-start/graph-memory-inject': graphMemoryInject,
   'subagent-start/context-gate': contextGate,
   'subagent-start/subagent-context-stager': subagentContextStager,
   'subagent-start/subagent-validator': subagentValidator,
-  'subagent-start/task-linker': taskLinker,
   'subagent-start/model-cost-advisor': modelCostAdvisor,
 
-  // SubagentStop hooks (11)
+  // SubagentStop hooks (9)
   'subagent-stop/agent-memory-store': agentMemoryStore,
   'subagent-stop/auto-spawn-quality': autoSpawnQuality,
   'subagent-stop/context-publisher': contextPublisher,
@@ -283,7 +284,6 @@ export const hooks: Record<string, HookFn> = {
   'subagent-stop/multi-claude-verifier': multiClaudeVerifier,
   'subagent-stop/output-validator': outputValidator,
   'subagent-stop/subagent-quality-gate': subagentQualityGate,
-  'subagent-stop/task-completer': taskCompleter,
   'subagent-stop/retry-handler': retryHandler,
 
   // Notification hooks (2)
@@ -315,8 +315,7 @@ export const hooks: Record<string, HookFn> = {
   'skill/test-runner': testRunner,
 
   // Stop hooks (10)
-  'stop/auto-remember-continuity': autoRememberContinuity,
-  'stop/auto-save-context': autoSaveContext,
+  'stop/handoff-writer': handoffWriter,
   'stop/full-test-suite': fullTestSuite,
   'stop/issue-work-summary': issueWorkSummary,
   'stop/security-scan-aggregator': securityScanAggregator,
@@ -369,13 +368,22 @@ export const hooks: Record<string, HookFn> = {
   'lifecycle/pattern-sync-pull': patternSyncPull,
   'lifecycle/pattern-sync-push': patternSyncPush,
   'lifecycle/session-cleanup': sessionCleanup,
-  'lifecycle/session-context-loader': sessionContextLoader,
   'lifecycle/session-env-setup': sessionEnvSetup,
   'lifecycle/session-metrics-summary': sessionMetricsSummary,
   'lifecycle/dependency-version-check': dependencyVersionCheck,
   'lifecycle/prefill-guard': prefillGuard,
+  'lifecycle/sync-session-dispatcher': syncSessionDispatcher,
+  'lifecycle/sync-session-end-dispatcher': syncSessionEndDispatcher,
 
-  // TeammateIdle hooks (CC 2.1.33)
+  // Sync dispatchers (#867-#871)
+  'subagent-stop/sync-subagent-stop-dispatcher': syncSubagentStopDispatcher,
+  'pretool/bash/sync-bash-dispatcher': syncBashDispatcher,
+  'pretool/write-edit/sync-write-edit-dispatcher': syncWriteEditDispatcher,
+  'pretool/task/sync-task-dispatcher': syncTaskDispatcher,
+  'setup/sync-setup-dispatcher': syncSetupDispatcher,
+
+  // TeammateIdle hooks (CC 2.1.33) — unified dispatcher (#853)
+  'teammate-idle/unified-dispatcher': unifiedTeammateIdleDispatcher,
   'teammate-idle/progress-reporter': progressReporter,
   'teammate-idle/team-synthesis-trigger': teamSynthesisTrigger,
   'teammate-idle/team-quality-gate': teamQualityGate,

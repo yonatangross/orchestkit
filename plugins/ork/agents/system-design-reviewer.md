@@ -1,8 +1,9 @@
 ---
 name: system-design-reviewer
-description: System design reviewer who evaluates implementation plans against scale, data, security, UX, and coherence criteria before code is written. Auto Mode keywords: system design, architecture review, scale, security review, implementation plan
+description: System design reviewer who evaluates implementation plans against scale, data, security, UX, and coherence criteria before code is written.
 category: design
 model: opus
+maxTurns: 40
 permissionMode: plan
 context: inherit
 color: cyan
@@ -30,6 +31,8 @@ hooks:
   PreToolUse:
     - matcher: "Write|Edit"
       command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs agent/block-writes"
+    - matcher: "Bash"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs agent/restrict-bash"
 ---
 # System Design Reviewer Agent
 

@@ -9,7 +9,8 @@
  * and session parser data.
  */
 
-import { readFileSync, existsSync, writeFileSync, mkdirSync } from 'node:fs';
+import { readFileSync, existsSync, mkdirSync } from 'node:fs';
+import { atomicWriteSync } from './atomic-write.js';
 import { join, dirname } from 'node:path';
 import { getHomeDir } from './paths.js';
 
@@ -126,7 +127,7 @@ export function initPricingConfig(): void {
   if (existsSync(configPath)) return;
   try {
     mkdirSync(dirname(configPath), { recursive: true });
-    writeFileSync(
+    atomicWriteSync(
       configPath,
       `${JSON.stringify(DEFAULT_PRICING, null, 2)}\n`,
     );

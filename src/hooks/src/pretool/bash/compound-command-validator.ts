@@ -1,7 +1,11 @@
 /**
  * Compound Command Validator Hook
- * Validates multi-command sequences for security
- * CC 2.1.7: Detects dangerous patterns in compound commands (&&, ||, |, ;)
+ * Detects suspicious shell features that bypass simple pattern matching.
+ * CC 2.1.7: Catches process substitution, brace expansion, IFS manipulation, etc.
+ *
+ * NOTE: Dangerous command patterns (rm -rf, dd, mkfs, etc.) are handled by
+ * dangerous-command-blocker.ts which runs FIRST in sync-bash-dispatcher.
+ * This hook focuses solely on shell feature detection — its unique value.
  */
 
 import type { HookInput, HookResult } from '../../types.js';
@@ -11,48 +15,10 @@ import {
   logHook,
   logPermissionFeedback,
 } from '../../lib/common.js';
-import { containsDangerousCommand, normalizeSingle } from '../../lib/normalize-command.js';
+import { detectSuspiciousShellFeatures } from '../../lib/normalize-command.js';
 
 /**
- * Dangerous segment patterns
- */
-const DANGEROUS_SEGMENTS = [
-  'rm -rf /',
-  'rm -rf ~',
-  'rm -fr /',
-  'rm -fr ~',
-  'mkfs',
-  'dd if=/dev',
-  '> /dev/sd',
-  'chmod -R 777 /',
-];
-
-/**
- * Validate compound command and return blocking reason if dangerous.
- * Uses containsDangerousCommand from normalize-command.ts which handles
- * hex/octal escape expansion, quote stripping, and compound operator splitting.
- */
-function validateCompoundCommand(command: string): string | null {
-  // Check for pipe-to-shell patterns BEFORE normalization splits on |
-  // String-based checks avoid ReDoS from polynomial regex backtracking
-  const normalized = normalizeSingle(command).toLowerCase();
-  const hasPipeShell = (cmd: string, fetcher: string): boolean =>
-    cmd.includes(fetcher) && cmd.includes('|') && (cmd.includes('sh') || cmd.includes('bash'));
-  if (hasPipeShell(normalized, 'curl') || hasPipeShell(normalized, 'wget')) {
-    return 'pipe-to-shell execution (curl/wget piped to sh/bash)';
-  }
-
-  // Use full normalizer: expands escapes, strips quotes, splits on operators
-  const result = containsDangerousCommand(command, DANGEROUS_SEGMENTS);
-  if (result.matches) {
-    return result.subCommand || result.matched || 'unknown dangerous segment';
-  }
-
-  return null;
-}
-
-/**
- * Validate compound commands for dangerous patterns
+ * Validate compound commands for suspicious shell features
  */
 export function compoundCommandValidator(input: HookInput): HookResult {
   const command = input.tool_input.command || '';
@@ -61,21 +27,23 @@ export function compoundCommandValidator(input: HookInput): HookResult {
     return outputSilentSuccess();
   }
 
-  const blockReason = validateCompoundCommand(command);
+  // Detect shell features that bypass simple pattern matching:
+  // process substitution <(...), brace expansion {cmd,...},
+  // here-strings <<<, IFS manipulation, nested command substitution
+  const suspiciousFeatures = detectSuspiciousShellFeatures(command);
+  if (suspiciousFeatures.length > 0) {
+    const reason = suspiciousFeatures.join('; ');
+    logPermissionFeedback('deny', `Suspicious shell feature: ${reason}`, input);
+    logHook('compound-command-validator', `BLOCKED: ${reason}`);
 
-  if (blockReason) {
-    const errorMsg = `BLOCKED: Dangerous compound command detected.
+    return outputDeny(
+      `BLOCKED: Suspicious shell feature detected.
 
-Blocked segment: ${blockReason}
+Finding: ${reason}
 
-The command contains a potentially destructive operation.
-
-Please review and modify your command to remove the dangerous operation.`;
-
-    logPermissionFeedback('deny', `Dangerous compound command: ${blockReason}`, input);
-    logHook('compound-command-validator', `BLOCKED: ${blockReason}`);
-
-    return outputDeny(errorMsg);
+These shell features can bypass command validation and are not permitted.
+Please rewrite the command using standard shell syntax.`
+    );
   }
 
   // Safe compound command - allow execution

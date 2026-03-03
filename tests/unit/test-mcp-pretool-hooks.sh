@@ -103,7 +103,8 @@ test_memory_validator_allows_small_entity_delete() {
 describe "Bash Hooks: Dangerous Command Blocker"
 
 test_dangerous_command_blocker_registered() {
-    assert_file_contains "$HOOKS_JSON" "pretool/bash/dangerous-command-blocker"
+    # dangerous-command-blocker is consolidated into sync-bash-dispatcher (#868)
+    assert_file_contains "$HOOKS_JSON" "pretool/bash/sync-bash-dispatcher"
 }
 
 test_dangerous_command_blocker_ts_exists() {

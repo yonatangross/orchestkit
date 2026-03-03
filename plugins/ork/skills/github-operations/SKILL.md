@@ -1,7 +1,7 @@
 ---
 name: github-operations
 license: MIT
-compatibility: "Claude Code 2.1.56+. Requires gh CLI."
+compatibility: "Claude Code 2.1.59+. Requires gh CLI."
 author: OrchestKit
 description: GitHub CLI operations for issues, PRs, milestones, and Projects v2. Covers gh commands, REST API patterns, and automation scripts. Use when managing GitHub issues, PRs, milestones, or Projects with gh.
 context: fork
@@ -11,6 +11,16 @@ user-invocable: false
 complexity: medium
 metadata:
   category: workflow-automation
+allowed-tools:
+  - Read
+  - Glob
+  - Grep
+  - Bash
+  - Write
+  - Edit
+  - TaskCreate
+  - TaskUpdate
+  - TaskList
 ---
 
 # GitHub Operations

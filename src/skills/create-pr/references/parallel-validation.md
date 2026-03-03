@@ -14,7 +14,7 @@ For Feature and Bug fix PRs, launch validation agents in parallel BEFORE creatin
 ### Security Auditor
 
 ```python
-Task(
+Agent(
   subagent_type="security-auditor",
   prompt="""Security audit for PR changes:
   1. Check for secrets/credentials in diff
@@ -34,7 +34,7 @@ Task(
 ### Test Generator
 
 ```python
-Task(
+Agent(
   subagent_type="test-generator",
   prompt="""Test coverage verification:
   1. Run test suite with coverage
@@ -53,7 +53,7 @@ Task(
 ### Code Quality Reviewer
 
 ```python
-Task(
+Agent(
   subagent_type="code-quality-reviewer",
   prompt="""Code quality check:
   1. Run linting (ruff/eslint)

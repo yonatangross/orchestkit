@@ -8,12 +8,12 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 AGENTS_DIR="$REPO_ROOT/src/agents"
 
-# Agents that require deeper reasoning - should NOT use haiku
+# Security agents must NOT use haiku — safety-critical reasoning required
+# Note: ux-researcher and rapid-ui-designer were moved to haiku in v7.0.0
+# after PinchBench analysis (read-only agents, no write tools, disallowedTools enforced)
 PROHIBITED_HAIKU_AGENTS=(
   "security-auditor"
   "security-layer-auditor"
-  "ux-researcher"
-  "rapid-ui-designer"
 )
 
 FAILED=0

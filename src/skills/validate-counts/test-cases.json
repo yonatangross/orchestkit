@@ -32,7 +32,7 @@
         "Uses src/ filesystem as authoritative source, not plugins/",
         "Detects skill count mismatch between src/skills/ directories and manifest array length",
         "Flags drift with precise reference to manifests/ork.json skills array",
-        "Does not flag orkl vs ork skill differences as drift — intentional exclusions are expected"
+        "Uses only manifests/ork.json — no alias manifests exist in v7"
       ]
     },
     {
@@ -41,7 +41,7 @@
       "query": "CLAUDE.md Project Overview seems wrong, validate all counts",
       "expectedBehavior": [
         "Reads CLAUDE.md Project Overview to extract stated skill, agent, and hook counts",
-        "Reads manifests/ork.json and manifests/orkl.json to compare declared counts",
+        "Reads manifests/ork.json to compare declared counts",
         "Identifies which specific count in CLAUDE.md is stale",
         "Outputs flags for each mismatched field with file:field location for easy correction"
       ]

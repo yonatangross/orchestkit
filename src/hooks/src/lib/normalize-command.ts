@@ -51,19 +51,6 @@ function stripQuotes(cmd: string): string {
 }
 
 /**
- * Split a command string on compound operators: && || ; | and newlines.
- * Pipe (|) is included because `safe | dangerous` should not auto-approve
- * based on the safe prefix alone.
- *
- * Does NOT split inside quotes (simplified: quotes are already stripped).
- */
-function _splitCompound(cmd: string): string[] {
-  // Split on &&, ||, ;, |, or newlines
-  // Order matters: && and || before single & and |
-  return cmd.split(/\s*(?:&&|\|\||\||;|\n)\s*/);
-}
-
-/**
  * Normalize a single sub-command (no splitting, just cleaning).
  * - Expand hex/octal escapes
  * - Strip backslash escapes
@@ -133,6 +120,70 @@ export function containsDangerousCommand(
   }
 
   return { matches: false };
+}
+
+/**
+ * Detect suspicious shell features that bypass simple operator splitting.
+ * Returns array of finding descriptions, empty if clean.
+ *
+ * Detects: process substitution, brace expansion (command form), here-strings,
+ * IFS manipulation, and nested command substitution.
+ */
+export function detectSuspiciousShellFeatures(cmd: string): string[] {
+  const findings: string[] = [];
+
+  // 1. Process substitution: <(cmd) or >(cmd)
+  // Limit content length to avoid ReDoS on untrusted input (CodeQL SEC-003)
+  if (/[<>]\([^)]{1,500}\)/.test(cmd)) {
+    findings.push('process substitution detected (<(...) or >(...))');
+  }
+
+  // 2. Brace expansion (command form): {cat,/etc/passwd}
+  // Heuristic: flag when the first element looks like a command binary (3+ chars,
+  // no dots/slashes, starts alpha). Short elements like {ts,js} are file extensions.
+  // Limit quantifiers to avoid ReDoS on untrusted input (CodeQL SEC-003)
+  const braceMatch = cmd.match(/\{([^},]{1,200}),([^}]{1,500})\}/g);
+  if (braceMatch) {
+    for (const m of braceMatch) {
+      const inner = m.slice(1, -1);
+      const firstElement = inner.split(',')[0].trim();
+      // Skip file extension globs (1-2 char tokens like {ts,js}) and paths with dots/slashes
+      const isLikelyExtension = firstElement.length <= 2;
+      const hasPathChars = firstElement.includes('.') || firstElement.includes('/');
+      // Also check if preceded by a dot or glob (*.{ts,js}) — definitely a file glob
+      const braceIdx = cmd.indexOf(m);
+      const charBefore = braceIdx > 0 ? cmd[braceIdx - 1] : '';
+      const isPrecededByGlob = charBefore === '.' || charBefore === '*' || charBefore === '/';
+      if (firstElement && !isLikelyExtension && !hasPathChars && !isPrecededByGlob && /^[a-zA-Z]/.test(firstElement)) {
+        findings.push(`brace expansion with command-like pattern: ${m}`);
+      }
+    }
+  }
+
+  // 3. Here-strings: <<<
+  if (/<<</.test(cmd)) {
+    findings.push('here-string detected (<<<)');
+  }
+
+  // 4. IFS manipulation: ${IFS} or IFS= assignment
+  if (/\$\{?IFS\}?/.test(cmd) || /\bIFS=/.test(cmd)) {
+    findings.push('IFS manipulation detected');
+  }
+
+  // 5. Nested command substitution: $(echo `cmd`) or $(`cmd`)
+  // Use indexOf-based detection to avoid ReDoS (CodeQL SEC-003)
+  const dpIdx = cmd.indexOf('$(');
+  if (dpIdx >= 0) {
+    const cpIdx = cmd.indexOf(')', dpIdx + 2);
+    if (cpIdx > dpIdx) {
+      const inner = cmd.substring(dpIdx + 2, cpIdx);
+      if (inner.includes('`')) {
+        findings.push('nested command substitution detected ($(..`..`..))');
+      }
+    }
+  }
+
+  return findings;
 }
 
 /**

@@ -20,6 +20,7 @@ vi.mock('node:fs', () => ({
 
 vi.mock('node:child_process', () => ({
   execSync: vi.fn(),
+  execFileSync: vi.fn(),
 }));
 
 vi.mock('../../lib/common.js', () => ({
@@ -38,7 +39,7 @@ vi.mock('../../lib/common.js', () => ({
 import { migrationValidator } from '../../skill/migration-validator.js';
 import { outputSilentSuccess, outputWithContext, logHook } from '../../lib/common.js';
 import { existsSync, readFileSync } from 'node:fs';
-import { execSync } from 'node:child_process';
+import { execSync, execFileSync } from 'node:child_process';
 
 // =============================================================================
 // Test Utilities
@@ -119,6 +120,7 @@ describe('migration-validator', () => {
     vi.mocked(existsSync).mockReturnValue(true);
     vi.mocked(readFileSync).mockReturnValue(createValidMigration());
     vi.mocked(execSync).mockReturnValue('');
+    vi.mocked(execFileSync).mockReturnValue('');
   });
 
   afterEach(() => {
@@ -263,7 +265,7 @@ describe('migration-validator', () => {
 
       // Assert
       expect(result.continue).toBe(true);
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).not.toContain('Missing upgrade');
     });
 
@@ -279,7 +281,7 @@ describe('migration-validator', () => {
       expect(outputWithContext).toHaveBeenCalledWith(
         expect.stringContaining('validation failed')
       );
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).toContain('Missing upgrade()');
     });
   });
@@ -299,7 +301,7 @@ describe('migration-validator', () => {
 
       // Assert
       expect(result.continue).toBe(true);
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).not.toContain('Missing downgrade');
     });
 
@@ -313,7 +315,7 @@ describe('migration-validator', () => {
 
       // Assert
       expect(outputWithContext).toHaveBeenCalled();
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).toContain('Missing downgrade()');
     });
   });
@@ -333,7 +335,7 @@ describe('migration-validator', () => {
 
       // Assert
       expect(result.continue).toBe(true);
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).not.toContain('Missing revision');
     });
 
@@ -354,7 +356,7 @@ def downgrade():
 
       // Assert
       expect(outputWithContext).toHaveBeenCalled();
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).toContain('Missing revision ID');
     });
 
@@ -378,7 +380,7 @@ def downgrade():
       migrationValidator(input);
 
       // Assert
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       if (isValid) {
         expect(stderrOutput).not.toContain('Missing revision');
       }
@@ -393,15 +395,16 @@ def downgrade():
     test('passes when Python syntax is valid', () => {
       // Arrange
       const input = createWriteInput('/test/project/alembic/versions/001.py');
-      vi.mocked(execSync).mockReturnValue(''); // No error
+      vi.mocked(execFileSync).mockReturnValue(''); // No error
 
       // Act
       const result = migrationValidator(input);
 
       // Assert
       expect(result.continue).toBe(true);
-      expect(execSync).toHaveBeenCalledWith(
-        expect.stringContaining('python3 -m py_compile'),
+      expect(execFileSync).toHaveBeenCalledWith(
+        'python3',
+        ['-m', 'py_compile', '/test/project/alembic/versions/001.py'],
         expect.any(Object)
       );
     });
@@ -409,7 +412,7 @@ def downgrade():
     test('fails when Python syntax is invalid', () => {
       // Arrange
       const input = createWriteInput('/test/project/alembic/versions/001.py');
-      vi.mocked(execSync).mockImplementation(() => {
+      vi.mocked(execFileSync).mockImplementation(() => {
         throw new Error('SyntaxError: invalid syntax');
       });
 
@@ -417,7 +420,7 @@ def downgrade():
       migrationValidator(input);
 
       // Assert
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).toContain('Python syntax error');
     });
 
@@ -430,8 +433,9 @@ def downgrade():
       migrationValidator(input);
 
       // Assert
-      expect(execSync).toHaveBeenCalledWith(
-        `python3 -m py_compile "${filePath}"`,
+      expect(execFileSync).toHaveBeenCalledWith(
+        'python3',
+        ['-m', 'py_compile', filePath],
         expect.any(Object)
       );
     });
@@ -446,7 +450,7 @@ def downgrade():
       // Arrange
       const input = createWriteInput('/test/project/alembic/versions/001.py');
       vi.mocked(readFileSync).mockReturnValue('# Empty file');
-      vi.mocked(execSync).mockImplementation(() => {
+      vi.mocked(execFileSync).mockImplementation(() => {
         throw new Error('SyntaxError');
       });
 
@@ -454,7 +458,7 @@ def downgrade():
       migrationValidator(input);
 
       // Assert
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).toContain('Missing upgrade()');
       expect(stderrOutput).toContain('Missing downgrade()');
       expect(stderrOutput).toContain('Missing revision ID');
@@ -490,7 +494,7 @@ def downgrade():
       migrationValidator(input);
 
       // Assert
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).toContain('::group::');
       expect(stderrOutput).toContain('::endgroup::');
     });
@@ -503,7 +507,7 @@ def downgrade():
       migrationValidator(input);
 
       // Assert
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).toContain('001_add_users.py');
     });
 
@@ -516,7 +520,7 @@ def downgrade():
       migrationValidator(input);
 
       // Assert
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).toContain('::error::');
     });
 
@@ -528,7 +532,7 @@ def downgrade():
       migrationValidator(input);
 
       // Assert
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).toContain('Migration file is valid');
     });
   });
@@ -565,7 +569,7 @@ def downgrade():
 
       // Assert
       expect(result.continue).toBe(true);
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).toContain('Missing upgrade');
     });
   });
@@ -591,7 +595,7 @@ async def downgrade():
       migrationValidator(input);
 
       // Assert
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       // The pattern 'def upgrade' is found in 'async def upgrade' so it's valid
       expect(stderrOutput).toContain('Migration file is valid');
     });
@@ -615,7 +619,7 @@ revision = "abc123"
 
       // Assert
       // Should still find the functions even with weird indentation
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).not.toContain('Missing upgrade');
     });
 
@@ -635,7 +639,7 @@ def downgrade():
       migrationValidator(input);
 
       // Assert
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).not.toContain('Missing revision');
     });
 
@@ -647,8 +651,9 @@ def downgrade():
       migrationValidator(input);
 
       // Assert
-      expect(execSync).toHaveBeenCalledWith(
-        expect.any(String),
+      expect(execFileSync).toHaveBeenCalledWith(
+        'python3',
+        expect.any(Array),
         expect.objectContaining({ timeout: 10000 })
       );
     });

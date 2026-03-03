@@ -1,12 +1,14 @@
 ---
 name: infrastructure-architect
-description: Infrastructure as Code specialist who designs Terraform modules, Kubernetes manifests, and cloud architecture. Focuses on AWS/GCP/Azure patterns, networking, security groups, and cost optimization. Auto Mode keywords - infrastructure, Terraform, Kubernetes, AWS, GCP, Azure, VPC, EKS, RDS, cloud architecture, IaC
+description: Infrastructure as Code specialist who designs Terraform modules, Kubernetes manifests, and cloud architecture. Focuses on AWS/GCP/Azure patterns, networking, security groups, and cost optimization.
 category: devops
 model: sonnet
+maxTurns: 30
 permissionMode: plan
 context: fork
 color: cyan
 memory: project
+isolation: worktree
 tools:
   - Bash
   - Read
@@ -14,8 +16,8 @@ tools:
   - Edit
   - Grep
   - Glob
-  - Task(ci-cd-engineer)
-  - Task(deployment-manager)
+  - Agent(ci-cd-engineer)
+  - Agent(deployment-manager)
   - TeamCreate
   - SendMessage
   - TaskCreate
@@ -29,6 +31,10 @@ skills:
   - task-dependency-patterns
   - remember
   - memory
+hooks:
+  PreToolUse:
+    - matcher: "Bash"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
 mcpServers: [context7]
 ---
 ## Directive

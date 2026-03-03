@@ -4,13 +4,13 @@
  * Hook: PostToolUse (*)
  */
 
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook } from '../lib/common.js';
 import { getMetricsFile } from '../lib/paths.js';
+import { atomicWriteSync } from '../lib/atomic-write.js';
 
 const METRICS_FILE = getMetricsFile();
-const _LOCKFILE = `${METRICS_FILE}.lock`;
 
 interface SessionMetrics {
   tools: Record<string, number>;
@@ -54,7 +54,7 @@ export function sessionMetrics(input: HookInput): HookResult {
     metrics.tools[toolName] = currentCount + 1;
 
     // Write updated metrics
-    writeFileSync(METRICS_FILE, JSON.stringify(metrics, null, 2));
+    atomicWriteSync(METRICS_FILE, JSON.stringify(metrics, null, 2));
   } catch (error) {
     logHook('session-metrics', `Error updating metrics: ${error}`);
   }

@@ -50,7 +50,7 @@ bump_version() {
   echo "$major.$minor.$patch"
 }
 
-# Update plugin.json (source of truth)
+# Update plugin.json (source of truth — alias plugins updated by rebuild)
 update_plugin_json() {
   local new_version="$1"
   jq --arg v "$new_version" '.version = $v' "$PLUGIN_JSON" > "$PLUGIN_JSON.tmp"
@@ -65,10 +65,10 @@ sync_versions() {
 
   echo "Syncing version files..."
 
-  # marketplace.json (top-level only; plugin entries synced by build)
+  # marketplace.json (top-level + all plugin entries)
   local marketplace="$PROJECT_ROOT/.claude-plugin/marketplace.json"
   if [[ -f "$marketplace" ]]; then
-    jq --arg v "$version" '.version = $v' "$marketplace" > "$marketplace.tmp"
+    jq --arg v "$version" '.version = $v | .plugins = [.plugins[] | .version = $v]' "$marketplace" > "$marketplace.tmp"
     mv "$marketplace.tmp" "$marketplace"
     echo "  ✓ marketplace.json"
   fi
@@ -168,11 +168,20 @@ add_changelog_entry() {
   fi
 }
 
+# Rebuild plugins to pick up version changes everywhere
+rebuild_plugins() {
+  echo "Rebuilding plugins..."
+  cd "$PROJECT_ROOT"
+  npm run build --silent 2>&1 | tail -1
+  echo "  ✓ Plugins rebuilt"
+}
+
 # Stage all changes
 stage_changes() {
   echo "Staging changes..."
   cd "$PROJECT_ROOT"
-  git add plugins/ork/.claude-plugin/plugin.json .claude-plugin/marketplace.json 2>/dev/null || true
+  git add plugins/ src/hooks/dist/ docs/site/ 2>/dev/null || true
+  git add .claude-plugin/marketplace.json 2>/dev/null || true
   git add manifests/*.json 2>/dev/null || true
   git add pyproject.toml CLAUDE.md CHANGELOG.md package.json 2>/dev/null || true
   git add version.txt .release-please-manifest.json 2>/dev/null || true
@@ -195,6 +204,7 @@ main() {
   update_plugin_json "$new_version"
 
   sync_versions "$new_version"
+  rebuild_plugins
   add_changelog_entry "$new_version" "$bump_type"
   stage_changes
 

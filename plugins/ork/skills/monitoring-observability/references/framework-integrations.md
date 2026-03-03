@@ -162,13 +162,13 @@ async def run_crew(task_description: str):
         llm="claude-sonnet-4-6",
     )
 
-    research_task = Task(
+    research_task = Agent(
         description=f"Research: {task_description}",
         agent=researcher,
         expected_output="Comprehensive research findings",
     )
 
-    writing_task = Task(
+    writing_task = Agent(
         description="Write documentation from research",
         agent=writer,
         expected_output="Polished documentation",

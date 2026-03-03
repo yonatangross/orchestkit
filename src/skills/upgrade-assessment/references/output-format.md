@@ -18,7 +18,7 @@ The upgrade assessment produces a structured JSON report with the following sche
       "orkVersion": "6.0.0",
       "hooks": 121,
       "skills": 199,
-      "agents": 36
+      "agents": 38
     },
     "target": {
       "model": "claude-opus-4-6",

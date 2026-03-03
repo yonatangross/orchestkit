@@ -26,9 +26,12 @@ import {
 import { isSummarizable, summarizeCode } from '../../lib/code-summarizer.js';
 
 const HOOK_NAME = 'tldr-summary';
-const LINE_THRESHOLD = 500;
+const LINE_THRESHOLD = 1000; // Raised from 500 — #token-reduction
 const TOKEN_THRESHOLD = 2000;
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB safety cap
+
+/** Session-level dedup: skip files already summarized this session */
+const summarizedThisSession = new Set<string>();
 
 export function tldrSummary(input: HookInput): HookResult {
   try {
@@ -37,6 +40,12 @@ export function tldrSummary(input: HookInput): HookResult {
 
     // Guard: no file path
     if (!filePath) {
+      return outputSilentSuccess();
+    }
+
+    // Guard: already summarized this session (dedup)
+    if (summarizedThisSession.has(filePath)) {
+      logHook(HOOK_NAME, `Skipping ${filePath}: already summarized this session`);
       return outputSilentSuccess();
     }
 
@@ -83,6 +92,7 @@ export function tldrSummary(input: HookInput): HookResult {
       return outputSilentSuccess();
     }
 
+    summarizedThisSession.add(filePath);
     logHook(HOOK_NAME, `Injecting summary for ${filePath} (${lineCount} lines, ~${tokenCount} tokens)`);
     return outputAllowWithContext(summary);
   } catch (err) {

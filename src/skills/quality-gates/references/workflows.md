@@ -253,7 +253,7 @@ if (criticalUnknowns > 3) {
 ### 1. Always Run Gate Check Before Starting
 ```javascript
 // GOOD: Gate check first
-function startTask(task) {
+function startAgent(task) {
   const gateCheck = runQualityGate(task);
 
   if (gateCheck.status === 'blocked') {
@@ -265,7 +265,7 @@ function startTask(task) {
     documentAssumptions(gateCheck.warnings);
   }
 
-  implementTask(task);
+  implementAgent(task);
 }
 ```
 
@@ -285,7 +285,7 @@ When proceeding with warnings, document assumptions:
 
 ### 3. Track Attempts for Stuck Detection
 ```javascript
-function attemptTask(taskId, approach) {
+function attemptAgent(taskId, approach) {
   trackAttempt(taskId, approach);
 
   const attemptCount = getAttemptCount(taskId);
@@ -300,7 +300,7 @@ function attemptTask(taskId, approach) {
 
 ### 4. Break Down Complex Tasks Proactively
 ```javascript
-function handleComplexTask(task) {
+function handleComplexAgent(task) {
   if (task.complexity >= 4) {
     const subtasks = breakDownIntoSubtasks(task);
 
@@ -309,7 +309,7 @@ function handleComplexTask(task) {
       implementSubtask(subtask);
     });
   } else {
-    implementTask(task);
+    implementAgent(task);
   }
 }
 ```

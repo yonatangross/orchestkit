@@ -10,10 +10,8 @@
  * Logs all config changes to .claude/logs/config-audit.jsonl and flags dangerous patterns.
  */
 
-import { existsSync, mkdirSync } from 'node:fs';
-import { bufferWrite } from '../../lib/analytics-buffer.js';
 import type { HookInput, HookResult } from '../../types.js';
-import { outputSilentSuccess, logHook, getProjectDir, getField } from '../../lib/common.js';
+import { outputSilentSuccess, logHook, getField } from '../../lib/common.js';
 
 /** Patterns that indicate potentially dangerous config modifications */
 const DANGEROUS_PATTERNS = [
@@ -64,28 +62,9 @@ export function configChangeAuditor(input: HookInput): HookResult {
     return outputSilentSuccess();
   }
 
-  const projectDir = getProjectDir();
-  const logDir = `${projectDir}/.claude/logs`;
-  const auditFile = `${logDir}/config-audit.jsonl`;
+  logHook('config-change-auditor', `Config change: ${toolName} -> ${filePath}`);
 
   try {
-    // Ensure log directory exists
-    if (!existsSync(logDir)) {
-      mkdirSync(logDir, { recursive: true });
-    }
-
-    // Build audit entry
-    const entry = {
-      timestamp: new Date().toISOString(),
-      tool: toolName,
-      file: filePath,
-      session_id: input.session_id || 'unknown',
-    };
-
-    // Log the config change
-    bufferWrite(auditFile, `${JSON.stringify(entry)}\n`);
-    logHook('config-change-auditor', `Config change: ${toolName} -> ${filePath}`);
-
     // Check for dangerous patterns in the content being written/edited
     const content =
       getField<string>(input, 'tool_input.content') ||

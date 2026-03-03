@@ -1,11 +1,11 @@
 ---
-title: "24 Commands You Can Invoke"
+title: "17 Commands You Can Invoke"
 description: "Every /ork:X command skill in OrchestKit -- grouped by category with descriptions and usage examples."
 ---
 
 ## What Are Command Skills?
 
-Command skills are the 24 skills with `user-invocable: true` in their frontmatter. You trigger them by typing `/ork:skill-name` in Claude Code. Each one is a structured workflow that guides Claude through a multi-step process, often spawning parallel agents and pulling in reference skills automatically.
+Command skills are the 17 skills with `user-invocable: true` in their frontmatter. You trigger them by typing `/ork:skill-name` in Claude Code. Each one is a structured workflow that guides Claude through a multi-step process, often spawning parallel agents and pulling in reference skills automatically.
 
 Command skills differ from reference skills in three ways:
 
@@ -27,7 +27,6 @@ These commands handle the core development cycle: building features, fixing bugs
 | `/ork:explore` | Deep codebase exploration with parallel agents. Maps architecture, discovers patterns, generates ASCII diagrams, and produces health assessments. | low | `/ork:explore` |
 | `/ork:brainstorming` | Design exploration with parallel agents. Generates ideas, compares alternatives, and produces structured recommendations. | medium | `/ork:brainstorming real-time notifications` |
 | `/ork:assess` | Rates quality 0-10 with structured pros/cons analysis. Works on code, designs, approaches, or any artifact. | low | `/ork:assess this API design` |
-| `/ork:assess-complexity` | Assesses task complexity with codebase metrics. Determines if a task needs breakdown into subtasks. | medium | `/ork:assess-complexity add payment processing` |
 
 ---
 
@@ -40,7 +39,7 @@ Commands for version control and pull request workflows.
 | `/ork:commit` | Creates commits with conventional format and validation. Analyzes staged changes, generates a message, and runs pre-commit checks. | low | `/ork:commit` |
 | `/ork:create-pr` | Creates GitHub pull requests with validation. Runs security scanning, code review, and type checking before opening the PR. | low | `/ork:create-pr` |
 | `/ork:review-pr` | PR review with parallel specialized agents. Checks security, test coverage, type safety, and code quality simultaneously. | medium | `/ork:review-pr 456` |
-| `/ork:git-recovery` | Recovery from git mistakes. Guides you through undoing commits, recovering branches, or fixing history using reflog. | medium | `/ork:git-recovery` |
+| `/ork:git-workflow` | Complete git workflow patterns including GitHub Flow branching, atomic commits, merge and rebase strategies, and recovery operations using reflog. | low | `/ork:git-workflow` |
 
 ---
 
@@ -57,29 +56,24 @@ Commands for storing and retrieving decisions, patterns, and context across sess
 
 ## Plugin Management
 
-Commands for managing OrchestKit itself -- health checks, configuration, skill evolution, and feedback.
+Commands for managing OrchestKit itself -- health checks, configuration, and help.
 
 | Command | Description | Complexity | Example |
 |---------|-------------|------------|---------|
 | `/ork:doctor` | OrchestKit health diagnostics. Validates permissions, hooks, skills, agents, and memory system status. | low | `/ork:doctor` |
 | `/ork:configure` | Configures OrchestKit settings. Interactive wizard for MCP servers, plugin options, and preferences. | low | `/ork:configure` |
 | `/ork:help` | OrchestKit skill directory. Lists available skills grouped by category with descriptions. | low | `/ork:help` |
-| `/ork:feedback` | Manages OrchestKit feedback system. Submit feedback or view usage analytics with privacy controls. | low | `/ork:feedback` |
-| `/ork:skill-evolution` | Evolves skills based on usage patterns. Analyzes skill effectiveness and suggests improvements or rollbacks. | medium | `/ork:skill-evolution` |
+| `/ork:setup` | Personalized onboarding wizard. Detects your stack, configures MCPs, generates a readiness score and improvement plan. | low | `/ork:setup` |
 
 ---
 
-## Specialized Workflows
+## Visualization
 
-Commands for specific domains -- data curation, parallel development, competitive intelligence, platform upgrades, and video production.
+Commands for visualizing plans and architecture before implementation.
 
 | Command | Description | Complexity | Example |
 |---------|-------------|------------|---------|
-| `/ork:add-golden` | Adds documents to golden dataset with validation. Includes quality scoring and bias detection for test data curation. | medium | `/ork:add-golden` |
-| `/ork:worktree-coordination` | Coordinates multiple Claude instances across git worktrees. Manages locking for parallel development. | low | `/ork:worktree-coordination` |
-| `/ork:competitive-monitoring` | Tracks competitor page changes over time. Captures snapshots, detects diffs, and alerts on significant changes. Supports Tavily for URL discovery. | medium | `/ork:competitive-monitoring` |
-| `/ork:upgrade-assessment` | Assesses platform upgrade readiness for Claude model and CC version changes. Full compatibility and migration analysis. | max | `/ork:upgrade-assessment` |
-| `/ork:demo-producer` | Creates polished demo videos for skills, tutorials, and CLI demonstrations. Orchestrates recording, narration, and composition. | low | `/ork:demo-producer` |
+| `/ork:plan-viz` | Visualize planned changes before implementation. Compares before/after architecture, assesses risk, and analyzes execution order and impact. | low | `/ork:plan-viz` |
 
 ---
 
@@ -89,15 +83,12 @@ Every command skill lists reference skills in its frontmatter `skills:` field. W
 
 ```yaml
 skills:
-  - api-design-framework
+  - api-design
   - react-server-components-framework
-  - type-safety-validation
-  - unit-testing
-  - integration-testing
+  - testing-patterns
   - explore
   - verify
   - memory
-  - worktree-coordination
 ```
 
 This means you do not need to remember which reference skills exist. The command skill knows what knowledge it needs and loads it automatically.
@@ -139,6 +130,6 @@ This means you do not need to remember which reference skills exist. The command
 
 ## What's Next
 
-- [37 Reference Skills](/docs/skills/reference-skills) -- The knowledge library that command skills pull from.
+- [52 Reference Skills](/docs/skills/reference-skills) -- The knowledge library that command skills pull from.
 - [Composing Skills Into Workflows](/docs/skills/skill-composition) -- How these commands orchestrate agents and skills together.
 - [How Skills Work](/docs/skills/overview) -- The fundamentals of the skill system.

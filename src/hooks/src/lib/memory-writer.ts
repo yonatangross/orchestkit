@@ -15,10 +15,11 @@
  * CC 2.1.16 Compliant
  */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { join, dirname, basename } from 'node:path';
 import { homedir } from 'node:os';
 import { getProjectDir, logHook } from './common.js';
+import { atomicWriteSync } from './atomic-write.js';
 import {
   getIdentityContext,
 } from './user-identity.js';
@@ -462,23 +463,25 @@ function storeToCCNativeMemory(decision: DecisionRecord): boolean {
     }
 
     // Insert after header (keep most recent at top)
-    const headerEnd = existingContent.indexOf(header) + header.length;
+    const headerIdx = existingContent.indexOf(header);
+    const headerEnd = headerIdx >= 0 ? headerIdx + header.length : 0;
     const newContent =
       existingContent.slice(0, headerEnd) +
       formattedDecision + '\n' +
       existingContent.slice(headerEnd);
 
     // Limit to ~50 entries to keep system prompt small (CC injects entire file)
-    const lines = newContent.split('\n');
-    const decisionLines = lines.filter(l => l.startsWith('- **['));
+    const contentLines = newContent.split('\n');
+    const decisionLines = contentLines.filter(l => l.startsWith('- **['));
     if (decisionLines.length > 50) {
-      // Truncate oldest entries
-      const truncateIndex = newContent.lastIndexOf('- **[', newContent.length - 1);
-      const trimmedContent = newContent.slice(0, truncateIndex) +
-        '\n_...older decisions archived..._\n';
-      writeFileSync(memoryPath, trimmedContent);
+      // Find the 50th decision line (0-indexed) — the oldest entry to keep
+      const lastKeep = decisionLines[49];
+      const lastKeepIdx = newContent.indexOf(lastKeep);
+      const trimmedContent = newContent.slice(0, lastKeepIdx + lastKeep.length) +
+        '\n\n_...older decisions archived..._\n';
+      atomicWriteSync(memoryPath, trimmedContent);
     } else {
-      writeFileSync(memoryPath, newContent);
+      atomicWriteSync(memoryPath, newContent);
     }
 
     logHook('memory-writer', `Stored to CC native memory: ${memoryPath}`, 'debug');

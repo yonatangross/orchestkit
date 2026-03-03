@@ -9,14 +9,10 @@ import { SetupWizard } from '@/components/setup-wizard';
 ## From Claude Code Marketplace (Recommended)
 
 ```bash
-# Universal toolkit (46 skills)
-claude install orchestkit/orkl
-
-# Full toolkit (67 skills — includes Python, React, LLM/RAG)
 claude install orchestkit/ork
 ```
 
-Not sure which? See [Choosing a Plugin](/docs/foundations/choosing-a-plugin).
+This installs all 69 skills, 38 agents, and 95 hooks.
 
 ## Interactive Setup
 
@@ -35,10 +31,10 @@ Expected output:
 ```
 OrchestKit Health Check
 =======================
-Plugin:     ork v6.0.8
-Skills:     62 loaded (24 commands, 38 reference)
-Agents:     36 registered
-Hooks:      89 active (66 global, 22 agent, 1 skill-scoped)
+Plugin:     ork v7.0.0
+Skills:     69 loaded (17 commands, 52 reference)
+Agents:     38 registered
+Hooks:      95 active (34 global, 54 agent, 7 skill-scoped)
 Memory:     Graph ✓  Local ✓  CC Native ✓
 MCP:        context7 ✓  memory ✓  tavily ○  agentation ○
 
@@ -73,7 +69,7 @@ Without Tavily, web research falls back to WebFetch → agent-browser automatica
 
 ## Requirements
 
-- **Claude Code** >= 2.1.33
+- **Claude Code** >= 2.1.59
 - **Node.js** >= 18 (for hooks)
 - **Git** (for commit/PR workflows)
 

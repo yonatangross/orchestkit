@@ -22,6 +22,15 @@ Comprehensive PR creation with validation. All output goes directly to GitHub PR
 
 ```bash
 /ork:create-pr
+/ork:create-pr "Add user authentication"
+```
+
+## Argument Resolution
+
+```python
+TITLE = "$ARGUMENTS"  # Optional PR title, e.g., "Add user authentication"
+# If provided, use as PR title. If empty, generate from branch/commits.
+# $ARGUMENTS[0] is the first token (CC 2.1.59 indexed access)
 ```
 
 ---
@@ -174,6 +183,21 @@ chore/update-deps
 docs/improve-api-docs
 ```
 
+**Incorrect:**
+```
+Feature/UserProfilePage
+fix_login-bug
+my-branch
+bugfix/456_fix_the_login_race_condition_issue
+```
+
+**Correct:**
+```
+feat/123-user-profile-page
+fix/456-login-race-condition
+refactor/789-extract-auth-module
+```
+
 **Key rules:**
 - Use lowercase with hyphens (no underscores, no camelCase)
 - Include issue number when one exists
@@ -216,6 +240,20 @@ Smaller PRs get better reviews, merge faster, and are easier to revert.
 - Generated files (lockfiles, build output) don't count toward the limit
 - One logical change per PR (same principle as atomic commits)
 - If a feature requires 800+ lines, split into stacked PRs
+
+**Incorrect:**
+```bash
+# Single PR with 1200 lines: refactor + feature + config changes
+gh pr create --title "Add auth, refactor middleware, update config"
+```
+
+**Correct:**
+```bash
+# Split into 3 focused PRs
+gh pr create --title "refactor: extract auth middleware"     # PR 1: 180 lines
+gh pr create --title "feat: add JWT authentication"          # PR 2: 250 lines
+gh pr create --title "chore: update auth config"             # PR 3: 40 lines
+```
 
 **Splitting strategies:**
 - Separate infrastructure/config changes from feature code
@@ -262,6 +300,29 @@ Every PR body must include standard sections. Use `gh pr create --body` with a H
 - Use `--body "$(cat &lt;&lt;'EOF' ... EOF)"` HEREDOC pattern for multi-line bodies
 - Keep Summary focused on "why" — the diff shows "what"
 - Test Plan checkboxes should reflect actual verification, not aspirational items
+
+**Incorrect:**
+```markdown
+## PR
+Updated some files. Fixed the thing.
+```
+
+**Correct:**
+```markdown
+## Summary
+Add JWT refresh token rotation to prevent token replay attacks.
+
+## Changes
+- Add refresh token rotation on each use
+- Store token family for replay detection
+- Add 7-day absolute expiry
+
+## Test plan
+- [x] Unit tests for token rotation
+- [x] Integration test for replay detection
+
+Closes #456
+```
 
 **Anti-patterns:**
 - Empty PR body (even for tiny changes, include Summary + Test Plan)
@@ -339,6 +400,23 @@ Every PR creation must pass these checks before the `gh pr create` command runs.
 - For "Quick" PR type, skip validation steps 4-7 but always check 1-3
 - Report failures clearly with actionable fix instructions
 
+**Incorrect:**
+```bash
+# Skip checks, create PR directly from main with uncommitted changes
+gh pr create --title "fix: login bug"
+# Result: PR from main branch, dirty working tree, CI fails
+```
+
+**Correct:**
+```bash
+# Run full preflight before creating PR
+git status --porcelain                    # Must be empty
+git branch --show-current                 # Must not be main/dev
+npm run lint && npm run typecheck         # Must pass
+npm test -- --bail                        # Must pass
+gh pr create --title "fix: login bug"     # Now safe to create
+```
+
 **Validation commands (adapt to project):**
 ```bash
 # Universal checks
@@ -378,6 +456,21 @@ Determine whether a PR should be created as draft or ready for review.
 - Self-review is complete (you read your own diff)
 - PR body is filled out with Summary, Changes, Test Plan
 - No TODO/FIXME comments in changed lines (unless intentional and explained)
+
+**Incorrect:**
+```bash
+# Mark ready with failing tests, TODO comments, and debug statements
+gh pr create --title "feat: add dashboard"
+# Contains: console.log("DEBUG"), // TODO: fix later, tests skipped
+```
+
+**Correct:**
+```bash
+# Create as draft first, clean up, then mark ready
+gh pr create --draft --title "feat: add dashboard"
+# Fix all TODOs, remove debug statements, verify tests pass
+gh pr ready
+```
 
 **Self-review checklist (do before marking ready):**
 - [ ] Read the full diff (`git diff dev...HEAD`) as if reviewing someone else's code
@@ -541,7 +634,7 @@ For Feature and Bug fix PRs, launch validation agents in parallel BEFORE creatin
 ### Security Auditor
 
 ```python
-Task(
+Agent(
   subagent_type="security-auditor",
   prompt="""Security audit for PR changes:
   1. Check for secrets/credentials in diff
@@ -561,7 +654,7 @@ Task(
 ### Test Generator
 
 ```python
-Task(
+Agent(
   subagent_type="test-generator",
   prompt="""Test coverage verification:
   1. Run test suite with coverage
@@ -580,7 +673,7 @@ Task(
 ### Code Quality Reviewer
 
 ```python
-Task(
+Agent(
   subagent_type="code-quality-reviewer",
   prompt="""Code quality check:
   1. Run linting (ruff/eslint)

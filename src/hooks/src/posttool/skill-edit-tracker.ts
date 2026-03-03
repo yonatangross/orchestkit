@@ -10,10 +10,9 @@
  * Version: 1.0.2 - TypeScript port
  */
 
-import { existsSync, readFileSync, mkdirSync } from 'node:fs';
-import { bufferWrite } from '../lib/analytics-buffer.js';
+import { existsSync, readFileSync } from 'node:fs';
 import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, getField, getProjectDir, getSessionId, logHook, lineContainsAllCI } from '../lib/common.js';
+import { outputSilentSuccess, getField, getProjectDir, logHook, lineContainsAllCI } from '../lib/common.js';
 
 // Edit pattern categories with detection patterns
 // Uses test functions instead of RegExp to avoid ReDoS-vulnerable polynomial patterns
@@ -84,34 +83,6 @@ function detectPatterns(diffContent: string): string[] {
 }
 
 /**
- * Log edit pattern to JSONL file
- */
-function logEditPattern(
-  skillId: string,
-  filePath: string,
-  patterns: string[],
-  editPatternsFile: string
-): void {
-  const sessionId = getSessionId();
-  const timestamp = new Date().toISOString();
-
-  const entry = {
-    timestamp,
-    skill_id: skillId,
-    file_path: filePath,
-    session_id: sessionId,
-    patterns,
-  };
-
-  try {
-    mkdirSync(require('node:path').dirname(editPatternsFile), { recursive: true });
-    bufferWrite(editPatternsFile, `${JSON.stringify(entry)}\n`);
-  } catch {
-    // Ignore write errors
-  }
-}
-
-/**
  * Track skill edit patterns
  */
 export function skillEditTracker(input: HookInput): HookResult {
@@ -166,15 +137,8 @@ export function skillEditTracker(input: HookInput): HookResult {
   // Detect patterns
   const patterns = detectPatterns(editContent);
 
-  // Only log if patterns detected
-  if (patterns.length > 0) {
-    const editPatternsFile = `${projectDir}/.claude/feedback/edit-patterns.jsonl`;
-    logEditPattern(skillId, filePath, patterns, editPatternsFile);
-
-    // Debug log
-    if (process.env.CLAUDE_HOOK_DEBUG) {
-      logHook('skill-edit-tracker', `Detected ${patterns.length} patterns for ${skillId}: ${JSON.stringify(patterns)}`);
-    }
+  if (patterns.length > 0 && process.env.CLAUDE_HOOK_DEBUG) {
+    logHook('skill-edit-tracker', `Detected ${patterns.length} patterns for ${skillId}: ${JSON.stringify(patterns)}`);
   }
 
   return outputSilentSuccess();

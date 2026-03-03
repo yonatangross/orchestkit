@@ -270,7 +270,7 @@ const CTAOverlay: React.FC<{
             fontFamily: "Menlo, monospace",
           }}
         >
-          62 skills * 36 agents * {ccVersion}
+          69 skills * 38 agents * {ccVersion}
         </div>
       </div>
     </AbsoluteFill>

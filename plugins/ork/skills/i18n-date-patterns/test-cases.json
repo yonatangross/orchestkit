@@ -1,0 +1,40 @@
+{
+  "skill": "i18n-date-patterns",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "negative-add-a-patient-appointment",
+      "rule": "",
+      "query": "Add a patient appointment card component that displays the appointment date, wait time, and cost in both English and Hebrew with proper RTL support.",
+      "expectedBehavior": [
+        "Claude uses useTranslation hook for all UI strings with namespaced keys",
+        "Claude uses formatDate from @/lib/dates for appointment date display",
+        "Claude uses formatILS from useFormatting for currency formatting",
+        "Claude uses calculateWaitTime for wait time display",
+        "Claude adds RTL support using isRTL from useFormatting or CSS logical properties",
+        "Claude does NOT hardcode any strings, currency symbols, or date formats"
+      ]
+    },
+    {
+      "id": "negative-i-need-to-display",
+      "rule": "",
+      "query": "I need to display a message like 'You have 5 patients waiting' with proper pluralization in ICU MessageFormat, and embed a clickable link inside the translated text.",
+      "expectedBehavior": [
+        "Claude uses ICU MessageFormat plural syntax: {count, plural, =0 {No patients} one {# patient} other {# patients}}",
+        "Claude uses the Trans component for embedding the clickable link in translated text",
+        "Claude does NOT use inline ternary for pluralization (count === 1 ? 'patient' : 'patients')",
+        "Claude does NOT use dangerouslySetInnerHTML for the embedded link"
+      ]
+    },
+    {
+      "id": "negative-set-up-a-postgresql",
+      "rule": "",
+      "query": "Set up a PostgreSQL database schema with tables for users, roles, and permissions with proper indexes.",
+      "expectedBehavior": [
+        "Claude does NOT invoke the i18n-date-patterns skill",
+        "Claude creates SQL migration files or ORM models using standard tools",
+        "Claude does not reference useTranslation, useFormatting, or any i18n patterns for a backend database task"
+      ]
+    }
+  ]
+}

@@ -149,8 +149,8 @@ describe('tldrSummary — summary injection', () => {
     expect(result).toEqual(outputSilentSuccess());
   });
 
-  it('triggers on file at exactly 500 lines', () => {
-    (readFileSync as ReturnType<typeof vi.fn>).mockReturnValue(makeContent(500));
+  it('triggers on file at exactly 1000 lines', () => {
+    (readFileSync as ReturnType<typeof vi.fn>).mockReturnValue(makeContent(1000));
     tldrSummary(makeInput());
     expect(outputAllowWithContext).toHaveBeenCalled();
   });

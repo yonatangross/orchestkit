@@ -10,7 +10,7 @@ tags: product, perspective, assessment
 Add business context and findability suggestions. See [findability-patterns.md](../references/findability-patterns.md) for discoverability best practices.
 
 ```python
-Task(
+Agent(
   subagent_type="product-strategist",
   prompt="""PRODUCT PERSPECTIVE for: $ARGUMENTS
 

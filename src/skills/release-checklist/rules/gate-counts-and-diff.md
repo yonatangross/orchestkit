@@ -9,9 +9,9 @@ tags: validate-counts, diff-review, release-gate, hygiene
 
 ### Validate Counts
 
-Run `/validate-counts` — verifies that hook/skill/agent counts in manifests match actual files across all three plugins.
+Run `/validate-counts` — verifies that hook/skill/agent counts in `manifests/ork.json` match actual files.
 
-- Pass: counts consistent in `ork`, `orkl`, `ork-creative`
+- Pass: counts consistent in `ork`
 - Fail: update manifests or re-run `npm run build`, then retry
 
 ### Diff Review

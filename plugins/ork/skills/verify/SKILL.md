@@ -1,7 +1,7 @@
 ---
 name: verify
 license: MIT
-compatibility: "Claude Code 2.1.56+. Requires memory MCP server."
+compatibility: "Claude Code 2.1.59+. Requires memory MCP server."
 description: "Comprehensive verification with parallel test agents. Use when verifying implementations or validating changes."
 argument-hint: "[feature-or-scope]"
 context: fork
@@ -9,9 +9,13 @@ version: 3.1.0
 author: OrchestKit
 tags: [verification, testing, quality, validation, parallel-agents, grading]
 user-invocable: true
-allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskList, mcp__memory__search_nodes]
+allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskList, TaskOutput, TaskStop, mcp__memory__search_nodes]
 skills: [code-review-playbook, testing-patterns, memory, quality-gates]
 complexity: high
+hooks:
+  PostToolUse:
+    - matcher: "Bash"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs skill/test-result-validator"
 metadata:
   category: workflow-automation
   mcp-server: memory
@@ -29,6 +33,14 @@ Comprehensive verification using parallel specialized agents with nuanced gradin
 /ork:verify --scope=backend database migrations
 ```
 
+## Argument Resolution
+
+```python
+SCOPE = "$ARGUMENTS"       # Full argument string, e.g., "authentication flow"
+SCOPE_TOKEN = "$ARGUMENTS[0]"  # First token for flag detection (e.g., "--scope=backend")
+# $ARGUMENTS[0], $ARGUMENTS[1] etc. for indexed access (CC 2.1.59)
+```
+
 > **Opus 4.6**: Agents use native adaptive thinking (no MCP sequential-thinking needed). Extended 128K output supports comprehensive verification reports.
 
 ---
@@ -43,13 +55,13 @@ AskUserQuestion(
     "question": "What scope for this verification?",
     "header": "Scope",
     "options": [
-      {"label": "Full verification (Recommended)", "description": "All tests + security + code quality + grades"},
-      {"label": "Tests only", "description": "Run unit + integration + e2e tests"},
-      {"label": "Security audit", "description": "Focus on security vulnerabilities"},
-      {"label": "Code quality", "description": "Lint, types, complexity analysis"},
-      {"label": "Quick check", "description": "Just run tests, skip detailed analysis"}
+      {"label": "Full verification (Recommended)", "description": "All tests + security + code quality + grades", "markdown": "```\nFull Verification (8 phases)\n────────────────────────────\n  6 parallel agents:\n  ┌────────────┐ ┌────────────┐\n  │ Code       │ │ Security   │\n  │ Quality    │ │ Auditor    │\n  ├────────────┤ ├────────────┤\n  │ Test       │ │ Backend    │\n  │ Generator  │ │ Architect  │\n  ├────────────┤ ├────────────┤\n  │ Frontend   │ │ Performance│\n  │ Developer  │ │ Engineer   │\n  └────────────┘ └────────────┘\n         ▼              ▼\n    Composite Score (0-10)\n    Grade (A-F) + Verdict\n```"},
+      {"label": "Tests only", "description": "Run unit + integration + e2e tests", "markdown": "```\nTests Only\n──────────\n  npm test ──▶ Results\n  ┌─────────────────────┐\n  │ Unit tests     ✓/✗  │\n  │ Integration    ✓/✗  │\n  │ E2E            ✓/✗  │\n  │ Coverage       NN%  │\n  └─────────────────────┘\n  Skip: security, quality, UI\n  Output: Pass/fail + coverage\n```"},
+      {"label": "Security audit", "description": "Focus on security vulnerabilities", "markdown": "```\nSecurity Audit\n──────────────\n  security-auditor agent:\n  ┌─────────────────────────┐\n  │ OWASP Top 10       ✓/✗ │\n  │ Dependency CVEs    ✓/✗ │\n  │ Secrets scan       ✓/✗ │\n  │ Auth flow review   ✓/✗ │\n  │ Input validation   ✓/✗ │\n  └─────────────────────────┘\n  Output: Security score 0-10\n          + vulnerability list\n```"},
+      {"label": "Code quality", "description": "Lint, types, complexity analysis", "markdown": "```\nCode Quality\n────────────\n  code-quality-reviewer agent:\n  ┌─────────────────────────┐\n  │ Lint errors         N   │\n  │ Type coverage       NN% │\n  │ Cyclomatic complex  N.N │\n  │ Dead code           N   │\n  │ Pattern violations  N   │\n  └─────────────────────────┘\n  Output: Quality score 0-10\n          + refactor suggestions\n```"},
+      {"label": "Quick check", "description": "Just run tests, skip detailed analysis", "markdown": "```\nQuick Check (~1 min)\n────────────────────\n  Run tests ──▶ Pass/Fail\n\n  Output:\n  ├── Test results\n  ├── Build status\n  └── Lint status\n  No agents, no grading,\n  no report generation\n```"}
     ],
-    "multiSelect": false
+    "multiSelect": true
   }]
 )
 ```

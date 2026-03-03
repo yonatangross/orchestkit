@@ -3,7 +3,9 @@
  * Ported from hooks/_lib/common.sh
  */
 
-import { existsSync, statSync, renameSync, mkdirSync, readSync } from 'node:fs';
+import { existsSync, statSync, renameSync, mkdirSync, readSync, readFileSync } from 'node:fs';
+import { atomicWriteSync } from './atomic-write.js';
+import { join } from 'node:path';
 import { bufferWrite } from './analytics-buffer.js';
 import { execSync } from 'node:child_process';
 import type { HookResult, HookInput } from '../types.js';
@@ -321,7 +323,7 @@ function rotateLogFile(logFile: string, maxSize: number): void {
   try {
     const stats = statSync(logFile);
     if (stats.size > maxSize) {
-      const rotated = `${logFile}.old.${Date.now()}`;
+      const rotated = `${logFile}.old.${new Date().toISOString().replace(/[:.]/g, '-')}`;
       renameSync(logFile, rotated);
     }
   } catch {
@@ -466,6 +468,64 @@ export function outputPromptContextBudgeted(
 }
 
 // -----------------------------------------------------------------------------
+// Rules File Utilities (Token Reduction — materialize to .claude/rules/)
+// -----------------------------------------------------------------------------
+
+/**
+ * FNV-1a 32-bit hash — fast, non-cryptographic hash for delta detection.
+ * Used to skip writing rules files when content hasn't changed.
+ */
+export function fnv1aHash(str: string): string {
+  let hash = 0x811c9dc5; // FNV offset basis
+  for (let i = 0; i < str.length; i++) {
+    hash ^= str.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193); // FNV prime
+  }
+  return (hash >>> 0).toString(16).padStart(8, '0');
+}
+
+/**
+ * Write a rules file atomically with hash-guard skip.
+ * Skips write if file content hash is unchanged (avoids unnecessary I/O).
+ *
+ * @param rulesDir - Directory to write to (e.g., ~/.claude/rules/ or {project}/.claude/rules/)
+ * @param filename - File name (e.g., 'user-profile.md')
+ * @param content - Content to write
+ * @param hookName - Hook name for logging
+ * @returns true if file was written, false if skipped (unchanged)
+ */
+export function writeRulesFile(
+  rulesDir: string,
+  filename: string,
+  content: string,
+  hookName: string,
+): boolean {
+  const filePath = join(rulesDir, filename);
+
+  // Hash-guard: skip write if content unchanged
+  if (existsSync(filePath)) {
+    try {
+      const existing = readFileSync(filePath, 'utf8');
+      if (fnv1aHash(existing) === fnv1aHash(content)) {
+        logHook(hookName, `Rules file ${filename} unchanged, skipping write`);
+        return false;
+      }
+    } catch {
+      // Can't read existing — proceed with write
+    }
+  }
+
+  // Ensure directory exists
+  if (!existsSync(rulesDir)) {
+    mkdirSync(rulesDir, { recursive: true });
+  }
+
+  atomicWriteSync(filePath, content);
+  logHook(hookName, `Wrote rules file: ${filePath}`);
+  return true;
+}
+
+// -----------------------------------------------------------------------------
 // Input Helpers
 // -----------------------------------------------------------------------------
 
@@ -548,6 +608,10 @@ export function lineContainsAllCI(content: string, ...terms: string[]): boolean 
 /**
  * Normalize command: remove line continuations and collapse whitespace
  * Prevents bypassing detection with backslash-newline tricks (CC 2.1.6 fix)
+ *
+ * @deprecated Use normalizeSingle() from normalize-command.ts instead — it also
+ * expands hex/octal escapes and strips quotes, which is strictly better.
+ * Kept only for backward compatibility with external consumers.
  */
 export function normalizeCommand(command: string): string {
   return command

@@ -10,23 +10,20 @@ export * from '../types.js';
 export * from '../lib/common.js';
 export * from '../lib/git.js';
 
-// PostTool hooks - Root (13)
+// PostTool hooks - Root (11)
 import { auditLogger } from '../posttool/audit-logger.js';
 import { unifiedErrorHandler } from '../posttool/unified-error-handler.js';
-import { autoLint } from '../posttool/auto-lint.js';
-import { memoryBridge } from '../posttool/memory-bridge.js';
 import { realtimeSync } from '../posttool/realtime-sync.js';
 import { userTracking } from '../posttool/user-tracking.js';
 import { sessionMetrics } from '../posttool/session-metrics.js';
 import { skillEditTracker } from '../posttool/skill-edit-tracker.js';
 import { calibrationTracker } from '../posttool/calibration-tracker.js';
+import { dirtyFileTracker } from '../posttool/dirty-file-tracker.js';
 import { unifiedDispatcher } from '../posttool/unified-dispatcher.js';
 
-// PostTool/Write hooks (5)
+// PostTool/Write hooks (3) — #922: removed dead entries (auto-lint, memory-bridge, coverage-predictor, readme-sync)
 import { codeStyleLearner } from '../posttool/write/code-style-learner.js';
-import { coveragePredictor } from '../posttool/write/coverage-predictor.js';
 import { namingConventionLearner } from '../posttool/write/naming-convention-learner.js';
-import { readmeSync } from '../posttool/write/readme-sync.js';
 // PostTool/Bash hooks (3)
 import { issueProgressCommenter } from '../posttool/bash/issue-progress-commenter.js';
 import { issueSubtaskUpdater } from '../posttool/bash/issue-subtask-updater.js';
@@ -54,23 +51,20 @@ import type { HookFn } from '../types.js';
  * PostTool hooks registry
  */
 export const hooks: Record<string, HookFn> = {
-  // PostTool hooks - Root (12)
+  // PostTool hooks - Root (10)
   'posttool/audit-logger': auditLogger,
   'posttool/unified-error-handler': unifiedErrorHandler,
-  'posttool/auto-lint': autoLint,
-  'posttool/memory-bridge': memoryBridge,
   'posttool/realtime-sync': realtimeSync,
   'posttool/user-tracking': userTracking,
   'posttool/session-metrics': sessionMetrics,
   'posttool/skill-edit-tracker': skillEditTracker,
   'posttool/calibration-tracker': calibrationTracker,
+  'posttool/dirty-file-tracker': dirtyFileTracker,
   'posttool/unified-dispatcher': unifiedDispatcher,
 
-  // PostTool/Write hooks (4)
+  // PostTool/Write hooks (2) — #922: removed coverage-predictor, readme-sync
   'posttool/write/code-style-learner': codeStyleLearner,
-  'posttool/write/coverage-predictor': coveragePredictor,
   'posttool/write/naming-convention-learner': namingConventionLearner,
-  'posttool/write/readme-sync': readmeSync,
 
   // PostTool/Bash hooks (3)
   'posttool/bash/issue-progress-commenter': issueProgressCommenter,

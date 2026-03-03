@@ -49,7 +49,7 @@ OUTPUT: Curated document entry
 ### Quality Evaluator Agent
 
 ```python
-Task(
+Agent(
     subagent_type="code-quality-reviewer",
     prompt="""GOLDEN DATASET QUALITY EVALUATION
 
@@ -98,7 +98,7 @@ Task(
 ### Difficulty Classifier Agent
 
 ```python
-Task(
+Agent(
     subagent_type="workflow-architect",
     prompt="""DIFFICULTY CLASSIFICATION
 
@@ -133,7 +133,7 @@ Task(
 ### Domain Tagger Agent
 
 ```python
-Task(
+Agent(
     subagent_type="data-pipeline-engineer",
     prompt="""DOMAIN TAGGING
 
@@ -169,7 +169,7 @@ Task(
 ### Query Generator Agent
 
 ```python
-Task(
+Agent(
     subagent_type="test-generator",
     prompt="""TEST QUERY GENERATION
 

@@ -1,6 +1,8 @@
 ---
 title: "MCP Status Checks"
 impact: HIGH
+impactDescription: "Misconfigured or disabled MCP servers silently break agent capabilities without visible errors"
+tags: mcp, configuration, credentials, server-status
 ---
 
 # MCP Status Checks
@@ -16,6 +18,18 @@ Validates `.mcp.json` entries for enabled/disabled state and required credential
 # - For memory: check MEMORY_FILE path is writable
 # - For agentation: check agentation-mcp package is installed (npx --yes dry-run)
 # - Flag any enabled MCP whose process would likely fail at startup
+```
+
+**Incorrect:**
+```
+MCP Servers: all OK
+```
+
+**Correct:**
+```
+MCP Servers:
+- context7:  enabled  ✓
+- tavily:    enabled  ✗  TAVILY_API_KEY not set — will fail at startup
 ```
 
 ## Output Examples

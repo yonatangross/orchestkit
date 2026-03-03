@@ -34,9 +34,9 @@ describe("docs-data", () => {
     });
 
     it("matches expected counts", () => {
-      expect(TOTALS.skills).toBe(67);
-      expect(TOTALS.agents).toBe(37);
-      expect(TOTALS.hooks).toBe(77);
+      expect(TOTALS.skills).toBe(69);
+      expect(TOTALS.agents).toBe(38);
+      expect(TOTALS.hooks).toBe(78);
     });
   });
 
@@ -47,10 +47,8 @@ describe("docs-data", () => {
       expect(Array.isArray(PLUGINS)).toBe(true);
     });
 
-    it("contains orkl, ork-creative, and ork plugins", () => {
+    it("contains ork plugin", () => {
       const names = PLUGINS.map((p) => p.name);
-      expect(names).toContain("orkl");
-      expect(names).toContain("ork-creative");
       expect(names).toContain("ork");
     });
 
@@ -66,31 +64,19 @@ describe("docs-data", () => {
       expect(Array.isArray(plugin.agents)).toBe(true);
     });
 
-    it("orkl has 46 skills", () => {
-      const orkl = PLUGINS.find((p) => p.name === "orkl");
-      expect(orkl).toBeDefined();
-      expect(orkl!.skillCount).toBe(46);
-    });
-
-    it("ork-creative has 2 skills", () => {
-      const orkCreative = PLUGINS.find((p) => p.name === "ork-creative");
-      expect(orkCreative).toBeDefined();
-      expect(orkCreative!.skillCount).toBe(2);
-    });
-
-    it("ork has 67 skills", () => {
+    it("ork has 69 skills", () => {
       const ork = PLUGINS.find((p) => p.name === "ork");
       expect(ork).toBeDefined();
-      expect(ork!.skillCount).toBe(67);
+      expect(ork!.skillCount).toBe(69);
     });
   });
 
   // ── AGENTS ────────────────────────────────────────────────
 
   describe("AGENTS", () => {
-    it("is an array of 37 agents", () => {
+    it("is an array of 38 agents", () => {
       expect(Array.isArray(AGENTS)).toBe(true);
-      expect(AGENTS.length).toBe(37);
+      expect(AGENTS.length).toBe(38);
     });
 
     it("has correct AgentSummary shape", () => {
@@ -185,8 +171,8 @@ describe("docs-data", () => {
       expect(Object.keys(SKILLS).length).toBeGreaterThan(0);
     });
 
-    it("has 67 skills", () => {
-      expect(Object.keys(SKILLS).length).toBe(67);
+    it("has 69 skills", () => {
+      expect(Object.keys(SKILLS).length).toBe(69);
     });
 
     it("has correct SkillDetail shape", () => {
@@ -207,7 +193,7 @@ describe("docs-data", () => {
     });
 
     it("every skill has valid plugins array", () => {
-      const validPlugins = ["orkl", "ork", "ork-creative"];
+      const validPlugins = ["ork"];
       for (const skill of Object.values(SKILLS)) {
         expect(skill.plugins.length).toBeGreaterThan(0);
         for (const plugin of skill.plugins) {
@@ -225,9 +211,8 @@ describe("docs-data", () => {
       expect(Object.keys(SKILLS_SUMMARY).length).toBeGreaterThan(0);
     });
 
-    it("contains orkl and ork keys", () => {
+    it("contains ork key", () => {
       const keys = Object.keys(SKILLS_SUMMARY);
-      expect(keys).toContain("orkl");
       expect(keys).toContain("ork");
     });
   });

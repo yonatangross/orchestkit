@@ -50,7 +50,7 @@ def send_email(self, to: str, subject: str, body: str) -> dict:
 ```python
 from celery import Task
 
-class RetryableTask(Task):
+class RetryableAgent(Task):
     """Reusable base task with exponential backoff."""
     abstract = True
     autoretry_for = (ConnectionError, TimeoutError)
@@ -59,7 +59,7 @@ class RetryableTask(Task):
     retry_backoff_max = 600
     retry_jitter = True
 
-class DatabaseTask(Task):
+class DatabaseAgent(Task):
     """Base task with database session management."""
     abstract = True
     _db = None

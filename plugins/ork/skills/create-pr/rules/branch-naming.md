@@ -20,6 +20,21 @@ chore/update-deps
 docs/improve-api-docs
 ```
 
+**Incorrect:**
+```
+Feature/UserProfilePage
+fix_login-bug
+my-branch
+bugfix/456_fix_the_login_race_condition_issue
+```
+
+**Correct:**
+```
+feat/123-user-profile-page
+fix/456-login-race-condition
+refactor/789-extract-auth-module
+```
+
 **Key rules:**
 - Use lowercase with hyphens (no underscores, no camelCase)
 - Include issue number when one exists

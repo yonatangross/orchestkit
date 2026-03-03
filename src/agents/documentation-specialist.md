@@ -1,8 +1,10 @@
 ---
 name: documentation-specialist
-description: Technical writing and documentation expert. API docs, READMEs, technical guides, ADRs, changelogs, OpenAPI specs. Use for documentation, readme, api-docs, technical-writing, adr, changelog, openapi, swagger, doc-generation.
+description: Technical writing and documentation expert. API docs, READMEs, technical guides, ADRs, changelogs, and OpenAPI specs.
 category: docs
 model: haiku
+background: true
+maxTurns: 20
 context: fork
 color: gray
 memory: project
@@ -18,6 +20,8 @@ tools:
   - TaskCreate
   - TaskUpdate
   - TaskList
+  - TaskOutput
+  - TaskStop
 skills:
   - api-design
   - architecture-decision-record
@@ -25,7 +29,11 @@ skills:
   - release-management
   - remember
   - memory
-mcpServers: [context7, memory]
+hooks:
+  PreToolUse:
+    - matcher: "Bash"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
+mcpServers: [context7]
 ---
 
 ## Directive

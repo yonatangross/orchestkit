@@ -29,6 +29,22 @@ To guarantee viewport fitting, enforce these limits per slide type.
 4. Feature grids use `auto-fit` with `minmax()` -- stack vertically on narrow screens.
 5. Images always have `max-height` constraints using `min(50vh, 400px)` or similar.
 
+**Incorrect:**
+```html
+<!-- 12 bullet points crammed onto one slide -->
+<div class="slide">
+  <h2>Features</h2>
+  <ul><li>Point 1</li>...<li>Point 12</li></ul>  <!-- overflows viewport -->
+</div>
+```
+
+**Correct:**
+```html
+<!-- Split into two slides of 6 each -->
+<div class="slide"><h2>Features (1/2)</h2><ul><li>1</li>...<li>6</li></ul></div>
+<div class="slide"><h2>Features (2/2)</h2><ul><li>7</li>...<li>12</li></ul></div>
+```
+
 ## When to Split
 
 - More than 6 bullet points -> split into "Part 1" / "Part 2"

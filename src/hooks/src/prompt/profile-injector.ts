@@ -34,7 +34,8 @@
  */
 
 import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, outputPromptContext, logHook } from '../lib/common.js';
+import { outputSilentSuccess, logHook, writeRulesFile } from '../lib/common.js';
+import { getHomeDir } from '../lib/paths.js';
 import {
   loadUserProfile,
   getTopSkills,
@@ -307,14 +308,17 @@ export function profileInjector(_input: HookInput): HookResult {
     // Build personalized context message
     const context = buildProfileContext(profile);
 
+    // Materialize to ~/.claude/rules/ instead of injecting as additionalContext (#token-reduction)
+    const rulesDir = `${getHomeDir()}/.claude/rules`;
+    writeRulesFile(rulesDir, 'user-profile.md', context, 'profile-injector');
+
     logHook(
       'profile-injector',
-      `Injecting profile context for ${profile.display_name} (${context.length} chars)`,
+      `Wrote profile context for ${profile.display_name} to rules file (${context.length} chars)`,
       'info'
     );
 
-    // Inject via additionalContext (CC 2.1.9 compliant)
-    return outputPromptContext(context);
+    return outputSilentSuccess();
   } catch (error) {
     // Never crash the hook - fail gracefully and log warning
     logHook('profile-injector', `Error loading profile: ${error}`, 'warn');

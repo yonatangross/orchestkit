@@ -198,7 +198,7 @@ describe('Task Completion Check Hook', () => {
       // Arrange
       mockExistsSync.mockReturnValue(false);
       mockGetOrphanedTasks.mockReturnValue([
-        { taskId: 'task-1', description: 'Orphaned task' },
+        { taskId: 'task-1', description: 'Orphaned task' } as any,
       ]);
       mockFormatTaskDeleteForClaude.mockReturnValue('TaskUpdate({ taskId: "task-1", status: "deleted" })');
 
@@ -219,8 +219,8 @@ describe('Task Completion Check Hook', () => {
       // Arrange
       mockExistsSync.mockReturnValue(false);
       mockGetOrphanedTasks.mockReturnValue([
-        { taskId: 'task-1' },
-        { taskId: 'task-2' },
+        { taskId: 'task-1' } as any,
+        { taskId: 'task-2' } as any,
       ]);
       mockFormatTaskDeleteForClaude.mockReturnValue('delete instruction');
 

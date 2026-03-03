@@ -12,13 +12,14 @@
 
 import { describe, test, expect, beforeEach, vi } from 'vitest';
 import type { HookInput } from '../types.js';
-import { getMetricsFile, getSessionErrorsFile } from '../lib/paths.js';
+import { getMetricsFile, } from '../lib/paths.js';
 
 // ---------------------------------------------------------------------------
-// Hoisted mocks — shared between analytics-buffer and node:fs mocks
+// Hoisted mocks — shared between analytics-buffer, node:fs, and atomic-write mocks
 // ---------------------------------------------------------------------------
-const { mockAppendFileSync } = vi.hoisted(() => ({
+const { mockAppendFileSync, mockWriteFileSync } = vi.hoisted(() => ({
   mockAppendFileSync: vi.fn(),
+  mockWriteFileSync: vi.fn(),
 }));
 
 // ---------------------------------------------------------------------------
@@ -48,12 +49,19 @@ vi.mock('node:os', () => ({
 vi.mock('node:fs', () => ({
   existsSync: vi.fn(() => false),
   readFileSync: vi.fn(() => ''),
-  writeFileSync: vi.fn(),
+  writeFileSync: mockWriteFileSync,
   appendFileSync: mockAppendFileSync,
   mkdirSync: vi.fn(),
   statSync: vi.fn(() => ({ size: 0 })),
   renameSync: vi.fn(),
   readSync: vi.fn(() => 0),
+}));
+
+// ---------------------------------------------------------------------------
+// Mock atomic-write — delegates to mocked writeFileSync
+// ---------------------------------------------------------------------------
+vi.mock('../lib/atomic-write.js', () => ({
+  atomicWriteSync: (path: string, content: string) => mockWriteFileSync(path, content),
 }));
 
 // ---------------------------------------------------------------------------
@@ -76,9 +84,8 @@ vi.mock('node:crypto', () => ({
 // ---------------------------------------------------------------------------
 // Imports (after mocks are declared)
 // ---------------------------------------------------------------------------
-import { existsSync, readFileSync, writeFileSync, appendFileSync, mkdirSync, statSync, renameSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, statSync, } from 'node:fs';
 import { execSync } from 'node:child_process';
-import { createHash } from 'node:crypto';
 
 import { coverageThresholdGate } from '../skill/coverage-threshold-gate.js';
 import { mergeReadinessChecker } from '../skill/merge-readiness-checker.js';
@@ -900,7 +907,7 @@ describe('subagentQualityGate', () => {
 });
 
 // =============================================================================
-// 4. unifiedErrorHandler
+// 4. unifiedErrorHandler (v3 — logger-only, no JSONL writes #919)
 // =============================================================================
 
 describe('unifiedErrorHandler', () => {
@@ -1002,10 +1009,11 @@ describe('unifiedErrorHandler', () => {
   });
 
   // -------------------------------------------------------------------------
-  // Error detection: exit code
+  // Error detection — always returns silent success (v3 logger-only)
+  // Detailed error detection + logHook assertions in unified-error-handler.test.ts
   // -------------------------------------------------------------------------
 
-  test('detects error from non-zero exit code', () => {
+  test('returns silent success on non-zero exit code (v3 logger-only)', () => {
     const result = unifiedErrorHandler(
       createPostToolInput({
         tool_input: { command: 'npm test' },
@@ -1014,28 +1022,12 @@ describe('unifiedErrorHandler', () => {
       }),
     );
 
-    // Should log the error (appendFileSync called)
-    expect(appendFileSync).toHaveBeenCalled();
     expect(result.continue).toBe(true);
+    expect(result.suppressOutput).toBe(true);
   });
 
-  test('detects error from exit code 127 (command not found)', () => {
-    const _result = unifiedErrorHandler(
-      createPostToolInput({
-        tool_input: { command: 'nonexistent-cmd' },
-        exit_code: 127,
-      }),
-    );
-
-    expect(appendFileSync).toHaveBeenCalled();
-  });
-
-  // -------------------------------------------------------------------------
-  // Error detection: tool_error field
-  // -------------------------------------------------------------------------
-
-  test('detects error from tool_error field', () => {
-    const _result = unifiedErrorHandler(
+  test('returns silent success on tool_error (v3 logger-only)', () => {
+    const result = unifiedErrorHandler(
       createPostToolInput({
         tool_input: { command: 'git push' },
         exit_code: 0,
@@ -1043,15 +1035,12 @@ describe('unifiedErrorHandler', () => {
       }),
     );
 
-    expect(appendFileSync).toHaveBeenCalled();
+    expect(result.continue).toBe(true);
+    expect(result.suppressOutput).toBe(true);
   });
 
-  // -------------------------------------------------------------------------
-  // Error detection: output pattern matching
-  // -------------------------------------------------------------------------
-
-  test('detects ERROR in tool output', () => {
-    const _result = unifiedErrorHandler(
+  test('returns silent success on error pattern in output (v3 logger-only)', () => {
+    const result = unifiedErrorHandler(
       createPostToolInput({
         tool_input: { command: 'npm run build' },
         exit_code: 0,
@@ -1059,386 +1048,8 @@ describe('unifiedErrorHandler', () => {
       }),
     );
 
-    expect(appendFileSync).toHaveBeenCalled();
-  });
-
-  test('detects FATAL in tool output', () => {
-    unifiedErrorHandler(
-      createPostToolInput({
-        tool_input: { command: 'node app.js' },
-        exit_code: 0,
-        tool_output: 'FATAL: Out of memory',
-      }),
-    );
-
-    expect(appendFileSync).toHaveBeenCalled();
-  });
-
-  test('detects "exception" in tool output', () => {
-    unifiedErrorHandler(
-      createPostToolInput({
-        tool_input: { command: 'python app.py' },
-        exit_code: 0,
-        tool_output: 'Traceback (most recent call last):\n  exception occurred',
-      }),
-    );
-
-    expect(appendFileSync).toHaveBeenCalled();
-  });
-
-  test('detects "connection refused" in tool output', () => {
-    unifiedErrorHandler(
-      createPostToolInput({
-        tool_input: { command: 'curl localhost:3000' },
-        exit_code: 0,
-        tool_output: 'connection refused at port 3000',
-      }),
-    );
-
-    expect(appendFileSync).toHaveBeenCalled();
-  });
-
-  test('detects ENOENT in tool output', () => {
-    unifiedErrorHandler(
-      createPostToolInput({
-        tool_input: { command: 'node script.js' },
-        exit_code: 0,
-        tool_output: 'Error: ENOENT: no such file or directory',
-      }),
-    );
-
-    expect(appendFileSync).toHaveBeenCalled();
-  });
-
-  test('detects "timeout" in tool output', () => {
-    unifiedErrorHandler(
-      createPostToolInput({
-        tool_input: { command: 'npm test' },
-        exit_code: 0,
-        tool_output: 'Test timeout after 30000ms',
-      }),
-    );
-
-    expect(appendFileSync).toHaveBeenCalled();
-  });
-
-  // -------------------------------------------------------------------------
-  // Error logging
-  // -------------------------------------------------------------------------
-
-  test('creates log directory before writing', () => {
-    unifiedErrorHandler(
-      createPostToolInput({
-        tool_input: { command: 'npm test' },
-        exit_code: 1,
-      }),
-    );
-
-    expect(mkdirSync).toHaveBeenCalledWith(
-      expect.stringContaining('.claude/logs'),
-      { recursive: true },
-    );
-  });
-
-  test('writes structured error to JSONL log', () => {
-    unifiedErrorHandler(
-      createPostToolInput({
-        tool_name: 'Bash',
-        tool_input: { command: 'npm test' },
-        exit_code: 1,
-      }),
-    );
-
-    expect(appendFileSync).toHaveBeenCalled();
-    const logCall = vi.mocked(appendFileSync).mock.calls[0];
-    expect(String(logCall[0])).toContain('errors.jsonl');
-
-    const logEntry = JSON.parse(String(logCall[1]).trim());
-    expect(logEntry.tool).toBe('Bash');
-    expect(logEntry.error_type).toBe('exit_code');
-    expect(logEntry.timestamp).toBeDefined();
-    expect(logEntry.session_id).toBeDefined();
-  });
-
-  test('updates session error metrics in /tmp', () => {
-    unifiedErrorHandler(
-      createPostToolInput({
-        tool_input: { command: 'npm test' },
-        exit_code: 1,
-      }),
-    );
-
-    expect(writeFileSync).toHaveBeenCalledWith(
-      getSessionErrorsFile(),
-      expect.any(String),
-    );
-
-    const metricsCall = vi.mocked(writeFileSync).mock.calls.find(
-      (c) => String(c[0]) === getSessionErrorsFile(),
-    );
-    expect(metricsCall).toBeDefined();
-    const metrics = JSON.parse(String(metricsCall![1]));
-    expect(metrics.error_count).toBe(1);
-    expect(metrics.last_error_tool).toBe('Bash');
-  });
-
-  test('increments existing error count in session metrics', () => {
-    vi.mocked(existsSync).mockImplementation((path) =>
-      String(path) === getSessionErrorsFile(),
-    );
-    vi.mocked(readFileSync).mockImplementation((path) => {
-      if (String(path) === getSessionErrorsFile()) {
-        return JSON.stringify({ error_count: 5, last_error_tool: 'Read', last_error_time: '' });
-      }
-      return '';
-    });
-
-    unifiedErrorHandler(
-      createPostToolInput({
-        tool_input: { command: 'npm test' },
-        exit_code: 1,
-      }),
-    );
-
-    const metricsCall = vi.mocked(writeFileSync).mock.calls.find(
-      (c) => String(c[0]) === getSessionErrorsFile(),
-    );
-    expect(metricsCall).toBeDefined();
-    const metrics = JSON.parse(String(metricsCall![1]));
-    expect(metrics.error_count).toBe(6);
-  });
-
-  // -------------------------------------------------------------------------
-  // Log rotation
-  // -------------------------------------------------------------------------
-
-  test('rotates log file when it exceeds 1MB', () => {
-    vi.mocked(existsSync).mockImplementation((path) =>
-      String(path).includes('errors.jsonl'),
-    );
-    vi.mocked(statSync).mockReturnValue({ size: 1100 * 1024 } as any);
-
-    unifiedErrorHandler(
-      createPostToolInput({
-        tool_input: { command: 'npm test' },
-        exit_code: 1,
-      }),
-    );
-
-    expect(renameSync).toHaveBeenCalled();
-    const renameCall = vi.mocked(renameSync).mock.calls[0];
-    expect(String(renameCall[0])).toContain('errors.jsonl');
-    expect(String(renameCall[1])).toContain('.old.');
-  });
-
-  // -------------------------------------------------------------------------
-  // Solution suggestions (Bash only)
-  // -------------------------------------------------------------------------
-
-  test('suggests solution when error matches a known pattern', () => {
-    const solutionsContent: any = {
-      patterns: [
-        {
-          id: 'npm-install-fail',
-          regex: 'npm install.*failed',
-          category: 'npm',
-          solution: {
-            brief: 'npm install failed',
-            steps: ['Delete node_modules', 'Run npm install again'],
-          },
-          skills: ['dependency-management'],
-        },
-      ],
-      categories: {},
-    };
-
-    vi.mocked(existsSync).mockImplementation((path) => {
-      const p = String(path);
-      if (p.includes('error_solutions.json')) return true;
-      return false;
-    });
-    vi.mocked(readFileSync).mockImplementation((path) => {
-      const p = String(path);
-      if (p.includes('error_solutions.json')) return JSON.stringify(solutionsContent);
-      return '';
-    });
-
-    const result = unifiedErrorHandler(
-      createPostToolInput({
-        tool_name: 'Bash',
-        tool_input: { command: 'npm install' },
-        exit_code: 1,
-        tool_error: 'npm install has failed',
-      }),
-    );
-
     expect(result.continue).toBe(true);
-    // Issue #684: error-handler now returns silent success (moved into async dispatcher)
     expect(result.suppressOutput).toBe(true);
-  });
-
-  test('does not suggest solution for non-Bash tool errors', () => {
-    vi.mocked(existsSync).mockReturnValue(true);
-    vi.mocked(readFileSync).mockReturnValue(
-      JSON.stringify({
-        patterns: [{ id: 'test', regex: 'error', solution: { brief: 'fix it' } }],
-      }),
-    );
-
-    const result = unifiedErrorHandler(
-      createHookInput({
-        tool_name: 'Write',
-        tool_input: { file_path: '/a.ts', content: '' },
-        exit_code: 1,
-        tool_error: 'error writing file',
-      }),
-    );
-
-    // Should log but not return additionalContext
-    expect(result.hookSpecificOutput?.additionalContext).toBeUndefined();
-  });
-
-  test('returns silent success when no error pattern matches', () => {
-    vi.mocked(existsSync).mockImplementation((path) => {
-      const p = String(path);
-      if (p.includes('error_solutions.json')) return true;
-      return false;
-    });
-    vi.mocked(readFileSync).mockImplementation((path) => {
-      const p = String(path);
-      if (p.includes('error_solutions.json')) {
-        return JSON.stringify({
-          patterns: [{ id: 'specific', regex: 'very_specific_pattern_xyz', solution: { brief: 'fix' } }],
-        });
-      }
-      return '';
-    });
-
-    const result = unifiedErrorHandler(
-      createPostToolInput({
-        tool_input: { command: 'npm run build' },
-        exit_code: 1,
-        tool_error: 'generic failure happened',
-      }),
-    );
-
-    // Error is logged but no solution suggestion
-    expect(result.continue).toBe(true);
-    expect(result.hookSpecificOutput?.additionalContext).toBeUndefined();
-  });
-
-  // -------------------------------------------------------------------------
-  // Dedup logic
-  // -------------------------------------------------------------------------
-
-  test('suppresses repeated suggestion for same pattern within threshold', () => {
-    const solutionsContent = {
-      patterns: [
-        {
-          id: 'test-pattern',
-          regex: 'test failure',
-          solution: { brief: 'Fix tests' },
-        },
-      ],
-    };
-
-    // First call: dedup file does not exist - suggestion should show
-    vi.mocked(existsSync).mockImplementation((path) => {
-      const p = String(path);
-      if (p.includes('error_solutions.json')) return true;
-      return false;
-    });
-    vi.mocked(readFileSync).mockImplementation((path) => {
-      const p = String(path);
-      if (p.includes('error_solutions.json')) return JSON.stringify(solutionsContent);
-      return '';
-    });
-
-    const result1 = unifiedErrorHandler(
-      createPostToolInput({
-        tool_input: { command: 'npm test' },
-        exit_code: 1,
-        tool_error: 'test failure detected',
-      }),
-    );
-
-    // Issue #684: error-handler now returns silent success (moved into async dispatcher)
-    expect(result1.suppressOutput).toBe(true);
-
-    // Second call: dedup file exists with recent suggestion
-    const dedupData = {
-      suggestions: { 'mock-hash-abc123': { pattern_id: 'test-pattern', prompt_count: 1 } },
-      prompt_count: 1,
-    };
-
-    vi.mocked(existsSync).mockImplementation((path) => {
-      const p = String(path);
-      if (p.includes('error_solutions.json')) return true;
-      if (p.includes('claude-error-suggestions')) return true;
-      return false;
-    });
-    vi.mocked(readFileSync).mockImplementation((path) => {
-      const p = String(path);
-      if (p.includes('error_solutions.json')) return JSON.stringify(solutionsContent);
-      if (p.includes('claude-error-suggestions')) return JSON.stringify(dedupData);
-      return '';
-    });
-
-    const result2 = unifiedErrorHandler(
-      createPostToolInput({
-        tool_input: { command: 'npm test' },
-        exit_code: 1,
-        tool_error: 'test failure detected',
-      }),
-    );
-
-    // Should be suppressed (prompt_count 2 - last suggested at 1 = 1, < threshold 10)
-    expect(result2.hookSpecificOutput?.additionalContext).toBeUndefined();
-  });
-
-  // -------------------------------------------------------------------------
-  // Crypto hash usage
-  // -------------------------------------------------------------------------
-
-  test('uses md5 hash for input dedup in error logging', () => {
-    unifiedErrorHandler(
-      createPostToolInput({
-        tool_input: { command: 'npm test' },
-        exit_code: 1,
-      }),
-    );
-
-    expect(createHash).toHaveBeenCalledWith('md5');
-  });
-
-  // -------------------------------------------------------------------------
-  // Non-Bash tools with errors
-  // -------------------------------------------------------------------------
-
-  test('detects and logs error for Read tool with tool_error', () => {
-    const result = unifiedErrorHandler(
-      createHookInput({
-        tool_name: 'Read',
-        tool_input: { file_path: '/nonexistent' },
-        tool_error: 'File does not exist',
-      }),
-    );
-
-    expect(appendFileSync).toHaveBeenCalled();
-    expect(result.continue).toBe(true);
-  });
-
-  test('detects error for Write tool with non-zero exit code', () => {
-    unifiedErrorHandler(
-      createHookInput({
-        tool_name: 'Write',
-        tool_input: { file_path: '/readonly', content: 'data' },
-        exit_code: 1,
-        tool_error: 'EACCES: permission denied',
-      }),
-    );
-
-    expect(appendFileSync).toHaveBeenCalled();
   });
 
   // -------------------------------------------------------------------------
@@ -1453,9 +1064,8 @@ describe('unifiedErrorHandler', () => {
       }),
     );
 
-    // Should still detect error from exit code
-    expect(appendFileSync).toHaveBeenCalled();
     expect(result.continue).toBe(true);
+    expect(result.suppressOutput).toBe(true);
   });
 
   test('handles undefined tool_output gracefully', () => {
@@ -1470,20 +1080,16 @@ describe('unifiedErrorHandler', () => {
     expect(result.continue).toBe(true);
   });
 
-  test('truncates long error messages in log entries', () => {
-    const longError = 'E'.repeat(2000);
-
-    unifiedErrorHandler(
-      createPostToolInput({
-        tool_input: { command: 'npm test' },
-        exit_code: 1,
-        tool_error: longError,
+  test('handles non-Bash tools with errors', () => {
+    const result = unifiedErrorHandler(
+      createHookInput({
+        tool_name: 'Read',
+        tool_input: { file_path: '/nonexistent' },
+        tool_error: 'File does not exist',
       }),
     );
 
-    const logCall = vi.mocked(appendFileSync).mock.calls[0];
-    const logEntry = JSON.parse(String(logCall[1]).trim());
-    // error_message should be truncated to 500 chars
-    expect(logEntry.error_message.length).toBeLessThanOrEqual(500);
+    expect(result.continue).toBe(true);
+    expect(result.suppressOutput).toBe(true);
   });
 });

@@ -3,47 +3,30 @@
  *
  * Validates:
  * - Metric collection with various file states
- * - Category counting from decisions.jsonl
  * - Queue depth counting
  * - Session counting from analytics
- * - Append behavior for metric snapshots
+ *
+ * v7: appendMetricSnapshot removed (#919 orphan JSONL audit).
+ * Only collectMemoryMetrics remains.
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { collectMemoryMetrics, appendMetricSnapshot } from '../../lib/memory-metrics.js';
-
-// Use vi.hoisted so _mockAppendFileSync is available in vi.mock factory closures
-const { _mockAppendFileSync } = vi.hoisted(() => ({
-  _mockAppendFileSync: vi.fn(),
-}));
-
-vi.mock('../../lib/analytics-buffer.js', () => ({
-  bufferWrite: vi.fn((filePath: string, content: string) => {
-    _mockAppendFileSync(filePath, content);
-  }),
-  flush: vi.fn(),
-  pendingCount: vi.fn(() => 0),
-  _resetForTesting: vi.fn(),
-}));
+import { collectMemoryMetrics } from '../../lib/memory-metrics.js';
 
 // Mock node:fs
 vi.mock('node:fs', () => ({
   existsSync: vi.fn(),
   readFileSync: vi.fn(),
-  appendFileSync: _mockAppendFileSync,
-  mkdirSync: vi.fn(),
 }));
 
 vi.mock('../../lib/common.js', () => ({
   getProjectDir: vi.fn(() => '/test/project'),
-  logHook: vi.fn(),
 }));
 
-import { existsSync, readFileSync, appendFileSync, mkdirSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 
 const mockExistsSync = vi.mocked(existsSync);
 const mockReadFileSync = vi.mocked(readFileSync);
-const mockAppendFileSync = vi.mocked(appendFileSync);
 
 describe('collectMemoryMetrics', () => {
   beforeEach(() => {
@@ -96,40 +79,5 @@ describe('collectMemoryMetrics', () => {
 
     expect(metrics.timestamp).toBeDefined();
     expect(new Date(metrics.timestamp).getTime()).not.toBeNaN();
-  });
-});
-
-describe('appendMetricSnapshot', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    mockExistsSync.mockReturnValue(true);
-    mockReadFileSync.mockReturnValue('');
-  });
-
-  it('appends metrics to JSONL file', () => {
-    const metrics = collectMemoryMetrics('/test/project');
-    appendMetricSnapshot('/test/project', metrics);
-
-    expect(mockAppendFileSync).toHaveBeenCalledOnce();
-    const [path, content] = mockAppendFileSync.mock.calls[0] as [string, string];
-    expect(path).toContain('memory-metrics.jsonl');
-    expect(content.endsWith('\n')).toBe(true);
-
-    const parsed = JSON.parse(content.trim());
-    expect(parsed.decisions).toBeDefined();
-    expect(parsed.queues).toBeDefined();
-    expect(parsed.timestamp).toBeDefined();
-  });
-
-  it('creates directory if missing', () => {
-    mockExistsSync.mockImplementation((path: unknown) => {
-      const p = String(path);
-      if (p.includes('logs')) return false;
-      return false;
-    });
-
-    appendMetricSnapshot('/test/project');
-
-    expect(mkdirSync).toHaveBeenCalled();
   });
 });

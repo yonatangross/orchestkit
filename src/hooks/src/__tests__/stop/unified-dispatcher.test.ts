@@ -18,8 +18,8 @@ vi.mock('../../lib/common.js', () => ({
 }));
 
 // Mock all individual stop hooks
-vi.mock('../../stop/auto-save-context.js', () => ({
-  autoSaveContext: vi.fn(() => ({ continue: true, suppressOutput: true })),
+vi.mock('../../stop/handoff-writer.js', () => ({
+  handoffWriter: vi.fn(() => ({ continue: true, suppressOutput: true })),
 }));
 vi.mock('../../stop/session-patterns.js', () => ({
   sessionPatterns: vi.fn(() => ({ continue: true, suppressOutput: true })),
@@ -44,12 +44,6 @@ vi.mock('../../stop/workflow-preference-learner.js', () => ({
 }));
 vi.mock('../../stop/task-completion-check.js', () => ({
   taskCompletionCheck: vi.fn(() => ({ continue: true, suppressOutput: true })),
-}));
-vi.mock('../../stop/auto-remember-continuity.js', () => ({
-  autoRememberContinuity: vi.fn(() => ({ continue: true, suppressOutput: true })),
-}));
-vi.mock('../../stop/full-test-suite.js', () => ({
-  fullTestSuite: vi.fn(() => ({ continue: true, suppressOutput: true })),
 }));
 vi.mock('../../stop/security-scan-aggregator.js', () => ({
   securityScanAggregator: vi.fn(() => ({ continue: true, suppressOutput: true })),
@@ -89,20 +83,17 @@ vi.mock('../../skill/security-summary.js', () => ({
 vi.mock('../../skill/test-pattern-validator.js', () => ({
   testPatternValidator: vi.fn(() => ({ continue: true, suppressOutput: true })),
 }));
-vi.mock('../../skill/test-runner.js', () => ({
-  testRunner: vi.fn(() => ({ continue: true, suppressOutput: true })),
-}));
 
 import { unifiedStopDispatcher, registeredHookNames } from '../../stop/unified-dispatcher.js';
 import { logHook, outputSilentSuccess } from '../../lib/common.js';
-import { autoSaveContext } from '../../stop/auto-save-context.js';
+import { handoffWriter } from '../../stop/handoff-writer.js';
 import { calibrationPersist } from '../../stop/calibration-persist.js';
 import type { HookInput } from '../../types.js';
 
 describe('Unified Stop Dispatcher Hook', () => {
   const mockLogHook = vi.mocked(logHook);
   const _mockOutputSilentSuccess = vi.mocked(outputSilentSuccess);
-  const mockAutoSaveContext = vi.mocked(autoSaveContext);
+  const mockHandoffWriter = vi.mocked(handoffWriter);
   const mockCalibrationPersist = vi.mocked(calibrationPersist);
 
   const defaultInput: HookInput = {
@@ -133,7 +124,7 @@ describe('Unified Stop Dispatcher Hook', () => {
       await unifiedStopDispatcher(defaultInput);
 
       // Assert
-      expect(mockAutoSaveContext).toHaveBeenCalledWith(defaultInput);
+      expect(mockHandoffWriter).toHaveBeenCalledWith(defaultInput);
       expect(mockCalibrationPersist).toHaveBeenCalledWith(defaultInput);
     });
 
@@ -142,7 +133,7 @@ describe('Unified Stop Dispatcher Hook', () => {
       await unifiedStopDispatcher(defaultInput);
 
       // Assert
-      expect(mockAutoSaveContext).toHaveBeenCalledWith(defaultInput);
+      expect(mockHandoffWriter).toHaveBeenCalledWith(defaultInput);
     });
   });
 
@@ -179,7 +170,7 @@ describe('Unified Stop Dispatcher Hook', () => {
       await unifiedStopDispatcher(inputWithActive);
 
       // Assert
-      expect(mockAutoSaveContext).not.toHaveBeenCalled();
+      expect(mockHandoffWriter).not.toHaveBeenCalled();
       expect(mockCalibrationPersist).not.toHaveBeenCalled();
     });
 
@@ -194,7 +185,7 @@ describe('Unified Stop Dispatcher Hook', () => {
       await unifiedStopDispatcher(inputWithInactive);
 
       // Assert
-      expect(mockAutoSaveContext).toHaveBeenCalled();
+      expect(mockHandoffWriter).toHaveBeenCalled();
     });
 
     it('should run hooks when stop_hook_active is undefined', async () => {
@@ -202,7 +193,7 @@ describe('Unified Stop Dispatcher Hook', () => {
       await unifiedStopDispatcher(defaultInput);
 
       // Assert
-      expect(mockAutoSaveContext).toHaveBeenCalled();
+      expect(mockHandoffWriter).toHaveBeenCalled();
     });
   });
 
@@ -212,7 +203,7 @@ describe('Unified Stop Dispatcher Hook', () => {
   describe('Individual Hook Failures', () => {
     it('should handle individual hook failures without crashing', async () => {
       // Arrange
-      mockAutoSaveContext.mockImplementation(() => {
+      mockHandoffWriter.mockImplementation(() => {
         throw new Error('auto-save failed');
       });
 
@@ -225,7 +216,7 @@ describe('Unified Stop Dispatcher Hook', () => {
 
     it('should log error for failed hooks', async () => {
       // Arrange
-      mockAutoSaveContext.mockImplementation(() => {
+      mockHandoffWriter.mockImplementation(() => {
         throw new Error('save context error');
       });
 
@@ -235,13 +226,13 @@ describe('Unified Stop Dispatcher Hook', () => {
       // Assert
       expect(mockLogHook).toHaveBeenCalledWith(
         'stop-dispatcher',
-        expect.stringContaining('auto-save-context failed')
+        expect.stringContaining('handoff-writer failed')
       );
     });
 
     it('should continue running other hooks when one fails', async () => {
       // Arrange
-      mockAutoSaveContext.mockImplementation(() => {
+      mockHandoffWriter.mockImplementation(() => {
         throw new Error('Failure');
       });
 
@@ -254,7 +245,7 @@ describe('Unified Stop Dispatcher Hook', () => {
 
     it('should log error count when hooks fail', async () => {
       // Arrange
-      mockAutoSaveContext.mockImplementation(() => {
+      mockHandoffWriter.mockImplementation(() => {
         throw new Error('Error 1');
       });
       mockCalibrationPersist.mockImplementation(() => {
@@ -296,12 +287,11 @@ describe('Unified Stop Dispatcher Hook', () => {
       const names = registeredHookNames();
 
       // Assert
-      expect(names).toContain('auto-save-context');
+      expect(names).toContain('handoff-writer');
       expect(names).toContain('calibration-persist');
       expect(names).toContain('session-end-tracking');
       // v7: graph-queue-sync removed (mem0 cloud removed)
       expect(names).toContain('task-completion-check');
-      expect(names).toContain('full-test-suite');
     });
 
     it('should include skill hook names', () => {
@@ -310,7 +300,6 @@ describe('Unified Stop Dispatcher Hook', () => {
 
       // Assert
       expect(names).toContain('coverage-check');
-      expect(names).toContain('test-runner');
       expect(names).toContain('security-summary');
     });
 

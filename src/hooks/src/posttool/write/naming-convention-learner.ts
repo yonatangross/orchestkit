@@ -16,7 +16,8 @@
 
 import { basename } from 'node:path';
 
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { existsSync, readFileSync, mkdirSync } from 'node:fs';
+import { atomicWriteSync } from '../../lib/atomic-write.js';
 import type { HookInput, HookResult } from '../../types.js';
 import { outputSilentSuccess, getField, getProjectDir, logHook } from '../../lib/common.js';
 
@@ -367,7 +368,7 @@ export function namingConventionLearner(input: HookInput): HookResult {
       lang.types[caseType] = (lang.types[caseType] || 0) + typeCases[caseType];
     }
 
-    writeFileSync(profilePath, JSON.stringify(profile, null, 2));
+    atomicWriteSync(profilePath, JSON.stringify(profile, null, 2));
   } catch (error) {
     logHook('naming-convention-learner', `Error updating profile: ${error}`);
   }

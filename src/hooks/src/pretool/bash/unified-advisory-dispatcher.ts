@@ -12,7 +12,6 @@
  * - issue-docs-requirement (context)
  * - multi-instance-quality-gate (context)
  * - gh-issue-creation-guide (context)
- * - license-compliance (context)
  * - affected-tests-finder (context)
  *
  * NOT consolidated (remain separate in hooks.json):
@@ -36,10 +35,9 @@ import {
 import { defaultTimeoutSetter } from './default-timeout-setter.js';
 import { agentBrowserSafety } from './agent-browser-safety.js';
 import { errorPatternWarner } from './error-pattern-warner.js';
-import { issueDocsRequirement } from './issue-docs-requirement.js';
-import { multiInstanceQualityGate } from './multi-instance-quality-gate.js';
+// issue-docs-requirement: moved to pr-merge-gate (#915)
+// multi-instance-quality-gate: moved to pr-merge-gate (#915)
 import { ghIssueCreationGuide } from './gh-issue-creation-guide.js';
-import { licenseCompliance } from './license-compliance.js';
 import { affectedTestsFinder } from './affected-tests-finder.js';
 
 // -----------------------------------------------------------------------------
@@ -68,10 +66,9 @@ interface AdvisoryHookConfig {
 
 const ADVISORY_HOOKS: AdvisoryHookConfig[] = [
   { name: 'error-pattern-warner', fn: errorPatternWarner },
-  { name: 'issue-docs-requirement', fn: issueDocsRequirement },
-  { name: 'multi-instance-quality-gate', fn: multiInstanceQualityGate },
+  // issue-docs-requirement: moved to pr-merge-gate (#915)
+  // multi-instance-quality-gate: moved to pr-merge-gate (#915)
   { name: 'gh-issue-creation-guide', fn: ghIssueCreationGuide },
-  { name: 'license-compliance', fn: licenseCompliance },
   { name: 'affected-tests-finder', fn: affectedTestsFinder },
 ];
 
@@ -81,6 +78,10 @@ export const registeredHookNames = () => [
   'agent-browser-safety',
   ...ADVISORY_HOOKS.map(h => h.name),
 ];
+
+// Hooks moved out (#915) — still available for agent-scoped use via entries
+// - issue-docs-requirement → pr-merge-gate
+// - multi-instance-quality-gate → pr-merge-gate
 
 // extractContext imported from ../../lib/common.js (Issue #682)
 
@@ -111,25 +112,24 @@ export function unifiedBashAdvisoryDispatcher(input: HookInput): HookResult {
   }
 
   // --- Phase 2: Blocking check (agent-browser-safety) ---
+  // Fix #907: collect browser context without short-circuiting advisory hooks
+  let browserContext: string | null = null;
   try {
     const browserResult = agentBrowserSafety(input);
     if (!browserResult.continue) {
       // Blocked — return the deny immediately
       return browserResult;
     }
-    // If it produced context, collect it
-    const browserContext = extractContext(browserResult);
-    if (browserContext) {
-      // Browser safety context is high-priority, prepend to advisory output
-      return mergeAdvisoryContext(input, updatedInput, browserContext);
-    }
+    // If it produced context, capture it for prepending (don't return early)
+    browserContext = extractContext(browserResult);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     logHook(HOOK_NAME, `agent-browser-safety failed: ${message}`, 'warn');
   }
 
   // --- Phase 3: Advisory hooks (context producers) ---
-  return mergeAdvisoryContext(input, updatedInput, null);
+  // Always run all advisory hooks, prepend browser safety context if present
+  return mergeAdvisoryContext(input, updatedInput, browserContext);
 }
 
 /**

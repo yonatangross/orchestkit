@@ -1,8 +1,9 @@
 ---
 name: prompt-engineer
-description: Expert prompt designer and optimizer. Chain-of-thought, few-shot learning, structured outputs, prompt versioning, A/B testing, cost optimization. Use for prompts, prompt-engineering, cot, few-shot, prompt design, prompt optimization, structured-output, a-b-testing, cost-optimization, prompt-testing, evaluation.
+description: Expert prompt designer and optimizer. Chain-of-thought, few-shot learning, structured outputs, prompt versioning, A/B testing, and cost optimization.
 category: llm
 model: sonnet
+maxTurns: 30
 context: fork
 color: purple
 memory: project
@@ -23,7 +24,11 @@ skills:
   - task-dependency-patterns
   - remember
   - memory
-mcpServers: [context7, memory]
+hooks:
+  PreToolUse:
+    - matcher: "Bash"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
+mcpServers: [tavily]
 ---
 
 ## Directive

@@ -206,7 +206,7 @@ function createSubagentInput(agentId: string, overrides: Partial<HookInput> = {}
   return createHookInput({
     tool_name: 'SubagentStart',
     tool_input: { prompt: 'Test task', subagent_type: 'Explore' },
-    subagent_id: agentId,
+    agent_id: agentId,
     ...overrides,
   });
 }
@@ -263,19 +263,18 @@ const hookTestCases: HookTestCase[] = [
   { name: 'file-guard', path: '../../pretool/write-edit/file-guard.js', createInput: () => createWriteInput('/test/file.ts', 'content'), category: 'pretool-write' },
 
   // PostToolUse hooks
-  { name: 'unified-error-handler', path: '../../posttool/unified-error-handler.js', createInput: () => createBashInput('exit 1', { tool_result: 'error', is_error: true }), category: 'posttool' },
+  { name: 'unified-error-handler', path: '../../posttool/unified-error-handler.js', createInput: () => createBashInput('exit 1', { tool_result: 'error' } as Partial<HookInput>), category: 'posttool' },
 
   // Permission hooks
   { name: 'auto-approve-safe-bash', path: '../../permission/auto-approve-safe-bash.js', createInput: () => createBashInput('git status'), category: 'permission' },
   { name: 'auto-approve-project-writes', path: '../../permission/auto-approve-project-writes.js', createInput: () => createWriteInput('/test/project/src/file.ts', 'content'), category: 'permission' },
 
   // Prompt hooks
-  { name: 'context-injector', path: '../../prompt/context-injector.js', createInput: () => createPromptInput('help me with code'), category: 'prompt' },
+  { name: 'handoff-injector', path: '../../prompt/handoff-injector.js', createInput: () => createPromptInput('help me with code'), category: 'prompt' },
   // skill-resolver removed in v6.0.2 (CC natively injects agent skills)
   { name: 'antipattern-warning', path: '../../prompt/antipattern-warning.js', createInput: () => createPromptInput('fix the bug'), category: 'prompt' },
 
   // Lifecycle hooks
-  { name: 'session-context-loader', path: '../../lifecycle/session-context-loader.js', createInput: () => createHookInput({ tool_name: 'SessionStart' }), category: 'lifecycle' },
   { name: 'session-cleanup', path: '../../lifecycle/session-cleanup.js', createInput: () => createHookInput({ tool_name: 'SessionEnd' }), category: 'lifecycle' },
 
   // Stop hooks
@@ -285,7 +284,7 @@ const hookTestCases: HookTestCase[] = [
   { name: 'graph-memory-inject', path: '../../subagent-start/graph-memory-inject.js', createInput: () => createSubagentInput('agent-123'), category: 'subagent-start' },
   { name: 'subagent-validator', path: '../../subagent-start/subagent-validator.js', createInput: () => createSubagentInput('agent-123'), category: 'subagent-start' },
   { name: 'output-validator', path: '../../subagent-stop/output-validator.js', createInput: () => createSubagentInput('agent-123', { tool_result: 'Agent completed' }), category: 'subagent-stop' },
-  { name: 'retry-handler', path: '../../subagent-stop/retry-handler.js', createInput: () => createSubagentInput('agent-123', { is_error: true }), category: 'subagent-stop' },
+  { name: 'retry-handler', path: '../../subagent-stop/retry-handler.js', createInput: () => createSubagentInput('agent-123', {} as Partial<HookInput>), category: 'subagent-stop' },
   { name: 'subagent-quality-gate', path: '../../subagent-stop/subagent-quality-gate.js', createInput: () => createSubagentInput('agent-123', { tool_result: 'Done' }), category: 'subagent-stop' },
 
   // Setup hooks
@@ -390,7 +389,7 @@ describe('Hook Schema Validation', () => {
           if (typeof hookFn !== 'function') return;
 
           const input = hook.createInput();
-          delete (input as Record<string, unknown>).session_id;
+          delete (input as unknown as Record<string, unknown>).session_id;
 
           const result = hookFn(input);
           const resolvedResult = result instanceof Promise ? await result : result;

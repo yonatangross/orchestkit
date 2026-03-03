@@ -10,7 +10,7 @@
 import type { HookInput, HookResult } from '../../types.js';
 import {
   outputSilentSuccess,
-  outputAllowWithContext,
+  outputStderrWarning,
   getCachedBranch,
 } from '../../lib/common.js';
 
@@ -72,8 +72,8 @@ export function issueReferenceChecker(input: HookInput): HookResult {
       return outputSilentSuccess();
     }
 
-    // Issue number found in branch but not in commit message — remind
-    return outputAllowWithContext(
+    // Issue number found in branch but not in commit message — remind via stderr (0 tokens, user-visible)
+    outputStderrWarning(
       `Reminder: You're on branch \`${branch}\` — include #${issueNum} in the commit message to link it to the issue.`
     );
   } catch {

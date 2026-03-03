@@ -4,8 +4,7 @@ import { Banner } from "fumadocs-ui/components/banner";
 import { Geist, Geist_Mono } from "next/font/google";
 import type { ReactNode } from "react";
 import type { Metadata } from "next";
-import { Analytics } from "@vercel/analytics/next";
-import { SpeedInsights } from "@vercel/speed-insights/next";
+import { HQAnalytics } from "@yonatan-hq/analytics";
 import { SITE, COUNTS, BANNER_TEXT } from "@/lib/constants";
 import { AgentationWrapper } from "@/components/agentation-wrapper";
 
@@ -44,8 +43,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         <RootProvider>
           <div id="main-content">{children}</div>
         </RootProvider>
-        <Analytics />
-        <SpeedInsights />
+        <HQAnalytics projectId="orchestkit" />
         <AgentationWrapper />
       </body>
     </html>

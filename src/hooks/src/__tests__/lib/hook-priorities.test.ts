@@ -47,7 +47,7 @@ describe('hook-priorities', () => {
     });
 
     test('returns P3 for monitoring hooks', () => {
-      expect(getHookPriority('prompt/context-pruning-advisor')).toBe('P3');
+      expect(getHookPriority('prompt/satisfaction-detector')).toBe('P3');
     });
 
     test('returns P2 as default for unknown hooks', () => {

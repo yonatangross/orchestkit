@@ -1,6 +1,6 @@
 ---
 title: "Fix Issue"
-description: "Fixes GitHub issues with parallel analysis. Use to debug errors, resolve regressions, fix bugs, or triage issues."
+description: "Fixes GitHub issues with parallel analysis. Use when debugging errors, resolving regressions, fixing bugs, or triaging issues."
 ---
 
 <span className="badge badge-blue">Command</span> <span className="badge badge-yellow">medium</span>
@@ -26,6 +26,14 @@ Systematic issue resolution with hypothesis-based root cause analysis, similar i
 ```
 
 > **Opus 4.6**: Root cause analysis uses native adaptive thinking. Dynamic token budgets scale with context window for thorough investigation.
+
+## Argument Resolution
+
+```python
+ISSUE_NUMBER = "$ARGUMENTS[0]"  # e.g., "123" (CC 2.1.59 indexed access)
+# $ARGUMENTS contains the full argument string
+# $ARGUMENTS[0] is the first space-separated token
+```
 
 ## STEP 0: Verify User Intent
 
@@ -114,21 +122,38 @@ AskUserQuestion(
     "question": "What approach for this fix?",
     "header": "Approach",
     "options": [
-      {"label": "Proper fix (Recommended)", "description": "Full RCA, tests, prevention recommendations"},
-      {"label": "Quick fix", "description": "Minimal fix to resolve the immediate issue"},
-      {"label": "Investigate first", "description": "Understand the issue before deciding on approach"},
-      {"label": "Hotfix", "description": "Emergency patch, minimal testing"}
+      {"label": "Proper fix (Recommended)", "description": "Full RCA, tests, prevention recommendations", "markdown": "```\nProper Fix (11 phases)\n──────────────────────\n  Issue ──▶ RCA ──▶ Fix ──▶ Prevent\n  ┌─────┐  ┌─────┐  ┌─────┐  ┌───────┐\n  │Read │  │5-Why│  │Code │  │Tests  │\n  │issue│  │Fish │  │impl │  │Runbook│\n  │+hist│  │bone │  │+test│  │Lessons│\n  └─────┘  └─────┘  └─────┘  └───────┘\n  5 parallel agents for RCA\n  Regression test BEFORE fix\n  Prevention + lessons learned\n```"},
+      {"label": "Quick fix", "description": "Minimal fix to resolve the immediate issue", "markdown": "```\nQuick Fix (phases 1-7)\n──────────────────────\n  Issue ──▶ Diagnose ──▶ Fix\n  ┌─────┐   ┌────────┐  ┌─────┐\n  │Read │   │Focused │  │Code │\n  │issue│   │RCA     │  │+test│\n  └─────┘   └────────┘  └─────┘\n  Skip: prevention, runbook,\n  lessons learned phases\n  Still requires regression test\n```"},
+      {"label": "Investigate first", "description": "Understand the issue before deciding on approach", "markdown": "```\nInvestigate Only (phases 1-4)\n─────────────────────────────\n  Issue ──▶ Search ──▶ Hypotheses\n  ┌─────┐  ┌──────┐  ┌──────────┐\n  │Read │  │Find  │  │Rank by   │\n  │issue│  │similar│  │confidence│\n  └─────┘  └──────┘  └──────────┘\n  Output: Root cause analysis\n  NO code changes made\n  Decide approach after findings\n```"},
+      {"label": "Hotfix", "description": "Emergency patch, minimal testing", "markdown": "```\nHotfix (minimal)\n────────────────\n  Issue ──▶ Fix ──▶ Ship\n  ┌─────┐  ┌────┐  ┌────┐\n  │Skim │  │Min │  │Push│\n  │issue│  │fix │  │now │\n  └─────┘  └────┘  └────┘\n  Skip: similar issue search,\n  deep RCA, prevention\n  ⚠ Follow up with proper fix\n```"},
+      {"label": "Plan first", "description": "Investigate root cause in plan mode before fixing", "markdown": "```\nPlan Mode Investigation\n──────────────────────\n  1. EnterPlanMode\n  2. Read issue + repro\n  3. Trace code paths\n  4. Identify root cause\n  5. ExitPlanMode → fix plan\n  6. User approves approach\n  7. Implement fix + tests\n\n  Best for: Complex bugs,\n  regressions, multi-file fixes\n```"}
     ],
     "multiSelect": false
   }]
 )
 ```
 
+**If 'Plan first' selected:** Call `EnterPlanMode`, perform research using Read/Grep/Glob only, then `ExitPlanMode` with the plan for user approval before proceeding.
+
 **Based on answer, adjust workflow:**
 - **Proper fix**: All 11 phases, parallel agents for RCA
 - **Quick fix**: Skip phases 8-10 (prevention, runbook, lessons)
 - **Investigate first**: Only phases 1-4 (understand, search, hypotheses, analyze)
 - **Hotfix**: Minimal phases, skip similar issue search
+
+**Incorrect:**
+```python
+# Jump straight to code without understanding the issue
+Edit(file_path="src/auth.py", old_string="return token", new_string="return new_token")
+```
+
+**Correct:**
+```python
+# Gather evidence first: read issue, search codebase, form hypotheses
+Read(file_path="src/auth.py")
+Grep(pattern="token.*expir", path="src/")
+# Hypothesis: token refresh skips validation (confidence: 75%)
+```
 
 ## Hypothesis Confidence Scale
 
@@ -544,7 +569,7 @@ In Agent Teams mode, form an investigation team where RCA agents share hypothese
 ```python
 TeamCreate(team_name="fix-issue-{number}", description="RCA for issue #{number}")
 
-Task(subagent_type="debug-investigator", name="root-cause-tracer",
+Agent(subagent_type="debug-investigator", name="root-cause-tracer",
      team_name="fix-issue-{number}",
      prompt="""Trace the root cause for issue #{number}: {issue description}
      Hypotheses: {hypothesis list from Phase 3}
@@ -552,28 +577,28 @@ Task(subagent_type="debug-investigator", name="root-cause-tracer",
      message impact-analyst and the relevant domain expert (backend-expert or frontend-expert).
      If you find conflicting evidence, share it with ALL teammates for debate.""")
 
-Task(subagent_type="debug-investigator", name="impact-analyst",
+Agent(subagent_type="debug-investigator", name="impact-analyst",
      team_name="fix-issue-{number}",
      prompt="""Analyze the impact and blast radius for issue #{number}.
      When root-cause-tracer shares evidence, assess how many code paths are affected.
      Message test-planner with affected paths so they can plan regression tests.
      If the impact is larger than expected, message the lead immediately.""")
 
-Task(subagent_type="backend-system-architect", name="backend-expert",
+Agent(subagent_type="backend-system-architect", name="backend-expert",
      team_name="fix-issue-{number}",
      prompt="""Investigate backend aspects of issue #{number}.
      When root-cause-tracer shares backend-related hypotheses, design the fix approach.
      Message frontend-expert if the fix affects API contracts.
      Share fix design with test-planner for test requirements.""")
 
-Task(subagent_type="frontend-ui-developer", name="frontend-expert",
+Agent(subagent_type="frontend-ui-developer", name="frontend-expert",
      team_name="fix-issue-{number}",
      prompt="""Investigate frontend aspects of issue #{number}.
      When root-cause-tracer shares frontend-related hypotheses, design the fix approach.
      If backend-expert changes API contracts, adapt the frontend fix accordingly.
      Share component changes with test-planner.""")
 
-Task(subagent_type="test-generator", name="test-planner",
+Agent(subagent_type="test-generator", name="test-planner",
      team_name="fix-issue-{number}",
      prompt="""Plan regression tests for issue #{number}.
      When root-cause-tracer confirms the root cause, write a failing test that reproduces it.

@@ -1,8 +1,9 @@
 ---
 name: rapid-ui-designer
-description: UI/UX designer specializing in rapid prototyping with Tailwind CSS. Creates design systems, component specifications, responsive layouts, and accessibility-compliant mockups that bridge design and implementation. Activates for UI, UX, prototype, Tailwind, design system, component, mockup
+description: "UI/UX designer: rapid Tailwind CSS prototyping, design systems, component specs, responsive layouts, accessible mockups."
 category: frontend
-model: sonnet
+model: haiku
+maxTurns: 20
 context: fork
 color: cyan
 memory: project
@@ -25,6 +26,8 @@ hooks:
   PreToolUse:
     - matcher: "Write|Edit"
       command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs agent/block-writes"
+    - matcher: "Bash"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs agent/restrict-bash"
 mcpServers: [context7]
 ---
 ## Directive

@@ -3,6 +3,7 @@ name: ui-feedback
 description: Processes UI annotations from agentation. Watches for new annotations, maps element paths to source code, implements fixes, and resolves annotations with summaries.
 category: frontend
 model: sonnet
+maxTurns: 20
 context: fork
 color: teal
 memory: project
@@ -33,6 +34,10 @@ skills:
   - task-dependency-patterns
   - remember
   - memory
+hooks:
+  PreToolUse:
+    - matcher: "Bash"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
 mcpServers: [agentation]
 ---
 ## Directive

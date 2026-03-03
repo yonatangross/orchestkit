@@ -1,9 +1,11 @@
 ---
 name: frontend-ui-developer
-description: Frontend developer who builds React 19/TypeScript components with optimistic updates, concurrent features, Zod-validated APIs, exhaustive type safety, and modern 2026 patterns. Activates for React, TypeScript, component, UI, frontend, optimistic updates, Zod, concurrent, TSX, hook, TanStack, Suspense, skeleton, form, validation, mutation, lazy loading, view transitions, scroll animations, PWA, charts, dashboard
+description: "Frontend developer: React 19/TypeScript components, optimistic updates, Zod-validated APIs, modern 2026 patterns."
 category: frontend
 model: sonnet
+maxTurns: 30
 context: fork
+isolation: worktree
 color: purple
 memory: project
 tools:
@@ -31,6 +33,10 @@ skills:
   - task-dependency-patterns
   - remember
   - memory
+hooks:
+  PreToolUse:
+    - matcher: "Bash"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
 mcpServers: [context7]
 ---
 ## Directive

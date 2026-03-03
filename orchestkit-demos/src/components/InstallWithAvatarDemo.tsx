@@ -130,7 +130,7 @@ const HookScene: React.FC<{ primaryColor: string }> = ({ primaryColor }) => {
             opacity: subtitleOpacity,
           }}
         >
-          62 skills. 36 agents. Zero configuration.
+          69 skills. 38 agents. Zero configuration.
         </p>
       </div>
     </AbsoluteFill>

@@ -17,9 +17,9 @@
 import type { HookInput, HookResult } from '../types.js';
 import {
   outputSilentSuccess,
-  outputPromptContext,
   logHook,
   getProjectDir,
+  writeRulesFile,
 } from '../lib/common.js';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -197,11 +197,13 @@ export function memoryContextLoader(input: HookInput): HookResult {
     }
     filtered.reverse();
 
-    // Build context
+    // Build context and materialize to project rules file (#token-reduction)
     const context = formatDecisionContext(filtered);
+    const rulesDir = join(projectDir, '.claude', 'rules');
+    writeRulesFile(rulesDir, 'recent-decisions.md', context, HOOK_NAME);
 
-    logHook(HOOK_NAME, `Loaded ${filtered.length} decisions as context (${decisions.length - filtered.length} filtered/deduped)`);
-    return outputPromptContext(context);
+    logHook(HOOK_NAME, `Wrote ${filtered.length} decisions to rules file (${decisions.length - filtered.length} filtered/deduped)`);
+    return outputSilentSuccess();
   } catch (err) {
     logHook(HOOK_NAME, `Error loading memory context: ${err}`, 'warn');
     return outputSilentSuccess();

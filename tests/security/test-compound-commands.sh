@@ -2,7 +2,7 @@
 # Security Tests: Compound Command Validation (CC 2.1.7)
 # Tests for compound command bypass vulnerabilities
 #
-# Test Count: 8
+# Test Count: 14
 # Priority: HIGH
 # Reference: CC 2.1.7 Security Fix - Compound Shell Operators
 
@@ -36,12 +36,20 @@ cleanup() {
 }
 trap cleanup EXIT
 
-# Helper to run bash dispatcher with JSON input
+# Helper to run bash dispatcher with JSON input (legacy shell dispatcher)
 run_dispatcher() {
   local cmd="$1"
   local input
   input=$(jq -n --arg cmd "$cmd" '{"tool_name":"Bash","tool_input":{"command":$cmd}}')
   echo "$input" | bash "$PROJECT_ROOT/src/hooks/pretool/bash/dangerous-command-blocker.sh" 2>/dev/null || true
+}
+
+# Helper to run the TypeScript compound-command-validator via run-hook.mjs
+run_compound_validator() {
+  local cmd="$1"
+  local input
+  input=$(jq -n --arg cmd "$cmd" '{"tool_name":"Bash","tool_input":{"command":$cmd}}')
+  echo "$input" | node "$PROJECT_ROOT/src/hooks/bin/run-hook.mjs" pretool/bash/compound-command-validator 2>/dev/null || true
 }
 
 # ============================================================================
@@ -206,6 +214,84 @@ test_dispatcher_has_validation() {
   fi
 }
 test_dispatcher_has_validation
+
+log_section "Test 9: Process substitution blocked (TypeScript validator)"
+test_process_substitution() {
+  local result
+  result=$(run_compound_validator "cat <(whoami)")
+
+  if [[ "$result" == *'"continue":false'* ]] || [[ "$result" == *'"continue": false'* ]]; then
+    log_pass "Process substitution blocked"
+  else
+    log_fail "Process substitution NOT blocked"
+  fi
+}
+test_process_substitution
+
+log_section "Test 10: Brace expansion (command form) blocked"
+test_brace_expansion() {
+  local result
+  result=$(run_compound_validator '{cat,/etc/passwd}')
+
+  if [[ "$result" == *'"continue":false'* ]] || [[ "$result" == *'"continue": false'* ]]; then
+    log_pass "Brace expansion (command) blocked"
+  else
+    log_fail "Brace expansion (command) NOT blocked"
+  fi
+}
+test_brace_expansion
+
+log_section "Test 11: Here-string blocked"
+test_here_string() {
+  local result
+  result=$(run_compound_validator 'cat <<< "secret data"')
+
+  if [[ "$result" == *'"continue":false'* ]] || [[ "$result" == *'"continue": false'* ]]; then
+    log_pass "Here-string blocked"
+  else
+    log_fail "Here-string NOT blocked"
+  fi
+}
+test_here_string
+
+log_section "Test 12: IFS manipulation blocked"
+test_ifs_manipulation() {
+  local result
+  result=$(run_compound_validator '${IFS}cat${IFS}/etc/passwd')
+
+  if [[ "$result" == *'"continue":false'* ]] || [[ "$result" == *'"continue": false'* ]]; then
+    log_pass "IFS manipulation blocked"
+  else
+    log_fail "IFS manipulation NOT blocked"
+  fi
+}
+test_ifs_manipulation
+
+log_section "Test 13: Nested substitution blocked"
+test_nested_substitution() {
+  local result
+  result=$(run_compound_validator '$(echo `whoami`)')
+
+  if [[ "$result" == *'"continue":false'* ]] || [[ "$result" == *'"continue": false'* ]]; then
+    log_pass "Nested substitution blocked"
+  else
+    log_fail "Nested substitution NOT blocked"
+  fi
+}
+test_nested_substitution
+
+log_section "Test 14: Legitimate brace glob allowed"
+test_legitimate_brace_glob() {
+  local result
+  result=$(run_compound_validator 'ls src/*.{ts,js}')
+
+  if [[ "$result" == *'"continue":false'* ]] || [[ "$result" == *'"continue": false'* ]]; then
+    log_fail "Legitimate brace glob incorrectly blocked"
+  else
+    log_pass "Legitimate brace glob allowed"
+  fi
+}
+test_legitimate_brace_glob
 
 # ============================================================================
 # SUMMARY

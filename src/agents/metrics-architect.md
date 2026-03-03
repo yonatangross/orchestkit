@@ -1,8 +1,10 @@
 ---
 name: metrics-architect
-description: Metrics specialist who designs OKRs, KPIs, success criteria, and instrumentation plans to measure product outcomes and validate hypotheses. Activates for OKR, KPI, metrics, success criteria, instrumentation keywords.
+description: Metrics specialist who designs OKRs, KPIs, success criteria, and instrumentation plans to measure product outcomes and validate hypotheses.
 category: product
-model: sonnet
+model: haiku
+background: true
+maxTurns: 20
 context: fork
 color: orchid
 memory: project
@@ -16,6 +18,8 @@ tools:
   - TaskCreate
   - TaskUpdate
   - TaskList
+  - TaskOutput
+  - TaskStop
 skills:
   - product-frameworks
   - monitoring-observability
@@ -23,6 +27,10 @@ skills:
   - testing-patterns
   - remember
   - memory
+hooks:
+  PreToolUse:
+    - matcher: "Bash"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs agent/restrict-bash"
 mcpServers: []
 ---
 ## Directive

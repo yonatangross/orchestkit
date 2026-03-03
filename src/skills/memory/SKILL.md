@@ -1,7 +1,7 @@
 ---
 name: memory
 license: MIT
-compatibility: "Claude Code 2.1.56+. Requires memory MCP server."
+compatibility: "Claude Code 2.1.59+. Requires memory MCP server."
 description: "Read-side memory operations: search, recall, load, sync, history, visualize. Use when searching past decisions, loading session context, or viewing the knowledge graph."
 argument-hint: "[subcommand] [query]"
 context: fork
@@ -11,6 +11,7 @@ tags: [memory, graph, session, context, sync, visualization, history, search]
 user-invocable: true
 allowed-tools: [Read, Grep, Glob, Bash, AskUserQuestion, mcp__memory__search_nodes, mcp__memory__read_graph]
 complexity: low
+model: haiku
 metadata:
   category: mcp-enhancement
   mcp-server: memory
@@ -19,6 +20,14 @@ metadata:
 # Memory - Read & Access Operations
 
 Unified read-side memory skill with subcommands for searching, loading, syncing, history, and visualization.
+
+## Argument Resolution
+
+```python
+SUBCOMMAND = "$ARGUMENTS[0]"  # First token: search, load, history, viz, status
+QUERY = "$ARGUMENTS[1]"       # Second token onward: search query or flags
+# $ARGUMENTS is the full string (CC 2.1.59 indexed access)
+```
 
 ## Usage
 
@@ -42,11 +51,11 @@ AskUserQuestion(
     "question": "What memory operation do you need?",
     "header": "Operation",
     "options": [
-      {"label": "search", "description": "Search decisions and patterns in knowledge graph"},
-      {"label": "load", "description": "Load relevant context for this session"},
-      {"label": "history", "description": "View decision timeline"},
-      {"label": "viz", "description": "Visualize knowledge graph as Mermaid"},
-      {"label": "status", "description": "Check memory system health"}
+      {"label": "search", "description": "Search decisions and patterns in knowledge graph", "markdown": "```\nSearch Knowledge Graph\n──────────────────────\n  query ──▶ mcp__memory ──▶ results\n\n  Flags:\n  --category  Filter by type\n  --agent     Scope to agent\n  --limit N   Max results\n  --global    Cross-project\n```"},
+      {"label": "load", "description": "Load relevant context for this session", "markdown": "```\nLoad Session Context\n────────────────────\n  Auto-detect project ──▶\n  ┌────────────────────┐\n  │ Recent decisions   │\n  │ Active patterns    │\n  │ Project entities   │\n  └────────────────────┘\n  Flags: --project, --global\n```"},
+      {"label": "history", "description": "View decision timeline", "markdown": "```\nDecision Timeline\n─────────────────\n  ┌──── Feb 28 ────────────┐\n  │ Used Postgres over Mongo│\n  ├──── Feb 27 ────────────┤\n  │ Adopted MVC pattern     │\n  ├──── Feb 26 ────────────┤\n  │ Chose JWT over sessions │\n  └────────────────────────┘\n  Flags: --since, --mermaid\n```"},
+      {"label": "viz", "description": "Visualize knowledge graph as Mermaid", "markdown": "```\nKnowledge Graph Viz\n───────────────────\n  Entities ──▶ Mermaid diagram\n\n  [Project] ──uses──▶ [Postgres]\n      │                    │\n      └──has──▶ [Auth] ──uses──▶ [JWT]\n\n  Output: Mermaid code block\n```"},
+      {"label": "status", "description": "Check memory system health", "markdown": "```\nMemory Health Check\n───────────────────\n  ┌─────────────────────┐\n  │ MCP server    ✓/✗   │\n  │ Entity count  N     │\n  │ Relation count N    │\n  │ Last write    date  │\n  │ Graph size    N KB  │\n  └─────────────────────┘\n```"}
     ],
     "multiSelect": false
   }]

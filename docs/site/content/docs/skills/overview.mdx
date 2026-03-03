@@ -100,6 +100,8 @@ Every `SKILL.md` starts with YAML frontmatter between `---` delimiters. Here are
 | `description` | Yes | string | One-line summary. Starts with what it does, ends with "Use when..." |
 | `tags` | Yes | string[] | Keywords for discovery and search |
 | `user-invocable` | Yes | boolean | `true` = command skill, `false` = reference skill |
+| `argument-hint` | Optional | string | Autocomplete hint shown after `/ork:skill-name` (e.g., `[issue-number]`) |
+| `disable-model-invocation` | Optional | boolean | `true` = hidden from Claude's prompt listing (saves tokens) |
 | `context` | Yes | string | `fork` (isolated context), `inherit` (parent context), `none` (no context needed) |
 | `complexity` | Yes | string | `low`, `medium`, `high`, or `max` -- aligns adaptive thinking budget |
 | `version` | Recommended | string | Semver version of the skill content |
@@ -141,6 +143,22 @@ Claude Code 2.1.33+ scales the skill character budget to approximately 2% of the
 | 1M tokens | ~6,000 tokens |
 
 When multiple skills are injected, they share this budget. The platform prioritizes skills by relevance score, loading higher-confidence matches first and truncating lower-priority content if the budget is exhausted.
+
+---
+
+## Skill Listing and Token Budget
+
+Of OrchestKit's 69 skills, only **16 are listed** in Claude's prompt context. The remaining 53 are hidden via `disable-model-invocation: true` to save ~2,630 tokens per turn. Hidden skills are still fully functional:
+
+- Users can invoke them via `/ork:skill-name` slash commands
+- Agents load them via frontmatter `skills:` arrays
+- The `skill-auto-suggest` hook matches them by keywords
+
+The 16 listed skills are the most broadly useful ones that benefit from Claude proactively recognizing when to use them.
+
+### Interactive Options
+
+Many command skills present interactive option pickers with ASCII art previews. For example, `/ork:assess` shows a side-by-side preview of each assessment mode with the dimensions scored, agents used, and output format. Some skills support `multiSelect` to combine modes (e.g., running both security and dependency audits together).
 
 ---
 

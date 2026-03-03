@@ -6,7 +6,7 @@
  */
 
 import { existsSync, readFileSync } from 'node:fs';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, outputWithContext, logHook } from '../lib/common.js';
 import { basename } from 'node:path';
@@ -56,7 +56,7 @@ export function migrationValidator(input: HookInput): HookResult {
 
   // Validate syntax
   try {
-    execSync(`python3 -m py_compile "${filePath}"`, {
+    execFileSync('python3', ['-m', 'py_compile', filePath], {
       encoding: 'utf8',
       timeout: 10000,
       stdio: ['pipe', 'pipe', 'pipe'],

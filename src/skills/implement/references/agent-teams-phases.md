@@ -10,19 +10,19 @@ In Agent Teams mode, form a team instead of spawning 5 independent Tasks. Teamma
 TeamCreate(team_name="implement-{feature-slug}", description="Architecture for {feature}")
 
 # Spawn 4 teammates (5th role — UX — is lead-managed or optional)
-Task(subagent_type="backend-system-architect", name="backend-architect",
+Agent(subagent_type="backend-system-architect", name="backend-architect",
      team_name="implement-{feature-slug}",
      prompt="Design backend architecture. Message frontend-dev when API contract ready.")
 
-Task(subagent_type="frontend-ui-developer", name="frontend-dev",
+Agent(subagent_type="frontend-ui-developer", name="frontend-dev",
      team_name="implement-{feature-slug}",
      prompt="Design frontend architecture. Wait for API contract from backend-architect.")
 
-Task(subagent_type="test-generator", name="test-engineer",
+Agent(subagent_type="test-generator", name="test-engineer",
      team_name="implement-{feature-slug}",
      prompt="Plan test strategy. Start fixtures immediately, tests as contracts stabilize.")
 
-Task(subagent_type="code-quality-reviewer", name="code-reviewer",
+Agent(subagent_type="code-quality-reviewer", name="code-reviewer",
      team_name="implement-{feature-slug}",
      prompt="Review architecture decisions as they're shared. Flag issues to author directly.")
 ```

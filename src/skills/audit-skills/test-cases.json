@@ -42,7 +42,7 @@
       "expectedBehavior": [
         "Compares discovered src/skills/ directories against manifests/ork.json skills array",
         "Treats 'skills: all' in ork.json as covering all skills — marks those as YES",
-        "Marks skills absent from both ork.json and orkl.json as FAIL",
+        "Marks skills absent from ork.json as FAIL",
         "Reports manifest registration status in the output table column"
       ]
     },

@@ -4,15 +4,17 @@
  *
  * Identity Resolution Order:
  * 1. Explicit config (.claude/.user_identity.json)
- * 2. Git config (user.email, user.name)
- * 3. Environment variables (USER, USERNAME)
- * 4. Anonymous (machine-based hash)
+ * 2. CC env vars (CLAUDE_CODE_USER_EMAIL, CLAUDE_CODE_ACCOUNT_UUID, CLAUDE_CODE_ORGANIZATION_UUID) (#898)
+ * 3. Git config (user.email, user.name)
+ * 4. Environment variables (USER, USERNAME)
+ * 5. Anonymous (machine-based hash)
  *
  * Privacy: User controls what gets shared via privacy settings.
  * Storage: User profiles stored locally in .claude/memory/users/
  */
 
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { existsSync, readFileSync, mkdirSync } from 'node:fs';
+import { atomicWriteSync } from './atomic-write.js';
 import { execSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { basename } from 'node:path';
@@ -26,7 +28,7 @@ import * as os from 'node:os';
 /**
  * User identity source - where the identity was resolved from
  */
-export type IdentitySource = 'config' | 'git' | 'env' | 'anonymous';
+export type IdentitySource = 'config' | 'cc-env' | 'git' | 'env' | 'anonymous';
 
 /**
  * Resolved user identity
@@ -46,6 +48,10 @@ export interface UserIdentity {
   anonymous_id: string;
   /** Email if available */
   email?: string;
+  /** CC account UUID from CLAUDE_CODE_ACCOUNT_UUID (#898) */
+  accountUuid?: string;
+  /** CC organization UUID from CLAUDE_CODE_ORGANIZATION_UUID (#898) */
+  organizationUuid?: string;
 }
 
 /**
@@ -199,6 +205,40 @@ function getEnvIdentity(): { username?: string } {
   return { username };
 }
 
+// =============================================================================
+// CC ENV VAR ACCESSORS (#898)
+// =============================================================================
+
+/**
+ * Get the CC account UUID from CLAUDE_CODE_ACCOUNT_UUID.
+ * Returns undefined if the env var is not set.
+ * Available since CC 2.1.51+. (#898)
+ */
+export function getAccountUuid(): string | undefined {
+  return process.env.CLAUDE_CODE_ACCOUNT_UUID || undefined;
+}
+
+/**
+ * Get the CC organization UUID from CLAUDE_CODE_ORGANIZATION_UUID.
+ * Returns undefined if the env var is not set.
+ * Available since CC 2.1.51+. (#898)
+ */
+export function getOrganizationUuid(): string | undefined {
+  return process.env.CLAUDE_CODE_ORGANIZATION_UUID || undefined;
+}
+
+/**
+ * Get CC identity from env vars exposed by CC 2.1.51+.
+ * Returns email from CLAUDE_CODE_USER_EMAIL if available.
+ * (#898)
+ */
+function getCCEnvIdentity(): { email?: string; accountUuid?: string; organizationUuid?: string } {
+  const email = process.env.CLAUDE_CODE_USER_EMAIL || undefined;
+  const accountUuid = getAccountUuid();
+  const organizationUuid = getOrganizationUuid();
+  return { email, accountUuid, organizationUuid };
+}
+
 /**
  * Resolve user identity using fallback chain
  *
@@ -220,6 +260,7 @@ export function resolveUserIdentity(projectDir?: string): UserIdentity {
   // 1. Try explicit config
   const config = readUserConfig(dir);
   if (config?.user_id) {
+    const ccEnv = getCCEnvIdentity();
     cachedIdentity = {
       user_id: config.user_id,
       display_name: config.display_name || config.user_id,
@@ -228,12 +269,32 @@ export function resolveUserIdentity(projectDir?: string): UserIdentity {
       source: 'config',
       anonymous_id: generateAnonymousId(config.user_id),
       email: config.user_id.includes('@') ? config.user_id : undefined,
+      accountUuid: ccEnv.accountUuid,
+      organizationUuid: ccEnv.organizationUuid,
     };
     logHook('user-identity', `Resolved from config: ${cachedIdentity.anonymous_id}`, 'debug');
     return cachedIdentity;
   }
 
-  // 2. Try git config
+  // 2. Try CC env vars (CLAUDE_CODE_USER_EMAIL, etc.) — CC 2.1.51+ (#898)
+  const ccEnv = getCCEnvIdentity();
+  if (ccEnv.email) {
+    cachedIdentity = {
+      user_id: ccEnv.email,
+      display_name: ccEnv.email.split('@')[0],
+      team_id: config?.team_id,
+      machine_id: machineId,
+      source: 'cc-env',
+      anonymous_id: generateAnonymousId(ccEnv.email),
+      email: ccEnv.email,
+      accountUuid: ccEnv.accountUuid,
+      organizationUuid: ccEnv.organizationUuid,
+    };
+    logHook('user-identity', `Resolved from CC env: ${cachedIdentity.anonymous_id}`, 'debug');
+    return cachedIdentity;
+  }
+
+  // 3. Try git config
   const git = getGitIdentity(dir);
   if (git.email) {
     cachedIdentity = {
@@ -244,12 +305,14 @@ export function resolveUserIdentity(projectDir?: string): UserIdentity {
       source: 'git',
       anonymous_id: generateAnonymousId(git.email),
       email: git.email,
+      accountUuid: ccEnv.accountUuid,
+      organizationUuid: ccEnv.organizationUuid,
     };
     logHook('user-identity', `Resolved from git: ${cachedIdentity.anonymous_id}`, 'debug');
     return cachedIdentity;
   }
 
-  // 3. Try environment
+  // 4. Try environment username
   const env = getEnvIdentity();
   if (env.username) {
     const userId = `${env.username}@${machineId}`;
@@ -260,12 +323,14 @@ export function resolveUserIdentity(projectDir?: string): UserIdentity {
       machine_id: machineId,
       source: 'env',
       anonymous_id: generateAnonymousId(userId),
+      accountUuid: ccEnv.accountUuid,
+      organizationUuid: ccEnv.organizationUuid,
     };
     logHook('user-identity', `Resolved from env: ${cachedIdentity.anonymous_id}`, 'debug');
     return cachedIdentity;
   }
 
-  // 4. Anonymous fallback
+  // 5. Anonymous fallback
   const anonId = generateAnonymousId(machineId + process.pid);
   cachedIdentity = {
     user_id: `anon-${anonId.slice(0, 8)}`,
@@ -274,6 +339,8 @@ export function resolveUserIdentity(projectDir?: string): UserIdentity {
     machine_id: machineId,
     source: 'anonymous',
     anonymous_id: anonId,
+    accountUuid: ccEnv.accountUuid,
+    organizationUuid: ccEnv.organizationUuid,
   };
   logHook('user-identity', `Resolved as anonymous: ${cachedIdentity.anonymous_id}`, 'debug');
   return cachedIdentity;
@@ -364,7 +431,7 @@ export function saveUserIdentityConfig(
       mkdirSync(configDir, { recursive: true });
     }
 
-    writeFileSync(configPath, JSON.stringify(config, null, 2));
+    atomicWriteSync(configPath, JSON.stringify(config, null, 2));
 
     // Clear cache to pick up new config
     clearIdentityCache();

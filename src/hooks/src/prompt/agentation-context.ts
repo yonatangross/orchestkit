@@ -31,8 +31,7 @@ import { join } from 'node:path';
 
 const HOOK_NAME = 'agentation-context';
 
-const AGENTATION_CONTEXT = `## UI Annotations Available
-Agentation MCP server is configured. Check for pending UI annotations with agentation_get_all_pending before starting work. For continuous annotation processing, invoke the ui-feedback agent. Resolve annotations as you fix them.`;
+const AGENTATION_CONTEXT = `[Agentation] Check agentation_get_all_pending for pending UI annotations before starting work.`;
 
 // =============================================================================
 // HELPERS

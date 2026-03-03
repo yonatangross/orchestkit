@@ -12,8 +12,8 @@
     "heygen:generate:install": "npx tsx scripts/generate-install-avatar.ts",
     "heygen:status": "npx tsx scripts/check-status.ts",
     "render:heygen": "bash scripts/render-heygen.sh",
-    "test": "vitest run",
-    "test:watch": "vitest"
+    "test": "vitest run -c vitest.demos.config.ts",
+    "test:watch": "vitest -c vitest.demos.config.ts"
   },
   "repository": {},
   "license": "UNLICENSED",

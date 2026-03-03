@@ -14,7 +14,8 @@
  * Migration: Profiles are migrated from old project-local path on first access
  */
 
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { existsSync, readFileSync, mkdirSync } from 'node:fs';
+import { atomicWriteSync } from './atomic-write.js';
 import { join, dirname } from 'node:path';
 import { getProjectDir, logHook } from './common.js';
 import { getHomeDir as getHomeDirFromPaths } from './paths.js';
@@ -129,6 +130,10 @@ export interface UserProfile {
   display_name: string;
   /** Team/org if known */
   team_id?: string;
+  /** CC account UUID from CLAUDE_CODE_ACCOUNT_UUID (#898) */
+  accountUuid?: string;
+  /** CC organization UUID from CLAUDE_CODE_ORGANIZATION_UUID (#898) */
+  organizationUuid?: string;
   /** Total sessions analyzed */
   sessions_count: number;
   /** First seen timestamp */
@@ -302,7 +307,7 @@ function migrateProfileIfNeeded(userId: string): boolean {
       const profile = JSON.parse(content);
 
       // Write to new location
-      writeFileSync(newPath, JSON.stringify(profile, null, 2));
+      atomicWriteSync(newPath, JSON.stringify(profile, null, 2));
 
       // Log with sanitized user ID to avoid PII in logs
       const sanitizedId = userId.replace(/@.*$/, '@***');
@@ -333,6 +338,8 @@ function createEmptyProfile(userId: string): UserProfile {
     anonymous_id: identity.anonymous_id,
     display_name: identity.display_name,
     team_id: identity.team_id,
+    accountUuid: identity.accountUuid,
+    organizationUuid: identity.organizationUuid,
     sessions_count: 0,
     first_seen: now,
     last_seen: now,
@@ -395,7 +402,7 @@ export function saveUserProfile(profile: UserProfile): boolean {
     }
 
     profile.last_seen = new Date().toISOString();
-    writeFileSync(profilePath, JSON.stringify(profile, null, 2));
+    atomicWriteSync(profilePath, JSON.stringify(profile, null, 2));
 
     // Log with anonymous_id to avoid PII in logs
     logHook('user-profile', `Saved profile for ${profile.anonymous_id}`, 'debug');

@@ -17,12 +17,12 @@ import {
   existsSync,
   mkdirSync,
   readFileSync,
-  writeFileSync,
   renameSync,
   readdirSync,
   statSync,
   chmodSync,
 } from 'node:fs';
+import { atomicWriteSync } from '../lib/atomic-write.js';
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, getPluginRoot, outputSilentSuccess, outputWithContext } from '../lib/common.js';
 import { isAgentTeamsActive } from '../lib/agent-teams.js';
@@ -85,7 +85,7 @@ function repairConfig(pluginRoot: string): void {
     },
   };
 
-  writeFileSync(configFile, JSON.stringify(defaultConfig, null, 2));
+  atomicWriteSync(configFile, JSON.stringify(defaultConfig, null, 2));
   repairsMade.push('config.json restored');
   logHook('setup-repair', 'Restored default config.json');
 }
@@ -227,7 +227,7 @@ function repairMarker(pluginRoot: string): void {
   };
 
   const markerFile = `${pluginRoot}/.setup-complete`;
-  writeFileSync(markerFile, JSON.stringify(marker, null, 2));
+  atomicWriteSync(markerFile, JSON.stringify(marker, null, 2));
   repairsMade.push('marker file regenerated');
   logHook('setup-repair', 'Regenerated marker file');
 }

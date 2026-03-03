@@ -251,7 +251,7 @@ describe('validateHookInput', () => {
     describe('stop/setup/lifecycle hooks (lenient)', () => {
       test.each([
         ['setup/unified-dispatcher'],
-        ['lifecycle/session-context-loader'],
+        ['lifecycle/session-cleanup'],
       ])('%s: no warnings with minimal input', (hookName) => {
         const result = validateHookInput({}, hookName);
         expect(result.valid).toBe(true);

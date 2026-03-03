@@ -25,6 +25,23 @@ Every PR creation must pass these checks before the `gh pr create` command runs.
 - For "Quick" PR type, skip validation steps 4-7 but always check 1-3
 - Report failures clearly with actionable fix instructions
 
+**Incorrect:**
+```bash
+# Skip checks, create PR directly from main with uncommitted changes
+gh pr create --title "fix: login bug"
+# Result: PR from main branch, dirty working tree, CI fails
+```
+
+**Correct:**
+```bash
+# Run full preflight before creating PR
+git status --porcelain                    # Must be empty
+git branch --show-current                 # Must not be main/dev
+npm run lint && npm run typecheck         # Must pass
+npm test -- --bail                        # Must pass
+gh pr create --title "fix: login bug"     # Now safe to create
+```
+
 **Validation commands (adapt to project):**
 ```bash
 # Universal checks

@@ -1,7 +1,7 @@
 ---
 name: analytics
 license: MIT
-compatibility: "Claude Code 2.1.56+."
+compatibility: "Claude Code 2.1.59+."
 author: OrchestKit
 description: "Query cross-project usage analytics. Use when reviewing agent, skill, hook, or team performance across OrchestKit projects. Also replay sessions, estimate costs, and view model delegation trends."
 argument-hint: "[agents|models|skills|hooks|teams|session|cost|trends|summary]"
@@ -9,9 +9,10 @@ context: fork
 agent: metrics-architect
 version: 2.1.0
 tags: [analytics, metrics, usage, teams, agents, skills, hooks, data-visualization, dashboard, recharts, charts, widgets, session, cost, tokens, model-delegation]
-user-invocable: true
+user-invocable: false
 allowed-tools: [Bash, Read, Grep, Glob, AskUserQuestion]
 complexity: low
+model: haiku
 metadata:
   category: document-asset-creation
 ---

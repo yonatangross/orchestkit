@@ -1,6 +1,6 @@
 ---
 description: "explore — Deep codebase exploration with parallel agents. Use when exploring a repo, discovering architecture, finding files, or analyzing design patterns."
-allowed-tools: [AskUserQuestion, Read, Grep, Glob, Task, TaskCreate, TaskUpdate, mcp__memory__search_nodes, Bash]
+allowed-tools: [AskUserQuestion, Read, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskOutput, TaskStop, mcp__memory__search_nodes, Bash]
 ---
 
 # Auto-generated from skills/explore/SKILL.md
@@ -30,11 +30,11 @@ AskUserQuestion(
     "question": "What aspect do you want to explore?",
     "header": "Focus",
     "options": [
-      {"label": "Full exploration (Recommended)", "description": "Code structure + data flow + architecture + health assessment"},
-      {"label": "Code structure only", "description": "Find files, classes, functions related to topic"},
-      {"label": "Data flow", "description": "Trace how data moves through the system"},
-      {"label": "Architecture patterns", "description": "Identify design patterns and integrations"},
-      {"label": "Quick search", "description": "Just find relevant files, skip deep analysis"}
+      {"label": "Full exploration (Recommended)", "description": "Code structure + data flow + architecture + health assessment", "markdown": "```\nFull Exploration (8 phases)\n───────────────────────────\n  4 parallel explorer agents:\n  ┌──────────┐ ┌──────────┐\n  │ Structure│ │ Data     │\n  │ Explorer │ │ Flow     │\n  ├──────────┤ ├──────────┤\n  │ Pattern  │ │ Product  │\n  │ Analyst  │ │ Context  │\n  └──────────┘ └──────────┘\n         ▼\n  ┌──────────────────────┐\n  │ Code Health    N/10  │\n  │ Dep Hotspots   map   │\n  │ Architecture   diag  │\n  └──────────────────────┘\n  Output: Full exploration report\n```"},
+      {"label": "Code structure only", "description": "Find files, classes, functions related to topic", "markdown": "```\nCode Structure\n──────────────\n  Grep ──▶ Glob ──▶ Map\n\n  Output:\n  ├── File tree (relevant)\n  ├── Key classes/functions\n  ├── Import graph\n  └── Entry points\n  No agents — direct search\n```"},
+      {"label": "Data flow", "description": "Trace how data moves through the system", "markdown": "```\nData Flow Trace\n───────────────\n  Input ──▶ Transform ──▶ Output\n    │          │            │\n    ▼          ▼            ▼\n  [API]    [Service]    [DB/Cache]\n\n  Traces: request lifecycle,\n  state mutations, side effects\n  Agent: 1 data-flow explorer\n```"},
+      {"label": "Architecture patterns", "description": "Identify design patterns and integrations", "markdown": "```\nArchitecture Analysis\n─────────────────────\n  ┌─────────────────────┐\n  │ Detected Patterns    │\n  │ ├── MVC / Hexagonal  │\n  │ ├── Event-driven?    │\n  │ ├── Service layers   │\n  │ └── External APIs    │\n  ├─────────────────────┤\n  │ Integration Map      │\n  │ DB ←→ Cache ←→ Queue │\n  └─────────────────────┘\n  Agent: backend-system-architect\n```"},
+      {"label": "Quick search", "description": "Just find relevant files, skip deep analysis", "markdown": "```\nQuick Search (~30s)\n───────────────────\n  Grep + Glob ──▶ File list\n\n  Output:\n  ├── Matching files\n  ├── Line references\n  └── Brief summary\n  No agents, no health check,\n  no report generation\n```"}
     ],
     "multiSelect": false
   }]
@@ -101,14 +101,14 @@ TaskCreate(subject="Generate exploration report", activeForm="Generating report"
 
 ```python
 # PARALLEL - Quick searches
-Grep(pattern="$ARGUMENTS", output_mode="files_with_matches")
-Glob(pattern="**/*$ARGUMENTS*")
+Grep(pattern="$ARGUMENTS[0]", output_mode="files_with_matches")
+Glob(pattern="**/*$ARGUMENTS[0]*")
 ```
 
 ### Phase 2: Memory Check
 
 ```python
-mcp__memory__search_nodes(query="$ARGUMENTS")
+mcp__memory__search_nodes(query="$ARGUMENTS[0]")
 mcp__memory__search_nodes(query="architecture")
 ```
 

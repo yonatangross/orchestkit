@@ -9,22 +9,21 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Mock dependencies before imports
+// Track stderr calls since outputStderrWarning calls process.exit(2)
+let stderrMessages: string[] = [];
+
 vi.mock('../../lib/common.js', () => ({
   outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  outputAllowWithContext: vi.fn((ctx: string) => ({
-    continue: true,
-    hookSpecificOutput: {
-      hookEventName: 'PreToolUse',
-      additionalContext: ctx,
-      permissionDecision: 'allow',
-    },
-  })),
+  outputStderrWarning: vi.fn((msg: string) => {
+    stderrMessages.push(msg);
+    // Don't actually call process.exit in tests
+  }),
   getCachedBranch: vi.fn(() => 'main'),
 }));
 
 import { issueReferenceChecker } from '../../pretool/bash/issue-reference-checker.js';
 import type { HookInput } from '../../types.js';
-import { getCachedBranch } from '../../lib/common.js';
+import { getCachedBranch, outputStderrWarning } from '../../lib/common.js';
 
 function createBashInput(command: string): HookInput {
   return {
@@ -38,6 +37,7 @@ function createBashInput(command: string): HookInput {
 describe('issue-reference-checker', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    stderrMessages = [];
   });
 
   // -----------------------------------------------------------------------
@@ -109,12 +109,12 @@ describe('issue-reference-checker', () => {
       const input = createBashInput('git commit -m "Add authentication module"');
 
       // Act
-      const result = issueReferenceChecker(input);
+      issueReferenceChecker(input);
 
-      // Assert
-      expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.additionalContext).toContain('issue/123-add-auth');
-      expect(result.hookSpecificOutput?.additionalContext).toContain('#123');
+      // Assert — now uses stderr (0 tokens) instead of additionalContext
+      expect(outputStderrWarning).toHaveBeenCalled();
+      expect(stderrMessages[0]).toContain('issue/123-add-auth');
+      expect(stderrMessages[0]).toContain('#123');
     });
 
     it('extracts issue number from fix/456-desc pattern', () => {
@@ -123,11 +123,11 @@ describe('issue-reference-checker', () => {
       const input = createBashInput('git commit -m "Patch memory leak"');
 
       // Act
-      const result = issueReferenceChecker(input);
+      issueReferenceChecker(input);
 
       // Assert
-      expect(result.hookSpecificOutput?.additionalContext).toContain('fix/456-memory-leak');
-      expect(result.hookSpecificOutput?.additionalContext).toContain('#456');
+      expect(stderrMessages[0]).toContain('fix/456-memory-leak');
+      expect(stderrMessages[0]).toContain('#456');
     });
 
     it('extracts issue number from feat/789-desc pattern', () => {
@@ -136,11 +136,11 @@ describe('issue-reference-checker', () => {
       const input = createBashInput('git commit -m "Implement dark mode"');
 
       // Act
-      const result = issueReferenceChecker(input);
+      issueReferenceChecker(input);
 
       // Assert
-      expect(result.hookSpecificOutput?.additionalContext).toContain('feat/789-dark-mode');
-      expect(result.hookSpecificOutput?.additionalContext).toContain('#789');
+      expect(stderrMessages[0]).toContain('feat/789-dark-mode');
+      expect(stderrMessages[0]).toContain('#789');
     });
 
     it('extracts issue number from bare number prefix 123-desc pattern', () => {
@@ -149,11 +149,11 @@ describe('issue-reference-checker', () => {
       const input = createBashInput('git commit -m "Update docs"');
 
       // Act
-      const result = issueReferenceChecker(input);
+      issueReferenceChecker(input);
 
       // Assert
-      expect(result.hookSpecificOutput?.additionalContext).toContain('123-some-description');
-      expect(result.hookSpecificOutput?.additionalContext).toContain('#123');
+      expect(stderrMessages[0]).toContain('123-some-description');
+      expect(stderrMessages[0]).toContain('#123');
     });
 
     it('extracts issue number from bug/10-desc pattern', () => {
@@ -162,10 +162,10 @@ describe('issue-reference-checker', () => {
       const input = createBashInput('git commit -m "Fix crash on startup"');
 
       // Act
-      const result = issueReferenceChecker(input);
+      issueReferenceChecker(input);
 
       // Assert
-      expect(result.hookSpecificOutput?.additionalContext).toContain('#10');
+      expect(stderrMessages[0]).toContain('#10');
     });
 
     it('extracts issue number from hotfix/11-desc pattern', () => {
@@ -174,10 +174,10 @@ describe('issue-reference-checker', () => {
       const input = createBashInput('git commit -m "Apply security patch"');
 
       // Act
-      const result = issueReferenceChecker(input);
+      issueReferenceChecker(input);
 
       // Assert
-      expect(result.hookSpecificOutput?.additionalContext).toContain('#11');
+      expect(stderrMessages[0]).toContain('#11');
     });
 
     it('extracts issue number from feature/99-desc pattern', () => {
@@ -186,10 +186,10 @@ describe('issue-reference-checker', () => {
       const input = createBashInput('git commit -m "Add export feature"');
 
       // Act
-      const result = issueReferenceChecker(input);
+      issueReferenceChecker(input);
 
       // Assert
-      expect(result.hookSpecificOutput?.additionalContext).toContain('#99');
+      expect(stderrMessages[0]).toContain('#99');
     });
   });
 
@@ -256,20 +256,20 @@ describe('issue-reference-checker', () => {
   // -----------------------------------------------------------------------
 
   describe('reminder context', () => {
-    it('provides reminder when on issue branch without reference', () => {
+    it('provides reminder via stderr when on issue branch without reference', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('issue/123-add-auth');
       const input = createBashInput('git commit -m "Add authentication module"');
 
       // Act
-      const result = issueReferenceChecker(input);
+      issueReferenceChecker(input);
 
-      // Assert
-      expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.additionalContext).toContain("You're on branch");
-      expect(result.hookSpecificOutput?.additionalContext).toContain('issue/123-add-auth');
-      expect(result.hookSpecificOutput?.additionalContext).toContain('include #123');
-      expect(result.hookSpecificOutput?.additionalContext).toContain('to link it to the issue');
+      // Assert — stderr output (0 tokens, user-visible only)
+      expect(outputStderrWarning).toHaveBeenCalled();
+      expect(stderrMessages[0]).toContain("You're on branch");
+      expect(stderrMessages[0]).toContain('issue/123-add-auth');
+      expect(stderrMessages[0]).toContain('include #123');
+      expect(stderrMessages[0]).toContain('to link it to the issue');
     });
 
     it('reminder includes correct issue number for different branches', () => {
@@ -278,11 +278,11 @@ describe('issue-reference-checker', () => {
       const input = createBashInput('git commit -m "Urgent fix"');
 
       // Act
-      const result = issueReferenceChecker(input);
+      issueReferenceChecker(input);
 
       // Assert
-      expect(result.hookSpecificOutput?.additionalContext).toContain('fix/999-urgent');
-      expect(result.hookSpecificOutput?.additionalContext).toContain('#999');
+      expect(stderrMessages[0]).toContain('fix/999-urgent');
+      expect(stderrMessages[0]).toContain('#999');
     });
   });
 
@@ -389,10 +389,10 @@ describe('issue-reference-checker', () => {
       const input = createBashInput('git commit -m "Fix without reference"');
 
       // Act
-      const result = issueReferenceChecker(input);
+      issueReferenceChecker(input);
 
       // Assert
-      expect(result.hookSpecificOutput?.additionalContext).toContain('#123');
+      expect(stderrMessages[0]).toContain('#123');
     });
 
     it('handles single quotes', () => {
@@ -401,10 +401,10 @@ describe('issue-reference-checker', () => {
       const input = createBashInput("git commit -m 'Fix without reference'");
 
       // Act
-      const result = issueReferenceChecker(input);
+      issueReferenceChecker(input);
 
       // Assert
-      expect(result.hookSpecificOutput?.additionalContext).toContain('#123');
+      expect(stderrMessages[0]).toContain('#123');
     });
 
     it('handles unquoted single word', () => {
@@ -413,10 +413,10 @@ describe('issue-reference-checker', () => {
       const input = createBashInput('git commit -m bugfix');
 
       // Act
-      const result = issueReferenceChecker(input);
+      issueReferenceChecker(input);
 
       // Assert
-      expect(result.hookSpecificOutput?.additionalContext).toContain('#123');
+      expect(stderrMessages[0]).toContain('#123');
     });
   });
 
@@ -431,11 +431,11 @@ describe('issue-reference-checker', () => {
       const input = createBashInput('git commit -m "Test"');
 
       // Act
-      const result = issueReferenceChecker(input);
+      issueReferenceChecker(input);
 
-      // Assert - should extract "123" without the #
-      expect(result.continue).toBe(true);
-      // Hook should still work, stripping the # from extracted number
+      // Assert - should extract "123" without the # and emit stderr warning
+      expect(outputStderrWarning).toHaveBeenCalled();
+      expect(stderrMessages[0]).toContain('#123');
     });
 
     it('returns silent success for non-numeric issue pattern', () => {
@@ -457,10 +457,10 @@ describe('issue-reference-checker', () => {
       const input = createBashInput('git commit -m "Fix"');
 
       // Act
-      const result = issueReferenceChecker(input);
+      issueReferenceChecker(input);
 
       // Assert
-      expect(result.hookSpecificOutput?.additionalContext).toContain('#99999');
+      expect(stderrMessages[0]).toContain('#99999');
     });
 
     it('matches when issue number appears as substring', () => {

@@ -44,7 +44,7 @@ describe('Issue #245: User Tracking Wiring', () => {
         (m: { name: string }) => m.name === 'user-tracking'
       );
       expect(userTrackingConfig).toBeDefined();
-      expect(userTrackingConfig.matcher).toBe('*');
+      expect(userTrackingConfig!.matcher).toBe('*');
     });
 
     test('user-tracking hook tracks Skill tool calls', async () => {

@@ -235,42 +235,31 @@ describe('Dispatcher Integration (real hooks, temp filesystem)', () => {
       expect(result).toEqual(SILENT_SUCCESS);
     });
 
-    it('auto-save-context creates session state file', async () => {
+    it('handoff-writer creates HANDOFF.md', async () => {
       await unifiedStopDispatcher(makeInput());
 
-      const stateFile = join(testDir, '.claude', 'context', 'session', 'state.json');
-      expect(existsSync(stateFile)).toBe(true);
+      const handoffFile = join(testDir, '.claude', 'HANDOFF.md');
+      expect(existsSync(handoffFile)).toBe(true);
 
-      const state = JSON.parse(readFileSync(stateFile, 'utf-8'));
-      expect(state.$schema).toBe('context://session/v1');
-      expect(state._meta).toBeDefined();
-      expect(state.last_activity).toBeTruthy();
+      const content = readFileSync(handoffFile, 'utf-8');
+      expect(content).toContain('# Session Handoff');
+      expect(content).toContain('**Branch**:');
+      expect(content).toContain('**Session**:');
     });
 
-    it('auto-save-context updates existing state file', async () => {
-      // Pre-create state file
-      const sessionDir = join(testDir, '.claude', 'context', 'session');
-      mkdirSync(sessionDir, { recursive: true });
-      const stateFile = join(sessionDir, 'state.json');
-      const existingState = {
-        $schema: 'context://session/v1',
-        _meta: { position: 'END', token_budget: 500, auto_load: 'always', compress: 'on_threshold', description: 'test' },
-        session_id: 'old-session',
-        started: '2026-01-01T00:00:00.000Z',
-        last_activity: '2026-01-01T00:00:00.000Z',
-        current_task: { description: 'Testing', status: 'in_progress' },
-        next_steps: ['verify'],
-        blockers: [],
-      };
-      writeFileSync(stateFile, JSON.stringify(existingState));
+    it('handoff-writer overwrites existing HANDOFF.md', async () => {
+      // Pre-create HANDOFF.md
+      const claudeDir = join(testDir, '.claude');
+      mkdirSync(claudeDir, { recursive: true });
+      const handoffFile = join(claudeDir, 'HANDOFF.md');
+      writeFileSync(handoffFile, '# Old Handoff\nStale content.\n');
 
       await unifiedStopDispatcher(makeInput());
 
-      const updated = JSON.parse(readFileSync(stateFile, 'utf-8'));
-      // last_activity should be newer than what we wrote
-      expect(updated.last_activity).not.toBe('2026-01-01T00:00:00.000Z');
-      // existing data preserved
-      expect(updated.current_task.description).toBe('Testing');
+      const content = readFileSync(handoffFile, 'utf-8');
+      // Should be fresh content, not old
+      expect(content).toContain('# Session Handoff');
+      expect(content).not.toContain('Stale content');
     });
   });
 
@@ -381,15 +370,15 @@ describe('Dispatcher Integration (real hooks, temp filesystem)', () => {
     });
 
     it('hooks write to correct project directory (not cwd)', async () => {
-      // Run stop dispatcher which creates state.json
+      // Run stop dispatcher which creates HANDOFF.md
       await unifiedStopDispatcher(makeInput());
 
       // Verify file is in testDir
-      const testState = join(testDir, '.claude', 'context', 'session', 'state.json');
-      expect(existsSync(testState)).toBe(true);
+      const handoffFile = join(testDir, '.claude', 'HANDOFF.md');
+      expect(existsSync(handoffFile)).toBe(true);
 
-      const state = JSON.parse(readFileSync(testState, 'utf-8'));
-      expect(state.$schema).toBe('context://session/v1');
+      const content = readFileSync(handoffFile, 'utf-8');
+      expect(content).toContain('# Session Handoff');
     });
   });
 });

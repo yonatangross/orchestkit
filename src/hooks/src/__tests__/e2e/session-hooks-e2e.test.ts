@@ -1145,7 +1145,7 @@ describe('F. Error Handling and Edge Cases', () => {
       const { captureUserIntent } = await import('../../prompt/capture-user-intent.js');
 
       const input = createUserPromptInput('I decided to use TypeScript.');
-      delete (input as Record<string, unknown>).project_dir;
+      delete (input as unknown as Record<string, unknown>).project_dir;
 
       const result = captureUserIntent(input);
       expect(result.continue).toBe(true);

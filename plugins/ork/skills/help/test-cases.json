@@ -1,0 +1,39 @@
+{
+  "skill": "help",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "basic-what-orchestkit-skills-are",
+      "rule": "",
+      "query": "What OrchestKit skills are available? Show me what I can do.",
+      "expectedBehavior": [
+        "Claude presents skill categories interactively using AskUserQuestion",
+        "Claude lists categories: BUILD, GIT, MEMORY, QUALITY, CONFIG, EXPLORE, MEDIA",
+        "Claude shows skill counts per category",
+        "Claude provides example usage for each listed skill",
+        "Claude mentions that users can describe tasks naturally for auto-suggestion"
+      ]
+    },
+    {
+      "id": "negative-orkhelp-git",
+      "rule": "",
+      "query": "/ork:help git",
+      "expectedBehavior": [
+        "Claude filters to show only GIT category skills",
+        "Claude lists all 5 GIT skills: commit, create-pr, review-pr, fix-issue, git-workflow",
+        "Claude shows description and example for each skill",
+        "Claude does NOT show skills from other categories like BUILD or MEMORY"
+      ]
+    },
+    {
+      "id": "negative-deploy-this-nextjs-application",
+      "rule": "",
+      "query": "Deploy this Next.js application to Vercel with environment variables for production.",
+      "expectedBehavior": [
+        "Claude does NOT invoke the help skill",
+        "Claude proceeds with deployment using Bash commands and Vercel CLI",
+        "Claude does not present skill category listings for a concrete deployment task"
+      ]
+    }
+  ]
+}

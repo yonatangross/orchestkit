@@ -48,7 +48,7 @@ vi.mock("@/lib/generated/compositions-data", () => {
       folder: "src/compositions",
       category: "devops",
       primaryColor: "#7c3aed",
-      relatedPlugin: "orkl",
+      relatedPlugin: "ork",
       tags: ["release", "changelog"],
       // Has CDN thumbnail only — no video
       thumbnailCdn: "https://cdn.sanity.io/images/test/production/release-thumb.png",

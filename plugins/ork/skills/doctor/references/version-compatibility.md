@@ -2,7 +2,7 @@
 
 ## Overview
 
-OrchestKit requires Claude Code >= 2.1.47. This matrix documents which CC features OrchestKit depends on and their minimum version requirements.
+OrchestKit requires Claude Code >= 2.1.59. This matrix documents which CC features OrchestKit depends on and their minimum version requirements.
 
 ## Feature Matrix
 
@@ -20,13 +20,23 @@ OrchestKit requires Claude Code >= 2.1.47. This matrix documents which CC featur
 | Agent model in Teams | 2.1.47 | Model field respected in team spawns | Model ignored, uses default |
 | Worktree discovery | 2.1.47 | Skills/agents found from worktrees | Worktree sessions miss plugins |
 | Background tasks in worktrees | 2.1.47 | Task tool from worktrees | Background agents fail silently |
-| Windows hook execution | 2.1.47 | All 87 hooks on Windows | Hooks silently fail on Windows |
+| Windows hook execution | 2.1.47 | All hooks on Windows | Hooks silently fail on Windows |
 | Windows worktree sessions | 2.1.47 | Drive letter casing match | Worktree sessions not matched |
 | Improved agent memory | 2.1.47 | Higher context limits | Conservative limits apply |
 | `Ctrl+F` find in output | 2.1.47 | Search through session output | No search capability |
 | `Shift+Down` multi-line input | 2.1.47 | Multi-line prompt entry | Single-line input only |
 | Memory leak fixes (8 leaks) | 2.1.50 | Stable long-running sessions | Memory grows unbounded over time |
 | `claude_agents_cli` | 2.1.50 | Doctor agent registration check | Agent registration check skipped |
+| ConfigChange hook event | 2.1.50 | Detect mid-session settings changes | Stale config until restart |
+| Auto-memory | 2.1.59 | Claude saves learnings across sessions | Manual CLAUDE.md only |
+| `@import` in CLAUDE.md | 2.1.59 | Modular instruction files | Single monolithic CLAUDE.md |
+| `.claude/rules/` with `paths:` | 2.1.59 | Path-scoped rules per directory | All rules loaded always |
+| HTTP hooks (`type: "http"`) | 2.1.63 | Observability hooks POST to remote endpoints | Falls back to command hooks (local JSONL) |
+| Worktree config sharing | 2.1.63 | Project configs shared across worktrees | Manual config copy needed |
+| `/clear` resets skills | 2.1.63 | Fixes stale skill content after edits | Native since 2.1.63; no workaround needed |
+| Teammate memory fix | 2.1.63 | Safe for 5+ teammate swarms | Memory grows in long team sessions |
+| `/simplify`, `/batch` built-in | 2.1.63 | Bundled CC slash commands | Not available |
+| `ENABLE_CLAUDEAI_MCP_SERVERS` | 2.1.63 | Opt out of claude.ai MCP servers | All claude.ai MCPs always loaded |
 
 ## Version Detection
 
@@ -44,8 +54,10 @@ claude --version  # Returns e.g. "2.1.47"
 | < 2.1.7 | Unsupported | Core hook protocol missing |
 | 2.1.7 - 2.1.44 | Degraded | Missing memory improvements, worktree fixes, Windows support |
 | 2.1.45 - 2.1.46 | Partial | Missing 2.1.47 features but functional |
-| 2.1.47 - 2.1.49 | Full | All features available, memory leak risk in long sessions |
-| >= 2.1.50 | Full + Stable | All features available, memory leaks fixed |
+| 2.1.47 - 2.1.49 | Partial | All hook features, memory leak risk in long sessions |
+| 2.1.50 - 2.1.58 | Partial | Memory leaks fixed, missing auto-memory and @imports |
+| 2.1.59 - 2.1.62 | Full | All features: auto-memory, @imports, .claude/rules/, ConfigChange |
+| >= 2.1.63 | Full+ | HTTP hooks, worktree config sharing, teammate stability, /simplify, /batch |
 
 ## Doctor Check Implementation
 
@@ -80,7 +92,7 @@ CC 2.1.50 fixed 8 memory leaks affecting long-running sessions:
 - Shell execution: ChildProcess/AbortController refs retained after cleanup
 - LSP diagnostic data never cleaned up after delivery
 - File history snapshots: unbounded growth
-- Internal caches not cleared after compaction
+- Internal caches not cleared after compaction (fixed in 2.1.63)
 
 **Recommendation:** If CC version < 2.1.50, warn user to upgrade for long sessions.
 
@@ -93,10 +105,38 @@ Claude Code: 2.1.4x (MEMORY LEAK RISK)
 - Upgrade: npm install -g @anthropic-ai/claude-code@latest
 ```
 
+## Release Channel Detection
+
+Doctor should detect and display the release channel alongside the CC version check. The version is read from `.claude-plugin/plugin.json` or `version.txt`.
+
+| Version Pattern | Channel | Stability |
+|----------------|---------|-----------|
+| `X.Y.Z` (no suffix) | stable | Production-ready |
+| `X.Y.Z-beta.N` | beta | Feature-complete, may have bugs |
+| `X.Y.Z-alpha.N` | alpha | Experimental, expect breaking changes |
+
+When on beta or alpha, doctor should append a pre-release reminder to the compatibility output:
+
+```
+Claude Code: 2.1.56 (OK)
+- Minimum required: 2.1.56
+- OrchestKit channel: beta (v7.0.0-beta.3)
+  ⚠ Pre-release version — some features may be unstable. Report issues at github.com/yonatangross/orchestkit/issues
+```
+
+On stable, no extra warning is needed — just include the channel line:
+
+```
+Claude Code: 2.1.56 (OK)
+- Minimum required: 2.1.56
+- OrchestKit channel: stable (v7.0.0)
+```
+
 ## OrchestKit Version History
 
 | OrchestKit | Min CC | Key Changes |
 |-----------|--------|-------------|
+| v7.0.x | 2.1.59 | Auto-memory, @imports, ConfigChange, HTTP hooks (2.1.63+), unified plugin |
 | v6.0.x | 2.1.47 | Full CC 2.1.47 adoption, relaxed context limits |
 | v5.x | 2.1.34 | Agent Teams support, unified dispatchers |
 | v4.x | 2.1.9 | Session tracking, TypeScript hooks |

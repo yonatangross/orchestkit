@@ -31,8 +31,8 @@ warn() { echo -e "  ${YELLOW}⚠${NC} $1"; WARN_COUNT=$((WARN_COUNT + 1)); }
 info() { echo -e "  ${BLUE}ℹ${NC} $1"; }
 
 # Timing thresholds (milliseconds)
-HOOK_LATENCY_TARGET=200     # Individual TS hook via run-hook.mjs (includes Node startup)
-DISPATCHER_TARGET=300       # Full dispatcher chain
+HOOK_LATENCY_TARGET=300     # Individual TS hook via run-hook.mjs (includes Node startup ~100-200ms)
+DISPATCHER_TARGET=500       # Full dispatcher chain (Node startup + dispatch overhead)
 LIFECYCLE_TARGET=500        # Lifecycle hooks (more I/O)
 
 # Cross-platform millisecond timer

@@ -1,6 +1,8 @@
 ---
 title: Section Rendering Conventions
 impact: HIGH
+impactDescription: "Inconsistent section rendering makes plan visualizations confusing and hard to review"
+tags: visualization, rendering, plan-review, consistency
 category: visualization
 description: Rules for rendering plan-viz sections with consistent style, annotations, and structure.
 ---
@@ -15,6 +17,20 @@ Each plan-viz section follows strict rendering rules to ensure consistency and r
 2. **Use scripts for precision** — run `analyze-impact.sh` for file/line counts, never estimate
 3. **Annotations carry judgment** — `!!` for risk, `**` for new, `blocks` for dependencies
 4. **Summary lines are mandatory** — every section ends with a one-line summary
+
+**Incorrect:**
+```
+Files Changed:
+- auth.py (modified)
+- utils.py (new)
+```
+
+**Correct:**
+```
+[M] src/auth.py       +42 -8   !! security-critical
+[A] src/utils.py      +65 -0   **new**
+Summary: +107 -8 | 1 new | 1 modified | 0 deleted
+```
 
 ## Section [1]: Change Manifest
 

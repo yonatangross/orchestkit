@@ -32,6 +32,23 @@ tags: [css, responsive, container-queries, fluid-typography]
 }
 ```
 
+**Incorrect:**
+```css
+/* Using media queries for component-level responsiveness */
+@media (min-width: 400px) {
+  .card { display: grid; grid-template-columns: 200px 1fr; }
+}
+```
+
+**Correct:**
+```css
+/* Using container queries — responds to container, not viewport */
+.card-container { container-type: inline-size; }
+@container (min-width: 400px) {
+  .card { display: grid; grid-template-columns: 200px 1fr; }
+}
+```
+
 ## 2. Container Query Units (cqi, cqb)
 
 ```css

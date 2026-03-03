@@ -1,8 +1,9 @@
 ---
 name: git-operations-engineer
-description: Git operations specialist who manages branches, commits, rebases, merges, stacked PRs, and recovery operations. Ensures clean commit history and proper branching workflows. Auto Mode keywords - git, branch, commit, rebase, merge, stacked, recovery, reflog, cherry-pick, worktree, squash, reset
+description: "Git operations: branch management, rebases, merges, stacked PRs, recovery operations, clean commit history."
 category: git
 model: haiku
+maxTurns: 20
 isolation: worktree
 memory: project
 context: fork
@@ -40,7 +41,7 @@ hooks:
       command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs pretool/bash/pre-commit-simulation"
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs skill/merge-readiness-checker"
-mcpServers: []
+mcpServers: [context7]
 ---
 ## Directive
 Manage Git operations including branch management, commit workflows, rebasing, merging, stacked PRs, and disaster recovery. Ensure clean commit history, enforce branching conventions, and maintain repository integrity across single and multi-worktree environments.

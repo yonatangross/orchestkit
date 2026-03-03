@@ -21,6 +21,21 @@ Determine whether a PR should be created as draft or ready for review.
 - PR body is filled out with Summary, Changes, Test Plan
 - No TODO/FIXME comments in changed lines (unless intentional and explained)
 
+**Incorrect:**
+```bash
+# Mark ready with failing tests, TODO comments, and debug statements
+gh pr create --title "feat: add dashboard"
+# Contains: console.log("DEBUG"), // TODO: fix later, tests skipped
+```
+
+**Correct:**
+```bash
+# Create as draft first, clean up, then mark ready
+gh pr create --draft --title "feat: add dashboard"
+# Fix all TODOs, remove debug statements, verify tests pass
+gh pr ready
+```
+
 **Self-review checklist (do before marking ready):**
 - [ ] Read the full diff (`git diff dev...HEAD`) as if reviewing someone else's code
 - [ ] No debug statements (console.log, print, debugger) left in

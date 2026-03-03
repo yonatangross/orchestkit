@@ -11,12 +11,12 @@
  * Version: 2.0.0
  */
 
-import { writeFileSync, existsSync, readFileSync, mkdirSync, readdirSync } from 'node:fs';
-import { bufferWrite } from '../lib/analytics-buffer.js';
+import { existsSync, readFileSync, mkdirSync, readdirSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import { join } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook, getLogDir, getSessionId, getProjectDir } from '../lib/common.js';
+import { atomicWriteSync } from '../lib/atomic-write.js';
 
 interface PreservedContext {
   branch?: string;
@@ -200,22 +200,7 @@ export function preCompactSaver(_input: HookInput): HookResult {
       },
     };
 
-    writeFileSync(stateFile, JSON.stringify(state, null, 2));
-
-    // Also append to compaction log for cross-session analysis
-    const compactionLog = join(getLogDir(), 'compaction-history.jsonl');
-    try {
-      bufferWrite(compactionLog, `${JSON.stringify({
-        session: getSessionId(),
-        timestamp: now,
-        count: state.compactionCount,
-        avgIntervalMs: state.avgCompactionIntervalMs,
-        localMemoryEntries: localEntries,
-        decisionsPreserved: decisions.length,
-      })}\n`);
-    } catch {
-      // Non-critical
-    }
+    atomicWriteSync(stateFile, JSON.stringify(state, null, 2));
 
     logHook('pre-compact-saver',
       `Saved state before compaction #${state.compactionCount} ` +

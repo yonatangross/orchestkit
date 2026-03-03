@@ -35,6 +35,13 @@ import { join, dirname } from 'node:path';
 
 const HOOK_NAME = 'tool-preference-learner';
 
+/**
+ * Fix #917: Only flush to disk every FLUSH_INTERVAL calls.
+ * Reduces file I/O by ~90% per session. Session-end is guaranteed by
+ * session-patterns stop hook which also writes tool-preferences.json.
+ */
+const FLUSH_INTERVAL = 10;
+
 // =============================================================================
 // TYPES
 // =============================================================================
@@ -209,7 +216,8 @@ function getToolCategories(toolId: string): ToolCategory[] {
  * Get path to preferences file
  */
 function getPreferencesPath(): string {
-  return join(getProjectDir(), '.claude', 'memory', 'tool-preferences.json');
+  // Fix #908: consolidated to .claude/feedback/ (same as session-patterns.ts)
+  return join(getProjectDir(), '.claude', 'feedback', 'tool-preferences.json');
 }
 
 /**
@@ -332,11 +340,27 @@ function updateAllPreferences(data: PreferencesData): void {
 }
 
 // =============================================================================
+// IN-MEMORY ACCUMULATOR (Fix #917)
+// =============================================================================
+
+/**
+ * In-memory accumulator to batch file writes.
+ * Counts calls since last flush; only writes every FLUSH_INTERVAL calls.
+ * Module-level state persists across hook invocations within the same process.
+ */
+let callsSinceFlush = 0;
+let pendingUpdates: { category: ToolCategory; toolId: string }[] = [];
+
+// =============================================================================
 // MAIN HOOK
 // =============================================================================
 
 /**
- * Track tool usage for preference learning
+ * Track tool usage for preference learning.
+ *
+ * Fix #917: Accumulates updates in memory and only flushes to disk every
+ * FLUSH_INTERVAL calls (~10), reducing file I/O by ~90%. Session-end
+ * persistence is guaranteed by session-patterns stop hook.
  */
 export function toolPreferenceLearner(input: HookInput): HookResult {
   const toolName = input.tool_name || '';
@@ -360,24 +384,32 @@ export function toolPreferenceLearner(input: HookInput): HookResult {
     return outputSilentSuccess();
   }
 
-  // Load and update preferences
+  // Accumulate in memory
+  for (const category of relevantCategories) {
+    pendingUpdates.push({ category, toolId });
+  }
+  callsSinceFlush++;
+
+  // Only flush to disk every FLUSH_INTERVAL calls
+  if (callsSinceFlush < FLUSH_INTERVAL) {
+    return outputSilentSuccess();
+  }
+
+  // Flush: load → apply pending → recalculate → save
   const data = loadPreferences();
 
-  for (const category of relevantCategories) {
+  for (const { category, toolId: tid } of pendingUpdates) {
     if (!data.usage[category]) {
       data.usage[category] = {};
     }
-    data.usage[category][toolId] = (data.usage[category][toolId] || 0) + 1;
+    data.usage[category][tid] = (data.usage[category][tid] || 0) + 1;
   }
 
-  // Recalculate preferences
   updateAllPreferences(data);
-
-  // Save
   savePreferences(data);
 
   // Log significant preference changes
-  for (const category of relevantCategories) {
+  for (const { category } of pendingUpdates) {
     const pref = data.preferences[category];
     if (pref && pref.confidence > 0.7 && pref.sample_count === 10) {
       logHook(
@@ -388,7 +420,34 @@ export function toolPreferenceLearner(input: HookInput): HookResult {
     }
   }
 
+  // Reset accumulator
+  logHook(HOOK_NAME, `Flushed ${pendingUpdates.length} updates (${callsSinceFlush} calls)`);
+  pendingUpdates = [];
+  callsSinceFlush = 0;
+
   return outputSilentSuccess();
+}
+
+/**
+ * Force flush any pending updates to disk.
+ * Called by session-end hooks to ensure no data loss.
+ */
+export function flushPendingPreferences(): void {
+  if (pendingUpdates.length === 0) return;
+
+  const data = loadPreferences();
+  for (const { category, toolId: tid } of pendingUpdates) {
+    if (!data.usage[category]) {
+      data.usage[category] = {};
+    }
+    data.usage[category][tid] = (data.usage[category][tid] || 0) + 1;
+  }
+  updateAllPreferences(data);
+  savePreferences(data);
+
+  logHook(HOOK_NAME, `Session-end flush: ${pendingUpdates.length} pending updates`);
+  pendingUpdates = [];
+  callsSinceFlush = 0;
 }
 
 // =============================================================================

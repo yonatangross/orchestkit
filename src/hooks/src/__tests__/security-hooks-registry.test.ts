@@ -16,6 +16,7 @@ import {
   SECURITY_HOOKS,
   isSecurityCritical,
   assertCanToggle,
+  type SecurityHookName,
 } from '../lib/security-hooks-registry.js';
 
 describe('SECURITY_HOOKS registry', () => {
@@ -33,7 +34,7 @@ describe('SECURITY_HOOKS registry', () => {
       'security-command-audit',
     ];
     for (const hook of expected) {
-      expect(SECURITY_HOOKS.has(hook)).toBe(true);
+      expect(SECURITY_HOOKS.has(hook as SecurityHookName)).toBe(true);
     }
   });
 

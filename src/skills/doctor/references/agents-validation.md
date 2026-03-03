@@ -2,7 +2,7 @@
 
 ## Overview
 
-OrchestKit includes 36 specialized agents validated against CC 2.1.47 frontmatter format.
+OrchestKit includes 38 specialized agents validated against CC 2.1.59 frontmatter format.
 
 ## Agent Structure
 
@@ -11,7 +11,7 @@ src/agents/
 ├── backend-system-architect.md
 ├── code-quality-reviewer.md
 ├── frontend-ui-developer.md
-└── ... (36 total)
+└── ... (38 total)
 ```
 
 ## Validation Checks
@@ -113,7 +113,11 @@ if [ "$registered_count" -ne "$expected_count" ]; then
 fi
 ```
 
-**Check:** `claude agents | wc -l` should match expected agent count (37).
+**Check:** `claude agents | wc -l` should match expected agent count (38).
+
+## Model Routing
+
+See [docs/model-routing.md](../../../../docs/model-routing.md) for per-agent model assignment rationale and version history.
 
 **Fail action:** List missing agents for manual investigation. Common causes:
 - Plugin not installed or not rebuilt after adding agents

@@ -33,7 +33,8 @@ import {
   type WorkflowPattern,
   type DecisionFlow,
 } from '../lib/decision-flow-tracker.js';
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { existsSync, readFileSync, mkdirSync } from 'node:fs';
+import { atomicWriteSync } from '../lib/atomic-write.js';
 import { join, dirname } from 'node:path';
 
 // =============================================================================
@@ -122,7 +123,7 @@ function saveWorkflowPreferences(data: WorkflowPreferencesData): boolean {
       mkdirSync(dir, { recursive: true });
     }
 
-    writeFileSync(filePath, JSON.stringify(data, null, 2));
+    atomicWriteSync(filePath, JSON.stringify(data, null, 2));
     return true;
   } catch (err) {
     logHook(HOOK_NAME, `Failed to save workflow preferences: ${err}`, 'warn');

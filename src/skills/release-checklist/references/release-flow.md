@@ -22,17 +22,15 @@ Each step depends on the previous:
 - Tag is created after commit so it points to the right SHA
 - Push is last and irreversible — everything else must be confirmed first
 
-## Three-Plugin Consistency
+## Plugin Consistency
 
-OrchestKit ships three plugins from one source:
+OrchestKit ships as a single plugin:
 
 | Plugin | Skills | Agents | Description |
 |--------|--------|--------|-------------|
-| `orkl` | 46 | 36 | Universal toolkit |
-| `ork-creative` | 2 | 1 | Video production add-on |
-| `ork` | 63 | 36 | Full stack |
+| `ork` | 69 | 38 | Full toolkit |
 
-All three must have consistent counts in their manifests. The `/validate-counts` step catches drift between `src/` and `manifests/`.
+The `/validate-counts` step catches drift between `src/` and `manifests/ork.json`.
 
 ## Hotfix vs. Normal Release
 

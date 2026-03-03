@@ -76,8 +76,8 @@ describe('Calibration Persist Hook', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockLoadConfig.mockReturnValue({ enableCalibration: true });
-    mockLoadCalibrationData.mockReturnValue(defaultCalibrationData);
+    mockLoadConfig.mockReturnValue({ enableCalibration: true } as any);
+    mockLoadCalibrationData.mockReturnValue(defaultCalibrationData as any);
   });
 
   // ===========================================================================
@@ -86,7 +86,7 @@ describe('Calibration Persist Hook', () => {
   describe('Calibration Disabled', () => {
     it('should skip calibration when disabled but still call clearSessionState', () => {
       // Arrange
-      mockLoadConfig.mockReturnValue({ enableCalibration: false });
+      mockLoadConfig.mockReturnValue({ enableCalibration: false } as any);
 
       // Act
       const result = calibrationPersist(defaultInput);
@@ -100,7 +100,7 @@ describe('Calibration Persist Hook', () => {
 
     it('should not call applyDecay when calibration is disabled', () => {
       // Arrange
-      mockLoadConfig.mockReturnValue({ enableCalibration: false });
+      mockLoadConfig.mockReturnValue({ enableCalibration: false } as any);
 
       // Act
       calibrationPersist(defaultInput);
@@ -112,7 +112,7 @@ describe('Calibration Persist Hook', () => {
 
     it('should return outputSilentSuccess when disabled', () => {
       // Arrange
-      mockLoadConfig.mockReturnValue({ enableCalibration: false });
+      mockLoadConfig.mockReturnValue({ enableCalibration: false } as any);
 
       // Act
       const result = calibrationPersist(defaultInput);
@@ -250,7 +250,7 @@ describe('Calibration Persist Hook', () => {
 
     it('should still attempt cleanup even when calibration fails', () => {
       // Arrange - calibration is enabled, but loading throws
-      mockLoadConfig.mockReturnValue({ enableCalibration: true });
+      mockLoadConfig.mockReturnValue({ enableCalibration: true } as any);
       mockLoadCalibrationData.mockImplementation(() => {
         throw new Error('Calibration error');
       });

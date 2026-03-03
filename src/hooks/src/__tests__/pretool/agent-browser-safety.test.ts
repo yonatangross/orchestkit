@@ -40,7 +40,7 @@ vi.mock('node:fs', () => ({
 
 // Mock child_process for robots.txt fetching
 vi.mock('node:child_process', () => ({
-  execSync: vi.fn(() => ''),
+  execFileSync: vi.fn(() => ''),
 }));
 
 import { agentBrowserSafety } from '../../pretool/bash/agent-browser-safety.js';
@@ -118,6 +118,38 @@ describe('agent-browser-safety', () => {
     // Assert
     expect(result.continue).toBe(true);
     expect(result.hookSpecificOutput?.additionalContext).toContain('Sensitive browser action');
+  });
+
+  it('blocks 127.0.0.1 on any path, not just /admin', () => {
+    const input = createBashInput('agent-browser navigate "http://127.0.0.1:3000/api/users"');
+    const result = agentBrowserSafety(input);
+    expect(result.continue).toBe(false);
+    expect(result.stopReason).toContain('blocked');
+  });
+
+  it('blocks AWS metadata endpoint (SSRF)', () => {
+    const input = createBashInput('agent-browser navigate "http://169.254.169.254/latest/meta-data/"');
+    const result = agentBrowserSafety(input);
+    expect(result.continue).toBe(false);
+    expect(result.stopReason).toContain('blocked');
+  });
+
+  it('blocks GCP metadata endpoint (SSRF)', () => {
+    const input = createBashInput('agent-browser navigate "http://metadata.google.internal/computeMetadata/v1/"');
+    const result = agentBrowserSafety(input);
+    expect(result.continue).toBe(false);
+    expect(result.stopReason).toContain('blocked');
+  });
+
+  it('blocks RFC 1918 private IPs', () => {
+    const input10 = createBashInput('agent-browser navigate "http://10.0.0.1/secret"');
+    expect(agentBrowserSafety(input10).continue).toBe(false);
+
+    const input172 = createBashInput('agent-browser navigate "http://172.16.0.1/internal"');
+    expect(agentBrowserSafety(input172).continue).toBe(false);
+
+    const input192 = createBashInput('agent-browser navigate "http://192.168.1.1/admin"');
+    expect(agentBrowserSafety(input192).continue).toBe(false);
   });
 
   it('allows safe agent-browser commands', () => {

@@ -73,22 +73,10 @@ describe('skill-tracker', () => {
     const input = createSkillInput('unit-testing');
     skillTracker(input);
 
-    expect(mockAppendFileSync).toHaveBeenCalledTimes(2); // usage log + analytics JSONL
+    expect(mockAppendFileSync).toHaveBeenCalledTimes(1); // usage log only (analytics JSONL removed #919)
     const usageCall = mockAppendFileSync.mock.calls[0];
     expect(String(usageCall[0])).toContain('skill-usage.log');
     expect(String(usageCall[1])).toContain('unit-testing');
-  });
-
-  it('logs skill invocation with args to analytics JSONL', () => {
-    const input = createSkillInput('remember', '--success database pattern');
-    skillTracker(input);
-
-    const analyticsCall = mockAppendFileSync.mock.calls[1];
-    expect(String(analyticsCall[0])).toContain('skill-analytics.jsonl');
-    const entry = JSON.parse(String(analyticsCall[1]));
-    expect(entry.skill).toBe('remember');
-    expect(entry.args).toBe('--success database pattern');
-    expect(entry.phase).toBe('start');
   });
 
   it('always returns silent success after logging', () => {

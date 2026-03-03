@@ -12,7 +12,8 @@
  * Version: 2.0.0 (Task Integration)
  */
 
-import { existsSync, writeFileSync, mkdirSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync } from 'node:fs';
+import { atomicWriteSync } from '../lib/atomic-write.js';
 import { bufferWrite } from '../lib/analytics-buffer.js';
 import { dirname } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
@@ -228,7 +229,7 @@ function writeDecision(
   log.decisions.push(decisionEntry);
 
   try {
-    writeFileSync(decisionLog, JSON.stringify(log, null, 2));
+    atomicWriteSync(decisionLog, JSON.stringify(log, null, 2));
     logFeedback(`Decision ${decisionId} logged for agent ${agentType}`);
   } catch {
     logFeedback('ERROR: Failed to write decision to log');
@@ -286,7 +287,7 @@ function createHandoffContext(
     };
 
     try {
-      writeFileSync(handoffFile, JSON.stringify(handoff, null, 2));
+      atomicWriteSync(handoffFile, JSON.stringify(handoff, null, 2));
       logFeedback(`Created handoff context: ${agentType} -> ${downstream}`);
     } catch {
       // Ignore

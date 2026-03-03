@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Podcast: What OrchestKit Gets Wrong</title>
+<style>
+  :root {
+    --bg: #0d1117; --surface: #161b22; --surface2: #1c2333; --border: #30363d;
+    --text: #e6edf3; --text2: #8b949e; --accent: #f85149; --accent2: #f0883e;
+    --green: #3fb950; --blue: #58a6ff; --purple: #bc8cff; --yellow: #d29922;
+    --cyan: #39d353; --pink: #f778ba;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; }
+
+  /* Header */
+  .header { background: linear-gradient(135deg, #1a0a0a 0%, #0d1117 50%, #0a0d1a 100%); border-bottom: 1px solid var(--border); padding: 24px 32px; position: sticky; top: 0; z-index: 100; }
+  .header h1 { font-size: 22px; color: var(--accent); margin-bottom: 4px; }
+  .header .sub { color: var(--text2); font-size: 13px; }
+  .header .podcast-link { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; padding: 6px 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; color: var(--blue); text-decoration: none; font-size: 12px; transition: all .2s; }
+  .header .podcast-link:hover { border-color: var(--blue); background: rgba(88,166,255,.1); }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); background: var(--surface); position: sticky; top: 76px; z-index: 99; }
+  .tab { padding: 12px 24px; cursor: pointer; color: var(--text2); font-size: 13px; font-weight: 500; border-bottom: 2px solid transparent; transition: all .2s; }
+  .tab:hover { color: var(--text); background: var(--surface2); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* Panels */
+  .panel { display: none; padding: 24px 32px; max-width: 1400px; margin: 0 auto; }
+  .panel.active { display: block; }
+
+  /* === TAB 1: PODCAST CHAPTERS === */
+  .chapter-timeline { position: relative; padding-left: 40px; }
+  .chapter-timeline::before { content: ''; position: absolute; left: 15px; top: 0; bottom: 0; width: 2px; background: var(--border); }
+  .chapter { position: relative; margin-bottom: 24px; cursor: pointer; }
+  .chapter .dot { position: absolute; left: -33px; top: 6px; width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--border); background: var(--bg); transition: all .3s; }
+  .chapter.active .dot { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 12px rgba(248,81,73,.4); }
+  .chapter-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; transition: all .3s; }
+  .chapter.active .chapter-card { border-color: var(--accent); background: var(--surface2); }
+  .chapter:hover .chapter-card { border-color: var(--text2); }
+  .chapter-num { font-size: 11px; color: var(--accent); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+  .chapter-title { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+  .chapter-summary { font-size: 13px; color: var(--text2); line-height: 1.6; display: none; }
+  .chapter.active .chapter-summary { display: block; }
+  .chapter-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; display: none; }
+  .chapter.active .chapter-tags { display: flex; }
+  .ctag { font-size: 11px; padding: 3px 8px; border-radius: 4px; background: rgba(248,81,73,.1); color: var(--accent); border: 1px solid rgba(248,81,73,.2); }
+  .ctag.file { background: rgba(88,166,255,.1); color: var(--blue); border-color: rgba(88,166,255,.2); }
+  .ctag.lesson { background: rgba(63,185,80,.1); color: var(--green); border-color: rgba(63,185,80,.2); }
+
+  /* Key quotes */
+  .quote-block { margin-top: 12px; padding: 12px 16px; border-left: 3px solid var(--accent); background: rgba(248,81,73,.05); border-radius: 0 6px 6px 0; font-style: italic; font-size: 13px; color: var(--text2); display: none; }
+  .chapter.active .quote-block { display: block; }
+
+  /* === TAB 2: SHAME BOARD === */
+  .shame-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 16px; }
+  .shame-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; position: relative; overflow: hidden; transition: all .3s; }
+  .shame-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .shame-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+  .shame-card.critical::before { background: var(--accent); }
+  .shame-card.high::before { background: var(--accent2); }
+  .shame-card.medium::before { background: var(--yellow); }
+  .shame-severity { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; }
+  .shame-card.critical .shame-severity { color: var(--accent); }
+  .shame-card.high .shame-severity { color: var(--accent2); }
+  .shame-card.medium .shame-severity { color: var(--yellow); }
+  .shame-title { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
+  .shame-desc { font-size: 12px; color: var(--text2); line-height: 1.6; margin-bottom: 12px; }
+  .shame-files { display: flex; flex-direction: column; gap: 4px; }
+  .shame-file { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 11px; color: var(--blue); padding: 4px 8px; background: rgba(88,166,255,.08); border-radius: 4px; }
+  .shame-vs { margin-top: 12px; padding: 10px 12px; background: rgba(63,185,80,.05); border: 1px solid rgba(63,185,80,.15); border-radius: 6px; }
+  .shame-vs-label { font-size: 10px; color: var(--green); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+  .shame-vs-text { font-size: 12px; color: var(--text2); }
+
+  /* === TAB 3: SCORECARD === */
+  .scorecard-section { margin-bottom: 32px; }
+  .scorecard-section h3 { font-size: 14px; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
+  .score-row { display: grid; grid-template-columns: 200px 1fr 1fr 1fr; gap: 12px; padding: 14px 16px; border-radius: 8px; margin-bottom: 4px; align-items: center; }
+  .score-row:nth-child(even) { background: var(--surface); }
+  .score-label { font-size: 13px; font-weight: 500; }
+  .score-bar-wrap { display: flex; align-items: center; gap: 8px; }
+  .score-bar { height: 24px; border-radius: 4px; position: relative; min-width: 20px; transition: width .6s ease; }
+  .score-bar .val { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 11px; font-weight: 700; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.5); }
+  .score-bar.ok { background: linear-gradient(90deg, var(--accent2), var(--accent)); }
+  .score-bar.cont { background: linear-gradient(90deg, var(--green), var(--cyan)); }
+  .score-bar.ccv3 { background: linear-gradient(90deg, var(--purple), var(--blue)); }
+  .score-legend { display: flex; gap: 20px; margin-bottom: 20px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text2); }
+  .legend-dot { width: 12px; height: 12px; border-radius: 3px; }
+  .legend-dot.ok { background: var(--accent); }
+  .legend-dot.cont { background: var(--green); }
+  .legend-dot.ccv3 { background: var(--purple); }
+
+  /* Radar */
+  .radar-container { display: flex; justify-content: center; margin: 32px 0; }
+  canvas#radarCanvas { background: var(--surface); border-radius: 12px; border: 1px solid var(--border); }
+
+  /* === TAB 4: ROADMAP === */
+  .roadmap-item { display: grid; grid-template-columns: 60px 1fr 100px 100px; gap: 16px; padding: 16px 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; align-items: center; transition: all .3s; }
+  .roadmap-item:hover { border-color: var(--accent2); }
+  .roadmap-rank { font-size: 28px; font-weight: 800; color: var(--text2); text-align: center; }
+  .roadmap-rank.p1 { color: var(--accent); }
+  .roadmap-rank.p2 { color: var(--accent2); }
+  .roadmap-rank.p3 { color: var(--yellow); }
+  .roadmap-content h4 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .roadmap-content p { font-size: 12px; color: var(--text2); line-height: 1.5; }
+  .roadmap-effort { text-align: center; }
+  .roadmap-effort .days { font-size: 20px; font-weight: 700; color: var(--accent2); }
+  .roadmap-effort .label { font-size: 10px; color: var(--text2); text-transform: uppercase; }
+  .roadmap-roi { text-align: center; }
+  .roi-badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+  .roi-badge.extreme { background: rgba(248,81,73,.15); color: var(--accent); }
+  .roi-badge.high { background: rgba(240,136,62,.15); color: var(--accent2); }
+  .roi-badge.medium { background: rgba(210,153,34,.15); color: var(--yellow); }
+
+  /* Progress bar */
+  .roadmap-progress { margin-bottom: 24px; }
+  .progress-header { display: flex; justify-content: space-between; margin-bottom: 8px; }
+  .progress-header span { font-size: 12px; color: var(--text2); }
+  .progress-bar-bg { height: 8px; background: var(--surface); border-radius: 4px; overflow: hidden; border: 1px solid var(--border); }
+  .progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2), var(--yellow), var(--green)); border-radius: 4px; transition: width 1s ease; }
+
+  /* === TAB 5: LESSONS === */
+  .lesson-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin-bottom: 16px; position: relative; }
+  .lesson-card::before { content: attr(data-num); position: absolute; top: -12px; left: 20px; background: var(--accent); color: #fff; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; }
+  .lesson-card h4 { font-size: 16px; font-weight: 600; margin-bottom: 8px; color: var(--accent2); }
+  .lesson-card .current { font-size: 13px; color: var(--text2); margin-bottom: 8px; padding: 8px 12px; background: rgba(248,81,73,.05); border-left: 3px solid var(--accent); border-radius: 0 4px 4px 0; }
+  .lesson-card .target { font-size: 13px; color: var(--text2); padding: 8px 12px; background: rgba(63,185,80,.05); border-left: 3px solid var(--green); border-radius: 0 4px 4px 0; }
+  .lesson-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+  .lesson-label.bad { color: var(--accent); }
+  .lesson-label.good { color: var(--green); }
+
+  /* Filter bar */
+  .filter-bar { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .filter-btn { padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text2); font-size: 12px; cursor: pointer; transition: all .2s; }
+  .filter-btn:hover { border-color: var(--text2); }
+  .filter-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(248,81,73,.08); }
+
+  /* Totals strip */
+  .totals { display: flex; gap: 24px; padding: 16px 24px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 24px; }
+  .total-item { text-align: center; flex: 1; }
+  .total-item .num { font-size: 28px; font-weight: 800; }
+  .total-item .num.red { color: var(--accent); }
+  .total-item .num.orange { color: var(--accent2); }
+  .total-item .num.green { color: var(--green); }
+  .total-item .num.blue { color: var(--blue); }
+  .total-item .lbl { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: .5px; }
+
+  @media (max-width: 768px) {
+    .shame-grid { grid-template-columns: 1fr; }
+    .score-row { grid-template-columns: 120px 1fr 1fr 1fr; }
+    .roadmap-item { grid-template-columns: 40px 1fr 80px 80px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>What OrchestKit Gets Wrong — Honest Lessons from Competitors</h1>
+  <div class="sub">A self-critique podcast: OrchestKit vs Continuity Plugin vs CC-v3</div>
+  <a class="podcast-link" href="https://notebooklm.google.com/notebook/839b0519-02ab-400c-a33f-53e874e3b46e" target="_blank">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+    Listen to Podcast in NotebookLM
+  </a>
+</div>
+
+<div class="tabs">
+  <div class="tab active" data-tab="chapters">Podcast Chapters</div>
+  <div class="tab" data-tab="shame">Shame Board</div>
+  <div class="tab" data-tab="scorecard">3-Way Scorecard</div>
+  <div class="tab" data-tab="roadmap">Fix Roadmap</div>
+  <div class="tab" data-tab="lessons">5 Lessons</div>
+</div>
+
+<!-- TAB 1: PODCAST CHAPTERS -->
+<div class="panel active" id="chapters">
+  <div class="totals">
+    <div class="total-item"><div class="num red">6</div><div class="lbl">Critical Gaps</div></div>
+    <div class="total-item"><div class="num orange">4</div><div class="lbl">Source Docs</div></div>
+    <div class="total-item"><div class="num green">7</div><div class="lbl">Action Items</div></div>
+    <div class="total-item"><div class="num blue">9.5</div><div class="lbl">Days to Fix All</div></div>
+  </div>
+  <div class="chapter-timeline" id="chapterTimeline"></div>
+</div>
+
+<!-- TAB 2: SHAME BOARD -->
+<div class="panel" id="shame">
+  <div class="filter-bar">
+    <div class="filter-btn active" data-filter="all">All</div>
+    <div class="filter-btn" data-filter="critical">Critical</div>
+    <div class="filter-btn" data-filter="high">High</div>
+    <div class="filter-btn" data-filter="medium">Medium</div>
+  </div>
+  <div class="shame-grid" id="shameGrid"></div>
+</div>
+
+<!-- TAB 3: SCORECARD -->
+<div class="panel" id="scorecard">
+  <div class="score-legend">
+    <div class="legend-item"><div class="legend-dot ok"></div>OrchestKit</div>
+    <div class="legend-item"><div class="legend-dot cont"></div>Continuity</div>
+    <div class="legend-item"><div class="legend-dot ccv3"></div>CC-v3</div>
+  </div>
+  <div class="score-row" style="font-weight:600;color:var(--text2);font-size:12px;">
+    <div>Dimension</div><div>OrchestKit</div><div>Continuity</div><div>CC-v3</div>
+  </div>
+  <div id="scoreRows"></div>
+  <div class="radar-container"><canvas id="radarCanvas" width="500" height="500"></canvas></div>
+</div>
+
+<!-- TAB 4: ROADMAP -->
+<div class="panel" id="roadmap">
+  <div class="roadmap-progress">
+    <div class="progress-header">
+      <span>Implementation Progress</span>
+      <span id="progressPct">0 / 9.5 days</span>
+    </div>
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill" style="width:0%"></div></div>
+  </div>
+  <div id="roadmapItems"></div>
+</div>
+
+<!-- TAB 5: LESSONS -->
+<div class="panel" id="lessons">
+  <div id="lessonCards"></div>
+</div>
+
+<script>
+// === DATA ===
+const chapters = [
+  { num: 'Part 1', title: 'The Uncomfortable Truth — Where OrchestKit Falls Short', summary: 'OrchestKit has 94 hooks, 69 skills, 38 agents — the most feature-rich Claude Code plugin in existence. Yet if your session crashes at hour two of a complex refactoring, you lose everything. HANDOFF.md is only written on clean stop. No mid-session state. No running log. Meanwhile, Continuity Plugin with only 6 hooks handles this perfectly with a running markdown ledger.', quote: '"OrchestKit can brainstorm with 5 parallel agents, but it can\'t tell you how many files you\'ve edited this session."', tags: ['Session Persistence', 'writeFileSync', 'Context Blindspot'], fileTags: ['handoff-writer.ts', 'pre-compact-saver.ts', 'session-metrics.ts'] },
+  { num: 'Part 2', title: 'What CC-v3 Invented That We Should Have Built First', summary: 'CC-v3\'s /fix command orchestrates a 5-step workflow: Sleuth investigates, Premortem analyzes, Kraken implements, Arbiter tests, Commit creates. Each step passes structured context to the next. OrchestKit has 69 skills — every single one is standalone. No first-class chain concept. No automatic context passing. Plus: CC-v3\'s smart-skill-router auto-routes user intent to the best skill. OrchestKit\'s skill-nudge only suggests, never auto-invokes.', quote: '"CC-v3 thinks in workflows. OrchestKit thinks in individual tools."', tags: ['Skill Chains', 'Smart Routing', 'AST Indexing'], fileTags: ['smart-skill-router.py', 'session-symbol-index.py'] },
+  { num: 'Part 3', title: 'Continuity\'s Brutal Simplicity Exposes Our Complexity Problem', summary: 'Continuity has 6 hooks. OrchestKit has 94. On session resilience — the most fundamental job — Continuity scores 8/10 and OrchestKit scores 5/10. Continuity\'s entire UX: /save-state, /create-handoff, /resume-session. A new user understands in 30 seconds. OrchestKit has 17 user-invocable skills and 69 total. The 3-layer dispatcher architecture (hooks.json → entry → dispatcher → hook) requires tracing through files to understand a single event.', quote: '"6 hooks vs 94 hooks — and they win on session resilience. Let that sink in."', tags: ['Complexity', 'Developer UX', 'Atomic Writes'], fileTags: ['security-blocker.js', 'dirty-state-tracker.js', 'context-monitor.js'] },
+  { num: 'Part 4', title: 'The Concrete Lessons — What Needs to Change', summary: 'Five fundamental lessons: (1) Basics before features — nail session persistence and crash safety before agent teams. (2) Invisible nudges > loud gates — more context injection, fewer PreToolUse denies. (3) Fewer moving parts — consolidate the 94 hooks. (4) Workflows > tools — add a chain: field to SKILL.md. (5) Move fast — the competitive landscape is fragmenting. 7 action items totaling 9.5 days of work.', quote: '"The question isn\'t whether to do it — it\'s why haven\'t we done it already."', tags: ['Roadmap', 'Priorities', 'Architecture'], fileTags: [] },
+];
+
+const shameItems = [
+  { severity: 'critical', title: 'Raw writeFileSync Everywhere', desc: 'Every hook that writes state uses writeFileSync() directly. No temp file + rename. No locking. Crash mid-write = corrupted JSON. The _LOCKFILE variable is defined in session-metrics.ts but never used.', files: ['session-metrics.ts', 'handoff-writer.ts', 'orchestration-state.ts', 'skill-edit-tracker.ts'], vs: 'Continuity uses atomicWriteSync() — temp file + fs.renameSync() (atomic on POSIX) + mkdir-based locking with 5s timeout.' },
+  { severity: 'critical', title: 'No Mid-Session State', desc: 'Session state is only written on clean stop via handoff-writer.ts. A crash, rate limit, or network failure = total loss of session context. No running log, no incremental saves.', files: ['handoff-writer.ts', 'handoff-injector.ts'], vs: 'Continuity maintains an append-only markdown ledger during the entire session. Crash recovery detects orphan ledgers automatically.' },
+  { severity: 'critical', title: 'Context Warnings Fire Too Late', desc: 'pre-compact-saver.ts fires WHEN compaction happens — that\'s the airbag deploying during the crash. No proactive warnings at 70/80/90% thresholds. Users get surprise compaction.', files: ['pre-compact-saver.ts'], vs: 'Continuity\'s context-monitor.js reads context % on every prompt and injects invisible tiered warnings (70%, 80%, 90%).' },
+  { severity: 'high', title: 'No Dirty File Tracking', desc: 'session-metrics.ts counts tool calls. skill-edit-tracker.ts tracks edit pattern categories (17 types). Neither tracks unique files edited. Can\'t warn at 15/25 file thresholds.', files: ['session-metrics.ts', 'skill-edit-tracker.ts'], vs: 'Both Continuity and CC-v3 track unique edited files per session and surface warnings at thresholds to prevent scope creep.' },
+  { severity: 'high', title: 'No Composable Skill Chains', desc: '69 skills, every one standalone. No declarative multi-step workflows. No chain: field in SKILL.md. No automatic context passing between steps. No retry-with-context on failure.', files: ['SKILL.md (all 69)'], vs: 'CC-v3\'s /fix = 5 sequential agents (Sleuth → Premortem → Kraken → Arbiter → Commit) with structured context passing.' },
+  { severity: 'high', title: 'Reactive Codebase Discovery', desc: 'Agents start cold. They use Grep and Glob to find things reactively. No pre-built symbol map. No AST analysis. No import graph. Discovery happens on-the-fly.', files: ['Explore agent', 'Glob/Grep tools'], vs: 'CC-v3 runs session-symbol-index.py at session start — AST parses the codebase, builds symbol map, injects structural summary into context.' },
+  { severity: 'medium', title: 'Skill Nudge Doesn\'t Auto-Invoke', desc: 'skill-nudge-prompt suggests skills in context but never auto-routes. Users must know skill names and manually trigger them. High friction compared to intent-based routing.', files: ['skill-nudge-prompt (in unified-dispatcher.ts)'], vs: 'CC-v3\'s smart-skill-router.py reads user intent and auto-routes to the best skill. Zero friction.' },
+  { severity: 'medium', title: 'Learning Extraction Only at Session End', desc: 'lib/learning-extractor.ts runs in handoff-writer.ts stop hook. Crash = no learnings extracted. Learnings go to flat HANDOFF.md, not vector-searchable embeddings.', files: ['learning-extractor.ts', 'handoff-writer.ts'], vs: 'CC-v3 runs a memory daemon that periodically extracts learnings into Postgres+pgvector embeddings, surviving crashes.' },
+];
+
+const scores = [
+  { dim: 'Session Persistence', ok: 5, cont: 8, ccv3: 9 },
+  { dim: 'Security', ok: 9, cont: 6, ccv3: 5 },
+  { dim: 'Context Monitoring', ok: 3, cont: 8, ccv3: 7 },
+  { dim: 'Dev Simplicity', ok: 4, cont: 8, ccv3: 3 },
+  { dim: 'Extensibility', ok: 10, cont: 3, ccv3: 7 },
+  { dim: 'File Op Robustness', ok: 4, cont: 8, ccv3: 7 },
+  { dim: 'Workflow Automation', ok: 6, cont: 4, ccv3: 9 },
+  { dim: 'Crash Recovery', ok: 3, cont: 8, ccv3: 9 },
+];
+
+const roadmapItems = [
+  { rank: 1, title: 'Context % Tiered Warnings', desc: 'Read context usage on every prompt. Inject invisible warnings at 70/80/90%. Rate-limit per tier. Prevents surprise compaction — highest ROI feature.', effort: 0.5, roi: 'extreme', gh: '#927' },
+  { rank: 2, title: 'Dirty File Tracking', desc: 'Track unique files edited per session in PostToolUse. Warn at 15 files, suggest handoff at 25. Basic hygiene both competitors have.', effort: 0.5, roi: 'extreme', gh: '#928' },
+  { rank: 3, title: 'Atomic File Operations', desc: 'Replace all writeFileSync with atomicWriteSync (temp + rename). Add mkdir-based POSIX locking. One utility function fixes everything.', effort: 0.5, roi: 'extreme', gh: '#929' },
+  { rank: 4, title: 'Running Session Ledger', desc: 'Append-only markdown log during session. Detect orphan ledgers on start for crash recovery. The big differentiator.', effort: 2.0, roi: 'high', gh: '#930' },
+  { rank: 5, title: 'Declarative Skill Chains', desc: 'Add chain: field to SKILL.md. Sequential agent execution with structured context passing and failure retry. Transforms skills into workflows.', effort: 3.0, roi: 'high', gh: '#931' },
+  { rank: 6, title: 'AST Symbol Indexing', desc: 'Parse codebase at session start using AST. Build searchable symbol map. Inject structural summary into context. Agents start informed.', effort: 2.0, roi: 'medium', gh: '#932' },
+  { rank: 7, title: 'Smart Skill Auto-Routing', desc: 'Upgrade skill-nudge from suggest to auto-invoke on high confidence. Route user intent to best skill chain automatically.', effort: 1.0, roi: 'medium', gh: '#933' },
+];
+
+const lessons = [
+  { title: 'Basics Before Features', current: 'Added 94 hooks before getting atomic file writes right. Built agent teams before session crash recovery. Implemented 15 secret-scanning regex patterns before dirty file counting.', target: 'Nail session persistence, crash safety, and developer awareness (context warnings, file tracking) first. Everything else is built on top.' },
+  { title: 'Invisible Nudges > Loud Gates', current: 'Almost entirely blocking (PreToolUse deny hooks) with very little nudging (UserPromptSubmit context injection). Quality gates philosophy = interrupt the developer.', target: 'More gentle guidance via context injection, fewer hard blocks. The 70/80/90% warnings don\'t stop Claude — they subtly shift behavior toward saving state.' },
+  { title: 'Fewer Moving Parts Can Be More', current: '3 layers to trace: hooks.json → entry point → dispatcher → individual hook. 300+ source files in hooks alone. Contributors need a study guide.', target: 'One file = one concept. Consolidate analytics hooks into one. Reduce layers. You can read Continuity\'s entire codebase in 20 minutes.' },
+  { title: 'Workflows > Individual Tools', current: '69 standalone skills. Manual sequential invocation. No chain: field. No context passing. No retry-with-context.', target: 'Declarative skill chains: step 1 feeds step 2 feeds step 3. Structured context passing. Failure handling with premortem context.' },
+  { title: 'The Competitive Landscape Moves Fast', current: 'CC-v3 has 3,500 stars. Continuity launched with a polished marketing site. New plugins appear weekly. Market is fragmenting.', target: 'OrchestKit\'s moat (175+ tests, TypeScript, 3-level scoping, agent teams) is invisible to users. What they see: "does this plugin not lose my work?" — and competitors are winning on that.' },
+];
+
+// === RENDER ===
+function renderChapters() {
+  const el = document.getElementById('chapterTimeline');
+  el.innerHTML = chapters.map((c, i) => `
+    <div class="chapter ${i === 0 ? 'active' : ''}" data-idx="${i}">
+      <div class="dot"></div>
+      <div class="chapter-card">
+        <div class="chapter-num">${c.num}</div>
+        <div class="chapter-title">${c.title}</div>
+        <div class="chapter-summary">${c.summary}</div>
+        <div class="quote-block">${c.quote}</div>
+        <div class="chapter-tags">
+          ${c.tags.map(t => `<span class="ctag">${t}</span>`).join('')}
+          ${c.fileTags.map(t => `<span class="ctag file">${t}</span>`).join('')}
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  el.querySelectorAll('.chapter').forEach(ch => {
+    ch.addEventListener('click', () => {
+      el.querySelectorAll('.chapter').forEach(c => c.classList.remove('active'));
+      ch.classList.add('active');
+    });
+  });
+}
+
+function renderShame(filter = 'all') {
+  const el = document.getElementById('shameGrid');
+  const items = filter === 'all' ? shameItems : shameItems.filter(s => s.severity === filter);
+  el.innerHTML = items.map(s => `
+    <div class="shame-card ${s.severity}">
+      <div class="shame-severity">${s.severity}</div>
+      <div class="shame-title">${s.title}</div>
+      <div class="shame-desc">${s.desc}</div>
+      <div class="shame-files">${s.files.map(f => `<span class="shame-file">${f}</span>`).join('')}</div>
+      <div class="shame-vs">
+        <div class="shame-vs-label">What competitors do instead</div>
+        <div class="shame-vs-text">${s.vs}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderScores() {
+  const el = document.getElementById('scoreRows');
+  el.innerHTML = scores.map(s => `
+    <div class="score-row">
+      <div class="score-label">${s.dim}</div>
+      <div class="score-bar-wrap"><div class="score-bar ok" style="width:${s.ok * 10}%"><span class="val">${s.ok}</span></div></div>
+      <div class="score-bar-wrap"><div class="score-bar cont" style="width:${s.cont * 10}%"><span class="val">${s.cont}</span></div></div>
+      <div class="score-bar-wrap"><div class="score-bar ccv3" style="width:${s.ccv3 * 10}%"><span class="val">${s.ccv3}</span></div></div>
+    </div>
+  `).join('');
+}
+
+function renderRadar() {
+  const canvas = document.getElementById('radarCanvas');
+  const ctx = canvas.getContext('2d');
+  const cx = 250, cy = 250, r = 180;
+  const n = scores.length;
+  const step = (2 * Math.PI) / n;
+
+  ctx.clearRect(0, 0, 500, 500);
+
+  // Grid
+  for (let ring = 2; ring <= 10; ring += 2) {
+    ctx.beginPath();
+    for (let i = 0; i <= n; i++) {
+      const a = -Math.PI / 2 + i * step;
+      const x = cx + (r * ring / 10) * Math.cos(a);
+      const y = cy + (r * ring / 10) * Math.sin(a);
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.strokeStyle = 'rgba(48,54,61,.6)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  // Spokes + labels
+  scores.forEach((s, i) => {
+    const a = -Math.PI / 2 + i * step;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + r * Math.cos(a), cy + r * Math.sin(a));
+    ctx.strokeStyle = 'rgba(48,54,61,.4)';
+    ctx.stroke();
+    const lx = cx + (r + 24) * Math.cos(a);
+    const ly = cy + (r + 24) * Math.sin(a);
+    ctx.fillStyle = '#8b949e';
+    ctx.font = '11px -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(s.dim, lx, ly);
+  });
+
+  function drawPoly(vals, color, alpha) {
+    ctx.beginPath();
+    vals.forEach((v, i) => {
+      const a = -Math.PI / 2 + i * step;
+      const x = cx + (r * v / 10) * Math.cos(a);
+      const y = cy + (r * v / 10) * Math.sin(a);
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    });
+    ctx.closePath();
+    ctx.fillStyle = color.replace('1)', `${alpha})`);
+    ctx.fill();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Dots
+    vals.forEach((v, i) => {
+      const a = -Math.PI / 2 + i * step;
+      const x = cx + (r * v / 10) * Math.cos(a);
+      const y = cy + (r * v / 10) * Math.sin(a);
+      ctx.beginPath();
+      ctx.arc(x, y, 4, 0, 2 * Math.PI);
+      ctx.fillStyle = color;
+      ctx.fill();
+    });
+  }
+
+  drawPoly(scores.map(s => s.ccv3), 'rgba(188,140,255,1)', 0.08);
+  drawPoly(scores.map(s => s.cont), 'rgba(63,185,80,1)', 0.1);
+  drawPoly(scores.map(s => s.ok), 'rgba(248,81,73,1)', 0.12);
+}
+
+function renderRoadmap() {
+  const el = document.getElementById('roadmapItems');
+  el.innerHTML = roadmapItems.map(r => `
+    <div class="roadmap-item">
+      <div class="roadmap-rank ${r.rank <= 3 ? 'p1' : r.rank <= 5 ? 'p2' : 'p3'}">#${r.rank}</div>
+      <div class="roadmap-content">
+        <h4>${r.title} <span style="font-size:11px;color:var(--text2);font-weight:400">${r.gh}</span></h4>
+        <p>${r.desc}</p>
+      </div>
+      <div class="roadmap-effort">
+        <div class="days">${r.effort}</div>
+        <div class="label">days</div>
+      </div>
+      <div class="roadmap-roi">
+        <span class="roi-badge ${r.roi}">${r.roi} ROI</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderLessons() {
+  const el = document.getElementById('lessonCards');
+  el.innerHTML = lessons.map((l, i) => `
+    <div class="lesson-card" data-num="${i + 1}">
+      <h4>${l.title}</h4>
+      <div class="lesson-label bad">What we do now</div>
+      <div class="current">${l.current}</div>
+      <div style="height:8px"></div>
+      <div class="lesson-label good">What we should do</div>
+      <div class="target">${l.target}</div>
+    </div>
+  `).join('');
+}
+
+// === TABS ===
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.tab).classList.add('active');
+    if (tab.dataset.tab === 'scorecard') renderRadar();
+  });
+});
+
+// Shame filters
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderShame(btn.dataset.filter);
+  });
+});
+
+// === INIT ===
+renderChapters();
+renderShame();
+renderScores();
+renderRoadmap();
+renderLessons();
+setTimeout(renderRadar, 100);
+
+// Animate progress bar
+setTimeout(() => {
+  document.getElementById('progressFill').style.width = '0%';
+  document.getElementById('progressPct').textContent = '0 / 9.5 days — not started';
+}, 500);
+</script>
+</body>
+</html>

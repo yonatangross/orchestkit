@@ -1,7 +1,7 @@
 ---
 name: assess
 license: MIT
-compatibility: "Claude Code 2.1.56+. Requires memory MCP server."
+compatibility: "Claude Code 2.1.59+. Requires memory MCP server."
 description: "Assesses and rates quality 0-10 with pros/cons analysis. Use when evaluating code, designs, or approaches."
 context: fork
 version: 1.1.0
@@ -12,6 +12,7 @@ allowed-tools: [AskUserQuestion, Read, Grep, Glob, Task, TaskCreate, TaskUpdate,
 skills: [code-review-playbook, quality-gates, architecture-decision-record, memory]
 argument-hint: "[code-path-or-topic]"
 complexity: high
+model: sonnet
 metadata:
   category: document-asset-creation
   mcp-server: memory
@@ -42,10 +43,10 @@ AskUserQuestion(
     "question": "What dimensions to assess?",
     "header": "Dimensions",
     "options": [
-      {"label": "Full assessment (Recommended)", "description": "All dimensions: quality, maintainability, security, performance"},
-      {"label": "Code quality only", "description": "Readability, complexity, best practices"},
-      {"label": "Security focus", "description": "Vulnerabilities, attack surface, compliance"},
-      {"label": "Quick score", "description": "Just give me a 0-10 score with brief notes"}
+      {"label": "Full assessment (Recommended)", "description": "All dimensions: quality, maintainability, security, performance", "markdown": "```\nFull Assessment (7 phases)\n──────────────────────────\n  Dimensions scored 0-10:\n  ┌─────────────────────────────┐\n  │ Correctness      ████████░░ │\n  │ Maintainability  ██████░░░░ │\n  │ Security         █████████░ │\n  │ Performance      ███████░░░ │\n  │ Testability      ██████░░░░ │\n  │ Architecture     ████████░░ │\n  │ Documentation    █████░░░░░ │\n  └─────────────────────────────┘\n  + Pros/cons + alternatives\n  + Effort estimates + report\n  Agents: 4 parallel evaluators\n```"},
+      {"label": "Code quality only", "description": "Readability, complexity, best practices", "markdown": "```\nCode Quality Focus\n──────────────────\n  Dimensions scored 0-10:\n  ┌─────────────────────────────┐\n  │ Correctness      ████████░░ │\n  │ Maintainability  ██████░░░░ │\n  │ Testability      ██████░░░░ │\n  └─────────────────────────────┘\n  Skip: security, performance\n  Agents: 1 code-quality-reviewer\n  Output: Score + best practice gaps\n```"},
+      {"label": "Security focus", "description": "Vulnerabilities, attack surface, compliance", "markdown": "```\nSecurity Focus\n──────────────\n  ┌──────────────────────────┐\n  │ OWASP Top 10 check       │\n  │ Dependency CVE scan       │\n  │ Auth/AuthZ flow review    │\n  │ Data flow tracing         │\n  │ Secrets detection         │\n  └──────────────────────────┘\n  Agent: security-auditor\n  Output: Vuln list + severity\n          + remediation steps\n```"},
+      {"label": "Quick score", "description": "Just give me a 0-10 score with brief notes", "markdown": "```\nQuick Score\n───────────\n  Single pass, ~2 min:\n\n  Read target ──▶ Score ──▶ Done\n                  7.2/10\n\n  Output:\n  ├── Composite score (0-10)\n  ├── Grade (A-F)\n  ├── 3 strengths\n  └── 3 improvements\n  No agents, no deep analysis\n```"}
     ],
     "multiSelect": false
   }]
@@ -111,9 +112,9 @@ Identify what's being assessed and gather context:
 
 ```python
 # PARALLEL - Gather context
-Read(file_path="$ARGUMENTS")  # If file path
-Grep(pattern="$ARGUMENTS", output_mode="files_with_matches")
-mcp__memory__search_nodes(query="$ARGUMENTS")  # Past decisions
+Read(file_path="$ARGUMENTS[0]")  # If file path
+Grep(pattern="$ARGUMENTS[0]", output_mode="files_with_matches")
+mcp__memory__search_nodes(query="$ARGUMENTS[0]")  # Past decisions
 ```
 
 ---

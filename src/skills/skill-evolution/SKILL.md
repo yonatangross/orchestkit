@@ -1,14 +1,15 @@
 ---
 name: skill-evolution
 license: MIT
-compatibility: "Claude Code 2.1.56+."
+compatibility: "Claude Code 2.1.59+."
 description: "Analyzes skill usage patterns and suggests improvements. Use when reviewing skill performance, applying auto-suggested changes, or rolling back versions."
 argument-hint: "[subcommand] [skill-id]"
 context: inherit
 version: 1.0.0
 author: OrchestKit
 tags: [skill-management, evolution, versioning, analytics]
-user-invocable: true
+user-invocable: false
+disable-model-invocation: true
 allowed-tools: [Read, Write, Edit, Grep, Glob]
 complexity: medium
 metadata:

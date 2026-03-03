@@ -11,7 +11,6 @@ import { autoApproveSafeBash } from '../permission/auto-approve-safe-bash.js';
 import { gitValidator } from '../pretool/bash/git-validator.js';
 import { dangerousCommandBlocker } from '../pretool/bash/dangerous-command-blocker.js';
 import { fileGuard } from '../pretool/write-edit/file-guard.js';
-import { sessionContextLoader } from '../lifecycle/session-context-loader.js';
 import { sessionEnvSetup } from '../lifecycle/session-env-setup.js';
 
 // Consolidated hooks (Issue #219)
@@ -895,66 +894,6 @@ describe('lib/guards.ts', () => {
 // Lifecycle Hooks Tests
 // =============================================================================
 
-describe('lifecycle/session-context-loader', () => {
-  test('loads context when all files exist', () => {
-    const input = createHookInput({
-      project_dir: '/Users/yonatangross/coding/projects/orchestkit',
-    });
-    const result = sessionContextLoader(input);
-
-    expect(result.continue).toBe(true);
-    expect(result.suppressOutput).toBe(true);
-  });
-
-  test('handles missing context files gracefully', () => {
-    const input = createHookInput({
-      project_dir: '/nonexistent/path',
-    });
-    const result = sessionContextLoader(input);
-
-    expect(result.continue).toBe(true);
-    expect(result.suppressOutput).toBe(true);
-  });
-
-  test('uses default project dir when not provided', () => {
-    const input = createHookInput({});
-    const result = sessionContextLoader(input);
-
-    expect(result.continue).toBe(true);
-    expect(result.suppressOutput).toBe(true);
-  });
-
-  test('loads agent-specific context when agent_type set', () => {
-    const originalEnv = process.env.AGENT_TYPE;
-    process.env.AGENT_TYPE = 'backend-system-architect';
-
-    const input = createHookInput({
-      project_dir: '/Users/yonatangross/coding/projects/orchestkit',
-    });
-    const result = sessionContextLoader(input);
-
-    expect(result.continue).toBe(true);
-    expect(result.suppressOutput).toBe(true);
-
-    // Cleanup
-    if (originalEnv !== undefined) {
-      process.env.AGENT_TYPE = originalEnv;
-    } else {
-      delete process.env.AGENT_TYPE;
-    }
-  });
-
-  test('handles invalid JSON files gracefully', () => {
-    const input = createHookInput({
-      project_dir: '/tmp',
-    });
-    const result = sessionContextLoader(input);
-
-    expect(result.continue).toBe(true);
-    expect(result.suppressOutput).toBe(true);
-  });
-});
-
 describe('lifecycle/session-env-setup', () => {
   test('initializes session metrics', () => {
     const input = createHookInput({
@@ -1031,78 +970,7 @@ describe('lifecycle/session-env-setup', () => {
 // =============================================================================
 
 // Routing hooks removed — replaced by passive index (passive-index-migration)
-import { skillAutoSuggest } from '../prompt/skill-auto-suggest.js';
-
-/**
- * Create UserPromptSubmit input
- */
-function createPromptInput(prompt: string, overrides: Partial<HookInput> = {}): HookInput {
-  return createHookInput({
-    hook_event: 'UserPromptSubmit',
-    prompt,
-    ...overrides,
-  });
-}
-
-// agent-auto-suggest tests removed — hook replaced by passive index (passive-index-migration)
-
-describe('prompt/skill-auto-suggest', () => {
-  describe('basic behavior', () => {
-    test('returns silent success for empty prompt', () => {
-      const input = createPromptInput('');
-      const result = skillAutoSuggest(input);
-
-      expect(result.continue).toBe(true);
-      expect(result.suppressOutput).toBe(true);
-    });
-
-    test('returns silent success for short prompt', () => {
-      const input = createPromptInput('help');
-      const result = skillAutoSuggest(input);
-
-      expect(result.continue).toBe(true);
-      expect(result.suppressOutput).toBe(true);
-    });
-  });
-
-  describe('keyword matching', () => {
-    test('suggests skills for matching keywords', () => {
-      // Keywords that should match e2e-testing or integration-testing
-      const input = createPromptInput('Help me write e2e tests with playwright for browser automation');
-      const result = skillAutoSuggest(input);
-
-      expect(result.continue).toBe(true);
-      if (result.hookSpecificOutput?.additionalContext) {
-        expect(result.hookSpecificOutput.additionalContext).toContain('skill');
-      }
-    });
-
-    test('always returns continue:true', () => {
-      const inputs = [
-        'Write unit tests',
-        'Deploy to kubernetes',
-        'Random unrelated prompt',
-      ];
-
-      for (const prompt of inputs) {
-        const input = createPromptInput(prompt);
-        const result = skillAutoSuggest(input);
-        expect(result.continue).toBe(true);
-      }
-    });
-  });
-
-  describe('CC 2.1.9 compliance', () => {
-    test('uses hookEventName: UserPromptSubmit when providing context', () => {
-      const input = createPromptInput('Help me write e2e tests with playwright');
-      const result = skillAutoSuggest(input);
-
-      if (result.hookSpecificOutput?.additionalContext) {
-        expect(result.hookSpecificOutput.hookEventName).toBe('UserPromptSubmit');
-      }
-    });
-  });
-});
+// skill-auto-suggest removed — dead code, never registered in hooks.json
 
 // =============================================================================
 // Consolidated Hooks Tests (Issue #219)
@@ -1117,7 +985,7 @@ describe('unified-error-handler (consolidated from error-collector + error-track
     output: string,
     toolInput?: Record<string, unknown>
   ): HookInput => ({
-    hook_event_name: 'PostToolUse',
+    hook_event: 'PostToolUse',
     tool_name: toolName,
     tool_input: toolInput || {},
     tool_result: {
@@ -1125,7 +993,6 @@ describe('unified-error-handler (consolidated from error-collector + error-track
       content: output,
     },
     session_id: 'test-session',
-    transcript: [],
   });
 
   test('returns silent success for non-error outputs', () => {
@@ -1145,7 +1012,7 @@ describe('unified-error-handler (consolidated from error-collector + error-track
 
   test('detects errors from tool_error flag', () => {
     const input: HookInput = {
-      hook_event_name: 'PostToolUse',
+      hook_event: 'PostToolUse',
       tool_name: 'Bash',
       tool_input: {},
       tool_result: {
@@ -1153,7 +1020,6 @@ describe('unified-error-handler (consolidated from error-collector + error-track
         content: 'Some error occurred',
       },
       session_id: 'test-session',
-      transcript: [],
     };
     const result = unifiedErrorHandler(input);
 
@@ -1180,7 +1046,7 @@ describe('decision-processor (consolidated decision saver + entity extractor)', 
   
 
   const createSkillInput = (skillOutput: string): HookInput => ({
-    hook_event_name: 'Skill',
+    hook_event: 'PostToolUse',
     tool_name: 'Skill',
     tool_input: { skill: 'test-skill' },
     tool_result: {
@@ -1188,7 +1054,6 @@ describe('decision-processor (consolidated decision saver + entity extractor)', 
       content: skillOutput,
     },
     session_id: 'test-session',
-    transcript: [],
   });
 
   test('returns silent success for non-decision content', () => {
@@ -1246,12 +1111,11 @@ describe('posttool/unified-dispatcher read-only tool handling', () => {
     'returns silent success (no side-effect hooks) for read-only tool: %s',
     async (toolName) => {
       const input: HookInput = {
-        hook_event_name: 'PostToolUse',
+        hook_event: 'PostToolUse',
         tool_name: toolName,
         tool_input: {},
         tool_result: { is_error: false, content: 'ok' },
         session_id: 'test-session',
-        transcript: [],
       };
       const result = await unifiedDispatcher(input);
 

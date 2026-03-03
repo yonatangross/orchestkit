@@ -77,6 +77,8 @@ jobs:
       - name: Install docs dependencies
         working-directory: docs/site
         run: npm ci
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Build docs site
         working-directory: docs/site
         run: npm run build

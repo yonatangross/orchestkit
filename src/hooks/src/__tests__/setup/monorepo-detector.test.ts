@@ -143,9 +143,9 @@ describe('monorepo-detector', () => {
     test('detects monorepo when 3 or more nested package.json files exist', () => {
       // Simulate 3 top-level subdirs each with package.json
       mockReaddirSync.mockReturnValue([
-        { name: 'packages', isDirectory: () => true } as ReturnType<typeof readdirSync>[0],
-        { name: 'apps', isDirectory: () => true } as ReturnType<typeof readdirSync>[0],
-        { name: 'libs', isDirectory: () => true } as ReturnType<typeof readdirSync>[0],
+        { name: 'packages', isDirectory: () => true } as unknown as ReturnType<typeof readdirSync>[0],
+        { name: 'apps', isDirectory: () => true } as unknown as ReturnType<typeof readdirSync>[0],
+        { name: 'libs', isDirectory: () => true } as unknown as ReturnType<typeof readdirSync>[0],
       ]);
       mockExistsSync.mockImplementation((p) => {
         const s = String(p);
@@ -165,8 +165,8 @@ describe('monorepo-detector', () => {
         // Top-level project dir: return 2 directories
         if (String(dir) === '/test/project') {
           return [
-            { name: 'frontend', isDirectory: () => true } as ReturnType<typeof readdirSync>[0],
-            { name: 'backend', isDirectory: () => true } as ReturnType<typeof readdirSync>[0],
+            { name: 'frontend', isDirectory: () => true } as unknown as ReturnType<typeof readdirSync>[0],
+            { name: 'backend', isDirectory: () => true } as unknown as ReturnType<typeof readdirSync>[0],
           ];
         }
         // Sub-directories: return no children

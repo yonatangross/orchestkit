@@ -66,6 +66,13 @@ HOOK_SECURITY_*.txt
 
 # Agent memory (runtime, per-agent)
 .claude/agent-memory/
+.claude/agent-memory-local/
+
+# Worktrees (created by agent isolation, ephemeral)
+.claude/worktrees/
+
+# Negative count markers (runtime)
+.claude/.negative-count-*
 
 # All runtime logs
 .claude/logs/
@@ -135,7 +142,7 @@ hooks/node_modules/
 
 # Generated plugin builds (now committed for marketplace distribution)
 # Run `npm run build` before committing to ensure plugins/ is up-to-date
-.claude-plugins
+# .claude-plugins is tracked (relative path for portability)
 viral-posts/01-skills-auto-activate.md
 viral-posts/02-specialized-agents.md
 viral-posts/03-hook-consolidation.md
@@ -148,3 +155,6 @@ viral-posts/09-security-validation.md
 viral-posts/10-zero-config.md
 viral-posts/README.md
 tests/skills/functional/results/
+
+# Playground prototypes (design artifacts, not shipped)
+playground-*.html

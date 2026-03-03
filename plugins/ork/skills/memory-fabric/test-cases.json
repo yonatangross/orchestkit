@@ -1,0 +1,40 @@
+{
+  "skill": "memory-fabric",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "basic-what-pagination-approach-did",
+      "rule": "",
+      "query": "What pagination approach did database-engineer recommend? Search the knowledge graph and show me all related decisions with their entity relationships.",
+      "expectedBehavior": [
+        "Claude parses the query to extract entity hints: database-engineer, pagination",
+        "Claude executes mcp__memory__search_nodes with query 'pagination database-engineer'",
+        "Claude normalizes results to the standard format with id, text, source, relevance",
+        "Claude deduplicates results above 85% similarity threshold",
+        "Claude applies cross-reference boost (1.2x) for entities found in multiple contexts",
+        "Claude ranks results by recency (0.3) x relevance (0.5) x source_authority (0.2)"
+      ]
+    },
+    {
+      "id": "edge-extract-entities-from-this",
+      "rule": "",
+      "query": "Extract entities from this statement and store them: 'The backend-architect decided to use Redis for session caching and PostgreSQL for persistent storage, with pgvector for RAG embeddings.'",
+      "expectedBehavior": [
+        "Claude extracts entities: backend-architect (agent), Redis (technology), PostgreSQL (technology), pgvector (technology), RAG (pattern)",
+        "Claude creates relations: backend-architect uses Redis, backend-architect uses PostgreSQL, pgvector used_for RAG",
+        "Claude stores entities and relations via mcp__memory__create_entities and mcp__memory__create_relations",
+        "Claude handles multi-hop relationships (backend-architect -> PostgreSQL -> pgvector -> RAG)"
+      ]
+    },
+    {
+      "id": "negative-rename-the-variable-usercount",
+      "rule": "",
+      "query": "Rename the variable 'userCount' to 'totalUsers' across all files in the src directory.",
+      "expectedBehavior": [
+        "Claude does NOT invoke the memory-fabric skill",
+        "Claude uses Grep to find all occurrences and Edit to rename the variable",
+        "Claude does not query the knowledge graph or extract entities for a code refactoring task"
+      ]
+    }
+  ]
+}

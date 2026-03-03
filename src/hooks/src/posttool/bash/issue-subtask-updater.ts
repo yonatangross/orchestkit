@@ -10,7 +10,7 @@
  */
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
-import { execSync } from 'node:child_process';
+import { execFileSync, execSync } from 'node:child_process';
 import type { HookInput, HookResult } from '../../types.js';
 import { outputSilentSuccess, getField, getSessionId, logHook } from '../../lib/common.js';
 import { getSessionTempDir } from '../../lib/paths.js';
@@ -113,9 +113,10 @@ function extractIssueFromCommit(message: string): string | null {
  */
 function getUncheckedTasks(issueNum: string): string[] {
   try {
-    const body = execSync(`gh issue view ${issueNum} --json body -q '.body' 2>/dev/null`, {
+    const body = execFileSync('gh', ['issue', 'view', issueNum, '--json', 'body', '-q', '.body'], {
       encoding: 'utf8',
       timeout: 10000,
+      stdio: ['pipe', 'pipe', 'pipe'],
     });
 
     // Extract unchecked checkbox items: - [ ] text
@@ -143,9 +144,10 @@ function updateCheckbox(issueNum: string, checkboxText: string): boolean {
 
   try {
     // Get current body
-    const body = execSync(`gh issue view ${issueNum} --json body -q '.body' 2>/dev/null`, {
+    const body = execFileSync('gh', ['issue', 'view', issueNum, '--json', 'body', '-q', '.body'], {
       encoding: 'utf8',
       timeout: 10000,
+      stdio: ['pipe', 'pipe', 'pipe'],
     });
 
     // Escape special regex characters in checkbox text
@@ -164,15 +166,15 @@ function updateCheckbox(issueNum: string, checkboxText: string): boolean {
     }
 
     // Get repo info
-    const repo = execSync(`gh repo view --json nameWithOwner -q '.nameWithOwner' 2>/dev/null`, {
+    const repo = execFileSync('gh', ['repo', 'view', '--json', 'nameWithOwner', '-q', '.nameWithOwner'], {
       encoding: 'utf8',
       timeout: 5000,
+      stdio: ['pipe', 'pipe', 'pipe'],
     }).trim();
 
-    // Update issue body via API
-    const bodyJson = JSON.stringify(updatedBody);
-    execSync(`gh api -X PATCH "repos/${repo}/issues/${issueNum}" -f body=${bodyJson}`, {
-      stdio: 'ignore',
+    // Update issue body via API (use --input for safe body passing)
+    execFileSync('gh', ['api', '-X', 'PATCH', `repos/${repo}/issues/${issueNum}`, '-f', `body=${updatedBody}`], {
+      stdio: ['pipe', 'pipe', 'pipe'],
       timeout: 10000,
     });
 

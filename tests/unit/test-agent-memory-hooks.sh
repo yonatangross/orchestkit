@@ -308,41 +308,36 @@ it "subagent bundle has content" test_subagent_bundle_has_content
 it "bundle contains graph-memory-inject" test_bundle_contains_graph_inject
 
 # ============================================================================
-# PLUGIN TESTS (Two-Tier Architecture v6.0.0)
+# PLUGIN TESTS (Unified Architecture v7.0.0)
 # ============================================================================
 
-describe "Plugin Architecture: Two-Tier System"
-
-test_orkl_plugin_exists() {
-    assert_file_exists "$PROJECT_ROOT/plugins/orkl/.claude-plugin/plugin.json"
-}
+describe "Plugin Architecture: Unified Plugin"
 
 test_ork_plugin_exists() {
     assert_file_exists "$PROJECT_ROOT/plugins/ork/.claude-plugin/plugin.json"
 }
 
-test_memory_skills_in_orkl() {
-    # Memory skills should be in orkl (universal toolkit)
-    assert_file_exists "$PROJECT_ROOT/plugins/orkl/skills/remember/SKILL.md"
-    assert_file_exists "$PROJECT_ROOT/plugins/orkl/skills/memory/SKILL.md"
+test_memory_skills_in_ork() {
+    # Memory skills should be in ork
+    assert_file_exists "$PROJECT_ROOT/plugins/ork/skills/remember/SKILL.md"
+    assert_file_exists "$PROJECT_ROOT/plugins/ork/skills/memory/SKILL.md"
 }
 
 test_old_memory_plugins_gone() {
-    # Old separate memory plugins should be deleted (merged into orkl)
+    # Old separate memory plugins should be deleted (merged into ork)
     if [[ -d "$PROJECT_ROOT/plugins/ork-memory-graph" ]]; then
-        fail "Old ork-memory-graph plugin should be deleted (merged into orkl)"
+        fail "Old ork-memory-graph plugin should be deleted (merged into ork)"
     fi
     if [[ -d "$PROJECT_ROOT/plugins/ork-memory-mem0" ]]; then
-        fail "Old ork-memory-mem0 plugin should be deleted (merged into orkl)"
+        fail "Old ork-memory-mem0 plugin should be deleted (merged into ork)"
     fi
     if [[ -d "$PROJECT_ROOT/plugins/ork-memory-fabric" ]]; then
-        fail "Old ork-memory-fabric plugin should be deleted (merged into orkl)"
+        fail "Old ork-memory-fabric plugin should be deleted (merged into ork)"
     fi
 }
 
-it "orkl plugin exists" test_orkl_plugin_exists
 it "ork plugin exists" test_ork_plugin_exists
-it "memory skills in orkl" test_memory_skills_in_orkl
+it "memory skills in ork" test_memory_skills_in_ork
 it "old memory plugins are gone" test_old_memory_plugins_gone
 
 # ============================================================================

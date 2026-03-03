@@ -1,6 +1,8 @@
 ---
 title: "Evidence Collection Patterns"
 impact: HIGH
+impactDescription: "Verification without evidence produces unsubstantiated scores that miss real issues"
+tags: verification, evidence, testing, parallel-execution
 ---
 
 # Evidence Collection Patterns
@@ -13,6 +15,20 @@ Run these commands in parallel in ONE message:
 git diff main --stat
 git log main..HEAD --oneline
 git diff main --name-only | sort -u
+```
+
+**Incorrect:**
+```bash
+# Sequential — wastes time, no coverage data
+cd backend && pytest tests/
+cd frontend && npm test
+```
+
+**Correct:**
+```bash
+# Parallel with coverage — run both in ONE message
+cd backend && poetry run pytest tests/ -v --cov=app --cov-report=json
+cd frontend && npm run test -- --coverage
 ```
 
 ## Phase 3: Parallel Test Execution
@@ -44,7 +60,7 @@ Query trends: `mcp__memory__search_nodes(query="VerificationMetrics")`
 After report compilation, send scores to `metrics-architect` for KPI baseline tracking:
 
 ```python
-Task(subagent_type="metrics-architect", run_in_background=True, max_turns=15,
+Agent(subagent_type="metrics-architect", run_in_background=True, max_turns=15,
      prompt=f"""Receive verification scores for {feature}:
 
 Composite: {composite_score}/10 (Grade: {grade})

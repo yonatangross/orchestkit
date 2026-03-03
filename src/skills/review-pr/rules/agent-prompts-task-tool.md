@@ -36,7 +36,7 @@ Launch SIX specialized reviewers in ONE message with `run_in_background: true`:
 # - llm-integrator (7th)      → only if HAS_AI
 
 # PARALLEL - All agents in ONE message
-Task(
+Agent(
   description="Review code quality",
   subagent_type="code-quality-reviewer",
   prompt="""CODE QUALITY REVIEW for PR $PR_NUMBER
@@ -57,7 +57,7 @@ Task(
   run_in_background=True,
   max_turns=25
 )
-Task(
+Agent(
   description="Review type safety",
   subagent_type="code-quality-reviewer",
   prompt="""TYPE SAFETY REVIEW for PR $PR_NUMBER
@@ -78,7 +78,7 @@ Task(
   run_in_background=True,
   max_turns=25
 )
-Task(
+Agent(
   description="Security audit PR",
   subagent_type="security-auditor",
   prompt="""SECURITY REVIEW for PR $PR_NUMBER
@@ -99,7 +99,7 @@ Task(
   run_in_background=True,
   max_turns=25
 )
-Task(
+Agent(
   description="Review test adequacy",
   subagent_type="test-generator",
   prompt="""TEST ADEQUACY REVIEW for PR $PR_NUMBER
@@ -139,7 +139,7 @@ Task(
   run_in_background=True,
   max_turns=25
 )
-Task(
+Agent(
   description="Review backend code",
   subagent_type="backend-system-architect",
   prompt="""BACKEND REVIEW for PR $PR_NUMBER
@@ -160,7 +160,7 @@ Task(
   run_in_background=True,
   max_turns=25
 )
-Task(
+Agent(
   description="Review frontend code",
   subagent_type="frontend-ui-developer",
   prompt="""FRONTEND REVIEW for PR $PR_NUMBER
@@ -186,17 +186,17 @@ Task(
 **Incorrect — Sequential agents:**
 ```python
 # 6 reviewers run one-by-one (slow)
-Task(subagent_type="code-quality-reviewer", prompt="...")
+Agent(subagent_type="code-quality-reviewer", prompt="...")
 # Wait for completion
-Task(subagent_type="security-auditor", prompt="...")
+Agent(subagent_type="security-auditor", prompt="...")
 # Wait again...
 ```
 
 **Correct — Parallel agents:**
 ```python
 # All 6 agents in ONE message (fast)
-Task(subagent_type="code-quality-reviewer", prompt="...", run_in_background=True)
-Task(subagent_type="security-auditor", prompt="...", run_in_background=True)
-Task(subagent_type="test-generator", prompt="...", run_in_background=True)
+Agent(subagent_type="code-quality-reviewer", prompt="...", run_in_background=True)
+Agent(subagent_type="security-auditor", prompt="...", run_in_background=True)
+Agent(subagent_type="test-generator", prompt="...", run_in_background=True)
 # All launch simultaneously
 ```

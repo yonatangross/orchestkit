@@ -1,7 +1,7 @@
 ---
 name: configure
 license: MIT
-compatibility: "Claude Code 2.1.56+."
+compatibility: "Claude Code 2.1.59+."
 description: "Configures OrchestKit plugin settings, MCP servers, hook permissions, and keybindings. Use when customizing plugin behavior or managing settings."
 argument-hint: "[preset-name]"
 context: inherit
@@ -9,8 +9,10 @@ version: 1.0.0
 author: OrchestKit
 tags: [configuration, setup, wizard, customization]
 user-invocable: true
+disable-model-invocation: true
 allowed-tools: [Bash, Read, Grep, Glob]
 complexity: low
+model: haiku
 metadata:
   category: workflow-automation
 ---
@@ -23,6 +25,16 @@ Interactive setup for customizing your OrchestKit installation.
 
 ```bash
 /ork:configure
+/ork:configure mcp memory
+```
+
+## Argument Resolution
+
+```python
+PRESET = "$ARGUMENTS[0]"   # Optional preset name or subcommand, e.g., "mcp"
+TARGET = "$ARGUMENTS[1]"   # Optional target, e.g., "memory"
+# If no arguments, run interactive wizard.
+# $ARGUMENTS is the full string (CC 2.1.59 indexed access)
 ```
 
 ## Step 1: Choose Preset
@@ -106,6 +118,14 @@ All 5 MCPs ship **enabled by default**. Tavily requires an API key; agentation r
 > **Background agents:** MCP tools are NOT available in background subagents (hard CC platform limitation). Agents that need MCP tools must run in the foreground.
 
 **Already have these MCPs installed globally?** If Tavily or memory are already in your `~/.claude/mcp.json`, skip enabling them here to avoid duplicate entries. OrchestKit agents will use whichever instance Claude Code resolves first.
+
+**Opt out of claude.ai MCP servers (CC 2.1.63+):** Claude Code may load MCP servers from claude.ai by default. To disable this and only use locally-configured MCPs:
+
+```bash
+export ENABLE_CLAUDEAI_MCP_SERVERS=false
+```
+
+Add to your shell profile (`~/.zshrc` or `~/.bashrc`) to persist across sessions. This only affects MCP servers sourced from claude.ai — locally-configured MCPs in `.mcp.json` and `~/.claude/mcp.json` are unaffected.
 
 ## Step 6: CC 2.1.7 Settings (New)
 
@@ -263,7 +283,65 @@ Adds to `.claude/settings.json`:
 
 **OrchestKit-themed verbs** focus on orchestration, architecture, and engineering actions.
 
-## Step 9: Optional Integrations
+## Step 9: Webhook & Telemetry Configuration
+
+Configure dual-channel telemetry for streaming session data to HQ or your own API.
+
+```python
+AskUserQuestion(questions=[{
+  "question": "Set up session telemetry?",
+  "header": "Telemetry",
+  "options": [
+    {"label": "Full streaming (Recommended)", "description": "All 18 events stream via native HTTP + enriched summaries"},
+    {"label": "Summary only", "description": "SessionEnd and worktree events only (command hooks)"},
+    {"label": "Skip", "description": "No telemetry — hooks run locally only"}
+  ],
+  "multiSelect": false
+}])
+```
+
+### If "Full streaming"
+
+1. Ask for webhook URL:
+```python
+AskUserQuestion(questions=[{
+  "question": "What is your webhook endpoint URL?",
+  "header": "Webhook URL",
+  "options": [
+    {"label": "Custom URL", "description": "Enter your API endpoint (e.g., https://api.example.com/hooks)"}
+  ],
+  "multiSelect": false
+}])
+```
+
+2. Run the HTTP hook generator:
+```bash
+npm run generate:http-hooks -- <webhook-url> --write
+```
+
+3. Save webhookUrl to orchestration config for command hooks:
+```bash
+# File: .claude/orchestration/config.json
+saveConfig({ webhookUrl: "<webhook-url>" })
+```
+
+4. Remind the user to set the auth token:
+```
+Set ORCHESTKIT_HOOK_TOKEN in your environment (never in config files):
+  export ORCHESTKIT_HOOK_TOKEN=your-secret
+
+Two channels now active:
+  Channel 1 (HTTP):    All 18 events → /cc-event (Bearer auth, zero overhead)
+  Channel 2 (Command): SessionEnd → /ingest (HMAC auth, enriched data)
+```
+
+### If "Summary only"
+
+Save webhookUrl to config and remind about env var (same as above, skip generator step).
+
+See [HTTP Hooks reference](references/http-hooks.md) for architecture details.
+
+## Step 10: Optional Integrations
 
 Use AskUserQuestion to offer optional third-party integrations:
 
@@ -318,7 +396,7 @@ Enable Agentation UI annotation tool? [y/N]: y
 
 5. **CSP update** (only if the project has a Content-Security-Policy): add `http://localhost:4747` to the `connect-src` directive for development mode only.
 
-## Step 10: Preview & Save
+## Step 11: Preview & Save
 
 Save to: `~/.claude/plugins/orchestkit/config.json`
 
@@ -339,3 +417,4 @@ Save to: `~/.claude/plugins/orchestkit/config.json`
 
 - [Presets](references/presets.md)
 - [MCP Configuration](references/mcp-config.md)
+- [HTTP Hooks](references/http-hooks.md) — CC 2.1.63+ observability hooks (Langfuse, Datadog, custom endpoints)

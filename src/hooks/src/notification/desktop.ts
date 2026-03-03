@@ -8,38 +8,47 @@
  * Version: 2.0.0
  */
 
-import { execSync } from 'node:child_process';
+import { execSync, spawn } from 'node:child_process';
 import { basename } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook, getProjectDir, getCachedBranch } from '../lib/common.js';
-import { assertSafeCommandName, shellQuote } from '../lib/sanitize-shell.js';
-
-// -----------------------------------------------------------------------------
-// Configuration
-// -----------------------------------------------------------------------------
-
-const SOUNDS: Record<string, string> = {
-  permission_prompt: 'Sosumi',  // Attention-grabbing
-  idle_prompt: 'Ping',          // Gentle
-  default: 'Ping',
-};
+import { assertSafeCommandName } from '../lib/sanitize-shell.js';
 
 // -----------------------------------------------------------------------------
 // Helper Functions
 // -----------------------------------------------------------------------------
 
 function escapeForAppleScript(str: string): string {
-  return str.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+  return str
+    .replace(/\\/g, '\\\\')
+    .replace(/"/g, '\\"')
+    .replace(/\n/g, '\\n')
+    .replace(/\r/g, '\\r')
+    .replace(/\t/g, '\\t')
+    // biome-ignore lint/suspicious/noControlCharactersInRegex: intentional — stripping control chars from notification text
+    .replace(/[\x00-\x1f\x7f]/g, '');
 }
 
+const _commandCache = new Map<string, boolean>();
+
+/** Check if a command exists. assertSafeCommandName guards against injection if callers change. */
 function hasCommand(command: string): boolean {
+  const cached = _commandCache.get(command);
+  if (cached !== undefined) return cached;
   try {
     assertSafeCommandName(command);
     execSync(`command -v ${command}`, { stdio: 'ignore' });
+    _commandCache.set(command, true);
     return true;
   } catch {
+    _commandCache.set(command, false);
     return false;
   }
+}
+
+/** @internal Test-only: reset the command cache */
+export function _resetCommandCacheForTesting(): void {
+  _commandCache.clear();
 }
 
 /**
@@ -63,16 +72,37 @@ function getRepoName(): string {
 }
 
 /**
- * Build subtitle with branch and optional issue number
+ * Build a clean, actionable notification title
  */
-function buildSubtitle(branch: string, notificationType: string): string {
-  const issue = extractIssueFromBranch(branch);
-  const typeLabel = notificationType === 'permission_prompt' ? '⏸ Permission needed' : '💤 Waiting';
-
-  if (issue) {
-    return `${typeLabel} · ${issue} · ${branch}`;
+function buildTitle(repoName: string, notificationType: string): string {
+  if (notificationType === 'permission_prompt') {
+    return `${repoName} needs approval`;
   }
-  return `${typeLabel} · ${branch}`;
+  return `${repoName} is waiting for you`;
+}
+
+/**
+ * Build subtitle with branch context
+ */
+function buildSubtitle(branch: string): string {
+  if (!branch || branch === 'unknown') return '';
+  const issue = extractIssueFromBranch(branch);
+  return issue ? `${branch} (${issue})` : branch;
+}
+
+/**
+ * Build a useful message body from CC's notification message
+ */
+function buildMessage(message: string, notificationType: string): string {
+  // If CC provided a real message, use it
+  if (message && message !== 'test' && message.length > 5) {
+    return message;
+  }
+  // Fallback to actionable default
+  if (notificationType === 'permission_prompt') {
+    return 'A tool needs your permission to proceed.';
+  }
+  return 'Claude is idle and waiting for your response.';
 }
 
 /**
@@ -84,21 +114,23 @@ function truncateMessage(message: string, maxLen = 120): string {
 }
 
 /**
- * Send macOS notification with title, subtitle, and message
+ * Send macOS notification with title, subtitle, and message.
+ * Sound is handled separately by sound.ts to avoid double-sound.
+ * Activates the terminal app so the user lands back in the right window.
  */
 function sendMacNotification(
   title: string,
   subtitle: string,
   message: string,
-  sound: string
 ): boolean {
   try {
     const t = escapeForAppleScript(title);
     const s = escapeForAppleScript(subtitle);
     const m = escapeForAppleScript(truncateMessage(message));
-
-    const script = `display notification "${m}" with title "${t}" subtitle "${s}" sound name "${sound}"`;
-    execSync(`osascript -e ${shellQuote(script)}`, { stdio: 'ignore', timeout: 5000 });
+    // Display notification only — never steal focus from the user's current app
+    const script = `display notification "${m}" with title "${t}" subtitle "${s}"`;
+    const child = spawn('osascript', ['-e', script], { stdio: 'ignore', detached: true });
+    child.unref();
     return true;
   } catch {
     return false;
@@ -111,7 +143,8 @@ function sendMacNotification(
 function sendLinuxNotification(title: string, subtitle: string, message: string): boolean {
   try {
     const fullMessage = `${subtitle}\n${message}`;
-    execSync(`notify-send -- ${shellQuote(title)} ${shellQuote(fullMessage)}`, { stdio: 'ignore', timeout: 5000 });
+    const child = spawn('notify-send', ['--', title, fullMessage], { stdio: 'ignore', detached: true });
+    child.unref();
     return true;
   } catch {
     return false;
@@ -122,10 +155,10 @@ function sendLinuxNotification(title: string, subtitle: string, message: string)
 // Hook Implementation
 // -----------------------------------------------------------------------------
 
-export function desktopNotification(input: HookInput): HookResult {
+export async function desktopNotification(input: HookInput): Promise<HookResult> {
   const toolInput = input.tool_input || {};
-  const message = (toolInput.message as string) || input.message || '';
-  const notificationType = (toolInput.notification_type as string) || input.notification_type || '';
+  const message = input.message || (toolInput.message as string) || '';
+  const notificationType = input.notification_type || (toolInput.notification_type as string) || '';
 
   logHook('desktop', `Notification: [${notificationType}] ${message.substring(0, 100)}`);
 
@@ -137,14 +170,15 @@ export function desktopNotification(input: HookInput): HookResult {
   // Build rich notification content
   const repoName = getRepoName();
   const branch = getCachedBranch();
-  const subtitle = buildSubtitle(branch, notificationType);
-  const sound = SOUNDS[notificationType] || SOUNDS.default;
+  const title = buildTitle(repoName, notificationType);
+  const subtitle = buildSubtitle(branch);
+  const body = buildMessage(message, notificationType);
 
-  // Send platform-appropriate notification
+  // Send platform-appropriate notification (sound handled by sound.ts)
   if (hasCommand('osascript')) {
-    sendMacNotification(repoName, subtitle, message, sound);
+    sendMacNotification(title, subtitle, body);
   } else if (hasCommand('notify-send')) {
-    sendLinuxNotification(repoName, subtitle, message);
+    sendLinuxNotification(title, subtitle, body);
   }
 
   return outputSilentSuccess();

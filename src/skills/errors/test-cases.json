@@ -1,0 +1,39 @@
+{
+  "skill": "errors",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "basic-i-keep-getting-role",
+      "rule": "",
+      "query": "I keep getting 'role orchestkit_user does not exist' errors when running my database migrations. Can you analyze my recent error patterns and suggest fixes?",
+      "expectedBehavior": [
+        "Claude reads .claude/logs/errors.jsonl for recent error entries",
+        "Claude identifies the PostgreSQL connection pattern from error history",
+        "Claude suggests using Docker connection: docker exec -it orchestkit-postgres-dev psql",
+        "Claude checks .claude/rules/error_rules.json for matching learned patterns",
+        "Claude provides actionable fix suggestion based on pattern analysis"
+      ]
+    },
+    {
+      "id": "edge-run-a-batch-analysis",
+      "rule": "",
+      "query": "Run a batch analysis of all errors from the last 7 days and generate a report showing which tools fail most often.",
+      "expectedBehavior": [
+        "Claude runs python .claude/scripts/analyze_errors.py --days 7 --report",
+        "Claude groups errors by tool name (Bash, mcp__memory__search_nodes, etc.)",
+        "Claude identifies recurring patterns that appear 2+ times",
+        "Claude handles the case where errors.jsonl is empty or missing gracefully"
+      ]
+    },
+    {
+      "id": "negative-add-a-new-react",
+      "rule": "",
+      "query": "Add a new React component for the user profile page with a form for editing name and email.",
+      "expectedBehavior": [
+        "Claude does NOT invoke the errors skill",
+        "Claude creates the React component using standard tools",
+        "Claude does not read error logs or analyze error patterns for a feature implementation task"
+      ]
+    }
+  ]
+}

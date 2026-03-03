@@ -15,7 +15,7 @@ Budget: Use at most 15 tool calls. Read files from the list above, then score.
 Do NOT use Glob or Grep to discover additional files.
 """
 
-Task(subagent_type="code-quality-reviewer", name="correctness-assessor",
+Agent(subagent_type="code-quality-reviewer", name="correctness-assessor",
      team_name="assess-{target-slug}", max_turns=25,
      prompt=f"""Assess CORRECTNESS (0-10) and MAINTAINABILITY (0-10) for: {target}
      {SCOPE_INSTRUCTIONS}
@@ -24,7 +24,7 @@ Task(subagent_type="code-quality-reviewer", name="correctness-assessor",
      Share your scores with all teammates for calibration — if scores diverge
      significantly (>2 points), discuss the disagreement.""")
 
-Task(subagent_type="security-auditor", name="security-assessor",
+Agent(subagent_type="security-auditor", name="security-assessor",
      team_name="assess-{target-slug}", max_turns=25,
      prompt=f"""Assess SECURITY (0-10) for: {target}
      {SCOPE_INSTRUCTIONS}
@@ -32,7 +32,7 @@ Task(subagent_type="security-auditor", name="security-assessor",
      When you find performance-impacting security measures, message perf-assessor.
      Share your score and flag any cross-dimension trade-offs.""")
 
-Task(subagent_type="python-performance-engineer", name="perf-assessor",  # or frontend-performance-engineer for frontend
+Agent(subagent_type="python-performance-engineer", name="perf-assessor",  # or frontend-performance-engineer for frontend
      team_name="assess-{target-slug}", max_turns=25,
      prompt=f"""Assess PERFORMANCE (0-10) and SCALABILITY (0-10) for: {target}
      {SCOPE_INSTRUCTIONS}
@@ -40,7 +40,7 @@ Task(subagent_type="python-performance-engineer", name="perf-assessor",  # or fr
      When you find testability issues (hard-to-benchmark code), message test-assessor.
      Share your scores with reasoning for the composite calculation.""")
 
-Task(subagent_type="test-generator", name="test-assessor",
+Agent(subagent_type="test-generator", name="test-assessor",
      team_name="assess-{target-slug}", max_turns=25,
      prompt=f"""Assess TESTABILITY (0-10) for: {target}
      {SCOPE_INSTRUCTIONS}

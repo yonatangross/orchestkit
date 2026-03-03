@@ -12,6 +12,7 @@ export * from '../lib/guards.js';
 
 // Agent hooks (6)
 import { blockWrites } from '../agent/block-writes.js';
+import { restrictBash } from '../agent/restrict-bash.js';
 import { ciSafetyCheck } from '../agent/ci-safety-check.js';
 import { deploymentSafetyCheck } from '../agent/deployment-safety-check.js';
 import { migrationSafetyCheck } from '../agent/migration-safety-check.js';
@@ -24,6 +25,7 @@ import type { HookFn } from '../types.js';
  */
 export const hooks: Record<string, HookFn> = {
   'agent/block-writes': blockWrites,
+  'agent/restrict-bash': restrictBash,
   'agent/ci-safety-check': ciSafetyCheck,
   'agent/deployment-safety-check': deploymentSafetyCheck,
   'agent/migration-safety-check': migrationSafetyCheck,

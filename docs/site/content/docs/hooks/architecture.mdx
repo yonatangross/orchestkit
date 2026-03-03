@@ -1,6 +1,6 @@
 ---
 title: "Hook Architecture"
-description: "How OrchestKit's 86-hook system works: bundles, dispatchers, execution modes, and the stop pipeline."
+description: "How OrchestKit's 95-hook system works: bundles, dispatchers, execution modes, and the stop pipeline."
 ---
 
 import { Callout } from "fumadocs-ui/components/callout";
@@ -11,7 +11,7 @@ This page is for plugin developers who want to understand how the hook system wo
 
 ## The Bundle System
 
-OrchestKit compiles 86 hooks into **12 event-specific bundles** using esbuild. When Claude Code fires a hook, only the bundle for that event type is loaded -- not the entire codebase.
+OrchestKit compiles 95 hooks into **12 event-specific bundles** using esbuild. When Claude Code fires a hook, only the bundle for that event type is loaded -- not the entire codebase.
 
 ```
 hooks.json entry

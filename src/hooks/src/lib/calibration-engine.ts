@@ -8,7 +8,8 @@
  * - Provides calibration data for intent classifier
  */
 
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { existsSync, readFileSync, mkdirSync } from 'node:fs';
+import { atomicWriteSync } from './atomic-write.js';
 import { createHash } from 'node:crypto';
 import { getProjectDir, getSessionId, logHook } from './common.js';
 import type {
@@ -95,7 +96,7 @@ export function saveCalibrationData(data: CalibrationData): void {
   data.updatedAt = new Date().toISOString();
 
   try {
-    writeFileSync(file, JSON.stringify(data, null, 2));
+    atomicWriteSync(file, JSON.stringify(data, null, 2));
     logHook('calibration-engine', 'Saved calibration data');
   } catch (err) {
     logHook('calibration-engine', `Failed to save calibration data: ${err}`);

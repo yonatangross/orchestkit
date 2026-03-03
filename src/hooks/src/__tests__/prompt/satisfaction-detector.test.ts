@@ -895,6 +895,194 @@ describe('prompt/satisfaction-detector', () => {
   });
 
   // ===========================================================================
+  // Bug Nudge Tests
+  // ===========================================================================
+
+  describe('bug nudge after repeated frustration', () => {
+    test('does not nudge on first negative signal', () => {
+      vi.stubEnv('SATISFACTION_SAMPLE_RATE', '1');
+      const input = createPromptInput('this is broken', {
+        project_dir: tempDir,
+        session_id: 'nudge-test-1',
+      });
+      const result = satisfactionDetector(input);
+
+      expect(result.continue).toBe(true);
+      expect(result.hookSpecificOutput).toBeUndefined();
+    });
+
+    test('nudges after 2 negative signals in same session', () => {
+      vi.stubEnv('SATISFACTION_SAMPLE_RATE', '1');
+      const sessionId = 'nudge-test-2';
+
+      // First negative
+      satisfactionDetector(
+        createPromptInput('this is broken', { project_dir: tempDir, session_id: sessionId })
+      );
+
+      // Second negative — should trigger nudge
+      const result = satisfactionDetector(
+        createPromptInput('still not working', { project_dir: tempDir, session_id: sessionId })
+      );
+
+      expect(result.continue).toBe(true);
+      expect(result.hookSpecificOutput).toBeDefined();
+      expect(result.hookSpecificOutput?.additionalContext).toContain('/ork:feedback bug');
+    });
+
+    test('nudge is sent only once per session', () => {
+      vi.stubEnv('SATISFACTION_SAMPLE_RATE', '1');
+      const sessionId = 'nudge-test-3';
+
+      // First and second negative — triggers nudge
+      satisfactionDetector(
+        createPromptInput('wrong', { project_dir: tempDir, session_id: sessionId })
+      );
+      const result2 = satisfactionDetector(
+        createPromptInput('broken', { project_dir: tempDir, session_id: sessionId })
+      );
+      expect(result2.hookSpecificOutput?.additionalContext).toContain('/ork:feedback bug');
+
+      // Third negative — should NOT nudge again
+      const result3 = satisfactionDetector(
+        createPromptInput('try again', { project_dir: tempDir, session_id: sessionId })
+      );
+      expect(result3.hookSpecificOutput).toBeUndefined();
+    });
+
+    test('different sessions have independent nudge counters', () => {
+      vi.stubEnv('SATISFACTION_SAMPLE_RATE', '1');
+
+      // Session A: 1 negative (no nudge)
+      satisfactionDetector(
+        createPromptInput('broken', { project_dir: tempDir, session_id: 'session-A' })
+      );
+
+      // Session B: 2 negatives (nudge)
+      satisfactionDetector(
+        createPromptInput('wrong', { project_dir: tempDir, session_id: 'session-B' })
+      );
+      const resultB = satisfactionDetector(
+        createPromptInput('still wrong', { project_dir: tempDir, session_id: 'session-B' })
+      );
+      expect(resultB.hookSpecificOutput?.additionalContext).toContain('/ork:feedback bug');
+
+      // Session A: second negative (nudge — independent counter)
+      const resultA = satisfactionDetector(
+        createPromptInput("doesn't work", { project_dir: tempDir, session_id: 'session-A' })
+      );
+      expect(resultA.hookSpecificOutput?.additionalContext).toContain('/ork:feedback bug');
+    });
+
+    test('positive signals do not increment negative counter', () => {
+      vi.stubEnv('SATISFACTION_SAMPLE_RATE', '1');
+      const sessionId = 'nudge-test-positive';
+
+      // One negative, then positives, then another negative
+      satisfactionDetector(
+        createPromptInput('this is broken', { project_dir: tempDir, session_id: sessionId })
+      );
+      satisfactionDetector(
+        createPromptInput('thank you', { project_dir: tempDir, session_id: sessionId })
+      );
+      satisfactionDetector(
+        createPromptInput('great work', { project_dir: tempDir, session_id: sessionId })
+      );
+
+      // Second negative — should trigger nudge (only 2nd negative, positives don't count)
+      const result = satisfactionDetector(
+        createPromptInput("that's not right", { project_dir: tempDir, session_id: sessionId })
+      );
+      expect(result.hookSpecificOutput?.additionalContext).toContain('/ork:feedback bug');
+    });
+
+    test('neutral signals do not increment negative counter', () => {
+      vi.stubEnv('SATISFACTION_SAMPLE_RATE', '1');
+      const sessionId = 'nudge-test-neutral';
+
+      // One negative, then neutral messages
+      satisfactionDetector(
+        createPromptInput('this is broken', { project_dir: tempDir, session_id: sessionId })
+      );
+      satisfactionDetector(
+        createPromptInput('what about the database schema?', { project_dir: tempDir, session_id: sessionId })
+      );
+      satisfactionDetector(
+        createPromptInput('show me the file', { project_dir: tempDir, session_id: sessionId })
+      );
+
+      // After neutral messages, first negative since first one
+      const result = satisfactionDetector(
+        createPromptInput("still doesn't compile", { project_dir: tempDir, session_id: sessionId })
+      );
+      // Should nudge — 2 negatives total
+      expect(result.hookSpecificOutput?.additionalContext).toContain('/ork:feedback bug');
+    });
+
+    test('nudge output has correct hookEventName', () => {
+      vi.stubEnv('SATISFACTION_SAMPLE_RATE', '1');
+      const sessionId = 'nudge-test-event';
+
+      satisfactionDetector(
+        createPromptInput('broken', { project_dir: tempDir, session_id: sessionId })
+      );
+      const result = satisfactionDetector(
+        createPromptInput('wrong', { project_dir: tempDir, session_id: sessionId })
+      );
+
+      expect(result.hookSpecificOutput?.hookEventName).toBe('UserPromptSubmit');
+    });
+
+    test('creates negative counter file in .claude directory', () => {
+      vi.stubEnv('SATISFACTION_SAMPLE_RATE', '1');
+      const sessionId = 'nudge-test-file';
+
+      satisfactionDetector(
+        createPromptInput('broken', { project_dir: tempDir, session_id: sessionId })
+      );
+
+      const counterFile = join(tempDir, '.claude', `.negative-count-${sessionId}`);
+      expect(existsSync(counterFile)).toBe(true);
+      expect(readFileSync(counterFile, 'utf8').trim()).toBe('1');
+    });
+
+    test('creates bug nudge flag file after nudge sent', () => {
+      vi.stubEnv('SATISFACTION_SAMPLE_RATE', '1');
+      const sessionId = 'nudge-test-flag';
+
+      satisfactionDetector(
+        createPromptInput('broken', { project_dir: tempDir, session_id: sessionId })
+      );
+      satisfactionDetector(
+        createPromptInput('wrong', { project_dir: tempDir, session_id: sessionId })
+      );
+
+      const flagFile = join(tempDir, '.claude', `.bug-nudge-sent-${sessionId}`);
+      expect(existsSync(flagFile)).toBe(true);
+    });
+
+    test('handles missing .claude directory gracefully for nudge', () => {
+      vi.stubEnv('SATISFACTION_SAMPLE_RATE', '1');
+      const freshDir = join(tmpdir(), `fresh-nudge-test-${Date.now()}`);
+      const sessionId = 'nudge-fresh';
+
+      try {
+        satisfactionDetector(
+          createPromptInput('broken', { project_dir: freshDir, session_id: sessionId })
+        );
+        const result = satisfactionDetector(
+          createPromptInput('wrong', { project_dir: freshDir, session_id: sessionId })
+        );
+
+        expect(result.continue).toBe(true);
+        expect(result.hookSpecificOutput?.additionalContext).toContain('/ork:feedback bug');
+      } finally {
+        rmSync(freshDir, { recursive: true, force: true });
+      }
+    });
+  });
+
+  // ===========================================================================
   // CC 2.1.7 Compliance Tests
   // ===========================================================================
 
@@ -910,7 +1098,7 @@ describe('prompt/satisfaction-detector', () => {
       expect(result).not.toHaveProperty('stopReason');
     });
 
-    test('does not inject additionalContext', () => {
+    test('does not inject additionalContext for non-nudge signals', () => {
       vi.stubEnv('SATISFACTION_SAMPLE_RATE', '1');
       const input = createPromptInput('thank you', { project_dir: tempDir });
       const result = satisfactionDetector(input);

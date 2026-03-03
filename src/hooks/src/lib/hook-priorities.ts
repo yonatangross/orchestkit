@@ -31,7 +31,6 @@ const HOOK_PRIORITIES: Record<string, HookPriority> = {
   'subagent-start/graph-memory-inject': 'P1',
 
   // P3: Monitoring and analytics
-  'prompt/context-pruning-advisor': 'P3',
   'prompt/satisfaction-detector': 'P3',
 };
 

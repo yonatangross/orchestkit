@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OrchestKit — Open Issues Roadmap</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0d1117; --surface: #161b22; --surface2: #1c2129; --border: #30363d;
+    --text: #e6edf3; --text-dim: #8b949e; --accent: #58a6ff;
+    --green: #3fb950; --orange: #f0883e; --red: #f85149; --purple: #bc8cff;
+    --yellow: #d29922; --pink: #f778ba; --cyan: #39d2c0;
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  .header { padding: 20px 24px 16px; border-bottom: 1px solid var(--border); }
+  .header h1 { font-size: 20px; font-weight: 600; }
+  .header .sub { color: var(--text-dim); font-size: 13px; margin-top: 4px; }
+
+  .stats-bar { display: flex; gap: 16px; padding: 12px 24px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  .stat { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+  .stat .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .stat .num { font-weight: 600; font-size: 15px; }
+
+  .filters { padding: 12px 24px; border-bottom: 1px solid var(--border); display: flex; gap: 8px; flex-wrap: wrap; }
+  .filter-btn { padding: 4px 12px; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--text-dim); font-size: 12px; cursor: pointer; transition: all 0.15s; }
+  .filter-btn:hover { border-color: var(--accent); color: var(--text); }
+  .filter-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  .content { padding: 16px 24px; }
+
+  .milestone-group { margin-bottom: 24px; }
+  .milestone-header { display: flex; align-items: center; gap: 10px; padding: 10px 0; cursor: pointer; user-select: none; }
+  .milestone-header:hover { opacity: 0.85; }
+  .milestone-name { font-size: 15px; font-weight: 600; }
+  .milestone-progress { flex: 1; max-width: 200px; height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+  .milestone-progress-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
+  .milestone-count { font-size: 12px; color: var(--text-dim); min-width: 60px; text-align: right; }
+  .milestone-chevron { color: var(--text-dim); font-size: 12px; transition: transform 0.2s; width: 16px; }
+  .milestone-chevron.open { transform: rotate(90deg); }
+
+  .issue-list { padding-left: 8px; }
+  .issue-list.collapsed { display: none; }
+
+  .issue { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 6px; margin: 2px 0; transition: background 0.15s; }
+  .issue:hover { background: var(--surface2); }
+  .issue-num { font-size: 12px; color: var(--text-dim); min-width: 36px; font-family: monospace; }
+  .issue-title { font-size: 13px; flex: 1; }
+  .issue-status { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 500; white-space: nowrap; }
+  .status-done { background: rgba(63,185,80,0.15); color: var(--green); }
+  .status-todo { background: rgba(139,148,158,0.1); color: var(--text-dim); }
+  .status-new { background: rgba(88,166,255,0.15); color: var(--accent); }
+  .issue-labels { display: flex; gap: 4px; flex-wrap: wrap; }
+  .label { font-size: 10px; padding: 1px 6px; border-radius: 10px; border: 1px solid; opacity: 0.8; }
+  .label-evals { border-color: var(--purple); color: var(--purple); }
+  .label-hooks { border-color: var(--orange); color: var(--orange); }
+  .label-enhancement { border-color: var(--accent); color: var(--accent); }
+  .label-bug { border-color: var(--red); color: var(--red); }
+  .label-docs { border-color: var(--cyan); color: var(--cyan); }
+  .label-skill { border-color: var(--yellow); color: var(--yellow); }
+  .label-priority { border-color: var(--pink); color: var(--pink); }
+  .label-default { border-color: var(--text-dim); color: var(--text-dim); }
+
+  .legend { padding: 16px 24px; border-top: 1px solid var(--border); margin-top: 24px; }
+  .legend h3 { font-size: 13px; color: var(--text-dim); margin-bottom: 8px; }
+  .legend-items { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; }
+  .legend-item { display: flex; align-items: center; gap: 4px; }
+
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  .summary-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; margin: 16px 0; }
+  .summary-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
+  .summary-card h3 { font-size: 13px; color: var(--text-dim); margin-bottom: 6px; }
+  .summary-card .val { font-size: 24px; font-weight: 700; }
+  .summary-card .detail { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>OrchestKit — Open Issues Roadmap</h1>
+  <div class="sub">56 open issues across 11 milestones · verified against codebase · generated 2026-02-26</div>
+</div>
+
+<div class="stats-bar">
+  <div class="stat"><div class="dot" style="background:var(--green)"></div><span class="num">5</span> Done (close on merge)</div>
+  <div class="stat"><div class="dot" style="background:var(--accent)"></div><span class="num">4</span> New today</div>
+  <div class="stat"><div class="dot" style="background:var(--text-dim)"></div><span class="num">51</span> Backlog</div>
+  <div class="stat"><div class="dot" style="background:var(--orange)"></div><span class="num">11</span> Milestones</div>
+</div>
+
+<div class="filters">
+  <button class="filter-btn active" onclick="filterAll(this)">All (56)</button>
+  <button class="filter-btn" onclick="filterStatus(this,'done')">Done (5)</button>
+  <button class="filter-btn" onclick="filterStatus(this,'new')">New today (4)</button>
+  <button class="filter-btn" onclick="filterLabel(this,'evals')">Evals (19)</button>
+  <button class="filter-btn" onclick="filterLabel(this,'hooks')">Hooks (7)</button>
+  <button class="filter-btn" onclick="filterLabel(this,'version')">Version Mgmt (12)</button>
+  <button class="filter-btn" onclick="filterLabel(this,'video')">Video (7)</button>
+  <button class="filter-btn" onclick="filterLabel(this,'behavioral')">Behavioral Intel (6)</button>
+  <button class="filter-btn" onclick="filterLabel(this,'analytics')">Analytics (4)</button>
+</div>
+
+<div class="content">
+
+<div class="summary-grid">
+  <div class="summary-card">
+    <h3>Immediate (PR #835 merge)</h3>
+    <div class="val" style="color:var(--green)">5 auto-close</div>
+    <div class="detail">#583 #584 #585 #586 #839 — all NotebookLM + docs fix</div>
+  </div>
+  <div class="summary-card">
+    <h3>Closest to done</h3>
+    <div class="val" style="color:var(--orange)">3 milestones</div>
+    <div class="detail">NotebookLM (80%) · v6.2 Security (96%) · Context Intel (60%)</div>
+  </div>
+  <div class="summary-card">
+    <h3>Biggest backlog</h3>
+    <div class="val" style="color:var(--purple)">19 eval issues</div>
+    <div class="detail">Auto-Eval (17 open) + Eval v2 (4 open) across 2 milestones</div>
+  </div>
+  <div class="summary-card">
+    <h3>Not started</h3>
+    <div class="val" style="color:var(--red)">12 version mgmt</div>
+    <div class="detail">Version Management & Rollback — 12 open, 0 closed</div>
+  </div>
+</div>
+
+<div id="milestones"></div>
+
+</div>
+
+<div class="legend">
+  <h3>Status Legend</h3>
+  <div class="legend-items">
+    <div class="legend-item"><span class="issue-status status-done">DONE</span> Implemented, closes on PR merge</div>
+    <div class="legend-item"><span class="issue-status status-new">NEW</span> Created today</div>
+    <div class="legend-item"><span class="issue-status status-todo">TODO</span> Not started</div>
+  </div>
+</div>
+
+<script>
+const milestones = [
+  {
+    name: "NotebookLM CLI Integration",
+    open: 4, closed: 1, color: "var(--cyan)",
+    note: "All 4 open are DONE — close on PR #835 merge",
+    issues: [
+      { num: 583, title: "NotebookLM SKILL.md with workflow decision tree", status: "done", labels: ["enhancement"] },
+      { num: 584, title: "NotebookLM rules — _sections.md, _template.md, 5+ workflow rules", status: "done", labels: ["enhancement"] },
+      { num: 585, title: "NotebookLM-advisor PreToolUse hook", status: "done", labels: ["enhancement"] },
+      { num: 586, title: "Register notebooklm in manifests and update counts", status: "done", labels: ["enhancement"] },
+    ]
+  },
+  {
+    name: "v6.2 — Security Hardening & Hook Consolidation",
+    open: 1, closed: 26, color: "var(--green)",
+    note: "96% done — 1 low-priority skill consolidation remaining",
+    issues: [
+      { num: 669, title: "Consolidate 6 skills with 24+ supporting files", status: "todo", labels: ["skill", "priority:low"] },
+    ]
+  },
+  {
+    name: "v7.0 — Architecture & Performance",
+    open: 3, closed: 0, color: "var(--orange)",
+    issues: [
+      { num: 646, title: "Replace per-event process spawning with persistent daemon architecture", status: "todo", labels: ["hooks", "performance"] },
+      { num: 656, title: "Audit 391 rules for Sonnet 4.6 redundancy", status: "todo", labels: ["skill"] },
+      { num: 663, title: "1M context window calibration and context budget optimization", status: "todo", labels: ["performance"] },
+    ]
+  },
+  {
+    name: "Context Intelligence",
+    open: 2, closed: 3, color: "var(--accent)",
+    issues: [
+      { num: 464, title: "Structured session handoffs — YAML state transfer on SessionEnd", status: "todo", labels: ["hooks"] },
+      { num: 465, title: "Context pressure detection — warn before compaction", status: "todo", labels: ["hooks"] },
+    ]
+  },
+  {
+    name: "Session Analytics & LLM Observability",
+    open: 4, closed: 4, color: "var(--purple)",
+    note: "50% done — 3 sprint-3 issues + 1 sprint-1",
+    issues: [
+      { num: 690, title: "Model delegation tracking hook", status: "todo", labels: ["analytics", "sprint-1"] },
+      { num: 696, title: "Per-tool execution timing", status: "todo", labels: ["analytics", "sprint-3"] },
+      { num: 697, title: "Error rate tracking and aggregation", status: "todo", labels: ["analytics", "sprint-3"] },
+    ]
+  },
+  {
+    name: "v7.0 — Behavioral Intelligence Stack",
+    open: 6, closed: 14, color: "var(--pink)",
+    note: "70% done — 3 epics + 3 features remaining",
+    issues: [
+      { num: 470, title: "epic: Visible Intelligence — Make the Silent Genius Talk (Design A)", status: "todo", labels: ["epic", "priority:high"] },
+      { num: 471, title: "epic: Layered Context System — OPERATING.md + Daily Journals (Design B)", status: "todo", labels: ["epic"] },
+      { num: 473, title: "epic: Proactive Intelligence Engine — Nudges, Suggestions, Growth (Design C)", status: "todo", labels: ["epic"] },
+      { num: 495, title: "Implement OPERATING.md team principles file", status: "todo", labels: [] },
+      { num: 498, title: "Implement daily YYYY-MM-DD.md append-only context journals", status: "todo", labels: ["hooks"] },
+      { num: 516, title: "Integrate with CC 2.1.30-2.1.39 platform features", status: "todo", labels: ["enhancement"] },
+    ]
+  },
+  {
+    name: "Video Gallery Overhaul",
+    open: 7, closed: 1, color: "var(--yellow)",
+    issues: [
+      { num: 729, title: "Phase 1: Fix gallery UX — hide compositions without videos", status: "todo", labels: ["bug", "priority:high"] },
+      { num: 730, title: "Phase 2: Batch-produce 6 core skill demo videos", status: "todo", labels: ["video"] },
+      { num: 731, title: "Phase 3: Create hero video montage + polish homepage", status: "todo", labels: ["docs", "video"] },
+      { num: 732, title: "Phase 4: Automate video generation in CI", status: "todo", labels: ["video"] },
+      { num: 733, title: "Fix TerminalFlow reusability bugs", status: "todo", labels: ["enhancement"] },
+      { num: 734, title: "Add TerminalFlow configs for review-pr, explore, brainstorming, assess", status: "todo", labels: ["enhancement"] },
+      { num: 735, title: "Add TerminalFlow vertical (9:16) and square (1:1) variants", status: "todo", labels: ["enhancement"] },
+    ]
+  },
+  {
+    name: "Version Management & Rollback",
+    open: 12, closed: 0, color: "var(--red)",
+    note: "0% started — 4 sprints planned",
+    issues: [
+      { num: 670, title: "/ork:rollback — thin executor skill", status: "todo", labels: ["enhancement", "sprint-1"] },
+      { num: 671, title: "Local snapshots before upgrade (~/.claude/plugins/.snapshots/)", status: "todo", labels: ["hooks", "sprint-1"] },
+      { num: 672, title: "Hook error version attribution — 'This hook changed in vX.Y.Z'", status: "todo", labels: ["hooks", "sprint-1"] },
+      { num: 673, title: "Post-rollback GitHub issue prompt", status: "todo", labels: ["enhancement", "sprint-1"] },
+      { num: 674, title: "Static upgrade notification — semver compare, no LLM call", status: "todo", labels: ["hooks", "sprint-2"] },
+      { num: 675, title: "Version picker page with tier-scoped risk badges", status: "todo", labels: ["docs", "sprint-2"] },
+      { num: 676, title: "Stability heatmap — GitHub-style version health grid", status: "todo", labels: ["docs", "sprint-2"] },
+      { num: 677, title: "Health baseline & regression detection", status: "todo", labels: ["enhancement", "sprint-3"] },
+      { num: 678, title: "Time travel slider — skills by version", status: "todo", labels: ["docs", "sprint-3"] },
+      { num: 679, title: "versions.json registry — stable URL for version metadata", status: "todo", labels: ["enhancement", "sprint-3"] },
+      { num: 680, title: "Safe upgrade flow — auto-rollback on health check failure", status: "todo", labels: ["hooks", "sprint-4"] },
+      { num: 681, title: "Breaking change migration wizard", status: "todo", labels: ["docs", "sprint-4"] },
+    ]
+  },
+  {
+    name: "Auto-Evaluation System",
+    open: 17, closed: 9, color: "var(--purple)",
+    note: "35% done — large backlog, foundational infra needed first",
+    issues: [
+      { num: 483, title: "Consolidate eval formats (YAML + JSON → unified spec)", status: "todo", labels: ["evals"] },
+      { num: 485, title: "Implement binary grader (file exists, content contains, pattern match)", status: "todo", labels: ["evals"] },
+      { num: 486, title: "Implement routing grader (agent keyword matching)", status: "todo", labels: ["evals"] },
+      { num: 488, title: "Build unified eval runner (TypeScript, replaces bash)", status: "todo", labels: ["evals"] },
+      { num: 490, title: "Write 20-50 golden test cases from real failures", status: "todo", labels: ["evals"] },
+      { num: 492, title: "Build test generation pipeline (SKILL.md → eval cases)", status: "todo", labels: ["evals"] },
+      { num: 493, title: "Generate draft tests for 25 user-invocable skills (Tier 1)", status: "todo", labels: ["evals"] },
+      { num: 494, title: "Generate draft tests for 30 high-impact reference skills (Tier 2)", status: "todo", labels: ["evals"] },
+      { num: 496, title: "Human curation workflow (draft → review → golden promotion)", status: "todo", labels: ["evals"] },
+      { num: 497, title: "Create orchestkit-evals package in yonatan-hq monorepo", status: "todo", labels: ["evals"] },
+      { num: 507, title: "GitHub Actions workflow for tiered eval pipeline", status: "todo", labels: ["evals"] },
+      { num: 518, title: "Stage 2: promptfoo + Claude Haiku Skill Evaluation", status: "todo", labels: ["evals"] },
+      { num: 519, title: "Stage 3: Tavily Doc Freshness — Library Version Drift", status: "todo", labels: ["evals"] },
+      { num: 523, title: "CC Changelog Feature Adoption Checker", status: "todo", labels: ["enhancement"] },
+      { num: 524, title: "Dependency graph index — skill-to-library mapping", status: "todo", labels: ["enhancement"] },
+      { num: 525, title: "GitHub Pages eval dashboard + README badge", status: "todo", labels: ["enhancement"] },
+      { num: 526, title: "Community eval scenarios — contributable YAML test cases", status: "todo", labels: ["enhancement"] },
+      { num: 527, title: "Fork PR security — split trusted/untrusted eval workflows", status: "todo", labels: ["enhancement"] },
+    ]
+  },
+  {
+    name: "Eval v2 — Advanced Analytics & Drift Detection",
+    open: 4, closed: 0, color: "var(--purple)",
+    issues: [
+      { num: 499, title: "Wire deepeval metrics for skill quality assessment", status: "todo", labels: ["evals"] },
+      { num: 500, title: "Integrate Langfuse experiment runner for trace collection", status: "todo", labels: ["evals"] },
+      { num: 509, title: "Port PSI + EWMA drift detectors from eval-core", status: "todo", labels: ["evals"] },
+      { num: 510, title: "Port silent failure detectors (4 types) from eval-core", status: "todo", labels: ["evals"] },
+      { num: 511, title: "Regression baseline snapshots per release + alerting", status: "todo", labels: ["evals"] },
+    ]
+  },
+  {
+    name: "Phase 3: Self-Healing CI",
+    open: 2, closed: 0, color: "var(--red)",
+    issues: [
+      { num: 314, title: "CI auto-fix workflow for known failure patterns", status: "todo", labels: [] },
+      { num: 315, title: "Autonomous test loop agent (test-fixer)", status: "todo", labels: ["agents"] },
+    ]
+  },
+  {
+    name: "No Milestone",
+    open: 4, closed: 0, color: "var(--text-dim)",
+    issues: [
+      { num: 829, title: "Add coverage for 153 untested rule files", status: "todo", labels: [] },
+      { num: 836, title: "Versioned notebooks per release — changelog-style KB", status: "new", labels: ["enhancement"] },
+      { num: 837, title: "Post-push NotebookLM studio trigger", status: "new", labels: ["enhancement"] },
+      { num: 838, title: "Model routing documentation and per-release tracking", status: "new", labels: ["docs"] },
+      { num: 839, title: "Stage docs/site build artifacts with model routing changes", status: "done", labels: ["bug"] },
+      { num: 404, title: "Remaining accessibility items requiring runtime verification", status: "todo", labels: ["docs"] },
+    ]
+  },
+];
+
+function getLabelClass(label) {
+  if (label.includes('eval')) return 'label-evals';
+  if (label.includes('hook')) return 'label-hooks';
+  if (label.includes('bug')) return 'label-bug';
+  if (label.includes('doc')) return 'label-docs';
+  if (label.includes('skill')) return 'label-skill';
+  if (label.includes('priority')) return 'label-priority';
+  if (label.includes('enhancement') || label.includes('video') || label.includes('analytics') || label.includes('epic')) return 'label-enhancement';
+  return 'label-default';
+}
+
+function render(filter) {
+  const container = document.getElementById('milestones');
+  container.innerHTML = '';
+
+  milestones.forEach(m => {
+    let issues = m.issues;
+    if (filter) {
+      if (filter.type === 'status') {
+        issues = issues.filter(i => i.status === filter.value);
+      } else if (filter.type === 'label') {
+        issues = issues.filter(i =>
+          i.labels.some(l => l.includes(filter.value)) ||
+          m.name.toLowerCase().includes(filter.value)
+        );
+      }
+    }
+    if (issues.length === 0) return;
+
+    const total = m.open + m.closed;
+    const pct = total > 0 ? Math.round((m.closed / total) * 100) : 0;
+
+    const group = document.createElement('div');
+    group.className = 'milestone-group';
+    group.innerHTML = `
+      <div class="milestone-header" onclick="toggleMilestone(this)">
+        <span class="milestone-chevron open">▶</span>
+        <span class="milestone-name" style="color:${m.color}">${m.name}</span>
+        <div class="milestone-progress">
+          <div class="milestone-progress-fill" style="width:${pct}%;background:${m.color}"></div>
+        </div>
+        <span class="milestone-count">${pct}% · ${m.open} open</span>
+      </div>
+      ${m.note ? `<div style="padding-left:26px;font-size:11px;color:var(--text-dim);margin:-4px 0 4px">${m.note}</div>` : ''}
+      <div class="issue-list">
+        ${issues.map(i => `
+          <div class="issue" data-status="${i.status}" data-labels="${i.labels.join(',')}">
+            <span class="issue-num">#${i.num}</span>
+            <a class="issue-title" href="https://github.com/yonatangross/orchestkit/issues/${i.num}" target="_blank">${i.title}</a>
+            <div class="issue-labels">
+              ${i.labels.map(l => `<span class="label ${getLabelClass(l)}">${l}</span>`).join('')}
+            </div>
+            <span class="issue-status status-${i.status}">${i.status.toUpperCase()}</span>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    container.appendChild(group);
+  });
+}
+
+function toggleMilestone(header) {
+  const list = header.nextElementSibling;
+  if (list && list.classList.contains('issue-list')) {
+    // skip note divs
+  } else {
+    const note = header.nextElementSibling;
+    const list2 = note?.nextElementSibling;
+    if (list2) list2.classList.toggle('collapsed');
+  }
+  const actualList = header.parentElement.querySelector('.issue-list');
+  if (actualList) actualList.classList.toggle('collapsed');
+  header.querySelector('.milestone-chevron').classList.toggle('open');
+}
+
+function clearFilters() {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+}
+
+function filterAll(btn) {
+  clearFilters(); btn.classList.add('active');
+  render(null);
+}
+function filterStatus(btn, status) {
+  clearFilters(); btn.classList.add('active');
+  render({ type: 'status', value: status });
+}
+function filterLabel(btn, label) {
+  clearFilters(); btn.classList.add('active');
+  render({ type: 'label', value: label });
+}
+
+render(null);
+</script>
+</body>
+</html>

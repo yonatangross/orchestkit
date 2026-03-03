@@ -16,7 +16,7 @@
  */
 
 import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, logHook, getProjectDir, getSessionId } from '../lib/common.js';
+import { outputSilentSuccess, outputPromptContext, logHook, getProjectDir, getSessionId } from '../lib/common.js';
 import { trackEvent } from '../lib/session-tracker.js';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { bufferWrite } from '../lib/analytics-buffer.js';
@@ -24,6 +24,7 @@ import { join, dirname } from 'node:path';
 
 // Configuration
 const MIN_PROMPT_LENGTH = 2;
+const BUG_NUDGE_THRESHOLD = 2; // Suggest /ork:feedback bug after N negative signals per session
 
 // Positive signal patterns
 const POSITIVE_PATTERNS = [
@@ -152,6 +153,84 @@ function logSatisfaction(sessionId: string, sentiment: string, context: string, 
 }
 
 /**
+ * Get the path for the per-session negative signal counter file.
+ */
+function getNegativeCounterPath(projectDir: string, sessionId: string): string {
+  return join(projectDir, '.claude', `.negative-count-${sessionId}`);
+}
+
+/**
+ * Get the path for the per-session bug nudge flag (one nudge per session).
+ */
+function getBugNudgeFlagPath(projectDir: string, sessionId: string): string {
+  return join(projectDir, '.claude', `.bug-nudge-sent-${sessionId}`);
+}
+
+/**
+ * Increment and return the per-session negative signal count.
+ */
+function incrementNegativeCount(projectDir: string, sessionId: string): number {
+  const filePath = getNegativeCounterPath(projectDir, sessionId);
+  const dir = dirname(filePath);
+
+  if (!existsSync(dir)) {
+    try {
+      mkdirSync(dir, { recursive: true });
+    } catch {
+      // Ignore
+    }
+  }
+
+  let count = 0;
+  if (existsSync(filePath)) {
+    try {
+      count = parseInt(readFileSync(filePath, 'utf8').trim(), 10) || 0;
+    } catch {
+      // Ignore
+    }
+  }
+
+  count++;
+
+  try {
+    writeFileSync(filePath, String(count));
+  } catch {
+    // Ignore
+  }
+
+  return count;
+}
+
+/**
+ * Check if the bug nudge has already been sent this session.
+ */
+function wasBugNudgeSent(projectDir: string, sessionId: string): boolean {
+  return existsSync(getBugNudgeFlagPath(projectDir, sessionId));
+}
+
+/**
+ * Mark the bug nudge as sent for this session.
+ */
+function markBugNudgeSent(projectDir: string, sessionId: string): void {
+  const filePath = getBugNudgeFlagPath(projectDir, sessionId);
+  const dir = dirname(filePath);
+
+  if (!existsSync(dir)) {
+    try {
+      mkdirSync(dir, { recursive: true });
+    } catch {
+      // Ignore
+    }
+  }
+
+  try {
+    writeFileSync(filePath, '1');
+  } catch {
+    // Ignore
+  }
+}
+
+/**
  * Satisfaction detector hook
  */
 export function satisfactionDetector(input: HookInput): HookResult {
@@ -212,6 +291,20 @@ export function satisfactionDetector(input: HookInput): HookResult {
     }
 
     logHook('satisfaction-detector', `Detected ${sentiment} satisfaction signal`);
+
+    // Bug nudge: after BUG_NUDGE_THRESHOLD negative signals, suggest filing a bug (once per session)
+    if (sentiment === 'negative') {
+      const negativeCount = incrementNegativeCount(projectDir, sessionId);
+
+      if (negativeCount >= BUG_NUDGE_THRESHOLD && !wasBugNudgeSent(projectDir, sessionId)) {
+        markBugNudgeSent(projectDir, sessionId);
+        logHook('satisfaction-detector', `Bug nudge triggered after ${negativeCount} negative signals`, 'info');
+        return outputPromptContext(
+          '[Feedback] Multiple issues detected in this session. ' +
+          'If you are experiencing an OrchestKit bug, you can run `/ork:feedback bug` to file a report.'
+        );
+      }
+    }
   }
 
   // Output CC 2.1.7 compliant JSON (silent success)

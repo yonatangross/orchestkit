@@ -14,10 +14,11 @@
  * Part of Context Engineering 2.0
  */
 
-import { existsSync, readFileSync, writeFileSync, mkdirSync, } from 'node:fs';
+import { existsSync, readFileSync, mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, outputDeny, outputWarning, logHook, getProjectDir } from '../lib/common.js';
+import { atomicWriteSync } from '../lib/atomic-write.js';
 
 // -----------------------------------------------------------------------------
 // Configuration
@@ -79,7 +80,7 @@ function initState(): void {
       blocked_count: 0,
     };
     try {
-      writeFileSync(stateFile, JSON.stringify(initialState, null, 2));
+      atomicWriteSync(stateFile, JSON.stringify(initialState, null, 2));
     } catch {
       // Ignore
     }
@@ -156,7 +157,7 @@ function incrementBlockedCount(): void {
     if (existsSync(stateFile)) {
       const state: StateData = JSON.parse(readFileSync(stateFile, 'utf8'));
       state.blocked_count = (state.blocked_count || 0) + 1;
-      writeFileSync(stateFile, JSON.stringify(state, null, 2));
+      atomicWriteSync(stateFile, JSON.stringify(state, null, 2));
     }
   } catch {
     // Ignore
@@ -169,7 +170,7 @@ function incrementSessionTotal(): void {
     if (existsSync(stateFile)) {
       const state: StateData = JSON.parse(readFileSync(stateFile, 'utf8'));
       state.session_total = (state.session_total || 0) + 1;
-      writeFileSync(stateFile, JSON.stringify(state, null, 2));
+      atomicWriteSync(stateFile, JSON.stringify(state, null, 2));
     }
   } catch {
     // Ignore

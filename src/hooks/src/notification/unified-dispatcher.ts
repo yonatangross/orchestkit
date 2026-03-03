@@ -8,7 +8,7 @@
  * CC 2.1.19 Compliant: Single async hook with internal routing
  */
 
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult, HookFn } from '../types.js';
 import { outputSilentSuccess, logHook } from '../lib/common.js';
 
 // Import individual hook implementations
@@ -18,8 +18,6 @@ import { soundNotification } from './sound.js';
 // -----------------------------------------------------------------------------
 // Types
 // -----------------------------------------------------------------------------
-
-type HookFn = (input: HookInput) => HookResult | Promise<HookResult>;
 
 interface HookConfig {
   name: string;
@@ -66,14 +64,19 @@ export async function unifiedNotificationDispatcher(input: HookInput): Promise<H
     })
   );
 
-  // Log summary for debugging (only errors)
-  const errors = results.filter(
-    r => r.status === 'rejected' || (r.status === 'fulfilled' && r.value.status === 'error')
-  );
+  // Log per-hook results for debuggability
+  const summary = results.map((r, i) => {
+    if (r.status === 'fulfilled' && r.value.status === 'success') {
+      return `${HOOKS[i].name}=ok`;
+    }
+    if (r.status === 'fulfilled' && r.value.status === 'error') {
+      return `${HOOKS[i].name}=FAIL(${r.value.message})`;
+    }
+    // Promise.allSettled rejected — should not happen due to inner try/catch
+    return `${HOOKS[i].name}=REJECTED`;
+  }).join(', ');
 
-  if (errors.length > 0) {
-    logHook('notification-dispatcher', `${errors.length}/${HOOKS.length} hooks had errors`);
-  }
+  logHook('notification-dispatcher', `Results: ${summary}`);
 
   return outputSilentSuccess();
 }

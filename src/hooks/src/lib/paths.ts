@@ -94,13 +94,6 @@ export function getActiveTodosFile(): string {
 }
 
 /**
- * Get the context tracking state file path for a session (cross-platform)
- */
-export function getContextTrackingFile(sessionId: string): string {
-  return path.join(getTempDir(), `claude-context-tracking-${sessionId}.json`);
-}
-
-/**
  * Get the read count temp file path (cross-platform)
  */
 export function getReadCountFile(): string {

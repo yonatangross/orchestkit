@@ -1,0 +1,43 @@
+{
+  "skill": "devops-deployment",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "basic-set-up-a-github",
+      "rule": "",
+      "query": "Set up a GitHub Actions CI/CD pipeline for our Node.js app with Docker deployment to Kubernetes.",
+      "expectedBehavior": [
+        "Creates GitHub Actions workflow with 6 stages: lint, test, security scan, build, deploy staging, deploy production",
+        "Generates multi-stage Dockerfile with non-root user and health checks",
+        "Produces Kubernetes manifests: Deployment with rolling update, Service, Ingress with TLS",
+        "Includes HorizontalPodAutoscaler configuration",
+        "Uses External Secrets Operator pattern for secrets management",
+        "Applies container security hardening: readOnlyRootFilesystem, drop capabilities"
+      ]
+    },
+    {
+      "id": "edge-we-need-to-migrate",
+      "rule": "",
+      "query": "We need to migrate from AWS to GCP with zero downtime. Plan the deployment strategy.",
+      "expectedBehavior": [
+        "Triggers extended thinking for cross-cloud migration planning",
+        "Evaluates deployment strategies: rolling, blue-green, canary for the migration",
+        "Plans zero-downtime database migration with rollback procedures",
+        "Includes pre-deployment, during-deployment, and post-deployment checklists",
+        "Addresses secrets management across cloud providers",
+        "Recommends GitOps approach with ArgoCD for infrastructure management"
+      ]
+    },
+    {
+      "id": "negative-refactor-the-userservice-class",
+      "rule": "",
+      "query": "Refactor the UserService class to use the repository pattern.",
+      "expectedBehavior": [
+        "Claude does NOT invoke the devops-deployment skill",
+        "Treats this as a code refactoring task using architecture patterns",
+        "Uses standard code editing tools for the refactor",
+        "DevOps deployment is for CI/CD, containers, and infrastructure, not code architecture"
+      ]
+    }
+  ]
+}

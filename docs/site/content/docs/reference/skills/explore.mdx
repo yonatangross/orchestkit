@@ -37,11 +37,11 @@ AskUserQuestion(
     "question": "What aspect do you want to explore?",
     "header": "Focus",
     "options": [
-      {"label": "Full exploration (Recommended)", "description": "Code structure + data flow + architecture + health assessment"},
-      {"label": "Code structure only", "description": "Find files, classes, functions related to topic"},
-      {"label": "Data flow", "description": "Trace how data moves through the system"},
-      {"label": "Architecture patterns", "description": "Identify design patterns and integrations"},
-      {"label": "Quick search", "description": "Just find relevant files, skip deep analysis"}
+      {"label": "Full exploration (Recommended)", "description": "Code structure + data flow + architecture + health assessment", "markdown": "```\nFull Exploration (8 phases)\n───────────────────────────\n  4 parallel explorer agents:\n  ┌──────────┐ ┌──────────┐\n  │ Structure│ │ Data     │\n  │ Explorer │ │ Flow     │\n  ├──────────┤ ├──────────┤\n  │ Pattern  │ │ Product  │\n  │ Analyst  │ │ Context  │\n  └──────────┘ └──────────┘\n         ▼\n  ┌──────────────────────┐\n  │ Code Health    N/10  │\n  │ Dep Hotspots   map   │\n  │ Architecture   diag  │\n  └──────────────────────┘\n  Output: Full exploration report\n```"},
+      {"label": "Code structure only", "description": "Find files, classes, functions related to topic", "markdown": "```\nCode Structure\n──────────────\n  Grep ──▶ Glob ──▶ Map\n\n  Output:\n  ├── File tree (relevant)\n  ├── Key classes/functions\n  ├── Import graph\n  └── Entry points\n  No agents — direct search\n```"},
+      {"label": "Data flow", "description": "Trace how data moves through the system", "markdown": "```\nData Flow Trace\n───────────────\n  Input ──▶ Transform ──▶ Output\n    │          │            │\n    ▼          ▼            ▼\n  [API]    [Service]    [DB/Cache]\n\n  Traces: request lifecycle,\n  state mutations, side effects\n  Agent: 1 data-flow explorer\n```"},
+      {"label": "Architecture patterns", "description": "Identify design patterns and integrations", "markdown": "```\nArchitecture Analysis\n─────────────────────\n  ┌─────────────────────┐\n  │ Detected Patterns    │\n  │ ├── MVC / Hexagonal  │\n  │ ├── Event-driven?    │\n  │ ├── Service layers   │\n  │ └── External APIs    │\n  ├─────────────────────┤\n  │ Integration Map      │\n  │ DB ←→ Cache ←→ Queue │\n  └─────────────────────┘\n  Agent: backend-system-architect\n```"},
+      {"label": "Quick search", "description": "Just find relevant files, skip deep analysis", "markdown": "```\nQuick Search (~30s)\n───────────────────\n  Grep + Glob ──▶ File list\n\n  Output:\n  ├── Matching files\n  ├── Line references\n  └── Brief summary\n  No agents, no health check,\n  no report generation\n```"}
     ],
     "multiSelect": false
   }]
@@ -112,14 +112,14 @@ TaskCreate(subject="Generate exploration report", activeForm="Generating report"
 
 ```python
 # PARALLEL - Quick searches
-Grep(pattern="$ARGUMENTS", output_mode="files_with_matches")
-Glob(pattern="**/*$ARGUMENTS*")
+Grep(pattern="$ARGUMENTS[0]", output_mode="files_with_matches")
+Glob(pattern="**/*$ARGUMENTS[0]*")
 ```
 
 ### Phase 2: Memory Check
 
 ```python
-mcp__memory__search_nodes(query="$ARGUMENTS")
+mcp__memory__search_nodes(query="$ARGUMENTS[0]")
 mcp__memory__search_nodes(query="architecture")
 ```
 
@@ -177,7 +177,7 @@ In Agent Teams mode, form an exploration team where explorers share discoveries 
 ```python
 TeamCreate(team_name="explore-{topic}", description="Explore {topic}")
 
-Task(subagent_type="Explore", name="structure-explorer",
+Agent(subagent_type="Explore", name="structure-explorer",
      team_name="explore-{topic}",
      prompt="""Find all files, classes, and functions related to: {topic}
      When you discover key entry points, message data-flow-explorer so they
@@ -185,21 +185,21 @@ Task(subagent_type="Explore", name="structure-explorer",
      When you find backend patterns, message backend-explorer.
      When you find frontend components, message frontend-explorer.""")
 
-Task(subagent_type="Explore", name="data-flow-explorer",
+Agent(subagent_type="Explore", name="data-flow-explorer",
      team_name="explore-{topic}",
      prompt="""Trace entry points, processing, and storage for: {topic}
      When structure-explorer shares entry points, start tracing from those.
      When you discover cross-boundary data flows (frontend→backend or vice versa),
      message both backend-explorer and frontend-explorer.""")
 
-Task(subagent_type="backend-system-architect", name="backend-explorer",
+Agent(subagent_type="backend-system-architect", name="backend-explorer",
      team_name="explore-{topic}",
      prompt="""Analyze backend architecture patterns for: {topic}
      When structure-explorer or data-flow-explorer share backend findings,
      investigate deeper — API design, database schema, service patterns.
      Share integration points with frontend-explorer for consistency.""")
 
-Task(subagent_type="frontend-ui-developer", name="frontend-explorer",
+Agent(subagent_type="frontend-ui-developer", name="frontend-explorer",
      team_name="explore-{topic}",
      prompt="""Analyze frontend components, state, and routes for: {topic}
      When structure-explorer shares component locations, investigate deeper.
@@ -223,19 +223,19 @@ TeamDelete()
 
 **Incorrect — Sequential exploration without coordination:**
 ```python
-Task(subagent_type="Explore", prompt="Find auth files")
+Agent(subagent_type="Explore", prompt="Find auth files")
 # Wait for result...
-Task(subagent_type="Explore", prompt="Trace auth data flow")
+Agent(subagent_type="Explore", prompt="Trace auth data flow")
 # Sequential, no sharing between agents
 ```
 
 **Correct — Team mode with real-time discovery sharing:**
 ```python
 TeamCreate(team_name="explore-auth")
-Task(subagent_type="Explore", name="structure-explorer",
+Agent(subagent_type="Explore", name="structure-explorer",
      team_name="explore-auth",
      prompt="Find auth files. Message data-flow-explorer with entry points.")
-Task(subagent_type="Explore", name="data-flow-explorer",
+Agent(subagent_type="Explore", name="data-flow-explorer",
      team_name="explore-auth",
      prompt="When structure-explorer shares entry points, trace data flows.")
 # Parallel execution, coordinated via messages
@@ -250,7 +250,7 @@ Task(subagent_type="Explore", name="data-flow-explorer",
 Rate found code quality 0-10 with specific dimensions. See [code-health-rubric.md](../references/code-health-rubric.md) for scoring criteria.
 
 ```python
-Task(
+Agent(
   subagent_type="code-quality-reviewer",
   prompt="""CODE HEALTH ASSESSMENT for files related to: $ARGUMENTS
 
@@ -341,7 +341,7 @@ Maybe add more tests.
 Identify highly-coupled code and dependency bottlenecks. See [dependency-analysis.md](../references/dependency-analysis.md) for metrics and formulas.
 
 ```python
-Task(
+Agent(
   subagent_type="backend-system-architect",
   prompt="""DEPENDENCY HOTSPOT ANALYSIS for: $ARGUMENTS
 
@@ -427,7 +427,7 @@ Launch 4 specialized explorers in ONE message with `run_in_background: true`:
 
 ```python
 # PARALLEL - All 4 in ONE message
-Task(
+Agent(
   subagent_type="Explore",
   prompt="""Code Structure: Find all files, classes, functions related to: $ARGUMENTS
 
@@ -438,7 +438,7 @@ Task(
   run_in_background=True,
   max_turns=25
 )
-Task(
+Agent(
   subagent_type="Explore",
   prompt="""Data Flow: Trace entry points, processing, storage for: $ARGUMENTS
 
@@ -449,7 +449,7 @@ Task(
   run_in_background=True,
   max_turns=25
 )
-Task(
+Agent(
   subagent_type="backend-system-architect",
   prompt="""Backend Patterns: Analyze architecture patterns, integrations, dependencies for: $ARGUMENTS
 
@@ -460,7 +460,7 @@ Task(
   run_in_background=True,
   max_turns=25
 )
-Task(
+Agent(
   subagent_type="frontend-ui-developer",
   prompt="""Frontend Analysis: Find components, state management, routes for: $ARGUMENTS
 
@@ -482,24 +482,24 @@ Task(
 
 **Incorrect — Sequential exploration:**
 ```python
-Task(subagent_type="Explore", prompt="Find auth files")
+Agent(subagent_type="Explore", prompt="Find auth files")
 # Wait...
-Task(subagent_type="Explore", prompt="Trace auth flow")
+Agent(subagent_type="Explore", prompt="Trace auth flow")
 # Wait...
-Task(subagent_type="backend-system-architect", prompt="Analyze patterns")
+Agent(subagent_type="backend-system-architect", prompt="Analyze patterns")
 # Slow, sequential
 ```
 
 **Correct — Parallel exploration in one message:**
 ```python
 # All 4 in ONE message with run_in_background: true
-Task(subagent_type="Explore", prompt="Code Structure: Find all files related to auth",
+Agent(subagent_type="Explore", prompt="Code Structure: Find all files related to auth",
      run_in_background=True, max_turns=25)
-Task(subagent_type="Explore", prompt="Data Flow: Trace auth entry→storage",
+Agent(subagent_type="Explore", prompt="Data Flow: Trace auth entry→storage",
      run_in_background=True, max_turns=25)
-Task(subagent_type="backend-system-architect", prompt="Backend Patterns: Analyze auth architecture",
+Agent(subagent_type="backend-system-architect", prompt="Backend Patterns: Analyze auth architecture",
      run_in_background=True, max_turns=25)
-Task(subagent_type="frontend-ui-developer", prompt="Frontend: Find auth components",
+Agent(subagent_type="frontend-ui-developer", prompt="Frontend: Find auth components",
      run_in_background=True, max_turns=25)
 # Parallel execution
 ```
@@ -513,7 +513,7 @@ Task(subagent_type="frontend-ui-developer", prompt="Frontend: Find auth componen
 Add business context and findability suggestions. See [findability-patterns.md](../references/findability-patterns.md) for discoverability best practices.
 
 ```python
-Task(
+Agent(
   subagent_type="product-strategist",
   prompt="""PRODUCT PERSPECTIVE for: $ARGUMENTS
 

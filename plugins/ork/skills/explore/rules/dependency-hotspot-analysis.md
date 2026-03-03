@@ -10,7 +10,7 @@ tags: dependencies, hotspots, analysis
 Identify highly-coupled code and dependency bottlenecks. See [dependency-analysis.md](../references/dependency-analysis.md) for metrics and formulas.
 
 ```python
-Task(
+Agent(
   subagent_type="backend-system-architect",
   prompt="""DEPENDENCY HOTSPOT ANALYSIS for: $ARGUMENTS
 

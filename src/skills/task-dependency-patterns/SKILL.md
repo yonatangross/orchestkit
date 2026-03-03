@@ -1,7 +1,7 @@
 ---
 name: task-dependency-patterns
 license: MIT
-compatibility: "Claude Code 2.1.56+."
+compatibility: "Claude Code 2.1.59+."
 description: CC 2.1.16 Task Management patterns with TaskCreate, TaskUpdate, TaskGet, TaskList tools. Decompose complex work into trackable tasks with dependency chains. Use when managing multi-step implementations, coordinating parallel work, or tracking completion status.
 context: fork
 version: 1.0.0
@@ -9,9 +9,16 @@ author: OrchestKit
 agent: workflow-architect
 tags: [task-management, dependencies, orchestration, cc-2.1.16, workflow, coordination]
 user-invocable: false
+disable-model-invocation: true
 complexity: medium
 metadata:
   category: workflow-automation
+allowed-tools:
+  - Read
+  - Glob
+  - Grep
+  - WebFetch
+  - WebSearch
 ---
 
 # Task Dependency Patterns
@@ -114,7 +121,7 @@ CC 2.1.33 introduces Agent Teams for multi-agent coordination with shared task l
 ```
 1. TeamCreate("my-feature")           → Creates team + shared task list
 2. TaskCreate(subject, description)    → Add tasks to shared list
-3. Task(prompt, team_name, name)       → Spawn teammates
+3. Agent(prompt, team_name, name)       → Spawn teammates
 4. TaskUpdate(owner: "teammate-name")  → Assign tasks
 5. SendMessage(type: "message")        → Direct teammate communication
 6. SendMessage(type: "shutdown_request") → Graceful shutdown
@@ -135,7 +142,7 @@ CC 2.1.33 introduces Agent Teams for multi-agent coordination with shared task l
 
 ```
 # Spawn teammate into shared task list
-Task(
+Agent(
   prompt="You are the backend architect...",
   team_name="my-feature",
   name="backend-architect",

@@ -248,12 +248,12 @@ RUN_HOOK="$HOOKS_DIR/bin/run-hook.mjs"
 
 echo -n "  context-loader hook (lifecycle bundle)... "
 if [[ -f "$RUN_HOOK" ]] && node "$RUN_HOOK" 2>&1 | grep -q "Usage\|hook-name" || [[ -f "$HOOKS_DIR/dist/lifecycle.mjs" ]]; then
-    # Verify the hook is registered in hooks.json
-    if jq -e '.. | .command? // empty | select(test("session-context-loader"))' "$HOOKS_DIR/hooks.json" >/dev/null 2>&1; then
-        echo -e "${GREEN}PASS${NC} (registered in hooks.json)"
+    # session-context-loader was consolidated into sync-session-dispatcher (P0-3)
+    if jq -e '.. | .command? // empty | select(test("sync-session-dispatcher"))' "$HOOKS_DIR/hooks.json" >/dev/null 2>&1; then
+        echo -e "${GREEN}PASS${NC} (registered via sync-session-dispatcher in hooks.json)"
         PASSED=$((PASSED + 1))
     else
-        echo -e "${RED}FAIL${NC} (not registered in hooks.json)"
+        echo -e "${RED}FAIL${NC} (sync-session-dispatcher not registered in hooks.json)"
         FAILED=$((FAILED + 1))
     fi
 else

@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OrchestKit Collaboration Brainstorm</title>
+<style>
+  :root {
+    --bg: #0d1117; --surface: #161b22; --border: #30363d;
+    --text: #e6edf3; --muted: #8b949e; --accent: #58a6ff;
+    --green: #3fb950; --yellow: #d29922; --red: #f85149;
+    --purple: #bc8cff; --orange: #f0883e; --cyan: #39d353;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+  header { padding: 12px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
+  header h1 { font-size: 16px; font-weight: 600; }
+  header .subtitle { color: var(--muted); font-size: 13px; }
+
+  .main { display: flex; flex: 1; overflow: hidden; }
+
+  /* Sidebar */
+  .sidebar { width: 320px; border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; flex-shrink: 0; }
+  .sidebar section { padding: 16px; border-bottom: 1px solid var(--border); }
+  .sidebar h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 10px; }
+
+  /* View toggle */
+  .view-tabs { display: flex; gap: 4px; }
+  .view-tab { padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; font-size: 12px; transition: all 0.15s; }
+  .view-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .view-tab:hover:not(.active) { border-color: var(--muted); color: var(--text); }
+
+  /* Preset buttons */
+  .presets { display: flex; flex-wrap: wrap; gap: 6px; }
+  .preset-btn { padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; font-size: 11px; transition: all 0.15s; }
+  .preset-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .preset-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  /* Idea list */
+  .idea-list { display: flex; flex-direction: column; gap: 4px; }
+  .idea-item { padding: 8px 10px; border-radius: 6px; border: 1px solid transparent; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px; transition: all 0.15s; }
+  .idea-item:hover { background: var(--surface); border-color: var(--border); }
+  .idea-item.selected { background: #1f2937; border-color: var(--accent); }
+  .idea-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .idea-name { flex: 1; }
+  .idea-score { font-size: 11px; color: var(--muted); font-family: monospace; }
+
+  /* Legend */
+  .legend { display: flex; flex-wrap: wrap; gap: 8px; }
+  .legend-item { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--muted); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  /* Canvas area */
+  .canvas-area { flex: 1; position: relative; overflow: hidden; }
+  canvas { display: block; }
+
+  /* Tooltip */
+  .tooltip { position: absolute; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px; max-width: 320px; font-size: 12px; pointer-events: none; opacity: 0; transition: opacity 0.15s; z-index: 100; box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+  .tooltip.visible { opacity: 1; }
+  .tooltip h4 { font-size: 13px; margin-bottom: 6px; }
+  .tooltip p { color: var(--muted); line-height: 1.5; margin-bottom: 6px; }
+  .tooltip .tt-meta { display: flex; gap: 12px; font-size: 11px; }
+  .tooltip .tt-meta span { color: var(--muted); }
+  .tooltip .tt-meta b { color: var(--text); }
+
+  /* Detail panel */
+  .detail-panel { position: absolute; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--border); padding: 16px 20px; display: flex; gap: 20px; align-items: flex-start; max-height: 220px; overflow-y: auto; transition: transform 0.2s; }
+  .detail-panel.hidden { transform: translateY(100%); }
+  .detail-left { flex: 1; }
+  .detail-left h3 { font-size: 15px; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+  .detail-left .cluster-badge { font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+  .detail-left p { color: var(--muted); font-size: 13px; line-height: 1.6; }
+  .detail-right { display: flex; gap: 16px; flex-shrink: 0; align-items: flex-start; }
+  .score-block { text-align: center; }
+  .score-block .val { font-size: 28px; font-weight: 700; font-family: monospace; }
+  .score-block .lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .detail-close { position: absolute; top: 10px; right: 14px; background: none; border: none; color: var(--muted); cursor: pointer; font-size: 18px; }
+
+  /* Prompt output */
+  .prompt-area { border-top: 1px solid var(--border); padding: 12px 20px; flex-shrink: 0; display: flex; gap: 12px; align-items: flex-start; }
+  .prompt-text { flex: 1; font-size: 12px; color: var(--muted); line-height: 1.6; font-family: monospace; max-height: 80px; overflow-y: auto; white-space: pre-wrap; }
+  .copy-btn { padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; font-size: 12px; white-space: nowrap; transition: all 0.15s; }
+  .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .copy-btn.copied { background: var(--green); color: #fff; border-color: var(--green); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>OrchestKit Collaboration Brainstorm</h1>
+  <span class="subtitle">22 ideas · 7 clusters · 3 designs</span>
+  <div style="flex:1"></div>
+  <div class="view-tabs">
+    <button class="view-tab active" data-view="cluster">Clusters</button>
+    <button class="view-tab" data-view="roadmap">Roadmap</button>
+    <button class="view-tab" data-view="matrix">Matrix</button>
+  </div>
+</header>
+
+<div class="main">
+  <div class="sidebar">
+    <section>
+      <h3>Presets</h3>
+      <div class="presets">
+        <button class="preset-btn active" data-preset="all">All Ideas</button>
+        <button class="preset-btn" data-preset="bridge">Design A: Bridge</button>
+        <button class="preset-btn" data-preset="handoffs">Design B: Handoffs</button>
+        <button class="preset-btn" data-preset="pipelines">Design C: Pipelines</button>
+        <button class="preset-btn" data-preset="quickwins">Quick Wins Only</button>
+      </div>
+    </section>
+    <section>
+      <h3>Legend</h3>
+      <div class="legend" id="legend"></div>
+    </section>
+    <section style="flex:1;overflow-y:auto;">
+      <h3>Ideas (<span id="idea-count">22</span>)</h3>
+      <div class="idea-list" id="idea-list"></div>
+    </section>
+  </div>
+
+  <div class="canvas-area">
+    <canvas id="canvas"></canvas>
+    <div class="tooltip" id="tooltip"></div>
+    <div class="detail-panel hidden" id="detail">
+      <div class="detail-left">
+        <h3 id="detail-title"></h3>
+        <p id="detail-desc"></p>
+      </div>
+      <div class="detail-right" id="detail-scores"></div>
+      <button class="detail-close" id="detail-close">&times;</button>
+    </div>
+  </div>
+</div>
+
+<div class="prompt-area">
+  <div class="prompt-text" id="prompt">Select ideas to build a focused implementation prompt.</div>
+  <button class="copy-btn" id="copy-btn">Copy</button>
+</div>
+
+<script>
+// ─── Data ────────────────────────────────────────────────────────────────
+const CLUSTERS = {
+  A: { name: 'Agent Context', color: '#58a6ff', design: 'bridge' },
+  B: { name: 'Shared State', color: '#bc8cff', design: 'handoffs' },
+  C: { name: 'Skill Composition', color: '#f0883e', design: 'pipelines' },
+  D: { name: 'Progressive Context', color: '#39d353', design: null },
+  E: { name: 'Hook Intelligence', color: '#d29922', design: 'pipelines' },
+  F: { name: 'Org/Team Patterns', color: '#f85149', design: 'bridge' },
+  G: { name: 'Setup Bridge', color: '#79c0ff', design: 'bridge' },
+};
+
+const IDEAS = [
+  { id: 1, name: 'Stack Profile Files', cluster: 'F', feasibility: 9, impact: 8, effort: 'hours', tier: 1, desc: 'A .claude/stack-profile.json file that generic agents read at boot to inject team-specific facts — UUID strategy, preferred libs, server topology, queue names. Uses existing UserPromptSubmit hook.', design: ['bridge'] },
+  { id: 2, name: 'Typed Artifact Blackboard', cluster: 'B', feasibility: 9, impact: 9, effort: 'days', tier: 1, desc: 'Replace decision-log.json with a typed artifact registry at .claude/blackboard/. Agents write named, typed artifacts; downstream agents pull by type match, not by producer name.', design: ['handoffs'] },
+  { id: 3, name: 'Agent Team Relay Protocol', cluster: 'B', feasibility: 9, impact: 8, effort: 'days', tier: 1, desc: 'Structured relay packets with TTL at .claude/coordination/relay/. Point-to-point handoffs with typed payloads and automatic expiry after 30 minutes.', design: ['handoffs'] },
+  { id: 4, name: 'Setup CC Infrastructure Scan', cluster: 'G', feasibility: 9, impact: 7, effort: 'hours', tier: 1, desc: 'Phase 1b for /ork:setup — scans .claude/agents/, ~/.claude/skills/, .claude/rules/, MCPs, memory graph topology. Shows compatibility report with ork skills.', design: ['bridge'] },
+  { id: 5, name: 'Agent Capability Manifests', cluster: 'A', feasibility: 8, impact: 8, effort: 'days', tier: 2, desc: 'Agents declare provides:/requires: in YAML frontmatter. Contract broker hook at SubagentStart matches available artifacts to agent needs automatically.', design: ['handoffs', 'bridge'] },
+  { id: 6, name: 'Context Packs', cluster: 'F', feasibility: 8, impact: 7, effort: 'days', tier: 2, desc: 'Composable knowledge bundles in .claude/context-packs/ (100-300 tokens each). Agents declare context-packs: [pgvector, celery-queues] in frontmatter. Injected at spawn.', design: ['bridge'] },
+  { id: 7, name: 'Skill Pipelines', cluster: 'C', feasibility: 8, impact: 8, effort: 'days', tier: 2, desc: 'pipeline.yaml declares skill chains with dependency edges and output passing. /ork:pipeline feature runs explore→implement→verify as a single command.', design: ['pipelines'] },
+  { id: 8, name: 'Model Velocity Calibrator', cluster: 'E', feasibility: 8, impact: 7, effort: 'days', tier: 2, desc: 'TaskCompleted metrics → model-calibration.json. Tracks which task types succeed with Haiku vs Sonnet, providing data-driven model routing suggestions.', design: ['pipelines'] },
+  { id: 9, name: 'Agent Handoff Bus', cluster: 'B', feasibility: 9, impact: 7, effort: 'hours', tier: 1, desc: 'Convention-based: each agent writes JSON to $ORK_SCRATCH_DIR/{agent-name}.json. Orchestrator reads all files and merges deterministically. Zero infrastructure.', design: ['handoffs'] },
+  { id: 10, name: 'Typed Skill Contracts', cluster: 'C', feasibility: 7, impact: 7, effort: 'days', tier: 2, desc: 'Skills declare inputs:/outputs: in YAML frontmatter. Handoff envelopes carry typed context between skill invocations, eliminating redundant re-detection.', design: ['pipelines'] },
+  { id: 11, name: 'Capability Matching Index', cluster: 'A', feasibility: 6, impact: 7, effort: 'days', tier: 2, desc: 'Agents declare capabilities: list. Skills query the index for best-matching agent instead of hardcoding names. New agents auto-discovered by any skill.', design: ['bridge'] },
+  { id: 12, name: 'Progressive Skill Loading', cluster: 'D', feasibility: 7, impact: 6, effort: 'days', tier: 3, desc: 'Agents declare skill-appetite: minimal|standard|full. Hook loads only matching sections — Haiku gets 800 tokens, Opus gets 12K from same skill.', design: [] },
+  { id: 13, name: 'Session Knowledge Graph', cluster: 'D', feasibility: 7, impact: 7, effort: 'weeks', tier: 3, desc: 'SubagentStop extracts structured facts from agent outputs into session-scoped graph. Subsequent agents get a synthesized "what the team knows so far" digest.', design: [] },
+  { id: 14, name: 'Error Pattern Router', cluster: 'E', feasibility: 7, impact: 7, effort: 'days', tier: 2, desc: 'Cross-session failure log. When an agent type repeatedly fails on a task type, SubagentStart injects routing advisory suggesting a different agent.', design: ['pipelines'] },
+  { id: 15, name: 'Skill Chain Anticipator', cluster: 'E', feasibility: 6, impact: 5, effort: 'days', tier: 3, desc: 'Co-occurrence matrix from skill-tracker. If api-design is followed by database-patterns 78% of the time, pre-load the next skill summary into context.', design: ['pipelines'] },
+  { id: 16, name: 'Quality Regression Detector', cluster: 'E', feasibility: 7, impact: 6, effort: 'days', tier: 3, desc: 'Rolling baselines per agent type. When output quality drops below 1.5 stddev, SubagentStart injects "be thorough" advisory. Heuristic signals, no LLM needed.', design: [] },
+  { id: 17, name: 'Living Agent Brief', cluster: 'F', feasibility: 7, impact: 7, effort: 'days', tier: 3, desc: 'PostToolUse hook watches for schema changes, new services, env vars — auto-appends to .claude/project-brief.md. Every agent reads the brief at start.', design: ['bridge'] },
+  { id: 18, name: 'Shared Org Memory Graph', cluster: 'F', feasibility: 6, impact: 8, effort: 'weeks', tier: 3, desc: 'Team-wide MCP memory server. Patterns accumulate across all projects and developers. /ork:remember --global writes to shared graph.', design: [] },
+  { id: 19, name: 'Agent Layering / Inheritance', cluster: 'F', feasibility: 5, impact: 7, effort: 'weeks', tier: 3, desc: 'Agents support extends: key. Plugin → org → project override chain with YAML merge. /ork:agent-init scaffolds override files.', design: [] },
+  { id: 20, name: 'Cross-Session Pattern Distillation', cluster: 'A', feasibility: 6, impact: 7, effort: 'weeks', tier: 3, desc: 'SessionEnd async hook reviews decisions + artifacts to extract generalizable patterns. Stored in ~/.claude/orchestkit/org-patterns.json for cross-project reuse.', design: [] },
+  { id: 21, name: 'Team Momentum Tracker', cluster: 'E', feasibility: 5, impact: 5, effort: 'weeks', tier: 3, desc: 'TeammateIdle hook reads tool cadence, computes momentum score, auto-suggests micro-tasks or redistributes stalled work. Needs IPC mechanism.', design: [] },
+  { id: 22, name: 'Agent Marketplace', cluster: 'F', feasibility: 4, impact: 6, effort: 'months', tier: 3, desc: 'Public registry for community agent bundles. /ork:agents install acme-stack. Needs security scanning, governance. v9+ feature.', design: [] },
+];
+
+const TIER_LABELS = { 1: 'v7.1', 2: 'v7.2', 3: 'v8+' };
+const TIER_COLORS = { 1: '#3fb950', 2: '#d29922', 3: '#f85149' };
+
+// ─── State ───────────────────────────────────────────────────────────────
+const state = {
+  view: 'cluster',
+  preset: 'all',
+  selected: new Set(),
+  hovered: null,
+  dragging: null,
+  dragOffset: { x: 0, y: 0 },
+  pan: { x: 0, y: 0 },
+  nodes: [],
+  detailId: null,
+};
+
+// ─── Canvas Setup ────────────────────────────────────────────────────────
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let W, H;
+
+function resize() {
+  const r = canvas.parentElement.getBoundingClientRect();
+  W = r.width; H = r.height;
+  canvas.width = W * devicePixelRatio;
+  canvas.height = H * devicePixelRatio;
+  canvas.style.width = W + 'px';
+  canvas.style.height = H + 'px';
+  ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+  layoutNodes();
+  draw();
+}
+window.addEventListener('resize', resize);
+
+// ─── Node Layout ─────────────────────────────────────────────────────────
+function layoutNodes() {
+  const visible = IDEAS.filter(i => isVisible(i));
+  if (state.view === 'cluster') layoutCluster(visible);
+  else if (state.view === 'roadmap') layoutRoadmap(visible);
+  else layoutMatrix(visible);
+}
+
+function layoutCluster(visible) {
+  const clusterIds = [...new Set(visible.map(i => i.cluster))];
+  const cx = W / 2, cy = H / 2;
+  const radius = Math.min(W, H) * 0.32;
+
+  state.nodes = visible.map(idea => {
+    const ci = clusterIds.indexOf(idea.cluster);
+    const clusterAngle = (ci / clusterIds.length) * Math.PI * 2 - Math.PI / 2;
+    const clusterCx = cx + Math.cos(clusterAngle) * radius;
+    const clusterCy = cy + Math.sin(clusterAngle) * radius;
+
+    const membersInCluster = visible.filter(i => i.cluster === idea.cluster);
+    const mi = membersInCluster.indexOf(idea);
+    const spread = Math.min(80, 200 / membersInCluster.length);
+    const subAngle = (mi / membersInCluster.length) * Math.PI * 2;
+    const subR = membersInCluster.length > 1 ? spread : 0;
+
+    return {
+      id: idea.id,
+      x: clusterCx + Math.cos(subAngle) * subR,
+      y: clusterCy + Math.sin(subAngle) * subR,
+      r: 14 + idea.impact * 2,
+      idea,
+    };
+  });
+}
+
+function layoutRoadmap(visible) {
+  const tiers = [1, 2, 3];
+  const colW = W / 3;
+  state.nodes = visible.map(idea => {
+    const ti = tiers.indexOf(idea.tier);
+    const col = ti >= 0 ? ti : 2;
+    const inTier = visible.filter(i => i.tier === idea.tier);
+    const ri = inTier.indexOf(idea);
+    const spacing = Math.min(50, (H - 100) / (inTier.length + 1));
+    return {
+      id: idea.id,
+      x: colW * col + colW / 2,
+      y: 70 + (ri + 1) * spacing,
+      r: 14 + idea.impact * 2,
+      idea,
+    };
+  });
+}
+
+function layoutMatrix(visible) {
+  const margin = 60;
+  state.nodes = visible.map(idea => ({
+    id: idea.id,
+    x: margin + ((idea.feasibility - 3) / 7) * (W - margin * 2),
+    y: H - margin - ((idea.impact - 3) / 7) * (H - margin * 2),
+    r: 14 + idea.feasibility * 1.5,
+    idea,
+  }));
+}
+
+// ─── Visibility ──────────────────────────────────────────────────────────
+function isVisible(idea) {
+  if (state.preset === 'all') return true;
+  if (state.preset === 'bridge') return idea.design.includes('bridge');
+  if (state.preset === 'handoffs') return idea.design.includes('handoffs');
+  if (state.preset === 'pipelines') return idea.design.includes('pipelines');
+  if (state.preset === 'quickwins') return idea.tier === 1;
+  return true;
+}
+
+// ─── Drawing ─────────────────────────────────────────────────────────────
+function draw() {
+  ctx.clearRect(0, 0, W, H);
+
+  // Background grid
+  ctx.strokeStyle = '#1a2030';
+  ctx.lineWidth = 0.5;
+  for (let x = 0; x < W; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+  for (let y = 0; y < H; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+
+  // View-specific labels
+  if (state.view === 'roadmap') drawRoadmapLabels();
+  if (state.view === 'matrix') drawMatrixLabels();
+
+  // Edges between related ideas in same design
+  drawEdges();
+
+  // Nodes
+  state.nodes.forEach(n => drawNode(n));
+}
+
+function drawRoadmapLabels() {
+  const colW = W / 3;
+  [1, 2, 3].forEach((t, i) => {
+    ctx.fillStyle = TIER_COLORS[t];
+    ctx.font = 'bold 14px -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(TIER_LABELS[t], colW * i + colW / 2, 35);
+
+    ctx.fillStyle = '#30363d';
+    ctx.fillRect(colW * i + 20, 48, colW - 40, 2);
+  });
+}
+
+function drawMatrixLabels() {
+  ctx.fillStyle = var_muted();
+  ctx.font = '11px -apple-system, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('Feasibility →', W / 2, H - 12);
+  ctx.save();
+  ctx.translate(16, H / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText('Impact →', 0, 0);
+  ctx.restore();
+
+  // Axis numbers
+  for (let i = 4; i <= 10; i++) {
+    const x = 60 + ((i - 3) / 7) * (W - 120);
+    ctx.fillStyle = '#30363d';
+    ctx.fillText(i, x, H - 30);
+  }
+  for (let i = 5; i <= 9; i++) {
+    const y = H - 60 - ((i - 3) / 7) * (H - 120);
+    ctx.fillText(i, 40, y + 4);
+  }
+}
+
+function var_muted() { return '#8b949e'; }
+
+function drawEdges() {
+  const designs = ['bridge', 'handoffs', 'pipelines'];
+  designs.forEach(d => {
+    const members = state.nodes.filter(n => n.idea.design.includes(d));
+    if (members.length < 2) return;
+    for (let i = 0; i < members.length - 1; i++) {
+      for (let j = i + 1; j < members.length; j++) {
+        const a = members[i], b = members[j];
+        ctx.strokeStyle = CLUSTERS[a.idea.cluster].color + '18';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+        ctx.stroke();
+      }
+    }
+  });
+}
+
+function drawNode(n) {
+  const isHovered = state.hovered === n.id;
+  const isSelected = state.selected.has(n.id);
+  const color = CLUSTERS[n.idea.cluster].color;
+  const alpha = isHovered || isSelected ? 1 : 0.7;
+
+  // Glow
+  if (isHovered || isSelected) {
+    ctx.beginPath();
+    ctx.arc(n.x, n.y, n.r + 6, 0, Math.PI * 2);
+    ctx.fillStyle = color + '30';
+    ctx.fill();
+  }
+
+  // Tier ring
+  ctx.beginPath();
+  ctx.arc(n.x, n.y, n.r + 2, 0, Math.PI * 2);
+  ctx.strokeStyle = TIER_COLORS[n.idea.tier] + '60';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Main circle
+  ctx.beginPath();
+  ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+  ctx.fillStyle = hexWithAlpha(color, isSelected ? 0.9 : 0.5);
+  ctx.fill();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = isSelected ? 2.5 : 1.5;
+  ctx.stroke();
+
+  // Feasibility number
+  ctx.fillStyle = '#fff';
+  ctx.font = `bold ${Math.max(10, n.r * 0.7)}px monospace`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(n.idea.feasibility, n.x, n.y);
+
+  // Label
+  if (isHovered || isSelected || n.r > 24) {
+    ctx.fillStyle = isHovered ? '#fff' : var_muted();
+    ctx.font = '11px -apple-system, sans-serif';
+    ctx.textBaseline = 'top';
+    ctx.fillText(n.idea.name, n.x, n.y + n.r + 6);
+  }
+}
+
+function hexWithAlpha(hex, a) {
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+// ─── Interaction ─────────────────────────────────────────────────────────
+function hitTest(mx, my) {
+  for (let i = state.nodes.length - 1; i >= 0; i--) {
+    const n = state.nodes[i];
+    const dx = mx - n.x, dy = my - n.y;
+    if (dx * dx + dy * dy < (n.r + 4) * (n.r + 4)) return n;
+  }
+  return null;
+}
+
+canvas.addEventListener('mousemove', e => {
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+
+  if (state.dragging) {
+    state.dragging.x = mx - state.dragOffset.x;
+    state.dragging.y = my - state.dragOffset.y;
+    draw();
+    return;
+  }
+
+  const hit = hitTest(mx, my);
+  const prevHover = state.hovered;
+  state.hovered = hit ? hit.id : null;
+
+  if (hit) {
+    canvas.style.cursor = 'pointer';
+    showTooltip(hit, e.clientX, e.clientY);
+  } else {
+    canvas.style.cursor = 'default';
+    hideTooltip();
+  }
+
+  if (prevHover !== state.hovered) draw();
+});
+
+canvas.addEventListener('mousedown', e => {
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+  const hit = hitTest(mx, my);
+  if (hit) {
+    state.dragging = hit;
+    state.dragOffset = { x: mx - hit.x, y: my - hit.y };
+  }
+});
+
+canvas.addEventListener('mouseup', () => { state.dragging = null; });
+
+canvas.addEventListener('click', e => {
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+  const hit = hitTest(mx, my);
+  if (hit) {
+    if (e.shiftKey) {
+      // Multi-select
+      if (state.selected.has(hit.id)) state.selected.delete(hit.id);
+      else state.selected.add(hit.id);
+    } else {
+      state.selected.clear();
+      state.selected.add(hit.id);
+    }
+    showDetail(hit.idea);
+    updateSidebar();
+    updatePrompt();
+    draw();
+  }
+});
+
+canvas.addEventListener('dblclick', e => {
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+  const hit = hitTest(mx, my);
+  if (!hit) {
+    state.selected.clear();
+    hideDetail();
+    updateSidebar();
+    updatePrompt();
+    draw();
+  }
+});
+
+// ─── Tooltip ─────────────────────────────────────────────────────────────
+const tooltip = document.getElementById('tooltip');
+
+function showTooltip(node, px, py) {
+  const idea = node.idea;
+  tooltip.innerHTML = `
+    <h4>${idea.name}</h4>
+    <p>${idea.desc.slice(0, 120)}${idea.desc.length > 120 ? '...' : ''}</p>
+    <div class="tt-meta">
+      <span>Feasibility: <b>${idea.feasibility}/10</b></span>
+      <span>Impact: <b>${idea.impact}/10</b></span>
+      <span>Effort: <b>${idea.effort}</b></span>
+      <span>Tier: <b style="color:${TIER_COLORS[idea.tier]}">${TIER_LABELS[idea.tier]}</b></span>
+    </div>
+  `;
+  const tr = canvas.parentElement.getBoundingClientRect();
+  let x = px - tr.left + 16, y = py - tr.top - 10;
+  if (x + 320 > W) x = px - tr.left - 336;
+  if (y + 140 > H) y = H - 150;
+  tooltip.style.left = x + 'px';
+  tooltip.style.top = y + 'px';
+  tooltip.classList.add('visible');
+}
+
+function hideTooltip() { tooltip.classList.remove('visible'); }
+
+// ─── Detail Panel ────────────────────────────────────────────────────────
+const detail = document.getElementById('detail');
+
+function showDetail(idea) {
+  state.detailId = idea.id;
+  const color = CLUSTERS[idea.cluster].color;
+  document.getElementById('detail-title').innerHTML =
+    `${idea.name} <span class="cluster-badge" style="background:${color}30;color:${color}">${CLUSTERS[idea.cluster].name}</span>`;
+  document.getElementById('detail-desc').textContent = idea.desc;
+  document.getElementById('detail-scores').innerHTML = `
+    <div class="score-block"><div class="val" style="color:${idea.feasibility >= 8 ? '#3fb950' : idea.feasibility >= 6 ? '#d29922' : '#f85149'}">${idea.feasibility}</div><div class="lbl">Feasibility</div></div>
+    <div class="score-block"><div class="val" style="color:${idea.impact >= 8 ? '#3fb950' : idea.impact >= 6 ? '#d29922' : '#f85149'}">${idea.impact}</div><div class="lbl">Impact</div></div>
+    <div class="score-block"><div class="val" style="color:${TIER_COLORS[idea.tier]}">${TIER_LABELS[idea.tier]}</div><div class="lbl">Tier</div></div>
+  `;
+  detail.classList.remove('hidden');
+}
+
+function hideDetail() { state.detailId = null; detail.classList.add('hidden'); }
+document.getElementById('detail-close').addEventListener('click', () => {
+  state.selected.clear(); hideDetail(); updateSidebar(); updatePrompt(); draw();
+});
+
+// ─── Sidebar ─────────────────────────────────────────────────────────────
+function buildLegend() {
+  const el = document.getElementById('legend');
+  el.innerHTML = Object.entries(CLUSTERS).map(([k, v]) =>
+    `<div class="legend-item"><div class="legend-dot" style="background:${v.color}"></div>${v.name}</div>`
+  ).join('');
+}
+
+function updateSidebar() {
+  const list = document.getElementById('idea-list');
+  const visible = IDEAS.filter(isVisible);
+  document.getElementById('idea-count').textContent = visible.length;
+
+  list.innerHTML = visible.map(idea => {
+    const color = CLUSTERS[idea.cluster].color;
+    const sel = state.selected.has(idea.id) ? 'selected' : '';
+    return `<div class="idea-item ${sel}" data-id="${idea.id}">
+      <div class="idea-dot" style="background:${color}"></div>
+      <span class="idea-name">${idea.name}</span>
+      <span class="idea-score" style="color:${TIER_COLORS[idea.tier]}">${idea.feasibility}F ${idea.impact}I</span>
+    </div>`;
+  }).join('');
+
+  list.querySelectorAll('.idea-item').forEach(el => {
+    el.addEventListener('click', e => {
+      const id = parseInt(el.dataset.id);
+      if (e.shiftKey) {
+        if (state.selected.has(id)) state.selected.delete(id);
+        else state.selected.add(id);
+      } else {
+        state.selected.clear();
+        state.selected.add(id);
+      }
+      const idea = IDEAS.find(i => i.id === id);
+      if (idea) showDetail(idea);
+      updateSidebar();
+      updatePrompt();
+      draw();
+
+      // Scroll canvas to node
+      const node = state.nodes.find(n => n.id === id);
+      if (node) {
+        state.hovered = id;
+        draw();
+      }
+    });
+  });
+}
+
+// ─── Prompt Output ───────────────────────────────────────────────────────
+function updatePrompt() {
+  const el = document.getElementById('prompt');
+  if (state.selected.size === 0) {
+    el.textContent = 'Click ideas to select them (shift+click for multiple). The prompt will describe your selected implementation plan.';
+    return;
+  }
+
+  const selected = IDEAS.filter(i => state.selected.has(i.id));
+  const tiers = [...new Set(selected.map(i => i.tier))].sort();
+  const clusters = [...new Set(selected.map(i => CLUSTERS[i.cluster].name))];
+
+  let prompt = `Implement the following OrchestKit collaboration improvements:\n\n`;
+  selected.forEach(idea => {
+    prompt += `${idea.name} (${TIER_LABELS[idea.tier]}, feasibility ${idea.feasibility}/10): ${idea.desc}\n\n`;
+  });
+
+  prompt += `These ${selected.length} ideas span ${clusters.join(', ')}. `;
+  if (tiers.includes(1)) prompt += `Start with the v7.1 quick wins (${selected.filter(i=>i.tier===1).map(i=>i.name).join(', ')}). `;
+  if (tiers.includes(2)) prompt += `Then build the v7.2 architecture items. `;
+
+  prompt += `\nAll implementations should use existing CC 2.1.59 primitives: hooks (SubagentStart/Stop, UserPromptSubmit), file-based coordination (.claude/), and YAML frontmatter extensions. No new CC platform APIs required.`;
+
+  el.textContent = prompt;
+}
+
+// ─── View & Preset Handlers ─────────────────────────────────────────────
+document.querySelectorAll('.view-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.view-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.view = btn.dataset.view;
+    layoutNodes();
+    draw();
+  });
+});
+
+document.querySelectorAll('.preset-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.preset = btn.dataset.preset;
+    state.selected.clear();
+    hideDetail();
+    layoutNodes();
+    updateSidebar();
+    updatePrompt();
+    draw();
+  });
+});
+
+// ─── Copy ────────────────────────────────────────────────────────────────
+document.getElementById('copy-btn').addEventListener('click', () => {
+  const text = document.getElementById('prompt').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copy-btn');
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1500);
+  });
+});
+
+// ─── Init ────────────────────────────────────────────────────────────────
+buildLegend();
+updateSidebar();
+resize();
+</script>
+</body>
+</html>

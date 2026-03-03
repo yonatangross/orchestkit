@@ -15,7 +15,8 @@
  * Version: 1.0.0
  */
 
-import { existsSync, readFileSync, writeFileSync, statSync, mkdirSync } from 'node:fs';
+import { existsSync, readFileSync, statSync, mkdirSync } from 'node:fs';
+import { atomicWriteSync } from '../lib/atomic-write.js';
 import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -95,7 +96,7 @@ function fetchAndCacheIssue(issueNum: string, projectDir: string): IssueData | n
     try {
       ensureCacheDir();
       const cachePath = join(CACHE_DIR, `${issueNum}.json`);
-      writeFileSync(cachePath, JSON.stringify(data), 'utf8');
+      atomicWriteSync(cachePath, JSON.stringify(data));
     } catch {
       // Cache write failure is non-critical
     }

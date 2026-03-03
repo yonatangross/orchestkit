@@ -42,6 +42,8 @@ echo ""
 # ============================================================================
 # Workaround for CC bug: https://github.com/anthropics/claude-code/issues/20802
 # CC doesn't discover skills with user-invocable: true, only commands/*.md
+# TOKEN COST: This duplication loads 17 skills twice in context (~1.4k wasted tokens/session).
+# Remove when CC fixes prefix discovery: #20935, #25651 — tracked in orchestkit #889
 generate_command_from_skill() {
     local skill_md="$1"
     local command_file="$2"

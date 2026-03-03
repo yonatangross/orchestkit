@@ -1,0 +1,39 @@
+{
+  "skill": "setup",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "basic-orksetup",
+      "rule": "",
+      "query": "/ork:setup",
+      "expectedBehavior": [
+        "Claude runs all 7 phases of the setup wizard sequentially",
+        "Phase 1 scans for package.json, pyproject.toml, tsconfig.json, Docker, CI files in parallel",
+        "Phase 2 presents a detected stack profile with languages, frameworks, and infra",
+        "Phase 3 uses AskUserQuestion to confirm install scope (user-only vs project-wide)",
+        "Phase 6 computes a readiness score from 0-10 across 6 dimensions",
+        "Phase 7 generates a prioritized improvement plan with runnable commands"
+      ]
+    },
+    {
+      "id": "edge-orksetup-scoreonly",
+      "rule": "",
+      "query": "/ork:setup --score-only",
+      "expectedBehavior": [
+        "Claude skips phases 1-5 and 7, showing only the Phase 6 readiness score",
+        "Outputs a 0-10 composite score with per-dimension breakdown",
+        "Displays progress bars for Stack Coverage, Hook Protection, MCP Enhancement, Memory Depth, Custom Skills, and Agent Utilization"
+      ]
+    },
+    {
+      "id": "negative-how-do-i-configure",
+      "rule": "",
+      "query": "How do I configure Prettier to use single quotes?",
+      "expectedBehavior": [
+        "Claude does NOT invoke the setup skill",
+        "Provides standard Prettier configuration guidance",
+        "Does not trigger codebase scanning or readiness scoring"
+      ]
+    }
+  ]
+}

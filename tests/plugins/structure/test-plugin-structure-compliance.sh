@@ -244,14 +244,21 @@ else
     fail "Skills out of sync: src/ ($SRC_SKILLS) != plugins/ork/ ($PLUGIN_SKILLS) - run 'npm run build'"
 fi
 
-# Count agents in src/ and plugins/ork/
-SRC_AGENTS=$(find "$PROJECT_ROOT/src/agents" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
+# Count agents — manifest may use "all" or an explicit array
+MANIFEST_AGENTS_TYPE=$(jq -r '.agents | type' "$PROJECT_ROOT/manifests/ork.json" 2>/dev/null)
+if [[ "$MANIFEST_AGENTS_TYPE" == "string" ]]; then
+    # "all" mode — src/ count should match plugins/
+    EXPECTED_AGENTS=$(find "$PROJECT_ROOT/src/agents" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
+else
+    # Array mode — manifest lists which agents ship
+    EXPECTED_AGENTS=$(jq -r '.agents | length' "$PROJECT_ROOT/manifests/ork.json" 2>/dev/null)
+fi
 PLUGIN_AGENTS=$(find "$PROJECT_ROOT/plugins/ork/agents" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
 
-if [[ "$SRC_AGENTS" -eq "$PLUGIN_AGENTS" ]]; then
-    pass "Agents in sync: src/ ($SRC_AGENTS) = plugins/ork/ ($PLUGIN_AGENTS)"
+if [[ "$EXPECTED_AGENTS" -eq "$PLUGIN_AGENTS" ]]; then
+    pass "Agents in sync: manifest expects $EXPECTED_AGENTS, plugins/ork/ has $PLUGIN_AGENTS"
 else
-    fail "Agents out of sync: src/ ($SRC_AGENTS) != plugins/ork/ ($PLUGIN_AGENTS) - run 'npm run build'"
+    fail "Agents out of sync: manifest expects $EXPECTED_AGENTS, plugins/ork/ has $PLUGIN_AGENTS - run 'npm run build'"
 fi
 
 # -----------------------------------------------------------------------------

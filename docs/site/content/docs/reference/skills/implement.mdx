@@ -30,6 +30,15 @@ Parallel subagent execution for feature implementation with scope control and re
 
 ---
 
+## Argument Resolution
+
+```python
+FEATURE_DESC = "$ARGUMENTS"  # Full argument string, e.g., "user authentication"
+# $ARGUMENTS[0] is the first token, $ARGUMENTS[1] second, etc. (CC 2.1.59)
+```
+
+---
+
 ## Step 0: Project Context Discovery
 
 **BEFORE any work**, detect the project tier. This becomes the complexity ceiling for all patterns.
@@ -78,12 +87,15 @@ AskUserQuestion(questions=[{
   "question": "Isolate this feature in a git worktree?",
   "header": "Isolation",
   "options": [
-    {"label": "Yes — worktree (Recommended)", "description": "Creates isolated branch via EnterWorktree, merges back on completion"},
-    {"label": "No — work in-place", "description": "Edit files directly in current branch"}
+    {"label": "Yes — worktree (Recommended)", "description": "Creates isolated branch via EnterWorktree, merges back on completion", "markdown": "```\nWorktree Isolation\n──────────────────\nmain ─────────────────────────────▶\n  \\                              /\n   └─ feat-{slug} (worktree) ───┘\n      ├── Isolated directory\n      ├── Own branch + index\n      └── Auto-merge on completion\n\nSafe: main stays untouched until done\n```"},
+    {"label": "No — work in-place", "description": "Edit files directly in current branch", "markdown": "```\nIn-Place Editing\n────────────────\nmain ──[edit]──[edit]──[edit]───▶\n       ▲       ▲       ▲\n       │       │       │\n     direct modifications\n\nFast: no branch overhead\nRisk: changes visible immediately\n```"},
+    {"label": "Plan first", "description": "Research and design in plan mode before writing code", "markdown": "```\nPlan Mode Flow\n──────────────\n  1. EnterPlanMode\n  2. Read existing code\n  3. Research patterns\n  4. Design approach\n  5. ExitPlanMode → plan\n  6. User approves plan\n  7. Execute implementation\n\n  Best for: Large features,\n  unfamiliar codebases,\n  architectural decisions\n```"}
   ],
   "multiSelect": false
 }])
 ```
+
+**If 'Plan first' selected:** Call `EnterPlanMode`, perform research using Read/Grep/Glob only, then `ExitPlanMode` with the plan for user approval before proceeding.
 
 If worktree selected:
 1. Call `EnterWorktree(name: "feat-\{slug\}")` to create isolated branch
@@ -235,7 +247,7 @@ All 5 agents launch in ONE message with `run_in_background=true`.
 
 ### Agent 1: Workflow Architect
 ```python
-Task(
+Agent(
   subagent_type="workflow-architect",
   prompt="""ARCHITECTURE PLANNING — SINGLE-PASS OUTPUT
 
@@ -272,7 +284,7 @@ Task(
 
 ### Agent 2: Backend Architect
 ```python
-Task(
+Agent(
   subagent_type="backend-system-architect",
   prompt="""COMPLETE BACKEND ARCHITECTURE — SINGLE PASS
 
@@ -296,7 +308,7 @@ Task(
 
 ### Agent 3: Frontend Developer
 ```python
-Task(
+Agent(
   subagent_type="frontend-ui-developer",
   prompt="""COMPLETE FRONTEND ARCHITECTURE — SINGLE PASS
 
@@ -321,7 +333,7 @@ Task(
 
 ### Agent 4: LLM Integrator
 ```python
-Task(
+Agent(
   subagent_type="llm-integrator",
   prompt="""AI/ML INTEGRATION ANALYSIS — SINGLE PASS
 
@@ -344,7 +356,7 @@ Task(
 
 ### Agent 5: UX Researcher
 ```python
-Task(
+Agent(
   subagent_type="ux-researcher",
   prompt="""UX ANALYSIS — SINGLE PASS
 
@@ -381,7 +393,7 @@ All 5 agents launch in ONE message with `run_in_background=true`.
 
 ### Agent 1: Backend — Complete Implementation
 ```python
-Task(
+Agent(
   subagent_type="backend-system-architect",
   prompt="""IMPLEMENT COMPLETE BACKEND — SINGLE PASS (128K output)
 
@@ -421,7 +433,7 @@ Task(
 
 ### Agent 2: Frontend — Complete Implementation
 ```python
-Task(
+Agent(
   subagent_type="frontend-ui-developer",
   prompt="""IMPLEMENT COMPLETE FRONTEND — SINGLE PASS (128K output)
 
@@ -465,7 +477,7 @@ Task(
 
 ### Agent 3: AI Integration (if needed)
 ```python
-Task(
+Agent(
   subagent_type="llm-integrator",
   prompt="""IMPLEMENT AI INTEGRATION — SINGLE PASS (128K output)
 
@@ -490,7 +502,7 @@ Task(
 
 ### Agent 4: Test Suite — Complete Coverage
 ```python
-Task(
+Agent(
   subagent_type="test-generator",
   prompt="""GENERATE COMPLETE TEST SUITE — SINGLE PASS (128K output)
 
@@ -542,7 +554,7 @@ Task(
 
 ### Agent 5: Design System (optional — skip if existing design)
 ```python
-Task(
+Agent(
   subagent_type="rapid-ui-designer",
   prompt="""DESIGN SYSTEM SPECIFICATIONS — SINGLE PASS (128K output)
 
@@ -609,7 +621,7 @@ npm test -- --coverage
 
 ### Agent 1: Backend Integration
 ```python
-Task(
+Agent(
   subagent_type="backend-system-architect",
   prompt="""BACKEND INTEGRATION VERIFICATION
 
@@ -627,7 +639,7 @@ Task(
 
 ### Agent 2: Frontend Integration
 ```python
-Task(
+Agent(
   subagent_type="frontend-ui-developer",
   prompt="""FRONTEND INTEGRATION VERIFICATION
 
@@ -645,7 +657,7 @@ Task(
 
 ### Agent 3: Code Quality Review
 ```python
-Task(
+Agent(
   subagent_type="code-quality-reviewer",
   prompt="""FULL QUALITY REVIEW — SINGLE PASS (128K output)
 
@@ -663,7 +675,7 @@ Task(
 
 ### Agent 4: Security Audit
 ```python
-Task(
+Agent(
   subagent_type="security-auditor",
   prompt="""SECURITY AUDIT — SINGLE PASS (128K output)
 
@@ -1095,19 +1107,19 @@ In Agent Teams mode, form a team instead of spawning 5 independent Tasks. Teamma
 TeamCreate(team_name="implement-{feature-slug}", description="Architecture for {feature}")
 
 # Spawn 4 teammates (5th role — UX — is lead-managed or optional)
-Task(subagent_type="backend-system-architect", name="backend-architect",
+Agent(subagent_type="backend-system-architect", name="backend-architect",
      team_name="implement-{feature-slug}",
      prompt="Design backend architecture. Message frontend-dev when API contract ready.")
 
-Task(subagent_type="frontend-ui-developer", name="frontend-dev",
+Agent(subagent_type="frontend-ui-developer", name="frontend-dev",
      team_name="implement-{feature-slug}",
      prompt="Design frontend architecture. Wait for API contract from backend-architect.")
 
-Task(subagent_type="test-generator", name="test-engineer",
+Agent(subagent_type="test-generator", name="test-engineer",
      team_name="implement-{feature-slug}",
      prompt="Plan test strategy. Start fixtures immediately, tests as contracts stabilize.")
 
-Task(subagent_type="code-quality-reviewer", name="code-reviewer",
+Agent(subagent_type="code-quality-reviewer", name="code-reviewer",
      team_name="implement-{feature-slug}",
      prompt="Review architecture decisions as they're shared. Flag issues to author directly.")
 ```
@@ -1877,6 +1889,16 @@ Do NOT modify: src/components/, src/features/, src/hooks/
 
 ---
 
+## Config Sharing (CC 2.1.63+)
+
+Project configs and auto-memory are **automatically shared** across worktrees (CC 2.1.63+). No manual setup needed:
+
+- `.claude/settings.json` and `CLAUDE.md` available in every worktree
+- Auto-memory persists — teammates inherit learned patterns
+- Plugins are discovered from any worktree
+
+---
+
 ## Worktree + Agent Teams Checklist
 
 Before spawning teammates:
@@ -1958,6 +1980,15 @@ When running in a worktree, the `context-gate` SubagentStart hook raises concurr
 - `MAX_AGENTS_PER_RESPONSE`: 8 → 12
 
 This is safe because worktree agents operate on an isolated file tree.
+
+## Config Sharing (CC 2.1.63+)
+
+Project configs and auto-memory are **automatically shared** across git worktrees. No manual copying needed:
+
+- `.claude/settings.json` — shared across all worktrees
+- `.claude/memory/` — auto-memory persists across worktrees
+- `CLAUDE.md` — project instructions available in every worktree
+- Plugin configs — plugins discovered from any worktree
 
 ## CLI Alternative
 

@@ -7,7 +7,8 @@
  * Version: 1.0.0 (TypeScript port)
  */
 
-import { existsSync, writeFileSync, mkdirSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync } from 'node:fs';
+import { atomicWriteSync } from '../lib/atomic-write.js';
 import { dirname } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, getProjectDir } from '../lib/common.js';
@@ -83,7 +84,7 @@ function writeJsonFile(filePath: string, data: unknown): void {
   const dir = dirname(filePath);
   ensureDir(dir);
   try {
-    writeFileSync(filePath, JSON.stringify(data, null, 2));
+    atomicWriteSync(filePath, JSON.stringify(data, null, 2));
   } catch {
     // Ignore
   }
@@ -213,7 +214,7 @@ ${output}
 `;
 
   try {
-    writeFileSync(logFile, logContent);
+    atomicWriteSync(logFile, logContent);
   } catch {
     // Ignore
   }

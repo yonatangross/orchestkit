@@ -15,9 +15,9 @@ vi.mock('../../lib/session-tracker.js', () => ({
   trackAgentSpawned: (...args: unknown[]) => mockTrackAgentSpawned(...args),
 }));
 
-const mockGetToolCategory = vi.fn(() => 'general');
+const mockGetToolCategory = vi.fn((_toolName: string) => 'general');
 vi.mock('../../lib/tool-categories.js', () => ({
-  getToolCategory: (...args: unknown[]) => mockGetToolCategory(...args),
+  getToolCategory: (...args: unknown[]) => mockGetToolCategory(...(args as [string])),
 }));
 
 const mockTrackToolAction = vi.fn();

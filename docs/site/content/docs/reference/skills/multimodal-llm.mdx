@@ -1,6 +1,6 @@
 ---
 title: "Multimodal Llm"
-description: "Vision, audio, and multimodal LLM integration patterns. Use when processing images, transcribing audio, generating speech, or building multimodal AI pipelines."
+description: "Vision, audio, video generation, and multimodal LLM integration patterns. Use when processing images, transcribing audio, generating speech, generating AI video (Kling, Sora, Veo, Runway), or building multimodal AI pipelines."
 ---
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-orange">high</span>
@@ -8,7 +8,7 @@ description: "Vision, audio, and multimodal LLM integration patterns. Use when p
 
 # Multimodal LLM Patterns
 
-Integrate vision and audio capabilities from leading multimodal models. Covers image analysis, document understanding, real-time voice agents, speech-to-text, and text-to-speech.
+Integrate vision, audio, and video generation capabilities from leading multimodal models. Covers image analysis, document understanding, real-time voice agents, speech-to-text, text-to-speech, and AI video generation (Kling 3.0, Sora 2, Veo 3.1, Runway Gen-4.5).
 
 ## Quick Reference
 
@@ -20,8 +20,11 @@ Integrate vision and audio capabilities from leading multimodal models. Covers i
 | [Audio: Speech-to-Text](#audio-speech-to-text) | 1 | HIGH | Transcription, speaker diarization, long-form audio |
 | [Audio: Text-to-Speech](#audio-text-to-speech) | 1 | MEDIUM | Voice synthesis, expressive TTS, multi-speaker dialogue |
 | [Audio: Model Selection](#audio-model-selection) | 1 | MEDIUM | Real-time voice agents, provider comparison, pricing |
+| [Video: Model Selection](#video-model-selection) | 1 | HIGH | Choosing video gen provider (Kling, Sora, Veo, Runway) |
+| [Video: API Patterns](#video-api-patterns) | 1 | HIGH | Async task polling, SDK integration, webhook callbacks |
+| [Video: Multi-Shot](#video-multi-shot) | 1 | HIGH | Storyboarding, character elements, scene consistency |
 
-**Total: 6 rules across 2 categories (Vision, Audio)**
+**Total: 9 rules across 3 categories (Vision, Audio, Video Generation)**
 
 ## Vision: Image Analysis
 
@@ -71,6 +74,30 @@ Select the right audio/voice provider for real-time, transcription, or TTS use c
 |------|------|-------------|
 | Audio Models | `rules/audio-models.md` | Real-time voice comparison, STT benchmarks, pricing |
 
+## Video: Model Selection
+
+Choose the right video generation provider based on use case, duration, and budget.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Video Models | `rules/video-generation-models.md` | Kling vs Sora vs Veo vs Runway, pricing, capabilities |
+
+## Video: API Patterns
+
+Integrate video generation APIs with proper async polling, SDKs, and webhook callbacks.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| API Integration | `rules/video-generation-patterns.md` | Kling REST, fal.ai SDK, Vercel AI SDK, task polling |
+
+## Video: Multi-Shot
+
+Generate multi-scene videos with consistent characters using storyboarding and character elements.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Multi-Shot | `rules/video-multi-shot.md` | Kling 3.0 character elements, 6-shot storyboards, identity binding |
+
 ## Key Decisions
 
 | Decision | Recommendation |
@@ -84,6 +111,13 @@ Select the right audio/voice provider for real-time, transcription, or TTS use c
 | Long audio transcription | Gemini 2.5 Pro (9.5hr) |
 | Speaker diarization | AssemblyAI or Gemini |
 | Self-hosted STT | Whisper Large V3 |
+| Character-consistent video | Kling 3.0 (Character Elements 3.0) |
+| Narrative video / storytelling | Sora 2 (best cause-and-effect coherence) |
+| Cinematic B-roll | Veo 3.1 (camera control + polished motion) |
+| Professional VFX | Runway Gen-4.5 (Act-Two motion transfer) |
+| High-volume social video | Kling 3.0 Standard ($0.20/video) |
+| Open-source video gen | Wan 2.6 or LTX-2 |
+| Lip-sync / avatar video | Kling 3.0 (native lip-sync API) |
 
 ## Example
 
@@ -113,17 +147,21 @@ response = client.messages.create(
 5. Not leveraging barge-in support for natural voice conversations
 6. Using deprecated models (GPT-4V, Whisper-1)
 7. Ignoring rate limits on vision and audio endpoints
+8. Calling video generation APIs synchronously (they're async — poll or use callbacks)
+9. Generating separate clips without character elements (characters look different each time)
+10. Using Sora for high-volume social content (expensive, slow — use Kling Standard instead)
 
 ## Related Skills
 
 - `ork:rag-retrieval` - Multimodal RAG with image + text retrieval
 - `ork:llm-integration` - General LLM function calling patterns
 - `streaming-api-patterns` - WebSocket patterns for real-time audio
+- `ork:demo-producer` - Terminal demo videos (VHS, asciinema) — not AI video gen
 
 
 ---
 
-## Rules (6)
+## Rules (9)
 
 ### Select the right audio model architecture to avoid unnecessary pipeline latency — MEDIUM
 
@@ -366,6 +404,287 @@ config = live.LiveConnectConfig(
 - For multi-speaker dialogue, use consistent voice assignments per character
 - Gemini offers 30 HD voices across 24 languages
 - Test with real users — perceived quality varies by use case and language
+
+
+### Select the right video generation model by use case, cost, and output quality — HIGH
+
+
+## Video Generation Model Selection
+
+Choose the right video generation provider based on use case, quality needs, and budget.
+
+**Model comparison (February 2026):**
+
+| Model | Max Duration | Resolution | Native Audio | Multi-Shot | Character Consistency | Best For |
+|-------|-------------|------------|-------------|------------|----------------------|----------|
+| **Kling 3.0/O3** | 15s | 4K/60fps | Yes (multi-speaker) | Yes (6 shots) | Excellent (3+ chars) | Social content, IP, ads |
+| **Sora 2** | 60s | 1080p | Yes | No | Moderate | Narrative, storytelling |
+| **Veo 3.1** | 8s | 4K | Yes | No | Good | Cinematic B-roll, polished explainers |
+| **Runway Gen-4.5** | 10s | 4K | Limited | No | Excellent (Act-Two) | Professional filmmaking |
+| **Wan 2.6** | varies | 1080p | No | No | Good | Open-source, brand narrative |
+| **Pika 2.5** | 5s | 1080p | Limited | No | Low | Viral effects, social |
+
+**Incorrect — using Sora for high-volume social content:**
+```python
+# Wrong: Sora is expensive and slow for volume work
+# $1+ per video, 300-600s generation time
+result = openai.videos.generate(
+    model="sora-2",
+    prompt="Product showcase with character",
+    duration=10,
+)
+# Better: Use Kling 3.0 Standard — $0.20/video, 60-90s, character elements
+```
+
+**Correct — matching model to use case:**
+```python
+# Social/ads volume → Kling 3.0 (cheap, fast, character consistent)
+# Narrative film → Sora 2 (realism, cause-and-effect, 60s duration)
+# Cinematic B-roll → Veo 3.1 (camera control, polished motion)
+# Professional VFX → Runway Gen-4.5 (Act-Two motion transfer)
+# Self-hosted/private → Wan 2.6 or LTX-2 (open-source)
+```
+
+**Pricing comparison (5s video, standard mode):**
+
+| Provider | Kling 3.0 | Sora 2 | Veo 3.1 | Runway Gen-4.5 |
+|----------|-----------|--------|---------|----------------|
+| Official API | ~$0.20 | ChatGPT Plus ($20/mo) | Google AI Pro ($29/mo) | From $12/mo |
+| fal.ai | ~$0.90/10s | — | — | — |
+| Third-party (PiAPI, Segmind) | $0.20-$0.96 | — | — | — |
+
+**Selection guide:**
+
+| Scenario | Recommendation |
+|----------|----------------|
+| Character consistency across shots | Kling 3.0 (Character Elements 3.0, 3+ chars) |
+| Realistic narrative storytelling | Sora 2 (best cause-and-effect coherence) |
+| Cinematic B-roll / product shots | Veo 3.1 (best camera control + motion) |
+| Professional VFX / motion capture | Runway Gen-4.5 (Act-Two motion transfer) |
+| High-volume social content | Kling 3.0 Standard (cheapest, 60-90s gen) |
+| Open-source / self-hosted | Wan 2.6 or LTX-2 |
+| Lip-sync / avatar | Kling 3.0 (native lip-sync API) |
+
+**Key rules:**
+- Kling 3.0 has two variants: **V3** (standard generation) and **O3** (AI Director — better scene composition and physics)
+- Native audio generation doubles credit cost on Kling — disable `sound: false` for silent clips
+- Sora 2 is region-restricted (US/Canada primarily) — check availability before committing
+- Runway Gen-4.5 has no third-party API access — must use Runway's own API
+- Video generation is async — always implement polling or callback patterns for task status
+
+
+### Use async task polling and provider-specific SDKs for reliable video generation — HIGH
+
+
+## Video Generation API Patterns
+
+All video generation APIs are async — submit a task, poll for completion. Never attempt synchronous generation.
+
+**Incorrect — synchronous call expecting immediate result:**
+```python
+# WRONG: Video generation takes 60-300s, this will timeout
+response = requests.post(url, json={"prompt": "..."}, timeout=30)
+video_url = response.json()["video_url"]  # Not available yet!
+```
+
+**Correct — Kling API with task polling:**
+```python
+import requests
+import time
+
+API_KEY = "your-api-key"
+BASE_URL = "https://api.klingai.com/v1"
+
+# 1. Submit generation task
+response = requests.post(
+    f"{BASE_URL}/videos/text2video",
+    headers={"Authorization": f"Bearer {API_KEY}"},
+    json={
+        "model": "kling-v3.0",
+        "prompt": "A chef plating a dish in a modern kitchen, warm lighting",
+        "duration": "5",
+        "aspect_ratio": "16:9",
+        "mode": "std",  # std | pro
+    }
+)
+task_id = response.json()["data"]["task_id"]
+
+# 2. Poll for completion (60-90s typical for Kling)
+while True:
+    status = requests.get(
+        f"{BASE_URL}/videos/text2video/{task_id}",
+        headers={"Authorization": f"Bearer {API_KEY}"},
+    ).json()
+    if status["data"]["status"] == "completed":
+        video_url = status["data"]["video_url"]
+        break
+    elif status["data"]["status"] == "failed":
+        raise RuntimeError(f"Generation failed: {status['data']['error']}")
+    time.sleep(10)
+```
+
+**Correct — fal.ai SDK (serverless, no GPU management):**
+```python
+import fal_client
+
+# Kling V3 text-to-video via fal.ai
+result = fal_client.run(
+    "fal-ai/kling-video/v3/pro/text-to-video",
+    arguments={
+        "prompt": "A knight in weathered armor, cinematic lighting",
+        "duration": "10",
+        "aspect_ratio": "16:9",
+    }
+)
+video_url = result["video"]["url"]
+```
+
+**Correct — Vercel AI SDK (TypeScript):**
+```typescript
+import { klingai, type KlingAIVideoModelOptions } from '@ai-sdk/klingai';
+import { experimental_generateVideo as generateVideo } from 'ai';
+
+// Text-to-video
+const { videos } = await generateVideo({
+  model: klingai.video('kling-v3.0-t2v'),
+  prompt: 'A cat playing in autumn leaves, warm afternoon light',
+  aspectRatio: '16:9',
+  duration: 5,
+  providerOptions: {
+    klingai: { mode: 'std' } satisfies KlingAIVideoModelOptions,
+  },
+});
+
+// Image-to-video with start + end frame
+const { videos: i2v } = await generateVideo({
+  model: klingai.video('kling-v3.0-i2v'),
+  prompt: { image: startFrameUrl, text: 'The subject turns and smiles' },
+  duration: 5,
+  providerOptions: {
+    klingai: {
+      mode: 'pro',        // Pro required for end-frame
+      imageTail: endFrameUrl,
+    } satisfies KlingAIVideoModelOptions,
+  },
+});
+```
+
+**Callback pattern (preferred over polling for production):**
+```python
+# Register a webhook URL when creating the task
+response = requests.post(
+    f"{BASE_URL}/videos/text2video",
+    headers={"Authorization": f"Bearer {API_KEY}"},
+    json={
+        "prompt": "...",
+        "callback_url": "https://your-app.com/api/video-webhook",
+    }
+)
+# Your webhook receives POST with task_id + video_url on completion
+```
+
+**Key rules:**
+- Always implement exponential backoff on polling — don't hammer the API every second
+- Set generation timeout at 10 minutes minimum — complex scenes take longer
+- Kling `mode: "pro"` costs ~2x more than `mode: "std"` but enables end-frame control and higher quality
+- fal.ai and AI SDK abstract the polling — prefer these over raw REST for new projects
+- Store `task_id` persistently — if your process crashes, you can resume polling
+- Validate image URLs are publicly accessible before passing to image-to-video endpoints
+
+
+### Use multi-shot storyboarding and character elements for consistent multi-scene video — HIGH
+
+
+## Multi-Shot Storyboarding & Character Consistency
+
+Kling 3.0+ supports multi-shot generation with character elements for identity-consistent scenes. Without this, characters look different in every clip.
+
+**Incorrect — generating separate clips and hoping characters match:**
+```python
+# WRONG: Each generation creates a different-looking character
+clip1 = generate_video("A woman walks into a café")
+clip2 = generate_video("A woman orders coffee at a counter")
+clip3 = generate_video("A woman sits down and opens a laptop")
+# Result: 3 different women, inconsistent clothing, hair, face
+```
+
+**Correct — Kling 3.0 multi-shot with character elements:**
+```typescript
+import { klingai, type KlingAIVideoModelOptions } from '@ai-sdk/klingai';
+import { experimental_generateVideo as generateVideo } from 'ai';
+
+const { videos } = await generateVideo({
+  model: klingai.video('kling-v3.0-t2v'),
+  prompt: 'A woman walks into a café, orders coffee, and sits down',
+  providerOptions: {
+    klingai: {
+      shot_type: 'customize',
+      // Multi-shot: each shot gets its own prompt and duration
+      multi_prompt: [
+        { prompt: '@Element1 walks into a bright café', duration: 5 },
+        { prompt: '@Element1 orders coffee at the counter, smiling', duration: 5 },
+        { prompt: '@Element1 sits by the window and opens a laptop', duration: 5 },
+      ],
+      // Character element: up to 3 reference images for identity lock
+      elements: [{
+        images: [
+          'https://...frontal-face.jpg',   // Required: frontal view
+          'https://...side-profile.jpg',    // Optional: side angle
+          'https://...full-body.jpg',       // Optional: full body
+        ],
+        // Optional: assign a voice to this character
+        voice_id: 'voice_abc123',
+      }],
+    } satisfies KlingAIVideoModelOptions,
+  },
+});
+```
+
+**Correct — Kling REST API multi-shot (direct):**
+```python
+response = requests.post(
+    f"{BASE_URL}/videos/text2video",
+    headers={"Authorization": f"Bearer {API_KEY}"},
+    json={
+        "model": "kling-v3.0",
+        "mode": "pro",
+        "shot_type": "customize",
+        "multi_prompt": [
+            {"prompt": "@Element1 enters a modern office", "duration": 5},
+            {"prompt": "@Element1 presents to a group, gesturing at a screen", "duration": 5},
+        ],
+        "elements": [{
+            "images": ["https://...frontal.jpg", "https://...profile.jpg"]
+        }],
+        "aspect_ratio": "16:9",
+    }
+)
+```
+
+**Character element best practices:**
+
+| Guideline | Reason |
+|-----------|--------|
+| Always include a **frontal face** image | Required for identity lock — model needs clear face features |
+| Add **side profile** as 2nd image | Prevents hallucination when character turns |
+| Add **full body** as 3rd image | Locks clothing, posture, proportions across shots |
+| Max 3 images per element | API limit — choose the 3 most informative angles |
+| Reference as `@Element1`, `@Element2` | Prompt syntax for character binding in multi-shot |
+| Max 3+ characters in one scene | Kling O3 supports multi-character coreference |
+
+**Scene transition controls:**
+- Up to **6 shots** per generation with customizable per-shot duration
+- Each shot can have independent camera movement and prompt
+- Kling handles transitions between shots automatically
+- Total duration: sum of all shot durations (max 15s total)
+
+**Key rules:**
+- Multi-shot requires `mode: "pro"` — standard mode only supports single-shot
+- Character elements only work with Kling 3.0+ — earlier versions have no identity binding
+- Reference images must be publicly accessible HTTPS URLs (no local files)
+- Use descriptive prompts per shot — "walks left" is better than "moves" for camera planning
+- For 3+ character scenes, use Kling O3 (not V3) — O3 has better multi-character coreference
+- Voice IDs are optional — get them from the Kling create-voice endpoint first
 
 
 ### Process documents with vision models using page ranges to avoid context overflow — HIGH

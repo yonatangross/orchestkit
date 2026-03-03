@@ -1,7 +1,7 @@
 ---
 name: create-test-case
 description: Create test case with auto-detected test framework and patterns. Use when creating test cases.
-user-invocable: true
+user-invocable: false
 argument-hint: [component-name]
 ---
 

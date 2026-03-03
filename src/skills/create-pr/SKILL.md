@@ -1,7 +1,7 @@
 ---
 name: create-pr
 license: MIT
-compatibility: "Claude Code 2.1.56+. Requires memory MCP server, gh CLI."
+compatibility: "Claude Code 2.1.59+. Requires memory MCP server, gh CLI."
 description: "Creates GitHub pull requests with validation. Use when opening PRs or submitting code for review."
 argument-hint: "[title]"
 context: fork
@@ -10,6 +10,7 @@ version: 2.3.0
 author: OrchestKit
 tags: [git, github, pull-request, pr, code-review]
 user-invocable: true
+disable-model-invocation: true
 allowed-tools: [AskUserQuestion, Bash, Task, TaskCreate, TaskUpdate, mcp__memory__search_nodes]
 skills: [commit, review-pr, memory]
 complexity: medium
@@ -26,6 +27,15 @@ Comprehensive PR creation with validation. All output goes directly to GitHub PR
 
 ```bash
 /ork:create-pr
+/ork:create-pr "Add user authentication"
+```
+
+## Argument Resolution
+
+```python
+TITLE = "$ARGUMENTS"  # Optional PR title, e.g., "Add user authentication"
+# If provided, use as PR title. If empty, generate from branch/commits.
+# $ARGUMENTS[0] is the first token (CC 2.1.59 indexed access)
 ```
 
 ---

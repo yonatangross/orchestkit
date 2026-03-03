@@ -107,7 +107,7 @@ OrchestKit supports both modes. The decision is based on task complexity:
 
 ### 3.2 Agent-to-Teammate Mapping
 
-OrchestKit's 36 agents become **teammate templates**. The lead selects which specialists to spawn based on the task:
+OrchestKit's 38 agents become **teammate templates**. The lead selects which specialists to spawn based on the task:
 
 ```yaml
 # Agent frontmatter (src/agents/backend-system-architect.md)

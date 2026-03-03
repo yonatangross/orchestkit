@@ -1,17 +1,22 @@
 ---
 name: audit-full
 license: MIT
-compatibility: "Claude Code 2.1.56+. Requires memory MCP server."
+compatibility: "Claude Code 2.1.59+. Requires memory MCP server."
 description: "Full-codebase audit using 1M context window. Security, architecture, and dependency analysis in a single pass. Use when you need whole-project analysis."
 argument-hint: "[scope]"
 context: fork
 version: 1.0.0
 author: OrchestKit
 tags: [security, architecture, audit, dependencies, 1m-context, cross-file]
-user-invocable: true
+user-invocable: false
 allowed-tools: [AskUserQuestion, Read, Grep, Glob, Bash, Task, TaskCreate, TaskUpdate, TaskList, mcp__memory__search_nodes]
 skills: [security-patterns, architecture-patterns, quality-gates]
 complexity: max
+model: opus
+hooks:
+  PreToolUse:
+    - matcher: "Read"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs skill/audit-context-loader"
 metadata:
   category: document-asset-creation
   mcp-server: memory
@@ -47,20 +52,20 @@ AskUserQuestion(
       "question": "What type of audit do you want to run?",
       "header": "Audit mode",
       "options": [
-        {"label": "Full audit (Recommended)", "description": "Security + architecture + dependencies in one pass"},
-        {"label": "Security audit", "description": "Cross-file vulnerability analysis, data flow tracing, OWASP mapping"},
-        {"label": "Architecture review", "description": "Pattern consistency, coupling analysis, dependency violations"},
-        {"label": "Dependency audit", "description": "License compliance, CVE checking, version currency"}
+        {"label": "Full audit (Recommended)", "description": "Security + architecture + dependencies in one pass", "markdown": "```\nFull Audit (1M context)\n───────────────────────\n  Load entire codebase ──▶\n  ┌────────────────────────┐\n  │ Security    OWASP Top10│\n  │ Architecture  patterns │\n  │ Dependencies  CVEs     │\n  │ Cross-file   data flow │\n  └────────────────────────┘\n  Single pass: Opus 4.6 sees\n  ALL files simultaneously\n  Output: Prioritized findings\n```"},
+        {"label": "Security audit", "description": "Cross-file vulnerability analysis, data flow tracing, OWASP mapping", "markdown": "```\nSecurity Audit\n──────────────\n  ┌──────────────────────┐\n  │ OWASP mapping        │\n  │ Data flow tracing    │\n  │   input ──▶ DB ──▶ output\n  │ Cross-file vulns     │\n  │ Auth/AuthZ review    │\n  │ Secret detection     │\n  └──────────────────────┘\n  Finds vulns that chunked\n  analysis misses\n```"},
+        {"label": "Architecture review", "description": "Pattern consistency, coupling analysis, dependency violations", "markdown": "```\nArchitecture Review\n───────────────────\n  ┌──────────────────────┐\n  │ Pattern consistency  │\n  │ Coupling metrics     │\n  │   A ←→ B  (tight)   │\n  │   C ──▶ D  (clean)  │\n  │ Dependency violations│\n  │ Layer enforcement    │\n  └──────────────────────┘\n  Cross-file analysis of\n  architectural integrity\n```"},
+        {"label": "Dependency audit", "description": "License compliance, CVE checking, version currency", "markdown": "```\nDependency Audit\n────────────────\n  ┌──────────────────────┐\n  │ CVE scan       N vuls│\n  │ License check  ✓/✗   │\n  │ Version drift  N old │\n  │ Unused deps    N     │\n  │ Transitive risk      │\n  └──────────────────────┘\n  npm audit + pip-audit +\n  license compatibility\n```"}
       ],
-      "multiSelect": false
+      "multiSelect": true
     },
     {
       "question": "What should be audited?",
       "header": "Scope",
       "options": [
-        {"label": "Entire codebase", "description": "Load all source files into context"},
-        {"label": "Specific directory", "description": "Focus on a subdirectory (e.g., src/api/)"},
-        {"label": "Changed files only", "description": "Audit only files changed vs main branch"}
+        {"label": "Entire codebase", "description": "Load all source files into context", "markdown": "```\nEntire Codebase\n───────────────\n  Load ALL source files\n  into 1M context window\n\n  Best for: first audit,\n  full security review,\n  architecture assessment\n  ⚠ Requires Tier 4+ API\n```"},
+        {"label": "Specific directory", "description": "Focus on a subdirectory (e.g., src/api/)", "markdown": "```\nSpecific Directory\n──────────────────\n  Load one subtree:\n  src/api/ or src/auth/\n\n  Best for: targeted review,\n  post-change validation,\n  smaller context budget\n```"},
+        {"label": "Changed files only", "description": "Audit only files changed vs main branch", "markdown": "```\nChanged Files Only\n──────────────────\n  git diff main...HEAD\n  Load only modified files\n\n  Best for: pre-merge check,\n  PR-scoped audit,\n  incremental review\n```"}
       ],
       "multiSelect": false
     }

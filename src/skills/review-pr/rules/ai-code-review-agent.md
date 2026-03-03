@@ -10,7 +10,7 @@ tags: ai-review, code-review, agent
 If PR includes AI/ML code, add a 7th agent:
 
 ```python
-Task(
+Agent(
   description="Review LLM integration",
   subagent_type="llm-integrator",
   prompt="""LLM CODE REVIEW for PR $ARGUMENTS
@@ -31,8 +31,8 @@ Task(
 **Incorrect — Missing LLM review for AI code:**
 ```python
 # PR modifies prompt.py but no LLM reviewer
-Task(subagent_type="code-quality-reviewer", ...)
-Task(subagent_type="security-auditor", ...)
+Agent(subagent_type="code-quality-reviewer", ...)
+Agent(subagent_type="security-auditor", ...)
 # Missing: LLM-specific review
 ```
 
@@ -40,5 +40,5 @@ Task(subagent_type="security-auditor", ...)
 ```python
 # Detect AI/ML changes, add specialized reviewer
 if pr_contains_llm_code:
-    Task(subagent_type="llm-integrator", prompt="LLM CODE REVIEW...", run_in_background=True)
+    Agent(subagent_type="llm-integrator", prompt="LLM CODE REVIEW...", run_in_background=True)
 ```

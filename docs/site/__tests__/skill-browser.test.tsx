@@ -17,7 +17,7 @@ vi.mock("@/lib/generated/skills-data", () => {
       skills: [],
       agent: null,
       structure: {},
-      plugins: ["orkl", "ork"],
+      plugins: ["ork"],
       relatedAgents: ["frontend-ui-developer", "backend-system-architect"],
     },
     "fastapi-advanced": {
@@ -77,7 +77,7 @@ vi.mock("@/lib/generated/skills-data", () => {
       skills: [],
       agent: "test-generator",
       structure: {},
-      plugins: ["orkl", "ork"],
+      plugins: ["ork"],
       relatedAgents: ["test-generator"],
     },
   };
@@ -224,7 +224,7 @@ describe("SkillBrowser", () => {
     expect(screen.getByRole("status")).toHaveTextContent("5");
   });
 
-  it("renders plugin filter group with All, orkl, ork buttons", () => {
+  it("renders plugin filter group with All, ork buttons", () => {
     render(<SkillBrowser />);
     const group = screen.getByRole("group", { name: "Filter by plugin" });
     expect(group).toBeInTheDocument();
@@ -234,17 +234,17 @@ describe("SkillBrowser", () => {
     expect(allBtn).toHaveAttribute("aria-pressed", "true");
   });
 
-  it("filters by plugin when plugin button is clicked", () => {
+  it("filters by plugin when ork button is clicked", () => {
     render(<SkillBrowser />);
 
-    // Click orkl filter — implement and e2e-testing are in orkl
-    const orklBtn = screen.getByRole("button", { name: "orkl" });
-    fireEvent.click(orklBtn);
+    // Click ork filter — all skills are in ork (v7 unified plugin)
+    const orkBtn = screen.getByRole("button", { name: "ork" });
+    fireEvent.click(orkBtn);
 
-    expect(screen.getByRole("status")).toHaveTextContent("2");
+    expect(screen.getByRole("status")).toHaveTextContent("5");
     expect(screen.getByText("implement")).toBeInTheDocument();
     expect(screen.getByText("e2e-testing")).toBeInTheDocument();
-    expect(screen.queryByText("fastapi-advanced")).not.toBeInTheDocument();
+    expect(screen.getByText("fastapi-advanced")).toBeInTheDocument();
   });
 
   it("shows Command badge for user-invocable skills", () => {

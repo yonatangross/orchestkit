@@ -39,7 +39,7 @@ name, description, tags, version, author, user-invocable, complexity
 name: my-skill
 description: Does something
 tags: [tag]
-user-invocable: true
+user-invocable: false
 complexity: low
 ```
 
@@ -50,7 +50,7 @@ description: Does something. Use when X.
 tags: [tag1, tag2]
 version: 2.0.0
 author: OrchestKit
-user-invocable: true
+user-invocable: false
 complexity: low
 ```
 
@@ -85,12 +85,7 @@ Exception: orchestration skills (`implement`, `explore`, `verify`, `brainstormin
 
 ### Check 6: Manifest Registration
 
-Check whether the skill appears in `manifests/ork.json` or `manifests/orkl.json`.
-
-**Incorrect:**
-```bash
-# Checking only orkl.json — misses skills covered by ork.json "all"
-```
+Check whether the skill appears in `manifests/ork.json`.
 
 **Correct:**
 ```python

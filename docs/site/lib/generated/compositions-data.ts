@@ -18,7 +18,7 @@ export const COMPOSITIONS: Composition[] = [
     "folder": "Production/Landscape-16x9/Core-Skills",
     "category": "core",
     "primaryColor": "#8b5cf6",
-    "relatedPlugin": "orkl",
+    "relatedPlugin": "ork",
     "tags": [
       "core",
       "landscape",
@@ -41,7 +41,7 @@ export const COMPOSITIONS: Composition[] = [
     "folder": "Production/Landscape-16x9/Core-Skills",
     "category": "core",
     "primaryColor": "#22c55e",
-    "relatedPlugin": "orkl",
+    "relatedPlugin": "ork",
     "tags": [
       "core",
       "landscape",
@@ -63,7 +63,7 @@ export const COMPOSITIONS: Composition[] = [
     "folder": "Production/Landscape-16x9/Core-Skills",
     "category": "core",
     "primaryColor": "#06b6d4",
-    "relatedPlugin": "orkl",
+    "relatedPlugin": "ork",
     "tags": [
       "core",
       "landscape",
@@ -85,7 +85,7 @@ export const COMPOSITIONS: Composition[] = [
     "folder": "Production/Landscape-16x9/Core-Skills",
     "category": "core",
     "primaryColor": "#06b6d4",
-    "relatedPlugin": "orkl",
+    "relatedPlugin": "ork",
     "tags": [
       "core",
       "landscape",
@@ -107,7 +107,7 @@ export const COMPOSITIONS: Composition[] = [
     "folder": "Production/Landscape-16x9/Memory-Skills",
     "category": "memory",
     "primaryColor": "#8b5cf6",
-    "relatedPlugin": "orkl",
+    "relatedPlugin": "ork",
     "tags": [
       "memory",
       "landscape",
@@ -129,7 +129,7 @@ export const COMPOSITIONS: Composition[] = [
     "folder": "Production/Landscape-16x9/Memory-Skills",
     "category": "memory",
     "primaryColor": "#06b6d4",
-    "relatedPlugin": "orkl",
+    "relatedPlugin": "ork",
     "tags": [
       "memory",
       "landscape",
@@ -150,7 +150,7 @@ export const COMPOSITIONS: Composition[] = [
     "folder": "Production/Landscape-16x9/Review-Skills",
     "category": "review",
     "primaryColor": "#f97316",
-    "relatedPlugin": "orkl",
+    "relatedPlugin": "ork",
     "tags": [
       "review",
       "landscape",
@@ -172,7 +172,7 @@ export const COMPOSITIONS: Composition[] = [
     "folder": "Production/Landscape-16x9/Review-Skills",
     "category": "review",
     "primaryColor": "#22c55e",
-    "relatedPlugin": "orkl",
+    "relatedPlugin": "ork",
     "tags": [
       "review",
       "landscape",
@@ -194,7 +194,7 @@ export const COMPOSITIONS: Composition[] = [
     "folder": "Production/Landscape-16x9/Review-Skills",
     "category": "review",
     "primaryColor": "#ef4444",
-    "relatedPlugin": "orkl",
+    "relatedPlugin": "ork",
     "tags": [
       "review",
       "landscape",
@@ -216,7 +216,7 @@ export const COMPOSITIONS: Composition[] = [
     "folder": "Production/Landscape-16x9/DevOps-Skills",
     "category": "devops",
     "primaryColor": "#ef4444",
-    "relatedPlugin": "orkl",
+    "relatedPlugin": "ork",
     "tags": [
       "devops",
       "landscape",
@@ -238,7 +238,7 @@ export const COMPOSITIONS: Composition[] = [
     "folder": "Production/Landscape-16x9/DevOps-Skills",
     "category": "devops",
     "primaryColor": "#f59e0b",
-    "relatedPlugin": "orkl",
+    "relatedPlugin": "ork",
     "tags": [
       "devops",
       "landscape",
@@ -260,7 +260,7 @@ export const COMPOSITIONS: Composition[] = [
     "folder": "Production/Landscape-16x9/AI-Skills",
     "category": "ai",
     "primaryColor": "#f59e0b",
-    "relatedPlugin": "orkl",
+    "relatedPlugin": "ork",
     "tags": [
       "ai",
       "landscape",
@@ -283,7 +283,7 @@ export const COMPOSITIONS: Composition[] = [
     "folder": "Production/Landscape-16x9/AI-Skills",
     "category": "ai",
     "primaryColor": "#22c55e",
-    "relatedPlugin": "orkl",
+    "relatedPlugin": "ork",
     "tags": [
       "ai",
       "landscape",
@@ -305,7 +305,7 @@ export const COMPOSITIONS: Composition[] = [
     "folder": "Production/Landscape-16x9/Advanced-Skills",
     "category": "advanced",
     "primaryColor": "#ec4899",
-    "relatedPlugin": "orkl",
+    "relatedPlugin": "ork",
     "tags": [
       "advanced",
       "landscape",

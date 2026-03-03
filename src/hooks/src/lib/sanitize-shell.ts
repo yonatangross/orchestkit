@@ -79,3 +79,14 @@ export function assertSafeIssueNumber(num: string): string {
   }
   return num;
 }
+
+/**
+ * Validate that a session ID is safe for use in file paths and shell contexts.
+ * Allows: alphanumeric, dots, hyphens, underscores.
+ * Rejects: path separators, shell metacharacters, spaces.
+ * Returns sanitized string (unsafe chars replaced with '_'), never throws.
+ */
+export function sanitizeSessionId(sessionId: string): string {
+  if (!sessionId) return '';
+  return sessionId.replace(/[^a-zA-Z0-9._-]/g, '_');
+}

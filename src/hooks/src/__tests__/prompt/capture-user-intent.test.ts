@@ -184,7 +184,7 @@ describe('prompt/capture-user-intent', () => {
     mockOutputSilentSuccess.mockReturnValue({ continue: true, suppressOutput: true });
     mockDetectUserIntent.mockReturnValue(createMockIntentResult());
     mockExistsSync.mockReturnValue(true);
-    mockStoreDecision.mockResolvedValue({ local: true, graph_queued: true });
+    mockStoreDecision.mockResolvedValue({ graph_operations: [], cc_native: false });
     mockCreateDecisionRecord.mockImplementation((_type: string, _content: unknown, _entities: string[], _meta: unknown) => ({
       id: 'mock-record-id',
       type: _type as 'decision' | 'preference',
@@ -264,7 +264,7 @@ describe('prompt/capture-user-intent', () => {
   describe('skip empty/undefined prompts', () => {
     it('should handle null-ish prompt gracefully', () => {
       const input = createPromptInput('');
-      (input as Record<string, unknown>).prompt = null;
+      (input as unknown as Record<string, unknown>).prompt = null;
       const result = captureUserIntent(input);
 
       expect(result.continue).toBe(true);
@@ -273,7 +273,7 @@ describe('prompt/capture-user-intent', () => {
 
     it('should handle missing prompt field', () => {
       const input = createPromptInput('');
-      delete (input as Record<string, unknown>).prompt;
+      delete (input as unknown as Record<string, unknown>).prompt;
       const result = captureUserIntent(input);
 
       expect(result.continue).toBe(true);
@@ -883,7 +883,7 @@ describe('prompt/capture-user-intent', () => {
       mockDetectUserIntent.mockReturnValue(mockResult);
 
       const input = createPromptInput('Missing session test case');
-      delete (input as Record<string, unknown>).session_id;
+      delete (input as unknown as Record<string, unknown>).session_id;
       captureUserIntent(input);
 
       const writtenData = mockAppendFileSync.mock.calls[0][1] as string;

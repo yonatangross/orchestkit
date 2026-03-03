@@ -42,7 +42,7 @@ echo "▶ Test 1: 'Activates for' pattern extraction"
 echo "──────────────────────────────────────"
 
 # Find agents using "Activates for" pattern
-ACTIVATES_FOR_AGENTS=$(grep -l "Activates for" "$PROJECT_ROOT/src/agents"/*.md 2>/dev/null | wc -l | tr -d ' ')
+ACTIVATES_FOR_AGENTS=$({ grep -l "Activates for" "$PROJECT_ROOT/src/agents"/*.md 2>/dev/null || true; } | wc -l | tr -d ' ')
 
 if [[ "$ACTIVATES_FOR_AGENTS" -gt 0 ]]; then
     pass "Found $ACTIVATES_FOR_AGENTS agents with 'Activates for' pattern"
@@ -73,7 +73,7 @@ echo ""
 echo "▶ Test 2: 'Auto Mode keywords' pattern extraction"
 echo "──────────────────────────────────────"
 
-AUTO_MODE_AGENTS=$(grep -lE "Auto Mode keywords" "$PROJECT_ROOT/src/agents"/*.md 2>/dev/null | wc -l | tr -d ' ')
+AUTO_MODE_AGENTS=$({ grep -lE "Auto Mode keywords" "$PROJECT_ROOT/src/agents"/*.md 2>/dev/null || true; } | wc -l | tr -d ' ')
 
 if [[ "$AUTO_MODE_AGENTS" -gt 0 ]]; then
     pass "Found $AUTO_MODE_AGENTS agents with 'Auto Mode keywords' pattern"
@@ -89,7 +89,7 @@ echo ""
 echo "▶ Test 3: 'Use for' pattern extraction"
 echo "──────────────────────────────────────"
 
-USE_FOR_AGENTS=$(grep -l "Use for" "$PROJECT_ROOT/src/agents"/*.md 2>/dev/null | wc -l | tr -d ' ')
+USE_FOR_AGENTS=$({ grep -l "Use for" "$PROJECT_ROOT/src/agents"/*.md 2>/dev/null || true; } | wc -l | tr -d ' ')
 
 if [[ "$USE_FOR_AGENTS" -gt 0 ]]; then
     pass "Found $USE_FOR_AGENTS agents with 'Use for' pattern"

@@ -9,9 +9,10 @@
  * Version: 1.0.0 (TypeScript port)
  */
 
-import { existsSync, writeFileSync, mkdirSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { bufferWrite } from '../lib/analytics-buffer.js';
 import { dirname } from 'node:path';
+import { atomicWriteSync } from '../lib/atomic-write.js';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, getProjectDir } from '../lib/common.js';
 
@@ -151,7 +152,7 @@ function queueSpawn(
   queue.queue.push(request);
 
   try {
-    writeFileSync(spawnQueue, JSON.stringify(queue, null, 2));
+    atomicWriteSync(spawnQueue, JSON.stringify(queue, null, 2));
     logSpawn(`Queued spawn request: ${spawnId} for ${targetAgent} (reason: ${triggerReason})`);
   } catch {
     logSpawn(`ERROR: Failed to queue spawn request for ${targetAgent}`);
@@ -191,7 +192,7 @@ function writeSpawnSuggestion(
   };
 
   try {
-    writeFileSync(suggestionFile, JSON.stringify(suggestion, null, 2));
+    atomicWriteSync(suggestionFile, JSON.stringify(suggestion, null, 2));
     logSpawn(`Created spawn suggestion: ${targetAgent} (reason: ${triggerReason})`);
   } catch {
     // Ignore

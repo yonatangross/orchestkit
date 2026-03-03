@@ -11,7 +11,7 @@ Launch 4 specialized explorers in ONE message with `run_in_background: true`:
 
 ```python
 # PARALLEL - All 4 in ONE message
-Task(
+Agent(
   subagent_type="Explore",
   prompt="""Code Structure: Find all files, classes, functions related to: $ARGUMENTS
 
@@ -22,7 +22,7 @@ Task(
   run_in_background=True,
   max_turns=25
 )
-Task(
+Agent(
   subagent_type="Explore",
   prompt="""Data Flow: Trace entry points, processing, storage for: $ARGUMENTS
 
@@ -33,7 +33,7 @@ Task(
   run_in_background=True,
   max_turns=25
 )
-Task(
+Agent(
   subagent_type="backend-system-architect",
   prompt="""Backend Patterns: Analyze architecture patterns, integrations, dependencies for: $ARGUMENTS
 
@@ -44,7 +44,7 @@ Task(
   run_in_background=True,
   max_turns=25
 )
-Task(
+Agent(
   subagent_type="frontend-ui-developer",
   prompt="""Frontend Analysis: Find components, state management, routes for: $ARGUMENTS
 
@@ -66,24 +66,24 @@ Task(
 
 **Incorrect — Sequential exploration:**
 ```python
-Task(subagent_type="Explore", prompt="Find auth files")
+Agent(subagent_type="Explore", prompt="Find auth files")
 # Wait...
-Task(subagent_type="Explore", prompt="Trace auth flow")
+Agent(subagent_type="Explore", prompt="Trace auth flow")
 # Wait...
-Task(subagent_type="backend-system-architect", prompt="Analyze patterns")
+Agent(subagent_type="backend-system-architect", prompt="Analyze patterns")
 # Slow, sequential
 ```
 
 **Correct — Parallel exploration in one message:**
 ```python
 # All 4 in ONE message with run_in_background: true
-Task(subagent_type="Explore", prompt="Code Structure: Find all files related to auth",
+Agent(subagent_type="Explore", prompt="Code Structure: Find all files related to auth",
      run_in_background=True, max_turns=25)
-Task(subagent_type="Explore", prompt="Data Flow: Trace auth entry→storage",
+Agent(subagent_type="Explore", prompt="Data Flow: Trace auth entry→storage",
      run_in_background=True, max_turns=25)
-Task(subagent_type="backend-system-architect", prompt="Backend Patterns: Analyze auth architecture",
+Agent(subagent_type="backend-system-architect", prompt="Backend Patterns: Analyze auth architecture",
      run_in_background=True, max_turns=25)
-Task(subagent_type="frontend-ui-developer", prompt="Frontend: Find auth components",
+Agent(subagent_type="frontend-ui-developer", prompt="Frontend: Find auth components",
      run_in_background=True, max_turns=25)
 # Parallel execution
 ```

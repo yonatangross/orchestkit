@@ -5,13 +5,11 @@
 # Validates that plugins are ordered correctly in marketplace.json:
 # if plugin A depends on plugin B, B must appear BEFORE A in the list.
 #
-# Also checks that orkl (universal toolkit) is listed first and
-# ork (full specialized) is listed last in the two-tier system.
+# v7 unified architecture: ork is the single plugin.
 #
 # Tests:
-# 1. Dependencies must appear before their dependents
-# 2. orkl must be the first plugin listed (two-tier)
-# 3. ork must be the last plugin listed (two-tier)
+# 1. ork must be the first plugin listed
+# 2. Dependencies must appear before their dependents
 #
 # Related: GitHub Issue #252 (Plugin Consolidation)
 # Usage: ./test-marketplace-ordering.sh [--verbose]
@@ -75,42 +73,25 @@ PLUGIN_COUNT=$(jq '.plugins | length' "$MARKETPLACE_JSON")
 log_info "Marketplace has $PLUGIN_COUNT plugins"
 
 # ============================================================================
-# CHECK 1: orkl must be listed first (two-tier system)
+# CHECK 1: ork (primary) must be listed first
 # ============================================================================
 echo "───────────────────────────────────────────────────────────────"
-echo "  Check 1: orkl should be first (universal toolkit)"
+echo "  Check 1: ork should be first (primary plugin)"
 echo "───────────────────────────────────────────────────────────────"
 
 first_plugin=$(jq -r '.plugins[0].name' "$MARKETPLACE_JSON")
-if [[ "$first_plugin" == "orkl" ]]; then
-    log_pass "orkl is the first plugin listed"
+if [[ "$first_plugin" == "ork" ]]; then
+    log_pass "ork is the first plugin listed"
 else
-    log_fail "orkl should be first but position 0 is '$first_plugin'"
+    log_fail "ork should be first but position 0 is '$first_plugin'"
 fi
 
 # ============================================================================
-# CHECK 2: ork (meta) must be listed last
+# CHECK 2: Dependencies must appear before dependents
 # ============================================================================
 echo ""
 echo "───────────────────────────────────────────────────────────────"
-echo "  Check 2: ork (meta umbrella) should be last"
-echo "───────────────────────────────────────────────────────────────"
-
-last_index=$((PLUGIN_COUNT - 1))
-last_plugin=$(jq -r ".plugins[$last_index].name" "$MARKETPLACE_JSON")
-if [[ "$last_plugin" == "ork" ]]; then
-    log_pass "ork (meta) is the last plugin listed"
-else
-    ork_pos=$(get_position "ork")
-    log_fail "ork (meta) should be last (position $last_index) but is at position $ork_pos — '$last_plugin' is last"
-fi
-
-# ============================================================================
-# CHECK 3: Dependencies must appear before dependents
-# ============================================================================
-echo ""
-echo "───────────────────────────────────────────────────────────────"
-echo "  Check 3: Dependency ordering (deps before dependents)"
+echo "  Check 2: Dependency ordering (deps before dependents)"
 echo "───────────────────────────────────────────────────────────────"
 
 for manifest in "$MANIFESTS_DIR"/*.json; do
@@ -143,24 +124,19 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
 done
 
 # ============================================================================
-# CHECK 4: Two-tier ordering (orkl before ork)
+# CHECK 3: All plugins have consistent versions
 # ============================================================================
 echo ""
 echo "───────────────────────────────────────────────────────────────"
-echo "  Check 4: Two-tier plugin ordering"
+echo "  Check 3: Version consistency across marketplace entries"
 echo "───────────────────────────────────────────────────────────────"
 
-lite_pos=$(get_position "orkl")
-ork_pos=$(get_position "ork")
-
-if [[ -n "$lite_pos" && -n "$ork_pos" ]]; then
-    if [[ "$lite_pos" -lt "$ork_pos" ]]; then
-        log_pass "orkl (pos $lite_pos) before ork (pos $ork_pos)"
-    else
-        log_fail "orkl (pos $lite_pos) should be before ork (pos $ork_pos)"
-    fi
+unique_versions=$(jq -r '.plugins[].version' "$MARKETPLACE_JSON" | sort -u | wc -l | tr -d ' ')
+if [[ "$unique_versions" -eq 1 ]]; then
+    version=$(jq -r '.plugins[0].version' "$MARKETPLACE_JSON")
+    log_pass "All plugins at version $version"
 else
-    log_pass "Two-tier system: orkl and ork plugins found"
+    log_fail "Plugins have inconsistent versions: $(jq -r '.plugins[] | "\(.name)=\(.version)"' "$MARKETPLACE_JSON" | tr '\n' ' ')"
 fi
 
 # Summary

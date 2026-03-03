@@ -1,6 +1,6 @@
 ---
 description: "Full-power feature implementation with parallel subagents. Use when implementing, building, or creating features."
-allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, mcp__context7__query_docs, mcp__memory__search_nodes]
+allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskOutput, TaskStop, mcp__context7__query_docs, mcp__memory__search_nodes]
 ---
 
 # Auto-generated from skills/implement/SKILL.md
@@ -17,6 +17,14 @@ Parallel subagent execution for feature implementation with scope control and re
 /ork:implement user authentication
 /ork:implement real-time notifications
 /ork:implement dashboard analytics
+```
+
+
+## Argument Resolution
+
+```python
+FEATURE_DESC = "$ARGUMENTS"  # Full argument string, e.g., "user authentication"
+# $ARGUMENTS[0] is the first token, $ARGUMENTS[1] second, etc. (CC 2.1.59)
 ```
 
 
@@ -68,12 +76,15 @@ AskUserQuestion(questions=[{
   "question": "Isolate this feature in a git worktree?",
   "header": "Isolation",
   "options": [
-    {"label": "Yes — worktree (Recommended)", "description": "Creates isolated branch via EnterWorktree, merges back on completion"},
-    {"label": "No — work in-place", "description": "Edit files directly in current branch"}
+    {"label": "Yes — worktree (Recommended)", "description": "Creates isolated branch via EnterWorktree, merges back on completion", "markdown": "```\nWorktree Isolation\n──────────────────\nmain ─────────────────────────────▶\n  \\                              /\n   └─ feat-{slug} (worktree) ───┘\n      ├── Isolated directory\n      ├── Own branch + index\n      └── Auto-merge on completion\n\nSafe: main stays untouched until done\n```"},
+    {"label": "No — work in-place", "description": "Edit files directly in current branch", "markdown": "```\nIn-Place Editing\n────────────────\nmain ──[edit]──[edit]──[edit]───▶\n       ▲       ▲       ▲\n       │       │       │\n     direct modifications\n\nFast: no branch overhead\nRisk: changes visible immediately\n```"},
+    {"label": "Plan first", "description": "Research and design in plan mode before writing code", "markdown": "```\nPlan Mode Flow\n──────────────\n  1. EnterPlanMode\n  2. Read existing code\n  3. Research patterns\n  4. Design approach\n  5. ExitPlanMode → plan\n  6. User approves plan\n  7. Execute implementation\n\n  Best for: Large features,\n  unfamiliar codebases,\n  architectural decisions\n```"}
   ],
   "multiSelect": false
 }])
 ```
+
+**If 'Plan first' selected:** Call `EnterPlanMode`, perform research using Read/Grep/Glob only, then `ExitPlanMode` with the plan for user approval before proceeding.
 
 If worktree selected:
 1. Call `EnterWorktree(name: "feat-{slug}")` to create isolated branch

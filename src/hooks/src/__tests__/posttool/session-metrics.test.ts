@@ -10,6 +10,11 @@ vi.mock('node:fs', () => ({
   writeFileSync: (...args: unknown[]) => mockWriteFileSync(...args),
 }));
 
+// Mock atomic-write so atomicWriteSync delegates to mockWriteFileSync
+vi.mock('../../lib/atomic-write.js', () => ({
+  atomicWriteSync: (path: string, content: string) => mockWriteFileSync(path, content),
+}));
+
 vi.mock('../../lib/common.js', () => ({
   logHook: vi.fn(),
   outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),

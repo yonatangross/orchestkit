@@ -228,7 +228,7 @@ jobs:
           echo "Checking all version files match $PR_VERSION..."
           MISMATCHED=""
 
-          for f in manifests/ork.json manifests/orkl.json manifests/ork-creative.json; do
+          for f in manifests/ork.json; do
             if [ -f "$f" ]; then
               FILE_VERSION=$(jq -r '.version' "$f")
               if [ "$FILE_VERSION" != "$PR_VERSION" ]; then

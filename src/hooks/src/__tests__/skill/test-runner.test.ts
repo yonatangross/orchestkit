@@ -60,7 +60,7 @@ function createWriteInput(
 // =============================================================================
 
 describe('test-runner', () => {
-  let stderrWriteSpy: vi.SpyInstance;
+  let stderrWriteSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     vi.clearAllMocks();

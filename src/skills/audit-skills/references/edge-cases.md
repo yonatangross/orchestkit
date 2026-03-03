@@ -9,7 +9,7 @@
 { "skills": "all" }
 ```
 
-`manifests/orkl.json` lists skills explicitly. A skill absent from orkl.json but covered by ork.json's `"all"` is still `YES`.
+When `manifests/ork.json` has `"skills": "all"`, every skill in `src/skills/` is registered.
 
 ## Orchestration Skills with 0 Rules
 

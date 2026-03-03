@@ -414,6 +414,23 @@ window.addEventListener('scroll', () => {
 }
 ```
 
+**Incorrect:**
+```css
+/* Using media queries for component-level responsiveness */
+@media (min-width: 400px) {
+  .card { display: grid; grid-template-columns: 200px 1fr; }
+}
+```
+
+**Correct:**
+```css
+/* Using container queries — responds to container, not viewport */
+.card-container { container-type: inline-size; }
+@container (min-width: 400px) {
+  .card { display: grid; grid-template-columns: 200px 1fr; }
+}
+```
+
 ## 2. Container Query Units (cqi, cqb)
 
 ```css
@@ -748,6 +765,27 @@ export default defineConfig({
 
 
 # React Responsive Patterns
+
+**Incorrect:**
+```tsx
+// Hardcoded breakpoints with window.innerWidth
+function Card() {
+  const isMobile = window.innerWidth < 768;
+  return <div className={isMobile ? "flex-col" : "flex-row"}>...</div>;
+}
+```
+
+**Correct:**
+```tsx
+// Container queries via Tailwind — no JS needed
+function Card() {
+  return (
+    <div className="@container">
+      <div className="flex flex-col @md:flex-row">...</div>
+    </div>
+  );
+}
+```
 
 ## Responsive Component with Container Queries
 

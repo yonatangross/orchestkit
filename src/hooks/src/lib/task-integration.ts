@@ -11,7 +11,8 @@
  * task operations, as hooks cannot directly call CC tools.
  */
 
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { existsSync, readFileSync, mkdirSync } from 'node:fs';
+import { atomicWriteSync } from './atomic-write.js';
 import { getProjectDir, getSessionId, logHook } from './common.js';
 import type {
   TaskCreateInstruction,
@@ -92,7 +93,7 @@ function saveRegistry(registry: TaskRegistry): void {
   registry.updatedAt = new Date().toISOString();
 
   try {
-    writeFileSync(file, JSON.stringify(registry, null, 2));
+    atomicWriteSync(file, JSON.stringify(registry, null, 2));
   } catch (err) {
     logHook('task-integration', `Failed to save registry: ${err}`);
   }

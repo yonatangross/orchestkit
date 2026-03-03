@@ -48,6 +48,7 @@ export function redactSecrets(input: HookInput): HookResult {
     }
   }
 
-  // Silent success - warnings printed to stderr, don't block
+  // Silent success — warnings go to stderr (works in async hooks, unlike systemMessage).
+  // Async PostToolUse hooks cannot use additionalContext/systemMessage (CC ignores them).
   return outputSilentSuccess();
 }

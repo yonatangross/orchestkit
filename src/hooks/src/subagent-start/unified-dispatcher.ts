@@ -3,9 +3,9 @@
 
 /**
  * Unified SubagentStart Dispatcher
- * Consolidates 7 SubagentStart hooks into a single process spawn.
+ * Consolidates 6 SubagentStart hooks into a single process spawn.
  *
- * Issue #685: Reduces 7 separate process spawns to 1 for SubagentStart.
+ * Issue #685: Reduces 6 separate process spawns to 1 for SubagentStart.
  *
  * Hooks consolidated here (execution order):
  * Phase 1 — Blocking:
@@ -15,7 +15,6 @@
  * Phase 3 — Context injection (budget-capped):
  *   - subagent-context-stager (CLAUDE.md rules, pending tasks, decisions)
  *   - graph-memory-inject (knowledge graph context)
- *   - task-linker (orchestration task linking)
  *   - model-cost-advisor (cost optimization warnings)
  *   - issue-context-injector (GitHub issue context from branch name)
  *
@@ -35,7 +34,6 @@ import { contextGate } from './context-gate.js';
 import { subagentValidator } from './subagent-validator.js';
 import { subagentContextStager } from './subagent-context-stager.js';
 import { graphMemoryInject } from './graph-memory-inject.js';
-import { taskLinker } from './task-linker.js';
 import { modelCostAdvisor } from './model-cost-advisor.js';
 import { issueContextInjector } from './issue-context-injector.js';
 
@@ -66,7 +64,6 @@ interface ContextHookConfig {
 const CONTEXT_HOOKS: ContextHookConfig[] = [
   { name: 'subagent-context-stager', fn: subagentContextStager },
   { name: 'graph-memory-inject', fn: graphMemoryInject },
-  { name: 'task-linker', fn: taskLinker },
   { name: 'model-cost-advisor', fn: modelCostAdvisor },
   { name: 'issue-context-injector', fn: issueContextInjector },
 ];

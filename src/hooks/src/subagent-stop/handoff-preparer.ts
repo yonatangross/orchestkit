@@ -7,7 +7,8 @@
  * Version: 1.0.0 (TypeScript port)
  */
 
-import { writeFileSync, mkdirSync } from 'node:fs';
+import { mkdirSync } from 'node:fs';
+import { atomicWriteSync } from '../lib/atomic-write.js';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, getProjectDir } from '../lib/common.js';
 
@@ -136,7 +137,7 @@ function writeHandoffFile(
   };
 
   try {
-    writeFileSync(handoffFile, JSON.stringify(handoff, null, 2));
+    atomicWriteSync(handoffFile, JSON.stringify(handoff, null, 2));
   } catch {
     // Ignore
   }
@@ -174,7 +175,7 @@ Next Steps: ${suggestions}
 `;
 
   try {
-    writeFileSync(logFile, logContent);
+    atomicWriteSync(logFile, logContent);
   } catch {
     // Ignore
   }

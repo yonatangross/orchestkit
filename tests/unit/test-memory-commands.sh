@@ -233,7 +233,7 @@ test_commands_have_reasonable_size() {
 }
 
 test_all_commands_have_user_invocable_true() {
-    for cmd in remember memory feedback; do
+    for cmd in remember memory; do
         local file="$SKILLS_DIR/${cmd}/SKILL.md"
         if [[ -f "$file" ]]; then
             # CC 2.1.3: Commands should have user-invocable: true

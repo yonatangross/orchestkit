@@ -25,6 +25,14 @@ Comprehensive verification using parallel specialized agents with nuanced gradin
 /ork:verify --scope=backend database migrations
 ```
 
+## Argument Resolution
+
+```python
+SCOPE = "$ARGUMENTS"       # Full argument string, e.g., "authentication flow"
+SCOPE_TOKEN = "$ARGUMENTS[0]"  # First token for flag detection (e.g., "--scope=backend")
+# $ARGUMENTS[0], $ARGUMENTS[1] etc. for indexed access (CC 2.1.59)
+```
+
 > **Opus 4.6**: Agents use native adaptive thinking (no MCP sequential-thinking needed). Extended 128K output supports comprehensive verification reports.
 
 ---
@@ -39,13 +47,13 @@ AskUserQuestion(
     "question": "What scope for this verification?",
     "header": "Scope",
     "options": [
-      {"label": "Full verification (Recommended)", "description": "All tests + security + code quality + grades"},
-      {"label": "Tests only", "description": "Run unit + integration + e2e tests"},
-      {"label": "Security audit", "description": "Focus on security vulnerabilities"},
-      {"label": "Code quality", "description": "Lint, types, complexity analysis"},
-      {"label": "Quick check", "description": "Just run tests, skip detailed analysis"}
+      {"label": "Full verification (Recommended)", "description": "All tests + security + code quality + grades", "markdown": "```\nFull Verification (8 phases)\n────────────────────────────\n  6 parallel agents:\n  ┌────────────┐ ┌────────────┐\n  │ Code       │ │ Security   │\n  │ Quality    │ │ Auditor    │\n  ├────────────┤ ├────────────┤\n  │ Test       │ │ Backend    │\n  │ Generator  │ │ Architect  │\n  ├────────────┤ ├────────────┤\n  │ Frontend   │ │ Performance│\n  │ Developer  │ │ Engineer   │\n  └────────────┘ └────────────┘\n         ▼              ▼\n    Composite Score (0-10)\n    Grade (A-F) + Verdict\n```"},
+      {"label": "Tests only", "description": "Run unit + integration + e2e tests", "markdown": "```\nTests Only\n──────────\n  npm test ──▶ Results\n  ┌─────────────────────┐\n  │ Unit tests     ✓/✗  │\n  │ Integration    ✓/✗  │\n  │ E2E            ✓/✗  │\n  │ Coverage       NN%  │\n  └─────────────────────┘\n  Skip: security, quality, UI\n  Output: Pass/fail + coverage\n```"},
+      {"label": "Security audit", "description": "Focus on security vulnerabilities", "markdown": "```\nSecurity Audit\n──────────────\n  security-auditor agent:\n  ┌─────────────────────────┐\n  │ OWASP Top 10       ✓/✗ │\n  │ Dependency CVEs    ✓/✗ │\n  │ Secrets scan       ✓/✗ │\n  │ Auth flow review   ✓/✗ │\n  │ Input validation   ✓/✗ │\n  └─────────────────────────┘\n  Output: Security score 0-10\n          + vulnerability list\n```"},
+      {"label": "Code quality", "description": "Lint, types, complexity analysis", "markdown": "```\nCode Quality\n────────────\n  code-quality-reviewer agent:\n  ┌─────────────────────────┐\n  │ Lint errors         N   │\n  │ Type coverage       NN% │\n  │ Cyclomatic complex  N.N │\n  │ Dead code           N   │\n  │ Pattern violations  N   │\n  └─────────────────────────┘\n  Output: Quality score 0-10\n          + refactor suggestions\n```"},
+      {"label": "Quick check", "description": "Just run tests, skip detailed analysis", "markdown": "```\nQuick Check (~1 min)\n────────────────────\n  Run tests ──▶ Pass/Fail\n\n  Output:\n  ├── Test results\n  ├── Build status\n  └── Lint status\n  No agents, no grading,\n  no report generation\n```"}
     ],
-    "multiSelect": false
+    "multiSelect": true
   }]
 )
 ```
@@ -214,6 +222,20 @@ git log main..HEAD --oneline
 git diff main --name-only | sort -u
 ```
 
+**Incorrect:**
+```bash
+# Sequential — wastes time, no coverage data
+cd backend && pytest tests/
+cd frontend && npm test
+```
+
+**Correct:**
+```bash
+# Parallel with coverage — run both in ONE message
+cd backend && poetry run pytest tests/ -v --cov=app --cov-report=json
+cd frontend && npm run test -- --coverage
+```
+
 ## Phase 3: Parallel Test Execution
 
 Run backend and frontend tests in parallel:
@@ -243,7 +265,7 @@ Query trends: `mcp__memory__search_nodes(query="VerificationMetrics")`
 After report compilation, send scores to `metrics-architect` for KPI baseline tracking:
 
 ```python
-Task(subagent_type="metrics-architect", run_in_background=True, max_turns=15,
+Agent(subagent_type="metrics-architect", run_in_background=True, max_turns=15,
      prompt=f"""Receive verification scores for {feature}:
 
 Composite: {composite_score}/10 (Grade: {grade})
@@ -289,6 +311,18 @@ Each agent produces a 0-10 score with decimals for nuance. The composite score i
 | Improvement priority | Impact / Effort ratio | Do high-value first |
 | Alternative comparison | Optional phase | Only when multiple valid approaches |
 | Metrics persistence | Memory MCP | Track trends over time |
+
+**Incorrect:**
+```
+Security: "looks fine"  → 8/10    # No evidence, subjective
+Performance: "fast enough" → 7/10  # No benchmarks
+```
+
+**Correct:**
+```
+Security: "11/11 injection tests pass, 13 deny patterns, 0 CVEs" → 9/10
+Performance: "p99 latency 142ms (budget: 300ms), 0 N+1 queries" → 8.5/10
+```
 
 ## Improvement Suggestions
 
@@ -1144,34 +1178,34 @@ In Agent Teams mode, form a verification team where agents share findings and co
 ```python
 TeamCreate(team_name="verify-{feature}", description="Verify {feature}")
 
-Task(subagent_type="code-quality-reviewer", name="quality-verifier",
+Agent(subagent_type="code-quality-reviewer", name="quality-verifier",
      team_name="verify-{feature}",
      prompt="""Verify code quality for {feature}. Score 0-10.
      When you find patterns that affect security, message security-verifier.
      When you find untested code paths, message test-verifier.
      Share your quality score with all teammates for composite calculation.""")
 
-Task(subagent_type="security-auditor", name="security-verifier",
+Agent(subagent_type="security-auditor", name="security-verifier",
      team_name="verify-{feature}",
      prompt="""Security verification for {feature}. Score 0-10.
      When quality-verifier flags security-relevant patterns, investigate deeper.
      When you find vulnerabilities in API endpoints, message api-verifier.
      Share severity findings with test-verifier for test gap analysis.""")
 
-Task(subagent_type="test-generator", name="test-verifier",
+Agent(subagent_type="test-generator", name="test-verifier",
      team_name="verify-{feature}",
      prompt="""Verify test coverage for {feature}. Score 0-10.
      When quality-verifier or security-verifier flag untested paths, quantify the gap.
      Run existing tests and report coverage metrics.
      Message the lead with coverage data for composite scoring.""")
 
-Task(subagent_type="backend-system-architect", name="api-verifier",
+Agent(subagent_type="backend-system-architect", name="api-verifier",
      team_name="verify-{feature}",
      prompt="""Verify API design and backend patterns for {feature}. Score 0-10.
      When security-verifier flags endpoint issues, validate and score.
      Share API compliance findings with ui-verifier for consistency check.""")
 
-Task(subagent_type="frontend-ui-developer", name="ui-verifier",
+Agent(subagent_type="frontend-ui-developer", name="ui-verifier",
      team_name="verify-{feature}",
      prompt="""Verify frontend implementation for {feature}. Score 0-10.
      When api-verifier shares API patterns, verify frontend matches.
@@ -1180,7 +1214,7 @@ Task(subagent_type="frontend-ui-developer", name="ui-verifier",
 
 # Conditional 6th agent — use python-performance-engineer for backend,
 # frontend-performance-engineer for frontend
-Task(subagent_type="python-performance-engineer", name="perf-verifier",
+Agent(subagent_type="python-performance-engineer", name="perf-verifier",
      team_name="verify-{feature}",
      prompt="""Verify performance and scalability for {feature}. Score 0-10.
      Assess latency, resource usage, caching, and scaling patterns.

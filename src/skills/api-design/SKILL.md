@@ -1,7 +1,7 @@
 ---
 name: api-design
 license: MIT
-compatibility: "Claude Code 2.1.56+."
+compatibility: "Claude Code 2.1.59+."
 description: API design patterns for REST/GraphQL framework design, versioning strategies, and RFC 9457 error handling. Use when designing API endpoints, choosing versioning schemes, implementing Problem Details errors, or building OpenAPI specifications.
 tags: [api-design, rest, graphql, versioning, error-handling, rfc9457, openapi, problem-details]
 context: fork
@@ -9,9 +9,16 @@ agent: backend-system-architect
 version: 2.0.0
 author: OrchestKit
 user-invocable: false
+disable-model-invocation: true
 complexity: medium
 metadata:
   category: document-asset-creation
+allowed-tools:
+  - Read
+  - Glob
+  - Grep
+  - WebFetch
+  - WebSearch
 ---
 
 # API Design

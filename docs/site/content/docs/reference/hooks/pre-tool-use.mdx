@@ -1,25 +1,19 @@
 ---
 title: "PreToolUse"
-description: "Hooks triggered on PreToolUse events (14 hooks)."
+description: "Hooks triggered on PreToolUse events (8 hooks)."
 ---
 
 # PreToolUse Hooks
 
-**14 hooks** registered for the `PreToolUse` lifecycle event.
+**8 hooks** registered for the `PreToolUse` lifecycle event.
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
-| `dangerous-command-blocker` | `Bash` | 🛑 Blocks | Blocks commands matching dangerous patterns |
-| `compound-command-validator` | `Bash` | 🛑 Blocks | Validates multi-command sequences for security |
-| `unified-advisory-dispatcher` | `Bash` | 💡 Injects | — |
-| `commit-atomicity-checker` | `Bash(git commit*)` | 💡 Injects | — |
-| `issue-reference-checker` | `Bash(git commit*)` | 💡 Injects | — |
-| `file-guard` | `Write\|Edit` | 🛑 Blocks | Protects sensitive files from modification |
-| `write-headers` | `Write\|Edit` | 🔇 Silent | Adds standard headers to new files being created |
-| `unified-quality-dispatcher` | `Write\|Edit` | 💡 Injects | — |
+| `sync-bash-dispatcher` | `Bash` | 💡 Injects | — |
+| `sync-write-edit-dispatcher` | `Write\|Edit` | 💡 Injects | — |
 | `skill-tracker` | `Skill` | 🔇 Silent | Logs Skill tool invocations with analytics |
-| `context7-tracker` | `mcp__context7__*` | 💡 Injects | Tracks context7 library lookups and injects cache state as additionalContext |
-| `memory-validator` | `mcp__memory__*` | 🔇 Silent | Validates memory operations to prevent accidental data loss |
-| `unified-agent-safety-dispatcher` | `Task` | 💡 Injects | — |
-| `team-size-gate` | `Task` | 🛑 Blocks | — |
+| `context7-tracker` | `mcp__context7__*` | 🛑 Blocks | Tracks context7 library lookups and injects cache state as additionalContext |
+| `memory-validator` | `mcp__memory__*` | 🛑 Blocks | Validates memory operations to prevent accidental data loss |
+| `notebooklm-advisor` | `mcp__notebooklm-mcp__*` | 🛑 Blocks | Advisory warnings for destructive NotebookLM operations |
+| `sync-task-dispatcher` | `Agent` | 💡 Injects | — |
 | `tldr-summary` | `Read` | 💡 Injects | — |

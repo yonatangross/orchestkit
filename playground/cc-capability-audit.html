@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OrchestKit v7 — CC Capability Audit</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0e17;--surface:#111827;--surface2:#1e293b;--border:#334155;--text:#e2e8f0;--muted:#94a3b8;--green:#22c55e;--yellow:#eab308;--red:#ef4444;--blue:#3b82f6;--purple:#a855f7;--cyan:#06b6d4;--orange:#f97316;--green-bg:rgba(34,197,94,.12);--yellow-bg:rgba(234,179,8,.12);--red-bg:rgba(239,68,68,.12);--blue-bg:rgba(59,130,246,.12)}
+body{font-family:'SF Mono','JetBrains Mono','Fira Code',monospace;background:var(--bg);color:var(--text);line-height:1.6;padding:20px}
+h1{font-size:1.4rem;text-align:center;padding:24px 0 8px;background:linear-gradient(135deg,var(--cyan),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.subtitle{text-align:center;color:var(--muted);font-size:.85rem;margin-bottom:24px}
+.tabs{display:flex;gap:4px;justify-content:center;flex-wrap:wrap;margin-bottom:20px}
+.tab{padding:8px 16px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--muted);cursor:pointer;font-size:.8rem;font-family:inherit;transition:all .2s}
+.tab:hover{border-color:var(--blue);color:var(--text)}
+.tab.active{background:var(--blue);border-color:var(--blue);color:#fff}
+.panel{display:none}
+.panel.active{display:block}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:24px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center}
+.stat-num{font-size:2rem;font-weight:700}
+.stat-label{font-size:.75rem;color:var(--muted);margin-top:4px}
+.stat-green .stat-num{color:var(--green)}
+.stat-yellow .stat-num{color:var(--yellow)}
+.stat-red .stat-num{color:var(--red)}
+.stat-blue .stat-num{color:var(--blue)}
+.stat-purple .stat-num{color:var(--purple)}
+.stat-cyan .stat-num{color:var(--cyan)}
+.section{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:16px}
+.section h2{font-size:1rem;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.section h3{font-size:.85rem;margin:12px 0 8px;color:var(--cyan)}
+table{width:100%;border-collapse:collapse;font-size:.78rem;margin-top:8px}
+th{text-align:left;padding:8px;background:var(--surface2);border-bottom:1px solid var(--border);color:var(--muted);font-weight:600;white-space:nowrap}
+td{padding:8px;border-bottom:1px solid rgba(51,65,85,.5)}
+tr:hover td{background:rgba(59,130,246,.05)}
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.7rem;font-weight:600}
+.badge-green{background:var(--green-bg);color:var(--green)}
+.badge-yellow{background:var(--yellow-bg);color:var(--yellow)}
+.badge-red{background:var(--red-bg);color:var(--red)}
+.badge-blue{background:var(--blue-bg);color:var(--blue)}
+.progress-bar{height:6px;background:var(--surface2);border-radius:3px;overflow:hidden;margin-top:4px}
+.progress-fill{height:100%;border-radius:3px;transition:width .5s}
+.gap-card{background:var(--surface);border-left:3px solid;border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:8px}
+.gap-critical{border-color:var(--red)}
+.gap-high{border-color:var(--orange)}
+.gap-medium{border-color:var(--yellow)}
+.gap-low{border-color:var(--blue)}
+.gap-card h4{font-size:.85rem;margin-bottom:4px}
+.gap-card p{font-size:.75rem;color:var(--muted)}
+.gap-card .cc-version{font-size:.7rem;color:var(--cyan)}
+.filter-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.filter-btn{padding:4px 10px;border-radius:4px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);cursor:pointer;font-size:.72rem;font-family:inherit}
+.filter-btn.active{background:var(--blue);border-color:var(--blue);color:#fff}
+.donut{position:relative;width:120px;height:120px;margin:0 auto}
+.donut svg{transform:rotate(-90deg)}
+.donut-label{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+.donut-label .num{font-size:1.5rem;font-weight:700}
+.donut-label .txt{font-size:.65rem;color:var(--muted)}
+.legend{display:flex;gap:16px;justify-content:center;margin-top:12px;flex-wrap:wrap}
+.legend-item{display:flex;align-items:center;gap:4px;font-size:.72rem;color:var(--muted)}
+.legend-dot{width:10px;height:10px;border-radius:2px}
+.heatmap{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px}
+.heat-cell{padding:8px;border-radius:6px;font-size:.72rem;text-align:center}
+.heat-0{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3)}
+.heat-1{background:rgba(234,179,8,.15);border:1px solid rgba(234,179,8,.3)}
+.heat-2{background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3)}
+.heat-3{background:rgba(34,197,94,.25);border:1px solid rgba(34,197,94,.5)}
+.search{width:100%;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:inherit;font-size:.82rem;margin-bottom:16px}
+.search:focus{outline:none;border-color:var(--blue)}
+.collapsible{cursor:pointer;user-select:none}
+.collapsible::before{content:'>';display:inline-block;width:16px;transition:transform .2s}
+.collapsible.open::before{transform:rotate(90deg)}
+.collapse-content{display:none;margin-top:8px}
+.collapsible.open+.collapse-content{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.animate-in{animation:fadeIn .3s ease}
+</style>
+</head>
+<body>
+
+<h1>OrchestKit v7.0.0 — CC Capability Audit</h1>
+<p class="subtitle">69 skills | 38 agents | 56 hooks | 18 event types — vs Claude Code 2.1.51 best practices</p>
+
+<div class="tabs">
+  <button class="tab active" onclick="showPanel('overview')">Overview</button>
+  <button class="tab" onclick="showPanel('skills')">Skills (69)</button>
+  <button class="tab" onclick="showPanel('agents')">Agents (38)</button>
+  <button class="tab" onclick="showPanel('hooks')">Hooks (56)</button>
+  <button class="tab" onclick="showPanel('cc-gaps')">CC Feature Gaps</button>
+  <button class="tab" onclick="showPanel('issues')">GH Issues</button>
+</div>
+
+<!-- OVERVIEW -->
+<div id="overview" class="panel active animate-in">
+  <div class="stats-grid">
+    <div class="stat-card stat-green"><div class="stat-num">82%</div><div class="stat-label">Overall Compliance</div></div>
+    <div class="stat-card stat-blue"><div class="stat-num">33/69</div><div class="stat-label">Skills w/ test-cases.json</div></div>
+    <div class="stat-card stat-yellow"><div class="stat-num">0/56</div><div class="stat-label">Hooks with timeout field</div></div>
+    <div class="stat-card stat-red"><div class="stat-num">14</div><div class="stat-label">CC Features Unused</div></div>
+    <div class="stat-card stat-purple"><div class="stat-num">65/69</div><div class="stat-label">Skills w/ compatibility</div></div>
+    <div class="stat-card stat-cyan"><div class="stat-num">18</div><div class="stat-label">Hook Event Types</div></div>
+  </div>
+
+  <div class="section">
+    <h2>Component Health Summary</h2>
+    <table>
+      <thead><tr><th>Component</th><th>Count</th><th>Compliance</th><th>Top Gap</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Skills</strong></td><td>69</td>
+          <td><div class="progress-bar"><div class="progress-fill" style="width:78%;background:var(--yellow)"></div></div></td>
+          <td>36 missing test-cases.json (52%)</td>
+          <td><span class="badge badge-yellow">FAIR</span></td>
+        </tr>
+        <tr>
+          <td><strong>Agents</strong></td><td>38</td>
+          <td><div class="progress-bar"><div class="progress-fill" style="width:88%;background:var(--green)"></div></div></td>
+          <td>33 missing maxTurns (87%)</td>
+          <td><span class="badge badge-green">GOOD</span></td>
+        </tr>
+        <tr>
+          <td><strong>Hooks</strong></td><td>56</td>
+          <td><div class="progress-bar"><div class="progress-fill" style="width:72%;background:var(--yellow)"></div></div></td>
+          <td>0/56 with explicit timeout</td>
+          <td><span class="badge badge-yellow">FAIR</span></td>
+        </tr>
+        <tr>
+          <td><strong>CC Feature Adoption</strong></td><td>~40 features</td>
+          <td><div class="progress-bar"><div class="progress-fill" style="width:65%;background:var(--orange)"></div></div></td>
+          <td>14 unused CC mechanisms</td>
+          <td><span class="badge badge-yellow">GAPS</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <h2>Architecture Overview</h2>
+    <pre style="font-size:.72rem;color:var(--cyan);line-height:1.8;overflow-x:auto">
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                      OrchestKit v7.0.0 Plugin Architecture                 │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌── Skills (69) ──────────────┐  ┌── Agents (38) ────────────────────┐    │
+│  │ 17 user-invocable (/slash)  │  │ 26 Sonnet | 6 Opus | 6 Haiku    │    │
+│  │ 52 internal (auto-loaded)   │  │ 33 fork | 4 inherit context      │    │
+│  │ 33 w/ test-cases.json       │  │ 13 w/ agent-scoped hooks         │    │
+│  │ 65 w/ compatibility field   │  │  5 w/ permissionMode: plan       │    │
+│  │ 13 fork | 8 inherit context │  │  5 w/ background: true           │    │
+│  └─────────────────────────────┘  │  6 w/ worktree isolation         │    │
+│                                    └──────────────────────────────────┘    │
+│                                                                             │
+│  ┌── Hooks (56 global) ────────────────────────────────────────────────┐   │
+│  │ 18 event types | 12 unified dispatchers | 9 native async           │   │
+│  │ 28 agent-scoped (6 hook files) | 1 skill-scoped                    │   │
+│  │                                                                      │   │
+│  │  PreToolUse ───── 19 hooks (8 matchers)                              │   │
+│  │  PostToolUse ──── 1 unified dispatcher                               │   │
+│  │  SessionStart ─── 6 hooks (2 async)                                  │   │
+│  │  SubagentStop ─── 7 hooks                                            │   │
+│  │  Setup ────────── 6 hooks (3 once:true)                              │   │
+│  │  + 13 more event types                                               │   │
+│  └──────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  ┌── CC Features Utilized ─────────┐  ┌── CC Features MISSING ────────┐   │
+│  │ ✓ context: fork                 │  │ ✗ hook timeout fields          │   │
+│  │ ✓ background: true              │  │ ✗ plansDirectory setting       │   │
+│  │ ✓ isolation: worktree           │  │ ✗ disable-model-invocation     │   │
+│  │ ✓ permissionMode: plan          │  │ ✗ $ARGUMENTS[N] indexing       │   │
+│  │ ✓ once: true                    │  │ ✗ run_on_fail hook field       │   │
+│  │ ✓ memory: project/local         │  │ ✗ model override per-skill     │   │
+│  │ ✓ async: true hooks             │  │ ✗ 36 skills w/o test-cases     │   │
+│  │ ✓ matcher patterns              │  │ ✗ respectGitignore setting     │   │
+│  │ ✓ agent-scoped hooks            │  │ ✗ spinnerVerbs customization   │   │
+│  │ ✓ unified dispatcher pattern    │  │ ✗ effort level configuration   │   │
+│  │ ✓ ${CLAUDE_PLUGIN_ROOT}         │  │ ✗ MCP list_changed support     │   │
+│  │ ✓ updatedInput (PreToolUse)     │  │ ✗ @import in CLAUDE.md rules   │   │
+│  │ ✓ last_assistant_message        │  │ ✗ .claude/rules/ directory     │   │
+│  │ ✓ ConfigChange hook             │  │ ✗ managed settings support     │   │
+│  └─────────────────────────────────┘  └────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────────────────┘
+    </pre>
+  </div>
+</div>
+
+<!-- SKILLS -->
+<div id="skills" class="panel">
+  <div class="stats-grid">
+    <div class="stat-card stat-blue"><div class="stat-num">69</div><div class="stat-label">Total Skills</div></div>
+    <div class="stat-card stat-green"><div class="stat-num">33</div><div class="stat-label">Have test-cases.json</div></div>
+    <div class="stat-card stat-red"><div class="stat-num">36</div><div class="stat-label">Missing test-cases.json</div></div>
+    <div class="stat-card stat-yellow"><div class="stat-num">4</div><div class="stat-label">Missing compatibility</div></div>
+  </div>
+
+  <div class="section">
+    <h2>Frontmatter Field Compliance</h2>
+    <table>
+      <thead><tr><th>Field</th><th>Required</th><th>Usage</th><th>Coverage</th><th>Gap</th></tr></thead>
+      <tbody>
+        <tr><td>name</td><td><span class="badge badge-red">REQ</span></td><td>69/69</td><td><div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--green)"></div></div></td><td><span class="badge badge-green">100%</span></td></tr>
+        <tr><td>description</td><td><span class="badge badge-red">REQ</span></td><td>69/69</td><td><div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--green)"></div></div></td><td><span class="badge badge-green">100%</span></td></tr>
+        <tr><td>tags</td><td><span class="badge badge-red">REQ</span></td><td>69/69</td><td><div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--green)"></div></div></td><td><span class="badge badge-green">100%</span></td></tr>
+        <tr><td>version</td><td><span class="badge badge-red">REQ</span></td><td>69/69</td><td><div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--green)"></div></div></td><td><span class="badge badge-green">100%</span></td></tr>
+        <tr><td>user-invocable</td><td><span class="badge badge-red">REQ</span></td><td>69/69</td><td><div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--green)"></div></div></td><td><span class="badge badge-green">100%</span></td></tr>
+        <tr><td>complexity</td><td><span class="badge badge-red">REQ</span></td><td>69/69</td><td><div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--green)"></div></div></td><td><span class="badge badge-green">100%</span></td></tr>
+        <tr><td>compatibility</td><td><span class="badge badge-yellow">OPT</span></td><td>65/69</td><td><div class="progress-bar"><div class="progress-fill" style="width:94%;background:var(--green)"></div></div></td><td><span class="badge badge-yellow">94%</span></td></tr>
+        <tr><td>allowed-tools</td><td><span class="badge badge-yellow">OPT</span></td><td>~65/69</td><td><div class="progress-bar"><div class="progress-fill" style="width:94%;background:var(--green)"></div></div></td><td><span class="badge badge-yellow">94%</span></td></tr>
+        <tr><td>argument-hint</td><td><span class="badge badge-yellow">OPT</span></td><td>~65/69</td><td><div class="progress-bar"><div class="progress-fill" style="width:94%;background:var(--green)"></div></div></td><td><span class="badge badge-yellow">94%</span></td></tr>
+        <tr><td>context</td><td><span class="badge badge-yellow">OPT</span></td><td>~50/69</td><td><div class="progress-bar"><div class="progress-fill" style="width:72%;background:var(--yellow)"></div></div></td><td><span class="badge badge-yellow">72%</span></td></tr>
+        <tr><td>test-cases.json</td><td><span class="badge badge-blue">BEST</span></td><td>33/69</td><td><div class="progress-bar"><div class="progress-fill" style="width:48%;background:var(--red)"></div></div></td><td><span class="badge badge-red">48%</span></td></tr>
+        <tr><td>disable-model-invocation</td><td><span class="badge badge-blue">CC</span></td><td>0/69</td><td><div class="progress-bar"><div class="progress-fill" style="width:0%;background:var(--red)"></div></div></td><td><span class="badge badge-red">0%</span></td></tr>
+        <tr><td>model (per-skill)</td><td><span class="badge badge-blue">CC</span></td><td>0/69</td><td><div class="progress-bar"><div class="progress-fill" style="width:0%;background:var(--red)"></div></div></td><td><span class="badge badge-red">0%</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <h2>Skills Missing test-cases.json (36)</h2>
+    <div class="heatmap" id="missing-tests-heatmap">
+      <div class="heat-cell heat-0">architecture-decision-record</div>
+      <div class="heat-cell heat-0">ascii-visualizer</div>
+      <div class="heat-cell heat-0">audit-full</div>
+      <div class="heat-cell heat-0">brainstorming</div>
+      <div class="heat-cell heat-0">code-review-playbook</div>
+      <div class="heat-cell heat-0">configure</div>
+      <div class="heat-cell heat-0">demo-producer</div>
+      <div class="heat-cell heat-0">devops-deployment</div>
+      <div class="heat-cell heat-0">doctor</div>
+      <div class="heat-cell heat-0">domain-driven-design</div>
+      <div class="heat-cell heat-0">errors</div>
+      <div class="heat-cell heat-0">feedback</div>
+      <div class="heat-cell heat-0">github-operations</div>
+      <div class="heat-cell heat-0">help</div>
+      <div class="heat-cell heat-0">i18n-date-patterns</div>
+      <div class="heat-cell heat-0">issue-progress-tracking</div>
+      <div class="heat-cell heat-0">mcp-patterns</div>
+      <div class="heat-cell heat-0">memory-fabric</div>
+      <div class="heat-cell heat-0">memory</div>
+      <div class="heat-cell heat-0">multimodal-llm</div>
+      <div class="heat-cell heat-0">notebooklm</div>
+      <div class="heat-cell heat-0">plan-viz</div>
+      <div class="heat-cell heat-0">presentation-builder</div>
+      <div class="heat-cell heat-0">quality-gates</div>
+      <div class="heat-cell heat-0">react-server-components</div>
+      <div class="heat-cell heat-0">release-management</div>
+      <div class="heat-cell heat-0">remember</div>
+      <div class="heat-cell heat-0">responsive-patterns</div>
+      <div class="heat-cell heat-0">scope-appropriate-arch</div>
+      <div class="heat-cell heat-0">setup</div>
+      <div class="heat-cell heat-0">skill-evolution</div>
+      <div class="heat-cell heat-0">task-dependency-patterns</div>
+      <div class="heat-cell heat-0">upgrade-assessment</div>
+      <div class="heat-cell heat-0">vite-advanced</div>
+      <div class="heat-cell heat-0">web-research-workflow</div>
+      <div class="heat-cell heat-0">zustand-patterns</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Unused CC Skill Mechanisms</h2>
+    <div class="gap-card gap-high">
+      <h4>disable-model-invocation: true</h4>
+      <p>CC supports preventing auto-invocation — only manual /slash triggers. 0/69 skills use it. Good for skills that should ONLY run when explicitly called (e.g., commit, release-checklist, setup).</p>
+      <span class="cc-version">Available since CC 2.1.0</span>
+    </div>
+    <div class="gap-card gap-medium">
+      <h4>model: opus/haiku per-skill override</h4>
+      <p>Skills can specify which model runs them. 0/69 skills use this. audit-full and security-patterns could benefit from opus. help and configure could use haiku.</p>
+      <span class="cc-version">Available since CC 2.1.0</span>
+    </div>
+    <div class="gap-card gap-medium">
+      <h4>$ARGUMENTS[0] indexed access</h4>
+      <p>Slash commands can access indexed arguments. We use $ARGUMENTS but not indexed access. Skills like commit, fix-issue, create-pr could parse specific argument positions.</p>
+      <span class="cc-version">Available since CC 2.1.19</span>
+    </div>
+  </div>
+</div>
+
+<!-- AGENTS -->
+<div id="agents" class="panel">
+  <div class="stats-grid">
+    <div class="stat-card stat-blue"><div class="stat-num">38</div><div class="stat-label">Total Agents</div></div>
+    <div class="stat-card stat-green"><div class="stat-num">26</div><div class="stat-label">Sonnet</div></div>
+    <div class="stat-card stat-purple"><div class="stat-num">6</div><div class="stat-label">Opus</div></div>
+    <div class="stat-card stat-cyan"><div class="stat-num">6</div><div class="stat-label">Haiku</div></div>
+  </div>
+
+  <div class="section">
+    <h2>Agent Frontmatter Coverage</h2>
+    <table>
+      <thead><tr><th>Field</th><th>Usage</th><th>Coverage</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>name</td><td>38/38</td><td><span class="badge badge-green">100%</span></td><td>Required, all present</td></tr>
+        <tr><td>description</td><td>38/38</td><td><span class="badge badge-green">100%</span></td><td>Required, all present</td></tr>
+        <tr><td>model</td><td>38/38</td><td><span class="badge badge-green">100%</span></td><td>26 sonnet, 6 opus, 6 haiku</td></tr>
+        <tr><td>context</td><td>37/38</td><td><span class="badge badge-green">97%</span></td><td>1 missing (code-quality-reviewer)</td></tr>
+        <tr><td>memory</td><td>38/38</td><td><span class="badge badge-green">100%</span></td><td>27 project, 9 local, 2 none</td></tr>
+        <tr><td>tools</td><td>38/38</td><td><span class="badge badge-green">100%</span></td><td>All have tool restrictions</td></tr>
+        <tr><td>skills</td><td>38/38</td><td><span class="badge badge-green">100%</span></td><td>All declare skill deps</td></tr>
+        <tr><td>hooks</td><td>13/38</td><td><span class="badge badge-yellow">34%</span></td><td>Only 13 agents have scoped hooks</td></tr>
+        <tr><td>maxTurns</td><td>5/38</td><td><span class="badge badge-red">13%</span></td><td>Only complex agents set limits</td></tr>
+        <tr><td>isolation: worktree</td><td>6/38</td><td><span class="badge badge-yellow">16%</span></td><td>Editing agents benefit most</td></tr>
+        <tr><td>background: true</td><td>5/38</td><td><span class="badge badge-yellow">13%</span></td><td>Fire-and-forget agents</td></tr>
+        <tr><td>permissionMode</td><td>5/38</td><td><span class="badge badge-yellow">13%</span></td><td>Architects use plan mode</td></tr>
+        <tr><td>disallowedTools</td><td>7/38</td><td><span class="badge badge-yellow">18%</span></td><td>Read-only agents</td></tr>
+        <tr><td>color</td><td>38/38</td><td><span class="badge badge-green">100%</span></td><td>UI display colors</td></tr>
+        <tr><td>category</td><td>38/38</td><td><span class="badge badge-green">100%</span></td><td>Domain categories</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <h2>Model Distribution</h2>
+    <div style="display:flex;justify-content:space-around;flex-wrap:wrap;gap:20px">
+      <div class="donut">
+        <svg width="120" height="120" viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r="50" fill="none" stroke="var(--surface2)" stroke-width="12"/>
+          <circle cx="60" cy="60" r="50" fill="none" stroke="var(--blue)" stroke-width="12" stroke-dasharray="215.6 98.6" stroke-linecap="round"/>
+          <circle cx="60" cy="60" r="50" fill="none" stroke="var(--purple)" stroke-width="12" stroke-dasharray="49.6 264.6" stroke-dashoffset="-215.6" stroke-linecap="round"/>
+          <circle cx="60" cy="60" r="50" fill="none" stroke="var(--cyan)" stroke-width="12" stroke-dasharray="49.6 264.6" stroke-dashoffset="-265.2" stroke-linecap="round"/>
+        </svg>
+        <div class="donut-label"><div class="num">38</div><div class="txt">agents</div></div>
+      </div>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div>Sonnet (26 / 68%)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div>Opus (6 / 16%)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--cyan)"></div>Haiku (6 / 16%)</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Recommendations: Agents Missing Optional Fields</h2>
+    <div class="gap-card gap-medium">
+      <h4>maxTurns — 33 agents without limits</h4>
+      <p>Only 5/38 agents set maxTurns. All agents should have a sensible cap: 15 for simple tasks, 20 for complex, 25 for research-heavy. Prevents runaway token spend.</p>
+    </div>
+    <div class="gap-card gap-low">
+      <h4>isolation: worktree — 32 agents without isolation</h4>
+      <p>Only 6/38 agents use worktree isolation. Agents that write files (frontend-ui-developer, test-generator, data-pipeline-engineer) should consider worktree for safety.</p>
+    </div>
+    <div class="gap-card gap-low">
+      <h4>background: true — 33 agents run foreground</h4>
+      <p>Only 5/38 set background: true. Agents like documentation-specialist, release-engineer, metrics-architect could default to background.</p>
+    </div>
+  </div>
+</div>
+
+<!-- HOOKS -->
+<div id="hooks" class="panel">
+  <div class="stats-grid">
+    <div class="stat-card stat-blue"><div class="stat-num">56</div><div class="stat-label">Global Hooks</div></div>
+    <div class="stat-card stat-purple"><div class="stat-num">18</div><div class="stat-label">Event Types</div></div>
+    <div class="stat-card stat-cyan"><div class="stat-num">12</div><div class="stat-label">Dispatchers</div></div>
+    <div class="stat-card stat-red"><div class="stat-num">0</div><div class="stat-label">With Timeout</div></div>
+  </div>
+
+  <div class="section">
+    <h2>Hook Field Usage</h2>
+    <table>
+      <thead><tr><th>Field</th><th>CC Support</th><th>Our Usage</th><th>Gap</th></tr></thead>
+      <tbody>
+        <tr><td>type: "command"</td><td>2.0.12</td><td>56/56</td><td><span class="badge badge-green">100%</span></td></tr>
+        <tr><td>command</td><td>2.0.12</td><td>56/56</td><td><span class="badge badge-green">100%</span></td></tr>
+        <tr><td>matcher</td><td>2.0.12</td><td>12/56</td><td><span class="badge badge-green">OK</span> (only PreToolUse needs)</td></tr>
+        <tr><td>async: true</td><td>2.1.0</td><td>9/56</td><td><span class="badge badge-green">OK</span> (selective use)</td></tr>
+        <tr><td>once: true</td><td>2.1.0</td><td>3/56</td><td><span class="badge badge-green">OK</span> (setup-only)</td></tr>
+        <tr><td><strong>timeout</strong></td><td>2.0.12</td><td><strong>0/56</strong></td><td><span class="badge badge-red">MISSING</span></td></tr>
+        <tr><td><strong>run_on_fail</strong></td><td>2.0.12</td><td><strong>0/56</strong></td><td><span class="badge badge-yellow">UNUSED</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <h2>Event Type Coverage</h2>
+    <table>
+      <thead><tr><th>Event Type</th><th>Hooks</th><th>Async</th><th>Pattern</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>PreToolUse</td><td>19</td><td>0</td><td>8 matchers, unified dispatchers</td><td><span class="badge badge-green">GOOD</span></td></tr>
+        <tr><td>PostToolUse</td><td>1</td><td>1</td><td>Single unified dispatcher</td><td><span class="badge badge-green">GOOD</span></td></tr>
+        <tr><td>PostToolUseFailure</td><td>1</td><td>0</td><td>Single failure handler</td><td><span class="badge badge-green">GOOD</span></td></tr>
+        <tr><td>PermissionRequest</td><td>2</td><td>0</td><td>Unified + auto-approve</td><td><span class="badge badge-green">GOOD</span></td></tr>
+        <tr><td>UserPromptSubmit</td><td>2</td><td>1</td><td>Sync + async pair</td><td><span class="badge badge-green">GOOD</span></td></tr>
+        <tr><td>SessionStart</td><td>6</td><td>2</td><td>Mixed sync/async</td><td><span class="badge badge-green">GOOD</span></td></tr>
+        <tr><td>SessionEnd</td><td>3</td><td>0</td><td>Sequential</td><td><span class="badge badge-green">GOOD</span></td></tr>
+        <tr><td>Stop</td><td>2</td><td>1</td><td>Unified + check</td><td><span class="badge badge-green">GOOD</span></td></tr>
+        <tr><td>SubagentStart</td><td>1</td><td>0</td><td>Single dispatcher</td><td><span class="badge badge-green">GOOD</span></td></tr>
+        <tr><td>SubagentStop</td><td>7</td><td>1</td><td>Unified + handlers</td><td><span class="badge badge-green">GOOD</span></td></tr>
+        <tr><td>Notification</td><td>1</td><td>1</td><td>Single async</td><td><span class="badge badge-green">GOOD</span></td></tr>
+        <tr><td>PreCompact</td><td>1</td><td>0</td><td>Single hook</td><td><span class="badge badge-green">GOOD</span></td></tr>
+        <tr><td>TeammateIdle</td><td>3</td><td>0</td><td>3 separate (no dispatcher)</td><td><span class="badge badge-yellow">REVIEW</span></td></tr>
+        <tr><td>TaskCompleted</td><td>1</td><td>0</td><td>Single hook</td><td><span class="badge badge-green">GOOD</span></td></tr>
+        <tr><td>WorktreeCreate</td><td>1</td><td>0</td><td>Single hook</td><td><span class="badge badge-green">GOOD</span></td></tr>
+        <tr><td>WorktreeRemove</td><td>1</td><td>0</td><td>Single hook</td><td><span class="badge badge-green">GOOD</span></td></tr>
+        <tr><td>ConfigChange</td><td>1</td><td>1</td><td>Single async</td><td><span class="badge badge-green">GOOD</span></td></tr>
+        <tr><td>Setup</td><td>6</td><td>1</td><td>Unified + once hooks</td><td><span class="badge badge-green">GOOD</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <h2>Critical Hook Gaps</h2>
+    <div class="gap-card gap-critical">
+      <h4>No timeout fields on any hook (0/56)</h4>
+      <p>All 56 hooks rely on CC's default 2-minute timeout. Network I/O hooks (PR enricher, analytics) and async dispatchers should have explicit timeouts (10-30s for sync, 60-120s for async). A hung hook blocks the entire session.</p>
+      <span class="cc-version">timeout field available since CC 2.0.12</span>
+    </div>
+    <div class="gap-card gap-medium">
+      <h4>TeammateIdle: 3 separate hooks instead of unified dispatcher</h4>
+      <p>Every other multi-hook event uses the unified dispatcher pattern. TeammateIdle has 3 standalone hooks which add overhead per-invocation.</p>
+    </div>
+    <div class="gap-card gap-low">
+      <h4>run_on_fail unused (0/56)</h4>
+      <p>CC supports running hooks even when prior hooks in the chain fail. Could be useful for analytics/cleanup hooks that should always fire.</p>
+      <span class="cc-version">run_on_fail available since CC 2.0.12</span>
+    </div>
+  </div>
+</div>
+
+<!-- CC FEATURE GAPS -->
+<div id="cc-gaps" class="panel">
+  <div class="stats-grid">
+    <div class="stat-card stat-green"><div class="stat-num">26</div><div class="stat-label">CC Features Used</div></div>
+    <div class="stat-card stat-red"><div class="stat-num">14</div><div class="stat-label">CC Features Unused</div></div>
+    <div class="stat-card stat-yellow"><div class="stat-num">65%</div><div class="stat-label">Feature Adoption Rate</div></div>
+    <div class="stat-card stat-cyan"><div class="stat-num">2.1.51</div><div class="stat-label">Latest CC Version</div></div>
+  </div>
+
+  <div class="section">
+    <h2>CC Mechanisms We Utilize</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>CC Version</th><th>How We Use It</th><th>Quality</th></tr></thead>
+      <tbody>
+        <tr><td>context: fork</td><td>2.1.0</td><td>33 agents, 13 skills</td><td><span class="badge badge-green">GOOD</span></td></tr>
+        <tr><td>background: true</td><td>2.1.49</td><td>5 agents</td><td><span class="badge badge-green">GOOD</span></td></tr>
+        <tr><td>isolation: worktree</td><td>2.1.50</td><td>6 agents</td><td><span class="badge badge-yellow">PARTIAL</span></td></tr>
+        <tr><td>permissionMode: plan</td><td>2.0.62</td><td>5 architect agents</td><td><span class="badge badge-green">GOOD</span></td></tr>
+        <tr><td>once: true hooks</td><td>2.1.0</td><td>3 setup hooks</td><td><span class="badge badge-green">GOOD</span></td></tr>
+        <tr><td>async: true hooks</td><td>2.1.0</td><td>9 hooks</td><td><span class="badge badge-green">GOOD</span></td></tr>
+        <tr><td>matcher patterns</td><td>2.0.12</td><td>12 matchers (incl. MCP wildcards)</td><td><span class="badge badge-green">GOOD</span></td></tr>
+        <tr><td>memory: project/local</td><td>2.1.33</td><td>38 agents (27 project, 9 local)</td><td><span class="badge badge-green">GOOD</span></td></tr>
+        <tr><td>agent-scoped hooks</td><td>2.1.32</td><td>6 hook files, 13 agents</td><td><span class="badge badge-green">GOOD</span></td></tr>
+        <tr><td>disallowedTools</td><td>2.0.30</td><td>7 read-only agents</td><td><span class="badge badge-green">GOOD</span></td></tr>
+        <tr><td>ConfigChange hook</td><td>2.1.50</td><td>1 settings-reload hook</td><td><span class="badge badge-green">GOOD</span></td></tr>
+        <tr><td>updatedInput (PreToolUse)</td><td>2.0.54</td><td>write-headers, default-timeout-setter</td><td><span class="badge badge-green">GOOD</span></td></tr>
+        <tr><td>last_assistant_message</td><td>2.1.47</td><td>Stop/SubagentStop dispatchers</td><td><span class="badge badge-green">GOOD</span></td></tr>
+        <tr><td>${CLAUDE_PLUGIN_ROOT}</td><td>2.0.12</td><td>All 56 hooks</td><td><span class="badge badge-green">GOOD</span></td></tr>
+        <tr><td>user-invocable: false</td><td>2.1.0</td><td>52 internal skills</td><td><span class="badge badge-green">GOOD</span></td></tr>
+        <tr><td>allowed-tools restrictions</td><td>2.1.0</td><td>~65 skills</td><td><span class="badge badge-green">GOOD</span></td></tr>
+        <tr><td>argument-hint</td><td>2.1.0</td><td>~65 skills</td><td><span class="badge badge-green">GOOD</span></td></tr>
+        <tr><td>additionalContext</td><td>2.1.9</td><td>PreToolUse advisories</td><td><span class="badge badge-green">GOOD</span></td></tr>
+        <tr><td>suppressOutput</td><td>2.1.0</td><td>Silent hooks default</td><td><span class="badge badge-green">GOOD</span></td></tr>
+        <tr><td>WorktreeCreate/Remove</td><td>2.1.50</td><td>2 lifecycle hooks</td><td><span class="badge badge-green">GOOD</span></td></tr>
+        <tr><td>TeammateIdle/TaskCompleted</td><td>2.1.33</td><td>4 team coordination hooks</td><td><span class="badge badge-green">GOOD</span></td></tr>
+        <tr><td>settings.json</td><td>2.1.45</td><td>Plugin ships settings</td><td><span class="badge badge-green">GOOD</span></td></tr>
+        <tr><td>spinnerTipsOverride</td><td>2.1.45</td><td>Custom spinner tips</td><td><span class="badge badge-green">GOOD</span></td></tr>
+        <tr><td>Unified dispatcher pattern</td><td>—</td><td>12 dispatchers</td><td><span class="badge badge-green">GOOD</span></td></tr>
+        <tr><td>MCP wildcard permissions</td><td>2.1.0</td><td>mcp__*__ matchers</td><td><span class="badge badge-green">GOOD</span></td></tr>
+        <tr><td>Plugin validation</td><td>2.0.12</td><td>npm run test:manifests</td><td><span class="badge badge-green">GOOD</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <h2>CC Mechanisms We DON'T Utilize (14 Gaps)</h2>
+
+    <div class="gap-card gap-critical">
+      <h4>1. Hook timeout field — 0/56 hooks</h4>
+      <p>Every hook relies on CC's 2-min default. Network hooks could hang. Add explicit timeouts: 10s for sync validation, 30s for network I/O, 60s for async dispatchers.</p>
+      <span class="cc-version">Available since CC 2.0.12 | Impact: HIGH — hung hooks block sessions</span>
+    </div>
+
+    <div class="gap-card gap-high">
+      <h4>2. disable-model-invocation — 0/69 skills</h4>
+      <p>Skills like commit, release-checklist, setup should ONLY run via /slash command. Currently Claude can auto-invoke them which causes unexpected behavior.</p>
+      <span class="cc-version">Available since CC 2.1.0 | Impact: HIGH — prevents unintended invocations</span>
+    </div>
+
+    <div class="gap-card gap-high">
+      <h4>3. test-cases.json — 36/69 skills missing</h4>
+      <p>CONTRIBUTING-SKILLS.md mandates "at least 3 scenarios per skill". Only 33/69 (48%) comply. Blocks automated skill quality evaluation.</p>
+      <span class="cc-version">OrchestKit standard | Impact: HIGH — no eval coverage for 36 skills</span>
+    </div>
+
+    <div class="gap-card gap-high">
+      <h4>4. maxTurns on agents — 33/38 missing</h4>
+      <p>Without turn limits, agents can spin indefinitely burning tokens. CC supports maxTurns in agent frontmatter. Default recommendations: haiku=10, sonnet=15, opus=20.</p>
+      <span class="cc-version">Available since CC 2.1.0 | Impact: HIGH — cost control</span>
+    </div>
+
+    <div class="gap-card gap-medium">
+      <h4>5. model override per-skill</h4>
+      <p>CC supports per-skill model selection. audit-full and security-patterns could use opus for deeper analysis. help and configure could use haiku for speed.</p>
+      <span class="cc-version">Available since CC 2.1.0 | Impact: MEDIUM — cost/quality optimization</span>
+    </div>
+
+    <div class="gap-card gap-medium">
+      <h4>6. $ARGUMENTS[N] indexed access in skills</h4>
+      <p>Skills use $ARGUMENTS for raw args but never $ARGUMENTS[0] for structured parsing. Skills accepting multiple params (fix-issue, review-pr) could parse position-specific args.</p>
+      <span class="cc-version">Available since CC 2.1.19 | Impact: MEDIUM — better arg handling</span>
+    </div>
+
+    <div class="gap-card gap-medium">
+      <h4>7. run_on_fail hook field — 0/56</h4>
+      <p>Ensures hooks fire even if prior hooks in the chain fail. Analytics and cleanup hooks should always run regardless. PostToolUse analytics dispatcher should use this.</p>
+      <span class="cc-version">Available since CC 2.0.12 | Impact: MEDIUM — analytics resilience</span>
+    </div>
+
+    <div class="gap-card gap-medium">
+      <h4>8. plansDirectory setting</h4>
+      <p>CC 2.1.30 supports custom plan file storage. We don't configure this in settings.json. Could route plan files to a dedicated directory for skill-specific plan templates.</p>
+      <span class="cc-version">Available since CC 2.1.30 | Impact: LOW — organization</span>
+    </div>
+
+    <div class="gap-card gap-medium">
+      <h4>9. respectGitignore per-project setting</h4>
+      <p>CC 2.1.0 lets plugins set respectGitignore per project. We don't use it. Could prevent accidental @-mention of build artifacts in plugins/ directory.</p>
+      <span class="cc-version">Available since CC 2.1.0 | Impact: LOW — noise reduction</span>
+    </div>
+
+    <div class="gap-card gap-medium">
+      <h4>10. spinnerVerbs customization</h4>
+      <p>CC 2.1.23 supports custom spinner verbs (present-tense action words). We use spinnerTipsOverride but not custom verbs. Could improve UX with OrchestKit-specific verbs.</p>
+      <span class="cc-version">Available since CC 2.1.23 | Impact: LOW — UX polish</span>
+    </div>
+
+    <div class="gap-card gap-low">
+      <h4>11. .claude/rules/ directory</h4>
+      <p>CC 2.1.49 supports persistent context rules in .claude/rules/. We reference @import in setup wizard but don't ship default rules files in the plugin.</p>
+      <span class="cc-version">Available since CC 2.1.49 | Impact: LOW — context management</span>
+    </div>
+
+    <div class="gap-card gap-low">
+      <h4>12. MCP list_changed notifications</h4>
+      <p>CC 2.1.0 supports dynamic tool updates without reconnection. Our MCP hooks don't emit list_changed. Could enable hot-reload of tool configurations.</p>
+      <span class="cc-version">Available since CC 2.1.0 | Impact: LOW — dynamic tools</span>
+    </div>
+
+    <div class="gap-card gap-low">
+      <h4>13. Managed settings (macOS plist/Windows Registry)</h4>
+      <p>CC 2.1.51 supports managed settings. We don't integrate with enterprise deployment channels. Relevant for org-wide OrchestKit rollouts.</p>
+      <span class="cc-version">Available since CC 2.1.51 | Impact: LOW — enterprise</span>
+    </div>
+
+    <div class="gap-card gap-low">
+      <h4>14. supportsEffort / effort levels</h4>
+      <p>CC 2.1.50 exposes effort level configuration in SDK. Our hooks/agents don't leverage adaptive effort levels for cost optimization per task complexity.</p>
+      <span class="cc-version">Available since CC 2.1.50 | Impact: LOW — optimization</span>
+    </div>
+  </div>
+</div>
+
+<!-- GH ISSUES -->
+<div id="issues" class="panel">
+  <div class="section">
+    <h2>GitHub Issues to Create</h2>
+    <p style="color:var(--muted);font-size:.8rem;margin-bottom:16px">Click "Create All Issues" to open these on GitHub. Each issue maps to a specific gap identified in the audit.</p>
+    <table>
+      <thead><tr><th>#</th><th>Title</th><th>Labels</th><th>Priority</th><th>Effort</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Add explicit timeout fields to all 56 hooks</td><td>hooks, reliability</td><td><span class="badge badge-red">P0</span></td><td>S</td></tr>
+        <tr><td>2</td><td>Add test-cases.json to 36 skills missing eval coverage</td><td>skills, testing</td><td><span class="badge badge-red">P0</span></td><td>L</td></tr>
+        <tr><td>3</td><td>Add disable-model-invocation to manual-only skills</td><td>skills, safety</td><td><span class="badge badge-yellow">P1</span></td><td>S</td></tr>
+        <tr><td>4</td><td>Add maxTurns to all 33 agents missing turn limits</td><td>agents, cost</td><td><span class="badge badge-yellow">P1</span></td><td>S</td></tr>
+        <tr><td>5</td><td>Add per-skill model overrides (opus for audit, haiku for help)</td><td>skills, optimization</td><td><span class="badge badge-yellow">P1</span></td><td>S</td></tr>
+        <tr><td>6</td><td>Add run_on_fail to analytics/cleanup hooks</td><td>hooks, reliability</td><td><span class="badge badge-blue">P2</span></td><td>S</td></tr>
+        <tr><td>7</td><td>Adopt $ARGUMENTS[N] indexed access in slash command skills</td><td>skills, ux</td><td><span class="badge badge-blue">P2</span></td><td>S</td></tr>
+        <tr><td>8</td><td>Consolidate TeammateIdle hooks into unified dispatcher</td><td>hooks, consistency</td><td><span class="badge badge-blue">P2</span></td><td>S</td></tr>
+        <tr><td>9</td><td>Add respectGitignore and plansDirectory to settings.json</td><td>settings, ux</td><td><span class="badge badge-blue">P2</span></td><td>XS</td></tr>
+        <tr><td>10</td><td>Add spinnerVerbs customization to settings.json</td><td>settings, ux</td><td><span class="badge badge-blue">P2</span></td><td>XS</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+function showPanel(id){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(id).classList.add('active','animate-in');
+  event.target.classList.add('active');
+}
+</script>
+</body>
+</html>

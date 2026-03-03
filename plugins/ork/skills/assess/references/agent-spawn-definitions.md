@@ -13,7 +13,7 @@ for dimension, agent_type in [
     ("PERFORMANCE + SCALABILITY", "python-performance-engineer"),  # Use python-performance-engineer for backend; frontend-performance-engineer for frontend
     ("TESTABILITY", "test-generator"),
 ]:
-    Task(subagent_type=agent_type, run_in_background=True, max_turns=25,
+    Agent(subagent_type=agent_type, run_in_background=True, max_turns=25,
          prompt=f"""Assess {dimension} (0-10) for: {target}
 
 ## Scope Constraint

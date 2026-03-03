@@ -12,7 +12,8 @@
  * CC 2.1.16 Compliant
  */
 
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { existsSync, readFileSync, mkdirSync } from 'node:fs';
+import { atomicWriteSync } from './atomic-write.js';
 import { bufferWrite } from './analytics-buffer.js';
 import { join, dirname, basename } from 'node:path';
 import { getProjectDir, logHook } from './common.js';
@@ -167,7 +168,7 @@ function saveDecisionFlow(flow: DecisionFlow): boolean {
       mkdirSync(dir, { recursive: true });
     }
 
-    writeFileSync(filePath, JSON.stringify(flow, null, 2));
+    atomicWriteSync(filePath, JSON.stringify(flow, null, 2));
     return true;
   } catch (err) {
     logHook('decision-flow-tracker', `Failed to save flow: ${err}`, 'warn');

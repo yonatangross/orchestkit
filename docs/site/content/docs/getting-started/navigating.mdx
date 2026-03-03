@@ -5,7 +5,7 @@ description: Hub-and-spoke navigation — find the right skills and agents for y
 
 import { Card, Cards } from 'fumadocs-ui/components/card';
 
-OrchestKit has 67 skills and 37 agents. You don't need to memorize them — this page helps you find exactly what you need.
+OrchestKit has 69 skills and 38 agents. You don't need to memorize them — this page helps you find exactly what you need.
 
 ## By Role
 
@@ -17,22 +17,21 @@ Pick your role to see your recommended toolkit:
 
 **Your key skills:**
 - `/ork:implement` — Full feature implementation
-- `fastapi-advanced` — Lifespan, middleware, dependencies
-- `database-schema-designer` — Normalization, indexes, migrations
-- `sqlalchemy-2-async` — Async sessions, relationships
-- `celery-advanced` — Task queues, canvas workflows
-- `alembic-migrations` — Safe schema changes
+- `python-backend` — FastAPI, async patterns, middleware
+- `database-patterns` — Schema design, indexes, migrations
+- `api-design` — REST endpoint patterns, versioning
+- `async-jobs` — Task queues, background processing
 
 ### Frontend Developer
 
-**Your agents:** `frontend-ui-developer`, `performance-engineer`, `accessibility-specialist`
+**Your agents:** `frontend-ui-developer`, `frontend-performance-engineer`, `accessibility-specialist`
 
 **Your key skills:**
 - `react-server-components-framework` — RSC patterns, Next.js 16+
-- `shadcn-patterns` — Component variants, CVA
-- `tanstack-query-advanced` — Infinite scroll, optimistic updates
-- `core-web-vitals` — LCP, INP, CLS optimization
-- `motion-animation-patterns` — Framer Motion animations
+- `ui-components` — Component patterns, design systems
+- `responsive-patterns` — Responsive layouts, mobile-first
+- `zustand-patterns` — State management
+- `performance` — Core Web Vitals, bundle optimization
 
 ### AI / LLM Engineer
 
@@ -40,10 +39,9 @@ Pick your role to see your recommended toolkit:
 
 **Your key skills:**
 - `rag-retrieval` — Retrieval-Augmented Generation
-- `langgraph-supervisor` — Multi-agent workflows
-- `function-calling` — Tool use patterns
-- `llm-evaluation` — Quality assessment
-- `embeddings` — Semantic search
+- `langgraph` — Multi-agent workflows, LangGraph patterns
+- `llm-integration` — Tool use, function calling, streaming
+- `multimodal-llm` — Vision, audio, video processing
 
 ### DevOps / Platform
 
@@ -51,8 +49,7 @@ Pick your role to see your recommended toolkit:
 
 **Your key skills:**
 - `devops-deployment` — CI/CD pipelines, Terraform, K8s
-- `zero-downtime-migration` — Safe rollouts
-- `observability-monitoring` — Prometheus, Grafana
+- `monitoring-observability` — Prometheus, Grafana, OpenTelemetry
 
 ### Tech Lead
 
@@ -61,18 +58,16 @@ Pick your role to see your recommended toolkit:
 **Your key skills:**
 - `/ork:review-pr` — AI-powered code review
 - `architecture-decision-record` — ADR templates
-- `clean-architecture` — SOLID, hexagonal
-- `system-design-interrogation` — Design review checklist
+- `architecture-patterns` — SOLID, hexagonal, clean architecture
+- `quality-gates` — Code quality standards
 
 ### Security Engineer
 
 **Your agents:** `security-auditor`, `ai-safety-auditor`, `security-layer-auditor`
 
 **Your key skills:**
-- `owasp-top-10` — Web vulnerability patterns
-- `defense-in-depth` — 8-layer security model
-- `llm-safety-patterns` — Prompt injection, guardrails
-- `mcp-security-hardening` — MCP server security
+- `security-patterns` — OWASP Top 10, defense-in-depth, input validation
+- `mcp-patterns` — MCP server security
 
 ## By Task
 
@@ -91,35 +86,44 @@ Pick your role to see your recommended toolkit:
 | Explore codebase | `/ork:explore` |
 | Create a PR | `/ork:create-pr` |
 
+## By Keyboard Shortcut
+
+The fastest way to invoke skills — chord keybindings (press first combo, release, press second):
+
+| Shortcut | Skill | What It Does |
+|---|---|---|
+| `ctrl+k ctrl+f` | `/ork:fix-issue` | Fix a GitHub issue |
+| `ctrl+k ctrl+i` | `/ork:implement` | Implement a feature |
+| `ctrl+k ctrl+e` | `/ork:explore` | Deep codebase exploration |
+| `ctrl+k ctrl+r` | `/ork:review-pr` | Review a pull request |
+| `ctrl+k ctrl+m` | `/ork:memory` | Search/load memory |
+| `ctrl+k ctrl+a` | `/ork:assess` | Quality assessment |
+| `ctrl+k ctrl+c` | `/ork:commit` | Conventional commit |
+| `ctrl+k ctrl+h` | `/ork:help` | Skill directory |
+
 ## By Command
 
-All 23 command skills you can invoke directly:
+All 17 user-invocable command skills:
 
 | Command | What It Does |
 |---|---|
 | `/ork:implement` | Full feature implementation with parallel agents |
+| `/ork:fix-issue` | Issue to PR in one command |
 | `/ork:verify` | Run tests, security, and quality gates |
+| `/ork:explore` | Deep codebase exploration |
+| `/ork:brainstorming` | Design exploration |
+| `/ork:assess` | Quality rating 0-10 |
 | `/ork:commit` | Conventional commit with analysis |
 | `/ork:create-pr` | PR with summary and test plan |
 | `/ork:review-pr` | Multi-agent code review |
-| `/ork:fix-issue` | Issue to PR in one command |
-| `/ork:explore` | Deep codebase exploration |
-| `/ork:memory` | Search, load, sync memory |
+| `/ork:git-workflow` | Git branching, merge strategies, recovery |
 | `/ork:remember` | Store decisions in knowledge graph |
+| `/ork:memory` | Search, load, sync memory |
 | `/ork:doctor` | Health diagnostics |
 | `/ork:configure` | Plugin settings |
 | `/ork:help` | Skill directory |
-| `/ork:assess` | Quality rating 0-10 |
-| `/ork:assess-complexity` | Task complexity analysis |
-| `/ork:brainstorming` | Design exploration |
-| `/ork:demo-producer` | Create demo videos |
-| `/ork:feedback` | Submit feedback |
-| `/ork:git-recovery` | Recover from git mistakes |
-| `/ork:skill-evolution` | Evolve skills from usage |
-| `/ork:upgrade-assessment` | Platform upgrade readiness |
-| `/ork:run-tests` | Parallel test execution |
-| `/ork:errors` | Error pattern analysis |
-| `/ork:best-practices` | View/manage best practices |
+| `/ork:setup` | Onboarding wizard with stack detection |
+| `/ork:plan-viz` | Visualize planned changes |
 
 ## Next Steps
 

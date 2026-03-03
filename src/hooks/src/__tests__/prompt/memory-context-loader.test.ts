@@ -15,16 +15,9 @@ import type { HookInput } from '../../types.js';
 // Mock common.js functions
 vi.mock('../../lib/common.js', () => ({
   outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  outputPromptContext: vi.fn((ctx: string) => ({
-    continue: true,
-    suppressOutput: true,
-    hookSpecificOutput: {
-      hookEventName: 'UserPromptSubmit',
-      additionalContext: ctx,
-    },
-  })),
   getProjectDir: vi.fn(() => '/test/project'),
   logHook: vi.fn(),
+  writeRulesFile: vi.fn(),
 }));
 
 // Mock node:fs
@@ -40,8 +33,8 @@ vi.mock('node:fs', async () => {
 // Import mocked modules
 import {
   outputSilentSuccess,
-  outputPromptContext,
   logHook,
+  writeRulesFile,
 } from '../../lib/common.js';
 import { existsSync, readFileSync } from 'node:fs';
 
@@ -109,20 +102,12 @@ describe('prompt/memory-context-loader', () => {
   const mockExistsSync = vi.mocked(existsSync);
   const mockReadFileSync = vi.mocked(readFileSync);
   const mockOutputSilentSuccess = vi.mocked(outputSilentSuccess);
-  const mockOutputPromptContext = vi.mocked(outputPromptContext);
+  const mockWriteRulesFile = vi.mocked(writeRulesFile);
   const mockLogHook = vi.mocked(logHook);
 
   beforeEach(() => {
     vi.clearAllMocks();
     mockOutputSilentSuccess.mockReturnValue({ continue: true, suppressOutput: true });
-    mockOutputPromptContext.mockImplementation((ctx: string) => ({
-      continue: true,
-      suppressOutput: true,
-      hookSpecificOutput: {
-        hookEventName: 'UserPromptSubmit' as const,
-        additionalContext: ctx,
-      },
-    }));
   });
 
   // ===========================================================================
@@ -136,7 +121,7 @@ describe('prompt/memory-context-loader', () => {
 
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
-      expect(mockOutputPromptContext).not.toHaveBeenCalled();
+      expect(mockWriteRulesFile).not.toHaveBeenCalled();
       expect(mockLogHook).toHaveBeenCalledWith(
         'memory-context-loader',
         'No decisions.jsonl found, skipping'
@@ -155,7 +140,7 @@ describe('prompt/memory-context-loader', () => {
       const result = memoryContextLoader(createInput());
 
       expect(result.continue).toBe(true);
-      expect(mockOutputPromptContext).not.toHaveBeenCalled();
+      expect(mockWriteRulesFile).not.toHaveBeenCalled();
     });
 
     it('should return silent success when file has only whitespace', () => {
@@ -165,7 +150,7 @@ describe('prompt/memory-context-loader', () => {
       const result = memoryContextLoader(createInput());
 
       expect(result.continue).toBe(true);
-      expect(mockOutputPromptContext).not.toHaveBeenCalled();
+      expect(mockWriteRulesFile).not.toHaveBeenCalled();
     });
   });
 
@@ -173,17 +158,17 @@ describe('prompt/memory-context-loader', () => {
   // Returns additionalContext with recent decisions
   // ===========================================================================
   describe('loads recent decisions', () => {
-    it('should return context with a single decision', () => {
+    it('should write context with a single decision to rules file', () => {
       mockExistsSync.mockReturnValue(true);
       mockReadFileSync.mockReturnValue(`${makeDecisionLine()}\n`);
 
       const result = memoryContextLoader(createInput());
 
-      expect(mockOutputPromptContext).toHaveBeenCalledWith(
-        expect.stringContaining('Use PostgreSQL for the database')
-      );
+      expect(mockWriteRulesFile).toHaveBeenCalled();
+      const ctx = (mockWriteRulesFile.mock.calls[0]?.[2] as string) || '';
+      expect(ctx).toContain('Use PostgreSQL for the database');
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.additionalContext).toContain('PostgreSQL');
+      expect(ctx).toContain('PostgreSQL');
     });
 
     it('should include rationale when present', () => {
@@ -192,9 +177,8 @@ describe('prompt/memory-context-loader', () => {
 
       memoryContextLoader(createInput());
 
-      expect(mockOutputPromptContext).toHaveBeenCalledWith(
-        expect.stringContaining('Better JSON support')
-      );
+      const ctx = (mockWriteRulesFile.mock.calls[0]?.[2] as string) || '';
+      expect(ctx).toContain('Better JSON support');
     });
 
     it('should include entities when present', () => {
@@ -203,9 +187,8 @@ describe('prompt/memory-context-loader', () => {
 
       memoryContextLoader(createInput());
 
-      expect(mockOutputPromptContext).toHaveBeenCalledWith(
-        expect.stringContaining('postgresql')
-      );
+      const ctx = (mockWriteRulesFile.mock.calls[0]?.[2] as string) || '';
+      expect(ctx).toContain('postgresql');
     });
 
     it('should include both decisions and preferences', () => {
@@ -216,7 +199,7 @@ describe('prompt/memory-context-loader', () => {
 
       memoryContextLoader(createInput());
 
-      const ctx = mockOutputPromptContext.mock.calls[0][0];
+      const ctx = (mockWriteRulesFile.mock.calls[0]?.[2] as string) || '';
       expect(ctx).toContain('Decision');
       expect(ctx).toContain('Preference');
     });
@@ -233,7 +216,7 @@ describe('prompt/memory-context-loader', () => {
 
       memoryContextLoader(createInput());
 
-      const ctx = mockOutputPromptContext.mock.calls[0][0];
+      const ctx = (mockWriteRulesFile.mock.calls[0]?.[2] as string) || '';
       expect(ctx).toContain('Redis');
       expect(ctx).toContain('FastAPI');
       expect(ctx).toContain('pytest');
@@ -245,7 +228,7 @@ describe('prompt/memory-context-loader', () => {
 
       memoryContextLoader(createInput());
 
-      const ctx = mockOutputPromptContext.mock.calls[0][0];
+      const ctx = (mockWriteRulesFile.mock.calls[0]?.[2] as string) || '';
       expect(ctx).toContain('Recent Project Decisions');
       expect(ctx).toContain('mcp__memory__search_nodes');
     });
@@ -263,10 +246,10 @@ describe('prompt/memory-context-loader', () => {
 
       memoryContextLoader(createInput());
 
-      // Should still output context from the valid line
-      expect(mockOutputPromptContext).toHaveBeenCalledWith(
-        expect.stringContaining('PostgreSQL')
-      );
+      // Should still write context from the valid line to rules file
+      expect(mockWriteRulesFile).toHaveBeenCalled();
+      const ctx = (mockWriteRulesFile.mock.calls[0]?.[2] as string) || '';
+      expect(ctx).toContain('PostgreSQL');
     });
 
     it('should return silent success when all lines are malformed', () => {
@@ -278,7 +261,7 @@ describe('prompt/memory-context-loader', () => {
       const result = memoryContextLoader(createInput());
 
       expect(result.continue).toBe(true);
-      expect(mockOutputPromptContext).not.toHaveBeenCalled();
+      expect(mockWriteRulesFile).not.toHaveBeenCalled();
       expect(mockLogHook).toHaveBeenCalledWith(
         'memory-context-loader',
         'No valid decisions found in file'
@@ -294,7 +277,7 @@ describe('prompt/memory-context-loader', () => {
       const result = memoryContextLoader(createInput());
 
       expect(result.continue).toBe(true);
-      expect(mockOutputPromptContext).not.toHaveBeenCalled();
+      expect(mockWriteRulesFile).not.toHaveBeenCalled();
     });
   });
 
@@ -321,7 +304,7 @@ describe('prompt/memory-context-loader', () => {
 
       memoryContextLoader(createInput());
 
-      const ctx = mockOutputPromptContext.mock.calls[0][0];
+      const ctx = (mockWriteRulesFile.mock.calls[0]?.[2] as string) || '';
       // Should contain the truncation message
       expect(ctx).toContain('mcp__memory__search_nodes');
       // Should be within reasonable bounds
@@ -349,7 +332,7 @@ describe('prompt/memory-context-loader', () => {
 
       memoryContextLoader(createInput());
 
-      const ctx = mockOutputPromptContext.mock.calls[0][0];
+      const ctx = (mockWriteRulesFile.mock.calls[0]?.[2] as string) || '';
       // Should contain recent decisions (5-14) but not old ones (0-4)
       expect(ctx).toContain('Decision number 14');
       expect(ctx).toContain('Decision number 5');
@@ -411,7 +394,7 @@ describe('prompt/memory-context-loader', () => {
       mockExistsSync.mockReturnValue(false);
 
       const input = createInput();
-      delete (input as Record<string, unknown>).project_dir;
+      delete (input as unknown as Record<string, unknown>).project_dir;
       memoryContextLoader(input);
 
       // Cross-platform: accept either / or \ path separators
@@ -435,7 +418,7 @@ describe('prompt/memory-context-loader', () => {
 
       expect(mockLogHook).toHaveBeenCalledWith(
         'memory-context-loader',
-        'Loaded 2 decisions as context (0 filtered/deduped)'
+        'Wrote 2 decisions to rules file (0 filtered/deduped)'
       );
     });
   });

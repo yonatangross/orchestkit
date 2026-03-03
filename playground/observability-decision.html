@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OrchestKit Observability — 3-Layer Architecture Decision</title>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface-2: #1a1a25;
+    --border: #2a2a3a;
+    --text: #e4e4ef;
+    --text-dim: #8888a0;
+    --accent-blue: #4d8eff;
+    --accent-green: #34d399;
+    --accent-purple: #a78bfa;
+    --accent-orange: #f59e0b;
+    --accent-red: #ef4444;
+    --accent-cyan: #22d3ee;
+    --radius: 12px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding: 2rem 0;
+  }
+
+  header h1 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0.5rem;
+  }
+
+  header p {
+    color: var(--text-dim);
+    font-size: 1.05rem;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .insight-banner {
+    background: linear-gradient(135deg, rgba(77,142,255,0.1), rgba(167,139,250,0.1));
+    border: 1px solid rgba(77,142,255,0.3);
+    border-radius: var(--radius);
+    padding: 1.5rem 2rem;
+    margin-bottom: 3rem;
+    text-align: center;
+  }
+
+  .insight-banner strong {
+    color: var(--accent-blue);
+    font-size: 1.1rem;
+  }
+
+  .insight-banner p {
+    color: var(--text-dim);
+    margin-top: 0.5rem;
+    font-size: 0.95rem;
+  }
+
+  /* Architecture Diagram */
+  .arch-diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+    margin-bottom: 3rem;
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+    font-size: 0.85rem;
+    overflow-x: auto;
+    white-space: pre;
+    line-height: 1.5;
+    color: var(--text-dim);
+  }
+
+  .arch-diagram .highlight-blue { color: var(--accent-blue); font-weight: 600; }
+  .arch-diagram .highlight-green { color: var(--accent-green); font-weight: 600; }
+  .arch-diagram .highlight-purple { color: var(--accent-purple); font-weight: 600; }
+  .arch-diagram .highlight-orange { color: var(--accent-orange); font-weight: 600; }
+  .arch-diagram .dim { color: #555570; }
+
+  /* Layer Cards */
+  .layers {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+  }
+
+  .layer-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    transition: border-color 0.2s, transform 0.2s;
+    cursor: pointer;
+    position: relative;
+  }
+
+  .layer-card:hover {
+    transform: translateY(-2px);
+  }
+
+  .layer-card.active {
+    border-color: var(--card-accent);
+  }
+
+  .layer-card[data-layer="otlp"] { --card-accent: var(--accent-blue); }
+  .layer-card[data-layer="jsonl"] { --card-accent: var(--accent-green); }
+  .layer-card[data-layer="proxy"] { --card-accent: var(--accent-purple); }
+
+  .layer-badge {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    margin-bottom: 0.75rem;
+  }
+
+  .layer-card[data-layer="otlp"] .layer-badge {
+    background: rgba(77,142,255,0.15);
+    color: var(--accent-blue);
+  }
+  .layer-card[data-layer="jsonl"] .layer-badge {
+    background: rgba(52,211,153,0.15);
+    color: var(--accent-green);
+  }
+  .layer-card[data-layer="proxy"] .layer-badge {
+    background: rgba(167,139,250,0.15);
+    color: var(--accent-purple);
+  }
+
+  .layer-card h3 {
+    font-size: 1.15rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .layer-card .subtitle {
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+  }
+
+  .layer-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .meta-item {
+    background: var(--surface-2);
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .meta-item .label {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .meta-item .value {
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .layer-sees {
+    list-style: none;
+    margin-top: 0.75rem;
+  }
+
+  .layer-sees li {
+    font-size: 0.85rem;
+    padding: 0.25rem 0;
+    color: var(--text-dim);
+  }
+
+  .layer-sees li::before {
+    content: '>';
+    margin-right: 0.5rem;
+    color: var(--card-accent);
+    font-weight: 700;
+    font-family: monospace;
+  }
+
+  /* Expert Consensus */
+  .consensus {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+    margin-bottom: 3rem;
+  }
+
+  .consensus h2 {
+    font-size: 1.3rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .expert-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+  }
+
+  .expert-card {
+    background: var(--surface-2);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+  }
+
+  .expert-card .role {
+    font-size: 0.75rem;
+    color: var(--accent-cyan);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.25rem;
+  }
+
+  .expert-card .verdict {
+    font-size: 0.9rem;
+    color: var(--text);
+  }
+
+  /* Rejected Table */
+  .rejected {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+    margin-bottom: 3rem;
+  }
+
+  .rejected h2 {
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+    color: var(--accent-red);
+  }
+
+  .rejected-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+
+  .rejected-table th {
+    text-align: left;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-dim);
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .rejected-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid rgba(42,42,58,0.5);
+    color: var(--text-dim);
+  }
+
+  .rejected-table tr:hover td {
+    color: var(--text);
+  }
+
+  .rejected-table .idea {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  /* Decision Flow */
+  .decision-flow {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+    margin-bottom: 3rem;
+  }
+
+  .decision-flow h2 {
+    font-size: 1.3rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .flow-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .flow-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    background: var(--surface-2);
+    border-radius: 8px;
+    padding: 1.25rem;
+  }
+
+  .step-num {
+    flex-shrink: 0;
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-weight: 700;
+    font-size: 0.85rem;
+  }
+
+  .flow-step:nth-child(1) .step-num { background: rgba(77,142,255,0.2); color: var(--accent-blue); }
+  .flow-step:nth-child(2) .step-num { background: rgba(52,211,153,0.2); color: var(--accent-green); }
+  .flow-step:nth-child(3) .step-num { background: rgba(167,139,250,0.2); color: var(--accent-purple); }
+
+  .step-content h4 {
+    font-size: 0.95rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .step-content p {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+  }
+
+  .step-content code {
+    font-family: 'SF Mono', monospace;
+    font-size: 0.8rem;
+    background: rgba(77,142,255,0.1);
+    padding: 0.15rem 0.4rem;
+    border-radius: 3px;
+    color: var(--accent-blue);
+  }
+
+  /* Setup Stacks */
+  .stacks {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+  }
+
+  .stack-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+  }
+
+  .stack-card h3 {
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .stack-card .effort {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    margin-bottom: 1rem;
+  }
+
+  .stack-card pre {
+    background: var(--surface-2);
+    border-radius: 6px;
+    padding: 1rem;
+    font-size: 0.8rem;
+    font-family: 'SF Mono', monospace;
+    overflow-x: auto;
+    line-height: 1.5;
+    color: var(--text-dim);
+  }
+
+  footer {
+    text-align: center;
+    padding: 2rem 0;
+    color: var(--text-dim);
+    font-size: 0.8rem;
+  }
+
+  footer a {
+    color: var(--accent-blue);
+    text-decoration: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<header>
+  <h1>Observability Architecture Decision</h1>
+  <p>Three complementary layers for Claude Code session observability. Each captures different data at different boundaries — no single layer replaces the others.</p>
+</header>
+
+<div class="insight-banner">
+  <strong>Key Insight: 6 Expert Agents Converged On The Same Boundary</strong>
+  <p>OrchestKit's job is to PRODUCE telemetry data (JSONL). Consuming it (Langfuse, Phoenix, Grafana) belongs OUTSIDE OrchestKit. Adding SDKs to hooks is a non-starter: each hook spawns a fresh Node process (~3-50ms), SDK init alone takes 50-150ms.</p>
+</div>
+
+<!-- Architecture Diagram -->
+<div class="arch-diagram"><span class="highlight-blue">Claude Code CLI</span>
+  <span class="dim">│</span>
+  <span class="dim">├─</span> <span class="highlight-blue">OTEL spans</span> ─────────────────────────→ <span class="highlight-blue">Layer 1: CC Native OTLP</span>
+  <span class="dim">│</span>   <span class="dim">Tool calls: Read, Write, Bash, Task</span>       <span class="dim">→ Langfuse / Jaeger / Tempo</span>
+  <span class="dim">│</span>
+  <span class="dim">├─</span> <span class="highlight-green">Hook execution</span> ──→ <span class="highlight-green">~/.claude/analytics/*.jsonl</span> ──→ <span class="highlight-green">Layer 2: OrchestKit JSONL</span>
+  <span class="dim">│</span>   <span class="dim">6 files: hook-timing, agent-usage,</span>             <span class="dim">→ Bridge script → Langfuse</span>
+  <span class="dim">│</span>   <span class="dim">session-summary, skill-usage,</span>                  <span class="dim">→ jq / DuckDB queries</span>
+  <span class="dim">│</span>   <span class="dim">task-usage, team-activity</span>
+  <span class="dim">│</span>
+  <span class="dim">└─</span> <span class="highlight-purple">API calls</span> ──→ <span class="highlight-purple">LiteLLM proxy (:4000)</span> ──→ <span class="highlight-purple">Layer 3: dev-agent-lens</span>
+      <span class="dim">Tokens, costs, latency, model routing</span>         <span class="dim">→ Langfuse / Prometheus</span>
+      <span class="dim">(API key users only)</span></div>
+
+<!-- Layer Cards -->
+<div class="layers">
+
+  <div class="layer-card" data-layer="otlp">
+    <span class="layer-badge">Layer 1</span>
+    <h3>CC Native OTLP</h3>
+    <p class="subtitle">Tool-level spans from Claude Code's built-in telemetry</p>
+    <div class="layer-meta">
+      <div class="meta-item">
+        <div class="label">Latency Impact</div>
+        <div class="value">Zero</div>
+      </div>
+      <div class="meta-item">
+        <div class="label">Setup</div>
+        <div class="value">3 env vars</div>
+      </div>
+      <div class="meta-item">
+        <div class="label">API Key?</div>
+        <div class="value">No</div>
+      </div>
+      <div class="meta-item">
+        <div class="label">CC Free/Pro?</div>
+        <div class="value" style="color:var(--accent-green)">Yes</div>
+      </div>
+    </div>
+    <ul class="layer-sees">
+      <li>Every Read, Write, Edit, Bash, Task call as a span</li>
+      <li>Span duration and parent-child relationships</li>
+      <li>Tool arguments and results</li>
+    </ul>
+  </div>
+
+  <div class="layer-card" data-layer="jsonl">
+    <span class="layer-badge">Layer 2</span>
+    <h3>OrchestKit JSONL</h3>
+    <p class="subtitle">Hook-level analytics — already active, zero config needed</p>
+    <div class="layer-meta">
+      <div class="meta-item">
+        <div class="label">Latency Impact</div>
+        <div class="value">Zero</div>
+      </div>
+      <div class="meta-item">
+        <div class="label">Setup</div>
+        <div class="value">Already active</div>
+      </div>
+      <div class="meta-item">
+        <div class="label">API Key?</div>
+        <div class="value">No</div>
+      </div>
+      <div class="meta-item">
+        <div class="label">Files</div>
+        <div class="value">6 JSONL</div>
+      </div>
+    </div>
+    <ul class="layer-sees">
+      <li>Hook execution timing and success/failure</li>
+      <li>Agent spawn events with model selection</li>
+      <li>Skill invocations and session summaries</li>
+      <li>Task chains and team coordination</li>
+    </ul>
+  </div>
+
+  <div class="layer-card" data-layer="proxy">
+    <span class="layer-badge">Layer 3</span>
+    <h3>dev-agent-lens (LiteLLM Proxy)</h3>
+    <p class="subtitle">API-level cost tracking and model routing visibility</p>
+    <div class="layer-meta">
+      <div class="meta-item">
+        <div class="label">Latency Impact</div>
+        <div class="value">+5-15ms</div>
+      </div>
+      <div class="meta-item">
+        <div class="label">Setup</div>
+        <div class="value">Docker + env vars</div>
+      </div>
+      <div class="meta-item">
+        <div class="label">API Key?</div>
+        <div class="value" style="color:var(--accent-orange)">Required</div>
+      </div>
+      <div class="meta-item">
+        <div class="label">CC Free/Pro?</div>
+        <div class="value" style="color:var(--accent-red)">No</div>
+      </div>
+    </div>
+    <ul class="layer-sees">
+      <li>Per-request token counts and USD costs</li>
+      <li>API latency (TTFT, total duration)</li>
+      <li>Rate limit events and retries</li>
+      <li>Model version per request</li>
+    </ul>
+  </div>
+
+</div>
+
+<!-- Expert Consensus -->
+<div class="consensus">
+  <h2>Expert Analysis Summary</h2>
+  <p style="color:var(--text-dim);margin-bottom:1.25rem;">Two brainstorming rounds with 6 specialized agents. All converged on the same architectural boundary.</p>
+  <div class="expert-grid">
+    <div class="expert-card">
+      <div class="role">Product Strategist</div>
+      <div class="verdict">OrchestKit produces telemetry. Consuming it is outside scope. Adding Langfuse SDK to hooks violates the "zero mandatory cloud deps" principle.</div>
+    </div>
+    <div class="expert-card">
+      <div class="role">RICE Prioritization Analyst</div>
+      <div class="verdict">Reference docs score RICE 84 (high reach, low effort). New hooks/skills score 12 (low reach, high complexity, adoption risk from API keys).</div>
+    </div>
+    <div class="expert-card">
+      <div class="role">UX Researcher</div>
+      <div class="verdict">JSONL-first approach matches "progressive disclosure" — power users opt into visualization, casual users get zero-config analytics.</div>
+    </div>
+    <div class="expert-card">
+      <div class="role">Monitoring Engineer</div>
+      <div class="verdict">Three layers capture three different boundaries. Proxy sees API calls, hooks see execution decisions, OTLP sees tool invocations. No single layer is sufficient.</div>
+    </div>
+    <div class="expert-card">
+      <div class="role">Workflow Architect</div>
+      <div class="verdict">Bridge pattern (long-lived Python process, SDK init once) solves the hook-per-process performance problem. Keep the bridge outside OrchestKit.</div>
+    </div>
+    <div class="expert-card">
+      <div class="role">Product Strategist (Round 2)</div>
+      <div class="verdict">mem0 precedent: optional API keys caused 73% of support issues. JSONL output is format-agnostic — any consumer can parse it.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Decision Flow -->
+<div class="decision-flow">
+  <h2>Getting Started — Choose Your Stack</h2>
+  <div class="flow-steps">
+    <div class="flow-step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h4>Start with CC Native OTLP (5 minutes)</h4>
+        <p>Add 3 env vars to your shell config. Point <code>OTEL_EXPORTER_OTLP_ENDPOINT</code> at any OTLP-compatible backend (Langfuse, Jaeger, Phoenix). Immediate tool-level visibility with zero code changes.</p>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h4>Query JSONL directly (already active)</h4>
+        <p>OrchestKit hooks already write to <code>~/.claude/analytics/*.jsonl</code>. Use <code>jq</code> for quick queries, DuckDB for analytics. No setup needed — data is already flowing.</p>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <h4>Add visualization if needed (30 min–1 hour)</h4>
+        <p>Write a bridge script to forward JSONL to Langfuse/Phoenix. Or add dev-agent-lens proxy for API-level cost tracking. Both are personal dev tooling — not OrchestKit config.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Setup Stacks -->
+<div class="stacks">
+  <div class="stack-card">
+    <h3>Minimal Stack</h3>
+    <div class="effort">5 minutes setup, CC Free/Pro compatible</div>
+    <pre># ~/.zshrc
+export CLAUDE_CODE_ENABLE_TELEMETRY=1
+export OTEL_EXPORTER_OTLP_ENDPOINT="http://localhost:3100/api/public/otel"
+export OTEL_EXPORTER_OTLP_HEADERS="x-langfuse-public-key=pk-...,x-langfuse-secret-key=sk-..."
+
+# Query hook data with jq
+cat ~/.claude/analytics/hook-timing.jsonl \
+  | jq 'select(.duration_ms > 100)'</pre>
+  </div>
+  <div class="stack-card">
+    <h3>Full Local Stack</h3>
+    <div class="effort">~1 hour setup, requires Docker + API key for proxy layer</div>
+    <pre># Layer 1: CC OTLP → Langfuse (tool spans)
+export CLAUDE_CODE_ENABLE_TELEMETRY=1
+export OTEL_EXPORTER_OTLP_ENDPOINT="http://localhost:3100/api/public/otel"
+
+# Layer 2: JSONL → Langfuse bridge (hook/agent/skill spans)
+python scripts/ork-langfuse-bridge/main.py
+
+# Layer 3: LiteLLM proxy → Langfuse (API costs)
+docker compose --profile observability up -d
+export ANTHROPIC_BASE_URL="http://localhost:4000"</pre>
+  </div>
+</div>
+
+<!-- Rejected Ideas -->
+<div class="rejected">
+  <h2>What We Rejected (and Why)</h2>
+  <table class="rejected-table">
+    <thead>
+      <tr><th>Idea</th><th>Why Rejected</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="idea">Langfuse SDK in OrchestKit hooks</td>
+        <td>SDK init 50-150ms per hook process spawn. Hooks run in 3-50ms — SDK init alone doubles execution time.</td>
+      </tr>
+      <tr>
+        <td class="idea">LANGFUSE_* env vars in OrchestKit</td>
+        <td>Optional cloud API keys cause adoption failure. mem0 precedent: 73% of support tickets from API key issues.</td>
+      </tr>
+      <tr>
+        <td class="idea">New /ork:observability skill</td>
+        <td>Overlaps monitoring-observability skill. Reference files in existing skill are sufficient.</td>
+      </tr>
+      <tr>
+        <td class="idea">Phoenix exporter hook</td>
+        <td>CC native OTLP already covers this layer. Adding a hook duplicates built-in functionality.</td>
+      </tr>
+      <tr>
+        <td class="idea">Setup wizard Phase 7c for observability</td>
+        <td>9 setup phases already cause skip behavior. One bullet in Phase 5 MCP matrix is enough.</td>
+      </tr>
+      <tr>
+        <td class="idea">Expanding Issue #500 scope to hooks</td>
+        <td>#500 is correctly scoped to eval-runner Python. Hooks are TypeScript — different runtime, different solution.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<footer>
+  OrchestKit v7.0.0 &middot; Observability Architecture Decision &middot; <a href="https://github.com/orchestkit/orchestkit">GitHub</a>
+</footer>
+
+</div>
+
+</body>
+</html>

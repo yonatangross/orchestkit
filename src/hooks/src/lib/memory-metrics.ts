@@ -4,10 +4,9 @@
  * Collects metrics from graph memory tier and CC Native MEMORY.md.
  */
 
-import { existsSync, readFileSync, mkdirSync } from 'node:fs';
-import { bufferWrite } from './analytics-buffer.js';
-import { join, dirname } from 'node:path';
-import { getProjectDir, logHook } from './common.js';
+import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { getProjectDir } from './common.js';
 
 // =============================================================================
 // TYPES
@@ -138,23 +137,3 @@ export function collectMemoryMetrics(projectDir?: string): MemoryMetrics {
   };
 }
 
-/**
- * Append a timestamped metric snapshot to the metrics log
- */
-export function appendMetricSnapshot(projectDir?: string, metrics?: MemoryMetrics): void {
-  const dir = projectDir || getProjectDir();
-  const metricsPath = join(dir, '.claude', 'logs', 'memory-metrics.jsonl');
-
-  const snapshot = metrics || collectMemoryMetrics(dir);
-
-  try {
-    const metricsDir = dirname(metricsPath);
-    if (!existsSync(metricsDir)) {
-      mkdirSync(metricsDir, { recursive: true });
-    }
-    bufferWrite(metricsPath, `${JSON.stringify(snapshot)}\n`);
-    logHook('memory-metrics', `Metrics snapshot appended: ${snapshot.decisions.total} decisions`, 'debug');
-  } catch (error) {
-    logHook('memory-metrics', `Failed to write metrics: ${error}`, 'warn');
-  }
-}

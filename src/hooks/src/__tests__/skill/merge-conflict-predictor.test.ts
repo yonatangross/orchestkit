@@ -288,7 +288,7 @@ branch refs/heads/feature`;
       const statusCalls = vi.mocked(execSync).mock.calls.filter(
         (call) => (call[0] as string).includes('git status')
       );
-      expect(statusCalls.every((call) => !call[1]?.cwd?.includes('/test/project$'))).toBe(true);
+      expect(statusCalls.every((call) => !(call[1] as any)?.cwd?.includes('/test/project$'))).toBe(true);
     });
   });
 
@@ -319,7 +319,7 @@ branch refs/heads/feature`;
 
       // Assert
       expect(stderrSpy).toHaveBeenCalled();
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).toContain('MERGE CONFLICT RISK');
     });
 
@@ -342,7 +342,7 @@ branch refs/heads/feature`;
       mergeConflictPredictor(input);
 
       // Assert
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).toContain('OVERLAP');
       expect(stderrOutput).toContain('High risk of merge conflict');
     });
@@ -366,7 +366,7 @@ branch refs/heads/feature`;
       mergeConflictPredictor(input);
 
       // Assert
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).not.toContain('OVERLAP');
     });
   });
@@ -399,7 +399,7 @@ branch refs/heads/feature`;
       mergeConflictPredictor(input);
 
       // Assert
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).toContain('DIVERGENCE');
       expect(stderrOutput).toContain('15 commits behind');
     });
@@ -420,7 +420,7 @@ branch refs/heads/feature`;
       mergeConflictPredictor(input);
 
       // Assert
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).not.toContain('DIVERGENCE');
     });
 
@@ -436,7 +436,7 @@ branch refs/heads/feature`;
 
       // Assert
       expect(result.continue).toBe(true);
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).not.toContain('DIVERGENCE');
     });
   });
@@ -535,7 +535,7 @@ branch refs/heads/feature`;
       mergeConflictPredictor(input);
 
       // Assert
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).toContain('Recommendations');
     });
   });
@@ -647,7 +647,7 @@ branch refs/heads/feature`;
       mergeConflictPredictor(input);
 
       // Assert
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).toContain('branch1');
       expect(stderrOutput).toContain('branch2');
     });
@@ -684,7 +684,7 @@ branch refs/heads/feature`;
       mergeConflictPredictor(input);
 
       // Assert
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       if (isModified) {
         expect(stderrOutput).toContain('MERGE CONFLICT RISK');
       }

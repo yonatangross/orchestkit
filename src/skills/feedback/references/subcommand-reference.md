@@ -234,6 +234,54 @@ YOUR RIGHTS
   • View this policy:    /ork:feedback privacy
 ```
 
+## bug
+
+File a bug report as a GitHub issue with auto-collected environment context.
+
+**Usage:**
+```
+/ork:feedback bug
+/ork:feedback bug Something broke when I ran /ork:verify
+```
+
+**Action:**
+1. Prompt for category (skill/agent/hook/build/other) via AskUserQuestion
+2. Collect description from user (or use argument if provided)
+3. Auto-collect environment: OrchestKit version, CC version, OS, git branch
+4. Auto-collect last skill/agent from metrics.json (if available)
+5. Sanitize all context (strip PII, absolute paths, credentials)
+6. Search for duplicate issues via `gh issue list --search`
+7. Show issue preview and ask for confirmation
+8. Create issue via `gh issue create` with structured template
+9. If `gh` not authenticated, save to `.claude/feedback/pending-bugs/` for later
+
+**Output:**
+```
+Bug report filed!
+
+  Issue: #456
+  URL:   https://github.com/yonatangross/orchestkit/issues/456
+  Title: Bug: verify skill fails on monorepo with pnpm workspaces
+
+Track progress or add details at the URL above.
+```
+
+**Output (gh not authenticated):**
+```
+Could not create GitHub issue (gh CLI not authenticated).
+
+Bug report saved to:
+  .claude/feedback/pending-bugs/bug-20260226-143000.md
+
+To file manually:
+  1. Run: gh auth login
+  2. Then: gh issue create -R yonatangross/orchestkit \
+       --body-file .claude/feedback/pending-bugs/bug-20260226-143000.md \
+       --title "Bug: ..." --label bug
+```
+
+See [Bug Report Reference](bug-report-reference.md) for full workflow details.
+
 ## export-analytics
 
 Export anonymous analytics data to a file for review before sharing.

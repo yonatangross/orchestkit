@@ -28,7 +28,7 @@ All 5 agents launch in ONE message with `run_in_background=true`.
 
 ### Agent 1: Workflow Architect
 ```python
-Task(
+Agent(
   subagent_type="workflow-architect",
   prompt="""ARCHITECTURE PLANNING — SINGLE-PASS OUTPUT
 
@@ -65,7 +65,7 @@ Task(
 
 ### Agent 2: Backend Architect
 ```python
-Task(
+Agent(
   subagent_type="backend-system-architect",
   prompt="""COMPLETE BACKEND ARCHITECTURE — SINGLE PASS
 
@@ -89,7 +89,7 @@ Task(
 
 ### Agent 3: Frontend Developer
 ```python
-Task(
+Agent(
   subagent_type="frontend-ui-developer",
   prompt="""COMPLETE FRONTEND ARCHITECTURE — SINGLE PASS
 
@@ -114,7 +114,7 @@ Task(
 
 ### Agent 4: LLM Integrator
 ```python
-Task(
+Agent(
   subagent_type="llm-integrator",
   prompt="""AI/ML INTEGRATION ANALYSIS — SINGLE PASS
 
@@ -137,7 +137,7 @@ Task(
 
 ### Agent 5: UX Researcher
 ```python
-Task(
+Agent(
   subagent_type="ux-researcher",
   prompt="""UX ANALYSIS — SINGLE PASS
 
@@ -174,7 +174,7 @@ All 5 agents launch in ONE message with `run_in_background=true`.
 
 ### Agent 1: Backend — Complete Implementation
 ```python
-Task(
+Agent(
   subagent_type="backend-system-architect",
   prompt="""IMPLEMENT COMPLETE BACKEND — SINGLE PASS (128K output)
 
@@ -214,7 +214,7 @@ Task(
 
 ### Agent 2: Frontend — Complete Implementation
 ```python
-Task(
+Agent(
   subagent_type="frontend-ui-developer",
   prompt="""IMPLEMENT COMPLETE FRONTEND — SINGLE PASS (128K output)
 
@@ -258,7 +258,7 @@ Task(
 
 ### Agent 3: AI Integration (if needed)
 ```python
-Task(
+Agent(
   subagent_type="llm-integrator",
   prompt="""IMPLEMENT AI INTEGRATION — SINGLE PASS (128K output)
 
@@ -283,7 +283,7 @@ Task(
 
 ### Agent 4: Test Suite — Complete Coverage
 ```python
-Task(
+Agent(
   subagent_type="test-generator",
   prompt="""GENERATE COMPLETE TEST SUITE — SINGLE PASS (128K output)
 
@@ -335,7 +335,7 @@ Task(
 
 ### Agent 5: Design System (optional — skip if existing design)
 ```python
-Task(
+Agent(
   subagent_type="rapid-ui-designer",
   prompt="""DESIGN SYSTEM SPECIFICATIONS — SINGLE PASS (128K output)
 
@@ -402,7 +402,7 @@ npm test -- --coverage
 
 ### Agent 1: Backend Integration
 ```python
-Task(
+Agent(
   subagent_type="backend-system-architect",
   prompt="""BACKEND INTEGRATION VERIFICATION
 
@@ -420,7 +420,7 @@ Task(
 
 ### Agent 2: Frontend Integration
 ```python
-Task(
+Agent(
   subagent_type="frontend-ui-developer",
   prompt="""FRONTEND INTEGRATION VERIFICATION
 
@@ -438,7 +438,7 @@ Task(
 
 ### Agent 3: Code Quality Review
 ```python
-Task(
+Agent(
   subagent_type="code-quality-reviewer",
   prompt="""FULL QUALITY REVIEW — SINGLE PASS (128K output)
 
@@ -456,7 +456,7 @@ Task(
 
 ### Agent 4: Security Audit
 ```python
-Task(
+Agent(
   subagent_type="security-auditor",
   prompt="""SECURITY AUDIT — SINGLE PASS (128K output)
 

@@ -78,6 +78,7 @@ import { outputSilentSuccess, outputPromptContext } from '../../lib/common.js';
 import { loadConfig } from '../../lib/orchestration-state.js';
 import { detectPipeline, createPipelineExecution, registerPipelineExecution, formatPipelinePlan } from '../../lib/multi-agent-coordinator.js';
 import { getActivePipeline } from '../../lib/task-integration.js';
+import type { PipelineType } from '../../lib/orchestration-types.js';
 
 // =============================================================================
 // Test Utilities
@@ -103,7 +104,7 @@ function createPromptInput(prompt: string, overrides: Partial<HookInput> = {}): 
  */
 function createPipelineDefinition(type: string, triggers: string[]) {
   return {
-    type,
+    type: type as PipelineType,
     name: `${type} Pipeline`,
     description: `Description for ${type}`,
     triggers,
@@ -445,7 +446,7 @@ describe('prompt/pipeline-detector', () => {
       const pipeline = createPipelineDefinition('security-audit', ['security audit']);
       const execution = {
         pipelineId: 'pipeline-456',
-        type: 'security-audit',
+        type: 'security-audit' as PipelineType,
         startedAt: new Date().toISOString(),
         taskIds: { 0: 'task-1' },
         currentStep: 0,
