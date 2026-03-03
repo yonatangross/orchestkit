@@ -7,8 +7,8 @@
     "build": "next build --webpack",
     "start": "next start",
     "postinstall": "fumadocs-mdx",
-    "test": "vitest run",
-    "test:watch": "vitest"
+    "test": "vitest run -c vitest.site.config.ts",
+    "test:watch": "vitest -c vitest.site.config.ts"
   },
   "dependencies": {
     "@yonatan-hq/analytics": "file:../../../yonatan-hq/packages/analytics",
