@@ -43,7 +43,11 @@ vi.mock('node:child_process', () => ({
 // Imports (after mocks)
 // =============================================================================
 
-import { soundNotification, _resetAfplayCacheForTesting } from '../../notification/sound.js';
+import {
+  soundNotification,
+  _resetAfplayCacheForTesting,
+  _resetLinuxPlayerCacheForTesting,
+} from '../../notification/sound.js';
 import { outputSilentSuccess, logHook } from '../../lib/common.js';
 import { execSync } from 'node:child_process';
 
@@ -83,6 +87,7 @@ describe('notification/sound', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     _resetAfplayCacheForTesting();
+    _resetLinuxPlayerCacheForTesting();
     // Default: afplay is available
     vi.mocked(execSync).mockImplementation((cmd: string) => {
       if (cmd === 'command -v afplay') return Buffer.from('/usr/bin/afplay');
@@ -104,6 +109,9 @@ describe('notification/sound', () => {
       ['permission_prompt', '/System/Library/Sounds/Sosumi.aiff'],
       ['idle_prompt', '/System/Library/Sounds/Ping.aiff'],
       ['auth_success', '/System/Library/Sounds/Glass.aiff'],
+      ['task_complete', '/System/Library/Sounds/Glass.aiff'],
+      ['error', '/System/Library/Sounds/Basso.aiff'],
+      ['warning', '/System/Library/Sounds/Funk.aiff'],
     ])('maps %s to %s', (notificationType, expectedPath) => {
       // Arrange
       const input = createSoundInput(notificationType);
@@ -126,9 +134,6 @@ describe('notification/sound', () => {
 
   describe('unknown notification types', () => {
     test.each([
-      'task_complete',
-      'error',
-      'warning',
       'info',
       'unknown_type',
       '',
@@ -173,11 +178,10 @@ describe('notification/sound', () => {
       expect(execSync).toHaveBeenCalledWith('command -v afplay', { stdio: 'ignore' });
     });
 
-    test('does not play sound when afplay is not available', () => {
-      // Arrange
+    test('does not play sound when afplay is not available (and no Linux player)', () => {
+      // Arrange - afplay missing AND no Linux players available
       vi.mocked(execSync).mockImplementation((cmd: string) => {
-        if (cmd === 'command -v afplay') throw new Error('not found');
-        return Buffer.from('');
+        throw new Error(`not found: ${cmd}`);
       });
       const input = createSoundInput('permission_prompt');
 
@@ -485,6 +489,321 @@ describe('notification/sound', () => {
         ([cmd]) => cmd === 'command -v afplay',
       );
       expect(checkCalls).toHaveLength(2);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Field resolution order
+  // ---------------------------------------------------------------------------
+
+  describe('field resolution order', () => {
+    test('prefers root-level notification_type over tool_input', () => {
+      // Arrange - root-level says permission_prompt, tool_input says idle_prompt
+      const input = createToolInput({
+        notification_type: 'permission_prompt',
+        tool_input: { notification_type: 'idle_prompt' },
+      });
+
+      // Act
+      soundNotification(input);
+
+      // Assert - Sosumi.aiff (permission_prompt) played, not Ping.aiff (idle_prompt)
+      expect(mockSpawn).toHaveBeenCalledWith(
+        'afplay',
+        ['/System/Library/Sounds/Sosumi.aiff'],
+        expect.any(Object),
+      );
+    });
+
+    test('falls back to tool_input.notification_type when root-level is absent', () => {
+      // Arrange - no root-level notification_type, tool_input has one
+      const input = createSoundInput('idle_prompt');
+
+      // Act
+      soundNotification(input);
+
+      // Assert - Ping.aiff (idle_prompt) played
+      expect(mockSpawn).toHaveBeenCalledWith(
+        'afplay',
+        ['/System/Library/Sounds/Ping.aiff'],
+        expect.any(Object),
+      );
+    });
+
+    test('logs root-level notification_type when both are present', () => {
+      // Arrange
+      const input = createToolInput({
+        notification_type: 'auth_success',
+        tool_input: { notification_type: 'permission_prompt' },
+      });
+
+      // Act
+      soundNotification(input);
+
+      // Assert - log contains auth_success, not permission_prompt
+      expect(logHook).toHaveBeenCalledWith(
+        'sound',
+        expect.stringContaining('auth_success'),
+      );
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Linux sound player support
+  // ---------------------------------------------------------------------------
+
+  describe('Linux sound player support', () => {
+    beforeEach(() => {
+      // Simulate non-macOS: afplay not found
+      vi.mocked(execSync).mockImplementation((cmd: string) => {
+        if (cmd === 'command -v afplay') throw new Error('not found');
+        if (cmd === 'command -v pw-play') return Buffer.from('/usr/bin/pw-play');
+        return Buffer.from('');
+      });
+    });
+
+    test('detects pw-play as preferred Linux player', () => {
+      // Arrange
+      const input = createSoundInput('permission_prompt');
+
+      // Act
+      soundNotification(input);
+
+      // Assert - pw-play chosen as player
+      expect(mockSpawn).toHaveBeenCalledWith(
+        'pw-play',
+        expect.any(Array),
+        expect.any(Object),
+      );
+    });
+
+    test('falls back to paplay when pw-play unavailable', () => {
+      // Arrange - pw-play missing, paplay available
+      vi.mocked(execSync).mockImplementation((cmd: string) => {
+        if (cmd === 'command -v afplay') throw new Error('not found');
+        if (cmd === 'command -v pw-play') throw new Error('not found');
+        if (cmd === 'command -v paplay') return Buffer.from('/usr/bin/paplay');
+        return Buffer.from('');
+      });
+      const input = createSoundInput('permission_prompt');
+
+      // Act
+      soundNotification(input);
+
+      // Assert - paplay chosen as player
+      expect(mockSpawn).toHaveBeenCalledWith(
+        'paplay',
+        expect.any(Array),
+        expect.any(Object),
+      );
+    });
+
+    test('falls back to aplay when pw-play and paplay unavailable', () => {
+      // Arrange - only aplay available
+      vi.mocked(execSync).mockImplementation((cmd: string) => {
+        if (cmd === 'command -v afplay') throw new Error('not found');
+        if (cmd === 'command -v pw-play') throw new Error('not found');
+        if (cmd === 'command -v paplay') throw new Error('not found');
+        if (cmd === 'command -v aplay') return Buffer.from('/usr/bin/aplay');
+        return Buffer.from('');
+      });
+      const input = createSoundInput('permission_prompt');
+
+      // Act
+      soundNotification(input);
+
+      // Assert - aplay chosen as player
+      expect(mockSpawn).toHaveBeenCalledWith(
+        'aplay',
+        expect.any(Array),
+        expect.any(Object),
+      );
+    });
+
+    test('plays freedesktop sound for permission_prompt on Linux', () => {
+      // Arrange
+      const input = createSoundInput('permission_prompt');
+
+      // Act
+      soundNotification(input);
+
+      // Assert - freedesktop .oga path used
+      expect(mockSpawn).toHaveBeenCalledWith(
+        'pw-play',
+        ['/usr/share/sounds/freedesktop/stereo/dialog-warning.oga'],
+        expect.objectContaining({ stdio: 'ignore', detached: true }),
+      );
+    });
+
+    test('plays freedesktop sound for idle_prompt on Linux', () => {
+      // Arrange
+      const input = createSoundInput('idle_prompt');
+
+      // Act
+      soundNotification(input);
+
+      // Assert
+      expect(mockSpawn).toHaveBeenCalledWith(
+        'pw-play',
+        ['/usr/share/sounds/freedesktop/stereo/message-new-instant.oga'],
+        expect.objectContaining({ stdio: 'ignore', detached: true }),
+      );
+    });
+
+    test('plays freedesktop sound for auth_success on Linux', () => {
+      // Arrange
+      const input = createSoundInput('auth_success');
+
+      // Act
+      soundNotification(input);
+
+      // Assert
+      expect(mockSpawn).toHaveBeenCalledWith(
+        'pw-play',
+        ['/usr/share/sounds/freedesktop/stereo/complete.oga'],
+        expect.objectContaining({ stdio: 'ignore', detached: true }),
+      );
+    });
+
+    test('no sound when no Linux player available', () => {
+      // Arrange - afplay AND all Linux players missing
+      vi.mocked(execSync).mockImplementation((cmd: string) => {
+        throw new Error(`not found: ${cmd}`);
+      });
+      const input = createSoundInput('permission_prompt');
+
+      // Act
+      soundNotification(input);
+
+      // Assert
+      expect(mockSpawn).not.toHaveBeenCalled();
+    });
+
+    test('caches Linux player result across calls', () => {
+      // Arrange
+      const input = createSoundInput('permission_prompt');
+
+      // Act - call twice
+      soundNotification(input);
+      soundNotification(input);
+
+      // Assert - pw-play check only happens once (cached)
+      const pwPlayChecks = vi.mocked(execSync).mock.calls.filter(
+        ([cmd]) => cmd === 'command -v pw-play',
+      );
+      expect(pwPlayChecks).toHaveLength(1);
+    });
+
+    test('cache is reset by _resetLinuxPlayerCacheForTesting', () => {
+      // Arrange - first call populates the cache
+      const input = createSoundInput('permission_prompt');
+      soundNotification(input);
+
+      // Act - reset and call again
+      _resetLinuxPlayerCacheForTesting();
+      soundNotification(input);
+
+      // Assert - pw-play check runs twice (once before reset, once after)
+      const pwPlayChecks = vi.mocked(execSync).mock.calls.filter(
+        ([cmd]) => cmd === 'command -v pw-play',
+      );
+      expect(pwPlayChecks).toHaveLength(2);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Env var sound overrides
+  // ---------------------------------------------------------------------------
+
+  describe('env var sound overrides', () => {
+    afterEach(() => {
+      delete process.env['ORK_SOUND_PERMISSION_PROMPT'];
+      delete process.env['ORK_SOUND_IDLE_PROMPT'];
+      delete process.env['ORK_SOUND_AUTH_SUCCESS'];
+    });
+
+    test('uses ORK_SOUND_PERMISSION_PROMPT when set (macOS)', () => {
+      // Arrange
+      process.env['ORK_SOUND_PERMISSION_PROMPT'] = '/custom/alert.wav';
+      const input = createSoundInput('permission_prompt');
+
+      // Act
+      soundNotification(input);
+
+      // Assert - custom path overrides default Sosumi.aiff
+      expect(mockSpawn).toHaveBeenCalledWith(
+        'afplay',
+        ['/custom/alert.wav'],
+        expect.any(Object),
+      );
+    });
+
+    test('uses ORK_SOUND_IDLE_PROMPT when set (macOS)', () => {
+      // Arrange
+      process.env['ORK_SOUND_IDLE_PROMPT'] = '/custom/ping.wav';
+      const input = createSoundInput('idle_prompt');
+
+      // Act
+      soundNotification(input);
+
+      // Assert
+      expect(mockSpawn).toHaveBeenCalledWith(
+        'afplay',
+        ['/custom/ping.wav'],
+        expect.any(Object),
+      );
+    });
+
+    test('uses ORK_SOUND_AUTH_SUCCESS when set (macOS)', () => {
+      // Arrange
+      process.env['ORK_SOUND_AUTH_SUCCESS'] = '/custom/success.wav';
+      const input = createSoundInput('auth_success');
+
+      // Act
+      soundNotification(input);
+
+      // Assert
+      expect(mockSpawn).toHaveBeenCalledWith(
+        'afplay',
+        ['/custom/success.wav'],
+        expect.any(Object),
+      );
+    });
+
+    test('falls back to default path when env var not set (macOS)', () => {
+      // Arrange - env vars deliberately not set
+      const input = createSoundInput('permission_prompt');
+
+      // Act
+      soundNotification(input);
+
+      // Assert - default Sosumi.aiff used
+      expect(mockSpawn).toHaveBeenCalledWith(
+        'afplay',
+        ['/System/Library/Sounds/Sosumi.aiff'],
+        expect.any(Object),
+      );
+    });
+
+    test('uses ORK_SOUND_PERMISSION_PROMPT on Linux', () => {
+      // Arrange - afplay missing, pw-play available
+      vi.mocked(execSync).mockImplementation((cmd: string) => {
+        if (cmd === 'command -v afplay') throw new Error('not found');
+        if (cmd === 'command -v pw-play') return Buffer.from('/usr/bin/pw-play');
+        return Buffer.from('');
+      });
+      process.env['ORK_SOUND_PERMISSION_PROMPT'] = '/custom/linux-alert.oga';
+      const input = createSoundInput('permission_prompt');
+
+      // Act
+      soundNotification(input);
+
+      // Assert - custom path used with Linux player
+      expect(mockSpawn).toHaveBeenCalledWith(
+        'pw-play',
+        ['/custom/linux-alert.oga'],
+        expect.any(Object),
+      );
     });
   });
 });

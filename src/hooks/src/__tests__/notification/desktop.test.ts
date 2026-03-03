@@ -5,10 +5,22 @@
  * CC 2.1.7 Compliance: All code paths must return { continue: true, suppressOutput: true }
  *
  * Issue #257: notification hooks 0% -> 100% coverage
+ *
+ * Companion: desktop-spawn.test.ts covers terminal mapping + spawn behavior.
  */
 
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { HookInput } from '../../types.js';
+
+// =============================================================================
+// Hoisted mocks (vi.hoisted runs before vi.mock factory)
+// =============================================================================
+
+const { mockUnref, mockSpawn } = vi.hoisted(() => {
+  const mockUnref = vi.fn();
+  const mockSpawn = vi.fn(() => ({ unref: mockUnref }));
+  return { mockUnref, mockSpawn };
+});
 
 // =============================================================================
 // Mocks
@@ -27,14 +39,12 @@ vi.mock('../../lib/common.js', async () => {
 
 vi.mock('node:child_process', () => ({
   execSync: vi.fn(),
+  spawn: mockSpawn,
 }));
 
 vi.mock('node:path', async () => {
   const actual = await vi.importActual<typeof import('node:path')>('node:path');
-  return {
-    ...actual,
-    basename: actual.basename,
-  };
+  return { ...actual, basename: actual.basename };
 });
 
 // =============================================================================
@@ -49,9 +59,6 @@ import { execSync } from 'node:child_process';
 // Test Utilities
 // =============================================================================
 
-/**
- * Create a Notification HookInput for testing
- */
 function createToolInput(overrides: Partial<HookInput> = {}): HookInput {
   return {
     hook_event: 'Notification',
@@ -62,21 +69,22 @@ function createToolInput(overrides: Partial<HookInput> = {}): HookInput {
   };
 }
 
-/**
- * Create a Notification HookInput with specific notification_type and message
- */
 function createNotificationInput(
   notificationType: string,
   message = 'Test notification message',
 ): HookInput {
   return createToolInput({
-    tool_input: {
-      notification_type: notificationType,
-      message,
-    },
+    tool_input: { notification_type: notificationType, message },
     message,
     notification_type: notificationType,
   });
+}
+
+/** Return the script string from the first osascript spawn call */
+function osascriptScript(): string {
+  const calls = mockSpawn.mock.calls.filter(([cmd]) => cmd === 'osascript');
+  expect(calls.length).toBeGreaterThan(0);
+  return calls[0][1][1] as string; // spawn('osascript', ['-e', script], ...)
 }
 
 // =============================================================================
@@ -87,14 +95,14 @@ describe('notification/desktop', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     _resetCommandCacheForTesting();
-    // Default: osascript available, notify-send not available
+    // execSync is only used for `command -v` checks in hasCommand.
+    // Actual notifications now go through spawn.
     vi.mocked(execSync).mockImplementation((cmd: string) => {
       if (cmd === 'command -v osascript') return Buffer.from('/usr/bin/osascript');
       if (cmd === 'command -v notify-send') throw new Error('not found');
-      // osascript display notification calls
-      if (typeof cmd === 'string' && cmd.startsWith('osascript')) return Buffer.from('');
       return Buffer.from('');
     });
+    mockSpawn.mockReturnValue({ unref: mockUnref });
   });
 
   afterEach(() => {
@@ -106,63 +114,35 @@ describe('notification/desktop', () => {
   // ---------------------------------------------------------------------------
 
   describe('notification type filtering', () => {
-    test('triggers notification for permission_prompt', () => {
-      // Arrange
+    test('triggers notification for permission_prompt', async () => {
       const input = createNotificationInput('permission_prompt');
-
-      // Act
-      const result = desktopNotification(input);
-
-      // Assert
+      const result = await desktopNotification(input);
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
-      // execSync called for hasCommand('osascript') + the actual osascript call
-      expect(execSync).toHaveBeenCalled();
+      expect(mockSpawn).toHaveBeenCalled();
     });
 
-    test('triggers notification for idle_prompt', () => {
-      // Arrange
+    test('triggers notification for idle_prompt', async () => {
       const input = createNotificationInput('idle_prompt');
-
-      // Act
-      const result = desktopNotification(input);
-
-      // Assert
+      const result = await desktopNotification(input);
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
-      expect(execSync).toHaveBeenCalled();
+      expect(mockSpawn).toHaveBeenCalled();
     });
 
     test.each([
-      'auth_success',
-      'task_complete',
-      'error',
-      'info',
-      'warning',
-      '',
-    ])('silently passes through for notification_type=%s', (notificationType) => {
-      // Arrange
+      'auth_success', 'task_complete', 'error', 'info', 'warning', '',
+    ])('silently passes through for notification_type=%s', async (notificationType) => {
       const input = createNotificationInput(notificationType);
-
-      // Act
-      const result = desktopNotification(input);
-
-      // Assert
+      const result = await desktopNotification(input);
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
       expect(outputSilentSuccess).toHaveBeenCalled();
     });
 
-    test('silently passes through when notification_type is missing', () => {
-      // Arrange
-      const input = createToolInput({
-        tool_input: { message: 'some message' },
-      });
-
-      // Act
-      const result = desktopNotification(input);
-
-      // Assert
+    test('silently passes through when notification_type is missing', async () => {
+      const input = createToolInput({ tool_input: { message: 'some message' } });
+      const result = await desktopNotification(input);
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
     });
@@ -173,64 +153,59 @@ describe('notification/desktop', () => {
   // ---------------------------------------------------------------------------
 
   describe('AppleScript escaping', () => {
-    test('escapes double quotes in notification message', () => {
-      // Arrange
-      const input = createNotificationInput(
-        'permission_prompt',
-        'Allow "rm -rf" command?',
-      );
-
-      // Act
-      desktopNotification(input);
-
-      // Assert - the osascript call should have escaped quotes
-      const osascriptCalls = vi.mocked(execSync).mock.calls.filter(
-        ([cmd]) => typeof cmd === 'string' && cmd.includes('display notification'),
-      );
-      expect(osascriptCalls.length).toBeGreaterThan(0);
-      const osascriptCmd = osascriptCalls[0][0] as string;
-      expect(osascriptCmd).toContain('\\"');
-      expect(osascriptCmd).not.toContain('""');
+    test('escapes double quotes in notification message', async () => {
+      const input = createNotificationInput('permission_prompt', 'Allow "rm -rf" command?');
+      await desktopNotification(input);
+      const script = osascriptScript();
+      expect(script).toContain('\\"');
+      expect(script).not.toContain('""');
     });
 
-    test('escapes backslashes in notification message', () => {
-      // Arrange
-      const input = createNotificationInput(
-        'permission_prompt',
-        'Path: C:\\Users\\test',
-      );
-
-      // Act
-      desktopNotification(input);
-
-      // Assert
-      const osascriptCalls = vi.mocked(execSync).mock.calls.filter(
-        ([cmd]) => typeof cmd === 'string' && cmd.includes('display notification'),
-      );
-      expect(osascriptCalls.length).toBeGreaterThan(0);
-      const osascriptCmd = osascriptCalls[0][0] as string;
-      expect(osascriptCmd).toContain('\\\\');
+    test('escapes backslashes in notification message', async () => {
+      const input = createNotificationInput('permission_prompt', 'Path: C:\\Users\\test');
+      await desktopNotification(input);
+      expect(osascriptScript()).toContain('\\\\');
     });
 
-    test('handles message with both quotes and backslashes', () => {
-      // Arrange
-      const input = createNotificationInput(
-        'permission_prompt',
-        'Allow "write" to C:\\dir\\file?',
-      );
+    test('handles message with both quotes and backslashes', async () => {
+      const input = createNotificationInput('permission_prompt', 'Allow "write" to C:\\dir\\file?');
+      await desktopNotification(input);
+      const script = osascriptScript();
+      expect(script).toContain('\\"');
+      expect(script).toContain('\\\\');
+    });
 
-      // Act
-      desktopNotification(input);
+    test('escapes newlines in notification message', async () => {
+      const input = createNotificationInput('permission_prompt', 'Line1\nLine2');
+      await desktopNotification(input);
+      const script = osascriptScript();
+      expect(script).toContain('\\n');
+      expect(script).not.toMatch(/Line1\nLine2/);
+    });
 
-      // Assert
-      const osascriptCalls = vi.mocked(execSync).mock.calls.filter(
-        ([cmd]) => typeof cmd === 'string' && cmd.includes('display notification'),
-      );
-      expect(osascriptCalls.length).toBeGreaterThan(0);
-      const osascriptCmd = osascriptCalls[0][0] as string;
-      // Both types of escaping should be present
-      expect(osascriptCmd).toContain('\\"');   // escaped quotes
-      expect(osascriptCmd).toContain('\\\\'); // escaped backslashes
+    test('escapes carriage returns in notification message', async () => {
+      const input = createNotificationInput('permission_prompt', 'Line1\rLine2');
+      await desktopNotification(input);
+      const script = osascriptScript();
+      expect(script).toContain('\\r');
+      expect(script).not.toMatch(/Line1\rLine2/);
+    });
+
+    test('escapes tab characters in notification message', async () => {
+      const input = createNotificationInput('permission_prompt', 'Col1\tCol2');
+      await desktopNotification(input);
+      const script = osascriptScript();
+      expect(script).toContain('\\t');
+      expect(script).not.toMatch(/Col1\tCol2/);
+    });
+
+    test('strips control characters from notification message', async () => {
+      const input = createNotificationInput('permission_prompt', 'Clean\x00Middle\x07End');
+      await desktopNotification(input);
+      const script = osascriptScript();
+      expect(script).not.toContain('\x00');
+      expect(script).not.toContain('\x07');
+      expect(script).toContain('CleanMiddleEnd');
     });
   });
 
@@ -244,51 +219,22 @@ describe('notification/desktop', () => {
       ['fix/42-broken-hook', '#42'],
       ['bug/1001-critical-failure', '#1001'],
       ['issue/7-design-update', '#7'],
-      // Case-insensitive matching (regex /i flag)
       ['Feature/99-upper-case', '#99'],
       ['FIX/100-uppercase-fix', '#100'],
       ['BUG/101-uppercase-bug', '#101'],
       ['ISSUE/102-uppercase-issue', '#102'],
-    ])('extracts issue number from branch %s as %s', (branch, expectedIssue) => {
-      // Arrange
+    ])('extracts issue number from branch %s as %s', async (branch, expectedIssue) => {
       vi.mocked(getCachedBranch).mockReturnValue(branch);
-      const input = createNotificationInput('permission_prompt');
-
-      // Act
-      desktopNotification(input);
-
-      // Assert - the osascript call should include the issue number in subtitle
-      const osascriptCalls = vi.mocked(execSync).mock.calls.filter(
-        ([cmd]) => typeof cmd === 'string' && cmd.includes('display notification'),
-      );
-      expect(osascriptCalls.length).toBeGreaterThan(0);
-      const osascriptCmd = osascriptCalls[0][0] as string;
-      expect(osascriptCmd).toContain(expectedIssue);
+      await desktopNotification(createNotificationInput('permission_prompt'));
+      expect(osascriptScript()).toContain(expectedIssue);
     });
 
     test.each([
-      'main',
-      'develop',
-      'release/v2.0',
-      'hotfix-urgent',
-      'feature-no-number',
-      'refactor/cleanup',
-    ])('returns null for branch without issue number: %s', (branch) => {
-      // Arrange
+      'main', 'develop', 'release/v2.0', 'hotfix-urgent', 'feature-no-number', 'refactor/cleanup',
+    ])('returns null for branch without issue number: %s', async (branch) => {
       vi.mocked(getCachedBranch).mockReturnValue(branch);
-      const input = createNotificationInput('permission_prompt');
-
-      // Act
-      desktopNotification(input);
-
-      // Assert - the osascript call should NOT contain a # issue reference
-      const osascriptCalls = vi.mocked(execSync).mock.calls.filter(
-        ([cmd]) => typeof cmd === 'string' && cmd.includes('display notification'),
-      );
-      expect(osascriptCalls.length).toBeGreaterThan(0);
-      const osascriptCmd = osascriptCalls[0][0] as string;
-      // Should not contain #<digits> pattern in subtitle
-      expect(osascriptCmd).not.toMatch(/#\d+/);
+      await desktopNotification(createNotificationInput('permission_prompt'));
+      expect(osascriptScript()).not.toMatch(/#\d+/);
     });
   });
 
@@ -297,74 +243,32 @@ describe('notification/desktop', () => {
   // ---------------------------------------------------------------------------
 
   describe('subtitle building', () => {
-    test('includes approval title for permission_prompt', () => {
-      // Arrange
+    test('includes approval title for permission_prompt', async () => {
       vi.mocked(getCachedBranch).mockReturnValue('main');
-      const input = createNotificationInput('permission_prompt');
-
-      // Act
-      desktopNotification(input);
-
-      // Assert
-      const osascriptCalls = vi.mocked(execSync).mock.calls.filter(
-        ([cmd]) => typeof cmd === 'string' && cmd.includes('display notification'),
-      );
-      expect(osascriptCalls.length).toBeGreaterThan(0);
-      const osascriptCmd = osascriptCalls[0][0] as string;
-      expect(osascriptCmd).toContain('needs approval');
+      await desktopNotification(createNotificationInput('permission_prompt'));
+      expect(osascriptScript()).toContain('needs approval');
     });
 
-    test('includes waiting title for idle_prompt', () => {
-      // Arrange
+    test('includes waiting title for idle_prompt', async () => {
       vi.mocked(getCachedBranch).mockReturnValue('main');
-      const input = createNotificationInput('idle_prompt');
-
-      // Act
-      desktopNotification(input);
-
-      // Assert
-      const osascriptCalls = vi.mocked(execSync).mock.calls.filter(
-        ([cmd]) => typeof cmd === 'string' && cmd.includes('display notification'),
-      );
-      expect(osascriptCalls.length).toBeGreaterThan(0);
-      const osascriptCmd = osascriptCalls[0][0] as string;
-      expect(osascriptCmd).toContain('waiting for you');
+      await desktopNotification(createNotificationInput('idle_prompt'));
+      expect(osascriptScript()).toContain('waiting for you');
     });
 
-    test('includes issue number and branch in subtitle when available', () => {
-      // Arrange
+    test('includes issue number and branch in subtitle when available', async () => {
       vi.mocked(getCachedBranch).mockReturnValue('feature/235-foo');
-      const input = createNotificationInput('permission_prompt');
-
-      // Act
-      desktopNotification(input);
-
-      // Assert
-      const osascriptCalls = vi.mocked(execSync).mock.calls.filter(
-        ([cmd]) => typeof cmd === 'string' && cmd.includes('display notification'),
-      );
-      expect(osascriptCalls.length).toBeGreaterThan(0);
-      const osascriptCmd = osascriptCalls[0][0] as string;
-      expect(osascriptCmd).toContain('#235');
-      expect(osascriptCmd).toContain('feature/235-foo');
+      await desktopNotification(createNotificationInput('permission_prompt'));
+      const script = osascriptScript();
+      expect(script).toContain('#235');
+      expect(script).toContain('feature/235-foo');
     });
 
-    test('omits issue number when branch has none', () => {
-      // Arrange
+    test('omits issue number when branch has none', async () => {
       vi.mocked(getCachedBranch).mockReturnValue('main');
-      const input = createNotificationInput('permission_prompt');
-
-      // Act
-      desktopNotification(input);
-
-      // Assert
-      const osascriptCalls = vi.mocked(execSync).mock.calls.filter(
-        ([cmd]) => typeof cmd === 'string' && cmd.includes('display notification'),
-      );
-      expect(osascriptCalls.length).toBeGreaterThan(0);
-      const osascriptCmd = osascriptCalls[0][0] as string;
-      expect(osascriptCmd).toContain('main');
-      expect(osascriptCmd).not.toMatch(/#\d+/);
+      await desktopNotification(createNotificationInput('permission_prompt'));
+      const script = osascriptScript();
+      expect(script).toContain('main');
+      expect(script).not.toMatch(/#\d+/);
     });
   });
 
@@ -373,59 +277,28 @@ describe('notification/desktop', () => {
   // ---------------------------------------------------------------------------
 
   describe('message truncation', () => {
-    test('does not truncate messages under 120 characters', () => {
-      // Arrange
+    test('does not truncate messages under 120 characters', async () => {
       const shortMessage = 'Allow read access to /test/file.ts?';
-      const input = createNotificationInput('permission_prompt', shortMessage);
-
-      // Act
-      desktopNotification(input);
-
-      // Assert
-      const osascriptCalls = vi.mocked(execSync).mock.calls.filter(
-        ([cmd]) => typeof cmd === 'string' && cmd.includes('display notification'),
-      );
-      expect(osascriptCalls.length).toBeGreaterThan(0);
-      const osascriptCmd = osascriptCalls[0][0] as string;
-      expect(osascriptCmd).toContain(shortMessage);
-      expect(osascriptCmd).not.toContain('...');
+      await desktopNotification(createNotificationInput('permission_prompt', shortMessage));
+      const script = osascriptScript();
+      expect(script).toContain(shortMessage);
+      expect(script).not.toContain('...');
     });
 
-    test('truncates messages over 120 characters with ellipsis', () => {
-      // Arrange
+    test('truncates messages over 120 characters with ellipsis', async () => {
       const longMessage = 'A'.repeat(200);
-      const input = createNotificationInput('permission_prompt', longMessage);
-
-      // Act
-      desktopNotification(input);
-
-      // Assert
-      const osascriptCalls = vi.mocked(execSync).mock.calls.filter(
-        ([cmd]) => typeof cmd === 'string' && cmd.includes('display notification'),
-      );
-      expect(osascriptCalls.length).toBeGreaterThan(0);
-      const osascriptCmd = osascriptCalls[0][0] as string;
-      expect(osascriptCmd).toContain('...');
-      // Message in the command should not contain the full 200 chars
-      expect(osascriptCmd).not.toContain('A'.repeat(200));
+      await desktopNotification(createNotificationInput('permission_prompt', longMessage));
+      const script = osascriptScript();
+      expect(script).toContain('...');
+      expect(script).not.toContain('A'.repeat(200));
     });
 
-    test('message of exactly 120 characters is not truncated', () => {
-      // Arrange
+    test('message of exactly 120 characters is not truncated', async () => {
       const exactMessage = 'B'.repeat(120);
-      const input = createNotificationInput('permission_prompt', exactMessage);
-
-      // Act
-      desktopNotification(input);
-
-      // Assert
-      const osascriptCalls = vi.mocked(execSync).mock.calls.filter(
-        ([cmd]) => typeof cmd === 'string' && cmd.includes('display notification'),
-      );
-      expect(osascriptCalls.length).toBeGreaterThan(0);
-      const osascriptCmd = osascriptCalls[0][0] as string;
-      expect(osascriptCmd).toContain(exactMessage);
-      expect(osascriptCmd).not.toContain('...');
+      await desktopNotification(createNotificationInput('permission_prompt', exactMessage));
+      const script = osascriptScript();
+      expect(script).toContain(exactMessage);
+      expect(script).not.toContain('...');
     });
   });
 
@@ -434,86 +307,42 @@ describe('notification/desktop', () => {
   // ---------------------------------------------------------------------------
 
   describe('platform detection', () => {
-    test('sends macOS notification when osascript is available', () => {
-      // Arrange
+    test('sends macOS notification when osascript is available', async () => {
       vi.mocked(execSync).mockImplementation((cmd: string) => {
         if (cmd === 'command -v osascript') return Buffer.from('/usr/bin/osascript');
-        if (typeof cmd === 'string' && cmd.startsWith('osascript')) return Buffer.from('');
         throw new Error('not found');
       });
-      const input = createNotificationInput('permission_prompt');
-
-      // Act
-      desktopNotification(input);
-
-      // Assert - osascript display notification was called
-      const osascriptCalls = vi.mocked(execSync).mock.calls.filter(
-        ([cmd]) => typeof cmd === 'string' && cmd.includes('display notification'),
-      );
-      expect(osascriptCalls.length).toBe(1);
+      await desktopNotification(createNotificationInput('permission_prompt'));
+      expect(mockSpawn.mock.calls.filter(([cmd]) => cmd === 'osascript')).toHaveLength(1);
     });
 
-    test('sends Linux notification when only notify-send is available', () => {
-      // Arrange
+    test('sends Linux notification when only notify-send is available', async () => {
       vi.mocked(execSync).mockImplementation((cmd: string) => {
         if (cmd === 'command -v osascript') throw new Error('not found');
         if (cmd === 'command -v notify-send') return Buffer.from('/usr/bin/notify-send');
-        if (typeof cmd === 'string' && cmd.startsWith('notify-send')) return Buffer.from('');
         return Buffer.from('');
       });
-      const input = createNotificationInput('permission_prompt');
-
-      // Act
-      desktopNotification(input);
-
-      // Assert - notify-send was called
-      const notifySendCalls = vi.mocked(execSync).mock.calls.filter(
-        ([cmd]) => typeof cmd === 'string' && cmd.includes('notify-send'),
-      );
-      // One for command -v check, one for the actual notification
-      expect(notifySendCalls.length).toBe(2);
+      await desktopNotification(createNotificationInput('permission_prompt'));
+      expect(mockSpawn.mock.calls.filter(([cmd]) => cmd === 'notify-send')).toHaveLength(1);
     });
 
-    test('prefers osascript over notify-send when both available', () => {
-      // Arrange
+    test('prefers osascript over notify-send when both available', async () => {
       vi.mocked(execSync).mockImplementation((cmd: string) => {
         if (cmd === 'command -v osascript') return Buffer.from('/usr/bin/osascript');
         if (cmd === 'command -v notify-send') return Buffer.from('/usr/bin/notify-send');
-        if (typeof cmd === 'string' && cmd.startsWith('osascript')) return Buffer.from('');
-        if (typeof cmd === 'string' && cmd.startsWith('notify-send')) return Buffer.from('');
         return Buffer.from('');
       });
-      const input = createNotificationInput('permission_prompt');
-
-      // Act
-      desktopNotification(input);
-
-      // Assert - osascript was used, not notify-send
-      const osascriptCalls = vi.mocked(execSync).mock.calls.filter(
-        ([cmd]) => typeof cmd === 'string' && cmd.includes('display notification'),
-      );
-      const notifySendActionCalls = vi.mocked(execSync).mock.calls.filter(
-        ([cmd]) => typeof cmd === 'string' && cmd.startsWith('notify-send --'),
-      );
-      expect(osascriptCalls.length).toBe(1);
-      expect(notifySendActionCalls.length).toBe(0);
+      await desktopNotification(createNotificationInput('permission_prompt'));
+      expect(mockSpawn.mock.calls.filter(([cmd]) => cmd === 'osascript')).toHaveLength(1);
+      expect(mockSpawn.mock.calls.filter(([cmd]) => cmd === 'notify-send')).toHaveLength(0);
     });
 
-    test('no notification sent when neither osascript nor notify-send available', () => {
-      // Arrange
-      vi.mocked(execSync).mockImplementation((cmd: string) => {
-        if (cmd === 'command -v osascript') throw new Error('not found');
-        if (cmd === 'command -v notify-send') throw new Error('not found');
-        throw new Error('not found');
-      });
-      const input = createNotificationInput('permission_prompt');
-
-      // Act
-      const result = desktopNotification(input);
-
-      // Assert - still returns silentSuccess
+    test('no notification sent when neither osascript nor notify-send available', async () => {
+      vi.mocked(execSync).mockImplementation(() => { throw new Error('not found'); });
+      const result = await desktopNotification(createNotificationInput('permission_prompt'));
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
+      expect(mockSpawn).not.toHaveBeenCalled();
     });
   });
 
@@ -522,67 +351,41 @@ describe('notification/desktop', () => {
   // ---------------------------------------------------------------------------
 
   describe('error handling', () => {
-    test('returns silentSuccess when osascript call fails', () => {
-      // Arrange
+    test('returns silentSuccess when osascript spawn throws', async () => {
       vi.mocked(execSync).mockImplementation((cmd: string) => {
         if (cmd === 'command -v osascript') return Buffer.from('/usr/bin/osascript');
-        if (typeof cmd === 'string' && cmd.startsWith('osascript')) {
-          throw new Error('osascript execution failed');
-        }
         throw new Error('not found');
       });
-      const input = createNotificationInput('permission_prompt');
-
-      // Act
-      const result = desktopNotification(input);
-
-      // Assert - must not crash, must return silentSuccess
+      mockSpawn.mockImplementationOnce(() => { throw new Error('spawn failed'); });
+      const result = await desktopNotification(createNotificationInput('permission_prompt'));
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
     });
 
-    test('returns silentSuccess when notify-send call fails', () => {
-      // Arrange
+    test('returns silentSuccess when notify-send spawn throws', async () => {
       vi.mocked(execSync).mockImplementation((cmd: string) => {
         if (cmd === 'command -v osascript') throw new Error('not found');
         if (cmd === 'command -v notify-send') return Buffer.from('/usr/bin/notify-send');
-        if (typeof cmd === 'string' && cmd.startsWith('notify-send')) {
-          throw new Error('notify-send execution failed');
-        }
-        throw new Error('not found');
+        return Buffer.from('');
       });
-      const input = createNotificationInput('permission_prompt');
-
-      // Act
-      const result = desktopNotification(input);
-
-      // Assert
+      mockSpawn.mockImplementationOnce(() => { throw new Error('spawn failed'); });
+      const result = await desktopNotification(createNotificationInput('permission_prompt'));
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
     });
 
-    test('handles empty message gracefully', () => {
-      // Arrange
-      const input = createNotificationInput('permission_prompt', '');
-
-      // Act
-      const result = desktopNotification(input);
-
-      // Assert
+    test('handles empty message gracefully', async () => {
+      const result = await desktopNotification(createNotificationInput('permission_prompt', ''));
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
     });
 
-    test('handles undefined tool_input gracefully', () => {
-      // Arrange
+    test('handles undefined tool_input gracefully', async () => {
       const input = createToolInput({
         tool_input: undefined as unknown as Record<string, unknown>,
       });
-
-      // Act & Assert - should not throw
-      expect(() => desktopNotification(input)).not.toThrow();
+      await expect(desktopNotification(input)).resolves.not.toThrow();
     });
-
   });
 
   // ---------------------------------------------------------------------------
@@ -591,46 +394,21 @@ describe('notification/desktop', () => {
 
   describe('CC 2.1.7 compliance', () => {
     test.each([
-      'permission_prompt',
-      'idle_prompt',
-      'auth_success',
-      'task_complete',
-      'error',
-      '',
-    ])('always returns { continue: true, suppressOutput: true } for type=%s', (notificationType) => {
-      // Arrange
-      const input = createNotificationInput(notificationType);
-
-      // Act
-      const result = desktopNotification(input);
-
-      // Assert
+      'permission_prompt', 'idle_prompt', 'auth_success', 'task_complete', 'error', '',
+    ])('always returns { continue: true, suppressOutput: true } for type=%s', async (notificationType) => {
+      const result = await desktopNotification(createNotificationInput(notificationType));
       expect(result).toEqual({ continue: true, suppressOutput: true });
     });
 
-    test('never blocks execution even on internal errors', () => {
-      // Arrange
-      vi.mocked(execSync).mockImplementation(() => {
-        throw new Error('catastrophic failure');
-      });
-      const input = createNotificationInput('permission_prompt');
-
-      // Act
-      const result = desktopNotification(input);
-
-      // Assert - must continue even if everything fails
+    test('never blocks execution even on internal errors', async () => {
+      vi.mocked(execSync).mockImplementation(() => { throw new Error('catastrophic failure'); });
+      const result = await desktopNotification(createNotificationInput('permission_prompt'));
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
     });
 
-    test('result has no stopReason or systemMessage', () => {
-      // Arrange
-      const input = createNotificationInput('permission_prompt');
-
-      // Act
-      const result = desktopNotification(input);
-
-      // Assert
+    test('result has no stopReason or systemMessage', async () => {
+      const result = await desktopNotification(createNotificationInput('permission_prompt'));
       expect(result.stopReason).toBeUndefined();
       expect(result.systemMessage).toBeUndefined();
     });
@@ -641,19 +419,9 @@ describe('notification/desktop', () => {
   // ---------------------------------------------------------------------------
 
   describe('no sound in osascript', () => {
-    test('osascript command does not include sound name parameter', () => {
-      // Arrange
-      const input = createNotificationInput('permission_prompt');
-
-      // Act
-      desktopNotification(input);
-
-      // Assert - sound.ts handles sound, desktop.ts should not include sound name
-      const osascriptCalls = vi.mocked(execSync).mock.calls.filter(
-        ([cmd]) => typeof cmd === 'string' && cmd.includes('display notification'),
-      );
-      expect(osascriptCalls.length).toBe(1);
-      expect(osascriptCalls[0][0]).not.toContain('sound name');
+    test('osascript script does not include sound name parameter', async () => {
+      await desktopNotification(createNotificationInput('permission_prompt'));
+      expect(osascriptScript()).not.toContain('sound name');
     });
   });
 
@@ -662,41 +430,33 @@ describe('notification/desktop', () => {
   // ---------------------------------------------------------------------------
 
   describe('input field fallbacks', () => {
-    test('falls back to input.message when tool_input.message is absent', () => {
-      // Arrange - tool_input has notification_type but no message
+    test('falls back to input.message when tool_input.message is absent', async () => {
       const input = createToolInput({
         tool_input: { notification_type: 'permission_prompt' },
         message: 'Fallback message from input',
         notification_type: 'permission_prompt',
       });
-
-      // Act
-      desktopNotification(input);
-
-      // Assert
-      const osascriptCalls = vi.mocked(execSync).mock.calls.filter(
-        ([cmd]) => typeof cmd === 'string' && cmd.includes('display notification'),
-      );
-      expect(osascriptCalls.length).toBe(1);
-      expect(osascriptCalls[0][0]).toContain('Fallback message from input');
+      await desktopNotification(input);
+      expect(osascriptScript()).toContain('Fallback message from input');
     });
 
-    test('falls back to input.notification_type when tool_input.notification_type is absent', () => {
-      // Arrange - tool_input has message but no notification_type
+    test('falls back to input.notification_type when tool_input.notification_type is absent', async () => {
       const input = createToolInput({
         tool_input: { message: 'some message' },
         notification_type: 'permission_prompt',
         message: 'some message',
       });
+      await desktopNotification(input);
+      expect(mockSpawn.mock.calls.filter(([cmd]) => cmd === 'osascript')).toHaveLength(1);
+    });
 
-      // Act
-      desktopNotification(input);
-
-      // Assert - should have triggered because input.notification_type = 'permission_prompt'
-      const osascriptCalls = vi.mocked(execSync).mock.calls.filter(
-        ([cmd]) => typeof cmd === 'string' && cmd.includes('display notification'),
-      );
-      expect(osascriptCalls.length).toBe(1);
+    test('prefers root-level notification_type over tool_input', async () => {
+      const input = createToolInput({
+        notification_type: 'permission_prompt',
+        tool_input: { notification_type: 'idle_prompt' },
+      });
+      await desktopNotification(input);
+      expect(osascriptScript()).toContain('needs approval');
     });
   });
 
@@ -705,31 +465,21 @@ describe('notification/desktop', () => {
   // ---------------------------------------------------------------------------
 
   describe('command cache behavior', () => {
-    test('caches hasCommand result across multiple calls', () => {
-      // Arrange
+    test('caches hasCommand result across multiple calls', async () => {
       const input = createNotificationInput('permission_prompt');
-
-      // Act - call twice
-      desktopNotification(input);
-      desktopNotification(input);
-
-      // Assert - command -v osascript should only be called once (cached)
+      await desktopNotification(input);
+      await desktopNotification(input);
       const checkCalls = vi.mocked(execSync).mock.calls.filter(
         ([cmd]) => cmd === 'command -v osascript',
       );
       expect(checkCalls).toHaveLength(1);
     });
 
-    test('cache is reset by _resetCommandCacheForTesting', () => {
-      // Arrange - first call caches the result
+    test('cache is reset by _resetCommandCacheForTesting', async () => {
       const input = createNotificationInput('permission_prompt');
-      desktopNotification(input);
-
-      // Act - reset cache, call again
+      await desktopNotification(input);
       _resetCommandCacheForTesting();
-      desktopNotification(input);
-
-      // Assert - command -v osascript called twice (once before reset, once after)
+      await desktopNotification(input);
       const checkCalls = vi.mocked(execSync).mock.calls.filter(
         ([cmd]) => cmd === 'command -v osascript',
       );
@@ -742,38 +492,16 @@ describe('notification/desktop', () => {
   // ---------------------------------------------------------------------------
 
   describe('repo name extraction', () => {
-    test('uses basename of project directory as title', () => {
-      // Arrange
+    test('uses basename of project directory as title', async () => {
       vi.mocked(getProjectDir).mockReturnValue('/Users/dev/projects/my-app');
-      const input = createNotificationInput('permission_prompt');
-
-      // Act
-      desktopNotification(input);
-
-      // Assert
-      const osascriptCalls = vi.mocked(execSync).mock.calls.filter(
-        ([cmd]) => typeof cmd === 'string' && cmd.includes('display notification'),
-      );
-      expect(osascriptCalls.length).toBe(1);
-      expect(osascriptCalls[0][0]).toContain('my-app');
+      await desktopNotification(createNotificationInput('permission_prompt'));
+      expect(osascriptScript()).toContain('my-app');
     });
 
-    test('falls back to "Claude Code" when getProjectDir throws', () => {
-      // Arrange
-      vi.mocked(getProjectDir).mockImplementation(() => {
-        throw new Error('not available');
-      });
-      const input = createNotificationInput('permission_prompt');
-
-      // Act
-      desktopNotification(input);
-
-      // Assert
-      const osascriptCalls = vi.mocked(execSync).mock.calls.filter(
-        ([cmd]) => typeof cmd === 'string' && cmd.includes('display notification'),
-      );
-      expect(osascriptCalls.length).toBe(1);
-      expect(osascriptCalls[0][0]).toContain('Claude Code');
+    test('falls back to "Claude Code" when getProjectDir throws', async () => {
+      vi.mocked(getProjectDir).mockImplementation(() => { throw new Error('not available'); });
+      await desktopNotification(createNotificationInput('permission_prompt'));
+      expect(osascriptScript()).toContain('Claude Code');
     });
   });
 });

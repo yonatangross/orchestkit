@@ -5,10 +5,6 @@
  * Bundle: notification.mjs (~8 KB estimated - smallest bundle)
  */
 
-// Re-export types and utilities
-export * from '../types.js';
-export * from '../lib/common.js';
-
 // Notification hooks (2)
 import { desktopNotification } from '../notification/desktop.js';
 import { soundNotification } from '../notification/sound.js';

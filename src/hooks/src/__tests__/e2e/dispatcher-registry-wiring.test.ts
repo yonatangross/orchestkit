@@ -183,7 +183,7 @@ describe('Dispatcher Registry Wiring E2E', () => {
       expect(dispatcherGroup?.matcher).not.toBe('*');
 
       // Verify expected tools
-      const expectedTools = ['Bash', 'Write', 'Edit', 'Task', 'Skill', 'NotebookEdit'];
+      const expectedTools = ['Bash', 'Write', 'Edit', 'Agent', 'TaskUpdate', 'TaskCreate', 'Skill', 'NotebookEdit'];
       const actualTools = dispatcherGroup!.matcher!.split('|');
 
       for (const tool of expectedTools) {

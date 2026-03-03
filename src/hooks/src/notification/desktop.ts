@@ -8,18 +8,24 @@
  * Version: 2.0.0
  */
 
-import { execSync } from 'node:child_process';
+import { execSync, spawn } from 'node:child_process';
 import { basename } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook, getProjectDir, getCachedBranch } from '../lib/common.js';
-import { assertSafeCommandName, shellQuote } from '../lib/sanitize-shell.js';
+import { assertSafeCommandName } from '../lib/sanitize-shell.js';
 
 // -----------------------------------------------------------------------------
 // Helper Functions
 // -----------------------------------------------------------------------------
 
 function escapeForAppleScript(str: string): string {
-  return str.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+  return str
+    .replace(/\\/g, '\\\\')
+    .replace(/"/g, '\\"')
+    .replace(/\n/g, '\\n')
+    .replace(/\r/g, '\\r')
+    .replace(/\t/g, '\\t')
+    .replace(/[\x00-\x1f\x7f]/g, ''); // strip remaining control chars
 }
 
 const _commandCache = new Map<string, boolean>();
@@ -107,22 +113,6 @@ function truncateMessage(message: string, maxLen = 120): string {
 }
 
 /**
- * Map TERM_PROGRAM env var to macOS app name for activation
- */
-function getTerminalAppName(): string {
-  const termProgram = process.env.TERM_PROGRAM || '';
-  const map: Record<string, string> = {
-    'WarpTerminal': 'Warp',
-    'iTerm.app': 'iTerm2',
-    'Apple_Terminal': 'Terminal',
-    'Alacritty': 'Alacritty',
-    'kitty': 'kitty',
-    'tmux': 'Terminal',
-  };
-  return map[termProgram] || 'Terminal';
-}
-
-/**
  * Send macOS notification with title, subtitle, and message.
  * Sound is handled separately by sound.ts to avoid double-sound.
  * Activates the terminal app so the user lands back in the right window.
@@ -136,14 +126,10 @@ function sendMacNotification(
     const t = escapeForAppleScript(title);
     const s = escapeForAppleScript(subtitle);
     const m = escapeForAppleScript(truncateMessage(message));
-    const appName = escapeForAppleScript(getTerminalAppName());
-
-    // Display notification AND activate terminal app
-    const script = [
-      `display notification "${m}" with title "${t}" subtitle "${s}"`,
-      `tell application "${appName}" to activate`,
-    ].join('\n');
-    execSync(`osascript -e ${shellQuote(script)}`, { stdio: 'ignore', timeout: 5000 });
+    // Display notification only — never steal focus from the user's current app
+    const script = `display notification "${m}" with title "${t}" subtitle "${s}"`;
+    const child = spawn('osascript', ['-e', script], { stdio: 'ignore', detached: true });
+    child.unref();
     return true;
   } catch {
     return false;
@@ -156,7 +142,8 @@ function sendMacNotification(
 function sendLinuxNotification(title: string, subtitle: string, message: string): boolean {
   try {
     const fullMessage = `${subtitle}\n${message}`;
-    execSync(`notify-send -- ${shellQuote(title)} ${shellQuote(fullMessage)}`, { stdio: 'ignore', timeout: 5000 });
+    const child = spawn('notify-send', ['--', title, fullMessage], { stdio: 'ignore', detached: true });
+    child.unref();
     return true;
   } catch {
     return false;
@@ -167,10 +154,10 @@ function sendLinuxNotification(title: string, subtitle: string, message: string)
 // Hook Implementation
 // -----------------------------------------------------------------------------
 
-export function desktopNotification(input: HookInput): HookResult {
+export async function desktopNotification(input: HookInput): Promise<HookResult> {
   const toolInput = input.tool_input || {};
-  const message = (toolInput.message as string) || input.message || '';
-  const notificationType = (toolInput.notification_type as string) || input.notification_type || '';
+  const message = input.message || (toolInput.message as string) || '';
+  const notificationType = input.notification_type || (toolInput.notification_type as string) || '';
 
   logHook('desktop', `Notification: [${notificationType}] ${message.substring(0, 100)}`);
 

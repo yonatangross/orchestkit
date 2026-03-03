@@ -238,7 +238,7 @@ describe('notification/unified-dispatcher', () => {
       expect(result.suppressOutput).toBe(true);
     });
 
-    test('logs errors when a hook fails', async () => {
+    test('logs per-hook failure in summary', async () => {
       // Arrange
       vi.mocked(desktopNotification).mockImplementation(() => {
         throw new Error('Desktop crashed');
@@ -248,14 +248,19 @@ describe('notification/unified-dispatcher', () => {
       // Act
       await unifiedNotificationDispatcher(input);
 
-      // Assert
+      // Assert - individual error is still logged
       expect(logHook).toHaveBeenCalledWith(
         'notification-dispatcher',
         expect.stringContaining('desktop failed'),
       );
+      // Summary also shows the failure
+      expect(logHook).toHaveBeenCalledWith(
+        'notification-dispatcher',
+        expect.stringContaining('desktop=FAIL'),
+      );
     });
 
-    test('logs error count when hooks fail', async () => {
+    test('logs summary with FAIL status when hooks fail', async () => {
       // Arrange
       vi.mocked(desktopNotification).mockImplementation(() => {
         throw new Error('Desktop crashed');
@@ -271,11 +276,15 @@ describe('notification/unified-dispatcher', () => {
       // Assert
       expect(logHook).toHaveBeenCalledWith(
         'notification-dispatcher',
-        expect.stringContaining('hooks had errors'),
+        expect.stringContaining('desktop=FAIL'),
+      );
+      expect(logHook).toHaveBeenCalledWith(
+        'notification-dispatcher',
+        expect.stringContaining('sound=FAIL'),
       );
     });
 
-    test('does not log errors when all hooks succeed', async () => {
+    test('logs success summary when all hooks succeed', async () => {
       // Arrange
       vi.mocked(desktopNotification).mockReturnValue({ continue: true, suppressOutput: true });
       vi.mocked(soundNotification).mockReturnValue({ continue: true, suppressOutput: true });
@@ -284,15 +293,15 @@ describe('notification/unified-dispatcher', () => {
       // Act
       await unifiedNotificationDispatcher(input);
 
-      // Assert - no error logging (only individual hook logHook calls are OK)
-      const errorCalls = vi.mocked(logHook).mock.calls.filter(
+      // Assert - dispatcher always logs a Results summary
+      const dispatcherCalls = vi.mocked(logHook).mock.calls.filter(
         ([name]) => name === 'notification-dispatcher',
       );
-      // No dispatcher-level error logs
-      const errorLogCalls = errorCalls.filter(
-        ([, msg]) => msg.includes('errors') || msg.includes('failed'),
-      );
-      expect(errorLogCalls.length).toBe(0);
+      // Should have the Results summary
+      const resultsCalls = dispatcherCalls.filter(([, msg]) => msg.startsWith('Results:'));
+      expect(resultsCalls.length).toBeGreaterThanOrEqual(1);
+      expect(resultsCalls[0][1]).toContain('desktop=ok');
+      expect(resultsCalls[0][1]).toContain('sound=ok');
     });
 
     test('handles hook returning rejected promise', async () => {
@@ -437,6 +446,66 @@ describe('notification/unified-dispatcher', () => {
       expect(desktopCalled).toBe(true);
       expect(soundCalled).toBe(true);
       expect(result.continue).toBe(true);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Result summary logging
+  // ---------------------------------------------------------------------------
+
+  describe('result summary logging', () => {
+    test('logs "Results: desktop=ok, sound=ok" on full success', async () => {
+      // Arrange
+      vi.mocked(desktopNotification).mockReturnValue({ continue: true, suppressOutput: true });
+      vi.mocked(soundNotification).mockReturnValue({ continue: true, suppressOutput: true });
+      const input = createNotificationInput('permission_prompt');
+
+      // Act
+      await unifiedNotificationDispatcher(input);
+
+      // Assert
+      expect(logHook).toHaveBeenCalledWith(
+        'notification-dispatcher',
+        'Results: desktop=ok, sound=ok',
+      );
+    });
+
+    test('logs mixed results correctly', async () => {
+      // Arrange
+      vi.mocked(desktopNotification).mockReturnValue({ continue: true, suppressOutput: true });
+      vi.mocked(soundNotification).mockImplementation(() => {
+        throw new Error('sound broke');
+      });
+      const input = createNotificationInput('permission_prompt');
+
+      // Act
+      await unifiedNotificationDispatcher(input);
+
+      // Assert
+      expect(logHook).toHaveBeenCalledWith(
+        'notification-dispatcher',
+        'Results: desktop=ok, sound=FAIL(sound broke)',
+      );
+    });
+
+    test('always logs summary even when all hooks fail', async () => {
+      // Arrange
+      vi.mocked(desktopNotification).mockImplementation(() => {
+        throw new Error('d');
+      });
+      vi.mocked(soundNotification).mockImplementation(() => {
+        throw new Error('s');
+      });
+      const input = createNotificationInput('permission_prompt');
+
+      // Act
+      await unifiedNotificationDispatcher(input);
+
+      // Assert
+      expect(logHook).toHaveBeenCalledWith(
+        'notification-dispatcher',
+        'Results: desktop=FAIL(d), sound=FAIL(s)',
+      );
     });
   });
 

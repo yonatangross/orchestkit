@@ -64,14 +64,19 @@ export async function unifiedNotificationDispatcher(input: HookInput): Promise<H
     })
   );
 
-  // Inner try/catch guarantees all promises resolve; only check fulfilled error status
-  const errors = results.filter(
-    r => r.status === 'fulfilled' && r.value.status === 'error'
-  );
+  // Log per-hook results for debuggability
+  const summary = results.map((r, i) => {
+    if (r.status === 'fulfilled' && r.value.status === 'success') {
+      return `${HOOKS[i].name}=ok`;
+    }
+    if (r.status === 'fulfilled' && r.value.status === 'error') {
+      return `${HOOKS[i].name}=FAIL(${r.value.message})`;
+    }
+    // Promise.allSettled rejected — should not happen due to inner try/catch
+    return `${HOOKS[i].name}=REJECTED`;
+  }).join(', ');
 
-  if (errors.length > 0) {
-    logHook('notification-dispatcher', `${errors.length}/${HOOKS.length} hooks had errors`);
-  }
+  logHook('notification-dispatcher', `Results: ${summary}`);
 
   return outputSilentSuccess();
 }

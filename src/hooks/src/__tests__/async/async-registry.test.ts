@@ -163,7 +163,7 @@ describe('Async Hooks Registry', () => {
       );
       expect(dispatcherGroup, 'unified-dispatcher group should exist').toBeDefined();
       // #902: expanded to include TaskUpdate|TaskCreate|Agent
-      expect(dispatcherGroup!.matcher).toBe('Bash|Write|Edit|Task|TaskUpdate|TaskCreate|Agent|Skill|NotebookEdit');
+      expect(dispatcherGroup!.matcher).toBe('Bash|Write|Edit|Agent|TaskUpdate|TaskCreate|Skill|NotebookEdit');
     });
   });
 
