@@ -133,14 +133,16 @@ export function detectSuspiciousShellFeatures(cmd: string): string[] {
   const findings: string[] = [];
 
   // 1. Process substitution: <(cmd) or >(cmd)
-  if (/[<>]\([^)]+\)/.test(cmd)) {
+  // Limit content length to avoid ReDoS on untrusted input (CodeQL SEC-003)
+  if (/[<>]\([^)]{1,500}\)/.test(cmd)) {
     findings.push('process substitution detected (<(...) or >(...))');
   }
 
   // 2. Brace expansion (command form): {cat,/etc/passwd}
   // Heuristic: flag when the first element looks like a command binary (3+ chars,
   // no dots/slashes, starts alpha). Short elements like {ts,js} are file extensions.
-  const braceMatch = cmd.match(/\{([^},]+),([^}]+)\}/g);
+  // Limit quantifiers to avoid ReDoS on untrusted input (CodeQL SEC-003)
+  const braceMatch = cmd.match(/\{([^},]{1,200}),([^}]{1,500})\}/g);
   if (braceMatch) {
     for (const m of braceMatch) {
       const inner = m.slice(1, -1);
