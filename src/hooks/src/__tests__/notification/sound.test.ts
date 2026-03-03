@@ -351,7 +351,7 @@ describe('notification/sound', () => {
 
     test('handles spawn returning object without unref method', () => {
       // Arrange - spawn returns object with no unref (TypeError caught by try/catch)
-      mockSpawn.mockReturnValue({});
+      mockSpawn.mockReturnValue({} as any);
       const input = createSoundInput('permission_prompt');
 
       // Act

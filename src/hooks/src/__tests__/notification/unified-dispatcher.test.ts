@@ -179,10 +179,10 @@ describe('notification/unified-dispatcher', () => {
     test('runs hooks via Promise.allSettled (parallel, not sequential)', async () => {
       // Arrange
       const callOrder: string[] = [];
-      vi.mocked(desktopNotification).mockImplementation(() => {
+      vi.mocked(desktopNotification).mockImplementation((() => {
         callOrder.push('desktop');
         return { continue: true, suppressOutput: true };
-      });
+      }) as any);
       vi.mocked(soundNotification).mockImplementation(() => {
         callOrder.push('sound');
         return { continue: true, suppressOutput: true };
@@ -209,7 +209,7 @@ describe('notification/unified-dispatcher', () => {
       vi.mocked(desktopNotification).mockImplementation(() => {
         throw new Error('Desktop notification failed');
       });
-      vi.mocked(soundNotification).mockReturnValue({ continue: true, suppressOutput: true });
+      vi.mocked(soundNotification).mockResolvedValue({ continue: true, suppressOutput: true });
       const input = createNotificationInput('permission_prompt');
 
       // Act
@@ -223,7 +223,7 @@ describe('notification/unified-dispatcher', () => {
 
     test('continues when sound hook throws', async () => {
       // Arrange
-      vi.mocked(desktopNotification).mockReturnValue({ continue: true, suppressOutput: true });
+      vi.mocked(desktopNotification).mockResolvedValue({ continue: true, suppressOutput: true });
       vi.mocked(soundNotification).mockImplementation(() => {
         throw new Error('Sound notification failed');
       });
@@ -286,8 +286,8 @@ describe('notification/unified-dispatcher', () => {
 
     test('logs success summary when all hooks succeed', async () => {
       // Arrange
-      vi.mocked(desktopNotification).mockReturnValue({ continue: true, suppressOutput: true });
-      vi.mocked(soundNotification).mockReturnValue({ continue: true, suppressOutput: true });
+      vi.mocked(desktopNotification).mockResolvedValue({ continue: true, suppressOutput: true });
+      vi.mocked(soundNotification).mockResolvedValue({ continue: true, suppressOutput: true });
       const input = createNotificationInput('permission_prompt');
 
       // Act
@@ -307,7 +307,7 @@ describe('notification/unified-dispatcher', () => {
     test('handles hook returning rejected promise', async () => {
       // Arrange
       vi.mocked(desktopNotification).mockImplementation(
-        () => Promise.reject(new Error('async rejection')) as unknown as HookResult,
+        () => Promise.reject(new Error('async rejection')) as unknown as Promise<HookResult>,
       );
       const input = createNotificationInput('permission_prompt');
 
@@ -456,8 +456,8 @@ describe('notification/unified-dispatcher', () => {
   describe('result summary logging', () => {
     test('logs "Results: desktop=ok, sound=ok" on full success', async () => {
       // Arrange
-      vi.mocked(desktopNotification).mockReturnValue({ continue: true, suppressOutput: true });
-      vi.mocked(soundNotification).mockReturnValue({ continue: true, suppressOutput: true });
+      vi.mocked(desktopNotification).mockResolvedValue({ continue: true, suppressOutput: true });
+      vi.mocked(soundNotification).mockResolvedValue({ continue: true, suppressOutput: true });
       const input = createNotificationInput('permission_prompt');
 
       // Act
@@ -472,7 +472,7 @@ describe('notification/unified-dispatcher', () => {
 
     test('logs mixed results correctly', async () => {
       // Arrange
-      vi.mocked(desktopNotification).mockReturnValue({ continue: true, suppressOutput: true });
+      vi.mocked(desktopNotification).mockResolvedValue({ continue: true, suppressOutput: true });
       vi.mocked(soundNotification).mockImplementation(() => {
         throw new Error('sound broke');
       });
@@ -531,7 +531,7 @@ describe('notification/unified-dispatcher', () => {
     test('handles hook returning async result', async () => {
       // Arrange
       vi.mocked(desktopNotification).mockImplementation(
-        () => Promise.resolve({ continue: true, suppressOutput: true }) as unknown as HookResult,
+        () => Promise.resolve({ continue: true, suppressOutput: true }) as unknown as Promise<HookResult>,
       );
       const input = createNotificationInput('permission_prompt');
 

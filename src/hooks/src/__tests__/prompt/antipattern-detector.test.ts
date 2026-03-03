@@ -242,7 +242,7 @@ describe('prompt/antipattern-detector', () => {
     test('falls back to getProjectDir when project_dir not in input', () => {
       // Arrange
       const input = createPromptInput('implement pagination for api endpoints');
-      delete (input as Record<string, unknown>).project_dir;
+      delete (input as unknown as Record<string, unknown>).project_dir;
 
       // Act
       const _result = antipatternDetector(input);

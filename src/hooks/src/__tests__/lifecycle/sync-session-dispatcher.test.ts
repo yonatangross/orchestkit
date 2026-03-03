@@ -80,7 +80,7 @@ function makeContextResult(ctx: string) {
   return {
     continue: true,
     suppressOutput: true,
-    hookSpecificOutput: { additionalContext: ctx, hookEventName: 'SessionStart' },
+    hookSpecificOutput: { additionalContext: ctx, hookEventName: 'SessionStart' as never },
   };
 }
 

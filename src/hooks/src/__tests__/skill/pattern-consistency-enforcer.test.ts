@@ -499,7 +499,7 @@ function MyForm() {
       patternConsistencyEnforcer(input);
 
       // Assert
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).toContain('WARNING');
       expect(stderrOutput).toContain('useFormStatus');
     });
@@ -530,7 +530,7 @@ function MyForm() {
       patternConsistencyEnforcer(input);
 
       // Assert
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).not.toContain('WARNING');
     });
   });
@@ -606,7 +606,7 @@ expect(result).toBeDefined();
       patternConsistencyEnforcer(input);
 
       // Assert
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).not.toContain('AAA pattern');
     });
 
@@ -626,7 +626,7 @@ def test_user_creation():
       patternConsistencyEnforcer(input);
 
       // Assert
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).toContain('WARNING');
       expect(stderrOutput).toContain('AAA pattern');
     });
@@ -1009,7 +1009,7 @@ async function generate(prompt: string) {
       patternConsistencyEnforcer(input);
 
       // Assert
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).toContain('test_user.py');
     });
   });

@@ -308,8 +308,8 @@ describe('unified-dispatcher', () => {
     test('handles hooks returning Promises', async () => {
       // Arrange
       const input = createHookInput();
-      vi.mocked(patternSyncPull).mockImplementation(() =>
-        Promise.resolve({ continue: true, suppressOutput: true })
+      vi.mocked(patternSyncPull).mockImplementation(
+        () => Promise.resolve({ continue: true, suppressOutput: true }) as unknown as ReturnType<typeof patternSyncPull>
       );
 
       // Act
@@ -323,8 +323,8 @@ describe('unified-dispatcher', () => {
       // Arrange
       const input = createHookInput();
       vi.mocked(patternSyncPull).mockImplementation(() => ({ continue: true, suppressOutput: true }));
-      vi.mocked(sessionEnvSetup).mockImplementation(() =>
-        Promise.resolve({ continue: true, suppressOutput: true })
+      vi.mocked(sessionEnvSetup).mockImplementation(
+        () => Promise.resolve({ continue: true, suppressOutput: true }) as unknown as ReturnType<typeof sessionEnvSetup>
       );
       vi.mocked(sessionTracking).mockImplementation(() => ({ continue: true, suppressOutput: true }));
 
@@ -341,8 +341,8 @@ describe('unified-dispatcher', () => {
     test('handles async hook rejection', async () => {
       // Arrange
       const input = createHookInput();
-      vi.mocked(patternSyncPull).mockImplementation(() =>
-        Promise.reject(new Error('Async rejection'))
+      vi.mocked(patternSyncPull).mockImplementation(
+        () => Promise.reject(new Error('Async rejection')) as unknown as ReturnType<typeof patternSyncPull>
       );
 
       // Act
@@ -357,11 +357,11 @@ describe('unified-dispatcher', () => {
       const input = createHookInput();
       let asyncHookCompleted = false;
 
-      vi.mocked(patternSyncPull).mockImplementation(async () => {
+      vi.mocked(patternSyncPull).mockImplementation((async () => {
         await new Promise((resolve) => setTimeout(resolve, 10));
         asyncHookCompleted = true;
         return { continue: true, suppressOutput: true };
-      });
+      }) as unknown as typeof patternSyncPull);
 
       // Act
       await unifiedSessionStartDispatcher(input);
@@ -636,10 +636,10 @@ describe('unified-dispatcher', () => {
     test('handles slow hooks', async () => {
       // Arrange
       const input = createHookInput();
-      vi.mocked(patternSyncPull).mockImplementation(async () => {
+      vi.mocked(patternSyncPull).mockImplementation((async () => {
         await new Promise((resolve) => setTimeout(resolve, 50));
         return { continue: true, suppressOutput: true };
-      });
+      }) as unknown as typeof patternSyncPull);
 
       // Act
       const result = await unifiedSessionStartDispatcher(input);

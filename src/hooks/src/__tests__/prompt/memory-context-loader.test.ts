@@ -394,7 +394,7 @@ describe('prompt/memory-context-loader', () => {
       mockExistsSync.mockReturnValue(false);
 
       const input = createInput();
-      delete (input as Record<string, unknown>).project_dir;
+      delete (input as unknown as Record<string, unknown>).project_dir;
       memoryContextLoader(input);
 
       // Cross-platform: accept either / or \ path separators

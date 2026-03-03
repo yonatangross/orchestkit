@@ -359,7 +359,7 @@ describe('redact-secrets', () => {
 
       // Assert - Only one warning for API keys
       const apiKeyWarnings = stderrSpy.mock.calls.filter(
-        (call) => (call[0] as string).includes('API key')
+        (call: unknown[]) => (call[0] as string).includes('API key')
       );
       expect(apiKeyWarnings.length).toBe(1);
     });

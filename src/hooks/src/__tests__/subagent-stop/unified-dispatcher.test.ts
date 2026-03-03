@@ -237,14 +237,14 @@ describe('unified-subagent-stop-dispatcher', () => {
 
     test('handles async hooks correctly', async () => {
       // Arrange
-      vi.mocked(contextPublisher).mockImplementation(async () => {
+      vi.mocked(contextPublisher).mockImplementation((async () => {
         await new Promise(resolve => setTimeout(resolve, 10));
         return { continue: true, suppressOutput: true };
-      });
-      vi.mocked(handoffPreparer).mockImplementation(async () => {
+      }) as any);
+      vi.mocked(handoffPreparer).mockImplementation((async () => {
         await new Promise(resolve => setTimeout(resolve, 5));
         return { continue: true, suppressOutput: true };
-      });
+      }) as any);
       const input = createSubagentStopInput();
 
       // Act
@@ -694,22 +694,22 @@ describe('unified-subagent-stop-dispatcher', () => {
   describe('performance characteristics', () => {
     test('completes within reasonable time even with slow hooks', async () => {
       // Arrange
-      vi.mocked(contextPublisher).mockImplementation(async () => {
+      vi.mocked(contextPublisher).mockImplementation((async () => {
         await new Promise(resolve => setTimeout(resolve, 50));
         return { continue: true, suppressOutput: true };
-      });
-      vi.mocked(handoffPreparer).mockImplementation(async () => {
+      }) as any);
+      vi.mocked(handoffPreparer).mockImplementation((async () => {
         await new Promise(resolve => setTimeout(resolve, 50));
         return { continue: true, suppressOutput: true };
-      });
-      vi.mocked(feedbackLoop).mockImplementation(async () => {
+      }) as any);
+      vi.mocked(feedbackLoop).mockImplementation((async () => {
         await new Promise(resolve => setTimeout(resolve, 50));
         return { continue: true, suppressOutput: true };
-      });
-      vi.mocked(agentMemoryStore).mockImplementation(async () => {
+      }) as any);
+      vi.mocked(agentMemoryStore).mockImplementation((async () => {
         await new Promise(resolve => setTimeout(resolve, 50));
         return { continue: true, suppressOutput: true };
-      });
+      }) as any);
       const input = createSubagentStopInput();
 
       // Act

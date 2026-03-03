@@ -44,7 +44,7 @@ import { getWebhookUrl } from '../../lib/orchestration-state.js';
 
 function createWorktreeInput(event: string, overrides: Partial<HookInput> = {}): HookInput {
   return {
-    hook_event: event,
+    hook_event: event as import('../../types.js').HookEvent,
     tool_name: '',
     session_id: 'test-session-789',
     tool_input: { file_path: '/home/user/myproject-worktrees/feat-branch' },

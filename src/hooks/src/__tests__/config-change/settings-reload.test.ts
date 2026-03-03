@@ -155,11 +155,11 @@ describe('config-change/settings-reload', () => {
     });
 
     it('works with minimal input (no session_id field)', () => {
-      const input: HookInput = {
+      const input = {
         hook_event: 'ConfigChange',
         tool_name: '',
         tool_input: {},
-      };
+      } as unknown as HookInput;
       expect(() => settingsReload(input)).not.toThrow();
     });
 
@@ -167,7 +167,7 @@ describe('config-change/settings-reload', () => {
       const inputs: HookInput[] = [
         createConfigChangeInput(),
         createConfigChangeInput({ session_id: undefined }),
-        { hook_event: 'ConfigChange', tool_name: '', tool_input: {} },
+        { hook_event: 'ConfigChange', tool_name: '', tool_input: {} } as unknown as HookInput,
       ];
 
       for (const input of inputs) {

@@ -585,7 +585,7 @@ describe('feedback-loop', () => {
 
     test('falls back to static mapping when no pipeline', () => {
       // Arrange
-      vi.mocked(getActivePipeline).mockReturnValue(null);
+      vi.mocked(getActivePipeline).mockReturnValue(undefined);
       const input = createSubagentStopInput('workflow-architect', 'Workflow done');
 
       // Act

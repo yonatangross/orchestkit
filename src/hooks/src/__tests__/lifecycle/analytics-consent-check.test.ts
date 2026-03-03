@@ -360,7 +360,8 @@ describe('analytics-consent-check', () => {
     ])('consent status %j returns suppressOutput=%s appropriately', (status, expectSilent) => {
       // Arrange
       createConsentStatus(status);
-      if (status.asked && !status.consented) {
+      const s = status as { asked?: boolean; consented?: boolean };
+      if (s.asked && !s.consented) {
         createConsentLog([{ action: 'declined', timestamp: daysAgo(5) }]);
       }
       const input = createHookInput();

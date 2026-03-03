@@ -176,7 +176,7 @@ describe('merge-readiness-checker', () => {
 
       // Assert
       expect(stderrSpy).toHaveBeenCalled();
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).toContain('Checking merge readiness');
     });
 
@@ -207,7 +207,7 @@ describe('merge-readiness-checker', () => {
       mergeReadinessChecker(input);
 
       // Assert
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).toContain('Checking merge readiness');
     });
   });
@@ -227,7 +227,7 @@ describe('merge-readiness-checker', () => {
 
       // Assert
       expect(result.continue).toBe(true);
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).toContain('Already on target branch');
     });
 
@@ -248,7 +248,7 @@ describe('merge-readiness-checker', () => {
       mergeReadinessChecker(input);
 
       // Assert
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).toContain('feature -> develop');
     });
   });
@@ -267,7 +267,7 @@ describe('merge-readiness-checker', () => {
       mergeReadinessChecker(input);
 
       // Assert
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).toContain('No uncommitted changes');
     });
 
@@ -284,7 +284,7 @@ describe('merge-readiness-checker', () => {
 
       // Assert
       expect(result.continue).toBe(false);
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).toContain('Uncommitted changes detected');
     });
 
@@ -301,7 +301,7 @@ describe('merge-readiness-checker', () => {
       mergeReadinessChecker(input);
 
       // Assert
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).toContain('file0.ts');
       expect(stderrOutput).toContain('file9.ts');
       // Should only show first 10
@@ -326,7 +326,7 @@ describe('merge-readiness-checker', () => {
 
       // Assert
       expect(result.continue).toBe(true);
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).toContain('up to date');
     });
 
@@ -343,7 +343,7 @@ describe('merge-readiness-checker', () => {
 
       // Assert
       expect(result.continue).toBe(true);
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).toContain('WARNINGS');
       expect(stderrOutput).toContain('behind');
     });
@@ -361,7 +361,7 @@ describe('merge-readiness-checker', () => {
 
       // Assert
       expect(result.continue).toBe(false);
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).toContain('significantly behind');
     });
 
@@ -397,7 +397,7 @@ describe('merge-readiness-checker', () => {
 
       // Assert
       expect(result.continue).toBe(true);
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).toContain('No merge conflicts');
     });
 
@@ -414,7 +414,7 @@ describe('merge-readiness-checker', () => {
 
       // Assert
       expect(result.continue).toBe(false);
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).toContain('Merge conflicts detected');
       expect(stderrOutput).toContain('file.ts');
     });
@@ -446,7 +446,7 @@ describe('merge-readiness-checker', () => {
       mergeReadinessChecker(input);
 
       // Assert
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).toContain('file0.ts');
       expect(stderrOutput).toContain('file9.ts');
     });
@@ -469,7 +469,7 @@ describe('merge-readiness-checker', () => {
       mergeReadinessChecker(input);
 
       // Assert
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).toContain('3 changed files');
     });
 
@@ -484,7 +484,7 @@ describe('merge-readiness-checker', () => {
       mergeReadinessChecker(input);
 
       // Assert
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).toContain('Cannot determine merge base');
     });
   });
@@ -506,7 +506,7 @@ describe('merge-readiness-checker', () => {
       mergeReadinessChecker(input);
 
       // Assert
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).toContain('Frontend test script found');
     });
 
@@ -521,7 +521,7 @@ describe('merge-readiness-checker', () => {
       mergeReadinessChecker(input);
 
       // Assert
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).toContain('Backend test configuration found');
     });
 
@@ -536,7 +536,7 @@ describe('merge-readiness-checker', () => {
       mergeReadinessChecker(input);
 
       // Assert
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).toContain('Backend test configuration found');
     });
   });
@@ -554,7 +554,7 @@ describe('merge-readiness-checker', () => {
       mergeReadinessChecker(input);
 
       // Assert
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).toContain('MERGE READINESS REPORT');
     });
 
@@ -567,7 +567,7 @@ describe('merge-readiness-checker', () => {
       mergeReadinessChecker(input);
 
       // Assert
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).toContain('my-feature -> main');
     });
 
@@ -579,7 +579,7 @@ describe('merge-readiness-checker', () => {
       mergeReadinessChecker(input);
 
       // Assert
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).toContain('PASSED CHECKS');
     });
 
@@ -594,7 +594,7 @@ describe('merge-readiness-checker', () => {
       mergeReadinessChecker(input);
 
       // Assert
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).toContain('WARNINGS');
     });
 
@@ -608,7 +608,7 @@ describe('merge-readiness-checker', () => {
       mergeReadinessChecker(input);
 
       // Assert
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).toContain('BLOCKERS');
     });
 
@@ -620,7 +620,7 @@ describe('merge-readiness-checker', () => {
       mergeReadinessChecker(input);
 
       // Assert
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).toContain('MERGE READY');
     });
 
@@ -635,7 +635,7 @@ describe('merge-readiness-checker', () => {
       mergeReadinessChecker(input);
 
       // Assert
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).toContain('MERGE NOT READY');
     });
   });
@@ -754,7 +754,7 @@ describe('merge-readiness-checker', () => {
 
       // Assert
       expect(result.continue).toBe(false);
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).toContain('Uncommitted changes');
       expect(stderrOutput).toContain('significantly behind');
       expect(stderrOutput).toContain('Merge conflicts');
@@ -772,7 +772,7 @@ describe('merge-readiness-checker', () => {
 
       // Assert
       expect(result.continue).toBe(true);
-      const stderrOutput = stderrSpy.mock.calls.map((c) => c[0]).join('');
+      const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
       expect(stderrOutput).toContain('MERGE READY WITH WARNINGS');
     });
   });

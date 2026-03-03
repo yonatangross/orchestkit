@@ -82,9 +82,9 @@ function createNotificationInput(
 
 /** Return the script string from the first osascript spawn call */
 function osascriptScript(): string {
-  const calls = mockSpawn.mock.calls.filter(([cmd]) => cmd === 'osascript');
+  const calls = (mockSpawn.mock.calls as any[][]).filter((c: any[]) => c[0] === 'osascript');
   expect(calls.length).toBeGreaterThan(0);
-  return calls[0][1][1] as string; // spawn('osascript', ['-e', script], ...)
+  return (calls[0] as any[])[1][1] as string; // spawn('osascript', ['-e', script], ...)
 }
 
 // =============================================================================
@@ -313,7 +313,7 @@ describe('notification/desktop', () => {
         throw new Error('not found');
       });
       await desktopNotification(createNotificationInput('permission_prompt'));
-      expect(mockSpawn.mock.calls.filter(([cmd]) => cmd === 'osascript')).toHaveLength(1);
+      expect((mockSpawn.mock.calls as any[][]).filter((c: any[]) => c[0] === 'osascript')).toHaveLength(1);
     });
 
     test('sends Linux notification when only notify-send is available', async () => {
@@ -323,7 +323,7 @@ describe('notification/desktop', () => {
         return Buffer.from('');
       });
       await desktopNotification(createNotificationInput('permission_prompt'));
-      expect(mockSpawn.mock.calls.filter(([cmd]) => cmd === 'notify-send')).toHaveLength(1);
+      expect((mockSpawn.mock.calls as any[][]).filter((c: any[]) => c[0] === 'notify-send')).toHaveLength(1);
     });
 
     test('prefers osascript over notify-send when both available', async () => {
@@ -333,8 +333,8 @@ describe('notification/desktop', () => {
         return Buffer.from('');
       });
       await desktopNotification(createNotificationInput('permission_prompt'));
-      expect(mockSpawn.mock.calls.filter(([cmd]) => cmd === 'osascript')).toHaveLength(1);
-      expect(mockSpawn.mock.calls.filter(([cmd]) => cmd === 'notify-send')).toHaveLength(0);
+      expect((mockSpawn.mock.calls as any[][]).filter((c: any[]) => c[0] === 'osascript')).toHaveLength(1);
+      expect((mockSpawn.mock.calls as any[][]).filter((c: any[]) => c[0] === 'notify-send')).toHaveLength(0);
     });
 
     test('no notification sent when neither osascript nor notify-send available', async () => {
@@ -447,7 +447,7 @@ describe('notification/desktop', () => {
         message: 'some message',
       });
       await desktopNotification(input);
-      expect(mockSpawn.mock.calls.filter(([cmd]) => cmd === 'osascript')).toHaveLength(1);
+      expect((mockSpawn.mock.calls as any[][]).filter((c: any[]) => c[0] === 'osascript')).toHaveLength(1);
     });
 
     test('prefers root-level notification_type over tool_input', async () => {

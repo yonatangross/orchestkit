@@ -104,7 +104,7 @@ function setupFileMocks(config: {
     return '{}';
   });
 
-  if (config.issueDir && config.issueDir !== false) {
+  if (config.issueDir) {
     (readdirSync as ReturnType<typeof vi.fn>).mockReturnValue(config.issueDir);
   }
 }

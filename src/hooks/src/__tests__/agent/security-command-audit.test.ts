@@ -538,7 +538,7 @@ describe('security-command-audit', () => {
     test('falls back to getProjectDir when project_dir not in input', () => {
       // Arrange
       const input = createToolInput('Bash', { command: 'ls' });
-      delete (input as Record<string, unknown>).project_dir;
+      delete (input as unknown as Record<string, unknown>).project_dir;
 
       // Act
       securityCommandAudit(input);
@@ -550,7 +550,7 @@ describe('security-command-audit', () => {
     test('falls back to getSessionId when session_id not in input', () => {
       // Arrange
       const input = createToolInput('Bash', { command: 'ls' });
-      delete (input as Record<string, unknown>).session_id;
+      delete (input as unknown as Record<string, unknown>).session_id;
 
       // Act
       securityCommandAudit(input);

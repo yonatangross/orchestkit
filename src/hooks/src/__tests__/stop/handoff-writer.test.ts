@@ -49,7 +49,7 @@ vi.mock('node:fs', () => ({
 const mockExecSync = vi.fn(() => '');
 
 vi.mock('node:child_process', () => ({
-  execSync: (...args: unknown[]) => mockExecSync(...args),
+  execSync: (cmd: string, options?: unknown) => (mockExecSync as (cmd: string, opts?: unknown) => string)(cmd, options),
 }));
 
 // Mock atomic-write so atomicWriteSync delegates to mockWriteFileSync

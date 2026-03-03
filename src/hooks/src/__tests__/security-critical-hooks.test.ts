@@ -774,7 +774,7 @@ describe('redactSecrets', () => {
       redactSecrets(input);
       // The loop breaks after first API key match
       const apiKeyCalls = stderrSpy.mock.calls.filter(
-        (call) => typeof call[0] === 'string' && call[0].includes('API key')
+        (call: unknown[]) => typeof call[0] === 'string' && (call[0] as string).includes('API key')
       );
       expect(apiKeyCalls).toHaveLength(1);
     });

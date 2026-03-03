@@ -464,7 +464,7 @@ describe('retry-handler', () => {
       vi.mocked(loadConfig).mockReturnValue({
         maxRetries: 5,
         retryDelayBaseMs: 2000,
-      });
+      } as any);
       const input = createSubagentStopInput({
         error: 'Error',
       });

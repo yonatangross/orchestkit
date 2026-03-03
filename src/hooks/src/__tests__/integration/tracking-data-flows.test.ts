@@ -226,7 +226,7 @@ describe('A. Session Lifecycle Flow', () => {
     const events = modules.sessionTracker.loadSessionEvents();
     const endEvent = events.find((e: any) => e.event_type === 'session_end');
     expect(endEvent).toBeDefined();
-    expect(endEvent!.payload.input.ended_at).toBeDefined();
+    expect(endEvent!.payload.input!.ended_at).toBeDefined();
   });
 
   it('A.4: generateSessionSummary aggregates event counts correctly', () => {
@@ -1265,10 +1265,10 @@ describe('F. Error Handling Across Boundaries', () => {
     expect(events.length).toBe(1);
 
     const event = events[0];
-    expect(event.payload.input.command).toBe('echo test');
-    expect(event.payload.input.password).toBe('[REDACTED]');
-    expect(event.payload.input.api_key).toBe('[REDACTED]');
-    expect(event.payload.input.auth_token).toBe('[REDACTED]');
+    expect(event.payload.input!.command).toBe('echo test');
+    expect(event.payload.input!.password).toBe('[REDACTED]');
+    expect(event.payload.input!.api_key).toBe('[REDACTED]');
+    expect(event.payload.input!.auth_token).toBe('[REDACTED]');
   });
 
   it('F.8: Long strings are truncated in events', () => {
@@ -1283,7 +1283,7 @@ describe('F. Error Handling Across Boundaries', () => {
     expect(events.length).toBe(1);
 
     const event = events[0];
-    expect(event.payload.context.length).toBeLessThan(1000);
+    expect(event.payload.context!.length).toBeLessThan(1000);
     expect(event.payload.context).toContain('...');
   });
 });

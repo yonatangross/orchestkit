@@ -86,7 +86,7 @@ vi.mock('../../lib/task-integration.js', async () => {
 });
 
 vi.mock('../../lib/coordination.js', async () => {
-  const actual = await vi.importActual<typeof import('../../lib/coordination.js')>('../../lib/coordination.js');
+  const actual = await vi.importActual('../../lib/coordination.js');
   return {
     ...actual,
     acquireLock: vi.fn().mockReturnValue(true),

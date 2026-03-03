@@ -97,8 +97,8 @@ jobs:
       - name: Biome lint
         run: cd src/hooks && npx biome check src/
 
-      - name: TypeScript typecheck (source)
-        run: cd src/hooks && npx tsc --noEmit
+      - name: TypeScript typecheck
+        run: cd src/hooks && npx tsc --noEmit -p tsconfig.test.json
 
   # ============================================================================
   # STAGE 1b: Dependency Security Audit (BLOCKING)

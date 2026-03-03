@@ -324,9 +324,9 @@ describe('Dispatcher Functional Tests', () => {
       it('runs matching hooks concurrently, not sequentially', async () => {
         const DELAY = 50; // ms each hook "takes"
         // 3 wildcard hooks each delay 50ms — sequential would be ≥150ms
-        mocks.sessionMetrics.mockImplementationOnce(() => new Promise(r => setTimeout(r, DELAY)));
-        mocks.auditLogger.mockImplementationOnce(() => new Promise(r => setTimeout(r, DELAY)));
-        mocks.calibrationTracker.mockImplementationOnce(() => new Promise(r => setTimeout(r, DELAY)));
+        mocks.sessionMetrics.mockImplementationOnce(() => new Promise(r => setTimeout(r, DELAY)) as unknown as { continue: boolean; suppressOutput: boolean });
+        mocks.auditLogger.mockImplementationOnce(() => new Promise(r => setTimeout(r, DELAY)) as unknown as { continue: boolean; suppressOutput: boolean });
+        mocks.calibrationTracker.mockImplementationOnce(() => new Promise(r => setTimeout(r, DELAY)) as unknown as { continue: boolean; suppressOutput: boolean });
 
         const start = performance.now();
         await unifiedDispatcher(input('Read')); // only wildcards match
@@ -356,7 +356,7 @@ describe('Dispatcher Functional Tests', () => {
 
       it('continues executing remaining hooks when one rejects async', async () => {
         mocks.patternExtractor.mockImplementationOnce(
-          () => Promise.reject(new Error('async boom'))
+          () => Promise.reject(new Error('async boom')) as unknown as { continue: boolean; suppressOutput: boolean }
         );
 
         await unifiedDispatcher(input('Bash'));
@@ -392,7 +392,7 @@ describe('Dispatcher Functional Tests', () => {
 
       it('always returns silent success even when hooks fail', async () => {
         mocks.sessionMetrics.mockImplementationOnce(() => { throw new Error('crash'); });
-        mocks.auditLogger.mockImplementationOnce(() => Promise.reject(new Error('boom')));
+        mocks.auditLogger.mockImplementationOnce(() => Promise.reject(new Error('boom')) as unknown as { continue: boolean; suppressOutput: boolean });
 
         const result = await unifiedDispatcher(input('Bash'));
         expect(result).toEqual(SILENT_SUCCESS);
@@ -458,7 +458,7 @@ describe('Dispatcher Functional Tests', () => {
     });
 
     it('returns silent success even on errors', async () => {
-      mocks.calibrationPersist.mockImplementationOnce(() => Promise.reject(new Error('fail')));
+      mocks.calibrationPersist.mockImplementationOnce(() => Promise.reject(new Error('fail')) as unknown as { continue: boolean; suppressOutput: boolean });
       const result = await unifiedStopDispatcher(input());
       expect(result).toEqual(SILENT_SUCCESS);
     });

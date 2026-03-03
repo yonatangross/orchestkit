@@ -985,7 +985,7 @@ describe('unified-error-handler (consolidated from error-collector + error-track
     output: string,
     toolInput?: Record<string, unknown>
   ): HookInput => ({
-    hook_event_name: 'PostToolUse',
+    hook_event: 'PostToolUse',
     tool_name: toolName,
     tool_input: toolInput || {},
     tool_result: {
@@ -993,7 +993,6 @@ describe('unified-error-handler (consolidated from error-collector + error-track
       content: output,
     },
     session_id: 'test-session',
-    transcript: [],
   });
 
   test('returns silent success for non-error outputs', () => {
@@ -1013,7 +1012,7 @@ describe('unified-error-handler (consolidated from error-collector + error-track
 
   test('detects errors from tool_error flag', () => {
     const input: HookInput = {
-      hook_event_name: 'PostToolUse',
+      hook_event: 'PostToolUse',
       tool_name: 'Bash',
       tool_input: {},
       tool_result: {
@@ -1021,7 +1020,6 @@ describe('unified-error-handler (consolidated from error-collector + error-track
         content: 'Some error occurred',
       },
       session_id: 'test-session',
-      transcript: [],
     };
     const result = unifiedErrorHandler(input);
 
@@ -1048,7 +1046,7 @@ describe('decision-processor (consolidated decision saver + entity extractor)', 
   
 
   const createSkillInput = (skillOutput: string): HookInput => ({
-    hook_event_name: 'Skill',
+    hook_event: 'PostToolUse',
     tool_name: 'Skill',
     tool_input: { skill: 'test-skill' },
     tool_result: {
@@ -1056,7 +1054,6 @@ describe('decision-processor (consolidated decision saver + entity extractor)', 
       content: skillOutput,
     },
     session_id: 'test-session',
-    transcript: [],
   });
 
   test('returns silent success for non-decision content', () => {
@@ -1114,12 +1111,11 @@ describe('posttool/unified-dispatcher read-only tool handling', () => {
     'returns silent success (no side-effect hooks) for read-only tool: %s',
     async (toolName) => {
       const input: HookInput = {
-        hook_event_name: 'PostToolUse',
+        hook_event: 'PostToolUse',
         tool_name: toolName,
         tool_input: {},
         tool_result: { is_error: false, content: 'ok' },
         session_id: 'test-session',
-        transcript: [],
       };
       const result = await unifiedDispatcher(input);
 

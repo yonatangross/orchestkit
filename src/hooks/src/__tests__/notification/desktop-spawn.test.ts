@@ -100,14 +100,14 @@ describe('notification/desktop — spawn behavior', () => {
   describe('spawn-based notification delivery', () => {
     test('spawns osascript with detached: true', async () => {
       await desktopNotification(createNotificationInput('permission_prompt'));
-      const calls = mockSpawn.mock.calls.filter(([cmd]) => cmd === 'osascript');
+      const calls = (mockSpawn.mock.calls as any[][]).filter((c: any[]) => c[0] === 'osascript');
       expect(calls).toHaveLength(1);
       expect(calls[0][2]).toMatchObject({ detached: true });
     });
 
     test('uses stdio: ignore when spawning osascript', async () => {
       await desktopNotification(createNotificationInput('permission_prompt'));
-      const calls = mockSpawn.mock.calls.filter(([cmd]) => cmd === 'osascript');
+      const calls = (mockSpawn.mock.calls as any[][]).filter((c: any[]) => c[0] === 'osascript');
       expect(calls).toHaveLength(1);
       expect(calls[0][2]).toMatchObject({ stdio: 'ignore' });
     });
@@ -119,9 +119,9 @@ describe('notification/desktop — spawn behavior', () => {
 
     test('passes -e flag followed by full AppleScript to osascript', async () => {
       await desktopNotification(createNotificationInput('permission_prompt'));
-      const calls = mockSpawn.mock.calls.filter(([cmd]) => cmd === 'osascript');
+      const calls = (mockSpawn.mock.calls as any[][]).filter((c: any[]) => c[0] === 'osascript');
       expect(calls).toHaveLength(1);
-      const args: string[] = calls[0][1];
+      const args: string[] = calls[0][1] as string[];
       expect(args[0]).toBe('-e');
       expect(typeof args[1]).toBe('string');
       expect(args[1]).toContain('display notification');
@@ -141,7 +141,7 @@ describe('notification/desktop — spawn behavior', () => {
         return Buffer.from('');
       });
       await desktopNotification(createNotificationInput('permission_prompt'));
-      const calls = mockSpawn.mock.calls.filter(([cmd]) => cmd === 'notify-send');
+      const calls = (mockSpawn.mock.calls as any[][]).filter((c: any[]) => c[0] === 'notify-send');
       expect(calls).toHaveLength(1);
       expect(calls[0][2]).toMatchObject({ detached: true, stdio: 'ignore' });
     });
@@ -163,10 +163,10 @@ describe('notification/desktop — spawn behavior', () => {
         return Buffer.from('');
       });
       await desktopNotification(createNotificationInput('permission_prompt'));
-      const calls = mockSpawn.mock.calls.filter(([cmd]) => cmd === 'notify-send');
+      const calls = (mockSpawn.mock.calls as any[][]).filter((c: any[]) => c[0] === 'notify-send');
       expect(calls).toHaveLength(1);
       // spawn('notify-send', ['--', title, fullMessage], options)
-      const args: string[] = calls[0][1];
+      const args: string[] = calls[0][1] as string[];
       expect(args[0]).toBe('--');
       expect(typeof args[1]).toBe('string'); // title
       expect(typeof args[2]).toBe('string'); // message body
@@ -180,17 +180,17 @@ describe('notification/desktop — spawn behavior', () => {
   describe('no focus stealing', () => {
     test('osascript script does not contain activate clause', async () => {
       await desktopNotification(createNotificationInput('permission_prompt'));
-      const calls = mockSpawn.mock.calls.filter(([cmd]) => cmd === 'osascript');
+      const calls = (mockSpawn.mock.calls as any[][]).filter((c: any[]) => c[0] === 'osascript');
       expect(calls).toHaveLength(1);
-      const script: string = calls[0][1][1];
+      const script: string = (calls[0] as any[])[1][1] as string;
       expect(script).not.toContain('activate');
       expect(script).not.toContain('tell application');
     });
 
     test('osascript script only contains display notification', async () => {
       await desktopNotification(createNotificationInput('permission_prompt'));
-      const calls = mockSpawn.mock.calls.filter(([cmd]) => cmd === 'osascript');
-      const script: string = calls[0][1][1];
+      const calls = (mockSpawn.mock.calls as any[][]).filter((c: any[]) => c[0] === 'osascript');
+      const script: string = (calls[0] as any[])[1][1] as string;
       expect(script).toContain('display notification');
       expect(script).toContain('with title');
       expect(script).toContain('subtitle');
