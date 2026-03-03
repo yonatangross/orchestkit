@@ -27,6 +27,14 @@ vi.mock('node:fs', () => ({
   readSync: vi.fn().mockReturnValue(0),
 }));
 
+// Mock atomic-write so atomicWriteSync delegates to the mocked writeFileSync
+vi.mock('../../lib/atomic-write.js', async () => {
+  const fs = await import('node:fs');
+  return {
+    atomicWriteSync: (path: string, content: string) => fs.writeFileSync(path, content),
+  };
+});
+
 vi.mock('node:child_process', () => ({
   execSync: vi.fn().mockReturnValue('main\n'),
   spawn: vi.fn().mockReturnValue({

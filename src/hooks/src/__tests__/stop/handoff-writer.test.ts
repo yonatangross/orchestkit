@@ -52,6 +52,11 @@ vi.mock('node:child_process', () => ({
   execSync: (...args: unknown[]) => mockExecSync(...args),
 }));
 
+// Mock atomic-write so atomicWriteSync delegates to mockWriteFileSync
+vi.mock('../../lib/atomic-write.js', () => ({
+  atomicWriteSync: (path: string, content: string) => mockWriteFileSync(path, content, 'utf8'),
+}));
+
 // Mock learning-extractor
 vi.mock('../../lib/learning-extractor.js', () => ({
   extractLearnings: vi.fn(() => []),

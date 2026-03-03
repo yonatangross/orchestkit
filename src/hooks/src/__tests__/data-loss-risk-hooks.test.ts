@@ -30,6 +30,14 @@ vi.mock('node:child_process', () => ({
   execSync: vi.fn().mockReturnValue('main\n'),
 }));
 
+// Mock atomic-write so atomicWriteSync delegates to the mocked writeFileSync
+vi.mock('../lib/atomic-write.js', async () => {
+  const fs = await import('node:fs');
+  return {
+    atomicWriteSync: (path: string, content: string) => fs.writeFileSync(path, content, 'utf8'),
+  };
+});
+
 // Mock orchestration dependencies for retryHandler
 vi.mock('../lib/orchestration-state.js', () => ({
   loadConfig: vi.fn().mockReturnValue({ maxRetries: 3, retryDelayBaseMs: 1000 }),

@@ -16,7 +16,7 @@
  * - learning-extractor for structured classification
  */
 
-import { existsSync, readFileSync, mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, mkdirSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import { join } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
@@ -28,6 +28,7 @@ import {
   getCachedBranch,
 } from '../lib/common.js';
 import { extractLearnings, formatLearnings } from '../lib/learning-extractor.js';
+import { atomicWriteSync } from '../lib/atomic-write.js';
 
 const HOOK_NAME = 'handoff-writer';
 
@@ -166,7 +167,7 @@ export function handoffWriter(input: HookInput): HookResult {
     }
 
     const content = sections.join('\n') + '\n';
-    writeFileSync(handoffPath, content, 'utf8');
+    atomicWriteSync(handoffPath, content);
 
     logHook(HOOK_NAME, `Wrote ${handoffPath} (${content.length} chars, ${modifiedFiles.length} files, ${learnings.length} learnings)`);
   } catch (error) {

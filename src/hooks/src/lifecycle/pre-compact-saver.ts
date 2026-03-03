@@ -11,11 +11,12 @@
  * Version: 2.0.0
  */
 
-import { writeFileSync, existsSync, readFileSync, mkdirSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, mkdirSync, readdirSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import { join } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook, getLogDir, getSessionId, getProjectDir } from '../lib/common.js';
+import { atomicWriteSync } from '../lib/atomic-write.js';
 
 interface PreservedContext {
   branch?: string;
@@ -199,7 +200,7 @@ export function preCompactSaver(_input: HookInput): HookResult {
       },
     };
 
-    writeFileSync(stateFile, JSON.stringify(state, null, 2));
+    atomicWriteSync(stateFile, JSON.stringify(state, null, 2));
 
     logHook('pre-compact-saver',
       `Saved state before compaction #${state.compactionCount} ` +

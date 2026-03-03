@@ -4,8 +4,9 @@
  * CC 2.1.7 Compliant
  */
 
-import { existsSync, mkdirSync, statSync, renameSync } from 'node:fs';
+import { existsSync, readFileSync, mkdirSync, statSync, renameSync } from 'node:fs';
 import { bufferWrite } from '../lib/analytics-buffer.js';
+import { atomicWriteSync } from '../lib/atomic-write.js';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, getField } from '../lib/common.js';
 import { getReadCountFile } from '../lib/paths.js';
@@ -22,7 +23,6 @@ export function auditLogger(input: HookInput): HookResult {
   // Skip logging for high-frequency read operations to reduce noise
   if (['Read', 'Glob', 'Grep'].includes(toolName)) {
     try {
-      const { readFileSync, writeFileSync } = require('node:fs');
       let readCount = 0;
       try {
         readCount = parseInt(readFileSync(readCountFile, 'utf8').trim(), 10) || 0;
@@ -30,7 +30,7 @@ export function auditLogger(input: HookInput): HookResult {
         // File doesn't exist yet
       }
       readCount++;
-      writeFileSync(readCountFile, String(readCount));
+      atomicWriteSync(readCountFile, String(readCount));
 
       if (readCount % 10 !== 0) {
         return outputSilentSuccess();
