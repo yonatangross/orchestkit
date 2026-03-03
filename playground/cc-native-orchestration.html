@@ -860,6 +860,12 @@ document.getElementById('agentSearch').addEventListener('input', renderAgentList
 
 // ── TASK SIMULATOR ────────────────────────────────────────────────────────────
 
+function escapeHTML(str) {
+  const el = document.createElement('span');
+  el.textContent = str;
+  return el.innerHTML;
+}
+
 function clearHighlights() {
   document.querySelectorAll('.agent-chip').forEach(c => c.classList.remove('selected','routing'));
   document.querySelectorAll('.skill-pill.internal').forEach(p => p.classList.remove('lit'));
@@ -893,7 +899,7 @@ function routeTask(task) {
 
   // Animate steps
   let steps = [
-    { icon: '▶', text: `CC reads task: "<span style="color:var(--text)">${task}</span>"`, delay: 0 },
+    { icon: '▶', text: `CC reads task: "<span style="color:var(--text)">${escapeHTML(task)}</span>"`, delay: 0 },
     { icon: '◉', text: `Analyzing intent... matched keywords: <span class="skill-ref">[${top.keywords.slice(0,4).join(', ')}]</span>`, delay: 350 },
     { icon: '→', text: `Routing to <span class="agent-ref">${agents.join('</span>, <span class="agent-ref">')}</span>`, delay: 700 },
     { icon: '◈', text: `Agents loading skills: <span class="skill-ref">${skills.join('</span>, <span class="skill-ref">')}</span>`, delay: 1050 },
