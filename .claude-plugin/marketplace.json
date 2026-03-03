@@ -22,15 +22,6 @@
         "email": "yonatan2gross@gmail.com"
       },
       "category": "development",
-      "tags": [
-        "ai-development",
-        "multi-agent",
-        "code-review",
-        "security",
-        "testing",
-        "devops",
-        "full-stack"
-      ],
       "source": "./plugins/ork"
     }
   ]
