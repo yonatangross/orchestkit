@@ -25,7 +25,8 @@ function escapeForAppleScript(str: string): string {
     .replace(/\n/g, '\\n')
     .replace(/\r/g, '\\r')
     .replace(/\t/g, '\\t')
-    .replace(/[\x00-\x1f\x7f]/g, ''); // strip remaining control chars
+    // biome-ignore lint/suspicious/noControlCharactersInRegex: intentional — stripping control chars from notification text
+    .replace(/[\x00-\x1f\x7f]/g, '');
 }
 
 const _commandCache = new Map<string, boolean>();
