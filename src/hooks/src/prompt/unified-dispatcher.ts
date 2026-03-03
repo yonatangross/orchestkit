@@ -50,6 +50,7 @@ import { join } from 'node:path';
 // Import hook implementations — every-turn
 import { satisfactionDetector } from './satisfaction-detector.js';
 import { communicationStyleTracker } from './communication-style-tracker.js';
+import { contextExhaustionWarner } from './context-exhaustion-warner.js';
 import { antipatternWarning } from './antipattern-warning.js';
 import { memoryContext } from './memory-context.js';
 import { skillNudgePrompt } from './skill-nudge.js';
@@ -108,6 +109,7 @@ const HOOKS: PromptHookConfig[] = [
   { name: 'communication-style-tracker', fn: communicationStyleTracker, producesContext: false },
 
   // --- Context producers (output merged into single additionalContext) ---
+  { name: 'context-exhaustion-warner', fn: contextExhaustionWarner, producesContext: true },
   { name: 'antipattern-warning', fn: antipatternWarning, producesContext: true },
   { name: 'memory-context', fn: memoryContext, producesContext: true },
   { name: 'skill-nudge-prompt', fn: skillNudgePrompt, producesContext: true },

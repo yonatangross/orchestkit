@@ -316,7 +316,8 @@ describe('Cross-Bundle Consistency', () => {
     // 169 -> 166: #922 — removed 4 dead posttool entries (auto-lint, memory-bridge, coverage-predictor, readme-sync)
     // 166 -> 167: added missing lifecycle/session-end-reporter to entry file
     // 167 -> 165: removed auto-remember-continuity (stop) + session-context-loader (lifecycle)
-    expect(totalHooks).toBe(165);
+    // 165 -> 166: added posttool/dirty-file-tracker (#928)
+    expect(totalHooks).toBe(166);
   });
 });
 

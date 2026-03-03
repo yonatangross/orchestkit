@@ -31,7 +31,7 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "echo \"ork v$(jq -r .version package.json 2>/dev/null || echo '?') │ $(git branch --show-current 2>/dev/null || echo 'no-git') │ $(git status --porcelain 2>/dev/null | wc -l | tr -d ' ') uncommitted\""
+    "command": "${CLAUDE_PLUGIN_ROOT}/hooks/bin/statusline-context-writer.sh"
   },
   "keybindings": [
     { "key": "ctrl+k ctrl+f", "skill": "fix-issue" },

@@ -18,6 +18,7 @@ import { userTracking } from '../posttool/user-tracking.js';
 import { sessionMetrics } from '../posttool/session-metrics.js';
 import { skillEditTracker } from '../posttool/skill-edit-tracker.js';
 import { calibrationTracker } from '../posttool/calibration-tracker.js';
+import { dirtyFileTracker } from '../posttool/dirty-file-tracker.js';
 import { unifiedDispatcher } from '../posttool/unified-dispatcher.js';
 
 // PostTool/Write hooks (3) — #922: removed dead entries (auto-lint, memory-bridge, coverage-predictor, readme-sync)
@@ -58,6 +59,7 @@ export const hooks: Record<string, HookFn> = {
   'posttool/session-metrics': sessionMetrics,
   'posttool/skill-edit-tracker': skillEditTracker,
   'posttool/calibration-tracker': calibrationTracker,
+  'posttool/dirty-file-tracker': dirtyFileTracker,
   'posttool/unified-dispatcher': unifiedDispatcher,
 
   // PostTool/Write hooks (2) — #922: removed coverage-predictor, readme-sync
