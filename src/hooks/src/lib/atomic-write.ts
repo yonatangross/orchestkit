@@ -14,7 +14,7 @@
  * only the .tmp file is corrupted — the original is untouched.
  */
 
-import { writeFileSync, renameSync, mkdirSync, rmdirSync, existsSync, unlinkSync } from 'node:fs';
+import { writeFileSync, renameSync, mkdirSync, rmdirSync, unlinkSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { logHook } from './common.js';
 
@@ -29,10 +29,8 @@ export function atomicWriteSync(filePath: string, data: string, encoding: Buffer
   const tmpPath = `${filePath}.tmp.${process.pid}`;
   const dir = dirname(filePath);
 
-  // Ensure directory exists
-  if (!existsSync(dir)) {
-    mkdirSync(dir, { recursive: true });
-  }
+  // Ensure directory exists — recursive:true is idempotent, no TOCTOU race
+  mkdirSync(dir, { recursive: true });
 
   try {
     writeFileSync(tmpPath, data, encoding);

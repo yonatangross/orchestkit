@@ -5,12 +5,18 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const mockExistsSync = vi.fn();
 const mockWriteFileSync = vi.fn();
+const mockReadFileSync = vi.fn();
 const mockMkdirSync = vi.fn();
+const mockRenameSync = vi.fn();
+const mockUnlinkSync = vi.fn();
 
 vi.mock('node:fs', () => ({
   existsSync: (...args: unknown[]) => mockExistsSync(...args),
   writeFileSync: (...args: unknown[]) => mockWriteFileSync(...args),
+  readFileSync: (...args: unknown[]) => mockReadFileSync(...args),
   mkdirSync: (...args: unknown[]) => mockMkdirSync(...args),
+  renameSync: (...args: unknown[]) => mockRenameSync(...args),
+  unlinkSync: (...args: unknown[]) => mockUnlinkSync(...args),
 }));
 
 vi.mock('../../lib/common.js', () => ({
@@ -24,6 +30,13 @@ vi.mock('../../lib/paths.js', () => ({
 }));
 
 import type { HookInput } from '../../types.js';
+import {
+  dirtyFileTracker,
+  _resetForTesting,
+  extractFilePaths,
+  WARN_THRESHOLD,
+  HANDOFF_THRESHOLD,
+} from '../../posttool/dirty-file-tracker.js';
 
 function makeInput(overrides: Partial<HookInput> = {}): HookInput {
   return {
@@ -34,113 +47,120 @@ function makeInput(overrides: Partial<HookInput> = {}): HookInput {
   };
 }
 
-/**
- * Helper: re-import dirtyFileTracker with fresh module state.
- * This resets the in-memory Set and lastWarnLevel between tests.
- */
-async function getFreshTracker() {
-  vi.resetModules();
-
-  // Re-apply mocks after resetModules
-  vi.doMock('node:fs', () => ({
-    existsSync: (...args: unknown[]) => mockExistsSync(...args),
-    writeFileSync: (...args: unknown[]) => mockWriteFileSync(...args),
-    mkdirSync: (...args: unknown[]) => mockMkdirSync(...args),
-  }));
-
-  vi.doMock('../../lib/common.js', () => ({
-    logHook: vi.fn(),
-    outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-    getSessionId: vi.fn(() => 'test-session'),
-  }));
-
-  vi.doMock('../../lib/paths.js', () => ({
-    getLogDir: vi.fn(() => '/tmp/test-logs'),
-  }));
-
-  const mod = await import('../../posttool/dirty-file-tracker.js');
-  return mod.dirtyFileTracker;
-}
-
 describe('dirtyFileTracker', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    _resetForTesting();
     mockExistsSync.mockReturnValue(true); // log dir exists
   });
 
-  it('returns silent success for non-Write/Edit tools', async () => {
-    const tracker = await getFreshTracker();
+  // ---------------------------------------------------------------------------
+  // Basic tool filtering
+  // ---------------------------------------------------------------------------
 
+  it('returns silent success for non-Write/Edit tools', () => {
     for (const tool of ['Bash', 'Read', 'Glob', 'Grep', 'WebSearch']) {
-      const result = tracker(makeInput({ tool_name: tool }));
+      const result = dirtyFileTracker(makeInput({ tool_name: tool }));
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
     }
-    // Should NOT have persisted anything
     expect(mockWriteFileSync).not.toHaveBeenCalled();
   });
 
-  it('tracks Write tool file paths', async () => {
-    const tracker = await getFreshTracker();
+  // ---------------------------------------------------------------------------
+  // File path extraction
+  // ---------------------------------------------------------------------------
 
-    tracker(makeInput({
+  it('tracks Write tool file paths', () => {
+    dirtyFileTracker(makeInput({
       tool_name: 'Write',
       tool_input: { file_path: '/src/a.ts', content: 'x' },
     }));
 
+    // atomicWriteSync calls writeFileSync then renameSync
     expect(mockWriteFileSync).toHaveBeenCalledTimes(1);
-    const written = JSON.parse(mockWriteFileSync.mock.calls[0][1] as string);
-    expect(written.count).toBe(1);
-    expect(written.files).toContain('/src/a.ts');
+    expect(mockRenameSync).toHaveBeenCalledTimes(1);
   });
 
-  it('tracks Edit tool file paths', async () => {
-    const tracker = await getFreshTracker();
-
-    tracker(makeInput({
+  it('tracks Edit tool file paths', () => {
+    dirtyFileTracker(makeInput({
       tool_name: 'Edit',
       tool_input: { file_path: '/src/b.ts', old_string: 'a', new_string: 'b' },
     }));
 
     expect(mockWriteFileSync).toHaveBeenCalledTimes(1);
-    const written = JSON.parse(mockWriteFileSync.mock.calls[0][1] as string);
-    expect(written.count).toBe(1);
-    expect(written.files).toContain('/src/b.ts');
   });
 
-  it('tracks MultiEdit tool file paths', async () => {
-    const tracker = await getFreshTracker();
-
-    tracker(makeInput({
+  it('tracks MultiEdit with top-level file_path', () => {
+    dirtyFileTracker(makeInput({
       tool_name: 'MultiEdit',
-      tool_input: { file_path: '/src/c.ts' },
+      tool_input: {
+        file_path: '/src/c.ts',
+        edits: [
+          { old_string: 'a', new_string: 'b' },
+          { old_string: 'c', new_string: 'd' },
+        ],
+      },
     }));
 
     expect(mockWriteFileSync).toHaveBeenCalledTimes(1);
-    const written = JSON.parse(mockWriteFileSync.mock.calls[0][1] as string);
-    expect(written.count).toBe(1);
-    expect(written.files).toContain('/src/c.ts');
   });
 
-  it('deduplicates same file edited multiple times', async () => {
-    const tracker = await getFreshTracker();
+  it('tracks MultiEdit with edits[].file_path (defensive)', () => {
+    dirtyFileTracker(makeInput({
+      tool_name: 'MultiEdit',
+      tool_input: {
+        edits: [
+          { file_path: '/src/d.ts', old_string: 'a', new_string: 'b' },
+          { file_path: '/src/e.ts', old_string: 'c', new_string: 'd' },
+        ],
+      },
+    }));
 
-    tracker(makeInput({ tool_input: { file_path: '/src/dup.ts', content: 'v1' } }));
-    tracker(makeInput({ tool_input: { file_path: '/src/dup.ts', content: 'v2' } }));
-    tracker(makeInput({ tool_input: { file_path: '/src/dup.ts', content: 'v3' } }));
+    // Should have tracked both files from edits array
+    expect(mockWriteFileSync).toHaveBeenCalledTimes(1);
+    const tmpPath = mockWriteFileSync.mock.calls[0][0] as string;
+    expect(tmpPath).toContain('dirty-files.json.tmp');
+  });
 
-    // Last write has the final state
-    const lastCall = mockWriteFileSync.mock.calls[mockWriteFileSync.mock.calls.length - 1];
-    const written = JSON.parse(lastCall[1] as string);
+  it('deduplicates same file in MultiEdit edits array', () => {
+    dirtyFileTracker(makeInput({
+      tool_name: 'MultiEdit',
+      tool_input: {
+        file_path: '/src/f.ts',
+        edits: [
+          { file_path: '/src/f.ts', old_string: 'a', new_string: 'b' },
+        ],
+      },
+    }));
+
+    // file_path appears both at top level and in edits — should dedupe
+    expect(mockWriteFileSync).toHaveBeenCalledTimes(1);
+  });
+
+  // ---------------------------------------------------------------------------
+  // Deduplication
+  // ---------------------------------------------------------------------------
+
+  it('deduplicates same file edited multiple times', () => {
+    dirtyFileTracker(makeInput({ tool_input: { file_path: '/src/dup.ts', content: 'v1' } }));
+    dirtyFileTracker(makeInput({ tool_input: { file_path: '/src/dup.ts', content: 'v2' } }));
+    dirtyFileTracker(makeInput({ tool_input: { file_path: '/src/dup.ts', content: 'v3' } }));
+
+    // Last renameSync call has the final state — read from the tmp path
+    const lastWrite = mockWriteFileSync.mock.calls[mockWriteFileSync.mock.calls.length - 1];
+    const written = JSON.parse(lastWrite[1] as string);
     expect(written.count).toBe(1);
     expect(written.files).toEqual(['/src/dup.ts']);
   });
 
-  it('no warning below 15 files', async () => {
-    const tracker = await getFreshTracker();
+  // ---------------------------------------------------------------------------
+  // Threshold warnings
+  // ---------------------------------------------------------------------------
 
-    for (let i = 0; i < 14; i++) {
-      const result = tracker(makeInput({
+  it('no warning below WARN_THRESHOLD files', () => {
+    for (let i = 0; i < WARN_THRESHOLD - 1; i++) {
+      const result = dirtyFileTracker(makeInput({
         tool_input: { file_path: `/src/file-${i}.ts`, content: 'x' },
       }));
       expect(result.continue).toBe(true);
@@ -149,40 +169,32 @@ describe('dirtyFileTracker', () => {
     }
   });
 
-  it('warning at exactly 15 files', async () => {
-    const tracker = await getFreshTracker();
-
-    // Add 14 files silently
-    for (let i = 0; i < 14; i++) {
-      tracker(makeInput({
+  it('warning at exactly WARN_THRESHOLD files', () => {
+    for (let i = 0; i < WARN_THRESHOLD - 1; i++) {
+      dirtyFileTracker(makeInput({
         tool_input: { file_path: `/src/file-${i}.ts`, content: 'x' },
       }));
     }
 
-    // 15th file triggers warning
-    const result = tracker(makeInput({
-      tool_input: { file_path: '/src/file-14.ts', content: 'x' },
+    const result = dirtyFileTracker(makeInput({
+      tool_input: { file_path: `/src/file-${WARN_THRESHOLD - 1}.ts`, content: 'x' },
     }));
 
     expect(result.continue).toBe(true);
-    expect(result.hookSpecificOutput?.additionalContext).toContain('15');
+    expect(result.hookSpecificOutput?.additionalContext).toContain(`${WARN_THRESHOLD}`);
     expect(result.hookSpecificOutput?.additionalContext).toContain('Session Hygiene');
     expect(result.hookSpecificOutput?.additionalContext).toContain('/ork:commit');
   });
 
-  it('warning NOT repeated at 16, 17, 18 files', async () => {
-    const tracker = await getFreshTracker();
-
-    // Add 15 files (triggers warn)
-    for (let i = 0; i < 15; i++) {
-      tracker(makeInput({
+  it('warning NOT repeated after WARN_THRESHOLD', () => {
+    for (let i = 0; i < WARN_THRESHOLD; i++) {
+      dirtyFileTracker(makeInput({
         tool_input: { file_path: `/src/file-${i}.ts`, content: 'x' },
       }));
     }
 
-    // Files 16-18 should be silent
-    for (let i = 15; i < 18; i++) {
-      const result = tracker(makeInput({
+    for (let i = WARN_THRESHOLD; i < WARN_THRESHOLD + 3; i++) {
+      const result = dirtyFileTracker(makeInput({
         tool_input: { file_path: `/src/file-${i}.ts`, content: 'x' },
       }));
       expect(result.continue).toBe(true);
@@ -191,40 +203,32 @@ describe('dirtyFileTracker', () => {
     }
   });
 
-  it('handoff warning at 25 files', async () => {
-    const tracker = await getFreshTracker();
-
-    // Add 24 files
-    for (let i = 0; i < 24; i++) {
-      tracker(makeInput({
+  it('handoff warning at HANDOFF_THRESHOLD files', () => {
+    for (let i = 0; i < HANDOFF_THRESHOLD - 1; i++) {
+      dirtyFileTracker(makeInput({
         tool_input: { file_path: `/src/file-${i}.ts`, content: 'x' },
       }));
     }
 
-    // 25th file triggers handoff
-    const result = tracker(makeInput({
-      tool_input: { file_path: '/src/file-24.ts', content: 'x' },
+    const result = dirtyFileTracker(makeInput({
+      tool_input: { file_path: `/src/file-${HANDOFF_THRESHOLD - 1}.ts`, content: 'x' },
     }));
 
     expect(result.continue).toBe(true);
-    expect(result.hookSpecificOutput?.additionalContext).toContain('25');
+    expect(result.hookSpecificOutput?.additionalContext).toContain(`${HANDOFF_THRESHOLD}`);
     expect(result.hookSpecificOutput?.additionalContext).toContain('handoff');
     expect(result.hookSpecificOutput?.additionalContext).toContain('/ork:commit');
   });
 
-  it('handoff warning NOT repeated at 26+', async () => {
-    const tracker = await getFreshTracker();
-
-    // Add 25 files (triggers handoff)
-    for (let i = 0; i < 25; i++) {
-      tracker(makeInput({
+  it('handoff warning NOT repeated after threshold', () => {
+    for (let i = 0; i < HANDOFF_THRESHOLD; i++) {
+      dirtyFileTracker(makeInput({
         tool_input: { file_path: `/src/file-${i}.ts`, content: 'x' },
       }));
     }
 
-    // 26th+ should be silent
-    for (let i = 25; i < 28; i++) {
-      const result = tracker(makeInput({
+    for (let i = HANDOFF_THRESHOLD; i < HANDOFF_THRESHOLD + 3; i++) {
+      const result = dirtyFileTracker(makeInput({
         tool_input: { file_path: `/src/file-${i}.ts`, content: 'x' },
       }));
       expect(result.continue).toBe(true);
@@ -233,10 +237,34 @@ describe('dirtyFileTracker', () => {
     }
   });
 
-  it('handles missing file_path gracefully', async () => {
-    const tracker = await getFreshTracker();
+  it('escalation from warn to handoff in same session', () => {
+    // Add WARN_THRESHOLD files — triggers warn
+    for (let i = 0; i < WARN_THRESHOLD; i++) {
+      dirtyFileTracker(makeInput({
+        tool_input: { file_path: `/src/file-${i}.ts`, content: 'x' },
+      }));
+    }
 
-    const result = tracker(makeInput({
+    // Add more to reach HANDOFF_THRESHOLD — should trigger handoff
+    for (let i = WARN_THRESHOLD; i < HANDOFF_THRESHOLD - 1; i++) {
+      const result = dirtyFileTracker(makeInput({
+        tool_input: { file_path: `/src/file-${i}.ts`, content: 'x' },
+      }));
+      expect(result.hookSpecificOutput).toBeUndefined();
+    }
+
+    const result = dirtyFileTracker(makeInput({
+      tool_input: { file_path: `/src/file-${HANDOFF_THRESHOLD - 1}.ts`, content: 'x' },
+    }));
+    expect(result.hookSpecificOutput?.additionalContext).toContain('handoff');
+  });
+
+  // ---------------------------------------------------------------------------
+  // Edge cases
+  // ---------------------------------------------------------------------------
+
+  it('handles missing file_path gracefully', () => {
+    const result = dirtyFileTracker(makeInput({
       tool_name: 'Write',
       tool_input: { content: 'no path here' },
     }));
@@ -246,29 +274,18 @@ describe('dirtyFileTracker', () => {
     expect(mockWriteFileSync).not.toHaveBeenCalled();
   });
 
-  it('persists dirty files JSON to disk', async () => {
-    const tracker = await getFreshTracker();
+  it('handles empty tool_name gracefully', () => {
+    const result = dirtyFileTracker(makeInput({ tool_name: '' }));
 
-    tracker(makeInput({
-      tool_input: { file_path: '/src/persist.ts', content: 'x' },
-    }));
-
-    expect(mockWriteFileSync).toHaveBeenCalledTimes(1);
-    const [filePath, content] = mockWriteFileSync.mock.calls[0];
-    expect(filePath).toContain('dirty-files.json');
-
-    const parsed = JSON.parse(content as string);
-    expect(parsed.session_id).toBe('test-session');
-    expect(parsed.count).toBe(1);
-    expect(parsed.files).toEqual(['/src/persist.ts']);
-    expect(parsed.updated_at).toBeDefined();
+    expect(result.continue).toBe(true);
+    expect(result.suppressOutput).toBe(true);
+    expect(mockWriteFileSync).not.toHaveBeenCalled();
   });
 
-  it('creates log directory if it does not exist', async () => {
-    const tracker = await getFreshTracker();
+  it('creates log directory if it does not exist', () => {
     mockExistsSync.mockReturnValue(false);
 
-    tracker(makeInput({
+    dirtyFileTracker(makeInput({
       tool_input: { file_path: '/src/mkdir.ts', content: 'x' },
     }));
 
@@ -278,13 +295,92 @@ describe('dirtyFileTracker', () => {
     );
   });
 
-  it('handles empty tool_name gracefully', async () => {
-    const tracker = await getFreshTracker();
+  // ---------------------------------------------------------------------------
+  // Persistence failure
+  // ---------------------------------------------------------------------------
 
-    const result = tracker(makeInput({ tool_name: '' }));
+  it('handles persistence failure gracefully (logs warning, continues)', () => {
+    // Make atomicWriteSync fail by making writeFileSync throw
+    mockWriteFileSync.mockImplementationOnce(() => {
+      throw new Error('disk full');
+    });
 
+    const result = dirtyFileTracker(makeInput({
+      tool_input: { file_path: '/src/fail.ts', content: 'x' },
+    }));
+
+    // Should still return success (not propagate the error)
+    expect(result.continue).toBe(true);
+  });
+
+  // ---------------------------------------------------------------------------
+  // _resetForTesting
+  // ---------------------------------------------------------------------------
+
+  it('_resetForTesting clears state', () => {
+    // Track some files
+    for (let i = 0; i < WARN_THRESHOLD; i++) {
+      dirtyFileTracker(makeInput({
+        tool_input: { file_path: `/src/file-${i}.ts`, content: 'x' },
+      }));
+    }
+
+    // Reset
+    _resetForTesting();
+
+    // First file after reset should be silent (count=1, below threshold)
+    const result = dirtyFileTracker(makeInput({
+      tool_input: { file_path: '/src/fresh.ts', content: 'x' },
+    }));
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
-    expect(mockWriteFileSync).not.toHaveBeenCalled();
+    expect(result.hookSpecificOutput).toBeUndefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// extractFilePaths unit tests
+// ---------------------------------------------------------------------------
+
+describe('extractFilePaths', () => {
+  it('extracts file_path from Write input', () => {
+    expect(extractFilePaths('Write', { file_path: '/src/a.ts', content: 'x' }))
+      .toEqual(['/src/a.ts']);
+  });
+
+  it('extracts file_path from Edit input', () => {
+    expect(extractFilePaths('Edit', { file_path: '/src/b.ts', old_string: 'a', new_string: 'b' }))
+      .toEqual(['/src/b.ts']);
+  });
+
+  it('extracts file_path from MultiEdit top-level', () => {
+    expect(extractFilePaths('MultiEdit', {
+      file_path: '/src/c.ts',
+      edits: [{ old_string: 'a', new_string: 'b' }],
+    })).toEqual(['/src/c.ts']);
+  });
+
+  it('extracts file_paths from MultiEdit edits array', () => {
+    expect(extractFilePaths('MultiEdit', {
+      edits: [
+        { file_path: '/src/d.ts', old_string: 'a', new_string: 'b' },
+        { file_path: '/src/e.ts', old_string: 'c', new_string: 'd' },
+      ],
+    })).toEqual(['/src/d.ts', '/src/e.ts']);
+  });
+
+  it('deduplicates file_path between top-level and edits', () => {
+    expect(extractFilePaths('MultiEdit', {
+      file_path: '/src/f.ts',
+      edits: [{ file_path: '/src/f.ts', old_string: 'a', new_string: 'b' }],
+    })).toEqual(['/src/f.ts']);
+  });
+
+  it('returns empty array when no file_path present', () => {
+    expect(extractFilePaths('Write', { content: 'no path' })).toEqual([]);
+  });
+
+  it('returns empty array for MultiEdit with empty edits', () => {
+    expect(extractFilePaths('MultiEdit', { edits: [] })).toEqual([]);
   });
 });

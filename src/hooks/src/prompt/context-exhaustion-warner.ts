@@ -17,7 +17,7 @@
  * when usage drops below 70% (e.g., after /compact or /clear).
  *
  * Bridge pattern:
- *   StatusLine (stdin JSON) → /tmp/ork-ctx-pct-{session_id}.txt → this hook
+ *   StatusLine (stdin JSON) → {tmpdir}/ork-ctx-pct-{session_id}.txt → this hook
  *
  * CC 2.1.9 Compliant: Uses hookSpecificOutput.additionalContext
  */
@@ -26,6 +26,8 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, outputSilentSuccess, getSessionId } from '../lib/common.js';
+import { getTempDir } from '../lib/paths.js';
+import { sanitizeSessionId } from '../lib/sanitize-shell.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -76,19 +78,21 @@ let highestWarnedPct = 0;
 // ---------------------------------------------------------------------------
 
 function getContextPctFilePath(sessionId: string): string {
-  return join('/tmp', `ork-ctx-pct-${sessionId}.txt`);
+  const safeId = sanitizeSessionId(sessionId);
+  if (!safeId) return '';
+  return join(getTempDir(), `ork-ctx-pct-${safeId}.txt`);
 }
 
 function readContextPercentage(sessionId: string): number | null {
   const filePath = getContextPctFilePath(sessionId);
 
-  if (!existsSync(filePath)) {
+  if (!filePath || !existsSync(filePath)) {
     return null;
   }
 
   try {
     const content = readFileSync(filePath, 'utf8').trim();
-    const pct = parseInt(content, 10);
+    const pct = Math.round(parseFloat(content));
 
     if (isNaN(pct) || pct < 0 || pct > 100) {
       return null;

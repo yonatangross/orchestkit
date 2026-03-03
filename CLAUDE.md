@@ -8,7 +8,7 @@ Always respond in English. Never Hebrew. No exceptions.
 
 ## Project Overview
 
-**OrchestKit** — Claude Code plugin: **69 skills**, **38 agents**, **94 hooks** (33 global + 54 agent-scoped + 7 skill-scoped).
+**OrchestKit** — Claude Code plugin: **69 skills**, **38 agents**, **95 hooks** (34 global + 54 agent-scoped + 7 skill-scoped).
 
 **Purpose**: AI-assisted development with built-in best practices, security patterns, and quality gates.
 
@@ -75,9 +75,9 @@ Commit after each logical unit of work — never batch all commits to end of ses
 
 ## Plugin Architecture
 
-**Single plugin**: `ork` — all 69 skills, 38 agents, 94 hooks.
+**Single plugin**: `ork` — all 69 skills, 38 agents, 95 hooks.
 
-The plugin includes 94 hooks (33 global [12 matchers, 16 dispatchers, 7 native async] + 54 agent-scoped + 7 skill-scoped) and a `settings.json` (permissions, keybindings, spinner). 17 skills are user-invocable via `/ork:skillname`.
+The plugin includes 95 hooks (34 global [13 matchers, 16 dispatchers, 7 native async] + 54 agent-scoped + 7 skill-scoped) and a `settings.json` (permissions, keybindings, spinner). 17 skills are user-invocable via `/ork:skillname`.
 
 ## Quick Reference
 
@@ -91,6 +91,6 @@ The plugin includes 94 hooks (33 global [12 matchers, 16 dispatchers, 7 native a
 ## Version
 
 - **Current**: 7.0.0 · **Claude Code**: >= 2.1.59 <!-- x-release-please-version -->
-- **Hooks**: 94 total (33 global [12 matchers, 16 dispatchers, 7 native async] + 54 agent-scoped + 7 skill-scoped)
+- **Hooks**: 95 total (34 global [13 matchers, 16 dispatchers, 7 native async] + 54 agent-scoped + 7 skill-scoped)
 
 See `CHANGELOG.md` for history. See `src/hooks/README.md` for hook architecture.

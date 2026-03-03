@@ -85,6 +85,16 @@
     ],
     "PostToolUse": [
       {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/dirty-file-tracker",
+            "timeout": 5000
+          }
+        ]
+      },
+      {
         "matcher": "Bash|Write|Edit|Agent|TaskUpdate|TaskCreate|Skill|NotebookEdit",
         "hooks": [
           {

@@ -4,18 +4,23 @@
 /**
  * Dirty File Tracker - Tracks unique files edited per session
  * CC 2.1.9 Compliant: Self-contained hook with stdin reading
- * Hook: PostToolUse (Write|Edit|MultiEdit)
+ * Hook: PostToolUse (Write|Edit|MultiEdit) — sync, returns additionalContext
  *
  * Warns at 15 files (gentle) and 25 files (suggest handoff).
  * Uses in-memory Set for fast deduplication with disk persistence
- * for crash recovery / cross-hook access.
+ * for state recovery across process invocations.
+ *
+ * State model: Each hook invocation is a separate process. On init,
+ * we read dirty-files.json to restore the Set from prior invocations.
+ * On each tracked tool call, we persist the updated Set back to disk.
  */
 
-import { existsSync, writeFileSync, mkdirSync } from 'node:fs';
+import { existsSync, readFileSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, outputSilentSuccess, getSessionId } from '../lib/common.js';
 import { getLogDir } from '../lib/paths.js';
+import { atomicWriteSync } from '../lib/atomic-write.js';
 
 const WARN_THRESHOLD = 15;
 const HANDOFF_THRESHOLD = 25;
@@ -23,12 +28,70 @@ const HANDOFF_THRESHOLD = 25;
 /** Tools that modify files on disk */
 const TRACKED_TOOLS = new Set(['Write', 'Edit', 'MultiEdit']);
 
-// In-memory tracking per session (fast, no file I/O on every call)
+// In-memory tracking per session (restored from disk on module init)
 const trackedFiles = new Set<string>();
 let lastWarnLevel: 'none' | 'warn' | 'handoff' = 'none';
 
 function getDirtyFilePath(): string {
   return join(getLogDir(), 'dirty-files.json');
+}
+
+/**
+ * Restore persisted state from disk on module init.
+ * Each hook invocation is a separate process, so module-level state
+ * starts empty. Reading dirty-files.json bridges state across invocations.
+ */
+function loadPersistedState(): void {
+  try {
+    const dirtyPath = getDirtyFilePath();
+    if (!existsSync(dirtyPath)) return;
+
+    const data = JSON.parse(readFileSync(dirtyPath, 'utf8'));
+    if (Array.isArray(data.files)) {
+      for (const f of data.files) {
+        if (typeof f === 'string') trackedFiles.add(f);
+      }
+    }
+    // Restore warn level from count
+    if (trackedFiles.size >= HANDOFF_THRESHOLD) {
+      lastWarnLevel = 'handoff';
+    } else if (trackedFiles.size >= WARN_THRESHOLD) {
+      lastWarnLevel = 'warn';
+    }
+  } catch {
+    // Corrupted or unreadable — start fresh
+  }
+}
+
+// Run on module load (once per process invocation)
+loadPersistedState();
+
+/**
+ * Extract file paths from tool_input, handling both Write/Edit and MultiEdit shapes.
+ *
+ * Write/Edit: { file_path: "/src/foo.ts", ... }
+ * MultiEdit:  { file_path: "/src/foo.ts", edits: [{ old_string, new_string }] }
+ *             CC sends file_path at top level for MultiEdit too.
+ *             But also handle the edits[].file_path shape defensively.
+ */
+function extractFilePaths(toolName: string, toolInput: Record<string, unknown>): string[] {
+  const paths: string[] = [];
+
+  // Top-level file_path (Write, Edit, and MultiEdit all have this)
+  const topLevel = toolInput.file_path as string | undefined;
+  if (topLevel) paths.push(topLevel);
+
+  // MultiEdit edits array — each edit may have its own file_path
+  if (toolName === 'MultiEdit' && Array.isArray(toolInput.edits)) {
+    for (const edit of toolInput.edits) {
+      const editPath = (edit as Record<string, unknown>)?.file_path as string | undefined;
+      if (editPath && !paths.includes(editPath)) {
+        paths.push(editPath);
+      }
+    }
+  }
+
+  return paths;
 }
 
 /**
@@ -42,27 +105,29 @@ export function dirtyFileTracker(input: HookInput): HookResult {
     return outputSilentSuccess();
   }
 
-  const filePath = (input.tool_input as Record<string, unknown>)?.file_path as string;
-  if (!filePath) {
+  const toolInput = (input.tool_input as Record<string, unknown>) || {};
+  const filePaths = extractFilePaths(toolName, toolInput);
+  if (filePaths.length === 0) {
     return outputSilentSuccess();
   }
 
   // Add to tracked set (deduplicates automatically)
-  trackedFiles.add(filePath);
+  for (const fp of filePaths) {
+    trackedFiles.add(fp);
+  }
   const count = trackedFiles.size;
 
-  // Persist to disk (for crash recovery / cross-hook access)
+  // Persist to disk (for state recovery across process invocations)
   try {
     const dirtyPath = getDirtyFilePath();
     const dir = dirname(dirtyPath);
     if (!existsSync(dir)) {
       mkdirSync(dir, { recursive: true });
     }
-    writeFileSync(dirtyPath, JSON.stringify({
+    atomicWriteSync(dirtyPath, JSON.stringify({
       session_id: input.session_id || getSessionId(),
       count,
       files: Array.from(trackedFiles),
-      updated_at: new Date().toISOString(),
     }, null, 2));
   } catch (err) {
     logHook('dirty-file-tracker', `Failed to persist: ${err}`, 'warn');
@@ -93,3 +158,14 @@ export function dirtyFileTracker(input: HookInput): HookResult {
 
   return outputSilentSuccess();
 }
+
+/**
+ * Reset module state between tests.
+ */
+export function _resetForTesting(): void {
+  trackedFiles.clear();
+  lastWarnLevel = 'none';
+}
+
+/** Exported for testing */
+export { extractFilePaths, loadPersistedState, WARN_THRESHOLD, HANDOFF_THRESHOLD };
