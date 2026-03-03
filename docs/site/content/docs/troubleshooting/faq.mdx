@@ -9,7 +9,7 @@ import { Callout } from 'fumadocs-ui/components/callout';
 
 ### What version of Claude Code do I need?
 
-OrchestKit requires Claude Code 2.1.34 or later. Check your version:
+OrchestKit requires Claude Code 2.1.59 or later. Check your version:
 
 ```bash
 claude --version
@@ -23,7 +23,7 @@ npm install -g @anthropic-ai/claude-code@latest
 
 ### How do I install OrchestKit?
 
-OrchestKit is a single plugin: **ork** — 69 skills, 38 agents, 96 hooks. Install with `claude install orchestkit/ork`.
+OrchestKit is a single plugin: **ork** — 69 skills, 38 agents, 95 hooks. Install with `claude install orchestkit/ork`.
 
 ### Can I use OrchestKit with other Claude Code plugins?
 
@@ -103,7 +103,7 @@ Yes. Create a markdown file in `src/agents/your-agent.md` with YAML frontmatter.
 
 ### How many hooks are there?
 
-78 total: 55 global hooks, 22 agent-scoped hooks, and 1 skill-scoped hook. They are compiled into 12 split bundles for faster loading.
+95 total: 34 global hooks (13 matchers, 16 dispatchers, 7 native async), 54 agent-scoped hooks, and 7 skill-scoped hooks. They are compiled into 12 split bundles for faster loading.
 
 ### What are fire-and-forget hooks?
 

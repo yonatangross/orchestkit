@@ -5,4 +5,8 @@ full: true
 ---
 import { LazyAnalyticsDashboard as AnalyticsDashboard } from '@/components/lazy';
 
+The analytics dashboard shows your Claude Code usage across sessions. It tracks model delegation (which models handle which tasks), daily token costs, agent and skill usage rankings, and session trends over time.
+
+Data is collected locally by OrchestKit's PostToolUse analytics hooks and stored in your project directory. Nothing is sent externally.
+
 <AnalyticsDashboard />

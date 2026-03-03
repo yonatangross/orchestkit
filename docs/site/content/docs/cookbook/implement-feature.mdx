@@ -62,30 +62,22 @@ After you select **Backend only**, OrchestKit creates a task plan via `TaskCreat
     |---> backend-system-architect -------------------------+
     |      Model: opus                                      |
     |      Skills injected:                                 |
-    |        api-design-framework                           |
-    |        fastapi-advanced                               |
-    |        auth-patterns                                  |
-    |        auth-patterns (reference)                                |
-    |        rate-limiting                                  |
-    |        clean-architecture                             |
-    |        error-handling-rfc9457                          |
+    |        api-design                                     |
+    |        python-backend                                 |
+    |        security-patterns                              |
+    |        architecture-patterns                          |
     |      Output: endpoints, middleware, schemas            |
     |                                                       |
     |---> test-generator -----------------------------------+|
     |      Model: sonnet                                    ||
     |      Skills injected:                                 ||
-    |        pytest-advanced                                ||
-    |        integration-testing                            ||
-    |        test-data-management                          ||
+    |        testing-patterns                               ||
     |      Output: unit + integration tests                 ||
     |                                                       ||
     +---> security-auditor --------------------------------+||
            Model: opus                                     |||
            Skills injected:                                |||
-             owasp-top-10                                  |||
-             defense-in-depth                              |||
-             llm-safety-patterns                           |||
-             input-validation                              |||
+             security-patterns                             |||
            Output: vulnerability scan, recommendations     |||
                                                            |||
     <--------------- Results merged <-----------------------+++
@@ -193,7 +185,7 @@ Selecting **Full** spawns four parallel agents:
     |---> test-runner           -> pytest -x --tb=short
     |---> security-auditor      -> OWASP scan + secrets detection
     |---> code-quality-reviewer -> complexity, style, patterns
-    +---> performance-engineer  -> N+1 queries, startup cost
+    +---> frontend-performance-engineer -> N+1 queries, startup cost
          |
          v
     Unified scorecard (0-10 per category)
@@ -285,7 +277,7 @@ Here is what happened invisibly during this workflow.
 
 | Hook | When | What It Did |
 |---|---|---|
-| `skill-suggester` | Step 1 prompt | Detected "JWT" and "authentication" keywords, injected `auth-patterns` and `owasp-top-10` reference skills into agent context |
+| `skill-suggester` | Step 1 prompt | Detected "JWT" and "authentication" keywords, injected `security-patterns` and `python-backend` reference skills into agent context |
 | `dangerous-command-blocker` | During coding | Blocked an `rm -rf` that would have wiped the existing `tests/` directory |
 | `file-guard` | During coding | Warned when agent attempted to write `.env` with a JWT secret -- redirected to `.env.example` |
 | `auto-lint` | After each file write | Ran `ruff format` on every Python file the agents created |
@@ -295,18 +287,14 @@ Here is what happened invisibly during this workflow.
 
 ### Skills Auto-Injected
 
-Approximately 10 reference skills were loaded across the three agents without any explicit invocation:
+Several reference skills were loaded across the three agents without any explicit invocation:
 
-- `api-design-framework` -- REST endpoint patterns, HTTP status codes
-- `fastapi-advanced` -- Lifespan, middleware, dependency injection patterns
-- `auth-patterns` -- OAuth2 flows, token rotation, password hashing
-- `owasp-top-10` -- Injection, broken auth, security misconfiguration
-- `defense-in-depth` -- Layered security patterns
-- `rate-limiting` -- Brute force protection strategies
-- `error-handling-rfc9457` -- Problem Details standard for error responses
-- `pytest-advanced` -- Fixtures, parametrize, async test patterns
-- `integration-testing` -- End-to-end test patterns
-- `clean-architecture` -- Separation of concerns, dependency inversion
+- `api-design` -- REST endpoint patterns, HTTP status codes
+- `python-backend` -- FastAPI, middleware, dependency injection patterns
+- `security-patterns` -- OWASP Top 10, defense-in-depth, input validation
+- `architecture-patterns` -- Clean architecture, separation of concerns
+- `testing-patterns` -- Fixtures, parametrize, async test patterns, integration tests
+- `database-patterns` -- Schema design, migrations, query optimization
 
 ---
 

@@ -19,7 +19,7 @@ A teammate opens PR #42 that adds a Stripe payment processing endpoint to your F
 | `code-quality-reviewer` | Agent | Style, patterns, complexity |
 | `security-auditor` | Agent | Injection, XSS, secrets, OWASP |
 | `test-generator` | Agent | Missing test coverage |
-| `performance-engineer` | Agent | N+1 queries, bundle size, latency |
+| `frontend-performance-engineer` | Agent | N+1 queries, bundle size, latency |
 | `backend-system-architect` | Agent | API design, error handling, contracts |
 | `accessibility-specialist` | Agent | A11y issues (if frontend changes present) |
 | `pr-size-warning` | Hook | Detects large PRs and warns about review difficulty |
@@ -75,7 +75,7 @@ Selecting **Full** launches all six agents against the PR diff.
     |      Skills: pytest-advanced, integration-testing     |||
     |      Focus: missing coverage, edge cases, mocks       |||
     |                                                      |||
-    |---> performance-engineer ----------------------------+|||
+    |---> frontend-performance-engineer --------------------+|||
     |      Skills: performance-optimization, caching-strategies  ||||
     |      Focus: N+1 queries, connection pooling, latency ||||
     |                                                     ||||
@@ -212,7 +212,7 @@ OrchestKit does not send the entire diff to every agent. It routes files intelli
 | `security-auditor` | All 9 files | Security must see everything |
 | `code-quality-reviewer` | All 9 files | Style applies everywhere |
 | `test-generator` | Test files + source files they test | Needs both to assess coverage |
-| `performance-engineer` | Service + migration files | Where query and latency issues live |
+| `frontend-performance-engineer` | Service + migration files | Where query and latency issues live |
 | `backend-system-architect` | Router + schema files | API surface area |
 | `accessibility-specialist` | Frontend files only | Skipped when none exist |
 

@@ -124,7 +124,7 @@ describe("landing page content", () => {
     render(result);
 
     // Hero text uses COUNTS
-    expect(screen.getByText(/69 skills, 38 agents, and 96 hooks/)).toBeTruthy();
+    expect(screen.getByText(/69 skills, 38 agents, and 95 hooks/)).toBeTruthy();
   });
 
   it("has Star on GitHub button linking to repo", async () => {

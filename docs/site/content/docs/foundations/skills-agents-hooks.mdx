@@ -10,7 +10,7 @@ OrchestKit has three types of components. Understanding how they connect is the 
 A skill is a markdown file containing expert knowledge about a specific topic. Think of skills as **reference cards** that Claude reads when it needs domain expertise.
 
 ```
-src/skills/fastapi-advanced/SKILL.md
+src/skills/python-backend/SKILL.md
 ```
 
 **69 skills** covering: FastAPI, React, SQLAlchemy, RAG, LangGraph, OWASP, Terraform, and more.
@@ -19,8 +19,8 @@ src/skills/fastapi-advanced/SKILL.md
 
 | Type | Count | How It Works | Example |
 |---|---|---|---|
-| **Command** | 23 | You invoke directly: `/ork:commit` | `/ork:verify`, `/ork:implement` |
-| **Reference** | 40 | Auto-injected into agents | `fastapi-advanced`, `owasp-top-10` |
+| **Command** | 17 | You invoke directly: `/ork:commit` | `/ork:verify`, `/ork:implement` |
+| **Reference** | 52 | Auto-injected into agents | `python-backend`, `security-patterns` |
 
 Command skills are what you type. Reference skills are what agents read. You never need to invoke a reference skill — the right agent loads the right skills automatically.
 
@@ -30,9 +30,9 @@ Every skill has YAML frontmatter that controls how it's discovered and used:
 
 ```yaml
 ---
-name: fastapi-advanced
-description: FastAPI patterns including lifespan, middleware, dependencies
-tags: [fastapi, python, async]
+name: python-backend
+description: Python backend patterns including FastAPI, async, middleware
+tags: [python, fastapi, backend]
 user-invocable: false     # Reference skill (not a command)
 complexity: medium         # Helps Claude calibrate effort
 agent: backend-system-architect  # Which agent uses this
@@ -51,11 +51,11 @@ Agents activate from **keywords in your prompt**. You don't need to name them:
 
 | You Say | Agent Spawned | Skills Loaded |
 |---|---|---|
-| "review this PR" | `code-quality-reviewer` | code-review-playbook, test-standards |
-| "design the API" | `backend-system-architect` | api-design-framework, clean-architecture |
-| "find the bug" | `debug-investigator` | root-cause-analysis, error-handling |
-| "optimize performance" | `performance-engineer` | core-web-vitals, render-optimization |
-| "scan for vulnerabilities" | `security-auditor` | owasp-top-10, defense-in-depth |
+| "review this PR" | `code-quality-reviewer` | code-review-playbook, testing-patterns |
+| "design the API" | `backend-system-architect` | api-design, architecture-patterns |
+| "find the bug" | `debug-investigator` | errors, monitoring-observability |
+| "optimize performance" | `frontend-performance-engineer` | performance, vite-advanced |
+| "scan for vulnerabilities" | `security-auditor` | security-patterns, mcp-patterns |
 
 ### Agent Anatomy
 
@@ -65,9 +65,9 @@ name: backend-system-architect
 model: opus                    # Uses the most capable model
 tools: [Read, Write, Bash, Grep, Glob]
 skills:                        # 31 skills auto-injected
-  - api-design-framework
-  - database-schema-designer
-  - clean-architecture
+  - api-design
+  - database-patterns
+  - architecture-patterns
   # ...
 ---
 ```
@@ -91,7 +91,7 @@ Some commands spawn **multiple agents in parallel**. When you run `/ork:review-p
 
 Hooks are TypeScript functions that **fire automatically** on lifecycle events. You never invoke them — they run in the background on every prompt, tool call, and session transition.
 
-**96 hooks** across 11 categories:
+**95 hooks** across 11 categories:
 
 | Category | Count | What It Does |
 |---|---|---|
@@ -147,10 +147,10 @@ git push
                    │
     ┌──────────────▼──────────────┐
     │  skills injected:           │
-    │  • auth-patterns            │
-    │  • api-design-framework     │
-    │  • fastapi-advanced         │
-    │  • jwt / oauth patterns     │
+    │  • security-patterns        │
+    │  • api-design               │
+    │  • python-backend           │
+    │  • architecture-patterns    │
     └──────────────┬──────────────┘
                    │
     ┌──────────────▼──────────────┐
