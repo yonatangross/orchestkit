@@ -108,13 +108,7 @@ __pycache__/
 .claude/coordination/.claude.db
 
 # Runtime memory state (session-specific)
-.claude/memory/completed-flows.jsonl
-.claude/memory/decisions.jsonl
-.claude/memory/flows/
-.claude/memory/sessions/
-.claude/memory/tool-preferences.json
-.claude/memory/graph-queue.jsonl
-.claude/memory/open-problems.jsonl
+.claude/memory/
 .claude/.comm-style-counter
 .claude/settings.json
 .claude/hooks/
