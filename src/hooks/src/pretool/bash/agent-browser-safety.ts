@@ -84,6 +84,19 @@ const SENSITIVE_ACTIONS = [
   'submit.*payment',
 ];
 
+/**
+ * Whether to use native action confirmation (agent-browser v0.15+)
+ * When enabled, injects --confirm-actions flag for sensitive operations
+ * instead of just warning via additionalContext.
+ */
+const USE_NATIVE_CONFIRMATION = process.env.AGENT_BROWSER_NATIVE_CONFIRM !== '0';
+
+/**
+ * Network route commands that need URL validation
+ * agent-browser v0.13+ network mocking commands
+ */
+const NETWORK_ROUTE_PATTERN = /\bnetwork\s+route\b/i;
+
 // =============================================================================
 // Rate Limiting (#318)
 // =============================================================================
@@ -497,11 +510,30 @@ Set AGENT_BROWSER_IGNORE_ROBOTS=true to override (not recommended).`
     }
   }
 
-  // Check 4: Sensitive actions
+  // Check 4: Sensitive actions — use native confirmation when available
   if (isSensitiveAction(command)) {
     const domain = url ? extractDomain(url) : 'unknown';
     const rateCheck = url && domain ? checkRateLimit(domain) : { remaining: '?' };
 
+    if (USE_NATIVE_CONFIRMATION) {
+      // v0.15: Inject --confirm-actions for native safety gating
+      const context = `Sensitive browser action detected. Native confirmation enabled (--confirm-actions).
+The agent-browser CLI will require explicit approval before executing:
+- Delete/remove button clicks
+- Password field fills
+- Payment form submissions
+
+Use 'agent-browser confirm' to approve or 'agent-browser deny' to reject.
+Auto-denies after 60s timeout.
+
+Rate limit remaining: ${rateCheck.remaining}/${RATE_LIMITS.requestsPerMinute} per minute`;
+
+      logPermissionFeedback('allow', 'Sensitive action — native confirmation enabled', input);
+      logHook('agent-browser-safety', 'Sensitive action: native confirmation');
+      return outputAllowWithContext(context);
+    }
+
+    // Fallback: legacy warning-only mode
     const context = `Sensitive browser action detected:
 ${command.slice(0, 100)}...
 
@@ -517,6 +549,37 @@ Proceed with caution. Verify target elements.`;
     logPermissionFeedback('allow', 'Sensitive action warning', input);
     logHook('agent-browser-safety', 'Sensitive action detected');
     return outputAllowWithContext(context);
+  }
+
+  // Check 5: Network route validation (v0.13+)
+  if (NETWORK_ROUTE_PATTERN.test(command)) {
+    // Extract the route target URL
+    const routeUrlMatch = command.match(/network\s+route\s+["']?([^"'\s]+)["']?/i);
+    const routeUrl = routeUrlMatch ? routeUrlMatch[1] : null;
+
+    if (routeUrl && isBlockedUrl(routeUrl)) {
+      logPermissionFeedback('deny', `Blocked network route target: ${routeUrl}`, input);
+      logHook('agent-browser-safety', `BLOCKED ROUTE: ${routeUrl}`);
+      return outputDeny(
+        `agent-browser network route blocked: target URL matches blocked pattern.
+
+URL: ${routeUrl}
+
+Network route/mock targets follow the same URL safety rules as navigation.`
+      );
+    }
+
+    // Warn on --body mocking (data injection)
+    if (/--body\s/.test(command)) {
+      const context = `Network response mocking detected (--body flag).
+Mocked responses bypass real server validation.
+Ensure mocked data matches expected API contracts.
+Use 'agent-browser network unroute' to clean up after testing.`;
+
+      logPermissionFeedback('allow', 'Network mock warning', input);
+      logHook('agent-browser-safety', 'Network mock detected');
+      return outputAllowWithContext(context);
+    }
   }
 
   // Safe command
