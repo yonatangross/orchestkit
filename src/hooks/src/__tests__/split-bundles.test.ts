@@ -317,7 +317,8 @@ describe('Cross-Bundle Consistency', () => {
     // 166 -> 167: added missing lifecycle/session-end-reporter to entry file
     // 167 -> 165: removed auto-remember-continuity (stop) + session-context-loader (lifecycle)
     // 165 -> 166: added posttool/dirty-file-tracker (#928)
-    expect(totalHooks).toBe(166);
+    // 166 -> 169: #939 — added session-handoff-generator, session-handoff-injector, release-notebook-trigger
+    expect(totalHooks).toBe(169);
   });
 });
 
