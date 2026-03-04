@@ -88,6 +88,11 @@ agent-browser get text @e5
 agent-browser network unroute
 ```
 
+```bash
+# Clear tracked request log between test runs
+agent-browser network requests --clear    # Reset tracked request log
+```
+
 **Key rules:**
 - Always add at least a 1-second delay between consecutive page requests
 - Detect rate-limit responses (429, "Too Many Requests", "Access Denied") and back off exponentially
@@ -96,4 +101,5 @@ agent-browser network unroute
 - Log failed URLs to a separate file instead of silently skipping them
 - Block analytics and tracking scripts with `network route --abort` to preserve rate-limit budget and speed up page loads
 - Always call `network unroute` after extraction to clean up intercepts
+- Use `network requests --clear` between test runs to avoid stale request data
 Reference: `references/anti-bot-handling.md` (Rate Limiting, Adaptive Rate Limiting, Retry Logic)

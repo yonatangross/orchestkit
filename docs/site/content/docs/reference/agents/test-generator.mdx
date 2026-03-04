@@ -89,7 +89,60 @@ With 128K output, produce full coverage for an entire module without splitting a
   - `agent-browser network route "*analytics*" --abort` — block trackers in test env
   - `agent-browser network unroute` — clean up after tests
 - **Cookie injection**: `agent-browser cookies set &lt;name&gt; &lt;val&gt; --url &lt;url&gt; --httpOnly --secure`
+- **Storage manipulation**: `agent-browser storage local set "key" "value"` — set app state for tests
 - Run `agent-browser --help` for full CLI docs
+
+### Interaction Patterns for E2E Tests
+
+```bash
+# Form testing
+agent-browser fill @e1 "test@example.com"
+agent-browser type @e2 " additional text"    # Append
+agent-browser select @dropdown "Option B"
+agent-browser check @checkbox
+agent-browser uncheck @checkbox
+
+# Navigation testing
+agent-browser scroll down 500
+agent-browser scrollintoview @footer
+agent-browser hover @menu                    # Trigger dropdown
+agent-browser click @menuItem --new-tab
+agent-browser dblclick @cell                 # Edit table cell
+
+# Keyboard shortcuts
+agent-browser press Escape                   # Close modal
+agent-browser press Control+s               # Save shortcut
+agent-browser keyboard type "search term"
+
+# File upload
+agent-browser upload @fileInput ./test.pdf
+agent-browser drag @item1 @dropzone
+```
+
+### Storage Manipulation
+
+```bash
+agent-browser storage local set "user_prefs" '{"theme":"dark"}'
+agent-browser storage local                  # Verify
+agent-browser storage local clear            # Clean state
+agent-browser storage session                # Check session data
+```
+
+### Enhanced Capture
+
+```bash
+agent-browser screenshot --full /tmp/full.png    # Full page
+agent-browser screenshot --annotate              # Debug with labels
+agent-browser pdf /tmp/test-report.pdf
+```
+
+### Cookie Management for Tests
+
+```bash
+agent-browser cookies                       # Read all cookies
+agent-browser cookies clear                 # Clear all cookies
+agent-browser cookies set "sessionId" "abc123" --url "https://app.test" --httpOnly
+```
 
 
 ## Concrete Objectives

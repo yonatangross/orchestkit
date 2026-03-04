@@ -68,6 +68,58 @@ agent-browser get text body          # 4. Full body (last resort)
 - Prefer semantic wait strategies (`--text`, `--url`, `@e#`) over fixed `wait` delays
 - Verify extracted content is non-empty before saving to avoid capturing blank pages
 
+## Enhanced Screenshot Commands
+
+Capture full pages and annotated snapshots for visual debugging:
+
+```bash
+# Full page and annotated capture
+agent-browser screenshot --full /tmp/full-page.png   # Entire scrollable page
+agent-browser screenshot --annotate                  # Numbered element labels for debugging
+agent-browser pdf /tmp/page.pdf                      # Save as PDF
+```
+
+## Interaction with Element Refs
+
+After `snapshot -i`, use `@refs` for precise interaction patterns:
+
+```bash
+# Correct: targeted interaction
+agent-browser snapshot -i
+agent-browser fill @e3 "search query"
+agent-browser click @e5
+agent-browser select @e7 "Category"
+agent-browser hover @e2                  # Trigger dropdown
+agent-browser scroll down 500            # Load more content
+agent-browser scrollintoview @e15        # Navigate to element
+agent-browser upload @e10 ./file.pdf     # File upload
+agent-browser drag @e1 @e8              # Drag and drop
+
+# Keyboard interaction
+agent-browser press Enter                # Submit
+agent-browser press Tab                  # Navigate
+agent-browser keyboard type "query"      # Type without selector
+```
+
+## Storage in Snapshot Workflow
+
+Read and debug page state during snapshots:
+
+```bash
+# Read page state
+agent-browser storage local              # Check localStorage
+agent-browser storage session            # Check sessionStorage
+```
+
+## Extended Wait Commands
+
+Add semantic waits beyond `--load` patterns:
+
+```bash
+# Wait for custom conditions
+agent-browser wait --fn "window.loaded"  # Custom JS condition
+```
+
 ## Diff-Based Verification (v0.13+)
 
 Replace manual "snapshot → act → snapshot → eyeball" patterns with native diff commands for verifiable, regression-free automation.

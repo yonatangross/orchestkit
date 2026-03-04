@@ -80,6 +80,26 @@ CURRENT_URL=$(agent-browser get url)
 [[ "$CURRENT_URL" == *"/dashboard"* ]] && echo "Cookie auth successful"
 ```
 
+```bash
+# Token management via storage
+agent-browser storage local "authToken"              # Read current token
+agent-browser storage local set "authToken" "$TOKEN" # Inject token
+agent-browser storage session                        # Check session data
+agent-browser storage local clear                    # Cleanup after test
+```
+
+```bash
+# Cookie management and debugging
+agent-browser cookies                    # Read all cookies (debug auth issues)
+agent-browser cookies clear              # Clear all cookies (force re-auth)
+```
+
+```bash
+# Human-in-the-loop for admin actions
+agent-browser --confirm-interactive open https://admin.example.com
+# Terminal will prompt for confirmation on each action
+```
+
 **Key rules:**
 - Never hardcode passwords, API keys, or tokens in scripts -- always use environment variables
 - Never log, echo, or print auth tokens, cookies, or session data to stdout/stderr
@@ -89,5 +109,8 @@ CURRENT_URL=$(agent-browser get url)
 - Use headed mode (`AGENT_BROWSER_HEADED=1`) for 2FA/MFA flows that require manual interaction
 - Use `cookies set` with `--httpOnly --secure` flags for cookie-based session injection — faster than replaying login flows
 - Always use `--session-name` (not `--session`) for named session persistence
+- Use `cookies` to debug auth failures before re-logging in
+- Use `storage local clear` and `cookies clear` in cleanup scripts to force fresh authentication
+- Use `--confirm-interactive` for admin panel automation to require manual confirmation on actions
 
 Reference: `references/auth-flows.md` (Security Considerations, Secure State Files)
