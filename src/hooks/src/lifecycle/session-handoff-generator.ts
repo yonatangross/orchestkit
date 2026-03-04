@@ -68,10 +68,10 @@ function readTaskLog(projectDir: string): { completed: string[]; pending: string
   } catch { return { completed: [], pending: [] }; }
 }
 
-function deriveStatus(totalTools: number, lastMsg: string | undefined, completed: string[], pending: string[]): string {
+function deriveStatus(totalTools: number, _lastMsg: string | undefined, completed: string[], pending: string[]): string {
   if (totalTools === 0) return 'interrupted';
   if (pending.length > 0) return 'partial';
-  if (lastMsg && completed.length > 0) return 'completed';
+  if (completed.length > 0) return 'completed';
   return 'partial';
 }
 
@@ -84,9 +84,13 @@ function buildSummary(totalTools: number, filesModified: number, completed: stri
   return `${totalTools} tool calls, ${filesModified} files modified`;
 }
 
+function escapeYamlString(s: string): string {
+  return s.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r');
+}
+
 function toYamlList(items: string[]): string {
   if (items.length === 0) return ' []';
-  return '\n' + items.map(i => `  - "${i.replace(/"/g, '\\"')}"`).join('\n');
+  return `\n${items.map(i => `  - "${escapeYamlString(i)}"`).join('\n')}`;
 }
 
 function toYaml(d: {
@@ -94,19 +98,19 @@ function toYaml(d: {
   status: string; summary: string; files_modified: number; tools_used: number;
   completed: string[]; pending: string[]; next_steps: string[];
 }): string {
-  return [
+  return `${[
     `session_id: ${d.session_id}`,
     `project: ${d.project}`,
     `timestamp: ${d.timestamp}`,
     `branch: ${d.branch}`,
     `status: ${d.status}`,
-    `summary: "${d.summary.replace(/"/g, '\\"')}"`,
+    `summary: "${escapeYamlString(d.summary)}"`,
     `files_modified: ${d.files_modified}`,
     `tools_used: ${d.tools_used}`,
     `completed:${toYamlList(d.completed)}`,
     `pending:${toYamlList(d.pending)}`,
     `next_steps:${toYamlList(d.next_steps)}`,
-  ].join('\n') + '\n';
+  ].join('\n')}\n`;
 }
 
 function rotateHandoffs(handoffDir: string): void {
@@ -148,9 +152,10 @@ export function sessionHandoffGenerator(input: HookInput): HookResult {
 
     mkdirSync(handoffDir, { recursive: true });
 
+    // Rotate before writing archive so count is accurate (avoids off-by-one)
+    rotateHandoffs(handoffDir);
     const archivePath = join(handoffDir, `session-${timestamp.replace(/[:.]/g, '-')}.yaml`);
     atomicWriteSync(archivePath, yaml);
-    rotateHandoffs(handoffDir);
     atomicWriteSync(join(handoffDir, 'latest.yaml'), yaml);
 
     logHook(HOOK_NAME, `Handoff written: ${projectHash}/latest.yaml (${totalTools} tools, ${filesModified} files, status=${status})`);

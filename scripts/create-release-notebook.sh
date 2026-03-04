@@ -83,7 +83,7 @@ if [[ ! -f "$CHANGELOG" ]]; then
   exit 1
 fi
 
-if ! grep -q "## \[${FULL_VERSION}\]" "$CHANGELOG"; then
+if ! grep -qF "## [${FULL_VERSION}]" "$CHANGELOG"; then
   echo "ERROR: CHANGELOG.md has no entry for v${FULL_VERSION}." >&2
   echo "       Add a changelog entry before creating the Release KB." >&2
   exit 1
@@ -154,7 +154,7 @@ echo "  mcp__notebooklm__studio_create(notebook_id=NOTEBOOK_ID, type=\"audio_ove
 echo ""
 echo "  # 4. Share with project owner"
 echo "  mcp__notebooklm__notebook_share_invite(notebook_id=NOTEBOOK_ID,"
-echo "    email=\"yonatan2gross@gmail.com\", role=\"writer\")"
+echo "    email=\"\${ORCHESTKIT_OWNER_EMAIL:-yonatan2gross@gmail.com}\", role=\"writer\")"
 echo ""
 echo "See src/skills/release-notebook/SKILL.md for the full workflow."
 echo ""

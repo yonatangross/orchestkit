@@ -46,7 +46,7 @@ import { toolPreferenceLearner } from '../posttool/tool-preference-learner.js';
 import { configChangeAuditor } from '../posttool/config-change/security-auditor.js';
 
 // Issue #837: Release notebook trigger on git push to main
-import releaseNotebookTrigger from '../posttool/release-notebook-trigger.js';
+import { releaseNotebookTrigger } from '../posttool/release-notebook-trigger.js';
 
 import type { HookFn } from '../types.js';
 

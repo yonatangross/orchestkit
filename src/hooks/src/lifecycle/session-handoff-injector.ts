@@ -17,7 +17,6 @@
  */
 
 import { existsSync, readFileSync, statSync } from 'node:fs';
-import { join } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, outputSilentSuccess, getProjectDir } from '../lib/common.js';
 import { hashProject } from '../lib/analytics.js';
@@ -25,6 +24,7 @@ import { getHomeDir, joinPath } from '../lib/paths.js';
 
 const HOOK_NAME = 'session-handoff-injector';
 const MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24 hours
+const MAX_FILE_SIZE = 4096; // 4KB guard against oversized handoffs
 
 function getHandoffPath(projectHash: string): string {
   return joinPath(getHomeDir(), '.claude', 'analytics', 'handoffs', projectHash, 'latest.yaml');
@@ -52,6 +52,12 @@ export function sessionHandoffInjector(input: HookInput): HookResult {
 
     if (isStale(handoffPath)) {
       logHook(HOOK_NAME, 'Handoff file is >24h old, skipping injection');
+      return outputSilentSuccess();
+    }
+
+    const fileSize = statSync(handoffPath).size;
+    if (fileSize > MAX_FILE_SIZE) {
+      logHook(HOOK_NAME, `Handoff file too large (${fileSize} bytes), skipping injection`);
       return outputSilentSuccess();
     }
 

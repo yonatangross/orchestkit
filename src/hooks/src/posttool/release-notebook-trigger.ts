@@ -68,7 +68,7 @@ function recordTrigger(version: string): void {
   }
 }
 
-export default async function handler(input: HookInput): Promise<HookResult> {
+export async function releaseNotebookTrigger(input: HookInput): Promise<HookResult> {
   try {
     // Only care about Bash tool
     if (input.tool_name !== 'Bash') {
@@ -108,7 +108,7 @@ export default async function handler(input: HookInput): Promise<HookResult> {
     return {
       continue: true,
       hookSpecificOutput: {
-        additionalContext: `[Release Notebook Reminder] You just pushed v${currentVersion} to main. Consider creating a release notebook: invoke the release-notebook skill to generate a versioned NotebookLM KB with changelog and docs.`,
+        additionalContext: `[Release Notebook Reminder] You just pushed v${currentVersion} to main. Consider creating a release notebook: ask Claude to run the release-notebook skill to generate a versioned NotebookLM KB with changelog and docs.`,
       },
     };
   } catch (err) {
