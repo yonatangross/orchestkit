@@ -54,7 +54,7 @@ FLAG = "$ARGUMENTS[0]"  # First token: --rescan, --score-only, --plan-only, --ch
 | 1. Scan | Detect languages, frameworks, infra, existing config | Glob, Grep, Read | Raw scan data |
 | 2. Stack | Classify detected stack, confidence levels | — | Stack profile |
 | 3. Safety | Check existing config, confirm scope (user/project) | Read, AskUserQuestion | Install confirmation |
-| 3.5. Configure | Interactive project configuration wizard → writes `ork.settings.json` env block | Read, Write, AskUserQuestion | Configured `ork.settings.json` |
+| 3.5. Configure | Interactive project configuration wizard → writes env block to per-project settings | Read, Write, AskUserQuestion | Configured settings file |
 | 4. Skills | Match stack to skills, suggest custom skills | Grep, Glob | Skill recommendations |
 | 5. MCPs | Recommend MCPs based on stack and gaps | Read, Bash | MCP recommendations |
 | 6. Score | Compute readiness score (0-10, 6 dimensions) | All above data | Readiness score |
@@ -222,14 +222,28 @@ Report: "No conflicts detected" or "Found existing ork install — version {vers
 
 > Also reachable directly via `/ork:setup --configure` — skips phases 1-3.
 
-This phase walks users through every configurable OrchestKit behaviour and writes the result to `ork.settings.json`. When running the full wizard, show this phase AFTER the safety/install check. When running `--configure` alone, start here.
+This phase walks users through every configurable OrchestKit behaviour and writes the result to the correct project settings file. When running the full wizard, show this phase AFTER the safety/install check. When running `--configure` alone, start here.
 
-### Step 0: Read current settings
+### Step 0: Detect config target and read current settings
+
+The write target depends on the project type:
+
+- **Developing OrchestKit itself** (`src/settings/ork.settings.json` exists): write to `src/settings/ork.settings.json` — this is the plugin's global defaults file.
+- **Any other project** (yonatan-hq, client repos, etc.): write to `.claude/settings.json` — this is per-project CC settings that override plugin defaults without touching global config.
 
 ```python
-# Read existing ork.settings.json (project-level)
-existing = Read(file_path=".claude/settings.json") or Read(file_path="ork.settings.json")
+# Detect config target
+is_orchestkit_dev = len(Glob(pattern="src/settings/ork.settings.json")) > 0
+
+if is_orchestkit_dev:
+    config_target = "src/settings/ork.settings.json"
+    existing_settings = Read(file_path="src/settings/ork.settings.json") or {}
+else:
+    config_target = ".claude/settings.json"
+    existing_settings = Read(file_path=".claude/settings.json") or {}
+
 # Extract current env block if present
+current_env = existing_settings.get("env", {})
 ```
 
 Show the user what's already set so they aren't surprised by overwrites.
@@ -377,16 +391,12 @@ Generated env var: `ORCHESTKIT_LOG_LEVEL=<value>`
 
 ### Writing the Configuration
 
-After all 5 steps, write (or merge) the env block into `ork.settings.json`:
+After all 5 steps, write (or merge) the env block into `config_target` (set in Step 0):
 
 ```python
-# Read existing ork.settings.json
-existing_settings = Read(file_path="ork.settings.json") or {}
-
 # Merge new env values (preserving existing keys not in wizard scope)
 new_env = {
-  **existing_settings.get("env", {}),
-  "ENABLE_TOOL_SEARCH": existing_settings.get("env", {}).get("ENABLE_TOOL_SEARCH", "auto:5"),
+  **current_env,  # preserve all keys we didn't ask about (e.g. ENABLE_TOOL_SEARCH)
   "ORCHESTKIT_PROTECTED_BRANCHES": <from step 1>,
   "ORCHESTKIT_COMMIT_SCOPE": <from step 2>,
   "ORCHESTKIT_AGENT_BROWSER_ALLOW_LOCALHOST": <from step 3>,
@@ -395,16 +405,18 @@ new_env = {
 }
 updated_settings = {**existing_settings, "env": new_env}
 
-Write(file_path="ork.settings.json", content=json.dumps(updated_settings, indent=2))
+Write(file_path=config_target, content=json.dumps(updated_settings, indent=2))
 ```
+
+> **Note on per-project vs global:** Writing to `.claude/settings.json` overrides the plugin defaults for THIS project only — other projects remain unaffected. Writing to `src/settings/ork.settings.json` changes the global defaults shipped with the plugin itself. Only do that when developing OrchestKit.
 
 ### Configuration Summary
 
-After writing, present a confirmation table:
+After writing, present a confirmation table (use `config_target` in the header):
 
 ```
-OrchestKit Configuration Written → ork.settings.json
-─────────────────────────────────────────────────────
+OrchestKit Configuration Written → .claude/settings.json
+──────────────────────────────────────────────────────────
   Protected branches    main,master
   Commit scope          optional
   Localhost browser     allowed (RFC 6761)
@@ -412,6 +424,7 @@ OrchestKit Configuration Written → ork.settings.json
   Log level             warn
 
 Settings are in effect immediately for this project.
+Other projects using ork are unaffected.
 To reconfigure: /ork:setup --configure
 To see full readiness: /ork:setup --score-only
 ```
