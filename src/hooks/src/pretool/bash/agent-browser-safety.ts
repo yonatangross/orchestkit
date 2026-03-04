@@ -402,8 +402,12 @@ function extractUrl(command: string): string | null {
 
 /**
  * Check if URL is blocked
+ * RFC 6761: *.localhost TLD is reserved for local development and cannot
+ * route to external hosts — allow subdomain patterns (e.g. hq-web.localhost:1355).
+ * Bare localhost (no subdomain) remains blocked.
  */
 function isBlockedUrl(url: string): boolean {
+  if (/^https?:\/\/[a-z0-9-]+\.localhost(:\d+)?(\/|$)/i.test(url)) return false;
   return BLOCKED_URL_PATTERNS.some((pattern) => pattern.test(url));
 }
 
