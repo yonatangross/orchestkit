@@ -158,5 +158,9 @@ agent-browser diff screenshot --baseline /tmp/baseline.png
 - Use `diff screenshot` for visual regression — anything >5% mismatch needs investigation
 - Use `diff url` to compare staging vs production pages side-by-side
 - Diff output uses git-style +/- for a11y trees and pixel counts for visual diffs
+- Use `find "text"` (v0.16) as an alternative to `snapshot -i` when you know the element's visible text or label
+- Use `find --role button "Submit"` to locate elements by ARIA role + text — more resilient than `@ref` numbers
+- Use `highlight @e1` (v0.16) to visually mark elements during debugging — clear with `highlight --clear`
+- Use `screenshot --annotate` for numbered element labels that correspond to `@ref` identifiers
 
 Reference: `references/page-interaction.md` (Snapshot + Refs), `references/content-extraction.md` (Extraction Methods)

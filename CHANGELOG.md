@@ -5,6 +5,20 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.1.2] - 2026-03-04
+
+### Added
+
+- **browser-tools skill v3.0.0**: 7 new sections documenting agent-browser v0.16 features (semantic locators, mouse commands, tab management, debug/recording, mobile testing, configuration flags, auth vault)
+- **2 new rules**: `browser-debug-recording.md` (trace/profiler safety), `browser-mobile-testing.md` (device emulation verification)
+- **3 new safety hook checks**: `--allow-file-access` warning, `AGENT_BROWSER_ENCRYPTION_KEY` leak prevention, `--user-agent` spoofing warning
+- **4 new hook test cases** (14/14 passing)
+- Updated 4 agents (web-research-analyst, test-generator, accessibility-specialist, frontend-ui-developer) with v0.16 capabilities
+- Expanded 4 existing rules with v0.16 flags and patterns
+
+---
+
+
 ## [7.1.1] - 2026-03-04
 
 ### Fixed

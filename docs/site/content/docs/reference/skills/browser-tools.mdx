@@ -72,6 +72,7 @@ Full interaction reference — use `@refs` from `snapshot -i`:
 | `screenshot --full [path]` | Full page screenshot |
 | `screenshot --annotate` | Annotated screenshot with numbered labels |
 | `pdf &lt;path&gt;` | Save page as PDF |
+| `download @e1 /tmp/file.zip` | Download file from element (v0.16) |
 
 ## Extraction Commands
 
@@ -93,14 +94,104 @@ localStorage and sessionStorage manipulation:
 | `storage local clear` | Clear all localStorage |
 | `storage session` | Get all sessionStorage items |
 
-## Security Rules (4 rules)
+## Semantic Locators & Find Commands (v0.16)
 
-This skill enforces 4 security and ethics rules in `rules/`:
+Find elements by visible text or ARIA labels instead of `@ref` numbers:
+
+| Command | Use Case |
+|---------|----------|
+| `find "Submit Order"` | Find element by visible text |
+| `find --role button "Submit"` | Find by ARIA role + text |
+| `find --placeholder "Search..."` | Find by placeholder text |
+| `highlight @e1` | Visually highlight element on page |
+| `highlight --clear` | Remove all highlights |
+
+## Mouse Commands (v0.16)
+
+Low-level mouse control for complex interactions:
+
+| Command | Use Case |
+|---------|----------|
+| `mouse move 100 200` | Move mouse to coordinates |
+| `mouse click 100 200` | Click at coordinates |
+| `mouse dblclick 100 200` | Double-click at coordinates |
+| `mouse wheel 0 -300` | Scroll wheel (deltaX, deltaY) |
+
+## Tab Management (v0.16)
+
+Multi-tab workflows:
+
+| Command | Use Case |
+|---------|----------|
+| `tabs` | List all open tabs |
+| `tab &lt;index&gt;` | Switch to tab by index |
+| `tab close` | Close current tab |
+| `tab new &lt;url&gt;` | Open new tab with URL |
+
+## Debug & Recording (v0.16)
+
+Performance profiling, tracing, and session recording:
+
+| Command | Use Case |
+|---------|----------|
+| `trace start /tmp/trace.zip` | Start Playwright trace recording |
+| `trace stop` | Stop and save trace |
+| `profiler start` | Start JS profiler |
+| `profiler stop /tmp/profile.json` | Stop profiler and save |
+| `record start /tmp/rec.webm` | Record browser session video |
+| `record stop` | Stop recording |
+| `console` | Show captured console messages |
+| `errors` | Show captured page errors |
+
+## Mobile Testing (v0.16)
+
+iOS Simulator browser automation:
+
+| Command | Use Case |
+|---------|----------|
+| `--device "iPhone 15"` | Emulate device viewport + user-agent |
+| `--color-scheme dark` | Test dark mode rendering |
+| `--ios-simulator` | Connect to running iOS Simulator |
+
+## Configuration Flags (v0.13–v0.16)
+
+| Flag / Env Var | Version | Use Case |
+|----------------|---------|----------|
+| `--confirm-interactive` | v0.15 | Human-in-the-loop terminal prompts |
+| `--confirm-actions` | v0.15 | Native action confirmation for sensitive ops |
+| `--allowed-domains d1,d2` | v0.16 | Restrict navigation to listed domains |
+| `--action-policy &lt;path&gt;` | v0.16 | JSON policy file for allowed actions |
+| `--max-output &lt;bytes&gt;` | v0.16 | Cap output size to prevent context blowup |
+| `--user-agent &lt;string&gt;` | v0.16 | Custom user-agent (use responsibly) |
+| `--allow-file-access` | v0.16 | Enable file:// URL access (security risk) |
+| `--annotate` | v0.16 | Add numbered labels to screenshots |
+| `--device &lt;name&gt;` | v0.16 | Emulate mobile device |
+| `--color-scheme &lt;mode&gt;` | v0.16 | Force light/dark/no-preference |
+| `--proxy &lt;url&gt;` | v0.16 | Route traffic through proxy |
+| `AGENT_BROWSER_ENCRYPTION_KEY` | v0.15 | Encryption key for Auth Vault |
+
+## Auth Vault (v0.15)
+
+Encrypted credential storage for reusable authentication:
+
+| Command | Use Case |
+|---------|----------|
+| `vault store &lt;name&gt;` | Save current auth state encrypted |
+| `vault load &lt;name&gt;` | Restore encrypted auth state |
+| `vault list` | List stored vault entries |
+| `vault delete &lt;name&gt;` | Remove vault entry |
+
+Requires `AGENT_BROWSER_ENCRYPTION_KEY` env var. Never log or echo this key.
+
+## Security Rules (6 rules)
+
+This skill enforces 6 security and ethics rules in `rules/`:
 
 | Category | Rules | Priority |
 |----------|-------|----------|
 | Ethics & Security | `browser-scraping-ethics.md`, `browser-auth-security.md` | CRITICAL |
 | Reliability | `browser-rate-limiting.md`, `browser-snapshot-workflow.md` | HIGH |
+| Debug & Device | `browser-debug-recording.md`, `browser-mobile-testing.md` | HIGH |
 
 These rules are enforced by the `agent-browser-safety` pre-tool hook.
 
@@ -111,6 +202,9 @@ Flags for controlling human-in-the-loop verification:
 | Flag | Use Case |
 |------|----------|
 | `--confirm-interactive` | Human-in-the-loop terminal prompts |
+| `--confirm-actions` | Native action gating (v0.15) — CLI prompts confirm/deny |
+| `confirm` | Approve pending action (after --confirm-actions) |
+| `deny` | Reject pending action (auto-denies after 60s) |
 
 ## Anti-Patterns (FORBIDDEN)
 
@@ -202,7 +296,7 @@ Enhanced session lifecycle commands:
 
 ---
 
-## Rules (4)
+## Rules (6)
 
 ### Secure browser automation credentials to prevent token leaks and account compromise — CRITICAL
 
@@ -313,8 +407,145 @@ agent-browser --confirm-interactive open https://admin.example.com
 - Use `cookies` to debug auth failures before re-logging in
 - Use `storage local clear` and `cookies clear` in cleanup scripts to force fresh authentication
 - Use `--confirm-interactive` for admin panel automation to require manual confirmation on actions
+- Use `vault store`/`vault load` (v0.15) for encrypted credential persistence — requires `AGENT_BROWSER_ENCRYPTION_KEY`
+- Never echo, log, or pipe `AGENT_BROWSER_ENCRYPTION_KEY` — treat it like a password
+- Use `--confirm-actions` (v0.15) for native CLI-level action gating on sensitive operations
+- Prefer `vault` over `state save` for auth data — vault encrypts at rest, state files are plaintext JSON
 
 Reference: `references/auth-flows.md` (Security Considerations, Secure State Files)
+
+
+### Use browser debug and recording tools safely to avoid leaking sensitive data in traces — HIGH
+
+
+## Browser: Debug & Recording
+
+Use trace, profiler, and record commands for debugging and bug reports, but always review output files before sharing — they may contain sensitive data (cookies, tokens, form inputs).
+
+**Incorrect:**
+```bash
+# Recording a login flow — captures credentials in video/trace
+agent-browser trace start /tmp/trace.zip
+agent-browser open https://app.example.com/login
+agent-browser fill @e1 "$EMAIL"
+agent-browser fill @e2 "$PASSWORD"
+agent-browser click @e3
+agent-browser trace stop
+# /tmp/trace.zip now contains your credentials in cleartext
+
+# Dumping console output without filtering
+agent-browser console > /tmp/console.log
+# May contain auth tokens, API keys logged by the app
+
+# Sharing errors log without review
+agent-browser errors > /tmp/errors.log
+git add /tmp/errors.log  # Could contain PII in stack traces
+```
+
+**Correct:**
+```bash
+# Record AFTER authentication (load saved state first)
+agent-browser vault load my-session
+agent-browser trace start /tmp/trace.zip
+agent-browser open https://app.example.com/dashboard
+# ... perform actions to reproduce bug ...
+agent-browser trace stop
+# Trace captures only post-auth interactions
+
+# Review console output before saving
+agent-browser console  # Review in terminal first
+# Only redirect to file after confirming no sensitive data
+
+# Profiler for performance debugging (safe — no credentials)
+agent-browser profiler start
+agent-browser open https://app.example.com/slow-page
+agent-browser wait --load networkidle
+agent-browser profiler stop /tmp/profile.json
+# Profile contains JS execution data, not credentials
+
+# Record for visual bug reports (after auth)
+agent-browser record start /tmp/bug-repro.webm
+agent-browser click @e5
+agent-browser wait --text "Error"
+agent-browser record stop
+```
+
+**Key rules:**
+- Never trace or record login flows — credentials appear in cleartext in output files
+- Load auth state via `vault load` before starting a trace/recording session
+- Review `console` and `errors` output in terminal before redirecting to files
+- Never commit trace, recording, or profile files to git repositories
+- Use `profiler` for performance analysis — it captures execution timing, not credentials
+- Store debug output files in `/tmp/` or ephemeral directories, not project directories
+- Scrub trace files before sharing: remove cookies, localStorage, and network payloads
+
+Reference: `references/debug-tools.md` (Trace Safety, Recording Best Practices)
+
+
+### Scope mobile browser testing to verified devices and emulation profiles — HIGH
+
+
+## Browser: Mobile Testing
+
+Use device emulation and iOS Simulator connection for mobile testing, but always verify the device context is active and scope tests to target devices.
+
+**Incorrect:**
+```bash
+# Assuming device emulation without verifying viewport
+agent-browser --device "iPhone 15" open https://app.example.com
+agent-browser screenshot /tmp/mobile.png
+# Did not verify viewport dimensions — may have fallen back to desktop
+
+# Testing "mobile" without actual device emulation
+agent-browser open https://app.example.com
+agent-browser eval "window.innerWidth"  # Still 1280px — not mobile!
+
+# Connecting to iOS Simulator without checking it's running
+agent-browser --ios-simulator open https://app.example.com
+# Fails silently or connects to wrong simulator instance
+```
+
+**Correct:**
+```bash
+# Verify device emulation is active
+agent-browser --device "iPhone 15" open https://app.example.com
+agent-browser wait --load networkidle
+agent-browser eval "JSON.stringify({
+  width: window.innerWidth,
+  height: window.innerHeight,
+  userAgent: navigator.userAgent
+})"
+# Confirm: width=390, height=844, userAgent contains "iPhone"
+
+# Test dark mode rendering
+agent-browser --device "iPhone 15" --color-scheme dark open https://app.example.com
+agent-browser screenshot /tmp/mobile-dark.png
+agent-browser --color-scheme light open https://app.example.com
+agent-browser screenshot /tmp/mobile-light.png
+
+# iOS Simulator — verify simulator is booted first
+xcrun simctl list devices | grep "Booted"
+agent-browser --ios-simulator open https://app.example.com
+agent-browser wait --load networkidle
+agent-browser snapshot -i
+
+# Multi-device comparison
+for device in "iPhone 15" "iPhone SE" "iPad Pro 11"; do
+  agent-browser --device "$device" open https://app.example.com
+  agent-browser wait --load networkidle
+  agent-browser screenshot "/tmp/test-${device// /-}.png"
+done
+```
+
+**Key rules:**
+- Always verify viewport dimensions after `--device` to confirm emulation is active
+- Use `--color-scheme dark` and `--color-scheme light` to test both modes
+- Check `xcrun simctl list devices | grep Booted` before using `--ios-simulator`
+- Test a minimum of 3 device profiles: small phone, large phone, tablet
+- Use `diff screenshot` to compare rendering across devices
+- Do not rely solely on emulation — iOS Simulator provides higher-fidelity results for iOS-specific issues
+
+Reference: `references/mobile-testing.md` (Device Emulation, iOS Simulator)
 
 
 ### Throttle browser requests to avoid 429 blocks, IP bans, and unreliable results — HIGH
@@ -416,6 +647,10 @@ agent-browser network requests --clear    # Reset tracked request log
 - Block analytics and tracking scripts with `network route --abort` to preserve rate-limit budget and speed up page loads
 - Always call `network unroute` after extraction to clean up intercepts
 - Use `network requests --clear` between test runs to avoid stale request data
+- Use `--allowed-domains` (v0.16) to restrict navigation to approved domains — prevents accidental crawl escapes
+- Use `--action-policy &lt;path&gt;` (v0.16) to enforce a JSON policy file governing which actions are permitted
+- Use `--max-output &lt;bytes&gt;` (v0.16) to cap command output size — prevents context window blowup from large pages
+
 Reference: `references/anti-bot-handling.md` (Rate Limiting, Adaptive Rate Limiting, Retry Logic)
 
 
@@ -475,6 +710,9 @@ agent-browser get text @e5  # Extract specific content area, not full page
 - Do not scrape personal data, auth-gated content, or content behind paywalls without explicit authorization
 - Comply with the site's Terms of Service; when in doubt, do not scrape
 - Use targeted extraction (`get text @e#`) instead of full-page dumps to minimize data collection
+- Use `--user-agent` (v0.16) only to identify your automation — never to spoof a real browser identity
+- Use `--max-output` (v0.16) to limit extracted content size and reduce data over-collection
+- Respect `--allowed-domains` (v0.16) to scope crawls — prevents accidentally following links to unrelated sites
 
 Reference: `references/anti-bot-handling.md` (Respectful Scraping Principles, Check robots.txt)
 
@@ -634,6 +872,10 @@ agent-browser diff screenshot --baseline /tmp/baseline.png
 - Use `diff screenshot` for visual regression — anything >5% mismatch needs investigation
 - Use `diff url` to compare staging vs production pages side-by-side
 - Diff output uses git-style +/- for a11y trees and pixel counts for visual diffs
+- Use `find "text"` (v0.16) as an alternative to `snapshot -i` when you know the element's visible text or label
+- Use `find --role button "Submit"` to locate elements by ARIA role + text — more resilient than `@ref` numbers
+- Use `highlight @e1` (v0.16) to visually mark elements during debugging — clear with `highlight --clear`
+- Use `screenshot --annotate` for numbered element labels that correspond to `@ref` identifiers
 
 Reference: `references/page-interaction.md` (Snapshot + Refs), `references/content-extraction.md` (Extraction Methods)
 

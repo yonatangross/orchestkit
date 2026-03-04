@@ -59,5 +59,8 @@ agent-browser get text @e5  # Extract specific content area, not full page
 - Do not scrape personal data, auth-gated content, or content behind paywalls without explicit authorization
 - Comply with the site's Terms of Service; when in doubt, do not scrape
 - Use targeted extraction (`get text @e#`) instead of full-page dumps to minimize data collection
+- Use `--user-agent` (v0.16) only to identify your automation — never to spoof a real browser identity
+- Use `--max-output` (v0.16) to limit extracted content size and reduce data over-collection
+- Respect `--allowed-domains` (v0.16) to scope crawls — prevents accidentally following links to unrelated sites
 
 Reference: `references/anti-bot-handling.md` (Respectful Scraping Principles, Check robots.txt)
