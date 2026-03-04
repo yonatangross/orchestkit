@@ -94,7 +94,7 @@ check_agent() {
       fi
 
       # 3. notebooklm-mcp only for notebook-related agents
-      local allowed_nlm="release-notebook demo-producer"
+      local allowed_nlm="release-engineer demo-producer"
       if echo "$servers" | grep -q "notebooklm"; then
         if ! echo "$allowed_nlm" | grep -qw "$name"; then
           echo "FAIL [$name]: notebooklm-mcp in mcpServers (allowed only for: $allowed_nlm)" >&2

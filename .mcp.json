@@ -30,6 +30,11 @@
     "hq-content": {
       "command": "/Users/yonatangross/coding/yonatan-hq/scripts/mcp-env.sh",
       "args": ["uv", "run", "--directory", "/Users/yonatangross/coding/yonatan-hq/apps/api", "python", "-m", "mcp_servers.content.server"]
+    },
+    "notebooklm-mcp": {
+      "command": "nlm",
+      "args": ["mcp"],
+      "disabled": true
     }
   }
 }

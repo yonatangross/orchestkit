@@ -53,6 +53,7 @@ What are you trying to do?
 │   ├── Plain text ───────────────► source_add(type=text)
 │   ├── Local file ───────────────► source_add(type=file)
 │   ├── Google Drive ─────────────► source_add(type=drive)
+│   ├── Rename a source ──────────► source_rename
 │   └── Manage sources ──────────► rules/setup-quickstart.md
 │
 ├── Query a notebook (AI chat)
@@ -60,7 +61,9 @@ What are you trying to do?
 │   └── Configure chat style ────► chat_configure
 │
 ├── Generate studio content
-│   └── 9 artifact types ────────► rules/workflow-studio-content.md
+│   ├── 9 artifact types ────────► rules/workflow-studio-content.md
+│   ├── Revise slides ───────────► studio_revise (creates new deck)
+│   └── Export to Docs/Sheets ──► export_artifact
 │
 ├── Research & discovery
 │   └── Web/Drive research ──────► rules/workflow-research-discovery.md
@@ -97,16 +100,17 @@ What are you trying to do?
 | Group | Tools | Count |
 |-------|-------|-------|
 | Notebooks | notebook_list, notebook_create, notebook_get, notebook_describe, notebook_rename, notebook_delete | 6 |
-| Sources | source_list, source_add, source_list_drive, source_sync_drive, source_delete, source_describe, source_get_content | 7 |
+| Sources | source_list, source_add, source_rename, source_list_drive, source_sync_drive, source_delete, source_describe, source_get_content | 8 |
 | Querying | notebook_query, chat_configure | 2 |
-| Studio | studio_create, studio_status, studio_delete | 3 |
+| Studio | studio_create, studio_status, studio_revise, studio_delete | 4 |
 | Research | research_start, research_status, research_import | 3 |
 | Sharing | notebook_share_status, notebook_share_public, notebook_share_invite | 3 |
 | Notes | note (unified: list/create/update/delete) | 1 (4 actions) |
 | Downloads | download_artifact | 1 |
+| Export | export_artifact (Google Docs/Sheets) | 1 |
 | Auth | save_auth_tokens, refresh_auth | 2 |
 
-**Total: 29 tools across 9 groups**
+**Total: 32 tools across 10 groups**
 
 ## Key Decisions
 
@@ -121,6 +125,9 @@ What are you trying to do?
 | Release notebooks | One notebook per minor version; upload CHANGELOG + key skill diffs as sources |
 | Query vs search | notebook_query for AI-grounded answers; source_get_content for raw text |
 | Notes vs sources | Notes for your insights/annotations; sources for external documents |
+| Infographic style | 11 visual styles via `infographic_style` param on studio_create |
+| Slide revision | Use `studio_revise` to edit individual slides (creates a new deck) |
+| Export artifacts | `export_artifact` sends reports → Google Docs, data tables → Sheets |
 
 ## Example
 

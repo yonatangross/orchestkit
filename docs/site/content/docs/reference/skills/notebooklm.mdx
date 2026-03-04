@@ -35,6 +35,7 @@ What are you trying to do?
 │   ├── Plain text ───────────────► source_add(type=text)
 │   ├── Local file ───────────────► source_add(type=file)
 │   ├── Google Drive ─────────────► source_add(type=drive)
+│   ├── Rename a source ──────────► source_rename
 │   └── Manage sources ──────────► rules/setup-quickstart.md
 │
 ├── Query a notebook (AI chat)
@@ -42,7 +43,9 @@ What are you trying to do?
 │   └── Configure chat style ────► chat_configure
 │
 ├── Generate studio content
-│   └── 9 artifact types ────────► rules/workflow-studio-content.md
+│   ├── 9 artifact types ────────► rules/workflow-studio-content.md
+│   ├── Revise slides ───────────► studio_revise (creates new deck)
+│   └── Export to Docs/Sheets ──► export_artifact
 │
 ├── Research & discovery
 │   └── Web/Drive research ──────► rules/workflow-research-discovery.md
@@ -79,16 +82,17 @@ What are you trying to do?
 | Group | Tools | Count |
 |-------|-------|-------|
 | Notebooks | notebook_list, notebook_create, notebook_get, notebook_describe, notebook_rename, notebook_delete | 6 |
-| Sources | source_list, source_add, source_list_drive, source_sync_drive, source_delete, source_describe, source_get_content | 7 |
+| Sources | source_list, source_add, source_rename, source_list_drive, source_sync_drive, source_delete, source_describe, source_get_content | 8 |
 | Querying | notebook_query, chat_configure | 2 |
-| Studio | studio_create, studio_status, studio_delete | 3 |
+| Studio | studio_create, studio_status, studio_revise, studio_delete | 4 |
 | Research | research_start, research_status, research_import | 3 |
 | Sharing | notebook_share_status, notebook_share_public, notebook_share_invite | 3 |
 | Notes | note (unified: list/create/update/delete) | 1 (4 actions) |
 | Downloads | download_artifact | 1 |
+| Export | export_artifact (Google Docs/Sheets) | 1 |
 | Auth | save_auth_tokens, refresh_auth | 2 |
 
-**Total: 29 tools across 9 groups**
+**Total: 32 tools across 10 groups**
 
 ## Key Decisions
 
@@ -103,6 +107,9 @@ What are you trying to do?
 | Release notebooks | One notebook per minor version; upload CHANGELOG + key skill diffs as sources |
 | Query vs search | notebook_query for AI-grounded answers; source_get_content for raw text |
 | Notes vs sources | Notes for your insights/annotations; sources for external documents |
+| Infographic style | 11 visual styles via `infographic_style` param on studio_create |
+| Slide revision | Use `studio_revise` to edit individual slides (creates a new deck) |
+| Export artifacts | `export_artifact` sends reports → Google Docs, data tables → Sheets |
 
 ## Example
 
@@ -154,7 +161,7 @@ note(notebook_id="...", action="create", content="Key takeaway: PKCE is mandator
 
 ## Quick Setup
 
-Authenticate with Google via `nlm login`, then register the MCP server with Claude Code. Auth sessions expire after ~20 minutes of inactivity.
+Authenticate with Google via `nlm login`, then register the MCP server with Claude Code. Auth sessions expire after ~20 minutes of inactivity. Supports any Chromium-based browser (Chrome, Arc, Brave, Edge, Vivaldi, Opera).
 
 **Incorrect -- manually editing .mcp.json with wrong server path:**
 ```json
@@ -197,12 +204,23 @@ nlm login --check
 nlm skill install
 ```
 
+**Browser preference** (v0.3.17+):
+```bash
+# Set preferred browser (auto-detected by default)
+nlm config set auth.browser arc    # arc | chrome | brave | edge | vivaldi | opera | auto
+
+# Or via environment variable
+export NLM_BROWSER=arc
+```
+
 **Key rules:**
 - Always authenticate with `nlm login` before first use -- browser OAuth flow required
 - Auth sessions last ~20 minutes; re-run `nlm login` if tools start failing
 - Use `nlm login --check` to verify session status before long workflows
 - Prefer `nlm setup add claude-code` over manual .mcp.json editing
 - If setup command fails, use the manual .mcp.json fallback with `"command": "nlm"`
+- Any Chromium-based browser works: Chrome, Arc, Brave, Edge, Chromium, Vivaldi, Opera
+- Set a preferred browser with `nlm config set auth.browser &lt;name&gt;` or `NLM_BROWSER` env var
 
 
 ### Knowledge Base Pattern — HIGH
@@ -434,9 +452,53 @@ download_artifact(artifact_id=artifact.id, path="./output/podcast.mp3")
 | `quiz` | JSON | Test comprehension of sources |
 | `flashcards` | JSON | Study aid from source material |
 | `slide_deck` | PDF/PPTX | Presentation from sources |
-| `infographic` | PNG | Visual data summary |
+| `infographic` | PNG | Visual data summary (11 visual styles available) |
 | `data_table` | CSV/JSON | Structured data extraction |
 | `report` | PDF/Markdown | Comprehensive written summary |
+
+**Infographic visual styles** (via `infographic_style` param on `studio_create`):
+| Style | Description |
+|-------|-------------|
+| `auto_select` | Let NotebookLM choose (default) |
+| `sketch_note` | Hand-drawn sketch style |
+| `professional` | Clean corporate layout |
+| `bento_grid` | Modular grid layout |
+| `editorial` | Magazine-style design |
+| `instructional` | Step-by-step educational |
+| `bricks` | Block/brick composition |
+| `clay` | 3D clay/plasticine look |
+| `anime` | Anime-inspired visuals |
+| `kawaii` | Cute Japanese style |
+| `scientific` | Technical/scientific format |
+
+**Revising slide decks** with `studio_revise`:
+```
+# 1. Get the artifact_id from studio_status
+status = studio_status(notebook_id="...")
+
+# 2. Revise specific slides (creates a NEW deck, original is preserved)
+studio_revise(
+    notebook_id="...",
+    artifact_id="existing-deck-id",
+    slide_instructions=[
+        {"slide": 1, "instruction": "Make the title more concise"},
+        {"slide": 3, "instruction": "Add a comparison table"}
+    ],
+    confirm=True
+)
+
+# 3. Poll studio_status for the new revised deck
+studio_status(notebook_id="...")
+```
+
+**Exporting artifacts** to Google Workspace with `export_artifact`:
+```
+# Export a report to Google Docs
+export_artifact(notebook_id="...", artifact_id="...", export_type="docs")
+
+# Export a data table to Google Sheets
+export_artifact(notebook_id="...", artifact_id="...", export_type="sheets")
+```
 
 **Key rules:**
 - Always use the poll pattern: `studio_create` -> `studio_status` -> `download_artifact`
@@ -444,6 +506,8 @@ download_artifact(artifact_id=artifact.id, path="./output/podcast.mp3")
 - Check `studio_status` before attempting download -- downloading a pending artifact fails
 - Use `audio_overview` for quick summaries, `report` for comprehensive analysis
 - All artifact types require at least one source in the notebook
+- `studio_revise` only works on slide decks -- it creates a new artifact, preserving the original
+- Use `export_artifact` to push reports to Google Docs or data tables to Google Sheets
 
 
 ### Versioned Notebooks Per Release — HIGH

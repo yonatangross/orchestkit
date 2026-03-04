@@ -2764,13 +2764,13 @@ export const SKILLS: Record<string, SkillMeta> = {
       "Read",
       "Bash",
       "Grep",
-      "mcp__notebooklm__notebook_create",
-      "mcp__notebooklm__source_add",
-      "mcp__notebooklm__studio_create",
-      "mcp__notebooklm__studio_status",
-      "mcp__notebooklm__notebook_share_status",
-      "mcp__notebooklm__notebook_share_invite",
-      "mcp__notebooklm__note"
+      "mcp__notebooklm-mcp__notebook_create",
+      "mcp__notebooklm-mcp__source_add",
+      "mcp__notebooklm-mcp__studio_create",
+      "mcp__notebooklm-mcp__studio_status",
+      "mcp__notebooklm-mcp__notebook_share_status",
+      "mcp__notebooklm-mcp__notebook_share_invite",
+      "mcp__notebooklm-mcp__note"
     ],
     "skills": [],
     "agent": null,
@@ -2778,7 +2778,9 @@ export const SKILLS: Record<string, SkillMeta> = {
     "plugins": [
       "ork"
     ],
-    "relatedAgents": []
+    "relatedAgents": [
+      "release-engineer"
+    ]
   },
   "remember": {
     "name": "remember",
