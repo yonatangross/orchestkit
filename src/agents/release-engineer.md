@@ -24,6 +24,7 @@ tools:
   - TaskStop
 skills:
   - release-management
+  - release-notebook
   - github-operations
   - task-dependency-patterns
   - remember

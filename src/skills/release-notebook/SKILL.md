@@ -12,16 +12,16 @@ allowed-tools:
   - Read
   - Bash
   - Grep
-  - mcp__notebooklm__notebook_create
-  - mcp__notebooklm__source_add
-  - mcp__notebooklm__studio_create
-  - mcp__notebooklm__studio_status
-  - mcp__notebooklm__notebook_share_status
-  - mcp__notebooklm__notebook_share_invite
-  - mcp__notebooklm__note
+  - mcp__notebooklm-mcp__notebook_create
+  - mcp__notebooklm-mcp__source_add
+  - mcp__notebooklm-mcp__studio_create
+  - mcp__notebooklm-mcp__studio_status
+  - mcp__notebooklm-mcp__notebook_share_status
+  - mcp__notebooklm-mcp__notebook_share_invite
+  - mcp__notebooklm-mcp__note
 metadata:
   category: document-asset-creation
-  mcp-server: notebooklm
+  mcp-server: notebooklm-mcp
 ---
 
 # Release Notebook
@@ -79,7 +79,7 @@ Read: manifests/ork.json →  MANIFEST_CONTENT
 ### Step 4 — Create Notebook
 
 ```python
-notebook = mcp__notebooklm__notebook_create(
+notebook = mcp__notebooklm-mcp__notebook_create(
     title="OrchestKit v{MINOR_LABEL} — Release KB"
 )
 # Save: notebook_id = notebook.id
@@ -91,7 +91,7 @@ Add each source separately for better retrieval chunking:
 
 ```python
 # Source 1: changelog section
-mcp__notebooklm__source_add(
+mcp__notebooklm-mcp__source_add(
     notebook_id=notebook_id,
     type="text",
     title="CHANGELOG v{FULL_VERSION}",
@@ -99,7 +99,7 @@ mcp__notebooklm__source_add(
 )
 
 # Source 2: project instructions
-mcp__notebooklm__source_add(
+mcp__notebooklm-mcp__source_add(
     notebook_id=notebook_id,
     type="text",
     title="CLAUDE.md — Project Instructions",
@@ -107,7 +107,7 @@ mcp__notebooklm__source_add(
 )
 
 # Source 3: plugin manifest
-mcp__notebooklm__source_add(
+mcp__notebooklm-mcp__source_add(
     notebook_id=notebook_id,
     type="text",
     title="manifests/ork.json — Plugin Manifest",
@@ -118,7 +118,7 @@ mcp__notebooklm__source_add(
 ### Step 6 — Add Release Summary Note
 
 ```python
-mcp__notebooklm__note(
+mcp__notebooklm-mcp__note(
     notebook_id=notebook_id,
     action="create",
     content="Release KB for OrchestKit v{FULL_VERSION}. Sources: CHANGELOG section, CLAUDE.md, manifests/ork.json."
@@ -131,13 +131,13 @@ Audio generation is async. Create, then poll until complete or failed.
 
 ```python
 # Trigger generation
-artifact = mcp__notebooklm__studio_create(
+artifact = mcp__notebooklm-mcp__studio_create(
     notebook_id=notebook_id,
     type="audio_overview"
 )
 
 # Poll (check every ~30s; generation takes 2-5 min)
-status = mcp__notebooklm__studio_status(artifact_id=artifact.id)
+status = mcp__notebooklm-mcp__studio_status(artifact_id=artifact.id)
 # Repeat until status in ("completed", "failed")
 # Inform user: "Generating audio overview... (status: {status})"
 ```
@@ -148,10 +148,10 @@ If generation fails, log the failure but do not halt — the notebook is still u
 
 ```python
 # Check current sharing status first
-share_status = mcp__notebooklm__notebook_share_status(notebook_id=notebook_id)
+share_status = mcp__notebooklm-mcp__notebook_share_status(notebook_id=notebook_id)
 
 # Invite project owner as writer
-mcp__notebooklm__notebook_share_invite(
+mcp__notebooklm-mcp__notebook_share_invite(
     notebook_id=notebook_id,
     email="yonatan2gross@gmail.com",
     role="writer"

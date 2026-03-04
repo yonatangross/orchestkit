@@ -5,6 +5,17 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.1.1] - 2026-03-04
+
+### Fixed
+
+- **NotebookLM MCP bloat** (#890): Disabled `notebooklm-mcp` at project level (`disabled: true` in `.mcp.json`), saving ~6k tokens/session from 25 unused tools
+- **Tool name mismatch**: Fixed `mcp__notebooklm__*` → `mcp__notebooklm-mcp__*` across `release-notebook` skill, `notebooklm` rules, and `create-release-notebook.sh`
+- **Release-notebook flow**: Wired `release-notebook` skill into `release-engineer` agent; fixed shell script instructions (removed non-existent `/ork:release-notebook` command reference)
+- **Perf test allowlist**: Updated `test-mcp-overhead.sh` to reference `release-engineer` instead of phantom `release-notebook` agent
+
+---
+
 ## [7.1.0] - 2026-03-04
 
 ### Added
