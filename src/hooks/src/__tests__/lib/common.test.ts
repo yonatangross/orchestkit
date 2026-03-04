@@ -60,6 +60,92 @@ describe('outputStderrWarning', () => {
   });
 });
 
+// =============================================================================
+// #865 Injection Gating — empty-string guard
+// =============================================================================
+
+describe('outputWithContext (#865 injection gate)', () => {
+  test('returns silent success for empty string', async () => {
+    const { outputWithContext } = await import('../../lib/common.js');
+    const result = outputWithContext('');
+    expect(result.continue).toBe(true);
+    expect(result.suppressOutput).toBe(true);
+    expect(result.hookSpecificOutput).toBeUndefined();
+  });
+
+  test('returns silent success for whitespace-only string', async () => {
+    const { outputWithContext } = await import('../../lib/common.js');
+    const result = outputWithContext('   \n\t  ');
+    expect(result.continue).toBe(true);
+    expect(result.hookSpecificOutput).toBeUndefined();
+  });
+
+  test('injects additionalContext for non-empty string', async () => {
+    const { outputWithContext } = await import('../../lib/common.js');
+    const result = outputWithContext('Some context');
+    expect(result.hookSpecificOutput?.additionalContext).toBe('Some context');
+    expect(result.hookSpecificOutput?.hookEventName).toBe('PostToolUse');
+  });
+});
+
+describe('outputPromptContext (#865 injection gate)', () => {
+  test('returns silent success for empty string', async () => {
+    const { outputPromptContext } = await import('../../lib/common.js');
+    const result = outputPromptContext('');
+    expect(result.continue).toBe(true);
+    expect(result.hookSpecificOutput).toBeUndefined();
+  });
+
+  test('returns silent success for whitespace-only string', async () => {
+    const { outputPromptContext } = await import('../../lib/common.js');
+    const result = outputPromptContext('  ');
+    expect(result.hookSpecificOutput).toBeUndefined();
+  });
+
+  test('injects additionalContext for non-empty string', async () => {
+    const { outputPromptContext } = await import('../../lib/common.js');
+    const result = outputPromptContext('Prompt context');
+    expect(result.hookSpecificOutput?.additionalContext).toBe('Prompt context');
+    expect(result.hookSpecificOutput?.hookEventName).toBe('UserPromptSubmit');
+  });
+});
+
+describe('outputWithNotification (#865 injection gate)', () => {
+  test('skips hookSpecificOutput when claudeContext is empty', async () => {
+    const { outputWithNotification } = await import('../../lib/common.js');
+    const result = outputWithNotification('User msg', '');
+    expect(result.continue).toBe(true);
+    expect(result.systemMessage).toBe('User msg');
+    expect(result.hookSpecificOutput).toBeUndefined();
+  });
+
+  test('skips hookSpecificOutput when claudeContext is whitespace', async () => {
+    const { outputWithNotification } = await import('../../lib/common.js');
+    const result = outputWithNotification('User msg', '   ');
+    expect(result.hookSpecificOutput).toBeUndefined();
+  });
+
+  test('skips hookSpecificOutput when claudeContext is undefined', async () => {
+    const { outputWithNotification } = await import('../../lib/common.js');
+    const result = outputWithNotification('User msg', undefined);
+    expect(result.hookSpecificOutput).toBeUndefined();
+  });
+
+  test('injects both when claudeContext is non-empty', async () => {
+    const { outputWithNotification } = await import('../../lib/common.js');
+    const result = outputWithNotification('User msg', 'Claude ctx');
+    expect(result.systemMessage).toBe('User msg');
+    expect(result.hookSpecificOutput?.additionalContext).toBe('Claude ctx');
+  });
+
+  test('works with only claudeContext (no userMessage)', async () => {
+    const { outputWithNotification } = await import('../../lib/common.js');
+    const result = outputWithNotification(undefined, 'Claude ctx');
+    expect(result.systemMessage).toBeUndefined();
+    expect(result.hookSpecificOutput?.additionalContext).toBe('Claude ctx');
+  });
+});
+
 describe('fnv1aHash', () => {
   test('returns consistent 8-char hex string', () => {
     const hash = fnv1aHash('hello world');

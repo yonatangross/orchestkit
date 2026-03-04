@@ -5,10 +5,10 @@
  * Security Focus: Validates protected branch enforcement and commit message validation
  */
 
-import { describe, it, expect, } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import type { HookInput } from '../../types.js';
 import { gitValidator } from '../../pretool/bash/git-validator.js';
-import { isProtectedBranch, validateBranchName, extractIssueNumber } from '../../lib/git.js';
+import { isProtectedBranch, getProtectedBranches, validateBranchName, extractIssueNumber } from '../../lib/git.js';
 
 // =============================================================================
 // Test Utilities
@@ -33,16 +33,19 @@ function createBashInput(command: string, overrides: Partial<HookInput> = {}): H
 
 describe('lib/git.ts utilities', () => {
   describe('isProtectedBranch', () => {
-    it('returns true for main', () => {
+    beforeEach(() => { delete process.env.ORCHESTKIT_PROTECTED_BRANCHES; });
+    afterEach(() => { delete process.env.ORCHESTKIT_PROTECTED_BRANCHES; });
+
+    it('returns true for main (default)', () => {
       expect(isProtectedBranch('main')).toBe(true);
     });
 
-    it('returns true for master', () => {
+    it('returns true for master (default)', () => {
       expect(isProtectedBranch('master')).toBe(true);
     });
 
-    it('returns true for dev', () => {
-      expect(isProtectedBranch('dev')).toBe(true);
+    it('returns false for dev by default (not opinionated)', () => {
+      expect(isProtectedBranch('dev')).toBe(false);
     });
 
     it('returns false for feature branches', () => {
@@ -64,6 +67,29 @@ describe('lib/git.ts utilities', () => {
     it('is case sensitive - Main is not protected', () => {
       expect(isProtectedBranch('Main')).toBe(false);
       expect(isProtectedBranch('MAIN')).toBe(false);
+    });
+
+    describe('ORCHESTKIT_PROTECTED_BRANCHES env var', () => {
+      it('adds dev when explicitly configured', () => {
+        process.env.ORCHESTKIT_PROTECTED_BRANCHES = 'main,master,dev';
+        expect(isProtectedBranch('dev')).toBe(true);
+      });
+
+      it('overrides default list entirely', () => {
+        process.env.ORCHESTKIT_PROTECTED_BRANCHES = 'main,staging';
+        expect(isProtectedBranch('master')).toBe(false);
+        expect(isProtectedBranch('staging')).toBe(true);
+      });
+
+      it('handles whitespace around branch names', () => {
+        process.env.ORCHESTKIT_PROTECTED_BRANCHES = 'main, master, dev';
+        expect(isProtectedBranch('dev')).toBe(true);
+      });
+
+      it('returns default list when env var is empty string', () => {
+        process.env.ORCHESTKIT_PROTECTED_BRANCHES = '';
+        expect(getProtectedBranches()).toEqual(['main', 'master']);
+      });
     });
   });
 
@@ -125,8 +151,9 @@ describe('lib/git.ts utilities', () => {
 
     it('accepts protected branches without validation', () => {
       expect(validateBranchName('main')).toBe(null);
-      expect(validateBranchName('dev')).toBe(null);
       expect(validateBranchName('master')).toBe(null);
+      // Note: 'dev' is NOT a protected branch by default — add it via
+      // ORCHESTKIT_PROTECTED_BRANCHES=main,master,dev if your workflow needs it
     });
 
     it('accepts chore/ prefix', () => {

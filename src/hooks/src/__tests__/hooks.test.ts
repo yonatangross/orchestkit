@@ -227,12 +227,10 @@ describe('permission/auto-approve-safe-bash', () => {
 describe('pretool/bash/git-validator', () => {
   describe('protected branch detection', () => {
     test('detects protected branches correctly', () => {
-      // This test validates the isProtectedBranch utility function
-      // The actual git-branch-protection hook uses getCurrentBranch which
-      // executes git commands, so we test behavior without mocking
+      // Default protected branches: main, master (not dev — configurable via ORCHESTKIT_PROTECTED_BRANCHES)
       expect(isProtectedBranch('main')).toBe(true);
-      expect(isProtectedBranch('dev')).toBe(true);
       expect(isProtectedBranch('master')).toBe(true);
+      expect(isProtectedBranch('dev')).toBe(false); // not protected by default
       expect(isProtectedBranch('feature/test')).toBe(false);
     });
 
@@ -608,8 +606,8 @@ describe('lib/git.ts', () => {
       expect(isProtectedBranch('master')).toBe(true);
     });
 
-    test('returns true for dev', () => {
-      expect(isProtectedBranch('dev')).toBe(true);
+    test('returns false for dev by default (use ORCHESTKIT_PROTECTED_BRANCHES to add it)', () => {
+      expect(isProtectedBranch('dev')).toBe(false);
     });
 
     test('returns false for feature branches', () => {
@@ -670,8 +668,8 @@ describe('lib/git.ts', () => {
 
     test('accepts protected branches without validation', () => {
       expect(validateBranchName('main')).toBe(null);
-      expect(validateBranchName('dev')).toBe(null);
       expect(validateBranchName('master')).toBe(null);
+      // 'dev' is NOT protected by default — requires ORCHESTKIT_PROTECTED_BRANCHES env var
     });
 
     test('rejects branch without valid prefix', () => {
