@@ -23,6 +23,8 @@ import { workflowPreferenceLearner } from './workflow-preference-learner.js';
 // Issue #243: Additional stop hooks previously run separately
 import { taskCompletionCheck } from './task-completion-check.js';
 import { securityScanAggregator } from './security-scan-aggregator.js';
+// Issue #944: Performance snapshot — captures token overhead for before/after comparison
+import { perfSnapshot } from '../lifecycle/perf-snapshot.js';
 
 // Import skill hooks that run at stop time
 import { coverageCheck } from '../skill/coverage-check.js';
@@ -74,6 +76,9 @@ const HOOKS: HookConfig[] = [
 
   // --- Analysis hooks ---
   { name: 'security-scan-aggregator', fn: securityScanAggregator },
+
+  // --- Performance measurement hooks (#944) ---
+  { name: 'perf-snapshot', fn: perfSnapshot },
 
   // --- Skill validation hooks (run at stop time) ---
   { name: 'coverage-check', fn: coverageCheck },

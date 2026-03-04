@@ -23,6 +23,76 @@ OrchestKit orchestration wrapper for browser automation. Delegates command docum
 # 5. If dynamic -> wait @element or wait --text
 ```
 
+## Interaction Commands
+
+Full interaction reference — use `@refs` from `snapshot -i`:
+
+| Command | Use Case |
+|---------|----------|
+| `click @e1` | Click element |
+| `click @e1 --new-tab` | Click and open in new tab |
+| `dblclick @e1` | Double-click element |
+| `focus @e1` | Focus element (before typing) |
+| `fill @e2 "text"` | Clear field and type |
+| `type @e2 "text"` | Type WITHOUT clearing existing text |
+| `keyboard type "text"` | Type at current focus (no selector) |
+| `keyboard inserttext "text"` | Insert text without key events |
+| `press Enter` | Press key (alias: `key`) |
+| `press Control+a` | Key combination |
+| `keydown Shift` | Hold key down |
+| `keyup Shift` | Release held key |
+| `hover @e1` | Hover over element |
+| `check @e1` | Check checkbox/radio |
+| `uncheck @e1` | Uncheck checkbox |
+| `select @e1 "value"` | Select dropdown option |
+| `select @e1 "a" "b"` | Multi-select |
+| `scroll down 500` | Scroll page (default: down 300px) |
+| `scroll down 500 --selector "div.content"` | Scroll within container |
+| `scrollintoview @e1` | Scroll element into viewport |
+| `drag @e1 @e2` | Drag and drop |
+| `upload @e1 file.pdf` | Upload file to input |
+
+## Wait Commands
+
+| Command | Use Case |
+|---------|----------|
+| `wait @e1` | Wait for element to appear |
+| `wait 2000` | Wait milliseconds |
+| `wait --text "Success"` | Wait for text content |
+| `wait --url "**/dashboard"` | Wait for URL pattern |
+| `wait --load networkidle` | Wait for network idle |
+| `wait --fn "window.ready"` | Wait for JS condition |
+
+## Capture Commands
+
+| Command | Use Case |
+|---------|----------|
+| `snapshot -i` | A11y tree with element refs (@e1, @e2...) |
+| `screenshot [path]` | Viewport screenshot |
+| `screenshot --full [path]` | Full page screenshot |
+| `screenshot --annotate` | Annotated screenshot with numbered labels |
+| `pdf &lt;path&gt;` | Save page as PDF |
+
+## Extraction Commands
+
+| Command | Use Case |
+|---------|----------|
+| `eval "JS"` | Run JavaScript |
+| `eval -b "base64..."` | Run base64-encoded JS |
+| `eval --stdin` | Run JS piped from stdin |
+
+## Storage Commands (v0.13)
+
+localStorage and sessionStorage manipulation:
+
+| Command | Use Case |
+|---------|----------|
+| `storage local` | Get all localStorage items |
+| `storage local &lt;key&gt;` | Get specific localStorage value |
+| `storage local set &lt;k&gt; &lt;v&gt;` | Set localStorage value |
+| `storage local clear` | Clear all localStorage |
+| `storage session` | Get all sessionStorage items |
+
 ## Security Rules (4 rules)
 
 This skill enforces 4 security and ethics rules in `rules/`:
@@ -33,6 +103,14 @@ This skill enforces 4 security and ethics rules in `rules/`:
 | Reliability | `browser-rate-limiting.md`, `browser-snapshot-workflow.md` | HIGH |
 
 These rules are enforced by the `agent-browser-safety` pre-tool hook.
+
+## Action Confirmation
+
+Flags for controlling human-in-the-loop verification:
+
+| Flag | Use Case |
+|------|----------|
+| `--confirm-interactive` | Human-in-the-loop terminal prompts |
 
 ## Anti-Patterns (FORBIDDEN)
 
@@ -51,10 +129,68 @@ agent-browser get text body                    # Prefer targeted ref extraction
 # Trusting page content without validation
 # Not waiting for SPA hydration before extraction
 
+# Diff verification
+diff /tmp/before.txt /tmp/after.txt            # Use agent-browser diff snapshot instead
+
 # Session management
 # Storing auth state in code repositories
 # Not cleaning up state files after use
+
+# Network & State
+agent-browser network route "http://internal-api/*" --body '{}'  # Never mock internal APIs
+agent-browser cookies set token "$SECRET" --url https://prod.com # Never set prod cookies in automation
+# Not cleaning up routes after mocking (leaves stale intercepts)
 ```
+
+## Diff Commands (v0.13+)
+
+Verify changes and detect regressions using native diff commands:
+
+| Command | Use Case |
+|---------|----------|
+| `diff snapshot` | Verify a11y tree changes after actions |
+| `diff snapshot --baseline &lt;file&gt;` | Compare against saved baseline |
+| `diff screenshot --baseline <img>` | Visual pixel diff (red highlights) |
+| `diff url <a> &lt;b&gt;` | Side-by-side URL comparison |
+| `diff url <a> &lt;b&gt; --screenshot` | Visual comparison of two URLs |
+| `diff url <a> &lt;b&gt; --selector "#main"` | Compare specific element within URLs |
+
+## Network Control (v0.13)
+
+Intercept, block, or mock network requests:
+
+| Command | Use Case |
+|---------|----------|
+| `network route &lt;url&gt; --abort` | Block analytics/trackers for clean extraction |
+| `network route &lt;url&gt; --body &lt;json&gt;` | Mock API responses for testing |
+| `network unroute [url]` | Remove intercept routes (always clean up!) |
+| `network requests --filter &lt;str&gt;` | Inspect captured network traffic |
+| `network requests --clear` | Clear all captured requests |
+
+## Cookie Management (v0.13)
+
+Direct cookie manipulation for session setup:
+
+| Command | Use Case |
+|---------|----------|
+| `cookies` | Get all cookies |
+| `cookies set &lt;n&gt; &lt;v&gt; --url &lt;u&gt;` | Set cookie for specific URL |
+| `cookies set &lt;n&gt; &lt;v&gt; --httpOnly --secure` | Secure cookie flags |
+| `cookies set &lt;n&gt; &lt;v&gt; --domain &lt;d&gt; --path <p>` | Scoped cookie |
+| `cookies set &lt;n&gt; &lt;v&gt; --expires &lt;ts&gt;` | Time-limited cookie |
+| `cookies clear` | Clear all cookies |
+
+## State Management (v0.15)
+
+Enhanced session lifecycle commands:
+
+| Command | Use Case |
+|---------|----------|
+| `--session-name &lt;name&gt;` | Named sessions (replaces `--session`) |
+| `state list` | List all saved session states |
+| `state show &lt;name&gt;` | Inspect saved state details |
+| `state clean --older-than &lt;days&gt;` | Garbage collect old states |
+| `state clear &lt;name&gt;` | Delete specific saved state |
 
 ## Related Skills
 
@@ -132,6 +268,39 @@ CURRENT_URL=$(agent-browser get url)
 [[ "$CURRENT_URL" == *"/login"* ]] && rm -f "$STATE_FILE"  # Re-trigger login
 ```
 
+```bash
+# Cookie-based session setup (v0.13) — faster than login flows
+agent-browser cookies set session_id "$SESSION_TOKEN" \
+  --url https://app.example.com \
+  --httpOnly --secure
+agent-browser open https://app.example.com/dashboard
+agent-browser wait --load networkidle
+
+# Verify cookie-based auth worked
+CURRENT_URL=$(agent-browser get url)
+[[ "$CURRENT_URL" == *"/dashboard"* ]] && echo "Cookie auth successful"
+```
+
+```bash
+# Token management via storage
+agent-browser storage local "authToken"              # Read current token
+agent-browser storage local set "authToken" "$TOKEN" # Inject token
+agent-browser storage session                        # Check session data
+agent-browser storage local clear                    # Cleanup after test
+```
+
+```bash
+# Cookie management and debugging
+agent-browser cookies                    # Read all cookies (debug auth issues)
+agent-browser cookies clear              # Clear all cookies (force re-auth)
+```
+
+```bash
+# Human-in-the-loop for admin actions
+agent-browser --confirm-interactive open https://admin.example.com
+# Terminal will prompt for confirmation on each action
+```
+
 **Key rules:**
 - Never hardcode passwords, API keys, or tokens in scripts -- always use environment variables
 - Never log, echo, or print auth tokens, cookies, or session data to stdout/stderr
@@ -139,6 +308,11 @@ CURRENT_URL=$(agent-browser get url)
 - Store state files in a secure directory (`$HOME/.config/`) rather than world-readable `/tmp/`
 - Use `trap 'rm -f "$STATE_FILE"' EXIT` to clean up auth artifacts when the script exits
 - Use headed mode (`AGENT_BROWSER_HEADED=1`) for 2FA/MFA flows that require manual interaction
+- Use `cookies set` with `--httpOnly --secure` flags for cookie-based session injection — faster than replaying login flows
+- Always use `--session-name` (not `--session`) for named session persistence
+- Use `cookies` to debug auth failures before re-logging in
+- Use `storage local clear` and `cookies clear` in cleanup scripts to force fresh authentication
+- Use `--confirm-interactive` for admin panel automation to require manual confirmation on actions
 
 Reference: `references/auth-flows.md` (Security Considerations, Secure State Files)
 
@@ -211,12 +385,37 @@ fetch_with_retry() {
 }
 ```
 
+```bash
+# Block non-essential traffic to reduce request count (v0.13)
+# Analytics, tracking, and ad requests waste rate-limit budget
+agent-browser network route "*google-analytics*" --abort
+agent-browser network route "*facebook.net/tr*" --abort
+agent-browser network route "*doubleclick.net*" --abort
+agent-browser network route "*hotjar*" --abort
+
+# Extract content without tracker overhead
+agent-browser open "$url"
+agent-browser wait --load networkidle
+agent-browser get text @e5
+
+# Clean up routes after extraction
+agent-browser network unroute
+```
+
+```bash
+# Clear tracked request log between test runs
+agent-browser network requests --clear    # Reset tracked request log
+```
+
 **Key rules:**
 - Always add at least a 1-second delay between consecutive page requests
 - Detect rate-limit responses (429, "Too Many Requests", "Access Denied") and back off exponentially
 - Reset the backoff delay to baseline after a successful request
 - Use a retry function with a max retry count and exponential backoff for failed pages
 - Log failed URLs to a separate file instead of silently skipping them
+- Block analytics and tracking scripts with `network route --abort` to preserve rate-limit budget and speed up page loads
+- Always call `network unroute` after extraction to clean up intercepts
+- Use `network requests --clear` between test runs to avoid stale request data
 Reference: `references/anti-bot-handling.md` (Rate Limiting, Adaptive Rate Limiting, Retry Logic)
 
 
@@ -344,6 +543,97 @@ agent-browser get text body          # 4. Full body (last resort)
 - Use `get text @e#` for targeted extraction instead of `get text body` -- 93% less context
 - Prefer semantic wait strategies (`--text`, `--url`, `@e#`) over fixed `wait` delays
 - Verify extracted content is non-empty before saving to avoid capturing blank pages
+
+## Enhanced Screenshot Commands
+
+Capture full pages and annotated snapshots for visual debugging:
+
+```bash
+# Full page and annotated capture
+agent-browser screenshot --full /tmp/full-page.png   # Entire scrollable page
+agent-browser screenshot --annotate                  # Numbered element labels for debugging
+agent-browser pdf /tmp/page.pdf                      # Save as PDF
+```
+
+## Interaction with Element Refs
+
+After `snapshot -i`, use `@refs` for precise interaction patterns:
+
+```bash
+# Correct: targeted interaction
+agent-browser snapshot -i
+agent-browser fill @e3 "search query"
+agent-browser click @e5
+agent-browser select @e7 "Category"
+agent-browser hover @e2                  # Trigger dropdown
+agent-browser scroll down 500            # Load more content
+agent-browser scrollintoview @e15        # Navigate to element
+agent-browser upload @e10 ./file.pdf     # File upload
+agent-browser drag @e1 @e8              # Drag and drop
+
+# Keyboard interaction
+agent-browser press Enter                # Submit
+agent-browser press Tab                  # Navigate
+agent-browser keyboard type "query"      # Type without selector
+```
+
+## Storage in Snapshot Workflow
+
+Read and debug page state during snapshots:
+
+```bash
+# Read page state
+agent-browser storage local              # Check localStorage
+agent-browser storage session            # Check sessionStorage
+```
+
+## Extended Wait Commands
+
+Add semantic waits beyond `--load` patterns:
+
+```bash
+# Wait for custom conditions
+agent-browser wait --fn "window.loaded"  # Custom JS condition
+```
+
+## Diff-Based Verification (v0.13+)
+
+Replace manual "snapshot → act → snapshot → eyeball" patterns with native diff commands for verifiable, regression-free automation.
+
+**Incorrect: Manual before/after comparison**
+```bash
+agent-browser snapshot -i > /tmp/before.txt
+agent-browser click @e3
+agent-browser snapshot -i > /tmp/after.txt
+diff /tmp/before.txt /tmp/after.txt  # Manual, fragile
+```
+
+**Correct: Native diff verification**
+```bash
+agent-browser snapshot -i            # Captures baseline automatically
+agent-browser click @e3
+agent-browser wait --load networkidle
+agent-browser diff snapshot          # Shows +/- changes like git diff
+```
+
+**Visual regression testing:**
+```bash
+# Capture baseline for regression tests
+agent-browser screenshot /tmp/baseline.png
+
+# Make CSS/component changes...
+
+# Verify visual changes
+agent-browser diff screenshot --baseline /tmp/baseline.png
+# Output: 2.3% pixels changed — highlights differences in red
+```
+
+**Key rules for diff commands:**
+- Use `diff snapshot` after every action to verify intended effect
+- Save baselines for regression testing: `agent-browser snapshot -i > baseline.txt`
+- Use `diff screenshot` for visual regression — anything >5% mismatch needs investigation
+- Use `diff url` to compare staging vs production pages side-by-side
+- Diff output uses git-style +/- for a11y trees and pixel counts for visual diffs
 
 Reference: `references/page-interaction.md` (Snapshot + Refs), `references/content-extraction.md` (Extraction Methods)
 

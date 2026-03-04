@@ -2,7 +2,12 @@
   "$schema": "https://claude.ai/schemas/plugin-settings.json",
   "respectGitignore": true,
   "env": {
-    "ENABLE_TOOL_SEARCH": "auto:5"
+    "ENABLE_TOOL_SEARCH": "auto:5",
+    "ORCHESTKIT_PROTECTED_BRANCHES": "main,master",
+    "ORCHESTKIT_COMMIT_SCOPE": "optional",
+    "ORCHESTKIT_PERF_SNAPSHOT_ENABLED": "1",
+    "ORCHESTKIT_LOG_LEVEL": "warn",
+    "ORCHESTKIT_AGENT_BROWSER_ALLOW_LOCALHOST": "1"
   },
   "plansDirectory": ".claude/plans",
   "permissions": {

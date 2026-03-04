@@ -68,4 +68,95 @@ agent-browser get text body          # 4. Full body (last resort)
 - Prefer semantic wait strategies (`--text`, `--url`, `@e#`) over fixed `wait` delays
 - Verify extracted content is non-empty before saving to avoid capturing blank pages
 
+## Enhanced Screenshot Commands
+
+Capture full pages and annotated snapshots for visual debugging:
+
+```bash
+# Full page and annotated capture
+agent-browser screenshot --full /tmp/full-page.png   # Entire scrollable page
+agent-browser screenshot --annotate                  # Numbered element labels for debugging
+agent-browser pdf /tmp/page.pdf                      # Save as PDF
+```
+
+## Interaction with Element Refs
+
+After `snapshot -i`, use `@refs` for precise interaction patterns:
+
+```bash
+# Correct: targeted interaction
+agent-browser snapshot -i
+agent-browser fill @e3 "search query"
+agent-browser click @e5
+agent-browser select @e7 "Category"
+agent-browser hover @e2                  # Trigger dropdown
+agent-browser scroll down 500            # Load more content
+agent-browser scrollintoview @e15        # Navigate to element
+agent-browser upload @e10 ./file.pdf     # File upload
+agent-browser drag @e1 @e8              # Drag and drop
+
+# Keyboard interaction
+agent-browser press Enter                # Submit
+agent-browser press Tab                  # Navigate
+agent-browser keyboard type "query"      # Type without selector
+```
+
+## Storage in Snapshot Workflow
+
+Read and debug page state during snapshots:
+
+```bash
+# Read page state
+agent-browser storage local              # Check localStorage
+agent-browser storage session            # Check sessionStorage
+```
+
+## Extended Wait Commands
+
+Add semantic waits beyond `--load` patterns:
+
+```bash
+# Wait for custom conditions
+agent-browser wait --fn "window.loaded"  # Custom JS condition
+```
+
+## Diff-Based Verification (v0.13+)
+
+Replace manual "snapshot → act → snapshot → eyeball" patterns with native diff commands for verifiable, regression-free automation.
+
+**Incorrect: Manual before/after comparison**
+```bash
+agent-browser snapshot -i > /tmp/before.txt
+agent-browser click @e3
+agent-browser snapshot -i > /tmp/after.txt
+diff /tmp/before.txt /tmp/after.txt  # Manual, fragile
+```
+
+**Correct: Native diff verification**
+```bash
+agent-browser snapshot -i            # Captures baseline automatically
+agent-browser click @e3
+agent-browser wait --load networkidle
+agent-browser diff snapshot          # Shows +/- changes like git diff
+```
+
+**Visual regression testing:**
+```bash
+# Capture baseline for regression tests
+agent-browser screenshot /tmp/baseline.png
+
+# Make CSS/component changes...
+
+# Verify visual changes
+agent-browser diff screenshot --baseline /tmp/baseline.png
+# Output: 2.3% pixels changed — highlights differences in red
+```
+
+**Key rules for diff commands:**
+- Use `diff snapshot` after every action to verify intended effect
+- Save baselines for regression testing: `agent-browser snapshot -i > baseline.txt`
+- Use `diff screenshot` for visual regression — anything >5% mismatch needs investigation
+- Use `diff url` to compare staging vs production pages side-by-side
+- Diff output uses git-style +/- for a11y trees and pixel counts for visual diffs
+
 Reference: `references/page-interaction.md` (Snapshot + Refs), `references/content-extraction.md` (Extraction Methods)

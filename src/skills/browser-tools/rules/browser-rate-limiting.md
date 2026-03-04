@@ -71,10 +71,35 @@ fetch_with_retry() {
 }
 ```
 
+```bash
+# Block non-essential traffic to reduce request count (v0.13)
+# Analytics, tracking, and ad requests waste rate-limit budget
+agent-browser network route "*google-analytics*" --abort
+agent-browser network route "*facebook.net/tr*" --abort
+agent-browser network route "*doubleclick.net*" --abort
+agent-browser network route "*hotjar*" --abort
+
+# Extract content without tracker overhead
+agent-browser open "$url"
+agent-browser wait --load networkidle
+agent-browser get text @e5
+
+# Clean up routes after extraction
+agent-browser network unroute
+```
+
+```bash
+# Clear tracked request log between test runs
+agent-browser network requests --clear    # Reset tracked request log
+```
+
 **Key rules:**
 - Always add at least a 1-second delay between consecutive page requests
 - Detect rate-limit responses (429, "Too Many Requests", "Access Denied") and back off exponentially
 - Reset the backoff delay to baseline after a successful request
 - Use a retry function with a max retry count and exponential backoff for failed pages
 - Log failed URLs to a separate file instead of silently skipping them
+- Block analytics and tracking scripts with `network route --abort` to preserve rate-limit budget and speed up page loads
+- Always call `network unroute` after extraction to clean up intercepts
+- Use `network requests --clear` between test runs to avoid stale request data
 Reference: `references/anti-bot-handling.md` (Rate Limiting, Adaptive Rate Limiting, Retry Logic)

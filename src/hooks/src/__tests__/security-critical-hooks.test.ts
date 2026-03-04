@@ -820,7 +820,8 @@ describe('gitValidator', () => {
   });
 
   describe('branch protection - blocks on protected branches', () => {
-    test.each(['main', 'dev', 'master'])(
+    // Default protected: main, master. 'dev' requires ORCHESTKIT_PROTECTED_BRANCHES=main,master,dev
+    test.each(['main', 'master'])(
       'blocks git commit on protected branch: %s',
       (branch) => {
         process.env.ORCHESTKIT_BRANCH = branch;
@@ -831,7 +832,16 @@ describe('gitValidator', () => {
       }
     );
 
-    test.each(['main', 'dev', 'master'])(
+    test('blocks git commit on dev when ORCHESTKIT_PROTECTED_BRANCHES includes dev', () => {
+      process.env.ORCHESTKIT_PROTECTED_BRANCHES = 'main,master,dev';
+      process.env.ORCHESTKIT_BRANCH = 'dev';
+      const result = gitValidator(createBashInput('git commit -m "test"'));
+      expectDeny(result);
+      expect(result.stopReason).toContain('dev');
+      delete process.env.ORCHESTKIT_PROTECTED_BRANCHES;
+    });
+
+    test.each(['main', 'master'])(
       'blocks git push on protected branch: %s',
       (branch) => {
         process.env.ORCHESTKIT_BRANCH = branch;

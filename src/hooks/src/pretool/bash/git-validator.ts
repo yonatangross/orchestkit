@@ -27,6 +27,22 @@ import { isProtectedBranch, validateBranchName, analyzeStagedChanges } from '../
 const VALID_COMMIT_TYPES = ['feat', 'fix', 'refactor', 'docs', 'test', 'chore', 'style', 'perf', 'ci', 'build'];
 const STAGED_FILE_WARNING_THRESHOLD = 10;
 
+/**
+ * Get the commit scope enforcement mode.
+ * Configurable via ORCHESTKIT_COMMIT_SCOPE env var (set in ork.settings.json).
+ *
+ * Values:
+ *   "required"  — commits without scope are blocked: type(scope): desc
+ *   "optional"  — scope allowed but not required (default)
+ *   "none"      — scope stripped from validation, any type: desc passes
+ */
+function getCommitScopeMode(): 'required' | 'optional' | 'none' {
+  const val = process.env.ORCHESTKIT_COMMIT_SCOPE?.toLowerCase().trim();
+  if (val === 'required') return 'required';
+  if (val === 'none') return 'none';
+  return 'optional';
+}
+
 // =============================================================================
 // HELPERS
 // =============================================================================
@@ -113,10 +129,21 @@ End with: Co-Authored-By: Claude <noreply@anthropic.com>`);
   }
 
   const typesPattern = VALID_COMMIT_TYPES.join('|');
-  const conventionalPattern = new RegExp(`^(${typesPattern})(\\(#?[0-9]+\\)|(\\([a-z-]+\\)))?: .+`);
-  const simplePattern = new RegExp(`^(${typesPattern}): .+`);
+  const scopeMode = getCommitScopeMode();
 
-  if (conventionalPattern.test(commitMsg) || simplePattern.test(commitMsg)) {
+  // Build patterns based on scope enforcement mode
+  const conventionalPattern = new RegExp(`^(${typesPattern})(\\(#?[0-9]+\\)|(\\([a-z][a-z0-9-]*\\)))?: .+`);
+  const simplePattern = new RegExp(`^(${typesPattern}): .+`);
+  const requiredScopePattern = new RegExp(`^(${typesPattern})(\\(#?[0-9]+\\)|(\\([a-z][a-z0-9-]*\\))): .+`);
+
+  let isValid: boolean;
+  if (scopeMode === 'required') {
+    isValid = requiredScopePattern.test(commitMsg);
+  } else {
+    isValid = conventionalPattern.test(commitMsg) || simplePattern.test(commitMsg);
+  }
+
+  if (isValid) {
     const titleLen = commitMsg.split('\n')[0].length;
     if (titleLen > 72) {
       return outputAllowWithContext(`Commit title is ${titleLen} chars (max 72 recommended)`);
@@ -124,9 +151,13 @@ End with: Co-Authored-By: Claude <noreply@anthropic.com>`);
     return null;
   }
 
+  const scopeHint = scopeMode === 'required'
+    ? 'type(scope): description  ← scope REQUIRED (ORCHESTKIT_COMMIT_SCOPE=required)'
+    : 'type(#issue): description  or  type: description';
+
   const errorMsg = `INVALID COMMIT FORMAT: "${commitMsg}"
 
-Required: type(#issue): description
+Required: ${scopeHint}
 Types: ${VALID_COMMIT_TYPES.join(', ')}
 Example: feat(#123): Add user authentication`;
 

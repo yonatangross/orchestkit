@@ -3101,7 +3101,8 @@ export const SKILLS: Record<string, SkillMeta> = {
     "agent": null,
     "structure": {
       "references": [
-        "claude-md-health.md"
+        "claude-md-health.md",
+        "configure-wizard.md"
       ]
     },
     "plugins": [

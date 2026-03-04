@@ -56,6 +56,19 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 - Snapshot + Refs workflow for performance profiling: `agent-browser snapshot -i`
 - Run `agent-browser --help` for full CLI docs
 
+### Browser Performance Testing
+```bash
+agent-browser open <url>
+agent-browser wait --load networkidle
+agent-browser network route "*analytics*" --abort    # Clean measurement
+agent-browser eval "JSON.stringify(performance.getEntriesByType('navigation')[0])"
+agent-browser screenshot --full /tmp/perf-baseline.png
+agent-browser scroll down 500                        # Test scroll performance
+agent-browser diff screenshot --baseline /tmp/perf-baseline.png
+agent-browser network requests --filter "api"        # Inspect API calls
+agent-browser network unroute                        # Cleanup
+```
+
 ## Memory Integration
 
 At task start, query relevant context:

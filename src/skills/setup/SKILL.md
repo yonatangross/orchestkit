@@ -3,7 +3,7 @@ name: setup
 license: MIT
 compatibility: "Claude Code 2.1.59+."
 description: "Personalized onboarding wizard. Use when setting up OrchestKit for a new project, configuring plugins, or generating a readiness score and improvement plan."
-argument-hint: "[--rescan] [--score-only] [--plan-only] [--channel]"
+argument-hint: "[--rescan] [--score-only] [--plan-only] [--channel] [--configure]"
 context: inherit
 version: 1.0.0
 author: OrchestKit
@@ -36,6 +36,7 @@ Personalized onboarding that scans your codebase, detects your stack, recommends
 /ork:setup --score-only # Just show readiness score
 /ork:setup --plan-only  # Just show improvement plan
 /ork:setup --channel    # Just show release channel
+/ork:setup --configure  # Jump directly to Phase 3.5: project configuration wizard
 ```
 
 ## Argument Resolution
@@ -46,13 +47,14 @@ FLAG = "$ARGUMENTS[0]"  # First token: --rescan, --score-only, --plan-only, --ch
 # $ARGUMENTS is the full string (CC 2.1.59 indexed access)
 ```
 
-## The Eight Phases
+## The Nine Phases
 
 | Phase | What | Tools Used | Output |
 |-------|------|-----------|--------|
 | 1. Scan | Detect languages, frameworks, infra, existing config | Glob, Grep, Read | Raw scan data |
 | 2. Stack | Classify detected stack, confidence levels | — | Stack profile |
 | 3. Safety | Check existing config, confirm scope (user/project) | Read, AskUserQuestion | Install confirmation |
+| 3.5. Configure | Interactive project configuration wizard → writes env block to per-project settings | Read, Write, AskUserQuestion | Configured settings file |
 | 4. Skills | Match stack to skills, suggest custom skills | Grep, Glob | Skill recommendations |
 | 5. MCPs | Recommend MCPs based on stack and gaps | Read, Bash | MCP recommendations |
 | 6. Score | Compute readiness score (0-10, 6 dimensions) | All above data | Readiness score |
@@ -215,6 +217,14 @@ Glob(pattern="~/.claude/plugins/ork*")
 ```
 
 Report: "No conflicts detected" or "Found existing ork install — version {version}."
+
+## Phase 3.5: Project Configuration Wizard
+
+See [Configure Wizard](references/configure-wizard.md) for the full 5-step interactive configuration flow (branch strategy, commit scope, localhost browser, perf telemetry, log verbosity) and env var reference.
+
+> Also reachable directly via `/ork:setup --configure` — skips phases 1-3.
+
+---
 
 ## Phase 4: Skill Recommendations
 
@@ -419,8 +429,9 @@ If the file already exists, **merge** — read existing entries, add only keybin
 
 | Flag | Behavior |
 |------|----------|
-| (none) | Full 8-phase wizard (includes 7b health check) |
+| (none) | Full 9-phase wizard (includes 3.5 configure + 7b health check) |
 | `--rescan` | Re-run scan + score, skip safety phase |
+| `--configure` | Jump directly to Phase 3.5: project configuration wizard |
 | `--score-only` | Show current readiness score (Phase 6 only) |
 | `--plan-only` | Show improvement plan (Phase 7 only) |
 | `--channel` | Show detected release channel only |

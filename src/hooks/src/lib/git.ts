@@ -24,11 +24,32 @@ export function getCurrentBranch(projectDir?: string): string {
 }
 
 /**
- * Check if on a protected branch (dev, main, master)
+ * Get the list of protected branches for the current project.
+ *
+ * Configurable via ORCHESTKIT_PROTECTED_BRANCHES env var (comma-separated).
+ * Set this in your project's ork.settings.json:
+ *   "env": { "ORCHESTKIT_PROTECTED_BRANCHES": "main,master,dev,staging" }
+ *
+ * Default: ["main", "master"]
+ * Note: "dev" is intentionally excluded from the default — it is too
+ * opinionated. Add it explicitly if your workflow uses dev as a protected branch.
+ */
+export function getProtectedBranches(): string[] {
+  const envVal = process.env.ORCHESTKIT_PROTECTED_BRANCHES;
+  if (envVal?.trim()) {
+    return envVal.split(',').map(b => b.trim()).filter(Boolean);
+  }
+  return ['main', 'master'];
+}
+
+/**
+ * Check if the given branch (or current branch) is protected.
+ * Protected branches block direct commits/pushes.
+ * Configurable via ORCHESTKIT_PROTECTED_BRANCHES env var.
  */
 export function isProtectedBranch(branch?: string): boolean {
   const currentBranch = branch || getCurrentBranch();
-  return ['dev', 'main', 'master'].includes(currentBranch);
+  return getProtectedBranches().includes(currentBranch);
 }
 
 /**

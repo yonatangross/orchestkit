@@ -50,7 +50,37 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 - Use `agent-browser` CLI via Bash for automated accessibility testing
 - Capture page for a11y audit: `agent-browser open &lt;url&gt; && agent-browser snapshot -i`
 - Run axe-core via browser: `agent-browser eval "axe.run()"`
+- **A11y tree diffing** (v0.13): Track accessibility changes over time
+  - `agent-browser diff snapshot` — detect a11y tree regressions after code changes
+  - `agent-browser diff snapshot --baseline before-fix.txt` — verify fix improved a11y tree
+  - `agent-browser diff screenshot --baseline <img>` — catch visual regressions affecting a11y
+- **Audit workflow**: snapshot baseline → apply fix → `diff snapshot` → verify improvement
 - Run `agent-browser --help` for full CLI docs
+
+### Keyboard & Focus Testing
+```bash
+agent-browser focus @e1                      # Test focus management
+agent-browser press Tab                      # Navigate by keyboard
+agent-browser press Shift+Tab                # Reverse tab navigation
+agent-browser press Enter                    # Activate focused element
+agent-browser press Space                    # Toggle checkbox/button
+agent-browser hover @tooltip                 # Test hover states
+agent-browser check @checkbox                # Test checkbox a11y
+agent-browser select @dropdown "Option"      # Test select a11y
+agent-browser scrollintoview @offscreen      # Test scroll behavior
+```
+
+### Screenshot Annotation for A11y Audits
+```bash
+agent-browser screenshot --annotate          # Numbered labels for element identification
+agent-browser screenshot --full /tmp/a11y.png  # Full page capture for audit
+```
+
+### Storage for A11y Preferences
+```bash
+agent-browser storage local "reduced_motion" # Check motion preferences
+agent-browser storage local set "high_contrast" "true"  # Test contrast mode
+```
 
 
 ## Concrete Objectives
