@@ -7,6 +7,9 @@
  * - Sensitive action warnings
  * - Per-domain rate limiting (#318)
  * - robots.txt enforcement (#319)
+ * - --allow-file-access warning (v0.16)
+ * - AGENT_BROWSER_ENCRYPTION_KEY leak prevention (v0.16)
+ * - --user-agent spoofing warning (v0.16)
  *
  * CC 2.1.9: Injects safety context via additionalContext
  */
@@ -445,9 +448,36 @@ function isSensitiveAction(command: string): boolean {
 export function agentBrowserSafety(input: HookInput): HookResult {
   const command = input.tool_input.command || '';
 
+  // Check 0: AGENT_BROWSER_ENCRYPTION_KEY leak prevention (v0.16)
+  // This check runs on ALL bash commands, not just agent-browser
+  if (/AGENT_BROWSER_ENCRYPTION_KEY/.test(command) && /\b(echo|printf|cat|log|print)\b|>/.test(command)) {
+    logPermissionFeedback('deny', 'Attempted to leak AGENT_BROWSER_ENCRYPTION_KEY', input);
+    logHook('agent-browser-safety', 'BLOCKED: encryption key leak attempt');
+
+    return outputDeny(
+      `agent-browser blocked: AGENT_BROWSER_ENCRYPTION_KEY must never be echoed, logged, or piped.
+
+This key encrypts Auth Vault credentials. Exposing it compromises all stored auth states.
+Use the key only as an environment variable passed to agent-browser commands.`
+    );
+  }
+
   // Only process agent-browser commands
   if (!/agent-browser|ab\s/.test(command)) {
     return outputSilentSuccess();
+  }
+
+  // Check pre-1: --allow-file-access warning (v0.16)
+  // Must run before URL blocklist to avoid false deny on file:// URLs
+  if (/--allow-file-access/.test(command)) {
+    const context = `WARNING: --allow-file-access enables file:// URL access in agent-browser.
+This bypasses the file:// URL blocklist and allows reading local filesystem files.
+Only use this flag when explicitly required for local file testing.
+Never combine with untrusted URLs or user-supplied paths.`;
+
+    logPermissionFeedback('allow', '--allow-file-access warning', input);
+    logHook('agent-browser-safety', '--allow-file-access flag detected');
+    return outputAllowWithContext(context);
   }
 
   // Extract URL from command
@@ -580,6 +610,18 @@ Use 'agent-browser network unroute' to clean up after testing.`;
       logHook('agent-browser-safety', 'Network mock detected');
       return outputAllowWithContext(context);
     }
+  }
+
+  // Check 6: --user-agent spoofing warning (v0.16)
+  if (/--user-agent\s/.test(command)) {
+    const context = `WARNING: Custom --user-agent detected.
+Use --user-agent only to identify your automation tool (e.g., "MyBot/1.0").
+Do NOT spoof real browser user-agents to bypass bot detection — this violates ethical scraping rules.
+agent-browser identifies itself by default; only override when the target site requires a specific UA string.`;
+
+    logPermissionFeedback('allow', '--user-agent spoofing warning', input);
+    logHook('agent-browser-safety', '--user-agent flag detected');
+    return outputAllowWithContext(context);
   }
 
   // Safe command

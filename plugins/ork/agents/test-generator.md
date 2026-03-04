@@ -146,6 +146,51 @@ agent-browser cookies clear                 # Clear all cookies
 agent-browser cookies set "sessionId" "abc123" --url "https://app.test" --httpOnly
 ```
 
+### Recording & Tracing for Test Debugging (v0.16)
+
+```bash
+# Capture trace for failing E2E test reproduction
+agent-browser trace start /tmp/test-trace.zip
+agent-browser open https://app.test/checkout
+agent-browser fill @e1 "test@example.com"
+agent-browser click @e2
+agent-browser wait --text "Error"
+agent-browser trace stop
+# Share trace file for debugging — review for sensitive data first
+
+# Capture console errors during test run
+agent-browser console                       # Review JS console output
+agent-browser errors                        # Capture page errors for assertions
+```
+
+### Semantic Locators for E2E Tests (v0.16)
+
+```bash
+# More stable than @ref numbers across test runs
+agent-browser find "Add to Cart"            # Find by visible text
+agent-browser find --role button "Submit"   # Find by role + text
+agent-browser find --placeholder "Email"    # Find by placeholder
+
+# Highlight for visual debugging
+agent-browser highlight @e1
+agent-browser screenshot /tmp/debug.png
+agent-browser highlight --clear
+```
+
+### Mobile E2E Testing (v0.16)
+
+```bash
+# Test responsive behavior
+agent-browser --device "iPhone 15" open https://app.test
+agent-browser wait --load networkidle
+agent-browser snapshot -i                   # Verify mobile layout
+agent-browser screenshot /tmp/mobile.png
+
+# Dark mode testing
+agent-browser --color-scheme dark open https://app.test
+agent-browser screenshot /tmp/dark-mode.png
+```
+
 
 ## Concrete Objectives
 1. Identify untested code paths via coverage analysis

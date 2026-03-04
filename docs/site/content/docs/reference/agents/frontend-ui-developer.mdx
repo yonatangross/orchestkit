@@ -134,6 +134,40 @@ agent-browser storage local set "feature_new_nav" "enabled"
 agent-browser storage local clear            # Reset to defaults
 ```
 
+### Recording for Bug Reports (v0.16)
+```bash
+# Capture trace for component bug reproduction
+agent-browser trace start /tmp/component-trace.zip
+agent-browser open http://localhost:3000/component
+agent-browser click @e1
+agent-browser wait --text "Error"
+agent-browser trace stop
+# Open trace in Playwright Trace Viewer for debugging
+```
+
+### Semantic Locators & Highlight (v0.16)
+```bash
+# Find components by visible text (stable across re-renders)
+agent-browser find "Save Changes"            # Find by text
+agent-browser find --role button "Delete"    # Find by role + text
+agent-browser highlight @e1                  # Visually verify element
+agent-browser highlight --clear
+```
+
+### Color Scheme & Mouse Control (v0.16)
+```bash
+# Test dark/light mode rendering
+agent-browser --color-scheme dark open http://localhost:3000
+agent-browser screenshot /tmp/dark.png
+agent-browser --color-scheme light open http://localhost:3000
+agent-browser screenshot /tmp/light.png
+
+# Precise mouse control for canvas/map components
+agent-browser mouse move 200 300
+agent-browser mouse click 200 300
+agent-browser mouse wheel 0 -500            # Scroll within canvas
+```
+
 
 ## Concrete Objectives
 1. Build React 19 components with hooks and concurrent features

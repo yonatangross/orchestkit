@@ -112,5 +112,9 @@ agent-browser --confirm-interactive open https://admin.example.com
 - Use `cookies` to debug auth failures before re-logging in
 - Use `storage local clear` and `cookies clear` in cleanup scripts to force fresh authentication
 - Use `--confirm-interactive` for admin panel automation to require manual confirmation on actions
+- Use `vault store`/`vault load` (v0.15) for encrypted credential persistence — requires `AGENT_BROWSER_ENCRYPTION_KEY`
+- Never echo, log, or pipe `AGENT_BROWSER_ENCRYPTION_KEY` — treat it like a password
+- Use `--confirm-actions` (v0.15) for native CLI-level action gating on sensitive operations
+- Prefer `vault` over `state save` for auth data — vault encrypts at rest, state files are plaintext JSON
 
 Reference: `references/auth-flows.md` (Security Considerations, Secure State Files)

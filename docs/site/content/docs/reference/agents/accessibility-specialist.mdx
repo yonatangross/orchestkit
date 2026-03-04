@@ -82,6 +82,34 @@ agent-browser storage local "reduced_motion" # Check motion preferences
 agent-browser storage local set "high_contrast" "true"  # Test contrast mode
 ```
 
+### Semantic Locators for A11y Audits (v0.16)
+```bash
+# Find elements by ARIA roles — verify correct role assignment
+agent-browser find --role button "Submit"        # Verify button role
+agent-browser find --role navigation "Main Nav"  # Verify nav landmark
+agent-browser find --role heading "Page Title"   # Verify heading structure
+
+# Highlight elements for visual a11y review
+agent-browser highlight @e1                      # Mark element under review
+agent-browser screenshot --annotate              # Capture with numbered labels
+agent-browser highlight --clear
+```
+
+### Color Scheme & Device Testing (v0.16)
+```bash
+# Test dark/light mode contrast compliance
+agent-browser --color-scheme dark open https://app.example.com
+agent-browser screenshot /tmp/a11y-dark.png
+agent-browser --color-scheme light open https://app.example.com
+agent-browser screenshot /tmp/a11y-light.png
+# Compare contrast ratios across both modes
+
+# Tab audit across devices
+agent-browser --device "iPhone 15" open https://app.example.com
+agent-browser snapshot -i                        # Verify mobile a11y tree
+agent-browser press Tab                          # Test keyboard nav on mobile viewport
+```
+
 
 ## Concrete Objectives
 1. Audit existing interfaces for WCAG 2.2 compliance

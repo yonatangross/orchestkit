@@ -102,4 +102,8 @@ agent-browser network requests --clear    # Reset tracked request log
 - Block analytics and tracking scripts with `network route --abort` to preserve rate-limit budget and speed up page loads
 - Always call `network unroute` after extraction to clean up intercepts
 - Use `network requests --clear` between test runs to avoid stale request data
+- Use `--allowed-domains` (v0.16) to restrict navigation to approved domains — prevents accidental crawl escapes
+- Use `--action-policy <path>` (v0.16) to enforce a JSON policy file governing which actions are permitted
+- Use `--max-output <bytes>` (v0.16) to cap command output size — prevents context window blowup from large pages
+
 Reference: `references/anti-bot-handling.md` (Rate Limiting, Adaptive Rate Limiting, Retry Logic)

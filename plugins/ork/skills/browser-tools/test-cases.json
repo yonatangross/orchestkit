@@ -1,6 +1,6 @@
 {
   "skill": "browser-tools",
-  "version": "2.1.0",
+  "version": "3.0.0",
   "testCases": [
     {
       "id": "page-interaction",
@@ -55,6 +55,39 @@
         "Respects Terms of Service and site policies",
         "Uses identifiable user-agent string",
         "Limits crawl scope to necessary pages only"
+      ]
+    },
+    {
+      "id": "debug-recording",
+      "rule": "browser-debug-recording",
+      "query": "Create a trace recording to debug a browser automation issue",
+      "expectedBehavior": [
+        "Loads auth state via vault before starting trace to avoid capturing credentials",
+        "Uses trace start/stop to capture only the relevant interaction",
+        "Reviews console and errors output before redirecting to files",
+        "Stores debug output in /tmp/ or ephemeral directories, not project dirs"
+      ]
+    },
+    {
+      "id": "mobile-testing",
+      "rule": "browser-mobile-testing",
+      "query": "Test a responsive web app on mobile devices",
+      "expectedBehavior": [
+        "Uses --device flag with specific device name for emulation",
+        "Verifies viewport dimensions after device emulation is set",
+        "Tests both --color-scheme dark and light modes",
+        "Checks iOS Simulator is booted before using --ios-simulator flag"
+      ]
+    },
+    {
+      "id": "semantic-locators",
+      "rule": "browser-snapshot-workflow",
+      "query": "Find and click a button by its visible text label",
+      "expectedBehavior": [
+        "Uses find command with visible text instead of fragile @ref numbers",
+        "Uses find --role to narrow search by ARIA role when text is ambiguous",
+        "Falls back to snapshot -i when find returns multiple matches",
+        "Uses highlight to visually verify the correct element before clicking"
       ]
     }
   ]

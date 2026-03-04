@@ -200,6 +200,34 @@ agent-browser state show competitor-research  # Inspect specific state
 agent-browser state clean --older-than 7      # Clean up old states
 ```
 
+### Auth Vault & Domain Control (v0.15-v0.16)
+
+```bash
+# Encrypted credential persistence (v0.15)
+agent-browser vault store competitor-auth   # Save encrypted auth state
+agent-browser vault load competitor-auth    # Restore for next research session
+agent-browser vault list                    # List stored vault entries
+
+# Domain restriction for focused crawling (v0.16)
+agent-browser --allowed-domains docs.example.com,api.example.com open https://docs.example.com
+# Prevents accidental navigation to unrelated sites during research
+
+# Proxy for geo-restricted content (v0.16)
+agent-browser --proxy http://proxy.example.com:8080 open https://regional-site.com
+
+# Output size control (v0.16)
+agent-browser --max-output 50000 get text body  # Cap output to prevent context blowup
+```
+
+### Semantic Locators (v0.16)
+
+```bash
+# Find elements by visible text (more stable than @refs across page loads)
+agent-browser find "Pricing"                    # Find element by text
+agent-browser find --role link "Documentation"  # Find link by ARIA role + text
+agent-browser highlight @e5                     # Visually verify element
+```
+
 ## Concrete Objectives
 
 1. Extract content from JS-rendered SPAs (React, Vue, Angular)

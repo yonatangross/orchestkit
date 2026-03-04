@@ -163,4 +163,34 @@ describe('agent-browser-safety', () => {
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
   });
+
+  it('warns about --allow-file-access flag (v0.16)', () => {
+    const input = createBashInput('agent-browser --allow-file-access open "file:///tmp/test.html"');
+    const result = agentBrowserSafety(input);
+    expect(result.continue).toBe(true);
+    expect(result.hookSpecificOutput?.additionalContext).toContain('--allow-file-access');
+    expect(result.hookSpecificOutput?.additionalContext).toContain('file:// URL');
+  });
+
+  it('blocks echoing AGENT_BROWSER_ENCRYPTION_KEY (v0.16)', () => {
+    const input = createBashInput('echo $AGENT_BROWSER_ENCRYPTION_KEY');
+    const result = agentBrowserSafety(input);
+    expect(result.continue).toBe(false);
+    expect(result.stopReason).toContain('AGENT_BROWSER_ENCRYPTION_KEY');
+  });
+
+  it('blocks printf of AGENT_BROWSER_ENCRYPTION_KEY (v0.16)', () => {
+    const input = createBashInput('printf "%s" "$AGENT_BROWSER_ENCRYPTION_KEY" > /tmp/key.txt');
+    const result = agentBrowserSafety(input);
+    expect(result.continue).toBe(false);
+    expect(result.stopReason).toContain('AGENT_BROWSER_ENCRYPTION_KEY');
+  });
+
+  it('warns about --user-agent spoofing (v0.16)', () => {
+    const input = createBashInput('agent-browser --user-agent "Mozilla/5.0 Chrome/120" open "https://example.com"');
+    const result = agentBrowserSafety(input);
+    expect(result.continue).toBe(true);
+    expect(result.hookSpecificOutput?.additionalContext).toContain('--user-agent');
+    expect(result.hookSpecificOutput?.additionalContext).toContain('spoof');
+  });
 });
