@@ -5,11 +5,30 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.1.0] - 2026-03-04
+
+### Added
+
+- **Full agent-browser CLI adoption** (#947 #948 #949): 64 commands across 12 categories documented in browser-tools skill
+- **Interaction commands**: click, dblclick, focus, fill, type, keyboard, press, hover, check/uncheck, select, scroll, scrollintoview, drag, upload (22 commands)
+- **Storage API** (v0.13): localStorage/sessionStorage get, set, clear
+- **Enhanced capture**: screenshot --full, screenshot --annotate, pdf export
+- **Extraction**: eval, eval -b, eval --stdin
+- **Action confirmation** (v0.15): native --confirm-interactive with env-gated `AGENT_BROWSER_NATIVE_CONFIRM`
+- **Network route validation**: agent-browser-safety hook Check 5 validates route URLs against blocklist
+- **6 agents updated**: web-research-analyst, test-generator, accessibility-specialist, frontend-ui-developer, rapid-ui-designer, frontend-performance-engineer
+- **3 rules updated**: browser-auth-security, browser-rate-limiting, browser-snapshot-workflow
+- **Configurable settings wizard** (#951): setup skill writes to .claude/settings.json for non-orchestkit projects
+- **Performance sprint**: injection gating, CI gate, perf-compare, perf-snapshot hook (#865 #944 #945 #946)
+
+---
+
+
 ## [7.0.3] - 2026-03-04
 
 ### Fixed
 
-- TODO: Describe your changes here
+- **Assessment quality gaps** (#946): address code-quality-reviewer blockers in verify skill
 
 ---
 
