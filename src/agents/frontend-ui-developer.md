@@ -97,6 +97,45 @@ With 128K output, build entire feature pages without splitting across responses.
 - **Clean testing**: `agent-browser network route "*analytics*" --abort` — block trackers during visual tests
 - Run `agent-browser --help` for full CLI docs
 
+### UI Interaction Testing
+```bash
+# Form components
+agent-browser fill @input "value"
+agent-browser type @input " appended"        # Test append behavior
+agent-browser select @dropdown "Option"
+agent-browser check @toggle                  # Toggle switch
+agent-browser uncheck @toggle
+
+# Responsive & scroll
+agent-browser scroll down 500
+agent-browser scroll right 200 --selector ".carousel"
+agent-browser scrollintoview @footer
+agent-browser hover @button                  # Test hover states
+agent-browser dblclick @cell                 # Editable content
+
+# Drag & drop
+agent-browser drag @card @column2
+agent-browser upload @dropzone ./image.png
+
+# Keyboard
+agent-browser press Escape                   # Modal close
+agent-browser keyboard type "search"
+```
+
+### Enhanced Capture
+```bash
+agent-browser screenshot --full /tmp/full-page.png
+agent-browser screenshot --annotate          # Debug element positions
+agent-browser pdf /tmp/page.pdf
+```
+
+### Storage for Dev Testing
+```bash
+agent-browser storage local set "debug" "true"
+agent-browser storage local set "feature_new_nav" "enabled"
+agent-browser storage local clear            # Reset to defaults
+```
+
 
 ## Concrete Objectives
 1. Build React 19 components with hooks and concurrent features

@@ -53,6 +53,17 @@ With 128K output, deliver a full design system for a feature without splitting a
 - Screenshots: `agent-browser screenshot <path>` or `agent-browser screenshot --full <path>`
 - Run `agent-browser --help` for full CLI docs
 
+### Browser Preview Commands
+```bash
+agent-browser open <url>                     # Open prototype
+agent-browser snapshot -i                    # Capture element tree
+agent-browser screenshot --full /tmp/design.png  # Full page capture
+agent-browser screenshot --annotate          # Element labels for specs
+agent-browser scroll down 500                # Review below-fold
+agent-browser hover @e1                      # Check hover states
+agent-browser diff screenshot --baseline before.png  # Compare iterations
+```
+
 
 ## Concrete Objectives
 1. Create component mockups with Tailwind CSS classes

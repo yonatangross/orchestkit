@@ -58,6 +58,31 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 - **Audit workflow**: snapshot baseline → apply fix → `diff snapshot` → verify improvement
 - Run `agent-browser --help` for full CLI docs
 
+### Keyboard & Focus Testing
+```bash
+agent-browser focus @e1                      # Test focus management
+agent-browser press Tab                      # Navigate by keyboard
+agent-browser press Shift+Tab                # Reverse tab navigation
+agent-browser press Enter                    # Activate focused element
+agent-browser press Space                    # Toggle checkbox/button
+agent-browser hover @tooltip                 # Test hover states
+agent-browser check @checkbox                # Test checkbox a11y
+agent-browser select @dropdown "Option"      # Test select a11y
+agent-browser scrollintoview @offscreen      # Test scroll behavior
+```
+
+### Screenshot Annotation for A11y Audits
+```bash
+agent-browser screenshot --annotate          # Numbered labels for element identification
+agent-browser screenshot --full /tmp/a11y.png  # Full page capture for audit
+```
+
+### Storage for A11y Preferences
+```bash
+agent-browser storage local "reduced_motion" # Check motion preferences
+agent-browser storage local set "high_contrast" "true"  # Test contrast mode
+```
+
 
 ## Concrete Objectives
 1. Audit existing interfaces for WCAG 2.2 compliance
