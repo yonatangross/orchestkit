@@ -64,10 +64,63 @@ agent-browser get text body                    # Prefer targeted ref extraction
 # Trusting page content without validation
 # Not waiting for SPA hydration before extraction
 
+# Diff verification
+diff /tmp/before.txt /tmp/after.txt            # Use agent-browser diff snapshot instead
+
 # Session management
 # Storing auth state in code repositories
 # Not cleaning up state files after use
+
+# Network & State
+agent-browser network route "http://internal-api/*" --body '{}'  # Never mock internal APIs
+agent-browser cookies set token "$SECRET" --url https://prod.com # Never set prod cookies in automation
+# Not cleaning up routes after mocking (leaves stale intercepts)
 ```
+
+## Diff Commands (v0.13+)
+
+Verify changes and detect regressions using native diff commands:
+
+| Command | Use Case |
+|---------|----------|
+| `diff snapshot` | Verify a11y tree changes after actions |
+| `diff snapshot --baseline <file>` | Compare against saved baseline |
+| `diff screenshot --baseline <img>` | Visual pixel diff (red highlights) |
+| `diff url <a> <b>` | Side-by-side URL comparison |
+| `diff url <a> <b> --screenshot` | Visual comparison of two URLs |
+
+## Network Control (v0.13)
+
+Intercept, block, or mock network requests:
+
+| Command | Use Case |
+|---------|----------|
+| `network route <url> --abort` | Block analytics/trackers for clean extraction |
+| `network route <url> --body <json>` | Mock API responses for testing |
+| `network unroute [url]` | Remove intercept routes (always clean up!) |
+| `network requests --filter <str>` | Inspect captured network traffic |
+
+## Cookie Management (v0.13)
+
+Direct cookie manipulation for session setup:
+
+| Command | Use Case |
+|---------|----------|
+| `cookies set <n> <v> --url <u>` | Set cookie for specific URL |
+| `cookies set <n> <v> --httpOnly --secure` | Secure cookie flags |
+| `cookies set <n> <v> --domain <d> --path <p>` | Scoped cookie |
+| `cookies set <n> <v> --expires <ts>` | Time-limited cookie |
+
+## State Management (v0.15)
+
+Enhanced session lifecycle commands:
+
+| Command | Use Case |
+|---------|----------|
+| `--session-name <name>` | Named sessions (replaces `--session`) |
+| `state list` | List all saved session states |
+| `state show <name>` | Inspect saved state details |
+| `state clean --older-than <days>` | Garbage collect old states |
 
 ## Related Skills
 

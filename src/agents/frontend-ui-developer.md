@@ -90,6 +90,11 @@ With 128K output, build entire feature pages without splitting across responses.
 - Use `agent-browser` CLI via Bash for component visual testing and E2E test generation
 - Snapshot + Refs workflow: `agent-browser snapshot -i` then interact with `@e1`, `@e2` refs
 - Screenshots: `agent-browser screenshot <path>` for visual verification
+- **Visual regression testing** (v0.13):
+  - `agent-browser diff screenshot --baseline <img>` — pixel-level diff with mismatch percentage
+  - `agent-browser diff snapshot` — verify DOM changes after component updates
+  - `agent-browser diff url <dev> <staging>` — compare component rendering across environments
+- **Clean testing**: `agent-browser network route "*analytics*" --abort` — block trackers during visual tests
 - Run `agent-browser --help` for full CLI docs
 
 

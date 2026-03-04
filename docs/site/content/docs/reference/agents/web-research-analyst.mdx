@@ -120,6 +120,39 @@ agent-browser screenshot /tmp/evidence.png
 agent-browser eval "JSON.stringify(window.__DATA__)"
 ```
 
+### Network Control (v0.13)
+
+```bash
+# Block analytics/trackers for clean content extraction
+agent-browser network route "*analytics*" --abort
+agent-browser network route "*tracking*" --abort
+agent-browser network route "*ads*" --abort
+
+# Mock API responses for testing extraction logic
+agent-browser network route "https://api.example.com/v1/*" --body '{"items": []}'
+
+# Inspect captured network traffic
+agent-browser network requests --filter "api"
+
+# Clean up routes when done
+agent-browser network unroute
+```
+
+### Cookie & Session Management (v0.13-v0.15)
+
+```bash
+# Named sessions (replaces --session flag)
+agent-browser --session-name competitor-research open https://competitor.com
+
+# Set authentication cookies directly
+agent-browser cookies set session_token "$SESSION_TOKEN" --url https://app.example.com --httpOnly --secure
+
+# Manage saved sessions
+agent-browser state list                      # See all saved states
+agent-browser state show competitor-research  # Inspect specific state
+agent-browser state clean --older-than 7      # Clean up old states
+```
+
 ## Concrete Objectives
 
 1. Extract content from JS-rendered SPAs (React, Vue, Angular)
@@ -262,6 +295,31 @@ agent-browser network requests --filter "api" > /tmp/api-calls.json
 
 # 3. Analyze API structure
 cat /tmp/api-calls.json | jq '.[] | {url, method, status}'
+
+# 4. Block non-essential traffic for clean API capture
+agent-browser network route "*analytics*" --abort
+agent-browser network route "*tracking*" --abort
+```
+
+### Diff & Change Detection (v0.13)
+
+```bash
+# Verify page state after interaction
+agent-browser snapshot -i
+agent-browser fill @e1 "search query"
+agent-browser click @e2
+agent-browser wait --load networkidle
+agent-browser diff snapshot            # Verify search results appeared
+
+# Compare pages across environments
+agent-browser diff url https://staging.example.com https://prod.example.com
+
+# Track content changes over time
+agent-browser screenshot /tmp/pricing-baseline.png
+# ... time passes ...
+agent-browser open https://competitor.com/pricing
+agent-browser diff screenshot --baseline /tmp/pricing-baseline.png
+# Output: 15.2% pixels changed — pricing page updated
 ```
 
 ## Error Handling
@@ -278,6 +336,7 @@ cat /tmp/api-calls.json | jq '.[] | {url, method, status}'
 | Content in iframe | Use `frame @e1` command |
 | Network timeout | Increase timeout, retry |
 | No TAVILY_API_KEY | Skip Tavily, use WebFetch → agent-browser |
+| Tracker interference | Block trackers: `network route "*analytics*" --abort` |
 
 ## Context Protocol
 

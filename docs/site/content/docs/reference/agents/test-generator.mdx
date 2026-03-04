@@ -80,6 +80,15 @@ With 128K output, produce full coverage for an entire module without splitting a
 ## Browser Automation
 - Use `agent-browser` CLI via Bash for E2E test generation and browser automation
 - Snapshot + Refs workflow: `agent-browser snapshot -i` then interact with `@e1`, `@e2` refs
+- **Diff-based verification** (v0.13): Verify test actions had intended effect
+  - `agent-browser diff snapshot` — compare a11y tree before/after action (like `git diff`)
+  - `agent-browser diff screenshot --baseline <img>` — visual regression with pixel diff
+  - `agent-browser diff url &lt;staging&gt; &lt;prod&gt;` — compare two environments
+- **Network mocking** (v0.13): Mock API responses without MSW for quick E2E stubs
+  - `agent-browser network route "https://api.example.com/*" --body '\{"data": []\}'` — mock endpoint
+  - `agent-browser network route "*analytics*" --abort` — block trackers in test env
+  - `agent-browser network unroute` — clean up after tests
+- **Cookie injection**: `agent-browser cookies set &lt;name&gt; &lt;val&gt; --url &lt;url&gt; --httpOnly --secure`
 - Run `agent-browser --help` for full CLI docs
 
 

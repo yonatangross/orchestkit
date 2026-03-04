@@ -67,6 +67,19 @@ CURRENT_URL=$(agent-browser get url)
 [[ "$CURRENT_URL" == *"/login"* ]] && rm -f "$STATE_FILE"  # Re-trigger login
 ```
 
+```bash
+# Cookie-based session setup (v0.13) — faster than login flows
+agent-browser cookies set session_id "$SESSION_TOKEN" \
+  --url https://app.example.com \
+  --httpOnly --secure
+agent-browser open https://app.example.com/dashboard
+agent-browser wait --load networkidle
+
+# Verify cookie-based auth worked
+CURRENT_URL=$(agent-browser get url)
+[[ "$CURRENT_URL" == *"/dashboard"* ]] && echo "Cookie auth successful"
+```
+
 **Key rules:**
 - Never hardcode passwords, API keys, or tokens in scripts -- always use environment variables
 - Never log, echo, or print auth tokens, cookies, or session data to stdout/stderr
@@ -74,5 +87,7 @@ CURRENT_URL=$(agent-browser get url)
 - Store state files in a secure directory (`$HOME/.config/`) rather than world-readable `/tmp/`
 - Use `trap 'rm -f "$STATE_FILE"' EXIT` to clean up auth artifacts when the script exits
 - Use headed mode (`AGENT_BROWSER_HEADED=1`) for 2FA/MFA flows that require manual interaction
+- Use `cookies set` with `--httpOnly --secure` flags for cookie-based session injection — faster than replaying login flows
+- Always use `--session-name` (not `--session`) for named session persistence
 
 Reference: `references/auth-flows.md` (Security Considerations, Secure State Files)
