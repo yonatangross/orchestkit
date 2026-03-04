@@ -122,6 +122,36 @@ agent-browser screenshot /tmp/evidence.png
 agent-browser eval "JSON.stringify(window.__DATA__)"
 ```
 
+### Interaction (use @refs from snapshot)
+
+```bash
+# Forms
+agent-browser fill @e1 "$EMAIL"        # Clear and type
+agent-browser type @e1 "additional"     # Append without clearing
+agent-browser select @e1 "option"       # Dropdown selection
+agent-browser check @e1                 # Check checkbox
+agent-browser uncheck @e1               # Uncheck
+
+# Navigation within page
+agent-browser scroll down 500           # Scroll page
+agent-browser scroll down 300 --selector ".results"  # Scroll container
+agent-browser scrollintoview @e5        # Bring element into view
+agent-browser hover @e1                 # Hover for tooltips/menus
+agent-browser click @e1 --new-tab       # Open link in new tab
+agent-browser dblclick @e1              # Double-click
+
+# Keyboard
+agent-browser press Enter               # Submit form
+agent-browser press Control+a           # Select all
+agent-browser keyboard type "search query"  # Type at focus
+agent-browser keydown Shift             # Hold modifier
+agent-browser keyup Shift               # Release modifier
+
+# File & drag
+agent-browser upload @e1 ./report.pdf   # File upload
+agent-browser drag @e1 @e2              # Drag and drop
+```
+
 ### Network Control (v0.13)
 
 ```bash
@@ -140,11 +170,28 @@ agent-browser network requests --filter "api"
 agent-browser network unroute
 ```
 
+### Storage (v0.13)
+
+```bash
+# Read app state
+agent-browser storage local             # All localStorage
+agent-browser storage local "authToken" # Specific key
+agent-browser storage session           # All sessionStorage
+
+# Manipulate for testing
+agent-browser storage local set "feature_flag" "true"
+agent-browser storage local clear       # Reset
+```
+
 ### Cookie & Session Management (v0.13-v0.15)
 
 ```bash
 # Named sessions (replaces --session flag)
 agent-browser --session-name competitor-research open https://competitor.com
+
+# Read cookies
+agent-browser cookies                   # All cookies
+agent-browser cookies clear             # Clear all cookies
 
 # Set authentication cookies directly
 agent-browser cookies set session_token "$SESSION_TOKEN" --url https://app.example.com --httpOnly --secure
@@ -322,6 +369,20 @@ agent-browser screenshot /tmp/pricing-baseline.png
 agent-browser open https://competitor.com/pricing
 agent-browser diff screenshot --baseline /tmp/pricing-baseline.png
 # Output: 15.2% pixels changed — pricing page updated
+```
+
+### Capture
+
+```bash
+agent-browser screenshot --full /tmp/full-page.png
+agent-browser screenshot --annotate     # Numbered element labels
+agent-browser pdf /tmp/page.pdf
+```
+
+### Wait
+
+```bash
+agent-browser wait --fn "window.appReady"
 ```
 
 ## Error Handling
