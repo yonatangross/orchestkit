@@ -86,7 +86,22 @@ function buildSummaryLines(snapshot: PerfSnapshot): string {
 // Main export
 // ---------------------------------------------------------------------------
 
+/**
+ * Check if perf snapshot is enabled.
+ * Configurable via ORCHESTKIT_PERF_SNAPSHOT_ENABLED env var (set in ork.settings.json).
+ * Default: enabled ("1" | "true" | "" = on; "0" | "false" = off)
+ */
+function isPerfSnapshotEnabled(): boolean {
+  const val = process.env.ORCHESTKIT_PERF_SNAPSHOT_ENABLED?.toLowerCase().trim();
+  if (val === '0' || val === 'false') return false;
+  return true;
+}
+
 export function perfSnapshot(_input: HookInput): HookResult {
+  if (!isPerfSnapshotEnabled()) {
+    return outputSilentSuccess();
+  }
+
   try {
     const tokenState = getTokenState();
     const bucket = getBucket();
