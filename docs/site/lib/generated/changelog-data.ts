@@ -17,6 +17,29 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.1.0",
+    "date": "2026-03-04",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**Full agent-browser CLI adoption** (#947 #948 #949): 64 commands across 12 categories documented in browser-tools skill",
+          "**Interaction commands**: click, dblclick, focus, fill, type, keyboard, press, hover, check/uncheck, select, scroll, scrollintoview, drag, upload (22 commands)",
+          "**Storage API** (v0.13): localStorage/sessionStorage get, set, clear",
+          "**Enhanced capture**: screenshot --full, screenshot --annotate, pdf export",
+          "**Extraction**: eval, eval -b, eval --stdin",
+          "**Action confirmation** (v0.15): native --confirm-interactive with env-gated `AGENT_BROWSER_NATIVE_CONFIRM`",
+          "**Network route validation**: agent-browser-safety hook Check 5 validates route URLs against blocklist",
+          "**6 agents updated**: web-research-analyst, test-generator, accessibility-specialist, frontend-ui-developer, rapid-ui-designer, frontend-performance-engineer",
+          "**3 rules updated**: browser-auth-security, browser-rate-limiting, browser-snapshot-workflow",
+          "**Configurable settings wizard** (#951): setup skill writes to .claude/settings.json for non-orchestkit projects",
+          "**Performance sprint**: injection gating, CI gate, perf-compare, perf-snapshot hook (#865 #944 #945 #946)"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.0.3",
     "date": "2026-03-04",
     "compareUrl": "",
@@ -24,7 +47,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       {
         "type": "fixed",
         "items": [
-          "TODO: Describe your changes here"
+          "**Assessment quality gaps** (#946): address code-quality-reviewer blockers in verify skill"
         ]
       }
     ]
