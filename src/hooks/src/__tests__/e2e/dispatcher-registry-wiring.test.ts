@@ -236,7 +236,7 @@ describe('Dispatcher Registry Wiring E2E', () => {
       }
 
       const asyncHooks = allHooks.filter(h => h.async === true);
-      expect(asyncHooks.length, 'Should have exactly 7 async hooks').toBe(7);
+      expect(asyncHooks.length, 'Should have exactly 8 async hooks (#939: +release-notebook-trigger)').toBe(8);
     });
 
     it('should have notification dispatcher using native async', () => {
@@ -309,8 +309,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
 
       // Issue #653: Migrated from fire-and-forget spawn pattern to native async: true.
       // CC 2.1.40+ fixed "backgrounded hook commands not returning early" so native
-      // async hooks no longer produce spam. 7 hooks use async: true.
-      expect(asyncCount).toBe(7);
+      // async hooks no longer produce spam. 8 hooks use async: true (#939: +release-notebook-trigger).
+      expect(asyncCount).toBe(8);
     });
 
     it('should have hooks for all critical security operations', () => {

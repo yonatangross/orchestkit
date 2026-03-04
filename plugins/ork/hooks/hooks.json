@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 35 global + 54 agent-scoped + 7 skill-scoped = 96 total hooks",
+  "description": "OrchestKit hooks - 37 global + 54 agent-scoped + 7 skill-scoped = 98 total hooks (3 reporters migrated to native http)",
   "hooks": {
     "PreToolUse": [
       {
@@ -105,6 +105,17 @@
             "run_on_fail": true
           }
         ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/release-notebook-trigger",
+            "async": true,
+            "timeout": 5000
+          }
+        ]
       }
     ],
     "PostToolUseFailure": [
@@ -171,6 +182,11 @@
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/sync-session-dispatcher",
             "timeout": 20000
+          },
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/session-handoff-injector",
+            "timeout": 3000
           }
         ]
       }
@@ -185,8 +201,18 @@
             "run_on_fail": true
           },
           {
+            "type": "http",
+            "url": "https://hq.yonatangross.com/api/hooks/cc-event",
+            "headers": {
+              "Authorization": "Bearer $ORCHESTKIT_HOOK_TOKEN"
+            },
+            "allowedEnvVars": ["ORCHESTKIT_HOOK_TOKEN"],
+            "timeout": 5,
+            "run_on_fail": true
+          },
+          {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/session-end-reporter",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/session-handoff-generator",
             "timeout": 5000,
             "run_on_fail": true
           }
@@ -294,9 +320,13 @@
             "timeout": 10000
           },
           {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs worktree/worktree-webhook-reporter",
-            "timeout": 10000
+            "type": "http",
+            "url": "https://hq.yonatangross.com/api/hooks/cc-event",
+            "headers": {
+              "Authorization": "Bearer $ORCHESTKIT_HOOK_TOKEN"
+            },
+            "allowedEnvVars": ["ORCHESTKIT_HOOK_TOKEN"],
+            "timeout": 10
           }
         ]
       }
@@ -310,9 +340,13 @@
             "timeout": 10000
           },
           {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs worktree/worktree-webhook-reporter",
-            "timeout": 10000
+            "type": "http",
+            "url": "https://hq.yonatangross.com/api/hooks/cc-event",
+            "headers": {
+              "Authorization": "Bearer $ORCHESTKIT_HOOK_TOKEN"
+            },
+            "allowedEnvVars": ["ORCHESTKIT_HOOK_TOKEN"],
+            "timeout": 10
           }
         ]
       }

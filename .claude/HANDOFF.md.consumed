@@ -1,0 +1,44 @@
+# Session Handoff
+
+**Branch**: feat/v7-unified-plugin
+**When**: 2026-03-03 10:18:54 UTC
+**Session**: test-session
+
+## Summary
+No summary available.
+
+## Modified Files
+- .claude/memory/workflow-preferences.json
+- docs/site/app/(home)/page.tsx
+- docs/site/app/layout.tsx
+- docs/site/content/docs/agents/overview.mdx
+- docs/site/content/docs/agents/writing-agents.mdx
+- docs/site/content/docs/cookbook/implement-feature.mdx
+- docs/site/content/docs/foundations/choosing-a-plugin.mdx
+- docs/site/content/docs/foundations/overview.mdx
+- docs/site/content/docs/foundations/skills-agents-hooks.mdx
+- docs/site/content/docs/getting-started/first-10-minutes.mdx
+- docs/site/content/docs/getting-started/installation.mdx
+- docs/site/content/docs/getting-started/navigating.mdx
+- docs/site/content/docs/getting-started/release-channels.mdx
+- docs/site/content/docs/hooks/architecture.mdx
+- docs/site/content/docs/hooks/overview.mdx
+- docs/site/content/docs/hooks/spotlights/unified-dispatchers.mdx
+- docs/site/content/docs/reference/index.mdx
+- docs/site/content/docs/reference/skills/doctor.mdx
+- docs/site/content/docs/reference/skills/setup.mdx
+- docs/site/content/docs/reference/skills/upgrade-assessment.mdx
+- docs/site/content/docs/reference/skills/validate-counts.mdx
+- docs/site/content/docs/skills/command-skills.mdx
+- docs/site/content/docs/troubleshooting/faq.mdx
+- docs/site/lib/constants.ts
+
+## Recent Tasks
+- Run full test suite [completed]
+- Verify no focus stealing [completed]
+- Verify notification hooks optimization [completed]
+- Fix hook counts (95) across all docs files [completed]
+- Fix agent count (38) and add missing agents to overview [completed]
+- Fix command-skills.mdx — remove ghosts, add missing, fix count [completed]
+- Fix ghost skill names in navigating, foundations, cookbook [completed]
+- Fix landing page hardcoded numbers [completed]

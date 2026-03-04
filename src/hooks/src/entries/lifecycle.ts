@@ -10,7 +10,7 @@ export * from '../types.js';
 export * from '../lib/common.js';
 export * from '../lib/git.js';
 
-// Lifecycle hooks (13) - SessionStart/SessionEnd
+// Lifecycle hooks (15) - SessionStart/SessionEnd
 import { analyticsConsentCheck } from '../lifecycle/analytics-consent-check.js';
 import { patternSyncPull } from '../lifecycle/pattern-sync-pull.js';
 import { patternSyncPush } from '../lifecycle/pattern-sync-push.js';
@@ -26,6 +26,8 @@ import { mcpHealthCheck } from '../lifecycle/mcp-health-check.js';
 import { syncSessionDispatcher } from '../lifecycle/sync-session-dispatcher.js';
 import { syncSessionEndDispatcher } from '../lifecycle/sync-session-end-dispatcher.js';
 import { sessionEndReporter } from '../lifecycle/session-end-reporter.js';
+import { sessionHandoffGenerator } from '../lifecycle/session-handoff-generator.js';
+import { sessionHandoffInjector } from '../lifecycle/session-handoff-injector.js';
 
 // TeammateIdle hooks (CC 2.1.33) — consolidated into unified dispatcher (#853)
 import { progressReporter } from '../teammate-idle/progress-reporter.js';
@@ -64,6 +66,8 @@ export const hooks: Record<string, HookFn> = {
   'lifecycle/sync-session-dispatcher': syncSessionDispatcher,
   'lifecycle/sync-session-end-dispatcher': syncSessionEndDispatcher,
   'lifecycle/session-end-reporter': sessionEndReporter,
+  'lifecycle/session-handoff-generator': sessionHandoffGenerator,
+  'lifecycle/session-handoff-injector': sessionHandoffInjector,
 
   // TeammateIdle hooks (CC 2.1.33)
   'teammate-idle/unified-dispatcher': unifiedTeammateIdleDispatcher,

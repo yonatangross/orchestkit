@@ -2747,6 +2747,39 @@ export const SKILLS: Record<string, SkillMeta> = {
       "release-engineer"
     ]
   },
+  "release-notebook": {
+    "name": "release-notebook",
+    "description": "Creates a versioned NotebookLM notebook for the current OrchestKit release. Reads version from package.json, extracts the matching CHANGELOG section, uploads CHANGELOG + CLAUDE.md + manifests/ork.json as sources, generates an audio overview, and shares the notebook. Use when cutting a release to create the Release KB.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "notebooklm",
+      "release",
+      "documentation",
+      "knowledge-base"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Bash",
+      "Grep",
+      "mcp__notebooklm__notebook_create",
+      "mcp__notebooklm__source_add",
+      "mcp__notebooklm__studio_create",
+      "mcp__notebooklm__studio_status",
+      "mcp__notebooklm__notebook_share_status",
+      "mcp__notebooklm__notebook_share_invite",
+      "mcp__notebooklm__note"
+    ],
+    "skills": [],
+    "agent": null,
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
   "remember": {
     "name": "remember",
     "description": "Stores decisions and patterns in knowledge graph. Use when saving patterns, remembering outcomes, or recording decisions.",
