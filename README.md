@@ -5,7 +5,7 @@
 
 ### Stop explaining your stack. Start shipping.
 
-**69 skills · 38 agents · 96 hooks**
+**70 skills · 38 agents · 98 hooks**
 
 [![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.59-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
@@ -60,9 +60,9 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 
 | Component | Details |
 |-----------|---------|
-| **69 Skills** | RAG patterns, FastAPI, React 19, testing, security, database design, ML integration — loaded on-demand, zero overhead |
+| **70 Skills** | RAG patterns, FastAPI, React 19, testing, security, database design, ML integration — loaded on-demand, zero overhead |
 | **38 Agents** | Specialized personas (backend-architect, frontend-dev, security-auditor) — route tasks to the right expert |
-| **85 Hooks** | Pre-commit checks, git protection, quality gates — ship with confidence |
+| **98 Hooks** | Pre-commit checks, git protection, quality gates, browser safety — ship with confidence |
 
 All available in a single `/plugin install ork`. Skills load on-demand. Hooks work automatically.
 
@@ -175,13 +175,19 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 ---
 
-## What's New in v7
+## What's New
+
+**v7.1.0** — Full agent-browser CLI Adoption
+
+- **64 browser commands** documented across 12 categories — interaction, storage, capture, network, cookies, state management
+- **6 agents upgraded** with complete browser automation references
+- **Safety hook enhanced**: native v0.15 action confirmation + network route validation
+- **Setup wizard**: configurable project settings with 5-step interactive wizard
 
 **v7.0.0** — Unified Plugin Architecture
 
-- **Simplified**: One plugin for everything. All 69 skills, 38 agents, 96 hooks in `/plugin install ork`.
+- **Simplified**: One plugin for everything. All 70 skills, 38 agents, 98 hooks in `/plugin install ork`.
 - **Setup Wizard**: Run `/ork:setup` for personalized onboarding — stack detection, skill recommendations, MCP configuration, readiness scoring.
-- **Zero Overhead**: Skills load on-demand. Hooks activate automatically. No performance penalty.
 
 [Full Changelog →](./CHANGELOG.md)
 
