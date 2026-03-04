@@ -115,6 +115,7 @@ describe('Dispatcher Registry Wiring', () => {
         'task-completion-check',
         // Analysis hooks
         'security-scan-aggregator',
+        'perf-snapshot',
         // Skill validation hooks (run at stop time)
         'coverage-check',
         'evidence-collector',
@@ -203,9 +204,10 @@ describe('Dispatcher Registry Wiring', () => {
         notificationHooks().length +
         setupHooks().length;
 
-      // posttool: 18, lifecycle: 6, stop: 20, subagent-stop: 4, notification: 2, setup: 1
+      // posttool: 18, lifecycle: 6, stop: 21, subagent-stop: 4, notification: 2, setup: 1
       // v7: removed memory-bridge, auto-remember-continuity, test-runner, full-test-suite
-      expect(total).toBe(51);
+      // v7.1: +1 perf-snapshot (#944)
+      expect(total).toBe(52);
     });
   });
 });

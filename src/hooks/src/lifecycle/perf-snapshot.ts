@@ -9,8 +9,10 @@
  * JSON snapshot to ~/.claude/perf/snap-{YYYY-MM-DD-HH}.json.
  *
  * Purpose: before/after token-overhead comparison for performance sprints.
- * The 3-line summary is returned as a systemMessage so it appears in Stop
- * hook context (visible to Claude and shown in the UI).
+ * Returns a systemMessage for logging/test-visibility. Note: when registered
+ * inside the async stop/unified-dispatcher, the return value is discarded by
+ * the dispatcher (it always returns outputSilentSuccess). The snapshot data
+ * is written to disk regardless and that is the primary output.
  *
  * Hook: Stop (registered inside stop/unified-dispatcher as an async member)
  */

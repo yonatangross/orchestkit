@@ -36,7 +36,7 @@ export function getCurrentBranch(projectDir?: string): string {
  */
 export function getProtectedBranches(): string[] {
   const envVal = process.env.ORCHESTKIT_PROTECTED_BRANCHES;
-  if (envVal && envVal.trim()) {
+  if (envVal?.trim()) {
     return envVal.split(',').map(b => b.trim()).filter(Boolean);
   }
   return ['main', 'master'];

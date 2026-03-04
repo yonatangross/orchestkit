@@ -215,12 +215,13 @@ export function outputWithNotification(
     suppressOutput: true,
   };
 
-  if (userMessage) {
+  // #865: Only surface if non-empty (mirrors claudeContext guard)
+  if (userMessage?.trim()) {
     result.systemMessage = userMessage;
   }
 
   // #865: Only inject if claudeContext is non-empty
-  if (claudeContext && claudeContext.trim()) {
+  if (claudeContext?.trim()) {
     result.hookSpecificOutput = {
       hookEventName: 'UserPromptSubmit',
       additionalContext: claudeContext,

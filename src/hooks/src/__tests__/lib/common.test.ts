@@ -144,6 +144,19 @@ describe('outputWithNotification (#865 injection gate)', () => {
     expect(result.systemMessage).toBeUndefined();
     expect(result.hookSpecificOutput?.additionalContext).toBe('Claude ctx');
   });
+
+  test('skips systemMessage when userMessage is empty string', async () => {
+    const { outputWithNotification } = await import('../../lib/common.js');
+    const result = outputWithNotification('', 'Claude ctx');
+    expect(result.systemMessage).toBeUndefined();
+    expect(result.hookSpecificOutput?.additionalContext).toBe('Claude ctx');
+  });
+
+  test('skips systemMessage when userMessage is whitespace', async () => {
+    const { outputWithNotification } = await import('../../lib/common.js');
+    const result = outputWithNotification('   ', 'Claude ctx');
+    expect(result.systemMessage).toBeUndefined();
+  });
 });
 
 describe('fnv1aHash', () => {
