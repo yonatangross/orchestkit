@@ -162,8 +162,10 @@ export function outputBlock(reason: string): HookResult {
 /**
  * Output with additionalContext - injects context before tool execution (CC 2.1.9)
  * For PostToolUse hooks (hookEventName optional)
+ * #865: Empty/whitespace-only content is silently dropped to save tokens.
  */
 export function outputWithContext(ctx: string): HookResult {
+  if (!ctx || !ctx.trim()) return outputSilentSuccess();
   return {
     continue: true,
     suppressOutput: true,
@@ -177,8 +179,10 @@ export function outputWithContext(ctx: string): HookResult {
 /**
  * Output with additionalContext for UserPromptSubmit hooks (CC 2.1.9)
  * hookEventName is REQUIRED for UserPromptSubmit
+ * #865: Empty/whitespace-only content is silently dropped to save tokens.
  */
 export function outputPromptContext(ctx: string): HookResult {
+  if (!ctx || !ctx.trim()) return outputSilentSuccess();
   return {
     continue: true,
     suppressOutput: true,
@@ -215,7 +219,8 @@ export function outputWithNotification(
     result.systemMessage = userMessage;
   }
 
-  if (claudeContext) {
+  // #865: Only inject if claudeContext is non-empty
+  if (claudeContext && claudeContext.trim()) {
     result.hookSpecificOutput = {
       hookEventName: 'UserPromptSubmit',
       additionalContext: claudeContext,

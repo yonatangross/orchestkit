@@ -1,41 +1,41 @@
 {
-  "generatedAt": "2026-03-04T07:25:00.595Z",
-  "buildTimeMs": 85,
+  "generatedAt": "2026-03-04T07:29:12.219Z",
+  "buildTimeMs": 93,
   "mode": "split",
   "bundles": {
     "permission": {
-      "size": 16406,
-      "sizeKB": "16.02",
+      "size": 16452,
+      "sizeKB": "16.07",
       "exports": 57
     },
     "pretool": {
-      "size": 85789,
-      "sizeKB": "83.78",
+      "size": 85835,
+      "sizeKB": "83.82",
       "exports": 68
     },
     "posttool": {
-      "size": 71724,
-      "sizeKB": "70.04",
+      "size": 71770,
+      "sizeKB": "70.09",
       "exports": 52
     },
     "prompt": {
-      "size": 83739,
-      "sizeKB": "81.78",
+      "size": 83785,
+      "sizeKB": "81.82",
       "exports": 109
     },
     "lifecycle": {
-      "size": 58382,
-      "sizeKB": "57.01",
+      "size": 58428,
+      "sizeKB": "57.06",
       "exports": 52
     },
     "stop": {
-      "size": 72801,
-      "sizeKB": "71.09",
+      "size": 72847,
+      "sizeKB": "71.14",
       "exports": 50
     },
     "subagent": {
-      "size": 74835,
-      "sizeKB": "73.08",
+      "size": 74881,
+      "sizeKB": "73.13",
       "exports": 82
     },
     "notification": {
@@ -44,29 +44,29 @@
       "exports": 3
     },
     "setup": {
-      "size": 34450,
-      "sizeKB": "33.64",
+      "size": 34496,
+      "sizeKB": "33.69",
       "exports": 41
     },
     "skill": {
-      "size": 60079,
-      "sizeKB": "58.67",
+      "size": 60125,
+      "sizeKB": "58.72",
       "exports": 52
     },
     "agent": {
-      "size": 17311,
-      "sizeKB": "16.91",
+      "size": 17357,
+      "sizeKB": "16.95",
       "exports": 57
     },
     "hooks": {
-      "size": 331893,
-      "sizeKB": "324.11",
+      "size": 331939,
+      "sizeKB": "324.16",
       "exports": 160,
       "unified": true
     }
   },
-  "totalSize": 581606,
-  "totalSizeKB": "567.97",
+  "totalSize": 582066,
+  "totalSizeKB": "568.42",
   "inputs": 58,
-  "avgBundleSizeKB": "51.63"
+  "avgBundleSizeKB": "51.67"
 }
