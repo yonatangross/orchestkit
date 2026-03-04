@@ -17,6 +17,22 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.1.1",
+    "date": "2026-03-04",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**NotebookLM MCP bloat** (#890): Disabled `notebooklm-mcp` at project level (`disabled: true` in `.mcp.json`), saving ~6k tokens/session from 25 unused tools",
+          "**Tool name mismatch**: Fixed `mcp__notebooklm__*` → `mcp__notebooklm-mcp__*` across `release-notebook` skill, `notebooklm` rules, and `create-release-notebook.sh`",
+          "**Release-notebook flow**: Wired `release-notebook` skill into `release-engineer` agent; fixed shell script instructions (removed non-existent `/ork:release-notebook` command reference)",
+          "**Perf test allowlist**: Updated `test-mcp-overhead.sh` to reference `release-engineer` instead of phantom `release-notebook` agent"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.1.0",
     "date": "2026-03-04",
     "compareUrl": "",
