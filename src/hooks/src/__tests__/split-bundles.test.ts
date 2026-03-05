@@ -319,7 +319,8 @@ describe('Cross-Bundle Consistency', () => {
     // 165 -> 166: added posttool/dirty-file-tracker (#928)
     // 166 -> 169: #939 — added session-handoff-generator, session-handoff-injector, release-notebook-trigger
     // 169 -> 170: CC 2.1.69 — added instructions-loaded/instructions-loaded-dispatcher
-    expect(totalHooks).toBe(170);
+    // 170 -> 167: #960 — removed calibration-tracker (posttool), calibration-persist (stop), skill-nudge (prompt)
+    expect(totalHooks).toBe(167);
   });
 });
 

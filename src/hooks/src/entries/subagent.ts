@@ -13,7 +13,6 @@ export * from '../lib/common.js';
 export * from '../lib/orchestration-types.js';
 export * from '../lib/orchestration-state.js';
 export * from '../lib/retry-manager.js';
-export * from '../lib/calibration-engine.js';
 
 // SubagentStart hooks (6)
 import { graphMemoryInject } from '../subagent-start/graph-memory-inject.js';

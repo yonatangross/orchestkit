@@ -17,7 +17,6 @@ import { realtimeSync } from '../posttool/realtime-sync.js';
 import { userTracking } from '../posttool/user-tracking.js';
 import { sessionMetrics } from '../posttool/session-metrics.js';
 import { skillEditTracker } from '../posttool/skill-edit-tracker.js';
-import { calibrationTracker } from '../posttool/calibration-tracker.js';
 import { dirtyFileTracker } from '../posttool/dirty-file-tracker.js';
 import { unifiedDispatcher } from '../posttool/unified-dispatcher.js';
 
@@ -61,7 +60,6 @@ export const hooks: Record<string, HookFn> = {
   'posttool/user-tracking': userTracking,
   'posttool/session-metrics': sessionMetrics,
   'posttool/skill-edit-tracker': skillEditTracker,
-  'posttool/calibration-tracker': calibrationTracker,
   'posttool/dirty-file-tracker': dirtyFileTracker,
   'posttool/unified-dispatcher': unifiedDispatcher,
 

@@ -15,11 +15,9 @@ export * from './lib/guards.js';
 
 // Re-export orchestration modules (Issue #197)
 export * from './lib/orchestration-types.js';
-export * from './lib/intent-classifier.js';
 export * from './lib/orchestration-state.js';
 export * from './lib/task-integration.js';
 export * from './lib/retry-manager.js';
-export * from './lib/calibration-engine.js';
 export * from './lib/multi-agent-coordinator.js';
 
 // Re-export decision history module (Issues #203, #206, #207, #208)
@@ -135,7 +133,6 @@ import { issueWorkSummary } from './stop/issue-work-summary.js';
 import { securityScanAggregator } from './stop/security-scan-aggregator.js';
 import { sessionPatterns } from './stop/session-patterns.js';
 import { taskCompletionCheck } from './stop/task-completion-check.js';
-import { calibrationPersist } from './stop/calibration-persist.js';
 
 // Setup hooks (4)
 import { firstRunSetup } from './setup/first-run-setup.js';
@@ -158,7 +155,6 @@ import { memoryBridge } from './posttool/memory-bridge.js';
 import { realtimeSync } from './posttool/realtime-sync.js';
 import { sessionMetrics } from './posttool/session-metrics.js';
 import { skillEditTracker } from './posttool/skill-edit-tracker.js';
-import { calibrationTracker } from './posttool/calibration-tracker.js';
 
 // PostTool/Write hooks (5)
 import { codeStyleLearner } from './posttool/write/code-style-learner.js';
@@ -321,7 +317,6 @@ export const hooks: Record<string, HookFn> = {
   'stop/security-scan-aggregator': securityScanAggregator,
   'stop/session-patterns': sessionPatterns,
   'stop/task-completion-check': taskCompletionCheck,
-  'stop/calibration-persist': calibrationPersist,
 
   // Setup hooks (4)
   'setup/first-run-setup': firstRunSetup,
@@ -344,7 +339,6 @@ export const hooks: Record<string, HookFn> = {
   'posttool/realtime-sync': realtimeSync,
   'posttool/session-metrics': sessionMetrics,
   'posttool/skill-edit-tracker': skillEditTracker,
-  'posttool/calibration-tracker': calibrationTracker,
 
   // PostTool/Write hooks (4)
   'posttool/write/code-style-learner': codeStyleLearner,
