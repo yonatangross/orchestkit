@@ -214,7 +214,7 @@ With codebase loaded, perform the selected audit mode(s).
 
 ### Security Audit
 
-Load: `Read("${CLAUDE_SKILL_DIR}/references/security-audit-guide.md")` for the full checklist.
+Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/audit-full/references/security-audit-guide.md")` for the full checklist.
 
 Key cross-file analysis patterns:
 1. **Data flow tracing**: Track user input from entry point → processing → storage
@@ -225,7 +225,7 @@ Key cross-file analysis patterns:
 
 ### Architecture Review
 
-Load: `Read("${CLAUDE_SKILL_DIR}/references/architecture-review-guide.md")` for the full guide.
+Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/audit-full/references/architecture-review-guide.md")` for the full guide.
 
 Key analysis patterns:
 1. **Dependency direction**: Verify imports flow inward (clean architecture)
@@ -236,7 +236,7 @@ Key analysis patterns:
 
 ### Dependency Audit
 
-Load: `Read("${CLAUDE_SKILL_DIR}/references/dependency-audit-guide.md")` for the full guide.
+Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/audit-full/references/dependency-audit-guide.md")` for the full guide.
 
 Key analysis patterns:
 1. **Known CVEs**: Check versions against known vulnerabilities
@@ -249,7 +249,7 @@ Key analysis patterns:
 
 ## STEP 4: Generate Report
 
-Load the report template: `Read("${CLAUDE_SKILL_DIR}/assets/audit-report-template.md")`.
+Load the report template: `Read("${CLAUDE_PLUGIN_ROOT}/skills/audit-full/assets/audit-report-template.md")`.
 
 ### Report Structure
 
@@ -281,11 +281,11 @@ Load the report template: `Read("${CLAUDE_SKILL_DIR}/assets/audit-report-templat
 
 ### Severity Classification
 
-Load: `Read("${CLAUDE_SKILL_DIR}/assets/severity-matrix.md")` for classification criteria.
+Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/audit-full/assets/severity-matrix.md")` for classification criteria.
 
 ### Completion Checklist
 
-Before finalizing the report, verify with `Read("${CLAUDE_SKILL_DIR}/checklists/audit-completion.md")`.
+Before finalizing the report, verify with `Read("${CLAUDE_PLUGIN_ROOT}/skills/audit-full/checklists/audit-completion.md")`.
 
 ---
 
@@ -311,7 +311,7 @@ Before finalizing the report, verify with `Read("${CLAUDE_SKILL_DIR}/checklists/
 
 ## References
 
-Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
+Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/audit-full/references/<file>")`:
 | File | Content |
 |------|---------|
 | `references/security-audit-guide.md` | Cross-file vulnerability patterns |

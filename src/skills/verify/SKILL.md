@@ -81,7 +81,7 @@ AskUserQuestion(
 
 ## STEP 0b: Select Orchestration Mode
 
-Load details: `Read("${CLAUDE_SKILL_DIR}/references/orchestration-mode.md")` for env var check logic, Agent Teams vs Task Tool comparison, and mode selection rules.
+Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/verify/references/orchestration-mode.md")` for env var check logic, Agent Teams vs Task Tool comparison, and mode selection rules.
 
 Choose **Agent Teams** (mesh -- verifiers share findings) or **Task tool** (star -- all report to lead) based on the orchestration mode reference.
 
@@ -109,7 +109,7 @@ for phase in phases:
 
 ## 8-Phase Workflow
 
-Load details: `Read("${CLAUDE_SKILL_DIR}/references/verification-phases.md")` for complete phase details, agent spawn definitions, Agent Teams alternative, and team teardown.
+Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/verify/references/verification-phases.md")` for complete phase details, agent spawn definitions, Agent Teams alternative, and team teardown.
 
 | Phase | Activities | Output |
 |-------|------------|--------|
@@ -139,19 +139,19 @@ Launch ALL agents in ONE message with `run_in_background=True` and `max_turns=25
 
 ## Grading & Scoring
 
-Load details: `Read("${CLAUDE_SKILL_DIR}/rules/scoring-rubric.md")` for composite formula, grade thresholds, verdict criteria, and blocking rules. Load details: `Read("${CLAUDE_SKILL_DIR}/references/quality-model.md")` for dimension weights. Load details: `Read("${CLAUDE_SKILL_DIR}/references/grading-rubric.md")` for per-agent scoring criteria.
+Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/verify/rules/scoring-rubric.md")` for composite formula, grade thresholds, verdict criteria, and blocking rules. Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/verify/references/quality-model.md")` for dimension weights. Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/verify/references/grading-rubric.md")` for per-agent scoring criteria.
 
 ---
 
 ## Evidence & Test Execution
 
-Load details: `Read("${CLAUDE_SKILL_DIR}/rules/evidence-collection.md")` for git commands, test execution patterns, metrics tracking, and post-verification feedback.
+Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/verify/rules/evidence-collection.md")` for git commands, test execution patterns, metrics tracking, and post-verification feedback.
 
 ---
 
 ## Policy-as-Code
 
-Load details: `Read("${CLAUDE_SKILL_DIR}/references/policy-as-code.md")` for configuration.
+Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/verify/references/policy-as-code.md")` for configuration.
 
 Define verification rules in `.claude/policies/verification-policy.json`:
 
@@ -172,7 +172,7 @@ Define verification rules in `.claude/policies/verification-policy.json`:
 
 ## Report Format
 
-Load details: `Read("${CLAUDE_SKILL_DIR}/references/report-template.md")` for full format. Summary:
+Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/verify/references/report-template.md")` for full format. Summary:
 
 ```markdown
 # Feature Verification Report
@@ -187,7 +187,7 @@ Load details: `Read("${CLAUDE_SKILL_DIR}/references/report-template.md")` for fu
 
 ## References
 
-Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
+Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/verify/references/<file>")`:
 
 | File | Content |
 |------|---------|
@@ -202,7 +202,7 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 
 ## Rules
 
-Load on demand with `Read("${CLAUDE_SKILL_DIR}/rules/<file>")`:
+Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/verify/rules/<file>")`:
 
 | File | Content |
 |------|---------|

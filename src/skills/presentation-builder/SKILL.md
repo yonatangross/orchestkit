@@ -38,7 +38,7 @@ Determine what the user wants:
 | Mode | Trigger | Next Phase |
 |------|---------|------------|
 | **A: New Presentation** | Create slides from scratch | Phase 1 |
-| **B: PPT Conversion** | Has a .ppt/.pptx file | Load `Read("${CLAUDE_SKILL_DIR}/references/pptx-conversion.md")` then Phase 2 |
+| **B: PPT Conversion** | Has a .ppt/.pptx file | Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/presentation-builder/references/pptx-conversion.md")` then Phase 2 |
 | **C: Enhancement** | Has existing HTML presentation | Read file, understand structure, enhance |
 
 ---
@@ -74,7 +74,7 @@ Ask how the user wants to choose their style:
 - **"Show me options"** -- Generate 3 previews based on mood (recommended)
 - **"I know what I want"** -- Pick from preset list directly
 
-**Available Presets** (load `Read("${CLAUDE_SKILL_DIR}/references/style-presets.md")` for full details):
+**Available Presets** (load `Read("${CLAUDE_PLUGIN_ROOT}/skills/presentation-builder/references/style-presets.md")` for full details):
 
 | Preset | Vibe | Best For |
 |--------|------|----------|
@@ -179,13 +179,13 @@ Every presentation follows this structure:
 
 ### Critical: Viewport Fitting
 
-**Every slide MUST fit exactly in the viewport.** Load: `Read("${CLAUDE_SKILL_DIR}/rules/viewport-fitting.md")`
+**Every slide MUST fit exactly in the viewport.** Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/presentation-builder/rules/viewport-fitting.md")`
 
 Quick checklist:
 - Every `.slide` has `height: 100vh; height: 100dvh; overflow: hidden;`
 - All font sizes use `clamp(min, preferred, max)`
 - All spacing uses `clamp()` or viewport units
-- Content respects density limits (load `${CLAUDE_SKILL_DIR}/rules/content-density.md`)
+- Content respects density limits (load `${CLAUDE_PLUGIN_ROOT}/skills/presentation-builder/rules/content-density.md`)
 - Breakpoints exist for heights: 700px, 600px, 500px
 - When content doesn't fit: **split into multiple slides, never scroll**
 
@@ -274,7 +274,7 @@ To customize:
 
 ## Rules
 
-Load on demand with `Read("${CLAUDE_SKILL_DIR}/rules/<file>")`:
+Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/presentation-builder/rules/<file>")`:
 | File | Content |
 |------|---------|
 | `viewport-fitting.md` | Mandatory CSS for viewport-locked slides |
@@ -282,7 +282,7 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/rules/<file>")`:
 
 ## References
 
-Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
+Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/presentation-builder/references/<file>")`:
 | File | Content |
 |------|---------|
 | `style-presets.md` | 12 curated visual themes with CSS variables |
