@@ -375,7 +375,7 @@ export function logHook(hookName: string, message: string, level: 'debug' | 'inf
  * Always logs (security audit trail) - not affected by log level
  */
 export function logPermissionFeedback(
-  decision: 'allow' | 'deny' | 'warn',
+  decision: 'allow' | 'deny' | 'ask' | 'warn',
   reason: string,
   input?: HookInput | Record<string, unknown>
 ): void {
