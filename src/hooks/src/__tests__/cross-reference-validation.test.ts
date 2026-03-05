@@ -270,7 +270,7 @@ describe('Cross-Reference Validation: hooks.json <-> bundles', () => {
     test('all hook entries have valid command or http format', () => {
       const invalid: string[] = [];
       for (const [eventType, entries] of Object.entries(hooksJson.hooks)) {
-        for (const entry of entries as Array<{ hooks?: Array<{ type?: string; command?: string; url?: string }> }>) {
+        for (const entry of entries as Array<{ hooks?: Array<{ type?: string; command?: string; url?: string; prompt?: string }> }>) {
           for (const hook of entry.hooks || []) {
             if (hook.type === 'command') {
               if (typeof hook.command !== 'string' || hook.command.length === 0) {
@@ -279,6 +279,10 @@ describe('Cross-Reference Validation: hooks.json <-> bundles', () => {
             } else if (hook.type === 'http') {
               if (typeof hook.url !== 'string' || hook.url.length === 0) {
                 invalid.push(`${eventType}: http hook has empty or non-string url`);
+              }
+            } else if (hook.type === 'prompt') {
+              if (typeof hook.prompt !== 'string' || hook.prompt.length === 0) {
+                invalid.push(`${eventType}: prompt hook has empty or non-string prompt`);
               }
             } else {
               invalid.push(`${eventType}: hook has unknown type "${hook.type}"`);

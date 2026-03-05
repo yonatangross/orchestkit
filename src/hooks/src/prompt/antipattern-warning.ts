@@ -6,14 +6,16 @@
  * 1. STATIC: materializeAntipatternRules() writes .claude/rules/antipatterns.md
  *    at session start. CC loads this into every prompt for FREE — no per-turn cost.
  *    This handles the 7 known anti-patterns (offset pagination, N+1, etc.).
+ *    Still called by sync-session-dispatcher.ts at SessionStart — DO NOT DELETE.
  *
- * 2. DYNAMIC: antipatternWarning() runs per-turn to check project-specific
+ * 2. DYNAMIC: antipatternWarning() ran per-turn to check project-specific
  *    learned patterns (learned-patterns.json) and cross-project global patterns
- *    (global-patterns.json). These are dynamic and can't be in a static rules file.
+ *    (global-patterns.json).
  *
- * Why NOT type:prompt (#972): The rules file already gives Claude the static
- * patterns for free. A type:prompt hook would add 2-3s latency per turn to
- * duplicate what Claude already has in context.
+ * @deprecated antipatternWarning() (#972): Migrated to type:prompt hook in hooks.json.
+ * The LLM now classifies antipatterns directly — no regex needed. This function is
+ * no longer called by unified-dispatcher.ts but remains here for reference.
+ * materializeAntipatternRules() is still used by sync-session-dispatcher.ts.
  */
 
 import type { HookInput, HookResult } from '../types.js';

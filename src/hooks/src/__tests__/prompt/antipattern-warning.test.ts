@@ -1,10 +1,13 @@
 /**
  * Unit tests for antipattern-warning hook
  *
- * Architecture: Static patterns → rules file (free, tested by materialization tests).
- * Runtime hook → dynamic learned patterns only (this file).
+ * Architecture (post #972):
+ * - Static patterns → rules file (materializeAntipatternRules, called at SessionStart).
+ * - Dynamic learned patterns → antipatternWarning() (deprecated, no longer wired into dispatcher).
+ * - Static antipattern detection → type:prompt hook in hooks.json (LLM classifies directly).
  *
- * #972: type:prompt migration not needed — rules file gives Claude patterns for free.
+ * antipatternWarning() is no longer registered in unified-dispatcher.ts (#972).
+ * materializeAntipatternRules() is still called by sync-session-dispatcher.ts.
  */
 
 import { describe, test, expect, beforeEach, afterEach } from 'vitest';

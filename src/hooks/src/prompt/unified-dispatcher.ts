@@ -5,7 +5,7 @@
  * Unified Prompt Dispatcher — UserPromptSubmit Hook
  * Issue #448: Consolidate UserPromptSubmit hooks to reduce context bloat
  *
- * 4 hooks managed by this dispatcher:
+ * 3 hooks managed by this dispatcher:
  *
  * Once-per-session (file-based flag tracking):
  * - handoff-injector (producesContext: true)
@@ -13,9 +13,9 @@
  *
  * Every-turn context producers:
  * - context-exhaustion-warner (producesContext: true)
- * - antipattern-warning (producesContext: true)
  *
  * Removed (#960): skill-nudge-prompt — replaced by CC native skill matching
+ * Migrated (#972): antipattern-warning → type:prompt hook in hooks.json (LLM classifies directly)
  *
  * Moved to SessionStart (sync-session-dispatcher, correct lifecycle):
  * - profile-injector → materializeProfileRules()
@@ -41,7 +41,7 @@ import { join } from 'node:path';
 
 // Import hook implementations — every-turn
 import { contextExhaustionWarner } from './context-exhaustion-warner.js';
-import { antipatternWarning } from './antipattern-warning.js';
+// antipattern-warning migrated to type:prompt hook in hooks.json (#972)
 // Import hook implementations — once-per-session
 import { handoffInjector } from './handoff-injector.js';
 import { agentationContext } from './agentation-context.js';
@@ -90,7 +90,7 @@ const HOOKS: PromptHookConfig[] = [
 
   // --- Context producers (output merged into single additionalContext) ---
   { name: 'context-exhaustion-warner', fn: contextExhaustionWarner, producesContext: true },
-  { name: 'antipattern-warning', fn: antipatternWarning, producesContext: true },
+  // antipattern-warning removed (#972) — now a type:prompt hook in hooks.json
 ];
 
 /** Exposed for testing */

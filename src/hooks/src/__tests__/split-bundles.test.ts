@@ -322,7 +322,8 @@ describe('Cross-Bundle Consistency', () => {
     // 170 -> 167: #960 — removed calibration-tracker (posttool), calibration-persist (stop), skill-nudge (prompt)
     // 167 -> 179: #969 — added 12 once:true context loaders (skill bundle)
     // 179 -> 176: #973 — removed satisfaction-detector (prompt), solution-detector (posttool), session-patterns (stop)
-    expect(totalHooks).toBe(176);
+    // 176 -> 175: #980 — removed communicationStyleTracker from entries/prompt.ts (replaced by type:prompt hook)
+    expect(totalHooks).toBe(175);
   });
 });
 

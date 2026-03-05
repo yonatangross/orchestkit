@@ -43,7 +43,7 @@ import { antipatternWarning } from '../prompt/antipattern-warning.js';
 import { memoryContext } from '../prompt/memory-context.js';
 import { todoEnforcer } from '../prompt/todo-enforcer.js';
 import { pipelineDetector } from '../prompt/pipeline-detector.js';
-import { communicationStyleTracker } from '../prompt/communication-style-tracker.js';
+// communicationStyleTracker removed: replaced by type:prompt hook in hooks.json (#980)
 
 import type { HookFn } from '../types.js';
 
@@ -67,7 +67,7 @@ export const hooks: Record<string, HookFn> = {
   'prompt/memory-context': memoryContext,
   'prompt/todo-enforcer': todoEnforcer,
   'prompt/pipeline-detector': pipelineDetector,
-  'prompt/communication-style-tracker': communicationStyleTracker,
+  // 'prompt/communication-style-tracker': replaced by type:prompt hook in hooks.json (#980)
 };
 
 export function getHook(name: string): HookFn | undefined {

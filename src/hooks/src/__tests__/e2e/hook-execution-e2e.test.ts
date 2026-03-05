@@ -319,10 +319,17 @@ describe('UserPromptSubmit Unified Dispatcher — registry', () => {
 
   it('registeredHookNames includes required hooks', () => {
     const names = promptHookNames();
-    // After refactor: prompt hooks now include handoff-injector, antipattern-warning, etc.
-    const required = ['antipattern-warning'];
+    // After #972: antipattern-warning migrated to type:prompt hook in hooks.json.
+    // Dispatcher now manages 3 hooks: handoff-injector, agentation-context, context-exhaustion-warner.
+    const required = ['context-exhaustion-warner'];
     for (const name of required) {
       expect(names, `Expected "${name}" to be registered`).toContain(name);
     }
+  });
+
+  it('registeredHookNames does not include antipattern-warning (migrated to type:prompt)', () => {
+    const names = promptHookNames();
+    // #972: antipattern-warning is now a type:prompt hook in hooks.json, not a dispatcher function
+    expect(names, 'antipattern-warning should not be in dispatcher registry').not.toContain('antipattern-warning');
   });
 });
