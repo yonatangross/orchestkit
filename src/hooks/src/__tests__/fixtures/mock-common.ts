@@ -144,6 +144,11 @@ export function mockCommonBasic(
       stopReason: reason,
       hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: 'deny', permissionDecisionReason: reason },
     })),
+    outputAsk: vi.fn((reason: string): HookResult => ({
+      continue: true,
+      suppressOutput: true,
+      hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: 'ask', permissionDecisionReason: reason },
+    })),
     outputWithUpdatedInput: vi.fn((updatedInput: Record<string, unknown>): HookResult => ({
       continue: true,
       suppressOutput: true,
