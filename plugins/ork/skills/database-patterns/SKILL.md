@@ -9,7 +9,7 @@ agent: database-engineer
 version: 2.0.0
 author: OrchestKit
 user-invocable: false
-disable-model-invocation: true
+disable-model-invocation: false
 complexity: medium
 metadata:
   category: document-asset-creation

@@ -9,7 +9,7 @@ agent: data-pipeline-engineer
 version: 1.0.0
 author: OrchestKit
 user-invocable: false
-disable-model-invocation: true
+disable-model-invocation: false
 complexity: medium
 metadata:
   category: workflow-automation
