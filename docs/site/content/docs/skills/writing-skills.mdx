@@ -187,7 +187,7 @@ allowedTools: [Read, Grep, Glob, Bash]
 hooks:
   PostToolUse:
     - matcher: "Write|Edit"
-      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs skill/my-validator"
+      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/my-validator"
 ```
 
 **`version`** and **`author`** -- Metadata for tracking changes and ownership.
