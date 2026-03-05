@@ -1,5 +1,5 @@
 ---
-title: "95 Hooks: What Fires When"
+title: "81 Hooks: What Fires When"
 description: "TypeScript functions that intercept every Claude Code lifecycle event -- blocking dangerous commands, injecting context, and syncing memory, all invisibly."
 ---
 
@@ -31,12 +31,12 @@ type HookFn = (input: HookInput) => HookResult | Promise<HookResult>;
 
 | Category | Count | Description |
 |----------|-------|-------------|
-| **Global hooks** | 34 | Fire on every matching event regardless of agent (13 matchers, 16 dispatchers, 7 native async) |
-| **Agent-scoped hooks** | 54 | Fire only when a specific agent is active |
+| **Global hooks** | 30 | Fire on every matching event regardless of agent (10 matchers, 16 dispatchers) |
+| **Agent-scoped hooks** | 44 | Fire only when a specific agent is active |
 | **Skill-scoped hooks** | 7 | Fire only during specific skill operations |
-| **Total** | **95** | Registered in `hooks.json`, compiled into 12 split bundles |
+| **Total** | **81** | Registered in `hooks.json`, compiled into 12 split bundles |
 
-All 95 hooks are written in TypeScript, compiled via esbuild into ESM bundles, and executed by Node.js. Zero external dependencies in production.
+All 81 hooks are written in TypeScript, compiled via esbuild into ESM bundles, and executed by Node.js. Zero external dependencies in production.
 
 ## Hook Events: The Full Timeline
 

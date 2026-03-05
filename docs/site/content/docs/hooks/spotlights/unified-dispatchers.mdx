@@ -7,11 +7,11 @@ import { Callout } from "fumadocs-ui/components/callout";
 
 <span className="badge badge-blue">Injects</span> <span className="badge badge-gray">Global</span>
 
-> OrchestKit consolidates 95 hooks into a small number of hooks.json entries using unified dispatchers --- single entry points that route to many internal hooks.
+> OrchestKit consolidates 81 hooks into a small number of hooks.json entries using unified dispatchers --- single entry points that route to many internal hooks.
 
 ## The Pattern
 
-Without dispatchers, every hook would need its own entry in `hooks.json`, meaning Claude Code would spawn a separate Node.js process for each one. With 95 hooks, that would add significant latency to every tool call.
+Without dispatchers, every hook would need its own entry in `hooks.json`, meaning Claude Code would spawn a separate Node.js process for each one. With 81 hooks, that would add significant latency to every tool call.
 
 The unified dispatcher pattern solves this:
 
@@ -29,7 +29,7 @@ The unified dispatcher pattern solves this:
 | PreToolUse (Task) | `unified-agent-safety-dispatcher` | 4 hooks | Context + blocking |
 | PostToolUse | `unified-dispatcher` | Post-execution analysis hooks | Silent (fire-and-forget) |
 | PostToolUse (Write) | `unified-write-quality-dispatcher` | Post-write quality analysis | Context injection |
-| Stop | `unified-stop-dispatcher` | 23 hooks | Fire-and-forget via background worker |
+| Stop | `unified-stop-dispatcher` | 7 hooks | Fire-and-forget via background worker |
 | UserPromptSubmit | `unified-dispatcher` | Prompt analysis and context injection | Context injection |
 | Lifecycle (SessionStart) | `unified-dispatcher` | Session initialization hooks | Silent (fire-and-forget) |
 | SubagentStop | `unified-dispatcher` | Subagent cleanup hooks | Silent (fire-and-forget) |

@@ -17,7 +17,7 @@ Setup (first run)
 SessionStart -----> UserPromptSubmit (repeated) -----> Stop
   |                        |                             |
   |  load context          |  inject memory,             |  fire-and-forget:
-  |  check consent         |  detect patterns            |  29 background hooks
+  |  check consent         |  detect patterns            |  7 background hooks
   |  enrich PR status      |  track satisfaction         |
   |  prefill guard         |                             v
   v                        v                        SessionEnd
@@ -149,7 +149,7 @@ This data is written to `.claude/context/session/compaction-manifest.json` and i
 
 ## The Fire-and-Forget Pattern
 
-The most important architectural pattern in OrchestKit's lifecycle hooks is **fire-and-forget**. When the user types `/exit`, they should not wait 10+ seconds for 29 cleanup hooks to finish. Instead:
+The most important architectural pattern in OrchestKit's lifecycle hooks is **fire-and-forget**. When the user types `/exit`, they should not wait for 7 cleanup hooks to finish. Instead:
 
 ```
 User types /exit
@@ -170,10 +170,10 @@ Returns immediately: {"continue": true, "suppressOutput": true}
 Session exits instantly (~50ms)
     |
     v
-Background worker picks up the payload and runs 29 hooks in parallel
+Background worker picks up the payload and runs 7 hooks in parallel
 ```
 
-### The 29 Stop Hooks
+### The 7 Stop Hooks
 
 These hooks run in the background after the session has already exited:
 
@@ -211,7 +211,7 @@ The background worker (`bin/background-worker.mjs`) includes several safety mech
 
 - **5-minute timeout** -- Self-terminates via `setTimeout` to prevent hangs
 - **Orphan cleanup** -- Removes temp files in `.claude/hooks/pending/` older than 10 minutes
-- **Parallel execution** -- All 29 hooks run via `Promise.allSettled` (failures don't block others)
+- **Parallel execution** -- All 7 hooks run via `Promise.allSettled` (failures don't block others)
 - **Debug logging** -- Writes to `.claude/logs/hooks/background-worker.log`
 
 ## Multi-Instance Coordination
@@ -239,7 +239,7 @@ OrchestKit uses 6 unified dispatchers across the lifecycle. Each is a single `ho
 |------------|-------|---------------|-----------|
 | `lifecycle/unified-dispatcher` | SessionStart | 7 | Fire-and-forget |
 | `posttool/unified-dispatcher` | PostToolUse | 7 | Fire-and-forget |
-| `stop-fire-and-forget.mjs` | Stop | 29 | Detached background worker |
+| `stop-fire-and-forget.mjs` | Stop | 7 | Detached background worker |
 | `subagent-stop/unified-dispatcher` | SubagentStop | varies | Fire-and-forget |
 | `notification/unified-dispatcher` | Notification | varies | Fire-and-forget |
 | `setup/unified-dispatcher` | Setup | varies | Fire-and-forget |

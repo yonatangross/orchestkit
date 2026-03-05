@@ -157,7 +157,7 @@ argument-hint: "[file-or-topic]"      # /ork:assess [file-or-topic]
 argument-hint: "[search|load|history]" # /ork:memory [search|load|history]
 ```
 
-**`disable-model-invocation`** -- Set to `true` to hide the skill from Claude's prompt listing. The skill is still available via `/ork:skill-name` and agent `skills:` arrays, but Claude won't see it in its context window. Use for niche or rarely-needed skills to save tokens (~2,630 tokens/turn saved by hiding 42 of 69 skills).
+**`disable-model-invocation`** -- Set to `true` to hide the skill from Claude's prompt listing. The skill is still available via `/ork:skill-name` and agent `skills:` arrays, but Claude won't see it in its context window. Use for niche or rarely-needed skills to save tokens (~2,630 tokens/turn saved by hiding 42 of 71 skills).
 
 ```yaml
 disable-model-invocation: true  # Hidden from prompt listing, still invocable
