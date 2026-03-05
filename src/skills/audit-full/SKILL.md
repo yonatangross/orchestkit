@@ -16,7 +16,7 @@ model: opus
 hooks:
   PreToolUse:
     - matcher: "Read"
-      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs skill/audit-context-loader"
+      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/audit-context-loader"
       once: true
 metadata:
   category: document-asset-creation

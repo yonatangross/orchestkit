@@ -15,7 +15,7 @@ complexity: medium
 hooks:
   PreToolUse:
     - matcher: "Read"
-      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs skill/pr-context-loader"
+      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/pr-context-loader"
       once: true
 metadata:
   category: workflow-automation

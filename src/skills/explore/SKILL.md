@@ -16,7 +16,7 @@ model: sonnet
 hooks:
   PreToolUse:
     - matcher: "Glob"
-      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs skill/repo-structure-indexer"
+      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/repo-structure-indexer"
       once: true
 metadata:
   category: workflow-automation

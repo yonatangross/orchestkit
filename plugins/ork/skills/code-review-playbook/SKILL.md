@@ -13,7 +13,7 @@ disable-model-invocation: true
 hooks:
   PostToolUse:
     - matcher: "Write|Edit"
-      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs skill/pattern-consistency-enforcer"
+      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/pattern-consistency-enforcer"
 complexity: low
 model: haiku
 metadata:

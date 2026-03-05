@@ -16,7 +16,7 @@ complexity: medium
 hooks:
   PreToolUse:
     - matcher: "Bash"
-      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs skill/setup-env-detector"
+      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/setup-env-detector"
       once: true
 metadata:
   category: configuration

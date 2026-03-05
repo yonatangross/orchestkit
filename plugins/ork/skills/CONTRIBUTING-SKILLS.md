@@ -73,7 +73,7 @@ Skills can declare hooks in frontmatter. These run only while the skill is activ
 hooks:
   PreToolUse:
     - matcher: "Read"
-      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs skill/my-handler"
+      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/my-handler"
       once: true   # CC 2.1.69: runs once then auto-removes (context loaders)
 ```
 

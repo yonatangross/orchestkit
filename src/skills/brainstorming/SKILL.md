@@ -16,7 +16,7 @@ model: sonnet
 hooks:
   PreToolUse:
     - matcher: "Agent"
-      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs skill/prior-decisions-loader"
+      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/prior-decisions-loader"
       once: true
 metadata:
   category: workflow-automation

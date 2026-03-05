@@ -16,11 +16,11 @@ model: sonnet
 hooks:
   PreToolUse:
     - matcher: "Write"
-      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs skill/project-convention-loader"
+      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/project-convention-loader"
       once: true
   PostToolUse:
     - matcher: "Write|Edit"
-      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs skill/pattern-consistency-enforcer"
+      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/pattern-consistency-enforcer"
 metadata:
   category: workflow-automation
   mcp-server: memory, context7

@@ -17,7 +17,7 @@ model: haiku
 hooks:
   PreToolUse:
     - matcher: "Bash"
-      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs skill/doctor-env-snapshot"
+      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/doctor-env-snapshot"
       once: true
 metadata:
   category: document-asset-creation

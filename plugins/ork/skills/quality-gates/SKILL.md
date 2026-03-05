@@ -15,7 +15,7 @@ complexity: max
 hooks:
   PreToolUse:
     - matcher: "Read"
-      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs skill/quality-baseline-loader"
+      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/quality-baseline-loader"
       once: true
 metadata:
   category: document-asset-creation
