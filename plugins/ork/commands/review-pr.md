@@ -69,7 +69,7 @@ AskUserQuestion(
 
 ## STEP 0b: Select Orchestration Mode
 
-See [Orchestration Mode Selection](references/orchestration-mode-selection.md)
+Load orchestration guidance: `Read("${CLAUDE_SKILL_DIR}/references/orchestration-mode-selection.md")`
 
 
 ## CRITICAL: Task Management is MANDATORY (CC 2.1.16)
@@ -177,11 +177,11 @@ See [AI Code Review Agent](rules/ai-code-review-agent.md) for the optional 7th L
 
 ## Phase 4: Run Validation
 
-See [Validation Commands](references/validation-commands.md)
+Load validation commands: `Read("${CLAUDE_SKILL_DIR}/references/validation-commands.md")`
 
 ## Phase 5: Synthesize Review
 
-Combine all agent feedback into a structured report. See [Review Report Template](references/review-report-template.md)
+Combine all agent feedback into a structured report. Load template: `Read("${CLAUDE_SKILL_DIR}/references/review-report-template.md")`
 
 ## Phase 6: Submit Review
 
@@ -212,7 +212,7 @@ claude --from-pr https://github.com/org/repo/pull/123
 
 ### Task Metrics (CC 2.1.30)
 
-See [Task Metrics Template](references/task-metrics-template.md)
+Load metrics template: `Read("${CLAUDE_SKILL_DIR}/references/task-metrics-template.md")`
 
 ## Conventional Comments
 
@@ -230,11 +230,20 @@ Use these prefixes for comments:
 
 ## References
 
-- [Review Template](references/review-template.md)
-- [Review Report Template](references/review-report-template.md)
-- [Orchestration Mode Selection](references/orchestration-mode-selection.md)
-- [Validation Commands](references/validation-commands.md)
-- [Task Metrics Template](references/task-metrics-template.md)
-- [Agent Prompts -- Task Tool](rules/agent-prompts-task-tool.md)
-- [Agent Prompts -- Agent Teams](rules/agent-prompts-agent-teams.md)
+Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
+
+| File | Content |
+|------|---------|
+| `review-template.md` | Review checklist template |
+| `review-report-template.md` | Structured review report |
+| `orchestration-mode-selection.md` | Task tool vs Agent Teams |
+| `validation-commands.md` | Build/test/lint commands |
+| `task-metrics-template.md` | Task metrics format |
+
+Rules: `Read("${CLAUDE_SKILL_DIR}/rules/<file>")`:
+
+| File | Content |
+|------|---------|
+| `agent-prompts-task-tool.md` | Agent prompts for Task tool mode |
+| `agent-prompts-agent-teams.md` | Agent prompts for Agent Teams mode |
 - [AI Code Review Agent](rules/ai-code-review-agent.md)

@@ -61,7 +61,7 @@ Scan codebase for signals: README keywords (take-home, interview), `.github/work
 
 | Signal | Tier | Architecture Ceiling |
 |--------|------|---------------------|
-| README says "take-home", time limit | **1. Interview** ([details](references/interview-mode.md)) | Flat files, 8-15 files |
+| README says "take-home", time limit | **1. Interview** (load `${CLAUDE_SKILL_DIR}/references/interview-mode.md`) | Flat files, 8-15 files |
 | < 10 files, no CI | **2. Hackathon** | Single file if possible |
 | `.github/workflows/`, managed DB | **3. MVP** | MVC monolith |
 | Module boundaries, Redis, queues | **4. Growth** | Modular monolith, DI |
@@ -86,7 +86,7 @@ Use `AskUserQuestion` to verify scope (full-stack / backend-only / frontend-only
 
 - Agent Teams (mesh) when `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` and complexity >= 2.5
 - Task tool (star) otherwise; `ORCHESTKIT_FORCE_TASK_TOOL=1` to override
-- See [Orchestration Modes](references/orchestration-modes.md)
+- Load orchestration modes: `Read("${CLAUDE_SKILL_DIR}/references/orchestration-modes.md")`
 
 ### Worktree Isolation (CC 2.1.49)
 
@@ -113,7 +113,7 @@ If worktree selected:
 3. On completion, merge back: `git checkout {original-branch} && git merge feat-{slug}`
 4. If merge conflicts arise, present diff to user via `AskUserQuestion`
 
-See [Worktree Isolation Mode](references/worktree-isolation-mode.md) for detailed workflow.
+Load worktree details: `Read("${CLAUDE_SKILL_DIR}/references/worktree-isolation-mode.md")`
 
 ---
 
@@ -128,19 +128,19 @@ Create tasks with `TaskCreate` BEFORE doing any work. Each phase gets a subtask.
 | Phase | Activities | Agents |
 |-------|------------|--------|
 | **1. Discovery** | Research best practices, Context7 docs, break into tasks | — |
-| **2. Micro-Planning** | Detailed plan per task ([guide](references/micro-planning-guide.md)) | — |
-| **3. Worktree** | Isolate in git worktree for 5+ file features ([workflow](references/worktree-workflow.md)) | — |
+| **2. Micro-Planning** | Detailed plan per task (load `${CLAUDE_SKILL_DIR}/references/micro-planning-guide.md`) | — |
+| **3. Worktree** | Isolate in git worktree for 5+ file features (load `${CLAUDE_SKILL_DIR}/references/worktree-workflow.md`) | — |
 | **4. Architecture** | 4 parallel background agents | workflow-architect, backend-system-architect, frontend-ui-developer, llm-integrator |
 | **5. Implementation + Tests** | Parallel agents, single-pass artifacts with mandatory tests | backend-system-architect, frontend-ui-developer, llm-integrator, test-generator |
 | **6. Integration Verification** | Code review + real-service integration tests | backend, frontend, code-quality-reviewer, security-auditor |
-| **7. Scope Creep** | Compare planned vs actual ([detection](references/scope-creep-detection.md)) | workflow-architect |
-| **8. E2E Verification** | Browser + API E2E testing ([guide](references/e2e-verification.md)) | — |
+| **7. Scope Creep** | Compare planned vs actual (load `${CLAUDE_SKILL_DIR}/references/scope-creep-detection.md`) | workflow-architect |
+| **8. E2E Verification** | Browser + API E2E testing (load `${CLAUDE_SKILL_DIR}/references/e2e-verification.md`) | — |
 | **9. Documentation** | Save decisions to memory graph | — |
 | **10. Reflection** | Lessons learned, estimation accuracy | workflow-architect |
 
-See [Agent Phases](references/agent-phases.md) for detailed agent prompts and spawn templates.
+Load agent prompts: `Read("${CLAUDE_SKILL_DIR}/references/agent-phases.md")`
 
-For Agent Teams mode, see [Agent Teams Phases](references/agent-teams-phases.md).
+For Agent Teams mode: `Read("${CLAUDE_SKILL_DIR}/references/agent-teams-phases.md")`
 
 ### Issue Tracking
 
@@ -148,7 +148,7 @@ If working on a GitHub issue, run the Start Work ceremony from `issue-progress-t
 
 ### Feedback Loop
 
-Maintain checkpoints after each task. See [Feedback Loop](references/feedback-loop.md) for triggers and actions.
+Maintain checkpoints after each task. Load triggers: `Read("${CLAUDE_SKILL_DIR}/references/feedback-loop.md")`
 
 ---
 
@@ -206,16 +206,20 @@ If detected: run integration tests against real services, not just mocks. Refere
 
 ## References
 
-- [Agent Phases](references/agent-phases.md)
-- [Agent Teams Phases](references/agent-teams-phases.md)
-- [Interview Mode](references/interview-mode.md)
-- [Orchestration Modes](references/orchestration-modes.md)
-- [Feedback Loop](references/feedback-loop.md)
-- [CC Enhancements](references/cc-enhancements.md)
-- [Agent Teams Full-Stack Pipeline](references/agent-teams-full-stack.md)
-- [Team Worktree Setup](references/team-worktree-setup.md)
-- [Micro-Planning Guide](references/micro-planning-guide.md)
-- [Scope Creep Detection](references/scope-creep-detection.md)
-- [Worktree Workflow](references/worktree-workflow.md)
-- [E2E Verification](references/e2e-verification.md)
-- [Worktree Isolation Mode](references/worktree-isolation-mode.md)
+Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
+
+| File | Content |
+|------|---------|
+| `agent-phases.md` | Agent prompts and spawn templates |
+| `agent-teams-phases.md` | Agent Teams mode phases |
+| `interview-mode.md` | Interview/take-home constraints |
+| `orchestration-modes.md` | Task tool vs Agent Teams selection |
+| `feedback-loop.md` | Checkpoint triggers and actions |
+| `cc-enhancements.md` | CC version-specific features |
+| `agent-teams-full-stack.md` | Full-stack pipeline for teams |
+| `team-worktree-setup.md` | Team worktree configuration |
+| `micro-planning-guide.md` | Detailed micro-planning guide |
+| `scope-creep-detection.md` | Planned vs actual comparison |
+| `worktree-workflow.md` | Git worktree workflow |
+| `e2e-verification.md` | Browser + API E2E testing guide |
+| `worktree-isolation-mode.md` | Worktree isolation details |
