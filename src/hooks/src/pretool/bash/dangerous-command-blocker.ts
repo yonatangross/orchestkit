@@ -1,13 +1,20 @@
 /**
- * Dangerous Command Blocker - Blocks commands matching dangerous patterns
+ * Dangerous Command Blocker - 3-tier command safety system
  * Hook: PreToolUse (Bash)
  * CC 2.1.7 Compliant: outputs JSON with continue field
+ * CC 2.1.69: Added "ask" decision tier for gray-zone commands
+ *
+ * Tiers:
+ *   DENY  — catastrophic, never legitimate (rm -rf /, fork bomb, DROP DATABASE)
+ *   ASK   — dangerous but sometimes legitimate (git reset --hard, sudo, kill)
+ *   ALLOW — everything else (silent pass-through)
  */
 
 import type { HookInput, HookResult } from '../../types.js';
 import {
   outputSilentSuccess,
   outputDeny,
+  outputAsk,
   logHook,
   logPermissionFeedback,
 } from '../../lib/common.js';
@@ -16,15 +23,15 @@ import {
   normalizeSingle,
 } from '../../lib/normalize-command.js';
 
+// =============================================================================
+// DENY tier — catastrophic system damage, NEVER legitimate
+// =============================================================================
+
 /**
- * Dangerous patterns - commands that can cause catastrophic system damage
- * These are matched as literal substrings via normalizedCommand.includes()
- *
- * NOTE: Root-path rm patterns (rm -rf /, rm -fr /) are in DANGEROUS_REGEX_PATTERNS
- * below to avoid false positives on legitimate paths like /tmp, /var/log, etc.
+ * Substring patterns matched after compound-splitting via containsDangerousCommand().
  */
-const DANGEROUS_PATTERNS: string[] = [
-  // Filesystem destruction (relative paths only — absolute root uses regex below)
+const DENY_PATTERNS: string[] = [
+  // Filesystem destruction
   'rm -rf ~',
   'rm -fr ~',
   'mv /* /dev/null',
@@ -35,13 +42,6 @@ const DANGEROUS_PATTERNS: string[] = [
   'dd if=/dev/random of=/dev/',
   // Permission abuse
   'chmod -R 777 /',
-  // Fork bomb — NOTE: pattern contains | and ; so it CANNOT be matched after
-  // compound-splitting in containsDangerousCommand(). Matched separately below
-  // via normalizeSingle() which preserves operators. Do NOT add it here.
-  // ':(){:|:&};:',  — removed: dead code, see fork bomb check at line ~117
-  // Destructive git operations (data loss)
-  'git reset --hard',
-  'git clean -fd',
   // Database destruction
   'drop database',
   'drop schema',
@@ -49,111 +49,136 @@ const DANGEROUS_PATTERNS: string[] = [
 ];
 
 /**
- * Regex patterns for root-path destruction commands.
- * These need anchored matching to avoid false positives:
- * - "rm -rf /" (bare root) → BLOCKED
- * - "rm -rf /tmp/build" → ALLOWED (legitimate path)
- * - "rm -rf /*" → BLOCKED (glob root)
+ * Regex patterns for root-path destruction (anchored to avoid false positives).
  */
-const DANGEROUS_REGEX_PATTERNS: { pattern: RegExp; label: string }[] = [
-  // rm -rf / or rm -rf /* but NOT rm -rf /tmp/...
-  // Matches: rm -rf /, rm -rf /*, rm -rf / &&, rm -rf / ;
-  // Does NOT match: rm -rf /tmp, rm -rf /var/log
+const DENY_REGEX_PATTERNS: { pattern: RegExp; label: string }[] = [
   { pattern: /\brm\s+-r[f]\s+\/(\s|$|\*|\))/i, label: 'rm -rf /' },
   { pattern: /\brm\s+-[f]r\s+\/(\s|$|\*|\))/i, label: 'rm -fr /' },
 ];
 
+// =============================================================================
+// ASK tier — dangerous but sometimes legitimate, escalate to user
+// =============================================================================
+
 /**
- * Shell and script interpreters that should never receive piped input.
- * Catches: wget URL | sh, curl URL | bash, cat file | python3, etc.
+ * Substring patterns that trigger user confirmation.
+ */
+const ASK_PATTERNS: { pattern: string; reason: string }[] = [
+  { pattern: 'git reset --hard', reason: 'Discards all uncommitted changes. Are you sure?' },
+  { pattern: 'git clean -fd', reason: 'Permanently removes untracked files. Are you sure?' },
+];
+
+/**
+ * Regex patterns that trigger user confirmation.
+ */
+const ASK_REGEX_PATTERNS: { pattern: RegExp; reason: string }[] = [
+  {
+    pattern: /git\s+push\s+.*(-f|--force)\b/i,
+    reason: 'Force-push rewrites remote history. Are you sure?',
+  },
+  {
+    pattern: /\bsudo\s+/i,
+    reason: 'Elevated privileges requested. Are you sure?',
+  },
+  {
+    pattern: /\b(kill|pkill|killall)\s+/i,
+    reason: 'Terminates running processes. Are you sure?',
+  },
+  {
+    pattern: /\bdocker\s+system\s+prune\b/i,
+    reason: 'Removes all unused Docker resources. Are you sure?',
+  },
+  {
+    pattern: /\brm\s+-r[f]*\s+\.?\/?\/?node_modules\b/i,
+    reason: 'Removes all installed dependencies. Are you sure?',
+  },
+];
+
+/**
+ * Shell interpreters that should never receive piped input.
+ * Stays in DENY tier — executing arbitrary remote code is never safe to "ask" about.
  */
 const PIPE_TO_SHELL_RE = /\|\s*(sh|bash|zsh|dash|python[23]?|node|perl|ruby|tclsh)\b/i;
 
-/**
- * Git force-push patterns that rewrite remote history.
- * Catches: git push --force, git push -f, git push origin main --force
- */
-const GIT_FORCE_PUSH_RE = /git\s+push\s+.*(-f|--force)\b/i;
+// =============================================================================
+// Main handler
+// =============================================================================
 
-/**
- * Block dangerous commands
- */
 export function dangerousCommandBlocker(input: HookInput): HookResult {
   const command = input.tool_input.command || '';
+  if (!command) return outputSilentSuccess();
 
-  if (!command) {
-    return outputSilentSuccess();
-  }
-
-  // Normalize: expand escapes, strip quotes, split compound operators, then check each sub-command
-  const dangerousCheck = containsDangerousCommand(command, DANGEROUS_PATTERNS);
+  // --- DENY tier: catastrophic patterns (compound-split matching) ---
+  const dangerousCheck = containsDangerousCommand(command, DENY_PATTERNS);
   if (dangerousCheck.matches) {
     const pattern = dangerousCheck.matched!;
     logHook('dangerous-command-blocker', `BLOCKED: Dangerous pattern: ${pattern}`);
     logPermissionFeedback('deny', `Dangerous pattern: ${pattern}`, input);
-
     return outputDeny(
       `Command matches dangerous pattern: ${pattern}\n\n` +
-        'This command could cause severe system damage and has been blocked.'
+        'This command could cause severe system damage and has been blocked.',
     );
   }
 
-  // Check regex patterns for root-path destruction (anchored to avoid false positives)
+  // --- DENY tier: root-path regex patterns ---
   const normalizedForRegex = normalizeSingle(command);
-  for (const { pattern, label } of DANGEROUS_REGEX_PATTERNS) {
+  for (const { pattern, label } of DENY_REGEX_PATTERNS) {
     if (pattern.test(normalizedForRegex)) {
       logHook('dangerous-command-blocker', `BLOCKED: Dangerous pattern: ${label}`);
       logPermissionFeedback('deny', `Dangerous pattern: ${label}`, input);
-
       return outputDeny(
         `Command matches dangerous pattern: ${label}\n\n` +
-          'This command could cause severe system damage and has been blocked.'
+          'This command could cause severe system damage and has been blocked.',
       );
     }
   }
 
-  // Single-string normalized form for patterns that contain compound operators (| ; &&).
-  // normalizeSingle() expands escapes + strips quotes but does NOT split on operators,
-  // so patterns like the fork bomb ':(){:|:&};:' remain intact for substring matching.
   const normalizedCommand = normalizeSingle(command).toLowerCase();
 
-  // Fork bomb detection — pattern contains | and ; so it can't be matched via
-  // containsDangerousCommand() which splits on those operators. Must use normalizeSingle.
+  // --- DENY tier: fork bomb ---
   if (normalizedCommand.includes(':(){:|:&};:')) {
     const reason = 'Fork bomb detected';
     logHook('dangerous-command-blocker', `BLOCKED: ${reason}`);
     logPermissionFeedback('deny', reason, input);
-
     return outputDeny(
       `Command matches dangerous pattern: :(){:|:&};:\n\n` +
-        'This command could cause severe system damage and has been blocked.'
+        'This command could cause severe system damage and has been blocked.',
     );
   }
 
-  // Check for piping to shell interpreters (e.g., wget URL | sh, curl URL | bash)
+  // --- DENY tier: piping to shell interpreters ---
   if (PIPE_TO_SHELL_RE.test(normalizedCommand)) {
     const reason = 'Piping to shell interpreter detected';
     logHook('dangerous-command-blocker', `BLOCKED: ${reason}`);
     logPermissionFeedback('deny', reason, input);
-
     return outputDeny(
       `${reason}\n\n` +
-        'Piping untrusted content to a shell interpreter is dangerous and has been blocked.'
+        'Piping untrusted content to a shell interpreter is dangerous and has been blocked.',
     );
   }
 
-  // Check for git force-push (rewrites remote history)
-  if (GIT_FORCE_PUSH_RE.test(normalizedCommand)) {
-    const reason = 'Git force-push detected (rewrites remote history)';
-    logHook('dangerous-command-blocker', `BLOCKED: ${reason}`);
-    logPermissionFeedback('deny', reason, input);
-
-    return outputDeny(
-      `${reason}\n\n` +
-        'Force-pushing can destroy remote commit history and has been blocked.'
-    );
+  // --- ASK tier: dangerous but sometimes legitimate (substring) ---
+  const askSubstringCheck = containsDangerousCommand(
+    command,
+    ASK_PATTERNS.map((p) => p.pattern),
+  );
+  if (askSubstringCheck.matches) {
+    const matched = ASK_PATTERNS.find((p) => p.pattern === askSubstringCheck.matched);
+    if (matched) {
+      logHook('dangerous-command-blocker', `ASK: ${matched.reason}`);
+      logPermissionFeedback('ask', matched.reason, input);
+      return outputAsk(matched.reason);
+    }
   }
 
-  // Command is safe, allow it silently
+  // --- ASK tier: dangerous but sometimes legitimate (regex) ---
+  for (const { pattern, reason } of ASK_REGEX_PATTERNS) {
+    if (pattern.test(normalizedCommand)) {
+      logHook('dangerous-command-blocker', `ASK: ${reason}`);
+      logPermissionFeedback('ask', reason, input);
+      return outputAsk(reason);
+    }
+  }
+
   return outputSilentSuccess();
 }
