@@ -1,9 +1,19 @@
 /**
  * Antipattern Warning - UserPromptSubmit Hook
- * Proactive anti-pattern detection and warning injection
  * CC 2.1.9 Compliant: Uses hookSpecificOutput.additionalContext for warnings
  *
- * Uses local pattern files and knowledge graph for anti-pattern detection.
+ * Architecture (2 layers):
+ * 1. STATIC: materializeAntipatternRules() writes .claude/rules/antipatterns.md
+ *    at session start. CC loads this into every prompt for FREE — no per-turn cost.
+ *    This handles the 7 known anti-patterns (offset pagination, N+1, etc.).
+ *
+ * 2. DYNAMIC: antipatternWarning() runs per-turn to check project-specific
+ *    learned patterns (learned-patterns.json) and cross-project global patterns
+ *    (global-patterns.json). These are dynamic and can't be in a static rules file.
+ *
+ * Why NOT type:prompt (#972): The rules file already gives Claude the static
+ * patterns for free. A type:prompt hook would add 2-3s latency per turn to
+ * duplicate what Claude already has in context.
  */
 
 import type { HookInput, HookResult } from '../types.js';
@@ -12,23 +22,8 @@ import { getHomeDir } from '../lib/paths.js';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-// Keywords that indicate implementation intent
-const IMPLEMENTATION_KEYWORDS = [
-  'implement',
-  'add',
-  'create',
-  'build',
-  'set up',
-  'setup',
-  'configure',
-  'use',
-  'write',
-  'make',
-  'develop',
-];
-
-// Known anti-patterns database
-const KNOWN_ANTIPATTERNS: Array<{ pattern: string; warning: string }> = [
+// Static anti-patterns — materialized to rules file at session start, NOT checked at runtime
+const STATIC_ANTIPATTERNS: Array<{ pattern: string; warning: string }> = [
   {
     pattern: 'offset pagination',
     warning:
@@ -81,39 +76,25 @@ interface GlobalPatternsFile {
 }
 
 /**
- * Check if prompt contains implementation keywords
- */
-function isImplementationPrompt(prompt: string): boolean {
-  const promptLower = prompt.toLowerCase();
-
-  for (const keyword of IMPLEMENTATION_KEYWORDS) {
-    if (promptLower.includes(keyword)) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-/**
- * Materialize static KNOWN_ANTIPATTERNS to a rules file (called once at session start).
- * This replaces per-turn runtime matching with a static file Claude reads automatically.
+ * Materialize static anti-patterns to a rules file (called once at session start).
+ * CC loads .claude/rules/ files into every prompt automatically — zero per-turn cost.
  */
 export function materializeAntipatternRules(projectDir: string): void {
-  const lines = KNOWN_ANTIPATTERNS.map(({ pattern, warning }) => `- **${pattern}**: ${warning}`);
+  const lines = STATIC_ANTIPATTERNS.map(({ pattern, warning }) => `- **${pattern}**: ${warning}`);
   const content = `# Anti-Pattern Warnings\n\nAvoid these known anti-patterns:\n\n${lines.join('\n')}\n`;
   const rulesDir = join(projectDir, '.claude', 'rules');
   writeRulesFile(rulesDir, 'antipatterns.md', content, 'antipattern-warning');
 }
 
 /**
- * Search local patterns for anti-patterns (dynamic learned patterns only — static patterns are in rules file)
+ * Search dynamic learned patterns (project-local + global).
+ * Static patterns are NOT checked here — they're in the rules file.
  */
-function searchLocalAntipatterns(prompt: string, projectDir: string): string[] {
+function searchDynamicPatterns(prompt: string, projectDir: string): string[] {
   const promptLower = prompt.toLowerCase();
   const warnings: string[] = [];
 
-  // Check learned patterns file
+  // Check project-specific learned patterns
   const patternsFile = join(projectDir, '.claude', 'feedback', 'learned-patterns.json');
   if (existsSync(patternsFile)) {
     try {
@@ -134,7 +115,7 @@ function searchLocalAntipatterns(prompt: string, projectDir: string): string[] {
     }
   }
 
-  // Check global patterns (use getHomeDir for cross-platform compatibility)
+  // Check cross-project global patterns
   const globalPatternsFile = join(getHomeDir(), '.claude', 'global-patterns.json');
   if (existsSync(globalPatternsFile)) {
     try {
@@ -153,7 +134,8 @@ function searchLocalAntipatterns(prompt: string, projectDir: string): string[] {
 }
 
 /**
- * Antipattern warning hook - detects and warns about known anti-patterns
+ * Antipattern warning hook — checks dynamic learned patterns per-turn.
+ * Static patterns are handled by the rules file (zero cost).
  */
 export function antipatternWarning(input: HookInput): HookResult {
   const prompt = input.prompt || '';
@@ -163,18 +145,11 @@ export function antipatternWarning(input: HookInput): HookResult {
     return outputSilentSuccess();
   }
 
-  // Only check implementation prompts
-  if (!isImplementationPrompt(prompt)) {
-    return outputSilentSuccess();
-  }
-
-  logHook('antipattern-warning', 'Checking prompt for anti-patterns...');
-
-  // Search for matching anti-patterns
-  const warnings = searchLocalAntipatterns(prompt, projectDir);
+  // Check dynamic patterns (learned + global) — no keyword gate needed
+  const warnings = searchDynamicPatterns(prompt, projectDir);
 
   if (warnings.length > 0) {
-    logHook('antipattern-warning', `Found anti-pattern warnings: ${warnings.join(', ')}`);
+    logHook('antipattern-warning', `Found dynamic pattern warnings: ${warnings.join(', ')}`);
 
     const warningMessage = `## Anti-Pattern Warning
 
@@ -182,9 +157,7 @@ The following patterns have previously caused issues:
 
 ${warnings.map((w) => `- ${w}`).join('\n')}
 
-Consider alternative approaches before proceeding.
-
-Search knowledge graph for more context: mcp__memory__search_nodes with query="${prompt.slice(0, 50)}"`;
+Consider alternative approaches before proceeding.`;
 
     return outputPromptContext(warningMessage);
   }
