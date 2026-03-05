@@ -333,7 +333,7 @@ Two channels now active:
 
 Save webhookUrl to config and remind about env var (same as above, skip generator step).
 
-Load `Read("${CLAUDE_SKILL_DIR}/references/http-hooks.md")` for architecture details.
+Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/configure/references/http-hooks.md")` for architecture details.
 
 ## Step 10: Optional Integrations
 
@@ -411,7 +411,7 @@ Save to: `~/.claude/plugins/orchestkit/config.json`
 - `ork:doctor`: Diagnose configuration issues
 ## References
 
-Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
+Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/configure/references/<file>")`:
 | File | Content |
 |------|---------|
 | `references/presets.md` | Preset definitions |

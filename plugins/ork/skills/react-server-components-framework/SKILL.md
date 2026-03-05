@@ -119,13 +119,13 @@ export default async function PostPage({
 }
 ```
 
-**Note:** Also applies to `layout.tsx`, `generateMetadata()`, and route handlers. Load: `Read("${CLAUDE_SKILL_DIR}/references/nextjs-16-upgrade.md")` for complete migration guide.
+**Note:** Also applies to `layout.tsx`, `generateMetadata()`, and route handlers. Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/react-server-components-framework/references/nextjs-16-upgrade.md")` for complete migration guide.
 
 ---
 
 ## References
 
-Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
+Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/react-server-components-framework/references/<file>")`:
 | File | Content |
 |------|---------|
 | `server-components.md` | Async server components, data fetching patterns, route segment config, generateStaticParams, error handling |

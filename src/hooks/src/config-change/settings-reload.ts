@@ -10,7 +10,7 @@
  * @see https://docs.anthropic.com/en/docs/claude-code/hooks
  */
 
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, appendFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, outputSilentSuccess, outputBlock, outputWarning, outputPromptContext, logPermissionFeedback } from '../lib/common.js';
@@ -93,6 +93,20 @@ function checkHooksIntegrity(projectDir: string): string[] {
   return findings;
 }
 
+/**
+ * Persist config change to JSONL audit trail.
+ */
+function writeAuditEntry(projectDir: string, entry: { session: string; action: string; details: string[] }): void {
+  try {
+    const logsDir = join(projectDir, '.claude', 'logs');
+    mkdirSync(logsDir, { recursive: true });
+    const line = JSON.stringify({ ...entry, timestamp: new Date().toISOString() }) + '\n';
+    appendFileSync(join(logsDir, 'config-changes.jsonl'), line);
+  } catch {
+    // Non-critical — never crash on audit write
+  }
+}
+
 export function settingsReload(input: HookInput): HookResult {
   const sessionId = input.session_id || 'unknown';
   const projectDir = input.project_dir || process.cwd();
@@ -116,6 +130,7 @@ export function settingsReload(input: HookInput): HookResult {
       const reason = `[ConfigChange] BLOCKED — dangerous config state detected:\n${allBlocks.map(b => `  - ${b}`).join('\n')}\n\nRevert the change or remove the dangerous pattern.`;
       logHook('config-change', `BLOCKED: ${allBlocks.join('; ')}`, 'warn');
       logPermissionFeedback('deny', `ConfigChange blocked: ${allBlocks.join('; ')}`);
+      writeAuditEntry(projectDir, { session: sessionId, action: 'block', details: allBlocks });
       return outputBlock(reason);
     }
 
@@ -124,10 +139,12 @@ export function settingsReload(input: HookInput): HookResult {
       const warningMsg = `Config change detected with risks:\n${allWarnings.map(w => `  - ${w}`).join('\n')}`;
       logHook('config-change', `WARNING: ${allWarnings.join('; ')}`, 'warn');
       logPermissionFeedback('warn', `ConfigChange warning: ${allWarnings.join('; ')}`);
+      writeAuditEntry(projectDir, { session: sessionId, action: 'warn', details: allWarnings });
       return outputWarning(warningMsg);
     }
 
     // SAFE: no issues
+    writeAuditEntry(projectDir, { session: sessionId, action: 'pass', details: [] });
     return outputPromptContext(
       '[ConfigChange] Project or user settings were modified during this session. ' +
       'Permission rules, hook configurations, or plugin settings may have changed. ' +

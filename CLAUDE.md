@@ -8,7 +8,7 @@ Always respond in English. Never Hebrew. No exceptions.
 
 ## Project Overview
 
-**OrchestKit** — Claude Code plugin: **71 skills**, **30 agents**, **97 hooks** (33 global + 44 agent-scoped + 20 skill-scoped).
+**OrchestKit** — Claude Code plugin: **71 skills**, **30 agents**, **98 hooks** (34 global + 44 agent-scoped + 20 skill-scoped).
 
 **Purpose**: AI-assisted development with built-in best practices, security patterns, and quality gates.
 
@@ -91,6 +91,6 @@ The plugin includes 95 hooks (33 global [10 matchers, 18 dispatchers, 4 native H
 ## Version
 
 - **Current**: 7.1.3 · **Claude Code**: >= 2.1.59 <!-- x-release-please-version -->
-- **Hooks**: 97 total (33 global [10 matchers, 19 dispatchers, 4 native HTTP] + 44 agent-scoped + 20 skill-scoped)
+- **Hooks**: 98 total (34 global [10 matchers, 20 dispatchers, 4 native HTTP] + 44 agent-scoped + 20 skill-scoped)
 
 See `CHANGELOG.md` for history. See `src/hooks/README.md` for hook architecture.

@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 33 global + 44 agent-scoped + 20 skill-scoped = 97 total hooks (4 native HTTP, 13 once:true context loaders). All timeouts in SECONDS per CC spec.",
+  "description": "OrchestKit hooks - 34 global + 44 agent-scoped + 20 skill-scoped = 98 total hooks (4 native HTTP, 13 once:true context loaders). All timeouts in SECONDS per CC spec.",
   "hooks": {
     "PreToolUse": [
       {
@@ -255,7 +255,19 @@
         ]
       }
     ],
-    "TeammateIdle": [],
+    "TeammateIdle": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs teammate-idle/unified-dispatcher",
+            "timeout": 15,
+            "async": true,
+            "statusMessage": "Checking teammate status..."
+          }
+        ]
+      }
+    ],
     "TaskCompleted": [
       {
         "hooks": [

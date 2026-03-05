@@ -30,11 +30,11 @@ ISSUE_NUMBER = "$ARGUMENTS[0]"  # e.g., "123" (CC 2.1.59 indexed access)
 
 ## STEP 0: Verify User Intent
 
-**BEFORE creating tasks**, clarify fix approach using AskUserQuestion. Load `Read("${CLAUDE_SKILL_DIR}/rules/evidence-gathering.md")` for the full prompt template and workflow adjustments per approach (Proper fix, Quick fix, Investigate first, Hotfix).
+**BEFORE creating tasks**, clarify fix approach using AskUserQuestion. Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/fix-issue/rules/evidence-gathering.md")` for the full prompt template and workflow adjustments per approach (Proper fix, Quick fix, Investigate first, Hotfix).
 
 ## STEP 0b: Select Orchestration Mode
 
-Choose **Agent Teams** (mesh) or **Task tool** (star). Load `Read("${CLAUDE_SKILL_DIR}/references/agent-selection.md")` for the selection criteria, cost comparison, and task creation patterns.
+Choose **Agent Teams** (mesh) or **Task tool** (star). Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/fix-issue/references/agent-selection.md")` for the selection criteria, cost comparison, and task creation patterns.
 
 ## Workflow Overview
 
@@ -52,7 +52,7 @@ Choose **Agent Teams** (mesh) or **Task tool** (star). Load `Read("${CLAUDE_SKIL
 | **10. Lessons Learned** | Capture knowledge | Persisted learnings |
 | **11. Commit and PR** | Create PR with fix | Merged PR |
 
-> **Full phase details**: Load `Read("${CLAUDE_SKILL_DIR}/references/fix-phases.md")` for bash commands, templates, and procedures for each phase.
+> **Full phase details**: Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/fix-issue/references/fix-phases.md")` for bash commands, templates, and procedures for each phase.
 
 ## Critical Constraints
 
@@ -63,16 +63,16 @@ Choose **Agent Teams** (mesh) or **Task tool** (star). Load `Read("${CLAUDE_SKIL
 
 ## CC 2.1.49 Enhancements
 
-> Load `Read("${CLAUDE_SKILL_DIR}/references/cc-enhancements.md")` for session resume, task metrics, tool guidance, worktree isolation, and adaptive thinking.
+> Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/fix-issue/references/cc-enhancements.md")` for session resume, task metrics, tool guidance, worktree isolation, and adaptive thinking.
 
 ## Rules Quick Reference
 
 | Rule | Impact | What It Covers |
 |------|--------|----------------|
-| evidence-gathering (load `${CLAUDE_SKILL_DIR}/rules/evidence-gathering.md`) | HIGH | User intent verification, confidence scale, key decisions |
-| rca-five-whys (load `${CLAUDE_SKILL_DIR}/rules/rca-five-whys.md`) | HIGH | 5 Whys iterative causal analysis |
-| rca-fishbone (load `${CLAUDE_SKILL_DIR}/rules/rca-fishbone.md`) | MEDIUM | Ishikawa diagram, multi-factor analysis |
-| rca-fault-tree (load `${CLAUDE_SKILL_DIR}/rules/rca-fault-tree.md`) | MEDIUM | Fault tree analysis, AND/OR gates, critical systems |
+| evidence-gathering (load `${CLAUDE_PLUGIN_ROOT}/skills/fix-issue/rules/evidence-gathering.md`) | HIGH | User intent verification, confidence scale, key decisions |
+| rca-five-whys (load `${CLAUDE_PLUGIN_ROOT}/skills/fix-issue/rules/rca-five-whys.md`) | HIGH | 5 Whys iterative causal analysis |
+| rca-fishbone (load `${CLAUDE_PLUGIN_ROOT}/skills/fix-issue/rules/rca-fishbone.md`) | MEDIUM | Ishikawa diagram, multi-factor analysis |
+| rca-fault-tree (load `${CLAUDE_PLUGIN_ROOT}/skills/fix-issue/rules/rca-fault-tree.md`) | MEDIUM | Fault tree analysis, AND/OR gates, critical systems |
 
 ## Related Skills
 
@@ -83,7 +83,7 @@ Choose **Agent Teams** (mesh) or **Task tool** (star). Load `Read("${CLAUDE_SKIL
 
 ## References
 
-Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
+Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/fix-issue/references/<file>")`:
 | File | Content |
 |------|---------|
 | `fix-phases.md` | Bash commands, templates, procedures per phase |

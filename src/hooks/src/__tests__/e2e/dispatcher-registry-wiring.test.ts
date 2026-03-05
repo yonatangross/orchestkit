@@ -234,7 +234,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       }
 
       const asyncHooks = allHooks.filter(h => h.async === true);
-      expect(asyncHooks.length, 'Should have exactly 5 async hooks').toBe(5);
+      // 5 -> 6: #978 — wired TeammateIdle dispatcher (async: true)
+      expect(asyncHooks.length, 'Should have exactly 6 async hooks').toBe(6);
     });
 
     it('should have notification dispatcher using native async', () => {
@@ -306,7 +307,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       }
 
       // After #897 slimming: 5 async hooks remain
-      expect(asyncCount).toBe(5);
+      // 5 -> 6: #978 — wired TeammateIdle dispatcher
+      expect(asyncCount).toBe(6);
     });
 
     it('should have hooks for all critical security operations', () => {

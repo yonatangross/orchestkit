@@ -75,7 +75,7 @@ class Order:
         return hash(self.id)
 ```
 
-Load `Read("${CLAUDE_SKILL_DIR}/references/entities-value-objects.md")` for complete patterns.
+Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/domain-driven-design/references/entities-value-objects.md")` for complete patterns.
 
 ### Value Object (Immutable)
 
@@ -95,7 +95,7 @@ class Money:
         return Money(self.amount + other.amount, self.currency)
 ```
 
-Load `Read("${CLAUDE_SKILL_DIR}/references/entities-value-objects.md")` for Address, DateRange examples.
+Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/domain-driven-design/references/entities-value-objects.md")` for Address, DateRange examples.
 
 ## Key Decisions
 
@@ -112,9 +112,9 @@ Load `Read("${CLAUDE_SKILL_DIR}/references/entities-value-objects.md")` for Addr
 
 | Rule | Impact | What It Covers |
 |------|--------|----------------|
-| aggregate-boundaries (load `${CLAUDE_SKILL_DIR}/rules/aggregate-boundaries.md`) | HIGH | Aggregate root design, reference by ID, one-per-transaction |
-| aggregate-invariants (load `${CLAUDE_SKILL_DIR}/rules/aggregate-invariants.md`) | HIGH | Business rule enforcement, specification pattern |
-| aggregate-sizing (load `${CLAUDE_SKILL_DIR}/rules/aggregate-sizing.md`) | HIGH | Right-sizing, when to split, eventual consistency |
+| aggregate-boundaries (load `${CLAUDE_PLUGIN_ROOT}/skills/domain-driven-design/rules/aggregate-boundaries.md`) | HIGH | Aggregate root design, reference by ID, one-per-transaction |
+| aggregate-invariants (load `${CLAUDE_PLUGIN_ROOT}/skills/domain-driven-design/rules/aggregate-invariants.md`) | HIGH | Business rule enforcement, specification pattern |
+| aggregate-sizing (load `${CLAUDE_PLUGIN_ROOT}/skills/domain-driven-design/rules/aggregate-sizing.md`) | HIGH | Right-sizing, when to split, eventual consistency |
 
 ## When NOT to Use
 
@@ -161,7 +161,7 @@ async def get(self, id: UUID) -> OrderModel:  # WRONG - return domain!
 
 ## References
 
-Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
+Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/domain-driven-design/references/<file>")`:
 | File | Content |
 |------|---------|
 | `entities-value-objects.md` | Full entity and value object patterns |

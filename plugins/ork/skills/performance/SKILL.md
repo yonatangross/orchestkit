@@ -249,7 +249,7 @@ export default async function Page() {
 
 ## References
 
-Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
+Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/performance/references/<file>")`:
 | File | Content |
 |------|---------|
 | `rum-setup.md` | Real User Monitoring |

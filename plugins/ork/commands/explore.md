@@ -114,9 +114,9 @@ mcp__memory__search_nodes(query="architecture")
 
 ### Phase 3: Parallel Deep Exploration (4 Agents)
 
-Load `Read("${CLAUDE_SKILL_DIR}/rules/exploration-agents.md")` for Task tool mode prompts.
+Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/explore/rules/exploration-agents.md")` for Task tool mode prompts.
 
-Load `Read("${CLAUDE_SKILL_DIR}/rules/agent-teams-mode.md")` for Agent Teams alternative.
+Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/explore/rules/agent-teams-mode.md")` for Agent Teams alternative.
 
 ### Phase 4: AI System Exploration (If Applicable)
 
@@ -124,19 +124,19 @@ For AI/ML topics, add exploration of: LangGraph workflows, prompt templates, RAG
 
 ### Phase 5: Code Health Assessment
 
-Load `Read("${CLAUDE_SKILL_DIR}/rules/code-health-assessment.md")` for agent prompt. Load `Read("${CLAUDE_SKILL_DIR}/references/code-health-rubric.md")` for scoring criteria.
+Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/explore/rules/code-health-assessment.md")` for agent prompt. Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/explore/references/code-health-rubric.md")` for scoring criteria.
 
 ### Phase 6: Dependency Hotspot Map
 
-Load `Read("${CLAUDE_SKILL_DIR}/rules/dependency-hotspot-analysis.md")` for agent prompt. Load `Read("${CLAUDE_SKILL_DIR}/references/dependency-analysis.md")` for metrics.
+Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/explore/rules/dependency-hotspot-analysis.md")` for agent prompt. Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/explore/references/dependency-analysis.md")` for metrics.
 
 ### Phase 7: Product Perspective
 
-Load `Read("${CLAUDE_SKILL_DIR}/rules/product-perspective.md")` for agent prompt. Load `Read("${CLAUDE_SKILL_DIR}/references/findability-patterns.md")` for best practices.
+Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/explore/rules/product-perspective.md")` for agent prompt. Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/explore/references/findability-patterns.md")` for best practices.
 
 ### Phase 8: Generate Report
 
-Load `Read("${CLAUDE_SKILL_DIR}/references/exploration-report-template.md")`.
+Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/explore/references/exploration-report-template.md")`.
 
 ## Common Exploration Queries
 

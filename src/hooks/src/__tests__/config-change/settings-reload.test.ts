@@ -14,12 +14,17 @@ import type { HookInput } from '../../types.js';
 
 let mockFiles: Record<string, string> = {};
 
+const mockAppendFileSync = vi.fn();
+const mockMkdirSync = vi.fn();
+
 vi.mock('node:fs', () => ({
   readFileSync: vi.fn((path: string) => {
     if (mockFiles[path] !== undefined) return mockFiles[path];
     throw new Error(`ENOENT: ${path}`);
   }),
   existsSync: vi.fn((path: string) => mockFiles[path] !== undefined),
+  appendFileSync: (...args: unknown[]) => mockAppendFileSync(...args),
+  mkdirSync: (...args: unknown[]) => mockMkdirSync(...args),
 }));
 
 vi.mock('../../lib/common.js', async () => {
@@ -283,6 +288,67 @@ describe('config-change/settings-reload (drift detector)', () => {
         'config-change',
         expect.stringContaining('unknown'),
       );
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Audit trail (#978)
+  // -------------------------------------------------------------------------
+
+  describe('audit trail (#978)', () => {
+    it('writes JSONL audit entry on block', () => {
+      mockFiles[PROJECT_SETTINGS] = '{"scripts": {"hook": "--no-verify"}}';
+
+      settingsReload(createInput());
+
+      expect(mockAppendFileSync).toHaveBeenCalledWith(
+        '/test/project/.claude/logs/config-changes.jsonl',
+        expect.stringContaining('"action":"block"'),
+      );
+    });
+
+    it('writes JSONL audit entry on warn', () => {
+      mockFiles[PROJECT_SETTINGS] = '{"permissionMode": "dontAsk"}';
+
+      settingsReload(createInput());
+
+      expect(mockAppendFileSync).toHaveBeenCalledWith(
+        '/test/project/.claude/logs/config-changes.jsonl',
+        expect.stringContaining('"action":"warn"'),
+      );
+    });
+
+    it('writes JSONL audit entry on pass (safe change)', () => {
+      settingsReload(createInput());
+
+      expect(mockAppendFileSync).toHaveBeenCalledWith(
+        '/test/project/.claude/logs/config-changes.jsonl',
+        expect.stringContaining('"action":"pass"'),
+      );
+    });
+
+    it('audit entry includes session ID and timestamp', () => {
+      settingsReload(createInput({ session_id: 'audit-sess-123' }));
+
+      const written = mockAppendFileSync.mock.calls[0][1] as string;
+      const entry = JSON.parse(written.trim());
+      expect(entry.session).toBe('audit-sess-123');
+      expect(entry.timestamp).toBeDefined();
+    });
+
+    it('creates logs directory before writing', () => {
+      settingsReload(createInput());
+
+      expect(mockMkdirSync).toHaveBeenCalledWith(
+        '/test/project/.claude/logs',
+        { recursive: true },
+      );
+    });
+
+    it('does not crash when audit write fails', () => {
+      mockAppendFileSync.mockImplementation(() => { throw new Error('disk full'); });
+
+      expect(() => settingsReload(createInput())).not.toThrow();
     });
   });
 

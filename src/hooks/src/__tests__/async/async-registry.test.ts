@@ -77,7 +77,8 @@ describe('Async Hooks Registry', () => {
 
       const asyncHooks = allHooks.filter(h => h.async === true);
       // 8 -> 5: #897 slimming removed capture-user-intent, settings-reload, release-notebook-trigger
-      expect(asyncHooks.length, 'Should have exactly 5 async hooks').toBe(5);
+      // 5 -> 6: #978 — wired TeammateIdle dispatcher (async: true)
+      expect(asyncHooks.length, 'Should have exactly 6 async hooks').toBe(6);
     });
 
     it('should NOT have async: true for blocking hooks', () => {
