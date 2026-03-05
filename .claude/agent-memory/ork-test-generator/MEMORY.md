@@ -5,6 +5,7 @@
 - TypeScript hooks tested via vitest in `src/hooks/`
 - Shell-based tests in `tests/` organized by category: unit, security, integration, e2e, etc.
 - CI uses `scripts/ci/run-tests.sh <dir>` for category-based test discovery
+- Skill validation: `bash tests/skills/run-skill-tests.sh` (slow; use `npm run test:skills`)
 
 ## Known Test Issues (2026-02-07)
 - `tests/skills/structure/test-skill-md.sh:511` — `EXPECTED_INTERNAL` count drifts when skills added/removed. Currently 175 (HeyGen removed). Check this whenever skills change.
@@ -21,5 +22,17 @@
 - Artifact sharing: build step uploads `plugins/`, downstream jobs download via `actions/download-artifact`
 
 ## Count Drift Pattern
-- Correct counts (as of 2026-02-07): 199 skills total (24 commands + 175 internal), 36 agents, 119 hooks
+- Correct counts (as of 2026-03-05): 71 skills, 30 agents, 81 hooks (30 global + 44 agent-scoped + 7 skill-scoped)
+- `split-bundles.test.ts` asserts `totalHooks === 167` (bundle export count, not hook entry count) — update this comment chain when hook counts change
 - Files to update when counts change: `test-skill-md.sh` EXPECTED_INTERNAL, `validate-counts.sh` (auto from filesystem), plugin.json description
+
+## plugins/ vs src/ Tests
+- The 4 "deleted" test files in the #960 question (intent-classifier, orchestration-integration, calibration-tracker, calibration-persist) lived ONLY in `plugins/` (generated dir), never in `src/hooks/src/__tests__/`
+- Matching source code (intent-classifier.ts, calibration-tracker.ts, calibration-persist.ts) was also deleted as part of v7.0.0 / #897 hook slimming
+- `orchestration-state.ts` and `pipeline-detector.ts` STILL EXIST in src/ and have test coverage in `src/hooks/src/__tests__/orchestration-state.test.ts` and `src/hooks/src/__tests__/prompt/pipeline-detector.test.ts`
+
+## Prompt Dispatcher (#960 changes)
+- `skill-nudge-prompt` was removed from the prompt unified-dispatcher in #960 — replaced by CC native skill matching
+- Current prompt dispatcher HOOKS array (4 entries): handoff-injector, agentation-context, context-exhaustion-warner, antipattern-warning
+- No dedicated unified-dispatcher.test.ts for prompt — coverage comes from `e2e/hook-execution-e2e.test.ts` (execution tests) and individual hook test files
+- The e2e test asserts `registeredHookNames` is non-empty and contains `antipattern-warning` — it does NOT assert exact count 4

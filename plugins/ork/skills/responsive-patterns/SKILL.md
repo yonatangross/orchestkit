@@ -198,5 +198,3 @@ Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/responsive-patterns/refe
 |------|---------|
 | `container-queries.md` | Container query patterns |
 | `fluid-typography.md` | Accessible fluid type scales |
-
-Scripts: `Read("${CLAUDE_PLUGIN_ROOT}/skills/responsive-patterns/scripts/responsive-card.tsx")` for the responsive card component.

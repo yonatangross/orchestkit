@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 34 global + 44 agent-scoped + 20 skill-scoped = 98 total hooks (4 native HTTP, 13 once:true context loaders). All timeouts in SECONDS per CC spec.",
+  "description": "OrchestKit hooks - 42 global + 44 agent-scoped + 20 skill-scoped = 106 total hooks (12 native HTTP, 13 once:true context loaders). All timeouts in SECONDS per CC spec.",
   "hooks": {
     "PreToolUse": [
       {
@@ -124,6 +124,18 @@
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs prompt/unified-dispatcher",
             "timeout": 15,
             "statusMessage": "Processing prompt..."
+          },
+          {
+            "type": "http",
+            "url": "${ORCHESTKIT_HOOK_URL}",
+            "headers": {
+              "Authorization": "Bearer ${ORCHESTKIT_HOOK_TOKEN}"
+            },
+            "allowedEnvVars": [
+              "ORCHESTKIT_HOOK_URL",
+              "ORCHESTKIT_HOOK_TOKEN"
+            ],
+            "timeout": 5
           }
         ]
       }
@@ -147,6 +159,18 @@
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/session-handoff-injector",
             "timeout": 3
+          },
+          {
+            "type": "http",
+            "url": "${ORCHESTKIT_HOOK_URL}",
+            "headers": {
+              "Authorization": "Bearer ${ORCHESTKIT_HOOK_TOKEN}"
+            },
+            "allowedEnvVars": [
+              "ORCHESTKIT_HOOK_URL",
+              "ORCHESTKIT_HOOK_TOKEN"
+            ],
+            "timeout": 5
           }
         ]
       }
@@ -162,11 +186,12 @@
           },
           {
             "type": "http",
-            "url": "https://hq.yonatangross.com/api/hooks/cc-event",
+            "url": "${ORCHESTKIT_HOOK_URL}",
             "headers": {
-              "Authorization": "Bearer $ORCHESTKIT_HOOK_TOKEN"
+              "Authorization": "Bearer ${ORCHESTKIT_HOOK_TOKEN}"
             },
             "allowedEnvVars": [
+              "ORCHESTKIT_HOOK_URL",
               "ORCHESTKIT_HOOK_TOKEN"
             ],
             "timeout": 5
@@ -193,6 +218,18 @@
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/stop-uncommitted-check.mjs",
             "timeout": 10,
             "statusMessage": "Checking uncommitted changes..."
+          },
+          {
+            "type": "http",
+            "url": "${ORCHESTKIT_HOOK_URL}",
+            "headers": {
+              "Authorization": "Bearer ${ORCHESTKIT_HOOK_TOKEN}"
+            },
+            "allowedEnvVars": [
+              "ORCHESTKIT_HOOK_URL",
+              "ORCHESTKIT_HOOK_TOKEN"
+            ],
+            "timeout": 5
           }
         ]
       }
@@ -205,6 +242,18 @@
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-start/unified-dispatcher",
             "timeout": 10,
             "statusMessage": "Configuring agent..."
+          },
+          {
+            "type": "http",
+            "url": "${ORCHESTKIT_HOOK_URL}",
+            "headers": {
+              "Authorization": "Bearer ${ORCHESTKIT_HOOK_TOKEN}"
+            },
+            "allowedEnvVars": [
+              "ORCHESTKIT_HOOK_URL",
+              "ORCHESTKIT_HOOK_TOKEN"
+            ],
+            "timeout": 5
           }
         ]
       }
@@ -223,6 +272,18 @@
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-stop/sync-subagent-stop-dispatcher",
             "timeout": 15,
             "statusMessage": "Processing agent results..."
+          },
+          {
+            "type": "http",
+            "url": "${ORCHESTKIT_HOOK_URL}",
+            "headers": {
+              "Authorization": "Bearer ${ORCHESTKIT_HOOK_TOKEN}"
+            },
+            "allowedEnvVars": [
+              "ORCHESTKIT_HOOK_URL",
+              "ORCHESTKIT_HOOK_TOKEN"
+            ],
+            "timeout": 5
           }
         ]
       }
@@ -260,6 +321,18 @@
             "timeout": 15,
             "async": true,
             "statusMessage": "Checking teammate status..."
+          },
+          {
+            "type": "http",
+            "url": "${ORCHESTKIT_HOOK_URL}",
+            "headers": {
+              "Authorization": "Bearer ${ORCHESTKIT_HOOK_TOKEN}"
+            },
+            "allowedEnvVars": [
+              "ORCHESTKIT_HOOK_URL",
+              "ORCHESTKIT_HOOK_TOKEN"
+            ],
+            "timeout": 5
           }
         ]
       }
@@ -271,6 +344,18 @@
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs task-completed/completion-tracker",
             "timeout": 10
+          },
+          {
+            "type": "http",
+            "url": "${ORCHESTKIT_HOOK_URL}",
+            "headers": {
+              "Authorization": "Bearer ${ORCHESTKIT_HOOK_TOKEN}"
+            },
+            "allowedEnvVars": [
+              "ORCHESTKIT_HOOK_URL",
+              "ORCHESTKIT_HOOK_TOKEN"
+            ],
+            "timeout": 5
           }
         ]
       }
@@ -285,11 +370,12 @@
           },
           {
             "type": "http",
-            "url": "https://hq.yonatangross.com/api/hooks/cc-event",
+            "url": "${ORCHESTKIT_HOOK_URL}",
             "headers": {
-              "Authorization": "Bearer $ORCHESTKIT_HOOK_TOKEN"
+              "Authorization": "Bearer ${ORCHESTKIT_HOOK_TOKEN}"
             },
             "allowedEnvVars": [
+              "ORCHESTKIT_HOOK_URL",
               "ORCHESTKIT_HOOK_TOKEN"
             ],
             "timeout": 10
@@ -307,11 +393,12 @@
           },
           {
             "type": "http",
-            "url": "https://hq.yonatangross.com/api/hooks/cc-event",
+            "url": "${ORCHESTKIT_HOOK_URL}",
             "headers": {
-              "Authorization": "Bearer $ORCHESTKIT_HOOK_TOKEN"
+              "Authorization": "Bearer ${ORCHESTKIT_HOOK_TOKEN}"
             },
             "allowedEnvVars": [
+              "ORCHESTKIT_HOOK_URL",
               "ORCHESTKIT_HOOK_TOKEN"
             ],
             "timeout": 10
@@ -324,11 +411,12 @@
         "hooks": [
           {
             "type": "http",
-            "url": "https://hq.yonatangross.com/api/hooks/cc-event",
+            "url": "${ORCHESTKIT_HOOK_URL}",
             "headers": {
-              "Authorization": "Bearer $ORCHESTKIT_HOOK_TOKEN"
+              "Authorization": "Bearer ${ORCHESTKIT_HOOK_TOKEN}"
             },
             "allowedEnvVars": [
+              "ORCHESTKIT_HOOK_URL",
               "ORCHESTKIT_HOOK_TOKEN"
             ],
             "timeout": 5
@@ -350,6 +438,18 @@
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs config-change/settings-reload",
             "timeout": 10,
             "statusMessage": "Checking settings change..."
+          },
+          {
+            "type": "http",
+            "url": "${ORCHESTKIT_HOOK_URL}",
+            "headers": {
+              "Authorization": "Bearer ${ORCHESTKIT_HOOK_TOKEN}"
+            },
+            "allowedEnvVars": [
+              "ORCHESTKIT_HOOK_URL",
+              "ORCHESTKIT_HOOK_TOKEN"
+            ],
+            "timeout": 5
           }
         ]
       }

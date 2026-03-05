@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 39 global + 44 agent-scoped + 20 skill-scoped = 103 total hooks (4 native HTTP, 5 type:prompt, 13 once:true context loaders). All timeouts in SECONDS per CC spec.",
+  "description": "OrchestKit hooks - 42 global + 44 agent-scoped + 20 skill-scoped = 106 total hooks (12 native HTTP, 13 once:true context loaders). All timeouts in SECONDS per CC spec.",
   "hooks": {
     "PreToolUse": [
       {
@@ -76,11 +76,6 @@
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/unified-dispatcher",
             "async": true,
             "timeout": 60
-          },
-          {
-            "type": "prompt",
-            "prompt": "Analyze this tool output for solution indicators: $ARGUMENTS. Did this tool use resolve a previously reported problem? Look for: tests now passing, errors gone, feature working, explicit fix confirmation. If a solution is detected, respond {\"ok\": false, \"reason\": \"[Solution Detected] The previous issue appears resolved. Consider confirming with the user.\"}. If no solution detected, respond {\"ok\": true}.",
-            "timeout": 15
           }
         ]
       }
@@ -131,24 +126,16 @@
             "statusMessage": "Processing prompt..."
           },
           {
-            "type": "prompt",
-            "prompt": "Check if this user prompt mentions any known antipatterns. Known antipatterns: offset pagination (use cursor-based instead), manual JWT validation (use established libraries), storing passwords in plaintext (use bcrypt/argon2), global mutable state (use dependency injection), synchronous file I/O (use async), N+1 queries (use eager loading), polling for real-time (use SSE/WebSocket). Context: $ARGUMENTS. If an antipattern is detected, respond {\"ok\": false, \"reason\": \"Warning: <antipattern> detected. Better alternative: <suggestion>\"}. If no antipattern, respond {\"ok\": true}.",
-            "timeout": 15
-          },
-          {
-            "type": "prompt",
-            "prompt": "Classify this user message communication style from: $ARGUMENTS. Determine verbosity (terse/moderate/detailed), type (question/command/discussion), and level (beginner/intermediate/expert). This is analytics-only, always allow. Respond {\"ok\": true}.",
-            "timeout": 10
-          },
-          {
-            "type": "prompt",
-            "prompt": "Extract user intents from: $ARGUMENTS. Classify as decision/preference/problem/question/instruction. For decisions note alternatives (X over Y), extract entities and rationale. This is analytics-only, always allow. Respond {\"ok\": true}.",
-            "timeout": 15
-          },
-          {
-            "type": "prompt",
-            "prompt": "Analyze user satisfaction from: $ARGUMENTS. Is the user expressing satisfaction/approval, frustration/dissatisfaction (including sarcasm like 'great, now its even worse'), or neutral instruction? This is analytics-only, always allow. Respond {\"ok\": true}.",
-            "timeout": 10
+            "type": "http",
+            "url": "${ORCHESTKIT_HOOK_URL}",
+            "headers": {
+              "Authorization": "Bearer ${ORCHESTKIT_HOOK_TOKEN}"
+            },
+            "allowedEnvVars": [
+              "ORCHESTKIT_HOOK_URL",
+              "ORCHESTKIT_HOOK_TOKEN"
+            ],
+            "timeout": 5
           }
         ]
       }
@@ -172,6 +159,18 @@
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/session-handoff-injector",
             "timeout": 3
+          },
+          {
+            "type": "http",
+            "url": "${ORCHESTKIT_HOOK_URL}",
+            "headers": {
+              "Authorization": "Bearer ${ORCHESTKIT_HOOK_TOKEN}"
+            },
+            "allowedEnvVars": [
+              "ORCHESTKIT_HOOK_URL",
+              "ORCHESTKIT_HOOK_TOKEN"
+            ],
+            "timeout": 5
           }
         ]
       }
@@ -187,11 +186,14 @@
           },
           {
             "type": "http",
-            "url": "https://hq.yonatangross.com/api/hooks/cc-event",
+            "url": "${ORCHESTKIT_HOOK_URL}",
             "headers": {
-              "Authorization": "Bearer $ORCHESTKIT_HOOK_TOKEN"
+              "Authorization": "Bearer ${ORCHESTKIT_HOOK_TOKEN}"
             },
-            "allowedEnvVars": ["ORCHESTKIT_HOOK_TOKEN"],
+            "allowedEnvVars": [
+              "ORCHESTKIT_HOOK_URL",
+              "ORCHESTKIT_HOOK_TOKEN"
+            ],
             "timeout": 5
           },
           {
@@ -216,6 +218,18 @@
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/stop-uncommitted-check.mjs",
             "timeout": 10,
             "statusMessage": "Checking uncommitted changes..."
+          },
+          {
+            "type": "http",
+            "url": "${ORCHESTKIT_HOOK_URL}",
+            "headers": {
+              "Authorization": "Bearer ${ORCHESTKIT_HOOK_TOKEN}"
+            },
+            "allowedEnvVars": [
+              "ORCHESTKIT_HOOK_URL",
+              "ORCHESTKIT_HOOK_TOKEN"
+            ],
+            "timeout": 5
           }
         ]
       }
@@ -228,6 +242,18 @@
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-start/unified-dispatcher",
             "timeout": 10,
             "statusMessage": "Configuring agent..."
+          },
+          {
+            "type": "http",
+            "url": "${ORCHESTKIT_HOOK_URL}",
+            "headers": {
+              "Authorization": "Bearer ${ORCHESTKIT_HOOK_TOKEN}"
+            },
+            "allowedEnvVars": [
+              "ORCHESTKIT_HOOK_URL",
+              "ORCHESTKIT_HOOK_TOKEN"
+            ],
+            "timeout": 5
           }
         ]
       }
@@ -246,6 +272,18 @@
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-stop/sync-subagent-stop-dispatcher",
             "timeout": 15,
             "statusMessage": "Processing agent results..."
+          },
+          {
+            "type": "http",
+            "url": "${ORCHESTKIT_HOOK_URL}",
+            "headers": {
+              "Authorization": "Bearer ${ORCHESTKIT_HOOK_TOKEN}"
+            },
+            "allowedEnvVars": [
+              "ORCHESTKIT_HOOK_URL",
+              "ORCHESTKIT_HOOK_TOKEN"
+            ],
+            "timeout": 5
           }
         ]
       }
@@ -283,6 +321,18 @@
             "timeout": 15,
             "async": true,
             "statusMessage": "Checking teammate status..."
+          },
+          {
+            "type": "http",
+            "url": "${ORCHESTKIT_HOOK_URL}",
+            "headers": {
+              "Authorization": "Bearer ${ORCHESTKIT_HOOK_TOKEN}"
+            },
+            "allowedEnvVars": [
+              "ORCHESTKIT_HOOK_URL",
+              "ORCHESTKIT_HOOK_TOKEN"
+            ],
+            "timeout": 5
           }
         ]
       }
@@ -294,6 +344,18 @@
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs task-completed/completion-tracker",
             "timeout": 10
+          },
+          {
+            "type": "http",
+            "url": "${ORCHESTKIT_HOOK_URL}",
+            "headers": {
+              "Authorization": "Bearer ${ORCHESTKIT_HOOK_TOKEN}"
+            },
+            "allowedEnvVars": [
+              "ORCHESTKIT_HOOK_URL",
+              "ORCHESTKIT_HOOK_TOKEN"
+            ],
+            "timeout": 5
           }
         ]
       }
@@ -308,11 +370,14 @@
           },
           {
             "type": "http",
-            "url": "https://hq.yonatangross.com/api/hooks/cc-event",
+            "url": "${ORCHESTKIT_HOOK_URL}",
             "headers": {
-              "Authorization": "Bearer $ORCHESTKIT_HOOK_TOKEN"
+              "Authorization": "Bearer ${ORCHESTKIT_HOOK_TOKEN}"
             },
-            "allowedEnvVars": ["ORCHESTKIT_HOOK_TOKEN"],
+            "allowedEnvVars": [
+              "ORCHESTKIT_HOOK_URL",
+              "ORCHESTKIT_HOOK_TOKEN"
+            ],
             "timeout": 10
           }
         ]
@@ -328,11 +393,14 @@
           },
           {
             "type": "http",
-            "url": "https://hq.yonatangross.com/api/hooks/cc-event",
+            "url": "${ORCHESTKIT_HOOK_URL}",
             "headers": {
-              "Authorization": "Bearer $ORCHESTKIT_HOOK_TOKEN"
+              "Authorization": "Bearer ${ORCHESTKIT_HOOK_TOKEN}"
             },
-            "allowedEnvVars": ["ORCHESTKIT_HOOK_TOKEN"],
+            "allowedEnvVars": [
+              "ORCHESTKIT_HOOK_URL",
+              "ORCHESTKIT_HOOK_TOKEN"
+            ],
             "timeout": 10
           }
         ]
@@ -343,11 +411,14 @@
         "hooks": [
           {
             "type": "http",
-            "url": "https://hq.yonatangross.com/api/hooks/cc-event",
+            "url": "${ORCHESTKIT_HOOK_URL}",
             "headers": {
-              "Authorization": "Bearer $ORCHESTKIT_HOOK_TOKEN"
+              "Authorization": "Bearer ${ORCHESTKIT_HOOK_TOKEN}"
             },
-            "allowedEnvVars": ["ORCHESTKIT_HOOK_TOKEN"],
+            "allowedEnvVars": [
+              "ORCHESTKIT_HOOK_URL",
+              "ORCHESTKIT_HOOK_TOKEN"
+            ],
             "timeout": 5
           },
           {
@@ -367,6 +438,18 @@
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs config-change/settings-reload",
             "timeout": 10,
             "statusMessage": "Checking settings change..."
+          },
+          {
+            "type": "http",
+            "url": "${ORCHESTKIT_HOOK_URL}",
+            "headers": {
+              "Authorization": "Bearer ${ORCHESTKIT_HOOK_TOKEN}"
+            },
+            "allowedEnvVars": [
+              "ORCHESTKIT_HOOK_URL",
+              "ORCHESTKIT_HOOK_TOKEN"
+            ],
+            "timeout": 5
           }
         ]
       }

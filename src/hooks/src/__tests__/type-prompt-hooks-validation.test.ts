@@ -181,7 +181,7 @@ describe('Hook Type Distribution', () => {
     expect(commandCount).toBeGreaterThan(0);
     // All type:prompt hooks removed — gate-only semantics wrong for observational use
     expect(promptCount).toBe(0);
-    // 4 native HTTP hooks (SessionEnd, WorktreeCreate, WorktreeRemove, InstructionsLoaded)
-    expect(httpCount).toBe(4);
+    // 12 native HTTP hooks (SessionStart, SessionEnd, Stop, SubagentStart, SubagentStop, UserPromptSubmit, TeammateIdle, TaskCompleted, WorktreeCreate, WorktreeRemove, InstructionsLoaded, ConfigChange)
+    expect(httpCount).toBe(12);
   });
 });
