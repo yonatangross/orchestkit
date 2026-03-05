@@ -19,6 +19,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const distDir = join(__dirname, '..', 'dist');
 
+/** Resolved plugin root — two levels up from hooks/bin/ */
+const pluginRoot = join(__dirname, '..', '..');
+
 /** t0: process start reference (nanoseconds via hrtime.bigint) */
 const t0 = process.hrtime.bigint();
 
@@ -90,6 +93,7 @@ function normalizeInput(input) {
   input.tool_name = input.tool_name || input.toolName || '';
   input.session_id = input.session_id || input.sessionId || process.env.CLAUDE_SESSION_ID || '';
   input.project_dir = input.project_dir || input.projectDir || process.env.CLAUDE_PROJECT_DIR || '.';
+  input.plugin_root = pluginRoot;
   return input;
 }
 
