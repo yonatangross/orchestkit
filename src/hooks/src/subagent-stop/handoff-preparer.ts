@@ -19,10 +19,6 @@ import { outputSilentSuccess, getProjectDir } from '../lib/common.js';
 const VALID_AGENTS = new Set([
   'market-intelligence',
   'product-strategist',
-  'prioritization-analyst',
-  'business-case-builder',
-  'requirements-translator',
-  'metrics-architect',
   'backend-system-architect',
   'code-quality-reviewer',
   'data-pipeline-engineer',
@@ -30,12 +26,10 @@ const VALID_AGENTS = new Set([
   'debug-investigator',
   'frontend-ui-developer',
   'llm-integrator',
-  'rapid-ui-designer',
   'security-auditor',
   'security-layer-auditor',
   'system-design-reviewer',
   'test-generator',
-  'ux-researcher',
   'workflow-architect',
 ]);
 
@@ -43,11 +37,7 @@ const VALID_AGENTS = new Set([
 const NEXT_AGENT_MAP: Record<string, string> = {
   // Product thinking pipeline
   'market-intelligence': 'product-strategist',
-  'product-strategist': 'prioritization-analyst',
-  'prioritization-analyst': 'business-case-builder',
-  'business-case-builder': 'requirements-translator',
-  'requirements-translator': 'metrics-architect',
-  'metrics-architect': 'backend-system-architect',
+  'product-strategist': 'backend-system-architect',
   // Full-stack pipeline
   'backend-system-architect': 'frontend-ui-developer',
   'frontend-ui-developer': 'test-generator',
@@ -59,9 +49,6 @@ const NEXT_AGENT_MAP: Record<string, string> = {
   'data-pipeline-engineer': 'code-quality-reviewer',
   // Database pipeline
   'database-engineer': 'backend-system-architect',
-  // UI pipeline
-  'rapid-ui-designer': 'frontend-ui-developer',
-  'ux-researcher': 'rapid-ui-designer',
   // Terminal agents
   'security-auditor': 'none',
   'security-layer-auditor': 'none',
@@ -72,11 +59,7 @@ const NEXT_AGENT_MAP: Record<string, string> = {
 // Handoff suggestions
 const SUGGESTIONS_MAP: Record<string, string> = {
   'market-intelligence': 'Next: product-strategist should define product vision based on market analysis',
-  'product-strategist': 'Next: prioritization-analyst should rank features from strategy',
-  'prioritization-analyst': 'Next: business-case-builder should create ROI justification',
-  'business-case-builder': 'Next: requirements-translator should convert to technical specs',
-  'requirements-translator': 'Next: metrics-architect should define success criteria',
-  'metrics-architect': 'Next: backend-system-architect should design API endpoints',
+  'product-strategist': 'Next: backend-system-architect should design API endpoints',
   'backend-system-architect': 'Next: frontend-ui-developer should build UI components',
   'frontend-ui-developer': 'Next: test-generator should create test coverage',
   'test-generator': 'Next: code-quality-reviewer should validate implementation',
@@ -85,8 +68,6 @@ const SUGGESTIONS_MAP: Record<string, string> = {
   'llm-integrator': 'Next: data-pipeline-engineer should set up embeddings',
   'data-pipeline-engineer': 'Next: code-quality-reviewer should validate data pipeline',
   'database-engineer': 'Next: backend-system-architect should integrate schema',
-  'rapid-ui-designer': 'Next: frontend-ui-developer should implement designs',
-  'ux-researcher': 'Next: rapid-ui-designer should create mockups',
 };
 
 // -----------------------------------------------------------------------------

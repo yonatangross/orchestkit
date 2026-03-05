@@ -62,15 +62,11 @@ Categories available:
 
 ## Step 3: Customize Agents
 
-**Product Agents (6):**
+**Product Agents (2):**
 - market-intelligence
 - product-strategist
-- requirements-translator
-- ux-researcher
-- prioritization-analyst
-- business-case-builder
 
-**Technical Agents (14):**
+**Technical Agents (12):**
 - backend-system-architect
 - frontend-ui-developer
 - database-engineer
@@ -82,8 +78,6 @@ Categories available:
 - security-auditor
 - security-layer-auditor
 - debug-investigator
-- metrics-architect
-- rapid-ui-designer
 - system-design-reviewer
 
 ## Step 4: Configure Hooks

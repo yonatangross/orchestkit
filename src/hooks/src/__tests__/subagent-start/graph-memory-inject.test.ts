@@ -261,8 +261,6 @@ describe('graphMemoryInject', () => {
       'workflow-architect',
       'llm-integrator',
       'data-pipeline-engineer',
-      'metrics-architect',
-      'ux-researcher',
       'code-quality-reviewer',
       'infrastructure-architect',
       'ci-cd-engineer',

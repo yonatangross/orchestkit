@@ -25,8 +25,6 @@ const AGENT_DOMAINS: Record<string, string> = {
   'workflow-architect': 'LangGraph workflow agent orchestration state',
   'llm-integrator': 'LLM API OpenAI Anthropic embeddings RAG function-calling',
   'data-pipeline-engineer': 'data pipeline embeddings vector ETL chunking',
-  'metrics-architect': 'metrics OKR KPI analytics instrumentation',
-  'ux-researcher': 'UX user research persona journey accessibility',
   'code-quality-reviewer': 'code quality review linting type-check patterns',
   'infrastructure-architect': 'infrastructure cloud Docker Kubernetes deployment',
   'ci-cd-engineer': 'CI CD pipeline GitHub Actions deployment automation',

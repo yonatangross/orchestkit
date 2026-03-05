@@ -460,9 +460,7 @@ describe('multi-claude-verifier', () => {
   describe('no triggers', () => {
     test.each([
       ['debug-investigator', 'Found root cause'],
-      ['ux-researcher', 'Completed user research'],
       ['product-strategist', 'Strategy defined'],
-      ['metrics-architect', 'Metrics framework done'],
     ])('does not trigger for %s', (agent, output) => {
       // Arrange
       const input = createSubagentStopInput(agent, output);

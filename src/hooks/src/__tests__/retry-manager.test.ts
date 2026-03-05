@@ -153,7 +153,7 @@ describe('getAlternativeAgent - alternative suggestions', () => {
     const alt = getAlternativeAgent('frontend-ui-developer');
 
     expect(alt).toBeDefined();
-    expect(['rapid-ui-designer', 'accessibility-specialist']).toContain(alt);
+    expect(['accessibility-specialist']).toContain(alt);
   });
 
   test('returns first alternative for test-generator', () => {

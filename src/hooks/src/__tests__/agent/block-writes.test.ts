@@ -89,7 +89,7 @@ describe('block-writes', () => {
 
     test('blocks MultiEdit tool', () => {
       // Arrange
-      process.env.CLAUDE_AGENT_ID = 'ux-researcher';
+      process.env.CLAUDE_AGENT_ID = 'debug-investigator';
       const input = createToolInput('MultiEdit', {
         edits: [{ file_path: '/a.ts', old: 'x', new: 'y' }],
       });
@@ -220,7 +220,6 @@ describe('block-writes', () => {
     const readOnlyAgents = [
       'debug-investigator',
       'code-quality-reviewer',
-      'ux-researcher',
       'market-intelligence',
       'system-design-reviewer',
     ];

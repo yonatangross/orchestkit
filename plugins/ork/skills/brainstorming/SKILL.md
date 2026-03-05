@@ -199,7 +199,7 @@ Skip brainstorming when:
 | Topic Example | Agents to Spawn |
 |---------------|-----------------|
 | "brainstorm API for users" | workflow-architect, backend-system-architect, security-auditor, **test-generator** |
-| "brainstorm dashboard UI" | workflow-architect, frontend-ui-developer, ux-researcher, **test-generator** |
+| "brainstorm dashboard UI" | workflow-architect, frontend-ui-developer, **test-generator** |
 | "brainstorm RAG pipeline" | workflow-architect, llm-integrator, data-pipeline-engineer, **test-generator** |
 | "brainstorm caching strategy" | workflow-architect, backend-system-architect, frontend-performance-engineer, **test-generator** |
 
@@ -252,7 +252,7 @@ Agent(subagent_type="test-generator", name="testability-assessor",
      Challenge designs that score below 5 on testability.
      Propose test strategies for the top approaches in synthesis phase.""")
 
-# Optional: Add security-auditor, ux-researcher, llm-integrator based on topic
+# Optional: Add security-auditor, llm-integrator based on topic
 ```
 
 **Key advantage:** Agents riff on each other's ideas and play devil's advocate in real-time, rather than generating ideas in isolation.

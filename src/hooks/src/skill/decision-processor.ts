@@ -37,8 +37,8 @@ const DECISION_INDICATORS = [
 const KNOWN_AGENTS = [
   'database-engineer', 'backend-system-architect', 'frontend-ui-developer',
   'security-auditor', 'test-generator', 'workflow-architect', 'llm-integrator',
-  'data-pipeline-engineer', 'metrics-architect', 'ux-researcher',
-  'ci-cd-engineer', 'infrastructure-architect', 'accessibility-specialist',
+  'data-pipeline-engineer', 'ci-cd-engineer', 'infrastructure-architect',
+  'accessibility-specialist',
 ];
 
 // Known technologies

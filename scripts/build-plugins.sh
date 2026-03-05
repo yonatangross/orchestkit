@@ -180,7 +180,11 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
     fi
 
     # Generate commands from user-invocable skills
-    # Workaround for CC bug #20802 - CC doesn't discover skills, only commands/
+    # WORKAROUND: CC bug #20802 — skills/ don't get plugin namespace prefix in autocomplete.
+    # Duplicating as commands/ gives users "ork:skillname" but wastes ~1.4k tokens/session
+    # (17 skills x 2 entries x ~40 tokens each = 34 entries instead of 17).
+    # Remove this block when CC fixes: #20802, #20935, #25651
+    # Tracking: https://github.com/anthropics/claude-code/issues/20802
     if [[ -d "$PLUGIN_DIR/skills" ]]; then
         for skill_md in "$PLUGIN_DIR/skills"/*/SKILL.md; do
             [[ ! -f "$skill_md" ]] && continue

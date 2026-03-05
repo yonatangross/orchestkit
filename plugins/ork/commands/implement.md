@@ -107,8 +107,8 @@ Create tasks with `TaskCreate` BEFORE doing any work. Each phase gets a subtask.
 | **1. Discovery** | Research best practices, Context7 docs, break into tasks | — |
 | **2. Micro-Planning** | Detailed plan per task ([guide](references/micro-planning-guide.md)) | — |
 | **3. Worktree** | Isolate in git worktree for 5+ file features ([workflow](references/worktree-workflow.md)) | — |
-| **4. Architecture** | 5 parallel background agents | workflow-architect, backend-system-architect, frontend-ui-developer, llm-integrator, ux-researcher |
-| **5. Implementation + Tests** | Parallel agents, single-pass artifacts with mandatory tests | backend-system-architect, frontend-ui-developer, llm-integrator, test-generator, rapid-ui-designer |
+| **4. Architecture** | 4 parallel background agents | workflow-architect, backend-system-architect, frontend-ui-developer, llm-integrator |
+| **5. Implementation + Tests** | Parallel agents, single-pass artifacts with mandatory tests | backend-system-architect, frontend-ui-developer, llm-integrator, test-generator |
 | **6. Integration Verification** | Code review + real-service integration tests | backend, frontend, code-quality-reviewer, security-auditor |
 | **7. Scope Creep** | Compare planned vs actual ([detection](references/scope-creep-detection.md)) | workflow-architect |
 | **8. E2E Verification** | Browser + API E2E testing ([guide](references/e2e-verification.md)) | — |

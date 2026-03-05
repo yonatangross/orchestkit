@@ -155,10 +155,6 @@ describe('handoff-preparer', () => {
     test.each([
       'market-intelligence',
       'product-strategist',
-      'prioritization-analyst',
-      'business-case-builder',
-      'requirements-translator',
-      'metrics-architect',
       'backend-system-architect',
       'code-quality-reviewer',
       'data-pipeline-engineer',
@@ -166,12 +162,10 @@ describe('handoff-preparer', () => {
       'debug-investigator',
       'frontend-ui-developer',
       'llm-integrator',
-      'rapid-ui-designer',
       'security-auditor',
       'security-layer-auditor',
       'system-design-reviewer',
       'test-generator',
-      'ux-researcher',
       'workflow-architect',
     ])('recognizes %s as valid pipeline agent', (agent) => {
       // Arrange
@@ -207,11 +201,7 @@ describe('handoff-preparer', () => {
     test.each([
       // Product thinking pipeline
       ['market-intelligence', 'product-strategist'],
-      ['product-strategist', 'prioritization-analyst'],
-      ['prioritization-analyst', 'business-case-builder'],
-      ['business-case-builder', 'requirements-translator'],
-      ['requirements-translator', 'metrics-architect'],
-      ['metrics-architect', 'backend-system-architect'],
+      ['product-strategist', 'backend-system-architect'],
       // Full-stack pipeline
       ['backend-system-architect', 'frontend-ui-developer'],
       ['frontend-ui-developer', 'test-generator'],
@@ -223,9 +213,6 @@ describe('handoff-preparer', () => {
       ['data-pipeline-engineer', 'code-quality-reviewer'],
       // Database pipeline
       ['database-engineer', 'backend-system-architect'],
-      // UI pipeline
-      ['rapid-ui-designer', 'frontend-ui-developer'],
-      ['ux-researcher', 'rapid-ui-designer'],
     ])('maps %s to %s', (fromAgent, toAgent) => {
       // Arrange
       const input = createSubagentStopInput(fromAgent, 'Work complete');
@@ -269,11 +256,7 @@ describe('handoff-preparer', () => {
   describe('handoff suggestions', () => {
     test.each([
       ['market-intelligence', 'product-strategist should define product vision'],
-      ['product-strategist', 'prioritization-analyst should rank features'],
-      ['prioritization-analyst', 'business-case-builder should create ROI'],
-      ['business-case-builder', 'requirements-translator should convert to technical specs'],
-      ['requirements-translator', 'metrics-architect should define success criteria'],
-      ['metrics-architect', 'backend-system-architect should design API'],
+      ['product-strategist', 'backend-system-architect should design API'],
       ['backend-system-architect', 'frontend-ui-developer should build UI'],
       ['frontend-ui-developer', 'test-generator should create test coverage'],
       ['test-generator', 'code-quality-reviewer should validate implementation'],
@@ -282,8 +265,6 @@ describe('handoff-preparer', () => {
       ['llm-integrator', 'data-pipeline-engineer should set up embeddings'],
       ['data-pipeline-engineer', 'code-quality-reviewer should validate data pipeline'],
       ['database-engineer', 'backend-system-architect should integrate schema'],
-      ['rapid-ui-designer', 'frontend-ui-developer should implement designs'],
-      ['ux-researcher', 'rapid-ui-designer should create mockups'],
     ])('includes suggestion for %s handoff', (agent, suggestionPart) => {
       // Arrange
       const input = createSubagentStopInput(agent, 'Work complete');

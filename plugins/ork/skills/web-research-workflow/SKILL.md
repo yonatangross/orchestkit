@@ -101,8 +101,7 @@ This skill is used by:
 - `web-research-analyst` - Primary user
 - `market-intelligence` - Competitor research
 - `product-strategist` - Deep competitive analysis
-- `ux-researcher` - Design system capture
-- `documentation-specialist` - API doc extraction
+
 
 ## Related Skills
 

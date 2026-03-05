@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 37 global + 54 agent-scoped + 7 skill-scoped = 98 total hooks (3 reporters migrated to native http)",
+  "description": "OrchestKit hooks - 37 global + 44 agent-scoped + 7 skill-scoped = 88 total hooks (3 reporters migrated to native http)",
   "hooks": {
     "PreToolUse": [
       {
