@@ -25,7 +25,7 @@ mcpServers: []
 hooks:
   PostToolUse:
     - matcher: "Bash"
-      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs agent/security-command-audit"
+      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs agent/security-command-audit"
 ---
 # Security Layer Auditor Agent
 

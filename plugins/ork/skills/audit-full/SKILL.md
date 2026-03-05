@@ -109,7 +109,7 @@ Before loading files, estimate whether the codebase fits in context.
 
 ```bash
 # Use the estimation script
-bash ${CLAUDE_PLUGIN_ROOT}/src/skills/audit-full/scripts/estimate-tokens.sh /path/to/project
+bash ${CLAUDE_PLUGIN_ROOT}/skills/audit-full/scripts/estimate-tokens.sh /path/to/project
 ```
 
 ### Manual Estimation Rules
