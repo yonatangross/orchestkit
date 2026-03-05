@@ -18,11 +18,11 @@ Comprehensive patterns for building accessible UI component libraries with shadc
 |----------|-------|--------|-------------|
 | [shadcn/ui](#shadcnui) | 3 | HIGH | CVA variants, component customization, form patterns, data tables |
 | [Radix Primitives](#radix-primitives) | 3 | HIGH | Dialogs, polymorphic composition, data-attribute styling |
-| [Design System Tokens](#design-system-tokens) | 1 | HIGH | W3C tokens, OKLCH theming, Tailwind @theme, spacing scales |
+| [Design System](#design-system) | 5 | HIGH | W3C tokens, OKLCH theming, spacing scales, typography, component states, animation |
 | [Design System Components](#design-system-components) | 1 | HIGH | Atomic design, CVA variants, accessibility, Storybook |
 | [Forms](#forms) | 2 | HIGH | React Hook Form v7, Zod validation, Server Actions |
 
-**Total: 10 rules across 4 categories**
+**Total: 14 rules across 5 categories**
 
 ## Quick Start
 
@@ -123,13 +123,16 @@ Unstyled, accessible React primitives for building high-quality design systems.
 | [checklists/](checklists/) | shadcn setup, accessibility audit checklists |
 | [references/](references/) | CVA system, OKLCH theming, cn() utility, focus management |
 
-## Design System Tokens
+## Design System
 
-Design token architecture for consistent theming and visual identity.
+Design token architecture, spacing, typography, and interactive component states.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Token Architecture | `rules/design-system-tokens.md` | W3C tokens, OKLCH colors, Tailwind @theme, spacing scales |
+| Token Architecture | `rules/design-system-tokens.md` | W3C tokens, OKLCH colors, Tailwind @theme |
+| Spacing Scale | `rules/design-system-spacing.md` | 8px grid, Tailwind space-1 to space-12 |
+| Typography Scale | `rules/design-system-typography.md` | Font sizes, weights, line heights |
+| Component States | `rules/design-system-states.md` | Hover, focus, active, disabled, loading, animation presets |
 
 ## Design System Components
 
@@ -156,7 +159,7 @@ React Hook Form v7 with Zod validation and React 19 Server Actions.
 
 ---
 
-## Rules (10)
+## Rules (13)
 
 ### Structure scalable component libraries using atomic design and composition patterns — HIGH
 
@@ -250,6 +253,210 @@ const buttonVariants = cva(
 | Class merging | Always use cn() for Tailwind conflicts |
 
 
+### Use 8px grid spacing scale for consistent component and layout spacing — MEDIUM
+
+
+## 8px Grid Spacing System
+
+**Incorrect -- arbitrary pixel values:**
+```tsx
+// WRONG: Random spacing with no system
+<div style={{ padding: '13px', marginBottom: '7px', gap: '11px' }}>
+  <h2 style={{ marginTop: '19px' }}>Title</h2>
+  <p style={{ padding: '5px 9px' }}>Content</p>
+</div>
+
+// WRONG: Mixing spacing systems
+<div className="p-3 mb-[7px] gap-[11px]">
+```
+
+**Correct -- 8px grid spacing scale:**
+
+### Spacing Scale
+
+| Token | Value | Tailwind | Use Case |
+|-------|-------|----------|----------|
+| `micro` | 4px | `p-1`, `gap-1` | Icon-to-label gaps, inline element spacing |
+| `tight` | 8px | `p-2`, `gap-2` | Compact lists, tight form fields, badge padding |
+| `compact` | 12px | `p-3`, `gap-3` | Card padding (small), button group gaps |
+| `default` | 16px | `p-4`, `gap-4` | Standard padding, form field gaps, paragraph spacing |
+| `comfortable` | 24px | `p-6`, `gap-6` | Card padding (large), section gaps within a panel |
+| `loose` | 32px | `p-8`, `gap-8` | Page section separation, modal padding |
+| `section` | 48px | `p-12`, `gap-12` | Major page sections, hero spacing |
+
+### Component Spacing Guide
+
+```tsx
+// Card with consistent spacing
+<Card className="p-6 space-y-4">          {/* comfortable padding, default internal gaps */}
+  <CardHeader className="space-y-2">       {/* tight gaps between title/description */}
+    <CardTitle>Title</CardTitle>
+    <CardDescription>Description</CardDescription>
+  </CardHeader>
+  <CardContent className="space-y-4">      {/* default gaps between content blocks */}
+    <p>Body text</p>
+  </CardContent>
+  <CardFooter className="gap-2">           {/* tight gaps between action buttons */}
+    <Button variant="outline">Cancel</Button>
+    <Button>Submit</Button>
+  </CardFooter>
+</Card>
+```
+
+### Layout Spacing
+
+```tsx
+// Page layout with section spacing
+<main className="space-y-12 px-8 py-12">   {/* section gaps, loose horizontal padding */}
+  <section className="space-y-6">           {/* comfortable gaps within section */}
+    <h1 className="mb-4">Page Title</h1>    {/* default gap below heading */}
+    <div className="grid gap-6">            {/* comfortable grid gaps */}
+      {items.map(item => <Card key={item.id} />)}
+    </div>
+  </section>
+</main>
+```
+
+### Rules
+
+- All spacing values must be multiples of 4px
+- Use Tailwind spacing utilities, never arbitrary `px` values
+- Nest spacing: outer containers use larger values, inner elements use smaller
+- Consistent gap hierarchy: section (48px) > panel (24-32px) > content (16px) > elements (8px) > micro (4px)
+
+Key decisions:
+- Base unit: 8px (with 4px half-step for micro adjustments)
+- Never use odd pixel values or non-grid-aligned spacing
+- Prefer `gap` and `space-y`/`space-x` over individual margins
+- Scale spacing with viewport using responsive utilities (`gap-4 md:gap-6 lg:gap-8`)
+
+
+### Define all interactive component states with consistent visual feedback patterns — HIGH
+
+
+## Interactive Component States
+
+**Incorrect -- button with only default state:**
+```tsx
+// WRONG: No hover, focus, disabled, or loading states
+function Button({ children, onClick }) {
+  return (
+    <button onClick={onClick} className="bg-blue-500 text-white px-4 py-2 rounded">
+      {children}
+    </button>
+  );
+}
+// User gets no feedback on hover, no focus ring for keyboard users,
+// no visual change when disabled, no loading indicator
+```
+
+**Correct -- button with all 6 states plus animation:**
+
+### Required States for Interactive Components
+
+| State | Visual Indicator | Purpose |
+|-------|-----------------|---------|
+| Default | Base styling | Resting appearance |
+| Hover | Subtle background shift, cursor change | Indicates interactivity |
+| Focus | Visible ring (2px offset) | Keyboard navigation feedback |
+| Active/Pressed | Scale down or darken | Confirms click/tap registered |
+| Disabled | Reduced opacity, no pointer events | Shows unavailability |
+| Loading | Spinner + disabled interaction | Async operation in progress |
+
+### TypeScript Interface
+
+```typescript
+interface ComponentStateProps {
+  isDisabled?: boolean;
+  isLoading?: boolean;
+  // Default, hover, focus, active are handled via CSS
+}
+```
+
+### Tailwind State Classes
+
+```tsx
+function Button({ children, onClick, isDisabled, isLoading }: ComponentStateProps & {
+  children: React.ReactNode;
+  onClick?: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={isDisabled || isLoading}
+      className={cn(
+        // Default
+        "bg-primary text-primary-foreground px-4 py-2 rounded-md font-medium",
+        "inline-flex items-center justify-center gap-2",
+        // Hover
+        "hover:bg-primary/90",
+        // Focus (visible ring for keyboard, not mouse)
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+        // Active
+        "active:scale-[0.98] active:bg-primary/80",
+        // Disabled
+        "disabled:opacity-50 disabled:pointer-events-none",
+        // Transition
+        "transition-all duration-150 ease-in-out",
+      )}
+    >
+      {isLoading && <Spinner className="h-4 w-4 animate-spin" />}
+      {children}
+    </button>
+  );
+}
+```
+
+### Motion Presets
+
+| Context | Animation Name | CSS/Tailwind | Duration | Easing |
+|---------|---------------|--------------|----------|--------|
+| Page transitions | `pageFade` | `animate-in fade-in` | 200ms | ease-out |
+| Modals | `modalContent` | `animate-in zoom-in-95 fade-in` | 200ms | ease-out |
+| List items | `staggerItem` | `animate-in slide-in-from-bottom-2` | 150ms | ease-out |
+| Card hover | `cardHover` | `hover:-translate-y-1 hover:shadow-lg` | 200ms | ease-in-out |
+| Button tap | `tapScale` | `active:scale-[0.98]` | 100ms | ease-in |
+| Toast enter | `toastSlideIn` | `animate-in slide-in-from-right` | 300ms | ease-out |
+
+```tsx
+// Staggered list animation
+{items.map((item, i) => (
+  <div
+    key={item.id}
+    className="animate-in slide-in-from-bottom-2 fade-in"
+    style={{ animationDelay: `${i * 50}ms`, animationFillMode: "both" }}
+  >
+    {item.content}
+  </div>
+))}
+```
+
+### Accessibility Contrast Requirements
+
+| Element | Minimum Ratio | Target Ratio | WCAG Level |
+|---------|--------------|--------------|------------|
+| Body text | 4.5:1 | 7:1 | AA / AAA |
+| Large text (18px+ or 14px bold) | 3:1 | 4.5:1 | AA / AAA |
+| UI components (borders, icons) | 3:1 | 4.5:1 | AA |
+| Focus indicators | 3:1 | 4.5:1 | AA |
+
+### State Checklist for New Components
+
+Every interactive component must define:
+1. **Default** -- base visual appearance
+2. **Hover** -- `hover:` modifier with subtle visual shift
+3. **Focus** -- `focus-visible:ring-2` (never remove focus outlines)
+4. **Active** -- `active:` feedback (scale, darken, or both)
+5. **Disabled** -- `disabled:opacity-50 disabled:pointer-events-none`
+6. **Loading** -- spinner icon, disabled interaction, aria-busy="true"
+
+Key decisions:
+- Always use `focus-visible` (not `focus`) to avoid showing rings on mouse click
+- Keep transitions under 200ms for interactive feedback (longer feels sluggish)
+- Use `prefers-reduced-motion` media query to disable animations for accessibility
+- Test all states in Storybook with a dedicated "States" story per component
+
+
 ### Define consistent design tokens to enable global theme changes without visual drift — HIGH
 
 
@@ -325,6 +532,95 @@ const tokens = {
 | Styling approach | Tailwind `@theme` directive |
 | Spacing base | 4px system |
 | Dark mode | Tailwind `@theme` with CSS variables |
+
+
+### Apply consistent typography scale with semantic size roles for readable hierarchies — MEDIUM
+
+
+## Typography Scale
+
+**Incorrect -- arbitrary font sizes:**
+```tsx
+// WRONG: Random sizes with no hierarchy
+<h1 style={{ fontSize: '27px', fontWeight: 400 }}>Title</h1>
+<p style={{ fontSize: '15px', lineHeight: '1.3' }}>Body</p>
+<span style={{ fontSize: '11px' }}>Caption</span>
+
+// WRONG: Mixing Tailwind and arbitrary values
+<h1 className="text-[27px] font-normal leading-[1.3]">Title</h1>
+```
+
+**Correct -- semantic typography scale:**
+
+### Size Scale
+
+| Token | Size | Tailwind | Semantic Role |
+|-------|------|----------|---------------|
+| `caption` | 12px | `text-xs` | Captions, timestamps, helper text |
+| `secondary` | 14px | `text-sm` | Secondary text, labels, metadata |
+| `body` | 16px | `text-base` | Body copy, primary content |
+| `large` | 18px | `text-lg` | Large body, lead paragraphs |
+| `subheading` | 20px | `text-xl` | Section subheadings |
+| `heading` | 24px | `text-2xl` | Card/panel headings |
+| `page-title` | 30px | `text-3xl` | Page titles, hero headings |
+
+### Weight Pairing Guide
+
+| Weight | Tailwind | Use With |
+|--------|----------|----------|
+| Normal (400) | `font-normal` | Body text, paragraphs, descriptions |
+| Medium (500) | `font-medium` | Labels, nav items, subtle emphasis |
+| Semibold (600) | `font-semibold` | Headings, card titles, table headers |
+| Bold (700) | `font-bold` | Primary emphasis, key metrics, CTAs |
+
+### Line Height Rules
+
+| Context | Tailwind | Ratio | When |
+|---------|----------|-------|------|
+| Headings | `leading-tight` | 1.25 | Short, large text (h1-h3) |
+| Body | `leading-normal` | 1.5 | Standard paragraphs, lists |
+| Long-form | `leading-relaxed` | 1.625 | Articles, documentation, dense content |
+
+### Correct Usage
+
+```tsx
+// Page with consistent typography hierarchy
+<main>
+  <h1 className="text-3xl font-semibold leading-tight">
+    Page Title
+  </h1>
+  <p className="text-lg font-normal leading-normal text-muted-foreground">
+    Lead paragraph with larger body text.
+  </p>
+
+  <section>
+    <h2 className="text-2xl font-semibold leading-tight">Section Heading</h2>
+    <p className="text-base font-normal leading-normal">
+      Standard body text for primary content.
+    </p>
+    <span className="text-sm font-medium text-muted-foreground">
+      Label or metadata
+    </span>
+    <p className="text-xs text-muted-foreground">
+      Caption or timestamp
+    </p>
+  </section>
+</main>
+```
+
+### Rules
+
+- Never use arbitrary font sizes -- always use the scale tokens
+- Pair weights intentionally: body=normal, labels=medium, headings=semibold
+- Use `leading-tight` for headings, `leading-normal` for body, `leading-relaxed` for long-form
+- Maximum 2 font families per project (1 sans-serif + 1 monospace is ideal)
+- Responsive scaling: `text-2xl md:text-3xl lg:text-4xl` for page titles
+
+Key decisions:
+- Base size: 16px (`text-base`) -- browser default, accessible
+- Scale ratio: ~1.25 (Major Third) for harmonious progression
+- Weight hierarchy: normal &lt; medium &lt; semibold &lt; bold (never skip 2+ levels)
+- Line height decreases as font size increases
 
 
 ### Build performant forms with React Hook Form v7 controlled renders and validation — HIGH

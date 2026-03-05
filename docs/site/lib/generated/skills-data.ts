@@ -1177,6 +1177,36 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": []
   },
+  "documentation-patterns": {
+    "name": "documentation-patterns",
+    "description": "Technical documentation patterns for READMEs, ADRs, API docs (OpenAPI 3.1), changelogs, and writing style guides. Use when creating project documentation, writing architecture decisions, documenting APIs, or maintaining changelogs.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "documentation",
+      "readme",
+      "adr",
+      "api-docs",
+      "openapi",
+      "changelog",
+      "writing-style",
+      "technical-writing"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep"
+    ],
+    "skills": [],
+    "agent": null,
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
   "domain-driven-design": {
     "name": "domain-driven-design",
     "description": "Domain-Driven Design tactical patterns for complex business domains. Use when modeling entities, value objects, domain services, repositories, or establishing bounded contexts.",
@@ -2382,6 +2412,7 @@ export const SKILLS: Record<string, SkillMeta> = {
         "interview-guide-template.md",
         "journey-map-workshop.md",
         "okr-workshop-guide.md",
+        "output-templates.md",
         "rice-scoring-guide.md",
         "roi-calculation-guide.md",
         "tam-sam-som-guide.md",

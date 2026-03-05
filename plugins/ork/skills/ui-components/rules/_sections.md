@@ -21,14 +21,17 @@ Unstyled, accessible React primitives for building high-quality design systems.
 - `radix-composition.md` — asChild, Slot, nested triggers, polymorphic rendering
 - `radix-styling.md` — Data attributes, Tailwind arbitrary variants, focus management
 
-## 3. Design System (design-system) — HIGH — 2 rules
+## 3. Design System (design-system) — HIGH — 5 rules
 
-Design system foundations: tokens, component architecture, and accessibility patterns.
+Design system foundations: tokens, spacing, typography, states, component architecture, and accessibility.
 
 | Rule | Impact | File |
 |------|--------|------|
 | Design System Token Architecture | HIGH | `design-system-tokens.md` |
 | Design System Component Architecture | HIGH | `design-system-components.md` |
+| 8px Grid Spacing Scale | MEDIUM | `design-system-spacing.md` |
+| Semantic Typography Scale | MEDIUM | `design-system-typography.md` |
+| Interactive Component States | HIGH | `design-system-states.md` |
 
 ## 4. Forms (forms) -- HIGH -- 2 rules
 

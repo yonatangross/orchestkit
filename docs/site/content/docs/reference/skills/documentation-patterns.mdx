@@ -1,0 +1,522 @@
+---
+title: "Documentation Patterns"
+description: "Technical documentation patterns for READMEs, ADRs, API docs (OpenAPI 3.1), changelogs, and writing style guides. Use when creating project documentation, writing architecture decisions, documenting APIs, or maintaining changelogs."
+---
+
+<span className="badge badge-gray">Reference</span> <span className="badge badge-green">low</span>
+
+
+# Documentation Patterns
+
+Templates and opinionated structures for technical documentation -- READMEs, Architecture Decision Records, OpenAPI specs, changelogs, and writing style. Each category has individual rule files in `rules/` loaded on-demand.
+
+## Quick Reference
+
+| Category | Rule | Impact | When to Use |
+|----------|------|--------|-------------|
+| [README](#readme) | 1 | HIGH | Starting a project, onboarding contributors |
+| [ADR](#architecture-decision-records) | 1 | HIGH | Recording architecture decisions |
+| [API Docs](#api-documentation) | 1 | HIGH | Documenting REST APIs with OpenAPI 3.1 |
+| [Changelog](#changelog) | 1 | MEDIUM | Maintaining release history |
+| [Writing Style](#writing-style) | 1 | MEDIUM | Any technical writing task |
+
+**Total: 5 rules across 5 categories**
+
+## Quick Start
+
+```markdown
+## README Skeleton
+# Project Name
+Brief description -> Quick Start -> Installation -> Usage -> API -> Config -> Contributing -> License
+
+## ADR Format
+# ADR-001: Title
+Status -> Context -> Decision -> Consequences (positive/negative) -> References
+
+## OpenAPI Minimum
+openapi: 3.1.0 with info, paths, components/schemas, error responses
+
+## Changelog Entry
+## [1.2.0] - 2026-03-05
+### Added / Changed / Deprecated / Removed / Fixed / Security
+
+## Writing Rule of Thumb
+Active voice, present tense, second person, one idea per sentence
+```
+
+## README
+
+Complete README template with all essential sections for open-source and internal projects.
+
+- **`docs-readme-structure`** -- Project name, quick start, installation, usage, API reference, configuration, contributing, license
+
+## Architecture Decision Records
+
+Structured format for capturing architectural decisions with context and consequences.
+
+- **`docs-adr-template`** -- Status, context, decision, consequences (positive/negative), references
+
+## API Documentation
+
+OpenAPI 3.1 specification patterns for consistent, machine-readable API docs.
+
+- **`docs-api-openapi`** -- Path structure, operation definitions, schema components, error responses (RFC 9457)
+
+## Changelog
+
+Keep a Changelog format for curated, human-readable release history.
+
+- **`docs-changelog-format`** -- Added, Changed, Deprecated, Removed, Fixed, Security sections with semver
+
+## Writing Style
+
+Technical writing conventions for clear, scannable documentation.
+
+- **`docs-writing-style`** -- Active voice, present tense, concise sentences, API doc checklist
+
+## Related Skills
+
+- `ork:api-design` -- API design patterns (complements OpenAPI documentation)
+- `ork:architecture-decision-record` -- ADR workflow and lifecycle
+- `ork:release-management` -- Release process including changelog updates
+
+**Version:** 1.0.0 (March 2026)
+
+
+---
+
+## Rules (5)
+
+### Record architecture decisions in structured ADRs with status lifecycle — HIGH
+
+
+## Architecture Decision Records
+
+ADRs capture the context, decision, and consequences of significant architectural choices. They prevent "why did we do this?" conversations months later.
+
+**Incorrect -- informal decision buried in a Slack message or meeting note:**
+```markdown
+## Meeting Notes 2026-02-15
+
+We talked about the database and decided to go with PostgreSQL because
+it seemed like a good fit. John mentioned MongoDB but we didn't think
+it would work. Moving on.
+```
+
+**Correct -- structured ADR with full context:**
+```markdown
+# ADR-003: Use PostgreSQL for Primary Data Store
+
+## Status
+
+Accepted (2026-02-15)
+
+## Context
+
+The application requires ACID transactions for financial data, complex
+joins across 12+ entity types, and full-text search. The team has
+production experience with PostgreSQL but not MongoDB. Expected data
+volume is 50M rows in year one with 200 concurrent connections.
+
+## Decision
+
+Use PostgreSQL 16 as the primary data store with the following configuration:
+- Connection pooling via PgBouncer (max 200 connections)
+- Read replicas for reporting queries
+- pg_trgm extension for full-text search
+
+We rejected MongoDB because:
+- Financial data requires ACID transactions across collections
+- Complex joins would require denormalization and data duplication
+- Team has no production MongoDB experience
+
+## Consequences
+
+### Positive
+- Strong ACID guarantees for financial transactions
+- Rich query capabilities (CTEs, window functions, JSON)
+- Team expertise reduces ramp-up time
+- Mature ecosystem (monitoring, backup, replication)
+
+### Negative
+- Horizontal scaling requires careful partitioning strategy
+- Schema migrations need coordination across services
+- Connection pooling adds operational complexity
+
+## References
+
+- [PostgreSQL 16 Release Notes](https://www.postgresql.org/docs/16/release-16.html)
+- Slack thread: #arch-decisions 2026-02-10
+- Benchmark results: docs/benchmarks/db-comparison.md
+```
+
+**Key rules:**
+- File naming: `docs/adr/ADR-NNN-kebab-case-title.md` with sequential numbering
+- Status lifecycle: Proposed > Accepted > Deprecated > Superseded by ADR-X
+- Context must include constraints, requirements, and team capabilities
+- Decision must state what was chosen AND what was rejected with reasons
+- Consequences must list both positive and negative outcomes
+- Never delete ADRs -- mark superseded and link to the replacement
+- Keep ADRs immutable after acceptance (append amendments, don't edit)
+
+
+### Document REST APIs using OpenAPI 3.1 with schemas, examples, and error responses — HIGH
+
+
+## API Documentation with OpenAPI 3.1
+
+OpenAPI specs are the single source of truth for REST APIs. They enable code generation, validation, and interactive documentation.
+
+**Incorrect -- undocumented API with no contract:**
+```yaml
+# No spec, just a comment in code:
+# POST /users - creates a user
+# Returns user object or error
+```
+
+**Correct -- complete OpenAPI 3.1 specification:**
+```yaml
+openapi: 3.1.0
+info:
+  title: User Service API
+  version: 1.2.0
+  description: |
+    Manage user accounts. Requires Bearer token authentication.
+    Rate limit: 100 requests/minute per API key.
+
+servers:
+  - url: https://api.example.com/v1
+    description: Production
+
+paths:
+  /users:
+    post:
+      operationId: createUser
+      summary: Create a new user account
+      description: |
+        Creates a user and sends a verification email.
+        Returns 409 if email already registered.
+      tags: [users]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+            example:
+              email: "alice@example.com"
+              name: "Alice Smith"
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '409':
+          description: Email already registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+components:
+  schemas:
+    User:
+      type: object
+      required: [id, email, name, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    ProblemDetail:
+      type: object
+      description: RFC 9457 Problem Details
+      required: [type, title, status]
+      properties:
+        type:
+          type: string
+          format: uri
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+          format: uri
+```
+
+**Key rules:**
+- Every endpoint needs `operationId`, `summary`, `description`, and `tags`
+- Define reusable schemas in `components/schemas` -- never inline complex objects
+- Document ALL error responses (4xx, 5xx) with RFC 9457 Problem Details format
+- Include `example` values for request bodies and responses
+- Add authentication info in `info.description` and `components/securitySchemes`
+- Version the API in the URL path (`/v1/`) and in `info.version`
+- Rate limits and pagination patterns belong in `info.description`
+
+**API doc checklist:**
+- [ ] All endpoints have operationId, summary, and description
+- [ ] Request/response schemas defined with required fields marked
+- [ ] Error responses use RFC 9457 Problem Details
+- [ ] Authentication and rate limits documented
+- [ ] Examples provided for every request and response
+
+
+### Maintain changelogs in Keep a Changelog format with semantic versioning — MEDIUM
+
+
+## Changelog Format
+
+Changelogs are for humans, not machines. They must be curated, categorized, and linked to versions.
+
+**Incorrect -- dumping git log as a changelog:**
+```markdown
+# Changes
+
+- fix stuff
+- update deps
+- merge branch 'feature/auth'
+- wip
+- fix tests
+- Merge pull request #42
+- another fix
+- bump version
+```
+
+**Correct -- curated Keep a Changelog format:**
+```markdown
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added
+- OAuth 2.0 PKCE flow for single-page applications (#156)
+
+## [2.1.0] - 2026-03-01
+
+### Added
+- Rate limiting middleware with configurable per-route limits (#148)
+- Health check endpoint at `/healthz` with dependency status (#152)
+
+### Changed
+- Upgrade PostgreSQL driver from v8 to v9 for connection pool improvements (#150)
+
+### Fixed
+- Connection leak when database queries timeout under load (#147)
+- Incorrect pagination count when filters applied (#149)
+
+## [2.0.0] - 2026-02-15
+
+### Changed
+- **BREAKING:** Authentication tokens now use RS256 instead of HS256 (#140)
+- **BREAKING:** Rename `/api/users` to `/api/v2/accounts` (#141)
+
+### Removed
+- **BREAKING:** Drop support for Node.js 18 (#139)
+
+### Security
+- Patch CVE-2026-1234 in XML parser dependency (#143)
+
+[Unreleased]: https://github.com/org/repo/compare/v2.1.0...HEAD
+[2.1.0]: https://github.com/org/repo/compare/v2.0.0...v2.1.0
+[2.0.0]: https://github.com/org/repo/releases/tag/v2.0.0
+```
+
+**Key rules:**
+- Use exactly these six section headings: Added, Changed, Deprecated, Removed, Fixed, Security
+- Prefix breaking changes with `**BREAKING:**` in the entry text
+- Link each version header to a diff URL (compare previous tag to current)
+- Include issue/PR numbers as `(#NNN)` for traceability
+- `[Unreleased]` section at top collects changes for the next release
+- Write entries from the user's perspective, not the developer's
+- One entry per user-visible change -- combine related commits into a single entry
+- Newest version at top, oldest at bottom
+- Never auto-generate from git log -- curate deliberately
+
+
+### Structure READMEs with all essential sections for discoverability and onboarding — HIGH
+
+
+## README Structure
+
+A README is the front door to any project. It must answer: what is this, how do I use it, and how do I contribute -- in that order.
+
+**Incorrect -- bare README with no structure:**
+```markdown
+# my-app
+
+This is my app. It does stuff.
+
+Run `npm start` to start it.
+```
+
+**Correct -- full structured README:**
+```markdown
+# Project Name
+
+Brief description of what the project does and why it exists (1-2 sentences).
+
+## Quick Start
+
+Minimal steps to get running (copy-paste ready):
+
+  git clone https://github.com/org/project.git
+  cd project
+  npm install
+  npm start
+
+## Installation
+
+### Prerequisites
+- Node.js >= 20
+- PostgreSQL 16+
+
+### Steps
+1. Clone the repository
+2. Copy `.env.example` to `.env` and configure
+3. Run `npm install`
+4. Run `npm run db:migrate`
+
+## Usage
+
+Common use cases with runnable code examples:
+
+  import { createClient } from 'project';
+  const client = createClient({ apiKey: process.env.API_KEY });
+  const result = await client.process(data);
+
+## API Reference
+
+Link to generated docs or inline the key endpoints/functions.
+
+## Configuration
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `PORT` | Server port | `3000` |
+| `DATABASE_URL` | PostgreSQL connection string | Required |
+| `LOG_LEVEL` | Logging verbosity | `info` |
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feat/my-feature`)
+3. Commit changes (`git commit -m 'feat: add feature'`)
+4. Push to branch (`git push origin feat/my-feature`)
+5. Open a Pull Request
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
+
+## License
+
+MIT -- see [LICENSE](LICENSE) for details.
+```
+
+**Key rules:**
+- Lead with a one-line description -- readers decide in 5 seconds whether to continue
+- Quick Start must be copy-paste ready with no ambiguity
+- Include a configuration table for all environment variables
+- Link to CONTRIBUTING.md for detailed contributor guidance
+- Every code example must be runnable without modification (except secrets)
+
+**Section order matters:** Name > Description > Quick Start > Install > Usage > API > Config > Contributing > License. Users scan top-down and drop off -- put the most useful content first.
+
+
+### Write technical documentation in active voice with scannable structure — MEDIUM
+
+
+## Technical Writing Style
+
+Documentation is read under time pressure. Every sentence must earn its place.
+
+**Incorrect -- passive, verbose, unfocused:**
+```markdown
+## Authentication
+
+It should be noted that authentication is performed by the system
+through the utilization of JWT tokens which are issued when a login
+request has been successfully processed by the authentication service.
+The token that is returned should be included in subsequent requests
+that are made to protected endpoints. It is important to remember
+that tokens have an expiration time that is set to 24 hours after
+which a new token will need to be obtained by the client application
+through the refresh token flow which has been implemented as described
+in the following section of this document.
+```
+
+**Correct -- active, scannable, direct:**
+```markdown
+## Authentication
+
+The API uses JWT Bearer tokens. Include the token in the
+`Authorization` header of every request to a protected endpoint.
+
+**Token lifecycle:**
+1. Call `POST /auth/login` with credentials to get an access token
+2. Include `Authorization: Bearer <token>` in subsequent requests
+3. Tokens expire after 24 hours
+4. Call `POST /auth/refresh` with the refresh token before expiry
+
+**Example:**
+  curl -H "Authorization: Bearer eyJhbG..." https://api.example.com/users
+```
+
+**Key rules:**
+
+### Voice and tense
+- Use active voice: "The function returns" not "A value is returned by"
+- Use present tense: "This endpoint creates" not "This endpoint will create"
+- Use second person for instructions: "You configure" not "The user configures"
+- Use imperative mood for steps: "Run the command" not "You should run the command"
+
+### Sentence structure
+- One idea per sentence -- split compound sentences at conjunctions
+- Lead with the action or outcome, not the condition
+- Maximum 25 words per sentence for instructional content
+- Cut filler words: "It should be noted that" becomes nothing; "in order to" becomes "to"
+
+### Scannable structure
+- Use headings every 3-5 paragraphs to break up walls of text
+- Use numbered lists for sequential steps, bulleted lists for unordered items
+- Use tables for comparing options or listing parameters
+- Use bold for key terms on first use and for warnings
+- Use code formatting for commands, file paths, variables, and values
+
+### Content principles
+- Prefer code examples over prose explanations
+- State what something does before explaining how it works
+- Document the 80% use case first, then edge cases
+- Link to source code or specs rather than duplicating them
+- When docs and code disagree, code is the source of truth -- update the docs
+
+### API documentation checklist
+- [ ] Every endpoint has a one-line summary and a description
+- [ ] All parameters documented with type, required/optional, and default
+- [ ] Request and response bodies have schemas with examples
+- [ ] Error responses listed with status codes and meanings
+- [ ] Authentication requirements stated per-endpoint or globally
+- [ ] Rate limits and pagination documented
+

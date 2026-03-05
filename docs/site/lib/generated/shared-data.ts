@@ -5,7 +5,7 @@ import type { Totals, AgentSummary, CategoryMeta } from "./types";
 
 export const TOTALS: Totals = {
   "plugins": 1,
-  "skills": 70,
+  "skills": 71,
   "agents": 30,
   "hooks": 88,
   "commands": 17,
@@ -422,7 +422,7 @@ export const SKILLS_SUMMARY = {
       "audit-full",
       "browser-tools",
       "distributed-systems",
-      "domain-driven-design"
+      "documentation-patterns"
     ]
   }
 };

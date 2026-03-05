@@ -35,9 +35,9 @@ Patterns for integrating LLMs into production applications: tool use, streaming,
 | [Fine-Tuning](#fine-tuning) | 3 | HIGH | LoRA/QLoRA training, dataset preparation, evaluation |
 | [Context Optimization](#context-optimization) | 2 | HIGH | Window management, compression, caching, budget scaling |
 | [Evaluation](#evaluation) | 2 | HIGH | LLM-as-judge, RAGAS metrics, quality gates, benchmarks |
-| [Prompt Engineering](#prompt-engineering) | 2 | HIGH | CoT, few-shot, versioning, DSPy optimization |
+| [Prompt Engineering](#prompt-engineering) | 4 | HIGH | CoT, few-shot, versioning, DSPy optimization, ReAct, cost optimization |
 
-**Total: 18 rules across 7 categories**
+**Total: 20 rules across 7 categories**
 
 ## Quick Start
 
@@ -144,6 +144,8 @@ Design, version, and optimize prompts for production LLM applications.
 
 - `prompt-design.md` -- Chain-of-Thought, few-shot learning, pattern selection guide
 - `prompt-testing.md` -- Langfuse versioning, DSPy optimization, A/B testing, self-consistency
+- `prompt-react-pattern.md` -- ReAct loop for tool-using agents, thought-action-observation format
+- `prompt-optimization.md` -- Token reduction, cost optimization, model tiering, prompt spec format
 
 ## Key Decisions
 

@@ -17,6 +17,26 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.1.3",
+    "date": "2026-03-05",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**perf(agents):** Demote 8 redundant agents to reduce routing overhead (#863)\n  - Removed: requirements-translator, documentation-specialist, prompt-engineer, ux-researcher, rapid-ui-designer, business-case-builder, metrics-architect, prioritization-analyst\n  - Agent count: 38 to 30, Hook count: 98 to 88 (10 agent-scoped hooks removed)\n  - Reduces routing complexity and eliminates ~98k tokens/invocation for unnecessary agent spawns",
+          "**docs(build):** Document skills/commands duplication token waste (#889) with upstream CC bug tracking"
+        ]
+      },
+      {
+        "type": "removed",
+        "items": [
+          "CC-v3 feature issues (#930-933) removed from perf milestone — already built, architecturally impossible, or superseded by CC native tools"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.1.2",
     "date": "2026-03-04",
     "compareUrl": "",
