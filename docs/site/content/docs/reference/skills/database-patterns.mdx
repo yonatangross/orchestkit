@@ -55,9 +55,9 @@ Migration management with Alembic for SQLAlchemy 2.0 async applications.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Autogenerate | `rules/alembic-autogenerate.md` | Auto-generate from models, async env.py, review workflow |
-| Data Migration | `rules/alembic-data-migration.md` | Batch backfill, two-phase NOT NULL, zero-downtime |
-| Branching | `rules/alembic-branching.md` | Feature branches, merge migrations, conflict resolution |
+| Autogenerate | `$\{CLAUDE_SKILL_DIR\}/rules/alembic-autogenerate.md` | Auto-generate from models, async env.py, review workflow |
+| Data Migration | `$\{CLAUDE_SKILL_DIR\}/rules/alembic-data-migration.md` | Batch backfill, two-phase NOT NULL, zero-downtime |
+| Branching | `$\{CLAUDE_SKILL_DIR\}/rules/alembic-branching.md` | Feature branches, merge migrations, conflict resolution |
 
 ## Schema Design
 
@@ -65,9 +65,9 @@ SQL and NoSQL schema design with normalization, indexing, and constraint pattern
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Normalization | `rules/schema-normalization.md` | 1NF-3NF, when to denormalize, JSON vs normalized |
-| Indexing | `rules/schema-indexing.md` | B-tree, GIN, HNSW, partial/covering indexes |
-| NoSQL Patterns | `rules/schema-nosql.md` | Embed vs reference, document design, sharding |
+| Normalization | `$\{CLAUDE_SKILL_DIR\}/rules/schema-normalization.md` | 1NF-3NF, when to denormalize, JSON vs normalized |
+| Indexing | `$\{CLAUDE_SKILL_DIR\}/rules/schema-indexing.md` | B-tree, GIN, HNSW, partial/covering indexes |
+| NoSQL Patterns | `$\{CLAUDE_SKILL_DIR\}/rules/schema-nosql.md` | Embed vs reference, document design, sharding |
 
 ## Versioning
 
@@ -75,9 +75,9 @@ Database version control and change management across environments.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Changelog | `rules/versioning-changelog.md` | Schema version table, semantic versioning, audit trails |
-| Rollback | `rules/versioning-rollback.md` | Rollback testing, destructive rollback docs, CI verification |
-| Drift Detection | `rules/versioning-drift.md` | Environment sync, checksum verification, migration locks |
+| Changelog | `$\{CLAUDE_SKILL_DIR\}/rules/versioning-changelog.md` | Schema version table, semantic versioning, audit trails |
+| Rollback | `$\{CLAUDE_SKILL_DIR\}/rules/versioning-rollback.md` | Rollback testing, destructive rollback docs, CI verification |
+| Drift Detection | `$\{CLAUDE_SKILL_DIR\}/rules/versioning-drift.md` | Environment sync, checksum verification, migration locks |
 
 ## Database Selection
 
@@ -85,7 +85,7 @@ Decision frameworks for choosing the right database. Default: PostgreSQL.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Selection Guide | `rules/db-selection.md` | PostgreSQL-first, tier-based matrix, anti-patterns |
+| Selection Guide | `$\{CLAUDE_SKILL_DIR\}/rules/db-selection.md` | PostgreSQL-first, tier-based matrix, anti-patterns |
 
 ## Key Decisions
 
@@ -131,10 +131,10 @@ command.stamp(alembic_config, "head")  # Loses history
 
 | Resource | Description |
 |----------|-------------|
-| [references/](references/) | Advanced patterns: Alembic, normalization, migration, audit, environment, versioning |
-| [checklists/](checklists/) | Migration deployment and schema design checklists |
-| [examples/](examples/) | Complete migration examples, schema examples |
-| [scripts/](scripts/) | Migration templates, model change detector |
+| `$\{CLAUDE_SKILL_DIR\}/references/` | Advanced patterns: Alembic, normalization, migration, audit, environment, versioning |
+| `$\{CLAUDE_SKILL_DIR\}/checklists/` | Migration deployment and schema design checklists |
+| `$\{CLAUDE_SKILL_DIR\}/examples/` | Complete migration examples, schema examples |
+| `$\{CLAUDE_SKILL_DIR\}/scripts/` | Migration templates, model change detector |
 
 ## Zero-Downtime Migration
 
@@ -142,8 +142,8 @@ Safe database schema changes without downtime using expand-contract pattern and 
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Expand-Contract | `rules/migration-zero-downtime.md` | Expand phase, backfill, contract phase, pgroll automation |
-| Rollback & Monitoring | `rules/migration-rollback.md` | pgroll rollback, lock monitoring, replication lag, backfill progress |
+| Expand-Contract | `$\{CLAUDE_SKILL_DIR\}/rules/migration-zero-downtime.md` | Expand phase, backfill, contract phase, pgroll automation |
+| Rollback & Monitoring | `$\{CLAUDE_SKILL_DIR\}/rules/migration-rollback.md` | pgroll rollback, lock monitoring, replication lag, backfill progress |
 
 ## Related Skills
 

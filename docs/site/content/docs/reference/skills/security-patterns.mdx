@@ -200,23 +200,25 @@ langfuse.trace(input=raw_prompt)                   # Unmasked observability data
 
 ## Detailed Documentation
 
-| Resource | Description |
-|----------|-------------|
-| [references/oauth-2.1-passkeys.md](references/oauth-2.1-passkeys.md) | OAuth 2.1, PKCE, DPoP, Passkeys/WebAuthn |
-| [references/request-context-pattern.md](references/request-context-pattern.md) | Immutable request context for identity flow |
-| [references/tenant-isolation.md](references/tenant-isolation.md) | Tenant-scoped repository, vector/full-text search |
-| [references/audit-logging.md](references/audit-logging.md) | Sanitized structured logging, compliance |
-| [references/zod-v4-api.md](references/zod-v4-api.md) | Zod v4 types, coercion, transforms, refinements |
-| [references/vulnerability-demos.md](references/vulnerability-demos.md) | OWASP vulnerable vs secure code examples |
-| [references/context-separation.md](references/context-separation.md) | LLM context separation architecture |
-| [references/output-guardrails.md](references/output-guardrails.md) | Output validation pipeline implementation |
-| [references/pre-llm-filtering.md](references/pre-llm-filtering.md) | Tenant-scoped retrieval, content extraction |
-| [references/post-llm-attribution.md](references/post-llm-attribution.md) | Deterministic attribution pattern |
-| [references/prompt-audit.md](references/prompt-audit.md) | Prompt audit patterns, safe prompt builder |
-| [references/presidio-integration.md](references/presidio-integration.md) | Microsoft Presidio setup, custom recognizers |
-| [references/langfuse-mask-callback.md](references/langfuse-mask-callback.md) | Langfuse SDK mask implementation |
-| [references/llm-guard-sanitization.md](references/llm-guard-sanitization.md) | LLM Guard Anonymize/Deanonymize with Vault |
-| [references/logging-redaction.md](references/logging-redaction.md) | structlog/loguru pre-logging redaction |
+Load on demand with `Read("$\{CLAUDE_SKILL_DIR\}/references/&lt;file&gt;")`:
+
+| File | Content |
+|------|---------|
+| `oauth-2.1-passkeys.md` | OAuth 2.1, PKCE, DPoP, Passkeys/WebAuthn |
+| `request-context-pattern.md` | Immutable request context for identity flow |
+| `tenant-isolation.md` | Tenant-scoped repository, vector/full-text search |
+| `audit-logging.md` | Sanitized structured logging, compliance |
+| `zod-v4-api.md` | Zod v4 types, coercion, transforms, refinements |
+| `vulnerability-demos.md` | OWASP vulnerable vs secure code examples |
+| `context-separation.md` | LLM context separation architecture |
+| `output-guardrails.md` | Output validation pipeline implementation |
+| `pre-llm-filtering.md` | Tenant-scoped retrieval, content extraction |
+| `post-llm-attribution.md` | Deterministic attribution pattern |
+| `prompt-audit.md` | Prompt audit patterns, safe prompt builder |
+| `presidio-integration.md` | Microsoft Presidio setup, custom recognizers |
+| `langfuse-mask-callback.md` | Langfuse SDK mask implementation |
+| `llm-guard-sanitization.md` | LLM Guard Anonymize/Deanonymize with Vault |
+| `logging-redaction.md` | structlog/loguru pre-logging redaction |
 
 ## Related Skills
 

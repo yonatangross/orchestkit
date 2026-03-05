@@ -56,7 +56,7 @@ Record the scope and target versions. If the user does not specify target versio
 
 **Tools:** `Bash`, `Read`, `Grep`, `Glob`
 
-Run precondition checks and environment detection. See [Detection Checks](rules/detection-checks.md) for verification scripts and expected output format.
+Run precondition checks and environment detection. Load details: `Read("$\{CLAUDE_SKILL_DIR\}/rules/detection-checks.md")` for verification scripts and expected output format.
 
 ---
 
@@ -83,25 +83,25 @@ Research the target versions for new capabilities and breaking changes:
 
 **Tools:** `Grep`, `Glob`, `Read`
 
-Scan the codebase for patterns affected by the upgrade. See [Codebase Scan Patterns](rules/codebase-scan-patterns.md) for grep patterns and severity classification.
+Scan the codebase for patterns affected by the upgrade. Load details: `Read("$\{CLAUDE_SKILL_DIR\}/rules/codebase-scan-patterns.md")` for grep patterns and severity classification.
 
 ---
 
 ### Phase 4: Scoring
 
-Rate readiness 0-10 across 6 dimensions using the scoring rubric from `platform-upgrade-knowledge`. See [Scoring Rubric](references/scoring-rubric.md) for per-dimension thresholds, weights, and score interpretation.
+Rate readiness 0-10 across 6 dimensions using the scoring rubric from `platform-upgrade-knowledge`. Load details: `Read("$\{CLAUDE_SKILL_DIR\}/references/scoring-rubric.md")` for per-dimension thresholds, weights, and score interpretation.
 
 ---
 
 ### Phase 5: Recommendations
 
-Generate prioritized action items based on Phase 3 findings and Phase 4 scores. See [Recommendation Format](references/recommendation-format.md) for priority assignment algorithm, effort estimation, and recommendation structure.
+Generate prioritized action items based on Phase 3 findings and Phase 4 scores. Load details: `Read("$\{CLAUDE_SKILL_DIR\}/references/recommendation-format.md")` for priority assignment algorithm, effort estimation, and recommendation structure.
 
 ---
 
 ## Output Format
 
-The assessment produces a structured JSON report. See [Output Format](references/output-format.md) for the full schema and example.
+The assessment produces a structured JSON report. Load details: `Read("$\{CLAUDE_SKILL_DIR\}/references/output-format.md")` for the full schema and example.
 
 ---
 
@@ -131,12 +131,14 @@ Focus on plugin structure:
 
 ## Rules Quick Reference
 
+Load on demand with `Read("$\{CLAUDE_SKILL_DIR\}/rules/&lt;file&gt;")`:
+
 | Rule | Impact | What It Covers |
 |------|--------|----------------|
-| [detection-checks](rules/detection-checks.md) | HIGH | Precondition checks, environment detection scripts |
-| [codebase-scan-patterns](rules/codebase-scan-patterns.md) | HIGH | Grep patterns, severity classification |
-| [knowledge-evaluation](rules/knowledge-evaluation.md) | HIGH | 6-dimension scoring rubric, severity classification |
-| [knowledge-compatibility](rules/knowledge-compatibility.md) | HIGH | Version compatibility matrix, breaking change detection |
+| `detection-checks.md` | HIGH | Precondition checks, environment detection scripts |
+| `codebase-scan-patterns.md` | HIGH | Grep patterns, severity classification |
+| `knowledge-evaluation.md` | HIGH | 6-dimension scoring rubric, severity classification |
+| `knowledge-compatibility.md` | HIGH | Version compatibility matrix, breaking change detection |
 
 ## Related Skills
 
@@ -148,9 +150,14 @@ Focus on plugin structure:
 
 ## References
 
-- [Scoring Rubric](references/scoring-rubric.md) - Detailed dimension scoring thresholds
-- [Recommendation Format](references/recommendation-format.md) - Priority assignment and effort estimation
-- [Output Format](references/output-format.md) - JSON report schema and example
+Load on demand with `Read("$\{CLAUDE_SKILL_DIR\}/references/&lt;file&gt;")`:
+
+| File | Content |
+|------|---------|
+| `scoring-rubric.md` | Detailed dimension scoring thresholds |
+| `recommendation-format.md` | Priority assignment and effort estimation |
+| `output-format.md` | JSON report schema and example |
+
 - See `platform-upgrade-knowledge/references/scoring-rubric.md` for additional scoring details
 - See `platform-upgrade-knowledge/references/compatibility-matrix.md` for version compatibility tracking
 
