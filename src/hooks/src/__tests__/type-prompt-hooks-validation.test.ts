@@ -74,9 +74,11 @@ function extractPromptHooks(): Array<{
 describe('type:prompt Hook Validation', () => {
   const promptHooks = extractPromptHooks();
 
-  test('type:prompt hook count matches expectations', () => {
-    // 5 type:prompt hooks: 1 gate (antipattern-warning) + 3 observational (comm-style, intent-detector, satisfaction-detector) on UserPromptSubmit + 1 gate (solution-detector) on PostToolUse
-    expect(promptHooks.length).toBe(5);
+  test('no type:prompt hooks exist (gate-only semantics wrong for observational hooks)', () => {
+    // type:prompt hooks return {ok, reason} — ok:false BLOCKS continuation.
+    // All 5 removed: comm-style (waste), satisfaction (harmful), intent (wrong),
+    // antipattern (duplicate of antipatterns.md), solution-detector (wrong semantics).
+    expect(promptHooks.length).toBe(0);
   });
 
   // Guard tests: if someone re-adds type:prompt hooks, validate them properly
@@ -177,8 +179,8 @@ describe('Hook Type Distribution', () => {
     }
 
     expect(commandCount).toBeGreaterThan(0);
-    // 5 type:prompt hooks: antipattern-warning, comm-style, intent-detector, satisfaction-detector (UserPromptSubmit) + solution-detector (PostToolUse)
-    expect(promptCount).toBe(5);
+    // All type:prompt hooks removed — gate-only semantics wrong for observational use
+    expect(promptCount).toBe(0);
     // 4 native HTTP hooks (SessionEnd, WorktreeCreate, WorktreeRemove, InstructionsLoaded)
     expect(httpCount).toBe(4);
   });
