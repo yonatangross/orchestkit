@@ -13,6 +13,11 @@ allowed-tools: [AskUserQuestion, Read, Grep, Glob, Task, TaskCreate, TaskUpdate,
 skills: [ascii-visualizer, architecture-decision-record, memory, architecture-patterns]
 complexity: high
 model: sonnet
+hooks:
+  PreToolUse:
+    - matcher: "Glob"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs skill/repo-structure-indexer"
+      once: true
 metadata:
   category: workflow-automation
   mcp-server: memory

@@ -12,6 +12,11 @@ user-invocable: true
 allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskOutput, TaskStop, mcp__memory__search_nodes]
 skills: [code-review-playbook, testing-patterns, memory]
 complexity: medium
+hooks:
+  PreToolUse:
+    - matcher: "Read"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs skill/pr-context-loader"
+      once: true
 metadata:
   category: workflow-automation
   mcp-server: memory

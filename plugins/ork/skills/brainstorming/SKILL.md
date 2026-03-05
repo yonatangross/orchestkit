@@ -13,6 +13,11 @@ allowed-tools: [AskUserQuestion, Task, Read, Grep, Glob, TaskCreate, TaskUpdate,
 skills: [architecture-decision-record, api-design, memory, remember, scope-appropriate-architecture, testing-patterns]
 complexity: medium
 model: sonnet
+hooks:
+  PreToolUse:
+    - matcher: "Agent"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs skill/prior-decisions-loader"
+      once: true
 metadata:
   category: workflow-automation
   mcp-server: memory

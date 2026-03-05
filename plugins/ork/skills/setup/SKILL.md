@@ -13,6 +13,11 @@ disable-model-invocation: true
 allowed-tools: [Read, Grep, Glob, Bash, AskUserQuestion, mcp__memory__search_nodes, mcp__memory__create_entities, mcp__memory__create_relations]
 skills: [doctor, configure, remember, explore, help]
 complexity: medium
+hooks:
+  PreToolUse:
+    - matcher: "Bash"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs skill/setup-env-detector"
+      once: true
 metadata:
   category: configuration
 ---

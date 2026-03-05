@@ -16,6 +16,9 @@ skills: []
 complexity: low
 hooks:
   PreToolUse:
+    - matcher: "Bash"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs skill/commit-convention-loader"
+      once: true
     - matcher: "Bash(git commit*)"
       command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs pretool/bash/git-protector"
     - matcher: "Bash(git *)"

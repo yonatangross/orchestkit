@@ -8,6 +8,11 @@ user-invocable: false
 disable-model-invocation: true
 allowed-tools: [Read, Bash, Grep, Glob]
 complexity: medium
+hooks:
+  PreToolUse:
+    - matcher: "Read"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs skill/release-state-loader"
+      once: true
 ---
 
 # Release Checklist

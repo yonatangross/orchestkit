@@ -93,6 +93,9 @@ import { structureLocationValidator } from './skill/structure-location-validator
 import { testLocationValidator } from './skill/test-location-validator.js';
 import { testPatternValidator } from './skill/test-pattern-validator.js';
 import { testRunner } from './skill/test-runner.js';
+// once:true context loaders (CC 2.1.69)
+import { prContextLoader, issueContextLoader, commitConventionLoader, releaseStateLoader } from './skill/context-loaders-git.js';
+import { repoStructureIndexer, testFrameworkDetector, projectConventionLoader, doctorEnvSnapshot, setupEnvDetector, priorDecisionsLoader, assessmentBaselineLoader, qualityBaselineLoader } from './skill/context-loaders-env.js';
 
 // Prompt hooks (UserPromptSubmit)
 import { antipatternDetector } from './prompt/antipattern-detector.js';
@@ -309,6 +312,19 @@ export const hooks: Record<string, HookFn> = {
   'skill/test-location-validator': testLocationValidator,
   'skill/test-pattern-validator': testPatternValidator,
   'skill/test-runner': testRunner,
+  // once:true context loaders (CC 2.1.69)
+  'skill/pr-context-loader': prContextLoader,
+  'skill/issue-context-loader': issueContextLoader,
+  'skill/commit-convention-loader': commitConventionLoader,
+  'skill/release-state-loader': releaseStateLoader,
+  'skill/repo-structure-indexer': repoStructureIndexer,
+  'skill/test-framework-detector': testFrameworkDetector,
+  'skill/project-convention-loader': projectConventionLoader,
+  'skill/doctor-env-snapshot': doctorEnvSnapshot,
+  'skill/setup-env-detector': setupEnvDetector,
+  'skill/prior-decisions-loader': priorDecisionsLoader,
+  'skill/assessment-baseline-loader': assessmentBaselineLoader,
+  'skill/quality-baseline-loader': qualityBaselineLoader,
 
   // Stop hooks (10)
   'stop/handoff-writer': handoffWriter,

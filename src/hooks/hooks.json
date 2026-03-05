@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 32 global + 44 agent-scoped + 7 skill-scoped = 83 total hooks (4 native HTTP, InstructionsLoaded added in CC 2.1.69). All timeouts in SECONDS per CC spec.",
+  "description": "OrchestKit hooks - 33 global + 44 agent-scoped + 20 skill-scoped = 97 total hooks (4 native HTTP, 13 once:true context loaders). All timeouts in SECONDS per CC spec.",
   "hooks": {
     "PreToolUse": [
       {
@@ -328,7 +328,18 @@
         ]
       }
     ],
-    "ConfigChange": [],
+    "ConfigChange": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs config-change/settings-reload",
+            "timeout": 10,
+            "statusMessage": "Checking settings change..."
+          }
+        ]
+      }
+    ],
     "Setup": [
       {
         "hooks": [

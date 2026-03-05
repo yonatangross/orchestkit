@@ -14,6 +14,10 @@ skills: [api-design, react-server-components-framework, testing-patterns, explor
 complexity: medium
 model: sonnet
 hooks:
+  PreToolUse:
+    - matcher: "Write"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs skill/project-convention-loader"
+      once: true
   PostToolUse:
     - matcher: "Write|Edit"
       command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs skill/pattern-consistency-enforcer"

@@ -65,6 +65,20 @@ model: opus              # Model override
 - `disable-model-invocation: true` (default) — Skill only loads via `/ork:name` slash command. Use for workflow skills that orchestrate subagents (implement, verify, review-pr).
 - `disable-model-invocation: false` — CC auto-selects the skill when the user's prompt matches the `description`. Use for knowledge/reference skills (api-design, security-patterns, testing-patterns) that should activate contextually without requiring a slash command.
 
+### Skill-Scoped Hooks
+
+Skills can declare hooks in frontmatter. These run only while the skill is active:
+
+```yaml
+hooks:
+  PreToolUse:
+    - matcher: "Read"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs skill/my-handler"
+      once: true   # CC 2.1.69: runs once then auto-removes (context loaders)
+```
+
+Use `once: true` for one-shot setup (context loading, env detection, precondition checks). Omit `once` for guards that must run on every tool call (security, pattern enforcement).
+
 ### Structure Pattern
 
 For skills with rules, use this index layout:

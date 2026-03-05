@@ -13,6 +13,11 @@ skills: [code-review-playbook, quality-gates, architecture-decision-record, memo
 argument-hint: "[code-path-or-topic]"
 complexity: high
 model: sonnet
+hooks:
+  PreToolUse:
+    - matcher: "Read"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs skill/assessment-baseline-loader"
+      once: true
 metadata:
   category: document-asset-creation
   mcp-server: memory

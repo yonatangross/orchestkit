@@ -303,8 +303,12 @@ interface HookInput {
   exit_code?: number;             // Bash exit code
   prompt?: string;                // UserPromptSubmit only
   project_dir?: string;           // Project directory
+  tool_use_id?: string;           // PreToolUse/PostToolUse correlation (CC 2.1.69)
   subagent_type?: string;         // SubagentStart/Stop
   agent_output?: string;          // SubagentStop
+  agent_transcript_path?: string; // SubagentStop transcript path (CC 2.1.69)
+  permission_suggestions?: Array<{type: string; tool: string}>; // PermissionRequest (CC 2.1.69)
+  is_interrupt?: boolean;         // PostToolUseFailure interrupt flag (CC 2.1.69)
   // ... additional fields
 }
 ```
@@ -320,10 +324,12 @@ interface HookResult {
   systemMessage?: string;         // Message shown to user
   stopReason?: string;            // Reason for blocking (when continue=false)
   hookSpecificOutput?: {
-    permissionDecision?: 'allow' | 'deny';         // PermissionRequest
+    permissionDecision?: 'allow' | 'deny' | 'ask';  // PermissionRequest (CC 2.1.69: added 'ask')
     permissionDecisionReason?: string;             // Why allowed/denied
     additionalContext?: string;                    // CC 2.1.9: inject context
     hookEventName?: 'PreToolUse' | 'PostToolUse' | ...; // Required for additionalContext
+    updatedMCPToolOutput?: unknown;                // Replace MCP tool output (CC 2.1.69)
+    updatedPermissions?: Record<string, unknown>;  // Apply permission rules (CC 2.1.69)
   };
 }
 ```
@@ -988,6 +994,7 @@ const bundleMap = {
 ## References
 
 - **Claude Code Plugin Docs:** https://docs.anthropic.com/claude-code/plugins
+- **CC 2.1.69 Spec:** Hook input/output field expansion (tool_use_id, agent_transcript_path, permission_suggestions, is_interrupt, updatedMCPToolOutput, updatedPermissions, permissionDecision 'ask')
 - **CC 2.1.16 Spec:** Task Management System with dependency tracking
 - **CC 2.1.9 Spec:** additionalContext support
 - **CC 2.1.7 Spec:** Hook output format

@@ -13,6 +13,10 @@ allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, Task
 skills: [code-review-playbook, testing-patterns, memory, quality-gates]
 complexity: high
 hooks:
+  PreToolUse:
+    - matcher: "Bash"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs skill/test-framework-detector"
+      once: true
   PostToolUse:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs skill/test-result-validator"
