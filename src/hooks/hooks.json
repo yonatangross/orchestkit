@@ -75,8 +75,7 @@
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/unified-dispatcher",
             "async": true,
-            "timeout": 60,
-            "run_on_fail": true
+            "timeout": 60
           }
         ]
       }
@@ -159,7 +158,6 @@
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/sync-session-end-dispatcher",
             "timeout": 30,
-            "run_on_fail": true,
             "statusMessage": "Saving session data..."
           },
           {
@@ -169,14 +167,12 @@
               "Authorization": "Bearer $ORCHESTKIT_HOOK_TOKEN"
             },
             "allowedEnvVars": ["ORCHESTKIT_HOOK_TOKEN"],
-            "timeout": 5,
-            "run_on_fail": true
+            "timeout": 5
           },
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/session-handoff-generator",
-            "timeout": 5,
-            "run_on_fail": true
+            "timeout": 5
           }
         ]
       }
@@ -188,8 +184,7 @@
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs stop/unified-dispatcher",
             "async": true,
-            "timeout": 60,
-            "run_on_fail": true
+            "timeout": 60
           },
           {
             "type": "command",
@@ -219,8 +214,7 @@
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-stop/unified-dispatcher",
             "async": true,
-            "timeout": 60,
-            "run_on_fail": true
+            "timeout": 60
           },
           {
             "type": "command",

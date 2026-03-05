@@ -480,6 +480,10 @@ Add `async: true` and `timeout` to hook definitions in `hooks.json`:
 }
 ```
 
+### run_on_fail (OrchestKit-internal only)
+
+The `run_on_fail` field is **NOT part of the CC hooks spec**. CC ignores unknown JSON fields. Our dispatchers implement their own `runOnFail` logic in TypeScript (see `sync-session-end-dispatcher.ts`) to ensure critical hooks like session-cleanup always execute even if prior hooks fail. This is enforced at the dispatcher level, not by CC.
+
 ### Async vs Synchronous Hooks
 
 | Aspect | Synchronous | Async |
