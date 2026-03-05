@@ -17,30 +17,9 @@ vi.mock('../../lib/common.js', () => ({
   outputWithContext: vi.fn((ctx: string) => ({ continue: true, additionalContext: ctx })),
 }));
 
-// Mock all individual stop hooks
+// Mock all individual stop hooks — after #897 slimming: 7 hooks
 vi.mock('../../stop/handoff-writer.js', () => ({
   handoffWriter: vi.fn(() => ({ continue: true, suppressOutput: true })),
-}));
-vi.mock('../../stop/session-patterns.js', () => ({
-  sessionPatterns: vi.fn(() => ({ continue: true, suppressOutput: true })),
-}));
-vi.mock('../../stop/issue-work-summary.js', () => ({
-  issueWorkSummary: vi.fn(() => ({ continue: true, suppressOutput: true })),
-}));
-vi.mock('../../stop/calibration-persist.js', () => ({
-  calibrationPersist: vi.fn(() => ({ continue: true, suppressOutput: true })),
-}));
-vi.mock('../../stop/session-profile-aggregator.js', () => ({
-  sessionProfileAggregator: vi.fn(() => ({ continue: true, suppressOutput: true })),
-}));
-vi.mock('../../stop/session-end-tracking.js', () => ({
-  sessionEndTracking: vi.fn(() => ({ continue: true, suppressOutput: true })),
-}));
-vi.mock('../../stop/graph-queue-sync.js', () => ({
-  graphQueueSync: vi.fn(() => ({ continue: true, suppressOutput: true })),
-}));
-vi.mock('../../stop/workflow-preference-learner.js', () => ({
-  workflowPreferenceLearner: vi.fn(() => ({ continue: true, suppressOutput: true })),
 }));
 vi.mock('../../stop/task-completion-check.js', () => ({
   taskCompletionCheck: vi.fn(() => ({ continue: true, suppressOutput: true })),
@@ -48,8 +27,6 @@ vi.mock('../../stop/task-completion-check.js', () => ({
 vi.mock('../../stop/security-scan-aggregator.js', () => ({
   securityScanAggregator: vi.fn(() => ({ continue: true, suppressOutput: true })),
 }));
-
-// Mock skill hooks
 vi.mock('../../skill/coverage-check.js', () => ({
   coverageCheck: vi.fn(() => ({ continue: true, suppressOutput: true })),
 }));
@@ -62,39 +39,18 @@ vi.mock('../../skill/coverage-threshold-gate.js', () => ({
 vi.mock('../../skill/cross-instance-test-validator.js', () => ({
   crossInstanceTestValidator: vi.fn(() => ({ continue: true, suppressOutput: true })),
 }));
-vi.mock('../../skill/di-pattern-enforcer.js', () => ({
-  diPatternEnforcer: vi.fn(() => ({ continue: true, suppressOutput: true })),
-}));
-vi.mock('../../skill/duplicate-code-detector.js', () => ({
-  duplicateCodeDetector: vi.fn(() => ({ continue: true, suppressOutput: true })),
-}));
-vi.mock('../../skill/eval-metrics-collector.js', () => ({
-  evalMetricsCollector: vi.fn(() => ({ continue: true, suppressOutput: true })),
-}));
-vi.mock('../../skill/migration-validator.js', () => ({
-  migrationValidator: vi.fn(() => ({ continue: true, suppressOutput: true })),
-}));
-vi.mock('../../skill/review-summary-generator.js', () => ({
-  reviewSummaryGenerator: vi.fn(() => ({ continue: true, suppressOutput: true })),
-}));
-vi.mock('../../skill/security-summary.js', () => ({
-  securitySummary: vi.fn(() => ({ continue: true, suppressOutput: true })),
-}));
-vi.mock('../../skill/test-pattern-validator.js', () => ({
-  testPatternValidator: vi.fn(() => ({ continue: true, suppressOutput: true })),
-}));
 
 import { unifiedStopDispatcher, registeredHookNames } from '../../stop/unified-dispatcher.js';
 import { logHook, outputSilentSuccess } from '../../lib/common.js';
 import { handoffWriter } from '../../stop/handoff-writer.js';
-import { calibrationPersist } from '../../stop/calibration-persist.js';
+import { taskCompletionCheck } from '../../stop/task-completion-check.js';
 import type { HookInput } from '../../types.js';
 
 describe('Unified Stop Dispatcher Hook', () => {
   const mockLogHook = vi.mocked(logHook);
   const _mockOutputSilentSuccess = vi.mocked(outputSilentSuccess);
   const mockHandoffWriter = vi.mocked(handoffWriter);
-  const mockCalibrationPersist = vi.mocked(calibrationPersist);
+  const mockTaskCompletionCheck = vi.mocked(taskCompletionCheck);
 
   const defaultInput: HookInput = {
     hook_event: 'Stop',
@@ -125,7 +81,7 @@ describe('Unified Stop Dispatcher Hook', () => {
 
       // Assert
       expect(mockHandoffWriter).toHaveBeenCalledWith(defaultInput);
-      expect(mockCalibrationPersist).toHaveBeenCalledWith(defaultInput);
+      expect(mockTaskCompletionCheck).toHaveBeenCalledWith(defaultInput);
     });
 
     it('should pass input to all hooks', async () => {
@@ -171,7 +127,7 @@ describe('Unified Stop Dispatcher Hook', () => {
 
       // Assert
       expect(mockHandoffWriter).not.toHaveBeenCalled();
-      expect(mockCalibrationPersist).not.toHaveBeenCalled();
+      expect(mockTaskCompletionCheck).not.toHaveBeenCalled();
     });
 
     it('should run hooks when stop_hook_active is false', async () => {
@@ -240,7 +196,7 @@ describe('Unified Stop Dispatcher Hook', () => {
       await unifiedStopDispatcher(defaultInput);
 
       // Assert - calibration should still run
-      expect(mockCalibrationPersist).toHaveBeenCalled();
+      expect(mockTaskCompletionCheck).toHaveBeenCalled();
     });
 
     it('should log error count when hooks fail', async () => {
@@ -248,7 +204,7 @@ describe('Unified Stop Dispatcher Hook', () => {
       mockHandoffWriter.mockImplementation(() => {
         throw new Error('Error 1');
       });
-      mockCalibrationPersist.mockImplementation(() => {
+      mockTaskCompletionCheck.mockImplementation(() => {
         throw new Error('Error 2');
       });
 
@@ -286,12 +242,10 @@ describe('Unified Stop Dispatcher Hook', () => {
       // Act
       const names = registeredHookNames();
 
-      // Assert
+      // Assert — after #897 slimming: 7 hooks
       expect(names).toContain('handoff-writer');
-      expect(names).toContain('calibration-persist');
-      expect(names).toContain('session-end-tracking');
-      // v7: graph-queue-sync removed (mem0 cloud removed)
       expect(names).toContain('task-completion-check');
+      expect(names).toContain('security-scan-aggregator');
     });
 
     it('should include skill hook names', () => {
@@ -300,7 +254,7 @@ describe('Unified Stop Dispatcher Hook', () => {
 
       // Assert
       expect(names).toContain('coverage-check');
-      expect(names).toContain('security-summary');
+      expect(names).toContain('coverage-threshold-gate');
     });
 
     it('should return strings for all entries', () => {

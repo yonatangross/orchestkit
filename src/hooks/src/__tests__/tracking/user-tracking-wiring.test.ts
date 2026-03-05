@@ -27,8 +27,8 @@ describe('Issue #245: User Tracking Wiring', () => {
     vi.clearAllMocks();
   });
 
-  describe('PostToolUse user-tracking hook', () => {
-    test('user-tracking hook is registered in posttool unified-dispatcher', async () => {
+  describe('PostToolUse hooks after #897 slimming', () => {
+    test('posttool dispatcher has redact-secrets registered', async () => {
       const { registeredHookNames, registeredHookMatchers } = await import(
         '../../posttool/unified-dispatcher.js'
       );
@@ -36,15 +36,14 @@ describe('Issue #245: User Tracking Wiring', () => {
       const names = registeredHookNames();
       const matchers = registeredHookMatchers();
 
-      // user-tracking should be registered
-      expect(names).toContain('user-tracking');
+      // After #897 slimming: user-tracking removed, redact-secrets remains
+      expect(names).toContain('redact-secrets');
 
-      // user-tracking should match all tools (wildcard)
-      const userTrackingConfig = matchers.find(
-        (m: { name: string }) => m.name === 'user-tracking'
+      const redactConfig = matchers.find(
+        (m: { name: string }) => m.name === 'redact-secrets'
       );
-      expect(userTrackingConfig).toBeDefined();
-      expect(userTrackingConfig!.matcher).toBe('*');
+      expect(redactConfig).toBeDefined();
+      expect(redactConfig!.matcher).toEqual(['Bash', 'Write', 'Edit']);
     });
 
     test('user-tracking hook tracks Skill tool calls', async () => {
@@ -143,28 +142,25 @@ describe('Issue #245: User Tracking Wiring', () => {
     });
   });
 
-  describe('Issue #245 GAP-002: Stop Dispatcher Wiring', () => {
-    test('stop dispatcher includes workflow-preference-learner hook (GAP-002)', async () => {
+  describe('Issue #245 GAP-002: Stop Dispatcher Wiring (after #897 slimming)', () => {
+    test('stop dispatcher includes handoff-writer hook', async () => {
       const { registeredHookNames } = await import(
         '../../stop/unified-dispatcher.js'
       );
       const names = registeredHookNames();
-      expect(names).toContain('workflow-preference-learner');
-    });
-
-    test('workflowPreferenceLearner is exported from workflow-preference-learner', async () => {
-      const { workflowPreferenceLearner } = await import('../../stop/workflow-preference-learner.js');
-      expect(typeof workflowPreferenceLearner).toBe('function');
+      // workflow-preference-learner removed in #897 slimming
+      expect(names).toContain('handoff-writer');
     });
   });
 
-  describe('Issue #245 GAP-011: Wire solution-detector to PostToolUse', () => {
-    test('posttool dispatcher includes solution-detector hook', async () => {
+  describe('Issue #245 GAP-011: PostToolUse hooks (after #897 slimming)', () => {
+    test('posttool dispatcher includes team-member-start hook', async () => {
       const { registeredHookNames } = await import(
         '../../posttool/unified-dispatcher.js'
       );
       const names = registeredHookNames();
-      expect(names).toContain('solution-detector');
+      // solution-detector removed in #897 slimming
+      expect(names).toContain('team-member-start');
     });
 
     test('solutionDetector is exported from solution-detector', async () => {

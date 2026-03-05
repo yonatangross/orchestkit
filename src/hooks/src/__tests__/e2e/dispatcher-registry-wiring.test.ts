@@ -224,10 +224,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
   });
 
   describe('Native Async Hook Configuration (Issue #653)', () => {
-    it('should have exactly 7 async hooks', () => {
-      // Issue #653: Migrated from fire-and-forget spawn pattern to native async: true.
-      // v7.0.0: pr-status-enricher removed (dead code).
-      // 7 async hooks: lifecycle, posttool, stop, subagent-stop, notification, capture-user-intent, config-change
+    it('should have exactly 5 async hooks', () => {
+      // After #897 slimming: 5 async hooks (lifecycle, posttool, stop, subagent-stop, notification)
       const allHooks: Hook[] = [];
       for (const eventGroups of Object.values(hooksConfig.hooks)) {
         for (const group of eventGroups) {
@@ -236,7 +234,7 @@ describe('Dispatcher Registry Wiring E2E', () => {
       }
 
       const asyncHooks = allHooks.filter(h => h.async === true);
-      expect(asyncHooks.length, 'Should have exactly 8 async hooks (#939: +release-notebook-trigger)').toBe(8);
+      expect(asyncHooks.length, 'Should have exactly 5 async hooks').toBe(5);
     });
 
     it('should have notification dispatcher using native async', () => {
@@ -307,10 +305,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
         }
       }
 
-      // Issue #653: Migrated from fire-and-forget spawn pattern to native async: true.
-      // CC 2.1.40+ fixed "backgrounded hook commands not returning early" so native
-      // async hooks no longer produce spam. 8 hooks use async: true (#939: +release-notebook-trigger).
-      expect(asyncCount).toBe(8);
+      // After #897 slimming: 5 async hooks remain
+      expect(asyncCount).toBe(5);
     });
 
     it('should have hooks for all critical security operations', () => {

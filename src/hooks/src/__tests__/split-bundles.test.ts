@@ -109,7 +109,7 @@ describe('Split Bundle Entry Points', () => {
       const hookNames = Object.keys(lifecycleBundle.hooks);
       expect(hookNames.length).toBeGreaterThan(0);
       // Lifecycle bundle includes lifecycle/* plus related event hooks (teammate-idle, task-completed)
-      const validPrefixes = ['lifecycle/', 'teammate-idle/', 'task-completed/', 'worktree/', 'config-change/'];
+      const validPrefixes = ['lifecycle/', 'teammate-idle/', 'task-completed/', 'worktree/', 'config-change/', 'instructions-loaded/'];
       expect(hookNames.every(name => validPrefixes.some(p => name.startsWith(p)))).toBe(true);
     });
 
@@ -318,7 +318,8 @@ describe('Cross-Bundle Consistency', () => {
     // 167 -> 165: removed auto-remember-continuity (stop) + session-context-loader (lifecycle)
     // 165 -> 166: added posttool/dirty-file-tracker (#928)
     // 166 -> 169: #939 — added session-handoff-generator, session-handoff-injector, release-notebook-trigger
-    expect(totalHooks).toBe(169);
+    // 169 -> 170: CC 2.1.69 — added instructions-loaded/instructions-loaded-dispatcher
+    expect(totalHooks).toBe(170);
   });
 });
 

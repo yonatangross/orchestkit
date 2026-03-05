@@ -79,6 +79,7 @@ const prefixToBundleMap: Record<string, { name: string; hooks: Record<string, un
   'task-completed': { name: 'lifecycle', hooks: lifecycleBundle.hooks },
   'worktree': { name: 'lifecycle', hooks: lifecycleBundle.hooks },
   'config-change': { name: 'lifecycle', hooks: lifecycleBundle.hooks },
+  'instructions-loaded': { name: 'lifecycle', hooks: lifecycleBundle.hooks },
 };
 
 function getBundleForHook(hookPath: string): { name: string; hooks: Record<string, unknown> } | null {
@@ -235,6 +236,7 @@ describe('Cross-Reference Validation: hooks.json <-> bundles', () => {
       WorktreeCreate: ['worktree'],
       WorktreeRemove: ['worktree'],
       ConfigChange: ['config-change'],
+      InstructionsLoaded: ['instructions-loaded'],
     };
 
     for (const [eventType, entries] of Object.entries(hooksJson.hooks)) {

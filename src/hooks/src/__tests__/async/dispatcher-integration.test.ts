@@ -167,22 +167,13 @@ describe('Dispatcher Integration (real hooks, temp filesystem)', () => {
       }
     });
 
-    it('audit-logger creates log directory and writes audit.log', async () => {
-      await unifiedDispatcher(makeInput({
+    // audit-logger removed in #897 slimming — posttool now has only 3 hooks
+    it('returns silent success for Bash (redact-secrets runs)', async () => {
+      const result = await unifiedDispatcher(makeInput({
         tool_name: 'Bash',
         tool_input: { command: 'npm test' },
       }));
-      flushBuffer();
-
-      const logDir = join(testDir, '.claude', 'logs');
-      expect(existsSync(logDir)).toBe(true);
-
-      const auditLog = join(logDir, 'audit.log');
-      expect(existsSync(auditLog)).toBe(true);
-
-      const content = readFileSync(auditLog, 'utf-8');
-      expect(content).toMatch(/\[\d{4}-\d{2}-\d{2}/); // timestamp
-      expect(content).toContain('Bash');
+      expect(result).toEqual(SILENT_SUCCESS);
     });
 
     it('returns silent success for empty tool_name', async () => {

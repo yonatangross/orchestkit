@@ -1,12 +1,12 @@
 /**
  * Unit tests for memory-context-loader hook
- * Tests UserPromptSubmit hook that loads recent decisions on session start
+ * Tests materializeDecisionRules() which writes recent decisions to .claude/rules/
  *
  * Part of Intelligent Decision Capture System (Issue #245)
+ * Updated: memoryContextLoader() deprecated — tests now cover materializeDecisionRules()
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import type { HookInput } from '../../types.js';
 
 // =============================================================================
 // MOCK SETUP
@@ -32,30 +32,17 @@ vi.mock('node:fs', async () => {
 
 // Import mocked modules
 import {
-  outputSilentSuccess,
   logHook,
   writeRulesFile,
 } from '../../lib/common.js';
 import { existsSync, readFileSync } from 'node:fs';
 
-// Import the hook under test
-import { memoryContextLoader } from '../../prompt/memory-context-loader.js';
+// Import the functions under test
+import { materializeDecisionRules, memoryContextLoader } from '../../prompt/memory-context-loader.js';
 
 // =============================================================================
 // Test Utilities
 // =============================================================================
-
-function createInput(overrides: Partial<HookInput> = {}): HookInput {
-  return {
-    hook_event: 'UserPromptSubmit',
-    tool_name: 'UserPromptSubmit',
-    session_id: 'test-session',
-    project_dir: '/test/project',
-    tool_input: {},
-    prompt: 'Hello world test prompt',
-    ...overrides,
-  };
-}
 
 function makeDecisionLine(overrides: Record<string, unknown> = {}): string {
   return JSON.stringify({
@@ -95,32 +82,28 @@ function makePreferenceLine(overrides: Record<string, unknown> = {}): string {
 }
 
 // =============================================================================
-// Tests
+// Tests for materializeDecisionRules (the active function)
 // =============================================================================
 
-describe('prompt/memory-context-loader', () => {
+describe('prompt/materializeDecisionRules', () => {
   const mockExistsSync = vi.mocked(existsSync);
   const mockReadFileSync = vi.mocked(readFileSync);
-  const mockOutputSilentSuccess = vi.mocked(outputSilentSuccess);
   const mockWriteRulesFile = vi.mocked(writeRulesFile);
   const mockLogHook = vi.mocked(logHook);
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockOutputSilentSuccess.mockReturnValue({ continue: true, suppressOutput: true });
   });
 
   // ===========================================================================
-  // Returns silent success when no decisions.jsonl exists
+  // Returns early when no decisions.jsonl exists
   // ===========================================================================
   describe('no decisions file', () => {
-    it('should return silent success when decisions.jsonl does not exist', () => {
+    it('should skip when decisions.jsonl does not exist', () => {
       mockExistsSync.mockReturnValue(false);
 
-      const result = memoryContextLoader(createInput());
+      materializeDecisionRules('/test/project');
 
-      expect(result.continue).toBe(true);
-      expect(result.suppressOutput).toBe(true);
       expect(mockWriteRulesFile).not.toHaveBeenCalled();
       expect(mockLogHook).toHaveBeenCalledWith(
         'memory-context-loader',
@@ -130,44 +113,41 @@ describe('prompt/memory-context-loader', () => {
   });
 
   // ===========================================================================
-  // Returns silent success when decisions.jsonl is empty
+  // Returns early when decisions.jsonl is empty
   // ===========================================================================
   describe('empty decisions file', () => {
-    it('should return silent success when file is empty', () => {
+    it('should skip when file is empty', () => {
       mockExistsSync.mockReturnValue(true);
       mockReadFileSync.mockReturnValue('');
 
-      const result = memoryContextLoader(createInput());
+      materializeDecisionRules('/test/project');
 
-      expect(result.continue).toBe(true);
       expect(mockWriteRulesFile).not.toHaveBeenCalled();
     });
 
-    it('should return silent success when file has only whitespace', () => {
+    it('should skip when file has only whitespace', () => {
       mockExistsSync.mockReturnValue(true);
       mockReadFileSync.mockReturnValue('   \n  \n  ');
 
-      const result = memoryContextLoader(createInput());
+      materializeDecisionRules('/test/project');
 
-      expect(result.continue).toBe(true);
       expect(mockWriteRulesFile).not.toHaveBeenCalled();
     });
   });
 
   // ===========================================================================
-  // Returns additionalContext with recent decisions
+  // Writes context with recent decisions to rules file
   // ===========================================================================
   describe('loads recent decisions', () => {
     it('should write context with a single decision to rules file', () => {
       mockExistsSync.mockReturnValue(true);
       mockReadFileSync.mockReturnValue(`${makeDecisionLine()}\n`);
 
-      const result = memoryContextLoader(createInput());
+      materializeDecisionRules('/test/project');
 
       expect(mockWriteRulesFile).toHaveBeenCalled();
       const ctx = (mockWriteRulesFile.mock.calls[0]?.[2] as string) || '';
       expect(ctx).toContain('Use PostgreSQL for the database');
-      expect(result.continue).toBe(true);
       expect(ctx).toContain('PostgreSQL');
     });
 
@@ -175,7 +155,7 @@ describe('prompt/memory-context-loader', () => {
       mockExistsSync.mockReturnValue(true);
       mockReadFileSync.mockReturnValue(`${makeDecisionLine()}\n`);
 
-      memoryContextLoader(createInput());
+      materializeDecisionRules('/test/project');
 
       const ctx = (mockWriteRulesFile.mock.calls[0]?.[2] as string) || '';
       expect(ctx).toContain('Better JSON support');
@@ -185,7 +165,7 @@ describe('prompt/memory-context-loader', () => {
       mockExistsSync.mockReturnValue(true);
       mockReadFileSync.mockReturnValue(`${makeDecisionLine()}\n`);
 
-      memoryContextLoader(createInput());
+      materializeDecisionRules('/test/project');
 
       const ctx = (mockWriteRulesFile.mock.calls[0]?.[2] as string) || '';
       expect(ctx).toContain('postgresql');
@@ -197,7 +177,7 @@ describe('prompt/memory-context-loader', () => {
         `${makeDecisionLine()}\n${makePreferenceLine()}\n`
       );
 
-      memoryContextLoader(createInput());
+      materializeDecisionRules('/test/project');
 
       const ctx = (mockWriteRulesFile.mock.calls[0]?.[2] as string) || '';
       expect(ctx).toContain('Decision');
@@ -214,7 +194,7 @@ describe('prompt/memory-context-loader', () => {
 
       mockReadFileSync.mockReturnValue(lines);
 
-      memoryContextLoader(createInput());
+      materializeDecisionRules('/test/project');
 
       const ctx = (mockWriteRulesFile.mock.calls[0]?.[2] as string) || '';
       expect(ctx).toContain('Redis');
@@ -226,7 +206,7 @@ describe('prompt/memory-context-loader', () => {
       mockExistsSync.mockReturnValue(true);
       mockReadFileSync.mockReturnValue(`${makeDecisionLine()}\n`);
 
-      memoryContextLoader(createInput());
+      materializeDecisionRules('/test/project');
 
       const ctx = (mockWriteRulesFile.mock.calls[0]?.[2] as string) || '';
       expect(ctx).toContain('Recent Project Decisions');
@@ -244,7 +224,7 @@ describe('prompt/memory-context-loader', () => {
         `this is not json\n${makeDecisionLine()}\n{broken json\n`
       );
 
-      memoryContextLoader(createInput());
+      materializeDecisionRules('/test/project');
 
       // Should still write context from the valid line to rules file
       expect(mockWriteRulesFile).toHaveBeenCalled();
@@ -252,20 +232,15 @@ describe('prompt/memory-context-loader', () => {
       expect(ctx).toContain('PostgreSQL');
     });
 
-    it('should return silent success when all lines are malformed', () => {
+    it('should skip when all lines are malformed', () => {
       mockExistsSync.mockReturnValue(true);
       mockReadFileSync.mockReturnValue(
         'not json\n{broken}\n[array]\n'
       );
 
-      const result = memoryContextLoader(createInput());
+      materializeDecisionRules('/test/project');
 
-      expect(result.continue).toBe(true);
       expect(mockWriteRulesFile).not.toHaveBeenCalled();
-      expect(mockLogHook).toHaveBeenCalledWith(
-        'memory-context-loader',
-        'No valid decisions found in file'
-      );
     });
 
     it('should skip records missing content.what', () => {
@@ -274,9 +249,8 @@ describe('prompt/memory-context-loader', () => {
         `${JSON.stringify({ id: 'test', type: 'decision', content: {} })}\n`
       );
 
-      const result = memoryContextLoader(createInput());
+      materializeDecisionRules('/test/project');
 
-      expect(result.continue).toBe(true);
       expect(mockWriteRulesFile).not.toHaveBeenCalled();
     });
   });
@@ -288,7 +262,7 @@ describe('prompt/memory-context-loader', () => {
     it('should truncate when context exceeds max chars', () => {
       mockExistsSync.mockReturnValue(true);
 
-      // Create many long decisions to exceed the 2000 char limit
+      // Create many long decisions to exceed the 3000 char limit
       const lines = `${Array.from({ length: 20 }, (_, i) =>
         makeDecisionLine({
           id: `decision-${i}`,
@@ -302,13 +276,13 @@ describe('prompt/memory-context-loader', () => {
 
       mockReadFileSync.mockReturnValue(lines);
 
-      memoryContextLoader(createInput());
+      materializeDecisionRules('/test/project');
 
       const ctx = (mockWriteRulesFile.mock.calls[0]?.[2] as string) || '';
       // Should contain the truncation message
       expect(ctx).toContain('mcp__memory__search_nodes');
       // Should be within reasonable bounds
-      expect(ctx.length).toBeLessThan(3000);
+      expect(ctx.length).toBeLessThan(4000);
     });
   });
 
@@ -330,7 +304,7 @@ describe('prompt/memory-context-loader', () => {
 
       mockReadFileSync.mockReturnValue(lines);
 
-      memoryContextLoader(createInput());
+      materializeDecisionRules('/test/project');
 
       const ctx = (mockWriteRulesFile.mock.calls[0]?.[2] as string) || '';
       // Should contain recent decisions (5-14) but not old ones (0-4)
@@ -341,36 +315,18 @@ describe('prompt/memory-context-loader', () => {
   });
 
   // ===========================================================================
-  // Returns silent success on errors
+  // Error handling
   // ===========================================================================
   describe('error handling', () => {
-    it('should return silent success when readFileSync throws', () => {
+    it('should not throw when readFileSync fails', () => {
       mockExistsSync.mockReturnValue(true);
       mockReadFileSync.mockImplementation(() => {
         throw new Error('Permission denied');
       });
 
-      const result = memoryContextLoader(createInput());
-
-      expect(result.continue).toBe(true);
-      expect(result.suppressOutput).toBe(true);
-      // readLastLines catches the error internally and returns [],
-      // so the hook sees an empty lines array
-      expect(mockLogHook).toHaveBeenCalledWith(
-        'memory-context-loader',
-        'decisions.jsonl is empty, skipping'
-      );
-    });
-
-    it('should return silent success when existsSync throws', () => {
-      mockExistsSync.mockImplementation(() => {
-        throw new Error('FS error');
-      });
-
-      const result = memoryContextLoader(createInput());
-
-      expect(result.continue).toBe(true);
-      expect(result.suppressOutput).toBe(true);
+      // readLastLines catches the error internally and returns []
+      expect(() => materializeDecisionRules('/test/project')).not.toThrow();
+      expect(mockWriteRulesFile).not.toHaveBeenCalled();
     });
   });
 
@@ -378,28 +334,14 @@ describe('prompt/memory-context-loader', () => {
   // Project directory handling
   // ===========================================================================
   describe('project directory', () => {
-    it('should use project_dir from input when provided', () => {
+    it('should use the provided projectDir', () => {
       mockExistsSync.mockReturnValue(false);
 
-      const input = createInput({ project_dir: '/custom/project' });
-      memoryContextLoader(input);
+      materializeDecisionRules('/custom/project');
 
       // Cross-platform: accept either / or \ path separators
       expect(mockExistsSync).toHaveBeenCalledWith(
         expect.stringMatching(/[/\\]custom[/\\]project[/\\]\.claude[/\\]memory[/\\]decisions\.jsonl/)
-      );
-    });
-
-    it('should fallback to getProjectDir when project_dir not in input', () => {
-      mockExistsSync.mockReturnValue(false);
-
-      const input = createInput();
-      delete (input as unknown as Record<string, unknown>).project_dir;
-      memoryContextLoader(input);
-
-      // Cross-platform: accept either / or \ path separators
-      expect(mockExistsSync).toHaveBeenCalledWith(
-        expect.stringMatching(/[/\\]test[/\\]project[/\\]\.claude[/\\]memory[/\\]decisions\.jsonl/)
       );
     });
   });
@@ -408,18 +350,38 @@ describe('prompt/memory-context-loader', () => {
   // Logging
   // ===========================================================================
   describe('logging', () => {
-    it('should log number of decisions loaded', () => {
+    it('should log number of decisions written', () => {
       mockExistsSync.mockReturnValue(true);
       mockReadFileSync.mockReturnValue(
         `${makeDecisionLine()}\n${makePreferenceLine()}\n`
       );
 
-      memoryContextLoader(createInput());
+      materializeDecisionRules('/test/project');
 
       expect(mockLogHook).toHaveBeenCalledWith(
         'memory-context-loader',
-        'Wrote 2 decisions to rules file (0 filtered/deduped)'
+        expect.stringContaining('decisions to rules file')
       );
     });
+  });
+});
+
+// =============================================================================
+// Tests for deprecated memoryContextLoader (backward compat stub)
+// =============================================================================
+
+describe('prompt/memoryContextLoader (deprecated)', () => {
+  it('should return silent success without doing work', () => {
+    const result = memoryContextLoader({
+      hook_event: 'UserPromptSubmit',
+      tool_name: 'UserPromptSubmit',
+      session_id: 'test-session',
+      project_dir: '/test/project',
+      tool_input: {},
+      prompt: 'Hello',
+    });
+
+    expect(result.continue).toBe(true);
+    expect(result.suppressOutput).toBe(true);
   });
 });

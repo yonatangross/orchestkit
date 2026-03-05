@@ -28,19 +28,19 @@ vi.mock('../../lifecycle/session-env-setup.js', () => ({
   sessionEnvSetup: vi.fn(() => ({ continue: true, suppressOutput: true })),
 }));
 
-vi.mock('../../lifecycle/session-tracking.js', () => ({
-  sessionTracking: vi.fn(() => ({ continue: true, suppressOutput: true })),
+vi.mock('../../lifecycle/stale-team-cleanup.js', () => ({
+  staleTeamCleanup: vi.fn(() => ({ continue: true, suppressOutput: true })),
 }));
 
-vi.mock('../../lifecycle/memory-metrics-collector.js', () => ({
-  memoryMetricsCollector: vi.fn(() => ({ continue: true, suppressOutput: true })),
+vi.mock('../../lifecycle/type-error-indexer.js', () => ({
+  typeErrorIndexer: vi.fn(() => ({ continue: true, suppressOutput: true })),
 }));
 
 // Import mocked modules
 import { patternSyncPull } from '../../lifecycle/pattern-sync-pull.js';
 import { sessionEnvSetup } from '../../lifecycle/session-env-setup.js';
-import { sessionTracking } from '../../lifecycle/session-tracking.js';
-import { memoryMetricsCollector } from '../../lifecycle/memory-metrics-collector.js';
+import { staleTeamCleanup } from '../../lifecycle/stale-team-cleanup.js';
+import { typeErrorIndexer } from '../../lifecycle/type-error-indexer.js';
 
 // =============================================================================
 // Test Setup
@@ -168,28 +168,28 @@ describe('unified-dispatcher', () => {
       expect(names).toContain('session-env-setup');
     });
 
-    test('includes session-tracking', () => {
+    test('includes stale-team-cleanup', () => {
       // Act
       const names = registeredHookNames();
 
       // Assert
-      expect(names).toContain('session-tracking');
+      expect(names).toContain('stale-team-cleanup');
     });
 
-    test('includes memory-metrics-collector', () => {
+    test('includes type-error-indexer', () => {
       // Act
       const names = registeredHookNames();
 
       // Assert
-      expect(names).toContain('memory-metrics-collector');
+      expect(names).toContain('type-error-indexer');
     });
 
-    test('returns exactly 6 registered hooks', () => {
+    test('returns exactly 4 registered hooks', () => {
       // Act
       const names = registeredHookNames();
 
-      // Assert
-      expect(names.length).toBe(6);
+      // Assert — after #897 slimming: 4 hooks
+      expect(names.length).toBe(4);
     });
   });
 
@@ -204,8 +204,8 @@ describe('unified-dispatcher', () => {
       // Assert
       expect(patternSyncPull).toHaveBeenCalledTimes(1);
       expect(sessionEnvSetup).toHaveBeenCalledTimes(1);
-      expect(sessionTracking).toHaveBeenCalledTimes(1);
-      expect(memoryMetricsCollector).toHaveBeenCalledTimes(1);
+      expect(staleTeamCleanup).toHaveBeenCalledTimes(1);
+      expect(typeErrorIndexer).toHaveBeenCalledTimes(1);
     });
 
     test('passes input to each hook', async () => {
@@ -218,8 +218,8 @@ describe('unified-dispatcher', () => {
       // Assert
       expect(patternSyncPull).toHaveBeenCalledWith(input);
       expect(sessionEnvSetup).toHaveBeenCalledWith(input);
-      expect(sessionTracking).toHaveBeenCalledWith(input);
-      expect(memoryMetricsCollector).toHaveBeenCalledWith(input);
+      expect(staleTeamCleanup).toHaveBeenCalledWith(input);
+      expect(typeErrorIndexer).toHaveBeenCalledWith(input);
     });
   });
 
@@ -267,7 +267,7 @@ describe('unified-dispatcher', () => {
       vi.mocked(sessionEnvSetup).mockImplementation(() => {
         throw new Error('Hook 2 failure');
       });
-      vi.mocked(sessionTracking).mockImplementation(() => {
+      vi.mocked(staleTeamCleanup).mockImplementation(() => {
         throw new Error('Hook 3 failure');
       });
 
@@ -288,10 +288,10 @@ describe('unified-dispatcher', () => {
       vi.mocked(sessionEnvSetup).mockImplementation(() => {
         throw new Error('Failure 2');
       });
-      vi.mocked(sessionTracking).mockImplementation(() => {
+      vi.mocked(staleTeamCleanup).mockImplementation(() => {
         throw new Error('Failure 3');
       });
-      vi.mocked(memoryMetricsCollector).mockImplementation(() => {
+      vi.mocked(typeErrorIndexer).mockImplementation(() => {
         throw new Error('Failure 4');
       });
 
@@ -326,7 +326,7 @@ describe('unified-dispatcher', () => {
       vi.mocked(sessionEnvSetup).mockImplementation(
         () => Promise.resolve({ continue: true, suppressOutput: true }) as unknown as ReturnType<typeof sessionEnvSetup>
       );
-      vi.mocked(sessionTracking).mockImplementation(() => ({ continue: true, suppressOutput: true }));
+      vi.mocked(staleTeamCleanup).mockImplementation(() => ({ continue: true, suppressOutput: true }));
 
       // Act
       const result = await unifiedSessionStartDispatcher(input);
@@ -335,7 +335,7 @@ describe('unified-dispatcher', () => {
       expect(result.continue).toBe(true);
       expect(patternSyncPull).toHaveBeenCalled();
       expect(sessionEnvSetup).toHaveBeenCalled();
-      expect(sessionTracking).toHaveBeenCalled();
+      expect(staleTeamCleanup).toHaveBeenCalled();
     });
 
     test('handles async hook rejection', async () => {
@@ -449,7 +449,7 @@ describe('unified-dispatcher', () => {
       vi.mocked(sessionEnvSetup).mockImplementation(() => {
         throw { message: 'object error' };
       });
-      vi.mocked(sessionTracking).mockImplementation(() => {
+      vi.mocked(staleTeamCleanup).mockImplementation(() => {
         throw null;
       });
 
@@ -599,8 +599,8 @@ describe('unified-dispatcher', () => {
       const allHooks = [
         patternSyncPull,
         sessionEnvSetup,
-        sessionTracking,
-        memoryMetricsCollector,
+        staleTeamCleanup,
+        typeErrorIndexer,
       ];
       allHooks.forEach((hook) => {
         expect(hook).toHaveBeenCalledTimes(1);
@@ -690,8 +690,8 @@ describe('unified-dispatcher', () => {
       const hooks = [
         patternSyncPull,
         sessionEnvSetup,
-        sessionTracking,
-        memoryMetricsCollector,
+        staleTeamCleanup,
+        typeErrorIndexer,
       ];
 
       for (let i = 0; i < failingHooks && i < hooks.length; i++) {

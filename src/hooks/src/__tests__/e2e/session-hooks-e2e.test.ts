@@ -800,11 +800,10 @@ describe('C. Stop Dispatcher E2E', () => {
 
       const names = registeredHookNames();
 
-      // Issue #245 hooks should be registered
-      expect(names).toContain('session-profile-aggregator');
-      expect(names).toContain('session-end-tracking');
-      // v7: graph-queue-sync removed (mem0 cloud removed)
-      expect(names).toContain('workflow-preference-learner');
+      // After #897 slimming: core hooks that remain
+      expect(names).toContain('handoff-writer');
+      expect(names).toContain('task-completion-check');
+      expect(names).toContain('security-scan-aggregator');
     });
 
     test('dispatcher runs without errors', async () => {
@@ -1304,19 +1303,21 @@ describe('I. Dispatcher Registry Verification', () => {
     expect(names).not.toContain('session-profile-aggregator');
   });
 
-  test('lifecycle dispatcher includes session-tracking', async () => {
+  test('lifecycle dispatcher includes pattern-sync-pull', async () => {
     const { registeredHookNames } = await import('../../lifecycle/unified-dispatcher.js');
     const names = registeredHookNames();
 
-    expect(names).toContain('session-tracking');
+    // After #897: session-tracking removed, pattern-sync-pull remains
+    expect(names).toContain('pattern-sync-pull');
   });
 
-  test('stop dispatcher includes all session end hooks', async () => {
+  test('stop dispatcher includes core stop hooks', async () => {
     const { registeredHookNames } = await import('../../stop/unified-dispatcher.js');
     const names = registeredHookNames();
 
-    expect(names).toContain('session-end-tracking');
-    expect(names).toContain('session-profile-aggregator');
+    // After #897 slimming: these hooks remain
+    expect(names).toContain('handoff-writer');
+    expect(names).toContain('task-completion-check');
   });
 
   test('UserPromptSubmit hooks are registered in hooks.json', async () => {

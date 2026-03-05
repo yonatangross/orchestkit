@@ -17,28 +17,11 @@ import { registeredHookNames as setupHooks } from '../../setup/unified-dispatche
 describe('Dispatcher Registry Wiring', () => {
   describe('posttool/unified-dispatcher', () => {
     it('contains exactly the expected hooks', () => {
+      // After #897 slimming: only 3 hooks remain
       expect(posttoolHooks()).toEqual([
-        'session-metrics',
-        'audit-logger',
-        'calibration-tracker',
-        'pattern-extractor',
-        'issue-progress-commenter',
-        'issue-subtask-updater',
-        'code-style-learner',
-        'naming-convention-learner',
-        'skill-edit-tracker',
-        'skill-usage-optimizer',
-        'realtime-sync',
-        'user-tracking',
-        // GAP-011: Solution detector for problem-solution pairing
-        'solution-detector',
-        // Issue #243: Tool preference learner moved here to reduce async hook spam
-        'tool-preference-learner',
-        // Issue #684: Consolidated from separate PostToolUse hooks.json entries
         'redact-secrets',
         'config-change-auditor',
         'team-member-start',
-        'error-logger',
       ]);
     });
 
@@ -46,52 +29,20 @@ describe('Dispatcher Registry Wiring', () => {
       const matchers = posttoolMatchers();
       const byName = Object.fromEntries(matchers.map(m => [m.name, m.matcher]));
 
-      // Wildcard hooks
-      expect(byName['session-metrics']).toBe('*');
-      expect(byName['audit-logger']).toBe('*');
-      expect(byName['calibration-tracker']).toBe('*');
-
-      // Bash hooks
-      expect(byName['pattern-extractor']).toBe('Bash');
-      expect(byName['issue-progress-commenter']).toBe('Bash');
-      expect(byName['issue-subtask-updater']).toBe('Bash');
-
-      // Write|Edit hooks
-      expect(byName['code-style-learner']).toEqual(['Write', 'Edit']);
-      expect(byName['naming-convention-learner']).toEqual(['Write', 'Edit']);
-      expect(byName['skill-edit-tracker']).toEqual(['Write', 'Edit']);
-
-      // Skill hook
-      expect(byName['skill-usage-optimizer']).toBe('Skill');
-
-      // Multi-tool hook
-      // #902: Accept both Task and Agent tool names
-      expect(byName['realtime-sync']).toEqual(['Bash', 'Write', 'Edit', 'Skill', 'Task', 'Agent']);
-
-      // User tracking (Issue #245)
-      expect(byName['user-tracking']).toBe('*');
-
-      // Solution detector (GAP-011)
-      // #902: Accept both Task and Agent tool names
-      expect(byName['solution-detector']).toEqual(['Bash', 'Write', 'Edit', 'Task', 'Agent']);
-
-      // Issue #684: Consolidated hooks
       // #909: redact-secrets expanded from Bash-only to include Write|Edit
       expect(byName['redact-secrets']).toEqual(['Bash', 'Write', 'Edit']);
       expect(byName['config-change-auditor']).toEqual(['Write', 'Edit']);
       // #902: Accept both Task and Agent tool names
       expect(byName['team-member-start']).toEqual(['Task', 'Agent']);
-      expect(byName['error-logger']).toEqual(['Bash', 'Write', 'Edit', 'Task', 'Agent']);
     });
   });
 
   describe('lifecycle/unified-dispatcher', () => {
     it('contains exactly the expected hooks', () => {
+      // After #897 slimming: 4 hooks (removed session-tracking, memory-metrics-collector)
       expect(lifecycleHooks()).toEqual([
         'pattern-sync-pull',
         'session-env-setup',
-        'session-tracking',
-        'memory-metrics-collector',
         'stale-team-cleanup',
         'type-error-indexer',
       ]);
@@ -100,45 +51,25 @@ describe('Dispatcher Registry Wiring', () => {
 
   describe('stop/unified-dispatcher', () => {
     it('contains exactly the expected hooks', () => {
-      // Issue #243: All 29 stop hooks consolidated into unified dispatcher
-      // Fire-and-forget pattern runs these in background without blocking session exit
+      // After #897 slimming: 7 hooks remain
       expect(stopHooks()).toEqual([
-        // Core session hooks
         'handoff-writer',
-        'session-patterns',
-        'issue-work-summary',
-        'calibration-persist',
-        'session-profile-aggregator',
-        'session-end-tracking',
-        // Memory sync hooks
-        'workflow-preference-learner',
         'task-completion-check',
-        // Analysis hooks
         'security-scan-aggregator',
-        'perf-snapshot',
-        // Skill validation hooks (run at stop time)
         'coverage-check',
         'evidence-collector',
         'coverage-threshold-gate',
         'cross-instance-test-validator',
-        'di-pattern-enforcer',
-        'duplicate-code-detector',
-        'eval-metrics-collector',
-        'migration-validator',
-        'review-summary-generator',
-        'security-summary',
-        'test-pattern-validator',
       ]);
     });
   });
 
   describe('subagent-stop/unified-dispatcher', () => {
     it('contains exactly the expected hooks', () => {
+      // After #897 slimming: 2 hooks (removed context-publisher, agent-memory-store)
       expect(subagentStopHooks()).toEqual([
-        'context-publisher',
         'handoff-preparer',
         'feedback-loop',
-        'agent-memory-store',
       ]);
     });
   });
@@ -204,10 +135,9 @@ describe('Dispatcher Registry Wiring', () => {
         notificationHooks().length +
         setupHooks().length;
 
-      // posttool: 18, lifecycle: 6, stop: 21, subagent-stop: 4, notification: 2, setup: 1
-      // v7: removed memory-bridge, auto-remember-continuity, test-runner, full-test-suite
-      // v7.1: +1 perf-snapshot (#944)
-      expect(total).toBe(52);
+      // posttool: 3, lifecycle: 4, stop: 7, subagent-stop: 2, notification: 2, setup: 1
+      // After #897 slimming
+      expect(total).toBe(19);
     });
   });
 });

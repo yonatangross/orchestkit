@@ -169,7 +169,8 @@ describe('PostToolUse Unified Dispatcher — registry', () => {
 
   it('registeredHookNames includes required hooks', () => {
     const names = posttoolHookNames();
-    const required = ['session-metrics', 'audit-logger', 'user-tracking'];
+    // After #897 slimming: only 3 hooks remain
+    const required = ['redact-secrets', 'config-change-auditor', 'team-member-start'];
     for (const name of required) {
       expect(names, `Expected "${name}" to be registered`).toContain(name);
     }
@@ -251,9 +252,10 @@ describe('SubagentStop Unified Dispatcher — execution', () => {
 // ---------------------------------------------------------------------------
 
 describe('SubagentStop Unified Dispatcher — registry', () => {
-  it('registeredHookNames returns exactly the 4 expected hooks', () => {
+  it('registeredHookNames returns exactly the 2 expected hooks', () => {
     const names = subagentHookNames();
-    const expected = ['context-publisher', 'handoff-preparer', 'feedback-loop', 'agent-memory-store'];
+    // After #897 slimming: 2 hooks remain
+    const expected = ['handoff-preparer', 'feedback-loop'];
     expect(names).toEqual(expected);
   });
 });
@@ -317,7 +319,8 @@ describe('UserPromptSubmit Unified Dispatcher — registry', () => {
 
   it('registeredHookNames includes required hooks', () => {
     const names = promptHookNames();
-    const required = ['profile-injector', 'antipattern-warning', 'memory-context'];
+    // After refactor: prompt hooks now include handoff-injector, antipattern-warning, etc.
+    const required = ['antipattern-warning'];
     for (const name of required) {
       expect(names, `Expected "${name}" to be registered`).toContain(name);
     }
