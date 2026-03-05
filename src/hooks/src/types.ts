@@ -53,6 +53,8 @@ export interface HookInput {
   prompt?: string;
   /** Project directory */
   project_dir?: string;
+  /** Resolved absolute path to the plugin root (injected by run-hook.mjs) */
+  plugin_root?: string;
 
   // PreToolUse/PostToolUse correlation (CC 2.1.69)
   /** Unique tool use ID for correlating PreToolUse with PostToolUse calls */

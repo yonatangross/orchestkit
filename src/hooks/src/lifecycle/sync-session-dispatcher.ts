@@ -94,6 +94,13 @@ export function syncSessionDispatcher(input: HookInput): HookResult {
     }
   }
 
+  // Inject resolved CLAUDE_PLUGIN_ROOT so skills can reference files by absolute path.
+  // run-hook.mjs computes this from its own __dirname (two levels up from hooks/bin/).
+  if (input.plugin_root) {
+    messages.push(`CLAUDE_PLUGIN_ROOT=${input.plugin_root}`);
+    logHook(HOOK_NAME, `Injected plugin_root: ${input.plugin_root}`);
+  }
+
   if (messages.length === 0) {
     logHook(HOOK_NAME, 'All sync hooks silent');
     return outputSilentSuccess();
