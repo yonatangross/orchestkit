@@ -12,22 +12,24 @@
  * once-per-session), collects their additionalContext outputs, merges into one
  * consolidated response. Reduces UserPromptSubmit hooks.json entries from 5 to 2.
  *
- * Every-turn hooks consolidated here:
- * - context-injector (removed — no-op, only logs)
- * - todo-enforcer (removed — no-op, only logs)
- * - satisfaction-detector (silent analytics)
- * - communication-style-tracker (silent analytics)
- * - antipattern-detector (merged with antipattern-warning)
- * - antipattern-warning (merged — deduplicated logic)
- * - memory-context (context injection)
+ * 7 hooks managed by this dispatcher:
  *
- * Once-per-session hooks consolidated here (file-based flag tracking):
- * - profile-injector (run once via session flag)
- * - memory-context-loader (run once via session flag)
- * - queue-recovery (removed — no source file, was a ghost no-op)
+ * Once-per-session (file-based flag tracking):
+ * - handoff-injector (producesContext: true)
+ * - profile-injector (producesContext: true)
+ * - memory-context-loader (producesContext: true)
+ * - agentation-context (producesContext: true)
  *
- * NOT consolidated (remain separate in hooks.json):
- * - capture-user-intent (async: true in hooks.json — CC handles background execution natively)
+ * Every-turn context producers:
+ * - context-exhaustion-warner (producesContext: true)
+ * - antipattern-warning (producesContext: true)
+ * - skill-nudge-prompt (producesContext: true)
+ *
+ * Removed (no longer in hooks.json):
+ * - capture-user-intent (removed in #897 — HQ gets prompt via HTTP hook)
+ * - satisfaction-detector (removed in #897 — analytics, HQ handles)
+ * - communication-style-tracker (removed in #897 — Opus 4.6 adapts natively)
+ * - memory-context (removed in #897 — duplicate of memory-context-loader)
  *
  * CC 2.1.9 Compliant: Single additionalContext output
  */
@@ -48,11 +50,8 @@ import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 // Import hook implementations — every-turn
-import { satisfactionDetector } from './satisfaction-detector.js';
-import { communicationStyleTracker } from './communication-style-tracker.js';
 import { contextExhaustionWarner } from './context-exhaustion-warner.js';
 import { antipatternWarning } from './antipattern-warning.js';
-import { memoryContext } from './memory-context.js';
 import { skillNudgePrompt } from './skill-nudge.js';
 
 // Import hook implementations — once-per-session
@@ -90,10 +89,9 @@ interface PromptHookConfig {
 // -----------------------------------------------------------------------------
 
 /**
- * Registry of all UserPromptSubmit hooks managed by this dispatcher.
+ * Registry of all 7 UserPromptSubmit hooks managed by this dispatcher.
  *
  * Order matters for context producers — higher priority first.
- * Silent analytics hooks run but their output is discarded.
  * runOnce hooks execute only on the first turn (file-based session flag).
  */
 const HOOKS: PromptHookConfig[] = [
@@ -104,14 +102,9 @@ const HOOKS: PromptHookConfig[] = [
   { name: 'memory-context-loader', fn: memoryContextLoader, producesContext: true, runOnce: true },
   { name: 'agentation-context', fn: agentationContext, producesContext: true, runOnce: true },
 
-  // --- Silent analytics (fire-and-forget, no context output) ---
-  { name: 'satisfaction-detector', fn: satisfactionDetector, producesContext: false },
-  { name: 'communication-style-tracker', fn: communicationStyleTracker, producesContext: false },
-
   // --- Context producers (output merged into single additionalContext) ---
   { name: 'context-exhaustion-warner', fn: contextExhaustionWarner, producesContext: true },
   { name: 'antipattern-warning', fn: antipatternWarning, producesContext: true },
-  { name: 'memory-context', fn: memoryContext, producesContext: true },
   { name: 'skill-nudge-prompt', fn: skillNudgePrompt, producesContext: true },
 ];
 

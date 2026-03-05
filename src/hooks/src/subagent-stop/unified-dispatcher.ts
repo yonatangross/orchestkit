@@ -2,8 +2,9 @@
  * Unified SubagentStop Dispatcher
  * Issue #235: Hook Architecture Refactor
  *
- * Consolidates 4 async SubagentStop hooks into a single dispatcher.
- * Reduces "Async hook SubagentStop completed" messages from 4 to 1.
+ * Consolidates 2 async SubagentStop hooks into a single dispatcher.
+ * Reduces "Async hook SubagentStop completed" messages to 1.
+ * Analytics hooks (context-publisher, agent-memory-store) removed in #897 — now handled by HQ.
  *
  * CC 2.1.19 Compliant: Single async hook with internal routing
  */
@@ -14,10 +15,11 @@ import { trackEvent } from '../lib/session-tracker.js';
 import { appendAnalytics, hashProject, getTeamContext } from '../lib/analytics.js';
 
 // Import individual hook implementations
-import { contextPublisher } from './context-publisher.js';
+// Analytics hooks removed — now handled by HQ (#897):
+// - context-publisher (local context file rarely read)
+// - agent-memory-store (HQ stores in cc_sessions.agents JSONB)
 import { handoffPreparer } from './handoff-preparer.js';
 import { feedbackLoop } from './feedback-loop.js';
-import { agentMemoryStore } from './agent-memory-store.js';
 
 // -----------------------------------------------------------------------------
 // Types
@@ -38,10 +40,8 @@ interface HookConfig {
  * Registry of all async SubagentStop hooks consolidated into dispatcher
  */
 const HOOKS: HookConfig[] = [
-  { name: 'context-publisher', fn: contextPublisher },
   { name: 'handoff-preparer', fn: handoffPreparer },
   { name: 'feedback-loop', fn: feedbackLoop },
-  { name: 'agent-memory-store', fn: agentMemoryStore },
 ];
 
 /** Exposed for registry wiring tests */

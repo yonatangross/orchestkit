@@ -3,10 +3,9 @@
 
 /**
  * Sync Session End Dispatcher — SessionEnd Hook
- * Consolidates 3 synchronous SessionEnd hooks into a single dispatcher.
+ * Consolidates 2 synchronous SessionEnd hooks into a single dispatcher.
  *
  * Consolidated hooks:
- * - session-metrics-summary (run_on_fail: true — runs even if session errored)
  * - session-cleanup (run_on_fail: true — runs even if session errored)
  * - pattern-sync-push (normal — skips if a run_on_fail hook returned continue: false)
  *
@@ -14,7 +13,7 @@
  * - session-end-reporter (command hook — POSTs token usage + metrics to HQ API)
  *
  * CC 2.1.9 Compliant: Single sync hook with merged systemMessage output.
- * run_on_fail semantics: metrics-summary and session-cleanup always run (try/catch + continue).
+ * run_on_fail semantics: session-cleanup always runs (try/catch + continue).
  * pattern-sync-push is skipped if a prior hook signals continue: false.
  */
 
@@ -22,7 +21,6 @@ import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook } from '../lib/common.js';
 
 // Import consolidated hook implementations
-import { sessionMetricsSummary } from './session-metrics-summary.js';
 import { sessionCleanup } from './session-cleanup.js';
 import { patternSyncPush } from './pattern-sync-push.js';
 
@@ -36,11 +34,10 @@ interface SessionEndHookConfig {
 
 /**
  * Registry of sync SessionEnd hooks, executed sequentially.
- * Order matters — metrics-summary first, then cleanup, then pattern sync.
+ * Order matters — cleanup first, then pattern sync.
  * run_on_fail: true means the hook executes even when prior hooks fail.
  */
 const SYNC_HOOKS: SessionEndHookConfig[] = [
-  { name: 'session-metrics-summary', fn: sessionMetricsSummary, runOnFail: true },
   { name: 'session-cleanup', fn: sessionCleanup, runOnFail: true },
   { name: 'pattern-sync-push', fn: patternSyncPush, runOnFail: false },
 ];

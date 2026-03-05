@@ -13,31 +13,15 @@ import { outputSilentSuccess, logHook } from '../lib/common.js';
 
 // Import individual stop hook implementations
 import { handoffWriter } from './handoff-writer.js';
-import { sessionPatterns } from './session-patterns.js';
-import { issueWorkSummary } from './issue-work-summary.js';
-import { calibrationPersist } from './calibration-persist.js';
-import { sessionProfileAggregator } from './session-profile-aggregator.js';
-import { sessionEndTracking } from './session-end-tracking.js';
-// Issue #245: GAP-002 - Wire missing tracking hooks
-import { workflowPreferenceLearner } from './workflow-preference-learner.js';
 // Issue #243: Additional stop hooks previously run separately
 import { taskCompletionCheck } from './task-completion-check.js';
 import { securityScanAggregator } from './security-scan-aggregator.js';
-// Issue #944: Performance snapshot — captures token overhead for before/after comparison
-import { perfSnapshot } from '../lifecycle/perf-snapshot.js';
 
 // Import skill hooks that run at stop time
 import { coverageCheck } from '../skill/coverage-check.js';
 import { evidenceCollector } from '../skill/evidence-collector.js';
 import { coverageThresholdGate } from '../skill/coverage-threshold-gate.js';
 import { crossInstanceTestValidator } from '../skill/cross-instance-test-validator.js';
-import { diPatternEnforcer } from '../skill/di-pattern-enforcer.js';
-import { duplicateCodeDetector } from '../skill/duplicate-code-detector.js';
-import { evalMetricsCollector } from '../skill/eval-metrics-collector.js';
-import { migrationValidator } from '../skill/migration-validator.js';
-import { reviewSummaryGenerator } from '../skill/review-summary-generator.js';
-import { securitySummary } from '../skill/security-summary.js';
-import { testPatternValidator } from '../skill/test-pattern-validator.js';
 
 // -----------------------------------------------------------------------------
 // Types
@@ -56,20 +40,12 @@ interface HookConfig {
 
 /**
  * Registry of all Stop hooks consolidated into dispatcher
- * Issue #243: Fire-and-forget pattern - all 21 hooks run in background
- * Issue #245: Added graph-queue-sync (GAP-001) and workflow-preference-learner (GAP-002)
+ * Issue #243: Fire-and-forget pattern - all 7 hooks run in background
+ * Analytics hooks removed — now handled by HQ content pipeline
  */
 const HOOKS: HookConfig[] = [
   // --- Core session hooks ---
   { name: 'handoff-writer', fn: handoffWriter },
-  { name: 'session-patterns', fn: sessionPatterns },
-  { name: 'issue-work-summary', fn: issueWorkSummary },
-  { name: 'calibration-persist', fn: calibrationPersist },
-  { name: 'session-profile-aggregator', fn: sessionProfileAggregator },
-  { name: 'session-end-tracking', fn: sessionEndTracking },
-
-  // --- Memory sync hooks ---
-  { name: 'workflow-preference-learner', fn: workflowPreferenceLearner },
 
   // --- Instance management hooks ---
   { name: 'task-completion-check', fn: taskCompletionCheck },
@@ -77,21 +53,11 @@ const HOOKS: HookConfig[] = [
   // --- Analysis hooks ---
   { name: 'security-scan-aggregator', fn: securityScanAggregator },
 
-  // --- Performance measurement hooks (#944) ---
-  { name: 'perf-snapshot', fn: perfSnapshot },
-
   // --- Skill validation hooks (run at stop time) ---
   { name: 'coverage-check', fn: coverageCheck },
   { name: 'evidence-collector', fn: evidenceCollector },
   { name: 'coverage-threshold-gate', fn: coverageThresholdGate },
   { name: 'cross-instance-test-validator', fn: crossInstanceTestValidator },
-  { name: 'di-pattern-enforcer', fn: diPatternEnforcer },
-  { name: 'duplicate-code-detector', fn: duplicateCodeDetector },
-  { name: 'eval-metrics-collector', fn: evalMetricsCollector },
-  { name: 'migration-validator', fn: migrationValidator },
-  { name: 'review-summary-generator', fn: reviewSummaryGenerator },
-  { name: 'security-summary', fn: securitySummary },
-  { name: 'test-pattern-validator', fn: testPatternValidator },
 ];
 
 /** Exposed for registry wiring tests */
