@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 37 global + 44 agent-scoped + 7 skill-scoped = 88 total hooks (3 reporters migrated to native http)",
+  "description": "OrchestKit hooks - 30 global + 44 agent-scoped + 7 skill-scoped = 81 total hooks (3 reporters migrated to native http, 7 redundant hooks removed in #897)",
   "hooks": {
     "PreToolUse": [
       {
@@ -23,16 +23,6 @@
         ]
       },
       {
-        "matcher": "Skill",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/skill/skill-tracker",
-            "timeout": 10000
-          }
-        ]
-      },
-      {
         "matcher": "mcp__context7__*",
         "hooks": [
           {
@@ -49,16 +39,6 @@
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/mcp/memory-validator",
             "timeout": 10000
-          }
-        ]
-      },
-      {
-        "matcher": "mcp__notebooklm-mcp__*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/mcp/notebooklm-advisor",
-            "timeout": 15000
           }
         ]
       },
@@ -85,16 +65,6 @@
     ],
     "PostToolUse": [
       {
-        "matcher": "Write|Edit|MultiEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/dirty-file-tracker",
-            "timeout": 5000
-          }
-        ]
-      },
-      {
         "matcher": "Bash|Write|Edit|Agent|TaskUpdate|TaskCreate|Skill|NotebookEdit",
         "hooks": [
           {
@@ -103,17 +73,6 @@
             "async": true,
             "timeout": 60000,
             "run_on_fail": true
-          }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/release-notebook-trigger",
-            "async": true,
-            "timeout": 5000
           }
         ]
       }
@@ -159,12 +118,6 @@
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs prompt/unified-dispatcher",
             "timeout": 15000
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs prompt/capture-user-intent",
-            "async": true,
-            "timeout": 30000
           }
         ]
       }
@@ -289,17 +242,7 @@
         ]
       }
     ],
-    "TeammateIdle": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs teammate-idle/unified-dispatcher",
-            "timeout": 15000
-          }
-        ]
-      }
-    ],
+    "TeammateIdle": [],
     "TaskCompleted": [
       {
         "hooks": [
@@ -351,18 +294,7 @@
         ]
       }
     ],
-    "ConfigChange": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs config-change/settings-reload",
-            "async": true,
-            "timeout": 30000
-          }
-        ]
-      }
-    ],
+    "ConfigChange": [],
     "Setup": [
       {
         "hooks": [
