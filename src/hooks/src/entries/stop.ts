@@ -14,7 +14,6 @@ import { handoffWriter } from '../stop/handoff-writer.js';
 import { fullTestSuite } from '../stop/full-test-suite.js';
 import { issueWorkSummary } from '../stop/issue-work-summary.js';
 import { securityScanAggregator } from '../stop/security-scan-aggregator.js';
-import { sessionPatterns } from '../stop/session-patterns.js';
 import { taskCompletionCheck } from '../stop/task-completion-check.js';
 import { unifiedStopDispatcher } from '../stop/unified-dispatcher.js';
 
@@ -32,7 +31,6 @@ export const hooks: Record<string, HookFn> = {
   'stop/full-test-suite': fullTestSuite,
   'stop/issue-work-summary': issueWorkSummary,
   'stop/security-scan-aggregator': securityScanAggregator,
-  'stop/session-patterns': sessionPatterns,
   'stop/task-completion-check': taskCompletionCheck,
   'stop/unified-dispatcher': unifiedStopDispatcher,
   // Intelligent Decision Capture System

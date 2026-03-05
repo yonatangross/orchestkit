@@ -321,7 +321,8 @@ describe('Cross-Bundle Consistency', () => {
     // 169 -> 170: CC 2.1.69 — added instructions-loaded/instructions-loaded-dispatcher
     // 170 -> 167: #960 — removed calibration-tracker (posttool), calibration-persist (stop), skill-nudge (prompt)
     // 167 -> 179: #969 — added 12 once:true context loaders (skill bundle)
-    expect(totalHooks).toBe(179);
+    // 179 -> 176: #973 — removed satisfaction-detector (prompt), solution-detector (posttool), session-patterns (stop)
+    expect(totalHooks).toBe(176);
   });
 });
 

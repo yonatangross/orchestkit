@@ -159,13 +159,8 @@ describe('Issue #245: User Tracking Wiring', () => {
         '../../posttool/unified-dispatcher.js'
       );
       const names = registeredHookNames();
-      // solution-detector removed in #897 slimming
+      // solution-detector and satisfaction-detector removed in #897 slimming
       expect(names).toContain('team-member-start');
-    });
-
-    test('solutionDetector is exported from solution-detector', async () => {
-      const { solutionDetector } = await import('../../posttool/solution-detector.js');
-      expect(typeof solutionDetector).toBe('function');
     });
 
     test('pairSolutionWithProblems is exported from problem-tracker', async () => {

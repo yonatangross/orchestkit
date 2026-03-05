@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 35 global + 44 agent-scoped + 20 skill-scoped = 99 total hooks (4 native HTTP, 1 native prompt, 13 once:true context loaders). All timeouts in SECONDS per CC spec.",
+  "description": "OrchestKit hooks - 34 global + 44 agent-scoped + 20 skill-scoped = 98 total hooks (4 native HTTP, 13 once:true context loaders). All timeouts in SECONDS per CC spec.",
   "hooks": {
     "PreToolUse": [
       {
@@ -124,11 +124,6 @@
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs prompt/unified-dispatcher",
             "timeout": 15,
             "statusMessage": "Processing prompt..."
-          },
-          {
-            "type": "prompt",
-            "prompt": "Classify the user's message into one of these session signals. Consider sarcasm, indirect frustration, passive-aggressive tone, and emphasis — not just keywords.\n\nSignals:\n- satisfaction:positive — genuine approval, thanks, confirmation it works\n- satisfaction:negative — frustration, complaint, something is wrong or broken (including sarcastic praise like 'great, now it's even worse')\n- solution:confirmed — user confirms a fix worked or problem is resolved\n- solution:rejected — user says the attempted fix didn't work\n- neutral — none of the above (most messages)\n\nRespond with ONLY the signal label (e.g. 'satisfaction:negative') or 'neutral'. Nothing else.",
-            "timeout": 10
           }
         ]
       }

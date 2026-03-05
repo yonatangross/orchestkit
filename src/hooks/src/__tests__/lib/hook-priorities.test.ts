@@ -46,10 +46,6 @@ describe('hook-priorities', () => {
       expect(getHookPriority('subagent-start/graph-memory-inject')).toBe('P1');
     });
 
-    test('returns P3 for monitoring hooks', () => {
-      expect(getHookPriority('prompt/satisfaction-detector')).toBe('P3');
-    });
-
     test('returns P2 as default for unknown hooks', () => {
       expect(getHookPriority('unknown/hook')).toBe('P2');
     });

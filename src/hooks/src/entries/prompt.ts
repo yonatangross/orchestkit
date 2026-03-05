@@ -29,7 +29,7 @@ import { memoryContextLoader } from '../prompt/memory-context-loader.js';
 import { captureUserIntent } from '../prompt/capture-user-intent.js';
 
 // --- Unified dispatcher (Issue #448) ---
-// Consolidates: context-injector, todo-enforcer, satisfaction-detector,
+// Consolidates: context-injector, todo-enforcer,
 // communication-style-tracker, antipattern-detector, antipattern-warning,
 // memory-context, pipeline-detector
 import { unifiedPromptDispatcher } from '../prompt/unified-dispatcher.js';
@@ -41,7 +41,6 @@ import { handoffInjector } from '../prompt/handoff-injector.js';
 import { antipatternDetector } from '../prompt/antipattern-detector.js';
 import { antipatternWarning } from '../prompt/antipattern-warning.js';
 import { memoryContext } from '../prompt/memory-context.js';
-import { satisfactionDetector } from '../prompt/satisfaction-detector.js';
 import { todoEnforcer } from '../prompt/todo-enforcer.js';
 import { pipelineDetector } from '../prompt/pipeline-detector.js';
 import { communicationStyleTracker } from '../prompt/communication-style-tracker.js';
@@ -66,7 +65,6 @@ export const hooks: Record<string, HookFn> = {
   'prompt/antipattern-detector': antipatternDetector,
   'prompt/antipattern-warning': antipatternWarning,
   'prompt/memory-context': memoryContext,
-  'prompt/satisfaction-detector': satisfactionDetector,
   'prompt/todo-enforcer': todoEnforcer,
   'prompt/pipeline-detector': pipelineDetector,
   'prompt/communication-style-tracker': communicationStyleTracker,

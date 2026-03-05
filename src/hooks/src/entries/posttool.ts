@@ -38,7 +38,6 @@ import { teamMemberStart } from '../posttool/task/team-member-start.js';
 import { failureHandler } from '../posttool/failure-handler.js';
 
 // Intelligent Decision Capture System
-import { solutionDetector } from '../posttool/solution-detector.js';
 import { toolPreferenceLearner } from '../posttool/tool-preference-learner.js';
 
 // Issue #772: Config change security auditor
@@ -82,7 +81,6 @@ export const hooks: Record<string, HookFn> = {
   'posttool/failure-handler': failureHandler,
 
   // Intelligent Decision Capture System
-  'posttool/solution-detector': solutionDetector,
   'posttool/tool-preference-learner': toolPreferenceLearner,
 
   // Issue #772: Config change security auditor

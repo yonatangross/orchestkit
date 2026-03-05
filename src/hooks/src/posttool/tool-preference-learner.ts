@@ -37,8 +37,7 @@ const HOOK_NAME = 'tool-preference-learner';
 
 /**
  * Fix #917: Only flush to disk every FLUSH_INTERVAL calls.
- * Reduces file I/O by ~90% per session. Session-end is guaranteed by
- * session-patterns stop hook which also writes tool-preferences.json.
+ * Reduces file I/O by ~90% per session.
  */
 const FLUSH_INTERVAL = 10;
 
@@ -216,7 +215,7 @@ function getToolCategories(toolId: string): ToolCategory[] {
  * Get path to preferences file
  */
 function getPreferencesPath(): string {
-  // Fix #908: consolidated to .claude/feedback/ (same as session-patterns.ts)
+  // Fix #908: consolidated to .claude/feedback/
   return join(getProjectDir(), '.claude', 'feedback', 'tool-preferences.json');
 }
 
@@ -359,8 +358,7 @@ let pendingUpdates: { category: ToolCategory; toolId: string }[] = [];
  * Track tool usage for preference learning.
  *
  * Fix #917: Accumulates updates in memory and only flushes to disk every
- * FLUSH_INTERVAL calls (~10), reducing file I/O by ~90%. Session-end
- * persistence is guaranteed by session-patterns stop hook.
+ * FLUSH_INTERVAL calls (~10), reducing file I/O by ~90%.
  */
 export function toolPreferenceLearner(input: HookInput): HookResult {
   const toolName = input.tool_name || '';

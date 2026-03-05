@@ -57,7 +57,6 @@ vi.mock('../../lib/common.js', async () => {
 
 // Import stop hooks
 import { handoffWriter } from '../../stop/handoff-writer.js';
-import { sessionPatterns } from '../../stop/session-patterns.js';
 import { taskCompletionCheck } from '../../stop/task-completion-check.js';
 import { unifiedStopDispatcher } from '../../stop/unified-dispatcher.js';
 
@@ -130,24 +129,6 @@ describe('Stop Hook Lifecycle E2E', () => {
     });
   });
 
-  describe('Session Patterns', () => {
-    test('should extract session patterns on stop', async () => {
-      const input = createStopInput();
-
-      const result = await Promise.resolve(sessionPatterns(input));
-
-      expect(result.continue).toBe(true);
-    });
-
-    test('should handle empty session gracefully', async () => {
-      const input = createStopInput();
-
-      const result = await Promise.resolve(sessionPatterns(input));
-
-      expect(result.continue).toBe(true);
-    });
-  });
-
   describe('Task Completion Check', () => {
     test('should check for incomplete tasks on stop', async () => {
       const input = createStopInput();
@@ -193,7 +174,6 @@ describe('Stop Hook Lifecycle E2E', () => {
 
       // Simulate the stop lifecycle sequence
       results.push(await Promise.resolve(handoffWriter(input)));
-      results.push(await Promise.resolve(sessionPatterns(input)));
       results.push(await Promise.resolve(taskCompletionCheck(input)));
 
       // All hooks should continue
@@ -213,7 +193,7 @@ describe('Stop Hook Lifecycle E2E', () => {
 
       // Subsequent hooks should still work
       mockWriteFileSync.mockImplementation(() => {});
-      const result2 = await Promise.resolve(sessionPatterns(input));
+      const result2 = await Promise.resolve(taskCompletionCheck(input));
       expect(result2.continue).toBe(true);
     });
 
@@ -223,7 +203,7 @@ describe('Stop Hook Lifecycle E2E', () => {
       // Simulate rapid stop
       const stopResults = await Promise.all([
         Promise.resolve(handoffWriter(input)),
-        Promise.resolve(sessionPatterns(input)),
+        Promise.resolve(taskCompletionCheck(input)),
       ]);
 
       expect(stopResults.every(r => r.continue)).toBe(true);
@@ -246,7 +226,7 @@ describe('Stop Hook Lifecycle E2E', () => {
 
       await Promise.all([
         Promise.resolve(handoffWriter(input)),
-        Promise.resolve(sessionPatterns(input)),
+        Promise.resolve(taskCompletionCheck(input)),
       ]);
 
       const elapsed = Date.now() - startTime;
@@ -260,7 +240,6 @@ describe('Stop Hook Lifecycle E2E', () => {
       const input = createStopInput();
       const hooks = [
         handoffWriter,
-        sessionPatterns,
         taskCompletionCheck,
       ];
 

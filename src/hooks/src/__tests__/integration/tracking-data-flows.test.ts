@@ -6,7 +6,6 @@
  * - user-identity.ts: Identity resolution and privacy
  * - user-profile.ts: Profile aggregation and persistence
  * - capture-user-intent.ts: Intent detection and session tracking
- * - satisfaction-detector.ts: Satisfaction signal tracking
  *
  * Uses real filesystem (tmpdir) for state persistence testing.
  * Tests actual cross-module interactions, not just mocks.
@@ -119,7 +118,6 @@ const importModules = async () => {
   const userIdentity = await import('../../lib/user-identity.js');
   const userProfile = await import('../../lib/user-profile.js');
   const captureUserIntent = await import('../../prompt/capture-user-intent.js');
-  const satisfactionDetector = await import('../../prompt/satisfaction-detector.js');
   const userIntentDetector = await import('../../lib/user-intent-detector.js');
 
   return {
@@ -127,7 +125,6 @@ const importModules = async () => {
     userIdentity,
     userProfile,
     captureUserIntent,
-    satisfactionDetector,
     userIntentDetector,
   };
 };
@@ -930,202 +927,6 @@ describe('D. Intent Tracking -> Session Flow', () => {
 });
 
 // =============================================================================
-// SECTION E: Satisfaction Detection -> Session Flow Tests
-// =============================================================================
-
-describe('E. Satisfaction Detection -> Session Flow', () => {
-  let modules: Awaited<ReturnType<typeof importModules>>;
-
-  beforeAll(async () => {
-    modules = await importModules();
-  });
-
-  beforeEach(() => {
-    modules.userIdentity.clearIdentityCache();
-    process.env.CLAUDE_SESSION_ID = 'test-session-satisfaction';
-    process.env.CLAUDE_PROJECT_DIR = testDir;
-    process.env.SATISFACTION_SAMPLE_RATE = '1'; // Sample every prompt for testing
-
-    // Create session and feedback directories
-    const sessionDir = path.join(testDir, '.claude', 'memory', 'sessions', 'test-session-satisfaction');
-    const feedbackDir = path.join(testDir, '.claude', 'feedback');
-    fs.mkdirSync(sessionDir, { recursive: true });
-    fs.mkdirSync(feedbackDir, { recursive: true });
-
-    // Reset counter file
-    const counterFile = path.join(testDir, '.claude', '.satisfaction-counter');
-    try {
-      fs.unlinkSync(counterFile);
-    } catch {
-      // Ignore if doesn't exist
-    }
-  });
-
-  afterEach(() => {
-    try {
-      const sessionDir = path.join(testDir, '.claude', 'memory', 'sessions', 'test-session-satisfaction');
-      fs.rmSync(sessionDir, { recursive: true, force: true });
-      const feedbackDir = path.join(testDir, '.claude', 'feedback');
-      fs.rmSync(feedbackDir, { recursive: true, force: true });
-    } catch {
-      // Ignore cleanup errors
-    }
-    delete process.env.SATISFACTION_SAMPLE_RATE;
-  });
-
-  it('E.1: Positive satisfaction is detected', () => {
-    // Arrange
-    const input = {
-      tool_name: '',
-      session_id: 'test-session-satisfaction',
-      tool_input: {},
-      project_dir: testDir,
-      prompt: 'Thank you, that worked perfectly!',
-    };
-
-    // Act
-    const result = modules.satisfactionDetector.satisfactionDetector(input);
-
-    // Assert
-    expect(result.continue).toBe(true);
-
-    // Check satisfaction log
-    const logPath = path.join(testDir, '.claude', 'feedback', 'satisfaction.log');
-    if (fs.existsSync(logPath)) {
-      const logContent = fs.readFileSync(logPath, 'utf8');
-      expect(logContent).toContain('positive');
-    }
-  });
-
-  it('E.2: Negative satisfaction is detected', () => {
-    // Arrange
-    const input = {
-      tool_name: '',
-      session_id: 'test-session-satisfaction',
-      tool_input: {},
-      project_dir: testDir,
-      prompt: "That doesn't work, it's still broken",
-    };
-
-    // Act
-    modules.satisfactionDetector.satisfactionDetector(input);
-
-    // Assert
-    const logPath = path.join(testDir, '.claude', 'feedback', 'satisfaction.log');
-    if (fs.existsSync(logPath)) {
-      const logContent = fs.readFileSync(logPath, 'utf8');
-      expect(logContent).toContain('negative');
-    }
-  });
-
-  it('E.3: Neutral prompts are not logged', () => {
-    // Arrange
-    const input = {
-      tool_name: '',
-      session_id: 'test-session-satisfaction',
-      tool_input: {},
-      project_dir: testDir,
-      prompt: 'Can you show me the file contents?',
-    };
-
-    // Act
-    modules.satisfactionDetector.satisfactionDetector(input);
-
-    // Assert
-    const logPath = path.join(testDir, '.claude', 'feedback', 'satisfaction.log');
-    // Either file doesn't exist or is empty (neutral prompts not logged)
-    if (fs.existsSync(logPath)) {
-      const logContent = fs.readFileSync(logPath, 'utf8');
-      expect(logContent.trim()).toBe('');
-    }
-  });
-
-  it('E.4: Commands (starting with /) are skipped', () => {
-    // Arrange
-    const input = {
-      tool_name: '',
-      session_id: 'test-session-satisfaction',
-      tool_input: {},
-      project_dir: testDir,
-      prompt: '/commit Thank you for the great work',
-    };
-
-    // Act
-    const result = modules.satisfactionDetector.satisfactionDetector(input);
-
-    // Assert
-    expect(result.continue).toBe(true);
-    expect(result.suppressOutput).toBe(true);
-    // Should not log because it starts with /
-    const logPath = path.join(testDir, '.claude', 'feedback', 'satisfaction.log');
-    expect(fs.existsSync(logPath)).toBe(false);
-  });
-
-  it('E.5: Very short prompts are skipped', () => {
-    // Arrange
-    const input = {
-      tool_name: '',
-      session_id: 'test-session-satisfaction',
-      tool_input: {},
-      project_dir: testDir,
-      prompt: 'y', // Single character
-    };
-
-    // Act
-    const result = modules.satisfactionDetector.satisfactionDetector(input);
-
-    // Assert
-    expect(result.continue).toBe(true);
-  });
-
-  it('E.6: Satisfaction triggers trackEvent to session', () => {
-    // Arrange
-    const input = {
-      tool_name: '',
-      session_id: 'test-session-satisfaction',
-      tool_input: {},
-      project_dir: testDir,
-      prompt: 'Excellent work, this is exactly what I needed!',
-    };
-
-    // Act
-    modules.satisfactionDetector.satisfactionDetector(input);
-
-    // Assert
-    const events = modules.sessionTracker.loadSessionEvents();
-    const prefEvents = events.filter((e: any) => e.event_type === 'preference_stated');
-    expect(prefEvents.length).toBeGreaterThan(0);
-  });
-
-  it('E.7: Sample rate controls detection frequency', () => {
-    // Arrange
-    process.env.SATISFACTION_SAMPLE_RATE = '3'; // Sample every 3rd prompt
-
-    // Create counter file to control sampling
-    const counterFile = path.join(testDir, '.claude', '.satisfaction-counter');
-    fs.writeFileSync(counterFile, '2'); // Next call will be #3, which should be sampled
-
-    const input = {
-      tool_name: '',
-      session_id: 'test-session-satisfaction',
-      tool_input: {},
-      project_dir: testDir,
-      prompt: 'Thanks, that works great!',
-    };
-
-    // Act - This should be the 3rd call (sampled)
-    modules.satisfactionDetector.satisfactionDetector(input);
-
-    // Assert - Should have logged because counter was at 2 (next is 3)
-    const logPath = path.join(testDir, '.claude', 'feedback', 'satisfaction.log');
-    if (fs.existsSync(logPath)) {
-      const logContent = fs.readFileSync(logPath, 'utf8');
-      expect(logContent).toContain('positive');
-    }
-  });
-});
-
-// =============================================================================
 // SECTION F: Error Handling Across Boundaries Tests
 // =============================================================================
 
@@ -1412,7 +1213,6 @@ describe('H. End-to-End Integration Scenarios', () => {
     process.env.CLAUDE_SESSION_ID = 'test-session-e2e';
     process.env.CLAUDE_PROJECT_DIR = testDir;
     process.env.HOME = testHomeDir;
-    process.env.SATISFACTION_SAMPLE_RATE = '1';
 
     // Create necessary directories
     const sessionDir = path.join(testDir, '.claude', 'memory', 'sessions', 'test-session-e2e');
@@ -1452,14 +1252,6 @@ describe('H. End-to-End Integration Scenarios', () => {
 
     modules.sessionTracker.trackSkillInvoked('commit', '--message "feat: add db"', true, 100);
     modules.sessionTracker.trackAgentSpawned('backend-architect', 'Design API', true);
-
-    modules.satisfactionDetector.satisfactionDetector({
-      tool_name: '',
-      session_id: 'test-session-e2e',
-      tool_input: {},
-      project_dir: testDir,
-      prompt: 'Thank you, that looks great!',
-    });
 
     modules.sessionTracker.trackSessionEnd();
 
@@ -1549,27 +1341,7 @@ describe('H. End-to-End Integration Scenarios', () => {
     expect(summary.event_counts.decision_made).toBeGreaterThan(0);
   });
 
-  it('H.4: Preference detection flows through satisfaction to profile', () => {
-    // Arrange & Act
-    modules.sessionTracker.trackSessionStart();
-
-    modules.satisfactionDetector.satisfactionDetector({
-      tool_name: '',
-      session_id: 'test-session-e2e',
-      tool_input: {},
-      project_dir: testDir,
-      prompt: 'Thanks, that works perfectly!',
-    });
-
-    modules.sessionTracker.trackSessionEnd();
-
-    // Assert - Satisfaction tracking should create preference_stated event
-    const events = modules.sessionTracker.loadSessionEvents();
-    const prefEvents = events.filter((e: any) => e.event_type === 'preference_stated');
-    expect(prefEvents.length).toBeGreaterThan(0);
-  });
-
-  it('H.5: Identity context is consistent across all events', () => {
+  it('H.4: Identity context is consistent across all events', () => {
     // Arrange & Act
     modules.sessionTracker.trackSessionStart();
     modules.sessionTracker.trackSkillInvoked('test-skill', undefined, true);

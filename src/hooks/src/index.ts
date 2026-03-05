@@ -102,7 +102,6 @@ import { antipatternDetector } from './prompt/antipattern-detector.js';
 import { antipatternWarning } from './prompt/antipattern-warning.js';
 import { handoffInjector } from './prompt/handoff-injector.js';
 import { memoryContext } from './prompt/memory-context.js';
-import { satisfactionDetector } from './prompt/satisfaction-detector.js';
 import { todoEnforcer } from './prompt/todo-enforcer.js';
 // Routing hooks removed — replaced by passive index (passive-index-migration)
 import { pipelineDetector } from './prompt/pipeline-detector.js';
@@ -134,7 +133,6 @@ import { handoffWriter } from './stop/handoff-writer.js';
 import { fullTestSuite } from './stop/full-test-suite.js';
 import { issueWorkSummary } from './stop/issue-work-summary.js';
 import { securityScanAggregator } from './stop/security-scan-aggregator.js';
-import { sessionPatterns } from './stop/session-patterns.js';
 import { taskCompletionCheck } from './stop/task-completion-check.js';
 
 // Setup hooks (4)
@@ -263,7 +261,6 @@ export const hooks: Record<string, HookFn> = {
   'prompt/antipattern-warning': antipatternWarning,
   'prompt/handoff-injector': handoffInjector,
   'prompt/memory-context': memoryContext,
-  'prompt/satisfaction-detector': satisfactionDetector,
   'prompt/todo-enforcer': todoEnforcer,
   'prompt/pipeline-detector': pipelineDetector,
 
@@ -331,7 +328,6 @@ export const hooks: Record<string, HookFn> = {
   'stop/full-test-suite': fullTestSuite,
   'stop/issue-work-summary': issueWorkSummary,
   'stop/security-scan-aggregator': securityScanAggregator,
-  'stop/session-patterns': sessionPatterns,
   'stop/task-completion-check': taskCompletionCheck,
 
   // Setup hooks (4)

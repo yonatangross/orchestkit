@@ -4,7 +4,7 @@
  *
  * Tests complete session lifecycle flows from start to end:
  * - SessionStart event with profile loading
- * - UserPromptSubmit hooks (capture-user-intent, satisfaction-detector, communication-style-tracker)
+ * - UserPromptSubmit hooks (capture-user-intent, communication-style-tracker)
  * - Stop event hooks (session-end-tracking, session-profile-aggregator)
  * - Cross-hook data consistency and filesystem changes
  *
@@ -202,24 +202,6 @@ function readSessionEvents(sessionId: string): Array<Record<string, unknown>> {
 }
 
 /**
- * Read satisfaction log
- */
-function readSatisfactionLog(): string[] {
-  const logPath = path.join(
-    process.env.CLAUDE_PROJECT_DIR || testDir,
-    '.claude',
-    'feedback',
-    'satisfaction.log'
-  );
-
-  if (!fs.existsSync(logPath)) {
-    return [];
-  }
-
-  return fs.readFileSync(logPath, 'utf8').trim().split('\n').filter(Boolean);
-}
-
-/**
  * Read open problems JSONL
  */
 function readOpenProblems(): Array<Record<string, unknown>> {
@@ -319,7 +301,6 @@ describe('A. Complete Session Lifecycle', () => {
     test('session with multiple prompts tracks all events', async () => {
       const { sessionTracking } = await import('../../lifecycle/session-tracking.js');
       const { captureUserIntent } = await import('../../prompt/capture-user-intent.js');
-      const { satisfactionDetector } = await import('../../prompt/satisfaction-detector.js');
       const { communicationStyleTracker } = await import('../../prompt/communication-style-tracker.js');
 
       const sessionId = process.env.CLAUDE_SESSION_ID!;
@@ -338,7 +319,6 @@ describe('A. Complete Session Lifecycle', () => {
       for (const prompt of prompts) {
         const input = createUserPromptInput(prompt);
         captureUserIntent(input);
-        satisfactionDetector(input);
         communicationStyleTracker(input);
       }
 
@@ -518,95 +498,6 @@ describe('B. UserPromptSubmit Hooks E2E', () => {
 
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
-    });
-  });
-
-  describe('satisfaction-detector hook', () => {
-    test('detects positive satisfaction signal', async () => {
-      const { satisfactionDetector } = await import('../../prompt/satisfaction-detector.js');
-
-      const input = createUserPromptInput('Thanks! That works perfectly, exactly what I needed.');
-      const result = satisfactionDetector(input);
-
-      expect(result.continue).toBe(true);
-
-      const logs = readSatisfactionLog();
-      expect(logs.length).toBeGreaterThan(0);
-
-      const lastLog = logs[logs.length - 1];
-      expect(lastLog).toContain('positive');
-    });
-
-    test('detects negative satisfaction signal', async () => {
-      const { satisfactionDetector } = await import('../../prompt/satisfaction-detector.js');
-
-      const input = createUserPromptInput("That's wrong, it doesn't work. Try again please.");
-      const result = satisfactionDetector(input);
-
-      expect(result.continue).toBe(true);
-
-      const logs = readSatisfactionLog();
-      expect(logs.length).toBeGreaterThan(0);
-
-      const lastLog = logs[logs.length - 1];
-      expect(lastLog).toContain('negative');
-    });
-
-    test('does not log neutral prompts', async () => {
-      const { satisfactionDetector } = await import('../../prompt/satisfaction-detector.js');
-
-      const initialLogs = readSatisfactionLog();
-      const initialCount = initialLogs.length;
-
-      const input = createUserPromptInput('Can you add a new function to handle user authentication?');
-      satisfactionDetector(input);
-
-      const finalLogs = readSatisfactionLog();
-      expect(finalLogs.length).toBe(initialCount);
-    });
-
-    test('tracks satisfaction to session events', async () => {
-      const { satisfactionDetector } = await import('../../prompt/satisfaction-detector.js');
-
-      const sessionId = process.env.CLAUDE_SESSION_ID!;
-
-      const input = createUserPromptInput('Great job! This is excellent work.');
-      satisfactionDetector(input);
-
-      const events = readSessionEvents(sessionId);
-      const satisfactionEvent = events.find(e => e.event_type === 'preference_stated');
-      expect(satisfactionEvent).toBeDefined();
-    });
-
-    test('skips command prompts starting with /', async () => {
-      const { satisfactionDetector } = await import('../../prompt/satisfaction-detector.js');
-
-      const initialLogs = readSatisfactionLog();
-      const initialCount = initialLogs.length;
-
-      const input = createUserPromptInput('/ork:remember thanks this is great');
-      satisfactionDetector(input);
-
-      const finalLogs = readSatisfactionLog();
-      expect(finalLogs.length).toBe(initialCount);
-    });
-
-    test('sampling is disabled for tests (rate=1)', async () => {
-      const { satisfactionDetector } = await import('../../prompt/satisfaction-detector.js');
-
-      // With SATISFACTION_SAMPLE_RATE=1, every prompt should be analyzed
-      const inputs = [
-        'Thanks! Perfect solution.',
-        'Great, that works well.',
-        'Excellent work on this.',
-      ];
-
-      for (const text of inputs) {
-        satisfactionDetector(createUserPromptInput(text));
-      }
-
-      const logs = readSatisfactionLog();
-      expect(logs.length).toBe(3);
     });
   });
 
@@ -823,7 +714,6 @@ describe('D. Real Hook Execution Simulation', () => {
   describe('CC 2.1.7 format compliance', () => {
     test('all hooks return valid HookResult structure', async () => {
       const { captureUserIntent } = await import('../../prompt/capture-user-intent.js');
-      const { satisfactionDetector } = await import('../../prompt/satisfaction-detector.js');
       const { communicationStyleTracker } = await import('../../prompt/communication-style-tracker.js');
       const { sessionTracking } = await import('../../lifecycle/session-tracking.js');
       const { sessionEndTracking } = await import('../../stop/session-end-tracking.js');
@@ -835,7 +725,6 @@ describe('D. Real Hook Execution Simulation', () => {
 
       const hooks: Array<{ name: string; fn: (input: HookInput) => HookResult; input: HookInput }> = [
         { name: 'captureUserIntent', fn: captureUserIntent, input: promptInput },
-        { name: 'satisfactionDetector', fn: satisfactionDetector, input: promptInput },
         { name: 'communicationStyleTracker', fn: communicationStyleTracker, input: promptInput },
         { name: 'sessionTracking', fn: sessionTracking, input: startInput },
         { name: 'sessionEndTracking', fn: sessionEndTracking, input: stopInput },
@@ -892,20 +781,6 @@ describe('D. Real Hook Execution Simulation', () => {
       expect(content.length).toBeGreaterThan(0);
     });
 
-    test('satisfaction.log is created when positive/negative signals detected', async () => {
-      const { satisfactionDetector } = await import('../../prompt/satisfaction-detector.js');
-
-      const logPath = path.join(testDir, '.claude', 'feedback', 'satisfaction.log');
-
-      // Detect positive signal
-      satisfactionDetector(createUserPromptInput('Thanks, this is perfect!'));
-
-      expect(fs.existsSync(logPath)).toBe(true);
-
-      const content = fs.readFileSync(logPath, 'utf8');
-      expect(content).toContain('positive');
-    });
-
     test('open-problems.jsonl is created when problems detected', async () => {
       const { captureUserIntent } = await import('../../prompt/capture-user-intent.js');
 
@@ -921,20 +796,15 @@ describe('D. Real Hook Execution Simulation', () => {
     });
 
     test('sampling counter files are created', async () => {
-      const { satisfactionDetector } = await import('../../prompt/satisfaction-detector.js');
       const { communicationStyleTracker } = await import('../../prompt/communication-style-tracker.js');
 
-      satisfactionDetector(createUserPromptInput('Test satisfaction detection.'));
       communicationStyleTracker(createUserPromptInput('Test communication style detection.'));
 
-      const satisfactionCounter = path.join(testDir, '.claude', '.satisfaction-counter');
       const commStyleCounter = path.join(testDir, '.claude', '.comm-style-counter');
 
-      expect(fs.existsSync(satisfactionCounter)).toBe(true);
       expect(fs.existsSync(commStyleCounter)).toBe(true);
 
       // Counter values should be incremented
-      expect(parseInt(fs.readFileSync(satisfactionCounter, 'utf8').trim(), 10)).toBeGreaterThan(0);
       expect(parseInt(fs.readFileSync(commStyleCounter, 'utf8').trim(), 10)).toBeGreaterThan(0);
     });
   });
@@ -1031,7 +901,6 @@ describe('E. Cross-Hook Data Consistency', () => {
 
     test('parallel hook execution does not cause data loss', async () => {
       const { captureUserIntent } = await import('../../prompt/capture-user-intent.js');
-      const { satisfactionDetector } = await import('../../prompt/satisfaction-detector.js');
       const { communicationStyleTracker } = await import('../../prompt/communication-style-tracker.js');
 
       const sessionId = process.env.CLAUDE_SESSION_ID!;
@@ -1040,34 +909,17 @@ describe('E. Cross-Hook Data Consistency', () => {
       // Simulate parallel execution (in practice these run sequentially in Node.js)
       await Promise.all([
         Promise.resolve(captureUserIntent(input)),
-        Promise.resolve(satisfactionDetector(input)),
         Promise.resolve(communicationStyleTracker(input)),
       ]);
 
       const events = readSessionEvents(sessionId);
-      const satisfactionLogs = readSatisfactionLog();
 
-      // Both should have recorded data
+      // Should have recorded data
       expect(events.length).toBeGreaterThan(0);
-      expect(satisfactionLogs.length).toBeGreaterThan(0);
     });
   });
 
   describe('Sampling counters persist correctly', () => {
-    test('satisfaction counter increments across calls', async () => {
-      const { satisfactionDetector } = await import('../../prompt/satisfaction-detector.js');
-
-      const counterPath = path.join(testDir, '.claude', '.satisfaction-counter');
-
-      satisfactionDetector(createUserPromptInput('First prompt for counting.'));
-      const count1 = parseInt(fs.readFileSync(counterPath, 'utf8').trim(), 10);
-
-      satisfactionDetector(createUserPromptInput('Second prompt for counting.'));
-      const count2 = parseInt(fs.readFileSync(counterPath, 'utf8').trim(), 10);
-
-      expect(count2).toBe(count1 + 1);
-    });
-
     test('communication style counter increments across calls', async () => {
       const { communicationStyleTracker } = await import('../../prompt/communication-style-tracker.js');
 
@@ -1098,15 +950,6 @@ describe('F. Error Handling and Edge Cases', () => {
       const input = createUserPromptInput(longPrompt);
 
       const result = captureUserIntent(input);
-      expect(result.continue).toBe(true);
-    });
-
-    test('satisfactionDetector handles special characters', async () => {
-      const { satisfactionDetector } = await import('../../prompt/satisfaction-detector.js');
-
-      const input = createUserPromptInput('Thanks! <script>alert("xss")</script> works great!');
-      const result = satisfactionDetector(input);
-
       expect(result.continue).toBe(true);
     });
 
@@ -1187,18 +1030,16 @@ describe('F. Error Handling and Edge Cases', () => {
 describe('G. Performance Tests', () => {
   test('hooks execute within acceptable time bounds', async () => {
     const { captureUserIntent } = await import('../../prompt/capture-user-intent.js');
-    const { satisfactionDetector } = await import('../../prompt/satisfaction-detector.js');
     const { communicationStyleTracker } = await import('../../prompt/communication-style-tracker.js');
 
     const iterations = 50;
-    const maxTotalTime = 5000; // 5 seconds for 50 iterations of 3 hooks
+    const maxTotalTime = 5000; // 5 seconds for 50 iterations of 2 hooks
 
     const input = createUserPromptInput('I decided to use PostgreSQL because of its reliability. Thanks!');
     const start = Date.now();
 
     for (let i = 0; i < iterations; i++) {
       captureUserIntent(input);
-      satisfactionDetector(input);
       communicationStyleTracker(input);
     }
 
@@ -1324,11 +1165,9 @@ describe('I. Dispatcher Registry Verification', () => {
     // UserPromptSubmit hooks are registered directly in hooks.json, not via dispatcher
     // This test verifies they can be imported and executed
     const { captureUserIntent } = await import('../../prompt/capture-user-intent.js');
-    const { satisfactionDetector } = await import('../../prompt/satisfaction-detector.js');
     const { communicationStyleTracker } = await import('../../prompt/communication-style-tracker.js');
 
     expect(typeof captureUserIntent).toBe('function');
-    expect(typeof satisfactionDetector).toBe('function');
     expect(typeof communicationStyleTracker).toBe('function');
   });
 
@@ -1336,7 +1175,6 @@ describe('I. Dispatcher Registry Verification', () => {
     // Verify all Issue #245 hooks can be imported
     const hooks = [
       () => import('../../prompt/capture-user-intent.js'),
-      () => import('../../prompt/satisfaction-detector.js'),
       () => import('../../prompt/communication-style-tracker.js'),
       () => import('../../lifecycle/session-tracking.js'),
       () => import('../../stop/session-end-tracking.js'),
