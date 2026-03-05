@@ -25,8 +25,10 @@ import { analyticsConsentCheck } from './analytics-consent-check.js';
 import { prefillGuard } from './prefill-guard.js';
 import { mcpHealthCheck } from './mcp-health-check.js';
 
-// Rules materialization (token-reduction: write static content to .claude/rules/ at session start)
+// Rules materialization — write to .claude/rules/ BEFORE CC loads instructions
 import { materializeAntipatternRules } from '../prompt/antipattern-warning.js';
+import { materializeProfileRules } from '../prompt/profile-injector.js';
+import { materializeDecisionRules } from '../prompt/memory-context-loader.js';
 
 const HOOK_NAME = 'sync-session-dispatcher';
 
@@ -49,12 +51,23 @@ const SYNC_HOOKS: SyncHookConfig[] = [
  * Runs all sync hooks sequentially and merges their systemMessage outputs.
  */
 export function syncSessionDispatcher(input: HookInput): HookResult {
-  // Materialize static rules files at session start (#token-reduction)
+  // Materialize all rules files at SessionStart — BEFORE CC loads .claude/rules/
+  // Moved from UserPromptSubmit (profile-injector, memory-context-loader) to fix timing bug.
+  const projectDir = input.project_dir || getProjectDir();
   try {
-    const projectDir = input.project_dir || getProjectDir();
     materializeAntipatternRules(projectDir);
   } catch (err) {
-    logHook(HOOK_NAME, `Rules materialization failed: ${err}`, 'warn');
+    logHook(HOOK_NAME, `Antipattern rules materialization failed: ${err}`, 'warn');
+  }
+  try {
+    materializeProfileRules();
+  } catch (err) {
+    logHook(HOOK_NAME, `Profile rules materialization failed: ${err}`, 'warn');
+  }
+  try {
+    materializeDecisionRules(projectDir);
+  } catch (err) {
+    logHook(HOOK_NAME, `Decision rules materialization failed: ${err}`, 'warn');
   }
 
   const messages: string[] = [];

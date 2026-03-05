@@ -18,7 +18,6 @@ import type { HookInput, HookResult } from '../types.js';
 import {
   outputSilentSuccess,
   logHook,
-  getProjectDir,
   writeRulesFile,
 } from '../lib/common.js';
 import { existsSync, readFileSync } from 'node:fs';
@@ -164,48 +163,38 @@ function formatDecisionContext(decisions: StoredDecision[]): string {
  * Reads from .claude/memory/decisions.jsonl (produced by capture-user-intent
  * via memory-writer's storeDecision).
  */
-export function memoryContextLoader(input: HookInput): HookResult {
-  try {
-    const projectDir = input.project_dir || getProjectDir();
-    const decisionsPath = join(projectDir, '.claude', 'memory', 'decisions.jsonl');
-
-    // No decisions file - nothing to load
-    if (!existsSync(decisionsPath)) {
-      logHook(HOOK_NAME, 'No decisions.jsonl found, skipping');
-      return outputSilentSuccess();
-    }
-
-    // Read last N decisions
-    const lines = readLastLines(decisionsPath, MAX_DECISIONS);
-    if (lines.length === 0) {
-      logHook(HOOK_NAME, 'decisions.jsonl is empty, skipping');
-      return outputSilentSuccess();
-    }
-
-    // Parse decisions (skip malformed, deduplicate)
-    const decisions = parseDecisions(lines);
-    if (decisions.length === 0) {
-      logHook(HOOK_NAME, 'No valid decisions found in file');
-      return outputSilentSuccess();
-    }
-
-    // Filter noise and reverse (most recent first)
-    const filtered = filterNoiseDecisions(decisions);
-    if (filtered.length === 0) {
-      logHook(HOOK_NAME, 'All decisions filtered as noise');
-      return outputSilentSuccess();
-    }
-    filtered.reverse();
-
-    // Build context and materialize to project rules file (#token-reduction)
-    const context = formatDecisionContext(filtered);
-    const rulesDir = join(projectDir, '.claude', 'rules');
-    writeRulesFile(rulesDir, 'recent-decisions.md', context, HOOK_NAME);
-
-    logHook(HOOK_NAME, `Wrote ${filtered.length} decisions to rules file (${decisions.length - filtered.length} filtered/deduped)`);
-    return outputSilentSuccess();
-  } catch (err) {
-    logHook(HOOK_NAME, `Error loading memory context: ${err}`, 'warn');
-    return outputSilentSuccess();
+/**
+ * Materialize recent decisions to .claude/rules/recent-decisions.md
+ * Called from sync-session-dispatcher at SessionStart (correct lifecycle point).
+ */
+export function materializeDecisionRules(projectDir: string): void {
+  const decisionsPath = join(projectDir, '.claude', 'memory', 'decisions.jsonl');
+  if (!existsSync(decisionsPath)) {
+    logHook(HOOK_NAME, 'No decisions.jsonl found, skipping');
+    return;
   }
+
+  const lines = readLastLines(decisionsPath, MAX_DECISIONS);
+  if (lines.length === 0) return;
+
+  const decisions = parseDecisions(lines);
+  if (decisions.length === 0) return;
+
+  const filtered = filterNoiseDecisions(decisions);
+  if (filtered.length === 0) return;
+  filtered.reverse();
+
+  const context = formatDecisionContext(filtered);
+  const rulesDir = join(projectDir, '.claude', 'rules');
+  writeRulesFile(rulesDir, 'recent-decisions.md', context, HOOK_NAME);
+  logHook(HOOK_NAME, `Wrote ${filtered.length} decisions to rules file`);
+}
+
+/**
+ * @deprecated Use materializeDecisionRules() from SessionStart instead.
+ * Kept for backward compatibility — returns silent success (materialization moved to SessionStart).
+ */
+export function memoryContextLoader(_input: HookInput): HookResult {
+  logHook(HOOK_NAME, 'Skipping — materialization moved to SessionStart');
+  return outputSilentSuccess();
 }

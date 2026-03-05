@@ -45,6 +45,9 @@ import { worktreeWebhookReporter } from '../worktree/worktree-webhook-reporter.j
 // ConfigChange hooks (CC 2.1.50)
 import { settingsReload } from '../config-change/settings-reload.js';
 
+// InstructionsLoaded hooks (CC 2.1.69)
+import { instructionsLoadedDispatcher } from '../instructions-loaded/instructions-loaded-dispatcher.js';
+
 import type { HookFn } from '../types.js';
 
 /**
@@ -84,6 +87,9 @@ export const hooks: Record<string, HookFn> = {
 
   // ConfigChange hooks (CC 2.1.50)
   'config-change/settings-reload': settingsReload,
+
+  // InstructionsLoaded hooks (CC 2.1.69)
+  'instructions-loaded/instructions-loaded-dispatcher': instructionsLoadedDispatcher,
 };
 
 export function getHook(name: string): HookFn | undefined {

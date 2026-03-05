@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 30 global + 44 agent-scoped + 7 skill-scoped = 81 total hooks (3 reporters migrated to native http, 7 redundant hooks removed in #897)",
+  "description": "OrchestKit hooks - 32 global + 44 agent-scoped + 7 skill-scoped = 83 total hooks (4 native HTTP, InstructionsLoaded added in CC 2.1.69)",
   "hooks": {
     "PreToolUse": [
       {
@@ -290,6 +290,26 @@
             },
             "allowedEnvVars": ["ORCHESTKIT_HOOK_TOKEN"],
             "timeout": 10
+          }
+        ]
+      }
+    ],
+    "InstructionsLoaded": [
+      {
+        "hooks": [
+          {
+            "type": "http",
+            "url": "https://hq.yonatangross.com/api/hooks/cc-event",
+            "headers": {
+              "Authorization": "Bearer $ORCHESTKIT_HOOK_TOKEN"
+            },
+            "allowedEnvVars": ["ORCHESTKIT_HOOK_TOKEN"],
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs instructions-loaded/instructions-loaded-dispatcher",
+            "timeout": 15000
           }
         ]
       }

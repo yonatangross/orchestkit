@@ -5,19 +5,10 @@
  * Unified Prompt Dispatcher — UserPromptSubmit Hook
  * Issue #448: Consolidate UserPromptSubmit hooks to reduce context bloat
  *
- * Problem: 13 separate UserPromptSubmit hooks = 13 system-reminder tags per turn,
- * consuming 1500-3200 tokens/turn. Many are no-ops, duplicates, or silent analytics.
- *
- * Solution: Single dispatcher that runs all hooks internally (both every-turn and
- * once-per-session), collects their additionalContext outputs, merges into one
- * consolidated response. Reduces UserPromptSubmit hooks.json entries from 5 to 2.
- *
- * 7 hooks managed by this dispatcher:
+ * 5 hooks managed by this dispatcher:
  *
  * Once-per-session (file-based flag tracking):
  * - handoff-injector (producesContext: true)
- * - profile-injector (producesContext: true)
- * - memory-context-loader (producesContext: true)
  * - agentation-context (producesContext: true)
  *
  * Every-turn context producers:
@@ -25,11 +16,9 @@
  * - antipattern-warning (producesContext: true)
  * - skill-nudge-prompt (producesContext: true)
  *
- * Removed (no longer in hooks.json):
- * - capture-user-intent (removed in #897 — HQ gets prompt via HTTP hook)
- * - satisfaction-detector (removed in #897 — analytics, HQ handles)
- * - communication-style-tracker (removed in #897 — Opus 4.6 adapts natively)
- * - memory-context (removed in #897 — duplicate of memory-context-loader)
+ * Moved to SessionStart (sync-session-dispatcher, correct lifecycle):
+ * - profile-injector → materializeProfileRules()
+ * - memory-context-loader → materializeDecisionRules()
  *
  * CC 2.1.9 Compliant: Single additionalContext output
  */
@@ -56,8 +45,6 @@ import { skillNudgePrompt } from './skill-nudge.js';
 
 // Import hook implementations — once-per-session
 import { handoffInjector } from './handoff-injector.js';
-import { profileInjector } from './profile-injector.js';
-import { memoryContextLoader } from './memory-context-loader.js';
 import { agentationContext } from './agentation-context.js';
 
 // -----------------------------------------------------------------------------
@@ -89,17 +76,17 @@ interface PromptHookConfig {
 // -----------------------------------------------------------------------------
 
 /**
- * Registry of all 7 UserPromptSubmit hooks managed by this dispatcher.
+ * Registry of 5 UserPromptSubmit hooks managed by this dispatcher.
  *
  * Order matters for context producers — higher priority first.
  * runOnce hooks execute only on the first turn (file-based session flag).
+ *
+ * profile-injector + memory-context-loader moved to SessionStart (sync-session-dispatcher)
+ * where they materialize rules files BEFORE CC loads instructions.
  */
 const HOOKS: PromptHookConfig[] = [
   // --- Once-per-session hooks (run on first turn only, file-flag gated) ---
-  // Handoff injector runs FIRST — restores context from previous session's HANDOFF.md
   { name: 'handoff-injector', fn: handoffInjector, producesContext: true, runOnce: true },
-  { name: 'profile-injector', fn: profileInjector, producesContext: true, runOnce: true },
-  { name: 'memory-context-loader', fn: memoryContextLoader, producesContext: true, runOnce: true },
   { name: 'agentation-context', fn: agentationContext, producesContext: true, runOnce: true },
 
   // --- Context producers (output merged into single additionalContext) ---

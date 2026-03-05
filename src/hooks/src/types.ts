@@ -24,7 +24,8 @@ export type HookEvent =
   | 'TaskCompleted'
   | 'WorktreeCreate'
   | 'WorktreeRemove'
-  | 'ConfigChange';
+  | 'ConfigChange'
+  | 'InstructionsLoaded';
 
 /**
  * Hook input envelope from Claude Code (sent via stdin as JSON)

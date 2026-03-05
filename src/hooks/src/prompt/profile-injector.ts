@@ -292,38 +292,29 @@ function buildProfileContext(profile: UserProfile): string {
  * //   "once": true
  * // }
  */
-export function profileInjector(_input: HookInput): HookResult {
-  logHook('profile-injector', 'Loading user profile for session context');
-
-  try {
-    // Load user profile (handles migration from legacy paths automatically)
-    const profile = loadUserProfile();
-
-    // Skip injection if profile is empty (new user with no history)
-    if (!hasProfileData(profile)) {
-      logHook('profile-injector', 'Empty profile, skipping injection', 'debug');
-      return outputSilentSuccess();
-    }
-
-    // Build personalized context message
-    const context = buildProfileContext(profile);
-
-    // Materialize to ~/.claude/rules/ instead of injecting as additionalContext (#token-reduction)
-    const rulesDir = `${getHomeDir()}/.claude/rules`;
-    writeRulesFile(rulesDir, 'user-profile.md', context, 'profile-injector');
-
-    logHook(
-      'profile-injector',
-      `Wrote profile context for ${profile.display_name} to rules file (${context.length} chars)`,
-      'info'
-    );
-
-    return outputSilentSuccess();
-  } catch (error) {
-    // Never crash the hook - fail gracefully and log warning
-    logHook('profile-injector', `Error loading profile: ${error}`, 'warn');
-    return outputSilentSuccess();
+/**
+ * Materialize user profile to ~/.claude/rules/user-profile.md
+ * Called from sync-session-dispatcher at SessionStart (correct lifecycle point).
+ */
+export function materializeProfileRules(): void {
+  const profile = loadUserProfile();
+  if (!hasProfileData(profile)) {
+    logHook('profile-injector', 'Empty profile, skipping materialization', 'debug');
+    return;
   }
+  const context = buildProfileContext(profile);
+  const rulesDir = `${getHomeDir()}/.claude/rules`;
+  writeRulesFile(rulesDir, 'user-profile.md', context, 'profile-injector');
+  logHook('profile-injector', `Wrote profile context for ${profile.display_name} to rules file`);
+}
+
+/**
+ * @deprecated Use materializeProfileRules() from SessionStart instead.
+ * Kept for backward compatibility — returns silent success (materialization moved to SessionStart).
+ */
+export function profileInjector(_input: HookInput): HookResult {
+  logHook('profile-injector', 'Skipping — materialization moved to SessionStart');
+  return outputSilentSuccess();
 }
 
 // =============================================================================
