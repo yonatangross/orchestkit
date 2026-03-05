@@ -79,7 +79,7 @@
           },
           {
             "type": "prompt",
-            "prompt": "Analyze this tool output for solution indicators. Tool: $TOOL_INPUT. Did this tool use resolve a previously reported problem? Look for: tests now passing, errors gone, feature working, explicit fix confirmation. If a solution is detected, return {continue:true, hookSpecificOutput:{additionalContext:'[Solution Detected] The previous issue appears resolved. Consider confirming with the user.'}}. If no solution detected, return {continue:true, suppressOutput:true}.",
+            "prompt": "Analyze this tool output for solution indicators: $ARGUMENTS. Did this tool use resolve a previously reported problem? Look for: tests now passing, errors gone, feature working, explicit fix confirmation. If a solution is detected, respond {\"ok\": false, \"reason\": \"[Solution Detected] The previous issue appears resolved. Consider confirming with the user.\"}. If no solution detected, respond {\"ok\": true}.",
             "timeout": 15
           }
         ]
@@ -132,22 +132,22 @@
           },
           {
             "type": "prompt",
-            "prompt": "Check if this user prompt mentions any known antipatterns. Known antipatterns: offset pagination (use cursor-based instead), manual JWT validation (use established libraries), storing passwords in plaintext (use bcrypt/argon2), global mutable state (use dependency injection), synchronous file I/O (use async), N+1 queries (use eager loading), polling for real-time (use SSE/WebSocket). User prompt: '$USER_PROMPT'. If an antipattern is detected, return a hookSpecificOutput with additionalContext containing a brief warning about the better alternative. If no antipattern detected, return continue:true with suppressOutput:true.",
+            "prompt": "Check if this user prompt mentions any known antipatterns. Known antipatterns: offset pagination (use cursor-based instead), manual JWT validation (use established libraries), storing passwords in plaintext (use bcrypt/argon2), global mutable state (use dependency injection), synchronous file I/O (use async), N+1 queries (use eager loading), polling for real-time (use SSE/WebSocket). Context: $ARGUMENTS. If an antipattern is detected, respond {\"ok\": false, \"reason\": \"Warning: <antipattern> detected. Better alternative: <suggestion>\"}. If no antipattern, respond {\"ok\": true}.",
             "timeout": 15
           },
           {
             "type": "prompt",
-            "prompt": "Classify this user message's communication style. Message: '$USER_PROMPT'. Determine: (1) verbosity: terse (under 30 chars, no explanation), moderate (30-150 chars), or detailed (150+ chars, multiple sentences, includes rationale). (2) type: question (asking how/what/why), command (imperative verb like fix/add/create), or discussion (exploring ideas, trade-offs). (3) level: beginner (asking basics, step-by-step), intermediate (standard dev terms like API/component/migration), or expert (advanced concepts like CQRS/sharding/monads). Return {continue:true, suppressOutput:true}. This classification is for analytics only.",
+            "prompt": "Classify this user message communication style from: $ARGUMENTS. Determine verbosity (terse/moderate/detailed), type (question/command/discussion), and level (beginner/intermediate/expert). This is analytics-only, always allow. Respond {\"ok\": true}.",
             "timeout": 10
           },
           {
             "type": "prompt",
-            "prompt": "Extract user intents from this message: '$USER_PROMPT'. Classify each intent as: decision (user chose X, going with Y), preference (user prefers/likes/always uses X), problem (error/bug/broken/not working), question (how/what/why), or instruction (do X, fix Y). For decisions, note alternatives if mentioned (X over Y). For all intents, extract technology/tool entities mentioned and any rationale (because/since clauses). Return {continue:true, hookSpecificOutput:{additionalContext:'[Intent: <type>] <brief summary>'}} for significant intents, or {continue:true, suppressOutput:true} if the message is a simple instruction with no notable intent.",
+            "prompt": "Extract user intents from: $ARGUMENTS. Classify as decision/preference/problem/question/instruction. For decisions note alternatives (X over Y), extract entities and rationale. This is analytics-only, always allow. Respond {\"ok\": true}.",
             "timeout": 15
           },
           {
             "type": "prompt",
-            "prompt": "Analyze this user message for satisfaction signals. Message: '$USER_PROMPT'. Is the user expressing: (a) satisfaction/approval (e.g., 'great', 'perfect', 'that works'), (b) frustration/dissatisfaction (e.g., 'still broken', 'wrong again', sarcasm like 'great, now its even worse'), or (c) neutral/instruction. Consider tone and sarcasm. If satisfied, return {continue:true, suppressOutput:true}. If frustrated, return {continue:true, hookSpecificOutput:{additionalContext:'[User Satisfaction: frustrated] — Consider acknowledging the issue and adjusting approach.'}}. If neutral, return {continue:true, suppressOutput:true}.",
+            "prompt": "Analyze user satisfaction from: $ARGUMENTS. Is the user expressing satisfaction/approval, frustration/dissatisfaction (including sarcasm like 'great, now its even worse'), or neutral instruction? This is analytics-only, always allow. Respond {\"ok\": true}.",
             "timeout": 10
           }
         ]

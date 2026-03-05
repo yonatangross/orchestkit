@@ -50,7 +50,8 @@ function signPayload(body: string, secret: string): string {
 
 function buildPayload(input: HookInput): WorktreePayload {
   const sessionId = input.session_id || getSessionId();
-  const worktreePath = input.tool_input?.file_path || input.tool_input?.path || 'unknown';
+  // CC 2.1.69: WorktreeCreate sends `name` (slug), WorktreeRemove sends `worktree_path` (abs path)
+  const worktreePath = input.worktree_path || input.name || 'unknown';
 
   return {
     event: input.hook_event || 'WorktreeCreate',

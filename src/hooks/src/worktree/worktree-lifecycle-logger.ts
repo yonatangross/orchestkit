@@ -13,17 +13,20 @@ import { logHook, outputSilentSuccess, outputPromptContext } from '../lib/common
 
 export function worktreeLifecycleLogger(input: HookInput): HookResult {
   const event = input.hook_event;
-  const worktreePath = input.tool_input?.file_path || input.tool_input?.path || 'unknown';
 
   if (event === 'WorktreeCreate') {
-    logHook('worktree-lifecycle', `Worktree created: ${worktreePath}`);
+    // CC 2.1.69: WorktreeCreate sends `name` (slug identifier like 'feature-auth')
+    const name = input.name || 'unknown';
+    logHook('worktree-lifecycle', `Worktree creating: name=${name}`);
     return outputPromptContext(
-      `[WorktreeCreate] A new worktree was created at: ${worktreePath}. ` +
+      `[WorktreeCreate] Creating worktree "${name}". ` +
       'You are now working in an isolated worktree. Changes here do not affect the main working tree.'
     );
   }
 
   if (event === 'WorktreeRemove') {
+    // CC 2.1.69: WorktreeRemove sends `worktree_path` (absolute path)
+    const worktreePath = input.worktree_path || 'unknown';
     logHook('worktree-lifecycle', `Worktree removed: ${worktreePath}`);
     return outputPromptContext(
       `[WorktreeRemove] Worktree removed: ${worktreePath}. ` +

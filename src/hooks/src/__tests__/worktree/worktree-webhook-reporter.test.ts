@@ -47,7 +47,10 @@ function createWorktreeInput(event: string, overrides: Partial<HookInput> = {}):
     hook_event: event as import('../../types.js').HookEvent,
     tool_name: '',
     session_id: 'test-session-789',
-    tool_input: { file_path: '/home/user/myproject-worktrees/feat-branch' },
+    tool_input: {},
+    // CC 2.1.69: WorktreeCreate sends `name`, WorktreeRemove sends `worktree_path`
+    ...(event === 'WorktreeCreate' ? { name: 'feat-branch' } : {}),
+    ...(event === 'WorktreeRemove' ? { worktree_path: '/home/user/myproject-worktrees/feat-branch' } : {}),
     ...overrides,
   };
 }
@@ -195,15 +198,26 @@ describe('worktree/worktree-webhook-reporter', () => {
       expect(body.event).toBe('WorktreeCreate');
     });
 
-    it('payload includes worktree_path from tool_input.file_path', async () => {
+    it('payload includes name from WorktreeCreate input', async () => {
       const input = createWorktreeInput('WorktreeCreate', {
-        tool_input: { file_path: '/projects/myapp-feat-123' },
+        name: 'myapp-feat-123',
       });
       await worktreeWebhookReporter(input);
 
       const [, options] = mockFetch.mock.calls[0];
       const body = JSON.parse(options.body);
-      expect(body.data.worktree_path).toBe('/projects/myapp-feat-123');
+      expect(body.data.worktree_path).toBe('myapp-feat-123');
+    });
+
+    it('payload includes worktree_path from WorktreeRemove input', async () => {
+      const input = createWorktreeInput('WorktreeRemove', {
+        worktree_path: '/projects/myapp-feat-456',
+      });
+      await worktreeWebhookReporter(input);
+
+      const [, options] = mockFetch.mock.calls[0];
+      const body = JSON.parse(options.body);
+      expect(body.data.worktree_path).toBe('/projects/myapp-feat-456');
     });
 
     it('payload includes branch', async () => {
@@ -245,7 +259,7 @@ describe('worktree/worktree-webhook-reporter', () => {
 
     it('handles WorktreeRemove event', async () => {
       const input = createWorktreeInput('WorktreeRemove', {
-        tool_input: { path: '/projects/myapp-feat-456' },
+        worktree_path: '/projects/myapp-feat-456',
       });
       await worktreeWebhookReporter(input);
 

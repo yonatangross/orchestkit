@@ -121,6 +121,12 @@ export interface HookInput {
   // PostToolUseFailure specific fields (CC 2.1.69)
   /** Whether the tool failure was caused by a user interrupt */
   is_interrupt?: boolean;
+
+  // WorktreeCreate/WorktreeRemove specific fields (CC 2.1.69)
+  /** Worktree slug identifier, e.g. 'feature-auth' or 'bold-oak-a3f2' (WorktreeCreate) */
+  name?: string;
+  /** Absolute path to worktree being removed (WorktreeRemove) */
+  worktree_path?: string;
 }
 
 /**
