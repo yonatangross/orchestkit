@@ -383,3 +383,4 @@ Before submitting a skill change:
 - [ ] Team-spawning skills include `Ctrl+F` cleanup note
 - [ ] `npm run build` passes
 - [ ] `npm run test:skills` passes
+- [ ] Run `/reload-plugins` to activate changes without restarting (CC 2.1.69+)

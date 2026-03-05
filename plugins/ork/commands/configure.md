@@ -382,6 +382,8 @@ Enable Agentation UI annotation tool? [y/N]: y
 
 ## Step 11: Preview & Save
 
+> **Tip (CC 2.1.69+):** After saving configuration changes, run `/reload-plugins` to activate them without restarting your session.
+
 Save to: `~/.claude/plugins/orchestkit/config.json`
 
 ```json

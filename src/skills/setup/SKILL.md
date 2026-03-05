@@ -425,6 +425,10 @@ If **Yes**: write or merge into `~/.claude/keybindings.json`:
 
 If the file already exists, **merge** — read existing entries, add only keybindings whose `key` is not already bound, then write back. Never overwrite user-defined bindings.
 
+## Post-Setup
+
+> **Tip (CC 2.1.69+):** After setup completes, run `/reload-plugins` to activate all plugin changes without restarting your session.
+
 ## CLI Flags
 
 | Flag | Behavior |

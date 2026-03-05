@@ -53,6 +53,8 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 - When debugging coordination issues
 - After running `npm run build`
 
+> **Tip (CC 2.1.69+):** After fixing issues found by doctor, run `/reload-plugins` to activate plugin changes without restarting your session.
+
 ## Quick Start
 
 ```bash
