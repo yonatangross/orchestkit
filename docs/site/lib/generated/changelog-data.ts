@@ -22,6 +22,19 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "compareUrl": "",
     "sections": [
       {
+        "type": "added",
+        "items": [
+          "**feat(skills):** Enable CC native matching on 10 knowledge skills (#960)\n  - security-patterns, api-design, testing-patterns, database-patterns, python-backend, architecture-patterns, performance, quality-gates, react-server-components-framework, devops-deployment\n  - Changed `disable-model-invocation: true → false` so CC auto-selects these based on prompt/description matching\n  - Skills visible to CC: 17 → 27 (17 user-invocable + 10 model-invocable)",
+          "**docs(skills):** Document model-invocable pattern in CONTRIBUTING-SKILLS.md"
+        ]
+      },
+      {
+        "type": "removed",
+        "items": [
+          "**perf(hooks):** Delete ~1,550 lines dead routing code (#960)\n  - Deleted: intent-classifier.ts (669 lines), calibration-engine.ts, skill-nudge.ts, calibration-tracker.ts, calibration-persist.ts, + 4 test files\n  - These modules were superseded by CC native skill matching and never ran in production\n  - Prompt pipeline hooks: 5 → 4 (removed skill-nudge-prompt)\n  - Split-bundles test count: 170 → 167"
+        ]
+      },
+      {
         "type": "changed",
         "items": [
           "**perf(agents):** Demote 8 redundant agents to reduce routing overhead (#863)\n  - Removed: requirements-translator, documentation-specialist, prompt-engineer, ux-researcher, rapid-ui-designer, business-case-builder, metrics-architect, prioritization-analyst\n  - Agent count: 38 to 30, Hook count: 98 to 88 (10 agent-scoped hooks removed)\n  - Reduces routing complexity and eliminates ~98k tokens/invocation for unnecessary agent spawns",

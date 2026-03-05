@@ -55,10 +55,15 @@ The `description` is critical — Claude uses it to decide whether to load the s
 ```yaml
 context: fork            # Run in isolated subagent
 agent: backend-system-architect  # Which subagent type (requires context: fork)
-disable-model-invocation: true   # Manual-only (/slash-command)
+disable-model-invocation: true   # Manual-only (/slash-command) — DEFAULT
+disable-model-invocation: false  # CC auto-selects via description matching
 allowed-tools: Read, Grep, Glob  # Restrict tools when active
 model: opus              # Model override
 ```
+
+**Model invocation guide:**
+- `disable-model-invocation: true` (default) — Skill only loads via `/ork:name` slash command. Use for workflow skills that orchestrate subagents (implement, verify, review-pr).
+- `disable-model-invocation: false` — CC auto-selects the skill when the user's prompt matches the `description`. Use for knowledge/reference skills (api-design, security-patterns, testing-patterns) that should activate contextually without requiring a slash command.
 
 ### Structure Pattern
 

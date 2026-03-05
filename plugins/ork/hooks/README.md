@@ -424,7 +424,7 @@ Unified dispatcher runs cleanup hooks in parallel
 
 ### Stop Hooks (via async dispatcher)
 
-**Core Session (6):** auto-save-context, session-patterns, issue-work-summary, calibration-persist, session-profile-aggregator, session-end-tracking
+**Core Session (5):** auto-save-context, session-patterns, issue-work-summary, session-profile-aggregator, session-end-tracking
 
 **Memory Sync (2):** graph-queue-sync, workflow-preference-learner
 

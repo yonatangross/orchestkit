@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.1.3] - 2026-03-05
 
+### Added
+
+- **feat(skills):** Enable CC native matching on 10 knowledge skills (#960)
+  - security-patterns, api-design, testing-patterns, database-patterns, python-backend, architecture-patterns, performance, quality-gates, react-server-components-framework, devops-deployment
+  - Changed `disable-model-invocation: true → false` so CC auto-selects these based on prompt/description matching
+  - Skills visible to CC: 17 → 27 (17 user-invocable + 10 model-invocable)
+- **docs(skills):** Document model-invocable pattern in CONTRIBUTING-SKILLS.md
+
+### Removed
+
+- **perf(hooks):** Delete ~1,550 lines dead routing code (#960)
+  - Deleted: intent-classifier.ts (669 lines), calibration-engine.ts, skill-nudge.ts, calibration-tracker.ts, calibration-persist.ts, + 4 test files
+  - These modules were superseded by CC native skill matching and never ran in production
+  - Prompt pipeline hooks: 5 → 4 (removed skill-nudge-prompt)
+  - Split-bundles test count: 170 → 167
+
 ### Changed
 
 - **perf(agents):** Demote 8 redundant agents to reduce routing overhead (#863)
