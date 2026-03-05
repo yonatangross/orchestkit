@@ -35,7 +35,7 @@ This skill provides comprehensive guidance for implementing internationalization
 - Embedding React components in translated text
 - Supporting RTL languages (Hebrew, Arabic)
 
-**Bundled Resources:**
+**Bundled Resources** (load with `Read("${CLAUDE_SKILL_DIR}/<path>")`):
 - `references/formatting-utilities.md` - useFormatting hook API reference
 - `references/icu-messageformat.md` - ICU plural/select syntax
 - `references/trans-component.md` - Trans component for rich text
@@ -87,7 +87,7 @@ function PriceDisplay({ amount, items }) {
 }
 ```
 
-See `references/formatting-utilities.md` for the complete API.
+Load `Read("${CLAUDE_SKILL_DIR}/references/formatting-utilities.md")` for the complete API.
 
 ### 3. Date Formatting
 
@@ -114,7 +114,7 @@ Use ICU syntax in translation files for pluralization:
 t('patients', { count: 5 })  // → "5 patients"
 ```
 
-See `references/icu-messageformat.md` for full syntax.
+Load `Read("${CLAUDE_SKILL_DIR}/references/icu-messageformat.md")` for full syntax.
 
 ### 5. Trans Component (Rich Text)
 
@@ -130,7 +130,7 @@ import { Trans } from 'react-i18next';
 />
 ```
 
-See `references/trans-component.md` for patterns.
+Load `Read("${CLAUDE_SKILL_DIR}/references/trans-component.md")` for patterns.
 
 ---
 
@@ -195,7 +195,7 @@ dangerouslySetInnerHTML             // Use <Trans> component
 
 ## Checklist
 
-See `checklists/i18n-checklist.md` for complete implementation and review checklists.
+Load `Read("${CLAUDE_SKILL_DIR}/checklists/i18n-checklist.md")` for complete implementation and review checklists.
 
 ---
 

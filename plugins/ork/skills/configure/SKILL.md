@@ -333,7 +333,7 @@ Two channels now active:
 
 Save webhookUrl to config and remind about env var (same as above, skip generator step).
 
-See [HTTP Hooks reference](references/http-hooks.md) for architecture details.
+Load `Read("${CLAUDE_SKILL_DIR}/references/http-hooks.md")` for architecture details.
 
 ## Step 10: Optional Integrations
 
@@ -411,6 +411,9 @@ Save to: `~/.claude/plugins/orchestkit/config.json`
 - `ork:doctor`: Diagnose configuration issues
 ## References
 
-- [Presets](references/presets.md)
-- [MCP Configuration](references/mcp-config.md)
-- [HTTP Hooks](references/http-hooks.md) — CC 2.1.63+ observability hooks (Langfuse, Datadog, custom endpoints)
+Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
+| File | Content |
+|------|---------|
+| `references/presets.md` | Preset definitions |
+| `references/mcp-config.md` | MCP configuration |
+| `references/http-hooks.md` | CC 2.1.63+ observability hooks (Langfuse, Datadog, custom endpoints) |

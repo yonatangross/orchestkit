@@ -189,6 +189,10 @@ SendMessage(type: "broadcast",
 
 ## References
 
-- [Dependency Tracking](references/dependency-tracking.md)
-- [Status Workflow](references/status-workflow.md)
-- [Multi-Agent Coordination](references/multi-agent-coordination.md)
+Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
+
+| File | Content |
+|------|---------|
+| `dependency-tracking.md` | Dependency tracking patterns |
+| `status-workflow.md` | Status workflow details |
+| `multi-agent-coordination.md` | Multi-agent coordination |

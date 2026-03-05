@@ -125,10 +125,10 @@ Detection and alerting for silent failures in LLM agents.
 
 | Resource | Description |
 |----------|-------------|
-| [references/](references/) | Logging, metrics, tracing, Langfuse, drift analysis guides |
-| [checklists/](checklists/) | Implementation checklists for monitoring and Langfuse setup |
-| [examples/](examples/) | Real-world monitoring dashboard and trace examples |
-| [scripts/](scripts/) | Templates: Prometheus, OpenTelemetry, health checks, Langfuse |
+| `${CLAUDE_SKILL_DIR}/references/` | Logging, metrics, tracing, Langfuse, drift analysis guides |
+| `${CLAUDE_SKILL_DIR}/checklists/` | Implementation checklists for monitoring and Langfuse setup |
+| `${CLAUDE_SKILL_DIR}/examples/` | Real-world monitoring dashboard and trace examples |
+| `${CLAUDE_SKILL_DIR}/scripts/` | Templates: Prometheus, OpenTelemetry, health checks, Langfuse |
 
 ## Related Skills
 

@@ -249,9 +249,12 @@ export default async function Page() {
 
 ## References
 
-- [RUM Setup](references/rum-setup.md) - Real User Monitoring
-- [React Compiler Migration](references/react-compiler-migration.md) - Compiler adoption
-- [TanStack Virtual](references/tanstack-virtual-patterns.md) - Virtualization patterns
-- [vLLM Deployment](references/vllm-deployment.md) - Production vLLM config
-- [Quantization Guide](references/quantization-guide.md) - Method comparison
-- [CDN Setup](references/cdn-setup.md) - Image CDN configuration
+Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
+| File | Content |
+|------|---------|
+| `rum-setup.md` | Real User Monitoring |
+| `react-compiler-migration.md` | Compiler adoption |
+| `tanstack-virtual-patterns.md` | Virtualization patterns |
+| `vllm-deployment.md` | Production vLLM config |
+| `quantization-guide.md` | Method comparison |
+| `cdn-setup.md` | Image CDN configuration |

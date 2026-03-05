@@ -126,14 +126,17 @@ Each category has individual rule files in `rules/` loaded on-demand:
 
 | Category | Rule | Impact | Key Pattern |
 |----------|------|--------|-------------|
-| Atomic Commits | `rules/atomic-commit.md` | CRITICAL | One logical change per commit, atomicity test |
-| Commit Splitting | `rules/commit-splitting.md` | HIGH | `git add -p`, interactive staging, separation strategies |
-| Conventional Format | `rules/conventional-format.md` | HIGH | type(scope): description, breaking changes |
-| Issue Reference | `rules/issue-reference-required.md` | HIGH | Reference issue `#N` in commits on issue branches |
+| Atomic Commits | `${CLAUDE_SKILL_DIR}/rules/atomic-commit.md` | CRITICAL | One logical change per commit, atomicity test |
+| Commit Splitting | `${CLAUDE_SKILL_DIR}/rules/commit-splitting.md` | HIGH | `git add -p`, interactive staging, separation strategies |
+| Conventional Format | `${CLAUDE_SKILL_DIR}/rules/conventional-format.md` | HIGH | type(scope): description, breaking changes |
+| Issue Reference | `${CLAUDE_SKILL_DIR}/rules/issue-reference-required.md` | HIGH | Reference issue `#N` in commits on issue branches |
 
 **Total: 4 rules across 4 categories**
 
 ## References
 
-- [Conventional Commits](references/conventional-commits.md)
-- [Recovery](references/recovery.md)
+Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
+| File | Content |
+|------|---------|
+| `references/conventional-commits.md` | Conventional commits specification |
+| `references/recovery.md` | Recovery procedures |

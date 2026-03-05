@@ -204,26 +204,32 @@ Each category has individual rule files in `rules/` loaded on-demand:
 
 | Category | Rule | Impact | Key Pattern |
 |----------|------|--------|-------------|
-| Branch Protection | `rules/branch-protection.md` | CRITICAL | Protected branches, required PR workflow |
-| Merge Strategy | `rules/merge-strategy.md` | HIGH | Rebase-first, conflict resolution, force-with-lease |
-| History Hygiene | `rules/history-hygiene.md` | HIGH | Squash WIP, fixup commits, clean history |
-| Recovery | `rules/recovery-reflog.md` | CRITICAL | Reflog recovery for lost commits and branches |
-| Recovery | `rules/recovery-reset.md` | CRITICAL | Safe vs dangerous reset modes |
-| Recovery | `rules/recovery-stash.md` | HIGH | Stash management and dropped stash recovery |
-| Stacked PRs | `rules/stacked-pr-workflow.md` | HIGH | Stack planning, PR creation, dependency tracking |
-| Stacked PRs | `rules/stacked-pr-rebase.md` | HIGH | Rebase management, force-with-lease, retargeting |
-| Monorepo | `rules/monorepo-context.md` | MEDIUM | --add-dir, per-service CLAUDE.md, workspace detection |
+| Branch Protection | `${CLAUDE_SKILL_DIR}/rules/branch-protection.md` | CRITICAL | Protected branches, required PR workflow |
+| Merge Strategy | `${CLAUDE_SKILL_DIR}/rules/merge-strategy.md` | HIGH | Rebase-first, conflict resolution, force-with-lease |
+| History Hygiene | `${CLAUDE_SKILL_DIR}/rules/history-hygiene.md` | HIGH | Squash WIP, fixup commits, clean history |
+| Recovery | `${CLAUDE_SKILL_DIR}/rules/recovery-reflog.md` | CRITICAL | Reflog recovery for lost commits and branches |
+| Recovery | `${CLAUDE_SKILL_DIR}/rules/recovery-reset.md` | CRITICAL | Safe vs dangerous reset modes |
+| Recovery | `${CLAUDE_SKILL_DIR}/rules/recovery-stash.md` | HIGH | Stash management and dropped stash recovery |
+| Stacked PRs | `${CLAUDE_SKILL_DIR}/rules/stacked-pr-workflow.md` | HIGH | Stack planning, PR creation, dependency tracking |
+| Stacked PRs | `${CLAUDE_SKILL_DIR}/rules/stacked-pr-rebase.md` | HIGH | Rebase management, force-with-lease, retargeting |
+| Monorepo | `${CLAUDE_SKILL_DIR}/rules/monorepo-context.md` | MEDIUM | --add-dir, per-service CLAUDE.md, workspace detection |
 
 **Total: 9 rules across 6 categories**
 
 ## References
 
-- [GitHub Flow Guide](references/github-flow.md)
-- [Interactive Staging](references/interactive-staging.md)
-- [Reflog Recovery](references/reflog-recovery.md)
-- [Recovery Decision Tree](references/recovery-decision-tree.md)
+Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
+| File | Content |
+|------|---------|
+| `github-flow.md` | GitHub Flow branching guide |
+| `interactive-staging.md` | Interactive staging patterns |
+| `reflog-recovery.md` | Reflog recovery techniques |
+| `recovery-decision-tree.md` | Recovery scenario decision tree |
 
 ## Checklists
 
-- [Branch Checklist](checklists/branch-checklist.md) - Pre-flight checks before creating branches
-- [Pre-Commit Checklist](checklists/pre-commit-checklist.md) - Validation before committing
+Load on demand with `Read("${CLAUDE_SKILL_DIR}/checklists/<file>")`:
+| File | Content |
+|------|---------|
+| `branch-checklist.md` | Pre-flight checks before creating branches |
+| `pre-commit-checklist.md` | Validation before committing |
