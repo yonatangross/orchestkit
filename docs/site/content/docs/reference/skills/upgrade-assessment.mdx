@@ -56,7 +56,7 @@ Record the scope and target versions. If the user does not specify target versio
 
 **Tools:** `Bash`, `Read`, `Grep`, `Glob`
 
-Run precondition checks and environment detection. Load details: `Read("$\{CLAUDE_SKILL_DIR\}/rules/detection-checks.md")` for verification scripts and expected output format.
+Run precondition checks and environment detection. Load details: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/upgrade-assessment/rules/detection-checks.md")` for verification scripts and expected output format.
 
 ---
 
@@ -83,25 +83,25 @@ Research the target versions for new capabilities and breaking changes:
 
 **Tools:** `Grep`, `Glob`, `Read`
 
-Scan the codebase for patterns affected by the upgrade. Load details: `Read("$\{CLAUDE_SKILL_DIR\}/rules/codebase-scan-patterns.md")` for grep patterns and severity classification.
+Scan the codebase for patterns affected by the upgrade. Load details: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/upgrade-assessment/rules/codebase-scan-patterns.md")` for grep patterns and severity classification.
 
 ---
 
 ### Phase 4: Scoring
 
-Rate readiness 0-10 across 6 dimensions using the scoring rubric from `platform-upgrade-knowledge`. Load details: `Read("$\{CLAUDE_SKILL_DIR\}/references/scoring-rubric.md")` for per-dimension thresholds, weights, and score interpretation.
+Rate readiness 0-10 across 6 dimensions using the scoring rubric from `platform-upgrade-knowledge`. Load details: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/upgrade-assessment/references/scoring-rubric.md")` for per-dimension thresholds, weights, and score interpretation.
 
 ---
 
 ### Phase 5: Recommendations
 
-Generate prioritized action items based on Phase 3 findings and Phase 4 scores. Load details: `Read("$\{CLAUDE_SKILL_DIR\}/references/recommendation-format.md")` for priority assignment algorithm, effort estimation, and recommendation structure.
+Generate prioritized action items based on Phase 3 findings and Phase 4 scores. Load details: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/upgrade-assessment/references/recommendation-format.md")` for priority assignment algorithm, effort estimation, and recommendation structure.
 
 ---
 
 ## Output Format
 
-The assessment produces a structured JSON report. Load details: `Read("$\{CLAUDE_SKILL_DIR\}/references/output-format.md")` for the full schema and example.
+The assessment produces a structured JSON report. Load details: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/upgrade-assessment/references/output-format.md")` for the full schema and example.
 
 ---
 
@@ -131,7 +131,7 @@ Focus on plugin structure:
 
 ## Rules Quick Reference
 
-Load on demand with `Read("$\{CLAUDE_SKILL_DIR\}/rules/&lt;file&gt;")`:
+Load on demand with `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/upgrade-assessment/rules/&lt;file&gt;")`:
 
 | Rule | Impact | What It Covers |
 |------|--------|----------------|
@@ -150,7 +150,7 @@ Load on demand with `Read("$\{CLAUDE_SKILL_DIR\}/rules/&lt;file&gt;")`:
 
 ## References
 
-Load on demand with `Read("$\{CLAUDE_SKILL_DIR\}/references/&lt;file&gt;")`:
+Load on demand with `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/upgrade-assessment/references/&lt;file&gt;")`:
 
 | File | Content |
 |------|---------|
