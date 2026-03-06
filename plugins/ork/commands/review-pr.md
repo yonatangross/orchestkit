@@ -156,6 +156,22 @@ Relevant skills activated automatically:
 
 ## Phase 3: Parallel Code Review (6 Agents)
 
+### Project Context Injection
+
+Before spawning agents, load project-specific review context from memory:
+
+```python
+# Load project review context (conventions, known weaknesses, past findings)
+# This gives agents project-specific knowledge without re-discovering patterns
+PROJECT_CONTEXT = Read("${MEMORY_DIR}/review-pr-context.md")  # Falls back gracefully if missing
+```
+
+All agent prompts receive `${PROJECT_CONTEXT}` so they know project conventions, security patterns, and known weaknesses from prior reviews.
+
+### Structured Output
+
+All agents return findings as JSON (see structured output contract in agent prompt files). This enables automated deduplication, severity sorting, and memory graph persistence in Phase 5.
+
 ### Domain-Aware Agent Selection
 
 Only spawn agents relevant to the PR's changed domains:
@@ -182,6 +198,24 @@ Load validation commands: `Read("${CLAUDE_PLUGIN_ROOT}/skills/review-pr/referenc
 ## Phase 5: Synthesize Review
 
 Combine all agent feedback into a structured report. Load template: `Read("${CLAUDE_PLUGIN_ROOT}/skills/review-pr/references/review-report-template.md")`
+
+### Memory Persistence
+
+After synthesis, persist critical/high findings to the memory graph so future reviews build on past knowledge:
+
+```python
+# Persist review findings for cross-session learning
+mcp__memory__create_entities(entities=[{
+    "name": "PR-{number}-Review",
+    "entityType": "code-review",
+    "observations": ["<summary>", "<critical findings>", "<patterns discovered>"]
+}])
+# Update known-weaknesses entity if new patterns found
+mcp__memory__add_observations(observations=[{
+    "entityName": "review-known-weaknesses",
+    "contents": ["<new pattern from this review>"]
+}])
+```
 
 ## Phase 6: Submit Review
 
