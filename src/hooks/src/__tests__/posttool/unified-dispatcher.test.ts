@@ -18,7 +18,6 @@ vi.mock('../../posttool/config-change/security-auditor.js', () => ({ configChang
 vi.mock('../../posttool/task/team-member-start.js', () => ({ teamMemberStart: vi.fn(() => ({ continue: true, suppressOutput: true })) }));
 
 import { unifiedDispatcher, matchesTool, registeredHookNames, } from '../../posttool/unified-dispatcher.js';
-import { appendAnalytics } from '../../lib/analytics.js';
 import type { HookInput } from '../../types.js';
 
 function makeInput(overrides: Partial<HookInput> = {}): HookInput {

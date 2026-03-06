@@ -9,6 +9,7 @@ agent: product-strategist
 version: 1.0.0
 author: OrchestKit
 user-invocable: true
+argument-hint: "product name or feature"
 disable-model-invocation: false
 complexity: medium
 metadata:

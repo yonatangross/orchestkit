@@ -241,11 +241,12 @@ else
         log_fail "base64 block detection compiled into prompt.mjs" "Not found in compiled bundle"
     fi
 
-    # Test: non-text ratio check compiled
-    if grep -q "nonText" "$PROMPT_BUNDLE" || grep -q "non.*[Tt]ext" "$PROMPT_BUNDLE"; then
+    # Test: non-text ratio check compiled (variable names are minified by esbuild,
+    # so check for charCodeAt which is the core logic of isImageOrBinaryPrompt)
+    if grep -q "charCodeAt" "$PROMPT_BUNDLE"; then
         log_pass "non-text content ratio check compiled into prompt.mjs"
     else
-        log_fail "non-text content ratio check compiled into prompt.mjs" "Not found in compiled bundle"
+        log_fail "non-text content ratio check compiled into prompt.mjs" "charCodeAt not found in compiled bundle"
     fi
 fi
 

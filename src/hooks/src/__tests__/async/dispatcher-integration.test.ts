@@ -44,7 +44,7 @@ vi.mock('node:child_process', () => ({
 // Import REAL dispatchers (hooks are NOT mocked)
 // ---------------------------------------------------------------------------
 
-import { flush as flushBuffer, _resetForTesting } from '../../lib/analytics-buffer.js';
+import { _resetForTesting } from '../../lib/analytics-buffer.js';
 import { unifiedDispatcher } from '../../posttool/unified-dispatcher.js';
 import { unifiedSessionStartDispatcher } from '../../lifecycle/unified-dispatcher.js';
 import { unifiedStopDispatcher } from '../../stop/unified-dispatcher.js';

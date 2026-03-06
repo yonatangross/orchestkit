@@ -100,7 +100,7 @@ function writeAuditEntry(projectDir: string, entry: { session: string; action: s
   try {
     const logsDir = join(projectDir, '.claude', 'logs');
     mkdirSync(logsDir, { recursive: true });
-    const line = JSON.stringify({ ...entry, timestamp: new Date().toISOString() }) + '\n';
+    const line = `${JSON.stringify({ ...entry, timestamp: new Date().toISOString() })}\n`;
     appendFileSync(join(logsDir, 'config-changes.jsonl'), line);
   } catch {
     // Non-critical — never crash on audit write

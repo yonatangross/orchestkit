@@ -128,7 +128,7 @@ describe('lifecycle/session-handoff-generator', () => {
     });
 
     it('truncates long messages at sentence boundary', () => {
-      const longMsg = 'First sentence here. ' + 'A '.repeat(200);
+      const longMsg = `First sentence here. ${'A '.repeat(200)}`;
       const input = createInput({ last_assistant_message: longMsg });
       sessionHandoffGenerator(input);
 

@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-03-06T13:48:57.642Z",
-  "buildTimeMs": 241,
+  "generatedAt": "2026-03-06T14:35:27.118Z",
+  "buildTimeMs": 72,
   "mode": "split",
   "bundles": {
     "permission": {
@@ -24,7 +24,7 @@
       "exports": 98
     },
     "lifecycle": {
-      "size": 67856,
+      "size": 67858,
       "sizeKB": "66.27",
       "exports": 54
     },
@@ -65,8 +65,8 @@
       "unified": true
     }
   },
-  "totalSize": 504130,
-  "totalSizeKB": "492.31",
+  "totalSize": 504132,
+  "totalSizeKB": "492.32",
   "inputs": 58,
   "avgBundleSizeKB": "44.76"
 }
