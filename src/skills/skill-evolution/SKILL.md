@@ -61,13 +61,13 @@ COLLECT                    ANALYZE                    ACT
 └─────────────┘           └─────────────┘           └─────────────┘
 ```
 
-See [Pattern Detection Heuristics](rules/pattern-detection-heuristics.md) for tracked edit patterns and detection regexes. See [Confidence Scoring](rules/confidence-scoring.md) for suggestion thresholds.
+Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/skill-evolution/rules/pattern-detection-heuristics.md")` for tracked edit patterns and detection regexes. Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/skill-evolution/rules/confidence-scoring.md")` for suggestion thresholds.
 
 ---
 
 ## Subcommands
 
-Each subcommand is documented with implementation details, shell commands, and sample output in the [Evolution Commands Reference](references/evolution-commands.md).
+Each subcommand is documented with implementation details, shell commands, and sample output. Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/skill-evolution/references/evolution-commands.md")`
 
 ### Report (Default)
 
@@ -105,7 +105,7 @@ Each subcommand is documented with implementation details, shell commands, and s
 
 ## Auto-Evolution Safety
 
-See [Auto-Evolution Triggers](rules/auto-evolution-triggers.md) for full safety mechanisms, health monitoring, and trigger criteria.
+Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/skill-evolution/rules/auto-evolution-triggers.md")` for full safety mechanisms, health monitoring, and trigger criteria.
 
 Key safeguards: version snapshots before changes, auto-alert on >20% success rate drop, human review required, rejected suggestions never re-suggested.
 
@@ -113,15 +113,23 @@ Key safeguards: version snapshots before changes, auto-alert on >20% success rat
 
 ## References
 
-- [Evolution Commands Reference](references/evolution-commands.md) — Subcommand implementation, shell commands, and sample output
-- [Evolution Analysis Methodology](references/evolution-analysis.md)
-- [Version Management Guide](references/version-management.md)
+Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/skill-evolution/references/<file>")`:
+
+| File | Content |
+|------|---------|
+| `evolution-commands.md` | Subcommand implementation, shell commands, and sample output |
+| `evolution-analysis.md` | Evolution analysis methodology |
+| `version-management.md` | Version management guide |
 
 ## Rules
 
-- [Pattern Detection Heuristics](rules/pattern-detection-heuristics.md) — Edit pattern categories and regex detection
-- [Confidence Scoring](rules/confidence-scoring.md) — Suggestion thresholds and confidence criteria
-- [Auto-Evolution Triggers](rules/auto-evolution-triggers.md) — Safety mechanisms and trigger criteria
+Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/skill-evolution/rules/<file>")`:
+
+| File | Content |
+|------|---------|
+| `pattern-detection-heuristics.md` | Edit pattern categories and regex detection |
+| `confidence-scoring.md` | Suggestion thresholds and confidence criteria |
+| `auto-evolution-triggers.md` | Safety mechanisms and trigger criteria |
 
 ---
 

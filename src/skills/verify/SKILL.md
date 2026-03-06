@@ -13,9 +13,13 @@ allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, Task
 skills: [code-review-playbook, testing-patterns, memory, quality-gates]
 complexity: high
 hooks:
+  PreToolUse:
+    - matcher: "Bash"
+      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/test-framework-detector"
+      once: true
   PostToolUse:
     - matcher: "Bash"
-      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs skill/test-result-validator"
+      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/test-result-validator"
 metadata:
   category: workflow-automation
   mcp-server: memory
@@ -77,7 +81,7 @@ AskUserQuestion(
 
 ## STEP 0b: Select Orchestration Mode
 
-See [Orchestration Mode](references/orchestration-mode.md) for env var check logic, Agent Teams vs Task Tool comparison, and mode selection rules.
+Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/verify/references/orchestration-mode.md")` for env var check logic, Agent Teams vs Task Tool comparison, and mode selection rules.
 
 Choose **Agent Teams** (mesh -- verifiers share findings) or **Task tool** (star -- all report to lead) based on the orchestration mode reference.
 
@@ -105,7 +109,7 @@ for phase in phases:
 
 ## 8-Phase Workflow
 
-See [Verification Phases](references/verification-phases.md) for complete phase details, agent spawn definitions, Agent Teams alternative, and team teardown.
+Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/verify/references/verification-phases.md")` for complete phase details, agent spawn definitions, Agent Teams alternative, and team teardown.
 
 | Phase | Activities | Output |
 |-------|------------|--------|
@@ -135,19 +139,19 @@ Launch ALL agents in ONE message with `run_in_background=True` and `max_turns=25
 
 ## Grading & Scoring
 
-See [Scoring Rubric](rules/scoring-rubric.md) for composite formula, grade thresholds, verdict criteria, and blocking rules. See [Quality Model](references/quality-model.md) for dimension weights. See [Grading Rubric](references/grading-rubric.md) for per-agent scoring criteria.
+Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/verify/rules/scoring-rubric.md")` for composite formula, grade thresholds, verdict criteria, and blocking rules. Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/verify/references/quality-model.md")` for dimension weights. Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/verify/references/grading-rubric.md")` for per-agent scoring criteria.
 
 ---
 
 ## Evidence & Test Execution
 
-See [Evidence Collection](rules/evidence-collection.md) for git commands, test execution patterns, metrics tracking, and post-verification feedback.
+Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/verify/rules/evidence-collection.md")` for git commands, test execution patterns, metrics tracking, and post-verification feedback.
 
 ---
 
 ## Policy-as-Code
 
-See [Policy-as-Code](references/policy-as-code.md) for configuration.
+Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/verify/references/policy-as-code.md")` for configuration.
 
 Define verification rules in `.claude/policies/verification-policy.json`:
 
@@ -168,7 +172,7 @@ Define verification rules in `.claude/policies/verification-policy.json`:
 
 ## Report Format
 
-See [Report Template](references/report-template.md) for full format. Summary:
+Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/verify/references/report-template.md")` for full format. Summary:
 
 ```markdown
 # Feature Verification Report
@@ -183,19 +187,27 @@ See [Report Template](references/report-template.md) for full format. Summary:
 
 ## References
 
-- [Verification Phases](references/verification-phases.md) -- 8-phase workflow, agent spawn definitions, Agent Teams mode
-- [Quality Model](references/quality-model.md) -- Scoring dimensions and weights
-- [Grading Rubric](references/grading-rubric.md) -- Per-agent scoring criteria
-- [Report Template](references/report-template.md) -- Full report format
-- [Alternative Comparison](references/alternative-comparison.md) -- Approach comparison template
-- [Orchestration Mode](references/orchestration-mode.md) -- Agent Teams vs Task Tool
-- [Policy-as-Code](references/policy-as-code.md) -- Verification policy configuration
-- [Verification Checklist](references/verification-checklist.md) -- Pre-flight checklist
+Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/verify/references/<file>")`:
+
+| File | Content |
+|------|---------|
+| `verification-phases.md` | 8-phase workflow, agent spawn definitions, Agent Teams mode |
+| `quality-model.md` | Scoring dimensions and weights |
+| `grading-rubric.md` | Per-agent scoring criteria |
+| `report-template.md` | Full report format |
+| `alternative-comparison.md` | Approach comparison template |
+| `orchestration-mode.md` | Agent Teams vs Task Tool |
+| `policy-as-code.md` | Verification policy configuration |
+| `verification-checklist.md` | Pre-flight checklist |
 
 ## Rules
 
-- [Scoring Rubric](rules/scoring-rubric.md) -- Composite scoring, grades, verdicts
-- [Evidence Collection](rules/evidence-collection.md) -- Evidence gathering and test patterns
+Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/verify/rules/<file>")`:
+
+| File | Content |
+|------|---------|
+| `scoring-rubric.md` | Composite scoring, grades, verdicts |
+| `evidence-collection.md` | Evidence gathering and test patterns |
 
 ---
 

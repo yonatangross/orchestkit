@@ -299,6 +299,23 @@ export function outputDeny(reason: string): HookResult {
 }
 
 /**
+ * Output ask - escalate to user for confirmation (CC 2.1.69)
+ * For gray-zone commands that are dangerous but sometimes legitimate.
+ * CC shows a permission prompt instead of silently blocking.
+ */
+export function outputAsk(reason: string): HookResult {
+  return {
+    continue: true,
+    suppressOutput: true,
+    hookSpecificOutput: {
+      hookEventName: 'PreToolUse',
+      permissionDecision: 'ask',
+      permissionDecisionReason: reason,
+    },
+  };
+}
+
+/**
  * Output with updatedInput - modifies tool input before execution (CC 2.1.25)
  * Canonical way to modify tool inputs from PreToolUse hooks
  */
@@ -375,7 +392,7 @@ export function logHook(hookName: string, message: string, level: 'debug' | 'inf
  * Always logs (security audit trail) - not affected by log level
  */
 export function logPermissionFeedback(
-  decision: 'allow' | 'deny' | 'warn',
+  decision: 'allow' | 'deny' | 'ask' | 'warn',
   reason: string,
   input?: HookInput | Record<string, unknown>
 ): void {
@@ -508,7 +525,7 @@ export function writeRulesFile(
 ): boolean {
   const filePath = join(rulesDir, filename);
 
-  // Hash-guard: skip write if content unchanged
+  // Hash-guard: skip write if content unchanged (saves I/O on repeated SessionStart calls)
   if (existsSync(filePath)) {
     try {
       const existing = readFileSync(filePath, 'utf8');

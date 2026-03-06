@@ -51,9 +51,11 @@ LLM output evaluation, quality gates, and benchmarking.
 - `evaluation-metrics.md` -- LLM-as-judge, RAGAS metrics, hallucination detection, multi-dimension scoring
 - `evaluation-benchmarks.md` -- Quality gates, batch evaluation, pairwise comparison, regression detection
 
-## 7. Prompt Engineering (prompt) -- HIGH -- 2 rules
+## 7. Prompt Engineering (prompt) -- HIGH -- 4 rules
 
-Prompt design patterns, versioning, and automatic optimization.
+Prompt design patterns, versioning, automatic optimization, ReAct agents, and cost-efficiency.
 
 - `prompt-design.md` -- Chain-of-Thought, few-shot learning, zero-shot CoT, pattern selection guide
 - `prompt-testing.md` -- Langfuse versioning, DSPy optimization, A/B testing, self-consistency
+- `prompt-react-pattern.md` -- ReAct loop for tool-using agents, thought-action-observation structure, pattern selection
+- `prompt-optimization.md` -- Token reduction, accuracy improvement, model tiering, cost optimization, prompt specs

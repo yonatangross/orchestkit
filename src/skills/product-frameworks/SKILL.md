@@ -30,11 +30,11 @@ Comprehensive product management frameworks covering business analysis, market i
 | Category | Rules | Impact | When to Use |
 |----------|-------|--------|-------------|
 | [Business & Market](#business--market) | 4 | HIGH | ROI/NPV/IRR calculations, TCO analysis, TAM/SAM/SOM sizing, competitive landscape |
-| [Strategy & Prioritization](#strategy--prioritization) | 4 | HIGH | Value proposition canvas, go/no-go gates, RICE scoring, WSJF ranking |
-| [Metrics & OKRs](#metrics--okrs) | 4 | HIGH | OKR writing, KPI trees, leading/lagging indicators, instrumentation |
+| [Strategy & Prioritization](#strategy--prioritization) | 5 | HIGH | Value proposition canvas, go/no-go gates, RICE scoring, WSJF ranking, opportunity cost |
+| [Metrics & OKRs](#metrics--okrs) | 5 | HIGH | OKR writing, KPI trees, leading/lagging indicators, instrumentation, experiment design |
 | [Research & Requirements](#research--requirements) | 4 | HIGH | User personas, journey maps, interview guides, PRDs |
 
-**Total: 16 rules across 4 categories**
+**Total: 18 rules across 4 categories**
 
 ## Quick Start
 
@@ -71,6 +71,7 @@ Strategic decision frameworks and quantitative prioritization methods.
 - **`strategy-go-no-go`** -- Stage gate criteria, scoring template, decision thresholds
 - **`prioritize-rice`** -- RICE scoring with reach, impact, confidence, effort scales
 - **`prioritize-wsjf`** -- WSJF cost of delay, time criticality, MoSCoW method
+- **`prioritize-opportunity-cost`** -- Opportunity cost matrix, cost of delay analysis, trade-off flagging
 
 ## Metrics & OKRs
 
@@ -80,6 +81,7 @@ Goal-setting and measurement frameworks for metrics-driven teams.
 - **`metrics-kpi-trees`** -- Revenue and product health KPI trees, North Star metric
 - **`metrics-leading-lagging`** -- Leading vs lagging indicators, balanced dashboards
 - **`metrics-instrumentation`** -- Metric definition template, event naming, alerting
+- **`metrics-experiment-design`** -- Experiment design, guardrail metrics, staged rollout plans
 
 ## Research & Requirements
 
@@ -89,6 +91,10 @@ User research methods and requirements documentation patterns.
 - **`research-journey-mapping`** -- Customer journey maps, service blueprints, experience curves
 - **`research-user-interviews`** -- Interview guides, usability testing, surveys, card sorting
 - **`research-requirements-prd`** -- PRD template, user stories, acceptance criteria, INVEST
+
+## Output Templates
+
+Structured JSON output formats for consistent deliverables. Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/product-frameworks/references/output-templates.md")` for PRD, business case, metrics framework, prioritization report, and research report templates.
 
 ## Related Skills
 

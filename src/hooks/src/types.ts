@@ -1,6 +1,6 @@
 /**
  * TypeScript type definitions for Claude Code hooks
- * CC 2.1.9 compliant with additionalContext support
+ * CC 2.1.69 compliant (2.1.9 additionalContext, 2.1.25 updatedInput, 2.1.69 hook fields)
  */
 
 /**
@@ -24,7 +24,8 @@ export type HookEvent =
   | 'TaskCompleted'
   | 'WorktreeCreate'
   | 'WorktreeRemove'
-  | 'ConfigChange';
+  | 'ConfigChange'
+  | 'InstructionsLoaded';
 
 /**
  * Hook input envelope from Claude Code (sent via stdin as JSON)
@@ -52,6 +53,12 @@ export interface HookInput {
   prompt?: string;
   /** Project directory */
   project_dir?: string;
+  /** Resolved absolute path to the plugin root (injected by run-hook.mjs) */
+  plugin_root?: string;
+
+  // PreToolUse/PostToolUse correlation (CC 2.1.69)
+  /** Unique tool use ID for correlating PreToolUse with PostToolUse calls */
+  tool_use_id?: string;
 
   // SubagentStart/SubagentStop specific fields
   /** Agent type for subagent hooks */
@@ -70,6 +77,8 @@ export interface HookInput {
   duration_ms?: number;
   /** Tool result — string from most hooks, object from Skill PostToolUse */
   tool_result?: string | { is_error?: boolean; content?: string };
+  /** Path to subagent's transcript file (SubagentStop, CC 2.1.69) */
+  agent_transcript_path?: string;
 
   // TeammateIdle specific fields (CC 2.1.33)
   /** Teammate agent ID */
@@ -104,6 +113,20 @@ export interface HookInput {
   // Workspace/statusline fields (CC 2.1.47)
   /** Directories added via /add-dir, from statusline workspace section (CC 2.1.47+) */
   added_dirs?: string[];
+
+  // PermissionRequest specific fields (CC 2.1.69)
+  /** Suggested "always allow" options for the permission prompt */
+  permission_suggestions?: Array<{ type: string; tool: string }>;
+
+  // PostToolUseFailure specific fields (CC 2.1.69)
+  /** Whether the tool failure was caused by a user interrupt */
+  is_interrupt?: boolean;
+
+  // WorktreeCreate/WorktreeRemove specific fields (CC 2.1.69)
+  /** Worktree slug identifier, e.g. 'feature-auth' or 'bold-oak-a3f2' (WorktreeCreate) */
+  name?: string;
+  /** Absolute path to worktree being removed (WorktreeRemove) */
+  worktree_path?: string;
 }
 
 /**
@@ -134,14 +157,18 @@ export interface ToolInput {
 export interface HookSpecificOutput {
   /** Hook event name for context */
   hookEventName?: 'PreToolUse' | 'PostToolUse' | 'PostToolUseFailure' | 'PermissionRequest' | 'UserPromptSubmit';
-  /** Permission decision (PermissionRequest hooks) */
-  permissionDecision?: 'allow' | 'deny';
+  /** Permission decision (PermissionRequest/PreToolUse hooks, CC 2.1.69: added 'ask') */
+  permissionDecision?: 'allow' | 'deny' | 'ask';
   /** Reason for permission decision */
   permissionDecisionReason?: string;
   /** Additional context injected before tool execution (CC 2.1.9) */
   additionalContext?: string;
   /** Modified tool input (CC 2.1.25: canonical way to modify tool inputs) */
   updatedInput?: Record<string, unknown>;
+  /** Replace MCP tool output (PostToolUse, CC 2.1.69) */
+  updatedMCPToolOutput?: unknown;
+  /** Apply permission rules (PermissionRequest, CC 2.1.69) */
+  updatedPermissions?: Record<string, unknown>;
 }
 
 /**

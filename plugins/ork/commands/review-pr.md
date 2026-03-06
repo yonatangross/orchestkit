@@ -69,7 +69,7 @@ AskUserQuestion(
 
 ## STEP 0b: Select Orchestration Mode
 
-See [Orchestration Mode Selection](references/orchestration-mode-selection.md)
+Load orchestration guidance: `Read("${CLAUDE_PLUGIN_ROOT}/skills/review-pr/references/orchestration-mode-selection.md")`
 
 
 ## CRITICAL: Task Management is MANDATORY (CC 2.1.16)
@@ -156,6 +156,22 @@ Relevant skills activated automatically:
 
 ## Phase 3: Parallel Code Review (6 Agents)
 
+### Project Context Injection
+
+Before spawning agents, load project-specific review context from memory:
+
+```python
+# Load project review context (conventions, known weaknesses, past findings)
+# This gives agents project-specific knowledge without re-discovering patterns
+PROJECT_CONTEXT = Read("${MEMORY_DIR}/review-pr-context.md")  # Falls back gracefully if missing
+```
+
+All agent prompts receive `${PROJECT_CONTEXT}` so they know project conventions, security patterns, and known weaknesses from prior reviews.
+
+### Structured Output
+
+All agents return findings as JSON (see structured output contract in agent prompt files). This enables automated deduplication, severity sorting, and memory graph persistence in Phase 5.
+
 ### Domain-Aware Agent Selection
 
 Only spawn agents relevant to the PR's changed domains:
@@ -177,11 +193,29 @@ See [AI Code Review Agent](rules/ai-code-review-agent.md) for the optional 7th L
 
 ## Phase 4: Run Validation
 
-See [Validation Commands](references/validation-commands.md)
+Load validation commands: `Read("${CLAUDE_PLUGIN_ROOT}/skills/review-pr/references/validation-commands.md")`
 
 ## Phase 5: Synthesize Review
 
-Combine all agent feedback into a structured report. See [Review Report Template](references/review-report-template.md)
+Combine all agent feedback into a structured report. Load template: `Read("${CLAUDE_PLUGIN_ROOT}/skills/review-pr/references/review-report-template.md")`
+
+### Memory Persistence
+
+After synthesis, persist critical/high findings to the memory graph so future reviews build on past knowledge:
+
+```python
+# Persist review findings for cross-session learning
+mcp__memory__create_entities(entities=[{
+    "name": "PR-{number}-Review",
+    "entityType": "code-review",
+    "observations": ["<summary>", "<critical findings>", "<patterns discovered>"]
+}])
+# Update known-weaknesses entity if new patterns found
+mcp__memory__add_observations(observations=[{
+    "entityName": "review-known-weaknesses",
+    "contents": ["<new pattern from this review>"]
+}])
+```
 
 ## Phase 6: Submit Review
 
@@ -212,7 +246,7 @@ claude --from-pr https://github.com/org/repo/pull/123
 
 ### Task Metrics (CC 2.1.30)
 
-See [Task Metrics Template](references/task-metrics-template.md)
+Load metrics template: `Read("${CLAUDE_PLUGIN_ROOT}/skills/review-pr/references/task-metrics-template.md")`
 
 ## Conventional Comments
 
@@ -230,11 +264,20 @@ Use these prefixes for comments:
 
 ## References
 
-- [Review Template](references/review-template.md)
-- [Review Report Template](references/review-report-template.md)
-- [Orchestration Mode Selection](references/orchestration-mode-selection.md)
-- [Validation Commands](references/validation-commands.md)
-- [Task Metrics Template](references/task-metrics-template.md)
-- [Agent Prompts -- Task Tool](rules/agent-prompts-task-tool.md)
-- [Agent Prompts -- Agent Teams](rules/agent-prompts-agent-teams.md)
+Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/review-pr/references/<file>")`:
+
+| File | Content |
+|------|---------|
+| `review-template.md` | Review checklist template |
+| `review-report-template.md` | Structured review report |
+| `orchestration-mode-selection.md` | Task tool vs Agent Teams |
+| `validation-commands.md` | Build/test/lint commands |
+| `task-metrics-template.md` | Task metrics format |
+
+Rules: `Read("${CLAUDE_PLUGIN_ROOT}/skills/review-pr/rules/<file>")`:
+
+| File | Content |
+|------|---------|
+| `agent-prompts-task-tool.md` | Agent prompts for Task tool mode |
+| `agent-prompts-agent-teams.md` | Agent prompts for Agent Teams mode |
 - [AI Code Review Agent](rules/ai-code-review-agent.md)

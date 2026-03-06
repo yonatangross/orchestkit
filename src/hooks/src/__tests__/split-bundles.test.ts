@@ -109,7 +109,7 @@ describe('Split Bundle Entry Points', () => {
       const hookNames = Object.keys(lifecycleBundle.hooks);
       expect(hookNames.length).toBeGreaterThan(0);
       // Lifecycle bundle includes lifecycle/* plus related event hooks (teammate-idle, task-completed)
-      const validPrefixes = ['lifecycle/', 'teammate-idle/', 'task-completed/', 'worktree/', 'config-change/'];
+      const validPrefixes = ['lifecycle/', 'teammate-idle/', 'task-completed/', 'worktree/', 'config-change/', 'instructions-loaded/'];
       expect(hookNames.every(name => validPrefixes.some(p => name.startsWith(p)))).toBe(true);
     });
 
@@ -318,7 +318,13 @@ describe('Cross-Bundle Consistency', () => {
     // 167 -> 165: removed auto-remember-continuity (stop) + session-context-loader (lifecycle)
     // 165 -> 166: added posttool/dirty-file-tracker (#928)
     // 166 -> 169: #939 — added session-handoff-generator, session-handoff-injector, release-notebook-trigger
-    expect(totalHooks).toBe(169);
+    // 169 -> 170: CC 2.1.69 — added instructions-loaded/instructions-loaded-dispatcher
+    // 170 -> 167: #960 — removed calibration-tracker (posttool), calibration-persist (stop), skill-nudge (prompt)
+    // 167 -> 179: #969 — added 12 once:true context loaders (skill bundle)
+    // 179 -> 176: #973 — removed satisfaction-detector (prompt), solution-detector (posttool), session-patterns (stop)
+    // 176 -> 175: #980 — removed communicationStyleTracker from entries/prompt.ts (replaced by type:prompt hook)
+    // 175 -> 171: memory cleanup — removed 5 dead hooks (memoryContext, memoryContextLoader, captureUserIntent, graphMemoryInject, agentMemoryStore), added session-summary
+    expect(totalHooks).toBe(170);
   });
 });
 

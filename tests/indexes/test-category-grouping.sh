@@ -35,8 +35,8 @@ declare -A EXPECTED_CATEGORIES=(
     ["python-performance-engineer"]="backend"
     ["frontend-ui-developer"]="frontend"
     ["frontend-performance-engineer"]="frontend"
-    ["rapid-ui-designer"]="frontend"
     ["accessibility-specialist"]="frontend"
+    ["ui-feedback"]="frontend"
     ["security-auditor"]="security"
     ["security-layer-auditor"]="security"
     ["ai-safety-auditor"]="security"
@@ -47,19 +47,13 @@ declare -A EXPECTED_CATEGORIES=(
     ["release-engineer"]="devops"
     ["llm-integrator"]="llm"
     ["multimodal-specialist"]="llm"
-    ["prompt-engineer"]="llm"
     ["workflow-architect"]="llm"
     ["test-generator"]="testing"
     ["debug-investigator"]="testing"
     ["code-quality-reviewer"]="testing"
+    ["eval-runner"]="testing"
     ["product-strategist"]="product"
-    ["requirements-translator"]="product"
-    ["prioritization-analyst"]="product"
-    ["metrics-architect"]="product"
     ["market-intelligence"]="product"
-    ["business-case-builder"]="product"
-    ["ux-researcher"]="product"
-    ["documentation-specialist"]="docs"
     ["data-pipeline-engineer"]="data"
     ["git-operations-engineer"]="git"
     ["demo-producer"]="design"
@@ -76,7 +70,6 @@ declare -A CATEGORY_LABELS=(
     ["llm"]="LLM & AI"
     ["testing"]="Testing & Quality"
     ["product"]="Product & Strategy"
-    ["docs"]="Documentation"
     ["data"]="Data Pipelines"
     ["git"]="Git Operations"
     ["design"]="Design & Architecture"
@@ -210,7 +203,7 @@ echo ""
 echo "▶ Test 4: Categories appear in correct order"
 echo "──────────────────────────────────────"
 
-EXPECTED_ORDER=("Backend & Data" "Frontend & UI" "Security" "DevOps & Infrastructure" "LLM & AI" "Testing & Quality" "Product & Strategy" "Data Pipelines" "Git Operations" "Design & Architecture" "Research & Analysis" "Documentation")
+EXPECTED_ORDER=("Backend & Data" "Frontend & UI" "Security" "DevOps & Infrastructure" "LLM & AI" "Testing & Quality" "Product & Strategy" "Data Pipelines" "Git Operations" "Design & Architecture" "Research & Analysis")
 
 # Extract actual order from index
 ACTUAL_ORDER=()

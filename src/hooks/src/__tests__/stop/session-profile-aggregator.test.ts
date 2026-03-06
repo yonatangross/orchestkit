@@ -98,7 +98,7 @@ describe('Session Profile Aggregator Hook', () => {
     },
     skills_used: ['commit', 'verify', 'explore'],
     agents_spawned: ['backend-architect', 'test-generator'],
-    hooks_triggered: ['capture-user-intent'],
+    hooks_triggered: ['profile-injector'],
     decisions_made: 3,
     problems_reported: 1,
     solutions_found: 1,

@@ -29,10 +29,6 @@ vi.mock('../../lib/common.js', async () => {
   };
 });
 
-vi.mock('../../lifecycle/session-metrics-summary.js', () => ({
-  sessionMetricsSummary: vi.fn(() => ({ continue: true, suppressOutput: true })),
-}));
-
 vi.mock('../../lifecycle/session-cleanup.js', () => ({
   sessionCleanup: vi.fn(() => ({ continue: true, suppressOutput: true })),
 }));
@@ -42,7 +38,6 @@ vi.mock('../../lifecycle/pattern-sync-push.js', () => ({
 }));
 
 import { syncSessionEndDispatcher } from '../../lifecycle/sync-session-end-dispatcher.js';
-import { sessionMetricsSummary } from '../../lifecycle/session-metrics-summary.js';
 import { sessionCleanup } from '../../lifecycle/session-cleanup.js';
 import { patternSyncPush } from '../../lifecycle/pattern-sync-push.js';
 import { logHook } from '../../lib/common.js';
@@ -73,7 +68,7 @@ describe('lifecycle/sync-session-end-dispatcher', () => {
   beforeEach(() => {
     vi.resetAllMocks();
     // Re-establish default silent passing implementations after reset
-    vi.mocked(sessionMetricsSummary).mockReturnValue({ continue: true, suppressOutput: true });
+    // sync-session-end-dispatcher has 2 hooks: session-cleanup (runOnFail) + pattern-sync-push
     vi.mocked(sessionCleanup).mockReturnValue({ continue: true, suppressOutput: true });
     vi.mocked(patternSyncPush).mockReturnValue({ continue: true, suppressOutput: true });
   });
@@ -92,11 +87,11 @@ describe('lifecycle/sync-session-end-dispatcher', () => {
       expect(result.systemMessage).toBeUndefined();
     });
 
-    it('calls all three hooks', () => {
+    it('calls all two hooks', () => {
       const input = createSessionEndInput();
       syncSessionEndDispatcher(input);
 
-      expect(sessionMetricsSummary).toHaveBeenCalledWith(input);
+      // sync-session-end-dispatcher has 2 hooks (session-metrics-summary removed)
       expect(sessionCleanup).toHaveBeenCalledWith(input);
       expect(patternSyncPush).toHaveBeenCalledWith(input);
     });
@@ -107,26 +102,15 @@ describe('lifecycle/sync-session-end-dispatcher', () => {
   // -------------------------------------------------------------------------
 
   describe('run_on_fail: always-runs contract', () => {
-    it('session-metrics-summary runs even when it returns continue: false', () => {
-      // run_on_fail hooks can return continue: false but the dispatcher ignores it
-      vi.mocked(sessionMetricsSummary).mockReturnValue({ continue: false });
+    it('session-cleanup runs even when it returns continue: false (runOnFail)', () => {
+      // run_on_fail hooks can return continue: false but the dispatcher ignores it for skip logic
+      vi.mocked(sessionCleanup).mockReturnValue({ continue: false });
 
       const input = createSessionEndInput();
       syncSessionEndDispatcher(input);
 
-      // session-cleanup must still run (also runOnFail)
-      expect(sessionCleanup).toHaveBeenCalled();
-    });
-
-    it('session-cleanup runs even when session-metrics-summary throws', () => {
-      vi.mocked(sessionMetricsSummary).mockImplementation(() => {
-        throw new Error('metrics summary failed');
-      });
-
-      const input = createSessionEndInput();
-      syncSessionEndDispatcher(input);
-
-      expect(sessionCleanup).toHaveBeenCalled();
+      // pattern-sync-push must still run (runOnFail: false, but shouldContinue tracks non-runOnFail only)
+      expect(patternSyncPush).toHaveBeenCalled();
     });
 
     it('dispatcher does not throw when a run_on_fail hook throws', () => {
@@ -139,8 +123,8 @@ describe('lifecycle/sync-session-end-dispatcher', () => {
     });
 
     it('logs run_on_fail hook failures as warn', () => {
-      vi.mocked(sessionMetricsSummary).mockImplementation(() => {
-        throw new Error('metrics crash');
+      vi.mocked(sessionCleanup).mockImplementation(() => {
+        throw new Error('cleanup crash');
       });
 
       const input = createSessionEndInput();
@@ -148,7 +132,7 @@ describe('lifecycle/sync-session-end-dispatcher', () => {
 
       expect(logHook).toHaveBeenCalledWith(
         'sync-session-end-dispatcher',
-        expect.stringContaining('session-metrics-summary failed'),
+        expect.stringContaining('session-cleanup failed'),
         'warn',
       );
     });
@@ -167,8 +151,8 @@ describe('lifecycle/sync-session-end-dispatcher', () => {
     });
 
     it('runs pattern-sync-push even when runOnFail hooks return continue: false (ignored for skip)', () => {
-      // session-metrics-summary is runOnFail: true — its continue: false does NOT trigger skip logic
-      vi.mocked(sessionMetricsSummary).mockReturnValue({ continue: false });
+      // session-cleanup is runOnFail: true — its continue: false does NOT trigger skip logic
+      vi.mocked(sessionCleanup).mockReturnValue({ continue: false });
 
       const input = createSessionEndInput();
       syncSessionEndDispatcher(input);
@@ -194,8 +178,7 @@ describe('lifecycle/sync-session-end-dispatcher', () => {
       const input = createSessionEndInput();
       const result = syncSessionEndDispatcher(input);
 
-      // All three hooks still ran
-      expect(sessionMetricsSummary).toHaveBeenCalled();
+      // Both hooks still ran
       expect(sessionCleanup).toHaveBeenCalled();
       expect(patternSyncPush).toHaveBeenCalled();
       // Result is still ok
@@ -209,20 +192,6 @@ describe('lifecycle/sync-session-end-dispatcher', () => {
 
   describe('systemMessage merging', () => {
     it('returns single systemMessage from one hook', () => {
-      vi.mocked(sessionMetricsSummary).mockReturnValue(
-        makeSystemMessageResult('Session lasted 42 min.'),
-      );
-
-      const input = createSessionEndInput();
-      const result = syncSessionEndDispatcher(input);
-
-      expect(result.systemMessage).toBe('Session lasted 42 min.');
-    });
-
-    it('merges systemMessages from multiple hooks', () => {
-      vi.mocked(sessionMetricsSummary).mockReturnValue(
-        makeSystemMessageResult('Metrics: 42 tools used.'),
-      );
       vi.mocked(sessionCleanup).mockReturnValue(
         makeSystemMessageResult('Cleanup: temp files removed.'),
       );
@@ -230,12 +199,26 @@ describe('lifecycle/sync-session-end-dispatcher', () => {
       const input = createSessionEndInput();
       const result = syncSessionEndDispatcher(input);
 
-      expect(result.systemMessage).toContain('Metrics: 42 tools used.');
+      expect(result.systemMessage).toBe('Cleanup: temp files removed.');
+    });
+
+    it('merges systemMessages from multiple hooks', () => {
+      vi.mocked(sessionCleanup).mockReturnValue(
+        makeSystemMessageResult('Cleanup: temp files removed.'),
+      );
+      vi.mocked(patternSyncPush).mockReturnValue(
+        makeSystemMessageResult('Patterns: synced to remote.'),
+      );
+
+      const input = createSessionEndInput();
+      const result = syncSessionEndDispatcher(input);
+
       expect(result.systemMessage).toContain('Cleanup: temp files removed.');
+      expect(result.systemMessage).toContain('Patterns: synced to remote.');
     });
 
     it('result has continue: true when systemMessage is present', () => {
-      vi.mocked(sessionMetricsSummary).mockReturnValue(
+      vi.mocked(sessionCleanup).mockReturnValue(
         makeSystemMessageResult('Something happened.'),
       );
 
@@ -264,7 +247,7 @@ describe('lifecycle/sync-session-end-dispatcher', () => {
     });
 
     it('logs merged message count when messages are collected', () => {
-      vi.mocked(sessionMetricsSummary).mockReturnValue(makeSystemMessageResult('A'));
+      vi.mocked(sessionCleanup).mockReturnValue(makeSystemMessageResult('A'));
       vi.mocked(patternSyncPush).mockReturnValue(makeSystemMessageResult('B'));
 
       const input = createSessionEndInput();

@@ -114,9 +114,9 @@ mcp__memory__search_nodes(query="architecture")
 
 ### Phase 3: Parallel Deep Exploration (4 Agents)
 
-See [Exploration Agents](rules/exploration-agents.md) for Task tool mode prompts.
+Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/explore/rules/exploration-agents.md")` for Task tool mode prompts.
 
-See [Agent Teams Mode](rules/agent-teams-mode.md) for Agent Teams alternative.
+Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/explore/rules/agent-teams-mode.md")` for Agent Teams alternative.
 
 ### Phase 4: AI System Exploration (If Applicable)
 
@@ -124,19 +124,19 @@ For AI/ML topics, add exploration of: LangGraph workflows, prompt templates, RAG
 
 ### Phase 5: Code Health Assessment
 
-See [Code Health Assessment](rules/code-health-assessment.md) for agent prompt. See [Code Health Rubric](references/code-health-rubric.md) for scoring criteria.
+Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/explore/rules/code-health-assessment.md")` for agent prompt. Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/explore/references/code-health-rubric.md")` for scoring criteria.
 
 ### Phase 6: Dependency Hotspot Map
 
-See [Dependency Hotspot Analysis](rules/dependency-hotspot-analysis.md) for agent prompt. See [Dependency Analysis](references/dependency-analysis.md) for metrics.
+Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/explore/rules/dependency-hotspot-analysis.md")` for agent prompt. Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/explore/references/dependency-analysis.md")` for metrics.
 
 ### Phase 7: Product Perspective
 
-See [Product Perspective](rules/product-perspective.md) for agent prompt. See [Findability Patterns](references/findability-patterns.md) for best practices.
+Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/explore/rules/product-perspective.md")` for agent prompt. Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/explore/references/findability-patterns.md")` for best practices.
 
 ### Phase 8: Generate Report
 
-See [Exploration Report Template](references/exploration-report-template.md).
+Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/explore/references/exploration-report-template.md")`.
 
 ## Common Exploration Queries
 

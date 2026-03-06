@@ -3,9 +3,10 @@
 
 /**
  * Unified SubagentStart Dispatcher
- * Consolidates 6 SubagentStart hooks into a single process spawn.
+ * Consolidates 3 SubagentStart hooks into a single process spawn.
  *
- * Issue #685: Reduces 6 separate process spawns to 1 for SubagentStart.
+ * Issue #685: Reduces separate process spawns to 1 for SubagentStart.
+ * Issue #897: Removed 3 analytics hooks (now handled by HQ).
  *
  * Hooks consolidated here (execution order):
  * Phase 1 — Blocking:
@@ -13,9 +14,6 @@
  * Phase 2 — Validation + tracking:
  *   - subagent-validator (validates agent type, logs spawn, permission profile)
  * Phase 3 — Context injection (budget-capped):
- *   - subagent-context-stager (CLAUDE.md rules, pending tasks, decisions)
- *   - graph-memory-inject (knowledge graph context)
- *   - model-cost-advisor (cost optimization warnings)
  *   - issue-context-injector (GitHub issue context from branch name)
  *
  * CC 2.1.49 Compliant: Single consolidated output with 800-token budget
@@ -32,9 +30,10 @@ import {
 // Import hook implementations
 import { contextGate } from './context-gate.js';
 import { subagentValidator } from './subagent-validator.js';
-import { subagentContextStager } from './subagent-context-stager.js';
-import { graphMemoryInject } from './graph-memory-inject.js';
-import { modelCostAdvisor } from './model-cost-advisor.js';
+// Analytics hooks removed — now handled by HQ (#897):
+// - subagent-context-stager (local staging file rarely read)
+// - graph-memory-inject (better handled by prompt hooks)
+// - model-cost-advisor (informational only, HQ Langfuse tracks costs)
 import { issueContextInjector } from './issue-context-injector.js';
 
 // -----------------------------------------------------------------------------
@@ -62,9 +61,6 @@ interface ContextHookConfig {
 // -----------------------------------------------------------------------------
 
 const CONTEXT_HOOKS: ContextHookConfig[] = [
-  { name: 'subagent-context-stager', fn: subagentContextStager },
-  { name: 'graph-memory-inject', fn: graphMemoryInject },
-  { name: 'model-cost-advisor', fn: modelCostAdvisor },
   { name: 'issue-context-injector', fn: issueContextInjector },
 ];
 
@@ -74,6 +70,9 @@ export const registeredHookNames = () => [
   'subagent-validator',
   ...CONTEXT_HOOKS.map(h => h.name),
 ];
+
+// Note: subagent-context-stager, graph-memory-inject, model-cost-advisor
+// removed from CONTEXT_HOOKS in #897 — analytics now handled by HQ
 
 // extractContext imported from ../lib/common.js (Issue #682)
 

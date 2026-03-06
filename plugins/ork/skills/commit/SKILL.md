@@ -16,10 +16,13 @@ skills: []
 complexity: low
 hooks:
   PreToolUse:
+    - matcher: "Bash"
+      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/commit-convention-loader"
+      once: true
     - matcher: "Bash(git commit*)"
-      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs pretool/bash/git-protector"
+      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/git-protector"
     - matcher: "Bash(git *)"
-      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs skill/commit-operation-validator"
+      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/commit-operation-validator"
 metadata:
   category: workflow-automation
 ---
@@ -143,14 +146,17 @@ Each category has individual rule files in `rules/` loaded on-demand:
 
 | Category | Rule | Impact | Key Pattern |
 |----------|------|--------|-------------|
-| Atomic Commits | `rules/atomic-commit.md` | CRITICAL | One logical change per commit, atomicity test |
-| Commit Splitting | `rules/commit-splitting.md` | HIGH | `git add -p`, interactive staging, separation strategies |
-| Conventional Format | `rules/conventional-format.md` | HIGH | type(scope): description, breaking changes |
-| Issue Reference | `rules/issue-reference-required.md` | HIGH | Reference issue `#N` in commits on issue branches |
+| Atomic Commits | `${CLAUDE_PLUGIN_ROOT}/skills/commit/rules/atomic-commit.md` | CRITICAL | One logical change per commit, atomicity test |
+| Commit Splitting | `${CLAUDE_PLUGIN_ROOT}/skills/commit/rules/commit-splitting.md` | HIGH | `git add -p`, interactive staging, separation strategies |
+| Conventional Format | `${CLAUDE_PLUGIN_ROOT}/skills/commit/rules/conventional-format.md` | HIGH | type(scope): description, breaking changes |
+| Issue Reference | `${CLAUDE_PLUGIN_ROOT}/skills/commit/rules/issue-reference-required.md` | HIGH | Reference issue `#N` in commits on issue branches |
 
 **Total: 4 rules across 4 categories**
 
 ## References
 
-- [Conventional Commits](references/conventional-commits.md)
-- [Recovery](references/recovery.md)
+Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/commit/references/<file>")`:
+| File | Content |
+|------|---------|
+| `references/conventional-commits.md` | Conventional commits specification |
+| `references/recovery.md` | Recovery procedures |

@@ -335,8 +335,12 @@ export default defineConfig({
 
 ## References
 
-- [Environment API](references/environment-api.md) - Multi-environment builds
-- [Plugin Development](references/plugin-development.md) - Plugin hooks
-- [SSR Configuration](references/ssr-configuration.md) - SSR setup
-- [Library Mode](references/library-mode.md) - Building packages
-- [Chunk Optimization](references/chunk-optimization.md) - Build optimization
+Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/vite-advanced/references/<file>")`:
+
+| File | Content |
+|------|---------|
+| `environment-api.md` | Multi-environment builds |
+| `plugin-development.md` | Plugin hooks |
+| `ssr-configuration.md` | SSR setup |
+| `library-mode.md` | Building packages |
+| `chunk-optimization.md` | Build optimization |

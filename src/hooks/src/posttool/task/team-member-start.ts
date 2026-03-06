@@ -16,9 +16,8 @@ import { outputSilentSuccess, logHook } from '../../lib/common.js';
 import { appendEventLog } from '../../lib/event-logger.js';
 import { appendAnalytics, hashProject } from '../../lib/analytics.js';
 
-// Fix #904: trackCalibrationIfTaskCompleted workaround removed.
-// Root cause fixed: TaskUpdate now included in PostToolUse hooks.json matcher,
-// so calibration-tracker fires directly for TaskUpdate events.
+// Fix #904: TaskUpdate included in PostToolUse hooks.json matcher.
+// calibration-tracker removed in #960 (replaced by CC native skill matching).
 
 export function teamMemberStart(input: HookInput): HookResult {
   const toolInput = input.tool_input || {};

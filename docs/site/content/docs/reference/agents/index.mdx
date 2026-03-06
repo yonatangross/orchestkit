@@ -1,18 +1,17 @@
 ---
 title: Agents Reference
-description: "Complete reference for all 38 OrchestKit agents."
+description: "Complete reference for all 30 OrchestKit agents."
 ---
 
 # Agents Reference
 
-OrchestKit includes **38 specialized agents** — AI personas with curated tools, skills, and behavioral directives.
+OrchestKit includes **30 specialized agents** — AI personas with curated tools, skills, and behavioral directives.
 
 | Agent | Model | Description |
 |-------|-------|-------------|
 | [Accessibility Specialist](/docs/reference/agents/accessibility-specialist) | sonnet | Accessibility expert: WCAG 2.2 audits, screen reader compat, keyboard navigation, ARIA patterns, automated a11y testing |
 | [Ai Safety Auditor](/docs/reference/agents/ai-safety-auditor) | opus | AI safety and security auditor for LLM systems. Red teaming, prompt injection, jailbreak testing, guardrail validation, and OWASP LLM compliance |
 | [Backend System Architect](/docs/reference/agents/backend-system-architect) | sonnet | Backend architect: REST/GraphQL APIs, database schemas, microservice boundaries, distributed systems, clean architecture |
-| [Business Case Builder](/docs/reference/agents/business-case-builder) | haiku | Business analyst who builds ROI projections, cost-benefit analyses, risk assessments, and investment justifications to support product decisions with financial rationale |
 | [Ci Cd Engineer](/docs/reference/agents/ci-cd-engineer) | sonnet | CI/CD specialist: GitHub Actions, GitLab CI pipelines, deployment automation, build optimization, caching, security scanning |
 | [Code Quality Reviewer](/docs/reference/agents/code-quality-reviewer) | sonnet | Code quality reviewer: bug detection, security vulnerabilities, performance issues, linting, type checking, test coverage |
 | [Data Pipeline Engineer](/docs/reference/agents/data-pipeline-engineer) | haiku | Data pipeline specialist: embeddings, chunking strategies, vector indexes, data transformation for AI consumption |
@@ -20,7 +19,6 @@ OrchestKit includes **38 specialized agents** — AI personas with curated tools
 | [Debug Investigator](/docs/reference/agents/debug-investigator) | sonnet | Debug specialist: systematic root cause analysis, execution path tracing, log and stack trace analysis |
 | [Demo Producer](/docs/reference/agents/demo-producer) | sonnet | Universal demo video producer that creates polished marketing videos for any content - skills, agents, plugins, tutorials, CLI tools, or code walkthroughs. Uses VHS terminal recording and Remotion composition |
 | [Deployment Manager](/docs/reference/agents/deployment-manager) | haiku | Deployment specialist: production releases, rollback procedures, feature flags, blue-green/zero-downtime deployments |
-| [Documentation Specialist](/docs/reference/agents/documentation-specialist) | haiku | Technical writing and documentation expert. API docs, READMEs, technical guides, ADRs, changelogs, and OpenAPI specs |
 | [Eval Runner](/docs/reference/agents/eval-runner) | haiku | LLM evaluation specialist who runs structured eval datasets, computes quality metrics using DeepEval/RAGAS, tracks regression across model versions, and reports to Langfuse for tracing and scoring |
 | [Event Driven Architect](/docs/reference/agents/event-driven-architect) | opus | Event-driven architecture specialist who designs event sourcing systems, message queue topologies, and CQRS patterns. Focuses on Kafka, RabbitMQ, Redis Streams, FastStream, outbox pattern, and distributed transaction patterns |
 | [Frontend Performance Engineer](/docs/reference/agents/frontend-performance-engineer) | sonnet | Performance engineer who optimizes Core Web Vitals, analyzes bundles, profiles render performance, and sets up RUM |
@@ -29,21 +27,15 @@ OrchestKit includes **38 specialized agents** — AI personas with curated tools
 | [Infrastructure Architect](/docs/reference/agents/infrastructure-architect) | sonnet | Infrastructure as Code specialist who designs Terraform modules, Kubernetes manifests, and cloud architecture. Focuses on AWS/GCP/Azure patterns, networking, security groups, and cost optimization |
 | [Llm Integrator](/docs/reference/agents/llm-integrator) | sonnet | LLM integration: OpenAI/Anthropic/Ollama APIs, prompt templates, function calling, streaming, token cost optimization |
 | [Market Intelligence](/docs/reference/agents/market-intelligence) | haiku | Market research: competitive landscapes, market trends, TAM/SAM/SOM sizing, threat/opportunity analysis |
-| [Metrics Architect](/docs/reference/agents/metrics-architect) | haiku | Metrics specialist who designs OKRs, KPIs, success criteria, and instrumentation plans to measure product outcomes and validate hypotheses |
 | [Monitoring Engineer](/docs/reference/agents/monitoring-engineer) | haiku | Observability and monitoring specialist. Prometheus metrics, Grafana dashboards, alerting rules, distributed tracing, log aggregation, and SLOs/SLIs |
 | [Multimodal Specialist](/docs/reference/agents/multimodal-specialist) | sonnet | Vision, audio, video generation, and multimodal processing specialist who integrates Claude Opus 4.6, GPT-5, Gemini 2.5/3, Grok 4, Kling 3.0, Sora 2, Veo 3.1, and Runway Gen-4.5 for image analysis, transcription, AI video generation, multimodal RAG |
-| [Prioritization Analyst](/docs/reference/agents/prioritization-analyst) | haiku | Prioritization specialist who scores features using RICE/ICE/WSJF frameworks, analyzes opportunity costs, manages backlog ranking, and recommends what to build next based on value and effort |
 | [Product Strategist](/docs/reference/agents/product-strategist) | sonnet | Product strategist: value proposition validation, feature-business alignment, build/buy/partner decisions, go/no-go |
-| [Prompt Engineer](/docs/reference/agents/prompt-engineer) | sonnet | Expert prompt designer and optimizer. Chain-of-thought, few-shot learning, structured outputs, prompt versioning, A/B testing, and cost optimization |
 | [Python Performance Engineer](/docs/reference/agents/python-performance-engineer) | sonnet | Python performance: profiling, memory optimization, async performance, database query optimization, caching, load testing |
-| [Rapid Ui Designer](/docs/reference/agents/rapid-ui-designer) | haiku | UI/UX designer: rapid Tailwind CSS prototyping, design systems, component specs, responsive layouts, accessible mockups |
 | [Release Engineer](/docs/reference/agents/release-engineer) | haiku | Release and versioning specialist who manages GitHub releases, milestones, changelogs, and semantic versioning. Handles release automation and project tracking |
-| [Requirements Translator](/docs/reference/agents/requirements-translator) | sonnet | Requirements specialist who transforms ambiguous ideas into clear PRDs, user stories with acceptance criteria, and scoped specifications ready for engineering handoff |
 | [Security Auditor](/docs/reference/agents/security-auditor) | opus | Security auditor: vulnerability scanning, dependency audits, OWASP Top 10 compliance, secrets detection, remediation |
 | [Security Layer Auditor](/docs/reference/agents/security-layer-auditor) | opus | Security layer auditor who verifies defense-in-depth implementation across 8 security layers, from edge to storage, ensuring comprehensive protection |
 | [System Design Reviewer](/docs/reference/agents/system-design-reviewer) | opus | System design reviewer who evaluates implementation plans against scale, data, security, UX, and coherence criteria before code is written |
 | [Test Generator](/docs/reference/agents/test-generator) | sonnet | Test specialist: coverage gap analysis, unit/integration test generation, fixtures, API mocking (MSW), HTTP recording |
 | [Ui Feedback](/docs/reference/agents/ui-feedback) | sonnet | Processes UI annotations from agentation. Watches for new annotations, maps element paths to source code, implements fixes, and resolves annotations with summaries |
-| [Ux Researcher](/docs/reference/agents/ux-researcher) | haiku | User researcher: personas, user journey mapping, design validation, behavioral analysis, data-driven insights |
 | [Web Research Analyst](/docs/reference/agents/web-research-analyst) | sonnet | Web research: browser automation, Tavily API, competitive intelligence, documentation capture, technical recon |
 | [Workflow Architect](/docs/reference/agents/workflow-architect) | opus | Multi-agent workflow: LangGraph pipelines, supervisor-worker patterns, state/checkpointing, RAG orchestration |

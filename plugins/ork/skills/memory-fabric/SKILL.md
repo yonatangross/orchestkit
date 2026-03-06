@@ -183,7 +183,7 @@ Extracted:
   - { from: "pgvector", relation: "used_for", to: "RAG" }
 ```
 
-See `references/entity-extraction.md` for detailed extraction patterns.
+Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/memory-fabric/references/entity-extraction.md")` for detailed extraction patterns.
 
 ## Graph Relationship Traversal
 

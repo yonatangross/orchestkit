@@ -1,0 +1,438 @@
+---
+title: "Market Sizing"
+description: "TAM, SAM, SOM market sizing with top-down and bottom-up methods. Use when estimating addressable market, validating opportunity size, sizing new segments, or preparing investor pitch materials."
+---
+
+<span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
+
+**Primary Agent:** [product-strategist](/docs/reference/agents/product-strategist)
+
+
+# Market Sizing
+
+TAM/SAM/SOM framework for estimating addressable market and validating opportunity size.
+
+## Definitions
+
+| Metric | Definition | Question It Answers |
+|--------|------------|---------------------|
+| **TAM** | Total Addressable Market — everyone who could possibly buy | "What's the theoretical ceiling?" |
+| **SAM** | Serviceable Addressable Market — segment you can actually reach | "What can we realistically target?" |
+| **SOM** | Serviceable Obtainable Market — realistic share in 3 years | "What will we actually capture?" |
+
+```
++-------------------------------------------------------+
+|                         TAM                            |
+|  +---------------------------------------------------+ |
+|  |                      SAM                           | |
+|  |  +-----------------------------------------------+| |
+|  |  |                   SOM                          || |
+|  |  +-----------------------------------------------+| |
+|  +---------------------------------------------------+ |
++-------------------------------------------------------+
+```
+
+## When to Use Top-Down vs. Bottom-Up
+
+| Method | Use When | Risk |
+|--------|----------|------|
+| **Top-Down** | Industry reports exist; investor pitch; quick estimate | Overestimates SOM |
+| **Bottom-Up** | Sales capacity known; pricing validated; more credible | More work; requires assumptions |
+| **Both (recommended)** | High-stakes decisions; fundraising; board decks | Cross-validate to build confidence |
+
+Always cross-validate both methods and reconcile within 20%. If they diverge by more than that, revisit your assumptions.
+
+## Quick Formulas
+
+```
+Top-Down
+  TAM = (# potential customers) × (annual value per customer)
+  SAM = TAM × (% your solution can address)
+  SOM = SAM × (realistic market share % in 3 years)
+
+Bottom-Up
+  SOM = (# customers you can acquire) × (average deal size)
+  SAM = SOM / (your expected market share %)
+  TAM = SAM / (your segment as % of total market)
+```
+
+## Example: AI Code Review Tool
+
+```markdown
+## Market Sizing: AI Code Review Tool
+
+### Top-Down
+
+TAM
+- Global developers: 28M
+- Using code review tools: 60% → 16.8M
+- Average annual spend: $300/developer
+- TAM = $5.04B
+
+SAM
+- Enterprise only (>500 employees): 8M developers
+- Willing to pay premium: 40% → 3.2M
+- SAM = $960M
+
+SOM
+- Sales capacity supports ~$15M ARR (Year 3)
+- Realistic market share: 2%
+- Unconstrained SOM = $960M × 2% = $19.2M
+- Constrained SOM = min($19.2M, $15M) = $15M
+
+### Bottom-Up
+- Target accounts Year 1: 50 enterprise deals
+- Average ACV: $100K
+- Year 1 ARR: $5M
+- Year 3 (3× growth): $15M ARR → SOM = $15M
+
+### Reconciled SOM: $15M (confirmed by both methods)
+```
+
+## SOM Constraint Model
+
+Do not report an unconstrained SOM. Always apply real-world limits:
+
+```
+SOM constraints:
+  Sales capacity:       supports $15M ARR max
+  Competitive pressure: 5 strong incumbents → −20% market share
+  Go-to-market reach:   70% of SAM reachable with current channels
+
+Conservative SOM = min(
+  SAM × target_share%,
+  sales_capacity_ceiling,
+  SAM × gtm_reach% × target_share%
+)
+```
+
+## Confidence Levels
+
+| Confidence | Evidence Required |
+|------------|------------------|
+| HIGH | Multiple corroborating sources, data &lt; 2 years old |
+| MEDIUM | Single authoritative source, 1-2 years old |
+| LOW | Extrapolated, heavy assumptions, data > 2 years old |
+
+Always label each number with its confidence level in deliverables.
+
+## Common Mistakes
+
+| Mistake | Correction |
+|---------|------------|
+| TAM = "everyone on earth" | Define a specific, bounded customer segment |
+| SOM = 10% of a billion-dollar market | Apply actual sales capacity and GTM constraints |
+| Single method only | Cross-validate top-down and bottom-up |
+| Old data | Use sources &lt; 2 years old; flag if older |
+| Ignoring competition | SOM must account for incumbents' share |
+
+## References
+
+- [TAM/SAM/SOM Rules](rules/market-tam-sam-som.md) — Calculation methods, SOM constraint model, cross-referencing
+- [TAM/SAM/SOM Guide](references/tam-sam-som-guide.md) — Detailed guide with data source recommendations
+
+## Related Skills
+
+- `ork:competitive-analysis` — Understand competitive dynamics that constrain SOM
+- `ork:business-case` — Build financial justification once opportunity is sized
+- `ork:product-frameworks` — Full product strategy toolkit
+
+---
+
+Version: 1.0.0
+
+
+---
+
+## Rules (1)
+
+### Size markets accurately using top-down and bottom-up approaches with realistic SOM constraints — HIGH
+
+
+# TAM/SAM/SOM Market Sizing
+
+Market sizing from total opportunity to achievable share.
+
+## Framework Overview
+
+```
++-------------------------------------------------------+
+|                         TAM                            |
+|        Total Addressable Market                        |
+|     (Everyone who could possibly buy)                  |
+|  +---------------------------------------------------+|
+|  |                      SAM                           ||
+|  |       Serviceable Addressable Market               ||
+|  |    (Segment you can actually reach)                ||
+|  |  +-----------------------------------------------+||
+|  |  |                   SOM                          |||
+|  |  |     Serviceable Obtainable Market              |||
+|  |  |   (Realistic share you can capture)            |||
+|  |  +-----------------------------------------------+||
+|  +---------------------------------------------------+|
++-------------------------------------------------------+
+```
+
+| Metric | Definition | Example |
+|--------|------------|---------|
+| **TAM** | Total market demand globally | All project management software: $10B |
+| **SAM** | Your target segment | Enterprise PM software in North America: $3B |
+| **SOM** | What you can realistically capture | First 3 years with current resources: $50M |
+
+## Calculation Methods
+
+### Top-Down Approach
+
+```
+TAM = (# of potential customers) x (annual value per customer)
+SAM = TAM x (% addressable by your solution)
+SOM = SAM x (realistic market share %)
+```
+
+### Bottom-Up Approach
+
+```
+SOM = (# of customers you can acquire) x (average deal size)
+SAM = SOM / (your expected market share %)
+TAM = SAM / (segment % of total market)
+```
+
+## Example Analysis
+
+```markdown
+## Market Sizing: AI Code Review Tool
+
+### TAM (Total Addressable Market)
+- Global developers: 28 million
+- % using code review tools: 60%
+- Addressable developers: 16.8 million
+- Average annual spend: $300/developer
+- **TAM = $5.04 billion**
+
+### SAM (Serviceable Addressable Market)
+- Focus: Enterprise (>500 employees)
+- Enterprise developers: 8 million (48% of addressable)
+- Willing to pay premium: 40%
+- Target developers: 3.2 million
+- **SAM = $960 million**
+
+### SOM (Serviceable Obtainable Market)
+- Year 1-3 realistic market share: 2%
+- **SOM = $19.2 million**
+```
+
+## Cross-Referencing Methods
+
+Always use both methods and reconcile:
+
+| Method | TAM | Notes |
+|--------|-----|-------|
+| Top-Down | $4.86B | Based on industry reports |
+| Bottom-Up | $5.0B | Based on enterprise segments |
+| **Reconciled** | **$4.9B** | Average, validated range |
+
+## SOM Constraints
+
+```
+SAM: $470M
+
+Constraints:
+- Market share goal (3 years): 3%
+- Competitive pressure: -20%
+- Sales capacity: supports $15M ARR
+- Go-to-market reach: 70%
+
+Conservative SOM: min($470M x 3%, $15M, $470M x 70% x 3%)
+= min($14.1M, $15M, $9.87M)
+= $10M (3-year target)
+```
+
+## Confidence Levels
+
+| Confidence | Evidence |
+|------------|----------|
+| HIGH | Multiple corroborating sources, recent data |
+| MEDIUM | Single authoritative source, 1-2 years old |
+| LOW | Extrapolated, assumptions, old data |
+
+## Common Mistakes
+
+| Mistake | Correction |
+|---------|------------|
+| TAM = "everyone" | Define specific customer segment |
+| Ignoring competition | SOM must account for competitors |
+| Old data | Use most recent (&lt;2 years) |
+| Single method | Cross-validate top-down and bottom-up |
+| Confusing TAM/SAM | TAM is total, SAM is your reach |
+
+**Incorrect — Unrealistic SOM without constraints:**
+```markdown
+TAM: $10B
+SAM (our segment): $3B
+SOM (10% market share): $300M
+
+This is achievable in 3 years!
+```
+
+**Correct — SOM constrained by realistic factors:**
+```markdown
+SAM: $3B
+
+Constraints:
+- Sales capacity: supports $15M ARR max
+- Competitive pressure: 5 strong incumbents
+- Realistic market share (Year 3): 0.5%
+
+Conservative SOM: min($3B × 0.5%, $15M) = $15M
+```
+
+
+
+---
+
+## References (1)
+
+### Tam Sam Som Guide
+
+# TAM/SAM/SOM Market Sizing Guide
+
+Comprehensive guide for market size estimation.
+
+## Definitions
+
+```
+TAM (Total Addressable Market)
+└── "If we had 100% of the entire market"
+└── The total market demand for a product/service
+
+SAM (Serviceable Addressable Market)
+└── "Segment we can actually reach"
+└── TAM filtered by geography, segment, channel
+
+SOM (Serviceable Obtainable Market)
+└── "Realistic capture in 3 years"
+└── SAM filtered by competition, capacity, go-to-market
+```
+
+## Visual Hierarchy
+
+```
+┌─────────────────────────────────────────────────┐
+│                    TAM                           │
+│                 $10 Billion                      │
+│  ┌─────────────────────────────────────────┐    │
+│  │                SAM                       │    │
+│  │             $500 Million                 │    │
+│  │  ┌────────────────────────────────────┐ │    │
+│  │  │              SOM                    │ │    │
+│  │  │           $10 Million               │ │    │
+│  │  └────────────────────────────────────┘ │    │
+│  └─────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────┘
+```
+
+## TAM Calculation Methods
+
+### Top-Down Approach
+
+Start with industry reports and filter down.
+
+```
+Example: AI Developer Tools
+1. Global software developer population: 27M (Statista 2026)
+2. Developers using AI tools: 60% = 16.2M
+3. Average spend on AI tools: $300/year
+4. TAM = 16.2M × $300 = $4.86B
+```
+
+### Bottom-Up Approach
+
+Start with unit economics and scale up.
+
+```
+Example: AI Developer Tools
+1. Target customer: Enterprise dev team (10+ devs)
+2. Estimated teams globally: 500,000
+3. Average contract value: $10,000/year
+4. TAM = 500,000 × $10,000 = $5B
+```
+
+### Cross-Reference
+
+Always use both methods and reconcile:
+
+| Method | TAM | Notes |
+|--------|-----|-------|
+| Top-Down | $4.86B | Based on Statista data |
+| Bottom-Up | $5.0B | Based on enterprise segments |
+| **Reconciled** | **$4.9B** | Average, validated range |
+
+## SAM Calculation
+
+Filter TAM by your actual reach:
+
+```
+Example: AI Developer Tools (US/EU focus)
+TAM: $4.9B
+
+Filters:
+- Geography (US/EU only): 40% → $1.96B
+- Segment (Enterprise only): 30% → $588M
+- Use case (Python/TS devs): 80% → $470M
+
+SAM: $470M
+```
+
+## SOM Calculation
+
+What you can realistically capture:
+
+```
+Example: AI Developer Tools
+SAM: $470M
+
+Constraints:
+- Market share goal (3 years): 3%
+- Competitive pressure: -20%
+- Sales capacity: supports $15M ARR
+- Go-to-market reach: 70%
+
+Conservative SOM: min($470M × 3%, $15M, $470M × 70% × 3%)
+= min($14.1M, $15M, $9.87M)
+= $9.87M → Round to $10M
+
+SOM: $10M (3-year target)
+```
+
+## Data Sources
+
+### Primary Sources (Higher Confidence)
+- Gartner, Forrester, IDC reports
+- Company financials (public competitors)
+- Industry associations
+- Government statistics
+
+### Secondary Sources (Lower Confidence)
+- Press releases
+- Expert interviews
+- Survey data
+- LinkedIn data (company sizes)
+
+## Confidence Levels
+
+| Confidence | Evidence |
+|------------|----------|
+| HIGH | Multiple corroborating sources, recent data |
+| MEDIUM | Single authoritative source, 1-2 years old |
+| LOW | Extrapolated, assumptions, old data |
+
+## Common Mistakes
+
+| Mistake | Correction |
+|---------|------------|
+| TAM = "everyone" | Define specific customer segment |
+| Ignoring competition | SOM must account for competitors |
+| Old data | Use most recent (&lt;2 years) |
+| Single method | Cross-validate top-down and bottom-up |
+| Confusing TAM/SAM | TAM is total, SAM is your reach |
+

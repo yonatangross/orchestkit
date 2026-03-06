@@ -62,7 +62,7 @@ class Order:
         return hash(self.id)
 ```
 
-See [entities-value-objects.md](references/entities-value-objects.md) for complete patterns.
+Load `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/domain-driven-design/references/entities-value-objects.md")` for complete patterns.
 
 ### Value Object (Immutable)
 
@@ -82,7 +82,7 @@ class Money:
         return Money(self.amount + other.amount, self.currency)
 ```
 
-See [entities-value-objects.md](references/entities-value-objects.md) for Address, DateRange examples.
+Load `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/domain-driven-design/references/entities-value-objects.md")` for Address, DateRange examples.
 
 ## Key Decisions
 
@@ -99,9 +99,9 @@ See [entities-value-objects.md](references/entities-value-objects.md) for Addres
 
 | Rule | Impact | What It Covers |
 |------|--------|----------------|
-| [aggregate-boundaries](rules/aggregate-boundaries.md) | HIGH | Aggregate root design, reference by ID, one-per-transaction |
-| [aggregate-invariants](rules/aggregate-invariants.md) | HIGH | Business rule enforcement, specification pattern |
-| [aggregate-sizing](rules/aggregate-sizing.md) | HIGH | Right-sizing, when to split, eventual consistency |
+| aggregate-boundaries (load `$\{CLAUDE_PLUGIN_ROOT\}/skills/domain-driven-design/rules/aggregate-boundaries.md`) | HIGH | Aggregate root design, reference by ID, one-per-transaction |
+| aggregate-invariants (load `$\{CLAUDE_PLUGIN_ROOT\}/skills/domain-driven-design/rules/aggregate-invariants.md`) | HIGH | Business rule enforcement, specification pattern |
+| aggregate-sizing (load `$\{CLAUDE_PLUGIN_ROOT\}/skills/domain-driven-design/rules/aggregate-sizing.md`) | HIGH | Right-sizing, when to split, eventual consistency |
 
 ## When NOT to Use
 
@@ -148,10 +148,13 @@ async def get(self, id: UUID) -> OrderModel:  # WRONG - return domain!
 
 ## References
 
-- [Entities & Value Objects](references/entities-value-objects.md) - Full patterns
-- [Repositories](references/repositories.md) - Repository pattern implementation
-- [Domain Events](references/domain-events.md) - Event collection and publishing
-- [Bounded Contexts](references/bounded-contexts.md) - Context mapping and ACL
+Load on demand with `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/domain-driven-design/references/&lt;file&gt;")`:
+| File | Content |
+|------|---------|
+| `entities-value-objects.md` | Full entity and value object patterns |
+| `repositories.md` | Repository pattern implementation |
+| `domain-events.md` | Event collection and publishing |
+| `bounded-contexts.md` | Context mapping and ACL |
 
 ## Capability Details
 

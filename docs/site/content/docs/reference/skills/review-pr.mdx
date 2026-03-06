@@ -77,7 +77,7 @@ AskUserQuestion(
 
 ## STEP 0b: Select Orchestration Mode
 
-See [Orchestration Mode Selection](references/orchestration-mode-selection.md)
+Load orchestration guidance: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/review-pr/references/orchestration-mode-selection.md")`
 
 ---
 
@@ -166,6 +166,22 @@ Relevant skills activated automatically:
 
 ## Phase 3: Parallel Code Review (6 Agents)
 
+### Project Context Injection
+
+Before spawning agents, load project-specific review context from memory:
+
+```python
+# Load project review context (conventions, known weaknesses, past findings)
+# This gives agents project-specific knowledge without re-discovering patterns
+PROJECT_CONTEXT = Read("${MEMORY_DIR}/review-pr-context.md")  # Falls back gracefully if missing
+```
+
+All agent prompts receive `$\{PROJECT_CONTEXT\}` so they know project conventions, security patterns, and known weaknesses from prior reviews.
+
+### Structured Output
+
+All agents return findings as JSON (see structured output contract in agent prompt files). This enables automated deduplication, severity sorting, and memory graph persistence in Phase 5.
+
 ### Domain-Aware Agent Selection
 
 Only spawn agents relevant to the PR's changed domains:
@@ -187,11 +203,29 @@ See [AI Code Review Agent](rules/ai-code-review-agent.md) for the optional 7th L
 
 ## Phase 4: Run Validation
 
-See [Validation Commands](references/validation-commands.md)
+Load validation commands: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/review-pr/references/validation-commands.md")`
 
 ## Phase 5: Synthesize Review
 
-Combine all agent feedback into a structured report. See [Review Report Template](references/review-report-template.md)
+Combine all agent feedback into a structured report. Load template: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/review-pr/references/review-report-template.md")`
+
+### Memory Persistence
+
+After synthesis, persist critical/high findings to the memory graph so future reviews build on past knowledge:
+
+```python
+# Persist review findings for cross-session learning
+mcp__memory__create_entities(entities=[{
+    "name": "PR-{number}-Review",
+    "entityType": "code-review",
+    "observations": ["<summary>", "<critical findings>", "<patterns discovered>"]
+}])
+# Update known-weaknesses entity if new patterns found
+mcp__memory__add_observations(observations=[{
+    "entityName": "review-known-weaknesses",
+    "contents": ["<new pattern from this review>"]
+}])
+```
 
 ## Phase 6: Submit Review
 
@@ -222,7 +256,7 @@ claude --from-pr https://github.com/org/repo/pull/123
 
 ### Task Metrics (CC 2.1.30)
 
-See [Task Metrics Template](references/task-metrics-template.md)
+Load metrics template: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/review-pr/references/task-metrics-template.md")`
 
 ## Conventional Comments
 
@@ -240,13 +274,22 @@ Use these prefixes for comments:
 
 ## References
 
-- [Review Template](references/review-template.md)
-- [Review Report Template](references/review-report-template.md)
-- [Orchestration Mode Selection](references/orchestration-mode-selection.md)
-- [Validation Commands](references/validation-commands.md)
-- [Task Metrics Template](references/task-metrics-template.md)
-- [Agent Prompts -- Task Tool](rules/agent-prompts-task-tool.md)
-- [Agent Prompts -- Agent Teams](rules/agent-prompts-agent-teams.md)
+Load on demand with `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/review-pr/references/&lt;file&gt;")`:
+
+| File | Content |
+|------|---------|
+| `review-template.md` | Review checklist template |
+| `review-report-template.md` | Structured review report |
+| `orchestration-mode-selection.md` | Task tool vs Agent Teams |
+| `validation-commands.md` | Build/test/lint commands |
+| `task-metrics-template.md` | Task metrics format |
+
+Rules: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/review-pr/rules/&lt;file&gt;")`:
+
+| File | Content |
+|------|---------|
+| `agent-prompts-task-tool.md` | Agent prompts for Task tool mode |
+| `agent-prompts-agent-teams.md` | Agent prompts for Agent Teams mode |
 - [AI Code Review Agent](rules/ai-code-review-agent.md)
 
 
@@ -259,7 +302,27 @@ Use these prefixes for comments:
 
 # Agent Prompts — Agent Teams Mode
 
-In Agent Teams mode, form a review team where reviewers cross-reference findings directly:
+In Agent Teams mode, form a review team where reviewers cross-reference findings directly.
+
+## Project Context Injection
+
+Before spawning agents, load project-specific review context if it exists:
+
+```python
+# Load project review context from memory (if available)
+PROJECT_CONTEXT = ""
+try:
+    Read("${MEMORY_DIR}/review-pr-context.md")  # ${MEMORY_DIR} = project memory path
+    PROJECT_CONTEXT = "<result from read>"
+except:
+    PROJECT_CONTEXT = "No project-specific review context available."
+```
+
+## Structured Output Contract
+
+Every agent MUST return a JSON block (fenced with ```json```) at the end of their review matching the schema in `review-pr-output.md`. Category prefixes: SEC, PERF, BUG, MAINT, A11Y, TEST.
+
+## Team Formation
 
 ```python
 # DOMAIN-AWARE AGENT SELECTION
@@ -274,22 +337,33 @@ TeamCreate(team_name="review-pr-$PR_NUMBER", description="Review PR #$PR_NUMBER"
 Agent(subagent_type="code-quality-reviewer", name="quality-reviewer",
      team_name="review-pr-$PR_NUMBER",
      prompt="""Review code quality and type safety for PR #$PR_NUMBER.
+
+     ## Project Context
+     ${PROJECT_CONTEXT}
+
      Scope: ONLY review the following changed files:
      ${CHANGED_FILES}
      Do NOT explore beyond these files.
      When you find patterns that overlap with security concerns,
      message security-reviewer with the finding.
-     When you find test gaps, message test-reviewer.""")
+     When you find test gaps, message test-reviewer.
+     Return findings as a JSON block (```json```) with category prefix MAINT.""")
 
 Agent(subagent_type="security-auditor", name="security-reviewer",
      team_name="review-pr-$PR_NUMBER",
      prompt="""Security audit for PR #$PR_NUMBER.
+
+     ## Project Context
+     ${PROJECT_CONTEXT}
+
      Scope: ONLY review the following changed files:
      ${CHANGED_FILES}
      Do NOT explore beyond these files.
+     Check: fail-closed auth, SSRF on user-controlled URLs, rate limiting, secrets in diff.
      Cross-reference with quality-reviewer for injection risks in code patterns.
      When you find issues, message the responsible reviewer (backend-reviewer
-     for API issues, frontend-reviewer for XSS).""")
+     for API issues, frontend-reviewer for XSS).
+     Return findings as a JSON block (```json```) with category prefix SEC.""")
 
 Agent(subagent_type="test-generator", name="test-reviewer",
      team_name="review-pr-$PR_NUMBER",
@@ -306,27 +380,43 @@ Agent(subagent_type="test-generator", name="test-reviewer",
      3. Evaluate test quality: meaningful assertions, no flaky patterns.
      4. When quality-reviewer flags test gaps, verify and suggest specific tests.
      Message backend-reviewer or frontend-reviewer with test requirements.
-     End with: RESULT: [ADEQUATE|GAPS|MISSING] - summary""")
+
+     ## Project Context
+     ${PROJECT_CONTEXT}
+
+     Return findings as a JSON block (```json```) with category prefix TEST.""")
 
 # Only spawn if backend files detected (HAS_BACKEND)
 Agent(subagent_type="backend-system-architect", name="backend-reviewer",
      team_name="review-pr-$PR_NUMBER",
      prompt="""Review backend code for PR #$PR_NUMBER.
+
+     ## Project Context
+     ${PROJECT_CONTEXT}
+
      Scope: ONLY review the following changed files:
      ${CHANGED_FILES}
      Do NOT explore beyond these files.
+     Check: Redis connection lifecycle, webhook auth (fail-closed), N+1 queries, async patterns.
      When security-reviewer flags API issues, validate and suggest fixes.
-     Share API pattern findings with frontend-reviewer for consistency.""")
+     Share API pattern findings with frontend-reviewer for consistency.
+     Return findings as a JSON block (```json```) with prefixes BUG/PERF/MAINT.""")
 
 # Only spawn if frontend files detected (HAS_FRONTEND)
 Agent(subagent_type="frontend-ui-developer", name="frontend-reviewer",
      team_name="review-pr-$PR_NUMBER",
      prompt="""Review frontend code for PR #$PR_NUMBER.
+
+     ## Project Context
+     ${PROJECT_CONTEXT}
+
      Scope: ONLY review the following changed files:
      ${CHANGED_FILES}
      Do NOT explore beyond these files.
+     Check: SSR safety (no navigator/window outside hooks), button type attrs, a11y.
      When backend-reviewer shares API patterns, verify frontend matches.
-     When security-reviewer flags XSS risks, validate and suggest fixes.""")
+     When security-reviewer flags XSS risks, validate and suggest fixes.
+     Return findings as a JSON block (```json```) with prefixes A11Y/PERF/BUG.""")
 ```
 
 **Team teardown** after synthesis (only shut down agents that were actually spawned):
@@ -379,6 +469,56 @@ Launch SIX specialized reviewers in ONE message with `run_in_background: true`:
 | backend-system-architect | API, async, transactions |
 | frontend-ui-developer | React 19, hooks, a11y |
 
+## Project Context Injection
+
+Before spawning agents, load project-specific review context if it exists:
+
+```python
+# Load project review context from memory (if available)
+# This file contains project conventions, security patterns, and known weaknesses
+# from prior reviews. Agents receive it as PROJECT_CONTEXT in their prompts.
+PROJECT_CONTEXT = ""
+try:
+    Read("${MEMORY_DIR}/review-pr-context.md")  # ${MEMORY_DIR} = project memory path
+    PROJECT_CONTEXT = "<result from read>"
+except:
+    PROJECT_CONTEXT = "No project-specific review context available."
+```
+
+## Structured Output Contract
+
+Every agent MUST return a JSON block (fenced with ```json```) at the end of their review:
+
+```json
+{
+  "agent": "<agent-role>",
+  "pr_number": $PR_NUMBER,
+  "summary": "One-line summary",
+  "findings": [
+    {
+      "id": "<CATEGORY_PREFIX>-<NNN>",
+      "severity": "critical|high|medium|low|info",
+      "category": "security|performance|correctness|maintainability|accessibility|testing",
+      "file": "relative/path.ext",
+      "line": 42,
+      "title": "Short title (<80 chars)",
+      "description": "Detailed explanation",
+      "suggestion": "Fix suggestion",
+      "effort": "5min|15min|30min|1h|2h+",
+      "conventional_comment": "praise|nitpick|suggestion|issue|question"
+    }
+  ],
+  "stats": { "files_reviewed": 0, "findings_count": 0, "critical": 0, "high": 0, "medium": 0, "low": 0 },
+  "verdict": "approve|request-changes|comment-only"
+}
+```
+
+Category prefixes: SEC (security), PERF (performance), BUG (correctness), MAINT (maintainability), A11Y (accessibility), TEST (testing).
+
+The lead reviewer collects all agent JSON outputs, deduplicates by file+line+category (keeps highest severity), and persists critical/high findings to the memory graph.
+
+## Agent Prompts
+
 ```python
 # DOMAIN-AWARE AGENT SELECTION
 # Only spawn agents relevant to detected domains.
@@ -402,6 +542,9 @@ Agent(
   subagent_type="code-quality-reviewer",
   prompt="""CODE QUALITY REVIEW for PR $PR_NUMBER
 
+  ## Project Context
+  ${PROJECT_CONTEXT}
+
   Review code readability and maintainability:
   1. Naming conventions and clarity
   2. Function/method complexity (cyclomatic < 10)
@@ -413,7 +556,8 @@ Agent(
 
   Do NOT explore beyond these files. Focus your analysis on the diff.
 
-  SUMMARY: End with: "RESULT: [PASS|WARN|FAIL] - [N] issues: [brief list]"
+  Return your findings as a JSON block (```json```) matching the structured output contract above.
+  Use category prefix MAINT for maintainability findings. Use conventional comments (praise/suggestion/issue/nitpick).
   """,
   run_in_background=True,
   max_turns=25
@@ -422,6 +566,9 @@ Agent(
   description="Review type safety",
   subagent_type="code-quality-reviewer",
   prompt="""TYPE SAFETY REVIEW for PR $PR_NUMBER
+
+  ## Project Context
+  ${PROJECT_CONTEXT}
 
   Review type safety and validation:
   1. TypeScript strict mode compliance
@@ -434,7 +581,8 @@ Agent(
 
   Do NOT explore beyond these files. Focus your analysis on the diff.
 
-  SUMMARY: End with: "RESULT: [PASS|WARN|FAIL] - [N] type issues: [brief list]"
+  Return your findings as a JSON block (```json```) matching the structured output contract above.
+  Use category prefix MAINT for type safety findings. Use conventional comments.
   """,
   run_in_background=True,
   max_turns=25
@@ -444,18 +592,25 @@ Agent(
   subagent_type="security-auditor",
   prompt="""SECURITY REVIEW for PR $PR_NUMBER
 
+  ## Project Context
+  ${PROJECT_CONTEXT}
+
   Security audit:
   1. Secrets/credentials in code
   2. Injection vulnerabilities (SQL, XSS)
   3. Authentication/authorization checks
   4. Dependency vulnerabilities
+  5. Fail-closed auth patterns (reject when config missing)
+  6. SSRF protection on user-controlled URLs
+  7. Rate limiting on auth endpoints
 
   Scope: ONLY review the following changed files:
   ${CHANGED_FILES}
 
   Do NOT explore beyond these files. Focus your analysis on the diff.
 
-  SUMMARY: End with: "RESULT: [PASS|WARN|BLOCK] - [N] findings: [severity summary]"
+  Return your findings as a JSON block (```json```) matching the structured output contract above.
+  Use category prefix SEC for security findings. Use conventional comments.
   """,
   run_in_background=True,
   max_turns=25
@@ -490,12 +645,16 @@ Agent(
      - Which changed functions/methods lack test coverage?
      - Which error paths are untested?
 
+  ## Project Context
+  ${PROJECT_CONTEXT}
+
   Scope: ONLY review the following changed files:
   ${CHANGED_FILES}
 
   Do NOT explore beyond these files. Focus your analysis on the diff.
 
-  SUMMARY: End with: "RESULT: [ADEQUATE|GAPS|MISSING] - [N] untested paths, [M] missing test types - [key gap]"
+  Return your findings as a JSON block (```json```) matching the structured output contract above.
+  Use category prefix TEST for testing findings. Use conventional comments.
   """,
   run_in_background=True,
   max_turns=25
@@ -505,18 +664,24 @@ Agent(
   subagent_type="backend-system-architect",
   prompt="""BACKEND REVIEW for PR $PR_NUMBER
 
+  ## Project Context
+  ${PROJECT_CONTEXT}
+
   Review backend code:
   1. API design and REST conventions
   2. Async/await patterns and error handling
   3. Database query efficiency (N+1)
   4. Transaction boundaries
+  5. Redis connection lifecycle (close in try/finally)
+  6. Webhook auth patterns (fail-closed)
 
   Scope: ONLY review the following changed files:
   ${CHANGED_FILES}
 
   Do NOT explore beyond these files. Focus your analysis on the diff.
 
-  SUMMARY: End with: "RESULT: [PASS|WARN|FAIL] - [N] issues: [key concern]"
+  Return your findings as a JSON block (```json```) matching the structured output contract above.
+  Use category prefixes: BUG (correctness), PERF (performance), MAINT (maintainability). Use conventional comments.
   """,
   run_in_background=True,
   max_turns=25
@@ -526,18 +691,23 @@ Agent(
   subagent_type="frontend-ui-developer",
   prompt="""FRONTEND REVIEW for PR $PR_NUMBER
 
+  ## Project Context
+  ${PROJECT_CONTEXT}
+
   Review frontend code:
   1. React 19 patterns (hooks, server components)
   2. State management correctness
-  3. Accessibility (a11y) compliance
+  3. Accessibility (a11y) compliance — button type attrs, ARIA
   4. Performance (memoization, lazy loading)
+  5. SSR safety — no navigator/window outside hooks/useEffect
 
   Scope: ONLY review the following changed files:
   ${CHANGED_FILES}
 
   Do NOT explore beyond these files. Focus your analysis on the diff.
 
-  SUMMARY: End with: "RESULT: [PASS|WARN|FAIL] - [N] issues: [key concern]"
+  Return your findings as a JSON block (```json```) matching the structured output contract above.
+  Use category prefixes: A11Y (accessibility), PERF (performance), BUG (correctness). Use conventional comments.
   """,
   run_in_background=True,
   max_turns=25

@@ -341,6 +341,12 @@ function Dashboard() {
 
 ## References
 
-- `references/middleware-composition.md` - Combining multiple middleware
-- `scripts/store-template.ts` - Production-ready store template
-- `checklists/zustand-checklist.md` - Implementation checklist
+Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/zustand-patterns/references/<file>")`:
+
+| File | Content |
+|------|---------|
+| `middleware-composition.md` | Combining multiple middleware |
+
+Other resources:
+- Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/zustand-patterns/scripts/store-template.ts")` - Production-ready store template
+- Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/zustand-patterns/checklists/zustand-checklist.md")` - Implementation checklist

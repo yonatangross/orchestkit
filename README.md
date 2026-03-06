@@ -5,9 +5,9 @@
 
 ### Stop explaining your stack. Start shipping.
 
-**70 skills · 38 agents · 98 hooks**
+**79 skills · 30 agents · 106 hooks**
 
-[![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.59-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
+[![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.69-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/yonatangross/orchestkit?style=for-the-badge&logo=github)](https://github.com/yonatangross/orchestkit)
 
@@ -186,7 +186,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 **v7.0.0** — Unified Plugin Architecture
 
-- **Simplified**: One plugin for everything. All 70 skills, 38 agents, 98 hooks in `/plugin install ork`.
+- **Simplified**: One plugin for everything. All 79 skills, 30 agents, 106 hooks in `/plugin install ork`.
 - **Setup Wizard**: Run `/ork:setup` for personalized onboarding — stack detection, skill recommendations, MCP configuration, readiness scoring.
 
 [Full Changelog →](./CHANGELOG.md)

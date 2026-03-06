@@ -196,4 +196,7 @@ These are Claude Code built-in slash commands — not OrchestKit skills:
 
 ## References
 
-- [CC Keyboard Shortcuts](references/cc-keyboard-shortcuts.md)
+Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/help/references/<file>")`:
+| File | Content |
+|------|---------|
+| `cc-keyboard-shortcuts.md` | CC keyboard shortcuts reference |

@@ -31,7 +31,7 @@ mcpServers: [pg-aiguide]
 hooks:
   PreToolUse:
     - matcher: "Bash"
-      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs agent/migration-safety-check"
+      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs agent/migration-safety-check"
 ---
 ## Directive
 Design PostgreSQL schemas, create Alembic migrations, and optimize database performance using pg-aiguide best practices.

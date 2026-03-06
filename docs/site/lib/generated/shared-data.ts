@@ -5,10 +5,10 @@ import type { Totals, AgentSummary, CategoryMeta } from "./types";
 
 export const TOTALS: Totals = {
   "plugins": 1,
-  "skills": 70,
-  "agents": 38,
-  "hooks": 98,
-  "commands": 17,
+  "skills": 79,
+  "agents": 30,
+  "hooks": 105,
+  "commands": 18,
   "compositions": 14
 };
 
@@ -39,15 +39,6 @@ export const AGENTS: AgentSummary[] = [
     ],
     "model": "sonnet",
     "category": "backend"
-  },
-  {
-    "name": "business-case-builder",
-    "description": "Business analyst who builds ROI projections, cost-benefit analyses, risk assessments, and investment justifications to support product decisions with financial rationale.",
-    "plugins": [
-      "ork"
-    ],
-    "model": "haiku",
-    "category": "product"
   },
   {
     "name": "ci-cd-engineer",
@@ -111,15 +102,6 @@ export const AGENTS: AgentSummary[] = [
     ],
     "model": "haiku",
     "category": "devops"
-  },
-  {
-    "name": "documentation-specialist",
-    "description": "Technical writing and documentation expert. API docs, READMEs, technical guides, ADRs, changelogs, and OpenAPI specs.",
-    "plugins": [
-      "ork"
-    ],
-    "model": "haiku",
-    "category": "development"
   },
   {
     "name": "eval-runner",
@@ -194,15 +176,6 @@ export const AGENTS: AgentSummary[] = [
     "category": "product"
   },
   {
-    "name": "metrics-architect",
-    "description": "Metrics specialist who designs OKRs, KPIs, success criteria, and instrumentation plans to measure product outcomes and validate hypotheses.",
-    "plugins": [
-      "ork"
-    ],
-    "model": "haiku",
-    "category": "product"
-  },
-  {
     "name": "monitoring-engineer",
     "description": "Observability and monitoring specialist. Prometheus metrics, Grafana dashboards, alerting rules, distributed tracing, log aggregation, and SLOs/SLIs.",
     "plugins": [
@@ -221,15 +194,6 @@ export const AGENTS: AgentSummary[] = [
     "category": "ai"
   },
   {
-    "name": "prioritization-analyst",
-    "description": "Prioritization specialist who scores features using RICE/ICE/WSJF frameworks, analyzes opportunity costs, manages backlog ranking, and recommends what to build next based on value and effort.",
-    "plugins": [
-      "ork"
-    ],
-    "model": "haiku",
-    "category": "product"
-  },
-  {
     "name": "product-strategist",
     "description": "Product strategist: value proposition validation, feature-business alignment, build/buy/partner decisions, go/no-go.",
     "plugins": [
@@ -237,15 +201,6 @@ export const AGENTS: AgentSummary[] = [
     ],
     "model": "sonnet",
     "category": "product"
-  },
-  {
-    "name": "prompt-engineer",
-    "description": "Expert prompt designer and optimizer. Chain-of-thought, few-shot learning, structured outputs, prompt versioning, A/B testing, and cost optimization.",
-    "plugins": [
-      "ork"
-    ],
-    "model": "sonnet",
-    "category": "ai"
   },
   {
     "name": "python-performance-engineer",
@@ -257,15 +212,6 @@ export const AGENTS: AgentSummary[] = [
     "category": "backend"
   },
   {
-    "name": "rapid-ui-designer",
-    "description": "UI/UX designer: rapid Tailwind CSS prototyping, design systems, component specs, responsive layouts, accessible mockups.",
-    "plugins": [
-      "ork"
-    ],
-    "model": "haiku",
-    "category": "frontend"
-  },
-  {
     "name": "release-engineer",
     "description": "Release and versioning specialist who manages GitHub releases, milestones, changelogs, and semantic versioning. Handles release automation and project tracking.",
     "plugins": [
@@ -273,15 +219,6 @@ export const AGENTS: AgentSummary[] = [
     ],
     "model": "haiku",
     "category": "devops"
-  },
-  {
-    "name": "requirements-translator",
-    "description": "Requirements specialist who transforms ambiguous ideas into clear PRDs, user stories with acceptance criteria, and scoped specifications ready for engineering handoff.",
-    "plugins": [
-      "ork"
-    ],
-    "model": "sonnet",
-    "category": "product"
   },
   {
     "name": "security-auditor",
@@ -327,15 +264,6 @@ export const AGENTS: AgentSummary[] = [
     ],
     "model": "sonnet",
     "category": "development"
-  },
-  {
-    "name": "ux-researcher",
-    "description": "User researcher: personas, user journey mapping, design validation, behavioral analysis, data-driven insights.",
-    "plugins": [
-      "ork"
-    ],
-    "model": "haiku",
-    "category": "frontend"
   },
   {
     "name": "web-research-analyst",
@@ -419,6 +347,11 @@ export const SKILLS_SUMMARY = {
       "remember"
     ],
     "product": [
+      "business-case",
+      "okr-design",
+      "prd",
+      "prioritization",
+      "product-analytics",
       "product-frameworks"
     ],
     "git": [
@@ -448,6 +381,7 @@ export const SKILLS_SUMMARY = {
       "architecture-patterns",
       "golden-dataset",
       "llm-integration",
+      "product-analytics",
       "review-pr",
       "testing-patterns",
       "verify"
@@ -494,7 +428,7 @@ export const SKILLS_SUMMARY = {
       "audit-full",
       "browser-tools",
       "distributed-systems",
-      "domain-driven-design"
+      "documentation-patterns"
     ]
   }
 };

@@ -5,6 +5,37 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.1.3] - 2026-03-05
+
+### Added
+
+- **feat(skills):** Enable CC native matching on 10 knowledge skills (#960)
+  - security-patterns, api-design, testing-patterns, database-patterns, python-backend, architecture-patterns, performance, quality-gates, react-server-components-framework, devops-deployment
+  - Changed `disable-model-invocation: true → false` so CC auto-selects these based on prompt/description matching
+  - Skills visible to CC: 17 → 27 (17 user-invocable + 10 model-invocable)
+- **docs(skills):** Document model-invocable pattern in CONTRIBUTING-SKILLS.md
+
+### Removed
+
+- **perf(hooks):** Delete ~1,550 lines dead routing code (#960)
+  - Deleted: intent-classifier.ts (669 lines), calibration-engine.ts, skill-nudge.ts, calibration-tracker.ts, calibration-persist.ts, + 4 test files
+  - These modules were superseded by CC native skill matching and never ran in production
+  - Prompt pipeline hooks: 5 → 4 (removed skill-nudge-prompt)
+  - Split-bundles test count: 170 → 167
+
+### Changed
+
+- **perf(agents):** Demote 8 redundant agents to reduce routing overhead (#863)
+  - Removed: requirements-translator, documentation-specialist, prompt-engineer, ux-researcher, rapid-ui-designer, business-case-builder, metrics-architect, prioritization-analyst
+  - Agent count: 38 to 30, Hook count: 98 to 88 (10 agent-scoped hooks removed)
+  - Reduces routing complexity and eliminates ~98k tokens/invocation for unnecessary agent spawns
+- **docs(build):** Document skills/commands duplication token waste (#889) with upstream CC bug tracking
+
+### Removed
+
+- CC-v3 feature issues (#930-933) removed from perf milestone — already built, architecturally impossible, or superseded by CC native tools
+
+
 ## [7.1.2] - 2026-03-04
 
 ### Added

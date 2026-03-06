@@ -68,23 +68,23 @@ Content OK? ──Yes──► Parse and return
 
 When `TAVILY_API_KEY` is set, Tavily provides a powerful middle tier between WebFetch and agent-browser. It returns raw markdown content, supports batch URL extraction, and offers semantic search with relevance scoring. If `TAVILY_API_KEY` is not set, the 3-tier tree collapses to 2-tier (WebFetch → agent-browser) automatically.
 
-See [Tool Selection](rules/tool-selection.md) for when-to-use-what tables, escalation heuristics, SPA detection patterns, and cost awareness.
+Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/web-research-workflow/rules/tool-selection.md")` for when-to-use-what tables, escalation heuristics, SPA detection patterns, and cost awareness.
 
-See [Tavily API Reference](references/tavily-api.md) for Search, Extract, Map, Crawl, and Research endpoint examples and options.
+Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/web-research-workflow/references/tavily-api.md")` for Search, Extract, Map, Crawl, and Research endpoint examples and options.
 
 ## Browser Patterns
 
 For content requiring JavaScript rendering, authentication, or multi-page crawling, fall back to agent-browser.
 
-See [Browser Patterns](rules/browser-patterns.md) for auto-fallback, authentication flow, multi-page research patterns, best practices, and troubleshooting.
+Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/web-research-workflow/rules/browser-patterns.md")` for auto-fallback, authentication flow, multi-page research patterns, best practices, and troubleshooting.
 
 ## Competitive Monitoring
 
 Track competitor websites for changes in pricing, features, positioning, and content.
 
-See [Competitor Page Monitoring](rules/monitoring-competitor.md) for snapshot capture, structured data extraction, and change classification.
+Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/web-research-workflow/rules/monitoring-competitor.md")` for snapshot capture, structured data extraction, and change classification.
 
-See [Change Detection & Discovery](rules/monitoring-change-detection.md) for diff detection, structured comparison, Tavily site discovery, and CI automation.
+Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/web-research-workflow/rules/monitoring-change-detection.md")` for diff detection, structured comparison, Tavily site discovery, and CI automation.
 
 ### Change Classification
 
@@ -101,8 +101,7 @@ This skill is used by:
 - `web-research-analyst` - Primary user
 - `market-intelligence` - Competitor research
 - `product-strategist` - Deep competitive analysis
-- `ux-researcher` - Design system capture
-- `documentation-specialist` - API doc extraction
+
 
 ## Related Skills
 

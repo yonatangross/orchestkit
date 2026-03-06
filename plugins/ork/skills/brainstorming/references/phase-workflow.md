@@ -41,7 +41,7 @@ Do NOT suggest patterns marked OVERKILL for this tier in the scope-appropriate-a
 | Detected Domain | Primary Agents | Skills to Read |
 |-----------------|----------------|----------------|
 | Backend/API | `backend-system-architect`, `security-auditor` | api-design-framework |
-| Frontend/UI | `frontend-ui-developer`, `ux-researcher` | design-system-starter |
+| Frontend/UI | `frontend-ui-developer` | design-system-starter |
 | Database | `backend-system-architect` | database-schema-designer |
 | Auth/Security | `security-auditor`, `backend-system-architect` | auth-patterns |
 | AI/LLM | `llm-integrator`, `workflow-architect` | rag-retrieval |

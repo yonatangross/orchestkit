@@ -154,7 +154,7 @@ Some agents define their own hooks in the frontmatter. These run only when that 
 hooks:
   PreToolUse:
     - matcher: "Write|Edit"
-      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs agent/block-writes"
+      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs agent/block-writes"
 ```
 
 This pattern is used by read-only agents like `security-auditor`, `debug-investigator`, `code-quality-reviewer`, and `system-design-reviewer` to prevent them from modifying code. The `deployment-manager` uses a different hook (`deployment-safety-check`) to validate commands before execution.

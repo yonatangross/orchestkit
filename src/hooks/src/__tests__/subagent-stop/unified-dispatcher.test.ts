@@ -32,11 +32,7 @@ vi.mock('../../lib/analytics.js', () => ({
   getTeamContext: vi.fn(() => undefined),
 }));
 
-// Mock the individual hooks that the dispatcher calls
-vi.mock('../../subagent-stop/context-publisher.js', () => ({
-  contextPublisher: vi.fn(() => ({ continue: true, suppressOutput: true })),
-}));
-
+// Mock the individual hooks that the dispatcher calls — after #897: 2 hooks
 vi.mock('../../subagent-stop/handoff-preparer.js', () => ({
   handoffPreparer: vi.fn(() => ({ continue: true, suppressOutput: true })),
 }));
@@ -45,18 +41,12 @@ vi.mock('../../subagent-stop/feedback-loop.js', () => ({
   feedbackLoop: vi.fn(() => ({ continue: true, suppressOutput: true })),
 }));
 
-vi.mock('../../subagent-stop/agent-memory-store.js', () => ({
-  agentMemoryStore: vi.fn(() => ({ continue: true, suppressOutput: true })),
-}));
-
 import { unifiedSubagentStopDispatcher, registeredHookNames } from '../../subagent-stop/unified-dispatcher.js';
 import { logHook } from '../../lib/common.js';
 import { trackEvent } from '../../lib/session-tracker.js';
 import { appendAnalytics } from '../../lib/analytics.js';
-import { contextPublisher } from '../../subagent-stop/context-publisher.js';
 import { handoffPreparer } from '../../subagent-stop/handoff-preparer.js';
 import { feedbackLoop } from '../../subagent-stop/feedback-loop.js';
-import { agentMemoryStore } from '../../subagent-stop/agent-memory-store.js';
 
 // =============================================================================
 // Test Utilities
@@ -114,18 +104,12 @@ describe('unified-subagent-stop-dispatcher', () => {
     });
 
     test('always returns continue: true even when all hooks fail', async () => {
-      // Arrange
-      vi.mocked(contextPublisher).mockImplementation(() => {
-        throw new Error('Context publisher failed');
-      });
+      // Arrange — 2 hooks after #897 slimming
       vi.mocked(handoffPreparer).mockImplementation(() => {
         throw new Error('Handoff preparer failed');
       });
       vi.mocked(feedbackLoop).mockImplementation(() => {
         throw new Error('Feedback loop failed');
-      });
-      vi.mocked(agentMemoryStore).mockImplementation(() => {
-        throw new Error('Agent memory store failed');
       });
       const input = createSubagentStopInput();
 
@@ -137,14 +121,10 @@ describe('unified-subagent-stop-dispatcher', () => {
     });
 
     test('always returns continue: true with partial hook failures', async () => {
-      // Arrange
-      vi.mocked(contextPublisher).mockReturnValue({ continue: true, suppressOutput: true });
-      vi.mocked(handoffPreparer).mockImplementation(() => {
-        throw new Error('Handoff failed');
-      });
-      vi.mocked(feedbackLoop).mockReturnValue({ continue: true, suppressOutput: true });
-      vi.mocked(agentMemoryStore).mockImplementation(() => {
-        throw new Error('Memory failed');
+      // Arrange — one hook succeeds, one fails
+      vi.mocked(handoffPreparer).mockReturnValue({ continue: true, suppressOutput: true });
+      vi.mocked(feedbackLoop).mockImplementation(() => {
+        throw new Error('Feedback loop failed');
       });
       const input = createSubagentStopInput();
 
@@ -172,16 +152,14 @@ describe('unified-subagent-stop-dispatcher', () => {
   // ---------------------------------------------------------------------------
 
   describe('hook registry', () => {
-    test('registers all 4 consolidated hooks', () => {
+    test('registers all 2 consolidated hooks', () => {
       // Act
       const hookNames = registeredHookNames();
 
-      // Assert
-      expect(hookNames).toHaveLength(4);
-      expect(hookNames).toContain('context-publisher');
+      // Assert — after #897 slimming: 2 hooks
+      expect(hookNames).toHaveLength(2);
       expect(hookNames).toContain('handoff-preparer');
       expect(hookNames).toContain('feedback-loop');
-      expect(hookNames).toContain('agent-memory-store');
     });
 
     test('hook names are in expected order', () => {
@@ -189,10 +167,8 @@ describe('unified-subagent-stop-dispatcher', () => {
       const hookNames = registeredHookNames();
 
       // Assert
-      expect(hookNames[0]).toBe('context-publisher');
-      expect(hookNames[1]).toBe('handoff-preparer');
-      expect(hookNames[2]).toBe('feedback-loop');
-      expect(hookNames[3]).toBe('agent-memory-store');
+      expect(hookNames[0]).toBe('handoff-preparer');
+      expect(hookNames[1]).toBe('feedback-loop');
     });
   });
 
@@ -208,20 +184,15 @@ describe('unified-subagent-stop-dispatcher', () => {
       // Act
       await unifiedSubagentStopDispatcher(input);
 
-      // Assert
-      expect(contextPublisher).toHaveBeenCalledWith(input);
+      // Assert — 2 hooks after #897
       expect(handoffPreparer).toHaveBeenCalledWith(input);
       expect(feedbackLoop).toHaveBeenCalledWith(input);
-      expect(agentMemoryStore).toHaveBeenCalledWith(input);
     });
 
     test('calls all hooks even when some fail', async () => {
       // Arrange
-      vi.mocked(contextPublisher).mockImplementation(() => {
+      vi.mocked(handoffPreparer).mockImplementation(() => {
         throw new Error('First hook failed');
-      });
-      vi.mocked(feedbackLoop).mockImplementation(() => {
-        throw new Error('Third hook failed');
       });
       const input = createSubagentStopInput();
 
@@ -229,19 +200,17 @@ describe('unified-subagent-stop-dispatcher', () => {
       await unifiedSubagentStopDispatcher(input);
 
       // Assert
-      expect(contextPublisher).toHaveBeenCalled();
       expect(handoffPreparer).toHaveBeenCalled();
       expect(feedbackLoop).toHaveBeenCalled();
-      expect(agentMemoryStore).toHaveBeenCalled();
     });
 
     test('handles async hooks correctly', async () => {
       // Arrange
-      vi.mocked(contextPublisher).mockImplementation((async () => {
+      vi.mocked(handoffPreparer).mockImplementation((async () => {
         await new Promise(resolve => setTimeout(resolve, 10));
         return { continue: true, suppressOutput: true };
       }) as any);
-      vi.mocked(handoffPreparer).mockImplementation((async () => {
+      vi.mocked(feedbackLoop).mockImplementation((async () => {
         await new Promise(resolve => setTimeout(resolve, 5));
         return { continue: true, suppressOutput: true };
       }) as any);
@@ -252,8 +221,8 @@ describe('unified-subagent-stop-dispatcher', () => {
 
       // Assert
       expect(result.continue).toBe(true);
-      expect(contextPublisher).toHaveBeenCalled();
       expect(handoffPreparer).toHaveBeenCalled();
+      expect(feedbackLoop).toHaveBeenCalled();
     });
 
     test('uses Promise.allSettled for parallel execution', async () => {
@@ -467,7 +436,7 @@ describe('unified-subagent-stop-dispatcher', () => {
   describe('error handling and logging', () => {
     test('logs error count when hooks fail', async () => {
       // Arrange
-      vi.mocked(contextPublisher).mockImplementation(() => {
+      vi.mocked(handoffPreparer).mockImplementation(() => {
         throw new Error('Hook 1 failed');
       });
       vi.mocked(feedbackLoop).mockImplementation(() => {
@@ -505,10 +474,8 @@ describe('unified-subagent-stop-dispatcher', () => {
     test('does not log errors when all hooks succeed', async () => {
       // Arrange
       // Reset all hook mocks to succeed
-      vi.mocked(contextPublisher).mockReturnValue({ continue: true, suppressOutput: true });
       vi.mocked(handoffPreparer).mockReturnValue({ continue: true, suppressOutput: true });
       vi.mocked(feedbackLoop).mockReturnValue({ continue: true, suppressOutput: true });
-      vi.mocked(agentMemoryStore).mockReturnValue({ continue: true, suppressOutput: true });
       vi.mocked(logHook).mockClear();
       const input = createSubagentStopInput();
 
@@ -581,7 +548,7 @@ describe('unified-subagent-stop-dispatcher', () => {
 
     test('handles hooks that return promises rejecting', async () => {
       // Arrange
-      vi.mocked(agentMemoryStore).mockRejectedValue(new Error('Async rejection'));
+      vi.mocked(feedbackLoop).mockRejectedValue(new Error('Async rejection'));
       const input = createSubagentStopInput();
 
       // Act
@@ -694,19 +661,11 @@ describe('unified-subagent-stop-dispatcher', () => {
   describe('performance characteristics', () => {
     test('completes within reasonable time even with slow hooks', async () => {
       // Arrange
-      vi.mocked(contextPublisher).mockImplementation((async () => {
-        await new Promise(resolve => setTimeout(resolve, 50));
-        return { continue: true, suppressOutput: true };
-      }) as any);
       vi.mocked(handoffPreparer).mockImplementation((async () => {
         await new Promise(resolve => setTimeout(resolve, 50));
         return { continue: true, suppressOutput: true };
       }) as any);
       vi.mocked(feedbackLoop).mockImplementation((async () => {
-        await new Promise(resolve => setTimeout(resolve, 50));
-        return { continue: true, suppressOutput: true };
-      }) as any);
-      vi.mocked(agentMemoryStore).mockImplementation((async () => {
         await new Promise(resolve => setTimeout(resolve, 50));
         return { continue: true, suppressOutput: true };
       }) as any);

@@ -197,19 +197,13 @@ describe('feedback-loop', () => {
   describe('downstream routing (static mapping)', () => {
     test.each([
       ['market-intelligence', 'product-strategist'],
-      ['product-strategist', 'prioritization-analyst'],
-      ['prioritization-analyst', 'business-case-builder'],
-      ['business-case-builder', 'requirements-translator'],
-      ['requirements-translator', 'metrics-architect'],
-      ['metrics-architect', 'backend-system-architect'],
+      ['product-strategist', 'backend-system-architect'],
       ['backend-system-architect', 'frontend-ui-developer'],
       ['frontend-ui-developer', 'test-generator'],
       ['test-generator', 'security-auditor'],
       ['workflow-architect', 'llm-integrator'],
       ['llm-integrator', 'data-pipeline-engineer'],
       ['data-pipeline-engineer', 'test-generator'],
-      ['rapid-ui-designer', 'frontend-ui-developer'],
-      ['ux-researcher', 'rapid-ui-designer'],
     ])('routes %s to %s', (fromAgent, toAgent) => {
       // Arrange
       const input = createSubagentStopInput(fromAgent, 'Work complete');
@@ -231,16 +225,10 @@ describe('feedback-loop', () => {
     test.each([
       ['market-intelligence', 'product-thinking'],
       ['product-strategist', 'product-thinking'],
-      ['prioritization-analyst', 'product-thinking'],
-      ['business-case-builder', 'product-thinking'],
-      ['requirements-translator', 'specification'],
-      ['metrics-architect', 'specification'],
       ['backend-system-architect', 'architecture'],
       ['database-engineer', 'architecture'],
       ['data-pipeline-engineer', 'architecture'],
       ['frontend-ui-developer', 'frontend'],
-      ['rapid-ui-designer', 'frontend'],
-      ['ux-researcher', 'frontend'],
       ['test-generator', 'quality'],
       ['code-quality-reviewer', 'quality'],
       ['security-auditor', 'security'],

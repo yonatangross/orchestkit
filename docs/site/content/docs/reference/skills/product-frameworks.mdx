@@ -17,11 +17,11 @@ Comprehensive product management frameworks covering business analysis, market i
 | Category | Rules | Impact | When to Use |
 |----------|-------|--------|-------------|
 | [Business & Market](#business--market) | 4 | HIGH | ROI/NPV/IRR calculations, TCO analysis, TAM/SAM/SOM sizing, competitive landscape |
-| [Strategy & Prioritization](#strategy--prioritization) | 4 | HIGH | Value proposition canvas, go/no-go gates, RICE scoring, WSJF ranking |
-| [Metrics & OKRs](#metrics--okrs) | 4 | HIGH | OKR writing, KPI trees, leading/lagging indicators, instrumentation |
+| [Strategy & Prioritization](#strategy--prioritization) | 5 | HIGH | Value proposition canvas, go/no-go gates, RICE scoring, WSJF ranking, opportunity cost |
+| [Metrics & OKRs](#metrics--okrs) | 5 | HIGH | OKR writing, KPI trees, leading/lagging indicators, instrumentation, experiment design |
 | [Research & Requirements](#research--requirements) | 4 | HIGH | User personas, journey maps, interview guides, PRDs |
 
-**Total: 16 rules across 4 categories**
+**Total: 18 rules across 4 categories**
 
 ## Quick Start
 
@@ -58,6 +58,7 @@ Strategic decision frameworks and quantitative prioritization methods.
 - **`strategy-go-no-go`** -- Stage gate criteria, scoring template, decision thresholds
 - **`prioritize-rice`** -- RICE scoring with reach, impact, confidence, effort scales
 - **`prioritize-wsjf`** -- WSJF cost of delay, time criticality, MoSCoW method
+- **`prioritize-opportunity-cost`** -- Opportunity cost matrix, cost of delay analysis, trade-off flagging
 
 ## Metrics & OKRs
 
@@ -67,6 +68,7 @@ Goal-setting and measurement frameworks for metrics-driven teams.
 - **`metrics-kpi-trees`** -- Revenue and product health KPI trees, North Star metric
 - **`metrics-leading-lagging`** -- Leading vs lagging indicators, balanced dashboards
 - **`metrics-instrumentation`** -- Metric definition template, event naming, alerting
+- **`metrics-experiment-design`** -- Experiment design, guardrail metrics, staged rollout plans
 
 ## Research & Requirements
 
@@ -76,6 +78,10 @@ User research methods and requirements documentation patterns.
 - **`research-journey-mapping`** -- Customer journey maps, service blueprints, experience curves
 - **`research-user-interviews`** -- Interview guides, usability testing, surveys, card sorting
 - **`research-requirements-prd`** -- PRD template, user stories, acceptance criteria, INVEST
+
+## Output Templates
+
+Structured JSON output formats for consistent deliverables. Load: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/product-frameworks/references/output-templates.md")` for PRD, business case, metrics framework, prioritization report, and research report templates.
 
 ## Related Skills
 
@@ -87,7 +93,7 @@ User research methods and requirements documentation patterns.
 
 ---
 
-## Rules (16)
+## Rules (18)
 
 ### Perform comprehensive cost-benefit analysis including build vs buy TCO comparisons — HIGH
 
@@ -687,6 +693,126 @@ Conservative SOM: min($3B × 0.5%, $15M) = $15M
 ```
 
 
+### Design experiments with structured hypotheses, guardrail metrics, and staged rollout plans — HIGH
+
+
+# Experiment Design & Guardrail Metrics
+
+Structured experiment patterns extracted from metrics architecture practice. Complements the basic experiment template in `metrics-instrumentation` with deeper guardrail and rollout patterns.
+
+## Experiment Design Template
+
+```markdown
+## Experiment: [Name]
+
+### Hypothesis
+If we [change], then [metric] will [direction] by [amount]
+because [reasoning based on evidence].
+
+### Metrics
+- **Primary:** [The metric you are trying to move]
+- **Secondary:** [Supporting metrics that add context]
+- **Guardrails:** [Metrics that MUST NOT degrade -- see below]
+
+### Design
+- **Type:** A/B test | multivariate | feature flag rollout
+- **Sample size:** [N per variant, calculated for statistical power]
+- **Duration:** [Minimum weeks to reach significance]
+- **Segments:** [User cohorts to analyze separately]
+
+### Success Criteria
+- Primary metric improves by >= [X]% with p < 0.05
+- No guardrail metric degrades by > [threshold]
+- Secondary metrics trend positive or neutral
+
+### Rollout Plan
+1. **10%** -- 1 week canary, monitor guardrails daily
+2. **50%** -- 2 weeks, confirm statistical significance
+3. **100%** -- full rollout with continued monitoring
+```
+
+## Guardrail Metrics Pattern
+
+Guardrails prevent shipping a "win" that causes hidden damage. Every experiment must define guardrails before launch.
+
+### Performance Guardrails
+
+| Guardrail | Threshold | Alert Action |
+|-----------|-----------|--------------|
+| Page load time (p95) | Must not increase > 200ms | Auto-pause experiment |
+| API error rate | Must stay &lt; 0.5% | Page on-call |
+| Client crash rate | Must stay &lt; baseline + 0.1% | Kill switch |
+
+### Business Guardrails
+
+| Guardrail | Threshold | Alert Action |
+|-----------|-----------|--------------|
+| Conversion rate | Must not drop > 2% relative | Escalate to PM |
+| Support ticket volume | Must not increase > 10% | Review UX |
+| Revenue per user | Must not decrease | Escalate to leadership |
+
+### Alert Threshold Template
+
+```markdown
+## Guardrail: [Metric Name]
+
+- **Baseline:** [Current value over last 30 days]
+- **Warning:** [X% degradation from baseline]
+- **Critical:** [Y% degradation -- auto-pause experiment]
+- **Owner:** [Team or person who responds]
+- **Response SLA:** Warning = 24h, Critical = 1h
+```
+
+## North Star Metric Framework
+
+Distinguish between input metrics (actionable, leading) and output metrics (outcome, lagging). Experiments should target input metrics while guarding output metrics.
+
+```
+Output (North Star): Weekly Active Teams
+    |
+    +-- Input: New team signups (acquisition)
+    +-- Input: Teams completing onboarding (activation)
+    +-- Input: Features used per team/week (engagement)
+    +-- Input: Teams inviting members (virality)
+    +-- Input: Teams upgrading to paid (monetization)
+```
+
+### Experiment Targeting
+
+- **Target input metrics** -- they are directly actionable
+- **Guard output metrics** -- they confirm the input metric change translates to real value
+- **Monitor adjacent inputs** -- ensure one input improvement does not cannibalize another
+
+## Pre-Launch Checklist
+
+- [ ] Hypothesis documented with expected effect size
+- [ ] Primary, secondary, and guardrail metrics defined
+- [ ] Sample size calculated for minimum detectable effect
+- [ ] Staged rollout plan with kill criteria at each stage
+- [ ] Dashboard or alerts configured for guardrail metrics
+- [ ] Rollback procedure documented
+
+**Incorrect -- launching without guardrails:**
+```markdown
+Experiment: New checkout flow
+Hypothesis: Will increase conversions
+Plan: Ship to 100% of users on Monday
+Success: Conversions go up
+```
+
+**Correct -- structured experiment with guardrails:**
+```markdown
+Experiment: New checkout flow
+Hypothesis: Reducing steps from 4 to 2 will increase
+  checkout completion by 15% because 60% of users
+  drop off between steps 2 and 3.
+Primary: Checkout completion rate
+Guardrails: Revenue per transaction, refund rate, page load p95
+Rollout: 10% for 1 week, 50% for 2 weeks, 100%
+Kill criteria: Any guardrail degrades > 5% relative
+```
+
+
 ### Instrument metrics with formal definitions, event naming conventions, and alerting thresholds — HIGH
 
 
@@ -1209,6 +1335,138 @@ Key Results:
 - Increase enterprise NPS from 32 to 50
 - Reduce time-to-value from 14 days to 3 days
 - Achieve 95% feature adoption in first 30 days
+```
+
+
+### Evaluate opportunity cost with value-effort matrices, cost of delay analysis, and trade-off flagging — HIGH
+
+
+# Opportunity Cost & Trade-Off Analysis
+
+Patterns for making prioritization decisions that account for what you give up, not just what you gain. Complements RICE and WSJF scoring with opportunity cost reasoning.
+
+## Value-Effort Matrix
+
+A 2x2 matrix for rapid feature sequencing based on expected value and required effort.
+
+```
+               HIGH VALUE
+                   |
+    Do Next        |     Do First
+    (High value,   |     (High value,
+     high effort)  |      low effort)
+                   |
+  -----------------+-----------------
+                   |
+    Consider       |     Quick Win
+    (Low value,    |     (Low value,
+     high effort)  |      low effort)
+                   |
+               LOW VALUE
+  HIGH EFFORT                LOW EFFORT
+```
+
+| Quadrant | Action | Example |
+|----------|--------|---------|
+| **Do First** | Ship immediately -- high ROI | Fix broken onboarding step |
+| **Quick Win** | Batch into next sprint | Add CSV export button |
+| **Do Next** | Plan and resource properly | Platform migration |
+| **Consider** | Challenge whether to do at all | Redesign rarely-used admin page |
+
+### Scoring for Placement
+
+- **Value** (1-10): Combine user impact, strategic alignment, revenue potential
+- **Effort** (1-10): Engineering weeks, cross-team coordination, risk
+- **Threshold**: Value >= 6 is "high value", Effort >= 6 is "high effort"
+
+## Cost of Delay Analysis
+
+Quantify what it costs to NOT do something each time period it is delayed.
+
+```markdown
+## Cost of Delay: [Feature Name]
+
+### Revenue Impact
+- Lost revenue per month of delay: $X
+- Source: [Pipeline data, churn analysis, competitive loss]
+
+### User Impact
+- Users affected: N
+- Workaround cost per user per month: X hours
+
+### Strategic Impact
+- Competitive window closes in: N months
+- Regulatory deadline: [date or N/A]
+
+### Total Cost of Delay
+$X/month (quantified) + [qualitative strategic cost]
+```
+
+### Delay Cost Categories
+
+| Type | How to Estimate | Example |
+|------|-----------------|---------|
+| **Revenue delay** | Pipeline deals blocked by missing feature | $50K/month in stalled deals |
+| **Churn risk** | Customers citing this in exit surveys | 3 enterprise accounts at risk |
+| **Competitive** | Competitor ships first, window shrinks | Market share loss |
+| **Compliance** | Fines or market access loss after deadline | GDPR: $20M max fine |
+| **Compounding** | Delay makes future work harder | Tech debt interest |
+
+## Trade-Off Flagging Template
+
+When two options compete for the same resources, surface the trade-off explicitly for human decision-makers. Do not make the call -- present the data.
+
+```markdown
+## Trade-Off: [Decision Title]
+
+### Context
+[Why this trade-off exists -- shared resources, timeline conflict, etc.]
+
+### Option A: [Name]
+- **Pros:** [List 2-3 concrete benefits with data]
+- **Cons:** [List 2-3 concrete downsides with data]
+- **RICE Score:** [If available]
+- **Cost of Delay:** [$/month]
+
+### Option B: [Name]
+- **Pros:** [List 2-3 concrete benefits with data]
+- **Cons:** [List 2-3 concrete downsides with data]
+- **RICE Score:** [If available]
+- **Cost of Delay:** [$/month]
+
+### Recommendation
+Human decides. Key factors to weigh:
+1. [Factor 1 -- e.g., Q2 OKR alignment]
+2. [Factor 2 -- e.g., team capacity next sprint]
+3. [Factor 3 -- e.g., customer commitment]
+```
+
+## Sequencing Principles
+
+When features have dependencies or shared resources, use these sequencing rules:
+
+1. **Highest cost-of-delay first** -- unless blocked by dependencies
+2. **Unblock others early** -- a low-value enabler that unblocks 3 high-value items ships first
+3. **Reduce risk early** -- unknowns first, known work later (fail fast)
+4. **Batch small items** -- group Quick Wins into a single sprint to clear the backlog
+
+**Incorrect -- prioritizing by gut feel:**
+```markdown
+Priority list:
+1. AI search (CEO wants it)
+2. Dashboard redesign (designer is excited)
+3. CSV import (seems easy)
+```
+
+**Correct -- opportunity cost matrix with explicit trade-offs:**
+```markdown
+Priority list (by cost of delay):
+1. CSV import -- $30K/month blocked deals, 1 week effort (Do First)
+2. AI search -- $25K/month competitive risk, 6 week effort (Do Next)
+3. Dashboard redesign -- $0 cost of delay, nice-to-have (Consider)
+
+Trade-off flagged: AI search vs platform migration for same
+eng team in Q2. See trade-off analysis doc for decision.
 ```
 
 
@@ -2398,7 +2656,7 @@ perfectly timed for your commute"
 
 ---
 
-## References (11)
+## References (12)
 
 ### Build Buy Partner Decision
 
@@ -3196,6 +3454,214 @@ Examples:
 - [ ] Schedule weekly check-ins
 - [ ] Schedule mid-quarter review
 - [ ] Share with stakeholders
+
+
+### Output Templates
+
+# Output Templates
+
+Structured JSON output formats for consistent product deliverables. Each template shows the required structure with 1-2 example entries. Agents and skills producing these artifacts should conform to these schemas.
+
+## PRD Output
+
+From requirements translation workflows.
+
+```json
+{
+  "prd": {
+    "title": "Feature Name",
+    "version": "1.0",
+    "author": "PM Name",
+    "status": "draft",
+    "last_updated": "2026-03-01"
+  },
+  "problem_statement": "One-paragraph description of the user problem being solved.",
+  "solution": "High-level solution approach.",
+  "scope": {
+    "in": ["User authentication via SSO", "Role-based access control"],
+    "out": ["Custom SAML provider", "Mobile biometric auth"]
+  },
+  "user_stories": [
+    {
+      "id": "US-001",
+      "persona": "Team Admin",
+      "story": "As a team admin, I want to invite members via email, so that onboarding is self-service.",
+      "acceptance_criteria": [
+        "Invite email sent within 30 seconds",
+        "Invited user can set password on first visit",
+        "Admin sees pending/accepted status"
+      ],
+      "priority": "must-have"
+    }
+  ],
+  "edge_cases": ["User invited to multiple teams simultaneously", "Expired invite link reuse"],
+  "non_functional": {
+    "performance": "Invite flow completes in < 2s p95",
+    "security": "Invite tokens expire after 72 hours",
+    "accessibility": "WCAG 2.1 AA"
+  },
+  "github_issues_to_create": [
+    { "title": "Implement SSO invite flow", "labels": ["feature", "auth"], "estimate": "3d" }
+  ]
+}
+```
+
+## Business Case Output
+
+From business case analysis workflows.
+
+```json
+{
+  "investment_summary": {
+    "total_investment": "$150,000",
+    "expected_return": "$450,000",
+    "payback_period": "8 months",
+    "roi": "200%",
+    "confidence": "medium"
+  },
+  "cost_breakdown": [
+    { "category": "Engineering", "amount": "$100,000", "type": "one-time" },
+    { "category": "Infrastructure", "amount": "$2,000/mo", "type": "recurring" }
+  ],
+  "benefit_projection": [
+    { "benefit": "Support ticket reduction", "annual_value": "$180,000", "confidence": "high" },
+    { "benefit": "Upsell conversion lift", "annual_value": "$270,000", "confidence": "medium" }
+  ],
+  "sensitivity_analysis": {
+    "conservative": { "roi": "80%", "payback": "14 months" },
+    "base": { "roi": "200%", "payback": "8 months" },
+    "optimistic": { "roi": "350%", "payback": "5 months" }
+  },
+  "risks": [
+    { "risk": "Integration delays", "probability": "medium", "impact": "high", "mitigation": "Prototype first" }
+  ],
+  "recommendation": "Proceed with phased rollout. Break-even achieved under conservative scenario."
+}
+```
+
+## Metrics Framework Output
+
+From metrics architecture workflows.
+
+```json
+{
+  "okrs": [
+    {
+      "objective": "Improve activation rate for new teams",
+      "key_results": [
+        { "kr": "Increase Day-7 activation from 40% to 60%", "owner": "Growth" },
+        { "kr": "Reduce time-to-first-value from 3 days to 1 day", "owner": "Product" }
+      ]
+    }
+  ],
+  "kpis": {
+    "leading": ["Daily signups", "Onboarding completion rate", "Feature adoption in week 1"],
+    "lagging": ["Monthly revenue", "Net retention rate", "Customer lifetime value"]
+  },
+  "instrumentation_plan": [
+    {
+      "event": "onboarding_step_completed",
+      "properties": ["step_name", "duration_seconds", "skipped"],
+      "trigger": "User completes or skips an onboarding step"
+    }
+  ],
+  "hypothesis_validation": {
+    "hypothesis": "Guided onboarding increases Day-7 activation by 20%",
+    "primary_metric": "day_7_activation_rate",
+    "guardrail_metrics": ["support_ticket_volume", "onboarding_drop_off_rate"]
+  },
+  "guardrail_metrics": ["Page load time p95 < 2s", "Error rate < 0.1%", "Support tickets per 1000 users < 5"],
+  "review_cadence": "Weekly metrics review, monthly OKR check-in, quarterly strategy review"
+}
+```
+
+## Prioritization Report Output
+
+From prioritization analysis workflows.
+
+```json
+{
+  "scored_features": [
+    {
+      "feature": "AI-powered search",
+      "reach": 8,
+      "impact": 2.0,
+      "confidence": 0.8,
+      "effort": 3,
+      "rice_score": 4.27,
+      "notes": "Prototype tested with 5 users"
+    },
+    {
+      "feature": "CSV bulk import",
+      "reach": 4,
+      "impact": 1.0,
+      "confidence": 1.0,
+      "effort": 1,
+      "rice_score": 4.0,
+      "notes": "Top support request"
+    }
+  ],
+  "opportunity_cost_analysis": [
+    { "if_delayed": "AI-powered search", "cost_per_month": "$25,000 in lost conversions" }
+  ],
+  "dependencies": [
+    { "feature": "AI-powered search", "depends_on": ["Search indexing upgrade"] }
+  ],
+  "trade_offs_for_human": [
+    {
+      "decision": "AI search vs bulk import first",
+      "option_a": { "pros": ["Higher RICE", "Competitive differentiator"], "cons": ["3x effort", "Dependency risk"] },
+      "option_b": { "pros": ["Quick win", "No dependencies"], "cons": ["Lower strategic value"] },
+      "recommendation": "Human decides based on Q2 OKR alignment"
+    }
+  ],
+  "recommended_sequence": ["CSV bulk import", "Search indexing upgrade", "AI-powered search"]
+}
+```
+
+## Research Report Output
+
+From user research workflows.
+
+```json
+{
+  "personas": [
+    {
+      "name": "Alex the Admin",
+      "role": "IT Administrator",
+      "goals": ["Reduce onboarding time", "Maintain security compliance"],
+      "pain_points": ["Manual user provisioning", "No audit trail"],
+      "behaviors": ["Checks admin dashboard daily", "Prefers CLI over GUI"],
+      "quotes": ["I spend 2 hours a week just adding new users."]
+    }
+  ],
+  "journey_map": [
+    {
+      "stage": "Onboarding",
+      "steps": [
+        {
+          "action": "Receives invite email",
+          "thinking": "Is this legitimate?",
+          "feeling": "cautious",
+          "pain_points": ["Generic email looks like spam"],
+          "opportunities": ["Branded email with admin's name"]
+        }
+      ]
+    }
+  ],
+  "user_stories": [
+    "As an IT admin, I want SCIM provisioning, so that user accounts sync automatically."
+  ],
+  "metrics": {
+    "task_success_rate": "85%",
+    "time_on_task": "4.2 minutes",
+    "satisfaction_score": "3.8/5"
+  },
+  "recommendations": [
+    { "priority": "high", "finding": "Onboarding email mistaken for spam", "action": "Add company branding and admin name" }
+  ]
+}
+```
 
 
 ### Rice Scoring Guide
@@ -4385,7 +4851,7 @@ Quality gate for Product Requirements Documents.
 
 ## Success Metrics
 
-- [ ] Metrics linked to requirements-translator or metrics-architect
+- [ ] Metrics linked to requirements with clear ownership
 - [ ] Baseline established
 - [ ] Target defined
 - [ ] Measurement method clear

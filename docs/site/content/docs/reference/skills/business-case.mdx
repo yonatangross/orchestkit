@@ -1,0 +1,703 @@
+---
+title: "Business Case"
+description: "ROI, NPV, IRR, payback period, and TCO calculations for investment decisions. Use when building financial justification, cost-benefit analysis, build-vs-buy comparisons, or sensitivity analysis."
+---
+
+<span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
+
+**Primary Agent:** [product-strategist](/docs/reference/agents/product-strategist)
+
+
+# Business Case
+
+Financial frameworks for investment justification and decision support.
+
+## When to Use Each Framework
+
+| Framework | Use When |
+|-----------|----------|
+| **ROI** | Quick sanity check; time value of money doesn't matter much |
+| **NPV** | Multi-year investments; gold standard for GO/NO-GO |
+| **IRR** | Comparing projects competing for the same budget |
+| **Payback Period** | Leadership asks "how fast do we break even?" |
+| **TCO** | Build vs. buy; total cost including hidden/ongoing costs |
+| **Sensitivity Analysis** | High uncertainty; need to stress-test assumptions |
+
+## Decision Tree
+
+```
+Is the investment multi-year?
+  YES → Use NPV (+ IRR to compare alternatives)
+  NO  → ROI is sufficient
+
+Is this a build vs. buy decision?
+  YES → TCO comparison across all three options
+  NO  → Skip TCO, use NPV/ROI
+
+Are assumptions uncertain?
+  YES → Add sensitivity analysis (3 scenarios)
+  NO  → Base case only
+```
+
+## Quick Reference Formulas
+
+```
+ROI = (Net Benefits - Total Costs) / Total Costs × 100%
+
+NPV = Sum(Cash Flow_t / (1 + r)^t) - Initial Investment
+  r = discount rate (10% enterprise, 15-20% growth, 25-40% startup)
+  Decision: Accept if NPV > 0
+
+IRR = discount rate where NPV = 0
+  Decision: Accept if IRR > hurdle rate
+
+Payback Period = Initial Investment / Annual Cash Flow
+  Benchmarks: SaaS 6-12 mo, Enterprise platform 12-24 mo, Infra 24-36 mo
+
+TCO = CAPEX + (OPEX × years) + Opportunity Cost + Hidden Costs
+```
+
+## Business Case Template
+
+```markdown
+# Business Case: [Project Name]
+
+## Executive Summary
+[2-3 sentences: what we're investing in and expected return]
+
+## Financial Analysis
+
+### Investment Required
+| Item | One-Time | Annual |
+|------|----------|--------|
+| Development | $X | |
+| License / SaaS | | $X |
+| Implementation | $X | |
+| Training | $X | |
+| Maintenance | | $X |
+| **Total** | **$X** | **$X** |
+
+### Expected Benefits
+| Benefit | Annual Value | Confidence |
+|---------|--------------|------------|
+| Time savings (X hrs × $Y/hr) | $X | High |
+| Error reduction | $X | Medium |
+| Revenue uplift | $X | Low |
+| **Total** | **$X** | |
+
+### Key Metrics
+| Metric | Value |
+|--------|-------|
+| 3-Year TCO | $X |
+| NPV (10% discount) | $X |
+| IRR | X% |
+| Payback Period | X months |
+| ROI | X% |
+
+## Sensitivity Analysis
+| Scenario | Discount Rate | Year 1 Benefits | NPV |
+|----------|---------------|-----------------|-----|
+| Base case | 10% | $X | $X |
+| Conservative | 15% | $X × 0.75 | $X |
+| Optimistic | 8% | $X × 1.25 | $X |
+
+## Risk Analysis
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| | | | |
+
+## Recommendation
+[GO / NO-GO] — [one-sentence rationale]
+```
+
+## TCO: Build vs. Buy vs. Partner
+
+See [rules/business-cost-benefit.md](rules/business-cost-benefit.md) for the full 3-year TCO template and hidden cost checklist.
+
+Key hidden costs to never omit:
+
+| Category | Build | Buy |
+|----------|-------|-----|
+| Opportunity cost | Yes — team blocked from other work | No |
+| Switching costs | N/A | Yes — vendor lock-in |
+| Downtime risk | You own uptime | Partial SLA coverage |
+| Security/compliance | Your responsibility | Shared |
+
+## Common Pitfalls
+
+| Pitfall | Mitigation |
+|---------|------------|
+| Simple ROI without time value | Always use NPV for multi-year decisions |
+| Ignoring soft costs (training, change mgmt) | Add 30% buffer to implementation estimates |
+| Optimistic benefit estimates | Use conservative estimates, document assumptions |
+| Sunk cost included in forward analysis | Evaluate future costs/benefits only |
+| No sensitivity analysis | Always test conservative + optimistic scenarios |
+
+## References
+
+- [ROI & Financial Metrics](rules/business-roi.md) — NPV, IRR, payback period formulas with code examples
+- [Cost-Benefit & TCO](rules/business-cost-benefit.md) — Build vs. buy TCO template, hidden costs, sensitivity analysis
+- [ROI Calculation Guide](references/roi-calculation-guide.md) — Detailed cost breakdown (CAPEX/OPEX/opportunity cost)
+- [Build-Buy-Partner Decision](references/build-buy-partner-decision.md) — Scoring matrix across 5 dimensions
+
+## Related Skills
+
+- `ork:market-sizing` — Size the opportunity before building the business case
+- `ork:competitive-analysis` — Assess competitive context and moat for the investment
+- `ork:product-frameworks` — Full product strategy toolkit (prioritization, OKRs, personas)
+
+---
+
+Version: 1.0.0
+
+
+---
+
+## Rules (2)
+
+### Perform comprehensive cost-benefit analysis including build vs buy TCO comparisons — HIGH
+
+
+# Cost-Benefit & Total Cost of Ownership
+
+## Build vs. Buy TCO Comparison
+
+```markdown
+## Build Option (3-Year TCO)
+
+### Year 1
+| Category | Cost |
+|----------|------|
+| Development team (4 FTEs x $150K) | $600,000 |
+| Infrastructure setup | $50,000 |
+| Tools & licenses | $20,000 |
+| **Year 1 Total** | **$670,000** |
+
+### Year 2-3 (Maintenance)
+| Category | Annual Cost |
+|----------|-------------|
+| Maintenance team (2 FTEs) | $300,000 |
+| Infrastructure | $60,000 |
+| Technical debt | $50,000 |
+| **Annual Total** | **$410,000** |
+
+### 3-Year Build TCO: $1,490,000
+
+---
+
+## Buy Option (3-Year TCO)
+
+| Category | Annual Cost |
+|----------|-------------|
+| SaaS license (100 users x $500) | $50,000 |
+| Implementation (Year 1 only) | $100,000 |
+| Training | $20,000 |
+| Integration maintenance | $30,000 |
+| **Year 1** | **$200,000** |
+| **Year 2-3** | **$100,000/year** |
+
+### 3-Year Buy TCO: $400,000
+```
+
+## Hidden Costs to Include
+
+| Category | Build | Buy |
+|----------|-------|-----|
+| Opportunity cost | Yes - team could work on other things | No |
+| Learning curve | Yes - building expertise | Yes - learning vendor |
+| Switching costs | N/A | Yes - vendor lock-in |
+| Downtime risk | Yes - you own uptime | Partial - SLA coverage |
+| Security/compliance | Yes - your responsibility | Shared - vendor handles some |
+
+## Business Case Template
+
+```markdown
+# Business Case: [Project Name]
+
+## Executive Summary
+[2-3 sentence summary of investment and expected return]
+
+## Financial Analysis
+
+### Investment Required
+| Item | One-Time | Annual |
+|------|----------|--------|
+| Software license | | $X |
+| Implementation | $X | |
+| Training | $X | |
+| Integration | $X | $X |
+| **Total** | **$X** | **$X** |
+
+### Expected Benefits
+| Benefit | Annual Value | Confidence |
+|---------|--------------|------------|
+| Time savings (X hrs x $Y/hr) | $X | High |
+| Error reduction | $X | Medium |
+| Revenue increase | $X | Low |
+| **Total** | **$X** | |
+
+### Key Metrics
+| Metric | Value |
+|--------|-------|
+| 3-Year TCO | $X |
+| 3-Year Benefits | $X |
+| NPV (10% discount) | $X |
+| IRR | X% |
+| Payback Period | X months |
+| ROI | X% |
+
+## Risk Analysis
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| | | | |
+
+## Recommendation
+[GO / NO-GO with rationale]
+```
+
+## Sensitivity Analysis
+
+Test how results change with different assumptions.
+
+| Scenario | Discount Rate | Year 1 Benefits | NPV |
+|----------|---------------|-----------------|-----|
+| Base case | 10% | $200,000 | $258,157 |
+| Conservative | 15% | $150,000 | $102,345 |
+| Optimistic | 8% | $250,000 | $412,890 |
+| Pessimistic | 12% | $120,000 | $32,456 |
+
+## Cost Breakdown Framework
+
+### One-Time Costs (CAPEX)
+
+```
+Development Costs
++-- Engineering hours x hourly rate
++-- Design/UX hours x hourly rate
++-- QA/Testing hours x hourly rate
++-- Project management overhead (15-20%)
++-- Infrastructure setup
+```
+
+### Recurring Costs (OPEX)
+
+```
+Operational Costs (Annual)
++-- Infrastructure (hosting, compute)
++-- Maintenance (10-20% of dev cost)
++-- Support (tickets x cost/ticket)
++-- Monitoring/observability
++-- Security/compliance
+```
+
+**Incorrect — Ignoring hidden costs and opportunity cost:**
+```markdown
+## Cost Analysis
+Total development cost: $500,000
+Expected benefit: $1M over 3 years
+ROI: 100% - APPROVED
+```
+
+**Correct — Comprehensive TCO with hidden costs:**
+```markdown
+## 3-Year TCO Analysis
+Development: $500,000
+Maintenance (Years 2-3): $300,000/year = $600,000
+Opportunity cost (team could build $800K revenue feature): $800,000
+Total TCO: $1,900,000
+
+Benefits: $1,000,000
+Net: -$900,000 - REJECTED
+```
+
+
+### Calculate accurate financial metrics using NPV, IRR, and ROI with time value — HIGH
+
+
+# ROI & Financial Metrics
+
+Financial frameworks for justifying investments and evaluating projects.
+
+## Return on Investment (ROI)
+
+```
+ROI = (Net Benefits - Total Costs) / Total Costs x 100%
+```
+
+**Example:**
+```
+Project cost: $500,000
+Annual benefits: $200,000 over 5 years
+
+Total benefits: $1,000,000
+ROI = ($1,000,000 - $500,000) / $500,000 x 100% = 100%
+```
+
+**Limitation:** Does not account for time value of money.
+
+## Net Present Value (NPV)
+
+Gold standard for project evaluation -- discounts future cash flows to present value.
+
+```
+NPV = Sum(Cash Flow_t / (1 + r)^t) - Initial Investment
+```
+
+```python
+def calculate_npv(
+    initial_investment: float,
+    cash_flows: list[float],
+    discount_rate: float = 0.10  # 10% typical
+) -> float:
+    npv = -initial_investment
+    for t, cf in enumerate(cash_flows, start=1):
+        npv += cf / ((1 + discount_rate) ** t)
+    return npv
+
+# Example: $500K investment, $200K/year for 5 years
+npv = calculate_npv(500_000, [200_000] * 5, 0.10)
+# NPV = $258,157 (positive = good investment)
+```
+
+**Decision Rule:**
+- NPV > 0: Accept (creates value)
+- NPV &lt; 0: Reject (destroys value)
+- NPV = 0: Indifferent
+
+## Internal Rate of Return (IRR)
+
+The discount rate at which NPV equals zero.
+
+```python
+def calculate_irr(cash_flows: list[float]) -> float:
+    """cash_flows[0] is initial investment (negative)"""
+    from scipy.optimize import brentq
+
+    def npv_at_rate(r):
+        return sum(cf / (1 + r) ** t for t, cf in enumerate(cash_flows))
+
+    return brentq(npv_at_rate, -0.99, 10.0)
+
+# Example: -$500K initial, then $200K/year for 5 years
+irr = calculate_irr([-500_000, 200_000, 200_000, 200_000, 200_000, 200_000])
+# IRR ~ 28.6%
+```
+
+**Decision Rule:**
+- IRR > hurdle rate: Accept
+- IRR &lt; hurdle rate: Reject
+
+**Typical Hurdle Rates:**
+- Conservative enterprise: 10-12%
+- Growth company: 15-20%
+- Startup: 25-40%
+
+## Payback Period
+
+```
+Payback Period = Initial Investment / Annual Cash Flow
+```
+
+**Typical Expectations:**
+- SaaS investments: 6-12 months
+- Enterprise platforms: 12-24 months
+- Infrastructure: 24-36 months
+
+## Common Pitfalls
+
+| Pitfall | Mitigation |
+|---------|------------|
+| Overestimating benefits | Use conservative estimates, document assumptions |
+| Ignoring soft costs | Include training, change management, productivity dip |
+| Underestimating timeline | Add 30-50% buffer to implementation estimates |
+| Sunk cost fallacy | Evaluate future costs/benefits only |
+| Confirmation bias | Have skeptic review the case |
+
+**Incorrect — Using simple ROI without time value of money:**
+```markdown
+Investment: $500,000
+Total benefits over 5 years: $1,000,000
+ROI = ($1M - $500K) / $500K = 100% - APPROVED
+```
+
+**Correct — Using NPV to account for time value:**
+```python
+npv = calculate_npv(
+    initial_investment=500_000,
+    cash_flows=[200_000] * 5,
+    discount_rate=0.10
+)
+# NPV = $258,157 (positive, but much less than naive ROI)
+# Accept if NPV > 0 and meets hurdle rate
+```
+
+
+
+---
+
+## References (2)
+
+### Build Buy Partner Decision
+
+# Build vs Buy vs Partner Decision Framework
+
+Systematic approach for evaluating capability acquisition options.
+
+## Decision Matrix
+
+| Factor | BUILD | BUY | PARTNER |
+|--------|-------|-----|---------|
+| **Core differentiator?** | ✅ Yes | ❌ No | ⚠️ Maybe |
+| **Competitive advantage?** | ✅ Yes | ❌ No | ⚠️ Depends |
+| **In-house expertise?** | ✅ Have | ❌ Lack | ⚠️ Some |
+| **Time to market critical?** | ❌ Slow | ✅ Fast | ✅ Fast |
+| **Budget constrained?** | ❌ Higher upfront | ✅ Lower upfront | ⚠️ Varies |
+| **Long-term control needed?** | ✅ Full | ❌ Limited | ⚠️ Negotiated |
+| **Customization required?** | ✅ Full | ⚠️ Limited | ⚠️ Depends |
+
+## Scoring Template
+
+```markdown
+## Build vs Buy vs Partner: [Capability Name]
+
+### Scoring (1-5 each dimension)
+
+| Dimension | BUILD | BUY | PARTNER |
+|-----------|-------|-----|---------|
+| Strategic Importance | | | |
+| Capability Maturity | | | |
+| Time to Value | | | |
+| Total Cost (3yr) | | | |
+| Risk Level | | | |
+| **TOTAL** | | | |
+
+### Recommendation: [BUILD/BUY/PARTNER]
+
+### Rationale:
+[Explain the decision]
+
+### Conditions:
+- [ ] [Condition 1]
+- [ ] [Condition 2]
+```
+
+## Cost Considerations
+
+### BUILD Costs
+- Development (engineering time)
+- Opportunity cost (what else could be built)
+- Maintenance (10-20% annual)
+- Infrastructure
+- Hiring/training
+
+### BUY Costs
+- License/subscription fees
+- Integration development
+- Vendor lock-in risk
+- Customization limitations
+- Annual price increases
+
+### PARTNER Costs
+- Revenue share
+- Dependency risk
+- Integration complexity
+- Coordination overhead
+- Brand association risk
+
+## Decision Tree
+
+```
+Is this a core differentiator?
+├── YES → BUILD (protects competitive advantage)
+└── NO → Is there a mature solution available?
+         ├── YES → BUY (fastest time to value)
+         └── NO → Is there a strategic partner?
+                  ├── YES → PARTNER (shared risk/reward)
+                  └── NO → BUILD (must create capability)
+```
+
+## Red Flags by Option
+
+### BUILD Red Flags
+- No in-house expertise
+- Underestimated complexity
+- "We can do it better"
+- Core expertise elsewhere
+
+### BUY Red Flags
+- Heavy customization needed
+- Vendor lock-in concerns
+- Poor vendor track record
+- Integration nightmares
+
+### PARTNER Red Flags
+- Misaligned incentives
+- Competitor partnerships
+- Unclear value split
+- Dependency on partner roadmap
+
+## 2026 Best Practices
+
+- Revisit decisions quarterly (market changes fast)
+- Consider AI/ML tool availability before building
+- Evaluate open-source alternatives
+- Factor in security/compliance requirements
+- Include exit strategy in evaluation
+
+
+### Roi Calculation Guide
+
+# ROI Calculation Guide
+
+Comprehensive guide for calculating Return on Investment for product decisions.
+
+## Basic ROI Formula
+
+```
+ROI = ((Net Benefit) / Total Investment) × 100%
+
+Net Benefit = Total Benefits - Total Costs
+```
+
+## Detailed Cost Breakdown
+
+### One-Time Costs (CAPEX)
+
+```
+Development Costs
+├── Engineering hours × hourly rate
+├── Design/UX hours × hourly rate
+├── QA/Testing hours × hourly rate
+├── Project management overhead (15-20%)
+└── Infrastructure setup
+
+Example:
+- 4 engineers × 40 hrs/week × 4 weeks × $100/hr = $64,000
+- 1 designer × 40 hrs/week × 2 weeks × $90/hr = $7,200
+- QA (20% of eng) = $12,800
+- PM overhead (15%) = $12,600
+Total Development: $96,600
+```
+
+### Recurring Costs (OPEX)
+
+```
+Operational Costs (Annual)
+├── Infrastructure (hosting, compute)
+├── Maintenance (10-20% of dev cost)
+├── Support (tickets × cost/ticket)
+├── Monitoring/observability
+└── Security/compliance
+
+Example:
+- Infrastructure: $12,000/year
+- Maintenance (15%): $14,490/year
+- Support: 50 tickets/month × $20 = $12,000/year
+Total Annual: $38,490
+```
+
+### Opportunity Costs
+
+What else could we do with these resources?
+
+- Delayed features (revenue impact)
+- Team context switching
+- Technical debt not addressed
+- Market timing missed
+
+## Benefit Categories
+
+### Quantifiable Revenue Benefits
+
+```
+Revenue Benefits
+├── New customer acquisition
+│   └── New customers × ARPU × 12 months
+├── Upsell/expansion
+│   └── Existing customers × upsell rate × additional ARPU
+├── Reduced churn
+│   └── Customers retained × ARPU × months retained
+└── Price increase enablement
+    └── Customers × price increase
+```
+
+### Quantifiable Cost Savings
+
+```
+Cost Savings
+├── Reduced support tickets
+│   └── Tickets reduced × cost/ticket
+├── Faster onboarding
+│   └── Time saved × support hourly rate
+├── Automation savings
+│   └── Hours automated × employee hourly rate
+└── Infrastructure efficiency
+    └── Resources freed × cost
+```
+
+### Intangible Benefits
+
+Document but don't include in ROI calculation:
+- Market positioning
+- Developer experience
+- Brand/reputation
+- Technical foundation for future features
+
+## Example ROI Calculation
+
+```markdown
+## Investment: Search Feature Improvement
+
+### Costs (3-Year Total)
+| Category | Year 1 | Year 2 | Year 3 | Total |
+|----------|--------|--------|--------|-------|
+| Development | $96,600 | $0 | $0 | $96,600 |
+| Infrastructure | $12,000 | $12,600 | $13,230 | $37,830 |
+| Maintenance | $14,490 | $15,215 | $15,975 | $45,680 |
+| **Total Costs** | $123,090 | $27,815 | $29,205 | **$180,110** |
+
+### Benefits (3-Year Total)
+| Category | Year 1 | Year 2 | Year 3 | Total |
+|----------|--------|--------|--------|-------|
+| New Revenue | $120,000 | $180,000 | $240,000 | $540,000 |
+| Cost Savings | $36,000 | $42,000 | $48,000 | $126,000 |
+| **Total Benefits** | $156,000 | $222,000 | $288,000 | **$666,000** |
+
+### ROI Calculation
+- Total Investment: $180,110
+- Total Benefits: $666,000
+- Net Benefit: $485,890
+- ROI: (485,890 / 180,110) × 100% = **270%**
+- Payback Period: $180,110 / ($666,000/36 months) = **9.7 months**
+```
+
+## Payback Period
+
+```
+Payback Period = Total Investment / Monthly Net Benefit
+
+Good: < 12 months
+Acceptable: 12-24 months
+Risky: > 24 months
+```
+
+## Sensitivity Analysis
+
+Always calculate three scenarios:
+
+| Scenario | Assumption | ROI |
+|----------|------------|-----|
+| Conservative (P10) | 50% of expected benefits | X% |
+| Base Case (P50) | Expected benefits | Y% |
+| Optimistic (P90) | 150% of expected benefits | Z% |
+
+## Common Mistakes
+
+| Mistake | Correction |
+|---------|------------|
+| Forgetting opportunity cost | Include what else could be built |
+| Single-point estimates | Use ranges and scenarios |
+| Ignoring maintenance | Add 10-20% annually |
+| Counting intangibles | Keep separate from hard ROI |
+| Not discounting future | Apply discount rate for NPV |
+

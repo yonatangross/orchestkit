@@ -312,6 +312,26 @@ describe('lifecycle/sync-session-dispatcher', () => {
   });
 
   // -------------------------------------------------------------------------
+  // Plugin root injection (#961)
+  // -------------------------------------------------------------------------
+
+  describe('plugin root injection', () => {
+    it('injects CLAUDE_PLUGIN_ROOT into systemMessage when plugin_root is set', () => {
+      const input = createSessionStartInput({ plugin_root: '/path/to/plugin' } as Partial<HookInput>);
+      const result = syncSessionDispatcher(input);
+
+      expect(result.systemMessage).toContain('CLAUDE_PLUGIN_ROOT=/path/to/plugin');
+    });
+
+    it('does not inject when plugin_root is absent', () => {
+      const input = createSessionStartInput();
+      const result = syncSessionDispatcher(input);
+
+      expect(result.systemMessage ?? '').not.toContain('CLAUDE_PLUGIN_ROOT');
+    });
+  });
+
+  // -------------------------------------------------------------------------
   // Logging
   // -------------------------------------------------------------------------
 

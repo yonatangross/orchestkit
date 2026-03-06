@@ -98,7 +98,7 @@ Before loading files, estimate whether the codebase fits in context.
 
 ```bash
 # Use the estimation script
-bash ${CLAUDE_PLUGIN_ROOT}/src/skills/audit-full/scripts/estimate-tokens.sh /path/to/project
+bash ${CLAUDE_PLUGIN_ROOT}/skills/audit-full/scripts/estimate-tokens.sh /path/to/project
 ```
 
 ### Manual Estimation Rules
@@ -203,7 +203,7 @@ With codebase loaded, perform the selected audit mode(s).
 
 ### Security Audit
 
-See `references/security-audit-guide.md` for the full checklist.
+Load: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/audit-full/references/security-audit-guide.md")` for the full checklist.
 
 Key cross-file analysis patterns:
 1. **Data flow tracing**: Track user input from entry point → processing → storage
@@ -214,7 +214,7 @@ Key cross-file analysis patterns:
 
 ### Architecture Review
 
-See `references/architecture-review-guide.md` for the full guide.
+Load: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/audit-full/references/architecture-review-guide.md")` for the full guide.
 
 Key analysis patterns:
 1. **Dependency direction**: Verify imports flow inward (clean architecture)
@@ -225,7 +225,7 @@ Key analysis patterns:
 
 ### Dependency Audit
 
-See `references/dependency-audit-guide.md` for the full guide.
+Load: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/audit-full/references/dependency-audit-guide.md")` for the full guide.
 
 Key analysis patterns:
 1. **Known CVEs**: Check versions against known vulnerabilities
@@ -238,7 +238,7 @@ Key analysis patterns:
 
 ## STEP 4: Generate Report
 
-Use the report template from `assets/audit-report-template.md`.
+Load the report template: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/audit-full/assets/audit-report-template.md")`.
 
 ### Report Structure
 
@@ -270,11 +270,11 @@ Use the report template from `assets/audit-report-template.md`.
 
 ### Severity Classification
 
-See `assets/severity-matrix.md` for classification criteria.
+Load: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/audit-full/assets/severity-matrix.md")` for classification criteria.
 
 ### Completion Checklist
 
-Before finalizing the report, verify with `checklists/audit-completion.md`.
+Before finalizing the report, verify with `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/audit-full/checklists/audit-completion.md")`.
 
 ---
 
@@ -300,14 +300,17 @@ Before finalizing the report, verify with `checklists/audit-completion.md`.
 
 ## References
 
-- [Security Audit Guide](references/security-audit-guide.md) — Cross-file vulnerability patterns
-- [Architecture Review Guide](references/architecture-review-guide.md) — Pattern and coupling analysis
-- [Dependency Audit Guide](references/dependency-audit-guide.md) — CVE, license, currency checks
-- [Token Estimation](references/token-estimation.md) — File type ratios and budget planning
-- [Audit Report Template](assets/audit-report-template.md) — Structured output format
-- [Severity Matrix](assets/severity-matrix.md) — Finding classification criteria
-- [Audit Completion Checklist](checklists/audit-completion.md) — Pre-report verification
-- [Token Estimation Script](scripts/estimate-tokens.sh) — Automated LOC → token estimation
+Load on demand with `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/audit-full/references/&lt;file&gt;")`:
+| File | Content |
+|------|---------|
+| `references/security-audit-guide.md` | Cross-file vulnerability patterns |
+| `references/architecture-review-guide.md` | Pattern and coupling analysis |
+| `references/dependency-audit-guide.md` | CVE, license, currency checks |
+| `references/token-estimation.md` | File type ratios and budget planning |
+| `assets/audit-report-template.md` | Structured output format |
+| `assets/severity-matrix.md` | Finding classification criteria |
+| `checklists/audit-completion.md` | Pre-report verification |
+| `scripts/estimate-tokens.sh` | Automated LOC to token estimation |
 
 
 ---

@@ -30,9 +30,9 @@ skills:
 hooks:
   PreToolUse:
     - matcher: "Write|Edit"
-      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs agent/block-writes"
+      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs agent/block-writes"
     - matcher: "Bash"
-      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs agent/restrict-bash"
+      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs agent/restrict-bash"
 mcpServers: [tavily]
 ---
 ## Directive
@@ -210,7 +210,7 @@ Read the specific file before advising. Do NOT rely on training data.
 |IMPORTANT: Read the specific SKILL.md file before advising on any topic.
 |Do NOT rely on training data for framework patterns.
 |
-|product-frameworks:{SKILL.md,references/{build-buy-partner-decision.md,competitive-analysis-guide.md,interview-guide-template.md,journey-map-workshop.md,okr-workshop-guide.md,rice-scoring-guide.md,roi-calculation-guide.md,tam-sam-som-guide.md,user-story-workshop-guide.md,value-prop-canvas-guide.md,wsjf-guide.md}}|product,strategy,business-case,market-analysis,prioritization,okr,kpi,persona,requirements,user-research,rice,prd
+|product-frameworks:{SKILL.md,references/{build-buy-partner-decision.md,competitive-analysis-guide.md,interview-guide-template.md,journey-map-workshop.md,okr-workshop-guide.md,output-templates.md,rice-scoring-guide.md,roi-calculation-guide.md,tam-sam-som-guide.md,user-story-workshop-guide.md,value-prop-canvas-guide.md,wsjf-guide.md}}|product,strategy,business-case,market-analysis,prioritization,okr,kpi,persona,requirements,user-research,rice,prd
 |github-operations:{SKILL.md,references/{cli-vs-api-identifiers.md,graphql-api.md,issue-management.md,milestone-api.md,pr-workflows.md,projects-v2.md}}|github,gh,cli,issues,pr,milestones,projects,api
 |remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory
 |memory:{SKILL.md,references/{memory-commands.md,mermaid-patterns.md,session-resume-patterns.md}}|memory,graph,session,context,sync,visualization,history,search

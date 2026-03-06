@@ -15,11 +15,9 @@ export * from './lib/guards.js';
 
 // Re-export orchestration modules (Issue #197)
 export * from './lib/orchestration-types.js';
-export * from './lib/intent-classifier.js';
 export * from './lib/orchestration-state.js';
 export * from './lib/task-integration.js';
 export * from './lib/retry-manager.js';
-export * from './lib/calibration-engine.js';
 export * from './lib/multi-agent-coordinator.js';
 
 // Re-export decision history module (Issues #203, #206, #207, #208)
@@ -95,26 +93,25 @@ import { structureLocationValidator } from './skill/structure-location-validator
 import { testLocationValidator } from './skill/test-location-validator.js';
 import { testPatternValidator } from './skill/test-pattern-validator.js';
 import { testRunner } from './skill/test-runner.js';
+// once:true context loaders (CC 2.1.69)
+import { prContextLoader, issueContextLoader, commitConventionLoader, releaseStateLoader } from './skill/context-loaders-git.js';
+import { repoStructureIndexer, testFrameworkDetector, projectConventionLoader, doctorEnvSnapshot, setupEnvDetector, priorDecisionsLoader, assessmentBaselineLoader, qualityBaselineLoader } from './skill/context-loaders-env.js';
 
 // Prompt hooks (UserPromptSubmit)
 import { antipatternDetector } from './prompt/antipattern-detector.js';
 import { antipatternWarning } from './prompt/antipattern-warning.js';
 import { handoffInjector } from './prompt/handoff-injector.js';
-import { memoryContext } from './prompt/memory-context.js';
-import { satisfactionDetector } from './prompt/satisfaction-detector.js';
 import { todoEnforcer } from './prompt/todo-enforcer.js';
 // Routing hooks removed — replaced by passive index (passive-index-migration)
 import { pipelineDetector } from './prompt/pipeline-detector.js';
 
-// SubagentStart hooks (5)
-import { graphMemoryInject } from './subagent-start/graph-memory-inject.js';
+// SubagentStart hooks (4)
 import { contextGate } from './subagent-start/context-gate.js';
 import { subagentContextStager } from './subagent-start/subagent-context-stager.js';
 import { subagentValidator } from './subagent-start/subagent-validator.js';
 import { modelCostAdvisor } from './subagent-start/model-cost-advisor.js';
 
 // SubagentStop hooks (9)
-import { agentMemoryStore } from './subagent-stop/agent-memory-store.js';
 import { autoSpawnQuality } from './subagent-stop/auto-spawn-quality.js';
 import { contextPublisher } from './subagent-stop/context-publisher.js';
 import { feedbackLoop } from './subagent-stop/feedback-loop.js';
@@ -133,9 +130,7 @@ import { handoffWriter } from './stop/handoff-writer.js';
 import { fullTestSuite } from './stop/full-test-suite.js';
 import { issueWorkSummary } from './stop/issue-work-summary.js';
 import { securityScanAggregator } from './stop/security-scan-aggregator.js';
-import { sessionPatterns } from './stop/session-patterns.js';
 import { taskCompletionCheck } from './stop/task-completion-check.js';
-import { calibrationPersist } from './stop/calibration-persist.js';
 
 // Setup hooks (4)
 import { firstRunSetup } from './setup/first-run-setup.js';
@@ -158,7 +153,6 @@ import { memoryBridge } from './posttool/memory-bridge.js';
 import { realtimeSync } from './posttool/realtime-sync.js';
 import { sessionMetrics } from './posttool/session-metrics.js';
 import { skillEditTracker } from './posttool/skill-edit-tracker.js';
-import { calibrationTracker } from './posttool/calibration-tracker.js';
 
 // PostTool/Write hooks (5)
 import { codeStyleLearner } from './posttool/write/code-style-learner.js';
@@ -263,20 +257,16 @@ export const hooks: Record<string, HookFn> = {
   'prompt/antipattern-detector': antipatternDetector,
   'prompt/antipattern-warning': antipatternWarning,
   'prompt/handoff-injector': handoffInjector,
-  'prompt/memory-context': memoryContext,
-  'prompt/satisfaction-detector': satisfactionDetector,
   'prompt/todo-enforcer': todoEnforcer,
   'prompt/pipeline-detector': pipelineDetector,
 
-  // SubagentStart hooks (5)
-  'subagent-start/graph-memory-inject': graphMemoryInject,
+  // SubagentStart hooks (4)
   'subagent-start/context-gate': contextGate,
   'subagent-start/subagent-context-stager': subagentContextStager,
   'subagent-start/subagent-validator': subagentValidator,
   'subagent-start/model-cost-advisor': modelCostAdvisor,
 
-  // SubagentStop hooks (9)
-  'subagent-stop/agent-memory-store': agentMemoryStore,
+  // SubagentStop hooks (8)
   'subagent-stop/auto-spawn-quality': autoSpawnQuality,
   'subagent-stop/context-publisher': contextPublisher,
   'subagent-stop/feedback-loop': feedbackLoop,
@@ -313,15 +303,26 @@ export const hooks: Record<string, HookFn> = {
   'skill/test-location-validator': testLocationValidator,
   'skill/test-pattern-validator': testPatternValidator,
   'skill/test-runner': testRunner,
+  // once:true context loaders (CC 2.1.69)
+  'skill/pr-context-loader': prContextLoader,
+  'skill/issue-context-loader': issueContextLoader,
+  'skill/commit-convention-loader': commitConventionLoader,
+  'skill/release-state-loader': releaseStateLoader,
+  'skill/repo-structure-indexer': repoStructureIndexer,
+  'skill/test-framework-detector': testFrameworkDetector,
+  'skill/project-convention-loader': projectConventionLoader,
+  'skill/doctor-env-snapshot': doctorEnvSnapshot,
+  'skill/setup-env-detector': setupEnvDetector,
+  'skill/prior-decisions-loader': priorDecisionsLoader,
+  'skill/assessment-baseline-loader': assessmentBaselineLoader,
+  'skill/quality-baseline-loader': qualityBaselineLoader,
 
   // Stop hooks (10)
   'stop/handoff-writer': handoffWriter,
   'stop/full-test-suite': fullTestSuite,
   'stop/issue-work-summary': issueWorkSummary,
   'stop/security-scan-aggregator': securityScanAggregator,
-  'stop/session-patterns': sessionPatterns,
   'stop/task-completion-check': taskCompletionCheck,
-  'stop/calibration-persist': calibrationPersist,
 
   // Setup hooks (4)
   'setup/first-run-setup': firstRunSetup,
@@ -344,7 +345,6 @@ export const hooks: Record<string, HookFn> = {
   'posttool/realtime-sync': realtimeSync,
   'posttool/session-metrics': sessionMetrics,
   'posttool/skill-edit-tracker': skillEditTracker,
-  'posttool/calibration-tracker': calibrationTracker,
 
   // PostTool/Write hooks (4)
   'posttool/write/code-style-learner': codeStyleLearner,

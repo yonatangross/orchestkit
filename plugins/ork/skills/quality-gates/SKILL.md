@@ -10,8 +10,13 @@ author: OrchestKit AI Agent Hub
 tags: [quality, complexity, planning, escalation, blocking, best-practices, patterns, yagni, over-engineering]
 skills: [scope-appropriate-architecture]
 user-invocable: false
-disable-model-invocation: true
+disable-model-invocation: false
 complexity: max
+hooks:
+  PreToolUse:
+    - matcher: "Read"
+      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/quality-baseline-loader"
+      once: true
 metadata:
   category: document-asset-creation
 allowed-tools:
@@ -59,7 +64,7 @@ This skill teaches agents how to assess task complexity, enforce quality gates, 
 | 4 - Complex | 10-25 | 500-1500 | 8-24 hr | 4-6 deps, significant unknowns |
 | 5 - Very Complex | 25+ | 1500+ | 24+ hr | 7+ deps, many unknowns |
 
-**See:** `references/complexity-scoring.md` for detailed examples and assessment formulas.
+Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/quality-gates/references/complexity-scoring.md")` for detailed examples and assessment formulas.
 
 ### Blocking Thresholds
 
@@ -78,55 +83,20 @@ This skill teaches agents how to assess task complexity, enforce quality gates, 
 - 1-2 unanswered questions
 - 1-2 failed attempts
 
-**See:** `references/blocking-thresholds.md` for escalation protocols and decision logic.
+Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/quality-gates/references/blocking-thresholds.md")` for escalation protocols and decision logic.
 
 ---
 
 ## References
 
-### Complexity Scoring
-**See:** `references/complexity-scoring.md`
-
-Key topics covered:
-- Detailed Level 1-5 characteristics and examples
-- Quick assessment formula
-- Assessment checklist
-
-### Blocking Thresholds & Escalation
-**See:** `references/blocking-thresholds.md`
-
-Key topics covered:
-- BLOCKING vs WARNING conditions
-- Escalation protocol and message templates
-- Gate decision logic
-- Attempt tracking
-
-### Quality Gate Workflows
-**See:** `references/workflows.md`
-
-Key topics covered:
-- Pre-task gate validation workflow
-- Stuck detection and escalation workflow
-- Complexity breakdown workflow (Level 4-5)
-- Requirements completeness check
-
-### Gate Patterns
-**See:** `references/gate-patterns.md`
-
-Key topics covered:
-- Gate validation process templates
-- Integration with context system
-- Common pitfalls
-
-### LLM Quality Validation
-**See:** `references/llm-quality-validation.md`
-
-Key topics covered:
-- LLM-as-judge patterns
-- Quality aspects (relevance, depth, coherence, accuracy, completeness)
-- Fail-open vs fail-closed strategies
-- Graceful degradation patterns
-- Triple-consumer artifact design
+Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/quality-gates/references/<file>")`:
+| File | Content |
+|------|---------|
+| `complexity-scoring.md` | Detailed Level 1-5 characteristics, quick assessment formula, checklist |
+| `blocking-thresholds.md` | BLOCKING vs WARNING conditions, escalation protocol, gate decision logic, attempt tracking |
+| `workflows.md` | Pre-task gate validation, stuck detection, complexity breakdown (Level 4-5), requirements completeness |
+| `gate-patterns.md` | Gate validation process templates, context system integration, common pitfalls |
+| `llm-quality-validation.md` | LLM-as-judge patterns, quality aspects, fail-open/closed strategies, graceful degradation, triple-consumer artifacts |
 
 ---
 

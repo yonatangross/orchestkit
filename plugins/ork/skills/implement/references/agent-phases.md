@@ -135,32 +135,9 @@ Agent(
 )
 ```
 
-### Agent 5: UX Researcher
-```python
-Agent(
-  subagent_type="ux-researcher",
-  prompt="""UX ANALYSIS — SINGLE PASS
-
-  Feature: $ARGUMENTS
-
-  Produce complete UX research in one response:
-  1. Primary persona with behavioral patterns
-  2. User journey map with friction points and opportunities
-  3. Accessibility requirements (WCAG 2.1 AA specific checks)
-  4. Loading state strategy (skeleton vs progressive)
-  5. Error messaging guidelines
-  6. Mobile responsiveness breakpoints
-  7. Success metrics (measurable KPIs)
-  8. User stories with acceptance criteria
-
-  Output: Complete UX requirements document.""",
-  run_in_background=true
-)
-```
-
 ### Phase 4 — Teams Mode
 
-In Agent Teams mode, 4 teammates form a team (`implement-{feature-slug}`) instead of 5 independent Task spawns. The workflow-architect and ux-researcher roles are handled by the lead or omitted for simpler features. Teammates message architecture decisions to each other in real-time.
+In Agent Teams mode, 4 teammates form a team (`implement-{feature-slug}`) instead of independent Task spawns. The workflow-architect role is handled by the lead or omitted for simpler features. Teammates message architecture decisions to each other in real-time.
 
 See [Agent Teams Full-Stack Pipeline](agent-teams-full-stack.md) for spawn prompts.
 
@@ -329,29 +306,6 @@ Agent(
   Write REAL test files to disk.
   Run tests after writing to verify they pass.
   Do NOT split across responses — use full 128K output.""",
-  run_in_background=true
-)
-```
-
-### Agent 5: Design System (optional — skip if existing design)
-```python
-Agent(
-  subagent_type="rapid-ui-designer",
-  prompt="""DESIGN SYSTEM SPECIFICATIONS — SINGLE PASS (128K output)
-
-  Feature: $ARGUMENTS
-
-  Produce complete design specs in ONE response:
-
-  1. Color tokens (@theme directive) for new components
-  2. Component specifications with all states
-  3. Responsive breakpoint strategy
-  4. Accessibility contrast ratios
-  5. Motion animation preset mapping
-  6. Tailwind class definitions for every component variant
-
-  Output: Design specification document.
-  Skip if feature uses existing design system without new components.""",
   run_in_background=true
 )
 ```

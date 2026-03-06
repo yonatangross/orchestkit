@@ -14,19 +14,19 @@ Scans all `src/skills/*/SKILL.md` files and reports compliance with OrchestKit a
 
 | Category | File | Impact | When to Use |
 |----------|------|--------|-------------|
-| Audit Checks | `rules/audit-checks.md` | HIGH | What to validate per skill |
-| Status Rules | `rules/audit-status.md` | MEDIUM | PASS/WARN/FAIL classification |
-| Output Format | `references/output-format.md` | MEDIUM | Table layout and column definitions |
-| Edge Cases | `references/edge-cases.md` | LOW | Manifest "all", orchestration skills |
+| Audit Checks | `$\{CLAUDE_PLUGIN_ROOT\}/skills/audit-skills/rules/audit-checks.md` | HIGH | What to validate per skill |
+| Status Rules | `$\{CLAUDE_PLUGIN_ROOT\}/skills/audit-skills/rules/audit-status.md` | MEDIUM | PASS/WARN/FAIL classification |
+| Output Format | `$\{CLAUDE_PLUGIN_ROOT\}/skills/audit-skills/references/output-format.md` | MEDIUM | Table layout and column definitions |
+| Edge Cases | `$\{CLAUDE_PLUGIN_ROOT\}/skills/audit-skills/references/edge-cases.md` | LOW | Manifest "all", orchestration skills |
 
 **Total: 2 rules across 2 categories**
 
 ## Workflow
 
 1. **Discover** — Glob `src/skills/*/SKILL.md` to get full skill list
-2. **Check each skill** — Run all checks from `rules/audit-checks.md` in parallel
-3. **Classify** — Apply status rules from `rules/audit-status.md`
-4. **Render** — Output table using format from `references/output-format.md`
+2. **Check each skill** — Run all checks from `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/audit-skills/rules/audit-checks.md")` in parallel
+3. **Classify** — Apply status rules from `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/audit-skills/rules/audit-status.md")`
+4. **Render** — Output table using format from `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/audit-skills/references/output-format.md")`
 5. **Totals** — Show `X pass, Y warn, Z fail` at bottom
 
 ## Quick Start

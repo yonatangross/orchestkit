@@ -9,7 +9,7 @@ version: 1.4.0
 author: AI Agent Hub
 tags: [frontend, react, react-19.2, nextjs-16, server-components, streaming, cache-components]
 user-invocable: false
-disable-model-invocation: true
+disable-model-invocation: false
 complexity: medium
 metadata:
   category: document-asset-creation
@@ -119,110 +119,25 @@ export default async function PostPage({
 }
 ```
 
-**Note:** Also applies to `layout.tsx`, `generateMetadata()`, and route handlers. See `references/nextjs-16-upgrade.md` for complete migration guide.
+**Note:** Also applies to `layout.tsx`, `generateMetadata()`, and route handlers. Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/react-server-components-framework/references/nextjs-16-upgrade.md")` for complete migration guide.
 
 ---
 
 ## References
 
-### Server Components
-**See: `references/server-components.md`**
-
-Key topics covered:
-- Async server components and direct database access
-- Data fetching patterns (parallel, sequential, cached)
-- Route segment config (dynamic, revalidate, PPR)
-- generateStaticParams for SSG
-- Error handling and composition patterns
-
-### Client Components
-**See: `references/client-components.md`**
-
-Key topics covered:
-- The `'use client'` directive and boundary rules
-- React 19 patterns (function declarations, ref as prop)
-- Interactivity patterns (state, forms, events)
-- Hydration and avoiding hydration mismatches
-- Composition with Server Components via children
-
-### Streaming Patterns
-**See: `references/streaming-patterns.md`**
-
-Key topics covered:
-- Suspense boundaries and loading states
-- loading.tsx automatic wrapping
-- Parallel streaming and nested Suspense
-- Partial Prerendering (PPR)
-- Skeleton component best practices
-
-### React 19 Patterns
-**See: `references/react-19-patterns.md`**
-
-Key topics covered:
-- Function declarations over React.FC
-- Ref as prop (forwardRef removal)
-- useActionState, useFormStatus, useOptimistic
-- Activity component for preloading UI
-- useEffectEvent hook
-
-### Server Actions
-**See: `references/server-actions.md`**
-
-Key topics covered:
-- Progressive enhancement patterns
-- Form handling with useActionState
-- Validation with Zod
-- Optimistic updates
-
-### Routing Patterns
-**See: `references/routing-patterns.md`**
-
-Key topics covered:
-- Parallel routes for simultaneous rendering
-- Intercepting routes for modals
-- Route groups for organization
-- Dynamic and catch-all routes
-
-### Migration Guide
-**See: `references/migration-guide.md`**
-
-Key topics covered:
-- Pages Router to App Router migration
-- getServerSideProps/getStaticProps replacement
-- Layout and metadata migration
-
-### Cache Components (Next.js 16)
-**See: `references/cache-components.md`**
-
-**Important:** Cache Components replaces `experimental_ppr` as the declarative caching model in Next.js 16.
-
-Key topics covered:
-- The `"use cache"` directive replacing `experimental_ppr`
-- `cacheLife()` for fine-grained cache duration control
-- `cacheTag()` and `revalidateTag()` for on-demand invalidation
-- Configuration: `cacheComponents: true` in next.config.ts
-- Before/after migration examples (Next.js 15 to 16)
-- Integration with Partial Prerendering (PPR)
-- Serialization rules and constraints
-
-### Next.js 16 Upgrade Guide
-**See: `references/nextjs-16-upgrade.md`**
-
-Key topics covered:
-- Version requirements (Node.js 20.9+, TypeScript 5.1+)
-- Breaking changes (async params, cookies, headers)
-- middleware.ts to proxy.ts migration
-- PPR removal and Cache Components replacement
-- Turbopack as default bundler
-- New caching APIs (updateTag, refresh, revalidateTag)
-
-### TanStack Router
-**See: `references/tanstack-router-patterns.md`**
-
-Key topics covered:
-- React 19 features without Next.js
-- Route-based data fetching
-- Client-rendered app patterns
+Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/react-server-components-framework/references/<file>")`:
+| File | Content |
+|------|---------|
+| `server-components.md` | Async server components, data fetching patterns, route segment config, generateStaticParams, error handling |
+| `client-components.md` | `'use client'` directive, React 19 patterns, interactivity, hydration, composition via children |
+| `streaming-patterns.md` | Suspense boundaries, loading.tsx, parallel streaming, PPR, skeleton best practices |
+| `react-19-patterns.md` | Function declarations, ref as prop, useActionState, useFormStatus, useOptimistic, Activity, useEffectEvent |
+| `server-actions.md` | Progressive enhancement, useActionState forms, Zod validation, optimistic updates |
+| `routing-patterns.md` | Parallel routes, intercepting routes, route groups, dynamic and catch-all routes |
+| `migration-guide.md` | Pages Router to App Router migration, getServerSideProps/getStaticProps replacement |
+| `cache-components.md` | `"use cache"` directive (replaces `experimental_ppr`), cacheLife, cacheTag, revalidateTag, PPR integration |
+| `nextjs-16-upgrade.md` | Node.js 20.9+, breaking changes (async params, cookies, headers), proxy.ts migration, Turbopack, new caching APIs |
+| `tanstack-router-patterns.md` | React 19 features without Next.js, route-based data fetching, client-rendered app patterns |
 
 ---
 

@@ -10,7 +10,7 @@ export * from '../types.js';
 export * from '../lib/common.js';
 export * from '../lib/git.js';
 
-// Skill hooks (24)
+// Skill hooks (34: 22 validators + 12 once:true context loaders)
 import { backendFileNaming } from '../skill/backend-file-naming.js';
 import { decisionProcessor } from '../skill/decision-processor.js';
 import { backendLayerValidator } from '../skill/backend-layer-validator.js';
@@ -33,6 +33,10 @@ import { structureLocationValidator } from '../skill/structure-location-validato
 import { testLocationValidator } from '../skill/test-location-validator.js';
 import { testPatternValidator } from '../skill/test-pattern-validator.js';
 import { testRunner } from '../skill/test-runner.js';
+
+// once:true context loaders (CC 2.1.69)
+import { prContextLoader, issueContextLoader, commitConventionLoader, releaseStateLoader } from '../skill/context-loaders-git.js';
+import { repoStructureIndexer, testFrameworkDetector, projectConventionLoader, doctorEnvSnapshot, setupEnvDetector, priorDecisionsLoader, assessmentBaselineLoader, qualityBaselineLoader } from '../skill/context-loaders-env.js';
 
 import type { HookFn } from '../types.js';
 
@@ -62,6 +66,19 @@ export const hooks: Record<string, HookFn> = {
   'skill/test-location-validator': testLocationValidator,
   'skill/test-pattern-validator': testPatternValidator,
   'skill/test-runner': testRunner,
+  // once:true context loaders (CC 2.1.69)
+  'skill/pr-context-loader': prContextLoader,
+  'skill/issue-context-loader': issueContextLoader,
+  'skill/commit-convention-loader': commitConventionLoader,
+  'skill/release-state-loader': releaseStateLoader,
+  'skill/repo-structure-indexer': repoStructureIndexer,
+  'skill/test-framework-detector': testFrameworkDetector,
+  'skill/project-convention-loader': projectConventionLoader,
+  'skill/doctor-env-snapshot': doctorEnvSnapshot,
+  'skill/setup-env-detector': setupEnvDetector,
+  'skill/prior-decisions-loader': priorDecisionsLoader,
+  'skill/assessment-baseline-loader': assessmentBaselineLoader,
+  'skill/quality-baseline-loader': qualityBaselineLoader,
 };
 
 export function getHook(name: string): HookFn | undefined {

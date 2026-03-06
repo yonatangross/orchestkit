@@ -1,0 +1,822 @@
+---
+title: "Product Analytics"
+description: "A/B test evaluation, cohort retention analysis, funnel metrics, and experiment-driven product decisions. Use when analyzing experiments, measuring feature adoption, diagnosing conversion drop-offs, or evaluating statistical significance of product changes."
+---
+
+<span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
+
+**Primary Agent:** [product-strategist](/docs/reference/agents/product-strategist)
+
+
+# Product Analytics
+
+Frameworks for turning raw product data into ship/extend/kill decisions. Covers A/B testing, cohort retention, funnel analysis, and the statistical foundations needed to make those decisions with confidence.
+
+## Quick Reference
+
+| Category | Rules | Impact | When to Use |
+|----------|-------|--------|-------------|
+| [A/B Test Evaluation](#ab-test-evaluation) | 1 | HIGH | Comparing variants, measuring significance, shipping decisions |
+| [Cohort Retention](#cohort-retention) | 1 | HIGH | Feature adoption curves, day-N retention, engagement scoring |
+| [Funnel Analysis](#funnel-analysis) | 1 | HIGH | Drop-off diagnosis, conversion optimization, stage mapping |
+| [Statistical Foundations](#statistical-foundations) | 1 | HIGH | p-value interpretation, sample sizing, confidence intervals |
+
+**Total: 4 rules across 4 categories**
+
+## A/B Test Evaluation
+
+Load `rules/ab-test-evaluation.md` for the full framework. Quick pattern:
+
+```markdown
+## Experiment: [Name]
+
+Hypothesis: If we [change], then [primary metric] will [direction] by [amount]
+  because [evidence or reasoning].
+
+Sample size: [N per variant] — calculated for MDE=[X%], power=80%, alpha=0.05
+Duration: [Minimum weeks] — never stop early (peeking bias)
+
+Results:
+  Control:   [metric value]  n=[count]
+  Treatment: [metric value]  n=[count]
+  Lift:      [+/- X%]        p=[value]  95% CI: [lower, upper]
+
+Decision: SHIP / EXTEND / KILL
+  Rationale: [One sentence grounded in numbers, not gut feel]
+```
+
+**Decision rules:**
+- **SHIP** — p &lt; 0.05, CI excludes zero, no guardrail regressions
+- **EXTEND** — trending positive but underpowered (add runtime, not reanalysis)
+- **KILL** — null result or guardrail degradation
+
+See `rules/ab-test-evaluation.md` for sample size formulas, SRM checks, and pitfall list.
+
+## Cohort Retention
+
+Load `rules/cohort-retention.md` for full methodology. Quick pattern:
+
+```sql
+-- Day-N retention cohort query
+SELECT
+  DATE_TRUNC('week', first_seen)  AS cohort_week,
+  COUNT(DISTINCT user_id)         AS cohort_size,
+  COUNT(DISTINCT CASE
+    WHEN activity_date = first_seen + INTERVAL '7 days'
+    THEN user_id END) * 100.0
+    / COUNT(DISTINCT user_id)     AS day_7_retention
+FROM user_activity
+GROUP BY 1
+ORDER BY 1;
+```
+
+**Retention benchmarks (SaaS):**
+- Day 1: 40–60% is healthy
+- Day 7: 20–35% is healthy
+- Day 30: 10–20% is healthy
+- Flat curve after day 30 = product-market fit signal
+
+See `rules/cohort-retention.md` for behavior-based cohorts, feature adoption curves, and engagement scoring.
+
+## Funnel Analysis
+
+Load `rules/funnel-analysis.md` for full methodology. Quick pattern:
+
+```markdown
+## Funnel: [Name] — [Date Range]
+
+Stage 1: [Aware / Land]     → [N] users    (entry)
+Stage 2: [Activate / Sign]  → [N] users    ([X]% from stage 1)
+Stage 3: [Engage / Use]     → [N] users    ([X]% from stage 2)  ← biggest drop
+Stage 4: [Convert / Pay]    → [N] users    ([X]% from stage 3)
+
+Overall conversion: [X]%
+Biggest drop-off:  Stage 2→3 ([X]% loss) — investigate first
+```
+
+**Optimization order:** Fix the largest drop-off first. A 5-point improvement at a high-volume step is worth more than a 20-point improvement at a low-volume step.
+
+See `rules/funnel-analysis.md` for segmented funnels, micro-conversion tracking, and prioritization patterns.
+
+## Statistical Foundations
+
+Plain-English explanations of the stats every PM needs. Load `references/stats-cheat-sheet.md` for formulas and quick lookups.
+
+**p-value in plain English:** The probability that you would see a result this extreme (or more extreme) if the change had zero effect. p=0.03 means a 3% chance you're looking at random noise. It does NOT mean "97% probability the change works."
+
+**Confidence interval in plain English:** The range where the true effect probably lives. "Lift = +8%, 95% CI [+2%, +14%]" means you are fairly confident the real lift is somewhere between 2% and 14%. If the CI includes zero, you cannot claim a win.
+
+**Minimum Detectable Effect (MDE):** The smallest lift you care about detecting. Setting MDE too small forces impractically large sample sizes. Anchor MDE to business value — if a 2% lift is not worth shipping, set MDE = 5%.
+
+**Statistical vs practical significance:** A result can be statistically significant (p &lt; 0.05) but practically meaningless (lift = 0.01%). Always check both. A 0.01% lift that costs 6 weeks of eng time is not a win.
+
+## Common Pitfalls
+
+1. **Peeking** — stopping an experiment early because results look good inflates false-positive rate. Commit to a runtime before launch.
+2. **Multiple comparisons** — testing 10 metrics at p &lt; 0.05 means ~1 false positive by chance. Apply Bonferroni correction or pre-register your primary metric.
+3. **Sample Ratio Mismatch (SRM)** — if variant group sizes differ from expected split by > 1%, your experiment is broken. Fix before analyzing results.
+4. **Novelty effect** — new features get inflated engagement in week 1. Run experiments long enough to see settled behavior (minimum 2 full business cycles).
+5. **Simpson's paradox** — aggregate results can reverse when segmented. Always check results by key segments (device, plan tier, geography).
+
+## Ship / Extend / Kill Framework
+
+| Signal | Decision | Action |
+|--------|----------|--------|
+| p &lt; 0.05, CI excludes zero, guardrails green | SHIP | Full rollout, update success metrics |
+| Positive trend, underpowered (p = 0.10–0.15) | EXTEND | Add runtime, do not peek again |
+| p > 0.15, flat or negative | KILL | Revert, document learnings, re-hypothesize |
+| Guardrail regression, any p-value | KILL | Immediate revert regardless of primary metric |
+| SRM detected | INVALID | Fix assignment bug, restart experiment |
+
+## Related Skills
+
+- `ork:product-frameworks` — OKRs, KPI trees, RICE prioritization, PRD templates
+- `ork:metrics-instrumentation` — Event naming, metric definition, alerting setup
+- `ork:brainstorming` — Generate hypotheses and experiment ideas
+- `ork:assess` — Evaluate product quality and risks
+
+## References
+
+- `rules/ab-test-evaluation.md` — Hypothesis, sample size, significance, decision matrix
+- `rules/cohort-retention.md` — Cohort types, retention curves, SQL patterns
+- `rules/funnel-analysis.md` — Stage mapping, drop-off identification, optimization
+- `references/stats-cheat-sheet.md` — Formulas, test selection, power analysis
+
+---
+
+**Version:** 1.0.0 (March 2026)
+
+
+---
+
+## Rules (3)
+
+### A/B Test Evaluation — From Hypothesis to Ship Decision — HIGH
+
+
+# A/B Test Evaluation
+
+Structure every experiment from hypothesis through decision using the framework below. The goal is not to "prove" your idea works — it is to learn whether it works.
+
+## 1. Hypothesis Formulation
+
+A testable hypothesis has three parts: the change, the expected outcome, and the reasoning.
+
+**Template:**
+```markdown
+If we [specific change to UI/flow/algorithm],
+then [primary metric] will [increase/decrease] by [X%]
+because [evidence: user research, prior data, theory].
+```
+
+**Incorrect — vague, untestable:**
+```markdown
+Hypothesis: The new onboarding flow will improve retention.
+```
+
+**Correct — specific and falsifiable:**
+```markdown
+Hypothesis: If we reduce onboarding from 8 steps to 4 steps,
+then day-7 retention will increase by 10%
+because exit surveys show 40% of churned users cite setup complexity.
+```
+
+**Key rules:**
+- One primary metric per experiment. Secondary metrics are informational.
+- Root the reasoning in evidence, not optimism.
+- Set guardrail metrics BEFORE launch (revenue, error rate, latency).
+
+## 2. Sample Size Calculation
+
+Never start an experiment without knowing how large your sample needs to be. Underpowered experiments produce inconclusive results that waste time.
+
+**Formula (two-proportion z-test):**
+```
+n = 2 * (Z_alpha/2 + Z_beta)^2 * p * (1 - p) / MDE^2
+
+Where:
+  Z_alpha/2 = 1.96  (95% confidence, two-tailed)
+  Z_beta    = 0.84  (80% statistical power)
+  p         = baseline conversion rate (decimal)
+  MDE       = minimum detectable effect (decimal)
+```
+
+**Quick lookup — sample size per variant:**
+| Baseline | MDE | n per variant |
+|----------|-----|---------------|
+| 5%       | 20% relative (1pp) | ~14,700 |
+| 10%      | 10% relative (1pp) | ~29,400 |
+| 30%      | 10% relative (3pp) |  ~4,900 |
+| 50%      | 5%  relative (2.5pp)| ~6,200 |
+
+**Incorrect — launching without sample size calculation:**
+```markdown
+Plan: Run for 1 week, check results Friday.
+```
+
+**Correct — calculated runtime:**
+```markdown
+Baseline signup rate: 8%
+MDE: 15% relative lift (1.2pp) — smallest lift worth shipping
+Required n: ~17,500 per variant
+Daily traffic to page: 2,500 users
+Runtime needed: ~7 days per variant = 14 days total
+Decision point: [date] — do not analyze before then.
+```
+
+## 3. Statistical Significance Check
+
+After reaching your pre-planned sample size, evaluate results exactly once.
+
+**Significance criteria (all three must hold):**
+1. p &lt; 0.05 (5% false-positive tolerance)
+2. 95% confidence interval excludes zero
+3. No guardrail metric degrades beyond its threshold
+
+**Reading results:**
+```markdown
+Control:   8.0% conversion   n=17,600
+Treatment: 9.4% conversion   n=17,500
+Lift:      +17.5% relative   (+1.4pp absolute)
+p-value:   0.003
+95% CI:    [+0.5pp, +2.3pp]
+
+Interpretation: Statistically significant positive result.
+  The CI excludes zero. Practical significance: YES — 1.4pp
+  at current volume = ~350 extra signups/month.
+```
+
+## 4. Practical vs Statistical Significance
+
+A result can be statistically significant but practically meaningless. Always evaluate both.
+
+**Test:** "If we shipped this lift, would it justify the maintenance cost and opportunity cost of not building something else?"
+
+| Result | p-value | Lift | Practical? | Decision |
+|--------|---------|------|------------|----------|
+| +12% conversion | 0.001 | Large | YES | SHIP |
+| +0.3% conversion | 0.04 | Negligible | NO | KILL (not worth it) |
+| +8% conversion | 0.12 | Large | YES | EXTEND (underpowered) |
+| -2% conversion | 0.001 | Negative | YES (bad) | KILL |
+
+## 5. Common Pitfalls
+
+**Peeking** — checking results mid-experiment and stopping when p &lt; 0.05 inflates false-positive rate from 5% to ~30% or more. Commit to a runtime before launch and do not analyze early.
+
+**Multiple comparisons** — running the same experiment on 10 segments and claiming significance for whichever one hits p &lt; 0.05 is p-hacking. Pre-register your primary metric and primary segment. Apply Bonferroni correction if you must test multiple segments: use p &lt; 0.05/N where N is the number of comparisons.
+
+**Sample Ratio Mismatch (SRM)** — if your 50/50 split produces 17,600 control and 15,200 treatment, the assignment mechanism is broken. Do not interpret results. Chi-square test for SRM: `chi2 = (observed_n - expected_n)^2 / expected_n` for each cell. p &lt; 0.001 = SRM.
+
+**Incorrect — peeking pattern:**
+```markdown
+Day 3: p=0.12 — not yet
+Day 5: p=0.08 — getting closer
+Day 7: p=0.04 — SHIP IT
+```
+
+**Correct — fixed horizon:**
+```markdown
+Pre-planned decision date: [date]
+Analyze once on [date].
+Result: p=0.04 — SHIP (per pre-registered criteria).
+```
+
+## 6. Decision Matrix
+
+| Condition | Decision | Action |
+|-----------|----------|--------|
+| p &lt; 0.05, CI excludes 0, guardrails green, practical lift | SHIP | Full rollout |
+| p = 0.06–0.15, positive trend, underpowered | EXTEND | Add runtime only — do not peek again |
+| p > 0.15, flat or negative trend | KILL | Revert, document learnings |
+| Guardrail regression (any p-value) | KILL | Immediate revert |
+| SRM detected | INVALID | Fix assignment, restart |
+| p &lt; 0.05, statistically significant but trivial lift | KILL | Not worth shipping cost |
+
+**Key rules:**
+- Commit to decision criteria BEFORE the experiment starts.
+- A "no result" is a valid and valuable learning — it eliminates a hypothesis.
+- Document every experiment outcome in your experiment log regardless of result.
+- Never run the same experiment again without changing the hypothesis.
+
+
+### Cohort Retention Analysis — Measuring Habit Formation and Feature Adoption — HIGH
+
+
+# Cohort Retention
+
+Cohort analysis groups users by a shared starting event and tracks their behavior over time. It answers "do users come back?" and "do they stick with new features?" more honestly than aggregate metrics like MAU.
+
+## 1. Cohort Definition
+
+**Time-based cohort:** Users grouped by when they first appeared (signup week, first purchase month). The most common type — use for measuring overall product health.
+
+**Behavior-based cohort:** Users grouped by a key action (first checkout, first team invite, first file upload). Use for measuring feature adoption and activation quality.
+
+**Incorrect — comparing raw counts:**
+```markdown
+January MAU: 10,000
+February MAU: 12,000
+Conclusion: Growth is healthy.
+```
+
+**Correct — cohort view reveals churn:**
+```markdown
+Jan cohort (10,000 users):
+  Week 1 retention: 45%  (4,500 users)
+  Week 4 retention: 18%  (1,800 users)
+  Week 12 retention: 8%  (800 users)
+
+Feb cohort (12,000 users, including 4,500 Jan survivors):
+  New users in February: 7,500
+  New user week-1 retention: 38% — declining, not growing
+
+Conclusion: Acquisition is masking a worsening retention problem.
+```
+
+## 2. Retention Curve Types
+
+**Day-N retention (point-in-time):** What % of a cohort was active exactly on day N?
+- Best for: consumer apps, games, social products
+- Signal: Day-1 and Day-7 predict long-term retention
+
+**Rolling retention (cumulative return):** What % of a cohort was active on day N or any later day?
+- Best for: low-frequency products (finance, health, productivity)
+- Higher numbers than day-N — clarify which type you are reporting
+
+**Week-over-week / Month-over-month:** Cohort measured at weekly or monthly intervals.
+- Best for: B2B SaaS, subscription products
+- Signal: Week-4 retention is a strong PMF indicator for SaaS
+
+## 3. Retention Benchmarks
+
+Use these as rough orientation, not hard targets. Your benchmark is your own prior cohort.
+
+**Consumer app (social, gaming, media):**
+| Interval | Poor | Average | Good |
+|----------|------|---------|------|
+| Day 1 | &lt; 20% | 25–40% | &gt; 40% |
+| Day 7 | &lt; 8%  | 10–20% | &gt; 20% |
+| Day 30 | &lt; 3%  | 5–12%  | &gt; 12% |
+
+**B2B SaaS:**
+| Interval | Poor | Average | Good |
+|----------|------|---------|------|
+| Month 1 | &lt; 40% | 50–70% | &gt; 70% |
+| Month 3 | &lt; 25% | 35–55% | &gt; 55% |
+| Month 12 | &lt; 15% | 25–40% | &gt; 40% |
+
+**Marketplace / e-commerce (repeat purchase):**
+| Interval | Poor | Average | Good |
+|----------|------|---------|------|
+| 30-day repeat | &lt; 10% | 15–25% | &gt; 25% |
+| 90-day repeat | &lt; 20% | 30–45% | &gt; 45% |
+
+**Flat retention curve** — retention stabilizes and stops declining. This is the clearest product-market fit signal: a durable core of users who have built a habit.
+
+## 4. Feature Adoption Tracking
+
+Measure adoption as a cohort — not as a total count — to distinguish early-adopter noise from durable behavior change.
+
+**Incorrect — raw adoption count:**
+```markdown
+Feature X used by 5,000 users in first month.
+Conclusion: Feature is successful.
+```
+
+**Correct — adoption cohort:**
+```markdown
+Users who activated feature X in month 1 (adoption cohort): 5,000
+  Week 2 return-to-feature rate: 55%
+  Week 4 return-to-feature rate: 30%
+  Week 8 return-to-feature rate: 22%
+
+Users who never used feature X (control):
+  Overall product retention at week 8: 14%
+
+Conclusion: Feature X users retain at 22% vs 14% baseline.
+  Feature is correlated with better retention — worth expanding.
+```
+
+## 5. SQL Patterns for Cohort Analysis
+
+**Day-N retention query (standard pattern):**
+```sql
+WITH cohorts AS (
+  SELECT
+    user_id,
+    DATE_TRUNC('week', MIN(created_at)) AS cohort_week
+  FROM events
+  WHERE event_name = 'user_signed_up'
+  GROUP BY user_id
+),
+activity AS (
+  SELECT DISTINCT
+    user_id,
+    DATE_TRUNC('week', occurred_at) AS activity_week
+  FROM events
+  WHERE event_name = 'session_start'
+)
+SELECT
+  c.cohort_week,
+  COUNT(DISTINCT c.user_id)                          AS cohort_size,
+  COUNT(DISTINCT CASE
+    WHEN a.activity_week = c.cohort_week + INTERVAL '1 week'
+    THEN a.user_id END) * 100.0
+    / COUNT(DISTINCT c.user_id)                      AS week_1_retention,
+  COUNT(DISTINCT CASE
+    WHEN a.activity_week = c.cohort_week + INTERVAL '4 weeks'
+    THEN a.user_id END) * 100.0
+    / COUNT(DISTINCT c.user_id)                      AS week_4_retention
+FROM cohorts c
+LEFT JOIN activity a USING (user_id)
+GROUP BY c.cohort_week
+ORDER BY c.cohort_week;
+```
+
+**Feature adoption cohort query:**
+```sql
+-- Users who adopted feature X, grouped by adoption week
+SELECT
+  DATE_TRUNC('week', first_feature_use) AS adoption_cohort,
+  COUNT(DISTINCT user_id)               AS adopters,
+  AVG(days_to_first_use)                AS avg_days_to_adopt
+FROM (
+  SELECT
+    user_id,
+    MIN(occurred_at) AS first_feature_use,
+    DATEDIFF('day', u.created_at, MIN(e.occurred_at)) AS days_to_first_use
+  FROM events e
+  JOIN users u USING (user_id)
+  WHERE e.event_name = 'feature_x_used'
+  GROUP BY user_id, u.created_at
+) sub
+GROUP BY 1
+ORDER BY 1;
+```
+
+## 6. Engagement Scoring
+
+Score users by engagement depth to distinguish casual from habitual users. Useful for segmenting cohort analysis.
+
+```markdown
+## Engagement Tiers
+
+Power users   (score 8–10): Use core feature 3+ times/week, invite others
+Active users  (score 5–7):  Use product weekly, complete core workflow
+Casual users  (score 2–4):  Monthly activity, shallow feature use
+At-risk users (score 0–1):  No activity in 14+ days
+
+Scoring inputs:
+- Frequency: sessions per week (0–3 pts)
+- Depth: features used per session (0–3 pts)
+- Virality: invites or shares sent (0–2 pts)
+- Value event: completed core action this week (0–2 pts)
+```
+
+**Key rules:**
+- Always use cohort-week granularity, not raw dates — seasonality distorts day-level data.
+- Report both cohort size AND retention percentage — small cohorts have noisy percentages.
+- Compare new cohorts to prior cohorts of the same age, not to older cohorts at maturity.
+- A rising retention curve across sequential cohorts is the best evidence your product is improving.
+
+
+### Funnel Analysis — Mapping, Measuring, and Fixing Conversion Drop-offs — HIGH
+
+
+# Funnel Analysis
+
+A funnel maps the sequence of steps users take toward a goal and measures what percentage make it through each step. The power of funnel analysis is identifying where to focus — the highest-impact drop-off point — rather than guessing.
+
+## 1. Funnel Definition and Stage Mapping
+
+Start with a clear end goal (conversion event), then work backward to identify each required step.
+
+**Template:**
+```markdown
+## Funnel: [Goal Name]
+Period: [date range]
+Entry event: [first measurable action]
+Exit event: [conversion / goal completion]
+
+Stages:
+1. [Stage name]  — event: [event_name]
+2. [Stage name]  — event: [event_name]
+3. [Stage name]  — event: [event_name]
+4. [Stage name]  — event: [event_name]  ← conversion
+```
+
+**Incorrect — stages that are too coarse:**
+```markdown
+Stage 1: Visit site
+Stage 2: Buy
+Drop-off: 99%
+```
+
+**Correct — granular stages reveal where to fix:**
+```markdown
+Signup Funnel — Last 30 days
+
+Stage 1: Landing page view      10,000 users  (entry)
+Stage 2: Clicked "Sign up"       4,200 users  (42%)
+Stage 3: Filled email + password 2,900 users  (69% from stage 2)
+Stage 4: Confirmed email         1,800 users  (62% from stage 3)  ← largest absolute drop
+Stage 5: Completed onboarding    1,100 users  (61% from stage 4)
+
+Overall: 11% conversion (1,100 / 10,000)
+Biggest absolute loss: Stage 1→2 (5,800 lost)
+Biggest relative loss: Stage 1→2 (58% drop) — investigate CTA copy and page value prop
+```
+
+## 2. Conversion Rate Calculation
+
+Always report both absolute numbers and rates. Rates without volume are misleading.
+
+```markdown
+Step conversion rate:    users_at_step_N / users_at_step_(N-1)
+Overall conversion rate: users_at_final_step / users_at_entry_step
+Drop-off rate:           1 - step_conversion_rate
+```
+
+**SQL pattern — ordered funnel with window functions:**
+```sql
+WITH funnel_events AS (
+  SELECT
+    user_id,
+    MAX(CASE WHEN event_name = 'page_viewed' AND page = 'landing'
+             THEN occurred_at END) AS step_1,
+    MAX(CASE WHEN event_name = 'cta_clicked'
+             THEN occurred_at END) AS step_2,
+    MAX(CASE WHEN event_name = 'form_submitted'
+             THEN occurred_at END) AS step_3,
+    MAX(CASE WHEN event_name = 'email_confirmed'
+             THEN occurred_at END) AS step_4,
+    MAX(CASE WHEN event_name = 'onboarding_completed'
+             THEN occurred_at END) AS step_5
+  FROM events
+  WHERE occurred_at BETWEEN '2026-02-01' AND '2026-03-01'
+  GROUP BY user_id
+)
+SELECT
+  COUNT(*)                                           AS step_1_users,
+  COUNT(step_2)                                      AS step_2_users,
+  ROUND(COUNT(step_2) * 100.0 / COUNT(*), 1)        AS step_1_to_2_pct,
+  COUNT(step_3)                                      AS step_3_users,
+  ROUND(COUNT(step_3) * 100.0 / COUNT(step_2), 1)   AS step_2_to_3_pct,
+  COUNT(step_4)                                      AS step_4_users,
+  ROUND(COUNT(step_4) * 100.0 / COUNT(step_3), 1)   AS step_3_to_4_pct,
+  COUNT(step_5)                                      AS step_5_users,
+  ROUND(COUNT(step_5) * 100.0 / COUNT(*), 1)        AS overall_pct
+FROM funnel_events
+WHERE step_1 IS NOT NULL;
+```
+
+## 3. Drop-off Identification and Prioritization
+
+Not all drop-offs are equally worth fixing. Prioritize by absolute user volume lost, not by percentage.
+
+**Prioritization formula:**
+```
+Impact score = users_lost_at_stage * estimated_recovery_rate * value_per_conversion
+
+Where estimated_recovery_rate = reasonable improvement if you fix UX/flow at this step.
+Typical range: 10–30% of lost users.
+```
+
+**Prioritization example:**
+```markdown
+Stage A→B: 5,800 lost, 30% recovery estimate = 1,740 recovered users
+Stage B→C: 1,300 lost, 50% recovery estimate =   650 recovered users
+Stage C→D: 1,100 lost, 20% recovery estimate =   220 recovered users
+
+Highest impact: Fix Stage A→B first (5,800 lost is the biggest pool).
+```
+
+**Incorrect — optimizing the wrong step:**
+```markdown
+Stage C→D has a 38% step conversion rate — that seems low.
+Action: A/B test the confirmation email.
+```
+
+**Correct — volume-weighted prioritization:**
+```markdown
+Stage A→B has only 42% step conversion but 5,800 users lost.
+Stage C→D has 38% step conversion but only 1,100 users lost.
+Action: A/B test the landing page CTA first (5x more users affected).
+```
+
+## 4. Micro-Conversion Tracking
+
+Some funnels have invisible steps that explain large drop-offs. Track micro-conversions to find them.
+
+**Micro-conversion examples:**
+- User viewed pricing page (between signup CTA and form fill)
+- User scrolled past the fold on landing page
+- User started typing in form but abandoned
+- User opened email but did not click confirm
+
+**Incorrect — treating drop-off as a black box:**
+```markdown
+Step 2→3 drop-off: 31% of users don't fill the form.
+Hypothesis: Form is too long.
+Action: Shorten form.
+```
+
+**Correct — micro-conversions reveal the real blocker:**
+```markdown
+Step 2→3 drop-off: 31% of users don't fill the form.
+Micro-conversion data:
+  - 80% of drop-offs viewed the pricing page first
+  - 65% of pricing page viewers bounced immediately
+Revised hypothesis: Users are hitting a price shock before they understand value.
+Action: Redesign pricing page, not the form.
+```
+
+## 5. Segmented Funnel Analysis
+
+The same funnel often performs very differently across segments. Always break down by key dimensions.
+
+**Standard segments to check:**
+- Traffic source (organic, paid, referral, direct)
+- Device type (mobile vs desktop)
+- Geography (market-specific friction)
+- User plan or tier (free vs paid)
+- Cohort age (new vs returning)
+
+```markdown
+Overall signup conversion: 11%
+
+By traffic source:
+  Organic search:  18%  ← highest quality
+  Paid social:      7%  ← lowest quality — review targeting
+  Referral:        24%  ← highest quality — invest here
+  Direct:          14%
+
+By device:
+  Desktop: 14%
+  Mobile:   8%  ← 6pp gap — investigate mobile form UX
+```
+
+## 6. Optimization Prioritization
+
+After identifying drop-offs, choose interventions using this ladder:
+
+1. **Remove the step entirely** — is this step necessary? Can users skip it?
+2. **Reduce friction** — fewer fields, faster load, clearer copy
+3. **Add value signals** — social proof, benefit statements, trust indicators
+4. **Personalize** — segment-specific messaging for high-volume segments
+
+**Key rules:**
+- Fix funnels top-down by absolute volume lost, not by worst percentage.
+- Segment before concluding — aggregate funnel numbers hide segment-level problems.
+- Measure time-in-step as well as drop-off rate — long dwell time before drop = confusion, not disinterest.
+- Each funnel stage you fix becomes the new constraint — re-prioritize after each improvement ships.
+
+
+
+---
+
+## References (1)
+
+### Statistics Cheat Sheet for Product Analysts
+
+
+# Statistics Cheat Sheet
+
+Quick reference for the stats you need to evaluate experiments and make defensible product decisions. Written for PMs — no math degree required.
+
+## p-value
+
+**What it is:** The probability of seeing a result this extreme (or more extreme) if the change had zero true effect.
+
+**How to read it:**
+- p = 0.03 → 3% chance the result is random noise → significant at the 5% threshold
+- p = 0.10 → 10% chance of noise → NOT significant at the 5% threshold
+- p = 0.001 → Very strong signal — only 1-in-1000 chance it's noise
+
+**What it is NOT:** The probability that your change works. p = 0.03 does not mean "97% confident the feature is good." It means "3% chance this result is a false positive."
+
+**Threshold:** Use p &lt; 0.05 as the standard bar. For high-stakes decisions (pricing, major flows), consider p &lt; 0.01.
+
+## Confidence Intervals
+
+**What it is:** A range where the true effect probably lives, given your data.
+
+**Formula (proportion difference):**
+```
+CI = lift ± Z * sqrt(p1*(1-p1)/n1 + p2*(1-p2)/n2)
+
+Where:
+  lift = p2 - p1
+  Z    = 1.96 for 95% CI
+  n1, n2 = sample sizes
+  p1, p2 = observed conversion rates
+```
+
+**How to read it:**
+- "Lift = +8%, 95% CI [+2%, +14%]" → confident the true lift is between 2% and 14%, ship it
+- "Lift = +5%, 95% CI [-1%, +11%]" → CI includes zero, cannot claim a win, extend or kill
+- "Lift = +3%, 95% CI [+2.8%, +3.2%]" → tight CI, statistically significant but practically tiny
+
+**Rule:** If the CI includes zero, do not ship based on this experiment.
+
+## Sample Size Calculator
+
+```
+n = 2 * (Z_alpha/2 + Z_beta)^2 * p_bar * (1 - p_bar) / delta^2
+
+Where:
+  Z_alpha/2  = 1.96  (95% confidence)
+  Z_beta     = 0.84  (80% power)
+  p_bar      = (p1 + p2) / 2  ≈ baseline rate
+  delta      = absolute difference you want to detect (MDE)
+```
+
+**Worked example:**
+```
+Baseline rate: 10% (p1 = 0.10)
+MDE: 2pp absolute lift (p2 = 0.12, delta = 0.02)
+p_bar = (0.10 + 0.12) / 2 = 0.11
+
+n = 2 * (1.96 + 0.84)^2 * 0.11 * 0.89 / 0.02^2
+n = 2 * 7.84 * 0.0979 / 0.0004
+n ≈ 3,834 per variant = 7,668 total
+```
+
+**Quick lookup table (p &lt; 0.05, 80% power):**
+| Baseline | Relative MDE | n per variant |
+|----------|-------------|---------------|
+| 5%  | 20% (1pp)   | ~14,700 |
+| 10% | 10% (1pp)   | ~29,400 |
+| 10% | 20% (2pp)   | ~7,600  |
+| 20% | 10% (2pp)   | ~14,200 |
+| 30% | 10% (3pp)   | ~9,000  |
+| 50% | 5%  (2.5pp) | ~6,200  |
+
+## Effect Size (Cohen's d and Relative Lift)
+
+**Cohen's d** — for comparing means (time-on-page, revenue per user):
+```
+d = (mean_treatment - mean_control) / pooled_std_dev
+
+Interpretation:
+  d < 0.2  = small effect
+  d = 0.5  = medium effect
+  d > 0.8  = large effect
+```
+
+**Relative lift** — for comparing rates (conversion, retention):
+```
+Relative lift = (treatment_rate - control_rate) / control_rate * 100%
+
+Example: control = 10%, treatment = 12%
+Relative lift = (12% - 10%) / 10% = 20% relative lift
+Absolute lift = 12% - 10% = 2pp absolute lift
+```
+
+Always report both relative and absolute lift. Relative lift sounds bigger; absolute lift is what matters for revenue math.
+
+## Common Statistical Tests
+
+| Situation | Test | Tool |
+|-----------|------|------|
+| Comparing two conversion rates | Two-proportion z-test | statsig.com, Evan Miller's calculator |
+| Comparing means (revenue, time) | Welch's t-test | scipy.stats.ttest_ind |
+| Comparing multiple variants (>2) | Chi-square or ANOVA | statsig.com, R |
+| Checking for SRM (assignment bias) | Chi-square goodness-of-fit | Manual or statsig.com |
+| Small sample (&lt; 30 per group) | Fisher's exact test | scipy.stats.fisher_exact |
+
+**SRM check:**
+```
+Expected per variant: total_users / num_variants
+Chi-square = sum((observed - expected)^2 / expected)
+Degrees of freedom = num_variants - 1
+p < 0.001 = SRM detected — do not interpret results
+```
+
+## Power Analysis
+
+Power = the probability of detecting a real effect when it exists. Standard target: 80%.
+
+**Increasing power without more traffic:**
+- Raise MDE (accept that you will only detect larger effects)
+- Reduce alpha to 0.10 (accept more false positives — usually not worth it)
+- Use a more sensitive metric (e.g., checkout starts instead of purchases)
+- Use CUPED variance reduction if you have pre-experiment data
+
+**Reducing required sample size:**
+- Increase MDE threshold (only test if you expect a meaningful lift)
+- Target a more homogeneous segment (reduces variance)
+- Use one-tailed test ONLY if the direction is pre-specified and you will kill on any negative result
+
+## Key Numbers to Remember
+
+| Concept | Value |
+|---------|-------|
+| Standard confidence threshold | p &lt; 0.05 |
+| Standard power target | 80% |
+| Z-score for 95% CI | 1.96 |
+| Z-score for 99% CI | 2.58 |
+| Minimum experiment runtime | 2 full business cycles |
+| SRM p-value threshold | p &lt; 0.001 = broken |
+| Novelty effect buffer | Week 1 data often inflated — run 2+ weeks |
+

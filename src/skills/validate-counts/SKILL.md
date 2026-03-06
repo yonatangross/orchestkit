@@ -29,8 +29,8 @@ bash src/skills/validate-counts/scripts/count-all.sh
 
 | Category | Rule | Impact | Key Pattern |
 |----------|------|--------|-------------|
-| Count Sources | `rules/sources-authoritative.md` | HIGH | Filesystem is authoritative; derived sources must match |
-| Drift Detection | `rules/drift-reporting.md` | HIGH | Comparison table + flag with file:field references |
+| Count Sources | `rules/sources-authoritative.md` (load `${CLAUDE_PLUGIN_ROOT}/skills/validate-counts/rules/sources-authoritative.md`) | HIGH | Filesystem is authoritative; derived sources must match |
+| Drift Detection | `rules/drift-reporting.md` (load `${CLAUDE_PLUGIN_ROOT}/skills/validate-counts/rules/drift-reporting.md`) | HIGH | Comparison table + flag with file:field references |
 
 **Total: 2 rules across 2 categories**
 
@@ -44,7 +44,11 @@ bash src/skills/validate-counts/scripts/count-all.sh
 
 ## References
 
-- [Count Locations](references/count-locations.md) — Where every count lives and why drift happens
+Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/validate-counts/references/<file>")`:
+
+| File | Content |
+|------|---------|
+| `count-locations.md` | Where every count lives and why drift happens |
 
 ## Related Skills
 

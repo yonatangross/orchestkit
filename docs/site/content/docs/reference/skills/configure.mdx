@@ -51,15 +51,11 @@ Categories available:
 
 ## Step 3: Customize Agents
 
-**Product Agents (6):**
+**Product Agents (2):**
 - market-intelligence
 - product-strategist
-- requirements-translator
-- ux-researcher
-- prioritization-analyst
-- business-case-builder
 
-**Technical Agents (14):**
+**Technical Agents (12):**
 - backend-system-architect
 - frontend-ui-developer
 - database-engineer
@@ -71,8 +67,6 @@ Categories available:
 - security-auditor
 - security-layer-auditor
 - debug-investigator
-- metrics-architect
-- rapid-ui-designer
 - system-design-reviewer
 
 ## Step 4: Configure Hooks
@@ -328,7 +322,7 @@ Two channels now active:
 
 Save webhookUrl to config and remind about env var (same as above, skip generator step).
 
-See [HTTP Hooks reference](references/http-hooks.md) for architecture details.
+Load `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/configure/references/http-hooks.md")` for architecture details.
 
 ## Step 10: Optional Integrations
 
@@ -387,6 +381,8 @@ Enable Agentation UI annotation tool? [y/N]: y
 
 ## Step 11: Preview & Save
 
+> **Tip (CC 2.1.69+):** After saving configuration changes, run `/reload-plugins` to activate them without restarting your session.
+
 Save to: `~/.claude/plugins/orchestkit/config.json`
 
 ```json
@@ -404,9 +400,12 @@ Save to: `~/.claude/plugins/orchestkit/config.json`
 - `ork:doctor`: Diagnose configuration issues
 ## References
 
-- [Presets](references/presets.md)
-- [MCP Configuration](references/mcp-config.md)
-- [HTTP Hooks](references/http-hooks.md) — CC 2.1.63+ observability hooks (Langfuse, Datadog, custom endpoints)
+Load on demand with `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/configure/references/&lt;file&gt;")`:
+| File | Content |
+|------|---------|
+| `references/presets.md` | Preset definitions |
+| `references/mcp-config.md` | MCP configuration |
+| `references/http-hooks.md` | CC 2.1.63+ observability hooks (Langfuse, Datadog, custom endpoints) |
 
 ---
 

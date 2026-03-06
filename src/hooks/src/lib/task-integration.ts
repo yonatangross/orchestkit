@@ -116,7 +116,6 @@ function getActiveFormForAgent(agent: string, description: string): string {
     'database-engineer': 'Implementing database for',
     'llm-integrator': 'Integrating LLM for',
     'code-quality-reviewer': 'Reviewing',
-    'ux-researcher': 'Researching UX for',
     'product-strategist': 'Strategizing',
     'debug-investigator': 'Investigating',
     'frontend-performance-engineer': 'Optimizing',

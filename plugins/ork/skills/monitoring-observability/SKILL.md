@@ -5,7 +5,6 @@ compatibility: "Claude Code 2.1.59+."
 description: Monitoring and observability patterns for Prometheus metrics, Grafana dashboards, Langfuse LLM tracing, and drift detection. Use when adding logging, metrics, distributed tracing, LLM cost tracking, or quality drift monitoring.
 tags: [monitoring, observability, prometheus, grafana, langfuse, tracing, metrics, drift-detection, logging]
 context: fork
-agent: metrics-architect
 version: 2.0.0
 author: OrchestKit
 user-invocable: false
@@ -126,10 +125,10 @@ Detection and alerting for silent failures in LLM agents.
 
 | Resource | Description |
 |----------|-------------|
-| [references/](references/) | Logging, metrics, tracing, Langfuse, drift analysis guides |
-| [checklists/](checklists/) | Implementation checklists for monitoring and Langfuse setup |
-| [examples/](examples/) | Real-world monitoring dashboard and trace examples |
-| [scripts/](scripts/) | Templates: Prometheus, OpenTelemetry, health checks, Langfuse |
+| `${CLAUDE_PLUGIN_ROOT}/skills/monitoring-observability/references/` | Logging, metrics, tracing, Langfuse, drift analysis guides |
+| `${CLAUDE_PLUGIN_ROOT}/skills/monitoring-observability/checklists/` | Implementation checklists for monitoring and Langfuse setup |
+| `${CLAUDE_PLUGIN_ROOT}/skills/monitoring-observability/examples/` | Real-world monitoring dashboard and trace examples |
+| `${CLAUDE_PLUGIN_ROOT}/skills/monitoring-observability/scripts/` | Templates: Prometheus, OpenTelemetry, health checks, Langfuse |
 
 ## Related Skills
 

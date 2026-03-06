@@ -30,7 +30,7 @@ const ALTERNATIVE_AGENTS: Record<string, string[]> = {
   // If backend architect fails, try these
   'backend-system-architect': ['database-engineer', 'api-designer'],
   // If frontend fails, try UI designer first
-  'frontend-ui-developer': ['rapid-ui-designer', 'accessibility-specialist'],
+  'frontend-ui-developer': ['accessibility-specialist'],
   // If test generator fails, try debug investigator
   'test-generator': ['debug-investigator', 'code-quality-reviewer'],
   // If security auditor fails, try layer auditor

@@ -1,23 +1,26 @@
 /**
  * Unit tests for antipattern-warning hook
- * Tests UserPromptSubmit hook that detects and warns about known anti-patterns
- * CC 2.1.9 compliant with additionalContext injection
+ *
+ * Architecture (post #972):
+ * - Static patterns → rules file (materializeAntipatternRules, called at SessionStart).
+ * - Dynamic learned patterns → antipatternWarning() (deprecated, no longer wired into dispatcher).
+ * - Static antipattern detection → type:prompt hook in hooks.json (LLM classifies directly).
+ *
+ * antipatternWarning() is no longer registered in unified-dispatcher.ts (#972).
+ * materializeAntipatternRules() is still called by sync-session-dispatcher.ts.
  */
 
-import { describe, test, expect, beforeEach, afterEach, } from 'vitest';
+import { describe, test, expect, beforeEach, afterEach } from 'vitest';
 import type { HookInput } from '../../types.js';
-import { antipatternWarning } from '../../prompt/antipattern-warning.js';
-import { mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { antipatternWarning, materializeAntipatternRules } from '../../prompt/antipattern-warning.js';
+import { mkdirSync, writeFileSync, rmSync, existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 
 // =============================================================================
-// Test Utilities
+// Helpers
 // =============================================================================
 
-/**
- * Create UserPromptSubmit input for testing
- */
 function createPromptInput(prompt: string, overrides: Partial<HookInput> = {}): HookInput {
   return {
     hook_event: 'UserPromptSubmit',
@@ -37,328 +40,201 @@ function createPromptInput(prompt: string, overrides: Partial<HookInput> = {}): 
 describe('prompt/antipattern-warning', () => {
   describe('basic behavior', () => {
     test('returns silent success for empty prompt', () => {
-      const input = createPromptInput('');
-      const result = antipatternWarning(input);
-
+      const result = antipatternWarning(createPromptInput(''));
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
     });
 
-    test('returns silent success for non-implementation prompts', () => {
-      const input = createPromptInput('What is the weather like today?');
-      const result = antipatternWarning(input);
-
+    test('returns silent success when no dynamic patterns match', () => {
+      const result = antipatternWarning(createPromptInput('What is the weather like today?'));
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
     });
 
-    test('always continues execution', () => {
-      const prompts = [
-        '',
-        'hello world',
-        'implement offset pagination',
-        'create a secure endpoint',
-        'random question without triggers',
-      ];
-
-      for (const prompt of prompts) {
-        const input = createPromptInput(prompt);
-        const result = antipatternWarning(input);
+    test('always continues execution regardless of prompt content', () => {
+      for (const prompt of ['', 'hello', 'implement something', 'random question']) {
+        const result = antipatternWarning(createPromptInput(prompt));
         expect(result.continue).toBe(true);
       }
     });
-  });
 
-  describe('implementation keyword detection', () => {
-    test('detects "implement" keyword', () => {
-      const input = createPromptInput('Implement a user service');
-      const result = antipatternWarning(input);
+    test('checks ALL prompts, not just implementation prompts', () => {
+      // No keyword gate — any prompt can trigger learned pattern warnings
+      const tempDir = join(tmpdir(), `ap-test-${Date.now()}`);
+      mkdirSync(join(tempDir, '.claude', 'feedback'), { recursive: true });
+      writeFileSync(
+        join(tempDir, '.claude', 'feedback', 'learned-patterns.json'),
+        JSON.stringify({ patterns: [{ text: 'weather API causes timeouts', outcome: 'failed' }] }),
+      );
 
-      expect(result.continue).toBe(true);
-      // Should process as implementation prompt
-    });
+      const result = antipatternWarning(createPromptInput('Check the weather API', { project_dir: tempDir }));
+      expect(result.hookSpecificOutput?.additionalContext).toContain('Previously failed');
 
-    test('detects "add" keyword', () => {
-      const input = createPromptInput('Add authentication to the API');
-      const result = antipatternWarning(input);
-
-      expect(result.continue).toBe(true);
-    });
-
-    test('detects "create" keyword', () => {
-      const input = createPromptInput('Create a new database table');
-      const result = antipatternWarning(input);
-
-      expect(result.continue).toBe(true);
-    });
-
-    test('detects "build" keyword', () => {
-      const input = createPromptInput('Build a REST API endpoint');
-      const result = antipatternWarning(input);
-
-      expect(result.continue).toBe(true);
-    });
-
-    test('detects "set up" keyword', () => {
-      const input = createPromptInput('Set up caching for the application');
-      const result = antipatternWarning(input);
-
-      expect(result.continue).toBe(true);
-    });
-
-    test('detects "setup" keyword', () => {
-      const input = createPromptInput('Setup database connections');
-      const result = antipatternWarning(input);
-
-      expect(result.continue).toBe(true);
-    });
-
-    test('detects "configure" keyword', () => {
-      const input = createPromptInput('Configure the authentication system');
-      const result = antipatternWarning(input);
-
-      expect(result.continue).toBe(true);
-    });
-
-    test('detects "use" keyword', () => {
-      const input = createPromptInput('Use Redis for session storage');
-      const result = antipatternWarning(input);
-
-      expect(result.continue).toBe(true);
-    });
-
-    test('detects "write" keyword', () => {
-      const input = createPromptInput('Write a function for validation');
-      const result = antipatternWarning(input);
-
-      expect(result.continue).toBe(true);
-    });
-
-    test('detects "make" keyword', () => {
-      const input = createPromptInput('Make a caching layer');
-      const result = antipatternWarning(input);
-
-      expect(result.continue).toBe(true);
-    });
-
-    test('detects "develop" keyword', () => {
-      const input = createPromptInput('Develop an API client');
-      const result = antipatternWarning(input);
-
-      expect(result.continue).toBe(true);
+      rmSync(tempDir, { recursive: true, force: true });
     });
   });
 
-  describe('known anti-pattern detection', () => {
-    test('warns about offset pagination', () => {
-      const input = createPromptInput('Implement offset pagination for the list endpoint');
-      const result = antipatternWarning(input);
+  // ---------------------------------------------------------------------------
+  // Static patterns — materialized to rules file (not checked at runtime)
+  // ---------------------------------------------------------------------------
 
-      expect(result.continue).toBe(true);
-      if (result.hookSpecificOutput?.additionalContext) {
-        expect(result.hookSpecificOutput.additionalContext).toContain('pagination');
-        expect(result.hookSpecificOutput.additionalContext).toContain('cursor');
-      }
-    });
-
-    test('warns about manual JWT validation', () => {
-      const input = createPromptInput('Implement manual jwt validation');
-      const result = antipatternWarning(input);
-
-      expect(result.continue).toBe(true);
-      if (result.hookSpecificOutput?.additionalContext) {
-        expect(result.hookSpecificOutput.additionalContext).toContain('JWT');
-      }
-    });
-
-    test('warns about storing passwords in plaintext', () => {
-      const input = createPromptInput('Add storing passwords in plaintext');
-      const result = antipatternWarning(input);
-
-      expect(result.continue).toBe(true);
-      if (result.hookSpecificOutput?.additionalContext) {
-        expect(result.hookSpecificOutput.additionalContext).toContain('password');
-      }
-    });
-
-    test('warns about global state', () => {
-      const input = createPromptInput('Add global state for configuration');
-      const result = antipatternWarning(input);
-
-      expect(result.continue).toBe(true);
-      if (result.hookSpecificOutput?.additionalContext) {
-        expect(result.hookSpecificOutput.additionalContext).toContain('global');
-      }
-    });
-
-    test('warns about synchronous file operations', () => {
-      const input = createPromptInput('Use synchronous file operations');
-      const result = antipatternWarning(input);
-
-      expect(result.continue).toBe(true);
-      if (result.hookSpecificOutput?.additionalContext) {
-        expect(result.hookSpecificOutput.additionalContext).toContain('async');
-      }
-    });
-
-    test('warns about n+1 query', () => {
-      const input = createPromptInput('Implement feature that causes n+1 query');
-      const result = antipatternWarning(input);
-
-      expect(result.continue).toBe(true);
-      if (result.hookSpecificOutput?.additionalContext) {
-        expect(result.hookSpecificOutput.additionalContext).toContain('N+1');
-      }
-    });
-
-    test('warns about polling for real-time', () => {
-      const input = createPromptInput('Use polling for real-time updates');
-      const result = antipatternWarning(input);
-
-      expect(result.continue).toBe(true);
-      if (result.hookSpecificOutput?.additionalContext) {
-        expect(result.hookSpecificOutput.additionalContext).toContain('Polling');
-      }
-    });
-  });
-
-  describe('CC 2.1.9 compliance', () => {
-    test('uses hookEventName: UserPromptSubmit when providing context', () => {
-      const input = createPromptInput('Implement offset pagination');
-      const result = antipatternWarning(input);
-
-      if (result.hookSpecificOutput?.additionalContext) {
-        expect(result.hookSpecificOutput.hookEventName).toBe('UserPromptSubmit');
-      }
-    });
-
-    test('includes suppressOutput: true for non-warning responses', () => {
-      const input = createPromptInput('What is the weather?');
-      const result = antipatternWarning(input);
-
-      expect(result.suppressOutput).toBe(true);
-    });
-
-    test('additionalContext includes warning format', () => {
-      const input = createPromptInput('Implement offset pagination');
-      const result = antipatternWarning(input);
-
-      if (result.hookSpecificOutput?.additionalContext) {
-        expect(result.hookSpecificOutput.additionalContext).toContain('Anti-Pattern Warning');
-      }
-    });
-  });
-
-  describe('category detection', () => {
-    test('detects pagination category', () => {
-      const input = createPromptInput('Implement pagination for the API');
-      const result = antipatternWarning(input);
-
-      expect(result.continue).toBe(true);
-    });
-
-    test('detects authentication category', () => {
-      const input = createPromptInput('Implement auth with JWT tokens');
-      const result = antipatternWarning(input);
-
-      expect(result.continue).toBe(true);
-    });
-
-    test('detects caching category', () => {
-      const input = createPromptInput('Implement caching with Redis');
-      const result = antipatternWarning(input);
-
-      expect(result.continue).toBe(true);
-    });
-
-    test('detects database category', () => {
-      const input = createPromptInput('Implement database queries');
-      const result = antipatternWarning(input);
-
-      expect(result.continue).toBe(true);
-    });
-
-    test('detects api category', () => {
-      const input = createPromptInput('Implement API endpoints');
-      const result = antipatternWarning(input);
-
-      expect(result.continue).toBe(true);
-    });
-
-    test('defaults to general category', () => {
-      const input = createPromptInput('Implement a new feature');
-      const result = antipatternWarning(input);
-
-      expect(result.continue).toBe(true);
-    });
-  });
-
-  describe('learned patterns file', () => {
+  describe('materializeAntipatternRules', () => {
     let tempDir: string;
 
     beforeEach(() => {
-      tempDir = join(tmpdir(), `antipattern-test-${Date.now()}`);
+      tempDir = join(tmpdir(), `ap-rules-${Date.now()}`);
+      mkdirSync(join(tempDir, '.claude', 'rules'), { recursive: true });
+    });
+
+    afterEach(() => {
+      rmSync(tempDir, { recursive: true, force: true });
+    });
+
+    test('writes .claude/rules/antipatterns.md', () => {
+      materializeAntipatternRules(tempDir);
+      const rulesFile = join(tempDir, '.claude', 'rules', 'antipatterns.md');
+      expect(existsSync(rulesFile)).toBe(true);
+    });
+
+    test('rules file contains all 7 known anti-patterns', () => {
+      materializeAntipatternRules(tempDir);
+      const content = readFileSync(join(tempDir, '.claude', 'rules', 'antipatterns.md'), 'utf8');
+      expect(content).toContain('offset pagination');
+      expect(content).toContain('manual jwt validation');
+      expect(content).toContain('plaintext');
+      expect(content).toContain('global state');
+      expect(content).toContain('synchronous file');
+      expect(content).toContain('n+1 query');
+      expect(content).toContain('polling for real-time');
+    });
+
+    test('static patterns are NOT checked at runtime', () => {
+      // "implement offset pagination" should NOT trigger a warning from the runtime hook
+      // because static patterns are in the rules file, not runtime-matched
+      const result = antipatternWarning(createPromptInput('Implement offset pagination'));
+      expect(result.hookSpecificOutput?.additionalContext).toBeUndefined();
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Dynamic learned patterns (project-local)
+  // ---------------------------------------------------------------------------
+
+  describe('dynamic learned patterns', () => {
+    let tempDir: string;
+
+    beforeEach(() => {
+      tempDir = join(tmpdir(), `ap-learned-${Date.now()}`);
       mkdirSync(join(tempDir, '.claude', 'feedback'), { recursive: true });
     });
 
     afterEach(() => {
-      try {
-        rmSync(tempDir, { recursive: true, force: true });
-      } catch {
-        // Ignore cleanup errors
-      }
+      rmSync(tempDir, { recursive: true, force: true });
     });
 
-    test('reads learned patterns from file', () => {
-      const patternsFile = join(tempDir, '.claude', 'feedback', 'learned-patterns.json');
+    test('warns when learned failed pattern matches', () => {
       writeFileSync(
-        patternsFile,
+        join(tempDir, '.claude', 'feedback', 'learned-patterns.json'),
         JSON.stringify({
-          patterns: [
-            { text: 'offset pagination causes issues', outcome: 'failed' },
-            { text: 'cursor pagination works well', outcome: 'success' },
-          ],
-        })
+          patterns: [{ text: 'offset pagination causes issues', outcome: 'failed' }],
+        }),
       );
 
-      const input = createPromptInput('Implement offset feature', {
-        project_dir: tempDir,
-      });
-      const result = antipatternWarning(input);
+      const result = antipatternWarning(createPromptInput('Implement offset feature', { project_dir: tempDir }));
+      expect(result.hookSpecificOutput?.additionalContext).toContain('Previously failed');
+      expect(result.hookSpecificOutput?.additionalContext).toContain('offset pagination');
+    });
 
-      expect(result.continue).toBe(true);
+    test('ignores successful patterns', () => {
+      writeFileSync(
+        join(tempDir, '.claude', 'feedback', 'learned-patterns.json'),
+        JSON.stringify({
+          patterns: [{ text: 'cursor pagination works well', outcome: 'success' }],
+        }),
+      );
+
+      const result = antipatternWarning(createPromptInput('Use cursor pagination', { project_dir: tempDir }));
+      expect(result.hookSpecificOutput?.additionalContext).toBeUndefined();
     });
 
     test('handles missing patterns file gracefully', () => {
-      const input = createPromptInput('Implement new feature', {
-        project_dir: tempDir,
-      });
-      const result = antipatternWarning(input);
-
+      const result = antipatternWarning(createPromptInput('Implement new feature', { project_dir: tempDir }));
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
     });
 
     test('handles malformed patterns file gracefully', () => {
-      const patternsFile = join(tempDir, '.claude', 'feedback', 'learned-patterns.json');
-      writeFileSync(patternsFile, 'invalid json');
-
-      const input = createPromptInput('Implement new feature', {
-        project_dir: tempDir,
-      });
-      const result = antipatternWarning(input);
-
+      writeFileSync(join(tempDir, '.claude', 'feedback', 'learned-patterns.json'), 'invalid json');
+      const result = antipatternWarning(createPromptInput('Implement new feature', { project_dir: tempDir }));
       expect(result.continue).toBe(true);
+    });
+
+    test('handles empty patterns array', () => {
+      writeFileSync(
+        join(tempDir, '.claude', 'feedback', 'learned-patterns.json'),
+        JSON.stringify({ patterns: [] }),
+      );
+      const result = antipatternWarning(createPromptInput('Implement something', { project_dir: tempDir }));
+      expect(result.suppressOutput).toBe(true);
     });
   });
 
-  describe('project directory handling', () => {
-    test('uses provided project_dir', () => {
-      const input = createPromptInput('Implement offset pagination', {
-        project_dir: '/custom/project/path',
-      });
-      const result = antipatternWarning(input);
+  // ---------------------------------------------------------------------------
+  // CC 2.1.9 compliance
+  // ---------------------------------------------------------------------------
 
+  describe('CC 2.1.9 compliance', () => {
+    let tempDir: string;
+
+    beforeEach(() => {
+      tempDir = join(tmpdir(), `ap-cc-${Date.now()}`);
+      mkdirSync(join(tempDir, '.claude', 'feedback'), { recursive: true });
+      writeFileSync(
+        join(tempDir, '.claude', 'feedback', 'learned-patterns.json'),
+        JSON.stringify({ patterns: [{ text: 'redis caching failed', outcome: 'failed' }] }),
+      );
+    });
+
+    afterEach(() => {
+      rmSync(tempDir, { recursive: true, force: true });
+    });
+
+    test('uses hookEventName: UserPromptSubmit when warning', () => {
+      const result = antipatternWarning(createPromptInput('Use redis caching', { project_dir: tempDir }));
+      expect(result.hookSpecificOutput?.hookEventName).toBe('UserPromptSubmit');
+    });
+
+    test('warning includes Anti-Pattern Warning heading', () => {
+      const result = antipatternWarning(createPromptInput('Use redis for this', { project_dir: tempDir }));
+      expect(result.hookSpecificOutput?.additionalContext).toContain('Anti-Pattern Warning');
+    });
+
+    test('includes suppressOutput: true for silent responses', () => {
+      const result = antipatternWarning(createPromptInput('What is the weather?'));
+      expect(result.suppressOutput).toBe(true);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Edge cases
+  // ---------------------------------------------------------------------------
+
+  describe('edge cases', () => {
+    test('handles prompts with special characters', () => {
+      expect(() => antipatternWarning(createPromptInput('$pecial ch@rs! <test>'))).not.toThrow();
+    });
+
+    test('handles very long prompts', () => {
+      const result = antipatternWarning(createPromptInput('x'.repeat(10000)));
+      expect(result.continue).toBe(true);
+    });
+
+    test('handles prompts with unicode', () => {
+      expect(() => antipatternWarning(createPromptInput('emoji: 😀 🔥'))).not.toThrow();
+    });
+
+    test('uses provided project_dir', () => {
+      const result = antipatternWarning(createPromptInput('test', { project_dir: '/custom/path' }));
       expect(result.continue).toBe(true);
     });
 
@@ -366,97 +242,11 @@ describe('prompt/antipattern-warning', () => {
       const input: HookInput = {
         hook_event: 'UserPromptSubmit',
         tool_name: 'UserPromptSubmit',
-        session_id: 'test-session-123',
+        session_id: 'test-123',
         tool_input: {},
-        prompt: 'Implement offset pagination',
+        prompt: 'test prompt',
       };
-      const result = antipatternWarning(input);
-
-      expect(result.continue).toBe(true);
-    });
-  });
-
-  describe('edge cases', () => {
-    test('handles prompts with special characters', () => {
-      const input = createPromptInput('Implement $pecial ch@rs! <test>');
-      const result = antipatternWarning(input);
-
-      expect(result.continue).toBe(true);
-    });
-
-    test('handles prompts with newlines', () => {
-      const input = createPromptInput('First line\nImplement offset pagination\nThird line');
-      const result = antipatternWarning(input);
-
-      expect(result.continue).toBe(true);
-    });
-
-    test('handles very long prompts', () => {
-      const longPrompt = `Implement offset pagination ${'x'.repeat(5000)}`;
-      const input = createPromptInput(longPrompt);
-      const result = antipatternWarning(input);
-
-      expect(result.continue).toBe(true);
-    });
-
-    test('handles prompts with unicode characters', () => {
-      const input = createPromptInput('Implement feature with emoji: \ud83d\ude00 \ud83d\udd25');
-      const result = antipatternWarning(input);
-
-      expect(result.continue).toBe(true);
-    });
-
-    test('is case insensitive for anti-pattern detection', () => {
-      const variations = [
-        'Implement OFFSET PAGINATION',
-        'implement Offset Pagination',
-        'IMPLEMENT offset pagination',
-      ];
-
-      for (const prompt of variations) {
-        const input = createPromptInput(prompt);
-        const result = antipatternWarning(input);
-        expect(result.continue).toBe(true);
-        if (result.hookSpecificOutput?.additionalContext) {
-          expect(result.hookSpecificOutput.additionalContext).toContain('pagination');
-        }
-      }
-    });
-  });
-
-  describe('multiple anti-patterns', () => {
-    test('detects multiple anti-patterns in one prompt', () => {
-      const input = createPromptInput(
-        'Implement offset pagination with global state and synchronous file operations'
-      );
-      const result = antipatternWarning(input);
-
-      expect(result.continue).toBe(true);
-      if (result.hookSpecificOutput?.additionalContext) {
-        expect(result.hookSpecificOutput.additionalContext).toContain('Anti-Pattern Warning');
-      }
-    });
-  });
-
-  describe('non-triggering prompts', () => {
-    test('does not warn for safe implementation prompts', () => {
-      const input = createPromptInput('Implement cursor pagination with async operations');
-      const result = antipatternWarning(input);
-
-      expect(result.continue).toBe(true);
-      // Should not contain anti-pattern warnings
-      if (result.hookSpecificOutput?.additionalContext) {
-        expect(result.hookSpecificOutput.additionalContext).not.toContain('offset pagination');
-      }
-    });
-
-    test('does not trigger for questions', () => {
-      const input = createPromptInput('What is offset pagination?');
-      const result = antipatternWarning(input);
-
-      expect(result.continue).toBe(true);
-      expect(result.suppressOutput).toBe(true);
-      expect(result.hookSpecificOutput?.additionalContext).toBeUndefined();
+      expect(() => antipatternWarning(input)).not.toThrow();
     });
   });
 });

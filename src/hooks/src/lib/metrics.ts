@@ -3,7 +3,7 @@
 
 /**
  * Shared session metrics utilities.
- * Provides getTotalTools() used by session-cleanup and memory-capture.
+ * Provides getTotalTools() used by session-cleanup and session-summary.
  */
 
 import { existsSync, readFileSync } from 'node:fs';

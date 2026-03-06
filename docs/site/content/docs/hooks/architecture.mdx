@@ -1,6 +1,6 @@
 ---
 title: "Hook Architecture"
-description: "How OrchestKit's 95-hook system works: bundles, dispatchers, execution modes, and the stop pipeline."
+description: "How OrchestKit's 81-hook system works: bundles, dispatchers, execution modes, and the stop pipeline."
 ---
 
 import { Callout } from "fumadocs-ui/components/callout";
@@ -11,7 +11,7 @@ This page is for plugin developers who want to understand how the hook system wo
 
 ## The Bundle System
 
-OrchestKit compiles 95 hooks into **12 event-specific bundles** using esbuild. When Claude Code fires a hook, only the bundle for that event type is loaded -- not the entire codebase.
+OrchestKit compiles 83 hooks into **12 event-specific bundles** using esbuild. When Claude Code fires a hook, only the bundle for that event type is loaded -- not the entire codebase.
 
 ```
 hooks.json entry
@@ -63,7 +63,7 @@ Note that `subagent-start` and `subagent-stop` share the `subagent.mjs` bundle. 
 | `posttool.mjs` | 58 KB | 23 | PostToolUse, PostToolUseFailure | unified-dispatcher, error-handler, audit-logger, memory-bridge |
 | `prompt.mjs` | 57 KB | 13 | UserPromptSubmit | unified-dispatcher (9 consolidated hooks), profile-injector, capture-user-intent |
 | `lifecycle.mjs` | 31 KB | 17 | SessionStart, SessionEnd, PreCompact, TeammateIdle, TaskCompleted | context-loader, metrics-summary, progress-reporter |
-| `stop.mjs` | 33 KB | 12 | Stop | unified-stop-dispatcher (fans out to 24 hooks internally) |
+| `stop.mjs` | 33 KB | 12 | Stop | unified-stop-dispatcher (fans out to 7 hooks internally) |
 | `subagent.mjs` | 56 KB | 18 | SubagentStart, SubagentStop | context-stager, output-validator, retry-handler |
 | `notification.mjs` | 5 KB | 3 | Notification | desktop, sound, unified-dispatcher |
 | `setup.mjs` | 24 KB | 6 | Setup | first-run-setup, monorepo-detector, setup-repair |
@@ -155,7 +155,7 @@ Claude Code                      run-hook-silent.mjs           run-hook-backgrou
 
 ### Background Worker (stop-fire-and-forget.mjs)
 
-A specialized pattern for the Stop event. Instead of passing input via command-line arguments, it writes a work file to disk and spawns a long-lived background worker. This is necessary because Stop hooks run 24+ functions in parallel and may take several seconds.
+A specialized pattern for the Stop event. Instead of passing input via command-line arguments, it writes a work file to disk and spawns a long-lived background worker. This is necessary because Stop hooks run 7 functions in parallel and may take several seconds.
 
 ```
 Claude Code               stop-fire-and-forget.mjs        background-worker.mjs
@@ -174,7 +174,7 @@ Claude Code               stop-fire-and-forget.mjs        background-worker.mjs
     |                                              | delete work file
     |                                              | import stop.mjs bundle
     |                                              | unifiedStopDispatcher(input)
-    |                                              |   -> Promise.allSettled(24 hooks)
+    |                                              |   -> Promise.allSettled(7 hooks)
     |                                              | exit
 ```
 
@@ -199,13 +199,13 @@ Seven hooks.json entries use `run-hook-silent.mjs` to fan out to multiple intern
 | `subagent-stop/unified-dispatcher` | SubagentStop | 5+ | Memory store, context publisher, feedback loop, handoff preparer |
 | `notification/unified-dispatcher` | Notification | 1+ | Desktop notification routing |
 | `setup/unified-dispatcher` | Setup | varies | Background setup initialization tasks |
-| `stop-fire-and-forget.mjs` | Stop | 24 | All stop hooks via background worker (see below) |
+| `stop-fire-and-forget.mjs` | Stop | 7 | All stop hooks via background worker (see below) |
 
 The fire-and-forget pattern is used exclusively for operations that can fail silently: analytics, network I/O, memory sync, and cleanup.
 
 ## The Stop Pipeline
 
-The Stop event has the most complex execution pipeline because it must run 24 cleanup hooks without blocking session exit.
+The Stop event has the most complex execution pipeline because it must run 7 cleanup hooks without blocking session exit.
 
 <Steps>
 <Step>
@@ -239,7 +239,7 @@ The detached `background-worker.mjs` process reads the work file, deletes it, im
 </Step>
 
 <Step>
-### 24 hooks run in parallel via Promise.allSettled
+### 7 hooks run in parallel via Promise.allSettled
 
 The unified stop dispatcher runs all hooks concurrently. Grouped by category:
 
@@ -283,8 +283,8 @@ const DISPATCHERS = {
 
 Hooks are registered at three levels. Scope determines which sessions a hook fires in.
 
-<Tabs items={["Global (63)", "Agent-Scoped (22)", "Skill-Scoped (1)"]}>
-<Tab value="Global (63)">
+<Tabs items={["Global (30)", "Agent-Scoped (44)", "Skill-Scoped (7)"]}>
+<Tab value="Global (30)">
 
 ### Global Hooks
 
@@ -311,7 +311,7 @@ Defined in `hooks.json` at the top level. Fire on every matching event in every 
 Global hooks cover the core safety layer (dangerous command blocker, file guard), analytics (audit logger, session metrics), and lifecycle management (context loader, cleanup).
 
 </Tab>
-<Tab value="Agent-Scoped (22)">
+<Tab value="Agent-Scoped (44)">
 
 ### Agent-Scoped Hooks
 
@@ -323,7 +323,7 @@ name: security-auditor
 hooks:
   PostToolUse:
     - matcher: "Bash"
-      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs agent/security-command-audit"
+      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs agent/security-command-audit"
 ---
 ```
 
@@ -336,10 +336,10 @@ Agent-scoped hooks implement agent-specific safety constraints. For example:
 | `ci-cd-engineer` | `agent/ci-safety-check` | Prevent CI config changes without review |
 | `database-engineer` | `agent/migration-safety-check` | Validate migration scripts before execution |
 
-The 22 agent-scoped hooks use 5 underlying hook functions from the `agent.mjs` bundle: `block-writes`, `ci-safety-check`, `deployment-safety-check`, `migration-safety-check`, and `security-command-audit`. Multiple agents may reference the same hook function.
+The 44 agent-scoped hooks use 5 underlying hook functions from the `agent.mjs` bundle: `block-writes`, `ci-safety-check`, `deployment-safety-check`, `migration-safety-check`, and `security-command-audit`. Multiple agents may reference the same hook function.
 
 </Tab>
-<Tab value="Skill-Scoped (1)">
+<Tab value="Skill-Scoped (7)">
 
 ### Skill-Scoped Hooks
 

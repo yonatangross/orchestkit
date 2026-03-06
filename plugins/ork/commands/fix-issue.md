@@ -30,11 +30,11 @@ ISSUE_NUMBER = "$ARGUMENTS[0]"  # e.g., "123" (CC 2.1.59 indexed access)
 
 ## STEP 0: Verify User Intent
 
-**BEFORE creating tasks**, clarify fix approach using AskUserQuestion. See [rules/evidence-gathering.md](rules/evidence-gathering.md) for the full prompt template and workflow adjustments per approach (Proper fix, Quick fix, Investigate first, Hotfix).
+**BEFORE creating tasks**, clarify fix approach using AskUserQuestion. Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/fix-issue/rules/evidence-gathering.md")` for the full prompt template and workflow adjustments per approach (Proper fix, Quick fix, Investigate first, Hotfix).
 
 ## STEP 0b: Select Orchestration Mode
 
-Choose **Agent Teams** (mesh) or **Task tool** (star). See [references/agent-selection.md](references/agent-selection.md) for the selection criteria, cost comparison, and task creation patterns.
+Choose **Agent Teams** (mesh) or **Task tool** (star). Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/fix-issue/references/agent-selection.md")` for the selection criteria, cost comparison, and task creation patterns.
 
 ## Workflow Overview
 
@@ -52,7 +52,7 @@ Choose **Agent Teams** (mesh) or **Task tool** (star). See [references/agent-sel
 | **10. Lessons Learned** | Capture knowledge | Persisted learnings |
 | **11. Commit and PR** | Create PR with fix | Merged PR |
 
-> **Full phase details**: See [references/fix-phases.md](references/fix-phases.md) for bash commands, templates, and procedures for each phase.
+> **Full phase details**: Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/fix-issue/references/fix-phases.md")` for bash commands, templates, and procedures for each phase.
 
 ## Critical Constraints
 
@@ -63,16 +63,16 @@ Choose **Agent Teams** (mesh) or **Task tool** (star). See [references/agent-sel
 
 ## CC 2.1.49 Enhancements
 
-> See [references/cc-enhancements.md](references/cc-enhancements.md) for session resume, task metrics, tool guidance, worktree isolation, and adaptive thinking.
+> Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/fix-issue/references/cc-enhancements.md")` for session resume, task metrics, tool guidance, worktree isolation, and adaptive thinking.
 
 ## Rules Quick Reference
 
 | Rule | Impact | What It Covers |
 |------|--------|----------------|
-| [evidence-gathering](rules/evidence-gathering.md) | HIGH | User intent verification, confidence scale, key decisions |
-| [rca-five-whys](rules/rca-five-whys.md) | HIGH | 5 Whys iterative causal analysis |
-| [rca-fishbone](rules/rca-fishbone.md) | MEDIUM | Ishikawa diagram, multi-factor analysis |
-| [rca-fault-tree](rules/rca-fault-tree.md) | MEDIUM | Fault tree analysis, AND/OR gates, critical systems |
+| evidence-gathering (load `${CLAUDE_PLUGIN_ROOT}/skills/fix-issue/rules/evidence-gathering.md`) | HIGH | User intent verification, confidence scale, key decisions |
+| rca-five-whys (load `${CLAUDE_PLUGIN_ROOT}/skills/fix-issue/rules/rca-five-whys.md`) | HIGH | 5 Whys iterative causal analysis |
+| rca-fishbone (load `${CLAUDE_PLUGIN_ROOT}/skills/fix-issue/rules/rca-fishbone.md`) | MEDIUM | Ishikawa diagram, multi-factor analysis |
+| rca-fault-tree (load `${CLAUDE_PLUGIN_ROOT}/skills/fix-issue/rules/rca-fault-tree.md`) | MEDIUM | Fault tree analysis, AND/OR gates, critical systems |
 
 ## Related Skills
 
@@ -83,13 +83,16 @@ Choose **Agent Teams** (mesh) or **Task tool** (star). See [references/agent-sel
 
 ## References
 
-- [Fix Phases](references/fix-phases.md)
-- [Agent Selection](references/agent-selection.md)
-- [Similar Issue Search](references/similar-issue-search.md)
-- [Hypothesis-Based RCA](references/hypothesis-rca.md)
-- [Agent Teams RCA](references/agent-teams-rca.md)
-- [Prevention Patterns](references/prevention-patterns.md)
-- [CC Enhancements](references/cc-enhancements.md)
+Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/fix-issue/references/<file>")`:
+| File | Content |
+|------|---------|
+| `fix-phases.md` | Bash commands, templates, procedures per phase |
+| `agent-selection.md` | Orchestration mode selection criteria and cost comparison |
+| `similar-issue-search.md` | Similar issue detection patterns |
+| `hypothesis-rca.md` | Hypothesis-based root cause analysis |
+| `agent-teams-rca.md` | Agent Teams RCA workflow |
+| `prevention-patterns.md` | Recurrence prevention patterns |
+| `cc-enhancements.md` | CC 2.1.49 session resume, task metrics, adaptive thinking |
 
 
 **Version:** 2.1.0 (February 2026)

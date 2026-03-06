@@ -51,7 +51,7 @@ Scan codebase for signals: README keywords (take-home, interview), `.github/work
 
 | Signal | Tier | Architecture Ceiling |
 |--------|------|---------------------|
-| README says "take-home", time limit | **1. Interview** ([details](references/interview-mode.md)) | Flat files, 8-15 files |
+| README says "take-home", time limit | **1. Interview** (load `$\{CLAUDE_PLUGIN_ROOT\}/skills/implement/references/interview-mode.md`) | Flat files, 8-15 files |
 | &lt; 10 files, no CI | **2. Hackathon** | Single file if possible |
 | `.github/workflows/`, managed DB | **3. MVP** | MVC monolith |
 | Module boundaries, Redis, queues | **4. Growth** | Modular monolith, DI |
@@ -76,7 +76,7 @@ Use `AskUserQuestion` to verify scope (full-stack / backend-only / frontend-only
 
 - Agent Teams (mesh) when `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` and complexity >= 2.5
 - Task tool (star) otherwise; `ORCHESTKIT_FORCE_TASK_TOOL=1` to override
-- See [Orchestration Modes](references/orchestration-modes.md)
+- Load orchestration modes: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/implement/references/orchestration-modes.md")`
 
 ### Worktree Isolation (CC 2.1.49)
 
@@ -103,7 +103,7 @@ If worktree selected:
 3. On completion, merge back: `git checkout \{original-branch\} && git merge feat-\{slug\}`
 4. If merge conflicts arise, present diff to user via `AskUserQuestion`
 
-See [Worktree Isolation Mode](references/worktree-isolation-mode.md) for detailed workflow.
+Load worktree details: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/implement/references/worktree-isolation-mode.md")`
 
 ---
 
@@ -118,19 +118,19 @@ Create tasks with `TaskCreate` BEFORE doing any work. Each phase gets a subtask.
 | Phase | Activities | Agents |
 |-------|------------|--------|
 | **1. Discovery** | Research best practices, Context7 docs, break into tasks | — |
-| **2. Micro-Planning** | Detailed plan per task ([guide](references/micro-planning-guide.md)) | — |
-| **3. Worktree** | Isolate in git worktree for 5+ file features ([workflow](references/worktree-workflow.md)) | — |
-| **4. Architecture** | 5 parallel background agents | workflow-architect, backend-system-architect, frontend-ui-developer, llm-integrator, ux-researcher |
-| **5. Implementation + Tests** | Parallel agents, single-pass artifacts with mandatory tests | backend-system-architect, frontend-ui-developer, llm-integrator, test-generator, rapid-ui-designer |
+| **2. Micro-Planning** | Detailed plan per task (load `$\{CLAUDE_PLUGIN_ROOT\}/skills/implement/references/micro-planning-guide.md`) | — |
+| **3. Worktree** | Isolate in git worktree for 5+ file features (load `$\{CLAUDE_PLUGIN_ROOT\}/skills/implement/references/worktree-workflow.md`) | — |
+| **4. Architecture** | 4 parallel background agents | workflow-architect, backend-system-architect, frontend-ui-developer, llm-integrator |
+| **5. Implementation + Tests** | Parallel agents, single-pass artifacts with mandatory tests | backend-system-architect, frontend-ui-developer, llm-integrator, test-generator |
 | **6. Integration Verification** | Code review + real-service integration tests | backend, frontend, code-quality-reviewer, security-auditor |
-| **7. Scope Creep** | Compare planned vs actual ([detection](references/scope-creep-detection.md)) | workflow-architect |
-| **8. E2E Verification** | Browser + API E2E testing ([guide](references/e2e-verification.md)) | — |
+| **7. Scope Creep** | Compare planned vs actual (load `$\{CLAUDE_PLUGIN_ROOT\}/skills/implement/references/scope-creep-detection.md`) | workflow-architect |
+| **8. E2E Verification** | Browser + API E2E testing (load `$\{CLAUDE_PLUGIN_ROOT\}/skills/implement/references/e2e-verification.md`) | — |
 | **9. Documentation** | Save decisions to memory graph | — |
 | **10. Reflection** | Lessons learned, estimation accuracy | workflow-architect |
 
-See [Agent Phases](references/agent-phases.md) for detailed agent prompts and spawn templates.
+Load agent prompts: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/implement/references/agent-phases.md")`
 
-For Agent Teams mode, see [Agent Teams Phases](references/agent-teams-phases.md).
+For Agent Teams mode: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/implement/references/agent-teams-phases.md")`
 
 ### Issue Tracking
 
@@ -138,7 +138,7 @@ If working on a GitHub issue, run the Start Work ceremony from `issue-progress-t
 
 ### Feedback Loop
 
-Maintain checkpoints after each task. See [Feedback Loop](references/feedback-loop.md) for triggers and actions.
+Maintain checkpoints after each task. Load triggers: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/implement/references/feedback-loop.md")`
 
 ---
 
@@ -196,19 +196,23 @@ If detected: run integration tests against real services, not just mocks. Refere
 
 ## References
 
-- [Agent Phases](references/agent-phases.md)
-- [Agent Teams Phases](references/agent-teams-phases.md)
-- [Interview Mode](references/interview-mode.md)
-- [Orchestration Modes](references/orchestration-modes.md)
-- [Feedback Loop](references/feedback-loop.md)
-- [CC Enhancements](references/cc-enhancements.md)
-- [Agent Teams Full-Stack Pipeline](references/agent-teams-full-stack.md)
-- [Team Worktree Setup](references/team-worktree-setup.md)
-- [Micro-Planning Guide](references/micro-planning-guide.md)
-- [Scope Creep Detection](references/scope-creep-detection.md)
-- [Worktree Workflow](references/worktree-workflow.md)
-- [E2E Verification](references/e2e-verification.md)
-- [Worktree Isolation Mode](references/worktree-isolation-mode.md)
+Load on demand with `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/implement/references/&lt;file&gt;")`:
+
+| File | Content |
+|------|---------|
+| `agent-phases.md` | Agent prompts and spawn templates |
+| `agent-teams-phases.md` | Agent Teams mode phases |
+| `interview-mode.md` | Interview/take-home constraints |
+| `orchestration-modes.md` | Task tool vs Agent Teams selection |
+| `feedback-loop.md` | Checkpoint triggers and actions |
+| `cc-enhancements.md` | CC version-specific features |
+| `agent-teams-full-stack.md` | Full-stack pipeline for teams |
+| `team-worktree-setup.md` | Team worktree configuration |
+| `micro-planning-guide.md` | Detailed micro-planning guide |
+| `scope-creep-detection.md` | Planned vs actual comparison |
+| `worktree-workflow.md` | Git worktree workflow |
+| `e2e-verification.md` | Browser + API E2E testing guide |
+| `worktree-isolation-mode.md` | Worktree isolation details |
 
 
 ---
@@ -354,32 +358,9 @@ Agent(
 )
 ```
 
-### Agent 5: UX Researcher
-```python
-Agent(
-  subagent_type="ux-researcher",
-  prompt="""UX ANALYSIS — SINGLE PASS
-
-  Feature: $ARGUMENTS
-
-  Produce complete UX research in one response:
-  1. Primary persona with behavioral patterns
-  2. User journey map with friction points and opportunities
-  3. Accessibility requirements (WCAG 2.1 AA specific checks)
-  4. Loading state strategy (skeleton vs progressive)
-  5. Error messaging guidelines
-  6. Mobile responsiveness breakpoints
-  7. Success metrics (measurable KPIs)
-  8. User stories with acceptance criteria
-
-  Output: Complete UX requirements document.""",
-  run_in_background=true
-)
-```
-
 ### Phase 4 — Teams Mode
 
-In Agent Teams mode, 4 teammates form a team (`implement-\{feature-slug\}`) instead of 5 independent Task spawns. The workflow-architect and ux-researcher roles are handled by the lead or omitted for simpler features. Teammates message architecture decisions to each other in real-time.
+In Agent Teams mode, 4 teammates form a team (`implement-\{feature-slug\}`) instead of independent Task spawns. The workflow-architect role is handled by the lead or omitted for simpler features. Teammates message architecture decisions to each other in real-time.
 
 See [Agent Teams Full-Stack Pipeline](agent-teams-full-stack.md) for spawn prompts.
 
@@ -548,29 +529,6 @@ Agent(
   Write REAL test files to disk.
   Run tests after writing to verify they pass.
   Do NOT split across responses — use full 128K output.""",
-  run_in_background=true
-)
-```
-
-### Agent 5: Design System (optional — skip if existing design)
-```python
-Agent(
-  subagent_type="rapid-ui-designer",
-  prompt="""DESIGN SYSTEM SPECIFICATIONS — SINGLE PASS (128K output)
-
-  Feature: $ARGUMENTS
-
-  Produce complete design specs in ONE response:
-
-  1. Color tokens (@theme directive) for new components
-  2. Component specifications with all states
-  3. Responsive breakpoint strategy
-  4. Accessibility contrast ratios
-  5. Motion animation preset mapping
-  6. Tailwind class definitions for every component variant
-
-  Output: Design specification document.
-  Skip if feature uses existing design system without new components.""",
   run_in_background=true
 )
 ```

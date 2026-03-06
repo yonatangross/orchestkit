@@ -2,8 +2,8 @@
  * Unified PostToolUse Dispatcher
  * Issue #235: Hook Architecture Refactor
  *
- * Consolidates multiple async PostToolUse hooks into a single dispatcher.
- * This reduces the number of "Async hook completed" messages from ~17 to 1.
+ * Consolidates 3 essential PostToolUse hooks into a single dispatcher.
+ * This reduces the number of "Async hook completed" messages to 1.
  *
  * CC 2.1.19 Compliant: Single async hook with internal routing
  *
@@ -15,32 +15,11 @@
 
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook } from '../lib/common.js';
-import { appendAnalytics, hashProject, getTeamContext } from '../lib/analytics.js';
-
-// Import individual hook implementations
-import { sessionMetrics } from './session-metrics.js';
-import { auditLogger } from './audit-logger.js';
-import { calibrationTracker } from './calibration-tracker.js';
-import { patternExtractor } from './bash/pattern-extractor.js';
-import { codeStyleLearner } from './write/code-style-learner.js';
-import { namingConventionLearner } from './write/naming-convention-learner.js';
-import { skillEditTracker } from './skill-edit-tracker.js';
-import { skillUsageOptimizer } from './skill/skill-usage-optimizer.js';
-import { realtimeSync } from './realtime-sync.js';
-import { issueProgressCommenter } from './bash/issue-progress-commenter.js';
-import { issueSubtaskUpdater } from './bash/issue-subtask-updater.js';
-import { userTracking } from './user-tracking.js';
-// GAP-011: Wire solution-detector to enable problem-tracker functionality
-import { solutionDetector } from './solution-detector.js';
-
-// Issue #684: Hooks moved from separate PostToolUse entries into dispatcher
+// Import individual hook implementations (essential: security + local state only)
+// Analytics/telemetry hooks removed — now handled by HQ
 import { redactSecrets } from '../skill/redact-secrets.js';
 import { configChangeAuditor } from './config-change/security-auditor.js';
 import { teamMemberStart } from './task/team-member-start.js';
-import { unifiedErrorHandler } from './unified-error-handler.js';
-
-// Issue #243: Consolidate tool-preference-learner to reduce async hook spam
-import { toolPreferenceLearner } from './tool-preference-learner.js';
 
 // -----------------------------------------------------------------------------
 // Types
@@ -62,45 +41,12 @@ interface HookConfig {
  * Registry of all async PostToolUse hooks consolidated into dispatcher
  */
 const HOOKS: HookConfig[] = [
-  // Wildcard matchers (run for all tools)
-  { name: 'session-metrics', fn: sessionMetrics, matcher: '*' },
-  { name: 'audit-logger', fn: auditLogger, matcher: '*' },
-  { name: 'calibration-tracker', fn: calibrationTracker, matcher: '*' },
-
-  // Bash-specific
-  { name: 'pattern-extractor', fn: patternExtractor, matcher: 'Bash' },
-  { name: 'issue-progress-commenter', fn: issueProgressCommenter, matcher: 'Bash' },
-  { name: 'issue-subtask-updater', fn: issueSubtaskUpdater, matcher: 'Bash' },
-
-  // Write/Edit-specific
-  { name: 'code-style-learner', fn: codeStyleLearner, matcher: ['Write', 'Edit'] },
-  { name: 'naming-convention-learner', fn: namingConventionLearner, matcher: ['Write', 'Edit'] },
-  { name: 'skill-edit-tracker', fn: skillEditTracker, matcher: ['Write', 'Edit'] },
-
-  // Skill-specific
-  { name: 'skill-usage-optimizer', fn: skillUsageOptimizer, matcher: 'Skill' },
-
-  // Multi-tool matcher
-  // #902: Accept both Task and Agent tool names
-  { name: 'realtime-sync', fn: realtimeSync, matcher: ['Bash', 'Write', 'Edit', 'Skill', 'Task', 'Agent'] },
-
-  // User tracking (Issue #245) - tracks all tool usage, skills, and agents
-  { name: 'user-tracking', fn: userTracking, matcher: '*' },
-
-  // GAP-011: Solution detector - pairs tool outputs with open problems
-  // #902: Accept both Task and Agent tool names
-  { name: 'solution-detector', fn: solutionDetector, matcher: ['Bash', 'Write', 'Edit', 'Task', 'Agent'] },
-
-  // Issue #243: Tool preference learner - previously separate async hook causing spam
-  { name: 'tool-preference-learner', fn: toolPreferenceLearner, matcher: '*' },
-
-  // Issue #684: Consolidated from separate PostToolUse hooks.json entries
-  // #909: Expanded from Bash-only to include Write|Edit
+  // Security: scrubs API keys from tool output (#684, #909)
   { name: 'redact-secrets', fn: redactSecrets, matcher: ['Bash', 'Write', 'Edit'] },
+  // Config drift detection
   { name: 'config-change-auditor', fn: configChangeAuditor, matcher: ['Write', 'Edit'] },
-  // #902: Accept both Task and Agent tool names
+  // Tracks active team members for team-size-gate (#902)
   { name: 'team-member-start', fn: teamMemberStart, matcher: ['Task', 'Agent'] },
-  { name: 'error-logger', fn: unifiedErrorHandler, matcher: ['Bash', 'Write', 'Edit', 'Task', 'Agent'] },
 ];
 
 /** Exposed for registry wiring tests */
@@ -135,42 +81,13 @@ export function matchesTool(toolName: string, matcher: string | string[]): boole
  * Unified dispatcher that runs all matching hooks in parallel
  *
  * Benefits:
- * - Single "Async hook completed" message instead of 14
+ * - Single "Async hook completed" message instead of 3 separate ones
  * - Centralized error handling
  * - Consistent timeout behavior
  * - Easier to debug and maintain
  */
 export async function unifiedDispatcher(input: HookInput): Promise<HookResult> {
   const toolName = input.tool_name || '';
-
-  // Cross-project skill tracking (Issue #459)
-  if (toolName === 'Skill') {
-    const skillName = (input.tool_input?.skill as string) || '';
-    if (skillName) {
-      appendAnalytics('skill-usage.jsonl', {
-        ts: new Date().toISOString(),
-        pid: hashProject(process.env.CLAUDE_PROJECT_DIR || ''),
-        skill: skillName,
-        ...getTeamContext(),
-      });
-    }
-  }
-
-  // Task status tracking (Issue #740)
-  if (toolName === 'TaskUpdate') {
-    const status = input.tool_input?.status as string;
-    const taskId = input.tool_input?.taskId as string;
-    if (status && (status === 'completed' || status === 'in_progress')) {
-      appendAnalytics('task-usage.jsonl', {
-        ts: new Date().toISOString(),
-        pid: hashProject(process.env.CLAUDE_PROJECT_DIR || ''),
-        task_id: taskId || 'unknown',
-        task_status: status,
-        source: 'tool',
-        ...getTeamContext(),
-      });
-    }
-  }
 
   // Filter hooks that match this tool
   const matchingHooks = HOOKS.filter(h => matchesTool(toolName, h.matcher));

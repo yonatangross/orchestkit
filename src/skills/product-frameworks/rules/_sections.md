@@ -14,7 +14,7 @@ Financial analysis and market intelligence frameworks for investment decisions.
 - `market-tam-sam-som.md` -- TAM/SAM/SOM market sizing with top-down and bottom-up methods
 - `market-competitive.md` -- Porter's Five Forces, SWOT analysis, TOWS matrix, competitive positioning maps
 
-## 2. Strategy & Prioritization (strategy, prioritize) -- HIGH -- 4 rules
+## 2. Strategy & Prioritization (strategy, prioritize) -- HIGH -- 5 rules
 
 Strategic decision frameworks and quantitative prioritization methods.
 
@@ -22,8 +22,9 @@ Strategic decision frameworks and quantitative prioritization methods.
 - `strategy-go-no-go.md` -- Stage gate criteria, weighted scoring, decision thresholds, build/buy/partner matrix
 - `prioritize-rice.md` -- RICE scoring (Reach, Impact, Confidence, Effort), ICE framework, Kano model
 - `prioritize-wsjf.md` -- WSJF cost of delay, time criticality, MoSCoW method, framework selection
+- `prioritize-opportunity-cost.md` -- Opportunity cost matrix, cost of delay analysis, trade-off flagging, feature sequencing
 
-## 3. Metrics & OKRs (metrics) -- HIGH -- 4 rules
+## 3. Metrics & OKRs (metrics) -- HIGH -- 5 rules
 
 Goal-setting and measurement frameworks for metrics-driven teams.
 
@@ -31,6 +32,7 @@ Goal-setting and measurement frameworks for metrics-driven teams.
 - `metrics-kpi-trees.md` -- Revenue and product health KPI trees, North Star metric, input metrics
 - `metrics-leading-lagging.md` -- Leading vs lagging indicators, the leading-lagging chain, balanced dashboards
 - `metrics-instrumentation.md` -- Metric definition template, data sources, segments, alerting thresholds
+- `metrics-experiment-design.md` -- Experiment design template, guardrail metrics, North Star input/output framework, staged rollout
 
 ## 4. Research & Requirements (research) -- HIGH -- 4 rules
 

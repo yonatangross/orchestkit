@@ -9,7 +9,7 @@ agent: frontend-ui-developer
 version: 2.0.0
 author: OrchestKit
 user-invocable: false
-disable-model-invocation: true
+disable-model-invocation: false
 complexity: high
 metadata:
   category: document-asset-creation
@@ -249,9 +249,12 @@ export default async function Page() {
 
 ## References
 
-- [RUM Setup](references/rum-setup.md) - Real User Monitoring
-- [React Compiler Migration](references/react-compiler-migration.md) - Compiler adoption
-- [TanStack Virtual](references/tanstack-virtual-patterns.md) - Virtualization patterns
-- [vLLM Deployment](references/vllm-deployment.md) - Production vLLM config
-- [Quantization Guide](references/quantization-guide.md) - Method comparison
-- [CDN Setup](references/cdn-setup.md) - Image CDN configuration
+Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/performance/references/<file>")`:
+| File | Content |
+|------|---------|
+| `rum-setup.md` | Real User Monitoring |
+| `react-compiler-migration.md` | Compiler adoption |
+| `tanstack-virtual-patterns.md` | Virtualization patterns |
+| `vllm-deployment.md` | Production vLLM config |
+| `quantization-guide.md` | Method comparison |
+| `cdn-setup.md` | Image CDN configuration |

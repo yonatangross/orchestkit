@@ -15,6 +15,8 @@
  * - pr-status-enricher (async — background PR status check)
  *
  * CC 2.1.9 Compliant: Single sync hook with merged systemMessage output
+ * Note: CC 2.1.70 dedup fixes reduce the urgency of consolidation,
+ * but the single-dispatcher pattern remains optimal for fewer hook invocations.
  */
 
 import type { HookInput, HookResult } from '../types.js';
@@ -25,8 +27,9 @@ import { analyticsConsentCheck } from './analytics-consent-check.js';
 import { prefillGuard } from './prefill-guard.js';
 import { mcpHealthCheck } from './mcp-health-check.js';
 
-// Rules materialization (token-reduction: write static content to .claude/rules/ at session start)
+// Rules materialization — write to .claude/rules/ BEFORE CC loads instructions
 import { materializeAntipatternRules } from '../prompt/antipattern-warning.js';
+import { materializeProfileRules } from '../prompt/profile-injector.js';
 
 const HOOK_NAME = 'sync-session-dispatcher';
 
@@ -49,12 +52,18 @@ const SYNC_HOOKS: SyncHookConfig[] = [
  * Runs all sync hooks sequentially and merges their systemMessage outputs.
  */
 export function syncSessionDispatcher(input: HookInput): HookResult {
-  // Materialize static rules files at session start (#token-reduction)
+  // Materialize all rules files at SessionStart — BEFORE CC loads .claude/rules/
+  // Moved from UserPromptSubmit (profile-injector) to fix timing bug.
+  const projectDir = input.project_dir || getProjectDir();
   try {
-    const projectDir = input.project_dir || getProjectDir();
     materializeAntipatternRules(projectDir);
   } catch (err) {
-    logHook(HOOK_NAME, `Rules materialization failed: ${err}`, 'warn');
+    logHook(HOOK_NAME, `Antipattern rules materialization failed: ${err}`, 'warn');
+  }
+  try {
+    materializeProfileRules();
+  } catch (err) {
+    logHook(HOOK_NAME, `Profile rules materialization failed: ${err}`, 'warn');
   }
 
   const messages: string[] = [];
@@ -79,6 +88,13 @@ export function syncSessionDispatcher(input: HookInput): HookResult {
       const msg = error instanceof Error ? error.message : String(error);
       logHook(HOOK_NAME, `${hook.name} failed: ${msg}`, 'warn');
     }
+  }
+
+  // Inject resolved CLAUDE_PLUGIN_ROOT so skills can reference files by absolute path.
+  // run-hook.mjs computes this from its own __dirname (two levels up from hooks/bin/).
+  if (input.plugin_root) {
+    messages.push(`CLAUDE_PLUGIN_ROOT=${input.plugin_root}`);
+    logHook(HOOK_NAME, `Injected plugin_root: ${input.plugin_root}`);
   }
 
   if (messages.length === 0) {

@@ -73,7 +73,7 @@ hooks/
 │   ├── posttool.mjs        # PostToolUse bundle (58KB)
 │   ├── prompt.mjs          # UserPromptSubmit bundle (57KB)
 │   ├── lifecycle.mjs       # Lifecycle bundle (31KB)
-│   ├── stop.mjs            # Stop bundle (79KB - 29 hooks consolidated)
+│   ├── stop.mjs            # Stop bundle (79KB - 7 hooks consolidated)
 │   ├── subagent.mjs        # Subagent bundle (56KB)
 │   ├── notification.mjs    # Notification bundle (5KB)
 │   ├── setup.mjs           # Setup bundle (24KB)
@@ -89,7 +89,7 @@ hooks/
 ├── tsconfig.json           # TypeScript configuration
 └── esbuild.config.mjs      # Build configuration (split bundles)
 
-**Total:** 95 hooks (34 global + 54 agent-scoped + 7 skill-scoped, 7 native async)
+**Total:** 98 hooks (34 global + 44 agent-scoped + 20 skill-scoped)
 ```
 
 ---
@@ -303,8 +303,12 @@ interface HookInput {
   exit_code?: number;             // Bash exit code
   prompt?: string;                // UserPromptSubmit only
   project_dir?: string;           // Project directory
+  tool_use_id?: string;           // PreToolUse/PostToolUse correlation (CC 2.1.69)
   subagent_type?: string;         // SubagentStart/Stop
   agent_output?: string;          // SubagentStop
+  agent_transcript_path?: string; // SubagentStop transcript path (CC 2.1.69)
+  permission_suggestions?: Array<{type: string; tool: string}>; // PermissionRequest (CC 2.1.69)
+  is_interrupt?: boolean;         // PostToolUseFailure interrupt flag (CC 2.1.69)
   // ... additional fields
 }
 ```
@@ -320,10 +324,12 @@ interface HookResult {
   systemMessage?: string;         // Message shown to user
   stopReason?: string;            // Reason for blocking (when continue=false)
   hookSpecificOutput?: {
-    permissionDecision?: 'allow' | 'deny';         // PermissionRequest
+    permissionDecision?: 'allow' | 'deny' | 'ask';  // PermissionRequest (CC 2.1.69: added 'ask')
     permissionDecisionReason?: string;             // Why allowed/denied
     additionalContext?: string;                    // CC 2.1.9: inject context
     hookEventName?: 'PreToolUse' | 'PostToolUse' | ...; // Required for additionalContext
+    updatedMCPToolOutput?: unknown;                // Replace MCP tool output (CC 2.1.69)
+    updatedPermissions?: Record<string, unknown>;  // Apply permission rules (CC 2.1.69)
   };
 }
 ```
@@ -424,7 +430,7 @@ Unified dispatcher runs cleanup hooks in parallel
 
 ### Stop Hooks (via async dispatcher)
 
-**Core Session (6):** auto-save-context, session-patterns, issue-work-summary, calibration-persist, session-profile-aggregator, session-end-tracking
+**Core Session (5):** auto-save-context, session-patterns, issue-work-summary, session-profile-aggregator, session-end-tracking
 
 **Memory Sync (2):** graph-queue-sync, workflow-preference-learner
 
@@ -474,6 +480,10 @@ Add `async: true` and `timeout` to hook definitions in `hooks.json`:
 }
 ```
 
+### run_on_fail (OrchestKit-internal only)
+
+The `run_on_fail` field is **NOT part of the CC hooks spec**. CC ignores unknown JSON fields. Our dispatchers implement their own `runOnFail` logic in TypeScript (see `sync-session-end-dispatcher.ts`) to ensure critical hooks like session-cleanup always execute even if prior hooks fail. This is enforced at the dispatcher level, not by CC.
+
 ### Async vs Synchronous Hooks
 
 | Aspect | Synchronous | Async |
@@ -498,31 +508,29 @@ Add `async: true` and `timeout` to hook definitions in `hooks.json`:
 - Context injection (must add context before tool runs)
 - Quality gates (must validate before allowing writes)
 
-### Current Async Hooks (9 hooks.json entries dispatching individual hooks)
+### Current Async Hooks
 
 **SessionStart (4 hooks)** - Startup optimization:
 - `pattern-sync-pull` - Pull learned patterns
-- `coordination-init` - Multi-instance coordination
-- `decision-sync-pull` - Pull decision history
-- `dependency-version-check` - Check for outdated deps
+- `session-env-setup` - Environment setup
+- `stale-team-cleanup` - Clean up stale team members
+- `type-error-indexer` - Index type errors
 
 > **CC 2.1.47 Deferral**: SessionStart hooks fire ~500ms after session init. Async hooks are unaffected (fire-and-forget). Sync hooks still run before the first user prompt. Do not assume env vars set by async SessionStart hooks are available at first `UserPromptSubmit`.
 
-**PostToolUse Analytics (7 hooks)** - Non-blocking metrics:
-- `session-metrics` - Track tool usage
-- `audit-logger` - Log all operations
-- `calibration-tracker` - Calibration metrics
-- `code-style-learner` - Extract code style patterns
-- `naming-convention-learner` - Extract naming conventions
-- `skill-usage-optimizer` - Track skill patterns
-- `realtime-sync` - Real-time state sync
+**PostToolUse (3 hooks)** - Security + local state:
+- `redact-secrets` - Scrub API keys from tool output
+- `config-change-auditor` - Config drift detection
+- `team-member-start` - Track active team members
 
-**Network I/O (5 hooks)** - External API calls:
-- `pattern-extractor` - Extract patterns from git
-- `issue-progress-commenter` - Comment on GitHub issues
-- `issue-subtask-updater` - Update subtask checkboxes
-- `coordination-heartbeat` - Multi-instance heartbeat
-- `memory-bridge` - Sync to knowledge graph
+**Stop (7 hooks)** - Session-end gates:
+- `handoff-writer` - Write handoff for next session
+- `task-completion-check` - Verify task status
+- `security-scan-aggregator` - Aggregate security findings
+- `coverage-check` - Check test coverage
+- `evidence-collector` - Collect session evidence
+- `coverage-threshold-gate` - Enforce coverage thresholds
+- `cross-instance-test-validator` - Cross-instance validation
 
 ### Timeout Recommendations
 
@@ -990,6 +998,7 @@ const bundleMap = {
 ## References
 
 - **Claude Code Plugin Docs:** https://docs.anthropic.com/claude-code/plugins
+- **CC 2.1.69 Spec:** Hook input/output field expansion (tool_use_id, agent_transcript_path, permission_suggestions, is_interrupt, updatedMCPToolOutput, updatedPermissions, permissionDecision 'ask')
 - **CC 2.1.16 Spec:** Task Management System with dependency tracking
 - **CC 2.1.9 Spec:** additionalContext support
 - **CC 2.1.7 Spec:** Hook output format
@@ -1011,7 +1020,7 @@ OrchestKit hooks are managed defaults. Users retain full control to disable any 
 **Last Updated:** 2026-02-28
 **Version:** 2.1.0 (Async hooks support)
 **Architecture:** 12 split bundles (381KB total) + 1 unified (324KB)
-**Hooks:** 95 hooks (34 global + 54 agent-scoped + 7 skill-scoped, 7 native async)
+**Hooks:** 98 hooks (34 global + 44 agent-scoped + 20 skill-scoped)
 **Average Bundle:** ~35KB per event
 **Claude Code Requirement:** >= 2.1.59
 

@@ -96,7 +96,7 @@ Agent(
 
 ## STEP 2: Render Tier 1 Header (Always)
 
-Use `assets/tier1-header.md` template. See [references/visualization-tiers.md](references/visualization-tiers.md) for field computation (risk level, confidence, reversibility).
+Use `assets/tier1-header.md` template. Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/plan-viz/references/visualization-tiers.md")` for field computation (risk level, confidence, reversibility).
 
 ```
 PLAN: {plan_name} ({issue_ref})  |  {phase_count} phases  |  {file_count} files  |  +{added} -{removed} lines
@@ -130,15 +130,15 @@ AskUserQuestion(
 
 ## STEP 4: Render Requested Sections
 
-Render each requested section following [rules/section-rendering.md](rules/section-rendering.md) conventions. Use the corresponding reference for ASCII patterns:
+Render each requested section following `${CLAUDE_PLUGIN_ROOT}/skills/plan-viz/rules/section-rendering.md` conventions. Use the corresponding reference for ASCII patterns:
 
 | Section | Reference | Key Convention |
 |---------|-----------|----------------|
-| [1] Change Manifest | [change-manifest-patterns.md](references/change-manifest-patterns.md) | `[A]`/`[M]`/`[D]` + `+N -N` per file |
-| [2] Execution Swimlane | [execution-swimlane-patterns.md](references/execution-swimlane-patterns.md) | `===` active, `---` blocked, `\|` deps |
-| [3] Risk Dashboard | [risk-dashboard-patterns.md](references/risk-dashboard-patterns.md) | Reversibility timeline + 3 pre-mortems |
-| [4] Decision Log | [decision-log-patterns.md](references/decision-log-patterns.md) | ADR-lite: Context/Decision/Alternatives/Tradeoff |
-| [5] Impact Summary | [assets/impact-dashboard.md](assets/impact-dashboard.md) | Table: Added/Modified/Deleted/NET + tests/API/deps |
+| [1] Change Manifest | (load `${CLAUDE_PLUGIN_ROOT}/skills/plan-viz/references/change-manifest-patterns.md`) | `[A]`/`[M]`/`[D]` + `+N -N` per file |
+| [2] Execution Swimlane | (load `${CLAUDE_PLUGIN_ROOT}/skills/plan-viz/references/execution-swimlane-patterns.md`) | `===` active, `---` blocked, `\|` deps |
+| [3] Risk Dashboard | (load `${CLAUDE_PLUGIN_ROOT}/skills/plan-viz/references/risk-dashboard-patterns.md`) | Reversibility timeline + 3 pre-mortems |
+| [4] Decision Log | (load `${CLAUDE_PLUGIN_ROOT}/skills/plan-viz/references/decision-log-patterns.md`) | ADR-lite: Context/Decision/Alternatives/Tradeoff |
+| [5] Impact Summary | (load `${CLAUDE_PLUGIN_ROOT}/skills/plan-viz/assets/impact-dashboard.md`) | Table: Added/Modified/Deleted/NET + tests/API/deps |
 
 ---
 
@@ -170,13 +170,13 @@ AskUserQuestion(
 
 ## Deep Dives (Tier 3, on request)
 
-Available when user selects "Drill deeper". See [references/deep-dives.md](references/deep-dives.md) for cross-layer and migration patterns.
+Available when user selects "Drill deeper". Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/plan-viz/references/deep-dives.md")` for cross-layer and migration patterns.
 
 | Section | What It Shows | Reference |
 |---------|--------------|-----------|
-| [6] Blast Radius | Concentric rings of impact (direct -> transitive -> tests) | [blast-radius-patterns.md](references/blast-radius-patterns.md) |
-| [7] Cross-Layer Consistency | Frontend/backend endpoint alignment with gap detection | [deep-dives.md](references/deep-dives.md) |
-| [8] Migration Checklist | Ordered runbook with sequential/parallel blocks and time estimates | [deep-dives.md](references/deep-dives.md) |
+| [6] Blast Radius | Concentric rings of impact (direct -> transitive -> tests) | (load `${CLAUDE_PLUGIN_ROOT}/skills/plan-viz/references/blast-radius-patterns.md`) |
+| [7] Cross-Layer Consistency | Frontend/backend endpoint alignment with gap detection | (load `${CLAUDE_PLUGIN_ROOT}/skills/plan-viz/references/deep-dives.md`) |
+| [8] Migration Checklist | Ordered runbook with sequential/parallel blocks and time estimates | (load `${CLAUDE_PLUGIN_ROOT}/skills/plan-viz/references/deep-dives.md`) |
 
 ---
 
@@ -195,24 +195,30 @@ Available when user selects "Drill deeper". See [references/deep-dives.md](refer
 
 | Rule | Impact | What It Covers |
 |------|--------|----------------|
-| [section-rendering](rules/section-rendering.md) | HIGH | Rendering conventions for all 5 core sections |
+| section-rendering (load `${CLAUDE_PLUGIN_ROOT}/skills/plan-viz/rules/section-rendering.md`) | HIGH | Rendering conventions for all 5 core sections |
 | ASCII diagrams | MEDIUM | Via `ascii-visualizer` skill (box-drawing, file trees, workflows) |
 
 ## References
 
-- [Visualization Tiers](references/visualization-tiers.md) — Progressive disclosure tiers and header field computation
-- [Change Manifest Patterns](references/change-manifest-patterns.md)
-- [Execution Swimlane Patterns](references/execution-swimlane-patterns.md)
-- [Risk Dashboard Patterns](references/risk-dashboard-patterns.md)
-- [Decision Log Patterns](references/decision-log-patterns.md)
-- [Blast Radius Patterns](references/blast-radius-patterns.md)
-- [Deep Dives](references/deep-dives.md) — Cross-layer consistency and migration checklist
+Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/plan-viz/references/<file>")`:
+| File | Content |
+|------|---------|
+| `visualization-tiers.md` | Progressive disclosure tiers and header field computation |
+| `change-manifest-patterns.md` | Change manifest ASCII patterns |
+| `execution-swimlane-patterns.md` | Execution swimlane ASCII patterns |
+| `risk-dashboard-patterns.md` | Risk dashboard ASCII patterns |
+| `decision-log-patterns.md` | Decision log ASCII patterns |
+| `blast-radius-patterns.md` | Blast radius ASCII patterns |
+| `deep-dives.md` | Cross-layer consistency and migration checklist |
 
 ## Assets
 
-- [Plan Report Template](assets/plan-report.md) — Full mustache-style report
-- [Impact Dashboard Template](assets/impact-dashboard.md) — Impact table
-- [Tier 1 Header Template](assets/tier1-header.md) — 5-line summary
+Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/plan-viz/assets/<file>")`:
+| File | Content |
+|------|---------|
+| `plan-report.md` | Full mustache-style report template |
+| `impact-dashboard.md` | Impact table template |
+| `tier1-header.md` | 5-line summary template |
 
 ## Related Skills
 

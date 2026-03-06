@@ -55,10 +55,29 @@ The `description` is critical — Claude uses it to decide whether to load the s
 ```yaml
 context: fork            # Run in isolated subagent
 agent: backend-system-architect  # Which subagent type (requires context: fork)
-disable-model-invocation: true   # Manual-only (/slash-command)
+disable-model-invocation: true   # Manual-only (/slash-command) — DEFAULT
+disable-model-invocation: false  # CC auto-selects via description matching
 allowed-tools: Read, Grep, Glob  # Restrict tools when active
 model: opus              # Model override
 ```
+
+**Model invocation guide:**
+- `disable-model-invocation: true` (default) — Skill only loads via `/ork:name` slash command. Use for workflow skills that orchestrate subagents (implement, verify, review-pr).
+- `disable-model-invocation: false` — CC auto-selects the skill when the user's prompt matches the `description`. Use for knowledge/reference skills (api-design, security-patterns, testing-patterns) that should activate contextually without requiring a slash command.
+
+### Skill-Scoped Hooks
+
+Skills can declare hooks in frontmatter. These run only while the skill is active:
+
+```yaml
+hooks:
+  PreToolUse:
+    - matcher: "Read"
+      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/my-handler"
+      once: true   # CC 2.1.69: runs once then auto-removes (context loaders)
+```
+
+Use `once: true` for one-shot setup (context loading, env detection, precondition checks). Omit `once` for guards that must run on every tool call (security, pattern enforcement).
 
 ### Structure Pattern
 
@@ -383,3 +402,4 @@ Before submitting a skill change:
 - [ ] Team-spawning skills include `Ctrl+F` cleanup note
 - [ ] `npm run build` passes
 - [ ] `npm run test:skills` passes
+- [ ] Run `/reload-plugins` to activate changes without restarting (CC 2.1.69+)

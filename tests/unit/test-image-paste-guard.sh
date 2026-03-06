@@ -9,7 +9,6 @@
 # Behavioral tests for the 3-layer defense against oversized/binary prompts:
 #   Layer 1: run-hook.mjs MAX_STDIN_BYTES (512KB stdin cap)
 #   Layer 2: unified-dispatcher MAX_PROMPT_LENGTH + isImageOrBinaryPrompt()
-#   Layer 3: capture-user-intent MAX_PROMPT_LENGTH + isImageOrBinaryPrompt()
 #
 # Tests verify that hooks:
 #   1. Return silent success for oversized prompts
@@ -231,76 +230,6 @@ print(data)
 test_binary_prompt
 
 # ============================================================================
-# Layer 3: capture-user-intent prompt guard tests
-# ============================================================================
-
-echo ""
-echo -e "  ${CYAN}Layer 3: capture-user-intent prompt guards${NC}"
-echo ""
-
-# Test 7: Normal prompt works (capture-user-intent is silent, so always suppressOutput)
-test_intent_normal() {
-    local input='{"prompt":"lets use PostgreSQL because it is the most loved database","tool_name":"","session_id":"test","tool_input":{}}'
-    local output
-    output=$(run_hook_with_input "prompt/capture-user-intent" "$input")
-    if is_silent_success "$output"; then
-        log_pass "capture-user-intent processes normal prompt silently"
-    else
-        log_fail "capture-user-intent processes normal prompt silently" "Got: $output"
-    fi
-}
-test_intent_normal
-
-# Test 8: Oversized prompt skipped
-test_intent_oversized() {
-    local big_text
-    big_text=$(generate_string 60000)
-    local input
-    input=$(jq -n --arg p "$big_text" '{"prompt":$p,"tool_name":"","session_id":"test","tool_input":{}}')
-    local output
-    output=$(run_hook_with_input "prompt/capture-user-intent" "$input" 10)
-    if is_silent_success "$output"; then
-        log_pass "capture-user-intent skips oversized prompt (60K)"
-    else
-        log_fail "capture-user-intent skips oversized prompt (60K)" "Got: $output"
-    fi
-}
-test_intent_oversized
-
-# Test 9: Base64 data skipped
-test_intent_base64() {
-    local b64_data
-    b64_data=$(generate_base64_block 2000)
-    local input
-    input=$(jq -n --arg p "$b64_data" '{"prompt":$p,"tool_name":"","session_id":"test","tool_input":{}}')
-    local output
-    output=$(run_hook_with_input "prompt/capture-user-intent" "$input")
-    if is_silent_success "$output"; then
-        log_pass "capture-user-intent skips base64 data"
-    else
-        log_fail "capture-user-intent skips base64 data" "Got: $output"
-    fi
-}
-test_intent_base64
-
-# Test 10: Data URI skipped
-test_intent_data_uri() {
-    local b64_block
-    b64_block=$(generate_base64_block 2000)
-    local data_uri="data:image/png;base64,${b64_block}"
-    local input
-    input=$(jq -n --arg p "$data_uri" '{"prompt":$p,"tool_name":"","session_id":"test","tool_input":{}}')
-    local output
-    output=$(run_hook_with_input "prompt/capture-user-intent" "$input")
-    if is_silent_success "$output"; then
-        log_pass "capture-user-intent skips data URI"
-    else
-        log_fail "capture-user-intent skips data URI" "Got: $output"
-    fi
-}
-test_intent_data_uri
-
-# ============================================================================
 # Layer 1: run-hook.mjs stdin cap tests
 # ============================================================================
 
@@ -366,27 +295,7 @@ test_dispatcher_has_image_detect() {
 }
 test_dispatcher_has_image_detect
 
-# Test 16: capture-user-intent imports MAX_PROMPT_LENGTH from shared lib
-test_intent_has_max_length() {
-    if grep -q "MAX_PROMPT_LENGTH" "$PROJECT_ROOT/src/hooks/src/prompt/capture-user-intent.ts"; then
-        log_pass "capture-user-intent uses MAX_PROMPT_LENGTH"
-    else
-        log_fail "capture-user-intent uses MAX_PROMPT_LENGTH" "Constant not found"
-    fi
-}
-test_intent_has_max_length
-
-# Test 17: capture-user-intent imports isImageOrBinaryPrompt from shared lib
-test_intent_has_image_detect() {
-    if grep -q "isImageOrBinaryPrompt" "$PROJECT_ROOT/src/hooks/src/prompt/capture-user-intent.ts"; then
-        log_pass "capture-user-intent uses isImageOrBinaryPrompt()"
-    else
-        log_fail "capture-user-intent uses isImageOrBinaryPrompt()" "Function not found"
-    fi
-}
-test_intent_has_image_detect
-
-# Test 18: shared lib defines isImageOrBinaryPrompt with data URI check
+# Test 16: shared lib defines isImageOrBinaryPrompt with data URI check
 test_image_detect_checks_data_uri() {
     if grep -q 'data:image' "$PROJECT_ROOT/src/hooks/src/lib/prompt-guards.ts"; then
         log_pass "isImageOrBinaryPrompt checks data:image/ URI"
@@ -574,17 +483,6 @@ test_dispatcher_uses_shared_lib() {
     fi
 }
 test_dispatcher_uses_shared_lib
-
-# Test 29: capture-user-intent imports from shared lib (no local definition)
-test_intent_uses_shared_lib() {
-    local file="$PROJECT_ROOT/src/hooks/src/prompt/capture-user-intent.ts"
-    if grep -q "from '../lib/prompt-guards" "$file" && ! grep -q "function isImageOrBinaryPrompt" "$file"; then
-        log_pass "capture-user-intent imports from prompt-guards (no local dupe)"
-    else
-        log_fail "capture-user-intent imports from prompt-guards (no local dupe)" "Still has local definition"
-    fi
-}
-test_intent_uses_shared_lib
 
 # ============================================================================
 # SUMMARY

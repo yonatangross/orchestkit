@@ -8,13 +8,18 @@ user-invocable: false
 disable-model-invocation: true
 allowed-tools: [Read, Bash, Grep, Glob]
 complexity: medium
+hooks:
+  PreToolUse:
+    - matcher: "Read"
+      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/release-state-loader"
+      once: true
 ---
 
 # Release Checklist
 
 Sequential release gate for OrchestKit. Each step reports `[PASS]` or `[FAIL]`. Stop on first failure, suggest a fix, then continue after user confirmation.
 
-See [references/release-flow.md](references/release-flow.md) for why the order matters and hotfix guidance.
+Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/release-checklist/references/release-flow.md")` for why the order matters and hotfix guidance.
 
 ## Quick Reference
 

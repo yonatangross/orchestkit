@@ -1,7 +1,7 @@
 /**
  * Block Writes - Blocks Write/Edit operations for read-only agents
  *
- * Used by: debug-investigator, code-quality-reviewer, ux-researcher,
+ * Used by: debug-investigator, code-quality-reviewer,
  *          market-intelligence, system-design-reviewer
  *
  * Purpose: Enforce read-only boundaries for investigation/review agents

@@ -57,23 +57,6 @@ Query trends: `mcp__memory__search_nodes(query="VerificationMetrics")`
 
 ## Phase 8.5: Post-Verification Feedback
 
-After report compilation, send scores to `metrics-architect` for KPI baseline tracking:
+After report compilation, store verification scores in the memory graph for KPI baseline tracking:
 
-```python
-Agent(subagent_type="metrics-architect", run_in_background=True, max_turns=15,
-     prompt=f"""Receive verification scores for {feature}:
-
-Composite: {composite_score}/10 (Grade: {grade})
-Dimensional breakdown:
-- Correctness: {scores['correctness']}/10
-- Maintainability: {scores['maintainability']}/10
-- Performance: {scores['performance']}/10
-- Security: {scores['security']}/10
-- Scalability: {scores['scalability']}/10
-- Testability: {scores['testability']}/10
-- Compliance: {scores['compliance']}/10
-
-Update KPI baselines with these scores. Store trend data in memory
-for historical comparison. Flag any dimensions that dropped below
-their historical average.""")
-```
+Query trends: `mcp__memory__search_nodes(query="VerificationScores")`

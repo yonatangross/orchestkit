@@ -17,7 +17,6 @@ import { realtimeSync } from '../posttool/realtime-sync.js';
 import { userTracking } from '../posttool/user-tracking.js';
 import { sessionMetrics } from '../posttool/session-metrics.js';
 import { skillEditTracker } from '../posttool/skill-edit-tracker.js';
-import { calibrationTracker } from '../posttool/calibration-tracker.js';
 import { dirtyFileTracker } from '../posttool/dirty-file-tracker.js';
 import { unifiedDispatcher } from '../posttool/unified-dispatcher.js';
 
@@ -39,7 +38,6 @@ import { teamMemberStart } from '../posttool/task/team-member-start.js';
 import { failureHandler } from '../posttool/failure-handler.js';
 
 // Intelligent Decision Capture System
-import { solutionDetector } from '../posttool/solution-detector.js';
 import { toolPreferenceLearner } from '../posttool/tool-preference-learner.js';
 
 // Issue #772: Config change security auditor
@@ -61,7 +59,6 @@ export const hooks: Record<string, HookFn> = {
   'posttool/user-tracking': userTracking,
   'posttool/session-metrics': sessionMetrics,
   'posttool/skill-edit-tracker': skillEditTracker,
-  'posttool/calibration-tracker': calibrationTracker,
   'posttool/dirty-file-tracker': dirtyFileTracker,
   'posttool/unified-dispatcher': unifiedDispatcher,
 
@@ -84,7 +81,6 @@ export const hooks: Record<string, HookFn> = {
   'posttool/failure-handler': failureHandler,
 
   // Intelligent Decision Capture System
-  'posttool/solution-detector': solutionDetector,
   'posttool/tool-preference-learner': toolPreferenceLearner,
 
   // Issue #772: Config change security auditor

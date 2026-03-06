@@ -5,29 +5,21 @@
  * Unified Prompt Dispatcher — UserPromptSubmit Hook
  * Issue #448: Consolidate UserPromptSubmit hooks to reduce context bloat
  *
- * Problem: 13 separate UserPromptSubmit hooks = 13 system-reminder tags per turn,
- * consuming 1500-3200 tokens/turn. Many are no-ops, duplicates, or silent analytics.
+ * 3 hooks managed by this dispatcher:
  *
- * Solution: Single dispatcher that runs all hooks internally (both every-turn and
- * once-per-session), collects their additionalContext outputs, merges into one
- * consolidated response. Reduces UserPromptSubmit hooks.json entries from 5 to 2.
+ * Once-per-session (file-based flag tracking):
+ * - handoff-injector (producesContext: true)
+ * - agentation-context (producesContext: true)
  *
- * Every-turn hooks consolidated here:
- * - context-injector (removed — no-op, only logs)
- * - todo-enforcer (removed — no-op, only logs)
- * - satisfaction-detector (silent analytics)
- * - communication-style-tracker (silent analytics)
- * - antipattern-detector (merged with antipattern-warning)
- * - antipattern-warning (merged — deduplicated logic)
- * - memory-context (context injection)
+ * Every-turn context producers:
+ * - context-exhaustion-warner (producesContext: true)
  *
- * Once-per-session hooks consolidated here (file-based flag tracking):
- * - profile-injector (run once via session flag)
- * - memory-context-loader (run once via session flag)
- * - queue-recovery (removed — no source file, was a ghost no-op)
+ * Removed (#960): skill-nudge-prompt — replaced by CC native skill matching
+ * Migrated (#972): antipattern-warning → type:prompt hook in hooks.json (LLM classifies directly)
  *
- * NOT consolidated (remain separate in hooks.json):
- * - capture-user-intent (async: true in hooks.json — CC handles background execution natively)
+ * Moved to SessionStart (sync-session-dispatcher, correct lifecycle):
+ * - profile-injector → materializeProfileRules()
+ * - memory-context-loader → materializeDecisionRules()
  *
  * CC 2.1.9 Compliant: Single additionalContext output
  */
@@ -48,17 +40,10 @@ import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 // Import hook implementations — every-turn
-import { satisfactionDetector } from './satisfaction-detector.js';
-import { communicationStyleTracker } from './communication-style-tracker.js';
 import { contextExhaustionWarner } from './context-exhaustion-warner.js';
-import { antipatternWarning } from './antipattern-warning.js';
-import { memoryContext } from './memory-context.js';
-import { skillNudgePrompt } from './skill-nudge.js';
-
+// antipattern-warning migrated to type:prompt hook in hooks.json (#972)
 // Import hook implementations — once-per-session
 import { handoffInjector } from './handoff-injector.js';
-import { profileInjector } from './profile-injector.js';
-import { memoryContextLoader } from './memory-context-loader.js';
 import { agentationContext } from './agentation-context.js';
 
 // -----------------------------------------------------------------------------
@@ -90,29 +75,22 @@ interface PromptHookConfig {
 // -----------------------------------------------------------------------------
 
 /**
- * Registry of all UserPromptSubmit hooks managed by this dispatcher.
+ * Registry of 5 UserPromptSubmit hooks managed by this dispatcher.
  *
  * Order matters for context producers — higher priority first.
- * Silent analytics hooks run but their output is discarded.
  * runOnce hooks execute only on the first turn (file-based session flag).
+ *
+ * profile-injector + memory-context-loader moved to SessionStart (sync-session-dispatcher)
+ * where they materialize rules files BEFORE CC loads instructions.
  */
 const HOOKS: PromptHookConfig[] = [
   // --- Once-per-session hooks (run on first turn only, file-flag gated) ---
-  // Handoff injector runs FIRST — restores context from previous session's HANDOFF.md
   { name: 'handoff-injector', fn: handoffInjector, producesContext: true, runOnce: true },
-  { name: 'profile-injector', fn: profileInjector, producesContext: true, runOnce: true },
-  { name: 'memory-context-loader', fn: memoryContextLoader, producesContext: true, runOnce: true },
   { name: 'agentation-context', fn: agentationContext, producesContext: true, runOnce: true },
-
-  // --- Silent analytics (fire-and-forget, no context output) ---
-  { name: 'satisfaction-detector', fn: satisfactionDetector, producesContext: false },
-  { name: 'communication-style-tracker', fn: communicationStyleTracker, producesContext: false },
 
   // --- Context producers (output merged into single additionalContext) ---
   { name: 'context-exhaustion-warner', fn: contextExhaustionWarner, producesContext: true },
-  { name: 'antipattern-warning', fn: antipatternWarning, producesContext: true },
-  { name: 'memory-context', fn: memoryContext, producesContext: true },
-  { name: 'skill-nudge-prompt', fn: skillNudgePrompt, producesContext: true },
+  // antipattern-warning removed (#972) — now a type:prompt hook in hooks.json
 ];
 
 /** Exposed for testing */

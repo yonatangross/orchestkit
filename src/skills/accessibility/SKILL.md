@@ -66,9 +66,9 @@ WCAG 2.2 AA implementation for inclusive, legally compliant web applications.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Color Contrast | `rules/wcag-color-contrast.md` | 4.5:1 text, 3:1 UI components, focus indicators |
-| Semantic HTML | `rules/wcag-semantic-html.md` | Landmarks, headings, ARIA labels, form structure |
-| Testing | `rules/wcag-testing.md` | axe-core, Playwright a11y, screen reader testing |
+| Color Contrast | `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/rules/wcag-color-contrast.md` | 4.5:1 text, 3:1 UI components, focus indicators |
+| Semantic HTML | `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/rules/wcag-semantic-html.md` | Landmarks, headings, ARIA labels, form structure |
+| Testing | `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/rules/wcag-testing.md` | axe-core, Playwright a11y, screen reader testing |
 
 ## Focus Management
 
@@ -76,9 +76,9 @@ Keyboard focus management patterns for accessible interactive widgets.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Focus Trap | `rules/focus-trap.md` | Modal focus trapping, FocusScope, Escape key |
-| Focus Restoration | `rules/focus-restoration.md` | Return focus to trigger, focus first error |
-| Keyboard Navigation | `rules/focus-keyboard-nav.md` | Roving tabindex, skip links, arrow keys |
+| Focus Trap | `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/rules/focus-trap.md` | Modal focus trapping, FocusScope, Escape key |
+| Focus Restoration | `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/rules/focus-restoration.md` | Return focus to trigger, focus first error |
+| Keyboard Navigation | `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/rules/focus-keyboard-nav.md` | Roving tabindex, skip links, arrow keys |
 
 ## React Aria
 
@@ -86,9 +86,9 @@ Adobe React Aria hooks for building WCAG-compliant interactive UI.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Components | `rules/aria-components.md` | useButton, useDialog, useMenu, FocusScope |
-| Forms | `rules/aria-forms.md` | useComboBox, useTextField, useListBox |
-| Overlays | `rules/aria-overlays.md` | useModalOverlay, useTooltip, usePopover |
+| Components | `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/rules/aria-components.md` | useButton, useDialog, useMenu, FocusScope |
+| Forms | `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/rules/aria-forms.md` | useComboBox, useTextField, useListBox |
+| Overlays | `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/rules/aria-overlays.md` | useModalOverlay, useTooltip, usePopover |
 
 ## Key Decisions
 
@@ -120,10 +120,10 @@ Adobe React Aria hooks for building WCAG-compliant interactive UI.
 
 | Resource | Description |
 |----------|-------------|
-| [scripts/](scripts/) | Templates: accessible form, focus trap, React Aria components |
-| [checklists/](checklists/) | WCAG audit, focus management, React Aria component checklists |
-| [references/](references/) | WCAG criteria reference, focus patterns, React Aria hooks API |
-| [examples/](examples/) | Complete accessible component examples |
+| `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/scripts/` | Templates: accessible form, focus trap, React Aria components |
+| `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/checklists/` | WCAG audit, focus management, React Aria component checklists |
+| `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/references/` | WCAG criteria reference, focus patterns, React Aria hooks API |
+| `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/examples/` | Complete accessible component examples |
 
 ## Related Skills
 

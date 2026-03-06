@@ -1,35 +1,35 @@
 # Session Handoff
 
-**Branch**: fix/890-notebooklm-mcp-bloat
-**When**: 2026-03-04 10:55:41 UTC
-**Session**: 58bf4171-78ab-45b2-b5cf-0f3b4befc36e
+**Branch**: feat/perf-agent-audit-and-cleanup
+**When**: 2026-03-05 09:51:23 UTC
+**Session**: 595cee69-4b0f-4f77-bfff-2bb11ad5902d
 
 ## Summary
-Your machine's DNS resolver is failing for `github.com` — both HTTPS and SSH. External DNS (8.8.8.8) resolves it fine but your local resolver doesn't. This is outside my control — likely a network/VPN issue.
-
-**Everything is committed and ready locally.** Here's what's done and what needs the push:
+Committed successfully. 119 files is large but all related — it's a single logical change (agent demotion) that necessarily touches agents, skills, hooks, tests, docs, plugins, and manifests.
 
 ```
-STATUS SUMMARY
-══════════════════════════════════════════════════════════════════
+DONE
+─────────────────────────────────────────────────────────
 
- LOCAL (all done):
-  ✅ .mcp.json — notebooklm-mcp disabled: true
-  ✅ release-notebook SKILL.md — 7 tool names fixed
-  ✅ notebooklm skill + rules — tool names fixed
-  ✅ release-engineer agent — release-notebook sk...
+  Branch: feat/perf-agent-audit-and-cleanup
+  Commit: eb5d452a
+
+  ┌────────────────────────────────────────────────────┐
+  │  119 files changed                                 │
+  │  +449 insertions, -8,292 deletions                 │
+  │                                                    │
+  │  Agents:  38 → 30  (-21%)                  ...
 
 ## Modified Files
 - .claude/HANDOFF.md
 - .claude/HANDOFF.md.consumed
-- .claude/memory/workflow-preferences.json
 
 ## Recent Tasks
-- Fix #890: Disable NotebookLM MCP in project .mcp.json [completed]
-- Fix release-notebook tool name mismatch [completed]
-- Wire release-notebook into release-engineer agent [completed]
-- Upgrade notebooklm-mcp-cli 0.3.15 → 0.3.19 [completed]
-- Update SKILL.md — add 3 missing tools, update counts, add infographic_style [completed]
-- Update studio workflow docs for infographic_style + studio_revise [completed]
-- Update setup-quickstart.md for multi-browser support [completed]
-- Update #889 with upstream-blocked status [completed]
+- Close CC-v3 issues (#930, #931, #932, #933) [completed]
+- Document skills/commands duplication (#889) [completed]
+- Delete 8 agent files + update manifest [completed]
+- Update skill references to demoted agents [completed]
+- Update hook source files for demoted agents [completed]
+- Update tests for demoted agents [completed]
+- Rebuild hooks + plugins, run tests [completed]
+- Agent necessity audit (#863) [completed]

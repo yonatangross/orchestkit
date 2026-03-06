@@ -53,7 +53,7 @@ Quality gate for Product Requirements Documents.
 
 ## Success Metrics
 
-- [ ] Metrics linked to requirements-translator or metrics-architect
+- [ ] Metrics linked to requirements with clear ownership
 - [ ] Baseline established
 - [ ] Target defined
 - [ ] Measurement method clear

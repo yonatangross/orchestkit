@@ -42,14 +42,13 @@ describe('Async Hooks Registry', () => {
       // Issue #653: Migrated from fire-and-forget spawn pattern (run-hook-silent.mjs)
       // to native CC async: true. Eliminates per-event process spawning entirely.
       // Fixes Windows console flashing (#644) and reduces overhead from ~50ms to ~0ms per event.
+      // After #897 slimming: capture-user-intent, settings-reload, release-notebook-trigger removed
       const expectedAsyncDispatchers = [
         { path: 'lifecycle/unified-dispatcher', event: 'SessionStart' },
         { path: 'posttool/unified-dispatcher', event: 'PostToolUse' },
         { path: 'stop/unified-dispatcher', event: 'Stop' },
         { path: 'subagent-stop/unified-dispatcher', event: 'SubagentStop' },
         { path: 'notification/unified-dispatcher', event: 'Notification' },
-        { path: 'prompt/capture-user-intent', event: 'UserPromptSubmit' },
-        { path: 'config-change/settings-reload', event: 'ConfigChange' },
       ];
 
       const allHooks: Hook[] = [];
@@ -77,8 +76,9 @@ describe('Async Hooks Registry', () => {
       }
 
       const asyncHooks = allHooks.filter(h => h.async === true);
-      // 7 -> 8: #939 — added release-notebook-trigger (async fire-and-forget)
-      expect(asyncHooks.length, 'Should have exactly 8 async hooks').toBe(8);
+      // 8 -> 5: #897 slimming removed capture-user-intent, settings-reload, release-notebook-trigger
+      // 5 -> 6: #978 — wired TeammateIdle dispatcher (async: true)
+      expect(asyncHooks.length, 'Should have exactly 6 async hooks').toBe(6);
     });
 
     it('should NOT have async: true for blocking hooks', () => {
@@ -185,8 +185,6 @@ describe('Async Hooks Registry', () => {
         'stop/unified-dispatcher',
         'subagent-stop/unified-dispatcher',
         'notification/unified-dispatcher',
-        'prompt/capture-user-intent',
-        'config-change/settings-reload',
       ];
 
       for (const hookPath of asyncDispatchers) {

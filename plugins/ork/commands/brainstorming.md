@@ -164,7 +164,10 @@ TaskCreate(subject="Present design options", activeForm="Presenting options")
 | **5. Synthesis** | Filter to top 2-3, trade-off table, **test strategy per approach** | Options |
 | **6. Design Presentation** | Present in 200-300 word sections, **include test plan** | Validated design |
 
-See `references/phase-workflow.md` for detailed instructions.
+Load the phase workflow for detailed instructions:
+```
+Read("${CLAUDE_PLUGIN_ROOT}/skills/brainstorming/references/phase-workflow.md")
+```
 
 
 ## When NOT to Use
@@ -181,7 +184,7 @@ Skip brainstorming when:
 | Topic Example | Agents to Spawn |
 |---------------|-----------------|
 | "brainstorm API for users" | workflow-architect, backend-system-architect, security-auditor, **test-generator** |
-| "brainstorm dashboard UI" | workflow-architect, frontend-ui-developer, ux-researcher, **test-generator** |
+| "brainstorm dashboard UI" | workflow-architect, frontend-ui-developer, **test-generator** |
 | "brainstorm RAG pipeline" | workflow-architect, llm-integrator, data-pipeline-engineer, **test-generator** |
 | "brainstorm caching strategy" | workflow-architect, backend-system-architect, frontend-performance-engineer, **test-generator** |
 
@@ -233,7 +236,7 @@ Agent(subagent_type="test-generator", name="testability-assessor",
      Challenge designs that score below 5 on testability.
      Propose test strategies for the top approaches in synthesis phase.""")
 
-# Optional: Add security-auditor, ux-researcher, llm-integrator based on topic
+# Optional: Add security-auditor, llm-integrator based on topic
 ```
 
 **Key advantage:** Agents riff on each other's ideas and play devil's advocate in real-time, rather than generating ideas in isolation.
@@ -249,7 +252,7 @@ SendMessage(type="shutdown_request", recipient="testability-assessor", content="
 TeamDelete()
 ```
 
-> **Fallback:** If team formation fails, use standard Phase 2 Task spawns from [Phase Workflow](references/phase-workflow.md).
+> **Fallback:** If team formation fails, load `Read("${CLAUDE_PLUGIN_ROOT}/skills/brainstorming/references/phase-workflow.md")` and use standard Phase 2 Task spawns.
 
 > **Manual cleanup:** If `TeamDelete()` doesn't terminate all agents, press `Ctrl+F` twice to force-kill remaining background agents.
 
@@ -275,13 +278,17 @@ TeamDelete()
 
 ## References
 
-- [Phase Workflow](references/phase-workflow.md) - Detailed 7-phase instructions
-- [Divergent Techniques](references/divergent-techniques.md) - SCAMPER, Mind Mapping, etc.
-- [Evaluation Rubric](references/evaluation-rubric.md) - 0-10 scoring criteria
-- [Devil's Advocate Prompts](references/devils-advocate-prompts.md) - Challenge templates
-- [Socratic Questions](references/socratic-questions.md) - Requirements discovery
-- [Common Pitfalls](references/common-pitfalls.md) - Mistakes to avoid
-- [Example Session](references/example-session-dashboard.md) - Complete example
+Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/brainstorming/references/<file>")`:
+
+| File | Content |
+|------|---------|
+| `phase-workflow.md` | Detailed 7-phase instructions |
+| `divergent-techniques.md` | SCAMPER, Mind Mapping, etc. |
+| `evaluation-rubric.md` | 0-10 scoring criteria |
+| `devils-advocate-prompts.md` | Challenge templates |
+| `socratic-questions.md` | Requirements discovery |
+| `common-pitfalls.md` | Mistakes to avoid |
+| `example-session-dashboard.md` | Complete example |
 
 
 **Version:** 4.3.0 (February 2026) - Added testability scoring to evaluation, test strategy to synthesis output

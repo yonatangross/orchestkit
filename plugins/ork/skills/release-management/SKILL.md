@@ -341,5 +341,8 @@ Usage:
 
 ## References
 
-- [Semantic Versioning](references/semver.md)
-- [Release Automation](references/release-automation.md)
+Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/release-management/references/<file>")`:
+| File | Content |
+|------|---------|
+| `semver.md` | Semantic Versioning |
+| `release-automation.md` | Release Automation |

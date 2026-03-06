@@ -17,6 +17,57 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.1.3",
+    "date": "2026-03-05",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**feat(skills):** Enable CC native matching on 10 knowledge skills (#960)\n  - security-patterns, api-design, testing-patterns, database-patterns, python-backend, architecture-patterns, performance, quality-gates, react-server-components-framework, devops-deployment\n  - Changed `disable-model-invocation: true → false` so CC auto-selects these based on prompt/description matching\n  - Skills visible to CC: 17 → 27 (17 user-invocable + 10 model-invocable)",
+          "**docs(skills):** Document model-invocable pattern in CONTRIBUTING-SKILLS.md"
+        ]
+      },
+      {
+        "type": "removed",
+        "items": [
+          "**perf(hooks):** Delete ~1,550 lines dead routing code (#960)\n  - Deleted: intent-classifier.ts (669 lines), calibration-engine.ts, skill-nudge.ts, calibration-tracker.ts, calibration-persist.ts, + 4 test files\n  - These modules were superseded by CC native skill matching and never ran in production\n  - Prompt pipeline hooks: 5 → 4 (removed skill-nudge-prompt)\n  - Split-bundles test count: 170 → 167"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**perf(agents):** Demote 8 redundant agents to reduce routing overhead (#863)\n  - Removed: requirements-translator, documentation-specialist, prompt-engineer, ux-researcher, rapid-ui-designer, business-case-builder, metrics-architect, prioritization-analyst\n  - Agent count: 38 to 30, Hook count: 98 to 88 (10 agent-scoped hooks removed)\n  - Reduces routing complexity and eliminates ~98k tokens/invocation for unnecessary agent spawns",
+          "**docs(build):** Document skills/commands duplication token waste (#889) with upstream CC bug tracking"
+        ]
+      },
+      {
+        "type": "removed",
+        "items": [
+          "CC-v3 feature issues (#930-933) removed from perf milestone — already built, architecturally impossible, or superseded by CC native tools"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "7.1.2",
+    "date": "2026-03-04",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**browser-tools skill v3.0.0**: 7 new sections documenting agent-browser v0.16 features (semantic locators, mouse commands, tab management, debug/recording, mobile testing, configuration flags, auth vault)",
+          "**2 new rules**: `browser-debug-recording.md` (trace/profiler safety), `browser-mobile-testing.md` (device emulation verification)",
+          "**3 new safety hook checks**: `--allow-file-access` warning, `AGENT_BROWSER_ENCRYPTION_KEY` leak prevention, `--user-agent` spoofing warning",
+          "**4 new hook test cases** (14/14 passing)",
+          "Updated 4 agents (web-research-analyst, test-generator, accessibility-specialist, frontend-ui-developer) with v0.16 capabilities",
+          "Expanded 4 existing rules with v0.16 flags and patterns"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.1.1",
     "date": "2026-03-04",
     "compareUrl": "",

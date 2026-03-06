@@ -68,18 +68,35 @@ function readTaskLog(projectDir: string): { completed: string[]; pending: string
   } catch { return { completed: [], pending: [] }; }
 }
 
-function deriveStatus(totalTools: number, _lastMsg: string | undefined, completed: string[], pending: string[]): string {
+/** Completion signals in last_assistant_message */
+const COMPLETION_RE = /\b(done|completed|finished|all\s+(?:tasks?|work)\s+(?:done|completed|finished)|merged|shipped)\b/i;
+
+function deriveStatus(totalTools: number, lastMsg: string | undefined, completed: string[], pending: string[]): string {
   if (totalTools === 0) return 'interrupted';
   if (pending.length > 0) return 'partial';
   if (completed.length > 0) return 'completed';
+  // Use last_assistant_message to detect completion when no task log exists
+  if (lastMsg && COMPLETION_RE.test(lastMsg)) return 'completed';
   return 'partial';
 }
 
-function buildSummary(totalTools: number, filesModified: number, completed: string[], branch: string): string {
+/**
+ * Extract a concise summary, preferring last_assistant_message over generic stats.
+ */
+function buildSummary(totalTools: number, filesModified: number, completed: string[], branch: string, lastMsg?: string): string {
+  // Best: use Claude's own summary from last_assistant_message
+  if (lastMsg && lastMsg.length > 20) {
+    const truncated = lastMsg.substring(0, 200);
+    const sentenceEnd = truncated.lastIndexOf('. ');
+    if (sentenceEnd > 40) return truncated.substring(0, sentenceEnd + 1);
+    return truncated + (lastMsg.length > 200 ? '...' : '');
+  }
+  // Fallback: last completed task
   if (completed.length > 0) {
     const last = completed[completed.length - 1];
     return last.length > 80 ? `${last.slice(0, 77)}...` : last;
   }
+  // Generic stats
   if (branch && branch !== 'unknown') return `Session on ${branch}: ${totalTools} tool calls, ${filesModified} files modified`;
   return `${totalTools} tool calls, ${filesModified} files modified`;
 }
@@ -113,6 +130,30 @@ function toYaml(d: {
   ].join('\n')}\n`;
 }
 
+/**
+ * Extract next-step items from last_assistant_message.
+ * Looks for bullet lists under "next steps" / "todo" / "remaining" headings.
+ */
+function extractNextSteps(lastMsg: string | undefined, branch: string): string[] {
+  if (lastMsg) {
+    // Match markdown bullet items after a "next steps" / "pending" / "remaining" / "todo" heading
+    const sectionMatch = lastMsg.match(/(?:next\s+steps?|pending|remaining|todo)[:\s]*\n((?:\s*[-*]\s+.+\n?)+)/i);
+    if (sectionMatch) {
+      const items = sectionMatch[1]
+        .split('\n')
+        .map(l => l.replace(/^\s*[-*]\s+/, '').trim())
+        .filter(Boolean)
+        .slice(0, 3);
+      if (items.length > 0) return items;
+    }
+  }
+  // Fallback: generic branch hint
+  if (branch && branch !== 'unknown' && branch !== 'main' && branch !== 'master') {
+    return [`Continue work on branch ${branch}`];
+  }
+  return [];
+}
+
 function rotateHandoffs(handoffDir: string): void {
   try {
     const files = readdirSync(handoffDir)
@@ -139,11 +180,11 @@ export function sessionHandoffGenerator(input: HookInput): HookResult {
     const filesModified = countModifiedFiles(projectDir);
     const { completed, pending } = readTaskLog(projectDir);
 
-    const status = deriveStatus(totalTools, input.last_assistant_message, completed, pending);
-    const summary = buildSummary(totalTools, filesModified, completed, branch);
+    const lastMsg = input.last_assistant_message;
+    const status = deriveStatus(totalTools, lastMsg, completed, pending);
+    const summary = buildSummary(totalTools, filesModified, completed, branch, lastMsg);
     const nextSteps = pending.length > 0 ? pending.slice(0, 3)
-      : (branch && branch !== 'unknown' && branch !== 'main' && branch !== 'master')
-        ? [`Continue work on branch ${branch}`] : [];
+      : extractNextSteps(lastMsg, branch);
 
     const yaml = toYaml({
       session_id: sessionId, project: projectHash, timestamp, branch, status, summary,

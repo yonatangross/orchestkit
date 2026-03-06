@@ -146,7 +146,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "AskUserQuestion"
     ],
     "skills": [],
-    "agent": "metrics-architect",
+    "agent": null,
     "structure": {
       "references": [
         "cost-estimation.md",
@@ -223,7 +223,6 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": [
       "backend-system-architect",
-      "documentation-specialist",
       "event-driven-architect",
       "llm-integrator",
       "multimodal-specialist"
@@ -273,7 +272,6 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": [
       "backend-system-architect",
-      "documentation-specialist",
       "git-operations-engineer",
       "system-design-reviewer"
     ]
@@ -636,7 +634,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ork"
     ],
     "relatedAgents": [
-      "business-case-builder",
       "product-strategist"
     ]
   },
@@ -673,6 +670,42 @@ export const SKILLS: Record<string, SkillMeta> = {
       "test-generator",
       "web-research-analyst"
     ]
+  },
+  "business-case": {
+    "name": "business-case",
+    "description": "ROI, NPV, IRR, payback period, and TCO calculations for investment decisions. Use when building financial justification, cost-benefit analysis, build-vs-buy comparisons, or sensitivity analysis.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "roi",
+      "npv",
+      "irr",
+      "tco",
+      "build-vs-buy",
+      "financial-analysis",
+      "cost-benefit"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "skills": [],
+    "agent": "product-strategist",
+    "structure": {
+      "references": [
+        "build-buy-partner-decision.md",
+        "roi-calculation-guide.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
   },
   "checkpoint-resume": {
     "name": "checkpoint-resume",
@@ -801,6 +834,41 @@ export const SKILLS: Record<string, SkillMeta> = {
     "relatedAgents": [
       "git-operations-engineer"
     ]
+  },
+  "competitive-analysis": {
+    "name": "competitive-analysis",
+    "description": "Porter's Five Forces, SWOT analysis, and competitive landscape mapping. Use when analyzing market position, evaluating competitive threats, building battlecards, or assessing industry dynamics.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "porter",
+      "swot",
+      "competitive",
+      "battlecard",
+      "moat",
+      "five-forces",
+      "landscape"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "skills": [],
+    "agent": "product-strategist",
+    "structure": {
+      "references": [
+        "competitive-analysis-guide.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
   },
   "configure": {
     "name": "configure",
@@ -1180,6 +1248,36 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": []
   },
+  "documentation-patterns": {
+    "name": "documentation-patterns",
+    "description": "Technical documentation patterns for READMEs, ADRs, API docs (OpenAPI 3.1), changelogs, and writing style guides. Use when creating project documentation, writing architecture decisions, documenting APIs, or maintaining changelogs.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "documentation",
+      "readme",
+      "adr",
+      "api-docs",
+      "openapi",
+      "changelog",
+      "writing-style",
+      "technical-writing"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep"
+    ],
+    "skills": [],
+    "agent": null,
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
   "domain-driven-design": {
     "name": "domain-driven-design",
     "description": "Domain-Driven Design tactical patterns for complex business domains. Use when modeling entities, value objects, domain services, repositories, or establishing bounded contexts.",
@@ -1463,7 +1561,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ork"
     ],
     "relatedAgents": [
-      "documentation-specialist",
       "frontend-ui-developer",
       "git-operations-engineer"
     ]
@@ -1512,15 +1609,12 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ork"
     ],
     "relatedAgents": [
-      "business-case-builder",
       "ci-cd-engineer",
       "deployment-manager",
       "git-operations-engineer",
       "market-intelligence",
-      "prioritization-analyst",
       "product-strategist",
-      "release-engineer",
-      "requirements-translator"
+      "release-engineer"
     ]
   },
   "golden-dataset": {
@@ -1841,9 +1935,42 @@ export const SKILLS: Record<string, SkillMeta> = {
     "relatedAgents": [
       "llm-integrator",
       "multimodal-specialist",
-      "prompt-engineer",
       "workflow-architect"
     ]
+  },
+  "market-sizing": {
+    "name": "market-sizing",
+    "description": "TAM, SAM, SOM market sizing with top-down and bottom-up methods. Use when estimating addressable market, validating opportunity size, sizing new segments, or preparing investor pitch materials.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "tam",
+      "sam",
+      "som",
+      "market-size",
+      "addressable-market",
+      "opportunity-sizing"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "skills": [],
+    "agent": "product-strategist",
+    "structure": {
+      "references": [
+        "tam-sam-som-guide.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
   },
   "mcp-patterns": {
     "name": "mcp-patterns",
@@ -1935,7 +2062,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "accessibility-specialist",
       "ai-safety-auditor",
       "backend-system-architect",
-      "business-case-builder",
       "ci-cd-engineer",
       "code-quality-reviewer",
       "data-pipeline-engineer",
@@ -1943,7 +2069,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "debug-investigator",
       "demo-producer",
       "deployment-manager",
-      "documentation-specialist",
       "eval-runner",
       "event-driven-architect",
       "frontend-performance-engineer",
@@ -1952,22 +2077,16 @@ export const SKILLS: Record<string, SkillMeta> = {
       "infrastructure-architect",
       "llm-integrator",
       "market-intelligence",
-      "metrics-architect",
       "monitoring-engineer",
       "multimodal-specialist",
-      "prioritization-analyst",
       "product-strategist",
-      "prompt-engineer",
       "python-performance-engineer",
-      "rapid-ui-designer",
       "release-engineer",
-      "requirements-translator",
       "security-auditor",
       "security-layer-auditor",
       "system-design-reviewer",
       "test-generator",
       "ui-feedback",
-      "ux-researcher",
       "web-research-analyst",
       "workflow-architect"
     ]
@@ -2034,7 +2153,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "WebSearch"
     ],
     "skills": [],
-    "agent": "metrics-architect",
+    "agent": null,
     "structure": {
       "references": [
         "agent-observability.md",
@@ -2089,9 +2208,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "frontend-performance-engineer",
       "infrastructure-architect",
       "llm-integrator",
-      "metrics-architect",
       "monitoring-engineer",
-      "prompt-engineer",
       "python-performance-engineer",
       "workflow-architect"
     ]
@@ -2164,6 +2281,42 @@ export const SKILLS: Record<string, SkillMeta> = {
     "skills": [],
     "agent": null,
     "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "okr-design": {
+    "name": "okr-design",
+    "description": "OKR trees, KPI dashboards, North Star Metric, leading/lagging indicators, and experiment design. Use when setting team goals, defining success metrics, building measurement frameworks, or designing A/B experiment guardrails.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "okr",
+      "kpi",
+      "north-star",
+      "metrics",
+      "experiment",
+      "goal-setting",
+      "leading-lagging",
+      "instrumentation"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "skills": [],
+    "agent": "product-strategist",
+    "structure": {
+      "references": [
+        "okr-workshop-guide.md"
+      ]
+    },
     "plugins": [
       "ork"
     ],
@@ -2260,7 +2413,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "frontend-performance-engineer",
       "frontend-ui-developer",
       "llm-integrator",
-      "metrics-architect",
       "monitoring-engineer",
       "python-performance-engineer",
       "system-design-reviewer"
@@ -2325,6 +2477,42 @@ export const SKILLS: Record<string, SkillMeta> = {
       "system-design-reviewer"
     ]
   },
+  "prd": {
+    "name": "prd",
+    "description": "Product Requirements Documents with structured 8-section templates, user stories, acceptance criteria, and value proposition validation. Use when writing PRDs, defining product requirements, creating user stories with INVEST criteria, or building go/no-go decision frameworks.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "prd",
+      "requirements",
+      "user-story",
+      "acceptance-criteria",
+      "invest",
+      "value-proposition",
+      "go-no-go"
+    ],
+    "userInvocable": true,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "skills": [],
+    "agent": "product-strategist",
+    "structure": {
+      "references": [
+        "output-templates.md",
+        "value-prop-canvas-guide.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
   "presentation-builder": {
     "name": "presentation-builder",
     "description": "Creates zero-dependency, animation-rich HTML presentations from scratch or by converting PowerPoint files. Use when the user wants to build a presentation, convert a PPT/PPTX to web slides, or create a slide deck for a talk, pitch, or tutorial. Generates single self-contained HTML files with inline CSS/JS.",
@@ -2357,6 +2545,79 @@ export const SKILLS: Record<string, SkillMeta> = {
       "references": [
         "pptx-conversion.md",
         "style-presets.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "prioritization": {
+    "name": "prioritization",
+    "description": "RICE, WSJF, ICE, MoSCoW, and opportunity cost scoring for backlog ranking. Use when prioritizing features, comparing initiatives, justifying roadmap decisions, or evaluating trade-offs between competing work items.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "rice",
+      "wsjf",
+      "ice",
+      "moscow",
+      "prioritization",
+      "backlog",
+      "scoring",
+      "ranking"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "skills": [],
+    "agent": "product-strategist",
+    "structure": {
+      "references": [
+        "rice-scoring-guide.md",
+        "wsjf-guide.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "product-analytics": {
+    "name": "product-analytics",
+    "description": "A/B test evaluation, cohort retention analysis, funnel metrics, and experiment-driven product decisions. Use when analyzing experiments, measuring feature adoption, diagnosing conversion drop-offs, or evaluating statistical significance of product changes.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "ab-test",
+      "cohort",
+      "retention",
+      "funnel",
+      "conversion",
+      "analytics",
+      "experiment",
+      "statistical-significance"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "skills": [],
+    "agent": "product-strategist",
+    "structure": {
+      "references": [
+        "stats-cheat-sheet.md"
       ]
     },
     "plugins": [
@@ -2401,6 +2662,7 @@ export const SKILLS: Record<string, SkillMeta> = {
         "interview-guide-template.md",
         "journey-map-workshop.md",
         "okr-workshop-guide.md",
+        "output-templates.md",
         "rice-scoring-guide.md",
         "roi-calculation-guide.md",
         "tam-sam-som-guide.md",
@@ -2433,13 +2695,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ork"
     ],
     "relatedAgents": [
-      "business-case-builder",
       "market-intelligence",
-      "metrics-architect",
-      "prioritization-analyst",
       "product-strategist",
-      "requirements-translator",
-      "ux-researcher",
       "web-research-analyst"
     ]
   },
@@ -2742,7 +2999,6 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": [
       "deployment-manager",
-      "documentation-specialist",
       "git-operations-engineer",
       "release-engineer"
     ]
@@ -2820,7 +3076,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "accessibility-specialist",
       "ai-safety-auditor",
       "backend-system-architect",
-      "business-case-builder",
       "ci-cd-engineer",
       "code-quality-reviewer",
       "data-pipeline-engineer",
@@ -2828,7 +3083,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "debug-investigator",
       "demo-producer",
       "deployment-manager",
-      "documentation-specialist",
       "eval-runner",
       "event-driven-architect",
       "frontend-performance-engineer",
@@ -2837,22 +3091,16 @@ export const SKILLS: Record<string, SkillMeta> = {
       "infrastructure-architect",
       "llm-integrator",
       "market-intelligence",
-      "metrics-architect",
       "monitoring-engineer",
       "multimodal-specialist",
-      "prioritization-analyst",
       "product-strategist",
-      "prompt-engineer",
       "python-performance-engineer",
-      "rapid-ui-designer",
       "release-engineer",
-      "requirements-translator",
       "security-auditor",
       "security-layer-auditor",
       "system-design-reviewer",
       "test-generator",
       "ui-feedback",
-      "ux-researcher",
       "web-research-analyst",
       "workflow-architect"
     ]
@@ -2902,8 +3150,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ork"
     ],
     "relatedAgents": [
-      "accessibility-specialist",
-      "rapid-ui-designer"
+      "accessibility-specialist"
     ]
   },
   "review-pr": {
@@ -3204,9 +3451,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "llm-integrator",
       "monitoring-engineer",
       "multimodal-specialist",
-      "prompt-engineer",
       "python-performance-engineer",
-      "rapid-ui-designer",
       "release-engineer",
       "security-auditor",
       "test-generator",
@@ -3312,7 +3557,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "code-quality-reviewer",
       "eval-runner",
       "frontend-ui-developer",
-      "metrics-architect",
       "monitoring-engineer",
       "python-performance-engineer",
       "test-generator"
@@ -3380,9 +3624,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "relatedAgents": [
       "accessibility-specialist",
       "frontend-ui-developer",
-      "rapid-ui-designer",
-      "ui-feedback",
-      "ux-researcher"
+      "ui-feedback"
     ]
   },
   "upgrade-assessment": {
@@ -3422,6 +3664,44 @@ export const SKILLS: Record<string, SkillMeta> = {
         "output-format.md",
         "recommendation-format.md",
         "scoring-rubric.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "user-research": {
+    "name": "user-research",
+    "description": "User personas, customer journey maps, interview guides, usability testing, and card sorting. Use when building user understanding, mapping customer experiences, planning user research sessions, or defining Jobs-to-Be-Done.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "persona",
+      "journey-map",
+      "user-interview",
+      "usability",
+      "jtbd",
+      "card-sort",
+      "empathy-map",
+      "research"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "skills": [],
+    "agent": "product-strategist",
+    "structure": {
+      "references": [
+        "interview-guide-template.md",
+        "journey-map-workshop.md",
+        "user-story-workshop-guide.md"
       ]
     },
     "plugins": [

@@ -209,7 +209,7 @@ Report: "No conflicts detected" or "Found existing ork install — version {vers
 
 ## Phase 3.5: Project Configuration Wizard
 
-See [Configure Wizard](references/configure-wizard.md) for the full 5-step interactive configuration flow (branch strategy, commit scope, localhost browser, perf telemetry, log verbosity) and env var reference.
+Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/setup/references/configure-wizard.md")` for the full 5-step interactive configuration flow (branch strategy, commit scope, localhost browser, perf telemetry, log verbosity) and env var reference.
 
 > Also reachable directly via `/ork:setup --configure` — skips phases 1-3.
 
@@ -295,11 +295,11 @@ Compute a composite score (0-10) from 6 dimensions:
 OrchestKit Readiness Score: 7.2 / 10  (stable channel, v7.0.0)
 
   Stack Coverage  ████████░░  9/10  Python + React fully covered
-  Hook Protection ████████░░  8/10  95 hooks active
+  Hook Protection ████████░░  8/10  98 hooks active
   MCP Enhancement ██████░░░░  6/10  2/3 recommended MCPs active
   Memory Depth    ████░░░░░░  4/10  12 entities (target: 50+)
   Custom Skills   ██░░░░░░░░  2/10  0/3 suggested skills created
-  Agent Utilization ████████░░  8/10  38 agents available
+  Agent Utilization ████████░░  8/10  30 agents available
 
   Top improvement: Add /ork:remember patterns → +1.5 points
 ```
@@ -366,7 +366,7 @@ mcp__memory__create_entities(entities=[{
 
 After the improvement plan, check if the user's CLAUDE.md could benefit from CC 2.1.59+ modular structure.
 
-See [CLAUDE.md Health Check](references/claude-md-health.md) for analysis steps, thresholds, @import syntax, and `.claude/rules/` path-scoped rules.
+Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/setup/references/claude-md-health.md")` for analysis steps, thresholds, @import syntax, and `.claude/rules/` path-scoped rules.
 
 ```python
 # Quick check
@@ -412,6 +412,10 @@ If **Yes**: write or merge into `~/.claude/keybindings.json`:
 ```
 
 If the file already exists, **merge** — read existing entries, add only keybindings whose `key` is not already bound, then write back. Never overwrite user-defined bindings.
+
+## Post-Setup
+
+> **Tip (CC 2.1.69+):** After setup completes, run `/reload-plugins` to activate all plugin changes without restarting your session.
 
 ## CLI Flags
 

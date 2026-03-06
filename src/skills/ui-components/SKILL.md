@@ -31,11 +31,11 @@ Comprehensive patterns for building accessible UI component libraries with shadc
 |----------|-------|--------|-------------|
 | [shadcn/ui](#shadcnui) | 3 | HIGH | CVA variants, component customization, form patterns, data tables |
 | [Radix Primitives](#radix-primitives) | 3 | HIGH | Dialogs, polymorphic composition, data-attribute styling |
-| [Design System Tokens](#design-system-tokens) | 1 | HIGH | W3C tokens, OKLCH theming, Tailwind @theme, spacing scales |
+| [Design System](#design-system) | 5 | HIGH | W3C tokens, OKLCH theming, spacing scales, typography, component states, animation |
 | [Design System Components](#design-system-components) | 1 | HIGH | Atomic design, CVA variants, accessibility, Storybook |
 | [Forms](#forms) | 2 | HIGH | React Hook Form v7, Zod validation, Server Actions |
 
-**Total: 10 rules across 4 categories**
+**Total: 14 rules across 5 categories**
 
 ## Quick Start
 
@@ -136,13 +136,16 @@ Unstyled, accessible React primitives for building high-quality design systems.
 | [checklists/](checklists/) | shadcn setup, accessibility audit checklists |
 | [references/](references/) | CVA system, OKLCH theming, cn() utility, focus management |
 
-## Design System Tokens
+## Design System
 
-Design token architecture for consistent theming and visual identity.
+Design token architecture, spacing, typography, and interactive component states.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Token Architecture | `rules/design-system-tokens.md` | W3C tokens, OKLCH colors, Tailwind @theme, spacing scales |
+| Token Architecture | `rules/design-system-tokens.md` | W3C tokens, OKLCH colors, Tailwind @theme |
+| Spacing Scale | `rules/design-system-spacing.md` | 8px grid, Tailwind space-1 to space-12 |
+| Typography Scale | `rules/design-system-typography.md` | Font sizes, weights, line heights |
+| Component States | `rules/design-system-states.md` | Hover, focus, active, disabled, loading, animation presets |
 
 ## Design System Components
 

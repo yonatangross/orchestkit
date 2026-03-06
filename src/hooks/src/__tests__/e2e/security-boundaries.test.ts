@@ -161,19 +161,21 @@ describe('Security Boundaries E2E', () => {
       });
     });
 
-    describe('Git Force Push Prevention', () => {
-      test('should block git push --force', async () => {
+    describe('Git Force Push Prevention (ASK tier)', () => {
+      test('should ask for git push --force', async () => {
         const input = createBashInput('git push --force origin main');
         const result = await Promise.resolve(dangerousCommandBlocker(input));
 
-        expect(result.continue).toBe(false);
+        expect(result.continue).toBe(true);
+        expect(result.hookSpecificOutput?.permissionDecision).toBe('ask');
       });
 
-      test('should block git push -f', async () => {
+      test('should ask for git push -f', async () => {
         const input = createBashInput('git push -f origin main');
         const result = await Promise.resolve(dangerousCommandBlocker(input));
 
-        expect(result.continue).toBe(false);
+        expect(result.continue).toBe(true);
+        expect(result.hookSpecificOutput?.permissionDecision).toBe('ask');
       });
     });
 

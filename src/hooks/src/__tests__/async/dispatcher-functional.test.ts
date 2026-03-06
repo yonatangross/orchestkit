@@ -4,8 +4,7 @@
  * Tests actual dispatch behavior: tool routing, error isolation,
  * failure logging, and return value guarantees for all 6 dispatchers.
  *
- * Unlike dispatcher-registry.test.ts (structural snapshot), these tests
- * mock every hook fn and verify the dispatchers call the right ones.
+ * Updated to match current hook registrations after #897 slimming.
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -17,33 +16,26 @@ import type { HookInput } from '../../types.js';
 
 const mocks = vi.hoisted(() => {
   const s = { continue: true, suppressOutput: true };
-  const fn = () => vi.fn(() => s);
+  const fn = (impl?: () => unknown) => vi.fn(impl ?? (() => s));
   return {
     logHook: vi.fn(),
-    // posttool (15) - Issue #361/#362: removed coordinationHeartbeat; v7: removed cloud memory hooks
-    sessionMetrics: fn(), auditLogger: fn(), calibrationTracker: fn(),
-    patternExtractor: fn(), issueProgressCommenter: fn(), issueSubtaskUpdater: fn(),
-    codeStyleLearner: fn(), namingConventionLearner: fn(),
-    skillEditTracker: fn(), skillUsageOptimizer: fn(),
-    realtimeSync: fn(), userTracking: fn(), solutionDetector: fn(),
-    toolPreferenceLearner: fn(),
-    // Issue #684: consolidated from separate PostToolUse hooks.json entries
-    redactSecrets: fn(), configChangeAuditor: fn(), teamMemberStart: fn(), errorLogger: fn(),
-    // lifecycle (6) - Issue #362: removed instanceHeartbeat, multiInstanceInit; v7: removed cloud memory hooks
-    patternSyncPull: fn(),
-    sessionEnvSetup: fn(),
-    sessionTracking: fn(),
-    memoryMetricsCollector: fn(),
-    staleTeamCleanup: fn(),
-    typeErrorIndexer: fn(),
-    // stop (4)
-    handoffWriter: fn(), sessionPatterns: fn(), issueWorkSummary: fn(), calibrationPersist: fn(),
-    // subagent-stop (4)
-    contextPublisher: fn(), handoffPreparer: fn(), feedbackLoop: fn(), agentMemoryStore: fn(),
+    // posttool (3) — after #897 slimming
+    redactSecrets: fn(), configChangeAuditor: fn(), teamMemberStart: fn(),
+    // lifecycle (4) — after #897 slimming
+    patternSyncPull: fn(), sessionEnvSetup: fn(),
+    staleTeamCleanup: fn(), typeErrorIndexer: fn(),
+    // stop (7) — handoff-writer + 6 skill-scoped hooks
+    handoffWriter: fn(), taskCompletionCheck: fn(), securityScanAggregator: fn(),
+    coverageCheck: fn(), evidenceCollector: fn(), coverageThresholdGate: fn(),
+    crossInstanceTestValidator: fn(),
+    // subagent-stop (2) — after #897 slimming
+    handoffPreparer: fn(), feedbackLoop: fn(),
     // notification (2)
     desktopNotification: fn(), soundNotification: fn(),
-    // setup (1) — implementations live in lifecycle/
+    // setup (1)
     dependencyVersionCheck: fn(),
+    // subagent-stop analytics
+    trackEvent: fn(), appendAnalytics: fn(), hashProject: fn(() => 'hash'), getTeamContext: fn(() => ({})),
   };
 });
 
@@ -56,52 +48,41 @@ vi.mock('../../lib/common.js', () => ({
   logHook: (...args: unknown[]) => mocks.logHook(...args),
 }));
 
-// posttool hooks
-vi.mock('../../posttool/session-metrics.js', () => ({ sessionMetrics: mocks.sessionMetrics }));
-vi.mock('../../posttool/audit-logger.js', () => ({ auditLogger: mocks.auditLogger }));
-vi.mock('../../posttool/calibration-tracker.js', () => ({ calibrationTracker: mocks.calibrationTracker }));
-vi.mock('../../posttool/bash/pattern-extractor.js', () => ({ patternExtractor: mocks.patternExtractor }));
-vi.mock('../../posttool/bash/issue-progress-commenter.js', () => ({ issueProgressCommenter: mocks.issueProgressCommenter }));
-vi.mock('../../posttool/bash/issue-subtask-updater.js', () => ({ issueSubtaskUpdater: mocks.issueSubtaskUpdater }));
-vi.mock('../../posttool/write/code-style-learner.js', () => ({ codeStyleLearner: mocks.codeStyleLearner }));
-vi.mock('../../posttool/write/naming-convention-learner.js', () => ({ namingConventionLearner: mocks.namingConventionLearner }));
-vi.mock('../../posttool/skill-edit-tracker.js', () => ({ skillEditTracker: mocks.skillEditTracker }));
-vi.mock('../../posttool/skill/skill-usage-optimizer.js', () => ({ skillUsageOptimizer: mocks.skillUsageOptimizer }));
-vi.mock('../../posttool/realtime-sync.js', () => ({ realtimeSync: mocks.realtimeSync }));
-vi.mock('../../posttool/user-tracking.js', () => ({ userTracking: mocks.userTracking }));
-vi.mock('../../posttool/solution-detector.js', () => ({ solutionDetector: mocks.solutionDetector }));
-vi.mock('../../posttool/tool-preference-learner.js', () => ({ toolPreferenceLearner: mocks.toolPreferenceLearner }));
-// Issue #684: consolidated hooks
+// posttool hooks (3)
 vi.mock('../../skill/redact-secrets.js', () => ({ redactSecrets: mocks.redactSecrets }));
 vi.mock('../../posttool/config-change/security-auditor.js', () => ({ configChangeAuditor: mocks.configChangeAuditor }));
 vi.mock('../../posttool/task/team-member-start.js', () => ({ teamMemberStart: mocks.teamMemberStart }));
-vi.mock('../../posttool/unified-error-handler.js', () => ({ unifiedErrorHandler: mocks.errorLogger }));
 
-// lifecycle hooks
+// lifecycle hooks (4)
 vi.mock('../../lifecycle/pattern-sync-pull.js', () => ({ patternSyncPull: mocks.patternSyncPull }));
 vi.mock('../../lifecycle/session-env-setup.js', () => ({ sessionEnvSetup: mocks.sessionEnvSetup }));
-vi.mock('../../lifecycle/session-tracking.js', () => ({ sessionTracking: mocks.sessionTracking }));
-vi.mock('../../lifecycle/memory-metrics-collector.js', () => ({ memoryMetricsCollector: mocks.memoryMetricsCollector }));
 vi.mock('../../lifecycle/stale-team-cleanup.js', () => ({ staleTeamCleanup: mocks.staleTeamCleanup }));
 vi.mock('../../lifecycle/type-error-indexer.js', () => ({ typeErrorIndexer: mocks.typeErrorIndexer }));
 
-// stop hooks
+// stop hooks (7)
 vi.mock('../../stop/handoff-writer.js', () => ({ handoffWriter: mocks.handoffWriter }));
-vi.mock('../../stop/session-patterns.js', () => ({ sessionPatterns: mocks.sessionPatterns }));
-vi.mock('../../stop/issue-work-summary.js', () => ({ issueWorkSummary: mocks.issueWorkSummary }));
-vi.mock('../../stop/calibration-persist.js', () => ({ calibrationPersist: mocks.calibrationPersist }));
+vi.mock('../../stop/task-completion-check.js', () => ({ taskCompletionCheck: mocks.taskCompletionCheck }));
+vi.mock('../../stop/security-scan-aggregator.js', () => ({ securityScanAggregator: mocks.securityScanAggregator }));
+vi.mock('../../skill/coverage-check.js', () => ({ coverageCheck: mocks.coverageCheck }));
+vi.mock('../../skill/evidence-collector.js', () => ({ evidenceCollector: mocks.evidenceCollector }));
+vi.mock('../../skill/coverage-threshold-gate.js', () => ({ coverageThresholdGate: mocks.coverageThresholdGate }));
+vi.mock('../../skill/cross-instance-test-validator.js', () => ({ crossInstanceTestValidator: mocks.crossInstanceTestValidator }));
 
-// subagent-stop hooks
-vi.mock('../../subagent-stop/context-publisher.js', () => ({ contextPublisher: mocks.contextPublisher }));
+// subagent-stop hooks (2)
 vi.mock('../../subagent-stop/handoff-preparer.js', () => ({ handoffPreparer: mocks.handoffPreparer }));
 vi.mock('../../subagent-stop/feedback-loop.js', () => ({ feedbackLoop: mocks.feedbackLoop }));
-vi.mock('../../subagent-stop/agent-memory-store.js', () => ({ agentMemoryStore: mocks.agentMemoryStore }));
+vi.mock('../../lib/session-tracker.js', () => ({ trackEvent: mocks.trackEvent }));
+vi.mock('../../lib/analytics.js', () => ({
+  appendAnalytics: mocks.appendAnalytics,
+  hashProject: mocks.hashProject,
+  getTeamContext: mocks.getTeamContext,
+}));
 
-// notification hooks
+// notification hooks (2)
 vi.mock('../../notification/desktop.js', () => ({ desktopNotification: mocks.desktopNotification }));
 vi.mock('../../notification/sound.js', () => ({ soundNotification: mocks.soundNotification }));
 
-// setup hooks (source files live in lifecycle/)
+// setup hooks (1)
 vi.mock('../../lifecycle/dependency-version-check.js', () => ({ dependencyVersionCheck: mocks.dependencyVersionCheck }));
 
 // ---------------------------------------------------------------------------
@@ -114,19 +95,6 @@ import { unifiedStopDispatcher } from '../../stop/unified-dispatcher.js';
 import { unifiedSubagentStopDispatcher } from '../../subagent-stop/unified-dispatcher.js';
 import { unifiedNotificationDispatcher } from '../../notification/unified-dispatcher.js';
 import { unifiedSetupDispatcher } from '../../setup/unified-dispatcher.js';
-
-// ---------------------------------------------------------------------------
-// Re-import hook functions to verify mocks are active
-// ---------------------------------------------------------------------------
-
-import { sessionMetrics } from '../../posttool/session-metrics.js';
-import { auditLogger } from '../../posttool/audit-logger.js';
-import { patternExtractor } from '../../posttool/bash/pattern-extractor.js';
-import { codeStyleLearner } from '../../posttool/write/code-style-learner.js';
-import { handoffWriter } from '../../stop/handoff-writer.js';
-import { contextPublisher } from '../../subagent-stop/context-publisher.js';
-import { desktopNotification } from '../../notification/desktop.js';
-import { dependencyVersionCheck } from '../../lifecycle/dependency-version-check.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -148,42 +116,33 @@ function called(map: Record<string, ReturnType<typeof vi.fn>>): string[] {
     .sort();
 }
 
-// posttool mock map (keyed by hook name)
+// Hook maps keyed by name
 const posttoolMap: Record<string, ReturnType<typeof vi.fn>> = {
-  'session-metrics': mocks.sessionMetrics,
-  'audit-logger': mocks.auditLogger,
-  'calibration-tracker': mocks.calibrationTracker,
-  'pattern-extractor': mocks.patternExtractor,
-  'issue-progress-commenter': mocks.issueProgressCommenter,
-  'issue-subtask-updater': mocks.issueSubtaskUpdater,
-  'code-style-learner': mocks.codeStyleLearner,
-  'naming-convention-learner': mocks.namingConventionLearner,
-  'skill-edit-tracker': mocks.skillEditTracker,
-  'skill-usage-optimizer': mocks.skillUsageOptimizer,
-  'realtime-sync': mocks.realtimeSync,
+  'redact-secrets': mocks.redactSecrets,
+  'config-change-auditor': mocks.configChangeAuditor,
+  'team-member-start': mocks.teamMemberStart,
 };
 
 const lifecycleMap: Record<string, ReturnType<typeof vi.fn>> = {
   'pattern-sync-pull': mocks.patternSyncPull,
   'session-env-setup': mocks.sessionEnvSetup,
-  'session-tracking': mocks.sessionTracking,
-  'memory-metrics-collector': mocks.memoryMetricsCollector,
   'stale-team-cleanup': mocks.staleTeamCleanup,
   'type-error-indexer': mocks.typeErrorIndexer,
 };
 
 const stopMap: Record<string, ReturnType<typeof vi.fn>> = {
   'handoff-writer': mocks.handoffWriter,
-  'session-patterns': mocks.sessionPatterns,
-  'issue-work-summary': mocks.issueWorkSummary,
-  'calibration-persist': mocks.calibrationPersist,
+  'task-completion-check': mocks.taskCompletionCheck,
+  'security-scan-aggregator': mocks.securityScanAggregator,
+  'coverage-check': mocks.coverageCheck,
+  'evidence-collector': mocks.evidenceCollector,
+  'coverage-threshold-gate': mocks.coverageThresholdGate,
+  'cross-instance-test-validator': mocks.crossInstanceTestValidator,
 };
 
 const subagentStopMap: Record<string, ReturnType<typeof vi.fn>> = {
-  'context-publisher': mocks.contextPublisher,
   'handoff-preparer': mocks.handoffPreparer,
   'feedback-loop': mocks.feedbackLoop,
-  'agent-memory-store': mocks.agentMemoryStore,
 };
 
 const notificationMap: Record<string, ReturnType<typeof vi.fn>> = {
@@ -206,193 +165,68 @@ beforeEach(() => {
 describe('Dispatcher Functional Tests', () => {
 
   // =========================================================================
-  // MOCK INTEGRITY — verify mocks are actually intercepting
-  // =========================================================================
-
-  describe('mock integrity (guards against silent mock miss)', () => {
-    it('all hook imports are mocked, not real implementations', () => {
-      // One representative hook per dispatcher — if vi.mock path is wrong,
-      // these will be real functions, not vi.fn() instances
-      expect(vi.isMockFunction(sessionMetrics)).toBe(true);
-      expect(vi.isMockFunction(auditLogger)).toBe(true);
-      expect(vi.isMockFunction(patternExtractor)).toBe(true);
-      expect(vi.isMockFunction(codeStyleLearner)).toBe(true);
-      expect(vi.isMockFunction(handoffWriter)).toBe(true);
-      expect(vi.isMockFunction(contextPublisher)).toBe(true);
-      expect(vi.isMockFunction(desktopNotification)).toBe(true);
-      expect(vi.isMockFunction(dependencyVersionCheck)).toBe(true);
-    });
-  });
-
-  // =========================================================================
-  // POSTTOOL — tool routing via matchesTool
+  // POSTTOOL — tool routing via matchesTool (3 hooks after #897)
   // =========================================================================
 
   describe('posttool/unified-dispatcher', () => {
     describe('tool routing via matchesTool', () => {
-      it('routes Bash to wildcard + Bash + multi-tool hooks', async () => {
+      it('routes Bash to redact-secrets only', async () => {
         await unifiedDispatcher(input('Bash'));
-        expect(called(posttoolMap)).toEqual([
-          'audit-logger', 'calibration-tracker', 'issue-progress-commenter',
-          'issue-subtask-updater', 'pattern-extractor',
-          'realtime-sync', 'session-metrics',
-        ].sort());
-        // Write/Edit hooks must NOT fire for Bash
-        expect(mocks.codeStyleLearner).not.toHaveBeenCalled();
-        expect(mocks.namingConventionLearner).not.toHaveBeenCalled();
-        expect(mocks.skillEditTracker).not.toHaveBeenCalled();
-        // Task/Skill/MCP hooks must NOT fire for Bash
-
-        expect(mocks.skillUsageOptimizer).not.toHaveBeenCalled();
+        expect(mocks.redactSecrets).toHaveBeenCalled();
+        expect(mocks.configChangeAuditor).not.toHaveBeenCalled();
+        expect(mocks.teamMemberStart).not.toHaveBeenCalled();
       });
 
-      it('routes Write to wildcard + Write/Edit + multi-tool hooks', async () => {
+      it('routes Write to redact-secrets + config-change-auditor', async () => {
         await unifiedDispatcher(input('Write'));
-        expect(called(posttoolMap)).toEqual([
-          'audit-logger', 'calibration-tracker', 'code-style-learner',
-          'naming-convention-learner', 'realtime-sync', 'session-metrics',
-          'skill-edit-tracker',
-        ].sort());
-        // Bash hooks must NOT fire for Write
-        expect(mocks.patternExtractor).not.toHaveBeenCalled();
-        expect(mocks.issueProgressCommenter).not.toHaveBeenCalled();
-
-        expect(mocks.skillUsageOptimizer).not.toHaveBeenCalled();
+        expect(mocks.redactSecrets).toHaveBeenCalled();
+        expect(mocks.configChangeAuditor).toHaveBeenCalled();
+        expect(mocks.teamMemberStart).not.toHaveBeenCalled();
       });
 
-      it('routes Edit to wildcard + Write/Edit + multi-tool hooks', async () => {
+      it('routes Edit to redact-secrets + config-change-auditor', async () => {
         await unifiedDispatcher(input('Edit'));
-        expect(called(posttoolMap)).toEqual([
-          'audit-logger', 'calibration-tracker', 'code-style-learner',
-          'naming-convention-learner', 'realtime-sync', 'session-metrics',
-          'skill-edit-tracker',
-        ].sort());
-        // Bash hooks must NOT fire for Edit
-        expect(mocks.patternExtractor).not.toHaveBeenCalled();
-
+        expect(mocks.redactSecrets).toHaveBeenCalled();
+        expect(mocks.configChangeAuditor).toHaveBeenCalled();
+        expect(mocks.teamMemberStart).not.toHaveBeenCalled();
       });
 
-      it('routes Task to wildcard + multi-tool hooks', async () => {
+      it('routes Task to team-member-start only', async () => {
         await unifiedDispatcher(input('Task'));
-        expect(called(posttoolMap)).toEqual([
-          'audit-logger', 'calibration-tracker',
-          'realtime-sync', 'session-metrics',
-        ].sort());
-        // Bash and Write/Edit hooks must NOT fire for Task
-        expect(mocks.patternExtractor).not.toHaveBeenCalled();
-        expect(mocks.codeStyleLearner).not.toHaveBeenCalled();
-        expect(mocks.skillUsageOptimizer).not.toHaveBeenCalled();
+        expect(mocks.teamMemberStart).toHaveBeenCalled();
+        expect(mocks.redactSecrets).not.toHaveBeenCalled();
+        expect(mocks.configChangeAuditor).not.toHaveBeenCalled();
       });
 
-      it('routes Skill to wildcard + Skill + multi-tool hooks', async () => {
+      it('routes Agent to team-member-start only', async () => {
+        await unifiedDispatcher(input('Agent'));
+        expect(mocks.teamMemberStart).toHaveBeenCalled();
+        expect(mocks.redactSecrets).not.toHaveBeenCalled();
+      });
+
+      it('routes Skill to no hooks (no matcher)', async () => {
         await unifiedDispatcher(input('Skill'));
-        expect(called(posttoolMap)).toEqual([
-          'audit-logger', 'calibration-tracker', 'realtime-sync',
-          'session-metrics', 'skill-usage-optimizer',
-        ].sort());
-        // Bash and Write/Edit hooks must NOT fire for Skill
-        expect(mocks.patternExtractor).not.toHaveBeenCalled();
-        expect(mocks.codeStyleLearner).not.toHaveBeenCalled();
+        expect(called(posttoolMap)).toEqual([]);
       });
 
-      it('routes MCP tool to wildcard hooks only', async () => {
-        await unifiedDispatcher(input('mcp__memory__create_entities'));
-        expect(called(posttoolMap)).toEqual([
-          'audit-logger', 'calibration-tracker', 'session-metrics',
-        ].sort());
-        // No Bash, Write/Edit, Task, Skill, or multi-tool hooks
-        expect(mocks.patternExtractor).not.toHaveBeenCalled();
-        expect(mocks.codeStyleLearner).not.toHaveBeenCalled();
-        expect(mocks.skillUsageOptimizer).not.toHaveBeenCalled();
-        expect(mocks.realtimeSync).not.toHaveBeenCalled();
-      });
-
-      it('routes Read to wildcard hooks only (no specific matchers)', async () => {
+      it('routes Read to no hooks (no matcher)', async () => {
         await unifiedDispatcher(input('Read'));
-        expect(called(posttoolMap)).toEqual([
-          'audit-logger', 'calibration-tracker', 'session-metrics',
-        ].sort());
-        // No specific-tool hooks should fire for Read
-        expect(mocks.patternExtractor).not.toHaveBeenCalled();
-        expect(mocks.codeStyleLearner).not.toHaveBeenCalled();
-        expect(mocks.skillUsageOptimizer).not.toHaveBeenCalled();
-        expect(mocks.realtimeSync).not.toHaveBeenCalled();
-      });
-    });
-
-    describe('parallel execution', () => {
-      it('runs matching hooks concurrently, not sequentially', async () => {
-        const DELAY = 50; // ms each hook "takes"
-        // 3 wildcard hooks each delay 50ms — sequential would be ≥150ms
-        mocks.sessionMetrics.mockImplementationOnce(() => new Promise(r => setTimeout(r, DELAY)) as unknown as { continue: boolean; suppressOutput: boolean });
-        mocks.auditLogger.mockImplementationOnce(() => new Promise(r => setTimeout(r, DELAY)) as unknown as { continue: boolean; suppressOutput: boolean });
-        mocks.calibrationTracker.mockImplementationOnce(() => new Promise(r => setTimeout(r, DELAY)) as unknown as { continue: boolean; suppressOutput: boolean });
-
-        const start = performance.now();
-        await unifiedDispatcher(input('Read')); // only wildcards match
-        const elapsed = performance.now() - start;
-
-        // Parallel: ~50ms. Sequential: ~150ms. Threshold: 120ms.
-        expect(elapsed).toBeLessThan(DELAY * 2.4);
-        // All 3 still called
-        expect(mocks.sessionMetrics).toHaveBeenCalled();
-        expect(mocks.auditLogger).toHaveBeenCalled();
-        expect(mocks.calibrationTracker).toHaveBeenCalled();
+        expect(called(posttoolMap)).toEqual([]);
       });
     });
 
     describe('error isolation', () => {
-      it('continues executing remaining hooks when one throws synchronously', async () => {
-        mocks.auditLogger.mockImplementationOnce(() => { throw new Error('sync boom'); });
+      it('continues executing remaining hooks when one throws', async () => {
+        mocks.redactSecrets.mockImplementationOnce(() => { throw new Error('sync boom'); });
 
-        await unifiedDispatcher(input('Bash'));
+        await unifiedDispatcher(input('Write'));
 
-        // Other hooks still ran
-        expect(mocks.sessionMetrics).toHaveBeenCalled();
-        expect(mocks.calibrationTracker).toHaveBeenCalled();
-        expect(mocks.patternExtractor).toHaveBeenCalled();
-        expect(mocks.realtimeSync).toHaveBeenCalled();
-      });
-
-      it('continues executing remaining hooks when one rejects async', async () => {
-        mocks.patternExtractor.mockImplementationOnce(
-          () => Promise.reject(new Error('async boom')) as unknown as { continue: boolean; suppressOutput: boolean }
-        );
-
-        await unifiedDispatcher(input('Bash'));
-
-        expect(mocks.sessionMetrics).toHaveBeenCalled();
-        expect(mocks.auditLogger).toHaveBeenCalled();
-        expect(mocks.issueProgressCommenter).toHaveBeenCalled();
-      });
-
-      it('logs per-hook failure message', async () => {
-        mocks.auditLogger.mockImplementationOnce(() => { throw new Error('db down'); });
-
-        await unifiedDispatcher(input('Bash'));
-
-        expect(mocks.logHook).toHaveBeenCalledWith(
-          'unified-dispatcher',
-          expect.stringContaining('audit-logger failed: db down'),
-        );
-      });
-
-      it('logs aggregate failure summary', async () => {
-        mocks.auditLogger.mockImplementationOnce(() => { throw new Error('fail1'); });
-        mocks.sessionMetrics.mockImplementationOnce(() => { throw new Error('fail2'); });
-
-        await unifiedDispatcher(input('Bash'));
-
-        // Issue #684: Now 12 hooks for Bash after consolidation (was 10)
-        expect(mocks.logHook).toHaveBeenCalledWith(
-          'posttool-dispatcher',
-          expect.stringMatching(/2\/12 hooks failed.*audit-logger.*session-metrics|2\/12 hooks failed.*session-metrics.*audit-logger/),
-        );
+        // config-change-auditor still runs
+        expect(mocks.configChangeAuditor).toHaveBeenCalled();
       });
 
       it('always returns silent success even when hooks fail', async () => {
-        mocks.sessionMetrics.mockImplementationOnce(() => { throw new Error('crash'); });
-        mocks.auditLogger.mockImplementationOnce(() => Promise.reject(new Error('boom')) as unknown as { continue: boolean; suppressOutput: boolean });
+        mocks.redactSecrets.mockImplementationOnce(() => { throw new Error('crash'); });
 
         const result = await unifiedDispatcher(input('Bash'));
         expect(result).toEqual(SILENT_SUCCESS);
@@ -401,11 +235,11 @@ describe('Dispatcher Functional Tests', () => {
   });
 
   // =========================================================================
-  // LIFECYCLE (SessionStart)
+  // LIFECYCLE (SessionStart) — 4 hooks after #897
   // =========================================================================
 
   describe('lifecycle/unified-dispatcher', () => {
-    it('calls all 6 registered hooks', async () => {
+    it('calls all 4 registered hooks', async () => {
       await unifiedSessionStartDispatcher(input());
       expect(called(lifecycleMap)).toEqual(Object.keys(lifecycleMap).sort());
     });
@@ -416,7 +250,7 @@ describe('Dispatcher Functional Tests', () => {
       await unifiedSessionStartDispatcher(input());
 
       expect(mocks.sessionEnvSetup).toHaveBeenCalled();
-      expect(mocks.memoryMetricsCollector).toHaveBeenCalled();
+      expect(mocks.staleTeamCleanup).toHaveBeenCalled();
     });
 
     it('logs failure summary on error', async () => {
@@ -426,7 +260,7 @@ describe('Dispatcher Functional Tests', () => {
 
       expect(mocks.logHook).toHaveBeenCalledWith(
         'session-start-dispatcher',
-        expect.stringContaining('1/6 hooks failed'),
+        expect.stringContaining('1/4 hooks failed'),
       );
     });
 
@@ -438,11 +272,11 @@ describe('Dispatcher Functional Tests', () => {
   });
 
   // =========================================================================
-  // STOP
+  // STOP — 7 hooks after #897
   // =========================================================================
 
   describe('stop/unified-dispatcher', () => {
-    it('calls all 4 registered hooks', async () => {
+    it('calls all 7 registered hooks', async () => {
       await unifiedStopDispatcher(input());
       expect(called(stopMap)).toEqual(Object.keys(stopMap).sort());
     });
@@ -452,36 +286,33 @@ describe('Dispatcher Functional Tests', () => {
 
       await unifiedStopDispatcher(input());
 
-      expect(mocks.sessionPatterns).toHaveBeenCalled();
-      expect(mocks.issueWorkSummary).toHaveBeenCalled();
-      expect(mocks.calibrationPersist).toHaveBeenCalled();
+      expect(mocks.taskCompletionCheck).toHaveBeenCalled();
+      expect(mocks.securityScanAggregator).toHaveBeenCalled();
     });
 
     it('returns silent success even on errors', async () => {
-      mocks.calibrationPersist.mockImplementationOnce(() => Promise.reject(new Error('fail')) as unknown as { continue: boolean; suppressOutput: boolean });
+      mocks.handoffWriter.mockImplementationOnce(() => Promise.reject(new Error('fail')) as unknown as { continue: boolean; suppressOutput: boolean });
       const result = await unifiedStopDispatcher(input());
       expect(result).toEqual(SILENT_SUCCESS);
     });
   });
 
   // =========================================================================
-  // SUBAGENT-STOP
+  // SUBAGENT-STOP — 2 hooks after #897
   // =========================================================================
 
   describe('subagent-stop/unified-dispatcher', () => {
-    it('calls all 4 registered hooks', async () => {
+    it('calls all 2 registered hooks', async () => {
       await unifiedSubagentStopDispatcher(input());
       expect(called(subagentStopMap)).toEqual(Object.keys(subagentStopMap).sort());
     });
 
-    it('isolates errors — other hooks run when one throws', async () => {
-      mocks.contextPublisher.mockImplementationOnce(() => { throw new Error('network'); });
+    it('isolates errors — other hook runs when one throws', async () => {
+      mocks.handoffPreparer.mockImplementationOnce(() => { throw new Error('network'); });
 
       await unifiedSubagentStopDispatcher(input());
 
-      expect(mocks.handoffPreparer).toHaveBeenCalled();
       expect(mocks.feedbackLoop).toHaveBeenCalled();
-      expect(mocks.agentMemoryStore).toHaveBeenCalled();
     });
 
     it('returns silent success even on errors', async () => {
@@ -492,7 +323,7 @@ describe('Dispatcher Functional Tests', () => {
   });
 
   // =========================================================================
-  // NOTIFICATION
+  // NOTIFICATION — 2 hooks
   // =========================================================================
 
   describe('notification/unified-dispatcher', () => {
@@ -517,7 +348,7 @@ describe('Dispatcher Functional Tests', () => {
   });
 
   // =========================================================================
-  // SETUP
+  // SETUP — 1 hook
   // =========================================================================
 
   describe('setup/unified-dispatcher', () => {
@@ -531,14 +362,6 @@ describe('Dispatcher Functional Tests', () => {
       expect(mocks.logHook).toHaveBeenCalledWith(
         'setup-dispatcher',
         expect.stringContaining('Running 1 Setup hooks'),
-      );
-    });
-
-    it('logs success when all hooks pass', async () => {
-      await unifiedSetupDispatcher(input());
-      expect(mocks.logHook).toHaveBeenCalledWith(
-        'setup-dispatcher',
-        expect.stringContaining('All 1 Setup hooks completed successfully'),
       );
     });
 

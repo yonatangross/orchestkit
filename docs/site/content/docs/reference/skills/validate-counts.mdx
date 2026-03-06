@@ -24,8 +24,8 @@ bash src/skills/validate-counts/scripts/count-all.sh
 
 | Category | Rule | Impact | Key Pattern |
 |----------|------|--------|-------------|
-| Count Sources | `rules/sources-authoritative.md` | HIGH | Filesystem is authoritative; derived sources must match |
-| Drift Detection | `rules/drift-reporting.md` | HIGH | Comparison table + flag with file:field references |
+| Count Sources | `rules/sources-authoritative.md` (load `$\{CLAUDE_PLUGIN_ROOT\}/skills/validate-counts/rules/sources-authoritative.md`) | HIGH | Filesystem is authoritative; derived sources must match |
+| Drift Detection | `rules/drift-reporting.md` (load `$\{CLAUDE_PLUGIN_ROOT\}/skills/validate-counts/rules/drift-reporting.md`) | HIGH | Comparison table + flag with file:field references |
 
 **Total: 2 rules across 2 categories**
 
@@ -39,7 +39,11 @@ bash src/skills/validate-counts/scripts/count-all.sh
 
 ## References
 
-- [Count Locations](references/count-locations.md) — Where every count lives and why drift happens
+Load on demand with `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/validate-counts/references/&lt;file&gt;")`:
+
+| File | Content |
+|------|---------|
+| `count-locations.md` | Where every count lives and why drift happens |
 
 ## Related Skills
 
@@ -216,7 +220,7 @@ Overview of every place counts appear and what they represent.
 
 | File | Field | Example |
 |------|-------|---------|
-| `CLAUDE.md` | Project Overview line | "69 skills, 38 agents, 95 hooks" |
+| `CLAUDE.md` | Project Overview line | "71 skills, 30 agents, 98 hooks" |
 | `CLAUDE.md` | Version section | "55 entries (17 event types, 12 dispatchers, 9 native async)" |
 | `src/hooks/hooks.json` | top-level `description` | May embed hook count |
 | `manifests/ork.json` | `skills[]` length, `agents[]` length | Counted from arrays |

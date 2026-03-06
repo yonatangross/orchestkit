@@ -81,11 +81,7 @@ function getDownstreamAgents(agent: string): string {
   const mapping: Record<string, string> = {
     // Product thinking pipeline
     'market-intelligence': 'product-strategist',
-    'product-strategist': 'prioritization-analyst',
-    'prioritization-analyst': 'business-case-builder',
-    'business-case-builder': 'requirements-translator',
-    'requirements-translator': 'metrics-architect',
-    'metrics-architect': 'backend-system-architect',
+    'product-strategist': 'backend-system-architect',
     // Full-stack pipeline
     'backend-system-architect': 'frontend-ui-developer',
     'frontend-ui-developer': 'test-generator',
@@ -94,9 +90,6 @@ function getDownstreamAgents(agent: string): string {
     'workflow-architect': 'llm-integrator',
     'llm-integrator': 'data-pipeline-engineer',
     'data-pipeline-engineer': 'test-generator',
-    // UI pipeline
-    'rapid-ui-designer': 'frontend-ui-developer',
-    'ux-researcher': 'rapid-ui-designer',
   };
 
   return mapping[agent] || '';
@@ -109,16 +102,10 @@ function getFeedbackCategory(agent: string): string {
   const categories: Record<string, string> = {
     'market-intelligence': 'product-thinking',
     'product-strategist': 'product-thinking',
-    'prioritization-analyst': 'product-thinking',
-    'business-case-builder': 'product-thinking',
-    'requirements-translator': 'specification',
-    'metrics-architect': 'specification',
     'backend-system-architect': 'architecture',
     'database-engineer': 'architecture',
     'data-pipeline-engineer': 'architecture',
     'frontend-ui-developer': 'frontend',
-    'rapid-ui-designer': 'frontend',
-    'ux-researcher': 'frontend',
     'test-generator': 'quality',
     'code-quality-reviewer': 'quality',
     'security-auditor': 'security',
