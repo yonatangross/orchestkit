@@ -8,7 +8,7 @@ Always respond in English. Never Hebrew. No exceptions.
 
 ## Project Overview
 
-**OrchestKit** — Claude Code plugin: **79 skills**, **30 agents**, **106 hooks** (42 global + 44 agent-scoped + 20 skill-scoped).
+**OrchestKit** — Claude Code plugin: **79 skills**, **30 agents**, **105 hooks** (42 global + 44 agent-scoped + 19 skill-scoped).
 
 **Purpose**: AI-assisted development with built-in best practices, security patterns, and quality gates.
 
@@ -17,7 +17,7 @@ Always respond in English. Never Hebrew. No exceptions.
 ```
 src/                    ← SOURCE (edit here!)
 ├── skills/<name>/SKILL.md    # 79 skills (YAML frontmatter + Markdown)
-├── agents/<name>.md          # 30 agents (CC 2.1.59 format)
+├── agents/<name>.md          # 30 agents (CC 2.1.69 format)
 ├── settings/<plugin>.settings.json  # Plugin settings (permissions, keybindings)
 └── hooks/                    # TypeScript hooks (hooks.json + src/ + dist/)
 manifests/                    # Plugin definitions (JSON)
@@ -75,9 +75,9 @@ Commit after each logical unit of work — never batch all commits to end of ses
 
 ## Plugin Architecture
 
-**Single plugin**: `ork` — all 79 skills, 30 agents, 106 hooks.
+**Single plugin**: `ork` — all 79 skills, 30 agents, 105 hooks.
 
-The plugin includes 106 hooks (42 global [10 matchers, 20 dispatchers, 12 native HTTP] + 44 agent-scoped + 20 skill-scoped) and a `settings.json` (permissions, keybindings, spinner). 18 skills are user-invocable via `/ork:skillname`.
+The plugin includes 105 hooks (42 global [10 matchers, 20 dispatchers, 12 native HTTP] + 44 agent-scoped + 19 skill-scoped) and a `settings.json` (permissions, keybindings, spinner). 18 skills are user-invocable via `/ork:skillname`.
 
 ## Quick Reference
 
@@ -90,7 +90,7 @@ The plugin includes 106 hooks (42 global [10 matchers, 20 dispatchers, 12 native
 
 ## Version
 
-- **Current**: 7.1.3 · **Claude Code**: >= 2.1.69 <!-- x-release-please-version -->
-- **Hooks**: 106 total (42 global [10 matchers, 20 dispatchers, 12 native HTTP] + 44 agent-scoped + 20 skill-scoped)
+- **Current**: 7.1.4 · **Claude Code**: >= 2.1.69 <!-- x-release-please-version -->
+- **Hooks**: 106 total (42 global [10 matchers, 20 dispatchers, 12 native HTTP] + 44 agent-scoped + 19 skill-scoped)
 
 See `CHANGELOG.md` for history. See `src/hooks/README.md` for hook architecture.

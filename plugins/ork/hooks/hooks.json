@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 42 global + 44 agent-scoped + 20 skill-scoped = 106 total hooks (12 native HTTP, 13 once:true context loaders). All timeouts in SECONDS per CC spec.",
+  "description": "OrchestKit hooks - 42 global + 44 agent-scoped + 19 skill-scoped = 105 total hooks (12 native HTTP, 13 once:true context loaders). All timeouts in SECONDS per CC spec.",
   "hooks": {
     "PreToolUse": [
       {

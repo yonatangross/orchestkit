@@ -5,7 +5,7 @@
 
 ### Stop explaining your stack. Start shipping.
 
-**79 skills · 30 agents · 106 hooks**
+**79 skills · 30 agents · 105 hooks**
 
 [![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.69-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
@@ -157,7 +157,7 @@ Run `/ork:doctor` to diagnose.
 <details>
 <summary><strong>Claude Code version?</strong></summary>
 
-Requires **≥2.1.59**. Check with `claude --version`.
+Requires **≥2.1.69**. Check with `claude --version`.
 </details>
 
 ---
@@ -186,7 +186,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 **v7.0.0** — Unified Plugin Architecture
 
-- **Simplified**: One plugin for everything. All 79 skills, 30 agents, 106 hooks in `/plugin install ork`.
+- **Simplified**: One plugin for everything. All 79 skills, 30 agents, 105 hooks in `/plugin install ork`.
 - **Setup Wizard**: Run `/ork:setup` for personalized onboarding — stack detection, skill recommendations, MCP configuration, readiness scoring.
 
 [Full Changelog →](./CHANGELOG.md)

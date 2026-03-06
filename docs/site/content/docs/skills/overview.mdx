@@ -148,13 +148,13 @@ When multiple skills are injected, they share this budget. The platform prioriti
 
 ## Skill Listing and Token Budget
 
-Of OrchestKit's 71 skills, only **16 are listed** in Claude's prompt context. The remaining 55 are hidden via `disable-model-invocation: true` to save ~2,630 tokens per turn. Hidden skills are still fully functional:
+Of OrchestKit's 79 skills, only **16 are listed** in Claude's prompt context. The remaining 55 are hidden via `disable-model-invocation: true` to save ~2,630 tokens per turn. Hidden skills are still fully functional:
 
 - Users can invoke them via `/ork:skill-name` slash commands
 - Agents load them via frontmatter `skills:` arrays
 - The `skill-auto-suggest` hook matches them by keywords
 
-The 16 listed skills are the most broadly useful ones that benefit from Claude proactively recognizing when to use them.
+The 18 listed skills are the most broadly useful ones that benefit from Claude proactively recognizing when to use them.
 
 ### Interactive Options
 

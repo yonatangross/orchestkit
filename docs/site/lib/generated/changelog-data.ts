@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.1.4",
+    "date": "2026-03-06",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**docs:** Fix 30+ stale counts across fumadocs site, skills, and source files\n  - 71 skills → 79 skills, 83/98/106 hooks → 105 hooks (42 global + 44 agent + 19 skill)\n  - CC version badge ≥2.1.59 → ≥2.1.69, user-invocable 17 → 18\n  - Fix `count-hooks.sh` to exclude CONTRIBUTING-SKILLS.md example (was inflating skill count by 1)\n  - Regenerated docs data + rebuilt plugins to match"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.1.3",
     "date": "2026-03-05",
     "compareUrl": "",
