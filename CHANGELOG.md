@@ -5,6 +5,27 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.1.5] - 2026-03-06
+
+### Fixed
+
+- **docs:** Full fumadocs sync — fix 40+ stale references across 37 MDX files
+  - All counts corrected: 79 skills (18 cmd + 61 ref), 30 agents, 105 hooks
+  - Remove 8 demoted agent references from 15 files (replaced with current agents)
+  - Remove deleted hook references (graph-memory-inject, agent-memory-store, capture-user-intent, memory-capture) from 8 files
+  - Rewrite memory docs for graph-first architecture (session-summary replaces 4 hooks)
+
+### Added
+
+- **docs:** Document CC 2.1.69/70 hook features in fumadocs
+  - ConfigChange, InstructionsLoaded, WorktreeCreate/Remove events in hook timeline
+  - Native HTTP hooks section (12 type:"http" hooks)
+  - once:true auto-removal pattern (13 skill context loaders)
+  - statusMessage spinner UX documentation
+
+---
+
+
 ## [7.1.4] - 2026-03-06
 
 ### Fixed

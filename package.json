@@ -1,11 +1,11 @@
 {
   "name": "orchestkit",
-  "version": "7.1.4",
+  "version": "7.1.5",
   "description": "OrchestKit Claude Plugin - AI-assisted development toolkit",
   "scripts": {
     "build": "bash scripts/build-plugins.sh",
     "prebuild": "echo '🔨 Building plugins from source...'",
-    "postbuild": "echo '✅ Build complete! Plugins assembled in plugins/ directory'",
+    "postbuild": "bash scripts/stamp-counts.sh && echo '✅ Build complete! Plugins assembled in plugins/ directory'",
     "generate:docs-data": "node scripts/generate-docs-data.js",
     "test": "bash tests/run-all-tests.sh",
     "test:security": "bash tests/security/run-security-tests.sh",

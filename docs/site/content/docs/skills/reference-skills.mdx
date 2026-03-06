@@ -1,11 +1,11 @@
 ---
-title: "37 Skills That Power Agents"
+title: "61 Skills That Power Agents"
 description: "Reference skills are the knowledge library behind OrchestKit agents -- auto-injected patterns for backend, frontend, databases, security, testing, LLM/RAG, and more."
 ---
 
 ## What Are Reference Skills?
 
-Reference skills are the 37 skills with `user-invocable: false` in their frontmatter. You never invoke them directly. Instead, they are automatically injected into agent context through three paths:
+Reference skills are the 61 skills with `user-invocable: false` in their frontmatter. You never invoke them directly. Instead, they are automatically injected into agent context through three paths:
 
 1. **Agent frontmatter** -- Each agent declares which skills it needs. When the agent spawns, those skills load automatically.
 2. **Command skill composition** -- When you run `/ork:implement`, its `skills:` field pulls in reference skills like `api-design-framework` and `unit-testing`.
@@ -223,7 +223,7 @@ Skills for building stateful, multi-step AI workflows with LangGraph.
 
 ## Observability and Metrics
 
-**Primary agents:** `metrics-architect`, `monitoring-engineer`
+**Primary agents:** `monitoring-engineer`
 
 | Skill | Description |
 |-------|-------------|
@@ -280,15 +280,15 @@ Skills spanning accessibility, UX research, product strategy, and more.
 | `focus-management` | accessibility-specialist | Keyboard focus management and focus traps |
 | `react-aria-patterns` | accessibility-specialist | React Aria accessible component patterns |
 | `wcag-compliance` | accessibility-specialist | WCAG 2.2 compliance guidelines and testing |
-| `persona-journey-mapping` | ux-researcher | User persona creation and journey mapping |
-| `user-research-methods` | ux-researcher | User research methods: interviews, surveys, usability |
-| `business-case-analysis` | business-case-builder | ROI analysis, business case templates |
-| `design-system-starter` | rapid-ui-designer | Design system bootstrapping and token systems |
-| `motion-animation-patterns` | rapid-ui-designer | CSS and JS animation patterns |
+| `persona-journey-mapping` | product-strategist | User persona creation and journey mapping |
+| `user-research-methods` | product-strategist | User research methods: interviews, surveys, usability |
+| `business-case-analysis` | product-strategist | ROI analysis, business case templates |
+| `design-system-starter` | frontend-ui-developer | Design system bootstrapping and token systems |
+| `motion-animation-patterns` | frontend-ui-developer | CSS and JS animation patterns |
 | `market-analysis-patterns` | market-intelligence | Market analysis frameworks and competitive research |
 | `product-strategy-frameworks` | product-strategist | Product strategy: RICE, MoSCoW, Kano |
-| `prioritization-frameworks` | prioritization-analyst | Prioritization methods and scoring models |
-| `requirements-engineering` | requirements-translator | Requirements gathering, user stories, acceptance criteria |
+| `prioritization-frameworks` | product-strategist | Prioritization methods and scoring models |
+| `requirements-engineering` | product-strategist | Requirements gathering, user stories, acceptance criteria |
 | `system-design-interrogation` | system-design-reviewer | System design review questions and evaluation |
 | `platform-upgrade-knowledge` | deployment-manager | Platform upgrade procedures and compatibility |
 

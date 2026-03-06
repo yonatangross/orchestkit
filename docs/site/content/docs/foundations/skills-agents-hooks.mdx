@@ -19,8 +19,8 @@ src/skills/python-backend/SKILL.md
 
 | Type | Count | How It Works | Example |
 |---|---|---|---|
-| **Command** | 17 | You invoke directly: `/ork:commit` | `/ork:verify`, `/ork:implement` |
-| **Reference** | 54 | Auto-injected into agents | `python-backend`, `security-patterns` |
+| **Command** | 18 | You invoke directly: `/ork:commit` | `/ork:verify`, `/ork:implement` |
+| **Reference** | 61 | Auto-injected into agents | `python-backend`, `security-patterns` |
 
 Command skills are what you type. Reference skills are what agents read. You never need to invoke a reference skill — the right agent loads the right skills automatically.
 
@@ -122,7 +122,7 @@ git push
   │
   ├─ posttool/audit-logger             → records the action
   ├─ posttool/session-metrics          → updates session stats
-  └─ posttool/pattern-extractor        → learns from the workflow
+  └─ posttool/session-metrics           → updates workflow analytics
 ```
 
 ## How They Connect

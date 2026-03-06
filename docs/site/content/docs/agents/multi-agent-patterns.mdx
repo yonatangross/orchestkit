@@ -66,7 +66,7 @@ All five agents launch in a single message and run concurrently:
 | `backend-system-architect` | API design, services, database models |
 | `frontend-ui-developer` | Component tree, state management, hooks |
 | `llm-integrator` | LLM integration points (if the feature needs AI) |
-| `ux-researcher` | User experience, accessibility, interaction patterns |
+| `accessibility-specialist` | Accessibility compliance, interaction patterns |
 
 Each agent produces a design summary. The orchestrator waits for all five to complete before proceeding to implementation.
 
@@ -80,7 +80,7 @@ With Opus 4.6's 128K output token limit, each agent generates complete artifacts
 | `frontend-ui-developer` | Complete frontend: components + state + API hooks + styling |
 | `llm-integrator` | AI integration (if needed) |
 | `test-generator` | Full test suite: unit + integration + fixtures |
-| `rapid-ui-designer` | Design system specs + tokens (if new design) |
+| `frontend-performance-engineer` | Performance optimization + design system specs |
 
 ### Phase 6: Integration and Validation (4 Parallel Agents)
 
@@ -102,7 +102,7 @@ Phase 4 (Design)           Phase 5 (Build)           Phase 6 (Validate)
 | backend-architect  | ---> | frontend-dev      | --> | frontend-dev      |
 | frontend-dev       |      | llm-integrator    |     | code-reviewer     |
 | llm-integrator     |      | test-generator    |     | security-auditor  |
-| ux-researcher      |      | rapid-ui-designer |     +-------------------+
+| a11y-specialist    |      | perf-engineer     |     +-------------------+
 +-------------------+      +-------------------+
    All 5 parallel              All 5 parallel            All 4 parallel
 ```
@@ -182,7 +182,7 @@ Beyond parallel execution, agents also hand off work sequentially. Each agent's 
 ### Implementation Chain
 
 ```
-requirements-translator    "Here are the user stories"
+product-strategist         "Here are the requirements"
         |
         v
 backend-system-architect   "Here is the API design"

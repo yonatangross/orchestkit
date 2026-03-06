@@ -8,7 +8,7 @@ Always respond in English. Never Hebrew. No exceptions.
 
 ## Project Overview
 
-**OrchestKit** — Claude Code plugin: **79 skills**, **30 agents**, **105 hooks** (42 global + 44 agent-scoped + 19 skill-scoped).
+**OrchestKit** — Claude Code plugin: **<!--ork:skills-->79<!--/ork--> skills**, **<!--ork:agents-->30<!--/ork--> agents**, **<!--ork:hooks-->105<!--/ork--> hooks** (<!--ork:hooks-global-->42<!--/ork--> global + <!--ork:hooks-agent-->44<!--/ork--> agent-scoped + <!--ork:hooks-skill-->19<!--/ork--> skill-scoped).
 
 **Purpose**: AI-assisted development with built-in best practices, security patterns, and quality gates.
 
@@ -75,22 +75,10 @@ Commit after each logical unit of work — never batch all commits to end of ses
 
 ## Plugin Architecture
 
-**Single plugin**: `ork` — all 79 skills, 30 agents, 105 hooks.
-
-The plugin includes 105 hooks (42 global [10 matchers, 20 dispatchers, 12 native HTTP] + 44 agent-scoped + 19 skill-scoped) and a `settings.json` (permissions, keybindings, spinner). 18 skills are user-invocable via `/ork:skillname`.
-
-## Quick Reference
-
-| Component | Location | Format |
-|-----------|----------|--------|
-| Skills | `src/skills/<name>/SKILL.md` | YAML frontmatter + Markdown |
-| Agents | `src/agents/<name>.md` | YAML frontmatter + Markdown |
-| Hooks | `src/hooks/hooks.json` | JSON with TypeScript handlers |
-| Manifests | `manifests/<plugin>.json` | JSON plugin definitions |
+Single plugin `ork`: <!--ork:skills-->79<!--/ork--> skills, <!--ork:agents-->30<!--/ork--> agents, <!--ork:hooks-->105<!--/ork--> hooks (<!--ork:hooks-global-->42<!--/ork--> global + <!--ork:hooks-agent-->44<!--/ork--> agent-scoped + <!--ork:hooks-skill-->19<!--/ork--> skill-scoped). <!--ork:invocable-->18<!--/ork--> user-invocable via `/ork:skillname`.
 
 ## Version
 
-- **Current**: 7.1.4 · **Claude Code**: >= 2.1.69 <!-- x-release-please-version -->
-- **Hooks**: 106 total (42 global [10 matchers, 20 dispatchers, 12 native HTTP] + 44 agent-scoped + 19 skill-scoped)
+- **Current**: 7.1.5 · **Claude Code**: >= 2.1.69 <!-- x-release-please-version -->
 
 See `CHANGELOG.md` for history. See `src/hooks/README.md` for hook architecture.

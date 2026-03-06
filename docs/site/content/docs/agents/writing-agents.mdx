@@ -238,9 +238,9 @@ tools:
 | `inherit` | Most agents. Inherits the user's session model. Best for flexibility. |
 
 Currently in the OrchestKit codebase:
-- **7 agents** use `opus`: `backend-system-architect`, `security-auditor`, `ai-safety-auditor`, `security-layer-auditor`, `event-driven-architect`, `workflow-architect`, `infrastructure-architect`, `python-performance-engineer`, `metrics-architect`, `system-design-reviewer`
+- **9 agents** use `opus`: `backend-system-architect`, `security-auditor`, `ai-safety-auditor`, `security-layer-auditor`, `event-driven-architect`, `workflow-architect`, `infrastructure-architect`, `python-performance-engineer`, `system-design-reviewer`
 - **1 agent** uses `sonnet`: `demo-producer`
-- **28 agents** use `inherit`
+- **20 agents** use `inherit`
 
 Use `opus` sparingly -- it has higher latency and cost. Reserve it for agents that genuinely need deep reasoning.
 
@@ -292,7 +292,7 @@ Document how your agent connects to others:
 
 ```markdown
 ## Integration
-- **Receives from:** requirements-translator (user stories), workflow-architect (architecture)
+- **Receives from:** product-strategist (requirements), workflow-architect (architecture)
 - **Hands off to:** database-engineer (migrations), code-quality-reviewer (review)
 ```
 
@@ -499,6 +499,6 @@ Or test keyword activation by typing a prompt that matches your agent's keywords
 
 ## What's Next
 
-- [Agents Overview](/docs/agents/overview) -- See all 38 existing agents for inspiration
+- [Agents Overview](/docs/agents/overview) -- See all 30 existing agents for inspiration
 - [Choosing an Agent](/docs/agents/choosing-an-agent) -- Understand how agents map to tasks
 - [Multi-Agent Patterns](/docs/agents/multi-agent-patterns) -- Learn how agents work together

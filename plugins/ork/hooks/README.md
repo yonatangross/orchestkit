@@ -89,7 +89,7 @@ hooks/
 ├── tsconfig.json           # TypeScript configuration
 └── esbuild.config.mjs      # Build configuration (split bundles)
 
-**Total:** 105 hooks (42 global + 44 agent-scoped + 20 skill-scoped)
+**Total:** <!--ork:hooks-->105<!--/ork--> hooks (<!--ork:hooks-global-->42<!--/ork--> global + <!--ork:hooks-agent-->44<!--/ork--> agent-scoped + <!--ork:hooks-skill-->19<!--/ork--> skill-scoped)
 ```
 
 ---
@@ -1020,8 +1020,8 @@ OrchestKit hooks are managed defaults. Users retain full control to disable any 
 **Last Updated:** 2026-02-28
 **Version:** 2.1.0 (Async hooks support)
 **Architecture:** 12 split bundles (381KB total) + 1 unified (324KB)
-**Hooks:** 105 hooks (42 global + 44 agent-scoped + 20 skill-scoped)
+**Hooks:** <!--ork:hooks-->105<!--/ork--> hooks (<!--ork:hooks-global-->42<!--/ork--> global + <!--ork:hooks-agent-->44<!--/ork--> agent-scoped + <!--ork:hooks-skill-->19<!--/ork--> skill-scoped)
 **Average Bundle:** ~35KB per event
-**Claude Code Requirement:** >= 2.1.59
+**Claude Code Requirement:** >= 2.1.69
 
 See the async hooks section above for detailed async hook patterns.

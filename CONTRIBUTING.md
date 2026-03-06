@@ -43,11 +43,11 @@ src/
 │       ├── scripts/           # Optional: Executable code and generators
 │       ├── assets/            # Optional: Templates and copyable files
 │       └── checklists/        # Optional: Implementation checklists
-├── agents/               # 38 specialized AI personas
-└── hooks/                # 96 TypeScript hooks in 12 split bundles
+├── agents/               # <!--ork:agents-->30<!--/ork--> specialized AI personas
+└── hooks/                # <!--ork:hooks-->105<!--/ork--> TypeScript hooks in 12 split bundles
 
 manifests/                # Plugin definition
-└── ork.json              # Single plugin (69 skills, 38 agents, 96 hooks)
+└── ork.json              # Single plugin (<!--ork:skills-->79<!--/ork--> skills, <!--ork:agents-->30<!--/ork--> agents, <!--ork:hooks-->105<!--/ork--> hooks)
 ```
 
 ### Generated Files (Do Not Edit)

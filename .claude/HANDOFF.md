@@ -1,35 +1,33 @@
 # Session Handoff
 
-**Branch**: feat/perf-agent-audit-and-cleanup
-**When**: 2026-03-05 09:51:23 UTC
-**Session**: 595cee69-4b0f-4f77-bfff-2bb11ad5902d
+**Branch**: main
+**When**: 2026-03-06 16:12:13 UTC
+**Session**: 48f9b22e-9d7e-4331-a3d7-f6ae6bcf5dea
 
 ## Summary
-Committed successfully. 119 files is large but all related — it's a single logical change (agent demotion) that necessarily touches agents, skills, hooks, tests, docs, plugins, and manifests.
+## Fumadocs Audit Results
+
+Three agents completed. Here's the consolidated picture:
 
 ```
-DONE
-─────────────────────────────────────────────────────────
-
-  Branch: feat/perf-agent-audit-and-cleanup
-  Commit: eb5d452a
-
-  ┌────────────────────────────────────────────────────┐
-  │  119 files changed                                 │
-  │  +449 insertions, -8,292 deletions                 │
-  │                                                    │
-  │  Agents:  38 → 30  (-21%)                  ...
+╔══════════════════════════════════════════════════════════════════════╗
+║              FUMADOCS AUDIT — ISSUES FOUND                          ║
+╠══════════════════════════════════════════════════════════════════════╣
+║                                                                      ║
+║  ✅ INFRASTRUCTURE (constants, generated data, build)                ║
+║     All correct — 79/30/105/18 flow from shared-data.ts             ║
+║     Homepage, banner, layout all dynamic ✓                          ║
+║   ...
 
 ## Modified Files
 - .claude/HANDOFF.md
-- .claude/HANDOFF.md.consumed
 
 ## Recent Tasks
-- Close CC-v3 issues (#930, #931, #932, #933) [completed]
-- Document skills/commands duplication (#889) [completed]
-- Delete 8 agent files + update manifest [completed]
-- Update skill references to demoted agents [completed]
-- Update hook source files for demoted agents [completed]
-- Update tests for demoted agents [completed]
-- Rebuild hooks + plugins, run tests [completed]
-- Agent necessity audit (#863) [completed]
+- Create product-analytics skill (issue #984) [completed]
+- Create prd skill [completed]
+- Create stop/session-summary.ts [completed]
+- Wire session-summary into stop dispatcher [completed]
+- Clean up imports in dispatchers, entries, index.ts [completed]
+- Delete 7 dead memory hooks + tests [completed]
+- Update counts in CLAUDE.md + hooks.json [completed]
+- Build, typecheck, and test [completed]

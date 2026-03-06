@@ -17,6 +17,25 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.1.5",
+    "date": "2026-03-06",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**docs:** Full fumadocs sync — fix 40+ stale references across 37 MDX files\n  - All counts corrected: 79 skills (18 cmd + 61 ref), 30 agents, 105 hooks\n  - Remove 8 demoted agent references from 15 files (replaced with current agents)\n  - Remove deleted hook references (graph-memory-inject, agent-memory-store, capture-user-intent, memory-capture) from 8 files\n  - Rewrite memory docs for graph-first architecture (session-summary replaces 4 hooks)"
+        ]
+      },
+      {
+        "type": "added",
+        "items": [
+          "**docs:** Document CC 2.1.69/70 hook features in fumadocs\n  - ConfigChange, InstructionsLoaded, WorktreeCreate/Remove events in hook timeline\n  - Native HTTP hooks section (12 type:\"http\" hooks)\n  - once:true auto-removal pattern (13 skill context loaders)\n  - statusMessage spinner UX documentation"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.1.4",
     "date": "2026-03-06",
     "compareUrl": "",

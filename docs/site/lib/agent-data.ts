@@ -172,7 +172,7 @@ export const SCENARIOS: Scenario[] = [
   },
 ];
 
-// All 38 agents
+// All agents (count managed by scripts/stamp-counts.sh)
 export const AGENTS: Agent[] = [
   // ── BACKEND ───────────────────────────────────────────────
   {

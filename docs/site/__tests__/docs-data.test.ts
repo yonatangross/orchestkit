@@ -67,16 +67,16 @@ describe("docs-data", () => {
     it("ork has 69 skills", () => {
       const ork = PLUGINS.find((p) => p.name === "ork");
       expect(ork).toBeDefined();
-      expect(ork!.skillCount).toBe(69);
+      expect(ork!.skillCount).toBe(TOTALS.skills);
     });
   });
 
   // ── AGENTS ────────────────────────────────────────────────
 
   describe("AGENTS", () => {
-    it("is an array of 38 agents", () => {
+    it("has the expected number of agents", () => {
       expect(Array.isArray(AGENTS)).toBe(true);
-      expect(AGENTS.length).toBe(38);
+      expect(AGENTS.length).toBe(TOTALS.agents);
     });
 
     it("has correct AgentSummary shape", () => {
