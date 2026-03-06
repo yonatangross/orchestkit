@@ -90,7 +90,7 @@ The plugin includes 106 hooks (42 global [10 matchers, 20 dispatchers, 12 native
 
 ## Version
 
-- **Current**: 7.1.3 · **Claude Code**: >= 2.1.69 <!-- x-release-please-version -->
+- **Current**: 8.0.0 · **Claude Code**: >= 2.1.69 <!-- x-release-please-version -->
 - **Hooks**: 106 total (42 global [10 matchers, 20 dispatchers, 12 native HTTP] + 44 agent-scoped + 20 skill-scoped)
 
 See `CHANGELOG.md` for history. See `src/hooks/README.md` for hook architecture.
