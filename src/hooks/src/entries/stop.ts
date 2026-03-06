@@ -20,6 +20,8 @@ import { unifiedStopDispatcher } from '../stop/unified-dispatcher.js';
 // Intelligent Decision Capture System
 import { workflowPreferenceLearner } from '../stop/workflow-preference-learner.js';
 import { sessionEndTracking } from '../stop/session-end-tracking.js';
+// Graph-first session summary (replaces memory-capture.ts)
+import { sessionSummary } from '../stop/session-summary.js';
 
 import type { HookFn } from '../types.js';
 
@@ -36,6 +38,7 @@ export const hooks: Record<string, HookFn> = {
   // Intelligent Decision Capture System
   'stop/workflow-preference-learner': workflowPreferenceLearner,
   'stop/session-end-tracking': sessionEndTracking,
+  'stop/session-summary': sessionSummary,
 };
 
 export function getHook(name: string): HookFn | undefined {

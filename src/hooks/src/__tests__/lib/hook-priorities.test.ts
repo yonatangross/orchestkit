@@ -42,8 +42,8 @@ describe('hook-priorities', () => {
       expect(getHookPriority('pretool/write-edit/file-guard')).toBe('P0');
     });
 
-    test('returns P1 for core injection hooks', () => {
-      expect(getHookPriority('subagent-start/graph-memory-inject')).toBe('P1');
+    test('returns P2 as default for non-security hooks', () => {
+      expect(getHookPriority('stop/handoff-writer')).toBe('P2');
     });
 
     test('returns P2 as default for unknown hooks', () => {
@@ -76,7 +76,7 @@ describe('hook-priorities', () => {
   describe('shouldThrottle', () => {
     test('returns false when throttling is disabled', () => {
       // No config file = disabled
-      expect(shouldThrottle('subagent-start/graph-memory-inject')).toBe(false);
+      expect(shouldThrottle('stop/handoff-writer')).toBe(false);
     });
 
     test('never throttles P0 hooks even when enabled', () => {

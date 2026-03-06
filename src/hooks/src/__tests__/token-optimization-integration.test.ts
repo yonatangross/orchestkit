@@ -6,7 +6,7 @@
  * - token-tracker (session usage tracking)
  * - hook-priorities (budget enforcement + priority throttling)
  * - skill-resolver (tiered injection)
- * - graph-memory-inject (conditional injection)
+ * - context-injector (conditional injection)
  *
  * Uses real filesystem (tmpdir) for state persistence.
  */
@@ -92,7 +92,7 @@ describe('Token Estimation Integration', () => {
 describe('Token Tracker Integration', () => {
   test('tracks usage across multiple hooks and persists to file', () => {
     trackTokenUsage('skill-resolver', 'skill-injection', 500);
-    trackTokenUsage('graph-memory-inject', 'memory-inject', 300);
+    trackTokenUsage('context-injector', 'memory-inject', 300);
     trackTokenUsage('skill-resolver', 'skill-injection', 200);
 
     // Verify category totals
@@ -108,7 +108,7 @@ describe('Token Tracker Integration', () => {
     const state = JSON.parse(readFileSync(stateFile, 'utf8'));
     expect(state.totalTokensInjected).toBe(1000);
     expect(state.byHook['skill-resolver']).toBe(700);
-    expect(state.byHook['graph-memory-inject']).toBe(300);
+    expect(state.byHook['context-injector']).toBe(300);
     expect(state.records).toHaveLength(3);
   });
 
@@ -177,7 +177,7 @@ describe('Hook Priority Integration', () => {
   test('priority throttling disabled by default (no config file)', () => {
     expect(isPriorityThrottlingEnabled()).toBe(false);
     // Should never throttle when disabled
-    expect(shouldThrottle('subagent-start/graph-memory-inject')).toBe(false);
+    expect(shouldThrottle('pretool/bash/dangerous-command-blocker')).toBe(false);
   });
 
   test('P0 hooks never throttled even when enabled and over budget', () => {
@@ -200,8 +200,8 @@ describe('Hook Priority Integration', () => {
     // Fill to 60% of total budget (2600 * 0.6 = 1560)
     trackTokenUsage('filler', 'skill-injection', 1560);
 
-    // P1 throttles at 90%, so should NOT be throttled at 60%
-    expect(shouldThrottle('subagent-start/graph-memory-inject')).toBe(false);
+    // Default P2 hooks should NOT be throttled at 60% (throttle at 70%)
+    expect(shouldThrottle('stop/handoff-writer')).toBe(false);
   });
 
   test('P2 hooks throttled at 70% budget when enabled', () => {
@@ -213,13 +213,12 @@ describe('Hook Priority Integration', () => {
 
     // P2 throttles at 70%
     expect(shouldThrottle('stop/handoff-writer')).toBe(true);
-    // P1 still OK at 90%
-    expect(shouldThrottle('subagent-start/graph-memory-inject')).toBe(false);
+    // P0 never throttled
+    expect(shouldThrottle('pretool/bash/dangerous-command-blocker')).toBe(false);
   });
 
   test('priority assignments are correct for all known hooks', () => {
     expect(getHookPriority('pretool/bash/dangerous-command-blocker')).toBe('P0');
-    expect(getHookPriority('subagent-start/graph-memory-inject')).toBe('P1');
     expect(getHookPriority('unknown-hook')).toBe('P2'); // default
   });
 });
@@ -245,7 +244,7 @@ describe('Cross-Module Workflow', () => {
     // 3. Graph memory injects
     const memoryContent = 'Knowledge graph entities for database-engineer agent...';
     const memoryTokens = estimateTokenCount(memoryContent);
-    trackTokenUsage('graph-memory-inject', 'memory-inject', memoryTokens);
+    trackTokenUsage('context-injector', 'memory-inject', memoryTokens);
 
     expect(getTotalUsage()).toBe(skillTokens + memoryTokens);
 

@@ -30,7 +30,6 @@ import { mcpHealthCheck } from './mcp-health-check.js';
 // Rules materialization — write to .claude/rules/ BEFORE CC loads instructions
 import { materializeAntipatternRules } from '../prompt/antipattern-warning.js';
 import { materializeProfileRules } from '../prompt/profile-injector.js';
-import { materializeDecisionRules } from '../prompt/memory-context-loader.js';
 
 const HOOK_NAME = 'sync-session-dispatcher';
 
@@ -54,7 +53,7 @@ const SYNC_HOOKS: SyncHookConfig[] = [
  */
 export function syncSessionDispatcher(input: HookInput): HookResult {
   // Materialize all rules files at SessionStart — BEFORE CC loads .claude/rules/
-  // Moved from UserPromptSubmit (profile-injector, memory-context-loader) to fix timing bug.
+  // Moved from UserPromptSubmit (profile-injector) to fix timing bug.
   const projectDir = input.project_dir || getProjectDir();
   try {
     materializeAntipatternRules(projectDir);
@@ -65,11 +64,6 @@ export function syncSessionDispatcher(input: HookInput): HookResult {
     materializeProfileRules();
   } catch (err) {
     logHook(HOOK_NAME, `Profile rules materialization failed: ${err}`, 'warn');
-  }
-  try {
-    materializeDecisionRules(projectDir);
-  } catch (err) {
-    logHook(HOOK_NAME, `Decision rules materialization failed: ${err}`, 'warn');
   }
 
   const messages: string[] = [];

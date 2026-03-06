@@ -101,20 +101,17 @@ import { repoStructureIndexer, testFrameworkDetector, projectConventionLoader, d
 import { antipatternDetector } from './prompt/antipattern-detector.js';
 import { antipatternWarning } from './prompt/antipattern-warning.js';
 import { handoffInjector } from './prompt/handoff-injector.js';
-import { memoryContext } from './prompt/memory-context.js';
 import { todoEnforcer } from './prompt/todo-enforcer.js';
 // Routing hooks removed — replaced by passive index (passive-index-migration)
 import { pipelineDetector } from './prompt/pipeline-detector.js';
 
-// SubagentStart hooks (5)
-import { graphMemoryInject } from './subagent-start/graph-memory-inject.js';
+// SubagentStart hooks (4)
 import { contextGate } from './subagent-start/context-gate.js';
 import { subagentContextStager } from './subagent-start/subagent-context-stager.js';
 import { subagentValidator } from './subagent-start/subagent-validator.js';
 import { modelCostAdvisor } from './subagent-start/model-cost-advisor.js';
 
 // SubagentStop hooks (9)
-import { agentMemoryStore } from './subagent-stop/agent-memory-store.js';
 import { autoSpawnQuality } from './subagent-stop/auto-spawn-quality.js';
 import { contextPublisher } from './subagent-stop/context-publisher.js';
 import { feedbackLoop } from './subagent-stop/feedback-loop.js';
@@ -260,19 +257,16 @@ export const hooks: Record<string, HookFn> = {
   'prompt/antipattern-detector': antipatternDetector,
   'prompt/antipattern-warning': antipatternWarning,
   'prompt/handoff-injector': handoffInjector,
-  'prompt/memory-context': memoryContext,
   'prompt/todo-enforcer': todoEnforcer,
   'prompt/pipeline-detector': pipelineDetector,
 
-  // SubagentStart hooks (5)
-  'subagent-start/graph-memory-inject': graphMemoryInject,
+  // SubagentStart hooks (4)
   'subagent-start/context-gate': contextGate,
   'subagent-start/subagent-context-stager': subagentContextStager,
   'subagent-start/subagent-validator': subagentValidator,
   'subagent-start/model-cost-advisor': modelCostAdvisor,
 
-  // SubagentStop hooks (9)
-  'subagent-stop/agent-memory-store': agentMemoryStore,
+  // SubagentStop hooks (8)
   'subagent-stop/auto-spawn-quality': autoSpawnQuality,
   'subagent-stop/context-publisher': contextPublisher,
   'subagent-stop/feedback-loop': feedbackLoop,

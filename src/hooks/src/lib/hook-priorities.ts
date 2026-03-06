@@ -27,8 +27,6 @@ const HOOK_PRIORITIES: Record<string, HookPriority> = {
   'permission/auto-approve-safe-bash': 'P0',
   'permission/auto-approve-project-writes': 'P0',
 
-  // P1: Core memory injection
-  'subagent-start/graph-memory-inject': 'P1',
 };
 
 // -----------------------------------------------------------------------------

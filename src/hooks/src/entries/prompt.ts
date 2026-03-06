@@ -23,10 +23,6 @@ export * from '../lib/multi-agent-coordinator.js';
 
 // Once-only hooks (once: true)
 import { profileInjector } from '../prompt/profile-injector.js';
-import { memoryContextLoader } from '../prompt/memory-context-loader.js';
-
-// Background hook (async: true — CC handles background execution natively)
-import { captureUserIntent } from '../prompt/capture-user-intent.js';
 
 // --- Unified dispatcher (Issue #448) ---
 // Consolidates: context-injector, todo-enforcer,
@@ -40,7 +36,6 @@ import { handoffInjector } from '../prompt/handoff-injector.js';
 // --- Legacy hooks kept in bundle for backward compat (not in hooks.json) ---
 import { antipatternDetector } from '../prompt/antipattern-detector.js';
 import { antipatternWarning } from '../prompt/antipattern-warning.js';
-import { memoryContext } from '../prompt/memory-context.js';
 import { todoEnforcer } from '../prompt/todo-enforcer.js';
 import { pipelineDetector } from '../prompt/pipeline-detector.js';
 // communicationStyleTracker removed: replaced by type:prompt hook in hooks.json (#980)
@@ -59,12 +54,9 @@ export const hooks: Record<string, HookFn> = {
   'prompt/unified-dispatcher': unifiedPromptDispatcher,
   'prompt/handoff-injector': handoffInjector,
   'prompt/profile-injector': profileInjector,
-  'prompt/memory-context-loader': memoryContextLoader,
-  'prompt/capture-user-intent': captureUserIntent,
   // Legacy hooks (consolidated into unified-dispatcher, kept for override compat)
   'prompt/antipattern-detector': antipatternDetector,
   'prompt/antipattern-warning': antipatternWarning,
-  'prompt/memory-context': memoryContext,
   'prompt/todo-enforcer': todoEnforcer,
   'prompt/pipeline-detector': pipelineDetector,
   // 'prompt/communication-style-tracker': replaced by type:prompt hook in hooks.json (#980)

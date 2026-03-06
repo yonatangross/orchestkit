@@ -14,8 +14,7 @@ export * from '../lib/orchestration-types.js';
 export * from '../lib/orchestration-state.js';
 export * from '../lib/retry-manager.js';
 
-// SubagentStart hooks (6)
-import { graphMemoryInject } from '../subagent-start/graph-memory-inject.js';
+// SubagentStart hooks (5)
 import { contextGate } from '../subagent-start/context-gate.js';
 import { subagentContextStager } from '../subagent-start/subagent-context-stager.js';
 import { subagentValidator } from '../subagent-start/subagent-validator.js';
@@ -23,8 +22,7 @@ import { modelCostAdvisor } from '../subagent-start/model-cost-advisor.js';
 import { issueContextInjector } from '../subagent-start/issue-context-injector.js';
 import { unifiedSubagentStartDispatcher } from '../subagent-start/unified-dispatcher.js';
 
-// SubagentStop hooks (9)
-import { agentMemoryStore } from '../subagent-stop/agent-memory-store.js';
+// SubagentStop hooks (8)
 import { autoSpawnQuality } from '../subagent-stop/auto-spawn-quality.js';
 import { contextPublisher } from '../subagent-stop/context-publisher.js';
 import { feedbackLoop } from '../subagent-stop/feedback-loop.js';
@@ -42,8 +40,7 @@ import type { HookFn } from '../types.js';
  * Subagent hooks registry
  */
 export const hooks: Record<string, HookFn> = {
-  // SubagentStart hooks (6)
-  'subagent-start/graph-memory-inject': graphMemoryInject,
+  // SubagentStart hooks (5)
   'subagent-start/context-gate': contextGate,
   'subagent-start/subagent-context-stager': subagentContextStager,
   'subagent-start/subagent-validator': subagentValidator,
@@ -51,8 +48,7 @@ export const hooks: Record<string, HookFn> = {
   'subagent-start/issue-context-injector': issueContextInjector,
   'subagent-start/unified-dispatcher': unifiedSubagentStartDispatcher,
 
-  // SubagentStop hooks (9)
-  'subagent-stop/agent-memory-store': agentMemoryStore,
+  // SubagentStop hooks (8)
   'subagent-stop/auto-spawn-quality': autoSpawnQuality,
   'subagent-stop/context-publisher': contextPublisher,
   'subagent-stop/feedback-loop': feedbackLoop,

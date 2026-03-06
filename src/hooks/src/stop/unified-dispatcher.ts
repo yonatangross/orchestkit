@@ -16,6 +16,8 @@ import { handoffWriter } from './handoff-writer.js';
 // Issue #243: Additional stop hooks previously run separately
 import { taskCompletionCheck } from './task-completion-check.js';
 import { securityScanAggregator } from './security-scan-aggregator.js';
+// Session summary — graph-first memory capture (replaces memory-capture.ts)
+import { sessionSummary } from './session-summary.js';
 
 // Import skill hooks that run at stop time
 import { coverageCheck } from '../skill/coverage-check.js';
@@ -40,12 +42,13 @@ interface HookConfig {
 
 /**
  * Registry of all Stop hooks consolidated into dispatcher
- * Issue #243: Fire-and-forget pattern - all 7 hooks run in background
+ * Issue #243: Fire-and-forget pattern - all 8 hooks run in background
  * Analytics hooks removed — now handled by HQ content pipeline
  */
 const HOOKS: HookConfig[] = [
   // --- Core session hooks ---
   { name: 'handoff-writer', fn: handoffWriter },
+  { name: 'session-summary', fn: sessionSummary },
 
   // --- Instance management hooks ---
   { name: 'task-completion-check', fn: taskCompletionCheck },

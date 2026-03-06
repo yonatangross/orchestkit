@@ -323,7 +323,8 @@ describe('Cross-Bundle Consistency', () => {
     // 167 -> 179: #969 — added 12 once:true context loaders (skill bundle)
     // 179 -> 176: #973 — removed satisfaction-detector (prompt), solution-detector (posttool), session-patterns (stop)
     // 176 -> 175: #980 — removed communicationStyleTracker from entries/prompt.ts (replaced by type:prompt hook)
-    expect(totalHooks).toBe(175);
+    // 175 -> 171: memory cleanup — removed 5 dead hooks (memoryContext, memoryContextLoader, captureUserIntent, graphMemoryInject, agentMemoryStore), added session-summary
+    expect(totalHooks).toBe(170);
   });
 });
 
