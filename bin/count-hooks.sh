@@ -35,7 +35,7 @@ GLOBAL=$(( GLOBAL_CMD + GLOBAL_HTTP ))
 AGENT=$(grep -rch 'command:.*run-hook' "$PROJECT_ROOT/src/agents/" 2>/dev/null | awk '{s+=$1} END{print s+0}')
 
 # Skill-scoped hooks: command:.*run-hook in YAML frontmatter (same assumption as above)
-SKILL=$(grep -rch 'command:.*run-hook' "$PROJECT_ROOT/src/skills/" 2>/dev/null | awk '{s+=$1} END{print s+0}')
+SKILL=$(grep -rch 'command:.*run-hook' "$PROJECT_ROOT/src/skills/" --include='SKILL.md' 2>/dev/null | awk '{s+=$1} END{print s+0}')
 
 TOTAL=$((GLOBAL + AGENT + SKILL))
 
