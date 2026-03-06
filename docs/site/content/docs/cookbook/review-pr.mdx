@@ -56,40 +56,18 @@ Selecting **Full** launches all six agents against the PR diff.
 
 ## Step 2: Six Parallel Agents Analyze the Diff
 
-```
-/ork:review-pr 42 (Full)
-    |
-    |  Fetches diff: gh pr diff 42
-    |  Fetches files: 9 changed files
-    |
-    |---> code-quality-reviewer ----------------------------+
-    |      Skills: code-review-playbook, clean-architecture  |
-    |      Focus: naming, complexity, DRY, patterns          |
-    |                                                        |
-    |---> security-auditor ---------------------------------+|
-    |      Skills: owasp-top-10, defense-in-depth,          ||
-    |              input-validation, security-scanning       ||
-    |      Focus: injection, auth bypass, exposed secrets    ||
-    |                                                       ||
-    |---> test-generator -----------------------------------+||
-    |      Skills: pytest-advanced, integration-testing     |||
-    |      Focus: missing coverage, edge cases, mocks       |||
-    |                                                      |||
-    |---> frontend-performance-engineer --------------------+|||
-    |      Skills: performance-optimization, caching-strategies  ||||
-    |      Focus: N+1 queries, connection pooling, latency ||||
-    |                                                     ||||
-    |---> backend-system-architect -----------------------+|||||
-    |      Skills: api-design-framework,                 ||||||
-    |              error-handling-rfc9457                 ||||||
-    |      Focus: API contracts, error responses         ||||||
-    |                                                   ||||||
-    +---> accessibility-specialist ---------------------+|||||||
-           Skills: wcag-patterns, aria-guidelines       ||||||||
-           Focus: a11y (skipped -- no frontend files)   ||||||||
-                                                        ||||||||
-    <----------- Results synthesized <------------------++++++++
-```
+After fetching the diff (9 changed files, 420 lines), six agents launch in parallel:
+
+| Agent | Skills | Focus |
+|---|---|---|
+| `code-quality-reviewer` | code-review-playbook, clean-architecture | Naming, complexity, DRY, patterns |
+| `security-auditor` | owasp-top-10, defense-in-depth, input-validation, security-scanning | Injection, auth bypass, exposed secrets |
+| `test-generator` | pytest-advanced, integration-testing | Missing coverage, edge cases, mocks |
+| `frontend-performance-engineer` | performance-optimization, caching-strategies | N+1 queries, connection pooling, latency |
+| `backend-system-architect` | api-design-framework, error-handling-rfc9457 | API contracts, error responses |
+| `accessibility-specialist` | wcag-patterns, aria-guidelines | a11y (skipped — no frontend files) |
+
+All results are **synthesized** into a single structured review.
 
 Each agent receives the full diff plus relevant skill context. The `accessibility-specialist` detects that all 9 changed files are backend Python files, reports "no frontend changes detected", and completes in under a second. The remaining five agents work in parallel.
 

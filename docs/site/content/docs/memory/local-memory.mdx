@@ -190,20 +190,11 @@ Run `/ork:memory status` to see the full health report.
 
 The local layer and graph layer stay in sync through the write-ahead queue pattern:
 
-```
-User decision
-    |
-    v
-memory-writer.ts
-    |
-    +---> decisions.jsonl    (always, immediate)
-    +---> graph-queue.jsonl  (always, queued operations)
-    |
-    v
-Hook processing
-    |
-    +---> graph-queue processed --> mcp__memory__create_entities
-```
+| Stage | Target | Timing |
+|---|---|---|
+| **memory-writer.ts** | `decisions.jsonl` | Always, immediate |
+| | `graph-queue.jsonl` | Always, queued operations |
+| **Hook processing** | Graph queue processed via `mcp__memory__create_entities` | Async, batched |
 
 The local files serve as the durable source of truth. If the graph is ever rebuilt or cleared, the decisions in `decisions.jsonl` can be replayed to reconstruct it.
 

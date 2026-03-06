@@ -205,13 +205,11 @@ The `auto-remember-continuity` hook fires on the `stop` lifecycle event. It capt
 
 When you invoke `/ork:remember`, the skill writes to all configured tiers simultaneously:
 
-```
-/ork:remember "JWT for auth"
-    |
-    +---> Tier 1: Graph (mcp__memory__create_entities + create_relations)
-    +---> Tier 2: Local (.claude/memory/graph-queue.jsonl)
-    +---> Tier 3: CC Native MEMORY.md (if confidence >= 0.7)
-```
+| Tier | Storage | Method |
+|---|---|---|
+| **1. Graph** | Knowledge graph | `mcp__memory__create_entities` + `create_relations` |
+| **2. Local** | `.claude/memory/graph-queue.jsonl` | File append |
+| **3. CC Native** | `MEMORY.md` | Written if confidence >= 0.7 |
 
 ### Entity and Relation Extraction
 

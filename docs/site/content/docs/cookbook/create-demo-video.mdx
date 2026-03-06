@@ -214,41 +214,16 @@ Elapsed: 4m 32s
 
 When you invoke `/ork:demo-producer`, the `demo-producer` agent spawns and coordinates a multi-step pipeline. Here is the full execution flow:
 
-```
-/ork:demo-producer "Demo the new authentication flow"
-    |
-    +---> demo-producer agent spawns (model: opus)
-    |       Skills injected:
-    |         video-storyboarding
-    |         terminal-demo-generator
-    |         remotion-composer
-    |         music-sfx-selection
-    |         thumbnail-first-frame
-    |         content-type-recipes
-    |         hook-formulas
-    |
-    +---> Step 1: Storyboard generation
-    |       content-type-recipes skill -> selects "Feature Demo" template
-    |       video-storyboarding skill -> generates scene breakdown
-    |       hook-formulas skill -> inserts attention patterns (hook, payoff, CTA)
-    |
-    +---> Step 2: Asset creation (parallel)
-    |       terminal-demo-generator -> VHS recordings for terminal scenes
-    |       Browser recording -> Playwright captures for UI scenes
-    |
-    +---> Step 3: Composition
-    |       remotion-composer -> assembles clips into ScrapbookDemo composition
-    |       Renders both 16:9 and 1:1 variants
-    |
-    +---> Step 4: Audio (parallel with thumbnail)
-    |       music-sfx-selection -> selects style and generates via Kling 3.0
-    |       Audio mixing: music at -18dB, SFX at -12dB
-    |
-    +---> Step 5: Thumbnail
-    |       thumbnail-first-frame -> extracts frame, applies Scrapbook style
-    |
-    +---> Final: Merge audio + video, output files
-```
+The `demo-producer` agent spawns (model: opus) with skills: video-storyboarding, terminal-demo-generator, remotion-composer, music-sfx-selection, thumbnail-first-frame, content-type-recipes, hook-formulas.
+
+| Step | What Happens |
+|---|---|
+| **1. Storyboard** | `content-type-recipes` selects "Feature Demo" template. `video-storyboarding` generates scene breakdown. `hook-formulas` inserts attention patterns (hook, payoff, CTA). |
+| **2. Assets** (parallel) | `terminal-demo-generator` creates VHS recordings for terminal scenes. Playwright captures UI scenes. |
+| **3. Composition** | `remotion-composer` assembles clips into ScrapbookDemo composition. Renders both 16:9 and 1:1 variants. |
+| **4. Audio** (parallel with step 5) | `music-sfx-selection` selects style and generates via Kling 3.0. Audio mixing: music at -18dB, SFX at -12dB. |
+| **5. Thumbnail** | `thumbnail-first-frame` extracts frame, applies Scrapbook style. |
+| **Final** | Merge audio + video, output files. |
 
 ### Hooks That Fire
 

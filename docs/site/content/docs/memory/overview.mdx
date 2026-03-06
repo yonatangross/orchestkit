@@ -23,22 +23,11 @@ All 3 tiers require zero configuration. They work the moment you install Orchest
 
 When you store a decision -- whether explicitly via `/ork:remember` or implicitly through the capture hooks -- the memory writer routes it to all configured backends simultaneously.
 
-```
-/ork:remember "Use cursor-based pagination for all list endpoints"
-    |
-    +---> Tier 1: Graph Memory
-    |     mcp__memory__create_entities + create_relations
-    |     Stores entities: cursor-pagination (Pattern), list-endpoints (Component)
-    |     Stores relation: project -> CHOSE -> cursor-pagination
-    |
-    +---> Tier 2: Local Persistence
-    |     Appends to .claude/memory/decisions.jsonl
-    |     Queues graph ops to .claude/memory/graph-queue.jsonl
-    |
-    +---> Tier 3: CC Native (only if confidence >= 0.7)
-          Writes to ~/.claude/projects/<project>/memory/MEMORY.md
-          Claude auto-injects this into every future system prompt
-```
+| Tier | Backend | What Gets Stored |
+|---|---|---|
+| **1. Graph Memory** | `mcp__memory__create_entities` + `create_relations` | Entities: `cursor-pagination` (Pattern), `list-endpoints` (Component). Relation: `project -> CHOSE -> cursor-pagination` |
+| **2. Local Persistence** | `.claude/memory/decisions.jsonl` + `graph-queue.jsonl` | Appends decision record, queues graph operations |
+| **3. CC Native** (confidence >= 0.7) | `~/.claude/projects/<project>/memory/MEMORY.md` | Claude auto-injects this into every future system prompt |
 
 ### The Confidence Threshold
 

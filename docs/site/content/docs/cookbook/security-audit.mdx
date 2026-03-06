@@ -73,48 +73,15 @@ Choose **Deep audit** for a pre-launch review. The quick scan is useful for day-
 
 Once you select the audit depth, OrchestKit spawns three agents simultaneously:
 
-```
-/ork:verify --scope=security (Deep audit)
-    |
-    |  Spawning 3 parallel agents...
-    |
-    +---> security-auditor (model: opus) ──────────────────────┐
-    |       Skills injected:                                    |
-    |         owasp-top-10                                      |
-    |         defense-in-depth                                  |
-    |         auth-patterns                                     |
-    |         input-validation                                  |
-    |         llm-safety-patterns                               |
-    |         security-scanning                                 |
-    |         mcp-security-hardening                            |
-    |       Tasks:                                              |
-    |         1. Run bandit -r app/ for Python vulnerabilities  |
-    |         2. Run npm audit / pip-audit for dependency CVEs  |
-    |         3. Grep for hardcoded secrets and API keys        |
-    |         4. Check OWASP Top 10 mitigations per endpoint   |
-    |         5. Validate JWT handling and session security     |
-    |                                                           |
-    +---> code-quality-reviewer ───────────────────────────────┐|
-    |       Skills injected:                                   ||
-    |         code-review-playbook                             ||
-    |         clean-architecture                               ||
-    |       Tasks:                                             ||
-    |         1. Identify unsafe patterns (eval, exec, pickle) ||
-    |         2. Check for complexity that hides vulnerabilities||
-    |         3. Flag functions missing error handling          ||
-    |                                                          ||
-    +---> debug-investigator ──────────────────────────────────┐||
-            Skills injected:                                   |||
-              input-validation                                 |||
-            Tasks:                                             |||
-              1. Trace user input from request to database     |||
-              2. Map data flow for injection points            |||
-              3. Identify unvalidated boundaries               |||
-                                                               |||
-    <------------ Results merged <------------------------------+++
-```
+| Agent | Model | Skills Injected | Tasks |
+|---|---|---|---|
+| **security-auditor** | opus | owasp-top-10, defense-in-depth, auth-patterns, input-validation, llm-safety-patterns, security-scanning, mcp-security-hardening | Run bandit for Python vulns, npm/pip audit for CVEs, grep for secrets, check OWASP Top 10 per endpoint, validate JWT/session security |
+| **code-quality-reviewer** | sonnet | code-review-playbook, clean-architecture | Identify unsafe patterns (eval, exec, pickle), check complexity hiding vulns, flag missing error handling |
+| **debug-investigator** | sonnet | input-validation | Trace user input from request to DB, map data flow for injection points, identify unvalidated boundaries |
 
-All three agents work simultaneously on your codebase. The `security-auditor` runs automated tools (bandit, pip-audit, npm audit). The `code-quality-reviewer` analyzes code patterns. The `debug-investigator` traces data flow from request input to storage to find gaps the automated tools miss.
+All three run in parallel, then **results are merged** into a unified security report.
+
+The `security-auditor` runs automated tools (bandit, pip-audit, npm audit). The `code-quality-reviewer` analyzes code patterns. The `debug-investigator` traces data flow from request input to storage to find gaps the automated tools miss.
 
 <Callout type="info">
 The `security-auditor` agent uses parallel tool calls internally. It runs `bandit -r backend/`, `pip-audit`, `npm audit`, and secret-pattern grep all at the same time -- cutting scan time by roughly 60% compared to sequential execution.
