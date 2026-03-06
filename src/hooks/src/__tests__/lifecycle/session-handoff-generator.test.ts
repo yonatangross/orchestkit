@@ -34,12 +34,12 @@ const mockReaddirSync = vi.fn(() => [] as string[]);
 const mockUnlinkSync = vi.fn();
 
 vi.mock('node:fs', () => ({
-  existsSync: (...args: unknown[]) => mockExistsSync(...args),
-  readFileSync: (...args: unknown[]) => mockReadFileSync(...args),
-  mkdirSync: (...args: unknown[]) => mockMkdirSync(...args),
-  writeFileSync: (...args: unknown[]) => mockWriteFileSync(...args),
-  readdirSync: (...args: unknown[]) => mockReaddirSync(...args),
-  unlinkSync: (...args: unknown[]) => mockUnlinkSync(...args),
+  existsSync: mockExistsSync,
+  readFileSync: mockReadFileSync,
+  mkdirSync: mockMkdirSync,
+  writeFileSync: mockWriteFileSync,
+  readdirSync: mockReaddirSync,
+  unlinkSync: mockUnlinkSync,
 }));
 
 const mockExecSync = vi.fn(() => '');

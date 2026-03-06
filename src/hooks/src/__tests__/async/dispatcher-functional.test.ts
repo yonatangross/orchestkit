@@ -16,7 +16,7 @@ import type { HookInput } from '../../types.js';
 
 const mocks = vi.hoisted(() => {
   const s = { continue: true, suppressOutput: true };
-  const fn = () => vi.fn(() => s);
+  const fn = (impl?: () => unknown) => vi.fn(impl ?? (() => s));
   return {
     logHook: vi.fn(),
     // posttool (3) — after #897 slimming
