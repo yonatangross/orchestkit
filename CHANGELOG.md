@@ -5,6 +5,19 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.1.4] - 2026-03-06
+
+### Fixed
+
+- **docs:** Fix 30+ stale counts across fumadocs site, skills, and source files
+  - 71 skills → 79 skills, 83/98/106 hooks → 105 hooks (42 global + 44 agent + 19 skill)
+  - CC version badge ≥2.1.59 → ≥2.1.69, user-invocable 17 → 18
+  - Fix `count-hooks.sh` to exclude CONTRIBUTING-SKILLS.md example (was inflating skill count by 1)
+  - Regenerated docs data + rebuilt plugins to match
+
+---
+
+
 ## [7.1.3] - 2026-03-05
 
 ### Added
