@@ -75,8 +75,9 @@ MARKER_FILES=(
   "$PROJECT_ROOT/CLAUDE.md"
   "$PROJECT_ROOT/CONTRIBUTING.md"
   "$PROJECT_ROOT/src/hooks/README.md"
-  "$PROJECT_ROOT/src/skills/doctor/references/agents-validation.md"
 )
+# NOTE: Do NOT add files under src/skills/ — they get copied into MDX where
+# HTML comments are escaped as &lt;!-- and break rendering.
 
 # ── JSON updates (no markers, pattern-based) ────────────────────────────────
 
