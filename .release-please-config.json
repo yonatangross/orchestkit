@@ -11,6 +11,7 @@
     { "type": "perf", "section": "Performance", "hidden": false },
     { "type": "ci", "section": "CI/CD", "hidden": false }
   ],
+  "bootstrap-sha": "1f02832b2e3c820e6ded289af608b1d83ff67f93",
   "packages": {
     ".": {
       "extra-files": [
