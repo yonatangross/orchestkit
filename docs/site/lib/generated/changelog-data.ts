@@ -17,6 +17,22 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.1.8",
+    "date": "2026-03-06",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "Replace broken ASCII box-drawing diagrams with fumadocs Steps components and markdown tables across 12 docs pages",
+          "Add missing `/ork:prd` command to command-skills page",
+          "Fix stale skill counts and clarify \"listed vs invocable\" text in skills overview",
+          "Fix skill.mjs bundle hook count from \"1+\" to \"19\" in hooks overview"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.1.6",
     "date": "2026-03-06",
     "compareUrl": "",
