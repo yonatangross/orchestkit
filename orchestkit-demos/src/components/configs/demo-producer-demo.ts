@@ -250,7 +250,7 @@ PRODUCTION SUMMARY:
 │  │
 │  ├─ ACT 3: SOLUTION (0:45-2:15)
 │  │   ├─ Scene 6: Product intro
-│  │   │   "OrchestKit: 69 skills, 38 agents"
+│  │   │   "OrchestKit: 79 skills, 30 agents"
 │  │   ├─ Scene 7: Demo /explore
 │  │   │   Terminal recording (30s)
 │  │   ├─ Scene 8: Demo /verify

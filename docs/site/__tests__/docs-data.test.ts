@@ -74,9 +74,9 @@ describe("docs-data", () => {
   // ── AGENTS ────────────────────────────────────────────────
 
   describe("AGENTS", () => {
-    it("is an array of 38 agents", () => {
+    it("is an array of 30 agents", () => {
       expect(Array.isArray(AGENTS)).toBe(true);
-      expect(AGENTS.length).toBe(38);
+      expect(AGENTS.length).toBe(30);
     });
 
     it("has correct AgentSummary shape", () => {

@@ -2,7 +2,7 @@
 
 ## Overview
 
-OrchestKit includes 38 specialized agents validated against CC 2.1.59 frontmatter format.
+OrchestKit includes 30 specialized agents validated against CC 2.1.69 frontmatter format.
 
 ## Agent Structure
 

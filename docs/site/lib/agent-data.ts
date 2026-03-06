@@ -172,7 +172,7 @@ export const SCENARIOS: Scenario[] = [
   },
 ];
 
-// All 38 agents
+// All 30 agents
 export const AGENTS: Agent[] = [
   // ── BACKEND ───────────────────────────────────────────────
   {

@@ -9,7 +9,7 @@ import type { scrapbookDemoSquareSchema } from "../ScrapbookDemo-Square";
 
 export const scrapbookShowcaseConfig: z.infer<typeof scrapbookDemoSchema> = {
   title: "OrchestKit",
-  tagline: "69 skills. 38 agents. One plugin.",
+  tagline: "79 skills. 30 agents. One plugin.",
   socialCards: [
     {
       author: "Sarah Chen",
@@ -56,7 +56,7 @@ export const scrapbookShowcaseSquareConfig: z.infer<
   typeof scrapbookDemoSquareSchema
 > = {
   title: "OrchestKit",
-  tagline: "69 skills. 38 agents. One plugin.",
+  tagline: "79 skills. 30 agents. One plugin.",
   socialCards: [
     {
       author: "Sarah Chen",
