@@ -297,7 +297,7 @@ Task: "Audit and fix login form accessibility"
 - On error: Add to `tasks_pending` with blockers
 
 ## Integration
-- **Receives from:** frontend-ui-developer (components), rapid-ui-designer (designs)
+- **Receives from:** frontend-ui-developer (components)
 - **Hands off to:** code-quality-reviewer (validation), test-generator (test coverage)
 - **Skill references:** accessibility, testing-patterns, design-system-starter
 

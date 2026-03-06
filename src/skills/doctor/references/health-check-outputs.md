@@ -37,9 +37,9 @@ Installed Plugins: 1
 ## Skills Validation
 
 ```
-Skills: 69/69 valid
-- User-invocable: 17 commands
-- Reference skills: 52
+Skills: 79/79 valid
+- User-invocable: 18 commands
+- Reference skills: 61
 ```
 
 ## Agents Validation

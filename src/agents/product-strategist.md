@@ -16,7 +16,6 @@ tools:
   - Glob
   - Bash
   - Agent(market-intelligence)
-  - Agent(ux-researcher)
   - TeamCreate
   - SendMessage
   - TaskCreate
@@ -98,7 +97,7 @@ Return structured strategic assessment:
     "success_criteria": "< 30 min for basic supervisor-worker pattern"
   },
   "received_from": "market-intelligence",
-  "handoff_to": "prioritization-analyst"
+  "handoff_to": "market-intelligence"
 }
 ```
 
@@ -112,9 +111,9 @@ Return structured strategic assessment:
 - Define value hypotheses for validation
 
 **DON'T:**
-- Design UI (that's rapid-ui-designer)
-- Write user stories (that's requirements-translator)
-- Define metrics (that's metrics-architect)
+- Design UI (that's frontend-ui-developer)
+- Write user stories
+- Define metrics
 - Implement anything (that's engineering)
 - Make final decisions (human decides)
 
@@ -210,7 +209,7 @@ Task: "Should we build a visual workflow builder?"
    - Complexity (MED) → Progressive disclosure
 6. Recommend: GO with conditions
 7. Define value hypothesis for validation
-8. Handoff to prioritization-analyst
+8. Handoff to market-intelligence
 
 ## Context Protocol
 - Before: Read `.claude/context/session/state.json and .claude/context/knowledge/decisions/active.json`, receive market-intelligence report
@@ -220,7 +219,7 @@ Task: "Should we build a visual workflow builder?"
 
 ## Integration
 - **Receives from:** `market-intelligence` (market report, competitive context)
-- **Hands off to:** `prioritization-analyst` (validated opportunities with go/no-go)
+- **Hands off to:** `market-intelligence` (validated opportunities with competitive landscape)
 - **Skill references:** brainstorming (for exploring alternatives)
 
 ## Notes

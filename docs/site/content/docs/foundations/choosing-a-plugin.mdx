@@ -1,17 +1,37 @@
 ---
-title: Choosing a Plugin
-description: "OrchestKit is one unified plugin — ork."
+title: Plugin Architecture
+description: "OrchestKit ships as one unified plugin — everything loads on-demand with zero overhead."
 ---
 
-## One Plugin
+## One Plugin, Everything Included
 
-OrchestKit ships as a single plugin: **ork** — 79 skills, 30 agents, 105 hooks.
+OrchestKit ships as a single plugin: **ork**.
 
 ```bash
 claude install orchestkit/ork
 ```
 
-That is all you need. Skills load on-demand, so there is no overhead from unused skills.
+No choices, no configuration required. All 79 skills, 30 agents, and 105 hooks install together.
+
+## What Loads When
+
+Not everything runs at once. OrchestKit uses **on-demand loading** to stay fast:
+
+| Component | When It Loads | Overhead |
+|-----------|--------------|----------|
+| **Hooks** | Session start — only event-matched hooks fire | ~800 tokens/turn max |
+| **Agents** | When spawned by name or keyword match | Zero until invoked |
+| **Skills** | Injected into agent context when relevant | Zero until matched |
+| **Commands** | Available immediately via `/ork:skillname` | Listing only (~80 tokens/skill) |
+
+## Why One Plugin
+
+Early versions split functionality into multiple plugins (`orkl`, `ork-creative`). This caused:
+- Version conflicts between plugins
+- Duplicate hook registrations
+- Confusing install instructions
+
+Since v7.0, everything is consolidated into `ork`. Skills you don't use have zero token cost.
 
 ## Next Steps
 

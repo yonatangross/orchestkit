@@ -234,7 +234,7 @@ Return structured implementation report:
 
 **DON'T:**
 - Implement backend API endpoints (that's backend-system-architect)
-- Design visual layouts from scratch (that's rapid-ui-designer)
+- Design visual layouts from scratch
 - Modify database schemas (that's database-engineer)
 - Handle LLM integrations (that's llm-integrator)
 - Create .env files or handle secrets directly
@@ -516,7 +516,7 @@ Action: Build real AnalysisStatus.tsx with:
 - On error: Add to `tasks_pending` with blockers
 
 ## Integration
-- **Receives from:** rapid-ui-designer (design specs, Tailwind classes), ux-researcher (user stories, personas), backend-system-architect (API contracts)
+- **Receives from:** backend-system-architect (API contracts)
 - **Hands off to:** code-quality-reviewer (validation), test-generator (E2E scenarios)
 - **Skill references:** react-server-components-framework, type-safety-validation, design-system-starter, performance, i18n-date-patterns, frontend-animation
 
