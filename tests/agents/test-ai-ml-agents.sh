@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Test suite for AI/ML Roadmap 2026 agents
-# Tests: ai-safety-auditor, prompt-engineer
+# Tests: ai-safety-auditor (prompt-engineer demoted to skill in #863)
 
 set -euo pipefail
 
@@ -32,7 +32,6 @@ fail() {
 # New AI/ML agents to test
 AI_ML_AGENTS=(
     "ai-safety-auditor"
-    "prompt-engineer"
 )
 
 echo "=== AI/ML Roadmap 2026 Agents Test Suite ==="
@@ -77,11 +76,8 @@ for agent in "${AI_ML_AGENTS[@]}"; do
         model=$(grep "^model:" "$agent_file" | awk '{print $2}')
 
         # ai-safety-auditor should use opus (security-critical)
-        # prompt-engineer can use sonnet (balanced)
         if [[ "$agent" == "ai-safety-auditor" && "$model" == "opus" ]]; then
             pass "$agent uses opus (appropriate for security-critical)"
-        elif [[ "$agent" == "prompt-engineer" && "$model" == "sonnet" ]]; then
-            pass "$agent uses sonnet (appropriate for prompt design)"
         else
             echo -e "${YELLOW}!${NC} $agent uses $model (review if appropriate)"
             TESTS_RUN=$((TESTS_RUN + 1))
@@ -118,12 +114,6 @@ for agent in "${AI_ML_AGENTS[@]}"; do
         if [[ "$agent" == "ai-safety-auditor" ]]; then
             if echo "$desc" | grep -qi "safety\|security\|audit\|red.team\|guardrail"; then
                 pass "$agent has security-related activation keywords"
-            else
-                fail "$agent missing activation keywords"
-            fi
-        elif [[ "$agent" == "prompt-engineer" ]]; then
-            if echo "$desc" | grep -qi "prompt\|cot\|few.shot\|chain.of.thought"; then
-                pass "$agent has prompt-related activation keywords"
             else
                 fail "$agent missing activation keywords"
             fi

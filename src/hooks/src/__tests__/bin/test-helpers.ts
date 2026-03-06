@@ -87,7 +87,7 @@ export async function loadModuleFunctions(): Promise<{
   isRealModule: boolean;
 }> {
   try {
-    // @ts-ignore - module may not exist; catch block handles this gracefully
+    // @ts-expect-error - module may not exist; catch block handles this gracefully
     const mod = await import('../../../bin/run-hook-background.mjs');
     return {
       sanitizeHookName: mod.sanitizeHookName,
