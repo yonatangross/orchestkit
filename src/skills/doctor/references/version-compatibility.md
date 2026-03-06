@@ -2,7 +2,7 @@
 
 ## Overview
 
-OrchestKit requires Claude Code >= 2.1.59. This matrix documents which CC features OrchestKit depends on and their minimum version requirements.
+OrchestKit requires Claude Code >= 2.1.69. This matrix documents which CC features OrchestKit depends on and their minimum version requirements.
 
 ## Feature Matrix
 
@@ -37,6 +37,16 @@ OrchestKit requires Claude Code >= 2.1.59. This matrix documents which CC featur
 | Teammate memory fix | 2.1.63 | Safe for 5+ teammate swarms | Memory grows in long team sessions |
 | `/simplify`, `/batch` built-in | 2.1.63 | Bundled CC slash commands | Not available |
 | `ENABLE_CLAUDEAI_MCP_SERVERS` | 2.1.63 | Opt out of claude.ai MCP servers | All claude.ai MCPs always loaded |
+| InstructionsLoaded hook event | 2.1.69 | Rules materialization timing, context injection | Rules written too late, stale context |
+| `once: true` hooks | 2.1.69 | 13 skill context loaders fire once then auto-remove | Loaders fire every prompt (wasted tokens) |
+| `permissionDecision: 'ask'` | 2.1.69 | Gray-zone command escalation to user | Binary allow/deny only |
+| `tool_use_id` correlation | 2.1.69 | Pre/PostToolUse pair tracking | No correlation between pre/post |
+| `${ENV_VAR}` in HTTP hooks | 2.1.69 | ORCHESTKIT_HOOK_URL/TOKEN in type:http hooks | Must use command hooks for env vars |
+| Path-scoped rules (`paths:`) | 2.1.69 | 10 conditional rules scoped to file paths | All rules always loaded |
+| Worktree dedup fixes | 2.1.70 | Prevents duplicate hook fires in worktrees | Hooks may fire twice |
+| 74% prompt re-render reduction | 2.1.70 | CC-internal perf (no action needed) | Higher latency on re-renders |
+| ~600 token skill listing savings | 2.1.70 | CC-internal (frees headroom for hook injection) | Tighter token budget |
+| MCP cache invalidation | 2.1.70 | MCP tools refresh on reconnect | Stale MCP tool definitions |
 
 ## Version Detection
 
@@ -56,8 +66,10 @@ claude --version  # Returns e.g. "2.1.47"
 | 2.1.45 - 2.1.46 | Partial | Missing 2.1.47 features but functional |
 | 2.1.47 - 2.1.49 | Partial | All hook features, memory leak risk in long sessions |
 | 2.1.50 - 2.1.58 | Partial | Memory leaks fixed, missing auto-memory and @imports |
-| 2.1.59 - 2.1.62 | Full | All features: auto-memory, @imports, .claude/rules/, ConfigChange |
-| >= 2.1.63 | Full+ | HTTP hooks, worktree config sharing, teammate stability, /simplify, /batch |
+| 2.1.59 - 2.1.62 | Partial | Auto-memory, @imports, missing HTTP hooks and 2.1.69 features |
+| 2.1.63 - 2.1.68 | Partial | HTTP hooks, worktree config sharing, missing InstructionsLoaded/once:true/ask |
+| >= 2.1.69 | Full | InstructionsLoaded, once:true, outputAsk, path-scoped rules, env var interpolation |
+| >= 2.1.70 | Full+ | Worktree dedup, 74% re-render reduction, MCP cache fixes |
 
 ## Doctor Check Implementation
 
@@ -136,6 +148,7 @@ Claude Code: 2.1.56 (OK)
 
 | OrchestKit | Min CC | Key Changes |
 |-----------|--------|-------------|
+| v7.1.x | 2.1.69 | InstructionsLoaded, once:true loaders, outputAsk, env var HTTP hooks, worktree dedup |
 | v7.0.x | 2.1.59 | Auto-memory, @imports, ConfigChange, HTTP hooks (2.1.63+), unified plugin |
 | v6.0.x | 2.1.47 | Full CC 2.1.47 adoption, relaxed context limits |
 | v5.x | 2.1.34 | Agent Teams support, unified dispatchers |
