@@ -1,0 +1,852 @@
+---
+title: "Prioritization"
+description: "RICE, WSJF, ICE, MoSCoW, and opportunity cost scoring for backlog ranking. Use when prioritizing features, comparing initiatives, justifying roadmap decisions, or evaluating trade-offs between competing work items."
+---
+
+<span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
+
+**Primary Agent:** [product-strategist](/docs/reference/agents/product-strategist)
+
+
+# Prioritization Frameworks
+
+Score, rank, and justify backlog decisions using the right framework for the situation.
+
+## Decision Tree: Which Framework to Use
+
+```
+Do you have a hard deadline or regulatory pressure?
+  YES → WSJF (Cost of Delay drives sequencing)
+  NO  → Do you have reach/usage data?
+          YES → RICE (data-driven, accounts for user reach)
+          NO  → Are you in a time-boxed planning session?
+                  YES → ICE (fast, 1-10 scales, no data required)
+                  NO  → Is this a scope negotiation with stakeholders?
+                          YES → MoSCoW (bucket features, control scope creep)
+                          NO  → Value-Effort Matrix (quick 2x2 triage)
+```
+
+| Framework | Best For | Data Required | Time to Score |
+|-----------|----------|---------------|---------------|
+| RICE | Data-rich teams, steady-state prioritization | Analytics, user counts | 30-60 min |
+| WSJF | SAFe orgs, time-sensitive or regulated work | Relative estimates only | 15-30 min |
+| ICE | Startup speed, early validation, quick triage | None | 5-10 min |
+| MoSCoW | Scope negotiation, release planning | Stakeholder input | 1-2 hours |
+| Value-Effort | 2x2 visual, quick team alignment | None | 10-15 min |
+
+---
+
+## RICE
+
+```
+RICE Score = (Reach × Impact × Confidence) / Effort
+```
+
+| Factor | Scale | Notes |
+|--------|-------|-------|
+| Reach | Actual users/quarter | Use analytics; do not estimate |
+| Impact | 0.25 / 0.5 / 1 / 2 / 3 | Minimal → Massive per user |
+| Confidence | 0.3 / 0.5 / 0.8 / 1.0 | Moonshot → Strong data |
+| Effort | Person-months | Include design, eng, QA |
+
+```markdown
+## RICE Scoring: [Feature Name]
+
+| Feature     | Reach  | Impact | Confidence | Effort | Score  |
+|-------------|--------|--------|------------|--------|--------|
+| Smart search| 50,000 | 2      | 0.8        | 3      | 26,667 |
+| CSV export  | 10,000 | 0.5    | 1.0        | 0.5    | 10,000 |
+| Dark mode   | 30,000 | 0.25   | 1.0        | 1      |  7,500 |
+```
+
+See [rules/prioritize-rice.md](rules/prioritize-rice.md) for ICE, Kano, and full scale tables.
+
+---
+
+## WSJF
+
+```
+WSJF = Cost of Delay / Job Size
+Cost of Delay = User Value + Time Criticality + Risk Reduction  (1-21 Fibonacci each)
+```
+
+Higher WSJF = do first. Fibonacci scale (1, 2, 3, 5, 8, 13, 21) forces relative sizing.
+
+```markdown
+## WSJF: GDPR Compliance Update
+
+User Value:       8   (required for EU customers)
+Time Criticality: 21  (regulatory deadline this quarter)
+Risk Reduction:   13  (avoids significant fines)
+Job Size:          8  (medium complexity)
+
+Cost of Delay = 8 + 21 + 13 = 42
+WSJF = 42 / 8 = 5.25
+```
+
+See [rules/prioritize-wsjf.md](rules/prioritize-wsjf.md) for MoSCoW buckets and practical tips.
+See [references/wsjf-guide.md](references/wsjf-guide.md) for the full scoring guide.
+
+---
+
+## ICE
+
+```
+ICE Score = Impact × Confidence × Ease    (all factors 1-10)
+```
+
+No user data required. Score relative to other backlog items. Useful for early-stage products and rapid triage sessions.
+
+---
+
+## MoSCoW
+
+Bucket features before estimation. Must-Haves alone should ship a viable product.
+
+```markdown
+## Release 1.0 MoSCoW
+
+### Must Have (~60% of effort)
+- [ ] User authentication
+- [ ] Core CRUD operations
+
+### Should Have (~20%)
+- [ ] Search, export, notifications
+
+### Could Have (~20%)
+- [ ] Dark mode, keyboard shortcuts
+
+### Won't Have (documented out-of-scope)
+- Mobile app (Release 2.0)
+- AI features (Release 2.0)
+```
+
+---
+
+## Opportunity Cost & Trade-Off Analysis
+
+When two items compete for the same team capacity, quantify what delaying each item costs per month.
+
+```markdown
+## Trade-Off: AI Search vs Platform Migration (Q2 eng team)
+
+### Option A: AI Search
+- Cost of Delay: $25K/month (competitive risk)
+- RICE Score: 18,000
+- Effort: 6 weeks
+
+### Option B: Platform Migration
+- Cost of Delay: $5K/month (tech debt interest)
+- RICE Score: 4,000
+- Effort: 8 weeks
+
+### Recommendation
+Human decides. Key factors:
+1. Q2 OKR: Increase trial-to-paid conversion (favors AI Search)
+2. Engineering capacity: Only one team, sequential not parallel
+3. Customer commitment: No contractual deadline for either
+```
+
+See [rules/prioritize-opportunity-cost.md](rules/prioritize-opportunity-cost.md) for the Value-Effort Matrix and full trade-off template.
+See [references/rice-scoring-guide.md](references/rice-scoring-guide.md) for detailed RICE calibration.
+
+---
+
+## Common Pitfalls
+
+| Pitfall | Mitigation |
+|---------|------------|
+| Gaming scores to justify pre-decided work | Calibrate as a team; document assumptions |
+| Mixing frameworks in one table | Pick one framework per planning session |
+| Only tracking high-RICE items; ignoring cost of delay | Combine RICE with explicit delay cost analysis |
+| MoSCoW Must-Have bloat (>70% of scope) | Must-Haves alone must ship a viable product |
+| Comparing RICE scores across different goals | Only compare within the same objective |
+
+---
+
+## Related Skills
+
+- `product-frameworks` — Full PM toolkit (value prop, market sizing, competitive analysis, user research, business case)
+- `prd` — Convert prioritized features into product requirements documents
+- `product-analytics` — Define and instrument the metrics that feed RICE reach/impact scores
+- `okr-design` — Set the objectives that determine which KPIs drive RICE impact scoring
+- `market-sizing` — TAM/SAM/SOM analysis that informs strategic priority
+- `competitive-analysis` — Competitor context that raises or lowers WSJF time criticality scores
+
+---
+
+**Version:** 1.0.0
+
+
+---
+
+## Rules (3)
+
+### Evaluate opportunity cost with value-effort matrices, cost of delay analysis, and trade-off flagging — HIGH
+
+
+# Opportunity Cost & Trade-Off Analysis
+
+Patterns for making prioritization decisions that account for what you give up, not just what you gain. Complements RICE and WSJF scoring with opportunity cost reasoning.
+
+## Value-Effort Matrix
+
+A 2x2 matrix for rapid feature sequencing based on expected value and required effort.
+
+```
+               HIGH VALUE
+                   |
+    Do Next        |     Do First
+    (High value,   |     (High value,
+     high effort)  |      low effort)
+                   |
+  -----------------+-----------------
+                   |
+    Consider       |     Quick Win
+    (Low value,    |     (Low value,
+     high effort)  |      low effort)
+                   |
+               LOW VALUE
+  HIGH EFFORT                LOW EFFORT
+```
+
+| Quadrant | Action | Example |
+|----------|--------|---------|
+| **Do First** | Ship immediately -- high ROI | Fix broken onboarding step |
+| **Quick Win** | Batch into next sprint | Add CSV export button |
+| **Do Next** | Plan and resource properly | Platform migration |
+| **Consider** | Challenge whether to do at all | Redesign rarely-used admin page |
+
+### Scoring for Placement
+
+- **Value** (1-10): Combine user impact, strategic alignment, revenue potential
+- **Effort** (1-10): Engineering weeks, cross-team coordination, risk
+- **Threshold**: Value >= 6 is "high value", Effort >= 6 is "high effort"
+
+## Cost of Delay Analysis
+
+Quantify what it costs to NOT do something each time period it is delayed.
+
+```markdown
+## Cost of Delay: [Feature Name]
+
+### Revenue Impact
+- Lost revenue per month of delay: $X
+- Source: [Pipeline data, churn analysis, competitive loss]
+
+### User Impact
+- Users affected: N
+- Workaround cost per user per month: X hours
+
+### Strategic Impact
+- Competitive window closes in: N months
+- Regulatory deadline: [date or N/A]
+
+### Total Cost of Delay
+$X/month (quantified) + [qualitative strategic cost]
+```
+
+### Delay Cost Categories
+
+| Type | How to Estimate | Example |
+|------|-----------------|---------|
+| **Revenue delay** | Pipeline deals blocked by missing feature | $50K/month in stalled deals |
+| **Churn risk** | Customers citing this in exit surveys | 3 enterprise accounts at risk |
+| **Competitive** | Competitor ships first, window shrinks | Market share loss |
+| **Compliance** | Fines or market access loss after deadline | GDPR: $20M max fine |
+| **Compounding** | Delay makes future work harder | Tech debt interest |
+
+## Trade-Off Flagging Template
+
+When two options compete for the same resources, surface the trade-off explicitly for human decision-makers. Do not make the call -- present the data.
+
+```markdown
+## Trade-Off: [Decision Title]
+
+### Context
+[Why this trade-off exists -- shared resources, timeline conflict, etc.]
+
+### Option A: [Name]
+- **Pros:** [List 2-3 concrete benefits with data]
+- **Cons:** [List 2-3 concrete downsides with data]
+- **RICE Score:** [If available]
+- **Cost of Delay:** [$/month]
+
+### Option B: [Name]
+- **Pros:** [List 2-3 concrete benefits with data]
+- **Cons:** [List 2-3 concrete downsides with data]
+- **RICE Score:** [If available]
+- **Cost of Delay:** [$/month]
+
+### Recommendation
+Human decides. Key factors to weigh:
+1. [Factor 1 -- e.g., Q2 OKR alignment]
+2. [Factor 2 -- e.g., team capacity next sprint]
+3. [Factor 3 -- e.g., customer commitment]
+```
+
+## Sequencing Principles
+
+When features have dependencies or shared resources, use these sequencing rules:
+
+1. **Highest cost-of-delay first** -- unless blocked by dependencies
+2. **Unblock others early** -- a low-value enabler that unblocks 3 high-value items ships first
+3. **Reduce risk early** -- unknowns first, known work later (fail fast)
+4. **Batch small items** -- group Quick Wins into a single sprint to clear the backlog
+
+**Incorrect -- prioritizing by gut feel:**
+```markdown
+Priority list:
+1. AI search (CEO wants it)
+2. Dashboard redesign (designer is excited)
+3. CSV import (seems easy)
+```
+
+**Correct -- opportunity cost matrix with explicit trade-offs:**
+```markdown
+Priority list (by cost of delay):
+1. CSV import -- $30K/month blocked deals, 1 week effort (Do First)
+2. AI search -- $25K/month competitive risk, 6 week effort (Do Next)
+3. Dashboard redesign -- $0 cost of delay, nice-to-have (Consider)
+
+Trade-off flagged: AI search vs platform migration for same
+eng team in Q2. See trade-off analysis doc for decision.
+```
+
+
+### Prioritize features with RICE and ICE scoring using Reach, Impact, Confidence, and Effort — HIGH
+
+
+# RICE & ICE Prioritization
+
+## RICE Framework
+
+Developed by Intercom for data-driven feature comparison.
+
+### Formula
+
+```
+RICE Score = (Reach x Impact x Confidence) / Effort
+```
+
+### Factors
+
+| Factor | Definition | Scale |
+|--------|------------|-------|
+| **Reach** | Users/customers affected per quarter | Actual number or 1-10 normalized |
+| **Impact** | Effect on individual user | 0.25 (minimal) to 3 (massive) |
+| **Confidence** | How sure are you? | 0.5 (low) to 1.0 (high) |
+| **Effort** | Person-months required | Actual estimate |
+
+### Impact Scale
+
+| Score | Level | Description |
+|-------|-------|-------------|
+| 3 | Massive | Fundamental improvement |
+| 2 | High | Significant improvement |
+| 1 | Medium | Noticeable improvement |
+| 0.5 | Low | Minor improvement |
+| 0.25 | Minimal | Barely noticeable |
+
+### Confidence Scale
+
+| Score | Level | Evidence |
+|-------|-------|----------|
+| 1.0 | High | Strong data, validated |
+| 0.8 | Medium | Some data, reasonable assumptions |
+| 0.5 | Low | Gut feeling, little data |
+| 0.3 | Moonshot | Speculative, new territory |
+
+### Example Calculation
+
+```markdown
+Feature: Smart search with AI suggestions
+
+Reach: 50,000 users/quarter (active searchers)
+Impact: 2 (high - significantly better results)
+Confidence: 0.8 (tested in prototype)
+Effort: 3 person-months
+
+RICE = (50,000 x 2 x 0.8) / 3 = 26,667
+```
+
+### RICE Scoring Template
+
+| Feature | Reach | Impact | Confidence | Effort | RICE Score |
+|---------|-------|--------|------------|--------|------------|
+| Feature A | 10,000 | 2 | 0.8 | 2 | 8,000 |
+| Feature B | 50,000 | 1 | 1.0 | 4 | 12,500 |
+| Feature C | 5,000 | 3 | 0.5 | 1 | 7,500 |
+
+## ICE Framework
+
+Simpler than RICE, ideal for fast prioritization.
+
+```
+ICE Score = Impact x Confidence x Ease
+```
+
+All factors on 1-10 scale.
+
+### ICE vs RICE
+
+| Aspect | RICE | ICE |
+|--------|------|-----|
+| Complexity | More detailed | Simpler |
+| Reach consideration | Explicit | Implicit in Impact |
+| Effort | Person-months | 1-10 Ease scale |
+| Best for | Data-driven teams | Fast decisions |
+
+## Kano Model
+
+Categorize features by customer satisfaction impact.
+
+| Type | Absent | Present | Example |
+|------|--------|---------|---------|
+| **Must-Be** | Dissatisfied | Neutral | Login works |
+| **Performance** | Dissatisfied | Satisfied | Fast load times |
+| **Delighters** | Neutral | Delighted | AI suggestions |
+| **Indifferent** | Neutral | Neutral | About page design |
+| **Reverse** | Satisfied | Dissatisfied | Forced tutorials |
+
+## Framework Selection Guide
+
+| Situation | Recommended Framework |
+|-----------|----------------------|
+| Data-driven team with metrics | RICE |
+| Fast startup decisions | ICE |
+| SAFe/Agile enterprise | WSJF |
+| Fixed scope negotiation | MoSCoW |
+| Customer satisfaction focus | Kano |
+
+## Common Pitfalls
+
+| Pitfall | Mitigation |
+|---------|------------|
+| Gaming the scores | Calibrate as a team regularly |
+| Ignoring qualitative factors | Use frameworks as input, not gospel |
+| Analysis paralysis | Set time limits on scoring sessions |
+| Inconsistent scales | Document and share scoring guidelines |
+
+**Incorrect — RICE without documented assumptions:**
+```markdown
+Feature A: RICE = 8,000
+Feature B: RICE = 12,500
+Priority: B, then A
+```
+
+**Correct — RICE with transparent scoring:**
+```markdown
+Feature B: Smart search with AI
+- Reach: 50,000 users/quarter (active searchers)
+- Impact: 2 (high - significantly better results)
+- Confidence: 0.8 (tested in prototype)
+- Effort: 3 person-months
+RICE = (50,000 × 2 × 0.8) / 3 = 26,667
+```
+
+
+### Prioritize backlogs with WSJF Cost of Delay and MoSCoW scope management — HIGH
+
+
+# WSJF & MoSCoW Prioritization
+
+## WSJF (Weighted Shortest Job First)
+
+SAFe framework optimizing for economic value delivery.
+
+### Formula
+
+```
+WSJF = Cost of Delay / Job Size
+```
+
+Higher WSJF = Higher priority (do first)
+
+### Cost of Delay Components
+
+```
+Cost of Delay = User Value + Time Criticality + Risk Reduction
+```
+
+| Component | Question | Scale |
+|-----------|----------|-------|
+| **User Value** | How much do users/business want this? | 1-21 (Fibonacci) |
+| **Time Criticality** | Does value decay over time? | 1-21 |
+| **Risk Reduction** | Does this reduce risk or enable opportunities? | 1-21 |
+| **Job Size** | Relative effort compared to other items | 1-21 |
+
+### Time Criticality Guidelines
+
+| Score | Situation |
+|-------|-----------|
+| 21 | Must ship this quarter or lose the opportunity |
+| 13 | Competitor pressure, 6-month window |
+| 8 | Customer requested, flexible timeline |
+| 3 | Nice to have, no deadline |
+| 1 | Can wait indefinitely |
+
+### Example
+
+```markdown
+Feature: GDPR compliance update
+
+User Value: 8 (required for EU customers)
+Time Criticality: 21 (regulatory deadline)
+Risk Reduction: 13 (avoids fines)
+Job Size: 8 (medium complexity)
+
+Cost of Delay = 8 + 21 + 13 = 42
+WSJF = 42 / 8 = 5.25
+```
+
+### WSJF vs RICE
+
+| Use WSJF When | Use RICE When |
+|---------------|---------------|
+| Time matters | Value matters |
+| Deadlines exist | Steady-state prioritization |
+| Dependencies complex | Independent features |
+| Opportunity cost high | User reach important |
+
+## MoSCoW Method
+
+Qualitative prioritization for scope management.
+
+### Categories
+
+| Priority | Meaning | Guideline |
+|----------|---------|-----------|
+| **Must Have** | Non-negotiable for release | ~60% of effort |
+| **Should Have** | Important but not critical | ~20% of effort |
+| **Could Have** | Nice to have if time permits | ~20% of effort |
+| **Won't Have** | Explicitly out of scope | Documented |
+
+### Application Rules
+
+1. **Must Have** items alone should deliver a viable product
+2. **Should Have** items make product competitive
+3. **Could Have** items delight users
+4. **Won't Have** prevents scope creep
+
+### Template
+
+```markdown
+## Release 1.0 MoSCoW
+
+### Must Have (M)
+- [ ] User authentication
+- [ ] Core data model
+- [ ] Basic CRUD operations
+
+### Should Have (S)
+- [ ] Search functionality
+- [ ] Export to CSV
+- [ ] Email notifications
+
+### Could Have (C)
+- [ ] Dark mode
+- [ ] Keyboard shortcuts
+- [ ] Custom themes
+
+### Won't Have (W)
+- Mobile app (Release 2.0)
+- AI recommendations (Release 2.0)
+- Multi-language support (Release 3.0)
+```
+
+## Practical Tips
+
+1. **Calibrate together**: Score several items as a team to align understanding
+2. **Revisit regularly**: Priorities shift -- rescore quarterly
+3. **Document assumptions**: Why did you give that Impact score?
+4. **Combine frameworks**: Use ICE for quick triage, RICE for final decisions
+
+**Incorrect — MoSCoW without viable Must-Have set:**
+```markdown
+Must Have:
+- User auth, CRUD, search, export, AI features,
+  mobile app, analytics, notifications (90% of scope)
+
+[Product not viable with just Must-Have items]
+```
+
+**Correct — Must-Have delivers viable product:**
+```markdown
+Must Have (60% of effort):
+- User authentication
+- Core data model
+- Basic CRUD operations
+
+Should Have (20%):
+- Search, export, notifications
+
+Could Have (20%):
+- Dark mode, keyboard shortcuts
+```
+
+
+
+---
+
+## References (2)
+
+### Rice Scoring Guide
+
+# RICE Scoring Guide
+
+Comprehensive guide for using RICE prioritization effectively.
+
+## RICE Formula
+
+```
+RICE Score = (Reach × Impact × Confidence) / Effort
+```
+
+## Reach Scoring
+
+Estimate how many users/customers will be affected per quarter.
+
+| Score | % of Users | Description |
+|-------|------------|-------------|
+| 10 | 100% | All users |
+| 8 | 80% | Most users |
+| 5 | 50% | Half of users |
+| 3 | 30% | Some users |
+| 1 | 10% | Few users |
+
+### Calculating Reach
+
+```
+Reach = (Users affected) / (Total users) × 10
+
+Example:
+- Total MAU: 10,000
+- Users who use search: 8,000
+- Reach for search improvement: 8,000/10,000 × 10 = 8
+```
+
+## Impact Scoring
+
+How much will this move the needle on your goal?
+
+| Score | Impact Level | Description |
+|-------|--------------|-------------|
+| 3.0 | Massive | 3x or more improvement |
+| 2.0 | High | 2x improvement |
+| 1.0 | Medium | Notable improvement |
+| 0.5 | Low | Minor improvement |
+| 0.25 | Minimal | Barely noticeable |
+
+### Impact Assessment Questions
+
+1. What metric does this affect?
+2. By how much will it change?
+3. What's the baseline?
+4. What's the target?
+
+## Confidence Scoring
+
+How certain are you about Reach and Impact estimates?
+
+| Score | Confidence | Evidence Level |
+|-------|------------|----------------|
+| 1.0 | High | Data-backed (analytics, A/B tests) |
+| 0.8 | Medium | Some validation (user interviews, surveys) |
+| 0.5 | Low | Gut feel (experienced intuition) |
+| 0.3 | Moonshot | Speculative (new territory) |
+
+### Confidence Calibration
+
+- Used similar feature before? → +0.2
+- Have user research? → +0.2
+- Have analytics data? → +0.2
+- New domain/technology? → -0.2
+- Many unknowns? → -0.2
+
+## Effort Scoring
+
+Person-weeks of work to ship (design, development, testing).
+
+| Score | Effort | Timeline |
+|-------|--------|----------|
+| 0.5 | Trivial | &lt; 1 week |
+| 1 | Small | 1 week |
+| 2 | Medium | 2 weeks |
+| 4 | Large | 1 month |
+| 8 | XL | 2 months |
+| 16 | XXL | Quarter |
+
+### Effort Estimation Tips
+
+- Include all disciplines (design, eng, QA)
+- Add buffer for unknowns (1.2-1.5x)
+- Consider dependencies
+- Account for coordination overhead
+
+## Example Scoring
+
+```markdown
+## Feature: Advanced Search Filters
+
+### Reach: 8
+- 80% of users use search at least once/week
+- Source: Analytics dashboard
+
+### Impact: 2.0
+- Support tickets about search: 40/week
+- Expected reduction: 50%
+- Secondary: +10% search completion rate
+
+### Confidence: 0.8
+- Have user interview data (5 users)
+- Similar feature at competitor successful
+- No A/B test yet
+
+### Effort: 2
+- Design: 0.5 weeks
+- Backend: 1 week
+- Frontend: 0.5 weeks
+
+### RICE Score
+(8 × 2.0 × 0.8) / 2 = 6.4
+```
+
+## Common Mistakes
+
+| Mistake | Solution |
+|---------|----------|
+| Overestimating reach | Use actual data, not hopes |
+| Impact without baseline | Define current state first |
+| 100% confidence | Nothing is certain |
+| Underestimating effort | Include all work, add buffer |
+| Comparing across goals | Only compare within same goal |
+
+## When NOT to Use RICE
+
+- Mandatory compliance/security work
+- Technical debt paydown
+- Infrastructure investments
+- Strategic bets with long payoff
+
+
+### Wsjf Guide
+
+# WSJF (Weighted Shortest Job First) Guide
+
+Framework for prioritizing when time-to-market matters.
+
+## WSJF Formula
+
+```
+WSJF = Cost of Delay / Job Size
+```
+
+Higher WSJF = Higher priority (do first)
+
+## Cost of Delay Components
+
+```
+Cost of Delay = User Value + Time Criticality + Risk Reduction
+```
+
+### User Value (1-10)
+How much do users need this?
+
+| Score | Description |
+|-------|-------------|
+| 10 | Critical - users leaving without it |
+| 7-9 | High - major pain point |
+| 4-6 | Medium - nice improvement |
+| 1-3 | Low - minor enhancement |
+
+### Time Criticality (1-10)
+How urgent is the timing?
+
+| Score | Description |
+|-------|-------------|
+| 10 | Hard deadline (regulatory, event) |
+| 7-9 | Competitive window closing |
+| 4-6 | Sooner better, but flexible |
+| 1-3 | No time pressure |
+
+### Risk Reduction (1-10)
+Does delay increase risk?
+
+| Score | Description |
+|-------|-------------|
+| 10 | Major risk if delayed (security, stability) |
+| 7-9 | Significant risk accumulation |
+| 4-6 | Moderate risk growth |
+| 1-3 | Risk doesn't change with time |
+
+## Job Size (1-10)
+
+Relative size compared to other work.
+
+| Score | Description |
+|-------|-------------|
+| 1-2 | XS - days |
+| 3-4 | S - 1-2 weeks |
+| 5-6 | M - 2-4 weeks |
+| 7-8 | L - 1-2 months |
+| 9-10 | XL - quarter+ |
+
+## Example Calculation
+
+```markdown
+## Feature: Security Patch for CVE
+
+### User Value: 6
+- Affects enterprise customers
+- Not user-facing but required for compliance
+
+### Time Criticality: 9
+- CVE published, 90-day disclosure window
+- Competitors already patched
+
+### Risk Reduction: 10
+- Active exploitation in the wild
+- Potential data breach
+
+### Cost of Delay: 6 + 9 + 10 = 25
+
+### Job Size: 3
+- Known fix, straightforward implementation
+- ~1 week of work
+
+### WSJF: 25 / 3 = 8.33
+```
+
+## When to Use WSJF
+
+- Multiple time-sensitive items competing
+- Opportunity windows exist
+- Dependencies create bottlenecks
+- Need to justify "why now"
+
+## WSJF vs RICE
+
+| Use WSJF When | Use RICE When |
+|---------------|---------------|
+| Time matters | Value matters |
+| Deadlines exist | Steady-state prioritization |
+| Dependencies complex | Independent features |
+| Opportunity cost high | User reach important |
+
+## Visualization
+
+```
+              HIGH Time Criticality
+                      │
+           ┌──────────┼──────────┐
+           │    DO    │   DO     │
+           │   FIRST  │  SECOND  │
+HIGH ──────┼──────────┼──────────┼────── LOW
+User Value │    DO    │   DO     │  User Value
+           │  THIRD   │  LAST    │
+           └──────────┼──────────┘
+                      │
+              LOW Time Criticality
+```
+

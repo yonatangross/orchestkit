@@ -671,6 +671,42 @@ export const SKILLS: Record<string, SkillMeta> = {
       "web-research-analyst"
     ]
   },
+  "business-case": {
+    "name": "business-case",
+    "description": "ROI, NPV, IRR, payback period, and TCO calculations for investment decisions. Use when building financial justification, cost-benefit analysis, build-vs-buy comparisons, or sensitivity analysis.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "roi",
+      "npv",
+      "irr",
+      "tco",
+      "build-vs-buy",
+      "financial-analysis",
+      "cost-benefit"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "skills": [],
+    "agent": "product-strategist",
+    "structure": {
+      "references": [
+        "build-buy-partner-decision.md",
+        "roi-calculation-guide.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
   "checkpoint-resume": {
     "name": "checkpoint-resume",
     "description": "Rate-limit-resilient pipeline with checkpoint/resume for long multi-phase sessions. Saves progress to .claude/pipeline-state.json after each phase. Use when starting a complex multi-phase task that risks hitting rate limits, when resuming an interrupted session, or when orchestrating work spanning commits, GitHub issues, and large file changes.",
@@ -798,6 +834,41 @@ export const SKILLS: Record<string, SkillMeta> = {
     "relatedAgents": [
       "git-operations-engineer"
     ]
+  },
+  "competitive-analysis": {
+    "name": "competitive-analysis",
+    "description": "Porter's Five Forces, SWOT analysis, and competitive landscape mapping. Use when analyzing market position, evaluating competitive threats, building battlecards, or assessing industry dynamics.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "porter",
+      "swot",
+      "competitive",
+      "battlecard",
+      "moat",
+      "five-forces",
+      "landscape"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "skills": [],
+    "agent": "product-strategist",
+    "structure": {
+      "references": [
+        "competitive-analysis-guide.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
   },
   "configure": {
     "name": "configure",
@@ -1867,6 +1938,40 @@ export const SKILLS: Record<string, SkillMeta> = {
       "workflow-architect"
     ]
   },
+  "market-sizing": {
+    "name": "market-sizing",
+    "description": "TAM, SAM, SOM market sizing with top-down and bottom-up methods. Use when estimating addressable market, validating opportunity size, sizing new segments, or preparing investor pitch materials.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "tam",
+      "sam",
+      "som",
+      "market-size",
+      "addressable-market",
+      "opportunity-sizing"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "skills": [],
+    "agent": "product-strategist",
+    "structure": {
+      "references": [
+        "tam-sam-som-guide.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
   "mcp-patterns": {
     "name": "mcp-patterns",
     "description": "MCP server building, advanced patterns, and security hardening. Use when building MCP servers, implementing tool handlers, adding authentication, creating interactive UIs, hardening MCP security, or debugging MCP integrations.",
@@ -2181,6 +2286,42 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": []
   },
+  "okr-design": {
+    "name": "okr-design",
+    "description": "OKR trees, KPI dashboards, North Star Metric, leading/lagging indicators, and experiment design. Use when setting team goals, defining success metrics, building measurement frameworks, or designing A/B experiment guardrails.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "okr",
+      "kpi",
+      "north-star",
+      "metrics",
+      "experiment",
+      "goal-setting",
+      "leading-lagging",
+      "instrumentation"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "skills": [],
+    "agent": "product-strategist",
+    "structure": {
+      "references": [
+        "okr-workshop-guide.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
   "performance": {
     "name": "performance",
     "description": "Performance optimization patterns covering Core Web Vitals, React render optimization, lazy loading, image optimization, backend profiling, and LLM inference. Use when improving page speed, debugging slow renders, optimizing bundles, reducing image payload, profiling backend, or deploying LLMs efficiently.",
@@ -2336,6 +2477,42 @@ export const SKILLS: Record<string, SkillMeta> = {
       "system-design-reviewer"
     ]
   },
+  "prd": {
+    "name": "prd",
+    "description": "Product Requirements Documents with structured 8-section templates, user stories, acceptance criteria, and value proposition validation. Use when writing PRDs, defining product requirements, creating user stories with INVEST criteria, or building go/no-go decision frameworks.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "prd",
+      "requirements",
+      "user-story",
+      "acceptance-criteria",
+      "invest",
+      "value-proposition",
+      "go-no-go"
+    ],
+    "userInvocable": true,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "skills": [],
+    "agent": "product-strategist",
+    "structure": {
+      "references": [
+        "output-templates.md",
+        "value-prop-canvas-guide.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
   "presentation-builder": {
     "name": "presentation-builder",
     "description": "Creates zero-dependency, animation-rich HTML presentations from scratch or by converting PowerPoint files. Use when the user wants to build a presentation, convert a PPT/PPTX to web slides, or create a slide deck for a talk, pitch, or tutorial. Generates single self-contained HTML files with inline CSS/JS.",
@@ -2368,6 +2545,79 @@ export const SKILLS: Record<string, SkillMeta> = {
       "references": [
         "pptx-conversion.md",
         "style-presets.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "prioritization": {
+    "name": "prioritization",
+    "description": "RICE, WSJF, ICE, MoSCoW, and opportunity cost scoring for backlog ranking. Use when prioritizing features, comparing initiatives, justifying roadmap decisions, or evaluating trade-offs between competing work items.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "rice",
+      "wsjf",
+      "ice",
+      "moscow",
+      "prioritization",
+      "backlog",
+      "scoring",
+      "ranking"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "skills": [],
+    "agent": "product-strategist",
+    "structure": {
+      "references": [
+        "rice-scoring-guide.md",
+        "wsjf-guide.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "product-analytics": {
+    "name": "product-analytics",
+    "description": "A/B test evaluation, cohort retention analysis, funnel metrics, and experiment-driven product decisions. Use when analyzing experiments, measuring feature adoption, diagnosing conversion drop-offs, or evaluating statistical significance of product changes.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "ab-test",
+      "cohort",
+      "retention",
+      "funnel",
+      "conversion",
+      "analytics",
+      "experiment",
+      "statistical-significance"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "skills": [],
+    "agent": "product-strategist",
+    "structure": {
+      "references": [
+        "stats-cheat-sheet.md"
       ]
     },
     "plugins": [
@@ -3414,6 +3664,44 @@ export const SKILLS: Record<string, SkillMeta> = {
         "output-format.md",
         "recommendation-format.md",
         "scoring-rubric.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "user-research": {
+    "name": "user-research",
+    "description": "User personas, customer journey maps, interview guides, usability testing, and card sorting. Use when building user understanding, mapping customer experiences, planning user research sessions, or defining Jobs-to-Be-Done.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "persona",
+      "journey-map",
+      "user-interview",
+      "usability",
+      "jtbd",
+      "card-sort",
+      "empathy-map",
+      "research"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "skills": [],
+    "agent": "product-strategist",
+    "structure": {
+      "references": [
+        "interview-guide-template.md",
+        "journey-map-workshop.md",
+        "user-story-workshop-guide.md"
       ]
     },
     "plugins": [

@@ -1,0 +1,493 @@
+---
+title: "Competitive Analysis"
+description: "Porter's Five Forces, SWOT analysis, and competitive landscape mapping. Use when analyzing market position, evaluating competitive threats, building battlecards, or assessing industry dynamics."
+---
+
+<span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
+
+**Primary Agent:** [product-strategist](/docs/reference/agents/product-strategist)
+
+
+# Competitive Analysis
+
+Frameworks for analyzing competitive position and industry dynamics.
+
+## When to Use Porter's vs. SWOT
+
+| Framework | Use When |
+|-----------|----------|
+| **Porter's Five Forces** | Evaluating industry attractiveness; new market entry; strategic positioning |
+| **SWOT** | Internal capability assessment; go/no-go decisions; strategy planning |
+| **Competitive Landscape Map** | Visualizing whitespace; investor decks; positioning against specific competitors |
+| **Competitor Profiles** | Battlecards for sales; feature gap analysis; threat assessment |
+
+Use Porter's to understand the structural forces shaping the industry. Use SWOT to assess your specific position within it. Combine both for a complete picture.
+
+## Porter's Five Forces Template
+
+```markdown
+## Porter's Five Forces: [Industry/Market]
+
+### 1. Competitive Rivalry — Intensity: HIGH / MEDIUM / LOW
+| Factor | Assessment |
+|--------|------------|
+| Number of competitors | |
+| Industry growth rate | |
+| Product differentiation | |
+| Exit barriers | |
+
+### 2. Threat of New Entrants — Threat Level: HIGH / MEDIUM / LOW
+| Barrier | Strength |
+|---------|----------|
+| Economies of scale | |
+| Brand loyalty | |
+| Capital requirements | |
+| Network effects | |
+| Switching costs | |
+
+### 3. Bargaining Power of Suppliers — Power: HIGH / MEDIUM / LOW
+[Key suppliers, switching cost, concentration]
+
+### 4. Bargaining Power of Buyers — Power: HIGH / MEDIUM / LOW
+[Price sensitivity, alternatives available, buyer concentration]
+
+### 5. Threat of Substitutes — Threat: HIGH / MEDIUM / LOW
+[Alternative ways customers solve the same problem]
+
+### Overall Industry Attractiveness: X/10
+[Summary: which forces are most significant and why]
+```
+
+## SWOT Analysis
+
+```
++-------------------------+-------------------------+
+|       STRENGTHS         |       WEAKNESSES        |
+|       (Internal +)      |       (Internal -)      |
+| * What we do well       | * Where we lack         |
+| * Unique resources      | * Resource gaps         |
+| * Competitive advantages| * Capability limits     |
++-------------------------+-------------------------+
+|      OPPORTUNITIES      |         THREATS         |
+|       (External +)      |       (External -)      |
+| * Market trends         | * Competitive pressure  |
+| * Unmet needs           | * Regulatory changes    |
+| * Technology shifts     | * Economic factors      |
++-------------------------+-------------------------+
+```
+
+### TOWS Matrix (SWOT to Strategy)
+
+| | Strengths | Weaknesses |
+|---|-----------|------------|
+| **Opportunities** | SO: Use strengths to capture opportunities | WO: Fix weaknesses to unlock opportunities |
+| **Threats** | ST: Use strengths to mitigate threats | WT: Minimize weaknesses, avoid threats |
+
+## Competitor Profile Template
+
+```markdown
+## Competitor: [Name]
+
+### Overview
+- Founded: [Year] | Funding: $[Amount] | Employees: [N]
+- Target customer: [Segment]
+- Pricing: [Model and range]
+
+### Strengths / Weaknesses
++ [Strength 1]
++ [Strength 2]
+- [Weakness 1]
+- [Weakness 2]
+
+### Threat Assessment: HIGH / MEDIUM / LOW
+- [Why this threat level]
+- [Our differentiation vs. this competitor]
+```
+
+## Competitive Landscape Map
+
+Plot competitors on two axes that matter most to buyers (e.g., price vs. features, ease of use vs. power):
+
+```
+                    HIGH PRICE
+                        |
+     Premium Leaders    |    Luxury Niche
+   +-------------+      |      +-------------+
+   |  [Comp A]   |      |      |  [Comp B]   |
+   +-------------+      |      +-------------+
+                        |
+LOW ────────────────────+──────────────────── HIGH
+FEATURES                |                   FEATURES
+                        |
+   +-------------+      |      +-------------+
+   |  [Comp C]   |      |      |    [US]     |
+   +-------------+      |      +-------------+
+     Budget Options     |    Value Leaders
+                        |
+                    LOW PRICE
+```
+
+Identify whitespace — quadrants with no incumbents that align with unmet buyer needs.
+
+## GitHub Signals for Competitive Tracking
+
+```bash
+# Star count and momentum
+gh api repos/owner/repo --jq '{stars: .stargazers_count, forks: .forks_count}'
+
+# Shipping velocity (recent releases)
+gh release list --repo owner/repo --limit 5
+
+# Community size
+gh api repos/owner/repo/contributors --jq 'length'
+```
+
+| Signal | Check Frequency |
+|--------|-----------------|
+| Star growth | Weekly |
+| Release notes | Per release |
+| Pricing changes | Monthly |
+| Feature launches | Per announcement |
+| Full analysis | Quarterly |
+
+## References
+
+- [Competitive Analysis Rules](rules/market-competitive.md) — Porter's, SWOT, landscape map, competitor profile templates
+- [Competitive Analysis Guide](references/competitive-analysis-guide.md) — Research methodology, data sources, update cadence
+
+## Related Skills
+
+- `ork:market-sizing` — Quantify opportunity size alongside competitive landscape
+- `ork:business-case` — Build financial justification informed by competitive position
+- `ork:product-frameworks` — Full product strategy toolkit (value prop, prioritization, OKRs)
+
+---
+
+Version: 1.0.0
+
+
+---
+
+## Rules (1)
+
+### Analyze competitive landscape using Porter Five Forces, SWOT, and positioning maps — HIGH
+
+
+# Competitive Analysis
+
+Frameworks for analyzing competition and understanding industry dynamics.
+
+## Porter's Five Forces
+
+```
+                    +---------------------+
+                    |  Threat of New      |
+                    |     Entrants        |
+                    |    (Barrier height) |
+                    +---------+-----------+
+                              |
+                              v
++-----------------+    +-----------------+    +-----------------+
+|   Bargaining    |    |   Competitive   |    |   Bargaining    |
+|   Power of      |<---|    Rivalry      |--->|   Power of      |
+|   Suppliers     |    |  (Intensity)    |    |    Buyers       |
++-----------------+    +---------+-------+    +-----------------+
+                              |
+                              v
+                    +---------------------+
+                    |  Threat of          |
+                    |   Substitutes       |
+                    | (Alternative ways)  |
+                    +---------------------+
+```
+
+### Force Analysis Template
+
+```markdown
+## Porter's Five Forces: [Industry]
+
+### 1. Competitive Rivalry -- Intensity: HIGH / MEDIUM / LOW
+| Factor | Assessment |
+|--------|------------|
+| Number of competitors | |
+| Industry growth rate | |
+| Product differentiation | |
+| Exit barriers | |
+
+### 2. Threat of New Entrants -- Threat Level: HIGH / MEDIUM / LOW
+| Barrier | Strength |
+|---------|----------|
+| Economies of scale | |
+| Brand loyalty | |
+| Capital requirements | |
+| Network effects | |
+
+### 3-5. [Supplier power, Buyer power, Substitutes]
+[Same structure]
+
+### Overall Industry Attractiveness: X/10
+```
+
+## SWOT Analysis
+
+```
++-------------------------+-------------------------+
+|       STRENGTHS         |       WEAKNESSES        |
+|       (Internal +)      |       (Internal -)      |
+| * What we do well       | * Where we lack         |
+| * Unique resources      | * Resource gaps          |
+| * Competitive advantages| * Capability limits     |
++-------------------------+-------------------------+
+|      OPPORTUNITIES      |         THREATS         |
+|       (External +)      |       (External -)      |
+| * Market trends         | * Competitive pressure  |
+| * Unmet needs           | * Regulatory changes    |
+| * Technology shifts     | * Economic factors      |
++-------------------------+-------------------------+
+```
+
+### SWOT to Strategy (TOWS Matrix)
+
+| | Strengths | Weaknesses |
+|---|-----------|------------|
+| **Opportunities** | **SO Strategies**: Use strengths to capture opportunities | **WO Strategies**: Overcome weaknesses to capture opportunities |
+| **Threats** | **ST Strategies**: Use strengths to mitigate threats | **WT Strategies**: Minimize weaknesses and avoid threats |
+
+## Competitive Landscape Map
+
+```
+                    HIGH PRICE
+                        |
+         Premium        |        Luxury
+         Leaders        |        Niche
+    +-------------+     |     +-------------+
+    |  [Comp A]   |     |     |  [Comp B]   |
+    +-------------+     |     +-------------+
+                        |
+LOW --------------------+-------------------- HIGH
+FEATURES                |                   FEATURES
+                        |
+    +-------------+     |     +-------------+
+    |  [Comp C]   |     |     |    [US]     |
+    +-------------+     |     +-------------+
+         Budget         |       Value
+         Options        |       Leaders
+                        |
+                    LOW PRICE
+```
+
+## Competitor Profile Template
+
+```markdown
+## Competitor: [Name]
+
+### Overview
+- **Founded:** [Year]
+- **Funding:** $[Amount]
+- **Employees:** [N]
+
+### Product
+- **Core offering:** [Description]
+- **Key features:** [List]
+- **Pricing:** [Model]
+- **Target customer:** [Segment]
+
+### Strengths / Weaknesses
+1. [Strength/Weakness]
+2. [Strength/Weakness]
+
+### Threat Assessment: HIGH / MEDIUM / LOW
+```
+
+## GitHub Signals to Track
+
+```bash
+# Star count and growth
+gh api repos/owner/repo --jq '{stars: .stargazers_count}'
+
+# Recent releases (shipping velocity)
+gh release list --repo owner/repo --limit 5
+
+# Contributor count
+gh api repos/owner/repo/contributors --jq 'length'
+```
+
+## Update Frequency
+
+| Signal | Check Frequency |
+|--------|-----------------|
+| Star growth | Weekly |
+| Release notes | Per release |
+| Pricing changes | Monthly |
+| Feature launches | Per announcement |
+| Full analysis | Quarterly |
+
+**Incorrect — Vague competitive assessment:**
+```markdown
+## Competitors
+- Company A: Big player, lots of features
+- Company B: Cheaper option
+- Company C: New entrant
+```
+
+**Correct — Structured competitive analysis with SWOT:**
+```markdown
+## Competitor: Company A
+
+### Strengths / Weaknesses
++ Established brand, 60% market share
++ Enterprise features (SSO, RBAC)
+- Legacy UI, poor mobile experience
+- Slow release cycle (quarterly)
+
+### Threat Assessment: HIGH
+- Direct competitor in enterprise segment
+- Strong sales team, existing relationships
+
+### Our Differentiation
+- Modern UX, mobile-first
+- Weekly releases, faster iteration
+```
+
+
+
+---
+
+## References (1)
+
+### Competitive Analysis Guide
+
+# Competitive Analysis Guide
+
+Framework for systematic competitor research.
+
+## Competitor Categories
+
+```
+DIRECT COMPETITORS
+└── Same problem, same solution approach
+└── Example: Cursor vs GitHub Copilot
+
+INDIRECT COMPETITORS
+└── Same problem, different solution
+└── Example: AI coding vs traditional IDE plugins
+
+POTENTIAL COMPETITORS
+└── Adjacent players who could enter
+└── Example: Cloud providers adding AI tools
+```
+
+## Competitive Analysis Framework
+
+### 1. Identify Competitors
+
+```bash
+# GitHub search for similar projects
+gh search repos "langgraph workflow" --sort stars --limit 10
+
+# Check related topics
+gh api search/repositories?q=topic:ai-agents --jq '.items[].full_name'
+```
+
+### 2. Build Competitor Profiles
+
+```markdown
+## Competitor: [Name]
+
+### Overview
+- Founded: [Year]
+- Funding: $[Amount]
+- Team size: [N]
+- Headquarters: [Location]
+
+### Product
+- Core offering: [Description]
+- Target segment: [Who they serve]
+- Pricing: [Model and range]
+- Technology: [Key tech stack]
+
+### Positioning
+- Value proposition: [Their pitch]
+- Key differentiators: [What they claim]
+- Messaging: [How they talk about themselves]
+
+### Strengths
+- [Strength 1]
+- [Strength 2]
+
+### Weaknesses
+- [Weakness 1]
+- [Weakness 2]
+
+### Market Presence
+- GitHub stars: [N]
+- Monthly growth: [%]
+- Community activity: [Active/Moderate/Low]
+```
+
+### 3. Feature Comparison Matrix
+
+| Feature | Us | Competitor A | Competitor B | Competitor C |
+|---------|-----|--------------|--------------|--------------|
+| Core capability 1 | ✅ | ✅ | ❌ | ✅ |
+| Core capability 2 | ✅ | ❌ | ✅ | ⚠️ |
+| Integration X | ✅ | ✅ | ✅ | ❌ |
+| Pricing (entry) | $X | $Y | $Z | $W |
+| Open source | ✅ | ❌ | ✅ | ❌ |
+
+### 4. Positioning Map
+
+```
+                    EASE OF USE
+                        │
+           ┌────────────┼────────────┐
+           │    Us      │    [B]     │
+HIGH ──────┼────────────┼────────────┼────── LOW
+POWER      │            │            │   POWER
+           │    [A]     │    [C]     │
+           └────────────┼────────────┘
+                        │
+                    COMPLEXITY
+```
+
+### 5. SWOT Analysis
+
+```
+           HELPFUL              HARMFUL
+         ┌─────────────┬─────────────┐
+INTERNAL │ STRENGTHS   │ WEAKNESSES  │
+         │ • Our tech  │ • Resources │
+         │ • Our team  │ • Gaps      │
+         ├─────────────┼─────────────┤
+EXTERNAL │ OPPORTUN.   │ THREATS     │
+         │ • Market    │ • [Comp A]  │
+         │ • Trends    │ • Risks     │
+         └─────────────┴─────────────┘
+```
+
+## GitHub Signals to Track
+
+```bash
+# Star count and growth
+gh api repos/owner/repo --jq '{stars: .stargazers_count}'
+
+# Issue activity (community engagement)
+gh api repos/owner/repo --jq '{open_issues: .open_issues_count}'
+
+# Recent releases (shipping velocity)
+gh release list --repo owner/repo --limit 5
+
+# Contributor count
+gh api repos/owner/repo/contributors --jq 'length'
+```
+
+## Update Frequency
+
+| Signal | Check Frequency |
+|--------|-----------------|
+| Star growth | Weekly |
+| Release notes | Per release |
+| Pricing changes | Monthly |
+| Feature launches | Per announcement |
+| Full analysis | Quarterly |
+

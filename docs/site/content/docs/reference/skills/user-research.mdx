@@ -1,0 +1,1151 @@
+---
+title: "User Research"
+description: "User personas, customer journey maps, interview guides, usability testing, and card sorting. Use when building user understanding, mapping customer experiences, planning user research sessions, or defining Jobs-to-Be-Done."
+---
+
+<span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
+
+**Primary Agent:** [product-strategist](/docs/reference/agents/product-strategist)
+
+
+# User Research
+
+Frameworks for building deep user understanding through structured research methods. Covers personas, journey mapping, interviews, usability testing, and Jobs-to-be-Done.
+
+## Research Method Selection
+
+Choose the right method for your question:
+
+| Method | When to Use | Sample Size | Time | Output |
+|--------|-------------|-------------|------|--------|
+| User Interviews | Early discovery, deep understanding | 5-8 | 2-3 weeks | Qualitative insights |
+| Usability Testing | Validate designs, find issues | 5-10 | 1-2 weeks | Actionable fixes |
+| Surveys | Quantify attitudes, preferences | 100+ | 1-2 weeks | Statistical data |
+| Card Sorting | Information architecture | 15-30 | 1 week | IA recommendations |
+| A/B Testing | Compare alternatives | 1000+ | 2-4 weeks | Statistical winner |
+
+**Rule of thumb:** Start with interviews (5-8 participants) to discover unknowns. Switch to surveys once you have hypotheses to validate.
+
+## Persona Quick Reference
+
+Personas are fictional composites built from research synthesis. Keep to 3-5 max.
+
+```markdown
+## Persona: [Name]
+
+### Demographics
+- Age: [Range]
+- Role: [Job title]
+- Company: [Type/size]
+- Tech savviness: [Low/Medium/High]
+
+### Quote
+> "[Characteristic statement that captures their mindset]"
+
+### Goals
+1. [Primary goal - what success looks like]
+2. [Secondary goal]
+
+### Pain Points
+1. [Frustration with current state]
+2. [Obstacle they face]
+
+### Key Insight
+[The most important thing to remember about this persona]
+```
+
+**Incorrect — vague persona without goals:**
+```markdown
+Persona: Sarah, Age 35, Marketing Manager. Likes social media and coffee.
+```
+
+**Correct — actionable persona with goals and pain points:**
+```markdown
+Persona: DevOps Dana
+Quote: "I don't have time for tools that create more work than they save."
+Goals: Reduce deployment failures, give devs self-service capabilities
+Pain Points: Alert fatigue from false positives, context-switching between 10+ tools
+Key Insight: Evaluates tools by "time saved vs. time invested" — needs immediate value.
+```
+
+## Journey Map Structure
+
+Maps the end-to-end experience for a specific persona and scenario.
+
+```markdown
+## Journey Map: [Journey Name]
+
+### Persona + Scenario
+[Which persona | What they're trying to accomplish]
+
+### Stages: Aware → Consider → Purchase → Onboard → Use → Retain
+
+For each stage:
+- **Touchpoints:** [Channel/interaction point]
+- **Actions:** [What user does]
+- **Emotions:** [Satisfied / Neutral / Frustrated]
+- **Pain Points:** [Friction]
+- **Opportunities:** [How we improve]
+```
+
+Common B2B SaaS stages: `Awareness → Evaluation → Purchase → Onboarding → Adoption → Expansion → Advocacy/Churn`
+
+## JTBD Framework
+
+People don't buy products — they hire them to do specific jobs.
+
+**JTBD Statement Format:**
+```
+When [situation], I want to [motivation], so I can [expected outcome].
+```
+
+**Example:**
+```
+When I'm preparing for a board review, I want to quickly see revenue trends,
+so I can answer questions confidently without scrambling for data.
+```
+
+**Job Dimensions:**
+| Dimension | Description |
+|-----------|-------------|
+| Functional | Practical task to accomplish |
+| Emotional | How the user wants to feel |
+| Social | How the user wants to be perceived |
+
+**Opportunity Score:** `Importance + (Importance - Satisfaction)` — scores > 10 indicate high-opportunity areas.
+
+## Empathy Map
+
+Quick tool for building shared understanding in workshops:
+
+```
++-------------------------+-------------------------------+
+|         SAYS            |            THINKS             |
+| Direct quotes           | Worries and concerns          |
+| Questions asked         | Aspirations                   |
++-------------------------+-------------------------------+
+|         DOES            |            FEELS              |
+| Observable actions      | Emotional state               |
+| Workarounds             | Frustrations and delights     |
++-------------------------+-------------------------------+
+|         PAINS           |            GAINS              |
+| Fears and obstacles     | Wants and needs               |
++-------------------------+-------------------------------+
+```
+
+## Interview Best Practices
+
+| Do | Don't |
+|----|-------|
+| Ask open-ended questions | Ask leading questions |
+| Ask "why" and "how" | Accept surface answers |
+| Follow interesting threads | Stick rigidly to script |
+| Take verbatim notes | Paraphrase or interpret |
+
+**Standard interview arc:** Warm-up (5 min) → Context setting (10 min) → Deep dive (25 min) → Wrap-up (5 min)
+
+## Rules (Load On-Demand)
+
+Read these files for detailed guidance:
+- [research-personas.md](rules/research-personas.md) — Persona template, empathy map, maintenance schedule
+- [research-journey-mapping.md](rules/research-journey-mapping.md) — Journey map template, service blueprints, experience curves
+- [research-user-interviews.md](rules/research-user-interviews.md) — Interview structure, usability testing, NPS/SUS, card sorting
+
+## References
+
+- [interview-guide-template.md](references/interview-guide-template.md) — Ready-to-use interview guide template
+- [journey-map-workshop.md](references/journey-map-workshop.md) — Workshop facilitation guide
+- [user-story-workshop-guide.md](references/user-story-workshop-guide.md) — User story writing workshop
+
+## Related Skills
+
+- `ork:prd` — Translate research insights into structured product requirements
+- `ork:product-frameworks` — Full PM framework suite (business cases, prioritization, metrics, OKRs)
+
+---
+
+**Version:** 1.0.0
+
+
+---
+
+## Rules (3)
+
+### Research: Journey Mapping & Service Blueprints — HIGH
+
+
+# Journey Mapping & Service Blueprints
+
+## Customer Journey Map Structure
+
+```
++--------+---------+---------+---------+---------+---------------+
+| STAGE  | Aware   | Consider| Purchase| Onboard | Use & Retain  |
++--------+---------+---------+---------+---------+---------------+
+| DOING  |         |         |         |         |               |
++--------+---------+---------+---------+---------+---------------+
+|THINKING|         |         |         |         |               |
++--------+---------+---------+---------+---------+---------------+
+|FEELING | Neutral | Curious | Anxious | Hopeful | Satisfied     |
++--------+---------+---------+---------+---------+---------------+
+|  PAIN  |         |         |         |         |               |
+| POINTS |         |         |         |         |               |
++--------+---------+---------+---------+---------+---------------+
+| OPPORT-|         |         |         |         |               |
+| UNITIES|         |         |         |         |               |
++--------+---------+---------+---------+---------+---------------+
+|TOUCH-  | Blog,   | Demo,   | Sales,  | Email,  | App, Support, |
+|POINTS  | Social  | Reviews | Pricing | Docs    | Community     |
++--------+---------+---------+---------+---------+---------------+
+```
+
+## Journey Map Template
+
+```markdown
+## Journey Map: [Journey Name]
+
+### Persona
+[Which persona is this journey for]
+
+### Scenario
+[What is the user trying to accomplish]
+
+### Stages
+
+#### Stage 1: [Name]
+
+**Touchpoints:** [Channel/interaction point]
+**Actions:** [What user does]
+**Thoughts:** "[What they're thinking]"
+**Emotions:** [Satisfied / Neutral / Frustrated]
+**Pain Points:** [Friction or frustration]
+**Opportunities:** [How we can improve]
+
+---
+
+#### Stage 2: [Name]
+[Repeat structure]
+
+---
+
+### Key Insights
+1. [Insight from mapping process]
+2. [Another insight]
+
+### Priority Improvements
+| Stage | Opportunity | Impact | Effort |
+|-------|-------------|--------|--------|
+| | | | |
+```
+
+## Experience Curve
+
+```
+Emotional Journey: First Month with Product
+
+Satisfaction
+    |
+    |                              +----------
+    |                        +----/  Productive
+    |                   +----/       User
+    |              +----/
+    |     +--------/
+    | +---/   Pit of          Climbing
+    | /       Despair          Out
+    |-/
+    +-----------------------------------------------> Time
+      Day 1   Week 1   Week 2   Week 3   Week 4
+```
+
+## Service Blueprint
+
+Extension of journey map showing frontstage/backstage operations.
+
+```
++---------------------+----------+----------+------------+
+| CUSTOMER ACTIONS    |  Browse  |  Sign up |  Onboard   |
++---------------------+----------+----------+------------+
+| LINE OF INTERACTION |          |          |            |
++---------------------+----------+----------+------------+
+| FRONTSTAGE         | Website  |  Form    |  Welcome   |
+| (Visible)          |          |          |  wizard    |
++---------------------+----------+----------+------------+
+| LINE OF VISIBILITY |          |          |            |
++---------------------+----------+----------+------------+
+| BACKSTAGE          | CDN,     | Auth     |  Data      |
+| (Invisible)        | Analytics| system   |  import    |
++---------------------+----------+----------+------------+
+| SUPPORT PROCESSES  | Hosting, | Email    | Customer   |
+|                    | CMS      | provider | success    |
++---------------------+----------+----------+------------+
+```
+
+## When to Use Each Tool
+
+| Tool | Best For | Timing |
+|------|----------|--------|
+| Persona | Shared understanding of target users | After discovery research |
+| Empathy Map | Quick alignment on specific scenario | During workshops |
+| Journey Map | End-to-end experience analysis | Strategic planning |
+| Service Blueprint | Operations alignment with CX | Process improvement |
+
+## Common B2B SaaS Stages
+
+```
+Awareness -> Evaluation -> Purchase -> Onboarding ->
+Adoption -> Expansion -> Advocacy/Churn
+```
+
+## Common B2C Stages
+
+```
+Discover -> Research -> Try -> Buy -> Use -> Share
+```
+
+## Best Practices
+
+- **Dynamic journeys**: Update based on real user behavior data
+- **Cross-functional creation**: Include engineering, support, sales in workshops
+- **Connect to metrics**: Link journey stages to measurable KPIs
+- **Review after major feature launches**: Journeys change with the product
+
+**Incorrect — Journey map without pain points:**
+```markdown
+Stage: Onboarding
+Actions: User signs up, receives email, logs in
+Touchpoints: Website, email, app
+```
+
+**Correct — Journey map with pain points and opportunities:**
+```markdown
+Stage: Onboarding
+Actions: User signs up, waits for email (5 min delay), logs in
+Emotions: Hopeful → Frustrated → Relieved
+Pain Points: Slow email delivery, unclear next steps
+Opportunities: Instant onboarding, in-app wizard instead of email
+```
+
+
+### Research: User Personas & Empathy Maps — HIGH
+
+
+# User Personas & Empathy Maps
+
+Frameworks for synthesizing research into actionable user models.
+
+## Persona Template
+
+```markdown
+## Persona: [Name]
+
+### Demographics
+- Age: [Range]
+- Role: [Job title]
+- Company: [Type/size]
+- Tech savviness: [Low/Medium/High]
+
+### Quote
+> "[Characteristic statement that captures their mindset]"
+
+### Background
+[2-3 sentences about their professional context]
+
+### Goals
+1. [Primary goal - what success looks like]
+2. [Secondary goal]
+3. [Tertiary goal]
+
+### Pain Points
+1. [Frustration with current state]
+2. [Obstacle they face]
+3. [Risk or concern]
+
+### Behaviors
+- [Typical workflow or habit]
+- [Tool preferences]
+- [Information sources]
+
+### Key Insight
+[The most important thing to remember about this persona]
+```
+
+## Persona Example
+
+```markdown
+## Persona: DevOps Dana
+
+### Demographics
+- Age: 32
+- Role: Senior DevOps Engineer
+- Company: Mid-size SaaS (200 employees)
+- Tech savviness: Expert
+
+### Quote
+> "I don't have time for tools that create more work than they save."
+
+### Background
+Dana manages CI/CD pipelines and infrastructure for a growing
+engineering team. She's responsible for reliability and developer
+productivity.
+
+### Goals
+1. Reduce deployment failures and rollback frequency
+2. Give developers self-service capabilities without chaos
+3. Spend less time on repetitive tasks, more on improvements
+
+### Pain Points
+1. Alert fatigue from too many false positives
+2. Lack of visibility into who changed what and when
+3. Context switching between 10+ different tools
+
+### Behaviors
+- Checks Slack and monitoring dashboards first thing
+- Automates anything she does more than twice
+- Documents decisions in ADRs and runbooks
+
+### Key Insight
+Dana evaluates tools by "time saved vs. time invested" -- she needs
+immediate value with minimal onboarding.
+```
+
+## Empathy Map
+
+```
++-------------------------+-------------------------------+
+|         SAYS            |            THINKS             |
+| * Direct quotes         | * What occupies their mind    |
+| * Statements made       | * Worries and concerns        |
+| * Questions asked       | * Aspirations                 |
++-------------------------+-------------------------------+
+|         DOES            |            FEELS              |
+| * Observable actions    | * Emotional state             |
+| * Behaviors             | * Frustrations                |
+| * Workarounds           | * Delights                    |
++-------------------------+-------------------------------+
+|         PAINS           |            GAINS              |
+| * Fears                 | * Wants                       |
+| * Frustrations          | * Needs                       |
+| * Obstacles             | * Success measures            |
++-------------------------+-------------------------------+
+```
+
+## Persona vs. Empathy Map
+
+| Aspect | Persona | Empathy Map |
+|--------|---------|-------------|
+| Based on | Fictional composite | Real individuals |
+| Scope | Full user profile | Specific moment/scenario |
+| Purpose | Shared understanding | Build empathy quickly |
+| Creation | After research synthesis | During/after research |
+
+## Maintenance Schedule
+
+### Personas
+- Review: Quarterly
+- Full update: Annually or after major pivot
+
+### Empathy Maps
+- Create fresh for each new scenario/project
+- Archive after project completion
+
+## Best Practices
+
+- **Data-backed personas**: Connect to analytics, not just qualitative research
+- **Cross-functional creation**: Include engineering, support, sales in workshops
+- **Accessibility by default**: Include users with disabilities in all personas
+- **Connect to metrics**: Link persona needs to measurable KPIs
+- **3-5 personas max**: Too many dilutes focus
+
+**Incorrect — Vague persona without goals:**
+```markdown
+Persona: Sarah
+Age: 35
+Job: Marketing Manager
+Likes: Social media, coffee
+```
+
+**Correct — Actionable persona with goals and pain points:**
+```markdown
+Persona: DevOps Dana
+Quote: "I don't have time for tools that create more work than they save."
+Goals:
+1. Reduce deployment failures
+2. Give developers self-service
+Pain Points:
+1. Alert fatigue from false positives
+2. Context switching between 10+ tools
+```
+
+
+### Conduct rigorous user research through structured interviews and systematic insight collection — HIGH
+
+
+# User Interviews & Usability Testing
+
+Methods for understanding user needs, validating designs, and gathering actionable insights.
+
+## Research Methods Overview
+
+| Method | When to Use | Sample Size | Time | Output |
+|--------|-------------|-------------|------|--------|
+| User Interviews | Early discovery, deep understanding | 5-8 | 2-3 weeks | Qualitative insights |
+| Usability Testing | Validate designs, find issues | 5-10 | 1-2 weeks | Actionable fixes |
+| Surveys | Quantify attitudes, preferences | 100+ | 1-2 weeks | Statistical data |
+| Card Sorting | Information architecture | 15-30 | 1 week | IA recommendations |
+| A/B Testing | Compare alternatives | 1000+ | 2-4 weeks | Statistical winner |
+
+## Interview Structure
+
+```markdown
+## Interview Guide
+
+### Warm-up (5 min)
+- Introduction and consent
+- "Tell me about your role and what you do day-to-day"
+
+### Context Setting (10 min)
+- "Walk me through the last time you [relevant activity]"
+- "What tools or methods do you currently use?"
+
+### Deep Dive (25 min)
+- "What's the hardest part about [task]?"
+- "Can you show me how you typically [action]?"
+- "What would your ideal solution look like?"
+
+### Concept Testing (optional, 15 min)
+- Show prototype/concept
+- "What are your initial reactions?"
+- "How would this fit into your workflow?"
+
+### Wrap-up (5 min)
+- "Is there anything else you'd like to share?"
+- "Who else should we talk to?"
+- Thank you and incentive
+```
+
+## Interview Best Practices
+
+| Do | Don't |
+|----|-------|
+| Ask open-ended questions | Ask leading questions |
+| Listen more than talk | Interrupt or fill silences |
+| Follow interesting threads | Stick rigidly to script |
+| Ask "why" and "how" | Accept surface answers |
+| Take verbatim notes | Paraphrase or interpret |
+
+## Usability Test Plan Template
+
+```markdown
+## Usability Test Plan
+
+### Objective
+[What we're trying to learn]
+
+### Prototype/Product
+- Version: [Link or description]
+- Fidelity: Low / Medium / High
+
+### Participants
+- Target: 5-10 users
+- Criteria: [Who qualifies]
+
+### Tasks
+1. [Task 1]: Success criteria
+2. [Task 2]: Success criteria
+3. [Task 3]: Success criteria
+
+### Metrics
+- Task completion rate
+- Time on task
+- Error rate
+- SUS score (post-test)
+```
+
+## Survey Design
+
+### NPS Question
+
+```
+How likely are you to recommend [product] to a friend?
+0  1  2  3  4  5  6  7  8  9  10
+
+[Detractors: 0-6] [Passives: 7-8] [Promoters: 9-10]
+NPS = % Promoters - % Detractors
+```
+
+### System Usability Scale (SUS)
+
+```
+10 questions, 5-point scale (Strongly disagree -> Strongly agree)
+SUS Score = ((Sum of odd Qs - 5) + (25 - Sum of even Qs)) x 2.5
+Range: 0-100, Average: 68
+```
+
+## Card Sorting
+
+| Type | Description | When to Use |
+|------|-------------|-------------|
+| **Open** | Users create their own categories | Early IA exploration |
+| **Closed** | Users sort into predefined categories | Validate proposed IA |
+| **Hybrid** | Users can add categories | Balance of both |
+
+## Research Repository Template
+
+```markdown
+## Research Finding: [Title]
+
+### Study
+- Date: [When conducted]
+- Method: [Interview/Survey/etc.]
+- Participants: [N and description]
+
+### Key Insight
+[One sentence summary]
+
+### Evidence
+- "[Direct quote from participant]" - P3
+- [Observation or data point]
+
+### Implications
+- Product: [What to build/change]
+- Design: [UX recommendation]
+- Strategy: [Business consideration]
+```
+
+**Incorrect — Leading questions that bias responses:**
+```markdown
+Interview Questions:
+- "Don't you think this feature would be useful?"
+- "Wouldn't you prefer this over your current tool?"
+- "You'd pay $50/month for this, right?"
+```
+
+**Correct — Open-ended questions that uncover insights:**
+```markdown
+Interview Questions:
+- "Walk me through the last time you [relevant activity]"
+- "What's the hardest part about [task]?"
+- "What would your ideal solution look like?"
+- "Can you show me how you typically [action]?"
+```
+
+
+
+---
+
+## References (3)
+
+### Interview Guide Template
+
+# Interview Guide Template
+
+Use this template to prepare for user interviews.
+
+```markdown
+# Interview Guide: [Research Topic]
+
+**Project:** [Project name]
+**Date:** YYYY-MM-DD
+**Interviewer:** [Name]
+**Note-taker:** [Name]
+
+---
+
+## Research Questions
+
+What do we want to learn?
+
+1. [Primary research question]
+2. [Secondary research question]
+3. [Secondary research question]
+
+---
+
+## Participant Profile
+
+| Criterion | Requirement |
+|-----------|-------------|
+| Role | [e.g., Product Manager] |
+| Experience | [e.g., 2+ years] |
+| Industry | [e.g., B2B SaaS] |
+| Tool usage | [e.g., Uses [tool] weekly] |
+
+---
+
+## Interview Flow
+
+### Warm-up (5 min)
+
+**Script:**
+```
+"Thank you for taking the time to speak with me today.
+I'm [name] and I'm researching [topic]. This conversation
+will help us understand [goal].
+
+There are no right or wrong answers - we want to learn
+from your experience. Is it okay if I record this for
+my notes? The recording won't be shared outside the team."
+```
+
+**Questions:**
+- Tell me a bit about your role and what you do day-to-day.
+- How long have you been in this role?
+
+---
+
+### Context Setting (10 min)
+
+**Goal:** Understand their current workflow and context.
+
+**Questions:**
+1. Walk me through the last time you [relevant activity].
+2. What tools or methods do you currently use for [task]?
+3. How often do you [activity]?
+4. Who else is involved in this process?
+
+**Probes:**
+- Can you tell me more about that?
+- What happened next?
+- How did that make you feel?
+
+---
+
+### Deep Dive (25 min)
+
+**Goal:** Explore pain points and needs.
+
+**Questions:**
+1. What's the hardest part about [task]?
+2. Can you tell me about a time when [task] went wrong?
+3. What do you wish you could do that you can't today?
+4. If you had a magic wand, what would you change?
+
+**Jobs to be Done:**
+- When [situation], what are you trying to accomplish?
+- What does success look like for you?
+
+---
+
+### Concept Testing (optional, 15 min)
+
+**Goal:** Get reaction to prototype or concept.
+
+**Setup:**
+```
+"I'm going to show you something we're working on.
+It's an early concept, so don't worry about polish.
+I want to hear your honest reaction."
+```
+
+**Questions:**
+1. What are your initial reactions?
+2. What would you expect to happen if you [action]?
+3. How would this fit into your current workflow?
+4. What's missing that you'd need?
+
+---
+
+### Wrap-up (5 min)
+
+**Questions:**
+1. Is there anything else you'd like to share?
+2. What's the one thing we should make sure to get right?
+3. Who else should we talk to about this?
+
+**Script:**
+```
+"Thank you so much for your time. This has been really
+helpful. Here's your [incentive]. We may follow up with
+additional questions - would that be okay?"
+```
+
+---
+
+## After Interview
+
+### Quick Debrief (5 min after)
+
+- Top 3 takeaways:
+- Surprises:
+- Quotes to remember:
+
+### Full Notes (within 24 hours)
+
+- Clean up notes
+- Highlight key quotes
+- Tag themes
+- Upload recording
+```
+
+
+### Journey Map Workshop
+
+# Journey Map Workshop Guide
+
+Facilitation guide for customer journey mapping sessions.
+
+## Workshop Structure
+
+```
+Total Time: 3-4 hours
+
+1. Setup & Objectives (15 min)
+2. Journey Stages Definition (30 min)
+3. Touchpoint Mapping (45 min)
+4. Emotional Journey (30 min)
+5. Pain Points & Opportunities (45 min)
+6. Prioritization (30 min)
+7. Wrap-up & Next Steps (15 min)
+```
+
+## Pre-Workshop Preparation
+
+### Materials
+- Large whiteboard or wall space
+- Sticky notes (5 colors)
+- Markers
+- Persona cards
+- Research findings summary
+- Journey map template (printed large)
+
+### Participants to Invite
+- Product Manager
+- Designer
+- Engineer (customer-facing features)
+- Customer Success/Support
+- Sales (if B2B)
+- Marketing
+- Real customer (ideal but optional)
+
+### Pre-Read
+- Existing user research
+- Support ticket analysis
+- Analytics highlights
+- Persona documentation
+
+## Journey Map Canvas
+
+```
+STAGE:      | Awareness | Consideration | Purchase | Onboarding | Use | Advocacy |
+────────────┼───────────┼───────────────┼──────────┼────────────┼─────┼──────────┤
+DOING       │           │               │          │            │     │          │
+────────────┼───────────┼───────────────┼──────────┼────────────┼─────┼──────────┤
+THINKING    │           │               │          │            │     │          │
+────────────┼───────────┼───────────────┼──────────┼────────────┼─────┼──────────┤
+FEELING     │   😐      │     🤔        │    😬    │     😊     │ 😃  │    🥰    │
+────────────┼───────────┼───────────────┼──────────┼────────────┼─────┼──────────┤
+TOUCHPOINTS │           │               │          │            │     │          │
+────────────┼───────────┼───────────────┼──────────┼────────────┼─────┼──────────┤
+PAIN POINTS │           │               │          │            │     │          │
+────────────┼───────────┼───────────────┼──────────┼────────────┼─────┼──────────┤
+OPPORTUN.   │           │               │          │            │     │          │
+```
+
+## Workshop Flow
+
+### 1. Setup & Objectives (15 min)
+
+**Facilitator Script:**
+```
+"Today we're mapping the journey of [persona] as they
+[goal/task]. Our objective is to identify pain points
+and opportunities to improve their experience.
+
+We'll use this journey map as our canvas. Let's start
+by reviewing who [persona] is and what they're trying
+to accomplish."
+```
+
+**Review:**
+- Persona overview
+- Journey scope (start and end points)
+- Research highlights
+
+### 2. Journey Stages Definition (30 min)
+
+**Activity:** Define 5-7 stages of the journey
+
+**Questions:**
+- What triggers the journey? (Entry point)
+- What are the major phases?
+- What signals the end of each stage?
+- What does "success" look like? (Exit point)
+
+**Common B2B SaaS Stages:**
+```
+Awareness → Evaluation → Purchase → Onboarding →
+Adoption → Expansion → Advocacy/Churn
+```
+
+**Common B2C Stages:**
+```
+Discover → Research → Try → Buy → Use → Share
+```
+
+### 3. Touchpoint Mapping (45 min)
+
+**Activity:** For each stage, map what the user DOES
+
+**Questions per stage:**
+- What action does the user take?
+- What information do they seek?
+- What decisions do they make?
+- What channels do they use?
+
+**Sticky Note Prompts:**
+- "Searches for..."
+- "Clicks on..."
+- "Asks about..."
+- "Compares..."
+- "Signs up for..."
+
+### 4. Emotional Journey (30 min)
+
+**Activity:** Map the emotional experience at each stage
+
+**For each touchpoint, ask:**
+- How does the user feel at this moment?
+- What are they worried about?
+- What would delight them?
+
+**Emotion Scale:**
+
+```
+😃 Delighted - Exceeded expectations
+😊 Satisfied - Met expectations
+😐 Neutral - No strong feeling
+😟 Frustrated - Below expectations
+😠 Angry - Major failure
+```
+
+**Draw the emotional curve** across stages.
+
+### 5. Pain Points & Opportunities (45 min)
+
+**Pain Points (Red sticky notes):**
+- Where does friction occur?
+- What causes frustration?
+- Where do users drop off?
+- What support tickets mention?
+
+**Opportunities (Green sticky notes):**
+- How could we eliminate this pain?
+- What would delight users here?
+- What's the "magic moment" potential?
+- Quick wins vs. long-term improvements?
+
+### 6. Prioritization (30 min)
+
+**Impact/Effort Matrix:**
+
+```
+              HIGH IMPACT
+                   │
+        ┌──────────┼──────────┐
+        │  DO NEXT │ DO FIRST │
+LOW ────┼──────────┼──────────┼──── HIGH
+EFFORT  │  MAYBE   │  PLAN    │    EFFORT
+        └──────────┼──────────┘
+                   │
+              LOW IMPACT
+```
+
+**Dot Voting:**
+- Each person gets 5 dots
+- Vote on most valuable opportunities
+- Discuss top voted items
+
+### 7. Wrap-up (15 min)
+
+**Document:**
+- Top 3 pain points
+- Top 3 opportunities
+- Quick wins (&lt; 1 sprint)
+- Key insights
+
+**Assign:**
+- Owner for journey map document
+- Follow-up actions
+- Review date
+
+## Post-Workshop
+
+### Within 24 Hours
+- [ ] Photograph/export the physical map
+- [ ] Create digital version
+- [ ] Share with attendees
+
+### Within 1 Week
+- [ ] Create detailed journey map document
+- [ ] Prioritized improvement backlog
+- [ ] Share with broader team
+
+### Ongoing
+- [ ] Update as product evolves
+- [ ] Review quarterly
+- [ ] Validate with new research
+
+
+### User Story Workshop Guide
+
+# User Story Workshop Guide
+
+Facilitation guide for effective user story writing sessions.
+
+## Workshop Structure
+
+```
+Total Time: 2-3 hours
+
+1. Context Setting (15 min)
+2. Persona Review (15 min)
+3. Story Mapping (45 min)
+4. Story Writing (45 min)
+5. Acceptance Criteria (30 min)
+6. Prioritization (20 min)
+7. Wrap-up (10 min)
+```
+
+## 1. Context Setting (15 min)
+
+### Facilitator Script
+```
+"Today we're writing user stories for [feature]. Our goal is to
+break down the work into independent, valuable pieces that can
+be estimated and prioritized.
+
+Remember: We're focusing on WHAT users need, not HOW we'll build it."
+```
+
+### Materials Needed
+- Large whiteboard or Miro board
+- Sticky notes (3 colors: personas, stories, criteria)
+- Sharpies
+- Timer
+- Persona cards (printed)
+
+## 2. Persona Review (15 min)
+
+Review the primary persona(s) for this feature:
+
+```markdown
+Quick Refresher:
+- Who is [Persona Name]?
+- What are their top 3 goals?
+- What are their top 3 pain points?
+- What context do they work in?
+```
+
+### Activity
+Each participant writes 1 "Job to be Done" for the persona on a sticky note.
+
+## 3. Story Mapping (45 min)
+
+### Backbone Creation
+
+```
+USER JOURNEY: [Feature Name]
+
+Discovery → Setup → First Use → Regular Use → Mastery
+    │          │         │           │           │
+    ▼          ▼         ▼           ▼           ▼
+[Stories] [Stories] [Stories]  [Stories]   [Stories]
+```
+
+### Process
+1. Identify journey stages (10 min)
+2. Add activities under each stage (15 min)
+3. Break activities into stories (20 min)
+
+## 4. Story Writing (45 min)
+
+### Template
+```
+As a [persona],
+I want to [action/goal],
+so that [benefit/outcome].
+```
+
+### INVEST Check (for each story)
+
+| Criterion | Question | ✓ |
+|-----------|----------|---|
+| Independent | Can this be built separately? | |
+| Negotiable | Are details discussable? | |
+| Valuable | Does this deliver user value? | |
+| Estimable | Can the team size this? | |
+| Small | Does this fit in a sprint? | |
+| Testable | Can we verify it's done? | |
+
+### Common Story Splits
+
+| If story is too big... | Split by... |
+|------------------------|-------------|
+| Multiple user types | Different personas |
+| Multiple actions | Workflow steps |
+| Multiple data types | Data variations |
+| Multiple platforms | Platform/device |
+| Complex rules | Simple → complex rules |
+
+## 5. Acceptance Criteria (30 min)
+
+### Given-When-Then Format
+
+```text
+Scenario: [Scenario name]
+  Given [precondition/context]
+  When [action taken]
+  Then [expected result]
+  And [additional result]
+```
+
+### Example
+
+```text
+Scenario: User filters search results by date
+  Given I have search results displayed
+  And the date filter is visible
+  When I select "Last 7 days"
+  Then only results from the last 7 days are shown
+  And the filter shows "Last 7 days" as selected
+  And the result count updates
+```
+
+### Edge Cases to Consider
+
+- Empty states (no data)
+- Error conditions
+- Boundary values
+- Permission variations
+- Network failures
+
+## 6. Prioritization (20 min)
+
+### MoSCoW Quick Sort
+
+| Category | Meaning | Time allocation |
+|----------|---------|-----------------|
+| Must | MVP, launch blocker | 60% |
+| Should | Important, not blocking | 20% |
+| Could | Nice to have | 15% |
+| Won't | Out of scope | 5% (document why) |
+
+### Dot Voting
+- Each participant gets 3 dots
+- Vote on most valuable stories
+- Count votes, sort by priority
+
+## 7. Wrap-up (10 min)
+
+### Deliverables Checklist
+- [ ] Stories mapped to journey
+- [ ] Each story has acceptance criteria
+- [ ] Stories prioritized (MoSCoW)
+- [ ] Dependencies identified
+- [ ] Next steps assigned
+
+### Follow-up Actions
+- [ ] Transfer to issue tracker
+- [ ] Schedule estimation session
+- [ ] Share with stakeholders
+

@@ -1,0 +1,1075 @@
+---
+title: "Okr Design"
+description: "OKR trees, KPI dashboards, North Star Metric, leading/lagging indicators, and experiment design. Use when setting team goals, defining success metrics, building measurement frameworks, or designing A/B experiment guardrails."
+---
+
+<span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
+
+**Primary Agent:** [product-strategist](/docs/reference/agents/product-strategist)
+
+
+# OKR Design & Metrics Framework
+
+Structure goals, decompose metrics into KPI trees, identify leading indicators, and design rigorous experiments.
+
+## OKR Structure
+
+Objectives are qualitative and inspiring. Key Results are quantitative and outcome-focused — never a list of outputs.
+
+```
+Objective: Qualitative, inspiring goal (70% achievable stretch)
++-- Key Result 1: [Verb] [metric] from [baseline] to [target]
++-- Key Result 2: [Verb] [metric] from [baseline] to [target]
++-- Key Result 3: [Verb] [metric] from [baseline] to [target]
+```
+
+```markdown
+## Q1 OKRs
+
+### Objective: Become the go-to platform for enterprise teams
+
+Key Results:
+- KR1: Increase enterprise NPS from 32 to 50
+- KR2: Reduce time-to-value from 14 days to 3 days
+- KR3: Achieve 95% feature adoption in first 30 days of onboarding
+- KR4: Win 5 competitive displacements from [Competitor]
+```
+
+### OKR Quality Checks
+
+| Check | Objective | Key Result |
+|-------|-----------|------------|
+| Has a number | NO | YES |
+| Inspiring / energizing | YES | not required |
+| Outcome-focused (not "ship X features") | YES | YES |
+| 70% achievable (stretch, not sandbagged) | YES | YES |
+| Aligned to higher-level goal | YES | YES |
+
+See [references/okr-workshop-guide.md](references/okr-workshop-guide.md) for a full facilitation agenda (3-4 hours, dot voting, finalization template).
+See [rules/metrics-okr.md](rules/metrics-okr.md) for pitfalls and alignment cascade patterns.
+
+---
+
+## KPI Tree & North Star
+
+Decompose the top-level metric into components with clear cause-effect relationships.
+
+```
+Revenue (Lagging — root)
+├── New Revenue = Leads × Conv Rate          (Leading)
+├── Expansion   = Users × Upsell Rate        (Leading)
+└── Retained    = Existing × (1 - Churn)     (Lagging)
+```
+
+### North Star + Input Metrics Template
+
+```markdown
+## Metrics Framework
+
+North Star: [One metric that captures core value — e.g., Weekly Active Teams]
+
+Input Metrics (leading, actionable by teams):
+1. New signups — acquisition
+2. Onboarding completion rate — activation
+3. Features used per user/week — engagement
+4. Invite rate — virality
+5. Upgrade rate — monetization
+
+Lagging Validation (confirm inputs translate to value):
+- Revenue growth
+- Net retention rate
+- Customer lifetime value
+```
+
+### North Star Selection by Business Type
+
+| Business | North Star Example | Why |
+|----------|--------------------|-----|
+| SaaS | Weekly Active Users | Indicates ongoing value delivery |
+| Marketplace | Gross Merchandise Value | Captures both buyer and seller sides |
+| Media | Time spent | Engagement signals content value |
+| E-commerce | Purchase frequency | Repeat = satisfaction |
+
+See [rules/metrics-kpi-trees.md](rules/metrics-kpi-trees.md) for the full revenue and product health KPI tree examples.
+
+---
+
+## Leading vs Lagging Indicators
+
+Every lagging metric you want to improve needs 2-3 leading predictors.
+
+```markdown
+## Metric Pairs
+
+Lagging: Customer Churn Rate
+Leading:
+  1. Product usage frequency (weekly)
+  2. Support ticket severity (daily)
+  3. NPS score trend (monthly)
+
+Lagging: Revenue Growth
+Leading:
+  1. Pipeline value (weekly)
+  2. Demo-to-trial conversion (weekly)
+  3. Feature adoption rate (weekly)
+```
+
+| Indicator | Review Cadence | Action Timeline |
+|-----------|----------------|-----------------|
+| Leading | Daily / Weekly | Immediate course correction |
+| Lagging | Monthly / Quarterly | Strategic adjustments |
+
+See [rules/metrics-leading-lagging.md](rules/metrics-leading-lagging.md) for a balanced dashboard template.
+
+---
+
+## Metric Instrumentation
+
+Every metric needs a formal definition before instrumentation.
+
+```markdown
+## Metric: Feature Adoption Rate
+
+Definition: % of active users who used [feature] at least once in their first 30 days.
+Formula: (Users who triggered feature_activated in first 30 days) / (Users who signed up)
+Data Source: Analytics — feature_activated event
+Segments: By plan tier, by signup cohort
+Calculation: Daily
+Review: Weekly
+
+Events:
+  user_signed_up  { user_id, plan_tier, signup_source }
+  feature_activated { user_id, feature_name, activation_method }
+```
+
+Event naming: `object_action` in snake_case — `user_signed_up`, `feature_activated`, `subscription_upgraded`.
+
+See [rules/metrics-instrumentation.md](rules/metrics-instrumentation.md) for the full metric definition template, alerting thresholds, and dashboard design principles.
+
+---
+
+## Experiment Design
+
+Every experiment must define guardrail metrics before launch. Guardrails prevent shipping a "win" that causes hidden damage.
+
+```markdown
+## Experiment: [Name]
+
+### Hypothesis
+If we [change], then [primary metric] will [direction] by [amount]
+because [reasoning based on evidence].
+
+### Metrics
+- Primary: [The metric you are trying to move]
+- Secondary: [Supporting context metrics]
+- Guardrails: [Metrics that MUST NOT degrade — define thresholds]
+
+### Design
+- Type: A/B test | multivariate | feature flag rollout
+- Sample size: [N per variant — calculated for statistical power]
+- Duration: [Minimum weeks to reach significance]
+
+### Rollout Plan
+1. 10% — 1 week canary, monitor guardrails daily
+2. 50% — 2 weeks, confirm statistical significance
+3. 100% — full rollout with continued monitoring
+
+### Kill Criteria
+Any guardrail degrades > [threshold]% relative to baseline.
+```
+
+### Pre-Launch Checklist
+
+- [ ] Hypothesis documented with expected effect size
+- [ ] Primary, secondary, and guardrail metrics defined
+- [ ] Sample size calculated for minimum detectable effect
+- [ ] Dashboard or alerts configured for guardrail metrics
+- [ ] Staged rollout plan with kill criteria at each stage
+- [ ] Rollback procedure documented
+
+See [rules/metrics-experiment-design.md](rules/metrics-experiment-design.md) for guardrail thresholds, performance and business guardrail tables, and alert SLAs.
+
+---
+
+## Common Pitfalls
+
+| Pitfall | Mitigation |
+|---------|------------|
+| KRs are outputs ("ship 5 features") | Rewrite as outcomes ("increase conversion by 20%") |
+| Tracking only lagging indicators | Pair every lagging metric with 2-3 leading predictors |
+| No baseline before setting targets | Instrument and measure for 2 weeks before setting OKRs |
+| Launching experiments without guardrails | Define guardrails before any code is shipped |
+| Too many OKRs (>5 per team) | Limit to 3-5 objectives, 3-5 KRs each |
+| Metrics without owners | Every metric needs a team owner |
+
+---
+
+## Related Skills
+
+- `prioritization` — RICE, WSJF, ICE, MoSCoW scoring; OKRs define which KPIs drive RICE impact
+- `product-frameworks` — Full PM toolkit: value prop, competitive analysis, user research, business case
+- `product-analytics` — Instrument and query the metrics defined in OKR trees
+- `prd` — Embed success metrics and experiment hypotheses into product requirements
+- `market-sizing` — TAM/SAM/SOM that anchors North Star Metric targets
+- `competitive-analysis` — Competitor benchmarks that inform KR targets
+
+---
+
+**Version:** 1.0.0
+
+
+---
+
+## Rules (5)
+
+### Design experiments with structured hypotheses, guardrail metrics, and staged rollout plans — HIGH
+
+
+# Experiment Design & Guardrail Metrics
+
+Structured experiment patterns extracted from metrics architecture practice. Complements the basic experiment template in `metrics-instrumentation` with deeper guardrail and rollout patterns.
+
+## Experiment Design Template
+
+```markdown
+## Experiment: [Name]
+
+### Hypothesis
+If we [change], then [metric] will [direction] by [amount]
+because [reasoning based on evidence].
+
+### Metrics
+- **Primary:** [The metric you are trying to move]
+- **Secondary:** [Supporting metrics that add context]
+- **Guardrails:** [Metrics that MUST NOT degrade -- see below]
+
+### Design
+- **Type:** A/B test | multivariate | feature flag rollout
+- **Sample size:** [N per variant, calculated for statistical power]
+- **Duration:** [Minimum weeks to reach significance]
+- **Segments:** [User cohorts to analyze separately]
+
+### Success Criteria
+- Primary metric improves by >= [X]% with p < 0.05
+- No guardrail metric degrades by > [threshold]
+- Secondary metrics trend positive or neutral
+
+### Rollout Plan
+1. **10%** -- 1 week canary, monitor guardrails daily
+2. **50%** -- 2 weeks, confirm statistical significance
+3. **100%** -- full rollout with continued monitoring
+```
+
+## Guardrail Metrics Pattern
+
+Guardrails prevent shipping a "win" that causes hidden damage. Every experiment must define guardrails before launch.
+
+### Performance Guardrails
+
+| Guardrail | Threshold | Alert Action |
+|-----------|-----------|--------------|
+| Page load time (p95) | Must not increase > 200ms | Auto-pause experiment |
+| API error rate | Must stay &lt; 0.5% | Page on-call |
+| Client crash rate | Must stay &lt; baseline + 0.1% | Kill switch |
+
+### Business Guardrails
+
+| Guardrail | Threshold | Alert Action |
+|-----------|-----------|--------------|
+| Conversion rate | Must not drop > 2% relative | Escalate to PM |
+| Support ticket volume | Must not increase > 10% | Review UX |
+| Revenue per user | Must not decrease | Escalate to leadership |
+
+### Alert Threshold Template
+
+```markdown
+## Guardrail: [Metric Name]
+
+- **Baseline:** [Current value over last 30 days]
+- **Warning:** [X% degradation from baseline]
+- **Critical:** [Y% degradation -- auto-pause experiment]
+- **Owner:** [Team or person who responds]
+- **Response SLA:** Warning = 24h, Critical = 1h
+```
+
+## North Star Metric Framework
+
+Distinguish between input metrics (actionable, leading) and output metrics (outcome, lagging). Experiments should target input metrics while guarding output metrics.
+
+```
+Output (North Star): Weekly Active Teams
+    |
+    +-- Input: New team signups (acquisition)
+    +-- Input: Teams completing onboarding (activation)
+    +-- Input: Features used per team/week (engagement)
+    +-- Input: Teams inviting members (virality)
+    +-- Input: Teams upgrading to paid (monetization)
+```
+
+### Experiment Targeting
+
+- **Target input metrics** -- they are directly actionable
+- **Guard output metrics** -- they confirm the input metric change translates to real value
+- **Monitor adjacent inputs** -- ensure one input improvement does not cannibalize another
+
+## Pre-Launch Checklist
+
+- [ ] Hypothesis documented with expected effect size
+- [ ] Primary, secondary, and guardrail metrics defined
+- [ ] Sample size calculated for minimum detectable effect
+- [ ] Staged rollout plan with kill criteria at each stage
+- [ ] Dashboard or alerts configured for guardrail metrics
+- [ ] Rollback procedure documented
+
+**Incorrect -- launching without guardrails:**
+```markdown
+Experiment: New checkout flow
+Hypothesis: Will increase conversions
+Plan: Ship to 100% of users on Monday
+Success: Conversions go up
+```
+
+**Correct -- structured experiment with guardrails:**
+```markdown
+Experiment: New checkout flow
+Hypothesis: Reducing steps from 4 to 2 will increase
+  checkout completion by 15% because 60% of users
+  drop off between steps 2 and 3.
+Primary: Checkout completion rate
+Guardrails: Revenue per transaction, refund rate, page load p95
+Rollout: 10% for 1 week, 50% for 2 weeks, 100%
+Kill criteria: Any guardrail degrades > 5% relative
+```
+
+
+### Instrument metrics with formal definitions, event naming conventions, and alerting thresholds — HIGH
+
+
+# Metric Instrumentation & Definition
+
+Formal patterns for defining, implementing, and monitoring KPIs.
+
+## Metric Definition Template
+
+```markdown
+## Metric: [Name]
+
+### Definition
+[Precise definition of what this metric measures]
+
+### Formula
+```
+Metric = Numerator / Denominator
+```
+
+### Data Source
+- System: [Where data comes from]
+- Table/Event: [Specific location]
+- Owner: [Team responsible]
+
+### Segments
+- By customer tier (Free, Pro, Enterprise)
+- By geography (NA, EMEA, APAC)
+- By cohort (signup month)
+
+### Frequency
+- Calculation: Daily
+- Review: Weekly
+
+### Targets
+| Period | Target | Stretch |
+|--------|--------|---------|
+| Q1 | 10,000 | 12,000 |
+| Q2 | 15,000 | 18,000 |
+
+### Related Metrics
+- Leading: [Metric that predicts this]
+- Lagging: [Metric this predicts]
+```
+
+## Event Naming Conventions
+
+### Standard Format
+
+```
+[object]_[action]
+
+Examples:
+- user_signed_up
+- feature_activated
+- subscription_upgraded
+- search_performed
+- export_completed
+```
+
+### Required Properties
+
+```json
+{
+  "event": "feature_activated",
+  "timestamp": "2026-02-13T10:30:00Z",
+  "user_id": "usr_123",
+  "properties": {
+    "feature_name": "advanced_search",
+    "plan_tier": "pro",
+    "activation_method": "onboarding_wizard"
+  }
+}
+```
+
+## Instrumentation Checklist
+
+### Events
+- [ ] Key events identified
+- [ ] Event naming consistent (object_action)
+- [ ] Required properties defined
+- [ ] Optional properties listed
+- [ ] Privacy considerations addressed
+
+### Implementation
+- [ ] Analytics tool selected
+- [ ] Events documented
+- [ ] Engineering ticket created
+- [ ] QA plan for events
+
+## Alerting Thresholds
+
+```markdown
+## Alert: [Metric Name]
+
+| Threshold | Severity | Action |
+|-----------|----------|--------|
+| < Warning | Warning | Investigate within 24 hours |
+| < Critical | Critical | Immediate escalation |
+| > Spike | Info | Review for anomaly |
+
+### Escalation Path
+1. On-call engineer investigates
+2. Team lead notified if not resolved in 2 hours
+3. VP notified for P0 metrics breach
+```
+
+## Dashboard Design
+
+### Principles
+
+| Principle | Application |
+|-----------|-------------|
+| **Leading indicators prominent** | Top of dashboard, real-time |
+| **Lagging indicators for context** | Below, trend-based |
+| **Drill-down available** | Click to segment |
+| **Historical comparison** | Week-over-week, month-over-month |
+| **Anomaly highlighting** | Auto-flag deviations |
+
+## Experiment Design
+
+```markdown
+## Experiment: [Name]
+
+### Hypothesis
+We believe [change] will cause [metric] to [improve by X%]
+
+### Success Metric
+- Primary: [Metric to move]
+- Guardrail: [Metric that must not degrade]
+
+### Sample Size
+- Minimum: [N] per variant
+- Duration: [X] weeks
+- Confidence: 95%
+
+### Rollout Plan
+1. 5% canary for 1 week
+2. 25% for 2 weeks
+3. 50% for 1 week
+4. 100% rollout
+```
+
+**Incorrect — Inconsistent event naming:**
+```json
+{
+  "event": "UserSignup",
+  "event": "feature-activated",
+  "event": "Subscription_Upgraded"
+}
+```
+
+**Correct — Consistent object_action naming:**
+```json
+{
+  "event": "user_signed_up",
+  "event": "feature_activated",
+  "event": "subscription_upgraded"
+}
+```
+
+
+### Metrics: KPI Trees & North Star — HIGH
+
+
+# KPI Trees & North Star Metric
+
+Hierarchical breakdown of metrics showing cause-effect relationships.
+
+## Revenue KPI Tree
+
+```
+                         Revenue
+                            |
+          +-----------------+-----------------+
+          |                 |                 |
+     New Revenue      Expansion         Retained
+          |            Revenue           Revenue
+          |                |                 |
+    +-----+-----+    +-----+-----+    +-----+-----+
+    |           |    |           |    |           |
+  Leads x    Conv  Users x   Upsell  Existing x (1-Churn)
+  Rate       Rate   ARPU      Rate    Revenue     Rate
+```
+
+## Product Health KPI Tree
+
+```
+                    Product Health Score
+                            |
+         +------------------+------------------+
+         |                  |                  |
+    Engagement          Retention         Satisfaction
+         |                  |                  |
+    +----+----+       +----+----+       +----+----+
+    |         |       |         |       |         |
+   DAU/     Time    Day 1    Day 30    NPS    Support
+   MAU      in App  Retention Retention       Tickets
+```
+
+## North Star Metric
+
+One metric that captures core value delivery.
+
+### Examples by Business Type
+
+| Business Type | North Star Metric | Why |
+|---------------|-------------------|-----|
+| SaaS | Weekly Active Users | Indicates ongoing value |
+| Marketplace | Gross Merchandise Value | Captures both sides |
+| Media | Time spent reading | Engagement = value |
+| E-commerce | Purchase frequency | Repeat = satisfied |
+| Fintech | Assets under management | Trust + usage |
+
+### North Star + Input Metrics
+
+```markdown
+## Our North Star Framework
+
+**North Star:** Weekly Active Teams (WAT)
+
+**Input Metrics:**
+1. New team signups (acquisition)
+2. Teams completing onboarding (activation)
+3. Features used per team per week (engagement)
+4. Teams inviting new members (virality)
+5. Teams on paid plans (monetization)
+
+**Lagging Validation:**
+- Revenue growth
+- Net retention rate
+- Customer lifetime value
+```
+
+## Building a KPI Tree
+
+### Step 1: Start with the Business Outcome
+What is the top-level metric leadership cares about? (Revenue, Users, Engagement)
+
+### Step 2: Decompose into Components
+Break the metric into its mathematical components (multiplied or added).
+
+### Step 3: Identify Input Metrics
+For each component, identify what leading indicators predict it.
+
+### Step 4: Assign Owners
+Each metric should have a clear team owner.
+
+### Step 5: Set Targets
+Baseline + target for each metric in the tree.
+
+## Best Practices
+
+- **Keep trees 3 levels deep** -- deeper than that and it loses clarity
+- **Every metric has an owner** -- no orphan metrics
+- **Leading indicators at the leaves** -- actionable by teams
+- **Lagging indicators at the root** -- confirms outcomes
+- **Dashboard the tree** -- make it visible to the whole organization
+
+**Incorrect — Flat metrics without hierarchy:**
+```markdown
+Q1 Goals:
+- Increase revenue
+- Improve engagement
+- Reduce churn
+```
+
+**Correct — KPI tree with cause-effect relationships:**
+```markdown
+Revenue (Lagging)
+├── New Revenue = Leads × Conv Rate (Leading)
+├── Expansion = Users × Upsell Rate (Leading)
+└── Retained = Existing × (1 - Churn Rate) (Lagging)
+```
+
+
+### Balance predictive leading indicators with outcome-based lagging indicators for product health — HIGH
+
+
+# Leading & Lagging Indicators
+
+Understanding the difference is crucial for effective measurement.
+
+## Definitions
+
+| Type | Definition | Characteristics |
+|------|------------|-----------------|
+| **Leading** | Predictive, can be directly influenced | Real-time feedback, actionable |
+| **Lagging** | Results of past actions | Confirms outcomes, hard to change |
+
+## Examples by Domain
+
+```
+Sales Pipeline:
+  Leading: # of qualified meetings this week
+  Lagging: Quarterly revenue
+
+Customer Success:
+  Leading: Product usage frequency
+  Lagging: Customer churn rate
+
+Engineering:
+  Leading: Code review turnaround time
+  Lagging: Production incidents
+
+Marketing:
+  Leading: Website traffic, MQLs
+  Lagging: Customer acquisition cost (CAC)
+```
+
+## The Leading-Lagging Chain
+
+```
+Leading                                           Lagging
+----------------------------------------------------------->
+
+Blog posts    Website     MQLs      SQLs      Deals     Revenue
+published  -> traffic  -> generated -> created -> closed -> booked
+   |            |           |          |         |         |
+   v            v           v          v         v         v
+ Actionable  Actionable   Somewhat   Less      Hard      Result
+             (SEO, ads)   (content)  control   control
+```
+
+## Balanced Metrics Dashboard
+
+### Leading Indicators (Weekly Review)
+
+| Metric | Current | Target | Status |
+|--------|---------|--------|--------|
+| Active users (DAU) | 12,500 | 15,000 | Yellow |
+| Feature adoption rate | 68% | 75% | Yellow |
+| Support ticket volume | 142 | &lt;100 | Red |
+| NPS responses collected | 89 | 100 | Green |
+
+### Lagging Indicators (Monthly Review)
+
+| Metric | Current | Target | Status |
+|--------|---------|--------|--------|
+| Monthly revenue | $485K | $500K | Yellow |
+| Customer churn | 5.2% | &lt;5% | Yellow |
+| NPS score | 42 | 50 | Green |
+| CAC payback months | 14 | 12 | Red |
+
+## Using Both Effectively
+
+### Pair Leading with Lagging
+
+For every lagging indicator you care about, identify 2-3 leading indicators that predict it.
+
+```markdown
+## Metric Pairs
+
+Lagging: Customer Churn Rate
+Leading:
+  1. Product usage frequency (weekly)
+  2. Support ticket severity (daily)
+  3. NPS score trend (monthly)
+
+Lagging: Revenue Growth
+Leading:
+  1. Pipeline value (weekly)
+  2. Demo-to-trial conversion (weekly)
+  3. Feature adoption rate (weekly)
+```
+
+### Review Cadence
+
+| Indicator Type | Review Frequency | Action Timeline |
+|----------------|------------------|-----------------|
+| Leading | Daily/Weekly | Immediate course correction |
+| Lagging | Monthly/Quarterly | Strategic adjustments |
+
+## Best Practices
+
+- **Start with the lagging metric** you want to improve
+- **Identify 2-3 leading indicators** that predict it
+- **Set up automated dashboards** for leading indicators
+- **Review leading indicators weekly** with the team
+- **Use lagging indicators** to validate that leading indicators actually predict outcomes
+- **Adjust leading indicators** when correlation breaks down
+
+**Incorrect — Only tracking lagging indicators:**
+```markdown
+Monthly Review:
+- Revenue: $485K (missed $500K target)
+- Churn: 5.2% (above 5% target)
+
+[Too late to fix - no early warning]
+```
+
+**Correct — Paired leading + lagging indicators:**
+```markdown
+Weekly (Leading):
+- Active users: 12,500 → trend down, investigate
+- Feature adoption: 68% → below 75%, action needed
+
+Monthly (Lagging):
+- Revenue: Validated prediction accuracy
+- Churn: Confirms leading indicators correlation
+```
+
+
+### Structure OKRs with qualitative objectives and quantitative outcome-focused key results — HIGH
+
+
+# OKR Framework
+
+Objectives and Key Results align teams around ambitious goals with measurable outcomes.
+
+## OKR Structure
+
+```
+Objective: Qualitative, inspiring goal
++-- Key Result 1: Quantitative measure of progress
++-- Key Result 2: Quantitative measure of progress
++-- Key Result 3: Quantitative measure of progress
+```
+
+## Writing Good Objectives
+
+| Characteristic | Good | Bad |
+|---------------|------|-----|
+| Qualitative | "Delight enterprise customers" | "Increase NPS to 50" |
+| Inspiring | "Become the go-to platform" | "Ship 10 features" |
+| Time-bound | Implied quarterly | Vague timeline |
+| Ambitious | Stretch goal (70% achievable) | Sandbagged (100% easy) |
+
+## Writing Good Key Results
+
+| Characteristic | Good | Bad |
+|---------------|------|-----|
+| Quantitative | "Reduce churn from 8% to 4%" | "Improve retention" |
+| Measurable | "Ship to 10,000 beta users" | "Launch beta" |
+| Outcome-focused | "Increase conversion by 20%" | "Add 5 features" |
+| Leading indicators | "Weekly active users reach 50K" | "Revenue hits $1M" (lagging) |
+
+## Key Result Formula
+
+```
+[Verb] [metric] from [baseline] to [target] by [deadline]
+
+Examples:
+- Increase NPS from 32 to 50
+- Reduce time-to-value from 14 days to 3 days
+- Achieve 95% feature adoption in first 30 days
+```
+
+## OKR Example
+
+```markdown
+## Q1 OKRs
+
+### Objective 1: Become the #1 choice for enterprise teams
+
+**Key Results:**
+- KR1: Increase enterprise NPS from 32 to 50
+- KR2: Reduce time-to-value from 14 days to 3 days
+- KR3: Achieve 95% feature adoption in first 30 days
+- KR4: Win 5 competitive displacements from [Competitor]
+
+### Objective 2: Build a world-class engineering culture
+
+**Key Results:**
+- KR1: Reduce deploy-to-production time from 4 hours to 15 minutes
+- KR2: Achieve 90% code coverage on critical paths
+- KR3: Zero P0 incidents lasting longer than 30 minutes
+- KR4: Engineering satisfaction score reaches 4.5/5
+```
+
+## Alignment Cascade
+
+```
+Company OKRs
+    |
+    v
+Department OKRs (aligns to company)
+    |
+    v
+Team OKRs (aligns to department)
+    |
+    v
+Individual OKRs (optional, aligns to team)
+```
+
+## Best Practices
+
+- **OKRs for goals, KPIs for health**: Use together, not interchangeably
+- **Leading indicator focus**: Key Results should be leading indicators
+- **Cascade with autonomy**: Align outcomes, let teams choose their path
+- **Regular calibration**: Weekly check-ins on leading, monthly on lagging
+- **3-5 objectives max** per team per quarter
+- **3-5 KRs per objective**: Enough to measure, not too many to track
+
+## Common Pitfalls
+
+| Pitfall | Mitigation |
+|---------|------------|
+| Vanity metrics | Focus on metrics that drive decisions |
+| Too many KPIs | Limit to 5-7 per team |
+| Gaming metrics | Pair metrics that balance each other |
+| Static goals | Review and adjust quarterly |
+| No baselines | Establish current state before setting targets |
+
+**Incorrect — Outputs instead of outcomes:**
+```markdown
+Objective: Build a great product
+
+Key Results:
+- Ship 10 features
+- Write 50 unit tests
+- Hold 20 customer interviews
+```
+
+**Correct — Outcome-focused key results:**
+```markdown
+Objective: Become the #1 choice for enterprise teams
+
+Key Results:
+- Increase enterprise NPS from 32 to 50
+- Reduce time-to-value from 14 days to 3 days
+- Achieve 95% feature adoption in first 30 days
+```
+
+
+
+---
+
+## References (1)
+
+### Okr Workshop Guide
+
+# OKR Workshop Guide
+
+Facilitation guide for setting effective OKRs.
+
+## Workshop Structure
+
+```
+Total Time: 3-4 hours
+
+1. OKR Foundations (20 min)
+2. Review Company/Team Context (20 min)
+3. Objective Brainstorming (45 min)
+4. Key Result Definition (60 min)
+5. Alignment Check (30 min)
+6. Finalization (25 min)
+```
+
+## Pre-Workshop Preparation
+
+### Materials Needed
+- Company/team strategy docs
+- Previous quarter OKR results
+- Whiteboard or Miro
+- Sticky notes (2 colors)
+- Timer
+- OKR template printouts
+
+### Pre-Read for Participants
+- Company OKRs (if cascade)
+- Previous quarter results
+- Strategic priorities for the period
+
+## 1. OKR Foundations (20 min)
+
+### Facilitator Script
+
+```
+"OKRs help us focus on what matters most and align our efforts.
+Today we'll set [N] Objectives with [M] Key Results each.
+
+Key principles:
+- Objectives are QUALITATIVE and INSPIRATIONAL
+- Key Results are QUANTITATIVE and MEASURABLE
+- Aim for 70% achievement (stretch, not sandbagging)
+- Focus on outcomes, not outputs"
+```
+
+### OKR Anatomy
+
+```
+OBJECTIVE: Qualitative, inspiring, time-bound
+├── What do we want to achieve?
+├── Why does it matter?
+└── Is it ambitious but achievable?
+
+KEY RESULT: Quantitative, measurable, has deadline
+├── How will we know we succeeded?
+├── Is it specific and unambiguous?
+└── Can we track progress?
+```
+
+## 2. Review Context (20 min)
+
+### Questions to Discuss
+
+1. What are the company's top priorities this quarter?
+2. What did we learn from last quarter?
+3. What constraints do we have (resources, dependencies)?
+4. What opportunities should we capture?
+
+### Alignment Cascade
+
+```
+Company OKRs
+    │
+    ▼
+Department OKRs (aligns to company)
+    │
+    ▼
+Team OKRs (aligns to department)
+    │
+    ▼
+Individual OKRs (optional, aligns to team)
+```
+
+## 3. Objective Brainstorming (45 min)
+
+### Silent Brainstorm (15 min)
+- Each participant writes 3-5 potential objectives
+- One objective per sticky note
+- Focus on outcomes, not activities
+
+### Share & Cluster (15 min)
+- Each person shares their objectives
+- Group similar objectives together
+- Identify themes
+
+### Vote & Select (15 min)
+- Dot voting (3 dots per person)
+- Select top 3-5 objectives
+- Discuss and refine wording
+
+### Objective Quality Check
+
+| Criterion | ✓ |
+|-----------|---|
+| Qualitative (no numbers) | |
+| Inspirational (energizing) | |
+| Time-bound (quarterly) | |
+| Actionable (within our control) | |
+| Aligned (to company/team strategy) | |
+
+## 4. Key Result Definition (60 min)
+
+### For Each Objective (15 min each)
+
+1. **Brainstorm metrics** (5 min)
+   - What would prove we achieved this?
+   - What leading indicators matter?
+   - What lagging indicators confirm success?
+
+2. **Set targets** (5 min)
+   - What's our current baseline?
+   - What's a stretch target (70% achievable)?
+   - What's the minimum acceptable?
+
+3. **Refine wording** (5 min)
+   - Is it specific and measurable?
+   - Is the target ambitious but realistic?
+   - Can we track this?
+
+### Key Result Formula
+
+```
+[Verb] [metric] from [baseline] to [target] by [deadline]
+
+Examples:
+- Increase NPS from 32 to 50
+- Reduce time-to-value from 14 days to 3 days
+- Achieve 95% feature adoption in first 30 days
+```
+
+### KR Quality Check
+
+| Criterion | ✓ |
+|-----------|---|
+| Quantitative (has number) | |
+| Measurable (we can track it) | |
+| Has baseline | |
+| Has target | |
+| Outcome-focused (not output) | |
+| 70% achievable stretch | |
+
+## 5. Alignment Check (30 min)
+
+### Vertical Alignment
+- Does this OKR support a higher-level objective?
+- Is the connection clear?
+
+### Horizontal Alignment
+- Do any OKRs conflict with other teams?
+- Are there dependencies we need to coordinate?
+
+### Sanity Check Questions
+- If we achieve all KRs, will we achieve the Objective?
+- Can we actually measure each KR?
+- Are we tracking too many things?
+
+## 6. Finalization (25 min)
+
+### Final OKR Template
+
+```markdown
+## Objective: [Inspiring statement]
+
+**Key Results:**
+1. [Verb] [metric] from [X] to [Y]
+   - Baseline: X
+   - Target: Y
+   - Owner: @name
+
+2. [Verb] [metric] from [X] to [Y]
+   - Baseline: X
+   - Target: Y
+   - Owner: @name
+
+3. [Verb] [metric] from [X] to [Y]
+   - Baseline: X
+   - Target: Y
+   - Owner: @name
+```
+
+### Post-Workshop Actions
+- [ ] Document final OKRs
+- [ ] Set up tracking dashboard
+- [ ] Schedule weekly check-ins
+- [ ] Schedule mid-quarter review
+- [ ] Share with stakeholders
+

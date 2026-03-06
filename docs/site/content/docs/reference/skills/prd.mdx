@@ -1,0 +1,1056 @@
+---
+title: "Prd"
+description: "Product Requirements Documents with structured 8-section templates, user stories, acceptance criteria, and value proposition validation. Use when writing PRDs, defining product requirements, creating user stories with INVEST criteria, or building go/no-go decision frameworks."
+---
+
+<span className="badge badge-blue">Command</span> <span className="badge badge-yellow">medium</span>
+
+**Primary Agent:** [product-strategist](/docs/reference/agents/product-strategist)
+
+
+# PRD — Product Requirements Document
+
+Translate product vision and research into clear, actionable engineering specifications. Produces `PRD-[product-name].md` output files following an 8-section structure.
+
+**Output file naming:** `PRD-[product-name].md` (e.g., `PRD-sso-invite-flow.md`)
+
+## The 8-Section PRD Template
+
+```markdown
+# PRD: [Feature Name]
+
+**Author:** [Name] | **Status:** Draft | In Review | Approved | Shipped | **Date:** YYYY-MM-DD
+
+## 1. Summary
+One paragraph: what we're building and why it matters now.
+
+## 2. Contacts
+| Role | Name | Responsibility |
+|------|------|----------------|
+| PM | | Decision owner |
+| Engineering Lead | | Technical delivery |
+| Design | | UX/UI |
+
+## 3. Background
+- What triggered this initiative? (data, customer request, strategic bet)
+- Relevant prior work or research
+- Constraints and assumptions
+
+## 4. Objective
+1. [Primary goal with measurable outcome]
+2. [Secondary goal]
+
+**Non-Goals (explicit out-of-scope):**
+- [What we are NOT doing]
+
+## 5. Market Segments
+| Segment | Size | Priority | Notes |
+|---------|------|----------|-------|
+| | | | |
+
+## 6. Value Propositions
+| User Type | Job-to-be-Done | Pain Relieved | Gain Created |
+|-----------|----------------|---------------|--------------|
+| | | | |
+
+## 7. Solution
+
+### User Stories (P0 — Must Have)
+- [ ] As a [persona], I want [goal], so that [benefit].
+
+### User Stories (P1 — Should Have)
+- [ ] ...
+
+### Acceptance Criteria
+See story-level criteria below each story.
+
+### Dependencies
+| Dependency | Owner | Status | ETA |
+|------------|-------|--------|-----|
+
+### Risks & Mitigations
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+
+## 8. Release
+| Milestone | Date | Status |
+|-----------|------|--------|
+| PRD Approved | | |
+| Dev Complete | | |
+| Launch | | |
+
+**Success Metrics:**
+| Metric | Current | Target | Timeline |
+|--------|---------|--------|----------|
+```
+
+## User Stories
+
+### Standard Format
+
+```
+As a [type of user],
+I want [goal/desire],
+so that [benefit/value].
+```
+
+### INVEST Criteria
+
+Every story must pass all six checks before it's "ready":
+
+| Criterion | Check |
+|-----------|-------|
+| **I**ndependent | No hard dependencies on other in-flight stories |
+| **N**egotiable | Details are a conversation starter, not a contract |
+| **V**aluable | Clearly answers "so what?" |
+| **E**stimable | Team can size it without major unknowns |
+| **S**mall | Completable in 1-5 days |
+| **T**estable | Has explicit acceptance criteria |
+
+**Incorrect — vague story:**
+```markdown
+As a user, I want better reporting.
+```
+
+**Correct — INVEST story with acceptance criteria:**
+```markdown
+As a sales manager,
+I want to see my team's pipeline grouped by stage,
+so that I can identify bottlenecks and coach accordingly.
+
+Acceptance Criteria:
+- [ ] Shows deals grouped by stage with count and total value per stage
+- [ ] Filters by date range (default: current quarter)
+- [ ] Updates in real-time when deals change stages
+- [ ] Accessible at /pipeline for all users with the "manager" role
+```
+
+## Acceptance Criteria (Given/When/Then)
+
+Use Gherkin format for testable criteria:
+
+```gherkin
+Scenario: Successful login with valid credentials
+  Given I am on the login page
+  And I have a valid account
+  When I enter my email and password
+  And I click "Sign In"
+  Then I should be redirected to the dashboard
+  And I should see a "Welcome back" message
+```
+
+## Value Proposition Canvas Integration
+
+Before writing the solution section, complete the value canvas to ensure fit:
+
+```
+Customer Profile (right)          Value Map (left)
+─────────────────────────         ─────────────────────────
+Jobs-to-be-Done          ◄────    Products & Services
+• Functional jobs                 • Features and capabilities
+• Social jobs
+• Emotional jobs
+
+Pains                    ◄────    Pain Relievers
+• Obstacles and risks             • How we eliminate friction
+• Undesired outcomes
+
+Gains                    ◄────    Gain Creators
+• Required and expected           • How we create benefits
+  outcomes
+```
+
+**Fit check:** Every item in the Value Map must correspond to at least one Job, Pain, or Gain. Remove features with no matching customer need.
+
+## Go/No-Go Gate Criteria
+
+Use stage gates before committing to build:
+
+```markdown
+## Gate 2: Solution Validation (before starting dev)
+- [ ] Value proposition tested with ≥ 3 customer interviews
+- [ ] Technical feasibility confirmed by engineering lead
+- [ ] Competitive differentiation is clear
+- [ ] Unit economics viable (projected CAC < LTV/3)
+
+## Gate 3: Business Case (before sprint planning)
+- [ ] ROI > 15% hurdle rate
+- [ ] Payback period < 24 months
+- [ ] Resource requirements confirmed (FTEs, infra)
+- [ ] Risk mitigation plan in place
+```
+
+**Scoring thresholds:** Go ≥ 7.0 | Conditional Go 5.0–6.9 | No-Go &lt; 5.0
+
+## Priority Levels
+
+| Level | Meaning | Criteria |
+|-------|---------|----------|
+| **P0** | Must have for MVP | Users cannot accomplish core job without this |
+| **P1** | Important | Significantly improves experience, high demand |
+| **P2** | Nice to have | Enhances experience, moderate demand |
+| **P3** | Future | Backlog for later consideration |
+
+## Definition of Ready / Done
+
+**Ready (before sprint):**
+```markdown
+- [ ] User story follows As a/I want/So that format
+- [ ] Acceptance criteria are complete and testable
+- [ ] Dependencies identified and resolved
+- [ ] Story is estimated by the team
+- [ ] Design artifacts available (if applicable)
+```
+
+**Done (after dev):**
+```markdown
+- [ ] Code complete and reviewed
+- [ ] Unit and integration tests passing
+- [ ] Acceptance criteria verified by PM
+- [ ] Documentation updated
+- [ ] Deployed to staging
+```
+
+## Non-Functional Requirements
+
+Always include NFRs in the PRD solution section:
+
+| Category | Example |
+|----------|---------|
+| Performance | Page load &lt; 2s at p95 |
+| Scalability | 10,000 concurrent users |
+| Availability | 99.9% uptime |
+| Security | Data encrypted at rest and in transit |
+| Accessibility | WCAG 2.1 AA |
+
+## PRD JSON Output Schema
+
+When producing structured PRD output for automated pipelines:
+
+```json
+{
+  "prd": {
+    "title": "SSO Invite Flow",
+    "version": "1.0",
+    "author": "PM Name",
+    "status": "draft"
+  },
+  "problem_statement": "Team admins cannot invite members via SSO, blocking enterprise onboarding.",
+  "scope": {
+    "in": ["Email-based SSO invite", "Role assignment on first login"],
+    "out": ["Custom SAML provider", "Mobile biometric auth"]
+  },
+  "user_stories": [
+    {
+      "id": "US-001",
+      "persona": "Team Admin",
+      "story": "As a team admin, I want to invite members via email, so that onboarding is self-service.",
+      "acceptance_criteria": [
+        "Invite email sent within 30 seconds",
+        "Invited user can set password on first visit",
+        "Admin sees pending/accepted status"
+      ],
+      "priority": "must-have"
+    }
+  ],
+  "non_functional": {
+    "performance": "Invite flow completes in < 2s p95",
+    "security": "Invite tokens expire after 72 hours"
+  }
+}
+```
+
+## Rules (Load On-Demand)
+
+- [research-requirements-prd.md](rules/research-requirements-prd.md) — INVEST user stories, PRD template, priority levels, DoR/DoD
+- [strategy-value-prop.md](rules/strategy-value-prop.md) — Value proposition canvas, JTBD framework, fit assessment
+- [strategy-go-no-go.md](rules/strategy-go-no-go.md) — Stage gate criteria, scoring, build/buy/partner decision matrix
+
+## References
+
+- [output-templates.md](references/output-templates.md) — Structured JSON output schemas for PRD, business case, and strategy artifacts
+- [value-prop-canvas-guide.md](references/value-prop-canvas-guide.md) — Detailed value proposition canvas facilitation guide
+
+## Related Skills
+
+- `ork:user-research` — Build user understanding (personas, journey maps, interviews) before writing the PRD
+- `ork:product-frameworks` — Full PM framework suite (business cases, RICE, OKRs, metrics)
+
+---
+
+**Version:** 1.0.0
+
+
+---
+
+## Rules (3)
+
+### Engineer requirements with INVEST user stories and comprehensive PRD documentation — HIGH
+
+
+# Requirements Engineering & PRDs
+
+Patterns for translating product vision into clear, actionable engineering specifications.
+
+## User Stories
+
+### Standard Format
+
+```
+As a [type of user],
+I want [goal/desire],
+so that [benefit/value].
+```
+
+### INVEST Criteria
+
+| Criterion | Description | Example Check |
+|-----------|-------------|---------------|
+| **I**ndependent | Can be developed separately | No hard dependencies on other stories |
+| **N**egotiable | Details can be discussed | Not a contract, a conversation starter |
+| **V**aluable | Delivers user/business value | Answers "so what?" |
+| **E**stimable | Can be sized by the team | Clear enough to estimate |
+| **S**mall | Fits in a sprint | 1-5 days of work typically |
+| **T**estable | Has clear acceptance criteria | Know when it's done |
+
+### Good vs. Bad Stories
+
+**Good:**
+```markdown
+As a sales manager,
+I want to see my team's pipeline by stage,
+so that I can identify bottlenecks and coach accordingly.
+
+Acceptance Criteria:
+- [ ] Shows deals grouped by stage
+- [ ] Displays deal count and total value per stage
+- [ ] Filters by date range (default: current quarter)
+- [ ] Updates in real-time when deals move stages
+```
+
+**Bad (too vague):** `As a user, I want better reporting.`
+**Bad (solution-focused):** `As a user, I want a pie chart on the dashboard.`
+
+## Acceptance Criteria
+
+### Given-When-Then Format (Gherkin)
+
+```text
+Scenario: Successful login with valid credentials
+  Given I am on the login page
+  And I have a valid account
+  When I enter my email "user@example.com"
+  And I enter my password "validpass123"
+  And I click the "Sign In" button
+  Then I should be redirected to the dashboard
+  And I should see "Welcome back" message
+```
+
+## PRD Template
+
+```markdown
+# PRD: [Feature Name]
+
+**Author:** [Name]
+**Status:** Draft | In Review | Approved | Shipped
+
+## Problem Statement
+[1-2 paragraphs describing the problem we're solving]
+
+## Goals
+1. [Primary goal with measurable outcome]
+2. [Secondary goal]
+
+## Non-Goals (Out of Scope)
+- [Explicitly what we're NOT doing]
+
+## Success Metrics
+| Metric | Current | Target | Timeline |
+|--------|---------|--------|----------|
+| | | | |
+
+## User Stories
+
+### P0 - Must Have (MVP)
+- [ ] Story 1: As a..., I want..., so that...
+
+### P1 - Should Have
+- [ ] Story 2: ...
+
+## Dependencies
+| Dependency | Owner | Status | ETA |
+|------------|-------|--------|-----|
+
+## Risks & Mitigations
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+
+## Timeline
+| Milestone | Date | Status |
+|-----------|------|--------|
+| PRD Approved | | |
+| Dev Complete | | |
+| Launch | | |
+```
+
+## Requirements Priority Levels
+
+| Level | Meaning | Criteria |
+|-------|---------|----------|
+| **P0** | Must have for MVP | Users cannot accomplish core job without this |
+| **P1** | Important | Significantly improves experience, high demand |
+| **P2** | Nice to have | Enhances experience, moderate demand |
+| **P3** | Future | Backlog for later consideration |
+
+## Definition of Ready
+
+```markdown
+- [ ] User story follows standard format
+- [ ] Acceptance criteria are complete and testable
+- [ ] Dependencies identified and resolved
+- [ ] Design artifacts available (if applicable)
+- [ ] Story is estimated by the team
+- [ ] Story fits within a single sprint
+```
+
+## Definition of Done
+
+```markdown
+- [ ] Code complete and reviewed
+- [ ] Unit tests written and passing
+- [ ] Integration tests passing
+- [ ] Acceptance criteria verified
+- [ ] Documentation updated
+- [ ] Deployed to staging
+- [ ] Product owner acceptance
+```
+
+## Non-Functional Requirements
+
+| Category | Example Requirement |
+|----------|-------------------|
+| **Performance** | Page load time &lt; 2 seconds at 95th percentile |
+| **Scalability** | Support 10,000 concurrent users |
+| **Availability** | 99.9% uptime |
+| **Security** | All data encrypted at rest and in transit |
+| **Accessibility** | WCAG 2.1 AA compliant |
+
+**Incorrect — Vague user story without acceptance criteria:**
+```markdown
+As a user, I want better reporting.
+```
+
+**Correct — INVEST user story with acceptance criteria:**
+```markdown
+As a sales manager,
+I want to see my team's pipeline by stage,
+so that I can identify bottlenecks and coach accordingly.
+
+Acceptance Criteria:
+- [ ] Shows deals grouped by stage
+- [ ] Displays deal count and total value per stage
+- [ ] Filters by date range (default: current quarter)
+- [ ] Updates in real-time when deals move stages
+```
+
+
+### Evaluate go/no-go decisions with stage gates and build/buy/partner strategic analysis — HIGH
+
+
+# Go/No-Go & Build/Buy/Partner Decisions
+
+## Stage Gate Criteria
+
+```markdown
+## Gate 1: Opportunity Validation
+- [ ] Clear customer problem identified (JTBD defined)
+- [ ] Market size sufficient (TAM > $100M)
+- [ ] Strategic alignment confirmed
+- [ ] No legal/regulatory blockers
+
+## Gate 2: Solution Validation
+- [ ] Value proposition tested with customers
+- [ ] Technical feasibility confirmed
+- [ ] Competitive differentiation clear
+- [ ] Unit economics viable (projected)
+
+## Gate 3: Business Case
+- [ ] ROI > hurdle rate (typically 15-25%)
+- [ ] Payback period acceptable (< 24 months)
+- [ ] Resource requirements confirmed
+- [ ] Risk mitigation plan in place
+
+## Gate 4: Launch Readiness
+- [ ] MVP complete and tested
+- [ ] Go-to-market plan ready
+- [ ] Success metrics defined
+- [ ] Support/ops prepared
+```
+
+## Scoring Template
+
+| Criterion | Weight | Score (1-10) | Weighted |
+|-----------|--------|--------------|----------|
+| Market opportunity | 20% | | |
+| Strategic fit | 20% | | |
+| Competitive position | 15% | | |
+| Technical feasibility | 15% | | |
+| Financial viability | 15% | | |
+| Team capability | 10% | | |
+| Risk profile | 5% | | |
+| **TOTAL** | 100% | | |
+
+**Decision Thresholds:**
+- **Go**: Score >= 7.0
+- **Conditional Go**: Score 5.0-6.9 (address gaps)
+- **No-Go**: Score &lt; 5.0
+
+## Build vs. Buy vs. Partner Decision Matrix
+
+| Factor | Build | Buy | Partner |
+|--------|-------|-----|---------|
+| **Time to Market** | Slow (6-18 months) | Fast (1-3 months) | Medium (3-6 months) |
+| **Cost (Year 1)** | High (dev team) | Medium (license) | Variable |
+| **Cost (Year 3+)** | Lower (owned) | Higher (recurring) | Negotiable |
+| **Customization** | Full control | Limited | Moderate |
+| **Core Competency** | Must be core | Not core | Adjacent |
+| **Competitive Advantage** | High | Low | Medium |
+| **Risk** | Execution risk | Vendor lock-in | Partnership risk |
+
+## Decision Framework
+
+```python
+def build_buy_partner_decision(
+    strategic_importance: int,    # 1-10
+    differentiation_value: int,   # 1-10
+    internal_capability: int,     # 1-10
+    time_sensitivity: int,        # 1-10
+    budget_availability: int,     # 1-10
+) -> str:
+    build_score = (
+        strategic_importance * 0.3 +
+        differentiation_value * 0.3 +
+        internal_capability * 0.2 +
+        (10 - time_sensitivity) * 0.1 +
+        budget_availability * 0.1
+    )
+    if build_score >= 7:
+        return "BUILD: Core capability, invest in ownership"
+    elif build_score >= 4:
+        return "PARTNER: Strategic integration with flexibility"
+    else:
+        return "BUY: Commodity, use best-in-class vendor"
+```
+
+## Decision Tree
+
+```
+Is this a core differentiator?
++-- YES -> BUILD (protects competitive advantage)
++-- NO -> Is there a mature solution available?
+         +-- YES -> BUY (fastest time to value)
+         +-- NO -> Is there a strategic partner?
+                  +-- YES -> PARTNER (shared risk/reward)
+                  +-- NO -> BUILD (must create capability)
+```
+
+## When to Build / Buy / Partner
+
+### Build When
+- Creates lasting competitive advantage
+- Core to your value proposition
+- Requires deep customization
+- Data/IP ownership is critical
+
+### Buy When
+- Commodity functionality (auth, payments, email)
+- Time-to-market is critical
+- Vendor has clear expertise edge
+- Total cost of ownership favors vendor
+
+### Partner When
+- Need capabilities but not full ownership
+- Market access matters (distribution)
+- Risk sharing is valuable
+- Neither build nor buy fits perfectly
+
+**Incorrect — Go/No-Go without scoring criteria:**
+```markdown
+Idea: Build AI feature
+Team: Excited about it
+Decision: GO
+```
+
+**Correct — Systematic stage gate evaluation:**
+```markdown
+Gate 3: Business Case
+- [ ] ROI > 15% hurdle rate: YES (22%)
+- [ ] Payback < 24 months: YES (18 months)
+- [ ] Resource requirements: 3 FTEs available
+- [ ] Risk mitigation: Technical POC validated
+
+Weighted Score: 7.2/10
+Decision: GO (>= 7.0 threshold)
+```
+
+
+### Define value propositions using Jobs-to-be-Done framework and product-market fit canvas — HIGH
+
+
+# Value Proposition & Jobs-to-be-Done
+
+## Jobs-to-be-Done (JTBD) Framework
+
+People don't buy products -- they hire them to do specific jobs.
+
+### JTBD Statement Format
+
+```
+When [situation], I want to [motivation], so I can [expected outcome].
+```
+
+**Example:**
+```
+When I'm commuting to work, I want to catch up on industry news,
+so I can appear informed in morning meetings.
+```
+
+### Job Dimensions
+
+| Dimension | Description | Example |
+|-----------|-------------|---------|
+| **Functional** | Practical task to accomplish | "Transfer money to a friend" |
+| **Emotional** | How user wants to feel | "Feel confident I didn't make a mistake" |
+| **Social** | How user wants to be perceived | "Appear tech-savvy to peers" |
+
+### JTBD Discovery Process
+
+```markdown
+## Step 1: Identify Target Customer
+- Who struggles most with this job?
+- Who pays the most to get this job done?
+
+## Step 2: Define the Core Job
+- What is the customer ultimately trying to accomplish?
+- Strip away solutions -- focus on the outcome
+
+## Step 3: Map Job Steps
+1. Define what success looks like
+2. Locate inputs needed
+3. Prepare for the job
+4. Confirm readiness
+5. Execute the job
+6. Monitor progress
+7. Modify as needed
+8. Conclude the job
+
+## Step 4: Identify Pain Points
+- Where do customers struggle?
+- What causes anxiety or frustration?
+- What workarounds exist?
+
+## Step 5: Quantify Opportunity
+- Importance: How important is this job? (1-10)
+- Satisfaction: How satisfied with current solutions? (1-10)
+- Opportunity = Importance + (Importance - Satisfaction)
+```
+
+## Value Proposition Canvas
+
+### Customer Profile (Right Side)
+
+```
++-------------------------------------+
+|         CUSTOMER PROFILE            |
+|  JOBS                               |
+|  * Functional jobs (tasks)          |
+|  * Social jobs (how seen)           |
+|  * Emotional jobs (how feel)        |
+|                                     |
+|  PAINS                              |
+|  * Undesired outcomes               |
+|  * Obstacles                        |
+|  * Risks                            |
+|                                     |
+|  GAINS                              |
+|  * Required outcomes                |
+|  * Expected outcomes                |
+|  * Desired outcomes                 |
+|  * Unexpected outcomes              |
++-------------------------------------+
+```
+
+### Value Map (Left Side)
+
+```
++-------------------------------------+
+|           VALUE MAP                 |
+|  PRODUCTS & SERVICES                |
+|  * What we offer                    |
+|  * Features and capabilities        |
+|                                     |
+|  PAIN RELIEVERS                     |
+|  * How we eliminate pains           |
+|  * Risk reduction                   |
+|  * Cost savings                     |
+|                                     |
+|  GAIN CREATORS                      |
+|  * How we create gains              |
+|  * Performance improvements         |
+|  * Social/emotional benefits        |
++-------------------------------------+
+```
+
+### Fit Assessment
+
+| Fit Level | Description | Action |
+|-----------|-------------|--------|
+| **Problem-Solution Fit** | Value map addresses jobs/pains/gains | Validate with interviews |
+| **Product-Market Fit** | Customers actually buy/use | Measure retention, NPS |
+| **Business Model Fit** | Sustainable unit economics | Track CAC, LTV, margins |
+
+## Key Principles
+
+| Principle | Application |
+|-----------|-------------|
+| **Customer-first** | Start with jobs, not features |
+| **Evidence-based** | Validate assumptions with data |
+| **Strategic alignment** | Every initiative serves the mission |
+| **Reversible decisions** | Prefer options that preserve flexibility |
+
+**Incorrect — Feature-focused instead of job-focused:**
+```markdown
+Value Proposition:
+"Our app has AI, real-time sync, and dark mode"
+```
+
+**Correct — JTBD-based value proposition:**
+```markdown
+Jobs-to-be-Done:
+When I'm commuting to work,
+I want to catch up on industry news,
+so I can appear informed in morning meetings.
+
+Value Proposition:
+"Get curated industry insights in 5-minute audio briefs,
+perfectly timed for your commute"
+```
+
+
+
+---
+
+## References (2)
+
+### Output Templates
+
+# Output Templates
+
+Structured JSON output formats for consistent product deliverables. Each template shows the required structure with 1-2 example entries. Agents and skills producing these artifacts should conform to these schemas.
+
+## PRD Output
+
+From requirements translation workflows.
+
+```json
+{
+  "prd": {
+    "title": "Feature Name",
+    "version": "1.0",
+    "author": "PM Name",
+    "status": "draft",
+    "last_updated": "2026-03-01"
+  },
+  "problem_statement": "One-paragraph description of the user problem being solved.",
+  "solution": "High-level solution approach.",
+  "scope": {
+    "in": ["User authentication via SSO", "Role-based access control"],
+    "out": ["Custom SAML provider", "Mobile biometric auth"]
+  },
+  "user_stories": [
+    {
+      "id": "US-001",
+      "persona": "Team Admin",
+      "story": "As a team admin, I want to invite members via email, so that onboarding is self-service.",
+      "acceptance_criteria": [
+        "Invite email sent within 30 seconds",
+        "Invited user can set password on first visit",
+        "Admin sees pending/accepted status"
+      ],
+      "priority": "must-have"
+    }
+  ],
+  "edge_cases": ["User invited to multiple teams simultaneously", "Expired invite link reuse"],
+  "non_functional": {
+    "performance": "Invite flow completes in < 2s p95",
+    "security": "Invite tokens expire after 72 hours",
+    "accessibility": "WCAG 2.1 AA"
+  },
+  "github_issues_to_create": [
+    { "title": "Implement SSO invite flow", "labels": ["feature", "auth"], "estimate": "3d" }
+  ]
+}
+```
+
+## Business Case Output
+
+From business case analysis workflows.
+
+```json
+{
+  "investment_summary": {
+    "total_investment": "$150,000",
+    "expected_return": "$450,000",
+    "payback_period": "8 months",
+    "roi": "200%",
+    "confidence": "medium"
+  },
+  "cost_breakdown": [
+    { "category": "Engineering", "amount": "$100,000", "type": "one-time" },
+    { "category": "Infrastructure", "amount": "$2,000/mo", "type": "recurring" }
+  ],
+  "benefit_projection": [
+    { "benefit": "Support ticket reduction", "annual_value": "$180,000", "confidence": "high" },
+    { "benefit": "Upsell conversion lift", "annual_value": "$270,000", "confidence": "medium" }
+  ],
+  "sensitivity_analysis": {
+    "conservative": { "roi": "80%", "payback": "14 months" },
+    "base": { "roi": "200%", "payback": "8 months" },
+    "optimistic": { "roi": "350%", "payback": "5 months" }
+  },
+  "risks": [
+    { "risk": "Integration delays", "probability": "medium", "impact": "high", "mitigation": "Prototype first" }
+  ],
+  "recommendation": "Proceed with phased rollout. Break-even achieved under conservative scenario."
+}
+```
+
+## Metrics Framework Output
+
+From metrics architecture workflows.
+
+```json
+{
+  "okrs": [
+    {
+      "objective": "Improve activation rate for new teams",
+      "key_results": [
+        { "kr": "Increase Day-7 activation from 40% to 60%", "owner": "Growth" },
+        { "kr": "Reduce time-to-first-value from 3 days to 1 day", "owner": "Product" }
+      ]
+    }
+  ],
+  "kpis": {
+    "leading": ["Daily signups", "Onboarding completion rate", "Feature adoption in week 1"],
+    "lagging": ["Monthly revenue", "Net retention rate", "Customer lifetime value"]
+  },
+  "instrumentation_plan": [
+    {
+      "event": "onboarding_step_completed",
+      "properties": ["step_name", "duration_seconds", "skipped"],
+      "trigger": "User completes or skips an onboarding step"
+    }
+  ],
+  "hypothesis_validation": {
+    "hypothesis": "Guided onboarding increases Day-7 activation by 20%",
+    "primary_metric": "day_7_activation_rate",
+    "guardrail_metrics": ["support_ticket_volume", "onboarding_drop_off_rate"]
+  },
+  "guardrail_metrics": ["Page load time p95 < 2s", "Error rate < 0.1%", "Support tickets per 1000 users < 5"],
+  "review_cadence": "Weekly metrics review, monthly OKR check-in, quarterly strategy review"
+}
+```
+
+## Prioritization Report Output
+
+From prioritization analysis workflows.
+
+```json
+{
+  "scored_features": [
+    {
+      "feature": "AI-powered search",
+      "reach": 8,
+      "impact": 2.0,
+      "confidence": 0.8,
+      "effort": 3,
+      "rice_score": 4.27,
+      "notes": "Prototype tested with 5 users"
+    },
+    {
+      "feature": "CSV bulk import",
+      "reach": 4,
+      "impact": 1.0,
+      "confidence": 1.0,
+      "effort": 1,
+      "rice_score": 4.0,
+      "notes": "Top support request"
+    }
+  ],
+  "opportunity_cost_analysis": [
+    { "if_delayed": "AI-powered search", "cost_per_month": "$25,000 in lost conversions" }
+  ],
+  "dependencies": [
+    { "feature": "AI-powered search", "depends_on": ["Search indexing upgrade"] }
+  ],
+  "trade_offs_for_human": [
+    {
+      "decision": "AI search vs bulk import first",
+      "option_a": { "pros": ["Higher RICE", "Competitive differentiator"], "cons": ["3x effort", "Dependency risk"] },
+      "option_b": { "pros": ["Quick win", "No dependencies"], "cons": ["Lower strategic value"] },
+      "recommendation": "Human decides based on Q2 OKR alignment"
+    }
+  ],
+  "recommended_sequence": ["CSV bulk import", "Search indexing upgrade", "AI-powered search"]
+}
+```
+
+## Research Report Output
+
+From user research workflows.
+
+```json
+{
+  "personas": [
+    {
+      "name": "Alex the Admin",
+      "role": "IT Administrator",
+      "goals": ["Reduce onboarding time", "Maintain security compliance"],
+      "pain_points": ["Manual user provisioning", "No audit trail"],
+      "behaviors": ["Checks admin dashboard daily", "Prefers CLI over GUI"],
+      "quotes": ["I spend 2 hours a week just adding new users."]
+    }
+  ],
+  "journey_map": [
+    {
+      "stage": "Onboarding",
+      "steps": [
+        {
+          "action": "Receives invite email",
+          "thinking": "Is this legitimate?",
+          "feeling": "cautious",
+          "pain_points": ["Generic email looks like spam"],
+          "opportunities": ["Branded email with admin's name"]
+        }
+      ]
+    }
+  ],
+  "user_stories": [
+    "As an IT admin, I want SCIM provisioning, so that user accounts sync automatically."
+  ],
+  "metrics": {
+    "task_success_rate": "85%",
+    "time_on_task": "4.2 minutes",
+    "satisfaction_score": "3.8/5"
+  },
+  "recommendations": [
+    { "priority": "high", "finding": "Onboarding email mistaken for spam", "action": "Add company branding and admin name" }
+  ]
+}
+```
+
+
+### Value Prop Canvas Guide
+
+# Value Proposition Canvas Guide
+
+Detailed guide for using the Value Proposition Canvas to align products with customer needs.
+
+## Canvas Structure
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    VALUE PROPOSITION MAP                     │
+├─────────────────────────────────────────────────────────────┤
+│  CUSTOMER PROFILE         │  VALUE MAP                      │
+│  ┌─────────────────────┐  │  ┌─────────────────────────┐    │
+│  │ Jobs to be Done     │◄─┼──│ Products & Services     │    │
+│  │ • Functional jobs   │  │  │ • Features              │    │
+│  │ • Social jobs       │  │  │ • Capabilities          │    │
+│  │ • Emotional jobs    │  │  │ • Integrations          │    │
+│  ├─────────────────────┤  │  ├─────────────────────────┤    │
+│  │ Pains               │◄─┼──│ Pain Relievers          │    │
+│  │ • Obstacles         │  │  │ • Eliminates            │    │
+│  │ • Risks             │  │  │ • Reduces               │    │
+│  │ • Negative outcomes │  │  │ • Prevents              │    │
+│  ├─────────────────────┤  │  ├─────────────────────────┤    │
+│  │ Gains               │◄─┼──│ Gain Creators           │    │
+│  │ • Required gains    │  │  │ • Creates               │    │
+│  │ • Expected gains    │  │  │ • Increases             │    │
+│  │ • Desired gains     │  │  │ • Enables               │    │
+│  └─────────────────────┘  │  └─────────────────────────┘    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Jobs to be Done Categories
+
+| Job Type | Definition | Example |
+|----------|------------|---------|
+| Functional | Tasks to accomplish | "Deploy code to production" |
+| Social | How to be perceived | "Be seen as innovative" |
+| Emotional | How to feel | "Feel confident in decisions" |
+
+## Pain Severity Ranking
+
+```
+CRITICAL  ────────────────────────────►  MINOR
+│                                            │
+│  Blocking     Painful      Annoying       │
+│  (must fix)   (should fix) (nice to fix)  │
+```
+
+## Gain Importance Ranking
+
+```
+REQUIRED  ────────────────────────────►  NICE-TO-HAVE
+│                                            │
+│  Expected     Desired      Unexpected     │
+│  (table stakes) (differentiators) (delighters)
+```
+
+## Fit Assessment
+
+| Fit Level | Criteria |
+|-----------|----------|
+| Problem-Solution Fit | Evidence that value prop addresses real jobs/pains |
+| Product-Market Fit | Evidence customers will pay for solution |
+| Business Model Fit | Evidence of sustainable business model |
+
+## Workshop Facilitation
+
+1. **Preparation** (30 min before)
+   - Print large canvas
+   - Prepare sticky notes (different colors for jobs/pains/gains)
+   - Gather customer research
+
+2. **Customer Profile First** (45 min)
+   - Each participant adds sticky notes silently (10 min)
+   - Group discussion and clustering (20 min)
+   - Prioritization voting (15 min)
+
+3. **Value Map Second** (45 min)
+   - Map features to jobs/pains/gains
+   - Identify gaps
+   - Prioritize what to build
+
+4. **Fit Assessment** (30 min)
+   - Score fit for each connection
+   - Identify highest-value opportunities
+   - Document assumptions to validate
+
+## Common Mistakes
+
+| Mistake | Correction |
+|---------|------------|
+| Starting with solution | Start with customer jobs |
+| Listing features | Focus on outcomes |
+| Ignoring emotional jobs | Include all job types |
+| Single customer segment | Separate canvas per segment |
+| No prioritization | Vote on importance |
+
+## 2026 Updates
+
+- AI-assisted job identification from support tickets
+- Automated pain/gain extraction from user interviews
+- Real-time fit scoring with analytics data
+
