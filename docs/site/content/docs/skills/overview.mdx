@@ -6,6 +6,7 @@ full: true
 
 import { LazySkillBrowser as SkillBrowser } from '@/components/lazy';
 import { Count } from '@/components/count';
+import { Steps, Step } from 'fumadocs-ui/components/steps';
 
 ## What Is a Skill?
 
@@ -53,34 +54,32 @@ OrchestKit ships <Count k="skills" /> skills in two categories:
 
 Here is the end-to-end flow from the moment you type a prompt to the moment Claude uses skill knowledge:
 
-```
-User prompt
-    |
-    v
-[1] UserPromptSubmit hook fires
-    |
-    v
-[2] skill-auto-suggest hook analyzes keywords
-    (e.g., "fastapi" -> fastapi-advanced, confidence 90)
-    |
-    v
-[3] Top 3 matching skills injected via additionalContext
-    |
-    v
-[4] If a command skill is invoked (/ork:implement),
-    its `skills:` frontmatter field pulls in more skills
-    |
-    v
-[5] If an agent is spawned, the agent's frontmatter
-    `skills:` array auto-injects its reference skills
-    |
-    v
-[6] Claude reads injected skill content as context
-    and follows the patterns, checklists, and examples
-    |
-    v
-Output follows best practices from skill knowledge
-```
+<Steps>
+  <Step>
+    ### UserPromptSubmit hook fires
+    Your prompt enters the hook pipeline.
+  </Step>
+  <Step>
+    ### skill-auto-suggest analyzes keywords
+    E.g., "fastapi" matches `fastapi-advanced` with confidence 90.
+  </Step>
+  <Step>
+    ### Top 3 matching skills injected
+    Injected via `additionalContext` into Claude's prompt.
+  </Step>
+  <Step>
+    ### Command skill pulls in more skills
+    If you invoke `/ork:implement`, its frontmatter `skills:` field loads additional reference skills.
+  </Step>
+  <Step>
+    ### Agent injects its own skills
+    When an agent spawns, its frontmatter `skills:` array auto-injects reference skills.
+  </Step>
+  <Step>
+    ### Claude applies skill knowledge
+    The model reads patterns, checklists, and examples — then follows them in its output.
+  </Step>
+</Steps>
 
 Three injection paths work together:
 
@@ -148,13 +147,11 @@ When multiple skills are injected, they share this budget. The platform prioriti
 
 ## Skill Listing and Token Budget
 
-Of OrchestKit's 79 skills, only **16 are listed** in Claude's prompt context. The remaining 55 are hidden via `disable-model-invocation: true` to save ~2,630 tokens per turn. Hidden skills are still fully functional:
+Of OrchestKit's 79 skills, **18 are user-invocable** command skills (you type `/ork:skill-name`). Of those, **16 are listed** in Claude's prompt context — the other 2 use `disable-model-invocation: true` to save tokens but are still fully invocable via the `/ork:` prefix. The remaining 61 reference skills are hidden from the listing entirely:
 
-- Users can invoke them via `/ork:skill-name` slash commands
-- Agents load them via frontmatter `skills:` arrays
-- The `skill-auto-suggest` hook matches them by keywords
-
-The 18 listed skills are the most broadly useful ones that benefit from Claude proactively recognizing when to use them.
+- Users can invoke command skills via `/ork:skill-name` slash commands
+- Agents load reference skills via frontmatter `skills:` arrays
+- The `skill-auto-suggest` hook matches all skills by keywords
 
 ### Interactive Options
 
