@@ -16,7 +16,6 @@ tools:
   - Grep
   - Glob
   - Agent(frontend-ui-developer)
-  - Agent(rapid-ui-designer)
   - TeamCreate
   - SendMessage
   - TaskCreate

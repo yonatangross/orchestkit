@@ -52,7 +52,7 @@ These fields are optional — hooks should always use `input.field ?? fallback` 
 
 ### Hooks Updated
 - `monorepo-detector`: Skips `--add-dir` suggestion when `added_dirs` already active
-- `memory-capture`: Tracks `added_dirs_count` and classifies `session_outcome`
+- `session-summary`: Tracks `added_dirs_count` and classifies `session_outcome`
 - `session-tracking`: Passes `added_dirs_count` to session context
 - `session-cleanup`: Includes `last_msg_len` and `added_dirs_count` in analytics
 - `session-context-loader`: Scans added directories for context files
