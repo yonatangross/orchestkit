@@ -5,6 +5,20 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.1.10](https://github.com/yonatangross/orchestkit/compare/v7.1.9...v7.1.10) (2026-03-06)
+
+
+### Bug Fixes
+
+* **ci:** add bootstrap-sha to release-please config ([#997](https://github.com/yonatangross/orchestkit/issues/997)) ([0d46843](https://github.com/yonatangross/orchestkit/commit/0d468437e75ffc7d3842f46972bd19836c565435))
+* **ci:** add plugins[0].version to release-please extra-files ([#1001](https://github.com/yonatangross/orchestkit/issues/1001)) ([8a4faad](https://github.com/yonatangross/orchestkit/commit/8a4faadf651d822d3c4e748360a27ca23cc9af14))
+* **docs:** replace broken ASCII diagrams with fumadocs Steps ([#999](https://github.com/yonatangross/orchestkit/issues/999)) ([2c1b6fe](https://github.com/yonatangross/orchestkit/commit/2c1b6fee670c4e1c8be2855bb23596792f354874))
+
+
+### Miscellaneous
+
+* **main:** release 7.1.7 ([#998](https://github.com/yonatangross/orchestkit/issues/998)) ([c4607ad](https://github.com/yonatangross/orchestkit/commit/c4607ad811ec43b9cd6dc5ac323af953eca4096a))
+
 ## [7.1.9] - 2026-03-06
 
 ### Fixed
