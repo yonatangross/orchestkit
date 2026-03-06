@@ -1,6 +1,6 @@
 ---
 title: "Hook Architecture"
-description: "How OrchestKit's 81-hook system works: bundles, dispatchers, execution modes, and the stop pipeline."
+description: "How OrchestKit's 105-hook system works: bundles, dispatchers, execution modes, and the stop pipeline."
 ---
 
 import { Callout } from "fumadocs-ui/components/callout";
@@ -61,7 +61,7 @@ Note that `subagent-start` and `subagent-stop` share the `subagent.mjs` bundle. 
 | `permission.mjs` | 8 KB | 3 | PermissionRequest | auto-approve-safe-bash, auto-approve-project-writes, learning-tracker |
 | `pretool.mjs` | 48 KB | 33 | PreToolUse | dangerous-command-blocker, file-guard, 3 unified dispatchers, git-validator |
 | `posttool.mjs` | 58 KB | 23 | PostToolUse, PostToolUseFailure | unified-dispatcher, error-handler, audit-logger, memory-bridge |
-| `prompt.mjs` | 57 KB | 13 | UserPromptSubmit | unified-dispatcher (9 consolidated hooks), profile-injector, capture-user-intent |
+| `prompt.mjs` | 57 KB | 13 | UserPromptSubmit | unified-dispatcher (9 consolidated hooks), profile-injector, memory-context |
 | `lifecycle.mjs` | 31 KB | 17 | SessionStart, SessionEnd, PreCompact, TeammateIdle, TaskCompleted | context-loader, metrics-summary, progress-reporter |
 | `stop.mjs` | 33 KB | 12 | Stop | unified-stop-dispatcher (fans out to 7 hooks internally) |
 | `subagent.mjs` | 56 KB | 18 | SubagentStart, SubagentStop | context-stager, output-validator, retry-handler |
@@ -146,7 +146,7 @@ Claude Code                      run-hook-silent.mjs           run-hook-backgrou
     |                                                    | exit
 ```
 
-**Used by:** 7 fire-and-forget dispatchers (see below), `capture-user-intent`.
+**Used by:** 7 fire-and-forget dispatchers (see below).
 
 **Can block operations:** No. Always returns success immediately.
 
@@ -194,7 +194,7 @@ Seven hooks.json entries use `run-hook-silent.mjs` to fan out to multiple intern
 | Dispatcher | Event | Internal Hooks | What It Does |
 |------------|-------|----------------|-------------|
 | `lifecycle/unified-dispatcher` | SessionStart | 4 | Pattern sync pull, coordination init, decision sync, dependency check |
-| `prompt/capture-user-intent` | UserPromptSubmit | 1 | Captures and classifies user intent in background |
+| `prompt/memory-context` | UserPromptSubmit | 1 | Searches graph for entities matching prompt keywords |
 | `posttool/unified-dispatcher` | PostToolUse | 7+ | Audit logger, session metrics, calibration tracker, style/naming learners |
 | `subagent-stop/unified-dispatcher` | SubagentStop | 5+ | Memory store, context publisher, feedback loop, handoff preparer |
 | `notification/unified-dispatcher` | Notification | 1+ | Desktop notification routing |
@@ -283,8 +283,8 @@ const DISPATCHERS = {
 
 Hooks are registered at three levels. Scope determines which sessions a hook fires in.
 
-<Tabs items={["Global (30)", "Agent-Scoped (44)", "Skill-Scoped (7)"]}>
-<Tab value="Global (30)">
+<Tabs items={["Global (42)", "Agent-Scoped (44)", "Skill-Scoped (19)"]}>
+<Tab value="Global (42)">
 
 ### Global Hooks
 
@@ -339,7 +339,7 @@ Agent-scoped hooks implement agent-specific safety constraints. For example:
 The 44 agent-scoped hooks use 5 underlying hook functions from the `agent.mjs` bundle: `block-writes`, `ci-safety-check`, `deployment-safety-check`, `migration-safety-check`, and `security-command-audit`. Multiple agents may reference the same hook function.
 
 </Tab>
-<Tab value="Skill-Scoped (7)">
+<Tab value="Skill-Scoped (19)">
 
 ### Skill-Scoped Hooks
 
@@ -461,6 +461,48 @@ import {
   outputWarning,             // show warning message
 } from '../lib/common.js';
 ```
+
+## Native HTTP Hooks (CC 2.1.69+)
+
+In addition to `"type": "command"` hooks that spawn a shell process, OrchestKit registers 12 hooks with `"type": "http"`. These hooks POST the hook input as JSON directly to a URL, bypassing the Node.js process spawn entirely.
+
+```json
+{
+  "type": "http",
+  "url": "http://localhost:${ORCHESTKIT_PORT}/hooks/analytics/session-event",
+  "statusMessage": "Syncing analytics..."
+}
+```
+
+HTTP hooks are used for analytics, webhook integrations, and external service notifications where the overhead of spawning a Node.js process is unnecessary. They follow the same input/output contract -- the URL receives a JSON POST body matching `HookInput` and returns a JSON response matching `HookResult`.
+
+## The once:true Pattern (CC 2.1.69+)
+
+Hooks registered with `"once": true` auto-remove after their first successful fire in a session. OrchestKit uses this for 13 skill context loaders that inject skill-specific context (guidelines, templates, checklists) on the first matching event and then unregister themselves to avoid redundant work on subsequent fires.
+
+```json
+{
+  "type": "command",
+  "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs prompt/memory-context-loader",
+  "once": true
+}
+```
+
+This pattern is ideal for one-time initialization: context injection, environment detection, or consent checks that only need to run once per session.
+
+## statusMessage for Spinner UX (CC 2.1.69+)
+
+Hooks can declare a `"statusMessage"` string in their `hooks.json` registration. When present, Claude Code displays the message as a spinner label while the hook executes, giving the user feedback that work is happening.
+
+```json
+{
+  "type": "command",
+  "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/session-context-loader",
+  "statusMessage": "Loading session context..."
+}
+```
+
+OrchestKit uses `statusMessage` on 15 hooks -- primarily context loaders, PR enrichers, and setup hooks where execution takes more than a few hundred milliseconds. For fast hooks (under 50ms), omit `statusMessage` to avoid spinner flicker.
 
 ## Hook Overrides
 

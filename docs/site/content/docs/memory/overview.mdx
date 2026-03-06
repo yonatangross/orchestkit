@@ -80,7 +80,7 @@ This ensures Claude always starts a session with your most recent decisions load
 
 ### On Agent Spawn
 
-When a subagent is created, the **graph-memory-inject** hook fires -- it searches the knowledge graph for entities related to the agent's domain (e.g., a `database-engineer` agent gets entities tagged with PostgreSQL, schema, migration).
+When a subagent is created, it inherits memory context from the parent session. The agent's domain keywords (e.g., PostgreSQL, schema, migration for `database-engineer`) are used by Claude to search the knowledge graph via `mcp__memory__search_nodes` for relevant entities.
 
 ## The Write Path
 
@@ -108,8 +108,7 @@ OrchestKit captures decisions automatically through hooks:
 
 | Hook | Lifecycle | What It Captures |
 |------|-----------|-----------------|
-| `capture-user-intent` | `prompt` | Decisions and preferences expressed in natural language |
-| `agent-memory-store` | `subagent-stop` | Patterns extracted from agent output after task completion |
+| `session-summary` | `stop` | Suggests graph entity capture via `additionalContext` for high-activity sessions (20+ tool calls) |
 | `memory-bridge` | `posttool` | Entities created via graph MCP calls (confirms primary storage) |
 | `auto-remember-continuity` | `stop` | Session context preservation before session end |
 

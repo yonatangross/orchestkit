@@ -155,7 +155,6 @@ The memory writer infers entity types from the content of your text:
 |---|---|---|
 | `memory-context` | `prompt` | Searches graph for entities matching prompt keywords; injects search hints into Claude's context |
 | `memory-context-loader` | `prompt` (once) | Loads recent decisions from local JSONL on session start |
-| `graph-memory-inject` | `subagent-start` | Searches graph for entities in the spawned agent's domain (e.g., database keywords for database-engineer) |
 | `memory-fabric-init` | `pretool` (once) | Lazy initialization of memory directories and session registration on first memory MCP call |
 
 ## Hooks That Write to the Graph
@@ -163,12 +162,12 @@ The memory writer infers entity types from the content of your text:
 | Hook | Lifecycle | What It Does |
 |---|---|---|
 | `memory-bridge` | `posttool` | Confirms graph writes after `mcp__memory__create_entities` calls |
-| `agent-memory-store` | `subagent-stop` | Extracts patterns from agent output and queues them for graph storage |
+| `session-summary` | `stop` | Suggests graph entity capture via `additionalContext` for sessions with 20+ tool calls |
 | `auto-remember-continuity` | `stop` | Prompts Claude to persist session context to graph before ending |
 
 ## Agent Domain Mapping
 
-When the `graph-memory-inject` hook fires for an agent spawn, it maps the agent type to domain keywords for targeted graph search:
+When a subagent is spawned, Claude uses the agent's domain to search for relevant graph entities. The mapping from agent type to domain keywords enables targeted graph search:
 
 | Agent | Search Keywords |
 |---|---|
@@ -235,7 +234,7 @@ The graph MCP server stores data locally on your machine. No data is sent to ext
 
 ## Graph Size and Performance
 
-The `graph-memory-inject` hook includes a safety check: if the graph data file is smaller than 100 bytes (approximately fewer than 3 entities), it skips injection to avoid noisy empty results. As you store more decisions, the graph grows richer and the injected context becomes more valuable.
+The graph search includes a practical threshold: if the graph contains fewer than 3 entities, searches return minimal results. As you store more decisions, the graph grows richer and the surfaced context becomes more valuable.
 
 The `memory-context` hook requires prompts to be at least 20 characters long before triggering a search. Single-word prompts or very short questions are skipped to avoid low-quality matches.
 

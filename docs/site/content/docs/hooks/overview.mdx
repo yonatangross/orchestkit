@@ -1,5 +1,5 @@
 ---
-title: "81 Hooks: What Fires When"
+title: "105 Hooks: What Fires When"
 description: "TypeScript functions that intercept every Claude Code lifecycle event -- blocking dangerous commands, injecting context, and syncing memory, all invisibly."
 ---
 
@@ -33,8 +33,8 @@ type HookFn = (input: HookInput) => HookResult | Promise<HookResult>;
 |----------|-------|-------------|
 | **Global hooks** | 42 | Fire on every matching event regardless of agent (10 matchers, 20 dispatchers, 12 native HTTP) |
 | **Agent-scoped hooks** | 44 | Fire only when a specific agent is active |
-| **Skill-scoped hooks** | 7 | Fire only during specific skill operations |
-| **Total** | **81** | Registered in `hooks.json`, compiled into 12 split bundles |
+| **Skill-scoped hooks** | 19 | Fire only during specific skill operations |
+| **Total** | **105** | Registered in `hooks.json`, compiled into 12 split bundles |
 
 All 105 hooks are written in TypeScript, compiled via esbuild into ESM bundles, and executed by Node.js. Zero external dependencies in production.
 
@@ -135,12 +135,36 @@ The largest group: hooks fire based on the tool matcher.
 </Step>
 
 <Step>
+### ConfigChange
+
+**When:** `.claude/settings.json` or project config changes mid-session (CC 2.1.50+).
+
+Allows hooks to react to configuration updates without restarting the session -- for example, reloading permission rules or refreshing cached settings.
+</Step>
+
+<Step>
+### InstructionsLoaded
+
+**When:** `CLAUDE.md` and `.claude/rules/*.md` files are loaded (CC 2.1.69+).
+
+Fires after all project instructions have been parsed. Useful for hooks that need to validate or augment loaded instructions -- for example, checking for conflicting rules or injecting dynamic context based on instruction content.
+</Step>
+
+<Step>
 ### TeammateIdle / TaskCompleted
 
 **When:** Multi-agent coordination events fire (CC 2.1.33+).
 
 - **TeammateIdle** (1 hook): Progress reporter checks on idle teammates.
 - **TaskCompleted** (1 hook): Completion tracker records task outcomes.
+</Step>
+
+<Step>
+### WorktreeCreate / WorktreeRemove
+
+**When:** A git worktree is created or removed (CC 2.1.50+).
+
+These events fire on worktree lifecycle changes, enabling hooks to initialize or clean up worktree-specific state (coordination files, per-worktree caches, instance registration).
 </Step>
 
 <Step>
@@ -222,13 +246,24 @@ Claude Code pipes the event payload to stdin, and the runner:
 
 For fire-and-forget hooks, a separate silent runner (`run-hook-silent.mjs`) is used, and for Stop events, `stop-fire-and-forget.mjs` spawns a detached background worker.
 
+## Hook Types
+
+Most hooks use `"type": "command"` to spawn a shell command. Two additional types exist:
+
+| Type | Behavior | Example |
+|------|----------|---------|
+| `"command"` | Spawn a shell command, pipe JSON via stdin/stdout | All blocking and fire-and-forget hooks |
+| `"http"` | POST JSON to a URL instead of spawning a process (CC 2.1.69+) | 12 native HTTP hooks for analytics, webhooks, and external integrations |
+
+Native HTTP hooks (`"type": "http"`) send the hook input as a JSON POST body to the configured URL. They avoid the overhead of spawning a Node.js process, making them ideal for lightweight telemetry and webhook integrations.
+
 ## Special Hook Flags
 
 Some hooks in `hooks.json` have additional flags:
 
 | Flag | Meaning | Example |
 |------|---------|---------|
-| `"once": true` | Run only on the first matching event per session | `memory-context-loader` (first prompt only) |
+| `"once": true` | Run only on the first matching event, then auto-remove (CC 2.1.69+) | 13 skill context loaders that inject context on first fire only |
 | `"async": true` | Run in background without blocking | Analytics dispatchers |
 | `"timeout": 30` | Maximum execution time in seconds | Network I/O hooks |
 

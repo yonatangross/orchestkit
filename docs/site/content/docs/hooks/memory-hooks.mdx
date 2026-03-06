@@ -16,16 +16,13 @@ Session N                                   Session N+1
 User prompt                                 SessionStart
     |                                           |
     v                                           v
-capture-user-intent  --->  decisions.jsonl  --->  memory-context-loader
-    |                      graph-queue.jsonl       (once, first prompt)
-    v                                                  |
-memory-context  --->  search graph  --->  additionalContext injected
-(every prompt)        for past decisions  into Claude's context
-    |
-    v
-Stop (fire-and-forget)
-    |
-    +--> graph-queue-sync (flush to graph)
+memory-context  --->  search graph  --->  memory-context-loader
+(every prompt)        for past decisions    (once, first prompt)
+    |                                           |
+    v                                           v
+Stop (fire-and-forget)                    additionalContext injected
+    |                                     into Claude's context
+    +--> session-summary (graph entity suggestion via additionalContext)
     +--> auto-remember-continuity
 ```
 
@@ -35,7 +32,7 @@ Stop (fire-and-forget)
 **Event:** UserPromptSubmit (`once: true`)
 **Purpose:** Load recent project decisions as context on the first prompt of every session.
 
-This hook reads from `.claude/memory/decisions.jsonl` -- a file written by the `capture-user-intent` hook during previous sessions. Each line is a JSON record containing a decision or preference:
+This hook reads from `.claude/memory/decisions.jsonl` -- a file written by the memory system during previous sessions. Each line is a JSON record containing a decision or preference:
 
 ```json
 {
@@ -141,41 +138,34 @@ If the prompt starts with `@global` or mentions "cross-project" or "all projects
 [Memory Context] For relevant past cross-project decisions...
 ```
 
-## Capture User Intent (Every Prompt)
+## Session Summary (Stop)
 
-**Hook:** `prompt/capture-user-intent`
-**Event:** UserPromptSubmit (fire-and-forget via silent runner)
-**Purpose:** Extract decisions and preferences from user prompts automatically.
+**Hook:** `stop/session-summary`
+**Event:** Stop (fire-and-forget via background worker)
+**Purpose:** Suggest graph entity capture at session end for high-activity sessions.
 
-This hook listens for decision signals in the user's natural language:
+This hook replaced the former `capture-user-intent` and `memory-capture` hooks as part of the graph-first memory architecture. Instead of writing local JSONL files during the session, it runs once at session end and suggests a graph entity via `additionalContext`.
 
-| Signal | Pattern | Example |
-|--------|---------|---------|
-| Decision | "let's use X", "chose Y over Z", "going with X" | "Let's use PostgreSQL for the analytics DB" |
-| Preference | "I prefer X", "always use X" | "I prefer Tailwind over styled-components" |
-| Problem | "the issue is", "blocked by" | "The issue is that offset pagination times out" |
-| Rationale | "because X", "since X" | "...because we need JSONB support" |
+### How It Works
 
-When a decision is detected, the hook:
-
-1. Creates a structured decision record with `what`, `why`, entities, confidence score, and category
-2. Appends it to `.claude/memory/decisions.jsonl` (via `storeDecision`)
-3. Queues a graph memory write to `.claude/memory/graph-queue.jsonl`
+1. Checks whether the session had meaningful work (20+ tool calls). If not, it exits silently.
+2. Builds a session entity name from the date and branch (e.g., `Session-2026-03-06-feat/my-feature`).
+3. Classifies the session outcome from the last assistant message (`question`, `summary`, `code`, or `unknown`).
+4. Constructs a `mcp__memory__create_entities` suggestion and returns it via `additionalContext`.
+5. For high-activity sessions (50+ tool calls), nudges the user to run `/ork:remember`.
 
 ```typescript
-// The decision record structure
-const record = createDecisionRecord({
-  what: "Use PostgreSQL for analytics",
-  why: "Need JSONB and vector support",
-  entities: ["PostgreSQL", "analytics"],
-  category: "database",
-  confidence: 0.85,
-});
-
-storeDecision(record, projectDir);
+// The hook returns a graph entity suggestion, not a local file write
+return {
+  continue: true,
+  suppressOutput: true,
+  hookSpecificOutput: {
+    additionalContext: `Session complete (${totalTools} tools, outcome=${outcome}).\nSuggested graph capture: ${graphSuggestion}`,
+  },
+};
 ```
 
-The hook runs via the silent runner (`run-hook-silent.mjs`), meaning it produces no terminal output and does not block the prompt processing pipeline.
+This approach avoids local file I/O entirely -- CC's auto memory picks up the `additionalContext` and persists it to the knowledge graph.
 
 ## Queue-Based Memory Sync
 
@@ -216,14 +206,7 @@ At session end, the `graph-queue-sync` hook reads the queue and executes the ope
 
 ## Memory in Subagents
 
-When a subagent is spawned, the graph memory inject hook provides memory context:
-
-### Graph Memory Inject
-
-**Hook:** `subagent-start/graph-memory-inject`
-**Event:** SubagentStart
-
-Searches the knowledge graph for entities and relations relevant to the subagent's task, then injects them as additional context.
+When a subagent is spawned, it inherits memory context from the parent session. Claude uses the agent's domain keywords (e.g., database, schema, migration for `database-engineer`) to search the knowledge graph via `mcp__memory__search_nodes` for relevant entities. This is handled natively by CC's skill matching -- no dedicated hook is needed.
 
 ## Memory Fabric Initializer
 
@@ -245,8 +228,8 @@ OrchestKit's hooks bridge three storage tiers:
 
 | Tier | Storage | Written By | Read By |
 |------|---------|-----------|---------|
-| **1. Knowledge Graph** | MCP `mcp__memory__*` | `graph-queue-sync` (stop) | `memory-context` (prompt), `graph-memory-inject` (subagent) |
-| **2. Local JSONL** | `.claude/memory/*.jsonl` | `capture-user-intent` (prompt), `memory-writer` | `memory-context-loader` (first prompt) |
+| **1. Knowledge Graph** | MCP `mcp__memory__*` | `session-summary` (stop), `auto-remember-continuity` (stop) | `memory-context` (prompt) |
+| **2. Local JSONL** | `.claude/memory/*.jsonl` | `memory-writer` | `memory-context-loader` (first prompt) |
 | **3. CC Native** | `MEMORY.md` | High-confidence decisions (>= 0.7) auto-written | Claude Code system prompt (automatic) |
 
 <Callout type="info">
@@ -257,7 +240,7 @@ All three tiers require zero configuration and always work. CC Native memory (Ti
 
 **Hook:** `stop/auto-remember-continuity` (fire-and-forget)
 
-At session end, this hook reviews the session's key decisions and ensures they are stored for the next session. It acts as a safety net -- if `capture-user-intent` missed a decision during the session, this hook catches it during the cleanup pass.
+At session end, this hook reviews the session's key decisions and ensures they are stored for the next session. It acts as a safety net, catching any decisions that were not captured during the session's normal flow.
 
 ## Profile Injector
 
@@ -272,8 +255,7 @@ On the first prompt, this hook injects the user's profile context (project ident
 |------|-------|-----------|-----------|
 | `memory-context-loader` | UserPromptSubmit | Read (JSONL) | Once per session |
 | `memory-context` | UserPromptSubmit | Read hint (graph) | Every prompt |
-| `capture-user-intent` | UserPromptSubmit | Write (JSONL + queues) | Every prompt |
-| `graph-memory-inject` | SubagentStart | Read (graph) | Per subagent |
+| `session-summary` | Stop | Write hint (graph via additionalContext) | Once at exit |
 | `memory-fabric-init` | PreToolUse (MCP) | Setup | Once per session |
 | `memory-validator` | PreToolUse (MCP) | Validate | Per MCP call |
 | `graph-queue-sync` | Stop | Write (graph) | Once at exit |

@@ -1,12 +1,12 @@
 ---
 title: Agents Overview
-description: "38 specialized agents -- how they activate, what they know, and when to use each."
+description: "30 specialized agents -- how they activate, what they know, and when to use each."
 full: true
 ---
 
 import { LazyAgentSelector as AgentSelector } from '@/components/lazy';
 
-# 38 Specialists, One Prompt Away
+# 30 Specialists, One Prompt Away
 
 An OrchestKit **agent** is a specialized AI persona built from four components:
 
@@ -103,9 +103,9 @@ Use the interactive selector to find the right specialist for your task.
 
 The `model` field controls which LLM powers the agent:
 
-- **`opus`** -- Used for complex reasoning tasks: architecture design, security auditing, system review, workflow design. 7 agents use Opus.
+- **`opus`** -- Used for complex reasoning tasks: architecture design, security auditing, system review, workflow design. 9 agents use Opus.
 - **`sonnet`** -- Used for focused production tasks: demo video production. 1 agent uses Sonnet.
-- **`inherit`** -- Uses whatever model the parent session is running. 28 agents inherit. This is the most flexible option and is recommended for most agents.
+- **`inherit`** -- Uses whatever model the parent session is running. 20 agents inherit. This is the most flexible option and is recommended for most agents.
 
 ### Context Isolation
 
@@ -159,7 +159,7 @@ hooks:
 
 This pattern is used by read-only agents like `security-auditor`, `debug-investigator`, `code-quality-reviewer`, and `system-design-reviewer` to prevent them from modifying code. The `deployment-manager` uses a different hook (`deployment-safety-check`) to validate commands before execution.
 
-## The 38 Agents by Category
+## The 30 Agents by Category
 
 ### Backend (4 agents)
 | Agent | Model | Purpose |
@@ -169,11 +169,10 @@ This pattern is used by read-only agents like `security-auditor`, `debug-investi
 | `event-driven-architect` | opus | Event sourcing, Kafka, RabbitMQ, CQRS, saga patterns |
 | `python-performance-engineer` | opus | Python profiling, memory optimization, async performance |
 
-### Frontend (4 agents)
+### Frontend (3 agents)
 | Agent | Model | Purpose |
 |-------|-------|---------|
 | `frontend-ui-developer` | inherit | React 19 components, TypeScript, Zod validation |
-| `rapid-ui-designer` | inherit | Tailwind prototyping, design systems, responsive layouts |
 | `accessibility-specialist` | inherit | WCAG 2.2 compliance, screen readers, keyboard navigation |
 | `frontend-performance-engineer` | inherit | Core Web Vitals, bundle analysis, render optimization |
 
@@ -184,7 +183,7 @@ This pattern is used by read-only agents like `security-auditor`, `debug-investi
 | `ai-safety-auditor` | opus | LLM red teaming, prompt injection, guardrail validation |
 | `security-layer-auditor` | opus | Defense-in-depth verification across 8 security layers |
 
-### Testing (4 agents)
+### Quality & Testing (4 agents)
 | Agent | Model | Purpose |
 |-------|-------|---------|
 | `code-quality-reviewer` | inherit | Code review, linting, type checking, test coverage |
@@ -201,38 +200,31 @@ This pattern is used by read-only agents like `security-auditor`, `debug-investi
 | `monitoring-engineer` | inherit | Prometheus, Grafana, alerting, OpenTelemetry |
 | `release-engineer` | inherit | GitHub releases, milestones, changelogs, semver |
 
-### LLM / AI (5 agents)
+### LLM / AI (4 agents)
 | Agent | Model | Purpose |
 |-------|-------|---------|
 | `workflow-architect` | opus | LangGraph pipelines, supervisor-worker, RAG orchestration |
 | `llm-integrator` | inherit | OpenAI/Anthropic APIs, prompt templates, function calling |
-| `prompt-engineer` | inherit | Prompt design, chain-of-thought, few-shot, A/B testing |
 | `multimodal-specialist` | inherit | Vision, audio, video, transcription, OCR |
 | `data-pipeline-engineer` | inherit | Embeddings, chunking, vector indexes, ETL |
 
-### Product (5 agents)
+### Product (1 agent)
 | Agent | Model | Purpose |
 |-------|-------|---------|
 | `product-strategist` | inherit | Value propositions, build/buy/partner, go/no-go |
-| `requirements-translator` | inherit | PRDs, user stories, acceptance criteria |
-| `prioritization-analyst` | inherit | RICE/ICE/WSJF scoring, backlog ranking |
-| `business-case-builder` | inherit | ROI projections, cost-benefit analysis |
-| `metrics-architect` | opus | OKRs, KPIs, success criteria, instrumentation |
 
-### Design & Research (6 agents)
+### Design & Research (5 agents)
 | Agent | Model | Purpose |
 |-------|-------|---------|
 | `system-design-reviewer` | opus | 5-dimension architecture review (Scale, Data, Security, UX, Coherence) |
 | `ui-feedback` | inherit | Processes UI annotations, maps element paths to source code |
-| `ux-researcher` | inherit | Personas, user journeys, usability testing |
 | `demo-producer` | sonnet | Marketing videos, VHS terminal recording, Remotion |
 | `market-intelligence` | inherit | Competitive analysis, TAM/SAM/SOM, market sizing |
 | `web-research-analyst` | inherit | Browser automation, Tavily API, content extraction |
 
-### Docs & Git (2 agents)
+### Git (1 agent)
 | Agent | Model | Purpose |
 |-------|-------|---------|
-| `documentation-specialist` | inherit | API docs, READMEs, ADRs, changelogs, OpenAPI |
 | `git-operations-engineer` | inherit | Branches, rebases, stacked PRs, recovery |
 
 ## Skills Per Agent

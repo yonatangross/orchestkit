@@ -167,7 +167,7 @@ Tier 3 is the most selective tier. It serves as a curated summary of your most i
 | Hook | Role |
 |---|---|
 | `memory-writer.ts` (library) | Evaluates confidence, formats decision, writes to MEMORY.md |
-| `capture-user-intent` (prompt hook) | Detects decisions in user prompts, sends to memory writer |
+| `session-summary` (stop hook) | Suggests graph entity capture via `additionalContext` at session end |
 | `auto-remember-continuity` (stop hook) | Prompts Claude to persist critical session context before exit |
 
 ## Troubleshooting
