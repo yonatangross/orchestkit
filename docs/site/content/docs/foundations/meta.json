@@ -1,5 +1,6 @@
 {
   "title": "Foundations",
   "icon": "BookOpen",
-  "pages": ["overview", "skills-agents-hooks", "choosing-a-plugin"]
+  "pages": ["overview", "skills-agents-hooks", "choosing-a-plugin"],
+  "defaultOpen": true
 }
