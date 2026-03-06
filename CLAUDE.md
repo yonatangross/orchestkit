@@ -8,7 +8,7 @@ Always respond in English. Never Hebrew. No exceptions.
 
 ## Project Overview
 
-**OrchestKit** — Claude Code plugin: **71 skills**, **30 agents**, **106 hooks** (42 global + 44 agent-scoped + 20 skill-scoped).
+**OrchestKit** — Claude Code plugin: **79 skills**, **30 agents**, **106 hooks** (42 global + 44 agent-scoped + 20 skill-scoped).
 
 **Purpose**: AI-assisted development with built-in best practices, security patterns, and quality gates.
 
