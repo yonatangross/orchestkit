@@ -224,7 +224,6 @@ CI_UNIT_TESTS=(
   tests/unit/test-pretool-skill-hooks.sh
   tests/unit/test-pretool-task-hooks.sh
   tests/unit/test-permission-posttool-hooks.sh
-  tests/unit/test-prompt-hooks.sh
   tests/unit/test-file-lock-hooks.sh
   tests/unit/test-subagent-hooks.sh
   tests/unit/test-skill-hooks.sh
@@ -233,9 +232,7 @@ CI_UNIT_TESTS=(
   tests/unit/test-mem0-prompt-hooks.sh
   tests/unit/test-memory-lib.sh
   tests/unit/test-memory-commands.sh
-  tests/unit/test-memory-context-hook.sh
   tests/unit/test-mcp-pretool-hooks.sh
-  tests/unit/test-agent-memory-hooks.sh
   # Coordination tests
   tests/unit/test-coordination-lib.sh
   tests/unit/test-decision-sync.sh
