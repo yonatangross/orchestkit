@@ -16,7 +16,7 @@ Always respond in English. Never Hebrew. No exceptions.
 
 ```
 src/                    ← SOURCE (edit here!)
-├── skills/<name>/SKILL.md    # 71 skills (YAML frontmatter + Markdown)
+├── skills/<name>/SKILL.md    # 79 skills (YAML frontmatter + Markdown)
 ├── agents/<name>.md          # 30 agents (CC 2.1.59 format)
 ├── settings/<plugin>.settings.json  # Plugin settings (permissions, keybindings)
 └── hooks/                    # TypeScript hooks (hooks.json + src/ + dist/)
@@ -75,9 +75,9 @@ Commit after each logical unit of work — never batch all commits to end of ses
 
 ## Plugin Architecture
 
-**Single plugin**: `ork` — all 71 skills, 30 agents, 106 hooks.
+**Single plugin**: `ork` — all 79 skills, 30 agents, 106 hooks.
 
-The plugin includes 106 hooks (42 global [10 matchers, 20 dispatchers, 12 native HTTP] + 44 agent-scoped + 20 skill-scoped) and a `settings.json` (permissions, keybindings, spinner). 17 skills are user-invocable via `/ork:skillname`.
+The plugin includes 106 hooks (42 global [10 matchers, 20 dispatchers, 12 native HTTP] + 44 agent-scoped + 20 skill-scoped) and a `settings.json` (permissions, keybindings, spinner). 18 skills are user-invocable via `/ork:skillname`.
 
 ## Quick Reference
 
