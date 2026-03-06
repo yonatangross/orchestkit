@@ -15,6 +15,8 @@
  * - pr-status-enricher (async — background PR status check)
  *
  * CC 2.1.9 Compliant: Single sync hook with merged systemMessage output
+ * Note: CC 2.1.70 dedup fixes reduce the urgency of consolidation,
+ * but the single-dispatcher pattern remains optimal for fewer hook invocations.
  */
 
 import type { HookInput, HookResult } from '../types.js';

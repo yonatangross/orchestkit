@@ -525,7 +525,7 @@ export function writeRulesFile(
 ): boolean {
   const filePath = join(rulesDir, filename);
 
-  // Hash-guard: skip write if content unchanged
+  // Hash-guard: skip write if content unchanged (saves I/O on repeated SessionStart calls)
   if (existsSync(filePath)) {
     try {
       const existing = readFileSync(filePath, 'utf8');
