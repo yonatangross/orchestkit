@@ -54,36 +54,13 @@ After you select **Backend only**, OrchestKit creates a task plan via `TaskCreat
 
 ### Parallel Agent Execution
 
-```
-/ork:implement "Add JWT authentication to the API"
-    |
-    |  TaskCreate: 5 items, 3 parallel tracks
-    |
-    |---> backend-system-architect -------------------------+
-    |      Model: opus                                      |
-    |      Skills injected:                                 |
-    |        api-design                                     |
-    |        python-backend                                 |
-    |        security-patterns                              |
-    |        architecture-patterns                          |
-    |      Output: endpoints, middleware, schemas            |
-    |                                                       |
-    |---> test-generator -----------------------------------+|
-    |      Model: sonnet                                    ||
-    |      Skills injected:                                 ||
-    |        testing-patterns                               ||
-    |      Output: unit + integration tests                 ||
-    |                                                       ||
-    +---> security-auditor --------------------------------+||
-           Model: opus                                     |||
-           Skills injected:                                |||
-             security-patterns                             |||
-           Output: vulnerability scan, recommendations     |||
-                                                           |||
-    <--------------- Results merged <-----------------------+++
-```
+| Agent | Model | Skills Injected | Output |
+|---|---|---|---|
+| `backend-system-architect` | opus | api-design, python-backend, security-patterns, architecture-patterns | Endpoints, middleware, schemas |
+| `test-generator` | sonnet | testing-patterns | Unit + integration tests |
+| `security-auditor` | opus | security-patterns | Vulnerability scan, recommendations |
 
-All three agents work simultaneously. The `backend-system-architect` designs the implementation while `test-generator` writes tests and `security-auditor` reviews the approach for vulnerabilities. No agent waits for another.
+All three agents work simultaneously, then **results are merged**. The `backend-system-architect` designs the implementation while `test-generator` writes tests and `security-auditor` reviews the approach for vulnerabilities. No agent waits for another.
 
 <Callout type="info">
 Parallel agents share the same project context but write to different files. OrchestKit uses `TaskCreate` with `addBlockedBy` dependencies to prevent file conflicts -- tests depend on the implementation being written first, but the security scan runs independently from the start.
@@ -179,17 +156,14 @@ Verification scope:
 
 Selecting **Full** spawns four parallel agents:
 
-```
-/ork:verify (Full)
-    |
-    |---> test-runner           -> pytest -x --tb=short
-    |---> security-auditor      -> OWASP scan + secrets detection
-    |---> code-quality-reviewer -> complexity, style, patterns
-    +---> frontend-performance-engineer -> N+1 queries, startup cost
-         |
-         v
-    Unified scorecard (0-10 per category)
-```
+| Agent | Check |
+|---|---|
+| `test-runner` | `pytest -x --tb=short` |
+| `security-auditor` | OWASP scan + secrets detection |
+| `code-quality-reviewer` | Complexity, style, patterns |
+| `frontend-performance-engineer` | N+1 queries, startup cost |
+
+All four run in parallel, producing a **unified scorecard** (0-10 per category):
 
 The output is a scorecard:
 

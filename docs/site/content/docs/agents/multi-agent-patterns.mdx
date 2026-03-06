@@ -95,17 +95,16 @@ With Opus 4.6's 128K output token limit, each agent generates complete artifacts
 
 The key insight is that agents in each phase are independent -- they can work simultaneously without blocking each other. Dependencies only exist between phases:
 
-```
-Phase 4 (Design)           Phase 5 (Build)           Phase 6 (Validate)
-+-------------------+      +-------------------+     +-------------------+
-| workflow-architect |      | backend-architect |     | backend-architect |
-| backend-architect  | ---> | frontend-dev      | --> | frontend-dev      |
-| frontend-dev       |      | llm-integrator    |     | code-reviewer     |
-| llm-integrator     |      | test-generator    |     | security-auditor  |
-| a11y-specialist    |      | perf-engineer     |     +-------------------+
-+-------------------+      +-------------------+
-   All 5 parallel              All 5 parallel            All 4 parallel
-```
+| Phase 4 (Design) | Phase 5 (Build) | Phase 6 (Validate) |
+|---|---|---|
+| workflow-architect | backend-architect | backend-architect |
+| backend-architect | frontend-dev | frontend-dev |
+| frontend-dev | llm-integrator | code-reviewer |
+| llm-integrator | test-generator | security-auditor |
+| a11y-specialist | perf-engineer | |
+| *All 5 parallel* | *All 5 parallel* | *All 4 parallel* |
+
+Each phase completes before the next begins. Within each phase, all agents run simultaneously.
 
 ## Pattern 2: /ork:review-pr -- Pull Request Review
 

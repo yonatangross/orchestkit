@@ -62,39 +62,13 @@ The "Investigate" option is useful when you are not sure the issue is a bug at a
 
 OrchestKit spawns the `debug-investigator` agent and runs three analysis tracks simultaneously:
 
-```
-/ork:fix-issue 123 (Proper fix)
-    |
-    |  Phase 1-3: Parallel analysis
-    |
-    |---> debug-investigator ----------------------------------+
-    |      Model: opus                                         |
-    |      Skills injected:                                    |
-    |        root-cause-analysis                              |
-    |        pwa-patterns                                        |
-    |        auth-patterns                                     |
-    |      Actions:                                            |
-    |        - Read issue body + all 4 comments                |
-    |        - Trace auth flow: login endpoint -> cookie ->    |
-    |          session validation -> response                  |
-    |        - Search codebase for cookie/session config       |
-    |        - Check Safari-specific edge cases                |
-    |                                                          |
-    |---> memory search ----------------------------------------+|
-    |      Query: "Safari" + "cookie" + "authentication"       ||
-    |      Result: Found 2 past observations                   ||
-    |        [GRAPH] SameSite-cookie (Pattern)                 ||
-    |          -> CAUSED -> intermittent-auth-failures         ||
-    |          Observation: "Safari rejects SameSite=None      ||
-    |          without Secure flag on localhost"               ||
-    |                                                         ||
-    +---> git blame analysis ----------------------------------+||
-           Files: auth/middleware.py, auth/config.py           |||
-           Result: cookie config last changed 12 days ago      |||
-             commit a3f8c2d: "chore: update cookie defaults"   |||
-                                                               |||
-    <-------------- Analysis complete <------------------------+++
-```
+Three analysis tracks run in parallel:
+
+| Track | Details |
+|---|---|
+| **debug-investigator** (opus) | Skills: root-cause-analysis, pwa-patterns, auth-patterns. Reads issue body + 4 comments, traces auth flow (login → cookie → session validation → response), searches codebase for cookie/session config, checks Safari-specific edge cases. |
+| **Memory search** | Query: "Safari" + "cookie" + "authentication". Found 2 past observations — `SameSite-cookie` pattern linked to `intermittent-auth-failures`: *"Safari rejects SameSite=None without Secure flag on localhost"* |
+| **Git blame analysis** | Files: `auth/middleware.py`, `auth/config.py`. Cookie config last changed 12 days ago in commit `a3f8c2d`: *"chore: update cookie defaults"* |
 
 The memory search is the key accelerator here. OrchestKit's knowledge graph already contains a pattern from a previous session noting that Safari has stricter cookie handling. This observation immediately narrows the investigation.
 

@@ -3,6 +3,8 @@ title: The 3 Building Blocks
 description: Skills are knowledge, agents are specialists, hooks are automation. Here's how they work together.
 ---
 
+import { Steps, Step } from 'fumadocs-ui/components/steps';
+
 OrchestKit has three types of components. Understanding how they connect is the key to using the toolkit effectively.
 
 ## Skills — Reusable Knowledge
@@ -76,16 +78,13 @@ skills:                        # 31 skills auto-injected
 
 Some commands spawn **multiple agents in parallel**. When you run `/ork:review-pr`, three agents work simultaneously:
 
-```
-/ork:review-pr
-    │
-    ├──▶ security-auditor      (OWASP scan)
-    ├──▶ code-quality-reviewer (style, patterns)
-    └──▶ test-generator        (coverage gaps)
-         │
-         ▼
-    Synthesized PR review
-```
+| Agent | Role |
+|---|---|
+| `security-auditor` | OWASP scan |
+| `code-quality-reviewer` | Style and patterns |
+| `test-generator` | Coverage gaps |
+
+All three run in parallel, then results are synthesized into a single PR review.
 
 ## Hooks — Invisible Automation
 
@@ -111,60 +110,48 @@ Hooks are TypeScript functions that **fire automatically** on lifecycle events. 
 
 When Claude runs `git push`, hooks fire in sequence:
 
-```
-git push
-  │
-  ├─ pretool/dangerous-command-blocker  → checks for force-push
-  ├─ pretool/git-validator              → validates branch rules
-  ├─ pretool/compound-command-validator → checks piped commands
-  │
-  ▼ (command executes)
-  │
-  ├─ posttool/audit-logger             → records the action
-  ├─ posttool/session-metrics          → updates session stats
-  └─ posttool/workflow-analytics       → updates workflow analytics
-```
+**Before execution (pretool):**
+
+| Hook | Action |
+|---|---|
+| `dangerous-command-blocker` | Checks for force-push |
+| `git-validator` | Validates branch rules |
+| `compound-command-validator` | Checks piped commands |
+
+**After execution (posttool):**
+
+| Hook | Action |
+|---|---|
+| `audit-logger` | Records the action |
+| `session-metrics` | Updates session stats |
+| `workflow-analytics` | Updates workflow analytics |
 
 ## How They Connect
 
-```
-┌─────────────────────────────────────────────┐
-│  YOUR PROMPT: "Add user auth to the API"    │
-└──────────────────┬──────────────────────────┘
-                   │
-    ┌──────────────▼──────────────┐
-    │  prompt hooks fire:         │
-    │  • context-injector         │
-    │  • memory-context-loader    │
-    │  • skill-auto-suggest       │
-    └──────────────┬──────────────┘
-                   │
-    ┌──────────────▼──────────────┐
-    │  agent spawns:              │
-    │  backend-system-architect   │
-    │  (model: opus)              │
-    └──────────────┬──────────────┘
-                   │
-    ┌──────────────▼──────────────┐
-    │  skills injected:           │
-    │  • security-patterns        │
-    │  • api-design               │
-    │  • python-backend           │
-    │  • architecture-patterns    │
-    └──────────────┬──────────────┘
-                   │
-    ┌──────────────▼──────────────┐
-    │  agent writes code          │
-    │  pretool hooks validate     │
-    │  posttool hooks audit       │
-    └──────────────┬──────────────┘
-                   │
-    ┌──────────────▼──────────────┐
-    │  stop hooks:                │
-    │  • auto-remember-continuity │
-    │  • session-profile-agg      │
-    └─────────────────────────────┘
-```
+Here's what happens when you say **"Add user auth to the API"**:
+
+<Steps>
+  <Step>
+    ### Prompt hooks fire
+    `context-injector`, `memory-context-loader`, and `skill-auto-suggest` enrich your prompt with project context.
+  </Step>
+  <Step>
+    ### Agent spawns
+    **backend-system-architect** activates (model: opus) based on keyword matching.
+  </Step>
+  <Step>
+    ### Skills injected
+    The agent auto-loads `security-patterns`, `api-design`, `python-backend`, and `architecture-patterns`.
+  </Step>
+  <Step>
+    ### Agent writes code
+    Pretool hooks validate each tool call. Posttool hooks audit and log every action.
+  </Step>
+  <Step>
+    ### Stop hooks
+    `auto-remember-continuity` and `session-profile-agg` save context for the next session.
+  </Step>
+</Steps>
 
 ## Next Steps
 
