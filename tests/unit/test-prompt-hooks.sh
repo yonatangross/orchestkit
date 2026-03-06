@@ -5,8 +5,8 @@
 # Tests TypeScript prompt hooks in hooks/src/prompt/:
 # - todo-enforcer.ts
 # - memory-context.ts
-# - satisfaction-detector.ts
 # - antipattern-warning.ts
+# (satisfaction-detector removed — type:prompt gate-only semantics wrong for observational hooks)
 # (context-pruning-advisor removed — dead code, #663)
 # (skill-auto-suggest removed — dead code, context optimization)
 #
@@ -87,27 +87,6 @@ test_memory_context_has_memory_handling() {
 }
 
 # ============================================================================
-# SATISFACTION-DETECTOR TESTS
-# ============================================================================
-
-describe "satisfaction-detector.ts"
-
-test_satisfaction_detector_exists() {
-    assert_file_exists "$TS_HOOKS_DIR/satisfaction-detector.ts"
-}
-
-test_satisfaction_detector_exports_handler() {
-    assert_file_contains "$TS_HOOKS_DIR/satisfaction-detector.ts" "export"
-}
-
-test_satisfaction_detector_has_detection_logic() {
-    if grep -qiE "satisfaction|detect|positive|feedback" "$TS_HOOKS_DIR/satisfaction-detector.ts" 2>/dev/null; then
-        return 0
-    fi
-    fail "satisfaction-detector.ts should detect satisfaction"
-}
-
-# ============================================================================
 # ANTIPATTERN-WARNING TESTS
 # ============================================================================
 
@@ -138,7 +117,6 @@ test_all_prompt_hooks_have_suppress_output() {
     local hooks=(
         "todo-enforcer.ts"
         "memory-context.ts"
-        "satisfaction-detector.ts"
     )
 
     for hook in "${hooks[@]}"; do
