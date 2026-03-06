@@ -4,6 +4,7 @@ description: The complete AI development toolkit for Claude Code — 79 skills, 
 ---
 
 import { Card, Cards } from 'fumadocs-ui/components/card';
+import { Steps, Step } from 'fumadocs-ui/components/steps';
 
 OrchestKit is a **Claude Code plugin** that gives your AI assistant deep expertise in software engineering. Instead of explaining your stack on every prompt, OrchestKit injects the right knowledge at the right time.
 
@@ -21,38 +22,23 @@ OrchestKit is a **Claude Code plugin** that gives your AI assistant deep experti
 
 When you type a prompt, OrchestKit works in three layers:
 
-```
-Your Prompt
-    │
-    ▼
-┌──────────────────────────────────────┐
-│  HOOKS (105)                         │
-│  Fire automatically on every action  │
-│  Security gates, auto-lint, memory   │
-└──────────────┬───────────────────────┘
-               │
-               ▼
-┌──────────────────────────────────────┐
-│  AGENTS (30)                         │
-│  Activate from keywords in prompt    │
-│  "review PR" → security-auditor     │
-│  "design API" → backend-architect   │
-└──────────────┬───────────────────────┘
-               │
-               ▼
-┌──────────────────────────────────────┐
-│  SKILLS (79)                         │
-│  Knowledge injected into agents      │
-│  FastAPI patterns, React hooks,      │
-│  OWASP checklist, RAG strategies     │
-└──────────────────────────────────────┘
-```
+<Steps>
+  <Step>
+    ### Hooks (105) fire automatically
 
-**Hooks** are invisible guardians — they fire on every tool call, every prompt, every session start/stop. You never invoke them directly.
+    Security gates, auto-lint, and memory injection run on every action — you never invoke them directly.
+  </Step>
+  <Step>
+    ### Agents (30) activate from keywords
 
-**Agents** are specialists — they activate when your prompt matches their keywords. Say "review this PR" and three agents spawn in parallel.
+    Say "review PR" and `security-auditor` spawns. Say "design API" and `backend-architect` activates. Multiple agents can run in parallel.
+  </Step>
+  <Step>
+    ### Skills (79) inject into agents
 
-**Skills** are knowledge — reusable expertise that gets injected into agents. An agent doesn't need to know everything; it loads the right skills on demand.
+    Reusable knowledge — FastAPI patterns, React hooks, OWASP checklist, RAG strategies — loaded on demand by whichever agent needs them.
+  </Step>
+</Steps>
 
 ## One Plugin
 
