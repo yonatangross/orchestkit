@@ -61,6 +61,7 @@ export const CC_FEATURE_MATRIX: readonly CCFeatureEntry[] = [
   { feature: 'tool_use_id_correlation', minVersion: '2.1.69', description: 'tool_use_id correlates PreToolUse/PostToolUse pairs' },
   { feature: 'updated_mcp_output',   minVersion: '2.1.69', description: 'updatedMCPToolOutput replaces MCP tool output in PostToolUse' },
   { feature: 'path_scoped_rules',    minVersion: '2.1.69', description: 'paths: frontmatter in .claude/rules/*.md for conditional loading' },
+  // biome-ignore lint/suspicious/noTemplateCurlyInString: intentional literal ${ENV_VAR} text
   { feature: 'env_var_interpolation', minVersion: '2.1.69', description: '${ENV_VAR} interpolation in type:http hook URLs and headers' },
   { feature: 'worktree_dedup',       minVersion: '2.1.70', description: 'Worktree dedup fixes prevent duplicate hook fires' },
   { feature: 'prompt_rerender_opt',  minVersion: '2.1.70', description: '74% prompt re-render reduction (CC-internal optimization)' },
