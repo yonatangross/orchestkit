@@ -26,29 +26,37 @@ vi.mock('../../lib/common.js', async () => {
   };
 });
 
-const mockExistsSync = vi.fn();
-const mockReadFileSync = vi.fn();
-const mockMkdirSync = vi.fn();
-const mockWriteFileSync = vi.fn();
-const mockReaddirSync = vi.fn(() => [] as string[]);
-const mockUnlinkSync = vi.fn();
-
-vi.mock('node:fs', () => ({
-  existsSync: mockExistsSync,
-  readFileSync: mockReadFileSync,
-  mkdirSync: mockMkdirSync,
-  writeFileSync: mockWriteFileSync,
-  readdirSync: mockReaddirSync,
-  unlinkSync: mockUnlinkSync,
+const mocks = vi.hoisted(() => ({
+  existsSync: vi.fn(),
+  readFileSync: vi.fn(),
+  mkdirSync: vi.fn(),
+  writeFileSync: vi.fn(),
+  readdirSync: vi.fn(() => [] as string[]),
+  unlinkSync: vi.fn(),
+  execSync: vi.fn(() => ''),
 }));
 
-const mockExecSync = vi.fn(() => '');
+const mockExistsSync = mocks.existsSync;
+const mockReadFileSync = mocks.readFileSync;
+const mockWriteFileSync = mocks.writeFileSync;
+const mockReaddirSync = mocks.readdirSync;
+const mockExecSync = mocks.execSync;
+
+vi.mock('node:fs', () => ({
+  existsSync: mocks.existsSync,
+  readFileSync: mocks.readFileSync,
+  mkdirSync: mocks.mkdirSync,
+  writeFileSync: mocks.writeFileSync,
+  readdirSync: mocks.readdirSync,
+  unlinkSync: mocks.unlinkSync,
+}));
+
 vi.mock('node:child_process', () => ({
-  execSync: (cmd: string, opts?: unknown) => (mockExecSync as (c: string, o?: unknown) => string)(cmd, opts),
+  execSync: (cmd: string, opts?: unknown) => (mocks.execSync as (c: string, o?: unknown) => string)(cmd, opts),
 }));
 
 vi.mock('../../lib/atomic-write.js', () => ({
-  atomicWriteSync: (path: string, content: string) => mockWriteFileSync(path, content, 'utf8'),
+  atomicWriteSync: (path: string, content: string) => mocks.writeFileSync(path, content, 'utf8'),
 }));
 
 vi.mock('../../lib/analytics.js', () => ({
