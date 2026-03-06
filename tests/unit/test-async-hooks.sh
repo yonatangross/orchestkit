@@ -125,7 +125,7 @@ fi
 
 # Test 9: Setup dispatcher references sync-setup-dispatcher
 echo -n "  Setup uses sync-setup-dispatcher... "
-SETUP_SYNC=$(jq '[.hooks.Setup[]?.hooks[]?.command | select(contains("setup/sync-setup-dispatcher"))] | length' "$HOOKS_JSON")
+SETUP_SYNC=$(jq '[.hooks.Setup[]?.hooks[]?.command // "" | select(contains("setup/sync-setup-dispatcher"))] | length' "$HOOKS_JSON")
 if [[ $SETUP_SYNC -ge 1 ]]; then
     echo -e "${GREEN}PASS${NC}"
     PASSED=$((PASSED + 1))
@@ -136,7 +136,7 @@ fi
 
 # Test 10: SessionStart dispatcher references unified-dispatcher
 echo -n "  SessionStart uses unified-dispatcher... "
-SESSIONSTART_UNIFIED=$(jq '[.hooks.SessionStart[]?.hooks[]?.command | select(contains("lifecycle/unified-dispatcher"))] | length' "$HOOKS_JSON")
+SESSIONSTART_UNIFIED=$(jq '[.hooks.SessionStart[]?.hooks[]?.command // "" | select(contains("lifecycle/unified-dispatcher"))] | length' "$HOOKS_JSON")
 if [[ $SESSIONSTART_UNIFIED -ge 1 ]]; then
     echo -e "${GREEN}PASS${NC}"
     PASSED=$((PASSED + 1))
@@ -147,7 +147,7 @@ fi
 
 # Test 11: PostToolUse dispatcher references unified-dispatcher
 echo -n "  PostToolUse uses unified-dispatcher... "
-POSTTOOL_UNIFIED=$(jq '[.hooks.PostToolUse[]?.hooks[]?.command | select(contains("posttool/unified-dispatcher"))] | length' "$HOOKS_JSON")
+POSTTOOL_UNIFIED=$(jq '[.hooks.PostToolUse[]?.hooks[]?.command // "" | select(contains("posttool/unified-dispatcher"))] | length' "$HOOKS_JSON")
 if [[ $POSTTOOL_UNIFIED -ge 1 ]]; then
     echo -e "${GREEN}PASS${NC}"
     PASSED=$((PASSED + 1))
