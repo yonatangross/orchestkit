@@ -6,13 +6,13 @@ description: "Creates GitHub pull requests with validation. Use when opening PRs
 argument-hint: "[title]"
 context: fork
 agent: git-operations-engineer
-version: 2.3.0
+version: 2.4.0
 author: OrchestKit
 tags: [git, github, pull-request, pr, code-review]
 user-invocable: true
 disable-model-invocation: true
-allowed-tools: [AskUserQuestion, Bash, Task, TaskCreate, TaskUpdate, mcp__memory__search_nodes]
-skills: [commit, review-pr, memory]
+allowed-tools: [AskUserQuestion, Bash, Task, TaskCreate, TaskUpdate, mcp__memory__search_nodes, CronCreate, CronDelete]
+skills: [commit, review-pr, memory, chain-patterns]
 complexity: medium
 metadata:
   category: workflow-automation
@@ -141,6 +141,30 @@ EOF
 ```bash
 PR_URL=$(gh pr view --json url -q .url)
 echo "PR created: $PR_URL"
+```
+
+### CI Monitoring (CC 2.1.71)
+
+After PR creation, schedule CI status monitoring:
+
+```python
+CronCreate(
+  schedule="*/5 * * * *",
+  prompt="Check CI for PR #{pr_number}: gh pr checks {pr_number} --repo {repo}.
+    All pass → CronDelete this job, report success.
+    Any fail → alert with failure details."
+)
+```
+
+### Handoff File
+
+Write PR details for downstream skills:
+
+```python
+Write(".claude/chain/pr-created.json", JSON.stringify({
+  "phase": "create-pr", "pr_number": N, "pr_url": "...",
+  "branch": "...", "files_changed": [...], "related_issues": [...]
+}))
 ```
 
 ---
