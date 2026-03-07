@@ -355,7 +355,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "terminal"
     ],
     "userInvocable": false,
-    "context": "fork",
+    "context": "inherit",
     "allowedTools": [
       "Read",
       "Grep",
@@ -1303,7 +1303,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "technical-writing"
     ],
     "userInvocable": false,
-    "context": "fork",
+    "context": "inherit",
     "allowedTools": [
       "Read",
       "Glob",
@@ -1574,7 +1574,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "code-review"
     ],
     "userInvocable": true,
-    "context": "inherit",
+    "context": "fork",
     "allowedTools": [
       "AskUserQuestion",
       "Bash",
@@ -2145,7 +2145,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "cross-reference"
     ],
     "userInvocable": false,
-    "context": "inherit",
+    "context": "fork",
     "allowedTools": [
       "Read",
       "Bash",
@@ -2973,7 +2973,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "orchestkit"
     ],
     "userInvocable": false,
-    "context": "fork",
+    "context": "inherit",
     "allowedTools": [
       "Read",
       "Bash",
@@ -3254,7 +3254,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "patterns"
     ],
     "userInvocable": false,
-    "context": "fork",
+    "context": "inherit",
     "allowedTools": [
       "Read",
       "Glob",
@@ -3368,7 +3368,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "personalization"
     ],
     "userInvocable": true,
-    "context": "inherit",
+    "context": "fork",
     "allowedTools": [
       "Read",
       "Grep",
@@ -3759,7 +3759,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "orchestkit"
     ],
     "userInvocable": false,
-    "context": "fork",
+    "context": "inherit",
     "allowedTools": [
       "Read",
       "Bash",
