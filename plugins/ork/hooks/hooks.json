@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 42 global + 44 agent-scoped + 19 skill-scoped = 105 total hooks (12 native HTTP, 13 once:true context loaders). All timeouts in SECONDS per CC spec.",
+  "description": "OrchestKit hooks - 44 global + 44 agent-scoped + 19 skill-scoped = 107 total hooks (12 native HTTP, 13 once:true context loaders). All timeouts in SECONDS per CC spec.",
   "hooks": {
     "PreToolUse": [
       {
@@ -343,6 +343,16 @@
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs task-completed/completion-tracker",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs task-completed/task-commit-linker",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs task-completed/task-progress-tracker",
             "timeout": 10
           },
           {

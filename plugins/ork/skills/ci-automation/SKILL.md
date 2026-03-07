@@ -191,3 +191,4 @@ jobs:
 - [Headless CLI](references/headless-cli.md) -- `claude -p` flag reference
 - [Cost Model](references/cost-model.md) -- Pricing and budget projections
 - [Security](references/security.md) -- CI security best practices
+- [Loop Recipes](references/loop-recipes.md) -- `/loop` patterns for continuous monitoring (CC 2.1.71+)

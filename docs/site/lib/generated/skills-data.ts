@@ -778,6 +778,7 @@ export const SKILLS: Record<string, SkillMeta> = {
         "cost-model.md",
         "gh-action-patterns.md",
         "headless-cli.md",
+        "loop-recipes.md",
         "security.md"
       ]
     },

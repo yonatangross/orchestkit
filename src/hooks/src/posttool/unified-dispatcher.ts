@@ -20,6 +20,7 @@ import { outputSilentSuccess, logHook } from '../lib/common.js';
 import { redactSecrets } from '../skill/redact-secrets.js';
 import { configChangeAuditor } from './config-change/security-auditor.js';
 import { teamMemberStart } from './task/team-member-start.js';
+import { commitNudge } from './commit-nudge.js';
 
 // -----------------------------------------------------------------------------
 // Types
@@ -47,6 +48,8 @@ const HOOKS: HookConfig[] = [
   { name: 'config-change-auditor', fn: configChangeAuditor, matcher: ['Write', 'Edit'] },
   // Tracks active team members for team-size-gate (#902)
   { name: 'team-member-start', fn: teamMemberStart, matcher: ['Task', 'Agent'] },
+  // Commit nudge: escalating reminders to commit work (CC 2.1.71 utilization)
+  { name: 'commit-nudge', fn: commitNudge, matcher: ['Write', 'Edit', 'MultiEdit', 'Bash'] },
 ];
 
 /** Exposed for registry wiring tests */

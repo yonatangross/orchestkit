@@ -125,18 +125,58 @@ jobs:
           BRANCH="${{ github.event.inputs.branch || github.ref_name }}"
           echo "name=$BRANCH" >> "$GITHUB_OUTPUT"
 
-      - name: Read version
+      - name: Read base version
         id: version
         run: |
           VERSION=$(cat version.txt)
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "base=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Stamp pre-release version into all files
+        id: stamp
+        run: |
+          BRANCH="${{ steps.branch.outputs.name }}"
+          BASE="${{ steps.version.outputs.base }}"
+          RUN_NUMBER="${{ github.run_number }}"
+          PRERELEASE="${BASE}-${BRANCH}.${RUN_NUMBER}"
+
+          echo "prerelease=$PRERELEASE" >> "$GITHUB_OUTPUT"
+
+          # JSON files — use jq for safe edits
+          for JSON_FILE in package.json .claude-plugin/marketplace.json manifests/ork.json plugins/ork/.claude-plugin/plugin.json; do
+            if [ -f "$JSON_FILE" ]; then
+              jq --arg v "$PRERELEASE" '.version = $v' "$JSON_FILE" > tmp.json && mv tmp.json "$JSON_FILE"
+            fi
+          done
+
+          # marketplace.json also has plugins[0].version
+          if [ -f .claude-plugin/marketplace.json ]; then
+            jq --arg v "$PRERELEASE" '.plugins[0].version = $v' .claude-plugin/marketplace.json > tmp.json && mv tmp.json .claude-plugin/marketplace.json
+          fi
+
+          # version.txt — plain text
+          echo "$PRERELEASE" > version.txt
+
+          # pyproject.toml — sed the x-release-please-version line
+          sed -i "s/^version = \".*\" # x-release-please-version/version = \"$PRERELEASE\" # x-release-please-version/" pyproject.toml
+
+          # CLAUDE.md — sed the x-release-please-version comment
+          sed -i "s/- \*\*Current\*\*: .* · /- **Current**: $PRERELEASE · /" CLAUDE.md
+
+          echo "::notice::Stamped pre-release version $PRERELEASE across all files"
+
+      - name: Commit version stamp
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet || git commit -m "chore: stamp pre-release version ${{ steps.stamp.outputs.prerelease }}"
 
       - name: Generate release notes
         id: notes
         shell: bash
         run: |
           BRANCH="${{ steps.branch.outputs.name }}"
-          VERSION="${{ steps.version.outputs.version }}"
+          VERSION="${{ steps.stamp.outputs.prerelease }}"
           RUN_NUMBER="${{ github.run_number }}"
 
           # Find latest tag on this branch
@@ -169,10 +209,11 @@ jobs:
             echo "## Install"
             echo ""
             echo '```bash'
-            echo "# From npm (when published)"
-            echo "npm install @orchestkit/ork@$VERSION-$BRANCH.$RUN_NUMBER"
+            echo "# Add the $BRANCH marketplace (one-time)"
+            echo "claude plugin marketplace add yonatangross/orchestkit@$BRANCH"
             echo ""
-            echo "# Or use the GitHub release directly"
+            echo "# Install the plugin"
+            echo "claude plugin install ork"
             echo '```'
             echo ""
             echo "## Notes"
@@ -196,27 +237,26 @@ jobs:
         id: create-release
         shell: bash
         run: |
-          BRANCH="${{ steps.branch.outputs.name }}"
-          VERSION="${{ steps.version.outputs.version }}"
-          RUN_NUMBER="${{ github.run_number }}"
-          TAG="v${VERSION}-${BRANCH}.${RUN_NUMBER}"
+          VERSION="${{ steps.stamp.outputs.prerelease }}"
+          TAG="v${VERSION}"
 
-          # Create and push tag
+          # Create and push tag (includes version-stamped commit)
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag -a "$TAG" -m "Prerelease: $BRANCH channel" HEAD
+          git push origin HEAD
+          git tag -a "$TAG" -m "Prerelease: ${{ steps.branch.outputs.name }} channel" HEAD
           git push origin "$TAG"
 
           # Create GitHub Release with notes from file
           if [ -f /tmp/release_notes.txt ]; then
             gh release create "$TAG" \
               --prerelease \
-              --title "$TAG ($BRANCH channel)" \
+              --title "$TAG (${{ steps.branch.outputs.name }} channel)" \
               --notes-file /tmp/release_notes.txt
           else
             gh release create "$TAG" \
               --prerelease \
-              --title "$TAG ($BRANCH channel)"
+              --title "$TAG (${{ steps.branch.outputs.name }} channel)"
           fi
 
           # Get the release URL
@@ -234,7 +274,7 @@ jobs:
 
           - **Tag:** ${{ steps.create-release.outputs.tag_name }}
           - **Branch:** ${{ steps.branch.outputs.name }}
-          - **Version:** ${{ steps.version.outputs.version }}
+          - **Version:** ${{ steps.stamp.outputs.prerelease }}
           - **URL:** ${{ steps.create-release.outputs.prerelease_url }}
 
           All tests passed on:

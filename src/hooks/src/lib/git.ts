@@ -112,6 +112,24 @@ export function hasUncommittedChanges(projectDir?: string): boolean {
 }
 
 /**
+ * Count the number of dirty (modified/untracked) files
+ */
+export function getDirtyFileCount(projectDir?: string): number {
+  const dir = projectDir || getProjectDir();
+  try {
+    const output = execSync('git status --porcelain', {
+      cwd: dir,
+      encoding: 'utf8',
+      timeout: 3000,
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
+    return output.trim().split('\n').filter(l => l.trim()).length;
+  } catch {
+    return 0;
+  }
+}
+
+/**
  * Get the default branch (main or master)
  */
 export function getDefaultBranch(projectDir?: string): string {

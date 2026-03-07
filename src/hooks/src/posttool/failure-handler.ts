@@ -5,8 +5,12 @@
  * Analyzes tool failures and injects helpful context via additionalContext
  */
 
+import { existsSync, readFileSync, mkdirSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, outputWithContext, logHook } from '../lib/common.js';
+import { getLogDir } from '../lib/paths.js';
+import { atomicWriteSync } from '../lib/atomic-write.js';
 
 // Common failure patterns and their solutions
 const FAILURE_PATTERNS: Array<{ pattern: RegExp; suggestion: string }> = [
@@ -52,6 +56,44 @@ const FAILURE_PATTERNS: Array<{ pattern: RegExp; suggestion: string }> = [
   },
 ];
 
+/** Track failures and auto-enable debug mode after 3 in a session */
+const FAILURE_THRESHOLD = 3;
+
+function getFailureCountPath(): string {
+  return join(getLogDir(), 'failure-count.json');
+}
+
+function trackFailureAndMaybeEnableDebug(): void {
+  try {
+    const countPath = getFailureCountPath();
+    const dir = join(getLogDir());
+    if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+
+    let count = 0;
+    if (existsSync(countPath)) {
+      const data = JSON.parse(readFileSync(countPath, 'utf8'));
+      count = data.count || 0;
+    }
+    count++;
+    atomicWriteSync(countPath, JSON.stringify({ count, last: new Date().toISOString() }));
+
+    if (count === FAILURE_THRESHOLD) {
+      // Auto-enable debug mode
+      const home = process.env.HOME || process.env.USERPROFILE || '';
+      const flagDir = join(home, '.claude', 'logs', 'ork');
+      const flagPath = join(flagDir, 'debug-mode.flag');
+      if (!existsSync(flagPath)) {
+        mkdirSync(flagDir, { recursive: true });
+        writeFileSync(flagPath, `enabled=${new Date().toISOString()}\nreason=auto-${count}-failures\n`);
+        logHook('failure-handler', `Auto-enabled debug mode after ${count} failures`, 'warn');
+        process.stderr.write(`[orchestkit] Debug mode auto-enabled after ${count} tool failures — hook diagnostics now active\n`);
+      }
+    }
+  } catch {
+    // Never crash on failure tracking
+  }
+}
+
 export function failureHandler(input: HookInput): HookResult {
   // Get error information from the input
   const errorMessage = input.tool_error || '';
@@ -64,6 +106,9 @@ export function failureHandler(input: HookInput): HookResult {
   }
 
   logHook('failure-handler', `Tool ${toolName} failed: ${errorMessage.slice(0, 200)}`);
+
+  // Track failures — auto-enable debug after threshold
+  trackFailureAndMaybeEnableDebug();
 
   // Match against known failure patterns
   const suggestions: string[] = [];
