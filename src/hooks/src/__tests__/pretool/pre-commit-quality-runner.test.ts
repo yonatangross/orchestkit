@@ -311,9 +311,10 @@ describe('pre-commit-quality-runner', () => {
       // Act
       preCommitQualityRunner(input);
 
-      // Assert
-      expect(execSync).toHaveBeenCalledWith(
-        'npx tsc --noEmit',
+      // Assert — typecheck now uses execFileSync (SEC-001)
+      expect(execFileSync).toHaveBeenCalledWith(
+        'npx',
+        ['tsc', '--noEmit'],
         expect.objectContaining({ cwd: '/test/project' }),
       );
     });
@@ -336,9 +337,9 @@ describe('pre-commit-quality-runner', () => {
       // Act
       preCommitQualityRunner(input);
 
-      // Assert — tsc must NOT be called
-      const execSyncCalls = vi.mocked(execSync).mock.calls.map(c => c[0]);
-      expect(execSyncCalls).not.toContain('npx tsc --noEmit');
+      // Assert — tsc must NOT be called (via execFileSync)
+      const execFileCalls = vi.mocked(execFileSync).mock.calls.map(c => c[1] as string[]);
+      expect(execFileCalls.some(args => args.includes('tsc'))).toBe(false);
     });
 
     it('skips typecheck when only .md files are staged', () => {
@@ -600,12 +601,14 @@ describe('pre-commit-quality-runner', () => {
 
   describe('check failures', () => {
     it('returns outputBlock when typecheck fails', () => {
-      // Arrange
+      // Arrange — typecheck now runs via execFileSync (SEC-001)
       vi.mocked(execSync).mockImplementation((cmd: string) => {
         if (cmd === 'git diff --cached --name-only --diff-filter=ACMR') {
           return 'src/index.ts';
         }
-        // tsc fails
+        return '';
+      });
+      vi.mocked(execFileSync).mockImplementation(() => {
         const err = Object.assign(new Error('tsc error'), { stderr: 'TS2345: Argument of type' });
         throw err;
       });
@@ -655,11 +658,14 @@ describe('pre-commit-quality-runner', () => {
     });
 
     it('includes skip instruction in block reason', () => {
-      // Arrange
+      // Arrange — typecheck now runs via execFileSync (SEC-001)
       vi.mocked(execSync).mockImplementation((cmd: string) => {
         if (cmd === 'git diff --cached --name-only --diff-filter=ACMR') {
           return 'src/index.ts';
         }
+        return '';
+      });
+      vi.mocked(execFileSync).mockImplementation(() => {
         const err = Object.assign(new Error('tsc fail'), { stderr: 'error TS1234' });
         throw err;
       });
@@ -684,19 +690,19 @@ describe('pre-commit-quality-runner', () => {
 
   describe('multiple check failures', () => {
     it('includes all failed check names in the block reason', () => {
-      // Arrange — .ts staged + tsconfig, eslint.config.js: both checks run and both fail
+      // Arrange — .ts staged + tsconfig, eslint.config.js: both run via execFileSync and both fail
       vi.mocked(execSync).mockImplementation((cmd: string) => {
         if (cmd === 'git diff --cached --name-only --diff-filter=ACMR') {
           return 'src/auth.ts';
         }
-        // tsc fails
-        const err = Object.assign(new Error('tsc error'), { stderr: 'TS2322: Type error' });
-        throw err;
+        return '';
       });
-      vi.mocked(execFileSync).mockImplementation(() => {
+      vi.mocked(execFileSync).mockImplementation((_cmd: unknown, args?: readonly string[]) => {
+        if (args && args.includes('tsc')) {
+          throw Object.assign(new Error('tsc error'), { stderr: 'TS2322: Type error' });
+        }
         // eslint fails
-        const err = Object.assign(new Error('eslint error'), { stdout: '3 errors' });
-        throw err;
+        throw Object.assign(new Error('eslint error'), { stdout: '3 errors' });
       });
       vi.mocked(existsSync).mockImplementation((p: unknown) => {
         const path = String(p);
@@ -721,11 +727,14 @@ describe('pre-commit-quality-runner', () => {
     });
 
     it('logs failure count via logHook when checks fail', () => {
-      // Arrange
+      // Arrange — typecheck via execFileSync (SEC-001)
       vi.mocked(execSync).mockImplementation((cmd: string) => {
         if (cmd === 'git diff --cached --name-only --diff-filter=ACMR') {
           return 'src/auth.ts';
         }
+        return '';
+      });
+      vi.mocked(execFileSync).mockImplementation(() => {
         throw Object.assign(new Error('tsc fail'), { stderr: 'error' });
       });
       vi.mocked(existsSync).mockImplementation((p: unknown) => {

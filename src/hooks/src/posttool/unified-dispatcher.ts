@@ -13,7 +13,7 @@
  * Failures are logged to file but not surfaced to users.
  */
 
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult, HookFn } from '../types.js';
 import { outputSilentSuccess, logHook } from '../lib/common.js';
 // Import individual hook implementations (essential: security + local state only)
 // Analytics/telemetry hooks removed — now handled by HQ
@@ -25,8 +25,6 @@ import { commitNudge } from './commit-nudge.js';
 // -----------------------------------------------------------------------------
 // Types
 // -----------------------------------------------------------------------------
-
-type HookFn = (input: HookInput) => HookResult | Promise<HookResult>;
 
 interface HookConfig {
   name: string;
@@ -53,10 +51,11 @@ const HOOKS: HookConfig[] = [
 ];
 
 /** Exposed for registry wiring tests */
-export const registeredHookNames = () => HOOKS.map(h => h.name);
+export const registeredHookNames = (): string[] => HOOKS.map(h => h.name);
 
 /** Exposed for registry wiring tests */
-export const registeredHookMatchers = () => HOOKS.map(h => ({ name: h.name, matcher: h.matcher }));
+export const registeredHookMatchers = (): Array<{ name: string; matcher: string | string[] }> =>
+  HOOKS.map(h => ({ name: h.name, matcher: h.matcher }));
 
 // -----------------------------------------------------------------------------
 // Matcher Logic

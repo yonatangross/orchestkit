@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
 
       - name: Install Claude Code
         run: npm install -g @anthropic-ai/claude-code
@@ -67,7 +67,7 @@ jobs:
           --output-format json \
           --max-turns 10 \
           --model sonnet \
-          --allowedTools "Bash(gh:*),Bash(npm:*),Bash(node:*),Bash(cat:*),Bash(wc:*),Read,Grep,Glob" \
+          --allowedTools "Bash(gh:*),Bash(npm:*),Bash(cat:*),Bash(wc:*),Read,Grep,Glob" \
           > /tmp/health-report.json
 
       - name: Parse and display report
@@ -93,7 +93,7 @@ jobs:
             } else {
               console.log('Report parsing failed. Raw output saved as artifact.');
             }
-          " >> \$GITHUB_STEP_SUMMARY 2>/dev/null || echo "Report parsing failed" >> \$GITHUB_STEP_SUMMARY
+          " >> $GITHUB_STEP_SUMMARY 2>/dev/null || echo "Report parsing failed" >> $GITHUB_STEP_SUMMARY
 
       - name: Upload raw report
         uses: actions/upload-artifact@v4

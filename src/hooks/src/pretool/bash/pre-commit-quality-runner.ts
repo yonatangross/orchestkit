@@ -16,6 +16,8 @@
  */
 
 import { execSync, execFileSync } from 'node:child_process';
+// Note: execSync used ONLY for hardcoded git commands (no user input).
+// All commands with user-controlled args (file paths) use execFileSync (SEC-001).
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import type { HookInput, HookResult } from '../../types.js';
@@ -60,23 +62,13 @@ function hasSourceFiles(files: string[]): boolean {
   return files.some(f => /\.(ts|tsx|js|jsx)$/.test(f) && !f.includes('.test.') && !f.includes('.spec.') && !f.includes('__tests__'));
 }
 
-function runCheck(name: string, command: string, projectDir: string, timeoutMs: number): CheckResult {
-  const start = Date.now();
-  try {
-    execSync(command, {
-      cwd: projectDir,
-      encoding: 'utf8',
-      timeout: timeoutMs,
-      stdio: ['pipe', 'pipe', 'pipe'],
-    });
-    return { name, passed: true, output: '', durationMs: Date.now() - start };
-  } catch (err: unknown) {
-    const output = err instanceof Error ? (err as { stderr?: string; stdout?: string }).stderr || (err as { stderr?: string; stdout?: string }).stdout || err.message : String(err);
-    return { name, passed: false, output: String(output).slice(0, 500), durationMs: Date.now() - start };
-  }
+/** Extract error output from exec/execFile errors (Node SpawnSyncReturns) */
+function getExecOutput(err: unknown): string {
+  const e = err as { stderr?: string; stdout?: string; message?: string };
+  return e?.stderr || e?.stdout || (err instanceof Error ? err.message : String(err));
 }
 
-/** SEC-001 fix: run commands with file args safely via execFileSync (no shell interpolation) */
+/** SEC-001 fix: run commands with args safely via execFileSync (no shell interpolation) */
 function runCheckWithArgs(name: string, cmd: string, args: string[], projectDir: string, timeoutMs: number): CheckResult {
   const start = Date.now();
   try {
@@ -88,8 +80,7 @@ function runCheckWithArgs(name: string, cmd: string, args: string[], projectDir:
     });
     return { name, passed: true, output: '', durationMs: Date.now() - start };
   } catch (err: unknown) {
-    const output = err instanceof Error ? (err as { stderr?: string; stdout?: string }).stderr || (err as { stderr?: string; stdout?: string }).stdout || err.message : String(err);
-    return { name, passed: false, output: String(output).slice(0, 500), durationMs: Date.now() - start };
+    return { name, passed: false, output: String(getExecOutput(err)).slice(0, 500), durationMs: Date.now() - start };
   }
 }
 
@@ -128,7 +119,7 @@ export function preCommitQualityRunner(input: HookInput): HookResult {
   if (hasTypeScriptFiles(stagedFiles)) {
     const hasTsConfig = existsSync(join(projectDir, 'tsconfig.json'));
     if (hasTsConfig) {
-      checks.push(runCheck('typecheck', 'npx tsc --noEmit', projectDir, 15000));
+      checks.push(runCheckWithArgs('typecheck', 'npx', ['tsc', '--noEmit'], projectDir, 15000));
     }
   }
 

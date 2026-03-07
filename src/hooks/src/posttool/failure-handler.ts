@@ -5,7 +5,7 @@
  * Analyzes tool failures and injects helpful context via additionalContext
  */
 
-import { existsSync, readFileSync, mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, outputWithContext, logHook } from '../lib/common.js';
@@ -66,13 +66,13 @@ function getFailureCountPath(): string {
 function trackFailureAndMaybeEnableDebug(): void {
   try {
     const countPath = getFailureCountPath();
-    const dir = join(getLogDir());
+    const dir = getLogDir();
     if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
 
     let count = 0;
     if (existsSync(countPath)) {
-      const data = JSON.parse(readFileSync(countPath, 'utf8'));
-      count = data.count || 0;
+      const data = JSON.parse(readFileSync(countPath, 'utf8')) as { count?: number };
+      count = data.count ?? 0;
     }
     count++;
     atomicWriteSync(countPath, JSON.stringify({ count, last: new Date().toISOString() }));
@@ -84,7 +84,7 @@ function trackFailureAndMaybeEnableDebug(): void {
       const flagPath = join(flagDir, 'debug-mode.flag');
       if (!existsSync(flagPath)) {
         mkdirSync(flagDir, { recursive: true });
-        writeFileSync(flagPath, `enabled=${new Date().toISOString()}\nreason=auto-${count}-failures\n`);
+        atomicWriteSync(flagPath, `enabled=${new Date().toISOString()}\nreason=auto-${count}-failures\n`);
         logHook('failure-handler', `Auto-enabled debug mode after ${count} failures`, 'warn');
         process.stderr.write(`[orchestkit] Debug mode auto-enabled after ${count} tool failures — hook diagnostics now active\n`);
       }

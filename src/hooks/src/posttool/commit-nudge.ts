@@ -29,6 +29,8 @@ const INFO_THRESHOLD = 5;
 const WARN_THRESHOLD = 10;
 const URGENT_THRESHOLD = 15;
 const TIME_NUDGE_MS = 15 * 60 * 1000; // 15 minutes
+const COOLDOWN_MS = 3 * 60 * 1000; // 3 minutes
+const TRACKED_TOOLS = new Set(['Write', 'Edit', 'MultiEdit', 'Bash']);
 
 interface NudgeState {
   last_commit_ts: number;
@@ -86,7 +88,7 @@ export function commitNudge(input: HookInput): HookResult {
 
   // If this was a git commit command, reset state
   const toolName = input.tool_name || '';
-  const command = (input.tool_input?.command as string) || '';
+  const command = input.tool_input?.command ?? '';
   if (toolName === 'Bash' && isRecentCommit(command)) {
     state.last_commit_ts = now;
     state.last_nudge_level = 'none';
@@ -96,32 +98,19 @@ export function commitNudge(input: HookInput): HookResult {
   }
 
   // Only check on file-modifying tools
-  const TRACKED_TOOLS = new Set(['Write', 'Edit', 'MultiEdit', 'Bash']);
   if (!TRACKED_TOOLS.has(toolName)) return outputSilentSuccess();
 
   const dirtyCount = getDirtyFileCount(projectDir);
   if (dirtyCount === 0) return outputSilentSuccess();
 
   // Cooldown: don't nudge more than once per 3 minutes
-  const COOLDOWN_MS = 3 * 60 * 1000;
   if (now - state.last_nudge_ts < COOLDOWN_MS) {
     return outputSilentSuccess();
   }
 
-  // Time-based nudge (15min without commit, any dirty files)
+  // File-count-based nudge (escalating) — evaluated first, takes priority over time-based
   const timeSinceCommit = now - state.last_commit_ts;
-  if (timeSinceCommit >= TIME_NUDGE_MS && state.last_nudge_level !== 'time' && state.last_nudge_level !== 'urgent') {
-    state.last_nudge_level = 'time';
-    state.last_nudge_ts = now;
-    saveState(state);
-    const mins = Math.round(timeSinceCommit / 60000);
-    logHook(HOOK_NAME, `${mins}min since last commit, ${dirtyCount} dirty files`);
-    return outputWithContext(
-      `[Commit Nudge] ${mins} minutes since last commit with ${dirtyCount} uncommitted file(s). Consider committing to preserve progress. Use /ork:commit for a quick conventional commit.`
-    );
-  }
 
-  // File-count-based nudge (escalating)
   if (dirtyCount >= URGENT_THRESHOLD && state.last_nudge_level !== 'urgent') {
     state.last_nudge_level = 'urgent';
     state.last_nudge_ts = now;
@@ -150,6 +139,18 @@ export function commitNudge(input: HookInput): HookResult {
     // Info level: stderr only (user sees, Claude doesn't)
     process.stderr.write(`[commit-nudge] ${dirtyCount} uncommitted files — consider committing soon\n`);
     return outputSilentSuccess();
+  }
+
+  // Time-based nudge (15min without commit, any dirty files)
+  if (timeSinceCommit >= TIME_NUDGE_MS && state.last_nudge_level !== 'urgent') {
+    state.last_nudge_level = 'time';
+    state.last_nudge_ts = now;
+    saveState(state);
+    const mins = Math.round(timeSinceCommit / 60000);
+    logHook(HOOK_NAME, `${mins}min since last commit, ${dirtyCount} dirty files`);
+    return outputWithContext(
+      `[Commit Nudge] ${mins} minutes since last commit with ${dirtyCount} uncommitted file(s). Consider committing to preserve progress. Use /ork:commit for a quick conventional commit.`
+    );
   }
 
   return outputSilentSuccess();

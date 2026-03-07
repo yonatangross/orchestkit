@@ -35,7 +35,9 @@ function loadState(): ProgressState {
   try {
     const path = getStatePath();
     if (existsSync(path)) {
-      return JSON.parse(readFileSync(path, 'utf8'));
+      const parsed = JSON.parse(readFileSync(path, 'utf8')) as Partial<ProgressState>;
+      if (!Array.isArray(parsed.task_ids)) throw new Error('invalid shape');
+      return { total: parsed.total ?? 0, completed: parsed.completed ?? 0, task_ids: parsed.task_ids };
     }
   } catch { /* start fresh */ }
   return { total: 0, completed: 0, task_ids: [] };
