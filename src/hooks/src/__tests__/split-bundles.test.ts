@@ -324,7 +324,8 @@ describe('Cross-Bundle Consistency', () => {
     // 179 -> 176: #973 — removed satisfaction-detector (prompt), solution-detector (posttool), session-patterns (stop)
     // 176 -> 175: #980 — removed communicationStyleTracker from entries/prompt.ts (replaced by type:prompt hook)
     // 175 -> 171: memory cleanup — removed 5 dead hooks (memoryContext, memoryContextLoader, captureUserIntent, graphMemoryInject, agentMemoryStore), added session-summary
-    expect(totalHooks).toBe(170);
+    // 170 -> 172: CC 2.1.71 — added task-commit-linker, task-progress-tracker to lifecycle bundle
+    expect(totalHooks).toBe(172);
   });
 });
 

@@ -12,10 +12,11 @@ vi.mock('../../lib/analytics.js', () => ({
 }));
 
 // Mock all individual hooks to prevent side effects
-// After #897 slimming: only 3 hooks remain in posttool dispatcher
+// After #897 slimming + CC 2.1.71: 4 hooks in posttool dispatcher
 vi.mock('../../skill/redact-secrets.js', () => ({ redactSecrets: vi.fn(() => ({ continue: true, suppressOutput: true })) }));
 vi.mock('../../posttool/config-change/security-auditor.js', () => ({ configChangeAuditor: vi.fn(() => ({ continue: true, suppressOutput: true })) }));
 vi.mock('../../posttool/task/team-member-start.js', () => ({ teamMemberStart: vi.fn(() => ({ continue: true, suppressOutput: true })) }));
+vi.mock('../../posttool/commit-nudge.js', () => ({ commitNudge: vi.fn(() => ({ continue: true, suppressOutput: true })) }));
 
 import { unifiedDispatcher, matchesTool, registeredHookNames, } from '../../posttool/unified-dispatcher.js';
 import type { HookInput } from '../../types.js';
@@ -78,11 +79,12 @@ describe('matchesTool', () => {
 describe('registeredHookNames', () => {
   it('returns all registered hook names', () => {
     const names = registeredHookNames();
-    // After #897 slimming: only 3 hooks remain
+    // After #897 slimming + CC 2.1.71: 4 hooks
     expect(names).toContain('redact-secrets');
     expect(names).toContain('config-change-auditor');
     expect(names).toContain('team-member-start');
-    expect(names.length).toBe(3);
+    expect(names).toContain('commit-nudge');
+    expect(names.length).toBe(4);
   });
 });
 

@@ -17,11 +17,12 @@ import { registeredHookNames as setupHooks } from '../../setup/unified-dispatche
 describe('Dispatcher Registry Wiring', () => {
   describe('posttool/unified-dispatcher', () => {
     it('contains exactly the expected hooks', () => {
-      // After #897 slimming: only 3 hooks remain
+      // After #897 slimming + CC 2.1.71: 4 hooks
       expect(posttoolHooks()).toEqual([
         'redact-secrets',
         'config-change-auditor',
         'team-member-start',
+        'commit-nudge',
       ]);
     });
 
@@ -136,8 +137,8 @@ describe('Dispatcher Registry Wiring', () => {
         notificationHooks().length +
         setupHooks().length;
 
-      // posttool: 3, lifecycle: 4, stop: 8, subagent-stop: 2, notification: 2, setup: 1
-      expect(total).toBe(20);
+      // posttool: 4, lifecycle: 4, stop: 8, subagent-stop: 2, notification: 2, setup: 1
+      expect(total).toBe(21);
     });
   });
 });

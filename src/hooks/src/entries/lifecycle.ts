@@ -37,6 +37,8 @@ import { unifiedTeammateIdleDispatcher } from '../teammate-idle/unified-dispatch
 
 // TaskCompleted hooks (CC 2.1.33)
 import { completionTracker } from '../task-completed/completion-tracker.js';
+import { taskCommitLinker } from '../task-completed/task-commit-linker.js';
+import { taskProgressTracker } from '../task-completed/task-progress-tracker.js';
 
 // WorktreeCreate/WorktreeRemove hooks (CC 2.1.50)
 import { worktreeLifecycleLogger } from '../worktree/worktree-lifecycle-logger.js';
@@ -79,6 +81,8 @@ export const hooks: Record<string, HookFn> = {
 
   // TaskCompleted hooks (CC 2.1.33)
   'task-completed/completion-tracker': completionTracker,
+  'task-completed/task-commit-linker': taskCommitLinker,
+  'task-completed/task-progress-tracker': taskProgressTracker,
 
   // WorktreeCreate/WorktreeRemove hooks (CC 2.1.50)
   'worktree/worktree-lifecycle-logger': worktreeLifecycleLogger,
