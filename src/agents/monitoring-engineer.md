@@ -8,6 +8,7 @@ context: fork
 color: orange
 memory: project
 background: true
+isolation: worktree
 tools:
   - Read
   - Write

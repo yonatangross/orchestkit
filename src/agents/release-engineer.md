@@ -8,6 +8,7 @@ maxTurns: 20
 memory: project
 context: fork
 color: purple
+isolation: worktree
 tools:
   - Bash
   - Read

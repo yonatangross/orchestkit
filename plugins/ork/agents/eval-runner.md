@@ -8,6 +8,7 @@ context: fork
 category: testing
 color: green
 memory: project
+isolation: worktree
 tools:
   - Bash
   - Read

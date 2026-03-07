@@ -4,7 +4,7 @@ license: MIT
 compatibility: "Claude Code 2.1.59+."
 description: "Personalized onboarding wizard. Use when setting up OrchestKit for a new project, configuring plugins, or generating a readiness score and improvement plan."
 argument-hint: "[--rescan] [--score-only] [--plan-only] [--channel] [--configure]"
-context: inherit
+context: fork
 version: 1.0.0
 author: OrchestKit
 tags: [onboarding, setup, wizard, configuration, stack-detection, mcp, personalization]
