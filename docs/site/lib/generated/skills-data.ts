@@ -750,6 +750,44 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": []
   },
+  "ci-automation": {
+    "name": "ci-automation",
+    "description": "CI/CD automation with Claude Code -- GitHub Actions, headless CLI, and SDK patterns for automated reviews, triage, and health reports. Use when setting up CI pipelines with Claude.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "ci",
+      "cd",
+      "github-actions",
+      "automation",
+      "headless",
+      "claude-code-action"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Bash"
+    ],
+    "skills": [],
+    "agent": null,
+    "structure": {
+      "references": [
+        "cost-model.md",
+        "gh-action-patterns.md",
+        "headless-cli.md",
+        "security.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": [
+      "ci-cd-engineer"
+    ]
+  },
   "code-review-playbook": {
     "name": "code-review-playbook",
     "description": "Use this skill when conducting or improving code reviews. Provides structured review processes, conventional comments patterns, language-specific checklists, and feedback templates. Use when reviewing PRs or standardizing review practices.",

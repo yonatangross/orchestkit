@@ -47,7 +47,7 @@ src/
 └── hooks/                # <!--ork:hooks-->105<!--/ork--> TypeScript hooks in 12 split bundles
 
 manifests/                # Plugin definition
-└── ork.json              # Single plugin (<!--ork:skills-->79<!--/ork--> skills, <!--ork:agents-->30<!--/ork--> agents, <!--ork:hooks-->105<!--/ork--> hooks)
+└── ork.json              # Single plugin (<!--ork:skills-->80<!--/ork--> skills, <!--ork:agents-->30<!--/ork--> agents, <!--ork:hooks-->105<!--/ork--> hooks)
 ```
 
 ### Generated Files (Do Not Edit)

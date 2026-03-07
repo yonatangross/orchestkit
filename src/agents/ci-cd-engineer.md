@@ -25,6 +25,7 @@ skills:
   - devops-deployment
   - security-patterns
   - github-operations
+  - ci-automation
   - monitoring-observability
   - code-review-playbook
   - vite-advanced

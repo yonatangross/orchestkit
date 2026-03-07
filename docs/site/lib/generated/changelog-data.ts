@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.1.9",
+    "date": "2026-03-06",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "Add `$.plugins[0].version` to release-please extra-files so release PRs update both top-level and plugin versions in marketplace.json"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.1.8",
     "date": "2026-03-06",
     "compareUrl": "",
