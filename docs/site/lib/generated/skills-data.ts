@@ -573,8 +573,8 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": []
   },
-  "brainstorming": {
-    "name": "brainstorming",
+  "brainstorm": {
+    "name": "brainstorm",
     "description": "Design exploration with parallel agents. Use when brainstorming ideas, exploring solutions, or comparing alternatives.",
     "version": "4.3.0",
     "author": "OrchestKit",
@@ -713,7 +713,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "chain-patterns": {
     "name": "chain-patterns",
-    "description": "CC 2.1.71 pipeline patterns — MCP detection, handoff files, checkpoint-resume, worktree agents, CronCreate monitoring. Loaded via skills: field by pipeline skills (fix-issue, implement, brainstorming, verify). Not user-invocable.",
+    "description": "CC 2.1.71 pipeline patterns — MCP detection, handoff files, checkpoint-resume, worktree agents, CronCreate monitoring. Loaded via skills: field by pipeline skills (fix-issue, implement, brainstorm, verify). Not user-invocable.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -802,7 +802,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "headless",
       "claude-code-action"
     ],
-    "userInvocable": false,
+    "userInvocable": true,
     "context": "fork",
     "allowedTools": [
       "Read",
@@ -2509,101 +2509,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "system-design-reviewer"
     ]
   },
-  "plan-viz": {
-    "name": "plan-viz",
-    "description": "Visualize planned changes before implementation. Use when reviewing plans, comparing before/after architecture, assessing risk, or analyzing execution order and impact.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "visualization",
-      "planning",
-      "before-after",
-      "architecture",
-      "diff",
-      "risk",
-      "impact",
-      "migration"
-    ],
-    "userInvocable": true,
-    "context": "fork",
-    "allowedTools": [
-      "Read",
-      "Grep",
-      "Glob",
-      "Task",
-      "AskUserQuestion",
-      "Bash",
-      "Write"
-    ],
-    "skills": [
-      "ascii-visualizer",
-      "explore",
-      "architecture-decision-record"
-    ],
-    "agent": "workflow-architect",
-    "structure": {
-      "references": [
-        "blast-radius-patterns.md",
-        "change-manifest-patterns.md",
-        "decision-log-patterns.md",
-        "deep-dives.md",
-        "execution-swimlane-patterns.md",
-        "risk-dashboard-patterns.md",
-        "visualization-tiers.md"
-      ],
-      "assets": [
-        "impact-dashboard.md",
-        "plan-report.md",
-        "tier1-header.md"
-      ],
-      "scripts": [
-        "analyze-impact.sh",
-        "detect-plan-context.sh"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "system-design-reviewer"
-    ]
-  },
-  "prd": {
-    "name": "prd",
-    "description": "Product Requirements Documents with structured 8-section templates, user stories, acceptance criteria, and value proposition validation. Use when writing PRDs, defining product requirements, creating user stories with INVEST criteria, or building go/no-go decision frameworks.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "prd",
-      "requirements",
-      "user-story",
-      "acceptance-criteria",
-      "invest",
-      "value-proposition",
-      "go-no-go"
-    ],
-    "userInvocable": true,
-    "context": "fork",
-    "allowedTools": [
-      "Read",
-      "Glob",
-      "Grep",
-      "WebFetch",
-      "WebSearch"
-    ],
-    "skills": [],
-    "agent": "product-strategist",
-    "structure": {
-      "references": [
-        "output-templates.md",
-        "value-prop-canvas-guide.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": []
-  },
   "presentation-builder": {
     "name": "presentation-builder",
     "description": "Creates zero-dependency, animation-rich HTML presentations from scratch or by converting PowerPoint files. Use when the user wants to build a presentation, convert a PPT/PPTX to web slides, or create a slide deck for a talk, pitch, or tutorial. Generates single self-contained HTML files with inline CSS/JS.",
@@ -3297,7 +3202,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "scope-appropriate-architecture": {
     "name": "scope-appropriate-architecture",
-    "description": "Right-sizes architecture to project scope. Prevents over-engineering by classifying projects into 6 tiers and constraining pattern choices accordingly. Use when designing architecture, selecting patterns, or when brainstorming/implement detect a project tier.",
+    "description": "Right-sizes architecture to project scope. Prevents over-engineering by classifying projects into 6 tiers and constraining pattern choices accordingly. Use when designing architecture, selecting patterns, or when brainstorm/implement detect a project tier.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -3902,6 +3807,65 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": []
   },
+  "visualize-plan": {
+    "name": "visualize-plan",
+    "description": "Visualize planned changes before implementation. Use when reviewing plans, comparing before/after architecture, assessing risk, or analyzing execution order and impact.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "visualization",
+      "planning",
+      "before-after",
+      "architecture",
+      "diff",
+      "risk",
+      "impact",
+      "migration"
+    ],
+    "userInvocable": true,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Grep",
+      "Glob",
+      "Task",
+      "AskUserQuestion",
+      "Bash",
+      "Write"
+    ],
+    "skills": [
+      "ascii-visualizer",
+      "explore",
+      "architecture-decision-record"
+    ],
+    "agent": "workflow-architect",
+    "structure": {
+      "references": [
+        "blast-radius-patterns.md",
+        "change-manifest-patterns.md",
+        "decision-log-patterns.md",
+        "deep-dives.md",
+        "execution-swimlane-patterns.md",
+        "risk-dashboard-patterns.md",
+        "visualization-tiers.md"
+      ],
+      "assets": [
+        "impact-dashboard.md",
+        "plan-report.md",
+        "tier1-header.md"
+      ],
+      "scripts": [
+        "analyze-impact.sh",
+        "detect-plan-context.sh"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": [
+      "system-design-reviewer"
+    ]
+  },
   "vite-advanced": {
     "name": "vite-advanced",
     "description": "Advanced Vite 7+ patterns including Environment API, plugin development, SSR configuration, library mode, and build optimization. Use when customizing build pipelines, creating plugins, or configuring multi-environment builds.",
@@ -3990,6 +3954,42 @@ export const SKILLS: Record<string, SkillMeta> = {
     "relatedAgents": [
       "web-research-analyst"
     ]
+  },
+  "write-prd": {
+    "name": "write-prd",
+    "description": "Product Requirements Documents with structured 8-section templates, user stories, acceptance criteria, and value proposition validation. Use when writing PRDs, defining product requirements, creating user stories with INVEST criteria, or building go/no-go decision frameworks.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "prd",
+      "requirements",
+      "user-story",
+      "acceptance-criteria",
+      "invest",
+      "value-proposition",
+      "go-no-go"
+    ],
+    "userInvocable": true,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "skills": [],
+    "agent": "product-strategist",
+    "structure": {
+      "references": [
+        "output-templates.md",
+        "value-prop-canvas-guide.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
   },
   "zustand-patterns": {
     "name": "zustand-patterns",

@@ -1,6 +1,6 @@
 ---
 name: chain-patterns
-description: "CC 2.1.71 pipeline patterns — MCP detection, handoff files, checkpoint-resume, worktree agents, CronCreate monitoring. Loaded via skills: field by pipeline skills (fix-issue, implement, brainstorming, verify). Not user-invocable."
+description: "CC 2.1.71 pipeline patterns — MCP detection, handoff files, checkpoint-resume, worktree agents, CronCreate monitoring. Loaded via skills: field by pipeline skills (fix-issue, implement, brainstorm, verify). Not user-invocable."
 tags: [pipeline, resilience, checkpoint, mcp, orchestkit]
 version: 1.0.0
 author: OrchestKit
@@ -108,7 +108,7 @@ Agent(
 ```
 
 **When to use worktree:** Agents with Write/Edit tools running in parallel.
-**When NOT to use:** Read-only agents (brainstorming, assessment, review).
+**When NOT to use:** Read-only agents (brainstorm, assessment, review).
 
 Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/worktree-agent-pattern.md")`
 

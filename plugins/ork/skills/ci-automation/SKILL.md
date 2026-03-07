@@ -7,7 +7,7 @@ description: "CI/CD automation with Claude Code -- GitHub Actions, headless CLI,
 context: fork
 version: 1.0.0
 tags: [ci, cd, github-actions, automation, headless, claude-code-action]
-user-invocable: false
+user-invocable: true
 complexity: medium
 metadata:
   category: devops

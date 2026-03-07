@@ -21,7 +21,7 @@ tools:
 disallowedTools: [Write, Edit, MultiEdit]
 skills:
   - architecture-decision-record
-  - plan-viz
+  - visualize-plan
   - security-patterns
   - performance
   - remember

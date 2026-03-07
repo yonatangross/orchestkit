@@ -185,7 +185,7 @@ SendMessage(type: "broadcast",
 - `ork:implement` - Implementation workflow with task tracking and progress updates
 - `ork:verify` - Verification tasks and completion checklists
 - `ork:fix-issue` - Issue resolution with hypothesis-based RCA tracking
-- `ork:brainstorming` - Design exploration with parallel agent tasks
+- `ork:brainstorm` - Design exploration with parallel agent tasks
 
 ## References
 

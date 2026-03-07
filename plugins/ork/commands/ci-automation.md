@@ -1,22 +1,11 @@
 ---
-name: ci-automation
-license: MIT
-compatibility: "Claude Code 2.1.59+. Requires gh CLI."
-author: OrchestKit
 description: "CI/CD automation with Claude Code -- GitHub Actions, headless CLI, and SDK patterns for automated reviews, triage, and health reports. Use when setting up CI pipelines with Claude."
-context: fork
-version: 1.0.0
-tags: [ci, cd, github-actions, automation, headless, claude-code-action]
-user-invocable: true
-complexity: medium
-metadata:
-  category: devops
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - Bash
+allowed-tools: [Bash, Read, Write, Edit, Glob, Grep]
 ---
+
+# Auto-generated from skills/ci-automation/SKILL.md
+# Source: https://github.com/yonatangross/orchestkit
+
 
 # CI Automation
 

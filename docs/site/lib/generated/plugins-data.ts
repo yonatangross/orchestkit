@@ -13,7 +13,7 @@ export const PLUGINS: Plugin[] = [
     "skillCount": 81,
     "agentCount": 30,
     "hooks": 107,
-    "commandCount": 18,
+    "commandCount": 19,
     "color": "#06b6d4",
     "required": false,
     "recommended": true,
@@ -29,7 +29,7 @@ export const PLUGINS: Plugin[] = [
       "async-jobs",
       "audit-full",
       "audit-skills",
-      "brainstorming",
+      "brainstorm",
       "browser-tools",
       "business-case",
       "chain-patterns",
@@ -77,7 +77,8 @@ export const PLUGINS: Plugin[] = [
     ],
     "commands": [
       "assess",
-      "brainstorming",
+      "brainstorm",
+      "ci-automation",
       "commit",
       "configure",
       "create-pr",
@@ -88,12 +89,12 @@ export const PLUGINS: Plugin[] = [
       "help",
       "implement",
       "memory",
-      "plan-viz",
-      "prd",
       "remember",
       "review-pr",
       "setup",
-      "verify"
+      "verify",
+      "visualize-plan",
+      "write-prd"
     ]
   }
 ];

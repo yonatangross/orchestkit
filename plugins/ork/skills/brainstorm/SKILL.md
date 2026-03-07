@@ -1,11 +1,27 @@
 ---
+name: brainstorm
+license: MIT
+compatibility: "Claude Code 2.1.59+. Requires memory MCP server."
 description: "Design exploration with parallel agents. Use when brainstorming ideas, exploring solutions, or comparing alternatives."
+argument-hint: "[topic-or-idea]"
+tags: [planning, ideation, creativity, design]
+context: fork
+version: 4.3.0
+author: OrchestKit
+user-invocable: true
 allowed-tools: [AskUserQuestion, Task, Read, Grep, Glob, TaskCreate, TaskUpdate, TaskList, TaskOutput, TaskStop, ToolSearch, mcp__memory__search_nodes]
+skills: [architecture-decision-record, api-design, memory, remember, scope-appropriate-architecture, testing-patterns, chain-patterns]
+complexity: medium
+model: sonnet
+hooks:
+  PreToolUse:
+    - matcher: "Agent"
+      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/prior-decisions-loader"
+      once: true
+metadata:
+  category: workflow-automation
+  mcp-server: memory
 ---
-
-# Auto-generated from skills/brainstorming/SKILL.md
-# Source: https://github.com/yonatangross/orchestkit
-
 
 # Brainstorming Ideas Into Designs
 
@@ -20,6 +36,7 @@ TOPIC = "$ARGUMENTS"  # Full argument string, e.g., "API design for payments"
 # $ARGUMENTS[0] is the first token (CC 2.1.59 indexed access)
 ```
 
+---
 
 ## STEP -1: MCP Probe + Resume Check
 
@@ -34,13 +51,13 @@ ToolSearch(query="select:mcp__sequential-thinking__sequentialthinking")
 Write(".claude/chain/capabilities.json", {
   "memory": probe_memory.found,
   "sequential_thinking": probe_st.found,
-  "skill": "brainstorming",
+  "skill": "brainstorm",
   "timestamp": now()
 })
 
 # 3. Check for resume (prior session may have crashed)
 state = Read(".claude/chain/state.json")  # may not exist
-if state.skill == "brainstorming" and state.status == "in_progress":
+if state.skill == "brainstorm" and state.status == "in_progress":
     # Skip completed phases, resume from state.current_phase
     last_handoff = Read(f".claude/chain/{state.last_handoff}")
 ```
@@ -56,6 +73,7 @@ if state.skill == "brainstorming" and state.status == "in_progress":
 | 4 | `04-evaluation.json` | Rated + devil's advocate results |
 | 5 | `05-synthesis.json` | Top 2-3 approaches, trade-off table |
 
+---
 
 ## STEP 0: Project Context Discovery
 
@@ -105,6 +123,7 @@ AskUserQuestion(questions=[{
 
 > **Override:** User can always override the detected tier. Warn them of trade-offs if they choose a higher tier than detected.
 
+---
 
 ## STEP 0a: Verify User Intent with AskUserQuestion
 
@@ -148,6 +167,7 @@ AskUserQuestion(
 - **Comparison**: Skip ideation, jump to evaluation phase
 - **Quick ideation**: Generate ideas, skip deep evaluation
 
+---
 
 ## STEP 0b: Select Orchestration Mode (skip for Tier 1-2)
 
@@ -166,6 +186,7 @@ Choose **Agent Teams** (mesh — agents debate and challenge ideas) or **Task to
 
 > **Fallback:** If Agent Teams encounters issues, fall back to Task tool for remaining phases.
 
+---
 
 ## CRITICAL: Task Management is MANDATORY (CC 2.1.16)
 
@@ -187,6 +208,7 @@ TaskCreate(subject="Synthesize top approaches", activeForm="Synthesizing approac
 TaskCreate(subject="Present design options", activeForm="Presenting options")
 ```
 
+---
 
 ## The Seven-Phase Process
 
@@ -202,9 +224,10 @@ TaskCreate(subject="Present design options", activeForm="Presenting options")
 
 Load the phase workflow for detailed instructions:
 ```
-Read("${CLAUDE_PLUGIN_ROOT}/skills/brainstorming/references/phase-workflow.md")
+Read("${CLAUDE_PLUGIN_ROOT}/skills/brainstorm/references/phase-workflow.md")
 ```
 
+---
 
 ## When NOT to Use
 
@@ -214,6 +237,7 @@ Skip brainstorming when:
 - User has already designed the solution
 - Time-sensitive bug fix or urgent issue
 
+---
 
 ## Quick Reference: Agent Selection
 
@@ -226,6 +250,7 @@ Skip brainstorming when:
 
 **Always include:** `workflow-architect` for system design perspective, `test-generator` for testability assessment.
 
+---
 
 ## Agent Teams Alternative: Brainstorming Team
 
@@ -288,10 +313,11 @@ SendMessage(type="shutdown_request", recipient="testability-assessor", content="
 TeamDelete()
 ```
 
-> **Fallback:** If team formation fails, load `Read("${CLAUDE_PLUGIN_ROOT}/skills/brainstorming/references/phase-workflow.md")` and use standard Phase 2 Task spawns.
+> **Fallback:** If team formation fails, load `Read("${CLAUDE_PLUGIN_ROOT}/skills/brainstorm/references/phase-workflow.md")` and use standard Phase 2 Task spawns.
 
 > **Manual cleanup:** If `TeamDelete()` doesn't terminate all agents, press `Ctrl+F` twice to force-kill remaining background agents.
 
+---
 
 ## Key Principles
 
@@ -304,6 +330,7 @@ TeamDelete()
 | **Task tracking** | Use TaskCreate/TaskUpdate for progress visibility |
 | **YAGNI ruthlessly** | Remove unnecessary complexity |
 
+---
 
 ## Related Skills
 
@@ -314,7 +341,7 @@ TeamDelete()
 
 ## References
 
-Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/brainstorming/references/<file>")`:
+Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/brainstorm/references/<file>")`:
 
 | File | Content |
 |------|---------|
@@ -326,5 +353,6 @@ Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/brainstorming/references
 | `common-pitfalls.md` | Mistakes to avoid |
 | `example-session-dashboard.md` | Complete example |
 
+---
 
 **Version:** 4.3.0 (February 2026) - Added testability scoring to evaluation, test strategy to synthesis output

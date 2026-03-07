@@ -8,7 +8,7 @@ export const TOTALS: Totals = {
   "skills": 81,
   "agents": 30,
   "hooks": 107,
-  "commands": 18,
+  "commands": 19,
   "compositions": 14
 };
 
@@ -349,10 +349,10 @@ export const SKILLS_SUMMARY = {
     "product": [
       "business-case",
       "okr-design",
-      "prd",
       "prioritization",
       "product-analytics",
-      "product-frameworks"
+      "product-frameworks",
+      "write-prd"
     ],
     "git": [
       "api-design",

@@ -162,6 +162,6 @@ Phase 4  [........????????]  IRREVERSIBLE        (drop column)
 
 ## Related Skills
 
-- `brainstorming` — Design exploration where diagrams communicate ideas
+- `brainstorm` — Design exploration where diagrams communicate ideas
 - `architecture-patterns` — System architecture that benefits from ASCII diagrams
 - `code-review-playbook` — Review comments with inline diagrams

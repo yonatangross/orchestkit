@@ -23,7 +23,7 @@ tools:
   - TaskList
 skills:
   - product-frameworks
-  - brainstorming
+  - brainstorm
   - github-operations
   - remember
   - memory
@@ -220,7 +220,7 @@ Task: "Should we build a visual workflow builder?"
 ## Integration
 - **Receives from:** `market-intelligence` (market report, competitive context)
 - **Hands off to:** `market-intelligence` (validated opportunities with competitive landscape)
-- **Skill references:** brainstorming (for exploring alternatives)
+- **Skill references:** brainstorm (for exploring alternatives)
 
 ## Notes
 - Second agent in the product thinking pipeline

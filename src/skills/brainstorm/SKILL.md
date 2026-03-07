@@ -1,5 +1,5 @@
 ---
-name: brainstorming
+name: brainstorm
 license: MIT
 compatibility: "Claude Code 2.1.59+. Requires memory MCP server."
 description: "Design exploration with parallel agents. Use when brainstorming ideas, exploring solutions, or comparing alternatives."
@@ -51,13 +51,13 @@ ToolSearch(query="select:mcp__sequential-thinking__sequentialthinking")
 Write(".claude/chain/capabilities.json", {
   "memory": probe_memory.found,
   "sequential_thinking": probe_st.found,
-  "skill": "brainstorming",
+  "skill": "brainstorm",
   "timestamp": now()
 })
 
 # 3. Check for resume (prior session may have crashed)
 state = Read(".claude/chain/state.json")  # may not exist
-if state.skill == "brainstorming" and state.status == "in_progress":
+if state.skill == "brainstorm" and state.status == "in_progress":
     # Skip completed phases, resume from state.current_phase
     last_handoff = Read(f".claude/chain/{state.last_handoff}")
 ```
@@ -224,7 +224,7 @@ TaskCreate(subject="Present design options", activeForm="Presenting options")
 
 Load the phase workflow for detailed instructions:
 ```
-Read("${CLAUDE_PLUGIN_ROOT}/skills/brainstorming/references/phase-workflow.md")
+Read("${CLAUDE_PLUGIN_ROOT}/skills/brainstorm/references/phase-workflow.md")
 ```
 
 ---
@@ -313,7 +313,7 @@ SendMessage(type="shutdown_request", recipient="testability-assessor", content="
 TeamDelete()
 ```
 
-> **Fallback:** If team formation fails, load `Read("${CLAUDE_PLUGIN_ROOT}/skills/brainstorming/references/phase-workflow.md")` and use standard Phase 2 Task spawns.
+> **Fallback:** If team formation fails, load `Read("${CLAUDE_PLUGIN_ROOT}/skills/brainstorm/references/phase-workflow.md")` and use standard Phase 2 Task spawns.
 
 > **Manual cleanup:** If `TeamDelete()` doesn't terminate all agents, press `Ctrl+F` twice to force-kill remaining background agents.
 
@@ -341,7 +341,7 @@ TeamDelete()
 
 ## References
 
-Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/brainstorming/references/<file>")`:
+Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/brainstorm/references/<file>")`:
 
 | File | Content |
 |------|---------|

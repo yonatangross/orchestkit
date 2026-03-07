@@ -3,7 +3,7 @@ description: "Product Requirements Documents with structured 8-section templates
 allowed-tools: [Bash, Read, Write, Edit, Glob, Grep]
 ---
 
-# Auto-generated from skills/prd/SKILL.md
+# Auto-generated from skills/write-prd/SKILL.md
 # Source: https://github.com/yonatangross/orchestkit
 
 
