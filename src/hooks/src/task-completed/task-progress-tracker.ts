@@ -104,8 +104,3 @@ export function taskProgressTracker(input: HookInput): HookResult {
 
   return outputSilentSuccess();
 }
-
-/** Reset for testing */
-export function _resetForTesting(): void {
-  // State is file-based
-}

@@ -303,6 +303,36 @@ describe('auto-approve-safe-bash', () => {
     });
   });
 
+  describe('REJECT_PATTERNS — destructive git ops blocked even though git checkout is in SAFE_PATTERNS', () => {
+    const rejectedCommands = [
+      ['git checkout -- .', 'discard all unstaged changes'],
+      ['git checkout .', 'discard all changes (shorthand)'],
+      ['git checkout -f main', 'force checkout discards local'],
+      ['git checkout --force main', 'force checkout long form'],
+      ['git clean -fd', 'delete untracked files'],
+      ['git clean -fdx', 'delete untracked + ignored files'],
+      ['git reset --hard HEAD~1', 'discard all changes hard reset'],
+      ['git push --force origin main', 'force push rewrites remote'],
+      ['git push -f origin main', 'force push short form'],
+    ];
+
+    test.each(rejectedCommands)('blocks: %s (%s)', (command) => {
+      const input = createBashInput(command);
+      const result = autoApproveSafeBash(input);
+
+      expect(result.continue).toBe(true);
+      // Should NOT auto-approve — no permissionDecision means manual review
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
+    });
+
+    test('git checkout <branch> is still approved (not destructive)', () => {
+      const input = createBashInput('git checkout feature/test');
+      const result = autoApproveSafeBash(input);
+
+      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+    });
+  });
+
   describe('POSIX utility commands — CC 2.1.71 (should auto-approve)', () => {
     const posixCommands = [
       'fmt file.txt',

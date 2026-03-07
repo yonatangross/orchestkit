@@ -2,19 +2,17 @@
  * Unified PostToolUse Dispatcher
  * Issue #235: Hook Architecture Refactor
  *
- * Consolidates 3 essential PostToolUse hooks into a single dispatcher.
+ * Consolidates essential PostToolUse hooks into a single dispatcher.
  * This reduces the number of "Async hook completed" messages to 1.
  *
- * CC 2.1.19 Compliant: Single async hook with internal routing
- *
- * NOTE: Async hooks are fire-and-forget by design. They can only return
- * { async: true, asyncTimeout } - fields like systemMessage, continue,
- * decision are NOT processed by Claude Code for async hooks.
- * Failures are logged to file but not surfaced to users.
+ * CC 2.1.71: Async hooks CAN deliver additionalContext and systemMessage
+ * to Claude on the next turn. Only decision/permissionDecision/continue
+ * are ignored (the action already completed). The dispatcher collects
+ * additionalContext from all hooks and forwards the combined result.
  */
 
 import type { HookInput, HookResult, HookFn } from '../types.js';
-import { outputSilentSuccess, logHook } from '../lib/common.js';
+import { outputSilentSuccess, outputWithContext, logHook } from '../lib/common.js';
 // Import individual hook implementations (essential: security + local state only)
 // Analytics/telemetry hooks removed — now handled by HQ
 import { redactSecrets } from '../skill/redact-secrets.js';
@@ -37,7 +35,8 @@ interface HookConfig {
 // -----------------------------------------------------------------------------
 
 /**
- * Registry of all async PostToolUse hooks consolidated into dispatcher
+ * Registry of PostToolUse hooks consolidated into dispatcher.
+ * Hooks may return additionalContext which the dispatcher forwards to CC.
  */
 const HOOKS: HookConfig[] = [
   // Security: scrubs API keys from tool output (#684, #909)
@@ -98,40 +97,46 @@ export async function unifiedDispatcher(input: HookInput): Promise<HookResult> {
     return outputSilentSuccess();
   }
 
-  // Run all matching hooks in parallel
+  // Run all matching hooks in parallel, capturing their results
   const results = await Promise.allSettled(
     matchingHooks.map(async hook => {
       try {
         const result = hook.fn(input);
         // Handle both sync and async hooks
-        if (result instanceof Promise) {
-          await result;
-        }
-        return { hook: hook.name, status: 'success' };
+        const hookResult = result instanceof Promise ? await result : result;
+        return { hook: hook.name, status: 'success' as const, result: hookResult };
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         logHook('unified-dispatcher', `${hook.name} failed: ${message}`);
-        return { hook: hook.name, status: 'error', message };
+        return { hook: hook.name, status: 'error' as const, message };
       }
     })
   );
 
-  // Count failures for logging (async hooks can't report to users)
+  // Collect failures and additionalContext from hook results
   const failures: string[] = [];
+  const contexts: string[] = [];
 
   for (const result of results) {
     if (result.status === 'rejected') {
       failures.push('unknown');
     } else if (result.value.status === 'error') {
       failures.push(result.value.hook);
+    } else {
+      // Forward additionalContext from hooks that returned it
+      const ctx = result.value.result?.hookSpecificOutput?.additionalContext;
+      if (ctx) contexts.push(ctx);
     }
   }
 
-  // Log failures (async hooks are fire-and-forget - can't surface to users)
   if (failures.length > 0) {
     logHook('posttool-dispatcher', `${failures.length}/${matchingHooks.length} hooks failed: ${failures.join(', ')}`);
   }
 
-  // Async hooks always return silent success - CC ignores other fields
+  // Forward collected additionalContext to CC (delivered on next turn for async hooks)
+  if (contexts.length > 0) {
+    return outputWithContext(contexts.join('\n'));
+  }
+
   return outputSilentSuccess();
 }

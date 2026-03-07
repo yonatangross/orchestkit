@@ -26,6 +26,7 @@ import {
   isGitRepo,
   extractIssueNumber,
   getStagedFiles,
+  analyzeStagedChanges,
   validateBranchName,
 } from '../../lib/git.js';
 import { execSync } from 'node:child_process';
@@ -223,6 +224,104 @@ describe('lib/git', () => {
       });
 
       expect(getStagedFiles('/test/project')).toEqual([]);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // analyzeStagedChanges
+  // ---------------------------------------------------------------------------
+
+  describe('analyzeStagedChanges', () => {
+    test('classifies test files correctly', () => {
+      vi.mocked(execSync).mockReturnValue('src/index.test.ts\ntests/unit.ts\nsrc/__tests__/foo.ts\n');
+
+      const result = analyzeStagedChanges('/test/project');
+
+      expect(result.hasTests).toBe(true);
+      expect(result.hasSource).toBe(false);
+      expect(result.files).toHaveLength(3);
+    });
+
+    test('classifies config files correctly', () => {
+      vi.mocked(execSync).mockReturnValue('package.json\ntsconfig.json\n.env\nconfig/app.yml\n');
+
+      const result = analyzeStagedChanges('/test/project');
+
+      expect(result.hasConfig).toBe(true);
+      expect(result.hasSource).toBe(false);
+    });
+
+    test('classifies docs correctly', () => {
+      vi.mocked(execSync).mockReturnValue('README.md\ndocs/setup.md\nnotes.txt\n');
+
+      const result = analyzeStagedChanges('/test/project');
+
+      expect(result.hasDocs).toBe(true);
+      expect(result.hasSource).toBe(false);
+    });
+
+    test('classifies source files as hasSource', () => {
+      vi.mocked(execSync).mockReturnValue('src/index.ts\nsrc/app.tsx\n');
+
+      const result = analyzeStagedChanges('/test/project');
+
+      expect(result.hasSource).toBe(true);
+      expect(result.hasTests).toBe(false);
+      expect(result.hasConfig).toBe(false);
+      expect(result.hasDocs).toBe(false);
+    });
+
+    test('detects mixed change types', () => {
+      vi.mocked(execSync).mockReturnValue('src/index.ts\nsrc/index.test.ts\npackage.json\nREADME.md\n');
+
+      const result = analyzeStagedChanges('/test/project');
+
+      expect(result.hasSource).toBe(true);
+      expect(result.hasTests).toBe(true);
+      expect(result.hasConfig).toBe(true);
+      expect(result.hasDocs).toBe(true);
+    });
+
+    test('tracks top-level and second-level directories', () => {
+      vi.mocked(execSync).mockReturnValue('src/hooks/index.ts\nlib/utils.ts\n');
+
+      const result = analyzeStagedChanges('/test/project');
+
+      expect(result.directories.has('src')).toBe(true);
+      expect(result.directories.has('src/hooks')).toBe(true);
+      expect(result.directories.has('lib')).toBe(true);
+    });
+
+    test('tracks file extensions', () => {
+      vi.mocked(execSync).mockReturnValue('src/index.ts\nsrc/style.css\nREADME.md\n');
+
+      const result = analyzeStagedChanges('/test/project');
+
+      expect(result.extensions.has('ts')).toBe(true);
+      expect(result.extensions.has('css')).toBe(true);
+      expect(result.extensions.has('md')).toBe(true);
+    });
+
+    test('returns empty results when no staged files', () => {
+      vi.mocked(execSync).mockReturnValue('');
+
+      const result = analyzeStagedChanges('/test/project');
+
+      expect(result.files).toEqual([]);
+      expect(result.directories.size).toBe(0);
+      expect(result.hasSource).toBe(false);
+      expect(result.hasTests).toBe(false);
+      expect(result.hasConfig).toBe(false);
+      expect(result.hasDocs).toBe(false);
+    });
+
+    test('handles root-level files (no directory)', () => {
+      vi.mocked(execSync).mockReturnValue('.gitignore\n');
+
+      const result = analyzeStagedChanges('/test/project');
+
+      expect(result.directories.size).toBe(0);
+      expect(result.files).toEqual(['.gitignore']);
     });
   });
 

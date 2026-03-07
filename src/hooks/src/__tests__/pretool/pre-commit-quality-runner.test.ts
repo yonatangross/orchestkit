@@ -544,6 +544,65 @@ describe('pre-commit-quality-runner', () => {
     });
   });
 
+  describe('vitest related-tests check', () => {
+    it('uses vitest --related when vitest.config.ts exists (prefers over jest)', () => {
+      vi.mocked(execSync).mockImplementation((cmd: string) => {
+        if (cmd === 'git diff --cached --name-only --diff-filter=ACMR') {
+          return 'src/auth.ts';
+        }
+        return '';
+      });
+      vi.mocked(existsSync).mockImplementation((p: unknown) => {
+        const path = String(p);
+        return path.endsWith('package.json') ||
+               path.endsWith('vitest.config.ts') ||
+               path.endsWith('jest.config.js'); // both exist — vitest wins
+      });
+      const input = createBashInput('git commit -m "feat: auth"');
+
+      preCommitQualityRunner(input);
+
+      const calls = vi.mocked(execFileSync).mock.calls;
+      const vitestCall = calls.find(
+        ([cmd, args]) => cmd === 'npx' && Array.isArray(args) && (args as string[]).includes('vitest'),
+      );
+      expect(vitestCall).toBeDefined();
+      const args = vitestCall![1] as string[];
+      expect(args).toContain('vitest');
+      expect(args).toContain('run');
+      expect(args).toContain('--related');
+      expect(args).toContain('src/auth.ts');
+
+      // Should NOT also run jest
+      const jestCall = calls.find(
+        ([cmd, args]) => cmd === 'npx' && Array.isArray(args) && (args as string[]).includes('jest'),
+      );
+      expect(jestCall).toBeUndefined();
+    });
+
+    it('falls back to jest when vitest.config.* is absent', () => {
+      vi.mocked(execSync).mockImplementation((cmd: string) => {
+        if (cmd === 'git diff --cached --name-only --diff-filter=ACMR') {
+          return 'src/auth.ts';
+        }
+        return '';
+      });
+      vi.mocked(existsSync).mockImplementation((p: unknown) => {
+        const path = String(p);
+        return path.endsWith('package.json') || path.endsWith('jest.config.js');
+      });
+      const input = createBashInput('git commit -m "feat: auth"');
+
+      preCommitQualityRunner(input);
+
+      const calls = vi.mocked(execFileSync).mock.calls;
+      const jestCall = calls.find(
+        ([cmd, args]) => cmd === 'npx' && Array.isArray(args) && (args as string[]).includes('jest'),
+      );
+      expect(jestCall).toBeDefined();
+    });
+  });
+
   // -----------------------------------------------------------------------
   // 10. All checks pass → additionalContext with check names
   // -----------------------------------------------------------------------

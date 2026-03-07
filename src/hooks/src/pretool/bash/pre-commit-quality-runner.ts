@@ -138,15 +138,20 @@ export function preCommitQualityRunner(input: HookInput): HookResult {
     }
   }
 
-  // Related tests (only if jest is configured)
+  // Related tests (jest or vitest)
   if (hasSourceFiles(stagedFiles)) {
-    const hasJest = existsSync(join(projectDir, 'jest.config.js')) ||
-                    existsSync(join(projectDir, 'jest.config.ts'));
-    if (hasJest) {
-      const sourceFiles = stagedFiles.filter(f =>
-        /\.(ts|tsx|js|jsx)$/.test(f) && !f.includes('.test.') && !f.includes('.spec.')
-      );
-      if (sourceFiles.length > 0) {
+    const sourceFiles = stagedFiles.filter(f =>
+      /\.(ts|tsx|js|jsx)$/.test(f) && !f.includes('.test.') && !f.includes('.spec.')
+    );
+    if (sourceFiles.length > 0) {
+      const hasVitest = existsSync(join(projectDir, 'vitest.config.ts')) ||
+                        existsSync(join(projectDir, 'vitest.config.mts')) ||
+                        existsSync(join(projectDir, 'vitest.config.js'));
+      const hasJest = existsSync(join(projectDir, 'jest.config.js')) ||
+                      existsSync(join(projectDir, 'jest.config.ts'));
+      if (hasVitest) {
+        checks.push(runCheckWithArgs('related-tests', 'npx', ['vitest', 'run', '--related', ...sourceFiles, '--passWithNoTests'], projectDir, 20000));
+      } else if (hasJest) {
         checks.push(runCheckWithArgs('related-tests', 'npx', ['jest', '--findRelatedTests', ...sourceFiles, '--passWithNoTests'], projectDir, 20000));
       }
     }

@@ -68,7 +68,12 @@ function saveState(state: NudgeState): void {
 }
 
 function isRecentCommit(command: string): boolean {
-  return /^git\s+commit\b/.test(command.trim());
+  const trimmed = command.trim();
+  if (!/^git\s+commit\b/.test(trimmed)) return false;
+  // --amend and --allow-empty don't reduce dirty files — don't reset nudge state
+  if (/--amend\b/.test(trimmed)) return false;
+  if (/--allow-empty\b/.test(trimmed)) return false;
+  return true;
 }
 
 /**
@@ -154,9 +159,4 @@ export function commitNudge(input: HookInput): HookResult {
   }
 
   return outputSilentSuccess();
-}
-
-/** Reset for testing */
-export function _resetForTesting(): void {
-  // State is file-based, no module-level state to reset
 }

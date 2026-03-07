@@ -35,6 +35,8 @@ describe('Dispatcher Registry Wiring', () => {
       expect(byName['config-change-auditor']).toEqual(['Write', 'Edit']);
       // #902: Accept both Task and Agent tool names
       expect(byName['team-member-start']).toEqual(['Task', 'Agent']);
+      // CC 2.1.71: commit-nudge fires on file-modifying tools
+      expect(byName['commit-nudge']).toEqual(['Write', 'Edit', 'MultiEdit', 'Bash']);
     });
   });
 
