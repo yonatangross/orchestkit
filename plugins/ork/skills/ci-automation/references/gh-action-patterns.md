@@ -24,7 +24,7 @@ permissions:
   issues: write
 
 concurrency:
-  group: claude-review-${{ github.event.pull_request.number || github.event.inputs.pr_number }}
+  group: claude-review-${{ github.event.pull_request.number || github.event.issue.number || github.event.inputs.pr_number || 'manual' }}
   cancel-in-progress: true
 
 jobs:
@@ -32,12 +32,14 @@ jobs:
     if: |
       github.event_name == 'pull_request' ||
       github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude'))
+      (github.event_name == 'issue_comment' &&
+       contains(github.event.comment.body, '@claude') &&
+       contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association))
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: anthropics/claude-code-action@v1
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+      - uses: anthropics/claude-code-action@9469d113c6afd29550c402740f22d1a97dd1209b  # v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           prompt: |
@@ -45,6 +47,8 @@ jobs:
             Use conventional comments: praise/suggestion/issue/nitpick.
           claude_args: "--max-turns 5 --model sonnet"
 ```
+
+> **SHA pinning**: Always pin actions to their full commit SHA, not a floating tag. Floating tags like `@v4` can be silently updated to malicious code. Use `# v4` as a comment for readability. Example: `actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4`.
 
 ## Issue Triage Workflow
 
@@ -66,13 +70,17 @@ permissions:
   contents: read
   issues: write
 
+concurrency:
+  group: claude-triage-${{ github.event.issue.number || github.event.inputs.issue_number }}
+  cancel-in-progress: true
+
 jobs:
   triage:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
-      - uses: anthropics/claude-code-action@v1
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+      - uses: anthropics/claude-code-action@9469d113c6afd29550c402740f22d1a97dd1209b  # v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           prompt: |
@@ -103,9 +111,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
       - name: Install Claude Code
-        run: npm install -g @anthropic-ai/claude-code
+        run: npm install -g @anthropic-ai/claude-code@2.1.69
       - name: Run health assessment
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -114,7 +122,7 @@ jobs:
             --output-format json \
             --max-turns 10 \
             --model sonnet \
-            --allowedTools "Bash(gh:*),Read,Grep,Glob" \
+            --allowedTools "Read,Grep,Glob,Bash(npm audit:*),Bash(gh issue list:*),Bash(gh pr list:*),Bash(gh run list:*),Bash(cat:*),Bash(wc:*)" \
             > /tmp/health-report.json
 ```
 
@@ -129,16 +137,21 @@ on:
 
 jobs:
   respond:
-    if: contains(github.event.comment.body, '@claude')
+    # Guard: only trusted collaborators can trigger; prevents abuse from external commenters
+    if: |
+      contains(github.event.comment.body, '@claude') &&
+      contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: anthropics/claude-code-action@v1
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+      - uses: anthropics/claude-code-action@9469d113c6afd29550c402740f22d1a97dd1209b  # v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
 ```
 
 The action automatically reads the comment context and responds inline.
+
+> **`author_association` guard**: `issue_comment` runs in the base repo context with access to secrets. Without this guard, any external user can trigger Claude by mentioning `@claude`, burning API credits or probing for prompt injections. Always restrict to `OWNER`, `MEMBER`, or `COLLABORATOR`.
 
 ## workflow_dispatch for HQ Integration
 

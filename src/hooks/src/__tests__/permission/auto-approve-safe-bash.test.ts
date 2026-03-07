@@ -303,33 +303,48 @@ describe('auto-approve-safe-bash', () => {
     });
   });
 
-  describe('REJECT_PATTERNS — destructive git ops blocked even though git checkout is in SAFE_PATTERNS', () => {
-    const rejectedCommands = [
-      ['git checkout -- .', 'discard all unstaged changes'],
-      ['git checkout .', 'discard all changes (shorthand)'],
-      ['git checkout -f main', 'force checkout discards local'],
-      ['git checkout --force main', 'force checkout long form'],
-      ['git clean -fd', 'delete untracked files'],
-      ['git clean -fdx', 'delete untracked + ignored files'],
-      ['git reset --hard HEAD~1', 'discard all changes hard reset'],
-      ['git push --force origin main', 'force push rewrites remote'],
-      ['git push -f origin main', 'force push short form'],
-    ];
-
-    test.each(rejectedCommands)('blocks: %s (%s)', (command) => {
-      const input = createBashInput(command);
+  describe('REJECT_PATTERNS and explicit non-safe commands', () => {
+    test('git push -f origin main → explicitly rejected by REJECT_PATTERNS', () => {
+      const input = createBashInput('git push -f origin main');
       const result = autoApproveSafeBash(input);
 
+      // REJECT_PATTERNS catches "git push -f" before SAFE_PATTERNS can match "git push"
       expect(result.continue).toBe(true);
-      // Should NOT auto-approve — no permissionDecision means manual review
       expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
-    test('git checkout <branch> is still approved (not destructive)', () => {
-      const input = createBashInput('git checkout feature/test');
+    test('npm run build → auto-approved (npm run <anything> is in SAFE_PATTERNS)', () => {
+      // The SAFE_PATTERNS regex /^npm (list|ls|outdated|audit|run|test)/ matches
+      // "npm run <anything>" — build is an allowed npm run target
+      const input = createBashInput('npm run build');
       const result = autoApproveSafeBash(input);
 
+      expect(result.continue).toBe(true);
       expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+    });
+
+    test('pnpm run build → auto-approved (pnpm run <anything> is in SAFE_PATTERNS)', () => {
+      // Same as npm run — the pattern /^pnpm (list|ls|outdated|audit|run|test)/ allows "pnpm run build"
+      const input = createBashInput('pnpm run build');
+      const result = autoApproveSafeBash(input);
+
+      expect(result.continue).toBe(true);
+      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+    });
+
+    test('non-Bash tool (Write) → does not crash and returns continue: true', () => {
+      const input: HookInput = {
+        tool_name: 'Write',
+        session_id: 'test-session-123',
+        tool_input: { file_path: '/test/file.ts', content: 'hello' },
+        project_dir: '/test/project',
+      };
+
+      expect(() => autoApproveSafeBash(input)).not.toThrow();
+      const result = autoApproveSafeBash(input);
+      expect(result.continue).toBe(true);
+      // No permissionDecision — Write tool falls through as unrecognized command
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
   });
 

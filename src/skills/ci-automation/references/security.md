@@ -52,8 +52,13 @@ permissions:
 In headless mode, use `--allowedTools` to restrict what Claude can do:
 
 ```bash
-# Read-only analysis (health reports)
---allowedTools "Read,Grep,Glob,Bash(gh:*),Bash(npm:*)"
+# Read-only analysis (health reports) — use specific subcommands, not broad wildcards
+--allowedTools "Read,Grep,Glob,Bash(npm audit:*),Bash(gh issue list:*),Bash(gh pr list:*),Bash(gh run list:*),Bash(cat:*),Bash(wc:*)"
+
+# WRONG: Bash(npm:*) grants access to ALL npm subcommands including publish, adduser,
+# token create, deprecate, and owner — treat it as write access to the npm registry.
+# WRONG: Bash(gh:*) grants access to all gh subcommands including repo delete, secret set,
+# and release upload.
 
 # Never allow in CI
 # --dangerously-skip-permissions  (bypasses all safety checks)
@@ -102,6 +107,23 @@ steps:
   # Never run PR code directly
   # Only analyze it with Claude
 ```
+
+### `issue_comment` is a Similar Risk Vector
+
+`issue_comment` runs in the **base repo context** with access to secrets, just like `pull_request_target`. Any unauthenticated user can post a comment. Always gate on `author_association`:
+
+```yaml
+jobs:
+  respond:
+    if: |
+      contains(github.event.comment.body, '@claude') &&
+      contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association)
+```
+
+Without this guard:
+- Any external user can trigger Claude runs, burning API credits
+- Malicious prompts in comments may attempt to exfiltrate secrets or manipulate workflow behavior
+- Rate limiting alone is insufficient protection
 
 ## Audit Logging
 

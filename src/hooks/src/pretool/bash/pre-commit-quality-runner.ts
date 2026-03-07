@@ -15,13 +15,12 @@
  * @since v7.2.0
  */
 
-import { execSync, execFileSync } from 'node:child_process';
-// Note: execSync used ONLY for hardcoded git commands (no user input).
-// All commands with user-controlled args (file paths) use execFileSync (SEC-001).
+import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import type { HookInput, HookResult } from '../../types.js';
 import { outputSilentSuccess, outputBlock, logHook, getProjectDir } from '../../lib/common.js';
+import { getStagedSourceFiles } from '../../lib/git.js';
 
 const HOOK_NAME = 'pre-commit-quality-runner';
 
@@ -33,21 +32,7 @@ interface CheckResult {
 }
 
 function isCommitCommand(command: string): boolean {
-  return /^git\s+commit\b/.test(command.trim());
-}
-
-function getStagedFiles(projectDir: string): string[] {
-  try {
-    const output = execSync('git diff --cached --name-only --diff-filter=ACMR', {
-      cwd: projectDir,
-      encoding: 'utf8',
-      timeout: 5000,
-      stdio: ['pipe', 'pipe', 'pipe'],
-    });
-    return output.trim().split('\n').filter(f => f.trim());
-  } catch {
-    return [];
-  }
+  return /^git\s+commit(?:\s|$)/.test(command.trim());
 }
 
 function hasTypeScriptFiles(files: string[]): boolean {
@@ -105,7 +90,7 @@ export function preCommitQualityRunner(input: HookInput): HookResult {
   const projectDir = getProjectDir();
   if (!projectDir) return outputSilentSuccess();
 
-  const stagedFiles = getStagedFiles(projectDir);
+  const stagedFiles = getStagedSourceFiles();
   if (stagedFiles.length === 0) return outputSilentSuccess();
 
   logHook(HOOK_NAME, `${stagedFiles.length} staged files, running quality checks`);
@@ -119,7 +104,7 @@ export function preCommitQualityRunner(input: HookInput): HookResult {
   if (hasTypeScriptFiles(stagedFiles)) {
     const hasTsConfig = existsSync(join(projectDir, 'tsconfig.json'));
     if (hasTsConfig) {
-      checks.push(runCheckWithArgs('typecheck', 'npx', ['tsc', '--noEmit'], projectDir, 15000));
+      checks.push(runCheckWithArgs('typecheck', 'npx', ['tsc', '--noEmit'], projectDir, 5000));
     }
   }
 
@@ -133,7 +118,7 @@ export function preCommitQualityRunner(input: HookInput): HookResult {
     if (hasEslint) {
       const lintFiles = stagedFiles.filter(f => /\.(ts|tsx|js|jsx)$/.test(f));
       if (lintFiles.length > 0) {
-        checks.push(runCheckWithArgs('lint', 'npx', ['eslint', '--cache', ...lintFiles], projectDir, 15000));
+        checks.push(runCheckWithArgs('lint', 'npx', ['eslint', '--cache', ...lintFiles], projectDir, 5000));
       }
     }
   }
@@ -150,9 +135,9 @@ export function preCommitQualityRunner(input: HookInput): HookResult {
       const hasJest = existsSync(join(projectDir, 'jest.config.js')) ||
                       existsSync(join(projectDir, 'jest.config.ts'));
       if (hasVitest) {
-        checks.push(runCheckWithArgs('related-tests', 'npx', ['vitest', 'run', '--related', ...sourceFiles, '--passWithNoTests'], projectDir, 20000));
+        checks.push(runCheckWithArgs('related-tests', 'npx', ['vitest', 'run', '--related', ...sourceFiles, '--passWithNoTests'], projectDir, 5000));
       } else if (hasJest) {
-        checks.push(runCheckWithArgs('related-tests', 'npx', ['jest', '--findRelatedTests', ...sourceFiles, '--passWithNoTests'], projectDir, 20000));
+        checks.push(runCheckWithArgs('related-tests', 'npx', ['jest', '--findRelatedTests', ...sourceFiles, '--passWithNoTests'], projectDir, 5000));
       }
     }
   }

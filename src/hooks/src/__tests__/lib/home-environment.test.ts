@@ -242,8 +242,12 @@ describe('HOME environment fallback', () => {
 
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
-      // Should NOT check any files
-      expect(mockExistsSync).not.toHaveBeenCalled();
+      // Should NOT check pattern files (existsSync may still be called by
+      // logHook → getLogLevel for the debug-mode.flag check)
+      const patternCalls = mockExistsSync.mock.calls.filter(
+        ([p]: [string]) => !String(p).includes('debug-mode.flag'),
+      );
+      expect(patternCalls).toHaveLength(0);
     });
 
     test('actually merges patterns when global file exists with HOME path', () => {

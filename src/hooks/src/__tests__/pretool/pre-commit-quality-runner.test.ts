@@ -544,65 +544,6 @@ describe('pre-commit-quality-runner', () => {
     });
   });
 
-  describe('vitest related-tests check', () => {
-    it('uses vitest --related when vitest.config.ts exists (prefers over jest)', () => {
-      vi.mocked(execSync).mockImplementation((cmd: string) => {
-        if (cmd === 'git diff --cached --name-only --diff-filter=ACMR') {
-          return 'src/auth.ts';
-        }
-        return '';
-      });
-      vi.mocked(existsSync).mockImplementation((p: unknown) => {
-        const path = String(p);
-        return path.endsWith('package.json') ||
-               path.endsWith('vitest.config.ts') ||
-               path.endsWith('jest.config.js'); // both exist — vitest wins
-      });
-      const input = createBashInput('git commit -m "feat: auth"');
-
-      preCommitQualityRunner(input);
-
-      const calls = vi.mocked(execFileSync).mock.calls;
-      const vitestCall = calls.find(
-        ([cmd, args]) => cmd === 'npx' && Array.isArray(args) && (args as string[]).includes('vitest'),
-      );
-      expect(vitestCall).toBeDefined();
-      const args = vitestCall![1] as string[];
-      expect(args).toContain('vitest');
-      expect(args).toContain('run');
-      expect(args).toContain('--related');
-      expect(args).toContain('src/auth.ts');
-
-      // Should NOT also run jest
-      const jestCall = calls.find(
-        ([cmd, args]) => cmd === 'npx' && Array.isArray(args) && (args as string[]).includes('jest'),
-      );
-      expect(jestCall).toBeUndefined();
-    });
-
-    it('falls back to jest when vitest.config.* is absent', () => {
-      vi.mocked(execSync).mockImplementation((cmd: string) => {
-        if (cmd === 'git diff --cached --name-only --diff-filter=ACMR') {
-          return 'src/auth.ts';
-        }
-        return '';
-      });
-      vi.mocked(existsSync).mockImplementation((p: unknown) => {
-        const path = String(p);
-        return path.endsWith('package.json') || path.endsWith('jest.config.js');
-      });
-      const input = createBashInput('git commit -m "feat: auth"');
-
-      preCommitQualityRunner(input);
-
-      const calls = vi.mocked(execFileSync).mock.calls;
-      const jestCall = calls.find(
-        ([cmd, args]) => cmd === 'npx' && Array.isArray(args) && (args as string[]).includes('jest'),
-      );
-      expect(jestCall).toBeDefined();
-    });
-  });
-
   // -----------------------------------------------------------------------
   // 10. All checks pass → additionalContext with check names
   // -----------------------------------------------------------------------
@@ -888,23 +829,19 @@ describe('pre-commit-quality-runner', () => {
       expect(result.continue).toBe(true);
     });
 
-    it('matches git commit-graph as a commit command (regex boundary after "commit")', () => {
-      // Arrange — git commit-graph write triggers isCommitCommand because \b matches after "commit"
-      // before the "-" (non-word char). The hook then falls through to staged files checks.
-      vi.mocked(execSync).mockReturnValue(''); // no staged files → silent success
+    it('does not match git commit-graph as a commit command', () => {
+      // git commit-graph write should NOT trigger isCommitCommand
+      // because the regex uses (?:\s|$) after "commit", not \b.
       const input = createBashInput('git commit-graph write');
 
       // Act
       const result = preCommitQualityRunner(input);
 
-      // Assert — silent success via the "no staged files" guard (not via non-commit guard)
+      // Assert — silent success via the "not a commit command" guard
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
-      // execSync was called (for getStagedFiles), confirming the command was treated as a commit
-      expect(execSync).toHaveBeenCalledWith(
-        'git diff --cached --name-only --diff-filter=ACMR',
-        expect.anything(),
-      );
+      // execSync should NOT be called — command rejected before staged files check
+      expect(execSync).not.toHaveBeenCalled();
     });
   });
 

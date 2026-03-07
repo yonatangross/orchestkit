@@ -98,10 +98,9 @@ export function failureHandler(input: HookInput): HookResult {
   // Get error information from the input
   const errorMessage = input.tool_error || '';
   const toolName = input.tool_name || 'unknown';
-  const exitCode = input.exit_code;
 
   // Skip if no error info
-  if (!errorMessage && exitCode === 0) {
+  if (!errorMessage) {
     return outputSilentSuccess();
   }
 

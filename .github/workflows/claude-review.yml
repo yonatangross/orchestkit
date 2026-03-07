@@ -20,7 +20,7 @@ permissions:
   issues: write
 
 concurrency:
-  group: claude-review-${{ github.event.pull_request.number || github.event.inputs.pr_number }}
+  group: claude-review-${{ github.event.pull_request.number || github.event.issue.number || github.event.inputs.pr_number || 'manual' }}
   cancel-in-progress: true
 
 jobs:

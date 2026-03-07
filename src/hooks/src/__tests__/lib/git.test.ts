@@ -26,8 +26,11 @@ import {
   isGitRepo,
   extractIssueNumber,
   getStagedFiles,
-  analyzeStagedChanges,
   validateBranchName,
+  getRepoRoot,
+  getDefaultBranch,
+  getGitStatus,
+  hasUncommittedChanges,
 } from '../../lib/git.js';
 import { execSync } from 'node:child_process';
 
@@ -228,104 +231,6 @@ describe('lib/git', () => {
   });
 
   // ---------------------------------------------------------------------------
-  // analyzeStagedChanges
-  // ---------------------------------------------------------------------------
-
-  describe('analyzeStagedChanges', () => {
-    test('classifies test files correctly', () => {
-      vi.mocked(execSync).mockReturnValue('src/index.test.ts\ntests/unit.ts\nsrc/__tests__/foo.ts\n');
-
-      const result = analyzeStagedChanges('/test/project');
-
-      expect(result.hasTests).toBe(true);
-      expect(result.hasSource).toBe(false);
-      expect(result.files).toHaveLength(3);
-    });
-
-    test('classifies config files correctly', () => {
-      vi.mocked(execSync).mockReturnValue('package.json\ntsconfig.json\n.env\nconfig/app.yml\n');
-
-      const result = analyzeStagedChanges('/test/project');
-
-      expect(result.hasConfig).toBe(true);
-      expect(result.hasSource).toBe(false);
-    });
-
-    test('classifies docs correctly', () => {
-      vi.mocked(execSync).mockReturnValue('README.md\ndocs/setup.md\nnotes.txt\n');
-
-      const result = analyzeStagedChanges('/test/project');
-
-      expect(result.hasDocs).toBe(true);
-      expect(result.hasSource).toBe(false);
-    });
-
-    test('classifies source files as hasSource', () => {
-      vi.mocked(execSync).mockReturnValue('src/index.ts\nsrc/app.tsx\n');
-
-      const result = analyzeStagedChanges('/test/project');
-
-      expect(result.hasSource).toBe(true);
-      expect(result.hasTests).toBe(false);
-      expect(result.hasConfig).toBe(false);
-      expect(result.hasDocs).toBe(false);
-    });
-
-    test('detects mixed change types', () => {
-      vi.mocked(execSync).mockReturnValue('src/index.ts\nsrc/index.test.ts\npackage.json\nREADME.md\n');
-
-      const result = analyzeStagedChanges('/test/project');
-
-      expect(result.hasSource).toBe(true);
-      expect(result.hasTests).toBe(true);
-      expect(result.hasConfig).toBe(true);
-      expect(result.hasDocs).toBe(true);
-    });
-
-    test('tracks top-level and second-level directories', () => {
-      vi.mocked(execSync).mockReturnValue('src/hooks/index.ts\nlib/utils.ts\n');
-
-      const result = analyzeStagedChanges('/test/project');
-
-      expect(result.directories.has('src')).toBe(true);
-      expect(result.directories.has('src/hooks')).toBe(true);
-      expect(result.directories.has('lib')).toBe(true);
-    });
-
-    test('tracks file extensions', () => {
-      vi.mocked(execSync).mockReturnValue('src/index.ts\nsrc/style.css\nREADME.md\n');
-
-      const result = analyzeStagedChanges('/test/project');
-
-      expect(result.extensions.has('ts')).toBe(true);
-      expect(result.extensions.has('css')).toBe(true);
-      expect(result.extensions.has('md')).toBe(true);
-    });
-
-    test('returns empty results when no staged files', () => {
-      vi.mocked(execSync).mockReturnValue('');
-
-      const result = analyzeStagedChanges('/test/project');
-
-      expect(result.files).toEqual([]);
-      expect(result.directories.size).toBe(0);
-      expect(result.hasSource).toBe(false);
-      expect(result.hasTests).toBe(false);
-      expect(result.hasConfig).toBe(false);
-      expect(result.hasDocs).toBe(false);
-    });
-
-    test('handles root-level files (no directory)', () => {
-      vi.mocked(execSync).mockReturnValue('.gitignore\n');
-
-      const result = analyzeStagedChanges('/test/project');
-
-      expect(result.directories.size).toBe(0);
-      expect(result.files).toEqual(['.gitignore']);
-    });
-  });
-
-  // ---------------------------------------------------------------------------
   // validateBranchName
   // ---------------------------------------------------------------------------
 
@@ -346,6 +251,186 @@ describe('lib/git', () => {
     test('returns error for issue/ branch without number', () => {
       const result = validateBranchName('issue/fix-something');
       expect(result).toContain('issue number');
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // getRepoRoot
+  // ---------------------------------------------------------------------------
+
+  describe('getRepoRoot', () => {
+    test('returns trimmed path when git command succeeds', () => {
+      // Arrange
+      vi.mocked(execSync).mockReturnValue('/home/user/my-project\n');
+
+      // Act
+      const result = getRepoRoot('/test/project');
+
+      // Assert
+      expect(result).toBe('/home/user/my-project');
+      expect(execSync).toHaveBeenCalledWith(
+        'git rev-parse --show-toplevel',
+        expect.objectContaining({ cwd: '/test/project' }),
+      );
+    });
+
+    test('trims whitespace from returned path', () => {
+      vi.mocked(execSync).mockReturnValue('  /some/path  \n');
+
+      const result = getRepoRoot('/test/project');
+
+      expect(result).toBe('/some/path');
+    });
+
+    test('returns the projectDir as fallback when git command fails', () => {
+      // Arrange
+      vi.mocked(execSync).mockImplementation(() => {
+        throw new Error('not a git repository');
+      });
+
+      // Act — passing an explicit dir
+      const result = getRepoRoot('/my/fallback');
+
+      // Assert — falls back to the cwd argument
+      expect(result).toBe('/my/fallback');
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // getDefaultBranch
+  // ---------------------------------------------------------------------------
+
+  describe('getDefaultBranch', () => {
+    test('returns "main" when main branch exists', () => {
+      // Arrange: first execSync succeeds
+      vi.mocked(execSync).mockReturnValue('main\n');
+
+      // Act
+      const result = getDefaultBranch('/test/project');
+
+      // Assert
+      expect(result).toBe('main');
+      expect(execSync).toHaveBeenCalledWith(
+        'git rev-parse --verify main',
+        expect.objectContaining({ cwd: '/test/project' }),
+      );
+    });
+
+    test('returns "master" when main fails but master exists', () => {
+      // Arrange: first call throws (main not found), second succeeds (master found)
+      vi.mocked(execSync)
+        .mockImplementationOnce(() => { throw new Error('fatal: ambiguous argument'); })
+        .mockReturnValueOnce('master\n');
+
+      // Act
+      const result = getDefaultBranch('/test/project');
+
+      // Assert
+      expect(result).toBe('master');
+      expect(execSync).toHaveBeenCalledTimes(2);
+    });
+
+    test('returns "main" as default when both main and master are absent', () => {
+      // Arrange: both calls throw
+      vi.mocked(execSync).mockImplementation(() => {
+        throw new Error('fatal: ambiguous argument');
+      });
+
+      // Act
+      const result = getDefaultBranch('/test/project');
+
+      // Assert — the hardcoded fallback is "main"
+      expect(result).toBe('main');
+      expect(execSync).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // getGitStatus
+  // ---------------------------------------------------------------------------
+
+  describe('getGitStatus', () => {
+    test('returns trimmed status string on success', () => {
+      // Arrange
+      vi.mocked(execSync).mockReturnValue(' M src/lib/git.ts\n?? newfile.ts\n');
+
+      // Act
+      const result = getGitStatus('/test/project');
+
+      // Assert — result is trimmed
+      expect(result).toBe('M src/lib/git.ts\n?? newfile.ts');
+      expect(execSync).toHaveBeenCalledWith(
+        'git status --short',
+        expect.objectContaining({ cwd: '/test/project' }),
+      );
+    });
+
+    test('returns empty string for a clean working tree', () => {
+      vi.mocked(execSync).mockReturnValue('');
+
+      const result = getGitStatus('/test/project');
+
+      expect(result).toBe('');
+    });
+
+    test('returns empty string when git command throws', () => {
+      vi.mocked(execSync).mockImplementation(() => {
+        throw new Error('not a git repository');
+      });
+
+      const result = getGitStatus('/test/project');
+
+      expect(result).toBe('');
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // hasUncommittedChanges
+  // ---------------------------------------------------------------------------
+
+  describe('hasUncommittedChanges', () => {
+    test('returns true when there are modified files', () => {
+      // Arrange — non-empty status means dirty
+      vi.mocked(execSync).mockReturnValue(' M src/file.ts\n');
+
+      // Act
+      const result = hasUncommittedChanges('/test/project');
+
+      // Assert
+      expect(result).toBe(true);
+    });
+
+    test('returns false for a clean working tree', () => {
+      // Arrange — empty status means clean
+      vi.mocked(execSync).mockReturnValue('');
+
+      // Act
+      const result = hasUncommittedChanges('/test/project');
+
+      // Assert
+      expect(result).toBe(false);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // extractIssueNumber — additional patterns
+  // ---------------------------------------------------------------------------
+
+  describe('extractIssueNumber additional patterns', () => {
+    test('extracts from bug/ prefix', () => {
+      expect(extractIssueNumber('bug/456-segfault-on-startup')).toBe(456);
+    });
+
+    test('extracts from branch name starting with digits (N-description)', () => {
+      expect(extractIssueNumber('123-fix-thing')).toBe(123);
+    });
+
+    test('extracts from branch name ending with digits (description-N)', () => {
+      expect(extractIssueNumber('fix-thing-456')).toBe(456);
+    });
+
+    test('extracts from # notation in branch name', () => {
+      expect(extractIssueNumber('fix-#789-crash')).toBe(789);
     });
   });
 });

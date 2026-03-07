@@ -11,7 +11,7 @@
  * @since v7.2.0
  */
 
-import { describe, test, expect, vi, beforeEach } from 'vitest';
+import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // Mock dependencies before imports
 vi.mock('../../lib/common.js', () => ({
@@ -34,7 +34,7 @@ vi.mock('node:fs', () => ({
 }));
 
 import { taskProgressTracker } from '../../task-completed/task-progress-tracker.js';
-import { outputSilentSuccess } from '../../lib/common.js';
+import { outputSilentSuccess, logHook } from '../../lib/common.js';
 import { atomicWriteSync } from '../../lib/atomic-write.js';
 import { existsSync, readFileSync } from 'node:fs';
 import type { HookInput } from '../../types.js';
@@ -70,6 +70,10 @@ describe('task-progress-tracker', () => {
     vi.mocked(readFileSync).mockReturnValue('{}');
     // Suppress actual stderr output during tests
     stderrSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+  });
+
+  afterEach(() => {
+    stderrSpy.mockRestore();
   });
 
   // ---------------------------------------------------------------------------
@@ -290,6 +294,43 @@ describe('task-progress-tracker', () => {
       expect(outputSilentSuccess).toHaveBeenCalledOnce();
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // saveState failure resilience
+  // ---------------------------------------------------------------------------
+
+  describe('saveState failure', () => {
+    test('does not throw when atomicWriteSync fails to persist state', () => {
+      vi.mocked(atomicWriteSync).mockImplementation(() => {
+        throw new Error('disk full');
+      });
+      const input = createTaskInput({
+        task_id: 'task-write-fail',
+        task_status: 'completed',
+      });
+
+      // Hook must not propagate the write error to the caller
+      expect(() => taskProgressTracker(input)).not.toThrow();
+    });
+
+    test('calls logHook with "warn" when state persistence fails', () => {
+      vi.mocked(atomicWriteSync).mockImplementation(() => {
+        throw new Error('disk full');
+      });
+      const input = createTaskInput({
+        task_id: 'task-warn-log',
+        task_status: 'completed',
+      });
+
+      taskProgressTracker(input);
+
+      expect(logHook).toHaveBeenCalledWith(
+        'task-progress-tracker',
+        expect.stringContaining('Failed to persist state'),
+        'warn',
+      );
     });
   });
 });

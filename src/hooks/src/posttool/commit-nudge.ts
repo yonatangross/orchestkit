@@ -60,7 +60,7 @@ function saveState(state: NudgeState): void {
   try {
     const path = getStatePath();
     const dir = dirname(path);
-    if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+    mkdirSync(dir, { recursive: true });
     atomicWriteSync(path, JSON.stringify(state));
   } catch {
     logHook(HOOK_NAME, 'Failed to persist state', 'warn');
@@ -69,7 +69,7 @@ function saveState(state: NudgeState): void {
 
 function isRecentCommit(command: string): boolean {
   const trimmed = command.trim();
-  if (!/^git\s+commit\b/.test(trimmed)) return false;
+  if (!/^git\s+commit(?:\s|$)/.test(trimmed)) return false;
   // --amend and --allow-empty don't reduce dirty files — don't reset nudge state
   if (/--amend\b/.test(trimmed)) return false;
   if (/--allow-empty\b/.test(trimmed)) return false;
@@ -126,7 +126,7 @@ export function commitNudge(input: HookInput): HookResult {
     );
   }
 
-  if (dirtyCount >= WARN_THRESHOLD && (state.last_nudge_level === 'none' || state.last_nudge_level === 'info')) {
+  if (dirtyCount >= WARN_THRESHOLD && (state.last_nudge_level === 'none' || state.last_nudge_level === 'info' || state.last_nudge_level === 'time')) {
     state.last_nudge_level = 'warn';
     state.last_nudge_ts = now;
     saveState(state);

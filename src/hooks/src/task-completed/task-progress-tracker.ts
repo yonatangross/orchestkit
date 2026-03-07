@@ -25,29 +25,34 @@ interface ProgressState {
   total: number;
   completed: number;
   task_ids: string[];
+  session_id: string;
 }
 
 function getStatePath(): string {
   return join(getLogDir(), 'task-progress-state.json');
 }
 
-function loadState(): ProgressState {
+function loadState(sessionId: string): ProgressState {
   try {
     const path = getStatePath();
     if (existsSync(path)) {
       const parsed = JSON.parse(readFileSync(path, 'utf8')) as Partial<ProgressState>;
       if (!Array.isArray(parsed.task_ids)) throw new Error('invalid shape');
-      return { total: parsed.total ?? 0, completed: parsed.completed ?? 0, task_ids: parsed.task_ids };
+      // Reset state if session changed
+      if (parsed.session_id && parsed.session_id !== sessionId) {
+        return { total: 0, completed: 0, task_ids: [], session_id: sessionId };
+      }
+      return { total: parsed.total ?? 0, completed: parsed.completed ?? 0, task_ids: parsed.task_ids, session_id: sessionId };
     }
   } catch { /* start fresh */ }
-  return { total: 0, completed: 0, task_ids: [] };
+  return { total: 0, completed: 0, task_ids: [], session_id: sessionId };
 }
 
 function saveState(state: ProgressState): void {
   try {
     const path = getStatePath();
     const dir = dirname(path);
-    if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+    mkdirSync(dir, { recursive: true });
     atomicWriteSync(path, JSON.stringify(state));
   } catch {
     logHook(HOOK_NAME, 'Failed to persist state', 'warn');
@@ -57,11 +62,12 @@ function saveState(state: ProgressState): void {
 function renderProgressBar(completed: number, total: number): string {
   if (total === 0) return '';
   const width = 20;
-  const filled = Math.round((completed / total) * width);
+  const displayCompleted = Math.min(completed, total);
+  const filled = Math.round((displayCompleted / total) * width);
   const empty = width - filled;
   const bar = '\u2588'.repeat(filled) + '\u2591'.repeat(empty);
-  const pct = Math.round((completed / total) * 100);
-  return `[${bar}] ${completed}/${total} (${pct}%)`;
+  const pct = Math.min(100, Math.round((displayCompleted / total) * 100));
+  return `[${bar}] ${displayCompleted}/${total} (${pct}%)`;
 }
 
 /**
@@ -71,10 +77,11 @@ export function taskProgressTracker(input: HookInput): HookResult {
   const taskStatus = input.task_status || '';
   const taskId = input.task_id || '';
   const taskSubject = input.task_subject || '';
+  const sessionId = input.session_id || '';
 
   if (!taskId) return outputSilentSuccess();
 
-  const state = loadState();
+  const state = loadState(sessionId);
 
   // Detect numbered task format: [3/7] or [N/M]
   const numberMatch = taskSubject.match(/^\[(\d+)\/(\d+)\]/);

@@ -206,6 +206,25 @@ export function getStagedFiles(projectDir?: string): string[] {
 }
 
 /**
+ * Get list of staged source files filtered by diff status
+ * @param filter - git diff-filter value (default: 'ACMR' = Added/Copied/Modified/Renamed)
+ */
+export function getStagedSourceFiles(filter = 'ACMR'): string[] {
+  const dir = getProjectDir();
+  try {
+    const output = execSync(`git diff --cached --name-only --diff-filter=${filter}`, {
+      cwd: dir,
+      encoding: 'utf8',
+      timeout: 5000,
+      stdio: ['pipe', 'pipe', 'pipe'],
+    }).trim();
+    return output ? output.split('\n').filter((f) => f.trim()) : [];
+  } catch {
+    return [];
+  }
+}
+
+/**
  * Analyze staged files for atomicity
  * Returns an object describing the change characteristics
  */

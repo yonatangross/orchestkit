@@ -24,7 +24,7 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
 
       - name: Install Claude Code
-        run: npm install -g @anthropic-ai/claude-code
+        run: npm install -g @anthropic-ai/claude-code@2.1.69
 
       - name: Run health assessment
         env:
@@ -67,16 +67,16 @@ jobs:
           --output-format json \
           --max-turns 10 \
           --model sonnet \
-          --allowedTools "Bash(gh:*),Bash(npm:*),Bash(cat:*),Bash(wc:*),Read,Grep,Glob" \
+          --allowedTools "Read,Grep,Glob,Bash(npm audit:*),Bash(gh issue list:*),Bash(gh pr list:*),Bash(gh run list:*),Bash(cat:*),Bash(wc:*)" \
           > /tmp/health-report.json
 
       - name: Parse and display report
         run: |
           echo "## Nightly Health Report" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          cat /tmp/health-report.json | node -e "
+          node -e "
             const fs = require('fs');
-            const raw = JSON.parse(fs.readFileSync('/dev/stdin', 'utf8'));
+            const raw = JSON.parse(fs.readFileSync('/tmp/health-report.json', 'utf8'));
             const report = JSON.parse(raw.result || '{}');
             if (report.overall_score !== undefined) {
               console.log('| Metric | Score |');

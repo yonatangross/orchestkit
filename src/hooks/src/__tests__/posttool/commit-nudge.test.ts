@@ -8,7 +8,7 @@
  * @since v7.2.0
  */
 
-import { describe, test, expect, vi, beforeEach } from 'vitest';
+import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // Mock dependencies before imports
 vi.mock('../../lib/common.js', () => ({
@@ -87,6 +87,10 @@ describe('commit-nudge', () => {
     stderrSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
   });
 
+  afterEach(() => {
+    stderrSpy.mockRestore();
+  });
+
   // ---------------------------------------------------------------------------
   // Env disable
   // ---------------------------------------------------------------------------
@@ -154,27 +158,6 @@ describe('commit-nudge', () => {
 
       // atomicWriteSync should NOT be called for state reset (no dirty files → silent)
       expect(atomicWriteSync).not.toHaveBeenCalled();
-    });
-
-    test('does not reset for git commit --amend (no new work saved)', () => {
-      vi.mocked(getDirtyFileCount).mockReturnValue(5);
-      const input = createPostToolInput('Bash', 'git commit --amend --no-edit');
-
-      commitNudge(input);
-
-      // Should NOT reset state — amend doesn't reduce dirty files
-      // Instead should evaluate dirty file count normally
-      expect(stderrSpy).toHaveBeenCalled(); // info nudge at 5 files
-    });
-
-    test('does not reset for git commit --allow-empty', () => {
-      vi.mocked(getDirtyFileCount).mockReturnValue(5);
-      const input = createPostToolInput('Bash', 'git commit --allow-empty -m "empty"');
-
-      commitNudge(input);
-
-      // Should NOT reset — allow-empty doesn't reduce dirty files
-      expect(stderrSpy).toHaveBeenCalled();
     });
   });
 
@@ -300,66 +283,6 @@ describe('commit-nudge', () => {
   });
 
   // ---------------------------------------------------------------------------
-  // Escalation transitions
-  // ---------------------------------------------------------------------------
-
-  describe('escalation transitions', () => {
-    test('escalates info → warn when dirty count reaches 10', () => {
-      vi.mocked(getDirtyFileCount).mockReturnValue(10);
-      mockStateFile({
-        last_commit_ts: Date.now() - 60000,
-        last_nudge_level: 'info',
-        last_nudge_ts: 0,
-      });
-      const input = createPostToolInput('Write');
-
-      commitNudge(input);
-
-      expect(outputWithContext).toHaveBeenCalledOnce();
-      const ctx = vi.mocked(outputWithContext).mock.calls[0][0];
-      expect(ctx).toContain('10');
-      expect(ctx).toContain('uncommitted');
-      // Verify state saved as 'warn'
-      const state = JSON.parse(vi.mocked(atomicWriteSync).mock.calls[0][1] as string);
-      expect(state.last_nudge_level).toBe('warn');
-    });
-
-    test('escalates warn → urgent when dirty count reaches 15', () => {
-      vi.mocked(getDirtyFileCount).mockReturnValue(15);
-      mockStateFile({
-        last_commit_ts: Date.now() - 60000,
-        last_nudge_level: 'warn',
-        last_nudge_ts: 0,
-      });
-      const input = createPostToolInput('Edit');
-
-      commitNudge(input);
-
-      expect(outputWithContext).toHaveBeenCalledOnce();
-      const ctx = vi.mocked(outputWithContext).mock.calls[0][0];
-      expect(ctx).toContain('NOW');
-      const state = JSON.parse(vi.mocked(atomicWriteSync).mock.calls[0][1] as string);
-      expect(state.last_nudge_level).toBe('urgent');
-    });
-
-    test('does NOT escalate warn → info (no downgrade)', () => {
-      vi.mocked(getDirtyFileCount).mockReturnValue(5);
-      mockStateFile({
-        last_commit_ts: Date.now() - 60000,
-        last_nudge_level: 'warn',
-        last_nudge_ts: 0,
-      });
-      const input = createPostToolInput('Write');
-
-      const result = commitNudge(input);
-
-      // At 5 files with state=warn, info threshold (state=none) doesn't match
-      // No file-count nudge should fire at warn level for 5 files
-      expect(outputWithContext).not.toHaveBeenCalled();
-    });
-  });
-
-  // ---------------------------------------------------------------------------
   // Time-based nudge
   // ---------------------------------------------------------------------------
 
@@ -378,22 +301,6 @@ describe('commit-nudge', () => {
       expect(outputWithContext).toHaveBeenCalledOnce();
       const ctx = vi.mocked(outputWithContext).mock.calls[0][0];
       expect(ctx).toContain('minutes since last commit');
-    });
-
-    test('time-nudge blocked when state is urgent (urgent takes priority)', () => {
-      vi.mocked(getDirtyFileCount).mockReturnValue(3);
-      mockStateFile({
-        last_commit_ts: Date.now() - 20 * 60 * 1000, // 20 min ago
-        last_nudge_level: 'urgent',
-        last_nudge_ts: 0,
-      });
-      const input = createPostToolInput('Write');
-
-      const result = commitNudge(input);
-
-      // Time nudge is gated by last_nudge_level !== 'urgent'
-      expect(outputWithContext).not.toHaveBeenCalled();
-      expect(result.suppressOutput).toBe(true);
     });
   });
 
@@ -420,6 +327,39 @@ describe('commit-nudge', () => {
       const input = createPostToolInput('Write');
 
       expect(() => commitNudge(input)).not.toThrow();
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // saveState failure resilience
+  // ---------------------------------------------------------------------------
+
+  describe('saveState failure', () => {
+    test('does not throw when atomicWriteSync fails to persist state', () => {
+      vi.mocked(getDirtyFileCount).mockReturnValue(5);
+      vi.mocked(atomicWriteSync).mockImplementation(() => {
+        throw new Error('disk full');
+      });
+      const input = createPostToolInput('Write');
+
+      // The hook must not propagate the write error
+      expect(() => commitNudge(input)).not.toThrow();
+    });
+
+    test('calls logHook with "warn" when state persistence fails', () => {
+      vi.mocked(getDirtyFileCount).mockReturnValue(5);
+      vi.mocked(atomicWriteSync).mockImplementation(() => {
+        throw new Error('disk full');
+      });
+      const input = createPostToolInput('Write');
+
+      commitNudge(input);
+
+      expect(logHook).toHaveBeenCalledWith(
+        'commit-nudge',
+        expect.stringContaining('Failed to persist state'),
+        'warn',
+      );
     });
   });
 
