@@ -17,6 +17,34 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.1.11",
+    "date": "2026-03-07",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**skill:** ci-automation skill with SKILL.md + 4 reference docs (cost-model, gh-action-patterns, headless-cli, security)",
+          "**ci:** GitHub Actions workflows for claude-health, claude-review, claude-triage",
+          "**agent:** ci-cd-engineer skill index updated with ci-automation"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "7.1.9",
+    "date": "2026-03-06",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "Add `$.plugins[0].version` to release-please extra-files so release PRs update both top-level and plugin versions in marketplace.json"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.1.8",
     "date": "2026-03-06",
     "compareUrl": "",

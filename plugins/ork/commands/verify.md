@@ -1,6 +1,6 @@
 ---
 description: "Comprehensive verification with parallel test agents. Use when verifying implementations or validating changes."
-allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskList, TaskOutput, TaskStop, mcp__memory__search_nodes]
+allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskList, TaskOutput, TaskStop, mcp__memory__search_nodes, ToolSearch, CronCreate, CronDelete]
 ---
 
 # Auto-generated from skills/verify/SKILL.md
@@ -64,6 +64,44 @@ AskUserQuestion(
 Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/verify/references/orchestration-mode.md")` for env var check logic, Agent Teams vs Task Tool comparison, and mode selection rules.
 
 Choose **Agent Teams** (mesh -- verifiers share findings) or **Task tool** (star -- all report to lead) based on the orchestration mode reference.
+
+
+### MCP Probe + Resume
+
+```python
+ToolSearch(query="select:mcp__memory__search_nodes")
+Write(".claude/chain/capabilities.json", { memory, timestamp })
+
+Read(".claude/chain/state.json")  # resume if exists
+```
+
+### Handoff File
+
+After verification completes, write results:
+
+```python
+Write(".claude/chain/verify-results.json", JSON.stringify({
+  "phase": "verify", "skill": "verify",
+  "timestamp": now(), "status": "completed",
+  "outputs": {
+    "tests_passed": N, "tests_failed": N,
+    "coverage": "87%", "security_scan": "clean"
+  }
+}))
+```
+
+### Regression Monitor (CC 2.1.71)
+
+Optionally schedule post-verification monitoring:
+
+```python
+CronCreate(
+  schedule="0 8 * * *",
+  prompt="Daily regression check: npm test.
+    If 7 consecutive passes → CronDelete.
+    If failures → alert with details."
+)
+```
 
 
 ## Task Management (CC 2.1.16)
@@ -191,4 +229,4 @@ Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/verify/rules/<file>")`:
 - `ork:quality-gates` - Quality gate patterns
 
 
-**Version:** 3.1.0 (February 2026)
+**Version:** 3.2.0 (March 2026)

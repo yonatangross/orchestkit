@@ -4,7 +4,7 @@ license: MIT
 compatibility: "Claude Code 2.1.59+."
 description: "Personalized onboarding wizard. Use when setting up OrchestKit for a new project, configuring plugins, or generating a readiness score and improvement plan."
 argument-hint: "[--rescan] [--score-only] [--plan-only] [--channel] [--configure]"
-context: inherit
+context: fork
 version: 1.0.0
 author: OrchestKit
 tags: [onboarding, setup, wizard, configuration, stack-detection, mcp, personalization]
@@ -151,7 +151,7 @@ Detected Stack:
 | Test frameworks | `testing-patterns`, `golden-dataset` |
 | Security concerns | `security-patterns` |
 
-**All stacks get**: `explore`, `implement`, `verify`, `commit`, `review-pr`, `fix-issue`, `doctor`, `remember`, `brainstorming`, `help`
+**All stacks get**: `explore`, `implement`, `verify`, `commit`, `review-pr`, `fix-issue`, `doctor`, `remember`, `brainstorm`, `help`
 
 ## Phase 2b: Channel Detection
 
@@ -312,7 +312,7 @@ Compute a composite score (0-10) from 6 dimensions:
 OrchestKit Readiness Score: 7.2 / 10  (stable channel, v7.0.0)
 
   Stack Coverage  ████████░░  9/10  Python + React fully covered
-  Hook Protection ████████░░  8/10  105 hooks active
+  Hook Protection ████████░░  8/10  107 hooks active
   MCP Enhancement ██████░░░░  6/10  2/3 recommended MCPs active
   Memory Depth    ████░░░░░░  4/10  12 entities (target: 50+)
   Custom Skills   ██░░░░░░░░  2/10  0/3 suggested skills created

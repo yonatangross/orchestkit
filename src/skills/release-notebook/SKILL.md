@@ -7,6 +7,7 @@ version: 1.0.0
 author: OrchestKit
 tags: [notebooklm, release, documentation, knowledge-base]
 user-invocable: false
+context: fork
 complexity: medium
 allowed-tools:
   - Read

@@ -145,7 +145,7 @@ Plain-English explanations of the stats every PM needs. Load `references/stats-c
 
 - `ork:product-frameworks` — OKRs, KPI trees, RICE prioritization, PRD templates
 - `ork:metrics-instrumentation` — Event naming, metric definition, alerting setup
-- `ork:brainstorming` — Generate hypotheses and experiment ideas
+- `ork:brainstorm` — Generate hypotheses and experiment ideas
 - `ork:assess` — Evaluate product quality and risks
 
 ## References

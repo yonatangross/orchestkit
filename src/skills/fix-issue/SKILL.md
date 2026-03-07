@@ -5,12 +5,12 @@ compatibility: "Claude Code 2.1.59+. Requires memory MCP server, context7 MCP se
 description: "Fixes GitHub issues with parallel analysis. Use when debugging errors, resolving regressions, fixing bugs, or triaging issues."
 argument-hint: "[issue-number]"
 context: fork
-version: 2.1.0
+version: 2.2.0
 author: OrchestKit
 tags: [issue, bug-fix, github, debugging, rca, prevention]
 user-invocable: true
-allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Task, TaskCreate, TaskUpdate, TaskOutput, TaskStop, Grep, Glob, mcp__memory__search_nodes, mcp__context7__get_library_docs]
-skills: [commit, explore, verify, memory, remember]
+allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Task, TaskCreate, TaskUpdate, TaskOutput, TaskStop, Grep, Glob, ToolSearch, CronCreate, CronDelete, mcp__memory__search_nodes, mcp__context7__get_library_docs]
+skills: [commit, explore, verify, memory, remember, chain-patterns]
 complexity: medium
 model: sonnet
 hooks:
@@ -44,6 +44,39 @@ ISSUE_NUMBER = "$ARGUMENTS[0]"  # e.g., "123" (CC 2.1.59 indexed access)
 # $ARGUMENTS[0] is the first space-separated token
 ```
 
+## STEP -1: MCP Probe + Resume Check
+
+**Run BEFORE any other step.** Detect available MCP servers and check for resumable state.
+
+```python
+# Probe MCPs (parallel — all in ONE message):
+ToolSearch(query="select:mcp__memory__search_nodes")
+ToolSearch(query="select:mcp__context7__resolve-library-id")
+
+# Write capability map:
+Write(".claude/chain/capabilities.json", JSON.stringify({
+  "memory": <true if found>,
+  "context7": <true if found>,
+  "timestamp": now()
+}))
+
+# Check for resumable state:
+Read(".claude/chain/state.json")
+# If exists and skill == "fix-issue":
+#   Read last handoff, skip to current_phase
+#   Tell user: "Resuming from Phase {N}"
+# If not exists: write initial state
+Write(".claude/chain/state.json", JSON.stringify({
+  "skill": "fix-issue",
+  "issue": ISSUE_NUMBER,
+  "current_phase": 1,
+  "completed_phases": [],
+  "capabilities": capabilities
+}))
+```
+
+> Load pattern details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/mcp-detection.md")`
+
 ## STEP 0: Verify User Intent
 
 **BEFORE creating tasks**, clarify fix approach using AskUserQuestion. Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/fix-issue/rules/evidence-gathering.md")` for the full prompt template and workflow adjustments per approach (Proper fix, Quick fix, Investigate first, Hotfix).
@@ -67,6 +100,52 @@ Choose **Agent Teams** (mesh) or **Task tool** (star). Load `Read("${CLAUDE_PLUG
 | **9. Runbook** | Create/update runbook entry | Runbook |
 | **10. Lessons Learned** | Capture knowledge | Persisted learnings |
 | **11. Commit and PR** | Create PR with fix | Merged PR |
+
+### Phase Handoffs (CC 2.1.71)
+
+Write handoff JSON after phases 3, 4, 6, 7 to `.claude/chain/`. See `chain-patterns` skill for schema.
+
+| After Phase | Handoff File | Key Outputs |
+|-------------|-------------|-------------|
+| 3. Hypothesis | `03-hypotheses.json` | Ranked hypotheses with confidence scores |
+| 4. RCA | `04-rca.json` | Confirmed root cause, evidence, affected files |
+| 6. Implementation | `06-fix.json` | Fix description, files changed, test plan |
+| 7. Validation | `07-validation.json` | Test results, coverage delta |
+
+### Worktree-Isolated RCA Agents (CC 2.1.50)
+
+Phase 4 agents SHOULD use `isolation: "worktree"` when they need to edit files:
+
+```python
+Agent(subagent_type="ork:debug-investigator",
+  prompt="Investigate hypothesis: {desc}...",
+  isolation="worktree", run_in_background=true)
+```
+
+### Post-Fix Monitoring (CC 2.1.71)
+
+After Phase 11 (commit + PR), schedule CI monitoring:
+
+```python
+CronCreate(
+  schedule="*/5 * * * *",
+  prompt="Check CI for PR #{pr_number}: gh pr checks {pr_number} --repo {repo}.
+    All pass → CronDelete this job. Any fail → alert with details."
+)
+```
+
+### Fix Pattern Memory
+
+If memory MCP is available (from Step -1 probe), save the fix pattern:
+
+```python
+if capabilities.memory:
+  mcp__memory__create_entities([{
+    name: "fix-pattern-{slug}",
+    entityType: "fix-pattern",
+    observations: [root_cause, fix_description, regression_test, issue_ref]
+  }])
+```
 
 > **Full phase details**: Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/fix-issue/references/fix-phases.md")` for bash commands, templates, and procedures for each phase.
 
@@ -112,4 +191,4 @@ Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/fix-issue/references/<fi
 
 ---
 
-**Version:** 2.1.0 (February 2026)
+**Version:** 2.2.0 (March 2026)

@@ -8,6 +8,7 @@ version: 1.0.0
 author: OrchestKit
 user-invocable: false
 disable-model-invocation: true
+context: inherit
 allowed-tools: [Read, Grep, Glob]
 complexity: low
 model: haiku
@@ -161,6 +162,6 @@ Phase 4  [........????????]  IRREVERSIBLE        (drop column)
 
 ## Related Skills
 
-- `brainstorming` — Design exploration where diagrams communicate ideas
+- `brainstorm` — Design exploration where diagrams communicate ideas
 - `architecture-patterns` — System architecture that benefits from ASCII diagrams
 - `code-review-playbook` — Review comments with inline diagrams

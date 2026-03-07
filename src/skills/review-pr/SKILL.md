@@ -5,12 +5,12 @@ compatibility: "Claude Code 2.1.59+. Requires memory MCP server, gh CLI."
 description: "PR review with parallel specialized agents. Use when reviewing pull requests or code."
 argument-hint: "[pr-number-or-branch]"
 context: fork
-version: 1.5.0
+version: 1.6.0
 author: OrchestKit
 tags: [code-review, pull-request, quality, security, testing]
 user-invocable: true
-allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskOutput, TaskStop, mcp__memory__search_nodes]
-skills: [code-review-playbook, testing-patterns, memory]
+allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskOutput, TaskStop, mcp__memory__search_nodes, ToolSearch]
+skills: [code-review-playbook, testing-patterns, memory, chain-patterns]
 complexity: medium
 hooks:
   PreToolUse:
@@ -88,6 +88,16 @@ AskUserQuestion(
 ## STEP 0b: Select Orchestration Mode
 
 Load orchestration guidance: `Read("${CLAUDE_PLUGIN_ROOT}/skills/review-pr/references/orchestration-mode-selection.md")`
+
+---
+
+## MCP Probe (CC 2.1.71)
+
+```python
+ToolSearch(query="select:mcp__memory__search_nodes")
+Write(".claude/chain/capabilities.json", { memory, timestamp })
+# If memory available: search for past review patterns on these files
+```
 
 ---
 

@@ -355,7 +355,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "terminal"
     ],
     "userInvocable": false,
-    "context": "fork",
+    "context": "inherit",
     "allowedTools": [
       "Read",
       "Grep",
@@ -372,7 +372,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "assess": {
     "name": "assess",
     "description": "Assesses and rates quality 0-10 with pros/cons analysis. Use when evaluating code, designs, or approaches.",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "author": "OrchestKit",
     "tags": [
       "assessment",
@@ -393,6 +393,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "TaskCreate",
       "TaskUpdate",
       "TaskList",
+      "ToolSearch",
       "mcp__memory__search_nodes",
       "Bash"
     ],
@@ -400,7 +401,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "code-review-playbook",
       "quality-gates",
       "architecture-decision-record",
-      "memory"
+      "memory",
+      "chain-patterns"
     ],
     "agent": null,
     "structure": {
@@ -571,10 +573,10 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": []
   },
-  "brainstorming": {
-    "name": "brainstorming",
+  "brainstorm": {
+    "name": "brainstorm",
     "description": "Design exploration with parallel agents. Use when brainstorming ideas, exploring solutions, or comparing alternatives.",
-    "version": "4.2.0",
+    "version": "4.3.0",
     "author": "OrchestKit",
     "tags": [
       "planning",
@@ -595,6 +597,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "TaskList",
       "TaskOutput",
       "TaskStop",
+      "ToolSearch",
       "mcp__memory__search_nodes"
     ],
     "skills": [
@@ -603,7 +606,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "memory",
       "remember",
       "scope-appropriate-architecture",
-      "testing-patterns"
+      "testing-patterns",
+      "chain-patterns"
     ],
     "agent": null,
     "structure": {
@@ -707,6 +711,41 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": []
   },
+  "chain-patterns": {
+    "name": "chain-patterns",
+    "description": "CC 2.1.71 pipeline patterns — MCP detection, handoff files, checkpoint-resume, worktree agents, CronCreate monitoring. Loaded via skills: field by pipeline skills (fix-issue, implement, brainstorm, verify). Not user-invocable.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "pipeline",
+      "resilience",
+      "checkpoint",
+      "mcp",
+      "orchestkit"
+    ],
+    "userInvocable": false,
+    "context": "inherit",
+    "allowedTools": [
+      "Read",
+      "ToolSearch"
+    ],
+    "skills": [],
+    "agent": null,
+    "structure": {
+      "references": [
+        "checkpoint-resume.md",
+        "cron-monitoring.md",
+        "handoff-schema.md",
+        "mcp-detection.md",
+        "tier-fallbacks.md",
+        "worktree-agent-pattern.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
   "checkpoint-resume": {
     "name": "checkpoint-resume",
     "description": "Rate-limit-resilient pipeline with checkpoint/resume for long multi-phase sessions. Saves progress to .claude/pipeline-state.json after each phase. Use when starting a complex multi-phase task that risks hitting rate limits, when resuming an interrupted session, or when orchestrating work spanning commits, GitHub issues, and large file changes.",
@@ -749,6 +788,45 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ork"
     ],
     "relatedAgents": []
+  },
+  "ci-automation": {
+    "name": "ci-automation",
+    "description": "CI/CD automation with Claude Code -- GitHub Actions, headless CLI, and SDK patterns for automated reviews, triage, and health reports. Use when setting up CI pipelines with Claude.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "ci",
+      "cd",
+      "github-actions",
+      "automation",
+      "headless",
+      "claude-code-action"
+    ],
+    "userInvocable": true,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Bash"
+    ],
+    "skills": [],
+    "agent": null,
+    "structure": {
+      "references": [
+        "cost-model.md",
+        "gh-action-patterns.md",
+        "headless-cli.md",
+        "loop-recipes.md",
+        "security.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": [
+      "ci-cd-engineer"
+    ]
   },
   "code-review-playbook": {
     "name": "code-review-playbook",
@@ -802,7 +880,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "commit": {
     "name": "commit",
     "description": "Creates commits with conventional format and validation. Use when committing changes or generating commit messages.",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "author": "OrchestKit",
     "tags": [
       "git",
@@ -816,7 +894,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "Bash"
     ],
     "skills": [
-      ""
+      "chain-patterns"
     ],
     "agent": "git-operations-engineer",
     "structure": {
@@ -906,7 +984,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "create-pr": {
     "name": "create-pr",
     "description": "Creates GitHub pull requests with validation. Use when opening PRs or submitting code for review.",
-    "version": "2.3.0",
+    "version": "2.4.0",
     "author": "OrchestKit",
     "tags": [
       "git",
@@ -923,12 +1001,15 @@ export const SKILLS: Record<string, SkillMeta> = {
       "Task",
       "TaskCreate",
       "TaskUpdate",
-      "mcp__memory__search_nodes"
+      "mcp__memory__search_nodes",
+      "CronCreate",
+      "CronDelete"
     ],
     "skills": [
       "commit",
       "review-pr",
-      "memory"
+      "memory",
+      "chain-patterns"
     ],
     "agent": "git-operations-engineer",
     "structure": {
@@ -1264,7 +1345,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "technical-writing"
     ],
     "userInvocable": false,
-    "context": "fork",
+    "context": "inherit",
     "allowedTools": [
       "Read",
       "Glob",
@@ -1356,7 +1437,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "explore": {
     "name": "explore",
     "description": "explore — Deep codebase exploration with parallel agents. Use when exploring a repo, discovering architecture, finding files, or analyzing design patterns.",
-    "version": "2.1.0",
+    "version": "2.2.0",
     "author": "OrchestKit",
     "tags": [
       "exploration",
@@ -1378,13 +1459,15 @@ export const SKILLS: Record<string, SkillMeta> = {
       "TaskOutput",
       "TaskStop",
       "mcp__memory__search_nodes",
-      "Bash"
+      "Bash",
+      "ToolSearch"
     ],
     "skills": [
       "ascii-visualizer",
       "architecture-decision-record",
       "memory",
-      "architecture-patterns"
+      "architecture-patterns",
+      "chain-patterns"
     ],
     "agent": null,
     "structure": {
@@ -1450,7 +1533,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "fix-issue": {
     "name": "fix-issue",
     "description": "Fixes GitHub issues with parallel analysis. Use when debugging errors, resolving regressions, fixing bugs, or triaging issues.",
-    "version": "2.1.0",
+    "version": "2.2.0",
     "author": "OrchestKit",
     "tags": [
       "issue",
@@ -1475,6 +1558,9 @@ export const SKILLS: Record<string, SkillMeta> = {
       "TaskStop",
       "Grep",
       "Glob",
+      "ToolSearch",
+      "CronCreate",
+      "CronDelete",
       "mcp__memory__search_nodes",
       "mcp__context7__get_library_docs"
     ],
@@ -1483,7 +1569,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "explore",
       "verify",
       "memory",
-      "remember"
+      "remember",
+      "chain-patterns"
     ],
     "agent": null,
     "structure": {
@@ -1535,7 +1622,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "code-review"
     ],
     "userInvocable": true,
-    "context": "inherit",
+    "context": "fork",
     "allowedTools": [
       "AskUserQuestion",
       "Bash",
@@ -1746,7 +1833,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "implement": {
     "name": "implement",
     "description": "Full-power feature implementation with parallel subagents. Use when implementing, building, or creating features.",
-    "version": "2.3.0",
+    "version": "2.4.0",
     "author": "OrchestKit",
     "tags": [
       "implementation",
@@ -1771,6 +1858,9 @@ export const SKILLS: Record<string, SkillMeta> = {
       "TaskUpdate",
       "TaskOutput",
       "TaskStop",
+      "ToolSearch",
+      "CronCreate",
+      "CronDelete",
       "mcp__context7__query_docs",
       "mcp__memory__search_nodes"
     ],
@@ -1781,7 +1871,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "explore",
       "verify",
       "memory",
-      "scope-appropriate-architecture"
+      "scope-appropriate-architecture",
+      "chain-patterns"
     ],
     "agent": null,
     "structure": {
@@ -2106,7 +2197,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "cross-reference"
     ],
     "userInvocable": false,
-    "context": "inherit",
+    "context": "fork",
     "allowedTools": [
       "Read",
       "Bash",
@@ -2417,101 +2508,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "python-performance-engineer",
       "system-design-reviewer"
     ]
-  },
-  "plan-viz": {
-    "name": "plan-viz",
-    "description": "Visualize planned changes before implementation. Use when reviewing plans, comparing before/after architecture, assessing risk, or analyzing execution order and impact.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "visualization",
-      "planning",
-      "before-after",
-      "architecture",
-      "diff",
-      "risk",
-      "impact",
-      "migration"
-    ],
-    "userInvocable": true,
-    "context": "fork",
-    "allowedTools": [
-      "Read",
-      "Grep",
-      "Glob",
-      "Task",
-      "AskUserQuestion",
-      "Bash",
-      "Write"
-    ],
-    "skills": [
-      "ascii-visualizer",
-      "explore",
-      "architecture-decision-record"
-    ],
-    "agent": "workflow-architect",
-    "structure": {
-      "references": [
-        "blast-radius-patterns.md",
-        "change-manifest-patterns.md",
-        "decision-log-patterns.md",
-        "deep-dives.md",
-        "execution-swimlane-patterns.md",
-        "risk-dashboard-patterns.md",
-        "visualization-tiers.md"
-      ],
-      "assets": [
-        "impact-dashboard.md",
-        "plan-report.md",
-        "tier1-header.md"
-      ],
-      "scripts": [
-        "analyze-impact.sh",
-        "detect-plan-context.sh"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "system-design-reviewer"
-    ]
-  },
-  "prd": {
-    "name": "prd",
-    "description": "Product Requirements Documents with structured 8-section templates, user stories, acceptance criteria, and value proposition validation. Use when writing PRDs, defining product requirements, creating user stories with INVEST criteria, or building go/no-go decision frameworks.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "prd",
-      "requirements",
-      "user-story",
-      "acceptance-criteria",
-      "invest",
-      "value-proposition",
-      "go-no-go"
-    ],
-    "userInvocable": true,
-    "context": "fork",
-    "allowedTools": [
-      "Read",
-      "Glob",
-      "Grep",
-      "WebFetch",
-      "WebSearch"
-    ],
-    "skills": [],
-    "agent": "product-strategist",
-    "structure": {
-      "references": [
-        "output-templates.md",
-        "value-prop-canvas-guide.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": []
   },
   "presentation-builder": {
     "name": "presentation-builder",
@@ -2934,7 +2930,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "orchestkit"
     ],
     "userInvocable": false,
-    "context": "fork",
+    "context": "inherit",
     "allowedTools": [
       "Read",
       "Bash",
@@ -3156,7 +3152,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "review-pr": {
     "name": "review-pr",
     "description": "PR review with parallel specialized agents. Use when reviewing pull requests or code.",
-    "version": "1.5.0",
+    "version": "1.6.0",
     "author": "OrchestKit",
     "tags": [
       "code-review",
@@ -3180,12 +3176,14 @@ export const SKILLS: Record<string, SkillMeta> = {
       "TaskUpdate",
       "TaskOutput",
       "TaskStop",
-      "mcp__memory__search_nodes"
+      "mcp__memory__search_nodes",
+      "ToolSearch"
     ],
     "skills": [
       "code-review-playbook",
       "testing-patterns",
-      "memory"
+      "memory",
+      "chain-patterns"
     ],
     "agent": null,
     "structure": {
@@ -3204,7 +3202,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "scope-appropriate-architecture": {
     "name": "scope-appropriate-architecture",
-    "description": "Right-sizes architecture to project scope. Prevents over-engineering by classifying projects into 6 tiers and constraining pattern choices accordingly. Use when designing architecture, selecting patterns, or when brainstorming/implement detect a project tier.",
+    "description": "Right-sizes architecture to project scope. Prevents over-engineering by classifying projects into 6 tiers and constraining pattern choices accordingly. Use when designing architecture, selecting patterns, or when brainstorm/implement detect a project tier.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -3215,7 +3213,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "patterns"
     ],
     "userInvocable": false,
-    "context": "fork",
+    "context": "inherit",
     "allowedTools": [
       "Read",
       "Glob",
@@ -3329,7 +3327,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "personalization"
     ],
     "userInvocable": true,
-    "context": "inherit",
+    "context": "fork",
     "allowedTools": [
       "Read",
       "Grep",
@@ -3720,7 +3718,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "orchestkit"
     ],
     "userInvocable": false,
-    "context": "fork",
+    "context": "inherit",
     "allowedTools": [
       "Read",
       "Bash",
@@ -3746,7 +3744,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "verify": {
     "name": "verify",
     "description": "Comprehensive verification with parallel test agents. Use when verifying implementations or validating changes.",
-    "version": "3.1.0",
+    "version": "3.2.0",
     "author": "OrchestKit",
     "tags": [
       "verification",
@@ -3772,13 +3770,17 @@ export const SKILLS: Record<string, SkillMeta> = {
       "TaskList",
       "TaskOutput",
       "TaskStop",
-      "mcp__memory__search_nodes"
+      "mcp__memory__search_nodes",
+      "ToolSearch",
+      "CronCreate",
+      "CronDelete"
     ],
     "skills": [
       "code-review-playbook",
       "testing-patterns",
       "memory",
-      "quality-gates"
+      "quality-gates",
+      "chain-patterns"
     ],
     "agent": null,
     "structure": {
@@ -3804,6 +3806,65 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ork"
     ],
     "relatedAgents": []
+  },
+  "visualize-plan": {
+    "name": "visualize-plan",
+    "description": "Visualize planned changes before implementation. Use when reviewing plans, comparing before/after architecture, assessing risk, or analyzing execution order and impact.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "visualization",
+      "planning",
+      "before-after",
+      "architecture",
+      "diff",
+      "risk",
+      "impact",
+      "migration"
+    ],
+    "userInvocable": true,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Grep",
+      "Glob",
+      "Task",
+      "AskUserQuestion",
+      "Bash",
+      "Write"
+    ],
+    "skills": [
+      "ascii-visualizer",
+      "explore",
+      "architecture-decision-record"
+    ],
+    "agent": "workflow-architect",
+    "structure": {
+      "references": [
+        "blast-radius-patterns.md",
+        "change-manifest-patterns.md",
+        "decision-log-patterns.md",
+        "deep-dives.md",
+        "execution-swimlane-patterns.md",
+        "risk-dashboard-patterns.md",
+        "visualization-tiers.md"
+      ],
+      "assets": [
+        "impact-dashboard.md",
+        "plan-report.md",
+        "tier1-header.md"
+      ],
+      "scripts": [
+        "analyze-impact.sh",
+        "detect-plan-context.sh"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": [
+      "system-design-reviewer"
+    ]
   },
   "vite-advanced": {
     "name": "vite-advanced",
@@ -3893,6 +3954,42 @@ export const SKILLS: Record<string, SkillMeta> = {
     "relatedAgents": [
       "web-research-analyst"
     ]
+  },
+  "write-prd": {
+    "name": "write-prd",
+    "description": "Product Requirements Documents with structured 8-section templates, user stories, acceptance criteria, and value proposition validation. Use when writing PRDs, defining product requirements, creating user stories with INVEST criteria, or building go/no-go decision frameworks.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "prd",
+      "requirements",
+      "user-story",
+      "acceptance-criteria",
+      "invest",
+      "value-proposition",
+      "go-no-go"
+    ],
+    "userInvocable": true,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "skills": [],
+    "agent": "product-strategist",
+    "structure": {
+      "references": [
+        "output-templates.md",
+        "value-prop-canvas-guide.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
   },
   "zustand-patterns": {
     "name": "zustand-patterns",

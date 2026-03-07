@@ -47,6 +47,16 @@ OrchestKit requires Claude Code >= 2.1.69. This matrix documents which CC featur
 | 74% prompt re-render reduction | 2.1.70 | CC-internal perf (no action needed) | Higher latency on re-renders |
 | ~600 token skill listing savings | 2.1.70 | CC-internal (frees headroom for hook injection) | Tighter token budget |
 | MCP cache invalidation | 2.1.70 | MCP tools refresh on reconnect | Stale MCP tool definitions |
+| `/loop` command | 2.1.71 | Recurring prompts on intervals (deploy watch, health monitor) | Manual re-invocation |
+| Cron scheduling tools | 2.1.71 | Session-scoped cron for recurring tasks | No in-session scheduling |
+| Expanded bash auto-approval | 2.1.71 | `fmt`, `comm`, `cmp`, `seq`, `printf`, `test`, etc. auto-approved | Manual approval for POSIX utils |
+| `/debug` toggle mid-session | 2.1.71 | Toggle debug logging without restart | Must restart to change log level |
+| `settings.local.json` uninstall | 2.1.71 | `/plugin uninstall` writes to local settings, not shared | Uninstall modifies committed settings.json |
+| `voice:pushToTalk` rebindable | 2.1.71 | Custom keybinding for push-to-talk in voice mode | Fixed keybinding |
+| Background agent output path | 2.1.71 | Completion notifications include output file path | Missing output path in notifications |
+| Plugin multi-instance fix | 2.1.71 | Concurrent CC instances preserve plugin installs | Plugin state lost with multiple instances |
+| ToolSearch cleanup | 2.1.71 | "Tool loaded." message removed from output | Noisy ToolSearch output |
+| Plugin marketplace fixes | 2.1.71 | `@ref` parsing and merge conflict resolution | Marketplace update/add failures |
 
 ## Version Detection
 
@@ -70,6 +80,7 @@ claude --version  # Returns e.g. "2.1.47"
 | 2.1.63 - 2.1.68 | Partial | HTTP hooks, worktree config sharing, missing InstructionsLoaded/once:true/ask |
 | >= 2.1.69 | Full | InstructionsLoaded, once:true, outputAsk, path-scoped rules, env var interpolation |
 | >= 2.1.70 | Full+ | Worktree dedup, 74% re-render reduction, MCP cache fixes |
+| >= 2.1.71 | Full++ | `/loop` command, cron scheduling, expanded bash allowlist, `/debug` toggle, plugin stability |
 
 ## Doctor Check Implementation
 

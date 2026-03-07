@@ -70,6 +70,20 @@ const SAFE_PATTERNS: RegExp[] = [
   /^env$/,
   /^printenv/,
 
+  // POSIX utilities — safe: read-only text/numeric processing (CC 2.1.71 expanded allowlist)
+  // SEC: pipes/redirects are compound commands, rejected before pattern matching
+  /^fmt(\s|$)/,
+  /^comm\s/,
+  /^cmp\s/,
+  /^numfmt\s/,
+  /^expr\s/,
+  /^test\s/,
+  /^printf\s/,
+  /^getconf\s/,
+  /^seq\s/,
+  /^tsort(\s|$)/,
+  /^pr\s/,
+
   // GitHub CLI — safe: read-only operations only
   /^gh (issue|pr|repo|workflow) (list|view|status)/,
   // SEC (#662): Restrict gh milestone to read operations only.

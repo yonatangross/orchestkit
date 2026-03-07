@@ -112,6 +112,24 @@ export function hasUncommittedChanges(projectDir?: string): boolean {
 }
 
 /**
+ * Count the number of dirty (modified/untracked) files
+ */
+export function getDirtyFileCount(projectDir?: string): number {
+  const dir = projectDir || getProjectDir();
+  try {
+    const output = execSync('git status --porcelain', {
+      cwd: dir,
+      encoding: 'utf8',
+      timeout: 3000,
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
+    return output.trim().split('\n').filter(l => l.trim()).length;
+  } catch {
+    return 0;
+  }
+}
+
+/**
  * Get the default branch (main or master)
  */
 export function getDefaultBranch(projectDir?: string): string {
@@ -179,6 +197,25 @@ export function getStagedFiles(projectDir?: string): string[] {
       cwd: dir,
       encoding: 'utf8',
       timeout: 10000,
+      stdio: ['pipe', 'pipe', 'pipe'],
+    }).trim();
+    return output ? output.split('\n').filter((f) => f.trim()) : [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Get list of staged source files filtered by diff status
+ * @param filter - git diff-filter value (default: 'ACMR' = Added/Copied/Modified/Renamed)
+ */
+export function getStagedSourceFiles(filter = 'ACMR'): string[] {
+  const dir = getProjectDir();
+  try {
+    const output = execSync(`git diff --cached --name-only --diff-filter=${filter}`, {
+      cwd: dir,
+      encoding: 'utf8',
+      timeout: 5000,
       stdio: ['pipe', 'pipe', 'pipe'],
     }).trim();
     return output ? output.split('\n').filter((f) => f.trim()) : [];

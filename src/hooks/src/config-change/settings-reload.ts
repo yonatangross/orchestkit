@@ -10,7 +10,7 @@
  * @see https://docs.anthropic.com/en/docs/claude-code/hooks
  */
 
-import { readFileSync, existsSync, appendFileSync, mkdirSync } from 'node:fs';
+import { readFileSync, existsSync, appendFileSync, mkdirSync, writeFileSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, outputSilentSuccess, outputBlock, outputWarning, outputPromptContext, logPermissionFeedback } from '../lib/common.js';
@@ -107,11 +107,44 @@ function writeAuditEntry(projectDir: string, entry: { session: string; action: s
   }
 }
 
+/**
+ * Sync OrchestKit debug mode with CC's /debug toggle (CC 2.1.71).
+ *
+ * When /debug is toggled on, CC sets CLAUDE_DEBUG=1 in the process env.
+ * We detect this and write a flag file so all subsequent hook processes
+ * (which are separate Node processes) also run in debug mode.
+ *
+ * When /debug is toggled off, CLAUDE_DEBUG is unset and we remove the flag.
+ */
+function syncDebugMode(): void {
+  const home = process.env.HOME || process.env.USERPROFILE || '';
+  const flagDir = join(home, '.claude', 'logs', 'ork');
+  const flagPath = join(flagDir, 'debug-mode.flag');
+
+  if (process.env.CLAUDE_DEBUG) {
+    // /debug is ON — write flag file for all hooks
+    if (!existsSync(flagPath)) {
+      mkdirSync(flagDir, { recursive: true });
+      writeFileSync(flagPath, `enabled=${new Date().toISOString()}\nsession=${process.env.CLAUDE_SESSION_ID || 'unknown'}\n`);
+      logHook('config-change', 'Debug mode enabled — OrchestKit hooks now logging at debug level', 'info');
+    }
+  } else {
+    // /debug is OFF — remove flag file
+    if (existsSync(flagPath)) {
+      try { unlinkSync(flagPath); } catch { /* ok */ }
+      logHook('config-change', 'Debug mode disabled — OrchestKit hooks returning to warn level', 'info');
+    }
+  }
+}
+
 export function settingsReload(input: HookInput): HookResult {
   const sessionId = input.session_id || 'unknown';
   const projectDir = input.project_dir || process.cwd();
 
   logHook('config-change', `Settings changed mid-session (session: ${sessionId})`);
+
+  // Sync debug mode with CC's /debug toggle (CC 2.1.71)
+  syncDebugMode();
 
   try {
     // Scan both project and user settings

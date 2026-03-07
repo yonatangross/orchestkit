@@ -30,6 +30,8 @@ import { issueReferenceChecker } from './issue-reference-checker.js';
 // Phase 2: New GH enforcement hooks (#916)
 import { ghLabelEnforcer } from './gh-label-enforcer.js';
 import { ghMilestoneEnforcer } from './gh-milestone-enforcer.js';
+// Phase 4: Pre-commit quality checks (CC 2.1.71 utilization — lint/test/typecheck)
+import { preCommitQualityRunner } from './pre-commit-quality-runner.js';
 
 const HOOK_NAME = 'sync-bash-dispatcher';
 
@@ -58,6 +60,8 @@ const BASH_HOOKS: BlockingHookConfig[] = [
   { name: 'gh-milestone-enforcer', fn: ghMilestoneEnforcer },
   // Phase 3: Advisory
   { name: 'unified-advisory-dispatcher', fn: unifiedBashAdvisoryDispatcher },
+  // Phase 4: Pre-commit quality (lint/test/typecheck — blocks on failure)
+  { name: 'pre-commit-quality-runner', fn: preCommitQualityRunner },
 ];
 
 /**

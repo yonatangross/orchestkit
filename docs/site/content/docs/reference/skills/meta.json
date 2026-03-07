@@ -13,10 +13,12 @@
     "async-jobs",
     "audit-full",
     "audit-skills",
-    "brainstorming",
+    "brainstorm",
     "browser-tools",
     "business-case",
+    "chain-patterns",
     "checkpoint-resume",
+    "ci-automation",
     "code-review-playbook",
     "commit",
     "competitive-analysis",
@@ -51,8 +53,6 @@
     "notebooklm",
     "okr-design",
     "performance",
-    "plan-viz",
-    "prd",
     "presentation-builder",
     "prioritization",
     "product-analytics",
@@ -78,8 +78,10 @@
     "user-research",
     "validate-counts",
     "verify",
+    "visualize-plan",
     "vite-advanced",
     "web-research-workflow",
+    "write-prd",
     "zustand-patterns"
   ]
 }

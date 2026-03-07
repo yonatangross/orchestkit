@@ -6,6 +6,7 @@ version: 2.0.0
 author: OrchestKit
 user-invocable: false
 disable-model-invocation: true
+context: fork
 complexity: medium
 allowed-tools:
   - Read

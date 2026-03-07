@@ -6,14 +6,14 @@ import type { Plugin } from "./types";
 export const PLUGINS: Plugin[] = [
   {
     "name": "ork",
-    "description": "The complete AI development toolkit — 79 skills, 30 agents, 105 hooks.",
+    "description": "The complete AI development toolkit — 81 skills, 30 agents, 107 hooks.",
     "fullDescription": "The complete OrchestKit toolkit. Includes all workflow skills (implement, explore, verify, review-pr, commit), all memory skills (remember, memory, mem0, fabric), product/UX skills, accessibility, specialized patterns for Python (FastAPI, SQLAlchemy, Celery), React (RSC, TanStack, Zustand), LLM integration, RAG retrieval, and all specialized agents.",
     "category": "development",
-    "version": "7.1.9",
-    "skillCount": 79,
+    "version": "7.1.11",
+    "skillCount": 81,
     "agentCount": 30,
-    "hooks": 105,
-    "commandCount": 18,
+    "hooks": 107,
+    "commandCount": 19,
     "color": "#06b6d4",
     "required": false,
     "recommended": true,
@@ -29,19 +29,19 @@ export const PLUGINS: Plugin[] = [
       "async-jobs",
       "audit-full",
       "audit-skills",
-      "brainstorming",
+      "brainstorm",
       "browser-tools",
       "business-case",
+      "chain-patterns",
       "checkpoint-resume",
+      "ci-automation",
       "code-review-playbook",
       "commit",
       "competitive-analysis",
       "configure",
       "create-pr",
       "database-patterns",
-      "demo-producer",
-      "devops-deployment",
-      "distributed-systems"
+      "demo-producer"
     ],
     "agents": [
       "accessibility-specialist",
@@ -77,7 +77,8 @@ export const PLUGINS: Plugin[] = [
     ],
     "commands": [
       "assess",
-      "brainstorming",
+      "brainstorm",
+      "ci-automation",
       "commit",
       "configure",
       "create-pr",
@@ -88,12 +89,12 @@ export const PLUGINS: Plugin[] = [
       "help",
       "implement",
       "memory",
-      "plan-viz",
-      "prd",
       "remember",
       "review-pr",
       "setup",
-      "verify"
+      "verify",
+      "visualize-plan",
+      "write-prd"
     ]
   }
 ];

@@ -278,6 +278,13 @@ export function sessionCleanup(input: HookInput): HookResult {
   // Clean up old rotated log files (keep last 5)
   cleanupRotatedLogs(logDir);
 
+  // Clean up debug mode flag and failure count (reset for next session)
+  const home = homedir();
+  const debugFlagPath = join(home, '.claude', 'logs', 'ork', 'debug-mode.flag');
+  const failureCountPath = join(home, '.claude', 'logs', 'ork', 'failure-count.json');
+  try { if (existsSync(debugFlagPath)) unlinkSync(debugFlagPath); } catch { /* ok */ }
+  try { if (existsSync(failureCountPath)) unlinkSync(failureCountPath); } catch { /* ok */ }
+
   // Clean up team directories if this session was a team lead
   const teamName = process.env.CLAUDE_CODE_TEAM_NAME;
   if (teamName) {

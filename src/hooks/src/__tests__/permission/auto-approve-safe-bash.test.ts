@@ -302,4 +302,73 @@ describe('auto-approve-safe-bash', () => {
       expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
     });
   });
+
+  describe('REJECT_PATTERNS and explicit non-safe commands', () => {
+    test('git push -f origin main → explicitly rejected by REJECT_PATTERNS', () => {
+      const input = createBashInput('git push -f origin main');
+      const result = autoApproveSafeBash(input);
+
+      // REJECT_PATTERNS catches "git push -f" before SAFE_PATTERNS can match "git push"
+      expect(result.continue).toBe(true);
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
+    });
+
+    test('npm run build → auto-approved (npm run <anything> is in SAFE_PATTERNS)', () => {
+      // The SAFE_PATTERNS regex /^npm (list|ls|outdated|audit|run|test)/ matches
+      // "npm run <anything>" — build is an allowed npm run target
+      const input = createBashInput('npm run build');
+      const result = autoApproveSafeBash(input);
+
+      expect(result.continue).toBe(true);
+      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+    });
+
+    test('pnpm run build → auto-approved (pnpm run <anything> is in SAFE_PATTERNS)', () => {
+      // Same as npm run — the pattern /^pnpm (list|ls|outdated|audit|run|test)/ allows "pnpm run build"
+      const input = createBashInput('pnpm run build');
+      const result = autoApproveSafeBash(input);
+
+      expect(result.continue).toBe(true);
+      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+    });
+
+    test('non-Bash tool (Write) → does not crash and returns continue: true', () => {
+      const input: HookInput = {
+        tool_name: 'Write',
+        session_id: 'test-session-123',
+        tool_input: { file_path: '/test/file.ts', content: 'hello' },
+        project_dir: '/test/project',
+      };
+
+      expect(() => autoApproveSafeBash(input)).not.toThrow();
+      const result = autoApproveSafeBash(input);
+      expect(result.continue).toBe(true);
+      // No permissionDecision — Write tool falls through as unrecognized command
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
+    });
+  });
+
+  describe('POSIX utility commands — CC 2.1.71 (should auto-approve)', () => {
+    const posixCommands = [
+      'fmt file.txt',
+      'fmt',
+      'comm file1.txt file2.txt',
+      'cmp file1 file2',
+      'numfmt --to=iec 1024',
+      'expr 1 + 2',
+      'test -f file.txt',
+      'printf "hello"',
+      'getconf PAGE_SIZE',
+      'seq 1 10',
+      'tsort',
+      'pr file.txt',
+    ];
+
+    test.each(posixCommands)('auto-approves: %s', (command: string) => {
+      const input = createBashInput(command);
+      const result = autoApproveSafeBash(input);
+      expect(result.continue).toBe(true);
+      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+    });
+  });
 });
