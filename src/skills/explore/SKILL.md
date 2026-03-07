@@ -5,12 +5,12 @@ compatibility: "Claude Code 2.1.59+. Requires memory MCP server."
 description: "explore — Deep codebase exploration with parallel agents. Use when exploring a repo, discovering architecture, finding files, or analyzing design patterns."
 argument-hint: "[topic-or-feature]"
 context: fork
-version: 2.1.0
+version: 2.2.0
 author: OrchestKit
 tags: [exploration, code-search, architecture, codebase, health-assessment]
 user-invocable: true
-allowed-tools: [AskUserQuestion, Read, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskOutput, TaskStop, mcp__memory__search_nodes, Bash]
-skills: [ascii-visualizer, architecture-decision-record, memory, architecture-patterns]
+allowed-tools: [AskUserQuestion, Read, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskOutput, TaskStop, mcp__memory__search_nodes, Bash, ToolSearch]
+skills: [ascii-visualizer, architecture-decision-record, memory, architecture-patterns, chain-patterns]
 complexity: high
 model: sonnet
 hooks:
@@ -68,6 +68,35 @@ AskUserQuestion(
 ---
 
 ## STEP 0b: Select Orchestration Mode
+
+### MCP Probe
+
+```python
+ToolSearch(query="select:mcp__memory__search_nodes")
+Write(".claude/chain/capabilities.json", { memory, timestamp })
+
+if capabilities.memory:
+  mcp__memory__search_nodes({ query: "architecture decisions for {path}" })
+  # Enrich exploration with past decisions
+```
+
+### Exploration Handoff
+
+After exploration completes, write results for downstream skills:
+
+```python
+Write(".claude/chain/exploration.json", JSON.stringify({
+  "phase": "explore", "skill": "explore",
+  "timestamp": now(), "status": "completed",
+  "outputs": {
+    "architecture_map": { ... },
+    "patterns_found": ["repository", "service-layer"],
+    "complexity_hotspots": ["src/auth/", "src/payments/"]
+  }
+}))
+```
+
+---
 
 Choose **Agent Teams** (mesh) or **Task tool** (star):
 
@@ -170,4 +199,4 @@ Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/explore/references/exploration-report-t
 - `ork:implement`: Implement after exploration
 ---
 
-**Version:** 2.1.0 (February 2026)
+**Version:** 2.2.0 (March 2026)

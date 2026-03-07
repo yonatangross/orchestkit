@@ -1,11 +1,11 @@
 ---
 title: Skills Reference
-description: "Complete reference for all 80 OrchestKit skills."
+description: "Complete reference for all 81 OrchestKit skills."
 ---
 
 # Skills Reference
 
-OrchestKit includes **80 skills** — reusable knowledge modules that provide patterns, frameworks, and workflows.
+OrchestKit includes **81 skills** — reusable knowledge modules that provide patterns, frameworks, and workflows.
 
 | Skill | Type | Complexity | Description |
 |-------|------|------------|-------------|
@@ -23,6 +23,7 @@ OrchestKit includes **80 skills** — reusable knowledge modules that provide pa
 | [Brainstorming](/docs/reference/skills/brainstorming) | Command | medium | Design exploration with parallel agents. Use when brainstorming ideas, exploring solutions, or comparing alternatives. |
 | [Browser Tools](/docs/reference/skills/browser-tools) | Reference | medium | OrchestKit orchestration wrapper for browser automation. Adds security rules, rate limiting, and ethical scraping guardrails on top of the upstream agent-browser skill. Use when automating browser workflows, capturing web content, or extracting structured data from web pages. |
 | [Business Case](/docs/reference/skills/business-case) | Reference | medium | ROI, NPV, IRR, payback period, and TCO calculations for investment decisions. Use when building financial justification, cost-benefit analysis, build-vs-buy comparisons, or sensitivity analysis. |
+| [Chain Patterns](/docs/reference/skills/chain-patterns) | Reference | low | CC 2.1.71 pipeline patterns — MCP detection, handoff files, checkpoint-resume, worktree agents, CronCreate monitoring. Loaded via skills: field by pipeline skills (fix-issue, implement, brainstorming, verify). Not user-invocable. |
 | [Checkpoint Resume](/docs/reference/skills/checkpoint-resume) | Reference | high | Rate-limit-resilient pipeline with checkpoint/resume for long multi-phase sessions. Saves progress to .claude/pipeline-state.json after each phase. Use when starting a complex multi-phase task that risks hitting rate limits, when resuming an interrupted session, or when orchestrating work spanning commits, GitHub issues, and large file changes. |
 | [Ci Automation](/docs/reference/skills/ci-automation) | Reference | medium | CI/CD automation with Claude Code -- GitHub Actions, headless CLI, and SDK patterns for automated reviews, triage, and health reports. Use when setting up CI pipelines with Claude. |
 | [Code Review Playbook](/docs/reference/skills/code-review-playbook) | Reference | low | Use this skill when conducting or improving code reviews. Provides structured review processes, conventional comments patterns, language-specific checklists, and feedback templates. Use when reviewing PRs or standardizing review practices. |

@@ -1,6 +1,6 @@
 ---
 description: "explore — Deep codebase exploration with parallel agents. Use when exploring a repo, discovering architecture, finding files, or analyzing design patterns."
-allowed-tools: [AskUserQuestion, Read, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskOutput, TaskStop, mcp__memory__search_nodes, Bash]
+allowed-tools: [AskUserQuestion, Read, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskOutput, TaskStop, mcp__memory__search_nodes, Bash, ToolSearch]
 ---
 
 # Auto-generated from skills/explore/SKILL.md
@@ -50,6 +50,34 @@ AskUserQuestion(
 
 
 ## STEP 0b: Select Orchestration Mode
+
+### MCP Probe
+
+```python
+ToolSearch(query="select:mcp__memory__search_nodes")
+Write(".claude/chain/capabilities.json", { memory, timestamp })
+
+if capabilities.memory:
+  mcp__memory__search_nodes({ query: "architecture decisions for {path}" })
+  # Enrich exploration with past decisions
+```
+
+### Exploration Handoff
+
+After exploration completes, write results for downstream skills:
+
+```python
+Write(".claude/chain/exploration.json", JSON.stringify({
+  "phase": "explore", "skill": "explore",
+  "timestamp": now(), "status": "completed",
+  "outputs": {
+    "architecture_map": { ... },
+    "patterns_found": ["repository", "service-layer"],
+    "complexity_hotspots": ["src/auth/", "src/payments/"]
+  }
+}))
+```
+
 
 Choose **Agent Teams** (mesh) or **Task tool** (star):
 
@@ -148,4 +176,4 @@ Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/explore/references/exploration-report-t
 ## Related Skills
 - `ork:implement`: Implement after exploration
 
-**Version:** 2.1.0 (February 2026)
+**Version:** 2.2.0 (March 2026)

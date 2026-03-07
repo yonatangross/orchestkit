@@ -6,11 +6,11 @@ description: "Design exploration with parallel agents. Use when brainstorming id
 argument-hint: "[topic-or-idea]"
 tags: [planning, ideation, creativity, design]
 context: fork
-version: 4.2.0
+version: 4.3.0
 author: OrchestKit
 user-invocable: true
-allowed-tools: [AskUserQuestion, Task, Read, Grep, Glob, TaskCreate, TaskUpdate, TaskList, TaskOutput, TaskStop, mcp__memory__search_nodes]
-skills: [architecture-decision-record, api-design, memory, remember, scope-appropriate-architecture, testing-patterns]
+allowed-tools: [AskUserQuestion, Task, Read, Grep, Glob, TaskCreate, TaskUpdate, TaskList, TaskOutput, TaskStop, ToolSearch, mcp__memory__search_nodes]
+skills: [architecture-decision-record, api-design, memory, remember, scope-appropriate-architecture, testing-patterns, chain-patterns]
 complexity: medium
 model: sonnet
 hooks:
@@ -35,6 +35,43 @@ Transform rough ideas into fully-formed designs through intelligent agent select
 TOPIC = "$ARGUMENTS"  # Full argument string, e.g., "API design for payments"
 # $ARGUMENTS[0] is the first token (CC 2.1.59 indexed access)
 ```
+
+---
+
+## STEP -1: MCP Probe + Resume Check
+
+> Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/mcp-detection.md")`
+
+```python
+# 1. Probe MCP servers (once at skill start)
+ToolSearch(query="select:mcp__memory__search_nodes")
+ToolSearch(query="select:mcp__sequential-thinking__sequentialthinking")
+
+# 2. Store capabilities
+Write(".claude/chain/capabilities.json", {
+  "memory": probe_memory.found,
+  "sequential_thinking": probe_st.found,
+  "skill": "brainstorming",
+  "timestamp": now()
+})
+
+# 3. Check for resume (prior session may have crashed)
+state = Read(".claude/chain/state.json")  # may not exist
+if state.skill == "brainstorming" and state.status == "in_progress":
+    # Skip completed phases, resume from state.current_phase
+    last_handoff = Read(f".claude/chain/{state.last_handoff}")
+```
+
+### Phase Handoffs
+
+| Phase | Handoff File | Contents |
+|-------|-------------|----------|
+| 0 | `00-topic-analysis.json` | Agent list, tier, topic classification |
+| 1 | `01-memory-context.json` | Prior patterns, codebase signals |
+| 2 | `02-divergent-ideas.json` | 10+ raw ideas |
+| 3 | `03-feasibility.json` | Filtered viable ideas |
+| 4 | `04-evaluation.json` | Rated + devil's advocate results |
+| 5 | `05-synthesis.json` | Top 2-3 approaches, trade-off table |
 
 ---
 

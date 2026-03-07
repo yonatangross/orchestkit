@@ -6,13 +6,13 @@ description: "Creates commits with conventional format and validation. Use when 
 argument-hint: "[message]"
 context: inherit
 agent: git-operations-engineer
-version: 1.0.0
+version: 1.1.0
 author: OrchestKit
 tags: [git, commit, version-control, conventional-commits]
 user-invocable: true
 disable-model-invocation: true
 allowed-tools: [Bash]
-skills: []
+skills: [chain-patterns]
 complexity: low
 hooks:
   PreToolUse:
@@ -103,6 +103,18 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 
 # Verify
 git log -1 --stat
+```
+
+### Handoff File
+
+After successful commit, write handoff:
+
+```python
+Write(".claude/chain/committed.json", JSON.stringify({
+  "phase": "commit", "sha": "<commit-sha>",
+  "message": "<commit-message>", "branch": "<branch>",
+  "files": [<staged-files>]
+}))
 ```
 
 ## Commit Types
