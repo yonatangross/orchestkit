@@ -302,4 +302,28 @@ describe('auto-approve-safe-bash', () => {
       expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
     });
   });
+
+  describe('POSIX utility commands — CC 2.1.71 (should auto-approve)', () => {
+    const posixCommands = [
+      'fmt file.txt',
+      'fmt',
+      'comm file1.txt file2.txt',
+      'cmp file1 file2',
+      'numfmt --to=iec 1024',
+      'expr 1 + 2',
+      'test -f file.txt',
+      'printf "hello"',
+      'getconf PAGE_SIZE',
+      'seq 1 10',
+      'tsort',
+      'pr file.txt',
+    ];
+
+    test.each(posixCommands)('auto-approves: %s', (command: string) => {
+      const input = createBashInput(command);
+      const result = autoApproveSafeBash(input);
+      expect(result.continue).toBe(true);
+      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+    });
+  });
 });
