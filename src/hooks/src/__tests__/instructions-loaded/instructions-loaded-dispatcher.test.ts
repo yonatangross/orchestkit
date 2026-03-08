@@ -44,7 +44,7 @@ vi.mock('../../lib/common.js', () => ({
   logHook: vi.fn(),
   outputSilentSuccess: () => ({ continue: true, suppressOutput: true }),
   outputPromptContext: (ctx: string) =>
-    ctx && ctx.trim()
+    ctx?.trim()
       ? { continue: true, suppressOutput: true, hookSpecificOutput: { hookEventName: 'UserPromptSubmit', additionalContext: ctx } }
       : { continue: true, suppressOutput: true },
 }));

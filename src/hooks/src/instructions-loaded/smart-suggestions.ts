@@ -45,7 +45,7 @@ export function smartRuleSuggestions(filesLoaded: LoadedFile[], _contents: Map<s
       check: () => {
         try {
           const pkg = JSON.parse(readFileSync(join(projectDir, 'package.json'), 'utf8'));
-          return !!(pkg.dependencies?.['next'] || pkg.devDependencies?.['next']);
+          return !!(pkg.dependencies?.next || pkg.devDependencies?.next);
         } catch { return false; }
       },
       ruleName: 'nextjs-conventions.md',

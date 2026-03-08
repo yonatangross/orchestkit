@@ -73,7 +73,7 @@ describe('task-commit-linker', () => {
     test('returns silent when task_status is "in_progress"', () => {
       const input = createTaskInput({ task_status: 'in_progress' });
 
-      const result = taskCommitLinker(input);
+      taskCommitLinker(input);
 
       expect(outputSilentSuccess).toHaveBeenCalledOnce();
       expect(outputWithContext).not.toHaveBeenCalled();
@@ -94,7 +94,7 @@ describe('task-commit-linker', () => {
       vi.mocked(getDirtyFileCount).mockReturnValue(0);
       const input = createTaskInput({ task_status: 'completed' });
 
-      const result = taskCommitLinker(input);
+      taskCommitLinker(input);
 
       expect(outputSilentSuccess).toHaveBeenCalledOnce();
       expect(outputWithContext).not.toHaveBeenCalled();

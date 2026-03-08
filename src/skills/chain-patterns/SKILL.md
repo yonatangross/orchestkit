@@ -100,7 +100,7 @@ Use `isolation: "worktree"` when spawning agents that WRITE files in parallel.
 ```python
 # Agents editing different files in parallel:
 Agent(
-  subagent_type="ork:backend-system-architect",
+  subagent_type="backend-system-architect",
   prompt="Implement backend for: {feature}...",
   isolation="worktree",       # own copy of repo
   run_in_background=true

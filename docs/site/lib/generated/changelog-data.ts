@@ -17,6 +17,36 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.1.12",
+    "date": "2026-03-08",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**hooks:** InstructionsLoaded dispatcher — shared content cache eliminates 3x redundant file reads",
+          "**hooks:** classifySource uses basename() check to prevent substring misclassification",
+          "**hooks:** rule-conflicts false-positive prevention — files matching both sides excluded",
+          "**hooks:** drift-detection conditional cache write — only writes when hashes differ",
+          "**hooks:** token-budget-tracker simplified threshold to percentage-only"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**hooks:** all 6 InstructionsLoaded handlers now receive shared `Map<string, string>` content cache",
+          "**hooks:** dispatcher validates `files_loaded` elements with runtime type guard"
+        ]
+      },
+      {
+        "type": "added",
+        "items": [
+          "**tests:** 12 new tests for edge cases, all 6 conflict patterns, false-positive prevention"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.1.11",
     "date": "2026-03-07",
     "compareUrl": "",

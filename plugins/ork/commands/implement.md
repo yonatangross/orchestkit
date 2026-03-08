@@ -168,13 +168,13 @@ Write handoff JSON after major phases. See `chain-patterns` skill for schema.
 Phase 5 agents SHOULD use `isolation: "worktree"` to prevent file conflicts:
 
 ```python
-Agent(subagent_type="ork:backend-system-architect",
+Agent(subagent_type="backend-system-architect",
   prompt="Implement backend: {feature}. Architecture: {from 04-architecture.json}",
   isolation="worktree", run_in_background=true)
-Agent(subagent_type="ork:frontend-ui-developer",
+Agent(subagent_type="frontend-ui-developer",
   prompt="Implement frontend: {feature}...",
   isolation="worktree", run_in_background=true)
-Agent(subagent_type="ork:test-generator",
+Agent(subagent_type="test-generator",
   prompt="Generate tests: {feature}...",
   isolation="worktree", run_in_background=true)
 ```

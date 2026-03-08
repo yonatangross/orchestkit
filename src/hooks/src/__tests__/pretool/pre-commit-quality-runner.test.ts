@@ -698,7 +698,7 @@ describe('pre-commit-quality-runner', () => {
         return '';
       });
       vi.mocked(execFileSync).mockImplementation((_cmd: unknown, args?: readonly string[]) => {
-        if (args && args.includes('tsc')) {
+        if (args?.includes('tsc')) {
           throw Object.assign(new Error('tsc error'), { stderr: 'TS2322: Type error' });
         }
         // eslint fails
@@ -766,10 +766,7 @@ describe('pre-commit-quality-runner', () => {
         }
         return '';
       });
-      vi.mocked(existsSync).mockImplementation((p: unknown) => {
-        // Even with all configs present, no checks run for .md-only changes
-        return true;
-      });
+      vi.mocked(existsSync).mockImplementation(() => true);
       const input = createBashInput('git commit -m "docs: update readme"');
 
       // Act

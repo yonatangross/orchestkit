@@ -109,7 +109,7 @@ Write handoff JSON after phases 3, 4, 6, 7 to `.claude/chain/`. See `chain-patte
 Phase 4 agents SHOULD use `isolation: "worktree"` when they need to edit files:
 
 ```python
-Agent(subagent_type="ork:debug-investigator",
+Agent(subagent_type="debug-investigator",
   prompt="Investigate hypothesis: {desc}...",
   isolation="worktree", run_in_background=true)
 ```
@@ -820,15 +820,90 @@ See [Hypothesis-Based RCA](hypothesis-rca.md) for confidence scoring.
 
 ## Phase 4: Root Cause Analysis (5 Agents)
 
-Launch ALL 5 agents in parallel with `run_in_background=True` and `max_turns=25`:
+Launch ALL 5 agents in ONE message with `run_in_background=True` and `max_turns=25`.
 
-1. **debug-investigator**: Root cause tracing
-2. **debug-investigator**: Impact analysis
-3. **backend-system-architect**: Backend fix design
-4. **frontend-ui-developer**: Frontend fix design
-5. **test-generator**: Test requirements
+Agents that edit files SHOULD use `isolation: "worktree"` to prevent conflicts:
 
-Each agent outputs structured JSON with findings and SUMMARY line.
+```python
+# PARALLEL — All 5 in ONE message
+Agent(
+  subagent_type="debug-investigator",
+  prompt="""ROOT CAUSE TRACING for issue #$ARGUMENTS
+
+  Investigate the primary hypothesis: {hypothesis_1}
+  1. Trace the code path that triggers the bug
+  2. Identify the exact line/condition causing the failure
+  3. Check git blame for when the bug was introduced
+
+  Evidence files: {relevant_files}
+
+  SUMMARY: End with: "RESULT: Root cause is [X] in [file:line] — introduced in [commit]"
+  """,
+  isolation="worktree",
+  run_in_background=True,
+  max_turns=25
+)
+Agent(
+  subagent_type="debug-investigator",
+  prompt="""IMPACT ANALYSIS for issue #$ARGUMENTS
+
+  Assess the blast radius of the confirmed root cause:
+  1. What other code paths are affected?
+  2. Are there similar patterns elsewhere that might have the same bug?
+  3. What's the user-facing impact scope?
+
+  Evidence files: {relevant_files}
+
+  SUMMARY: End with: "RESULT: Impact scope: [N] files, [M] code paths affected"
+  """,
+  run_in_background=True,
+  max_turns=25
+)
+Agent(
+  subagent_type="backend-system-architect",
+  prompt="""BACKEND FIX DESIGN for issue #$ARGUMENTS
+
+  Design the fix approach for the backend:
+  1. Propose minimal code changes to resolve the root cause
+  2. Identify edge cases the fix must handle
+  3. Assess risk of regression
+
+  SUMMARY: End with: "RESULT: Fix requires changes to [N] files — risk: [low/medium/high]"
+  """,
+  run_in_background=True,
+  max_turns=25
+)
+Agent(
+  subagent_type="frontend-ui-developer",
+  prompt="""FRONTEND FIX DESIGN for issue #$ARGUMENTS
+
+  Design the fix approach for the frontend (if applicable):
+  1. UI/UX impact of the bug and proposed fix
+  2. Component changes needed
+  3. Accessibility implications
+
+  SUMMARY: End with: "RESULT: Frontend [affected/not affected] — [N] components to update"
+  """,
+  run_in_background=True,
+  max_turns=25
+)
+Agent(
+  subagent_type="test-generator",
+  prompt="""TEST REQUIREMENTS for issue #$ARGUMENTS
+
+  Define the test plan for the fix:
+  1. Write a FAILING regression test that reproduces the bug
+  2. Identify edge cases that must be covered
+  3. Match test types to the fix using the Test Requirements Matrix
+
+  SUMMARY: End with: "RESULT: [N] tests needed — regression test targets [file:function]"
+  """,
+  run_in_background=True,
+  max_turns=25
+)
+```
+
+Each agent outputs structured findings and a SUMMARY line.
 
 ### Agent Teams Alternative
 

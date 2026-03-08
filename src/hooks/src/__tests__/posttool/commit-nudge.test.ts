@@ -46,7 +46,7 @@ vi.mock('node:path', () => ({
 }));
 
 import { commitNudge } from '../../posttool/commit-nudge.js';
-import { outputSilentSuccess, outputWithContext, getProjectDir, logHook } from '../../lib/common.js';
+import { outputWithContext, getProjectDir, logHook } from '../../lib/common.js';
 import { getDirtyFileCount } from '../../lib/git.js';
 import { existsSync, readFileSync } from 'node:fs';
 import { atomicWriteSync } from '../../lib/atomic-write.js';

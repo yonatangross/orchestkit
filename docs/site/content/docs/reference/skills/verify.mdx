@@ -1202,6 +1202,61 @@ Use `python-performance-engineer` for backend-focused verification or `frontend-
 
 See [Grading Rubric](grading-rubric.md) for detailed scoring criteria.
 
+### Task Tool Mode (Default)
+
+```python
+# PARALLEL — All 6 in ONE message
+Agent(
+  subagent_type="code-quality-reviewer",
+  prompt="""Verify code quality for: {feature}. Score 0-10.
+  Check: lint errors, type coverage, cyclomatic complexity, DRY, SOLID.
+  Scope: ONLY review files in {scope_files}. Budget: 15 tool calls max.
+  Return: score (0-10), reasoning, evidence, 2-3 improvement suggestions.""",
+  run_in_background=True, max_turns=25
+)
+Agent(
+  subagent_type="security-auditor",
+  prompt="""Security verification for: {feature}. Score 0-10.
+  Check: OWASP Top 10, secrets in code, dependency CVEs, auth patterns.
+  Scope: ONLY review files in {scope_files}. Budget: 15 tool calls max.
+  Return: score (0-10), vulnerabilities found, severity ratings.""",
+  run_in_background=True, max_turns=25
+)
+Agent(
+  subagent_type="test-generator",
+  prompt="""Verify test coverage for: {feature}. Score 0-10.
+  Check: test existence, type matching, quality, edge cases, coverage %.
+  Run existing tests and report results.
+  Scope: ONLY review files in {scope_files}. Budget: 15 tool calls max.
+  Return: score (0-10), coverage %, gaps identified.""",
+  run_in_background=True, max_turns=25
+)
+Agent(
+  subagent_type="backend-system-architect",
+  prompt="""Verify API design and backend patterns for: {feature}. Score 0-10.
+  Check: REST conventions, async patterns, transaction boundaries, error handling.
+  Scope: ONLY review files in {scope_files}. Budget: 15 tool calls max.
+  Return: score (0-10), pattern compliance, issues found.""",
+  run_in_background=True, max_turns=25
+)
+Agent(
+  subagent_type="frontend-ui-developer",
+  prompt="""Verify frontend implementation for: {feature}. Score 0-10.
+  Check: React 19 patterns, Zod schemas, accessibility (WCAG 2.1 AA), loading states.
+  Scope: ONLY review files in {scope_files}. Budget: 15 tool calls max.
+  Return: score (0-10), pattern compliance, a11y issues.""",
+  run_in_background=True, max_turns=25
+)
+Agent(
+  subagent_type="python-performance-engineer",
+  prompt="""Verify performance and scalability for: {feature}. Score 0-10.
+  Check: latency hotspots, N+1 queries, resource usage, caching, scaling patterns.
+  Scope: ONLY review files in {scope_files}. Budget: 15 tool calls max.
+  Return: score (0-10), bottlenecks found, optimization suggestions.""",
+  run_in_background=True, max_turns=25
+)
+```
+
 ### Agent Teams Alternative
 
 In Agent Teams mode, form a verification team where agents share findings and coordinate scoring:

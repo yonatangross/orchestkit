@@ -117,7 +117,7 @@ Write handoff JSON after phases 3, 4, 6, 7 to `.claude/chain/`. See `chain-patte
 Phase 4 agents SHOULD use `isolation: "worktree"` when they need to edit files:
 
 ```python
-Agent(subagent_type="ork:debug-investigator",
+Agent(subagent_type="debug-investigator",
   prompt="Investigate hypothesis: {desc}...",
   isolation="worktree", run_in_background=true)
 ```

@@ -17,14 +17,14 @@ Use `isolation: "worktree"` when spawning agents that write files in parallel. E
 ```python
 # Launch parallel agents with worktree isolation:
 Agent(
-  subagent_type="ork:backend-system-architect",
+  subagent_type="backend-system-architect",
   description="Implement backend auth",
   prompt="Implement auth API endpoints...",
   isolation="worktree",          # ← gets own repo copy
   run_in_background=true         # ← non-blocking
 )
 Agent(
-  subagent_type="ork:frontend-ui-developer",
+  subagent_type="frontend-ui-developer",
   description="Implement frontend auth",
   prompt="Implement auth UI components...",
   isolation="worktree",
