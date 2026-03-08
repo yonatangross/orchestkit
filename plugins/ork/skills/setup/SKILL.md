@@ -70,55 +70,9 @@ FLAG = "$ARGUMENTS[0]"  # First token: --rescan, --score-only, --plan-only, --ch
 
 ## Phase 1: Scan
 
-Run ALL scan commands in **one parallel batch** for speed:
+Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/setup/references/scan-phase.md")` for full scan commands (20 parallel Glob probes + dependency file reads + pattern detection counts).
 
-```python
-# PARALLEL — launch all in ONE message
-Glob(pattern="**/package.json")
-Glob(pattern="**/pyproject.toml")
-Glob(pattern="**/go.mod")
-Glob(pattern="**/Cargo.toml")
-Glob(pattern="**/pom.xml")
-Glob(pattern="**/*.csproj")
-Glob(pattern="**/Gemfile")
-Glob(pattern="**/composer.json")
-Glob(pattern="**/.claude/settings.json")
-Glob(pattern="**/.mcp.json")
-Glob(pattern="**/docker-compose*.yml")
-Glob(pattern="**/Dockerfile*")
-Glob(pattern="**/.github/workflows/*.yml")
-Glob(pattern="**/terraform/**/*.tf")
-Glob(pattern="**/k8s/**/*.yaml")
-Glob(pattern="**/CONTRIBUTING.md")
-Glob(pattern="**/tsconfig.json")
-Glob(pattern="**/next.config.*")
-Glob(pattern="**/vite.config.*")
-Glob(pattern="**/alembic.ini")
-```
-
-Then read key dependency files found:
-
-```python
-# PARALLEL — read detected package manifests
-Read(file_path="package.json")       # if found
-Read(file_path="pyproject.toml")     # if found
-Read(file_path="requirements.txt")   # if found
-Read(file_path=".mcp.json")          # if found
-Read(file_path=".claude/settings.json")  # if found
-```
-
-### Pattern Detection (for custom skill suggestions)
-
-```python
-# PARALLEL — count repeated patterns
-Grep(pattern="@app\\.(route|get|post|put|delete|patch)", glob="**/*.py", output_mode="count")
-Grep(pattern="@router\\.(get|post|put|delete|patch)", glob="**/*.py", output_mode="count")
-Grep(pattern="export (default |)function", glob="**/*.tsx", output_mode="count")
-Grep(pattern="export (default |)function", glob="**/*.jsx", output_mode="count")
-Grep(pattern="class.*Model\\)", glob="**/*.py", output_mode="count")
-Grep(pattern="def test_", glob="**/*.py", output_mode="count")
-Grep(pattern="(describe|it|test)\\(", glob="**/*.{ts,tsx,js}", output_mode="count")
-```
+Scans for package manifests (package.json, pyproject.toml, go.mod, Cargo.toml, etc.), infrastructure (Docker, GitHub Actions, Terraform, K8s), and existing CC configuration. Pattern detection counts API routes, React components, models, and tests for custom skill suggestions.
 
 ## Phase 2: Stack Detection
 
@@ -155,73 +109,13 @@ Detected Stack:
 
 ## Phase 2b: Channel Detection
 
-Detect the user's release channel from the OrchestKit version string in the plugin manifest:
-
-```python
-# Read version from the installed plugin manifest
-Grep(pattern="\"version\"", path="manifests/ork.json", output_mode="content")
-```
-
-### Classification Rules
-
-| Version Pattern | Channel | Description |
-|----------------|---------|-------------|
-| `X.Y.Z-alpha.*` | **Alpha** | Bleeding-edge, may include incomplete features |
-| `X.Y.Z-beta.*` | **Beta** | Feature-complete previews, may have rough edges |
-| `X.Y.Z` (no suffix) | **Stable** | Production-ready, fully tested |
-
-### Channel Display
-
-Present the detected channel alongside the stack profile:
-
-```
-Release Channel: stable (v7.0.0)
-  You're on the stable channel — production-ready releases only.
-```
-
-If on a prerelease channel:
-
-```
-Release Channel: beta (v7.1.0-beta.1)
-  You're on the beta channel — early access to upcoming features.
-  To switch to stable: /plugin install ork@latest
-```
-
-```
-Release Channel: alpha (v7.1.0-alpha.1)
-  You're on the alpha channel — bleeding-edge, expect breaking changes.
-  To switch to stable: /plugin install ork@latest
-```
-
-Use `--channel` flag to show only the channel detection (skip all other phases).
+Detect release channel from `manifests/ork.json` version string. Classification: `X.Y.Z` = stable, `X.Y.Z-beta.*` = beta, `X.Y.Z-alpha.*` = alpha. Display alongside stack profile. Use `--channel` flag to show only channel detection.
 
 ## Phase 3: Safety Check
 
-Use `AskUserQuestion` to confirm installation scope:
+Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/setup/references/safety-check.md")` for the full AskUserQuestion prompt and conflict detection logic.
 
-```python
-AskUserQuestion(questions=[{
-  "question": "How should OrchestKit be installed?",
-  "header": "Install scope",
-  "options": [
-    {"label": "User-only (Recommended)", "description": "Plugin loads only for you. Invisible to teammates. Safe for enterprise.", "markdown": "```\nUser-Only Install\n─────────────────\n~/.claude/\n  └── plugins/\n        └── ork/    ← only YOU see this\n\nTeammates: unaffected\nGit:       nothing committed\nEnterprise: safe, no repo changes\n```"},
-    {"label": "Project-wide", "description": "Adds to .claude/plugins — loads for everyone in this repo.", "markdown": "```\nProject-Wide Install\n────────────────────\nyour-repo/\n  └── .claude/\n        └── plugins/\n              └── ork/  ← everyone sees this\n\nTeammates: auto-loaded for all\nGit:       committed to repo\nRequires:  team buy-in\n```"},
-    {"label": "Already installed", "description": "Skip installation, just configure.", "markdown": "```\nSkip to Configure\n─────────────────\n✓ Plugin already installed\n→ Jump to Phase 4: Skill recommendations\n→ Then Phase 5: MCP setup\n→ Then Phase 6: Readiness score\n```"}
-  ],
-  "multiSelect": false
-}])
-```
-
-### Conflict Detection
-
-Check for existing OrchestKit installs or conflicting plugins:
-
-```python
-Grep(pattern="ork", path="~/.claude/settings.json", output_mode="content")
-Glob(pattern="~/.claude/plugins/ork*")
-```
-
-Report: "No conflicts detected" or "Found existing ork install — version {version}."
+Offers three install scopes: User-only (recommended, invisible to teammates), Project-wide (committed to repo), or Already installed (skip to configure). Checks for existing OrchestKit installs and conflicting plugins.
 
 ## Phase 3.5: Project Configuration Wizard
 
@@ -395,40 +289,9 @@ If CLAUDE.md > 200 lines and no `.claude/rules/` exist, recommend splitting. Sho
 
 ## Phase 8: Keybindings
 
-Check for existing keybindings and offer to install recommended shortcuts:
+Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/setup/references/keybindings.md")` for the full keybinding prompt, default shortcuts, and merge logic.
 
-```python
-# Check existing keybindings
-Bash(command="cat ~/.claude/keybindings.json 2>/dev/null || echo '[]'")
-```
-
-Prompt the user:
-
-```python
-AskUserQuestion(questions=[{
-  "question": "Install recommended keybindings for top OrchestKit skills?",
-  "header": "Keyboard shortcuts",
-  "options": [
-    {"label": "Yes, install keybindings (Recommended)", "description": "Adds 5 shortcuts: commit, verify, implement, explore, review-pr"},
-    {"label": "Skip", "description": "No keyboard shortcuts"}
-  ],
-  "multiSelect": false
-}])
-```
-
-If **Yes**: write or merge into `~/.claude/keybindings.json`:
-
-```json
-[
-  {"key": "ctrl+shift+c", "command": "/ork:commit", "description": "Git commit with validation"},
-  {"key": "ctrl+shift+v", "command": "/ork:verify", "description": "Run verification suite"},
-  {"key": "ctrl+shift+i", "command": "/ork:implement", "description": "Implement feature"},
-  {"key": "ctrl+shift+e", "command": "/ork:explore", "description": "Deep codebase exploration"},
-  {"key": "ctrl+shift+r", "command": "/ork:review-pr", "description": "Review pull request"}
-]
-```
-
-If the file already exists, **merge** — read existing entries, add only keybindings whose `key` is not already bound, then write back. Never overwrite user-defined bindings.
+Offers 5 recommended shortcuts (commit, verify, implement, explore, review-pr). Merges with existing `~/.claude/keybindings.json` without overwriting user-defined bindings.
 
 ## Post-Setup
 

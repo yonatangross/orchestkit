@@ -251,37 +251,9 @@ Lightweight async Redis Queue for FastAPI and simple background tasks.
 
 ## Anti-Patterns (FORBIDDEN)
 
-```python
-# NEVER run long tasks synchronously in request handlers
-@router.post("/api/v1/reports")
-async def create_report(data: ReportRequest):
-    pdf = await generate_pdf(data)  # Blocks for minutes!
+Load details: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/async-jobs/references/anti-patterns.md")` for full list.
 
-# NEVER block on results inside tasks (causes deadlock)
-@celery_app.task
-def bad_task():
-    result = other_task.delay()
-    return result.get()  # Blocks worker!
-
-# NEVER store large results in Redis
-@shared_task
-def process_file(file_id: str) -> bytes:
-    return large_file_bytes  # Store in S3/DB instead!
-
-# NEVER skip idempotency for retried tasks
-@celery_app.task(max_retries=3)
-def create_order(order):
-    Order.create(order)  # Creates duplicates on retry!
-
-# NEVER use BackgroundTasks for distributed work
-background_tasks.add_task(long_running_job)  # Lost if server restarts
-
-# NEVER ignore task acknowledgment settings
-celery_app.conf.task_acks_late = False  # Default loses tasks on crash
-
-# ALWAYS use immutable signatures in chords
-chord([task.s(x) for x in items], callback.si())  # si() prevents arg pollution
-```
+Key rules: never run long tasks in request handlers, never block on results inside tasks, never store large results in Redis, always use idempotency for retried tasks.
 
 ## Temporal Workflows
 
@@ -332,61 +304,7 @@ Activity and worker patterns for Temporal.io I/O operations.
 
 ## Capability Details
 
-### celery-config
-**Keywords:** celery, configuration, broker, worker, setup
-**Solves:**
-- Production Celery app configuration
-- Broker and backend setup
-- Worker tuning and time limits
-
-### task-routing
-**Keywords:** priority, queue, routing, high priority, worker
-**Solves:**
-- Premium user task prioritization
-- Multi-queue worker deployment
-- Dynamic task routing
-
-### canvas-workflows
-**Keywords:** chain, group, chord, signature, canvas, workflow, pipeline
-**Solves:**
-- Complex multi-step task pipelines
-- Parallel task execution with aggregation
-- Sequential task dependencies
-
-### retry-strategies
-**Keywords:** retry, backoff, idempotency, dead letter, resilience
-**Solves:**
-- Exponential backoff with jitter
-- Duplicate prevention for retried tasks
-- Failed task handling with DLQ
-
-### scheduled-tasks
-**Keywords:** periodic, scheduled, cron, celery beat, interval
-**Solves:**
-- Run tasks on schedule (crontab)
-- Dynamic schedule management
-- Overlap prevention for long tasks
-
-### monitoring-health
-**Keywords:** flower, monitoring, health check, metrics, alerting
-**Solves:**
-- Production task monitoring dashboard
-- Worker health checks
-- Queue depth autoscaling
-
-### result-backends
-**Keywords:** result, state, progress, AsyncResult, status
-**Solves:**
-- Task progress tracking with custom states
-- Result storage strategies
-- Job status API endpoints
-
-### arq-patterns
-**Keywords:** arq, async queue, redis queue, fastapi background
-**Solves:**
-- Lightweight async background tasks for FastAPI
-- Simple Redis job queue with async/await
-- Job status tracking
+Load details: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/async-jobs/references/capability-details.md")` for full keyword index and problem-solution mapping across all 8 capabilities.
 
 
 ---
@@ -962,7 +880,44 @@ class OrderSagaWorkflow:
 
 ---
 
-## References (8)
+## References (10)
+
+### Anti Patterns
+
+# Anti-Patterns (FORBIDDEN)
+
+```python
+# NEVER run long tasks synchronously in request handlers
+@router.post("/api/v1/reports")
+async def create_report(data: ReportRequest):
+    pdf = await generate_pdf(data)  # Blocks for minutes!
+
+# NEVER block on results inside tasks (causes deadlock)
+@celery_app.task
+def bad_task():
+    result = other_task.delay()
+    return result.get()  # Blocks worker!
+
+# NEVER store large results in Redis
+@shared_task
+def process_file(file_id: str) -> bytes:
+    return large_file_bytes  # Store in S3/DB instead!
+
+# NEVER skip idempotency for retried tasks
+@celery_app.task(max_retries=3)
+def create_order(order):
+    Order.create(order)  # Creates duplicates on retry!
+
+# NEVER use BackgroundTasks for distributed work
+background_tasks.add_task(long_running_job)  # Lost if server restarts
+
+# NEVER ignore task acknowledgment settings
+celery_app.conf.task_acks_late = False  # Default loses tasks on crash
+
+# ALWAYS use immutable signatures in chords
+chord([task.s(x) for x in items], callback.si())  # si() prevents arg pollution
+```
+
 
 ### Arq Patterns
 
@@ -1390,6 +1345,67 @@ def inspect_chain_result(task_id: str) -> dict:
 2. **Reject permanent**: Use `Reject(requeue=False)` to stop chain
 3. **Soft fail**: Return error dict instead of raising (for chords)
 4. **Link error**: Use `link_error` callback for notifications
+
+
+### Capability Details
+
+# Capability Details
+
+### celery-config
+**Keywords:** celery, configuration, broker, worker, setup
+**Solves:**
+- Production Celery app configuration
+- Broker and backend setup
+- Worker tuning and time limits
+
+### task-routing
+**Keywords:** priority, queue, routing, high priority, worker
+**Solves:**
+- Premium user task prioritization
+- Multi-queue worker deployment
+- Dynamic task routing
+
+### canvas-workflows
+**Keywords:** chain, group, chord, signature, canvas, workflow, pipeline
+**Solves:**
+- Complex multi-step task pipelines
+- Parallel task execution with aggregation
+- Sequential task dependencies
+
+### retry-strategies
+**Keywords:** retry, backoff, idempotency, dead letter, resilience
+**Solves:**
+- Exponential backoff with jitter
+- Duplicate prevention for retried tasks
+- Failed task handling with DLQ
+
+### scheduled-tasks
+**Keywords:** periodic, scheduled, cron, celery beat, interval
+**Solves:**
+- Run tasks on schedule (crontab)
+- Dynamic schedule management
+- Overlap prevention for long tasks
+
+### monitoring-health
+**Keywords:** flower, monitoring, health check, metrics, alerting
+**Solves:**
+- Production task monitoring dashboard
+- Worker health checks
+- Queue depth autoscaling
+
+### result-backends
+**Keywords:** result, state, progress, AsyncResult, status
+**Solves:**
+- Task progress tracking with custom states
+- Result storage strategies
+- Job status API endpoints
+
+### arq-patterns
+**Keywords:** arq, async queue, redis queue, fastapi background
+**Solves:**
+- Lightweight async background tasks for FastAPI
+- Simple Redis job queue with async/await
+- Job status tracking
 
 
 ### Celery Config

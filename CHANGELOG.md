@@ -5,6 +5,22 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.1.13] - 2026-03-08
+
+### Fixed
+
+- **ci:** resolve TypeScript type error in home-environment test (tuple annotation mismatch)
+- **ci:** update stale skill names in trigger tests — brainstorming→brainstorm, plan-viz→visualize-plan
+- **skills:** add skill name fragments to 6 descriptions for semantic discovery (help, feedback, business-case, prioritization, setup, write-prd)
+- **skills:** add chain-patterns Overview section and trigger phrasing
+- **skills:** expand 546 short expectedBehavior entries (≤5 words) to 6+ words across 43 skills
+- **skills:** add context exhaustion handling docs to brainstorm and task-dependency-patterns
+- **ci:** add id-token: write to claude-review and claude-triage workflows for OIDC
+- **ci:** fix SessionStart hook count assertion (4→3 after HTTP webhook removal)
+- **skills:** strip ork: prefix from subagent_type in chain-patterns, fix-issue, implement
+
+---
+
 ## [7.1.12] - 2026-03-08
 
 ### Fixed

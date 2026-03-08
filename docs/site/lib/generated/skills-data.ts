@@ -456,8 +456,10 @@ export const SKILLS: Record<string, SkillMeta> = {
     "agent": "python-performance-engineer",
     "structure": {
       "references": [
+        "anti-patterns.md",
         "arq-patterns.md",
         "canvas-workflows.md",
+        "capability-details.md",
         "celery-config.md",
         "monitoring-health.md",
         "result-backends.md",
@@ -677,7 +679,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "business-case": {
     "name": "business-case",
-    "description": "ROI, NPV, IRR, payback period, and TCO calculations for investment decisions. Use when building financial justification, cost-benefit analysis, build-vs-buy comparisons, or sensitivity analysis.",
+    "description": "Business case analysis with ROI, NPV, IRR, payback period, and TCO calculations for investment decisions. Use when building financial justification, cost-benefit analysis, build-vs-buy comparisons, or sensitivity analysis.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -713,7 +715,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "chain-patterns": {
     "name": "chain-patterns",
-    "description": "CC 2.1.71 pipeline patterns — MCP detection, handoff files, checkpoint-resume, worktree agents, CronCreate monitoring. Loaded via skills: field by pipeline skills (fix-issue, implement, brainstorm, verify). Not user-invocable.",
+    "description": "Chain patterns for CC 2.1.71 pipelines — MCP detection, handoff files, checkpoint-resume, worktree agents, CronCreate monitoring. Use when building multi-phase pipeline skills. Loaded via skills: field by pipeline skills (fix-issue, implement, brainstorm, verify). Not user-invocable.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -971,7 +973,9 @@ export const SKILLS: Record<string, SkillMeta> = {
     "agent": null,
     "structure": {
       "references": [
+        "cc-version-settings.md",
         "http-hooks.md",
+        "integrations.md",
         "mcp-config.md",
         "presets.md"
       ]
@@ -1492,7 +1496,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "feedback": {
     "name": "feedback",
-    "description": "Manages OrchestKit usage analytics, learning preferences, and privacy settings. Use when reviewing patterns, pausing learning, or managing consent.",
+    "description": "Manages OrchestKit feedback, usage analytics, learning preferences, and privacy settings. Use when reviewing patterns, pausing learning, or managing consent.",
     "version": "1.2.0",
     "author": "OrchestKit",
     "tags": [
@@ -1757,7 +1761,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "help": {
     "name": "help",
-    "description": "OrchestKit skill directory with categorized listings. Use when discovering skills for a task, finding the right workflow, or browsing capabilities.",
+    "description": "OrchestKit help directory with categorized skill listings. Use when discovering skills for a task, finding the right workflow, or browsing capabilities.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -2550,7 +2554,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "prioritization": {
     "name": "prioritization",
-    "description": "RICE, WSJF, ICE, MoSCoW, and opportunity cost scoring for backlog ranking. Use when prioritizing features, comparing initiatives, justifying roadmap decisions, or evaluating trade-offs between competing work items.",
+    "description": "Prioritization frameworks — RICE, WSJF, ICE, MoSCoW, and opportunity cost scoring for backlog ranking. Use when prioritizing features, comparing initiatives, justifying roadmap decisions, or evaluating trade-offs between competing work items.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -2724,6 +2728,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "structure": {
       "references": [
         "eager-loading.md",
+        "fastapi-app-boilerplate.md",
         "fastapi-integration.md",
         "middleware-stack.md",
         "pool-sizing.md",
@@ -3314,7 +3319,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "setup": {
     "name": "setup",
-    "description": "Personalized onboarding wizard. Use when setting up OrchestKit for a new project, configuring plugins, or generating a readiness score and improvement plan.",
+    "description": "Personalized setup and onboarding wizard. Use when setting up OrchestKit for a new project, configuring plugins, or generating a readiness score and improvement plan.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -3349,7 +3354,10 @@ export const SKILLS: Record<string, SkillMeta> = {
     "structure": {
       "references": [
         "claude-md-health.md",
-        "configure-wizard.md"
+        "configure-wizard.md",
+        "keybindings.md",
+        "safety-check.md",
+        "scan-phase.md"
       ]
     },
     "plugins": [
@@ -3957,7 +3965,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "write-prd": {
     "name": "write-prd",
-    "description": "Product Requirements Documents with structured 8-section templates, user stories, acceptance criteria, and value proposition validation. Use when writing PRDs, defining product requirements, creating user stories with INVEST criteria, or building go/no-go decision frameworks.",
+    "description": "Write PRD — Product Requirements Documents with structured 8-section templates, user stories, acceptance criteria, and value proposition validation. Use when writing PRDs, defining product requirements, creating user stories with INVEST criteria, or building go/no-go decision frameworks.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [
