@@ -1,6 +1,6 @@
 ---
 name: chain-patterns
-description: "CC 2.1.71 pipeline patterns — MCP detection, handoff files, checkpoint-resume, worktree agents, CronCreate monitoring. Loaded via skills: field by pipeline skills (fix-issue, implement, brainstorm, verify). Not user-invocable."
+description: "Chain patterns for CC 2.1.71 pipelines — MCP detection, handoff files, checkpoint-resume, worktree agents, CronCreate monitoring. Use when building multi-phase pipeline skills. Loaded via skills: field by pipeline skills (fix-issue, implement, brainstorm, verify). Not user-invocable."
 tags: [pipeline, resilience, checkpoint, mcp, orchestkit]
 version: 1.0.0
 author: OrchestKit
@@ -13,6 +13,8 @@ model: haiku
 ---
 
 # Chain Patterns
+
+## Overview
 
 Foundation patterns for CC 2.1.71 pipeline skills. This skill is loaded via the `skills:` frontmatter field — it provides patterns that parent skills follow.
 
