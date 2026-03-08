@@ -5,6 +5,17 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.1.14] - 2026-03-08
+
+### Fixed
+
+- **skills:** add 234 test case entries for 222 previously untested rules across 63 skills
+- **skills:** fix 18 term mismatches in expectedBehavior strings for rule traceability
+- **skills:** scaffold 49 .eval.json files and regenerate all 82 eval files from current test-cases
+- **skills:** fix remaining short behavior in animation-motion-design view-transitions
+
+---
+
 ## [7.1.13] - 2026-03-08
 
 ### Fixed

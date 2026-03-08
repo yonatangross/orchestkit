@@ -83,7 +83,7 @@ dialogRef.current?.showModal();
 ```css
 details summary { cursor: pointer; padding: 0.75rem; font-weight: 600; }
 details[open] summary { border-bottom: 1px solid var(--border); }
-details summary::marker { content: ''; }
+details summary::marker { content: ''; } /* Note: ::marker on <summary> is supported in Chrome 89+, Firefox 68+, Safari 15.4+ */
 details summary::after { content: '\25B6'; transition: transform 0.2s; }
 details[open] summary::after { transform: rotate(90deg); }
 ```

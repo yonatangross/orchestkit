@@ -210,8 +210,13 @@ See `rules/tokens-versioning.md` for migration strategies.
 | [references/style-dictionary-config.md](references/style-dictionary-config.md) | Style Dictionary 4.x configuration guide |
 | [references/token-naming-conventions.md](references/token-naming-conventions.md) | Naming patterns and conventions |
 
+## Agent Integration
+
+The `design-system-architect` agent orchestrates token workflows end-to-end — from Figma Variables extraction through Style Dictionary transformation to theme deployment. When working on token architecture decisions, the agent coordinates with `frontend-ui-developer` for component token consumption and `accessibility` skills for contrast validation.
+
 ## Related Skills
 
 - `ork:ui-components` — Component library patterns (shadcn/ui, Radix)
 - `ork:accessibility` — WCAG compliance, contrast ratios
 - `ork:responsive-patterns` — Responsive breakpoints, fluid typography
+- `ork:figma-design-handoff` — Figma Variables to tokens pipeline
