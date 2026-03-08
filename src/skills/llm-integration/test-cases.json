@@ -133,6 +133,99 @@
         "Evaluates with LLM judge scoring to measure alignment quality objectively",
         "Compares against baseline before deployment to verify fine-tuning improvement metrics"
       ]
+    },
+    {
+      "id": "context-caching",
+      "rule": "context-caching",
+      "query": "My LLM calls are expensive because I load the entire knowledge base into every request. How do I reduce token costs with caching and budget allocation?",
+      "expectedBehavior": [
+        "Uses just-in-time document loading instead of pre-loading entire knowledge bases",
+        "Allocates a token budget per context section with percentage-based distribution",
+        "Selects compression strategy based on use case such as anchored iterative for long sessions",
+        "Validates compression quality with functional probes targeting ninety percent pass rate",
+        "Triggers compression at seventy percent utilization and targets fifty percent after compression"
+      ]
+    },
+    {
+      "id": "context-window-management",
+      "rule": "context-window-management",
+      "query": "My agent loses track of important information mid-conversation and the context window fills up with irrelevant tool outputs. How should I structure context?",
+      "expectedBehavior": [
+        "Positions critical information at start and end of context for high attention zones",
+        "Uses five-layer context architecture with defined allocation percentages per layer",
+        "Implements anchored iterative summarization preserving session intent and decisions made",
+        "Preserves last five messages uncompressed and compresses older history incrementally",
+        "Truncates tool outputs at source since they can consume over eighty percent of context"
+      ]
+    },
+    {
+      "id": "evaluation-benchmarks",
+      "rule": "evaluation-benchmarks",
+      "query": "I need to add quality gates to my LLM pipeline so bad outputs don't reach production. How do I evaluate model output quality with benchmarks?",
+      "expectedBehavior": [
+        "Implements quality gate with multi-metric assessment using a configurable threshold",
+        "Evaluates across multiple dimensions such as relevance accuracy and completeness",
+        "Runs batch evaluation over golden datasets with fifty or more samples for reliable metrics",
+        "Uses pairwise comparison with randomized ordering to eliminate position bias"
+      ]
+    },
+    {
+      "id": "evaluation-metrics",
+      "rule": "evaluation-metrics",
+      "query": "How do I set up LLM-as-judge evaluation metrics and detect hallucinations in RAG responses before they reach users?",
+      "expectedBehavior": [
+        "Uses a different model as judge rather than the model being evaluated",
+        "Evaluates across three to five dimensions with scores normalized to zero through one scale",
+        "Applies RAGAS metrics like faithfulness and context precision for RAG evaluation",
+        "Implements hallucination detection by checking output claims against provided context",
+        "Sets quality threshold at point seven for production and point six for drafts"
+      ]
+    },
+    {
+      "id": "prompt-design",
+      "rule": "prompt-design",
+      "query": "I need to design prompts for a complex reasoning task that requires step-by-step thinking. What prompt patterns should I use for chain-of-thought and few-shot examples?",
+      "expectedBehavior": [
+        "Implements chain-of-thought prompting with explicit step-by-step reasoning format",
+        "Uses three to five diverse representative examples for few-shot prompting",
+        "Orders few-shot examples with the most similar examples placed last for recency bias",
+        "Provides pattern selection guide matching task type to prompt pattern"
+      ]
+    },
+    {
+      "id": "prompt-testing",
+      "rule": "prompt-testing",
+      "query": "How do I version and A/B test my prompts in production to prevent silent regressions when prompts change?",
+      "expectedBehavior": [
+        "Uses Langfuse for prompt versioning with environment labels like production and staging",
+        "Tracks prompt variant via trace metadata for A/B comparison across versions",
+        "Applies DSPy MIPROv2 for automatic prompt optimization with Bayesian approach",
+        "Implements self-consistency with multiple reasoning paths and majority voting for hard problems"
+      ]
+    },
+    {
+      "id": "prompt-optimization",
+      "rule": "prompt-optimization",
+      "query": "My system prompts are verbose and I'm using the same expensive model for every task. How do I optimize prompts for token efficiency and cost?",
+      "expectedBehavior": [
+        "Removes redundant and verbose phrasing to reduce system prompt token count",
+        "Implements model tiering by task complexity routing simple tasks to cheaper models",
+        "Uses JSON mode with temperature zero for structured output consistency",
+        "Adds explicit constraints and negative examples to reduce hallucination rates",
+        "Maintains a prompt specification template with version and cost estimates"
+      ]
+    },
+    {
+      "id": "prompt-react-pattern",
+      "rule": "prompt-react-pattern",
+      "query": "I want to build an agent that reasons about which tools to use before calling them. How do I implement the ReAct thought-action-observation loop?",
+      "expectedBehavior": [
+        "Implements explicit Thought-Action-Observation loop with structured system prompt format",
+        "Caps iterations at five steps maximum to prevent runaway agent loops",
+        "Requires a Thought step before every Action to ensure reasoning before tool use",
+        "Parses Final Answer from response to terminate the loop when sufficient information gathered",
+        "Handles unknown tool names gracefully by returning error with available tool list"
+      ]
     }
   ]
 }

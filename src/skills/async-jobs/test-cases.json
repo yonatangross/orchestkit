@@ -73,7 +73,7 @@
       "rule": "jobs-monitoring",
       "query": "Track task progress with custom states",
       "expectedBehavior": [
-        "Defines custom states (VALIDATING, PROCESSING, UPLOADING)",
+        "Tracks job status updates via update_state with progress metadata",
         "Uses update_state() for real-time progress reporting to clients",
         "Queries progress via AsyncResult with state checks",
         "Stores large results in S3/DB, not Redis"
@@ -88,6 +88,28 @@
         "Enqueues jobs from FastAPI routes with enqueue_job()",
         "Implements job status endpoint with Job.status()",
         "Configures max_jobs and job_timeout in WorkerSettings"
+      ]
+    },
+    {
+      "id": "temporal-activities",
+      "rule": "temporal-activities",
+      "query": "Set up a Temporal activity for payment processing with proper heartbeat and retry configuration",
+      "expectedBehavior": [
+        "Implements activity heartbeat for long-running operations to report progress to Temporal",
+        "Classifies errors into retryable and non-retryable using ApplicationError with non_retryable flag",
+        "Configures start_to_close_timeout and heartbeat_timeout for activity timeout management",
+        "Sets up proper worker configuration with appropriate task queue and activity registration"
+      ]
+    },
+    {
+      "id": "temporal-workflows",
+      "rule": "temporal-workflows",
+      "query": "Define a Temporal workflow for order processing that handles signals and maintains determinism",
+      "expectedBehavior": [
+        "Keeps workflow code deterministic by avoiding random, datetime.now, and direct IO operations",
+        "Uses workflow.wait_condition for signal handling instead of direct state manipulation",
+        "Calls all IO operations through activities rather than executing them directly in workflow code",
+        "Implements saga pattern with compensating activities for multi-step transaction rollback"
       ]
     }
   ]

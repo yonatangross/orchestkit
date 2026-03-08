@@ -177,6 +177,28 @@
         "Writes acceptance criteria in Given-When-Then format",
         "Defines non-functional requirements and success metrics"
       ]
+    },
+    {
+      "id": "metrics-experiment-design",
+      "rule": "metrics-experiment-design",
+      "query": "How do I design a proper A/B test with sample size calculation and hypothesis for our pricing page?",
+      "expectedBehavior": [
+        "Formulates a specific testable hypothesis with change, expected outcome, and reasoning",
+        "Calculates minimum sample size for statistical power before running the experiment",
+        "Defines primary and guardrail metrics to measure both intended effects and unintended harm",
+        "Structures the experiment from hypothesis through data collection to ship or kill decision"
+      ]
+    },
+    {
+      "id": "prioritize-opportunity-cost",
+      "rule": "prioritize-opportunity-cost",
+      "query": "Evaluate the opportunity cost of building feature A versus feature B when we can only pick one this quarter",
+      "expectedBehavior": [
+        "Uses value-effort matrix to plot features by expected value and required engineering effort",
+        "Applies cost of delay analysis to quantify the revenue or strategic impact of deferring each option",
+        "Flags trade-offs explicitly for human decision-makers rather than making the choice",
+        "Considers both the value of the chosen feature and what is lost by not building the alternative"
+      ]
     }
   ]
 }

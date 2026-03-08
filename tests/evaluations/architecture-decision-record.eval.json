@@ -1,0 +1,49 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "architecture-decision-record",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "basic-we-need-to-decide",
+      "query": "We need to decide between PostgreSQL and MongoDB for our user service. Document this as an ADR.",
+      "expected_behavior": [
+        "Creates ADR following Nygard template with numbered title (ADR-NNNN)",
+        "Includes Context section with problem statement and constraints",
+        "Documents Decision with specific actionable language",
+        "Lists Consequences categorized as positive, negative, and neutral outcomes",
+        "Documents at least 2 Alternatives Considered with rationale for rejection",
+        "Sets Status to Proposed indicating the decision awaits approval"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "negative-we-previously-decided-on",
+      "query": "We previously decided on REST (ADR-0003) but now want to move to GraphQL. Create an ADR that supersedes the old one.",
+      "expected_behavior": [
+        "Creates new ADR with next sequential number, does NOT edit ADR-0003",
+        "Sets Status to Proposed with reference to superseded ADR-0003",
+        "Explains why the original REST decision is being revisited",
+        "Documents the evolution context and new forces at play",
+        "Links back to ADR-0003 in References section"
+      ],
+      "tags": [
+        "negative"
+      ]
+    },
+    {
+      "id": "negative-fix-the-bug-in",
+      "query": "Fix the bug in our login endpoint that returns 500 when email is null",
+      "expected_behavior": [
+        "Claude does NOT invoke the architecture-decision-record skill",
+        "Treats this as a bug fix, not an architectural decision",
+        "Uses standard debugging and code editing tools instead",
+        "Does not create an ADR document"
+      ],
+      "tags": [
+        "negative"
+      ]
+    }
+  ]
+}

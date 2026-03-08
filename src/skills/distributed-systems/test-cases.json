@@ -8,7 +8,7 @@
       "query": "Implement a distributed lock using Redis for payment processing",
       "expectedBehavior": [
         "Uses Lua scripts for atomic acquire/release",
-        "Includes SET NX with PX expiry",
+        "Uses atomic acquire via Lua script with owner and ttl_ms parameters",
         "Validates owner ID before release to prevent accidental lock theft",
         "Describes Redlock quorum for HA across multiple independent Redis instances"
       ]
@@ -132,6 +132,54 @@
         "Defines per-tier limits (free/pro/enterprise) with distinct rate allowances per plan",
         "Returns standard rate limit headers (X-RateLimit-*)",
         "Returns 429 with Retry-After header when exceeded"
+      ]
+    },
+    {
+      "id": "edge-caching",
+      "rule": "edge-caching",
+      "query": "Implement edge caching with Cloudflare Workers KV and proper cache invalidation for our API responses.",
+      "expectedBehavior": [
+        "Sets Cache-Control headers with max-age and stale-while-revalidate for API responses",
+        "Uses CDN-Cache-Control to set different TTLs for CDN versus browser caching",
+        "Stores responses in Cloudflare KV with expirationTtl for TTL-based cache expiry",
+        "Adds Vary header for content that changes by user authentication or locale",
+        "Never caches authenticated or personalized responses without private directive or Vary header"
+      ]
+    },
+    {
+      "id": "edge-workers",
+      "rule": "edge-workers",
+      "query": "Deploy a Cloudflare Worker that handles geo-based routing and authentication using Web Crypto API.",
+      "expectedBehavior": [
+        "Uses Web APIs like fetch, Request, Response, and crypto.subtle instead of Node.js modules",
+        "Avoids Node.js APIs like fs, path, and child_process which are unavailable in V8 isolates",
+        "Implements token verification using crypto.subtle.importKey with HMAC SHA-256 algorithm",
+        "Keeps bundle size under 1MB compressed for fast cold starts under 1 millisecond",
+        "Uses geo-based routing with request.cf.country for region-specific redirects"
+      ]
+    },
+    {
+      "id": "event-messaging",
+      "rule": "event-messaging",
+      "query": "Implement a transactional outbox pattern for reliable event publishing in our order service.",
+      "expectedBehavior": [
+        "Writes business data and outbox event in the same database transaction for atomicity",
+        "Implements a separate outbox publisher process that polls for unsent events",
+        "Uses SKIP LOCKED for safe concurrent outbox worker processing without blocking",
+        "Requires all message consumers to be idempotent using event ID deduplication",
+        "Includes saga orchestration with compensating actions for multi-step workflows"
+      ]
+    },
+    {
+      "id": "event-sourcing",
+      "rule": "event-sourcing",
+      "query": "Implement event sourcing with CQRS for our financial transaction system with full audit trail.",
+      "expectedBehavior": [
+        "Stores state changes as immutable domain events named in past tense like MoneyDeposited",
+        "Uses optimistic concurrency with version checks to prevent conflicting event writes",
+        "Implements separate CQRS read model projections for query-optimized data access",
+        "Recommends snapshotting every N events to avoid replaying long event streams on load",
+        "Uses compensating events instead of deleting events to maintain immutable event history"
       ]
     }
   ]

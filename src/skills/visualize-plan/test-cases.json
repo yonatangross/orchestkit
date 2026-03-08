@@ -33,6 +33,17 @@
         "Directly edits the file since this is a trivial single-line fix",
         "No plan visualization, risk analysis, or impact assessment generated"
       ]
+    },
+    {
+      "id": "section-rendering",
+      "rule": "section-rendering",
+      "query": "How should sections be rendered in a plan visualization for consistency?",
+      "expectedBehavior": [
+        "Ensures every section answers exactly one reviewer question and cuts content that does not",
+        "Uses analyze-impact.sh scripts for precise file and line counts rather than estimates",
+        "Applies annotations carrying judgment: exclamation marks for risk and asterisks for new items",
+        "Requires a mandatory one-line summary at the end of every rendered visualization section"
+      ]
     }
   ]
 }

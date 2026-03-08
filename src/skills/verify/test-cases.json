@@ -45,6 +45,28 @@
         "Provides simple pass/fail verdict without detailed scoring breakdown",
         "Completes quickly compared to full verification"
       ]
+    },
+    {
+      "id": "evidence-collection",
+      "rule": "evidence-collection",
+      "query": "How does the verify skill collect evidence for scoring code quality?",
+      "expectedBehavior": [
+        "Runs git diff and git log commands in parallel in one message for context gathering",
+        "Executes backend and frontend test suites in parallel with coverage reporting enabled",
+        "Uses --cov=app and --cov-report=json for machine-readable coverage data collection",
+        "Gathers evidence from multiple sources before producing any quality scores or grades"
+      ]
+    },
+    {
+      "id": "scoring-rubric",
+      "rule": "scoring-rubric",
+      "query": "What scoring scale does the verify skill use and what grades mean merge-ready?",
+      "expectedBehavior": [
+        "Uses 0 to 10 scale with decimals for nuanced scoring rather than binary pass or fail",
+        "Grades A (9-10) and B (7-8.9) are READY FOR MERGE while D and F are BLOCKED",
+        "Calculates composite score as weighted sum across multiple quality dimensions",
+        "Prioritizes improvements by impact divided by effort ratio to focus on high-value fixes"
+      ]
     }
   ]
 }

@@ -111,6 +111,28 @@
         "Requires 90%+ for business logic modules containing critical domain operations",
         "Shows coverage commands for pytest and vitest"
       ]
+    },
+    {
+      "id": "right-sizing-decision",
+      "rule": "right-sizing-decision",
+      "query": "I'm building an MVP with 0 users. Should I implement a full repository pattern with dependency injection?",
+      "expectedBehavior": [
+        "Detects project tier as MVP and recommends simple ORM with models near routes",
+        "Warns against abstract repository protocols and Unit of Work pattern for early-stage projects",
+        "Recommends managed auth like Supabase or Auth0 instead of custom JWT implementation for MVP",
+        "Right-sizes the architecture complexity to match the actual project scope and user count"
+      ]
+    },
+    {
+      "id": "right-sizing-tiers",
+      "rule": "right-sizing-tiers",
+      "query": "What level of architecture complexity is appropriate for a take-home interview project versus a production system?",
+      "expectedBehavior": [
+        "Defines four tiers from interview through MVP, production, and enterprise with specific recommendations",
+        "Recommends raw SQL or SQLModel for interview projects and full repository for enterprise scale",
+        "Matches authentication approach to tier: managed auth for MVP, custom JWT for production systems",
+        "Prevents over-engineering by mapping each architectural decision to the appropriate project tier"
+      ]
     }
   ]
 }

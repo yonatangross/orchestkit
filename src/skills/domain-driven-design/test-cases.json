@@ -37,6 +37,39 @@
         "Claude avoids DDD ceremony (aggregates, repositories, domain events) for this trivial domain",
         "Claude may suggest a straightforward SQLAlchemy or Django model instead"
       ]
+    },
+    {
+      "id": "aggregate-boundaries",
+      "rule": "aggregate-boundaries",
+      "query": "How do I define the aggregate root boundary for an Order with LineItems and ensure transactional consistency?",
+      "expectedBehavior": [
+        "Makes Order the aggregate root that controls all access to LineItems as children",
+        "Enforces one aggregate per transaction rule to maintain consistency boundaries",
+        "References other aggregates by ID only and never holds direct object references across boundaries",
+        "Ensures the root entity enforces all business rules before allowing state changes"
+      ]
+    },
+    {
+      "id": "aggregate-invariants",
+      "rule": "aggregate-invariants",
+      "query": "My Order aggregate needs to enforce a maximum of 100 items and validate currency consistency. Where do these checks go?",
+      "expectedBehavior": [
+        "Places invariant enforcement inside the aggregate root on every mutation method",
+        "Raises domain exceptions when business rules are violated before state transition occurs",
+        "Validates the 100-item maximum and currency consistency within the aggregate boundary",
+        "Warns that unenforced invariants allow invalid domain state that propagates silently through the system"
+      ]
+    },
+    {
+      "id": "aggregate-sizing",
+      "rule": "aggregate-sizing",
+      "query": "Our Order aggregate loads thousands of line items and is causing performance issues with lock contention",
+      "expectedBehavior": [
+        "Recommends splitting aggregates when child collections grow beyond 100 items",
+        "Uses reference by ID pattern for large collections instead of loading all children",
+        "Identifies different change rates as a signal to split into separate smaller aggregates",
+        "Never allows unbounded collections within a single aggregate boundary"
+      ]
     }
   ]
 }

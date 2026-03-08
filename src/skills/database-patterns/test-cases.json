@@ -100,6 +100,39 @@
         "Configures environment-specific settings (timeouts, locks) for safe production migration execution",
         "Follows local -> CI -> staging -> production flow"
       ]
+    },
+    {
+      "id": "db-selection",
+      "rule": "db-selection",
+      "query": "Should I use MongoDB or PostgreSQL for our new microservice? The data is mostly JSON documents.",
+      "expectedBehavior": [
+        "Defaults to PostgreSQL unless there is a specific validated reason to choose otherwise",
+        "Recommends PostgreSQL JSONB for JSON document workloads covering 90 percent of MongoDB use cases",
+        "Evaluates based on project tier from interview through enterprise scale for appropriate tooling",
+        "Warns against choosing MongoDB because it is trendy without benchmarking against PostgreSQL JSONB"
+      ]
+    },
+    {
+      "id": "migration-rollback",
+      "rule": "migration-rollback",
+      "query": "How do I set up automated rollback for database migrations in case something goes wrong?",
+      "expectedBehavior": [
+        "Recommends pgroll for automated dual-schema versioning with built-in rollback capability",
+        "Monitors pg_stat_activity for long-running queries and locks during migration execution",
+        "Checks replication lag on replicas before completing the migration with pgroll complete",
+        "Follows environment order local to CI to staging to production and never skips stages"
+      ]
+    },
+    {
+      "id": "migration-zero-downtime",
+      "rule": "migration-zero-downtime",
+      "query": "I need to rename a column in our production database without any downtime. How do I do this safely?",
+      "expectedBehavior": [
+        "Uses expand-contract pattern: add new column, migrate data, remove old column in separate phases",
+        "Never uses ALTER TABLE RENAME COLUMN directly as it locks the table during metadata change",
+        "Creates indexes with CONCURRENTLY to avoid locking tables during index creation on large tables",
+        "Adds constraints with NOT VALID first then validates separately to avoid blocking writes"
+      ]
     }
   ]
 }

@@ -100,6 +100,17 @@
         "Analyzes difficulty distribution against configured minimum thresholds per level",
         "Reports coverage gaps and generates actionable recommendations"
       ]
+    },
+    {
+      "id": "curation-add-workflow",
+      "rule": "curation-add-workflow",
+      "query": "Walk me through the complete workflow for adding a new document to the golden dataset",
+      "expectedBehavior": [
+        "Follows the structured add workflow from content identification through quality validation",
+        "Classifies the document content type and applies quality thresholds before acceptance",
+        "Checks for duplicate content against existing entries using URL and semantic similarity",
+        "Requires minimum domain tags and test queries before the document is accepted into the dataset"
+      ]
     }
   ]
 }

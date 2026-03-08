@@ -11,7 +11,7 @@
         "Access token expires in 15 minutes",
         "Refresh token stored in HTTPOnly cookie",
         "Hardcodes algorithm (HS256), never reads from header",
-        "Validates required claims (exp, iat, sub)"
+        "Uses options require to verify token payload includes expected fields"
       ]
     },
     {
@@ -170,6 +170,39 @@
         "Replaces PII with typed tokens like [REDACTED_EMAIL]",
         "Applies to both input and output traces",
         "Supports reversible anonymization with LLM Guard Vault"
+      ]
+    },
+    {
+      "id": "scanning",
+      "rule": "scanning",
+      "query": "Set up a comprehensive security scanning pipeline for our CI with dependency auditing, secret detection, and SAST",
+      "expectedBehavior": [
+        "Runs npm audit or pip-audit with JSON output and blocks deployment on critical or high findings",
+        "Uses TruffleHog for git history scanning and Gitleaks for fast pre-commit secret detection",
+        "Configures Semgrep with auto config for broad OWASP coverage across multiple languages",
+        "Implements multi-layer defense with scanning in both pre-commit hooks and CI pipeline"
+      ]
+    },
+    {
+      "id": "guardrails-llm-validation",
+      "rule": "guardrails-llm-validation",
+      "query": "How do I red-team our LLM chatbot before launch to test for prompt injection and jailbreaking?",
+      "expectedBehavior": [
+        "Uses DeepTeam red_team function with vulnerability categories including prompt injection and jailbreaking",
+        "Tests multi-turn jailbreaking attacks using GOAT-style conversation manipulation techniques",
+        "Maps vulnerabilities to OWASP Top 10 for LLMs including LLM01 Prompt Injection and LLM06 Sensitive Info",
+        "Recommends pre-release and quarterly red-teaming frequency for ongoing security validation"
+      ]
+    },
+    {
+      "id": "guardrails-nemo",
+      "rule": "guardrails-nemo",
+      "query": "Deploy NeMo Guardrails with toxicity filtering and PII detection for our production LLM app",
+      "expectedBehavior": [
+        "Configures NeMo rails with both input and output flow validation for defense in depth",
+        "Integrates Guardrails AI validators for toxicity, PII detection, and topic restriction",
+        "Uses Colang 2.0 for programmable fact-checking rails on RAG responses",
+        "Always validates both input and output rather than relying on a single validation layer"
       ]
     }
   ]

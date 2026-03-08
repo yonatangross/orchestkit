@@ -9,7 +9,7 @@
       "expectedBehavior": [
         "Launches 4 parallel exploration agents (structure, data flow, backend, frontend)",
         "Includes code health assessment with 0-10 scoring across 5 dimensions",
-        "Maps dependency hotspots with coupling scores",
+        "Spawns backend-system-architect subagent to analyze architecture patterns and integrations",
         "Generates structured exploration report with file locations and architecture"
       ]
     },
@@ -42,8 +42,56 @@
       "expectedBehavior": [
         "Focuses backend-system-architect agent on pattern analysis",
         "Identifies architectural patterns and integrations used across the backend codebase",
-        "Reports on dependency graph and coupling",
+        "Reports on dependencies and integrations found by the backend explorer agent",
         "Checks memory for prior architecture decisions"
+      ]
+    },
+    {
+      "id": "agent-teams-mode",
+      "rule": "agent-teams-mode",
+      "query": "Explore the payment system using agent teams with coordinated discovery sharing between explorers.",
+      "expectedBehavior": [
+        "Creates an exploration team using TeamCreate with a descriptive team name",
+        "Launches multiple named agents with team_name for coordinated parallel exploration",
+        "Agents share discoveries in real-time by messaging each other with found entry points",
+        "Sends shutdown_request messages to all agents after report generation is complete",
+        "Falls back to standard Task tool spawns if team formation fails"
+      ]
+    },
+    {
+      "id": "code-health-assessment",
+      "rule": "code-health-assessment",
+      "query": "Assess the code health of the authentication module and give me scores across quality dimensions.",
+      "expectedBehavior": [
+        "Rates code quality 0-10 across five dimensions: readability, maintainability, testability, complexity, and documentation",
+        "Produces structured JSON output with overall_score, dimensions, hotspots, and recommendations",
+        "Identifies specific file and line hotspots like deeply nested conditionals or oversized functions",
+        "Uses code-quality-reviewer subagent type for the assessment with background execution",
+        "Ends with a summary line showing overall score and strongest and weakest dimensions"
+      ]
+    },
+    {
+      "id": "dependency-hotspot-analysis",
+      "rule": "dependency-hotspot-analysis",
+      "query": "Analyze the coupling and dependency hotspots in the database access layer of this codebase.",
+      "expectedBehavior": [
+        "Calculates coupling score 0-10 with fan-in and fan-out dependency counts",
+        "Identifies circular dependencies between modules and flags them for resolution",
+        "Maps change impact blast radius showing which files break when the target changes",
+        "Produces an ASCII hotspot diagram visualizing dependency relationships between modules",
+        "Uses backend-system-architect subagent type for the dependency analysis"
+      ]
+    },
+    {
+      "id": "product-perspective",
+      "rule": "product-perspective",
+      "query": "Analyze the notification system from a product perspective including business context and findability.",
+      "expectedBehavior": [
+        "Identifies the business purpose and primary user types for the explored code",
+        "Suggests better naming and documentation entry points for improved discoverability",
+        "Lists documentation gaps and tribal knowledge that should be written down",
+        "Provides search keywords and alternative terms to help developers find the code",
+        "Uses product-strategist subagent type to analyze from a business viewpoint"
       ]
     }
   ]

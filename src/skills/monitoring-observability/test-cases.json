@@ -100,6 +100,39 @@
         "Avoids anti-patterns like static thresholds without context",
         "Triggers evaluation only when drift AND quality drop confirmed"
       ]
+    },
+    {
+      "id": "silent-alerting",
+      "rule": "silent-alerting",
+      "query": "Our agents sometimes return wrong results without any errors. How do I detect these silent failures?",
+      "expectedBehavior": [
+        "Implements statistical baseline anomaly detection using z-score or similar statistical methods",
+        "Detects failures that produce no errors but deliver incorrect or degraded results",
+        "Uses historical baselines to identify when output metrics deviate from normal distribution",
+        "Goes beyond exception-based alerting to catch silent degradation that error handlers miss"
+      ]
+    },
+    {
+      "id": "silent-degraded-quality",
+      "rule": "silent-degraded-quality",
+      "query": "How do I detect when my LLM agent starts producing gibberish or repetitive output that passes basic checks?",
+      "expectedBehavior": [
+        "Uses heuristic pre-filters for cheap fast detection of obviously degraded output quality",
+        "Applies LLM-as-judge evaluation for nuanced quality scoring beyond simple length checks",
+        "Integrates with Langfuse observe decorator for quality check trace logging and monitoring",
+        "Catches outputs that pass basic emptiness checks but contain gibberish or repetitive content"
+      ]
+    },
+    {
+      "id": "silent-tool-skipping",
+      "rule": "silent-tool-skipping",
+      "query": "Our agent sometimes fabricates answers from training data instead of using the search tool. How do I catch this?",
+      "expectedBehavior": [
+        "Validates tool usage against expected tool call patterns for each query type",
+        "Detects when agents skip expected tool calls and produce plausible but wrong results",
+        "Uses Langfuse trace analysis to compare actual tool invocations against expected patterns",
+        "Flags results produced without required tool calls as potentially fabricated from training data"
+      ]
     }
   ]
 }

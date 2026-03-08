@@ -1,0 +1,49 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "remember",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "basic-orkremember-success-category-database",
+      "query": "/ork:remember --success --category database We chose PostgreSQL with pgvector for RAG because it avoids a separate vector DB dependency",
+      "expected_behavior": [
+        "Claude parses flags: outcome=success, category=database from the command arguments",
+        "Extracts entities: PostgreSQL (Technology), pgvector (Technology), RAG (Technology)",
+        "Detects relationship patterns: project USES pgvector, pgvector USED_FOR RAG",
+        "Calls mcp__memory__create_entities with extracted entities and observations",
+        "Calls mcp__memory__create_relations with detected relationships between extracted entities",
+        "Searches for duplicates via mcp__memory__search_nodes before creating",
+        "Confirms storage with SUCCESS label and graph entity/relation counts"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "edge-orkremember-failed-offset-pagination",
+      "query": "/ork:remember --failed Offset pagination caused timeouts on tables with 1M+ rows. Should have used cursor-based pagination instead.",
+      "expected_behavior": [
+        "Claude parses flags: outcome=failed from the command arguments",
+        "Auto-detects category as pagination from keywords",
+        "Creates entity with AntiPattern type for offset-pagination",
+        "Extracts lesson from 'should have used' pattern: use cursor-based pagination",
+        "Confirms storage with ANTI-PATTERN label and extracted lesson"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "negative-search-the-knowledge-graph",
+      "query": "Search the knowledge graph for all decisions related to authentication",
+      "expected_behavior": [
+        "Claude does NOT invoke the remember skill (remember is write-side only)",
+        "Routes to the memory skill for search/read operations instead",
+        "Calls mcp__memory__search_nodes via the memory skill, not remember"
+      ],
+      "tags": [
+        "negative"
+      ]
+    }
+  ]
+}

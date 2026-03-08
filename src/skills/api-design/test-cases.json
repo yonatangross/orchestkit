@@ -100,6 +100,94 @@
         "Shows Python and TypeScript client handling examples",
         "Includes specific exception subclasses for each problem type"
       ]
+    },
+    {
+      "id": "graphql-schema",
+      "rule": "graphql-schema",
+      "query": "Set up a GraphQL API with Strawberry and FastAPI that has authentication, authorization, and real-time subscriptions for user updates",
+      "expectedBehavior": [
+        "Uses Strawberry permission classes like IsAuthenticated for field-level authorization",
+        "Integrates with FastAPI via GraphQLRouter with a context getter for dependency injection",
+        "Implements subscriptions with Redis PubSub for horizontal scaling of real-time updates",
+        "Uses opaque strawberry.ID instead of exposing internal auto-increment integer IDs"
+      ]
+    },
+    {
+      "id": "graphql-strawberry",
+      "rule": "graphql-strawberry",
+      "query": "My GraphQL resolvers are making N+1 database queries when fetching posts with their authors. How do I fix this with Strawberry?",
+      "expectedBehavior": [
+        "Uses DataLoader with batch_load function to batch nested resolver database queries",
+        "Defines code-first types with strawberry.type decorator for type-safe schema generation",
+        "Uses Private field annotation to hide sensitive data like password hashes from schema",
+        "Implements union types for mutation error handling with success and error result variants"
+      ]
+    },
+    {
+      "id": "grpc-service",
+      "rule": "grpc-service",
+      "query": "I need to set up gRPC for internal microservice communication between our user service and order service with proper error handling",
+      "expectedBehavior": [
+        "Defines protobuf service with proto3 syntax including message types and enums",
+        "Implements async server servicer with context.abort for proper gRPC error codes",
+        "Configures client with keepalive options and timeout on every call",
+        "Maps gRPC status codes like NOT_FOUND and INVALID_ARGUMENT to domain exceptions"
+      ]
+    },
+    {
+      "id": "grpc-streaming",
+      "rule": "grpc-streaming",
+      "query": "Add server streaming and bidirectional streaming to my gRPC service with authentication interceptors and retry logic",
+      "expectedBehavior": [
+        "Checks context.is_active before yielding each item in server streaming responses",
+        "Implements auth interceptor with metadata extraction and public method allowlist",
+        "Uses client retry interceptor with exponential backoff for UNAVAILABLE and DEADLINE_EXCEEDED",
+        "Supports bidirectional streaming with async request iterator processing"
+      ]
+    },
+    {
+      "id": "messaging-integrations",
+      "rule": "messaging-integrations",
+      "query": "I need to integrate WhatsApp and Telegram messaging into our platform with webhook endpoints. How do I handle webhook security and message delivery?",
+      "expectedBehavior": [
+        "Verifies webhook signatures before processing any incoming messages from platforms",
+        "Acknowledges webhook immediately with 200 OK and processes messages asynchronously via queue",
+        "Stores message IDs and deduplicates on retry to prevent duplicate message processing",
+        "Rate-limits outgoing messages according to each platform's specific rate limits"
+      ]
+    },
+    {
+      "id": "payload-cms",
+      "rule": "payload-cms",
+      "query": "Set up Payload CMS 3.0 collections for a blog with proper access control and content management in our Next.js project",
+      "expectedBehavior": [
+        "Defines collection config with role-based access control functions for read create update delete",
+        "Sets overrideAccess to false in API routes serving user requests to enforce access control",
+        "Keeps hooks thin for validation and transformation only and delegates logic to services",
+        "Uses S3-compatible storage adapter for file uploads instead of storing files in database"
+      ]
+    },
+    {
+      "id": "streaming-sse",
+      "rule": "streaming-sse",
+      "query": "Create a Next.js SSE endpoint for streaming LLM token responses to the browser with keepalive and reconnection support",
+      "expectedBehavior": [
+        "Sets Content-Type to text/event-stream with Cache-Control no-cache headers",
+        "Implements keepalive comment every thirty seconds to prevent connection timeout",
+        "Handles client disconnect via abort signal to clean up resources properly",
+        "Builds reconnecting client with exponential backoff from one second to thirty seconds maximum"
+      ]
+    },
+    {
+      "id": "streaming-websocket",
+      "rule": "streaming-websocket",
+      "query": "Implement a WebSocket server for real-time chat with heartbeat, message validation, and proper async generator cleanup for LLM streaming",
+      "expectedBehavior": [
+        "Implements heartbeat ping every thirty seconds and clears interval on connection close",
+        "Validates message structure before broadcasting to prevent raw unvalidated data relay",
+        "Uses aclosing context manager for guaranteed async generator cleanup on external streams",
+        "Broadcasts only to other connected clients with readyState check before sending"
+      ]
     }
   ]
 }
