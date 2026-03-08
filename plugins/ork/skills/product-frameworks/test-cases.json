@@ -8,9 +8,9 @@
       "query": "Calculate the ROI for a $500K software investment with $200K annual benefits over 5 years",
       "expectedBehavior": [
         "Uses ROI formula: (Net Benefits - Total Costs) / Total Costs x 100%",
-        "Calculates NPV with discount rate",
-        "Provides IRR and payback period",
-        "Includes Python code examples"
+        "Calculates net present value using an appropriate discount rate for the investment",
+        "Provides internal rate of return and payback period calculations",
+        "Includes Python code examples for automating the financial calculations"
       ]
     },
     {
@@ -18,10 +18,10 @@
       "rule": "business-cost-benefit",
       "query": "Compare build vs buy for an authentication system",
       "expectedBehavior": [
-        "Creates 3-year TCO comparison table",
+        "Creates a 3-year total cost of ownership comparison table for each option",
         "Includes hidden costs (opportunity cost, switching costs)",
-        "Provides sensitivity analysis with scenarios",
-        "Uses business case template structure"
+        "Provides sensitivity analysis with best-case, worst-case, and expected scenarios",
+        "Uses a structured business case template with executive summary and recommendation"
       ]
     },
     {
@@ -32,7 +32,7 @@
         "Uses both top-down and bottom-up TAM calculation",
         "Applies SAM filters (geography, segment, use case)",
         "Calculates realistic SOM with competitive constraints",
-        "Cross-references methods and reconciles"
+        "Cross-references top-down and bottom-up methods and reconciles any discrepancies"
       ]
     },
     {
@@ -40,10 +40,10 @@
       "rule": "market-competitive",
       "query": "Analyze the competitive landscape for a project management SaaS",
       "expectedBehavior": [
-        "Applies Porter's Five Forces framework",
+        "Applies Porter's Five Forces framework to assess industry competitive dynamics",
         "Creates SWOT analysis with TOWS matrix",
-        "Builds competitive positioning map",
-        "Includes competitor profile template"
+        "Builds a competitive positioning map plotting rivals on key differentiating axes",
+        "Includes a competitor profile template with strengths, weaknesses, and market share"
       ]
     },
     {
@@ -54,7 +54,7 @@
         "Maps customer jobs (functional, social, emotional)",
         "Identifies pains and gains with ranking",
         "Creates value map with pain relievers and gain creators",
-        "Assesses problem-solution fit"
+        "Assesses problem-solution fit by mapping pains and gains to product capabilities"
       ]
     },
     {
@@ -62,10 +62,10 @@
       "rule": "strategy-go-no-go",
       "query": "Should we proceed with building an AI-powered search feature?",
       "expectedBehavior": [
-        "Uses stage gate criteria checklist",
-        "Applies weighted scoring template",
+        "Uses a stage gate criteria checklist to evaluate readiness at each milestone",
+        "Applies a weighted scoring template covering feasibility, viability, and desirability",
         "Provides decision thresholds (Go >= 7.0, No-Go < 5.0)",
-        "Includes build/buy/partner evaluation"
+        "Includes a build, buy, or partner evaluation matrix with cost and risk tradeoffs"
       ]
     },
     {
@@ -75,8 +75,8 @@
       "expectedBehavior": [
         "Scores each feature with Reach, Impact, Confidence, Effort",
         "Calculates RICE score for each feature",
-        "Ranks features by score",
-        "Documents scoring rationale"
+        "Ranks features by calculated RICE score from highest to lowest priority",
+        "Documents the scoring rationale with justification for each factor assignment"
       ]
     },
     {
@@ -87,7 +87,7 @@
         "Calculates Cost of Delay (User Value + Time Criticality + Risk Reduction)",
         "Divides by Job Size for WSJF score",
         "Identifies time-sensitive items for higher priority",
-        "Includes MoSCoW categorization"
+        "Includes MoSCoW categorization to distinguish must-have from nice-to-have items"
       ]
     },
     {
@@ -95,7 +95,7 @@
       "rule": "metrics-okr",
       "query": "Write OKRs for a team focused on improving customer retention",
       "expectedBehavior": [
-        "Creates qualitative, inspiring objectives",
+        "Creates qualitative and inspiring objectives that motivate the team toward outcomes",
         "Defines quantitative key results with baselines and targets",
         "Key results are outcome-focused, not output-focused",
         "Targets are stretch goals (70% achievable)"
@@ -106,8 +106,8 @@
       "rule": "metrics-kpi-trees",
       "query": "Build a KPI tree for tracking SaaS revenue growth",
       "expectedBehavior": [
-        "Creates hierarchical metric breakdown",
-        "Shows cause-effect relationships",
+        "Creates a hierarchical metric breakdown showing how sub-metrics roll up to top-level goals",
+        "Shows cause-effect relationships between leading input metrics and lagging outcomes",
         "Identifies North Star metric with input metrics",
         "Covers new revenue, expansion, and retention branches"
       ]
@@ -117,8 +117,8 @@
       "rule": "metrics-leading-lagging",
       "query": "Set up a balanced metrics dashboard for a product team",
       "expectedBehavior": [
-        "Distinguishes leading from lagging indicators",
-        "Shows the leading-lagging chain",
+        "Distinguishes leading from lagging indicators and explains their predictive relationship",
+        "Shows the leading-to-lagging chain that connects team actions to business outcomes",
         "Sets appropriate review cadences (weekly for leading, monthly for lagging)",
         "Pairs actionable metrics with result metrics"
       ]
@@ -130,8 +130,8 @@
       "expectedBehavior": [
         "Uses metric definition template with formula",
         "Identifies data source, table, and owner",
-        "Defines segments and historical context",
-        "Sets alerting thresholds"
+        "Defines metric segments and historical context for meaningful trend analysis",
+        "Sets alerting thresholds with warning and critical levels based on historical baselines"
       ]
     },
     {
@@ -140,7 +140,7 @@
       "query": "Create a user persona for a DevOps engineer using our CI/CD platform",
       "expectedBehavior": [
         "Includes demographics, goals, pain points, behaviors",
-        "Adds characteristic quote capturing mindset",
+        "Adds a characteristic quote that captures the persona's mindset and priorities",
         "Provides key insight for design decisions",
         "Creates empathy map for specific scenario"
       ]
@@ -150,10 +150,10 @@
       "rule": "research-journey-mapping",
       "query": "Map the customer journey for onboarding new enterprise users",
       "expectedBehavior": [
-        "Defines 5-7 journey stages",
+        "Defines five to seven journey stages from initial awareness through post-purchase",
         "Maps actions, thoughts, emotions per stage",
-        "Identifies pain points and opportunities",
-        "Includes touchpoints and emotional curve"
+        "Identifies key pain points and improvement opportunities at each journey stage",
+        "Includes channel touchpoints and an emotional curve tracking user sentiment across stages"
       ]
     },
     {
@@ -172,7 +172,7 @@
       "rule": "research-requirements-prd",
       "query": "Write a PRD for a new notification system feature",
       "expectedBehavior": [
-        "Follows PRD template structure",
+        "Follows a standard PRD template structure with problem statement and scope",
         "Includes user stories with INVEST criteria",
         "Writes acceptance criteria in Given-When-Then format",
         "Defines non-functional requirements and success metrics"

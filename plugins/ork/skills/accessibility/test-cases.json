@@ -29,10 +29,10 @@
       "rule": "wcag-testing",
       "query": "Add accessibility testing to a React application",
       "expectedBehavior": [
-        "Includes jest-axe for component-level testing",
+        "Includes jest-axe for automated component-level accessibility testing",
         "Includes Playwright axe-core for page-level scanning",
-        "Tests keyboard navigation programmatically",
-        "Includes screen reader testing checklist"
+        "Tests keyboard navigation programmatically using automated focus tracking assertions",
+        "Includes screen reader testing checklist covering NVDA and VoiceOver"
       ]
     },
     {
@@ -43,7 +43,7 @@
         "Focus is trapped within modal using Tab/Shift+Tab wrapping",
         "First focusable element receives focus on open",
         "Escape key closes modal and releases trap",
-        "Uses role=dialog and aria-modal=true"
+        "Uses role=dialog and aria-modal=true for proper screen reader semantics"
       ]
     },
     {
@@ -63,7 +63,7 @@
       "query": "Add keyboard navigation to a toolbar component",
       "expectedBehavior": [
         "Uses roving tabindex pattern (active=0, others=-1)",
-        "Arrow keys navigate between items",
+        "Arrow keys navigate between toolbar items with wrapping behavior",
         "Home/End keys jump to first/last item",
         "Includes skip link for bypassing navigation"
       ]
@@ -76,7 +76,7 @@
         "Uses useButton hook instead of div+onClick",
         "Includes useFocusRing for keyboard focus indicator",
         "Uses mergeProps to combine props safely",
-        "Supports onPress for click/tap/Enter/Space"
+        "Supports onPress handler for unified click/tap/Enter/Space interactions"
       ]
     },
     {
@@ -87,7 +87,7 @@
         "Uses useComboBox + useComboBoxState from React Aria",
         "Label properly associated with input via labelProps",
         "Arrow keys navigate options, Enter selects",
-        "Uses useFilter for type-ahead filtering"
+        "Uses useFilter hook for locale-aware type-ahead filtering"
       ]
     },
     {
@@ -95,9 +95,9 @@
       "rule": "aria-overlays",
       "query": "Build a modal dialog with React Aria overlay hooks",
       "expectedBehavior": [
-        "Uses useDialog + useModalOverlay hooks",
+        "Uses useDialog + useModalOverlay hooks for accessible dialog behavior",
         "Wrapped in FocusScope with contain, restoreFocus, autoFocus",
-        "Uses useOverlayTriggerState for open/close state",
+        "Uses useOverlayTriggerState for managing open/close toggle state",
         "Escape key closes, click outside dismisses if isDismissable"
       ]
     }

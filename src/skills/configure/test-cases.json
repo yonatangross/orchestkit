@@ -8,12 +8,12 @@
       "query": "/ork:configure",
       "expectedBehavior": [
         "Presents preset selection (Complete, Standard, Lite, Hooks-only, Monorepo)",
-        "Walks through skill category customization",
+        "Walks through skill category customization allowing users to enable or disable groups",
         "Offers agent selection (Product and Technical agents)",
         "Configures hook toggles with safety hooks always on",
-        "Offers MCP server configuration",
+        "Offers MCP server configuration options for external tool integrations",
         "Presents CC version-specific settings (2.1.7, 2.1.20, 2.1.23)",
-        "Saves configuration to ~/.claude/plugins/orchestkit/config.json"
+        "Saves the final configuration to ~/.claude/plugins/orchestkit/config.json on disk"
       ]
     },
     {
@@ -24,7 +24,7 @@
         "Applies the Lite preset directly (10 essential skills, no agents, 92 hooks)",
         "Skips full preset selection since preset was provided as argument",
         "Still offers customization of hooks and MCP settings",
-        "Respects argument-hint for preset-name"
+        "Respects argument-hint for preset-name provided in the invocation command"
       ]
     },
     {

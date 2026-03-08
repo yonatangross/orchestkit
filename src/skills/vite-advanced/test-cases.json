@@ -23,7 +23,7 @@
         "Provides advancedChunks config with priority, minSize, maxSize, and minShareCount fields",
         "Mentions the rolldown-vite gradual migration path as an option",
         "References performance benchmarks (7.7x build speed improvement)",
-        "Includes the migration checklist items"
+        "Includes the migration checklist items for verifying a complete upgrade"
       ]
     },
     {

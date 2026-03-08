@@ -8,8 +8,8 @@
       "query": "Commit my authentication changes with a proper message",
       "expectedBehavior": [
         "Uses conventional commit format: type(scope): description",
-        "Includes Co-Authored-By trailer",
-        "Subject line under 72 characters",
+        "Includes Co-Authored-By trailer in the commit message footer",
+        "Keeps subject line under 72 characters for readability",
         "References issue number with # prefix"
       ]
     },
@@ -29,7 +29,7 @@
       "rule": "commit-splitting",
       "query": "I have changes to the database schema and the UI, how should I commit?",
       "expectedBehavior": [
-        "Recommends splitting into separate commits",
+        "Recommends splitting unrelated changes into separate atomic commits",
         "Suggests using git add -p for interactive staging",
         "Separates unrelated changes into distinct commits",
         "Reviews staged vs unstaged changes with git diff"
@@ -41,8 +41,8 @@
       "query": "Fix a typo in the error message",
       "expectedBehavior": [
         "Uses quick commit pattern for trivial changes",
-        "Uses fix type prefix",
-        "Includes Co-Authored-By trailer",
+        "Uses fix type prefix for the conventional commit format",
+        "Includes Co-Authored-By trailer appended to commit metadata",
         "Does not spawn agents for simple changes"
       ]
     },
@@ -51,10 +51,10 @@
       "rule": "atomic-commit",
       "query": "Commit directly to main branch",
       "expectedBehavior": [
-        "Checks current branch before committing",
+        "Checks current branch before committing to prevent accidental pushes",
         "Refuses to commit to main or dev branches",
         "Suggests creating a feature branch first",
-        "Uses issue/<number>-<description> naming convention"
+        "Uses issue/<number>-<description> branch naming convention for traceability"
       ]
     }
   ]

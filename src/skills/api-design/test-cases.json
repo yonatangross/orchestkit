@@ -19,8 +19,8 @@
       "query": "Structure API endpoints for nested resources with filtering",
       "expectedBehavior": [
         "Uses hierarchical URLs for relationships (/users/123/orders)",
-        "Implements query parameter filtering (?status=active)",
-        "Supports sort parameter (?sort=-created_at)",
+        "Implements query parameter filtering for resource collections (?status=active)",
+        "Supports sort parameter for ordering results (?sort=-created_at)",
         "Provides field selection for partial responses (?fields=id,name)"
       ]
     },
@@ -51,7 +51,7 @@
       "rule": "versioning-header",
       "query": "Implement header-based API versioning",
       "expectedBehavior": [
-        "Extracts version from X-API-Version header",
+        "Extracts version from X-API-Version header on incoming requests",
         "Validates version against supported versions set",
         "Defaults to latest stable version when header absent",
         "Shows content negotiation alternative with Accept header"
@@ -74,7 +74,7 @@
       "query": "Implement RFC 9457 Problem Details for API errors",
       "expectedBehavior": [
         "Creates ProblemException base class with type, title, status, detail, instance",
-        "Returns application/problem+json media type",
+        "Returns application/problem+json media type in the Content-Type response header",
         "Supports extension members for additional context",
         "Registers FastAPI exception handler for ProblemException"
       ]

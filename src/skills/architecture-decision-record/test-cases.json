@@ -10,9 +10,9 @@
         "Creates ADR following Nygard template with numbered title (ADR-NNNN)",
         "Includes Context section with problem statement and constraints",
         "Documents Decision with specific actionable language",
-        "Lists Consequences (positive, negative, neutral)",
+        "Lists Consequences categorized as positive, negative, and neutral outcomes",
         "Documents at least 2 Alternatives Considered with rationale for rejection",
-        "Sets Status to Proposed"
+        "Sets Status to Proposed indicating the decision awaits approval"
       ]
     },
     {

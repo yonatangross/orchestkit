@@ -9,7 +9,7 @@
       "expectedBehavior": [
         "Uses 5 Whys iterative causal analysis",
         "Forms hypotheses with confidence scores (0-100%)",
-        "Launches 5 parallel RCA agents",
+        "Launches 5 parallel RCA agents to investigate different failure hypotheses",
         "Creates regression test BEFORE implementing fix",
         "Creates feature branch, never commits to main/dev"
       ]
@@ -41,7 +41,7 @@
       "rule": null,
       "query": "Add a new dashboard widget for analytics",
       "expectedBehavior": [
-        "Does NOT trigger fix-issue workflow",
+        "Does NOT trigger fix-issue workflow since this is a feature request",
         "Recognizes this is a feature request, not a bug",
         "Suggests using the implement skill instead"
       ]

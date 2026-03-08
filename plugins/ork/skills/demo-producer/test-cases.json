@@ -10,9 +10,9 @@
         "Detects content type as skill demo",
         "Asks format preference (horizontal 16:9 for YouTube)",
         "Asks style preference (Quick Demo, Standard Demo, Tutorial, Cinematic, Scrapbook)",
-        "Asks audio preferences",
+        "Asks audio preferences for background music and voiceover options",
         "Reads the explore SKILL.md to extract phases and capabilities",
-        "Generates VHS terminal recording script",
+        "Generates VHS terminal recording script with typed commands and expected output",
         "Produces Remotion composition with appropriate template"
       ]
     },

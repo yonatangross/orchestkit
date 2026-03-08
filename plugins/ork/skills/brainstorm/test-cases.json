@@ -8,7 +8,7 @@
       "query": "Brainstorm how we should design the notification system for our app.",
       "expectedBehavior": [
         "Detects project tier via codebase scanning before starting",
-        "Clarifies brainstorming constraints with AskUserQuestion",
+        "Clarifies brainstorming constraints with AskUserQuestion before generating ideas",
         "Creates TaskCreate with subtasks for all seven phases",
         "Selects 3-5 relevant agents dynamically based on topic keywords",
         "Generates 10+ divergent ideas before filtering",

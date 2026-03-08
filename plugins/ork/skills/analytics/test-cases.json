@@ -6,10 +6,10 @@
       "id": "analytics-agents",
       "query": "/ork:analytics agents",
       "expectedBehavior": [
-        "Reads agent-usage.jsonl from ~/.claude/analytics/",
+        "Reads agent-usage.jsonl log data from the ~/.claude/analytics/ directory",
         "Runs jq query from references/jq-queries.md agents section",
         "Presents results as markdown table with agent name, count, avg duration, success rate",
-        "Includes per-agent model breakdown"
+        "Includes per-agent model breakdown showing usage across different models"
       ]
     },
     {
@@ -26,7 +26,7 @@
       "id": "analytics-cost",
       "query": "/ork:analytics cost",
       "expectedBehavior": [
-        "Reads ~/.claude/stats-cache.json for modelUsage data",
+        "Reads ~/.claude/stats-cache.json for modelUsage data including token counts",
         "Applies model-specific pricing (opus/sonnet/haiku) to 4 token types",
         "Calculates cache savings (cache reads vs full-price input)",
         "Shows daily costs for last 7 days",
@@ -40,7 +40,7 @@
         "Reads dailyActivity and dailyModelTokens from stats-cache.json for last 30 days",
         "Shows daily activity table with sessions, messages, tools, estimated cost",
         "Shows model delegation trend over time",
-        "Shows peak productivity hours",
+        "Shows peak productivity hours based on session activity distribution",
         "Shows all-time stats (total sessions, longest session)"
       ]
     },
@@ -69,7 +69,7 @@
         "Shows total sessions, total tool invocations",
         "Shows top 5 agents, top 5 skills",
         "Shows team activity overview if team data exists",
-        "Shows unique project hash count",
+        "Shows unique project hash count to indicate distinct projects tracked",
         "Gracefully handles missing files (notes 'no data collected yet')"
       ]
     }

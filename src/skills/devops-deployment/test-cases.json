@@ -10,7 +10,7 @@
         "Creates GitHub Actions workflow with 6 stages: lint, test, security scan, build, deploy staging, deploy production",
         "Generates multi-stage Dockerfile with non-root user and health checks",
         "Produces Kubernetes manifests: Deployment with rolling update, Service, Ingress with TLS",
-        "Includes HorizontalPodAutoscaler configuration",
+        "Includes HorizontalPodAutoscaler configuration with CPU and memory scaling thresholds",
         "Uses External Secrets Operator pattern for secrets management",
         "Applies container security hardening: readOnlyRootFilesystem, drop capabilities"
       ]

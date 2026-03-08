@@ -18,7 +18,7 @@
       "rule": null,
       "query": "Create a quick draft PR without validation",
       "expectedBehavior": [
-        "Skips parallel validation agents",
+        "Skips parallel validation agents for faster draft creation",
         "Pushes branch if not already on remote",
         "Creates PR directly with gh pr create",
         "Gathers context from git log and diff"
@@ -30,7 +30,7 @@
       "query": "Create a PR that depends on PR #50",
       "expectedBehavior": [
         "Sets base branch to the dependency PR branch",
-        "Notes dependency in PR body",
+        "Notes dependency in PR body with a link to the upstream PR",
         "Runs pre-flight checks including upstream sync",
         "Verifies branch is not main or dev"
       ]
@@ -40,7 +40,7 @@
       "rule": null,
       "query": "Review the open PR on my branch",
       "expectedBehavior": [
-        "Does NOT trigger create-pr workflow",
+        "Does NOT trigger create-pr workflow since this is a review request",
         "Recognizes this is a review request, not PR creation",
         "Suggests using the review-pr skill instead"
       ]

@@ -23,7 +23,7 @@
         "Sets up snapshot capture with structured data extraction",
         "Applies change classification: Critical for major feature changes, High for new features",
         "Handles the JS-rendered content with wait --load networkidle pattern",
-        "Suggests a recurring monitoring workflow"
+        "Suggests a recurring monitoring workflow for ongoing change detection"
       ]
     },
     {

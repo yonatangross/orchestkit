@@ -8,9 +8,9 @@
       "query": "Define a tool schema for a document search function",
       "expectedBehavior": [
         "Uses strict: true for schema validation",
-        "Sets additionalProperties: false",
+        "Sets additionalProperties: false to enforce strict schema compliance on tool inputs",
         "All properties listed in required array",
-        "Includes clear 1-2 sentence description"
+        "Includes clear 1-2 sentence description for each tool parameter and function"
       ]
     },
     {
@@ -18,9 +18,9 @@
       "rule": "calling-parallel",
       "query": "Execute multiple LLM tool calls concurrently",
       "expectedBehavior": [
-        "Uses asyncio.gather for parallel execution",
-        "Disables parallel_tool_calls with strict mode",
-        "Handles partial failures gracefully",
+        "Uses asyncio.gather for parallel execution of independent tool calls concurrently",
+        "Disables parallel_tool_calls with strict mode to ensure sequential validation",
+        "Handles partial failures gracefully by returning results for successful calls alongside errors",
         "Collects results from all tool calls"
       ]
     },
@@ -29,9 +29,9 @@
       "rule": "calling-validation",
       "query": "Implement a tool execution loop with error handling",
       "expectedBehavior": [
-        "Validates input parameters with Pydantic",
+        "Validates input parameters with Pydantic models before executing tool functions",
         "Returns errors as tool results instead of crashing",
-        "Implements max iteration guard",
+        "Implements max iteration guard to prevent infinite tool-calling loops",
         "Routes to appropriate tool by name"
       ]
     },
@@ -40,9 +40,9 @@
       "rule": "streaming-sse",
       "query": "Create a FastAPI SSE endpoint for streaming LLM responses",
       "expectedBehavior": [
-        "Uses EventSourceResponse from sse-starlette",
+        "Uses EventSourceResponse from sse-starlette for server-sent event streaming responses",
         "Yields event/data pairs for each token",
-        "Sends done event on completion",
+        "Sends done event on completion to signal the stream has finished",
         "Uses async iterator for token generation"
       ]
     },
@@ -53,7 +53,7 @@
       "expectedBehavior": [
         "Accumulates tool call chunks by index",
         "Separates content tokens from tool call data",
-        "Executes tools after full accumulation",
+        "Executes tools after full accumulation of all streamed tool call chunks",
         "Handles multiple concurrent tool calls in stream"
       ]
     },
@@ -64,8 +64,8 @@
       "expectedBehavior": [
         "Uses asyncio.Queue with maxsize for bounded buffer",
         "Producer blocks when buffer is full",
-        "Consumer yields control with asyncio.sleep(0)",
-        "Signals completion with None sentinel"
+        "Consumer yields control with asyncio.sleep(0) to allow producer progress",
+        "Signals completion with None sentinel value to terminate the consumer loop"
       ]
     },
     {
@@ -73,10 +73,10 @@
       "rule": "local-ollama-setup",
       "query": "Set up Ollama for local LLM inference in a Python project",
       "expectedBehavior": [
-        "Installs Ollama via official script",
+        "Installs Ollama via official script for local model inference setup",
         "Pulls recommended models for task types",
         "Configures environment variables for host and models",
-        "Integrates with LangChain via ChatOllama"
+        "Integrates with LangChain via ChatOllama for standardized local model access"
       ]
     },
     {
@@ -86,8 +86,8 @@
       "expectedBehavior": [
         "Matches model to hardware profile (M4 Max, M3 Pro, CI)",
         "Recommends task-specific models (reasoning, coding, embeddings)",
-        "Covers quantization options (q4_K_M, q4_0)",
-        "Includes VRAM requirements per model"
+        "Covers quantization options (q4_K_M, q4_0) with quality and performance trade-offs",
+        "Includes VRAM requirements per model to match hardware capacity constraints"
       ]
     },
     {
@@ -95,9 +95,9 @@
       "rule": "local-gpu-optimization",
       "query": "Optimize Ollama performance on Apple Silicon for CI",
       "expectedBehavior": [
-        "Sets num_ctx=32768 for Apple Silicon",
+        "Sets num_ctx=32768 for Apple Silicon to maximize context window utilization",
         "Uses keep_alive=5m for CI to avoid cold starts",
-        "Pre-warms models before first call",
+        "Pre-warms models before first call to eliminate cold start latency",
         "Implements provider factory for cloud/local switching"
       ]
     },
@@ -119,8 +119,8 @@
       "expectedBehavior": [
         "Uses teacher model (GPT-5.2) to generate examples",
         "Validates examples with separate validator model",
-        "Deduplicates using embedding similarity",
-        "Formats as Alpaca or ChatML"
+        "Deduplicates using embedding similarity to remove semantically redundant training examples",
+        "Formats as Alpaca or ChatML template for consistent training data structure"
       ]
     },
     {
@@ -130,8 +130,8 @@
       "expectedBehavior": [
         "Uses DPOTrainer with preference dataset (chosen/rejected)",
         "Sets beta=0.1 as KL penalty coefficient",
-        "Evaluates with LLM judge scoring",
-        "Compares against baseline before deployment"
+        "Evaluates with LLM judge scoring to measure alignment quality objectively",
+        "Compares against baseline before deployment to verify fine-tuning improvement metrics"
       ]
     }
   ]

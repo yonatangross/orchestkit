@@ -7,10 +7,10 @@
       "rule": "alembic-autogenerate",
       "query": "Generate an Alembic migration from SQLAlchemy model changes",
       "expectedBehavior": [
-        "Uses alembic revision --autogenerate",
-        "Configures async env.py with asyncpg",
-        "Reviews generated SQL before applying",
-        "Sets target_metadata from Base.metadata"
+        "Uses alembic revision --autogenerate to detect model changes and generate migrations",
+        "Configures async env.py with asyncpg for non-blocking migration execution",
+        "Reviews generated SQL before applying to catch incorrect or destructive operations",
+        "Sets target_metadata from Base.metadata to enable accurate schema introspection"
       ]
     },
     {
@@ -20,8 +20,8 @@
       "expectedBehavior": [
         "Uses two-phase approach: nullable first then alter",
         "Backfills data in batches with LIMIT and FOR UPDATE SKIP LOCKED",
-        "Creates indexes CONCURRENTLY outside transaction",
-        "Implements proper downgrade function"
+        "Creates indexes CONCURRENTLY outside transaction to avoid locking production tables",
+        "Implements proper downgrade function for safe rollback of schema changes"
       ]
     },
     {
@@ -42,7 +42,7 @@
       "expectedBehavior": [
         "Normalizes to 3NF with separate entity tables",
         "Uses atomic values (no comma-separated lists)",
-        "Eliminates transitive dependencies",
+        "Eliminates transitive dependencies to achieve proper third normal form compliance",
         "Justifies any denormalization with performance evidence"
       ]
     },
@@ -63,9 +63,9 @@
       "query": "Design a MongoDB schema for a content management system",
       "expectedBehavior": [
         "Chooses embed vs reference based on access patterns",
-        "Considers document size limits",
+        "Considers document size limits to prevent exceeding the 16MB BSON maximum",
         "Plans sharding key for even distribution",
-        "Defines schema validation rules"
+        "Defines schema validation rules to enforce data integrity at the collection level"
       ]
     },
     {
@@ -73,10 +73,10 @@
       "rule": "versioning-changelog",
       "query": "Set up schema version tracking for a database",
       "expectedBehavior": [
-        "Creates schema_version table with checksums",
-        "Uses semantic versioning (MAJOR.MINOR.PATCH)",
+        "Creates schema_version table with checksums for tracking applied migration integrity",
+        "Uses semantic versioning (MAJOR.MINOR.PATCH) for schema change classification and compatibility",
         "Implements audit trail with row-level versioning or CDC",
-        "Tracks applied_at, applied_by, and execution_time"
+        "Tracks applied_at, applied_by, and execution_time for complete migration audit history"
       ]
     },
     {
@@ -85,7 +85,7 @@
       "query": "Test database migration rollback procedures",
       "expectedBehavior": [
         "Tests upgrade and downgrade cycle locally",
-        "Verifies data preservation after rollback",
+        "Verifies data preservation after rollback to ensure no records are lost",
         "Documents destructive rollbacks in migration docstring",
         "Includes CI pipeline for migration testing"
       ]
@@ -97,7 +97,7 @@
       "expectedBehavior": [
         "Uses checksum verification on deployed migrations",
         "Implements advisory locks for concurrent migration prevention",
-        "Configures environment-specific settings (timeouts, locks)",
+        "Configures environment-specific settings (timeouts, locks) for safe production migration execution",
         "Follows local -> CI -> staging -> production flow"
       ]
     }

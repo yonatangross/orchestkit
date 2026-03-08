@@ -10,7 +10,7 @@
         "Adds fetchpriority='high' and loading='eager' to LCP image",
         "Preloads critical resources with link rel='preload'",
         "Server-renders LCP content instead of client-side fetch",
-        "References 2026 threshold of 2.0s"
+        "References the updated 2026 LCP threshold of 2.0 seconds as the target"
       ]
     },
     {
@@ -18,10 +18,10 @@
       "rule": "cwv-inp",
       "query": "Button clicks feel sluggish and INP exceeds 200ms",
       "expectedBehavior": [
-        "Breaks long tasks with scheduler.yield",
+        "Breaks long tasks into smaller chunks with scheduler.yield for responsiveness",
         "Uses useTransition for non-urgent state updates",
-        "Defers heavy computation with requestIdleCallback",
-        "References 2026 threshold of 150ms"
+        "Defers heavy computation to idle periods using requestIdleCallback for smoother interaction",
+        "References the updated 2026 INP threshold of 150 milliseconds as the target"
       ]
     },
     {
@@ -29,8 +29,8 @@
       "rule": "cwv-cls",
       "query": "Page content jumps around during load causing layout shifts",
       "expectedBehavior": [
-        "Sets explicit width/height on images",
-        "Uses aspect-ratio for responsive containers",
+        "Sets explicit width and height attributes on images to reserve layout space",
+        "Uses CSS aspect-ratio for responsive containers to prevent layout shifts during load",
         "Configures font-display: optional for non-critical fonts",
         "Uses transform instead of layout-shifting animations"
       ]
@@ -53,8 +53,8 @@
       "expectedBehavior": [
         "Lists escape hatches: effect deps, third-party libs, precise control",
         "Shows state colocation to minimize re-renders",
-        "Recommends profiling before manual optimization",
-        "Explains splitting state/dispatch in context"
+        "Recommends profiling with DevTools before applying any manual optimization techniques",
+        "Explains splitting state and dispatch into separate contexts to reduce unnecessary re-renders"
       ]
     },
     {
@@ -64,7 +64,7 @@
       "expectedBehavior": [
         "Recommends TanStack Virtual for 100+ items",
         "Shows useVirtualizer setup with estimateSize and overscan",
-        "Covers dynamic height measurement",
+        "Covers dynamic height measurement for variable-size list items using measureElement",
         "Lists virtualization thresholds: <100 fine, 100-500 consider, 500+ required"
       ]
     },
@@ -73,7 +73,7 @@
       "rule": "loading-lazy",
       "query": "How do I lazy load a heavy chart component?",
       "expectedBehavior": [
-        "Uses React.lazy with dynamic import",
+        "Uses React.lazy with dynamic import to load components on demand",
         "Wraps in Suspense with skeleton fallback",
         "Adds error boundary for network failures",
         "Warns against lazy loading above-fold or tiny components"
@@ -86,7 +86,7 @@
       "expectedBehavior": [
         "Shows React Router 7.x lazy route pattern",
         "Configures Vite manualChunks for vendor splitting",
-        "Uses granular Suspense boundaries",
+        "Uses granular Suspense boundaries around each lazy-loaded route for isolated loading states",
         "Recommends per-route splitting for most apps"
       ]
     },
@@ -95,7 +95,7 @@
       "rule": "loading-preload",
       "query": "How do I preload the next page before the user clicks?",
       "expectedBehavior": [
-        "Prefetches on hover/focus with onMouseEnter",
+        "Prefetches route chunks on hover and focus events using onMouseEnter handlers",
         "Uses link rel='modulepreload' for critical chunks",
         "Shows intersection observer for viewport-based loading",
         "Prefetches data with TanStack Query prefetchQuery"
@@ -109,7 +109,7 @@
         "Uses next/image with priority for LCP images",
         "Adds blur placeholder via static import",
         "Sets quality to 75-85 for optimal size/quality",
-        "Configures remotePatterns for external images"
+        "Configures remotePatterns in next.config.js to allow optimized loading of external images"
       ]
     },
     {
@@ -119,8 +119,8 @@
       "expectedBehavior": [
         "Recommends AVIF as primary (30-50% smaller)",
         "Uses WebP as fallback for broader support",
-        "Shows picture element for non-Next.js",
-        "Configures formats in next.config.js"
+        "Shows the HTML picture element with source sets for non-Next.js applications",
+        "Configures image format preferences in next.config.js for automatic AVIF and WebP delivery"
       ]
     },
     {
@@ -130,7 +130,7 @@
       "expectedBehavior": [
         "Uses sizes prop with breakpoint-based values",
         "Shows art direction with different images per breakpoint",
-        "Configures CDN loaders for Cloudinary/imgix",
+        "Configures CDN image loaders for Cloudinary or imgix with responsive transformations",
         "Sets deviceSizes and imageSizes in next.config.js"
       ]
     },
@@ -142,7 +142,7 @@
         "Uses React DevTools Profiler to record interactions",
         "Identifies high render count and duration in flamegraph",
         "Checks for unnecessary re-renders before optimizing",
-        "Measures improvement after applying fix"
+        "Measures performance improvement after applying the fix to confirm the optimization worked"
       ]
     },
     {
@@ -153,7 +153,7 @@
         "Uses py-spy for live profiling without restart",
         "Generates flame graph SVG for visualization",
         "Shows cProfile for detailed function-level analysis",
-        "Covers memory_profiler for leak detection"
+        "Covers memory_profiler usage for detecting memory leaks in long-running Python processes"
       ]
     },
     {
@@ -161,10 +161,10 @@
       "rule": "profiling-bundle",
       "query": "My frontend bundle is too large, how do I analyze it?",
       "expectedBehavior": [
-        "Uses vite-bundle-visualizer or webpack-bundle-analyzer",
+        "Uses vite-bundle-visualizer or webpack-bundle-analyzer to identify oversized chunks and dependencies",
         "Identifies large dependencies for tree shaking",
         "Sets performance budgets in build config",
-        "Shows bundlesize CI integration"
+        "Shows bundlesize CI integration for automated bundle size regression checks on pull requests"
       ]
     },
     {
@@ -172,9 +172,9 @@
       "rule": "inference-vllm",
       "query": "How do I deploy an LLM with vLLM for production?",
       "expectedBehavior": [
-        "Configures vLLM with tensor parallelism",
-        "Enables PagedAttention and continuous batching",
-        "Sets gpu_memory_utilization to 0.85-0.95",
+        "Configures vLLM with tensor parallelism to distribute model layers across multiple GPUs",
+        "Enables PagedAttention and continuous batching for efficient GPU memory utilization",
+        "Sets gpu_memory_utilization between 0.85 and 0.95 for optimal memory allocation",
         "Enables prefix caching for shared contexts"
       ]
     },
@@ -185,7 +185,7 @@
       "expectedBehavior": [
         "Recommends AWQ for best 4-bit quality",
         "Shows memory savings: 75% for 4-bit, 50% for 8-bit",
-        "Recommends FP8 for H100/H200 GPUs",
+        "Recommends FP8 quantization for H100 and H200 GPUs with native hardware support",
         "Warns about calibration data for GPTQ"
       ]
     },
@@ -194,9 +194,9 @@
       "rule": "inference-speculative",
       "query": "How do I speed up LLM text generation?",
       "expectedBehavior": [
-        "Shows n-gram speculative decoding config",
+        "Shows n-gram based speculative decoding configuration for faster token generation",
         "Shows draft model approach for higher quality",
-        "Notes 1.5-2.5x throughput improvement",
+        "Notes a typical 1.5 to 2.5x throughput improvement with speculative decoding enabled",
         "Lists when speculative decoding helps vs hurts"
       ]
     }

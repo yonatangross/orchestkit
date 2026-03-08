@@ -33,7 +33,7 @@
       "query": "Set up a Python Flask API with SQLAlchemy ORM and JWT authentication",
       "expectedBehavior": [
         "Claude does NOT invoke the react-server-components-framework skill",
-        "Uses standard Python/Flask knowledge instead",
+        "Uses standard Python/Flask knowledge instead of React Server Components patterns",
         "No references to Server Components, App Router, React 19, or Next.js patterns"
       ]
     }

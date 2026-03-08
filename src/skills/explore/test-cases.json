@@ -18,10 +18,10 @@
       "rule": "exploration-agents",
       "query": "Just find the files related to payment processing",
       "expectedBehavior": [
-        "Skips deep agent analysis",
+        "Skips deep agent analysis for faster lightweight results",
         "Uses Grep and Glob for quick file discovery",
         "Returns file list without full exploration phases",
-        "Completes phases 1-2 only"
+        "Completes phases 1-2 only without running full exploration"
       ]
     },
     {
@@ -32,7 +32,7 @@
         "Focuses data flow explorer agent on tracing entry points",
         "Maps processing pipeline from API to storage",
         "Identifies data transformations at each hop",
-        "Produces entry-to-storage flow diagram"
+        "Produces entry-to-storage flow diagram showing data transformations at each step"
       ]
     },
     {
@@ -41,7 +41,7 @@
       "query": "What design patterns does the backend use?",
       "expectedBehavior": [
         "Focuses backend-system-architect agent on pattern analysis",
-        "Identifies architectural patterns and integrations",
+        "Identifies architectural patterns and integrations used across the backend codebase",
         "Reports on dependency graph and coupling",
         "Checks memory for prior architecture decisions"
       ]

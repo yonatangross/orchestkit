@@ -9,7 +9,7 @@
       "expectedBehavior": [
         "Rates 6 dimensions: correctness, maintainability, performance, security, scalability, testability",
         "Uses 7-criterion scoring with 1-5 scale per criterion",
-        "Produces weighted composite score (0-10)",
+        "Produces weighted composite score (0-10) from all dimension ratings",
         "Limits scope to MAX 30 files to prevent context exhaustion"
       ]
     },
@@ -18,9 +18,9 @@
       "rule": "complexity-breakdown",
       "query": "Assess our current microservices architecture",
       "expectedBehavior": [
-        "Decomposes architecture into assessable components",
+        "Decomposes architecture into individually assessable components and boundaries",
         "Identifies risk factors and complexity hotspots",
-        "Provides pros/cons analysis with evidence",
+        "Provides pros/cons analysis with supporting evidence from the codebase",
         "Compares current approach against alternatives with scores"
       ]
     },
@@ -29,9 +29,9 @@
       "rule": "complexity-metrics",
       "query": "Assess the performance of our database queries",
       "expectedBehavior": [
-        "Focuses performance and scalability dimensions",
-        "Spawns python-performance-engineer agent for analysis",
-        "Includes effort estimation for improvements",
+        "Focuses on performance and scalability dimensions for database analysis",
+        "Spawns python-performance-engineer agent for deep performance analysis",
+        "Includes effort estimation for each recommended improvement action",
         "Prioritizes quick wins (effort <= 2, impact >= 4)"
       ]
     },

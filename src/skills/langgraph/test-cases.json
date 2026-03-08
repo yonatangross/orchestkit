@@ -7,9 +7,9 @@
       "rule": "state-typeddict",
       "query": "Design state that accumulates findings from multiple agents",
       "expectedBehavior": [
-        "Uses TypedDict for state schema",
+        "Uses TypedDict for defining the state schema with typed fields",
         "Uses Annotated[list, add] for accumulating fields",
-        "Imports operator.add for reducer",
+        "Imports operator.add as the reducer function for list accumulation",
         "Nodes return partial updates, not full state"
       ]
     },
@@ -18,9 +18,9 @@
       "rule": "state-typeddict",
       "query": "Add configuration that persists across all nodes like temperature",
       "expectedBehavior": [
-        "Creates context_schema dataclass",
-        "Passes to StateGraph constructor",
-        "Accesses via get_context() in nodes",
+        "Creates a context_schema dataclass to hold cross-node configuration",
+        "Passes the context_schema to the StateGraph constructor at initialization",
+        "Accesses shared configuration via get_context() inside individual node functions",
         "Keeps config separate from workflow state"
       ]
     },
@@ -29,10 +29,10 @@
       "rule": "state-pydantic",
       "query": "Use Pydantic for validated state with defaults",
       "expectedBehavior": [
-        "Uses BaseModel instead of TypedDict",
+        "Uses Pydantic BaseModel instead of TypedDict for validated state definitions",
         "Adds Field() with defaults and descriptions",
-        "Enables validation on state updates",
-        "Handles validation errors gracefully"
+        "Enables automatic validation on state updates to catch invalid data early",
+        "Handles validation errors gracefully with informative error messages to the user"
       ]
     },
     {
@@ -40,10 +40,10 @@
       "rule": "routing-conditional",
       "query": "Add conditional routing based on whether content needs review",
       "expectedBehavior": [
-        "Uses add_conditional_edges with routing function",
-        "Returns string matching edge names",
+        "Uses add_conditional_edges with a routing function that inspects current state",
+        "Returns a string matching one of the defined edge names from the routing function",
         "Includes all possible routes in edge map",
-        "Has fallback or END condition"
+        "Has a fallback route or END condition to prevent unhandled edge cases"
       ]
     },
     {
@@ -51,10 +51,10 @@
       "rule": "routing-retry-loops",
       "query": "Implement a retry loop that attempts up to 3 times then fails",
       "expectedBehavior": [
-        "Tracks retry_count in state",
+        "Tracks retry_count as an integer field in the workflow state schema",
         "Routes back to retry node when count < 3",
         "Routes to failure node when count >= 3",
-        "Increments counter on each retry"
+        "Increments the retry counter on each unsuccessful retry attempt before re-routing"
       ]
     },
     {
@@ -63,8 +63,8 @@
       "query": "Create a semantic router that classifies user intent and routes accordingly",
       "expectedBehavior": [
         "Uses LLM with structured output for classification",
-        "Returns valid route names",
-        "Handles unknown/other category",
+        "Returns valid route names that match the defined edge map entries",
+        "Handles unknown or other category inputs with a sensible default fallback route",
         "Uses Literal type for route validation"
       ]
     },
@@ -75,8 +75,8 @@
       "expectedBehavior": [
         "Uses Send() to dispatch to workers",
         "Returns list of Send objects from router",
-        "Each Send includes state subset",
-        "Workers run in parallel"
+        "Each Send object includes the relevant state subset for its target worker",
+        "Workers run in parallel across all dispatched Send objects concurrently"
       ]
     },
     {
@@ -84,10 +84,10 @@
       "rule": "parallel-fanout-fanin",
       "query": "Collect results from parallel workers into a single list",
       "expectedBehavior": [
-        "Uses Annotated[list, add] reducer",
-        "Workers return partial updates",
-        "Results accumulate automatically",
-        "Single node receives all results"
+        "Uses Annotated[list, add] reducer to merge results from parallel workers",
+        "Workers return partial state updates that get merged by the reducer",
+        "Results accumulate automatically via the list reducer without manual aggregation",
+        "A single downstream node receives all accumulated results after fan-in completes"
       ]
     },
     {
@@ -97,8 +97,8 @@
       "expectedBehavior": [
         "Map phase uses Send() for parallelization",
         "Reduce node has edges from all workers",
-        "Reduce aggregates accumulated results",
-        "Single final output produced"
+        "Reduce node aggregates accumulated results from all parallel worker outputs",
+        "A single final output is produced after the reduce phase completes"
       ]
     },
     {
@@ -106,11 +106,11 @@
       "rule": "supervisor-basic",
       "query": "Create a supervisor that coordinates two workers: analyzer and validator",
       "expectedBehavior": [
-        "Uses StateGraph with supervisor node",
+        "Uses StateGraph with a dedicated supervisor node that orchestrates worker routing",
         "Creates worker nodes for analyzer and validator",
         "Workers have edges back to supervisor",
-        "Uses add_edge(START, 'supervisor') not set_entry_point()",
-        "Includes END condition in routing"
+        "Uses add_edge(START, 'supervisor') instead of deprecated set_entry_point() for graph entry",
+        "Includes an END condition in routing logic to terminate the workflow gracefully"
       ]
     },
     {
@@ -118,7 +118,7 @@
       "rule": "supervisor-basic",
       "query": "Build a supervisor that updates state and routes in the same step",
       "expectedBehavior": [
-        "Imports Command from langgraph.types",
+        "Imports the Command class from langgraph.types for combined state update and routing",
         "Supervisor returns Command with update and goto",
         "Uses Literal type annotation for type safety",
         "No conditional_edges needed when using Command"
@@ -129,10 +129,10 @@
       "rule": "supervisor-round-robin",
       "query": "Implement a supervisor that visits all agents exactly once before finishing",
       "expectedBehavior": [
-        "Tracks completed agents in state",
-        "Checks available vs completed agents",
+        "Tracks the set of completed agents in the workflow state to avoid revisits",
+        "Checks available agents versus completed agents to determine the next routing target",
         "Routes to quality_gate or END when all done",
-        "Prevents infinite loops"
+        "Prevents infinite loops by enforcing a maximum visit count per agent node"
       ]
     },
     {
@@ -141,8 +141,8 @@
       "query": "Bind tools to an LLM and create a ToolNode for execution",
       "expectedBehavior": [
         "Uses @tool decorator for tool functions",
-        "Calls llm.bind_tools(tools) for binding",
-        "Creates ToolNode(tools) for execution",
+        "Calls llm.bind_tools(tools) to bind the tool definitions to the LLM instance",
+        "Creates ToolNode(tools) for automatic execution of LLM-requested tool calls",
         "Adds agent node and tool node to graph"
       ]
     },
@@ -151,10 +151,10 @@
       "rule": "tools-interrupts",
       "query": "Add human approval before executing a delete tool",
       "expectedBehavior": [
-        "Uses interrupt() inside tool function",
+        "Uses interrupt() inside the tool function to pause execution and await approval",
         "Shows action details in interrupt payload",
-        "Checks approval response before executing",
-        "Returns cancelled message if rejected"
+        "Checks the human approval response before executing the destructive operation",
+        "Returns a cancelled message if the human rejects the proposed tool action"
       ]
     },
     {
@@ -162,7 +162,7 @@
       "rule": "tools-dynamic",
       "query": "Select different tools based on user permissions",
       "expectedBehavior": [
-        "Reads user permissions from state",
+        "Reads user permissions from the current state to determine allowed tool access",
         "Filters available tools based on permissions",
         "Binds only allowed tools to LLM",
         "Handles case where no tools available"
@@ -173,8 +173,8 @@
       "rule": "checkpoints-setup",
       "query": "Add PostgreSQL checkpointing to persist workflow state",
       "expectedBehavior": [
-        "Uses PostgresSaver.from_conn_string()",
-        "Passes checkpointer to compile()",
+        "Uses PostgresSaver.from_conn_string() to create a persistent checkpoint backend with PostgreSQL",
+        "Passes the configured checkpointer to the graph compile() method for persistence",
         "Sets thread_id in config for resumption",
         "Uses async connection for async workflows"
       ]
@@ -186,7 +186,7 @@
       "expectedBehavior": [
         "Uses same thread_id as original run",
         "Calls invoke/ainvoke with None as input",
-        "Workflow continues from last checkpoint",
+        "Workflow continues execution from the last saved checkpoint state automatically",
         "Handles case where no checkpoint exists"
       ]
     },
@@ -195,10 +195,10 @@
       "rule": "checkpoints-recovery",
       "query": "List all checkpoints for debugging a failed workflow",
       "expectedBehavior": [
-        "Uses get_state_history() method",
-        "Iterates through StateSnapshot objects",
+        "Uses get_state_history() method to retrieve the full sequence of checkpoint snapshots",
+        "Iterates through StateSnapshot objects to inspect state values at each checkpoint",
         "Accesses values, next, and config from snapshots",
-        "Can identify which node failed"
+        "Can identify which node failed by examining the next field in each snapshot"
       ]
     },
     {
@@ -206,10 +206,10 @@
       "rule": "human-in-loop-interrupt",
       "query": "Add human approval before executing a dangerous operation",
       "expectedBehavior": [
-        "Uses interrupt() function from langgraph.types",
+        "Uses the interrupt() function from langgraph.types to pause and await human input",
         "Passes approval request data to interrupt()",
-        "Resumes with Command(resume=response)",
-        "Handles approval and rejection cases"
+        "Resumes workflow execution with Command(resume=response) containing the human decision",
+        "Handles both approval and rejection cases with distinct control flow branches"
       ]
     },
     {
@@ -218,8 +218,8 @@
       "query": "Let human edit AI-generated content before proceeding",
       "expectedBehavior": [
         "Shows generated content in interrupt payload",
-        "Human can modify or approve",
-        "Resume uses human-edited version",
+        "Human can modify the generated content or approve it as-is before proceeding",
+        "Resume uses the human-edited version of the content for downstream processing",
         "Original preserved if human approves as-is"
       ]
     },
@@ -228,8 +228,8 @@
       "rule": "human-in-loop-feedback",
       "query": "Implement review loop until human approves quality",
       "expectedBehavior": [
-        "Tracks review_count in state",
-        "interrupt() on each review cycle",
+        "Tracks review_count in the workflow state to limit review iteration cycles",
+        "Calls interrupt() on each review cycle to collect human feedback before continuing",
         "Routes back to generation if rejected",
         "Proceeds to next step when approved"
       ]
@@ -239,10 +239,10 @@
       "rule": "streaming-custom-events",
       "query": "Stream progress updates showing percentage complete",
       "expectedBehavior": [
-        "Uses get_stream_writer() in node",
+        "Uses get_stream_writer() in each node function to emit custom progress events",
         "Writes custom event with progress data",
-        "Client receives via stream_mode='custom'",
-        "Events have type and payload"
+        "Client receives custom events via stream_mode='custom' in the stream call",
+        "Events include a structured type field and payload with progress data"
       ]
     },
     {
@@ -250,10 +250,10 @@
       "rule": "streaming-tokens",
       "query": "Stream LLM tokens to the client in real-time",
       "expectedBehavior": [
-        "Uses stream_mode='messages'",
-        "LLM node uses streaming API",
-        "Tokens appear as they're generated",
-        "Final message assembled from chunks"
+        "Uses stream_mode='messages' to receive individual LLM tokens as they are generated",
+        "LLM node uses the streaming API to emit tokens incrementally to the client",
+        "Tokens appear in the output stream as they are generated by the model",
+        "Final complete message is assembled from all received token chunks on the client"
       ]
     },
     {
@@ -261,10 +261,10 @@
       "rule": "streaming-modes",
       "query": "Get both state updates and custom events in single stream",
       "expectedBehavior": [
-        "Passes list to stream_mode=['updates', 'custom']",
+        "Passes a list to stream_mode=['updates', 'custom'] to receive multiple event types simultaneously",
         "Filters events by mode in client",
-        "Updates show state changes",
-        "Custom shows progress events"
+        "Updates show state changes after each node completes its execution step",
+        "Custom mode shows user-defined progress events emitted via stream writer"
       ]
     },
     {
@@ -272,10 +272,10 @@
       "rule": "subgraphs-invoke",
       "query": "Call a subgraph with different state schema from parent",
       "expectedBehavior": [
-        "Compiles subgraph separately",
+        "Compiles the subgraph separately as an independent StateGraph before embedding it",
         "Parent node transforms state before invoke",
         "Subgraph uses its own state schema",
-        "Parent transforms subgraph output back"
+        "Parent node transforms the subgraph output back into the parent state schema format"
       ]
     },
     {
@@ -284,9 +284,9 @@
       "query": "Embed a subgraph that shares state with parent",
       "expectedBehavior": [
         "Subgraph uses same state schema as parent",
-        "add_node accepts compiled subgraph directly",
-        "No state transformation needed",
-        "Subgraph reads/writes parent state"
+        "The add_node method accepts a compiled subgraph directly as a node value",
+        "No state transformation is needed because parent and subgraph share the same schema",
+        "Subgraph reads and writes parent state fields directly without transformation logic"
       ]
     },
     {
@@ -294,10 +294,10 @@
       "rule": "subgraphs-state-mapping",
       "query": "Set up checkpointing that works across subgraphs",
       "expectedBehavior": [
-        "Only parent graph has checkpointer",
-        "Uses checkpointer=False for subgraphs",
+        "Only the parent graph has a checkpointer configured for persisting workflow state",
+        "Uses checkpointer=False for subgraphs to delegate checkpointing to the parent graph",
         "Subgraph state included in parent checkpoints",
-        "Resume restores subgraph state"
+        "Resume restores subgraph state correctly from the parent graph checkpoint data"
       ]
     },
     {
@@ -306,9 +306,9 @@
       "query": "Create a simple workflow using the Functional API",
       "expectedBehavior": [
         "Imports entrypoint and task from langgraph.func",
-        "Decorates worker functions with @task",
-        "Decorates main function with @entrypoint",
-        "Calls task().result() to get values"
+        "Decorates individual worker functions with @task to define parallelizable units of work",
+        "Decorates the main orchestration function with @entrypoint to define the workflow entry",
+        "Calls task().result() to block and retrieve the computed return values from tasks"
       ]
     },
     {
@@ -319,7 +319,7 @@
         "Calls multiple @task functions without .result()",
         "Tasks return futures that run in parallel",
         "Calls .result() on all futures to wait",
-        "Results collected after parallel execution"
+        "Results are collected after parallel execution completes across all dispatched tasks"
       ]
     },
     {
@@ -327,10 +327,10 @@
       "rule": "functional-task",
       "query": "Access previous state and store in a @task function",
       "expectedBehavior": [
-        "Uses InjectedState type annotation",
-        "Accesses previous checkpoint data",
-        "Uses InjectedStore for persistence",
-        "Parameters injected automatically by runtime"
+        "Uses InjectedState type annotation to access the current checkpoint state in tasks",
+        "Accesses previous checkpoint data to read persisted state from earlier executions",
+        "Uses InjectedStore for cross-thread persistence of data across workflow invocations",
+        "Parameters annotated with Injected types are injected automatically by the LangGraph runtime"
       ]
     }
   ]

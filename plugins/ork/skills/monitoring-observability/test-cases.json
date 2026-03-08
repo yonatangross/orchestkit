@@ -9,7 +9,7 @@
       "expectedBehavior": [
         "Uses RED method (Rate, Errors, Duration)",
         "Defines Counter for requests and Histogram for latency",
-        "Configures appropriate histogram buckets",
+        "Configures appropriate histogram buckets tailored to service latency patterns",
         "Manages label cardinality to avoid explosions"
       ]
     },
@@ -32,7 +32,7 @@
         "Defines severity levels (Critical, High, Medium, Low)",
         "Includes alert grouping and inhibition rules",
         "Configures escalation policies with runbook links",
-        "Addresses alert fatigue prevention strategies"
+        "Addresses alert fatigue prevention strategies with deduplication and silencing"
       ]
     },
     {
@@ -42,7 +42,7 @@
       "expectedBehavior": [
         "Uses @observe decorator with get_client() API",
         "Sets user_id and session_id via update_current_trace",
-        "Configures OpenTelemetry SpanProcessor",
+        "Configures OpenTelemetry SpanProcessor for distributed trace export",
         "Uses observation types for Agent Graph rendering"
       ]
     },
@@ -54,7 +54,7 @@
         "Configures automatic token counting with Langfuse",
         "Sets up spend alerts with threshold rules",
         "Uses Metrics API for programmatic cost queries",
-        "Supports custom model pricing configuration"
+        "Supports custom model pricing configuration for accurate cost tracking"
       ]
     },
     {
@@ -63,9 +63,9 @@
       "query": "Evaluate and score LLM output quality with Langfuse",
       "expectedBehavior": [
         "Creates custom scoring with numeric/categorical values",
-        "Configures evaluator execution tracing",
+        "Configures evaluator execution tracing for scoring pipeline observability",
         "Uses multi-judge evaluation with ensemble scoring",
-        "Filters traces by score thresholds"
+        "Filters traces by score thresholds to surface low-quality responses"
       ]
     },
     {

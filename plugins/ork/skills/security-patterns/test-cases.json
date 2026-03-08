@@ -7,7 +7,7 @@
       "rule": "auth-jwt",
       "query": "Implement JWT authentication with access and refresh tokens",
       "expectedBehavior": [
-        "Uses Argon2id for password hashing",
+        "Uses Argon2id for secure password hashing with recommended parameters",
         "Access token expires in 15 minutes",
         "Refresh token stored in HTTPOnly cookie",
         "Hardcodes algorithm (HS256), never reads from header",
@@ -22,7 +22,7 @@
         "Uses PKCE with S256 code challenge method",
         "No implicit grant (OAuth 2.1 requirement)",
         "Includes state parameter for CSRF protection",
-        "Implements refresh token rotation"
+        "Implements refresh token rotation to prevent token replay attacks"
       ]
     },
     {
@@ -30,10 +30,10 @@
       "rule": "auth-rbac",
       "query": "Add role-based access control to API endpoints",
       "expectedBehavior": [
-        "Uses decorator pattern (require_role, require_permission)",
-        "Checks authorization on every endpoint",
-        "Returns 403 for insufficient permissions",
-        "Uses generic error messages"
+        "Uses decorator pattern such as require_role and require_permission for access control",
+        "Checks authorization on every API endpoint before processing the request",
+        "Returns HTTP 403 Forbidden response for insufficient user permissions",
+        "Uses generic error messages to avoid leaking internal authorization details"
       ]
     },
     {
@@ -42,9 +42,9 @@
       "query": "Design a security architecture for an AI application",
       "expectedBehavior": [
         "Includes all 8 layers (edge to observability)",
-        "Rate limiting at edge layer",
-        "JWT validation at gateway layer",
-        "Schema validation at input layer",
+        "Applies rate limiting at the edge layer to throttle abuse",
+        "Performs JWT validation at the gateway layer before routing requests",
+        "Enforces schema validation at the input layer to reject malformed payloads",
         "No IDs in LLM prompts at layer 5"
       ]
     },
@@ -53,11 +53,11 @@
       "rule": "defense-zero-trust",
       "query": "Implement tenant isolation for a multi-tenant SaaS",
       "expectedBehavior": [
-        "Creates immutable RequestContext from JWT",
-        "Every query includes tenant_id filter",
+        "Creates an immutable RequestContext object populated from the verified JWT claims",
+        "Ensures every database query includes a tenant_id filter for isolation",
         "Tenant filter is mandatory, not optional",
-        "Cache keys include tenant_id",
-        "Audit logging with sanitization"
+        "Includes tenant_id in all cache keys to prevent cross-tenant data leakage",
+        "Implements audit logging with sanitization to strip sensitive fields before storage"
       ]
     },
     {
@@ -65,11 +65,11 @@
       "rule": "validation-input",
       "query": "Validate API request body with Zod",
       "expectedBehavior": [
-        "Uses z.object with typed fields",
-        "Includes min/max length constraints",
+        "Uses z.object with explicitly typed fields for structured input validation",
+        "Includes min and max length constraints on all string fields",
         "Uses z.enum for fixed value sets",
-        "Returns structured error with safeParse",
-        "Validates server-side, not just client"
+        "Returns structured validation errors using safeParse for safe error handling",
+        "Validates input server-side in addition to any client-side checks"
       ]
     },
     {
@@ -78,9 +78,9 @@
       "query": "Sanitize user-provided HTML content",
       "expectedBehavior": [
         "Uses DOMPurify or markupsafe for escaping",
-        "Restricts allowed HTML tags",
-        "Prevents XSS via output encoding",
-        "Sets Content-Security-Policy header"
+        "Restricts allowed HTML tags to a safe whitelist of formatting elements",
+        "Prevents XSS attacks via context-aware output encoding on all user content",
+        "Sets a Content-Security-Policy header to restrict inline scripts and unsafe sources"
       ]
     },
     {
@@ -89,9 +89,9 @@
       "query": "Validate file uploads and URL inputs",
       "expectedBehavior": [
         "Checks file magic bytes, not just extension",
-        "Enforces file size limits",
-        "Validates URLs against domain allowlist",
-        "Requires HTTPS for URL inputs"
+        "Enforces file size limits with clear maximum thresholds per upload type",
+        "Validates submitted URLs against a strict domain allowlist to prevent SSRF",
+        "Requires HTTPS protocol for all user-provided URL inputs"
       ]
     },
     {
@@ -99,7 +99,7 @@
       "rule": "owasp-injection",
       "query": "Fix SQL injection vulnerability in a search endpoint",
       "expectedBehavior": [
-        "Uses parameterized queries or ORM",
+        "Uses parameterized queries or ORM methods to prevent SQL injection",
         "Never concatenates user input into SQL",
         "Uses subprocess with list args for commands",
         "Validates URL against domain allowlist for SSRF"
@@ -112,8 +112,8 @@
       "expectedBehavior": [
         "Hardcodes JWT algorithm (never reads from header)",
         "Implements CSRF protection with tokens or SameSite cookies",
-        "Uses constant-time comparison for secrets",
-        "Authorization check on every endpoint"
+        "Uses constant-time comparison functions for secret and token verification",
+        "Enforces an authorization check on every endpoint regardless of HTTP method"
       ]
     },
     {
@@ -122,7 +122,7 @@
       "query": "Implement context separation for LLM prompts",
       "expectedBehavior": [
         "No user_id, tenant_id, or UUIDs in prompts",
-        "Uses SafePromptBuilder with audit",
+        "Uses SafePromptBuilder with built-in audit logging for every prompt assembly",
         "Stores context IDs separately for attribution",
         "Runs audit_prompt() before every LLM call"
       ]
@@ -132,11 +132,11 @@
       "rule": "llm-guardrails",
       "query": "Validate LLM output before using it",
       "expectedBehavior": [
-        "Schema validation with Pydantic",
-        "Checks for hallucinated UUIDs",
-        "Grounding validation against context",
-        "Content safety check (toxic/PII)",
-        "Size limit enforcement"
+        "Performs schema validation with Pydantic to enforce structured LLM output",
+        "Checks for hallucinated UUIDs that do not exist in the source context",
+        "Runs grounding validation against the source context to detect fabricated claims",
+        "Runs content safety checks for toxic language and PII before returning results",
+        "Enforces size limits on LLM output to prevent excessive token consumption"
       ]
     },
     {
@@ -144,10 +144,10 @@
       "rule": "llm-content-filtering",
       "query": "Implement the three-phase LLM call pattern",
       "expectedBehavior": [
-        "Pre-LLM: tenant-scoped retrieval, content extraction",
+        "Pre-LLM phase performs tenant-scoped retrieval and content extraction without identifiers",
         "LLM Call: content-only prompt, no identifiers",
-        "Post-LLM: deterministic attribution from RequestContext",
-        "Source references captured for attribution"
+        "Post-LLM phase applies deterministic attribution using the original RequestContext metadata",
+        "Captures source references during retrieval for accurate post-LLM attribution"
       ]
     },
     {
@@ -157,8 +157,8 @@
       "expectedBehavior": [
         "Uses Presidio or regex patterns for detection",
         "Detects email, phone, SSN, credit card",
-        "Supports custom entity recognizers",
-        "Returns entity type and location"
+        "Supports custom entity recognizers for domain-specific PII patterns",
+        "Returns the detected entity type and character location within the text"
       ]
     },
     {

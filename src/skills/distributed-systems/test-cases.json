@@ -9,8 +9,8 @@
       "expectedBehavior": [
         "Uses Lua scripts for atomic acquire/release",
         "Includes SET NX with PX expiry",
-        "Validates owner ID before release",
-        "Describes Redlock quorum for HA"
+        "Validates owner ID before release to prevent accidental lock theft",
+        "Describes Redlock quorum for HA across multiple independent Redis instances"
       ]
     },
     {
@@ -18,10 +18,10 @@
       "rule": "locks-postgres-advisory",
       "query": "Use PostgreSQL advisory locks for a singleton cron job",
       "expectedBehavior": [
-        "Uses pg_try_advisory_lock for non-blocking acquire",
-        "Distinguishes session-level vs transaction-level locks",
+        "Uses pg_try_advisory_lock for non-blocking acquire to avoid blocking callers",
+        "Distinguishes session-level vs transaction-level locks for appropriate scope selection",
         "Converts string names to bigint lock IDs via hash",
-        "Shows monitoring query with pg_locks"
+        "Shows monitoring query with pg_locks for active lock visibility and debugging"
       ]
     },
     {
@@ -30,7 +30,7 @@
       "query": "Add heartbeat extension and fencing to a distributed lock",
       "expectedBehavior": [
         "Sets TTL on lock to prevent deadlocks",
-        "Includes background heartbeat/extend task",
+        "Includes background heartbeat/extend task to keep long-running locks alive automatically",
         "Validates owner ID on all operations",
         "Uses retry with exponential backoff on acquire"
       ]
@@ -40,10 +40,10 @@
       "rule": "resilience-circuit-breaker",
       "query": "Add a circuit breaker to an external API integration",
       "expectedBehavior": [
-        "Implements CLOSED/OPEN/HALF_OPEN state machine",
+        "Implements CLOSED/OPEN/HALF_OPEN state machine for progressive failure recovery",
         "Uses sliding window for failure tracking",
         "Provides fallback response when circuit is open",
-        "Includes state change observability callbacks"
+        "Includes state change observability callbacks for monitoring circuit breaker transitions"
       ]
     },
     {
@@ -62,10 +62,10 @@
       "rule": "resilience-bulkhead",
       "query": "Isolate critical and optional operations with bulkheads",
       "expectedBehavior": [
-        "Uses semaphore-based concurrency control",
-        "Defines tiers: Critical, Standard, Optional",
+        "Uses semaphore-based concurrency control to limit parallel resource consumption per tier",
+        "Defines tiers: Critical, Standard, Optional with isolated resource allocation boundaries",
         "Configures queue size and timeout per tier",
-        "Includes rejection policy handling"
+        "Includes rejection policy handling for graceful degradation when capacity is exceeded"
       ]
     },
     {
@@ -73,9 +73,9 @@
       "rule": "idempotency-keys",
       "query": "Make a POST payment endpoint idempotent",
       "expectedBehavior": [
-        "Accepts Idempotency-Key header from client",
+        "Accepts Idempotency-Key header from client to enable safe request retry behavior",
         "Generates deterministic keys via SHA-256 hash",
-        "Caches successful responses in Redis",
+        "Caches successful responses in Redis for fast idempotent replay on retries",
         "Returns cached response with X-Idempotent-Replayed header"
       ]
     },
@@ -97,7 +97,7 @@
       "expectedBehavior": [
         "Creates idempotency_records table with unique key",
         "Uses ON CONFLICT DO NOTHING for upsert",
-        "Sets expires_at for TTL-based cleanup",
+        "Sets expires_at for TTL-based cleanup to prevent unbounded idempotency record growth",
         "Validates request body hash to detect misuse"
       ]
     },
@@ -118,8 +118,8 @@
       "query": "Implement precise sliding window rate limiting",
       "expectedBehavior": [
         "Uses Redis sorted sets with timestamps as scores",
-        "Removes expired entries with ZREMRANGEBYSCORE",
-        "Counts current window with ZCARD",
+        "Removes expired entries with ZREMRANGEBYSCORE to maintain sliding window accuracy",
+        "Counts current window with ZCARD to determine remaining request allowance",
         "Avoids fixed window boundary spike issues"
       ]
     },
@@ -128,8 +128,8 @@
       "rule": "ratelimit-distributed",
       "query": "Add tiered rate limiting to a FastAPI application",
       "expectedBehavior": [
-        "Configures SlowAPI with Redis backend",
-        "Defines per-tier limits (free/pro/enterprise)",
+        "Configures SlowAPI with Redis backend for distributed rate limit state sharing",
+        "Defines per-tier limits (free/pro/enterprise) with distinct rate allowances per plan",
         "Returns standard rate limit headers (X-RateLimit-*)",
         "Returns 429 with Retry-After header when exceeded"
       ]

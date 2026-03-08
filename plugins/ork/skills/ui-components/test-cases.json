@@ -62,10 +62,10 @@
       "rule": "radix-styling",
       "query": "Style a dropdown menu with Tailwind data-attribute variants",
       "expectedBehavior": [
-        "Uses data-[state=open] for open/close animations",
+        "Uses data-[state=open] for open/close animations on dropdown visibility transitions",
         "Uses data-[side=*] for position-aware slide animations",
         "Focus styles use data-[highlighted] or focus:bg-accent",
-        "Disabled items use data-[disabled]:pointer-events-none"
+        "Disabled items use data-[disabled]:pointer-events-none to prevent interaction"
       ]
     }
   ]
