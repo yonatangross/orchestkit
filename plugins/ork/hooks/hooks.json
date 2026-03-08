@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 44 global + 44 agent-scoped + 19 skill-scoped = 107 total hooks (12 native HTTP, 13 once:true context loaders). All timeouts in SECONDS per CC spec.",
+  "description": "OrchestKit hooks - 32 global + 44 agent-scoped + 19 skill-scoped = 95 total hooks (13 once:true context loaders). HTTP webhooks via `npm run generate:http-hooks`. All timeouts in SECONDS per CC spec.",
   "hooks": {
     "PreToolUse": [
       {
@@ -124,18 +124,6 @@
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs prompt/unified-dispatcher",
             "timeout": 15,
             "statusMessage": "Processing prompt..."
-          },
-          {
-            "type": "http",
-            "url": "${ORCHESTKIT_HOOK_URL}",
-            "headers": {
-              "Authorization": "Bearer ${ORCHESTKIT_HOOK_TOKEN}"
-            },
-            "allowedEnvVars": [
-              "ORCHESTKIT_HOOK_URL",
-              "ORCHESTKIT_HOOK_TOKEN"
-            ],
-            "timeout": 5
           }
         ]
       }
@@ -159,18 +147,6 @@
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/session-handoff-injector",
             "timeout": 3
-          },
-          {
-            "type": "http",
-            "url": "${ORCHESTKIT_HOOK_URL}",
-            "headers": {
-              "Authorization": "Bearer ${ORCHESTKIT_HOOK_TOKEN}"
-            },
-            "allowedEnvVars": [
-              "ORCHESTKIT_HOOK_URL",
-              "ORCHESTKIT_HOOK_TOKEN"
-            ],
-            "timeout": 5
           }
         ]
       }
@@ -183,18 +159,6 @@
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/sync-session-end-dispatcher",
             "timeout": 30,
             "statusMessage": "Saving session data..."
-          },
-          {
-            "type": "http",
-            "url": "${ORCHESTKIT_HOOK_URL}",
-            "headers": {
-              "Authorization": "Bearer ${ORCHESTKIT_HOOK_TOKEN}"
-            },
-            "allowedEnvVars": [
-              "ORCHESTKIT_HOOK_URL",
-              "ORCHESTKIT_HOOK_TOKEN"
-            ],
-            "timeout": 5
           },
           {
             "type": "command",
@@ -218,18 +182,6 @@
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/stop-uncommitted-check.mjs",
             "timeout": 10,
             "statusMessage": "Checking uncommitted changes..."
-          },
-          {
-            "type": "http",
-            "url": "${ORCHESTKIT_HOOK_URL}",
-            "headers": {
-              "Authorization": "Bearer ${ORCHESTKIT_HOOK_TOKEN}"
-            },
-            "allowedEnvVars": [
-              "ORCHESTKIT_HOOK_URL",
-              "ORCHESTKIT_HOOK_TOKEN"
-            ],
-            "timeout": 5
           }
         ]
       }
@@ -242,18 +194,6 @@
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-start/unified-dispatcher",
             "timeout": 10,
             "statusMessage": "Configuring agent..."
-          },
-          {
-            "type": "http",
-            "url": "${ORCHESTKIT_HOOK_URL}",
-            "headers": {
-              "Authorization": "Bearer ${ORCHESTKIT_HOOK_TOKEN}"
-            },
-            "allowedEnvVars": [
-              "ORCHESTKIT_HOOK_URL",
-              "ORCHESTKIT_HOOK_TOKEN"
-            ],
-            "timeout": 5
           }
         ]
       }
@@ -272,18 +212,6 @@
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-stop/sync-subagent-stop-dispatcher",
             "timeout": 15,
             "statusMessage": "Processing agent results..."
-          },
-          {
-            "type": "http",
-            "url": "${ORCHESTKIT_HOOK_URL}",
-            "headers": {
-              "Authorization": "Bearer ${ORCHESTKIT_HOOK_TOKEN}"
-            },
-            "allowedEnvVars": [
-              "ORCHESTKIT_HOOK_URL",
-              "ORCHESTKIT_HOOK_TOKEN"
-            ],
-            "timeout": 5
           }
         ]
       }
@@ -321,18 +249,6 @@
             "timeout": 15,
             "async": true,
             "statusMessage": "Checking teammate status..."
-          },
-          {
-            "type": "http",
-            "url": "${ORCHESTKIT_HOOK_URL}",
-            "headers": {
-              "Authorization": "Bearer ${ORCHESTKIT_HOOK_TOKEN}"
-            },
-            "allowedEnvVars": [
-              "ORCHESTKIT_HOOK_URL",
-              "ORCHESTKIT_HOOK_TOKEN"
-            ],
-            "timeout": 5
           }
         ]
       }
@@ -354,18 +270,6 @@
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs task-completed/task-progress-tracker",
             "timeout": 10
-          },
-          {
-            "type": "http",
-            "url": "${ORCHESTKIT_HOOK_URL}",
-            "headers": {
-              "Authorization": "Bearer ${ORCHESTKIT_HOOK_TOKEN}"
-            },
-            "allowedEnvVars": [
-              "ORCHESTKIT_HOOK_URL",
-              "ORCHESTKIT_HOOK_TOKEN"
-            ],
-            "timeout": 5
           }
         ]
       }
@@ -376,18 +280,6 @@
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs worktree/worktree-lifecycle-logger",
-            "timeout": 10
-          },
-          {
-            "type": "http",
-            "url": "${ORCHESTKIT_HOOK_URL}",
-            "headers": {
-              "Authorization": "Bearer ${ORCHESTKIT_HOOK_TOKEN}"
-            },
-            "allowedEnvVars": [
-              "ORCHESTKIT_HOOK_URL",
-              "ORCHESTKIT_HOOK_TOKEN"
-            ],
             "timeout": 10
           }
         ]
@@ -400,18 +292,6 @@
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs worktree/worktree-lifecycle-logger",
             "timeout": 10
-          },
-          {
-            "type": "http",
-            "url": "${ORCHESTKIT_HOOK_URL}",
-            "headers": {
-              "Authorization": "Bearer ${ORCHESTKIT_HOOK_TOKEN}"
-            },
-            "allowedEnvVars": [
-              "ORCHESTKIT_HOOK_URL",
-              "ORCHESTKIT_HOOK_TOKEN"
-            ],
-            "timeout": 10
           }
         ]
       }
@@ -419,18 +299,6 @@
     "InstructionsLoaded": [
       {
         "hooks": [
-          {
-            "type": "http",
-            "url": "${ORCHESTKIT_HOOK_URL}",
-            "headers": {
-              "Authorization": "Bearer ${ORCHESTKIT_HOOK_TOKEN}"
-            },
-            "allowedEnvVars": [
-              "ORCHESTKIT_HOOK_URL",
-              "ORCHESTKIT_HOOK_TOKEN"
-            ],
-            "timeout": 5
-          },
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs instructions-loaded/instructions-loaded-dispatcher",
@@ -448,18 +316,6 @@
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs config-change/settings-reload",
             "timeout": 10,
             "statusMessage": "Checking settings change..."
-          },
-          {
-            "type": "http",
-            "url": "${ORCHESTKIT_HOOK_URL}",
-            "headers": {
-              "Authorization": "Bearer ${ORCHESTKIT_HOOK_TOKEN}"
-            },
-            "allowedEnvVars": [
-              "ORCHESTKIT_HOOK_URL",
-              "ORCHESTKIT_HOOK_TOKEN"
-            ],
-            "timeout": 5
           }
         ]
       }

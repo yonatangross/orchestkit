@@ -89,7 +89,7 @@ hooks/
 ├── tsconfig.json           # TypeScript configuration
 └── esbuild.config.mjs      # Build configuration (split bundles)
 
-**Total:** <!--ork:hooks-->107<!--/ork--> hooks (<!--ork:hooks-global-->44<!--/ork--> global + <!--ork:hooks-agent-->44<!--/ork--> agent-scoped + <!--ork:hooks-skill-->19<!--/ork--> skill-scoped)
+**Total:** <!--ork:hooks-->95<!--/ork--> hooks (<!--ork:hooks-global-->32<!--/ork--> global + <!--ork:hooks-agent-->44<!--/ork--> agent-scoped + <!--ork:hooks-skill-->19<!--/ork--> skill-scoped)
 ```
 
 ---
@@ -1020,7 +1020,7 @@ OrchestKit hooks are managed defaults. Users retain full control to disable any 
 **Last Updated:** 2026-02-28
 **Version:** 2.1.0 (Async hooks support)
 **Architecture:** 12 split bundles (381KB total) + 1 unified (324KB)
-**Hooks:** <!--ork:hooks-->107<!--/ork--> hooks (<!--ork:hooks-global-->44<!--/ork--> global + <!--ork:hooks-agent-->44<!--/ork--> agent-scoped + <!--ork:hooks-skill-->19<!--/ork--> skill-scoped)
+**Hooks:** <!--ork:hooks-->95<!--/ork--> hooks (<!--ork:hooks-global-->32<!--/ork--> global + <!--ork:hooks-agent-->44<!--/ork--> agent-scoped + <!--ork:hooks-skill-->19<!--/ork--> skill-scoped)
 **Average Bundle:** ~35KB per event
 **Claude Code Requirement:** >= 2.1.69
 
