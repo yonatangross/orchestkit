@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
       - uses: anthropics/claude-code-action@9469d113c6afd29550c402740f22d1a97dd1209b  # v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -34,7 +34,7 @@ jobs:
 
             1. **Classify** the issue type: bug, feature, chore, docs, refactor, test, perf
             2. **Suggest labels** from the repo's existing label set (check with gh label list)
-            3. **Recommend milestone** from active milestones (check with gh api repos/{owner}/{repo}/milestones)
+            3. **Recommend milestone** from active milestones (check with gh api repos/:owner/:repo/milestones)
                Only suggest a milestone if the issue clearly fits one.
             4. **Estimate complexity**: low (~1 hr), medium (~4 hrs), high (~8+ hrs)
             5. **Suggest priority**: P0 (critical), P1 (high), P2 (medium), P3 (low)

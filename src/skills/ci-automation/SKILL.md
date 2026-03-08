@@ -8,6 +8,7 @@ context: fork
 version: 1.0.0
 tags: [ci, cd, github-actions, automation, headless, claude-code-action]
 user-invocable: true
+argument-hint: "[workflow|pattern]"
 complexity: medium
 metadata:
   category: devops

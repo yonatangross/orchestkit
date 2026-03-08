@@ -18,7 +18,7 @@ Orchestration/workflow skills describe multi-phase processes rather than prescri
 Skills in this category (not exhaustive):
 - `implement`, `explore`, `verify`, `brainstorm`
 - `review-pr`, `assess`, `fix-issue`
-- `plan-viz`, `configure`, `remember`
+- `visualize-plan`, `configure`, `remember`
 
 These should only receive `WARN: no_rules_or_refs` if BOTH `rules/` AND `references/` are empty.
 

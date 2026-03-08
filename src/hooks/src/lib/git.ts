@@ -211,8 +211,11 @@ export function getStagedFiles(projectDir?: string): string[] {
  */
 export function getStagedSourceFiles(filter = 'ACMR'): string[] {
   const dir = getProjectDir();
+  // Validate filter against git diff-filter alphabet to prevent injection
+  const sanitized = filter.replace(/[^ACDMRTUXBacdmrtuxb*]/g, '');
+  if (!sanitized) return [];
   try {
-    const output = execSync(`git diff --cached --name-only --diff-filter=${filter}`, {
+    const output = execSync(`git diff --cached --name-only --diff-filter=${sanitized}`, {
       cwd: dir,
       encoding: 'utf8',
       timeout: 5000,

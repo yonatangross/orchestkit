@@ -13,6 +13,6 @@ See: `ascii-visualizer` skill rules for box-drawing characters, file trees, prog
 
 ## 2. Section Rendering Conventions (visualization) — HIGH — 1 rule
 
-Rules for rendering each plan-viz section with consistent style, annotations, and structure.
+Rules for rendering each visualize-plan section with consistent style, annotations, and structure.
 
 - `section-rendering.md` — Change manifest symbols, swimlane conventions, risk dashboard format, decision log structure, impact summary template

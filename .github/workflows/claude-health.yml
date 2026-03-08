@@ -14,14 +14,14 @@ permissions:
 
 concurrency:
   group: claude-health
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   health:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
 
       - name: Install Claude Code
         run: npm install -g @anthropic-ai/claude-code@2.1.69
@@ -29,6 +29,7 @@ jobs:
       - name: Run health assessment
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           claude -p "
           Run a comprehensive health assessment of this repository.
@@ -44,7 +45,7 @@ jobs:
              Command: gh run list --branch main --limit 10 --json conclusion
           4. DEPENDENCIES: Any npm audit vulnerabilities.
              Command: npm audit --json 2>/dev/null
-          5. TEST COVERAGE: Run npm test --quick and report pass/fail counts.
+          5. TEST COVERAGE: Count test files and estimate coverage from file structure.
           6. VERSION: Current version, last release date, commits since release.
           7. SKILL/AGENT COUNTS: Verify counts match CLAUDE.md declarations.
 
@@ -66,7 +67,7 @@ jobs:
           " \
           --output-format json \
           --max-turns 10 \
-          --model sonnet \
+          --model claude-sonnet-4-5-20250514 \
           --allowedTools "Read,Grep,Glob,Bash(npm audit:*),Bash(gh issue list:*),Bash(gh pr list:*),Bash(gh run list:*),Bash(cat:*),Bash(wc:*)" \
           > /tmp/health-report.json
 
@@ -96,7 +97,7 @@ jobs:
           " >> $GITHUB_STEP_SUMMARY 2>/dev/null || echo "Report parsing failed" >> $GITHUB_STEP_SUMMARY
 
       - name: Upload raw report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f  # v7.0.0
         with:
           name: health-report-${{ github.run_number }}
           path: /tmp/health-report.json

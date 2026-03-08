@@ -4,12 +4,12 @@ impact: HIGH
 impactDescription: "Inconsistent section rendering makes plan visualizations confusing and hard to review"
 tags: visualization, rendering, plan-review, consistency
 category: visualization
-description: Rules for rendering plan-viz sections with consistent style, annotations, and structure.
+description: Rules for rendering visualize-plan sections with consistent style, annotations, and structure.
 ---
 
 # Section Rendering Conventions
 
-Each plan-viz section follows strict rendering rules to ensure consistency and reviewer utility.
+Each visualize-plan section follows strict rendering rules to ensure consistency and reviewer utility.
 
 ## General Rules
 

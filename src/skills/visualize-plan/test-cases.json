@@ -1,11 +1,11 @@
 {
-  "skill": "plan-viz",
+  "skill": "visualize-plan",
   "version": "1.0.0",
   "testCases": [
     {
-      "id": "basic-orkplanviz-billing-module-redesign",
+      "id": "basic-orkvisualizeplan-billing-module-redesign",
       "rule": "",
-      "query": "/ork:plan-viz billing module redesign",
+      "query": "/ork:visualize-plan billing module redesign",
       "expectedBehavior": [
         "Claude runs the detect-plan-context script to gather branch and change data",
         "Runs analyze-impact.sh to get file counts, line changes, and dependency info",
@@ -15,9 +15,9 @@
       ]
     },
     {
-      "id": "edge-orkplanviz-234",
+      "id": "edge-orkvisualizeplan-234",
       "rule": "",
-      "query": "/ork:plan-viz #234",
+      "query": "/ork:visualize-plan #234",
       "expectedBehavior": [
         "Claude detects the GitHub issue reference and pulls plan context from issue #234",
         "Proceeds with auto-detection rather than asking for clarification",
@@ -29,7 +29,7 @@
       "rule": "",
       "query": "Fix the typo in the README file on line 42",
       "expectedBehavior": [
-        "Claude does NOT invoke the plan-viz skill",
+        "Claude does NOT invoke the visualize-plan skill",
         "Directly edits the file since this is a trivial single-line fix",
         "No plan visualization, risk analysis, or impact assessment generated"
       ]
