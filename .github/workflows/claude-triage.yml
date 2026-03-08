@@ -15,6 +15,7 @@ on:
 permissions:
   contents: read
   issues: write
+  id-token: write
 
 concurrency:
   group: claude-triage-${{ github.event.issue.number || github.event.inputs.issue_number }}
