@@ -62,6 +62,16 @@ hooks/
 │   ├── subagent-start/     # Subagent spawn hooks (5)
 │   ├── subagent-stop/      # Subagent completion hooks (11)
 │   ├── notification/       # Notification hooks (3)
+│   ├── instructions-loaded/ # InstructionsLoaded hooks (6 handlers via dispatcher)
+│   │   ├── instructions-loaded-dispatcher.ts  # Main dispatcher
+│   │   ├── types.ts                           # Shared interfaces
+│   │   ├── classify-source.ts                 # File origin classifier
+│   │   ├── token-budget-tracker.ts            # Token budget estimation
+│   │   ├── priority-map.ts                    # Rule precedence chain
+│   │   ├── drift-detection.ts                 # Cross-session drift detection
+│   │   ├── content-dedup.ts                   # Duplicate content scanner
+│   │   ├── rule-conflicts.ts                  # Contradictory rule detector
+│   │   └── smart-suggestions.ts               # Missing rule suggestions
 │   ├── stop/               # Session stop hooks (29 via unified dispatcher)
 │   ├── lifecycle/          # Lifecycle hooks (17)
 │   ├── setup/              # Setup and maintenance hooks (9)
