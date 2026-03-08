@@ -20,12 +20,16 @@ describe('classifySource', () => {
     });
 
     test('does not classify CLAUDE.md inside .claude/ as project', () => {
-      // Files under .claude/ are rules, not the top-level project file
       expect(classifySource('/project/.claude/CLAUDE.md')).not.toBe('project');
+    });
+
+    test('does not misclassify paths containing CLAUDE.md as substring', () => {
+      // basename check prevents "backup-CLAUDE.md" from matching
+      expect(classifySource('/project/backup-CLAUDE.md')).toBe('unknown');
     });
   });
 
-  describe('rules tier', () => {
+  describe('rules tier (checked before project)', () => {
     test('classifies .claude/rules/ files as rules', () => {
       expect(classifySource('/project/.claude/rules/antipatterns.md')).toBe('rules');
     });
@@ -37,15 +41,26 @@ describe('classifySource', () => {
     test('classifies claude/rules/ (no leading dot) as rules', () => {
       expect(classifySource('/project/claude/rules/style-guide.md')).toBe('rules');
     });
+
+    test('rules check takes priority over CLAUDE.md in .claude/ path', () => {
+      // .claude/rules/CLAUDE.md should be 'rules' not 'project'
+      expect(classifySource('/project/.claude/rules/CLAUDE.md')).toBe('rules');
+    });
   });
 
   describe('plugin tier', () => {
-    test('classifies path containing "plugin" as plugin', () => {
+    test('classifies plugin cache path as plugin', () => {
       expect(classifySource('/home/.claude/plugins/cache/orchestkit/ork/7.1.11/SKILL.md')).toBe('plugin');
     });
 
     test('classifies CLAUDE_PLUGIN path as plugin', () => {
       expect(classifySource('/some/CLAUDE_PLUGIN/instructions.md')).toBe('plugin');
+    });
+
+    test('does not misclassify project named with "plugin" in path', () => {
+      // /my-plugin-project/CLAUDE.md should be 'project' not 'plugin'
+      // because basename is CLAUDE.md and path does not contain /plugins/
+      expect(classifySource('/my-plugin-project/CLAUDE.md')).toBe('project');
     });
   });
 

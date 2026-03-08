@@ -6,10 +6,10 @@
  *
  * Detects overlapping content across loaded instruction files.
  * Reports file pairs with most shared lines and estimated token waste.
+ * Uses pre-read content cache from dispatcher — no redundant file reads.
  */
 
 import { logHook } from '../lib/common.js';
-import { readFileSync } from 'node:fs';
 import { basename } from 'node:path';
 import type { LoadedFile } from './types.js';
 
@@ -17,23 +17,21 @@ const HOOK_NAME = 'instructions-loaded/content-dedup';
 const DEDUP_MIN_LINE_LENGTH = 30;
 const DEDUP_MIN_MATCHES = 2;
 
-export function contentDedupScanner(filesLoaded: LoadedFile[]): string | null {
+export function contentDedupScanner(filesLoaded: LoadedFile[], contents: Map<string, string>): string | null {
   const lineToFiles = new Map<string, Set<string>>();
 
   for (const f of filesLoaded) {
-    try {
-      const content = readFileSync(f.path, 'utf8');
-      const lines = content.split('\n')
-        .map(l => l.trim())
-        .filter(l => l.length >= DEDUP_MIN_LINE_LENGTH && !l.startsWith('#') && !l.startsWith('|'));
+    const content = contents.get(f.path);
+    if (!content) continue;
 
-      const name = basename(f.path);
-      for (const line of lines) {
-        if (!lineToFiles.has(line)) lineToFiles.set(line, new Set());
-        lineToFiles.get(line)!.add(name);
-      }
-    } catch {
-      // Skip unreadable
+    const lines = content.split('\n')
+      .map(l => l.trim())
+      .filter(l => l.length >= DEDUP_MIN_LINE_LENGTH && !l.startsWith('#') && !l.startsWith('|'));
+
+    const name = basename(f.path);
+    for (const line of lines) {
+      if (!lineToFiles.has(line)) lineToFiles.set(line, new Set());
+      lineToFiles.get(line)!.add(name);
     }
   }
 

@@ -3,7 +3,7 @@
 
 /**
  * Unit tests for instructions-loaded-dispatcher.ts
- * Main dispatcher: wires 6 handlers, merges additionalContext
+ * Main dispatcher: validates input, pre-reads content, wires 6 handlers, merges additionalContext
  */
 
 import { describe, test, expect, vi, beforeEach } from 'vitest';
@@ -16,6 +16,10 @@ const mockDriftDetection = vi.fn();
 const mockContentDedup = vi.fn();
 const mockRuleConflicts = vi.fn();
 const mockSmartSuggestions = vi.fn();
+
+vi.mock('node:fs', () => ({
+  readFileSync: (p: string) => `content of ${p}`,
+}));
 
 vi.mock('../../instructions-loaded/token-budget-tracker.js', () => ({
   tokenBudgetTracker: (...args: unknown[]) => mockTokenBudget(...args),
@@ -82,6 +86,20 @@ describe('instructionsLoadedDispatcher', () => {
       expect(result.suppressOutput).toBe(true);
     });
 
+    test('returns silent success when files_loaded is not an array', () => {
+      const result = instructionsLoadedDispatcher(makeInput('not-an-array'));
+      expect(result.continue).toBe(true);
+      expect(result.suppressOutput).toBe(true);
+    });
+
+    test('filters out invalid elements from files_loaded', () => {
+      const result = instructionsLoadedDispatcher(makeInput([null, undefined, 123, 'string']));
+      expect(result.continue).toBe(true);
+      expect(result.suppressOutput).toBe(true);
+      // No valid LoadedFile elements -> no handlers called
+      expect(mockTokenBudget).not.toHaveBeenCalled();
+    });
+
     test('does not invoke any handler when files_loaded is empty', () => {
       instructionsLoadedDispatcher(makeInput([]));
       expect(mockTokenBudget).not.toHaveBeenCalled();
@@ -108,25 +126,29 @@ describe('instructionsLoadedDispatcher', () => {
       expect(mockSmartSuggestions).toHaveBeenCalledOnce();
     });
 
-    test('passes the parsed files_loaded array to each handler', () => {
+    test('passes files and content cache to each handler', () => {
       const files = [
         { path: '/project/CLAUDE.md', byte_size: 1000 },
         { path: '/project/.claude/rules/a.md', byte_size: 500 },
       ];
       instructionsLoadedDispatcher(makeInput(files));
-      expect(mockTokenBudget).toHaveBeenCalledWith(files);
-      expect(mockDriftDetection).toHaveBeenCalledWith(files);
+      // First arg is files, second is Map<string, string>
+      expect(mockTokenBudget).toHaveBeenCalledWith(files, expect.any(Map));
+      expect(mockDriftDetection).toHaveBeenCalledWith(files, expect.any(Map));
+      // Verify the map has pre-read content
+      const passedMap = mockTokenBudget.mock.calls[0][1] as Map<string, string>;
+      expect(passedMap.size).toBe(2);
+      expect(passedMap.get('/project/CLAUDE.md')).toBe('content of /project/CLAUDE.md');
     });
   });
 
   describe('handler output merging', () => {
-    test('returns prompt context when one handler produces output', () => {
-      mockTokenBudget.mockReturnValue('[Instruction Budget] 5000 tokens across 3 files (2.5% of context). Largest: CLAUDE.md (4000)');
+    test('returns prompt context with additionalContext when one handler produces output', () => {
+      mockTokenBudget.mockReturnValue('[Instruction Budget] 5000 tokens');
       const input = makeInput([{ path: '/project/CLAUDE.md', byte_size: 20_000 }]);
       const result = instructionsLoadedDispatcher(input);
       expect(result.continue).toBe(true);
-      // outputPromptContext injects additionalContext
-      expect(result.suppressOutput).toBe(true);
+      expect(result.hookSpecificOutput?.additionalContext).toBe('[Instruction Budget] 5000 tokens');
     });
 
     test('joins multiple handler outputs with double newline', () => {
@@ -134,7 +156,6 @@ describe('instructionsLoadedDispatcher', () => {
       mockPriorityMap.mockReturnValue('Priority output');
       const input = makeInput([{ path: '/project/CLAUDE.md', byte_size: 20_000 }]);
       const result = instructionsLoadedDispatcher(input);
-      // additionalContext is under hookSpecificOutput per CC 2.1.9
       const context = result.hookSpecificOutput?.additionalContext;
       expect(context).toContain('Budget output');
       expect(context).toContain('Priority output');
@@ -159,7 +180,6 @@ describe('instructionsLoadedDispatcher', () => {
       const input = makeInput([{ path: '/project/CLAUDE.md', byte_size: 1000 }]);
       const result = instructionsLoadedDispatcher(input);
 
-      // Should not throw; smart suggestions still runs
       expect(result.continue).toBe(true);
       const context = result.hookSpecificOutput?.additionalContext;
       expect(context).toContain('Smart suggestion output');

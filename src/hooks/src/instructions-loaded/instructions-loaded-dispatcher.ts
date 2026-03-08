@@ -6,23 +6,20 @@
  * InstructionsLoaded Dispatcher — CC 2.1.69
  *
  * Fires after Claude Code loads instruction files (CLAUDE.md, .claude/rules/*.md, plugin instructions).
- * Runs 6 handlers sequentially, merges their additionalContext.
+ * Pre-reads file contents once, then runs 6 handlers sequentially with shared content cache.
  *
  * Handlers:
- * 1. Token Budget    — count instruction tokens, warn on budget overrun
- * 2. Priority Map    — make CLAUDE.md > rules > plugin precedence explicit
- * 3. Drift Detection — compare rule hashes to last session, report changes
+ * 1. Token Budget    — count instruction tokens, warn on budget overrun (no I/O — uses byte_size)
+ * 2. Priority Map    — make CLAUDE.md > rules > plugin precedence explicit (no I/O)
+ * 3. Drift Detection — compare rule hashes to last session, report changes (reads + conditional write)
  * 4. Content Dedup   — detect overlapping content across instruction files
  * 5. Rule Conflicts  — data-driven conflict detection
- * 6. Smart Suggest   — suggest missing rules based on project signals
- *
- * Removed (Phase 1 cleanup):
- * - Phantom Limb: 3/7 co-occurrence pairs referenced non-existent files
- * - Instruction Gravity: redundant — Claude already sees loaded rules
+ * 6. Smart Suggest   — suggest missing rules based on project signals (own I/O for project checks)
  */
 
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, outputPromptContext, logHook } from '../lib/common.js';
+import { readFileSync } from 'node:fs';
 import type { LoadedFile } from './types.js';
 import { tokenBudgetTracker } from './token-budget-tracker.js';
 import { priorityMap } from './priority-map.js';
@@ -32,8 +29,9 @@ import { ruleConflictDetector } from './rule-conflicts.js';
 import { smartRuleSuggestions } from './smart-suggestions.js';
 
 const HOOK_NAME = 'instructions-loaded-dispatcher';
+const MAX_FILES = 100;
 
-type Handler = (files: LoadedFile[]) => string | null;
+type Handler = (files: LoadedFile[], contents: Map<string, string>) => string | null;
 
 const HANDLERS: Array<{ name: string; fn: Handler }> = [
   { name: 'Token Budget', fn: tokenBudgetTracker },
@@ -44,22 +42,42 @@ const HANDLERS: Array<{ name: string; fn: Handler }> = [
   { name: 'Smart Suggestions', fn: smartRuleSuggestions },
 ];
 
+function isValidLoadedFile(item: unknown): item is LoadedFile {
+  return typeof item === 'object' && item !== null && typeof (item as LoadedFile).path === 'string';
+}
+
 export function instructionsLoadedDispatcher(input: HookInput): HookResult {
   const raw = (input as unknown as Record<string, unknown>).files_loaded;
-  const filesLoaded: LoadedFile[] = Array.isArray(raw) ? raw as LoadedFile[] : [];
+  if (!Array.isArray(raw)) {
+    logHook(HOOK_NAME, 'No files_loaded in input, skipping');
+    return outputSilentSuccess();
+  }
+
+  // Validate individual elements and cap array size
+  const filesLoaded: LoadedFile[] = raw.filter(isValidLoadedFile).slice(0, MAX_FILES);
 
   if (filesLoaded.length === 0) {
-    logHook(HOOK_NAME, 'No files_loaded in input, skipping');
+    logHook(HOOK_NAME, 'No valid files in files_loaded, skipping');
     return outputSilentSuccess();
   }
 
   logHook(HOOK_NAME, `Processing ${filesLoaded.length} loaded instruction files`);
 
+  // Pre-read all file contents once — handlers share this cache
+  const contentCache = new Map<string, string>();
+  for (const f of filesLoaded) {
+    try {
+      contentCache.set(f.path, readFileSync(f.path, 'utf8'));
+    } catch {
+      // Skip unreadable files
+    }
+  }
+
   const contextParts: string[] = [];
 
   for (const handler of HANDLERS) {
     try {
-      const result = handler.fn(filesLoaded);
+      const result = handler.fn(filesLoaded, contentCache);
       if (result) contextParts.push(result);
     } catch (err) {
       logHook(HOOK_NAME, `${handler.name} failed: ${err}`, 'warn');

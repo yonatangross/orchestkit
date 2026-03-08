@@ -3,10 +3,18 @@
 
 /**
  * Classify an instruction file path into its source tier.
+ *
+ * Priority order matters — checked top-to-bottom:
+ * 1. .claude/rules/ paths → 'rules' (checked first to avoid CLAUDE.md inside .claude/)
+ * 2. CLAUDE.md at any level (but not inside .claude/) → 'project'
+ * 3. Plugin cache or CLAUDE_PLUGIN paths → 'plugin'
+ * 4. Everything else → 'unknown'
  */
+import { basename } from 'node:path';
+
 export function classifySource(filePath: string): string {
-  if (filePath.includes('CLAUDE.md') && !filePath.includes('.claude/')) return 'project';
   if (filePath.includes('.claude/rules/') || filePath.includes('claude/rules/')) return 'rules';
-  if (filePath.includes('plugin') || filePath.includes('CLAUDE_PLUGIN')) return 'plugin';
+  if (basename(filePath) === 'CLAUDE.md' && !filePath.includes('.claude/')) return 'project';
+  if (filePath.includes('/plugins/') || filePath.includes('CLAUDE_PLUGIN')) return 'plugin';
   return 'unknown';
 }

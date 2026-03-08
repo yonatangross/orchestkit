@@ -4,18 +4,11 @@
 /**
  * Unit tests for content-dedup.ts
  * Handler 4: detects overlapping content lines across loaded instruction files
+ * Uses shared content cache from dispatcher — no file I/O mocks needed.
  */
 
-import { describe, test, expect, vi, beforeEach } from 'vitest';
+import { describe, test, expect, vi } from 'vitest';
 import type { LoadedFile } from '../../instructions-loaded/types.js';
-
-const mockExistsSync = vi.fn();
-const mockReadFileSync = vi.fn();
-
-vi.mock('node:fs', () => ({
-  existsSync: (...args: unknown[]) => mockExistsSync(...args),
-  readFileSync: (...args: unknown[]) => mockReadFileSync(...args),
-}));
 
 vi.mock('../../lib/common.js', () => ({
   logHook: vi.fn(),
@@ -31,104 +24,106 @@ function makeFile(path: string): LoadedFile {
 const SHARED_LINE = 'Always use cursor-based pagination for large datasets here.';
 const ANOTHER_SHARED_LINE = 'Never commit directly to main or master branch ever.';
 
-beforeEach(() => {
-  vi.clearAllMocks();
-  mockExistsSync.mockReturnValue(true);
-});
-
 describe('contentDedupScanner', () => {
   describe('null returns (silent path)', () => {
     test('returns null for empty file list', () => {
-      expect(contentDedupScanner([])).toBeNull();
+      expect(contentDedupScanner([], new Map())).toBeNull();
     });
 
     test('returns null when fewer than 2 duplicate lines are found', () => {
-      mockReadFileSync.mockImplementation((p: string) => {
-        if (p.includes('a.md')) return `${SHARED_LINE}\nUnique line in file A that is very specific.`;
-        return 'Completely unique content in file B that does not repeat anywhere else.';
-      });
-
       const files = [makeFile('/project/.claude/rules/a.md'), makeFile('/project/.claude/rules/b.md')];
-      expect(contentDedupScanner(files)).toBeNull();
+      const contents = new Map([
+        ['/project/.claude/rules/a.md', `${SHARED_LINE}\nUnique line in file A that is very specific.`],
+        ['/project/.claude/rules/b.md', 'Completely unique content in file B that does not repeat anywhere else.'],
+      ]);
+      expect(contentDedupScanner(files, contents)).toBeNull();
     });
 
     test('ignores lines shorter than 30 chars', () => {
-      mockReadFileSync.mockReturnValue('short\nlines\nonly');
       const files = [makeFile('/a.md'), makeFile('/b.md')];
-      expect(contentDedupScanner(files)).toBeNull();
+      const contents = new Map([
+        ['/a.md', 'short\nlines\nonly'],
+        ['/b.md', 'short\nlines\nonly'],
+      ]);
+      expect(contentDedupScanner(files, contents)).toBeNull();
     });
 
     test('ignores lines starting with # (markdown headings)', () => {
       const heading = '# Always use cursor-based pagination for all queries';
-      mockReadFileSync.mockReturnValue(heading);
       const files = [makeFile('/a.md'), makeFile('/b.md')];
-      expect(contentDedupScanner(files)).toBeNull();
+      const contents = new Map([['/a.md', heading], ['/b.md', heading]]);
+      expect(contentDedupScanner(files, contents)).toBeNull();
     });
 
     test('ignores lines starting with | (markdown tables)', () => {
       const tableRow = '| cursor | offset | Use cursor for large tables |';
-      mockReadFileSync.mockReturnValue(tableRow);
       const files = [makeFile('/a.md'), makeFile('/b.md')];
-      expect(contentDedupScanner(files)).toBeNull();
+      const contents = new Map([['/a.md', tableRow], ['/b.md', tableRow]]);
+      expect(contentDedupScanner(files, contents)).toBeNull();
     });
 
-    test('skips files that do not exist', () => {
-      mockExistsSync.mockReturnValue(false);
+    test('skips files not in content cache', () => {
       const files = [makeFile('/missing/a.md'), makeFile('/missing/b.md')];
-      expect(contentDedupScanner(files)).toBeNull();
+      expect(contentDedupScanner(files, new Map())).toBeNull();
     });
   });
 
   describe('string returns (context injection)', () => {
-    beforeEach(() => {
-      // Two files sharing two qualifying lines
-      mockReadFileSync.mockImplementation((p: string) => {
-        return [SHARED_LINE, ANOTHER_SHARED_LINE, `Unique to ${p} only line here.`].join('\n');
-      });
-    });
+    function sharedContents(): Map<string, string> {
+      return new Map([
+        ['/project/.claude/rules/a.md', [SHARED_LINE, ANOTHER_SHARED_LINE, 'Unique to a only line here.'].join('\n')],
+        ['/project/.claude/rules/b.md', [SHARED_LINE, ANOTHER_SHARED_LINE, 'Unique to b only line here.'].join('\n')],
+      ]);
+    }
 
     test('returns overlap report when 2+ duplicate lines exist', () => {
       const files = [makeFile('/project/.claude/rules/a.md'), makeFile('/project/.claude/rules/b.md')];
-      const result = contentDedupScanner(files);
+      const result = contentDedupScanner(files, sharedContents());
       expect(result).not.toBeNull();
       expect(result).toContain('[Content Overlap]');
     });
 
     test('reports file pair with shared line count', () => {
       const files = [makeFile('/project/.claude/rules/a.md'), makeFile('/project/.claude/rules/b.md')];
-      const result = contentDedupScanner(files);
+      const result = contentDedupScanner(files, sharedContents());
       expect(result).toContain('a.md <> b.md');
       expect(result).toContain('2 shared lines');
     });
 
     test('reports estimated wasted tokens', () => {
       const files = [makeFile('/project/.claude/rules/a.md'), makeFile('/project/.claude/rules/b.md')];
-      const result = contentDedupScanner(files);
-      // ~30+ chars / 4 = ~8+ tokens per line × 2 lines
+      const result = contentDedupScanner(files, sharedContents());
+      // ~58 chars + ~52 chars / 4 = ~28 tokens total
       expect(result).toMatch(/\d+ tokens/);
     });
 
     test('shows at most top 3 file pairs', () => {
-      // 4 files: each pair shares lines → 6 pairs total
-      mockReadFileSync.mockReturnValue([SHARED_LINE, ANOTHER_SHARED_LINE].join('\n'));
+      // 4 files: each pair shares lines -> 6 pairs total
+      const shared = [SHARED_LINE, ANOTHER_SHARED_LINE].join('\n');
+      const contents = new Map([
+        ['/project/.claude/rules/a.md', shared],
+        ['/project/.claude/rules/b.md', shared],
+        ['/project/.claude/rules/c.md', shared],
+        ['/project/.claude/rules/d.md', shared],
+      ]);
       const files = ['a', 'b', 'c', 'd'].map(n => makeFile(`/project/.claude/rules/${n}.md`));
-      const result = contentDedupScanner(files);
+      const result = contentDedupScanner(files, contents);
       // Count "<>" occurrences — should be 3 or fewer
       const pairMatches = result?.match(/<>/g) ?? [];
       expect(pairMatches.length).toBeLessThanOrEqual(3);
     });
 
-    test('handles unreadable files gracefully', () => {
-      mockReadFileSync.mockImplementation((p: string) => {
-        if (p.includes('bad.md')) throw new Error('EACCES');
-        return [SHARED_LINE, ANOTHER_SHARED_LINE].join('\n');
-      });
+    test('handles files missing from content cache gracefully', () => {
+      const contents = new Map([
+        ['/project/.claude/rules/good.md', [SHARED_LINE, ANOTHER_SHARED_LINE].join('\n')],
+        // bad.md not in cache
+      ]);
       const files = [
         makeFile('/project/.claude/rules/good.md'),
         makeFile('/project/.claude/rules/bad.md'),
       ];
-      // Should not throw; only one file readable → no duplicates
-      expect(() => contentDedupScanner(files)).not.toThrow();
+      // Should not throw; only one file has content -> no duplicates
+      expect(() => contentDedupScanner(files, contents)).not.toThrow();
     });
   });
 });

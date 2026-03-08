@@ -15,7 +15,7 @@ import { classifySource } from './classify-source.js';
 
 const HOOK_NAME = 'instructions-loaded/priority-map';
 
-export function priorityMap(filesLoaded: LoadedFile[]): string | null {
+export function priorityMap(filesLoaded: LoadedFile[], _contents: Map<string, string>): string | null {
   const sources: Record<string, string[]> = {
     project: [],
     rules: [],

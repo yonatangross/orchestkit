@@ -16,7 +16,7 @@ import type { LoadedFile, ProjectSignal } from './types.js';
 
 const HOOK_NAME = 'instructions-loaded/smart-suggestions';
 
-export function smartRuleSuggestions(filesLoaded: LoadedFile[]): string | null {
+export function smartRuleSuggestions(filesLoaded: LoadedFile[], _contents: Map<string, string>): string | null {
   const loadedNames = new Set(filesLoaded.map(f => basename(f.path)));
   const projectDir = getProjectDir();
 

@@ -17,13 +17,6 @@ export interface DriftCache {
   fileHashes: Record<string, string>;
 }
 
-export interface ConflictPattern {
-  keywords: string[];
-  antiKeywords: string[];
-  description: string;
-  resolution: string;
-}
-
 export interface ProjectSignal {
   check: () => boolean;
   ruleName: string;

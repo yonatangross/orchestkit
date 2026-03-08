@@ -4,18 +4,11 @@
 /**
  * Unit tests for rule-conflicts.ts
  * Handler 5: data-driven conflict detection across .claude/rules/ and CLAUDE.md
+ * Uses shared content cache — no readFileSync mocks needed for instruction files.
  */
 
-import { describe, test, expect, vi, beforeEach } from 'vitest';
+import { describe, test, expect, vi } from 'vitest';
 import type { LoadedFile } from '../../instructions-loaded/types.js';
-
-const mockExistsSync = vi.fn();
-const mockReadFileSync = vi.fn();
-
-vi.mock('node:fs', () => ({
-  existsSync: (...args: unknown[]) => mockExistsSync(...args),
-  readFileSync: (...args: unknown[]) => mockReadFileSync(...args),
-}));
 
 vi.mock('../../lib/common.js', () => ({
   logHook: vi.fn(),
@@ -27,127 +20,172 @@ function makeFile(path: string): LoadedFile {
   return { path };
 }
 
-beforeEach(() => {
-  vi.clearAllMocks();
-  mockExistsSync.mockReturnValue(true);
-});
-
 describe('ruleConflictDetector', () => {
   describe('null returns (silent path)', () => {
     test('returns null for empty file list', () => {
-      expect(ruleConflictDetector([])).toBeNull();
+      expect(ruleConflictDetector([], new Map())).toBeNull();
     });
 
     test('returns null when fewer than 2 rule/project files exist', () => {
-      mockReadFileSync.mockReturnValue('some content here');
-      const files = [makeFile('/project/CLAUDE.md')]; // only one file
-      expect(ruleConflictDetector(files)).toBeNull();
+      const files = [makeFile('/project/CLAUDE.md')];
+      const contents = new Map([['/project/CLAUDE.md', 'some content here']]);
+      expect(ruleConflictDetector(files, contents)).toBeNull();
     });
 
     test('returns null when no conflict patterns match', () => {
-      // Both files contain harmless, non-conflicting content
-      mockReadFileSync.mockReturnValue('general guidelines with no contradictions at all');
       const files = [
         makeFile('/project/CLAUDE.md'),
         makeFile('/project/.claude/rules/style.md'),
       ];
-      expect(ruleConflictDetector(files)).toBeNull();
+      const contents = new Map([
+        ['/project/CLAUDE.md', 'general guidelines with no contradictions at all'],
+        ['/project/.claude/rules/style.md', 'more general guidelines without conflicts'],
+      ]);
+      expect(ruleConflictDetector(files, contents)).toBeNull();
     });
 
     test('ignores files outside .claude/rules/ and CLAUDE.md', () => {
-      mockReadFileSync.mockReturnValue('cursor pagination never offset pagination');
-      const files = [
-        makeFile('/tmp/random.md'), // not a rule file
-        makeFile('/tmp/other.md'),
-      ];
-      expect(ruleConflictDetector(files)).toBeNull();
+      const files = [makeFile('/tmp/random.md'), makeFile('/tmp/other.md')];
+      const contents = new Map([
+        ['/tmp/random.md', 'cursor pagination never offset pagination'],
+        ['/tmp/other.md', 'cursor pagination never offset pagination'],
+      ]);
+      expect(ruleConflictDetector(files, contents)).toBeNull();
     });
 
-    test('skips unreadable files gracefully', () => {
-      mockExistsSync.mockReturnValue(false);
+    test('skips files not in content cache gracefully', () => {
       const files = [
         makeFile('/project/CLAUDE.md'),
         makeFile('/project/.claude/rules/a.md'),
       ];
-      expect(ruleConflictDetector(files)).toBeNull();
+      expect(ruleConflictDetector(files, new Map())).toBeNull();
+    });
+
+    test('no false positive when a file discusses both sides of a pattern', () => {
+      // A file that explains "use cursor, not offset" matches both keyword sets
+      // but should NOT trigger a conflict since it advocates one side
+      const files = [
+        makeFile('/project/CLAUDE.md'),
+        makeFile('/project/.claude/rules/antipatterns.md'),
+      ];
+      const contents = new Map([
+        ['/project/CLAUDE.md', 'use cursor pagination and never use offset pagination in this project'],
+        ['/project/.claude/rules/antipatterns.md', 'cursor pagination is preferred over offset pagination always'],
+      ]);
+      // Both files mention both cursor+pagination AND offset+pagination
+      // The new algorithm excludes files matching BOTH sides -> no conflict
+      expect(ruleConflictDetector(files, contents)).toBeNull();
     });
   });
 
   describe('string returns — conflict detected', () => {
     test('detects pagination strategy conflict', () => {
-      // CLAUDE.md uses cursor pagination; rules file uses offset pagination
-      mockReadFileSync.mockImplementation((p: string) => {
-        if (p.includes('CLAUDE.md')) return 'always use cursor pagination for large datasets';
-        return 'use offset pagination for all list endpoints here now';
-      });
       const files = [
         makeFile('/project/CLAUDE.md'),
         makeFile('/project/.claude/rules/antipatterns.md'),
       ];
-      const result = ruleConflictDetector(files);
+      const contents = new Map([
+        ['/project/CLAUDE.md', 'always use cursor pagination for large datasets'],
+        ['/project/.claude/rules/antipatterns.md', 'use offset pagination for all list endpoints here now'],
+      ]);
+      const result = ruleConflictDetector(files, contents);
       expect(result).not.toBeNull();
       expect(result).toContain('[Rule Conflicts]');
       expect(result).toContain('Pagination strategy conflict');
     });
 
     test('includes which file wins based on priority', () => {
-      mockReadFileSync.mockImplementation((p: string) => {
-        if (p.includes('CLAUDE.md')) return 'cursor pagination always';
-        return 'offset pagination all endpoints';
-      });
       const files = [
         makeFile('/project/CLAUDE.md'),
         makeFile('/project/.claude/rules/antipatterns.md'),
       ];
-      const result = ruleConflictDetector(files);
-      // CLAUDE.md has priority 1, rules have priority 2 → CLAUDE.md wins
+      const contents = new Map([
+        ['/project/CLAUDE.md', 'cursor pagination always'],
+        ['/project/.claude/rules/antipatterns.md', 'offset pagination all endpoints'],
+      ]);
+      const result = ruleConflictDetector(files, contents);
+      // CLAUDE.md has priority 1, rules have priority 2 -> CLAUDE.md wins
       expect(result).toContain('CLAUDE.md');
       expect(result).toContain('wins');
     });
 
     test('detects sync vs async preference conflict', () => {
-      mockReadFileSync.mockImplementation((p: string) => {
-        if (p.includes('CLAUDE.md')) return 'use synchronous file operations everywhere';
-        return 'always prefer async await for all io operations';
-      });
       const files = [
         makeFile('/project/CLAUDE.md'),
         makeFile('/project/.claude/rules/style.md'),
       ];
-      const result = ruleConflictDetector(files);
+      const contents = new Map([
+        ['/project/CLAUDE.md', 'use synchronous file operations everywhere'],
+        ['/project/.claude/rules/style.md', 'always prefer async await for all io operations'],
+      ]);
+      const result = ruleConflictDetector(files, contents);
       expect(result).toContain('Sync vs async');
     });
 
+    test('detects date usage conflict', () => {
+      const files = [
+        makeFile('/project/CLAUDE.md'),
+        makeFile('/project/.claude/rules/dates.md'),
+      ];
+      const contents = new Map([
+        ['/project/CLAUDE.md', 'never use date objects directly in the codebase'],
+        ['/project/.claude/rules/dates.md', 'always use iso timestamp format for dates'],
+      ]);
+      const result = ruleConflictDetector(files, contents);
+      expect(result).toContain('Date usage conflict');
+    });
+
+    test('detects commit timing conflict', () => {
+      const files = [
+        makeFile('/project/CLAUDE.md'),
+        makeFile('/project/.claude/rules/workflow.md'),
+      ];
+      const contents = new Map([
+        ['/project/CLAUDE.md', 'commit at end of session when all work is done'],
+        ['/project/.claude/rules/workflow.md', 'commit each logical unit of work incrementally'],
+      ]);
+      const result = ruleConflictDetector(files, contents);
+      expect(result).toContain('Commit timing conflict');
+    });
+
+    test('detects auto-commit policy conflict', () => {
+      const files = [
+        makeFile('/project/CLAUDE.md'),
+        makeFile('/project/.claude/rules/git.md'),
+      ];
+      const contents = new Map([
+        ['/project/CLAUDE.md', 'never use auto-commit in this project'],
+        ['/project/.claude/rules/git.md', 'enable auto-commit after each successful test run'],
+      ]);
+      const result = ruleConflictDetector(files, contents);
+      expect(result).toContain('Auto-commit policy conflict');
+    });
+
+    test('detects abstraction philosophy conflict', () => {
+      const files = [
+        makeFile('/project/CLAUDE.md'),
+        makeFile('/project/.claude/rules/patterns.md'),
+      ];
+      const contents = new Map([
+        ['/project/CLAUDE.md', 'no abstraction until the third use case'],
+        ['/project/.claude/rules/patterns.md', 'apply dry principles and reuse existing helpers'],
+      ]);
+      const result = ruleConflictDetector(files, contents);
+      expect(result).toContain('Abstraction philosophy conflict');
+    });
+
     test('reports conflict count in header', () => {
-      // Trigger two conflicts: pagination + sync/async
-      mockReadFileSync.mockImplementation((p: string) => {
-        if (p.includes('CLAUDE.md')) return 'cursor pagination never date synchronous operations';
-        return 'offset pagination iso timestamp async await date usage';
-      });
       const files = [
         makeFile('/project/CLAUDE.md'),
         makeFile('/project/.claude/rules/combined.md'),
       ];
-      const result = ruleConflictDetector(files);
+      const contents = new Map([
+        ['/project/CLAUDE.md', 'cursor pagination never date synchronous operations'],
+        ['/project/.claude/rules/combined.md', 'offset pagination iso timestamp async await'],
+      ]);
+      const result = ruleConflictDetector(files, contents);
       expect(result).not.toBeNull();
-      // At least 1 conflict detected — exact count varies by pattern overlap
       expect(result).toMatch(/\d+ detected/);
-    });
-
-    test('does not report same-file false positive (matchA.name === matchB.name)', () => {
-      // Single file that contains both sides of a conflict pattern
-      mockReadFileSync.mockImplementation(() =>
-        'cursor pagination offset pagination async await synchronous'
-      );
-      const files = [
-        makeFile('/project/CLAUDE.md'),
-        makeFile('/project/.claude/rules/a.md'),
-      ];
-      const result = ruleConflictDetector(files);
-      // Same content in both files — pattern matches same file: should NOT flag conflict
-      // (matchA.name === matchB.name check in implementation prevents this)
-      // Both files have identical content so they match the same pattern — no cross-file conflict
-      expect(result).toBeNull();
     });
   });
 });

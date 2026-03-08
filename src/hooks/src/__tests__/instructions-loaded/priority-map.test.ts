@@ -16,6 +16,8 @@ vi.mock('../../lib/common.js', async (importOriginal) => {
 
 import { priorityMap } from '../../instructions-loaded/priority-map.js';
 
+const EMPTY_CONTENTS = new Map<string, string>();
+
 function makeFile(path: string): LoadedFile {
   return { path };
 }
@@ -23,7 +25,7 @@ function makeFile(path: string): LoadedFile {
 describe('priorityMap', () => {
   describe('null returns (silent path)', () => {
     test('returns null for empty list', () => {
-      expect(priorityMap([])).toBeNull();
+      expect(priorityMap([], EMPTY_CONTENTS)).toBeNull();
     });
 
     test('returns null when all files are from one source tier', () => {
@@ -31,11 +33,11 @@ describe('priorityMap', () => {
         makeFile('/project/.claude/rules/antipatterns.md'),
         makeFile('/project/.claude/rules/hooks-development.md'),
       ];
-      expect(priorityMap(files)).toBeNull();
+      expect(priorityMap(files, EMPTY_CONTENTS)).toBeNull();
     });
 
     test('returns null for single project file (only one tier)', () => {
-      expect(priorityMap([makeFile('/project/CLAUDE.md')])).toBeNull();
+      expect(priorityMap([makeFile('/project/CLAUDE.md')], EMPTY_CONTENTS)).toBeNull();
     });
   });
 
@@ -45,7 +47,7 @@ describe('priorityMap', () => {
         makeFile('/project/CLAUDE.md'),
         makeFile('/project/.claude/rules/antipatterns.md'),
       ];
-      const result = priorityMap(files);
+      const result = priorityMap(files, EMPTY_CONTENTS);
       expect(result).not.toBeNull();
       expect(result).toContain('[Rule Precedence]');
     });
@@ -55,7 +57,7 @@ describe('priorityMap', () => {
         makeFile('/project/CLAUDE.md'),
         makeFile('/project/.claude/rules/rules.md'),
       ];
-      const result = priorityMap(files);
+      const result = priorityMap(files, EMPTY_CONTENTS);
       expect(result).toContain('1. CLAUDE.md (wins)');
       expect(result).toContain('CLAUDE.md');
     });
@@ -66,7 +68,7 @@ describe('priorityMap', () => {
         makeFile('/project/.claude/rules/antipatterns.md'),
         makeFile('/project/.claude/rules/recent-decisions.md'),
       ];
-      const result = priorityMap(files);
+      const result = priorityMap(files, EMPTY_CONTENTS);
       expect(result).toContain('2. .claude/rules/ (2 files)');
     });
 
@@ -75,7 +77,7 @@ describe('priorityMap', () => {
         makeFile('/project/CLAUDE.md'),
         makeFile('/home/.claude/plugins/cache/ork/SKILL.md'),
       ];
-      const result = priorityMap(files);
+      const result = priorityMap(files, EMPTY_CONTENTS);
       expect(result).toContain('3. Plugin instructions');
       expect(result).toContain('SKILL.md');
     });
@@ -86,7 +88,7 @@ describe('priorityMap', () => {
         makeFile('/project/.claude/rules/antipatterns.md'),
         makeFile('/home/.claude/plugins/cache/ork/SKILL.md'),
       ];
-      const result = priorityMap(files);
+      const result = priorityMap(files, EMPTY_CONTENTS);
       expect(result).toContain('1. CLAUDE.md');
       expect(result).toContain('2. .claude/rules/');
       expect(result).toContain('3. Plugin instructions');
@@ -98,7 +100,7 @@ describe('priorityMap', () => {
         makeFile('/project/.claude/rules/style.md'),
         makeFile('/home/.claude/plugins/cache/ork/SKILL.md'),
       ];
-      const result = priorityMap(files);
+      const result = priorityMap(files, EMPTY_CONTENTS);
       expect(result).not.toBeNull();
       expect(result).not.toContain('1. CLAUDE.md');
       expect(result).toContain('2. .claude/rules/');

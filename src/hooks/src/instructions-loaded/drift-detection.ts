@@ -6,6 +6,7 @@
  *
  * Hashes rule files and compares to cached hashes from last session.
  * Reports which files changed, were added, or removed between sessions.
+ * Only writes cache when hashes actually differ.
  */
 
 import { logHook, fnv1aHash } from '../lib/common.js';
@@ -46,24 +47,21 @@ function saveDriftCache(hashes: Record<string, string>): void {
   }
 }
 
-export function driftDetection(filesLoaded: LoadedFile[]): string | null {
+export function driftDetection(filesLoaded: LoadedFile[], contents: Map<string, string>): string | null {
   const currentHashes: Record<string, string> = {};
 
   for (const f of filesLoaded) {
-    try {
-      const content = readFileSync(f.path, 'utf8');
-      // Use relative-ish key to avoid basename collisions across directories
-      const key = f.path.includes('.claude/') ? f.path.slice(f.path.indexOf('.claude/')) : basename(f.path);
-      currentHashes[key] = fnv1aHash(content);
-    } catch {
-      // Skip unreadable files
-    }
+    const content = contents.get(f.path);
+    if (!content) continue;
+    // Use relative-ish key to avoid basename collisions across directories
+    const key = f.path.includes('.claude/') ? f.path.slice(f.path.indexOf('.claude/')) : basename(f.path);
+    currentHashes[key] = fnv1aHash(content);
   }
 
   const previousCache = loadDriftCache();
-  saveDriftCache(currentHashes);
 
   if (!previousCache) {
+    saveDriftCache(currentHashes);
     logHook(HOOK_NAME, 'Drift detection: first run, baseline saved');
     return null;
   }
@@ -91,6 +89,9 @@ export function driftDetection(filesLoaded: LoadedFile[]): string | null {
     logHook(HOOK_NAME, 'Drift detection: no changes since last session');
     return null;
   }
+
+  // Only write cache when something actually changed
+  saveDriftCache(currentHashes);
 
   logHook(HOOK_NAME, `Drift detection: ${totalChanges} changes since last session`);
 

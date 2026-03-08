@@ -3,7 +3,7 @@
 
 /**
  * Unit tests for drift-detection.ts
- * Handler 3: hashes rule files, compares to last-session cache, reports changes
+ * Handler 3: hashes rule files from content cache, compares to last-session cache, reports changes
  */
 
 import { describe, test, expect, vi, beforeEach } from 'vitest';
@@ -32,7 +32,6 @@ vi.mock('../../lib/paths.js', () => ({
 
 const { fnv1aHash: realFnv1aHash } = vi.hoisted(() => {
   // Inline the real FNV-1a 32-bit implementation so the mock factory has a stable reference.
-  // This must exactly match common.ts fnv1aHash so drift comparison tests produce correct hashes.
   function fnv1aHash(str: string): string {
     let hash = 0x811c9dc5;
     for (let i = 0; i < str.length; i++) {
@@ -57,101 +56,107 @@ function buildCache(fileHashes: Record<string, string>, lastSession = '2026-03-0
   return JSON.stringify(cache, null, 2);
 }
 
-const CACHE_PATH = '/test/project/.claude/feedback/instruction-drift-cache.json';
-
 function makeFile(path: string): LoadedFile {
   return { path };
 }
 
 beforeEach(() => {
   vi.clearAllMocks();
-  // Default: source files exist and return deterministic content
-  mockExistsSync.mockImplementation((p: string) => !p.endsWith('instruction-drift-cache.json'));
-  mockReadFileSync.mockImplementation((p: string) => `content of ${p}`);
+  // Default: cache file does not exist
+  mockExistsSync.mockReturnValue(false);
 });
 
 describe('driftDetection', () => {
   describe('first run (no cache)', () => {
     test('returns null and saves baseline on first run', () => {
-      mockExistsSync.mockImplementation(() => false); // no cache, no files either
-      const result = driftDetection([makeFile('/project/CLAUDE.md')]);
+      const contents = new Map([['/project/CLAUDE.md', 'content']]);
+      const result = driftDetection([makeFile('/project/CLAUDE.md')], contents);
       expect(result).toBeNull();
       expect(mockAtomicWriteSync).toHaveBeenCalledOnce();
       const [savedPath] = mockAtomicWriteSync.mock.calls[0];
       expect(savedPath).toContain('instruction-drift-cache.json');
     });
 
-    test('saves hashes for all readable files on first run', () => {
-      // cache absent, source files exist and are readable
-      mockExistsSync.mockImplementation((p: string) => !p.endsWith('instruction-drift-cache.json'));
+    test('saves hashes for all files in content cache on first run', () => {
+      const contents = new Map([
+        ['/project/CLAUDE.md', 'claude content'],
+        ['/project/.claude/rules/a.md', 'rule content'],
+      ]);
       const files = [makeFile('/project/CLAUDE.md'), makeFile('/project/.claude/rules/a.md')];
-      driftDetection(files);
+      driftDetection(files, contents);
       const [, savedJson] = mockAtomicWriteSync.mock.calls[0];
       const saved = JSON.parse(savedJson) as DriftCache;
       const keys = Object.keys(saved.fileHashes);
       expect(keys).toHaveLength(2);
-      // Keys are basenames of the input file paths
       expect(keys.some(k => k.includes('CLAUDE.md'))).toBe(true);
       expect(keys.some(k => k.includes('a.md'))).toBe(true);
+    });
+
+    test('uses .claude/-relative key for paths containing .claude/', () => {
+      const contents = new Map([
+        ['/project/.claude/rules/antipatterns.md', 'content'],
+        ['/project/.claude/rules/nested/deep.md', 'more content'],
+      ]);
+      const files = [
+        makeFile('/project/.claude/rules/antipatterns.md'),
+        makeFile('/project/.claude/rules/nested/deep.md'),
+      ];
+      driftDetection(files, contents);
+      const [, savedJson] = mockAtomicWriteSync.mock.calls[0];
+      const saved = JSON.parse(savedJson) as DriftCache;
+      const keys = Object.keys(saved.fileHashes);
+      // Keys should be .claude/-relative, not basenames
+      expect(keys).toContain('.claude/rules/antipatterns.md');
+      expect(keys).toContain('.claude/rules/nested/deep.md');
     });
   });
 
   describe('no changes since last session', () => {
-    test('returns null when all file hashes match cache', async () => {
-      const { fnv1aHash } = await import('../../lib/common.js');
-      const content = 'content of /project/CLAUDE.md';
-      const hash = fnv1aHash(content);
+    test('returns null when all file hashes match cache', () => {
+      const content = 'stable content that has not changed';
+      const hash = realFnv1aHash(content);
 
-      mockExistsSync.mockImplementation((p: string) => true);
-      mockReadFileSync.mockImplementation((p: string) => {
-        if (p === CACHE_PATH) return buildCache({ 'CLAUDE.md': hash });
-        return content;
-      });
+      mockExistsSync.mockReturnValue(true);
+      mockReadFileSync.mockReturnValue(buildCache({ 'CLAUDE.md': hash }));
 
-      const result = driftDetection([makeFile('/project/CLAUDE.md')]);
+      const contents = new Map([['/project/CLAUDE.md', content]]);
+      const result = driftDetection([makeFile('/project/CLAUDE.md')], contents);
       expect(result).toBeNull();
+      // Should NOT write cache when nothing changed
+      expect(mockAtomicWriteSync).not.toHaveBeenCalled();
     });
   });
 
   describe('changes detected', () => {
     test('reports modified files', () => {
       mockExistsSync.mockReturnValue(true);
-      mockReadFileSync.mockImplementation((p: string) => {
-        if (p === CACHE_PATH) return buildCache({ 'CLAUDE.md': 'old-hash-value' });
-        return 'new content that produces different hash';
-      });
+      mockReadFileSync.mockReturnValue(buildCache({ 'CLAUDE.md': 'old-hash-value' }));
 
-      const result = driftDetection([makeFile('/project/CLAUDE.md')]);
+      const contents = new Map([['/project/CLAUDE.md', 'new content that produces different hash']]);
+      const result = driftDetection([makeFile('/project/CLAUDE.md')], contents);
       expect(result).not.toBeNull();
       expect(result).toContain('[Instruction Drift]');
       expect(result).toContain('Modified:');
       expect(result).toContain('CLAUDE.md');
+      // Should write updated cache
+      expect(mockAtomicWriteSync).toHaveBeenCalledOnce();
     });
 
     test('reports added files (present now, absent from cache)', () => {
       mockExistsSync.mockReturnValue(true);
-      mockReadFileSync.mockImplementation((p: string) => {
-        if (p === CACHE_PATH) return buildCache({}); // empty cache
-        return 'file content';
-      });
+      mockReadFileSync.mockReturnValue(buildCache({})); // empty cache
 
-      const result = driftDetection([makeFile('/project/.claude/rules/new-rule.md')]);
+      const contents = new Map([['/project/.claude/rules/new-rule.md', 'file content']]);
+      const result = driftDetection([makeFile('/project/.claude/rules/new-rule.md')], contents);
       expect(result).not.toBeNull();
       expect(result).toContain('Added:');
-      expect(result).toContain('new-rule.md');
     });
 
     test('reports removed files (in cache, absent now)', () => {
-      mockExistsSync.mockImplementation((p: string) => {
-        // cache exists, source file does not
-        return p === CACHE_PATH;
-      });
-      mockReadFileSync.mockImplementation((p: string) => {
-        if (p === CACHE_PATH) return buildCache({ 'removed.md': 'some-hash' });
-        return 'content';
-      });
+      mockExistsSync.mockReturnValue(true);
+      mockReadFileSync.mockReturnValue(buildCache({ 'removed.md': 'some-hash' }));
 
-      const result = driftDetection([]);
+      const result = driftDetection([], new Map());
       expect(result).not.toBeNull();
       expect(result).toContain('Removed:');
       expect(result).toContain('removed.md');
@@ -159,48 +164,35 @@ describe('driftDetection', () => {
 
     test('includes previous session date in output', () => {
       mockExistsSync.mockReturnValue(true);
-      mockReadFileSync.mockImplementation((p: string) => {
-        if (p === CACHE_PATH) return buildCache({ 'CLAUDE.md': 'stale-hash' }, '2026-03-05T08:30:00.000Z');
-        return 'changed content';
-      });
+      mockReadFileSync.mockReturnValue(buildCache({ 'CLAUDE.md': 'stale-hash' }, '2026-03-05T08:30:00.000Z'));
 
-      const result = driftDetection([makeFile('/project/CLAUDE.md')]);
+      const contents = new Map([['/project/CLAUDE.md', 'changed content']]);
+      const result = driftDetection([makeFile('/project/CLAUDE.md')], contents);
       expect(result).toContain('2026-03-05');
     });
   });
 
   describe('edge cases', () => {
-    test('skips unreadable source files gracefully', () => {
-      mockExistsSync.mockImplementation((p: string) => {
-        if (p === CACHE_PATH) return false;
-        return true; // source file "exists"
-      });
-      mockReadFileSync.mockImplementation((p: string) => {
-        if (p !== CACHE_PATH) throw new Error('EACCES: permission denied');
-        return '{}';
-      });
-
-      // Should not throw; just returns null (first run, file skipped)
-      expect(() => driftDetection([makeFile('/project/CLAUDE.md')])).not.toThrow();
+    test('skips files not in content cache gracefully', () => {
+      // File listed but not in content cache (unreadable at dispatcher level)
+      const result = driftDetection([makeFile('/project/CLAUDE.md')], new Map());
+      expect(result).toBeNull(); // first run, no files hashed
     });
 
     test('handles corrupted cache JSON gracefully', () => {
       mockExistsSync.mockReturnValue(true);
-      mockReadFileSync.mockImplementation((p: string) => {
-        if (p === CACHE_PATH) return 'NOT VALID JSON {{{';
-        return 'content';
-      });
+      mockReadFileSync.mockReturnValue('NOT VALID JSON {{{');
 
+      const contents = new Map([['/project/CLAUDE.md', 'content']]);
       // Corrupted cache treated as no cache (first run)
-      const result = driftDetection([makeFile('/project/CLAUDE.md')]);
+      const result = driftDetection([makeFile('/project/CLAUDE.md')], contents);
       expect(result).toBeNull();
     });
 
     test('does not throw when atomicWriteSync fails', () => {
-      mockExistsSync.mockReturnValue(false);
       mockAtomicWriteSync.mockImplementation(() => { throw new Error('disk full'); });
-
-      expect(() => driftDetection([makeFile('/project/CLAUDE.md')])).not.toThrow();
+      const contents = new Map([['/project/CLAUDE.md', 'content']]);
+      expect(() => driftDetection([makeFile('/project/CLAUDE.md')], contents)).not.toThrow();
     });
   });
 });

@@ -5,57 +5,59 @@
  * Handler 5: Rule Conflict Detector (data-driven)
  *
  * Finds contradictory directives across rule files using keyword matching.
- * Replaces old regex-only approach with broader pattern coverage.
+ * A conflict is detected when one file matches the "keywords" side AND does NOT
+ * match the "antiKeywords" side, while a different file does the reverse.
+ * This prevents false positives from files that discuss both approaches.
+ *
  * Reports which file wins based on source priority.
  */
 
 import { logHook } from '../lib/common.js';
-import { readFileSync } from 'node:fs';
 import { basename } from 'node:path';
-import type { LoadedFile, ConflictPattern } from './types.js';
+import type { LoadedFile } from './types.js';
 
 const HOOK_NAME = 'instructions-loaded/rule-conflicts';
+
+interface ConflictPattern {
+  keywords: string[];
+  antiKeywords: string[];
+  description: string;
+}
 
 const CONFLICT_PATTERNS: ConflictPattern[] = [
   {
     keywords: ['never', 'date'],
     antiKeywords: ['iso', 'timestamp'],
     description: 'Date usage conflict',
-    resolution: 'CLAUDE.md preference takes precedence',
   },
   {
     keywords: ['cursor', 'pagination'],
     antiKeywords: ['offset', 'pagination'],
     description: 'Pagination strategy conflict',
-    resolution: 'Prefer cursor-based per antipatterns rule',
   },
   {
     keywords: ['commit', 'end of session'],
     antiKeywords: ['commit', 'each logical unit'],
     description: 'Commit timing conflict',
-    resolution: 'CLAUDE.md says incremental — that wins',
   },
   {
     keywords: ['never', 'auto-commit'],
-    antiKeywords: ['auto', 'commit'],
+    antiKeywords: ['enable', 'auto-commit'],
     description: 'Auto-commit policy conflict',
-    resolution: 'Check which file has higher precedence',
   },
   {
     keywords: ['no', 'abstraction'],
     antiKeywords: ['dry', 'reuse'],
     description: 'Abstraction philosophy conflict',
-    resolution: 'Context-dependent — check project tier',
   },
   {
     keywords: ['synchronous'],
     antiKeywords: ['async', 'await'],
     description: 'Sync vs async preference conflict',
-    resolution: 'Prefer async per antipatterns rule',
   },
 ];
 
-export function ruleConflictDetector(filesLoaded: LoadedFile[]): string | null {
+export function ruleConflictDetector(filesLoaded: LoadedFile[], contents: Map<string, string>): string | null {
   const ruleFiles = filesLoaded.filter(f =>
     f.path.includes('.claude/rules/') || f.path.includes('CLAUDE.md')
   );
@@ -64,28 +66,35 @@ export function ruleConflictDetector(filesLoaded: LoadedFile[]): string | null {
 
   const fileContents: Array<{ name: string; text: string; priority: number }> = [];
   for (const f of ruleFiles) {
-    try {
-      const text = readFileSync(f.path, 'utf8').toLowerCase();
-      const priority = f.path.includes('CLAUDE.md') ? 1 : 2;
-      fileContents.push({ name: basename(f.path), text, priority });
-    } catch {
-      // Skip unreadable
-    }
+    const text = contents.get(f.path);
+    if (!text) continue;
+    const priority = f.path.includes('CLAUDE.md') ? 1 : 2;
+    fileContents.push({ name: basename(f.path), text: text.toLowerCase(), priority });
   }
 
   const conflicts: string[] = [];
 
   for (const pattern of CONFLICT_PATTERNS) {
-    const matchA = fileContents.find(c =>
-      pattern.keywords.every(kw => c.text.includes(kw))
+    // Find files that match keywords but NOT antiKeywords (one-sided advocacy)
+    const sideA = fileContents.filter(c =>
+      pattern.keywords.every(kw => c.text.includes(kw)) &&
+      !pattern.antiKeywords.every(kw => c.text.includes(kw))
     );
-    const matchB = fileContents.find(c =>
-      pattern.antiKeywords.every(kw => c.text.includes(kw))
+    const sideB = fileContents.filter(c =>
+      pattern.antiKeywords.every(kw => c.text.includes(kw)) &&
+      !pattern.keywords.every(kw => c.text.includes(kw))
     );
 
-    if (matchA && matchB && matchA.name !== matchB.name) {
-      const winner = matchA.priority < matchB.priority ? matchA.name : matchB.name;
-      conflicts.push(`${matchA.name} vs ${matchB.name}: ${pattern.description} (${winner} wins)`);
+    // Cross-compare: only flag when different files advocate different sides
+    for (const a of sideA) {
+      for (const b of sideB) {
+        if (a.name !== b.name) {
+          const winner = a.priority < b.priority ? a.name : b.name;
+          conflicts.push(`${a.name} vs ${b.name}: ${pattern.description} (${winner} wins)`);
+          break; // one conflict per pattern is enough
+        }
+      }
+      if (conflicts.length > 0 && conflicts[conflicts.length - 1].includes(pattern.description)) break;
     }
   }
 

@@ -28,6 +28,8 @@ vi.mock('../../lib/common.js', () => ({
 
 import { smartRuleSuggestions } from '../../instructions-loaded/smart-suggestions.js';
 
+const EMPTY_CONTENTS = new Map<string, string>();
+
 function makeFile(path: string): LoadedFile {
   return { path };
 }
@@ -42,14 +44,13 @@ beforeEach(() => {
 describe('smartRuleSuggestions', () => {
   describe('null returns (silent path)', () => {
     test('returns null when no project signals are present', () => {
-      expect(smartRuleSuggestions([])).toBeNull();
+      expect(smartRuleSuggestions([], EMPTY_CONTENTS)).toBeNull();
     });
 
     test('returns null when signals exist but rules are already loaded', () => {
-      // package.json exists, and build-required.md is already loaded
       mockExistsSync.mockImplementation((p: string) => p.endsWith('package.json'));
       const files = [makeFile('/project/.claude/rules/build-required.md')];
-      expect(smartRuleSuggestions(files)).toBeNull();
+      expect(smartRuleSuggestions(files, EMPTY_CONTENTS)).toBeNull();
     });
 
     test('returns null when all triggered rules are already loaded', () => {
@@ -60,14 +61,14 @@ describe('smartRuleSuggestions', () => {
         makeFile('/project/.claude/rules/build-required.md'),
         makeFile('/project/.claude/rules/typescript-conventions.md'),
       ];
-      expect(smartRuleSuggestions(files)).toBeNull();
+      expect(smartRuleSuggestions(files, EMPTY_CONTENTS)).toBeNull();
     });
   });
 
   describe('string returns (suggestions injected)', () => {
     test('suggests build-required.md when package.json is present', () => {
       mockExistsSync.mockImplementation((p: string) => p.endsWith('package.json'));
-      const result = smartRuleSuggestions([]);
+      const result = smartRuleSuggestions([], EMPTY_CONTENTS);
       expect(result).not.toBeNull();
       expect(result).toContain('[Rule Suggestions]');
       expect(result).toContain('build-required.md');
@@ -75,55 +76,59 @@ describe('smartRuleSuggestions', () => {
 
     test('suggests ci-workflows.md when .github/workflows exists', () => {
       mockExistsSync.mockImplementation((p: string) => p.endsWith('workflows'));
-      const result = smartRuleSuggestions([]);
+      const result = smartRuleSuggestions([], EMPTY_CONTENTS);
       expect(result).toContain('ci-workflows.md');
     });
 
     test('suggests docker-conventions.md when Dockerfile exists', () => {
       mockExistsSync.mockImplementation((p: string) => p.endsWith('Dockerfile'));
-      const result = smartRuleSuggestions([]);
+      const result = smartRuleSuggestions([], EMPTY_CONTENTS);
       expect(result).toContain('docker-conventions.md');
     });
 
     test('suggests docker-conventions.md when docker-compose.yml exists', () => {
       mockExistsSync.mockImplementation((p: string) => p.endsWith('docker-compose.yml'));
-      const result = smartRuleSuggestions([]);
+      const result = smartRuleSuggestions([], EMPTY_CONTENTS);
       expect(result).toContain('docker-conventions.md');
     });
 
     test('suggests typescript-conventions.md when tsconfig.json exists', () => {
       mockExistsSync.mockImplementation((p: string) => p.endsWith('tsconfig.json'));
-      const result = smartRuleSuggestions([]);
+      const result = smartRuleSuggestions([], EMPTY_CONTENTS);
       expect(result).toContain('typescript-conventions.md');
     });
 
     test('suggests hot-path-hooks.md when src/hooks directory exists', () => {
       mockExistsSync.mockImplementation((p: string) => p.endsWith('hooks'));
-      const result = smartRuleSuggestions([]);
+      const result = smartRuleSuggestions([], EMPTY_CONTENTS);
       expect(result).toContain('hot-path-hooks.md');
     });
 
-    test('suggests nextjs-conventions.md when next is in package.json dependencies', () => {
+    test('suggests nextjs-conventions.md when next is in dependencies', () => {
       mockExistsSync.mockImplementation((p: string) => p.endsWith('package.json'));
       mockReadFileSync.mockReturnValue(JSON.stringify({ dependencies: { next: '14.0.0' } }));
-      const result = smartRuleSuggestions([]);
+      const result = smartRuleSuggestions([], EMPTY_CONTENTS);
+      expect(result).toContain('nextjs-conventions.md');
+    });
+
+    test('suggests nextjs-conventions.md when next is in devDependencies', () => {
+      mockExistsSync.mockImplementation((p: string) => p.endsWith('package.json'));
+      mockReadFileSync.mockReturnValue(JSON.stringify({ devDependencies: { next: '15.0.0' } }));
+      const result = smartRuleSuggestions([], EMPTY_CONTENTS);
       expect(result).toContain('nextjs-conventions.md');
     });
 
     test('does not suggest nextjs-conventions.md for non-Next.js projects', () => {
       mockExistsSync.mockImplementation((p: string) => p.endsWith('package.json'));
       mockReadFileSync.mockReturnValue(JSON.stringify({ dependencies: { react: '18.0.0' } }));
-      const result = smartRuleSuggestions([]);
-      // build-required may be suggested but not nextjs
+      const result = smartRuleSuggestions([], EMPTY_CONTENTS);
       expect(result).not.toContain('nextjs-conventions.md');
     });
 
     test('caps suggestions at 3 even when more signals fire', () => {
-      // All 5 non-Next signals trigger
       mockExistsSync.mockReturnValue(true);
-      mockReadFileSync.mockReturnValue(JSON.stringify({})); // no next dep
-      const result = smartRuleSuggestions([]);
-      // Count "- " lines in result (one per suggestion)
+      mockReadFileSync.mockReturnValue(JSON.stringify({}));
+      const result = smartRuleSuggestions([], EMPTY_CONTENTS);
       const suggestionLines = result?.split('\n').filter(l => l.trim().startsWith('-')) ?? [];
       expect(suggestionLines.length).toBeLessThanOrEqual(3);
     });
@@ -131,8 +136,7 @@ describe('smartRuleSuggestions', () => {
     test('handles malformed package.json without throwing', () => {
       mockExistsSync.mockImplementation((p: string) => p.endsWith('package.json'));
       mockReadFileSync.mockReturnValue('INVALID JSON {{{');
-      // Next.js check will fail gracefully; build-required.md may still be suggested
-      expect(() => smartRuleSuggestions([])).not.toThrow();
+      expect(() => smartRuleSuggestions([], EMPTY_CONTENTS)).not.toThrow();
     });
   });
 });

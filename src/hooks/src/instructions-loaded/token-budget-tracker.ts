@@ -17,7 +17,7 @@ const HOOK_NAME = 'instructions-loaded/token-budget';
 const TOKEN_BUDGET_WARN_PCT = 15;
 const ESTIMATED_CONTEXT_TOKENS = 200_000;
 
-export function tokenBudgetTracker(filesLoaded: LoadedFile[]): string | null {
+export function tokenBudgetTracker(filesLoaded: LoadedFile[], _contents: Map<string, string>): string | null {
   let totalBytes = 0;
   const fileSizes: Array<{ name: string; tokens: number; source: string }> = [];
 
@@ -34,7 +34,7 @@ export function tokenBudgetTracker(filesLoaded: LoadedFile[]): string | null {
 
   logHook(HOOK_NAME, `Token budget: ${totalTokens} tokens (${pct.toFixed(1)}% of ${ESTIMATED_CONTEXT_TOKENS})`);
 
-  if (pct < 1 && fileSizes.length <= 3) return null;
+  if (pct < 1) return null;
 
   fileSizes.sort((a, b) => b.tokens - a.tokens);
   const top3 = fileSizes.slice(0, 3).map(f => `${f.name} (${f.tokens})`).join(', ');
