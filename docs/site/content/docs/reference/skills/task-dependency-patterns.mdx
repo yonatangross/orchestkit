@@ -158,6 +158,13 @@ SendMessage(type: "broadcast",
   summary: "Breaking auth change")
 ```
 
+## Context Exhaustion Handling
+
+When using Agent Teams, if context limit is reached mid-workflow:
+- Collect partial results from completed teammates via `TaskList`
+- Synthesize available outputs — prefer partial results over silent failure
+- Log skipped tasks with `TaskUpdate(status: "cancelled", note: "context limit")`
+
 ## Anti-Patterns
 
 - Creating tasks for trivial single-step work

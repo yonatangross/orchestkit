@@ -308,6 +308,8 @@ TeamDelete()
 
 > **Fallback:** If team formation fails, load `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/brainstorm/references/phase-workflow.md")` and use standard Phase 2 Task spawns.
 
+> **Context exhaustion:** If context limit is reached mid-brainstorm, collect partial results from completed agents, synthesize what's available, and note which phases were skipped. Prefer returning partial results over failing silently.
+
 > **Manual cleanup:** If `TeamDelete()` doesn't terminate all agents, press `Ctrl+F` twice to force-kill remaining background agents.
 
 ---
