@@ -245,7 +245,7 @@ describe('HOME environment fallback', () => {
       // Should NOT check pattern files (existsSync may still be called by
       // logHook → getLogLevel for the debug-mode.flag check)
       const patternCalls = mockExistsSync.mock.calls.filter(
-        ([p]: [string]) => !String(p).includes('debug-mode.flag'),
+        ([p]) => !String(p).includes('debug-mode.flag'),
       );
       expect(patternCalls).toHaveLength(0);
     });
