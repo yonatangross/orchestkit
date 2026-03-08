@@ -8,7 +8,7 @@ Always respond in English. Never Hebrew. No exceptions.
 
 ## Project Overview
 
-**OrchestKit** — Claude Code plugin: **<!--ork:skills-->81<!--/ork--> skills**, **<!--ork:agents-->30<!--/ork--> agents**, **<!--ork:hooks-->95<!--/ork--> hooks** (<!--ork:hooks-global-->32<!--/ork--> global + <!--ork:hooks-agent-->44<!--/ork--> agent-scoped + <!--ork:hooks-skill-->19<!--/ork--> skill-scoped).
+**OrchestKit** — Claude Code plugin: **<!--ork:skills-->84<!--/ork--> skills**, **<!--ork:agents-->31<!--/ork--> agents**, **<!--ork:hooks-->96<!--/ork--> hooks** (<!--ork:hooks-global-->32<!--/ork--> global + <!--ork:hooks-agent-->45<!--/ork--> agent-scoped + <!--ork:hooks-skill-->19<!--/ork--> skill-scoped).
 
 **Purpose**: AI-assisted development with built-in best practices, security patterns, and quality gates.
 
@@ -16,8 +16,8 @@ Always respond in English. Never Hebrew. No exceptions.
 
 ```
 src/                    ← SOURCE (edit here!)
-├── skills/<name>/SKILL.md    # 81 skills (YAML frontmatter + Markdown)
-├── agents/<name>.md          # 30 agents (CC 2.1.69 format)
+├── skills/<name>/SKILL.md    # 84 skills (YAML frontmatter + Markdown)
+├── agents/<name>.md          # 31 agents (CC 2.1.69 format)
 ├── settings/<plugin>.settings.json  # Plugin settings (permissions, keybindings)
 └── hooks/                    # TypeScript hooks (hooks.json + src/ + dist/)
 manifests/                    # Plugin definitions (JSON)
@@ -75,10 +75,10 @@ Commit after each logical unit of work — never batch all commits to end of ses
 
 ## Plugin Architecture
 
-Single plugin `ork`: <!--ork:skills-->81<!--/ork--> skills, <!--ork:agents-->30<!--/ork--> agents, <!--ork:hooks-->95<!--/ork--> hooks (<!--ork:hooks-global-->32<!--/ork--> global + <!--ork:hooks-agent-->44<!--/ork--> agent-scoped + <!--ork:hooks-skill-->19<!--/ork--> skill-scoped). <!--ork:invocable-->19<!--/ork--> user-invocable via `/ork:skillname`.
+Single plugin `ork`: <!--ork:skills-->84<!--/ork--> skills, <!--ork:agents-->31<!--/ork--> agents, <!--ork:hooks-->96<!--/ork--> hooks (<!--ork:hooks-global-->32<!--/ork--> global + <!--ork:hooks-agent-->45<!--/ork--> agent-scoped + <!--ork:hooks-skill-->19<!--/ork--> skill-scoped). <!--ork:invocable-->19<!--/ork--> user-invocable via `/ork:skillname`.
 
 ## Version
 
-- **Current**: 7.1.13 · **Claude Code**: >= 2.1.69 <!-- x-release-please-version -->
+- **Current**: 7.1.14 · **Claude Code**: >= 2.1.69 <!-- x-release-please-version -->
 
 See `CHANGELOG.md` for history. See `src/hooks/README.md` for hook architecture.

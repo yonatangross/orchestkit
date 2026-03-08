@@ -37,6 +37,66 @@
         "Uses standard code generation and editing tools",
         "Code review is for reviewing existing code, not writing new code"
       ]
+    },
+    {
+      "id": "linting-biome-rules",
+      "rule": "linting-biome-rules",
+      "query": "Review the Biome configuration in this project and suggest improvements for catching common TypeScript issues.",
+      "expectedBehavior": [
+        "Checks that noUnusedVariables and noUnusedImports are enabled as errors",
+        "Recommends enabling noFloatingPromises for TypeScript projects using Biome 2.0 or later",
+        "Verifies recommended rules are enabled as a baseline configuration",
+        "Suggests using biome ci in CI pipelines for strict mode enforcement",
+        "References Biome type inference capabilities for cross-module diagnostics"
+      ]
+    },
+    {
+      "id": "linting-biome-setup",
+      "rule": "linting-biome-setup",
+      "query": "We want to migrate from ESLint and Prettier to Biome. Review our current setup and propose the migration.",
+      "expectedBehavior": [
+        "Recommends using npx biome migrate eslint to auto-migrate ESLint config",
+        "Suggests gradual adoption with overrides for legacy directories and test files",
+        "Highlights the 10-25x speed improvement from replacing ESLint plus Prettier with Biome",
+        "Shows single biome.json config replacing multiple ESLint and Prettier config files",
+        "Recommends using biome check locally and biome ci in continuous integration"
+      ]
+    },
+    {
+      "id": "python-quality",
+      "rule": "python-quality",
+      "query": "Review this Python FastAPI code for type safety, Pydantic validation, and async patterns.",
+      "expectedBehavior": [
+        "Flags Pydantic models missing Field constraints and model validators",
+        "Checks that all functions have complete type hints including return types",
+        "Identifies async external calls missing asyncio.timeout protection",
+        "Verifies Ruff compliance including no unused imports and no bare except clauses",
+        "Flags use of model_validate instead of raw dict unpacking for Pydantic v2"
+      ]
+    },
+    {
+      "id": "security-baseline",
+      "rule": "security-baseline",
+      "query": "Review this PR for security issues including hardcoded secrets, missing auth, and injection vulnerabilities.",
+      "expectedBehavior": [
+        "Detects hardcoded API keys, passwords, and tokens in string literals as CRITICAL findings",
+        "Flags unprotected API endpoints missing authentication middleware",
+        "Identifies SQL injection via string interpolation and recommends parameterized queries",
+        "Checks for debug code like pdb.set_trace or set -x with secrets in scope",
+        "Runs dependency audit checks and blocks merge for critical or high vulnerabilities"
+      ]
+    },
+    {
+      "id": "typescript-quality",
+      "rule": "typescript-quality",
+      "query": "Review this TypeScript React code for any types, missing Zod validation, and non-exhaustive switches.",
+      "expectedBehavior": [
+        "Flags any type usage in parameters, returns, and variable declarations",
+        "Requires Zod schema validation at API boundaries instead of raw json assertions",
+        "Checks switch statements for assertNever default case to ensure exhaustive matching",
+        "Recommends React 19 APIs like useOptimistic and useFormStatus where applicable",
+        "Flags spinner-based loading patterns and recommends skeleton loading instead"
+      ]
     }
   ]
 }

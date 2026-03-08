@@ -1,6 +1,6 @@
 ---
 title: "Responsive Patterns"
-description: "Responsive design with Container Queries, fluid typography, cqi/cqb units, and mobile-first patterns for React applications. Use when building responsive layouts or container queries."
+description: "Responsive design with Container Queries, fluid typography, cqi/cqb units, subgrid, intrinsic layouts, foldable devices, and mobile-first patterns for React applications. Use when building responsive layouts or container queries."
 ---
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
@@ -30,6 +30,16 @@ Modern responsive design patterns using Container Queries, fluid typography, and
 | Component reuse | Context-dependent | Truly portable |
 | Browser support | Universal | Baseline 2023+ |
 | Use case | Page layouts | Component layouts |
+
+## Modern CSS Layout
+
+> Load `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/responsive-patterns/rules/css-subgrid.md")` for CSS Subgrid patterns: nested grid alignment, card layouts with aligned titles/content/actions, two-dimensional subgrid.
+
+> Load `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/responsive-patterns/rules/css-intrinsic-responsive.md")` for intrinsically responsive layouts: auto-fit/minmax grids, clamp() for fluid everything, container queries for component logic, zero media query patterns.
+
+> Load `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/responsive-patterns/rules/responsive-foldables.md")` for foldable/multi-screen device support: env(safe-area-inset-*), viewport segment queries, dual-screen layouts, progressive enhancement.
+
+**Key patterns covered:** CSS Subgrid alignment, intrinsic responsive grids (auto-fit + minmax), fluid clamp() scales, foldable device layouts, safe area insets, viewport segment queries.
 
 ## CSS Patterns
 
@@ -127,6 +137,9 @@ Each category has individual rule files in `rules/` loaded on-demand:
 
 | Category | Rule | Impact | Key Pattern |
 |----------|------|--------|-------------|
+| Modern CSS Layout | `rules/css-subgrid.md` | HIGH | CSS Subgrid for nested grid alignment, card layouts |
+| Modern CSS Layout | `rules/css-intrinsic-responsive.md` | HIGH | Intrinsic responsive layouts, auto-fit/minmax, clamp(), zero breakpoints |
+| Modern CSS Layout | `rules/responsive-foldables.md` | MEDIUM | Foldable devices, safe area insets, viewport segments |
 | CSS | `rules/css-patterns.md` | HIGH | Container queries, cqi/cqb, fluid typography, grid, scroll-queries |
 | React | `rules/react-patterns.md` | HIGH | Container query components, Tailwind, useContainerQuery, responsive images |
 | PWA | `rules/pwa-service-worker.md` | HIGH | Workbox caching strategies, VitePWA, update management |
@@ -134,7 +147,7 @@ Each category has individual rule files in `rules/` loaded on-demand:
 | Animation | `rules/animation-motion.md` | HIGH | Motion presets, AnimatePresence, View Transitions |
 | Animation | `rules/animation-scroll.md` | MEDIUM | CSS scroll-driven animations, parallax, progressive enhancement |
 
-**Total: 6 rules across 4 categories**
+**Total: 9 rules across 5 categories**
 
 ## Key Decisions
 
@@ -189,7 +202,7 @@ Load on demand with `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/responsive-patterns/re
 
 ---
 
-## Rules (6)
+## Rules (9)
 
 ### Use Motion library with centralized presets for 60fps animations and reduced-motion compliance — HIGH
 
@@ -386,6 +399,107 @@ window.addEventListener('scroll', () => {
 - Respect `prefers-reduced-motion` — disable parallax and motion effects
 
 
+### Use intrinsically responsive layouts with auto-fit, clamp, and container queries instead of media query breakpoints — HIGH
+
+
+## Intrinsically Responsive Layouts
+
+Build layouts that adapt to available space without media queries. Use `auto-fit`/`minmax()` for grids, `clamp()` for fluid values, and container queries for component logic.
+
+**Incorrect — many media query breakpoints for component internals:**
+```css
+/* WRONG: Breakpoint soup for a simple card grid */
+.card-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 480px)  { .card-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 768px)  { .card-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 1024px) { .card-grid { grid-template-columns: repeat(4, 1fr); } }
+@media (min-width: 1280px) { .card-grid { grid-template-columns: repeat(5, 1fr); } }
+
+.card-title { font-size: 1rem; }
+@media (min-width: 768px)  { .card-title { font-size: 1.25rem; } }
+@media (min-width: 1024px) { .card-title { font-size: 1.5rem; } }
+```
+
+**Correct — intrinsic sizing, zero breakpoints:**
+```css
+/* Auto-adapting grid: columns appear/disappear based on space */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: clamp(1rem, 2vw, 2rem);
+}
+
+/* Fluid typography: scales smoothly without breakpoints */
+.card-title {
+  font-size: clamp(1rem, 0.8rem + 1vw, 1.5rem);
+}
+
+/* Fluid spacing: padding and margins adapt to viewport */
+.card {
+  padding: clamp(1rem, 3vw, 2rem);
+  border-radius: clamp(0.5rem, 1vw, 1rem);
+}
+```
+
+**Container queries for component-level responsiveness:**
+```css
+/* Component adapts to its container, not the viewport */
+.widget-wrapper {
+  container-type: inline-size;
+  container-name: widget;
+}
+
+@container widget (min-width: 400px) {
+  .widget { flex-direction: row; }
+}
+
+@container widget (max-width: 399px) {
+  .widget { flex-direction: column; }
+}
+```
+
+**When viewport queries ARE appropriate:**
+```css
+/* Viewport queries for page-level structural changes only */
+@media (min-width: 768px) {
+  .page-layout {
+    display: grid;
+    grid-template-columns: 250px 1fr;
+    /* Sidebar appears — this is page structure, not component logic */
+  }
+}
+```
+
+**Fluid clamp() patterns for common properties:**
+```css
+:root {
+  /* Fluid font scale */
+  --text-sm:  clamp(0.875rem, 0.8rem + 0.25vw, 1rem);
+  --text-md:  clamp(1rem, 0.9rem + 0.5vw, 1.25rem);
+  --text-lg:  clamp(1.25rem, 1rem + 1vw, 2rem);
+
+  /* Fluid spacing scale */
+  --space-sm: clamp(0.5rem, 1vw, 1rem);
+  --space-md: clamp(1rem, 2vw, 2rem);
+  --space-lg: clamp(1.5rem, 4vw, 4rem);
+
+  /* Fluid gap */
+  --gap:      clamp(1rem, 2vw, 2rem);
+}
+```
+
+**Key rules:**
+- Use `repeat(auto-fit, minmax(MIN, 1fr))` for grids — columns adapt automatically
+- Use `clamp(min, preferred, max)` for font-size, padding, gap, and margin
+- Reserve `@media` queries for page-level structure (sidebar, nav, footer layout)
+- Use `@container` queries for component-level responsive logic
+- Always include `rem` in clamp() to respect user font preferences
+- `auto-fit` collapses empty tracks (cards fill space); `auto-fill` keeps empty tracks
+
+
 ### CSS Responsive Patterns — HIGH
 
 
@@ -566,6 +680,96 @@ small { font-size: var(--font-size-sm); }
   }
 }
 ```
+
+
+### Use CSS Subgrid for automatic nested grid alignment instead of duplicating grid definitions — HIGH
+
+
+## CSS Subgrid
+
+Use `grid-template-columns: subgrid` and `grid-template-rows: subgrid` to inherit parent grid tracks in nested elements. Baseline 2023+ (Chrome 117, Safari 16, Firefox 71).
+
+**Incorrect — manually duplicating parent grid columns:**
+```css
+/* WRONG: Nested grid duplicates parent's column definition */
+.parent-grid {
+  display: grid;
+  grid-template-columns: 200px 1fr 100px;
+  gap: 1rem;
+}
+
+.child-card {
+  display: grid;
+  /* Fragile: must manually match parent columns */
+  grid-template-columns: 200px 1fr 100px;
+  grid-column: 1 / -1;
+}
+
+/* If parent columns change, every child must be updated */
+```
+
+**Correct — subgrid inherits parent tracks automatically:**
+```css
+.parent-grid {
+  display: grid;
+  grid-template-columns: 200px 1fr 100px;
+  gap: 1rem;
+}
+
+.child-card {
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-column: 1 / -1;
+  /* Automatically aligns to parent's 3-column track */
+}
+```
+
+**Card layout with aligned sections (rows subgrid):**
+```css
+/* Cards with aligned titles, content, and actions */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-auto-rows: auto;
+  gap: 1.5rem;
+}
+
+.card {
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-row: span 3; /* title + content + actions */
+}
+
+.card-title   { align-self: start; }
+.card-content { align-self: start; }
+.card-actions { align-self: end; }
+```
+
+**Two-dimensional subgrid (rows + columns):**
+```css
+.dashboard {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: auto 1fr auto;
+  gap: 1rem;
+}
+
+.dashboard-widget {
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-template-rows: subgrid;
+  grid-column: span 2;
+  grid-row: span 2;
+}
+```
+
+**Key rules:**
+- Use `subgrid` instead of duplicating parent grid track definitions
+- `grid-row: span N` is required so the child occupies tracks to inherit
+- Subgrid works for columns, rows, or both simultaneously
+- Combine with `auto-fit`/`minmax()` on parent for responsive card grids
+- Subgrid inherits the parent's `gap` — override with `gap` on the child if needed
+- Baseline 2023+: Chrome 117+, Safari 16+, Firefox 71+, Edge 117+
 
 
 ### Configure PWA offline support, manifest, and background sync for native-like installability — HIGH
@@ -910,6 +1114,113 @@ function ResponsiveImage({
   );
 }
 ```
+
+
+### Support foldable and multi-screen devices with safe area insets and viewport segment queries — MEDIUM
+
+
+## Foldable & Multi-Screen Devices
+
+Use `env(safe-area-inset-*)` for notches/cutouts and viewport segment media queries for foldable-aware layouts.
+
+**Incorrect — ignoring safe areas and foldable considerations:**
+```css
+/* WRONG: Content hidden behind notch or fold hinge */
+.app-header {
+  padding: 1rem;
+  /* No safe area consideration — text hidden behind notch */
+}
+
+.main-content {
+  display: flex;
+  /* No awareness of fold seam — content split across hinge */
+}
+```
+
+**Correct — safe area insets for notches and cutouts:**
+```css
+/* Respect device safe areas (notch, rounded corners, home indicator) */
+.app-header {
+  padding: 1rem;
+  padding-top: max(1rem, env(safe-area-inset-top));
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
+}
+
+.app-footer {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+/* Required: viewport-fit=cover in meta tag */
+/* <meta name="viewport" content="..., viewport-fit=cover"> */
+```
+
+**Foldable dual-screen layouts with viewport segments:**
+```css
+/* Detect dual-screen horizontal fold (e.g., Surface Duo landscape) */
+@media (horizontal-viewport-segments: 2) {
+  .app-layout {
+    display: grid;
+    grid-template-columns:
+      env(viewport-segment-width 0 0)
+      calc(env(viewport-segment-left 1 0) - env(viewport-segment-right 0 0))
+      env(viewport-segment-width 1 0);
+  }
+
+  .panel-left  { grid-column: 1; }
+  .fold-gap    { grid-column: 2; } /* Hinge area — keep empty */
+  .panel-right { grid-column: 3; }
+}
+
+/* Detect dual-screen vertical fold (e.g., Surface Duo portrait) */
+@media (vertical-viewport-segments: 2) {
+  .app-layout {
+    display: grid;
+    grid-template-rows:
+      env(viewport-segment-height 0 0)
+      calc(env(viewport-segment-top 0 1) - env(viewport-segment-bottom 0 0))
+      env(viewport-segment-height 0 1);
+  }
+
+  .panel-top    { grid-row: 1; }
+  .fold-gap     { grid-row: 2; }
+  .panel-bottom { grid-row: 3; }
+}
+```
+
+**Progressive enhancement for foldable support:**
+```css
+/* Base layout — works on all devices */
+.app-layout {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Enhanced: dual-screen aware only when supported */
+@media (horizontal-viewport-segments: 2) {
+  .app-layout {
+    display: grid;
+    /* ... dual-screen grid ... */
+  }
+}
+```
+
+**Testing foldable layouts:**
+```
+Chrome DevTools → Device toolbar → Select "Surface Duo" or "Galaxy Fold"
+- Toggle fold posture (continuous / folded)
+- Test both landscape and portrait orientations
+- Verify content avoids the hinge/fold seam area
+```
+
+**Key rules:**
+- Always use `env(safe-area-inset-*)` with `max()` to handle notches and cutouts
+- Add `viewport-fit=cover` to the viewport meta tag to enable safe area insets
+- Use `@media (horizontal-viewport-segments: 2)` for side-by-side foldable layouts
+- Use `@media (vertical-viewport-segments: 2)` for top-bottom foldable layouts
+- Keep the hinge/fold area empty — never place interactive content on the seam
+- Test on Chrome DevTools foldable emulators (Surface Duo, Galaxy Fold)
+- Use progressive enhancement — foldable styles layer on top of base layout
 
 
 

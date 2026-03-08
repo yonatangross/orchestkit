@@ -54,7 +54,7 @@
         "Uses asChild prop to render Link as the button element",
         "Child component forwards refs with React.forwardRef",
         "Props and event handlers merge correctly via Slot",
-        "No extra wrapper div in the DOM output"
+        "Renders single element via Slot merging, avoiding nested button-inside-anchor markup"
       ]
     },
     {
@@ -66,6 +66,124 @@
         "Uses data-[side=*] for position-aware slide animations",
         "Focus styles use data-[highlighted] or focus:bg-accent",
         "Disabled items use data-[disabled]:pointer-events-none to prevent interaction"
+      ]
+    },
+    {
+      "id": "design-system-components",
+      "rule": "design-system-components",
+      "query": "I need to structure our component library using atomic design principles with proper accessibility and variant management patterns",
+      "expectedBehavior": [
+        "Organizes components into atomic design hierarchy of atoms molecules organisms templates and pages",
+        "Uses CVA class-variance-authority for type-safe variant definitions with default variants",
+        "Meets WCAG 2.1 Level AA contrast requirements with 4.5:1 ratio for normal text",
+        "Requires keyboard navigation and proper ARIA attributes for all interactive elements",
+        "Uses asChild composition pattern to avoid unnecessary wrapper divs in the DOM"
+      ]
+    },
+    {
+      "id": "design-system-tokens",
+      "rule": "design-system-tokens",
+      "query": "Set up design tokens for colors spacing and typography in our Tailwind project so we can change themes globally without visual drift",
+      "expectedBehavior": [
+        "Defines tokens using W3C Design Token format with structured categories for colors spacing and typography",
+        "Uses Tailwind @theme directive with CSS custom properties instead of tailwind.config.js",
+        "Applies OKLCH color format for perceptually uniform theming across light and dark modes",
+        "Uses semantic token names like bg-primary and text-text-primary instead of hardcoded hex values",
+        "Establishes 4px base spacing system with consistent scale from xs through lg"
+      ]
+    },
+    {
+      "id": "design-system-spacing",
+      "rule": "design-system-spacing",
+      "query": "Our components have inconsistent padding and margins everywhere. How do I implement a systematic spacing scale for our design system?",
+      "expectedBehavior": [
+        "Implements 8px grid spacing system with 4px half-step for micro adjustments",
+        "Uses Tailwind spacing utilities like p-4 and gap-6 instead of arbitrary pixel values",
+        "Applies nested spacing hierarchy with outer containers using larger values than inner elements",
+        "Prefers gap and space-y over individual margins for consistent component spacing",
+        "Scales spacing responsively with utilities like gap-4 md:gap-6 lg:gap-8"
+      ]
+    },
+    {
+      "id": "design-system-states",
+      "rule": "design-system-states",
+      "query": "My button component only has a default state. How do I add hover focus disabled and loading states with proper accessibility?",
+      "expectedBehavior": [
+        "Defines all six interactive states: default hover focus active disabled and loading",
+        "Uses focus-visible instead of focus to avoid showing ring on mouse click",
+        "Implements disabled state with opacity-50 and pointer-events-none for visual feedback",
+        "Adds loading state with spinner icon and aria-busy attribute for screen readers",
+        "Keeps transition durations under 200ms for responsive interactive feedback"
+      ]
+    },
+    {
+      "id": "design-system-typography",
+      "rule": "design-system-typography",
+      "query": "Our headings and body text use arbitrary font sizes with no consistent hierarchy. How do I set up a proper typography scale?",
+      "expectedBehavior": [
+        "Defines semantic typography scale from caption at 12px through page-title at 30px",
+        "Pairs font weights intentionally with normal for body medium for labels and semibold for headings",
+        "Uses leading-tight for headings and leading-normal for body text line height",
+        "Limits project to maximum two font families with one sans-serif plus one monospace"
+      ]
+    },
+    {
+      "id": "forms-react-hook-form",
+      "rule": "forms-react-hook-form",
+      "query": "Build a signup form with React Hook Form that has dynamic field arrays for order items and integrates with a date picker component",
+      "expectedBehavior": [
+        "Uses useForm with zodResolver for type-safe validation with Zod schema",
+        "Sets validation mode to onBlur for better performance instead of every keystroke",
+        "Uses useFieldArray with field.id as key instead of array index for dynamic fields",
+        "Wraps third-party components like date pickers with Controller for proper integration",
+        "Provides defaultValues to prevent uncontrolled-to-controlled React warnings"
+      ]
+    },
+    {
+      "id": "forms-validation-zod",
+      "rule": "forms-validation-zod",
+      "query": "I need to validate a contact form on both client and server side using Zod schemas with React 19 Server Actions",
+      "expectedBehavior": [
+        "Shares a single Zod schema between client components and server actions for validation",
+        "Uses safeParse instead of parse in server actions to return errors without throwing",
+        "Implements useActionState hook for form submission state management in React 19",
+        "Supports advanced patterns like discriminated unions for conditional field validation",
+        "Uses z.infer for automatic TypeScript type generation from schema definitions"
+      ]
+    },
+    {
+      "id": "css-cascade-layers",
+      "rule": "css-cascade-layers",
+      "query": "Our team keeps fighting CSS specificity with !important and deeply nested selectors. How do I use cascade layers to fix this?",
+      "expectedBehavior": [
+        "Declares all layers in a single @layer statement at the top of entry CSS file",
+        "Orders layers as reset base tokens components utilities and overrides for clear precedence",
+        "Assigns third-party CSS to early layers like reset or base for clean style overrides",
+        "Eliminates need for !important by restructuring styles into appropriate cascade layers",
+        "Notes that unlayered CSS beats all layers and should be kept minimal"
+      ]
+    },
+    {
+      "id": "tailwind-v4-patterns",
+      "rule": "tailwind-v4-patterns",
+      "query": "We are migrating to Tailwind v4. How do I configure themes and use native container queries without the old config file?",
+      "expectedBehavior": [
+        "Uses @theme directive in CSS for all configuration replacing tailwind.config.js entirely",
+        "Applies native container queries with @container and @sm @md @lg variants without plugins",
+        "Supports named containers with @container/name syntax for targeted container queries",
+        "Uses @max variants for max-width container queries to style below breakpoints"
+      ]
+    },
+    {
+      "id": "storybook-component-docs",
+      "rule": "storybook-component-docs",
+      "query": "Set up Storybook for our component library with CSF3 stories, interaction testing, and visual regression in CI",
+      "expectedBehavior": [
+        "Uses CSF3 format with satisfies Meta for type-safe story definitions",
+        "Creates one story per meaningful visual state including empty loading error and populated",
+        "Implements play functions for interaction testing without needing a full E2E framework",
+        "Configures Chromatic in CI for automated visual regression detection on every pull request",
+        "Adds autodocs tag for automatic documentation generation from component stories"
       ]
     }
   ]

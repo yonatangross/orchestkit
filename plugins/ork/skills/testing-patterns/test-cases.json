@@ -10,7 +10,7 @@
         "Uses the Arrange-Act-Assert structure to clearly separate test setup, execution, and verification",
         "Creates fresh instances per test via beforeEach",
         "Tests observable behavior rather than implementation details to avoid brittle tests",
-        "Includes meaningful assertion messages that explain what failed and expected outcomes"
+        "Achieves coverage targets for business logic and critical paths per the test isolation rules"
       ]
     },
     {
@@ -100,7 +100,7 @@
       "expectedBehavior": [
         "Defines custom pytest markers in pyproject.toml to categorize tests by type or scope",
         "Uses markers like @pytest.mark.slow and @pytest.mark.smoke for selective test execution",
-        "Shows CLI selection with -m flag"
+        "Shows pytest marker selection for running smoke or slow tests selectively"
       ]
     },
     {
@@ -301,6 +301,39 @@
         "Blocks pull requests that introduce accessibility violations from merging to the main branch",
         "Runs both unit and E2E a11y tests",
         "Includes a GitHub Actions workflow definition for running accessibility tests in CI pipelines"
+      ]
+    },
+    {
+      "id": "execution",
+      "rule": "execution",
+      "query": "Our CI pipeline takes 25 minutes to run all tests. How can I speed it up and track coverage?",
+      "expectedBehavior": [
+        "Uses --cov-report=term-missing to identify exactly which lines are uncovered",
+        "Recommends --maxfail=3 in CI for fast feedback without overwhelming output",
+        "Sets minimum coverage thresholds with 90% for business logic and 100% for critical paths",
+        "Uses --lf (last-failed) during development for rapid iteration on broken tests"
+      ]
+    },
+    {
+      "id": "validation-end-to-end",
+      "rule": "validation-end-to-end",
+      "query": "How do I ensure type safety across my API from client to database with no gaps?",
+      "expectedBehavior": [
+        "Recommends tRPC for end-to-end TypeScript type inference without code generation",
+        "Uses Zod schemas for runtime validation at API boundaries with compile-time inference",
+        "Uses Pydantic with NewType for branded IDs to prevent ID type confusion in Python",
+        "Tests that validation schemas reject invalid data to confirm boundary protection"
+      ]
+    },
+    {
+      "id": "validation-zod-schema",
+      "rule": "validation-zod-schema",
+      "query": "Set up Zod validation for our API endpoints with branded types to prevent ID mix-ups",
+      "expectedBehavior": [
+        "Uses safeParse for graceful error handling instead of throwing parse exceptions",
+        "Implements branded types with z.string().uuid().brand() to prevent ID type confusion",
+        "Validates at ALL boundaries including API inputs, form submissions, and external data",
+        "Uses assertNever in switch default for compile-time exhaustive union type checking"
       ]
     }
   ]

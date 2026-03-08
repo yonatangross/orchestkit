@@ -1,0 +1,39 @@
+{
+  "skill": "chain-patterns",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "checkpoint-on-gate",
+      "rule": "checkpoint-on-gate",
+      "query": "My chain skill asks the user a question and they close the session. When I resume, the state is stale.",
+      "expectedBehavior": [
+        "Updates state.json before every user gate including AskUserQuestion calls",
+        "Saves current phase and completed phases to disk before the user interaction pause",
+        "Prevents stale state by writing progress immediately before any blocking user prompt",
+        "Ensures session closure during a gate does not lose progress from completed phases"
+      ]
+    },
+    {
+      "id": "handoff-after-phase",
+      "rule": "handoff-after-phase",
+      "query": "My chain ran 4 phases of RCA analysis but then got rate-limited and all the results were lost.",
+      "expectedBehavior": [
+        "Writes a handoff JSON file to .claude/chain/ after every major phase completes",
+        "Persists phase results to disk immediately rather than keeping them only in memory",
+        "Includes phase number, skill name, and results data in each handoff file",
+        "Prevents loss of completed work when rate limits or session compaction interrupts execution"
+      ]
+    },
+    {
+      "id": "probe-before-use",
+      "rule": "probe-before-use",
+      "query": "My chain skill crashes when the memory MCP server is not installed. How do I make it resilient?",
+      "expectedBehavior": [
+        "Runs ToolSearch probe before calling any MCP tool to verify availability",
+        "Falls back to Grep or other tools when the MCP server is not found or configured",
+        "Reads capabilities from .claude/chain/capabilities.json to check available integrations",
+        "Never assumes MCP servers exist and always checks before invocation to prevent crashes"
+      ]
+    }
+  ]
+}

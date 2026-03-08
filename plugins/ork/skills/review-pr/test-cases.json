@@ -56,6 +56,17 @@
         "Flags any types or type assertions",
         "Verifies exhaustive switch/union handling with never-type assertions"
       ]
+    },
+    {
+      "id": "agent-prompts-agent-teams",
+      "rule": "agent-prompts-agent-teams",
+      "query": "I need to review a PR that touches both backend architecture and frontend components. Should I use agent teams?",
+      "expectedBehavior": [
+        "Evaluates whether the PR review requires cross-cutting communication between review agents",
+        "Recommends Agent Teams when reviewers need mesh communication across backend and frontend",
+        "Uses TeamCreate with peer-to-peer SendMessage for coordinated multi-agent review efforts",
+        "Warns about higher cost of Agent Teams approximately 2.5x compared to sequential Task tool review"
+      ]
     }
   ]
 }

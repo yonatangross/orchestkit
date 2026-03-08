@@ -36,6 +36,28 @@
         "Suggests using Mermaid, PlantUML, or an image generation tool instead",
         "ASCII visualizer is for terminal-rendered monospace output, not image files"
       ]
+    },
+    {
+      "id": "ascii-architecture",
+      "rule": "ascii-architecture",
+      "query": "Draw a layered system architecture showing load balancer, API gateways, services, and databases",
+      "expectedBehavior": [
+        "Uses structured layered diagram with clear separation between infrastructure tiers",
+        "Labels each component box with both the component name and its technology stack",
+        "Shows directional arrows indicating data flow and communication patterns between layers",
+        "Uses consistent box-drawing characters and alignment for professional terminal rendering"
+      ]
+    },
+    {
+      "id": "ascii-diagrams",
+      "rule": "ascii-diagrams",
+      "query": "What box-drawing characters should I use for ASCII diagrams to ensure they render correctly?",
+      "expectedBehavior": [
+        "Uses standard weight box-drawing characters for regular boxes and heavy weight for emphasis",
+        "Keeps diagrams under 80 characters wide for terminal compatibility across environments",
+        "Uses consistent alignment and spacing to ensure monospace rendering looks correct",
+        "Applies directional arrow characters to show data flow and dependency relationships"
+      ]
     }
   ]
 }

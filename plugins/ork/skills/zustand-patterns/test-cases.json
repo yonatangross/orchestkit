@@ -35,6 +35,39 @@
         "Implements database connection pooling using standard Node.js patterns",
         "Uses backend infrastructure tools without any Zustand or React state management"
       ]
+    },
+    {
+      "id": "zustand-middleware-order",
+      "rule": "zustand-middleware-order",
+      "query": "I'm setting up a Zustand store with persist, devtools, and immer middleware. What order should I nest them in?",
+      "expectedBehavior": [
+        "Specifies the correct nesting order: persist outermost, then devtools, then subscribeWithSelector, then immer innermost",
+        "Explains that immer must be innermost to transform draft mutations before other middleware sees them",
+        "Shows that persist must be outermost to serialize fully transformed state to storage",
+        "Warns that wrong order causes devtools to miss actions and persist to serialize untransformed state"
+      ]
+    },
+    {
+      "id": "zustand-middleware-pitfalls",
+      "rule": "zustand-middleware-pitfalls",
+      "query": "My Zustand store state changes aren't persisting between page reloads and I'm getting TypeScript errors with devtools. What am I doing wrong?",
+      "expectedBehavior": [
+        "Checks for missing persist version migration function when bumping the version number",
+        "Verifies the devtools type augmentation import is present for TypeScript compatibility",
+        "Warns against mutating state with push or splice without immer middleware enabled",
+        "Checks for double-wrapping the same middleware which causes silent state corruption"
+      ]
+    },
+    {
+      "id": "zustand-slice-pattern",
+      "rule": "zustand-slice-pattern",
+      "query": "Our Zustand store has grown to 30+ fields across auth, cart, and UI concerns. How should we restructure it?",
+      "expectedBehavior": [
+        "Recommends splitting into typed slices using StateCreator with proper generic parameters",
+        "Shows how to combine slices with spread syntax forwarding set, get, and store arguments",
+        "Advises using get() for cross-slice access inside actions to avoid circular dependencies",
+        "Keeps each slice in its own file exporting only the creator function and interface"
+      ]
     }
   ]
 }

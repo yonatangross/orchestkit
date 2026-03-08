@@ -1,6 +1,6 @@
 ---
 title: "Performance"
-description: "Performance optimization patterns covering Core Web Vitals, React render optimization, lazy loading, image optimization, backend profiling, and LLM inference. Use when improving page speed, debugging slow renders, optimizing bundles, reducing image payload, profiling backend, or deploying LLMs efficiently."
+description: "Performance optimization patterns covering Core Web Vitals, React render optimization, lazy loading, image optimization, backend profiling, LLM inference, and sustainability UX. Use when improving page speed, debugging slow renders, optimizing bundles, reducing image payload, profiling backend, deploying LLMs efficiently, or reducing digital carbon footprint."
 ---
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-orange">high</span>
@@ -16,7 +16,7 @@ Comprehensive performance optimization patterns for frontend, backend, and LLM i
 
 | Category | Rules | Impact | When to Use |
 |----------|-------|--------|-------------|
-| [Core Web Vitals](#core-web-vitals) | 3 | CRITICAL | LCP, INP, CLS optimization with 2026 thresholds |
+| [Core Web Vitals](#core-web-vitals) | 4 | CRITICAL | LCP, INP, CLS optimization with 2026 thresholds |
 | [Render Optimization](#render-optimization) | 3 | HIGH | React Compiler, memoization, virtualization |
 | [Lazy Loading](#lazy-loading) | 3 | HIGH | Code splitting, route splitting, preloading |
 | [Image Optimization](#image-optimization) | 3 | HIGH | Next.js Image, AVIF/WebP, responsive images |
@@ -24,8 +24,9 @@ Comprehensive performance optimization patterns for frontend, backend, and LLM i
 | [LLM Inference](#llm-inference) | 3 | MEDIUM | vLLM, quantization, speculative decoding |
 | [Caching](#caching) | 2 | HIGH | Redis cache-aside, prompt caching, HTTP cache headers |
 | [Query & Data Fetching](#query--data-fetching) | 2 | HIGH | TanStack Query prefetching, optimistic updates, rollback |
+| [Sustainability](#sustainability) | 1 | MEDIUM | Page weight budgets, lazy loading, optimized formats, dark mode |
 
-**Total: 22 rules across 8 categories**
+**Total: 24 rules across 9 categories**
 
 ## Core Web Vitals
 
@@ -35,6 +36,7 @@ Google's Core Web Vitals with 2026 stricter thresholds.
 |------|------|-------------|
 | LCP Optimization | `rules/cwv-lcp.md` | Preload hero, SSR, fetchpriority="high" |
 | INP Optimization | `rules/cwv-inp.md` | scheduler.yield, useTransition, requestIdleCallback |
+| INP Advanced | `rules/cwv-inp-advanced.md` | Layout thrashing, third-party scripts, rAF patterns |
 | CLS Prevention | `rules/cwv-cls.md` | Explicit dimensions, aspect-ratio, font-display |
 
 ### 2026 Thresholds
@@ -112,6 +114,14 @@ TanStack Query v5 patterns for prefetching and optimistic updates.
 |------|------|-------------|
 | Prefetching | `rules/query-prefetching.md` | Hover prefetch, route loaders, queryOptions, Suspense |
 | Optimistic Updates | `rules/query-optimistic.md` | Optimistic mutations, rollback, cache invalidation |
+
+## Sustainability
+
+Digital sustainability patterns for reducing carbon footprint and energy usage.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Sustainability UX | `rules/sustainability-ux.md` | Page weight budgets, AVIF/WebP, lazy loading, dark mode |
 
 ## Quick Start Example
 
@@ -227,6 +237,22 @@ export default async function Page() {
 - Generate and interpret flame graphs
 - Analyze and optimize bundle size
 
+### inp-advanced
+**Keywords:** INP, scheduler-yield, layout-thrashing, third-party-scripts, requestAnimationFrame
+**Solves:**
+- Break long tasks with scheduler.yield()
+- Audit and defer blocking third-party scripts
+- Avoid synchronous layout thrashing in event handlers
+- Optimize form submissions, dropdowns, accordions, filters
+
+### sustainability
+**Keywords:** sustainability, carbon-footprint, page-weight, green-ux, dark-mode, lazy-loading
+**Solves:**
+- Enforce page weight budgets (&lt; 1MB)
+- Eliminate auto-playing videos and heavy decorative animations
+- Serve optimized image formats (AVIF/WebP)
+- Implement cursor-based pagination to prevent over-fetching
+
 ### llm-inference
 **Keywords:** vllm, quantization, speculative-decoding, inference, throughput
 **Solves:**
@@ -249,7 +275,7 @@ Load on demand with `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/performance/references
 
 ---
 
-## Rules (22)
+## Rules (24)
 
 ### Configure HTTP and LLM prompt caching with correct breakpoint ordering for maximum savings — HIGH
 
@@ -501,6 +527,140 @@ Prevent Cumulative Layout Shift for the 2026 threshold of &lt;= 0.08.
 5. **Use** `transform` and `opacity` for animations
 6. **Reserve** space for ads, embeds, and dynamic content
 7. Target **&lt;= 0.08** for 2026 thresholds
+
+
+### Advanced INP optimization with scheduler.yield and third-party script management — CRITICAL
+
+
+# Advanced INP Optimization
+
+Advanced patterns for Interaction to Next Paint — 43% of sites fail INP in 2026, making it the most commonly failed Core Web Vital.
+
+## Common INP Culprits
+
+Form submissions, dropdown opens, accordion expansions, and filter applications are the top offenders. Each involves synchronous DOM reads/writes that block the main thread.
+
+## scheduler.yield() for Breaking Long Tasks
+
+**Incorrect — long synchronous event handler blocks paint:**
+```typescript
+async function handleFilterApply(filters: Filter[]) {
+  const results = applyAllFilters(data, filters); // 200ms+ blocking
+  updateDOM(results);
+  trackAnalytics('filter_applied', filters);
+}
+```
+
+**Correct — yield between chunks to let browser paint:**
+```typescript
+async function handleFilterApply(filters: Filter[]) {
+  // Yield after each filter category to keep INP < 150ms
+  let results = data;
+  for (const filter of filters) {
+    results = applySingleFilter(results, filter);
+    await scheduler.yield();
+  }
+  updateDOM(results);
+  // Defer non-visual work
+  await scheduler.yield();
+  trackAnalytics('filter_applied', filters);
+}
+```
+
+## Avoid Synchronous Layout Thrashing
+
+**Incorrect — forced reflow in a loop:**
+```typescript
+function resizeCards(cards: HTMLElement[]) {
+  cards.forEach(card => {
+    const height = card.offsetHeight; // Read (forces layout)
+    card.style.height = `${height + 20}px`; // Write (invalidates layout)
+  });
+}
+```
+
+**Correct — batch reads then batch writes:**
+```typescript
+function resizeCards(cards: HTMLElement[]) {
+  // Batch all reads first
+  const heights = cards.map(card => card.offsetHeight);
+  // Then batch all writes
+  requestAnimationFrame(() => {
+    cards.forEach((card, i) => {
+      card.style.height = `${heights[i] + 20}px`;
+    });
+  });
+}
+```
+
+## Audit and Defer Third-Party Scripts
+
+**Incorrect — blocking third-party scripts in critical path:**
+```html
+<head>
+  <script src="https://analytics.example.com/tracker.js"></script>
+  <script src="https://ads.example.com/loader.js"></script>
+  <script src="/app.js"></script>
+</head>
+```
+
+**Correct — defer third-party scripts after interaction readiness:**
+```html
+<head>
+  <script src="/app.js"></script>
+</head>
+<body>
+  <!-- Load third-party after first interaction or idle -->
+  <script>
+    const loadThirdParty = () => {
+      const scripts = [
+        'https://analytics.example.com/tracker.js',
+        'https://ads.example.com/loader.js',
+      ];
+      scripts.forEach(src => {
+        const s = document.createElement('script');
+        s.src = src;
+        s.async = true;
+        document.body.appendChild(s);
+      });
+    };
+    // Load on first interaction or after 3s, whichever comes first
+    ['click', 'scroll', 'keydown'].forEach(evt =>
+      addEventListener(evt, loadThirdParty, { once: true })
+    );
+    setTimeout(loadThirdParty, 3000);
+  </script>
+</body>
+```
+
+## requestAnimationFrame for Visual Updates
+
+**Incorrect — updating DOM outside rAF causes jank:**
+```typescript
+function handleAccordionToggle(panel: HTMLElement) {
+  panel.style.height = panel.scrollHeight + 'px'; // May miss frame
+  panel.classList.toggle('open');
+}
+```
+
+**Correct — schedule visual updates in rAF:**
+```typescript
+function handleAccordionToggle(panel: HTMLElement) {
+  requestAnimationFrame(() => {
+    panel.style.height = panel.scrollHeight + 'px';
+    panel.classList.toggle('open');
+  });
+}
+```
+
+## Key Rules
+
+1. **Use** `scheduler.yield()` between chunks — target &lt; 50ms per task
+2. **Audit** third-party scripts — defer or lazy-load non-critical ones
+3. **Batch** DOM reads before writes to avoid layout thrashing
+4. **Wrap** visual DOM updates in `requestAnimationFrame`
+5. **Profile** real user interactions (form submit, dropdown, accordion, filter) — not just page load
+6. Target **&lt;= 150ms** INP for 2026 thresholds
 
 
 ### Optimize Interaction to Next Paint to ensure responsive button clicks and interactions — CRITICAL
@@ -2367,6 +2527,134 @@ function VirtualList({ items }) {
 3. **Use** `estimateSize` close to actual average
 4. **Use** `measureElement` for variable height items
 5. **Position** items with `transform: translateY()` (avoids layout recalculation)
+
+
+### Sustainability UX patterns for reducing digital carbon footprint — MEDIUM
+
+
+# Sustainability UX
+
+2026 digital sustainability patterns — reduce carbon footprint through efficient resource usage, optimized assets, and intentional UX.
+
+## Avoid Heavy Animations When Not Needed
+
+**Incorrect — auto-playing decorative video wastes bandwidth and energy:**
+```html
+<video autoplay loop muted playsinline>
+  <source src="/hero-bg.mp4" type="video/mp4" />
+</video>
+```
+
+**Correct — use CSS animation or static image, offer video opt-in:**
+```html
+<!-- Static hero with optional video -->
+<picture>
+  <source srcset="/hero.avif" type="image/avif" />
+  <source srcset="/hero.webp" type="image/webp" />
+  <img src="/hero.jpg" alt="Hero" loading="eager" />
+</picture>
+<button onclick="loadHeroVideo()">Play video</button>
+```
+
+## Prevent Over-Fetching
+
+**Incorrect — fetching entire dataset for a paginated view:**
+```typescript
+// Loads ALL 10,000 records on mount
+const { data } = useQuery({
+  queryKey: ['products'],
+  queryFn: () => fetch('/api/products').then(r => r.json()),
+});
+const page = data?.slice(offset, offset + 20);
+```
+
+**Correct — cursor-based pagination fetches only what is needed:**
+```typescript
+const { data, fetchNextPage } = useInfiniteQuery({
+  queryKey: ['products'],
+  queryFn: ({ pageParam }) =>
+    fetch(`/api/products?cursor=${pageParam}&limit=20`).then(r => r.json()),
+  getNextPageParam: (last) => last.nextCursor,
+  initialPageParam: '',
+});
+```
+
+## Serve Optimized Image Formats
+
+**Incorrect — serving unoptimized PNG/JPEG:**
+```html
+<img src="/photo.png" alt="Product" width="800" height="600" />
+```
+
+**Correct — AVIF/WebP with fallback, sized appropriately:**
+```html
+<picture>
+  <source srcset="/photo.avif" type="image/avif" />
+  <source srcset="/photo.webp" type="image/webp" />
+  <img src="/photo.jpg" alt="Product" width="800" height="600"
+       loading="lazy" decoding="async" />
+</picture>
+```
+
+## Lazy Load Below-Fold Content
+
+**Incorrect — loading all images eagerly:**
+```tsx
+function Gallery({ images }: { images: string[] }) {
+  return images.map(src => <img src={src} alt="" />);
+}
+```
+
+**Correct — lazy load below-fold, eager only for above-fold:**
+```tsx
+function Gallery({ images }: { images: string[] }) {
+  return images.map((src, i) => (
+    <img
+      src={src}
+      alt=""
+      loading={i < 2 ? 'eager' : 'lazy'}
+      decoding="async"
+    />
+  ));
+}
+```
+
+## Dark Mode Reduces OLED Power
+
+Offer dark mode to reduce power consumption on OLED displays (up to 60% less power for dark UI).
+
+```css
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1a1a1a;
+    --text: #e0e0e0;
+  }
+}
+```
+
+## Enforce Page Weight Budget
+
+Target &lt; 1MB total page weight (HTML + CSS + JS + images + fonts). Set up CI enforcement:
+
+```javascript
+// lighthouse-ci config or bundlesize
+const budgets = [
+  { resourceType: 'total', budget: 1000 }, // 1MB total
+  { resourceType: 'script', budget: 300 },  // 300KB JS
+  { resourceType: 'image', budget: 500 },   // 500KB images
+  { resourceType: 'font', budget: 100 },    // 100KB fonts
+];
+```
+
+## Key Rules
+
+1. **Avoid** auto-playing videos and heavy animations for decoration
+2. **Use** cursor-based pagination — never fetch entire datasets
+3. **Serve** AVIF with WebP fallback — 30-50% smaller than JPEG/PNG
+4. **Lazy load** all below-fold images and components
+5. **Offer** dark mode — reduces OLED power by up to 60%
+6. **Enforce** &lt; 1MB page weight budget in CI
+7. **Measure** page weight on every PR — prevent creep
 
 
 

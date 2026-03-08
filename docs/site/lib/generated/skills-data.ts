@@ -6,8 +6,8 @@ import type { SkillMeta } from "./types";
 export const SKILLS: Record<string, SkillMeta> = {
   "accessibility": {
     "name": "accessibility",
-    "description": "Accessibility patterns for WCAG 2.2 compliance, keyboard focus management, and React Aria component patterns. Use when implementing screen reader support, keyboard navigation, ARIA patterns, focus traps, or accessible component libraries.",
-    "version": "2.0.0",
+    "description": "Accessibility patterns for WCAG 2.2 compliance, keyboard focus management, React Aria component patterns, cognitive inclusion, native HTML-first philosophy, and user preference honoring. Use when implementing screen reader support, keyboard navigation, ARIA patterns, focus traps, accessible component libraries, reduced motion, or cognitive accessibility.",
+    "version": "2.1.0",
     "author": "OrchestKit",
     "tags": [
       "accessibility",
@@ -52,6 +52,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": [
       "accessibility-specialist",
+      "design-system-architect",
       "frontend-ui-developer",
       "ui-feedback"
     ]
@@ -160,6 +161,49 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ork"
     ],
     "relatedAgents": []
+  },
+  "animation-motion-design": {
+    "name": "animation-motion-design",
+    "description": "Animation and motion design patterns using Motion library (formerly Framer Motion) and View Transitions API. Use when implementing component animations, page transitions, micro-interactions, gesture-driven UIs, or ensuring motion accessibility with prefers-reduced-motion.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "animation",
+      "motion",
+      "framer-motion",
+      "view-transitions",
+      "micro-interactions",
+      "gestures",
+      "layout-animation",
+      "AnimatePresence",
+      "prefers-reduced-motion",
+      "spring-physics"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "skills": [],
+    "agent": "frontend-ui-developer",
+    "structure": {
+      "references": [
+        "animation-presets-library.md",
+        "micro-interactions-catalog.md",
+        "motion-vs-view-transitions.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": [
+      "design-system-architect",
+      "frontend-ui-developer"
+    ]
   },
   "api-design": {
     "name": "api-design",
@@ -1145,6 +1189,49 @@ export const SKILLS: Record<string, SkillMeta> = {
       "demo-producer"
     ]
   },
+  "design-system-tokens": {
+    "name": "design-system-tokens",
+    "description": "Design token management with W3C Design Token Community Group specification, three-tier token hierarchy (global/alias/component), OKLCH color spaces, Style Dictionary transformation, and dark mode theming. Use when creating design token files, implementing theme systems, managing token versioning, or building design-to-code pipelines.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "design-tokens",
+      "w3c-tokens",
+      "oklch",
+      "style-dictionary",
+      "theming",
+      "dark-mode",
+      "css-variables",
+      "tailwind-theme",
+      "design-system",
+      "color-spaces"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "skills": [],
+    "agent": "frontend-ui-developer",
+    "structure": {
+      "references": [
+        "style-dictionary-config.md",
+        "token-naming-conventions.md",
+        "w3c-token-spec.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": [
+      "design-system-architect",
+      "frontend-ui-developer"
+    ]
+  },
   "devops-deployment": {
     "name": "devops-deployment",
     "description": "Use when setting up CI/CD pipelines, containerizing applications, deploying to Kubernetes, or writing infrastructure as code. DevOps & Deployment covers GitHub Actions, Docker, Helm, and Terraform patterns.",
@@ -1533,6 +1620,48 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ork"
     ],
     "relatedAgents": []
+  },
+  "figma-design-handoff": {
+    "name": "figma-design-handoff",
+    "description": "Figma-to-code design handoff patterns including Figma Variables to design tokens pipeline, component spec extraction, Dev Mode inspection, Auto Layout to CSS Flexbox/Grid mapping, and visual regression with Applitools. Use when converting Figma designs to code, documenting component specs, setting up design-dev workflows, or comparing production UI against Figma designs.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "figma",
+      "design-handoff",
+      "design-to-code",
+      "figma-variables",
+      "dev-mode",
+      "auto-layout",
+      "component-specs",
+      "visual-regression",
+      "applitools",
+      "design-tokens"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "skills": [],
+    "agent": "frontend-ui-developer",
+    "structure": {
+      "references": [
+        "applitools-figma-plugin.md",
+        "design-dev-communication.md",
+        "figma-to-code-workflow.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": [
+      "design-system-architect"
+    ]
   },
   "fix-issue": {
     "name": "fix-issue",
@@ -2164,6 +2293,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "debug-investigator",
       "demo-producer",
       "deployment-manager",
+      "design-system-architect",
       "eval-runner",
       "event-driven-architect",
       "frontend-performance-engineer",
@@ -2419,8 +2549,8 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "performance": {
     "name": "performance",
-    "description": "Performance optimization patterns covering Core Web Vitals, React render optimization, lazy loading, image optimization, backend profiling, and LLM inference. Use when improving page speed, debugging slow renders, optimizing bundles, reducing image payload, profiling backend, or deploying LLMs efficiently.",
-    "version": "2.0.0",
+    "description": "Performance optimization patterns covering Core Web Vitals, React render optimization, lazy loading, image optimization, backend profiling, LLM inference, and sustainability UX. Use when improving page speed, debugging slow renders, optimizing bundles, reducing image payload, profiling backend, deploying LLMs efficiently, or reducing digital carbon footprint.",
+    "version": "2.1.0",
     "author": "OrchestKit",
     "tags": [
       "performance",
@@ -2443,7 +2573,10 @@ export const SKILLS: Record<string, SkillMeta> = {
       "prompt-caching",
       "tanstack-query",
       "prefetching",
-      "optimistic-updates"
+      "optimistic-updates",
+      "sustainability",
+      "carbon-footprint",
+      "page-weight"
     ],
     "userInvocable": false,
     "context": "fork",
@@ -2505,6 +2638,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "backend-system-architect",
       "data-pipeline-engineer",
       "database-engineer",
+      "design-system-architect",
       "frontend-performance-engineer",
       "frontend-ui-developer",
       "llm-integrator",
@@ -3084,6 +3218,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "debug-investigator",
       "demo-producer",
       "deployment-manager",
+      "design-system-architect",
       "eval-runner",
       "event-driven-architect",
       "frontend-performance-engineer",
@@ -3108,8 +3243,8 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "responsive-patterns": {
     "name": "responsive-patterns",
-    "description": "Responsive design with Container Queries, fluid typography, cqi/cqb units, and mobile-first patterns for React applications. Use when building responsive layouts or container queries.",
-    "version": "1.0.0",
+    "description": "Responsive design with Container Queries, fluid typography, cqi/cqb units, subgrid, intrinsic layouts, foldable devices, and mobile-first patterns for React applications. Use when building responsive layouts or container queries.",
+    "version": "1.1.0",
     "author": "OrchestKit",
     "tags": [
       "responsive",
@@ -3128,7 +3263,12 @@ export const SKILLS: Record<string, SkillMeta> = {
       "motion",
       "framer-motion",
       "scroll-driven",
-      "view-transitions"
+      "view-transitions",
+      "subgrid",
+      "intrinsic-layout",
+      "foldable",
+      "dual-screen",
+      "safe-area"
     ],
     "userInvocable": false,
     "context": "fork",
@@ -3151,7 +3291,9 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ork"
     ],
     "relatedAgents": [
-      "accessibility-specialist"
+      "accessibility-specialist",
+      "design-system-architect",
+      "frontend-ui-developer"
     ]
   },
   "review-pr": {
@@ -3561,6 +3703,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "relatedAgents": [
       "accessibility-specialist",
       "code-quality-reviewer",
+      "design-system-architect",
       "eval-runner",
       "frontend-ui-developer",
       "monitoring-engineer",
@@ -3571,7 +3714,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "ui-components": {
     "name": "ui-components",
     "description": "UI component library patterns for shadcn/ui and Radix Primitives. Use when building accessible component libraries, customizing shadcn components, using Radix unstyled primitives, or creating design system foundations.",
-    "version": "2.0.0",
+    "version": "2.1.0",
     "author": "OrchestKit",
     "tags": [
       "ui-components",
@@ -3629,6 +3772,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": [
       "accessibility-specialist",
+      "design-system-architect",
       "frontend-ui-developer",
       "ui-feedback"
     ]

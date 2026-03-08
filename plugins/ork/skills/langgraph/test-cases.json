@@ -332,6 +332,127 @@
         "Uses InjectedStore for cross-thread persistence of data across workflow invocations",
         "Parameters annotated with Injected types are injected automatically by the LangGraph runtime"
       ]
+    },
+    {
+      "id": "checkpoints-store-cross-thread-happy-path",
+      "rule": "checkpoints-store",
+      "query": "I need user preferences to persist across different conversation threads. How do I store cross-thread data in LangGraph so it's not lost when starting a new thread?",
+      "expectedBehavior": [
+        "Uses PostgresStore for cross-thread long-term memory alongside the checkpointer",
+        "Compiles the graph with both checkpointer and store passed to compile()",
+        "Accesses store data in nodes via the store parameter with namespaced keys",
+        "Uses aget and aput methods with namespace tuples to read and write cross-thread data"
+      ]
+    },
+    {
+      "id": "functional-migration-linear-happy-path",
+      "rule": "functional-migration",
+      "query": "I have a simple three-step StateGraph pipeline with linear edges. Should I migrate it to the Functional API for cleaner code?",
+      "expectedBehavior": [
+        "Claude recommends migrating simple linear workflows to Functional API with @entrypoint and @task",
+        "Claude converts each node to a @task function and chains them with .result() calls",
+        "Claude warns against migrating complex topologies with conditional edges or subgraphs",
+        "Claude shows that both APIs support checkpointing, streaming, and human-in-the-loop equally"
+      ]
+    },
+    {
+      "id": "parallel-error-isolation-happy-path",
+      "rule": "parallel-error-isolation",
+      "query": "I'm running three analysis agents in parallel but when one fails the entire workflow crashes and I lose the results from agents that succeeded. How do I isolate failures?",
+      "expectedBehavior": [
+        "Claude uses asyncio.gather with return_exceptions=True to isolate branch failures",
+        "Claude adds per-branch timeout using asyncio.wait_for to prevent slow branches from blocking",
+        "Claude separates successes from failures so partial results remain available",
+        "Claude logs failures for debugging but continues processing with available successful results"
+      ]
+    },
+    {
+      "id": "state-messages-conversation-happy-path",
+      "rule": "state-messages",
+      "query": "My chatbot agent loses previous messages every time a new node runs because the messages list gets overwritten. How do I preserve conversation history across nodes?",
+      "expectedBehavior": [
+        "Claude uses MessagesState or Annotated[list, add_messages] reducer for the messages field",
+        "Claude explains that add_messages appends new messages instead of overwriting the history",
+        "Claude warns that MessageGraph is deprecated in LangGraph v1.0.0 and should not be used",
+        "Claude shows nodes returning partial updates with new messages that get appended automatically"
+      ]
+    },
+    {
+      "id": "state-reducers-custom-merge-happy-path",
+      "rule": "state-reducers",
+      "query": "Multiple nodes in my workflow update a shared config dictionary but later nodes overwrite keys set by earlier nodes. How do I merge dictionary updates instead of replacing them?",
+      "expectedBehavior": [
+        "Claude defines a custom merge_dicts reducer function that deep-merges dictionary updates",
+        "Claude uses Annotated[dict, merge_dicts] type annotation for the config field",
+        "Claude explains that nodes must return new state objects and never mutate state in place",
+        "Claude shows how to use Annotated[str, last_value] to make simple overwrites explicit"
+      ]
+    },
+    {
+      "id": "supervisor-priority-routing-happy-path",
+      "rule": "supervisor-priority",
+      "query": "I have a supervisor coordinating security, implementation, and tutorial agents but security should always run before implementation. How do I enforce priority-based execution order?",
+      "expectedBehavior": [
+        "Claude implements a priority dictionary mapping each agent to a numeric priority value",
+        "Claude selects the next agent using min() on available agents by their priority rank",
+        "Claude tracks agents_completed in state to prevent revisiting finished agents",
+        "Claude limits the supervisor to three to eight specialists maximum to avoid coordination overhead"
+      ]
+    },
+    {
+      "id": "tools-toolnode-automatic-happy-path",
+      "rule": "tools-toolnode",
+      "query": "I'm manually dispatching tool calls from LLM messages in a loop. Is there a built-in way to handle tool execution with automatic parallel support in LangGraph?",
+      "expectedBehavior": [
+        "Claude uses the prebuilt ToolNode from langgraph.prebuilt for automatic tool execution",
+        "Claude shows that ToolNode executes multiple tool calls in parallel automatically",
+        "Claude adds a tools to agent edge for the ReAct loop pattern",
+        "Claude routes based on tool_calls presence in the last message to decide continuation"
+      ]
+    },
+    {
+      "id": "platform-deployment-config-happy-path",
+      "rule": "platform-deployment",
+      "query": "I want to deploy my LangGraph agent as an API with persistence and streaming. How do I configure langgraph.json and use the CLI for local development and Docker deployment?",
+      "expectedBehavior": [
+        "Claude creates a langgraph.json with dependencies, graphs, and env configuration",
+        "Claude uses langgraph dev for local development with hot reload and in-memory state",
+        "Claude uses langgraph build for Docker image creation for self-hosted deployments",
+        "Claude shows the Assistants API for creating multiple configurations from a single deployed graph"
+      ]
+    },
+    {
+      "id": "platform-remote-graph-invoke-happy-path",
+      "rule": "platform-remote-graph",
+      "query": "I have a LangGraph agent deployed on Platform and need to call it from my Python application. How do I invoke it programmatically with streaming support?",
+      "expectedBehavior": [
+        "Claude imports RemoteGraph from langgraph.pregel.remote for the client interface",
+        "Claude shows invoke and ainvoke methods with thread_id in config for stateful conversations",
+        "Claude demonstrates astream with stream_mode for real-time event streaming from the remote graph",
+        "Claude shows adding RemoteGraph as a node in a parent graph for distributed orchestration"
+      ]
+    },
+    {
+      "id": "routing-cross-graph-escalation-happy-path",
+      "rule": "routing-cross-graph",
+      "query": "My child subgraph needs to escalate complex tasks back to the parent graph's supervisor node. How do I route from a subgraph node to a node in the parent graph?",
+      "expectedBehavior": [
+        "Claude uses Command with graph=Command.PARENT to navigate from child to parent graph",
+        "Claude includes state updates in the Command that map to the parent state schema",
+        "Claude ensures shared state keys updated via Command.PARENT have reducers in parent state",
+        "Claude warns not to wrap Command returns in try/except because it uses exceptions internally"
+      ]
+    },
+    {
+      "id": "platform-double-texting-strategy-happy-path",
+      "rule": "platform-double-texting",
+      "query": "Users in my chatbot sometimes send a correction message while the previous response is still generating, causing corrupted state. How do I handle concurrent messages on the same thread?",
+      "expectedBehavior": [
+        "Claude sets multitask_strategy on every runs.create call to prevent race conditions",
+        "Claude explains all four strategies: reject, rollback, enqueue, and interrupt with use cases",
+        "Claude recommends rollback for chatbots where user corrections should override in-progress work",
+        "Claude warns that without a multitask_strategy concurrent messages on the same thread corrupt state"
+      ]
     }
   ]
 }

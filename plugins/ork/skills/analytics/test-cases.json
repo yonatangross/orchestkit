@@ -72,6 +72,66 @@
         "Shows unique project hash count to indicate distinct projects tracked",
         "Gracefully handles missing files (notes 'no data collected yet')"
       ]
+    },
+    {
+      "id": "cost-calculation",
+      "rule": "cost-calculation",
+      "query": "/ork:analytics cost breakdown with cache savings for the last week",
+      "expectedBehavior": [
+        "Calculates costs separately for four token types: input, output, cache_read, and cache_write",
+        "Applies cache_read pricing at 10x cheaper than regular input token pricing",
+        "Shows cache savings prominently comparing cost with and without caching",
+        "Uses model-specific pricing rates for opus, sonnet, and haiku models",
+        "Presents daily cost breakdown as a markdown table with per-model totals"
+      ]
+    },
+    {
+      "id": "data-privacy",
+      "rule": "data-privacy",
+      "query": "Log agent usage analytics for this project session to the analytics directory.",
+      "expectedBehavior": [
+        "Uses hashProject to generate an irreversible 12-character SHA256 hash for project identifier",
+        "Never logs raw file paths, usernames, or environment variables in analytics data",
+        "Stores all analytics data locally in the ~/.claude/analytics/ directory only",
+        "Logs only non-PII fields like agent name, skill name, model name, and duration",
+        "Uses ISO 8601 timestamps for the ts field in analytics JSONL entries"
+      ]
+    },
+    {
+      "id": "large-file-streaming",
+      "rule": "large-file-streaming",
+      "query": "/ork:analytics agents with full history including rotated files from the past 6 months",
+      "expectedBehavior": [
+        "Checks file size before querying and avoids jq slurp flag for files over 50MB",
+        "Uses streaming jq without the -s flag for large JSONL file processing",
+        "Includes rotated files matching the pattern agent-usage.YYYY-MM.jsonl for historical data",
+        "Aggregates results using jq reduce or pipe-based sort and uniq patterns",
+        "Filters by timestamp field when date range is specified before aggregating results"
+      ]
+    },
+    {
+      "id": "visualization-dashboards",
+      "rule": "visualization-dashboards",
+      "query": "Build a React dashboard with stat cards and charts that share a single data query for analytics metrics.",
+      "expectedBehavior": [
+        "Uses CSS Grid with responsive breakpoints for stat card and chart layout",
+        "Shares data via TanStack Query with granular query keys instead of per-widget fetching",
+        "Uses col-span-full for full-width charts and col-span-2 for half-width sections",
+        "Implements SSE with EventSource for real-time metric updates on specific query keys",
+        "Wraps widget components in Suspense with skeleton fallbacks for loading states"
+      ]
+    },
+    {
+      "id": "visualization-recharts",
+      "rule": "visualization-recharts",
+      "query": "Create a Recharts line chart for revenue trends with a custom tooltip and responsive container.",
+      "expectedBehavior": [
+        "Wraps the chart in ResponsiveContainer with a parent element that has explicit height",
+        "Disables animations on real-time or frequently updating charts using isAnimationActive false",
+        "Implements a custom tooltip component for branded UX instead of using defaults",
+        "Adds figure role and aria-label attributes for chart accessibility",
+        "Includes CartesianGrid, XAxis, YAxis, Tooltip, and Legend for complete chart setup"
+      ]
     }
   ]
 }

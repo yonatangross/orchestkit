@@ -1,0 +1,913 @@
+---
+title: "Figma Design Handoff"
+description: "Figma-to-code design handoff patterns including Figma Variables to design tokens pipeline, component spec extraction, Dev Mode inspection, Auto Layout to CSS Flexbox/Grid mapping, and visual regression with Applitools. Use when converting Figma designs to code, documenting component specs, setting up design-dev workflows, or comparing production UI against Figma designs."
+---
+
+<span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
+
+**Primary Agent:** [frontend-ui-developer](/docs/reference/agents/frontend-ui-developer)
+
+
+# Figma Design Handoff
+
+Figma dominates design tooling in 2026, with over 80% of product teams using it as their primary design tool. A structured handoff workflow eliminates design drift — the gap between what designers create and what developers build. This skill covers the full pipeline: Figma Variables to design tokens, component spec extraction, Dev Mode inspection, Auto Layout to CSS mapping, and visual regression testing.
+
+## Quick Reference
+
+| Rule | File | Impact | When to Use |
+|------|------|--------|-------------|
+| Figma Variables & Tokens | `rules/figma-variables-tokens.md` | CRITICAL | Converting Figma Variables to W3C design tokens JSON |
+| Component Specs | `rules/figma-component-specs.md` | HIGH | Extracting component props, variants, states from Figma |
+| Dev Mode Inspection | `rules/figma-dev-mode.md` | HIGH | Measurements, spacing, typography, asset export |
+| Auto Layout → CSS | `rules/figma-auto-layout.md` | HIGH | Mapping Auto Layout to Flexbox/Grid |
+| Visual Regression | `rules/figma-visual-regression.md` | MEDIUM | Comparing production UI against Figma designs |
+
+**Total: 5 rules across 1 category**
+
+## Quick Start
+
+```bash
+# 1. Export Figma Variables → tokens.json (using Figma REST API)
+curl -s -H "X-Figma-Token: $FIGMA_TOKEN" \
+  "https://api.figma.com/v1/files/$FILE_KEY/variables/local" \
+  | node scripts/figma-to-w3c-tokens.js > tokens/figma-raw.json
+
+# 2. Transform with Style Dictionary
+npx style-dictionary build --config sd.config.js
+
+# 3. Output: CSS custom properties + Tailwind theme
+# tokens/
+#   figma-raw.json        ← W3C Design Tokens format
+#   css/variables.css     ← --color-primary: oklch(0.65 0.15 250);
+#   tailwind/theme.js     ← module.exports = { colors: { primary: ... } }
+```
+
+```json
+// W3C Design Tokens Format (DTCG)
+{
+  "color": {
+    "primary": {
+      "$type": "color",
+      "$value": "{color.blue.600}",
+      "$description": "Primary brand color"
+    },
+    "surface": {
+      "$type": "color",
+      "$value": "{color.neutral.50}",
+      "$extensions": {
+        "mode": {
+          "dark": "{color.neutral.900}"
+        }
+      }
+    }
+  }
+}
+```
+
+```typescript
+// Style Dictionary config for Figma Variables
+import StyleDictionary from 'style-dictionary';
+
+export default {
+  source: ['tokens/figma-raw.json'],
+  platforms: {
+    css: {
+      transformGroup: 'css',
+      buildPath: 'tokens/css/',
+      files: [{ destination: 'variables.css', format: 'css/variables' }],
+    },
+    tailwind: {
+      transformGroup: 'js',
+      buildPath: 'tokens/tailwind/',
+      files: [{ destination: 'theme.js', format: 'javascript/module' }],
+    },
+  },
+};
+```
+
+## Handoff Workflow
+
+The design-to-code pipeline follows five stages:
+
+1. **Design in Figma** — Designer creates components with Variables, Auto Layout, and proper naming
+2. **Extract Specs** — Use Dev Mode to inspect spacing, typography, colors, and export assets
+3. **Export Tokens** — Figma Variables → W3C tokens JSON via REST API or plugin
+4. **Build Components** — Map Auto Layout to CSS Flexbox/Grid, apply tokens, implement variants
+5. **Visual QA** — Compare production screenshots against Figma frames with Applitools
+
+```
+┌─────────────┐     ┌──────────────┐     ┌───────────────┐
+│  Figma File  │────▶│  Dev Mode    │────▶│  tokens.json  │
+│  (Variables, │     │  (Inspect,   │     │  (W3C DTCG    │
+│  Auto Layout)│     │   Export)    │     │   format)     │
+└─────────────┘     └──────────────┘     └───────┬───────┘
+                                                  │
+                                                  ▼
+┌─────────────┐     ┌──────────────┐     ┌───────────────┐
+│  Visual QA  │◀────│  Components  │◀────│ Style         │
+│  (Applitools,│     │  (React +   │     │ Dictionary    │
+│   Chromatic) │     │  Tailwind)   │     │ (CSS/Tailwind)│
+└─────────────┘     └──────────────┘     └───────────────┘
+```
+
+## Rules
+
+Each rule is loaded on-demand from the `rules/` directory:
+
+&lt;!-- load:rules/figma-variables-tokens.md --&gt;
+&lt;!-- load:rules/figma-component-specs.md --&gt;
+&lt;!-- load:rules/figma-dev-mode.md --&gt;
+&lt;!-- load:rules/figma-auto-layout.md --&gt;
+&lt;!-- load:rules/figma-visual-regression.md --&gt;
+
+## Auto Layout to CSS Mapping
+
+Quick reference for the most common mappings:
+
+| Figma Auto Layout | CSS Equivalent | Tailwind Class |
+|-------------------|---------------|----------------|
+| Direction: Horizontal | `flex-direction: row` | `flex-row` |
+| Direction: Vertical | `flex-direction: column` | `flex-col` |
+| Gap: 16 | `gap: 16px` | `gap-4` |
+| Padding: 16 | `padding: 16px` | `p-4` |
+| Padding: 16, 24 | `padding: 16px 24px` | `py-4 px-6` |
+| Align: Center | `align-items: center` | `items-center` |
+| Justify: Space between | `justify-content: space-between` | `justify-between` |
+| Fill container | `flex: 1 1 0%` | `flex-1` |
+| Hug contents | `width: fit-content` | `w-fit` |
+| Fixed width: 200 | `width: 200px` | `w-[200px]` |
+| Min width: 100 | `min-width: 100px` | `min-w-[100px]` |
+| Max width: 400 | `max-width: 400px` | `max-w-[400px]` |
+| Wrap | `flex-wrap: wrap` | `flex-wrap` |
+| Absolute position | `position: absolute` | `absolute` |
+
+## Visual QA Loop
+
+```typescript
+// Applitools Eyes + Figma Plugin — CI integration
+import { Eyes, Target } from '@applitools/eyes-playwright';
+
+const eyes = new Eyes();
+
+await eyes.open(page, 'MyApp', 'Homepage — Figma Comparison');
+
+// Capture full page
+await eyes.check('Full Page', Target.window().fully());
+
+// Capture specific component
+await eyes.check(
+  'Hero Section',
+  Target.region('#hero').ignoreDisplacements()
+);
+
+await eyes.close();
+```
+
+The Applitools Figma Plugin overlays production screenshots on Figma frames to catch:
+- Color mismatches (token not applied or wrong mode)
+- Spacing drift (padding/margin deviations)
+- Typography inconsistencies (font size, weight, line height)
+- Missing states (hover, focus, disabled not implemented)
+
+## Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Token format | W3C Design Tokens Community Group (DTCG) JSON |
+| Token pipeline | Figma REST API → Style Dictionary → CSS/Tailwind |
+| Color format | OKLCH for perceptually uniform theming |
+| Layout mapping | Auto Layout → CSS Flexbox (Grid for 2D layouts) |
+| Visual QA tool | Applitools Eyes + Figma Plugin for design-dev diff |
+| Spec format | TypeScript interfaces matching Figma component props |
+| Mode handling | Figma Variable modes → CSS media queries / class toggles |
+
+## Anti-Patterns (FORBIDDEN)
+
+- **Hardcoded values**: Never hardcode colors, spacing, or typography — always reference tokens
+- **Skipping Dev Mode**: Do not eyeball measurements — use Dev Mode for exact values
+- **Manual token sync**: Do not manually copy values from Figma — automate with REST API
+- **Ignoring modes**: Variables with light/dark modes must map to theme toggles, not separate files
+- **Screenshot-only QA**: Visual comparison without structured regression testing misses subtle drift
+- **Flat token structure**: Use nested W3C DTCG format, not flat key-value pairs
+
+## References
+
+| Resource | Description |
+|----------|-------------|
+| [references/figma-to-code-workflow.md](references/figma-to-code-workflow.md) | End-to-end workflow, toolchain options |
+| [references/design-dev-communication.md](references/design-dev-communication.md) | PR templates, component status tracking |
+| [references/applitools-figma-plugin.md](references/applitools-figma-plugin.md) | Setup, CI integration, comparison config |
+
+## Related Skills
+
+- `ork:design-system-tokens` — W3C token architecture and Style Dictionary transforms
+- `ork:ui-components` — shadcn/ui and Radix component patterns
+- `ork:accessibility` — WCAG compliance for components extracted from Figma
+
+
+---
+
+## Rules (5)
+
+### Figma Auto Layout to CSS Flexbox/Grid — HIGH
+
+
+## Figma Auto Layout to CSS Flexbox/Grid
+
+Figma Auto Layout maps directly to CSS Flexbox. Every Auto Layout property has a 1:1 CSS equivalent. Use Grid only when the design requires 2D placement that Auto Layout cannot express.
+
+**Incorrect:**
+```css
+/* Using margin instead of gap, wrong sizing */
+.card-list {
+  display: flex;
+}
+.card-list > * {
+  margin-right: 16px;    /* Use gap instead */
+  width: 33.33%;         /* Ignores Figma's Fill/Hug/Fixed */
+}
+.card-list > *:last-child {
+  margin-right: 0;       /* Gap handles this automatically */
+}
+```
+
+**Correct:**
+```css
+/* Direct mapping from Auto Layout properties */
+.card-list {
+  display: flex;
+  flex-direction: row;          /* Direction: Horizontal */
+  gap: 16px;                    /* Item spacing: 16 */
+  padding: 24px;                /* Padding: 24 (all sides) */
+  align-items: flex-start;      /* Align items: Top */
+  flex-wrap: wrap;              /* Wrap enabled */
+}
+.card-list > .card {
+  flex: 1 1 0%;                /* Sizing: Fill container */
+  min-width: 280px;            /* Min width constraint */
+}
+```
+
+**Complete mapping table:**
+```
+Auto Layout Property        → CSS Property
+──────────────────────────────────────────────────────
+Direction: Horizontal       → flex-direction: row
+Direction: Vertical         → flex-direction: column
+Gap (item spacing)          → gap: {value}px
+Padding (uniform)           → padding: {value}px
+Padding (per-side)          → padding: {top} {right} {bottom} {left}
+Align items: Top/Left       → align-items: flex-start
+Align items: Center         → align-items: center
+Align items: Bottom/Right   → align-items: flex-end
+Justify: Packed (start)     → justify-content: flex-start
+Justify: Space between      → justify-content: space-between
+Sizing: Fill container      → flex: 1 1 0%
+Sizing: Hug contents        → width: fit-content  (or omit width)
+Sizing: Fixed               → width: {value}px
+Min/Max width               → min-width / max-width
+Wrap                        → flex-wrap: wrap
+Absolute position           → position: absolute + inset values
+```
+
+**When to use CSS Grid instead of Flexbox:**
+```css
+/* Grid: when Figma uses a grid layout component or 2D placement */
+.dashboard {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+  padding: 32px;
+}
+```
+
+**Key rules:**
+- Always use `gap` for spacing between items — never `margin` on children
+- Map Fill container to `flex: 1 1 0%`, not percentage widths
+- Map Hug contents to `width: fit-content` or omit explicit width
+- Read padding values from Auto Layout panel, not by measuring edges
+- Use Flexbox for 1D layouts (most Auto Layout frames), Grid for 2D
+- Preserve min/max width constraints from Figma for responsive behavior
+- Absolute-positioned children in Auto Layout map to `position: absolute` with inset
+
+Reference: [CSS Flexbox Guide](https://css-tricks.com/snippets/css/a-guide-to-flexbox/)
+
+
+### Figma Component Spec Extraction — HIGH
+
+
+## Figma Component Spec Extraction
+
+Figma components with variants and properties must be documented as TypeScript interfaces. Each Figma component property (variant, boolean, text, instance swap) maps to a typed prop.
+
+**Incorrect:**
+```typescript
+// Vague props guessed from a screenshot
+interface ButtonProps {
+  type: string;    // What values? No idea
+  big: boolean;    // Naming doesn't match design
+  children: any;   // No slot documentation
+}
+```
+
+**Correct:**
+```typescript
+// Props derived from Figma component properties
+interface ButtonProps {
+  /** Figma variant: "Variant" */
+  variant: 'primary' | 'secondary' | 'ghost' | 'destructive';
+  /** Figma variant: "Size" */
+  size: 'sm' | 'md' | 'lg';
+  /** Figma boolean: "Show Icon" */
+  showIcon?: boolean;
+  /** Figma instance swap: "Icon" */
+  icon?: React.ComponentType<{ className?: string }>;
+  /** Figma text: "Label" */
+  children: React.ReactNode;
+  /** Figma boolean: "Disabled" */
+  disabled?: boolean;
+  /** Figma boolean: "Loading" */
+  loading?: boolean;
+}
+```
+
+**Extracting specs from Figma REST API:**
+```typescript
+const components = await fetch(
+  `https://api.figma.com/v1/files/${fileKey}/component_sets`,
+  { headers: { 'X-Figma-Token': token } }
+);
+
+// Each component set contains:
+// - componentPropertyDefinitions: variant props + types
+// - children: individual variant combinations
+for (const [id, set] of Object.entries(components.meta.component_sets)) {
+  const props = set.componentPropertyDefinitions;
+  // VARIANT → union type of allowed values
+  // BOOLEAN → optional boolean prop
+  // TEXT → string / ReactNode prop
+  // INSTANCE_SWAP → component type prop
+}
+```
+
+**Key rules:**
+- Map every Figma component property to a TypeScript prop — no guessing from visuals
+- Figma variant properties become string union types with exact value names
+- Figma boolean properties become optional boolean props
+- Figma text properties become string or ReactNode props
+- Figma instance swap properties become component type props
+- Document all interactive states (hover, focus, active, disabled, loading)
+- Include the Figma component URL in JSDoc for traceability
+- Keep prop names consistent with Figma property names (convert to camelCase)
+
+Reference: [Figma Component Properties API](https://www.figma.com/developers/api#component-sets)
+
+
+### Figma Dev Mode Inspection — HIGH
+
+
+## Figma Dev Mode Inspection
+
+Figma Dev Mode provides exact measurements, CSS code snippets, asset export, and redline overlays. Always use Dev Mode for implementation — never estimate values from the visual canvas.
+
+**Incorrect:**
+```css
+/* Eyeballed from Figma canvas — wrong values */
+.card {
+  padding: 15px;           /* Actual: 16px (4-unit grid) */
+  font-size: 13px;         /* Actual: 14px */
+  font-weight: 500;        /* Actual: 600 */
+  border-radius: 10px;     /* Actual: 8px */
+  gap: 10px;               /* Actual: 12px */
+}
+```
+
+**Correct:**
+```css
+/* Exact values from Dev Mode inspect panel */
+.card {
+  padding: var(--spacing-md);     /* 16px — from Dev Mode */
+  font-size: var(--text-sm);      /* 14px — from typography section */
+  font-weight: var(--font-semibold); /* 600 — from font details */
+  border-radius: var(--radius-md);   /* 8px — from corner radius */
+  gap: var(--spacing-sm);           /* 12px — from gap measurement */
+}
+```
+
+**Dev Mode workflow:**
+```markdown
+## Dev Mode Inspection Checklist
+
+### Spacing & Layout
+- [ ] Read padding from the Auto Layout section (not manual measurement)
+- [ ] Read gap from the Auto Layout section
+- [ ] Check constraints for responsive behavior (Fill/Hug/Fixed)
+
+### Typography
+- [ ] Font family, size, weight, line height from the Type section
+- [ ] Letter spacing if non-default
+- [ ] Text decoration (underline, strikethrough)
+
+### Colors
+- [ ] Read fill colors — note Variable name if using Variables
+- [ ] Read border/stroke colors
+- [ ] Read shadow values (offset, blur, spread, color)
+
+### Assets
+- [ ] Export icons as SVG (not PNG) at 1x
+- [ ] Export images at 1x, 2x for responsive
+- [ ] Use "Copy as SVG" for inline icons
+```
+
+**Key rules:**
+- Always use Dev Mode inspect panel — never measure visually on the canvas
+- Read spacing values from Auto Layout section, not by measuring between elements
+- Copy exact CSS snippets from Dev Mode and map to token variables
+- Export SVG assets at 1x — framework tooling handles optimization
+- Check the Variable name in color values — use the token reference, not the hex value
+- Verify responsive constraints (Fill container, Hug contents, Fixed) for layout behavior
+- Use the code panel (CSS/iOS/Android) as a starting point, then replace hardcoded values with tokens
+
+Reference: [Figma Dev Mode Documentation](https://help.figma.com/hc/en-us/articles/15023124644247)
+
+
+### Figma Variables to Design Tokens — CRITICAL
+
+
+## Figma Variables to Design Tokens
+
+Figma Variables (colors, numbers, strings, booleans) must be exported to W3C Design Tokens Community Group (DTCG) JSON format, then transformed via Style Dictionary into platform outputs (CSS custom properties, Tailwind theme, iOS/Android tokens).
+
+**Incorrect:**
+```css
+/* Hardcoded values copied from Figma inspector */
+:root {
+  --primary: #3b82f6;
+  --surface: #ffffff;
+  --spacing-md: 16px;
+}
+/* No dark mode, no semantic aliases, breaks when design updates */
+```
+
+**Correct:**
+```json
+{
+  "color": {
+    "primary": {
+      "$type": "color",
+      "$value": "{color.blue.600}",
+      "$description": "Primary brand color from Figma Variables"
+    },
+    "surface": {
+      "$type": "color",
+      "$value": "{color.neutral.50}",
+      "$extensions": {
+        "mode": {
+          "dark": "{color.neutral.900}"
+        }
+      }
+    }
+  },
+  "spacing": {
+    "md": {
+      "$type": "dimension",
+      "$value": "16px"
+    }
+  }
+}
+```
+
+```typescript
+// Fetching Figma Variables via REST API
+const response = await fetch(
+  `https://api.figma.com/v1/files/${fileKey}/variables/local`,
+  { headers: { 'X-Figma-Token': process.env.FIGMA_TOKEN } }
+);
+const { meta } = await response.json();
+
+// Map Figma collections → W3C token groups
+for (const collection of Object.values(meta.variableCollections)) {
+  // Each collection = token group (e.g., "colors", "spacing")
+  // Each mode = theme variant (e.g., "light", "dark")
+}
+```
+
+**Key rules:**
+- Always use W3C DTCG format (`$type`, `$value`, `$description`) — never flat key-value
+- Map Figma Variable collections to token groups (colors, spacing, typography)
+- Map Figma Variable modes to theme variants (light/dark, compact/comfortable)
+- Use `$extensions.mode` for multi-mode values, not separate token files
+- Reference aliases (`\{color.blue.600\}`) instead of raw values for semantic tokens
+- Automate extraction via Figma REST API or Variables export plugin — never copy manually
+- Run Style Dictionary build in CI to catch token schema errors before merge
+
+Reference: [W3C Design Tokens Format](https://design-tokens.github.io/community-group/format/)
+
+
+### Visual Regression Testing for Design Fidelity — MEDIUM
+
+
+## Visual Regression Testing for Design Fidelity
+
+Visual regression testing compares production UI screenshots against approved baselines. For design handoff, the baseline is the Figma design itself. Use Applitools Eyes with the Figma Plugin for direct Figma-to-production comparison, Chromatic for Storybook component snapshots, or Percy for full-page regression.
+
+**Incorrect:**
+```typescript
+// No visual regression — manual screenshot comparison
+test('button looks right', async ({ page }) => {
+  await page.goto('/components/button');
+  // Developer opens Figma side-by-side and squints
+  // Misses: wrong padding, slightly off color, missing focus ring
+  expect(true).toBe(true); // "Looks good to me"
+});
+```
+
+**Correct:**
+```typescript
+// Applitools Eyes — automated visual comparison
+import { Eyes, Target, BatchInfo } from '@applitools/eyes-playwright';
+
+test('button matches Figma design', async ({ page }) => {
+  const eyes = new Eyes();
+  eyes.setBatch(new BatchInfo('Design Handoff QA'));
+
+  await eyes.open(page, 'Component Library', 'Button — All Variants');
+
+  // Capture each variant
+  for (const variant of ['primary', 'secondary', 'ghost', 'destructive']) {
+    await page.goto(`/storybook/iframe.html?id=button--${variant}`);
+    await eyes.check(`Button ${variant}`, Target.window().fully());
+  }
+
+  await eyes.close(); // Fails if visual diff exceeds threshold
+});
+```
+
+**Chromatic + Storybook setup:**
+```typescript
+// .storybook/main.ts — Chromatic captures all stories automatically
+export default {
+  stories: ['../src/**/*.stories.@(ts|tsx)'],
+  addons: ['@chromatic-com/storybook'],
+};
+
+// CI: npx chromatic --project-token=$CHROMATIC_TOKEN
+// Each story = one visual snapshot
+// PR gets a Chromatic status check with diff review UI
+```
+
+**Percy for page-level regression:**
+```typescript
+// playwright.config.ts — Percy snapshot integration
+import { percySnapshot } from '@percy/playwright';
+
+test('homepage matches design', async ({ page }) => {
+  await page.goto('/');
+  await percySnapshot(page, 'Homepage', {
+    widths: [375, 768, 1280], // Mobile, tablet, desktop
+  });
+});
+```
+
+**Key rules:**
+- Use Applitools Figma Plugin for direct design-to-production comparison
+- Use Chromatic for component-level regression via Storybook stories
+- Use Percy or Playwright visual comparisons for full-page regression
+- Run visual regression in CI on every PR — never rely on manual review alone
+- Set appropriate diff thresholds: strict for components, relaxed for dynamic content
+- Capture multiple viewport widths (375, 768, 1280) for responsive verification
+- Ignore dynamic content regions (timestamps, user data) in snapshot comparisons
+
+Reference: [Applitools Figma Plugin](https://applitools.com/platform/integrations/figma/)
+
+
+
+---
+
+## References (3)
+
+### Applitools Figma Plugin
+
+# Applitools Figma Plugin
+
+Setup, configuration, and CI integration for comparing Figma designs against production screenshots.
+
+## Overview
+
+The Applitools Figma Plugin enables direct comparison between Figma design frames and live application screenshots. It overlays production captures on Figma artboards, highlighting pixel-level differences in color, spacing, typography, and layout.
+
+## Setup
+
+### 1. Install the Figma Plugin
+
+1. Open Figma → Plugins → Search "Applitools"
+2. Install "Applitools Eyes for Figma"
+3. Authenticate with your Applitools API key
+
+### 2. Configure the Project
+
+```typescript
+// applitools.config.ts
+import { Configuration } from '@applitools/eyes-playwright';
+
+const config: Configuration = {
+  apiKey: process.env.APPLITOOLS_API_KEY,
+  appName: 'MyApp',
+  batchName: 'Design Handoff QA',
+  // Match Figma frame dimensions
+  browser: [
+    { width: 1440, height: 900, name: 'chrome' },
+    { width: 375, height: 812, name: 'chrome' }, // Mobile
+  ],
+  // AI-powered matching — ignores anti-aliasing, minor rendering diffs
+  matchLevel: 'Layout',
+};
+
+export default config;
+```
+
+### 3. Link Figma Frames to Tests
+
+```typescript
+import { Eyes, Target } from '@applitools/eyes-playwright';
+
+test.describe('Figma Design Comparison', () => {
+  let eyes: Eyes;
+
+  test.beforeEach(async ({ page }) => {
+    eyes = new Eyes();
+    await eyes.open(page, 'MyApp', test.info().title);
+  });
+
+  test.afterEach(async () => {
+    await eyes.close();
+  });
+
+  test('Homepage hero section', async ({ page }) => {
+    await page.goto('/');
+    await eyes.check(
+      'Hero',
+      Target.region('#hero-section')
+        .ignoreDisplacements()  // Ignore content shifts
+        .layout()               // Layout-level matching
+    );
+  });
+
+  test('Button component — all variants', async ({ page }) => {
+    await page.goto('/storybook/iframe.html?id=button--all-variants');
+    await eyes.check('Button Variants', Target.window().fully());
+  });
+});
+```
+
+## Match Levels
+
+| Level | What it Catches | Use Case |
+|-------|----------------|----------|
+| Exact | Pixel-perfect differences | Icon rendering, brand assets |
+| Strict | Visual differences visible to human eye | Component QA |
+| Layout | Structural/layout differences only | Pages with dynamic content |
+| Content | Text content changes only | Content-heavy pages |
+
+## CI Integration
+
+```yaml
+# .github/workflows/visual-qa.yml
+name: Visual QA
+on: [pull_request]
+
+jobs:
+  visual-regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test tests/visual/
+        env:
+          APPLITOOLS_API_KEY: ${{ secrets.APPLITOOLS_API_KEY }}
+      - name: Check Applitools results
+        if: always()
+        run: npx @applitools/eyes-cli results --fail-on-diff
+```
+
+## Figma-to-Production Comparison Workflow
+
+1. **Designer** marks frames as "Ready for QA" in Figma
+2. **CI** runs visual tests on every PR
+3. **Applitools** captures screenshots and compares against baselines
+4. **Applitools Figma Plugin** overlays production screenshots on Figma frames
+5. **Team** reviews diffs in Applitools dashboard or Figma plugin
+6. **Approve** or **reject** — rejected diffs block the PR
+
+## Common Diff Categories
+
+- **Color mismatch**: Token not applied, wrong mode, opacity difference
+- **Spacing drift**: Padding or margin off by 1-4px from Figma values
+- **Typography**: Wrong font weight, size, or line height
+- **Missing states**: Hover, focus, or disabled state not implemented
+- **Layout shift**: Element positioned differently than the Figma frame
+- **Asset quality**: SVG not optimized, PNG at wrong resolution
+
+
+### Design Dev Communication
+
+# Design-Dev Communication
+
+Structured communication patterns for design handoff: PR templates, component status tracking, and annotation conventions.
+
+## PR Template with Design Links
+
+```markdown
+## Design Reference
+
+- **Figma file**: [Link to Figma file]
+- **Figma frame**: [Link to specific frame/component]
+- **Design status**: Ready for dev / In review / Needs design update
+
+## Implementation Checklist
+
+- [ ] All variants implemented (list variant names)
+- [ ] Spacing matches Dev Mode measurements
+- [ ] Colors reference design tokens (no hardcoded hex)
+- [ ] Typography uses token scale
+- [ ] Responsive behavior matches constraints
+- [ ] Interactive states: hover, focus, active, disabled
+- [ ] Accessibility: keyboard nav, screen reader, contrast
+- [ ] Storybook story added for each variant
+- [ ] Visual regression snapshot captured
+
+## Screenshots
+
+| Figma | Implementation |
+|-------|---------------|
+| [screenshot] | [screenshot] |
+```
+
+## Component Status Tracking
+
+Track the handoff status of each component in a shared document or project board:
+
+```markdown
+| Component | Figma Status | Dev Status | Tokens | Visual QA |
+|-----------|-------------|------------|--------|-----------|
+| Button    | Ready       | Complete   | Synced | Approved  |
+| Card      | Ready       | In PR      | Synced | Pending   |
+| Modal     | In Review   | Not Started| —      | —         |
+| Nav       | Ready       | Complete   | Synced | Failed    |
+```
+
+### Status Definitions
+
+- **Figma Status**: Draft → In Review → Ready for Dev → Updated
+- **Dev Status**: Not Started → In Progress → In PR → Complete
+- **Tokens**: Not Defined → Exported → Synced → Verified
+- **Visual QA**: Pending → Failed → Approved
+
+## Figma Annotation Conventions
+
+Designers should annotate Figma frames to communicate intent that is not captured by component properties:
+
+### Annotation Types
+
+1. **Interaction notes** — Describe hover effects, transitions, animations
+   - Format: Yellow sticky with "Interaction:" prefix
+   - Example: "Interaction: Card scales to 1.02 on hover with 200ms ease-out"
+
+2. **Responsive notes** — Describe breakpoint behavior
+   - Format: Blue sticky with "Responsive:" prefix
+   - Example: "Responsive: Stack vertically below 768px, 2-col at 768px, 3-col at 1280px"
+
+3. **Content rules** — Min/max content lengths, truncation behavior
+   - Format: Green sticky with "Content:" prefix
+   - Example: "Content: Title max 2 lines, truncate with ellipsis"
+
+4. **Dev notes** — Technical implementation hints
+   - Format: Purple sticky with "Dev:" prefix
+   - Example: "Dev: Use Intersection Observer for lazy loading"
+
+## Handoff Meeting Agenda
+
+For complex features, run a 15-minute handoff sync:
+
+1. **Walk through design** (5 min) — Designer shows the feature in Figma
+2. **Token check** (3 min) — Verify all Variables are defined and exported
+3. **Edge cases** (5 min) — Empty states, error states, loading states, overflow
+4. **Questions** (2 min) — Developer clarifies ambiguities
+
+## Feedback Loop
+
+When developers find issues during implementation:
+
+1. Comment directly on the Figma frame (not Slack/email)
+2. Tag the designer with `@mention`
+3. Include: what is unclear, what the proposed implementation is, screenshot if applicable
+4. Designer resolves or updates the design
+5. Token re-sync if design changes affect variables
+
+
+### Figma To Code Workflow
+
+# Figma-to-Code Workflow
+
+End-to-end workflow for converting Figma designs to production code with automated token pipelines.
+
+## Workflow Diagram
+
+```
+┌────────────────────────────────────────────────────────────┐
+│                     DESIGN PHASE                           │
+│                                                            │
+│  Designer creates:                                         │
+│  • Components with variants (Button: primary/secondary)    │
+│  • Variables for colors, spacing, typography                │
+│  • Auto Layout for all container frames                    │
+│  • Modes for light/dark, compact/comfortable               │
+└──────────────────────┬─────────────────────────────────────┘
+                       │
+                       ▼
+┌────────────────────────────────────────────────────────────┐
+│                    EXPORT PHASE                             │
+│                                                            │
+│  Automated via Figma REST API or plugin:                   │
+│  • GET /v1/files/{key}/variables/local → token JSON        │
+│  • GET /v1/files/{key}/component_sets → component specs    │
+│  • Export assets via /v1/images/{key} → SVG/PNG            │
+└──────────────────────┬─────────────────────────────────────┘
+                       │
+                       ▼
+┌────────────────────────────────────────────────────────────┐
+│                   TRANSFORM PHASE                           │
+│                                                            │
+│  Style Dictionary processes W3C DTCG tokens:               │
+│  • Input: tokens/figma-raw.json                            │
+│  • Transforms: color/oklch, size/rem, name/cti/kebab       │
+│  • Output: CSS variables, Tailwind theme, iOS/Android      │
+└──────────────────────┬─────────────────────────────────────┘
+                       │
+                       ▼
+┌────────────────────────────────────────────────────────────┐
+│                    BUILD PHASE                              │
+│                                                            │
+│  Developer implements components:                          │
+│  • Map Auto Layout → CSS Flexbox/Grid                      │
+│  • Apply token variables (not hardcoded values)            │
+│  • Implement all variant/state combinations                │
+│  • Write Storybook stories for each component              │
+└──────────────────────┬─────────────────────────────────────┘
+                       │
+                       ▼
+┌────────────────────────────────────────────────────────────┐
+│                   VERIFY PHASE                              │
+│                                                            │
+│  Visual regression in CI:                                  │
+│  • Chromatic captures Storybook story snapshots            │
+│  • Applitools compares production ↔ Figma frames           │
+│  • Percy captures full-page responsive screenshots         │
+│  • PR blocked until visual diffs approved                  │
+└────────────────────────────────────────────────────────────┘
+```
+
+## Toolchain Options
+
+| Stage | Tool | Purpose |
+|-------|------|---------|
+| Export | Figma REST API | Programmatic access to Variables, components, images |
+| Export | Tokens Studio Plugin | GUI-based token export to JSON |
+| Transform | Style Dictionary | Token transformation to platform outputs |
+| Transform | Cobalt UI | W3C DTCG-native token compiler |
+| Build | Tailwind CSS | Utility-first CSS from token theme |
+| Build | CVA + cn() | Type-safe component variants |
+| Verify | Chromatic | Storybook visual regression |
+| Verify | Applitools Eyes | AI-powered visual comparison |
+| Verify | Percy | Page-level visual snapshots |
+
+## CI Pipeline Example
+
+```yaml
+# .github/workflows/design-sync.yml
+name: Design Token Sync
+on:
+  schedule:
+    - cron: '0 9 * * 1'  # Weekly Monday 9am
+  workflow_dispatch:
+
+jobs:
+  sync-tokens:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: node scripts/figma-to-w3c-tokens.js
+        env:
+          FIGMA_TOKEN: ${{ secrets.FIGMA_TOKEN }}
+          FIGMA_FILE_KEY: ${{ vars.FIGMA_FILE_KEY }}
+      - run: npx style-dictionary build
+      - uses: peter-evans/create-pull-request@v6
+        with:
+          title: 'chore: sync design tokens from Figma'
+          branch: chore/design-token-sync
+```
+

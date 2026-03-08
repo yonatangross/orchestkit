@@ -5,9 +5,9 @@ import type { Totals, AgentSummary, CategoryMeta } from "./types";
 
 export const TOTALS: Totals = {
   "plugins": 1,
-  "skills": 81,
-  "agents": 30,
-  "hooks": 95,
+  "skills": 84,
+  "agents": 31,
+  "hooks": 96,
   "commands": 19,
   "compositions": 14
 };
@@ -104,6 +104,15 @@ export const AGENTS: AgentSummary[] = [
     "category": "devops"
   },
   {
+    "name": "design-system-architect",
+    "description": "Design system architect: token hierarchies, theming strategies, component library design, Figma-to-code pipelines, and design governance.",
+    "plugins": [
+      "ork"
+    ],
+    "model": "sonnet",
+    "category": "development"
+  },
+  {
     "name": "eval-runner",
     "description": "LLM evaluation specialist who runs structured eval datasets, computes quality metrics using DeepEval/RAGAS, tracks regression across model versions, and reports to Langfuse for tracing and scoring.",
     "plugins": [
@@ -132,7 +141,7 @@ export const AGENTS: AgentSummary[] = [
   },
   {
     "name": "frontend-ui-developer",
-    "description": "Frontend developer: React 19/TypeScript components, optimistic updates, Zod-validated APIs, modern 2026 patterns.",
+    "description": "Frontend developer: React 19/TypeScript components, optimistic updates, Zod-validated APIs, design system tokens, animation/motion, modern 2026 patterns.",
     "plugins": [
       "ork"
     ],
@@ -355,14 +364,14 @@ export const SKILLS_SUMMARY = {
       "write-prd"
     ],
     "git": [
+      "animation-motion-design",
       "api-design",
       "assess",
       "ci-automation",
       "code-review-playbook",
       "commit",
       "create-pr",
-      "demo-producer",
-      "feedback"
+      "demo-producer"
     ],
     "video": [
       "demo-producer",
@@ -370,6 +379,8 @@ export const SKILLS_SUMMARY = {
     ],
     "accessibility": [
       "accessibility",
+      "design-system-tokens",
+      "figma-design-handoff",
       "testing-patterns"
     ],
     "devops": [

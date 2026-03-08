@@ -51,10 +51,21 @@
       "rule": "atomic-commit",
       "query": "Commit directly to main branch",
       "expectedBehavior": [
-        "Checks current branch before committing to prevent accidental pushes",
+        "Verifies commit is atomic and does not mix unrelated changes on protected branches",
         "Refuses to commit to main or dev branches",
         "Suggests creating a feature branch first",
         "Uses issue/<number>-<description> branch naming convention for traceability"
+      ]
+    },
+    {
+      "id": "issue-reference-required",
+      "rule": "issue-reference-required",
+      "query": "I'm committing code for issue #42 but I keep forgetting to add the issue reference. What's required?",
+      "expectedBehavior": [
+        "Requires issue number reference in every commit message using the hash-number prefix format",
+        "Formats commit as type(#42): description following conventional commit with issue reference",
+        "Warns that commits without issue references break traceability and auto-close linking",
+        "Enables automatic issue-to-commit linking for progress tracking and audit trail purposes"
       ]
     }
   ]

@@ -45,6 +45,61 @@
         "Provides reset to remove from wrong branch",
         "Distinguishes pushed vs unpushed commits with appropriate recovery strategies"
       ]
+    },
+    {
+      "id": "history-hygiene",
+      "rule": "history-hygiene",
+      "query": "My branch has WIP and fixup commits, how do I clean up before pushing?",
+      "expectedBehavior": [
+        "Uses interactive rebase to squash WIP and fixup commits into clean atomic commits",
+        "Shows git commit --fixup and --autosquash workflow for incremental development cleanup",
+        "Keeps each final commit meaningful with a message explaining why not just what",
+        "Warns against rewriting published history that other developers have already pulled"
+      ]
+    },
+    {
+      "id": "monorepo-context",
+      "rule": "monorepo-context",
+      "query": "How do I configure Claude Code for a monorepo with separate API and web services?",
+      "expectedBehavior": [
+        "Uses --add-dir flag to include additional service directories in Claude Code context",
+        "Creates per-service CLAUDE.md files with framework patterns and test commands",
+        "Sets CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD environment variable for full context loading",
+        "Keeps root CLAUDE.md for workspace-wide conventions and cross-service rules"
+      ]
+    },
+    {
+      "id": "recovery-reset",
+      "rule": "recovery-reset",
+      "query": "I need to undo my last commit but keep the changes staged for a different commit",
+      "expectedBehavior": [
+        "Uses git reset --soft HEAD~1 to undo the commit while keeping changes staged",
+        "Saves a backup reference with git rev-parse HEAD before any hard reset operation",
+        "Explains the three reset modes: soft keeps staged, mixed unstages, hard discards everything",
+        "Recommends git revert instead of reset for commits already pushed to shared branches"
+      ]
+    },
+    {
+      "id": "stacked-pr-rebase",
+      "rule": "stacked-pr-rebase",
+      "query": "My base PR got review feedback and now the dependent PRs are out of sync, how do I fix them?",
+      "expectedBehavior": [
+        "Rebases dependent branches in dependency order starting from the base branch first",
+        "Uses --force-with-lease instead of --force to prevent overwriting collaborators work",
+        "Retargets the next PR to main via gh pr edit after a base PR merges",
+        "Resolves rebase conflicts in the lowest branch first then cascades through the stack"
+      ]
+    },
+    {
+      "id": "stacked-pr-workflow",
+      "rule": "stacked-pr-workflow",
+      "query": "I need to implement a large auth feature but want small reviewable PRs, how do I split it?",
+      "expectedBehavior": [
+        "Breaks the feature into stacked PRs each under 400 lines targeting the previous PR branch",
+        "Numbers PRs clearly in titles like 1/3, 2/3, 3/3 for ordering visibility",
+        "Creates each PR with --base set to the previous PR branch for proper dependency chain",
+        "Includes a stack visualization table in the PR body showing order, status, and merge sequence"
+      ]
     }
   ]
 }

@@ -42,7 +42,7 @@
       "expectedBehavior": [
         "Adds delays between page navigations to avoid overwhelming the server",
         "Implements exponential backoff on 429 responses",
-        "Respects concurrency limits for parallel sessions",
+        "Limits concurrent connections and uses retry with backoff on failed pages",
         "Monitors and adjusts rate based on server responses"
       ]
     },

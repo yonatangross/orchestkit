@@ -39,6 +39,28 @@
         "Uses standard code generation and API design patterns",
         "Doctor is for plugin health diagnostics, not application development"
       ]
+    },
+    {
+      "id": "diagnostic-checks",
+      "rule": "diagnostic-checks",
+      "query": "What exactly does each diagnostic check in /ork:doctor validate?",
+      "expectedBehavior": [
+        "Validates skills frontmatter, token budget compliance, and cross-reference link integrity",
+        "Checks that hook bundles exist as compiled files and are properly registered in hooks.json",
+        "Verifies agent definitions comply with Claude Code 2.1 format requirements",
+        "Reports specific pass, warn, or fail status per category with actionable fix suggestions"
+      ]
+    },
+    {
+      "id": "mcp-status-checks",
+      "rule": "mcp-status-checks",
+      "query": "How does /ork:doctor check MCP server health and configuration?",
+      "expectedBehavior": [
+        "Parses .mcp.json to list each server with its enabled or disabled state",
+        "Checks required environment variables and credentials for each MCP server",
+        "Verifies tavily server has TAVILY_API_KEY available in environment or via op CLI",
+        "Flags enabled MCP servers whose startup process would likely fail due to missing configuration"
+      ]
     }
   ]
 }

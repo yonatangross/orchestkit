@@ -1,16 +1,17 @@
 ---
 title: Performance Rule Categories
-version: 2.0.0
+version: 2.1.0
 ---
 
 # Rule Categories
 
-## 1. Core Web Vitals (cwv) — CRITICAL — 3 rules
+## 1. Core Web Vitals (cwv) — CRITICAL — 4 rules
 
 Google's Core Web Vitals with 2026 stricter thresholds.
 
 - `cwv-lcp.md` — LCP optimization: preload hero, SSR, fetchpriority
 - `cwv-inp.md` — INP optimization: scheduler.yield, useTransition, requestIdleCallback
+- `cwv-inp-advanced.md` — Advanced INP: layout thrashing, third-party scripts, rAF patterns
 - `cwv-cls.md` — CLS prevention: explicit dimensions, aspect-ratio, font-display
 
 ## 2. Render Optimization (render) — HIGH — 3 rules
@@ -66,3 +67,9 @@ TanStack Query v5 patterns for prefetching and optimistic updates.
 
 - `query-prefetching.md` -- Hover prefetch, route loaders, queryOptions helper, Suspense
 - `query-optimistic.md` -- Optimistic mutations, rollback, cache invalidation, pending state
+
+## 9. Sustainability (sustainability) -- MEDIUM -- 1 rule
+
+Digital sustainability patterns for reducing carbon footprint and energy usage.
+
+- `sustainability-ux.md` -- Page weight budgets, lazy loading, optimized formats, dark mode

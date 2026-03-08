@@ -44,6 +44,72 @@
         "Recognizes this is a review request, not PR creation",
         "Suggests using the review-pr skill instead"
       ]
+    },
+    {
+      "id": "pr-title-format",
+      "rule": "pr-title-format",
+      "query": "Create a PR for my new user profile feature linked to issue #456",
+      "expectedBehavior": [
+        "Formats title under 70 characters with conventional commit prefix like feat",
+        "Includes issue number in scope parentheses as feat(#456) in the title",
+        "Uses imperative mood for the description such as add, fix, or update",
+        "Selects the correct prefix type based on the nature of the change"
+      ]
+    },
+    {
+      "id": "branch-naming",
+      "rule": "branch-naming",
+      "query": "What should I name my branch for fixing issue #789 about a login race condition?",
+      "expectedBehavior": [
+        "Uses lowercase with hyphens pattern like fix/789-login-race-condition for the branch name",
+        "Includes the issue number in the branch name for automated extraction",
+        "Keeps the description to 3 to 5 words for concise identification",
+        "Uses type prefix matching conventional commit types like fix for bug fixes"
+      ]
+    },
+    {
+      "id": "diff-size-guidelines",
+      "rule": "diff-size-guidelines",
+      "query": "My PR has 1200 lines of changes including a refactor, feature, and config updates. Should I split it?",
+      "expectedBehavior": [
+        "Identifies 1200 lines as too large and recommends splitting into smaller PRs",
+        "Suggests separating infrastructure and config changes from feature code in different PRs",
+        "Recommends keeping each PR under 400 lines of meaningful change for effective review",
+        "Shows how to use stacked PRs when a feature requires more than 800 lines"
+      ]
+    },
+    {
+      "id": "pr-body-structure",
+      "rule": "pr-body-structure",
+      "query": "What sections should I include in my PR description for a new JWT auth feature?",
+      "expectedBehavior": [
+        "Includes required sections: Summary, Changes list, Test Plan, and issue reference",
+        "Uses Closes #N syntax to auto-close the linked issue on merge to main",
+        "Formats the body with HEREDOC pattern for correct multi-line formatting in gh CLI",
+        "Keeps Summary focused on the why rather than repeating what the diff shows"
+      ]
+    },
+    {
+      "id": "preflight-validation",
+      "rule": "preflight-validation",
+      "query": "Run all necessary checks before creating my PR for the auth feature branch.",
+      "expectedBehavior": [
+        "Verifies the current branch is not main or dev before allowing PR creation",
+        "Checks for a clean working tree with no uncommitted changes using git status",
+        "Runs lint, type check, and test suite locally before creating the PR",
+        "Scans the diff for secrets like API keys or tokens and blocks if found"
+      ]
+    },
+    {
+      "id": "review-readiness",
+      "rule": "review-readiness",
+      "query": "Should I create my PR as a draft or mark it ready for review? Tests pass but I have TODO comments.",
+      "expectedBehavior": [
+        "Recommends creating as draft when TODO or FIXME comments exist in changed lines",
+        "Suggests completing a self-review of the full diff before marking ready",
+        "Uses gh pr create --draft to create the PR and gh pr ready to convert later",
+        "Advises removing debug statements and commented-out code before requesting review"
+      ]
     }
   ]
 }

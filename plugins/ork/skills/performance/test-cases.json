@@ -131,7 +131,7 @@
         "Uses sizes prop with breakpoint-based values",
         "Shows art direction with different images per breakpoint",
         "Configures CDN image loaders for Cloudinary or imgix with responsive transformations",
-        "Sets deviceSizes and imageSizes in next.config.js"
+        "Uses srcset with sizes and breakpoints to serve appropriate viewport images"
       ]
     },
     {
@@ -198,6 +198,72 @@
         "Shows draft model approach for higher quality",
         "Notes a typical 1.5 to 2.5x throughput improvement with speculative decoding enabled",
         "Lists when speculative decoding helps vs hurts"
+      ]
+    },
+    {
+      "id": "caching-http",
+      "rule": "caching-http",
+      "query": "How do I set up LLM prompt caching with Claude to reduce token costs?",
+      "expectedBehavior": [
+        "Places static system prompt before variable user content for cache hits",
+        "Uses cache_control with ephemeral type for Claude prompt caching",
+        "Explains that OpenAI uses automatic prefix caching without explicit markers",
+        "Configures HTTP Cache-Control headers with s-maxage for CDN vs browser TTLs"
+      ]
+    },
+    {
+      "id": "caching-redis",
+      "rule": "caching-redis",
+      "query": "My backend API fetches user data on every request, how do I add Redis caching?",
+      "expectedBehavior": [
+        "Implements cache-aside pattern with TTL to prevent memory leaks",
+        "Adds stampede prevention using distributed locks for expensive computations",
+        "Shows write-through pattern for updating cache and database atomically",
+        "Uses event-based invalidation for writes and TTL expiry for reads"
+      ]
+    },
+    {
+      "id": "query-optimistic",
+      "rule": "query-optimistic",
+      "query": "My todo list feels slow because it waits for the server before updating the UI",
+      "expectedBehavior": [
+        "Cancels outgoing refetches in onMutate to prevent race conditions",
+        "Snapshots previous cache value and returns context for automatic rollback on error",
+        "Performs immutable cache update using spread operator instead of direct mutation",
+        "Calls invalidateQueries in onSettled to reconcile with server state after mutation"
+      ]
+    },
+    {
+      "id": "query-prefetching",
+      "rule": "query-prefetching",
+      "query": "Users see a loading spinner every time they navigate to a user profile page",
+      "expectedBehavior": [
+        "Uses queryOptions helper for reusable query definitions across prefetch and hooks",
+        "Prefetches data on onMouseEnter and onFocus events for keyboard accessibility",
+        "Uses ensureQueryData in route loaders to guarantee data before component renders",
+        "Pairs prefetch with useSuspenseQuery for instant render without loading states"
+      ]
+    },
+    {
+      "id": "cwv-inp-advanced",
+      "rule": "cwv-inp-advanced",
+      "query": "My filter dropdown causes jank and INP exceeds 200ms on mobile devices",
+      "expectedBehavior": [
+        "Uses scheduler.yield between filter processing chunks to keep tasks under 50ms",
+        "Batches DOM reads before writes to avoid synchronous layout thrashing",
+        "Defers non-critical third-party scripts until after first user interaction",
+        "Wraps visual DOM updates in requestAnimationFrame for frame-aligned rendering"
+      ]
+    },
+    {
+      "id": "sustainability-ux",
+      "rule": "sustainability-ux",
+      "query": "How can I reduce the carbon footprint and page weight of our web application?",
+      "expectedBehavior": [
+        "Replaces auto-playing decorative videos with static images and opt-in video playback",
+        "Uses cursor-based pagination instead of fetching entire datasets to reduce bandwidth",
+        "Serves AVIF with WebP fallback for 30 to 50 percent smaller image sizes",
+        "Enforces a page weight budget under 1MB in CI to prevent resource creep"
       ]
     }
   ]
