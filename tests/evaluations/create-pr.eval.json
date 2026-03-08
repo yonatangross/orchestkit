@@ -4,60 +4,133 @@
   "version": "1.0.0",
   "evaluations": [
     {
-      "id": "basic-pr-creation",
-      "query": "create a pull request for my changes",
-      "context": {
-        "git_state": "clean"
-      },
+      "id": "feature-pr",
+      "query": "Create a PR for my feature branch",
       "expected_behavior": [
-        "Run git status to check state",
-        "Run git diff against base branch",
-        "Review all commits in the branch",
-        "Push branch to remote if needed",
-        "Create PR with summary and test plan",
-        "Return PR URL"
+        "Runs pre-flight checks (branch protection, uncommitted changes)",
+        "Launches 3 parallel validation agents (security, tests, quality)",
+        "Creates PR with conventional title format: type(#issue): description",
+        "Includes summary, changes list, and test plan in PR body"
       ],
-      "should_not": [
-        "Create PR without reviewing changes",
-        "Skip the test plan section",
-        "Create PR to wrong base branch"
-      ],
-      "success_criteria": [
-        "PR title is descriptive",
-        "PR body has Summary section",
-        "PR body has Test Plan section",
-        "PR URL is returned"
-      ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
-      "id": "pr-with-title",
-      "query": "create PR titled 'Add user dashboard feature'",
+      "id": "draft-pr",
+      "query": "Create a quick draft PR without validation",
       "expected_behavior": [
-        "Use the exact title provided",
-        "Generate appropriate body",
-        "Create the PR"
+        "Skips parallel validation agents for faster draft creation",
+        "Pushes branch if not already on remote",
+        "Creates PR directly with gh pr create",
+        "Gathers context from git log and diff"
       ],
-      "should_not": [
-        "Change the provided title"
-      ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
-      "id": "uncommitted-changes",
-      "query": "create a PR",
-      "context": {
-        "git_state": "dirty"
-      },
+      "id": "stacked-pr",
+      "query": "Create a PR that depends on PR #50",
       "expected_behavior": [
-        "Detect uncommitted changes",
-        "Warn user about uncommitted work",
-        "Ask if they want to commit first"
+        "Sets base branch to the dependency PR branch",
+        "Notes dependency in PR body with a link to the upstream PR",
+        "Runs pre-flight checks including upstream sync",
+        "Verifies branch is not main or dev"
       ],
-      "should_not": [
-        "Create PR ignoring uncommitted changes"
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "should-not-trigger-review",
+      "query": "Review the open PR on my branch",
+      "expected_behavior": [
+        "Does NOT trigger create-pr workflow since this is a review request",
+        "Recognizes this is a review request, not PR creation",
+        "Suggests using the review-pr skill instead"
       ],
-      "tags": ["edge-case"]
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "pr-title-format",
+      "query": "Create a PR for my new user profile feature linked to issue #456",
+      "expected_behavior": [
+        "Formats title under 70 characters with conventional commit prefix like feat",
+        "Includes issue number in scope parentheses as feat(#456) in the title",
+        "Uses imperative mood for the description such as add, fix, or update",
+        "Selects the correct prefix type based on the nature of the change"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "branch-naming",
+      "query": "What should I name my branch for fixing issue #789 about a login race condition?",
+      "expected_behavior": [
+        "Uses lowercase with hyphens pattern like fix/789-login-race-condition for the branch name",
+        "Includes the issue number in the branch name for automated extraction",
+        "Keeps the description to 3 to 5 words for concise identification",
+        "Uses type prefix matching conventional commit types like fix for bug fixes"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "diff-size-guidelines",
+      "query": "My PR has 1200 lines of changes including a refactor, feature, and config updates. Should I split it?",
+      "expected_behavior": [
+        "Identifies 1200 lines as too large and recommends splitting into smaller PRs",
+        "Suggests separating infrastructure and config changes from feature code in different PRs",
+        "Recommends keeping each PR under 400 lines of meaningful change for effective review",
+        "Shows how to use stacked PRs when a feature requires more than 800 lines"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "pr-body-structure",
+      "query": "What sections should I include in my PR description for a new JWT auth feature?",
+      "expected_behavior": [
+        "Includes required sections: Summary, Changes list, Test Plan, and issue reference",
+        "Uses Closes #N syntax to auto-close the linked issue on merge to main",
+        "Formats the body with HEREDOC pattern for correct multi-line formatting in gh CLI",
+        "Keeps Summary focused on the why rather than repeating what the diff shows"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "preflight-validation",
+      "query": "Run all necessary checks before creating my PR for the auth feature branch.",
+      "expected_behavior": [
+        "Verifies the current branch is not main or dev before allowing PR creation",
+        "Checks for a clean working tree with no uncommitted changes using git status",
+        "Runs lint, type check, and test suite locally before creating the PR",
+        "Scans the diff for secrets like API keys or tokens and blocks if found"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "review-readiness",
+      "query": "Should I create my PR as a draft or mark it ready for review? Tests pass but I have TODO comments.",
+      "expected_behavior": [
+        "Recommends creating as draft when TODO or FIXME comments exist in changed lines",
+        "Suggests completing a self-review of the full diff before marking ready",
+        "Uses gh pr create --draft to create the PR and gh pr ready to convert later",
+        "Advises removing debug statements and commented-out code before requesting review"
+      ],
+      "tags": [
+        "happy-path"
+      ]
     }
   ]
 }

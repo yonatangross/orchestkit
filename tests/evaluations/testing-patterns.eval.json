@@ -4,59 +4,404 @@
   "version": "1.0.0",
   "evaluations": [
     {
-      "id": "write-unit-tests",
-      "query": "write unit tests for the UserService class",
+      "id": "unit-aaa-pattern",
+      "query": "Write a unit test for a discount calculator",
       "expected_behavior": [
-        "Read the target file first",
-        "Identify public methods to test",
-        "Write tests for happy paths",
-        "Write tests for edge cases",
-        "Mock dependencies appropriately"
+        "Uses the Arrange-Act-Assert structure to clearly separate test setup, execution, and verification",
+        "Creates fresh instances per test via beforeEach",
+        "Tests observable behavior rather than implementation details to avoid brittle tests",
+        "Achieves coverage targets for business logic and critical paths per the test isolation rules"
       ],
-      "should_not": [
-        "Test private methods directly",
-        "Write tests without reading source first",
-        "Skip error handling tests"
-      ],
-      "success_criteria": [
-        "All public methods covered",
-        "Tests are isolated",
-        "Assertions are meaningful"
-      ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
-      "id": "test-single-function",
-      "query": "write tests for the calculateDiscount function",
+      "id": "unit-parametrized",
+      "query": "Test email validation with multiple inputs",
       "expected_behavior": [
-        "Read the function implementation",
-        "Test boundary values",
-        "Test typical cases",
-        "Test error conditions"
+        "Uses test.each or @pytest.mark.parametrize to run the same test with multiple input sets",
+        "Covers valid, invalid, and edge case inputs",
+        "Uses descriptive test names with parameters"
       ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
-      "id": "fix-failing-test",
-      "query": "fix the failing test in user.test.ts",
+      "id": "unit-fixture-scoping",
+      "query": "Set up pytest fixtures for database tests",
       "expected_behavior": [
-        "Read the failing test",
-        "Read the implementation being tested",
-        "Identify the discrepancy",
-        "Fix test or implementation as appropriate"
+        "Uses function scope for mutable state",
+        "Uses session scope for expensive setup like DB engine",
+        "Includes teardown cleanup via yield in the fixture to release resources after tests"
       ],
-      "tags": ["edge-case"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
-      "id": "increase-coverage",
-      "query": "increase test coverage for the auth module",
+      "id": "integration-api",
+      "query": "Write integration tests for a REST API endpoint",
       "expected_behavior": [
-        "Analyze current coverage",
-        "Identify uncovered code paths",
-        "Write tests for missing coverage",
-        "Verify coverage improvement"
+        "Uses supertest or httpx AsyncClient to send HTTP requests against the test server",
+        "Tests both success and error responses",
+        "Validates both the HTTP response status code and body content against expected values"
       ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "integration-database",
+      "query": "Test database operations with transaction rollback",
+      "expected_behavior": [
+        "Creates fresh database state per test",
+        "Uses in-memory SQLite or test container",
+        "Rolls back database transactions after each test to ensure clean state isolation"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "integration-component",
+      "query": "Test a React form component with API interaction",
+      "expected_behavior": [
+        "Wraps the component in QueryClientProvider to provide the required React Query context",
+        "Uses userEvent for simulating realistic user interactions like typing and clicking",
+        "Asserts on user-visible outcomes such as rendered text and DOM element presence"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "e2e-playwright",
+      "query": "Write Playwright tests for a checkout flow",
+      "expected_behavior": [
+        "Uses getByRole semantic locators that match how assistive technology identifies elements",
+        "Avoids hardcoded wait timeouts in favor of Playwright built-in auto-waiting mechanisms",
+        "Uses Playwright auto-wait with expect assertions to handle dynamic content reliably"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "e2e-ai-agents",
+      "query": "Set up Playwright AI agents for test generation",
+      "expected_behavior": [
+        "Runs npx playwright init-agents --loop=claude to initialize the AI agent test framework",
+        "Creates the specs/ directory and seed.spec.ts file as the starting test template",
+        "Describes the Planner/Generator/Healer workflow for automated AI-driven test maintenance"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "e2e-page-objects",
+      "query": "Create page objects for a multi-page test",
+      "expected_behavior": [
+        "Extracts page interactions into reusable classes",
+        "Uses semantic locators within page objects",
+        "Keeps tests readable and maintainable by abstracting page interactions into reusable methods"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "pytest-markers",
+      "query": "Categorize tests with custom pytest markers",
+      "expected_behavior": [
+        "Defines custom pytest markers in pyproject.toml to categorize tests by type or scope",
+        "Uses markers like @pytest.mark.slow and @pytest.mark.smoke for selective test execution",
+        "Shows pytest marker selection for running smoke or slow tests selectively"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "pytest-xdist",
+      "query": "Run tests in parallel with pytest-xdist",
+      "expected_behavior": [
+        "Configures pytest-xdist with -n auto --dist loadscope for scope-based parallel distribution",
+        "Isolates database connections per worker_id to prevent cross-worker data conflicts",
+        "Handles shared resources safely using locks or worker-scoped fixtures to prevent races"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "pytest-plugins",
+      "query": "Create reusable pytest plugins and hooks",
+      "expected_behavior": [
+        "Implements reusable factory fixtures in conftest.py for consistent test data creation",
+        "Uses pytest hooks for customizing test collection, reporting, and execution behavior",
+        "Configures pytest-asyncio in auto mode to automatically detect and run async test functions"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "mocking-msw",
+      "query": "Mock API responses with MSW in Vitest tests",
+      "expected_behavior": [
+        "Uses MSW http.get/post handlers to intercept and mock outgoing API requests",
+        "Sets up server.listen/resetHandlers/close lifecycle hooks in beforeAll/afterEach/afterAll blocks",
+        "Uses server.use() for per-test handler overrides to simulate specific API scenarios"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "mocking-vcr",
+      "query": "Record HTTP interactions with VCR.py",
+      "expected_behavior": [
+        "Configures cassette_library_dir and record_mode to control HTTP recording and playback behavior",
+        "Filters sensitive headers and body data",
+        "Uses 'none' record mode in CI to ensure tests only replay pre-recorded cassettes"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "mocking-llm-apis",
+      "query": "Mock LLM API responses for testing",
+      "expected_behavior": [
+        "Uses custom matchers ignoring dynamic fields",
+        "Filters sensitive API keys from recorded cassettes to prevent credential leakage in VCS",
+        "Supports async VCR recording for httpx-based clients using the aiohttp cassette adapter"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "data-factories",
+      "query": "Create test data factories for user and analysis models",
+      "expected_behavior": [
+        "Uses FactoryBoy with Faker for Python",
+        "Uses faker with spread overrides for TypeScript",
+        "Supports SubFactory for generating related model instances with proper foreign key relationships"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "data-fixtures",
+      "query": "Load JSON fixtures in pytest tests",
+      "expected_behavior": [
+        "Loads test fixtures from JSON files to provide consistent and reproducible test data",
+        "Composes multiple fixtures together for complex test scenarios requiring related data sets",
+        "Uses conftest.py for shared fixtures that are available across multiple test modules"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "data-seeding-cleanup",
+      "query": "Seed test database and clean up between tests",
+      "expected_behavior": [
+        "Seeds the database with factory-generated data to establish known baseline state for tests",
+        "Uses autouse fixture for automatic cleanup",
+        "Truncates tables with CASCADE to remove all test data including dependent foreign key rows"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "verification-property",
+      "query": "Write property-based tests with Hypothesis",
+      "expected_behavior": [
+        "Uses @given with appropriate Hypothesis strategies to generate diverse randomized test inputs",
+        "Tests roundtrip serialization and idempotence properties to verify mathematical correctness invariants",
+        "Bounds inputs to avoid slow generation"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "verification-stateful",
+      "query": "Test a stateful API with Hypothesis state machines",
+      "expected_behavior": [
+        "Uses Hypothesis RuleBasedStateMachine to model and test complex stateful system interactions",
+        "Models valid state transitions as rules that Hypothesis explores in randomized sequences",
+        "Verifies system invariants after each step to catch state corruption or illegal transitions"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "verification-contract",
+      "query": "Set up Pact contract tests between services",
+      "expected_behavior": [
+        "Writes consumer-side contract test with expected request and response interaction expectations",
+        "Uses Pact Like/EachLike matchers for flexible type-based response structure matching",
+        "Configures provider-side verification with provider states for realistic test scenario setup"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "perf-k6",
+      "query": "Write a k6 load test with thresholds",
+      "expected_behavior": [
+        "Defines load test stages for ramp-up, steady state, and ramp-down traffic patterns",
+        "Sets p95 and error rate thresholds",
+        "Uses the k6 check() function for validating response status and body during load tests"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "perf-locust",
+      "query": "Create a Locust load test for an API",
+      "expected_behavior": [
+        "Defines a Locust HttpUser class with @task decorators to specify weighted user behaviors",
+        "Implements the on_start method for authentication and session setup before load generation",
+        "Uses wait_time between requests to simulate realistic user think time intervals"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "perf-types",
+      "query": "What type of performance test should I run?",
+      "expected_behavior": [
+        "Distinguishes between load, stress, spike, and soak tests based on traffic profile goals",
+        "Recommends appropriate traffic profiles for each performance test type and use case",
+        "Includes CI integration patterns for running performance tests in automated pipelines"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "llm-mocking",
+      "query": "Mock LLM responses in unit tests",
+      "expected_behavior": [
+        "Uses AsyncMock with return_value to stub async LLM calls without live API access",
+        "Patches model_factory.get_model to inject mock LLM instances during unit test execution",
+        "Avoids live API calls in CI"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "llm-deepeval",
+      "query": "Evaluate LLM output quality with DeepEval",
+      "expected_behavior": [
+        "Creates LLMTestCase with input, actual_output, and retrieval_context for evaluation scoring",
+        "Uses AnswerRelevancy and Faithfulness metrics to score LLM output quality against context",
+        "Sets appropriate score thresholds to gate LLM output quality in automated evaluation"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "llm-structured",
+      "query": "Test structured LLM output and timeouts",
+      "expected_behavior": [
+        "Validates JSON schema compliance to ensure structured LLM output matches the expected format",
+        "Tests timeout handling with asyncio.timeout to verify graceful degradation under latency",
+        "Covers null, empty, and missing field edge cases in LLM structured output validation"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "a11y-jest-axe",
+      "query": "Add accessibility tests to React components",
+      "expected_behavior": [
+        "Uses jest-axe toHaveNoViolations matcher to assert zero accessibility violations per component",
+        "Tests all component states including loading, error, disabled, and interactive variants",
+        "Renders components with testing-library to evaluate the accessibility of the final DOM output"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "a11y-playwright",
+      "query": "Run page-level accessibility audits with Playwright",
+      "expected_behavior": [
+        "Uses @axe-core/playwright AxeBuilder to run automated accessibility audits on rendered pages",
+        "Configures wcag2a/wcag2aa/wcag22aa tags to target specific WCAG compliance levels in audits",
+        "Tests interactive states like modals, dropdowns, and expanded panels for accessibility compliance"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "a11y-ci-gates",
+      "query": "Set up CI gates for accessibility",
+      "expected_behavior": [
+        "Blocks pull requests that introduce accessibility violations from merging to the main branch",
+        "Runs both unit and E2E a11y tests",
+        "Includes a GitHub Actions workflow definition for running accessibility tests in CI pipelines"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "execution",
+      "query": "Our CI pipeline takes 25 minutes to run all tests. How can I speed it up and track coverage?",
+      "expected_behavior": [
+        "Uses --cov-report=term-missing to identify exactly which lines are uncovered",
+        "Recommends --maxfail=3 in CI for fast feedback without overwhelming output",
+        "Sets minimum coverage thresholds with 90% for business logic and 100% for critical paths",
+        "Uses --lf (last-failed) during development for rapid iteration on broken tests"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "validation-end-to-end",
+      "query": "How do I ensure type safety across my API from client to database with no gaps?",
+      "expected_behavior": [
+        "Recommends tRPC for end-to-end TypeScript type inference without code generation",
+        "Uses Zod schemas for runtime validation at API boundaries with compile-time inference",
+        "Uses Pydantic with NewType for branded IDs to prevent ID type confusion in Python",
+        "Tests that validation schemas reject invalid data to confirm boundary protection"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "validation-zod-schema",
+      "query": "Set up Zod validation for our API endpoints with branded types to prevent ID mix-ups",
+      "expected_behavior": [
+        "Uses safeParse for graceful error handling instead of throwing parse exceptions",
+        "Implements branded types with z.string().uuid().brand() to prevent ID type confusion",
+        "Validates at ALL boundaries including API inputs, form submissions, and external data",
+        "Uses assertNever in switch default for compile-time exhaustive union type checking"
+      ],
+      "tags": [
+        "happy-path"
+      ]
     }
   ]
 }

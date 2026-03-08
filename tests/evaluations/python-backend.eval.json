@@ -4,44 +4,148 @@
   "version": "1.0.0",
   "evaluations": [
     {
-      "id": "async-taskgroup",
+      "id": "asyncio-taskgroup",
       "query": "Run multiple HTTP requests concurrently with error handling",
       "expected_behavior": [
-        "Uses asyncio.TaskGroup for structured concurrency",
-        "Wraps in asyncio.timeout for deadline",
-        "Handles ExceptionGroup with except*"
+        "Uses asyncio.TaskGroup for structured concurrency with automatic child task cleanup",
+        "Wraps the task group in asyncio.timeout for enforcing a deadline",
+        "Handles ExceptionGroup with except* syntax for granular per-exception error recovery"
       ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "asyncio-structured",
+      "query": "Implement a rate-limited async HTTP client",
+      "expected_behavior": [
+        "Uses asyncio.Semaphore for concurrency limiting to cap simultaneous active requests",
+        "Combines with TaskGroup for batch processing",
+        "Uses asyncio.to_thread for bridging synchronous blocking calls into async code"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "asyncio-cancellation",
+      "query": "Handle task cancellation with proper cleanup",
+      "expected_behavior": [
+        "Re-raises CancelledError after performing cleanup to propagate cancellation correctly",
+        "Uses try/finally blocks for guaranteed resource release during task cancellation",
+        "Never swallows CancelledError so that the event loop can propagate cancellation properly"
+      ],
+      "tags": [
+        "happy-path"
+      ]
     },
     {
       "id": "fastapi-dependencies",
       "query": "Create FastAPI dependency injection for services",
       "expected_behavior": [
-        "Uses Depends() for database sessions",
-        "Creates class-based service dependencies",
-        "Implements authentication dependency chain"
+        "Uses Depends() for injecting database sessions into route handler functions",
+        "Creates class-based service dependencies with configurable initialization parameters",
+        "Implements an authentication dependency chain that validates tokens before injecting the user"
       ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "fastapi-middleware",
+      "query": "Add request ID and timing middleware to FastAPI",
+      "expected_behavior": [
+        "Creates RequestIDMiddleware with header propagation for end-to-end request tracing",
+        "Adds TimingMiddleware that sets the X-Response-Time header on every response",
+        "Orders middleware correctly: CORS -> RequestID -> Timing -> Logging"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "fastapi-background",
+      "query": "Configure FastAPI lifespan with health checks",
+      "expected_behavior": [
+        "Uses asynccontextmanager for lifespan management of startup and shutdown resources",
+        "Initializes DB engine and Redis in startup",
+        "Implements health check endpoint verifying all dependencies"
+      ],
+      "tags": [
+        "happy-path"
+      ]
     },
     {
       "id": "sqlalchemy-sessions",
       "query": "Set up async SQLAlchemy sessions with FastAPI",
       "expected_behavior": [
-        "Creates engine with pool_pre_ping=True",
-        "Uses async_sessionmaker with expire_on_commit=False",
-        "Implements get_db dependency with commit/rollback"
+        "Creates the SQLAlchemy engine with pool_pre_ping=True for stale connection detection",
+        "Uses async_sessionmaker with expire_on_commit=False to access attributes after commit",
+        "Implements a get_db dependency that handles commit on success and rollback on failure"
       ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
-      "id": "connection-pooling",
+      "id": "sqlalchemy-relationships",
+      "query": "Define SQLAlchemy models with eager loading",
+      "expected_behavior": [
+        "Uses Mapped type annotations for explicit column and relationship type declarations",
+        "Sets lazy='raise' on relationships to prevent accidental implicit lazy loading queries",
+        "Uses selectinload for eager loading to fetch related objects in a single query"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "sqlalchemy-migrations",
+      "query": "Implement bulk operations and repository pattern",
+      "expected_behavior": [
+        "Creates a generic AsyncRepository base class with reusable CRUD operations",
+        "Chunks bulk inserts for memory management",
+        "Uses flush() for ID generation without commit"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "pooling-database",
       "query": "Configure database connection pooling for production",
       "expected_behavior": [
-        "Sets pool_size, max_overflow, pool_pre_ping",
-        "Configures pool_recycle and pool_timeout",
-        "Uses pool sizing formula"
+        "Sets pool_size, max_overflow, and pool_pre_ping for reliable connection pool configuration",
+        "Configures pool_recycle and pool_timeout to handle stale connections and limit wait times",
+        "Uses a pool sizing formula based on expected concurrent requests and query duration"
       ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "pooling-http",
+      "query": "Set up aiohttp session with connection limits",
+      "expected_behavior": [
+        "Configures TCPConnector with limit and limit_per_host",
+        "Sets proper timeouts (total, connect, sock_read)",
+        "Creates session at startup, closes at shutdown"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "pooling-tuning",
+      "query": "Diagnose and fix connection pool exhaustion",
+      "expected_behavior": [
+        "Adds connection checkout and checkin event listeners for pool utilization monitoring",
+        "Implements retry logic for stale connections",
+        "Uses Prometheus metrics for pool monitoring"
+      ],
+      "tags": [
+        "happy-path"
+      ]
     }
   ]
 }

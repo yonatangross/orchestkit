@@ -4,47 +4,216 @@
   "version": "1.0.0",
   "evaluations": [
     {
-      "id": "redis-distributed-lock",
+      "id": "locks-redis-redlock",
       "query": "Implement a distributed lock using Redis for payment processing",
       "expected_behavior": [
         "Uses Lua scripts for atomic acquire/release",
-        "Includes SET NX with PX expiry",
-        "Validates owner ID before release",
-        "Describes Redlock quorum for HA"
+        "Uses atomic acquire via Lua script with owner and ttl_ms parameters",
+        "Validates owner ID before release to prevent accidental lock theft",
+        "Describes Redlock quorum for HA across multiple independent Redis instances"
       ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
-      "id": "circuit-breaker",
+      "id": "locks-postgres-advisory",
+      "query": "Use PostgreSQL advisory locks for a singleton cron job",
+      "expected_behavior": [
+        "Uses pg_try_advisory_lock for non-blocking acquire to avoid blocking callers",
+        "Distinguishes session-level vs transaction-level locks for appropriate scope selection",
+        "Converts string names to bigint lock IDs via hash",
+        "Shows monitoring query with pg_locks for active lock visibility and debugging"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "locks-fencing-tokens",
+      "query": "Add heartbeat extension and fencing to a distributed lock",
+      "expected_behavior": [
+        "Sets TTL on lock to prevent deadlocks",
+        "Includes background heartbeat/extend task to keep long-running locks alive automatically",
+        "Validates owner ID on all operations",
+        "Uses retry with exponential backoff on acquire"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "resilience-circuit-breaker",
       "query": "Add a circuit breaker to an external API integration",
       "expected_behavior": [
-        "Implements CLOSED/OPEN/HALF_OPEN state machine",
+        "Implements CLOSED/OPEN/HALF_OPEN state machine for progressive failure recovery",
         "Uses sliding window for failure tracking",
         "Provides fallback response when circuit is open",
-        "Includes state change observability callbacks"
+        "Includes state change observability callbacks for monitoring circuit breaker transitions"
       ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "resilience-retry-backoff",
+      "query": "Implement retry with exponential backoff for an HTTP client",
+      "expected_behavior": [
+        "Uses exponential backoff with full jitter",
+        "Classifies errors as retryable vs non-retryable",
+        "Sets max attempts and max delay cap",
+        "Places retry inside circuit breaker, not outside"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "resilience-bulkhead",
+      "query": "Isolate critical and optional operations with bulkheads",
+      "expected_behavior": [
+        "Uses semaphore-based concurrency control to limit parallel resource consumption per tier",
+        "Defines tiers: Critical, Standard, Optional with isolated resource allocation boundaries",
+        "Configures queue size and timeout per tier",
+        "Includes rejection policy handling for graceful degradation when capacity is exceeded"
+      ],
+      "tags": [
+        "happy-path"
+      ]
     },
     {
       "id": "idempotency-keys",
       "query": "Make a POST payment endpoint idempotent",
       "expected_behavior": [
-        "Accepts Idempotency-Key header from client",
+        "Accepts Idempotency-Key header from client to enable safe request retry behavior",
         "Generates deterministic keys via SHA-256 hash",
-        "Caches successful responses",
-        "Returns cached response with replay header"
+        "Caches successful responses in Redis for fast idempotent replay on retries",
+        "Returns cached response with X-Idempotent-Replayed header"
       ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
-      "id": "rate-limiting",
+      "id": "idempotency-dedup",
+      "query": "Deduplicate event processing in a Kafka consumer",
+      "expected_behavior": [
+        "Checks Redis cache for fast dedup",
+        "Falls back to database for durability",
+        "Uses database unique constraint to prevent races",
+        "Tracks processed events with idempotency keys"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "idempotency-database",
+      "query": "Implement database-backed idempotency with TTL cleanup",
+      "expected_behavior": [
+        "Creates idempotency_records table with unique key",
+        "Uses ON CONFLICT DO NOTHING for upsert",
+        "Sets expires_at for TTL-based cleanup to prevent unbounded idempotency record growth",
+        "Validates request body hash to detect misuse"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "ratelimit-token-bucket",
       "query": "Implement token bucket rate limiting with Redis",
       "expected_behavior": [
         "Uses atomic Lua script for check-and-consume",
         "Calculates token refill based on elapsed time",
-        "Returns allowed status and retry_after seconds"
+        "Returns allowed status and retry_after seconds",
+        "Sets appropriate EXPIRE on bucket key"
       ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "ratelimit-sliding-window",
+      "query": "Implement precise sliding window rate limiting",
+      "expected_behavior": [
+        "Uses Redis sorted sets with timestamps as scores",
+        "Removes expired entries with ZREMRANGEBYSCORE to maintain sliding window accuracy",
+        "Counts current window with ZCARD to determine remaining request allowance",
+        "Avoids fixed window boundary spike issues"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "ratelimit-distributed",
+      "query": "Add tiered rate limiting to a FastAPI application",
+      "expected_behavior": [
+        "Configures SlowAPI with Redis backend for distributed rate limit state sharing",
+        "Defines per-tier limits (free/pro/enterprise) with distinct rate allowances per plan",
+        "Returns standard rate limit headers (X-RateLimit-*)",
+        "Returns 429 with Retry-After header when exceeded"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "edge-caching",
+      "query": "Implement edge caching with Cloudflare Workers KV and proper cache invalidation for our API responses.",
+      "expected_behavior": [
+        "Sets Cache-Control headers with max-age and stale-while-revalidate for API responses",
+        "Uses CDN-Cache-Control to set different TTLs for CDN versus browser caching",
+        "Stores responses in Cloudflare KV with expirationTtl for TTL-based cache expiry",
+        "Adds Vary header for content that changes by user authentication or locale",
+        "Never caches authenticated or personalized responses without private directive or Vary header"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "edge-workers",
+      "query": "Deploy a Cloudflare Worker that handles geo-based routing and authentication using Web Crypto API.",
+      "expected_behavior": [
+        "Uses Web APIs like fetch, Request, Response, and crypto.subtle instead of Node.js modules",
+        "Avoids Node.js APIs like fs, path, and child_process which are unavailable in V8 isolates",
+        "Implements token verification using crypto.subtle.importKey with HMAC SHA-256 algorithm",
+        "Keeps bundle size under 1MB compressed for fast cold starts under 1 millisecond",
+        "Uses geo-based routing with request.cf.country for region-specific redirects"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "event-messaging",
+      "query": "Implement a transactional outbox pattern for reliable event publishing in our order service.",
+      "expected_behavior": [
+        "Writes business data and outbox event in the same database transaction for atomicity",
+        "Implements a separate outbox publisher process that polls for unsent events",
+        "Uses SKIP LOCKED for safe concurrent outbox worker processing without blocking",
+        "Requires all message consumers to be idempotent using event ID deduplication",
+        "Includes saga orchestration with compensating actions for multi-step workflows"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "event-sourcing",
+      "query": "Implement event sourcing with CQRS for our financial transaction system with full audit trail.",
+      "expected_behavior": [
+        "Stores state changes as immutable domain events named in past tense like MoneyDeposited",
+        "Uses optimistic concurrency with version checks to prevent conflicting event writes",
+        "Implements separate CQRS read model projections for query-optimized data access",
+        "Recommends snapshotting every N events to avoid replaying long event streams on load",
+        "Uses compensating events instead of deleting events to maintain immutable event history"
+      ],
+      "tags": [
+        "happy-path"
+      ]
     }
   ]
 }

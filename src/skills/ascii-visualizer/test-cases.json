@@ -45,7 +45,7 @@
         "Uses structured layered diagram with clear separation between infrastructure tiers",
         "Labels each component box with both the component name and its technology stack",
         "Shows directional arrows indicating data flow and communication patterns between layers",
-        "Uses consistent box-drawing characters and alignment for professional terminal rendering"
+        "Uses layered architecture diagram with box-drawing characters for structured component visualization"
       ]
     },
     {

@@ -42,6 +42,45 @@
       "tags": [
         "negative"
       ]
+    },
+    {
+      "id": "i18n-formatting-antipatterns",
+      "query": "Our app displays prices with hardcoded dollar signs and concatenated greeting strings. How do I fix this for i18n?",
+      "expected_behavior": [
+        "Replaces hardcoded currency symbols with locale-aware formatting functions like formatILS",
+        "Eliminates string concatenation and template literals in favor of translation keys with interpolation",
+        "Uses useTranslation hook for all user-facing strings with namespaced translation keys",
+        "Warns that concatenation breaks word order in RTL locales like Hebrew and Arabic"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "i18n-icu-plurals",
+      "query": "How do I handle pluralization correctly for Hebrew and Arabic which have more plural forms than English?",
+      "expected_behavior": [
+        "Uses ICU MessageFormat plural syntax with variable, plural, and category branches",
+        "Covers all locale-specific plural categories including zero, one, two, few, many, and other",
+        "Never uses ternary operators or conditional logic in code for plural form selection",
+        "Explains that Hebrew has dual form and Arabic has six plural categories beyond English"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "i18n-trans-component",
+      "query": "I need to embed a clickable link inside a translated sentence. How do I do this without dangerouslySetInnerHTML?",
+      "expected_behavior": [
+        "Uses the Trans component from react-i18next to embed React elements inside translated strings",
+        "Preserves locale-specific word order by keeping the entire sentence in one translation key",
+        "Never splits translations around JSX elements which breaks word order in other locales",
+        "Never uses dangerouslySetInnerHTML which introduces XSS vulnerabilities in translated content"
+      ],
+      "tags": [
+        "happy-path"
+      ]
     }
   ]
 }

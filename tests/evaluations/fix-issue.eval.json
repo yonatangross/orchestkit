@@ -4,54 +4,69 @@
   "version": "1.0.0",
   "evaluations": [
     {
-      "id": "fix-github-issue",
-      "query": "fix issue #42",
+      "id": "bug-fix-rca",
+      "query": "Fix issue #123 where users get a 500 error on login",
       "expected_behavior": [
-        "Fetch issue details from GitHub",
-        "Understand the problem description",
-        "Create feature branch for the fix",
-        "Implement the fix",
-        "Write or update tests",
-        "Commit with issue reference"
+        "Uses 5 Whys iterative causal analysis",
+        "Forms hypotheses with confidence scores (0-100%)",
+        "Launches 5 parallel RCA agents to investigate different failure hypotheses",
+        "Creates regression test BEFORE implementing fix",
+        "Creates feature branch, never commits to main/dev"
       ],
-      "should_not": [
-        "Close issue without fixing",
-        "Fix on main branch directly"
-      ],
-      "success_criteria": [
-        "Issue is addressed",
-        "Tests pass",
-        "Commit references issue number"
-      ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
-      "id": "fix-with-description",
-      "query": "fix the bug where users can't login with email containing plus sign",
+      "id": "regression-detection",
+      "query": "Fix issue #456 that was already fixed in #101 but came back",
       "expected_behavior": [
-        "Understand the bug description",
-        "Search for relevant code",
-        "Identify root cause",
-        "Implement fix",
-        "Add regression test"
+        "Brainstorms potential causes per category before prioritizing root causes",
+        "Identifies this as a regression from a previously closed issue",
+        "Uses multi-factor Ishikawa analysis for root cause",
+        "Includes cross-category actions to verify and fix confirmed root causes"
       ],
-      "success_criteria": [
-        "Bug is fixed",
-        "Regression test added"
-      ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
-      "id": "fix-with-investigation",
-      "query": "fix the performance issue in the dashboard",
+      "id": "multi-file-fix",
+      "query": "Fix issue #789 that affects both the API endpoint and the React component",
       "expected_behavior": [
-        "Investigate performance bottlenecks",
-        "Profile if necessary",
-        "Identify specific issues",
-        "Implement optimizations",
-        "Verify improvement"
+        "Uses fault tree analysis with AND/OR gates",
+        "Launches both backend-system-architect and frontend-ui-developer agents",
+        "Designs fix across multiple files with rollback plan",
+        "Decomposes failure into basic events and identifies minimal cut sets for the fix"
       ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "should-not-trigger-feature",
+      "query": "Add a new dashboard widget for analytics",
+      "expected_behavior": [
+        "Does NOT trigger fix-issue workflow since this is a feature request",
+        "Recognizes this is a feature request, not a bug",
+        "Suggests using the implement skill instead"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "evidence-gathering",
+      "query": "Before diving into fixing issue #500, what evidence should I gather and what approach options exist?",
+      "expected_behavior": [
+        "Uses AskUserQuestion to clarify fix approach: proper fix, quick fix, investigate, hotfix, or plan mode",
+        "Gathers evidence from issue description, git history, and code before forming fix hypotheses",
+        "Warns that fixing without evidence leads to wrong root cause, wasted effort, and regressions",
+        "Offers investigate-first option that produces root cause analysis without making code changes"
+      ],
+      "tags": [
+        "happy-path"
+      ]
     }
   ]
 }

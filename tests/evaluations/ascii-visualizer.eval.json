@@ -19,7 +19,7 @@
     },
     {
       "id": "edge-show-the-blast-radius",
-      "query": "Show the blast radius of changing src/api/auth.ts — which files are directly affected, transitively affected, and which tests need updating?",
+      "query": "Show the blast radius of changing src/api/auth.ts \u2014 which files are directly affected, transitively affected, and which tests need updating?",
       "expected_behavior": [
         "Uses concentric rings blast radius pattern",
         "Shows CHANGED FILE in center ring",
@@ -42,6 +42,32 @@
       ],
       "tags": [
         "negative"
+      ]
+    },
+    {
+      "id": "ascii-architecture",
+      "query": "Draw a layered system architecture showing load balancer, API gateways, services, and databases",
+      "expected_behavior": [
+        "Uses structured layered diagram with clear separation between infrastructure tiers",
+        "Labels each component box with both the component name and its technology stack",
+        "Shows directional arrows indicating data flow and communication patterns between layers",
+        "Uses layered architecture diagram with box-drawing characters for structured component visualization"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "ascii-diagrams",
+      "query": "What box-drawing characters should I use for ASCII diagrams to ensure they render correctly?",
+      "expected_behavior": [
+        "Uses standard weight box-drawing characters for regular boxes and heavy weight for emphasis",
+        "Keeps diagrams under 80 characters wide for terminal compatibility across environments",
+        "Uses consistent alignment and spacing to ensure monospace rendering looks correct",
+        "Applies directional arrow characters to show data flow and dependency relationships"
+      ],
+      "tags": [
+        "happy-path"
       ]
     }
   ]

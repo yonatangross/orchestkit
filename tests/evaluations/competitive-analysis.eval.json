@@ -1,0 +1,20 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "competitive-analysis",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "market-competitive",
+      "query": "Analyze the competitive landscape for our new cloud infrastructure monitoring product",
+      "expected_behavior": [
+        "Applies Porter's Five Forces framework to assess overall industry competitive dynamics",
+        "Creates SWOT analysis with strengths, weaknesses, opportunities, and threats identified",
+        "Builds a competitive positioning map plotting rivals on key differentiating dimensions",
+        "Includes structured competitor profile template with market share and key differentiators"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    }
+  ]
+}

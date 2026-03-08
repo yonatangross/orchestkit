@@ -1,0 +1,77 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "documentation-patterns",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "docs-adr-template",
+      "query": "We just decided to switch from REST to GraphQL for our internal APIs. Help me create an Architecture Decision Record documenting this choice.",
+      "expected_behavior": [
+        "Creates ADR file with sequential numbering in docs/adr/ directory",
+        "Includes Status, Context, Decision, and Consequences sections in the ADR",
+        "Documents both what was chosen and what was rejected with reasons",
+        "Lists both positive and negative consequences of the decision",
+        "Uses the status lifecycle format: Proposed, Accepted, Deprecated, or Superseded"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "docs-api-openapi",
+      "query": "Document our user management REST API endpoints using OpenAPI 3.1 with proper error responses and schemas.",
+      "expected_behavior": [
+        "Generates OpenAPI 3.1 spec with operationId, summary, and description per endpoint",
+        "Defines reusable schemas in components/schemas instead of inlining complex objects",
+        "Documents all error responses using RFC 9457 Problem Details format",
+        "Includes example values for request bodies and response payloads",
+        "Adds authentication info and rate limit documentation in the spec"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "docs-changelog-format",
+      "query": "We need to set up a proper CHANGELOG.md for our project. Show me the correct format with categories and version links.",
+      "expected_behavior": [
+        "Uses Keep a Changelog format with the six section headings: Added, Changed, Deprecated, Removed, Fixed, Security",
+        "Prefixes breaking changes with BREAKING in the entry text",
+        "Links each version header to a diff URL comparing tags",
+        "Includes an Unreleased section at the top for upcoming changes",
+        "Writes entries from the user perspective with issue or PR numbers for traceability"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "docs-readme-structure",
+      "query": "Create a proper README for our open source CLI tool with installation, usage examples, and contribution guidelines.",
+      "expected_behavior": [
+        "Leads with a concise one-line project description for quick evaluation",
+        "Includes a Quick Start section with copy-paste ready commands",
+        "Provides a configuration table listing all environment variables with defaults",
+        "Follows correct section order: Name, Description, Quick Start, Install, Usage, API, Config, Contributing, License",
+        "Includes runnable code examples that work without modification except for secrets"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "docs-writing-style",
+      "query": "Rewrite our authentication documentation to use active voice and be more scannable for developers.",
+      "expected_behavior": [
+        "Uses active voice and present tense throughout the documentation",
+        "Limits sentences to 25 words for instructional content clarity",
+        "Structures content with headings every 3-5 paragraphs and uses numbered lists for steps",
+        "Cuts filler words and leads with actions or outcomes instead of conditions",
+        "Prefers code examples over prose explanations for technical concepts"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    }
+  ]
+}

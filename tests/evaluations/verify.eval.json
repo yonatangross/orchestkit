@@ -7,12 +7,14 @@
       "id": "full-verification",
       "query": "Verify the authentication flow implementation",
       "expected_behavior": [
-        "Dispatches parallel verification agents",
+        "Dispatches 5 parallel verification agents covering distinct quality dimensions",
         "Produces 0-10 scores across code quality, security, coverage, API, and UI",
-        "Calculates weighted composite score and letter grade",
+        "Calculates weighted composite score and letter grade (A-F)",
         "Generates improvement suggestions with effort/impact prioritization"
       ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
       "id": "tests-only",
@@ -20,34 +22,64 @@
       "expected_behavior": [
         "Runs backend and frontend test suites in parallel",
         "Reports coverage data and pass/fail counts",
-        "Skips security audit and UI analysis phases",
-        "Focuses on test-generator agent only"
+        "Skips security audit and UI/UX analysis phases",
+        "Focuses on test-generator agent only for targeted test execution"
       ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
       "id": "security-audit",
       "query": "Run a security audit on the payment module",
       "expected_behavior": [
-        "Focuses on security-auditor agent",
-        "Checks OWASP Top 10 vulnerabilities",
-        "Validates secrets and credential handling"
+        "Focuses on security-auditor agent for dedicated vulnerability scanning",
+        "Checks OWASP Top 10 vulnerabilities against the codebase patterns",
+        "Validates secrets and credential handling follows secure storage practices",
+        "Applies blocking rules from policy-as-code if configured"
       ],
-      "tags": ["security"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
       "id": "quick-check",
       "query": "Quick check if my changes are ready to merge",
       "expected_behavior": [
         "Runs tests only without detailed analysis",
-        "Provides simple pass/fail verdict",
+        "Skips nuanced grading and improvement suggestions",
+        "Provides simple pass/fail verdict without detailed scoring breakdown",
         "Completes quickly compared to full verification"
       ],
-      "should_not": [
-        "Run full verification for a quick check",
-        "Take as long as full verification"
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "evidence-collection",
+      "query": "How does the verify skill collect evidence for scoring code quality?",
+      "expected_behavior": [
+        "Runs git diff and git log commands in parallel in one message for context gathering",
+        "Executes backend and frontend test suites in parallel with coverage reporting enabled",
+        "Uses --cov=app and --cov-report=json for machine-readable coverage data collection",
+        "Gathers evidence from multiple sources before producing any quality scores or grades"
       ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "scoring-rubric",
+      "query": "What scoring scale does the verify skill use and what grades mean merge-ready?",
+      "expected_behavior": [
+        "Uses 0 to 10 scale with decimals for nuanced scoring rather than binary pass or fail",
+        "Grades A (9-10) and B (7-8.9) are READY FOR MERGE while D and F are BLOCKED",
+        "Calculates composite score as weighted sum across multiple quality dimensions",
+        "Prioritizes improvements by impact divided by effort ratio to focus on high-value fixes"
+      ],
+      "tags": [
+        "happy-path"
+      ]
     }
   ]
 }

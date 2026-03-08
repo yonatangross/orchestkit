@@ -4,48 +4,160 @@
   "version": "1.0.0",
   "evaluations": [
     {
-      "id": "prometheus-metrics",
+      "id": "monitoring-prometheus",
       "query": "Add Prometheus metrics to my FastAPI application",
       "expected_behavior": [
         "Uses RED method (Rate, Errors, Duration)",
         "Defines Counter for requests and Histogram for latency",
-        "Configures appropriate histogram buckets",
+        "Configures appropriate histogram buckets tailored to service latency patterns",
         "Manages label cardinality to avoid explosions"
       ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
-      "id": "grafana-dashboard",
+      "id": "monitoring-grafana",
       "query": "Create a Grafana dashboard for my service",
       "expected_behavior": [
-        "Includes Golden Signals panels",
+        "Includes Golden Signals panels (latency, traffic, errors, saturation)",
         "Defines SLO/SLI targets with error budgets",
-        "Adds health check endpoints",
+        "Adds health check endpoints (liveness, readiness, startup)",
         "Shows RED method metrics in dashboard layout"
       ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
-      "id": "langfuse-tracing",
+      "id": "monitoring-alerting",
+      "query": "Set up alerting rules for production monitoring",
+      "expected_behavior": [
+        "Defines severity levels (Critical, High, Medium, Low)",
+        "Includes alert grouping and inhibition rules",
+        "Configures escalation policies with runbook links",
+        "Addresses alert fatigue prevention strategies with deduplication and silencing"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "llm-langfuse-traces",
       "query": "Set up Langfuse tracing for my LLM application",
       "expected_behavior": [
         "Uses @observe decorator with get_client() API",
         "Sets user_id and session_id via update_current_trace",
-        "Configures OpenTelemetry SpanProcessor",
+        "Configures OpenTelemetry SpanProcessor for distributed trace export",
         "Uses observation types for Agent Graph rendering"
       ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
-      "id": "drift-detection",
+      "id": "llm-cost-tracking",
+      "query": "Track LLM token usage and costs",
+      "expected_behavior": [
+        "Configures automatic token counting with Langfuse",
+        "Sets up spend alerts with threshold rules",
+        "Uses Metrics API for programmatic cost queries",
+        "Supports custom model pricing configuration for accurate cost tracking"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "llm-eval-scoring",
+      "query": "Evaluate and score LLM output quality with Langfuse",
+      "expected_behavior": [
+        "Creates custom scoring with numeric/categorical values",
+        "Configures evaluator execution tracing for scoring pipeline observability",
+        "Uses multi-judge evaluation with ensemble scoring",
+        "Filters traces by score thresholds to surface low-quality responses"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "drift-statistical",
       "query": "Detect distribution drift in LLM inputs",
       "expected_behavior": [
-        "Implements PSI calculation",
-        "Applies correct PSI thresholds",
+        "Implements PSI (Population Stability Index) calculation",
+        "Applies correct PSI thresholds (<0.1 no drift, 0.1-0.25 moderate, >=0.25 significant)",
         "Uses EWMA for dynamic threshold detection",
         "Compares PSI vs KS test for different sample sizes"
       ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "drift-quality",
+      "query": "Monitor LLM quality degradation over time",
+      "expected_behavior": [
+        "Compares current scores against rolling baseline window",
+        "Integrates Langfuse score trends for drift analysis",
+        "Uses canary prompts for behavioral regression testing",
+        "Tracks embedding drift with centroid monitoring"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "drift-alerting",
+      "query": "Set up drift detection alerts for my LLM system",
+      "expected_behavior": [
+        "Uses dynamic thresholds (95th percentile of historical PSI)",
+        "Correlates drift metrics with performance metrics before alerting",
+        "Avoids anti-patterns like static thresholds without context",
+        "Triggers evaluation only when drift AND quality drop confirmed"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "silent-alerting",
+      "query": "Our agents sometimes return wrong results without any errors. How do I detect these silent failures?",
+      "expected_behavior": [
+        "Implements statistical baseline anomaly detection using z-score or similar statistical methods",
+        "Detects failures that produce no errors but deliver incorrect or degraded results",
+        "Uses historical baselines to identify when output metrics deviate from normal distribution",
+        "Goes beyond exception-based alerting to catch silent degradation that error handlers miss"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "silent-degraded-quality",
+      "query": "How do I detect when my LLM agent starts producing gibberish or repetitive output that passes basic checks?",
+      "expected_behavior": [
+        "Uses heuristic pre-filters for cheap fast detection of obviously degraded output quality",
+        "Applies LLM-as-judge evaluation for nuanced quality scoring beyond simple length checks",
+        "Integrates with Langfuse observe decorator for quality check trace logging and monitoring",
+        "Catches outputs that pass basic emptiness checks but contain gibberish or repetitive content"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "silent-tool-skipping",
+      "query": "Our agent sometimes fabricates answers from training data instead of using the search tool. How do I catch this?",
+      "expected_behavior": [
+        "Validates tool usage against expected tool call patterns for each query type",
+        "Detects when agents skip expected tool calls and produce plausible but wrong results",
+        "Uses Langfuse trace analysis to compare actual tool invocations against expected patterns",
+        "Flags results produced without required tool calls as potentially fabricated from training data"
+      ],
+      "tags": [
+        "happy-path"
+      ]
     }
   ]
 }

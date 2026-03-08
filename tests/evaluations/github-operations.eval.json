@@ -42,6 +42,32 @@
       "tags": [
         "negative"
       ]
+    },
+    {
+      "id": "issue-branch-linking",
+      "query": "How do I link my branch and PR to the GitHub issue so it auto-closes on merge?",
+      "expected_behavior": [
+        "Uses branch naming convention: type/issue-number-description for automatic issue linking",
+        "Includes Closes #N or Fixes #N in the PR body to auto-close the issue on merge",
+        "References issue number in commit messages using the type(#N): description format",
+        "Establishes bidirectional traceability between issues, branches, commits, and pull requests"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "issue-tracking-automation",
+      "query": "How can I automate issue progress updates so stakeholders always see current status?",
+      "expected_behavior": [
+        "Uses commit detection hook to extract issue numbers and queue batch progress comments",
+        "Implements sub-task updater that checks off matching checklist items in the issue body",
+        "Posts consolidated session summary comments at session end with completed work details",
+        "Eliminates manual status updates by automating the commit to issue linking pipeline"
+      ],
+      "tags": [
+        "happy-path"
+      ]
     }
   ]
 }

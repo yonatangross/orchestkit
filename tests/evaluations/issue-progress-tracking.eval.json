@@ -42,6 +42,32 @@
       "tags": [
         "negative"
       ]
+    },
+    {
+      "id": "small-commits",
+      "query": "I've been working on issue #200 for hours without committing. How should I structure my commits?",
+      "expected_behavior": [
+        "Commits after each logical step rather than one giant commit at the end",
+        "References the issue number in every commit message using the feat(#200) prefix format",
+        "Creates separate commits for model changes, endpoint implementation, and test additions",
+        "Enables git bisect by ensuring each commit represents a single logical unit of work"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "start-work-ceremony",
+      "query": "I'm about to start working on issue #350. What steps should I take before writing any code?",
+      "expected_behavior": [
+        "Updates issue labels from status:todo to status:in-progress via gh issue edit command",
+        "Posts a starting comment on the issue via gh issue comment to signal team intent",
+        "Creates a feature branch named issue/350-description from the latest main branch",
+        "Never works directly on main or dev branch for issue-tracked development work"
+      ],
+      "tags": [
+        "happy-path"
+      ]
     }
   ]
 }

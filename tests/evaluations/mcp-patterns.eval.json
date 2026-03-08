@@ -44,6 +44,188 @@
       "tags": [
         "negative"
       ]
+    },
+    {
+      "id": "advanced-composition-pipeline-happy-path",
+      "query": "I need to chain three MCP tools in sequence: first search documents, then extract entities, then summarize findings. How do I compose them with proper error handling?",
+      "expected_behavior": [
+        "Claude implements a pipeline composition pattern with sequential tool calls",
+        "Claude adds error propagation so pipeline stops on first failure",
+        "Claude wraps each tool call in try/except to capture error context",
+        "Claude keeps composition depth shallow at three to four steps maximum"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "advanced-resources-caching-happy-path",
+      "query": "My MCP server fetches user profiles from the database on every request. How do I add resource caching with TTL and memory limits to avoid redundant calls?",
+      "expected_behavior": [
+        "Claude implements a resource manager with TTL-based cache expiration",
+        "Claude adds LRU eviction with max_cache_size and max_memory_bytes caps",
+        "Claude uses asyncio.Lock for thread-safe concurrent cache access",
+        "Claude integrates cleanup_expired into FastMCP lifespan for proper lifecycle management"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "apps-ui-sandbox-happy-path",
+      "query": "I want my MCP tool to return an interactive React dashboard that loads data from an external API. How do I set up the UI resource with proper sandboxing and CSP?",
+      "expected_behavior": [
+        "Claude uses registerAppTool and registerAppResource from ext-apps/server package",
+        "Claude declares CSP domains with connectDomains for external API access",
+        "Claude uses the ui:// URI scheme with text/html;profile=mcp-app mimeType",
+        "Claude links the tool to the UI via _meta.ui.resourceUri on the tool definition"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "client-patterns-session-happy-path",
+      "query": "I need to build a Python MCP client that connects to a remote server, discovers available tools, and handles reconnections gracefully. What's the proper setup?",
+      "expected_behavior": [
+        "Claude uses async context managers for session and transport cleanup",
+        "Claude calls session.initialize() before any other session method",
+        "Claude discovers tools with list_tools() before calling any specific tool",
+        "Claude checks content type before accessing .text on tool call results"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "elicitation-form-mode-happy-path",
+      "query": "My MCP tool needs to collect search preferences from the user at runtime, like category and max results. How do I use MCP elicitation safely without exposing sensitive data?",
+      "expected_behavior": [
+        "Claude uses form mode elicitation with a flat JSON Schema for non-sensitive data",
+        "Claude handles all three response actions: accept, decline, and cancel",
+        "Claude does not request secrets like API keys via form mode",
+        "Claude uses URL mode for any sensitive data collection such as credentials"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "registry-discovery-vetting-happy-path",
+      "query": "I found an MCP server for database access on a community forum. How do I properly vet it before installing and should I use the official MCP registry instead?",
+      "expected_behavior": [
+        "Claude queries the official MCP Registry API at registry.modelcontextprotocol.io first",
+        "Claude applies the vetting checklist: public repo, package registry, version pinning",
+        "Claude warns against installing unvetted servers without source code review",
+        "Claude recommends pinning exact versions and never using @latest in production"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "sampling-tools-bounded-loop-happy-path",
+      "query": "I want my MCP server to request LLM completions from the client with tool access for an agentic loop. How do I implement sampling with tools safely?",
+      "expected_behavior": [
+        "Claude implements a bounded iteration loop with a maximum iteration cap",
+        "Claude uses toolChoice mode none on the final turn to force a text response",
+        "Claude ensures tool result messages contain only tool_result blocks without mixing content types",
+        "Claude checks that the client declares sampling.tools capability before sending requests"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "security-hardening-zero-trust-happy-path",
+      "query": "How do I implement zero-trust tool verification for my MCP client to prevent rug-pull attacks where a server silently changes tool behavior between calls?",
+      "expected_behavior": [
+        "Claude implements hash-based integrity checks on tool descriptions and parameters",
+        "Claude builds a tool allowlist that validates tools before every invocation",
+        "Claude uses secrets.token_urlsafe(32) for session IDs instead of embedding auth tokens",
+        "Claude adds rate limiting per tool and per session to prevent abuse"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "security-injection-sanitization-happy-path",
+      "query": "How do I protect my MCP client from prompt injection attacks hidden in tool descriptions using Unicode homoglyphs and HTML entity encoding?",
+      "expected_behavior": [
+        "Claude normalizes encodings including HTML entities, URL encoding, and homoglyphs before pattern matching",
+        "Claude detects and redacts forbidden injection patterns like instruction overrides and role hijacks",
+        "Claude filters tool responses for leaked secrets such as API keys and passwords",
+        "Claude tests sanitization with known attack payloads including base64 and Unicode variants"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "server-setup-lifespan-happy-path",
+      "query": "I'm building an MCP server with FastMCP that needs a database connection and cache. How do I set up proper lifecycle management so resources are cleaned up on shutdown?",
+      "expected_behavior": [
+        "Claude uses an asynccontextmanager lifespan function for shared resource initialization",
+        "Claude yields an AppContext dataclass from the lifespan to share resources across tools",
+        "Claude returns errors as TextContent instead of raising unhandled exceptions",
+        "Claude includes description for every input schema property with enum and min/max constraints"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "server-transport-selection-happy-path",
+      "query": "I need to deploy my MCP server for a web application that serves multiple clients simultaneously. Should I use stdio, SSE, or Streamable HTTP transport?",
+      "expected_behavior": [
+        "Claude recommends Streamable HTTP for web and production multi-client deployments",
+        "Claude explicitly warns that SSE transport is deprecated since March 2025",
+        "Claude shows stateless mode with stateless_http=True for scalable production use",
+        "Claude passes secrets via env configuration and never hardcodes them in args"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "testing-debugging-unit-tests-happy-path",
+      "query": "How do I write automated tests for my MCP server's tools? I've been manually testing them in Claude Desktop but want proper CI coverage.",
+      "expected_behavior": [
+        "Claude uses the SDK's in-process Client with raise_exceptions=True for unit tests",
+        "Claude writes parametrized edge-case tests for invalid inputs like empty and missing values",
+        "Claude uses @pytest.mark.anyio with anyio_backend fixture for async test execution",
+        "Claude recommends MCP Inspector for interactive debugging of transports and auth"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "webmcp-browser-integration-happy-path",
+      "query": "I want to expose browser-side tools like form filling and DOM access to AI agents on my web app. Should I use MCP or is there something else for in-browser tools?",
+      "expected_behavior": [
+        "Claude recommends WebMCP for browser-side UI tools using navigator.modelContext",
+        "Claude explains that WebMCP complements MCP and is not a replacement for backend tools",
+        "Claude requires inputSchema with property descriptions so agents understand tool parameters",
+        "Claude uses client.requestUserInteraction() before any state-mutating browser operation"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "auth-oauth21-pkce-happy-path",
+      "query": "I need to add OAuth 2.1 authentication to my MCP server. How do I implement PKCE with S256 and prevent confused deputy attacks when calling upstream APIs?",
+      "expected_behavior": [
+        "Claude implements PKCE with S256 code challenge method for the authorization request",
+        "Claude includes the RFC 8707 resource parameter bound to the MCP server's canonical URI",
+        "Claude validates the aud claim on the resource server to reject tokens meant for other services",
+        "Claude obtains a separate token via client credentials for upstream API calls instead of forwarding client tokens"
+      ],
+      "tags": [
+        "happy-path"
+      ]
     }
   ]
 }

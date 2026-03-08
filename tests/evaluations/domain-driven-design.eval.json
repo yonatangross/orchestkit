@@ -44,6 +44,45 @@
       "tags": [
         "negative"
       ]
+    },
+    {
+      "id": "aggregate-boundaries",
+      "query": "How do I define the aggregate root boundary for an Order with LineItems and ensure transactional consistency?",
+      "expected_behavior": [
+        "Makes Order the aggregate root that controls all access to LineItems as children",
+        "Enforces one aggregate per transaction rule to maintain consistency boundaries",
+        "References other aggregates by ID only and never holds direct object references across boundaries",
+        "Ensures the root entity enforces all business rules before allowing state changes"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "aggregate-invariants",
+      "query": "My Order aggregate needs to enforce a maximum of 100 items and validate currency consistency. Where do these checks go?",
+      "expected_behavior": [
+        "Places invariant enforcement inside the aggregate root on every mutation method",
+        "Raises domain exceptions when business rules are violated before state transition occurs",
+        "Validates the 100-item maximum and currency consistency within the aggregate boundary",
+        "Warns that unenforced invariants allow invalid domain state that propagates silently through the system"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "aggregate-sizing",
+      "query": "Our Order aggregate loads thousands of line items and is causing performance issues with lock contention",
+      "expected_behavior": [
+        "Recommends splitting aggregates when child collections grow beyond 100 items",
+        "Uses reference by ID pattern for large collections instead of loading all children",
+        "Identifies different change rates as a signal to split into separate smaller aggregates",
+        "Never allows unbounded collections within a single aggregate boundary"
+      ],
+      "tags": [
+        "happy-path"
+      ]
     }
   ]
 }

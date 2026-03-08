@@ -67,6 +67,19 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "tokens-w3c-format",
+      "query": "What is the W3C DTCG token format and how should I structure my design token JSON files?",
+      "expected_behavior": [
+        "Uses W3C DTCG format with $type and $value properties for each token definition",
+        "Supports all standard token types including color, dimension, fontFamily, and duration",
+        "Organizes tokens in nested group structures with $description for documentation",
+        "Enables tooling interoperability through standardized format recognized by Style Dictionary"
+      ],
+      "tags": [
+        "happy-path"
+      ]
     }
   ]
 }

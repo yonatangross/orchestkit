@@ -40,6 +40,110 @@
       "tags": [
         "negative"
       ]
+    },
+    {
+      "id": "workflow-knowledge-base-debugging-happy-path",
+      "query": "We keep re-investigating the same OOM errors in production. How can I build a debugging knowledge base with NotebookLM so the team can query past incident resolutions?",
+      "expected_behavior": [
+        "Claude creates a dedicated debugging KB notebook separate from other domains",
+        "Claude adds incident reports and post-mortems as sources to the notebook",
+        "Claude queries the KB notebook before re-investigating known issues from scratch",
+        "Claude recommends keeping sources current by adding new incidents as they are resolved"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "workflow-research-discovery-automated-happy-path",
+      "query": "I need to research the latest developments in WebAssembly component model but manually finding and adding URLs is tedious. Can NotebookLM automate source discovery?",
+      "expected_behavior": [
+        "Claude uses research_start with web and drive sources for automated topic discovery",
+        "Claude polls research_status for completion since research takes one to three minutes",
+        "Claude imports discovered results with research_import into the target notebook",
+        "Claude follows up with notebook_query to synthesize the newly imported sources"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "workflow-research-offload-large-docs-happy-path",
+      "query": "I have a 100K character codebase I need to understand but pasting it into chat exceeds context limits. How do I offload large document analysis to NotebookLM?",
+      "expected_behavior": [
+        "Claude adds the large codebase as a source using RepoMix instead of pasting into chat",
+        "Claude uses notebook_query for targeted synthesis without consuming the chat context window",
+        "Claude recommends multiple targeted queries over one massive context load for efficiency",
+        "Claude explains that NotebookLM reads the full source on each query without truncation"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "workflow-second-brain-decisions-happy-path",
+      "query": "I keep losing track of architecture decisions we made in previous Claude sessions. How can I create a persistent project knowledge base with NotebookLM?",
+      "expected_behavior": [
+        "Claude creates one notebook per project to avoid mixing unrelated topic domains",
+        "Claude adds architecture decision records and design docs as notebook sources",
+        "Claude uses the note tool to capture in-session insights for future retrieval",
+        "Claude queries the notebook with notebook_query for grounded answers backed by actual sources"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "workflow-sharing-collaboration-access-happy-path",
+      "query": "I want to share my security handbook notebook with a colleague but I need to make sure no sensitive internal content is exposed publicly. How do I share safely?",
+      "expected_behavior": [
+        "Claude checks current sharing status with notebook_share_status before modifying any settings",
+        "Claude reviews notebook content for sensitive material before enabling any sharing access",
+        "Claude prefers notebook_share_invite with specific collaborators over public link sharing",
+        "Claude uses role reader by default and only grants editor when collaboration is actively needed"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "workflow-versioned-notebooks-release-happy-path",
+      "query": "We just released OrchestKit v7.1 and I want to preserve the release context as a queryable knowledge base. How do I create a versioned notebook for this release?",
+      "expected_behavior": [
+        "Claude creates one notebook per minor version with naming convention OrchestKit vX.Y Release Notes",
+        "Claude adds the CHANGELOG section as type text for better chunking rather than as a file",
+        "Claude includes key skill diffs only for skills with significant functional changes",
+        "Claude generates an audio overview via studio_create with deep_dive type for the release"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "setup-quickstart-auth-happy-path",
+      "query": "I just installed the NotebookLM CLI but all my MCP tool calls are failing silently. How do I set up authentication and register the MCP server with Claude Code?",
+      "expected_behavior": [
+        "Claude runs nlm login first to authenticate via browser-based Google OAuth flow",
+        "Claude uses nlm setup add claude-code to register the MCP server with Claude Code",
+        "Claude verifies auth session status with nlm login --check before proceeding with tools",
+        "Claude warns that auth sessions expire after approximately 20 minutes of inactivity"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "workflow-studio-content-generation-happy-path",
+      "query": "I want to generate a podcast overview and a slide deck from my notebook sources. How do I use NotebookLM Studio and what artifact types are available?",
+      "expected_behavior": [
+        "Claude uses the async poll pattern: studio_create then studio_status then download_artifact",
+        "Claude informs the user that generation takes two to five minutes and polls periodically",
+        "Claude lists the nine available studio artifact types including audio, video, and slide deck",
+        "Claude checks studio_status before attempting download since downloading a pending artifact fails"
+      ],
+      "tags": [
+        "happy-path"
+      ]
     }
   ]
 }

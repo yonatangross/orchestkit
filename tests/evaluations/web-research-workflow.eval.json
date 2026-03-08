@@ -42,6 +42,62 @@
       "tags": [
         "negative"
       ]
+    },
+    {
+      "id": "browser-patterns",
+      "query": "Scrape pricing data from a competitor's React SPA that requires JavaScript rendering and login authentication.",
+      "expected_behavior": [
+        "Tries WebFetch first and falls back to agent-browser when content is empty or partial",
+        "Uses agent-browser wait with networkidle flag before extracting content from the SPA",
+        "Implements authentication flow with fill and click commands for login credentials",
+        "Saves browser session state for reuse across subsequent page navigations",
+        "Adds rate limiting delays between multiple page requests to avoid being blocked"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "monitoring-change-detection",
+      "query": "Set up automated change detection to compare daily snapshots of a competitor's pricing page and alert on differences.",
+      "expected_behavior": [
+        "Runs structured JSON diffs between timestamped snapshots instead of manual visual comparison",
+        "Uses jq to compare pricing tiers and detect price changes, new tiers, and removed tiers",
+        "Stores diffs with timestamps for historical change tracking and trend analysis",
+        "Sets up CI workflow with daily schedule for consistent automated monitoring",
+        "Uses Tavily crawl for site discovery when the API key is available as a fallback"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "monitoring-competitor",
+      "query": "Capture structured snapshots of three competitor pricing pages with change severity classification.",
+      "expected_behavior": [
+        "Saves both text and structured JSON snapshots for each competitor page capture",
+        "Uses consistent date-stamped filenames for chronological comparison of snapshots",
+        "Classifies changes by severity: Critical for price changes, High for new features, Low for copy changes",
+        "Extracts structured data using browser eval with JSON.stringify for pricing tiers and features",
+        "Stores monitoring configuration in a JSON config file with URLs, selectors, and alert levels"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "tool-selection",
+      "query": "I need to extract content from 10 competitor documentation sites. Some are static HTML, some are React SPAs. Help me pick the right tools.",
+      "expected_behavior": [
+        "Uses WebFetch first for static HTML pages as the fastest and free option",
+        "Escalates to Tavily extract for batch URL extraction when WebFetch returns under 500 characters",
+        "Uses agent-browser only for JavaScript-rendered SPAs and login-protected content",
+        "Checks for SPA indicators like data-reactroot, ng-app, or minimal HTML with div id root",
+        "Considers cost awareness with Tavily credit usage per search, extract, and crawl operation"
+      ],
+      "tags": [
+        "happy-path"
+      ]
     }
   ]
 }

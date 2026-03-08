@@ -4,37 +4,56 @@
   "version": "1.0.0",
   "evaluations": [
     {
-      "id": "code-quality",
+      "id": "code-quality-assessment",
       "query": "Assess the quality of backend/app/services/auth.py",
       "expected_behavior": [
-        "Rates 6 dimensions: correctness, maintainability, performance, security, scalability, testability",
+        "Scores 6 complexity criteria: correctness, maintainability, performance, security, scalability, testability",
         "Uses 7-criterion scoring with 1-5 scale per criterion",
-        "Produces weighted composite score (0-10)",
+        "Produces weighted composite score (0-10) from all dimension ratings",
         "Limits scope to MAX 30 files to prevent context exhaustion"
       ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
       "id": "architecture-assessment",
       "query": "Assess our current microservices architecture",
       "expected_behavior": [
-        "Decomposes architecture into assessable components",
+        "Decomposes architecture into individually assessable components and boundaries",
         "Identifies risk factors and complexity hotspots",
-        "Provides pros/cons analysis with evidence",
+        "Provides pros/cons analysis with supporting evidence from the codebase",
         "Compares current approach against alternatives with scores"
       ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "performance-assessment",
+      "query": "Assess the performance of our database queries",
+      "expected_behavior": [
+        "Scores complexity criteria focused on estimation and risk for database analysis",
+        "Spawns agent for deep criterion-level scoring and assessment of task complexity",
+        "Includes effort estimation for each recommended improvement action",
+        "Prioritizes quick wins (effort <= 2, impact >= 4)"
+      ],
+      "tags": [
+        "happy-path"
+      ]
     },
     {
       "id": "design-review",
       "query": "Is our caching strategy good?",
       "expected_behavior": [
-        "Answers with structured evaluation",
-        "Produces overall score with grade interpretation",
+        "Answers 'is this good?' with structured decomposition and risk assessment",
+        "Produces overall score with grade interpretation (A+ through F)",
         "Generates actionable improvement suggestions with effort/impact",
         "Stores assessment results in memory for trend tracking"
       ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
     }
   ]
 }

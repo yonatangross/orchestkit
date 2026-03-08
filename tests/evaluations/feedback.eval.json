@@ -42,6 +42,19 @@
       "tags": [
         "negative"
       ]
+    },
+    {
+      "id": "consent-and-security",
+      "query": "What commands does the feedback system never auto-approve and how does consent work?",
+      "expected_behavior": [
+        "Never auto-approves dangerous commands including rm -rf, sudo, chmod 777, and --force flags",
+        "Requires explicit opt-in consent before sharing any feedback data per GDPR requirements",
+        "Maintains an audit trail of all consent actions logged in consent-log.json for accountability",
+        "Tracks consent version for policy changes and supports easy revocation at any time"
+      ],
+      "tags": [
+        "happy-path"
+      ]
     }
   ]
 }

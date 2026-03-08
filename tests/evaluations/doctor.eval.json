@@ -46,6 +46,32 @@
       "tags": [
         "negative"
       ]
+    },
+    {
+      "id": "diagnostic-checks",
+      "query": "What exactly does each diagnostic check in /ork:doctor validate?",
+      "expected_behavior": [
+        "Validates skills frontmatter, token budget compliance, and cross-reference link integrity",
+        "Checks that hook bundles exist as compiled files and are properly registered in hooks.json",
+        "Verifies agent definitions comply with Claude Code 2.1 format requirements",
+        "Reports specific pass, warn, or fail status per category with actionable fix suggestions"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "mcp-status-checks",
+      "query": "How does /ork:doctor check MCP server health and configuration?",
+      "expected_behavior": [
+        "Parses .mcp.json to list each server with its enabled or disabled state",
+        "Checks required environment variables and credentials for each MCP server",
+        "Verifies tavily server has TAVILY_API_KEY available in environment or via op CLI",
+        "Flags enabled MCP servers whose startup process would likely fail due to missing configuration"
+      ],
+      "tags": [
+        "happy-path"
+      ]
     }
   ]
 }

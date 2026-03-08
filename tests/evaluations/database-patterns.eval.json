@@ -4,61 +4,160 @@
   "version": "1.0.0",
   "evaluations": [
     {
-      "id": "design-schema",
-      "query": "design a database schema for an e-commerce platform",
+      "id": "alembic-autogenerate",
+      "query": "Generate an Alembic migration from SQLAlchemy model changes",
       "expected_behavior": [
-        "Identify core entities (users, products, orders)",
-        "Define relationships and foreign keys",
-        "Add appropriate indexes",
-        "Consider normalization",
-        "Include timestamps and audit fields"
+        "Uses alembic revision --autogenerate to detect model changes and generate migrations",
+        "Configures async env.py with asyncpg for non-blocking migration execution",
+        "Reviews generated SQL before applying to catch incorrect or destructive operations",
+        "Sets target_metadata from Base.metadata to enable accurate schema introspection"
       ],
-      "should_not": [
-        "Over-normalize for simple use cases",
-        "Skip index recommendations"
-      ],
-      "success_criteria": [
-        "Schema is normalized appropriately",
-        "Relationships are clear",
-        "Indexes support common queries"
-      ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
-      "id": "create-migration",
-      "query": "create a migration to add a comments table",
+      "id": "alembic-data-migration",
+      "query": "Add a NOT NULL column to a large production table",
       "expected_behavior": [
-        "Generate Alembic migration file",
-        "Include upgrade and downgrade functions",
-        "Add appropriate constraints",
-        "Add indexes for foreign keys"
+        "Uses two-phase approach: nullable first then alter",
+        "Backfills data in batches with LIMIT and FOR UPDATE SKIP LOCKED",
+        "Creates indexes CONCURRENTLY outside transaction to avoid locking production tables",
+        "Implements proper downgrade function for safe rollback of schema changes"
       ],
-      "success_criteria": [
-        "Migration is reversible",
-        "Constraints are defined"
-      ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
-      "id": "add-vector-column",
-      "query": "add pgvector support for semantic search on documents",
+      "id": "alembic-branching",
+      "query": "Merge two parallel Alembic migration branches",
       "expected_behavior": [
-        "Add vector column with appropriate dimensions",
-        "Create HNSW or IVFFlat index",
-        "Provide usage example"
+        "Uses alembic merge to combine branch heads",
+        "Creates merge revision with tuple down_revision",
+        "Uses branch labels for feature isolation",
+        "Documents merge point in migration docstring"
       ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
-      "id": "optimize-query",
-      "query": "optimize this slow query",
+      "id": "schema-normalization",
+      "query": "Design a normalized database schema for an e-commerce system",
       "expected_behavior": [
-        "Analyze the query",
-        "Check for missing indexes",
-        "Suggest query rewrites",
-        "Recommend index additions"
+        "Normalizes to 3NF with separate entity tables",
+        "Uses atomic values (no comma-separated lists)",
+        "Eliminates transitive dependencies to achieve proper third normal form compliance",
+        "Justifies any denormalization with performance evidence"
       ],
-      "tags": ["performance"]
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "schema-indexing",
+      "query": "Optimize slow database queries with proper indexing",
+      "expected_behavior": [
+        "Indexes foreign keys and WHERE clause columns",
+        "Uses composite indexes with most selective column first",
+        "Chooses correct index type (B-tree, GIN, HNSW)",
+        "Considers partial indexes for filtered queries"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "schema-nosql",
+      "query": "Design a MongoDB schema for a content management system",
+      "expected_behavior": [
+        "Chooses embed vs reference based on access patterns",
+        "Considers document size limits to prevent exceeding the 16MB BSON maximum",
+        "Plans sharding key for even distribution",
+        "Defines schema validation rules to enforce data integrity at the collection level"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "versioning-changelog",
+      "query": "Set up schema version tracking for a database",
+      "expected_behavior": [
+        "Creates schema_version table with checksums for tracking applied migration integrity",
+        "Uses semantic versioning (MAJOR.MINOR.PATCH) for schema change classification and compatibility",
+        "Implements audit trail with row-level versioning or CDC",
+        "Tracks applied_at, applied_by, and execution_time for complete migration audit history"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "versioning-rollback",
+      "query": "Test database migration rollback procedures",
+      "expected_behavior": [
+        "Tests upgrade and downgrade cycle locally",
+        "Verifies data preservation after rollback to ensure no records are lost",
+        "Documents destructive rollbacks in migration docstring",
+        "Includes CI pipeline for migration testing"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "versioning-drift",
+      "query": "Detect and prevent schema drift across environments",
+      "expected_behavior": [
+        "Uses checksum verification on deployed migrations",
+        "Implements advisory locks for concurrent migration prevention",
+        "Configures environment-specific settings (timeouts, locks) for safe production migration execution",
+        "Follows local -> CI -> staging -> production flow"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "db-selection",
+      "query": "Should I use MongoDB or PostgreSQL for our new microservice? The data is mostly JSON documents.",
+      "expected_behavior": [
+        "Defaults to PostgreSQL unless there is a specific validated reason to choose otherwise",
+        "Recommends PostgreSQL JSONB for JSON document workloads covering 90 percent of MongoDB use cases",
+        "Evaluates based on project tier from interview through enterprise scale for appropriate tooling",
+        "Warns against choosing MongoDB because it is trendy without benchmarking against PostgreSQL JSONB"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "migration-rollback",
+      "query": "How do I set up automated rollback for database migrations in case something goes wrong?",
+      "expected_behavior": [
+        "Recommends pgroll for automated dual-schema versioning with built-in rollback capability",
+        "Monitors pg_stat_activity for long-running queries and locks during migration execution",
+        "Checks replication lag on replicas before completing the migration with pgroll complete",
+        "Follows environment order local to CI to staging to production and never skips stages"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "migration-zero-downtime",
+      "query": "I need to rename a column in our production database without any downtime. How do I do this safely?",
+      "expected_behavior": [
+        "Uses expand-contract pattern: add new column, migrate data, remove old column in separate phases",
+        "Never uses ALTER TABLE RENAME COLUMN directly as it locks the table during metadata change",
+        "Creates indexes with CONCURRENTLY to avoid locking tables during index creation on large tables",
+        "Adds constraints with NOT VALID first then validates separately to avoid blocking writes"
+      ],
+      "tags": [
+        "happy-path"
+      ]
     }
   ]
 }

@@ -30,7 +30,7 @@
       "query": "Add smooth page transitions to a React Router application",
       "expectedBehavior": [
         "Uses viewTransition prop on React Router Link components",
-        "Feature-detects document.startViewTransition before using it",
+        "Feature-detects document.startViewTransition API availability before using view transitions",
         "Applies viewTransitionName CSS for shared element transitions",
         "Keeps transition duration under 300ms for navigation"
       ]

@@ -44,6 +44,45 @@
       "tags": [
         "negative"
       ]
+    },
+    {
+      "id": "interrogation-reliability",
+      "query": "We're deciding on the data architecture for our user service. What reliability questions should we ask?",
+      "expected_behavior": [
+        "Asks where data naturally belongs and what the primary access pattern is for the service",
+        "Questions retention policy and flags 'keep everything' as a red flag answer",
+        "Evaluates UX impact including what happens when the service is down or degraded",
+        "Flags vague answers like 'both reads and writes' as insufficient for architectural decisions"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "interrogation-scalability",
+      "query": "Before committing to this architecture, what scalability questions should we answer?",
+      "expected_behavior": [
+        "Asks about expected user count, data volume now and in one year, and request rate",
+        "Questions whether complexity grows linearly or exponentially with scale increase",
+        "Evaluates behavior at 10x and 100x current load to identify scaling bottlenecks early",
+        "Flags 'it won't be a problem' as a red flag that scale analysis has not been done"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "interrogation-security",
+      "query": "What security questions should we ask before finalizing this architecture decision?",
+      "expected_behavior": [
+        "Asks who can access the data and how tenant isolation is enforced at the architecture level",
+        "Questions what attack vectors the decision introduces and what happens if authorization fails",
+        "Flags 'we trust the frontend' for tenant isolation as a critical security red flag",
+        "Evaluates whether PII is involved and what handling requirements apply to the data"
+      ],
+      "tags": [
+        "happy-path"
+      ]
     }
   ]
 }

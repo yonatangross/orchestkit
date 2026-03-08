@@ -4,60 +4,225 @@
   "version": "1.0.0",
   "evaluations": [
     {
-      "id": "design-rest-endpoint",
-      "query": "design a REST API for user management",
+      "id": "framework-rest-conventions",
+      "query": "Design RESTful API endpoints for a user management service",
       "expected_behavior": [
-        "Define resource naming (plural nouns)",
-        "Specify HTTP methods for CRUD",
-        "Define status codes for responses",
-        "Include pagination for list endpoints",
-        "Define error response format"
+        "Uses plural nouns for resources (/users, /orders)",
+        "Maps CRUD operations to correct HTTP methods (GET, POST, PUT, DELETE)",
+        "Returns appropriate status codes (200, 201, 204, 404, 422)",
+        "Implements cursor-based pagination for list endpoints"
       ],
-      "should_not": [
-        "Use verbs in URL paths",
-        "Use inconsistent naming conventions"
-      ],
-      "success_criteria": [
-        "Follows REST conventions",
-        "Includes all CRUD operations",
-        "Error handling defined"
-      ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
-      "id": "add-pagination",
-      "query": "add pagination to the users endpoint",
+      "id": "framework-resource-modeling",
+      "query": "Structure API endpoints for nested resources with filtering",
       "expected_behavior": [
-        "Recommend cursor-based pagination",
-        "Define query parameters",
-        "Define response structure with pagination metadata"
+        "Uses hierarchical URLs for relationships (/users/123/orders)",
+        "Implements query parameter filtering for resource collections (?status=active)",
+        "Supports sort parameter for ordering results (?sort=-created_at)",
+        "Provides field selection for partial responses (?fields=id,name)"
       ],
-      "success_criteria": [
-        "Pagination pattern is clear",
-        "Response format documented"
-      ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
-      "id": "api-versioning",
-      "query": "how should I version my API?",
+      "id": "framework-openapi",
+      "query": "Create OpenAPI specification for my API",
       "expected_behavior": [
-        "Explain versioning strategies",
-        "Recommend URI versioning for public APIs",
-        "Provide migration guidance"
+        "Uses OpenAPI 3.1 format with proper info section",
+        "Defines reusable schemas in components section",
+        "Documents all response codes including error responses",
+        "Includes rate limit headers and authentication schemes"
       ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "versioning-url-path",
+      "query": "Implement URL path versioning for a FastAPI application",
+      "expected_behavior": [
+        "Creates versioned directory structure (api/v1/, api/v2/)",
+        "Mounts version-specific routers with prefix (/api/v1, /api/v2)",
+        "Uses version-specific schemas while sharing service layer",
+        "Keeps business logic version-agnostic in services"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "versioning-header",
+      "query": "Implement header-based API versioning",
+      "expected_behavior": [
+        "Extracts version from X-API-Version header on incoming requests",
+        "Validates version against supported versions set",
+        "Defaults to latest stable version when header absent",
+        "Shows content negotiation alternative with Accept header"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "versioning-deprecation",
+      "query": "Deprecate API v1 and sunset it in 6 months",
+      "expected_behavior": [
+        "Adds Deprecation and Sunset headers to v1 responses",
+        "Includes Link header pointing to successor version",
+        "Distinguishes breaking vs non-breaking changes clearly",
+        "Shows version lifecycle: alpha -> beta -> stable -> deprecated -> sunset"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "errors-problem-details",
+      "query": "Implement RFC 9457 Problem Details for API errors",
+      "expected_behavior": [
+        "Creates ProblemException base class with type, title, status, detail, instance",
+        "Returns application/problem+json media type in the Content-Type response header",
+        "Supports extension members for additional context",
+        "Registers FastAPI exception handler for ProblemException"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "errors-validation",
+      "query": "Handle validation errors with field-level details",
+      "expected_behavior": [
+        "Returns 422 with field-level error array",
+        "Maps Pydantic RequestValidationError to Problem Details format",
+        "Includes field path, error code, and human-readable message",
+        "Uses consistent error structure across all validation failures"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "errors-error-catalog",
+      "query": "Create a centralized error type registry for my API",
+      "expected_behavior": [
+        "Defines problem type URIs for each error category",
+        "Maps standard HTTP status codes to problem types",
+        "Shows Python and TypeScript client handling examples",
+        "Includes specific exception subclasses for each problem type"
+      ],
+      "tags": [
+        "happy-path"
+      ]
     },
     {
       "id": "graphql-schema",
-      "query": "design a GraphQL schema for posts and comments",
+      "query": "Set up a GraphQL API with Strawberry and FastAPI that has authentication, authorization, and real-time subscriptions for user updates",
       "expected_behavior": [
-        "Define types with proper nullability",
-        "Use Connection pattern for lists",
-        "Define input types for mutations",
-        "Include error handling in payloads"
+        "Uses Strawberry permission classes like IsAuthenticated for field-level authorization",
+        "Integrates with FastAPI via GraphQLRouter with a context getter for dependency injection",
+        "Implements subscriptions with Redis PubSub for horizontal scaling of real-time updates",
+        "Uses opaque strawberry.ID instead of exposing internal auto-increment integer IDs"
       ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "graphql-strawberry",
+      "query": "My GraphQL resolvers are making N+1 database queries when fetching posts with their authors. How do I fix this with Strawberry?",
+      "expected_behavior": [
+        "Uses DataLoader with batch_load function to batch nested resolver database queries",
+        "Defines code-first types with strawberry.type decorator for type-safe schema generation",
+        "Uses Private field annotation to hide sensitive data like password hashes from schema",
+        "Implements union types for mutation error handling with success and error result variants"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "grpc-service",
+      "query": "I need to set up gRPC for internal microservice communication between our user service and order service with proper error handling",
+      "expected_behavior": [
+        "Defines protobuf service with proto3 syntax including message types and enums",
+        "Implements async server servicer with context.abort for proper gRPC error codes",
+        "Configures client with keepalive options and timeout on every call",
+        "Maps gRPC status codes like NOT_FOUND and INVALID_ARGUMENT to domain exceptions"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "grpc-streaming",
+      "query": "Add server streaming and bidirectional streaming to my gRPC service with authentication interceptors and retry logic",
+      "expected_behavior": [
+        "Checks context.is_active before yielding each item in server streaming responses",
+        "Implements auth interceptor with metadata extraction and public method allowlist",
+        "Uses client retry interceptor with exponential backoff for UNAVAILABLE and DEADLINE_EXCEEDED",
+        "Supports bidirectional streaming with async request iterator processing"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "messaging-integrations",
+      "query": "I need to integrate WhatsApp and Telegram messaging into our platform with webhook endpoints. How do I handle webhook security and message delivery?",
+      "expected_behavior": [
+        "Verifies webhook signatures before processing any incoming messages from platforms",
+        "Acknowledges webhook immediately with 200 OK and processes messages asynchronously via queue",
+        "Stores message IDs and deduplicates on retry to prevent duplicate message processing",
+        "Rate-limits outgoing messages according to each platform's specific rate limits"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "payload-cms",
+      "query": "Set up Payload CMS 3.0 collections for a blog with proper access control and content management in our Next.js project",
+      "expected_behavior": [
+        "Defines collection config with role-based access control functions for read create update delete",
+        "Sets overrideAccess to false in API routes serving user requests to enforce access control",
+        "Keeps hooks thin for validation and transformation only and delegates logic to services",
+        "Uses S3-compatible storage adapter for file uploads instead of storing files in database"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "streaming-sse",
+      "query": "Create a Next.js SSE endpoint for streaming LLM token responses to the browser with keepalive and reconnection support",
+      "expected_behavior": [
+        "Sets Content-Type to text/event-stream with Cache-Control no-cache headers",
+        "Implements keepalive comment every thirty seconds to prevent connection timeout",
+        "Handles client disconnect via abort signal to clean up resources properly",
+        "Builds reconnecting client with exponential backoff from one second to thirty seconds maximum"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "streaming-websocket",
+      "query": "Implement a WebSocket server for real-time chat with heartbeat, message validation, and proper async generator cleanup for LLM streaming",
+      "expected_behavior": [
+        "Implements heartbeat ping every thirty seconds and clears interval on connection close",
+        "Validates message structure before broadcasting to prevent raw unvalidated data relay",
+        "Uses aclosing context manager for guaranteed async generator cleanup on external streams",
+        "Broadcasts only to other connected clients with readyState check before sending"
+      ],
+      "tags": [
+        "happy-path"
+      ]
     }
   ]
 }
