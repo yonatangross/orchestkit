@@ -36,8 +36,11 @@ Codifiable UI interaction patterns that prevent common UX failures. Covers loadi
 | Drag & Drop | `rules/interaction-drag-drop.md` | CRITICAL | Reorderable lists with keyboard alternatives |
 | Tabs Overflow | `rules/interaction-tabs-overflow.md` | MEDIUM | Tab bars with 7+ items or dynamic tabs |
 | Toast Notifications | `rules/interaction-toast-notifications.md` | HIGH | Success/error feedback and notification stacking |
+| Cognitive Load Thresholds | `rules/interaction-cognitive-load-thresholds.md` | HIGH | Enforcing Miller's Law, Hick's Law, and Doherty Threshold with numeric limits |
+| Form UX | `rules/interaction-form-ux.md` | HIGH | Target sizing, label placement, error prevention, and smart defaults |
+| Persuasion Ethics | `rules/interaction-persuasion-ethics.md` | HIGH | Detecting dark patterns and applying ethical engagement principles |
 
-**Total: 7 rules across 4 categories**
+**Total: 10 rules across 6 categories**
 
 ## Decision Table — Loading States
 
@@ -160,6 +163,24 @@ Scrollable tab bars with overflow menus for dynamic or numerous tabs.
 Positioned, auto-dismissing notifications with ARIA roles and stacking.
 
 > **Load**: `rules/interaction-toast-notifications.md`
+
+### Cognitive Load Thresholds
+
+Miller's Law (max 7 items per group), Hick's Law (max 1 primary CTA), and Doherty Threshold (400ms feedback) with specific, countable limits.
+
+> **Load**: `rules/interaction-cognitive-load-thresholds.md`
+
+### Form UX
+
+Fitts's Law touch targets (44px mobile), top-aligned labels, Poka-Yoke error prevention with blur-only validation, and smart defaults.
+
+> **Load**: `rules/interaction-form-ux.md`
+
+### Persuasion Ethics
+
+13 dark pattern red flags to detect and reject, the Hook Model ethical test (aware, reversible, user-benefits), and EU DSA Art. 25 compliance.
+
+> **Load**: `rules/interaction-persuasion-ethics.md`
 
 ## Key Principles
 

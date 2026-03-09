@@ -17,11 +17,13 @@ Comprehensive patterns for building accessible web applications: WCAG 2.2 AA com
 | Category | Rules | Impact | When to Use |
 |----------|-------|--------|-------------|
 | [WCAG Compliance](#wcag-compliance) | 3 | CRITICAL | Color contrast, semantic HTML, automated testing |
+| [POUR Exit Criteria](#pour-exit-criteria) | 1 | CRITICAL | Falsifiable pass/fail thresholds for each WCAG 2.2 AA criterion |
+| [Static Anti-Patterns](#static-anti-patterns) | 1 | HIGH | Grep-able patterns detectable without a browser |
 | [Focus Management](#focus-management) | 3 | HIGH | Focus traps, focus restoration, keyboard navigation |
 | [React Aria](#react-aria) | 3 | HIGH | Accessible components, form hooks, overlay patterns |
 | [Modern Web Accessibility](#modern-web-accessibility) | 3 | CRITICAL/HIGH | Native HTML first, cognitive inclusion, user preferences |
 
-**Total: 12 rules across 4 categories**
+**Total: 14 rules across 6 categories**
 
 ## Quick Start
 
@@ -57,6 +59,22 @@ WCAG 2.2 AA implementation for inclusive, legally compliant web applications.
 | Color Contrast | `$\{CLAUDE_PLUGIN_ROOT\}/skills/accessibility/rules/wcag-color-contrast.md` | 4.5:1 text, 3:1 UI components, focus indicators |
 | Semantic HTML | `$\{CLAUDE_PLUGIN_ROOT\}/skills/accessibility/rules/wcag-semantic-html.md` | Landmarks, headings, ARIA labels, form structure |
 | Testing | `$\{CLAUDE_PLUGIN_ROOT\}/skills/accessibility/rules/wcag-testing.md` | axe-core, Playwright a11y, screen reader testing |
+
+## POUR Exit Criteria
+
+Concrete pass/fail thresholds for each WCAG 2.2 AA criterion — replaces vague "meets requirements" checks.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| POUR Exit Criteria | `$\{CLAUDE_PLUGIN_ROOT\}/skills/accessibility/rules/pour-exit-criteria.md` | Falsifiable checklist: image alt, contrast ratios, focus indicators, touch targets, ARIA states |
+
+## Static Anti-Patterns
+
+Grep-able anti-patterns detectable via static analysis or code review — no browser needed.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| A11y Anti-Patterns (Static) | `$\{CLAUDE_PLUGIN_ROOT\}/skills/accessibility/rules/a11y-antipatterns-static.md` | Focus removal, missing labels, autoplay, icon-only buttons, div-click handlers |
 
 ## Focus Management
 
@@ -121,6 +139,7 @@ Adobe React Aria hooks for building WCAG-compliant interactive UI.
 | `$\{CLAUDE_PLUGIN_ROOT\}/skills/accessibility/scripts/` | Templates: accessible form, focus trap, React Aria components |
 | `$\{CLAUDE_PLUGIN_ROOT\}/skills/accessibility/checklists/` | WCAG audit, focus management, React Aria component checklists |
 | `$\{CLAUDE_PLUGIN_ROOT\}/skills/accessibility/references/` | WCAG criteria reference, focus patterns, React Aria hooks API |
+| `$\{CLAUDE_PLUGIN_ROOT\}/skills/accessibility/references/ux-thresholds-quick.md` | UI/UX thresholds quick reference: contrast, touch targets, cognitive load, typography, forms |
 | `$\{CLAUDE_PLUGIN_ROOT\}/skills/accessibility/examples/` | Complete accessible component examples |
 
 ## Related Skills
@@ -133,7 +152,130 @@ Adobe React Aria hooks for building WCAG-compliant interactive UI.
 
 ---
 
-## Rules (12)
+## Rules (14)
+
+### Grep-able anti-patterns detectable via static code analysis without a browser — HIGH
+
+
+# Accessibility Anti-Patterns: Static Detection
+
+These patterns are detectable by grep, ESLint, or code review — no browser required.
+
+## Anti-Pattern Table
+
+| Anti-Pattern | Detection Regex | WCAG | Fix |
+|---|---|---|---|
+| Focus removal | `outline:\s*(none\|0)` without `:focus-visible` companion | 2.4.11 | Add `:focus-visible` ring with 3:1 contrast |
+| Non-descriptive links | Link text `/^(click here\|read more\|here\|more\|learn more)$/i` | 2.4.4 | Use descriptive text meaningful out of context |
+| Autoplay media | `&lt;(video\|audio)[^&gt;]*autoplay` without `muted` | 1.4.2 | Add `muted` or remove `autoplay` |
+| Missing language | `&lt;html(?![^&gt;]*lang)` | 3.1.1 | Add `&lt;html lang="en"&gt;` (or correct BCP 47 tag) |
+| Disabled zoom | `(user-scalable=no\|maximum-scale=1)` in viewport meta | 1.4.4 | Remove these restrictions entirely |
+| SR content hidden wrong | `display:\s*none\|visibility:\s*hidden` on ARIA-role elements | 1.3.1 | Use `.sr-only` (visually hidden, SR accessible) |
+| Placeholder as label | `&lt;input[^&gt;]*placeholder` without nearby `&lt;label` | 3.3.2 | Add `&lt;label for="id"&gt;` linked via matching `id` |
+| Heading skip | `&lt;h[1-6]` followed later by level +2 or more | 1.3.1 | Maintain sequential hierarchy (h1 &gt; h2 > h3) |
+| Image without alt | `<img(?![^>]*\balt\b)` | 1.1.1 | Add `alt="description"` or `alt=""` for decorative |
+| Button without text | `&lt;button[^&gt;]*>(\s*&lt;[^/])` with no `aria-label` | 4.1.2 | Add `aria-label="Action name"` |
+| Positive tabindex | `tabindex="[1-9]` | 2.4.3 | Use `tabindex="0"` or `-1` only |
+| Div/span click handler | `&lt;(div\|span)[^&gt;]*onClick` | 4.1.2 | Replace with `&lt;button&gt;` or add `role="button"` + keyboard handler |
+
+## Detailed Fixes
+
+### Focus Removal
+
+**Incorrect:**
+```css
+/* Removes focus for all users including keyboard-only users */
+* { outline: none; }
+button:focus { outline: 0; }
+```
+
+**Correct:**
+```css
+/* Only hide outline for mouse users; preserve for keyboard users */
+button:focus:not(:focus-visible) { outline: none; }
+button:focus-visible {
+  outline: 3px solid #0052cc;
+  outline-offset: 2px;
+}
+```
+
+### Placeholder as Label
+
+**Incorrect:**
+```html
+<input type="email" placeholder="Email address" />
+```
+
+**Correct:**
+```html
+<label for="email">Email address</label>
+<input id="email" type="email" placeholder="you@example.com" aria-required="true" />
+```
+
+### Autoplay Media
+
+**Incorrect:**
+```html
+<video autoplay src="intro.mp4"></video>
+```
+
+**Correct:**
+```html
+<!-- Muted autoplay is allowed (no audio disruption) -->
+<video autoplay muted loop src="intro.mp4"></video>
+<!-- Or: remove autoplay entirely and provide play control -->
+<video controls src="intro.mp4"></video>
+```
+
+### Icon-Only Button
+
+**Incorrect:**
+```html
+<button><svg><!-- search icon --></svg></button>
+```
+
+**Correct:**
+```html
+<button aria-label="Search">
+  <svg aria-hidden="true" focusable="false"><!-- search icon --></svg>
+</button>
+```
+
+### Visually Hidden Content (SR-only)
+
+**Incorrect:**
+```css
+/* Hides from screen readers too */
+.hidden-label { display: none; }
+```
+
+**Correct:**
+```css
+/* Visible to screen readers, hidden visually */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+```
+
+## ESLint Rule Mapping
+
+| Anti-Pattern | ESLint Rule (`eslint-plugin-jsx-a11y`) |
+|---|---|
+| Image without alt | `jsx-a11y/alt-text` |
+| Missing label | `jsx-a11y/label-has-associated-control` |
+| Non-descriptive links | `jsx-a11y/anchor-ambiguous-text` |
+| Div with click handler | `jsx-a11y/click-events-have-key-events` + `jsx-a11y/no-static-element-interactions` |
+| Button without text | `jsx-a11y/accessible-emoji` + custom rule |
+| Autoplay | `jsx-a11y/media-has-caption` |
+
 
 ### Build accessible buttons, dialogs, and menus with React Aria keyboard support — HIGH
 
@@ -1402,6 +1544,55 @@ function Modal({ isOpen, onClose, children }) {
 ```
 
 
+### Concrete pass/fail exit criteria for each POUR principle mapped to WCAG 2.2 criteria — CRITICAL
+
+
+# POUR Exit Criteria (WCAG 2.2 AA)
+
+Pass/fail thresholds for each principle. Every item must pass before marking a feature accessible.
+
+## Perceivable
+
+- [ ] Every `<img>` has `alt`. Decorative images use `alt=""`. Complex images use `aria-describedby` pointing to adjacent descriptive text. (1.1.1, Level A)
+- [ ] Normal text contrast >= 4.5:1 against its background. Large text (>= 18pt or >= 14pt bold) contrast >= 3:1. (1.4.3, AA)
+- [ ] UI component boundaries (input borders, icon strokes, button outlines) contrast >= 3:1 against adjacent color. (1.4.11, AA)
+- [ ] No information is conveyed by color alone — every color-coded element also has an icon, pattern, or visible text label. (1.4.1, A)
+- [ ] Page content reflows without horizontal scrolling at 320px viewport width (equivalent to 400% zoom on 1280px display). No fixed-width containers wider than 320px. (1.4.10, AA)
+- [ ] Text spacing overrides do not break layout: `line-height: 1.5`, `letter-spacing: 0.12em`, `word-spacing: 0.16em`, `paragraph spacing: 2em` all applied simultaneously produce no clipped or overlapping content. (1.4.12, AA)
+
+## Operable
+
+- [ ] Every interactive element (links, buttons, inputs, custom widgets) is reachable and activatable via keyboard alone. Tab order follows visual reading order (left-to-right, top-to-bottom for LTR). (2.1.1, A)
+- [ ] No keyboard trap exists — pressing Escape or a documented key sequence always exits any component that receives focus. (2.1.2, A)
+- [ ] A skip link to `&lt;main id="main-content"&gt;` is the first focusable element on every page. It becomes visible on focus. (2.4.1, A)
+- [ ] All focus indicators: minimum 2px perimeter outline, >= 3:1 contrast between focused and unfocused states. Default browser outlines are acceptable only if they pass the contrast check. (2.4.11, AA — WCAG 2.2)
+- [ ] Touch targets are >= 24x24 CSS pixels. No adjacent interactive target falls within a 24px radius of another target's boundary. Primary CTAs should be >= 44x44px. (2.5.8, AA — WCAG 2.2)
+- [ ] No content moves, blinks, scrolls, or auto-updates for more than 3 seconds without a mechanism to pause, stop, or hide it. (2.2.2, A)
+- [ ] Page titles describe topic or purpose uniquely within the site (e.g., "Login — AppName", not just "Login"). (2.4.2, A)
+
+## Understandable
+
+- [ ] `&lt;html lang="xx"&gt;` is set and matches the primary language of the page. Language changes within content use `lang` on the containing element. (3.1.1, A)
+- [ ] Every form input has an associated `&lt;label for="id"&gt;`, or `aria-label`, or `aria-labelledby`. Placeholder text alone does not count as a label. (3.3.2, A)
+- [ ] Error messages: identify the affected field by name, describe the cause of the error, and suggest a specific fix. Errors are announced to assistive technology via `aria-live="polite"` or `role="alert"`. (3.3.1 + 3.3.3, A/AA)
+- [ ] No link text is "click here", "read more", "here", "more", or "link" when read out of context. Each link's accessible name uniquely identifies its destination or action. (2.4.4, A)
+- [ ] Links that open in a new tab include a visible icon (e.g., external-link icon) with `aria-label` supplement (e.g., `aria-label="Opens in new tab"`). (2.4.4 advisory)
+- [ ] Navigation menus appear in the same relative order on every page where they repeat. (3.2.3, AA)
+- [ ] Components with the same function have the same accessible name across all pages. (3.2.4, AA)
+
+## Robust
+
+- [ ] No duplicate `id` attributes on interactive elements in the same document. No unclosed or improperly nested landmark elements (`&lt;main&gt;`, `&lt;nav&gt;`, `&lt;header&gt;`, `&lt;footer&gt;`). (4.1.1, A)
+- [ ] Custom interactive widgets expose correct ARIA state attributes:
+  - Toggle buttons: `aria-pressed="true|false"`
+  - Disclosure widgets: `aria-expanded="true|false"`
+  - Tabs: `aria-selected="true|false"` on tab elements, `role="tablist"` on container
+  - Custom checkboxes: `aria-checked="true|false|mixed"`
+  - Comboboxes: `aria-autocomplete`, `aria-activedescendant` (4.1.2, A)
+- [ ] Status messages (toasts, loading indicators, success confirmations, live regions) use `role="status"` or `aria-live="polite"`. Urgent alerts use `role="alert"` or `aria-live="assertive"`. (4.1.3, AA)
+- [ ] All `aria-*` attributes reference existing IDs. No orphaned `aria-labelledby` or `aria-describedby` values. (4.1.2, A)
+
+
 ### Design for cognitive accessibility including ADHD, autism, and dyslexia support — HIGH
 
 
@@ -2216,7 +2407,7 @@ Content must remain usable at 200% zoom (WCAG 1.4.4) and with user font-size ove
 
 ---
 
-## References (3)
+## References (4)
 
 ### Focus Patterns
 
@@ -3235,6 +3426,46 @@ function MyButton(props: AriaButtonProps) {
 - [React Aria Documentation](https://react-spectrum.adobe.com/react-aria/)
 - [React Stately Documentation](https://react-spectrum.adobe.com/react-stately/)
 - [ARIA Authoring Practices Guide](https://www.w3.org/WAI/ARIA/apg/)
+
+
+### Ux Thresholds Quick
+
+# UI/UX Thresholds — Cognitive Science Quick Reference
+
+## Contrast & Color
+- Text on background: >= 4.5:1 (normal), >= 3:1 (large text >= 18pt)
+- UI components: >= 3:1 against adjacent colors
+- Focus indicators: >= 3:1 contrast, minimum 2px perimeter
+- Never use color as sole information carrier
+
+## Touch & Targets
+- Touch devices: minimum 44x44px interactive targets
+- Desktop: minimum 24x24px, no adjacent target within 24px
+- Primary CTA in thumb zone (bottom 2/3 of mobile screen)
+- Destructive actions: smaller targets or require confirmation (Fitts's Law)
+
+## Cognitive Load
+- Max 5-7 items in any list/menu before grouping (Miller's Law 4±1)
+- Decision time doubles per doubling of options (Hick's Law) — use progressive disclosure
+- Acknowledge interactions within 400ms (Doherty Threshold)
+- Recognition over recall: show options, don't ask users to remember
+
+## Typography & Readability
+- Line length: 50-75 characters (use `max-width: 65ch`)
+- Line-height: 1.4-1.6x for body text
+- No true black (#000) on pure white (#fff) — temper contrast
+
+## Forms & Errors
+- Top-aligned labels (optimal for all contexts)
+- Error messages: name the field + describe cause + suggest fix
+- Blame the system, not the user ("We couldn't process..." not "Invalid input")
+- Inline validation on blur, not on keystroke
+- Mark optional fields, not required (invert the assumption)
+
+## Dark Pattern Red Flags
+Reject these 13 patterns: confirmshaming, roach motel, misdirection, hidden costs,
+trick questions, disguised ads, forced continuity, friend spam, privacy zuckering,
+bait-and-switch, false urgency, nagging, visual interference.
 
 
 ### Wcag Criteria
