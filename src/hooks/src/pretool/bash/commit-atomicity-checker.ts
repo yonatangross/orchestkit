@@ -14,7 +14,7 @@
  * Zero LLM calls, zero network — pure local heuristics.
  */
 
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import type { HookInput, HookResult } from '../../types.js';
 import {
   outputSilentSuccess,
@@ -90,7 +90,7 @@ function extractCommitMessage(command: string): string | null {
  */
 function getStagedFiles(cwd: string): string[] | null {
   try {
-    const output = execSync('git diff --cached --name-only', {
+    const output = execFileSync('git', ['diff', '--cached', '--name-only'], {
       cwd,
       encoding: 'utf8',
       timeout: 5000,

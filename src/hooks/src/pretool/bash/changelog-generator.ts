@@ -12,23 +12,26 @@ import {
   logPermissionFeedback,
   getProjectDir,
 } from '../../lib/common.js';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 
 /**
  * Get recent commits for changelog
  */
 function getRecentCommits(projectDir: string, since?: string): string[] {
   try {
-    const sinceArg = since ? `--since="${since}"` : '--max-count=20';
-    const result = execSync(
-      `git log ${sinceArg} --pretty=format:"%s" 2>/dev/null || echo ""`,
-      {
-        cwd: projectDir,
-        encoding: 'utf8',
-        timeout: 10000,
-        stdio: ['pipe', 'pipe', 'pipe'],
-      }
-    );
+    const args = ['log'];
+    if (since) {
+      args.push(`--since=${since}`);
+    } else {
+      args.push('--max-count=20');
+    }
+    args.push('--pretty=format:%s');
+    const result = execFileSync('git', args, {
+      cwd: projectDir,
+      encoding: 'utf8',
+      timeout: 10000,
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
 
     return result.split('\n').filter(Boolean);
   } catch {

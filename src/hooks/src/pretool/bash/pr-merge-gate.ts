@@ -16,7 +16,7 @@ import {
   getProjectDir,
 } from '../../lib/common.js';
 import { isAgentTeamsActive } from '../../lib/agent-teams.js';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -33,16 +33,15 @@ interface PRStatus {
  */
 function getPRStatus(projectDir: string, prNumber?: number): PRStatus | null {
   try {
-    const prArg = prNumber ? `${prNumber}` : '';
-    const result = execSync(
-      `gh pr view ${prArg} --json number,state,mergeable,statusCheckRollup,reviewDecision 2>/dev/null`,
-      {
-        cwd: projectDir,
-        encoding: 'utf8',
-        timeout: 10000,
-        stdio: ['pipe', 'pipe', 'pipe'],
-      }
-    );
+    const args = ['pr', 'view'];
+    if (prNumber) args.push(`${prNumber}`);
+    args.push('--json', 'number,state,mergeable,statusCheckRollup,reviewDecision');
+    const result = execFileSync('gh', args, {
+      cwd: projectDir,
+      encoding: 'utf8',
+      timeout: 10000,
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
 
     return JSON.parse(result) as PRStatus;
   } catch {

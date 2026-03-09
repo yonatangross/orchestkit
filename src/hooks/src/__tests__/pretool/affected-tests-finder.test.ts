@@ -22,7 +22,6 @@ vi.mock('../../lib/common.js', () => ({
 }));
 
 vi.mock('node:child_process', () => ({
-  execSync: vi.fn(() => ''),
   execFileSync: vi.fn(() => ''),
 }));
 
@@ -38,7 +37,7 @@ vi.mock('node:path', () => ({
 
 import { affectedTestsFinder } from '../../pretool/bash/affected-tests-finder.js';
 import type { HookInput } from '../../types.js';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 
 function createBashInput(command: string): HookInput {
@@ -82,7 +81,7 @@ describe('affected-tests-finder', () => {
 
   it('returns silent success when no changed files', () => {
     // Arrange
-    vi.mocked(execSync).mockReturnValue('');
+    vi.mocked(execFileSync).mockReturnValue('');
     const input = createBashInput('git push origin main');
 
     // Act
@@ -95,7 +94,7 @@ describe('affected-tests-finder', () => {
 
   it('suggests related tests when changed files have corresponding tests', () => {
     // Arrange
-    vi.mocked(execSync).mockReturnValue(' M src/services/auth.ts\n');
+    vi.mocked(execFileSync).mockReturnValue(' M src/services/auth.ts\n');
     vi.mocked(existsSync).mockImplementation((p: unknown) => {
       if (typeof p === 'string' && p.includes('auth.test.ts')) return true;
       return false;
@@ -112,7 +111,7 @@ describe('affected-tests-finder', () => {
 
   it('returns silent success when changed files have no matching tests', () => {
     // Arrange
-    vi.mocked(execSync).mockReturnValue(' M src/config/settings.ts\n');
+    vi.mocked(execFileSync).mockReturnValue(' M src/config/settings.ts\n');
     vi.mocked(existsSync).mockReturnValue(false);
     const input = createBashInput('git push origin main');
 
@@ -126,7 +125,7 @@ describe('affected-tests-finder', () => {
 
   it('handles git command failure gracefully', () => {
     // Arrange
-    vi.mocked(execSync).mockImplementation(() => {
+    vi.mocked(execFileSync).mockImplementation(() => {
       throw new Error('not a git repository');
     });
     const input = createBashInput('git push origin main');
