@@ -1,6 +1,6 @@
 ---
 description: "Assesses and rates quality 0-10 with pros/cons analysis. Use when evaluating code, designs, or approaches."
-allowed-tools: [AskUserQuestion, Read, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskList, mcp__memory__search_nodes, Bash]
+allowed-tools: [AskUserQuestion, Read, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskList, ToolSearch, mcp__memory__search_nodes, Bash]
 ---
 
 # Auto-generated from skills/assess/SKILL.md
@@ -19,6 +19,37 @@ Comprehensive assessment skill for answering "is this good?" with structured eva
 /ork:assess the current database schema
 /ork:assess frontend/src/components/Dashboard
 ```
+
+
+## STEP -1: MCP Probe + Resume Check
+
+> Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/mcp-detection.md")`
+
+```python
+# 1. Probe MCP servers (once at skill start)
+ToolSearch(query="select:mcp__memory__search_nodes")
+
+# 2. Store capabilities
+Write(".claude/chain/capabilities.json", {
+  "memory": probe_memory.found,
+  "skill": "assess",
+  "timestamp": now()
+})
+
+# 3. Check for resume
+state = Read(".claude/chain/state.json")  # may not exist
+if state.skill == "assess" and state.status == "in_progress":
+    last_handoff = Read(f".claude/chain/{state.last_handoff}")
+```
+
+### Phase Handoffs
+
+| Phase | Handoff File | Contents |
+|-------|-------------|----------|
+| 0 | `00-intent.json` | Dimensions, target, mode |
+| 1 | `01-baseline.json` | Initial codebase scan results |
+| 2 | `02-evaluation.json` | Per-dimension scores + evidence |
+| 3 | `03-report.json` | Final report, grade, recommendations |
 
 
 ## STEP 0: Verify User Intent with AskUserQuestion

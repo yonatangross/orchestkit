@@ -25,11 +25,12 @@ vi.mock('../../lib/common.js', () => ({
 
 vi.mock('node:child_process', () => ({
   execSync: vi.fn(() => ''),
+  execFileSync: vi.fn(() => ''),
 }));
 
 import { commitAtomicityChecker } from '../../pretool/bash/commit-atomicity-checker.js';
 import type { HookInput } from '../../types.js';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 
 function createBashInput(command: string): HookInput {
   return {
@@ -95,7 +96,7 @@ describe('commit-atomicity-checker', () => {
     it('returns silent success when <=10 staged files', () => {
       // Arrange
       const stagedFiles = Array.from({ length: 10 }, (_, i) => `src/file${i}.ts`).join('\n');
-      vi.mocked(execSync).mockReturnValue(stagedFiles);
+      vi.mocked(execFileSync).mockReturnValue(stagedFiles);
       const input = createBashInput('git commit -m "Update files"');
 
       // Act
@@ -109,7 +110,7 @@ describe('commit-atomicity-checker', () => {
     it('warns when >10 staged files', () => {
       // Arrange
       const stagedFiles = Array.from({ length: 15 }, (_, i) => `src/file${i}.ts`).join('\n');
-      vi.mocked(execSync).mockReturnValue(stagedFiles);
+      vi.mocked(execFileSync).mockReturnValue(stagedFiles);
       const input = createBashInput('git commit -m "Update many files"');
 
       // Act
@@ -125,7 +126,7 @@ describe('commit-atomicity-checker', () => {
     it('warns when exactly 11 staged files', () => {
       // Arrange
       const stagedFiles = Array.from({ length: 11 }, (_, i) => `src/file${i}.ts`).join('\n');
-      vi.mocked(execSync).mockReturnValue(stagedFiles);
+      vi.mocked(execFileSync).mockReturnValue(stagedFiles);
       const input = createBashInput('git commit -m "Test"');
 
       // Act
@@ -145,7 +146,7 @@ describe('commit-atomicity-checker', () => {
     it('returns silent success when files in <=3 top-level directories', () => {
       // Arrange
       const stagedFiles = 'src/auth.ts\nsrc/user.ts\ndocs/api.md';
-      vi.mocked(execSync).mockReturnValue(stagedFiles);
+      vi.mocked(execFileSync).mockReturnValue(stagedFiles);
       const input = createBashInput('git commit -m "Update auth"');
 
       // Act
@@ -159,7 +160,7 @@ describe('commit-atomicity-checker', () => {
     it('warns when files span >3 top-level directories', () => {
       // Arrange
       const stagedFiles = 'src/auth.ts\ndocs/api.md\ntests/auth.test.ts\nscripts/build.sh';
-      vi.mocked(execSync).mockReturnValue(stagedFiles);
+      vi.mocked(execFileSync).mockReturnValue(stagedFiles);
       const input = createBashInput('git commit -m "Update multiple areas"');
 
       // Act
@@ -175,7 +176,7 @@ describe('commit-atomicity-checker', () => {
     it('handles files in root directory', () => {
       // Arrange
       const stagedFiles = 'README.md\npackage.json\nsrc/index.ts\ndocs/guide.md\nconfig/app.yml';
-      vi.mocked(execSync).mockReturnValue(stagedFiles);
+      vi.mocked(execFileSync).mockReturnValue(stagedFiles);
       const input = createBashInput('git commit -m "Update config"');
 
       // Act
@@ -196,7 +197,7 @@ describe('commit-atomicity-checker', () => {
     it('returns silent success when files are in same category', () => {
       // Arrange
       const stagedFiles = 'src/auth.ts\nsrc/user.ts\nlib/util.ts';
-      vi.mocked(execSync).mockReturnValue(stagedFiles);
+      vi.mocked(execFileSync).mockReturnValue(stagedFiles);
       const input = createBashInput('git commit -m "Update auth"');
 
       // Act
@@ -210,7 +211,7 @@ describe('commit-atomicity-checker', () => {
     it('warns when files span src/ + docs/ + config/ categories', () => {
       // Arrange
       const stagedFiles = 'src/auth.ts\ndocs/api.md\nconfig/database.yml';
-      vi.mocked(execSync).mockReturnValue(stagedFiles);
+      vi.mocked(execFileSync).mockReturnValue(stagedFiles);
       const input = createBashInput('git commit -m "Update auth"');
 
       // Act
@@ -226,7 +227,7 @@ describe('commit-atomicity-checker', () => {
     it('categorizes test files correctly', () => {
       // Arrange
       const stagedFiles = 'tests/auth.test.ts\n__tests__/user.test.ts\nspec/integration.spec.ts';
-      vi.mocked(execSync).mockReturnValue(stagedFiles);
+      vi.mocked(execFileSync).mockReturnValue(stagedFiles);
       const input = createBashInput('git commit -m "Add tests"');
 
       // Act
@@ -240,7 +241,7 @@ describe('commit-atomicity-checker', () => {
     it('warns when mixing 3+ categories', () => {
       // Arrange
       const stagedFiles = 'src/auth.ts\ntests/auth.test.ts\ndocs/api.md\nscripts/build.sh';
-      vi.mocked(execSync).mockReturnValue(stagedFiles);
+      vi.mocked(execFileSync).mockReturnValue(stagedFiles);
       const input = createBashInput('git commit -m "Big update"');
 
       // Act
@@ -260,7 +261,7 @@ describe('commit-atomicity-checker', () => {
     it('returns silent success when message has no "and"', () => {
       // Arrange
       const stagedFiles = 'src/auth.ts';
-      vi.mocked(execSync).mockReturnValue(stagedFiles);
+      vi.mocked(execFileSync).mockReturnValue(stagedFiles);
       const input = createBashInput('git commit -m "Fix authentication bug"');
 
       // Act
@@ -274,7 +275,7 @@ describe('commit-atomicity-checker', () => {
     it('warns when message contains " and " (lowercase)', () => {
       // Arrange
       const stagedFiles = 'src/auth.ts';
-      vi.mocked(execSync).mockReturnValue(stagedFiles);
+      vi.mocked(execFileSync).mockReturnValue(stagedFiles);
       const input = createBashInput('git commit -m "Fix auth and update docs"');
 
       // Act
@@ -289,7 +290,7 @@ describe('commit-atomicity-checker', () => {
     it('warns when message contains " And " (uppercase)', () => {
       // Arrange
       const stagedFiles = 'src/auth.ts';
-      vi.mocked(execSync).mockReturnValue(stagedFiles);
+      vi.mocked(execFileSync).mockReturnValue(stagedFiles);
       const input = createBashInput('git commit -m "Fix auth And update docs"');
 
       // Act
@@ -303,7 +304,7 @@ describe('commit-atomicity-checker', () => {
     it('warns when message contains " AND " (all caps)', () => {
       // Arrange
       const stagedFiles = 'src/auth.ts';
-      vi.mocked(execSync).mockReturnValue(stagedFiles);
+      vi.mocked(execFileSync).mockReturnValue(stagedFiles);
       const input = createBashInput('git commit -m "Fix auth AND update docs"');
 
       // Act
@@ -317,7 +318,7 @@ describe('commit-atomicity-checker', () => {
     it('returns silent success for "android", "command", etc. (no space-delimited "and")', () => {
       // Arrange
       const stagedFiles = 'src/android.ts';
-      vi.mocked(execSync).mockReturnValue(stagedFiles);
+      vi.mocked(execFileSync).mockReturnValue(stagedFiles);
       const input = createBashInput('git commit -m "Add android support"');
 
       // Act
@@ -337,7 +338,7 @@ describe('commit-atomicity-checker', () => {
     it('handles -m with double quotes', () => {
       // Arrange
       const stagedFiles = 'src/auth.ts';
-      vi.mocked(execSync).mockReturnValue(stagedFiles);
+      vi.mocked(execFileSync).mockReturnValue(stagedFiles);
       const input = createBashInput('git commit -m "Fix auth and update"');
 
       // Act
@@ -350,7 +351,7 @@ describe('commit-atomicity-checker', () => {
     it('handles -m with single quotes', () => {
       // Arrange
       const stagedFiles = 'src/auth.ts';
-      vi.mocked(execSync).mockReturnValue(stagedFiles);
+      vi.mocked(execFileSync).mockReturnValue(stagedFiles);
       const input = createBashInput("git commit -m 'Fix auth and update'");
 
       // Act
@@ -363,7 +364,7 @@ describe('commit-atomicity-checker', () => {
     it('handles --message with equals and double quotes', () => {
       // Arrange
       const stagedFiles = 'src/auth.ts';
-      vi.mocked(execSync).mockReturnValue(stagedFiles);
+      vi.mocked(execFileSync).mockReturnValue(stagedFiles);
       const input = createBashInput('git commit --message="Fix auth and update"');
 
       // Act
@@ -376,7 +377,7 @@ describe('commit-atomicity-checker', () => {
     it('handles --message with space and single quotes', () => {
       // Arrange
       const stagedFiles = 'src/auth.ts';
-      vi.mocked(execSync).mockReturnValue(stagedFiles);
+      vi.mocked(execFileSync).mockReturnValue(stagedFiles);
       const input = createBashInput("git commit --message 'Fix auth and update'");
 
       // Act
@@ -389,7 +390,7 @@ describe('commit-atomicity-checker', () => {
     it('handles -m with unquoted single word', () => {
       // Arrange
       const stagedFiles = 'src/auth.ts';
-      vi.mocked(execSync).mockReturnValue(stagedFiles);
+      vi.mocked(execFileSync).mockReturnValue(stagedFiles);
       const input = createBashInput('git commit -m fixbug');
 
       // Act
@@ -403,7 +404,7 @@ describe('commit-atomicity-checker', () => {
     it('returns silent success when no -m flag (interactive commit)', () => {
       // Arrange
       const stagedFiles = 'src/auth.ts';
-      vi.mocked(execSync).mockReturnValue(stagedFiles);
+      vi.mocked(execFileSync).mockReturnValue(stagedFiles);
       const input = createBashInput('git commit --amend');
 
       // Act
@@ -422,7 +423,7 @@ describe('commit-atomicity-checker', () => {
   describe('graceful error handling', () => {
     it('returns silent success when execSync fails', () => {
       // Arrange
-      vi.mocked(execSync).mockImplementation(() => {
+      vi.mocked(execFileSync).mockImplementation(() => {
         throw new Error('not a git repository');
       });
       const input = createBashInput('git commit -m "Test"');
@@ -437,7 +438,7 @@ describe('commit-atomicity-checker', () => {
 
     it('returns silent success when no staged files', () => {
       // Arrange
-      vi.mocked(execSync).mockReturnValue('');
+      vi.mocked(execFileSync).mockReturnValue('');
       const input = createBashInput('git commit -m "Test"');
 
       // Act
@@ -450,7 +451,7 @@ describe('commit-atomicity-checker', () => {
 
     it('returns silent success when only whitespace in git output', () => {
       // Arrange
-      vi.mocked(execSync).mockReturnValue('   \n\n   ');
+      vi.mocked(execFileSync).mockReturnValue('   \n\n   ');
       const input = createBashInput('git commit -m "Test"');
 
       // Act
@@ -486,7 +487,7 @@ describe('commit-atomicity-checker', () => {
         'scripts/build.sh',
         'scripts/deploy.sh',
       ].join('\n');
-      vi.mocked(execSync).mockReturnValue(stagedFiles);
+      vi.mocked(execFileSync).mockReturnValue(stagedFiles);
       const input = createBashInput('git commit -m "Update auth and docs and tests"');
 
       // Act
@@ -503,7 +504,7 @@ describe('commit-atomicity-checker', () => {
     it('suggests splitting atomic commits', () => {
       // Arrange
       const stagedFiles = Array.from({ length: 12 }, (_, i) => `src/file${i}.ts`).join('\n');
-      vi.mocked(execSync).mockReturnValue(stagedFiles);
+      vi.mocked(execFileSync).mockReturnValue(stagedFiles);
       const input = createBashInput('git commit -m "Update files"');
 
       // Act

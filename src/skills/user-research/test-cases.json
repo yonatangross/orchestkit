@@ -1,0 +1,39 @@
+{
+  "skill": "user-research",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "research-journey-mapping",
+      "rule": "research-journey-mapping",
+      "query": "Map the customer journey for our SaaS onboarding flow from signup to first value",
+      "expectedBehavior": [
+        "Defines journey stages from awareness through consideration, purchase, onboard, and retention",
+        "Maps user actions, thoughts, and emotions at each stage of the journey",
+        "Identifies pain points and improvement opportunities at each touchpoint",
+        "Includes channel touchpoints and emotional curve tracking sentiment across stages"
+      ]
+    },
+    {
+      "id": "research-personas",
+      "rule": "research-personas",
+      "query": "Create user personas for our project management tool targeting both engineers and PMs",
+      "expectedBehavior": [
+        "Includes demographics, goals, pain points, and behavioral patterns for each persona",
+        "Adds a characteristic quote that captures the persona's mindset and priorities",
+        "Creates empathy maps covering what each persona says, thinks, does, and feels",
+        "Differentiates personas by tech savviness, workflow needs, and decision-making authority"
+      ]
+    },
+    {
+      "id": "research-user-interviews",
+      "rule": "research-user-interviews",
+      "query": "Plan a user research study to understand why users churn after the free trial",
+      "expectedBehavior": [
+        "Creates structured interview guide with warm-up, deep dive, and wrap-up sections",
+        "Recommends appropriate sample size of five to eight participants for qualitative insights",
+        "Uses open-ended questions and avoids leading questions that bias responses",
+        "Includes systematic insight collection framework with affinity mapping for synthesis"
+      ]
+    }
+  ]
+}

@@ -62,6 +62,16 @@ hooks/
 │   ├── subagent-start/     # Subagent spawn hooks (5)
 │   ├── subagent-stop/      # Subagent completion hooks (11)
 │   ├── notification/       # Notification hooks (3)
+│   ├── instructions-loaded/ # InstructionsLoaded hooks (6 handlers via dispatcher)
+│   │   ├── instructions-loaded-dispatcher.ts  # Main dispatcher
+│   │   ├── types.ts                           # Shared interfaces
+│   │   ├── classify-source.ts                 # File origin classifier
+│   │   ├── token-budget-tracker.ts            # Token budget estimation
+│   │   ├── priority-map.ts                    # Rule precedence chain
+│   │   ├── drift-detection.ts                 # Cross-session drift detection
+│   │   ├── content-dedup.ts                   # Duplicate content scanner
+│   │   ├── rule-conflicts.ts                  # Contradictory rule detector
+│   │   └── smart-suggestions.ts               # Missing rule suggestions
 │   ├── stop/               # Session stop hooks (29 via unified dispatcher)
 │   ├── lifecycle/          # Lifecycle hooks (17)
 │   ├── setup/              # Setup and maintenance hooks (9)
@@ -89,7 +99,7 @@ hooks/
 ├── tsconfig.json           # TypeScript configuration
 └── esbuild.config.mjs      # Build configuration (split bundles)
 
-**Total:** <!--ork:hooks-->105<!--/ork--> hooks (<!--ork:hooks-global-->42<!--/ork--> global + <!--ork:hooks-agent-->44<!--/ork--> agent-scoped + <!--ork:hooks-skill-->19<!--/ork--> skill-scoped)
+**Total:** <!--ork:hooks-->96<!--/ork--> hooks (<!--ork:hooks-global-->32<!--/ork--> global + <!--ork:hooks-agent-->45<!--/ork--> agent-scoped + <!--ork:hooks-skill-->19<!--/ork--> skill-scoped)
 ```
 
 ---
@@ -1020,7 +1030,7 @@ OrchestKit hooks are managed defaults. Users retain full control to disable any 
 **Last Updated:** 2026-02-28
 **Version:** 2.1.0 (Async hooks support)
 **Architecture:** 12 split bundles (381KB total) + 1 unified (324KB)
-**Hooks:** <!--ork:hooks-->105<!--/ork--> hooks (<!--ork:hooks-global-->42<!--/ork--> global + <!--ork:hooks-agent-->44<!--/ork--> agent-scoped + <!--ork:hooks-skill-->19<!--/ork--> skill-scoped)
+**Hooks:** <!--ork:hooks-->96<!--/ork--> hooks (<!--ork:hooks-global-->32<!--/ork--> global + <!--ork:hooks-agent-->45<!--/ork--> agent-scoped + <!--ork:hooks-skill-->19<!--/ork--> skill-scoped)
 **Average Bundle:** ~35KB per event
 **Claude Code Requirement:** >= 2.1.69
 

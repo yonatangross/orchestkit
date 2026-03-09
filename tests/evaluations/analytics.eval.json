@@ -7,47 +7,163 @@
       "id": "analytics-agents",
       "query": "/ork:analytics agents",
       "expected_behavior": [
-        "Reads agent-usage.jsonl from ~/.claude/analytics/",
+        "Reads agent-usage.jsonl log data from the ~/.claude/analytics/ directory",
         "Runs jq query from references/jq-queries.md agents section",
-        "Presents results as markdown table with agent name, count, avg duration, success rate"
+        "Presents results as markdown table with agent name, count, avg duration, success rate",
+        "Includes per-agent model breakdown showing usage across different models"
       ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "analytics-session-latest",
+      "query": "/ork:analytics session latest",
+      "expected_behavior": [
+        "Finds CC session directory using encoded project path",
+        "Locates most recently modified .jsonl file",
+        "Parses JSONL entries for tool calls, token usage, timestamps",
+        "Presents timeline with session metadata, tool usage table, token breakdown"
+      ],
+      "tags": [
+        "happy-path"
+      ]
     },
     {
       "id": "analytics-cost",
       "query": "/ork:analytics cost",
       "expected_behavior": [
-        "Reads ~/.claude/stats-cache.json for modelUsage data",
-        "Applies model-specific pricing to token types",
-        "Calculates cache savings",
-        "Shows daily costs for last 7 days"
+        "Reads ~/.claude/stats-cache.json for modelUsage data including token counts",
+        "Applies model-specific pricing (opus/sonnet/haiku) to 4 token types",
+        "Calculates cache savings (cache reads vs full-price input)",
+        "Shows daily costs for last 7 days",
+        "Presents as markdown table with per-model breakdown and totals"
       ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "analytics-trends",
+      "query": "/ork:analytics trends 30",
+      "expected_behavior": [
+        "Reads dailyActivity and dailyModelTokens from stats-cache.json for last 30 days",
+        "Shows daily activity table with sessions, messages, tools, estimated cost",
+        "Shows model delegation trend over time",
+        "Shows peak productivity hours based on session activity distribution",
+        "Shows all-time stats (total sessions, longest session)"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "analytics-no-trigger-general",
+      "query": "How many tokens did I use today?",
+      "expected_behavior": [
+        "Analytics skill should NOT activate for general token questions",
+        "This is a conversational question, not an analytics subcommand",
+        "Claude should answer from context or suggest using /ork:analytics cost"
+      ],
+      "tags": [
+        "happy-path"
+      ]
     },
     {
       "id": "analytics-no-subcommand",
       "query": "/ork:analytics",
       "expected_behavior": [
-        "No subcommand provided — prompts user to pick",
-        "Offers all available subcommands"
+        "No subcommand provided \u2014 uses AskUserQuestion to let user pick",
+        "Offers all available subcommands: agents, models, skills, hooks, teams, session, cost, trends, summary"
       ],
-      "should_not": [
-        "Run all subcommands without user confirmation",
-        "Fail silently"
-      ],
-      "tags": ["edge-case"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
-      "id": "analytics-not-triggered",
-      "query": "How many tokens did I use today?",
+      "id": "analytics-summary",
+      "query": "/ork:analytics summary",
       "expected_behavior": [
-        "Analytics skill should NOT activate for general token questions",
-        "Claude should answer from context or suggest using /ork:analytics cost"
+        "Runs all subcommand queries and presents unified view",
+        "Shows total sessions, total tool invocations",
+        "Shows top 5 agents, top 5 skills",
+        "Shows team activity overview if team data exists",
+        "Shows unique project hash count to indicate distinct projects tracked",
+        "Gracefully handles missing files (notes 'no data collected yet')"
       ],
-      "should_not": [
-        "Activate analytics skill for conversational questions"
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "cost-calculation",
+      "query": "/ork:analytics cost breakdown with cache savings for the last week",
+      "expected_behavior": [
+        "Calculates costs separately for four token types: input, output, cache_read, and cache_write",
+        "Applies cache_read pricing at 10x cheaper than regular input token pricing",
+        "Shows cache savings prominently comparing cost with and without caching",
+        "Uses model-specific pricing rates for opus, sonnet, and haiku models",
+        "Presents daily cost breakdown as a markdown table with per-model totals"
       ],
-      "tags": ["edge-case"]
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "data-privacy",
+      "query": "Log agent usage analytics for this project session to the analytics directory.",
+      "expected_behavior": [
+        "Uses hashProject to generate an irreversible 12-character SHA256 hash for project identifier",
+        "Never logs raw file paths, usernames, or environment variables in analytics data",
+        "Stores all analytics data locally in the ~/.claude/analytics/ directory only",
+        "Logs only non-PII fields like agent name, skill name, model name, and duration",
+        "Uses ISO 8601 timestamps for the ts field in analytics JSONL entries"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "large-file-streaming",
+      "query": "/ork:analytics agents with full history including rotated files from the past 6 months",
+      "expected_behavior": [
+        "Checks file size before querying and avoids jq slurp flag for files over 50MB",
+        "Uses streaming jq without the -s flag for large JSONL file processing",
+        "Includes rotated files matching the pattern agent-usage.YYYY-MM.jsonl for historical data",
+        "Aggregates results using jq reduce or pipe-based sort and uniq patterns",
+        "Filters by timestamp field when date range is specified before aggregating results"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "visualization-dashboards",
+      "query": "Build a React dashboard with stat cards and charts that share a single data query for analytics metrics.",
+      "expected_behavior": [
+        "Uses CSS Grid with responsive breakpoints for stat card and chart layout",
+        "Shares data via TanStack Query with granular query keys instead of per-widget fetching",
+        "Uses col-span-full for full-width charts and col-span-2 for half-width sections",
+        "Implements SSE with EventSource for real-time metric updates on specific query keys",
+        "Wraps widget components in Suspense with skeleton fallbacks for loading states"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "visualization-recharts",
+      "query": "Create a Recharts line chart for revenue trends with a custom tooltip and responsive container.",
+      "expected_behavior": [
+        "Wraps the chart in ResponsiveContainer with a parent element that has explicit height",
+        "Disables animations on real-time or frequently updating charts using isAnimationActive false",
+        "Implements a custom tooltip component for branded UX instead of using defaults",
+        "Adds figure role and aria-label attributes for chart accessibility",
+        "Includes CartesianGrid, XAxis, YAxis, Tooltip, and Legend for complete chart setup"
+      ],
+      "tags": [
+        "happy-path"
+      ]
     }
   ]
 }

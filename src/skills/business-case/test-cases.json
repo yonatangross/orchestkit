@@ -1,0 +1,28 @@
+{
+  "skill": "business-case",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "business-cost-benefit",
+      "rule": "business-cost-benefit",
+      "query": "Compare the total cost of building our own analytics platform versus buying a commercial solution",
+      "expectedBehavior": [
+        "Creates a 3-year total cost of ownership comparison table for build versus buy options",
+        "Includes hidden costs such as opportunity cost, switching costs, and maintenance burden",
+        "Provides sensitivity analysis with best-case, worst-case, and expected outcome scenarios",
+        "Uses structured business case template with executive summary and clear recommendation"
+      ]
+    },
+    {
+      "id": "business-roi",
+      "rule": "business-roi",
+      "query": "Calculate the ROI and payback period for a $300K infrastructure modernization project",
+      "expectedBehavior": [
+        "Uses ROI formula: Net Benefits minus Total Costs divided by Total Costs times 100 percent",
+        "Calculates net present value using an appropriate discount rate for time value of money",
+        "Provides internal rate of return and payback period alongside the basic ROI calculation",
+        "Includes Python code examples for automating the financial metric calculations"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "skill": "write-prd",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "research-requirements-prd",
+      "rule": "research-requirements-prd",
+      "query": "Write a PRD for a new real-time collaboration feature in our document editor",
+      "expectedBehavior": [
+        "Follows standard PRD template with problem statement, goals, and scope definition",
+        "Includes user stories following INVEST criteria for independence and estimability",
+        "Writes acceptance criteria in Given-When-Then format for testable requirements",
+        "Defines non-functional requirements such as latency targets and concurrent user limits"
+      ]
+    },
+    {
+      "id": "strategy-go-no-go",
+      "rule": "strategy-go-no-go",
+      "query": "Should we build, buy, or partner for an analytics dashboard? Help me evaluate the decision.",
+      "expectedBehavior": [
+        "Applies stage gate criteria checklist covering opportunity, solution, and business case gates",
+        "Uses weighted scoring template evaluating feasibility, viability, and desirability dimensions",
+        "Provides clear decision thresholds with Go, Conditional Go, and No-Go score boundaries",
+        "Includes build versus buy versus partner evaluation matrix with cost and risk tradeoffs"
+      ]
+    },
+    {
+      "id": "strategy-value-prop",
+      "rule": "strategy-value-prop",
+      "query": "Define the value proposition for our new developer productivity tool using Jobs-to-be-Done",
+      "expectedBehavior": [
+        "Uses JTBD statement format: When situation, I want motivation, so I can expected outcome",
+        "Maps customer jobs across functional, social, and emotional dimensions",
+        "Creates value proposition canvas mapping pain relievers and gain creators to customer needs",
+        "Assesses problem-solution fit by connecting product capabilities to identified pains and gains"
+      ]
+    }
+  ]
+}

@@ -38,12 +38,23 @@
     {
       "id": "all-phases-complete",
       "rule": "state-write-timing",
-      "query": "Check the pipeline status — I think everything is done",
+      "query": "Check the pipeline status \u2014 I think everything is done",
       "expectedBehavior": [
         "Runs scripts/show-status.sh and finds all phases marked as completed",
         "Reports the pipeline as fully complete with a summary of all phases executed",
         "Does not prompt for resume or additional phases",
         "Optionally suggests cleaning up .claude/pipeline-state.json or archiving it"
+      ]
+    },
+    {
+      "id": "checkpoint-mini-commit",
+      "rule": "checkpoint-mini-commit",
+      "query": "How often should I create checkpoint commits during a long pipeline to avoid losing work?",
+      "expectedBehavior": [
+        "Creates a mini-commit every 3 completed phases as a git recovery point for the pipeline",
+        "Uses checkpoint commit format to distinguish recovery points from regular feature commits",
+        "Provides git recovery point even if later phases fail due to rate limits or errors",
+        "Combines state writes after every phase with periodic mini-commits for defense in depth"
       ]
     }
   ]

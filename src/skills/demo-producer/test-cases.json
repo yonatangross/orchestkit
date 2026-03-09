@@ -10,9 +10,9 @@
         "Detects content type as skill demo",
         "Asks format preference (horizontal 16:9 for YouTube)",
         "Asks style preference (Quick Demo, Standard Demo, Tutorial, Cinematic, Scrapbook)",
-        "Asks audio preferences",
+        "Asks audio preferences for background music and voiceover options",
         "Reads the explore SKILL.md to extract phases and capabilities",
-        "Generates VHS terminal recording script",
+        "Generates VHS terminal recording script with typed commands and expected output",
         "Produces Remotion composition with appropriate template"
       ]
     },
@@ -38,6 +38,54 @@
         "Treats this as a testing task using test generation patterns",
         "Uses standard code tools to write test files",
         "Demo producer is for video creation, not code testing"
+      ]
+    },
+    {
+      "id": "analyzer-patterns",
+      "rule": "analyzer-patterns",
+      "query": "Extract skill metadata from the explore SKILL.md file to generate an accurate demo script.",
+      "expectedBehavior": [
+        "Parses YAML frontmatter between the opening and closing delimiter lines only",
+        "Extracts name, description, tags, version, and userInvocable fields from frontmatter",
+        "Detects workflow phases by scanning for Phase N header patterns in the skill body",
+        "Identifies code examples with language tags and surrounding context descriptions",
+        "Validates extracted metadata against the SkillMetadata interface before generating demos"
+      ]
+    },
+    {
+      "id": "production-composition",
+      "rule": "production-composition",
+      "query": "Compose a YouTube demo video with professional audio mixing, captions, and thumbnail optimization.",
+      "expectedBehavior": [
+        "Sets narration volume at -14 to -12 dB as the primary audio element",
+        "Ducks background music -6 to -8 dB under narration for clear intelligibility",
+        "Limits thumbnail text to 3-4 words maximum and tests readability at small preview size",
+        "Includes a hook in the first 3 seconds to prevent early viewer drop-off",
+        "Adds captions for accessibility and silent browsing using the appropriate caption style"
+      ]
+    },
+    {
+      "id": "production-pipeline",
+      "rule": "production-pipeline",
+      "query": "Plan the pre-production pipeline for a skill demo video including storyboarding, narration scripting, and recording.",
+      "expectedBehavior": [
+        "Follows structured pre-production pipeline from storyboarding through recording to composition",
+        "Uses AIDA framework with 15% attention, 35% interest, 35% desire, and 15% action split",
+        "Sets narration pacing at 130-150 words per minute for standard or 120-140 for technical content",
+        "Generates VHS tape scripts for terminal recording with typed commands and expected output",
+        "Keeps hook duration to 3 seconds maximum and intro cards to 2-4 seconds"
+      ]
+    },
+    {
+      "id": "slop-avoidance",
+      "rule": "slop-avoidance",
+      "query": "Review this demo script and cut any verbose or generic terminal output that wastes screen time.",
+      "expectedBehavior": [
+        "Eliminates verbose phase names and replaces with concise action-oriented descriptions",
+        "Combines redundant phase title and description pairs into single informative lines",
+        "Cuts generic transitions like 'now let us see' and replaces with direct scene cuts",
+        "Applies the rule that content must earn its screen time or be removed from the demo",
+        "Compresses repetitive task completion messages into abbreviated status indicators"
       ]
     }
   ]

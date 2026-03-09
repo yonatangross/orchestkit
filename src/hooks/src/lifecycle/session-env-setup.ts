@@ -6,7 +6,7 @@
 
 import { existsSync, readFileSync, mkdirSync } from 'node:fs';
 import { atomicWriteSync } from '../lib/atomic-write.js';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, getProjectDir, getSessionId, outputSilentSuccess } from '../lib/common.js';
 import { getMetricsFile } from '../lib/paths.js';
@@ -32,7 +32,7 @@ interface SessionMetrics {
  */
 function getCurrentBranch(projectDir: string): string {
   try {
-    return execSync('git branch --show-current', {
+    return execFileSync('git', ['branch', '--show-current'], {
       cwd: projectDir,
       encoding: 'utf-8',
       timeout: 500,

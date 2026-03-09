@@ -7,10 +7,10 @@
       "rule": "alembic-autogenerate",
       "query": "Generate an Alembic migration from SQLAlchemy model changes",
       "expectedBehavior": [
-        "Uses alembic revision --autogenerate",
-        "Configures async env.py with asyncpg",
-        "Reviews generated SQL before applying",
-        "Sets target_metadata from Base.metadata"
+        "Uses alembic revision --autogenerate to detect model changes and generate migrations",
+        "Configures async env.py with asyncpg for non-blocking migration execution",
+        "Reviews generated SQL before applying to catch incorrect or destructive operations",
+        "Sets target_metadata from Base.metadata to enable accurate schema introspection"
       ]
     },
     {
@@ -20,8 +20,8 @@
       "expectedBehavior": [
         "Uses two-phase approach: nullable first then alter",
         "Backfills data in batches with LIMIT and FOR UPDATE SKIP LOCKED",
-        "Creates indexes CONCURRENTLY outside transaction",
-        "Implements proper downgrade function"
+        "Creates indexes CONCURRENTLY outside transaction to avoid locking production tables",
+        "Implements proper downgrade function for safe rollback of schema changes"
       ]
     },
     {
@@ -42,7 +42,7 @@
       "expectedBehavior": [
         "Normalizes to 3NF with separate entity tables",
         "Uses atomic values (no comma-separated lists)",
-        "Eliminates transitive dependencies",
+        "Eliminates transitive dependencies to achieve proper third normal form compliance",
         "Justifies any denormalization with performance evidence"
       ]
     },
@@ -63,9 +63,9 @@
       "query": "Design a MongoDB schema for a content management system",
       "expectedBehavior": [
         "Chooses embed vs reference based on access patterns",
-        "Considers document size limits",
+        "Considers document size limits to prevent exceeding the 16MB BSON maximum",
         "Plans sharding key for even distribution",
-        "Defines schema validation rules"
+        "Defines schema validation rules to enforce data integrity at the collection level"
       ]
     },
     {
@@ -73,10 +73,10 @@
       "rule": "versioning-changelog",
       "query": "Set up schema version tracking for a database",
       "expectedBehavior": [
-        "Creates schema_version table with checksums",
-        "Uses semantic versioning (MAJOR.MINOR.PATCH)",
+        "Creates schema_version table with checksums for tracking applied migration integrity",
+        "Uses semantic versioning (MAJOR.MINOR.PATCH) for schema change classification and compatibility",
         "Implements audit trail with row-level versioning or CDC",
-        "Tracks applied_at, applied_by, and execution_time"
+        "Tracks applied_at, applied_by, and execution_time for complete migration audit history"
       ]
     },
     {
@@ -85,7 +85,7 @@
       "query": "Test database migration rollback procedures",
       "expectedBehavior": [
         "Tests upgrade and downgrade cycle locally",
-        "Verifies data preservation after rollback",
+        "Verifies data preservation after rollback to ensure no records are lost",
         "Documents destructive rollbacks in migration docstring",
         "Includes CI pipeline for migration testing"
       ]
@@ -97,8 +97,41 @@
       "expectedBehavior": [
         "Uses checksum verification on deployed migrations",
         "Implements advisory locks for concurrent migration prevention",
-        "Configures environment-specific settings (timeouts, locks)",
+        "Configures environment-specific settings (timeouts, locks) for safe production migration execution",
         "Follows local -> CI -> staging -> production flow"
+      ]
+    },
+    {
+      "id": "db-selection",
+      "rule": "db-selection",
+      "query": "Should I use MongoDB or PostgreSQL for our new microservice? The data is mostly JSON documents.",
+      "expectedBehavior": [
+        "Defaults to PostgreSQL unless there is a specific validated reason to choose otherwise",
+        "Recommends PostgreSQL JSONB for JSON document workloads covering 90 percent of MongoDB use cases",
+        "Evaluates based on project tier from interview through enterprise scale for appropriate tooling",
+        "Warns against choosing MongoDB because it is trendy without benchmarking against PostgreSQL JSONB"
+      ]
+    },
+    {
+      "id": "migration-rollback",
+      "rule": "migration-rollback",
+      "query": "How do I set up automated rollback for database migrations in case something goes wrong?",
+      "expectedBehavior": [
+        "Recommends pgroll for automated dual-schema versioning with built-in rollback capability",
+        "Monitors pg_stat_activity for long-running queries and locks during migration execution",
+        "Checks replication lag on replicas before completing the migration with pgroll complete",
+        "Follows environment order local to CI to staging to production and never skips stages"
+      ]
+    },
+    {
+      "id": "migration-zero-downtime",
+      "rule": "migration-zero-downtime",
+      "query": "I need to rename a column in our production database without any downtime. How do I do this safely?",
+      "expectedBehavior": [
+        "Uses expand-contract pattern: add new column, migrate data, remove old column in separate phases",
+        "Never uses ALTER TABLE RENAME COLUMN directly as it locks the table during metadata change",
+        "Creates indexes with CONCURRENTLY to avoid locking tables during index creation on large tables",
+        "Adds constraints with NOT VALID first then validates separately to avoid blocking writes"
       ]
     }
   ]

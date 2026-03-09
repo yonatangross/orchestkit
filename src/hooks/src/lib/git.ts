@@ -3,8 +3,25 @@
  * Ported from hooks/_lib/common.sh git functions
  */
 
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import { getProjectDir } from './common.js';
+
+/**
+ * Execute a git command safely (no shell — args passed as array).
+ * Returns trimmed stdout on success, empty string on failure.
+ */
+export function gitExec(args: string[], cwd?: string, timeout = 10000): string {
+  try {
+    return execFileSync('git', args, {
+      cwd: cwd || getProjectDir(),
+      encoding: 'utf8',
+      timeout,
+      stdio: ['pipe', 'pipe', 'pipe'],
+    }).trim();
+  } catch {
+    return '';
+  }
+}
 
 /**
  * Get the current git branch
@@ -12,7 +29,7 @@ import { getProjectDir } from './common.js';
 export function getCurrentBranch(projectDir?: string): string {
   const dir = projectDir || getProjectDir();
   try {
-    return execSync('git branch --show-current', {
+    return execFileSync('git', ['branch', '--show-current'], {
       cwd: dir,
       encoding: 'utf8',
       timeout: 5000,
@@ -58,7 +75,7 @@ export function isProtectedBranch(branch?: string): boolean {
 export function getRepoRoot(projectDir?: string): string {
   const dir = projectDir || getProjectDir();
   try {
-    return execSync('git rev-parse --show-toplevel', {
+    return execFileSync('git', ['rev-parse', '--show-toplevel'], {
       cwd: dir,
       encoding: 'utf8',
       timeout: 5000,
@@ -75,7 +92,7 @@ export function getRepoRoot(projectDir?: string): string {
 export function isGitRepo(projectDir?: string): boolean {
   const dir = projectDir || getProjectDir();
   try {
-    execSync('git rev-parse --git-dir', {
+    execFileSync('git', ['rev-parse', '--git-dir'], {
       cwd: dir,
       encoding: 'utf8',
       timeout: 5000,
@@ -93,7 +110,7 @@ export function isGitRepo(projectDir?: string): boolean {
 export function getGitStatus(projectDir?: string): string {
   const dir = projectDir || getProjectDir();
   try {
-    return execSync('git status --short', {
+    return execFileSync('git', ['status', '--short'], {
       cwd: dir,
       encoding: 'utf8',
       timeout: 10000,
@@ -112,13 +129,31 @@ export function hasUncommittedChanges(projectDir?: string): boolean {
 }
 
 /**
+ * Count the number of dirty (modified/untracked) files
+ */
+export function getDirtyFileCount(projectDir?: string): number {
+  const dir = projectDir || getProjectDir();
+  try {
+    const output = execFileSync('git', ['status', '--porcelain'], {
+      cwd: dir,
+      encoding: 'utf8',
+      timeout: 3000,
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
+    return output.trim().split('\n').filter(l => l.trim()).length;
+  } catch {
+    return 0;
+  }
+}
+
+/**
  * Get the default branch (main or master)
  */
 export function getDefaultBranch(projectDir?: string): string {
   const dir = projectDir || getProjectDir();
   try {
     // Check if 'main' exists
-    execSync('git rev-parse --verify main', {
+    execFileSync('git', ['rev-parse', '--verify', 'main'], {
       cwd: dir,
       encoding: 'utf8',
       timeout: 5000,
@@ -128,7 +163,7 @@ export function getDefaultBranch(projectDir?: string): string {
   } catch {
     try {
       // Check if 'master' exists
-      execSync('git rev-parse --verify master', {
+      execFileSync('git', ['rev-parse', '--verify', 'master'], {
         cwd: dir,
         encoding: 'utf8',
         timeout: 5000,
@@ -175,10 +210,32 @@ export function extractIssueNumber(branch: string): number | null {
 export function getStagedFiles(projectDir?: string): string[] {
   const dir = projectDir || getProjectDir();
   try {
-    const output = execSync('git diff --cached --name-only', {
+    const output = execFileSync('git', ['diff', '--cached', '--name-only'], {
       cwd: dir,
       encoding: 'utf8',
       timeout: 10000,
+      stdio: ['pipe', 'pipe', 'pipe'],
+    }).trim();
+    return output ? output.split('\n').filter((f) => f.trim()) : [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Get list of staged source files filtered by diff status
+ * @param filter - git diff-filter value (default: 'ACMR' = Added/Copied/Modified/Renamed)
+ */
+export function getStagedSourceFiles(filter = 'ACMR'): string[] {
+  const dir = getProjectDir();
+  // Validate filter against git diff-filter alphabet to prevent injection
+  const sanitized = filter.replace(/[^ACDMRTUXBacdmrtuxb*]/g, '');
+  if (!sanitized) return [];
+  try {
+    const output = execFileSync('git', ['diff', '--cached', '--name-only', `--diff-filter=${sanitized}`], {
+      cwd: dir,
+      encoding: 'utf8',
+      timeout: 5000,
       stdio: ['pipe', 'pipe', 'pipe'],
     }).trim();
     return output ? output.split('\n').filter((f) => f.trim()) : [];

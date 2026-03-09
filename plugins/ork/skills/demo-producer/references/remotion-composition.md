@@ -14,7 +14,7 @@ Production/                    # Ready-to-render videos
 │   ├── Memory-Skills/        # remember, memory
 │   ├── Review-Skills/        # review-pr, create-pr, fix-issue
 │   ├── DevOps-Skills/        # doctor, configure, run-tests, feedback
-│   ├── AI-Skills/            # brainstorming, assess, assess-complexity
+│   ├── AI-Skills/            # brainstorm, assess, assess-complexity
 │   ├── Advanced-Skills/      # skill-evolution, demo-producer, add-golden
 │   └── Styles/               # Alternative visualizations (ProgressiveZoom, SplitMerge, etc.)
 ├── Vertical-9x16/            # TikTok, Reels, Shorts (1080x1920)

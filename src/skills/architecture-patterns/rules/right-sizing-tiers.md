@@ -7,7 +7,7 @@ tags: right-sizing, architecture, interview, mvp, enterprise, over-engineering
 
 ## Architecture Sizing Tiers
 
-Match architecture complexity to project scope using concrete signals. Read the project tier from `scope-appropriate-architecture` context (set during brainstorming/implement Step 0). If no tier is set, auto-detect using the signals below.
+Match architecture complexity to project scope using concrete signals. Read the project tier from `scope-appropriate-architecture` context (set during brainstorm/implement Step 0). If no tier is set, auto-detect using the signals below.
 
 **Enforcement rule:** When reviewing or generating code, check the detected tier FIRST. If a pattern is marked OFF for the current tier, do not suggest or enforce it. If marked WARN, mention the concern but don't block. If marked BLOCK, enforce strictly.
 

@@ -1,0 +1,85 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "task-dependency-patterns",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "basic-i-need-to-implement",
+      "query": "I need to implement a full authentication system: user model, auth endpoints, JWT tokens, middleware, and integration tests. Help me break this down into trackable tasks with proper dependencies.",
+      "expected_behavior": [
+        "Claude decomposes the work into atomic tasks using TaskCreate",
+        "Establishes dependency chains with addBlockedBy (e.g., auth endpoints blocked by user model)",
+        "Sets proper status workflow: pending for all initially, then in_progress as work begins",
+        "Provides activeForm for each task (e.g., 'Creating User model', 'Implementing JWT tokens')",
+        "Uses TaskUpdate to track progress as tasks complete"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "edge-we-have-a-crosscutting",
+      "query": "We have a cross-cutting refactor that needs a backend architect and frontend dev working simultaneously on shared contracts. Should I use Task tool subagents or Agent Teams?",
+      "expected_behavior": [
+        "Claude evaluates the criteria table: cross-cutting changes, agents need to communicate",
+        "Recommends Agent Teams over Task tool for this scenario due to mesh communication needs",
+        "Explains TeamCreate, peer-to-peer SendMessage, and shared task list patterns",
+        "Warns about the higher cost (~2.5x) of Agent Teams vs Task tool subagents"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "negative-change-the-button-color",
+      "query": "Change the button color from blue to green in the header component",
+      "expected_behavior": [
+        "Claude does NOT invoke the task-dependency-patterns skill",
+        "Makes the simple CSS/style change directly without task decomposition",
+        "Does not create TaskCreate calls for trivial single-step work"
+      ],
+      "tags": [
+        "negative"
+      ]
+    },
+    {
+      "id": "task-agent-coordination",
+      "query": "I have two agents both trying to work on the same database migration task. How do I prevent conflicts?",
+      "expected_behavior": [
+        "Requires agents to claim task ownership atomically before starting work on it",
+        "Uses TaskUpdate with owner field set to the claiming agent's identifier",
+        "Prevents two agents from simultaneously working on the same task without ownership",
+        "Coordinates through the shared task list and messaging tools rather than direct state sharing"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "task-completion-criteria",
+      "query": "My downstream task started failing because the upstream task was marked complete too early. How should I handle completion?",
+      "expected_behavior": [
+        "Verifies all implementation is done and tests pass before marking a task as completed",
+        "Warns that premature completion cascades errors to dependent tasks in the chain",
+        "Requires running the test suite and confirming all green before status transition",
+        "Documents what was done and any caveats in the task completion notes"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "task-dependency-validation",
+      "query": "How do I check if a task's blockers are resolved before I start working on it?",
+      "expected_behavior": [
+        "Uses TaskGet to check the blockedBy array before transitioning to in_progress status",
+        "Validates that all blocking tasks have completed status before starting dependent work",
+        "Detects circular dependencies that would create deadlocks in the task graph",
+        "Refuses to start work on a task when any of its blockers are still pending or in progress"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    }
+  ]
+}

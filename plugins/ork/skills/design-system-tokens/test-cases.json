@@ -1,0 +1,72 @@
+{
+  "skill": "design-system-tokens",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "token-hierarchy-setup",
+      "rule": "tokens-three-tier",
+      "query": "Set up design tokens for my React app",
+      "expectedBehavior": [
+        "Should recommend W3C DTCG token format with $type and $value properties",
+        "Should organize tokens into global, alias, and component tiers",
+        "Should use OKLCH color space for color token definitions",
+        "Should reference Style Dictionary for building platform outputs"
+      ]
+    },
+    {
+      "id": "dark-mode-tokens",
+      "rule": "tokens-theming-darkmode",
+      "query": "Add dark mode support to my existing design token system",
+      "expectedBehavior": [
+        "Should implement theme switching via alias token remapping, not component overrides",
+        "Should use data-theme attribute on root element for theme selection",
+        "Should include prefers-color-scheme media query for system preference detection",
+        "Should ensure dark theme tokens meet WCAG AA contrast requirements"
+      ]
+    },
+    {
+      "id": "color-palette-generation",
+      "rule": "tokens-oklch-color",
+      "query": "Create a color palette with consistent shade scales for my design system",
+      "expectedBehavior": [
+        "Should define colors using OKLCH color space for perceptual uniformity",
+        "Should generate shade scales by varying lightness while keeping hue constant",
+        "Should reduce chroma at extremes to stay within sRGB gamut boundaries",
+        "Should verify accessible contrast ratios between text and background shades"
+      ]
+    },
+    {
+      "id": "token-pipeline-setup",
+      "rule": "tokens-style-dictionary",
+      "query": "Set up a build pipeline to transform design tokens into CSS and Tailwind",
+      "expectedBehavior": [
+        "Should configure Style Dictionary 4.x with ESM config and W3C parser",
+        "Should enable outputReferences to preserve alias chains in CSS output",
+        "Should generate both CSS custom properties and Tailwind theme configuration",
+        "Should recommend CI integration for token build validation on every push"
+      ]
+    },
+    {
+      "id": "token-migration",
+      "rule": "tokens-versioning",
+      "query": "I need to rename some design tokens without breaking our apps",
+      "expectedBehavior": [
+        "Should add deprecation annotations via $extensions with replacement path",
+        "Should keep old token as alias to new token during transition period",
+        "Should recommend semantic versioning with deprecation in minor, removal in major",
+        "Should suggest providing a codemod or migration script for consumers"
+      ]
+    },
+    {
+      "id": "tokens-w3c-format",
+      "rule": "tokens-w3c-format",
+      "query": "What is the W3C DTCG token format and how should I structure my design token JSON files?",
+      "expectedBehavior": [
+        "Uses W3C DTCG format with $type and $value properties for each token definition",
+        "Supports all standard token types including color, dimension, fontFamily, and duration",
+        "Organizes tokens in nested group structures with $description for documentation",
+        "Enables tooling interoperability through standardized format recognized by Style Dictionary"
+      ]
+    }
+  ]
+}

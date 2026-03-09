@@ -1,0 +1,107 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "demo-producer",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "basic-create-a-demo-video",
+      "query": "Create a demo video showcasing the explore skill for our YouTube channel.",
+      "expected_behavior": [
+        "Detects content type as skill demo",
+        "Asks format preference (horizontal 16:9 for YouTube)",
+        "Asks style preference (Quick Demo, Standard Demo, Tutorial, Cinematic, Scrapbook)",
+        "Asks audio preferences for background music and voiceover options",
+        "Reads the explore SKILL.md to extract phases and capabilities",
+        "Generates VHS terminal recording script with typed commands and expected output",
+        "Produces Remotion composition with appropriate template"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "negative-create-a-vertical-tiktokstyle",
+      "query": "Create a vertical TikTok-style demo of running npm create vite from the CLI.",
+      "expected_behavior": [
+        "Detects content type as CLI tool demo",
+        "Sets format to vertical 9:16 for TikTok",
+        "Uses Quick Demo or Standard Demo style for short-form content",
+        "Generates terminal simulation with realistic typing and output",
+        "Applies slop avoidance rules: cuts content that does not earn screen time",
+        "Keeps under 60 seconds for social platform constraints"
+      ],
+      "tags": [
+        "negative"
+      ]
+    },
+    {
+      "id": "negative-write-unit-tests-for",
+      "query": "Write unit tests for the billing service module.",
+      "expected_behavior": [
+        "Claude does NOT invoke the demo-producer skill",
+        "Treats this as a testing task using test generation patterns",
+        "Uses standard code tools to write test files",
+        "Demo producer is for video creation, not code testing"
+      ],
+      "tags": [
+        "negative"
+      ]
+    },
+    {
+      "id": "analyzer-patterns",
+      "query": "Extract skill metadata from the explore SKILL.md file to generate an accurate demo script.",
+      "expected_behavior": [
+        "Parses YAML frontmatter between the opening and closing delimiter lines only",
+        "Extracts name, description, tags, version, and userInvocable fields from frontmatter",
+        "Detects workflow phases by scanning for Phase N header patterns in the skill body",
+        "Identifies code examples with language tags and surrounding context descriptions",
+        "Validates extracted metadata against the SkillMetadata interface before generating demos"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "production-composition",
+      "query": "Compose a YouTube demo video with professional audio mixing, captions, and thumbnail optimization.",
+      "expected_behavior": [
+        "Sets narration volume at -14 to -12 dB as the primary audio element",
+        "Ducks background music -6 to -8 dB under narration for clear intelligibility",
+        "Limits thumbnail text to 3-4 words maximum and tests readability at small preview size",
+        "Includes a hook in the first 3 seconds to prevent early viewer drop-off",
+        "Adds captions for accessibility and silent browsing using the appropriate caption style"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "production-pipeline",
+      "query": "Plan the pre-production pipeline for a skill demo video including storyboarding, narration scripting, and recording.",
+      "expected_behavior": [
+        "Follows structured pre-production pipeline from storyboarding through recording to composition",
+        "Uses AIDA framework with 15% attention, 35% interest, 35% desire, and 15% action split",
+        "Sets narration pacing at 130-150 words per minute for standard or 120-140 for technical content",
+        "Generates VHS tape scripts for terminal recording with typed commands and expected output",
+        "Keeps hook duration to 3 seconds maximum and intro cards to 2-4 seconds"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "slop-avoidance",
+      "query": "Review this demo script and cut any verbose or generic terminal output that wastes screen time.",
+      "expected_behavior": [
+        "Eliminates verbose phase names and replaces with concise action-oriented descriptions",
+        "Combines redundant phase title and description pairs into single informative lines",
+        "Cuts generic transitions like 'now let us see' and replaces with direct scene cuts",
+        "Applies the rule that content must earn its screen time or be removed from the demo",
+        "Compresses repetitive task completion messages into abbreviated status indicators"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    }
+  ]
+}

@@ -14,7 +14,8 @@ import type { HookInput } from '../../types.js';
 // =============================================================================
 
 vi.mock('node:child_process', () => ({
-  execSync: vi.fn(() => 'main'),
+  execSync: vi.fn(() => ''),
+  execFileSync: vi.fn(() => 'main'),
 }));
 
 vi.mock('../../lib/common.js', async (importOriginal) => {
@@ -30,7 +31,7 @@ vi.mock('../../lib/common.js', async (importOriginal) => {
 
 // Import after mocks
 import { sessionEnvSetup } from '../../lifecycle/session-env-setup.js';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import { logHook, getProjectDir, } from '../../lib/common.js';
 
 // =============================================================================
@@ -395,8 +396,9 @@ describe('session-env-setup', () => {
       sessionEnvSetup(input);
 
       // Assert
-      expect(execSync).toHaveBeenCalledWith(
-        'git branch --show-current',
+      expect(execFileSync).toHaveBeenCalledWith(
+        'git',
+        ['branch', '--show-current'],
         expect.objectContaining({
           cwd: TEST_PROJECT_DIR,
           encoding: 'utf-8',
@@ -407,7 +409,7 @@ describe('session-env-setup', () => {
 
     test('handles git command failure gracefully', () => {
       // Arrange
-      vi.mocked(execSync).mockImplementationOnce(() => {
+      vi.mocked(execFileSync).mockImplementationOnce(() => {
         throw new Error('Not a git repository');
       });
       const input = createHookInput();
@@ -421,7 +423,7 @@ describe('session-env-setup', () => {
 
     test('logs git branch when detected', () => {
       // Arrange
-      vi.mocked(execSync).mockReturnValueOnce('feature-branch\n');
+      vi.mocked(execFileSync).mockReturnValueOnce('feature-branch\n');
       const input = createHookInput();
 
       // Act
@@ -436,7 +438,7 @@ describe('session-env-setup', () => {
 
     test('does not log branch when empty', () => {
       // Arrange
-      vi.mocked(execSync).mockReturnValueOnce('');
+      vi.mocked(execFileSync).mockReturnValueOnce('');
       const input = createHookInput();
 
       // Act

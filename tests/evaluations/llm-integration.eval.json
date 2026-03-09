@@ -4,48 +4,269 @@
   "version": "1.0.0",
   "evaluations": [
     {
-      "id": "tool-definition",
+      "id": "calling-tool-definition",
       "query": "Define a tool schema for a document search function",
       "expected_behavior": [
         "Uses strict: true for schema validation",
-        "Sets additionalProperties: false",
+        "Sets additionalProperties: false to enforce strict schema compliance on tool inputs",
         "All properties listed in required array",
-        "Includes clear description"
+        "Includes clear 1-2 sentence description for each tool parameter and function"
       ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "calling-parallel",
+      "query": "Execute multiple LLM tool calls concurrently",
+      "expected_behavior": [
+        "Uses asyncio.gather for parallel execution of independent tool calls concurrently",
+        "Disables parallel_tool_calls with strict mode to ensure sequential validation",
+        "Handles partial failures gracefully by returning results for successful calls alongside errors",
+        "Collects results from all tool calls"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "calling-validation",
+      "query": "Implement a tool execution loop with error handling",
+      "expected_behavior": [
+        "Validates input parameters with Pydantic models before executing tool functions",
+        "Returns errors as tool results instead of crashing",
+        "Implements max iteration guard to prevent infinite tool-calling loops",
+        "Routes to appropriate tool by name"
+      ],
+      "tags": [
+        "happy-path"
+      ]
     },
     {
       "id": "streaming-sse",
       "query": "Create a FastAPI SSE endpoint for streaming LLM responses",
       "expected_behavior": [
-        "Uses EventSourceResponse from sse-starlette",
+        "Uses EventSourceResponse from sse-starlette for server-sent event streaming responses",
         "Yields event/data pairs for each token",
-        "Sends done event on completion",
+        "Sends done event on completion to signal the stream has finished",
         "Uses async iterator for token generation"
       ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
-      "id": "ollama-setup",
+      "id": "streaming-structured",
+      "query": "Stream an LLM response that includes tool calls",
+      "expected_behavior": [
+        "Accumulates tool call chunks by index",
+        "Separates content tokens from tool call data",
+        "Executes tools after full accumulation of all streamed tool call chunks",
+        "Handles multiple concurrent tool calls in stream"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "streaming-backpressure",
+      "query": "Handle slow consumers in an LLM streaming pipeline",
+      "expected_behavior": [
+        "Uses asyncio.Queue with maxsize for bounded buffer",
+        "Producer blocks when buffer is full",
+        "Consumer yields control with asyncio.sleep(0) to allow producer progress",
+        "Signals completion with None sentinel value to terminate the consumer loop"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "local-ollama-setup",
       "query": "Set up Ollama for local LLM inference in a Python project",
       "expected_behavior": [
-        "Installs Ollama via official script",
+        "Installs Ollama via official script for local model inference setup",
         "Pulls recommended models for task types",
-        "Configures environment variables",
-        "Integrates with LangChain via ChatOllama"
+        "Configures environment variables for host and models",
+        "Integrates with LangChain via ChatOllama for standardized local model access"
       ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
-      "id": "fine-tuning",
+      "id": "local-model-selection",
+      "query": "Choose the right Ollama model for my hardware and task",
+      "expected_behavior": [
+        "Matches model to hardware profile (M4 Max, M3 Pro, CI)",
+        "Recommends task-specific models (reasoning, coding, embeddings)",
+        "Covers quantization options (q4_K_M, q4_0) with quality and performance trade-offs",
+        "Includes VRAM requirements per model to match hardware capacity constraints"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "local-gpu-optimization",
+      "query": "Optimize Ollama performance on Apple Silicon for CI",
+      "expected_behavior": [
+        "Sets num_ctx=32768 for Apple Silicon to maximize context window utilization",
+        "Uses keep_alive=5m for CI to avoid cold starts",
+        "Pre-warms models before first call to eliminate cold start latency",
+        "Implements provider factory for cloud/local switching"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "tuning-lora",
       "query": "Fine-tune a Llama model with QLoRA using Unsloth",
       "expected_behavior": [
         "Loads model with load_in_4bit=True for QLoRA",
-        "Configures LoRA with appropriate rank and alpha",
+        "Configures LoRA with r=16, alpha=32, dropout=0.05",
         "Targets attention and MLP projection modules",
         "Uses SFTTrainer from TRL for training"
       ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "tuning-dataset-prep",
+      "query": "Generate synthetic training data for fine-tuning",
+      "expected_behavior": [
+        "Uses teacher model (GPT-5.2) to generate examples",
+        "Validates examples with separate validator model",
+        "Deduplicates using embedding similarity to remove semantically redundant training examples",
+        "Formats as Alpaca or ChatML template for consistent training data structure"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "tuning-evaluation",
+      "query": "Align a fine-tuned model with DPO and evaluate it",
+      "expected_behavior": [
+        "Uses DPOTrainer with preference dataset (chosen/rejected)",
+        "Sets beta=0.1 as KL penalty coefficient",
+        "Evaluates with LLM judge scoring to measure alignment quality objectively",
+        "Compares against baseline before deployment to verify fine-tuning improvement metrics"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "context-caching",
+      "query": "My LLM calls are expensive because I load the entire knowledge base into every request. How do I reduce token costs with caching and budget allocation?",
+      "expected_behavior": [
+        "Uses just-in-time document loading instead of pre-loading entire knowledge bases",
+        "Allocates a token budget per context section with percentage-based distribution",
+        "Selects compression strategy based on use case such as anchored iterative for long sessions",
+        "Validates compression quality with functional probes targeting ninety percent pass rate",
+        "Triggers compression at seventy percent utilization and targets fifty percent after compression"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "context-window-management",
+      "query": "My agent loses track of important information mid-conversation and the context window fills up with irrelevant tool outputs. How should I structure context?",
+      "expected_behavior": [
+        "Positions critical information at start and end of context for high attention zones",
+        "Uses five-layer context architecture with defined allocation percentages per layer",
+        "Implements anchored iterative summarization preserving session intent and decisions made",
+        "Preserves last five messages uncompressed and compresses older history incrementally",
+        "Truncates tool outputs at source since they can consume over eighty percent of context"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "evaluation-benchmarks",
+      "query": "I need to add quality gates to my LLM pipeline so bad outputs don't reach production. How do I evaluate model output quality with benchmarks?",
+      "expected_behavior": [
+        "Implements quality gate with multi-metric assessment using a configurable threshold",
+        "Evaluates across multiple dimensions such as relevance accuracy and completeness",
+        "Runs batch evaluation over golden datasets with fifty or more samples for reliable metrics",
+        "Uses pairwise comparison with randomized ordering to eliminate position bias"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "evaluation-metrics",
+      "query": "How do I set up LLM-as-judge evaluation metrics and detect hallucinations in RAG responses before they reach users?",
+      "expected_behavior": [
+        "Uses a different model as judge rather than the model being evaluated",
+        "Evaluates across three to five dimensions with scores normalized to zero through one scale",
+        "Applies RAGAS metrics like faithfulness and context precision for RAG evaluation",
+        "Implements hallucination detection by checking output claims against provided context",
+        "Sets quality threshold at point seven for production and point six for drafts"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "prompt-design",
+      "query": "I need to design prompts for a complex reasoning task that requires step-by-step thinking. What prompt patterns should I use for chain-of-thought and few-shot examples?",
+      "expected_behavior": [
+        "Implements chain-of-thought prompting with explicit step-by-step reasoning format",
+        "Uses three to five diverse representative examples for few-shot prompting",
+        "Orders few-shot examples with the most similar examples placed last for recency bias",
+        "Provides pattern selection guide matching task type to prompt pattern"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "prompt-testing",
+      "query": "How do I version and A/B test my prompts in production to prevent silent regressions when prompts change?",
+      "expected_behavior": [
+        "Uses Langfuse for prompt versioning with environment labels like production and staging",
+        "Tracks prompt variant via trace metadata for A/B comparison across versions",
+        "Applies DSPy MIPROv2 for automatic prompt optimization with Bayesian approach",
+        "Implements self-consistency with multiple reasoning paths and majority voting for hard problems"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "prompt-optimization",
+      "query": "My system prompts are verbose and I'm using the same expensive model for every task. How do I optimize prompts for token efficiency and cost?",
+      "expected_behavior": [
+        "Removes redundant and verbose phrasing to reduce system prompt token count",
+        "Implements model tiering by task complexity routing simple tasks to cheaper models",
+        "Uses JSON mode with temperature zero for structured output consistency",
+        "Adds explicit constraints and negative examples to reduce hallucination rates",
+        "Maintains a prompt specification template with version and cost estimates"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "prompt-react-pattern",
+      "query": "I want to build an agent that reasons about which tools to use before calling them. How do I implement the ReAct thought-action-observation loop?",
+      "expected_behavior": [
+        "Implements explicit Thought-Action-Observation loop with structured system prompt format",
+        "Caps iterations at five steps maximum to prevent runaway agent loops",
+        "Requires a Thought step before every Action to ensure reasoning before tool use",
+        "Parses Final Answer from response to terminate the loop when sufficient information gathered",
+        "Handles unknown tool names gracefully by returning error with available tool list"
+      ],
+      "tags": [
+        "happy-path"
+      ]
     }
   ]
 }

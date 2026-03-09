@@ -2,12 +2,13 @@
 name: scope-appropriate-architecture
 license: MIT
 compatibility: "Claude Code 2.1.59+"
-description: "Right-sizes architecture to project scope. Prevents over-engineering by classifying projects into 6 tiers and constraining pattern choices accordingly. Use when designing architecture, selecting patterns, or when brainstorming/implement detect a project tier."
+description: "Right-sizes architecture to project scope. Prevents over-engineering by classifying projects into 6 tiers and constraining pattern choices accordingly. Use when designing architecture, selecting patterns, or when brainstorm/implement detect a project tier."
 tags: [architecture, yagni, over-engineering, scope, patterns]
 version: 1.0.0
 author: OrchestKit
 user-invocable: false
 disable-model-invocation: true
+context: inherit
 complexity: low
 model: haiku
 metadata:
@@ -136,7 +137,7 @@ Tier 4 (Growth) → Tier 5 (Enterprise)
 ## When This Skill Activates
 
 This skill is loaded by:
-- `brainstorming` Phase 0 (context discovery)
+- `brainstorm` Phase 0 (context discovery)
 - `implement` Step 0 (context discovery)
 - `quality-gates` YAGNI check
 - Any skill that needs to right-size a recommendation
@@ -147,7 +148,7 @@ The detected tier is passed as context to constrain downstream decisions.
 
 ## Related Skills
 
-- `ork:brainstorming` - Uses tier detection in Phase 0 to constrain ideas
+- `ork:brainstorm` - Uses tier detection in Phase 0 to constrain ideas
 - `ork:implement` - Uses tier detection in Step 0 to constrain architecture
 - `ork:quality-gates` - YAGNI gate references this skill's tier matrix
 - `ork:architecture-patterns` - Architecture validation (constrained by tier)

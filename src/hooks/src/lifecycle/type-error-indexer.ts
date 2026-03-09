@@ -12,7 +12,7 @@
  * Runs inside the unified-dispatcher (async, fire-and-forget).
  */
 
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import { writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
@@ -89,7 +89,7 @@ export function typeErrorIndexer(input: HookInput): HookResult {
 
   try {
     // Run tsc --noEmit with timeout
-    execSync('npx tsc --noEmit 2>&1', {
+    execFileSync('npx', ['tsc', '--noEmit'], {
       cwd: projectDir,
       timeout: TSC_TIMEOUT_MS,
       encoding: 'utf-8',

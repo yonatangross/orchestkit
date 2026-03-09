@@ -38,6 +38,8 @@ const ALLOWED_PREFIXES: string[] = [
   'jq', 'yq',
   // Docker (read-only)
   'docker ps', 'docker images', 'docker logs', 'docker inspect',
+  // POSIX utilities — read-only text/numeric processing (CC 2.1.71 expanded allowlist)
+  'seq', 'printf', 'test', 'expr',
   // Misc read-only
   'pwd', 'date', 'echo', 'which', 'env', 'printenv',
   'node -e', 'node --eval', 'python -c', 'python3 -c',

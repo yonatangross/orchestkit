@@ -9,7 +9,7 @@
  */
 
 import { existsSync } from 'node:fs';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, getField, logHook } from '../lib/common.js';
 import { basename } from 'node:path';
@@ -45,7 +45,7 @@ function getLanguage(filePath: string): string | null {
 function commandExists(cmd: string): boolean {
   try {
     assertSafeCommandName(cmd);
-    execSync(`which ${cmd}`, { stdio: 'ignore' });
+    execFileSync('which', [cmd], { stdio: 'ignore' });
     return true;
   } catch {
     return false;
@@ -101,14 +101,16 @@ export function autoLint(input: HookInput): HookResult {
       case 'python':
         if (commandExists('ruff')) {
           try {
-            const ruffCheck = execSync(`timeout 5s ruff check --output-format=concise "${safePath}" 2>&1`, {
+            const ruffCheck = execFileSync('ruff', ['check', '--output-format=concise', safePath], {
               encoding: 'utf8',
+              timeout: 5000,
               stdio: ['pipe', 'pipe', 'pipe'],
             });
             if (ruffCheck) {
               lintIssues = ruffCheck.split('\n').filter(Boolean).length;
-              execSync(`timeout 5s ruff check --fix --unsafe-fixes=false "${safePath}" 2>/dev/null`, {
+              execFileSync('ruff', ['check', '--fix', '--unsafe-fixes=false', safePath], {
                 stdio: 'ignore',
+                timeout: 5000,
               });
               fixesApplied = true;
             }
@@ -116,7 +118,7 @@ export function autoLint(input: HookInput): HookResult {
             // ruff check returns non-zero when issues found
           }
           try {
-            execSync(`timeout 5s ruff format "${safePath}" 2>/dev/null`, { stdio: 'ignore' });
+            execFileSync('ruff', ['format', safePath], { stdio: 'ignore', timeout: 5000 });
           } catch {
             // Ignore format errors
           }
@@ -127,8 +129,9 @@ export function autoLint(input: HookInput): HookResult {
       case 'javascript':
         if (commandExists('biome')) {
           try {
-            const biomeOut = execSync(`timeout 5s biome check --write "${safePath}" 2>&1`, {
+            const biomeOut = execFileSync('biome', ['check', '--write', safePath], {
               encoding: 'utf8',
+              timeout: 5000,
               stdio: ['pipe', 'pipe', 'pipe'],
             });
             if (biomeOut.includes('Fixed')) {
@@ -147,8 +150,9 @@ export function autoLint(input: HookInput): HookResult {
       case 'css':
         if (commandExists('biome')) {
           try {
-            execSync(`timeout 5s biome format --write "${safePath}" 2>/dev/null`, {
+            execFileSync('biome', ['format', '--write', safePath], {
               stdio: 'ignore',
+              timeout: 5000,
             });
             fixesApplied = true;
           } catch {

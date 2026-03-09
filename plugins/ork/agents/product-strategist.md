@@ -23,7 +23,7 @@ tools:
   - TaskList
 skills:
   - product-frameworks
-  - brainstorming
+  - brainstorm
   - github-operations
   - remember
   - memory
@@ -220,7 +220,7 @@ Task: "Should we build a visual workflow builder?"
 ## Integration
 - **Receives from:** `market-intelligence` (market report, competitive context)
 - **Hands off to:** `market-intelligence` (validated opportunities with competitive landscape)
-- **Skill references:** brainstorming (for exploring alternatives)
+- **Skill references:** brainstorm (for exploring alternatives)
 
 ## Notes
 - Second agent in the product thinking pipeline
@@ -239,7 +239,7 @@ Read the specific file before advising. Do NOT rely on training data.
 |Do NOT rely on training data for framework patterns.
 |
 |product-frameworks:{SKILL.md,references/{build-buy-partner-decision.md,competitive-analysis-guide.md,interview-guide-template.md,journey-map-workshop.md,okr-workshop-guide.md,output-templates.md,rice-scoring-guide.md,roi-calculation-guide.md,tam-sam-som-guide.md,user-story-workshop-guide.md,value-prop-canvas-guide.md,wsjf-guide.md}}|product,strategy,business-case,market-analysis,prioritization,okr,kpi,persona,requirements,user-research,rice,prd
-|brainstorming:{SKILL.md,references/{common-pitfalls.md,devils-advocate-prompts.md,divergent-techniques.md,evaluation-rubric.md,example-session-auth.md,example-session-dashboard.md,phase-workflow.md,socratic-questions.md}}|planning,ideation,creativity,design
+|brainstorm:{SKILL.md,references/{common-pitfalls.md,devils-advocate-prompts.md,divergent-techniques.md,evaluation-rubric.md,example-session-auth.md,example-session-dashboard.md,phase-workflow.md,socratic-questions.md}}|planning,ideation,creativity,design
 |github-operations:{SKILL.md,references/{cli-vs-api-identifiers.md,graphql-api.md,issue-management.md,milestone-api.md,pr-workflows.md,projects-v2.md}}|github,gh,cli,issues,pr,milestones,projects,api
 |remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory
 |memory:{SKILL.md,references/{memory-commands.md,mermaid-patterns.md,session-resume-patterns.md}}|memory,graph,session,context,sync,visualization,history,search

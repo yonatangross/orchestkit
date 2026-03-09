@@ -2,11 +2,11 @@
 name: responsive-patterns
 license: MIT
 compatibility: "Claude Code 2.1.59+."
-description: Responsive design with Container Queries, fluid typography, cqi/cqb units, and mobile-first patterns for React applications. Use when building responsive layouts or container queries.
-tags: [responsive, container-queries, fluid-typography, mobile-first, css-grid, clamp, cqi, breakpoints, pwa, service-worker, workbox, offline-first, animation, motion, framer-motion, scroll-driven, view-transitions]
+description: Responsive design with Container Queries, fluid typography, cqi/cqb units, subgrid, intrinsic layouts, foldable devices, and mobile-first patterns for React applications. Use when building responsive layouts or container queries.
+tags: [responsive, container-queries, fluid-typography, mobile-first, css-grid, clamp, cqi, breakpoints, pwa, service-worker, workbox, offline-first, animation, motion, framer-motion, scroll-driven, view-transitions, subgrid, intrinsic-layout, foldable, dual-screen, safe-area]
 context: fork
 agent: frontend-ui-developer
-version: 1.0.0
+version: 1.1.0
 author: OrchestKit
 user-invocable: false
 disable-model-invocation: true
@@ -43,6 +43,16 @@ Modern responsive design patterns using Container Queries, fluid typography, and
 | Component reuse | Context-dependent | Truly portable |
 | Browser support | Universal | Baseline 2023+ |
 | Use case | Page layouts | Component layouts |
+
+## Modern CSS Layout
+
+> Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/responsive-patterns/rules/css-subgrid.md")` for CSS Subgrid patterns: nested grid alignment, card layouts with aligned titles/content/actions, two-dimensional subgrid.
+
+> Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/responsive-patterns/rules/css-intrinsic-responsive.md")` for intrinsically responsive layouts: auto-fit/minmax grids, clamp() for fluid everything, container queries for component logic, zero media query patterns.
+
+> Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/responsive-patterns/rules/responsive-foldables.md")` for foldable/multi-screen device support: env(safe-area-inset-*), viewport segment queries, dual-screen layouts, progressive enhancement.
+
+**Key patterns covered:** CSS Subgrid alignment, intrinsic responsive grids (auto-fit + minmax), fluid clamp() scales, foldable device layouts, safe area insets, viewport segment queries.
 
 ## CSS Patterns
 
@@ -140,6 +150,9 @@ Each category has individual rule files in `rules/` loaded on-demand:
 
 | Category | Rule | Impact | Key Pattern |
 |----------|------|--------|-------------|
+| Modern CSS Layout | `rules/css-subgrid.md` | HIGH | CSS Subgrid for nested grid alignment, card layouts |
+| Modern CSS Layout | `rules/css-intrinsic-responsive.md` | HIGH | Intrinsic responsive layouts, auto-fit/minmax, clamp(), zero breakpoints |
+| Modern CSS Layout | `rules/responsive-foldables.md` | MEDIUM | Foldable devices, safe area insets, viewport segments |
 | CSS | `rules/css-patterns.md` | HIGH | Container queries, cqi/cqb, fluid typography, grid, scroll-queries |
 | React | `rules/react-patterns.md` | HIGH | Container query components, Tailwind, useContainerQuery, responsive images |
 | PWA | `rules/pwa-service-worker.md` | HIGH | Workbox caching strategies, VitePWA, update management |
@@ -147,7 +160,7 @@ Each category has individual rule files in `rules/` loaded on-demand:
 | Animation | `rules/animation-motion.md` | HIGH | Motion presets, AnimatePresence, View Transitions |
 | Animation | `rules/animation-scroll.md` | MEDIUM | CSS scroll-driven animations, parallax, progressive enhancement |
 
-**Total: 6 rules across 4 categories**
+**Total: 9 rules across 5 categories**
 
 ## Key Decisions
 

@@ -1,0 +1,657 @@
+---
+title: "Chain Patterns"
+description: "Chain patterns for CC 2.1.71 pipelines — MCP detection, handoff files, checkpoint-resume, worktree agents, CronCreate monitoring. Use when building multi-phase pipeline skills. Loaded via skills: field by pipeline skills (fix-issue, implement, brainstorm, verify). Not user-invocable."
+---
+
+<span className="badge badge-gray">Reference</span> <span className="badge badge-green">low</span>
+
+
+# Chain Patterns
+
+## Overview
+
+Foundation patterns for CC 2.1.71 pipeline skills. This skill is loaded via the `skills:` frontmatter field — it provides patterns that parent skills follow.
+
+## Pattern 1: MCP Detection (ToolSearch Probe)
+
+Run BEFORE any MCP tool call. Probes are parallel and instant.
+
+```python
+# FIRST thing in any pipeline skill — all in ONE message:
+ToolSearch(query="select:mcp__memory__search_nodes")
+ToolSearch(query="select:mcp__context7__resolve-library-id")
+ToolSearch(query="select:mcp__sequential-thinking__sequentialthinking")
+
+# Store results for all phases:
+Write(".claude/chain/capabilities.json", JSON.stringify({
+  "memory": true_or_false,
+  "context7": true_or_false,
+  "sequential": true_or_false,
+  "timestamp": "ISO-8601"
+}))
+```
+
+**Usage in phases:**
+```python
+# BEFORE any mcp__memory__ call:
+if capabilities.memory:
+    mcp__memory__search_nodes(query="...")
+# else: skip gracefully, no error
+```
+
+Load details: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/chain-patterns/references/mcp-detection.md")`
+
+## Pattern 2: Handoff Files
+
+Write structured JSON after every major phase. Survives context compaction and rate limits.
+
+```python
+Write(".claude/chain/NN-phase-name.json", JSON.stringify({
+  "phase": "rca",
+  "skill": "fix-issue",
+  "timestamp": "ISO-8601",
+  "status": "completed",
+  "outputs": { ... },           # phase-specific results
+  "mcps_used": ["memory"],
+  "next_phase": 5
+}))
+```
+
+**Location:** `.claude/chain/` — numbered files for ordering, descriptive names for clarity.
+
+Load schema: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/chain-patterns/references/handoff-schema.md")`
+
+## Pattern 3: Checkpoint-Resume
+
+Read state at skill start. If found, skip completed phases.
+
+```python
+# FIRST instruction after MCP probe:
+Read(".claude/chain/state.json")
+
+# If exists and matches current skill:
+#   → Read last handoff file
+#   → Skip to current_phase
+#   → Tell user: "Resuming from Phase N"
+
+# If not exists:
+Write(".claude/chain/state.json", JSON.stringify({
+  "skill": "fix-issue",
+  "started": "ISO-8601",
+  "current_phase": 1,
+  "completed_phases": [],
+  "capabilities": { ... }
+}))
+
+# After each major phase:
+# Update state.json with new current_phase and append to completed_phases
+```
+
+Load protocol: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/chain-patterns/references/checkpoint-resume.md")`
+
+## Pattern 4: Worktree-Isolated Agents
+
+Use `isolation: "worktree"` when spawning agents that WRITE files in parallel.
+
+```python
+# Agents editing different files in parallel:
+Agent(
+  subagent_type="backend-system-architect",
+  prompt="Implement backend for: {feature}...",
+  isolation="worktree",       # own copy of repo
+  run_in_background=true
+)
+```
+
+**When to use worktree:** Agents with Write/Edit tools running in parallel.
+**When NOT to use:** Read-only agents (brainstorm, assessment, review).
+
+Load details: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/chain-patterns/references/worktree-agent-pattern.md")`
+
+## Pattern 5: CronCreate Monitoring
+
+Schedule post-completion health checks that survive session end.
+
+```python
+CronCreate(
+  schedule="*/5 * * * *",
+  prompt="Check CI status for PR #{number}:
+    Run: gh pr checks {number} --repo {repo}
+    All pass → CronDelete this job, report success.
+    Any fail → alert with failure details."
+)
+```
+
+Load patterns: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/chain-patterns/references/cron-monitoring.md")`
+
+## Rules
+
+| Rule | Impact | Key Pattern |
+|------|--------|-------------|
+| `rules/probe-before-use.md` | HIGH | Always ToolSearch before MCP calls |
+| `rules/handoff-after-phase.md` | HIGH | Write handoff JSON after every major phase |
+| `rules/checkpoint-on-gate.md` | MEDIUM | Update state.json at every user gate |
+
+## References
+
+Load on demand with `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/chain-patterns/references/&lt;file&gt;")`:
+
+| File | Content |
+|------|---------|
+| `mcp-detection.md` | ToolSearch probe pattern + capability map |
+| `handoff-schema.md` | JSON schema for `.claude/chain/*.json` |
+| `checkpoint-resume.md` | state.json schema + resume protocol |
+| `worktree-agent-pattern.md` | `isolation: "worktree"` usage guide |
+| `cron-monitoring.md` | CronCreate patterns for post-task health |
+| `tier-fallbacks.md` | T1/T2/T3 graceful degradation |
+
+
+---
+
+## Rules (3)
+
+### Checkpoint on Gate — MEDIUM
+
+
+# Checkpoint on Gate
+
+Update `state.json` before every user gate (AskUserQuestion). User may close the session during a gate.
+
+## Incorrect
+
+```python
+# BAD: State not saved before asking user
+AskUserQuestion(questions=[{
+  "question": "Approve this fix?", ...
+}])
+# If user closes session: state.json still shows Phase 3
+```
+
+## Correct
+
+```python
+# GOOD: Save state BEFORE the gate
+Write(".claude/chain/state.json", {
+  ...existing,
+  "current_phase": 5,
+  "completed_phases": [1, 2, 3, 4],
+  "last_handoff": "04-rca.json",
+  "updated": now()
+})
+
+# THEN ask user
+AskUserQuestion(questions=[{
+  "question": "Approve this fix?", ...
+}])
+```
+
+## Why
+
+Users may:
+- Close the terminal during a gate prompt
+- Walk away and session times out
+- Switch to a different task
+
+In all cases, the completed work is preserved in state.json + handoff files.
+
+
+### Handoff After Phase — HIGH
+
+
+# Handoff After Phase
+
+Write a handoff JSON file after every major phase completes.
+
+## Incorrect
+
+```python
+# BAD: All phase results only in memory — lost on compaction
+phase_4_results = run_rca_agents()
+# ... continue to Phase 5 using in-memory results
+# If rate-limited here: all RCA work is gone
+```
+
+## Correct
+
+```python
+# GOOD: Persist results to disk after each phase
+phase_4_results = run_rca_agents()
+
+Write(".claude/chain/04-rca.json", JSON.stringify({
+  "phase": "rca",
+  "phase_number": 4,
+  "skill": "fix-issue",
+  "timestamp": now(),
+  "status": "completed",
+  "outputs": phase_4_results,
+  "next_phase": 5
+}))
+
+# If rate-limited: next session reads 04-rca.json and continues
+```
+
+## Which Phases Need Handoffs
+
+- After any phase that takes > 30 seconds
+- After any phase that spawns parallel agents
+- Before any AskUserQuestion gate
+- After the final phase (completion record)
+
+
+### Probe Before Use — HIGH
+
+
+# Probe Before Use
+
+Always run ToolSearch probes before calling any MCP tool.
+
+## Incorrect
+
+```python
+# BAD: Assumes memory MCP exists — crashes if not installed
+mcp__memory__search_nodes(query="past auth fixes")
+```
+
+## Correct
+
+```python
+# GOOD: Probe first, use conditionally
+ToolSearch(query="select:mcp__memory__search_nodes")
+# → if found: call it
+# → if not found: skip or use Grep fallback
+
+caps = Read(".claude/chain/capabilities.json")
+if caps.memory:
+    mcp__memory__search_nodes(query="past auth fixes")
+else:
+    Grep(pattern="auth.*fix", glob="**/*.md")
+```
+
+## When to Probe
+
+- Once at skill start (not before every call)
+- Store results in `.claude/chain/capabilities.json`
+- All subsequent phases read the capability map
+
+
+
+---
+
+## References (6)
+
+### Checkpoint Resume
+
+# Checkpoint-Resume Protocol
+
+Enables pipeline skills to survive rate limits, context compaction, and session crashes by persisting progress to disk.
+
+## State Schema
+
+```json
+{
+  "skill": "fix-issue",
+  "args": "456",
+  "started": "2026-03-07T16:30:00Z",
+  "current_phase": 5,
+  "completed_phases": [1, 2, 3, 4],
+  "capabilities": {
+    "memory": true,
+    "context7": true,
+    "sequential": false
+  },
+  "last_handoff": "04-rca.json",
+  "updated": "2026-03-07T16:45:00Z"
+}
+```
+
+## Resume Flow
+
+```python
+# FIRST instructions in any pipeline skill:
+
+# 1. Check for existing state
+Read(".claude/chain/state.json")
+
+# 2a. If state exists AND matches current skill:
+if state.skill == current_skill:
+    # Read last handoff for context
+    Read(f".claude/chain/{state.last_handoff}")
+
+    # Skip completed phases
+    # Start from state.current_phase
+    # Tell user: "Resuming from Phase {N} — {phase_name}"
+    # "Previous session completed: {completed_phases}"
+
+# 2b. If state exists but DIFFERENT skill:
+    # Ask user: "Found state from /ork:{state.skill}. Start fresh?"
+    # If yes: overwrite state.json
+    # If no: let user switch to that skill
+
+# 2c. If no state exists:
+    # Fresh start — write initial state
+    Write(".claude/chain/state.json", { skill, current_phase: 1, ... })
+```
+
+## Update Protocol
+
+```python
+# After completing each major phase:
+Read(".claude/chain/state.json")  # read current
+# Update with new phase info:
+Write(".claude/chain/state.json", {
+    ...existing,
+    "current_phase": next_phase,
+    "completed_phases": [...existing.completed_phases, current_phase],
+    "last_handoff": f"{phase_number:02d}-{phase_name}.json",
+    "updated": now()
+})
+```
+
+## When to Checkpoint
+
+- After every numbered phase completes
+- Before every AskUserQuestion gate
+- Before spawning long-running parallel agents
+- The `PreCompact` hook auto-saves if context is about to compact
+
+## Edge Cases
+
+- **Rate limit mid-phase**: Phase is NOT marked complete. On resume, the phase restarts from scratch.
+- **Multiple skills**: Only one skill's state lives in `state.json` at a time. Starting a new skill overwrites.
+- **Stale state**: If `state.updated` is older than 24 hours, warn user and offer fresh start.
+
+
+### Cron Monitoring
+
+# CronCreate Monitoring Patterns
+
+Schedule post-completion health checks that survive session end. Unlike `/loop` (user command), `CronCreate` is a tool the agent calls programmatically.
+
+## CI Status Monitor
+
+```python
+# After creating a PR:
+CronCreate(
+  schedule="*/5 * * * *",    # every 5 minutes
+  prompt="Check CI status for PR #{pr_number} on {owner}/{repo}.
+    Run: gh pr checks {pr_number} --repo {owner}/{repo}
+    If all checks pass: CronDelete this job and report 'CI passed for PR #{pr_number}'.
+    If any check fails: report the failure details immediately."
+)
+```
+
+## Regression Monitor
+
+```python
+# After deploying a fix:
+CronCreate(
+  schedule="0 */6 * * *",    # every 6 hours
+  prompt="Regression check for fix deployed in PR #{pr_number}:
+    1. Run: npm test
+    2. If all pass and this is the 4th consecutive pass: CronDelete this job
+    3. If any fail: alert with test names and error messages"
+)
+```
+
+## Health Check
+
+```python
+# After deploying a feature:
+CronCreate(
+  schedule="0 8 * * *",      # daily at 8am
+  prompt="Health check for {feature} deployed {date}:
+    1. Run: gh api repos/{owner}/{repo}/actions/runs --jq '.[0].conclusion'
+    2. If healthy for 7 days: CronDelete this job
+    3. If errors: alert immediately"
+)
+```
+
+## Best Practices
+
+- Always include a `CronDelete` condition — don't leave crons running forever
+- Use descriptive prompts so the cron agent knows what to check
+- Prefer `gh` CLI over `curl` for GitHub checks (auth handled)
+- Schedule frequency: CI checks every 5min, health checks every 6h, regression daily
+
+
+### Handoff Schema
+
+# Handoff File Schema
+
+Handoff files pass structured data between phases of a pipeline skill. They persist to disk, surviving context compaction and rate limits.
+
+## Location
+
+```
+.claude/chain/
+  capabilities.json          # MCP probe results (written once at start)
+  state.json                 # Checkpoint state (updated after each phase)
+  NN-phase-name.json         # Phase handoff (one per completed phase)
+```
+
+## Schema
+
+```json
+{
+  "phase": "rca",
+  "phase_number": 4,
+  "skill": "fix-issue",
+  "timestamp": "2026-03-07T16:30:00Z",
+  "status": "completed",
+  "outputs": {
+    // Phase-specific structured data
+  },
+  "mcps_used": ["memory", "context7"],
+  "next_phase": 5,
+  "next_phase_name": "fix-design"
+}
+```
+
+## Required Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `phase` | string | Phase identifier (kebab-case) |
+| `phase_number` | number | Numeric phase index |
+| `skill` | string | Parent skill name |
+| `timestamp` | string | ISO-8601 timestamp |
+| `status` | string | `completed` or `failed` |
+| `outputs` | object | Phase-specific results |
+| `next_phase` | number | Next phase index |
+
+## Naming Convention
+
+```
+NN-phase-name.json
+
+Examples:
+  03-hypotheses.json     # fix-issue Phase 3
+  04-rca.json            # fix-issue Phase 4
+  02-ideas.json          # brainstorm Phase 2
+  05-implementation.json # implement Phase 5
+```
+
+## Cleanup
+
+Handoff files are NOT automatically cleaned up. They persist until:
+- User manually deletes `.claude/chain/`
+- A new skill run overwrites them (same phase numbers)
+- The skill's final phase cleans up on success
+
+## Size Limits
+
+Keep handoff files under 50KB. For large outputs (full file contents, long diffs), summarize in the handoff and reference the source files by path.
+
+
+### Mcp Detection
+
+# MCP Detection via ToolSearch
+
+Probe MCP server availability before using any MCP tool. This prevents hard crashes when a user doesn't have a specific MCP server configured.
+
+## Probe Pattern
+
+```python
+# Run ALL probes in ONE message (parallel, ~50ms each):
+ToolSearch(query="select:mcp__memory__search_nodes")
+ToolSearch(query="select:mcp__context7__resolve-library-id")
+ToolSearch(query="select:mcp__sequential-thinking__sequentialthinking")
+
+# Write capability map (read by all subsequent phases):
+Write(".claude/chain/capabilities.json", JSON.stringify({
+  "memory": true,        // or false if ToolSearch returned no results
+  "context7": true,
+  "sequential": false,   // not installed
+  "timestamp": "2026-03-07T16:30:00Z"
+}))
+```
+
+## Usage in Skill Phases
+
+```python
+# Read capabilities (already written at skill start):
+caps = Read(".claude/chain/capabilities.json")
+
+# BEFORE any MCP call, check capability:
+if caps.memory:
+    mcp__memory__search_nodes(query="past fixes for auth errors")
+else:
+    # T1 fallback: skip memory search, rely on codebase grep
+    Grep(pattern="auth.*error", glob="**/*.ts")
+
+if caps.context7:
+    mcp__context7__query-docs(libraryId="...", query="...")
+else:
+    # T1 fallback: WebFetch docs directly
+    WebFetch("https://docs.example.com/api")
+
+if caps.sequential:
+    mcp__sequential-thinking__sequentialthinking(thought="...", ...)
+else:
+    # T1 fallback: use inline evaluation rubric
+    # (the skill's own SKILL.md scoring instructions)
+```
+
+## 3-Tier Model
+
+| Tier | Servers | Who Has It |
+|------|---------|-----------|
+| T1: Core | None (CC built-in tools only) | Every CC user |
+| T2: Enhanced | memory, context7, sequential-thinking | Most CC users (free npm MCPs) |
+| T3: Power | tavily, agent-browser | Power users (API keys required) |
+
+**Rule:** T1 MUST always work. T2/T3 enhance but never required.
+
+## Important Notes
+
+- ToolSearch is fast (~50ms) — probe overhead is negligible
+- Probe ONCE at skill start, not before every MCP call
+- Store in `.claude/chain/capabilities.json` so all phases can read it
+- If a probe fails (tool not found), treat as `false` — never error
+
+
+### Tier Fallbacks
+
+# T1/T2/T3 Graceful Degradation
+
+Every skill MUST work at T1 (zero MCP servers). T2 and T3 enhance but are never required.
+
+## Tier Definitions
+
+| Tier | MCP Servers | Install | Who Has It |
+|------|-----------|---------|-----------|
+| T1: Core | None | Built into CC | Every CC user |
+| T2: Enhanced | memory, context7, sequential-thinking | `npm install` (free) | Most CC users |
+| T3: Power | tavily, agent-browser | API keys required | Power users |
+
+## Fallback Matrix
+
+| MCP Tool | T2/T3 Behavior | T1 Fallback |
+|----------|----------------|-------------|
+| `mcp__memory__search_nodes` | Search past decisions | Skip — rely on codebase Grep |
+| `mcp__memory__create_entities` | Save patterns | Skip — patterns not persisted |
+| `mcp__context7__query-docs` | Live library docs | `WebFetch` docs URL directly |
+| `mcp__sequential-thinking__*` | Structured reasoning | Use inline evaluation rubric |
+| `mcp__tavily__tavily_search` | Deep web search | `WebSearch` (CC built-in) |
+
+## Implementation Pattern
+
+```python
+# Read capabilities (written by MCP probe at skill start)
+caps = JSON.parse(Read(".claude/chain/capabilities.json"))
+
+# Pattern: check before every MCP call
+if caps.memory:
+    results = mcp__memory__search_nodes(query="auth error patterns")
+    # Use results to enrich analysis
+else:
+    # T1 path: search codebase directly
+    Grep(pattern="auth.*error", glob="**/*.ts")
+    # Slightly less context, but still functional
+```
+
+## Rules
+
+1. **Never assume MCP exists** — always check `capabilities.json`
+2. **Never error on missing MCP** — skip gracefully with fallback
+3. **T1 must produce useful output** — reduced quality is OK, failure is not
+4. **Log which tier is active** — include in handoff files (`mcps_used` field)
+
+
+### Worktree Agent Pattern
+
+# Worktree-Isolated Agents
+
+Use `isolation: "worktree"` when spawning agents that write files in parallel. Each agent gets its own copy of the repo — no merge conflicts.
+
+## When to Use
+
+| Scenario | Use Worktree? | Why |
+|----------|--------------|-----|
+| 3 agents implementing different modules | YES | Each edits different files, may overlap |
+| 3 agents investigating a bug (read-only) | NO | Only reading, no conflicts possible |
+| 2 agents: one backend, one frontend | YES | Both may edit `package.json`, config files |
+| 1 agent running tests | NO | Single agent, no conflict risk |
+| Agent doing code review | NO | Read-only analysis |
+
+## Pattern
+
+```python
+# Launch parallel agents with worktree isolation:
+Agent(
+  subagent_type="backend-system-architect",
+  description="Implement backend auth",
+  prompt="Implement auth API endpoints...",
+  isolation="worktree",          # ← gets own repo copy
+  run_in_background=true         # ← non-blocking
+)
+Agent(
+  subagent_type="frontend-ui-developer",
+  description="Implement frontend auth",
+  prompt="Implement auth UI components...",
+  isolation="worktree",
+  run_in_background=true
+)
+```
+
+## How It Works
+
+1. CC creates a git worktree (separate directory, own branch)
+2. Agent works in the worktree — edits don't affect main working directory
+3. On completion, agent's changes are on a separate branch
+4. Parent skill merges the branches back
+
+## Hooks That Fire
+
+- `WorktreeCreate` → `worktree-lifecycle-logger` (logs creation)
+- `WorktreeRemove` → `worktree-lifecycle-logger` (logs cleanup)
+- `SubagentStart` → `unified-dispatcher` (logs agent spawn)
+- `SubagentStop` → `unified-dispatcher` (logs completion)
+
+## Limitations
+
+- Worktree agents are slightly slower to start (~2-3s overhead)
+- Each worktree is a full copy — uses disk space
+- Merge conflicts possible if agents edit same files (rare with proper task splitting)
+- Don't use for read-only agents — unnecessary overhead
+

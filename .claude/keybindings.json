@@ -11,7 +11,7 @@
     {"key": "ctrl+k v", "command": "/ork:verify", "description": "Verify feature"},
     {"key": "ctrl+k p", "command": "/ork:create-pr", "description": "Create PR"},
     {"key": "ctrl+k f", "command": "/ork:fix-issue", "description": "Fix issue"},
-    {"key": "ctrl+k b", "command": "/ork:brainstorming", "description": "Brainstorm"},
+    {"key": "ctrl+k b", "command": "/ork:brainstorm", "description": "Brainstorm"},
     {"key": "ctrl+k d", "command": "/ork:doctor", "description": "Health check"}
   ]
 }

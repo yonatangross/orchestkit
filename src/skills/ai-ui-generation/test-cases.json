@@ -1,0 +1,93 @@
+{
+  "skill": "ai-ui-generation",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "basic-form-generation",
+      "rule": "ai-prompt-patterns",
+      "query": "Generate a signup form component with email, password, and confirm password fields",
+      "expectedBehavior": [
+        "Applies constraint-first prompt pattern with framework, tokens, a11y, and states specified",
+        "Includes design token injection block with semantic color and spacing tokens",
+        "Specifies accessibility requirements including aria-describedby for error messages",
+        "Runs generated output through 10-point review checklist before accepting"
+      ]
+    },
+    {
+      "id": "v0-to-design-system",
+      "rule": "ai-refactoring-conformance",
+      "query": "Convert this v0-generated card component to match our design system with CVA variants and proper TypeScript props",
+      "expectedBehavior": [
+        "Applies 5-step refactoring process: extract tokens, apply CVA, add TypeScript, wire design system, verify theme",
+        "Replaces hardcoded hex and rgb color values with semantic design token classes",
+        "Converts conditional className strings to cva() variant definitions with defaultVariants",
+        "Adds explicit TypeScript props interface extending HTML element attributes and VariantProps"
+      ]
+    },
+    {
+      "id": "negative-non-ui-task",
+      "rule": null,
+      "query": "Write a Node.js script that reads a CSV file and outputs JSON to console",
+      "expectedBehavior": [
+        "Does NOT activate ai-ui-generation skill because the task has no UI component generation",
+        "Does NOT apply prompt patterns or review checklist since no AI UI tool is involved",
+        "Handles as a standard backend scripting task without design token or component concerns"
+      ]
+    },
+    {
+      "id": "complex-data-table-iteration",
+      "rule": "ai-iteration-patterns",
+      "query": "Generate a data table with sorting, filtering, pagination, bulk selection, and inline editing",
+      "expectedBehavior": [
+        "Uses multi-pass iterative prompting: structure first, states second, advanced interactions third",
+        "Defines state transition map before writing prompts to ensure all states are covered",
+        "Separates sorting and filtering prompt from bulk selection and inline editing prompt",
+        "Reviews each pass output before proceeding to prevent error compounding across passes"
+      ]
+    },
+    {
+      "id": "tool-selection-existing-codebase",
+      "rule": "ai-tool-selection",
+      "query": "I need to add a settings panel to my existing Next.js app, should I use v0 or Cursor?",
+      "expectedBehavior": [
+        "Recommends Cursor for incremental changes within an existing codebase over v0",
+        "Explains that v0 generates from scratch without reading project context or existing tokens",
+        "Suggests hybrid workflow: v0 for initial visual exploration, then Cursor for integration",
+        "References the tool selection matrix matching task type to appropriate AI tool"
+      ]
+    },
+    {
+      "id": "ai-ci-gate-pipeline",
+      "rule": "ai-ci-gate",
+      "query": "I generated a card component with v0. How should I set up CI to validate AI-generated components before deploying?",
+      "expectedBehavior": [
+        "Includes axe-core accessibility checks in the CI pipeline for AI-generated components",
+        "Adds visual regression testing with Chromatic or Percy for generated UI",
+        "Enforces TypeScript strict mode and ESLint rules in the build step",
+        "Checks bundle size impact of newly generated components against thresholds"
+      ]
+    },
+    {
+      "id": "ai-review-checklist-component",
+      "rule": "ai-review-checklist",
+      "query": "I got a UserProfile component from Claude. What should I check before merging it into our design system?",
+      "expectedBehavior": [
+        "Verifies the component uses design tokens instead of hardcoded color values",
+        "Checks for proper TypeScript props interface with explicit types",
+        "Validates keyboard accessibility and ARIA attributes on interactive elements",
+        "Confirms responsive behavior across breakpoints and dark mode support"
+      ]
+    },
+    {
+      "id": "ai-token-injection-prompt",
+      "rule": "ai-token-injection",
+      "query": "How do I make sure AI-generated components use our design tokens instead of hardcoded colors?",
+      "expectedBehavior": [
+        "Passes design token variable names explicitly in the AI prompt context",
+        "Uses OKLCH or CSS custom properties instead of hardcoded hex or rgb values",
+        "Includes the Tailwind theme configuration or token map in the prompt",
+        "Validates generated output replaces any hardcoded values with token references"
+      ]
+    }
+  ]
+}

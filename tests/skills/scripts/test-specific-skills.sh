@@ -80,7 +80,7 @@ echo "────────────────────────�
 EXPECTED_SCRIPTS=(
     "architecture-decision-record/scripts/create-adr.md"
     "code-review-playbook/scripts/review-pr.md"
-    "brainstorming/scripts/create-design-doc.md"
+    "brainstorm/scripts/create-design-doc.md"
     "quality-gates/scripts/assess-complexity.md"
     "python-backend/scripts/create-fastapi-app.md"
     "database-patterns/scripts/create-migration.md"
@@ -130,7 +130,7 @@ echo "────────────────────────�
 MARKDOWN_SCRIPTS=(
     "architecture-decision-record/scripts/create-adr.md"
     "code-review-playbook/scripts/review-pr.md"
-    "brainstorming/scripts/create-design-doc.md"
+    "brainstorm/scripts/create-design-doc.md"
     "quality-gates/scripts/assess-complexity.md"
 )
 

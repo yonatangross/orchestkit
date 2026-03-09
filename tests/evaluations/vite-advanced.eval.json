@@ -1,0 +1,103 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "vite-advanced",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "basic-i-need-to-configure",
+      "query": "I need to configure Vite to build for three targets: browser client, Node.js SSR server, and Cloudflare edge workers. How do I set up multi-environment builds?",
+      "expected_behavior": [
+        "Claude uses the Vite 7 Environment API with the environments config key",
+        "Configures separate client, ssr, and edge environment blocks",
+        "Sets appropriate build targets (e.g., node20 for SSR, edge/worker conditions for edge)",
+        "Uses separate outDir for each environment (dist/client, dist/server, dist/edge)",
+        "Mentions that each environment has its own module graph"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "edge-our-vite-7-build",
+      "query": "Our Vite 7 build takes 46 seconds and we're considering Vite 8 with Rolldown. Show me how to migrate manualChunks to the new advancedChunks API.",
+      "expected_behavior": [
+        "Claude explains the migration from manualChunks to advancedChunks with declarative groups",
+        "Provides advancedChunks config with priority, minSize, maxSize, and minShareCount fields",
+        "Mentions the rolldown-vite gradual migration path as an option",
+        "References performance benchmarks (7.7x build speed improvement)",
+        "Includes the migration checklist items for verifying a complete upgrade"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "negative-write-a-react-component",
+      "query": "Write a React component that displays a data table with sorting and filtering",
+      "expected_behavior": [
+        "Claude does NOT invoke the vite-advanced skill",
+        "Implements a standard React data table component",
+        "Uses UI component patterns without build configuration concerns"
+      ],
+      "tags": [
+        "negative"
+      ]
+    },
+    {
+      "id": "vite-advanced-chunks",
+      "query": "Split our Vite 8 build into separate vendor chunks for React, router, and remaining dependencies with size limits.",
+      "expected_behavior": [
+        "Uses advancedChunks groups with regex test patterns to match node_modules packages",
+        "Assigns priority values to resolve conflicts between overlapping chunk groups",
+        "Sets maxSize on the catch-all vendor group to auto-split oversized bundles",
+        "Creates a dedicated react-vendor chunk for react, react-dom, and scheduler at highest priority",
+        "Recommends minShareCount for shared UI libraries imported by multiple routes"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "vite-environments",
+      "query": "Configure separate Vite environments for client browser, Node.js SSR, and Cloudflare edge worker builds.",
+      "expected_behavior": [
+        "Uses the environments config key with separate client, ssr, and edge blocks",
+        "Puts only shared settings at the top level and environment-specific settings under each block",
+        "Sets separate outDir for each environment to prevent build output conflicts",
+        "Configures resolve.noExternal true and edge conditions for the edge runtime environment",
+        "References this.environment in plugin hooks for environment-aware transformations"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "vite-lib-config",
+      "query": "Configure Vite to build a React component library with proper externals, dual ESM/CJS output, and TypeScript declarations.",
+      "expected_behavior": [
+        "Externalizes peer dependencies like react and react-dom via rollupOptions.external",
+        "Provides dual format output with ESM for bundlers and UMD or CJS for legacy consumers",
+        "Uses vite-plugin-dts to generate TypeScript declaration files alongside build output",
+        "Configures package.json exports map with import, require, and types subpath entries",
+        "Marks CSS files in sideEffects to preserve styles during consumer tree-shaking"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "vite-plugin-hooks",
+      "query": "Create a Vite plugin with a virtual module that injects build-time data and only runs during production builds.",
+      "expected_behavior": [
+        "Uses resolveId and load hooks together for virtual module creation instead of transform",
+        "Prefixes resolved virtual module IDs with the null byte character to exclude from filesystem",
+        "Sets apply to build to restrict the plugin to vite build mode only",
+        "Uses enforce pre or post to control plugin execution order relative to core plugins",
+        "Returns valid JavaScript module source from the load hook with JSON serialized data"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    }
+  ]
+}

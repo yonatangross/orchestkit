@@ -4,77 +4,82 @@
   "version": "1.0.0",
   "evaluations": [
     {
-      "id": "basic-commit",
-      "query": "commit my changes",
-      "context": {
-        "git_state": "dirty"
-      },
+      "id": "conventional-format",
+      "query": "Commit my authentication changes with a proper message",
       "expected_behavior": [
-        "Run git status to see changes",
-        "Run git diff to understand modifications",
-        "Generate conventional commit message",
-        "Stage relevant files with git add",
-        "Create commit with Co-Authored-By footer"
+        "Uses conventional commit format: type(scope): description",
+        "Includes Co-Authored-By trailer in the commit message footer",
+        "Keeps subject line under 72 characters for readability",
+        "References issue number with # prefix"
       ],
-      "should_not": [
-        "Push to remote without explicit request",
-        "Commit to main/dev branch directly",
-        "Use git commit --amend without user confirmation"
-      ],
-      "success_criteria": [
-        "Commit message follows conventional format",
-        "All intended changes are committed",
-        "Branch protection is respected"
-      ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
-      "id": "commit-with-message",
-      "query": "commit with message 'fix: resolve login timeout'",
-      "context": {
-        "git_state": "staged"
-      },
+      "id": "atomic-commit",
+      "query": "I changed the API and updated the docs, commit everything",
       "expected_behavior": [
-        "Use the exact message provided by user",
-        "Add Co-Authored-By footer",
-        "Verify changes are staged"
+        "Verifies each commit does ONE logical thing",
+        "Ensures codebase remains working after commit",
+        "Commit message does not need 'and' in title",
+        "Each commit can be reverted independently"
       ],
-      "should_not": [
-        "Modify user-provided commit message",
-        "Generate different commit message"
-      ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
-      "id": "empty-commit-prevention",
-      "query": "commit my work",
-      "context": {
-        "git_state": "clean"
-      },
+      "id": "commit-splitting",
+      "query": "I have changes to the database schema and the UI, how should I commit?",
       "expected_behavior": [
-        "Run git status",
-        "Detect no changes to commit",
-        "Inform user there are no changes"
+        "Recommends splitting unrelated changes into separate atomic commits",
+        "Suggests using git add -p for interactive staging",
+        "Separates unrelated changes into distinct commits",
+        "Reviews staged vs unstaged changes with git diff"
       ],
-      "should_not": [
-        "Create empty commit",
-        "Fail silently"
-      ],
-      "tags": ["edge-case"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
-      "id": "protected-branch-block",
-      "query": "commit to main branch",
+      "id": "quick-commit",
+      "query": "Fix a typo in the error message",
       "expected_behavior": [
-        "Detect protected branch",
-        "Block direct commit to main",
-        "Suggest creating feature branch instead"
+        "Uses quick commit pattern for trivial changes",
+        "Uses fix type prefix for the conventional commit format",
+        "Includes Co-Authored-By trailer appended to commit metadata",
+        "Does not spawn agents for simple changes"
       ],
-      "should_not": [
-        "Commit directly to main",
-        "Bypass branch protection"
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "branch-protection",
+      "query": "Commit directly to main branch",
+      "expected_behavior": [
+        "Verifies commit is atomic and does not mix unrelated changes on protected branches",
+        "Refuses to commit to main or dev branches",
+        "Suggests creating a feature branch first",
+        "Uses issue/<number>-<description> branch naming convention for traceability"
       ],
-      "tags": ["security"]
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "issue-reference-required",
+      "query": "I'm committing code for issue #42 but I keep forgetting to add the issue reference. What's required?",
+      "expected_behavior": [
+        "Requires issue number reference in every commit message using the hash-number prefix format",
+        "Formats commit as type(#42): description following conventional commit with issue reference",
+        "Warns that commits without issue references break traceability and auto-close linking",
+        "Enables automatic issue-to-commit linking for progress tracking and audit trail purposes"
+      ],
+      "tags": [
+        "happy-path"
+      ]
     }
   ]
 }

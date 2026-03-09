@@ -1,6 +1,6 @@
 ---
 description: "Full-power feature implementation with parallel subagents. Use when implementing, building, or creating features."
-allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskOutput, TaskStop, mcp__context7__query_docs, mcp__memory__search_nodes]
+allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskOutput, TaskStop, ToolSearch, CronCreate, CronDelete, mcp__context7__query_docs, mcp__memory__search_nodes]
 ---
 
 # Auto-generated from skills/implement/SKILL.md
@@ -26,6 +26,38 @@ Parallel subagent execution for feature implementation with scope control and re
 FEATURE_DESC = "$ARGUMENTS"  # Full argument string, e.g., "user authentication"
 # $ARGUMENTS[0] is the first token, $ARGUMENTS[1] second, etc. (CC 2.1.59)
 ```
+
+
+## Step -1: MCP Probe + Resume Check
+
+**Run BEFORE any other step.** Detect available MCP servers and check for resumable state.
+
+```python
+# Probe MCPs (parallel — all in ONE message):
+ToolSearch(query="select:mcp__memory__search_nodes")
+ToolSearch(query="select:mcp__context7__resolve-library-id")
+
+Write(".claude/chain/capabilities.json", JSON.stringify({
+  "memory": <true if found>,
+  "context7": <true if found>,
+  "timestamp": now()
+}))
+
+# Resume check:
+Read(".claude/chain/state.json")
+# If exists and skill == "implement":
+#   Read last handoff (e.g., 04-architecture.json)
+#   Skip to current_phase
+#   "Resuming from Phase {N} — architecture decided in previous session"
+# If not: write initial state
+Write(".claude/chain/state.json", JSON.stringify({
+  "skill": "implement", "feature": FEATURE_DESC,
+  "current_phase": 1, "completed_phases": [],
+  "capabilities": capabilities
+}))
+```
+
+> Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/checkpoint-resume.md")`
 
 
 ## Step 0: Project Context Discovery
@@ -118,6 +150,57 @@ Create tasks with `TaskCreate` BEFORE doing any work. Each phase gets a subtask.
 Load agent prompts: `Read("${CLAUDE_PLUGIN_ROOT}/skills/implement/references/agent-phases.md")`
 
 For Agent Teams mode: `Read("${CLAUDE_PLUGIN_ROOT}/skills/implement/references/agent-teams-phases.md")`
+
+### Phase Handoffs (CC 2.1.71)
+
+Write handoff JSON after major phases. See `chain-patterns` skill for schema.
+
+| After Phase | Handoff File | Key Outputs |
+|-------------|-------------|-------------|
+| 1. Discovery | `01-discovery.json` | Best practices, library docs, task breakdown |
+| 2. Micro-Plan | `02-plan.json` | File map, acceptance criteria per task |
+| 4. Architecture | `04-architecture.json` | Decisions, patterns chosen, agent results |
+| 5. Implementation | `05-implementation.json` | Files created/modified, test results |
+| 7. Scope Creep | `07-scope.json` | Planned vs actual, PR split recommendation |
+
+### Worktree-Isolated Implementation (CC 2.1.50)
+
+Phase 5 agents SHOULD use `isolation: "worktree"` to prevent file conflicts:
+
+```python
+Agent(subagent_type="backend-system-architect",
+  prompt="Implement backend: {feature}. Architecture: {from 04-architecture.json}",
+  isolation="worktree", run_in_background=true)
+Agent(subagent_type="frontend-ui-developer",
+  prompt="Implement frontend: {feature}...",
+  isolation="worktree", run_in_background=true)
+Agent(subagent_type="test-generator",
+  prompt="Generate tests: {feature}...",
+  isolation="worktree", run_in_background=true)
+```
+
+### Post-Deploy Monitoring (CC 2.1.71)
+
+After final PR, schedule health monitoring:
+
+```python
+CronCreate(
+  schedule="0 */6 * * *",
+  prompt="Health check for {feature} in PR #{pr}:
+    gh pr checks {pr} --repo {repo}.
+    If healthy 24h → CronDelete. If errors → alert."
+)
+```
+
+### context7 with Detection
+
+```python
+if capabilities.context7:
+  mcp__context7__resolve-library-id({ libraryName: "next-auth" })
+  mcp__context7__query-docs({ libraryId: "...", query: "..." })
+else:
+  WebFetch("https://docs.example.com/api")  # T1 fallback
+```
 
 ### Issue Tracking
 

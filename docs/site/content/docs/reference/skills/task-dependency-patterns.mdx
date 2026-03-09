@@ -158,6 +158,13 @@ SendMessage(type: "broadcast",
   summary: "Breaking auth change")
 ```
 
+## Context Exhaustion Handling
+
+When using Agent Teams, if context limit is reached mid-workflow:
+- Collect partial results from completed teammates via `TaskList`
+- Synthesize available outputs — prefer partial results over silent failure
+- Log skipped tasks with `TaskUpdate(status: "cancelled", note: "context limit")`
+
 ## Anti-Patterns
 
 - Creating tasks for trivial single-step work
@@ -172,7 +179,7 @@ SendMessage(type: "broadcast",
 - `ork:implement` - Implementation workflow with task tracking and progress updates
 - `ork:verify` - Verification tasks and completion checklists
 - `ork:fix-issue` - Issue resolution with hypothesis-based RCA tracking
-- `ork:brainstorming` - Design exploration with parallel agent tasks
+- `ork:brainstorm` - Design exploration with parallel agent tasks
 
 ## References
 

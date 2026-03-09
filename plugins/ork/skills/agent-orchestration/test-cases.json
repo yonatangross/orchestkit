@@ -18,9 +18,9 @@
       "rule": "loops-plan-execute",
       "query": "Create an agent that plans steps first then executes them with replanning",
       "expectedBehavior": [
-        "Generates numbered plan before execution",
+        "Generates numbered plan before execution with clear step ordering",
         "Executes steps sequentially with context passing",
-        "Detects when replanning is needed",
+        "Detects when replanning is needed based on execution failures or new context",
         "Synthesizes final answer from step results"
       ]
     },
@@ -31,7 +31,7 @@
       "expectedBehavior": [
         "Uses LLM to determine agent routing",
         "Supports parallel execution for independent agents",
-        "Passes context between sequential agents",
+        "Passes context between sequential agents using structured message passing",
         "Returns aggregated results from all agents"
       ]
     },
@@ -40,10 +40,10 @@
       "rule": "multi-debate",
       "query": "Handle conflicting outputs from multiple agents",
       "expectedBehavior": [
-        "Detects conflicts between agent findings",
+        "Detects conflicts between agent findings using semantic comparison analysis",
         "Uses confidence scores or LLM arbitration",
-        "Records resolution reasoning",
-        "Applies resolutions to findings"
+        "Records resolution reasoning with detailed justification for each decision",
+        "Applies resolutions to findings and updates the merged output accordingly"
       ]
     },
     {
@@ -51,10 +51,10 @@
       "rule": "multi-synthesis",
       "query": "Combine outputs from 4 parallel specialist agents into a report",
       "expectedBehavior": [
-        "Groups findings by category",
+        "Groups findings by category for structured cross-agent result organization",
         "Produces executive summary with key findings",
-        "Includes per-category recommendations",
-        "Assigns overall confidence score"
+        "Includes per-category recommendations with prioritized actionable next steps",
+        "Assigns overall confidence score based on weighted agent agreement levels"
       ]
     },
     {
@@ -62,10 +62,10 @@
       "rule": "frameworks-crewai",
       "query": "Build a hierarchical CrewAI crew with manager delegation",
       "expectedBehavior": [
-        "Creates manager agent with allow_delegation=True",
+        "Creates manager agent with allow_delegation=True for hierarchical task routing",
         "Defines specialist agents with specific roles",
-        "Uses Process.hierarchical with manager_llm",
-        "Enables memory for knowledge retention"
+        "Uses Process.hierarchical with manager_llm for top-down task delegation",
+        "Enables memory for knowledge retention across sequential crew task executions"
       ]
     },
     {
@@ -73,9 +73,9 @@
       "rule": "frameworks-autogen",
       "query": "Set up a Microsoft Agent Framework team with termination conditions",
       "expectedBehavior": [
-        "Uses AssistantAgent from autogen_agentchat",
-        "Creates RoundRobinGroupChat or SelectorGroupChat",
-        "Sets explicit termination conditions",
+        "Uses AssistantAgent from autogen_agentchat for conversable agent creation",
+        "Creates RoundRobinGroupChat or SelectorGroupChat for multi-agent coordination patterns",
+        "Sets explicit termination conditions to prevent unbounded agent conversation loops",
         "Separates model client from agent definition"
       ]
     },
@@ -84,10 +84,10 @@
       "rule": "frameworks-comparison",
       "query": "Choose a multi-agent framework for a production customer support system",
       "expectedBehavior": [
-        "Evaluates requirements against framework capabilities",
+        "Evaluates requirements against framework capabilities with structured comparison criteria",
         "Considers team expertise and framework maturity",
-        "Provides decision tree or matrix",
-        "Documents trade-offs and migration paths"
+        "Provides decision tree or matrix for systematic framework selection guidance",
+        "Documents trade-offs and migration paths for long-term framework adoption planning"
       ]
     },
     {
@@ -96,9 +96,9 @@
       "query": "Orchestrate a skill across simple, medium, and complex scenarios in parallel",
       "expectedBehavior": [
         "Defines 3 scenarios with progressive difficulty (1x/3x/8x)",
-        "Uses fan-out for parallel execution",
-        "Aggregates results with quality comparison",
-        "Provides scaling analysis and recommendations"
+        "Uses fan-out for parallel execution across all defined scenario instances",
+        "Aggregates results with quality comparison across simple, medium, and complex scenarios",
+        "Provides scaling analysis and recommendations based on scenario complexity progression"
       ]
     },
     {
@@ -106,7 +106,7 @@
       "rule": "scenario-routing",
       "query": "Implement milestone synchronization for parallel scenario execution",
       "expectedBehavior": [
-        "Pauses at configurable milestone percentages",
+        "Pauses at configurable milestone percentages to synchronize parallel scenario progress",
         "Waits for all scenarios with timeout",
         "Continues on timeout to prevent deadlocks",
         "Tracks progress per scenario with checkpoints"

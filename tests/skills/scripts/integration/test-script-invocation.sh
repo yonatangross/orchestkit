@@ -230,7 +230,7 @@ echo "────────────────────────�
 TEST_SKILLS=(
     "architecture-decision-record/scripts/create-adr.md:ADR-001"
     "code-review-playbook/scripts/review-pr.md:123"
-    "brainstorming/scripts/create-design-doc.md:user-profile"
+    "brainstorm/scripts/create-design-doc.md:user-profile"
     "quality-gates/scripts/assess-complexity.md:src/components"
     "python-backend/scripts/create-fastapi-app.md:my-api"
     "database-patterns/scripts/create-migration.md:add_user_table"

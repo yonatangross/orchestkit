@@ -1,0 +1,128 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "devops-deployment",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "basic-set-up-a-github",
+      "query": "Set up a GitHub Actions CI/CD pipeline for our Node.js app with Docker deployment to Kubernetes.",
+      "expected_behavior": [
+        "Creates GitHub Actions workflow with 6 stages: lint, test, security scan, build, deploy staging, deploy production",
+        "Generates multi-stage Dockerfile with non-root user and health checks",
+        "Produces Kubernetes manifests: Deployment with rolling update, Service, Ingress with TLS",
+        "Includes HorizontalPodAutoscaler configuration with CPU and memory scaling thresholds",
+        "Uses External Secrets Operator pattern for secrets management",
+        "Applies container security hardening: readOnlyRootFilesystem, drop capabilities"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "edge-we-need-to-migrate",
+      "query": "We need to migrate from AWS to GCP with zero downtime. Plan the deployment strategy.",
+      "expected_behavior": [
+        "Triggers extended thinking for cross-cloud migration planning",
+        "Evaluates deployment strategies: rolling, blue-green, canary for the migration",
+        "Plans zero-downtime database migration with rollback procedures",
+        "Includes pre-deployment, during-deployment, and post-deployment checklists",
+        "Addresses secrets management across cloud providers",
+        "Recommends GitOps approach with ArgoCD for infrastructure management"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "negative-refactor-the-userservice-class",
+      "query": "Refactor the UserService class to use the repository pattern.",
+      "expected_behavior": [
+        "Claude does NOT invoke the devops-deployment skill",
+        "Treats this as a code refactoring task using architecture patterns",
+        "Uses standard code editing tools for the refactor",
+        "DevOps deployment is for CI/CD, containers, and infrastructure, not code architecture"
+      ],
+      "tags": [
+        "negative"
+      ]
+    },
+    {
+      "id": "branch-protection-setup",
+      "query": "Configure branch protection rules for our GitHub repository to enforce code review on main and dev branches.",
+      "expected_behavior": [
+        "Requires pull request with 2 approvals before merging to main branch",
+        "Configures required status checks for lint, test, and security to pass before merge",
+        "Blocks force pushes and direct commits to main and dev branches",
+        "Requires branches to be up-to-date before merging to prevent integration gaps"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "ci-caching-setup",
+      "query": "Our GitHub Actions CI pipeline takes 5 minutes to install dependencies every run, how do I speed it up?",
+      "expected_behavior": [
+        "Uses actions/cache with hashFiles of lockfile in the cache key for automatic invalidation",
+        "Configures restore-keys as fallback prefix for partial cache hits on key miss",
+        "Caches package manager directory and node_modules in a single cache step",
+        "Uses npm ci instead of npm install after cache restore for reproducible installs"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "db-migration-safety",
+      "query": "I need to add a NOT NULL email column to the users table during a zero-downtime deployment.",
+      "expected_behavior": [
+        "Uses 3-phase migration pattern: add nullable column, backfill data, then add constraint",
+        "Deploys migration before the application code that depends on the new column",
+        "Writes a downgrade function so the migration can be rolled back with alembic",
+        "Never adds a NOT NULL column in a single destructive step to avoid breaking running instances"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "docker-security-hardening",
+      "query": "Our Docker container runs as root and has secrets baked into the image layers, how do I fix this?",
+      "expected_behavior": [
+        "Creates a non-root user with USER directive and runs the container as that user",
+        "Injects secrets at runtime via environment variables instead of ARG or ENV in Dockerfile",
+        "Adds a .dockerignore file to exclude .env, .git, node_modules, and test files",
+        "Uses COPY with chown flag to set file ownership without a separate chown layer"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "docker-multistage-build",
+      "query": "Our Docker image is 850MB because it includes dev dependencies and build tools, how do I reduce it?",
+      "expected_behavior": [
+        "Separates build into three stages: deps, builder, and minimal production runner",
+        "Copies only production node_modules and compiled artifacts into the final stage",
+        "Uses alpine base images to minimize base layer size and CVE surface area",
+        "Runs tests in the builder stage so test failures prevent image creation entirely"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "railway-deployment-setup",
+      "query": "Deploy our Node.js app to Railway with health checks, environment variables, and restart policies.",
+      "expected_behavior": [
+        "Configures railway.json with Nixpacks builder, healthcheckPath, and restart policy",
+        "Uses Railway shared variables for cross-service config like DATABASE_URL and REDIS_URL",
+        "Sets healthcheckPath for web services so Railway can detect failed deploys",
+        "Recommends Nixpacks over Dockerfile for standard app stacks to reduce configuration"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    }
+  ]
+}

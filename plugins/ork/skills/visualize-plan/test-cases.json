@@ -1,0 +1,49 @@
+{
+  "skill": "visualize-plan",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "basic-orkvisualizeplan-billing-module-redesign",
+      "rule": "",
+      "query": "/ork:visualize-plan billing module redesign",
+      "expectedBehavior": [
+        "Claude runs the detect-plan-context script to gather branch and change data",
+        "Runs analyze-impact.sh to get file counts, line changes, and dependency info",
+        "Renders the Tier 1 header with plan name, phase count, file count, risk level, and confidence",
+        "Uses AskUserQuestion to ask which sections to expand (Changes, Execution, Risks, Decisions, Impact)",
+        "Offers follow-up actions: write to designs/, generate GitHub issues, or drill deeper"
+      ]
+    },
+    {
+      "id": "edge-orkvisualizeplan-234",
+      "rule": "",
+      "query": "/ork:visualize-plan #234",
+      "expectedBehavior": [
+        "Claude detects the GitHub issue reference and pulls plan context from issue #234",
+        "Proceeds with auto-detection rather than asking for clarification",
+        "Renders visualization sections based on the issue content and branch changes"
+      ]
+    },
+    {
+      "id": "negative-fix-the-typo-in",
+      "rule": "",
+      "query": "Fix the typo in the README file on line 42",
+      "expectedBehavior": [
+        "Claude does NOT invoke the visualize-plan skill",
+        "Directly edits the file since this is a trivial single-line fix",
+        "No plan visualization, risk analysis, or impact assessment generated"
+      ]
+    },
+    {
+      "id": "section-rendering",
+      "rule": "section-rendering",
+      "query": "How should sections be rendered in a plan visualization for consistency?",
+      "expectedBehavior": [
+        "Ensures every section answers exactly one reviewer question and cuts content that does not",
+        "Uses analyze-impact.sh scripts for precise file and line counts rather than estimates",
+        "Applies annotations carrying judgment: exclamation marks for risk and asterisks for new items",
+        "Requires a mandatory one-line summary at the end of every rendered visualization section"
+      ]
+    }
+  ]
+}

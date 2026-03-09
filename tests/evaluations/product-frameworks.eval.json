@@ -4,45 +4,238 @@
   "version": "1.0.0",
   "evaluations": [
     {
-      "id": "roi-calculation",
+      "id": "business-roi",
       "query": "Calculate the ROI for a $500K software investment with $200K annual benefits over 5 years",
       "expected_behavior": [
         "Uses ROI formula: (Net Benefits - Total Costs) / Total Costs x 100%",
-        "Calculates NPV with discount rate",
-        "Provides IRR and payback period"
+        "Calculates net present value using an appropriate discount rate for the investment",
+        "Provides internal rate of return and payback period calculations",
+        "Includes Python code examples for automating the financial calculations"
       ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
-      "id": "rice-prioritization",
+      "id": "business-cost-benefit",
+      "query": "Compare build vs buy for an authentication system",
+      "expected_behavior": [
+        "Creates a 3-year total cost of ownership comparison table for each option",
+        "Includes hidden costs (opportunity cost, switching costs)",
+        "Provides sensitivity analysis with best-case, worst-case, and expected scenarios",
+        "Uses a structured business case template with executive summary and recommendation"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "market-tam-sam-som",
+      "query": "Size the market for an AI developer tools product",
+      "expected_behavior": [
+        "Uses both top-down and bottom-up TAM calculation",
+        "Applies SAM filters (geography, segment, use case)",
+        "Calculates realistic SOM with competitive constraints",
+        "Cross-references top-down and bottom-up methods and reconciles any discrepancies"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "market-competitive",
+      "query": "Analyze the competitive landscape for a project management SaaS",
+      "expected_behavior": [
+        "Applies Porter's Five Forces framework to assess industry competitive dynamics",
+        "Creates SWOT analysis with TOWS matrix",
+        "Builds a competitive positioning map plotting rivals on key differentiating axes",
+        "Includes a competitor profile template with strengths, weaknesses, and market share"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "strategy-value-prop",
+      "query": "Create a value proposition canvas for an enterprise collaboration tool",
+      "expected_behavior": [
+        "Maps customer jobs (functional, social, emotional)",
+        "Identifies pains and gains with ranking",
+        "Creates value map with pain relievers and gain creators",
+        "Assesses problem-solution fit by mapping pains and gains to product capabilities"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "strategy-go-no-go",
+      "query": "Should we proceed with building an AI-powered search feature?",
+      "expected_behavior": [
+        "Uses a stage gate criteria checklist to evaluate readiness at each milestone",
+        "Applies a weighted scoring template covering feasibility, viability, and desirability",
+        "Provides decision thresholds (Go >= 7.0, No-Go < 5.0)",
+        "Includes a build, buy, or partner evaluation matrix with cost and risk tradeoffs"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "prioritize-rice",
       "query": "Prioritize these features: search improvements, dark mode, API v2, mobile app",
       "expected_behavior": [
         "Scores each feature with Reach, Impact, Confidence, Effort",
         "Calculates RICE score for each feature",
-        "Ranks features by score",
-        "Documents scoring rationale"
+        "Ranks features by calculated RICE score from highest to lowest priority",
+        "Documents the scoring rationale with justification for each factor assignment"
       ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
-      "id": "okr-writing",
+      "id": "prioritize-wsjf",
+      "query": "Prioritize backlog items when we have a regulatory deadline",
+      "expected_behavior": [
+        "Calculates Cost of Delay (User Value + Time Criticality + Risk Reduction)",
+        "Divides by Job Size for WSJF score",
+        "Identifies time-sensitive items for higher priority",
+        "Includes MoSCoW categorization to distinguish must-have from nice-to-have items"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "metrics-okr",
       "query": "Write OKRs for a team focused on improving customer retention",
       "expected_behavior": [
-        "Creates qualitative, inspiring objectives",
+        "Creates qualitative and inspiring objectives that motivate the team toward outcomes",
         "Defines quantitative key results with baselines and targets",
-        "Key results are outcome-focused, not output-focused"
+        "Key results are outcome-focused, not output-focused",
+        "Targets are stretch goals (70% achievable)"
       ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
-      "id": "user-persona",
+      "id": "metrics-kpi-trees",
+      "query": "Build a KPI tree for tracking SaaS revenue growth",
+      "expected_behavior": [
+        "Creates a hierarchical metric breakdown showing how sub-metrics roll up to top-level goals",
+        "Shows cause-effect relationships between leading input metrics and lagging outcomes",
+        "Identifies North Star metric with input metrics",
+        "Covers new revenue, expansion, and retention branches"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "metrics-leading-lagging",
+      "query": "Set up a balanced metrics dashboard for a product team",
+      "expected_behavior": [
+        "Distinguishes leading from lagging indicators and explains their predictive relationship",
+        "Shows the leading-to-lagging chain that connects team actions to business outcomes",
+        "Sets appropriate review cadences (weekly for leading, monthly for lagging)",
+        "Pairs actionable metrics with result metrics"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "metrics-instrumentation",
+      "query": "Define and instrument a new KPI for feature adoption",
+      "expected_behavior": [
+        "Uses metric definition template with formula",
+        "Identifies data source, table, and owner",
+        "Defines metric segments and historical context for meaningful trend analysis",
+        "Sets alerting thresholds with warning and critical levels based on historical baselines"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "research-personas",
       "query": "Create a user persona for a DevOps engineer using our CI/CD platform",
       "expected_behavior": [
         "Includes demographics, goals, pain points, behaviors",
-        "Adds characteristic quote capturing mindset",
-        "Provides key insight for design decisions"
+        "Adds a characteristic quote that captures the persona's mindset and priorities",
+        "Provides key insight for design decisions",
+        "Creates empathy map for specific scenario"
       ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "research-journey-mapping",
+      "query": "Map the customer journey for onboarding new enterprise users",
+      "expected_behavior": [
+        "Defines five to seven journey stages from initial awareness through post-purchase",
+        "Maps actions, thoughts, emotions per stage",
+        "Identifies key pain points and improvement opportunities at each journey stage",
+        "Includes channel touchpoints and an emotional curve tracking user sentiment across stages"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "research-user-interviews",
+      "query": "Plan a user research study to understand search behavior",
+      "expected_behavior": [
+        "Creates interview plan with research questions",
+        "Designs interview guide with warm-up, deep dive, wrap-up",
+        "Includes usability test plan with success criteria",
+        "Follows best practices (open-ended questions, no leading)"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "research-requirements-prd",
+      "query": "Write a PRD for a new notification system feature",
+      "expected_behavior": [
+        "Follows a standard PRD template structure with problem statement and scope",
+        "Includes user stories with INVEST criteria",
+        "Writes acceptance criteria in Given-When-Then format",
+        "Defines non-functional requirements and success metrics"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "metrics-experiment-design",
+      "query": "How do I design a proper A/B test with sample size calculation and hypothesis for our pricing page?",
+      "expected_behavior": [
+        "Formulates a specific testable hypothesis with change, expected outcome, and reasoning",
+        "Calculates minimum sample size for statistical power before running the experiment",
+        "Defines primary and guardrail metrics to measure both intended effects and unintended harm",
+        "Structures the experiment from hypothesis through data collection to ship or kill decision"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "prioritize-opportunity-cost",
+      "query": "Evaluate the opportunity cost of building feature A versus feature B when we can only pick one this quarter",
+      "expected_behavior": [
+        "Uses value-effort matrix to plot features by expected value and required engineering effort",
+        "Applies cost of delay analysis to quantify the revenue or strategic impact of deferring each option",
+        "Flags trade-offs explicitly for human decision-makers rather than making the choice",
+        "Considers both the value of the chosen feature and what is lost by not building the alternative"
+      ],
+      "tags": [
+        "happy-path"
+      ]
     }
   ]
 }

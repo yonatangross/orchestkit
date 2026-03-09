@@ -17,7 +17,7 @@
  */
 
 import { existsSync, readFileSync, mkdirSync } from 'node:fs';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
 import {
@@ -37,7 +37,7 @@ const HOOK_NAME = 'handoff-writer';
  */
 function getModifiedFiles(projectDir: string): string[] {
   try {
-    const output = execSync('git diff --name-only HEAD 2>/dev/null', {
+    const output = execFileSync('git', ['diff', '--name-only', 'HEAD'], {
       encoding: 'utf8',
       timeout: 3000,
       cwd: projectDir,

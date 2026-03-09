@@ -2,11 +2,11 @@
 name: performance
 license: MIT
 compatibility: "Claude Code 2.1.59+."
-description: Performance optimization patterns covering Core Web Vitals, React render optimization, lazy loading, image optimization, backend profiling, and LLM inference. Use when improving page speed, debugging slow renders, optimizing bundles, reducing image payload, profiling backend, or deploying LLMs efficiently.
-tags: [performance, core-web-vitals, lcp, inp, cls, react-compiler, virtualization, lazy-loading, code-splitting, image-optimization, avif, profiling, vllm, quantization, inference, caching, redis, prompt-caching, tanstack-query, prefetching, optimistic-updates]
+description: Performance optimization patterns covering Core Web Vitals, React render optimization, lazy loading, image optimization, backend profiling, LLM inference, and sustainability UX. Use when improving page speed, debugging slow renders, optimizing bundles, reducing image payload, profiling backend, deploying LLMs efficiently, or reducing digital carbon footprint.
+tags: [performance, core-web-vitals, lcp, inp, cls, react-compiler, virtualization, lazy-loading, code-splitting, image-optimization, avif, profiling, vllm, quantization, inference, caching, redis, prompt-caching, tanstack-query, prefetching, optimistic-updates, sustainability, carbon-footprint, page-weight]
 context: fork
 agent: frontend-ui-developer
-version: 2.0.0
+version: 2.1.0
 author: OrchestKit
 user-invocable: false
 disable-model-invocation: false
@@ -29,7 +29,7 @@ Comprehensive performance optimization patterns for frontend, backend, and LLM i
 
 | Category | Rules | Impact | When to Use |
 |----------|-------|--------|-------------|
-| [Core Web Vitals](#core-web-vitals) | 3 | CRITICAL | LCP, INP, CLS optimization with 2026 thresholds |
+| [Core Web Vitals](#core-web-vitals) | 4 | CRITICAL | LCP, INP, CLS optimization with 2026 thresholds |
 | [Render Optimization](#render-optimization) | 3 | HIGH | React Compiler, memoization, virtualization |
 | [Lazy Loading](#lazy-loading) | 3 | HIGH | Code splitting, route splitting, preloading |
 | [Image Optimization](#image-optimization) | 3 | HIGH | Next.js Image, AVIF/WebP, responsive images |
@@ -37,8 +37,9 @@ Comprehensive performance optimization patterns for frontend, backend, and LLM i
 | [LLM Inference](#llm-inference) | 3 | MEDIUM | vLLM, quantization, speculative decoding |
 | [Caching](#caching) | 2 | HIGH | Redis cache-aside, prompt caching, HTTP cache headers |
 | [Query & Data Fetching](#query--data-fetching) | 2 | HIGH | TanStack Query prefetching, optimistic updates, rollback |
+| [Sustainability](#sustainability) | 1 | MEDIUM | Page weight budgets, lazy loading, optimized formats, dark mode |
 
-**Total: 22 rules across 8 categories**
+**Total: 24 rules across 9 categories**
 
 ## Core Web Vitals
 
@@ -48,6 +49,7 @@ Google's Core Web Vitals with 2026 stricter thresholds.
 |------|------|-------------|
 | LCP Optimization | `rules/cwv-lcp.md` | Preload hero, SSR, fetchpriority="high" |
 | INP Optimization | `rules/cwv-inp.md` | scheduler.yield, useTransition, requestIdleCallback |
+| INP Advanced | `rules/cwv-inp-advanced.md` | Layout thrashing, third-party scripts, rAF patterns |
 | CLS Prevention | `rules/cwv-cls.md` | Explicit dimensions, aspect-ratio, font-display |
 
 ### 2026 Thresholds
@@ -125,6 +127,14 @@ TanStack Query v5 patterns for prefetching and optimistic updates.
 |------|------|-------------|
 | Prefetching | `rules/query-prefetching.md` | Hover prefetch, route loaders, queryOptions, Suspense |
 | Optimistic Updates | `rules/query-optimistic.md` | Optimistic mutations, rollback, cache invalidation |
+
+## Sustainability
+
+Digital sustainability patterns for reducing carbon footprint and energy usage.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Sustainability UX | `rules/sustainability-ux.md` | Page weight budgets, AVIF/WebP, lazy loading, dark mode |
 
 ## Quick Start Example
 
@@ -239,6 +249,22 @@ export default async function Page() {
 - Profile React renders and backend code
 - Generate and interpret flame graphs
 - Analyze and optimize bundle size
+
+### inp-advanced
+**Keywords:** INP, scheduler-yield, layout-thrashing, third-party-scripts, requestAnimationFrame
+**Solves:**
+- Break long tasks with scheduler.yield()
+- Audit and defer blocking third-party scripts
+- Avoid synchronous layout thrashing in event handlers
+- Optimize form submissions, dropdowns, accordions, filters
+
+### sustainability
+**Keywords:** sustainability, carbon-footprint, page-weight, green-ux, dark-mode, lazy-loading
+**Solves:**
+- Enforce page weight budgets (< 1MB)
+- Eliminate auto-playing videos and heavy decorative animations
+- Serve optimized image formats (AVIF/WebP)
+- Implement cursor-based pagination to prevent over-fetching
 
 ### llm-inference
 **Keywords:** vllm, quantization, speculative-decoding, inference, throughput

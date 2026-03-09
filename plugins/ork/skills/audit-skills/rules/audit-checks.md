@@ -81,7 +81,7 @@ Store as `refs_count`. Used in Check 5 combined with rules count.
 
 Flag WARN if `rules_count == 0 AND refs_count == 0`.
 
-Exception: orchestration skills (`implement`, `explore`, `verify`, `brainstorming`, etc.) with inline workflow detail are acceptable with 0 rules — only flag if BOTH are zero.
+Exception: orchestration skills (`implement`, `explore`, `verify`, `brainstorm`, etc.) with inline workflow detail are acceptable with 0 rules — only flag if BOTH are zero.
 
 ### Check 6: Manifest Registration
 

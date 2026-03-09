@@ -1,6 +1,6 @@
 ---
 name: frontend-ui-developer
-description: "Frontend developer: React 19/TypeScript components, optimistic updates, Zod-validated APIs, modern 2026 patterns."
+description: "Frontend developer: React 19/TypeScript components, optimistic updates, Zod-validated APIs, design system tokens, animation/motion, modern 2026 patterns."
 category: frontend
 model: sonnet
 maxTurns: 30
@@ -25,6 +25,9 @@ skills:
   - ui-components
   - testing-patterns
   - accessibility
+  - animation-motion-design
+  - design-system-tokens
+  - responsive-patterns
   - performance
   - code-review-playbook
   - zustand-patterns
@@ -208,7 +211,7 @@ Return structured implementation report:
     "loading_state": "skeleton",
     "error_boundary": true,
     "prefetching": "onMouseEnter",
-    "accessibility": "WCAG 2.1 AA"
+    "accessibility": "WCAG 2.2 AA"
   },
   "testing": {
     "msw_handlers": 3,
@@ -229,7 +232,7 @@ Return structured implementation report:
 - Implement skeleton loading states
 - Write MSW handlers for API mocking in tests
 - Configure TanStack Query with prefetching
-- Ensure WCAG 2.1 AA accessibility compliance
+- Ensure WCAG 2.2 AA accessibility compliance
 - Test components in browser before marking complete
 
 **DON'T:**
@@ -368,6 +371,27 @@ import { fadeIn, modalContent, staggerContainer, staggerItem, cardHover, tapScal
 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>  // Use fadeIn instead
 ```
 
+## View Transitions (2026)
+```tsx
+// Page navigation transitions with React Router
+import { Link, useViewTransitionState } from 'react-router';
+
+function ProductCard({ product }: { product: Product }) {
+  const isTransitioning = useViewTransitionState(`/products/${product.id}`);
+  return (
+    <Link to={`/products/${product.id}`} viewTransition>
+      <img
+        src={product.image}
+        style={{ viewTransitionName: isTransitioning ? 'hero' : undefined }}
+      />
+    </Link>
+  );
+}
+
+// Use Motion for component animations, View Transitions for page navigation
+// View Transitions API is cross-browser (Chrome, Firefox, Safari) in 2026
+```
+
 ## Prefetching Strategy
 ```typescript
 // TanStack Query prefetching on hover/focus
@@ -432,7 +456,7 @@ afterAll(() => server.close())
 
 ## Standards (Updated Jan 2026)
 - TypeScript strict mode, no any types
-- Mobile-first responsive, WCAG 2.1 AA compliant
+- Mobile-first responsive, WCAG 2.2 AA compliant
 - **React 19+**, hooks only, no class components
 - **Tailwind CSS utilities** via `@theme` directive (NOT CSS variables in className)
   - Use `bg-primary`, `text-text-primary`, `border-border` etc.
@@ -516,9 +540,9 @@ Action: Build real AnalysisStatus.tsx with:
 - On error: Add to `tasks_pending` with blockers
 
 ## Integration
-- **Receives from:** backend-system-architect (API contracts)
+- **Receives from:** backend-system-architect (API contracts), design-system-architect (design tokens)
 - **Hands off to:** code-quality-reviewer (validation), test-generator (E2E scenarios)
-- **Skill references:** react-server-components-framework, type-safety-validation, design-system-starter, performance, i18n-date-patterns, frontend-animation
+- **Skill references:** react-server-components-framework, type-safety-validation, design-system-starter, performance, i18n-date-patterns, frontend-animation, animation-motion-design, design-system-tokens
 
 ## Skill Index
 
@@ -534,7 +558,10 @@ Read the specific file before advising. Do NOT rely on training data.
 |ui-components:{SKILL.md,references/{aschild-composition.md,cn-utility-patterns.md,component-extension.md,cva-variant-system.md,dark-mode-toggle.md,dialog-modal-patterns.md,dropdown-menu-patterns.md,focus-management.md,oklch-theming.md,popover-tooltip-patterns.md}}|ui-components,shadcn,radix,component-library,design-system,accessible-components,react-hook-form,zod,forms,validation,server-actions,field-arrays
 |testing-patterns:{SKILL.md,references/{a11y-testing-tools.md,aaa-pattern.md,consumer-tests.md,custom-plugins.md,deepeval-ragas-api.md,factory-patterns.md,generator-agent.md,healer-agent.md,k6-patterns.md,msw-2x-api.md,pact-broker.md,planner-agent.md,playwright-1.57-api.md,playwright-setup.md,provider-verification.md,stateful-testing.md,strategies-guide.md,visual-regression.md,xdist-parallel.md}}|testing,unit,integration,e2e,pytest,msw,vcr,property,contract,performance,llm,a11y
 |accessibility:{SKILL.md,references/{focus-patterns.md,react-aria-hooks.md,wcag-criteria.md}}|accessibility,a11y,wcag,focus-management,react-aria,keyboard-navigation,screen-reader,aria
-|performance:{SKILL.md,references/{caching-strategies.md,cdn-setup.md,core-web-vitals.md,database-optimization.md,devtools-profiler-workflow.md,edge-deployment.md,frontend-performance.md,memoization-escape-hatches.md,profiling.md,quantization-guide.md,react-compiler-migration.md,route-splitting.md,rum-setup.md,speculative-decoding.md,state-colocation.md,tanstack-virtual-patterns.md,vllm-deployment.md}}|performance,core-web-vitals,lcp,inp,cls,react-compiler,virtualization,lazy-loading,code-splitting,image-optimization,avif,profiling,vllm,quantization,inference,caching,redis,prompt-caching,tanstack-query,prefetching,optimistic-updates
+|animation-motion-design:{SKILL.md,references/{animation-presets-library.md,micro-interactions-catalog.md,motion-vs-view-transitions.md}}|animation,motion,framer-motion,view-transitions,micro-interactions,gestures,layout-animation,AnimatePresence,prefers-reduced-motion,spring-physics
+|design-system-tokens:{SKILL.md,references/{style-dictionary-config.md,token-naming-conventions.md,w3c-token-spec.md}}|design-tokens,w3c-tokens,oklch,style-dictionary,theming,dark-mode,css-variables,tailwind-theme,design-system,color-spaces
+|responsive-patterns:{SKILL.md,references/{container-queries.md,fluid-typography.md}}|responsive,container-queries,fluid-typography,mobile-first,css-grid,clamp,cqi,breakpoints,pwa,service-worker,workbox,offline-first,animation,motion,framer-motion,scroll-driven,view-transitions,subgrid,intrinsic-layout,foldable,dual-screen,safe-area
+|performance:{SKILL.md,references/{caching-strategies.md,cdn-setup.md,core-web-vitals.md,database-optimization.md,devtools-profiler-workflow.md,edge-deployment.md,frontend-performance.md,memoization-escape-hatches.md,profiling.md,quantization-guide.md,react-compiler-migration.md,route-splitting.md,rum-setup.md,speculative-decoding.md,state-colocation.md,tanstack-virtual-patterns.md,vllm-deployment.md}}|performance,core-web-vitals,lcp,inp,cls,react-compiler,virtualization,lazy-loading,code-splitting,image-optimization,avif,profiling,vllm,quantization,inference,caching,redis,prompt-caching,tanstack-query,prefetching,optimistic-updates,sustainability,carbon-footprint,page-weight
 |code-review-playbook:{SKILL.md,references/{review-patterns.md}}|code-review,quality,collaboration,best-practices
 |zustand-patterns:{SKILL.md,references/{middleware-composition.md}}|zustand,state-management,react,immer,middleware,persistence,slices
 |architecture-patterns:{SKILL.md,references/{backend-dependency-injection.md,backend-layer-separation.md,backend-naming-exceptions.md,clean-ddd-tactical-patterns.md,clean-hexagonal-ports-adapters.md,clean-solid-dependency-rule.md,dependency-injection.md,hexagonal-architecture.md,layer-rules.md,naming-conventions.md,structure-folder-conventions.md,structure-import-direction.md,testing-aaa-isolation.md,testing-coverage-location.md,testing-naming-conventions.md,violation-examples.md}}|architecture,clean-architecture,validation,structure,enforcement,testing-standards,right-sizing,over-engineering,context-aware

@@ -11,7 +11,7 @@
         "Uses directional arrows to show data flow between components",
         "Labels each box with component name and technology",
         "Keeps diagram under 80 characters wide for terminal compatibility",
-        "Uses monospace-safe characters only"
+        "Uses monospace-safe characters only to ensure consistent terminal rendering"
       ]
     },
     {
@@ -22,9 +22,9 @@
         "Uses concentric rings blast radius pattern",
         "Shows CHANGED FILE in center ring",
         "Ring 1 shows direct dependents with file count",
-        "Ring 2 shows transitive dependents",
+        "Ring 2 shows transitive dependents affected indirectly by the change",
         "Ring 3 shows affected test files",
-        "Includes legend explaining ring meaning"
+        "Includes legend explaining ring meaning and impact classification"
       ]
     },
     {
@@ -35,6 +35,28 @@
         "Claude does NOT invoke the ascii-visualizer skill",
         "Suggests using Mermaid, PlantUML, or an image generation tool instead",
         "ASCII visualizer is for terminal-rendered monospace output, not image files"
+      ]
+    },
+    {
+      "id": "ascii-architecture",
+      "rule": "ascii-architecture",
+      "query": "Draw a layered system architecture showing load balancer, API gateways, services, and databases",
+      "expectedBehavior": [
+        "Uses structured layered diagram with clear separation between infrastructure tiers",
+        "Labels each component box with both the component name and its technology stack",
+        "Shows directional arrows indicating data flow and communication patterns between layers",
+        "Uses layered architecture diagram with box-drawing characters for structured component visualization"
+      ]
+    },
+    {
+      "id": "ascii-diagrams",
+      "rule": "ascii-diagrams",
+      "query": "What box-drawing characters should I use for ASCII diagrams to ensure they render correctly?",
+      "expectedBehavior": [
+        "Uses standard weight box-drawing characters for regular boxes and heavy weight for emphasis",
+        "Keeps diagrams under 80 characters wide for terminal compatibility across environments",
+        "Uses consistent alignment and spacing to ensure monospace rendering looks correct",
+        "Applies directional arrow characters to show data flow and dependency relationships"
       ]
     }
   ]

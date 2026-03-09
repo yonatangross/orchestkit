@@ -1,0 +1,39 @@
+{
+  "skill": "product-analytics",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "ab-test-evaluation",
+      "rule": "ab-test-evaluation",
+      "query": "We ran an A/B test on our onboarding flow. How do I evaluate whether the new version won?",
+      "expectedBehavior": [
+        "Requires a specific falsifiable hypothesis with change, expected outcome, and reasoning",
+        "Calculates required sample size before declaring statistical significance",
+        "Uses proper p-value interpretation and warns against p-hacking and multiple comparisons",
+        "Provides a structured ship decision framework beyond just statistical significance"
+      ]
+    },
+    {
+      "id": "cohort-retention",
+      "rule": "cohort-retention",
+      "query": "Our MAU is growing but I suspect users aren't sticking around. How do I measure retention?",
+      "expectedBehavior": [
+        "Groups users into time-based cohorts by signup week or month for retention tracking",
+        "Calculates Day-N retention rates showing what percentage return after specific periods",
+        "Warns that raw MAU growth can mask underlying churn visible only through cohort analysis",
+        "Distinguishes time-based from behavior-based cohorts for different analytical purposes"
+      ]
+    },
+    {
+      "id": "funnel-analysis",
+      "rule": "funnel-analysis",
+      "query": "Our signup-to-purchase conversion is only 2%. Where are users dropping off?",
+      "expectedBehavior": [
+        "Maps funnel stages from entry event to conversion goal with measurable step definitions",
+        "Identifies the highest drop-off stage to focus optimization efforts on maximum impact",
+        "Segments funnel by user attributes to reveal different conversion patterns across groups",
+        "Uses micro-conversions between major stages to pinpoint exactly where users disengage"
+      ]
+    }
+  ]
+}

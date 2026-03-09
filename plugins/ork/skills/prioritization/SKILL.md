@@ -1,6 +1,6 @@
 ---
 name: prioritization
-description: "RICE, WSJF, ICE, MoSCoW, and opportunity cost scoring for backlog ranking. Use when prioritizing features, comparing initiatives, justifying roadmap decisions, or evaluating trade-offs between competing work items."
+description: "Prioritization frameworks — RICE, WSJF, ICE, MoSCoW, and opportunity cost scoring for backlog ranking. Use when prioritizing features, comparing initiatives, justifying roadmap decisions, or evaluating trade-offs between competing work items."
 tags: [rice, wsjf, ice, moscow, prioritization, backlog, scoring, ranking]
 context: fork
 agent: product-strategist
@@ -173,7 +173,7 @@ See [references/rice-scoring-guide.md](references/rice-scoring-guide.md) for det
 ## Related Skills
 
 - `product-frameworks` — Full PM toolkit (value prop, market sizing, competitive analysis, user research, business case)
-- `prd` — Convert prioritized features into product requirements documents
+- `write-prd` — Convert prioritized features into product requirements documents
 - `product-analytics` — Define and instrument the metrics that feed RICE reach/impact scores
 - `okr-design` — Set the objectives that determine which KPIs drive RICE impact scoring
 - `market-sizing` — TAM/SAM/SOM analysis that informs strategic priority

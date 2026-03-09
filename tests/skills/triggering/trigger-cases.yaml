@@ -151,7 +151,7 @@ skills:
       - "fix this bug"
       - "commit my changes"
 
-  brainstorming:
+  brainstorm:
     should_trigger:
       - "brainstorm ideas for the feature"
       - "help me brainstorm solutions"
@@ -221,7 +221,7 @@ skills:
       - "fix this bug"
       - "commit my changes"
 
-  plan-viz:
+  visualize-plan:
     should_trigger:
       - "visualize the plan"
       - "create a plan visualization"

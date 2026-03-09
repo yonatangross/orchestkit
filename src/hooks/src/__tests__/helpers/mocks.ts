@@ -107,6 +107,7 @@ export function createFsMock(overrides: Record<string, unknown> = {}) {
 export function createChildProcessMock(overrides: Record<string, unknown> = {}) {
   return {
     execSync: vi.fn((_cmd: string) => ''),
+    execFileSync: vi.fn(() => ''),
     exec: vi.fn(),
     spawn: vi.fn(),
     ...overrides,

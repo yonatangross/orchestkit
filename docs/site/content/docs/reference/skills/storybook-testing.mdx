@@ -1,0 +1,1076 @@
+---
+title: "Storybook Testing"
+description: "Storybook 9/10 testing patterns with Vitest integration, CSF3 typesafe factories, play() interaction tests, Chromatic TurboSnap visual regression, sb.mock isolation, accessibility addon testing, and autodocs generation. Use when writing component stories, setting up visual regression testing, configuring Storybook CI pipelines, or migrating to Storybook 9/10."
+---
+
+<span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
+
+**Primary Agent:** [frontend-ui-developer](/docs/reference/agents/frontend-ui-developer)
+
+
+# Storybook Testing — Storybook 9/10
+
+## Overview
+
+Storybook 9/10 unifies component testing into a single workflow: **interaction tests** via `play()` functions, **visual regression** via Chromatic TurboSnap, and **accessibility audits** via the a11y addon — all running through Vitest. Stories are no longer just documentation; they are executable test specifications.
+
+**When to use this skill:**
+- Writing component stories in CSF3 format with TypeScript
+- Setting up interaction tests with `play()` functions
+- Configuring Chromatic visual regression with TurboSnap
+- Mocking modules at the story level with `sb.mock`
+- Running accessibility tests in CI via the a11y addon
+- Generating living documentation with autodocs
+- Migrating from Storybook 7/8 to 9/10
+
+---
+
+## Quick Reference
+
+| Rule | Impact | Description |
+|------|--------|-------------|
+| `storybook-csf3-factories` | HIGH | Typesafe CSF3 story factories with `satisfies Meta` |
+| `storybook-play-functions` | CRITICAL | Interaction testing with `play()` and `@storybook/test` |
+| `storybook-vitest-integration` | HIGH | Run stories as Vitest tests via `@storybook/addon-vitest` |
+| `storybook-chromatic-turbosnap` | HIGH | TurboSnap reduces snapshot cost 60-90% |
+| `storybook-sb-mock` | HIGH | Story-level module mocking with `sb.mock` |
+| `storybook-a11y-testing` | CRITICAL | Automated axe-core accessibility scans in CI |
+| `storybook-autodocs` | MEDIUM | Auto-generated docs from stories |
+
+---
+
+## Storybook Testing Pyramid
+
+```
+         ┌──────────────┐
+         │   Visual     │  Chromatic TurboSnap
+         │  Regression  │  (snapshot diffs)
+         ├──────────────┤
+         │ Accessibility│  @storybook/addon-a11y
+         │   (a11y)     │  (axe-core scans)
+         ├──────────────┤
+         │ Interaction  │  play() functions
+         │   Tests      │  (@storybook/test)
+         ├──────────────┤
+         │  Unit Tests  │  Vitest + storybookTest
+         │  (stories)   │  plugin
+         └──────────────┘
+```
+
+Each layer catches different defects: unit tests validate logic, interaction tests verify user flows, a11y tests catch accessibility violations, and visual tests catch unintended UI regressions.
+
+---
+
+## Quick Start
+
+### CSF3 Story with Play Function
+
+```tsx
+// Button.stories.tsx
+import type { Meta, StoryObj } from '@storybook/react'
+import { expect, fn, userEvent, within } from '@storybook/test'
+import { Button } from './Button'
+
+const meta = {
+  component: Button,
+  args: {
+    onClick: fn(),
+  },
+} satisfies Meta<typeof Button>
+
+export default meta
+type Story = StoryObj<typeof meta>
+
+export const Primary: Story = {
+  args: {
+    label: 'Click me',
+    variant: 'primary',
+  },
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement)
+    const button = canvas.getByRole('button', { name: /click me/i })
+
+    await userEvent.click(button)
+    await expect(args.onClick).toHaveBeenCalledOnce()
+    await expect(button).toHaveStyle({ backgroundColor: 'rgb(37, 99, 235)' })
+  },
+}
+```
+
+### Vitest Configuration
+
+```ts
+// vitest.config.ts
+import { storybookTest } from '@storybook/addon-vitest/vitest-plugin'
+import { defineConfig } from 'vitest/config'
+
+export default defineConfig({
+  plugins: [storybookTest()],
+  test: {
+    setupFiles: ['./vitest.setup.ts'],
+  },
+})
+```
+
+---
+
+## Key Principles
+
+- **Stories are tests.** Every story with a `play()` function is an executable interaction test that runs in Vitest.
+- **CSF3 + `satisfies` for type safety.** Use `satisfies Meta&lt;typeof Component&gt;` for full type inference on args and play functions.
+- **Isolate with `sb.mock`, not `vi.mock`.** Story-level module mocking via `sb.mock` is scoped per-story and does not leak between tests.
+- **TurboSnap for CI speed.** Only snapshot stories affected by code changes — reduces Chromatic usage by 60-90%.
+- **Accessibility is not optional.** The a11y addon runs axe-core scans on every story and gates CI on violations.
+- **Living documentation.** Autodocs generates prop tables and usage examples directly from stories — no separate docs site needed.
+
+---
+
+## Anti-Patterns (FORBIDDEN)
+
+| Anti-Pattern | Why It Fails | Use Instead |
+|-------------|-------------|-------------|
+| CSF2 `Template.bind(\{\})` | No type inference, verbose | CSF3 object stories with `satisfies` |
+| `@storybook/test-runner` package | Deprecated in Storybook 9 | `@storybook/addon-vitest` |
+| `vi.mock()` in story files | Leaks between stories, breaks isolation | Register `sb.mock(import(...))` in preview.ts, configure with `mocked()` in beforeEach |
+| Full Chromatic snapshots on every PR | Expensive and slow | TurboSnap with `onlyChanged: true` |
+| Manual accessibility checking | Misses violations, not repeatable | `@storybook/addon-a11y` in CI pipeline |
+| Separate documentation site | Drifts from actual component behavior | Autodocs with `tags: ['autodocs']` |
+| Testing implementation details | Brittle, breaks on refactors | Test user-visible behavior via `play()` |
+
+---
+
+## References
+
+- `references/storybook-migration-guide.md` — Migration path from Storybook 7/8 to 9/10
+- `references/storybook-ci-strategy.md` — CI pipeline configuration for visual, interaction, and a11y testing
+- `references/storybook-addon-ecosystem.md` — Essential addons for Storybook 9/10 in 2026
+
+## Related Skills
+
+- `react-server-components-framework` — React 19 + Next.js 16 patterns (component architecture)
+- `accessibility` — Broader accessibility patterns beyond Storybook
+- `ci-automation` — CI pipeline patterns for automated testing
+
+
+---
+
+## Rules (7)
+
+### Integrate @storybook/addon-a11y with Vitest for automated accessibility testing in CI — CRITICAL
+
+
+## Storybook: Accessibility Testing with addon-a11y
+
+The `@storybook/addon-a11y` addon runs axe-core scans on every story, surfacing WCAG violations in the Storybook panel and failing CI pipelines. In Storybook 9/10, a11y checks integrate directly with the Vitest addon — accessibility violations become test failures.
+
+**Incorrect:**
+```tsx
+// Manual accessibility checking — unreliable and not repeatable
+import type { Meta, StoryObj } from '@storybook/react'
+import { Button } from './Button'
+
+const meta = { component: Button } satisfies Meta<typeof Button>
+export default meta
+type Story = StoryObj<typeof meta>
+
+export const IconOnly: Story = {
+  args: {
+    icon: <SearchIcon />,
+    // No aria-label — screen readers cannot identify the button
+    // No automated test catches this
+  },
+}
+```
+
+**Correct:**
+```tsx
+import type { Meta, StoryObj } from '@storybook/react'
+import { expect, within } from '@storybook/test'
+import { Button } from './Button'
+
+const meta = {
+  component: Button,
+  tags: ['autodocs'],
+  parameters: {
+    a11y: {
+      config: {
+        rules: [
+          { id: 'color-contrast', enabled: true },
+          { id: 'button-name', enabled: true },
+        ],
+      },
+    },
+  },
+} satisfies Meta<typeof Button>
+
+export default meta
+type Story = StoryObj<typeof meta>
+
+export const IconOnly: Story = {
+  args: {
+    icon: <SearchIcon />,
+    'aria-label': 'Search',  // accessible name for icon-only button
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    const button = canvas.getByRole('button', { name: /search/i })
+    await expect(button).toBeVisible()
+    await expect(button).toHaveAccessibleName('Search')
+  },
+}
+
+export const DisabledState: Story = {
+  args: {
+    label: 'Submit',
+    disabled: true,
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    const button = canvas.getByRole('button', { name: /submit/i })
+    await expect(button).toBeDisabled()
+    // a11y addon automatically checks contrast, ARIA, focus management
+  },
+}
+```
+
+```ts
+// .storybook/main.ts — register a11y addon
+const config: StorybookConfig = {
+  addons: [
+    '@storybook/addon-vitest',
+    '@storybook/addon-a11y',  // runs axe-core on every story
+  ],
+}
+```
+
+**Key rules:**
+- Add `@storybook/addon-a11y` to your Storybook addons — it runs axe-core scans on every story render.
+- A11y violations appear in the Storybook panel AND fail as Vitest test assertions in CI.
+- Configure rules per-story via `parameters.a11y.config.rules` to enable/disable specific axe rules.
+- Use `tags: ['!a11y']` to exclude specific stories from a11y checks (e.g., intentional error states).
+- Always provide accessible names: `aria-label` for icon buttons, `&lt;label&gt;` for inputs, headings for sections.
+- Test keyboard navigation in play functions: `userEvent.tab()`, `userEvent.keyboard('\{Enter\}')`.
+
+Reference: `references/storybook-ci-strategy.md`
+
+
+### Use autodocs tag for living documentation generated from stories instead of maintaining separate docs — MEDIUM
+
+
+## Storybook: Autodocs for Living Documentation
+
+Storybook 9/10 generates documentation pages automatically from stories tagged with `autodocs`. Prop tables are derived from TypeScript types, code examples from story definitions, and usage descriptions from JSDoc comments. No separate documentation tool needed.
+
+**Incorrect:**
+```tsx
+// Separate documentation maintained manually — drifts from reality
+// docs/components/Button.mdx
+import { Button } from '../components/Button'
+
+# Button
+
+| Prop | Type | Default |
+|------|------|---------|
+| label | string | — |
+| variant | 'primary' \| 'secondary' | 'primary' |
+| size | 'sm' \| 'md' \| 'lg' | 'md' |
+
+// ^ This table is manually maintained and already out of date
+// The component added a 'danger' variant last sprint
+```
+
+**Correct:**
+```tsx
+// Button.stories.tsx — autodocs generates the docs page
+import type { Meta, StoryObj } from '@storybook/react'
+import { fn } from '@storybook/test'
+import { Button } from './Button'
+
+const meta = {
+  component: Button,
+  tags: ['autodocs'],  // generates a Docs page for this component
+  args: {
+    onClick: fn(),
+  },
+  argTypes: {
+    variant: {
+      control: 'select',
+      options: ['primary', 'secondary', 'danger'],
+      description: 'Visual style variant of the button',
+      table: { defaultValue: { summary: 'primary' } },
+    },
+    size: {
+      control: 'radio',
+      options: ['sm', 'md', 'lg'],
+      description: 'Button size affecting padding and font size',
+      table: { defaultValue: { summary: 'md' } },
+    },
+  },
+} satisfies Meta<typeof Button>
+
+export default meta
+type Story = StoryObj<typeof meta>
+
+/** The default button style used for primary actions. */
+export const Primary: Story = {
+  args: { label: 'Click me', variant: 'primary' },
+}
+
+/** Secondary button for less prominent actions. */
+export const Secondary: Story = {
+  args: { label: 'Cancel', variant: 'secondary' },
+}
+
+/** Danger variant for destructive actions like delete. */
+export const Danger: Story = {
+  args: { label: 'Delete', variant: 'danger' },
+}
+```
+
+```tsx
+// Button.tsx — JSDoc comments appear in autodocs
+interface ButtonProps {
+  /** Text displayed inside the button */
+  label: string
+  /** Visual style variant */
+  variant?: 'primary' | 'secondary' | 'danger'
+  /** Button size affecting padding and font size */
+  size?: 'sm' | 'md' | 'lg'
+  /** Click handler */
+  onClick?: () => void
+}
+```
+
+**Key rules:**
+- Add `tags: ['autodocs']` to the meta object — this generates a Docs page for the component.
+- Use `argTypes` with `description` and `table.defaultValue` for rich prop documentation.
+- Add JSDoc comments to component props — autodocs extracts them for the prop table.
+- Add JSDoc comments to story exports — they appear as descriptions on the docs page.
+- To enable autodocs globally, set `tags: ['autodocs']` in `.storybook/preview.ts`.
+- Use `parameters.docs.description.component` for a component-level description at the top of the docs page.
+
+Reference: `references/storybook-addon-ecosystem.md`
+
+
+### Use Chromatic TurboSnap to reduce visual regression snapshot costs by 60-90% — HIGH
+
+
+## Storybook: Chromatic TurboSnap
+
+Chromatic TurboSnap uses Webpack/Vite dependency graphs to identify which stories are affected by code changes in a PR. Only affected stories are snapshotted, reducing Chromatic usage by 60-90% and speeding up visual regression checks.
+
+**Incorrect:**
+```yaml
+# .github/workflows/chromatic.yml — full snapshots every time
+name: Chromatic
+on: pull_request
+jobs:
+  chromatic:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: chromaui/action@latest
+        with:
+          projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+          # No TurboSnap — snapshots ALL stories on every PR
+          # 500 stories × 3 viewports = 1500 snapshots per PR
+```
+
+**Correct:**
+```yaml
+# .github/workflows/chromatic.yml — TurboSnap enabled
+name: Chromatic
+on: pull_request
+jobs:
+  chromatic:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # required for TurboSnap git comparison
+      - uses: chromaui/action@latest
+        with:
+          projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+          onlyChanged: true  # enable TurboSnap
+          externals: |
+            - 'src/styles/**'
+            - 'public/fonts/**'
+          traceChanged: 'expanded'
+          skip: 'dependabot/**'
+```
+
+```ts
+// .storybook/main.ts — ensure correct build for TurboSnap
+const config: StorybookConfig = {
+  stories: ['../src/**/*.stories.@(ts|tsx)'],
+  framework: '@storybook/react-vite',
+  // TurboSnap works automatically with Vite's module graph
+}
+```
+
+**Key rules:**
+- Set `onlyChanged: true` in the Chromatic GitHub Action to enable TurboSnap.
+- Use `fetch-depth: 0` in checkout — TurboSnap needs full git history to compare changes.
+- Declare `externals` for files outside the module graph (global CSS, fonts, static assets) so changes to them trigger relevant snapshots.
+- Use `traceChanged: 'expanded'` to trace transitive dependencies (a utility change affects all stories that import it).
+- Set `skip` for bot branches (Dependabot, Renovate) to avoid wasting snapshots on automated PRs.
+- TurboSnap works with both Webpack and Vite — no extra configuration needed for Vite-based Storybook.
+
+Reference: `references/storybook-ci-strategy.md`
+
+
+### Use CSF3 typesafe story factories with satisfies Meta for full type inference — HIGH
+
+
+## Storybook: CSF3 Typesafe Story Factories
+
+Storybook 9/10 uses Component Story Format 3 (CSF3) where stories are plain objects instead of template-bound functions. Use `satisfies Meta&lt;typeof Component&gt;` on the meta export for full TypeScript inference on args, decorators, and play functions.
+
+**Incorrect:**
+```tsx
+// CSF2 pattern — no type inference, verbose
+import { ComponentStory, ComponentMeta } from '@storybook/react'
+import { Button } from './Button'
+
+export default {
+  title: 'Components/Button',
+  component: Button,
+} as ComponentMeta<typeof Button>
+
+const Template: ComponentStory<typeof Button> = (args) => <Button {...args} />
+
+export const Primary = Template.bind({})
+Primary.args = {
+  label: 'Click me',
+  variant: 'primary',
+  onClck: () => {},  // typo not caught — no type checking on args
+}
+```
+
+**Correct:**
+```tsx
+// CSF3 pattern — full type inference via satisfies
+import type { Meta, StoryObj } from '@storybook/react'
+import { fn } from '@storybook/test'
+import { Button } from './Button'
+
+const meta = {
+  component: Button,
+  args: {
+    onClick: fn(),  // fn() provides mock tracking
+  },
+  argTypes: {
+    variant: {
+      control: 'select',
+      options: ['primary', 'secondary', 'danger'],
+    },
+  },
+} satisfies Meta<typeof Button>
+
+export default meta
+type Story = StoryObj<typeof meta>
+
+export const Primary: Story = {
+  args: {
+    label: 'Click me',
+    variant: 'primary',
+    // onClck: () => {},  // TypeScript ERROR — catches typo at compile time
+  },
+}
+
+export const Secondary: Story = {
+  args: {
+    label: 'Cancel',
+    variant: 'secondary',
+  },
+}
+
+export const WithLongLabel: Story = {
+  args: {
+    label: 'This is a button with a very long label to test overflow',
+    variant: 'primary',
+  },
+}
+```
+
+**Key rules:**
+- Always use `satisfies Meta&lt;typeof Component&gt;` (not `as Meta`) — `satisfies` preserves the inferred type while `as` erases it.
+- Define `type Story = StoryObj&lt;typeof meta&gt;` after the default export for per-story type inference.
+- Use `fn()` from `@storybook/test` for action args instead of `action()` — `fn()` integrates with Vitest assertions.
+- Remove `title` from meta — Storybook 9 auto-generates titles from file paths.
+- Each story is a plain object with `args`, not a function bound via `Template.bind(\{\})`.
+
+Reference: `references/storybook-migration-guide.md`
+
+
+### Use play() functions with @storybook/test for interaction testing instead of manual verification — CRITICAL
+
+
+## Storybook: Play Functions for Interaction Testing
+
+Every story that demonstrates interactive behavior should include a `play()` function. Play functions simulate real user interactions using `userEvent` and validate outcomes with `expect` — all from `@storybook/test`. These run automatically in the Storybook UI and as Vitest tests in CI.
+
+**Incorrect:**
+```tsx
+// No play function — behavior is only verified by opening Storybook and clicking manually
+import type { Meta, StoryObj } from '@storybook/react'
+import { LoginForm } from './LoginForm'
+
+const meta = { component: LoginForm } satisfies Meta<typeof LoginForm>
+export default meta
+type Story = StoryObj<typeof meta>
+
+export const SubmitForm: Story = {
+  args: {
+    onSubmit: () => console.log('submitted'),  // no mock tracking
+  },
+  // No play function — manual testing only
+}
+```
+
+**Correct:**
+```tsx
+import type { Meta, StoryObj } from '@storybook/react'
+import { expect, fn, userEvent, within } from '@storybook/test'
+import { LoginForm } from './LoginForm'
+
+const meta = {
+  component: LoginForm,
+  args: {
+    onSubmit: fn(),
+  },
+} satisfies Meta<typeof LoginForm>
+
+export default meta
+type Story = StoryObj<typeof meta>
+
+export const SubmitForm: Story = {
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement)
+
+    // Simulate user filling out the form
+    await userEvent.type(canvas.getByLabelText(/email/i), 'user@example.com')
+    await userEvent.type(canvas.getByLabelText(/password/i), 'SecureP@ss1')
+    await userEvent.click(canvas.getByRole('button', { name: /sign in/i }))
+
+    // Assert the callback was called with form data
+    await expect(args.onSubmit).toHaveBeenCalledWith({
+      email: 'user@example.com',
+      password: 'SecureP@ss1',
+    })
+  },
+}
+
+export const ValidationError: Story = {
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    // Submit empty form
+    await userEvent.click(canvas.getByRole('button', { name: /sign in/i }))
+
+    // Assert validation messages appear
+    await expect(canvas.getByText(/email is required/i)).toBeVisible()
+    await expect(canvas.getByText(/password is required/i)).toBeVisible()
+  },
+}
+```
+
+**Key rules:**
+- Import `expect`, `fn`, `userEvent`, and `within` from `@storybook/test` — not from Vitest or Testing Library directly.
+- Use `within(canvasElement)` to scope queries to the story's rendered output, not `screen`.
+- Use accessible queries: `getByRole`, `getByLabelText`, `getByText` — avoid `getByTestId` unless no semantic alternative exists.
+- Always `await` each `userEvent` and `expect` call — play functions are async.
+- Use `fn()` for callback props so assertions like `toHaveBeenCalledWith` work correctly.
+- Play functions run in sequence: the Storybook UI shows step-by-step results, and Vitest reports pass/fail.
+
+Reference: `references/storybook-ci-strategy.md`
+
+
+### Use sb.mock for story-level module isolation instead of vi.mock which leaks between tests — HIGH
+
+
+## Storybook: sb.mock for Story-Level Isolation
+
+Storybook 9/10 provides `sb.mock()` for module mocking with story-level isolation. It uses a two-part pattern: **register** mocks in `.storybook/preview.ts`, then **configure** per-story behavior using the `mocked()` utility in `beforeEach`. Unlike `vi.mock()`, which leaks between test files, `sb.mock` is automatically cleaned up between stories.
+
+**Incorrect:**
+```tsx
+// Using vi.mock — leaks between stories, breaks isolation
+import type { Meta, StoryObj } from '@storybook/react'
+import { vi } from 'vitest'
+import { UserProfile } from './UserProfile'
+
+// This mock leaks to ALL stories in this file and potentially others
+vi.mock('@/lib/api', () => ({
+  fetchUser: vi.fn().mockResolvedValue({ name: 'John', role: 'admin' }),
+}))
+
+const meta = { component: UserProfile } satisfies Meta<typeof UserProfile>
+export default meta
+type Story = StoryObj<typeof meta>
+
+export const AdminUser: Story = {}
+export const RegularUser: Story = {}  // Still sees admin mock — no isolation
+```
+
+**Correct — Step 1: Register mocks in `.storybook/preview.ts`:**
+```ts
+// .storybook/preview.ts — registration only, runs once at startup
+import { sb } from '@storybook/test'
+
+// Register modules to mock — use dynamic import(), not string paths
+sb.mock(import('../src/lib/api'))
+```
+
+**Correct — Step 2: Configure per-story in `beforeEach` using `mocked()`:**
+```tsx
+// UserProfile.stories.tsx
+import type { Meta, StoryObj } from '@storybook/react'
+import { expect, mocked, within } from '@storybook/test'
+import { UserProfile } from './UserProfile'
+import { fetchUser } from '@/lib/api'
+
+const meta = {
+  component: UserProfile,
+} satisfies Meta<typeof UserProfile>
+
+export default meta
+type Story = StoryObj<typeof meta>
+
+export const AdminUser: Story = {
+  async beforeEach() {
+    // mocked() accesses the spy registered in preview.ts
+    mocked(fetchUser).mockResolvedValue({ name: 'John', role: 'admin' })
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await expect(canvas.getByText('Admin')).toBeVisible()
+  },
+}
+
+export const RegularUser: Story = {
+  async beforeEach() {
+    mocked(fetchUser).mockResolvedValue({ name: 'Jane', role: 'user' })
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await expect(canvas.getByText('User')).toBeVisible()
+  },
+}
+```
+
+**Key rules:**
+- **Register** mocks in `.storybook/preview.ts` using `sb.mock(import(...))` — this is the only place `sb.mock` can be called.
+- **Configure** per-story using `mocked(namedExport).mockResolvedValue(...)` in `beforeEach` — never call `sb.mock()` in story files.
+- `sb.mock` uses `import()` expressions (not string paths) for module resolution.
+- Mocks are automatically restored between stories — no manual cleanup needed.
+- Never use `vi.mock()` at the top level of story files — it leaks across stories and test runs.
+- For shared mock setups across multiple stories, define `beforeEach` on the `meta` object.
+
+Reference: https://storybook.js.org/docs/writing-stories/mocking-data-and-modules/mocking-modules
+
+
+### Use @storybook/addon-vitest to run stories as Vitest tests instead of the deprecated test-runner — HIGH
+
+
+## Storybook: Vitest Integration
+
+Storybook 9 replaces `@storybook/test-runner` with `@storybook/addon-vitest`. Stories run as native Vitest tests — no running Storybook dev server required. The `storybookTest` Vitest plugin discovers `.stories.tsx` files and executes their `play()` functions as test cases.
+
+**Incorrect:**
+```ts
+// Using deprecated test-runner — requires running Storybook server
+// package.json
+{
+  "scripts": {
+    "test-storybook": "test-storybook --url http://localhost:6006"
+  },
+  "devDependencies": {
+    "@storybook/test-runner": "^0.17.0"  // deprecated in Storybook 9
+  }
+}
+```
+
+```ts
+// Separate test config for Storybook — duplication
+// test-runner-jest.config.js
+module.exports = {
+  testMatch: ['**/*.stories.*'],
+  transform: { /* separate transform config */ },
+}
+```
+
+**Correct:**
+```ts
+// vitest.config.ts — stories run as native Vitest tests
+import { storybookTest } from '@storybook/addon-vitest/vitest-plugin'
+import { defineConfig } from 'vitest/config'
+
+export default defineConfig({
+  plugins: [storybookTest()],
+  test: {
+    setupFiles: ['./vitest.setup.ts'],
+    browser: {
+      enabled: true,
+      provider: 'playwright',
+      instances: [{ browser: 'chromium' }],
+    },
+  },
+})
+```
+
+```ts
+// .storybook/main.ts — register the addon
+import type { StorybookConfig } from '@storybook/react-vite'
+
+const config: StorybookConfig = {
+  stories: ['../src/**/*.stories.@(ts|tsx)'],
+  addons: [
+    '@storybook/addon-vitest',
+    '@storybook/addon-a11y',
+  ],
+  framework: '@storybook/react-vite',
+}
+
+export default config
+```
+
+```ts
+// vitest.setup.ts — global setup for story tests
+import '@testing-library/jest-dom/vitest'
+```
+
+**Key rules:**
+- Install `@storybook/addon-vitest` and remove `@storybook/test-runner` from dependencies.
+- Add `storybookTest()` to your Vitest config plugins — it auto-discovers `.stories.tsx` files.
+- Stories without `play()` functions still run as smoke tests (render without errors).
+- Use browser mode with Playwright for accurate DOM testing — stories render in a real browser.
+- Run `vitest` to execute both regular tests and story tests in a single command.
+- The addon respects `tags` filtering — use `tags: ['!test']` to exclude stories from test runs.
+
+Reference: `references/storybook-ci-strategy.md`
+
+
+
+---
+
+## References (3)
+
+### Storybook Addon Ecosystem
+
+# Storybook Addon Ecosystem (2026)
+
+## Overview
+
+Storybook 9/10 consolidates its addon ecosystem around first-party addons. The testing utilities previously spread across multiple packages are now unified under `@storybook/test` and dedicated addons.
+
+---
+
+## Essential Addons
+
+### Testing & Quality
+
+| Addon | Purpose | Install |
+|-------|---------|---------|
+| `@storybook/addon-vitest` | Run stories as Vitest tests | `npm i -D @storybook/addon-vitest` |
+| `@storybook/addon-a11y` | Accessibility audits via axe-core | `npm i -D @storybook/addon-a11y` |
+| `@storybook/addon-interactions` | Step-through play() in UI panel | `npm i -D @storybook/addon-interactions` |
+| `@storybook/addon-coverage` | Code coverage for story tests | `npm i -D @storybook/addon-coverage` |
+
+### UI & Design
+
+| Addon | Purpose | Install |
+|-------|---------|---------|
+| `@storybook/addon-themes` | Theme switching (light/dark/custom) | `npm i -D @storybook/addon-themes` |
+| `@storybook/addon-viewport` | Responsive viewport simulation | `npm i -D @storybook/addon-viewport` |
+| `@storybook/addon-backgrounds` | Background color switching | `npm i -D @storybook/addon-backgrounds` |
+| `@storybook/addon-measure` | Layout measurement overlay | `npm i -D @storybook/addon-measure` |
+
+### Documentation
+
+| Addon | Purpose | Install |
+|-------|---------|---------|
+| `@storybook/addon-docs` | MDX docs and autodocs pages | Included by default |
+| `@storybook/addon-controls` | Interactive arg editing in panel | Included by default |
+
+### External Services
+
+| Addon | Purpose | Install |
+|-------|---------|---------|
+| `chromatic` | Visual regression testing service | `npm i -D chromatic` |
+| `@storybook/addon-designs` | Figma/Zeplin embed in panel | `npm i -D @storybook/addon-designs` |
+
+---
+
+## Recommended .storybook/main.ts Configuration
+
+```ts
+import type { StorybookConfig } from '@storybook/react-vite'
+
+const config: StorybookConfig = {
+  stories: ['../src/**/*.stories.@(ts|tsx)'],
+  addons: [
+    '@storybook/addon-vitest',
+    '@storybook/addon-a11y',
+    '@storybook/addon-interactions',
+    '@storybook/addon-themes',
+    '@storybook/addon-viewport',
+  ],
+  framework: '@storybook/react-vite',
+  docs: {
+    autodocs: 'tag',  // generate docs for stories with 'autodocs' tag
+  },
+}
+
+export default config
+```
+
+---
+
+## Deprecated / Removed in Storybook 9
+
+| Removed | Replacement |
+|---------|-------------|
+| `@storybook/test-runner` | `@storybook/addon-vitest` |
+| `@storybook/testing-library` | `@storybook/test` (unified) |
+| `@storybook/addon-actions` | `fn()` from `@storybook/test` |
+| `@storybook/addon-knobs` | `@storybook/addon-controls` (default) |
+| `@storybook/addon-jest` | `@storybook/addon-vitest` |
+
+---
+
+## Version Compatibility
+
+- Storybook 9: React 18+, Vue 3.4+, Angular 17+, Svelte 4+
+- Storybook 10: React 19+, Vue 3.5+, Angular 18+, Svelte 5+
+- Node.js: 20+ required (ESM-only packages)
+- Bundler: Vite 6+ recommended, Webpack 5 supported
+
+
+### Storybook Ci Strategy
+
+# Storybook CI Strategy
+
+## Overview
+
+A complete Storybook CI pipeline combines three layers: **Vitest** for interaction tests, **Chromatic** for visual regression, and **addon-a11y** for accessibility — all running in parallel for fast feedback.
+
+---
+
+## Pipeline Architecture
+
+```
+PR opened
+├── Vitest (interaction + smoke)     ~2 min
+│   ├── Stories with play() → interaction tests
+│   ├── Stories without play() → smoke tests (render without error)
+│   └── a11y addon → accessibility violations fail tests
+├── Chromatic (visual regression)    ~3 min with TurboSnap
+│   ├── TurboSnap → only changed stories snapshotted
+│   ├── Visual diff review in Chromatic UI
+│   └── Auto-accept on dependabot/renovate PRs
+└── Lint + Type Check                ~1 min
+    ├── ESLint with storybook plugin
+    └── tsc --noEmit
+```
+
+---
+
+## GitHub Actions Workflow
+
+```yaml
+name: Storybook CI
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  interaction-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm ci
+      - run: npx vitest --project=storybook --reporter=junit --outputFile=results.xml
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: test-results
+          path: results.xml
+
+  visual-regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm ci
+      - uses: chromaui/action@latest
+        with:
+          projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+          onlyChanged: true
+          externals: |
+            - 'src/styles/**'
+            - 'public/fonts/**'
+
+  a11y-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm ci
+      - run: npx vitest --project=storybook --reporter=default
+        env:
+          STORYBOOK_A11Y_STRICT: 'true'
+```
+
+---
+
+## TurboSnap Cost Optimization
+
+| Scenario | Without TurboSnap | With TurboSnap | Savings |
+|----------|------------------|----------------|---------|
+| Small component change | 500 snapshots | 15 snapshots | 97% |
+| Utility file change | 500 snapshots | 80 snapshots | 84% |
+| Global CSS change | 500 snapshots | 500 snapshots | 0% |
+| Average PR | 500 snapshots | 50 snapshots | 90% |
+
+---
+
+## Best Practices
+
+- Run Vitest interaction tests and Chromatic visual regression in **parallel** — they are independent.
+- Use `onlyChanged: true` for TurboSnap to minimize Chromatic snapshot costs.
+- Set `STORYBOOK_A11Y_STRICT=true` in CI to fail on any a11y violation (non-strict mode only warns).
+- Cache `node_modules` and `.storybook/cache` between CI runs for faster builds.
+- Use `--reporter=junit` for Vitest to produce CI-compatible test reports.
+- Auto-accept Chromatic changes on bot PRs (Dependabot, Renovate) to avoid blocking dependency updates.
+
+
+### Storybook Migration Guide
+
+# Storybook Migration Guide: 7/8 to 9/10
+
+## Overview
+
+Storybook 9 introduces breaking changes: ESM-only packages, CSF3 as the default format, Vitest replacing test-runner, and new module mocking APIs. Storybook 10 continues this direction with stricter defaults.
+
+---
+
+## Breaking Changes in Storybook 9
+
+### 1. ESM-Only Packages
+
+All Storybook packages are ESM-only. Update `tsconfig.json`:
+
+```json
+{
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "bundler"
+  }
+}
+```
+
+### 2. CSF3 is Default
+
+CSF2 `Template.bind(\{\})` still works but is deprecated. Migrate to object stories:
+
+```tsx
+// Before (CSF2)
+const Template: ComponentStory<typeof Button> = (args) => <Button {...args} />
+export const Primary = Template.bind({})
+Primary.args = { label: 'Click me' }
+
+// After (CSF3)
+export const Primary: Story = {
+  args: { label: 'Click me' },
+}
+```
+
+### 3. Test Runner Replaced by Vitest Addon
+
+```bash
+# Remove deprecated test-runner
+npm uninstall @storybook/test-runner
+
+# Install Vitest addon
+npm install -D @storybook/addon-vitest
+```
+
+### 4. Module Mocking: vi.mock to sb.mock (Two-Part Pattern)
+
+Module mocking now uses a two-part pattern: (1) register mocks in `.storybook/preview.ts` with `sb.mock(import(...), \{ spy: true \})`, then (2) configure per-story with `mocked(namedExport).mockResolvedValue(...)` in `beforeEach`. Never call `sb.mock()` in story files — it only works in project-level configuration.
+
+### 5. Actions: action() to fn()
+
+```tsx
+// Before
+import { action } from '@storybook/addon-actions'
+args: { onClick: action('clicked') }
+
+// After
+import { fn } from '@storybook/test'
+args: { onClick: fn() }
+```
+
+---
+
+## Migration Steps
+
+### Step 1: Update Dependencies
+
+```bash
+npx storybook@latest upgrade
+```
+
+This runs codemods for common migrations automatically.
+
+### Step 2: Update Story Files
+
+Run the CSF3 codemod:
+
+```bash
+npx storybook@latest migrate csf-2-to-3 --glob="src/**/*.stories.tsx"
+```
+
+### Step 3: Replace Test Runner
+
+1. Remove `@storybook/test-runner` from `package.json`
+2. Add `@storybook/addon-vitest` to `.storybook/main.ts` addons
+3. Add `storybookTest()` plugin to `vitest.config.ts`
+4. Remove any `test-runner-jest.config.js`
+
+### Step 4: Update Imports
+
+```tsx
+// Before (scattered imports)
+import { action } from '@storybook/addon-actions'
+import { within, userEvent } from '@storybook/testing-library'
+
+// After (unified under @storybook/test)
+import { fn, within, userEvent, expect } from '@storybook/test'
+```
+
+### Step 5: Verify
+
+```bash
+npm run storybook        # visual check
+npx vitest               # run story tests
+npx chromatic            # visual regression baseline
+```
+
+---
+
+## Storybook 10 Preview
+
+- Stricter CSF3 enforcement — CSF2 support removed
+- React Server Component story support
+- Improved Vitest integration with parallel browser tests
+- Native CSS-in-JS support without extra configuration
+

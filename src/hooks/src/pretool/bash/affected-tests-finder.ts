@@ -12,7 +12,7 @@ import {
   logPermissionFeedback,
   getProjectDir,
 } from '../../lib/common.js';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { join, basename, dirname } from 'node:path';
 
@@ -52,7 +52,7 @@ function findRelatedTests(projectDir: string, sourceFile: string): string[] {
  */
 function getChangedFiles(projectDir: string): string[] {
   try {
-    const result = execSync('git status --short 2>/dev/null || echo ""', {
+    const result = execFileSync('git', ['status', '--short'], {
       cwd: projectDir,
       encoding: 'utf8',
       timeout: 5000,

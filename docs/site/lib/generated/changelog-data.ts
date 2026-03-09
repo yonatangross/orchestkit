@@ -17,6 +17,101 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.1.14",
+    "date": "2026-03-08",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**skills:** add 234 test case entries for 222 previously untested rules across 63 skills",
+          "**skills:** fix 18 term mismatches in expectedBehavior strings for rule traceability",
+          "**skills:** scaffold 49 .eval.json files and regenerate all 82 eval files from current test-cases",
+          "**skills:** fix remaining short behavior in animation-motion-design view-transitions"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "7.1.13",
+    "date": "2026-03-08",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**ci:** resolve TypeScript type error in home-environment test (tuple annotation mismatch)",
+          "**ci:** update stale skill names in trigger tests — brainstorming→brainstorm, plan-viz→visualize-plan",
+          "**skills:** add skill name fragments to 6 descriptions for semantic discovery (help, feedback, business-case, prioritization, setup, write-prd)",
+          "**skills:** add chain-patterns Overview section and trigger phrasing",
+          "**skills:** expand 546 short expectedBehavior entries (≤5 words) to 6+ words across 43 skills",
+          "**skills:** add context exhaustion handling docs to brainstorm and task-dependency-patterns",
+          "**ci:** add id-token: write to claude-review and claude-triage workflows for OIDC",
+          "**ci:** fix SessionStart hook count assertion (4→3 after HTTP webhook removal)",
+          "**skills:** strip ork: prefix from subagent_type in chain-patterns, fix-issue, implement"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "7.1.12",
+    "date": "2026-03-08",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**hooks:** InstructionsLoaded dispatcher — shared content cache eliminates 3x redundant file reads",
+          "**hooks:** classifySource uses basename() check to prevent substring misclassification",
+          "**hooks:** rule-conflicts false-positive prevention — files matching both sides excluded",
+          "**hooks:** drift-detection conditional cache write — only writes when hashes differ",
+          "**hooks:** token-budget-tracker simplified threshold to percentage-only"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**hooks:** all 6 InstructionsLoaded handlers now receive shared `Map<string, string>` content cache",
+          "**hooks:** dispatcher validates `files_loaded` elements with runtime type guard"
+        ]
+      },
+      {
+        "type": "added",
+        "items": [
+          "**tests:** 12 new tests for edge cases, all 6 conflict patterns, false-positive prevention"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "7.1.11",
+    "date": "2026-03-07",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**skill:** ci-automation skill with SKILL.md + 4 reference docs (cost-model, gh-action-patterns, headless-cli, security)",
+          "**ci:** GitHub Actions workflows for claude-health, claude-review, claude-triage",
+          "**agent:** ci-cd-engineer skill index updated with ci-automation"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "7.1.9",
+    "date": "2026-03-06",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "Add `$.plugins[0].version` to release-please extra-files so release PRs update both top-level and plugin versions in marketplace.json"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.1.8",
     "date": "2026-03-06",
     "compareUrl": "",

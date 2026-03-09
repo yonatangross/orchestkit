@@ -7,10 +7,10 @@
       "rule": "jobs-task-queue",
       "query": "Set up a production Celery app with Redis broker",
       "expectedBehavior": [
-        "Uses JSON serializer (never pickle)",
+        "Uses JSON serializer and never allows pickle deserialization",
         "Sets task_acks_late=True to prevent task loss",
-        "Configures both task_time_limit and task_soft_time_limit",
-        "Sets worker_prefetch_multiplier=1 for fair distribution"
+        "Configures both task_time_limit and task_soft_time_limit for graceful termination",
+        "Sets worker_prefetch_multiplier=1 for fair task distribution across workers"
       ]
     },
     {
@@ -18,8 +18,8 @@
       "rule": null,
       "query": "Route tasks to priority queues based on user tier",
       "expectedBehavior": [
-        "Defines critical/high/default/low queues with kombu",
-        "Configures broker_transport_options with priority_steps",
+        "Defines critical/high/default/low priority queues using kombu Queue declarations",
+        "Configures broker_transport_options with priority_steps for queue priority support",
         "Implements TaskRouter class for dynamic routing",
         "Assigns dedicated workers per queue with tuned concurrency"
       ]
@@ -42,7 +42,7 @@
       "expectedBehavior": [
         "Uses autoretry_for with retry_backoff=True and retry_jitter=True",
         "Implements idempotency key check in Redis before processing",
-        "Sets max_retries with retry_backoff_max ceiling",
+        "Sets max_retries with retry_backoff_max ceiling to bound delay growth",
         "Moves permanently failed tasks to dead letter queue"
       ]
     },
@@ -51,10 +51,10 @@
       "rule": "jobs-scheduling",
       "query": "Configure periodic tasks with overlap prevention",
       "expectedBehavior": [
-        "Uses celery.schedules.crontab for time-based scheduling",
+        "Uses celery.schedules.crontab for flexible time-based periodic scheduling",
         "Implements Redis-based schedule lock to prevent overlap",
-        "Configures beat_schedule with UTC timezone",
-        "Separates beat process from workers"
+        "Configures beat_schedule with explicit UTC timezone for consistency",
+        "Separates beat scheduler process from worker processes in production"
       ]
     },
     {
@@ -73,8 +73,8 @@
       "rule": "jobs-monitoring",
       "query": "Track task progress with custom states",
       "expectedBehavior": [
-        "Defines custom states (VALIDATING, PROCESSING, UPLOADING)",
-        "Uses update_state() for progress reporting",
+        "Tracks job status updates via update_state with progress metadata",
+        "Uses update_state() for real-time progress reporting to clients",
         "Queries progress via AsyncResult with state checks",
         "Stores large results in S3/DB, not Redis"
       ]
@@ -88,6 +88,28 @@
         "Enqueues jobs from FastAPI routes with enqueue_job()",
         "Implements job status endpoint with Job.status()",
         "Configures max_jobs and job_timeout in WorkerSettings"
+      ]
+    },
+    {
+      "id": "temporal-activities",
+      "rule": "temporal-activities",
+      "query": "Set up a Temporal activity for payment processing with proper heartbeat and retry configuration",
+      "expectedBehavior": [
+        "Implements activity heartbeat for long-running operations to report progress to Temporal",
+        "Classifies errors into retryable and non-retryable using ApplicationError with non_retryable flag",
+        "Configures start_to_close_timeout and heartbeat_timeout for activity timeout management",
+        "Sets up proper worker configuration with appropriate task queue and activity registration"
+      ]
+    },
+    {
+      "id": "temporal-workflows",
+      "rule": "temporal-workflows",
+      "query": "Define a Temporal workflow for order processing that handles signals and maintains determinism",
+      "expectedBehavior": [
+        "Keeps workflow code deterministic by avoiding random, datetime.now, and direct IO operations",
+        "Uses workflow.wait_condition for signal handling instead of direct state manipulation",
+        "Calls all IO operations through activities rather than executing them directly in workflow code",
+        "Implements saga pattern with compensating activities for multi-step transaction rollback"
       ]
     }
   ]

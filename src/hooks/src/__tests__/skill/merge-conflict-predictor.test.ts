@@ -20,6 +20,7 @@ vi.mock('node:fs', () => ({
 
 vi.mock('node:child_process', () => ({
   execSync: vi.fn(),
+  execFileSync: vi.fn(() => ''),
 }));
 
 vi.mock('../../lib/common.js', () => ({
@@ -45,7 +46,7 @@ import { mergeConflictPredictor } from '../../skill/merge-conflict-predictor.js'
 import { outputSilentSuccess, outputWithContext, } from '../../lib/common.js';
 import { getRepoRoot, getCurrentBranch, getDefaultBranch } from '../../lib/git.js';
 import { existsSync, readFileSync } from 'node:fs';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 
 // =============================================================================
 // Test Utilities
@@ -75,8 +76,8 @@ function createWriteInput(
  * Mock execSync to return specific outputs for git commands
  */
 function mockGitCommands(overrides: Record<string, string | Error> = {}): void {
-  vi.mocked(execSync).mockImplementation((cmd: string) => {
-    const command = cmd as string;
+  vi.mocked(execFileSync).mockImplementation((_cmd: string, args?: readonly string[]) => {
+    const command = args ? args.join(' ') : '';
 
     // Check for specific overrides first
     for (const [pattern, result] of Object.entries(overrides)) {
@@ -93,7 +94,7 @@ function mockGitCommands(overrides: Record<string, string | Error> = {}): void {
     if (command.includes('rev-parse --abbrev-ref HEAD')) {
       return 'feature-branch\n';
     }
-    if (command.includes('git status --short')) {
+    if (command.includes('status --short')) {
       return '';
     }
     if (command.includes('rev-list --count')) {
@@ -146,7 +147,7 @@ describe('merge-conflict-predictor', () => {
       vi.mocked(readFileSync).mockReturnValue('other content');
       mockGitCommands({
         'worktree list': 'worktree /test/project\nworktree /test/worktree2\n',
-        'git status --short': ' M src/file.ts\n',
+        'status --short': ' M src/file.ts\n',
       });
 
       // Act
@@ -175,7 +176,7 @@ describe('merge-conflict-predictor', () => {
     test('returns continue: true when git commands fail', () => {
       // Arrange
       const input = createWriteInput('/test/project/file.ts', 'content');
-      vi.mocked(execSync).mockImplementation(() => {
+      vi.mocked(execFileSync).mockImplementation(() => {
         throw new Error('git failed');
       });
 
@@ -251,8 +252,9 @@ branch refs/heads/feature`;
       mergeConflictPredictor(input);
 
       // Assert
-      expect(execSync).toHaveBeenCalledWith(
-        'git worktree list --porcelain',
+      expect(execFileSync).toHaveBeenCalledWith(
+        'git',
+        ['worktree', 'list', '--porcelain'],
         expect.any(Object)
       );
     });
@@ -260,8 +262,8 @@ branch refs/heads/feature`;
     test('handles worktree list command failure gracefully', () => {
       // Arrange
       const input = createWriteInput('/test/project/file.ts', 'content');
-      vi.mocked(execSync).mockImplementation((cmd) => {
-        if ((cmd as string).includes('worktree list')) {
+      vi.mocked(execFileSync).mockImplementation((_cmd, args) => {
+        if ((args as string[])?.join(' ')?.includes('worktree list')) {
           throw new Error('Not a git repository');
         }
         return '';
@@ -285,10 +287,10 @@ branch refs/heads/feature`;
       mergeConflictPredictor(input);
 
       // Assert - should only check /test/other-wt, not /test/project
-      const statusCalls = vi.mocked(execSync).mock.calls.filter(
-        (call) => (call[0] as string).includes('git status')
+      const statusCalls = vi.mocked(execFileSync).mock.calls.filter(
+        (call) => (call[1] as string[])?.join(' ')?.includes('status --short')
       );
-      expect(statusCalls.every((call) => !(call[1] as any)?.cwd?.includes('/test/project$'))).toBe(true);
+      expect(statusCalls.every((call) => !(call[2] as any)?.cwd?.includes('/test/project$'))).toBe(true);
     });
   });
 
@@ -304,10 +306,10 @@ branch refs/heads/feature`;
       vi.mocked(readFileSync).mockReturnValue('old content');
 
       const worktreeOutput = 'worktree /test/project\nworktree /test/other-wt\n';
-      vi.mocked(execSync).mockImplementation((cmd, opts) => {
-        const command = cmd as string;
+      vi.mocked(execFileSync).mockImplementation((_cmd, args, opts) => {
+        const command = (args as string[])?.join(' ') ?? '';
         if (command.includes('worktree list')) return worktreeOutput;
-        if (command.includes('git status --short') && opts?.cwd === '/test/other-wt') {
+        if (command.includes('status --short') && (opts as any)?.cwd === '/test/other-wt') {
           return ' M src/file.ts\n';
         }
         if (command.includes('rev-parse --abbrev-ref HEAD')) return 'other-feature\n';
@@ -330,10 +332,10 @@ branch refs/heads/feature`;
       vi.mocked(readFileSync).mockReturnValue('line\n'.repeat(100)); // 50 lines different
 
       const worktreeOutput = 'worktree /test/project\nworktree /test/other-wt\n';
-      vi.mocked(execSync).mockImplementation((cmd, _opts) => {
-        const command = cmd as string;
+      vi.mocked(execFileSync).mockImplementation((_cmd, args) => {
+        const command = (args as string[])?.join(' ') ?? '';
         if (command.includes('worktree list')) return worktreeOutput;
-        if (command.includes('git status --short')) return ' M src/file.ts\n';
+        if (command.includes('status --short')) return ' M src/file.ts\n';
         if (command.includes('rev-parse --abbrev-ref HEAD')) return 'other-branch\n';
         return '';
       });
@@ -354,10 +356,10 @@ branch refs/heads/feature`;
       vi.mocked(readFileSync).mockReturnValue('line\n'.repeat(12)); // Only 2 lines different
 
       const worktreeOutput = 'worktree /test/project\nworktree /test/other-wt\n';
-      vi.mocked(execSync).mockImplementation((cmd, _opts) => {
-        const command = cmd as string;
+      vi.mocked(execFileSync).mockImplementation((_cmd, args) => {
+        const command = (args as string[])?.join(' ') ?? '';
         if (command.includes('worktree list')) return worktreeOutput;
-        if (command.includes('git status --short')) return ' M src/file.ts\n';
+        if (command.includes('status --short')) return ' M src/file.ts\n';
         if (command.includes('rev-parse --abbrev-ref HEAD')) return 'other-branch\n';
         return '';
       });
@@ -383,8 +385,8 @@ branch refs/heads/feature`;
       vi.mocked(getDefaultBranch).mockReturnValue('main');
 
       // Need worktrees for the hook to continue past early exit
-      vi.mocked(execSync).mockImplementation((cmd: string) => {
-        const command = cmd as string;
+      vi.mocked(execFileSync).mockImplementation((_cmd, args) => {
+        const command = (args as string[])?.join(' ') ?? '';
         if (command.includes('worktree list')) {
           return 'worktree /test/project\nworktree /test/other-wt\n';
         }
@@ -453,10 +455,10 @@ branch refs/heads/feature`;
       vi.mocked(readFileSync).mockReturnValue('other');
 
       const worktreeOutput = 'worktree /test/project\nworktree /test/wt\n';
-      vi.mocked(execSync).mockImplementation((cmd) => {
-        const command = cmd as string;
+      vi.mocked(execFileSync).mockImplementation((_cmd, args) => {
+        const command = (args as string[])?.join(' ') ?? '';
         if (command.includes('worktree list')) return worktreeOutput;
-        if (command.includes('git status --short')) return ' M src/file.ts\n';
+        if (command.includes('status --short')) return ' M src/file.ts\n';
         if (command.includes('rev-parse --abbrev-ref HEAD')) return 'branch\n';
         return '';
       });
@@ -477,10 +479,10 @@ branch refs/heads/feature`;
       vi.mocked(readFileSync).mockReturnValue('other');
 
       const worktreeOutput = 'worktree /test/project\nworktree /test/wt\n';
-      vi.mocked(execSync).mockImplementation((cmd) => {
-        const command = cmd as string;
+      vi.mocked(execFileSync).mockImplementation((_cmd, args) => {
+        const command = (args as string[])?.join(' ') ?? '';
         if (command.includes('worktree list')) return worktreeOutput;
-        if (command.includes('git status --short')) return ' M src/important.ts\n';
+        if (command.includes('status --short')) return ' M src/important.ts\n';
         if (command.includes('rev-parse --abbrev-ref HEAD')) return 'branch\n';
         return '';
       });
@@ -501,10 +503,10 @@ branch refs/heads/feature`;
       vi.mocked(readFileSync).mockReturnValue('other');
 
       const worktreeOutput = 'worktree /test/project\nworktree /test/wt\n';
-      vi.mocked(execSync).mockImplementation((cmd) => {
-        const command = cmd as string;
+      vi.mocked(execFileSync).mockImplementation((_cmd, args) => {
+        const command = (args as string[])?.join(' ') ?? '';
         if (command.includes('worktree list')) return worktreeOutput;
-        if (command.includes('git status --short')) return ' M src/file.ts\n';
+        if (command.includes('status --short')) return ' M src/file.ts\n';
         if (command.includes('rev-parse --abbrev-ref HEAD')) return 'branch\n';
         return '';
       });
@@ -523,10 +525,10 @@ branch refs/heads/feature`;
       vi.mocked(readFileSync).mockReturnValue('other');
 
       const worktreeOutput = 'worktree /test/project\nworktree /test/wt\n';
-      vi.mocked(execSync).mockImplementation((cmd) => {
-        const command = cmd as string;
+      vi.mocked(execFileSync).mockImplementation((_cmd, args) => {
+        const command = (args as string[])?.join(' ') ?? '';
         if (command.includes('worktree list')) return worktreeOutput;
-        if (command.includes('git status --short')) return ' M src/file.ts\n';
+        if (command.includes('status --short')) return ' M src/file.ts\n';
         if (command.includes('rev-parse --abbrev-ref HEAD')) return 'branch\n';
         return '';
       });
@@ -569,10 +571,10 @@ branch refs/heads/feature`;
       });
 
       const worktreeOutput = 'worktree /test/project\nworktree /test/wt\n';
-      vi.mocked(execSync).mockImplementation((cmd) => {
-        const command = cmd as string;
+      vi.mocked(execFileSync).mockImplementation((_cmd, args) => {
+        const command = (args as string[])?.join(' ') ?? '';
         if (command.includes('worktree list')) return worktreeOutput;
-        if (command.includes('git status --short')) return ' M src/file.ts\n';
+        if (command.includes('status --short')) return ' M src/file.ts\n';
         if (command.includes('rev-parse --abbrev-ref HEAD')) return 'branch\n';
         return '';
       });
@@ -610,8 +612,8 @@ branch refs/heads/feature`;
       vi.mocked(getRepoRoot).mockReturnValue('/test/project');
 
       const worktreeOutput = 'worktree /test/project\nworktree /test/wt\n';
-      vi.mocked(execSync).mockImplementation((cmd) => {
-        const command = cmd as string;
+      vi.mocked(execFileSync).mockImplementation((_cmd, args) => {
+        const command = (args as string[])?.join(' ') ?? '';
         if (command.includes('worktree list')) return worktreeOutput;
         return '';
       });
@@ -632,13 +634,13 @@ branch refs/heads/feature`;
       vi.mocked(readFileSync).mockReturnValue('old\n'.repeat(50));
 
       const worktreeOutput = 'worktree /test/project\nworktree /test/wt1\nworktree /test/wt2\n';
-      vi.mocked(execSync).mockImplementation((cmd, opts) => {
-        const command = cmd as string;
+      vi.mocked(execFileSync).mockImplementation((_cmd, args, opts) => {
+        const command = (args as string[])?.join(' ') ?? '';
         if (command.includes('worktree list')) return worktreeOutput;
-        if (command.includes('git status --short')) return ' M src/file.ts\n';
+        if (command.includes('status --short')) return ' M src/file.ts\n';
         if (command.includes('rev-parse --abbrev-ref HEAD')) {
-          if (opts?.cwd === '/test/wt1') return 'branch1\n';
-          if (opts?.cwd === '/test/wt2') return 'branch2\n';
+          if ((opts as any)?.cwd === '/test/wt1') return 'branch1\n';
+          if ((opts as any)?.cwd === '/test/wt2') return 'branch2\n';
         }
         return '';
       });
@@ -672,10 +674,10 @@ branch refs/heads/feature`;
       vi.mocked(readFileSync).mockReturnValue('different\n'.repeat(20));
 
       const worktreeOutput = 'worktree /test/project\nworktree /test/wt\n';
-      vi.mocked(execSync).mockImplementation((cmd) => {
-        const command = cmd as string;
+      vi.mocked(execFileSync).mockImplementation((_cmd, args) => {
+        const command = (args as string[])?.join(' ') ?? '';
         if (command.includes('worktree list')) return worktreeOutput;
-        if (command.includes('git status --short')) return `${status}\n`;
+        if (command.includes('status --short')) return `${status}\n`;
         if (command.includes('rev-parse --abbrev-ref HEAD')) return 'branch\n';
         return '';
       });
@@ -705,8 +707,9 @@ branch refs/heads/feature`;
       mergeConflictPredictor(input);
 
       // Assert
-      expect(execSync).toHaveBeenCalledWith(
-        expect.any(String),
+      expect(execFileSync).toHaveBeenCalledWith(
+        'git',
+        expect.any(Array),
         expect.objectContaining({ timeout: expect.any(Number) })
       );
     });

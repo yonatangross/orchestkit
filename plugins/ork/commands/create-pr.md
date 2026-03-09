@@ -1,6 +1,6 @@
 ---
 description: "Creates GitHub pull requests with validation. Use when opening PRs or submitting code for review."
-allowed-tools: [AskUserQuestion, Bash, Task, TaskCreate, TaskUpdate, mcp__memory__search_nodes]
+allowed-tools: [AskUserQuestion, Bash, Task, TaskCreate, TaskUpdate, mcp__memory__search_nodes, CronCreate, CronDelete]
 ---
 
 # Auto-generated from skills/create-pr/SKILL.md
@@ -125,6 +125,30 @@ EOF
 ```bash
 PR_URL=$(gh pr view --json url -q .url)
 echo "PR created: $PR_URL"
+```
+
+### CI Monitoring (CC 2.1.71)
+
+After PR creation, schedule CI status monitoring:
+
+```python
+CronCreate(
+  schedule="*/5 * * * *",
+  prompt="Check CI for PR #{pr_number}: gh pr checks {pr_number} --repo {repo}.
+    All pass → CronDelete this job, report success.
+    Any fail → alert with failure details."
+)
+```
+
+### Handoff File
+
+Write PR details for downstream skills:
+
+```python
+Write(".claude/chain/pr-created.json", JSON.stringify({
+  "phase": "create-pr", "pr_number": N, "pr_url": "...",
+  "branch": "...", "files_changed": [...], "related_issues": [...]
+}))
 ```
 
 

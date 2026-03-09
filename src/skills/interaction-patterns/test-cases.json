@@ -1,0 +1,83 @@
+{
+  "skill": "interaction-patterns",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "skeleton-loading-content",
+      "rule": "interaction-skeleton-loading",
+      "query": "Add loading states to a dashboard that shows user profile cards fetched from an API",
+      "expectedBehavior": [
+        "Uses skeleton placeholders matching card shape instead of a generic spinner",
+        "Applies animate-pulse class for subtle shimmer animation on skeleton elements",
+        "Shows skeleton only after 200ms delay to avoid flash for fast loads",
+        "Matches skeleton count to expected card count in the grid layout"
+      ]
+    },
+    {
+      "id": "infinite-scroll-accessible",
+      "rule": "interaction-infinite-scroll",
+      "query": "Implement an infinite-scrolling product list that works for screen reader users",
+      "expectedBehavior": [
+        "Uses role='feed' on the list container with aria-busy during fetches",
+        "Provides a visible 'Load more' button fallback below the IntersectionObserver sentinel",
+        "Announces item count changes via aria-live='polite' in a visually hidden region",
+        "Sets aria-posinset and aria-setsize on each article element in the feed"
+      ]
+    },
+    {
+      "id": "drag-drop-keyboard",
+      "rule": "interaction-drag-drop",
+      "query": "Build a sortable task list where users can reorder items by dragging",
+      "expectedBehavior": [
+        "Uses @dnd-kit/core with both PointerSensor and KeyboardSensor registered",
+        "Supports arrow key navigation with Enter or Space to pick up and drop items",
+        "Announces drag state changes via aria-live='assertive' for screen readers",
+        "Provides visual feedback during drag with opacity or shadow changes on the item"
+      ]
+    },
+    {
+      "id": "toast-notification-accessible",
+      "rule": "interaction-toast-notifications",
+      "query": "Create a toast notification system that shows success and error messages",
+      "expectedBehavior": [
+        "Uses role='status' with aria-live='polite' for success toasts and role='alert' for errors",
+        "Auto-dismisses success and info toasts after 5 seconds but never auto-dismisses errors",
+        "Positions toasts top-right on desktop and bottom-center on mobile using media queries",
+        "Includes a visible dismiss button on every toast, not relying only on auto-dismiss"
+      ]
+    },
+    {
+      "id": "progressive-disclosure-settings",
+      "rule": "interaction-progressive-disclosure",
+      "query": "Design a settings page that has basic profile fields plus advanced options like API keys and webhooks",
+      "expectedBehavior": [
+        "Groups settings by frequency: common fields always visible, advanced behind disclosure",
+        "Uses native <details>/<summary> elements for accordion sections instead of custom ARIA",
+        "Limits visible options to 5-7 items per group following Miller's Law",
+        "Never hides primary actions behind disclosure — only secondary and advanced options"
+      ]
+    },
+    {
+      "id": "tabs-overflow-dynamic",
+      "rule": "interaction-tabs-overflow",
+      "query": "Build a tab bar for a dashboard with 12 dynamically-generated category tabs",
+      "expectedBehavior": [
+        "Uses role='tablist' with role='tab' on each button and aria-selected for active tab",
+        "Shows scroll arrow buttons only when tabs overflow the container width",
+        "Implements roving tabindex: active tab gets tabIndex=0, all others get tabIndex=-1",
+        "Supports arrow key navigation between tabs with Home/End for first/last tab"
+      ]
+    },
+    {
+      "id": "modal-vs-drawer-selection",
+      "rule": "interaction-modal-drawer-inline",
+      "query": "Show product details when a user clicks on a product in a list",
+      "expectedBehavior": [
+        "Uses a drawer or side panel instead of a modal for browsable detail views",
+        "Preserves the product list context visible alongside the detail panel",
+        "Returns focus to the clicked product item when the drawer is closed",
+        "Provides Escape key to close the drawer and a visible close button"
+      ]
+    }
+  ]
+}

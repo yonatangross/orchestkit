@@ -34,6 +34,7 @@ const mocks = vi.hoisted(() => ({
   readdirSync: vi.fn(() => [] as string[]),
   unlinkSync: vi.fn(),
   execSync: vi.fn(() => ''),
+  execFileSync: vi.fn(() => ''),
 }));
 
 const mockExistsSync = mocks.existsSync;

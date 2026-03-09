@@ -7,10 +7,10 @@
       "rule": "unit-aaa-pattern",
       "query": "Write a unit test for a discount calculator",
       "expectedBehavior": [
-        "Uses Arrange-Act-Assert structure",
+        "Uses the Arrange-Act-Assert structure to clearly separate test setup, execution, and verification",
         "Creates fresh instances per test via beforeEach",
-        "Tests behavior not implementation",
-        "Includes meaningful assertion messages"
+        "Tests observable behavior rather than implementation details to avoid brittle tests",
+        "Achieves coverage targets for business logic and critical paths per the test isolation rules"
       ]
     },
     {
@@ -18,7 +18,7 @@
       "rule": "unit-parametrized",
       "query": "Test email validation with multiple inputs",
       "expectedBehavior": [
-        "Uses test.each or @pytest.mark.parametrize",
+        "Uses test.each or @pytest.mark.parametrize to run the same test with multiple input sets",
         "Covers valid, invalid, and edge case inputs",
         "Uses descriptive test names with parameters"
       ]
@@ -30,7 +30,7 @@
       "expectedBehavior": [
         "Uses function scope for mutable state",
         "Uses session scope for expensive setup like DB engine",
-        "Includes cleanup via yield"
+        "Includes teardown cleanup via yield in the fixture to release resources after tests"
       ]
     },
     {
@@ -38,9 +38,9 @@
       "rule": "integration-api",
       "query": "Write integration tests for a REST API endpoint",
       "expectedBehavior": [
-        "Uses supertest or httpx AsyncClient",
+        "Uses supertest or httpx AsyncClient to send HTTP requests against the test server",
         "Tests both success and error responses",
-        "Validates response status and body"
+        "Validates both the HTTP response status code and body content against expected values"
       ]
     },
     {
@@ -50,7 +50,7 @@
       "expectedBehavior": [
         "Creates fresh database state per test",
         "Uses in-memory SQLite or test container",
-        "Rolls back transactions after test"
+        "Rolls back database transactions after each test to ensure clean state isolation"
       ]
     },
     {
@@ -58,9 +58,9 @@
       "rule": "integration-component",
       "query": "Test a React form component with API interaction",
       "expectedBehavior": [
-        "Wraps in QueryClientProvider",
-        "Uses userEvent for interactions",
-        "Asserts on user-visible outcomes"
+        "Wraps the component in QueryClientProvider to provide the required React Query context",
+        "Uses userEvent for simulating realistic user interactions like typing and clicking",
+        "Asserts on user-visible outcomes such as rendered text and DOM element presence"
       ]
     },
     {
@@ -68,9 +68,9 @@
       "rule": "e2e-playwright",
       "query": "Write Playwright tests for a checkout flow",
       "expectedBehavior": [
-        "Uses getByRole semantic locators",
-        "Avoids hardcoded waits",
-        "Uses auto-wait with expect assertions"
+        "Uses getByRole semantic locators that match how assistive technology identifies elements",
+        "Avoids hardcoded wait timeouts in favor of Playwright built-in auto-waiting mechanisms",
+        "Uses Playwright auto-wait with expect assertions to handle dynamic content reliably"
       ]
     },
     {
@@ -78,9 +78,9 @@
       "rule": "e2e-ai-agents",
       "query": "Set up Playwright AI agents for test generation",
       "expectedBehavior": [
-        "Runs npx playwright init-agents --loop=claude",
-        "Creates specs/ directory and seed.spec.ts",
-        "Describes Planner/Generator/Healer workflow"
+        "Runs npx playwright init-agents --loop=claude to initialize the AI agent test framework",
+        "Creates the specs/ directory and seed.spec.ts file as the starting test template",
+        "Describes the Planner/Generator/Healer workflow for automated AI-driven test maintenance"
       ]
     },
     {
@@ -90,7 +90,7 @@
       "expectedBehavior": [
         "Extracts page interactions into reusable classes",
         "Uses semantic locators within page objects",
-        "Keeps tests readable and maintainable"
+        "Keeps tests readable and maintainable by abstracting page interactions into reusable methods"
       ]
     },
     {
@@ -98,9 +98,9 @@
       "rule": "pytest-execution",
       "query": "Categorize tests with custom pytest markers",
       "expectedBehavior": [
-        "Defines markers in pyproject.toml",
-        "Uses @pytest.mark.slow, @pytest.mark.smoke",
-        "Shows CLI selection with -m flag"
+        "Defines custom pytest markers in pyproject.toml to categorize tests by type or scope",
+        "Uses markers like @pytest.mark.slow and @pytest.mark.smoke for selective test execution",
+        "Shows pytest marker selection for running smoke or slow tests selectively"
       ]
     },
     {
@@ -108,9 +108,9 @@
       "rule": "pytest-execution",
       "query": "Run tests in parallel with pytest-xdist",
       "expectedBehavior": [
-        "Configures -n auto --dist loadscope",
-        "Isolates database per worker_id",
-        "Handles shared resources safely"
+        "Configures pytest-xdist with -n auto --dist loadscope for scope-based parallel distribution",
+        "Isolates database connections per worker_id to prevent cross-worker data conflicts",
+        "Handles shared resources safely using locks or worker-scoped fixtures to prevent races"
       ]
     },
     {
@@ -118,9 +118,9 @@
       "rule": "pytest-plugins",
       "query": "Create reusable pytest plugins and hooks",
       "expectedBehavior": [
-        "Implements factory fixtures in conftest.py",
-        "Uses pytest hooks for customization",
-        "Configures pytest-asyncio auto mode"
+        "Implements reusable factory fixtures in conftest.py for consistent test data creation",
+        "Uses pytest hooks for customizing test collection, reporting, and execution behavior",
+        "Configures pytest-asyncio in auto mode to automatically detect and run async test functions"
       ]
     },
     {
@@ -128,9 +128,9 @@
       "rule": "mocking-msw",
       "query": "Mock API responses with MSW in Vitest tests",
       "expectedBehavior": [
-        "Uses http.get/post handlers",
-        "Sets up server.listen/resetHandlers/close lifecycle",
-        "Uses server.use() for per-test overrides"
+        "Uses MSW http.get/post handlers to intercept and mock outgoing API requests",
+        "Sets up server.listen/resetHandlers/close lifecycle hooks in beforeAll/afterEach/afterAll blocks",
+        "Uses server.use() for per-test handler overrides to simulate specific API scenarios"
       ]
     },
     {
@@ -138,9 +138,9 @@
       "rule": "mocking-vcr",
       "query": "Record HTTP interactions with VCR.py",
       "expectedBehavior": [
-        "Configures cassette_library_dir and record_mode",
+        "Configures cassette_library_dir and record_mode to control HTTP recording and playback behavior",
         "Filters sensitive headers and body data",
-        "Uses 'none' mode for CI"
+        "Uses 'none' record mode in CI to ensure tests only replay pre-recorded cassettes"
       ]
     },
     {
@@ -149,8 +149,8 @@
       "query": "Mock LLM API responses for testing",
       "expectedBehavior": [
         "Uses custom matchers ignoring dynamic fields",
-        "Filters API keys from cassettes",
-        "Supports async VCR for httpx"
+        "Filters sensitive API keys from recorded cassettes to prevent credential leakage in VCS",
+        "Supports async VCR recording for httpx-based clients using the aiohttp cassette adapter"
       ]
     },
     {
@@ -160,7 +160,7 @@
       "expectedBehavior": [
         "Uses FactoryBoy with Faker for Python",
         "Uses faker with spread overrides for TypeScript",
-        "Supports SubFactory for relationships"
+        "Supports SubFactory for generating related model instances with proper foreign key relationships"
       ]
     },
     {
@@ -168,9 +168,9 @@
       "rule": "data-fixtures",
       "query": "Load JSON fixtures in pytest tests",
       "expectedBehavior": [
-        "Loads fixtures from JSON files",
-        "Composes fixtures for complex scenarios",
-        "Uses conftest.py for shared fixtures"
+        "Loads test fixtures from JSON files to provide consistent and reproducible test data",
+        "Composes multiple fixtures together for complex test scenarios requiring related data sets",
+        "Uses conftest.py for shared fixtures that are available across multiple test modules"
       ]
     },
     {
@@ -178,9 +178,9 @@
       "rule": "data-seeding-cleanup",
       "query": "Seed test database and clean up between tests",
       "expectedBehavior": [
-        "Seeds database with factory-generated data",
+        "Seeds the database with factory-generated data to establish known baseline state for tests",
         "Uses autouse fixture for automatic cleanup",
-        "Truncates tables with CASCADE"
+        "Truncates tables with CASCADE to remove all test data including dependent foreign key rows"
       ]
     },
     {
@@ -188,8 +188,8 @@
       "rule": "verification-techniques",
       "query": "Write property-based tests with Hypothesis",
       "expectedBehavior": [
-        "Uses @given with appropriate strategies",
-        "Tests roundtrip and idempotence properties",
+        "Uses @given with appropriate Hypothesis strategies to generate diverse randomized test inputs",
+        "Tests roundtrip serialization and idempotence properties to verify mathematical correctness invariants",
         "Bounds inputs to avoid slow generation"
       ]
     },
@@ -198,9 +198,9 @@
       "rule": "verification-stateful",
       "query": "Test a stateful API with Hypothesis state machines",
       "expectedBehavior": [
-        "Uses RuleBasedStateMachine",
-        "Models state transitions as rules",
-        "Verifies invariants after each step"
+        "Uses Hypothesis RuleBasedStateMachine to model and test complex stateful system interactions",
+        "Models valid state transitions as rules that Hypothesis explores in randomized sequences",
+        "Verifies system invariants after each step to catch state corruption or illegal transitions"
       ]
     },
     {
@@ -208,9 +208,9 @@
       "rule": "verification-contract",
       "query": "Set up Pact contract tests between services",
       "expectedBehavior": [
-        "Writes consumer test with expectations",
-        "Uses Like/EachLike matchers",
-        "Configures provider verification with states"
+        "Writes consumer-side contract test with expected request and response interaction expectations",
+        "Uses Pact Like/EachLike matchers for flexible type-based response structure matching",
+        "Configures provider-side verification with provider states for realistic test scenario setup"
       ]
     },
     {
@@ -218,9 +218,9 @@
       "rule": "perf-k6",
       "query": "Write a k6 load test with thresholds",
       "expectedBehavior": [
-        "Defines stages for ramp-up/steady/ramp-down",
+        "Defines load test stages for ramp-up, steady state, and ramp-down traffic patterns",
         "Sets p95 and error rate thresholds",
-        "Uses check() for response validation"
+        "Uses the k6 check() function for validating response status and body during load tests"
       ]
     },
     {
@@ -228,9 +228,9 @@
       "rule": "perf-locust",
       "query": "Create a Locust load test for an API",
       "expectedBehavior": [
-        "Defines HttpUser with @task decorators",
-        "Implements on_start for authentication",
-        "Uses wait_time between requests"
+        "Defines a Locust HttpUser class with @task decorators to specify weighted user behaviors",
+        "Implements the on_start method for authentication and session setup before load generation",
+        "Uses wait_time between requests to simulate realistic user think time intervals"
       ]
     },
     {
@@ -238,9 +238,9 @@
       "rule": "perf-types",
       "query": "What type of performance test should I run?",
       "expectedBehavior": [
-        "Distinguishes load/stress/spike/soak tests",
-        "Recommends appropriate profiles for each",
-        "Includes CI integration patterns"
+        "Distinguishes between load, stress, spike, and soak tests based on traffic profile goals",
+        "Recommends appropriate traffic profiles for each performance test type and use case",
+        "Includes CI integration patterns for running performance tests in automated pipelines"
       ]
     },
     {
@@ -248,8 +248,8 @@
       "rule": "llm-mocking",
       "query": "Mock LLM responses in unit tests",
       "expectedBehavior": [
-        "Uses AsyncMock with return_value",
-        "Patches model_factory.get_model",
+        "Uses AsyncMock with return_value to stub async LLM calls without live API access",
+        "Patches model_factory.get_model to inject mock LLM instances during unit test execution",
         "Avoids live API calls in CI"
       ]
     },
@@ -258,9 +258,9 @@
       "rule": "llm-evaluation",
       "query": "Evaluate LLM output quality with DeepEval",
       "expectedBehavior": [
-        "Creates LLMTestCase with input/output/context",
-        "Uses AnswerRelevancy and Faithfulness metrics",
-        "Sets appropriate thresholds"
+        "Creates LLMTestCase with input, actual_output, and retrieval_context for evaluation scoring",
+        "Uses AnswerRelevancy and Faithfulness metrics to score LLM output quality against context",
+        "Sets appropriate score thresholds to gate LLM output quality in automated evaluation"
       ]
     },
     {
@@ -268,9 +268,9 @@
       "rule": "llm-evaluation",
       "query": "Test structured LLM output and timeouts",
       "expectedBehavior": [
-        "Validates JSON schema compliance",
-        "Tests timeout handling with asyncio.timeout",
-        "Covers null/empty edge cases"
+        "Validates JSON schema compliance to ensure structured LLM output matches the expected format",
+        "Tests timeout handling with asyncio.timeout to verify graceful degradation under latency",
+        "Covers null, empty, and missing field edge cases in LLM structured output validation"
       ]
     },
     {
@@ -278,9 +278,9 @@
       "rule": "a11y-testing",
       "query": "Add accessibility tests to React components",
       "expectedBehavior": [
-        "Uses jest-axe toHaveNoViolations matcher",
-        "Tests all component states",
-        "Renders with testing-library"
+        "Uses jest-axe toHaveNoViolations matcher to assert zero accessibility violations per component",
+        "Tests all component states including loading, error, disabled, and interactive variants",
+        "Renders components with testing-library to evaluate the accessibility of the final DOM output"
       ]
     },
     {
@@ -288,9 +288,9 @@
       "rule": "a11y-playwright",
       "query": "Run page-level accessibility audits with Playwright",
       "expectedBehavior": [
-        "Uses @axe-core/playwright AxeBuilder",
-        "Configures wcag2a/wcag2aa/wcag22aa tags",
-        "Tests interactive states like modals"
+        "Uses @axe-core/playwright AxeBuilder to run automated accessibility audits on rendered pages",
+        "Configures wcag2a/wcag2aa/wcag22aa tags to target specific WCAG compliance levels in audits",
+        "Tests interactive states like modals, dropdowns, and expanded panels for accessibility compliance"
       ]
     },
     {
@@ -298,9 +298,42 @@
       "rule": "a11y-testing",
       "query": "Set up CI gates for accessibility",
       "expectedBehavior": [
-        "Blocks PRs with accessibility violations",
+        "Blocks pull requests that introduce accessibility violations from merging to the main branch",
         "Runs both unit and E2E a11y tests",
-        "Includes GitHub Actions workflow"
+        "Includes a GitHub Actions workflow definition for running accessibility tests in CI pipelines"
+      ]
+    },
+    {
+      "id": "execution",
+      "rule": "execution",
+      "query": "Our CI pipeline takes 25 minutes to run all tests. How can I speed it up and track coverage?",
+      "expectedBehavior": [
+        "Uses --cov-report=term-missing to identify exactly which lines are uncovered",
+        "Recommends --maxfail=3 in CI for fast feedback without overwhelming output",
+        "Sets minimum coverage thresholds with 90% for business logic and 100% for critical paths",
+        "Uses --lf (last-failed) during development for rapid iteration on broken tests"
+      ]
+    },
+    {
+      "id": "validation-end-to-end",
+      "rule": "validation-end-to-end",
+      "query": "How do I ensure type safety across my API from client to database with no gaps?",
+      "expectedBehavior": [
+        "Recommends tRPC for end-to-end TypeScript type inference without code generation",
+        "Uses Zod schemas for runtime validation at API boundaries with compile-time inference",
+        "Uses Pydantic with NewType for branded IDs to prevent ID type confusion in Python",
+        "Tests that validation schemas reject invalid data to confirm boundary protection"
+      ]
+    },
+    {
+      "id": "validation-zod-schema",
+      "rule": "validation-zod-schema",
+      "query": "Set up Zod validation for our API endpoints with branded types to prevent ID mix-ups",
+      "expectedBehavior": [
+        "Uses safeParse for graceful error handling instead of throwing parse exceptions",
+        "Implements branded types with z.string().uuid().brand() to prevent ID type confusion",
+        "Validates at ALL boundaries including API inputs, form submissions, and external data",
+        "Uses assertNever in switch default for compile-time exhaustive union type checking"
       ]
     }
   ]

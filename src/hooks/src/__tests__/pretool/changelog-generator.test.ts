@@ -22,12 +22,12 @@ vi.mock('../../lib/common.js', () => ({
 }));
 
 vi.mock('node:child_process', () => ({
-  execSync: vi.fn(() => ''),
+  execFileSync: vi.fn(() => ''),
 }));
 
 import { changelogGenerator } from '../../pretool/bash/changelog-generator.js';
 import type { HookInput } from '../../types.js';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 
 function createBashInput(command: string): HookInput {
   return {
@@ -52,7 +52,7 @@ describe('changelog-generator', () => {
   });
 
   it('returns silent success when no commits found', () => {
-    vi.mocked(execSync).mockReturnValue('');
+    vi.mocked(execFileSync).mockReturnValue('');
 
     const input = createBashInput('npm version patch');
     const result = changelogGenerator(input);
@@ -62,7 +62,7 @@ describe('changelog-generator', () => {
   });
 
   it('generates changelog sections for feature and fix commits', () => {
-    vi.mocked(execSync).mockReturnValue(
+    vi.mocked(execFileSync).mockReturnValue(
       'feat: add user authentication\nfix: resolve login timeout\nfeat: add password reset'
     );
 
@@ -76,7 +76,7 @@ describe('changelog-generator', () => {
   });
 
   it('groups refactor and chore commits under Maintenance', () => {
-    vi.mocked(execSync).mockReturnValue(
+    vi.mocked(execFileSync).mockReturnValue(
       'refactor: simplify auth flow\nchore: update dependencies\nperf: optimize query'
     );
 
@@ -88,7 +88,7 @@ describe('changelog-generator', () => {
   });
 
   it('returns silent success when commits have no conventional type prefix', () => {
-    vi.mocked(execSync).mockReturnValue('update readme\nmerge branch main');
+    vi.mocked(execFileSync).mockReturnValue('update readme\nmerge branch main');
 
     const input = createBashInput('npm version patch');
     const result = changelogGenerator(input);
@@ -98,7 +98,7 @@ describe('changelog-generator', () => {
   });
 
   it('handles git command failure gracefully', () => {
-    vi.mocked(execSync).mockImplementation(() => {
+    vi.mocked(execFileSync).mockImplementation(() => {
       throw new Error('not a git repository');
     });
 

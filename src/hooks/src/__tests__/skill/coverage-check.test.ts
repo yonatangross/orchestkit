@@ -17,7 +17,7 @@ const mockExistsSync = vi.fn();
 const mockReadFileSync = vi.fn();
 const mockAppendFileSync = vi.fn();
 const mockMkdirSync = vi.fn();
-const mockExecSync = vi.fn();
+const mockExecFileSync = vi.fn();
 
 vi.mock('../../lib/analytics-buffer.js', () => ({
   bufferWrite: vi.fn((filePath: string, content: string) => {
@@ -36,7 +36,7 @@ vi.mock('node:fs', () => ({
 }));
 
 vi.mock('node:child_process', () => ({
-  execSync: (...args: unknown[]) => mockExecSync(...args),
+  execFileSync: (...args: unknown[]) => mockExecFileSync(...args),
 }));
 
 vi.mock('../../lib/common.js', () => ({
@@ -135,15 +135,16 @@ describe('coverage-check', () => {
       mockExistsSync.mockImplementation((path: string) => {
         return path === '/test/project/.coverage';
       });
-      mockExecSync.mockReturnValue('Name    Stmts   Miss  Cover\nTOTAL      100     15    85%');
+      mockExecFileSync.mockReturnValue('Name    Stmts   Miss  Cover\nTOTAL      100     15    85%');
       const input = createStopInput();
 
       // Act
       coverageCheck(input);
 
       // Assert
-      expect(mockExecSync).toHaveBeenCalledWith(
-        'coverage report --fail-under=0',
+      expect(mockExecFileSync).toHaveBeenCalledWith(
+        'coverage',
+        ['report', '--fail-under=0'],
         expect.objectContaining({ cwd: '/test/project' }),
       );
     });
@@ -153,14 +154,14 @@ describe('coverage-check', () => {
       mockExistsSync.mockImplementation((path: string) => {
         return path === '/test/project/coverage.xml';
       });
-      mockExecSync.mockReturnValue('TOTAL      200     20    90%');
+      mockExecFileSync.mockReturnValue('TOTAL      200     20    90%');
       const input = createStopInput();
 
       // Act
       coverageCheck(input);
 
       // Assert
-      expect(mockExecSync).toHaveBeenCalled();
+      expect(mockExecFileSync).toHaveBeenCalled();
     });
 
     test('parses coverage percentage from report', () => {
@@ -168,7 +169,7 @@ describe('coverage-check', () => {
       mockExistsSync.mockImplementation((path: string) => {
         return path === '/test/project/.coverage';
       });
-      mockExecSync.mockReturnValue(`
+      mockExecFileSync.mockReturnValue(`
 Name                      Stmts   Miss  Cover
 ---------------------------------------------
 app/__init__.py              10      0   100%
@@ -194,7 +195,7 @@ TOTAL                        90     15    83%
       mockExistsSync.mockImplementation((path: string) => {
         return path === '/test/project/.coverage';
       });
-      mockExecSync.mockImplementation(() => {
+      mockExecFileSync.mockImplementation(() => {
         throw new Error('coverage: command not found');
       });
       const input = createStopInput();
@@ -261,7 +262,7 @@ TOTAL                        90     15    83%
       mockExistsSync.mockImplementation((path: string) => {
         return path === '/test/project/.coverage';
       });
-      mockExecSync.mockReturnValue('TOTAL      100     25    75%');
+      mockExecFileSync.mockReturnValue('TOTAL      100     25    75%');
       const input = createStopInput();
 
       // Act
@@ -280,7 +281,7 @@ TOTAL                        90     15    83%
       mockExistsSync.mockImplementation((path: string) => {
         return path === '/test/project/.coverage';
       });
-      mockExecSync.mockReturnValue('TOTAL      100     15    85%');
+      mockExecFileSync.mockReturnValue('TOTAL      100     15    85%');
       const input = createStopInput();
 
       // Act
@@ -298,7 +299,7 @@ TOTAL                        90     15    83%
       mockExistsSync.mockImplementation((path: string) => {
         return path === '/test/project/.coverage';
       });
-      mockExecSync.mockReturnValue('TOTAL      100     10    90%');
+      mockExecFileSync.mockReturnValue('TOTAL      100     10    90%');
       const input = createStopInput();
 
       // Act
@@ -316,7 +317,7 @@ TOTAL                        90     15    83%
       mockExistsSync.mockImplementation((path: string) => {
         return path === '/test/project/.coverage';
       });
-      mockExecSync.mockReturnValue('TOTAL      100     20    80%');
+      mockExecFileSync.mockReturnValue('TOTAL      100     20    80%');
       const input = createStopInput();
 
       // Act
@@ -423,7 +424,7 @@ TOTAL                        90     15    83%
 
       // Assert
       expect(result.continue).toBe(true);
-      expect(mockExecSync).not.toHaveBeenCalled();
+      expect(mockExecFileSync).not.toHaveBeenCalled();
     });
 
     test('handles malformed coverage output', () => {
@@ -431,7 +432,7 @@ TOTAL                        90     15    83%
       mockExistsSync.mockImplementation((path: string) => {
         return path === '/test/project/.coverage';
       });
-      mockExecSync.mockReturnValue('Some unexpected output format');
+      mockExecFileSync.mockReturnValue('Some unexpected output format');
       const input = createStopInput();
 
       // Act
@@ -446,7 +447,7 @@ TOTAL                        90     15    83%
       mockExistsSync.mockImplementation((path: string) => {
         return path === '/test/project/.coverage';
       });
-      mockExecSync.mockReturnValue('TOTAL      100     N/A    N/A');
+      mockExecFileSync.mockReturnValue('TOTAL      100     N/A    N/A');
       const input = createStopInput();
 
       // Act
@@ -461,7 +462,7 @@ TOTAL                        90     15    83%
       mockExistsSync.mockImplementation((path: string) => {
         return path === '/test/project/.coverage';
       });
-      mockExecSync.mockReturnValue('');
+      mockExecFileSync.mockReturnValue('');
       const input = createStopInput();
 
       // Act
@@ -477,7 +478,7 @@ TOTAL                        90     15    83%
       mockExistsSync.mockImplementation((path: string) => {
         return path === '/test/project/.coverage';
       });
-      mockExecSync.mockReturnValue('TOTAL      100     20    80%');
+      mockExecFileSync.mockReturnValue('TOTAL      100     20    80%');
       const input = createStopInput();
 
       // Act
@@ -493,7 +494,7 @@ TOTAL                        90     15    83%
       mockExistsSync.mockImplementation((path: string) => {
         return path === '/test/project/.coverage';
       });
-      mockExecSync.mockImplementation(() => {
+      mockExecFileSync.mockImplementation(() => {
         const error = new Error('Timed out') as NodeJS.ErrnoException;
         error.code = 'ETIMEDOUT';
         throw error;
@@ -524,7 +525,7 @@ TOTAL                        90     15    83%
       mockExistsSync.mockImplementation((path: string) => {
         return path === '/test/project/.coverage';
       });
-      mockExecSync.mockReturnValue(`TOTAL      100     10    ${percentStr}`);
+      mockExecFileSync.mockReturnValue(`TOTAL      100     10    ${percentStr}`);
       const input = createStopInput();
 
       // Act
@@ -542,7 +543,7 @@ TOTAL                        90     15    83%
       mockExistsSync.mockImplementation((path: string) => {
         return path === '/test/project/.coverage';
       });
-      mockExecSync.mockReturnValue(`
+      mockExecFileSync.mockReturnValue(`
 Name                                    Stmts   Miss Branch BrPart  Cover
 -------------------------------------------------------------------------
 src/__init__.py                             0      0      0      0   100%
@@ -578,7 +579,7 @@ TOTAL                                     120     23     45     10    78%
         if (path === '/test/project/coverage/coverage-summary.json') return true;
         return false;
       });
-      mockExecSync.mockReturnValue('TOTAL      100     15    85%');
+      mockExecFileSync.mockReturnValue('TOTAL      100     15    85%');
       const input = createStopInput();
 
       // Act
@@ -636,15 +637,16 @@ TOTAL                                     120     23     45     10    78%
       mockExistsSync.mockImplementation((path: string) => {
         return path === '/test/project/.coverage';
       });
-      mockExecSync.mockReturnValue('TOTAL 100 10 90%');
+      mockExecFileSync.mockReturnValue('TOTAL 100 10 90%');
       const input = createStopInput();
 
       // Act
       coverageCheck(input);
 
       // Assert
-      expect(mockExecSync).toHaveBeenCalledWith(
-        'coverage report --fail-under=0',
+      expect(mockExecFileSync).toHaveBeenCalledWith(
+        'coverage',
+        ['report', '--fail-under=0'],
         expect.objectContaining({
           cwd: '/test/project',
           encoding: 'utf8',

@@ -5,7 +5,7 @@
 
 ### Stop explaining your stack. Start shipping.
 
-**<!--ork:skills-->79<!--/ork--> skills · <!--ork:agents-->30<!--/ork--> agents · <!--ork:hooks-->105<!--/ork--> hooks**
+**<!--ork:skills-->87<!--/ork--> skills · <!--ork:agents-->31<!--/ork--> agents · <!--ork:hooks-->96<!--/ork--> hooks**
 
 [![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.69-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
@@ -60,9 +60,9 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 
 | Component | Details |
 |-----------|---------|
-| **<!--ork:skills-->79<!--/ork--> Skills** | RAG patterns, FastAPI, React 19, testing, security, database design, ML integration — loaded on-demand, zero overhead |
-| **<!--ork:agents-->30<!--/ork--> Agents** | Specialized personas (backend-architect, frontend-dev, security-auditor) — route tasks to the right expert |
-| **<!--ork:hooks-->105<!--/ork--> Hooks** | Pre-commit checks, git protection, quality gates, browser safety — ship with confidence |
+| **<!--ork:skills-->87<!--/ork--> Skills** | RAG patterns, FastAPI, React 19, testing, security, database design, ML integration — loaded on-demand, zero overhead |
+| **<!--ork:agents-->31<!--/ork--> Agents** | Specialized personas (backend-architect, frontend-dev, security-auditor) — route tasks to the right expert |
+| **<!--ork:hooks-->96<!--/ork--> Hooks** | Pre-commit checks, git protection, quality gates, browser safety — ship with confidence |
 
 All available in a single `/plugin install ork`. Skills load on-demand. Hooks work automatically.
 
@@ -186,7 +186,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 **v7.0.0** — Unified Plugin Architecture
 
-- **Simplified**: One plugin for everything. All 79 skills, 30 agents, 105 hooks in `/plugin install ork`.
+- **Simplified**: One plugin for everything. All 80 skills, 30 agents, 107 hooks in `/plugin install ork`.
 - **Setup Wizard**: Run `/ork:setup` for personalized onboarding — stack detection, skill recommendations, MCP configuration, readiness scoring.
 
 [Full Changelog →](./CHANGELOG.md)

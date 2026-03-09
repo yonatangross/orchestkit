@@ -38,10 +38,11 @@ export function shellQuote(arg: string): string {
 /**
  * Validate that a string looks like a git ref (branch name, tag, or SHA).
  * Allows: alphanumeric, dots, slashes, hyphens, underscores.
+ * First character must not be a hyphen (prevents git option injection).
  * Rejects shell metacharacters, spaces, and anything suspicious.
  */
 export function assertSafeGitRef(ref: string, label = 'git ref'): string {
-  if (!ref || !/^[a-zA-Z0-9._/-]+$/.test(ref)) {
+  if (!ref || !/^[a-zA-Z0-9._/][a-zA-Z0-9._/-]*$/.test(ref)) {
     throw new Error(`Unsafe ${label}: ${JSON.stringify(ref)}`);
   }
   return ref;

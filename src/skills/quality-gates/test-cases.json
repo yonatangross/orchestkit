@@ -35,6 +35,39 @@
         "Directly makes the trivial CSS change (Level 1 complexity, no unknowns)",
         "No complexity scoring, gate checks, or escalation templates generated"
       ]
+    },
+    {
+      "id": "practices-code-standards",
+      "rule": "practices-code-standards",
+      "query": "We keep making the same architectural mistakes across projects. How can we track patterns?",
+      "expectedBehavior": [
+        "Creates a pattern library tracking success and failure patterns across projects",
+        "Records outcome data for each pattern including when it worked and when it failed",
+        "Aggregates patterns from multiple projects to prevent repeating the same mistakes",
+        "Stores anti-patterns with failure context so teams learn from past architectural errors"
+      ]
+    },
+    {
+      "id": "practices-review-checklist",
+      "rule": "practices-review-checklist",
+      "query": "How can I proactively detect known anti-patterns during code review before they reach production?",
+      "expectedBehavior": [
+        "Queries the pattern library for relevant anti-patterns before starting code review",
+        "Flags known bad patterns like offset pagination that have failed on previous projects",
+        "Generates proactive warnings when code matches patterns with documented failure history",
+        "Uses stored pattern outcomes to provide evidence-based review feedback to developers"
+      ]
+    },
+    {
+      "id": "yagni-gate",
+      "rule": "yagni-gate",
+      "query": "I need to add user authentication to my take-home assignment project. Should I implement full OAuth2 with SSO?",
+      "expectedBehavior": [
+        "Detects project tier as interview or take-home from project context and README",
+        "Calculates justified complexity ratio and blocks when ratio exceeds acceptable threshold",
+        "Recommends scope-appropriate solution like session cookies instead of full OAuth2 for take-home",
+        "Prevents over-engineering by validating complexity against the actual project scope"
+      ]
     }
   ]
 }

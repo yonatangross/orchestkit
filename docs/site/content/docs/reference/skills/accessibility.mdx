@@ -1,6 +1,6 @@
 ---
 title: "Accessibility"
-description: "Accessibility patterns for WCAG 2.2 compliance, keyboard focus management, and React Aria component patterns. Use when implementing screen reader support, keyboard navigation, ARIA patterns, focus traps, or accessible component libraries."
+description: "Accessibility patterns for WCAG 2.2 compliance, keyboard focus management, React Aria component patterns, cognitive inclusion, native HTML-first philosophy, and user preference honoring. Use when implementing screen reader support, keyboard navigation, ARIA patterns, focus traps, accessible component libraries, reduced motion, or cognitive accessibility."
 ---
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
@@ -10,7 +10,7 @@ description: "Accessibility patterns for WCAG 2.2 compliance, keyboard focus man
 
 # Accessibility
 
-Comprehensive patterns for building accessible web applications: WCAG 2.2 AA compliance, keyboard focus management, and React Aria component patterns. Each category has individual rule files in `rules/` loaded on-demand.
+Comprehensive patterns for building accessible web applications: WCAG 2.2 AA compliance, keyboard focus management, React Aria component patterns, native HTML-first philosophy, cognitive inclusion, and user preference honoring. Each category has individual rule files in `rules/` loaded on-demand.
 
 ## Quick Reference
 
@@ -19,8 +19,9 @@ Comprehensive patterns for building accessible web applications: WCAG 2.2 AA com
 | [WCAG Compliance](#wcag-compliance) | 3 | CRITICAL | Color contrast, semantic HTML, automated testing |
 | [Focus Management](#focus-management) | 3 | HIGH | Focus traps, focus restoration, keyboard navigation |
 | [React Aria](#react-aria) | 3 | HIGH | Accessible components, form hooks, overlay patterns |
+| [Modern Web Accessibility](#modern-web-accessibility) | 3 | CRITICAL/HIGH | Native HTML first, cognitive inclusion, user preferences |
 
-**Total: 9 rules across 3 categories**
+**Total: 12 rules across 4 categories**
 
 ## Quick Start
 
@@ -77,6 +78,16 @@ Adobe React Aria hooks for building WCAG-compliant interactive UI.
 | Forms | `$\{CLAUDE_PLUGIN_ROOT\}/skills/accessibility/rules/aria-forms.md` | useComboBox, useTextField, useListBox |
 | Overlays | `$\{CLAUDE_PLUGIN_ROOT\}/skills/accessibility/rules/aria-overlays.md` | useModalOverlay, useTooltip, usePopover |
 
+## Modern Web Accessibility
+
+2026 best practices: native HTML first, cognitive inclusion, and honoring user preferences.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Native HTML First | `$\{CLAUDE_PLUGIN_ROOT\}/skills/accessibility/rules/wcag-native-html-first.md` | `&lt;dialog&gt;`, `<details>`, native over custom ARIA |
+| Cognitive Inclusion | `$\{CLAUDE_PLUGIN_ROOT\}/skills/accessibility/rules/wcag-cognitive-inclusion.md` | ADHD/autism/dyslexia support, chunked content, notification management |
+| User Preferences | `$\{CLAUDE_PLUGIN_ROOT\}/skills/accessibility/rules/wcag-user-preferences.md` | prefers-reduced-motion, forced-colors, prefers-contrast, zoom |
+
 ## Key Decisions
 
 | Decision | Recommendation |
@@ -122,7 +133,7 @@ Adobe React Aria hooks for building WCAG-compliant interactive UI.
 
 ---
 
-## Rules (9)
+## Rules (12)
 
 ### Build accessible buttons, dialogs, and menus with React Aria keyboard support — HIGH
 
@@ -1391,6 +1402,153 @@ function Modal({ isOpen, onClose, children }) {
 ```
 
 
+### Design for cognitive accessibility including ADHD, autism, and dyslexia support — HIGH
+
+
+# Cognitive Inclusion (WCAG 2.2 + 2026 Best Practices)
+
+## Principle
+
+Accessibility extends beyond screen readers and keyboard nav. Design for how people **think and process** — reduce cognitive load, manage information density, and respect attention limitations.
+
+## Information Density Management
+
+**Incorrect — Wall of text with no structure:**
+```tsx
+<div className="content">
+  <p>{longParagraph1}</p>
+  <p>{longParagraph2}</p>
+  <p>{longParagraph3}</p>
+  <p>{longParagraph4}</p>
+</div>
+```
+
+**Correct — Chunked content with clear hierarchy:**
+```tsx
+<article>
+  <h2>Getting Started</h2>
+  <p className="summary">{briefSummary}</p>
+
+  <section aria-labelledby="step-1">
+    <h3 id="step-1">Step 1: Install</h3>
+    <p>{shortInstruction}</p>
+    <pre><code>{codeExample}</code></pre>
+  </section>
+
+  <section aria-labelledby="step-2">
+    <h3 id="step-2">Step 2: Configure</h3>
+    <p>{shortInstruction}</p>
+  </section>
+</article>
+```
+
+## Notification Patterns
+
+**Incorrect — Multiple simultaneous notifications:**
+```tsx
+function Notifications({ items }) {
+  return items.map(item => (
+    <div role="alert" className="toast">{item.message}</div>
+  ));
+}
+```
+
+**Correct — Queued, dismissible, non-overwhelming notifications:**
+```tsx
+function Notifications({ items }) {
+  const [visible, setVisible] = useState(items.slice(0, 1));
+
+  return (
+    <div aria-live="polite" aria-relevant="additions">
+      {visible.map(item => (
+        <div key={item.id} role="status" className="toast">
+          <span>{item.message}</span>
+          <button onClick={() => dismiss(item.id)} aria-label="Dismiss">
+            <CloseIcon aria-hidden="true" />
+          </button>
+        </div>
+      ))}
+      {items.length > 1 && (
+        <p className="sr-only">{items.length - 1} more notifications</p>
+      )}
+    </div>
+  );
+}
+```
+
+## Navigation Simplicity
+
+- Limit primary nav to 5-7 items max
+- Use consistent layout across all pages
+- Provide breadcrumbs for deep navigation
+- Always show where the user is (active state)
+
+```tsx
+<nav aria-label="Breadcrumb">
+  <ol>
+    <li><a href="/">Home</a></li>
+    <li><a href="/docs">Docs</a></li>
+    <li aria-current="page">Installation</li>
+  </ol>
+</nav>
+```
+
+## Reading Level and Plain Language
+
+| Guideline | Target |
+|-----------|--------|
+| Sentence length | Under 25 words |
+| Paragraph length | 2-4 sentences |
+| Reading level | Grade 8 or lower for general content |
+| Jargon | Define on first use or provide glossary |
+| Abbreviations | Expand on first use with `&lt;abbr&gt;` |
+
+```tsx
+<p>
+  Use <abbr title="Web Content Accessibility Guidelines">WCAG</abbr> to
+  make your site accessible.
+</p>
+```
+
+## Cognitive Load Reduction
+
+| Pattern | Implementation |
+|---------|---------------|
+| Progressive disclosure | Show essential info first, details on demand |
+| Consistent layouts | Same navigation, same patterns across pages |
+| Clear error recovery | Tell users what went wrong and how to fix it |
+| Autosave | Prevent data loss from attention lapses |
+| Timeout warnings | Alert before session expiry with extend option |
+
+**Incorrect — All fields on one page:**
+```tsx
+<form>{/* 30 fields visible at once */}</form>
+```
+
+**Correct — Multi-step with progress:**
+```tsx
+<form aria-label="Account setup">
+  <div role="progressbar" aria-valuenow={2} aria-valuemin={1}
+    aria-valuemax={4} aria-label="Step 2 of 4" />
+  <fieldset>
+    <legend>Contact Information</legend>
+    {currentStepFields}
+  </fieldset>
+  <button type="button" onClick={prevStep}>Back</button>
+  <button type="button" onClick={nextStep}>Next</button>
+</form>
+```
+
+## Audit Checklist
+
+- [ ] No walls of text — content chunked with headings
+- [ ] Max 1 notification visible at a time, all dismissible
+- [ ] Navigation has 7 or fewer primary items
+- [ ] Error messages explain how to fix the problem
+- [ ] Multi-step processes show progress and allow going back
+- [ ] Session timeouts warn users and allow extension
+
+
 ### Meet WCAG 4.5:1 minimum contrast ratio for text and UI component readability — CRITICAL
 
 
@@ -1515,6 +1673,111 @@ Content must reflow without horizontal scrolling at 320px width:
   color: #595959;  /* 7.0:1 ratio on white - passes WCAG AA */
 }
 ```
+
+
+### Prefer native HTML elements over custom ARIA widgets for built-in accessibility — CRITICAL
+
+
+# Native HTML First (2026 Best Practice)
+
+## Principle
+
+Use the platform. Native HTML elements (`&lt;dialog&gt;`, `<details>`, `&lt;select&gt;`, `&lt;button&gt;`) ship with keyboard handling, focus management, and screen reader announcements built in. Custom ARIA widgets should only be used when **no native equivalent exists**.
+
+## Native Element Replacements
+
+| Instead of... | Use native | Why |
+|--------------|-----------|-----|
+| Custom modal + focus trap JS | `&lt;dialog&gt;` + `showModal()` | Built-in focus trap, Escape close, inert backdrop |
+| Custom accordion + ARIA | `<details>` / `<summary>` | Built-in expand/collapse, keyboard, screen reader |
+| Custom dropdown + listbox ARIA | `&lt;select&gt;` | Built-in keyboard nav, mobile-optimized |
+| Custom toggle + aria-checked | `&lt;input type="checkbox"&gt;` | Built-in state, label association, form submission |
+| `<div onClick>` | `&lt;button&gt;` | Built-in focus, Enter/Space, role announcement |
+
+## Dialog — Use `&lt;dialog&gt;` + `showModal()`
+
+**Incorrect — Custom modal with manual focus trap:**
+```tsx
+function Modal({ isOpen, onClose, children }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    if (isOpen) ref.current?.focus();
+    // manual focus trap, Escape handler, inert siblings...
+  }, [isOpen]);
+
+  return isOpen ? (
+    <div role="dialog" aria-modal="true" ref={ref} tabIndex={-1}>
+      <div className="backdrop" onClick={onClose} />
+      {children}
+    </div>
+  ) : null;
+}
+```
+
+**Correct — Native `&lt;dialog&gt;` with built-in focus management:**
+```tsx
+function Modal({ children }) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  return (
+    <dialog ref={dialogRef} onClose={() => dialogRef.current?.close()}>
+      {children}
+      <button onClick={() => dialogRef.current?.close()}>Close</button>
+    </dialog>
+  );
+}
+
+// Open with showModal() for built-in focus trap + backdrop + Escape
+dialogRef.current?.showModal();
+```
+
+## Accordion — Use `<details>` / `<summary>`
+
+**Incorrect — Custom accordion with ARIA:**
+```tsx
+<div role="region">
+  <button aria-expanded={open} aria-controls="panel-1"
+    onClick={() => setOpen(!open)}>
+    Section Title
+  </button>
+  <div id="panel-1" role="region" hidden={!open}>{content}</div>
+</div>
+```
+
+**Correct — Native `<details>` with CSS styling:**
+```tsx
+<details>
+  <summary>Section Title</summary>
+  <div className="panel">{content}</div>
+</details>
+```
+
+```css
+details summary { cursor: pointer; padding: 0.75rem; font-weight: 600; }
+details[open] summary { border-bottom: 1px solid var(--border); }
+details summary::marker { content: ''; } /* Note: ::marker on <summary> is supported in Chrome 89+, Firefox 68+, Safari 15.4+ */
+details summary::after { content: '\25B6'; transition: transform 0.2s; }
+details[open] summary::after { transform: rotate(90deg); }
+```
+
+## When Custom ARIA Is Justified
+
+Use custom ARIA only when native elements cannot meet the requirement:
+
+| Use case | Why native fails | ARIA approach |
+|----------|-----------------|---------------|
+| Combobox with async search | `&lt;datalist&gt;` lacks async, filtering control | `role="combobox"` + `useComboBox` |
+| Tab panel widget | No native tab element | `role="tablist"` + `role="tab"` |
+| Tree view | No native tree element | `role="tree"` + `role="treeitem"` |
+| Menu with submenus | `&lt;menu&gt;` has limited support | `role="menu"` + `role="menuitem"` |
+
+## Audit Checklist
+
+- [ ] Every `role="dialog"` — can it be `&lt;dialog&gt;`?
+- [ ] Every custom accordion — can it be `<details>`?
+- [ ] Every `<div onClick>` — should it be `&lt;button&gt;` or `<a>`?
+- [ ] Every custom select — does `&lt;select&gt;` + CSS suffice?
+- [ ] ARIA attributes are only used where no native equivalent exists
 
 
 ### Use semantic HTML and ARIA attributes for proper screen reader document structure — CRITICAL
@@ -1808,6 +2071,146 @@ test('accessibility - automated', async ({ page }) => {
 // - Verify focus indicators visible
 // - Test error state announcements
 ```
+
+
+### Honor all user preferences including motion, color scheme, contrast, and zoom — HIGH
+
+
+# User Preferences (2026 Best Practices)
+
+## Principle
+
+Users configure their OS for a reason. Honor every preference: reduced motion, color scheme, high contrast, contrast level, and text zoom. These are not optional enhancements — they are accessibility requirements.
+
+## `prefers-reduced-motion`
+
+Disable or shorten animations for users with vestibular disorders.
+
+**Incorrect — Ignoring motion preference:**
+```css
+.card {
+  transition: transform 0.5s ease;
+}
+.card:hover {
+  transform: scale(1.1) rotate(2deg);
+}
+```
+
+**Correct — Respecting reduced motion:**
+```css
+.card {
+  transition: transform 0.3s ease;
+}
+.card:hover {
+  transform: scale(1.05);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    transition: none;
+  }
+  .card:hover {
+    transform: none;
+  }
+}
+```
+
+For JS: check `window.matchMedia('(prefers-reduced-motion: reduce)').matches` before animating.
+
+## `prefers-color-scheme`
+
+**Incorrect:** `body \{ background: #ffffff; color: #1a1a1a; \}` — ignores user preference.
+
+**Correct — Adaptive color scheme with CSS custom properties:**
+```css
+:root { color-scheme: light dark; --bg: #ffffff; --text: #1a1a1a; }
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #111827; --text: #f3f4f6; }
+}
+body { background: var(--bg); color: var(--text); }
+```
+
+## `forced-colors` (Windows High Contrast)
+
+**Incorrect — Ignoring forced-colors mode:**
+```css
+.button {
+  background: var(--brand-blue);
+  border: none;
+}
+/* In High Contrast mode: button becomes invisible */
+```
+
+**Correct — Supporting forced-colors mode:**
+```css
+.button {
+  background: var(--brand-blue);
+  border: 2px solid transparent; /* becomes visible in forced-colors */
+}
+
+@media (forced-colors: active) {
+  .button {
+    border-color: ButtonText;
+    forced-color-adjust: none; /* Opt out only when custom treatment needed */
+  }
+
+  .icon {
+    forced-color-adjust: auto; /* Let system colors apply */
+  }
+}
+```
+
+Key `forced-colors` rules:
+- Always use `border` (not just `background`) for interactive elements
+- Test with Windows High Contrast Mode enabled
+- Use system color keywords: `ButtonText`, `Canvas`, `LinkText`, `Highlight`
+
+## `prefers-contrast`
+
+Increase or decrease contrast beyond WCAG minimums on user request.
+
+```css
+@media (prefers-contrast: more) {
+  :root {
+    --text: #000000;
+    --bg: #ffffff;
+    --border: #000000;
+  }
+  button {
+    border-width: 3px;
+  }
+}
+
+@media (prefers-contrast: less) {
+  :root {
+    --text: #333333;
+    --bg: #fafafa;
+    --border: #cccccc;
+  }
+}
+```
+
+## Text Size and Zoom
+
+Content must remain usable at 200% zoom (WCAG 1.4.4) and with user font-size overrides.
+
+**Incorrect:** `width: 960px; font-size: 14px;` — fixed sizes break zoom.
+
+**Correct — Relative units that respect zoom:**
+```css
+.container { max-width: 60rem; width: 100%; }
+.text { font-size: 0.875rem; line-height: 1.5; }
+.content { overflow-wrap: break-word; overflow: visible; }
+```
+
+## Audit Checklist
+
+- [ ] All animations wrapped in `prefers-reduced-motion` check
+- [ ] Dark mode supported via `prefers-color-scheme`
+- [ ] Tested in Windows High Contrast Mode (`forced-colors: active`)
+- [ ] `prefers-contrast: more` increases border widths and text contrast
+- [ ] Page usable at 200% browser zoom without horizontal scroll
+- [ ] All text uses `rem`/`em` units, never `px` for font-size
 
 
 

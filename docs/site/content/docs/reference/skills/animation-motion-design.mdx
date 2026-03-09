@@ -1,0 +1,1258 @@
+---
+title: "Animation Motion Design"
+description: "Animation and motion design patterns using Motion library (formerly Framer Motion) and View Transitions API. Use when implementing component animations, page transitions, micro-interactions, gesture-driven UIs, or ensuring motion accessibility with prefers-reduced-motion."
+---
+
+<span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
+
+**Primary Agent:** [frontend-ui-developer](/docs/reference/agents/frontend-ui-developer)
+
+
+# Animation & Motion Design
+
+Patterns for building performant, accessible animations using **Motion** (formerly Framer Motion, 18M+ weekly npm downloads) and the **View Transitions API** (cross-browser support in 2026). Covers layout animations, gesture interactions, exit transitions, micro-interactions, and motion accessibility.
+
+## Quick Reference
+
+| Rule | File | Impact | When to Use |
+|------|------|--------|-------------|
+| Layout Animations | `rules/motion-layout.md` | HIGH | Shared layout transitions, FLIP animations, layoutId |
+| Gesture Interactions | `rules/motion-gestures.md` | HIGH | Drag, hover, tap with spring physics |
+| Exit Animations | `rules/motion-exit.md` | HIGH | AnimatePresence, unmount transitions |
+| View Transitions API | `rules/view-transitions-api.md` | HIGH | Page navigation, cross-document transitions |
+| Motion Accessibility | `rules/motion-accessibility.md` | CRITICAL | prefers-reduced-motion, cognitive load |
+| Motion Performance | `rules/motion-performance.md` | HIGH | 60fps, GPU compositing, layout thrash |
+
+**Total: 6 rules across 3 categories**
+
+## Decision Table — Motion vs View Transitions API
+
+| Scenario | Recommendation | Why |
+|----------|---------------|-----|
+| Component mount/unmount | Motion | AnimatePresence handles lifecycle |
+| Page navigation transitions | View Transitions API | Built-in browser support, works with any router |
+| Complex interruptible animations | Motion | Spring physics, gesture interruption |
+| Simple crossfade between pages | View Transitions API | Zero JS bundle cost |
+| Drag/reorder interactions | Motion | drag prop with layout animations |
+| Shared element across routes | View Transitions API | viewTransitionName CSS property |
+| Scroll-triggered animations | Motion | useInView, useScroll hooks |
+| Multi-step orchestrated sequences | Motion | staggerChildren, variants |
+
+## Quick Start
+
+### Motion — Component Animation
+
+```tsx
+import { motion, AnimatePresence } from "motion/react"
+
+const fadeInUp = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -10 },
+  transition: { type: "spring", stiffness: 300, damping: 24 },
+}
+
+function Card({ item }: { item: Item }) {
+  return (
+    <motion.div {...fadeInUp} layout layoutId={item.id}>
+      {item.content}
+    </motion.div>
+  )
+}
+
+function CardList({ items }: { items: Item[] }) {
+  return (
+    <AnimatePresence mode="wait">
+      {items.map((item) => (
+        <Card key={item.id} item={item} />
+      ))}
+    </AnimatePresence>
+  )
+}
+```
+
+### View Transitions API — Page Navigation
+
+```tsx
+// React Router v7+ with View Transitions
+import { Link, useNavigate } from "react-router"
+
+function NavLink({ to, children }: { to: string; children: React.ReactNode }) {
+  return <Link to={to} viewTransition>{children}</Link>
+}
+
+// CSS for the transition
+// ::view-transition-old(root) { animation: fade-out 200ms ease; }
+// ::view-transition-new(root) { animation: fade-in 200ms ease; }
+```
+
+### Motion — Accessible by Default
+
+```tsx
+import { useReducedMotion } from "motion/react"
+
+function AnimatedComponent() {
+  const shouldReduceMotion = useReducedMotion()
+
+  return (
+    <motion.div
+      animate={{ x: 100 }}
+      transition={shouldReduceMotion
+        ? { duration: 0 }
+        : { type: "spring", stiffness: 300, damping: 24 }
+      }
+    />
+  )
+}
+```
+
+## Rule Details
+
+### Layout Animations (Motion)
+
+FLIP-based layout animations with the `layout` prop and shared layout transitions via `layoutId`.
+
+> **Load**: `rules/motion-layout.md`
+
+### Gesture Interactions (Motion)
+
+Drag, hover, and tap interactions with spring physics and gesture composition.
+
+> **Load**: `rules/motion-gestures.md`
+
+### Exit Animations (Motion)
+
+AnimatePresence for animating components as they unmount from the React tree.
+
+> **Load**: `rules/motion-exit.md`
+
+### View Transitions API
+
+Browser-native page transitions using `document.startViewTransition()` and framework integrations.
+
+> **Load**: `rules/view-transitions-api.md`
+
+### Motion Accessibility
+
+Respecting user motion preferences and reducing cognitive load with motion sensitivity patterns.
+
+> **Load**: `rules/motion-accessibility.md`
+
+### Motion Performance
+
+GPU compositing, avoiding layout thrash, and keeping animations at 60fps.
+
+> **Load**: `rules/motion-performance.md`
+
+## Key Principles
+
+1. **60fps or nothing** — Only animate `transform` and `opacity` (composite properties). Never animate `width`, `height`, `top`, or `left`.
+2. **Centralized presets** — Define animation variants in a shared file, not inline on every component.
+3. **AnimatePresence for exits** — React unmounts instantly; wrap with AnimatePresence to animate out.
+4. **Spring over duration** — Springs feel natural and are interruptible. Use `stiffness`/`damping`, not `duration`.
+5. **Respect user preferences** — Always check `prefers-reduced-motion` and provide instant alternatives.
+
+## Performance Budget
+
+| Metric | Target | Measurement |
+|--------|--------|-------------|
+| Transition duration | &lt; 400ms | User perception threshold |
+| Animation properties | transform, opacity only | DevTools > Rendering > Paint flashing |
+| JS bundle (Motion) | ~16KB gzipped | Import only what you use |
+| First paint delay | 0ms | Animations must not block render |
+| Frame drops | &lt; 5% of frames | Performance API: `PerformanceObserver` |
+
+## Anti-Patterns (FORBIDDEN)
+
+- **Animating layout properties** — Never animate `width`, `height`, `margin`, `padding` directly. Use `transform: scale()` instead.
+- **Missing AnimatePresence** — Components unmount instantly without it; exit animations are silently lost.
+- **Ignoring prefers-reduced-motion** — Causes vestibular disorders for ~35% of users with motion sensitivity.
+- **Inline transition objects** — Creates new objects every render, breaking React memoization.
+- **duration-based springs** — Motion springs use `stiffness`/`damping`, not `duration`. Mixing causes unexpected behavior.
+- **Synchronous startViewTransition** — Always await or handle the promise from `document.startViewTransition()`.
+
+## Detailed Documentation
+
+| Resource | Description |
+|----------|-------------|
+| [references/motion-vs-view-transitions.md](references/motion-vs-view-transitions.md) | Comparison table, browser support, limitations |
+| [references/animation-presets-library.md](references/animation-presets-library.md) | Copy-paste preset variants for common patterns |
+| [references/micro-interactions-catalog.md](references/micro-interactions-catalog.md) | Button press, toggle, checkbox, loading, success/error |
+
+## Related Skills
+
+- `ork:ui-components` — shadcn/ui component patterns and CVA variants
+- `ork:responsive-patterns` — Responsive layout and container query patterns
+- `ork:performance` — Core Web Vitals and runtime performance optimization
+- `ork:accessibility` — WCAG compliance, ARIA patterns, screen reader support
+
+
+---
+
+## Rules (6)
+
+### Motion Accessibility — CRITICAL
+
+
+## Motion Accessibility
+
+Approximately 35% of adults experience motion sensitivity. All animations must respect `prefers-reduced-motion` and provide meaningful alternatives that preserve information without causing harm.
+
+**Incorrect:**
+```tsx
+// No reduced motion check — harmful to motion-sensitive users
+<motion.div
+  animate={{ x: [0, 100, 0], rotate: [0, 360] }}
+  transition={{ duration: 2, repeat: Infinity }}
+>
+  Loading...
+</motion.div>
+```
+
+**Correct:**
+```tsx
+import { useReducedMotion } from "motion/react"
+
+function LoadingIndicator() {
+  const shouldReduceMotion = useReducedMotion()
+
+  return (
+    <motion.div
+      animate={shouldReduceMotion
+        ? { opacity: [0.5, 1] }  // Gentle opacity pulse instead
+        : { x: [0, 100, 0], rotate: [0, 360] }
+      }
+      transition={shouldReduceMotion
+        ? { duration: 1.5, repeat: Infinity }
+        : { duration: 2, repeat: Infinity }
+      }
+    >
+      Loading...
+    </motion.div>
+  )
+}
+```
+
+### Global Reduced Motion CSS
+
+```css
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+```
+
+### Accessible Motion Preset Factory
+
+```tsx
+import { useReducedMotion, type Variants } from "motion/react"
+
+function useAccessibleVariants(
+  full: Variants,
+  reduced: Variants
+): Variants {
+  const shouldReduceMotion = useReducedMotion()
+  return shouldReduceMotion ? reduced : full
+}
+
+// Usage
+const variants = useAccessibleVariants(
+  { initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 } },
+  { initial: { opacity: 0 }, animate: { opacity: 1 } }
+)
+```
+
+### Cognitive Load Guidelines
+
+| Motion Type | Duration | Reduced Motion Alternative |
+|-------------|----------|---------------------------|
+| Micro-interaction (button, toggle) | 100-200ms | Instant or opacity-only |
+| Component enter/exit | 200-350ms | Instant opacity fade |
+| Page transition | 200-400ms | Instant crossfade |
+| Loading/progress | Continuous | Gentle opacity pulse |
+| Parallax scrolling | Continuous | Static positioning |
+| Auto-playing carousel | Continuous | **Remove entirely** |
+
+**Key rules:**
+- Always call `useReducedMotion()` and provide a meaningful reduced alternative
+- Never remove animations entirely — replace motion with opacity changes to preserve feedback
+- Auto-playing animations (carousels, marquees) must be completely disabled for reduced motion
+- Test with `prefers-reduced-motion: reduce` enabled in browser DevTools
+- Forced-colors mode breaks color-dependent animations — add border or outline alternatives
+
+Reference: https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-reduced-motion
+
+
+### Exit Animations with AnimatePresence — HIGH
+
+
+## Exit Animations with AnimatePresence
+
+React removes components from the DOM immediately on unmount. `AnimatePresence` delays unmounting until exit animations complete.
+
+**Incorrect:**
+```tsx
+// No AnimatePresence — exit prop is ignored, component vanishes instantly
+function Notification({ show, message }: Props) {
+  return show ? (
+    <motion.div
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}  // This never runs!
+    >
+      {message}
+    </motion.div>
+  ) : null
+}
+```
+
+**Correct:**
+```tsx
+// AnimatePresence wraps conditional rendering to enable exit animations
+function Notification({ show, message }: Props) {
+  return (
+    <AnimatePresence>
+      {show && (
+        <motion.div
+          key="notification"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ type: "spring", stiffness: 300, damping: 24 }}
+        >
+          {message}
+        </motion.div>
+      )}
+    </AnimatePresence>
+  )
+}
+```
+
+### AnimatePresence Modes
+
+```tsx
+// mode="wait" — Wait for exiting component to finish before entering new one
+<AnimatePresence mode="wait">
+  <motion.div key={currentPage} {...pageTransition}>
+    <CurrentPage />
+  </motion.div>
+</AnimatePresence>
+
+// mode="sync" (default) — Enter and exit animations play simultaneously
+<AnimatePresence mode="sync">
+  {items.map((item) => (
+    <motion.div key={item.id} exit={{ opacity: 0, scale: 0.8 }}>
+      {item.content}
+    </motion.div>
+  ))}
+</AnimatePresence>
+
+// mode="popLayout" — Exiting elements are popped from layout flow immediately
+<AnimatePresence mode="popLayout">
+  {items.map((item) => (
+    <motion.div key={item.id} layout exit={{ opacity: 0, x: -100 }}>
+      {item.content}
+    </motion.div>
+  ))}
+</AnimatePresence>
+```
+
+**Key rules:**
+- Always wrap conditionally rendered `motion` components with `AnimatePresence`
+- Every direct child of `AnimatePresence` must have a unique `key` prop
+- Use `mode="wait"` for page transitions where old content should fully exit before new enters
+- Use `mode="popLayout"` for lists where exiting items should not push remaining items around
+- Keep exit animations short (150-250ms) — users should not wait for animations to complete
+
+Reference: https://motion.dev/docs/animate-presence
+
+
+### Gesture Interactions with Motion — HIGH
+
+
+## Gesture Interactions with Motion
+
+Motion provides declarative gesture props (`whileHover`, `whileTap`, `whileDrag`) with spring physics for natural-feeling interactions.
+
+**Incorrect:**
+```tsx
+// Using CSS transitions for interactive states — no spring physics, not interruptible
+<button
+  className="transition-transform duration-200 hover:scale-105 active:scale-95"
+  onMouseDown={() => setPressed(true)}
+  onMouseUp={() => setPressed(false)}
+>
+  Click me
+</button>
+```
+
+**Correct:**
+```tsx
+// Motion gesture props — spring physics, interruptible, composable
+<motion.button
+  whileHover={{ scale: 1.05 }}
+  whileTap={{ scale: 0.95 }}
+  transition={{ type: "spring", stiffness: 400, damping: 17 }}
+>
+  Click me
+</motion.button>
+```
+
+### Drag Interactions
+
+```tsx
+<motion.div
+  drag
+  dragConstraints={{ left: -100, right: 100, top: -50, bottom: 50 }}
+  dragElastic={0.2}
+  dragTransition={{ bounceStiffness: 600, bounceDamping: 20 }}
+  whileDrag={{ scale: 1.1, cursor: "grabbing" }}
+  onDragEnd={(event, info) => {
+    if (Math.abs(info.offset.x) > 100) {
+      handleSwipeDismiss(info.offset.x > 0 ? "right" : "left")
+    }
+  }}
+>
+  Drag me
+</motion.div>
+```
+
+### Drag-to-Reorder
+
+```tsx
+import { Reorder } from "motion/react"
+
+function ReorderableList({ items, onReorder }: Props) {
+  return (
+    <Reorder.Group axis="y" values={items} onReorder={onReorder}>
+      {items.map((item) => (
+        <Reorder.Item
+          key={item.id}
+          value={item}
+          whileDrag={{ scale: 1.03, boxShadow: "0 8px 20px rgba(0,0,0,0.12)" }}
+        >
+          {item.label}
+        </Reorder.Item>
+      ))}
+    </Reorder.Group>
+  )
+}
+```
+
+### Hover with Staggered Children
+
+```tsx
+const cardVariants = {
+  rest: { scale: 1 },
+  hover: { scale: 1.02, transition: { staggerChildren: 0.05 } },
+}
+
+const childVariants = {
+  rest: { opacity: 0.7, y: 0 },
+  hover: { opacity: 1, y: -2 },
+}
+
+<motion.div variants={cardVariants} initial="rest" whileHover="hover">
+  <motion.h3 variants={childVariants}>Title</motion.h3>
+  <motion.p variants={childVariants}>Description</motion.p>
+</motion.div>
+```
+
+**Key rules:**
+- Use `whileHover`, `whileTap`, `whileDrag` instead of CSS `:hover`/`:active` for interruptible animations
+- Set `dragConstraints` to a ref or bounds object to prevent elements from leaving their container
+- Use `dragElastic` (0-1) to control how far past constraints the element can be dragged
+- Spring transitions with `stiffness: 300-500` and `damping: 15-25` feel most natural for gestures
+- Combine `layout` with drag for list reordering using `Reorder.Group`
+
+Reference: https://motion.dev/docs/gestures
+
+
+### Layout Animations with Motion — HIGH
+
+
+## Layout Animations with Motion
+
+The `layout` prop enables automatic FLIP (First, Last, Invert, Play) animations when a component's position or size changes in the DOM. Use `layoutId` for shared element transitions across components.
+
+**Incorrect:**
+```tsx
+// Animating width/height directly — causes layout thrash, drops frames
+<motion.div
+  animate={{ width: isExpanded ? 400 : 200, height: isExpanded ? 300 : 150 }}
+  transition={{ duration: 0.3 }}
+>
+  {content}
+</motion.div>
+```
+
+**Correct:**
+```tsx
+// layout prop — Motion calculates FLIP transform automatically
+<motion.div layout transition={{ type: "spring", stiffness: 300, damping: 30 }}>
+  <div style={{ width: isExpanded ? 400 : 200, height: isExpanded ? 300 : 150 }}>
+    {content}
+  </div>
+</motion.div>
+```
+
+### Shared Layout Transitions
+
+Use `layoutId` to animate a single element across different component trees:
+
+```tsx
+function TabBar({ activeTab }: { activeTab: string }) {
+  return (
+    <div className="flex gap-2">
+      {tabs.map((tab) => (
+        <button key={tab.id} onClick={() => setActive(tab.id)}>
+          {tab.label}
+          {activeTab === tab.id && (
+            <motion.div
+              layoutId="active-tab-indicator"
+              className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
+              transition={{ type: "spring", stiffness: 500, damping: 30 }}
+            />
+          )}
+        </button>
+      ))}
+    </div>
+  )
+}
+```
+
+### Layout Groups
+
+Wrap independent layout animation contexts with `LayoutGroup`:
+
+```tsx
+import { LayoutGroup } from "motion/react"
+
+<LayoutGroup id="sidebar">
+  <SidebarNav />
+</LayoutGroup>
+<LayoutGroup id="main">
+  <MainContent />
+</LayoutGroup>
+```
+
+**Key rules:**
+- Use `layout` for position/size changes, never animate `width`/`height` directly
+- Use `layoutId` for shared element transitions — IDs must be unique within a `LayoutGroup`
+- Set `layout="position"` to only animate position (skip size), reducing visual distortion
+- Wrap siblings in `LayoutGroup` to scope layout animations and prevent cross-contamination
+- Add `layoutDependency` when layout changes depend on non-React state
+
+Reference: https://motion.dev/docs/layout-animations
+
+
+### Motion Performance — HIGH
+
+
+## Motion Performance
+
+Smooth 60fps animations require animating only composite properties (`transform`, `opacity`) that the GPU can handle without triggering layout or paint. Every other property causes the browser to recalculate layout for the entire subtree.
+
+**Incorrect:**
+```tsx
+// Animating layout-triggering properties — causes reflow on every frame
+<motion.div
+  animate={{
+    width: isOpen ? 300 : 0,
+    height: isOpen ? 200 : 0,
+    marginTop: isOpen ? 20 : 0,
+    borderRadius: isOpen ? 12 : 0,
+  }}
+  transition={{ duration: 0.3 }}
+/>
+```
+
+**Correct:**
+```tsx
+// Only composite properties — GPU accelerated, no layout recalculation
+<motion.div
+  animate={{
+    scale: isOpen ? 1 : 0,
+    opacity: isOpen ? 1 : 0,
+  }}
+  transition={{ type: "spring", stiffness: 300, damping: 25 }}
+  style={{ transformOrigin: "top left" }}
+/>
+```
+
+### Composite vs Non-Composite Properties
+
+| Safe (GPU) | Unsafe (CPU layout) |
+|------------|---------------------|
+| `transform` (translate, scale, rotate) | `width`, `height` |
+| `opacity` | `margin`, `padding` |
+| `filter` (with caution) | `top`, `left`, `right`, `bottom` |
+| `clip-path` | `border-radius` |
+| | `font-size`, `line-height` |
+
+### will-change Usage
+
+```tsx
+// Motion handles will-change automatically — don't add it manually
+// WRONG: style={{ willChange: "transform" }} on motion.div
+// RIGHT: Let Motion manage GPU promotion internally
+<motion.div animate={{ x: 100 }} />
+```
+
+### Measuring Animation Performance
+
+```tsx
+// Use PerformanceObserver to detect long animation frames
+const observer = new PerformanceObserver((list) => {
+  for (const entry of list.getEntries()) {
+    if (entry.duration > 50) {
+      console.warn(`Long animation frame: ${entry.duration}ms`, entry)
+    }
+  }
+})
+
+observer.observe({ type: "long-animation-frame", buffered: true })
+```
+
+### Stagger Performance
+
+```tsx
+// Stagger large lists — animate only visible items
+const containerVariants = {
+  animate: {
+    transition: {
+      staggerChildren: 0.03,  // Keep stagger tight for large lists
+      delayChildren: 0.1,
+    },
+  },
+}
+
+// For lists > 20 items, only animate items in viewport
+function useAnimateOnlyVisible(ref: RefObject<HTMLElement>) {
+  const isInView = useInView(ref, { once: true, margin: "-10%" })
+  return isInView ? "animate" : "initial"
+}
+```
+
+### Bundle Size Optimization
+
+```tsx
+// Import only what you need from motion/react
+import { motion, AnimatePresence } from "motion/react"  // Tree-shakeable
+
+// For minimal bundle, use motion/mini (no layout animations)
+import { motion } from "motion/mini"  // ~5KB vs ~16KB
+```
+
+**Key rules:**
+- Animate only `transform` and `opacity` — everything else triggers layout/paint
+- Do not manually set `will-change` on `motion` components — Motion manages GPU promotion
+- Use `motion/mini` for simple animations where layout animations are not needed
+- Stagger large lists with `staggerChildren: 0.03` max — longer staggers feel sluggish
+- Measure with Performance API and DevTools Rendering panel, not visual inspection
+- Use `useInView` to skip animations for off-screen elements in long lists
+
+Reference: https://web.dev/articles/animations-guide
+
+
+### View Transitions API — HIGH
+
+
+## View Transitions API
+
+The View Transitions API provides browser-native animated transitions between DOM states. It creates snapshots of old and new states, then crossfades between them using CSS animations.
+
+**Incorrect:**
+```tsx
+// Manual DOM manipulation for page transitions — fragile, no browser optimization
+function navigate(url: string) {
+  const content = document.getElementById("content")!
+  content.style.opacity = "0"
+  setTimeout(async () => {
+    const html = await fetch(url).then((r) => r.text())
+    content.innerHTML = html
+    content.style.opacity = "1"
+  }, 300)
+}
+```
+
+**Correct:**
+```tsx
+// View Transitions API — browser-optimized snapshots and CSS animations
+async function navigate(url: string) {
+  if (!document.startViewTransition) {
+    // Fallback for unsupported browsers
+    await updateDOM(url)
+    return
+  }
+
+  const transition = document.startViewTransition(async () => {
+    await updateDOM(url)
+  })
+
+  await transition.finished
+}
+```
+
+### React Router Integration
+
+```tsx
+// React Router v7+ has built-in View Transitions support
+import { Link, NavLink } from "react-router"
+
+// Add viewTransition prop to enable transitions
+<Link to="/about" viewTransition>About</Link>
+
+// NavLink with viewTransition for navigation menus
+<NavLink to="/dashboard" viewTransition className={({ isActive }) =>
+  isActive ? "text-primary" : "text-muted"
+}>
+  Dashboard
+</NavLink>
+```
+
+### Shared Element Transitions with CSS
+
+```css
+/* Name elements to create shared transitions across pages */
+.product-image {
+  view-transition-name: product-hero;
+}
+
+/* Customize the transition animation */
+::view-transition-old(product-hero) {
+  animation: fade-and-scale-out 250ms ease-out;
+}
+
+::view-transition-new(product-hero) {
+  animation: fade-and-scale-in 250ms ease-in;
+}
+
+@keyframes fade-and-scale-out {
+  to { opacity: 0; transform: scale(0.95); }
+}
+
+@keyframes fade-and-scale-in {
+  from { opacity: 0; transform: scale(1.05); }
+}
+```
+
+### Feature Detection
+
+```tsx
+function safeViewTransition(callback: () => void | Promise<void>) {
+  if ("startViewTransition" in document) {
+    document.startViewTransition(callback)
+  } else {
+    callback()
+  }
+}
+```
+
+**Key rules:**
+- Always feature-detect `document.startViewTransition` before using it
+- `viewTransitionName` values must be unique on the page at transition time
+- View Transitions cannot be interrupted — once started, they run to completion
+- Use CSS `::view-transition-old()` and `::view-transition-new()` for custom animations
+- Keep transition animations under 300ms for navigation; users expect instant page loads
+- Prefer React Router's `viewTransition` prop over manual `startViewTransition` calls
+
+Reference: https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API
+
+
+
+---
+
+## References (3)
+
+### Animation Presets Library
+
+
+# Animation Presets Library
+
+Copy-paste Motion variants for common UI patterns. All presets include reduced-motion alternatives.
+
+## Transition Defaults
+
+```tsx
+export const springDefault = { type: "spring" as const, stiffness: 300, damping: 24 }
+export const springBouncy = { type: "spring" as const, stiffness: 400, damping: 17 }
+export const springStiff = { type: "spring" as const, stiffness: 500, damping: 30 }
+export const easeOut = { duration: 0.2, ease: [0, 0, 0.2, 1] as const }
+```
+
+## Fade Presets
+
+```tsx
+export const fadeIn = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1 },
+  exit: { opacity: 0 },
+  transition: { duration: 0.15 },
+}
+
+export const fadeInUp = {
+  initial: { opacity: 0, y: 16 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -8 },
+  transition: springDefault,
+}
+
+export const fadeInDown = {
+  initial: { opacity: 0, y: -16 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: 16 },
+  transition: springDefault,
+}
+```
+
+## Slide Presets
+
+```tsx
+export const slideInLeft = {
+  initial: { opacity: 0, x: -24 },
+  animate: { opacity: 1, x: 0 },
+  exit: { opacity: 0, x: -24 },
+  transition: springDefault,
+}
+
+export const slideInRight = {
+  initial: { opacity: 0, x: 24 },
+  animate: { opacity: 1, x: 0 },
+  exit: { opacity: 0, x: 24 },
+  transition: springDefault,
+}
+```
+
+## Scale Presets
+
+```tsx
+export const scaleIn = {
+  initial: { opacity: 0, scale: 0.9 },
+  animate: { opacity: 1, scale: 1 },
+  exit: { opacity: 0, scale: 0.95 },
+  transition: springBouncy,
+}
+
+export const popIn = {
+  initial: { opacity: 0, scale: 0.5 },
+  animate: { opacity: 1, scale: 1 },
+  exit: { opacity: 0, scale: 0.8 },
+  transition: springBouncy,
+}
+```
+
+## Stagger Container
+
+```tsx
+export const staggerContainer = {
+  animate: {
+    transition: { staggerChildren: 0.05, delayChildren: 0.1 },
+  },
+  exit: {
+    transition: { staggerChildren: 0.03, staggerDirection: -1 },
+  },
+}
+
+export const staggerChild = {
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -8 },
+}
+```
+
+## Component Presets
+
+### Modal / Dialog
+
+```tsx
+export const modalOverlay = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1 },
+  exit: { opacity: 0 },
+  transition: { duration: 0.15 },
+}
+
+export const modalContent = {
+  initial: { opacity: 0, scale: 0.95, y: 10 },
+  animate: { opacity: 1, scale: 1, y: 0 },
+  exit: { opacity: 0, scale: 0.97, y: 5 },
+  transition: springStiff,
+}
+```
+
+### Drawer / Sheet
+
+```tsx
+export const drawerRight = {
+  initial: { x: "100%" },
+  animate: { x: 0 },
+  exit: { x: "100%" },
+  transition: springDefault,
+}
+
+export const drawerBottom = {
+  initial: { y: "100%" },
+  animate: { y: 0 },
+  exit: { y: "100%" },
+  transition: springDefault,
+}
+```
+
+### Toast / Notification
+
+```tsx
+export const toastSlideIn = {
+  initial: { opacity: 0, y: -20, scale: 0.95 },
+  animate: { opacity: 1, y: 0, scale: 1 },
+  exit: { opacity: 0, y: -10, scale: 0.95 },
+  transition: springDefault,
+}
+```
+
+### Skeleton Pulse
+
+```tsx
+export const skeletonPulse = {
+  animate: { opacity: [0.4, 1, 0.4] },
+  transition: { duration: 1.5, repeat: Infinity, ease: "easeInOut" },
+}
+```
+
+### Collapse / Accordion
+
+```tsx
+export const collapse = {
+  initial: { height: 0, opacity: 0, overflow: "hidden" as const },
+  animate: { height: "auto", opacity: 1 },
+  exit: { height: 0, opacity: 0 },
+  transition: { duration: 0.25, ease: "easeInOut" },
+}
+```
+
+## Reduced Motion Variants
+
+```tsx
+import { useReducedMotion } from "motion/react"
+
+export function usePreset(full: object, reduced?: object) {
+  const shouldReduce = useReducedMotion()
+  const fallback = { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 }, transition: { duration: 0.1 } }
+  return shouldReduce ? (reduced ?? fallback) : full
+}
+
+// Usage
+const preset = usePreset(fadeInUp)
+<motion.div {...preset}>Content</motion.div>
+```
+
+
+### Micro-Interactions Catalog
+
+
+# Micro-Interactions Catalog
+
+Practical Motion patterns for common UI micro-interactions. Each example is production-ready and accessibility-aware.
+
+## Button Press
+
+```tsx
+function AnimatedButton({ children, onClick }: ButtonProps) {
+  return (
+    <motion.button
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.97 }}
+      transition={{ type: "spring", stiffness: 500, damping: 20 }}
+      onClick={onClick}
+    >
+      {children}
+    </motion.button>
+  )
+}
+```
+
+## Toggle Switch
+
+```tsx
+function Toggle({ isOn, onToggle }: ToggleProps) {
+  return (
+    <button
+      role="switch"
+      aria-checked={isOn}
+      onClick={onToggle}
+      className={`w-14 h-8 rounded-full p-1 ${isOn ? "bg-primary" : "bg-muted"}`}
+    >
+      <motion.div
+        className="w-6 h-6 rounded-full bg-white"
+        layout
+        transition={{ type: "spring", stiffness: 500, damping: 30 }}
+      />
+    </button>
+  )
+}
+```
+
+## Checkbox with Checkmark Draw
+
+```tsx
+function AnimatedCheckbox({ checked, onChange }: CheckboxProps) {
+  return (
+    <label className="flex items-center gap-2 cursor-pointer">
+      <input type="checkbox" checked={checked} onChange={onChange} className="sr-only" />
+      <motion.div
+        className="w-5 h-5 rounded border-2 flex items-center justify-center"
+        animate={{ borderColor: checked ? "var(--primary)" : "var(--border)" }}
+      >
+        <AnimatePresence>
+          {checked && (
+            <motion.svg
+              key="check"
+              viewBox="0 0 24 24"
+              className="w-4 h-4 text-primary"
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: 1, opacity: 1 }}
+              exit={{ pathLength: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <motion.path
+                d="M5 12l5 5L20 7"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={3}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </motion.svg>
+          )}
+        </AnimatePresence>
+      </motion.div>
+      <span>Label</span>
+    </label>
+  )
+}
+```
+
+## Loading Spinner
+
+```tsx
+function Spinner({ size = 24 }: { size?: number }) {
+  const shouldReduceMotion = useReducedMotion()
+
+  return (
+    <motion.div
+      className="rounded-full border-2 border-muted border-t-primary"
+      style={{ width: size, height: size }}
+      animate={shouldReduceMotion
+        ? { opacity: [0.5, 1, 0.5] }
+        : { rotate: 360 }
+      }
+      transition={shouldReduceMotion
+        ? { duration: 1.5, repeat: Infinity }
+        : { duration: 0.8, repeat: Infinity, ease: "linear" }
+      }
+    />
+  )
+}
+```
+
+## Success Feedback
+
+```tsx
+function SuccessAnimation({ show }: { show: boolean }) {
+  return (
+    <AnimatePresence>
+      {show && (
+        <motion.div
+          key="success"
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0, opacity: 0 }}
+          transition={{ type: "spring", stiffness: 400, damping: 15 }}
+          className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center"
+        >
+          <motion.svg
+            viewBox="0 0 24 24"
+            className="w-6 h-6 text-green-600"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ delay: 0.15, duration: 0.3 }}
+          >
+            <motion.path
+              d="M5 12l5 5L20 7"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2.5}
+              strokeLinecap="round"
+            />
+          </motion.svg>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  )
+}
+```
+
+## Error Shake
+
+```tsx
+function ShakeOnError({ hasError, children }: { hasError: boolean; children: React.ReactNode }) {
+  return (
+    <motion.div
+      animate={hasError ? { x: [0, -8, 8, -6, 6, -3, 3, 0] } : { x: 0 }}
+      transition={{ duration: 0.4 }}
+    >
+      {children}
+    </motion.div>
+  )
+}
+```
+
+## Hover Reveal
+
+```tsx
+function HoverReveal({ children, revealContent }: HoverRevealProps) {
+  return (
+    <motion.div className="relative overflow-hidden" whileHover="hover" initial="rest">
+      {children}
+      <motion.div
+        className="absolute inset-0 bg-black/60 flex items-center justify-center"
+        variants={{
+          rest: { opacity: 0 },
+          hover: { opacity: 1 },
+        }}
+        transition={{ duration: 0.2 }}
+      >
+        <motion.div
+          variants={{
+            rest: { y: 10, opacity: 0 },
+            hover: { y: 0, opacity: 1 },
+          }}
+          transition={{ delay: 0.05 }}
+        >
+          {revealContent}
+        </motion.div>
+      </motion.div>
+    </motion.div>
+  )
+}
+```
+
+## Notification Badge Count
+
+```tsx
+function BadgeCount({ count }: { count: number }) {
+  return (
+    <AnimatePresence mode="wait">
+      <motion.span
+        key={count}
+        initial={{ scale: 0.5, opacity: 0, y: -4 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.5, opacity: 0, y: 4 }}
+        transition={{ type: "spring", stiffness: 500, damping: 25 }}
+        className="inline-flex items-center justify-center min-w-5 h-5 rounded-full bg-red-500 text-white text-xs px-1"
+      >
+        {count}
+      </motion.span>
+    </AnimatePresence>
+  )
+}
+```
+
+
+### Motion vs View Transitions API Comparison
+
+
+# Motion vs View Transitions API
+
+## Feature Comparison
+
+| Feature | Motion | View Transitions API |
+|---------|--------|---------------------|
+| **Bundle size** | ~16KB gzipped | 0KB (browser-native) |
+| **Browser support** | All modern browsers | Chrome 111+, Safari 18+, Firefox 2026 |
+| **Component animations** | Full support | Not designed for this |
+| **Page transitions** | Manual with AnimatePresence | Built-in, optimized |
+| **Shared elements** | layoutId | viewTransitionName |
+| **Interruptible** | Yes (springs) | No (runs to completion) |
+| **Gesture support** | drag, hover, tap, pan | None |
+| **Exit animations** | AnimatePresence | Automatic snapshots |
+| **Spring physics** | Built-in | CSS only (no springs) |
+| **Layout animations** | FLIP with layout prop | Automatic FLIP |
+| **SSR compatible** | Yes | Client-only |
+| **React integration** | First-class (motion/react) | React Router viewTransition prop |
+| **Cross-document** | No | Yes (@view-transition at-rule) |
+| **Scroll animations** | useScroll, useInView | CSS scroll-timeline |
+
+## When to Choose Motion
+
+- Component mount/unmount animations
+- Gesture-driven interactions (drag, swipe, reorder)
+- Complex orchestrated sequences (staggerChildren, variants)
+- Interruptible animations (user can interrupt mid-animation)
+- Scroll-linked animations with fine control
+- React Native cross-platform needs
+
+## When to Choose View Transitions API
+
+- Page navigation transitions (SPA or MPA)
+- Shared element transitions across routes
+- Cross-document transitions (MPA with @view-transition)
+- Zero-bundle-cost transitions
+- Simple crossfade effects
+- Progressive enhancement (works without JS)
+
+## Limitations
+
+### View Transitions API
+- Cannot be interrupted once started
+- Only one transition can run at a time
+- `viewTransitionName` must be unique on the page
+- No spring physics — CSS easing only
+- Cross-document transitions require same-origin
+- No gesture support
+- Snapshot-based — cannot animate mid-state
+
+### Motion
+- Adds ~16KB to bundle (or ~5KB with motion/mini)
+- Layout animations can cause flash of unstyled content on slow devices
+- No cross-document transition support
+- Requires React (or Vanilla JS via motion/dom)
+
+## Using Both Together
+
+Motion and View Transitions API complement each other:
+
+```tsx
+// View Transitions for page navigation
+<Link to="/product/123" viewTransition>View Product</Link>
+
+// Motion for component-level animations on the page
+<motion.div layout whileHover={{ scale: 1.02 }}>
+  <ProductCard />
+</motion.div>
+```
+
+## Browser Support (as of 2026)
+
+| Browser | View Transitions (same-doc) | View Transitions (cross-doc) |
+|---------|---------------------------|------------------------------|
+| Chrome | 111+ | 126+ |
+| Edge | 111+ | 126+ |
+| Safari | 18+ | 18+ |
+| Firefox | 2026+ | 2026+ |
+
+## Performance Comparison
+
+| Metric | Motion | View Transitions API |
+|--------|--------|---------------------|
+| First transition | ~2ms JS overhead | ~0ms (browser-native) |
+| Memory | React component tree | Browser snapshots (bitmaps) |
+| GPU usage | Composited layers | Pseudo-element layers |
+| Concurrent transitions | Unlimited | One at a time |
+

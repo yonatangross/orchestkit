@@ -46,10 +46,10 @@ vi.mock('node:fs', () => ({
 }));
 
 // Mock node:child_process
-const mockExecSync = vi.fn(() => '');
+const mockExecFileSync = vi.fn(() => '');
 
 vi.mock('node:child_process', () => ({
-  execSync: (cmd: string, options?: unknown) => (mockExecSync as (cmd: string, opts?: unknown) => string)(cmd, options),
+  execFileSync: (cmd: unknown, args?: unknown, options?: unknown) => (mockExecFileSync as (cmd: unknown, args?: unknown, opts?: unknown) => string)(cmd, args, options),
 }));
 
 // Mock atomic-write so atomicWriteSync delegates to mockWriteFileSync
@@ -95,7 +95,7 @@ describe('stop/handoff-writer', () => {
       return false;
     });
     mockReadFileSync.mockReturnValue('');
-    mockExecSync.mockReturnValue('');
+    mockExecFileSync.mockReturnValue('');
     vi.mocked(extractLearnings).mockReturnValue([]);
     vi.mocked(formatLearnings).mockReturnValue('');
   });
@@ -123,7 +123,7 @@ describe('stop/handoff-writer', () => {
     });
 
     it('returns silent success even when execSync throws', () => {
-      mockExecSync.mockImplementation(() => { throw new Error('git not available'); });
+      mockExecFileSync.mockImplementation(() => { throw new Error('git not available'); });
 
       const input = createStopInput();
       const result = handoffWriter(input);
@@ -216,7 +216,7 @@ describe('stop/handoff-writer', () => {
 
   describe('modified files section', () => {
     it('includes ## Modified Files when git diff returns files', () => {
-      mockExecSync.mockReturnValue('src/hooks/src/stop/handoff-writer.ts\npackage.json\n');
+      mockExecFileSync.mockReturnValue('src/hooks/src/stop/handoff-writer.ts\npackage.json\n');
 
       const input = createStopInput();
       handoffWriter(input);
@@ -228,7 +228,7 @@ describe('stop/handoff-writer', () => {
     });
 
     it('omits ## Modified Files section when git diff returns nothing', () => {
-      mockExecSync.mockReturnValue('');
+      mockExecFileSync.mockReturnValue('');
 
       const input = createStopInput();
       handoffWriter(input);
@@ -238,7 +238,7 @@ describe('stop/handoff-writer', () => {
     });
 
     it('handles git not available gracefully', () => {
-      mockExecSync.mockImplementation(() => { throw new Error('git: command not found'); });
+      mockExecFileSync.mockImplementation(() => { throw new Error('git: command not found'); });
 
       const input = createStopInput();
       expect(() => handoffWriter(input)).not.toThrow();

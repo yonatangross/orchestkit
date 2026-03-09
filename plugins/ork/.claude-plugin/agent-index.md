@@ -11,6 +11,7 @@
 |python-performance-engineer:{python-performance-engineer.md}|Python
 |# Frontend & UI
 |accessibility-specialist:{accessibility-specialist.md}|ARIA,Accessibility,WCAG
+|design-system-architect:{design-system-architect.md}|Design
 |frontend-performance-engineer:{frontend-performance-engineer.md}|Core,Performance,RUM,Vitals,Web
 |frontend-ui-developer:{frontend-ui-developer.md}|Frontend,React
 |ui-feedback:{ui-feedback.md}|Processes,UI,Watches

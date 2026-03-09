@@ -1,0 +1,86 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "zustand-patterns",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "negative-i-have-a-react",
+      "query": "I have a React app with auth state and a shopping cart that need to share a store. The cart has deeply nested item variants. Set up the Zustand store with proper TypeScript types.",
+      "expected_behavior": [
+        "Claude uses the slices pattern with separate AuthSlice and CartSlice using StateCreator",
+        "Combines slices into a single store with create<AuthSlice & CartSlice>()",
+        "Applies Immer middleware for deeply nested cart item variant updates",
+        "Uses proper TypeScript generics with the double-call pattern create<State>()()",
+        "Does NOT destructure the entire store; uses individual selectors or useShallow"
+      ],
+      "tags": [
+        "negative"
+      ]
+    },
+    {
+      "id": "negative-my-zustand-store-rerenders",
+      "query": "My Zustand store re-renders every component whenever any state changes. I'm selecting 3 values from the store in each component. How do I fix the performance issue?",
+      "expected_behavior": [
+        "Claude identifies the anti-pattern of destructuring the entire store",
+        "Recommends useShallow from zustand/react/shallow for selecting multiple values",
+        "Does NOT use the deprecated shallow import from zustand/shallow",
+        "Shows the correct pattern: useShallow((state) => ({ a: state.a, b: state.b, c: state.c }))",
+        "Explains that computed/derived state should use selectors, not stored values"
+      ],
+      "tags": [
+        "negative"
+      ]
+    },
+    {
+      "id": "negative-set-up-a-postgresql",
+      "query": "Set up a PostgreSQL connection pool with retry logic for our Node.js backend",
+      "expected_behavior": [
+        "Claude does NOT invoke the zustand-patterns skill",
+        "Implements database connection pooling using standard Node.js patterns",
+        "Uses backend infrastructure tools without any Zustand or React state management"
+      ],
+      "tags": [
+        "negative"
+      ]
+    },
+    {
+      "id": "zustand-middleware-order",
+      "query": "I'm setting up a Zustand store with persist, devtools, and immer middleware. What order should I nest them in?",
+      "expected_behavior": [
+        "Specifies the correct nesting order: persist outermost, then devtools, then subscribeWithSelector, then immer innermost",
+        "Explains that immer must be innermost to transform draft mutations before other middleware sees them",
+        "Shows that persist must be outermost to serialize fully transformed state to storage",
+        "Warns that wrong order causes devtools to miss actions and persist to serialize untransformed state"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "zustand-middleware-pitfalls",
+      "query": "My Zustand store state changes aren't persisting between page reloads and I'm getting TypeScript errors with devtools. What am I doing wrong?",
+      "expected_behavior": [
+        "Checks for missing persist version migration function when bumping the version number",
+        "Verifies the devtools type augmentation import is present for TypeScript compatibility",
+        "Warns against mutating state with push or splice without immer middleware enabled",
+        "Checks for double-wrapping the same middleware which causes silent state corruption"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "zustand-slice-pattern",
+      "query": "Our Zustand store has grown to 30+ fields across auth, cart, and UI concerns. How should we restructure it?",
+      "expected_behavior": [
+        "Recommends splitting into typed slices using StateCreator with proper generic parameters",
+        "Shows how to combine slices with spread syntax forwarding set, get, and store arguments",
+        "Advises using get() for cross-slice access inside actions to avoid circular dependencies",
+        "Keeps each slice in its own file exporting only the creator function and interface"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    }
+  ]
+}

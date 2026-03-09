@@ -1,0 +1,1293 @@
+---
+title: "Interaction Patterns"
+description: "UI interaction design patterns for skeleton loading, infinite scroll with accessibility, progressive disclosure, modal/drawer/inline selection, drag-and-drop with keyboard alternatives, tab overflow handling, and toast notification positioning. Use when implementing loading states, content pagination, disclosure patterns, overlay components, reorderable lists, or notification systems."
+---
+
+<span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
+
+**Primary Agent:** [frontend-ui-developer](/docs/reference/agents/frontend-ui-developer)
+
+
+# Interaction Patterns
+
+Codifiable UI interaction patterns that prevent common UX failures. Covers loading states, content pagination, disclosure patterns, overlays, drag-and-drop, tab overflow, and notification systems — all with accessibility baked in.
+
+## Quick Reference
+
+| Rule | File | Impact | When to Use |
+|------|------|--------|-------------|
+| Skeleton Loading | `rules/interaction-skeleton-loading.md` | HIGH | Content-shaped placeholders for async data |
+| Infinite Scroll | `rules/interaction-infinite-scroll.md` | CRITICAL | Paginated content with a11y and keyboard support |
+| Progressive Disclosure | `rules/interaction-progressive-disclosure.md` | HIGH | Revealing complexity based on user need |
+| Modal / Drawer / Inline | `rules/interaction-modal-drawer-inline.md` | HIGH | Choosing overlay vs inline display patterns |
+| Drag & Drop | `rules/interaction-drag-drop.md` | CRITICAL | Reorderable lists with keyboard alternatives |
+| Tabs Overflow | `rules/interaction-tabs-overflow.md` | MEDIUM | Tab bars with 7+ items or dynamic tabs |
+| Toast Notifications | `rules/interaction-toast-notifications.md` | HIGH | Success/error feedback and notification stacking |
+
+**Total: 7 rules across 4 categories**
+
+## Decision Table — Loading States
+
+| Scenario | Pattern | Why |
+|----------|---------|-----|
+| List/card content loading | Skeleton | Matches content shape, reduces perceived latency |
+| Form submission | Spinner | Indeterminate, short-lived action |
+| File upload | Progress bar | Measurable operation with known total |
+| Image loading | Blur placeholder | Prevents layout shift, progressive reveal |
+| Route transition | Skeleton | Preserves layout while data loads |
+| Background sync | None / subtle indicator | Non-blocking, low priority |
+
+## Quick Start
+
+### Skeleton Loading
+
+```tsx
+function CardSkeleton() {
+  return (
+    <div className="animate-pulse space-y-3">
+      <div className="h-48 w-full rounded-lg bg-muted" />
+      <div className="h-4 w-3/4 rounded bg-muted" />
+      <div className="h-4 w-1/2 rounded bg-muted" />
+    </div>
+  )
+}
+
+function CardList({ items, isLoading }: { items: Item[]; isLoading: boolean }) {
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-3 gap-4">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <CardSkeleton key={i} />
+        ))}
+      </div>
+    )
+  }
+  return (
+    <div className="grid grid-cols-3 gap-4">
+      {items.map((item) => <Card key={item.id} item={item} />)}
+    </div>
+  )
+}
+```
+
+### Infinite Scroll with Accessibility
+
+```tsx
+function InfiniteList({ fetchNextPage, hasNextPage, items }: Props) {
+  const sentinelRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting && hasNextPage) fetchNextPage() },
+      { rootMargin: "200px" }
+    )
+    if (sentinelRef.current) observer.observe(sentinelRef.current)
+    return () => observer.disconnect()
+  }, [fetchNextPage, hasNextPage])
+
+  return (
+    <div role="feed" aria-busy={isFetching}>
+      {items.map((item) => (
+        <article key={item.id} aria-posinset={item.index} aria-setsize={-1}>
+          <ItemCard item={item} />
+        </article>
+      ))}
+      <div ref={sentinelRef} />
+      {hasNextPage && (
+        <button onClick={() => fetchNextPage()}>Load more items</button>
+      )}
+      <div aria-live="polite" className="sr-only">
+        {`Showing ${items.length} items`}
+      </div>
+    </div>
+  )
+}
+```
+
+## Rule Details
+
+### Skeleton Loading
+
+Content-shaped placeholders that match the final layout. Use skeleton for lists, cards, and text blocks.
+
+> **Load**: `rules/interaction-skeleton-loading.md`
+
+### Infinite Scroll
+
+Accessible infinite scroll with IntersectionObserver, screen reader announcements, and "Load more" fallback.
+
+> **Load**: `rules/interaction-infinite-scroll.md`
+
+### Progressive Disclosure
+
+Reveal complexity progressively: tooltip, accordion, wizard, contextual panel.
+
+> **Load**: `rules/interaction-progressive-disclosure.md`
+
+### Modal / Drawer / Inline
+
+Choose the right overlay pattern: modal for confirmations, drawer for detail views, inline for simple toggles.
+
+> **Load**: `rules/interaction-modal-drawer-inline.md`
+
+### Drag & Drop
+
+Drag-and-drop with mandatory keyboard alternatives using `@dnd-kit/core`.
+
+> **Load**: `rules/interaction-drag-drop.md`
+
+### Tabs Overflow
+
+Scrollable tab bars with overflow menus for dynamic or numerous tabs.
+
+> **Load**: `rules/interaction-tabs-overflow.md`
+
+### Toast Notifications
+
+Positioned, auto-dismissing notifications with ARIA roles and stacking.
+
+> **Load**: `rules/interaction-toast-notifications.md`
+
+## Key Principles
+
+1. **Keyboard parity** — Every mouse interaction MUST have a keyboard equivalent. No drag-only, no hover-only.
+2. **Skeleton over spinner** — Use content-shaped placeholders for data loading; reserve spinners for indeterminate actions.
+3. **Native HTML first** — Prefer `&lt;dialog&gt;`, `<details>`, `role="feed"` over custom implementations.
+4. **Progressive enhancement** — Features should work without JS where possible, then enhance with interaction.
+5. **Announce state changes** — Use `aria-live` regions to announce dynamic content changes to screen readers.
+6. **Respect scroll position** — Back navigation must restore scroll position; infinite scroll must not lose user's place.
+
+## Anti-Patterns (FORBIDDEN)
+
+- **Spinner for content loading** — Spinners give no spatial hint. Use skeletons matching the content shape.
+- **Infinite scroll without Load More** — Screen readers and keyboard users cannot reach footer content. Always provide a button fallback.
+- **Modal for browsable content** — Modals trap focus and block interaction. Use drawers or inline expansion for browsing.
+- **Drag-only reorder** — Excludes keyboard and assistive tech users. Always provide arrow key + Enter alternatives.
+- **Toast without ARIA role** — Toasts are invisible to screen readers. Use `role="status"` for success, `role="alert"` for errors.
+- **Auto-dismiss error toasts** — Users need time to read errors. Never auto-dismiss error notifications.
+
+## Detailed Documentation
+
+| Resource | Description |
+|----------|-------------|
+| [references/loading-states-decision-tree.md](references/loading-states-decision-tree.md) | Decision tree for skeleton vs spinner vs progress bar |
+| [references/interaction-pattern-catalog.md](references/interaction-pattern-catalog.md) | Catalog of 15+ interaction patterns with when-to-use guidance |
+| [references/keyboard-interaction-matrix.md](references/keyboard-interaction-matrix.md) | Keyboard shortcuts matrix for all interactive patterns (WAI-ARIA APG) |
+
+## Related Skills
+
+- `ork:ui-components` — shadcn/ui component patterns and CVA variants
+- `ork:animation-motion-design` — Motion library and View Transitions API
+- `ork:accessibility` — WCAG compliance, ARIA patterns, screen reader support
+- `ork:responsive-patterns` — Responsive layout and container query patterns
+- `ork:performance` — Core Web Vitals and runtime performance optimization
+
+
+---
+
+## Rules (7)
+
+### Drag & Drop with Keyboard Alternatives — CRITICAL
+
+
+## Drag & Drop with Keyboard Alternatives
+
+Drag-and-drop MUST have a keyboard alternative: arrow keys to navigate, Enter/Space to pick up and drop, Escape to cancel. Use `@dnd-kit/core` for React. Announce all state changes via `aria-live`.
+
+**Incorrect:**
+```tsx
+// Drag-only — no keyboard support, no screen reader announcements
+function SortableList({ items, onReorder }: Props) {
+  return (
+    <div>
+      {items.map((item) => (
+        <div
+          key={item.id}
+          draggable
+          onDragStart={(e) => e.dataTransfer.setData("id", item.id)}
+          onDrop={(e) => {
+            const draggedId = e.dataTransfer.getData("id")
+            onReorder(draggedId, item.id)
+          }}
+          onDragOver={(e) => e.preventDefault()}
+        >
+          {item.name}
+        </div>
+      ))}
+    </div>
+  )
+}
+```
+
+**Correct:**
+```tsx
+// @dnd-kit with keyboard support and screen reader announcements
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core"
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable"
+import { CSS } from "@dnd-kit/utilities"
+
+function SortableItem({ item }: { item: Item }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item.id })
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition }}
+      className={isDragging ? "opacity-50 shadow-lg" : ""}
+      {...attributes}
+      {...listeners}
+    >
+      <span className="cursor-grab" aria-label={`Reorder ${item.name}`}>
+        &#x2630;
+      </span>
+      {item.name}
+    </div>
+  )
+}
+
+function SortableList({ items, onReorder }: Props) {
+  const [announcement, setAnnouncement] = useState("")
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  )
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event
+    if (over && active.id !== over.id) {
+      onReorder(active.id as string, over.id as string)
+      setAnnouncement(`Moved item to position ${items.findIndex((i) => i.id === over.id) + 1}`)
+    }
+  }
+
+  return (
+    <>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext items={items} strategy={verticalListSortingStrategy}>
+          {items.map((item) => (
+            <SortableItem key={item.id} item={item} />
+          ))}
+        </SortableContext>
+      </DndContext>
+      <div aria-live="assertive" className="sr-only">
+        {announcement}
+      </div>
+    </>
+  )
+}
+```
+
+**Key rules:**
+- Always register `KeyboardSensor` alongside `PointerSensor` in `useSensors`
+- Use `sortableKeyboardCoordinates` for arrow key navigation within sortable lists
+- Announce drag start, position changes, and drop via `aria-live="assertive"`
+- Provide visual feedback during drag: `opacity`, `shadow`, or `scale` on the dragged item
+- Use `@dnd-kit/core` — not HTML5 drag API which has no keyboard support
+- Escape must cancel the drag and return the item to its original position
+
+References:
+- https://docs.dndkit.com/
+- https://www.w3.org/WAI/ARIA/apg/practices/keyboard-interface/ (WAI-ARIA keyboard patterns)
+
+
+### Infinite Scroll with Accessibility — CRITICAL
+
+
+## Infinite Scroll with Accessibility
+
+Infinite scroll MUST include screen reader announcements via `aria-live`, a visible "Load more" button fallback, scroll position preservation on back navigation, and prevention of keyboard traps.
+
+**Incorrect:**
+```tsx
+// Infinite scroll with no accessibility — keyboard users are trapped,
+// screen readers announce nothing, footer is unreachable
+function ItemList({ items, loadMore }: Props) {
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) loadMore()
+    })
+    if (ref.current) observer.observe(ref.current)
+    return () => observer.disconnect()
+  }, [loadMore])
+
+  return (
+    <div>
+      {items.map((item) => <div key={item.id}>{item.name}</div>)}
+      <div ref={ref} />
+    </div>
+  )
+}
+```
+
+**Correct:**
+```tsx
+// Accessible infinite scroll — aria-live, load-more button, role="feed"
+function ItemList({ items, loadMore, hasMore, isFetching }: Props) {
+  const sentinelRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && hasMore && !isFetching) loadMore()
+      },
+      { rootMargin: "200px" }
+    )
+    if (sentinelRef.current) observer.observe(sentinelRef.current)
+    return () => observer.disconnect()
+  }, [loadMore, hasMore, isFetching])
+
+  return (
+    <>
+      <div role="feed" aria-busy={isFetching} aria-label="Item list">
+        {items.map((item, index) => (
+          <article
+            key={item.id}
+            aria-posinset={index + 1}
+            aria-setsize={hasMore ? -1 : items.length}
+            tabIndex={0}
+          >
+            <ItemCard item={item} />
+          </article>
+        ))}
+      </div>
+      <div ref={sentinelRef} aria-hidden="true" />
+      {hasMore && (
+        <button
+          onClick={() => loadMore()}
+          disabled={isFetching}
+          className="mx-auto mt-4 block"
+        >
+          {isFetching ? "Loading..." : "Load more items"}
+        </button>
+      )}
+      <div aria-live="polite" className="sr-only">
+        {isFetching
+          ? "Loading more items"
+          : `Showing ${items.length} items`}
+      </div>
+    </>
+  )
+}
+```
+
+### Scroll Position Restoration
+
+```tsx
+// Preserve scroll position on back navigation
+useEffect(() => {
+  const key = `scroll-${location.pathname}`
+  const saved = sessionStorage.getItem(key)
+  if (saved) window.scrollTo(0, parseInt(saved, 10))
+
+  return () => {
+    sessionStorage.setItem(key, String(window.scrollY))
+  }
+}, [location.pathname])
+```
+
+**Key rules:**
+- Use `role="feed"` on the container with `aria-busy` during fetches
+- Each item needs `aria-posinset` and `aria-setsize` (set `-1` when total unknown)
+- Always provide a visible "Load more" button below the sentinel — never rely solely on auto-load
+- Use `rootMargin: "200px"` on IntersectionObserver to pre-fetch before the user reaches the end
+- Announce item count changes via `aria-live="polite"` — never `"assertive"`
+- Preserve scroll position in `sessionStorage` for back navigation restoration
+
+Reference: https://www.w3.org/WAI/ARIA/apg/patterns/feed/
+
+
+### Modal vs Drawer vs Inline — HIGH
+
+
+## Modal vs Drawer vs Inline
+
+Choose the right overlay pattern: `&lt;dialog&gt;` modal for confirmations and critical actions, drawer (side panel) for detail views and forms, inline expansion for simple toggles and previews.
+
+**Incorrect:**
+```tsx
+// Modal for browsing content — blocks page interaction, traps focus unnecessarily
+function ProductList({ products }: Props) {
+  const [selected, setSelected] = useState<Product | null>(null)
+
+  return (
+    <>
+      {products.map((p) => (
+        <button key={p.id} onClick={() => setSelected(p)}>{p.name}</button>
+      ))}
+      {selected && (
+        <div className="fixed inset-0 bg-black/50 z-50">
+          <div className="bg-white p-6 max-w-lg mx-auto mt-20 rounded">
+            <ProductDetail product={selected} />
+            <button onClick={() => setSelected(null)}>Close</button>
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
+```
+
+**Correct:**
+```tsx
+// Drawer for detail views — preserves page context, slides in from side
+function ProductList({ products }: Props) {
+  const [selected, setSelected] = useState<Product | null>(null)
+  const closeRef = useRef<HTMLButtonElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
+
+  // Move focus into drawer on open
+  useEffect(() => {
+    if (selected) closeRef.current?.focus()
+  }, [selected])
+
+  return (
+    <div className="flex">
+      <div className="flex-1">
+        {products.map((p) => (
+          <button
+            key={p.id}
+            ref={selected?.id === p.id ? triggerRef : undefined}
+            onClick={() => setSelected(p)}
+          >
+            {p.name}
+          </button>
+        ))}
+      </div>
+      {selected && (
+        <aside
+          role="complementary"
+          aria-label="Product details"
+          className="w-96 border-l p-6 overflow-y-auto"
+        >
+          <button
+            ref={closeRef}
+            onClick={() => { setSelected(null); triggerRef.current?.focus() }}
+            aria-label="Close panel"
+          >
+            &times;
+          </button>
+          <ProductDetail product={selected} />
+        </aside>
+      )}
+    </div>
+  )
+}
+```
+
+### Modal with Native `&lt;dialog&gt;`
+
+```tsx
+// Use native <dialog> for confirmations — built-in focus trap and Escape handling
+function DeleteConfirmation({ onConfirm, onCancel }: Props) {
+  const dialogRef = useRef<HTMLDialogElement>(null)
+
+  useEffect(() => {
+    dialogRef.current?.showModal()
+  }, [])
+
+  return (
+    <dialog
+      ref={dialogRef}
+      onClose={onCancel}
+      className="rounded-lg p-6 backdrop:bg-black/50"
+    >
+      <h2>Delete this item?</h2>
+      <p>This action cannot be undone.</p>
+      <div className="flex gap-3 mt-4">
+        <button onClick={onCancel}>Cancel</button>
+        <button onClick={onConfirm} className="bg-destructive text-white">
+          Delete
+        </button>
+      </div>
+    </dialog>
+  )
+}
+```
+
+### Decision Matrix
+
+| Scenario | Pattern | Why |
+|----------|---------|-----|
+| Delete confirmation | Modal (`&lt;dialog&gt;`) | Critical action, needs focus lock |
+| Item detail view | Drawer (side panel) | Preserves list context |
+| Settings toggle | Inline expansion | Simple, no overlay needed |
+| Multi-field form | Drawer | Space for inputs, closeable |
+| Terms acceptance | Modal | Must acknowledge before proceeding |
+| Image preview | Inline / lightbox | Quick glance, no form inputs |
+
+**Key rules:**
+- Use native `&lt;dialog&gt;` element for modals — built-in `showModal()`, focus trap, Escape to close
+- Modal = critical actions only (delete, confirm, acknowledge). Never for browsing.
+- Drawer = detail views, forms, settings panels. Preserves page context.
+- Inline = simple toggles, previews, small expansions. No overlay, no focus trap.
+- Always provide Escape key to close overlays and a visible close button
+- Return focus to the trigger element when closing any overlay
+
+Reference: https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/
+
+
+### Progressive Disclosure — HIGH
+
+
+## Progressive Disclosure
+
+Reveal complexity progressively based on frequency of use. Four levels: tooltip (1-click), accordion (`<details>`), wizard (multi-step), and contextual panel (side drawer).
+
+**Incorrect:**
+```tsx
+// All options visible at once — overwhelming for new users
+function SettingsPage() {
+  return (
+    <form className="space-y-4">
+      <Input label="Display name" />
+      <Input label="Email" />
+      <Input label="Phone" />
+      <Input label="Timezone" />
+      <Select label="Language" />
+      <Select label="Date format" />
+      <Input label="SMTP host" />
+      <Input label="SMTP port" />
+      <Input label="API key" />
+      <Input label="Webhook URL" />
+      <Input label="Custom domain" />
+      <Checkbox label="Enable 2FA" />
+      <Checkbox label="Email notifications" />
+      <Checkbox label="SMS notifications" />
+    </form>
+  )
+}
+```
+
+**Correct:**
+```tsx
+// Progressive disclosure — common settings visible, advanced behind <details>
+function SettingsPage() {
+  return (
+    <form className="space-y-6">
+      {/* Level 1: Always visible — used by 90%+ of users */}
+      <section>
+        <h2>Profile</h2>
+        <Input label="Display name" />
+        <Input label="Email" />
+      </section>
+
+      {/* Level 2: Accordion — used by 30-50% of users */}
+      <details>
+        <summary className="cursor-pointer font-medium">
+          Preferences
+        </summary>
+        <div className="mt-3 space-y-3">
+          <Select label="Timezone" />
+          <Select label="Language" />
+          <Select label="Date format" />
+        </div>
+      </details>
+
+      {/* Level 3: Accordion — used by < 10% of users */}
+      <details>
+        <summary className="cursor-pointer font-medium">
+          Advanced Settings
+        </summary>
+        <div className="mt-3 space-y-3">
+          <Input label="SMTP host" />
+          <Input label="SMTP port" />
+          <Input label="API key" type="password" />
+          <Input label="Webhook URL" />
+          <Input label="Custom domain" />
+        </div>
+      </details>
+    </form>
+  )
+}
+```
+
+### Disclosure Level Guide
+
+| Level | Pattern | Frequency | Example |
+|-------|---------|-----------|---------|
+| 1 | Always visible | 90%+ of users | Name, email, primary action |
+| 2 | `<details>` / accordion | 30-50% of users | Preferences, filters |
+| 3 | Wizard / multi-step | Setup flows | Onboarding, complex forms |
+| 4 | Contextual panel | Power users | Admin settings, API config |
+
+### Wizard Pattern
+
+```tsx
+// Multi-step wizard for complex setup flows
+function OnboardingWizard() {
+  const [step, setStep] = useState(1)
+
+  return (
+    <div role="group" aria-label={`Step ${step} of 3`}>
+      <nav aria-label="Progress">
+        <ol className="flex gap-2">
+          {[1, 2, 3].map((s) => (
+            <li key={s} aria-current={s === step ? "step" : undefined}>
+              Step {s}
+            </li>
+          ))}
+        </ol>
+      </nav>
+      {step === 1 && <BasicInfoStep />}
+      {step === 2 && <PreferencesStep />}
+      {step === 3 && <ReviewStep />}
+    </div>
+  )
+}
+```
+
+**Key rules:**
+- Use native `<details>` / `<summary>` for simple accordions — zero JS, built-in a11y
+- Group settings by frequency of use: common (visible) > occasional (accordion) > rare (panel)
+- Never hide primary actions behind disclosure — only secondary and advanced options
+- Wizard steps must show progress (`aria-label="Step 2 of 4"`) and allow back navigation
+- Limit visible options to 5-7 items per group (Miller's Law)
+
+References:
+- https://www.nngroup.com/articles/progressive-disclosure/
+- https://www.w3.org/WAI/ARIA/apg/patterns/disclosure/ (WAI-ARIA disclosure pattern)
+
+
+### Skeleton Loading States — HIGH
+
+
+## Skeleton Loading States
+
+Use skeleton placeholders that match the shape of content being loaded. Reserve spinners for indeterminate actions and progress bars for measurable operations.
+
+**Incorrect:**
+```tsx
+// Spinner for content loading — gives no spatial hint, feels slower
+function UserProfile({ isLoading, user }: Props) {
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Spinner size="lg" />
+      </div>
+    )
+  }
+  return <ProfileCard user={user} />
+}
+```
+
+**Correct:**
+```tsx
+// Skeleton matching content shape — preserves layout, reduces perceived latency
+function ProfileSkeleton() {
+  return (
+    <div className="animate-pulse flex items-center gap-4 p-4">
+      <div className="h-16 w-16 rounded-full bg-muted" /> {/* Avatar */}
+      <div className="flex-1 space-y-2">
+        <div className="h-4 w-1/3 rounded bg-muted" />  {/* Name */}
+        <div className="h-3 w-1/2 rounded bg-muted" />  {/* Email */}
+        <div className="h-3 w-2/3 rounded bg-muted" />  {/* Bio */}
+      </div>
+    </div>
+  )
+}
+
+function UserProfile({ isLoading, user }: Props) {
+  if (isLoading) return <ProfileSkeleton />
+  return <ProfileCard user={user} />
+}
+```
+
+### Decision Guide
+
+| Scenario | Pattern | Duration |
+|----------|---------|----------|
+| List / card data | Skeleton | > 200ms |
+| Form submission | Spinner (button) | &lt; 3s |
+| File upload | Progress bar | Variable |
+| Image load | Blur placeholder | Variable |
+| Route change | Skeleton | > 300ms |
+| Background task | Subtle indicator | N/A |
+
+### Skeleton Composition
+
+```tsx
+// Reusable skeleton primitives — cn() from shadcn/ui: import { cn } from "@/lib/utils"
+function Skeleton({ className }: { className?: string }) {
+  return <div className={cn("animate-pulse rounded bg-muted", className)} />
+}
+
+// Compose to match any content shape
+function TableRowSkeleton() {
+  return (
+    <tr>
+      <td><Skeleton className="h-4 w-24" /></td>
+      <td><Skeleton className="h-4 w-32" /></td>
+      <td><Skeleton className="h-4 w-16" /></td>
+    </tr>
+  )
+}
+```
+
+**Key rules:**
+- Skeleton shapes must match the content they replace — same height, width, and position
+- Use `animate-pulse` (Tailwind) or CSS `@keyframes` for subtle shimmer — never spinning skeleton
+- Show skeletons only for loads > 200ms — use `startTransition` or delay to avoid flash
+- Match skeleton count to expected content count (e.g., 6 card skeletons for a 6-item grid)
+- Never nest spinners inside skeletons — pick one pattern per loading context
+
+References:
+- https://web.dev/articles/ux-basics-skeleton-screens
+- https://www.w3.org/WAI/ARIA/apg/patterns/feed/ (aria-busy pattern for loading states)
+
+
+### Tabs Overflow Handling — MEDIUM
+
+
+## Tabs Overflow Handling
+
+When tab bars contain 7+ items or dynamic tabs, use scrollable tabs with arrow indicators or an overflow dropdown menu. Always use `role="tablist"` with proper ARIA.
+
+**Incorrect:**
+```tsx
+// Horizontal overflow with no indicators — hidden tabs are undiscoverable
+function TabBar({ tabs, activeTab, onSelect }: Props) {
+  return (
+    <div className="flex overflow-x-auto">
+      {tabs.map((tab) => (
+        <button
+          key={tab.id}
+          onClick={() => onSelect(tab.id)}
+          className={activeTab === tab.id ? "border-b-2 border-primary" : ""}
+        >
+          {tab.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+```
+
+**Correct:**
+```tsx
+// Scrollable tabs with arrow buttons and overflow menu
+function TabBar({ tabs, activeTab, onSelect }: Props) {
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [showLeft, setShowLeft] = useState(false)
+  const [showRight, setShowRight] = useState(false)
+
+  const updateArrows = useCallback(() => {
+    const el = scrollRef.current
+    if (!el) return
+    setShowLeft(el.scrollLeft > 0)
+    setShowRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1)
+  }, [])
+
+  useEffect(() => {
+    updateArrows()
+    const el = scrollRef.current
+    el?.addEventListener("scroll", updateArrows)
+    return () => el?.removeEventListener("scroll", updateArrows)
+  }, [updateArrows])
+
+  const scroll = (dir: "left" | "right") => {
+    scrollRef.current?.scrollBy({
+      left: dir === "left" ? -200 : 200,
+      behavior: "smooth",
+    })
+  }
+
+  return (
+    <div className="relative flex items-center">
+      {showLeft && (
+        <button onClick={() => scroll("left")} aria-label="Scroll tabs left"
+          className="absolute left-0 z-10 bg-gradient-to-r from-white">
+          &larr;
+        </button>
+      )}
+      <div
+        ref={scrollRef}
+        role="tablist"
+        className="flex overflow-x-auto gap-1 px-8 scrollbar-none"
+        /* Hide scrollbar: .scrollbar-none { scrollbar-width: none; -webkit-overflow-scrolling: touch; } */
+      >
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            role="tab"
+            aria-selected={activeTab === tab.id}
+            aria-controls={`panel-${tab.id}`}
+            tabIndex={activeTab === tab.id ? 0 : -1}
+            onClick={() => onSelect(tab.id)}
+            className="whitespace-nowrap px-4 py-2"
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+      {showRight && (
+        <button onClick={() => scroll("right")} aria-label="Scroll tabs right"
+          className="absolute right-0 z-10 bg-gradient-to-l from-white">
+          &rarr;
+        </button>
+      )}
+    </div>
+  )
+}
+```
+
+### Keyboard Navigation
+
+```tsx
+// Arrow key navigation within tablist (WAI-ARIA Tabs pattern)
+function handleTabKeyDown(e: React.KeyboardEvent, tabs: Tab[], activeTab: string, onSelect: (id: string) => void) {
+  const currentIndex = tabs.findIndex((t) => t.id === activeTab)
+  let nextIndex = currentIndex
+
+  if (e.key === "ArrowRight") nextIndex = (currentIndex + 1) % tabs.length
+  if (e.key === "ArrowLeft") nextIndex = (currentIndex - 1 + tabs.length) % tabs.length
+  if (e.key === "Home") nextIndex = 0
+  if (e.key === "End") nextIndex = tabs.length - 1
+
+  if (nextIndex !== currentIndex) {
+    e.preventDefault()
+    onSelect(tabs[nextIndex].id)
+  }
+}
+```
+
+**Key rules:**
+- Show scroll arrows only when content overflows — check `scrollWidth > clientWidth`
+- Use `role="tablist"`, `role="tab"`, and `role="tabpanel"` with `aria-selected` and `aria-controls`
+- Only the active tab has `tabIndex=\{0\}`; all others get `tabIndex=\{-1\}` (roving tabindex)
+- Arrow keys navigate between tabs; Tab key moves focus to the panel content
+- For 10+ tabs, add an overflow dropdown menu ("More...") showing hidden tabs
+- Hide scrollbar with CSS `scrollbar-width: none` (or Tailwind plugin `scrollbar-none`) but keep scroll arrows visible
+
+Reference: https://www.w3.org/WAI/ARIA/apg/patterns/tabs/
+
+
+### Toast Notifications — HIGH
+
+
+## Toast Notifications
+
+Position toasts bottom-center on mobile and top-right on desktop. Auto-dismiss success after 5s but never auto-dismiss errors. Use `role="status"` for informational toasts and `role="alert"` for errors.
+
+**Incorrect:**
+```tsx
+// Toast with no ARIA role — screen readers never announce it
+// Auto-dismisses errors — users cannot read the message
+function showToast(message: string) {
+  const toast = document.createElement("div")
+  toast.textContent = message
+  toast.className = "fixed bottom-4 right-4 bg-black text-white p-4 rounded"
+  document.body.appendChild(toast)
+  setTimeout(() => toast.remove(), 3000) // All toasts auto-dismiss, including errors
+}
+```
+
+**Correct:**
+```tsx
+// Accessible toast system with proper ARIA roles and auto-dismiss logic
+type ToastType = "success" | "error" | "info" | "warning"
+
+interface Toast {
+  id: string
+  message: string
+  type: ToastType
+}
+
+function ToastContainer({ toasts, onDismiss }: Props) {
+  return (
+    <div
+      className="fixed top-4 right-4 z-50 flex flex-col gap-2
+                 max-sm:top-auto max-sm:bottom-4 max-sm:right-4 max-sm:left-4"
+    >
+      {toasts.map((toast) => (
+        <div
+          key={toast.id}
+          role={toast.type === "error" ? "alert" : "status"}
+          aria-live={toast.type === "error" ? "assertive" : "polite"}
+          className={cn(
+            "flex items-center gap-3 rounded-lg p-4 shadow-lg",
+            toast.type === "error" && "bg-destructive text-white",
+            toast.type === "success" && "bg-green-600 text-white",
+            toast.type === "info" && "bg-blue-600 text-white",
+          )}
+        >
+          <span className="flex-1">{toast.message}</span>
+          <button
+            onClick={() => onDismiss(toast.id)}
+            aria-label="Dismiss notification"
+          >
+            &times;
+          </button>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// Auto-dismiss logic — NEVER auto-dismiss errors
+function useToast() {
+  const [toasts, setToasts] = useState<Toast[]>([])
+
+  const addToast = useCallback((message: string, type: ToastType = "info") => {
+    const id = crypto.randomUUID()
+    setToasts((prev) => [...prev, { id, message, type }])
+
+    if (type !== "error") {
+      setTimeout(() => {
+        setToasts((prev) => prev.filter((t) => t.id !== id))
+      }, 5000)
+    }
+  }, [])
+
+  const dismiss = useCallback((id: string) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id))
+  }, [])
+
+  return { toasts, addToast, dismiss }
+}
+```
+
+### Positioning Guide
+
+| Context | Position | Why |
+|---------|----------|-----|
+| Desktop | Top-right | Away from primary content, visible without scrolling |
+| Mobile | Bottom-center | Reachable by thumb, full-width for readability |
+| Forms | Top of form | Near the action that triggered the toast |
+
+### Stacking
+
+```tsx
+// Stack toasts with newest on top, max 3 visible
+const visibleToasts = toasts.slice(-3)
+```
+
+**Key rules:**
+- Use `role="status"` + `aria-live="polite"` for success/info toasts
+- Use `role="alert"` + `aria-live="assertive"` for error toasts
+- Auto-dismiss success/info after 5 seconds; NEVER auto-dismiss errors
+- Position: `top-right` on desktop, `bottom-center` on mobile (use media query)
+- Stack max 3 visible toasts; dismiss oldest when limit is exceeded
+- Every toast must have a visible dismiss button (not just auto-dismiss)
+- Consider using `sonner` library — built-in a11y, stacking, and swipe-to-dismiss
+
+Reference: https://www.w3.org/WAI/ARIA/apg/patterns/alert/
+
+
+
+---
+
+## References (3)
+
+### Interaction Pattern Catalog
+
+
+# Interaction Pattern Catalog
+
+A catalog of UI interaction patterns with when-to-use guidance. Organized by interaction type.
+
+## Loading & Waiting
+
+| Pattern | When to Use | Key Element | a11y |
+|---------|-------------|-------------|------|
+| Skeleton screen | Content loading with known layout | `animate-pulse` divs matching content shape | `aria-busy="true"` |
+| Inline spinner | Button/form submission | Spinner replacing button text | `aria-busy`, disable button |
+| Progress bar | Measurable operations (upload, export) | `&lt;progress&gt;` element | `aria-valuenow`, `aria-valuemax` |
+| Optimistic update | Low-risk mutations (like, bookmark) | Immediate UI change, rollback on error | Announce rollback |
+
+## Scrolling & Pagination
+
+| Pattern | When to Use | Key Element | a11y |
+|---------|-------------|-------------|------|
+| Infinite scroll | Social feeds, image galleries | IntersectionObserver + sentinel | `role="feed"`, `aria-live` |
+| Load more button | When footer must be reachable | Explicit button below content | Standard button a11y |
+| Virtual scroll | 1000+ items in a list | `@tanstack/react-virtual` | `aria-rowcount`, `aria-rowindex` |
+| Cursor pagination | API-driven lists | Cursor token, no page numbers | Announce page changes |
+
+## Disclosure & Expansion
+
+| Pattern | When to Use | Key Element | a11y |
+|---------|-------------|-------------|------|
+| Tooltip | Short helper text on hover/focus | `title` or custom tooltip | `role="tooltip"`, `aria-describedby` |
+| Accordion | FAQ, settings sections | `<details>` / `<summary>` | Built-in with native HTML |
+| Expandable row | Table row details | Inline expansion below row | `aria-expanded` on trigger |
+| Collapsible section | Dashboard sections | Toggle header | `aria-expanded`, `aria-controls` |
+
+## Overlays
+
+| Pattern | When to Use | Key Element | a11y |
+|---------|-------------|-------------|------|
+| Modal dialog | Confirmations, critical actions | `&lt;dialog&gt;` element | Focus trap, `aria-modal` |
+| Drawer / Side panel | Detail views, forms, settings | Slide-in panel | `role="complementary"` |
+| Popover | Context menus, dropdowns | Popover API or floating-ui | `aria-haspopup`, focus management |
+| Lightbox | Image/video preview | Full-screen overlay | Focus trap, Escape to close |
+| Command palette | Power user actions, search | `Cmd+K` triggered overlay | `role="combobox"`, `aria-autocomplete` |
+
+## Direct Manipulation
+
+| Pattern | When to Use | Key Element | a11y |
+|---------|-------------|-------------|------|
+| Drag and drop | Reorder lists, kanban boards | `@dnd-kit/core` | Keyboard arrows + Enter |
+| Inline edit | Quick text/value editing | Click-to-edit, Enter to save | `aria-label="Edit"` on trigger |
+| Resize handles | Resizable panels, columns | Drag handle on edge | Keyboard resize with Shift+Arrow |
+| Swipe actions | Mobile list item actions | Touch gesture + button fallback | Visible button alternative |
+
+## Navigation
+
+| Pattern | When to Use | Key Element | a11y |
+|---------|-------------|-------------|------|
+| Tabs | 2-6 related views | `role="tablist"` | Arrow key navigation |
+| Scrollable tabs | 7+ tabs | Scroll arrows + overflow menu | Roving tabindex |
+| Breadcrumbs | Deep hierarchies | `&lt;nav aria-label="Breadcrumb"&gt;` | `aria-current="page"` |
+| Stepper / Wizard | Multi-step processes | Step indicators + back/next | `aria-current="step"` |
+
+## Feedback
+
+| Pattern | When to Use | Key Element | a11y |
+|---------|-------------|-------------|------|
+| Toast notification | Success/error feedback | Auto-dismiss (not errors) | `role="status"` / `role="alert"` |
+| Inline validation | Form field errors | Error below input | `aria-invalid`, `aria-describedby` |
+| Empty state | No content to display | Illustration + CTA | Descriptive text |
+| Confirmation | Destructive actions | Dialog with explicit action name | Focus on cancel button |
+
+## Selection Guidelines
+
+1. **Prefer native HTML** — `&lt;dialog&gt;`, `<details>`, `&lt;progress&gt;` over custom implementations
+2. **Match complexity to task** — Tooltip for a hint, modal for a critical decision
+3. **Mobile-first** — Ensure touch targets are 44x44px minimum, swipe actions have button fallbacks
+4. **Keyboard always** — Every pattern must be operable via keyboard alone
+5. **Announce changes** — Dynamic content changes need `aria-live` announcements
+
+
+### Keyboard Interaction Matrix
+
+
+# Keyboard Interaction Matrix
+
+Keyboard shortcuts and interaction patterns for all interactive components, aligned with WAI-ARIA Authoring Practices Guide (APG).
+
+## Tab & Focus Management
+
+| Component | Tab | Shift+Tab |
+|-----------|-----|-----------|
+| Dialog (modal) | Cycles within dialog (focus trap) | Reverse cycle within dialog |
+| Drawer (non-modal) | Can leave drawer to page | Can return to drawer |
+| Tabs | Moves focus to tab panel | Returns to active tab |
+| Menu | Enters menu from trigger | Returns to trigger |
+| Toast | Skipped unless focusable action present | Skipped |
+
+## Tabs (`role="tablist"`)
+
+| Key | Action |
+|-----|--------|
+| Arrow Right | Move to next tab |
+| Arrow Left | Move to previous tab |
+| Home | Move to first tab |
+| End | Move to last tab |
+| Tab | Move focus into tab panel |
+| Enter / Space | Activate focused tab (manual activation mode) |
+
+## Dialog (`&lt;dialog&gt;`)
+
+| Key | Action |
+|-----|--------|
+| Escape | Close dialog |
+| Tab | Cycle focus within dialog (trapped) |
+| Enter | Activate focused button |
+| Shift+Tab | Reverse cycle within dialog |
+
+## Accordion (`<details>`)
+
+| Key | Action |
+|-----|--------|
+| Enter / Space | Toggle open/close |
+| Tab | Move to next focusable element |
+| Arrow Down | Next accordion header (if grouped) |
+| Arrow Up | Previous accordion header (if grouped) |
+
+## Drag & Drop (`@dnd-kit`)
+
+| Key | Action |
+|-----|--------|
+| Tab | Focus drag handle |
+| Enter / Space | Pick up / drop item |
+| Arrow Up | Move item up one position |
+| Arrow Down | Move item down one position |
+| Arrow Left | Move item left (grid layout) |
+| Arrow Right | Move item right (grid layout) |
+| Escape | Cancel drag, return to original position |
+
+## Menu / Dropdown
+
+| Key | Action |
+|-----|--------|
+| Enter / Space | Open menu from trigger |
+| Arrow Down | Next menu item / open menu |
+| Arrow Up | Previous menu item |
+| Home | First menu item |
+| End | Last menu item |
+| Escape | Close menu, return focus to trigger |
+| Character key | Jump to item starting with character |
+
+## Toast Notifications
+
+| Key | Action |
+|-----|--------|
+| Tab (if action present) | Focus toast action button |
+| Escape | Dismiss focused toast |
+| Enter | Activate toast action (e.g., Undo) |
+
+## Infinite Scroll (`role="feed"`)
+
+| Key | Action |
+|-----|--------|
+| Page Down | Next article in feed |
+| Page Up | Previous article in feed |
+| Tab | Move through focusable items within article |
+| End | (Optionally) trigger load more |
+
+## Command Palette
+
+| Key | Action |
+|-----|--------|
+| Cmd/Ctrl + K | Open palette |
+| Arrow Down | Next item |
+| Arrow Up | Previous item |
+| Enter | Execute selected command |
+| Escape | Close palette |
+| Backspace (empty) | Go back to parent scope |
+
+## General Principles
+
+1. **Roving tabindex** — In composite widgets (tabs, menus), only one item has `tabIndex=\{0\}`. Arrow keys move focus. Tab leaves the widget.
+2. **Focus visible** — All focusable elements must have a visible focus indicator (`:focus-visible` outline).
+3. **Focus restoration** — When closing overlays, return focus to the element that triggered the overlay.
+4. **No keyboard traps** — Users must always be able to navigate away from any component using Tab or Escape.
+5. **Skip links** — Provide "Skip to main content" links for keyboard users navigating past repeated headers/nav.
+
+## Testing Checklist
+
+- [ ] All interactive elements reachable via Tab key
+- [ ] Arrow keys work within composite widgets (tabs, menus, drag handles)
+- [ ] Escape closes overlays and cancels drag operations
+- [ ] Focus returns to trigger element after overlay closes
+- [ ] No keyboard traps — Tab always moves focus forward
+- [ ] Focus indicator visible on all focused elements
+- [ ] Screen reader announces state changes via `aria-live`
+
+Reference: https://www.w3.org/WAI/ARIA/apg/
+
+
+### Loading States Decision Tree
+
+
+# Loading States Decision Tree
+
+## Decision Flow
+
+```
+Is the operation measurable (known total)?
+├── YES → Is total > 5 seconds?
+│         ├── YES → Progress bar with percentage + time estimate
+│         └── NO  → Progress bar with percentage only
+└── NO  → Is it loading content that has a known shape?
+          ├── YES → Does the content area have a defined layout?
+          │         ├── YES → Skeleton matching layout shape
+          │         └── NO  → Content placeholder (gray box)
+          └── NO  → Is it a user-initiated action (button click, form submit)?
+                    ├── YES → Is expected duration < 1 second?
+                    │         ├── YES → Button spinner (inline)
+                    │         └── NO  → Overlay spinner with message
+                    └── NO  → Is it a background task?
+                              ├── YES → Subtle indicator (status bar, badge)
+                              └── NO  → Full-area spinner
+```
+
+## Pattern Comparison
+
+| Pattern | Use When | Duration | Layout Shift | Perceived Speed |
+|---------|----------|----------|-------------|-----------------|
+| Skeleton | Content loading (lists, cards, profiles) | > 200ms | None | Fast |
+| Spinner (inline) | Button actions, form submissions | &lt; 3s | None | Neutral |
+| Spinner (overlay) | Page-level blocking operations | 1-10s | None | Slow |
+| Progress bar | File upload, export, sync | Variable | None | Predictable |
+| Blur placeholder | Image loading | Variable | None | Fast |
+| Shimmer | Content loading (alternative to pulse) | > 200ms | None | Fast |
+| None | Background sync, prefetch | N/A | None | Invisible |
+
+## Implementation Guidelines
+
+### Skeleton
+
+- Match the shape of the content being loaded (height, width, border-radius)
+- Use `animate-pulse` (Tailwind) for subtle animation
+- Show skeleton only after 200ms delay to avoid flash for fast loads
+- Match skeleton count to expected item count
+
+### Spinner
+
+- Inline spinner: replace button text, keep button dimensions
+- Overlay spinner: center in container, add semi-transparent backdrop
+- Always include `aria-busy="true"` on the loading container
+- Use `role="status"` with screen reader text: "Loading..."
+
+### Progress Bar
+
+- Show percentage and/or time estimate for operations > 5s
+- Use `&lt;progress&gt;` element for semantic HTML
+- Update smoothly — avoid jumps larger than 10%
+- Show indeterminate state if total is temporarily unknown
+
+### Blur Placeholder
+
+- Generate low-res blur hash at build time (BlurHash, LQIP)
+- Apply as CSS `background-image` before full image loads
+- Transition from blur to sharp with `opacity` animation
+- Set explicit `width` and `height` to prevent layout shift
+
+## Timing Thresholds
+
+| Threshold | Action |
+|-----------|--------|
+| &lt; 100ms | No loading indicator needed |
+| 100-200ms | Optional subtle indicator |
+| 200ms-1s | Skeleton or spinner |
+| 1-5s | Skeleton + progress message |
+| 5-30s | Progress bar with estimate |
+| > 30s | Progress bar + cancel button |
+
+## Anti-Patterns
+
+- **Spinner for content loading** — Gives no spatial hint; use skeleton instead
+- **Flash of loading state** — Show skeleton only after 200ms delay
+- **Progress bar jumping backward** — Never decrease progress; use indeterminate if uncertain
+- **Multiple loading indicators** — One loading indicator per visual region, not per component
+- **Loading without timeout** — Always set a timeout and show error/retry after 30s
+

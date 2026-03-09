@@ -2,11 +2,11 @@
 name: accessibility
 license: MIT
 compatibility: "Claude Code 2.1.59+."
-description: Accessibility patterns for WCAG 2.2 compliance, keyboard focus management, and React Aria component patterns. Use when implementing screen reader support, keyboard navigation, ARIA patterns, focus traps, or accessible component libraries.
+description: Accessibility patterns for WCAG 2.2 compliance, keyboard focus management, React Aria component patterns, cognitive inclusion, native HTML-first philosophy, and user preference honoring. Use when implementing screen reader support, keyboard navigation, ARIA patterns, focus traps, accessible component libraries, reduced motion, or cognitive accessibility.
 tags: [accessibility, a11y, wcag, focus-management, react-aria, keyboard-navigation, screen-reader, aria]
 context: fork
 agent: accessibility-specialist
-version: 2.0.0
+version: 2.1.0
 author: OrchestKit
 user-invocable: false
 disable-model-invocation: true
@@ -23,7 +23,7 @@ allowed-tools:
 
 # Accessibility
 
-Comprehensive patterns for building accessible web applications: WCAG 2.2 AA compliance, keyboard focus management, and React Aria component patterns. Each category has individual rule files in `rules/` loaded on-demand.
+Comprehensive patterns for building accessible web applications: WCAG 2.2 AA compliance, keyboard focus management, React Aria component patterns, native HTML-first philosophy, cognitive inclusion, and user preference honoring. Each category has individual rule files in `rules/` loaded on-demand.
 
 ## Quick Reference
 
@@ -32,8 +32,9 @@ Comprehensive patterns for building accessible web applications: WCAG 2.2 AA com
 | [WCAG Compliance](#wcag-compliance) | 3 | CRITICAL | Color contrast, semantic HTML, automated testing |
 | [Focus Management](#focus-management) | 3 | HIGH | Focus traps, focus restoration, keyboard navigation |
 | [React Aria](#react-aria) | 3 | HIGH | Accessible components, form hooks, overlay patterns |
+| [Modern Web Accessibility](#modern-web-accessibility) | 3 | CRITICAL/HIGH | Native HTML first, cognitive inclusion, user preferences |
 
-**Total: 9 rules across 3 categories**
+**Total: 12 rules across 4 categories**
 
 ## Quick Start
 
@@ -89,6 +90,16 @@ Adobe React Aria hooks for building WCAG-compliant interactive UI.
 | Components | `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/rules/aria-components.md` | useButton, useDialog, useMenu, FocusScope |
 | Forms | `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/rules/aria-forms.md` | useComboBox, useTextField, useListBox |
 | Overlays | `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/rules/aria-overlays.md` | useModalOverlay, useTooltip, usePopover |
+
+## Modern Web Accessibility
+
+2026 best practices: native HTML first, cognitive inclusion, and honoring user preferences.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Native HTML First | `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/rules/wcag-native-html-first.md` | `<dialog>`, `<details>`, native over custom ARIA |
+| Cognitive Inclusion | `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/rules/wcag-cognitive-inclusion.md` | ADHD/autism/dyslexia support, chunked content, notification management |
+| User Preferences | `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/rules/wcag-user-preferences.md` | prefers-reduced-motion, forced-colors, prefers-contrast, zoom |
 
 ## Key Decisions
 

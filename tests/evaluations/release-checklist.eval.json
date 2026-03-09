@@ -7,52 +7,92 @@
       "id": "clean-release",
       "query": "Walk me through releasing version 6.1.0",
       "expected_behavior": [
-        "Runs all pre-release gates sequentially",
-        "Reports PASS for each gate step before proceeding",
-        "Verifies changelog entry and version bump",
-        "Stages specific files and commits with release format"
+        "Runs all pre-release gates sequentially: build, tests, security, TypeScript, validate-counts, diff review",
+        "Reports [PASS] for each gate step before proceeding to the next",
+        "Verifies changelog entry and version bump in package.json and CLAUDE.md",
+        "Stages specific files, commits with 'release: v6.1.0' format, tags, and confirms before push"
       ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
       "id": "build-fails",
       "query": "Start the release checklist for v6.1.0",
-      "context": {
-        "build_state": "failing"
-      },
       "expected_behavior": [
         "Runs npm run build as step 1 and detects failure",
-        "Reports FAIL for the build step and stops the release",
-        "Suggests a fix",
-        "Does not proceed to tests or further gates"
+        "Reports [FAIL] for the build step and stops the release sequence",
+        "Suggests a fix (e.g., check TypeScript errors, run cd src/hooks && npm run build)",
+        "Does not proceed to tests or further gates until user confirms the build is fixed"
       ],
-      "should_not": [
-        "Continue to test or security gates after build failure",
-        "Skip the build step"
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "tests-fail",
+      "query": "Run the release checklist \u2014 build passed but tests are failing",
+      "expected_behavior": [
+        "Skips build step if user confirms it already passed",
+        "Runs npm test and detects test failures",
+        "Reports [FAIL] for tests and stops before security or later gates",
+        "Refuses to continue with release until tests pass \u2014 security tests are non-negotiable"
       ],
-      "tags": ["edge-case"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
       "id": "version-not-bumped",
-      "query": "Checklist says version bump — I updated package.json but forgot CLAUDE.md",
+      "query": "Checklist says version bump \u2014 I updated package.json but forgot CLAUDE.md",
       "expected_behavior": [
         "Checks both package.json and CLAUDE.md for version field",
-        "Detects version mismatch between the two files",
-        "Reports FAIL for the version bump step",
-        "Instructs updating CLAUDE.md to match package.json"
+        "Detects that CLAUDE.md version does not match package.json version",
+        "Reports [FAIL] for the version bump step and stops the commit staging sequence",
+        "Instructs the user to update the Version line in CLAUDE.md to match package.json"
       ],
-      "tags": ["edge-case"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
       "id": "changelog-missing",
       "query": "I'm ready to cut the release but haven't written the changelog entry yet",
       "expected_behavior": [
         "Checks CHANGELOG.md for an entry matching the target version",
-        "Reports FAIL when no matching entry is found",
-        "Stops before staging files",
-        "Prompts user to add a changelog entry"
+        "Reports [FAIL] for the changelog step when no matching entry is found",
+        "Stops before staging files or writing the release commit",
+        "Prompts the user to add a changelog entry before continuing"
       ],
-      "tags": ["edge-case"]
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "commit-tag-push",
+      "query": "What is the correct format for release commits, tags, and push to avoid breaking CI?",
+      "expected_behavior": [
+        "Uses conventional commit format: release: vX.Y.Z as the commit message subject line",
+        "Creates annotated git tag matching the version number in the release commit message",
+        "Requires user confirmation before pushing to the shared remote repository",
+        "Includes Co-Authored-By trailer in the release commit following project conventions"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "gate-counts-and-diff",
+      "query": "Before staging the release, how do I verify the counts and diff are clean?",
+      "expected_behavior": [
+        "Runs validate-counts to verify hook, skill, and agent counts match actual files",
+        "Reviews the full git diff before staging to catch stale or no-op edits in the release",
+        "Verifies that manifest counts in ork.json are consistent with source file counts",
+        "Blocks staging if counts are inconsistent until manifests are updated or build is rerun"
+      ],
+      "tags": [
+        "happy-path"
+      ]
     }
   ]
 }

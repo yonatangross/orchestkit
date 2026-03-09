@@ -4,62 +4,316 @@
   "version": "1.0.0",
   "evaluations": [
     {
-      "id": "lcp-optimization",
+      "id": "cwv-lcp",
       "query": "My hero image loads slowly and LCP is above 4 seconds",
       "expected_behavior": [
         "Adds fetchpriority='high' and loading='eager' to LCP image",
         "Preloads critical resources with link rel='preload'",
-        "Server-renders LCP content instead of client-side fetch"
+        "Server-renders LCP content instead of client-side fetch",
+        "References the updated 2026 LCP threshold of 2.0 seconds as the target"
       ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
-      "id": "react-compiler",
+      "id": "cwv-inp",
+      "query": "Button clicks feel sluggish and INP exceeds 200ms",
+      "expected_behavior": [
+        "Breaks long tasks into smaller chunks with scheduler.yield for responsiveness",
+        "Uses useTransition for non-urgent state updates",
+        "Defers heavy computation to idle periods using requestIdleCallback for smoother interaction",
+        "References the updated 2026 INP threshold of 150 milliseconds as the target"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "cwv-cls",
+      "query": "Page content jumps around during load causing layout shifts",
+      "expected_behavior": [
+        "Sets explicit width and height attributes on images to reserve layout space",
+        "Uses CSS aspect-ratio for responsive containers to prevent layout shifts during load",
+        "Configures font-display: optional for non-critical fonts",
+        "Uses transform instead of layout-shifting animations"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "render-compiler",
       "query": "Should I use React.memo everywhere in my React 19 app?",
       "expected_behavior": [
         "Recommends React Compiler as primary approach",
-        "Shows how to enable in Next.js and Expo",
-        "Explains Memo badge verification in DevTools"
+        "Shows how to enable in Next.js 16+ and Expo SDK 54+",
+        "Explains Memo badge verification in DevTools",
+        "Notes compiler handles components, values, callbacks, and JSX"
       ],
-      "should_not": [
-        "Recommend manual React.memo for all components",
-        "Ignore React Compiler availability"
-      ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
-      "id": "virtualization",
+      "id": "render-memo",
+      "query": "When do I still need useMemo and useCallback with React Compiler?",
+      "expected_behavior": [
+        "Lists escape hatches: effect deps, third-party libs, precise control",
+        "Shows state colocation to minimize re-renders",
+        "Recommends profiling with DevTools before applying any manual optimization techniques",
+        "Explains splitting state and dispatch into separate contexts to reduce unnecessary re-renders"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "render-virtual",
       "query": "My list of 1000 items renders slowly",
       "expected_behavior": [
         "Recommends TanStack Virtual for 100+ items",
         "Shows useVirtualizer setup with estimateSize and overscan",
-        "Covers dynamic height measurement"
+        "Covers dynamic height measurement for variable-size list items using measureElement",
+        "Lists virtualization thresholds: <100 fine, 100-500 consider, 500+ required"
       ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
-      "id": "lazy-loading",
+      "id": "loading-lazy",
       "query": "How do I lazy load a heavy chart component?",
       "expected_behavior": [
-        "Uses React.lazy with dynamic import",
+        "Uses React.lazy with dynamic import to load components on demand",
         "Wraps in Suspense with skeleton fallback",
-        "Adds error boundary for network failures"
+        "Adds error boundary for network failures",
+        "Warns against lazy loading above-fold or tiny components"
       ],
-      "should_not": [
-        "Lazy load above-fold components",
-        "Lazy load tiny components"
-      ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
-      "id": "bundle-analysis",
+      "id": "loading-splitting",
+      "query": "How do I code-split my routes in a React SPA?",
+      "expected_behavior": [
+        "Shows React Router 7.x lazy route pattern",
+        "Configures Vite manualChunks for vendor splitting",
+        "Uses granular Suspense boundaries around each lazy-loaded route for isolated loading states",
+        "Recommends per-route splitting for most apps"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "loading-preload",
+      "query": "How do I preload the next page before the user clicks?",
+      "expected_behavior": [
+        "Prefetches route chunks on hover and focus events using onMouseEnter handlers",
+        "Uses link rel='modulepreload' for critical chunks",
+        "Shows intersection observer for viewport-based loading",
+        "Prefetches data with TanStack Query prefetchQuery"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "images-nextjs",
+      "query": "How do I optimize images in my Next.js app?",
+      "expected_behavior": [
+        "Uses next/image with priority for LCP images",
+        "Adds blur placeholder via static import",
+        "Sets quality to 75-85 for optimal size/quality",
+        "Configures remotePatterns in next.config.js to allow optimized loading of external images"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "images-formats",
+      "query": "Should I use AVIF or WebP for my images?",
+      "expected_behavior": [
+        "Recommends AVIF as primary (30-50% smaller)",
+        "Uses WebP as fallback for broader support",
+        "Shows the HTML picture element with source sets for non-Next.js applications",
+        "Configures image format preferences in next.config.js for automatic AVIF and WebP delivery"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "images-responsive",
+      "query": "How do I serve different image sizes for mobile vs desktop?",
+      "expected_behavior": [
+        "Uses sizes prop with breakpoint-based values",
+        "Shows art direction with different images per breakpoint",
+        "Configures CDN image loaders for Cloudinary or imgix with responsive transformations",
+        "Uses srcset with sizes and breakpoints to serve appropriate viewport images"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "profiling-react",
+      "query": "How do I find which React components are re-rendering too often?",
+      "expected_behavior": [
+        "Uses React DevTools Profiler to record interactions",
+        "Identifies high render count and duration in flamegraph",
+        "Checks for unnecessary re-renders before optimizing",
+        "Measures performance improvement after applying the fix to confirm the optimization worked"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "profiling-backend",
+      "query": "My FastAPI server has slow endpoints, how do I profile?",
+      "expected_behavior": [
+        "Uses py-spy for live profiling without restart",
+        "Generates flame graph SVG for visualization",
+        "Shows cProfile for detailed function-level analysis",
+        "Covers memory_profiler usage for detecting memory leaks in long-running Python processes"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "profiling-bundle",
       "query": "My frontend bundle is too large, how do I analyze it?",
       "expected_behavior": [
-        "Uses vite-bundle-visualizer or webpack-bundle-analyzer",
+        "Uses vite-bundle-visualizer or webpack-bundle-analyzer to identify oversized chunks and dependencies",
         "Identifies large dependencies for tree shaking",
-        "Sets performance budgets in build config"
+        "Sets performance budgets in build config",
+        "Shows bundlesize CI integration for automated bundle size regression checks on pull requests"
       ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "inference-vllm",
+      "query": "How do I deploy an LLM with vLLM for production?",
+      "expected_behavior": [
+        "Configures vLLM with tensor parallelism to distribute model layers across multiple GPUs",
+        "Enables PagedAttention and continuous batching for efficient GPU memory utilization",
+        "Sets gpu_memory_utilization between 0.85 and 0.95 for optimal memory allocation",
+        "Enables prefix caching for shared contexts"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "inference-quantization",
+      "query": "How do I reduce GPU memory for a 70B parameter model?",
+      "expected_behavior": [
+        "Recommends AWQ for best 4-bit quality",
+        "Shows memory savings: 75% for 4-bit, 50% for 8-bit",
+        "Recommends FP8 quantization for H100 and H200 GPUs with native hardware support",
+        "Warns about calibration data for GPTQ"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "inference-speculative",
+      "query": "How do I speed up LLM text generation?",
+      "expected_behavior": [
+        "Shows n-gram based speculative decoding configuration for faster token generation",
+        "Shows draft model approach for higher quality",
+        "Notes a typical 1.5 to 2.5x throughput improvement with speculative decoding enabled",
+        "Lists when speculative decoding helps vs hurts"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "caching-http",
+      "query": "How do I set up LLM prompt caching with Claude to reduce token costs?",
+      "expected_behavior": [
+        "Places static system prompt before variable user content for cache hits",
+        "Uses cache_control with ephemeral type for Claude prompt caching",
+        "Explains that OpenAI uses automatic prefix caching without explicit markers",
+        "Configures HTTP Cache-Control headers with s-maxage for CDN vs browser TTLs"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "caching-redis",
+      "query": "My backend API fetches user data on every request, how do I add Redis caching?",
+      "expected_behavior": [
+        "Implements cache-aside pattern with TTL to prevent memory leaks",
+        "Adds stampede prevention using distributed locks for expensive computations",
+        "Shows write-through pattern for updating cache and database atomically",
+        "Uses event-based invalidation for writes and TTL expiry for reads"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "query-optimistic",
+      "query": "My todo list feels slow because it waits for the server before updating the UI",
+      "expected_behavior": [
+        "Cancels outgoing refetches in onMutate to prevent race conditions",
+        "Snapshots previous cache value and returns context for automatic rollback on error",
+        "Performs immutable cache update using spread operator instead of direct mutation",
+        "Calls invalidateQueries in onSettled to reconcile with server state after mutation"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "query-prefetching",
+      "query": "Users see a loading spinner every time they navigate to a user profile page",
+      "expected_behavior": [
+        "Uses queryOptions helper for reusable query definitions across prefetch and hooks",
+        "Prefetches data on onMouseEnter and onFocus events for keyboard accessibility",
+        "Uses ensureQueryData in route loaders to guarantee data before component renders",
+        "Pairs prefetch with useSuspenseQuery for instant render without loading states"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "cwv-inp-advanced",
+      "query": "My filter dropdown causes jank and INP exceeds 200ms on mobile devices",
+      "expected_behavior": [
+        "Uses scheduler.yield between filter processing chunks to keep tasks under 50ms",
+        "Batches DOM reads before writes to avoid synchronous layout thrashing",
+        "Defers non-critical third-party scripts until after first user interaction",
+        "Wraps visual DOM updates in requestAnimationFrame for frame-aligned rendering"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "sustainability-ux",
+      "query": "How can I reduce the carbon footprint and page weight of our web application?",
+      "expected_behavior": [
+        "Replaces auto-playing decorative videos with static images and opt-in video playback",
+        "Uses cursor-based pagination instead of fetching entire datasets to reduce bandwidth",
+        "Serves AVIF with WebP fallback for 30 to 50 percent smaller image sizes",
+        "Enforces a page weight budget under 1MB in CI to prevent resource creep"
+      ],
+      "tags": [
+        "happy-path"
+      ]
     }
   ]
 }

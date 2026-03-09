@@ -134,7 +134,7 @@ Testing best practices with AAA pattern, naming conventions, isolation, and cove
 Context-aware backend architecture enforcement. Rules adjust strictness based on project tier detected by `scope-appropriate-architecture`.
 
 **Enforcement procedure:**
-1. Read project tier from `scope-appropriate-architecture` context (set during brainstorming/implement Step 0)
+1. Read project tier from `scope-appropriate-architecture` context (set during brainstorm/implement Step 0)
 2. If no tier set, auto-detect using signals in `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/architecture-patterns/rules/right-sizing-tiers.md")`
 3. Apply tier-based enforcement matrix — skip rules marked OFF for detected tier
 4. **Security rules are tier-independent** — always enforce SQL parameterization, input validation, auth checks
@@ -770,7 +770,7 @@ supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 ## Architecture Sizing Tiers
 
-Match architecture complexity to project scope using concrete signals. Read the project tier from `scope-appropriate-architecture` context (set during brainstorming/implement Step 0). If no tier is set, auto-detect using the signals below.
+Match architecture complexity to project scope using concrete signals. Read the project tier from `scope-appropriate-architecture` context (set during brainstorm/implement Step 0). If no tier is set, auto-detect using the signals below.
 
 **Enforcement rule:** When reviewing or generating code, check the detected tier FIRST. If a pattern is marked OFF for the current tier, do not suggest or enforce it. If marked WARN, mention the concern but don't block. If marked BLOCK, enforce strictly.
 

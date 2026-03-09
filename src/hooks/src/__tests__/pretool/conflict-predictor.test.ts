@@ -22,12 +22,12 @@ vi.mock('../../lib/common.js', () => ({
 }));
 
 vi.mock('node:child_process', () => ({
-  execSync: vi.fn(() => ''),
+  execFileSync: vi.fn(() => ''),
 }));
 
 import { conflictPredictor } from '../../pretool/bash/conflict-predictor.js';
 import type { HookInput } from '../../types.js';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 
 function createBashInput(command: string): HookInput {
   return {
@@ -52,7 +52,7 @@ describe('conflict-predictor', () => {
   });
 
   it('returns silent success when no potential conflicts found', () => {
-    vi.mocked(execSync).mockReturnValue('');
+    vi.mocked(execFileSync).mockReturnValue('');
 
     const input = createBashInput('git merge main');
     const result = conflictPredictor(input);
@@ -62,12 +62,12 @@ describe('conflict-predictor', () => {
   });
 
   it('warns about potential conflicts on git merge', () => {
-    vi.mocked(execSync).mockImplementation((cmd: unknown) => {
-      const cmdStr = String(cmd);
-      if (cmdStr.includes('--name-only')) {
+    vi.mocked(execFileSync).mockImplementation((cmd: unknown, args: unknown) => {
+      const argStr = (args as string[])?.join(' ') ?? '';
+      if (argStr.includes('--name-only')) {
         return 'src/app.ts\nsrc/config.ts\n';
       }
-      if (cmdStr.includes('git log -1')) {
+      if (argStr.includes('log -1')) {
         return 'abc1234';
       }
       return '';
@@ -81,7 +81,7 @@ describe('conflict-predictor', () => {
   });
 
   it('extracts target branch from git rebase command', () => {
-    vi.mocked(execSync).mockReturnValue('');
+    vi.mocked(execFileSync).mockReturnValue('');
 
     const input = createBashInput('git rebase develop');
     const result = conflictPredictor(input);
@@ -91,7 +91,7 @@ describe('conflict-predictor', () => {
   });
 
   it('uses origin/dev as default target for git pull', () => {
-    vi.mocked(execSync).mockReturnValue('');
+    vi.mocked(execFileSync).mockReturnValue('');
 
     const input = createBashInput('git pull');
     const result = conflictPredictor(input);
@@ -100,7 +100,7 @@ describe('conflict-predictor', () => {
   });
 
   it('handles git command failure gracefully', () => {
-    vi.mocked(execSync).mockImplementation(() => {
+    vi.mocked(execFileSync).mockImplementation(() => {
       throw new Error('fatal: bad revision');
     });
 

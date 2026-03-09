@@ -40,9 +40,9 @@
       "rule": "browser-rate-limiting",
       "query": "Scrape multiple pages without overwhelming the server",
       "expectedBehavior": [
-        "Adds delays between page navigations",
+        "Adds delays between page navigations to avoid overwhelming the server",
         "Implements exponential backoff on 429 responses",
-        "Respects concurrency limits for parallel sessions",
+        "Limits concurrent connections and uses retry with backoff on failed pages",
         "Monitors and adjusts rate based on server responses"
       ]
     },
@@ -51,9 +51,9 @@
       "rule": "browser-scraping-ethics",
       "query": "Crawl a website for content extraction",
       "expectedBehavior": [
-        "Checks robots.txt before crawling",
+        "Checks robots.txt before crawling to respect site crawl policies",
         "Respects Terms of Service and site policies",
-        "Uses identifiable user-agent string",
+        "Uses identifiable user-agent string for transparent bot identification",
         "Limits crawl scope to necessary pages only"
       ]
     },

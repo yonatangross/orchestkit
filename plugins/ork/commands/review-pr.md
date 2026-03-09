@@ -1,6 +1,6 @@
 ---
 description: "PR review with parallel specialized agents. Use when reviewing pull requests or code."
-allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskOutput, TaskStop, mcp__memory__search_nodes]
+allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskOutput, TaskStop, mcp__memory__search_nodes, ToolSearch]
 ---
 
 # Auto-generated from skills/review-pr/SKILL.md
@@ -70,6 +70,15 @@ AskUserQuestion(
 ## STEP 0b: Select Orchestration Mode
 
 Load orchestration guidance: `Read("${CLAUDE_PLUGIN_ROOT}/skills/review-pr/references/orchestration-mode-selection.md")`
+
+
+## MCP Probe (CC 2.1.71)
+
+```python
+ToolSearch(query="select:mcp__memory__search_nodes")
+Write(".claude/chain/capabilities.json", { memory, timestamp })
+# If memory available: search for past review patterns on these files
+```
 
 
 ## CRITICAL: Task Management is MANDATORY (CC 2.1.16)

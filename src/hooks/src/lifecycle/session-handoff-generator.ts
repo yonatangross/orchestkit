@@ -15,7 +15,7 @@
 
 import { existsSync, readFileSync, mkdirSync, readdirSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, outputSilentSuccess, getSessionId, getCachedBranch, getProjectDir } from '../lib/common.js';
 import { hashProject } from '../lib/analytics.js';
@@ -42,7 +42,7 @@ function countTools(metrics: Record<string, unknown>): number {
 
 function countModifiedFiles(projectDir: string): number {
   try {
-    const out = execSync('git status --porcelain 2>/dev/null', {
+    const out = execFileSync('git', ['status', '--porcelain'], {
       cwd: projectDir, encoding: 'utf8', timeout: 3000, stdio: ['pipe', 'pipe', 'pipe'],
     });
     return out.trim().split('\n').filter(Boolean).length;

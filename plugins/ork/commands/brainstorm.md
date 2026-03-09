@@ -1,0 +1,332 @@
+---
+description: "Design exploration with parallel agents. Use when brainstorming ideas, exploring solutions, or comparing alternatives."
+allowed-tools: [AskUserQuestion, Task, Read, Grep, Glob, TaskCreate, TaskUpdate, TaskList, TaskOutput, TaskStop, ToolSearch, mcp__memory__search_nodes]
+---
+
+# Auto-generated from skills/brainstorm/SKILL.md
+# Source: https://github.com/yonatangross/orchestkit
+
+
+# Brainstorming Ideas Into Designs
+
+Transform rough ideas into fully-formed designs through intelligent agent selection and structured exploration.
+
+**Core principle:** Analyze the topic, select relevant agents dynamically, explore alternatives in parallel, present design incrementally.
+
+## Argument Resolution
+
+```python
+TOPIC = "$ARGUMENTS"  # Full argument string, e.g., "API design for payments"
+# $ARGUMENTS[0] is the first token (CC 2.1.59 indexed access)
+```
+
+
+## STEP -1: MCP Probe + Resume Check
+
+> Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/mcp-detection.md")`
+
+```python
+# 1. Probe MCP servers (once at skill start)
+ToolSearch(query="select:mcp__memory__search_nodes")
+ToolSearch(query="select:mcp__sequential-thinking__sequentialthinking")
+
+# 2. Store capabilities
+Write(".claude/chain/capabilities.json", {
+  "memory": probe_memory.found,
+  "sequential_thinking": probe_st.found,
+  "skill": "brainstorm",
+  "timestamp": now()
+})
+
+# 3. Check for resume (prior session may have crashed)
+state = Read(".claude/chain/state.json")  # may not exist
+if state.skill == "brainstorm" and state.status == "in_progress":
+    # Skip completed phases, resume from state.current_phase
+    last_handoff = Read(f".claude/chain/{state.last_handoff}")
+```
+
+### Phase Handoffs
+
+| Phase | Handoff File | Contents |
+|-------|-------------|----------|
+| 0 | `00-topic-analysis.json` | Agent list, tier, topic classification |
+| 1 | `01-memory-context.json` | Prior patterns, codebase signals |
+| 2 | `02-divergent-ideas.json` | 10+ raw ideas |
+| 3 | `03-feasibility.json` | Filtered viable ideas |
+| 4 | `04-evaluation.json` | Rated + devil's advocate results |
+| 5 | `05-synthesis.json` | Top 2-3 approaches, trade-off table |
+
+
+## STEP 0: Project Context Discovery
+
+**BEFORE creating tasks or selecting agents**, detect the project tier. This becomes the **complexity ceiling** for all downstream decisions.
+
+### Auto-Detection (scan codebase)
+
+```python
+# PARALLEL — quick signals (launch all in ONE message)
+Grep(pattern="take-home|assignment|interview|hackathon", glob="README*", output_mode="content")
+Grep(pattern="take-home|assignment|interview|hackathon", glob="*.md", output_mode="content")
+Glob(pattern=".github/workflows/*")
+Glob(pattern="**/Dockerfile")
+Glob(pattern="**/terraform/**")
+Glob(pattern="**/k8s/**")
+Glob(pattern="CONTRIBUTING.md")
+```
+
+### Tier Classification
+
+| Signal | Tier |
+|--------|------|
+| README says "take-home", "assignment", time limit | **1. Interview** |
+| < 10 files, no CI, no Docker | **2. Hackathon** |
+| `.github/workflows/`, 10-25 deps | **3. MVP** |
+| Module boundaries, Redis, background jobs | **4. Growth** |
+| K8s/Terraform, DDD structure, monorepo | **5. Enterprise** |
+| CONTRIBUTING.md, LICENSE, minimal deps | **6. Open Source** |
+
+**If confidence is low**, ask the user:
+
+```python
+AskUserQuestion(questions=[{
+  "question": "What kind of project is this?",
+  "header": "Project tier",
+  "options": [
+    {"label": "Interview / take-home", "description": "8-15 files, 200-600 LOC, simple architecture", "markdown": "```\nTier 1: Interview / Take-Home\n─────────────────────────────\nFiles:    8-15 max\nLOC:      200-600\nArch:     Flat structure, no abstractions\nPatterns: Direct imports, inline logic\nTests:    Unit only, co-located\n```"},
+    {"label": "Startup / MVP", "description": "MVC monolith, managed services, ship fast", "markdown": "```\nTier 3: Startup / MVP\n─────────────────────\nArch:     MVC monolith\nDB:       Managed (RDS/Supabase)\nCI:       GitHub Actions (1-2 workflows)\nPatterns: Service layer, repository pattern\nDeploy:   Vercel / Railway / Fly.io\n```"},
+    {"label": "Growth / enterprise", "description": "Modular monolith or DDD, full observability", "markdown": "```\nTier 4-5: Growth / Enterprise\n─────────────────────────────\nArch:     Modular monolith or DDD\nInfra:    K8s, Terraform, Redis, queues\nCI:       Multi-stage pipelines\nPatterns: Hexagonal, CQRS, event-driven\nObserve:  Structured logging, tracing\n```"},
+    {"label": "Open source library", "description": "Minimal API surface, exhaustive tests", "markdown": "```\nTier 6: Open Source Library\n──────────────────────────\nAPI:      Minimal public surface\nTests:    100% coverage, property-based\nDocs:     README, API docs, examples\nCI:       Matrix builds, release automation\nPatterns: Semver, CONTRIBUTING.md\n```"}
+  ],
+  "multiSelect": false
+}])
+```
+
+**Pass the detected tier as context to ALL downstream agents and phases.** The tier constrains which patterns are appropriate — see `scope-appropriate-architecture` skill for the full matrix.
+
+> **Override:** User can always override the detected tier. Warn them of trade-offs if they choose a higher tier than detected.
+
+
+## STEP 0a: Verify User Intent with AskUserQuestion
+
+**Clarify brainstorming constraints:**
+
+```python
+AskUserQuestion(
+  questions=[
+    {
+      "question": "What type of design exploration?",
+      "header": "Type",
+      "options": [
+        {"label": "Open exploration (Recommended)", "description": "Generate 10+ ideas, evaluate all, synthesize top 3", "markdown": "```\nOpen Exploration (7 phases)\n──────────────────────────\n  Diverge        Evaluate       Synthesize\n  ┌─────┐       ┌─────┐       ┌─────┐\n  │ 10+ │──────▶│Rate │──────▶│Top 3│\n  │ideas│       │0-10 │       │picks│\n  └─────┘       └─────┘       └─────┘\n  3-5 agents    Devil's        Trade-off\n  in parallel   advocate       table\n```"},
+        {"label": "Constrained design", "description": "I have specific requirements to work within", "markdown": "```\nConstrained Design\n──────────────────\n  Requirements ──▶ Feasibility ──▶ Design\n  ┌──────────┐    ┌──────────┐    ┌──────┐\n  │ Fixed    │    │ Check    │    │ Best │\n  │ bounds   │    │ fit      │    │ fit  │\n  └──────────┘    └──────────┘    └──────┘\n  Skip divergent phase, focus on\n  feasibility within constraints\n```"},
+        {"label": "Comparison", "description": "Compare 2-3 specific approaches I have in mind", "markdown": "```\nComparison Mode\n───────────────\n  Approach A ──┐\n  Approach B ──┼──▶ Rate 0-10 ──▶ Winner\n  Approach C ──┘    (6 dims)\n\n  Skip ideation, jump straight\n  to evaluation + trade-off table\n```"},
+        {"label": "Quick ideation", "description": "Generate ideas fast, skip deep evaluation", "markdown": "```\nQuick Ideation\n──────────────\n  Braindump ──▶ Light filter ──▶ List\n  ┌────────┐   ┌────────────┐   ┌────┐\n  │ 10+    │   │ Viable?    │   │ 5-7│\n  │ ideas  │   │ Y/N only   │   │ out│\n  └────────┘   └────────────┘   └────┘\n  Fast pass, no deep scoring\n```"},
+        {"label": "Plan first", "description": "Structured exploration before generating ideas", "markdown": "```\nPlan Mode Exploration\n─────────────────────\n  1. EnterPlanMode\n  2. Analyze constraints\n  3. Research precedents\n  4. Map solution space\n  5. ExitPlanMode → options\n  6. User picks direction\n  7. Deep dive on chosen path\n\n  Best for: Architecture,\n  design systems, trade-offs\n```"}
+      ],
+      "multiSelect": false
+    },
+    {
+      "question": "Any preferences or constraints?",
+      "header": "Constraints",
+      "options": [
+        {"label": "None", "description": "Explore all possibilities"},
+        {"label": "Use existing patterns", "description": "Prefer patterns already in codebase"},
+        {"label": "Minimize complexity", "description": "Favor simpler solutions"},
+        {"label": "I'll specify", "description": "Let me provide specific constraints"}
+      ],
+      "multiSelect": false
+    }
+  ]
+)
+```
+
+**If 'Plan first' selected:** Call `EnterPlanMode`, perform research using Read/Grep/Glob only, then `ExitPlanMode` with the plan for user approval before proceeding.
+
+**Based on answers, adjust workflow:**
+- **Open exploration**: Full 7-phase process with all agents
+- **Constrained design**: Skip divergent phase, focus on feasibility
+- **Comparison**: Skip ideation, jump to evaluation phase
+- **Quick ideation**: Generate ideas, skip deep evaluation
+
+
+## STEP 0b: Select Orchestration Mode (skip for Tier 1-2)
+
+Choose **Agent Teams** (mesh — agents debate and challenge ideas) or **Task tool** (star — all report to lead):
+
+1. `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` → **Agent Teams mode**
+2. Agent Teams unavailable → **Task tool mode** (default)
+3. Otherwise: Open exploration with 3+ agents → recommend **Agent Teams** (real-time debate produces better ideas); Quick ideation → **Task tool**
+
+| Aspect | Task Tool | Agent Teams |
+|--------|-----------|-------------|
+| Idea generation | Each agent generates independently | Agents riff on each other's ideas |
+| Devil's advocate | Lead challenges after all complete | Agents challenge each other in real-time |
+| Cost | ~150K tokens | ~400K tokens |
+| Best for | Quick ideation, constrained design | Open exploration, deep evaluation |
+
+> **Fallback:** If Agent Teams encounters issues, fall back to Task tool for remaining phases.
+
+
+## CRITICAL: Task Management is MANDATORY (CC 2.1.16)
+
+```python
+# Create main task IMMEDIATELY
+TaskCreate(
+  subject="Brainstorm: {topic}",
+  description="Design exploration with parallel agent research",
+  activeForm="Brainstorming {topic}"
+)
+
+# Create subtasks for each phase
+TaskCreate(subject="Analyze topic and select agents", activeForm="Analyzing topic")
+TaskCreate(subject="Search memory for past decisions", activeForm="Searching knowledge graph")
+TaskCreate(subject="Generate divergent ideas (10+)", activeForm="Generating ideas")
+TaskCreate(subject="Feasibility fast-check", activeForm="Checking feasibility")
+TaskCreate(subject="Evaluate with devil's advocate", activeForm="Evaluating ideas")
+TaskCreate(subject="Synthesize top approaches", activeForm="Synthesizing approaches")
+TaskCreate(subject="Present design options", activeForm="Presenting options")
+```
+
+
+## The Seven-Phase Process
+
+| Phase | Activities | Output |
+|-------|------------|--------|
+| **0. Topic Analysis** | Classify keywords, select 3-5 agents | Agent list |
+| **1. Memory + Context** | Search graph, check codebase | Prior patterns |
+| **2. Divergent Exploration** | Generate 10+ ideas WITHOUT filtering | Idea pool |
+| **3. Feasibility Fast-Check** | 30-second viability per idea, **including testability** | Filtered ideas |
+| **4. Evaluation & Rating** | Rate 0-10 (6 dimensions incl. **testability**), devil's advocate | Ranked ideas |
+| **5. Synthesis** | Filter to top 2-3, trade-off table, **test strategy per approach** | Options |
+| **6. Design Presentation** | Present in 200-300 word sections, **include test plan** | Validated design |
+
+Load the phase workflow for detailed instructions:
+```
+Read("${CLAUDE_PLUGIN_ROOT}/skills/brainstorm/references/phase-workflow.md")
+```
+
+
+## When NOT to Use
+
+Skip brainstorming when:
+- Requirements are crystal clear and specific
+- Only one obvious approach exists
+- User has already designed the solution
+- Time-sensitive bug fix or urgent issue
+
+
+## Quick Reference: Agent Selection
+
+| Topic Example | Agents to Spawn |
+|---------------|-----------------|
+| "brainstorm API for users" | workflow-architect, backend-system-architect, security-auditor, **test-generator** |
+| "brainstorm dashboard UI" | workflow-architect, frontend-ui-developer, **test-generator** |
+| "brainstorm RAG pipeline" | workflow-architect, llm-integrator, data-pipeline-engineer, **test-generator** |
+| "brainstorm caching strategy" | workflow-architect, backend-system-architect, frontend-performance-engineer, **test-generator** |
+
+**Always include:** `workflow-architect` for system design perspective, `test-generator` for testability assessment.
+
+
+## Agent Teams Alternative: Brainstorming Team
+
+In Agent Teams mode, form a brainstorming team where agents debate ideas in real-time. Dynamically select teammates based on topic analysis (Phase 0):
+
+```python
+TeamCreate(team_name="brainstorm-{topic-slug}", description="Brainstorm {topic}")
+
+# Always include the system design lead
+Agent(subagent_type="workflow-architect", name="system-designer",
+     team_name="brainstorm-{topic-slug}",
+     prompt="""You are the system design lead for brainstorming: {topic}
+     DIVERGENT MODE: Generate 3-4 architectural approaches.
+     When other teammates share ideas, build on them or propose alternatives.
+     Challenge ideas that seem over-engineered — advocate for simplicity.
+     After divergent phase, help synthesize the top approaches.""")
+
+# Domain-specific teammates (select 2-3 based on topic keywords)
+Agent(subagent_type="backend-system-architect", name="backend-thinker",
+     team_name="brainstorm-{topic-slug}",
+     prompt="""Brainstorm backend approaches for: {topic}
+     DIVERGENT MODE: Generate 3-4 backend-specific ideas.
+     When system-designer shares architectural ideas, propose concrete API designs.
+     Challenge ideas from other teammates with implementation reality checks.
+     Play devil's advocate on complexity vs simplicity trade-offs.""")
+
+Agent(subagent_type="frontend-ui-developer", name="frontend-thinker",
+     team_name="brainstorm-{topic-slug}",
+     prompt="""Brainstorm frontend approaches for: {topic}
+     DIVERGENT MODE: Generate 3-4 UI/UX ideas.
+     When backend-thinker proposes APIs, suggest frontend patterns that match.
+     Challenge backend proposals that create poor user experiences.
+     Advocate for progressive disclosure and accessibility.""")
+
+# Always include: testability assessor
+Agent(subagent_type="test-generator", name="testability-assessor",
+     team_name="brainstorm-{topic-slug}",
+     prompt="""Assess testability for each brainstormed approach: {topic}
+     For every idea shared by teammates, evaluate:
+     - Can core logic be unit tested without external services?
+     - What's the mock/stub surface area?
+     - Can it be integration-tested with docker-compose/testcontainers?
+     Score testability 0-10 per the evaluation rubric.
+     Challenge designs that score below 5 on testability.
+     Propose test strategies for the top approaches in synthesis phase.""")
+
+# Optional: Add security-auditor, llm-integrator based on topic
+```
+
+**Key advantage:** Agents riff on each other's ideas and play devil's advocate in real-time, rather than generating ideas in isolation.
+
+**Team teardown** after synthesis:
+```python
+# After Phase 5 synthesis and design presentation
+SendMessage(type="shutdown_request", recipient="system-designer", content="Brainstorm complete")
+SendMessage(type="shutdown_request", recipient="backend-thinker", content="Brainstorm complete")
+SendMessage(type="shutdown_request", recipient="frontend-thinker", content="Brainstorm complete")
+SendMessage(type="shutdown_request", recipient="testability-assessor", content="Brainstorm complete")
+# ... shutdown any additional domain teammates
+TeamDelete()
+```
+
+> **Fallback:** If team formation fails, load `Read("${CLAUDE_PLUGIN_ROOT}/skills/brainstorm/references/phase-workflow.md")` and use standard Phase 2 Task spawns.
+
+> **Context exhaustion:** If context limit is reached mid-brainstorm, collect partial results from completed agents, synthesize what's available, and note which phases were skipped. Prefer returning partial results over failing silently.
+
+> **Manual cleanup:** If `TeamDelete()` doesn't terminate all agents, press `Ctrl+F` twice to force-kill remaining background agents.
+
+
+## Key Principles
+
+| Principle | Application |
+|-----------|-------------|
+| **Dynamic agent selection** | Select agents based on topic keywords |
+| **Parallel research** | Launch 3-5 agents in ONE message |
+| **Memory-first** | Check graph for past decisions before research |
+| **Divergent-first** | Generate 10+ ideas BEFORE filtering |
+| **Task tracking** | Use TaskCreate/TaskUpdate for progress visibility |
+| **YAGNI ruthlessly** | Remove unnecessary complexity |
+
+
+## Related Skills
+
+- `ork:architecture-decision-record` - Document key decisions made during brainstorming
+- `ork:implement` - Execute the implementation plan after brainstorming completes
+- `ork:explore` - Deep codebase exploration to understand existing patterns
+- `ork:assess` - Rate quality 0-10 with dimension breakdown
+
+## References
+
+Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/brainstorm/references/<file>")`:
+
+| File | Content |
+|------|---------|
+| `phase-workflow.md` | Detailed 7-phase instructions |
+| `divergent-techniques.md` | SCAMPER, Mind Mapping, etc. |
+| `evaluation-rubric.md` | 0-10 scoring criteria |
+| `devils-advocate-prompts.md` | Challenge templates |
+| `socratic-questions.md` | Requirements discovery |
+| `common-pitfalls.md` | Mistakes to avoid |
+| `example-session-dashboard.md` | Complete example |
+
+
+**Version:** 4.3.0 (February 2026) - Added testability scoring to evaluation, test strategy to synthesis output

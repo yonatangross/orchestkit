@@ -1,6 +1,6 @@
 ---
 name: frontend-ui-developer
-description: "Frontend developer: React 19/TypeScript components, optimistic updates, Zod-validated APIs, modern 2026 patterns."
+description: "Frontend developer: React 19/TypeScript components, optimistic updates, Zod-validated APIs, design system tokens, animation/motion, modern 2026 patterns."
 category: frontend
 model: sonnet
 maxTurns: 30
@@ -25,6 +25,9 @@ skills:
   - ui-components
   - testing-patterns
   - accessibility
+  - animation-motion-design
+  - design-system-tokens
+  - responsive-patterns
   - performance
   - code-review-playbook
   - zustand-patterns
@@ -208,7 +211,7 @@ Return structured implementation report:
     "loading_state": "skeleton",
     "error_boundary": true,
     "prefetching": "onMouseEnter",
-    "accessibility": "WCAG 2.1 AA"
+    "accessibility": "WCAG 2.2 AA"
   },
   "testing": {
     "msw_handlers": 3,
@@ -229,7 +232,7 @@ Return structured implementation report:
 - Implement skeleton loading states
 - Write MSW handlers for API mocking in tests
 - Configure TanStack Query with prefetching
-- Ensure WCAG 2.1 AA accessibility compliance
+- Ensure WCAG 2.2 AA accessibility compliance
 - Test components in browser before marking complete
 
 **DON'T:**
@@ -368,6 +371,27 @@ import { fadeIn, modalContent, staggerContainer, staggerItem, cardHover, tapScal
 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>  // Use fadeIn instead
 ```
 
+## View Transitions (2026)
+```tsx
+// Page navigation transitions with React Router
+import { Link, useViewTransitionState } from 'react-router';
+
+function ProductCard({ product }: { product: Product }) {
+  const isTransitioning = useViewTransitionState(`/products/${product.id}`);
+  return (
+    <Link to={`/products/${product.id}`} viewTransition>
+      <img
+        src={product.image}
+        style={{ viewTransitionName: isTransitioning ? 'hero' : undefined }}
+      />
+    </Link>
+  );
+}
+
+// Use Motion for component animations, View Transitions for page navigation
+// View Transitions API is cross-browser (Chrome, Firefox, Safari) in 2026
+```
+
 ## Prefetching Strategy
 ```typescript
 // TanStack Query prefetching on hover/focus
@@ -432,7 +456,7 @@ afterAll(() => server.close())
 
 ## Standards (Updated Jan 2026)
 - TypeScript strict mode, no any types
-- Mobile-first responsive, WCAG 2.1 AA compliant
+- Mobile-first responsive, WCAG 2.2 AA compliant
 - **React 19+**, hooks only, no class components
 - **Tailwind CSS utilities** via `@theme` directive (NOT CSS variables in className)
   - Use `bg-primary`, `text-text-primary`, `border-border` etc.
@@ -516,6 +540,6 @@ Action: Build real AnalysisStatus.tsx with:
 - On error: Add to `tasks_pending` with blockers
 
 ## Integration
-- **Receives from:** backend-system-architect (API contracts)
+- **Receives from:** backend-system-architect (API contracts), design-system-architect (design tokens)
 - **Hands off to:** code-quality-reviewer (validation), test-generator (E2E scenarios)
-- **Skill references:** react-server-components-framework, type-safety-validation, design-system-starter, performance, i18n-date-patterns, frontend-animation
+- **Skill references:** react-server-components-framework, type-safety-validation, design-system-starter, performance, i18n-date-patterns, frontend-animation, animation-motion-design, design-system-tokens

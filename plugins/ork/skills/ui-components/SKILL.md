@@ -6,7 +6,7 @@ description: UI component library patterns for shadcn/ui and Radix Primitives. U
 tags: [ui-components, shadcn, radix, component-library, design-system, accessible-components, react-hook-form, zod, forms, validation, server-actions, field-arrays]
 context: fork
 agent: frontend-ui-developer
-version: 2.0.0
+version: 2.1.0
 author: OrchestKit
 user-invocable: false
 disable-model-invocation: true
@@ -34,8 +34,9 @@ Comprehensive patterns for building accessible UI component libraries with shadc
 | [Design System](#design-system) | 5 | HIGH | W3C tokens, OKLCH theming, spacing scales, typography, component states, animation |
 | [Design System Components](#design-system-components) | 1 | HIGH | Atomic design, CVA variants, accessibility, Storybook |
 | [Forms](#forms) | 2 | HIGH | React Hook Form v7, Zod validation, Server Actions |
+| [Modern CSS & Tooling](#modern-css--tooling) | 3 | HIGH | CSS cascade layers, Tailwind v4, Storybook CSF3 |
 
-**Total: 14 rules across 5 categories**
+**Total: 17 rules across 6 categories**
 
 ## Quick Start
 
@@ -163,6 +164,16 @@ React Hook Form v7 with Zod validation and React 19 Server Actions.
 |------|------|-------------|
 | React Hook Form | `rules/forms-react-hook-form.md` | useForm, field arrays, Controller, wizards, file uploads |
 | Zod & Server Actions | `rules/forms-validation-zod.md` | Zod schemas, Server Actions, useActionState, async validation |
+
+## Modern CSS & Tooling
+
+Modern CSS patterns, Tailwind v4, and component documentation tooling for 2026.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| CSS Cascade Layers | `rules/css-cascade-layers.md` | @layer ordering, specificity-free overrides, third-party isolation |
+| Tailwind v4 | `rules/tailwind-v4-patterns.md` | CSS-first @theme, native container queries, @max-* variants |
+| Storybook Docs | `rules/storybook-component-docs.md` | CSF3 stories, play() interaction tests, Chromatic visual regression |
 
 ## Related Skills
 

@@ -1,0 +1,61 @@
+{
+  "skill": "okr-design",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "metrics-experiment-design",
+      "rule": "metrics-experiment-design",
+      "query": "Design an A/B test for our new checkout flow to measure if reducing steps increases conversions",
+      "expectedBehavior": [
+        "Structures hypothesis with expected metric direction, effect size, and supporting reasoning",
+        "Defines guardrail metrics like revenue per transaction and refund rate that must not degrade",
+        "Plans staged rollout at 10%, 50%, and 100% with kill criteria at each stage",
+        "Includes pre-launch checklist with sample size calculation and dashboard configuration"
+      ]
+    },
+    {
+      "id": "metrics-instrumentation",
+      "rule": "metrics-instrumentation",
+      "query": "Set up event tracking and metric definitions for our SaaS product analytics",
+      "expectedBehavior": [
+        "Uses consistent object_action naming convention for all analytics events",
+        "Includes required event properties: timestamp, user_id, and context-specific properties",
+        "Defines formal metric definitions with formula, data source, segments, and targets",
+        "Configures alerting thresholds with warning and critical severity levels and escalation paths"
+      ]
+    },
+    {
+      "id": "metrics-kpi-trees",
+      "rule": "metrics-kpi-trees",
+      "query": "Build a KPI tree that connects our revenue goal to actionable team-level input metrics",
+      "expectedBehavior": [
+        "Decomposes the top-level revenue metric into mathematical components like new, expansion, and retained",
+        "Identifies leading input metrics at the leaf nodes that teams can directly act on",
+        "Assigns clear team ownership to each metric in the hierarchy tree",
+        "Keeps the tree to 3 levels deep for clarity with dashboarded visibility across the organization"
+      ]
+    },
+    {
+      "id": "metrics-leading-lagging",
+      "rule": "metrics-leading-lagging",
+      "query": "We only track monthly revenue and churn but never see problems coming. How do we get early warning?",
+      "expectedBehavior": [
+        "Identifies 2 to 3 leading indicators that predict each lagging metric like churn or revenue",
+        "Pairs product usage frequency and support ticket severity as leading indicators for churn",
+        "Sets up weekly review cadence for leading indicators and monthly for lagging confirmation",
+        "Creates a balanced dashboard with leading indicators at the top for real-time actionability"
+      ]
+    },
+    {
+      "id": "metrics-okr",
+      "rule": "metrics-okr",
+      "query": "Write Q1 OKRs for our product team that focus on enterprise customer success",
+      "expectedBehavior": [
+        "Writes qualitative inspiring objectives like become the number one choice for enterprise teams",
+        "Structures key results with the verb-metric-from-baseline-to-target formula pattern",
+        "Focuses key results on measurable outcomes not output tasks like ship features or write tests",
+        "Limits to 3 to 5 key results per objective with leading indicator focus for actionability"
+      ]
+    }
+  ]
+}

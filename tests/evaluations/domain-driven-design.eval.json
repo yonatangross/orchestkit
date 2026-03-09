@@ -1,0 +1,88 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "domain-driven-design",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "negative-i-need-to-model",
+      "query": "I need to model an Order entity with line items and a Money value object for our e-commerce domain. The order should enforce a maximum of 50 items and validate currency consistency.",
+      "expected_behavior": [
+        "Claude creates an Order entity with identity equality (by ID, not attributes)",
+        "Claude creates a Money value object with frozen=True dataclass",
+        "Claude models line items as part of the Order aggregate",
+        "Claude enforces the 50-item invariant inside the aggregate root",
+        "Claude uses domain events for state transitions (e.g., OrderSubmitted)",
+        "Claude does NOT leak infrastructure concerns into the domain model"
+      ],
+      "tags": [
+        "negative"
+      ]
+    },
+    {
+      "id": "edge-we-have-15-entities",
+      "query": "We have 15 entities with complex invariants spanning multiple objects. I need to define bounded contexts for our payment, inventory, and shipping subdomains with an anti-corruption layer between them.",
+      "expected_behavior": [
+        "Claude defines separate bounded contexts for each subdomain",
+        "Claude implements an Anti-Corruption Layer (ACL) at context boundaries",
+        "Claude references entities by ID across aggregates, not direct object references",
+        "Claude establishes ubiquitous language per context",
+        "Claude uses context mapping patterns (upstream/downstream, conformist, etc.)"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "negative-im-building-a-simple",
+      "query": "I'm building a simple CRUD todo app with just a Task model that has title, description, and done fields. No complex business rules.",
+      "expected_behavior": [
+        "Claude does NOT invoke the domain-driven-design skill",
+        "Claude uses plain dataclasses or a simple ORM model",
+        "Claude avoids DDD ceremony (aggregates, repositories, domain events) for this trivial domain",
+        "Claude may suggest a straightforward SQLAlchemy or Django model instead"
+      ],
+      "tags": [
+        "negative"
+      ]
+    },
+    {
+      "id": "aggregate-boundaries",
+      "query": "How do I define the aggregate root boundary for an Order with LineItems and ensure transactional consistency?",
+      "expected_behavior": [
+        "Makes Order the aggregate root that controls all access to LineItems as children",
+        "Enforces one aggregate per transaction rule to maintain consistency boundaries",
+        "References other aggregates by ID only and never holds direct object references across boundaries",
+        "Ensures the root entity enforces all business rules before allowing state changes"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "aggregate-invariants",
+      "query": "My Order aggregate needs to enforce a maximum of 100 items and validate currency consistency. Where do these checks go?",
+      "expected_behavior": [
+        "Places invariant enforcement inside the aggregate root on every mutation method",
+        "Raises domain exceptions when business rules are violated before state transition occurs",
+        "Validates the 100-item maximum and currency consistency within the aggregate boundary",
+        "Warns that unenforced invariants allow invalid domain state that propagates silently through the system"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "aggregate-sizing",
+      "query": "Our Order aggregate loads thousands of line items and is causing performance issues with lock contention",
+      "expected_behavior": [
+        "Recommends splitting aggregates when child collections grow beyond 100 items",
+        "Uses reference by ID pattern for large collections instead of loading all children",
+        "Identifies different change rates as a signal to split into separate smaller aggregates",
+        "Never allows unbounded collections within a single aggregate boundary"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    }
+  ]
+}

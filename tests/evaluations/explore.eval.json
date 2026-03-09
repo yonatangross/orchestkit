@@ -4,59 +4,112 @@
   "version": "1.0.0",
   "evaluations": [
     {
-      "id": "codebase-structure",
-      "query": "what is the structure of this codebase?",
+      "id": "full-exploration",
+      "query": "Explore the authentication system in this codebase",
       "expected_behavior": [
-        "Read project root directory",
-        "Identify key directories and their purposes",
-        "Find configuration files",
-        "Provide structured overview"
+        "Launches 4 parallel exploration agents (structure, data flow, backend, frontend)",
+        "Includes code health assessment with 0-10 scoring across 5 dimensions",
+        "Spawns backend-system-architect subagent to analyze architecture patterns and integrations",
+        "Generates structured exploration report with file locations and architecture"
       ],
-      "should_not": [
-        "Make modifications to any files",
-        "Skip important directories"
-      ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
-      "id": "find-implementation",
-      "query": "where is user authentication implemented?",
+      "id": "quick-search",
+      "query": "Just find the files related to payment processing",
       "expected_behavior": [
-        "Search for auth-related files",
-        "Use grep for auth keywords",
-        "Read relevant files",
-        "Explain the authentication flow"
+        "Skips deep agent analysis for faster lightweight results",
+        "Uses Grep and Glob for quick file discovery",
+        "Returns file list without full exploration phases",
+        "Completes phases 1-2 only without running full exploration"
       ],
-      "should_not": [
-        "Guess without searching",
-        "Modify any code"
-      ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
-      "id": "understand-pattern",
-      "query": "how do API endpoints work in this project?",
+      "id": "data-flow-trace",
+      "query": "Trace how user data flows from the API to the database",
       "expected_behavior": [
-        "Find API route definitions",
-        "Trace request handling flow",
-        "Identify middleware usage",
-        "Explain the pattern with examples"
+        "Focuses data flow explorer agent on tracing entry points",
+        "Maps processing pipeline from API to storage",
+        "Identifies data transformations at each hop",
+        "Produces entry-to-storage flow diagram showing data transformations at each step"
       ],
-      "success_criteria": [
-        "Clear explanation of the pattern",
-        "Specific file references provided"
-      ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
-      "id": "dependency-analysis",
-      "query": "what dependencies does this project use?",
+      "id": "architecture-patterns",
+      "query": "What design patterns does the backend use?",
       "expected_behavior": [
-        "Read package.json or equivalent",
-        "Identify major dependencies",
-        "Note any notable patterns"
+        "Focuses backend-system-architect agent on pattern analysis",
+        "Identifies architectural patterns and integrations used across the backend codebase",
+        "Reports on dependencies and integrations found by the backend explorer agent",
+        "Checks memory for prior architecture decisions"
       ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "agent-teams-mode",
+      "query": "Explore the payment system using agent teams with coordinated discovery sharing between explorers.",
+      "expected_behavior": [
+        "Creates an exploration team using TeamCreate with a descriptive team name",
+        "Launches multiple named agents with team_name for coordinated parallel exploration",
+        "Agents share discoveries in real-time by messaging each other with found entry points",
+        "Sends shutdown_request messages to all agents after report generation is complete",
+        "Falls back to standard Task tool spawns if team formation fails"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "code-health-assessment",
+      "query": "Assess the code health of the authentication module and give me scores across quality dimensions.",
+      "expected_behavior": [
+        "Rates code quality 0-10 across five dimensions: readability, maintainability, testability, complexity, and documentation",
+        "Produces structured JSON output with overall_score, dimensions, hotspots, and recommendations",
+        "Identifies specific file and line hotspots like deeply nested conditionals or oversized functions",
+        "Uses code-quality-reviewer subagent type for the assessment with background execution",
+        "Ends with a summary line showing overall score and strongest and weakest dimensions"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "dependency-hotspot-analysis",
+      "query": "Analyze the coupling and dependency hotspots in the database access layer of this codebase.",
+      "expected_behavior": [
+        "Calculates coupling score 0-10 with fan-in and fan-out dependency counts",
+        "Identifies circular dependencies between modules and flags them for resolution",
+        "Maps change impact blast radius showing which files break when the target changes",
+        "Produces an ASCII hotspot diagram visualizing dependency relationships between modules",
+        "Uses backend-system-architect subagent type for the dependency analysis"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "product-perspective",
+      "query": "Analyze the notification system from a product perspective including business context and findability.",
+      "expected_behavior": [
+        "Identifies the business purpose and primary user types for the explored code",
+        "Suggests better naming and documentation entry points for improved discoverability",
+        "Lists documentation gaps and tribal knowledge that should be written down",
+        "Provides search keywords and alternative terms to help developers find the code",
+        "Uses product-strategist subagent type to analyze from a business viewpoint"
+      ],
+      "tags": [
+        "happy-path"
+      ]
     }
   ]
 }

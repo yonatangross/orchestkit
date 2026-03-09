@@ -7,7 +7,7 @@
       "rule": null,
       "query": "Validate that all counts are consistent across OrchestKit",
       "expectedBehavior": [
-        "Runs scripts/validate-counts.sh from repo root",
+        "Runs scripts/validate-counts.sh from repo root to check all count sources",
         "Compares skill, hook, and agent counts from src/ vs CLAUDE.md and manifests",
         "Outputs a comparison table showing all sources agree",
         "Reports 'All counts consistent.' with no drift flags"

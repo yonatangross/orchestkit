@@ -1,6 +1,6 @@
 ---
 title: UI Components Rule Categories
-version: 2.0.0
+version: 2.1.0
 ---
 
 # Rule Categories
@@ -39,3 +39,11 @@ React Hook Form v7 with Zod validation and React 19 Server Actions.
 
 - `forms-react-hook-form.md` -- useForm, field arrays, Controller, multi-step wizards, file uploads
 - `forms-validation-zod.md` -- Zod schemas, Server Actions, useActionState, async validation
+
+## 5. Modern CSS & Tooling (modern-css) — HIGH — 3 rules
+
+Modern CSS patterns, Tailwind v4, and component documentation tooling for 2026.
+
+- `css-cascade-layers.md` — @layer ordering, specificity-free overrides, third-party CSS isolation
+- `tailwind-v4-patterns.md` — CSS-first @theme configuration, native container queries, @max-* variants
+- `storybook-component-docs.md` — CSF3 stories, play() interaction tests, Chromatic visual regression

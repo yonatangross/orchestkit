@@ -29,7 +29,7 @@
       "rule": "curation-diversity",
       "query": "Ensure the golden dataset has balanced coverage across difficulty levels",
       "expectedBehavior": [
-        "Stratifies entries into trivial/easy/medium/hard/adversarial levels",
+        "Stratifies entries into trivial/easy/medium/hard/adversarial difficulty levels for balance",
         "Enforces minimum counts per difficulty level",
         "Checks domain coverage across AI/ML, backend, frontend, DevOps",
         "Flags over-representation of specific content types"
@@ -63,9 +63,9 @@
       "query": "Automate golden dataset backups with GitHub Actions",
       "expectedBehavior": [
         "Sets up weekly scheduled backup (Sunday 2am UTC)",
-        "Includes manual workflow_dispatch trigger",
+        "Includes manual workflow_dispatch trigger for on-demand backup runs",
         "Commits backup files to git automatically",
-        "Runs verification after backup creation"
+        "Runs automated verification checks after each backup creation step"
       ]
     },
     {
@@ -85,8 +85,8 @@
       "query": "Detect duplicate content in the golden dataset",
       "expectedBehavior": [
         "Runs semantic similarity check against existing embeddings",
-        "Blocks entries with >=0.90 similarity",
-        "Warns on >=0.85 similarity",
+        "Blocks entries with >=0.90 similarity score as near-duplicates",
+        "Warns on entries with >=0.85 similarity for manual review",
         "Normalizes URLs for exact duplicate detection"
       ]
     },
@@ -95,10 +95,21 @@
       "rule": "validation-regression",
       "query": "Run full validation on the golden dataset before deployment",
       "expectedBehavior": [
-        "Validates schema for all documents",
+        "Validates schema compliance for all documents in the dataset",
         "Checks unique IDs and referential integrity",
-        "Analyzes difficulty distribution against minimums",
+        "Analyzes difficulty distribution against configured minimum thresholds per level",
         "Reports coverage gaps and generates actionable recommendations"
+      ]
+    },
+    {
+      "id": "curation-add-workflow",
+      "rule": "curation-add-workflow",
+      "query": "Walk me through the complete workflow for adding a new document to the golden dataset",
+      "expectedBehavior": [
+        "Follows the structured add workflow from content identification through quality validation",
+        "Classifies the document content type and applies quality thresholds before acceptance",
+        "Checks for duplicate content against existing entries using URL and semantic similarity",
+        "Requires minimum domain tags and test queries before the document is accepted into the dataset"
       ]
     }
   ]

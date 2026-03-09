@@ -13,7 +13,7 @@ Use this table to determine which Remotion folder a skill's demo composition bel
 | Memory-Skills | remember, memory |
 | Review-Skills | review-pr, create-pr, fix-issue |
 | DevOps-Skills | doctor, configure, run-tests, feedback |
-| AI-Skills | brainstorming, assess, assess-complexity |
+| AI-Skills | brainstorm, assess, assess-complexity |
 | Advanced-Skills | skill-evolution, demo-producer, add-golden |
 
 ## Content Type Templates

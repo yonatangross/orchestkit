@@ -1,0 +1,69 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "memory",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "basic-orkmemory-search-pagination",
+      "query": "/ork:memory search pagination",
+      "expected_behavior": [
+        "Claude invokes mcp__memory__search_nodes with query 'pagination'",
+        "Returns matching entities and relations from the knowledge graph",
+        "Formats results with entity names, types, and observations"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "negative-orkmemory",
+      "query": "/ork:memory",
+      "expected_behavior": [
+        "Claude detects no subcommand was provided",
+        "Uses AskUserQuestion to present subcommand options: search, load, history, viz, status",
+        "Does NOT guess or auto-select a subcommand"
+      ],
+      "tags": [
+        "negative"
+      ]
+    },
+    {
+      "id": "negative-store-the-decision-that",
+      "query": "Store the decision that we chose PostgreSQL over MongoDB for our backend",
+      "expected_behavior": [
+        "Claude does NOT invoke the memory skill (memory is read-side only)",
+        "Routes to the remember skill instead for write operations",
+        "Does not call mcp__memory__search_nodes or mcp__memory__read_graph"
+      ],
+      "tags": [
+        "negative"
+      ]
+    },
+    {
+      "id": "deduplication-strategy",
+      "query": "When loading memories from the knowledge graph, how do I prevent duplicate entries from wasting context tokens?",
+      "expected_behavior": [
+        "Prefers Edit over Write when updating memory files to preserve existing content",
+        "Uses anchor-based insertion under specific section headers to avoid duplicate entries",
+        "Verifies target section header exists before inserting new memory content into the file",
+        "Reads the file after editing to confirm the edit applied correctly without duplication"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "entity-extraction-patterns",
+      "query": "What entity types does the memory knowledge graph use and how should I categorize new entries?",
+      "expected_behavior": [
+        "Categorizes entities into types including Technology, Agent, Pattern, Decision, and Project",
+        "Associates typical observations with each entity type such as version and use case for Technology",
+        "Distinguishes Pattern from AntiPattern entities based on success or failure outcomes",
+        "Includes Constraint and Preference entity types with source, severity, and scope attributes"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    }
+  ]
+}

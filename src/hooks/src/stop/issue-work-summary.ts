@@ -6,7 +6,7 @@
  */
 
 import { existsSync, readFileSync, unlinkSync, rmdirSync } from 'node:fs';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, getProjectDir, getSessionId, outputSilentSuccess } from '../lib/common.js';
 import { getSessionTempDir } from '../lib/paths.js';
@@ -27,8 +27,8 @@ interface IssueProgress {
  */
 function isGhAvailable(): boolean {
   try {
-    execSync('which gh', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
-    execSync('gh auth status', { encoding: 'utf8', timeout: 5000, stdio: ['pipe', 'pipe', 'pipe'] });
+    execFileSync('which', ['gh'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
+    execFileSync('gh', ['auth', 'status'], { encoding: 'utf8', timeout: 5000, stdio: ['pipe', 'pipe', 'pipe'] });
     return true;
   } catch {
     return false;
@@ -40,7 +40,7 @@ function isGhAvailable(): boolean {
  */
 function isGitHubRepo(projectDir: string): boolean {
   try {
-    const remote = execSync('git remote get-url origin', {
+    const remote = execFileSync('git', ['remote', 'get-url', 'origin'], {
       cwd: projectDir,
       encoding: 'utf8',
       timeout: 5000,
@@ -90,7 +90,7 @@ function postComment(issueNum: string, comment: string): boolean {
     if (!safeIssueNum) return false;
 
     // Use stdin to pass comment body, avoiding shell escaping issues entirely
-    execSync(`gh issue comment ${safeIssueNum} --body-file -`, {
+    execFileSync('gh', ['issue', 'comment', safeIssueNum, '--body-file', '-'], {
       input: comment,
       encoding: 'utf8',
       timeout: 30000,
@@ -162,7 +162,7 @@ export function issueWorkSummary(input: HookInput): HookResult {
 
     // Verify issue exists
     try {
-      execSync(`gh issue view ${assertSafeIssueNumber(issueNum)} --json number`, {
+      execFileSync('gh', ['issue', 'view', assertSafeIssueNumber(issueNum), '--json', 'number'], {
         encoding: 'utf8',
         timeout: 10000,
         stdio: ['pipe', 'pipe', 'pipe'],

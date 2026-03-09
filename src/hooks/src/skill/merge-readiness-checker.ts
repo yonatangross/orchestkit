@@ -5,18 +5,18 @@
  */
 
 import { existsSync, readFileSync } from 'node:fs';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, getProjectDir } from '../lib/common.js';
 import { getRepoRoot, getCurrentBranch, hasUncommittedChanges } from '../lib/git.js';
 import { assertSafeGitRef } from '../lib/sanitize-shell.js';
 
 /**
- * Execute git command safely
+ * Execute git command safely (no shell — args passed as array)
  */
-function gitExec(command: string, cwd?: string): string {
+function gitExec(args: string[], cwd?: string): string {
   try {
-    return execSync(command, {
+    return execFileSync('git', args, {
       cwd: cwd || getProjectDir(),
       encoding: 'utf8',
       timeout: 30000,
@@ -57,7 +57,7 @@ export function mergeReadinessChecker(input: HookInput): HookResult {
   // 1. Check for uncommitted changes
   process.stderr.write('1. Checking for uncommitted changes...\n');
   if (hasUncommittedChanges()) {
-    const status = gitExec('git status --short');
+    const status = gitExec(['status', '--short']);
     errors.push('Uncommitted changes detected:');
     errors.push(status.split('\n').slice(0, 10).join('\n'));
   } else {
@@ -66,10 +66,10 @@ export function mergeReadinessChecker(input: HookInput): HookResult {
 
   // 2. Check branch divergence
   process.stderr.write('2. Checking branch divergence...\n');
-  gitExec(`git fetch origin ${targetBranch}`);
+  gitExec(['fetch', 'origin', targetBranch]);
 
-  const ahead = parseInt(gitExec(`git rev-list --count origin/${targetBranch}..${currentBranch}`) || '0', 10);
-  const behind = parseInt(gitExec(`git rev-list --count ${currentBranch}..origin/${targetBranch}`) || '0', 10);
+  const ahead = parseInt(gitExec(['rev-list', '--count', `origin/${targetBranch}..${currentBranch}`]) || '0', 10);
+  const behind = parseInt(gitExec(['rev-list', '--count', `${currentBranch}..origin/${targetBranch}`]) || '0', 10);
 
   process.stderr.write(`   Ahead: ${ahead} commits, Behind: ${behind} commits\n`);
 
@@ -85,26 +85,26 @@ export function mergeReadinessChecker(input: HookInput): HookResult {
 
   // 3. Check for merge conflicts
   process.stderr.write('3. Checking for merge conflicts...\n');
-  const mergeResult = gitExec(`git merge --no-commit --no-ff origin/${targetBranch}`);
+  const mergeResult = gitExec(['merge', '--no-commit', '--no-ff', `origin/${targetBranch}`]);
 
   if (mergeResult.includes('CONFLICT')) {
-    const conflictFiles = gitExec('git diff --name-only --diff-filter=U');
+    const conflictFiles = gitExec(['diff', '--name-only', '--diff-filter=U']);
     errors.push(`Merge conflicts detected with ${targetBranch}:`);
     for (const file of conflictFiles.split('\n').slice(0, 10)) {
       if (file) errors.push(`  - ${file}`);
     }
     errors.push('Resolve conflicts before merging');
-    gitExec('git merge --abort');
+    gitExec(['merge', '--abort']);
   } else {
     passes.push('No merge conflicts detected');
-    gitExec('git merge --abort');
+    gitExec(['merge', '--abort']);
   }
 
   // 4. Run quality gates
   process.stderr.write('4. Running quality gates on changed files...\n');
-  const mergeBase = gitExec(`git merge-base ${currentBranch} origin/${targetBranch}`);
+  const mergeBase = gitExec(['merge-base', currentBranch, `origin/${targetBranch}`]);
   if (mergeBase) {
-    const changedFiles = gitExec(`git diff --name-only ${mergeBase} ${currentBranch}`);
+    const changedFiles = gitExec(['diff', '--name-only', mergeBase, currentBranch]);
     const fileCount = changedFiles.split('\n').filter(Boolean).length;
     process.stderr.write(`   Checking ${fileCount} changed files...\n`);
     passes.push('Quality gates check performed');

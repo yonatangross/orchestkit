@@ -33,8 +33,63 @@
       "query": "Set up a Python Flask API with SQLAlchemy ORM and JWT authentication",
       "expectedBehavior": [
         "Claude does NOT invoke the react-server-components-framework skill",
-        "Uses standard Python/Flask knowledge instead",
+        "Uses standard Python/Flask knowledge instead of React Server Components patterns",
         "No references to Server Components, App Router, React 19, or Next.js patterns"
+      ]
+    },
+    {
+      "id": "rsc-cache-safety",
+      "rule": "rsc-cache-safety",
+      "query": "My cached dashboard component is leaking user data between different users in Next.js 16",
+      "expectedBehavior": [
+        "Reads runtime values like cookies outside the use cache block and passes as arguments",
+        "Includes user-identifying values in cached function arguments so each user gets a separate cache entry",
+        "Never calls cookies or headers directly inside a use cache block to avoid build errors",
+        "Uses cacheTag with user-scoped tags for targeted cache invalidation per user"
+      ]
+    },
+    {
+      "id": "rsc-client-boundaries",
+      "rule": "rsc-client-boundaries",
+      "query": "I put use client at the top of my page component and now my bundle is too large",
+      "expectedBehavior": [
+        "Moves use client directive to the smallest interactive leaf components only",
+        "Keeps page and layout files as Server Components for direct database access",
+        "Passes Server Components as children to Client Components to keep them server-rendered",
+        "Minimizes imports in use client files since all imported modules join the client bundle"
+      ]
+    },
+    {
+      "id": "rsc-component-types",
+      "rule": "rsc-component-types",
+      "query": "Should I use React.FC for my React 19 components in a Next.js 16 project?",
+      "expectedBehavior": [
+        "Recommends function declarations over React.FC which is deprecated in React 19",
+        "Annotates return type as React.ReactNode for clarity and type safety",
+        "Shows ref as a regular prop pattern without forwardRef in React 19",
+        "Explains that React.FC added implicit children typing which caused incorrect type-checking"
+      ]
+    },
+    {
+      "id": "rsc-hydration",
+      "rule": "rsc-hydration",
+      "query": "My client component shows a flash of wrong content because it uses Date.now() during render",
+      "expectedBehavior": [
+        "Initializes non-deterministic values as null in state and sets them in useEffect",
+        "Never accesses window, document, or navigator during render to prevent hydration mismatches",
+        "Uses useEffect for browser-only APIs like localStorage and window.innerWidth",
+        "Recommends next/dynamic with ssr false for components that depend entirely on browser APIs"
+      ]
+    },
+    {
+      "id": "rsc-serialization",
+      "rule": "rsc-serialization",
+      "query": "I get a serialization error when passing an onClick handler from a Server Component to a Client Component",
+      "expectedBehavior": [
+        "Defines event handlers inside the Client Component instead of passing from Server Components",
+        "Uses Server Actions with use server directive for callable behavior across the boundary",
+        "Converts class instances to plain objects before passing as props to Client Components",
+        "Lists serializable types including primitives, plain objects, Date, Map, Set, and Server Actions"
       ]
     }
   ]

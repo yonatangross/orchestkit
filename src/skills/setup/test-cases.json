@@ -31,7 +31,7 @@
       "query": "How do I configure Prettier to use single quotes?",
       "expectedBehavior": [
         "Claude does NOT invoke the setup skill",
-        "Provides standard Prettier configuration guidance",
+        "Provides standard Prettier configuration guidance without invoking the setup wizard",
         "Does not trigger codebase scanning or readiness scoring"
       ]
     }

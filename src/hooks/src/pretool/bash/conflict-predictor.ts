@@ -12,8 +12,8 @@ import {
   logPermissionFeedback,
   getProjectDir,
 } from '../../lib/common.js';
-import { execSync } from 'node:child_process';
-import { assertSafeGitRef, assertSafeShellArg } from '../../lib/sanitize-shell.js';
+import { execFileSync } from 'node:child_process';
+import { assertSafeGitRef } from '../../lib/sanitize-shell.js';
 
 /**
  * Get files that might conflict on merge/rebase
@@ -22,15 +22,12 @@ function getPotentialConflicts(projectDir: string, targetBranch: string): string
   try {
     const safeBranch = assertSafeGitRef(targetBranch, 'target branch');
     // Get files changed in current branch since diverging from target
-    const result = execSync(
-      `git diff --name-only ${safeBranch}...HEAD 2>/dev/null || echo ""`,
-      {
-        cwd: projectDir,
-        encoding: 'utf8',
-        timeout: 10000,
-        stdio: ['pipe', 'pipe', 'pipe'],
-      }
-    );
+    const result = execFileSync('git', ['diff', '--name-only', `${safeBranch}...HEAD`], {
+      cwd: projectDir,
+      encoding: 'utf8',
+      timeout: 10000,
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
 
     const changedFiles = result.trim().split('\n').filter(Boolean);
 
@@ -39,9 +36,8 @@ function getPotentialConflicts(projectDir: string, targetBranch: string): string
     for (const file of changedFiles.slice(0, 20)) {
       // Limit to first 20 files
       try {
-        const safeFile = assertSafeShellArg(file, 'file path');
-        const targetModified = execSync(
-          `git log -1 --pretty=format:"%h" ${safeBranch} -- "${safeFile}" 2>/dev/null || echo ""`,
+        const targetModified = execFileSync(
+          'git', ['log', '-1', '--pretty=format:%h', safeBranch, '--', file],
           {
             cwd: projectDir,
             encoding: 'utf8',

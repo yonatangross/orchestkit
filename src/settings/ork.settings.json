@@ -91,7 +91,7 @@
       "/ork:verify after implementation to validate",
       "/ork:assess rates code quality 0-10",
       "/ork:doctor checks plugin health",
-      "/ork:brainstorming for design exploration",
+      "/ork:brainstorm for design exploration",
       "Use /ork:commit for conventional commits",
       "/ork:help lists all available skills"
     ]

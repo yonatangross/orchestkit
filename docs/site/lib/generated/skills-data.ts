@@ -6,8 +6,8 @@ import type { SkillMeta } from "./types";
 export const SKILLS: Record<string, SkillMeta> = {
   "accessibility": {
     "name": "accessibility",
-    "description": "Accessibility patterns for WCAG 2.2 compliance, keyboard focus management, and React Aria component patterns. Use when implementing screen reader support, keyboard navigation, ARIA patterns, focus traps, or accessible component libraries.",
-    "version": "2.0.0",
+    "description": "Accessibility patterns for WCAG 2.2 compliance, keyboard focus management, React Aria component patterns, cognitive inclusion, native HTML-first philosophy, and user preference honoring. Use when implementing screen reader support, keyboard navigation, ARIA patterns, focus traps, accessible component libraries, reduced motion, or cognitive accessibility.",
+    "version": "2.1.0",
     "author": "OrchestKit",
     "tags": [
       "accessibility",
@@ -52,6 +52,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": [
       "accessibility-specialist",
+      "design-system-architect",
       "frontend-ui-developer",
       "ui-feedback"
     ]
@@ -113,6 +114,46 @@ export const SKILLS: Record<string, SkillMeta> = {
       "workflow-architect"
     ]
   },
+  "ai-ui-generation": {
+    "name": "ai-ui-generation",
+    "description": "AI-assisted UI generation patterns for v0, Bolt, and Cursor workflows. Covers prompt engineering for component generation, review checklists for AI-generated code, design token injection, refactoring for design system conformance, and CI gates for quality assurance. Use when generating UI components with AI tools, reviewing AI-generated code, or integrating AI output into design systems.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "ai-ui",
+      "v0",
+      "bolt",
+      "cursor",
+      "prompt-engineering",
+      "code-generation",
+      "design-tokens",
+      "component-generation",
+      "ai-review",
+      "shadcn-ui"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "skills": [],
+    "agent": "frontend-ui-developer",
+    "structure": {
+      "references": [
+        "ai-ui-failure-modes.md",
+        "ai-ui-tool-comparison.md",
+        "prompt-templates-library.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
   "analytics": {
     "name": "analytics",
     "description": "Query cross-project usage analytics. Use when reviewing agent, skill, hook, or team performance across OrchestKit projects. Also replay sessions, estimate costs, and view model delegation trends.",
@@ -160,6 +201,49 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ork"
     ],
     "relatedAgents": []
+  },
+  "animation-motion-design": {
+    "name": "animation-motion-design",
+    "description": "Animation and motion design patterns using Motion library (formerly Framer Motion) and View Transitions API. Use when implementing component animations, page transitions, micro-interactions, gesture-driven UIs, or ensuring motion accessibility with prefers-reduced-motion.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "animation",
+      "motion",
+      "framer-motion",
+      "view-transitions",
+      "micro-interactions",
+      "gestures",
+      "layout-animation",
+      "AnimatePresence",
+      "prefers-reduced-motion",
+      "spring-physics"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "skills": [],
+    "agent": "frontend-ui-developer",
+    "structure": {
+      "references": [
+        "animation-presets-library.md",
+        "micro-interactions-catalog.md",
+        "motion-vs-view-transitions.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": [
+      "design-system-architect",
+      "frontend-ui-developer"
+    ]
   },
   "api-design": {
     "name": "api-design",
@@ -355,7 +439,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "terminal"
     ],
     "userInvocable": false,
-    "context": "fork",
+    "context": "inherit",
     "allowedTools": [
       "Read",
       "Grep",
@@ -372,7 +456,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "assess": {
     "name": "assess",
     "description": "Assesses and rates quality 0-10 with pros/cons analysis. Use when evaluating code, designs, or approaches.",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "author": "OrchestKit",
     "tags": [
       "assessment",
@@ -393,6 +477,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "TaskCreate",
       "TaskUpdate",
       "TaskList",
+      "ToolSearch",
       "mcp__memory__search_nodes",
       "Bash"
     ],
@@ -400,7 +485,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "code-review-playbook",
       "quality-gates",
       "architecture-decision-record",
-      "memory"
+      "memory",
+      "chain-patterns"
     ],
     "agent": null,
     "structure": {
@@ -454,8 +540,10 @@ export const SKILLS: Record<string, SkillMeta> = {
     "agent": "python-performance-engineer",
     "structure": {
       "references": [
+        "anti-patterns.md",
         "arq-patterns.md",
         "canvas-workflows.md",
+        "capability-details.md",
         "celery-config.md",
         "monitoring-health.md",
         "result-backends.md",
@@ -571,10 +659,10 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": []
   },
-  "brainstorming": {
-    "name": "brainstorming",
+  "brainstorm": {
+    "name": "brainstorm",
     "description": "Design exploration with parallel agents. Use when brainstorming ideas, exploring solutions, or comparing alternatives.",
-    "version": "4.2.0",
+    "version": "4.3.0",
     "author": "OrchestKit",
     "tags": [
       "planning",
@@ -595,6 +683,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "TaskList",
       "TaskOutput",
       "TaskStop",
+      "ToolSearch",
       "mcp__memory__search_nodes"
     ],
     "skills": [
@@ -603,7 +692,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "memory",
       "remember",
       "scope-appropriate-architecture",
-      "testing-patterns"
+      "testing-patterns",
+      "chain-patterns"
     ],
     "agent": null,
     "structure": {
@@ -673,7 +763,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "business-case": {
     "name": "business-case",
-    "description": "ROI, NPV, IRR, payback period, and TCO calculations for investment decisions. Use when building financial justification, cost-benefit analysis, build-vs-buy comparisons, or sensitivity analysis.",
+    "description": "Business case analysis with ROI, NPV, IRR, payback period, and TCO calculations for investment decisions. Use when building financial justification, cost-benefit analysis, build-vs-buy comparisons, or sensitivity analysis.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -700,6 +790,41 @@ export const SKILLS: Record<string, SkillMeta> = {
       "references": [
         "build-buy-partner-decision.md",
         "roi-calculation-guide.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "chain-patterns": {
+    "name": "chain-patterns",
+    "description": "Chain patterns for CC 2.1.71 pipelines — MCP detection, handoff files, checkpoint-resume, worktree agents, CronCreate monitoring. Use when building multi-phase pipeline skills. Loaded via skills: field by pipeline skills (fix-issue, implement, brainstorm, verify). Not user-invocable.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "pipeline",
+      "resilience",
+      "checkpoint",
+      "mcp",
+      "orchestkit"
+    ],
+    "userInvocable": false,
+    "context": "inherit",
+    "allowedTools": [
+      "Read",
+      "ToolSearch"
+    ],
+    "skills": [],
+    "agent": null,
+    "structure": {
+      "references": [
+        "checkpoint-resume.md",
+        "cron-monitoring.md",
+        "handoff-schema.md",
+        "mcp-detection.md",
+        "tier-fallbacks.md",
+        "worktree-agent-pattern.md"
       ]
     },
     "plugins": [
@@ -749,6 +874,45 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ork"
     ],
     "relatedAgents": []
+  },
+  "ci-automation": {
+    "name": "ci-automation",
+    "description": "CI/CD automation with Claude Code -- GitHub Actions, headless CLI, and SDK patterns for automated reviews, triage, and health reports. Use when setting up CI pipelines with Claude.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "ci",
+      "cd",
+      "github-actions",
+      "automation",
+      "headless",
+      "claude-code-action"
+    ],
+    "userInvocable": true,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Bash"
+    ],
+    "skills": [],
+    "agent": null,
+    "structure": {
+      "references": [
+        "cost-model.md",
+        "gh-action-patterns.md",
+        "headless-cli.md",
+        "loop-recipes.md",
+        "security.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": [
+      "ci-cd-engineer"
+    ]
   },
   "code-review-playbook": {
     "name": "code-review-playbook",
@@ -802,7 +966,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "commit": {
     "name": "commit",
     "description": "Creates commits with conventional format and validation. Use when committing changes or generating commit messages.",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "author": "OrchestKit",
     "tags": [
       "git",
@@ -816,7 +980,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "Bash"
     ],
     "skills": [
-      ""
+      "chain-patterns"
     ],
     "agent": "git-operations-engineer",
     "structure": {
@@ -893,7 +1057,9 @@ export const SKILLS: Record<string, SkillMeta> = {
     "agent": null,
     "structure": {
       "references": [
+        "cc-version-settings.md",
         "http-hooks.md",
+        "integrations.md",
         "mcp-config.md",
         "presets.md"
       ]
@@ -906,7 +1072,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "create-pr": {
     "name": "create-pr",
     "description": "Creates GitHub pull requests with validation. Use when opening PRs or submitting code for review.",
-    "version": "2.3.0",
+    "version": "2.4.0",
     "author": "OrchestKit",
     "tags": [
       "git",
@@ -923,12 +1089,15 @@ export const SKILLS: Record<string, SkillMeta> = {
       "Task",
       "TaskCreate",
       "TaskUpdate",
-      "mcp__memory__search_nodes"
+      "mcp__memory__search_nodes",
+      "CronCreate",
+      "CronDelete"
     ],
     "skills": [
       "commit",
       "review-pr",
-      "memory"
+      "memory",
+      "chain-patterns"
     ],
     "agent": "git-operations-engineer",
     "structure": {
@@ -1058,6 +1227,49 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": [
       "demo-producer"
+    ]
+  },
+  "design-system-tokens": {
+    "name": "design-system-tokens",
+    "description": "Design token management with W3C Design Token Community Group specification, three-tier token hierarchy (global/alias/component), OKLCH color spaces, Style Dictionary transformation, and dark mode theming. Use when creating design token files, implementing theme systems, managing token versioning, or building design-to-code pipelines.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "design-tokens",
+      "w3c-tokens",
+      "oklch",
+      "style-dictionary",
+      "theming",
+      "dark-mode",
+      "css-variables",
+      "tailwind-theme",
+      "design-system",
+      "color-spaces"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "skills": [],
+    "agent": "frontend-ui-developer",
+    "structure": {
+      "references": [
+        "style-dictionary-config.md",
+        "token-naming-conventions.md",
+        "w3c-token-spec.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": [
+      "design-system-architect",
+      "frontend-ui-developer"
     ]
   },
   "devops-deployment": {
@@ -1264,7 +1476,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "technical-writing"
     ],
     "userInvocable": false,
-    "context": "fork",
+    "context": "inherit",
     "allowedTools": [
       "Read",
       "Glob",
@@ -1356,7 +1568,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "explore": {
     "name": "explore",
     "description": "explore — Deep codebase exploration with parallel agents. Use when exploring a repo, discovering architecture, finding files, or analyzing design patterns.",
-    "version": "2.1.0",
+    "version": "2.2.0",
     "author": "OrchestKit",
     "tags": [
       "exploration",
@@ -1378,13 +1590,15 @@ export const SKILLS: Record<string, SkillMeta> = {
       "TaskOutput",
       "TaskStop",
       "mcp__memory__search_nodes",
-      "Bash"
+      "Bash",
+      "ToolSearch"
     ],
     "skills": [
       "ascii-visualizer",
       "architecture-decision-record",
       "memory",
-      "architecture-patterns"
+      "architecture-patterns",
+      "chain-patterns"
     ],
     "agent": null,
     "structure": {
@@ -1409,7 +1623,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "feedback": {
     "name": "feedback",
-    "description": "Manages OrchestKit usage analytics, learning preferences, and privacy settings. Use when reviewing patterns, pausing learning, or managing consent.",
+    "description": "Manages OrchestKit feedback, usage analytics, learning preferences, and privacy settings. Use when reviewing patterns, pausing learning, or managing consent.",
     "version": "1.2.0",
     "author": "OrchestKit",
     "tags": [
@@ -1447,10 +1661,52 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": []
   },
+  "figma-design-handoff": {
+    "name": "figma-design-handoff",
+    "description": "Figma-to-code design handoff patterns including Figma Variables to design tokens pipeline, component spec extraction, Dev Mode inspection, Auto Layout to CSS Flexbox/Grid mapping, and visual regression with Applitools. Use when converting Figma designs to code, documenting component specs, setting up design-dev workflows, or comparing production UI against Figma designs.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "figma",
+      "design-handoff",
+      "design-to-code",
+      "figma-variables",
+      "dev-mode",
+      "auto-layout",
+      "component-specs",
+      "visual-regression",
+      "applitools",
+      "design-tokens"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "skills": [],
+    "agent": "frontend-ui-developer",
+    "structure": {
+      "references": [
+        "applitools-figma-plugin.md",
+        "design-dev-communication.md",
+        "figma-to-code-workflow.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": [
+      "design-system-architect"
+    ]
+  },
   "fix-issue": {
     "name": "fix-issue",
     "description": "Fixes GitHub issues with parallel analysis. Use when debugging errors, resolving regressions, fixing bugs, or triaging issues.",
-    "version": "2.1.0",
+    "version": "2.2.0",
     "author": "OrchestKit",
     "tags": [
       "issue",
@@ -1475,6 +1731,9 @@ export const SKILLS: Record<string, SkillMeta> = {
       "TaskStop",
       "Grep",
       "Glob",
+      "ToolSearch",
+      "CronCreate",
+      "CronDelete",
       "mcp__memory__search_nodes",
       "mcp__context7__get_library_docs"
     ],
@@ -1483,7 +1742,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "explore",
       "verify",
       "memory",
-      "remember"
+      "remember",
+      "chain-patterns"
     ],
     "agent": null,
     "structure": {
@@ -1535,7 +1795,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "code-review"
     ],
     "userInvocable": true,
-    "context": "inherit",
+    "context": "fork",
     "allowedTools": [
       "AskUserQuestion",
       "Bash",
@@ -1670,7 +1930,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "help": {
     "name": "help",
-    "description": "OrchestKit skill directory with categorized listings. Use when discovering skills for a task, finding the right workflow, or browsing capabilities.",
+    "description": "OrchestKit help directory with categorized skill listings. Use when discovering skills for a task, finding the right workflow, or browsing capabilities.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -1746,7 +2006,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "implement": {
     "name": "implement",
     "description": "Full-power feature implementation with parallel subagents. Use when implementing, building, or creating features.",
-    "version": "2.3.0",
+    "version": "2.4.0",
     "author": "OrchestKit",
     "tags": [
       "implementation",
@@ -1771,6 +2031,9 @@ export const SKILLS: Record<string, SkillMeta> = {
       "TaskUpdate",
       "TaskOutput",
       "TaskStop",
+      "ToolSearch",
+      "CronCreate",
+      "CronDelete",
       "mcp__context7__query_docs",
       "mcp__memory__search_nodes"
     ],
@@ -1781,7 +2044,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "explore",
       "verify",
       "memory",
-      "scope-appropriate-architecture"
+      "scope-appropriate-architecture",
+      "chain-patterns"
     ],
     "agent": null,
     "structure": {
@@ -1810,6 +2074,46 @@ export const SKILLS: Record<string, SkillMeta> = {
       ],
       "checklists": [
         "implementation-review.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "interaction-patterns": {
+    "name": "interaction-patterns",
+    "description": "UI interaction design patterns for skeleton loading, infinite scroll with accessibility, progressive disclosure, modal/drawer/inline selection, drag-and-drop with keyboard alternatives, tab overflow handling, and toast notification positioning. Use when implementing loading states, content pagination, disclosure patterns, overlay components, reorderable lists, or notification systems.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "interaction-design",
+      "skeleton-loading",
+      "infinite-scroll",
+      "progressive-disclosure",
+      "modal",
+      "drawer",
+      "drag-drop",
+      "tabs",
+      "toast",
+      "ux-patterns"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "skills": [],
+    "agent": "frontend-ui-developer",
+    "structure": {
+      "references": [
+        "interaction-pattern-catalog.md",
+        "keyboard-interaction-matrix.md",
+        "loading-states-decision-tree.md"
       ]
     },
     "plugins": [
@@ -2069,6 +2373,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "debug-investigator",
       "demo-producer",
       "deployment-manager",
+      "design-system-architect",
       "eval-runner",
       "event-driven-architect",
       "frontend-performance-engineer",
@@ -2106,7 +2411,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "cross-reference"
     ],
     "userInvocable": false,
-    "context": "inherit",
+    "context": "fork",
     "allowedTools": [
       "Read",
       "Bash",
@@ -2324,8 +2629,8 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "performance": {
     "name": "performance",
-    "description": "Performance optimization patterns covering Core Web Vitals, React render optimization, lazy loading, image optimization, backend profiling, and LLM inference. Use when improving page speed, debugging slow renders, optimizing bundles, reducing image payload, profiling backend, or deploying LLMs efficiently.",
-    "version": "2.0.0",
+    "description": "Performance optimization patterns covering Core Web Vitals, React render optimization, lazy loading, image optimization, backend profiling, LLM inference, and sustainability UX. Use when improving page speed, debugging slow renders, optimizing bundles, reducing image payload, profiling backend, deploying LLMs efficiently, or reducing digital carbon footprint.",
+    "version": "2.1.0",
     "author": "OrchestKit",
     "tags": [
       "performance",
@@ -2348,7 +2653,10 @@ export const SKILLS: Record<string, SkillMeta> = {
       "prompt-caching",
       "tanstack-query",
       "prefetching",
-      "optimistic-updates"
+      "optimistic-updates",
+      "sustainability",
+      "carbon-footprint",
+      "page-weight"
     ],
     "userInvocable": false,
     "context": "fork",
@@ -2410,6 +2718,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "backend-system-architect",
       "data-pipeline-engineer",
       "database-engineer",
+      "design-system-architect",
       "frontend-performance-engineer",
       "frontend-ui-developer",
       "llm-integrator",
@@ -2417,101 +2726,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "python-performance-engineer",
       "system-design-reviewer"
     ]
-  },
-  "plan-viz": {
-    "name": "plan-viz",
-    "description": "Visualize planned changes before implementation. Use when reviewing plans, comparing before/after architecture, assessing risk, or analyzing execution order and impact.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "visualization",
-      "planning",
-      "before-after",
-      "architecture",
-      "diff",
-      "risk",
-      "impact",
-      "migration"
-    ],
-    "userInvocable": true,
-    "context": "fork",
-    "allowedTools": [
-      "Read",
-      "Grep",
-      "Glob",
-      "Task",
-      "AskUserQuestion",
-      "Bash",
-      "Write"
-    ],
-    "skills": [
-      "ascii-visualizer",
-      "explore",
-      "architecture-decision-record"
-    ],
-    "agent": "workflow-architect",
-    "structure": {
-      "references": [
-        "blast-radius-patterns.md",
-        "change-manifest-patterns.md",
-        "decision-log-patterns.md",
-        "deep-dives.md",
-        "execution-swimlane-patterns.md",
-        "risk-dashboard-patterns.md",
-        "visualization-tiers.md"
-      ],
-      "assets": [
-        "impact-dashboard.md",
-        "plan-report.md",
-        "tier1-header.md"
-      ],
-      "scripts": [
-        "analyze-impact.sh",
-        "detect-plan-context.sh"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "system-design-reviewer"
-    ]
-  },
-  "prd": {
-    "name": "prd",
-    "description": "Product Requirements Documents with structured 8-section templates, user stories, acceptance criteria, and value proposition validation. Use when writing PRDs, defining product requirements, creating user stories with INVEST criteria, or building go/no-go decision frameworks.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "prd",
-      "requirements",
-      "user-story",
-      "acceptance-criteria",
-      "invest",
-      "value-proposition",
-      "go-no-go"
-    ],
-    "userInvocable": true,
-    "context": "fork",
-    "allowedTools": [
-      "Read",
-      "Glob",
-      "Grep",
-      "WebFetch",
-      "WebSearch"
-    ],
-    "skills": [],
-    "agent": "product-strategist",
-    "structure": {
-      "references": [
-        "output-templates.md",
-        "value-prop-canvas-guide.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": []
   },
   "presentation-builder": {
     "name": "presentation-builder",
@@ -2554,7 +2768,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "prioritization": {
     "name": "prioritization",
-    "description": "RICE, WSJF, ICE, MoSCoW, and opportunity cost scoring for backlog ranking. Use when prioritizing features, comparing initiatives, justifying roadmap decisions, or evaluating trade-offs between competing work items.",
+    "description": "Prioritization frameworks — RICE, WSJF, ICE, MoSCoW, and opportunity cost scoring for backlog ranking. Use when prioritizing features, comparing initiatives, justifying roadmap decisions, or evaluating trade-offs between competing work items.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -2728,6 +2942,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "structure": {
       "references": [
         "eager-loading.md",
+        "fastapi-app-boilerplate.md",
         "fastapi-integration.md",
         "middleware-stack.md",
         "pool-sizing.md",
@@ -2934,7 +3149,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "orchestkit"
     ],
     "userInvocable": false,
-    "context": "fork",
+    "context": "inherit",
     "allowedTools": [
       "Read",
       "Bash",
@@ -3083,6 +3298,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "debug-investigator",
       "demo-producer",
       "deployment-manager",
+      "design-system-architect",
       "eval-runner",
       "event-driven-architect",
       "frontend-performance-engineer",
@@ -3107,8 +3323,8 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "responsive-patterns": {
     "name": "responsive-patterns",
-    "description": "Responsive design with Container Queries, fluid typography, cqi/cqb units, and mobile-first patterns for React applications. Use when building responsive layouts or container queries.",
-    "version": "1.0.0",
+    "description": "Responsive design with Container Queries, fluid typography, cqi/cqb units, subgrid, intrinsic layouts, foldable devices, and mobile-first patterns for React applications. Use when building responsive layouts or container queries.",
+    "version": "1.1.0",
     "author": "OrchestKit",
     "tags": [
       "responsive",
@@ -3127,7 +3343,12 @@ export const SKILLS: Record<string, SkillMeta> = {
       "motion",
       "framer-motion",
       "scroll-driven",
-      "view-transitions"
+      "view-transitions",
+      "subgrid",
+      "intrinsic-layout",
+      "foldable",
+      "dual-screen",
+      "safe-area"
     ],
     "userInvocable": false,
     "context": "fork",
@@ -3150,13 +3371,15 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ork"
     ],
     "relatedAgents": [
-      "accessibility-specialist"
+      "accessibility-specialist",
+      "design-system-architect",
+      "frontend-ui-developer"
     ]
   },
   "review-pr": {
     "name": "review-pr",
     "description": "PR review with parallel specialized agents. Use when reviewing pull requests or code.",
-    "version": "1.5.0",
+    "version": "1.6.0",
     "author": "OrchestKit",
     "tags": [
       "code-review",
@@ -3180,12 +3403,14 @@ export const SKILLS: Record<string, SkillMeta> = {
       "TaskUpdate",
       "TaskOutput",
       "TaskStop",
-      "mcp__memory__search_nodes"
+      "mcp__memory__search_nodes",
+      "ToolSearch"
     ],
     "skills": [
       "code-review-playbook",
       "testing-patterns",
-      "memory"
+      "memory",
+      "chain-patterns"
     ],
     "agent": null,
     "structure": {
@@ -3204,7 +3429,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "scope-appropriate-architecture": {
     "name": "scope-appropriate-architecture",
-    "description": "Right-sizes architecture to project scope. Prevents over-engineering by classifying projects into 6 tiers and constraining pattern choices accordingly. Use when designing architecture, selecting patterns, or when brainstorming/implement detect a project tier.",
+    "description": "Right-sizes architecture to project scope. Prevents over-engineering by classifying projects into 6 tiers and constraining pattern choices accordingly. Use when designing architecture, selecting patterns, or when brainstorm/implement detect a project tier.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -3215,7 +3440,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "patterns"
     ],
     "userInvocable": false,
-    "context": "fork",
+    "context": "inherit",
     "allowedTools": [
       "Read",
       "Glob",
@@ -3316,7 +3541,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "setup": {
     "name": "setup",
-    "description": "Personalized onboarding wizard. Use when setting up OrchestKit for a new project, configuring plugins, or generating a readiness score and improvement plan.",
+    "description": "Personalized setup and onboarding wizard. Use when setting up OrchestKit for a new project, configuring plugins, or generating a readiness score and improvement plan.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -3329,7 +3554,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "personalization"
     ],
     "userInvocable": true,
-    "context": "inherit",
+    "context": "fork",
     "allowedTools": [
       "Read",
       "Grep",
@@ -3351,7 +3576,10 @@ export const SKILLS: Record<string, SkillMeta> = {
     "structure": {
       "references": [
         "claude-md-health.md",
-        "configure-wizard.md"
+        "configure-wizard.md",
+        "keybindings.md",
+        "safety-check.md",
+        "scan-phase.md"
       ]
     },
     "plugins": [
@@ -3386,6 +3614,46 @@ export const SKILLS: Record<string, SkillMeta> = {
         "evolution-analysis.md",
         "evolution-commands.md",
         "version-management.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "storybook-testing": {
+    "name": "storybook-testing",
+    "description": "Storybook 9/10 testing patterns with Vitest integration, CSF3 typesafe factories, play() interaction tests, Chromatic TurboSnap visual regression, sb.mock isolation, accessibility addon testing, and autodocs generation. Use when writing component stories, setting up visual regression testing, configuring Storybook CI pipelines, or migrating to Storybook 9/10.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "storybook",
+      "vitest",
+      "csf3",
+      "chromatic",
+      "turbosnap",
+      "visual-regression",
+      "play-functions",
+      "component-testing",
+      "a11y-testing",
+      "autodocs"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "skills": [],
+    "agent": "frontend-ui-developer",
+    "structure": {
+      "references": [
+        "storybook-addon-ecosystem.md",
+        "storybook-ci-strategy.md",
+        "storybook-migration-guide.md"
       ]
     },
     "plugins": [
@@ -3555,6 +3823,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "relatedAgents": [
       "accessibility-specialist",
       "code-quality-reviewer",
+      "design-system-architect",
       "eval-runner",
       "frontend-ui-developer",
       "monitoring-engineer",
@@ -3565,7 +3834,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "ui-components": {
     "name": "ui-components",
     "description": "UI component library patterns for shadcn/ui and Radix Primitives. Use when building accessible component libraries, customizing shadcn components, using Radix unstyled primitives, or creating design system foundations.",
-    "version": "2.0.0",
+    "version": "2.1.0",
     "author": "OrchestKit",
     "tags": [
       "ui-components",
@@ -3623,6 +3892,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": [
       "accessibility-specialist",
+      "design-system-architect",
       "frontend-ui-developer",
       "ui-feedback"
     ]
@@ -3720,7 +3990,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "orchestkit"
     ],
     "userInvocable": false,
-    "context": "fork",
+    "context": "inherit",
     "allowedTools": [
       "Read",
       "Bash",
@@ -3746,7 +4016,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "verify": {
     "name": "verify",
     "description": "Comprehensive verification with parallel test agents. Use when verifying implementations or validating changes.",
-    "version": "3.1.0",
+    "version": "3.2.0",
     "author": "OrchestKit",
     "tags": [
       "verification",
@@ -3772,13 +4042,17 @@ export const SKILLS: Record<string, SkillMeta> = {
       "TaskList",
       "TaskOutput",
       "TaskStop",
-      "mcp__memory__search_nodes"
+      "mcp__memory__search_nodes",
+      "ToolSearch",
+      "CronCreate",
+      "CronDelete"
     ],
     "skills": [
       "code-review-playbook",
       "testing-patterns",
       "memory",
-      "quality-gates"
+      "quality-gates",
+      "chain-patterns"
     ],
     "agent": null,
     "structure": {
@@ -3804,6 +4078,65 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ork"
     ],
     "relatedAgents": []
+  },
+  "visualize-plan": {
+    "name": "visualize-plan",
+    "description": "Visualize planned changes before implementation. Use when reviewing plans, comparing before/after architecture, assessing risk, or analyzing execution order and impact.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "visualization",
+      "planning",
+      "before-after",
+      "architecture",
+      "diff",
+      "risk",
+      "impact",
+      "migration"
+    ],
+    "userInvocable": true,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Grep",
+      "Glob",
+      "Task",
+      "AskUserQuestion",
+      "Bash",
+      "Write"
+    ],
+    "skills": [
+      "ascii-visualizer",
+      "explore",
+      "architecture-decision-record"
+    ],
+    "agent": "workflow-architect",
+    "structure": {
+      "references": [
+        "blast-radius-patterns.md",
+        "change-manifest-patterns.md",
+        "decision-log-patterns.md",
+        "deep-dives.md",
+        "execution-swimlane-patterns.md",
+        "risk-dashboard-patterns.md",
+        "visualization-tiers.md"
+      ],
+      "assets": [
+        "impact-dashboard.md",
+        "plan-report.md",
+        "tier1-header.md"
+      ],
+      "scripts": [
+        "analyze-impact.sh",
+        "detect-plan-context.sh"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": [
+      "system-design-reviewer"
+    ]
   },
   "vite-advanced": {
     "name": "vite-advanced",
@@ -3893,6 +4226,42 @@ export const SKILLS: Record<string, SkillMeta> = {
     "relatedAgents": [
       "web-research-analyst"
     ]
+  },
+  "write-prd": {
+    "name": "write-prd",
+    "description": "Write PRD — Product Requirements Documents with structured 8-section templates, user stories, acceptance criteria, and value proposition validation. Use when writing PRDs, defining product requirements, creating user stories with INVEST criteria, or building go/no-go decision frameworks.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "prd",
+      "requirements",
+      "user-story",
+      "acceptance-criteria",
+      "invest",
+      "value-proposition",
+      "go-no-go"
+    ],
+    "userInvocable": true,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "skills": [],
+    "agent": "product-strategist",
+    "structure": {
+      "references": [
+        "output-templates.md",
+        "value-prop-canvas-guide.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
   },
   "zustand-patterns": {
     "name": "zustand-patterns",

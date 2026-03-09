@@ -63,6 +63,7 @@ export function coveragePredictor(input: HookInput): HookResult {
   try {
     const safeDir = assertSafeShellArg(projectDir, 'project dir');
     const safePattern = assertSafeGlobPattern(testPattern, 'test pattern');
+    // shell required: pipe (find | head)
     const findResult = execSync(
       `find "${safeDir}" -type f -name "${safePattern}" 2>/dev/null | head -1`,
       { encoding: 'utf8', timeout: 5000 }

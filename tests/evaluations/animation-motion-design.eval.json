@@ -1,0 +1,98 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "animation-motion-design",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "motion-layout-animation",
+      "query": "Animate a list of cards that smoothly reorder when the sort order changes",
+      "expected_behavior": [
+        "Uses layout prop on each card for automatic FLIP transitions",
+        "Uses layoutId for shared element transitions between states",
+        "Wraps list in LayoutGroup to scope layout animations",
+        "Animates only transform and opacity, not width or height directly"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "motion-exit-animation",
+      "query": "Create a toast notification that slides in from the top and animates out when dismissed",
+      "expected_behavior": [
+        "Wraps conditional rendering with AnimatePresence component",
+        "Provides unique key prop on each direct child of AnimatePresence",
+        "Defines exit prop with opacity and y transform values",
+        "Uses mode='wait' or 'popLayout' for proper exit timing"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "view-transitions-page-nav",
+      "query": "Add smooth page transitions to a React Router application",
+      "expected_behavior": [
+        "Uses viewTransition prop on React Router Link components",
+        "Feature-detects document.startViewTransition API availability before using view transitions",
+        "Applies viewTransitionName CSS for shared element transitions",
+        "Keeps transition duration under 300ms for navigation"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "motion-accessibility-reduced",
+      "query": "Make an animated hero section accessible for users with motion sensitivity",
+      "expected_behavior": [
+        "Calls useReducedMotion hook to detect user preference",
+        "Provides opacity-only alternative instead of removing animation entirely",
+        "Disables auto-playing animations completely for reduced motion users",
+        "Tests with prefers-reduced-motion media query in browser DevTools"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "motion-performance-budget",
+      "query": "Optimize a staggered list animation that drops frames on mobile devices",
+      "expected_behavior": [
+        "Animates only transform and opacity properties for GPU compositing",
+        "Uses useInView to skip animations for off-screen elements",
+        "Keeps staggerChildren value tight at 0.03-0.05 seconds max",
+        "Uses motion/mini import for reduced bundle size when layout animations are not needed"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "motion-gestures-drag",
+      "query": "Add drag-to-reorder functionality to a sortable list with spring physics",
+      "expected_behavior": [
+        "Uses Reorder.Group and Reorder.Item from motion/react for drag-to-reorder lists",
+        "Applies whileDrag prop with scale and boxShadow for visual drag feedback",
+        "Sets dragConstraints to prevent elements from leaving their container bounds",
+        "Uses spring transitions with stiffness 300-500 and damping 15-25 for natural gesture feel"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "motion-gestures-hover-tap",
+      "query": "Create a button with hover and tap animations using spring physics instead of CSS transitions",
+      "expected_behavior": [
+        "Uses whileHover and whileTap props instead of CSS hover and active pseudoclasses",
+        "Configures spring transition with stiffness and damping for interruptible animations",
+        "Shows hover with staggered children using variants for composable card interactions",
+        "Uses dragElastic to control how far past constraints an element can be dragged"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    }
+  ]
+}

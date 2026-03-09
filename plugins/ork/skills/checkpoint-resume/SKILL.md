@@ -6,6 +6,7 @@ version: 2.0.0
 author: OrchestKit
 user-invocable: false
 disable-model-invocation: true
+context: fork
 complexity: high
 allowed-tools: [Bash, Read, Write, Edit, Grep, Glob, TaskCreate, TaskUpdate, TaskList, TaskOutput]
 ---

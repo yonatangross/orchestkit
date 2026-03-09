@@ -10,9 +10,9 @@
         "Creates ADR following Nygard template with numbered title (ADR-NNNN)",
         "Includes Context section with problem statement and constraints",
         "Documents Decision with specific actionable language",
-        "Lists Consequences (positive, negative, neutral)",
+        "Lists Consequences categorized as positive, negative, and neutral outcomes",
         "Documents at least 2 Alternatives Considered with rationale for rejection",
-        "Sets Status to Proposed"
+        "Sets Status to Proposed indicating the decision awaits approval"
       ]
     },
     {
@@ -36,6 +36,39 @@
         "Treats this as a bug fix, not an architectural decision",
         "Uses standard debugging and code editing tools instead",
         "Does not create an ADR document"
+      ]
+    },
+    {
+      "id": "interrogation-reliability",
+      "rule": "interrogation-reliability",
+      "query": "We're deciding on the data architecture for our user service. What reliability questions should we ask?",
+      "expectedBehavior": [
+        "Asks where data naturally belongs and what the primary access pattern is for the service",
+        "Questions retention policy and flags 'keep everything' as a red flag answer",
+        "Evaluates UX impact including what happens when the service is down or degraded",
+        "Flags vague answers like 'both reads and writes' as insufficient for architectural decisions"
+      ]
+    },
+    {
+      "id": "interrogation-scalability",
+      "rule": "interrogation-scalability",
+      "query": "Before committing to this architecture, what scalability questions should we answer?",
+      "expectedBehavior": [
+        "Asks about expected user count, data volume now and in one year, and request rate",
+        "Questions whether complexity grows linearly or exponentially with scale increase",
+        "Evaluates behavior at 10x and 100x current load to identify scaling bottlenecks early",
+        "Flags 'it won't be a problem' as a red flag that scale analysis has not been done"
+      ]
+    },
+    {
+      "id": "interrogation-security",
+      "rule": "interrogation-security",
+      "query": "What security questions should we ask before finalizing this architecture decision?",
+      "expectedBehavior": [
+        "Asks who can access the data and how tenant isolation is enforced at the architecture level",
+        "Questions what attack vectors the decision introduces and what happens if authorization fails",
+        "Flags 'we trust the frontend' for tenant isolation as a critical security red flag",
+        "Evaluates whether PII is involved and what handling requirements apply to the data"
       ]
     }
   ]

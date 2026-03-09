@@ -1,4 +1,35 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+// Mock dependencies to prevent file I/O side effects (failure tracking, debug flag)
+vi.mock('../../lib/common.js', () => ({
+  logHook: vi.fn(),
+  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
+  outputWithContext: vi.fn((ctx: string) => ({
+    continue: true,
+    suppressOutput: true,
+    hookSpecificOutput: { additionalContext: ctx },
+  })),
+}));
+
+vi.mock('../../lib/atomic-write.js', () => ({
+  atomicWriteSync: vi.fn(),
+}));
+
+vi.mock('../../lib/paths.js', () => ({
+  getLogDir: vi.fn(() => '/tmp/test-logs'),
+}));
+
+vi.mock('node:fs', () => ({
+  existsSync: vi.fn(() => false),
+  readFileSync: vi.fn(() => '{}'),
+  mkdirSync: vi.fn(),
+  writeFileSync: vi.fn(),
+}));
+
+vi.mock('node:path', () => ({
+  join: vi.fn((...args: string[]) => args.join('/')),
+}));
+
 import { failureHandler } from '../../posttool/failure-handler.js';
 import type { HookInput } from '../../types.js';
 
@@ -12,6 +43,10 @@ function makeInput(overrides: Partial<HookInput> = {}): HookInput {
 }
 
 describe('failureHandler', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it('returns silent success when no error', () => {
     const result = failureHandler(makeInput({ exit_code: 0 }));
     expect(result.continue).toBe(true);
@@ -63,5 +98,101 @@ describe('failureHandler', () => {
     const ctx = result.hookSpecificOutput?.additionalContext || '';
     expect(ctx).toContain('File not found');
     expect(ctx).toContain('Syntax error');
+  });
+});
+
+describe('failureHandler — additional error patterns', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('suggests fix for network errors (ECONNREFUSED)', () => {
+    const result = failureHandler(makeInput({
+      tool_error: 'ECONNREFUSED: connection refused to localhost:5432',
+      exit_code: 1,
+    }));
+    expect(result.continue).toBe(true);
+    expect(result.hookSpecificOutput?.additionalContext).toContain('Network error');
+  });
+
+  it('suggests fix for network errors (ETIMEDOUT)', () => {
+    const result = failureHandler(makeInput({
+      tool_error: 'ETIMEDOUT: request timed out',
+      exit_code: 1,
+    }));
+    expect(result.continue).toBe(true);
+    expect(result.hookSpecificOutput?.additionalContext).toContain('Network error');
+  });
+
+  it('suggests fix for command not found', () => {
+    const result = failureHandler(makeInput({
+      tool_error: 'npx: command not found',
+      exit_code: 127,
+    }));
+    expect(result.continue).toBe(true);
+    expect(result.hookSpecificOutput?.additionalContext).toContain('Command not found');
+  });
+
+  it('suggests fix for out of memory errors (ENOMEM)', () => {
+    const result = failureHandler(makeInput({
+      tool_error: 'ENOMEM: not enough memory',
+      exit_code: 1,
+    }));
+    expect(result.continue).toBe(true);
+    expect(result.hookSpecificOutput?.additionalContext).toContain('Out of memory');
+  });
+
+  it('suggests fix for out of memory errors (heap)', () => {
+    const result = failureHandler(makeInput({
+      tool_error: 'JavaScript heap out of memory',
+      exit_code: 1,
+    }));
+    expect(result.continue).toBe(true);
+    expect(result.hookSpecificOutput?.additionalContext).toContain('Out of memory');
+  });
+
+  it('suggests fix for merge conflicts', () => {
+    const result = failureHandler(makeInput({
+      tool_error: 'CONFLICT (content): Merge conflict in src/index.ts',
+      exit_code: 1,
+    }));
+    expect(result.continue).toBe(true);
+    expect(result.hookSpecificOutput?.additionalContext).toContain('Merge conflict');
+  });
+
+  it('suggests fix for resource lock errors', () => {
+    const result = failureHandler(makeInput({
+      tool_error: 'ELOCK: file is locked by another process',
+      exit_code: 1,
+    }));
+    expect(result.continue).toBe(true);
+    expect(result.hookSpecificOutput?.additionalContext).toContain('Resource is locked');
+  });
+
+  it('suggests fix for type errors', () => {
+    const result = failureHandler(makeInput({
+      tool_error: 'TypeError: Cannot read properties of undefined',
+      exit_code: 1,
+    }));
+    expect(result.continue).toBe(true);
+    expect(result.hookSpecificOutput?.additionalContext).toContain('Type error');
+  });
+
+  it('includes tool name in context header', () => {
+    const result = failureHandler(makeInput({
+      tool_name: 'Write',
+      tool_error: 'ENOENT: no such file or directory',
+      exit_code: 1,
+    }));
+    expect(result.hookSpecificOutput?.additionalContext).toContain('Write');
+  });
+
+  it('handles empty tool_error with non-zero exit code', () => {
+    const result = failureHandler(makeInput({
+      tool_error: '',
+      exit_code: 1,
+    }));
+    expect(result.continue).toBe(true);
+    expect(result.suppressOutput).toBe(true);
   });
 });

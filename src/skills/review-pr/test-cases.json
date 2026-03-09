@@ -18,10 +18,10 @@
       "rule": "agent-prompts-task-tool",
       "query": "Review PR #99 with focus on security vulnerabilities",
       "expectedBehavior": [
-        "Prioritizes security-auditor agent",
+        "Prioritizes the security-auditor agent for vulnerability-focused review",
         "Checks for secrets and credentials in diff",
         "Scans for injection vulnerabilities (SQL, XSS)",
-        "Validates authentication and authorization checks"
+        "Validates authentication and authorization checks are properly enforced"
       ]
     },
     {
@@ -29,10 +29,10 @@
       "rule": "agent-prompts-task-tool",
       "query": "Give me a quick review of PR #15",
       "expectedBehavior": [
-        "Uses single code-quality-reviewer agent only",
-        "Skips deep multi-agent analysis",
-        "Provides high-level review summary",
-        "Completes faster than full review"
+        "Uses single code-quality-reviewer agent only for faster turnaround",
+        "Skips deep multi-agent analysis to reduce review time",
+        "Provides high-level review summary with key findings highlighted",
+        "Completes significantly faster than a full multi-agent review"
       ]
     },
     {
@@ -41,8 +41,8 @@
       "query": "Review PR #77 that adds LLM integration code",
       "expectedBehavior": [
         "Adds 7th agent: llm-integrator for AI code review",
-        "Checks prompt injection prevention",
-        "Validates token limit handling",
+        "Checks prompt injection prevention measures in LLM integration code",
+        "Validates token limit handling and truncation strategies are implemented",
         "Reviews caching strategy and error fallbacks"
       ]
     },
@@ -51,10 +51,21 @@
       "rule": "agent-prompts-task-tool",
       "query": "Review type safety in PR #33",
       "expectedBehavior": [
-        "Checks TypeScript strict mode compliance",
+        "Checks TypeScript strict mode compliance across all changed files",
         "Validates Zod or Pydantic schema usage",
         "Flags any types or type assertions",
-        "Verifies exhaustive switch/union handling"
+        "Verifies exhaustive switch/union handling with never-type assertions"
+      ]
+    },
+    {
+      "id": "agent-prompts-agent-teams",
+      "rule": "agent-prompts-agent-teams",
+      "query": "I need to review a PR that touches both backend architecture and frontend components. Should I use agent teams?",
+      "expectedBehavior": [
+        "Evaluates whether the PR review requires cross-cutting communication between review agents",
+        "Recommends Agent Teams when reviewers need mesh communication across backend and frontend",
+        "Uses TeamCreate with peer-to-peer SendMessage for coordinated multi-agent review efforts",
+        "Warns about higher cost of Agent Teams approximately 2.5x compared to sequential Task tool review"
       ]
     }
   ]

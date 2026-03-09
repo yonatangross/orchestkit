@@ -1,6 +1,6 @@
 ---
 title: Accessibility Rule Categories
-version: 2.0.0
+version: 2.1.0
 ---
 
 # Rule Categories
@@ -28,3 +28,11 @@ Adobe React Aria hooks for building WCAG-compliant interactive UI with React 19.
 - `aria-components.md` — useButton, useDialog, useMenu, FocusScope, mergeProps
 - `aria-forms.md` — useComboBox, useTextField, useListBox, useSelect
 - `aria-overlays.md` — useModalOverlay, useTooltip, usePopover, overlay state management
+
+## 4. Modern Web Accessibility (modern-web) — CRITICAL/HIGH — 3 rules
+
+2026 best practices for native HTML, cognitive inclusion, and user preference honoring.
+
+- `wcag-native-html-first.md` — Prefer `<dialog>`, `<details>`, `<select>` over custom ARIA widgets
+- `wcag-cognitive-inclusion.md` — ADHD/autism/dyslexia support, information density, notification patterns
+- `wcag-user-preferences.md` — prefers-reduced-motion, forced-colors, prefers-contrast, zoom support

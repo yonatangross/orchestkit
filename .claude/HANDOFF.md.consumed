@@ -1,23 +1,39 @@
 # Session Handoff
 
-**Branch**: main
-**When**: 2026-03-04 13:38:55 UTC
-**Session**: 4bdb78ac-a122-4356-8958-0dde0eba59cd
+**Branch**: feat/ci-automation-1002-1005
+**When**: 2026-03-08 09:20:10 UTC
+**Session**: 0e015327-cefb-4b63-b0e6-36fdb7a67faa
 
 ## Summary
-API Error: Unable to connect to API (ConnectionRefused)
+Everything from the previous session is complete:
+
+- **Commit `1c28f593`** landed on `feat/ci-automation-1002-1005` — 6 new InstructionsLoaded handlers replacing the 3 broken ones
+- **83/83 tests passing**, security clean, typecheck green
+- 9 focused modules under `src/hooks/src/instructions-loaded/`
+
+What's next?
 
 ## Modified Files
+- .claude-plugin/marketplace.json
 - .claude/HANDOFF.md
 - .claude/HANDOFF.md.consumed
-- docs/site/lib/generated/changelog-data.ts
+- .claude/agent-memory/ork-test-generator/MEMORY.md
+- .release-please-manifest.json
+- CLAUDE.md
+- CONTRIBUTING.md
+- README.md
+- manifests/ork.json
+- package-lock.json
+- package.json
+- pyproject.toml
+- version.txt
 
 ## Recent Tasks
-- Evaluate update approaches [completed]
-- Present design options to user [completed]
-- Brainstorm: agent-browser v0.16.3 docs upgrade [completed]
-- Team 1: Update SKILL.md and rules for v0.16.3 [completed]
-- Team 2: Update 4 agent files with v0.16 features [completed]
-- Team 3: Update hooks and tests for v0.16 safety checks [completed]
-- Build and verify [completed]
-- Quick verification of browser-tools v0.16.3 docs upgrade [completed]
+- Phase 1: Fix broken handlers in InstructionsLoaded dispatcher [completed]
+- Phase 2: Add token budget tracker handler [completed]
+- Phase 2: Add priority map injection handler [completed]
+- Phase 2: Add content dedup scanner handler [completed]
+- Phase 2: Add drift detection handler [completed]
+- Phase 3: Add smart rule suggestions handler [completed]
+- Build, typecheck, and test [completed]
+- Update hook counts and docs [completed]

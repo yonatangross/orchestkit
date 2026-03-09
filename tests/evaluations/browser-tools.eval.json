@@ -7,22 +7,27 @@
       "id": "page-interaction",
       "query": "Fill out a multi-step form and submit it using agent-browser",
       "expected_behavior": [
-        "Uses snapshot to discover interactive elements",
-        "References elements by refs, not CSS selectors",
+        "Uses snapshot -i to discover interactive elements",
+        "References elements by @e# refs, not CSS selectors",
         "Re-snapshots after each navigation or significant DOM change",
         "Waits for networkidle after form submission"
       ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
       "id": "content-extraction",
       "query": "Extract the main article text from a web page",
       "expected_behavior": [
-        "Uses targeted ref extraction over full body",
-        "Removes noise elements before extraction",
-        "Falls back to eval with querySelector for custom extraction"
+        "Uses targeted ref extraction (get text @e#) over full body",
+        "Removes noise elements (nav, header, footer, ads) before extraction",
+        "Falls back to eval with querySelector for custom extraction",
+        "Caches extracted content to avoid re-scraping"
       ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
       "id": "auth-flows",
@@ -30,23 +35,77 @@
       "expected_behavior": [
         "Navigates to login page and discovers form with snapshot",
         "Fills credentials from environment variables, never hardcoded",
-        "Saves authenticated state for reuse"
+        "Saves authenticated state with state save for reuse",
+        "Uses headed mode for OAuth/SSO flows requiring user interaction"
       ],
-      "should_not": [
-        "Hardcode credentials in code",
-        "Skip saving session state"
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "rate-limiting",
+      "query": "Scrape multiple pages without overwhelming the server",
+      "expected_behavior": [
+        "Adds delays between page navigations to avoid overwhelming the server",
+        "Implements exponential backoff on 429 responses",
+        "Limits concurrent connections and uses retry with backoff on failed pages",
+        "Monitors and adjusts rate based on server responses"
       ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
       "id": "ethical-scraping",
       "query": "Crawl a website for content extraction",
       "expected_behavior": [
-        "Checks robots.txt before crawling",
+        "Checks robots.txt before crawling to respect site crawl policies",
         "Respects Terms of Service and site policies",
+        "Uses identifiable user-agent string for transparent bot identification",
         "Limits crawl scope to necessary pages only"
       ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "debug-recording",
+      "query": "Create a trace recording to debug a browser automation issue",
+      "expected_behavior": [
+        "Loads auth state via vault before starting trace to avoid capturing credentials",
+        "Uses trace start/stop to capture only the relevant interaction",
+        "Reviews console and errors output before redirecting to files",
+        "Stores debug output in /tmp/ or ephemeral directories, not project dirs"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "mobile-testing",
+      "query": "Test a responsive web app on mobile devices",
+      "expected_behavior": [
+        "Uses --device flag with specific device name for emulation",
+        "Verifies viewport dimensions after device emulation is set",
+        "Tests both --color-scheme dark and light modes",
+        "Checks iOS Simulator is booted before using --ios-simulator flag"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "semantic-locators",
+      "query": "Find and click a button by its visible text label",
+      "expected_behavior": [
+        "Uses find command with visible text instead of fragile @ref numbers",
+        "Uses find --role to narrow search by ARIA role when text is ambiguous",
+        "Falls back to snapshot -i when find returns multiple matches",
+        "Uses highlight to visually verify the correct element before clicking"
+      ],
+      "tags": [
+        "happy-path"
+      ]
     }
   ]
 }

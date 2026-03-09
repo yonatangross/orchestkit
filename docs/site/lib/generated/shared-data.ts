@@ -5,10 +5,10 @@ import type { Totals, AgentSummary, CategoryMeta } from "./types";
 
 export const TOTALS: Totals = {
   "plugins": 1,
-  "skills": 79,
-  "agents": 30,
-  "hooks": 105,
-  "commands": 18,
+  "skills": 87,
+  "agents": 31,
+  "hooks": 96,
+  "commands": 19,
   "compositions": 14
 };
 
@@ -104,6 +104,15 @@ export const AGENTS: AgentSummary[] = [
     "category": "devops"
   },
   {
+    "name": "design-system-architect",
+    "description": "Design system architect: token hierarchies, theming strategies, component library design, Figma-to-code pipelines, and design governance.",
+    "plugins": [
+      "ork"
+    ],
+    "model": "sonnet",
+    "category": "development"
+  },
+  {
     "name": "eval-runner",
     "description": "LLM evaluation specialist who runs structured eval datasets, computes quality metrics using DeepEval/RAGAS, tracks regression across model versions, and reports to Langfuse for tracing and scoring.",
     "plugins": [
@@ -132,7 +141,7 @@ export const AGENTS: AgentSummary[] = [
   },
   {
     "name": "frontend-ui-developer",
-    "description": "Frontend developer: React 19/TypeScript components, optimistic updates, Zod-validated APIs, modern 2026 patterns.",
+    "description": "Frontend developer: React 19/TypeScript components, optimistic updates, Zod-validated APIs, design system tokens, animation/motion, modern 2026 patterns.",
     "plugins": [
       "ork"
     ],
@@ -349,20 +358,20 @@ export const SKILLS_SUMMARY = {
     "product": [
       "business-case",
       "okr-design",
-      "prd",
       "prioritization",
       "product-analytics",
-      "product-frameworks"
+      "product-frameworks",
+      "write-prd"
     ],
     "git": [
+      "ai-ui-generation",
+      "animation-motion-design",
       "api-design",
       "assess",
+      "ci-automation",
       "code-review-playbook",
       "commit",
-      "create-pr",
-      "demo-producer",
-      "feedback",
-      "fix-issue"
+      "create-pr"
     ],
     "video": [
       "demo-producer",
@@ -370,6 +379,9 @@ export const SKILLS_SUMMARY = {
     ],
     "accessibility": [
       "accessibility",
+      "design-system-tokens",
+      "figma-design-handoff",
+      "storybook-testing",
       "testing-patterns"
     ],
     "devops": [
@@ -383,6 +395,7 @@ export const SKILLS_SUMMARY = {
       "llm-integration",
       "product-analytics",
       "review-pr",
+      "storybook-testing",
       "testing-patterns",
       "verify"
     ],
@@ -407,16 +420,17 @@ export const SKILLS_SUMMARY = {
       "zustand-patterns"
     ],
     "llm": [
+      "ai-ui-generation",
       "golden-dataset",
       "langgraph",
       "llm-integration",
       "mcp-patterns",
       "multimodal-llm",
       "performance",
-      "rag-retrieval",
-      "react-server-components-framework"
+      "rag-retrieval"
     ],
     "rag": [
+      "interaction-patterns",
       "notebooklm",
       "rag-retrieval"
     ],

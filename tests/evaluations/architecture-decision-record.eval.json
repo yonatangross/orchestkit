@@ -1,0 +1,88 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "architecture-decision-record",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "basic-we-need-to-decide",
+      "query": "We need to decide between PostgreSQL and MongoDB for our user service. Document this as an ADR.",
+      "expected_behavior": [
+        "Creates ADR following Nygard template with numbered title (ADR-NNNN)",
+        "Includes Context section with problem statement and constraints",
+        "Documents Decision with specific actionable language",
+        "Lists Consequences categorized as positive, negative, and neutral outcomes",
+        "Documents at least 2 Alternatives Considered with rationale for rejection",
+        "Sets Status to Proposed indicating the decision awaits approval"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "negative-we-previously-decided-on",
+      "query": "We previously decided on REST (ADR-0003) but now want to move to GraphQL. Create an ADR that supersedes the old one.",
+      "expected_behavior": [
+        "Creates new ADR with next sequential number, does NOT edit ADR-0003",
+        "Sets Status to Proposed with reference to superseded ADR-0003",
+        "Explains why the original REST decision is being revisited",
+        "Documents the evolution context and new forces at play",
+        "Links back to ADR-0003 in References section"
+      ],
+      "tags": [
+        "negative"
+      ]
+    },
+    {
+      "id": "negative-fix-the-bug-in",
+      "query": "Fix the bug in our login endpoint that returns 500 when email is null",
+      "expected_behavior": [
+        "Claude does NOT invoke the architecture-decision-record skill",
+        "Treats this as a bug fix, not an architectural decision",
+        "Uses standard debugging and code editing tools instead",
+        "Does not create an ADR document"
+      ],
+      "tags": [
+        "negative"
+      ]
+    },
+    {
+      "id": "interrogation-reliability",
+      "query": "We're deciding on the data architecture for our user service. What reliability questions should we ask?",
+      "expected_behavior": [
+        "Asks where data naturally belongs and what the primary access pattern is for the service",
+        "Questions retention policy and flags 'keep everything' as a red flag answer",
+        "Evaluates UX impact including what happens when the service is down or degraded",
+        "Flags vague answers like 'both reads and writes' as insufficient for architectural decisions"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "interrogation-scalability",
+      "query": "Before committing to this architecture, what scalability questions should we answer?",
+      "expected_behavior": [
+        "Asks about expected user count, data volume now and in one year, and request rate",
+        "Questions whether complexity grows linearly or exponentially with scale increase",
+        "Evaluates behavior at 10x and 100x current load to identify scaling bottlenecks early",
+        "Flags 'it won't be a problem' as a red flag that scale analysis has not been done"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "interrogation-security",
+      "query": "What security questions should we ask before finalizing this architecture decision?",
+      "expected_behavior": [
+        "Asks who can access the data and how tenant isolation is enforced at the architecture level",
+        "Questions what attack vectors the decision introduces and what happens if authorization fails",
+        "Flags 'we trust the frontend' for tenant isolation as a critical security red flag",
+        "Evaluates whether PII is involved and what handling requirements apply to the data"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    }
+  ]
+}

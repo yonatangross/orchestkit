@@ -4,45 +4,82 @@
   "version": "1.0.0",
   "evaluations": [
     {
-      "id": "review-by-number",
-      "query": "review PR #123",
+      "id": "full-review",
+      "query": "Review PR #42 thoroughly",
       "expected_behavior": [
-        "Fetch PR details with gh pr view",
-        "Get PR diff with gh pr diff",
-        "Analyze changes for issues",
-        "Check for security concerns",
-        "Provide structured feedback"
+        "Launches 6 parallel specialized review agents",
+        "Covers code quality, type safety, security, tests, backend, and frontend",
+        "Produces structured review report with status per area",
+        "Uses conventional comment prefixes (praise, nitpick, suggestion, issue)"
       ],
-      "should_not": [
-        "Approve without thorough review",
-        "Make changes to the PR directly"
-      ],
-      "success_criteria": [
-        "Review covers all changed files",
-        "Security implications noted",
-        "Constructive feedback provided"
-      ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
-      "id": "review-with-url",
-      "query": "review https://github.com/org/repo/pull/456",
+      "id": "security-focus",
+      "query": "Review PR #99 with focus on security vulnerabilities",
       "expected_behavior": [
-        "Parse PR URL correctly",
-        "Fetch and review the PR",
-        "Provide structured feedback"
+        "Prioritizes the security-auditor agent for vulnerability-focused review",
+        "Checks for secrets and credentials in diff",
+        "Scans for injection vulnerabilities (SQL, XSS)",
+        "Validates authentication and authorization checks are properly enforced"
       ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
-      "id": "review-current-pr",
-      "query": "review this PR",
+      "id": "quick-review",
+      "query": "Give me a quick review of PR #15",
       "expected_behavior": [
-        "Detect current branch",
-        "Find associated PR",
-        "Review the changes"
+        "Uses single code-quality-reviewer agent only for faster turnaround",
+        "Skips deep multi-agent analysis to reduce review time",
+        "Provides high-level review summary with key findings highlighted",
+        "Completes significantly faster than a full multi-agent review"
       ],
-      "tags": ["edge-case"]
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "ai-code-review",
+      "query": "Review PR #77 that adds LLM integration code",
+      "expected_behavior": [
+        "Adds 7th agent: llm-integrator for AI code review",
+        "Checks prompt injection prevention measures in LLM integration code",
+        "Validates token limit handling and truncation strategies are implemented",
+        "Reviews caching strategy and error fallbacks"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "type-safety-review",
+      "query": "Review type safety in PR #33",
+      "expected_behavior": [
+        "Checks TypeScript strict mode compliance across all changed files",
+        "Validates Zod or Pydantic schema usage",
+        "Flags any types or type assertions",
+        "Verifies exhaustive switch/union handling with never-type assertions"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "agent-prompts-agent-teams",
+      "query": "I need to review a PR that touches both backend architecture and frontend components. Should I use agent teams?",
+      "expected_behavior": [
+        "Evaluates whether the PR review requires cross-cutting communication between review agents",
+        "Recommends Agent Teams when reviewers need mesh communication across backend and frontend",
+        "Uses TeamCreate with peer-to-peer SendMessage for coordinated multi-agent review efforts",
+        "Warns about higher cost of Agent Teams approximately 2.5x compared to sequential Task tool review"
+      ],
+      "tags": [
+        "happy-path"
+      ]
     }
   ]
 }

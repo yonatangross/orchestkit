@@ -14,6 +14,7 @@ import { join } from 'node:path';
 /**
  * Safely execute a shell command and return its stdout, or empty string on failure.
  */
+// shell required: safeExec accepts arbitrary command strings that may contain pipes, redirects, or globs
 export function safeExec(cmd: string, cwd: string, timeoutMs = 5000): string {
   try {
     return execSync(cmd, {

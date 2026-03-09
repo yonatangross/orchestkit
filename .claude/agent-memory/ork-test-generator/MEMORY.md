@@ -31,6 +31,12 @@
 - Matching source code (intent-classifier.ts, calibration-tracker.ts, calibration-persist.ts) was also deleted as part of v7.0.0 / #897 hook slimming
 - `orchestration-state.ts` and `pipeline-detector.ts` STILL EXIST in src/ and have test coverage in `src/hooks/src/__tests__/orchestration-state.test.ts` and `src/hooks/src/__tests__/prompt/pipeline-detector.test.ts`
 
+## Vitest Mock Patterns (learned 2026-03-08)
+- `additionalContext` lives at `result.hookSpecificOutput?.additionalContext` (CC 2.1.9 format), NOT `result.additionalContext`
+- `vi.mock()` for `node:fs` must spread actual: `const actual = await importOriginal(); return { ...actual, existsSync: mockFn }`
+- When mocking `node:fs`, `basename` from `node:path` runs normally in source — but in certain test environments `basename('/project/.claude/rules/a.md')` may produce `.claude/rules/a.md` instead of `a.md`. Use `keys.some(k => k.includes('a.md'))` for robust basename assertions.
+- Top-level `await` in a sync `test()` body is rejected by esbuild — mark the `test()` callback `async` when using dynamic `await import()`
+
 ## Prompt Dispatcher (#960 changes)
 - `skill-nudge-prompt` was removed from the prompt unified-dispatcher in #960 — replaced by CC native skill matching
 - Current prompt dispatcher HOOKS array (4 entries): handoff-injector, agentation-context, context-exhaustion-warner, antipattern-warning

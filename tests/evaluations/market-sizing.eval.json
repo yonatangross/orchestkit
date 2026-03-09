@@ -1,0 +1,20 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "market-sizing",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "market-tam-sam-som",
+      "query": "Size the total market for a B2B developer productivity SaaS product",
+      "expected_behavior": [
+        "Calculates TAM using both top-down industry analysis and bottom-up customer counting methods",
+        "Applies SAM filters narrowing by geography, segment, and product-specific use case constraints",
+        "Derives realistic SOM based on competitive landscape and go-to-market capability constraints",
+        "Cross-references top-down and bottom-up estimates and reconciles any significant discrepancies"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    }
+  ]
+}

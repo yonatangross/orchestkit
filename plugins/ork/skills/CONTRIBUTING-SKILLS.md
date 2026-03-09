@@ -285,7 +285,7 @@ If the content says "do this" or "don't do that" with code examples, it's a **ru
 
 ### Which Skills Use References Only
 
-Orchestration/workflow skills (implement, explore, verify, review-pr, assess, brainstorming, etc.) describe workflow phases, not code patterns. Their references are correct as-is — don't force them into `rules/` format.
+Orchestration/workflow skills (implement, explore, verify, review-pr, assess, brainstorm, etc.) describe workflow phases, not code patterns. Their references are correct as-is — don't force them into `rules/` format.
 
 ## Scripts
 

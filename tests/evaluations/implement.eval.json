@@ -4,56 +4,70 @@
   "version": "1.0.0",
   "evaluations": [
     {
-      "id": "feature-implementation",
-      "query": "implement a user authentication feature with JWT",
+      "id": "new-feature",
+      "query": "Implement user authentication with OAuth2",
       "expected_behavior": [
-        "Explore existing codebase for auth patterns",
-        "Create implementation plan",
-        "Write necessary files (routes, middleware, models)",
-        "Add appropriate tests",
-        "Follow project conventions"
+        "Detects project tier via auto-detection signals",
+        "Creates micro-plans for each task before implementation",
+        "Launches 5 parallel architecture design agents",
+        "Follows 10-phase workflow from discovery through reflection",
+        "Includes tests as non-optional requirement in the implementation plan"
       ],
-      "should_not": [
-        "Overwrite existing auth without confirmation",
-        "Skip writing tests",
-        "Ignore existing project patterns"
-      ],
-      "success_criteria": [
-        "Feature is fully functional",
-        "Tests pass",
-        "Code follows project style"
-      ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
-      "id": "incremental-implementation",
-      "query": "add a logout endpoint to the existing auth system",
+      "id": "interview-mode",
+      "query": "Implement a REST API for a take-home assignment",
       "expected_behavior": [
-        "Read existing auth code first",
-        "Identify appropriate file locations",
-        "Add endpoint following existing patterns",
-        "Update tests"
+        "Detects Tier 1 (Interview) from README signals",
+        "Limits to phases 1 and 5 only",
+        "Uses 1-2 agents maximum to keep the scope appropriately small",
+        "Targets 8-15 files with simple architecture"
       ],
-      "should_not": [
-        "Create new auth system",
-        "Ignore existing patterns"
-      ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
-      "id": "multi-file-feature",
-      "query": "implement user profile editing with validation",
+      "id": "multi-agent-implementation",
+      "query": "Implement real-time notifications with WebSocket support",
       "expected_behavior": [
-        "Create or update API endpoint",
-        "Add input validation",
-        "Update database schema if needed",
-        "Add frontend component if applicable"
+        "Launches parallel implementation agents for backend and frontend",
+        "Uses 128K output token advantage for single-pass artifacts",
+        "Runs integration and validation with 4 parallel agents",
+        "Includes scope creep detection in Phase 7"
       ],
-      "success_criteria": [
-        "All related files are updated",
-        "Changes are cohesive"
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "scope-creep-detection",
+      "query": "Implement a simple login form but also refactor the auth module",
+      "expected_behavior": [
+        "Detects scope creep between original request and implementation",
+        "Scores scope creep on 0-10 scale",
+        "Documents and justifies any unplanned changes",
+        "Suggests splitting PR if scope creep is significant"
       ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "existing-pattern-reuse",
+      "query": "Implement a new API endpoint following existing patterns",
+      "expected_behavior": [
+        "Clarifies constraints via AskUserQuestion before starting implementation",
+        "Matches existing codebase conventions when selected",
+        "Researches current best practices with WebSearch and context7",
+        "Uses Phase 1 discovery to identify existing patterns"
+      ],
+      "tags": [
+        "happy-path"
+      ]
     }
   ]
 }

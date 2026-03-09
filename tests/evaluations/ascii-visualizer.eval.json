@@ -1,0 +1,74 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "ascii-visualizer",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "basic-draw-an-architecture-diagram",
+      "query": "Draw an architecture diagram showing our React frontend connecting to a FastAPI backend with Redis cache and PostgreSQL database.",
+      "expected_behavior": [
+        "Produces ASCII box-drawing diagram with standard weight characters",
+        "Uses directional arrows to show data flow between components",
+        "Labels each box with component name and technology",
+        "Keeps diagram under 80 characters wide for terminal compatibility",
+        "Uses monospace-safe characters only to ensure consistent terminal rendering"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "edge-show-the-blast-radius",
+      "query": "Show the blast radius of changing src/api/auth.ts \u2014 which files are directly affected, transitively affected, and which tests need updating?",
+      "expected_behavior": [
+        "Uses concentric rings blast radius pattern",
+        "Shows CHANGED FILE in center ring",
+        "Ring 1 shows direct dependents with file count",
+        "Ring 2 shows transitive dependents affected indirectly by the change",
+        "Ring 3 shows affected test files",
+        "Includes legend explaining ring meaning and impact classification"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "negative-generate-a-png-diagram",
+      "query": "Generate a PNG diagram of our microservices architecture for the README",
+      "expected_behavior": [
+        "Claude does NOT invoke the ascii-visualizer skill",
+        "Suggests using Mermaid, PlantUML, or an image generation tool instead",
+        "ASCII visualizer is for terminal-rendered monospace output, not image files"
+      ],
+      "tags": [
+        "negative"
+      ]
+    },
+    {
+      "id": "ascii-architecture",
+      "query": "Draw a layered system architecture showing load balancer, API gateways, services, and databases",
+      "expected_behavior": [
+        "Uses structured layered diagram with clear separation between infrastructure tiers",
+        "Labels each component box with both the component name and its technology stack",
+        "Shows directional arrows indicating data flow and communication patterns between layers",
+        "Uses layered architecture diagram with box-drawing characters for structured component visualization"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "ascii-diagrams",
+      "query": "What box-drawing characters should I use for ASCII diagrams to ensure they render correctly?",
+      "expected_behavior": [
+        "Uses standard weight box-drawing characters for regular boxes and heavy weight for emphasis",
+        "Keeps diagrams under 80 characters wide for terminal compatibility across environments",
+        "Uses consistent alignment and spacing to ensure monospace rendering looks correct",
+        "Applies directional arrow characters to show data flow and dependency relationships"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    }
+  ]
+}

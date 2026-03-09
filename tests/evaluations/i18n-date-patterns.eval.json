@@ -1,0 +1,86 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "i18n-date-patterns",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "negative-add-a-patient-appointment",
+      "query": "Add a patient appointment card component that displays the appointment date, wait time, and cost in both English and Hebrew with proper RTL support.",
+      "expected_behavior": [
+        "Claude uses useTranslation hook for all UI strings with namespaced keys",
+        "Claude uses formatDate from @/lib/dates for appointment date display",
+        "Claude uses formatILS from useFormatting for currency formatting",
+        "Claude uses calculateWaitTime for wait time display",
+        "Claude adds RTL support using isRTL from useFormatting or CSS logical properties",
+        "Claude does NOT hardcode any strings, currency symbols, or date formats"
+      ],
+      "tags": [
+        "negative"
+      ]
+    },
+    {
+      "id": "negative-i-need-to-display",
+      "query": "I need to display a message like 'You have 5 patients waiting' with proper pluralization in ICU MessageFormat, and embed a clickable link inside the translated text.",
+      "expected_behavior": [
+        "Claude uses ICU MessageFormat plural syntax: {count, plural, =0 {No patients} one {# patient} other {# patients}}",
+        "Claude uses the Trans component for embedding the clickable link in translated text",
+        "Claude does NOT use inline ternary for pluralization (count === 1 ? 'patient' : 'patients')",
+        "Claude does NOT use dangerouslySetInnerHTML for the embedded link"
+      ],
+      "tags": [
+        "negative"
+      ]
+    },
+    {
+      "id": "negative-set-up-a-postgresql",
+      "query": "Set up a PostgreSQL database schema with tables for users, roles, and permissions with proper indexes.",
+      "expected_behavior": [
+        "Claude does NOT invoke the i18n-date-patterns skill",
+        "Claude creates SQL migration files or ORM models using standard tools",
+        "Claude does not reference useTranslation, useFormatting, or any i18n patterns for a backend database task"
+      ],
+      "tags": [
+        "negative"
+      ]
+    },
+    {
+      "id": "i18n-formatting-antipatterns",
+      "query": "Our app displays prices with hardcoded dollar signs and concatenated greeting strings. How do I fix this for i18n?",
+      "expected_behavior": [
+        "Replaces hardcoded currency symbols with locale-aware formatting functions like formatILS",
+        "Eliminates string concatenation and template literals in favor of translation keys with interpolation",
+        "Uses useTranslation hook for all user-facing strings with namespaced translation keys",
+        "Warns that concatenation breaks word order in RTL locales like Hebrew and Arabic"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "i18n-icu-plurals",
+      "query": "How do I handle pluralization correctly for Hebrew and Arabic which have more plural forms than English?",
+      "expected_behavior": [
+        "Uses ICU MessageFormat plural syntax with variable, plural, and category branches",
+        "Covers all locale-specific plural categories including zero, one, two, few, many, and other",
+        "Never uses ternary operators or conditional logic in code for plural form selection",
+        "Explains that Hebrew has dual form and Arabic has six plural categories beyond English"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "i18n-trans-component",
+      "query": "I need to embed a clickable link inside a translated sentence. How do I do this without dangerouslySetInnerHTML?",
+      "expected_behavior": [
+        "Uses the Trans component from react-i18next to embed React elements inside translated strings",
+        "Preserves locale-specific word order by keeping the entire sentence in one translation key",
+        "Never splits translations around JSX elements which breaks word order in other locales",
+        "Never uses dangerouslySetInnerHTML which introduces XSS vulnerabilities in translated content"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    }
+  ]
+}

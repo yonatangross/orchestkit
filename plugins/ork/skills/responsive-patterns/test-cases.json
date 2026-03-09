@@ -33,6 +33,111 @@
         "Implements a standard FastAPI route with query parameters",
         "Uses backend patterns without any CSS or responsive design content"
       ]
+    },
+    {
+      "id": "animation-motion",
+      "rule": "animation-motion",
+      "query": "I need consistent animations across my React app for page transitions, list staggering, and modal entrances using Framer Motion with reduced-motion support",
+      "expectedBehavior": [
+        "Creates centralized animation preset file as single source of truth instead of inline values",
+        "Uses AnimatePresence wrapper for exit animations on conditionally rendered components",
+        "Animates only transform and opacity properties for guaranteed 60fps hardware acceleration",
+        "Uses View Transitions API for page navigation and Motion library for component animations",
+        "Respects prefers-reduced-motion media query by disabling or shortening animations"
+      ]
+    },
+    {
+      "id": "animation-scroll",
+      "rule": "animation-scroll",
+      "query": "I want a reading progress bar and scroll-reveal animations that run at 60fps without JavaScript scroll listeners causing jank",
+      "expectedBehavior": [
+        "Uses CSS scroll-driven animations with animation-timeline scroll or view functions",
+        "Runs animations on compositor thread for guaranteed 60fps without main thread blocking",
+        "Wraps scroll-driven styles in @supports animation-timeline for progressive enhancement",
+        "Provides IntersectionObserver fallback for browsers that do not support scroll-driven animations",
+        "Uses animation-range to control when animation starts and ends relative to viewport"
+      ]
+    },
+    {
+      "id": "pwa-offline",
+      "rule": "pwa-offline",
+      "query": "Make my web app installable as a PWA with offline support, background sync for form submissions, and a custom install prompt",
+      "expectedBehavior": [
+        "Implements useOnlineStatus hook to detect and display online versus offline state",
+        "Captures beforeinstallprompt event and shows custom install button at a natural moment",
+        "Uses Workbox BackgroundSyncPlugin to queue and retry offline form submissions automatically",
+        "Requires web app manifest with 192px and 512px maskable icons for installability"
+      ]
+    },
+    {
+      "id": "pwa-service-worker",
+      "rule": "pwa-service-worker",
+      "query": "Configure a service worker with proper caching strategies for static assets, API calls, and images so my app works offline reliably",
+      "expectedBehavior": [
+        "Uses CacheFirst strategy for static assets with hashed filenames for long-term caching",
+        "Uses NetworkFirst strategy for API calls with cached fallback and network timeout",
+        "Uses StaleWhileRevalidate for non-critical images showing cached version while updating in background",
+        "Enables clientsClaim and skipWaiting for immediate service worker activation on updates",
+        "Never caches POST responses or authentication tokens in service worker cache"
+      ]
+    },
+    {
+      "id": "css-patterns",
+      "rule": "css-patterns",
+      "query": "Show me how to build responsive layouts using CSS container queries, fluid typography with clamp, and auto-fit grid patterns instead of media queries",
+      "expectedBehavior": [
+        "Uses container-type inline-size and @container queries for component-level responsive layouts",
+        "Implements fluid typography with clamp using rem base plus vw preferred value and max bounds",
+        "Uses repeat auto-fit minmax for grids that automatically adapt column count to available space",
+        "Applies cqi container query inline units instead of cqw for logical dimension sizing",
+        "Follows mobile-first breakpoint pattern adding complexity with min-width media queries"
+      ]
+    },
+    {
+      "id": "react-patterns",
+      "rule": "react-patterns",
+      "query": "How do I make React components responsive using container queries and Tailwind instead of window.innerWidth checks?",
+      "expectedBehavior": [
+        "Uses Tailwind @container class with @md and @lg variant prefixes instead of JavaScript window checks",
+        "Implements useContainerQuery hook with ResizeObserver for cases needing programmatic breakpoint logic",
+        "Uses responsive image pattern with picture element and source media for art direction",
+        "Applies cn utility for composing conditional responsive class names cleanly"
+      ]
+    },
+    {
+      "id": "css-subgrid",
+      "rule": "css-subgrid",
+      "query": "My card grid has misaligned titles and action buttons because each card has different content heights. How do I align nested grid content across cards?",
+      "expectedBehavior": [
+        "Uses grid-template-rows subgrid on child cards to inherit parent grid row tracks automatically",
+        "Sets grid-row span 3 on cards so they occupy title content and actions row tracks",
+        "Avoids manually duplicating parent grid column definitions in nested elements",
+        "Supports two-dimensional subgrid for both columns and rows simultaneously when needed"
+      ]
+    },
+    {
+      "id": "css-intrinsic-responsive",
+      "rule": "css-intrinsic-responsive",
+      "query": "I have dozens of media query breakpoints for my card grid and typography. How do I make layouts that adapt automatically without all these breakpoints?",
+      "expectedBehavior": [
+        "Uses repeat auto-fit minmax with minimum pixel value and 1fr for zero-breakpoint grid layouts",
+        "Applies clamp function for fluid typography spacing and gap values that scale smoothly",
+        "Reserves media queries only for page-level structural changes like showing a sidebar",
+        "Uses container queries for component-level responsive logic instead of viewport queries",
+        "Always includes rem in clamp calculations to respect user font size preferences"
+      ]
+    },
+    {
+      "id": "responsive-foldables",
+      "rule": "responsive-foldables",
+      "query": "Our app needs to support foldable devices like Surface Duo and handle notches on modern phones. How do I handle safe areas and dual-screen layouts?",
+      "expectedBehavior": [
+        "Uses env safe-area-inset values with max function to respect device notches and cutouts",
+        "Adds viewport-fit cover to the viewport meta tag to enable safe area inset values",
+        "Detects dual-screen devices with horizontal-viewport-segments media query for side-by-side layouts",
+        "Keeps the hinge fold area empty and never places interactive content on the fold seam",
+        "Uses progressive enhancement layering foldable styles on top of base single-screen layout"
+      ]
     }
   ]
 }

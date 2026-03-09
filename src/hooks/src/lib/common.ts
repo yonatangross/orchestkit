@@ -7,7 +7,7 @@ import { existsSync, statSync, renameSync, mkdirSync, readSync, readFileSync } f
 import { atomicWriteSync } from './atomic-write.js';
 import { join } from 'node:path';
 import { bufferWrite } from './analytics-buffer.js';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import type { HookResult, HookInput } from '../types.js';
 import {
   getLogDir as getLogDirFromPaths,
@@ -86,7 +86,7 @@ export function getCachedBranch(projectDir?: string): string {
   }
 
   try {
-    const branch = execSync('git branch --show-current', {
+    const branch = execFileSync('git', ['branch', '--show-current'], {
       cwd: projectDir || getProjectDir(),
       encoding: 'utf8',
       timeout: 5000,
@@ -101,9 +101,39 @@ export function getCachedBranch(projectDir?: string): string {
 
 /**
  * Get log level (debug|info|warn|error, default: warn)
+ *
+ * Resolution order (first match wins):
+ * 1. ORCHESTKIT_LOG_LEVEL env var (explicit override)
+ * 2. CLAUDE_DEBUG env var (CC 2.1.71 /debug toggle → auto-enable debug)
+ * 3. Debug flag file (~/.claude/logs/ork/debug-mode.flag) — written by
+ *    ConfigChange hook on /debug toggle or by failure-handler on repeated errors
+ * 4. Default: 'warn'
  */
 export function getLogLevel(): string {
-  return process.env.ORCHESTKIT_LOG_LEVEL || 'warn';
+  // Explicit override always wins
+  if (process.env.ORCHESTKIT_LOG_LEVEL) {
+    return process.env.ORCHESTKIT_LOG_LEVEL;
+  }
+
+  // CC 2.1.71: /debug toggle sets CLAUDE_DEBUG
+  if (process.env.CLAUDE_DEBUG) {
+    return 'debug';
+  }
+
+  // Flag file: written by ConfigChange hook or failure-handler
+  try {
+    const flagPath = join(
+      process.env.HOME || process.env.USERPROFILE || '',
+      '.claude', 'logs', 'ork', 'debug-mode.flag',
+    );
+    if (existsSync(flagPath)) {
+      return 'debug';
+    }
+  } catch {
+    // Ignore — never crash on flag check
+  }
+
+  return 'warn';
 }
 
 /**

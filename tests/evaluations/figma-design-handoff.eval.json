@@ -1,0 +1,72 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "figma-design-handoff",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "figma-variables-tokens",
+      "query": "Convert Figma Variables to W3C design tokens with light and dark mode support",
+      "expected_behavior": [
+        "Exports Figma Variables via REST API, not manual copy",
+        "Uses W3C DTCG format with $type, $value, $description fields",
+        "Maps Figma Variable modes to $extensions.mode for light/dark themes",
+        "Runs Style Dictionary to transform tokens into CSS custom properties and Tailwind theme"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "figma-component-specs",
+      "query": "Extract a Button component specification from Figma with all variants and states",
+      "expected_behavior": [
+        "Creates TypeScript interface matching Figma component properties exactly",
+        "Maps Figma variant properties to string union types with correct values",
+        "Documents all interactive states including hover, focus, active, disabled, and loading",
+        "Includes Figma component URL in JSDoc for design traceability"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "figma-auto-layout",
+      "query": "Convert a Figma card list with Auto Layout to CSS Flexbox with responsive wrapping",
+      "expected_behavior": [
+        "Uses CSS gap for item spacing instead of margin on children",
+        "Maps Fill container sizing to flex: 1 1 0%, not percentage widths",
+        "Preserves min-width and max-width constraints from Figma for responsive behavior",
+        "Uses flex-wrap: wrap when Figma Auto Layout has wrapping enabled"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "figma-visual-regression",
+      "query": "Set up visual regression testing to compare production UI against Figma designs",
+      "expected_behavior": [
+        "Configures Applitools Eyes with Playwright for automated visual comparison",
+        "Captures multiple viewport widths (375, 768, 1280) for responsive verification",
+        "Integrates visual regression checks into CI pipeline on every pull request",
+        "Uses appropriate match levels (Strict for components, Layout for dynamic pages)"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "figma-dev-mode",
+      "query": "Inspect a Figma component in Dev Mode and extract exact spacing, typography, and color values",
+      "expected_behavior": [
+        "Reads spacing values from Auto Layout panel, not by visual measurement",
+        "Extracts font family, size, weight, and line height from the Type section",
+        "References Variable names for colors instead of raw hex values",
+        "Exports icons as SVG at 1x using the Dev Mode export panel"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    }
+  ]
+}

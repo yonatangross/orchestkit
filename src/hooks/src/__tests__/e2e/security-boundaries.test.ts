@@ -32,7 +32,8 @@ vi.mock('node:fs', () => ({
 
 // Mock child_process
 vi.mock('node:child_process', () => ({
-  execSync: vi.fn().mockReturnValue('main\n'),
+  execSync: vi.fn(),
+  execFileSync: vi.fn(() => '').mockReturnValue('main\n'),
 }));
 
 // Mock common module

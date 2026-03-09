@@ -1,0 +1,33 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "business-case",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "business-cost-benefit",
+      "query": "Compare the total cost of building our own analytics platform versus buying a commercial solution",
+      "expected_behavior": [
+        "Creates a 3-year total cost of ownership comparison table for build versus buy options",
+        "Includes hidden costs such as opportunity cost, switching costs, and maintenance burden",
+        "Provides sensitivity analysis with best-case, worst-case, and expected outcome scenarios",
+        "Uses structured business case template with executive summary and clear recommendation"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "business-roi",
+      "query": "Calculate the ROI and payback period for a $300K infrastructure modernization project",
+      "expected_behavior": [
+        "Uses ROI formula: Net Benefits minus Total Costs divided by Total Costs times 100 percent",
+        "Calculates net present value using an appropriate discount rate for time value of money",
+        "Provides internal rate of return and payback period alongside the basic ROI calculation",
+        "Includes Python code examples for automating the financial metric calculations"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    }
+  ]
+}

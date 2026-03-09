@@ -1,5 +1,5 @@
 ---
-description: "OrchestKit skill directory with categorized listings. Use when discovering skills for a task, finding the right workflow, or browsing capabilities."
+description: "OrchestKit help directory with categorized skill listings. Use when discovering skills for a task, finding the right workflow, or browsing capabilities."
 allowed-tools: [AskUserQuestion]
 ---
 
@@ -38,7 +38,7 @@ AskUserQuestion(
     "question": "What type of task are you working on?",
     "header": "Category",
     "options": [
-      {"label": "BUILD", "description": "Implement features, brainstorm, verify", "markdown": "```\nBUILD Skills\n────────────\n/ork:implement     Feature impl\n/ork:brainstorming Design explore\n/ork:verify        Test & grade\n```"},
+      {"label": "BUILD", "description": "Implement features, brainstorm, verify", "markdown": "```\nBUILD Skills\n────────────\n/ork:implement     Feature impl\n/ork:brainstorm Design explore\n/ork:verify        Test & grade\n```"},
       {"label": "GIT", "description": "Commits, PRs, issues, recovery", "markdown": "```\nGIT Skills\n──────────\n/ork:commit       Conventional commit\n/ork:create-pr    PR with validation\n/ork:fix-issue    Debug + fix + PR\n/ork:git-workflow  Branch patterns\n```"},
       {"label": "MEMORY", "description": "Store decisions, search, sync context", "markdown": "```\nMEMORY Skills\n─────────────\n/ork:remember  Store decisions\n/ork:memory    Search & recall\n```"},
       {"label": "QUALITY", "description": "Assess code, health checks, golden datasets", "markdown": "```\nQUALITY Skills\n──────────────\n/ork:assess     Rate 0-10 + report\n/ork:review-pr  PR review (6 agents)\n/ork:audit-full 1M context audit\n```"},
@@ -61,7 +61,7 @@ AskUserQuestion(
 | Skill | Description | Example |
 |-------|-------------|---------|
 | `/ork:implement` | Full-power feature implementation with parallel subagents | `/ork:implement user authentication` |
-| `/ork:brainstorming` | Design exploration with parallel agents | `/ork:brainstorming API design for payments` |
+| `/ork:brainstorm` | Design exploration with parallel agents | `/ork:brainstorm API design for payments` |
 | `/ork:verify` | Comprehensive verification with parallel test agents | `/ork:verify authentication flow` |
 
 

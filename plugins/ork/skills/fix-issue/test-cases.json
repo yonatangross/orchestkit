@@ -9,7 +9,7 @@
       "expectedBehavior": [
         "Uses 5 Whys iterative causal analysis",
         "Forms hypotheses with confidence scores (0-100%)",
-        "Launches 5 parallel RCA agents",
+        "Launches 5 parallel RCA agents to investigate different failure hypotheses",
         "Creates regression test BEFORE implementing fix",
         "Creates feature branch, never commits to main/dev"
       ]
@@ -19,10 +19,10 @@
       "rule": "rca-fishbone",
       "query": "Fix issue #456 that was already fixed in #101 but came back",
       "expectedBehavior": [
-        "Searches for similar past issues before hypothesis formation",
+        "Brainstorms potential causes per category before prioritizing root causes",
         "Identifies this as a regression from a previously closed issue",
         "Uses multi-factor Ishikawa analysis for root cause",
-        "Includes prevention recommendations to break recurrence cycle"
+        "Includes cross-category actions to verify and fix confirmed root causes"
       ]
     },
     {
@@ -33,7 +33,7 @@
         "Uses fault tree analysis with AND/OR gates",
         "Launches both backend-system-architect and frontend-ui-developer agents",
         "Designs fix across multiple files with rollback plan",
-        "Validates fix with both backend and frontend test suites"
+        "Decomposes failure into basic events and identifies minimal cut sets for the fix"
       ]
     },
     {
@@ -41,9 +41,20 @@
       "rule": null,
       "query": "Add a new dashboard widget for analytics",
       "expectedBehavior": [
-        "Does NOT trigger fix-issue workflow",
+        "Does NOT trigger fix-issue workflow since this is a feature request",
         "Recognizes this is a feature request, not a bug",
         "Suggests using the implement skill instead"
+      ]
+    },
+    {
+      "id": "evidence-gathering",
+      "rule": "evidence-gathering",
+      "query": "Before diving into fixing issue #500, what evidence should I gather and what approach options exist?",
+      "expectedBehavior": [
+        "Uses AskUserQuestion to clarify fix approach: proper fix, quick fix, investigate, hotfix, or plan mode",
+        "Gathers evidence from issue description, git history, and code before forming fix hypotheses",
+        "Warns that fixing without evidence leads to wrong root cause, wasted effort, and regressions",
+        "Offers investigate-first option that produces root cause analysis without making code changes"
       ]
     }
   ]

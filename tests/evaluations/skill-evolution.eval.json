@@ -1,0 +1,84 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "skill-evolution",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "basic-analyze-how-the-implement",
+      "query": "Analyze how the implement skill has been performing - are users frequently editing its output and what patterns emerge?",
+      "expected_behavior": [
+        "Claude reads .claude/feedback/edit-patterns.jsonl for the implement skill",
+        "Identifies recurring edit patterns with frequency and confidence scores",
+        "Reports success rate and usage count from metrics.json",
+        "Suggests improvements based on detected patterns with confidence thresholds"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "edge-the-last-evolution-update",
+      "query": "The last evolution update to the verify skill broke things - roll it back to the previous version",
+      "expected_behavior": [
+        "Claude reads the version manifest from skills/verify/versions/manifest.json",
+        "Shows available version history with performance metrics per version",
+        "Creates a backup of the current version before restoring",
+        "Restores the previous version after user confirmation"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "negative-add-a-new-endpoint",
+      "query": "Add a new endpoint to the users API that returns a list of active sessions",
+      "expected_behavior": [
+        "Claude does NOT invoke the skill-evolution skill",
+        "Implements the API endpoint using standard backend patterns",
+        "Uses code editing tools rather than skill analytics tools"
+      ],
+      "tags": [
+        "negative"
+      ]
+    },
+    {
+      "id": "auto-evolution-triggers",
+      "query": "The api-design skill's success rate dropped significantly after the last auto-evolution update. What should I do?",
+      "expected_behavior": [
+        "Creates a version snapshot backup before making any changes to the skill",
+        "Triggers rollback alert when success rate drops more than 20 percent from baseline",
+        "Requires human review and approval for high-confidence evolution suggestions",
+        "Stores rejected suggestions in memory so they are never re-suggested in future"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "confidence-scoring",
+      "query": "How does the skill evolution system decide when a pattern is reliable enough to apply automatically?",
+      "expected_behavior": [
+        "Requires minimum 5 usage samples before generating any evolution suggestions",
+        "Uses 70 percent frequency threshold to suggest adding a new pattern to a skill",
+        "Auto-applies only patterns with 85 percent or higher confidence score",
+        "Calculates confidence as the ratio of pattern frequency to total usage count"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "pattern-detection-heuristics",
+      "query": "What user edit patterns does the evolution system track and how does it detect them?",
+      "expected_behavior": [
+        "Tracks common edit patterns including add_pagination, add_rate_limiting, and add_error_handling",
+        "Uses specific detection regex patterns to match user edits against known categories",
+        "Detects add_types pattern using interface and Optional keyword matching in user changes",
+        "Avoids overly generic patterns that match too broadly and produce false positive detections"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    }
+  ]
+}

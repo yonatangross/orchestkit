@@ -1,0 +1,162 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "multimodal-llm",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "basic-i-need-to-build",
+      "query": "I need to build an image captioning pipeline that processes user-uploaded photos and returns descriptions. Which vision model should I use and how do I send base64 images?",
+      "expected_behavior": [
+        "Claude references the vision-image-analysis and vision-models rules",
+        "Recommends a vision model based on accuracy/cost tradeoffs (e.g., Claude Opus for high accuracy, Gemini Flash for cost efficiency)",
+        "Shows base64 encoding pattern with max_tokens set and image resizing guidance",
+        "Warns about not sending oversized images (>2048px)"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "edge-i-want-to-generate",
+      "query": "I want to generate a 6-scene product video with consistent character identity across all clips using Kling 3.0",
+      "expected_behavior": [
+        "Claude references video-multi-shot and video-generation-patterns rules",
+        "Explains Character Elements 3.0 for identity binding across scenes",
+        "Covers async task polling pattern (not synchronous calls)",
+        "Mentions storyboarding workflow for multi-shot consistency"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "negative-help-me-set-up",
+      "query": "Help me set up a REST API with Express.js and connect it to a PostgreSQL database",
+      "expected_behavior": [
+        "Claude does NOT invoke the multimodal-llm skill",
+        "Uses standard backend development knowledge instead",
+        "No references to vision, audio, video generation, or multimodal patterns"
+      ],
+      "tags": [
+        "negative"
+      ]
+    },
+    {
+      "id": "audio-models-voice-agent-happy-path",
+      "query": "I'm building a real-time voice assistant and considering chaining separate STT, LLM, and TTS steps. Which audio model architecture should I use for the lowest latency?",
+      "expected_behavior": [
+        "Claude recommends native speech-to-speech instead of chaining STT plus LLM plus TTS",
+        "Claude compares Grok Voice Agent, Gemini Live, and OpenAI Realtime with latency tradeoffs",
+        "Claude warns that a three-step pipeline adds two to five times more latency than native models",
+        "Claude recommends under one second time-to-first-audio as the quality threshold for phone agents"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "audio-speech-to-text-transcription-happy-path",
+      "query": "I need to transcribe a two-hour meeting recording with speaker labels and timestamps. Which speech-to-text model handles long audio best and provides diarization?",
+      "expected_behavior": [
+        "Claude recommends Gemini 2.5 Pro for long-form audio handling up to 9.5 hours natively",
+        "Claude warns against using deprecated Whisper-1 and recommends GPT-4o-Transcribe instead",
+        "Claude suggests AssemblyAI for the richest metadata including sentiment and entity detection",
+        "Claude advises specifying the language when known to improve transcription accuracy significantly"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "audio-text-to-speech-voice-config-happy-path",
+      "query": "I want to generate natural-sounding speech from text with a specific voice and expressive style. How do I configure voice selection with Gemini TTS?",
+      "expected_behavior": [
+        "Claude configures Gemini TTS with explicit voice selection using PrebuiltVoiceConfig",
+        "Claude sets response_mime_type to audio/mp3 in the GenerationConfig for audio output",
+        "Claude mentions that Gemini offers 30 HD voices across 24 languages for selection",
+        "Claude explains that Grok supports inline auditory cues like whisper, sigh, and pause"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "vision-document-pdf-processing-happy-path",
+      "query": "I need to extract data from a 50-page PDF report with charts and tables. How do I process it with a vision model without hitting context limits?",
+      "expected_behavior": [
+        "Claude uses page ranges to process the PDF incrementally with max 20 pages per request",
+        "Claude never sends the entire large PDF at once to avoid timeouts and context overflow",
+        "Claude uses detail high for documents with small text, tables, or charts",
+        "Claude recommends Gemini 2.5 Pro for longest document context with over one million tokens"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "vision-image-analysis-encoding-happy-path",
+      "query": "I'm sending images to GPT for analysis but the model seems to ignore them. How do I properly encode and structure base64 images in the API request?",
+      "expected_behavior": [
+        "Claude uses structured content array with image_url type instead of string content",
+        "Claude always sets max_tokens on vision requests to prevent response truncation",
+        "Claude shows the correct base64 data URI format with proper mime type prefix",
+        "Claude warns that each provider has a different content structure and formats must not be mixed"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "vision-models-selection-happy-path",
+      "query": "I need to classify thousands of product images as approved or rejected. Which vision model is most cost-effective for simple yes/no classification tasks?",
+      "expected_behavior": [
+        "Claude recommends a cheaper model with detail low setting at 65 tokens per image",
+        "Claude warns against using expensive models with high detail for simple classification tasks",
+        "Claude provides the model comparison table with context, strengths, and max images per request",
+        "Claude notes that vision models cannot identify specific people due to privacy restrictions"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "video-generation-models-selection-happy-path",
+      "query": "I need to generate short product showcase videos at scale for social media. Which video generation model offers the best balance of cost, speed, and character consistency?",
+      "expected_behavior": [
+        "Claude recommends Kling 3.0 Standard for high-volume social content at the lowest cost per video",
+        "Claude warns that Sora 2 is expensive and slow for volume work at over one dollar per video",
+        "Claude compares models by duration, resolution, native audio, and character consistency capabilities",
+        "Claude notes that video generation is always async and requires polling or callback patterns"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "video-generation-patterns-async-happy-path",
+      "query": "I'm trying to generate videos with the Kling API but my requests keep timing out. How do I properly submit a video generation task and retrieve the result?",
+      "expected_behavior": [
+        "Claude implements async task submission followed by status polling instead of synchronous calls",
+        "Claude uses exponential backoff on polling and does not hammer the API every second",
+        "Claude stores the task_id persistently so polling can resume after a process crash",
+        "Claude recommends fal.ai or AI SDK abstractions over raw REST for new projects"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "video-multi-shot-consistency-happy-path",
+      "query": "I need to create a three-scene video where the same character appears in each scene with consistent identity. How do I use Kling multi-shot with character elements?",
+      "expected_behavior": [
+        "Claude uses Kling 3.0 multi-shot with character elements for identity-consistent scenes",
+        "Claude provides up to three reference images including a required frontal face view",
+        "Claude references characters as @Element1 in per-shot prompts for character binding",
+        "Claude notes that multi-shot requires mode pro and only works with Kling 3.0 or later"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    }
+  ]
+}

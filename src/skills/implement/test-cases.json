@@ -11,7 +11,7 @@
         "Creates micro-plans for each task before implementation",
         "Launches 5 parallel architecture design agents",
         "Follows 10-phase workflow from discovery through reflection",
-        "Includes tests as non-optional requirement"
+        "Includes tests as non-optional requirement in the implementation plan"
       ]
     },
     {
@@ -21,7 +21,7 @@
       "expectedBehavior": [
         "Detects Tier 1 (Interview) from README signals",
         "Limits to phases 1 and 5 only",
-        "Uses 1-2 agents maximum",
+        "Uses 1-2 agents maximum to keep the scope appropriately small",
         "Targets 8-15 files with simple architecture"
       ]
     },
@@ -52,7 +52,7 @@
       "rule": null,
       "query": "Implement a new API endpoint following existing patterns",
       "expectedBehavior": [
-        "Clarifies constraints via AskUserQuestion",
+        "Clarifies constraints via AskUserQuestion before starting implementation",
         "Matches existing codebase conventions when selected",
         "Researches current best practices with WebSearch and context7",
         "Uses Phase 1 discovery to identify existing patterns"

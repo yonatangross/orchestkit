@@ -31,6 +31,28 @@
         "Routes to the remember skill instead for write operations",
         "Does not call mcp__memory__search_nodes or mcp__memory__read_graph"
       ]
+    },
+    {
+      "id": "deduplication-strategy",
+      "rule": "deduplication-strategy",
+      "query": "When loading memories from the knowledge graph, how do I prevent duplicate entries from wasting context tokens?",
+      "expectedBehavior": [
+        "Prefers Edit over Write when updating memory files to preserve existing content",
+        "Uses anchor-based insertion under specific section headers to avoid duplicate entries",
+        "Verifies target section header exists before inserting new memory content into the file",
+        "Reads the file after editing to confirm the edit applied correctly without duplication"
+      ]
+    },
+    {
+      "id": "entity-extraction-patterns",
+      "rule": "entity-extraction-patterns",
+      "query": "What entity types does the memory knowledge graph use and how should I categorize new entries?",
+      "expectedBehavior": [
+        "Categorizes entities into types including Technology, Agent, Pattern, Decision, and Project",
+        "Associates typical observations with each entity type such as version and use case for Technology",
+        "Distinguishes Pattern from AntiPattern entities based on success or failure outcomes",
+        "Includes Constraint and Preference entity types with source, severity, and scope attributes"
+      ]
     }
   ]
 }

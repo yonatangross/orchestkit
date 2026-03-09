@@ -36,6 +36,28 @@
         "Uses standard testing patterns (Jest, Vitest, etc.) instead",
         "No HTML file generation, style previews, or slide-related output"
       ]
+    },
+    {
+      "id": "content-density",
+      "rule": "content-density",
+      "query": "My slides have too much text and the content overflows. How many bullet points should I have per slide?",
+      "expectedBehavior": [
+        "Enforces maximum 4-6 bullet points or 2 paragraphs per content slide to prevent overflow",
+        "Limits code slides to 8-10 lines maximum to ensure readability without scrolling",
+        "Splits content that exceeds density limits into multiple slides rather than shrinking text",
+        "Applies different density rules per slide type including title, content, feature grid, and quote"
+      ]
+    },
+    {
+      "id": "viewport-fitting",
+      "rule": "viewport-fitting",
+      "query": "How do I make sure every slide in my HTML presentation fits exactly on screen without scrolling?",
+      "expectedBehavior": [
+        "Sets each slide to exactly 100vh or 100dvh height with overflow hidden as non-negotiable rule",
+        "Never uses min-height which allows content to extend beyond the viewport boundary",
+        "Never enables overflow auto or scroll within individual presentation slides",
+        "Splits overflowing content into additional slides rather than allowing scrolling within slides"
+      ]
     }
   ]
 }

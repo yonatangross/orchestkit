@@ -19,7 +19,7 @@ vi.mock('node:fs', () => ({
 
 // Mock node:child_process
 vi.mock('node:child_process', () => ({
-  execSync: vi.fn(),
+  execFileSync: vi.fn(() => ''),
 }));
 
 // Mock common utilities
@@ -31,7 +31,7 @@ vi.mock('../../lib/common.js', () => ({
 
 import { fullTestSuite } from '../../stop/full-test-suite.js';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import { logHook, } from '../../lib/common.js';
 import type { HookInput } from '../../types.js';
 
@@ -40,7 +40,7 @@ describe('Full Test Suite Hook', () => {
   const mockReadFileSync = vi.mocked(readFileSync);
   const mockWriteFileSync = vi.mocked(writeFileSync);
   const _mockMkdirSync = vi.mocked(mkdirSync);
-  const mockExecSync = vi.mocked(execSync);
+  const mockExecFileSync = vi.mocked(execFileSync);
   const mockLogHook = vi.mocked(logHook);
 
   const defaultInput: HookInput = {
@@ -65,7 +65,7 @@ describe('Full Test Suite Hook', () => {
         if (String(path).includes('.last-test-run')) return true;
         return false;
       });
-      mockExecSync.mockReturnValue(Buffer.from('README.md\npackage-lock.json\n'));
+      mockExecFileSync.mockReturnValue(Buffer.from('README.md\npackage-lock.json\n'));
 
       // Act
       const result = fullTestSuite(defaultInput);
@@ -100,7 +100,7 @@ describe('Full Test Suite Hook', () => {
         if (String(path).includes('.last-test-run')) return true;
         return false;
       });
-      mockExecSync.mockReturnValue(Buffer.from('src/main.ts')); // No trailing newline
+      mockExecFileSync.mockReturnValue('src/main.ts'); // No trailing newline
 
       // Act
       fullTestSuite(defaultInput);
@@ -118,7 +118,7 @@ describe('Full Test Suite Hook', () => {
         if (String(path).includes('.last-test-run')) return true;
         return false;
       });
-      mockExecSync.mockImplementation(() => {
+      mockExecFileSync.mockImplementation(() => {
         throw new Error('git error');
       });
 
@@ -140,7 +140,7 @@ describe('Full Test Suite Hook', () => {
         if (String(path).includes('pytest.ini')) return true;
         return false;
       });
-      mockExecSync.mockReturnValue(Buffer.from(''));
+      mockExecFileSync.mockReturnValue(Buffer.from(''));
 
       // Act
       fullTestSuite(defaultInput);
@@ -158,7 +158,7 @@ describe('Full Test Suite Hook', () => {
         if (String(path).includes('pyproject.toml')) return true;
         return false;
       });
-      mockExecSync.mockReturnValue(Buffer.from(''));
+      mockExecFileSync.mockReturnValue(Buffer.from(''));
 
       // Act
       fullTestSuite(defaultInput);
@@ -177,7 +177,7 @@ describe('Full Test Suite Hook', () => {
         if (p.endsWith('/tests') || p.includes('requirements.txt')) return true;
         return false;
       });
-      mockExecSync.mockReturnValue(Buffer.from(''));
+      mockExecFileSync.mockReturnValue(Buffer.from(''));
 
       // Act
       fullTestSuite(defaultInput);
@@ -203,7 +203,7 @@ describe('Full Test Suite Hook', () => {
       mockReadFileSync.mockReturnValue(
         JSON.stringify({ scripts: { test: 'vitest' } })
       );
-      mockExecSync.mockReturnValue(Buffer.from(''));
+      mockExecFileSync.mockReturnValue(Buffer.from(''));
 
       // Act
       fullTestSuite(defaultInput);
@@ -246,8 +246,8 @@ describe('Full Test Suite Hook', () => {
         if (String(path).includes('pytest.ini')) return true;
         return false;
       });
-      mockExecSync.mockImplementation((cmd: string) => {
-        if (String(cmd).includes('pytest')) {
+      mockExecFileSync.mockImplementation((cmd: unknown) => {
+        if (cmd === 'pytest') {
           throw new Error('Tests failed with exit code 1');
         }
         return Buffer.from('');
@@ -270,8 +270,8 @@ describe('Full Test Suite Hook', () => {
         if (String(path).includes('pytest.ini')) return true;
         return false;
       });
-      mockExecSync.mockImplementation((cmd: string) => {
-        if (String(cmd).includes('pytest')) {
+      mockExecFileSync.mockImplementation((cmd: unknown) => {
+        if (cmd === 'pytest') {
           throw new Error('Test failure');
         }
         return Buffer.from('');
@@ -295,7 +295,7 @@ describe('Full Test Suite Hook', () => {
     it('should update last-run timestamp on success', () => {
       // Arrange - no project files means runTests returns true (exitCode stays 0)
       mockExistsSync.mockReturnValue(false);
-      mockExecSync.mockReturnValue(Buffer.from(''));
+      mockExecFileSync.mockReturnValue(Buffer.from(''));
 
       // Act
       fullTestSuite(defaultInput);

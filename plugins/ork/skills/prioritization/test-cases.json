@@ -1,0 +1,39 @@
+{
+  "skill": "prioritization",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "prioritize-opportunity-cost",
+      "rule": "prioritize-opportunity-cost",
+      "query": "We have limited engineering capacity and need to choose between three major features. How do I evaluate the trade-offs?",
+      "expectedBehavior": [
+        "Uses value-effort matrix to plot features by expected value and required effort",
+        "Applies cost of delay analysis to quantify what is lost by deferring each feature",
+        "Flags trade-offs explicitly for human decision-makers rather than making the choice automatically",
+        "Considers both direct value and opportunity cost of not pursuing alternative features"
+      ]
+    },
+    {
+      "id": "prioritize-rice",
+      "rule": "prioritize-rice",
+      "query": "Score these backlog items using RICE: search redesign, dark mode, API versioning, mobile app",
+      "expectedBehavior": [
+        "Scores each item with Reach, Impact (0.25 to 3 scale), Confidence, and Effort factors",
+        "Calculates RICE score as Reach times Impact times Confidence divided by Effort",
+        "Ranks features by calculated RICE score from highest to lowest priority",
+        "Documents scoring rationale with justification for each factor value assignment"
+      ]
+    },
+    {
+      "id": "prioritize-wsjf",
+      "rule": "prioritize-wsjf",
+      "query": "We have a regulatory compliance deadline. How do I prioritize backlog items using WSJF?",
+      "expectedBehavior": [
+        "Calculates Cost of Delay from User Value plus Time Criticality plus Risk Reduction",
+        "Divides Cost of Delay by Job Size to produce the WSJF priority score",
+        "Identifies regulatory deadline items as high time criticality for elevated priority",
+        "Includes MoSCoW categorization to distinguish must-have from should-have and nice-to-have"
+      ]
+    }
+  ]
+}

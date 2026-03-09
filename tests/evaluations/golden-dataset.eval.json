@@ -4,48 +4,134 @@
   "version": "1.0.0",
   "evaluations": [
     {
-      "id": "add-documents",
+      "id": "curation-collection",
       "query": "How do I add new documents to the golden dataset with quality checks?",
       "expected_behavior": [
-        "Classifies content type",
+        "Classifies content type (article, tutorial, research_paper, etc.)",
         "Applies quality thresholds (minimum 0.70 quality score)",
-        "Checks for duplicates",
+        "Checks URL against source_url_map.json for duplicates",
         "Requires at least 2 domain tags and 3 test queries"
       ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
-      "id": "diversity-balance",
+      "id": "curation-annotation",
+      "query": "Set up a multi-agent pipeline to evaluate golden dataset entries",
+      "expected_behavior": [
+        "Runs parallel analysis agents (Quality, Difficulty, Domain, Query Gen)",
+        "Aggregates consensus with weighted quality score",
+        "Uses decision thresholds (>=0.75 include, >=0.55 review, <0.55 exclude)",
+        "Integrates with Langfuse for trace logging"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "curation-diversity",
       "query": "Ensure the golden dataset has balanced coverage across difficulty levels",
       "expected_behavior": [
-        "Stratifies entries into difficulty levels",
+        "Stratifies entries into trivial/easy/medium/hard/adversarial difficulty levels for balance",
         "Enforces minimum counts per difficulty level",
-        "Checks domain coverage",
+        "Checks domain coverage across AI/ML, backend, frontend, DevOps",
         "Flags over-representation of specific content types"
       ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
-      "id": "backup-restore",
+      "id": "management-versioning",
       "query": "Backup the golden dataset to JSON and restore it in a new environment",
       "expected_behavior": [
-        "Exports analyses, chunks, and artifacts to JSON",
+        "Exports analyses, chunks, and artifacts to JSON (excluding embeddings)",
         "Validates backup structure with required keys",
-        "Regenerates embeddings on restore",
+        "Regenerates embeddings using current model on restore",
         "Verifies counts match metadata after restore"
       ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
     },
     {
-      "id": "duplicate-detection",
+      "id": "management-storage",
+      "query": "What storage format should I use for golden dataset backups?",
+      "expected_behavior": [
+        "Recommends JSON over SQL dump for version control",
+        "Enforces URL contract (no placeholder URLs)",
+        "Validates data integrity (counts, embeddings, orphaned chunks)",
+        "Stores metadata for quick stats and validation"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "management-ci",
+      "query": "Automate golden dataset backups with GitHub Actions",
+      "expected_behavior": [
+        "Sets up weekly scheduled backup (Sunday 2am UTC)",
+        "Includes manual workflow_dispatch trigger for on-demand backup runs",
+        "Commits backup files to git automatically",
+        "Runs automated verification checks after each backup creation step"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "validation-quality",
+      "query": "Validate golden dataset entries against the document schema",
+      "expected_behavior": [
+        "Validates required fields (id, title, source_url, content_type, sections)",
+        "Enforces kebab-case ID pattern and title length constraints",
+        "Checks section content minimums (50 chars)",
+        "Validates tag count (2-10 tags per document)"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "validation-drift",
       "query": "Detect duplicate content in the golden dataset",
       "expected_behavior": [
         "Runs semantic similarity check against existing embeddings",
-        "Blocks entries with >=0.90 similarity",
-        "Warns on >=0.85 similarity",
+        "Blocks entries with >=0.90 similarity score as near-duplicates",
+        "Warns on entries with >=0.85 similarity for manual review",
         "Normalizes URLs for exact duplicate detection"
       ],
-      "tags": ["happy-path"]
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "validation-regression",
+      "query": "Run full validation on the golden dataset before deployment",
+      "expected_behavior": [
+        "Validates schema compliance for all documents in the dataset",
+        "Checks unique IDs and referential integrity",
+        "Analyzes difficulty distribution against configured minimum thresholds per level",
+        "Reports coverage gaps and generates actionable recommendations"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "curation-add-workflow",
+      "query": "Walk me through the complete workflow for adding a new document to the golden dataset",
+      "expected_behavior": [
+        "Follows the structured add workflow from content identification through quality validation",
+        "Classifies the document content type and applies quality thresholds before acceptance",
+        "Checks for duplicate content against existing entries using URL and semantic similarity",
+        "Requires minimum domain tags and test queries before the document is accepted into the dataset"
+      ],
+      "tags": [
+        "happy-path"
+      ]
     }
   ]
 }

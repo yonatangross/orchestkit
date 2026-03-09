@@ -1,0 +1,121 @@
+{
+  "skill": "storybook-testing",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "basic-write-a-storybook",
+      "rule": "",
+      "query": "Write a Storybook story for my Button component that tests the click handler, has variants for primary/secondary/danger, and generates documentation automatically",
+      "expectedBehavior": [
+        "Claude uses CSF3 format with satisfies Meta<typeof Button> for type safety",
+        "Uses fn() from @storybook/test for the onClick mock, not action() from addon-actions",
+        "Includes a play() function that simulates userEvent.click and asserts onClick was called",
+        "Adds tags: ['autodocs'] to the meta for automatic documentation generation",
+        "Creates separate Story exports for each variant (Primary, Secondary, Danger)",
+        "Uses within(canvasElement) for scoped queries, not screen"
+      ]
+    },
+    {
+      "id": "edge-migrate-storybook-7",
+      "rule": "",
+      "query": "I need to migrate my Storybook 7 project to Storybook 9. We have 200 stories using Template.bind, test-runner for CI, and vi.mock in story files",
+      "expectedBehavior": [
+        "Claude references the CSF2 to CSF3 migration path with the codemod command",
+        "Recommends replacing deprecated @storybook/test-runner package with @storybook/addon-vitest plugin",
+        "Shows how to register sb.mock in preview.ts and configure mocked() in story beforeEach for isolation",
+        "Mentions ESM-only package requirement and tsconfig module changes",
+        "Suggests running npx storybook@latest upgrade for automatic codemods",
+        "Advises replacing action() imports with fn() from @storybook/test"
+      ]
+    },
+    {
+      "id": "storybook-chromatic-turbosnap",
+      "rule": "storybook-chromatic-turbosnap",
+      "query": "Our Chromatic bill is too high \u2014 we have 500 stories and every PR snapshots all of them even when we only change one component",
+      "expectedBehavior": [
+        "Enables TurboSnap with onlyChanged: true in the Chromatic GitHub Action",
+        "Sets fetch-depth: 0 in checkout for full git history comparison",
+        "Configures externals for global CSS and fonts that are outside the module graph",
+        "Uses traceChanged: expanded for transitive dependency tracking",
+        "Sets skip for bot branches like dependabot to avoid wasting snapshots"
+      ]
+    },
+    {
+      "id": "storybook-a11y-testing",
+      "rule": "storybook-a11y-testing",
+      "query": "We need to add accessibility testing to our Storybook CI pipeline so WCAG violations block PRs from merging",
+      "expectedBehavior": [
+        "Adds @storybook/addon-a11y to the Storybook addons configuration",
+        "Configures axe-core rules via parameters.a11y.config.rules on meta or individual stories",
+        "Shows how a11y violations become Vitest test failures in CI",
+        "Demonstrates accessible patterns like aria-label for icon buttons",
+        "Uses STORYBOOK_A11Y_STRICT environment variable to fail on any violation in CI"
+      ]
+    },
+    {
+      "id": "play-function-form-interaction",
+      "rule": "storybook-play-functions",
+      "query": "Write a Storybook story for a login form that tests typing into inputs and submitting",
+      "expectedBehavior": [
+        "Uses play() function with userEvent from @storybook/test for simulating user input",
+        "Calls within(canvasElement) for scoped queries instead of screen from testing-library",
+        "Uses await userEvent.type() for input fields and await userEvent.click() for submit button",
+        "Includes expect() assertions verifying form behavior after submission"
+      ]
+    },
+    {
+      "id": "vitest-story-integration-setup",
+      "rule": "storybook-vitest-integration",
+      "query": "Set up Vitest to run our Storybook stories as tests in CI",
+      "expectedBehavior": [
+        "Installs @storybook/addon-vitest and adds storybookTest() plugin to vitest.config.ts",
+        "Configures browser mode with storybookScript pointing to the Storybook dev command",
+        "Does NOT recommend @storybook/test-runner which is deprecated in Storybook 9",
+        "Shows vitest.setup.ts file with beforeAll hook for Storybook initialization"
+      ]
+    },
+    {
+      "id": "autodocs-component-documentation",
+      "rule": "storybook-autodocs",
+      "query": "Generate documentation for our Button component directly from its Storybook stories",
+      "expectedBehavior": [
+        "Adds tags: ['autodocs'] to the story meta object for automatic doc page generation",
+        "Shows argTypes with descriptions and control types for interactive documentation",
+        "Recommends JSDoc comments on component props for automatic extraction into docs",
+        "Does NOT suggest creating a separate documentation site \u2014 uses living docs from stories"
+      ]
+    },
+    {
+      "id": "negative-set-up-express-api",
+      "rule": "",
+      "query": "Set up an Express.js REST API with MongoDB and JWT authentication",
+      "expectedBehavior": [
+        "Claude does NOT invoke the storybook-testing skill",
+        "Uses standard Node.js/Express knowledge instead of Storybook patterns",
+        "No references to CSF3, play functions, Chromatic, or Storybook addons"
+      ]
+    },
+    {
+      "id": "csf3-factories-setup",
+      "rule": "storybook-csf3-factories",
+      "query": "How do I write type-safe Storybook stories for our Button component using CSF3?",
+      "expectedBehavior": [
+        "Uses satisfies Meta<typeof Component> on the default export for type inference",
+        "Defines stories as plain objects with args instead of CSF2 template functions",
+        "Includes proper TypeScript typing on StoryObj for full autocomplete support",
+        "Demonstrates story composition with spread operator for variant stories"
+      ]
+    },
+    {
+      "id": "sb-mock-isolation",
+      "rule": "storybook-sb-mock",
+      "query": "My Storybook stories share API mocks and they're leaking between tests. How do I isolate mocks per story?",
+      "expectedBehavior": [
+        "Uses sb.mock() registration in .storybook/preview.ts for module-level mocking",
+        "Configures per-story mock behavior using the mocked() utility in beforeEach",
+        "Avoids vi.mock() which leaks mock state between stories and test files",
+        "Demonstrates automatic cleanup of mocks between story renders for isolation"
+      ]
+    }
+  ]
+}

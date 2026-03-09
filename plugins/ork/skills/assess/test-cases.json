@@ -7,9 +7,9 @@
       "rule": "complexity-metrics",
       "query": "Assess the quality of backend/app/services/auth.py",
       "expectedBehavior": [
-        "Rates 6 dimensions: correctness, maintainability, performance, security, scalability, testability",
+        "Scores 6 complexity criteria: correctness, maintainability, performance, security, scalability, testability",
         "Uses 7-criterion scoring with 1-5 scale per criterion",
-        "Produces weighted composite score (0-10)",
+        "Produces weighted composite score (0-10) from all dimension ratings",
         "Limits scope to MAX 30 files to prevent context exhaustion"
       ]
     },
@@ -18,9 +18,9 @@
       "rule": "complexity-breakdown",
       "query": "Assess our current microservices architecture",
       "expectedBehavior": [
-        "Decomposes architecture into assessable components",
+        "Decomposes architecture into individually assessable components and boundaries",
         "Identifies risk factors and complexity hotspots",
-        "Provides pros/cons analysis with evidence",
+        "Provides pros/cons analysis with supporting evidence from the codebase",
         "Compares current approach against alternatives with scores"
       ]
     },
@@ -29,9 +29,9 @@
       "rule": "complexity-metrics",
       "query": "Assess the performance of our database queries",
       "expectedBehavior": [
-        "Focuses performance and scalability dimensions",
-        "Spawns python-performance-engineer agent for analysis",
-        "Includes effort estimation for improvements",
+        "Scores complexity criteria focused on estimation and risk for database analysis",
+        "Spawns agent for deep criterion-level scoring and assessment of task complexity",
+        "Includes effort estimation for each recommended improvement action",
         "Prioritizes quick wins (effort <= 2, impact >= 4)"
       ]
     },
@@ -40,7 +40,7 @@
       "rule": "complexity-breakdown",
       "query": "Is our caching strategy good?",
       "expectedBehavior": [
-        "Answers 'is this good?' with structured evaluation",
+        "Answers 'is this good?' with structured decomposition and risk assessment",
         "Produces overall score with grade interpretation (A+ through F)",
         "Generates actionable improvement suggestions with effort/impact",
         "Stores assessment results in memory for trend tracking"

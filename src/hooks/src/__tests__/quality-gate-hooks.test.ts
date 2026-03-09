@@ -69,6 +69,7 @@ vi.mock('../lib/atomic-write.js', () => ({
 // ---------------------------------------------------------------------------
 vi.mock('node:child_process', () => ({
   execSync: vi.fn(() => ''),
+  execFileSync: vi.fn(() => ''),
 }));
 
 // ---------------------------------------------------------------------------
@@ -85,7 +86,7 @@ vi.mock('node:crypto', () => ({
 // Imports (after mocks are declared)
 // ---------------------------------------------------------------------------
 import { existsSync, readFileSync, writeFileSync, statSync, } from 'node:fs';
-import { execSync } from 'node:child_process';
+import { execSync, execFileSync } from 'node:child_process';
 
 import { coverageThresholdGate } from '../skill/coverage-threshold-gate.js';
 import { mergeReadinessChecker } from '../skill/merge-readiness-checker.js';
@@ -143,6 +144,7 @@ beforeEach(() => {
   vi.mocked(readFileSync).mockReturnValue('');
   vi.mocked(statSync).mockReturnValue({ size: 0 } as any);
   vi.mocked(execSync).mockReturnValue('');
+  vi.mocked(execFileSync).mockReturnValue('');
 });
 
 // =============================================================================
@@ -456,16 +458,16 @@ describe('mergeReadinessChecker', () => {
 
   test('triggers checks for gh pr merge command', () => {
     // Setup: on feature branch, no uncommitted changes, no conflicts
-    vi.mocked(execSync).mockImplementation((cmd: any) => {
-      const cmdStr = String(cmd);
-      if (cmdStr.includes('branch --show-current')) return 'feature/test';
-      if (cmdStr.includes('rev-parse --show-toplevel')) return '/test/project';
-      if (cmdStr.includes('status --short')) return '';
-      if (cmdStr.includes('rev-list --count')) return '0';
-      if (cmdStr.includes('merge --no-commit')) return 'Already up to date.';
-      if (cmdStr.includes('merge-base')) return 'abc123';
-      if (cmdStr.includes('diff --name-only') && cmdStr.includes('merge-base')) return '';
-      if (cmdStr.includes('diff --name-only')) return 'src/index.ts';
+    vi.mocked(execFileSync).mockImplementation((_cmd: any, args: any) => {
+      const argsStr = Array.isArray(args) ? args.join(' ') : '';
+      if (argsStr.includes('branch --show-current')) return 'feature/test';
+      if (argsStr.includes('rev-parse --show-toplevel')) return '/test/project';
+      if (argsStr.includes('status --short')) return '';
+      if (argsStr.includes('rev-list --count')) return '0';
+      if (argsStr.includes('merge --no-commit')) return 'Already up to date.';
+      if (argsStr.includes('merge-base')) return 'abc123';
+      if (argsStr.includes('diff --name-only') && argsStr.includes('merge-base')) return '';
+      if (argsStr.includes('diff --name-only')) return 'src/index.ts';
       return '';
     });
     vi.mocked(existsSync).mockReturnValue(false);
@@ -481,15 +483,15 @@ describe('mergeReadinessChecker', () => {
   });
 
   test('triggers checks for git merge command', () => {
-    vi.mocked(execSync).mockImplementation((cmd: any) => {
-      const cmdStr = String(cmd);
-      if (cmdStr.includes('branch --show-current')) return 'feature/test';
-      if (cmdStr.includes('rev-parse --show-toplevel')) return '/test/project';
-      if (cmdStr.includes('status --short')) return '';
-      if (cmdStr.includes('rev-list --count')) return '0';
-      if (cmdStr.includes('merge --no-commit')) return 'Already up to date.';
-      if (cmdStr.includes('merge-base')) return 'abc123';
-      if (cmdStr.includes('diff --name-only')) return '';
+    vi.mocked(execFileSync).mockImplementation((_cmd: any, args: any) => {
+      const argsStr = Array.isArray(args) ? args.join(' ') : '';
+      if (argsStr.includes('branch --show-current')) return 'feature/test';
+      if (argsStr.includes('rev-parse --show-toplevel')) return '/test/project';
+      if (argsStr.includes('status --short')) return '';
+      if (argsStr.includes('rev-list --count')) return '0';
+      if (argsStr.includes('merge --no-commit')) return 'Already up to date.';
+      if (argsStr.includes('merge-base')) return 'abc123';
+      if (argsStr.includes('diff --name-only')) return '';
       return '';
     });
     vi.mocked(existsSync).mockReturnValue(false);
@@ -503,15 +505,15 @@ describe('mergeReadinessChecker', () => {
   });
 
   test('triggers checks for git rebase command', () => {
-    vi.mocked(execSync).mockImplementation((cmd: any) => {
-      const cmdStr = String(cmd);
-      if (cmdStr.includes('branch --show-current')) return 'feature/test';
-      if (cmdStr.includes('rev-parse --show-toplevel')) return '/test/project';
-      if (cmdStr.includes('status --short')) return '';
-      if (cmdStr.includes('rev-list --count')) return '0';
-      if (cmdStr.includes('merge --no-commit')) return 'Already up to date.';
-      if (cmdStr.includes('merge-base')) return 'abc123';
-      if (cmdStr.includes('diff --name-only')) return '';
+    vi.mocked(execFileSync).mockImplementation((_cmd: any, args: any) => {
+      const argsStr = Array.isArray(args) ? args.join(' ') : '';
+      if (argsStr.includes('branch --show-current')) return 'feature/test';
+      if (argsStr.includes('rev-parse --show-toplevel')) return '/test/project';
+      if (argsStr.includes('status --short')) return '';
+      if (argsStr.includes('rev-list --count')) return '0';
+      if (argsStr.includes('merge --no-commit')) return 'Already up to date.';
+      if (argsStr.includes('merge-base')) return 'abc123';
+      if (argsStr.includes('diff --name-only')) return '';
       return '';
     });
     vi.mocked(existsSync).mockReturnValue(false);
@@ -529,15 +531,15 @@ describe('mergeReadinessChecker', () => {
   // -------------------------------------------------------------------------
 
   test('blocks merge when uncommitted changes exist', () => {
-    vi.mocked(execSync).mockImplementation((cmd: any) => {
-      const cmdStr = String(cmd);
-      if (cmdStr.includes('branch --show-current')) return 'feature/test';
-      if (cmdStr.includes('rev-parse --show-toplevel')) return '/test/project';
-      if (cmdStr.includes('status --short')) return ' M src/index.ts\n?? newfile.ts';
-      if (cmdStr.includes('rev-list --count')) return '0';
-      if (cmdStr.includes('merge --no-commit')) return 'Already up to date.';
-      if (cmdStr.includes('merge-base')) return 'abc123';
-      if (cmdStr.includes('diff --name-only')) return '';
+    vi.mocked(execFileSync).mockImplementation((_cmd: any, args: any) => {
+      const argsStr = Array.isArray(args) ? args.join(' ') : '';
+      if (argsStr.includes('branch --show-current')) return 'feature/test';
+      if (argsStr.includes('rev-parse --show-toplevel')) return '/test/project';
+      if (argsStr.includes('status --short')) return ' M src/index.ts\n?? newfile.ts';
+      if (argsStr.includes('rev-list --count')) return '0';
+      if (argsStr.includes('merge --no-commit')) return 'Already up to date.';
+      if (argsStr.includes('merge-base')) return 'abc123';
+      if (argsStr.includes('diff --name-only')) return '';
       return '';
     });
     vi.mocked(existsSync).mockReturnValue(false);
@@ -556,16 +558,16 @@ describe('mergeReadinessChecker', () => {
   // -------------------------------------------------------------------------
 
   test('warns when branch is behind by 6-20 commits', () => {
-    vi.mocked(execSync).mockImplementation((cmd: any) => {
-      const cmdStr = String(cmd);
-      if (cmdStr.includes('branch --show-current')) return 'feature/test';
-      if (cmdStr.includes('rev-parse --show-toplevel')) return '/test/project';
-      if (cmdStr.includes('status --short')) return '';
-      if (cmdStr.includes('rev-list --count') && cmdStr.includes('origin/main..feature')) return '3';
-      if (cmdStr.includes('rev-list --count') && cmdStr.includes('feature..origin/main')) return '10';
-      if (cmdStr.includes('merge --no-commit')) return 'Already up to date.';
-      if (cmdStr.includes('merge-base')) return 'abc123';
-      if (cmdStr.includes('diff --name-only')) return '';
+    vi.mocked(execFileSync).mockImplementation((_cmd: any, args: any) => {
+      const argsStr = Array.isArray(args) ? args.join(' ') : '';
+      if (argsStr.includes('branch --show-current')) return 'feature/test';
+      if (argsStr.includes('rev-parse --show-toplevel')) return '/test/project';
+      if (argsStr.includes('status --short')) return '';
+      if (argsStr.includes('rev-list --count') && argsStr.includes('origin/main..feature')) return '3';
+      if (argsStr.includes('rev-list --count') && argsStr.includes('feature..origin/main')) return '10';
+      if (argsStr.includes('merge --no-commit')) return 'Already up to date.';
+      if (argsStr.includes('merge-base')) return 'abc123';
+      if (argsStr.includes('diff --name-only')) return '';
       return '';
     });
     vi.mocked(existsSync).mockReturnValue(false);
@@ -586,16 +588,16 @@ describe('mergeReadinessChecker', () => {
   });
 
   test('blocks when branch is significantly behind (>20 commits)', () => {
-    vi.mocked(execSync).mockImplementation((cmd: any) => {
-      const cmdStr = String(cmd);
-      if (cmdStr.includes('branch --show-current')) return 'feature/test';
-      if (cmdStr.includes('rev-parse --show-toplevel')) return '/test/project';
-      if (cmdStr.includes('status --short')) return '';
-      if (cmdStr.includes('rev-list --count') && cmdStr.includes('feature/test..origin')) return '25';
-      if (cmdStr.includes('rev-list --count') && cmdStr.includes('origin/main..feature')) return '5';
-      if (cmdStr.includes('merge --no-commit')) return 'Already up to date.';
-      if (cmdStr.includes('merge-base')) return 'abc123';
-      if (cmdStr.includes('diff --name-only')) return '';
+    vi.mocked(execFileSync).mockImplementation((_cmd: any, args: any) => {
+      const argsStr = Array.isArray(args) ? args.join(' ') : '';
+      if (argsStr.includes('branch --show-current')) return 'feature/test';
+      if (argsStr.includes('rev-parse --show-toplevel')) return '/test/project';
+      if (argsStr.includes('status --short')) return '';
+      if (argsStr.includes('rev-list --count') && argsStr.includes('feature/test..origin')) return '25';
+      if (argsStr.includes('rev-list --count') && argsStr.includes('origin/main..feature')) return '5';
+      if (argsStr.includes('merge --no-commit')) return 'Already up to date.';
+      if (argsStr.includes('merge-base')) return 'abc123';
+      if (argsStr.includes('diff --name-only')) return '';
       return '';
     });
     vi.mocked(existsSync).mockReturnValue(false);
@@ -613,17 +615,17 @@ describe('mergeReadinessChecker', () => {
   // -------------------------------------------------------------------------
 
   test('blocks when merge conflicts are detected', () => {
-    vi.mocked(execSync).mockImplementation((cmd: any) => {
-      const cmdStr = String(cmd);
-      if (cmdStr.includes('branch --show-current')) return 'feature/test';
-      if (cmdStr.includes('rev-parse --show-toplevel')) return '/test/project';
-      if (cmdStr.includes('status --short')) return '';
-      if (cmdStr.includes('rev-list --count')) return '0';
-      if (cmdStr.includes('merge --no-commit')) return 'CONFLICT (content): Merge conflict in src/index.ts';
-      if (cmdStr.includes('diff --name-only --diff-filter=U')) return 'src/index.ts\nsrc/utils.ts';
-      if (cmdStr.includes('merge --abort')) return '';
-      if (cmdStr.includes('merge-base')) return 'abc123';
-      if (cmdStr.includes('diff --name-only')) return '';
+    vi.mocked(execFileSync).mockImplementation((_cmd: any, args: any) => {
+      const argsStr = Array.isArray(args) ? args.join(' ') : '';
+      if (argsStr.includes('branch --show-current')) return 'feature/test';
+      if (argsStr.includes('rev-parse --show-toplevel')) return '/test/project';
+      if (argsStr.includes('status --short')) return '';
+      if (argsStr.includes('rev-list --count')) return '0';
+      if (argsStr.includes('merge --no-commit')) return 'CONFLICT (content): Merge conflict in src/index.ts';
+      if (argsStr.includes('diff --name-only --diff-filter=U')) return 'src/index.ts\nsrc/utils.ts';
+      if (argsStr.includes('merge --abort')) return '';
+      if (argsStr.includes('merge-base')) return 'abc123';
+      if (argsStr.includes('diff --name-only')) return '';
       return '';
     });
     vi.mocked(existsSync).mockReturnValue(false);
@@ -642,9 +644,9 @@ describe('mergeReadinessChecker', () => {
   // -------------------------------------------------------------------------
 
   test('returns silent success when already on target branch', () => {
-    vi.mocked(execSync).mockImplementation((cmd: any) => {
-      const cmdStr = String(cmd);
-      if (cmdStr.includes('branch --show-current')) return 'main';
+    vi.mocked(execFileSync).mockImplementation((_cmd: any, args: any) => {
+      const argsStr = Array.isArray(args) ? args.join(' ') : '';
+      if (argsStr.includes('branch --show-current')) return 'main';
       return '';
     });
 
@@ -662,15 +664,15 @@ describe('mergeReadinessChecker', () => {
   // -------------------------------------------------------------------------
 
   test('detects package.json test script as frontend tests', () => {
-    vi.mocked(execSync).mockImplementation((cmd: any) => {
-      const cmdStr = String(cmd);
-      if (cmdStr.includes('branch --show-current')) return 'feature/test';
-      if (cmdStr.includes('rev-parse --show-toplevel')) return '/test/project';
-      if (cmdStr.includes('status --short')) return '';
-      if (cmdStr.includes('rev-list --count')) return '0';
-      if (cmdStr.includes('merge --no-commit')) return 'Already up to date.';
-      if (cmdStr.includes('merge-base')) return 'abc123';
-      if (cmdStr.includes('diff --name-only')) return '';
+    vi.mocked(execFileSync).mockImplementation((_cmd: any, args: any) => {
+      const argsStr = Array.isArray(args) ? args.join(' ') : '';
+      if (argsStr.includes('branch --show-current')) return 'feature/test';
+      if (argsStr.includes('rev-parse --show-toplevel')) return '/test/project';
+      if (argsStr.includes('status --short')) return '';
+      if (argsStr.includes('rev-list --count')) return '0';
+      if (argsStr.includes('merge --no-commit')) return 'Already up to date.';
+      if (argsStr.includes('merge-base')) return 'abc123';
+      if (argsStr.includes('diff --name-only')) return '';
       return '';
     });
     vi.mocked(existsSync).mockImplementation((path) => {
@@ -691,15 +693,15 @@ describe('mergeReadinessChecker', () => {
   });
 
   test('detects pyproject.toml as backend test configuration', () => {
-    vi.mocked(execSync).mockImplementation((cmd: any) => {
-      const cmdStr = String(cmd);
-      if (cmdStr.includes('branch --show-current')) return 'feature/test';
-      if (cmdStr.includes('rev-parse --show-toplevel')) return '/test/project';
-      if (cmdStr.includes('status --short')) return '';
-      if (cmdStr.includes('rev-list --count')) return '0';
-      if (cmdStr.includes('merge --no-commit')) return 'Already up to date.';
-      if (cmdStr.includes('merge-base')) return 'abc123';
-      if (cmdStr.includes('diff --name-only')) return '';
+    vi.mocked(execFileSync).mockImplementation((_cmd: any, args: any) => {
+      const argsStr = Array.isArray(args) ? args.join(' ') : '';
+      if (argsStr.includes('branch --show-current')) return 'feature/test';
+      if (argsStr.includes('rev-parse --show-toplevel')) return '/test/project';
+      if (argsStr.includes('status --short')) return '';
+      if (argsStr.includes('rev-list --count')) return '0';
+      if (argsStr.includes('merge --no-commit')) return 'Already up to date.';
+      if (argsStr.includes('merge-base')) return 'abc123';
+      if (argsStr.includes('diff --name-only')) return '';
       return '';
     });
     vi.mocked(existsSync).mockImplementation((path) => {

@@ -24,7 +24,8 @@ vi.mock('../../lib/atomic-write.js', async () => {
 });
 
 vi.mock('node:child_process', () => ({
-  execSync: vi.fn(),
+  execSync: vi.fn(() => ''),
+  execFileSync: vi.fn(),
 }));
 
 import {
@@ -41,14 +42,14 @@ import {
 } from '../../lib/session-id-generator.js';
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 
 describe('Smart Session ID Generator', () => {
   const mockExistsSync = vi.mocked(existsSync);
   const mockReadFileSync = vi.mocked(readFileSync);
   const mockWriteFileSync = vi.mocked(writeFileSync);
   const mockMkdirSync = vi.mocked(mkdirSync);
-  const mockExecSync = vi.mocked(execSync);
+  const mockExecFileSync = vi.mocked(execFileSync);
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -91,7 +92,7 @@ describe('Smart Session ID Generator', () => {
 
   describe('getGitBranchForSession', () => {
     it('should return git branch when available', () => {
-      mockExecSync.mockReturnValue('main\n');
+      mockExecFileSync.mockReturnValue('main\n');
 
       const branch = getGitBranchForSession('/test/project');
 
@@ -99,7 +100,7 @@ describe('Smart Session ID Generator', () => {
     });
 
     it('should sanitize feature branch names', () => {
-      mockExecSync.mockReturnValue('feature/245-smart-sessions\n');
+      mockExecFileSync.mockReturnValue('feature/245-smart-sessions\n');
 
       const branch = getGitBranchForSession('/test/project');
 
@@ -108,7 +109,7 @@ describe('Smart Session ID Generator', () => {
     });
 
     it('should return nobranch when git fails', () => {
-      mockExecSync.mockImplementation(() => {
+      mockExecFileSync.mockImplementation(() => {
         throw new Error('not a git repository');
       });
 
@@ -118,7 +119,7 @@ describe('Smart Session ID Generator', () => {
     });
 
     it('should cache branch in env var', () => {
-      mockExecSync.mockReturnValue('develop\n');
+      mockExecFileSync.mockReturnValue('develop\n');
 
       getGitBranchForSession('/test/project');
 
@@ -131,7 +132,7 @@ describe('Smart Session ID Generator', () => {
       const branch = getGitBranchForSession('/test/project');
 
       expect(branch).toBe('cached-branch');
-      expect(mockExecSync).not.toHaveBeenCalled();
+      expect(mockExecFileSync).not.toHaveBeenCalled();
     });
   });
 
@@ -233,7 +234,7 @@ describe('Smart Session ID Generator', () => {
   describe('generateSmartSessionId', () => {
     it('should generate valid session ID format', () => {
       process.env.CLAUDE_PROJECT_DIR = '/path/to/orchestkit';
-      mockExecSync.mockReturnValue('main\n');
+      mockExecFileSync.mockReturnValue('main\n');
       const date = new Date(2026, 0, 30, 17, 45);
 
       const sessionId = generateSmartSessionId(undefined, date);
@@ -243,7 +244,7 @@ describe('Smart Session ID Generator', () => {
 
     it('should handle missing git branch', () => {
       process.env.CLAUDE_PROJECT_DIR = '/path/to/project';
-      mockExecSync.mockImplementation(() => {
+      mockExecFileSync.mockImplementation(() => {
         throw new Error('not a git repo');
       });
       const date = new Date(2026, 0, 30, 17, 45);
@@ -255,7 +256,7 @@ describe('Smart Session ID Generator', () => {
 
     it('should sanitize long branch names', () => {
       process.env.CLAUDE_PROJECT_DIR = '/path/to/app';
-      mockExecSync.mockReturnValue('feature/very-long-branch-name-here\n');
+      mockExecFileSync.mockReturnValue('feature/very-long-branch-name-here\n');
       const date = new Date(2026, 0, 30, 9, 30);
 
       const sessionId = generateSmartSessionId(undefined, date);
@@ -366,7 +367,7 @@ describe('Smart Session ID Generator', () => {
     it('should generate new session ID when nothing available', () => {
       mockExistsSync.mockReturnValue(false);
       process.env.CLAUDE_PROJECT_DIR = '/path/to/myproject';
-      mockExecSync.mockReturnValue('develop\n');
+      mockExecFileSync.mockReturnValue('develop\n');
 
       const result = getOrGenerateSessionId();
 
@@ -382,7 +383,7 @@ describe('Smart Session ID Generator', () => {
         return callCount > 1; // First call (cache check) = false, second (dir check) = true
       });
       process.env.CLAUDE_PROJECT_DIR = '/path/to/myproject';
-      mockExecSync.mockReturnValue('develop\n');
+      mockExecFileSync.mockReturnValue('develop\n');
 
       getOrGenerateSessionId();
 

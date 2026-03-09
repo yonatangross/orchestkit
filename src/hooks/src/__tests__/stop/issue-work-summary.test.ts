@@ -19,7 +19,7 @@ vi.mock('node:fs', () => ({
 
 // Mock node:child_process
 vi.mock('node:child_process', () => ({
-  execSync: vi.fn(),
+  execFileSync: vi.fn(() => ''),
 }));
 
 // Mock common utilities
@@ -32,7 +32,7 @@ vi.mock('../../lib/common.js', () => ({
 
 import { issueWorkSummary } from '../../stop/issue-work-summary.js';
 import { existsSync, readFileSync, unlinkSync, rmdirSync } from 'node:fs';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import { logHook, } from '../../lib/common.js';
 import type { HookInput } from '../../types.js';
 
@@ -41,7 +41,7 @@ describe('Issue Work Summary Hook', () => {
   const mockReadFileSync = vi.mocked(readFileSync);
   const _mockUnlinkSync = vi.mocked(unlinkSync);
   const _mockRmdirSync = vi.mocked(rmdirSync);
-  const mockExecSync = vi.mocked(execSync);
+  const mockExecFileSync = vi.mocked(execFileSync);
   const mockLogHook = vi.mocked(logHook);
 
   const defaultInput: HookInput = {
@@ -93,7 +93,7 @@ describe('Issue Work Summary Hook', () => {
       issueWorkSummary(defaultInput);
 
       // Assert
-      expect(mockExecSync).not.toHaveBeenCalled();
+      expect(mockExecFileSync).not.toHaveBeenCalled();
     });
   });
 
@@ -108,8 +108,9 @@ describe('Issue Work Summary Hook', () => {
         if (String(path).includes('issue-progress.json')) return true;
         return false;
       });
-      mockExecSync.mockImplementation((cmd: string) => {
-        if (String(cmd).includes('which gh')) {
+      mockExecFileSync.mockImplementation((cmd: unknown, args: unknown) => {
+        const argStr = (args as string[])?.join(' ') ?? '';
+        if (cmd === 'which' && argStr.includes('gh')) {
           throw new Error('gh not found');
         }
         return Buffer.from('');
@@ -132,9 +133,10 @@ describe('Issue Work Summary Hook', () => {
         if (String(path).includes('issue-progress.json')) return true;
         return false;
       });
-      mockExecSync.mockImplementation((cmd: string) => {
-        if (String(cmd).includes('which gh')) return Buffer.from('/usr/bin/gh');
-        if (String(cmd).includes('gh auth status')) throw new Error('not authenticated');
+      mockExecFileSync.mockImplementation((cmd: unknown, args: unknown) => {
+        const argStr = (args as string[])?.join(' ') ?? '';
+        if (cmd === 'which' && argStr.includes('gh')) return Buffer.from('/usr/bin/gh');
+        if (cmd === 'gh' && argStr.includes('auth status')) throw new Error('not authenticated');
         return Buffer.from('');
       });
 
@@ -156,10 +158,11 @@ describe('Issue Work Summary Hook', () => {
         if (String(path).includes('issue-progress.json')) return true;
         return false;
       });
-      mockExecSync.mockImplementation((cmd: string) => {
-        if (String(cmd).includes('which gh')) return Buffer.from('/usr/bin/gh');
-        if (String(cmd).includes('gh auth')) return Buffer.from('');
-        if (String(cmd).includes('git remote')) return Buffer.from('git@gitlab.com:user/repo.git');
+      mockExecFileSync.mockImplementation((cmd: unknown, args: unknown) => {
+        const argStr = (args as string[])?.join(' ') ?? '';
+        if (cmd === 'which' && argStr.includes('gh')) return Buffer.from('/usr/bin/gh');
+        if (cmd === 'gh' && argStr.includes('auth')) return Buffer.from('');
+        if (cmd === 'git' && argStr.includes('remote')) return Buffer.from('git@gitlab.com:user/repo.git');
         return Buffer.from('');
       });
 
@@ -180,10 +183,11 @@ describe('Issue Work Summary Hook', () => {
         if (String(path).includes('issue-progress.json')) return true;
         return false;
       });
-      mockExecSync.mockImplementation((cmd: string) => {
-        if (String(cmd).includes('which gh')) return Buffer.from('/usr/bin/gh');
-        if (String(cmd).includes('gh auth')) return Buffer.from('');
-        if (String(cmd).includes('git remote')) throw new Error('not a git repo');
+      mockExecFileSync.mockImplementation((cmd: unknown, args: unknown) => {
+        const argStr = (args as string[])?.join(' ') ?? '';
+        if (cmd === 'which' && argStr.includes('gh')) return Buffer.from('/usr/bin/gh');
+        if (cmd === 'gh' && argStr.includes('auth')) return Buffer.from('');
+        if (cmd === 'git' && argStr.includes('remote')) throw new Error('not a git repo');
         return Buffer.from('');
       });
 
@@ -205,13 +209,13 @@ describe('Issue Work Summary Hook', () => {
         return false;
       });
       // gh is available and we're in a github repo
-      mockExecSync.mockImplementation((cmd: string) => {
-        const cmdStr = String(cmd);
-        if (cmdStr.includes('which gh')) return Buffer.from('/usr/bin/gh');
-        if (cmdStr.includes('gh auth')) return Buffer.from('');
-        if (cmdStr.includes('git remote')) return Buffer.from('git@github.com:user/repo.git');
-        if (cmdStr.includes('gh issue view')) return Buffer.from('{"number": 42}');
-        if (cmdStr.includes('gh issue comment')) return Buffer.from('');
+      mockExecFileSync.mockImplementation((cmd: unknown, args: unknown) => {
+        const argStr = (args as string[])?.join(' ') ?? '';
+        if (cmd === 'which' && argStr.includes('gh')) return Buffer.from('/usr/bin/gh');
+        if (cmd === 'gh' && argStr.includes('auth')) return Buffer.from('');
+        if (cmd === 'git' && argStr.includes('remote')) return Buffer.from('git@github.com:user/repo.git');
+        if (cmd === 'gh' && argStr.includes('issue view')) return Buffer.from('{"number": 42}');
+        if (cmd === 'gh' && argStr.includes('issue comment')) return Buffer.from('');
         return Buffer.from('');
       });
     });
