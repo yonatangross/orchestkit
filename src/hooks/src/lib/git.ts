@@ -7,6 +7,23 @@ import { execFileSync } from 'node:child_process';
 import { getProjectDir } from './common.js';
 
 /**
+ * Execute a git command safely (no shell — args passed as array).
+ * Returns trimmed stdout on success, empty string on failure.
+ */
+export function gitExec(args: string[], cwd?: string, timeout = 10000): string {
+  try {
+    return execFileSync('git', args, {
+      cwd: cwd || getProjectDir(),
+      encoding: 'utf8',
+      timeout,
+      stdio: ['pipe', 'pipe', 'pipe'],
+    }).trim();
+  } catch {
+    return '';
+  }
+}
+
+/**
  * Get the current git branch
  */
 export function getCurrentBranch(projectDir?: string): string {

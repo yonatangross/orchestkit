@@ -14,7 +14,7 @@
  * - Valid file path characters only
  */
 
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, mkdirSync } from 'node:fs';
 import { atomicWriteSync } from './atomic-write.js';
@@ -60,7 +60,7 @@ export function getGitBranchForSession(projectDir?: string): string {
   const dir = projectDir || process.env.CLAUDE_PROJECT_DIR || process.cwd();
 
   try {
-    const branch = execSync('git branch --show-current', {
+    const branch = execFileSync('git', ['branch', '--show-current'], {
       cwd: dir,
       encoding: 'utf8',
       timeout: 2000,

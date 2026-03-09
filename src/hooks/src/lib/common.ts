@@ -7,7 +7,7 @@ import { existsSync, statSync, renameSync, mkdirSync, readSync, readFileSync } f
 import { atomicWriteSync } from './atomic-write.js';
 import { join } from 'node:path';
 import { bufferWrite } from './analytics-buffer.js';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import type { HookResult, HookInput } from '../types.js';
 import {
   getLogDir as getLogDirFromPaths,
@@ -86,7 +86,7 @@ export function getCachedBranch(projectDir?: string): string {
   }
 
   try {
-    const branch = execSync('git branch --show-current', {
+    const branch = execFileSync('git', ['branch', '--show-current'], {
       cwd: projectDir || getProjectDir(),
       encoding: 'utf8',
       timeout: 5000,

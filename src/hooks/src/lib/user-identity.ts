@@ -15,7 +15,7 @@
 
 import { existsSync, readFileSync, mkdirSync } from 'node:fs';
 import { atomicWriteSync } from './atomic-write.js';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { basename } from 'node:path';
 import { getProjectDir, getSessionId, logHook } from './common.js';
@@ -173,7 +173,7 @@ function getGitIdentity(projectDir: string): { email?: string; name?: string } {
   const result: { email?: string; name?: string } = {};
 
   try {
-    result.email = execSync('git config user.email', {
+    result.email = execFileSync('git', ['config', 'user.email'], {
       cwd: projectDir,
       encoding: 'utf8',
       timeout: 2000,
@@ -184,7 +184,7 @@ function getGitIdentity(projectDir: string): { email?: string; name?: string } {
   }
 
   try {
-    result.name = execSync('git config user.name', {
+    result.name = execFileSync('git', ['config', 'user.name'], {
       cwd: projectDir,
       encoding: 'utf8',
       timeout: 2000,

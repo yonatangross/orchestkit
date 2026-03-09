@@ -17,7 +17,7 @@ import {
   clearIdentityCache,
 } from '../../lib/user-identity.js';
 import { existsSync, readFileSync, writeFileSync, mkdirSync, } from 'node:fs';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 
 // Mock modules
 vi.mock('node:fs', async () => {
@@ -40,8 +40,8 @@ vi.mock('../../lib/atomic-write.js', async () => {
 });
 
 vi.mock('node:child_process', () => ({
-  execSync: vi.fn(),
-  execFileSync: vi.fn(() => ''),
+  execSync: vi.fn(() => ''),
+  execFileSync: vi.fn(),
 }));
 
 vi.mock('node:os', () => ({
@@ -53,7 +53,7 @@ describe('User Identity System', () => {
   const mockReadFileSync = vi.mocked(readFileSync);
   const mockWriteFileSync = vi.mocked(writeFileSync);
   const mockMkdirSync = vi.mocked(mkdirSync);
-  const mockExecSync = vi.mocked(execSync);
+  const mockExecFileSync = vi.mocked(execFileSync);
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -92,7 +92,7 @@ describe('User Identity System', () => {
 
     it('should resolve from git config when no explicit config', () => {
       mockExistsSync.mockReturnValue(false);
-      mockExecSync
+      mockExecFileSync
         .mockReturnValueOnce(('bob@example.com\n'))
         .mockReturnValueOnce(('Bob Jones\n'));
 
@@ -106,7 +106,7 @@ describe('User Identity System', () => {
 
     it('should resolve from environment when git fails', () => {
       mockExistsSync.mockReturnValue(false);
-      mockExecSync.mockImplementation(() => {
+      mockExecFileSync.mockImplementation(() => {
         throw new Error('git not configured');
       });
       process.env.USER = 'charlie';
@@ -120,7 +120,7 @@ describe('User Identity System', () => {
 
     it('should resolve as anonymous when all sources fail', () => {
       mockExistsSync.mockReturnValue(false);
-      mockExecSync.mockImplementation(() => {
+      mockExecFileSync.mockImplementation(() => {
         throw new Error('git not configured');
       });
 
@@ -133,7 +133,7 @@ describe('User Identity System', () => {
 
     it('should cache identity on subsequent calls', () => {
       mockExistsSync.mockReturnValue(false);
-      mockExecSync
+      mockExecFileSync
         .mockReturnValueOnce(('cached@example.com\n'))
         .mockReturnValueOnce(('Cached User\n'));
 
@@ -141,7 +141,7 @@ describe('User Identity System', () => {
       const second = resolveUserIdentity();
 
       expect(first).toBe(second);
-      expect(mockExecSync).toHaveBeenCalledTimes(2); // Only called once for email + name
+      expect(mockExecFileSync).toHaveBeenCalledTimes(2); // Only called once for email + name
     });
 
     it('should generate anonymous_id hash for privacy (128-bit / 32 hex chars)', () => {
