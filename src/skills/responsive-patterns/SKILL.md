@@ -159,8 +159,9 @@ Each category has individual rule files in `rules/` loaded on-demand:
 | PWA | `rules/pwa-offline.md` | HIGH | Offline hooks, background sync, install prompts |
 | Animation | `rules/animation-motion.md` | HIGH | Motion presets, AnimatePresence, View Transitions |
 | Animation | `rules/animation-scroll.md` | MEDIUM | CSS scroll-driven animations, parallax, progressive enhancement |
+| Touch & Mobile | `rules/touch-interaction.md` | HIGH | Touch targets (44px min), thumb zones, pinch-to-zoom, safe areas, gestures |
 
-**Total: 9 rules across 5 categories**
+**Total: 10 rules across 6 categories**
 
 ## Key Decisions
 

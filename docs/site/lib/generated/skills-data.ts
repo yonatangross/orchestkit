@@ -34,6 +34,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "references": [
         "focus-patterns.md",
         "react-aria-hooks.md",
+        "ux-thresholds-quick.md",
         "wcag-criteria.md"
       ],
       "scripts": [

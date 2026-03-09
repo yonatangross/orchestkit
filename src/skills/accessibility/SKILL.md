@@ -30,11 +30,13 @@ Comprehensive patterns for building accessible web applications: WCAG 2.2 AA com
 | Category | Rules | Impact | When to Use |
 |----------|-------|--------|-------------|
 | [WCAG Compliance](#wcag-compliance) | 3 | CRITICAL | Color contrast, semantic HTML, automated testing |
+| [POUR Exit Criteria](#pour-exit-criteria) | 1 | CRITICAL | Falsifiable pass/fail thresholds for each WCAG 2.2 AA criterion |
+| [Static Anti-Patterns](#static-anti-patterns) | 1 | HIGH | Grep-able patterns detectable without a browser |
 | [Focus Management](#focus-management) | 3 | HIGH | Focus traps, focus restoration, keyboard navigation |
 | [React Aria](#react-aria) | 3 | HIGH | Accessible components, form hooks, overlay patterns |
 | [Modern Web Accessibility](#modern-web-accessibility) | 3 | CRITICAL/HIGH | Native HTML first, cognitive inclusion, user preferences |
 
-**Total: 12 rules across 4 categories**
+**Total: 14 rules across 6 categories**
 
 ## Quick Start
 
@@ -70,6 +72,22 @@ WCAG 2.2 AA implementation for inclusive, legally compliant web applications.
 | Color Contrast | `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/rules/wcag-color-contrast.md` | 4.5:1 text, 3:1 UI components, focus indicators |
 | Semantic HTML | `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/rules/wcag-semantic-html.md` | Landmarks, headings, ARIA labels, form structure |
 | Testing | `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/rules/wcag-testing.md` | axe-core, Playwright a11y, screen reader testing |
+
+## POUR Exit Criteria
+
+Concrete pass/fail thresholds for each WCAG 2.2 AA criterion — replaces vague "meets requirements" checks.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| POUR Exit Criteria | `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/rules/pour-exit-criteria.md` | Falsifiable checklist: image alt, contrast ratios, focus indicators, touch targets, ARIA states |
+
+## Static Anti-Patterns
+
+Grep-able anti-patterns detectable via static analysis or code review — no browser needed.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| A11y Anti-Patterns (Static) | `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/rules/a11y-antipatterns-static.md` | Focus removal, missing labels, autoplay, icon-only buttons, div-click handlers |
 
 ## Focus Management
 
@@ -134,6 +152,7 @@ Adobe React Aria hooks for building WCAG-compliant interactive UI.
 | `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/scripts/` | Templates: accessible form, focus trap, React Aria components |
 | `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/checklists/` | WCAG audit, focus management, React Aria component checklists |
 | `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/references/` | WCAG criteria reference, focus patterns, React Aria hooks API |
+| `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/references/ux-thresholds-quick.md` | UI/UX thresholds quick reference: contrast, touch targets, cognitive load, typography, forms |
 | `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/examples/` | Complete accessible component examples |
 
 ## Related Skills
