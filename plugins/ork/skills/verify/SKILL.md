@@ -10,7 +10,7 @@ author: OrchestKit
 tags: [verification, testing, quality, validation, parallel-agents, grading]
 user-invocable: true
 allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskList, TaskOutput, TaskStop, mcp__memory__search_nodes, ToolSearch, CronCreate, CronDelete]
-skills: [code-review-playbook, testing-patterns, memory, quality-gates, chain-patterns]
+skills: [code-review-playbook, testing-unit, testing-e2e, testing-llm, testing-integration, testing-perf, memory, quality-gates, chain-patterns]
 complexity: high
 hooks:
   PreToolUse:

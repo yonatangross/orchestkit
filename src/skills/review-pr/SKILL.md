@@ -10,7 +10,7 @@ author: OrchestKit
 tags: [code-review, pull-request, quality, security, testing]
 user-invocable: true
 allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskOutput, TaskStop, mcp__memory__search_nodes, ToolSearch]
-skills: [code-review-playbook, testing-patterns, memory, chain-patterns]
+skills: [code-review-playbook, testing-unit, testing-e2e, testing-integration, memory, chain-patterns]
 complexity: medium
 hooks:
   PreToolUse:

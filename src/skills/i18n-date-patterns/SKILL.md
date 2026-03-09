@@ -219,7 +219,7 @@ Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/i18n-date-patterns/checklists/i18n-chec
 
 ## Related Skills
 
-- `ork:testing-patterns` - Comprehensive testing patterns including accessibility testing for i18n
+- `ork:testing-e2e` - E2E testing patterns including accessibility testing for i18n
 - `type-safety-validation` - Zod schemas for validating translation key structures and locale configs
 - `ork:react-server-components-framework` - Server-side locale detection and RSC i18n patterns
 - `ork:accessibility` - RTL-aware focus management for bidirectional UI navigation

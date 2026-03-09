@@ -1,0 +1,55 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "testing-llm",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "mocking-llm-apis",
+      "query": "Mock LLM API responses for testing",
+      "expected_behavior": [
+        "Uses custom matchers ignoring dynamic fields",
+        "Filters sensitive API keys from recorded cassettes to prevent credential leakage in VCS",
+        "Supports async VCR recording for httpx-based clients using the aiohttp cassette adapter"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "llm-mocking",
+      "query": "Mock LLM responses in unit tests",
+      "expected_behavior": [
+        "Uses AsyncMock with return_value to stub async LLM calls without live API access",
+        "Patches model_factory.get_model to inject mock LLM instances during unit test execution",
+        "Avoids live API calls in CI"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "llm-deepeval",
+      "query": "Evaluate LLM output quality with DeepEval",
+      "expected_behavior": [
+        "Creates LLMTestCase with input, actual_output, and retrieval_context for evaluation scoring",
+        "Uses AnswerRelevancy and Faithfulness metrics to score LLM output quality against context",
+        "Sets appropriate score thresholds to gate LLM output quality in automated evaluation"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "llm-structured",
+      "query": "Test structured LLM output and timeouts",
+      "expected_behavior": [
+        "Validates JSON schema compliance to ensure structured LLM output matches the expected format",
+        "Tests timeout handling with asyncio.timeout to verify graceful degradation under latency",
+        "Covers null, empty, and missing field edge cases in LLM structured output validation"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    }
+  ]
+}

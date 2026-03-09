@@ -10,7 +10,7 @@ version: 4.3.0
 author: OrchestKit
 user-invocable: true
 allowed-tools: [AskUserQuestion, Task, Read, Grep, Glob, TaskCreate, TaskUpdate, TaskList, TaskOutput, TaskStop, ToolSearch, mcp__memory__search_nodes]
-skills: [architecture-decision-record, api-design, memory, remember, scope-appropriate-architecture, testing-patterns, chain-patterns]
+skills: [architecture-decision-record, api-design, memory, remember, scope-appropriate-architecture, testing-unit, testing-integration, chain-patterns]
 complexity: medium
 model: sonnet
 hooks:

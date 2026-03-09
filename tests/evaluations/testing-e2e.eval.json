@@ -1,0 +1,92 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "testing-e2e",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "e2e-playwright",
+      "query": "Write Playwright tests for a checkout flow",
+      "expected_behavior": [
+        "Uses getByRole semantic locators that match how assistive technology identifies elements",
+        "Avoids hardcoded wait timeouts in favor of Playwright built-in auto-waiting mechanisms",
+        "Uses Playwright auto-wait with expect assertions to handle dynamic content reliably"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "e2e-ai-agents",
+      "query": "Set up Playwright AI agents for test generation",
+      "expected_behavior": [
+        "Runs npx playwright init-agents --loop=claude to initialize the AI agent test framework",
+        "Creates the specs/ directory and seed.spec.ts file as the starting test template",
+        "Describes the Planner/Generator/Healer workflow for automated AI-driven test maintenance"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "e2e-page-objects",
+      "query": "Create page objects for a multi-page test",
+      "expected_behavior": [
+        "Extracts page interactions into reusable classes",
+        "Uses semantic locators within page objects",
+        "Keeps tests readable and maintainable by abstracting page interactions into reusable methods"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "a11y-jest-axe",
+      "query": "Add accessibility tests to React components",
+      "expected_behavior": [
+        "Uses jest-axe toHaveNoViolations matcher to assert zero accessibility violations per component",
+        "Tests all component states including loading, error, disabled, and interactive variants",
+        "Renders components with testing-library to evaluate the accessibility of the final DOM output"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "a11y-playwright",
+      "query": "Run page-level accessibility audits with Playwright",
+      "expected_behavior": [
+        "Uses @axe-core/playwright AxeBuilder to run automated accessibility audits on rendered pages",
+        "Configures wcag2a/wcag2aa/wcag22aa tags to target specific WCAG compliance levels in audits",
+        "Tests interactive states like modals, dropdowns, and expanded panels for accessibility compliance"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "a11y-ci-gates",
+      "query": "Set up CI gates for accessibility",
+      "expected_behavior": [
+        "Blocks pull requests that introduce accessibility violations from merging to the main branch",
+        "Runs both unit and E2E a11y tests",
+        "Includes a GitHub Actions workflow definition for running accessibility tests in CI pipelines"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "validation-end-to-end",
+      "query": "How do I ensure type safety across my API from client to database with no gaps?",
+      "expected_behavior": [
+        "Recommends tRPC for end-to-end TypeScript type inference without code generation",
+        "Uses Zod schemas for runtime validation at API boundaries with compile-time inference",
+        "Uses Pydantic with NewType for branded IDs to prevent ID type confusion in Python",
+        "Tests that validation schemas reject invalid data to confirm boundary protection"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    }
+  ]
+}

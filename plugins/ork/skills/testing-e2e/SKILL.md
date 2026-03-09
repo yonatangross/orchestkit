@@ -194,6 +194,6 @@ See `references/visual-regression.md` for full configuration, CI/CD workflows, c
 
 ## Related Skills
 
-- `testing-patterns` - Parent skill with unit, integration, pytest, mocking, and more
+- `testing-unit` - Unit testing patterns with mocking, fixtures, and data factories
 - `test-standards-enforcer` - AAA and naming enforcement
 - `run-tests` - Test execution orchestration
