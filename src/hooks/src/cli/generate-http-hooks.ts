@@ -17,7 +17,7 @@
 import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 
-// All CC hook event types (CC 2.1.63)
+// All CC hook event types (CC 2.1.71+)
 const CC_HOOK_EVENTS = [
   'SessionStart',
   'UserPromptSubmit',
@@ -34,6 +34,7 @@ const CC_HOOK_EVENTS = [
   'PreCompact',
   'TeammateIdle',
   'TaskCompleted',
+  'InstructionsLoaded',
   'WorktreeCreate',
   'WorktreeRemove',
   'ConfigChange',

@@ -119,7 +119,7 @@ Offers three install scopes: User-only (recommended, invisible to teammates), Pr
 
 ## Phase 3.5: Project Configuration Wizard
 
-Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/setup/references/configure-wizard.md")` for the full 5-step interactive configuration flow (branch strategy, commit scope, localhost browser, perf telemetry, log verbosity) and env var reference.
+Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/setup/references/configure-wizard.md")` for the full 6-step interactive configuration flow (branch strategy, commit scope, localhost browser, perf telemetry, log verbosity, webhook telemetry) and env var reference.
 
 > Also reachable directly via `/ork:setup --configure` — skips phases 1-3.
 
