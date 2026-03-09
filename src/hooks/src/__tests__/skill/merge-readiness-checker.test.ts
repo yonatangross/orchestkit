@@ -19,7 +19,6 @@ vi.mock('node:fs', () => ({
 }));
 
 vi.mock('node:child_process', () => ({
-  execSync: vi.fn(),
   execFileSync: vi.fn(() => ''),
 }));
 
@@ -39,7 +38,7 @@ import { mergeReadinessChecker } from '../../skill/merge-readiness-checker.js';
 import { outputSilentSuccess, getProjectDir } from '../../lib/common.js';
 import { getRepoRoot, getCurrentBranch, getDefaultBranch, hasUncommittedChanges } from '../../lib/git.js';
 import { existsSync, readFileSync } from 'node:fs';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 
 // =============================================================================
 // Test Utilities
@@ -64,11 +63,13 @@ function createBashInput(
 }
 
 /**
- * Mock execSync to return specific outputs for git commands
+ * Mock execFileSync to return specific outputs for git commands.
+ * Source uses gitExec() which calls execFileSync('git', argsArray, opts).
+ * Override keys match against args.join(' ').
  */
 function mockGitCommands(overrides: Record<string, string | Error> = {}): void {
-  vi.mocked(execSync).mockImplementation((cmd: string) => {
-    const command = cmd as string;
+  vi.mocked(execFileSync).mockImplementation((_cmd: unknown, args: unknown) => {
+    const command = (args as string[])?.join(' ') ?? '';
 
     // Check for specific overrides first
     for (const [pattern, result] of Object.entries(overrides)) {
@@ -79,13 +80,13 @@ function mockGitCommands(overrides: Record<string, string | Error> = {}): void {
     }
 
     // Default responses
-    if (command.includes('git status --short')) return '';
-    if (command.includes('git fetch')) return '';
+    if (command.includes('status --short')) return '';
+    if (command.includes('fetch')) return '';
     if (command.includes('rev-list --count')) return '0\n';
-    if (command.includes('git merge --no-commit')) return '';
-    if (command.includes('git merge --abort')) return '';
-    if (command.includes('git merge-base')) return 'abc123\n';
-    if (command.includes('git diff --name-only')) return '';
+    if (command.includes('merge --no-commit')) return '';
+    if (command.includes('merge --abort')) return '';
+    if (command.includes('merge-base')) return 'abc123\n';
+    if (command.includes('diff --name-only')) return '';
     return '';
   });
 }
@@ -277,7 +278,7 @@ describe('merge-readiness-checker', () => {
       const input = createBashInput('gh pr merge 123');
       vi.mocked(hasUncommittedChanges).mockReturnValue(true);
       mockGitCommands({
-        'git status --short': 'M  file.ts\n?? new.ts\n',
+        'status --short': 'M  file.ts\n?? new.ts\n',
       });
 
       // Act
@@ -295,7 +296,7 @@ describe('merge-readiness-checker', () => {
       vi.mocked(hasUncommittedChanges).mockReturnValue(true);
       const files = Array.from({ length: 15 }, (_, i) => `M  file${i}.ts`).join('\n');
       mockGitCommands({
-        'git status --short': files,
+        'status --short': files,
       });
 
       // Act
@@ -374,8 +375,9 @@ describe('merge-readiness-checker', () => {
       mergeReadinessChecker(input);
 
       // Assert
-      expect(execSync).toHaveBeenCalledWith(
-        expect.stringContaining('git fetch origin main'),
+      expect(execFileSync).toHaveBeenCalledWith(
+        'git',
+        expect.arrayContaining(['fetch', 'origin', 'main']),
         expect.any(Object)
       );
     });
@@ -390,7 +392,7 @@ describe('merge-readiness-checker', () => {
       // Arrange
       const input = createBashInput('gh pr merge 123');
       mockGitCommands({
-        'git merge --no-commit': '', // Clean merge
+        'merge --no-commit': '', // Clean merge
       });
 
       // Act
@@ -406,8 +408,8 @@ describe('merge-readiness-checker', () => {
       // Arrange
       const input = createBashInput('gh pr merge 123');
       mockGitCommands({
-        'git merge --no-commit': 'CONFLICT (content): Merge conflict in file.ts',
-        'git diff --name-only --diff-filter=U': 'file.ts\nother.ts\n',
+        'merge --no-commit': 'CONFLICT (content): Merge conflict in file.ts',
+        'diff --name-only --diff-filter=U': 'file.ts\nother.ts\n',
       });
 
       // Act
@@ -428,8 +430,9 @@ describe('merge-readiness-checker', () => {
       mergeReadinessChecker(input);
 
       // Assert
-      expect(execSync).toHaveBeenCalledWith(
-        'git merge --abort',
+      expect(execFileSync).toHaveBeenCalledWith(
+        'git',
+        expect.arrayContaining(['merge', '--abort']),
         expect.any(Object)
       );
     });
@@ -439,8 +442,8 @@ describe('merge-readiness-checker', () => {
       const input = createBashInput('gh pr merge 123');
       const files = Array.from({ length: 15 }, (_, i) => `file${i}.ts`).join('\n');
       mockGitCommands({
-        'git merge --no-commit': 'CONFLICT',
-        'git diff --name-only --diff-filter=U': files,
+        'merge --no-commit': 'CONFLICT',
+        'diff --name-only --diff-filter=U': files,
       });
 
       // Act
@@ -462,8 +465,8 @@ describe('merge-readiness-checker', () => {
       // Arrange
       const input = createBashInput('gh pr merge 123');
       mockGitCommands({
-        'git merge-base': 'abc123\n',
-        'git diff --name-only abc123': 'file1.ts\nfile2.ts\nfile3.ts\n',
+        'merge-base': 'abc123\n',
+        'diff --name-only abc123': 'file1.ts\nfile2.ts\nfile3.ts\n',
       });
 
       // Act
@@ -478,7 +481,7 @@ describe('merge-readiness-checker', () => {
       // Arrange
       const input = createBashInput('gh pr merge 123');
       mockGitCommands({
-        'git merge-base': '', // Empty result
+        'merge-base': '', // Empty result
       });
 
       // Act
@@ -603,7 +606,7 @@ describe('merge-readiness-checker', () => {
       // Arrange
       const input = createBashInput('gh pr merge 123');
       vi.mocked(hasUncommittedChanges).mockReturnValue(true);
-      mockGitCommands({ 'git status --short': 'M  file.ts\n' });
+      mockGitCommands({ 'status --short': 'M  file.ts\n' });
 
       // Act
       mergeReadinessChecker(input);
@@ -677,7 +680,7 @@ describe('merge-readiness-checker', () => {
     test('handles git command failures gracefully', () => {
       // Arrange
       const input = createBashInput('gh pr merge 123');
-      vi.mocked(execSync).mockImplementation(() => {
+      vi.mocked(execFileSync).mockImplementation(() => {
         throw new Error('git failed');
       });
 
@@ -727,8 +730,9 @@ describe('merge-readiness-checker', () => {
       mergeReadinessChecker(input);
 
       // Assert
-      expect(execSync).toHaveBeenCalledWith(
-        expect.any(String),
+      expect(execFileSync).toHaveBeenCalledWith(
+        'git',
+        expect.any(Array),
         expect.objectContaining({ timeout: 30000 })
       );
     });
@@ -744,10 +748,10 @@ describe('merge-readiness-checker', () => {
       const input = createBashInput('gh pr merge 123');
       vi.mocked(hasUncommittedChanges).mockReturnValue(true);
       mockGitCommands({
-        'git status --short': 'M  file.ts\n',
+        'status --short': 'M  file.ts\n',
         'feature-branch..origin/main': '25\n',
-        'git merge --no-commit': 'CONFLICT',
-        'git diff --name-only --diff-filter=U': 'conflict.ts\n',
+        'merge --no-commit': 'CONFLICT',
+        'diff --name-only --diff-filter=U': 'conflict.ts\n',
       });
 
       // Act
