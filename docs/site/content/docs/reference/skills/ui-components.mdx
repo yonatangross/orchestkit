@@ -22,8 +22,9 @@ Comprehensive patterns for building accessible UI component libraries with shadc
 | [Design System Components](#design-system-components) | 1 | HIGH | Atomic design, CVA variants, accessibility, Storybook |
 | [Forms](#forms) | 2 | HIGH | React Hook Form v7, Zod validation, Server Actions |
 | [Modern CSS & Tooling](#modern-css--tooling) | 3 | HIGH | CSS cascade layers, Tailwind v4, Storybook CSF3 |
+| [UX Foundations](#ux-foundations) | 4 | HIGH | Visual hierarchy, typography thresholds, color system, empty states |
 
-**Total: 17 rules across 6 categories**
+**Total: 21 rules across 7 categories**
 
 ## Quick Start
 
@@ -162,6 +163,17 @@ Modern CSS patterns, Tailwind v4, and component documentation tooling for 2026.
 | Tailwind v4 | `rules/tailwind-v4-patterns.md` | CSS-first @theme, native container queries, @max-* variants |
 | Storybook Docs | `rules/storybook-component-docs.md` | CSF3 stories, play() interaction tests, Chromatic visual regression |
 
+## UX Foundations
+
+Cognitive-science-grounded UI/UX principles with specific numeric thresholds for production-quality interfaces.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Visual Hierarchy | `rules/visual-hierarchy.md` | Button tiers, de-emphasis, F/Z scan, Von Restorff, proximity, max-width |
+| Typography Thresholds | `rules/typography-thresholds.md` | 65ch line length, 1.4–1.6 line height, rem units, modular type scale |
+| Color System | `rules/color-system.md` | OKLCH 9-shade scales, semantic categories, no true black, brand-tinted neutrals |
+| Empty States | `rules/empty-states.md` | Skeleton-first, icon + headline + description + CTA, cause-specific tone |
+
 ## Related Skills
 
 - `ork:accessibility` - WCAG compliance and React Aria patterns
@@ -170,7 +182,89 @@ Modern CSS patterns, Tailwind v4, and component documentation tooling for 2026.
 
 ---
 
-## Rules (16)
+## Rules (20)
+
+### Build a color system with OKLCH, 9-shade scales, and semantic categories — HIGH
+
+
+## Color System Architecture
+
+**Incorrect — true black, pure grey, and unstructured colors:**
+```css
+/* WRONG: True black creates harsh contrast and eye strain */
+color: #000000;
+
+/* WRONG: Pure neutral grey feels lifeless (no brand personality) */
+background: #808080;
+
+/* WRONG: Unstructured hex soup — no scale, no semantics */
+--primary: #0066cc;
+--secondary: #aaaaaa;
+--error: #ff0000;
+```
+
+**Correct — OKLCH scale with brand-tinted neutrals:**
+```css
+@theme {
+  /* PRIMARY — 9-shade OKLCH scale (50→950) */
+  --color-brand-50:  oklch(0.97 0.02 250);
+  --color-brand-100: oklch(0.93 0.04 250);
+  --color-brand-200: oklch(0.86 0.07 250);
+  --color-brand-300: oklch(0.76 0.10 250);
+  --color-brand-400: oklch(0.65 0.13 250);
+  --color-brand-500: oklch(0.55 0.15 250);  /* base */
+  --color-brand-600: oklch(0.46 0.15 248);  /* hue shift darker */
+  --color-brand-700: oklch(0.38 0.14 246);
+  --color-brand-800: oklch(0.30 0.12 244);
+  --color-brand-950: oklch(0.18 0.08 240);
+
+  /* NEUTRALS — tinted with brand hue (not pure grey) */
+  --color-neutral-50:  oklch(0.98 0.005 250);  /* off-white, not #ffffff */
+  --color-neutral-900: oklch(0.18 0.01  250);  /* dark text, not #000000 */
+
+  /* SEMANTIC — success / error / warning / info */
+  --color-success: oklch(0.55 0.15 145);
+  --color-error:   oklch(0.55 0.18  25);
+  --color-warning: oklch(0.65 0.15  75);
+  --color-info:    oklch(0.55 0.12 230);
+
+  /* SURFACE — temper max contrast */
+  --color-background: oklch(0.98 0.005 250);  /* slate-50 equivalent */
+  --color-foreground: oklch(0.18 0.01  250);  /* slate-900 equivalent */
+}
+```
+
+### Color Categories
+
+| Category | Purpose | Example Tokens |
+|----------|---------|----------------|
+| Brand/Accent | Primary identity, CTAs | `brand-500`, `brand-600` |
+| Semantic | Status communication | `success`, `error`, `warning`, `info` |
+| Neutral | Text, backgrounds, borders | `neutral-50` → `neutral-950` |
+
+### Shade Scale Rules
+
+| Shade | Lightness (OKLCH L) | Usage |
+|-------|---------------------|-------|
+| 50 | ~0.97 | Tinted backgrounds |
+| 100–200 | 0.90–0.86 | Hover backgrounds |
+| 300–400 | 0.76–0.65 | Borders, disabled states |
+| 500 | ~0.55 | Base/default (AA on white) |
+| 600–700 | 0.46–0.38 | Hover states for base |
+| 800–950 | 0.30–0.18 | Dark mode surfaces, deep text |
+
+### Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Color notation | OKLCH — perceptually uniform, easy to adjust programmatically |
+| Shade count | 9 shades per hue (50, 100, 200, 300, 400, 500, 600, 700, 800, 950) |
+| True black | Never `#000000` — use `neutral-950` (oklch ~0.18) |
+| Neutral tinting | Tint greys with brand hue (cool brand = cool neutrals) |
+| Hue rotation | Shift hue 2–6° darker as lightness decreases to maintain saturation |
+| Background | Off-white (`neutral-50`) not pure white — reduces eye strain |
+| Max contrast | Body text `neutral-900` on `neutral-50` — not pure black on white |
+
 
 ### Use CSS Cascade Layers for predictable style precedence without specificity wars — HIGH
 
@@ -713,6 +807,110 @@ Key decisions:
 - Scale ratio: ~1.25 (Major Third) for harmonious progression
 - Weight hierarchy: normal &lt; medium &lt; semibold &lt; bold (never skip 2+ levels)
 - Line height decreases as font size increases
+
+
+### Design intentional empty states with clear structure, actionable CTAs, and skeleton-first loading — HIGH
+
+
+## Empty State Patterns
+
+**Incorrect — blank screen and unusable no-results state:**
+```tsx
+// WRONG: Renders nothing when list is empty
+function ProjectList({ projects }) {
+  return (
+    <ul>
+      {projects.map(p => <li key={p.id}>{p.name}</li>)}
+    </ul>
+  )
+}
+
+// WRONG: Clinical message with no guidance or action
+{projects.length === 0 && <p>No projects.</p>}
+
+// WRONG: Flash empty state before data loads (jarring UX)
+{!isLoading && data.length === 0 && <EmptyState />}
+{isLoading && <Spinner />}
+```
+
+**Correct — skeleton-first, then structured empty state:**
+```tsx
+// RIGHT: Skeleton while loading → empty state only if data is truly absent
+function ProjectList({ isLoading, projects }: Props) {
+  if (isLoading) return <ProjectListSkeleton />
+
+  if (projects.length === 0) return <EmptyProjects />
+
+  return (
+    <ul className="space-y-2">
+      {projects.map(p => <li key={p.id}>{p.name}</li>)}
+    </ul>
+  )
+}
+
+// RIGHT: Structured empty state — icon + headline + description + CTA
+function EmptyProjects() {
+  return (
+    <div
+      className="flex flex-col items-center justify-center gap-4 py-16 text-center"
+      role="status"
+      aria-label="No projects yet"
+    >
+      {/* 1. Illustration or icon */}
+      <div className="rounded-full bg-muted p-4">
+        <FolderPlusIcon className="h-8 w-8 text-muted-foreground" aria-hidden />
+      </div>
+
+      {/* 2. Encouraging headline (not clinical) */}
+      <h2 className="text-lg font-semibold text-foreground">
+        Create your first project
+      </h2>
+
+      {/* 3. Context description */}
+      <p className="max-w-sm text-sm text-muted-foreground">
+        Projects help you organise work and collaborate with your team.
+        Get started in under a minute.
+      </p>
+
+      {/* 4. Primary action */}
+      <Button>
+        <PlusIcon className="mr-2 h-4 w-4" aria-hidden />
+        New project
+      </Button>
+    </div>
+  )
+}
+```
+
+### Empty State Taxonomy
+
+| Cause | Tone | CTA Example |
+|-------|------|-------------|
+| First-time (onboarding) | Encouraging, welcoming | "Create your first project" |
+| No search results | Neutral, helpful | "Try different keywords or clear filters" |
+| Error / failed to load | Reassuring, recovery | "Something went wrong — try again" |
+| Permission / access | Clear, non-alarming | "Ask your admin for access" |
+
+### Structure Checklist
+
+```
+[x] Icon or illustration (visual anchor)
+[x] Headline — actionable, not clinical ("Create X" not "No X found")
+[x] Description — 1-2 sentences of context
+[x] Primary CTA button — one clear next step
+[ ] Optional: secondary link for help docs
+```
+
+### Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Blank screen | Never acceptable — always design an empty state |
+| Loading order | Skeleton first → empty state if truly empty (no flash) |
+| Headline tone | Encouraging and action-oriented, never clinical |
+| CTA count | One primary action maximum per empty state |
+| Role attribute | `role="status"` on the container for screen reader announcement |
+| Cause-specific | Different empty states for first-time, no-results, error, permissions |
 
 
 ### Build performant forms with React Hook Form v7 controlled renders and validation — HIGH
@@ -2364,6 +2562,170 @@ module.exports = {
 - Migrate existing `tailwind.config.js` to `@theme` block when upgrading to v4
 
 Reference: [Tailwind CSS v4 Docs](https://tailwindcss.com/docs)
+
+
+### Apply numeric typography thresholds for line length, line height, and font scale — HIGH
+
+
+## Typography Thresholds
+
+**Incorrect — unconstrained text and cascading em bugs:**
+```tsx
+// WRONG: Unbounded paragraph width causes too-long lines (eye fatigue)
+<p className="w-full text-base">Long body copy...</p>
+
+// WRONG: em units for font-size cause cascading multiplication
+<div style={{ fontSize: '1.2em' }}>
+  <p style={{ fontSize: '1.2em' }}>  {/* Actually 1.44× root — bug! */}
+    Nested text
+  </p>
+</div>
+
+// WRONG: Line height too tight for body text
+<p className="leading-tight text-base">Body copy with 1.25 line height</p>
+
+// WRONG: Font weight 500 for "emphasis" — too subtle
+<strong className="font-medium">Important</strong>
+
+// WRONG: Inline links without underline (accessibility failure)
+<a className="text-primary no-underline">Click here</a>
+```
+
+**Correct — constrained width, rem scale, proper line height:**
+```tsx
+// RIGHT: Max-width on paragraph containers (50-75ch ideal, 65ch default)
+<p className="max-w-prose text-base leading-relaxed">
+  Body copy with constrained line length and proper line height.
+</p>
+
+// RIGHT: Heading gets tighter line height
+<h1 className="text-3xl font-bold leading-tight">Page Heading</h1>
+<h2 className="text-2xl font-semibold leading-snug">Section Title</h2>
+
+// RIGHT: Inline links always underlined
+<a className="text-primary underline underline-offset-2 hover:text-primary/80">
+  Inline link
+</a>
+```
+
+### Type Scale (Tailwind — modular, 1.25 Major Third ratio)
+
+```css
+/* In your global CSS or @theme block */
+@theme {
+  --font-size-xs:   0.64rem;   /* ~10px */
+  --font-size-sm:   0.8rem;    /* ~13px */
+  --font-size-base: 1rem;      /* 16px  */
+  --font-size-lg:   1.25rem;   /* ~20px */
+  --font-size-xl:   1.563rem;  /* ~25px */
+  --font-size-2xl:  1.953rem;  /* ~31px */
+  --font-size-3xl:  2.441rem;  /* ~39px */
+}
+```
+
+### Threshold Reference
+
+| Property | Threshold | Notes |
+|----------|-----------|-------|
+| Line length — print | 50–75 ch | Use `max-w-prose` (65ch) |
+| Line length — screen | 60–100 ch | UI panels can go wider |
+| Line height — body | 1.4–1.6× | `leading-relaxed` = 1.625 |
+| Line height — headings | 1.2–1.3× | `leading-tight` = 1.25 |
+| Line height — minimum | 1.2× | Never below this |
+| Font weight — body | 400 (regular) | `font-normal` |
+| Font weight — emphasis | 600+ (semibold) | `font-semibold` minimum |
+| Font weight — headings | 700 (bold) | `font-bold` |
+| Font size units | rem only | Never em for font-size |
+
+### Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Font size units | rem only — em cascades multiplicatively |
+| Line length | `max-w-prose` (65ch) on all paragraph containers |
+| Link underlines | Always underlined for inline links — no exceptions |
+| Type scale | Derive all sizes from a modular scale ratio (1.25 or 1.333) |
+| UI font | Sans-serif for UI chrome; proportional serif optional for long-form |
+
+
+### Design visual hierarchy using weight, contrast, and spatial relationships — not color alone — HIGH
+
+
+## Visual Hierarchy & Layout
+
+**Incorrect — competing primaries and flat hierarchy:**
+```tsx
+// WRONG: Two primary buttons side-by-side (creates decision paralysis)
+<div className="flex gap-2">
+  <button className="bg-primary text-white px-4 py-2 rounded">Save</button>
+  <button className="bg-primary text-white px-4 py-2 rounded">Cancel</button>
+</div>
+
+// WRONG: Emphasizing everything equally — nothing stands out
+<h1 className="font-bold text-xl">Title</h1>
+<p className="font-bold text-xl">Body copy that competes with heading</p>
+<span className="font-bold text-xl">Label also fighting for attention</span>
+```
+
+**Correct — three-tier button hierarchy with de-emphasized secondary:**
+```tsx
+// RIGHT: One primary CTA. Secondary is outlined. Tertiary is ghost/text.
+<div className="flex items-center gap-3">
+  {/* Primary — full color, highest visual weight */}
+  <Button variant="default">Save changes</Button>
+
+  {/* Secondary — outline, reduced weight */}
+  <Button variant="outline">Preview</Button>
+
+  {/* Tertiary — ghost/text, lowest weight */}
+  <Button variant="ghost">Cancel</Button>
+</div>
+
+// RIGHT: De-emphasize secondary content rather than only boosting primary
+<h1 className="text-2xl font-bold text-foreground">Page title</h1>
+<p className="text-base text-muted-foreground">Supporting description</p>
+<span className="text-sm text-muted-foreground/70">Metadata label</span>
+```
+
+### Hierarchy Principles
+
+| Principle | Rule | Rationale |
+|-----------|------|-----------|
+| Button tiers | primary → outline → ghost | One primary per view maximum |
+| De-emphasis | Mute secondary content | Easier than boosting everything |
+| F/Z scan path | Critical info top-left → right | Matches natural eye movement |
+| Von Restorff | Isolate ONE element per view | Uniqueness signals importance |
+| Proximity | Group related elements closely | Spacing communicates relationship |
+| Max-width | Contain layout, don't fill screen | Prevents unreadable line lengths |
+
+### Layout Rules
+
+```tsx
+// RIGHT: Contain content width for readability
+<main className="max-w-4xl mx-auto px-4">
+  {/* Never stretch to 100vw on wide screens */}
+</main>
+
+// RIGHT: Use deliberate spacing to show/break relationships
+<section className="space-y-1">   {/* Tight = related items */}
+  <label>Email</label>
+  <input type="email" />
+</section>
+<section className="mt-8">       {/* Gap = new section */}
+  <label>Password</label>
+  <input type="password" />
+</section>
+```
+
+### Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Grayscale test | Design in grayscale first — hierarchy must work without color |
+| Button count | Maximum ONE primary button per view |
+| Emphasis strategy | De-emphasize secondary; don't over-emphasize primary |
+| Von Restorff | Use isolation sparingly — max one "different" element per view |
+| Readability cap | `max-w-prose` or `max-w-4xl` on all content containers |
 
 
 

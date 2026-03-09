@@ -35,8 +35,9 @@ Comprehensive patterns for building accessible UI component libraries with shadc
 | [Design System Components](#design-system-components) | 1 | HIGH | Atomic design, CVA variants, accessibility, Storybook |
 | [Forms](#forms) | 2 | HIGH | React Hook Form v7, Zod validation, Server Actions |
 | [Modern CSS & Tooling](#modern-css--tooling) | 3 | HIGH | CSS cascade layers, Tailwind v4, Storybook CSF3 |
+| [UX Foundations](#ux-foundations) | 4 | HIGH | Visual hierarchy, typography thresholds, color system, empty states |
 
-**Total: 17 rules across 6 categories**
+**Total: 21 rules across 7 categories**
 
 ## Quick Start
 
@@ -174,6 +175,17 @@ Modern CSS patterns, Tailwind v4, and component documentation tooling for 2026.
 | CSS Cascade Layers | `rules/css-cascade-layers.md` | @layer ordering, specificity-free overrides, third-party isolation |
 | Tailwind v4 | `rules/tailwind-v4-patterns.md` | CSS-first @theme, native container queries, @max-* variants |
 | Storybook Docs | `rules/storybook-component-docs.md` | CSF3 stories, play() interaction tests, Chromatic visual regression |
+
+## UX Foundations
+
+Cognitive-science-grounded UI/UX principles with specific numeric thresholds for production-quality interfaces.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Visual Hierarchy | `rules/visual-hierarchy.md` | Button tiers, de-emphasis, F/Z scan, Von Restorff, proximity, max-width |
+| Typography Thresholds | `rules/typography-thresholds.md` | 65ch line length, 1.4–1.6 line height, rem units, modular type scale |
+| Color System | `rules/color-system.md` | OKLCH 9-shade scales, semantic categories, no true black, brand-tinted neutrals |
+| Empty States | `rules/empty-states.md` | Skeleton-first, icon + headline + description + CTA, cause-specific tone |
 
 ## Related Skills
 
