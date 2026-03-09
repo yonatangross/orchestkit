@@ -47,9 +47,9 @@ npm uninstall @storybook/test-runner
 npm install -D @storybook/addon-vitest
 ```
 
-### 4. Module Mocking: vi.mock to sb.mock
+### 4. Module Mocking: vi.mock to sb.mock (Two-Part Pattern)
 
-Story-level mocks now use `sb.mock()` in `beforeEach` instead of top-level `vi.mock()`.
+Module mocking now uses a two-part pattern: (1) register mocks in `.storybook/preview.ts` with `sb.mock(import(...), { spy: true })`, then (2) configure per-story with `mocked(namedExport).mockResolvedValue(...)` in `beforeEach`. Never call `sb.mock()` in story files — it only works in project-level configuration.
 
 ### 5. Actions: action() to fn()
 

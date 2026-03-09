@@ -53,6 +53,39 @@
       ]
     },
     {
+      "id": "play-function-form-interaction",
+      "rule": "storybook-play-functions",
+      "query": "Write a Storybook story for a login form that tests typing into inputs and submitting",
+      "expectedBehavior": [
+        "Uses play() function with userEvent from @storybook/test for simulating user input",
+        "Calls within(canvasElement) for scoped queries instead of screen from testing-library",
+        "Uses await userEvent.type() for input fields and await userEvent.click() for submit button",
+        "Includes expect() assertions verifying form behavior after submission"
+      ]
+    },
+    {
+      "id": "vitest-story-integration-setup",
+      "rule": "storybook-vitest-integration",
+      "query": "Set up Vitest to run our Storybook stories as tests in CI",
+      "expectedBehavior": [
+        "Installs @storybook/addon-vitest and adds storybookTest() plugin to vitest.config.ts",
+        "Configures browser mode with storybookScript pointing to the Storybook dev command",
+        "Does NOT recommend @storybook/test-runner which is deprecated in Storybook 9",
+        "Shows vitest.setup.ts file with beforeAll hook for Storybook initialization"
+      ]
+    },
+    {
+      "id": "autodocs-component-documentation",
+      "rule": "storybook-autodocs",
+      "query": "Generate documentation for our Button component directly from its Storybook stories",
+      "expectedBehavior": [
+        "Adds tags: ['autodocs'] to the story meta object for automatic doc page generation",
+        "Shows argTypes with descriptions and control types for interactive documentation",
+        "Recommends JSDoc comments on component props for automatic extraction into docs",
+        "Does NOT suggest creating a separate documentation site — uses living docs from stories"
+      ]
+    },
+    {
       "id": "negative-set-up-express-api",
       "rule": "",
       "query": "Set up an Express.js REST API with MongoDB and JWT authentication",

@@ -311,7 +311,9 @@ function SortableList({ items, onReorder }: Props) {
 - Use `@dnd-kit/core` — not HTML5 drag API which has no keyboard support
 - Escape must cancel the drag and return the item to its original position
 
-Reference: https://docs.dndkit.com/
+References:
+- https://docs.dndkit.com/
+- https://www.w3.org/WAI/ARIA/apg/practices/keyboard-interface/ (WAI-ARIA keyboard patterns)
 
 
 ### Infinite Scroll with Accessibility — CRITICAL
@@ -652,7 +654,9 @@ function OnboardingWizard() {
 - Wizard steps must show progress (`aria-label="Step 2 of 4"`) and allow back navigation
 - Limit visible options to 5-7 items per group (Miller's Law)
 
-Reference: https://www.nngroup.com/articles/progressive-disclosure/
+References:
+- https://www.nngroup.com/articles/progressive-disclosure/
+- https://www.w3.org/WAI/ARIA/apg/patterns/disclosure/ (WAI-ARIA disclosure pattern)
 
 
 ### Skeleton Loading States — HIGH
@@ -713,7 +717,7 @@ function UserProfile({ isLoading, user }: Props) {
 ### Skeleton Composition
 
 ```tsx
-// Reusable skeleton primitives
+// Reusable skeleton primitives — cn() from shadcn/ui: import { cn } from "@/lib/utils"
 function Skeleton({ className }: { className?: string }) {
   return <div className={cn("animate-pulse rounded bg-muted", className)} />
 }
@@ -737,7 +741,9 @@ function TableRowSkeleton() {
 - Match skeleton count to expected content count (e.g., 6 card skeletons for a 6-item grid)
 - Never nest spinners inside skeletons — pick one pattern per loading context
 
-Reference: https://web.dev/articles/ux-basics-skeleton-screens
+References:
+- https://web.dev/articles/ux-basics-skeleton-screens
+- https://www.w3.org/WAI/ARIA/apg/patterns/feed/ (aria-busy pattern for loading states)
 
 
 ### Tabs Overflow Handling — MEDIUM
@@ -807,7 +813,7 @@ function TabBar({ tabs, activeTab, onSelect }: Props) {
       <div
         ref={scrollRef}
         role="tablist"
-        className="flex overflow-x-auto scrollbar-none gap-1 px-8"
+        className="flex overflow-x-auto gap-1 px-8"  /* add scrollbar-none via: .scrollbar-none { scrollbar-width: none; -webkit-overflow-scrolling: touch; } */
       >
         {tabs.map((tab) => (
           <button
@@ -860,7 +866,7 @@ function handleTabKeyDown(e: React.KeyboardEvent, tabs: Tab[], activeTab: string
 - Only the active tab has `tabIndex=\{0\}`; all others get `tabIndex=\{-1\}` (roving tabindex)
 - Arrow keys navigate between tabs; Tab key moves focus to the panel content
 - For 10+ tabs, add an overflow dropdown menu ("More...") showing hidden tabs
-- Hide scrollbar with `scrollbar-none` but keep scroll arrows visible
+- Hide scrollbar with CSS `scrollbar-width: none` (or Tailwind plugin `scrollbar-none`) but keep scroll arrows visible
 
 Reference: https://www.w3.org/WAI/ARIA/apg/patterns/tabs/
 

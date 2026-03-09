@@ -144,7 +144,7 @@ export default defineConfig({
 |-------------|-------------|-------------|
 | CSF2 `Template.bind({})` | No type inference, verbose | CSF3 object stories with `satisfies` |
 | `@storybook/test-runner` package | Deprecated in Storybook 9 | `@storybook/addon-vitest` |
-| `vi.mock()` in story files | Leaks between stories, breaks isolation | `sb.mock(modulePath, factory)` |
+| `vi.mock()` in story files | Leaks between stories, breaks isolation | Register `sb.mock(import(...))` in preview.ts, configure with `mocked()` in beforeEach |
 | Full Chromatic snapshots on every PR | Expensive and slow | TurboSnap with `onlyChanged: true` |
 | Manual accessibility checking | Misses violations, not repeatable | `@storybook/addon-a11y` in CI pipeline |
 | Separate documentation site | Drifts from actual component behavior | Autodocs with `tags: ['autodocs']` |

@@ -119,4 +119,6 @@ function OnboardingWizard() {
 - Wizard steps must show progress (`aria-label="Step 2 of 4"`) and allow back navigation
 - Limit visible options to 5-7 items per group (Miller's Law)
 
-Reference: https://www.nngroup.com/articles/progressive-disclosure/
+References:
+- https://www.nngroup.com/articles/progressive-disclosure/
+- https://www.w3.org/WAI/ARIA/apg/patterns/disclosure/ (WAI-ARIA disclosure pattern)

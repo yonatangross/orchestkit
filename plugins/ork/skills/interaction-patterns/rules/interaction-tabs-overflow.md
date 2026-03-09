@@ -69,7 +69,7 @@ function TabBar({ tabs, activeTab, onSelect }: Props) {
       <div
         ref={scrollRef}
         role="tablist"
-        className="flex overflow-x-auto scrollbar-none gap-1 px-8"
+        className="flex overflow-x-auto gap-1 px-8"  /* add scrollbar-none via: .scrollbar-none { scrollbar-width: none; -webkit-overflow-scrolling: touch; } */
       >
         {tabs.map((tab) => (
           <button
@@ -122,6 +122,6 @@ function handleTabKeyDown(e: React.KeyboardEvent, tabs: Tab[], activeTab: string
 - Only the active tab has `tabIndex={0}`; all others get `tabIndex={-1}` (roving tabindex)
 - Arrow keys navigate between tabs; Tab key moves focus to the panel content
 - For 10+ tabs, add an overflow dropdown menu ("More...") showing hidden tabs
-- Hide scrollbar with `scrollbar-none` but keep scroll arrows visible
+- Hide scrollbar with CSS `scrollbar-width: none` (or Tailwind plugin `scrollbar-none`) but keep scroll arrows visible
 
 Reference: https://www.w3.org/WAI/ARIA/apg/patterns/tabs/

@@ -47,6 +47,28 @@
       ]
     },
     {
+      "id": "progressive-disclosure-settings",
+      "rule": "interaction-progressive-disclosure",
+      "query": "Design a settings page that has basic profile fields plus advanced options like API keys and webhooks",
+      "expectedBehavior": [
+        "Groups settings by frequency: common fields always visible, advanced behind disclosure",
+        "Uses native <details>/<summary> elements for accordion sections instead of custom ARIA",
+        "Limits visible options to 5-7 items per group following Miller's Law",
+        "Never hides primary actions behind disclosure — only secondary and advanced options"
+      ]
+    },
+    {
+      "id": "tabs-overflow-dynamic",
+      "rule": "interaction-tabs-overflow",
+      "query": "Build a tab bar for a dashboard with 12 dynamically-generated category tabs",
+      "expectedBehavior": [
+        "Uses role='tablist' with role='tab' on each button and aria-selected for active tab",
+        "Shows scroll arrow buttons only when tabs overflow the container width",
+        "Implements roving tabindex: active tab gets tabIndex=0, all others get tabIndex=-1",
+        "Supports arrow key navigation between tabs with Home/End for first/last tab"
+      ]
+    },
+    {
       "id": "modal-vs-drawer-selection",
       "rule": "interaction-modal-drawer-inline",
       "query": "Show product details when a user clicks on a product in a list",
