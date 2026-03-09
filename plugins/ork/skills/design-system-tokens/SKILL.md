@@ -30,13 +30,15 @@ Design token management following the W3C Design Token Community Group (DTCG) sp
 | Category | Rule File | Impact | When to Use |
 |----------|-----------|--------|-------------|
 | W3C Token Format | `tokens-w3c-format.md` | CRITICAL | Creating or reading `.tokens.json` files |
+| Contrast Enforcement | `tokens-contrast-enforcement.md` | CRITICAL | Validating WCAG contrast at token definition time |
 | Three-Tier Hierarchy | `tokens-three-tier.md` | HIGH | Organizing tokens into global/alias/component layers |
 | OKLCH Color Space | `tokens-oklch-color.md` | HIGH | Defining colors with perceptual uniformity |
+| Spacing & Depth | `tokens-spacing-depth.md` | HIGH | Defining elevation shadows and spacing scales as tokens |
 | Style Dictionary | `tokens-style-dictionary.md` | HIGH | Transforming tokens to CSS/Tailwind/iOS/Android |
 | Theming & Dark Mode | `tokens-theming-darkmode.md` | HIGH | Implementing theme switching and dark mode |
 | Versioning | `tokens-versioning.md` | HIGH | Evolving tokens without breaking consumers |
 
-**Total: 6 rules across 6 categories**
+**Total: 8 rules across 8 categories**
 
 ## Quick Start
 
@@ -124,9 +126,13 @@ Each rule file contains incorrect/correct code pairs and implementation guidance
 
 Read("${CLAUDE_PLUGIN_ROOT}/skills/design-system-tokens/rules/tokens-w3c-format.md")
 
+Read("${CLAUDE_PLUGIN_ROOT}/skills/design-system-tokens/rules/tokens-contrast-enforcement.md")
+
 Read("${CLAUDE_PLUGIN_ROOT}/skills/design-system-tokens/rules/tokens-three-tier.md")
 
 Read("${CLAUDE_PLUGIN_ROOT}/skills/design-system-tokens/rules/tokens-oklch-color.md")
+
+Read("${CLAUDE_PLUGIN_ROOT}/skills/design-system-tokens/rules/tokens-spacing-depth.md")
 
 Read("${CLAUDE_PLUGIN_ROOT}/skills/design-system-tokens/rules/tokens-style-dictionary.md")
 

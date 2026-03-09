@@ -17,13 +17,15 @@ Design token management following the W3C Design Token Community Group (DTCG) sp
 | Category | Rule File | Impact | When to Use |
 |----------|-----------|--------|-------------|
 | W3C Token Format | `tokens-w3c-format.md` | CRITICAL | Creating or reading `.tokens.json` files |
+| Contrast Enforcement | `tokens-contrast-enforcement.md` | CRITICAL | Validating WCAG contrast at token definition time |
 | Three-Tier Hierarchy | `tokens-three-tier.md` | HIGH | Organizing tokens into global/alias/component layers |
 | OKLCH Color Space | `tokens-oklch-color.md` | HIGH | Defining colors with perceptual uniformity |
+| Spacing & Depth | `tokens-spacing-depth.md` | HIGH | Defining elevation shadows and spacing scales as tokens |
 | Style Dictionary | `tokens-style-dictionary.md` | HIGH | Transforming tokens to CSS/Tailwind/iOS/Android |
 | Theming & Dark Mode | `tokens-theming-darkmode.md` | HIGH | Implementing theme switching and dark mode |
 | Versioning | `tokens-versioning.md` | HIGH | Evolving tokens without breaking consumers |
 
-**Total: 6 rules across 6 categories**
+**Total: 8 rules across 8 categories**
 
 ## Quick Start
 
@@ -111,9 +113,13 @@ Each rule file contains incorrect/correct code pairs and implementation guidance
 
 Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/design-system-tokens/rules/tokens-w3c-format.md")
 
+Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/design-system-tokens/rules/tokens-contrast-enforcement.md")
+
 Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/design-system-tokens/rules/tokens-three-tier.md")
 
 Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/design-system-tokens/rules/tokens-oklch-color.md")
+
+Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/design-system-tokens/rules/tokens-spacing-depth.md")
 
 Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/design-system-tokens/rules/tokens-style-dictionary.md")
 
@@ -211,7 +217,107 @@ The `design-system-architect` agent orchestrates token workflows end-to-end — 
 
 ---
 
-## Rules (6)
+## Rules (8)
+
+### Enforce contrast ratios at token definition time, not per component — CRITICAL
+
+
+## Token-Level Contrast Enforcement
+
+Validate contrast ratios when tokens are defined, not when components are reviewed. If `--color-text-muted` is `4.3:1` on its paired background, every component using it fails WCAG AA — and no per-component audit will fix the root cause.
+
+**Incorrect:**
+```json
+{
+  "color": {
+    "text": {
+      "muted": { "$type": "color", "$value": "oklch(0.60 0.00 0)" }
+    }
+  }
+}
+```
+```css
+/* No declared background pairing, no contrast metadata — silent failure */
+--color-text-muted: oklch(0.60 0.00 0);
+```
+
+**Correct — W3C DTCG token with contrast metadata:**
+```json
+{
+  "color": {
+    "text": {
+      "primary": {
+        "$type": "color",
+        "$value": "oklch(0.15 0.00 0)",
+        "$description": "Primary body text",
+        "$extensions": {
+          "a11y": {
+            "pairedBackground": "{color.bg.primary}",
+            "contrastRatio": 12.6,
+            "wcagLevel": "AAA"
+          }
+        }
+      },
+      "muted": {
+        "$type": "color",
+        "$value": "oklch(0.45 0.00 0)",
+        "$description": "Secondary/muted text — must still meet AA",
+        "$extensions": {
+          "a11y": {
+            "pairedBackground": "{color.bg.primary}",
+            "contrastRatio": 4.7,
+            "wcagLevel": "AA"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+**Correct — Style Dictionary build-time contrast check:**
+```js
+// style-dictionary.config.js
+StyleDictionary.registerAction({
+  name: 'validate/contrast',
+  do(dictionary) {
+    dictionary.allTokens
+      .filter(t => t.$extensions?.a11y?.contrastRatio !== undefined)
+      .forEach(t => {
+        const { contrastRatio, wcagLevel } = t.$extensions.a11y;
+        const threshold = wcagLevel === 'AAA' ? 7 : 4.5;
+        if (contrastRatio < threshold) {
+          throw new Error(
+            `Token ${t.name}: contrast ${contrastRatio} < ${threshold} (${wcagLevel})`
+          );
+        }
+      });
+  },
+  undo() {}
+});
+```
+
+**Key rules:**
+
+Minimum ratios at token definition level:
+- `--color-text-*` against paired background: >= 4.5:1 (WCAG AA)
+- `--color-text-muted` / `--color-text-subtle`: >= 4.5:1 — "muted" describes tone, not an a11y exemption
+- `--color-border-*` against adjacent background: >= 3:1 (WCAG 1.4.11 non-text contrast)
+- `--color-icon-*` conveying information: >= 3:1
+- `--color-interactive-*` (links, button labels): >= 4.5:1 against background; >= 3:1 against surrounding body text
+
+Dark mode:
+- Recalculate every pair independently for dark theme tokens — do not assume inversion produces valid contrast
+- Pure white (`oklch(1.00 0 0)`) on dark backgrounds often exceeds 15:1 and causes eye strain; target 9-12:1
+- Document the dark-mode pairing in `$extensions.a11y` just as you do for light mode
+
+Process:
+- Every text-role token declares its intended background pair in `$extensions.a11y.pairedBackground`
+- Run `style-dictionary build` as a CI gate — contrast failures block the build
+- Review the generated contrast table in pull requests alongside visual diffs
+
+Reference: [references/w3c-token-spec.md](../references/w3c-token-spec.md)
+
 
 ### Define colors in OKLCH for perceptual uniformity — HIGH
 
@@ -272,6 +378,88 @@ Use OKLCH (Oklab Lightness, Chroma, Hue) for all color token definitions. OKLCH 
 - All modern browsers support OKLCH natively (Chrome 111+, Safari 15.4+, Firefox 113+)
 
 Reference: [references/w3c-token-spec.md](../references/w3c-token-spec.md)
+
+
+### Define elevation and spacing as explicit token scales — HIGH
+
+
+## Spacing and Depth as Tokens
+
+Every spacing value and shadow must come from a named token — no magic numbers. Spacing tokens create visual rhythm through proximity grouping; elevation tokens communicate layer hierarchy through a consistent light-source model.
+
+**Incorrect:**
+```css
+.card { padding: 12px 20px; box-shadow: 0 3px 8px rgba(0,0,0,0.12); }
+.modal { box-shadow: 0 12px 20px rgba(0,0,0,0.18); }
+.dropdown { margin-top: 6px; }
+```
+
+**Correct — token definitions:**
+```json
+{
+  "spacing": {
+    "$type": "dimension",
+    "xs":  { "$value": "4px" },
+    "sm":  { "$value": "8px" },
+    "md":  { "$value": "16px" },
+    "lg":  { "$value": "24px" },
+    "xl":  { "$value": "32px" },
+    "2xl": { "$value": "48px" },
+    "3xl": { "$value": "64px" }
+  },
+  "elevation": {
+    "$type": "shadow",
+    "0": { "$value": "none" },
+    "1": { "$value": "0 1px 2px rgba(0,0,0,0.05)" },
+    "2": { "$value": "0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.06)" },
+    "3": { "$value": "0 10px 15px rgba(0,0,0,0.10), 0 4px 6px rgba(0,0,0,0.05)" },
+    "4": { "$value": "0 20px 25px rgba(0,0,0,0.15), 0 8px 10px rgba(0,0,0,0.07)" }
+  }
+}
+```
+
+**Correct — CSS custom properties:**
+```css
+:root {
+  --space-xs: 4px;   --space-sm: 8px;   --space-md: 16px;
+  --space-lg: 24px;  --space-xl: 32px;  --space-2xl: 48px;
+
+  --elevation-0: none;
+  --elevation-1: 0 1px 2px rgba(0,0,0,0.05);
+  --elevation-2: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.06);
+  --elevation-3: 0 10px 15px rgba(0,0,0,0.10), 0 4px 6px rgba(0,0,0,0.05);
+  --elevation-4: 0 20px 25px rgba(0,0,0,0.15), 0 8px 10px rgba(0,0,0,0.07);
+}
+
+/* Component tokens reference the scale */
+.card    { padding: var(--space-md); box-shadow: var(--elevation-1); }
+.popover { box-shadow: var(--elevation-2); }
+.modal   { box-shadow: var(--elevation-3); }
+.toast   { box-shadow: var(--elevation-4); }
+```
+
+**Key rules:**
+
+Spacing:
+- Base unit is 4px; the scale is geometric: 4, 8, 16, 24, 32, 48, 64
+- Start with generous whitespace, then reduce — under-spaced UIs feel cramped and hard to scan
+- Use proximity to signal grouping: related elements share a closer spacing step
+- Sibling flow spacing via `* + * \{ margin-block-start: var(--space-md) \}` (owl selector)
+
+Elevation (5 levels, top-left light source):
+- Level 0 — flat, inline: no shadow, use background color change to separate regions
+- Level 1 — raised surfaces (cards, list items): single, subtle contact shadow
+- Level 2 — overlays floating above content (dropdowns, popovers): contact + ambient shadows
+- Level 3 — modal dialogs: pronounced contact shadow, heavier ambient shadow
+- Level 4 — highest-priority floating elements (toasts, command palette): maximum shadow
+- Every shadow uses two parts: a tight dark contact shadow + a large soft ambient shadow
+
+Flat depth (no shadows needed):
+- Layer backgrounds: white card on `--color-bg-secondary` reads as elevated without a shadow
+- Overlap elements deliberately to imply z-order
+- Accent borders (left or top, 2px, brand color) add depth cues without full borders
+
+Reference: [references/token-naming-conventions.md](../references/token-naming-conventions.md)
 
 
 ### Use Style Dictionary 4.x to transform W3C tokens — HIGH
