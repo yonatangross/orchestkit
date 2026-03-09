@@ -325,7 +325,8 @@ describe('Cross-Bundle Consistency', () => {
     // 176 -> 175: #980 — removed communicationStyleTracker from entries/prompt.ts (replaced by type:prompt hook)
     // 175 -> 171: memory cleanup — removed 5 dead hooks (memoryContext, memoryContextLoader, captureUserIntent, graphMemoryInject, agentMemoryStore), added session-summary
     // 170 -> 172: CC 2.1.71 — added task-commit-linker, task-progress-tracker to lifecycle bundle
-    expect(totalHooks).toBe(172);
+    // 172 -> 171: #1063 — removed release-notebook-trigger from posttool bundle
+    expect(totalHooks).toBe(171);
   });
 });
 
