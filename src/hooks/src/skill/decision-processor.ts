@@ -15,7 +15,7 @@
 
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, getPluginRoot, lineContainsAllCI } from '../lib/common.js';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -121,7 +121,11 @@ let cachedPluginVersion: string | null = null;
 function getCCVersion(): string {
   if (process.env.CLAUDE_CODE_VERSION) return process.env.CLAUDE_CODE_VERSION;
   try {
-    const output = execSync('claude --version 2>/dev/null', { encoding: 'utf-8', timeout: 2000 });
+    const output = execFileSync('claude', ['--version'], {
+      encoding: 'utf-8',
+      timeout: 2000,
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
     const match = output.match(/(\d+\.\d+\.\d+)/);
     if (match) return match[1];
   } catch { /* ignore */ }

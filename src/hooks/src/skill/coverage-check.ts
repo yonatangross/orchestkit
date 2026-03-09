@@ -6,7 +6,7 @@
 
 import { existsSync, mkdirSync, } from 'node:fs';
 import { bufferWrite } from '../lib/analytics-buffer.js';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, getLogDir, getProjectDir } from '../lib/common.js';
 
@@ -36,7 +36,7 @@ export function coverageCheck(_input: HookInput): HookResult {
 
   if (existsSync(coverageFile) || existsSync(coverageXml)) {
     try {
-      const result = execSync('coverage report --fail-under=0', {
+      const result = execFileSync('coverage', ['report', '--fail-under=0'], {
         cwd: projectDir,
         encoding: 'utf8',
         timeout: 30000,

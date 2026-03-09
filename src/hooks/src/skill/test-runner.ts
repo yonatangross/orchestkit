@@ -54,7 +54,7 @@ export function testRunner(input: HookInput): HookResult {
       // Check for poetry
       if (existsSync(`${dir}/pyproject.toml`)) {
         try {
-          execSync('command -v poetry', { stdio: ['pipe', 'pipe', 'pipe'] });
+          execSync('command -v poetry', { stdio: ['pipe', 'pipe', 'pipe'] }); // shell required: `command -v` is a shell builtin
           const result = execFileSync('poetry', ['run', 'pytest', filePath, '-v', '--tb=short'], {
             cwd: dir,
             encoding: 'utf8',
@@ -70,7 +70,7 @@ export function testRunner(input: HookInput): HookResult {
 
       // Try pytest directly
       try {
-        execSync('command -v pytest', { stdio: ['pipe', 'pipe', 'pipe'] });
+        execSync('command -v pytest', { stdio: ['pipe', 'pipe', 'pipe'] }); // shell required: `command -v` is a shell builtin
         const result = execFileSync('pytest', [filePath, '-v', '--tb=short'], {
           cwd: dir,
           encoding: 'utf8',
