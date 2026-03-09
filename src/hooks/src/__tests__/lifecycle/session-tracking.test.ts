@@ -13,8 +13,8 @@ import type { HookInput } from '../../types.js';
 // =============================================================================
 
 vi.mock('node:child_process', () => ({
-  execSync: vi.fn(() => 'feature-branch'),
-  execFileSync: vi.fn(() => ''),
+  execSync: vi.fn(() => ''),
+  execFileSync: vi.fn(() => 'feature-branch'),
 }));
 
 vi.mock('../../lib/common.js', async (importOriginal) => {
@@ -33,7 +33,7 @@ vi.mock('../../lib/session-tracker.js', () => ({
 
 // Import after mocks
 import { sessionTracking } from '../../lifecycle/session-tracking.js';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import { logHook, getProjectDir, outputSilentSuccess } from '../../lib/common.js';
 import { trackSessionStart } from '../../lib/session-tracker.js';
 
@@ -117,7 +117,7 @@ describe('session-tracking', () => {
   describe('git branch detection', () => {
     test('detects git branch from project directory', () => {
       // Arrange
-      vi.mocked(execSync).mockReturnValueOnce('main\n');
+      vi.mocked(execFileSync).mockReturnValueOnce('main\n');
       const input = createHookInput();
 
       // Act
@@ -133,7 +133,7 @@ describe('session-tracking', () => {
 
     test('trims whitespace from branch name', () => {
       // Arrange
-      vi.mocked(execSync).mockReturnValueOnce('  dev  \n');
+      vi.mocked(execFileSync).mockReturnValueOnce('  dev  \n');
       const input = createHookInput();
 
       // Act
@@ -149,7 +149,7 @@ describe('session-tracking', () => {
 
     test('passes undefined branch when git command fails', () => {
       // Arrange
-      vi.mocked(execSync).mockImplementationOnce(() => {
+      vi.mocked(execFileSync).mockImplementationOnce(() => {
         throw new Error('Not a git repository');
       });
       const input = createHookInput();
@@ -167,7 +167,7 @@ describe('session-tracking', () => {
 
     test('passes undefined branch when git returns empty string', () => {
       // Arrange
-      vi.mocked(execSync).mockReturnValueOnce('');
+      vi.mocked(execFileSync).mockReturnValueOnce('');
       const input = createHookInput();
 
       // Act
@@ -189,8 +189,9 @@ describe('session-tracking', () => {
       sessionTracking(input);
 
       // Assert
-      expect(execSync).toHaveBeenCalledWith(
-        'git rev-parse --abbrev-ref HEAD',
+      expect(execFileSync).toHaveBeenCalledWith(
+        'git',
+        ['rev-parse', '--abbrev-ref', 'HEAD'],
         expect.objectContaining({
           cwd: TEST_PROJECT_DIR,
           encoding: 'utf8',
@@ -202,7 +203,7 @@ describe('session-tracking', () => {
 
     test('handles git timeout gracefully', () => {
       // Arrange
-      vi.mocked(execSync).mockImplementationOnce(() => {
+      vi.mocked(execFileSync).mockImplementationOnce(() => {
         const error = new Error('Command timed out');
         (error as NodeJS.ErrnoException).code = 'ETIMEDOUT';
         throw error;
@@ -254,7 +255,7 @@ describe('session-tracking', () => {
   describe('logging behavior', () => {
     test('logs session start with branch name', () => {
       // Arrange
-      vi.mocked(execSync).mockReturnValueOnce('develop');
+      vi.mocked(execFileSync).mockReturnValueOnce('develop');
       const input = createHookInput();
 
       // Act
@@ -270,7 +271,7 @@ describe('session-tracking', () => {
 
     test('logs "unknown" when branch not detected', () => {
       // Arrange
-      vi.mocked(execSync).mockReturnValueOnce('');
+      vi.mocked(execFileSync).mockReturnValueOnce('');
       const input = createHookInput();
 
       // Act
@@ -321,7 +322,7 @@ describe('session-tracking', () => {
 
     test('continues even when git command throws', () => {
       // Arrange
-      vi.mocked(execSync).mockImplementationOnce(() => {
+      vi.mocked(execFileSync).mockImplementationOnce(() => {
         throw new Error('Git error');
       });
       const input = createHookInput();
@@ -350,7 +351,7 @@ describe('session-tracking', () => {
 
     test('still calls trackSessionStart even if git fails', () => {
       // Arrange
-      vi.mocked(execSync).mockImplementationOnce(() => {
+      vi.mocked(execFileSync).mockImplementationOnce(() => {
         throw new Error('Git error');
       });
       const input = createHookInput();
@@ -384,7 +385,7 @@ describe('session-tracking', () => {
     test('always returns continue: true for non-blocking hook', () => {
       // Arrange - various error conditions
       const errorScenarios = [
-        () => vi.mocked(execSync).mockImplementationOnce(() => { throw new Error(); }),
+        () => vi.mocked(execFileSync).mockImplementationOnce(() => { throw new Error(); }),
         () => vi.mocked(trackSessionStart).mockImplementationOnce(() => { throw new Error(); }),
       ];
 
@@ -420,7 +421,7 @@ describe('session-tracking', () => {
       ['HEAD', 'HEAD'],
     ])('handles branch name "%s"', (gitOutput, expectedBranch) => {
       // Arrange
-      vi.mocked(execSync).mockReturnValueOnce(gitOutput);
+      vi.mocked(execFileSync).mockReturnValueOnce(gitOutput);
       const input = createHookInput();
 
       // Act
@@ -441,7 +442,7 @@ describe('session-tracking', () => {
       ['\t\n', undefined],
     ])('handles empty git output "%s"', (gitOutput, expectedBranch) => {
       // Arrange
-      vi.mocked(execSync).mockReturnValueOnce(gitOutput);
+      vi.mocked(execFileSync).mockReturnValueOnce(gitOutput);
       const input = createHookInput();
 
       // Act
@@ -479,7 +480,7 @@ describe('session-tracking', () => {
     test('handles very long branch names', () => {
       // Arrange
       const longBranch = `feature/${'a'.repeat(200)}`;
-      vi.mocked(execSync).mockReturnValueOnce(longBranch);
+      vi.mocked(execFileSync).mockReturnValueOnce(longBranch);
       const input = createHookInput();
 
       // Act
@@ -497,7 +498,7 @@ describe('session-tracking', () => {
     test('handles branch names with special characters', () => {
       // Arrange
       const specialBranch = 'feature/test-branch_v1.0';
-      vi.mocked(execSync).mockReturnValueOnce(specialBranch);
+      vi.mocked(execFileSync).mockReturnValueOnce(specialBranch);
       const input = createHookInput();
 
       // Act
@@ -513,7 +514,7 @@ describe('session-tracking', () => {
 
     test('handles detached HEAD state', () => {
       // Arrange
-      vi.mocked(execSync).mockReturnValueOnce('HEAD');
+      vi.mocked(execFileSync).mockReturnValueOnce('HEAD');
       const input = createHookInput();
 
       // Act
@@ -538,8 +539,9 @@ describe('session-tracking', () => {
 
       // Assert
       expect(result.continue).toBe(true);
-      expect(execSync).toHaveBeenCalledWith(
-        expect.any(String),
+      expect(execFileSync).toHaveBeenCalledWith(
+        'git',
+        expect.any(Array),
         expect.objectContaining({
           cwd: pathWithSpaces,
         })
@@ -575,7 +577,7 @@ describe('session-tracking', () => {
 
     test('passes complete context object to trackSessionStart', () => {
       // Arrange
-      vi.mocked(execSync).mockReturnValueOnce('develop');
+      vi.mocked(execFileSync).mockReturnValueOnce('develop');
       const input = createHookInput({ project_dir: '/custom/path' });
 
       // Act

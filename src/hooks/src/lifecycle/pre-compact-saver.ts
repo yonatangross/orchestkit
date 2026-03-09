@@ -12,7 +12,7 @@
  */
 
 import { existsSync, readFileSync, mkdirSync, readdirSync } from 'node:fs';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook, getLogDir, getSessionId, getProjectDir } from '../lib/common.js';
@@ -129,10 +129,11 @@ function calculateAvgInterval(history: Array<{ timestamp: string }>): number {
  */
 function getRecentlyEditedFiles(): string[] {
   try {
-    const output = execSync('git diff --name-only HEAD 2>/dev/null', {
+    const output = execFileSync('git', ['diff', '--name-only', 'HEAD'], {
       encoding: 'utf8',
       timeout: 3000,
       cwd: getProjectDir(),
+      stdio: ['pipe', 'pipe', 'pipe'],
     });
     return output.trim().split('\n').filter(Boolean).slice(0, 20);
   } catch {

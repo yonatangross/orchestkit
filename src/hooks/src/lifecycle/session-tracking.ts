@@ -9,14 +9,14 @@
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook, getProjectDir } from '../lib/common.js';
 import { trackSessionStart } from '../lib/session-tracker.js';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 
 /**
  * Get current git branch name
  */
 function getGitBranch(projectDir: string): string | undefined {
   try {
-    const branch = execSync('git rev-parse --abbrev-ref HEAD', {
+    const branch = execFileSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], {
       cwd: projectDir,
       encoding: 'utf8',
       timeout: 5000,
