@@ -55,6 +55,39 @@
         "Suggests hybrid workflow: v0 for initial visual exploration, then Cursor for integration",
         "References the tool selection matrix matching task type to appropriate AI tool"
       ]
+    },
+    {
+      "id": "ai-ci-gate-pipeline",
+      "rule": "ai-ci-gate",
+      "query": "I generated a card component with v0. How should I set up CI to validate AI-generated components before deploying?",
+      "expectedBehavior": [
+        "Includes axe-core accessibility checks in the CI pipeline for AI-generated components",
+        "Adds visual regression testing with Chromatic or Percy for generated UI",
+        "Enforces TypeScript strict mode and ESLint rules in the build step",
+        "Checks bundle size impact of newly generated components against thresholds"
+      ]
+    },
+    {
+      "id": "ai-review-checklist-component",
+      "rule": "ai-review-checklist",
+      "query": "I got a UserProfile component from Claude. What should I check before merging it into our design system?",
+      "expectedBehavior": [
+        "Verifies the component uses design tokens instead of hardcoded color values",
+        "Checks for proper TypeScript props interface with explicit types",
+        "Validates keyboard accessibility and ARIA attributes on interactive elements",
+        "Confirms responsive behavior across breakpoints and dark mode support"
+      ]
+    },
+    {
+      "id": "ai-token-injection-prompt",
+      "rule": "ai-token-injection",
+      "query": "How do I make sure AI-generated components use our design tokens instead of hardcoded colors?",
+      "expectedBehavior": [
+        "Passes design token variable names explicitly in the AI prompt context",
+        "Uses OKLCH or CSS custom properties instead of hardcoded hex or rgb values",
+        "Includes the Tailwind theme configuration or token map in the prompt",
+        "Validates generated output replaces any hardcoded values with token references"
+      ]
     }
   ]
 }

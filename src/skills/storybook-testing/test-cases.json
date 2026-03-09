@@ -31,7 +31,7 @@
     {
       "id": "storybook-chromatic-turbosnap",
       "rule": "storybook-chromatic-turbosnap",
-      "query": "Our Chromatic bill is too high — we have 500 stories and every PR snapshots all of them even when we only change one component",
+      "query": "Our Chromatic bill is too high \u2014 we have 500 stories and every PR snapshots all of them even when we only change one component",
       "expectedBehavior": [
         "Enables TurboSnap with onlyChanged: true in the Chromatic GitHub Action",
         "Sets fetch-depth: 0 in checkout for full git history comparison",
@@ -82,7 +82,7 @@
         "Adds tags: ['autodocs'] to the story meta object for automatic doc page generation",
         "Shows argTypes with descriptions and control types for interactive documentation",
         "Recommends JSDoc comments on component props for automatic extraction into docs",
-        "Does NOT suggest creating a separate documentation site — uses living docs from stories"
+        "Does NOT suggest creating a separate documentation site \u2014 uses living docs from stories"
       ]
     },
     {
@@ -93,6 +93,28 @@
         "Claude does NOT invoke the storybook-testing skill",
         "Uses standard Node.js/Express knowledge instead of Storybook patterns",
         "No references to CSF3, play functions, Chromatic, or Storybook addons"
+      ]
+    },
+    {
+      "id": "csf3-factories-setup",
+      "rule": "storybook-csf3-factories",
+      "query": "How do I write type-safe Storybook stories for our Button component using CSF3?",
+      "expectedBehavior": [
+        "Uses satisfies Meta<typeof Component> on the default export for type inference",
+        "Defines stories as plain objects with args instead of CSF2 template functions",
+        "Includes proper TypeScript typing on StoryObj for full autocomplete support",
+        "Demonstrates story composition with spread operator for variant stories"
+      ]
+    },
+    {
+      "id": "sb-mock-isolation",
+      "rule": "storybook-sb-mock",
+      "query": "My Storybook stories share API mocks and they're leaking between tests. How do I isolate mocks per story?",
+      "expectedBehavior": [
+        "Uses sb.mock() registration in .storybook/preview.ts for module-level mocking",
+        "Configures per-story mock behavior using the mocked() utility in beforeEach",
+        "Avoids vi.mock() which leaks mock state between stories and test files",
+        "Demonstrates automatic cleanup of mocks between story renders for isolation"
       ]
     }
   ]
