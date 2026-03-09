@@ -28,7 +28,8 @@ skills:
   - animation-motion-design
   - figma-design-handoff
   - performance
-  - testing-patterns
+  - testing-unit
+  - testing-e2e
   - remember
   - memory
 hooks:

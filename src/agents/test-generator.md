@@ -20,7 +20,11 @@ tools:
   - TaskUpdate
   - TaskList
 skills:
-  - testing-patterns
+  - testing-unit
+  - testing-e2e
+  - testing-llm
+  - testing-integration
+  - testing-perf
   - architecture-patterns
   - browser-tools
   - task-dependency-patterns
@@ -388,4 +392,4 @@ class TestFeedbackService:
 ## Integration
 - **Triggered by:** code-quality-reviewer (coverage check), CI pipeline
 - **Receives from:** backend-system-architect (new features to test)
-- **Skill references:** testing-patterns
+- **Skill references:** testing-unit, testing-e2e, testing-llm, testing-integration, testing-perf

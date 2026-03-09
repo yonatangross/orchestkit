@@ -5,7 +5,7 @@ import type { Totals, AgentSummary, CategoryMeta } from "./types";
 
 export const TOTALS: Totals = {
   "plugins": 1,
-  "skills": 87,
+  "skills": 91,
   "agents": 31,
   "hooks": 96,
   "commands": 19,
@@ -382,7 +382,7 @@ export const SKILLS_SUMMARY = {
       "design-system-tokens",
       "figma-design-handoff",
       "storybook-testing",
-      "testing-patterns"
+      "testing-e2e"
     ],
     "devops": [
       "devops-deployment",
@@ -396,8 +396,8 @@ export const SKILLS_SUMMARY = {
       "product-analytics",
       "review-pr",
       "storybook-testing",
-      "testing-patterns",
-      "verify"
+      "testing-e2e",
+      "testing-integration"
     ],
     "security": [
       "audit-full",
@@ -409,7 +409,7 @@ export const SKILLS_SUMMARY = {
       "async-jobs",
       "domain-driven-design",
       "python-backend",
-      "testing-patterns"
+      "testing-perf"
     ],
     "react": [
       "accessibility",
@@ -432,7 +432,8 @@ export const SKILLS_SUMMARY = {
     "rag": [
       "interaction-patterns",
       "notebooklm",
-      "rag-retrieval"
+      "rag-retrieval",
+      "testing-llm"
     ],
     "backend": [
       "api-design",

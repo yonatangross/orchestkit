@@ -23,7 +23,8 @@ tools:
 skills:
   - react-server-components-framework
   - ui-components
-  - testing-patterns
+  - testing-unit
+  - testing-e2e
   - accessibility
   - animation-motion-design
   - design-system-tokens

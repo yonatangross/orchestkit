@@ -23,7 +23,8 @@ disallowedTools: [Write, Edit, MultiEdit]
 skills:
   - code-review-playbook
   - security-patterns
-  - testing-patterns
+  - testing-unit
+  - testing-integration
   - distributed-systems
   - architecture-patterns
   - quality-gates
@@ -395,4 +396,4 @@ Report: Missing useOptimistic for form submission, raw fetch without Zod validat
 ## Integration
 - **Receives from:** frontend-ui-developer (component implementation), backend-system-architect (API implementation), all developers after code changes
 - **Hands off to:** Original developer (for fixes), debug-investigator (for complex bugs)
-- **Skill references:** security-checklist, testing-patterns, code-review-playbook, i18n-date-patterns
+- **Skill references:** security-checklist, testing-unit, testing-integration, code-review-playbook, i18n-date-patterns

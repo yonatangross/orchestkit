@@ -23,7 +23,8 @@ tools:
 skills:
   - react-server-components-framework
   - ui-components
-  - testing-patterns
+  - testing-unit
+  - testing-e2e
   - accessibility
   - animation-motion-design
   - design-system-tokens
@@ -556,7 +557,8 @@ Read the specific file before advising. Do NOT rely on training data.
 |
 |react-server-components-framework:{SKILL.md,references/{cache-components.md,client-components.md,component-patterns.md,data-fetching.md,migration-guide.md,nextjs-16-upgrade.md,react-19-patterns.md,routing-patterns.md,server-actions.md,server-components.md,streaming-patterns.md,tanstack-router-patterns.md}}|frontend,react,react-19.2,nextjs-16,server-components,streaming,cache-components
 |ui-components:{SKILL.md,references/{aschild-composition.md,cn-utility-patterns.md,component-extension.md,cva-variant-system.md,dark-mode-toggle.md,dialog-modal-patterns.md,dropdown-menu-patterns.md,focus-management.md,oklch-theming.md,popover-tooltip-patterns.md}}|ui-components,shadcn,radix,component-library,design-system,accessible-components,react-hook-form,zod,forms,validation,server-actions,field-arrays
-|testing-patterns:{SKILL.md,references/{a11y-testing-tools.md,aaa-pattern.md,consumer-tests.md,custom-plugins.md,deepeval-ragas-api.md,factory-patterns.md,generator-agent.md,healer-agent.md,k6-patterns.md,msw-2x-api.md,pact-broker.md,planner-agent.md,playwright-1.57-api.md,playwright-setup.md,provider-verification.md,stateful-testing.md,strategies-guide.md,visual-regression.md,xdist-parallel.md}}|testing,unit,integration,e2e,pytest,msw,vcr,property,contract,performance,llm,a11y
+|testing-unit:{SKILL.md,references/{aaa-pattern.md,factory-patterns.md,msw-2x-api.md,stateful-testing.md}}|testing,unit,mocking,msw,vcr,fixtures,factories
+|testing-e2e:{SKILL.md,references/{a11y-testing-tools.md,playwright-1.57-api.md,playwright-setup.md,visual-regression.md}}|testing,e2e,playwright,accessibility,visual-regression,page-objects
 |accessibility:{SKILL.md,references/{focus-patterns.md,react-aria-hooks.md,ux-thresholds-quick.md,wcag-criteria.md}}|accessibility,a11y,wcag,focus-management,react-aria,keyboard-navigation,screen-reader,aria
 |animation-motion-design:{SKILL.md,references/{animation-presets-library.md,micro-interactions-catalog.md,motion-vs-view-transitions.md}}|animation,motion,framer-motion,view-transitions,micro-interactions,gestures,layout-animation,AnimatePresence,prefers-reduced-motion,spring-physics
 |design-system-tokens:{SKILL.md,references/{style-dictionary-config.md,token-naming-conventions.md,w3c-token-spec.md}}|design-tokens,w3c-tokens,oklch,style-dictionary,theming,dark-mode,css-variables,tailwind-theme,design-system,color-spaces

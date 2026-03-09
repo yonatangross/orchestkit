@@ -1,0 +1,2263 @@
+---
+title: "Testing Integration"
+description: "Integration and contract testing patterns — API endpoint tests, component integration, database testing, Pact contract verification, property-based testing, and Zod schema validation. Use when testing API boundaries, verifying contracts, or validating cross-service integration."
+---
+
+<span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
+
+**Primary Agent:** [test-generator](/docs/reference/agents/test-generator)
+
+
+# Integration & Contract Testing
+
+Focused patterns for testing API boundaries, cross-service contracts, component integration, database layers, property-based verification, and schema validation.
+
+## Quick Reference
+
+| Area | Rule / Reference | Impact |
+|------|-----------------|--------|
+| API endpoint tests | `rules/integration-api.md` | HIGH |
+| React component integration | `rules/integration-component.md` | HIGH |
+| Database layer testing | `rules/integration-database.md` | HIGH |
+| Zod schema validation | `rules/validation-zod-schema.md` | HIGH |
+| Pact contract testing | `rules/verification-contract.md` | MEDIUM |
+| Stateful testing (Hypothesis) | `rules/verification-stateful.md` | MEDIUM |
+| Evidence & property-based | `rules/verification-techniques.md` | MEDIUM |
+
+### References
+
+| Topic | File |
+|-------|------|
+| Consumer-side Pact tests | `references/consumer-tests.md` |
+| Pact Broker CI/CD | `references/pact-broker.md` |
+| Provider verification setup | `references/provider-verification.md` |
+| Hypothesis strategies guide | `references/strategies-guide.md` |
+
+### Checklists
+
+| Checklist | File |
+|-----------|------|
+| Contract testing readiness | `checklists/contract-testing-checklist.md` |
+| Property-based testing | `checklists/property-testing-checklist.md` |
+
+### Scripts & Templates
+
+| Script | File |
+|--------|------|
+| Create integration test | `scripts/create-integration-test.md` |
+| Test plan template | `scripts/test-plan-template.md` |
+
+### Examples
+
+| Example | File |
+|---------|------|
+| Full testing strategy | `examples/orchestkit-test-strategy.md` |
+
+---
+
+## Quick Start: API Integration Test
+
+### TypeScript (Supertest)
+
+```typescript
+import request from 'supertest';
+import { app } from '../app';
+
+describe('POST /api/users', () => {
+  test('creates user and returns 201', async () => {
+    const response = await request(app)
+      .post('/api/users')
+      .send({ email: 'test@example.com', name: 'Test' });
+
+    expect(response.status).toBe(201);
+    expect(response.body.id).toBeDefined();
+    expect(response.body.email).toBe('test@example.com');
+  });
+
+  test('returns 400 for invalid email', async () => {
+    const response = await request(app)
+      .post('/api/users')
+      .send({ email: 'invalid', name: 'Test' });
+
+    expect(response.status).toBe(400);
+    expect(response.body.error).toContain('email');
+  });
+});
+```
+
+### Python (FastAPI + httpx)
+
+```python
+import pytest
+from httpx import AsyncClient
+from app.main import app
+
+@pytest.fixture
+async def client():
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        yield ac
+
+@pytest.mark.asyncio
+async def test_create_user(client: AsyncClient):
+    response = await client.post(
+        "/api/users",
+        json={"email": "test@example.com", "name": "Test"}
+    )
+    assert response.status_code == 201
+    assert response.json()["email"] == "test@example.com"
+```
+
+---
+
+## Coverage Targets
+
+| Area | Target |
+|------|--------|
+| API endpoints | 70%+ |
+| Service layer | 80%+ |
+| Component interactions | 70%+ |
+| Contract tests | All consumer-used endpoints |
+| Property tests | All encode/decode, idempotent functions |
+
+---
+
+## Key Principles
+
+1. **Test at boundaries** -- API inputs, database queries, service calls, external integrations
+2. **Fresh state per test** -- In-memory databases, transaction rollback, no shared mutable state
+3. **Use matchers in contracts** -- `Like()`, `EachLike()`, `Term()` instead of exact values
+4. **Property-based for invariants** -- Roundtrip, idempotence, commutativity properties
+5. **Validate schemas at edges** -- Zod `.safeParse()` at every API boundary
+6. **Evidence-backed completion** -- Exit code 0, coverage reports, timestamps
+
+---
+
+## When to Use This Skill
+
+- Writing API endpoint tests (Supertest, httpx)
+- Setting up React component integration tests with providers
+- Creating database integration tests with isolation
+- Implementing Pact consumer/provider contract tests
+- Adding property-based tests with Hypothesis
+- Validating Zod schemas at API boundaries
+- Planning a testing strategy for a new feature or service
+
+
+---
+
+## Rules (7)
+
+### Validate API contract correctness and error handling through HTTP-level integration tests — HIGH
+
+
+# API Integration Testing
+
+## TypeScript (Supertest)
+
+```typescript
+import request from 'supertest';
+import { app } from '../app';
+
+describe('POST /api/users', () => {
+  test('creates user and returns 201', async () => {
+    const response = await request(app)
+      .post('/api/users')
+      .send({ email: 'test@example.com', name: 'Test' });
+
+    expect(response.status).toBe(201);
+    expect(response.body.id).toBeDefined();
+    expect(response.body.email).toBe('test@example.com');
+  });
+
+  test('returns 400 for invalid email', async () => {
+    const response = await request(app)
+      .post('/api/users')
+      .send({ email: 'invalid', name: 'Test' });
+
+    expect(response.status).toBe(400);
+    expect(response.body.error).toContain('email');
+  });
+});
+```
+
+## Python (FastAPI + httpx)
+
+```python
+import pytest
+from httpx import AsyncClient
+from app.main import app
+
+@pytest.fixture
+async def client():
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        yield ac
+
+@pytest.mark.asyncio
+async def test_create_user(client: AsyncClient):
+    response = await client.post(
+        "/api/users",
+        json={"email": "test@example.com", "name": "Test"}
+    )
+    assert response.status_code == 201
+    assert response.json()["email"] == "test@example.com"
+```
+
+## Coverage Targets
+
+| Area | Target |
+|------|--------|
+| API endpoints | 70%+ |
+| Service layer | 80%+ |
+| Component interactions | 70%+ |
+
+**Incorrect — Only testing happy path:**
+```typescript
+test('creates user', async () => {
+  const response = await request(app)
+    .post('/api/users')
+    .send({ email: 'test@example.com' });
+  expect(response.status).toBe(201);
+  // Missing: validation errors, auth failures
+});
+```
+
+**Correct — Testing both success and error cases:**
+```typescript
+test('creates user with valid data', async () => {
+  const response = await request(app)
+    .post('/api/users')
+    .send({ email: 'test@example.com', name: 'Test' });
+  expect(response.status).toBe(201);
+});
+
+test('rejects invalid email', async () => {
+  const response = await request(app)
+    .post('/api/users')
+    .send({ email: 'invalid' });
+  expect(response.status).toBe(400);
+});
+```
+
+
+### Test React components with providers and user interactions for realistic integration coverage — HIGH
+
+
+# React Component Integration Testing
+
+```typescript
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { QueryClientProvider } from '@tanstack/react-query';
+
+test('form submits and shows success', async () => {
+  const user = userEvent.setup();
+
+  render(
+    <QueryClientProvider client={queryClient}>
+      <UserForm />
+    </QueryClientProvider>
+  );
+
+  await user.type(screen.getByLabelText('Email'), 'test@example.com');
+  await user.click(screen.getByRole('button', { name: /submit/i }));
+
+  expect(await screen.findByText(/success/i)).toBeInTheDocument();
+});
+```
+
+## Key Patterns
+
+- Wrap components in providers (QueryClient, Router, Theme)
+- Use `userEvent.setup()` for realistic interactions
+- Assert on user-visible outcomes, not implementation details
+- Use `findBy*` for async assertions (auto-waits)
+
+**Incorrect — Testing implementation details:**
+```typescript
+test('form updates state', () => {
+  const { result } = renderHook(() => useFormState());
+  act(() => result.current.setEmail('test@example.com'));
+  expect(result.current.email).toBe('test@example.com');
+  // Tests internal state, not user outcomes
+});
+```
+
+**Correct — Testing user-visible behavior:**
+```typescript
+test('form submits and shows success', async () => {
+  const user = userEvent.setup();
+  render(<UserForm />);
+  await user.type(screen.getByLabelText('Email'), 'test@example.com');
+  await user.click(screen.getByRole('button', { name: /submit/i }));
+  expect(await screen.findByText(/success/i)).toBeInTheDocument();
+});
+```
+
+
+### Ensure database layer correctness through isolated integration tests with fresh state — HIGH
+
+
+# Database Integration Testing
+
+## Test Database Setup (Python)
+
+```python
+import pytest
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+@pytest.fixture(scope="function")
+def db_session():
+    """Fresh database per test."""
+    engine = create_engine("sqlite:///:memory:")
+    Base.metadata.create_all(engine)
+    Session = sessionmaker(bind=engine)
+    session = Session()
+
+    yield session
+
+    session.close()
+    Base.metadata.drop_all(engine)
+```
+
+## Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Database | In-memory SQLite or test container |
+| Execution | &lt; 1s per test |
+| External APIs | MSW (frontend), VCR.py (backend) |
+| Cleanup | Fresh state per test |
+
+## Common Mistakes
+
+- Shared test database state
+- No transaction rollback
+- Testing against production APIs
+- Slow setup/teardown
+
+**Incorrect — Shared database state across tests:**
+```python
+engine = create_engine("sqlite:///test.db")  # File-based, persistent
+
+def test_create_user():
+    session.add(User(email="test@example.com"))
+    # Leaves data behind for next test
+```
+
+**Correct — Fresh in-memory database per test:**
+```python
+@pytest.fixture(scope="function")
+def db_session():
+    engine = create_engine("sqlite:///:memory:")
+    Base.metadata.create_all(engine)
+    Session = sessionmaker(bind=engine)
+    session = Session()
+    yield session
+    session.close()
+```
+
+
+### Test Zod validation schemas to prevent invalid data from passing API boundaries — HIGH
+
+
+## Zod Schema Validation Testing
+
+**Incorrect -- no validation at API boundaries:**
+```typescript
+// Trusting external data without validation
+app.post('/users', (req, res) => {
+  const user = req.body  // No validation! Any shape accepted
+  db.create(user)
+})
+
+// Using 'any' instead of validated types
+const data: any = await fetch('/api').then(r => r.json())
+```
+
+**Correct -- Zod schema validation at boundaries:**
+```typescript
+import { z } from 'zod'
+
+const UserSchema = z.object({
+  id: z.string().uuid(),
+  email: z.string().email(),
+  age: z.number().int().positive().max(120),
+  role: z.enum(['admin', 'user', 'guest']),
+  createdAt: z.date().default(() => new Date())
+})
+
+type User = z.infer<typeof UserSchema>
+
+// Always use safeParse for error handling
+const result = UserSchema.safeParse(req.body)
+if (!result.success) {
+  return res.status(422).json({ errors: result.error.issues })
+}
+const user: User = result.data
+```
+
+**Correct -- branded types to prevent ID confusion:**
+```typescript
+const UserId = z.string().uuid().brand<'UserId'>()
+const AnalysisId = z.string().uuid().brand<'AnalysisId'>()
+
+type UserId = z.infer<typeof UserId>
+type AnalysisId = z.infer<typeof AnalysisId>
+
+function deleteAnalysis(id: AnalysisId): void { /* ... */ }
+deleteAnalysis(userId) // Compile error: UserId not assignable to AnalysisId
+```
+
+**Correct -- exhaustive type checking:**
+```typescript
+function assertNever(x: never): never {
+  throw new Error("Unexpected value: " + x)
+}
+
+type Status = 'pending' | 'running' | 'completed' | 'failed'
+
+function getStatusColor(status: Status): string {
+  switch (status) {
+    case 'pending': return 'gray'
+    case 'running': return 'blue'
+    case 'completed': return 'green'
+    case 'failed': return 'red'
+    default: return assertNever(status) // Compile-time exhaustiveness!
+  }
+}
+```
+
+Key principles:
+- Validate at ALL boundaries: API inputs, form submissions, external data
+- Use `.safeParse()` for graceful error handling
+- Branded types prevent ID type confusion
+- `assertNever` in switch default for compile-time exhaustiveness
+- Enable `strict: true` and `noUncheckedIndexedAccess` in tsconfig
+- Reuse schemas (don't create inline in hot paths)
+
+
+### Ensure API contract compatibility between consumers and providers using Pact testing — MEDIUM
+
+
+# Contract Testing with Pact
+
+## Consumer Test
+
+```python
+from pact import Consumer, Provider, Like, EachLike
+
+pact = Consumer("UserDashboard").has_pact_with(
+    Provider("UserService"), pact_dir="./pacts"
+)
+
+def test_get_user(user_service):
+    (
+        user_service
+        .given("a user with ID user-123 exists")
+        .upon_receiving("a request to get user")
+        .with_request("GET", "/api/users/user-123")
+        .will_respond_with(200, body={
+            "id": Like("user-123"),
+            "email": Like("test@example.com"),
+        })
+    )
+
+    with user_service:
+        client = UserServiceClient(base_url=user_service.uri)
+        user = client.get_user("user-123")
+        assert user.id == "user-123"
+```
+
+## Provider Verification
+
+```python
+def test_provider_honors_pact():
+    verifier = Verifier(
+        provider="UserService",
+        provider_base_url="http://localhost:8000",
+    )
+    verifier.verify_with_broker(
+        broker_url="https://pact-broker.example.com",
+        consumer_version_selectors=[{"mainBranch": True}],
+    )
+```
+
+## CI/CD Integration
+
+```bash
+pact-broker publish ./pacts \
+  --broker-base-url=$PACT_BROKER_URL \
+  --consumer-app-version=$(git rev-parse HEAD)
+
+pact-broker can-i-deploy \
+  --pacticipant=UserDashboard \
+  --version=$(git rev-parse HEAD) \
+  --to-environment=production
+```
+
+## Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Contract storage | Pact Broker (not git) |
+| Consumer selectors | mainBranch + deployedOrReleased |
+| Matchers | Use Like(), EachLike() for flexibility |
+
+**Incorrect — Hardcoding exact values in contract:**
+```python
+.will_respond_with(200, body={
+    "id": "user-123",  # Breaks if ID changes
+    "email": "test@example.com"
+})
+```
+
+**Correct — Using matchers for flexible contracts:**
+```python
+.will_respond_with(200, body={
+    "id": Like("user-123"),  # Matches any string
+    "email": Like("test@example.com")
+})
+```
+
+
+### Validate complex state transitions and invariants through Hypothesis RuleBasedStateMachine tests — MEDIUM
+
+
+# Stateful Testing
+
+## RuleBasedStateMachine
+
+Model state transitions and verify invariants.
+
+```python
+from hypothesis.stateful import RuleBasedStateMachine, rule, precondition
+
+class CartStateMachine(RuleBasedStateMachine):
+    def __init__(self):
+        super().__init__()
+        self.cart = Cart()
+        self.expected_items = []
+
+    @rule(item=st.text(min_size=1))
+    def add_item(self, item):
+        self.cart.add(item)
+        self.expected_items.append(item)
+        assert len(self.cart) == len(self.expected_items)
+
+    @precondition(lambda self: len(self.expected_items) > 0)
+    @rule()
+    def remove_last(self):
+        self.cart.remove_last()
+        self.expected_items.pop()
+
+    @rule()
+    def clear(self):
+        self.cart.clear()
+        self.expected_items.clear()
+        assert len(self.cart) == 0
+
+TestCart = CartStateMachine.TestCase
+```
+
+## Schemathesis API Fuzzing
+
+```bash
+# Fuzz test API from OpenAPI spec
+schemathesis run http://localhost:8000/openapi.json --checks all
+```
+
+## Anti-Patterns (FORBIDDEN)
+
+```python
+# NEVER ignore failing examples
+@given(st.integers())
+def test_bad(x):
+    if x == 42:
+        return  # WRONG - hiding failure!
+
+# NEVER use unbounded inputs
+@given(st.text())  # WRONG - includes 10MB strings
+def test_username(name):
+    User(name=name)
+```
+
+**Incorrect — Not tracking model state, missing invariant violations:**
+```python
+class CartStateMachine(RuleBasedStateMachine):
+    @rule(item=st.text())
+    def add_item(self, item):
+        self.cart.add(item)
+        # Not tracking expected state
+```
+
+**Correct — Tracking model state to verify invariants:**
+```python
+class CartStateMachine(RuleBasedStateMachine):
+    def __init__(self):
+        super().__init__()
+        self.cart = Cart()
+        self.expected_items = []
+
+    @rule(item=st.text(min_size=1))
+    def add_item(self, item):
+        self.cart.add(item)
+        self.expected_items.append(item)
+        assert len(self.cart) == len(self.expected_items)
+```
+
+
+### Require evidence verification and discover edge cases through property-based testing with Hypothesis — MEDIUM
+
+
+## Evidence Verification for Task Completion
+
+**Incorrect -- claiming completion without proof:**
+```markdown
+"I've implemented the login feature. It should work correctly."
+# No tests run, no build verified, no evidence collected
+```
+
+**Correct -- evidence-backed task completion:**
+```markdown
+"I've implemented the login feature. Evidence:
+- Tests: Exit code 0, 12 tests passed, 0 failed
+- Build: Exit code 0, no errors
+- Coverage: 89%
+- Timestamp: 2026-02-13 10:30:15
+Task complete with verification."
+```
+
+**Evidence collection protocol:**
+```markdown
+## Before Marking Task Complete
+
+1. **Identify Verification Points**
+   - What needs to be proven?
+   - What could go wrong?
+
+2. **Execute Verification**
+   - Run tests (capture exit code)
+   - Run build (capture exit code)
+   - Run linters/type checkers
+
+3. **Capture Results**
+   - Record exit codes (0 = pass)
+   - Save output snippets
+   - Note timestamps
+
+4. **Minimum Requirements:**
+   - [ ] At least ONE verification type executed
+   - [ ] Exit code captured (0 = pass)
+   - [ ] Timestamp recorded
+
+5. **Production-Grade Requirements:**
+   - [ ] Tests pass (exit code 0)
+   - [ ] Coverage >= 70%
+   - [ ] Build succeeds (exit code 0)
+   - [ ] No critical linter errors
+   - [ ] Type checker passes
+```
+
+**Common commands for evidence collection:**
+```bash
+# JavaScript/TypeScript
+npm test                 # Run tests
+npm run build           # Build project
+npm run lint            # ESLint
+npm run typecheck       # TypeScript compiler
+
+# Python
+pytest                  # Run tests
+pytest --cov           # Tests with coverage
+ruff check .           # Linter
+mypy .                 # Type checker
+```
+
+Key principles:
+- Show, don't tell -- no task is complete without verifiable evidence
+- Never fake evidence or mark tasks complete on failed evidence
+- Exit code 0 is the universal success indicator
+- Re-collect evidence after any changes
+- Minimum coverage: 70% (production-grade), 80% (gold standard)
+
+---
+
+## Property-Based Testing with Hypothesis
+
+### Example-Based vs Property-Based
+
+```python
+# Property-based: Test properties for ALL inputs
+from hypothesis import given
+from hypothesis import strategies as st
+
+@given(st.lists(st.integers()))
+def test_sort_properties(lst):
+    result = sort(lst)
+    assert len(result) == len(lst)  # Same length
+    assert all(result[i] <= result[i+1] for i in range(len(result)-1))
+```
+
+### Common Strategies
+
+```python
+st.integers(min_value=0, max_value=100)
+st.text(min_size=1, max_size=50)
+st.lists(st.integers(), max_size=10)
+st.from_regex(r"[a-z]+@[a-z]+\.[a-z]+")
+
+@st.composite
+def user_strategy(draw):
+    return User(
+        name=draw(st.text(min_size=1, max_size=50)),
+        age=draw(st.integers(min_value=0, max_value=150)),
+    )
+```
+
+### Common Properties
+
+```python
+# Roundtrip (encode/decode)
+@given(st.dictionaries(st.text(), st.integers()))
+def test_json_roundtrip(data):
+    assert json.loads(json.dumps(data)) == data
+
+# Idempotence
+@given(st.text())
+def test_normalize_idempotent(text):
+    assert normalize(normalize(text)) == normalize(text)
+```
+
+### Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Example count | 100 for CI, 10 for dev, 1000 for release |
+| Deadline | Disable for slow tests, 200ms default |
+| Stateful tests | RuleBasedStateMachine for state machines |
+
+**Incorrect — Testing specific examples only:**
+```python
+def test_sort():
+    assert sort([3, 1, 2]) == [1, 2, 3]
+    # Only tests one specific case
+```
+
+**Correct — Testing universal properties for all inputs:**
+```python
+@given(st.lists(st.integers()))
+def test_sort_properties(lst):
+    result = sort(lst)
+    assert len(result) == len(lst)
+    assert all(result[i] <= result[i+1] for i in range(len(result)-1))
+```
+
+
+
+---
+
+## References (4)
+
+### Consumer Tests
+
+# Consumer-Side Contract Tests
+
+## Pact Python Setup (2026)
+
+```python
+# conftest.py
+import pytest
+from pact import Consumer, Provider
+
+@pytest.fixture(scope="module")
+def pact():
+    """Configure Pact consumer."""
+    pact = Consumer("OrderService").has_pact_with(
+        Provider("UserService"),
+        pact_dir="./pacts",
+        log_dir="./logs",
+    )
+    pact.start_service()
+    yield pact
+    pact.stop_service()
+    pact.verify()  # Generates pact file
+```
+
+## Matchers Reference
+
+| Matcher | Purpose | Example |
+|---------|---------|---------|
+| `Like(value)` | Match type, not value | `Like("user-123")` |
+| `EachLike(template, min)` | Array of matching items | `EachLike(\{"id": Like("x")\}, minimum=1)` |
+| `Term(regex, example)` | Regex pattern match | `Term(r"\\d\{4\}-\\d\{2\}-\\d\{2\}", "2024-01-15")` |
+| `Format().uuid()` | UUID format | Auto-validates UUID strings |
+| `Format().iso_8601_datetime()` | ISO datetime | `2024-01-15T10:30:00Z` |
+
+## Complete Consumer Test
+
+```python
+from pact import Like, EachLike, Term, Format
+
+def test_get_order_with_user(pact):
+    """Test order retrieval includes user details."""
+    (
+        pact
+        .given("order ORD-001 exists with user USR-001")
+        .upon_receiving("a request for order ORD-001")
+        .with_request(
+            method="GET",
+            path="/api/orders/ORD-001",
+            headers={"Authorization": "Bearer token"},
+        )
+        .will_respond_with(
+            status=200,
+            headers={"Content-Type": "application/json"},
+            body={
+                "id": Like("ORD-001"),
+                "status": Term(r"pending|confirmed|shipped", "pending"),
+                "user": {
+                    "id": Like("USR-001"),
+                    "email": Term(r".+@.+\\..+", "user@example.com"),
+                },
+                "items": EachLike(
+                    {
+                        "product_id": Like("PROD-001"),
+                        "quantity": Like(1),
+                        "price": Like(29.99),
+                    },
+                    minimum=1,
+                ),
+                "created_at": Format().iso_8601_datetime(),
+            },
+        )
+    )
+
+    with pact:
+        client = OrderClient(base_url=pact.uri)
+        order = client.get_order("ORD-001", token="token")
+
+        assert order.id == "ORD-001"
+        assert order.user.email is not None
+        assert len(order.items) >= 1
+```
+
+## Testing Mutations
+
+```python
+def test_create_order(pact):
+    """Test order creation contract."""
+    request_body = {
+        "user_id": "USR-001",
+        "items": [{"product_id": "PROD-001", "quantity": 2}],
+    }
+
+    (
+        pact
+        .given("user USR-001 exists and product PROD-001 is available")
+        .upon_receiving("a request to create an order")
+        .with_request(
+            method="POST",
+            path="/api/orders",
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": "Bearer token",
+            },
+            body=request_body,
+        )
+        .will_respond_with(
+            status=201,
+            body={
+                "id": Like("ORD-NEW"),
+                "status": "pending",
+                "user_id": "USR-001",
+            },
+        )
+    )
+
+    with pact:
+        client = OrderClient(base_url=pact.uri)
+        order = client.create_order(
+            user_id="USR-001",
+            items=[{"product_id": "PROD-001", "quantity": 2}],
+            token="token",
+        )
+        assert order.status == "pending"
+```
+
+## Provider States Best Practices
+
+```python
+# Good: Business-language states
+.given("user USR-001 exists")
+.given("order ORD-001 is in pending status")
+.given("product PROD-001 has 10 items in stock")
+
+# Bad: Implementation details
+.given("database has user with id 1")  # AVOID
+.given("redis cache is empty")  # AVOID
+```
+
+
+### Pact Broker
+
+# Pact Broker Integration
+
+## Broker Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        Pact Broker                          │
+├─────────────────────────────────────────────────────────────┤
+│  Contracts DB    │  Verification Results  │  Webhooks       │
+│  - Consumer pacts│  - Provider versions   │  - CI triggers  │
+│  - Versions      │  - Success/failure     │  - Slack alerts │
+│  - Tags/branches │  - Timestamps          │  - Deployments  │
+└─────────────────────────────────────────────────────────────┘
+         ↑                    ↑                      │
+         │                    │                      ↓
+    ┌────┴────┐          ┌────┴────┐          ┌─────────┐
+    │ Consumer │          │ Provider│          │   CI    │
+    │  Tests   │          │  Tests  │          │ Pipeline│
+    └──────────┘          └─────────┘          └─────────┘
+```
+
+## Publishing Pacts
+
+```bash
+# Publish after consumer tests
+pact-broker publish ./pacts \
+  --broker-base-url="$PACT_BROKER_URL" \
+  --broker-token="$PACT_BROKER_TOKEN" \
+  --consumer-app-version="$GIT_SHA" \
+  --branch="$GIT_BRANCH" \
+  --tag-with-git-branch
+```
+
+## Can-I-Deploy Check
+
+```bash
+# Before deploying consumer
+pact-broker can-i-deploy \
+  --pacticipant=OrderService \
+  --version="$GIT_SHA" \
+  --to-environment=production \
+  --broker-base-url="$PACT_BROKER_URL"
+
+# Check specific provider compatibility
+pact-broker can-i-deploy \
+  --pacticipant=OrderService \
+  --version="$GIT_SHA" \
+  --pacticipant=UserService \
+  --latest \
+  --broker-base-url="$PACT_BROKER_URL"
+```
+
+## Recording Deployments
+
+```bash
+# After successful deployment
+pact-broker record-deployment \
+  --pacticipant=OrderService \
+  --version="$GIT_SHA" \
+  --environment=production \
+  --broker-base-url="$PACT_BROKER_URL"
+
+# Record release (for versioned releases)
+pact-broker record-release \
+  --pacticipant=OrderService \
+  --version="1.2.3" \
+  --environment=production \
+  --broker-base-url="$PACT_BROKER_URL"
+```
+
+## GitHub Actions Workflow
+
+```yaml
+# .github/workflows/contracts.yml
+name: Contract Tests
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+
+env:
+  PACT_BROKER_URL: ${{ secrets.PACT_BROKER_URL }}
+  PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
+
+jobs:
+  consumer-contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run consumer tests
+        run: pytest tests/contracts/consumer/ -v
+
+      - name: Publish pacts
+        run: |
+          pact-broker publish ./pacts \
+            --broker-base-url="$PACT_BROKER_URL" \
+            --broker-token="$PACT_BROKER_TOKEN" \
+            --consumer-app-version="${{ github.sha }}" \
+            --branch="${{ github.ref_name }}"
+
+  provider-verification:
+    runs-on: ubuntu-latest
+    needs: consumer-contracts
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start services
+        run: docker compose up -d api db
+
+      - name: Verify provider
+        run: |
+          pytest tests/contracts/provider/ \
+            --provider-version="${{ github.sha }}" \
+            --publish-verification
+
+      - name: Can I deploy?
+        run: |
+          pact-broker can-i-deploy \
+            --pacticipant=UserService \
+            --version="${{ github.sha }}" \
+            --to-environment=production
+
+  deploy:
+    needs: [consumer-contracts, provider-verification]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to production
+        run: ./deploy.sh
+
+      - name: Record deployment
+        run: |
+          pact-broker record-deployment \
+            --pacticipant=UserService \
+            --version="${{ github.sha }}" \
+            --environment=production
+```
+
+## Webhooks Configuration
+
+```json
+{
+  "description": "Trigger provider build on pact change",
+  "provider": { "name": "UserService" },
+  "events": [
+    { "name": "contract_content_changed" }
+  ],
+  "request": {
+    "method": "POST",
+    "url": "https://api.github.com/repos/org/provider/dispatches",
+    "headers": {
+      "Authorization": "token ${user.githubToken}",
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "event_type": "pact_changed",
+      "client_payload": {
+        "pact_url": "${pactbroker.pactUrl}"
+      }
+    }
+  }
+}
+```
+
+## Consumer Version Selectors
+
+```python
+# For provider verification
+consumer_version_selectors = [
+    # Verify against main branch
+    {"mainBranch": True},
+
+    # Verify against deployed/released versions
+    {"deployedOrReleased": True},
+
+    # Verify against specific environment
+    {"deployed": True, "environment": "production"},
+
+    # Verify against matching branch (for feature branches)
+    {"matchingBranch": True},
+]
+```
+
+
+### Provider Verification
+
+# Provider Verification
+
+## FastAPI Provider Setup
+
+```python
+# tests/contracts/conftest.py
+import pytest
+from fastapi.testclient import TestClient
+from app.main import app
+from app.database import get_db, TestSessionLocal
+
+@pytest.fixture
+def test_client():
+    """Create test client with test database."""
+    def override_get_db():
+        db = TestSessionLocal()
+        try:
+            yield db
+        finally:
+            db.close()
+
+    app.dependency_overrides[get_db] = override_get_db
+    return TestClient(app)
+```
+
+## Provider State Handler
+
+```python
+# tests/contracts/provider_states.py
+from app.models import User, Order, Product
+from app.database import TestSessionLocal
+
+class ProviderStateManager:
+    """Manage provider states for contract verification."""
+
+    def __init__(self):
+        self.db = TestSessionLocal()
+        self.handlers = {
+            "user USR-001 exists": self._create_user,
+            "order ORD-001 exists with user USR-001": self._create_order,
+            "product PROD-001 has 10 items in stock": self._create_product,
+            "no users exist": self._clear_users,
+        }
+
+    def setup(self, state: str, params: dict = None):
+        """Setup provider state."""
+        handler = self.handlers.get(state)
+        if not handler:
+            raise ValueError(f"Unknown state: {state}")
+        handler(params or {})
+        self.db.commit()
+
+    def teardown(self):
+        """Clean up after verification."""
+        self.db.rollback()
+        self.db.close()
+
+    def _create_user(self, params: dict):
+        user = User(
+            id="USR-001",
+            email="user@example.com",
+            name="Test User",
+        )
+        self.db.merge(user)
+
+    def _create_order(self, params: dict):
+        self._create_user({})
+        order = Order(
+            id="ORD-001",
+            user_id="USR-001",
+            status="pending",
+        )
+        self.db.merge(order)
+
+    def _create_product(self, params: dict):
+        product = Product(
+            id="PROD-001",
+            name="Test Product",
+            stock=10,
+            price=29.99,
+        )
+        self.db.merge(product)
+
+    def _clear_users(self, params: dict):
+        self.db.query(User).delete()
+```
+
+## Verification Test
+
+```python
+# tests/contracts/test_provider.py
+import pytest
+from pact import Verifier
+
+@pytest.fixture
+def provider_state_manager():
+    manager = ProviderStateManager()
+    yield manager
+    manager.teardown()
+
+def test_provider_honors_contracts(provider_state_manager, test_client):
+    """Verify provider satisfies all consumer contracts."""
+
+    def state_setup(name: str, params: dict):
+        provider_state_manager.setup(name, params)
+
+    verifier = Verifier(
+        provider="UserService",
+        provider_base_url="http://testserver",
+    )
+
+    # Verify from local pact files (CI) or broker (production)
+    success, logs = verifier.verify_pacts(
+        "./pacts/orderservice-userservice.json",
+        provider_states_setup_url="http://testserver/_pact/setup",
+    )
+
+    assert success, f"Pact verification failed: {logs}"
+```
+
+## Provider State Endpoint
+
+```python
+# app/routes/pact.py (only in test/dev)
+from fastapi import APIRouter, Depends
+from pydantic import BaseModel
+
+router = APIRouter(prefix="/_pact", tags=["pact"])
+
+class ProviderState(BaseModel):
+    state: str
+    params: dict = {}
+
+@router.post("/setup")
+async def setup_state(
+    state: ProviderState,
+    manager: ProviderStateManager = Depends(get_state_manager),
+):
+    """Handle Pact provider state setup."""
+    manager.setup(state.state, state.params)
+    return {"status": "ok"}
+```
+
+## Broker Verification (Production)
+
+```python
+def test_verify_with_broker():
+    """Verify against Pact Broker contracts."""
+    verifier = Verifier(
+        provider="UserService",
+        provider_base_url="http://localhost:8000",
+    )
+
+    verifier.verify_with_broker(
+        broker_url=os.environ["PACT_BROKER_URL"],
+        broker_token=os.environ["PACT_BROKER_TOKEN"],
+        publish_verification_results=True,
+        provider_version=os.environ["GIT_SHA"],
+        provider_version_branch=os.environ["GIT_BRANCH"],
+        enable_pending=True,  # Don't fail on WIP pacts
+        consumer_version_selectors=[
+            {"mainBranch": True},
+            {"deployedOrReleased": True},
+        ],
+    )
+```
+
+
+### Strategies Guide
+
+# Hypothesis Strategies Guide
+
+## Primitive Strategies
+
+```python
+from hypothesis import strategies as st
+
+# Numbers
+st.integers()                              # Any integer
+st.integers(min_value=0, max_value=100)    # Bounded
+st.floats(allow_nan=False, allow_infinity=False)  # "Real" floats
+st.decimals(min_value=0, max_value=1000)   # Decimal precision
+
+# Strings
+st.text()                                  # Any unicode
+st.text(min_size=1, max_size=100)          # Bounded length
+st.text(alphabet=st.characters(whitelist_categories=('L', 'N')))  # Alphanumeric
+st.from_regex(r"[a-z]+@[a-z]+\.[a-z]{2,}")  # Email-like
+
+# Collections
+st.lists(st.integers())                    # List of integers
+st.lists(st.integers(), min_size=1, unique=True)  # Non-empty, unique
+st.sets(st.integers(), min_size=1)         # Non-empty set
+st.dictionaries(st.text(min_size=1), st.integers())  # Dict
+
+# Special
+st.none()                                  # None
+st.booleans()                              # True/False
+st.binary(min_size=1, max_size=1000)       # bytes
+st.datetimes()                             # datetime objects
+st.uuids()                                 # UUID objects
+st.emails()                                # Valid emails
+```
+
+## Composite Strategies
+
+```python
+# Combine strategies
+st.one_of(st.integers(), st.text())        # Int or text
+st.tuples(st.integers(), st.text())        # (int, str)
+
+# Optional values
+st.none() | st.integers()                  # None or int
+
+# Transform values
+st.integers().map(lambda x: x * 2)         # Even integers
+st.lists(st.integers()).map(sorted)        # Sorted lists
+
+# Filter (use sparingly - slow if filter rejects often)
+st.integers().filter(lambda x: x % 10 == 0)  # Multiples of 10
+```
+
+## Custom Composite Strategies
+
+```python
+from hypothesis import strategies as st
+
+@st.composite
+def user_strategy(draw):
+    """Generate valid User objects."""
+    name = draw(st.text(min_size=1, max_size=50))
+    age = draw(st.integers(min_value=0, max_value=150))
+    email = draw(st.emails())
+
+    # Can add logic based on drawn values
+    role = draw(st.sampled_from(["user", "admin", "guest"]))
+
+    return User(name=name, age=age, email=email, role=role)
+
+@st.composite
+def order_with_items_strategy(draw):
+    """Generate Order with 1-10 valid items."""
+    items = draw(st.lists(
+        st.builds(
+            OrderItem,
+            product_id=st.uuids(),
+            quantity=st.integers(min_value=1, max_value=100),
+            price=st.decimals(min_value=0.01, max_value=10000),
+        ),
+        min_size=1,
+        max_size=10,
+    ))
+    return Order(items=items)
+```
+
+## Pydantic Integration
+
+```python
+from hypothesis import given, strategies as st
+from pydantic import BaseModel
+
+class UserCreate(BaseModel):
+    email: str
+    name: str
+    age: int
+
+# Using st.builds with Pydantic
+@given(st.builds(
+    UserCreate,
+    email=st.emails(),
+    name=st.text(min_size=1, max_size=100),
+    age=st.integers(min_value=0, max_value=150),
+))
+def test_user_serialization(user: UserCreate):
+    json_data = user.model_dump_json()
+    parsed = UserCreate.model_validate_json(json_data)
+    assert parsed == user
+```
+
+## Performance Tips
+
+```python
+# GOOD: Generate directly
+st.integers(min_value=0, max_value=100)
+
+# BAD: Filter is slow
+st.integers().filter(lambda x: 0 <= x <= 100)
+
+# GOOD: Use sampled_from for small sets
+st.sampled_from(["red", "green", "blue"])
+
+# BAD: Filter from large set
+st.text().filter(lambda x: x in ["red", "green", "blue"])
+```
+
+
+
+---
+
+## Checklists (2)
+
+### Contract Testing Checklist
+
+# Contract Testing Checklist
+
+## Consumer Side
+
+### Test Setup
+- [ ] Pact consumer/provider names match across teams
+- [ ] Pact directory configured (`./pacts`)
+- [ ] Pact files generated after test run
+- [ ] Tests verify actual client code (not mocked)
+
+### Matchers
+- [ ] `Like()` used for dynamic values (IDs, timestamps)
+- [ ] `Term()` used for enums and patterns
+- [ ] `EachLike()` used for arrays with minimum specified
+- [ ] `Format()` used for standard formats (UUID, datetime)
+- [ ] No exact values where structure matters
+
+### Provider States
+- [ ] States describe business scenarios (not implementation)
+- [ ] States are documented for provider team
+- [ ] Parameterized states for dynamic data
+- [ ] Error states covered (404, 422, 401, 500)
+
+### Test Coverage
+- [ ] Happy path requests tested
+- [ ] Error responses tested
+- [ ] All HTTP methods used by consumer tested
+- [ ] All query parameters tested
+- [ ] All headers tested
+
+## Provider Side
+
+### State Handlers
+- [ ] All consumer states implemented
+- [ ] States are idempotent (safe to re-run)
+- [ ] Database changes rolled back after tests
+- [ ] No shared mutable state between tests
+
+### Verification
+- [ ] Provider states endpoint exposed (test env only)
+- [ ] Verification publishes results to broker
+- [ ] `enable_pending` used for new consumers
+- [ ] Consumer version selectors configured correctly
+
+### Test Isolation
+- [ ] Test database used (not production)
+- [ ] External services mocked/stubbed
+- [ ] Each test starts with clean state
+
+## Pact Broker
+
+### Publishing
+- [ ] Consumer pacts published on every CI run
+- [ ] Git SHA used as consumer version
+- [ ] Branch name tagged
+- [ ] Pact files NOT committed to git
+
+### Verification
+- [ ] Provider verifies on every CI run
+- [ ] `can-i-deploy` check before deployment
+- [ ] Deployments recorded with `record-deployment`
+- [ ] Webhooks trigger provider builds on pact change
+
+### CI/CD Integration
+- [ ] Consumer job publishes pacts
+- [ ] Provider job verifies (depends on consumer)
+- [ ] Deploy job checks `can-i-deploy`
+- [ ] Post-deploy records deployment
+
+## Security
+
+- [ ] Broker token stored as CI secret
+- [ ] Provider state endpoint not in production
+- [ ] No sensitive data in pact files
+- [ ] Authentication tested with mock tokens
+
+## Team Coordination
+
+- [ ] Provider team aware of new contracts
+- [ ] Breaking changes communicated before merge
+- [ ] Consumer version selectors agreed upon
+- [ ] Pending pact policy documented
+
+
+### Property Testing Checklist
+
+# Property-Based Testing Checklist
+
+## Strategy Design
+- [ ] Strategies generate valid domain objects
+- [ ] Bounded strategies (avoid unbounded text/lists)
+- [ ] Filter usage minimized (prefer direct generation)
+- [ ] Custom composite strategies for domain types
+- [ ] Strategies registered for `st.from_type()` usage
+
+## Properties to Test
+- [ ] **Roundtrip**: encode(decode(x)) == x
+- [ ] **Idempotence**: f(f(x)) == f(x)
+- [ ] **Invariants**: properties that hold for all inputs
+- [ ] **Oracle**: compare against reference implementation
+- [ ] **Commutativity**: f(a, b) == f(b, a) where applicable
+
+## Profile Configuration
+- [ ] `dev` profile: 10 examples, verbose
+- [ ] `ci` profile: 100 examples, print_blob=True
+- [ ] `thorough` profile: 1000 examples
+- [ ] Environment variable loads correct profile
+
+## Database Tests
+- [ ] Limited examples (20-50)
+- [ ] No example persistence (`database=None`)
+- [ ] Nested transactions for rollback per example
+- [ ] Isolated from other hypothesis tests
+
+## Stateful Testing
+- [ ] State machine for complex interactions
+- [ ] Invariants check after each step
+- [ ] Preconditions prevent invalid operations
+- [ ] Bundles for data flow between rules
+
+## Health Checks
+- [ ] Health check failures investigated (not just suppressed)
+- [ ] Slow data generation optimized
+- [ ] Large data generation has reasonable bounds
+
+## Debugging
+- [ ] `note()` used instead of `print()` for debugging
+- [ ] Failing examples saved for reproduction
+- [ ] Shrinking produces minimal counterexamples
+
+## Integration
+- [ ] Works with pytest fixtures
+- [ ] Compatible with pytest-xdist (if used)
+- [ ] CI pipeline runs property tests
+- [ ] Coverage reports include property tests
+
+
+
+---
+
+## Examples (1)
+
+### Orchestkit Test Strategy
+
+# OrchestKit Testing Strategy
+
+## Overview
+
+OrchestKit uses a comprehensive testing strategy with a focus on **unit tests** for fast feedback, **integration tests** for API contracts, and **golden dataset testing** for retrieval quality.
+
+**Testing Pyramid:**
+```
+        /\
+       /E2E\         5% - Critical user flows
+      /______\
+     /        \
+    /Integration\ 25% - API contracts, database queries
+   /____________\
+  /              \
+ /  Unit Tests    \ 70% - Business logic, utilities
+/__________________\
+```
+
+---
+
+## Tech Stack
+
+| Layer | Framework | Purpose |
+|-------|-----------|---------|
+| **Backend** | pytest 9.0.1 | Unit & integration tests |
+| **Frontend** | Vitest + React Testing Library | Component & hook tests |
+| **E2E** | Playwright (future) | Critical user flows |
+| **Coverage** | pytest-cov, Vitest coverage | Track test coverage |
+| **Fixtures** | pytest-asyncio | Async test support |
+| **Mocking** | unittest.mock, pytest-mock | Isolated unit tests |
+
+---
+
+## Coverage Targets
+
+### Backend (Python)
+
+| Module | Target | Current | Priority |
+|--------|--------|---------|----------|
+| **Workflows** | 90% | 92% | High |
+| **API Routes** | 85% | 88% | High |
+| **Services** | 80% | 83% | Medium |
+| **Repositories** | 85% | 90% | High |
+| **Utilities** | 75% | 78% | Low |
+| **Database Models** | 60% | 65% | Low |
+
+**Run coverage:**
+```bash
+cd backend
+poetry run pytest tests/unit/ --cov=app --cov-report=term-missing --cov-report=html
+open htmlcov/index.html
+```
+
+### Frontend (TypeScript)
+
+| Module | Target | Current | Priority |
+|--------|--------|---------|----------|
+| **Hooks** | 85% | 72% | High |
+| **Utils** | 80% | 68% | Medium |
+| **Components** | 70% | 55% | Medium |
+| **API Clients** | 90% | 80% | High |
+
+**Run coverage:**
+```bash
+cd frontend
+npm run test:coverage
+open coverage/index.html
+```
+
+---
+
+## Test Structure
+
+### Backend Test Organization
+
+```
+backend/tests/
+├── conftest.py                 # Global fixtures (db_session, requires_llm, etc.)
+├── unit/                       # Unit tests (70% of tests)
+│   ├── api/
+│   │   └── v1/
+│   │       ├── test_analysis.py
+│   │       ├── test_artifacts.py
+│   │       └── test_library.py
+│   ├── services/
+│   │   ├── search/
+│   │   │   └── test_search_service.py  # Hybrid search logic
+│   │   ├── embeddings/
+│   │   │   └── test_embeddings_service.py
+│   │   └── cache/
+│   │       └── test_redis_connection.py
+│   ├── workflows/
+│   │   ├── test_supervisor_node.py
+│   │   ├── test_quality_gate_node.py
+│   │   └── agents/
+│   │       └── test_security_agent.py
+│   ├── evaluation/
+│   │   ├── test_quality_evaluator.py  # G-Eval tests
+│   │   └── test_retrieval_evaluator.py  # Golden dataset tests
+│   └── shared/
+│       └── services/
+│           └── cache/
+│               └── test_redis_connection.py
+├── integration/               # Integration tests (25% of tests)
+│   ├── conftest.py            # Integration-specific fixtures
+│   ├── test_analysis_workflow.py  # Full LangGraph pipeline
+│   ├── test_hybrid_search.py      # Database + embeddings
+│   └── test_artifact_generation.py
+└── e2e/                      # E2E tests (5% of tests, future)
+    └── test_user_journeys.py
+```
+
+### Frontend Test Organization
+
+```
+frontend/src/
+├── __tests__/
+│   ├── setup.ts               # Test environment setup
+│   └── utils/
+│       └── test-utils.tsx     # Custom render helpers
+├── features/
+│   ├── analysis/
+│   │   └── __tests__/
+│   │       ├── AnalysisProgressCard.test.tsx
+│   │       └── useAnalysisStatus.test.ts  # Custom hook
+│   ├── library/
+│   │   └── __tests__/
+│   │       ├── LibraryGrid.test.tsx
+│   │       └── useLibrarySearch.test.ts
+│   └── tutor/
+│       └── __tests__/
+│           └── TutorInterface.test.tsx
+└── lib/
+    └── __tests__/
+        ├── api-client.test.ts
+        └── markdown-utils.test.ts
+```
+
+---
+
+## Mock Strategies
+
+### LLM Call Mocking
+
+**Problem:** LLM calls are expensive, slow, and non-deterministic.
+
+**Solution:** Mock LLM responses for unit tests, use real LLMs for integration tests.
+
+```python
+# backend/tests/unit/workflows/test_supervisor_node.py
+from unittest.mock import patch, MagicMock
+import pytest
+
+@pytest.fixture
+def mock_llm_response():
+    """Mock Claude/Gemini response for unit tests."""
+    return {
+        "content": [{"text": "Security finding: XSS vulnerability in input validation"}],
+        "usage": {"input_tokens": 500, "output_tokens": 100}
+    }
+
+def test_security_agent_node(mock_llm_response):
+    """Test security agent without real LLM calls."""
+    with patch("anthropic.Anthropic") as mock_anthropic:
+        # Configure mock
+        mock_client = MagicMock()
+        mock_client.messages.create.return_value = mock_llm_response
+        mock_anthropic.return_value = mock_client
+
+        # Test agent
+        state = {"raw_content": "test content", "agents_completed": []}
+        result = security_agent_node(state)
+
+        assert len(result["findings"]) > 0
+        assert "security_agent" in result["agents_completed"]
+        mock_client.messages.create.assert_called_once()
+```
+
+**Integration tests use real LLMs:**
+```python
+# backend/tests/integration/test_analysis_workflow.py
+import pytest
+
+@pytest.mark.integration  # Marker for integration tests
+@pytest.mark.requires_llm  # Skip if LLM not configured
+async def test_full_analysis_pipeline(db_session):
+    """Test full analysis with real LLM calls."""
+    # Uses real Claude/Gemini API
+    workflow = create_analysis_workflow()
+    result = await workflow.ainvoke(initial_state)
+
+    assert result["quality_passed"] is True
+    assert len(result["findings"]) >= 8  # All agents ran
+```
+
+### Database Mocking
+
+**Unit tests:** Mock database queries for speed.
+
+```python
+# backend/tests/unit/api/v1/test_artifacts.py
+from unittest.mock import AsyncMock, patch
+import pytest
+
+@pytest.mark.asyncio
+async def test_get_artifact_by_id():
+    """Test artifact retrieval without database."""
+    with patch("app.db.repositories.artifact_repository.ArtifactRepository") as mock_repo:
+        # Mock repository method
+        mock_repo.return_value.get_by_id = AsyncMock(return_value={
+            "id": "123",
+            "content": "# Test Artifact",
+            "format": "markdown"
+        })
+
+        response = await client.get("/api/v1/artifacts/123")
+        assert response.status_code == 200
+        assert response.json()["format"] == "markdown"
+```
+
+**Integration tests:** Use real database with automatic rollback.
+
+```python
+# backend/tests/integration/test_artifact_generation.py
+@pytest.mark.asyncio
+async def test_create_artifact(db_session):
+    """Test artifact creation with real database."""
+    # db_session auto-rolls back after test (see conftest.py)
+    artifact = Artifact(
+        id="test-123",
+        content="# Test",
+        format="markdown"
+    )
+    db_session.add(artifact)
+    await db_session.commit()
+
+    # Query to verify
+    result = await db_session.execute(
+        select(Artifact).where(Artifact.id == "test-123")
+    )
+    assert result.scalar_one().content == "# Test"
+    # Auto-rolled back after test ends
+```
+
+### Redis Cache Mocking
+
+```python
+# backend/tests/unit/services/cache/test_redis_connection.py
+from unittest.mock import AsyncMock, MagicMock, patch
+import pytest
+
+@pytest.fixture
+def mock_redis():
+    """Mock Redis client for unit tests."""
+    mock_client = MagicMock()
+    mock_client.get = AsyncMock(return_value=None)
+    mock_client.set = AsyncMock(return_value=True)
+    mock_client.ping = AsyncMock(return_value=True)
+    return mock_client
+
+@pytest.mark.asyncio
+async def test_cache_get_miss(mock_redis):
+    """Test cache miss without real Redis."""
+    with patch("redis.asyncio.from_url", return_value=mock_redis):
+        cache = RedisConnection()
+        result = await cache.get("missing-key")
+
+        assert result is None
+        mock_redis.get.assert_called_once_with("missing-key")
+```
+
+---
+
+## Golden Dataset Testing
+
+OrchestKit uses a **golden dataset** of 98 curated documents for retrieval quality testing.
+
+### Dataset Composition
+
+```python
+# backend/data/golden_dataset_backup.json
+{
+  "metadata": {
+    "version": "2.0",
+    "total_analyses": 98,
+    "total_artifacts": 98,
+    "total_chunks": 415,
+    "content_types": {
+      "article": 76,
+      "tutorial": 19,
+      "research_paper": 3
+    }
+  },
+  "analyses": [
+    {
+      "id": "uuid-1",
+      "url": "https://blog.langchain.dev/langgraph-multi-agent/",
+      "content_type": "article",
+      "title": "LangGraph Multi-Agent Systems",
+      "status": "completed"
+    },
+    // ... 97 more
+  ]
+}
+```
+
+### Retrieval Evaluation
+
+**Goal:** Ensure hybrid search (BM25 + vector) retrieves relevant chunks.
+
+```python
+# backend/tests/unit/evaluation/test_retrieval_evaluator.py
+import pytest
+from app.evaluation.retrieval_evaluator import RetrievalEvaluator
+
+@pytest.mark.asyncio
+async def test_retrieval_quality(db_session):
+    """Test retrieval against golden dataset."""
+    evaluator = RetrievalEvaluator(db_session)
+
+    # Test queries with known relevant chunks
+    test_cases = [
+        {
+            "query": "How to use LangGraph agents?",
+            "expected_chunks": ["uuid-chunk-1", "uuid-chunk-2"],
+            "top_k": 5
+        },
+        {
+            "query": "FastAPI async endpoints",
+            "expected_chunks": ["uuid-chunk-10"],
+            "top_k": 3
+        }
+    ]
+
+    results = await evaluator.evaluate_queries(test_cases)
+
+    # Metrics
+    assert results["precision@5"] >= 0.80  # 80%+ precision
+    assert results["mrr"] >= 0.70          # 70%+ MRR (Mean Reciprocal Rank)
+    assert results["recall@5"] >= 0.85     # 85%+ recall
+```
+
+**Current Performance (Dec 2025):**
+- **Precision@5:** 91.6% (186/203 expected chunks in top-5)
+- **MRR (Hard):** 0.686 (average rank 1.46 for first relevant result)
+- **Coverage:** 100% (all queries return results)
+
+### Dataset Backup & Restore
+
+```bash
+# Backup golden dataset (includes embeddings metadata, not actual vectors)
+cd backend
+poetry run python scripts/backup_golden_dataset.py backup
+
+# Verify backup integrity
+poetry run python scripts/backup_golden_dataset.py verify
+
+# Restore from backup (regenerates embeddings)
+poetry run python scripts/backup_golden_dataset.py restore --replace
+```
+
+**Why backup?**
+- Protects against accidental data loss
+- Enables new dev environment setup
+- Version-controlled in git (`backend/data/golden_dataset_backup.json`)
+- Faster than re-analyzing 98 URLs
+
+---
+
+## Test Fixtures
+
+### Global Fixtures (conftest.py)
+
+```python
+# backend/tests/conftest.py
+
+@pytest_asyncio.fixture
+async def db_session(requires_database, reset_engine_connections) -> AsyncSession:
+    """Create test database session with auto-rollback.
+
+    All database changes are rolled back after test.
+    """
+    session = await get_test_session(timeout=2.0)
+    transaction = await session.begin()
+
+    try:
+        yield session
+    finally:
+        if transaction.is_active:
+            await transaction.rollback()
+        await session.close()
+
+@pytest.fixture
+def requires_llm():
+    """Skip test if LLM API key not configured.
+
+    Checks for appropriate API key based on LLM_MODEL:
+    - Gemini models → GOOGLE_API_KEY
+    - OpenAI models → OPENAI_API_KEY
+    """
+    settings = get_settings()
+    if not settings.LLM_MODEL:
+        pytest.skip("LLM_MODEL not configured")
+
+    provider = settings.resolved_llm_provider()
+    api_field = LLM_PROVIDER_API_FIELDS.get(provider)
+    api_key = getattr(settings, api_field, None)
+
+    if not api_key:
+        pytest.skip(f"{api_field} not available")
+
+@pytest.fixture
+def mock_async_session_local():
+    """Mock AsyncSessionLocal for unit tests without database."""
+    mock_session = MagicMock()
+    mock_session.configure_mock(**{
+        "__aenter__": AsyncMock(return_value=mock_session),
+        "__aexit__": AsyncMock(return_value=False),
+    })
+    return MagicMock(return_value=mock_session)
+```
+
+### Feature-Specific Fixtures
+
+```python
+# backend/tests/unit/workflows/conftest.py
+
+@pytest.fixture
+def sample_analysis_state():
+    """Sample AnalysisState for workflow tests."""
+    return {
+        "analysis_id": "test-123",
+        "url": "https://example.com",
+        "raw_content": "Test content...",
+        "content_type": "article",
+        "findings": [],
+        "agents_completed": [],
+        "next_node": "supervisor",
+        "quality_score": 0.0,
+        "quality_passed": False,
+        "retry_count": 0,
+    }
+
+@pytest.fixture
+def mock_langfuse_context():
+    """Mock Langfuse observability context."""
+    with patch("langfuse.decorators.langfuse_context") as mock:
+        mock.update_current_observation = MagicMock()
+        yield mock
+```
+
+---
+
+## Running Tests
+
+### Backend
+
+```bash
+cd backend
+
+# Run all unit tests (fast, ~30 seconds)
+poetry run pytest tests/unit/ -v
+
+# Run specific test file
+poetry run pytest tests/unit/api/v1/test_artifacts.py -v
+
+# Run tests matching pattern
+poetry run pytest -k "test_search" -v
+
+# Run with coverage report
+poetry run pytest tests/unit/ --cov=app --cov-report=term-missing
+
+# Run integration tests (requires database, LLM keys)
+poetry run pytest tests/integration/ -v --tb=short
+
+# Run tests with live output (see progress)
+poetry run pytest tests/unit/ -v 2>&1 | tee /tmp/test_results.log | grep -E "(PASSED|FAILED)" | tail -50
+```
+
+### Frontend
+
+```bash
+cd frontend
+
+# Run all tests
+npm run test
+
+# Run in watch mode (auto-rerun on changes)
+npm run test:watch
+
+# Run specific test file
+npm run test src/features/analysis/__tests__/AnalysisProgressCard.test.tsx
+
+# Run with coverage
+npm run test:coverage
+```
+
+### Pre-Commit Checks
+
+**ALWAYS run before committing:**
+
+```bash
+# Backend
+cd backend
+poetry run ruff format --check app/   # Format check
+poetry run ruff check app/            # Lint check
+poetry run ty check app/ --exclude "app/evaluation/*"  # Type check
+
+# Frontend
+cd frontend
+npm run lint          # ESLint + Biome
+npm run typecheck     # TypeScript check
+```
+
+---
+
+## Test Markers
+
+### Backend Markers
+
+```python
+# backend/pytest.ini (or pyproject.toml)
+[tool.pytest.ini_options]
+markers = [
+    "unit: Unit tests (fast, no external dependencies)",
+    "integration: Integration tests (database, real APIs)",
+    "smoke: Smoke tests (critical user flows with real services)",
+    "requires_llm: Tests that need LLM API keys",
+    "slow: Slow tests (>5 seconds)",
+]
+
+# Usage
+@pytest.mark.unit
+def test_parse_findings():
+    """Fast unit test."""
+    pass
+
+@pytest.mark.integration
+@pytest.mark.requires_llm
+async def test_full_workflow(db_session):
+    """Integration test with real LLM and database."""
+    pass
+```
+
+**Run by marker:**
+```bash
+# Only unit tests
+pytest -m unit
+
+# Skip slow tests
+pytest -m "not slow"
+
+# Integration tests only
+pytest -m integration
+```
+
+---
+
+## CI/CD Integration
+
+### GitHub Actions Workflow
+
+```yaml
+# .github/workflows/test.yml
+name: Tests
+
+on: [push, pull_request]
+
+jobs:
+  backend-tests:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg18
+        env:
+          POSTGRES_PASSWORD: test
+        ports:
+          - 5437:5432
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          cd backend
+          pip install poetry
+          poetry install
+
+      - name: Run unit tests
+        run: |
+          cd backend
+          poetry run pytest tests/unit/ --cov=app --cov-report=xml
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./backend/coverage.xml
+
+  frontend-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Run tests
+        run: |
+          cd frontend
+          npm run test:coverage
+```
+
+---
+
+## Quality Gates
+
+### Coverage Thresholds
+
+```toml
+# backend/pyproject.toml
+[tool.coverage.run]
+source = ["app"]
+omit = [
+    "*/tests/*",
+    "*/migrations/*",
+    "*/__init__.py",
+]
+
+[tool.coverage.report]
+fail_under = 75  # Fail if coverage drops below 75%
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+]
+```
+
+### Lint Enforcement
+
+```bash
+# backend/.pre-commit-config.yaml (future)
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-format
+        name: Ruff Format
+        entry: poetry run ruff format --check
+        language: system
+        types: [python]
+        pass_filenames: false
+
+      - id: ruff-lint
+        name: Ruff Lint
+        entry: poetry run ruff check
+        language: system
+        types: [python]
+        pass_filenames: false
+```
+
+---
+
+## Performance Testing
+
+### Load Testing (Future)
+
+```python
+# backend/tests/performance/test_search_load.py
+import pytest
+from locust import HttpUser, task, between
+
+class SearchLoadTest(HttpUser):
+    wait_time = between(1, 3)
+
+    @task
+    def search_query(self):
+        self.client.get("/api/v1/library/search?q=LangGraph")
+
+# Run with Locust
+# locust -f tests/performance/test_search_load.py --users 100 --spawn-rate 10
+```
+
+### Database Query Optimization
+
+```python
+# backend/tests/unit/db/test_query_performance.py
+import pytest
+import time
+
+@pytest.mark.asyncio
+async def test_hybrid_search_performance(db_session):
+    """Ensure hybrid search completes in <200ms."""
+    start = time.perf_counter()
+
+    results = await search_service.hybrid_search(
+        query="FastAPI async patterns",
+        top_k=10
+    )
+
+    elapsed = time.perf_counter() - start
+
+    assert elapsed < 0.2  # 200ms threshold
+    assert len(results) > 0
+```
+
+---
+
+## References
+
+- **Backend Tests:** `backend/tests/`
+- **Frontend Tests:** `frontend/src/__tests__/`
+- **Golden Dataset:** `backend/data/golden_dataset_backup.json`
+- **Pytest Docs:** https://docs.pytest.org/
+- **Vitest Docs:** https://vitest.dev/
+- **Testing Library:** https://testing-library.com/
+

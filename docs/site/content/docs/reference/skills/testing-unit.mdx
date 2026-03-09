@@ -1,0 +1,2071 @@
+---
+title: "Testing Unit"
+description: "Unit testing patterns for isolated business logic tests — AAA pattern, parametrized tests, fixture scoping, mocking with MSW/VCR, and test data management with factories and fixtures. Use when writing unit tests, setting up mocks, or managing test data."
+---
+
+<span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
+
+**Primary Agent:** [test-generator](/docs/reference/agents/test-generator)
+
+
+# Unit Testing Patterns
+
+Focused patterns for writing isolated, fast, maintainable unit tests. Covers test structure (AAA), parametrization, fixture management, HTTP mocking (MSW/VCR), and test data generation with factories.
+
+Each category has individual rule files in `rules/` loaded on-demand, plus reference material, checklists, and scaffolding scripts.
+
+## Quick Reference
+
+| Category | Rules | Impact | When to Use |
+|----------|-------|--------|-------------|
+| [Unit Test Structure](#unit-test-structure) | 3 | CRITICAL | Writing any unit test |
+| [HTTP Mocking](#http-mocking) | 2 | HIGH | Mocking API calls in frontend/backend tests |
+| [Test Data Management](#test-data-management) | 3 | MEDIUM | Setting up test data, factories, fixtures |
+
+**Total: 8 rules across 3 categories, 4 references, 3 checklists, 1 example set, 3 scripts**
+
+## Unit Test Structure
+
+Core patterns for structuring isolated unit tests with clear phases and efficient execution.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| AAA Pattern | `rules/unit-aaa-pattern.md` | Arrange-Act-Assert with isolation |
+| Fixture Scoping | `rules/unit-fixture-scoping.md` | function/module/session scope selection |
+| Parametrized Tests | `rules/unit-parametrized.md` | test.each / @pytest.mark.parametrize |
+
+**Reference:** `references/aaa-pattern.md` — detailed AAA implementation with checklist
+
+## HTTP Mocking
+
+Network-level request interception for deterministic tests without hitting real APIs.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| MSW 2.x | `rules/mocking-msw.md` | Network-level mocking for frontend (TypeScript) |
+| VCR.py | `rules/mocking-vcr.md` | Record/replay HTTP cassettes (Python) |
+
+**References:**
+- `references/msw-2x-api.md` — full MSW 2.x API (handlers, GraphQL, WebSocket, passthrough)
+- `references/stateful-testing.md` — Hypothesis RuleBasedStateMachine for stateful tests
+
+**Checklists:**
+- `checklists/msw-setup-checklist.md` — MSW installation, handler setup, test writing
+- `checklists/vcr-checklist.md` — VCR configuration, sensitive data filtering, CI setup
+
+**Examples:** `examples/handler-patterns.md` — CRUD, error simulation, auth flow, file upload handlers
+
+## Test Data Management
+
+Factories, fixtures, and seeding patterns for isolated, realistic test data.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Data Factories | `rules/data-factories.md` | FactoryBoy / @faker-js builders |
+| Data Fixtures | `rules/data-fixtures.md` | JSON fixtures with composition |
+| Seeding & Cleanup | `rules/data-seeding-cleanup.md` | Automated DB seeding and teardown |
+
+**Reference:** `references/factory-patterns.md` — advanced factory patterns (Sequence, SubFactory, Traits)
+
+**Checklist:** `checklists/test-data-checklist.md` — data generation, cleanup, isolation verification
+
+## Quick Start
+
+### TypeScript (Vitest + MSW)
+
+```typescript
+import { describe, test, expect, beforeAll, afterEach, afterAll } from 'vitest';
+import { http, HttpResponse } from 'msw';
+import { setupServer } from 'msw/node';
+import { calculateDiscount } from './pricing';
+
+// 1. Pure unit test with AAA pattern
+describe('calculateDiscount', () => {
+  test.each([
+    [100, 0],
+    [150, 15],
+    [200, 20],
+  ])('for order $%i returns $%i discount', (total, expected) => {
+    // Arrange
+    const order = { total };
+
+    // Act
+    const discount = calculateDiscount(order);
+
+    // Assert
+    expect(discount).toBe(expected);
+  });
+});
+
+// 2. MSW mocked API test
+const server = setupServer(
+  http.get('/api/users/:id', ({ params }) => {
+    return HttpResponse.json({ id: params.id, name: 'Test User' });
+  })
+);
+
+beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
+afterEach(() => server.resetHandlers());
+afterAll(() => server.close());
+
+test('fetches user from API', async () => {
+  // Arrange — MSW handler set up above
+
+  // Act
+  const response = await fetch('/api/users/123');
+  const data = await response.json();
+
+  // Assert
+  expect(data.name).toBe('Test User');
+});
+```
+
+### Python (pytest + FactoryBoy)
+
+```python
+import pytest
+from factory import Factory, Faker, SubFactory
+
+class UserFactory(Factory):
+    class Meta:
+        model = dict
+    email = Faker('email')
+    name = Faker('name')
+
+class TestUserService:
+    @pytest.mark.parametrize("role,can_edit", [
+        ("admin", True),
+        ("viewer", False),
+    ])
+    def test_edit_permission(self, role, can_edit):
+        # Arrange
+        user = UserFactory(role=role)
+
+        # Act
+        result = user_can_edit(user)
+
+        # Assert
+        assert result == can_edit
+```
+
+## Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Test framework (TS) | Vitest (modern, fast) or Jest (mature ecosystem) |
+| Test framework (Python) | pytest with plugins (parametrize, asyncio, cov) |
+| HTTP mocking (TS) | MSW 2.x at network level, never mock fetch/axios directly |
+| HTTP mocking (Python) | VCR.py with cassettes, filter sensitive data |
+| Test data | Factories (FactoryBoy/faker-js) over hardcoded fixtures |
+| Fixture scope | function (default), module/session for expensive read-only resources |
+| Execution time | Under 100ms per unit test |
+| Coverage target | 90%+ business logic, 100% critical paths |
+
+## Common Mistakes
+
+1. **Testing implementation details** instead of public behavior (brittle tests)
+2. **Mocking fetch/axios directly** instead of using MSW at network level (incomplete coverage)
+3. **Shared mutable state** between tests via module-scoped fixtures (flaky tests)
+4. **Hard-coded test data** with duplicate IDs (test conflicts in parallel runs)
+5. **No cleanup** after database seeding (state leaks between tests)
+6. **Over-mocking** — testing your mocks instead of your code (false confidence)
+
+## Scripts
+
+| Script | File | Purpose |
+|--------|------|---------|
+| Create Test Case | `scripts/create-test-case.md` | Scaffold test file with auto-detected framework |
+| Create Test Fixture | `scripts/create-test-fixture.md` | Scaffold pytest fixture with context detection |
+| Create MSW Handler | `scripts/create-msw-handler.md` | Scaffold MSW handler for an API endpoint |
+
+
+---
+
+## Rules (8)
+
+### Build reusable test data factories with realistic randomization for isolated tests — MEDIUM
+
+
+# Test Data Factories
+
+## Python (FactoryBoy)
+
+```python
+from factory import Factory, Faker, SubFactory, LazyAttribute
+from app.models import User, Analysis
+
+class UserFactory(Factory):
+    class Meta:
+        model = User
+
+    email = Faker('email')
+    name = Faker('name')
+    created_at = Faker('date_time_this_year')
+
+class AnalysisFactory(Factory):
+    class Meta:
+        model = Analysis
+
+    url = Faker('url')
+    status = 'pending'
+    user = SubFactory(UserFactory)
+
+    @LazyAttribute
+    def title(self):
+        return f"Analysis of {self.url}"
+```
+
+## TypeScript (faker)
+
+```typescript
+import { faker } from '@faker-js/faker';
+
+const createUser = (overrides: Partial<User> = {}): User => ({
+  id: faker.string.uuid(),
+  email: faker.internet.email(),
+  name: faker.person.fullName(),
+  ...overrides,
+});
+
+const createAnalysis = (overrides = {}) => ({
+  id: faker.string.uuid(),
+  url: faker.internet.url(),
+  status: 'pending',
+  userId: createUser().id,
+  ...overrides,
+});
+```
+
+## Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Strategy | Factories over fixtures |
+| Faker | Use for realistic random data |
+| Scope | Function-scoped for isolation |
+
+**Incorrect — Hard-coded test data that causes conflicts:**
+```python
+def test_create_user():
+    user = User(id=1, email="test@example.com")
+    db.add(user)
+    # Hard-coded ID causes failures when test runs multiple times
+```
+
+**Correct — Factory-generated data with realistic randomization:**
+```python
+def test_create_user():
+    user = UserFactory()  # Generates unique email, random name
+    db.add(user)
+    assert user.email.endswith('@example.com')
+```
+
+
+### Structure JSON fixtures with composition patterns for deterministic test data management — MEDIUM
+
+
+# JSON Fixtures and Composition
+
+## JSON Fixture Files
+
+```json
+// fixtures/users.json
+{
+  "admin": {
+    "id": "user-001",
+    "email": "admin@example.com",
+    "role": "admin"
+  },
+  "basic": {
+    "id": "user-002",
+    "email": "user@example.com",
+    "role": "user"
+  }
+}
+```
+
+## Loading in pytest
+
+```python
+import json
+import pytest
+
+@pytest.fixture
+def users():
+    with open('fixtures/users.json') as f:
+        return json.load(f)
+
+def test_admin_access(users):
+    admin = users['admin']
+    assert admin['role'] == 'admin'
+```
+
+## Fixture Composition
+
+```python
+@pytest.fixture
+def user():
+    return UserFactory()
+
+@pytest.fixture
+def user_with_analyses(user):
+    analyses = [AnalysisFactory(user=user) for _ in range(3)]
+    return {"user": user, "analyses": analyses}
+
+@pytest.fixture
+def completed_workflow(user_with_analyses):
+    for analysis in user_with_analyses["analyses"]:
+        analysis.status = "completed"
+    return user_with_analyses
+```
+
+**Incorrect — Fixtures with hard-coded state that breaks isolation:**
+```python
+@pytest.fixture(scope="module")  # Shared across tests
+def user():
+    return {"id": 1, "email": "test@example.com"}
+
+def test_update_user(user):
+    user["email"] = "updated@example.com"  # Mutates shared state
+```
+
+**Correct — Function-scoped fixtures with composition:**
+```python
+@pytest.fixture
+def user():
+    return UserFactory()  # Fresh instance per test
+
+@pytest.fixture
+def admin_user(user):
+    user.role = "admin"  # Composes on top of user fixture
+    return user
+```
+
+
+### Automate database seeding and cleanup between test runs for proper isolation — MEDIUM
+
+
+# Database Seeding and Cleanup
+
+## Seeding
+
+```python
+async def seed_test_database(db: AsyncSession):
+    users = [
+        UserFactory.build(email=f"user{i}@test.com")
+        for i in range(10)
+    ]
+    db.add_all(users)
+
+    for user in users:
+        analyses = [
+            AnalysisFactory.build(user_id=user.id)
+            for _ in range(5)
+        ]
+        db.add_all(analyses)
+
+    await db.commit()
+
+@pytest.fixture
+async def seeded_db(db_session):
+    await seed_test_database(db_session)
+    yield db_session
+```
+
+## Automatic Cleanup
+
+```python
+@pytest.fixture(autouse=True)
+async def clean_database(db_session):
+    """Reset database between tests."""
+    yield
+    await db_session.execute("TRUNCATE users, analyses CASCADE")
+    await db_session.commit()
+```
+
+## Common Mistakes
+
+- Shared state between tests
+- Hard-coded IDs (conflicts)
+- No cleanup after tests
+- Over-complex fixtures
+
+**Incorrect — No cleanup, leaving database polluted:**
+```python
+@pytest.fixture
+async def seeded_db(db_session):
+    users = [UserFactory.build() for _ in range(10)]
+    db_session.add_all(users)
+    await db_session.commit()
+    yield db_session
+    # No cleanup, state persists across tests
+```
+
+**Correct — Automatic cleanup after each test:**
+```python
+@pytest.fixture(autouse=True)
+async def clean_database(db_session):
+    yield
+    await db_session.execute("TRUNCATE users, analyses CASCADE")
+    await db_session.commit()
+```
+
+
+### Intercept network requests with Mock Service Worker 2.x for frontend HTTP mocking — HIGH
+
+
+# MSW (Mock Service Worker) 2.x
+
+## Quick Reference
+
+```typescript
+import { http, HttpResponse, graphql, ws, delay, passthrough } from 'msw';
+import { setupServer } from 'msw/node';
+
+// Basic handler
+http.get('/api/users/:id', ({ params }) => {
+  return HttpResponse.json({ id: params.id, name: 'User' });
+});
+
+// Error response
+http.get('/api/fail', () => {
+  return HttpResponse.json({ error: 'Not found' }, { status: 404 });
+});
+
+// Delay simulation
+http.get('/api/slow', async () => {
+  await delay(2000);
+  return HttpResponse.json({ data: 'response' });
+});
+```
+
+## Test Setup
+
+```typescript
+// vitest.setup.ts
+import { server } from './src/mocks/server';
+
+beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
+afterEach(() => server.resetHandlers());
+afterAll(() => server.close());
+```
+
+## Runtime Override
+
+```typescript
+test('shows error on API failure', async () => {
+  server.use(
+    http.get('/api/users/:id', () => {
+      return HttpResponse.json({ error: 'Not found' }, { status: 404 });
+    })
+  );
+
+  render(<UserProfile id="123" />);
+  expect(await screen.findByText(/not found/i)).toBeInTheDocument();
+});
+```
+
+## Anti-Patterns (FORBIDDEN)
+
+```typescript
+// NEVER mock fetch directly
+jest.spyOn(global, 'fetch').mockResolvedValue(...)
+
+// NEVER mock axios module
+jest.mock('axios')
+
+// ALWAYS use MSW at network level
+server.use(http.get('/api/...', () => HttpResponse.json({...})))
+```
+
+## Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Handler location | `src/mocks/handlers.ts` |
+| Default behavior | Return success |
+| Override scope | Per-test with `server.use()` |
+| Unhandled requests | Error (catch missing mocks) |
+
+**Incorrect — Mocking fetch directly:**
+```typescript
+jest.spyOn(global, 'fetch').mockResolvedValue({
+  json: async () => ({ data: 'mocked' })
+} as Response);
+// Brittle, doesn't match real network behavior
+```
+
+**Correct — Network-level mocking with MSW:**
+```typescript
+server.use(
+  http.get('/api/users/:id', ({ params }) => {
+    return HttpResponse.json({ id: params.id, name: 'Test User' });
+  })
+);
+```
+
+
+### Record and replay HTTP interactions for deterministic integration tests with data filtering — HIGH
+
+
+# VCR.py HTTP Recording
+
+## Basic Setup
+
+```python
+@pytest.fixture(scope="module")
+def vcr_config():
+    return {
+        "cassette_library_dir": "tests/cassettes",
+        "record_mode": "once",
+        "match_on": ["uri", "method"],
+        "filter_headers": ["authorization", "x-api-key"],
+        "filter_query_parameters": ["api_key", "token"],
+    }
+```
+
+## Usage
+
+```python
+@pytest.mark.vcr()
+def test_fetch_user():
+    response = requests.get("https://api.example.com/users/1")
+    assert response.status_code == 200
+
+@pytest.mark.asyncio
+@pytest.mark.vcr()
+async def test_async_api_call():
+    async with AsyncClient() as client:
+        response = await client.get("https://api.example.com/data")
+    assert response.status_code == 200
+```
+
+## Recording Modes
+
+| Mode | Behavior |
+|------|----------|
+| `once` | Record if missing, then replay |
+| `new_episodes` | Record new, replay existing |
+| `none` | Never record (CI) |
+| `all` | Always record (refresh) |
+
+## Filtering Sensitive Data
+
+```python
+def filter_request_body(request):
+    import json
+    if request.body:
+        try:
+            body = json.loads(request.body)
+            if "password" in body:
+                body["password"] = "REDACTED"
+            request.body = json.dumps(body)
+        except json.JSONDecodeError:
+            pass
+    return request
+```
+
+## Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Record mode | `once` for dev, `none` for CI |
+| Cassette format | YAML (readable) |
+| Sensitive data | Always filter headers/body |
+
+**Incorrect — Not filtering sensitive data from cassettes:**
+```python
+@pytest.fixture(scope="module")
+def vcr_config():
+    return {"cassette_library_dir": "tests/cassettes"}
+    # Missing: filter_headers for API keys
+```
+
+**Correct — Filtering sensitive headers and query params:**
+```python
+@pytest.fixture(scope="module")
+def vcr_config():
+    return {
+        "cassette_library_dir": "tests/cassettes",
+        "filter_headers": ["authorization", "x-api-key"],
+        "filter_query_parameters": ["api_key", "token"]
+    }
+```
+
+
+### Enforce Arrange-Act-Assert structure for clear and maintainable isolated unit tests — CRITICAL
+
+
+# AAA Pattern (Arrange-Act-Assert)
+
+## TypeScript (Vitest)
+
+```typescript
+describe('calculateDiscount', () => {
+  test('applies 10% discount for orders over $100', () => {
+    // Arrange
+    const order = { items: [{ price: 150 }] };
+
+    // Act
+    const result = calculateDiscount(order);
+
+    // Assert
+    expect(result).toBe(15);
+  });
+});
+```
+
+## Test Isolation
+
+```typescript
+describe('UserService', () => {
+  let service: UserService;
+  let mockRepo: MockRepository;
+
+  beforeEach(() => {
+    mockRepo = createMockRepository();
+    service = new UserService(mockRepo);
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+});
+```
+
+## Python (pytest)
+
+```python
+class TestCalculateDiscount:
+    def test_applies_discount_over_threshold(self):
+        # Arrange
+        order = Order(total=150)
+
+        # Act
+        discount = calculate_discount(order)
+
+        # Assert
+        assert discount == 15
+```
+
+## Coverage Targets
+
+| Area | Target |
+|------|--------|
+| Business logic | 90%+ |
+| Critical paths | 100% |
+| New features | 100% |
+| Utilities | 80%+ |
+
+## Common Mistakes
+
+- Testing implementation, not behavior
+- Slow tests (external calls)
+- Shared state between tests
+- Over-mocking (testing mocks not code)
+
+**Incorrect — Testing implementation details:**
+```typescript
+test('updates internal state', () => {
+  const service = new UserService();
+  service.setEmail('test@example.com');
+  expect(service._email).toBe('test@example.com');  // Private field
+});
+```
+
+**Correct — Testing public behavior with AAA pattern:**
+```typescript
+test('updates user email', () => {
+  // Arrange
+  const service = new UserService();
+
+  // Act
+  service.updateEmail('test@example.com');
+
+  // Assert
+  expect(service.getEmail()).toBe('test@example.com');
+});
+```
+
+
+### Optimize test performance through proper fixture scope selection while maintaining isolation — CRITICAL
+
+
+# Fixture Scoping
+
+```python
+# Function scope (default): Fresh instance per test - ISOLATED
+@pytest.fixture(scope="function")
+def db_session():
+    session = create_session()
+    yield session
+    session.rollback()
+
+# Module scope: Shared across all tests in file - EFFICIENT
+@pytest.fixture(scope="module")
+def expensive_model():
+    return load_large_ml_model()  # 5 seconds to load
+
+# Session scope: Shared across ALL tests - MOST EFFICIENT
+@pytest.fixture(scope="session")
+def db_engine():
+    engine = create_engine(TEST_DB_URL)
+    Base.metadata.create_all(engine)
+    yield engine
+    Base.metadata.drop_all(engine)
+```
+
+## When to Use Each Scope
+
+| Scope | Use Case | Example |
+|-------|----------|---------|
+| function | Isolated tests, mutable state | db_session, mock objects |
+| module | Expensive setup, read-only | ML model, compiled regex |
+| session | Very expensive, immutable | DB engine, external service |
+
+## Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Framework | Vitest (modern), Jest (mature), pytest |
+| Execution | &lt; 100ms per test |
+| Dependencies | None (mock everything external) |
+| Coverage tool | c8, nyc, pytest-cov |
+
+**Incorrect — Function-scoped fixture for expensive read-only resource:**
+```python
+@pytest.fixture  # scope="function" is default
+def compiled_regex():
+    return re.compile(r"complex.*pattern")  # Recompiled every test
+```
+
+**Correct — Module-scoped fixture for expensive read-only resource:**
+```python
+@pytest.fixture(scope="module")
+def compiled_regex():
+    return re.compile(r"complex.*pattern")  # Compiled once per module
+```
+
+
+### Reduce test duplication and increase edge case coverage through parametrized test patterns — CRITICAL
+
+
+# Parametrized Tests
+
+## TypeScript (test.each)
+
+```typescript
+describe('isValidEmail', () => {
+  test.each([
+    ['test@example.com', true],
+    ['invalid', false],
+    ['@missing.com', false],
+    ['user@domain.co.uk', true],
+  ])('isValidEmail(%s) returns %s', (email, expected) => {
+    expect(isValidEmail(email)).toBe(expected);
+  });
+});
+```
+
+## Python (@pytest.mark.parametrize)
+
+```python
+@pytest.mark.parametrize("total,expected", [
+    (100, 0),
+    (101, 10.1),
+    (200, 20),
+])
+def test_discount_thresholds(self, total, expected):
+    order = Order(total=total)
+    assert calculate_discount(order) == expected
+```
+
+## Indirect Parametrization
+
+```python
+@pytest.fixture
+def user(request):
+    role = request.param
+    return UserFactory(role=role)
+
+@pytest.mark.parametrize("user", ["admin", "moderator", "viewer"], indirect=True)
+def test_permissions(user):
+    assert user.can_access("/dashboard") == (user.role in ["admin", "moderator"])
+```
+
+## Combinatorial Testing
+
+```python
+@pytest.mark.parametrize("role", ["admin", "user"])
+@pytest.mark.parametrize("status", ["active", "suspended"])
+def test_access_matrix(role, status):
+    """Runs 4 tests: admin/active, admin/suspended, user/active, user/suspended"""
+    user = User(role=role, status=status)
+    expected = (role == "admin" and status == "active")
+    assert user.can_modify() == expected
+```
+
+**Incorrect — Duplicating test logic for each edge case:**
+```typescript
+test('validates empty email', () => {
+  expect(isValidEmail('')).toBe(false);
+});
+test('validates missing @', () => {
+  expect(isValidEmail('invalid')).toBe(false);
+});
+test('validates missing domain', () => {
+  expect(isValidEmail('user@')).toBe(false);
+});
+```
+
+**Correct — Parametrized test covers all edge cases:**
+```typescript
+test.each([
+  ['', false],
+  ['invalid', false],
+  ['user@', false],
+  ['test@example.com', true]
+])('isValidEmail(%s) returns %s', (email, expected) => {
+  expect(isValidEmail(email)).toBe(expected);
+});
+```
+
+
+
+---
+
+## References (4)
+
+### Aaa Pattern
+
+# AAA Pattern (Arrange-Act-Assert)
+
+Structure every test with three clear phases for readability and maintainability.
+
+## Implementation
+
+```python
+import pytest
+from decimal import Decimal
+from app.services.pricing import PricingCalculator
+
+class TestPricingCalculator:
+    def test_applies_bulk_discount_when_quantity_exceeds_threshold(self):
+        # Arrange
+        calculator = PricingCalculator(bulk_threshold=10)
+        base_price = Decimal("100.00")
+        quantity = 15
+
+        # Act
+        total = calculator.calculate_total(base_price, quantity)
+
+        # Assert
+        expected = Decimal("1275.00")  # 15 * 100 * 0.85
+        assert total == expected
+        assert calculator.discount_applied is True
+
+    def test_no_discount_below_threshold(self):
+        # Arrange
+        calculator = PricingCalculator(bulk_threshold=10)
+        base_price = Decimal("100.00")
+        quantity = 5
+
+        # Act
+        total = calculator.calculate_total(base_price, quantity)
+
+        # Assert
+        assert total == Decimal("500.00")
+        assert calculator.discount_applied is False
+```
+
+## TypeScript Version
+
+```typescript
+describe('PricingCalculator', () => {
+  test('applies bulk discount when quantity exceeds threshold', () => {
+    // Arrange
+    const calculator = new PricingCalculator({ bulkThreshold: 10 });
+    const basePrice = 100;
+    const quantity = 15;
+
+    // Act
+    const total = calculator.calculateTotal(basePrice, quantity);
+
+    // Assert
+    expect(total).toBe(1275); // 15 * 100 * 0.85
+    expect(calculator.discountApplied).toBe(true);
+  });
+});
+```
+
+## Checklist
+
+- [ ] Arrange section sets up all preconditions and inputs
+- [ ] Act section executes exactly one action being tested
+- [ ] Assert section verifies all expected outcomes
+- [ ] Comments clearly separate each phase
+- [ ] No logic between Act and Assert phases
+- [ ] Single behavior tested per test method
+
+
+### Factory Patterns
+
+# Factory Patterns for Test Data
+
+Generate consistent, realistic test data with factory patterns.
+
+## Implementation
+
+```python
+import factory
+from factory import Faker, SubFactory, LazyAttribute, Sequence
+from datetime import datetime, timedelta
+from app.models import User, Organization, Project
+
+class OrganizationFactory(factory.Factory):
+    """Factory for Organization entities."""
+    class Meta:
+        model = Organization
+
+    id = Sequence(lambda n: f"org-{n:04d}")
+    name = Faker("company")
+    slug = LazyAttribute(lambda o: o.name.lower().replace(" ", "-"))
+    created_at = Faker("date_time_this_year")
+
+
+class UserFactory(factory.Factory):
+    """Factory for User entities with organization relationship."""
+    class Meta:
+        model = User
+
+    id = Sequence(lambda n: f"user-{n:04d}")
+    email = Faker("email")
+    name = Faker("name")
+    organization = SubFactory(OrganizationFactory)
+    is_active = True
+    created_at = Faker("date_time_this_month")
+
+    @LazyAttribute
+    def username(self):
+        return self.email.split("@")[0]
+
+
+class ProjectFactory(factory.Factory):
+    """Factory with traits for different project states."""
+    class Meta:
+        model = Project
+
+    id = Sequence(lambda n: f"proj-{n:04d}")
+    name = Faker("catch_phrase")
+    owner = SubFactory(UserFactory)
+    status = "active"
+
+    class Params:
+        archived = factory.Trait(
+            status="archived",
+            archived_at=Faker("date_time_this_month")
+        )
+        completed = factory.Trait(
+            status="completed",
+            completed_at=Faker("date_time_this_week")
+        )
+```
+
+## Usage Patterns
+
+```python
+# Basic creation
+user = UserFactory()
+
+# Override specific fields
+admin = UserFactory(email="admin@company.com", is_active=True)
+
+# Use traits
+archived_project = ProjectFactory(archived=True)
+
+# Batch creation
+users = UserFactory.create_batch(10)
+
+# Build without persistence (in-memory only)
+temp_user = UserFactory.build()
+```
+
+## Checklist
+
+- [ ] Use Sequence for unique identifiers
+- [ ] Use SubFactory for related entities
+- [ ] Use LazyAttribute for computed fields
+- [ ] Use Traits for common variations (archived, deleted, premium)
+- [ ] Keep factories close to model definitions
+- [ ] Document factory-specific test data assumptions
+
+
+### Msw 2x Api
+
+# MSW 2.x API Reference
+
+## Core Imports
+
+```typescript
+import { http, HttpResponse, graphql, ws, delay, passthrough } from 'msw';
+import { setupServer } from 'msw/node';
+import { setupWorker } from 'msw/browser';
+```
+
+## HTTP Handlers
+
+### Basic Methods
+
+```typescript
+// GET request
+http.get('/api/users/:id', ({ params }) => {
+  return HttpResponse.json({ id: params.id, name: 'User' });
+});
+
+// POST request
+http.post('/api/users', async ({ request }) => {
+  const body = await request.json();
+  return HttpResponse.json({ id: 'new-123', ...body }, { status: 201 });
+});
+
+// PUT request
+http.put('/api/users/:id', async ({ request, params }) => {
+  const body = await request.json();
+  return HttpResponse.json({ id: params.id, ...body });
+});
+
+// DELETE request
+http.delete('/api/users/:id', ({ params }) => {
+  return new HttpResponse(null, { status: 204 });
+});
+
+// PATCH request
+http.patch('/api/users/:id', async ({ request, params }) => {
+  const body = await request.json();
+  return HttpResponse.json({ id: params.id, ...body });
+});
+
+// Catch-all handler (NEW in 2.x)
+http.all('/api/*', () => {
+  return HttpResponse.json({ error: 'Not implemented' }, { status: 501 });
+});
+```
+
+### Response Types
+
+```typescript
+// JSON response
+HttpResponse.json({ data: 'value' });
+HttpResponse.json({ data: 'value' }, { status: 201 });
+
+// Text response
+HttpResponse.text('Hello World');
+
+// HTML response
+HttpResponse.html('<h1>Hello</h1>');
+
+// XML response
+HttpResponse.xml('<root><item>value</item></root>');
+
+// ArrayBuffer response
+HttpResponse.arrayBuffer(buffer);
+
+// FormData response
+HttpResponse.formData(formData);
+
+// No content
+new HttpResponse(null, { status: 204 });
+
+// Error response
+HttpResponse.error();
+```
+
+### Headers and Cookies
+
+```typescript
+http.get('/api/data', () => {
+  return HttpResponse.json(
+    { data: 'value' },
+    {
+      headers: {
+        'X-Custom-Header': 'value',
+        'Set-Cookie': 'session=abc123; HttpOnly',
+      },
+    }
+  );
+});
+```
+
+## Passthrough (NEW in 2.x)
+
+Allow requests to pass through to the actual server:
+
+```typescript
+import { passthrough } from 'msw';
+
+// Passthrough specific endpoints
+http.get('/api/health', () => passthrough());
+
+// Conditional passthrough
+http.get('/api/data', ({ request }) => {
+  if (request.headers.get('X-Bypass-Mock') === 'true') {
+    return passthrough();
+  }
+  return HttpResponse.json({ mocked: true });
+});
+```
+
+## Delay Simulation
+
+```typescript
+import { delay } from 'msw';
+
+http.get('/api/slow', async () => {
+  await delay(2000); // 2 second delay
+  return HttpResponse.json({ data: 'slow response' });
+});
+
+// Realistic delay (random between min and max)
+http.get('/api/realistic', async () => {
+  await delay('real'); // 100-400ms random delay
+  return HttpResponse.json({ data: 'response' });
+});
+
+// Infinite delay (useful for testing loading states)
+http.get('/api/hang', async () => {
+  await delay('infinite');
+  return HttpResponse.json({ data: 'never reaches' });
+});
+```
+
+## GraphQL Handlers
+
+```typescript
+import { graphql } from 'msw';
+
+// Query
+graphql.query('GetUser', ({ variables }) => {
+  return HttpResponse.json({
+    data: {
+      user: {
+        id: variables.id,
+        name: 'Test User',
+      },
+    },
+  });
+});
+
+// Mutation
+graphql.mutation('CreateUser', ({ variables }) => {
+  return HttpResponse.json({
+    data: {
+      createUser: {
+        id: 'new-123',
+        ...variables.input,
+      },
+    },
+  });
+});
+
+// Error response
+graphql.query('GetUser', () => {
+  return HttpResponse.json({
+    errors: [{ message: 'User not found' }],
+  });
+});
+
+// Scoped to endpoint
+const github = graphql.link('https://api.github.com/graphql');
+
+github.query('GetRepository', ({ variables }) => {
+  return HttpResponse.json({
+    data: {
+      repository: { name: variables.name },
+    },
+  });
+});
+```
+
+## WebSocket Handlers (NEW in 2.x)
+
+```typescript
+import { ws } from 'msw';
+
+const chat = ws.link('wss://api.example.com/chat');
+
+export const wsHandlers = [
+  chat.addEventListener('connection', ({ client }) => {
+    // Send welcome message
+    client.send(JSON.stringify({ type: 'welcome', message: 'Connected!' }));
+
+    // Handle incoming messages
+    client.addEventListener('message', (event) => {
+      const data = JSON.parse(event.data.toString());
+
+      if (data.type === 'ping') {
+        client.send(JSON.stringify({ type: 'pong' }));
+      }
+    });
+
+    // Handle close
+    client.addEventListener('close', () => {
+      console.log('Client disconnected');
+    });
+  }),
+];
+```
+
+## Server Setup (Node.js/Vitest)
+
+```typescript
+// src/mocks/server.ts
+import { setupServer } from 'msw/node';
+import { handlers } from './handlers';
+
+export const server = setupServer(...handlers);
+
+// vitest.setup.ts
+import { beforeAll, afterEach, afterAll } from 'vitest';
+import { server } from './src/mocks/server';
+
+beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
+afterEach(() => server.resetHandlers());
+afterAll(() => server.close());
+```
+
+## Browser Setup (Storybook/Dev)
+
+```typescript
+// src/mocks/browser.ts
+import { setupWorker } from 'msw/browser';
+import { handlers } from './handlers';
+
+export const worker = setupWorker(...handlers);
+
+// Start in development
+if (process.env.NODE_ENV === 'development') {
+  worker.start({
+    onUnhandledRequest: 'bypass',
+  });
+}
+```
+
+## Request Info Access
+
+```typescript
+http.post('/api/data', async ({ request, params, cookies }) => {
+  // Request body
+  const body = await request.json();
+
+  // URL parameters
+  const { id } = params;
+
+  // Query parameters
+  const url = new URL(request.url);
+  const page = url.searchParams.get('page');
+
+  // Headers
+  const auth = request.headers.get('Authorization');
+
+  // Cookies
+  const session = cookies.session;
+
+  return HttpResponse.json({ received: body });
+});
+```
+
+## External Links
+
+- [MSW Documentation](https://mswjs.io/docs/)
+- [MSW 2.0 Migration Guide](https://mswjs.io/docs/migrations/1.x-to-2.x)
+- [MSW Examples Repository](https://github.com/mswjs/examples)
+
+
+### Stateful Testing
+
+# Stateful Testing with Hypothesis
+
+## RuleBasedStateMachine
+
+Stateful testing lets Hypothesis choose **actions** as well as values, testing sequences of operations.
+
+```python
+from hypothesis import strategies as st
+from hypothesis.stateful import RuleBasedStateMachine, rule, invariant, precondition
+
+class ShoppingCartMachine(RuleBasedStateMachine):
+    """Test shopping cart state transitions."""
+
+    def __init__(self):
+        super().__init__()
+        self.cart = ShoppingCart()
+        self.model_items = {}  # Our model of expected state
+
+    # =========== Rules (Actions) ===========
+
+    @rule(product_id=st.uuids(), quantity=st.integers(min_value=1, max_value=10))
+    def add_item(self, product_id, quantity):
+        """Add item to cart."""
+        self.cart.add(product_id, quantity)
+        self.model_items[product_id] = self.model_items.get(product_id, 0) + quantity
+
+    @rule(product_id=st.uuids())
+    @precondition(lambda self: len(self.model_items) > 0)
+    def remove_item(self, product_id):
+        """Remove item from cart."""
+        if product_id in self.model_items:
+            self.cart.remove(product_id)
+            del self.model_items[product_id]
+
+    @rule()
+    @precondition(lambda self: len(self.model_items) > 0)
+    def clear_cart(self):
+        """Clear all items."""
+        self.cart.clear()
+        self.model_items.clear()
+
+    # =========== Invariants ===========
+
+    @invariant()
+    def item_count_matches(self):
+        """Cart item count matches model."""
+        assert len(self.cart.items) == len(self.model_items)
+
+    @invariant()
+    def quantities_match(self):
+        """All quantities match model."""
+        for product_id, quantity in self.model_items.items():
+            assert self.cart.get_quantity(product_id) == quantity
+
+    @invariant()
+    def no_negative_quantities(self):
+        """Quantities are never negative."""
+        for item in self.cart.items:
+            assert item.quantity >= 0
+
+
+# Run the tests
+TestShoppingCart = ShoppingCartMachine.TestCase
+```
+
+## Bundles (Data Flow Between Rules)
+
+```python
+from hypothesis.stateful import Bundle, consumes
+
+class DatabaseMachine(RuleBasedStateMachine):
+    """Test database operations with data flow."""
+
+    # Bundles hold generated values for reuse
+    users = Bundle("users")
+
+    @rule(target=users, email=st.emails(), name=st.text(min_size=1))
+    def create_user(self, email, name):
+        """Create user and add to bundle."""
+        user = self.db.create_user(email=email, name=name)
+        return user.id  # Added to 'users' bundle
+
+    @rule(user_id=users, new_name=st.text(min_size=1))
+    def update_user(self, user_id, new_name):
+        """Update user from bundle."""
+        self.db.update_user(user_id, name=new_name)
+
+    @rule(user_id=consumes(users))  # Remove from bundle after use
+    def delete_user(self, user_id):
+        """Delete user, remove from bundle."""
+        self.db.delete_user(user_id)
+```
+
+## Initialize Rules
+
+```python
+class OrderSystemMachine(RuleBasedStateMachine):
+
+    @initialize()
+    def setup_customer(self):
+        """Run exactly once before any rules."""
+        self.customer = Customer.create()
+
+    @initialize(target=products, count=st.integers(min_value=1, max_value=5))
+    def setup_products(self, count):
+        """Can return values to bundles."""
+        for _ in range(count):
+            product = Product.create()
+            return product.id
+```
+
+## Settings for Stateful Tests
+
+```python
+from hypothesis import settings, Phase
+
+@settings(
+    max_examples=100,           # Number of test runs
+    stateful_step_count=50,     # Max steps per run
+    deadline=None,              # Disable timeout
+    phases=[Phase.generate],    # Skip shrinking for speed
+)
+class MyStateMachine(RuleBasedStateMachine):
+    pass
+```
+
+## Debugging Stateful Tests
+
+When a test fails, Hypothesis prints the sequence of steps:
+
+```
+Falsifying example:
+state = MyStateMachine()
+state.add_item(product_id=UUID('...'), quantity=5)
+state.add_item(product_id=UUID('...'), quantity=3)
+state.remove_item(product_id=UUID('...'))  # Failure here
+state.teardown()
+```
+
+You can replay this exact sequence to debug.
+
+
+
+---
+
+## Checklists (3)
+
+### Msw Setup Checklist
+
+# MSW Setup Checklist
+
+## Initial Setup
+
+- [ ] Install MSW 2.x: `npm install msw@latest --save-dev`
+- [ ] Initialize MSW: `npx msw init ./public --save`
+- [ ] Create `src/mocks/` directory structure
+
+## Directory Structure
+
+```
+src/mocks/
+├── handlers/
+│   ├── index.ts       # Export all handlers
+│   ├── users.ts       # User-related handlers
+│   ├── auth.ts        # Auth handlers
+│   └── ...
+├── handlers.ts        # Combined handlers
+├── server.ts          # Node.js server (tests)
+└── browser.ts         # Browser worker (dev/storybook)
+```
+
+## Test Configuration (Vitest)
+
+- [ ] Create `src/mocks/server.ts`:
+
+```typescript
+import { setupServer } from 'msw/node';
+import { handlers } from './handlers';
+
+export const server = setupServer(...handlers);
+```
+
+- [ ] Update `vitest.setup.ts`:
+
+```typescript
+import { beforeAll, afterEach, afterAll } from 'vitest';
+import { server } from './src/mocks/server';
+
+beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
+afterEach(() => server.resetHandlers());
+afterAll(() => server.close());
+```
+
+- [ ] Update `vitest.config.ts`:
+
+```typescript
+export default defineConfig({
+  test: {
+    setupFiles: ['./vitest.setup.ts'],
+  },
+});
+```
+
+## Handler Implementation Checklist
+
+For each API endpoint:
+
+- [ ] Implement success response with realistic data
+- [ ] Handle path parameters (`/:id`)
+- [ ] Handle query parameters (pagination, filters)
+- [ ] Handle request body for POST/PUT/PATCH
+- [ ] Implement error responses (400, 401, 403, 404, 422, 500)
+- [ ] Add authentication checks where applicable
+- [ ] Export handler from `handlers/index.ts`
+
+## Test Writing Checklist
+
+For each component:
+
+- [ ] Test happy path (success response)
+- [ ] Test loading state
+- [ ] Test error state (API failure)
+- [ ] Test empty state (no data)
+- [ ] Test validation errors
+- [ ] Test authentication errors
+- [ ] Use `server.use()` for test-specific overrides
+- [ ] Cleanup: `server.resetHandlers()` runs in afterEach
+
+## Common Issues Checklist
+
+- [ ] Verify `onUnhandledRequest: 'error'` catches missing handlers
+- [ ] Check handler URL patterns match actual API calls
+- [ ] Ensure async handlers use `await request.json()`
+- [ ] Verify response status codes are correct
+- [ ] Check Content-Type headers for non-JSON responses
+
+## Storybook Integration (Optional)
+
+- [ ] Create `src/mocks/browser.ts`:
+
+```typescript
+import { setupWorker } from 'msw/browser';
+import { handlers } from './handlers';
+
+export const worker = setupWorker(...handlers);
+```
+
+- [ ] Initialize in `.storybook/preview.ts`:
+
+```typescript
+import { initialize, mswLoader } from 'msw-storybook-addon';
+
+initialize();
+
+export const loaders = [mswLoader];
+```
+
+- [ ] Add `msw-storybook-addon` to dependencies
+
+## Review Checklist
+
+Before PR:
+
+- [ ] All handlers return realistic mock data
+- [ ] Error scenarios are covered
+- [ ] No hardcoded tokens/secrets in handlers
+- [ ] Handlers are organized by domain (users, auth, etc.)
+- [ ] Tests use `server.use()` for overrides, not new handlers
+- [ ] Loading states tested with `delay()`
+
+
+### Test Data Checklist
+
+# Test Data Management Checklist
+
+## Fixtures
+
+- [ ] Use factories over hardcoded data
+- [ ] Minimal required fields
+- [ ] Randomize non-essential data
+- [ ] Version control fixtures
+
+## Data Generation
+
+- [ ] Faker for realistic data
+- [ ] Consistent seeds for reproducibility
+- [ ] Edge case generators
+- [ ] Bulk generation for perf tests
+
+## Database
+
+- [ ] Transaction rollback for isolation
+- [ ] Per-test database when needed
+- [ ] Proper cleanup order
+- [ ] Handle foreign keys
+
+## Cleanup
+
+- [ ] Clean up after each test
+- [ ] Handle test failures
+- [ ] Verify clean state
+- [ ] Prevent data leaks
+
+## Best Practices
+
+- [ ] No test interdependencies
+- [ ] Factories over fixtures
+- [ ] Meaningful test data
+- [ ] Document data requirements
+
+
+### Vcr Checklist
+
+# VCR.py Checklist
+
+## Initial Setup
+
+- [ ] Install pytest-recording or vcrpy
+- [ ] Configure conftest.py with vcr_config
+- [ ] Create cassettes directory
+- [ ] Add cassettes to git
+
+## Configuration
+
+- [ ] Set record_mode (once for dev, none for CI)
+- [ ] Filter sensitive headers (authorization, api-key)
+- [ ] Filter query parameters (token, api_key)
+- [ ] Configure body filtering for passwords
+
+## Recording Modes
+
+| Mode | Use Case |
+|------|----------|
+| `once` | Default - record once, replay after |
+| `new_episodes` | Add new requests, keep existing |
+| `none` | CI - never record, only replay |
+| `all` | Refresh all cassettes |
+
+## Sensitive Data
+
+- [ ] Filter authorization header
+- [ ] Filter x-api-key header
+- [ ] Filter api_key query parameter
+- [ ] Filter passwords in request body
+- [ ] Review cassettes before commit
+
+## LLM API Testing
+
+- [ ] Create custom matcher for dynamic fields
+- [ ] Ignore request_id, timestamp
+- [ ] Match on prompt content
+- [ ] Handle streaming responses
+
+## CI/CD
+
+- [ ] Set record_mode to "none" in CI
+- [ ] Commit all cassettes
+- [ ] Fail on missing cassettes
+- [ ] Don't commit real API responses
+
+## Maintenance
+
+- [ ] Refresh cassettes when API changes
+- [ ] Remove outdated cassettes
+- [ ] Document cassette naming convention
+- [ ] Test with fresh cassettes periodically
+
+
+
+---
+
+## Examples (1)
+
+### Handler Patterns
+
+# MSW Handler Patterns
+
+## Complete Handler Examples
+
+### CRUD API Handlers
+
+```typescript
+// src/mocks/handlers/users.ts
+import { http, HttpResponse, delay } from 'msw';
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+}
+
+// In-memory store for testing
+let users: User[] = [
+  { id: '1', name: 'Alice', email: 'alice@example.com' },
+  { id: '2', name: 'Bob', email: 'bob@example.com' },
+];
+
+export const userHandlers = [
+  // List users with pagination
+  http.get('/api/users', ({ request }) => {
+    const url = new URL(request.url);
+    const page = parseInt(url.searchParams.get('page') || '1');
+    const limit = parseInt(url.searchParams.get('limit') || '10');
+
+    const start = (page - 1) * limit;
+    const paginatedUsers = users.slice(start, start + limit);
+
+    return HttpResponse.json({
+      data: paginatedUsers,
+      meta: {
+        page,
+        limit,
+        total: users.length,
+        totalPages: Math.ceil(users.length / limit),
+      },
+    });
+  }),
+
+  // Get single user
+  http.get('/api/users/:id', ({ params }) => {
+    const user = users.find((u) => u.id === params.id);
+
+    if (!user) {
+      return HttpResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    return HttpResponse.json({ data: user });
+  }),
+
+  // Create user
+  http.post('/api/users', async ({ request }) => {
+    const body = await request.json() as Omit<User, 'id'>;
+
+    const newUser: User = {
+      id: String(users.length + 1),
+      ...body,
+    };
+
+    users.push(newUser);
+
+    return HttpResponse.json({ data: newUser }, { status: 201 });
+  }),
+
+  // Update user
+  http.put('/api/users/:id', async ({ request, params }) => {
+    const body = await request.json() as Partial<User>;
+    const index = users.findIndex((u) => u.id === params.id);
+
+    if (index === -1) {
+      return HttpResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    users[index] = { ...users[index], ...body };
+
+    return HttpResponse.json({ data: users[index] });
+  }),
+
+  // Delete user
+  http.delete('/api/users/:id', ({ params }) => {
+    const index = users.findIndex((u) => u.id === params.id);
+
+    if (index === -1) {
+      return HttpResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    users.splice(index, 1);
+
+    return new HttpResponse(null, { status: 204 });
+  }),
+];
+```
+
+### Error Simulation Handlers
+
+```typescript
+// src/mocks/handlers/errors.ts
+import { http, HttpResponse, delay } from 'msw';
+
+export const errorHandlers = [
+  // 401 Unauthorized
+  http.get('/api/protected', ({ request }) => {
+    const auth = request.headers.get('Authorization');
+
+    if (!auth || !auth.startsWith('Bearer ')) {
+      return HttpResponse.json(
+        { error: 'Unauthorized', message: 'Missing or invalid token' },
+        { status: 401 }
+      );
+    }
+
+    return HttpResponse.json({ data: 'secret data' });
+  }),
+
+  // 403 Forbidden
+  http.delete('/api/admin/users/:id', () => {
+    return HttpResponse.json(
+      { error: 'Forbidden', message: 'Admin access required' },
+      { status: 403 }
+    );
+  }),
+
+  // 422 Validation Error
+  http.post('/api/users', async ({ request }) => {
+    const body = await request.json() as { email?: string };
+
+    if (!body.email?.includes('@')) {
+      return HttpResponse.json(
+        {
+          error: 'Validation Error',
+          details: [
+            { field: 'email', message: 'Invalid email format' },
+          ],
+        },
+        { status: 422 }
+      );
+    }
+
+    return HttpResponse.json({ data: { id: '1', ...body } }, { status: 201 });
+  }),
+
+  // 500 Server Error
+  http.get('/api/unstable', () => {
+    return HttpResponse.json(
+      { error: 'Internal Server Error' },
+      { status: 500 }
+    );
+  }),
+
+  // Network Error
+  http.get('/api/network-fail', () => {
+    return HttpResponse.error();
+  }),
+
+  // Timeout simulation
+  http.get('/api/timeout', async () => {
+    await delay('infinite');
+    return HttpResponse.json({ data: 'never' });
+  }),
+];
+```
+
+### Authentication Flow Handlers
+
+```typescript
+// src/mocks/handlers/auth.ts
+import { http, HttpResponse } from 'msw';
+
+interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+const validUser = {
+  email: 'test@example.com',
+  password: 'password123',
+};
+
+export const authHandlers = [
+  // Login
+  http.post('/api/auth/login', async ({ request }) => {
+    const body = await request.json() as LoginRequest;
+
+    if (body.email === validUser.email && body.password === validUser.password) {
+      return HttpResponse.json({
+        user: { id: '1', email: body.email, name: 'Test User' },
+        accessToken: 'mock-access-token-123',
+        refreshToken: 'mock-refresh-token-456',
+      });
+    }
+
+    return HttpResponse.json(
+      { error: 'Invalid credentials' },
+      { status: 401 }
+    );
+  }),
+
+  // Refresh token
+  http.post('/api/auth/refresh', async ({ request }) => {
+    const body = await request.json() as { refreshToken: string };
+
+    if (body.refreshToken === 'mock-refresh-token-456') {
+      return HttpResponse.json({
+        accessToken: 'mock-access-token-new',
+        refreshToken: 'mock-refresh-token-new',
+      });
+    }
+
+    return HttpResponse.json(
+      { error: 'Invalid refresh token' },
+      { status: 401 }
+    );
+  }),
+
+  // Logout
+  http.post('/api/auth/logout', () => {
+    return new HttpResponse(null, { status: 204 });
+  }),
+
+  // Get current user
+  http.get('/api/auth/me', ({ request }) => {
+    const auth = request.headers.get('Authorization');
+
+    if (auth === 'Bearer mock-access-token-123' ||
+        auth === 'Bearer mock-access-token-new') {
+      return HttpResponse.json({
+        user: { id: '1', email: 'test@example.com', name: 'Test User' },
+      });
+    }
+
+    return HttpResponse.json(
+      { error: 'Unauthorized' },
+      { status: 401 }
+    );
+  }),
+];
+```
+
+### File Upload Handler
+
+```typescript
+// src/mocks/handlers/upload.ts
+import { http, HttpResponse } from 'msw';
+
+export const uploadHandlers = [
+  http.post('/api/upload', async ({ request }) => {
+    const formData = await request.formData();
+    const file = formData.get('file') as File | null;
+
+    if (!file) {
+      return HttpResponse.json(
+        { error: 'No file provided' },
+        { status: 400 }
+      );
+    }
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+    if (!allowedTypes.includes(file.type)) {
+      return HttpResponse.json(
+        { error: 'Invalid file type' },
+        { status: 422 }
+      );
+    }
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      return HttpResponse.json(
+        { error: 'File too large' },
+        { status: 422 }
+      );
+    }
+
+    return HttpResponse.json({
+      data: {
+        id: 'file-123',
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        url: `https://cdn.example.com/uploads/${file.name}`,
+      },
+    });
+  }),
+];
+```
+
+## Test Usage Examples
+
+### Basic Component Test
+
+```typescript
+// src/components/UserList.test.tsx
+import { render, screen, waitFor } from '@testing-library/react';
+import { http, HttpResponse } from 'msw';
+import { server } from '../mocks/server';
+import { UserList } from './UserList';
+
+describe('UserList', () => {
+  it('renders users from API', async () => {
+    render(<UserList />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Alice')).toBeInTheDocument();
+      expect(screen.getByText('Bob')).toBeInTheDocument();
+    });
+  });
+
+  it('shows error state on API failure', async () => {
+    // Override handler for this test
+    server.use(
+      http.get('/api/users', () => {
+        return HttpResponse.json(
+          { error: 'Server error' },
+          { status: 500 }
+        );
+      })
+    );
+
+    render(<UserList />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/error loading users/i)).toBeInTheDocument();
+    });
+  });
+
+  it('shows loading state during fetch', async () => {
+    server.use(
+      http.get('/api/users', async () => {
+        await delay(100);
+        return HttpResponse.json({ data: [] });
+      })
+    );
+
+    render(<UserList />);
+
+    expect(screen.getByTestId('loading-skeleton')).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('loading-skeleton')).not.toBeInTheDocument();
+    });
+  });
+});
+```
+
+### Form Submission Test
+
+```typescript
+// src/components/CreateUserForm.test.tsx
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { http, HttpResponse } from 'msw';
+import { server } from '../mocks/server';
+import { CreateUserForm } from './CreateUserForm';
+
+describe('CreateUserForm', () => {
+  it('submits form and shows success', async () => {
+    const user = userEvent.setup();
+    const onSuccess = vi.fn();
+
+    render(<CreateUserForm onSuccess={onSuccess} />);
+
+    await user.type(screen.getByLabelText('Name'), 'New User');
+    await user.type(screen.getByLabelText('Email'), 'new@example.com');
+    await user.click(screen.getByRole('button', { name: /create/i }));
+
+    await waitFor(() => {
+      expect(onSuccess).toHaveBeenCalledWith(
+        expect.objectContaining({ email: 'new@example.com' })
+      );
+    });
+  });
+
+  it('shows validation errors from API', async () => {
+    server.use(
+      http.post('/api/users', () => {
+        return HttpResponse.json(
+          {
+            error: 'Validation Error',
+            details: [{ field: 'email', message: 'Email already exists' }],
+          },
+          { status: 422 }
+        );
+      })
+    );
+
+    const user = userEvent.setup();
+    render(<CreateUserForm onSuccess={() => {}} />);
+
+    await user.type(screen.getByLabelText('Email'), 'existing@example.com');
+    await user.click(screen.getByRole('button', { name: /create/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Email already exists')).toBeInTheDocument();
+    });
+  });
+});
+```
+

@@ -3728,24 +3728,18 @@ export const SKILLS: Record<string, SkillMeta> = {
       "workflow-architect"
     ]
   },
-  "testing-patterns": {
-    "name": "testing-patterns",
-    "description": "Comprehensive testing patterns for unit, integration, E2E, pytest, API mocking (MSW/VCR), test data, property/contract testing, performance, LLM, and accessibility testing. Use when writing tests, setting up test infrastructure, or validating application quality.",
+  "testing-e2e": {
+    "name": "testing-e2e",
+    "description": "End-to-end testing patterns with Playwright — page objects, AI agent testing, visual regression, accessibility testing with axe-core, and CI integration. Use when writing E2E tests, setting up Playwright, implementing visual regression, or testing accessibility.",
     "version": "2.0.0",
     "author": "OrchestKit",
     "tags": [
       "testing",
-      "unit",
-      "integration",
       "e2e",
-      "pytest",
-      "msw",
-      "vcr",
-      "property",
-      "contract",
-      "performance",
-      "llm",
-      "a11y"
+      "playwright",
+      "accessibility",
+      "visual-regression",
+      "page-objects"
     ],
     "userInvocable": false,
     "context": "fork",
@@ -3761,59 +3755,211 @@ export const SKILLS: Record<string, SkillMeta> = {
     "structure": {
       "references": [
         "a11y-testing-tools.md",
-        "aaa-pattern.md",
-        "consumer-tests.md",
-        "custom-plugins.md",
-        "deepeval-ragas-api.md",
-        "factory-patterns.md",
-        "generator-agent.md",
-        "healer-agent.md",
-        "k6-patterns.md",
-        "msw-2x-api.md",
-        "pact-broker.md",
-        "planner-agent.md",
         "playwright-1.57-api.md",
         "playwright-setup.md",
-        "provider-verification.md",
-        "stateful-testing.md",
-        "strategies-guide.md",
-        "visual-regression.md",
-        "xdist-parallel.md"
+        "visual-regression.md"
       ],
       "scripts": [
-        "a11y-test-template.ts",
-        "conftest-template.py",
-        "consumer-test-template.py",
-        "create-integration-test.md",
-        "create-msw-handler.md",
-        "create-page-object.md",
-        "create-test-case.md",
-        "create-test-fixture.md",
-        "factory-boy.py",
-        "handlers-template.ts",
-        "hypothesis-conftest.py",
-        "k6-script.js",
-        "llm-test-template.py",
-        "page-object-template.ts",
-        "playwright-test-template.ts",
-        "provider-verification-template.py",
-        "pytest-fixture.py",
-        "pytest-integration.py",
-        "scaffold-test.sh",
-        "test-case-template.md",
-        "test-plan-template.md",
-        "vcr-cassette.py"
+        "create-page-object.md"
       ],
       "checklists": [
         "a11y-testing-checklist.md",
-        "contract-testing-checklist.md",
         "e2e-checklist.md",
-        "e2e-testing-checklist.md",
-        "llm-test-checklist.md",
-        "msw-setup-checklist.md",
+        "e2e-testing-checklist.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": [
+      "accessibility-specialist",
+      "design-system-architect",
+      "frontend-ui-developer",
+      "test-generator"
+    ]
+  },
+  "testing-integration": {
+    "name": "testing-integration",
+    "description": "Integration and contract testing patterns — API endpoint tests, component integration, database testing, Pact contract verification, property-based testing, and Zod schema validation. Use when testing API boundaries, verifying contracts, or validating cross-service integration.",
+    "version": "2.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "testing",
+      "integration",
+      "contract",
+      "pact",
+      "property",
+      "zod",
+      "api"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "skills": [],
+    "agent": "test-generator",
+    "structure": {
+      "references": [
+        "consumer-tests.md",
+        "pact-broker.md",
+        "provider-verification.md",
+        "strategies-guide.md"
+      ],
+      "scripts": [
+        "create-integration-test.md",
+        "test-plan-template.md"
+      ],
+      "checklists": [
+        "contract-testing-checklist.md",
+        "property-testing-checklist.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": [
+      "code-quality-reviewer",
+      "eval-runner",
+      "monitoring-engineer",
+      "test-generator"
+    ]
+  },
+  "testing-llm": {
+    "name": "testing-llm",
+    "description": "LLM and AI testing patterns — mock responses, evaluation with DeepEval/RAGAS, structured output validation, and agentic test patterns (generator, healer, planner). Use when testing AI features, validating LLM outputs, or building evaluation pipelines.",
+    "version": "2.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "testing",
+      "llm",
+      "ai",
+      "deepeval",
+      "ragas",
+      "evaluation",
+      "mocking"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "skills": [],
+    "agent": "test-generator",
+    "structure": {
+      "references": [
+        "deepeval-ragas-api.md",
+        "generator-agent.md",
+        "healer-agent.md",
+        "planner-agent.md"
+      ],
+      "checklists": [
+        "llm-test-checklist.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": [
+      "eval-runner",
+      "test-generator"
+    ]
+  },
+  "testing-perf": {
+    "name": "testing-perf",
+    "description": "Performance and load testing patterns — k6 load tests, Locust stress tests, pytest execution optimization (xdist parallel, plugins), test type classification, and performance benchmarking. Use when writing load tests, optimizing test execution speed, or setting up pytest infrastructure.",
+    "version": "2.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "testing",
+      "performance",
+      "k6",
+      "locust",
+      "pytest",
+      "load-testing",
+      "benchmarking"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "skills": [],
+    "agent": "test-generator",
+    "structure": {
+      "references": [
+        "custom-plugins.md",
+        "k6-patterns.md",
+        "xdist-parallel.md"
+      ],
+      "scripts": [
+        "test-case-template.md"
+      ],
+      "checklists": [
         "performance-checklist.md",
-        "property-testing-checklist.md",
-        "pytest-production-checklist.md",
+        "pytest-production-checklist.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": [
+      "monitoring-engineer",
+      "python-performance-engineer",
+      "test-generator"
+    ]
+  },
+  "testing-unit": {
+    "name": "testing-unit",
+    "description": "Unit testing patterns for isolated business logic tests — AAA pattern, parametrized tests, fixture scoping, mocking with MSW/VCR, and test data management with factories and fixtures. Use when writing unit tests, setting up mocks, or managing test data.",
+    "version": "2.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "testing",
+      "unit",
+      "mocking",
+      "msw",
+      "vcr",
+      "fixtures",
+      "factories"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "skills": [],
+    "agent": "test-generator",
+    "structure": {
+      "references": [
+        "aaa-pattern.md",
+        "factory-patterns.md",
+        "msw-2x-api.md",
+        "stateful-testing.md"
+      ],
+      "scripts": [
+        "create-msw-handler.md",
+        "create-test-case.md",
+        "create-test-fixture.md"
+      ],
+      "checklists": [
+        "msw-setup-checklist.md",
         "test-data-checklist.md",
         "vcr-checklist.md"
       ]
@@ -3822,12 +3968,9 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ork"
     ],
     "relatedAgents": [
-      "accessibility-specialist",
       "code-quality-reviewer",
       "design-system-architect",
-      "eval-runner",
       "frontend-ui-developer",
-      "monitoring-engineer",
       "python-performance-engineer",
       "test-generator"
     ]

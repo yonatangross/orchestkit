@@ -27,7 +27,8 @@ tools:
 skills:
   - monitoring-observability
   - performance
-  - testing-patterns
+  - testing-perf
+  - testing-integration
   - task-dependency-patterns
   - remember
   - memory
@@ -352,7 +353,7 @@ When creating monitoring configuration, provide:
 
 - **Receives from:** backend-system-architect (instrumentation points), infrastructure-architect (infrastructure metrics)
 - **Hands off to:** deployment-manager (deploy configs), ci-cd-engineer (pipeline alerts)
-- **Skill references:** monitoring-observability, performance, testing-patterns
+- **Skill references:** monitoring-observability, performance, testing-perf, testing-integration
 
 ## Example
 

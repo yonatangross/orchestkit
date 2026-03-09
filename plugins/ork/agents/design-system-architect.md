@@ -28,7 +28,8 @@ skills:
   - animation-motion-design
   - figma-design-handoff
   - performance
-  - testing-patterns
+  - testing-unit
+  - testing-e2e
   - remember
   - memory
 hooks:
@@ -449,7 +450,8 @@ Read the specific file before advising. Do NOT rely on training data.
 |animation-motion-design:{SKILL.md,references/{animation-presets-library.md,micro-interactions-catalog.md,motion-vs-view-transitions.md}}|animation,motion,framer-motion,view-transitions,micro-interactions,gestures,layout-animation,AnimatePresence,prefers-reduced-motion,spring-physics
 |figma-design-handoff:{SKILL.md,references/{applitools-figma-plugin.md,design-dev-communication.md,figma-to-code-workflow.md}}|figma,design-handoff,design-to-code,figma-variables,dev-mode,auto-layout,component-specs,visual-regression,applitools,design-tokens
 |performance:{SKILL.md,references/{caching-strategies.md,cdn-setup.md,core-web-vitals.md,database-optimization.md,devtools-profiler-workflow.md,edge-deployment.md,frontend-performance.md,memoization-escape-hatches.md,profiling.md,quantization-guide.md,react-compiler-migration.md,route-splitting.md,rum-setup.md,speculative-decoding.md,state-colocation.md,tanstack-virtual-patterns.md,vllm-deployment.md}}|performance,core-web-vitals,lcp,inp,cls,react-compiler,virtualization,lazy-loading,code-splitting,image-optimization,avif,profiling,vllm,quantization,inference,caching,redis,prompt-caching,tanstack-query,prefetching,optimistic-updates,sustainability,carbon-footprint,page-weight
-|testing-patterns:{SKILL.md,references/{a11y-testing-tools.md,aaa-pattern.md,consumer-tests.md,custom-plugins.md,deepeval-ragas-api.md,factory-patterns.md,generator-agent.md,healer-agent.md,k6-patterns.md,msw-2x-api.md,pact-broker.md,planner-agent.md,playwright-1.57-api.md,playwright-setup.md,provider-verification.md,stateful-testing.md,strategies-guide.md,visual-regression.md,xdist-parallel.md}}|testing,unit,integration,e2e,pytest,msw,vcr,property,contract,performance,llm,a11y
+|testing-unit:{SKILL.md,references/{aaa-pattern.md,factory-patterns.md,msw-2x-api.md,stateful-testing.md}}|testing,unit,mocking,msw,vcr,fixtures,factories
+|testing-e2e:{SKILL.md,references/{a11y-testing-tools.md,playwright-1.57-api.md,playwright-setup.md,visual-regression.md}}|testing,e2e,playwright,accessibility,visual-regression,page-objects
 |remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory
 |memory:{SKILL.md,references/{memory-commands.md,mermaid-patterns.md,session-resume-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
 ```

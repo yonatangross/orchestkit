@@ -26,7 +26,8 @@ disallowedTools:
   - Edit
   - MultiEdit
 skills:
-  - testing-patterns
+  - testing-llm
+  - testing-integration
   - golden-dataset
   - monitoring-observability
   - task-dependency-patterns
@@ -271,4 +272,4 @@ Task: "Run evals on the RAG golden dataset against GPT-4o-2024-08-06"
 - **Triggered by:** code-quality-reviewer (quality gate), CI pipeline (automated evals), team lead (manual)
 - **Receives from:** data-pipeline-engineer (golden datasets), backend-system-architect (model outputs)
 - **Hands off to:** monitoring-engineer (Langfuse dashboard alerts), team lead (regression decisions)
-- **Skill references:** testing-patterns, golden-dataset, monitoring-observability
+- **Skill references:** testing-llm, testing-integration, golden-dataset, monitoring-observability
