@@ -3,7 +3,7 @@
  * Ported from hooks/_lib/common.sh git functions
  */
 
-import { execSync } from 'node:child_process';
+import { execSync, execFileSync } from 'node:child_process';
 import { getProjectDir } from './common.js';
 
 /**
@@ -215,7 +215,7 @@ export function getStagedSourceFiles(filter = 'ACMR'): string[] {
   const sanitized = filter.replace(/[^ACDMRTUXBacdmrtuxb*]/g, '');
   if (!sanitized) return [];
   try {
-    const output = execSync(`git diff --cached --name-only --diff-filter=${sanitized}`, {
+    const output = execFileSync('git', ['diff', '--cached', '--name-only', `--diff-filter=${sanitized}`], {
       cwd: dir,
       encoding: 'utf8',
       timeout: 5000,
