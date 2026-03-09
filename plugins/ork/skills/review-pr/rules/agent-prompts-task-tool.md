@@ -176,7 +176,7 @@ Agent(
      - Are there changed files with 0 corresponding test files?
      - Flag: "MISSING" if code changes have no tests at all
 
-  2. TEST TYPE MATCHING (use testing-patterns rules)
+  2. TEST TYPE MATCHING (use testing-unit/testing-e2e/testing-integration rules)
      Match changed code to required test types:
      - API endpoint changes → need integration tests (rule: integration-api)
      - DB schema changes → need migration + integration tests (rule: integration-database)

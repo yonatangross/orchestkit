@@ -215,7 +215,7 @@ Maintain checkpoints after each task. Load triggers: `Read("${CLAUDE_PLUGIN_ROOT
 
 Phase 5 test-generator MUST produce tests matching the change type:
 
-| Change Type | Required Tests | `testing-patterns` Rules |
+| Change Type | Required Tests | Testing Rules |
 |-------------|---------------|--------------------------|
 | API endpoint | Unit + Integration + Contract | `integration-api`, `verification-contract`, `mocking-msw` |
 | DB schema/migration | Migration + Integration | `integration-database`, `data-seeding-cleanup` |
@@ -236,7 +236,7 @@ Grep(pattern="testcontainers|docker-compose", glob="requirements*.txt")
 Grep(pattern="testcontainers|docker-compose", glob="package.json")
 ```
 
-If detected: run integration tests against real services, not just mocks. Reference `testing-patterns` rules: `integration-database`, `integration-api`, `data-seeding-cleanup`.
+If detected: run integration tests against real services, not just mocks. Reference `testing-integration` rules: `integration-database`, `integration-api`, `data-seeding-cleanup`.
 
 ### Phase 9 Gate
 

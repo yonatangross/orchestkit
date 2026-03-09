@@ -182,7 +182,7 @@ Relevant skills activated automatically:
 - `code-review-playbook` -- Review patterns, conventional comments
 - `security-scanning` -- OWASP, secrets, dependencies
 - `type-safety-validation` -- Zod, TypeScript strict
-- `testing-patterns` -- Test adequacy, coverage gaps, rule matching
+- `testing-unit`, `testing-e2e`, `testing-integration` -- Test adequacy, coverage gaps, rule matching
 
 ## Phase 3: Parallel Code Review (6 Agents)
 

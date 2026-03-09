@@ -63,7 +63,7 @@ model: opus              # Model override
 
 **Model invocation guide:**
 - `disable-model-invocation: true` (default) — Skill only loads via `/ork:name` slash command. Use for workflow skills that orchestrate subagents (implement, verify, review-pr).
-- `disable-model-invocation: false` — CC auto-selects the skill when the user's prompt matches the `description`. Use for knowledge/reference skills (api-design, security-patterns, testing-patterns) that should activate contextually without requiring a slash command.
+- `disable-model-invocation: false` — CC auto-selects the skill when the user's prompt matches the `description`. Use for knowledge/reference skills (api-design, security-patterns, testing-unit) that should activate contextually without requiring a slash command.
 
 ### Skill-Scoped Hooks
 

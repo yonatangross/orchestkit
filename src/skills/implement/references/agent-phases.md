@@ -274,7 +274,7 @@ Agent(
   - LLM/AI      → Unit + Eval (rules: llm-evaluation, llm-mocking)
   - Full-stack   → All of the above
 
-  Follow the testing-patterns skill rules for each test type.
+  Follow the testing-unit/testing-e2e/testing-integration skill rules for each test type.
 
   Generate ALL tests in ONE response:
 
@@ -330,7 +330,7 @@ Grep(pattern="testcontainers|docker-compose", glob="requirements*.txt")
 Grep(pattern="testcontainers|docker-compose", glob="package.json")
 ```
 
-If detected, run integration tests against real services (not just mocks). Reference `testing-patterns` rules: `integration-database`, `integration-api`, `data-seeding-cleanup`.
+If detected, run integration tests against real services (not just mocks). Reference `testing-integration` rules: `integration-database`, `integration-api`, `data-seeding-cleanup`.
 
 ### Validation Commands
 
