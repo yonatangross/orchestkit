@@ -8,7 +8,7 @@
  * Version: 2.0.0 (spawn + detach for reliable playback)
  */
 
-import { execSync, spawn } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook } from '../lib/common.js';
 
@@ -34,7 +34,7 @@ let _hasAfplay: boolean | null = null;
 function hasAfplay(): boolean {
   if (_hasAfplay !== null) return _hasAfplay;
   try {
-    execSync('command -v afplay', { stdio: 'ignore' });
+    execFileSync('which', ['afplay'], { stdio: 'ignore' });
     _hasAfplay = true;
   } catch {
     _hasAfplay = false;
@@ -53,7 +53,7 @@ function getLinuxPlayer(): string | null {
   if (_linuxPlayer !== undefined) return _linuxPlayer;
   for (const player of ['pw-play', 'paplay', 'aplay']) {
     try {
-      execSync(`command -v ${player}`, { stdio: 'ignore' });
+      execFileSync('which', [player], { stdio: 'ignore' });
       _linuxPlayer = player;
       return player;
     } catch {

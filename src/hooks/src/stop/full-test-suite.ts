@@ -6,7 +6,7 @@
  */
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, getProjectDir, outputSilentSuccess } from '../lib/common.js';
 
@@ -23,7 +23,7 @@ function shouldRunTests(projectDir: string): boolean {
 
   // Check if any code files changed since last run
   try {
-    const result = execSync('git diff --name-only HEAD', {
+    const result = execFileSync('git', ['diff', '--name-only', 'HEAD'], {
       cwd: projectDir,
       encoding: 'utf8',
       timeout: 5000,
@@ -56,7 +56,7 @@ function runTests(projectDir: string, _logFile: string): boolean {
   ) {
     logHook('full-test-suite', 'Detected Python project, running pytest...');
     try {
-      execSync('pytest --tb=short --timeout=300 -q', {
+      execFileSync('pytest', ['--tb=short', '--timeout=300', '-q'], {
         cwd: projectDir,
         encoding: 'utf8',
         timeout: 300000,
@@ -76,20 +76,23 @@ function runTests(projectDir: string, _logFile: string): boolean {
         logHook('full-test-suite', 'Running npm test...');
 
         // Try different package managers
-        let cmd = 'npm test -- --passWithNoTests --watchAll=false';
+        let testCmd = 'npm';
+        let testArgs = ['test', '--', '--passWithNoTests', '--watchAll=false'];
         try {
-          execSync('which pnpm', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
-          cmd = 'pnpm test --passWithNoTests';
+          execFileSync('which', ['pnpm'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
+          testCmd = 'pnpm';
+          testArgs = ['test', '--passWithNoTests'];
         } catch {
           try {
-            execSync('which yarn', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
-            cmd = 'yarn test --passWithNoTests';
+            execFileSync('which', ['yarn'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
+            testCmd = 'yarn';
+            testArgs = ['test', '--passWithNoTests'];
           } catch {
             // Use npm
           }
         }
 
-        execSync(cmd, {
+        execFileSync(testCmd, testArgs, {
           cwd: projectDir,
           encoding: 'utf8',
           timeout: 300000,
@@ -105,7 +108,7 @@ function runTests(projectDir: string, _logFile: string): boolean {
   if (existsSync(`${projectDir}/go.mod`)) {
     logHook('full-test-suite', 'Detected Go project, running go test...');
     try {
-      execSync('go test -v -timeout 5m ./...', {
+      execFileSync('go', ['test', '-v', '-timeout', '5m', './...'], {
         cwd: projectDir,
         encoding: 'utf8',
         timeout: 300000,
@@ -120,7 +123,7 @@ function runTests(projectDir: string, _logFile: string): boolean {
   if (existsSync(`${projectDir}/Cargo.toml`)) {
     logHook('full-test-suite', 'Detected Rust project, running cargo test...');
     try {
-      execSync('cargo test', {
+      execFileSync('cargo', ['test'], {
         cwd: projectDir,
         encoding: 'utf8',
         timeout: 300000,

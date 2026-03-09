@@ -35,7 +35,6 @@ vi.mock('../../lib/common.js', async () => {
 });
 
 vi.mock('node:child_process', () => ({
-  execSync: vi.fn(),
   execFileSync: vi.fn(() => ''),
   spawn: mockSpawn,
 }));
@@ -50,7 +49,7 @@ import {
   _resetLinuxPlayerCacheForTesting,
 } from '../../notification/sound.js';
 import { outputSilentSuccess, logHook } from '../../lib/common.js';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 
 // =============================================================================
 // Test Utilities
@@ -90,8 +89,9 @@ describe('notification/sound', () => {
     _resetAfplayCacheForTesting();
     _resetLinuxPlayerCacheForTesting();
     // Default: afplay is available
-    vi.mocked(execSync).mockImplementation((cmd: string) => {
-      if (cmd === 'command -v afplay') return Buffer.from('/usr/bin/afplay');
+    vi.mocked(execFileSync).mockImplementation((cmd: unknown, args: unknown) => {
+      const argStr = (args as string[])?.join(' ') ?? '';
+      if (cmd === 'which' && argStr.includes('afplay')) return Buffer.from('/usr/bin/afplay');
       return Buffer.from('');
     });
     mockSpawn.mockReturnValue({ unref: mockUnref });
@@ -168,7 +168,7 @@ describe('notification/sound', () => {
   // ---------------------------------------------------------------------------
 
   describe('afplay availability', () => {
-    test('checks for afplay via command -v', () => {
+    test('checks for afplay via which', () => {
       // Arrange
       const input = createSoundInput('permission_prompt');
 
@@ -176,13 +176,13 @@ describe('notification/sound', () => {
       soundNotification(input);
 
       // Assert
-      expect(execSync).toHaveBeenCalledWith('command -v afplay', { stdio: 'ignore' });
+      expect(execFileSync).toHaveBeenCalledWith('which', ['afplay'], { stdio: 'ignore' });
     });
 
     test('does not play sound when afplay is not available (and no Linux player)', () => {
       // Arrange - afplay missing AND no Linux players available
-      vi.mocked(execSync).mockImplementation((cmd: string) => {
-        throw new Error(`not found: ${cmd}`);
+      vi.mocked(execFileSync).mockImplementation(() => {
+        throw new Error('not found');
       });
       const input = createSoundInput('permission_prompt');
 
@@ -281,7 +281,7 @@ describe('notification/sound', () => {
 
     test('does not call unref when afplay is unavailable', () => {
       // Arrange
-      vi.mocked(execSync).mockImplementation(() => {
+      vi.mocked(execFileSync).mockImplementation(() => {
         throw new Error('not found');
       });
       const input = createSoundInput('permission_prompt');
@@ -431,7 +431,7 @@ describe('notification/sound', () => {
 
     test('never blocks execution', () => {
       // Arrange
-      vi.mocked(execSync).mockImplementation(() => {
+      vi.mocked(execFileSync).mockImplementation(() => {
         throw new Error('total failure');
       });
       const input = createSoundInput('permission_prompt');
@@ -469,9 +469,9 @@ describe('notification/sound', () => {
       soundNotification(input);
       soundNotification(input);
 
-      // Assert - command -v afplay should only be called once (cached)
-      const checkCalls = vi.mocked(execSync).mock.calls.filter(
-        ([cmd]) => cmd === 'command -v afplay',
+      // Assert - which afplay should only be called once (cached)
+      const checkCalls = vi.mocked(execFileSync).mock.calls.filter(
+        ([cmd, args]) => cmd === 'which' && (args as string[])?.[0] === 'afplay',
       );
       expect(checkCalls).toHaveLength(1);
     });
@@ -485,9 +485,9 @@ describe('notification/sound', () => {
       _resetAfplayCacheForTesting();
       soundNotification(input);
 
-      // Assert - command -v afplay called twice (once before reset, once after)
-      const checkCalls = vi.mocked(execSync).mock.calls.filter(
-        ([cmd]) => cmd === 'command -v afplay',
+      // Assert - which afplay called twice (once before reset, once after)
+      const checkCalls = vi.mocked(execFileSync).mock.calls.filter(
+        ([cmd, args]) => cmd === 'which' && (args as string[])?.[0] === 'afplay',
       );
       expect(checkCalls).toHaveLength(2);
     });
@@ -556,9 +556,10 @@ describe('notification/sound', () => {
   describe('Linux sound player support', () => {
     beforeEach(() => {
       // Simulate non-macOS: afplay not found
-      vi.mocked(execSync).mockImplementation((cmd: string) => {
-        if (cmd === 'command -v afplay') throw new Error('not found');
-        if (cmd === 'command -v pw-play') return Buffer.from('/usr/bin/pw-play');
+      vi.mocked(execFileSync).mockImplementation((cmd: unknown, args: unknown) => {
+        const argStr = (args as string[])?.join(' ') ?? '';
+        if (cmd === 'which' && argStr.includes('afplay')) throw new Error('not found');
+        if (cmd === 'which' && argStr.includes('pw-play')) return Buffer.from('/usr/bin/pw-play');
         return Buffer.from('');
       });
     });
@@ -580,10 +581,11 @@ describe('notification/sound', () => {
 
     test('falls back to paplay when pw-play unavailable', () => {
       // Arrange - pw-play missing, paplay available
-      vi.mocked(execSync).mockImplementation((cmd: string) => {
-        if (cmd === 'command -v afplay') throw new Error('not found');
-        if (cmd === 'command -v pw-play') throw new Error('not found');
-        if (cmd === 'command -v paplay') return Buffer.from('/usr/bin/paplay');
+      vi.mocked(execFileSync).mockImplementation((cmd: unknown, args: unknown) => {
+        const argStr = (args as string[])?.join(' ') ?? '';
+        if (cmd === 'which' && argStr.includes('afplay')) throw new Error('not found');
+        if (cmd === 'which' && argStr.includes('pw-play')) throw new Error('not found');
+        if (cmd === 'which' && argStr.includes('paplay')) return Buffer.from('/usr/bin/paplay');
         return Buffer.from('');
       });
       const input = createSoundInput('permission_prompt');
@@ -601,11 +603,12 @@ describe('notification/sound', () => {
 
     test('falls back to aplay when pw-play and paplay unavailable', () => {
       // Arrange - only aplay available
-      vi.mocked(execSync).mockImplementation((cmd: string) => {
-        if (cmd === 'command -v afplay') throw new Error('not found');
-        if (cmd === 'command -v pw-play') throw new Error('not found');
-        if (cmd === 'command -v paplay') throw new Error('not found');
-        if (cmd === 'command -v aplay') return Buffer.from('/usr/bin/aplay');
+      vi.mocked(execFileSync).mockImplementation((cmd: unknown, args: unknown) => {
+        const argStr = (args as string[])?.join(' ') ?? '';
+        if (cmd === 'which' && argStr.includes('afplay')) throw new Error('not found');
+        if (cmd === 'which' && argStr.includes('pw-play')) throw new Error('not found');
+        if (cmd === 'which' && argStr.includes('paplay')) throw new Error('not found');
+        if (cmd === 'which' && argStr.includes('aplay')) return Buffer.from('/usr/bin/aplay');
         return Buffer.from('');
       });
       const input = createSoundInput('permission_prompt');
@@ -668,8 +671,8 @@ describe('notification/sound', () => {
 
     test('no sound when no Linux player available', () => {
       // Arrange - afplay AND all Linux players missing
-      vi.mocked(execSync).mockImplementation((cmd: string) => {
-        throw new Error(`not found: ${cmd}`);
+      vi.mocked(execFileSync).mockImplementation(() => {
+        throw new Error('not found');
       });
       const input = createSoundInput('permission_prompt');
 
@@ -689,8 +692,8 @@ describe('notification/sound', () => {
       soundNotification(input);
 
       // Assert - pw-play check only happens once (cached)
-      const pwPlayChecks = vi.mocked(execSync).mock.calls.filter(
-        ([cmd]) => cmd === 'command -v pw-play',
+      const pwPlayChecks = vi.mocked(execFileSync).mock.calls.filter(
+        ([cmd, args]) => cmd === 'which' && (args as string[])?.[0] === 'pw-play',
       );
       expect(pwPlayChecks).toHaveLength(1);
     });
@@ -705,8 +708,8 @@ describe('notification/sound', () => {
       soundNotification(input);
 
       // Assert - pw-play check runs twice (once before reset, once after)
-      const pwPlayChecks = vi.mocked(execSync).mock.calls.filter(
-        ([cmd]) => cmd === 'command -v pw-play',
+      const pwPlayChecks = vi.mocked(execFileSync).mock.calls.filter(
+        ([cmd, args]) => cmd === 'which' && (args as string[])?.[0] === 'pw-play',
       );
       expect(pwPlayChecks).toHaveLength(2);
     });
@@ -788,9 +791,10 @@ describe('notification/sound', () => {
 
     test('uses ORK_SOUND_PERMISSION_PROMPT on Linux', () => {
       // Arrange - afplay missing, pw-play available
-      vi.mocked(execSync).mockImplementation((cmd: string) => {
-        if (cmd === 'command -v afplay') throw new Error('not found');
-        if (cmd === 'command -v pw-play') return Buffer.from('/usr/bin/pw-play');
+      vi.mocked(execFileSync).mockImplementation((cmd: unknown, args: unknown) => {
+        const argStr = (args as string[])?.join(' ') ?? '';
+        if (cmd === 'which' && argStr.includes('afplay')) throw new Error('not found');
+        if (cmd === 'which' && argStr.includes('pw-play')) return Buffer.from('/usr/bin/pw-play');
         return Buffer.from('');
       });
       process.env.ORK_SOUND_PERMISSION_PROMPT = '/custom/linux-alert.oga';

@@ -38,7 +38,6 @@ vi.mock('../../lib/common.js', async () => {
 });
 
 vi.mock('node:child_process', () => ({
-  execSync: vi.fn(),
   execFileSync: vi.fn(() => ''),
   spawn: mockSpawn,
 }));
@@ -54,7 +53,7 @@ vi.mock('node:path', async () => {
 
 import { desktopNotification, _resetCommandCacheForTesting } from '../../notification/desktop.js';
 import { outputSilentSuccess, getProjectDir, getCachedBranch } from '../../lib/common.js';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 
 // =============================================================================
 // Test Utilities
@@ -96,11 +95,12 @@ describe('notification/desktop', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     _resetCommandCacheForTesting();
-    // execSync is only used for `command -v` checks in hasCommand.
+    // execFileSync is only used for `which` checks in hasCommand.
     // Actual notifications now go through spawn.
-    vi.mocked(execSync).mockImplementation((cmd: string) => {
-      if (cmd === 'command -v osascript') return Buffer.from('/usr/bin/osascript');
-      if (cmd === 'command -v notify-send') throw new Error('not found');
+    vi.mocked(execFileSync).mockImplementation((cmd: unknown, args: unknown) => {
+      const argStr = (args as string[])?.join(' ') ?? '';
+      if (cmd === 'which' && argStr.includes('osascript')) return Buffer.from('/usr/bin/osascript');
+      if (cmd === 'which' && argStr.includes('notify-send')) throw new Error('not found');
       return Buffer.from('');
     });
     mockSpawn.mockReturnValue({ unref: mockUnref });
@@ -309,8 +309,9 @@ describe('notification/desktop', () => {
 
   describe('platform detection', () => {
     test('sends macOS notification when osascript is available', async () => {
-      vi.mocked(execSync).mockImplementation((cmd: string) => {
-        if (cmd === 'command -v osascript') return Buffer.from('/usr/bin/osascript');
+      vi.mocked(execFileSync).mockImplementation((cmd: unknown, args: unknown) => {
+        const argStr = (args as string[])?.join(' ') ?? '';
+        if (cmd === 'which' && argStr.includes('osascript')) return Buffer.from('/usr/bin/osascript');
         throw new Error('not found');
       });
       await desktopNotification(createNotificationInput('permission_prompt'));
@@ -318,9 +319,10 @@ describe('notification/desktop', () => {
     });
 
     test('sends Linux notification when only notify-send is available', async () => {
-      vi.mocked(execSync).mockImplementation((cmd: string) => {
-        if (cmd === 'command -v osascript') throw new Error('not found');
-        if (cmd === 'command -v notify-send') return Buffer.from('/usr/bin/notify-send');
+      vi.mocked(execFileSync).mockImplementation((cmd: unknown, args: unknown) => {
+        const argStr = (args as string[])?.join(' ') ?? '';
+        if (cmd === 'which' && argStr.includes('osascript')) throw new Error('not found');
+        if (cmd === 'which' && argStr.includes('notify-send')) return Buffer.from('/usr/bin/notify-send');
         return Buffer.from('');
       });
       await desktopNotification(createNotificationInput('permission_prompt'));
@@ -328,9 +330,10 @@ describe('notification/desktop', () => {
     });
 
     test('prefers osascript over notify-send when both available', async () => {
-      vi.mocked(execSync).mockImplementation((cmd: string) => {
-        if (cmd === 'command -v osascript') return Buffer.from('/usr/bin/osascript');
-        if (cmd === 'command -v notify-send') return Buffer.from('/usr/bin/notify-send');
+      vi.mocked(execFileSync).mockImplementation((cmd: unknown, args: unknown) => {
+        const argStr = (args as string[])?.join(' ') ?? '';
+        if (cmd === 'which' && argStr.includes('osascript')) return Buffer.from('/usr/bin/osascript');
+        if (cmd === 'which' && argStr.includes('notify-send')) return Buffer.from('/usr/bin/notify-send');
         return Buffer.from('');
       });
       await desktopNotification(createNotificationInput('permission_prompt'));
@@ -339,7 +342,7 @@ describe('notification/desktop', () => {
     });
 
     test('no notification sent when neither osascript nor notify-send available', async () => {
-      vi.mocked(execSync).mockImplementation(() => { throw new Error('not found'); });
+      vi.mocked(execFileSync).mockImplementation(() => { throw new Error('not found'); });
       const result = await desktopNotification(createNotificationInput('permission_prompt'));
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
@@ -353,8 +356,9 @@ describe('notification/desktop', () => {
 
   describe('error handling', () => {
     test('returns silentSuccess when osascript spawn throws', async () => {
-      vi.mocked(execSync).mockImplementation((cmd: string) => {
-        if (cmd === 'command -v osascript') return Buffer.from('/usr/bin/osascript');
+      vi.mocked(execFileSync).mockImplementation((cmd: unknown, args: unknown) => {
+        const argStr = (args as string[])?.join(' ') ?? '';
+        if (cmd === 'which' && argStr.includes('osascript')) return Buffer.from('/usr/bin/osascript');
         throw new Error('not found');
       });
       mockSpawn.mockImplementationOnce(() => { throw new Error('spawn failed'); });
@@ -364,9 +368,10 @@ describe('notification/desktop', () => {
     });
 
     test('returns silentSuccess when notify-send spawn throws', async () => {
-      vi.mocked(execSync).mockImplementation((cmd: string) => {
-        if (cmd === 'command -v osascript') throw new Error('not found');
-        if (cmd === 'command -v notify-send') return Buffer.from('/usr/bin/notify-send');
+      vi.mocked(execFileSync).mockImplementation((cmd: unknown, args: unknown) => {
+        const argStr = (args as string[])?.join(' ') ?? '';
+        if (cmd === 'which' && argStr.includes('osascript')) throw new Error('not found');
+        if (cmd === 'which' && argStr.includes('notify-send')) return Buffer.from('/usr/bin/notify-send');
         return Buffer.from('');
       });
       mockSpawn.mockImplementationOnce(() => { throw new Error('spawn failed'); });
@@ -402,7 +407,7 @@ describe('notification/desktop', () => {
     });
 
     test('never blocks execution even on internal errors', async () => {
-      vi.mocked(execSync).mockImplementation(() => { throw new Error('catastrophic failure'); });
+      vi.mocked(execFileSync).mockImplementation(() => { throw new Error('catastrophic failure'); });
       const result = await desktopNotification(createNotificationInput('permission_prompt'));
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
@@ -470,8 +475,8 @@ describe('notification/desktop', () => {
       const input = createNotificationInput('permission_prompt');
       await desktopNotification(input);
       await desktopNotification(input);
-      const checkCalls = vi.mocked(execSync).mock.calls.filter(
-        ([cmd]) => cmd === 'command -v osascript',
+      const checkCalls = vi.mocked(execFileSync).mock.calls.filter(
+        ([cmd, args]) => cmd === 'which' && (args as string[])?.[0] === 'osascript',
       );
       expect(checkCalls).toHaveLength(1);
     });
@@ -481,8 +486,8 @@ describe('notification/desktop', () => {
       await desktopNotification(input);
       _resetCommandCacheForTesting();
       await desktopNotification(input);
-      const checkCalls = vi.mocked(execSync).mock.calls.filter(
-        ([cmd]) => cmd === 'command -v osascript',
+      const checkCalls = vi.mocked(execFileSync).mock.calls.filter(
+        ([cmd, args]) => cmd === 'which' && (args as string[])?.[0] === 'osascript',
       );
       expect(checkCalls).toHaveLength(2);
     });

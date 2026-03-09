@@ -10,7 +10,7 @@
  */
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
-import { execFileSync, execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import type { HookInput, HookResult } from '../../types.js';
 import { outputSilentSuccess, getField, getSessionId, logHook } from '../../lib/common.js';
 import { getSessionTempDir } from '../../lib/paths.js';
@@ -76,10 +76,19 @@ function extractIssueFromCommit(message: string): string | null {
  */
 function getCurrentBranch(): string {
   try {
-    return execSync('git branch --show-current 2>/dev/null || git rev-parse --abbrev-ref HEAD 2>/dev/null', {
-      encoding: 'utf8',
-      timeout: 5000,
-    }).trim();
+    try {
+      return execFileSync('git', ['branch', '--show-current'], {
+        encoding: 'utf8',
+        timeout: 5000,
+        stdio: ['pipe', 'pipe', 'pipe'],
+      }).trim();
+    } catch {
+      return execFileSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], {
+        encoding: 'utf8',
+        timeout: 5000,
+        stdio: ['pipe', 'pipe', 'pipe'],
+      }).trim();
+    }
   } catch {
     return '';
   }
@@ -90,19 +99,22 @@ function getCurrentBranch(): string {
  */
 function getLatestCommit(): CommitInfo | null {
   try {
-    const sha = execSync('git rev-parse --short HEAD 2>/dev/null', {
+    const sha = execFileSync('git', ['rev-parse', '--short', 'HEAD'], {
       encoding: 'utf8',
       timeout: 5000,
+      stdio: ['pipe', 'pipe', 'pipe'],
     }).trim();
 
-    const message = execSync('git log -1 --pretty=%s 2>/dev/null', {
+    const message = execFileSync('git', ['log', '-1', '--pretty=%s'], {
       encoding: 'utf8',
       timeout: 5000,
+      stdio: ['pipe', 'pipe', 'pipe'],
     }).trim();
 
-    const timestamp = execSync('git log -1 --pretty=%cI 2>/dev/null', {
+    const timestamp = execFileSync('git', ['log', '-1', '--pretty=%cI'], {
       encoding: 'utf8',
       timeout: 5000,
+      stdio: ['pipe', 'pipe', 'pipe'],
     }).trim() || new Date().toISOString();
 
     return { sha, message, timestamp };
@@ -189,7 +201,7 @@ export function issueProgressCommenter(input: HookInput): HookResult {
 
   // Check if gh CLI is available
   try {
-    execSync('which gh', { stdio: 'ignore', timeout: 2000 });
+    execFileSync('which', ['gh'], { stdio: 'ignore', timeout: 2000 });
   } catch {
     logHook('issue-progress-commenter', 'gh CLI not available, skipping issue progress tracking');
     return outputSilentSuccess();
@@ -197,9 +209,10 @@ export function issueProgressCommenter(input: HookInput): HookResult {
 
   // Check if we're in a git repo with GitHub remote
   try {
-    const remote = execSync('git remote get-url origin 2>/dev/null', {
+    const remote = execFileSync('git', ['remote', 'get-url', 'origin'], {
       encoding: 'utf8',
       timeout: 5000,
+      stdio: ['pipe', 'pipe', 'pipe'],
     });
     if (!remote.includes('github')) {
       logHook('issue-progress-commenter', 'Not a GitHub repository, skipping');
@@ -222,9 +235,10 @@ export function issueProgressCommenter(input: HookInput): HookResult {
   // If not found in branch, try commit message
   if (!issueNum) {
     try {
-      const commitMsg = execSync('git log -1 --pretty=%s 2>/dev/null', {
+      const commitMsg = execFileSync('git', ['log', '-1', '--pretty=%s'], {
         encoding: 'utf8',
         timeout: 5000,
+        stdio: ['pipe', 'pipe', 'pipe'],
       }).trim();
       issueNum = extractIssueFromCommit(commitMsg);
     } catch {

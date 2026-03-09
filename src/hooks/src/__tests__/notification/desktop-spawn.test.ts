@@ -41,7 +41,6 @@ vi.mock('../../lib/common.js', async () => {
 });
 
 vi.mock('node:child_process', () => ({
-  execSync: vi.fn(),
   execFileSync: vi.fn(() => ''),
   spawn: mockSpawn,
 }));
@@ -56,7 +55,7 @@ vi.mock('node:path', async () => {
 // =============================================================================
 
 import { desktopNotification, _resetCommandCacheForTesting } from '../../notification/desktop.js';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 
 // =============================================================================
 // Test Utilities
@@ -81,10 +80,11 @@ describe('notification/desktop — spawn behavior', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     _resetCommandCacheForTesting();
-    // execSync only used for `command -v` availability checks
-    vi.mocked(execSync).mockImplementation((cmd: string) => {
-      if (cmd === 'command -v osascript') return Buffer.from('/usr/bin/osascript');
-      if (cmd === 'command -v notify-send') throw new Error('not found');
+    // execFileSync used for `which` availability checks
+    vi.mocked(execFileSync).mockImplementation((cmd: unknown, args: unknown) => {
+      const argStr = (args as string[])?.join(' ') ?? '';
+      if (cmd === 'which' && argStr.includes('osascript')) return Buffer.from('/usr/bin/osascript');
+      if (cmd === 'which' && argStr.includes('notify-send')) throw new Error('not found');
       return Buffer.from('');
     });
     mockSpawn.mockReturnValue({ unref: mockUnref });
@@ -136,9 +136,10 @@ describe('notification/desktop — spawn behavior', () => {
     });
 
     test('spawns notify-send with detached: true on Linux', async () => {
-      vi.mocked(execSync).mockImplementation((cmd: string) => {
-        if (cmd === 'command -v osascript') throw new Error('not found');
-        if (cmd === 'command -v notify-send') return Buffer.from('/usr/bin/notify-send');
+      vi.mocked(execFileSync).mockImplementation((cmd: unknown, args: unknown) => {
+        const argStr = (args as string[])?.join(' ') ?? '';
+        if (cmd === 'which' && argStr.includes('osascript')) throw new Error('not found');
+        if (cmd === 'which' && argStr.includes('notify-send')) return Buffer.from('/usr/bin/notify-send');
         return Buffer.from('');
       });
       await desktopNotification(createNotificationInput('permission_prompt'));
@@ -148,9 +149,10 @@ describe('notification/desktop — spawn behavior', () => {
     });
 
     test('calls unref on spawned notify-send child process', async () => {
-      vi.mocked(execSync).mockImplementation((cmd: string) => {
-        if (cmd === 'command -v osascript') throw new Error('not found');
-        if (cmd === 'command -v notify-send') return Buffer.from('/usr/bin/notify-send');
+      vi.mocked(execFileSync).mockImplementation((cmd: unknown, args: unknown) => {
+        const argStr = (args as string[])?.join(' ') ?? '';
+        if (cmd === 'which' && argStr.includes('osascript')) throw new Error('not found');
+        if (cmd === 'which' && argStr.includes('notify-send')) return Buffer.from('/usr/bin/notify-send');
         return Buffer.from('');
       });
       await desktopNotification(createNotificationInput('permission_prompt'));
@@ -158,9 +160,10 @@ describe('notification/desktop — spawn behavior', () => {
     });
 
     test('passes title and message as separate argv items to notify-send', async () => {
-      vi.mocked(execSync).mockImplementation((cmd: string) => {
-        if (cmd === 'command -v osascript') throw new Error('not found');
-        if (cmd === 'command -v notify-send') return Buffer.from('/usr/bin/notify-send');
+      vi.mocked(execFileSync).mockImplementation((cmd: unknown, args: unknown) => {
+        const argStr = (args as string[])?.join(' ') ?? '';
+        if (cmd === 'which' && argStr.includes('osascript')) throw new Error('not found');
+        if (cmd === 'which' && argStr.includes('notify-send')) return Buffer.from('/usr/bin/notify-send');
         return Buffer.from('');
       });
       await desktopNotification(createNotificationInput('permission_prompt'));

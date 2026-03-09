@@ -10,7 +10,7 @@
  */
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
-import { execFileSync, execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import type { HookInput, HookResult } from '../../types.js';
 import { outputSilentSuccess, getField, getSessionId, logHook } from '../../lib/common.js';
 import { getSessionTempDir } from '../../lib/paths.js';
@@ -237,7 +237,7 @@ export function issueSubtaskUpdater(input: HookInput): HookResult {
 
   // Check if gh CLI is available
   try {
-    execSync('which gh', { stdio: 'ignore', timeout: 2000 });
+    execFileSync('which', ['gh'], { stdio: 'ignore', timeout: 2000 });
   } catch {
     logHook('issue-subtask-updater', 'gh CLI not available, skipping subtask updates');
     return outputSilentSuccess();
@@ -245,9 +245,10 @@ export function issueSubtaskUpdater(input: HookInput): HookResult {
 
   // Check if we're in a git repo with GitHub remote
   try {
-    const remote = execSync('git remote get-url origin 2>/dev/null', {
+    const remote = execFileSync('git', ['remote', 'get-url', 'origin'], {
       encoding: 'utf8',
       timeout: 5000,
+      stdio: ['pipe', 'pipe', 'pipe'],
     });
     if (!remote.includes('github')) {
       logHook('issue-subtask-updater', 'Not a GitHub repository, skipping');
@@ -262,14 +263,16 @@ export function issueSubtaskUpdater(input: HookInput): HookResult {
   let commitMsg = '';
 
   try {
-    branch = execSync('git branch --show-current 2>/dev/null', {
+    branch = execFileSync('git', ['branch', '--show-current'], {
       encoding: 'utf8',
       timeout: 5000,
+      stdio: ['pipe', 'pipe', 'pipe'],
     }).trim();
 
-    commitMsg = execSync('git log -1 --pretty=%s 2>/dev/null', {
+    commitMsg = execFileSync('git', ['log', '-1', '--pretty=%s'], {
       encoding: 'utf8',
       timeout: 5000,
+      stdio: ['pipe', 'pipe', 'pipe'],
     }).trim();
   } catch {
     return outputSilentSuccess();

@@ -8,7 +8,7 @@
  * Version: 2.0.0
  */
 
-import { execSync, spawn } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
 import { basename } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook, getProjectDir, getCachedBranch } from '../lib/common.js';
@@ -37,7 +37,7 @@ function hasCommand(command: string): boolean {
   if (cached !== undefined) return cached;
   try {
     assertSafeCommandName(command);
-    execSync(`command -v ${command}`, { stdio: 'ignore' });
+    execFileSync('which', [command], { stdio: 'ignore' });
     _commandCache.set(command, true);
     return true;
   } catch {

@@ -13,7 +13,7 @@
 
 import { existsSync, mkdirSync, readdirSync, chmodSync, } from 'node:fs';
 import { atomicWriteSync } from '../lib/atomic-write.js';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, getPluginRoot, outputWithContext, } from '../lib/common.js';
 
@@ -59,7 +59,7 @@ function detectEnvironment(): EnvironmentInfo {
 
   // Detect Python version
   try {
-    const result = execSync('python3 --version', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
+    const result = execFileSync('python3', ['--version'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
     const match = result.match(/(\d+\.\d+)/);
     if (match) {
       envInfo.python = match[1];
@@ -71,7 +71,7 @@ function detectEnvironment(): EnvironmentInfo {
 
   // Detect Node.js version
   try {
-    const result = execSync('node --version', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
+    const result = execFileSync('node', ['--version'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
     const match = result.match(/(\d+\.\d+)/);
     if (match) {
       envInfo.nodejs = match[1];
@@ -83,7 +83,7 @@ function detectEnvironment(): EnvironmentInfo {
 
   // Detect Git
   try {
-    execSync('which git', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
+    execFileSync('which', ['git'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
     envInfo.git = true;
     logHook('first-run-setup', 'Git: available');
   } catch {
@@ -92,7 +92,7 @@ function detectEnvironment(): EnvironmentInfo {
 
   // Detect Docker
   try {
-    execSync('which docker', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
+    execFileSync('which', ['docker'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
     envInfo.docker = true;
     logHook('first-run-setup', 'Docker: available');
   } catch {
@@ -101,7 +101,7 @@ function detectEnvironment(): EnvironmentInfo {
 
   // Detect SQLite3
   try {
-    execSync('which sqlite3', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
+    execFileSync('which', ['sqlite3'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
     envInfo.sqlite3 = true;
     logHook('first-run-setup', 'SQLite3: available (multi-instance coordination enabled)');
   } catch {
@@ -122,21 +122,21 @@ function validateDependencies(): { valid: boolean; missing: string[]; warnings: 
 
   // Required: jq
   try {
-    execSync('which jq', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
+    execFileSync('which', ['jq'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
   } catch {
     missing.push('jq (required for JSON processing)');
   }
 
   // Optional: sqlite3
   try {
-    execSync('which sqlite3', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
+    execFileSync('which', ['sqlite3'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
   } catch {
     warnings.push('sqlite3 not found - multi-instance coordination disabled');
   }
 
   // Optional: anthropic SDK
   try {
-    execSync('python3 -c "import anthropic"', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
+    execFileSync('python3', ['-c', 'import anthropic'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
     logHook('first-run-setup', 'Anthropic SDK: available (Memory Fabric Agent enabled)');
   } catch {
     warnings.push('anthropic SDK not found - Memory Fabric Agent will use fallback mode');

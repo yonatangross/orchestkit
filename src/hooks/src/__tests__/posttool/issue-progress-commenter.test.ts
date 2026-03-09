@@ -12,10 +12,8 @@ vi.mock('node:fs', () => ({
   mkdirSync: (...args: unknown[]) => mockMkdirSync(...args),
 }));
 
-const mockExecSync = vi.fn();
 const mockExecFileSync = vi.fn();
 vi.mock('node:child_process', () => ({
-  execSync: (...args: unknown[]) => mockExecSync(...args),
   execFileSync: (...args: unknown[]) => mockExecFileSync(...args),
 }));
 
@@ -63,18 +61,17 @@ describe('issueProgressCommenter', () => {
     vi.clearAllMocks();
     mockExistsSync.mockReturnValue(false);
     // Default: gh exists, github remote, on issue branch
-    mockExecSync.mockImplementation((cmd: string) => {
-      if (typeof cmd === 'string' && cmd.includes('which gh')) return '/usr/local/bin/gh';
-      if (typeof cmd === 'string' && cmd.includes('git remote')) return 'git@github.com:user/repo.git';
-      if (typeof cmd === 'string' && cmd.includes('git branch --show-current')) return 'fix/123-login-bug';
-      if (typeof cmd === 'string' && cmd.includes('git rev-parse --short')) return 'abc1234';
-      if (typeof cmd === 'string' && cmd.includes('git log -1 --pretty=%s')) return 'fix(#123): resolve login bug';
-      if (typeof cmd === 'string' && cmd.includes('git log -1 --pretty=%cI')) return '2026-01-15T10:00:00Z';
-      if (typeof cmd === 'string' && cmd.includes('gh issue view')) return '{"number": 123}';
+    mockExecFileSync.mockImplementation((cmd: unknown, args: unknown) => {
+      const argStr = (args as string[])?.join(' ') ?? '';
+      if (cmd === 'which' && argStr.includes('gh')) return '/usr/local/bin/gh';
+      if (cmd === 'git' && argStr.includes('remote')) return 'git@github.com:user/repo.git';
+      if (cmd === 'git' && argStr.includes('branch --show-current')) return 'fix/123-login-bug';
+      if (cmd === 'git' && argStr.includes('rev-parse --short')) return 'abc1234';
+      if (cmd === 'git' && argStr.includes('log -1 --pretty=%s')) return 'fix(#123): resolve login bug';
+      if (cmd === 'git' && argStr.includes('log -1 --pretty=%cI')) return '2026-01-15T10:00:00Z';
+      if (cmd === 'gh' && argStr.includes('issue view')) return '{"number": 123}';
       return '';
     });
-    // execFileSync is used for gh issue view (command injection fix)
-    mockExecFileSync.mockReturnValue('{"number": 123}');
   });
 
   it('returns silent success for non-Bash tools', () => {
@@ -115,8 +112,9 @@ describe('issueProgressCommenter', () => {
   });
 
   it('skips when gh CLI is not available', () => {
-    mockExecSync.mockImplementation((cmd: string) => {
-      if (typeof cmd === 'string' && cmd.includes('which gh')) throw new Error('not found');
+    mockExecFileSync.mockImplementation((cmd: unknown, args: unknown) => {
+      const argStr = (args as string[])?.join(' ') ?? '';
+      if (cmd === 'which' && argStr.includes('gh')) throw new Error('not found');
       return '';
     });
     const result = issueProgressCommenter(makeInput());
@@ -125,9 +123,10 @@ describe('issueProgressCommenter', () => {
   });
 
   it('skips when remote is not a GitHub repository', () => {
-    mockExecSync.mockImplementation((cmd: string) => {
-      if (typeof cmd === 'string' && cmd.includes('which gh')) return '/usr/local/bin/gh';
-      if (typeof cmd === 'string' && cmd.includes('git remote')) return 'git@gitlab.com:user/repo.git';
+    mockExecFileSync.mockImplementation((cmd: unknown, args: unknown) => {
+      const argStr = (args as string[])?.join(' ') ?? '';
+      if (cmd === 'which' && argStr.includes('gh')) return '/usr/local/bin/gh';
+      if (cmd === 'git' && argStr.includes('remote')) return 'git@gitlab.com:user/repo.git';
       return '';
     });
     const result = issueProgressCommenter(makeInput());

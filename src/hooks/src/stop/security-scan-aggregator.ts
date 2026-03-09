@@ -6,10 +6,9 @@
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync } from 'node:fs';
-import { execSync } from 'node:child_process';
+import { execFileSync, execSync } from 'node:child_process';
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, getProjectDir, outputSilentSuccess } from '../lib/common.js';
-import { assertSafeShellArg } from '../lib/sanitize-shell.js';
 
 interface SecurityResults {
   npmAudit: { critical: number; high: number } | null;
@@ -34,7 +33,7 @@ function runNpmAudit(projectDir: string, resultsDir: string): { critical: number
 
   logHook('security-scan', 'Running npm audit...');
   try {
-    execSync('npm audit --json', {
+    execFileSync('npm', ['audit', '--json'], {
       cwd: projectDir,
       encoding: 'utf8',
       timeout: 120000,
@@ -68,7 +67,7 @@ function runPipAudit(projectDir: string, resultsDir: string): number | null {
   }
 
   try {
-    execSync('which pip-audit', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
+    execFileSync('which', ['pip-audit'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
   } catch {
     logHook('security-scan', 'pip-audit not installed, skipping');
     return null;
@@ -76,7 +75,7 @@ function runPipAudit(projectDir: string, resultsDir: string): number | null {
 
   logHook('security-scan', 'Running pip-audit...');
   try {
-    const result = execSync('pip-audit --format json', {
+    const result = execFileSync('pip-audit', ['--format', 'json'], {
       cwd: projectDir,
       encoding: 'utf8',
       timeout: 120000,
@@ -96,7 +95,7 @@ function runPipAudit(projectDir: string, resultsDir: string): number | null {
  */
 function runSemgrep(projectDir: string, resultsDir: string): number | null {
   try {
-    execSync('which semgrep', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
+    execFileSync('which', ['semgrep'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
   } catch {
     logHook('security-scan', 'semgrep not installed, skipping');
     return null;
@@ -104,7 +103,7 @@ function runSemgrep(projectDir: string, resultsDir: string): number | null {
 
   logHook('security-scan', 'Running semgrep...');
   try {
-    const result = execSync('semgrep --config auto --json --quiet', {
+    const result = execFileSync('semgrep', ['--config', 'auto', '--json', '--quiet'], {
       cwd: projectDir,
       encoding: 'utf8',
       timeout: 300000,
@@ -126,6 +125,7 @@ function runSemgrep(projectDir: string, resultsDir: string): number | null {
 function runBandit(projectDir: string, resultsDir: string): number | null {
   // Check for Python files
   try {
+    // shell required: pipe (find | head)
     const hasPython = execSync('find . -name "*.py" -maxdepth 2 | head -1', {
       cwd: projectDir,
       encoding: 'utf8',
@@ -140,7 +140,7 @@ function runBandit(projectDir: string, resultsDir: string): number | null {
   }
 
   try {
-    execSync('which bandit', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
+    execFileSync('which', ['bandit'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
   } catch {
     logHook('security-scan', 'bandit not installed, skipping');
     return null;
@@ -148,8 +148,7 @@ function runBandit(projectDir: string, resultsDir: string): number | null {
 
   logHook('security-scan', 'Running bandit...');
   try {
-    const safeResultsDir = assertSafeShellArg(resultsDir, 'results dir');
-    execSync(`bandit -r . -f json -o ${safeResultsDir}/bandit.json`, {
+    execFileSync('bandit', ['-r', '.', '-f', 'json', '-o', `${resultsDir}/bandit.json`], {
       cwd: projectDir,
       encoding: 'utf8',
       timeout: 120000,
