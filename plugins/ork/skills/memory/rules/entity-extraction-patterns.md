@@ -32,7 +32,7 @@ create_entities([{"name": "thing", "entityType": "misc", "observations": ["used 
 ```python
 # Specific type with actionable observations
 create_entities([{"name": "pgvector", "entityType": "Technology",
-    "observations": ["v0.7.0", "Used for RAG embeddings in yonatan-hq", "Requires PostgreSQL 15+"]}])
+    "observations": ["v0.7.0", "Used for RAG embeddings in acme-app", "Requires PostgreSQL 15+"]}])
 ```
 
 ## Relation Types

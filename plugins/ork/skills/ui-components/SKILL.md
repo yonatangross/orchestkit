@@ -190,4 +190,4 @@ Cognitive-science-grounded UI/UX principles with specific numeric thresholds for
 ## Related Skills
 
 - `ork:accessibility` - WCAG compliance and React Aria patterns
-- `ork:testing-patterns` - Component testing patterns
+- `ork:testing-unit` - Component testing patterns

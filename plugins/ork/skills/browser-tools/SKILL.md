@@ -303,5 +303,5 @@ Enhanced session lifecycle commands:
 
 - `agent-browser` (upstream) - Full command reference and usage patterns
 - `ork:web-research-workflow` - Unified decision tree for web research
-- `ork:testing-patterns` - Comprehensive testing patterns including E2E and webapp testing
+- `ork:testing-e2e` - E2E testing patterns including Playwright and webapp testing
 - `ork:api-design` - API design patterns for endpoints discovered during scraping

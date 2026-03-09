@@ -693,7 +693,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "memory",
       "remember",
       "scope-appropriate-architecture",
-      "testing-patterns",
+      "testing-unit",
+      "testing-integration",
       "chain-patterns"
     ],
     "agent": null,
@@ -2041,7 +2042,9 @@ export const SKILLS: Record<string, SkillMeta> = {
     "skills": [
       "api-design",
       "react-server-components-framework",
-      "testing-patterns",
+      "testing-unit",
+      "testing-e2e",
+      "testing-integration",
       "explore",
       "verify",
       "memory",
@@ -3219,41 +3222,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "release-engineer"
     ]
   },
-  "release-notebook": {
-    "name": "release-notebook",
-    "description": "Creates a versioned NotebookLM notebook for the current OrchestKit release. Reads version from package.json, extracts the matching CHANGELOG section, uploads CHANGELOG + CLAUDE.md + manifests/ork.json as sources, generates an audio overview, and shares the notebook. Use when cutting a release to create the Release KB.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "notebooklm",
-      "release",
-      "documentation",
-      "knowledge-base"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [
-      "Read",
-      "Bash",
-      "Grep",
-      "mcp__notebooklm-mcp__notebook_create",
-      "mcp__notebooklm-mcp__source_add",
-      "mcp__notebooklm-mcp__studio_create",
-      "mcp__notebooklm-mcp__studio_status",
-      "mcp__notebooklm-mcp__notebook_share_status",
-      "mcp__notebooklm-mcp__notebook_share_invite",
-      "mcp__notebooklm-mcp__note"
-    ],
-    "skills": [],
-    "agent": null,
-    "structure": {},
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "release-engineer"
-    ]
-  },
   "remember": {
     "name": "remember",
     "description": "Stores decisions and patterns in knowledge graph. Use when saving patterns, remembering outcomes, or recording decisions.",
@@ -3409,7 +3377,9 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [
       "code-review-playbook",
-      "testing-patterns",
+      "testing-unit",
+      "testing-e2e",
+      "testing-integration",
       "memory",
       "chain-patterns"
     ],
@@ -4193,7 +4163,11 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [
       "code-review-playbook",
-      "testing-patterns",
+      "testing-unit",
+      "testing-e2e",
+      "testing-llm",
+      "testing-integration",
+      "testing-perf",
       "memory",
       "quality-gates",
       "chain-patterns"

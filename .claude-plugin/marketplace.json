@@ -3,10 +3,10 @@
   "name": "orchestkit",
   "version": "7.2.2",
   "engine": ">=2.1.69",
-  "description": "The Complete AI Development Toolkit — 91 skills, 31 agents, 96 hooks for full-stack development",
+  "description": "The Complete AI Development Toolkit — 90 skills, 31 agents, 96 hooks for full-stack development",
   "owner": {
     "name": "Yonatan Gross",
-    "email": "yonatan2gross@gmail.com"
+    "email": "yonaigross@gmail.com"
   },
   "metadata": {
     "description": "AI-assisted development plugin with built-in best practices, security patterns, quality gates, and multi-agent orchestration for Claude Code.",
@@ -15,11 +15,11 @@
   "plugins": [
     {
       "name": "ork",
-      "description": "The Complete AI Development Toolkit — 91 skills, 31 agents, 96 hooks. Python, React, LLM/RAG, security, testing, and more.",
+      "description": "The Complete AI Development Toolkit — 90 skills, 31 agents, 96 hooks. Python, React, LLM/RAG, security, testing, and more.",
       "version": "7.2.2",
       "author": {
         "name": "Yonatan Gross",
-        "email": "yonatan2gross@gmail.com"
+        "email": "yonaigross@gmail.com"
       },
       "category": "development",
       "source": "./plugins/ork"

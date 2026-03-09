@@ -157,7 +157,7 @@ Adobe React Aria hooks for building WCAG-compliant interactive UI.
 
 ## Related Skills
 
-- `ork:testing-patterns` - Comprehensive testing patterns including accessibility testing
+- `ork:testing-e2e` - E2E testing patterns including accessibility testing
 - `design-system-starter` - Accessible component library patterns
 - `ork:i18n-date-patterns` - RTL layout and locale-aware formatting
 - `motion-animation-patterns` - Reduced motion and animation accessibility

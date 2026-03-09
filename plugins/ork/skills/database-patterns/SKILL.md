@@ -161,6 +161,6 @@ Safe database schema changes without downtime using expand-contract pattern and 
 ## Related Skills
 
 - `sqlalchemy-2-async` - Async SQLAlchemy session patterns
-- `ork:testing-patterns` - Comprehensive testing patterns including migration testing
+- `ork:testing-integration` - Integration testing patterns including migration testing
 - `caching` - Cache layer design to complement database performance
 - `ork:performance` - Performance optimization patterns

@@ -9,7 +9,7 @@ This phase walks users through every configurable OrchestKit behaviour and write
 The write target depends on the project type:
 
 - **Developing OrchestKit itself** (`src/settings/ork.settings.json` exists): write to `src/settings/ork.settings.json` — this is the plugin's global defaults file.
-- **Any other project** (yonatan-hq, client repos, etc.): write to `.claude/settings.json` — this is per-project CC settings that override plugin defaults without touching global config.
+- **Any other project** (your app, client repos, etc.): write to `.claude/settings.json` — this is per-project CC settings that override plugin defaults without touching global config.
 
 ```python
 # Detect config target

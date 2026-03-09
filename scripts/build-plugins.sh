@@ -256,7 +256,7 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
           description: $desc,
           author: {
             name: "Yonatan Gross",
-            email: "yonatan2gross@gmail.com",
+            email: "yonaigross@gmail.com",
             url: "https://github.com/yonatangross/orchestkit"
           },
           homepage: "https://github.com/yonatangross/orchestkit",
