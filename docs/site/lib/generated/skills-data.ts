@@ -114,6 +114,46 @@ export const SKILLS: Record<string, SkillMeta> = {
       "workflow-architect"
     ]
   },
+  "ai-ui-generation": {
+    "name": "ai-ui-generation",
+    "description": "AI-assisted UI generation patterns for v0, Bolt, and Cursor workflows. Covers prompt engineering for component generation, review checklists for AI-generated code, design token injection, refactoring for design system conformance, and CI gates for quality assurance. Use when generating UI components with AI tools, reviewing AI-generated code, or integrating AI output into design systems.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "ai-ui",
+      "v0",
+      "bolt",
+      "cursor",
+      "prompt-engineering",
+      "code-generation",
+      "design-tokens",
+      "component-generation",
+      "ai-review",
+      "shadcn-ui"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "skills": [],
+    "agent": "frontend-ui-developer",
+    "structure": {
+      "references": [
+        "ai-ui-failure-modes.md",
+        "ai-ui-tool-comparison.md",
+        "prompt-templates-library.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
   "analytics": {
     "name": "analytics",
     "description": "Query cross-project usage analytics. Use when reviewing agent, skill, hook, or team performance across OrchestKit projects. Also replay sessions, estimate costs, and view model delegation trends.",
@@ -2041,6 +2081,46 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": []
   },
+  "interaction-patterns": {
+    "name": "interaction-patterns",
+    "description": "UI interaction design patterns for skeleton loading, infinite scroll with accessibility, progressive disclosure, modal/drawer/inline selection, drag-and-drop with keyboard alternatives, tab overflow handling, and toast notification positioning. Use when implementing loading states, content pagination, disclosure patterns, overlay components, reorderable lists, or notification systems.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "interaction-design",
+      "skeleton-loading",
+      "infinite-scroll",
+      "progressive-disclosure",
+      "modal",
+      "drawer",
+      "drag-drop",
+      "tabs",
+      "toast",
+      "ux-patterns"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "skills": [],
+    "agent": "frontend-ui-developer",
+    "structure": {
+      "references": [
+        "interaction-pattern-catalog.md",
+        "keyboard-interaction-matrix.md",
+        "loading-states-decision-tree.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
   "issue-progress-tracking": {
     "name": "issue-progress-tracking",
     "description": "Auto-updates GitHub issues with commit progress. Use when starting work on an issue, tracking progress during implementation, or completing work with a PR.",
@@ -3534,6 +3614,46 @@ export const SKILLS: Record<string, SkillMeta> = {
         "evolution-analysis.md",
         "evolution-commands.md",
         "version-management.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "storybook-testing": {
+    "name": "storybook-testing",
+    "description": "Storybook 9/10 testing patterns with Vitest integration, CSF3 typesafe factories, play() interaction tests, Chromatic TurboSnap visual regression, sb.mock isolation, accessibility addon testing, and autodocs generation. Use when writing component stories, setting up visual regression testing, configuring Storybook CI pipelines, or migrating to Storybook 9/10.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "storybook",
+      "vitest",
+      "csf3",
+      "chromatic",
+      "turbosnap",
+      "visual-regression",
+      "play-functions",
+      "component-testing",
+      "a11y-testing",
+      "autodocs"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "skills": [],
+    "agent": "frontend-ui-developer",
+    "structure": {
+      "references": [
+        "storybook-addon-ecosystem.md",
+        "storybook-ci-strategy.md",
+        "storybook-migration-guide.md"
       ]
     },
     "plugins": [

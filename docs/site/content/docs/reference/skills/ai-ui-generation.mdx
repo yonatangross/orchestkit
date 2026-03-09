@@ -1,0 +1,1041 @@
+---
+title: "Ai Ui Generation"
+description: "AI-assisted UI generation patterns for v0, Bolt, and Cursor workflows. Covers prompt engineering for component generation, review checklists for AI-generated code, design token injection, refactoring for design system conformance, and CI gates for quality assurance. Use when generating UI components with AI tools, reviewing AI-generated code, or integrating AI output into design systems."
+---
+
+<span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
+
+**Primary Agent:** [frontend-ui-developer](/docs/reference/agents/frontend-ui-developer)
+
+
+# AI UI Generation
+
+Patterns for generating, reviewing, and integrating UI components produced by AI tools (v0, Bolt, Cursor). AI-generated UI is **80% boilerplate, 20% custom** — the human reviews, refactors, and owns the output. These rules ensure AI output meets design system, accessibility, and quality standards before shipping.
+
+## Quick Reference
+
+| Category | Rules | Impact | When to Use |
+|----------|-------|--------|-------------|
+| [Prompt Engineering](#prompt-engineering) | 2 | HIGH | Writing prompts for component generation |
+| [Quality Assurance](#quality-assurance) | 2 | CRITICAL/HIGH | Reviewing and gating AI-generated code |
+| [Design System Integration](#design-system-integration) | 2 | HIGH | Injecting tokens, refactoring for conformance |
+| [Tool Selection & Workflow](#tool-selection--workflow) | 2 | MEDIUM | Choosing the right AI tool, iterating prompts |
+
+**Total: 7 rules across 4 categories**
+
+## Decision Table — v0 vs Bolt vs Cursor
+
+| Scenario | Tool | Why |
+|----------|------|-----|
+| New component from scratch | v0 | Full scaffold with shadcn/ui, Tailwind, a11y |
+| Full-stack prototype/app | Bolt | Includes backend, routing, deployment |
+| Incremental change in existing codebase | Cursor | Understands project context, imports, tokens |
+| Refactor existing component | Cursor | Reads surrounding code, respects conventions |
+| Explore visual design variations | v0 | Fast iteration on look-and-feel |
+| Add feature to running app | Bolt | Hot-reload preview, full environment |
+| Fix bug in existing component | Cursor | Inline edits with full project awareness |
+
+## Quick Start
+
+### Structured Prompt Example
+
+```
+Generate a React signup form component using:
+- Framework: React 19 + TypeScript
+- Styling: Tailwind CSS v4 + shadcn/ui
+- Tokens: use color.primary, color.destructive, spacing.md from our design system
+- A11y: ARIA labels on all inputs, error announcements via aria-live
+- States: default, loading (disabled + spinner), error (inline messages), success
+- Responsive: stack on mobile (<640px), 2-col on desktop
+```
+
+### Review Example — After AI Generation
+
+```tsx
+// AI generated: hardcoded hex value
+<button className="bg-[#3b82f6] text-white px-4 py-2">Submit</button>
+
+// After human review: design token applied
+<Button variant="default" size="md">Submit</Button>
+```
+
+## Rule Details
+
+### Prompt Engineering
+
+Structured prompts that specify framework, tokens, a11y, and states upfront.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Prompt Patterns | `rules/ai-prompt-patterns.md` | Constraint-first prompts with framework, tokens, a11y |
+| Iteration Patterns | `rules/ai-iteration-patterns.md` | Multi-pass prompts for complex interactive states |
+
+### Quality Assurance
+
+Systematic review and CI gating for AI-generated components.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Review Checklist | `rules/ai-review-checklist.md` | 10-point checklist for every AI-generated component |
+| CI Gate | `rules/ai-ci-gate.md` | Automated quality gates before merge |
+
+### Design System Integration
+
+Ensuring AI output uses design tokens and conforms to the design system.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Token Injection | `rules/ai-token-injection.md` | Pass token names in prompts, reject hardcoded values |
+| Refactoring Conformance | `rules/ai-refactoring-conformance.md` | Steps to refactor raw AI output for design system |
+
+### Tool Selection & Workflow
+
+Choosing the right AI tool and iterating effectively.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Tool Selection | `rules/ai-tool-selection.md` | Match tool to use case: v0, Bolt, Cursor |
+| Iteration Patterns | `rules/ai-iteration-patterns.md` | Iterative refinement for complex states |
+
+## Key Principles
+
+1. **Own the output** — AI generates a draft; the engineer reviews, refactors, and is accountable for what ships.
+2. **Tokens over literals** — Never accept hardcoded colors, spacing, or typography values. Always map to design tokens.
+3. **Constraint-first prompts** — Specify framework, tokens, a11y, and states upfront. Vague prompts produce vague output.
+4. **Iterative refinement** — Complex components need 2-3 prompt passes: structure first, states second, polish third.
+5. **CI is non-negotiable** — Every AI-generated component goes through the same CI pipeline as hand-written code.
+6. **Accessibility by default** — Include a11y requirements in every prompt; verify with automated checks post-generation.
+
+## Anti-Patterns (FORBIDDEN)
+
+- **Shipping raw AI output** — Never merge AI-generated code without human review and design system refactoring.
+- **Vague prompts** — "Make a nice form" produces inconsistent, non-conformant output. Always specify constraints.
+- **Hardcoded hex/rgb values** — AI tools default to arbitrary colors. Replace with OKLCH design tokens.
+- **Skipping CI for "simple" components** — AI-generated code has the same bug surface as hand-written code.
+- **Using v0 for incremental changes** — v0 generates from scratch; use Cursor for changes within an existing codebase.
+- **Single-pass complex components** — Multi-state components (loading, error, empty, success) need iterative prompting.
+- **Trusting AI a11y claims** — AI tools add ARIA attributes inconsistently. Always verify with axe-core or Storybook a11y addon.
+
+## Detailed Documentation
+
+| Resource | Description |
+|----------|-------------|
+| [references/ai-ui-tool-comparison.md](references/ai-ui-tool-comparison.md) | v0 vs Bolt vs Cursor vs Copilot comparison |
+| [references/prompt-templates-library.md](references/prompt-templates-library.md) | Copy-paste prompt templates for common components |
+| [references/ai-ui-failure-modes.md](references/ai-ui-failure-modes.md) | Top 10 failure modes and fixes |
+
+## Related Skills
+
+- `ork:ui-components` — shadcn/ui component patterns and CVA variants
+- `ork:accessibility` — WCAG compliance, ARIA patterns, screen reader support
+- `ork:animation-motion-design` — Motion library animation patterns
+- `ork:responsive-patterns` — Responsive layout and container query patterns
+- `ork:design-system` — Design token architecture and theming
+
+
+---
+
+## Rules (7)
+
+### CI Gate for AI-Generated UI — HIGH
+
+
+## CI Gate for AI-Generated UI
+
+Every AI-generated component must pass the same CI pipeline as hand-written code. AI tools produce plausible output that passes visual inspection but fails automated checks — especially accessibility, type safety, and bundle size.
+
+**Incorrect:**
+```yaml
+# Skipping CI because "it's just a simple component from v0"
+# No lint, no a11y check, no visual regression
+name: Quick Deploy
+on: push
+jobs:
+  deploy:
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm run build
+      - run: npm run deploy  # straight to production
+```
+
+**Correct:**
+```yaml
+name: UI Component CI
+on: pull_request
+jobs:
+  quality-gate:
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm ci
+
+      # 1. Type check — AI often generates implicit any
+      - run: npx tsc --noEmit
+
+      # 2. Lint — catches unused imports, console.log, bad patterns
+      - run: npx eslint 'src/components/**/*.{ts,tsx}' --max-warnings 0
+
+      # 3. Unit tests — component renders without errors
+      - run: npx vitest run --reporter=verbose
+
+      # 4. Accessibility — axe-core catches WCAG violations
+      - run: npx storybook build
+      - run: npx concurrently -k -s first \
+          "npx http-server storybook-static -p 6006 -s" \
+          "npx wait-on http://localhost:6006 && npx test-storybook --url http://localhost:6006"
+
+      # 5. Visual regression — catches unintended visual changes
+      - run: npx playwright test --project=visual
+
+      # 6. Bundle size — AI components may import entire libraries
+      - run: npx size-limit
+```
+
+### Required CI Checks
+
+| Check | Tool | What It Catches |
+|-------|------|----------------|
+| Type safety | `tsc --noEmit` | Implicit `any`, missing props, wrong event types |
+| Lint | ESLint + Prettier | Unused imports, console.log, formatting |
+| Unit tests | Vitest + Testing Library | Render errors, missing error boundaries |
+| Accessibility | Storybook a11y addon + axe-core | Missing labels, bad ARIA, color contrast |
+| Visual regression | Playwright screenshots | Unintended layout shifts, styling bugs |
+| Bundle size | size-limit | Bloated imports (`import * from "lucide-react"`) |
+
+### Storybook A11y Test Setup
+
+```ts
+// .storybook/test-runner.ts
+import { checkA11yRules } from "@storybook/test-runner";
+import { configureAxe } from "axe-playwright";
+
+export default {
+  async postVisit(page) {
+    await configureAxe(page, {
+      rules: [
+        { id: "color-contrast", enabled: true },
+        { id: "label", enabled: true },
+        { id: "button-name", enabled: true },
+      ],
+    });
+    await checkA11yRules(page);
+  },
+};
+```
+
+**Key rules:**
+- AI-generated components go through the exact same CI as hand-written code — no fast lanes
+- Run `tsc --noEmit` before anything else — type errors indicate fundamental issues
+- Use `--max-warnings 0` for ESLint — AI-generated code often has warnings that hide bugs
+- Test bundle size — AI tools import entire icon libraries instead of individual icons
+- Add Storybook stories for every AI-generated component — they serve as both docs and test targets
+
+Reference: https://storybook.js.org/docs/writing-tests/accessibility-testing
+
+
+### Iterative Prompt Patterns for Complex UI States — MEDIUM
+
+
+## Iterative Prompt Patterns for Complex UI States
+
+Complex interactive components require 2-3 prompt passes. A single prompt cannot reliably produce all states (default, loading, error, empty, success, disabled) with correct transitions between them.
+
+**Incorrect:**
+```
+# Single prompt for everything — AI drops states, mixes concerns
+"Generate a data table with sorting, filtering, pagination,
+ loading states, error handling, empty states, bulk selection,
+ row actions, column resizing, and keyboard navigation"
+```
+
+Result: AI generates the happy path (data visible, sorted) but produces broken loading spinners, missing error boundaries, and no empty state.
+
+**Correct — 3-Pass Approach:**
+
+### Pass 1: Structure and Happy Path
+```
+Generate a DataTable component:
+- Framework: React 19 + TypeScript
+- Library: @tanstack/react-table v8
+- Features: sorting (multi-column), filtering (column + global), pagination
+- Styling: Tailwind + shadcn/ui Table primitives
+- Props: data: T[], columns: ColumnDef<T>[]
+- DO NOT handle loading/error yet — happy path only
+```
+
+### Pass 2: Interactive States
+```
+Extend the DataTable from Pass 1. Add these states:
+- Loading: skeleton rows (5 rows), disabled sort/filter controls
+- Error: error banner with retry button, table hidden
+- Empty: illustration + "No results" message + clear filters CTA
+- Partial loading: pagination shows spinner, existing data stays visible
+Keep the happy path code unchanged.
+```
+
+### Pass 3: Advanced Interactions
+```
+Add to the DataTable:
+- Bulk selection: checkbox column, "Select all" header, selected count banner
+- Row actions: dropdown menu (Edit, Delete, Duplicate) per row
+- Keyboard: Arrow keys between rows, Enter to expand, Escape to deselect
+- Focus management: focus returns to trigger after action menu closes
+```
+
+### State Transition Map
+
+Define state transitions before prompting to ensure completeness:
+
+```
+idle → loading → success (show data)
+                → error (show error + retry)
+                → empty (show empty state)
+
+success → loading (pagination/sort change) → success | error
+error → loading (retry clicked) → success | error
+```
+
+### When to Use Multi-Pass
+
+| Component Complexity | Passes | Example |
+|---------------------|--------|---------|
+| Static display | 1 | Card, badge, avatar |
+| Single interaction | 1-2 | Button with loading, toggle |
+| Form with validation | 2 | Signup form, settings panel |
+| Data-driven with states | 3 | Data table, dashboard, kanban |
+| Full page with routing | 3+ | Dashboard page, wizard flow |
+
+**Key rules:**
+- Use single-pass only for static or single-interaction components
+- Always separate structure (Pass 1) from states (Pass 2) from advanced interactions (Pass 3)
+- Define the state transition map before writing any prompt
+- Tell the AI to "keep existing code unchanged" in follow-up passes — prevents regression
+- Review each pass output before proceeding to the next — errors compound across passes
+
+Reference: https://tanstack.com/table/latest
+
+
+### AI Prompt Patterns for UI Generation — HIGH
+
+
+## AI Prompt Patterns for UI Generation
+
+Structure every AI UI prompt with explicit constraints: framework, design tokens, accessibility requirements, and expected states. Constraint-first prompts reduce rework by 60-80% compared to freeform requests.
+
+**Incorrect:**
+```
+Make me a nice signup form with email and password fields.
+```
+
+This produces:
+- Arbitrary colors and spacing (not from your design system)
+- Missing ARIA labels and error announcements
+- No loading, error, or success states
+- Inconsistent with existing codebase patterns
+
+**Correct:**
+```
+Generate a signup form component:
+
+Framework: React 19 + TypeScript strict mode
+Styling: Tailwind CSS v4 + shadcn/ui primitives (Button, Input, Label, Card)
+Design tokens:
+  - Colors: use oklch(var(--color-primary)), oklch(var(--color-destructive))
+  - Spacing: gap-4 for form fields, p-6 for card padding
+  - Typography: text-sm for labels, text-base for inputs
+Accessibility:
+  - <label> elements linked to inputs via htmlFor
+  - aria-describedby on inputs pointing to error messages
+  - aria-live="polite" region for form-level errors
+  - Focus visible ring on all interactive elements
+States: default, loading (submit disabled + Loader2 spinner),
+        field-error (inline per-field), form-error (top banner), success
+Validation: zod schema, react-hook-form integration
+Responsive: single column always, max-w-md centered
+```
+
+### Prompt Structure Template
+
+```
+Generate a [component type] component:
+
+Framework: [React/Next.js version] + TypeScript
+Styling: [Tailwind version] + [UI library]
+Design tokens: [list token names and where to use them]
+Accessibility: [specific ARIA patterns needed]
+States: [enumerate all states]
+Responsive: [breakpoint behavior]
+Integration: [form library, state management, API calls]
+```
+
+**Key rules:**
+- Always specify the UI library (shadcn/ui, Radix, Ark UI) — AI tools default to raw HTML otherwise
+- List design token variable names explicitly — AI cannot infer your token system
+- Enumerate every state the component must handle — AI skips states you do not mention
+- Include responsive breakpoints — AI defaults to desktop-only layouts
+- Specify TypeScript strictness — AI generates `any` types without explicit instruction
+
+Reference: https://v0.dev/docs
+
+
+### Refactoring AI Output for Design System Conformance — HIGH
+
+
+## Refactoring AI Output for Design System Conformance
+
+Raw AI-generated components must be refactored through a 5-step process before merging: extract tokens, apply CVA variants, add TypeScript props, wire to design system, and verify theme compatibility.
+
+**Incorrect:**
+```tsx
+// Raw v0 output — shipped as-is
+export function StatusBadge({ status }: { status: string }) {
+  return (
+    <span
+      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
+        ${status === "active" ? "bg-green-100 text-green-800" : ""}
+        ${status === "inactive" ? "bg-gray-100 text-gray-800" : ""}
+        ${status === "error" ? "bg-red-100 text-red-800" : ""}`}
+    >
+      {status}
+    </span>
+  )
+}
+```
+
+**Correct:**
+```tsx
+// After 5-step refactoring — design system conformant
+import { cva, type VariantProps } from "class-variance-authority"
+import { cn } from "@/lib/utils"
+
+const badgeVariants = cva(
+  "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
+  {
+    variants: {
+      variant: {
+        active: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400",
+        inactive: "bg-muted text-muted-foreground",
+        error: "bg-destructive/15 text-destructive",
+      },
+    },
+    defaultVariants: { variant: "inactive" },
+  }
+)
+
+interface StatusBadgeProps
+  extends React.HTMLAttributes<HTMLSpanElement>,
+    VariantProps<typeof badgeVariants> {
+  status: "active" | "inactive" | "error"
+}
+
+export function StatusBadge({
+  status,
+  className,
+  ...props
+}: StatusBadgeProps) {
+  return (
+    <span className={cn(badgeVariants({ variant: status }), className)} {...props}>
+      {status}
+    </span>
+  )
+}
+```
+
+### The 5-Step Refactoring Process
+
+1. **Extract tokens** — Replace all hardcoded colors (`green-100`, `#3b82f6`) with semantic tokens (`bg-primary`, `text-muted-foreground`)
+2. **Apply CVA variants** — Convert conditional className strings to `cva()` variant definitions with `defaultVariants`
+3. **Add TypeScript props** — Create explicit interface extending HTML element props + `VariantProps&lt;typeof variants&gt;`
+4. **Wire to design system** — Import `cn()` utility, accept `className` prop for composition, use `forwardRef` if needed
+5. **Verify theme** — Test light mode, dark mode, and high contrast — tokens must resolve correctly in all themes
+
+### Refactoring Checklist
+
+| Step | Before (AI output) | After (conformant) |
+|------|-------------------|-------------------|
+| Colors | `bg-blue-500`, `text-gray-600` | `bg-primary`, `text-muted-foreground` |
+| Variants | Ternary chains in className | `cva()` with named variants |
+| Props | `\{ status: string \}` | `StatusBadgeProps` with union types |
+| Composition | No className prop | `cn(variants(), className)` |
+| Theme | Light mode only | Verified in light, dark, high contrast |
+
+**Key rules:**
+- Never ship raw AI output — always run the 5-step process
+- Use CVA for any component with 2+ visual variants — AI outputs ternary chains instead
+- Union types over `string` for variant props — `"active" | "inactive"` not `string`
+- Always accept `className` and spread `...props` for composition
+- Test dark mode — AI tools generate with light backgrounds, tokens may not resolve in dark
+
+Reference: https://cva.style/docs
+
+
+### AI-Generated UI Review Checklist — CRITICAL
+
+
+## AI-Generated UI Review Checklist
+
+Every AI-generated component must pass this 10-point checklist before merging. AI tools produce plausible but subtly incorrect code — systematic review catches issues that look correct at a glance.
+
+**Incorrect:**
+```tsx
+// Accepting v0 output as-is — multiple hidden issues
+export function UserCard({ user }) {           // no TypeScript props
+  return (
+    <div className="bg-[#f8fafc] p-4 rounded-lg shadow-md"  // hardcoded color
+         onClick={() => navigate(`/users/${user.id}`)}>      // div with onClick, no keyboard
+      <img src={user.avatar} className="w-12 h-12 rounded-full" /> // no alt
+      <h3 className="text-[18px] font-semibold">{user.name}</h3>   // hardcoded size
+      <p className="text-[#64748b]">{user.role}</p>                 // hardcoded color
+    </div>
+  )
+}
+```
+
+**Correct:**
+```tsx
+// After systematic review — all 10 points addressed
+interface UserCardProps {
+  user: User
+  onSelect?: (userId: string) => void
+}
+
+export function UserCard({ user, onSelect }: UserCardProps) {
+  return (
+    <button
+      type="button"
+      className="bg-muted p-4 rounded-lg shadow-md text-left w-full
+                 focus-visible:ring-2 focus-visible:ring-ring"
+      onClick={() => onSelect?.(user.id)}
+    >
+      <img
+        src={user.avatar}
+        alt={`${user.name} avatar`}
+        className="size-12 rounded-full"
+      />
+      <h3 className="text-lg font-semibold">{user.name}</h3>
+      <p className="text-muted-foreground">{user.role}</p>
+    </button>
+  )
+}
+```
+
+### The 10-Point Checklist
+
+| # | Check | What to Look For |
+|---|-------|-----------------|
+| 1 | **Semantic HTML** | `&lt;button&gt;` not `<div onClick>`, `&lt;nav&gt;`, `&lt;main&gt;`, `&lt;article&gt;` |
+| 2 | **ARIA roles** | Interactive elements have labels, live regions for dynamic content |
+| 3 | **Design tokens** | No hardcoded hex/rgb/hsl — use Tailwind semantic classes (`bg-primary`) |
+| 4 | **TypeScript props** | Explicit interface, no `any`, proper event handler types |
+| 5 | **Responsive** | Works at 320px, 768px, 1024px+ — no horizontal overflow |
+| 6 | **Keyboard navigation** | Tab order, Enter/Space activation, Escape to close |
+| 7 | **Focus indicators** | `focus-visible:ring-2` on all interactive elements |
+| 8 | **Image alt text** | Meaningful alt on images, `alt=""` for decorative |
+| 9 | **Error states** | Loading, error, empty states handled — not just happy path |
+| 10 | **No console/debug** | Remove `console.log`, TODO comments, placeholder data |
+
+**Key rules:**
+- Run through all 10 points for every AI-generated component — no exceptions
+- Flag any hardcoded color, spacing, or typography value as a blocking issue
+- Interactive `<div>` or `<span>` elements must be converted to `&lt;button&gt;` or `<a>`
+- Missing TypeScript props interface is a blocking issue — AI often uses implicit `any`
+
+Reference: https://www.w3.org/WAI/ARIA/apg/patterns/
+
+
+### Design Token Injection in AI Prompts — HIGH
+
+
+## Design Token Injection in AI Prompts
+
+Always pass design token variable names in AI prompts. AI tools cannot infer your token system — they default to hardcoded values that break dark mode, theme switching, and design system consistency.
+
+**Incorrect:**
+```
+# Vague color instruction
+"Make a blue primary button with a red error state"
+```
+
+AI output:
+```tsx
+// Hardcoded values — breaks dark mode, ignores design system
+<button className="bg-[#3b82f6] hover:bg-[#2563eb] text-white">
+  Submit
+</button>
+<p className="text-[#ef4444]">Error message</p>
+```
+
+**Correct:**
+```
+# Explicit token names in prompt
+"Use these design tokens:
+ - Primary: bg-primary, text-primary-foreground, hover:bg-primary/90
+ - Destructive: text-destructive
+ - Muted: bg-muted, text-muted-foreground
+ - Border: border-border
+ - Ring: ring-ring for focus states
+ All colors use OKLCH via CSS custom properties."
+```
+
+AI output:
+```tsx
+// Token-based — works with dark mode, respects design system
+<Button variant="default">Submit</Button>
+<p className="text-destructive">Error message</p>
+```
+
+### Token Injection Template
+
+Include this block in every AI UI prompt:
+
+```
+Design tokens (use these exact class names):
+Colors:
+  - bg-primary / text-primary-foreground — main actions
+  - bg-secondary / text-secondary-foreground — secondary actions
+  - bg-destructive / text-destructive-foreground — errors, delete
+  - bg-muted / text-muted-foreground — disabled, hints
+  - border-border — all borders
+  - ring-ring — focus rings
+Spacing: p-4 (card), p-6 (section), gap-4 (form fields), gap-2 (inline)
+Radius: rounded-md (buttons), rounded-lg (cards), rounded-full (avatars)
+Typography: text-sm (labels), text-base (body), text-lg (headings)
+
+DO NOT use hardcoded hex, rgb, or hsl values.
+DO NOT use arbitrary Tailwind values like bg-[#3b82f6].
+```
+
+### OKLCH Token Architecture
+
+```css
+/* Modern OKLCH tokens — wider gamut, perceptually uniform */
+:root {
+  --color-primary: oklch(0.55 0.2 250);
+  --color-primary-foreground: oklch(0.98 0.005 250);
+  --color-destructive: oklch(0.55 0.2 25);
+  --color-muted: oklch(0.95 0.01 250);
+  --color-muted-foreground: oklch(0.55 0.01 250);
+}
+
+.dark {
+  --color-primary: oklch(0.7 0.18 250);
+  --color-destructive: oklch(0.65 0.2 25);
+  --color-muted: oklch(0.2 0.01 250);
+  --color-muted-foreground: oklch(0.65 0.01 250);
+}
+```
+
+**Key rules:**
+- Include the full token injection block in every AI prompt — AI tools cannot read your CSS variables
+- Flag any `bg-[#...]`, `text-[#...]`, or inline `style=\{\{ color: "..." \}\}` as a blocking review issue
+- After generation, search-and-replace any remaining hardcoded values with token classes
+- Verify dark mode works — hardcoded values are invisible against dark backgrounds
+- Use OKLCH for new token definitions — wider gamut and perceptually uniform lightness
+
+Reference: https://ui.shadcn.com/docs/theming
+
+
+### AI Tool Selection for UI Generation — MEDIUM
+
+
+## AI Tool Selection for UI Generation
+
+Match the AI tool to the task type. Each tool has a sweet spot — using it outside that range produces poor results or unnecessary rework.
+
+**Incorrect:**
+```
+# Using v0 to fix a bug in an existing component
+# v0 generates from scratch — it cannot read your codebase
+# Result: a new component that ignores your existing imports, tokens, and patterns
+
+Prompt to v0: "Fix the pagination bug in our DataTable component"
+# v0 output: a completely new DataTable with different props, different styling
+```
+
+**Correct:**
+```
+# Use Cursor for incremental changes — it reads your project context
+# Cursor understands your imports, tokens, component library, and patterns
+
+# In Cursor, with your DataTable.tsx open:
+"Fix the pagination: currentPage should reset to 1 when filters change.
+ Use the existing useDataTable hook and keep the PageInfo type."
+```
+
+### Selection Matrix
+
+| Task | Best Tool | Why | Avoid |
+|------|-----------|-----|-------|
+| New component from scratch | **v0** | Best scaffold quality, shadcn/ui native | Cursor (no visual preview) |
+| Full-stack prototype | **Bolt** | Backend + frontend + deployment in one | v0 (frontend only) |
+| Bug fix in existing code | **Cursor** | Reads project context, inline edits | v0 (generates from scratch) |
+| Refactor existing component | **Cursor** | Understands imports and dependencies | Bolt (overkill) |
+| Explore design variations | **v0** | Fast visual iteration, multiple options | Cursor (no visual preview) |
+| Add API route + UI | **Bolt** | Full-stack awareness, hot reload | v0 (no backend) |
+| Component library page | **v0** | Generates multiple variants at once | Cursor (one-at-a-time) |
+| Complex form with validation | **v0** then **Cursor** | v0 for scaffold, Cursor for integration | Bolt (form-only is overkill) |
+
+### Hybrid Workflow
+
+For maximum efficiency, combine tools:
+
+1. **v0** — Generate initial component scaffold with visual preview
+2. **Copy** — Paste output into your project
+3. **Cursor** — Refactor to match your design system, add project-specific logic
+4. **CI** — Run lint, a11y, visual regression checks
+
+**Key rules:**
+- Use v0 for net-new components where visual preview accelerates design decisions
+- Use Cursor for any change that touches existing code — it reads project context
+- Use Bolt only when you need backend + frontend together in a prototype
+- Never use v0 for bug fixes or refactoring — it generates from scratch and ignores your codebase
+- Combine tools: v0 for scaffold, Cursor for integration and refinement
+
+Reference: https://v0.dev, https://bolt.new, https://cursor.com
+
+
+
+---
+
+## References (3)
+
+### AI UI Generation Failure Modes
+
+
+# AI UI Generation Failure Modes
+
+Top 10 failure modes of AI-generated UI components, ordered by frequency. Each includes detection method and fix.
+
+## 1. Hardcoded Color Values
+
+**Frequency:** Very common (80%+ of AI output)
+**Problem:** AI generates `bg-[#3b82f6]`, `text-[#64748b]`, or inline `style=\{\{ color: "#..." \}\}` instead of design tokens.
+**Detection:** `grep -rn 'bg-\[#\|text-\[#\|border-\[#\|style=\{\{' src/components/`
+**Fix:** Replace with semantic token classes: `bg-primary`, `text-muted-foreground`, `border-border`.
+
+## 2. Non-Semantic HTML
+
+**Frequency:** Very common
+**Problem:** AI uses `<div onClick>` instead of `&lt;button&gt;`, `<div>` instead of `&lt;nav&gt;`, `<span>` for headings.
+**Detection:** ESLint `jsx-a11y/no-noninteractive-element-interactions`, `jsx-a11y/click-events-have-key-events`.
+**Fix:** Replace with semantic elements: `&lt;button&gt;`, `&lt;nav&gt;`, `&lt;main&gt;`, `&lt;article&gt;`, `&lt;section&gt;`.
+
+## 3. Missing Loading/Error States
+
+**Frequency:** Common (60%+)
+**Problem:** AI generates the happy path only. No loading skeleton, no error boundary, no empty state.
+**Detection:** Search for state handling: `grep -rn 'isLoading\|isError\|isEmpty' component.tsx`. If absent, states are missing.
+**Fix:** Use iterative prompting (Pass 2) to add states. See `rules/ai-iteration-patterns.md`.
+
+## 4. Implicit `any` TypeScript
+
+**Frequency:** Common
+**Problem:** AI generates `function Card(\{ data \})` without TypeScript interface, creating implicit `any`.
+**Detection:** `tsc --noEmit` with `strict: true` in tsconfig.
+**Fix:** Add explicit props interface with union types for variants.
+
+## 5. Bloated Imports
+
+**Frequency:** Common
+**Problem:** AI imports entire icon libraries (`import * from "lucide-react"`) or unused dependencies.
+**Detection:** `size-limit` CI check, ESLint `no-unused-imports` rule.
+**Fix:** Import individual icons: `import \{ Search, ChevronDown \} from "lucide-react"`.
+
+## 6. Missing Focus Management
+
+**Frequency:** Common
+**Problem:** No `focus-visible:ring` on interactive elements, no focus trap in modals, no focus return after close.
+**Detection:** Tab through the component — if focus is invisible or gets lost, it fails.
+**Fix:** Add `focus-visible:ring-2 focus-visible:ring-ring` to all interactive elements. Use Radix Dialog for focus trapping.
+
+## 7. Incorrect ARIA Usage
+
+**Frequency:** Moderate (40%+)
+**Problem:** AI adds ARIA attributes incorrectly — `aria-label` on non-interactive elements, redundant roles, conflicting attributes.
+**Detection:** axe-core or Storybook a11y addon catches most ARIA errors.
+**Fix:** Follow WAI-ARIA Authoring Practices. Remove ARIA when semantic HTML conveys the same meaning.
+
+## 8. Desktop-Only Layout
+
+**Frequency:** Moderate
+**Problem:** AI generates layouts that overflow on mobile. Fixed widths, no responsive breakpoints, horizontal scroll.
+**Detection:** Chrome DevTools responsive mode at 320px width.
+**Fix:** Use Tailwind responsive prefixes (`sm:`, `md:`, `lg:`). Test at 320px, 768px, 1024px.
+
+## 9. String Concatenation for Classes
+
+**Frequency:** Moderate
+**Problem:** AI generates `className=\{"base " + (active ? "bg-blue-500" : "bg-gray-200")\}` instead of CVA or `cn()`.
+**Detection:** Grep for template literals or string concatenation in className.
+**Fix:** Use `cn()` from `@/lib/utils` or CVA for variant-based styling. See `rules/ai-refactoring-conformance.md`.
+
+## 10. Stale or Deprecated APIs
+
+**Frequency:** Occasional
+**Problem:** AI generates code using deprecated APIs — `framer-motion` (now `motion/react`), React class components, old Next.js pages router patterns.
+**Detection:** Code review, comparing against current documentation.
+**Fix:** Specify exact library versions and import paths in prompts. See `rules/ai-prompt-patterns.md`.
+
+## Quick Detection Script
+
+Run this after receiving AI-generated components:
+
+```bash
+# Check for common failure modes in AI-generated components
+echo "=== Hardcoded colors ==="
+grep -rn 'bg-\[#\|text-\[#\|border-\[#' "$1"
+
+echo "=== Non-semantic interactive elements ==="
+grep -rn '<div.*onClick\|<span.*onClick' "$1"
+
+echo "=== Missing TypeScript props ==="
+grep -rn 'function.*{.*})\s*{' "$1" | grep -v 'Props\|interface\|type '
+
+echo "=== Bloated imports ==="
+grep -rn 'import \*' "$1"
+
+echo "=== String class concatenation ==="
+grep -rn "className={['\"]" "$1"
+```
+
+
+### AI UI Tool Comparison — v0 vs Bolt vs Cursor vs Copilot
+
+
+# AI UI Tool Comparison
+
+Detailed comparison of AI UI generation tools as of 2026. Each tool excels in a specific workflow — none is universally best.
+
+## Feature Comparison
+
+| Feature | v0 (Vercel) | Bolt (StackBlitz) | Cursor | GitHub Copilot |
+|---------|-------------|-------------------|--------|----------------|
+| **Primary use** | Component scaffolding | Full-stack prototyping | In-editor coding | Inline autocomplete |
+| **Output** | React + shadcn/ui + Tailwind | Full app (FE + BE + DB) | Inline edits / files | Line/block completions |
+| **Visual preview** | Yes (live) | Yes (full app) | No | No |
+| **Project context** | None (standalone) | Partial (within session) | Full (reads project) | File-level |
+| **Framework** | React/Next.js | React, Vue, Svelte | Any | Any |
+| **Design system aware** | shadcn/ui built-in | Configurable | Reads your codebase | File-level patterns |
+| **Backend support** | No | Yes (Node, Python, etc.) | Yes (via project) | Yes (via file) |
+| **Deployment** | Vercel one-click | StackBlitz preview | N/A (local) | N/A (local) |
+| **Collaboration** | Share via URL | Share via URL | Git-based | Git-based |
+
+## Strengths and Weaknesses
+
+### v0 (Vercel)
+**Strengths:**
+- Best-in-class component scaffolding quality
+- Native shadcn/ui and Tailwind integration
+- Visual preview with instant iteration
+- Generates accessible components by default
+- Multiple design variations per prompt
+
+**Weaknesses:**
+- No project context — cannot read your codebase
+- React/Next.js only — no Vue, Svelte, Angular
+- Frontend only — no backend or API routes
+- Output requires refactoring for design system conformance
+- Cannot modify existing components
+
+### Bolt (StackBlitz)
+**Strengths:**
+- Full-stack generation (frontend + backend + database)
+- Live preview with hot reload in browser
+- Supports multiple frameworks (React, Vue, Svelte)
+- Can scaffold entire applications from a description
+- Built-in deployment previews
+
+**Weaknesses:**
+- Lower component quality than v0 for individual components
+- Generated backend code needs significant security review
+- Large output surface area — more to review
+- Token/session limits for complex applications
+
+### Cursor
+**Strengths:**
+- Full project context — reads imports, types, tokens
+- Inline edits within existing files
+- Multi-file refactoring with dependency awareness
+- Works with any framework or language
+- Understands your design system from codebase
+
+**Weaknesses:**
+- No visual preview — must run the app to see results
+- Slower for greenfield components (no scaffold templates)
+- Quality depends on existing code quality (garbage in, garbage out)
+- Composer mode can make unintended changes across files
+
+### GitHub Copilot
+**Strengths:**
+- Always available in VS Code / JetBrains
+- Good at completing patterns from surrounding code
+- Low friction — inline suggestions as you type
+- Workspace-level context with `@workspace`
+
+**Weaknesses:**
+- Autocomplete granularity — not full component generation
+- Limited multi-file awareness compared to Cursor
+- Cannot generate visual designs or previews
+- Suggestions vary in quality without explicit prompting
+
+## Pricing (2026)
+
+| Tool | Free Tier | Pro Tier | Team Tier |
+|------|-----------|----------|-----------|
+| v0 | 10 generations/day | $20/mo (unlimited) | $30/user/mo |
+| Bolt | Limited usage | $20/mo | Custom |
+| Cursor | 50 completions/day | $20/mo | $40/user/mo |
+| Copilot | Free for OSS | $10/mo | $19/user/mo |
+
+*Pricing subject to change. Check official sites for current rates.*
+
+## Recommendation Matrix
+
+| You Need | Use | Why |
+|----------|-----|-----|
+| A new shadcn/ui component | v0 | Best scaffold quality, visual iteration |
+| A full prototype to demo | Bolt | End-to-end app in minutes |
+| To add a feature to your app | Cursor | Reads your codebase, respects patterns |
+| Quick inline completions | Copilot | Low friction, always available |
+| A component + its API route | Bolt or v0 + Cursor | Combine tools for best results |
+
+
+### AI UI Prompt Templates Library
+
+
+# AI UI Prompt Templates Library
+
+Copy-paste prompt templates for common component types. Each template includes framework, tokens, a11y, and state requirements. Customize the token names and specific requirements for your project.
+
+## 1. Form Component
+
+```
+Generate a [form purpose] form component:
+
+Framework: React 19 + TypeScript strict mode
+Styling: Tailwind CSS v4 + shadcn/ui (Form, Input, Label, Button, Select)
+Validation: zod schema + react-hook-form v7
+Design tokens:
+  - bg-card for form container, border-border for field borders
+  - text-destructive for error messages, text-muted-foreground for hints
+  - ring-ring for focus states
+Accessibility:
+  - <Label> linked to each input via htmlFor
+  - aria-describedby pointing to error/hint text
+  - aria-invalid="true" on fields with errors
+  - aria-live="polite" region for form-level success/error
+States: default, field-error (inline), form-error (banner), loading (disabled + spinner), success (toast)
+Responsive: single column, max-w-lg centered
+Submit: async handler returning { success: boolean; error?: string }
+```
+
+## 2. Data Table
+
+```
+Generate a data table component:
+
+Framework: React 19 + TypeScript
+Library: @tanstack/react-table v8
+Styling: Tailwind CSS v4 + shadcn/ui (Table, Button, Input, DropdownMenu)
+Features: sorting (multi-column), column filtering, global search, pagination (10/25/50 per page)
+Design tokens:
+  - bg-card for table container, border-border for cell borders
+  - bg-muted/50 for header row, hover:bg-muted for row hover
+  - text-muted-foreground for empty state text
+Accessibility:
+  - role="grid" with proper aria-sort on sortable columns
+  - aria-label on action buttons, sr-only text for icon-only controls
+  - Keyboard: arrow keys for cell navigation, Enter for sort
+States: loading (skeleton rows), empty (illustration + message), error (retry banner)
+Props: data: T[], columns: ColumnDef<T>[], onRowClick?: (row: T) => void
+```
+
+## 3. Dashboard Card
+
+```
+Generate a dashboard metric card component:
+
+Framework: React 19 + TypeScript
+Styling: Tailwind CSS v4 + shadcn/ui (Card, CardHeader, CardContent)
+Design tokens:
+  - bg-card, border-border for card container
+  - text-muted-foreground for label, text-foreground for value
+  - text-emerald-600 dark:text-emerald-400 for positive trend
+  - text-destructive for negative trend
+Content: icon (Lucide), label, value (formatted number), trend (% with arrow)
+Accessibility: aria-label describing the full metric context
+Animation: value count-up on mount using Motion
+States: loading (skeleton), error (dash value), stale (muted opacity + "Updated 5m ago")
+Responsive: full width on mobile, fixed 280px on desktop grid
+```
+
+## 4. Navigation Component
+
+```
+Generate a responsive navigation component:
+
+Framework: React 19 + TypeScript + Next.js App Router
+Styling: Tailwind CSS v4 + shadcn/ui (Sheet, Button, NavigationMenu)
+Design tokens:
+  - bg-background/95 backdrop-blur for sticky header
+  - border-border for bottom border
+  - text-foreground for links, text-primary for active link
+Accessibility:
+  - <nav aria-label="Main navigation">
+  - aria-current="page" on active link
+  - Mobile: Sheet with focus trap, Escape to close
+  - Skip-to-content link as first focusable element
+Responsive:
+  - Desktop (>=1024px): horizontal nav with dropdown menus
+  - Mobile (<1024px): hamburger icon → Sheet slide-in panel
+States: default, mobile-open, dropdown-open
+Links: [{label, href, children?: [{label, href}]}]
+```
+
+## 5. Modal / Dialog
+
+```
+Generate a confirmation dialog component:
+
+Framework: React 19 + TypeScript
+Styling: Tailwind CSS v4 + shadcn/ui (Dialog, Button)
+Design tokens:
+  - bg-background for dialog surface
+  - bg-background/80 for overlay backdrop
+  - text-destructive for destructive action variant
+Accessibility:
+  - Focus trap within dialog (shadcn/ui Dialog handles this)
+  - aria-labelledby pointing to title, aria-describedby pointing to description
+  - Escape key closes, click outside closes (configurable)
+  - Return focus to trigger element on close
+Props: open, onOpenChange, title, description, confirmLabel, onConfirm, variant: "default" | "destructive"
+States: default, loading (confirm button disabled + spinner), success (auto-close)
+Animation: Motion scale + opacity entrance/exit
+```
+
+## 6. Empty State
+
+```
+Generate an empty state component:
+
+Framework: React 19 + TypeScript
+Styling: Tailwind CSS v4 + shadcn/ui (Button)
+Design tokens:
+  - text-muted-foreground for description
+  - bg-muted for illustration container circle
+Content: icon (Lucide, 48px), title, description, primary CTA button, optional secondary link
+Accessibility: role="status" with aria-label summarizing the empty state
+Props: icon: LucideIcon, title: string, description: string,
+       action?: { label: string; onClick: () => void },
+       secondaryAction?: { label: string; href: string }
+Responsive: centered, max-w-md, 64px vertical padding
+```
+
+## Usage Notes
+
+- Replace token names with your project's actual tokens
+- Add project-specific imports (your `cn()` utility path, component library path)
+- After generation, run through the review checklist (`rules/ai-review-checklist.md`)
+- Refactor for design system conformance (`rules/ai-refactoring-conformance.md`)
+

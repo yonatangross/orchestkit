@@ -17,6 +17,22 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.1.14",
+    "date": "2026-03-08",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**skills:** add 234 test case entries for 222 previously untested rules across 63 skills",
+          "**skills:** fix 18 term mismatches in expectedBehavior strings for rule traceability",
+          "**skills:** scaffold 49 .eval.json files and regenerate all 82 eval files from current test-cases",
+          "**skills:** fix remaining short behavior in animation-motion-design view-transitions"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.1.13",
     "date": "2026-03-08",
     "compareUrl": "",

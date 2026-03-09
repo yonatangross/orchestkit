@@ -128,7 +128,7 @@ function handleAccordionToggle(panel: HTMLElement) {
 
 ## Key Rules
 
-1. **Use** `scheduler.yield()` between chunks — target < 50ms per task
+1. **Use** `scheduler.yield()` between chunks — target < 50ms per task (supported in Chrome 129+, Firefox 135+; use `'scheduler' in globalThis && 'yield' in scheduler` feature detection with `setTimeout(resolve, 0)` fallback)
 2. **Audit** third-party scripts — defer or lazy-load non-critical ones
 3. **Batch** DOM reads before writes to avoid layout thrashing
 4. **Wrap** visual DOM updates in `requestAnimationFrame`

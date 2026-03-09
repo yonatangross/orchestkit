@@ -5,7 +5,7 @@ import type { Totals, AgentSummary, CategoryMeta } from "./types";
 
 export const TOTALS: Totals = {
   "plugins": 1,
-  "skills": 84,
+  "skills": 87,
   "agents": 31,
   "hooks": 96,
   "commands": 19,
@@ -364,14 +364,14 @@ export const SKILLS_SUMMARY = {
       "write-prd"
     ],
     "git": [
+      "ai-ui-generation",
       "animation-motion-design",
       "api-design",
       "assess",
       "ci-automation",
       "code-review-playbook",
       "commit",
-      "create-pr",
-      "demo-producer"
+      "create-pr"
     ],
     "video": [
       "demo-producer",
@@ -381,6 +381,7 @@ export const SKILLS_SUMMARY = {
       "accessibility",
       "design-system-tokens",
       "figma-design-handoff",
+      "storybook-testing",
       "testing-patterns"
     ],
     "devops": [
@@ -394,6 +395,7 @@ export const SKILLS_SUMMARY = {
       "llm-integration",
       "product-analytics",
       "review-pr",
+      "storybook-testing",
       "testing-patterns",
       "verify"
     ],
@@ -418,16 +420,17 @@ export const SKILLS_SUMMARY = {
       "zustand-patterns"
     ],
     "llm": [
+      "ai-ui-generation",
       "golden-dataset",
       "langgraph",
       "llm-integration",
       "mcp-patterns",
       "multimodal-llm",
       "performance",
-      "rag-retrieval",
-      "react-server-components-framework"
+      "rag-retrieval"
     ],
     "rag": [
+      "interaction-patterns",
       "notebooklm",
       "rag-retrieval"
     ],

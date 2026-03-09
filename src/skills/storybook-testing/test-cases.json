@@ -1,0 +1,66 @@
+{
+  "skill": "storybook-testing",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "basic-write-a-storybook",
+      "rule": "",
+      "query": "Write a Storybook story for my Button component that tests the click handler, has variants for primary/secondary/danger, and generates documentation automatically",
+      "expectedBehavior": [
+        "Claude uses CSF3 format with satisfies Meta<typeof Button> for type safety",
+        "Uses fn() from @storybook/test for the onClick mock, not action() from addon-actions",
+        "Includes a play() function that simulates userEvent.click and asserts onClick was called",
+        "Adds tags: ['autodocs'] to the meta for automatic documentation generation",
+        "Creates separate Story exports for each variant (Primary, Secondary, Danger)",
+        "Uses within(canvasElement) for scoped queries, not screen"
+      ]
+    },
+    {
+      "id": "edge-migrate-storybook-7",
+      "rule": "",
+      "query": "I need to migrate my Storybook 7 project to Storybook 9. We have 200 stories using Template.bind, test-runner for CI, and vi.mock in story files",
+      "expectedBehavior": [
+        "Claude references the CSF2 to CSF3 migration path with the codemod command",
+        "Recommends replacing @storybook/test-runner with @storybook/addon-vitest",
+        "Shows how to replace vi.mock with sb.mock in beforeEach for story isolation",
+        "Mentions ESM-only package requirement and tsconfig module changes",
+        "Suggests running npx storybook@latest upgrade for automatic codemods",
+        "Advises replacing action() imports with fn() from @storybook/test"
+      ]
+    },
+    {
+      "id": "storybook-chromatic-turbosnap",
+      "rule": "storybook-chromatic-turbosnap",
+      "query": "Our Chromatic bill is too high — we have 500 stories and every PR snapshots all of them even when we only change one component",
+      "expectedBehavior": [
+        "Enables TurboSnap with onlyChanged: true in the Chromatic GitHub Action",
+        "Sets fetch-depth: 0 in checkout for full git history comparison",
+        "Configures externals for global CSS and fonts that are outside the module graph",
+        "Uses traceChanged: expanded for transitive dependency tracking",
+        "Sets skip for bot branches like dependabot to avoid wasting snapshots"
+      ]
+    },
+    {
+      "id": "storybook-a11y-testing",
+      "rule": "storybook-a11y-testing",
+      "query": "We need to add accessibility testing to our Storybook CI pipeline so WCAG violations block PRs from merging",
+      "expectedBehavior": [
+        "Adds @storybook/addon-a11y to the Storybook addons configuration",
+        "Configures axe-core rules via parameters.a11y.config.rules on meta or individual stories",
+        "Shows how a11y violations become Vitest test failures in CI",
+        "Demonstrates accessible patterns like aria-label for icon buttons",
+        "Uses STORYBOOK_A11Y_STRICT environment variable to fail on any violation in CI"
+      ]
+    },
+    {
+      "id": "negative-set-up-express-api",
+      "rule": "",
+      "query": "Set up an Express.js REST API with MongoDB and JWT authentication",
+      "expectedBehavior": [
+        "Claude does NOT invoke the storybook-testing skill",
+        "Uses standard Node.js/Express knowledge instead of Storybook patterns",
+        "No references to CSF3, play functions, Chromatic, or Storybook addons"
+      ]
+    }
+  ]
+}
