@@ -305,7 +305,7 @@ describe('lib/git', () => {
 
   describe('getDefaultBranch', () => {
     test('returns "main" when main branch exists', () => {
-      // Arrange: first execSync succeeds
+      // Arrange: first execFileSync succeeds
       vi.mocked(execFileSync).mockReturnValue('main\n');
 
       // Act
