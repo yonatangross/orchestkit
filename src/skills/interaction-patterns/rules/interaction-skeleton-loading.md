@@ -60,7 +60,7 @@ function UserProfile({ isLoading, user }: Props) {
 ### Skeleton Composition
 
 ```tsx
-// Reusable skeleton primitives
+// Reusable skeleton primitives — cn() from shadcn/ui: import { cn } from "@/lib/utils"
 function Skeleton({ className }: { className?: string }) {
   return <div className={cn("animate-pulse rounded bg-muted", className)} />
 }
@@ -84,4 +84,6 @@ function TableRowSkeleton() {
 - Match skeleton count to expected content count (e.g., 6 card skeletons for a 6-item grid)
 - Never nest spinners inside skeletons — pick one pattern per loading context
 
-Reference: https://web.dev/articles/ux-basics-skeleton-screens
+References:
+- https://web.dev/articles/ux-basics-skeleton-screens
+- https://www.w3.org/WAI/ARIA/apg/patterns/feed/ (aria-busy pattern for loading states)

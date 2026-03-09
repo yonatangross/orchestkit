@@ -2,12 +2,12 @@
 title: Use sb.mock for story-level module isolation instead of vi.mock which leaks between tests
 impact: HIGH
 impactDescription: "Using vi.mock in story files causes mock leakage between stories — one story's mock affects another, producing flaky tests and false passes."
-tags: [storybook, mocking, sb-mock, isolation, vitest, testing]
+tags: [storybook, mocking, sb-mock, isolation, vitest, testing, mocked]
 ---
 
 ## Storybook: sb.mock for Story-Level Isolation
 
-Storybook 9/10 provides `sb.mock()` for story-scoped module mocking. Unlike `vi.mock()`, which applies globally and leaks between test files, `sb.mock()` is isolated per story and automatically cleaned up. Use it to mock API calls, services, and utilities at the story level.
+Storybook 9/10 provides `sb.mock()` for module mocking with story-level isolation. It uses a two-part pattern: **register** mocks in `.storybook/preview.ts`, then **configure** per-story behavior using the `mocked()` utility in `beforeEach`. Unlike `vi.mock()`, which leaks between test files, `sb.mock` is automatically cleaned up between stories.
 
 **Incorrect:**
 ```tsx
@@ -15,7 +15,6 @@ Storybook 9/10 provides `sb.mock()` for story-scoped module mocking. Unlike `vi.
 import type { Meta, StoryObj } from '@storybook/react'
 import { vi } from 'vitest'
 import { UserProfile } from './UserProfile'
-import * as api from '@/lib/api'
 
 // This mock leaks to ALL stories in this file and potentially others
 vi.mock('@/lib/api', () => ({
@@ -30,13 +29,22 @@ export const AdminUser: Story = {}
 export const RegularUser: Story = {}  // Still sees admin mock — no isolation
 ```
 
-**Correct:**
+**Correct — Step 1: Register mocks in `.storybook/preview.ts`:**
+```ts
+// .storybook/preview.ts — registration only, runs once at startup
+import { sb } from '@storybook/preview-api'
+
+// Register modules to mock — use dynamic import(), not string paths
+sb.mock(import('../src/lib/api'), { spy: true })
+```
+
+**Correct — Step 2: Configure per-story in `beforeEach` using `mocked()`:**
 ```tsx
+// UserProfile.stories.tsx
 import type { Meta, StoryObj } from '@storybook/react'
-import { expect, within } from '@storybook/test'
+import { expect, mocked, within } from '@storybook/test'
 import { UserProfile } from './UserProfile'
-// Import the module to get its type — sb.mock uses the module path
-import * as api from '@/lib/api'
+import { fetchUser } from '@/lib/api'
 
 const meta = {
   component: UserProfile,
@@ -46,10 +54,9 @@ export default meta
 type Story = StoryObj<typeof meta>
 
 export const AdminUser: Story = {
-  async beforeEach({ sb }) {
-    sb.mock('@/lib/api', () => ({
-      fetchUser: async () => ({ name: 'John', role: 'admin' }),
-    }))
+  async beforeEach() {
+    // mocked() accesses the spy registered in preview.ts
+    mocked(fetchUser).mockResolvedValue({ name: 'John', role: 'admin' })
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -58,10 +65,8 @@ export const AdminUser: Story = {
 }
 
 export const RegularUser: Story = {
-  async beforeEach({ sb }) {
-    sb.mock('@/lib/api', () => ({
-      fetchUser: async () => ({ name: 'Jane', role: 'user' }),
-    }))
+  async beforeEach() {
+    mocked(fetchUser).mockResolvedValue({ name: 'Jane', role: 'user' })
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -71,11 +76,11 @@ export const RegularUser: Story = {
 ```
 
 **Key rules:**
-- Use `sb.mock(modulePath, factory)` inside `beforeEach` — it scopes the mock to that story only.
+- **Register** mocks in `.storybook/preview.ts` using `sb.mock(import(...), { spy: true })` — this is the only place `sb.mock` can be called.
+- **Configure** per-story using `mocked(namedExport).mockResolvedValue(...)` in `beforeEach` — never call `sb.mock()` in story files.
+- `sb.mock` uses `import()` expressions (not string paths) for module resolution.
+- Mocks are automatically restored between stories — no manual cleanup needed.
 - Never use `vi.mock()` at the top level of story files — it leaks across stories and test runs.
-- `sb.mock` automatically restores the original module after each story — no manual cleanup needed.
-- The module path in `sb.mock` must match the import path exactly (including aliases like `@/`).
-- Combine `sb.mock` with `play()` functions to verify that components render correctly with mocked data.
 - For shared mock setups across multiple stories, define `beforeEach` on the `meta` object.
 
-Reference: `references/storybook-addon-ecosystem.md`
+Reference: https://storybook.js.org/docs/writing-stories/mocking-data-and-modules/mocking-modules

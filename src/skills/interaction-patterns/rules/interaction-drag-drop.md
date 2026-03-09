@@ -126,4 +126,6 @@ function SortableList({ items, onReorder }: Props) {
 - Use `@dnd-kit/core` — not HTML5 drag API which has no keyboard support
 - Escape must cancel the drag and return the item to its original position
 
-Reference: https://docs.dndkit.com/
+References:
+- https://docs.dndkit.com/
+- https://www.w3.org/WAI/ARIA/apg/practices/keyboard-interface/ (WAI-ARIA keyboard patterns)
