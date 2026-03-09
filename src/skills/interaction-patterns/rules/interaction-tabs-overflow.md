@@ -69,7 +69,8 @@ function TabBar({ tabs, activeTab, onSelect }: Props) {
       <div
         ref={scrollRef}
         role="tablist"
-        className="flex overflow-x-auto gap-1 px-8"  /* add scrollbar-none via: .scrollbar-none { scrollbar-width: none; -webkit-overflow-scrolling: touch; } */
+        className="flex overflow-x-auto gap-1 px-8 scrollbar-none"
+        /* Hide scrollbar: .scrollbar-none { scrollbar-width: none; -webkit-overflow-scrolling: touch; } */
       >
         {tabs.map((tab) => (
           <button
@@ -100,7 +101,7 @@ function TabBar({ tabs, activeTab, onSelect }: Props) {
 
 ```tsx
 // Arrow key navigation within tablist (WAI-ARIA Tabs pattern)
-function handleTabKeyDown(e: React.KeyboardEvent, tabs: Tab[], activeTab: string) {
+function handleTabKeyDown(e: React.KeyboardEvent, tabs: Tab[], activeTab: string, onSelect: (id: string) => void) {
   const currentIndex = tabs.findIndex((t) => t.id === activeTab)
   let nextIndex = currentIndex
 

@@ -21,8 +21,8 @@
       "query": "I need to migrate my Storybook 7 project to Storybook 9. We have 200 stories using Template.bind, test-runner for CI, and vi.mock in story files",
       "expectedBehavior": [
         "Claude references the CSF2 to CSF3 migration path with the codemod command",
-        "Recommends replacing @storybook/test-runner with @storybook/addon-vitest",
-        "Shows how to replace vi.mock with sb.mock in beforeEach for story isolation",
+        "Recommends replacing deprecated @storybook/test-runner package with @storybook/addon-vitest plugin",
+        "Shows how to register sb.mock in preview.ts and configure mocked() in story beforeEach for isolation",
         "Mentions ESM-only package requirement and tsconfig module changes",
         "Suggests running npx storybook@latest upgrade for automatic codemods",
         "Advises replacing action() imports with fn() from @storybook/test"

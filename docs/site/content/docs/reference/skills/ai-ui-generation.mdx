@@ -181,7 +181,7 @@ jobs:
 
       # 4. Accessibility — axe-core catches WCAG violations
       - run: npx storybook build
-      - run: npx concurrently -k -s first \
+      - run: npx concurrently -k -s last \
           "npx http-server storybook-static -p 6006 -s" \
           "npx wait-on http://localhost:6006 && npx test-storybook --url http://localhost:6006"
 
@@ -207,7 +207,7 @@ jobs:
 
 ```ts
 // .storybook/test-runner.ts
-import { checkA11yRules } from "@storybook/test-runner";
+import { checkA11y } from "@storybook/test-runner";
 import { configureAxe } from "axe-playwright";
 
 export default {
@@ -219,7 +219,7 @@ export default {
         { id: "button-name", enabled: true },
       ],
     });
-    await checkA11yRules(page);
+    await checkA11y(page);
   },
 };
 ```

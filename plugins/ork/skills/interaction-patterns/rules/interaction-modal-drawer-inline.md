@@ -38,12 +38,25 @@ function ProductList({ products }: Props) {
 // Drawer for detail views — preserves page context, slides in from side
 function ProductList({ products }: Props) {
   const [selected, setSelected] = useState<Product | null>(null)
+  const closeRef = useRef<HTMLButtonElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
+
+  // Move focus into drawer on open
+  useEffect(() => {
+    if (selected) closeRef.current?.focus()
+  }, [selected])
 
   return (
     <div className="flex">
       <div className="flex-1">
         {products.map((p) => (
-          <button key={p.id} onClick={() => setSelected(p)}>{p.name}</button>
+          <button
+            key={p.id}
+            ref={selected?.id === p.id ? triggerRef : undefined}
+            onClick={() => setSelected(p)}
+          >
+            {p.name}
+          </button>
         ))}
       </div>
       {selected && (
@@ -52,7 +65,11 @@ function ProductList({ products }: Props) {
           aria-label="Product details"
           className="w-96 border-l p-6 overflow-y-auto"
         >
-          <button onClick={() => setSelected(null)} aria-label="Close panel">
+          <button
+            ref={closeRef}
+            onClick={() => { setSelected(null); triggerRef.current?.focus() }}
+            aria-label="Close panel"
+          >
             &times;
           </button>
           <ProductDetail product={selected} />

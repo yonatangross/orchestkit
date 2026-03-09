@@ -32,10 +32,10 @@ export const RegularUser: Story = {}  // Still sees admin mock — no isolation
 **Correct — Step 1: Register mocks in `.storybook/preview.ts`:**
 ```ts
 // .storybook/preview.ts — registration only, runs once at startup
-import { sb } from '@storybook/preview-api'
+import { sb } from '@storybook/test'
 
 // Register modules to mock — use dynamic import(), not string paths
-sb.mock(import('../src/lib/api'), { spy: true })
+sb.mock(import('../src/lib/api'))
 ```
 
 **Correct — Step 2: Configure per-story in `beforeEach` using `mocked()`:**
@@ -76,7 +76,7 @@ export const RegularUser: Story = {
 ```
 
 **Key rules:**
-- **Register** mocks in `.storybook/preview.ts` using `sb.mock(import(...), { spy: true })` — this is the only place `sb.mock` can be called.
+- **Register** mocks in `.storybook/preview.ts` using `sb.mock(import(...))` — this is the only place `sb.mock` can be called.
 - **Configure** per-story using `mocked(namedExport).mockResolvedValue(...)` in `beforeEach` — never call `sb.mock()` in story files.
 - `sb.mock` uses `import()` expressions (not string paths) for module resolution.
 - Mocks are automatically restored between stories — no manual cleanup needed.
