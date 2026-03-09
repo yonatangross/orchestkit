@@ -27,6 +27,7 @@ outputs/
 # Environment files
 .env
 .env.local
+.mcp.json
 
 # =============================================================================
 # Runtime artifacts (should never be committed)

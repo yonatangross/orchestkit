@@ -175,7 +175,7 @@ Relevant skills activated automatically:
 - `code-review-playbook` -- Review patterns, conventional comments
 - `security-scanning` -- OWASP, secrets, dependencies
 - `type-safety-validation` -- Zod, TypeScript strict
-- `testing-patterns` -- Test adequacy, coverage gaps, rule matching
+- `testing-unit`, `testing-e2e`, `testing-integration` -- Test adequacy, coverage gaps, rule matching
 
 ## Phase 3: Parallel Code Review (6 Agents)
 
@@ -385,7 +385,7 @@ Agent(subagent_type="test-generator", name="test-reviewer",
      ${CHANGED_FILES}
      Do NOT explore beyond these files.
      1. Check: Does the PR add/modify code WITHOUT adding tests? Flag as MISSING.
-     2. Match change types to required test types (testing-patterns rules):
+     2. Match change types to required test types (testing-unit/testing-e2e/testing-integration rules):
         - API → integration-api, verification-contract
         - DB → integration-database, data-seeding-cleanup
         - UI → unit-aaa-pattern, a11y-testing
@@ -640,7 +640,7 @@ Agent(
      - Are there changed files with 0 corresponding test files?
      - Flag: "MISSING" if code changes have no tests at all
 
-  2. TEST TYPE MATCHING (use testing-patterns rules)
+  2. TEST TYPE MATCHING (use testing-unit/testing-e2e/testing-integration rules)
      Match changed code to required test types:
      - API endpoint changes → need integration tests (rule: integration-api)
      - DB schema changes → need migration + integration tests (rule: integration-database)

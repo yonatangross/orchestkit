@@ -6,11 +6,11 @@ import type { Plugin } from "./types";
 export const PLUGINS: Plugin[] = [
   {
     "name": "ork",
-    "description": "The complete AI development toolkit — 90 skills, 31 agents, 96 hooks.",
+    "description": "The complete AI development toolkit — 91 skills, 31 agents, 96 hooks.",
     "fullDescription": "The complete OrchestKit toolkit. Includes all workflow skills (implement, explore, verify, review-pr, commit), all memory skills (remember, memory, mem0, fabric), product/UX skills, accessibility, specialized patterns for Python (FastAPI, SQLAlchemy, Celery), React (RSC, TanStack, Zustand), LLM integration, RAG retrieval, and all specialized agents.",
     "category": "development",
     "version": "7.2.2",
-    "skillCount": 90,
+    "skillCount": 91,
     "agentCount": 31,
     "hooks": 96,
     "commandCount": 19,

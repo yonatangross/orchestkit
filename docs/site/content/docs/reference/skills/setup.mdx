@@ -85,7 +85,7 @@ Detected Stack:
 | Detected | Recommended Skills |
 |----------|--------------------|
 | Python | `python-backend`, `async-jobs`, `database-patterns` |
-| FastAPI | `api-design`, `testing-patterns` |
+| FastAPI | `api-design`, `testing-unit`, `testing-integration` |
 | React | `react-server-components-framework`, `ui-components`, `responsive-patterns` |
 | Next.js | `react-server-components-framework`, `performance`, `vite-advanced` |
 | Zustand | `zustand-patterns` |
@@ -94,7 +94,7 @@ Detected Stack:
 | Terraform | `devops-deployment` |
 | GitHub Actions | `devops-deployment` |
 | LLM/AI deps | `llm-integration`, `rag-retrieval`, `langgraph`, `mcp-patterns` |
-| Test frameworks | `testing-patterns`, `golden-dataset` |
+| Test frameworks | `testing-unit`, `testing-e2e`, `testing-integration`, `golden-dataset` |
 | Security concerns | `security-patterns` |
 
 **All stacks get**: `explore`, `implement`, `verify`, `commit`, `review-pr`, `fix-issue`, `doctor`, `remember`, `brainstorm`, `help`
@@ -126,8 +126,8 @@ AskUserQuestion(questions=[{
   "question": "Which skill categories should we prioritize? (all are available, this helps focus the improvement plan)",
   "header": "Focus areas",
   "options": [
-    {"label": "Full-stack (Recommended)", "description": "All detected stack skills + security + testing", "markdown": "```\nFull-Stack Focus\n────────────────\nBackend:   api-design, database-patterns\nFrontend:  react-server-components, ui-components\nSecurity:  security-patterns, testing-patterns\nDevOps:    devops-deployment\nWorkflow:  implement, verify, commit\n```"},
-    {"label": "Backend focus", "description": "API, database, async, security patterns", "markdown": "```\nBackend Focus\n─────────────\nCore:      api-design, database-patterns\nAsync:     async-jobs, distributed-systems\nSecurity:  security-patterns\nTesting:   testing-patterns (integration)\nSkipped:   UI, components, accessibility\n```"},
+    {"label": "Full-stack (Recommended)", "description": "All detected stack skills + security + testing", "markdown": "```\nFull-Stack Focus\n────────────────\nBackend:   api-design, database-patterns\nFrontend:  react-server-components, ui-components\nSecurity:  security-patterns\nTesting:   testing-unit, testing-e2e\nDevOps:    devops-deployment\nWorkflow:  implement, verify, commit\n```"},
+    {"label": "Backend focus", "description": "API, database, async, security patterns", "markdown": "```\nBackend Focus\n─────────────\nCore:      api-design, database-patterns\nAsync:     async-jobs, distributed-systems\nSecurity:  security-patterns\nTesting:   testing-unit, testing-integration\nSkipped:   UI, components, accessibility\n```"},
     {"label": "Frontend focus", "description": "React, UI components, performance, accessibility", "markdown": "```\nFrontend Focus\n──────────────\nCore:      react-server-components\nUI:        ui-components, responsive-patterns\nPerf:      performance, vite-advanced\nA11y:      accessibility patterns\nSkipped:   database, async, infra\n```"},
     {"label": "DevOps focus", "description": "CI/CD, deployment, monitoring, infrastructure", "markdown": "```\nDevOps Focus\n────────────\nCI/CD:     devops-deployment\nInfra:     distributed-systems\nMonitor:   observability patterns\nSecurity:  security-patterns\nSkipped:   UI, components, API design\n```"}
   ],

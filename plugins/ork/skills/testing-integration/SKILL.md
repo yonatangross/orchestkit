@@ -154,3 +154,10 @@ async def test_create_user(client: AsyncClient):
 - Adding property-based tests with Hypothesis
 - Validating Zod schemas at API boundaries
 - Planning a testing strategy for a new feature or service
+
+## Related Skills
+
+- `ork:testing-unit` — Unit testing patterns, fixtures, mocking
+- `ork:testing-e2e` — End-to-end Playwright tests
+- `ork:database-patterns` — Database schema and migration patterns
+- `ork:api-design` — API design patterns for endpoint testing

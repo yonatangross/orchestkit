@@ -174,3 +174,9 @@ See `checklists/llm-test-checklist.md` for the complete checklist.
 | No timeout handling | Always set < 1s timeout in tests |
 | Hardcoded API keys | Environment variables, filtered in VCR |
 | Asserting only `is not None` | Schema validation + quality metrics |
+
+## Related Skills
+
+- `ork:testing-unit` — Unit testing fundamentals, AAA pattern
+- `ork:testing-integration` — Integration testing for AI pipelines
+- `ork:golden-dataset` — Evaluation dataset management

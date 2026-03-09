@@ -3843,6 +3843,27 @@ export const SKILLS: Record<string, SkillMeta> = {
       "test-generator"
     ]
   },
+  "testing-patterns": {
+    "name": "testing-patterns",
+    "description": "Redirect — testing-patterns was split into 5 focused sub-skills. Use testing-unit, testing-e2e, testing-integration, testing-llm, or testing-perf instead.",
+    "version": "2.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "testing",
+      "redirect",
+      "deprecated"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
   "testing-perf": {
     "name": "testing-perf",
     "description": "Performance and load testing patterns — k6 load tests, Locust stress tests, pytest execution optimization (xdist parallel, plugins), test type classification, and performance benchmarking. Use when writing load tests, optimizing test execution speed, or setting up pytest infrastructure.",

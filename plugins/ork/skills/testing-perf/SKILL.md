@@ -142,3 +142,9 @@ def db_engine(worker_id):
 | Slow test suite | pytest-xdist with `-n auto` |
 | Flaky parallel tests | `--dist loadscope` for fixture grouping |
 | DB-heavy tests | Worker-isolated databases with `worker_id` |
+
+## Related Skills
+
+- `ork:testing-unit` — Unit testing patterns, pytest fixtures
+- `ork:testing-e2e` — End-to-end performance testing with Playwright
+- `ork:performance` — Core Web Vitals and optimization patterns

@@ -237,6 +237,8 @@ class UserService:
 - `ork:quality-gates` - YAGNI gate uses tier context to validate complexity
 - `ork:distributed-systems` - Distributed locking, resilience, idempotency patterns
 - `ork:api-design` - REST API design, versioning, error handling
-- `ork:testing-unit` - Comprehensive testing patterns and strategies
+- `ork:testing-unit` - Unit testing: AAA pattern, fixtures, mocking, factories
+- `ork:testing-e2e` - E2E testing: Playwright, page objects, visual regression
+- `ork:testing-integration` - Integration testing: API endpoints, database, contracts
 - `ork:python-backend` - FastAPI, SQLAlchemy, asyncio patterns
 - `ork:database-patterns` - Schema design, query optimization, migrations
