@@ -3,7 +3,7 @@
  * Ported from hooks/_lib/common.sh git functions
  */
 
-import { execSync, execFileSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import { getProjectDir } from './common.js';
 
 /**
@@ -12,7 +12,7 @@ import { getProjectDir } from './common.js';
 export function getCurrentBranch(projectDir?: string): string {
   const dir = projectDir || getProjectDir();
   try {
-    return execSync('git branch --show-current', {
+    return execFileSync('git', ['branch', '--show-current'], {
       cwd: dir,
       encoding: 'utf8',
       timeout: 5000,
@@ -58,7 +58,7 @@ export function isProtectedBranch(branch?: string): boolean {
 export function getRepoRoot(projectDir?: string): string {
   const dir = projectDir || getProjectDir();
   try {
-    return execSync('git rev-parse --show-toplevel', {
+    return execFileSync('git', ['rev-parse', '--show-toplevel'], {
       cwd: dir,
       encoding: 'utf8',
       timeout: 5000,
@@ -75,7 +75,7 @@ export function getRepoRoot(projectDir?: string): string {
 export function isGitRepo(projectDir?: string): boolean {
   const dir = projectDir || getProjectDir();
   try {
-    execSync('git rev-parse --git-dir', {
+    execFileSync('git', ['rev-parse', '--git-dir'], {
       cwd: dir,
       encoding: 'utf8',
       timeout: 5000,
@@ -93,7 +93,7 @@ export function isGitRepo(projectDir?: string): boolean {
 export function getGitStatus(projectDir?: string): string {
   const dir = projectDir || getProjectDir();
   try {
-    return execSync('git status --short', {
+    return execFileSync('git', ['status', '--short'], {
       cwd: dir,
       encoding: 'utf8',
       timeout: 10000,
@@ -117,7 +117,7 @@ export function hasUncommittedChanges(projectDir?: string): boolean {
 export function getDirtyFileCount(projectDir?: string): number {
   const dir = projectDir || getProjectDir();
   try {
-    const output = execSync('git status --porcelain', {
+    const output = execFileSync('git', ['status', '--porcelain'], {
       cwd: dir,
       encoding: 'utf8',
       timeout: 3000,
@@ -136,7 +136,7 @@ export function getDefaultBranch(projectDir?: string): string {
   const dir = projectDir || getProjectDir();
   try {
     // Check if 'main' exists
-    execSync('git rev-parse --verify main', {
+    execFileSync('git', ['rev-parse', '--verify', 'main'], {
       cwd: dir,
       encoding: 'utf8',
       timeout: 5000,
@@ -146,7 +146,7 @@ export function getDefaultBranch(projectDir?: string): string {
   } catch {
     try {
       // Check if 'master' exists
-      execSync('git rev-parse --verify master', {
+      execFileSync('git', ['rev-parse', '--verify', 'master'], {
         cwd: dir,
         encoding: 'utf8',
         timeout: 5000,
@@ -193,7 +193,7 @@ export function extractIssueNumber(branch: string): number | null {
 export function getStagedFiles(projectDir?: string): string[] {
   const dir = projectDir || getProjectDir();
   try {
-    const output = execSync('git diff --cached --name-only', {
+    const output = execFileSync('git', ['diff', '--cached', '--name-only'], {
       cwd: dir,
       encoding: 'utf8',
       timeout: 10000,
