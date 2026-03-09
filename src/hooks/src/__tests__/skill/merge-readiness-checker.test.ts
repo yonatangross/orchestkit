@@ -20,6 +20,7 @@ vi.mock('node:fs', () => ({
 
 vi.mock('node:child_process', () => ({
   execSync: vi.fn(),
+  execFileSync: vi.fn(() => ''),
 }));
 
 vi.mock('../../lib/common.js', () => ({

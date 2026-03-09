@@ -258,6 +258,9 @@ describe('pre-commit-quality-runner', () => {
       vi.mocked(execSync).mockImplementation(() => {
         throw new Error('not a git repository');
       });
+      vi.mocked(execFileSync).mockImplementation(() => {
+        throw new Error('not a git repository');
+      });
       const input = createBashInput('git commit -m "test"');
 
       // Act
@@ -277,6 +280,11 @@ describe('pre-commit-quality-runner', () => {
     it('returns silent success when package.json does not exist', () => {
       // Arrange
       vi.mocked(execSync).mockReturnValue('src/index.ts');
+      vi.mocked(execFileSync).mockImplementation((_cmd: any, args: any) => {
+        const argsStr = Array.isArray(args) ? args.join(' ') : '';
+        if (argsStr.includes('diff --cached --name-only')) return 'src/index.ts';
+        return '';
+      });
       vi.mocked(existsSync).mockReturnValue(false); // no package.json, no configs
       const input = createBashInput('git commit -m "test"');
 
@@ -301,6 +309,11 @@ describe('pre-commit-quality-runner', () => {
           return 'src/auth.ts';
         }
         return ''; // tsc passes
+      });
+      vi.mocked(execFileSync).mockImplementation((_cmd: any, args: any) => {
+        const argsStr = Array.isArray(args) ? args.join(' ') : '';
+        if (argsStr.includes('diff --cached --name-only')) return 'src/auth.ts';
+        return ''; // tsc/eslint passes
       });
       vi.mocked(existsSync).mockImplementation((p: unknown) => {
         const path = String(p);
@@ -327,6 +340,11 @@ describe('pre-commit-quality-runner', () => {
         }
         return '';
       });
+      vi.mocked(execFileSync).mockImplementation((_cmd: any, args: any) => {
+        const argsStr = Array.isArray(args) ? args.join(' ') : '';
+        if (argsStr.includes('diff --cached --name-only')) return 'src/auth.ts';
+        return '';
+      });
       vi.mocked(existsSync).mockImplementation((p: unknown) => {
         const path = String(p);
         // package.json exists but tsconfig.json does not
@@ -348,6 +366,11 @@ describe('pre-commit-quality-runner', () => {
         if (cmd === 'git diff --cached --name-only --diff-filter=ACMR') {
           return 'README.md\ndocs/guide.md';
         }
+        return '';
+      });
+      vi.mocked(execFileSync).mockImplementation((_cmd: any, args: any) => {
+        const argsStr = Array.isArray(args) ? args.join(' ') : '';
+        if (argsStr.includes('diff --cached --name-only')) return 'README.md\ndocs/guide.md';
         return '';
       });
       vi.mocked(existsSync).mockImplementation((p: unknown) => {
@@ -380,6 +403,11 @@ describe('pre-commit-quality-runner', () => {
         }
         return '';
       });
+      vi.mocked(execFileSync).mockImplementation((_cmd: any, args: any) => {
+        const argsStr = Array.isArray(args) ? args.join(' ') : '';
+        if (argsStr.includes('diff --cached --name-only')) return 'src/auth.ts';
+        return '';
+      });
       vi.mocked(existsSync).mockImplementation((p: unknown) => {
         const path = String(p);
         return path.endsWith('package.json') || path.endsWith('.eslintrc.js');
@@ -402,6 +430,11 @@ describe('pre-commit-quality-runner', () => {
         if (cmd === 'git diff --cached --name-only --diff-filter=ACMR') {
           return 'src/auth.ts\nsrc/user.ts';
         }
+        return '';
+      });
+      vi.mocked(execFileSync).mockImplementation((_cmd: any, args: any) => {
+        const argsStr = Array.isArray(args) ? args.join(' ') : '';
+        if (argsStr.includes('diff --cached --name-only')) return 'src/auth.ts\nsrc/user.ts';
         return '';
       });
       vi.mocked(existsSync).mockImplementation((p: unknown) => {
@@ -436,6 +469,11 @@ describe('pre-commit-quality-runner', () => {
         }
         return '';
       });
+      vi.mocked(execFileSync).mockImplementation((_cmd: any, args: any) => {
+        const argsStr = Array.isArray(args) ? args.join(' ') : '';
+        if (argsStr.includes('diff --cached --name-only')) return 'file1.ts\nfile2.ts';
+        return '';
+      });
       vi.mocked(existsSync).mockImplementation((p: unknown) => {
         const path = String(p);
         return path.endsWith('package.json') || path.endsWith('.eslintrc.json');
@@ -465,6 +503,11 @@ describe('pre-commit-quality-runner', () => {
         if (cmd === 'git diff --cached --name-only --diff-filter=ACMR') {
           return 'src/auth.ts';
         }
+        return '';
+      });
+      vi.mocked(execFileSync).mockImplementation((_cmd: any, args: any) => {
+        const argsStr = Array.isArray(args) ? args.join(' ') : '';
+        if (argsStr.includes('diff --cached --name-only')) return 'src/auth.ts';
         return '';
       });
       vi.mocked(existsSync).mockImplementation((p: unknown) => {
@@ -497,6 +540,11 @@ describe('pre-commit-quality-runner', () => {
         }
         return '';
       });
+      vi.mocked(execFileSync).mockImplementation((_cmd: any, args: any) => {
+        const argsStr = Array.isArray(args) ? args.join(' ') : '';
+        if (argsStr.includes('diff --cached --name-only')) return 'src/auth.ts';
+        return '';
+      });
       vi.mocked(existsSync).mockImplementation((p: unknown) => {
         // only package.json, no jest config
         return String(p).endsWith('package.json');
@@ -520,6 +568,11 @@ describe('pre-commit-quality-runner', () => {
         if (cmd === 'git diff --cached --name-only --diff-filter=ACMR') {
           return 'src/auth.ts\nsrc/auth.test.ts';
         }
+        return '';
+      });
+      vi.mocked(execFileSync).mockImplementation((_cmd: any, args: any) => {
+        const argsStr = Array.isArray(args) ? args.join(' ') : '';
+        if (argsStr.includes('diff --cached --name-only')) return 'src/auth.ts\nsrc/auth.test.ts';
         return '';
       });
       vi.mocked(existsSync).mockImplementation((p: unknown) => {
@@ -557,6 +610,11 @@ describe('pre-commit-quality-runner', () => {
         }
         return ''; // tsc succeeds
       });
+      vi.mocked(execFileSync).mockImplementation((_cmd: any, args: any) => {
+        const argsStr = Array.isArray(args) ? args.join(' ') : '';
+        if (argsStr.includes('diff --cached --name-only')) return 'src/index.ts';
+        return '';
+      });
       vi.mocked(existsSync).mockImplementation((p: unknown) => {
         const path = String(p);
         return path.endsWith('package.json') || path.endsWith('tsconfig.json');
@@ -579,6 +637,11 @@ describe('pre-commit-quality-runner', () => {
         if (cmd === 'git diff --cached --name-only --diff-filter=ACMR') {
           return 'src/index.ts';
         }
+        return '';
+      });
+      vi.mocked(execFileSync).mockImplementation((_cmd: any, args: any) => {
+        const argsStr = Array.isArray(args) ? args.join(' ') : '';
+        if (argsStr.includes('diff --cached --name-only')) return 'src/index.ts';
         return '';
       });
       vi.mocked(existsSync).mockImplementation((p: unknown) => {
@@ -608,7 +671,9 @@ describe('pre-commit-quality-runner', () => {
         }
         return '';
       });
-      vi.mocked(execFileSync).mockImplementation(() => {
+      vi.mocked(execFileSync).mockImplementation((_cmd: any, args: any) => {
+        const argsStr = Array.isArray(args) ? args.join(' ') : '';
+        if (argsStr.includes('diff --cached --name-only')) return 'src/index.ts';
         const err = Object.assign(new Error('tsc error'), { stderr: 'TS2345: Argument of type' });
         throw err;
       });
@@ -637,7 +702,9 @@ describe('pre-commit-quality-runner', () => {
         }
         return '';
       });
-      vi.mocked(execFileSync).mockImplementation(() => {
+      vi.mocked(execFileSync).mockImplementation((_cmd: any, args: any) => {
+        const argsStr = Array.isArray(args) ? args.join(' ') : '';
+        if (argsStr.includes('diff --cached --name-only')) return 'src/app.js';
         const err = Object.assign(new Error('eslint error'), { stdout: '2 errors found' });
         throw err;
       });
@@ -665,7 +732,9 @@ describe('pre-commit-quality-runner', () => {
         }
         return '';
       });
-      vi.mocked(execFileSync).mockImplementation(() => {
+      vi.mocked(execFileSync).mockImplementation((_cmd: any, args: any) => {
+        const argsStr = Array.isArray(args) ? args.join(' ') : '';
+        if (argsStr.includes('diff --cached --name-only')) return 'src/index.ts';
         const err = Object.assign(new Error('tsc fail'), { stderr: 'error TS1234' });
         throw err;
       });
@@ -698,6 +767,8 @@ describe('pre-commit-quality-runner', () => {
         return '';
       });
       vi.mocked(execFileSync).mockImplementation((_cmd: unknown, args?: readonly string[]) => {
+        const argsStr = Array.isArray(args) ? args.join(' ') : '';
+        if (argsStr.includes('diff --cached --name-only')) return 'src/auth.ts';
         if (args?.includes('tsc')) {
           throw Object.assign(new Error('tsc error'), { stderr: 'TS2322: Type error' });
         }
@@ -734,7 +805,9 @@ describe('pre-commit-quality-runner', () => {
         }
         return '';
       });
-      vi.mocked(execFileSync).mockImplementation(() => {
+      vi.mocked(execFileSync).mockImplementation((_cmd: any, args: any) => {
+        const argsStr = Array.isArray(args) ? args.join(' ') : '';
+        if (argsStr.includes('diff --cached --name-only')) return 'src/auth.ts';
         throw Object.assign(new Error('tsc fail'), { stderr: 'error' });
       });
       vi.mocked(existsSync).mockImplementation((p: unknown) => {
@@ -766,6 +839,11 @@ describe('pre-commit-quality-runner', () => {
         }
         return '';
       });
+      vi.mocked(execFileSync).mockImplementation((_cmd: any, args: any) => {
+        const argsStr = Array.isArray(args) ? args.join(' ') : '';
+        if (argsStr.includes('diff --cached --name-only')) return 'README.md\ndocs/CONTRIBUTING.md';
+        return '';
+      });
       vi.mocked(existsSync).mockImplementation(() => true);
       const input = createBashInput('git commit -m "docs: update readme"');
 
@@ -775,7 +853,11 @@ describe('pre-commit-quality-runner', () => {
       // Assert
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
-      expect(execFileSync).not.toHaveBeenCalled();
+      // execFileSync is now called for git diff (getStagedSourceFiles), but no tool commands should run
+      const toolCalls = vi.mocked(execFileSync).mock.calls.filter(
+        ([cmd]) => cmd === 'npx',
+      );
+      expect(toolCalls).toHaveLength(0);
     });
 
     it('does not call outputBlock when checks list is empty', () => {
@@ -784,6 +866,11 @@ describe('pre-commit-quality-runner', () => {
         if (cmd === 'git diff --cached --name-only --diff-filter=ACMR') {
           return 'CHANGELOG.md';
         }
+        return '';
+      });
+      vi.mocked(execFileSync).mockImplementation((_cmd: any, args: any) => {
+        const argsStr = Array.isArray(args) ? args.join(' ') : '';
+        if (argsStr.includes('diff --cached --name-only')) return 'CHANGELOG.md';
         return '';
       });
       vi.mocked(existsSync).mockImplementation(() => true); // all configs present
@@ -808,6 +895,11 @@ describe('pre-commit-quality-runner', () => {
         if (cmd === 'git diff --cached --name-only --diff-filter=ACMR') {
           return 'src/index.ts';
         }
+        return '';
+      });
+      vi.mocked(execFileSync).mockImplementation((_cmd: any, args: any) => {
+        const argsStr = Array.isArray(args) ? args.join(' ') : '';
+        if (argsStr.includes('diff --cached --name-only')) return 'src/index.ts';
         return '';
       });
       vi.mocked(existsSync).mockImplementation((p: unknown) =>
@@ -855,6 +947,11 @@ describe('pre-commit-quality-runner', () => {
         }
         return '';
       });
+      vi.mocked(execFileSync).mockImplementation((_cmd: any, args: any) => {
+        const argsStr = Array.isArray(args) ? args.join(' ') : '';
+        if (argsStr.includes('diff --cached --name-only')) return 'src/app.js';
+        return '';
+      });
       vi.mocked(existsSync).mockImplementation((p: unknown) => {
         const path = String(p);
         return path.endsWith('package.json') || path.includes('node_modules/.bin/eslint');
@@ -874,6 +971,11 @@ describe('pre-commit-quality-runner', () => {
         if (cmd === 'git diff --cached --name-only --diff-filter=ACMR') {
           return 'src/app.ts';
         }
+        return '';
+      });
+      vi.mocked(execFileSync).mockImplementation((_cmd: any, args: any) => {
+        const argsStr = Array.isArray(args) ? args.join(' ') : '';
+        if (argsStr.includes('diff --cached --name-only')) return 'src/app.ts';
         return '';
       });
       vi.mocked(existsSync).mockImplementation((p: unknown) => {

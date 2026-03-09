@@ -16,6 +16,7 @@ vi.mock('../../lib/common.js', () => ({
 
 vi.mock('node:child_process', () => ({
   execSync: vi.fn(() => ''),
+  execFileSync: vi.fn(() => ''),
 }));
 
 import {
@@ -32,7 +33,7 @@ import {
   getGitStatus,
   hasUncommittedChanges,
 } from '../../lib/git.js';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 
 // =============================================================================
 // Tests
@@ -50,13 +51,13 @@ describe('lib/git', () => {
 
   describe('getDirtyFileCount', () => {
     test('returns 0 for clean repo', () => {
-      vi.mocked(execSync).mockReturnValue('');
+      vi.mocked(execFileSync).mockReturnValue('');
 
       expect(getDirtyFileCount('/test/project')).toBe(0);
     });
 
     test('counts modified files correctly', () => {
-      vi.mocked(execSync).mockReturnValue(
+      vi.mocked(execFileSync).mockReturnValue(
         ' M src/index.ts\n M src/app.ts\n?? untracked.txt\n'
       );
 
@@ -64,26 +65,27 @@ describe('lib/git', () => {
     });
 
     test('filters empty lines from porcelain output', () => {
-      vi.mocked(execSync).mockReturnValue(' M file.ts\n\n\n M other.ts\n');
+      vi.mocked(execFileSync).mockReturnValue(' M file.ts\n\n\n M other.ts\n');
 
       expect(getDirtyFileCount('/test/project')).toBe(2);
     });
 
     test('returns 0 when git command throws (not a git repo)', () => {
-      vi.mocked(execSync).mockImplementation(() => {
+      vi.mocked(execFileSync).mockImplementation(() => {
         throw new Error('not a git repository');
       });
 
       expect(getDirtyFileCount('/not/a/repo')).toBe(0);
     });
 
-    test('passes cwd and timeout to execSync', () => {
-      vi.mocked(execSync).mockReturnValue('');
+    test('passes cwd and timeout to execFileSync', () => {
+      vi.mocked(execFileSync).mockReturnValue('');
 
       getDirtyFileCount('/my/project');
 
-      expect(execSync).toHaveBeenCalledWith(
-        'git status --porcelain',
+      expect(execFileSync).toHaveBeenCalledWith(
+        'git',
+        ['status', '--porcelain'],
         expect.objectContaining({
           cwd: '/my/project',
           timeout: 3000,
@@ -98,13 +100,13 @@ describe('lib/git', () => {
 
   describe('getCurrentBranch', () => {
     test('returns branch name from git', () => {
-      vi.mocked(execSync).mockReturnValue('feat/my-feature\n');
+      vi.mocked(execFileSync).mockReturnValue('feat/my-feature\n');
 
       expect(getCurrentBranch('/test/project')).toBe('feat/my-feature');
     });
 
     test('returns "unknown" when git command fails', () => {
-      vi.mocked(execSync).mockImplementation(() => {
+      vi.mocked(execFileSync).mockImplementation(() => {
         throw new Error('detached HEAD');
       });
 
@@ -164,13 +166,13 @@ describe('lib/git', () => {
 
   describe('isGitRepo', () => {
     test('returns true when git rev-parse succeeds', () => {
-      vi.mocked(execSync).mockReturnValue('.git\n');
+      vi.mocked(execFileSync).mockReturnValue('.git\n');
 
       expect(isGitRepo('/test/project')).toBe(true);
     });
 
     test('returns false when git rev-parse fails', () => {
-      vi.mocked(execSync).mockImplementation(() => {
+      vi.mocked(execFileSync).mockImplementation(() => {
         throw new Error('not a git repository');
       });
 
@@ -210,19 +212,19 @@ describe('lib/git', () => {
 
   describe('getStagedFiles', () => {
     test('returns array of staged file paths', () => {
-      vi.mocked(execSync).mockReturnValue('src/index.ts\nsrc/app.ts\n');
+      vi.mocked(execFileSync).mockReturnValue('src/index.ts\nsrc/app.ts\n');
 
       expect(getStagedFiles('/test/project')).toEqual(['src/index.ts', 'src/app.ts']);
     });
 
     test('returns empty array when nothing is staged', () => {
-      vi.mocked(execSync).mockReturnValue('');
+      vi.mocked(execFileSync).mockReturnValue('');
 
       expect(getStagedFiles('/test/project')).toEqual([]);
     });
 
     test('returns empty array when git command fails', () => {
-      vi.mocked(execSync).mockImplementation(() => {
+      vi.mocked(execFileSync).mockImplementation(() => {
         throw new Error('not a git repo');
       });
 
@@ -261,21 +263,22 @@ describe('lib/git', () => {
   describe('getRepoRoot', () => {
     test('returns trimmed path when git command succeeds', () => {
       // Arrange
-      vi.mocked(execSync).mockReturnValue('/home/user/my-project\n');
+      vi.mocked(execFileSync).mockReturnValue('/home/user/my-project\n');
 
       // Act
       const result = getRepoRoot('/test/project');
 
       // Assert
       expect(result).toBe('/home/user/my-project');
-      expect(execSync).toHaveBeenCalledWith(
-        'git rev-parse --show-toplevel',
+      expect(execFileSync).toHaveBeenCalledWith(
+        'git',
+        ['rev-parse', '--show-toplevel'],
         expect.objectContaining({ cwd: '/test/project' }),
       );
     });
 
     test('trims whitespace from returned path', () => {
-      vi.mocked(execSync).mockReturnValue('  /some/path  \n');
+      vi.mocked(execFileSync).mockReturnValue('  /some/path  \n');
 
       const result = getRepoRoot('/test/project');
 
@@ -284,7 +287,7 @@ describe('lib/git', () => {
 
     test('returns the projectDir as fallback when git command fails', () => {
       // Arrange
-      vi.mocked(execSync).mockImplementation(() => {
+      vi.mocked(execFileSync).mockImplementation(() => {
         throw new Error('not a git repository');
       });
 
@@ -303,22 +306,23 @@ describe('lib/git', () => {
   describe('getDefaultBranch', () => {
     test('returns "main" when main branch exists', () => {
       // Arrange: first execSync succeeds
-      vi.mocked(execSync).mockReturnValue('main\n');
+      vi.mocked(execFileSync).mockReturnValue('main\n');
 
       // Act
       const result = getDefaultBranch('/test/project');
 
       // Assert
       expect(result).toBe('main');
-      expect(execSync).toHaveBeenCalledWith(
-        'git rev-parse --verify main',
+      expect(execFileSync).toHaveBeenCalledWith(
+        'git',
+        ['rev-parse', '--verify', 'main'],
         expect.objectContaining({ cwd: '/test/project' }),
       );
     });
 
     test('returns "master" when main fails but master exists', () => {
       // Arrange: first call throws (main not found), second succeeds (master found)
-      vi.mocked(execSync)
+      vi.mocked(execFileSync)
         .mockImplementationOnce(() => { throw new Error('fatal: ambiguous argument'); })
         .mockReturnValueOnce('master\n');
 
@@ -327,12 +331,12 @@ describe('lib/git', () => {
 
       // Assert
       expect(result).toBe('master');
-      expect(execSync).toHaveBeenCalledTimes(2);
+      expect(execFileSync).toHaveBeenCalledTimes(2);
     });
 
     test('returns "main" as default when both main and master are absent', () => {
       // Arrange: both calls throw
-      vi.mocked(execSync).mockImplementation(() => {
+      vi.mocked(execFileSync).mockImplementation(() => {
         throw new Error('fatal: ambiguous argument');
       });
 
@@ -341,7 +345,7 @@ describe('lib/git', () => {
 
       // Assert — the hardcoded fallback is "main"
       expect(result).toBe('main');
-      expect(execSync).toHaveBeenCalledTimes(2);
+      expect(execFileSync).toHaveBeenCalledTimes(2);
     });
   });
 
@@ -352,21 +356,22 @@ describe('lib/git', () => {
   describe('getGitStatus', () => {
     test('returns trimmed status string on success', () => {
       // Arrange
-      vi.mocked(execSync).mockReturnValue(' M src/lib/git.ts\n?? newfile.ts\n');
+      vi.mocked(execFileSync).mockReturnValue(' M src/lib/git.ts\n?? newfile.ts\n');
 
       // Act
       const result = getGitStatus('/test/project');
 
       // Assert — result is trimmed
       expect(result).toBe('M src/lib/git.ts\n?? newfile.ts');
-      expect(execSync).toHaveBeenCalledWith(
-        'git status --short',
+      expect(execFileSync).toHaveBeenCalledWith(
+        'git',
+        ['status', '--short'],
         expect.objectContaining({ cwd: '/test/project' }),
       );
     });
 
     test('returns empty string for a clean working tree', () => {
-      vi.mocked(execSync).mockReturnValue('');
+      vi.mocked(execFileSync).mockReturnValue('');
 
       const result = getGitStatus('/test/project');
 
@@ -374,7 +379,7 @@ describe('lib/git', () => {
     });
 
     test('returns empty string when git command throws', () => {
-      vi.mocked(execSync).mockImplementation(() => {
+      vi.mocked(execFileSync).mockImplementation(() => {
         throw new Error('not a git repository');
       });
 
@@ -391,7 +396,7 @@ describe('lib/git', () => {
   describe('hasUncommittedChanges', () => {
     test('returns true when there are modified files', () => {
       // Arrange — non-empty status means dirty
-      vi.mocked(execSync).mockReturnValue(' M src/file.ts\n');
+      vi.mocked(execFileSync).mockReturnValue(' M src/file.ts\n');
 
       // Act
       const result = hasUncommittedChanges('/test/project');
@@ -402,7 +407,7 @@ describe('lib/git', () => {
 
     test('returns false for a clean working tree', () => {
       // Arrange — empty status means clean
-      vi.mocked(execSync).mockReturnValue('');
+      vi.mocked(execFileSync).mockReturnValue('');
 
       // Act
       const result = hasUncommittedChanges('/test/project');

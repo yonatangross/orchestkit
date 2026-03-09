@@ -56,6 +56,7 @@ vi.mock('../../lib/session-tracker.js', async () => {
 // Prevent all sub-hook implementations from doing real I/O
 vi.mock('node:child_process', () => ({
   execSync: vi.fn(() => Buffer.from('')),
+  execFileSync: vi.fn(() => ''),
   spawnSync: vi.fn(() => ({ stdout: Buffer.from(''), stderr: Buffer.from(''), status: 0 })),
 }));
 

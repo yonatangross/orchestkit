@@ -27,6 +27,7 @@ vi.mock('../../lib/common.js', async () => {
 
 vi.mock('node:child_process', () => ({
   execSync: vi.fn(() => Buffer.from('')),
+  execFileSync: vi.fn(() => ''),
 }));
 
 // Mock the individual hooks to isolate dispatcher logic

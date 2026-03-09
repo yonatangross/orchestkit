@@ -23,6 +23,7 @@ vi.mock('../../lib/common.js', () => ({
 
 vi.mock('node:child_process', () => ({
   execSync: vi.fn(() => ''),
+  execFileSync: vi.fn(() => ''),
 }));
 
 import { changelogGenerator } from '../../pretool/bash/changelog-generator.js';

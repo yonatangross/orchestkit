@@ -69,6 +69,7 @@ vi.mock('../lib/atomic-write.js', () => ({
 // ---------------------------------------------------------------------------
 vi.mock('node:child_process', () => ({
   execSync: vi.fn(() => ''),
+  execFileSync: vi.fn(() => ''),
 }));
 
 // ---------------------------------------------------------------------------
@@ -85,7 +86,7 @@ vi.mock('node:crypto', () => ({
 // Imports (after mocks are declared)
 // ---------------------------------------------------------------------------
 import { existsSync, readFileSync, writeFileSync, statSync, } from 'node:fs';
-import { execSync } from 'node:child_process';
+import { execSync, execFileSync } from 'node:child_process';
 
 import { coverageThresholdGate } from '../skill/coverage-threshold-gate.js';
 import { mergeReadinessChecker } from '../skill/merge-readiness-checker.js';
@@ -143,6 +144,7 @@ beforeEach(() => {
   vi.mocked(readFileSync).mockReturnValue('');
   vi.mocked(statSync).mockReturnValue({ size: 0 } as any);
   vi.mocked(execSync).mockReturnValue('');
+  vi.mocked(execFileSync).mockReturnValue('');
 });
 
 // =============================================================================
@@ -468,6 +470,13 @@ describe('mergeReadinessChecker', () => {
       if (cmdStr.includes('diff --name-only')) return 'src/index.ts';
       return '';
     });
+    vi.mocked(execFileSync).mockImplementation((_cmd: any, args: any) => {
+      const argsStr = Array.isArray(args) ? args.join(' ') : '';
+      if (argsStr.includes('branch --show-current')) return 'feature/test';
+      if (argsStr.includes('rev-parse --show-toplevel')) return '/test/project';
+      if (argsStr.includes('status --short')) return '';
+      return '';
+    });
     vi.mocked(existsSync).mockReturnValue(false);
 
     const stderrSpy = vi.spyOn(process.stderr, 'write').mockReturnValue(true);
@@ -492,6 +501,13 @@ describe('mergeReadinessChecker', () => {
       if (cmdStr.includes('diff --name-only')) return '';
       return '';
     });
+    vi.mocked(execFileSync).mockImplementation((_cmd: any, args: any) => {
+      const argsStr = Array.isArray(args) ? args.join(' ') : '';
+      if (argsStr.includes('branch --show-current')) return 'feature/test';
+      if (argsStr.includes('rev-parse --show-toplevel')) return '/test/project';
+      if (argsStr.includes('status --short')) return '';
+      return '';
+    });
     vi.mocked(existsSync).mockReturnValue(false);
     vi.spyOn(process.stderr, 'write').mockReturnValue(true);
 
@@ -512,6 +528,13 @@ describe('mergeReadinessChecker', () => {
       if (cmdStr.includes('merge --no-commit')) return 'Already up to date.';
       if (cmdStr.includes('merge-base')) return 'abc123';
       if (cmdStr.includes('diff --name-only')) return '';
+      return '';
+    });
+    vi.mocked(execFileSync).mockImplementation((_cmd: any, args: any) => {
+      const argsStr = Array.isArray(args) ? args.join(' ') : '';
+      if (argsStr.includes('branch --show-current')) return 'feature/test';
+      if (argsStr.includes('rev-parse --show-toplevel')) return '/test/project';
+      if (argsStr.includes('status --short')) return '';
       return '';
     });
     vi.mocked(existsSync).mockReturnValue(false);
@@ -540,6 +563,13 @@ describe('mergeReadinessChecker', () => {
       if (cmdStr.includes('diff --name-only')) return '';
       return '';
     });
+    vi.mocked(execFileSync).mockImplementation((_cmd: any, args: any) => {
+      const argsStr = Array.isArray(args) ? args.join(' ') : '';
+      if (argsStr.includes('branch --show-current')) return 'feature/test';
+      if (argsStr.includes('rev-parse --show-toplevel')) return '/test/project';
+      if (argsStr.includes('status --short')) return ' M src/index.ts\n?? newfile.ts';
+      return '';
+    });
     vi.mocked(existsSync).mockReturnValue(false);
     vi.spyOn(process.stderr, 'write').mockReturnValue(true);
 
@@ -566,6 +596,13 @@ describe('mergeReadinessChecker', () => {
       if (cmdStr.includes('merge --no-commit')) return 'Already up to date.';
       if (cmdStr.includes('merge-base')) return 'abc123';
       if (cmdStr.includes('diff --name-only')) return '';
+      return '';
+    });
+    vi.mocked(execFileSync).mockImplementation((_cmd: any, args: any) => {
+      const argsStr = Array.isArray(args) ? args.join(' ') : '';
+      if (argsStr.includes('branch --show-current')) return 'feature/test';
+      if (argsStr.includes('rev-parse --show-toplevel')) return '/test/project';
+      if (argsStr.includes('status --short')) return '';
       return '';
     });
     vi.mocked(existsSync).mockReturnValue(false);
@@ -598,6 +635,13 @@ describe('mergeReadinessChecker', () => {
       if (cmdStr.includes('diff --name-only')) return '';
       return '';
     });
+    vi.mocked(execFileSync).mockImplementation((_cmd: any, args: any) => {
+      const argsStr = Array.isArray(args) ? args.join(' ') : '';
+      if (argsStr.includes('branch --show-current')) return 'feature/test';
+      if (argsStr.includes('rev-parse --show-toplevel')) return '/test/project';
+      if (argsStr.includes('status --short')) return '';
+      return '';
+    });
     vi.mocked(existsSync).mockReturnValue(false);
     vi.spyOn(process.stderr, 'write').mockReturnValue(true);
 
@@ -626,6 +670,13 @@ describe('mergeReadinessChecker', () => {
       if (cmdStr.includes('diff --name-only')) return '';
       return '';
     });
+    vi.mocked(execFileSync).mockImplementation((_cmd: any, args: any) => {
+      const argsStr = Array.isArray(args) ? args.join(' ') : '';
+      if (argsStr.includes('branch --show-current')) return 'feature/test';
+      if (argsStr.includes('rev-parse --show-toplevel')) return '/test/project';
+      if (argsStr.includes('status --short')) return '';
+      return '';
+    });
     vi.mocked(existsSync).mockReturnValue(false);
     vi.spyOn(process.stderr, 'write').mockReturnValue(true);
 
@@ -645,6 +696,11 @@ describe('mergeReadinessChecker', () => {
     vi.mocked(execSync).mockImplementation((cmd: any) => {
       const cmdStr = String(cmd);
       if (cmdStr.includes('branch --show-current')) return 'main';
+      return '';
+    });
+    vi.mocked(execFileSync).mockImplementation((_cmd: any, args: any) => {
+      const argsStr = Array.isArray(args) ? args.join(' ') : '';
+      if (argsStr.includes('branch --show-current')) return 'main';
       return '';
     });
 
@@ -671,6 +727,13 @@ describe('mergeReadinessChecker', () => {
       if (cmdStr.includes('merge --no-commit')) return 'Already up to date.';
       if (cmdStr.includes('merge-base')) return 'abc123';
       if (cmdStr.includes('diff --name-only')) return '';
+      return '';
+    });
+    vi.mocked(execFileSync).mockImplementation((_cmd: any, args: any) => {
+      const argsStr = Array.isArray(args) ? args.join(' ') : '';
+      if (argsStr.includes('branch --show-current')) return 'feature/test';
+      if (argsStr.includes('rev-parse --show-toplevel')) return '/test/project';
+      if (argsStr.includes('status --short')) return '';
       return '';
     });
     vi.mocked(existsSync).mockImplementation((path) => {
@@ -700,6 +763,13 @@ describe('mergeReadinessChecker', () => {
       if (cmdStr.includes('merge --no-commit')) return 'Already up to date.';
       if (cmdStr.includes('merge-base')) return 'abc123';
       if (cmdStr.includes('diff --name-only')) return '';
+      return '';
+    });
+    vi.mocked(execFileSync).mockImplementation((_cmd: any, args: any) => {
+      const argsStr = Array.isArray(args) ? args.join(' ') : '';
+      if (argsStr.includes('branch --show-current')) return 'feature/test';
+      if (argsStr.includes('rev-parse --show-toplevel')) return '/test/project';
+      if (argsStr.includes('status --short')) return '';
       return '';
     });
     vi.mocked(existsSync).mockImplementation((path) => {

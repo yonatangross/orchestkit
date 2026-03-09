@@ -42,6 +42,7 @@ vi.mock('../../lib/common.js', async () => {
 
 vi.mock('node:child_process', () => ({
   execSync: vi.fn(),
+  execFileSync: vi.fn(() => ''),
   spawn: mockSpawn,
 }));
 

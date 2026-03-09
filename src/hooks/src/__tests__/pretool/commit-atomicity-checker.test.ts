@@ -25,6 +25,7 @@ vi.mock('../../lib/common.js', () => ({
 
 vi.mock('node:child_process', () => ({
   execSync: vi.fn(() => ''),
+  execFileSync: vi.fn(() => ''),
 }));
 
 import { commitAtomicityChecker } from '../../pretool/bash/commit-atomicity-checker.js';

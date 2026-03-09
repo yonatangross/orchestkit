@@ -27,7 +27,8 @@ vi.mock('node:fs', () => ({
 }));
 
 vi.mock('node:child_process', () => ({
-  execSync: vi.fn().mockReturnValue('main\n'),
+  execSync: vi.fn(),
+  execFileSync: vi.fn(() => '').mockReturnValue('main\n'),
   spawn: vi.fn().mockReturnValue({
     unref: vi.fn(),
     on: vi.fn(),

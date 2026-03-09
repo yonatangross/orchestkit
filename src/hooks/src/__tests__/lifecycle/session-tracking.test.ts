@@ -14,6 +14,7 @@ import type { HookInput } from '../../types.js';
 
 vi.mock('node:child_process', () => ({
   execSync: vi.fn(() => 'feature-branch'),
+  execFileSync: vi.fn(() => ''),
 }));
 
 vi.mock('../../lib/common.js', async (importOriginal) => {
