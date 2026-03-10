@@ -96,6 +96,8 @@ import { testRunner } from './skill/test-runner.js';
 // once:true context loaders (CC 2.1.69)
 import { prContextLoader, issueContextLoader, commitConventionLoader, planContextLoader, releaseStateLoader } from './skill/context-loaders-git.js';
 import { repoStructureIndexer, testFrameworkDetector, projectConventionLoader, doctorEnvSnapshot, setupEnvDetector, priorDecisionsLoader, assessmentBaselineLoader, qualityBaselineLoader } from './skill/context-loaders-env.js';
+// once:true standards loaders (CC 2.1.72 cache-opt)
+import { implementStandardsLoader, reviewDimensionsLoader, verifyScoringRubricLoader, brainstormInstructionsLoader } from './skill/context-loaders-standards.js';
 
 // Prompt hooks (UserPromptSubmit)
 import { antipatternDetector } from './prompt/antipattern-detector.js';
@@ -317,6 +319,11 @@ export const hooks: Record<string, HookFn> = {
   'skill/prior-decisions-loader': priorDecisionsLoader,
   'skill/assessment-baseline-loader': assessmentBaselineLoader,
   'skill/quality-baseline-loader': qualityBaselineLoader,
+  // once:true standards loaders (CC 2.1.72 cache-opt)
+  'skill/implement-standards-loader': implementStandardsLoader,
+  'skill/review-dimensions-loader': reviewDimensionsLoader,
+  'skill/verify-scoring-rubric-loader': verifyScoringRubricLoader,
+  'skill/brainstorm-instructions-loader': brainstormInstructionsLoader,
 
   // Stop hooks (10)
   'stop/handoff-writer': handoffWriter,

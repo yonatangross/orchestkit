@@ -1,7 +1,7 @@
 ---
 name: implement
 license: MIT
-compatibility: "Claude Code 2.1.59+. Requires memory MCP server, context7 MCP server, network access."
+compatibility: "Claude Code 2.1.72+. Requires memory MCP server, context7 MCP server, network access."
 description: "Full-power feature implementation with parallel subagents. Use when implementing, building, or creating features."
 argument-hint: "[feature-description]"
 context: fork
@@ -18,8 +18,9 @@ hooks:
     - matcher: "Write"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/project-convention-loader"
       once: true
-    # TODO(cache-opt): Add once:true implement-standards-loader
-    # to inject framework standards (FastAPI, React 19, SQLAlchemy) once
+    - matcher: "Agent"
+      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/implement-standards-loader"
+      once: true
   PostToolUse:
     - matcher: "Write|Edit"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/pattern-consistency-enforcer"

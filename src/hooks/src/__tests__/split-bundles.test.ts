@@ -326,7 +326,8 @@ describe('Cross-Bundle Consistency', () => {
     // 175 -> 171: memory cleanup — removed 5 dead hooks (memoryContext, memoryContextLoader, captureUserIntent, graphMemoryInject, agentMemoryStore), added session-summary
     // 170 -> 172: CC 2.1.71 — added task-commit-linker, task-progress-tracker to lifecycle bundle
     // 172 -> 171: #1063 — removed release-notebook-trigger from posttool bundle
-    expect(totalHooks).toBe(171);
+    // 171 -> 175: CC 2.1.72 cache-opt — added 4 once:true standards loaders (implement, review, verify, brainstorm)
+    expect(totalHooks).toBe(176);
   });
 });
 

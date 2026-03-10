@@ -1,7 +1,7 @@
 ---
 name: verify
 license: MIT
-compatibility: "Claude Code 2.1.59+. Requires memory MCP server."
+compatibility: "Claude Code 2.1.72+. Requires memory MCP server."
 description: "Comprehensive verification with parallel test agents. Use when verifying implementations or validating changes."
 argument-hint: "[feature-or-scope]"
 context: fork
@@ -17,8 +17,9 @@ hooks:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/test-framework-detector"
       once: true
-    # TODO(cache-opt): Add once:true verify-scoring-rubric-loader
-    # to inject 0-10 dimension definitions once
+    - matcher: "Agent"
+      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/verify-scoring-rubric-loader"
+      once: true
   PostToolUse:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/test-result-validator"
@@ -277,7 +278,7 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/rules/<file>")`:
 
 - `ork:implement` - Full implementation with verification
 - `ork:review-pr` - PR-specific verification
-- `run-tests` - Detailed test execution
+- `testing-patterns` - Test execution patterns
 - `ork:quality-gates` - Quality gate patterns
 - `browser-tools` - Browser automation for visual capture
 

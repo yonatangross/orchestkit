@@ -5,7 +5,7 @@
 
 ### Stop explaining your stack. Start shipping.
 
-**<!--ork:skills-->91<!--/ork--> skills · <!--ork:agents-->31<!--/ork--> agents · <!--ork:hooks-->97<!--/ork--> hooks**
+**<!--ork:skills-->89<!--/ork--> skills · <!--ork:agents-->31<!--/ork--> agents · <!--ork:hooks-->101<!--/ork--> hooks**
 
 [![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.69-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
@@ -60,9 +60,9 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 
 | Component | Details |
 |-----------|---------|
-| **<!--ork:skills-->91<!--/ork--> Skills** | RAG patterns, FastAPI, React 19, testing, security, database design, ML integration — loaded on-demand, zero overhead |
+| **<!--ork:skills-->89<!--/ork--> Skills** | RAG patterns, FastAPI, React 19, testing, security, database design, ML integration — loaded on-demand, zero overhead |
 | **<!--ork:agents-->31<!--/ork--> Agents** | Specialized personas (backend-architect, frontend-dev, security-auditor) — route tasks to the right expert |
-| **<!--ork:hooks-->97<!--/ork--> Hooks** | Pre-commit checks, git protection, quality gates, browser safety — ship with confidence |
+| **<!--ork:hooks-->101<!--/ork--> Hooks** | Pre-commit checks, git protection, quality gates, browser safety — ship with confidence |
 
 All available in a single `/plugin install ork`. Skills load on-demand. Hooks work automatically.
 

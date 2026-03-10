@@ -1,7 +1,7 @@
 ---
 name: brainstorm
 license: MIT
-compatibility: "Claude Code 2.1.59+. Requires memory MCP server."
+compatibility: "Claude Code 2.1.72+. Requires memory MCP server."
 description: "Design exploration with parallel agents. Use when brainstorming ideas, exploring solutions, or comparing alternatives."
 argument-hint: "[topic-or-idea]"
 tags: [planning, ideation, creativity, design]
@@ -18,8 +18,9 @@ hooks:
     - matcher: "Agent"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/prior-decisions-loader"
       once: true
-    # TODO(cache-opt): Add once:true brainstorm-instructions-loader
-    # to inject divergent mode rules + scoring dimensions once
+    - matcher: "Agent"
+      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/brainstorm-instructions-loader"
+      once: true
 metadata:
   category: workflow-automation
   mcp-server: memory

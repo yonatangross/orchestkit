@@ -30,7 +30,7 @@ Launch ALL agents in ONE message with `run_in_background=True` and `max_turns=25
 | frontend-ui-developer | React 19, Zod, a11y | UI 0-10 |
 | python-performance-engineer | Latency, resources, scaling | Performance 0-10 |
 
-Use `python-performance-engineer` for backend-focused verification or `frontend-performance-engineer` for frontend-focused verification. See [Quality Model](quality-model.md) for Performance (0.12) and Scalability (0.10) weights.
+Use `python-performance-engineer` for backend-focused verification or `frontend-performance-engineer` for frontend-focused verification. See [Quality Model](quality-model.md) for Performance (0.11) and Scalability (0.09) weights.
 
 See [Grading Rubric](grading-rubric.md) for detailed scoring criteria.
 

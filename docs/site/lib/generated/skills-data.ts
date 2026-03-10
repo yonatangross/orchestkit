@@ -877,45 +877,6 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": []
   },
-  "ci-automation": {
-    "name": "ci-automation",
-    "description": "CI/CD automation with Claude Code -- GitHub Actions, headless CLI, and SDK patterns for automated reviews, triage, and health reports. Use when setting up CI pipelines with Claude.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "ci",
-      "cd",
-      "github-actions",
-      "automation",
-      "headless",
-      "claude-code-action"
-    ],
-    "userInvocable": true,
-    "context": "fork",
-    "allowedTools": [
-      "Read",
-      "Glob",
-      "Grep",
-      "Bash"
-    ],
-    "skills": [],
-    "agent": null,
-    "structure": {
-      "references": [
-        "cost-model.md",
-        "gh-action-patterns.md",
-        "headless-cli.md",
-        "loop-recipes.md",
-        "security.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "ci-cd-engineer"
-    ]
-  },
   "code-review-playbook": {
     "name": "code-review-playbook",
     "description": "Use this skill when conducting or improving code reviews. Provides structured review processes, conventional comments patterns, language-specific checklists, and feedback templates. Use when reviewing PRs or standardizing review practices.",
@@ -968,7 +929,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "commit": {
     "name": "commit",
     "description": "Creates commits with conventional format and validation. Use when committing changes or generating commit messages.",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "author": "OrchestKit",
     "tags": [
       "git",
@@ -1777,55 +1738,6 @@ export const SKILLS: Record<string, SkillMeta> = {
     "relatedAgents": [
       "debug-investigator",
       "ui-feedback"
-    ]
-  },
-  "git-workflow": {
-    "name": "git-workflow",
-    "description": "Complete git workflow patterns including GitHub Flow branching, atomic commits with interactive staging, merge and rebase strategies, and recovery operations using reflog. Essential patterns for clean history. Use when managing branches, defining branching strategy, or recovering git history.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "git",
-      "branch",
-      "commit",
-      "recovery",
-      "workflow",
-      "reflog",
-      "staging",
-      "stacked-prs",
-      "monorepo",
-      "add-dir",
-      "code-review"
-    ],
-    "userInvocable": true,
-    "context": "fork",
-    "allowedTools": [
-      "AskUserQuestion",
-      "Bash",
-      "Read",
-      "Grep",
-      "Glob"
-    ],
-    "skills": [],
-    "agent": "git-operations-engineer",
-    "structure": {
-      "references": [
-        "github-flow.md",
-        "interactive-staging.md",
-        "recovery-decision-tree.md",
-        "reflog-recovery.md"
-      ],
-      "checklists": [
-        "branch-checklist.md",
-        "pre-commit-checklist.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "frontend-ui-developer",
-      "git-operations-engineer"
     ]
   },
   "github-operations": {
@@ -4395,7 +4307,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "write-prd": {
     "name": "write-prd",
     "description": "Write PRD — Product Requirements Documents with structured 8-section templates, user stories, acceptance criteria, and value proposition validation. Use when writing PRDs, defining product requirements, creating user stories with INVEST criteria, or building go/no-go decision frameworks.",
-    "version": "1.0.0",
+    "version": "2.0.0",
     "author": "OrchestKit",
     "tags": [
       "prd",
@@ -4410,10 +4322,21 @@ export const SKILLS: Record<string, SkillMeta> = {
     "context": "fork",
     "allowedTools": [
       "Read",
+      "Write",
+      "Edit",
       "Glob",
       "Grep",
+      "Bash",
       "WebFetch",
-      "WebSearch"
+      "WebSearch",
+      "AskUserQuestion",
+      "TaskCreate",
+      "TaskUpdate",
+      "Agent",
+      "mcp__memory__search_nodes",
+      "mcp__memory__create_entities",
+      "mcp__memory__add_observations",
+      "mcp__memory__create_relations"
     ],
     "skills": [],
     "agent": "product-strategist",

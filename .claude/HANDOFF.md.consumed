@@ -1,39 +1,54 @@
 # Session Handoff
 
-**Branch**: feat/ci-automation-1002-1005
-**When**: 2026-03-08 09:20:10 UTC
-**Session**: 0e015327-cefb-4b63-b0e6-36fdb7a67faa
+**Branch**: refactor/split-testing-patterns-669
+**When**: 2026-03-10 14:29:12 UTC
+**Session**: 95e4b6dc-aa22-4a38-b107-9c64ba09531f
 
 ## Summary
-Everything from the previous session is complete:
+Both agents are back. Let me synthesize.
 
-- **Commit `1c28f593`** landed on `feat/ci-automation-1002-1005` — 6 new InstructionsLoaded handlers replacing the 3 broken ones
-- **83/83 tests passing**, security clean, typecheck green
-- 9 focused modules under `src/hooks/src/instructions-loaded/`
+---
 
-What's next?
+# Brainstorm: Is Backend Verify Thorough Enough?
+
+## The Gap — Visualized
+
+```
+CURRENT VERIFY: WHAT AGENTS ACTUALLY DO
+════════════════════════════════════════
+
+  backend-system-architect          python-performance-engineer
+  ┌─────────────────────────┐      ┌─────────────────────────┐
+  │ READS code              │      │ READS code              │
+  │ checks API patterns     │      │ checks latency patterns │
+  │ checks async patterns   │      │ checks N+1 patterns     │
+  │ checks error handling   │      │ checks caching          │
+  │          ...
 
 ## Modified Files
-- .claude-plugin/marketplace.json
 - .claude/HANDOFF.md
 - .claude/HANDOFF.md.consumed
-- .claude/agent-memory/ork-test-generator/MEMORY.md
-- .release-please-manifest.json
-- CLAUDE.md
-- CONTRIBUTING.md
-- README.md
-- manifests/ork.json
-- package-lock.json
-- package.json
-- pyproject.toml
-- version.txt
+- docs/site/lib/generated/skill-content-data.ts
+
+## Patterns Noted
+- │  but never ran  │
+- | Dimension | Score |
+|-----------|-------|
+| Impact | 7 — covers smoke + latency + migrations |
+| Effort | 3/10 — simple orchestration |
+| Dependency risk | Low — curl always available, others optional |
+| Zero-config | Yes — works even without OpenAPI spec |
+- │ ALWAYS (zero-config):                   │
+- Progressive enhancement, never blocking.
+- curl is always available |
+| Server takes 60s+ to start (migrations, seeding) | 60s timeout (vs 30s for frontend).
 
 ## Recent Tasks
-- Phase 1: Fix broken handlers in InstructionsLoaded dispatcher [completed]
-- Phase 2: Add token budget tracker handler [completed]
-- Phase 2: Add priority map injection handler [completed]
-- Phase 2: Add content dedup scanner handler [completed]
-- Phase 2: Add drift detection handler [completed]
-- Phase 3: Add smart rule suggestions handler [completed]
-- Build, typecheck, and test [completed]
-- Update hook counts and docs [completed]
+- Brainstorm: What OrchestKit can learn from CandleKeep UI/UX manual [completed]
+- Context Hub vs OrchestKit comparison analysis [completed]
+- Brainstorm: What to steal from Context Hub [completed]
+- Fetch and analyze AlmogBaku/debug-skill repo [completed]
+- Compare debug-skill vs CC built-in /debug [completed]
+- Brainstorm what to steal/adopt for OrchestKit [completed]
+- Create /playground skill [completed]
+- Brainstorm: debug-skill analysis + playground skill creation [completed]

@@ -246,7 +246,7 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/rules/<file>")`:
 
 - `ork:implement` - Full implementation with verification
 - `ork:review-pr` - PR-specific verification
-- `run-tests` - Detailed test execution
+- `testing-patterns` - Test execution patterns
 - `ork:quality-gates` - Quality gate patterns
 - `browser-tools` - Browser automation for visual capture
 

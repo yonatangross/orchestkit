@@ -144,11 +144,16 @@ Each category has individual rule files in `rules/` loaded on-demand:
 | Category | Rule | Impact | Key Pattern |
 |----------|------|--------|-------------|
 | Atomic Commits | `$\{CLAUDE_SKILL_DIR\}/rules/atomic-commit.md` | CRITICAL | One logical change per commit, atomicity test |
+| Branch Protection | `$\{CLAUDE_SKILL_DIR\}/rules/branch-protection.md` | CRITICAL | Protected branches, required PR workflow |
 | Commit Splitting | `$\{CLAUDE_SKILL_DIR\}/rules/commit-splitting.md` | HIGH | `git add -p`, interactive staging, separation strategies |
 | Conventional Format | `$\{CLAUDE_SKILL_DIR\}/rules/conventional-format.md` | HIGH | type(scope): description, breaking changes |
+| History Hygiene | `$\{CLAUDE_SKILL_DIR\}/rules/history-hygiene.md` | HIGH | Squash WIP, fixup commits, clean history |
 | Issue Reference | `$\{CLAUDE_SKILL_DIR\}/rules/issue-reference-required.md` | HIGH | Reference issue `#N` in commits on issue branches |
+| Merge Strategy | `$\{CLAUDE_SKILL_DIR\}/rules/merge-strategy.md` | HIGH | Rebase-first, conflict resolution, force-with-lease |
+| Stacked PRs | `$\{CLAUDE_SKILL_DIR\}/rules/stacked-pr-workflow.md` | HIGH | Stack planning, PR creation, dependency tracking |
+| Stacked PRs | `$\{CLAUDE_SKILL_DIR\}/rules/stacked-pr-rebase.md` | HIGH | Rebase management, force-with-lease, retargeting |
 
-**Total: 4 rules across 4 categories**
+**Total: 9 rules across 7 categories**
 
 ## References
 
@@ -160,7 +165,7 @@ Load on demand with `Read("$\{CLAUDE_SKILL_DIR\}/references/&lt;file&gt;")`:
 
 ---
 
-## Rules (4)
+## Rules (9)
 
 ### Create atomic commits that bundle one logical change for safe revert and bisect — CRITICAL
 
@@ -279,6 +284,59 @@ git commit -m "chore: Update webpack for tree shaking"
 - Formatting/linting changes are separate commits
 - Database migrations go with the code that uses them
 - Never mix feature work with unrelated refactoring
+
+
+### Configure branch protection rules to prevent direct commits to protected branches — CRITICAL
+
+
+## Branch Protection Rules
+
+Protected branches are the deployment pipeline. Never commit or push directly to them.
+
+### Protected Branches
+
+| Branch | Purpose | Direct Commit | Force Push |
+|--------|---------|---------------|------------|
+| `main` | Production-ready code | BLOCKED | BLOCKED |
+| `master` | Legacy production | BLOCKED | BLOCKED |
+| `dev` | Integration branch | BLOCKED | BLOCKED |
+| `release/*` | Release candidates | BLOCKED | BLOCKED |
+
+### Branch Naming Convention
+
+```bash
+# Issue-linked (preferred)
+issue/<number>-<brief-description>
+issue/123-add-user-auth
+
+# Type-based (when no issue exists)
+feature/<description>
+fix/<description>
+hotfix/<description>
+```
+
+**Incorrect — Direct commit to main:**
+```bash
+git checkout main
+git commit -m "quick fix"
+git push origin main
+```
+
+**Correct — Feature branch workflow:**
+```bash
+git checkout -b fix/issue-123
+git commit -m "fix(#123): Resolve auth bug"
+git push -u origin fix/issue-123
+gh pr create --base main
+```
+
+### Key Rules
+
+- Never commit directly to main, dev, or release branches
+- Always use feature branches with descriptive names
+- All changes reach protected branches through PRs only
+- Force push is only allowed on your own feature branches with `--force-with-lease`
+- Delete feature branches after merge
 
 
 ### Split large mixed commits into focused, reviewable units with clean boundaries — HIGH
@@ -524,6 +582,66 @@ EOF
 - Breaking changes must use `!` or `BREAKING CHANGE:` footer
 
 
+### Keep git history clean by squashing WIP commits and fixups before merge — HIGH
+
+
+## History Hygiene Rules
+
+A clean git history makes debugging (bisect), code review, and onboarding dramatically easier.
+
+### Before Pushing: Clean Up
+
+```bash
+# Squash WIP commits before pushing
+git rebase -i HEAD~3
+
+# In the editor:
+pick abc1234 feat(#123): Add user validation
+fixup def5678 WIP: more validation
+fixup ghi9012 fix typo
+```
+
+### Fixup Commits (During Development)
+
+```bash
+git commit --fixup HEAD        # Auto-squash into previous
+git commit --fixup HEAD~2      # Auto-squash into specific commit
+
+# Before pushing, auto-squash all fixups
+git rebase -i --autosquash HEAD~5
+```
+
+### What to Squash
+
+| Squash | Keep Separate |
+|--------|---------------|
+| WIP commits | Each logical feature |
+| "Fix typo" after feature | Bug fixes (different concern) |
+| "Address review feedback" | Refactoring (different intent) |
+| Multiple attempts at same thing | Test additions (reviewable unit) |
+
+**Incorrect — Dirty WIP history:**
+```bash
+abc1234 WIP
+def5678 fix
+ghi9012 more fixes
+```
+
+**Correct — Cleaned history:**
+```bash
+git rebase -i --autosquash HEAD~4
+# Result: One clean commit
+abc1234 feat(#123): Add user validation with edge case handling
+```
+
+### Key Rules
+
+- Clean up history before pushing — squash WIP and fixup commits
+- Each commit in final history should be meaningful and atomic
+- Use `--fixup` during development, `--autosquash` before pushing
+- Never rewrite published history (commits others have pulled)
+
+
 ### Include issue references in commits to maintain traceability to GitHub issues — HIGH
 
 
@@ -592,6 +710,149 @@ Fixes #42"
 ### Soft Rule
 
 This is a soft rule enforced by the `issue-reference-checker` hook, which nudges the developer to add the reference. The commit will not be blocked if the reference is missing.
+
+
+### Choose the right merge strategy for clean, bisectable commit history — HIGH
+
+
+## Merge Strategy Rules
+
+Use rebase-first workflow to maintain clean, linear history on feature branches.
+
+### Decision Table
+
+| Scenario | Strategy | Command |
+|----------|----------|---------|
+| Update feature branch with main | Rebase | `git rebase origin/main` |
+| Merge PR into main | Squash merge or merge commit | Via GitHub PR |
+| Shared feature branch | Merge (preserve history) | `git merge origin/main` |
+
+### Rebase-First Workflow
+
+```bash
+git fetch origin
+git rebase origin/main
+
+# If conflicts: resolve, stage, continue
+git add <resolved-files>
+git rebase --continue
+
+# If rebase goes wrong
+git rebase --abort
+```
+
+### Force Push Safety
+
+```bash
+# SAFE: Force push your own feature branch
+git push --force-with-lease origin issue/123-feature
+
+# DANGEROUS: Never force push protected branches
+git push --force origin main  # NEVER DO THIS
+```
+
+**Incorrect — Merge main into feature:**
+```bash
+git checkout feature-branch
+git merge origin/main  # Creates noisy merge commits
+```
+
+**Correct — Rebase onto main:**
+```bash
+git checkout feature-branch
+git rebase origin/main
+git push --force-with-lease
+```
+
+### Key Rules
+
+- Rebase feature branches onto main — don't merge main into feature branches
+- Use `--force-with-lease` instead of `--force` for rebased branches
+- Resolve conflicts during rebase, not with merge commits
+- Test after every conflict resolution
+
+
+### Rebase dependent PRs systematically after base branch changes to prevent conflicts — HIGH
+
+
+## Stacked PR Rebase Management
+
+Keep stacked PR branches synchronized after feedback, merges, or base branch changes.
+
+**Incorrect — merging main into feature branches:**
+```bash
+git checkout feature/auth-service
+git merge main  # Creates unnecessary merge commit
+```
+
+**Correct — rebase after base PR feedback:**
+```bash
+# Rebase dependent branches in order:
+git checkout feature/auth-service
+git rebase feature/auth-base
+git push --force-with-lease
+
+git checkout feature/auth-ui
+git rebase feature/auth-service
+git push --force-with-lease
+```
+
+**After base PR merges to main:**
+```bash
+git checkout main && git pull origin main
+
+# Retarget PR #2 to main
+gh pr edit 102 --base main
+
+# Rebase PR #2 on updated main
+git checkout feature/auth-service
+git rebase main
+git push --force-with-lease
+```
+
+**Key rules:**
+- Always rebase, never merge main into feature branches
+- Use `--force-with-lease` (never `--force`) to prevent overwriting others' work
+- Rebase in dependency order: base first, then each dependent branch
+- After a base PR merges, retarget the next PR to `main` via `gh pr edit`
+
+
+### Split large features into small, reviewable, independently mergeable stacked PRs — HIGH
+
+
+## Stacked PR Workflow
+
+Break large features into small, dependent PRs that merge in sequence.
+
+**Incorrect — single massive PR:**
+```bash
+# One 1500-line PR that takes days to review
+git checkout -b feature/auth
+gh pr create --title "feat: Add complete auth system"
+```
+
+**Correct — stacked PRs with clear dependencies:**
+```bash
+# PR 1: User model (base) — targets main
+git checkout -b feature/auth-base
+gh pr create --base main --title "feat(#100): Add User model [1/3]"
+
+# PR 2: Auth service — targets PR 1's branch
+git checkout -b feature/auth-service
+gh pr create --base feature/auth-base --title "feat(#100): Add auth service [2/3]"
+
+# PR 3: Login UI — targets PR 2's branch
+git checkout -b feature/auth-ui
+gh pr create --base feature/auth-service --title "feat(#100): Add login UI [3/3]"
+```
+
+**Key rules:**
+- Keep each PR under 400 lines for effective review
+- Number PRs clearly: `[1/3]`, `[2/3]`, `[3/3]`
+- Each PR should be independently reviewable and leave tests passing
+- Use draft PRs for incomplete stack items
+- Do not stack more than 4-5 PRs deep
+- Never merge out of order
 
 
 

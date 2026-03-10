@@ -18,13 +18,41 @@ export interface ChangelogEntry {
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.2.2",
-    "date": "2026-03-09",
+    "date": "2026-03-10",
     "compareUrl": "",
     "sections": [
       {
+        "type": "removed",
+        "items": [
+          "**skills:** remove git-workflow skill (5 best rules migrated to commit skill)",
+          "**skills:** remove ci-automation skill (ci-cd-engineer agent covers this)",
+          "**evals:** remove orphaned git-workflow eval files"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**skills:** upgrade write-prd to v2.0.0 — AskUserQuestion, Task Management, memory integration, disk output",
+          "**skills:** upgrade commit to v1.2.0 — absorb 5 git-workflow rules (branch-protection, merge-strategy, history-hygiene, stacked-pr-workflow, stacked-pr-rebase)",
+          "**skills:** update compatibility field to `2.1.72+` across 77 SKILL.md files",
+          "**marketplace:** bump engine from `>=2.1.69` to `>=2.1.72`"
+        ]
+      },
+      {
+        "type": "added",
+        "items": [
+          "**hooks:** 4 once:true standards loaders for implement, review-pr, verify, brainstorm skills (CC 2.1.72 prompt cache optimization)",
+          "**hooks:** implement-standards-loader — dynamic project stack detection via package.json/pyproject.toml",
+          "**hooks:** review-dimensions-loader — static 6-dimension review criteria + JSON output contract",
+          "**hooks:** verify-scoring-rubric-loader — static 0-10 scale with dimension weights",
+          "**hooks:** brainstorm-instructions-loader — static divergent mode rules + evaluation dimensions"
+        ]
+      },
+      {
         "type": "fixed",
         "items": [
-          "TODO: Describe your changes here"
+          "**evals:** update help.eval.json from \"5 GIT skills\" to \"4 GIT skills\"",
+          "**tests:** update split-bundles expected hook count to 176"
         ]
       }
     ]

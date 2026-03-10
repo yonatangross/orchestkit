@@ -1,7 +1,7 @@
 ---
 name: review-pr
 license: MIT
-compatibility: "Claude Code 2.1.59+. Requires memory MCP server, gh CLI."
+compatibility: "Claude Code 2.1.72+. Requires memory MCP server, gh CLI."
 description: "PR review with parallel specialized agents. Use when reviewing pull requests or code."
 argument-hint: "[pr-number-or-branch]"
 context: fork
@@ -17,8 +17,9 @@ hooks:
     - matcher: "Read"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/pr-context-loader"
       once: true
-    # TODO(cache-opt): Add once:true review-dimensions-loader
-    # to inject review dimensions + JSON contract once
+    - matcher: "Agent"
+      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/review-dimensions-loader"
+      once: true
 metadata:
   category: workflow-automation
   mcp-server: memory

@@ -1,11 +1,11 @@
 ---
 title: Skills Reference
-description: "Complete reference for all 91 OrchestKit skills."
+description: "Complete reference for all 89 OrchestKit skills."
 ---
 
 # Skills Reference
 
-OrchestKit includes **91 skills** — reusable knowledge modules that provide patterns, frameworks, and workflows.
+OrchestKit includes **89 skills** — reusable knowledge modules that provide patterns, frameworks, and workflows.
 
 | Skill | Type | Complexity | Description |
 |-------|------|------------|-------------|
@@ -27,7 +27,6 @@ OrchestKit includes **91 skills** — reusable knowledge modules that provide pa
 | [Business Case](/docs/reference/skills/business-case) | Reference | medium | Business case analysis with ROI, NPV, IRR, payback period, and TCO calculations for investment decisions. Use when building financial justification, cost-benefit analysis, build-vs-buy comparisons, or sensitivity analysis. |
 | [Chain Patterns](/docs/reference/skills/chain-patterns) | Reference | low | Chain patterns for CC 2.1.71 pipelines — MCP detection, handoff files, checkpoint-resume, worktree agents, CronCreate monitoring. Use when building multi-phase pipeline skills. Loaded via skills: field by pipeline skills (fix-issue, implement, brainstorm, verify). Not user-invocable. |
 | [Checkpoint Resume](/docs/reference/skills/checkpoint-resume) | Reference | high | Rate-limit-resilient pipeline with checkpoint/resume for long multi-phase sessions. Saves progress to .claude/pipeline-state.json after each phase. Use when starting a complex multi-phase task that risks hitting rate limits, when resuming an interrupted session, or when orchestrating work spanning commits, GitHub issues, and large file changes. |
-| [Ci Automation](/docs/reference/skills/ci-automation) | Command | medium | CI/CD automation with Claude Code -- GitHub Actions, headless CLI, and SDK patterns for automated reviews, triage, and health reports. Use when setting up CI pipelines with Claude. |
 | [Code Review Playbook](/docs/reference/skills/code-review-playbook) | Reference | low | Use this skill when conducting or improving code reviews. Provides structured review processes, conventional comments patterns, language-specific checklists, and feedback templates. Use when reviewing PRs or standardizing review practices. |
 | [Commit](/docs/reference/skills/commit) | Command | low | Creates commits with conventional format and validation. Use when committing changes or generating commit messages. |
 | [Competitive Analysis](/docs/reference/skills/competitive-analysis) | Reference | medium | Porter's Five Forces, SWOT analysis, and competitive landscape mapping. Use when analyzing market position, evaluating competitive threats, building battlecards, or assessing industry dynamics. |
@@ -46,7 +45,6 @@ OrchestKit includes **91 skills** — reusable knowledge modules that provide pa
 | [Feedback](/docs/reference/skills/feedback) | Reference | low | Manages OrchestKit feedback, usage analytics, learning preferences, and privacy settings. Use when reviewing patterns, pausing learning, or managing consent. |
 | [Figma Design Handoff](/docs/reference/skills/figma-design-handoff) | Reference | medium | Figma-to-code design handoff patterns including Figma Variables to design tokens pipeline, component spec extraction, Dev Mode inspection, Auto Layout to CSS Flexbox/Grid mapping, and visual regression with Applitools. Use when converting Figma designs to code, documenting component specs, setting up design-dev workflows, or comparing production UI against Figma designs. |
 | [Fix Issue](/docs/reference/skills/fix-issue) | Command | medium | Fixes GitHub issues with parallel analysis. Use when debugging errors, resolving regressions, fixing bugs, or triaging issues. |
-| [Git Workflow](/docs/reference/skills/git-workflow) | Command | medium | Complete git workflow patterns including GitHub Flow branching, atomic commits with interactive staging, merge and rebase strategies, and recovery operations using reflog. Essential patterns for clean history. Use when managing branches, defining branching strategy, or recovering git history. |
 | [Github Operations](/docs/reference/skills/github-operations) | Reference | medium | GitHub CLI operations for issues, PRs, milestones, and Projects v2. Covers gh commands, REST API patterns, and automation scripts. Use when managing GitHub issues, PRs, milestones, or Projects with gh. |
 | [Golden Dataset](/docs/reference/skills/golden-dataset) | Reference | medium | Golden dataset lifecycle patterns for curation, versioning, quality validation, and CI integration. Use when building evaluation datasets, managing dataset versions, validating quality scores, or integrating golden tests into pipelines. |
 | [Help](/docs/reference/skills/help) | Command | low | OrchestKit help directory with categorized skill listings. Use when discovering skills for a task, finding the right workflow, or browsing capabilities. |
