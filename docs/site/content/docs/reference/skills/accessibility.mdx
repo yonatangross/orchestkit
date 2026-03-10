@@ -1580,6 +1580,23 @@ Pass/fail thresholds for each principle. Every item must pass before marking a f
 - [ ] Navigation menus appear in the same relative order on every page where they repeat. (3.2.3, AA)
 - [ ] Components with the same function have the same accessible name across all pages. (3.2.4, AA)
 
+## Example: Focus Indicator (2.4.11)
+
+**Incorrect:**
+```css
+/* Removes all focus indicators — keyboard users are blind */
+*:focus { outline: none; }
+```
+
+**Correct:**
+```css
+/* 2px outline with sufficient contrast for focus visibility */
+*:focus-visible {
+  outline: 2px solid var(--focus-ring, #005fcc);
+  outline-offset: 2px;
+}
+```
+
 ## Robust
 
 - [ ] No duplicate `id` attributes on interactive elements in the same document. No unclosed or improperly nested landmark elements (`&lt;main&gt;`, `&lt;nav&gt;`, `&lt;header&gt;`, `&lt;footer&gt;`). (4.1.1, A)

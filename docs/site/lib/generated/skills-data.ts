@@ -4152,7 +4152,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "verify": {
     "name": "verify",
     "description": "Comprehensive verification with parallel test agents. Use when verifying implementations or validating changes.",
-    "version": "3.2.0",
+    "version": "4.0.0",
     "author": "OrchestKit",
     "tags": [
       "verification",
@@ -4179,6 +4179,10 @@ export const SKILLS: Record<string, SkillMeta> = {
       "TaskOutput",
       "TaskStop",
       "mcp__memory__search_nodes",
+      "mcp__agentation__agentation_get_all_pending",
+      "mcp__agentation__agentation_acknowledge",
+      "mcp__agentation__agentation_resolve",
+      "mcp__agentation__agentation_watch_annotations",
       "ToolSearch",
       "CronCreate",
       "CronDelete"
@@ -4192,7 +4196,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "testing-perf",
       "memory",
       "quality-gates",
-      "chain-patterns"
+      "chain-patterns",
+      "browser-tools"
     ],
     "agent": null,
     "structure": {
@@ -4204,9 +4209,11 @@ export const SKILLS: Record<string, SkillMeta> = {
         "quality-model.md",
         "report-template.md",
         "verification-checklist.md",
-        "verification-phases.md"
+        "verification-phases.md",
+        "visual-capture.md"
       ],
       "assets": [
+        "gallery-template.html",
         "quality-policy.yaml",
         "verification-report.md"
       ],

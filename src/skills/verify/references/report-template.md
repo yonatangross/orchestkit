@@ -150,6 +150,26 @@ Copy this template and fill in results from parallel agent verification.
 
 ---
 
+## Visual Verification
+
+**Visual Score: [N.N]/10**
+
+| Route | Screenshot | AI Score | Issues | Status |
+|-------|-----------|----------|--------|--------|
+| / | [thumbnail] | N.N/10 | N | PASS/WARN/FAIL |
+| /dashboard | [thumbnail] | N.N/10 | N | PASS/WARN/FAIL |
+| /settings | [thumbnail] | N.N/10 | N | PASS/WARN/FAIL |
+
+**Gallery**: Open `verification-output/{timestamp}/gallery.html` for full screenshots with AI evaluations.
+
+### Agentation Annotations (if applicable)
+
+| Annotation | Route | Resolution | Before/After |
+|-----------|-------|------------|--------------|
+| [user comment] | /dashboard | [fix summary] | [see gallery] |
+
+---
+
 ## Evidence Artifacts
 
 | Artifact | Location | Generated |
@@ -158,7 +178,9 @@ Copy this template and fill in results from parallel agent verification.
 | Coverage Report | `/tmp/coverage.json` | [timestamp] |
 | Security Scan | `/tmp/security_audit.json` | [timestamp] |
 | Lint Report | `/tmp/lint_results.log` | [timestamp] |
-| E2E Screenshot | `/tmp/verification.png` | [timestamp] |
+| Visual Gallery | `verification-output/{timestamp}/gallery.html` | [timestamp] |
+| Screenshots | `verification-output/{timestamp}/screenshots/` | [timestamp] |
+| AI Evaluations | `verification-output/{timestamp}/ai-evaluations/` | [timestamp] |
 
 ---
 

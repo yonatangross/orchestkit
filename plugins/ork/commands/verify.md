@@ -1,6 +1,6 @@
 ---
 description: "Comprehensive verification with parallel test agents. Use when verifying implementations or validating changes."
-allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskList, TaskOutput, TaskStop, mcp__memory__search_nodes, ToolSearch, CronCreate, CronDelete]
+allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskList, TaskOutput, TaskStop, mcp__memory__search_nodes, mcp__agentation__agentation_get_all_pending, mcp__agentation__agentation_acknowledge, mcp__agentation__agentation_resolve, mcp__agentation__agentation_watch_annotations, ToolSearch, CronCreate, CronDelete]
 ---
 
 # Auto-generated from skills/verify/SKILL.md
@@ -133,12 +133,14 @@ Load details: `Read("${CLAUDE_SKILL_DIR}/references/verification-phases.md")` fo
 |-------|------------|--------|
 | **1. Context Gathering** | Git diff, commit history | Changes summary |
 | **2. Parallel Agent Dispatch** | 6 agents evaluate | 0-10 scores |
+| **2.5 Visual Capture** | Screenshot routes, AI vision eval | Gallery + visual score |
 | **3. Test Execution** | Backend + frontend tests | Coverage data |
 | **4. Nuanced Grading** | Composite score calculation | Grade (A-F) |
 | **5. Improvement Suggestions** | Effort vs impact analysis | Prioritized list |
 | **6. Alternative Comparison** | Compare approaches (optional) | Recommendation |
 | **7. Metrics Tracking** | Trend analysis | Historical data |
-| **8. Report Compilation** | Evidence artifacts | Final report |
+| **8. Report Compilation** | Evidence artifacts + gallery.html | Final report |
+| **8.5 Agentation Loop** | User annotates, ui-feedback fixes | Before/after diffs |
 
 ### Phase 2 Agents (Quick Reference)
 
@@ -152,6 +154,22 @@ Load details: `Read("${CLAUDE_SKILL_DIR}/references/verification-phases.md")` fo
 | python-performance-engineer | Latency, resources, scaling | Performance 0-10 |
 
 Launch ALL agents in ONE message with `run_in_background=True` and `max_turns=25`.
+
+### Phase 2.5: Visual Capture (NEW — runs in parallel with Phase 2)
+
+Load details: `Read("${CLAUDE_SKILL_DIR}/references/visual-capture.md")` for auto-detection, route discovery, screenshot capture, and AI vision evaluation.
+
+**Summary**: Auto-detects project framework, starts dev server, discovers routes, uses agent-browser to screenshot each route, evaluates with Claude vision, generates self-contained `gallery.html` with base64-embedded images.
+
+**Output**: `verification-output/{timestamp}/gallery.html` — open in browser to see all screenshots with AI evaluations, scores, and annotation diffs.
+
+**Graceful degradation**: If no frontend detected or server won't start, skips visual capture with a warning — never blocks verification.
+
+### Phase 8.5: Agentation Visual Feedback (opt-in)
+
+Load details: `Read("${CLAUDE_SKILL_DIR}/references/visual-capture.md")` (Phase 8.5 section) for agentation loop workflow.
+
+**Trigger**: Only when agentation MCP is configured. Offers user the choice to annotate the live UI. `ui-feedback` agent processes annotations, re-screenshots show before/after.
 
 
 ## Grading & Scoring
@@ -205,9 +223,10 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | File | Content |
 |------|---------|
 | `verification-phases.md` | 8-phase workflow, agent spawn definitions, Agent Teams mode |
-| `quality-model.md` | Scoring dimensions and weights |
+| `visual-capture.md` | Phase 2.5 + 8.5: screenshot capture, AI vision, gallery generation, agentation loop |
+| `quality-model.md` | Scoring dimensions and weights (8 unified) |
 | `grading-rubric.md` | Per-agent scoring criteria |
-| `report-template.md` | Full report format |
+| `report-template.md` | Full report format with visual evidence section |
 | `alternative-comparison.md` | Approach comparison template |
 | `orchestration-mode.md` | Agent Teams vs Task Tool |
 | `policy-as-code.md` | Verification policy configuration |
@@ -229,6 +248,7 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/rules/<file>")`:
 - `ork:review-pr` - PR-specific verification
 - `run-tests` - Detailed test execution
 - `ork:quality-gates` - Quality gate patterns
+- `browser-tools` - Browser automation for visual capture
 
 
-**Version:** 3.2.0 (March 2026)
+**Version:** 4.0.0 (March 2026) — Added visual verification portfolio (Phase 2.5 + 8.5), gallery.html output, AI vision evaluation, agentation feedback loop

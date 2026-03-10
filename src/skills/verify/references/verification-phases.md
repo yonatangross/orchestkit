@@ -6,12 +6,14 @@
 |-------|------------|--------|
 | **1. Context Gathering** | Git diff, commit history | Changes summary |
 | **2. Parallel Agent Dispatch** | 6 agents evaluate | 0-10 scores |
+| **2.5 Visual Capture** | Screenshot routes, AI vision eval | Gallery + visual score |
 | **3. Test Execution** | Backend + frontend tests | Coverage data |
 | **4. Nuanced Grading** | Composite score calculation | Grade (A-F) |
 | **5. Improvement Suggestions** | Effort vs impact analysis | Prioritized list |
 | **6. Alternative Comparison** | Compare approaches (optional) | Recommendation |
 | **7. Metrics Tracking** | Trend analysis | Historical data |
-| **8. Report Compilation** | Evidence artifacts | Final report |
+| **8. Report Compilation** | Evidence artifacts + gallery.html | Final report |
+| **8.5 Agentation Loop** | User annotates, ui-feedback fixes | Before/after diffs |
 
 ---
 
@@ -177,6 +179,62 @@ TeamDelete()
 > **Fallback:** If team formation fails, use standard Phase 2 Task spawns above.
 
 > **Manual cleanup:** If `TeamDelete()` doesn't terminate all agents, press `Ctrl+F` twice to force-kill remaining background agents.
+
+---
+
+## Phase 2.5: Visual Capture (Parallel with Phase 2)
+
+**Runs as a 7th parallel agent** alongside the 6 verification agents. See [Visual Capture](visual-capture.md) for full details.
+
+```python
+# Launch IN THE SAME MESSAGE as Phase 2 agents
+Agent(
+  subagent_type="general-purpose",
+  description="Visual capture and AI evaluation",
+  prompt="""Visual verification capture for: {feature}
+  1. Detect project type from package.json
+  2. Start dev server (auto-detect framework)
+  3. Discover routes (framework-aware scan)
+  4. Use agent-browser to screenshot each route (max 20)
+  5. Read each screenshot PNG for AI vision evaluation
+  6. Score layout, accessibility, content completeness (0-10 per route)
+  7. Read gallery template from ${CLAUDE_SKILL_DIR}/assets/gallery-template.html
+  8. Generate gallery.html with base64-embedded screenshots
+  9. Write to verification-output/{timestamp}/gallery.html
+  10. Kill dev server
+
+  If no frontend detected, write skip notice and exit.
+  If server fails to start, write warning and exit.
+  Never block — graceful degradation only.""",
+  run_in_background=True, max_turns=30
+)
+```
+
+**Output**: `verification-output/{timestamp}/` folder with screenshots, AI evaluations (JSON), and `gallery.html`.
+
+---
+
+## Phase 8.5: Agentation Visual Feedback (Opt-In)
+
+**Trigger**: Only when agentation MCP is configured in `.mcp.json`. Runs AFTER Phase 8 report compilation.
+
+```python
+# Check agentation availability
+ToolSearch(query="select:mcp__agentation__agentation_get_all_pending")
+
+# If available, offer user choice
+AskUserQuestion(questions=[{
+  "question": "Agentation detected. Annotate the live UI before finalizing?",
+  "header": "Visual Feedback Loop",
+  "options": [
+    {"label": "Yes", "description": "I'll mark issues, ui-feedback agent fixes them, gallery updates with before/after"},
+    {"label": "Skip", "description": "Finalize with current screenshots"}
+  ]
+}])
+
+# If yes: watch → acknowledge → dispatch ui-feedback → re-screenshot → update gallery
+# Max 3 rounds (configurable in verification-config.yaml)
+```
 
 ---
 

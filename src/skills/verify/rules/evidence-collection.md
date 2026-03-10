@@ -55,6 +55,38 @@ mcp__memory__create_entities(entities=[{
 
 Query trends: `mcp__memory__search_nodes(query="VerificationMetrics")`
 
+## Phase 2.5: Visual Evidence Collection
+
+Run in parallel with Phase 2 agents. Auto-detects frontend framework and captures screenshots.
+
+**Incorrect:**
+```bash
+# Manual screenshots with no structure
+open http://localhost:3000
+# Take manual screenshot...
+```
+
+**Correct:**
+```python
+# Automated visual capture with AI evaluation
+Agent(
+  subagent_type="general-purpose",
+  prompt="Visual capture: detect framework, start server, screenshot routes via agent-browser, evaluate with Claude vision, generate gallery.html",
+  run_in_background=True
+)
+```
+
+Output structure:
+```
+verification-output/{timestamp}/
+├── screenshots/          (PNGs per route, base64 in gallery)
+├── ai-evaluations/       (JSON per screenshot with score + issues)
+├── annotations/          (before/after if agentation used)
+│   ├── before/
+│   └── after/
+└── gallery.html          (self-contained, open in browser)
+```
+
 ## Phase 8.5: Post-Verification Feedback
 
 After report compilation, store verification scores in the memory graph for KPI baseline tracking:

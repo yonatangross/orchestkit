@@ -39,6 +39,11 @@ warnings:
     value: 3
     message: "Multiple high severity vulnerabilities"
 
+  - dimension: visual
+    condition: below
+    value: 5.0
+    message: "Visual score below minimum — check gallery for issues"
+
 info:
   - check: todo_count
     condition: above
@@ -49,3 +54,8 @@ info:
     condition: below
     value: 50
     message: "Consider adding more documentation"
+
+  - check: visual_capture_skipped
+    condition: equals
+    value: true
+    message: "Visual capture was skipped (no frontend detected)"
