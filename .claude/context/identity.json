@@ -12,7 +12,7 @@
     "name": "OrchestKit",
     "display_name": "OrchestKit Complete",
     "type": "Claude Code Plugin Ecosystem",
-    "version": "7.2.2",
+    "version": "7.3.0",
     "repository": "https://github.com/yonatangross/orchestkit"
   },
 
@@ -29,7 +29,7 @@
     "plugin": {
       "skills": "89 SKILL.md files (YAML frontmatter + Markdown)",
       "agents": "31 agent definitions (CC 2.1.72 format)",
-      "hooks": "101 TypeScript hooks (compiled to ESM)"
+      "hooks": "99 TypeScript hooks (compiled to ESM)"
     },
     "hooks": {
       "language": "TypeScript 5.x",
