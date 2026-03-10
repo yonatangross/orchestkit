@@ -127,6 +127,8 @@ Agent(subagent_type="debug-investigator",
 After Phase 11 (commit + PR), schedule CI monitoring:
 
 ```python
+# Guard: Skip cron in headless/CI (CLAUDE_CODE_DISABLE_CRON)
+# if env CLAUDE_CODE_DISABLE_CRON is set, run a single check instead
 CronCreate(
   schedule="*/5 * * * *",
   prompt="Check CI for PR #{pr_number}: gh pr checks {pr_number} --repo {repo}.

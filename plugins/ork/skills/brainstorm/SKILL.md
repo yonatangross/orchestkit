@@ -18,6 +18,8 @@ hooks:
     - matcher: "Agent"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/prior-decisions-loader"
       once: true
+    # TODO(cache-opt): Add once:true brainstorm-instructions-loader
+    # to inject divergent mode rules + scoring dimensions once
 metadata:
   category: workflow-automation
   mcp-server: memory
@@ -140,7 +142,7 @@ AskUserQuestion(
         {"label": "Constrained design", "description": "I have specific requirements to work within", "markdown": "```\nConstrained Design\n──────────────────\n  Requirements ──▶ Feasibility ──▶ Design\n  ┌──────────┐    ┌──────────┐    ┌──────┐\n  │ Fixed    │    │ Check    │    │ Best │\n  │ bounds   │    │ fit      │    │ fit  │\n  └──────────┘    └──────────┘    └──────┘\n  Skip divergent phase, focus on\n  feasibility within constraints\n```"},
         {"label": "Comparison", "description": "Compare 2-3 specific approaches I have in mind", "markdown": "```\nComparison Mode\n───────────────\n  Approach A ──┐\n  Approach B ──┼──▶ Rate 0-10 ──▶ Winner\n  Approach C ──┘    (6 dims)\n\n  Skip ideation, jump straight\n  to evaluation + trade-off table\n```"},
         {"label": "Quick ideation", "description": "Generate ideas fast, skip deep evaluation", "markdown": "```\nQuick Ideation\n──────────────\n  Braindump ──▶ Light filter ──▶ List\n  ┌────────┐   ┌────────────┐   ┌────┐\n  │ 10+    │   │ Viable?    │   │ 5-7│\n  │ ideas  │   │ Y/N only   │   │ out│\n  └────────┘   └────────────┘   └────┘\n  Fast pass, no deep scoring\n```"},
-        {"label": "Plan first", "description": "Structured exploration before generating ideas", "markdown": "```\nPlan Mode Exploration\n─────────────────────\n  1. EnterPlanMode\n  2. Analyze constraints\n  3. Research precedents\n  4. Map solution space\n  5. ExitPlanMode → options\n  6. User picks direction\n  7. Deep dive on chosen path\n\n  Best for: Architecture,\n  design systems, trade-offs\n```"}
+        {"label": "Plan first", "description": "Structured exploration before generating ideas", "markdown": "```\nPlan Mode Exploration\n─────────────────────\n  1. EnterPlanMode($TOPIC)\n  2. Analyze constraints\n  3. Research precedents\n  4. Map solution space\n  5. ExitPlanMode → options\n  6. User picks direction\n  7. Deep dive on chosen path\n\n  Best for: Architecture,\n  design systems, trade-offs\n```"}
       ],
       "multiSelect": false
     },
@@ -159,7 +161,7 @@ AskUserQuestion(
 )
 ```
 
-**If 'Plan first' selected:** Call `EnterPlanMode`, perform research using Read/Grep/Glob only, then `ExitPlanMode` with the plan for user approval before proceeding.
+**If 'Plan first' selected:** Call `EnterPlanMode("Brainstorm exploration: $TOPIC")`, perform research using Read/Grep/Glob only, then `ExitPlanMode` with the plan for user approval before proceeding.
 
 **Based on answers, adjust workflow:**
 - **Open exploration**: Full 7-phase process with all agents

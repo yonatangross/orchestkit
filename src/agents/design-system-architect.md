@@ -1,8 +1,8 @@
 ---
 name: design-system-architect
 description: "Design system architect: token hierarchies, theming strategies, component library design, Figma-to-code pipelines, and design governance."
+model: inherit
 category: frontend
-model: sonnet
 maxTurns: 30
 context: fork
 isolation: worktree

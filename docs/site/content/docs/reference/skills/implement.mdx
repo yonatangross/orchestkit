@@ -125,13 +125,13 @@ AskUserQuestion(questions=[{
   "options": [
     {"label": "Yes — worktree (Recommended)", "description": "Creates isolated branch via EnterWorktree, merges back on completion", "markdown": "```\nWorktree Isolation\n──────────────────\nmain ─────────────────────────────▶\n  \\                              /\n   └─ feat-{slug} (worktree) ───┘\n      ├── Isolated directory\n      ├── Own branch + index\n      └── Auto-merge on completion\n\nSafe: main stays untouched until done\n```"},
     {"label": "No — work in-place", "description": "Edit files directly in current branch", "markdown": "```\nIn-Place Editing\n────────────────\nmain ──[edit]──[edit]──[edit]───▶\n       ▲       ▲       ▲\n       │       │       │\n     direct modifications\n\nFast: no branch overhead\nRisk: changes visible immediately\n```"},
-    {"label": "Plan first", "description": "Research and design in plan mode before writing code", "markdown": "```\nPlan Mode Flow\n──────────────\n  1. EnterPlanMode\n  2. Read existing code\n  3. Research patterns\n  4. Design approach\n  5. ExitPlanMode → plan\n  6. User approves plan\n  7. Execute implementation\n\n  Best for: Large features,\n  unfamiliar codebases,\n  architectural decisions\n```"}
+    {"label": "Plan first", "description": "Research and design in plan mode before writing code", "markdown": "```\nPlan Mode Flow\n──────────────\n  1. EnterPlanMode($ARGUMENTS)\n  2. Read existing code\n  3. Research patterns\n  4. Design approach\n  5. ExitPlanMode → plan\n  6. User approves plan\n  7. Execute implementation\n\n  Best for: Large features,\n  unfamiliar codebases,\n  architectural decisions\n```"}
   ],
   "multiSelect": false
 }])
 ```
 
-**If 'Plan first' selected:** Call `EnterPlanMode`, perform research using Read/Grep/Glob only, then `ExitPlanMode` with the plan for user approval before proceeding.
+**If 'Plan first' selected:** Call `EnterPlanMode("Research and design: $ARGUMENTS")`, perform research using Read/Grep/Glob only, then `ExitPlanMode` with the plan for user approval before proceeding.
 
 If worktree selected:
 1. Call `EnterWorktree(name: "feat-\{slug\}")` to create isolated branch
@@ -201,6 +201,8 @@ Agent(subagent_type="test-generator",
 After final PR, schedule health monitoring:
 
 ```python
+# Guard: Skip cron in headless/CI (CLAUDE_CODE_DISABLE_CRON)
+# if env CLAUDE_CODE_DISABLE_CRON is set, run a single check instead
 CronCreate(
   schedule="0 */6 * * *",
   prompt="Health check for {feature} in PR #{pr}:
@@ -340,9 +342,8 @@ All 5 agents launch in ONE message with `run_in_background=true`.
 ```python
 Agent(
   subagent_type="workflow-architect",
-  prompt="""ARCHITECTURE PLANNING — SINGLE-PASS OUTPUT
-
-  Feature: $ARGUMENTS
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  ARCHITECTURE PLANNING — SINGLE-PASS OUTPUT
 
   Produce a COMPLETE implementation roadmap in one response:
 
@@ -368,7 +369,9 @@ Agent(
      - Acceptance criteria per task
 
   Output: Complete implementation roadmap with task dependencies.
-  Use full 128K output capacity — don't truncate or summarize.""",
+  Use full 128K output capacity — don't truncate or summarize.
+
+  Feature: $ARGUMENTS""",
   run_in_background=true
 )
 ```
@@ -377,9 +380,9 @@ Agent(
 ```python
 Agent(
   subagent_type="backend-system-architect",
-  prompt="""COMPLETE BACKEND ARCHITECTURE — SINGLE PASS
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  COMPLETE BACKEND ARCHITECTURE — SINGLE PASS
 
-  Feature: $ARGUMENTS
   Standards: FastAPI, Pydantic v2, async/await, SQLAlchemy 2.0
 
   Produce ALL of the following in one response:
@@ -392,7 +395,9 @@ Agent(
   7. Testing strategy (unit + integration test outline)
 
   Include file paths for every artifact.
-  Output: Complete backend implementation spec ready for coding.""",
+  Output: Complete backend implementation spec ready for coding.
+
+  Feature: $ARGUMENTS""",
   run_in_background=true
 )
 ```
@@ -401,9 +406,9 @@ Agent(
 ```python
 Agent(
   subagent_type="frontend-ui-developer",
-  prompt="""COMPLETE FRONTEND ARCHITECTURE — SINGLE PASS
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  COMPLETE FRONTEND ARCHITECTURE — SINGLE PASS
 
-  Feature: $ARGUMENTS
   Standards: React 19, TypeScript strict, Zod, TanStack Query
 
   Produce ALL of the following in one response:
@@ -417,7 +422,9 @@ Agent(
   8. Accessibility requirements (WCAG 2.1 AA)
 
   Include Tailwind class specifications for key components.
-  Output: Complete frontend implementation spec ready for coding.""",
+  Output: Complete frontend implementation spec ready for coding.
+
+  Feature: $ARGUMENTS""",
   run_in_background=true
 )
 ```
@@ -426,9 +433,8 @@ Agent(
 ```python
 Agent(
   subagent_type="llm-integrator",
-  prompt="""AI/ML INTEGRATION ANALYSIS — SINGLE PASS
-
-  Feature: $ARGUMENTS
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  AI/ML INTEGRATION ANALYSIS — SINGLE PASS
 
   Evaluate and design AI integration in one response:
   1. Does this feature need LLM? (justify yes/no)
@@ -440,7 +446,9 @@ Agent(
   7. Cost estimation (tokens per request, monthly projection)
   8. Fallback chain configuration
 
-  Output: Complete AI integration spec or "No AI needed" with justification.""",
+  Output: Complete AI integration spec or "No AI needed" with justification.
+
+  Feature: $ARGUMENTS""",
   run_in_background=true
 )
 ```
@@ -463,10 +471,8 @@ All 5 agents launch in ONE message with `run_in_background=true`.
 ```python
 Agent(
   subagent_type="backend-system-architect",
-  prompt="""IMPLEMENT COMPLETE BACKEND — SINGLE PASS (128K output)
-
-  Feature: $ARGUMENTS
-  Architecture: [paste Phase 4 backend spec]
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  IMPLEMENT COMPLETE BACKEND — SINGLE PASS (128K output)
 
   Generate ALL backend code in ONE response:
 
@@ -494,7 +500,10 @@ Agent(
 
   Write REAL code to disk using Write/Edit tools.
   Every file must be complete and runnable.
-  Do NOT split across responses — use full 128K output.""",
+  Do NOT split across responses — use full 128K output.
+
+  Feature: $ARGUMENTS
+  Architecture: [paste Phase 4 backend spec]""",
   run_in_background=true
 )
 ```
@@ -503,10 +512,8 @@ Agent(
 ```python
 Agent(
   subagent_type="frontend-ui-developer",
-  prompt="""IMPLEMENT COMPLETE FRONTEND — SINGLE PASS (128K output)
-
-  Feature: $ARGUMENTS
-  Architecture: [paste Phase 4 frontend spec]
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  IMPLEMENT COMPLETE FRONTEND — SINGLE PASS (128K output)
 
   Generate ALL frontend code in ONE response:
 
@@ -538,7 +545,10 @@ Agent(
 
   Write REAL code to disk. Every file must be complete.
   Include styling inline — no separate styling agent needed.
-  Do NOT split across responses — use full 128K output.""",
+  Do NOT split across responses — use full 128K output.
+
+  Feature: $ARGUMENTS
+  Architecture: [paste Phase 4 frontend spec]""",
   run_in_background=true
 )
 ```
@@ -547,10 +557,8 @@ Agent(
 ```python
 Agent(
   subagent_type="llm-integrator",
-  prompt="""IMPLEMENT AI INTEGRATION — SINGLE PASS (128K output)
-
-  Feature: $ARGUMENTS
-  Architecture: [paste Phase 4 AI spec]
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  IMPLEMENT AI INTEGRATION — SINGLE PASS (128K output)
 
   Generate ALL AI integration code in ONE response:
 
@@ -563,7 +571,10 @@ Agent(
   7. Langfuse tracing integration
   8. Tests with VCR.py cassettes
 
-  Write REAL code to disk. Skip if AI spec says "No AI needed".""",
+  Write REAL code to disk. Skip if AI spec says "No AI needed".
+
+  Feature: $ARGUMENTS
+  Architecture: [paste Phase 4 AI spec]""",
   run_in_background=true
 )
 ```
@@ -572,9 +583,8 @@ Agent(
 ```python
 Agent(
   subagent_type="test-generator",
-  prompt="""GENERATE COMPLETE TEST SUITE — SINGLE PASS (128K output)
-
-  Feature: $ARGUMENTS
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  GENERATE COMPLETE TEST SUITE — SINGLE PASS (128K output)
 
   IMPORTANT: Match test types to change type using the Test Requirements Matrix:
   - API endpoint → Unit + Integration + Contract (rules: integration-api, verification-contract, mocking-msw)
@@ -615,7 +625,9 @@ Agent(
 
   Write REAL test files to disk.
   Run tests after writing to verify they pass.
-  Do NOT split across responses — use full 128K output.""",
+  Do NOT split across responses — use full 128K output.
+
+  Feature: $ARGUMENTS""",
   run_in_background=true
 )
 ```

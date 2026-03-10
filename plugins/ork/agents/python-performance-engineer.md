@@ -1,8 +1,8 @@
 ---
 name: python-performance-engineer
 description: "Python performance: profiling, memory optimization, async performance, database query optimization, caching, load testing."
+model: inherit
 category: backend
-model: sonnet
 maxTurns: 30
 context: fork
 color: orange
@@ -405,7 +405,7 @@ Read the specific file before advising. Do NOT rely on training data.
 |Do NOT rely on training data for framework patterns.
 |
 |python-backend:{SKILL.md,references/{eager-loading.md,fastapi-app-boilerplate.md,fastapi-integration.md,middleware-stack.md,pool-sizing.md,semaphore-patterns.md,taskgroup-patterns.md}}|python,asyncio,fastapi,sqlalchemy,connection-pooling,async,postgresql
-|performance:{SKILL.md,references/{caching-strategies.md,cdn-setup.md,core-web-vitals.md,database-optimization.md,devtools-profiler-workflow.md,edge-deployment.md,frontend-performance.md,memoization-escape-hatches.md,profiling.md,quantization-guide.md,react-compiler-migration.md,route-splitting.md,rum-setup.md,speculative-decoding.md,state-colocation.md,tanstack-virtual-patterns.md,vllm-deployment.md}}|performance,core-web-vitals,lcp,inp,cls,react-compiler,virtualization,lazy-loading,code-splitting,image-optimization,avif,profiling,vllm,quantization,inference,caching,redis,prompt-caching,tanstack-query,prefetching,optimistic-updates,sustainability,carbon-footprint,page-weight
+|performance:{SKILL.md,references/{caching-strategies.md,cc-prompt-cache-guide.md,cdn-setup.md,core-web-vitals.md,database-optimization.md,devtools-profiler-workflow.md,edge-deployment.md,frontend-performance.md,memoization-escape-hatches.md,profiling.md,quantization-guide.md,react-compiler-migration.md,route-splitting.md,rum-setup.md,speculative-decoding.md,state-colocation.md,tanstack-virtual-patterns.md,vllm-deployment.md}}|performance,core-web-vitals,lcp,inp,cls,react-compiler,virtualization,lazy-loading,code-splitting,image-optimization,avif,profiling,vllm,quantization,inference,caching,redis,prompt-caching,tanstack-query,prefetching,optimistic-updates,sustainability,carbon-footprint,page-weight
 |testing-perf:{SKILL.md,references/{custom-plugins.md,k6-patterns.md,xdist-parallel.md}}|testing,performance,k6,locust,pytest,load-testing,benchmarking
 |testing-unit:{SKILL.md,references/{aaa-pattern.md,factory-patterns.md,msw-2x-api.md,stateful-testing.md}}|testing,unit,mocking,msw,vcr,fixtures,factories
 |monitoring-observability:{SKILL.md,references/{agent-observability.md,alerting-dashboards.md,alerting-strategies.md,annotation-queues.md,cost-tracking.md,dashboards.md,dev-agent-lens.md,distributed-tracing.md,embedding-drift.md,evaluation-scores.md,ewma-baselines.md,experiments-api.md,framework-integrations.md,langfuse-evidently-integration.md,logging-patterns.md,metrics-collection.md,migration-v2-v3.md,multi-judge-evaluation.md,observability-layers.md,online-evaluators.md,prompt-management.md,session-tracking.md,statistical-methods.md,structured-logging.md,tracing-setup.md}}|monitoring,observability,prometheus,grafana,langfuse,tracing,metrics,drift-detection,logging

@@ -1,8 +1,8 @@
 ---
 name: python-performance-engineer
 description: "Python performance: profiling, memory optimization, async performance, database query optimization, caching, load testing."
+model: inherit
 category: backend
-model: sonnet
 maxTurns: 30
 context: fork
 color: orange

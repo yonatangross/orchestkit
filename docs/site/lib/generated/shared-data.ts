@@ -37,7 +37,7 @@ export const AGENTS: AgentSummary[] = [
     "plugins": [
       "ork"
     ],
-    "model": "sonnet",
+    "model": "inherit",
     "category": "backend"
   },
   {
@@ -46,7 +46,7 @@ export const AGENTS: AgentSummary[] = [
     "plugins": [
       "ork"
     ],
-    "model": "sonnet",
+    "model": "inherit",
     "category": "devops"
   },
   {
@@ -55,7 +55,7 @@ export const AGENTS: AgentSummary[] = [
     "plugins": [
       "ork"
     ],
-    "model": "sonnet",
+    "model": "inherit",
     "category": "testing"
   },
   {
@@ -109,7 +109,7 @@ export const AGENTS: AgentSummary[] = [
     "plugins": [
       "ork"
     ],
-    "model": "sonnet",
+    "model": "inherit",
     "category": "development"
   },
   {
@@ -145,7 +145,7 @@ export const AGENTS: AgentSummary[] = [
     "plugins": [
       "ork"
     ],
-    "model": "sonnet",
+    "model": "inherit",
     "category": "frontend"
   },
   {
@@ -163,7 +163,7 @@ export const AGENTS: AgentSummary[] = [
     "plugins": [
       "ork"
     ],
-    "model": "sonnet",
+    "model": "inherit",
     "category": "devops"
   },
   {
@@ -208,7 +208,7 @@ export const AGENTS: AgentSummary[] = [
     "plugins": [
       "ork"
     ],
-    "model": "sonnet",
+    "model": "inherit",
     "category": "product"
   },
   {
@@ -217,7 +217,7 @@ export const AGENTS: AgentSummary[] = [
     "plugins": [
       "ork"
     ],
-    "model": "sonnet",
+    "model": "inherit",
     "category": "backend"
   },
   {
@@ -262,7 +262,7 @@ export const AGENTS: AgentSummary[] = [
     "plugins": [
       "ork"
     ],
-    "model": "sonnet",
+    "model": "inherit",
     "category": "testing"
   },
   {

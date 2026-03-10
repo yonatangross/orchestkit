@@ -1,8 +1,8 @@
 ---
 name: code-quality-reviewer
 description: "Code quality reviewer: bug detection, security vulnerabilities, performance issues, linting, type checking, test coverage."
+model: inherit
 category: testing
-model: sonnet
 maxTurns: 30
 context: inherit
 color: green

@@ -132,6 +132,8 @@ echo "PR created: $PR_URL"
 After PR creation, schedule CI status monitoring:
 
 ```python
+# Guard: Skip cron in headless/CI (CLAUDE_CODE_DISABLE_CRON)
+# if env CLAUDE_CODE_DISABLE_CRON is set, run a single check instead
 CronCreate(
   schedule="*/5 * * * *",
   prompt="Check CI for PR #{pr_number}: gh pr checks {pr_number} --repo {repo}.

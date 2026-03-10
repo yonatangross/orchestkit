@@ -1,8 +1,8 @@
 ---
 name: ci-cd-engineer
 description: "CI/CD specialist: GitHub Actions, GitLab CI pipelines, deployment automation, build optimization, caching, security scanning."
+model: inherit
 category: devops
-model: sonnet
 maxTurns: 30
 context: fork
 isolation: worktree

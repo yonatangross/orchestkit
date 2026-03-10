@@ -110,13 +110,13 @@ AskUserQuestion(questions=[{
   "options": [
     {"label": "Yes — worktree (Recommended)", "description": "Creates isolated branch via EnterWorktree, merges back on completion", "markdown": "```\nWorktree Isolation\n──────────────────\nmain ─────────────────────────────▶\n  \\                              /\n   └─ feat-{slug} (worktree) ───┘\n      ├── Isolated directory\n      ├── Own branch + index\n      └── Auto-merge on completion\n\nSafe: main stays untouched until done\n```"},
     {"label": "No — work in-place", "description": "Edit files directly in current branch", "markdown": "```\nIn-Place Editing\n────────────────\nmain ──[edit]──[edit]──[edit]───▶\n       ▲       ▲       ▲\n       │       │       │\n     direct modifications\n\nFast: no branch overhead\nRisk: changes visible immediately\n```"},
-    {"label": "Plan first", "description": "Research and design in plan mode before writing code", "markdown": "```\nPlan Mode Flow\n──────────────\n  1. EnterPlanMode\n  2. Read existing code\n  3. Research patterns\n  4. Design approach\n  5. ExitPlanMode → plan\n  6. User approves plan\n  7. Execute implementation\n\n  Best for: Large features,\n  unfamiliar codebases,\n  architectural decisions\n```"}
+    {"label": "Plan first", "description": "Research and design in plan mode before writing code", "markdown": "```\nPlan Mode Flow\n──────────────\n  1. EnterPlanMode($ARGUMENTS)\n  2. Read existing code\n  3. Research patterns\n  4. Design approach\n  5. ExitPlanMode → plan\n  6. User approves plan\n  7. Execute implementation\n\n  Best for: Large features,\n  unfamiliar codebases,\n  architectural decisions\n```"}
   ],
   "multiSelect": false
 }])
 ```
 
-**If 'Plan first' selected:** Call `EnterPlanMode`, perform research using Read/Grep/Glob only, then `ExitPlanMode` with the plan for user approval before proceeding.
+**If 'Plan first' selected:** Call `EnterPlanMode("Research and design: $ARGUMENTS")`, perform research using Read/Grep/Glob only, then `ExitPlanMode` with the plan for user approval before proceeding.
 
 If worktree selected:
 1. Call `EnterWorktree(name: "feat-{slug}")` to create isolated branch
@@ -184,6 +184,8 @@ Agent(subagent_type="test-generator",
 After final PR, schedule health monitoring:
 
 ```python
+# Guard: Skip cron in headless/CI (CLAUDE_CODE_DISABLE_CRON)
+# if env CLAUDE_CODE_DISABLE_CRON is set, run a single check instead
 CronCreate(
   schedule="0 */6 * * *",
   prompt="Health check for {feature} in PR #{pr}:

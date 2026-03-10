@@ -30,9 +30,8 @@ All 5 agents launch in ONE message with `run_in_background=true`.
 ```python
 Agent(
   subagent_type="workflow-architect",
-  prompt="""ARCHITECTURE PLANNING — SINGLE-PASS OUTPUT
-
-  Feature: $ARGUMENTS
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  ARCHITECTURE PLANNING — SINGLE-PASS OUTPUT
 
   Produce a COMPLETE implementation roadmap in one response:
 
@@ -58,7 +57,9 @@ Agent(
      - Acceptance criteria per task
 
   Output: Complete implementation roadmap with task dependencies.
-  Use full 128K output capacity — don't truncate or summarize.""",
+  Use full 128K output capacity — don't truncate or summarize.
+
+  Feature: $ARGUMENTS""",
   run_in_background=true
 )
 ```
@@ -67,9 +68,9 @@ Agent(
 ```python
 Agent(
   subagent_type="backend-system-architect",
-  prompt="""COMPLETE BACKEND ARCHITECTURE — SINGLE PASS
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  COMPLETE BACKEND ARCHITECTURE — SINGLE PASS
 
-  Feature: $ARGUMENTS
   Standards: FastAPI, Pydantic v2, async/await, SQLAlchemy 2.0
 
   Produce ALL of the following in one response:
@@ -82,7 +83,9 @@ Agent(
   7. Testing strategy (unit + integration test outline)
 
   Include file paths for every artifact.
-  Output: Complete backend implementation spec ready for coding.""",
+  Output: Complete backend implementation spec ready for coding.
+
+  Feature: $ARGUMENTS""",
   run_in_background=true
 )
 ```
@@ -91,9 +94,9 @@ Agent(
 ```python
 Agent(
   subagent_type="frontend-ui-developer",
-  prompt="""COMPLETE FRONTEND ARCHITECTURE — SINGLE PASS
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  COMPLETE FRONTEND ARCHITECTURE — SINGLE PASS
 
-  Feature: $ARGUMENTS
   Standards: React 19, TypeScript strict, Zod, TanStack Query
 
   Produce ALL of the following in one response:
@@ -107,7 +110,9 @@ Agent(
   8. Accessibility requirements (WCAG 2.1 AA)
 
   Include Tailwind class specifications for key components.
-  Output: Complete frontend implementation spec ready for coding.""",
+  Output: Complete frontend implementation spec ready for coding.
+
+  Feature: $ARGUMENTS""",
   run_in_background=true
 )
 ```
@@ -116,9 +121,8 @@ Agent(
 ```python
 Agent(
   subagent_type="llm-integrator",
-  prompt="""AI/ML INTEGRATION ANALYSIS — SINGLE PASS
-
-  Feature: $ARGUMENTS
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  AI/ML INTEGRATION ANALYSIS — SINGLE PASS
 
   Evaluate and design AI integration in one response:
   1. Does this feature need LLM? (justify yes/no)
@@ -130,7 +134,9 @@ Agent(
   7. Cost estimation (tokens per request, monthly projection)
   8. Fallback chain configuration
 
-  Output: Complete AI integration spec or "No AI needed" with justification.""",
+  Output: Complete AI integration spec or "No AI needed" with justification.
+
+  Feature: $ARGUMENTS""",
   run_in_background=true
 )
 ```
@@ -153,10 +159,8 @@ All 5 agents launch in ONE message with `run_in_background=true`.
 ```python
 Agent(
   subagent_type="backend-system-architect",
-  prompt="""IMPLEMENT COMPLETE BACKEND — SINGLE PASS (128K output)
-
-  Feature: $ARGUMENTS
-  Architecture: [paste Phase 4 backend spec]
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  IMPLEMENT COMPLETE BACKEND — SINGLE PASS (128K output)
 
   Generate ALL backend code in ONE response:
 
@@ -184,7 +188,10 @@ Agent(
 
   Write REAL code to disk using Write/Edit tools.
   Every file must be complete and runnable.
-  Do NOT split across responses — use full 128K output.""",
+  Do NOT split across responses — use full 128K output.
+
+  Feature: $ARGUMENTS
+  Architecture: [paste Phase 4 backend spec]""",
   run_in_background=true
 )
 ```
@@ -193,10 +200,8 @@ Agent(
 ```python
 Agent(
   subagent_type="frontend-ui-developer",
-  prompt="""IMPLEMENT COMPLETE FRONTEND — SINGLE PASS (128K output)
-
-  Feature: $ARGUMENTS
-  Architecture: [paste Phase 4 frontend spec]
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  IMPLEMENT COMPLETE FRONTEND — SINGLE PASS (128K output)
 
   Generate ALL frontend code in ONE response:
 
@@ -228,7 +233,10 @@ Agent(
 
   Write REAL code to disk. Every file must be complete.
   Include styling inline — no separate styling agent needed.
-  Do NOT split across responses — use full 128K output.""",
+  Do NOT split across responses — use full 128K output.
+
+  Feature: $ARGUMENTS
+  Architecture: [paste Phase 4 frontend spec]""",
   run_in_background=true
 )
 ```
@@ -237,10 +245,8 @@ Agent(
 ```python
 Agent(
   subagent_type="llm-integrator",
-  prompt="""IMPLEMENT AI INTEGRATION — SINGLE PASS (128K output)
-
-  Feature: $ARGUMENTS
-  Architecture: [paste Phase 4 AI spec]
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  IMPLEMENT AI INTEGRATION — SINGLE PASS (128K output)
 
   Generate ALL AI integration code in ONE response:
 
@@ -253,7 +259,10 @@ Agent(
   7. Langfuse tracing integration
   8. Tests with VCR.py cassettes
 
-  Write REAL code to disk. Skip if AI spec says "No AI needed".""",
+  Write REAL code to disk. Skip if AI spec says "No AI needed".
+
+  Feature: $ARGUMENTS
+  Architecture: [paste Phase 4 AI spec]""",
   run_in_background=true
 )
 ```
@@ -262,9 +271,8 @@ Agent(
 ```python
 Agent(
   subagent_type="test-generator",
-  prompt="""GENERATE COMPLETE TEST SUITE — SINGLE PASS (128K output)
-
-  Feature: $ARGUMENTS
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  GENERATE COMPLETE TEST SUITE — SINGLE PASS (128K output)
 
   IMPORTANT: Match test types to change type using the Test Requirements Matrix:
   - API endpoint → Unit + Integration + Contract (rules: integration-api, verification-contract, mocking-msw)
@@ -305,7 +313,9 @@ Agent(
 
   Write REAL test files to disk.
   Run tests after writing to verify they pass.
-  Do NOT split across responses — use full 128K output.""",
+  Do NOT split across responses — use full 128K output.
+
+  Feature: $ARGUMENTS""",
   run_in_background=true
 )
 ```

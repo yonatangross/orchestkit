@@ -109,6 +109,8 @@ Write(".claude/chain/verify-results.json", JSON.stringify({
 Optionally schedule post-verification monitoring:
 
 ```python
+# Guard: Skip cron in headless/CI (CLAUDE_CODE_DISABLE_CRON)
+# if env CLAUDE_CODE_DISABLE_CRON is set, run a single check instead
 CronCreate(
   schedule="0 8 * * *",
   prompt="Daily regression check: npm test.
@@ -1212,51 +1214,63 @@ See [Grading Rubric](grading-rubric.md) for detailed scoring criteria.
 # PARALLEL — All 6 in ONE message
 Agent(
   subagent_type="code-quality-reviewer",
-  prompt="""Verify code quality for: {feature}. Score 0-10.
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  Verify code quality. Score 0-10.
   Check: lint errors, type coverage, cyclomatic complexity, DRY, SOLID.
-  Scope: ONLY review files in {scope_files}. Budget: 15 tool calls max.
-  Return: score (0-10), reasoning, evidence, 2-3 improvement suggestions.""",
+  Budget: 15 tool calls max.
+  Return: score (0-10), reasoning, evidence, 2-3 improvement suggestions.
+  Feature: {feature}. Scope: ONLY review files in {scope_files}.""",
   run_in_background=True, max_turns=25
 )
 Agent(
   subagent_type="security-auditor",
-  prompt="""Security verification for: {feature}. Score 0-10.
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  Security verification. Score 0-10.
   Check: OWASP Top 10, secrets in code, dependency CVEs, auth patterns.
-  Scope: ONLY review files in {scope_files}. Budget: 15 tool calls max.
-  Return: score (0-10), vulnerabilities found, severity ratings.""",
+  Budget: 15 tool calls max.
+  Return: score (0-10), vulnerabilities found, severity ratings.
+  Feature: {feature}. Scope: ONLY review files in {scope_files}.""",
   run_in_background=True, max_turns=25
 )
 Agent(
   subagent_type="test-generator",
-  prompt="""Verify test coverage for: {feature}. Score 0-10.
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  Verify test coverage. Score 0-10.
   Check: test existence, type matching, quality, edge cases, coverage %.
   Run existing tests and report results.
-  Scope: ONLY review files in {scope_files}. Budget: 15 tool calls max.
-  Return: score (0-10), coverage %, gaps identified.""",
+  Budget: 15 tool calls max.
+  Return: score (0-10), coverage %, gaps identified.
+  Feature: {feature}. Scope: ONLY review files in {scope_files}.""",
   run_in_background=True, max_turns=25
 )
 Agent(
   subagent_type="backend-system-architect",
-  prompt="""Verify API design and backend patterns for: {feature}. Score 0-10.
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  Verify API design and backend patterns. Score 0-10.
   Check: REST conventions, async patterns, transaction boundaries, error handling.
-  Scope: ONLY review files in {scope_files}. Budget: 15 tool calls max.
-  Return: score (0-10), pattern compliance, issues found.""",
+  Budget: 15 tool calls max.
+  Return: score (0-10), pattern compliance, issues found.
+  Feature: {feature}. Scope: ONLY review files in {scope_files}.""",
   run_in_background=True, max_turns=25
 )
 Agent(
   subagent_type="frontend-ui-developer",
-  prompt="""Verify frontend implementation for: {feature}. Score 0-10.
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  Verify frontend implementation. Score 0-10.
   Check: React 19 patterns, Zod schemas, accessibility (WCAG 2.1 AA), loading states.
-  Scope: ONLY review files in {scope_files}. Budget: 15 tool calls max.
-  Return: score (0-10), pattern compliance, a11y issues.""",
+  Budget: 15 tool calls max.
+  Return: score (0-10), pattern compliance, a11y issues.
+  Feature: {feature}. Scope: ONLY review files in {scope_files}.""",
   run_in_background=True, max_turns=25
 )
 Agent(
   subagent_type="python-performance-engineer",
-  prompt="""Verify performance and scalability for: {feature}. Score 0-10.
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  Verify performance and scalability. Score 0-10.
   Check: latency hotspots, N+1 queries, resource usage, caching, scaling patterns.
-  Scope: ONLY review files in {scope_files}. Budget: 15 tool calls max.
-  Return: score (0-10), bottlenecks found, optimization suggestions.""",
+  Budget: 15 tool calls max.
+  Return: score (0-10), bottlenecks found, optimization suggestions.
+  Feature: {feature}. Scope: ONLY review files in {scope_files}.""",
   run_in_background=True, max_turns=25
 )
 ```
@@ -1270,46 +1284,58 @@ TeamCreate(team_name="verify-{feature}", description="Verify {feature}")
 
 Agent(subagent_type="code-quality-reviewer", name="quality-verifier",
      team_name="verify-{feature}",
-     prompt="""Verify code quality for {feature}. Score 0-10.
+     prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+     Verify code quality. Score 0-10.
      When you find patterns that affect security, message security-verifier.
      When you find untested code paths, message test-verifier.
-     Share your quality score with all teammates for composite calculation.""")
+     Share your quality score with all teammates for composite calculation.
+     Feature: {feature}.""")
 
 Agent(subagent_type="security-auditor", name="security-verifier",
      team_name="verify-{feature}",
-     prompt="""Security verification for {feature}. Score 0-10.
+     prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+     Security verification. Score 0-10.
      When quality-verifier flags security-relevant patterns, investigate deeper.
      When you find vulnerabilities in API endpoints, message api-verifier.
-     Share severity findings with test-verifier for test gap analysis.""")
+     Share severity findings with test-verifier for test gap analysis.
+     Feature: {feature}.""")
 
 Agent(subagent_type="test-generator", name="test-verifier",
      team_name="verify-{feature}",
-     prompt="""Verify test coverage for {feature}. Score 0-10.
+     prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+     Verify test coverage. Score 0-10.
      When quality-verifier or security-verifier flag untested paths, quantify the gap.
      Run existing tests and report coverage metrics.
-     Message the lead with coverage data for composite scoring.""")
+     Message the lead with coverage data for composite scoring.
+     Feature: {feature}.""")
 
 Agent(subagent_type="backend-system-architect", name="api-verifier",
      team_name="verify-{feature}",
-     prompt="""Verify API design and backend patterns for {feature}. Score 0-10.
+     prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+     Verify API design and backend patterns. Score 0-10.
      When security-verifier flags endpoint issues, validate and score.
-     Share API compliance findings with ui-verifier for consistency check.""")
+     Share API compliance findings with ui-verifier for consistency check.
+     Feature: {feature}.""")
 
 Agent(subagent_type="frontend-ui-developer", name="ui-verifier",
      team_name="verify-{feature}",
-     prompt="""Verify frontend implementation for {feature}. Score 0-10.
+     prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+     Verify frontend implementation. Score 0-10.
      When api-verifier shares API patterns, verify frontend matches.
      Check React 19 patterns, accessibility, and loading states.
-     Share findings with quality-verifier for overall assessment.""")
+     Share findings with quality-verifier for overall assessment.
+     Feature: {feature}.""")
 
 # Conditional 6th agent — use python-performance-engineer for backend,
 # frontend-performance-engineer for frontend
 Agent(subagent_type="python-performance-engineer", name="perf-verifier",
      team_name="verify-{feature}",
-     prompt="""Verify performance and scalability for {feature}. Score 0-10.
+     prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+     Verify performance and scalability. Score 0-10.
      Assess latency, resource usage, caching, and scaling patterns.
      When security-verifier flags resource-intensive endpoints, profile them.
-     Share performance findings with api-verifier and quality-verifier.""")
+     Share performance findings with api-verifier and quality-verifier.
+     Feature: {feature}.""")
 ```
 
 **Team teardown** after report compilation:

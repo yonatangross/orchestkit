@@ -1,8 +1,8 @@
 ---
 name: test-generator
 description: "Test specialist: coverage gap analysis, unit/integration test generation, fixtures, API mocking (MSW), HTTP recording."
+model: inherit
 category: testing
-model: sonnet
 isolation: worktree
 maxTurns: 30
 context: fork

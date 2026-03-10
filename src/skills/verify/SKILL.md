@@ -17,6 +17,8 @@ hooks:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/test-framework-detector"
       once: true
+    # TODO(cache-opt): Add once:true verify-scoring-rubric-loader
+    # to inject 0-10 dimension definitions once
   PostToolUse:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/test-result-validator"
@@ -116,6 +118,8 @@ Write(".claude/chain/verify-results.json", JSON.stringify({
 Optionally schedule post-verification monitoring:
 
 ```python
+# Guard: Skip cron in headless/CI (CLAUDE_CODE_DISABLE_CRON)
+# if env CLAUDE_CODE_DISABLE_CRON is set, run a single check instead
 CronCreate(
   schedule="0 8 * * *",
   prompt="Daily regression check: npm test.

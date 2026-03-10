@@ -284,3 +284,4 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | `vllm-deployment.md` | Production vLLM config |
 | `quantization-guide.md` | Method comparison |
 | `cdn-setup.md` | Image CDN configuration |
+| `cc-prompt-cache-guide.md` | CC 2.1.72 prompt cache optimization, stable-first prompt structure |

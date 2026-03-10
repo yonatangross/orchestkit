@@ -17,6 +17,8 @@ hooks:
     - matcher: "Read"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/pr-context-loader"
       once: true
+    # TODO(cache-opt): Add once:true review-dimensions-loader
+    # to inject review dimensions + JSON contract once
 metadata:
   category: workflow-automation
   mcp-server: memory

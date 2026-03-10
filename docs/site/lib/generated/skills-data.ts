@@ -2676,6 +2676,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "structure": {
       "references": [
         "caching-strategies.md",
+        "cc-prompt-cache-guide.md",
         "cdn-setup.md",
         "core-web-vitals.md",
         "database-optimization.md",
