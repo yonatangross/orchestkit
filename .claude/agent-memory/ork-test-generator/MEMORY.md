@@ -37,6 +37,17 @@
 - When mocking `node:fs`, `basename` from `node:path` runs normally in source — but in certain test environments `basename('/project/.claude/rules/a.md')` may produce `.claude/rules/a.md` instead of `a.md`. Use `keys.some(k => k.includes('a.md'))` for robust basename assertions.
 - Top-level `await` in a sync `test()` body is rejected by esbuild — mark the `test()` callback `async` when using dynamic `await import()`
 
+## Branch refactor/split-testing-patterns-669 Findings (2026-03-10)
+- 189 vitest test files, 5952 tests — all passing
+- security: 11/11, manifests: all passed, skills-structure: 89 skills, 12/12 checks passed
+- testing-patterns split: 5 new evals exist (testing-unit/e2e/integration/llm/perf); old testing-patterns.eval.json cleanly removed
+- testing-patterns skill kept as redirect stub (`disable-model-invocation: true`) — correct pattern
+- Rule-to-eval ID mismatches (naming only, content covered): a11y-testing→a11y-jest-axe+a11y-ci-gates; verification-techniques→verification-property; llm-evaluation→3 evals; pytest-execution→pytest-markers+pytest-xdist
+- All 33 testing sub-skill evals tagged `happy-path` only — zero `error-path` / `edge-case` tags
+- Verify test-cases.json: 9 cases; server-fails-to-start scenario missing (dev server crash during visual capture)
+- instructions-loaded hooks: 8 source files, 8 test files — full parity (types.ts excluded)
+- `@vitest/coverage-v8` not installed — cannot compute line coverage %
+
 ## Prompt Dispatcher (#960 changes)
 - `skill-nudge-prompt` was removed from the prompt unified-dispatcher in #960 — replaced by CC native skill matching
 - Current prompt dispatcher HOOKS array (4 entries): handoff-injector, agentation-context, context-exhaustion-warner, antipattern-warning

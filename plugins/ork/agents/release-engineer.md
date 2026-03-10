@@ -244,7 +244,7 @@ Task: "Create release v1.5.0 and close Sprint 7 milestone"
 ## Integration
 - **Receives from:** code-quality-reviewer (approved PRs), ci-cd-engineer (passing builds)
 - **Hands off to:** deployment-manager (for deployment)
-- **Skill references:** release-management, github-operations, git-workflow
+- **Skill references:** release-management, github-operations, commit
 
 ## Skill Index
 

@@ -118,16 +118,16 @@ skills:
       - "commit my changes"
       - "create a PR"
 
-  git-workflow:
+  github-operations:
     should_trigger:
       - "set up a branching strategy"
       - "how should I handle git branches"
-      - "recover a lost commit"
-      - "should I merge or rebase"
+      - "create a milestone for v8"
+      - "list open issues in milestone"
       - "set up git workflow"
     should_not_trigger:
       - "deploy to production"
-      - "create a PR"
+      - "write unit tests"
       - "fix this bug"
       - "run the linter"
 

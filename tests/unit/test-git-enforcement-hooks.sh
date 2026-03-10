@@ -336,15 +336,12 @@ test_changelog_generator_release_engineer_integration() {
 
 describe "Git Skills Structure"
 
-test_git_workflow_skill_exists() {
-    local skill_dir="$PROJECT_ROOT/src/skills/git-workflow"
+test_github_operations_skill_structure() {
+    local skill_dir="$PROJECT_ROOT/src/skills/github-operations"
     assert_file_exists "$skill_dir/SKILL.md"
 
-    # Check for references (consolidated from atomic-commits, branch-strategy)
+    # Check for references
     [[ -d "$skill_dir/references" ]] || fail "Missing references directory"
-
-    # Check for checklists
-    [[ -d "$skill_dir/checklists" ]] || fail "Missing checklists directory"
 }
 
 test_github_operations_skill_exists() {
@@ -355,9 +352,8 @@ test_github_operations_skill_exists() {
     [[ -d "$skill_dir/references" ]] || fail "Missing references directory"
 }
 
-test_stacked_prs_skill_exists() {
-    # stacked-prs absorbed into git-workflow in batch 18
-    local skill_dir="$PROJECT_ROOT/src/skills/git-workflow"
+test_commit_skill_exists() {
+    local skill_dir="$PROJECT_ROOT/src/skills/commit"
     assert_file_exists "$skill_dir/SKILL.md"
 }
 
@@ -366,9 +362,8 @@ test_release_management_skill_exists() {
     assert_file_exists "$skill_dir/SKILL.md"
 }
 
-test_git_recovery_skill_exists() {
-    # git-recovery absorbed into git-workflow in batch 18
-    local skill_dir="$PROJECT_ROOT/src/skills/git-workflow"
+test_release_management_skill_structure() {
+    local skill_dir="$PROJECT_ROOT/src/skills/release-management"
     assert_file_exists "$skill_dir/SKILL.md"
 }
 

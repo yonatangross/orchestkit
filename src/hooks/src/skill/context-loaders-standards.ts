@@ -130,9 +130,10 @@ export function verifyScoringRubricLoader(_input: HookInput): HookResult {
     '  6-7: Functional with improvements needed',
     '  8-9: Production-ready, minor polish only',
     '  10:  Exemplary, reference implementation',
-    'Dimensions: correctness(25%), testing(20%), security(20%),',
-    '  performance(15%), maintainability(10%), documentation(10%)',
+    'Dimensions (8): correctness(14%), maintainability(14%), security(18%),',
+    '  testability(12%), compliance(12%), performance(11%), visual(10%), scalability(9%)',
     'Pass threshold: composite >= 7.0, no dimension below 5.0',
+    'Visual weight = 0.00 for API-only projects (redistribute to other 7)',
   ].join('\n');
 
   return outputWithContext(ctx);

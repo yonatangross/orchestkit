@@ -11,7 +11,7 @@ Good candidates for skills:
 
 - Team conventions that differ from defaults (naming patterns, directory structure, error formats).
 - Domain-specific patterns unique to your project (your auth flow, your deployment pipeline).
-- Technology knowledge not covered by OrchestKit's 79 built-in skills.
+- Technology knowledge not covered by OrchestKit's 89 built-in skills.
 - Checklists and decision frameworks your team uses repeatedly.
 
 ---
@@ -157,7 +157,7 @@ argument-hint: "[file-or-topic]"      # /ork:assess [file-or-topic]
 argument-hint: "[search|load|history]" # /ork:memory [search|load|history]
 ```
 
-**`disable-model-invocation`** -- Set to `true` to hide the skill from Claude's prompt listing. The skill is still available via `/ork:skill-name` and agent `skills:` arrays, but Claude won't see it in its context window. Use for niche or rarely-needed skills to save tokens (~2,630 tokens/turn saved by hiding 42 of 79 skills).
+**`disable-model-invocation`** -- Set to `true` to hide the skill from Claude's prompt listing. The skill is still available via `/ork:skill-name` and agent `skills:` arrays, but Claude won't see it in its context window. Use for niche or rarely-needed skills to save tokens (~2,630 tokens/turn saved by hiding 42 of 89 skills).
 
 ```yaml
 disable-model-invocation: true  # Hidden from prompt listing, still invocable

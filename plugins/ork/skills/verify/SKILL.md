@@ -275,7 +275,7 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/rules/<file>")`:
 
 - `ork:implement` - Full implementation with verification
 - `ork:review-pr` - PR-specific verification
-- `testing-patterns` - Test execution patterns
+- `testing-unit` / `testing-integration` / `testing-e2e` - Test execution patterns
 - `ork:quality-gates` - Quality gate patterns
 - `browser-tools` - Browser automation for visual capture
 

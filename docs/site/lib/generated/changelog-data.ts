@@ -41,6 +41,9 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       {
         "type": "added",
         "items": [
+          "**skills:** split testing-patterns into 5 focused sub-skills — testing-unit, testing-e2e, testing-integration, testing-llm, testing-perf (#669)",
+          "**skills:** add visual verification portfolio to verify skill — Phase 2.5 (screenshot gallery) + Phase 8.5 (agentation feedback loop)",
+          "**skills:** gallery-template.html — self-contained HTML with dark/light mode, base64-embedded screenshots, AI vision evaluations",
           "**hooks:** 4 once:true standards loaders for implement, review-pr, verify, brainstorm skills (CC 2.1.72 prompt cache optimization)",
           "**hooks:** implement-standards-loader — dynamic project stack detection via package.json/pyproject.toml",
           "**hooks:** review-dimensions-loader — static 6-dimension review criteria + JSON output contract",

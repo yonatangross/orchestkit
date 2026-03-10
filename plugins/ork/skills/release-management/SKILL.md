@@ -337,7 +337,7 @@ Usage:
 ## Related Skills
 
 - `ork:github-operations`: Milestones, issues, and CLI reference
-- `ork:git-workflow`: Branching and recovery patterns
+- `ork:github-operations`: Branch management and git operations
 
 ## References
 

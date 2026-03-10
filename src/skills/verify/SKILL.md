@@ -20,9 +20,6 @@ hooks:
     - matcher: "Agent"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/verify-scoring-rubric-loader"
       once: true
-  PostToolUse:
-    - matcher: "Bash"
-      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/test-result-validator"
 metadata:
   category: workflow-automation
   mcp-server: memory
@@ -278,7 +275,7 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/rules/<file>")`:
 
 - `ork:implement` - Full implementation with verification
 - `ork:review-pr` - PR-specific verification
-- `testing-patterns` - Test execution patterns
+- `testing-unit` / `testing-integration` / `testing-e2e` - Test execution patterns
 - `ork:quality-gates` - Quality gate patterns
 - `browser-tools` - Browser automation for visual capture
 

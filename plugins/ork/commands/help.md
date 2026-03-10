@@ -61,11 +61,11 @@ AskUserQuestion(
     "header": "Category",
     "options": [
       {"label": "BUILD", "description": "Implement features, brainstorm, verify", "markdown": "```\nBUILD — Feature Development\n───────────────────────────\n/ork:implement     Full-power implementation\n/ork:brainstorm    Design exploration\n/ork:verify        Test & grade changes\n```"},
-      {"label": "GIT", "description": "Commits, PRs, issues, branches", "markdown": "```\nGIT — Version Control\n─────────────────────\n/ork:commit        Conventional commits\n/ork:create-pr     PR with validation\n/ork:review-pr     6-agent PR review\n/ork:fix-issue     Debug + fix + PR\n/ork:git-workflow   Branch patterns\n```"},
+      {"label": "GIT", "description": "Commits, PRs, issues, branches", "markdown": "```\nGIT — Version Control\n─────────────────────\n/ork:commit        Conventional commits\n/ork:create-pr     PR with validation\n/ork:review-pr     6-agent PR review\n/ork:fix-issue     Debug + fix + PR\n```"},
       {"label": "PLAN", "description": "PRDs, plan visualization, assessment", "markdown": "```\nPLAN — Design & Strategy\n────────────────────────\n/ork:visualize-plan  ASCII plan rendering\n/ork:write-prd       Product requirements\n/ork:assess          Rate 0-10 + report\n```"},
       {"label": "MEMORY", "description": "Store decisions, search, recall", "markdown": "```\nMEMORY — Knowledge Persistence\n──────────────────────────────\n/ork:remember  Store decisions/patterns\n/ork:memory    Search, recall, visualize\n```"},
       {"label": "QUALITY", "description": "Assess, review, diagnose", "markdown": "```\nQUALITY — Assessment & Health\n─────────────────────────────\n/ork:assess     Rate quality 0-10\n/ork:review-pr  6-agent PR review\n/ork:doctor     Plugin health check\n```"},
-      {"label": "CONFIG", "description": "Setup, diagnostics, CI", "markdown": "```\nCONFIG — Setup & Operations\n───────────────────────────\n/ork:setup         Onboarding wizard\n/ork:doctor        Health diagnostics\n/ork:ci-automation CI/CD patterns\n```"},
+      {"label": "CONFIG", "description": "Setup, diagnostics", "markdown": "```\nCONFIG — Setup & Operations\n───────────────────────────\n/ork:setup         Onboarding wizard\n/ork:doctor        Health diagnostics\n/ork:configure     Plugin settings\n```"},
       {"label": "EXPLORE", "description": "Codebase exploration and analysis", "markdown": "```\nEXPLORE — Codebase Analysis\n───────────────────────────\n/ork:explore  Multi-angle exploration\n              4 parallel agents\n              Architecture visualization\n```"},
       {"label": "Show all", "description": "List every user-invocable skill"}
     ],
@@ -84,11 +84,11 @@ For the selected category, render the skill table from the data gathered in STEP
 | Category | Skills |
 |----------|--------|
 | BUILD | implement, brainstorm, verify |
-| GIT | commit, create-pr, review-pr, fix-issue, git-workflow |
+| GIT | commit, create-pr, review-pr, fix-issue |
 | PLAN | visualize-plan, write-prd, assess |
 | MEMORY | remember, memory |
 | QUALITY | assess, review-pr, doctor |
-| CONFIG | setup, doctor, ci-automation |
+| CONFIG | setup, doctor, configure |
 | EXPLORE | explore |
 
 For each skill in the category, render:

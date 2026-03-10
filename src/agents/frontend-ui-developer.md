@@ -34,7 +34,6 @@ skills:
   - code-review-playbook
   - zustand-patterns
   - architecture-patterns
-  - git-workflow
   - task-dependency-patterns
   - remember
   - memory
