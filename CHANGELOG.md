@@ -5,6 +5,29 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.3.0] - 2026-03-10
+
+### Fixed
+
+- **agents:** remove stale `git-workflow` references from git-operations-engineer, frontend-ui-developer, release-engineer
+- **agents:** remove stale `ci-automation` reference from ci-cd-engineer
+- **skills:** fix broken hook refs in commit skill (2 non-existent hooks → git-validator)
+- **skills:** remove broken `audit-context-loader` hook section from audit-full skill
+- **skills:** fix stale cross-references in help, storybook-testing, release-management, verify
+- **hooks:** fix verify scoring rubric weights (6→8 dimensions matching quality-model.md)
+- **tests:** fix test-git-enforcement-hooks.sh references to deleted skills
+- **tests:** fix trigger-cases.yaml — replace git-workflow with github-operations
+- **tests:** delete always-failing test-git-workflow-completeness.sh
+
+### Changed
+
+- **hooks:** skill-scoped hooks 23→21 (removed 2 non-existent refs), total 101→99
+- **verify:** add cross-route findings panel to gallery template (common issues, strengths, breakdown)
+- **verify:** enhance visual-capture.md with 6-criteria structured AI evaluation prompt
+- **docs:** update all hook count references across 10+ doc files
+
+---
+
 ## [7.2.2] - 2026-03-10
 
 ### Removed
