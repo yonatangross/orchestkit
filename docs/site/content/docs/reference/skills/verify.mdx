@@ -53,7 +53,7 @@ AskUserQuestion(
     "question": "What scope for this verification?",
     "header": "Scope",
     "options": [
-      {"label": "Full verification (Recommended)", "description": "All tests + security + code quality + grades", "markdown": "```\nFull Verification (8 phases)\n────────────────────────────\n  6 parallel agents:\n  ┌────────────┐ ┌────────────┐\n  │ Code       │ │ Security   │\n  │ Quality    │ │ Auditor    │\n  ├────────────┤ ├────────────┤\n  │ Test       │ │ Backend    │\n  │ Generator  │ │ Architect  │\n  ├────────────┤ ├────────────┤\n  │ Frontend   │ │ Performance│\n  │ Developer  │ │ Engineer   │\n  └────────────┘ └────────────┘\n         ▼              ▼\n    Composite Score (0-10)\n    Grade (A-F) + Verdict\n```"},
+      {"label": "Full verification (Recommended)", "description": "All tests + security + code quality + visual + grades", "markdown": "```\nFull Verification (10 phases)\n─────────────────────────────\n  7 parallel agents:\n  ┌────────────┐ ┌────────────┐\n  │ Code       │ │ Security   │\n  │ Quality    │ │ Auditor    │\n  ├────────────┤ ├────────────┤\n  │ Test       │ │ Backend    │\n  │ Generator  │ │ Architect  │\n  ├────────────┤ ├────────────┤\n  │ Frontend   │ │ Performance│\n  │ Developer  │ │ Engineer   │\n  ├────────────┤ └────────────┘\n  │ Visual     │\n  │ Capture    │ → gallery.html\n  └────────────┘\n         ▼\n    Composite Score (0-10)\n    8 dimensions + Grade\n    + Visual Gallery\n```"},
       {"label": "Tests only", "description": "Run unit + integration + e2e tests", "markdown": "```\nTests Only\n──────────\n  npm test ──▶ Results\n  ┌─────────────────────┐\n  │ Unit tests     ✓/✗  │\n  │ Integration    ✓/✗  │\n  │ E2E            ✓/✗  │\n  │ Coverage       NN%  │\n  └─────────────────────┘\n  Skip: security, quality, UI\n  Output: Pass/fail + coverage\n```"},
       {"label": "Security audit", "description": "Focus on security vulnerabilities", "markdown": "```\nSecurity Audit\n──────────────\n  security-auditor agent:\n  ┌─────────────────────────┐\n  │ OWASP Top 10       ✓/✗ │\n  │ Dependency CVEs    ✓/✗ │\n  │ Secrets scan       ✓/✗ │\n  │ Auth flow review   ✓/✗ │\n  │ Input validation   ✓/✗ │\n  └─────────────────────────┘\n  Output: Security score 0-10\n          + vulnerability list\n```"},
       {"label": "Code quality", "description": "Lint, types, complexity analysis", "markdown": "```\nCode Quality\n────────────\n  code-quality-reviewer agent:\n  ┌─────────────────────────┐\n  │ Lint errors         N   │\n  │ Type coverage       NN% │\n  │ Cyclomatic complex  N.N │\n  │ Dead code           N   │\n  │ Pattern violations  N   │\n  └─────────────────────────┘\n  Output: Quality score 0-10\n          + refactor suggestions\n```"},
@@ -65,7 +65,7 @@ AskUserQuestion(
 ```
 
 **Based on answer, adjust workflow:**
-- **Full verification**: All 8 phases, all 6 parallel agents
+- **Full verification**: All 10 phases (8 + 2.5 + 8.5), 7 parallel agents including visual capture
 - **Tests only**: Skip phases 2 (security), 5 (UI/UX analysis)
 - **Security audit**: Focus on security-auditor agent
 - **Code quality**: Focus on code-quality-reviewer agent
@@ -747,7 +747,7 @@ Multiple policies: `.claude/policies/\{name\}-policy.yaml`
 
 ### Quality Model
 
-&lt;!-- SHARED: keep in sync with ../../../assess/references/quality-model.md --&gt;
+&lt;!-- SHARED BASE: assess has 7 dimensions, verify extends with Visual (8th). Keep base dimensions in sync with ../../../assess/references/quality-model.md --&gt;
 # Quality Model
 
 Canonical scoring reference for assess and verify skills. Defines unified dimensions, weights, grade thresholds, and improvement prioritization.
@@ -780,13 +780,13 @@ When visual is skipped, multiply each remaining dimension's weight by `1.0 / 0.9
 
 ### Compliance Dimension — Scope Rules
 
-Compliance weight (0.15) applies differently based on project scope:
+Compliance weight (0.12) applies differently based on project scope:
 
 | Scope | Compliance Covers |
 |-------|-------------------|
 | Backend-only | API compliance (contracts, schema validation, versioning) |
 | Frontend-only | UI compliance (design system, a11y, responsive) |
-| Full-stack | API + UI compliance (split evenly: 0.075 each) |
+| Full-stack | API + UI compliance (split evenly: 0.06 each) |
 
 ## Composite Score
 
@@ -1034,7 +1034,7 @@ Copy this template and fill in results from parallel agent verification.
 
 ## Verification Metadata
 
-- **Agents Used**: 5 (code-quality-reviewer, security-auditor, test-generator, backend-system-architect, frontend-ui-developer)
+- **Agents Used**: 7 (code-quality-reviewer, security-auditor, test-generator, backend-system-architect, frontend-ui-developer, python-performance-engineer, visual-capture)
 - **Parallel Execution**: Yes
 - **Total Tool Calls**: ~N
 - **Context Usage**: ~N tokens

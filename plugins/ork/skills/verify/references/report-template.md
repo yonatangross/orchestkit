@@ -186,7 +186,7 @@ Copy this template and fill in results from parallel agent verification.
 
 ## Verification Metadata
 
-- **Agents Used**: 5 (code-quality-reviewer, security-auditor, test-generator, backend-system-architect, frontend-ui-developer)
+- **Agents Used**: 7 (code-quality-reviewer, security-auditor, test-generator, backend-system-architect, frontend-ui-developer, python-performance-engineer, visual-capture)
 - **Parallel Execution**: Yes
 - **Total Tool Calls**: ~N
 - **Context Usage**: ~N tokens

@@ -1,4 +1,4 @@
-<!-- SHARED: keep in sync with ../../../assess/references/quality-model.md -->
+<!-- SHARED BASE: assess has 7 dimensions, verify extends with Visual (8th). Keep base dimensions in sync with ../../../assess/references/quality-model.md -->
 # Quality Model
 
 Canonical scoring reference for assess and verify skills. Defines unified dimensions, weights, grade thresholds, and improvement prioritization.
@@ -31,13 +31,13 @@ When visual is skipped, multiply each remaining dimension's weight by `1.0 / 0.9
 
 ### Compliance Dimension — Scope Rules
 
-Compliance weight (0.15) applies differently based on project scope:
+Compliance weight (0.12) applies differently based on project scope:
 
 | Scope | Compliance Covers |
 |-------|-------------------|
 | Backend-only | API compliance (contracts, schema validation, versioning) |
 | Frontend-only | UI compliance (design system, a11y, responsive) |
-| Full-stack | API + UI compliance (split evenly: 0.075 each) |
+| Full-stack | API + UI compliance (split evenly: 0.06 each) |
 
 ## Composite Score
 

@@ -177,6 +177,9 @@
 // Gallery data — injected by verify skill at generation time
 const GALLERY_DATA = {{GALLERY_JSON}};
 
+// Escape HTML to prevent XSS from route names/paths/messages
+function esc(s) { const d = document.createElement('div'); d.textContent = String(s); return d.innerHTML; }
+
 function init() {
   const grid = document.getElementById('card-grid');
   grid.innerHTML = '';
@@ -187,13 +190,13 @@ function init() {
     card.className = 'card';
     card.onclick = () => openModal(route.id);
     card.innerHTML = `
-      <img class="card-img" src="${route.screenshot}" alt="Screenshot of ${route.path}">
+      <img class="card-img" src="${route.screenshot}" alt="Screenshot of ${esc(route.path)}">
       <div class="card-body">
-        <div class="card-title">${route.name}</div>
-        <div class="card-route">${route.path}</div>
+        <div class="card-title">${esc(route.name)}</div>
+        <div class="card-route">${esc(route.path)}</div>
       </div>
       <div class="card-footer">
-        <span class="card-score">${route.score}/10</span>
+        <span class="card-score">${esc(route.score)}/10</span>
         <span class="card-badge ${status}">${statusLabel}</span>
       </div>`;
     grid.appendChild(card);
@@ -203,7 +206,7 @@ function init() {
 function openModal(routeId) {
   const route = GALLERY_DATA.routes.find(r => r.id === routeId);
   if (!route) return;
-  document.getElementById('modal-title').textContent = `${route.name} — ${route.path}`;
+  document.getElementById('modal-title').textContent = `${route.name} \u2014 ${route.path}`;
   document.getElementById('modal-img').src = route.screenshot;
   let body = '';
 
@@ -213,7 +216,7 @@ function openModal(routeId) {
     route.evaluation.forEach(e => {
       const cls = e.severity === 'ok' ? 'ok' : e.severity === 'warning' ? 'warning' : 'error';
       const icon = e.severity === 'ok' ? '\u2713' : e.severity === 'warning' ? '\u26A0' : '\u2717';
-      body += `<div class="eval-item"><span class="eval-icon ${cls}">${icon}</span><span>${e.message}</span></div>`;
+      body += `<div class="eval-item"><span class="eval-icon ${cls}">${icon}</span><span>${esc(e.message)}</span></div>`;
     });
     body += '</div>';
   }
@@ -226,7 +229,7 @@ function openModal(routeId) {
         <div><div class="diff-label">Before</div><img class="diff-img" src="${a.before}" alt="Before"></div>
         <div><div class="diff-label">After</div><img class="diff-img" src="${a.after}" alt="After"></div>
       </div>
-      <div class="annotation-resolution">${a.resolution}</div>`;
+      <div class="annotation-resolution">${esc(a.resolution)}</div>`;
     });
     body += '</div>';
   }
