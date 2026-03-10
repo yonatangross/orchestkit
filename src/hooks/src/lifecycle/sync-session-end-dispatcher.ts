@@ -10,7 +10,7 @@
  * - pattern-sync-push (normal — skips if a run_on_fail hook returned continue: false)
  *
  * NOT consolidated (remain separate in hooks.json):
- * - session-end-reporter (command hook — POSTs token usage + metrics to HQ API)
+ * - usage-summary-reporter (async — POSTs usage summary + token metrics to HQ API)
  *
  * CC 2.1.9 Compliant: Single sync hook with merged systemMessage output.
  * run_on_fail semantics: session-cleanup always runs (try/catch + continue).

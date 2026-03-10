@@ -146,31 +146,71 @@ Default: `1280x720`. If `mobile: true` in config, also capture at `375x812`.
 
 ## Step 5: AI Vision Evaluation
 
-For each screenshot, use Claude's vision (Read tool on PNG):
+For each screenshot, use Claude's vision (Read tool on PNG) with a **structured evaluation prompt**:
 
 ```python
 Read(file_path=f"verification-output/{timestamp}/screenshots/{filename}")
-# Then evaluate in conversation:
-# "Evaluate this screenshot for:
-#  1. Layout correctness (no overflow, proper alignment)
-#  2. Accessibility (contrast ratios, text legibility, focus indicators)
-#  3. Content completeness (no missing images, broken links visible)
-#  4. Visual quality (no artifacts, proper spacing)
-#  Score 0-10 and list specific issues."
 ```
 
-Save evaluation as JSON:
+Then evaluate using this prompt template (include it in the visual capture agent's instructions):
+
+```
+Evaluate this screenshot of route "{route_path}" against these 6 criteria.
+For EACH criterion, provide a severity (ok/warning/error) and specific observation.
+Do NOT use generic "looks good" — cite what you actually see.
+
+1. LAYOUT: Overflow, alignment, spacing, responsive grid. Check: content cut off? Overlapping elements? Scroll needed?
+2. NAVIGATION: Is nav present and functional? Sidebar, breadcrumbs, TOC visible? Active state correct?
+3. CONTENT: Text readable? Headings hierarchical? Data populated (not placeholder/loading)? Counts/numbers accurate?
+4. ACCESSIBILITY: Contrast sufficient? Focus indicators visible? Text size adequate? Color-only information?
+5. INTERACTIVITY: Buttons/links styled consistently? Hover/focus states? Forms labeled? CTAs discoverable?
+6. BRANDING: Consistent with site theme? Dark/light mode correct? Typography matches design system?
+
+Output as JSON array — exactly 6 items, one per criterion:
+[{"severity": "ok|warning|error", "message": "CRITERION: specific observation with evidence"}]
+Score 0-10 based on: 0 errors=9+, 1-2 warnings=7-8, errors=5-6, multiple errors=<5.
+```
+
+**Per-route evaluation output** (6+ items, never a single line):
 ```json
 {
   "route": "/dashboard",
   "score": 7.5,
-  "issues": [
-    {"severity": "warning", "message": "CTA button contrast ratio ~3.8:1, needs 4.5:1 for WCAG AA"},
-    {"severity": "ok", "message": "Layout consistent, no overflow detected"},
-    {"severity": "warning", "message": "No loading skeleton visible during data fetch"}
+  "evaluation": [
+    {"severity": "ok", "message": "LAYOUT: Content within viewport, no horizontal overflow, grid columns align properly"},
+    {"severity": "ok", "message": "NAVIGATION: Sidebar present with 8 sections, 'Dashboard' correctly highlighted as active"},
+    {"severity": "warning", "message": "CONTENT: Stats show '79 skills' but should be '89 skills' — stale count detected"},
+    {"severity": "ok", "message": "ACCESSIBILITY: Body text ~16px on dark bg (#e6edf3 on #0d1117), contrast ratio ~13:1, passes WCAG AAA"},
+    {"severity": "warning", "message": "INTERACTIVITY: Code block copy buttons present but no visible hover state change"},
+    {"severity": "ok", "message": "BRANDING: Dark theme consistent, green accent (#3fb950) used for active states, monospace for code"}
   ]
 }
 ```
+
+### Cross-Route Summary
+
+After evaluating all routes, synthesize a **summary** object for the gallery:
+
+```python
+# Build summary from all per-route evaluations
+summary = {
+  "total_routes": len(routes),
+  "avg_score": round(sum(r.score for r in routes) / len(routes), 1),
+  "pass_count": len([r for r in routes if r.score >= 7]),
+  "warn_count": len([r for r in routes if 5 <= r.score < 7]),
+  "fail_count": len([r for r in routes if r.score < 5]),
+  "common_issues": [  # Issues appearing on 2+ routes
+    {"count": 3, "message": "Stale skill count (79 instead of 89) on 3/5 pages"},
+    {"count": 2, "message": "Code block copy buttons lack hover state feedback"}
+  ],
+  "strengths": [  # Positive patterns across routes
+    "Consistent dark theme and typography across all pages",
+    "Sidebar navigation present and correctly highlights active page"
+  ]
+}
+```
+
+Include this summary in `GALLERY_JSON` alongside `routes`.
 
 ## Step 6: Gallery Generation
 

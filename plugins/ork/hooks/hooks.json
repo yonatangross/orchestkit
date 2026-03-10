@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 32 global + 45 agent-scoped + 24 skill-scoped = 101 total hooks (18 once:true context loaders). HTTP webhooks via `npm run generate:http-hooks`. All timeouts in SECONDS per CC spec.",
+  "description": "OrchestKit hooks - 33 global + 45 agent-scoped + 23 skill-scoped = 101 total hooks (18 once:true context loaders). HTTP webhooks via `npm run generate:http-hooks`. All timeouts in SECONDS per CC spec.",
   "hooks": {
     "PreToolUse": [
       {
@@ -164,6 +164,12 @@
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/session-handoff-generator",
             "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/usage-summary-reporter",
+            "async": true,
+            "timeout": 8
           }
         ]
       }

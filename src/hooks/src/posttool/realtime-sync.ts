@@ -7,7 +7,7 @@
  * Fix #903: Removed dead pending queue (.pending-sync-{session}.json) that was
  * never consumed by any Stop hook. The IMMEDIATE/BATCHED paths queued to a file
  * that nothing ever read — data was silently abandoned. Decision data now reaches
- * HQ via audit-logger + session-end-reporter (already in the PostToolUse dispatcher).
+ * HQ via audit-logger + usage-summary-reporter (already in the PostToolUse dispatcher).
  *
  * What remains: priority classification + logHook audit trail (zero file I/O).
  *
@@ -81,7 +81,7 @@ function detectCategory(content: string): string {
 /**
  * Classify decisions and log for audit trail.
  * Fix #903: No longer writes to pending queue files — zero file I/O.
- * Decision data reaches HQ via audit-logger + session-end-reporter.
+ * Decision data reaches HQ via audit-logger + usage-summary-reporter.
  */
 export function realtimeSync(input: HookInput): HookResult {
   const toolName = input.tool_name || '';

@@ -108,6 +108,28 @@
     font-family: monospace; font-size: 12px; overflow-x: auto;
     max-height: 200px; overflow-y: auto; white-space: pre-wrap; }
 
+  /* Findings panel (summary aggregation) */
+  .findings { padding: 20px 32px; border-bottom: 1px solid var(--border); }
+  .findings-header { font-size: 15px; font-weight: 600; margin-bottom: 12px; }
+  .findings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .findings-col h4 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;
+    color: var(--text-muted); margin-bottom: 8px; }
+  .findings-list { list-style: none; padding: 0; }
+  .findings-list li { font-size: 13px; padding: 6px 0; border-bottom: 1px solid var(--border);
+    display: flex; gap: 8px; align-items: flex-start; }
+  .findings-list li:last-child { border-bottom: none; }
+  .findings-icon { flex-shrink: 0; width: 16px; text-align: center; }
+  .findings-icon.issue { color: var(--warn); }
+  .findings-icon.strength { color: var(--pass); }
+  .findings-count { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+  .route-breakdown { display: flex; gap: 16px; margin-top: 12px; padding-top: 12px;
+    border-top: 1px solid var(--border); }
+  .route-breakdown .rb-item { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; }
+  .rb-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .rb-dot.pass { background: var(--pass); }
+  .rb-dot.warn { background: var(--warn); }
+  .rb-dot.fail { background: var(--fail); }
+
   /* Metadata footer */
   .gallery-footer { padding: 16px 32px; border-top: 1px solid var(--border);
     font-size: 12px; color: var(--text-muted); display: flex; justify-content: space-between; }
@@ -117,6 +139,9 @@
     .summary { flex-wrap: wrap; gap: 16px; padding: 16px; }
     .header { flex-direction: column; gap: 12px; align-items: flex-start; }
     .diff-container { grid-template-columns: 1fr; }
+    .findings { padding: 16px; }
+    .findings-grid { grid-template-columns: 1fr; }
+    .route-breakdown { flex-wrap: wrap; }
   }
 </style>
 </head>
@@ -137,6 +162,10 @@
   <div class="stat"><span class="stat-label">Annotations</span><span class="stat-value">{{ANNOTATION_COUNT}}</span></div>
   <div class="stat"><span class="stat-label">Date</span><span class="stat-value">{{DATE}}</span></div>
   <div class="stat"><span class="stat-label">Duration</span><span class="stat-value">{{DURATION}}</span></div>
+</div>
+
+<div class="findings" id="findings-panel" style="display:none">
+  <!-- Populated by init() from GALLERY_DATA.summary -->
 </div>
 
 <div class="grid" id="card-grid">
@@ -175,12 +204,61 @@
 
 <script>
 // Gallery data — injected by verify skill at generation time
-const GALLERY_DATA = {{GALLERY_JSON}};
+const GALLERY_DATA = {{GALLERY_JSON_SAFE}}; // Injector must escape </ to <\/ and <!-- to <\!-- before substitution
 
 // Escape HTML to prevent XSS from route names/paths/messages
 function esc(s) { const d = document.createElement('div'); d.textContent = String(s); return d.innerHTML; }
 
 function init() {
+  // Render summary/findings panel if present
+  const s = GALLERY_DATA.summary;
+  if (s) {
+    const panel = document.getElementById('findings-panel');
+    panel.style.display = '';
+    let html = '<div class="findings-header">Cross-Route Findings</div><div class="findings-grid">';
+
+    // Common issues column
+    html += '<div class="findings-col"><h4>Common Issues</h4>';
+    if (s.common_issues && s.common_issues.length > 0) {
+      html += '<ul class="findings-list">';
+      s.common_issues.forEach(issue => {
+        html += `<li><span class="findings-icon issue">\u26A0</span><span>${esc(issue.message)}</span>`;
+        if (issue.count) html += ` <span class="findings-count">(${esc(issue.count)} routes)</span>`;
+        html += '</li>';
+      });
+      html += '</ul>';
+    } else {
+      html += '<p style="font-size:13px;color:var(--text-muted)">No recurring issues detected</p>';
+    }
+    html += '</div>';
+
+    // Strengths column
+    html += '<div class="findings-col"><h4>Strengths</h4>';
+    if (s.strengths && s.strengths.length > 0) {
+      html += '<ul class="findings-list">';
+      s.strengths.forEach(str => {
+        html += `<li><span class="findings-icon strength">\u2713</span><span>${esc(str)}</span></li>`;
+      });
+      html += '</ul>';
+    } else {
+      html += '<p style="font-size:13px;color:var(--text-muted)">No cross-route strengths identified</p>';
+    }
+    html += '</div></div>';
+
+    // Route breakdown bar
+    const pc = s.pass_count || 0, wc = s.warn_count || 0, fc = s.fail_count || 0;
+    if (pc + wc + fc > 0) {
+      html += '<div class="route-breakdown">';
+      html += `<div class="rb-item"><span class="rb-dot pass"></span>${pc} passed</div>`;
+      html += `<div class="rb-item"><span class="rb-dot warn"></span>${wc} warnings</div>`;
+      html += `<div class="rb-item"><span class="rb-dot fail"></span>${fc} failed</div>`;
+      html += '</div>';
+    }
+
+    panel.innerHTML = html;
+  }
+
+  // Render route cards
   const grid = document.getElementById('card-grid');
   grid.innerHTML = '';
   GALLERY_DATA.routes.forEach(route => {
@@ -190,7 +268,7 @@ function init() {
     card.className = 'card';
     card.onclick = () => openModal(route.id);
     card.innerHTML = `
-      <img class="card-img" src="${route.screenshot}" alt="Screenshot of ${esc(route.path)}">
+      <img class="card-img" src="${route.screenshot && route.screenshot.startsWith('data:image/') ? route.screenshot : ''}" alt="Screenshot of ${esc(route.path)}">
       <div class="card-body">
         <div class="card-title">${esc(route.name)}</div>
         <div class="card-route">${esc(route.path)}</div>
@@ -207,7 +285,7 @@ function openModal(routeId) {
   const route = GALLERY_DATA.routes.find(r => r.id === routeId);
   if (!route) return;
   document.getElementById('modal-title').textContent = `${route.name} \u2014 ${route.path}`;
-  document.getElementById('modal-img').src = route.screenshot;
+  document.getElementById('modal-img').src = route.screenshot && route.screenshot.startsWith('data:image/') ? route.screenshot : '';
   let body = '';
 
   // AI evaluation
@@ -225,9 +303,11 @@ function openModal(routeId) {
   if (route.annotations && route.annotations.length > 0) {
     body += '<div class="eval-section"><h3>Agentation Annotations</h3>';
     route.annotations.forEach(a => {
+      const safeBefore = a.before && a.before.startsWith('data:image/') ? a.before : '';
+      const safeAfter = a.after && a.after.startsWith('data:image/') ? a.after : '';
       body += `<div class="diff-container">
-        <div><div class="diff-label">Before</div><img class="diff-img" src="${a.before}" alt="Before"></div>
-        <div><div class="diff-label">After</div><img class="diff-img" src="${a.after}" alt="After"></div>
+        <div><div class="diff-label">Before</div><img class="diff-img" src="${safeBefore}" alt="Before"></div>
+        <div><div class="diff-label">After</div><img class="diff-img" src="${safeAfter}" alt="After"></div>
       </div>
       <div class="annotation-resolution">${esc(a.resolution)}</div>`;
     });
@@ -237,7 +317,7 @@ function openModal(routeId) {
   // API response
   if (route.apiResponse) {
     body += `<div class="eval-section"><h3>API Response</h3>
-      <div class="api-response">${JSON.stringify(route.apiResponse, null, 2)}</div></div>`;
+      <div class="api-response">${esc(JSON.stringify(route.apiResponse, null, 2))}</div></div>`;
   }
 
   document.getElementById('modal-body').innerHTML = body;

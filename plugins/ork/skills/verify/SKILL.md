@@ -20,9 +20,6 @@ hooks:
     - matcher: "Agent"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/verify-scoring-rubric-loader"
       once: true
-  PostToolUse:
-    - matcher: "Bash"
-      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/test-result-validator"
 metadata:
   category: workflow-automation
   mcp-server: memory

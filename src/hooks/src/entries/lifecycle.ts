@@ -10,7 +10,7 @@ export * from '../types.js';
 export * from '../lib/common.js';
 export * from '../lib/git.js';
 
-// Lifecycle hooks (15) - SessionStart/SessionEnd
+// Lifecycle hooks (15) - SessionStart/SessionEnd/Stop
 import { analyticsConsentCheck } from '../lifecycle/analytics-consent-check.js';
 import { patternSyncPull } from '../lifecycle/pattern-sync-pull.js';
 import { patternSyncPush } from '../lifecycle/pattern-sync-push.js';
@@ -25,7 +25,7 @@ import { prefillGuard } from '../lifecycle/prefill-guard.js';
 import { mcpHealthCheck } from '../lifecycle/mcp-health-check.js';
 import { syncSessionDispatcher } from '../lifecycle/sync-session-dispatcher.js';
 import { syncSessionEndDispatcher } from '../lifecycle/sync-session-end-dispatcher.js';
-import { sessionEndReporter } from '../lifecycle/session-end-reporter.js';
+import { usageSummaryReporter } from '../lifecycle/usage-summary-reporter.js';
 import { sessionHandoffGenerator } from '../lifecycle/session-handoff-generator.js';
 import { sessionHandoffInjector } from '../lifecycle/session-handoff-injector.js';
 
@@ -69,7 +69,7 @@ export const hooks: Record<string, HookFn> = {
   'lifecycle/mcp-health-check': mcpHealthCheck,
   'lifecycle/sync-session-dispatcher': syncSessionDispatcher,
   'lifecycle/sync-session-end-dispatcher': syncSessionEndDispatcher,
-  'lifecycle/session-end-reporter': sessionEndReporter,
+  'lifecycle/usage-summary-reporter': usageSummaryReporter,
   'lifecycle/session-handoff-generator': sessionHandoffGenerator,
   'lifecycle/session-handoff-injector': sessionHandoffInjector,
 
