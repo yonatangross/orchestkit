@@ -20,6 +20,7 @@ tools:
   - TaskCreate
   - TaskUpdate
   - TaskList
+  - ExitWorktree
 skills:
   - multimodal-llm
   - rag-retrieval

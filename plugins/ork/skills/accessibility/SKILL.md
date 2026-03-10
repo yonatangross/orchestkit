@@ -69,9 +69,9 @@ WCAG 2.2 AA implementation for inclusive, legally compliant web applications.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Color Contrast | `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/rules/wcag-color-contrast.md` | 4.5:1 text, 3:1 UI components, focus indicators |
-| Semantic HTML | `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/rules/wcag-semantic-html.md` | Landmarks, headings, ARIA labels, form structure |
-| Testing | `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/rules/wcag-testing.md` | axe-core, Playwright a11y, screen reader testing |
+| Color Contrast | `${CLAUDE_SKILL_DIR}/rules/wcag-color-contrast.md` | 4.5:1 text, 3:1 UI components, focus indicators |
+| Semantic HTML | `${CLAUDE_SKILL_DIR}/rules/wcag-semantic-html.md` | Landmarks, headings, ARIA labels, form structure |
+| Testing | `${CLAUDE_SKILL_DIR}/rules/wcag-testing.md` | axe-core, Playwright a11y, screen reader testing |
 
 ## POUR Exit Criteria
 
@@ -79,7 +79,7 @@ Concrete pass/fail thresholds for each WCAG 2.2 AA criterion — replaces vague 
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| POUR Exit Criteria | `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/rules/pour-exit-criteria.md` | Falsifiable checklist: image alt, contrast ratios, focus indicators, touch targets, ARIA states |
+| POUR Exit Criteria | `${CLAUDE_SKILL_DIR}/rules/pour-exit-criteria.md` | Falsifiable checklist: image alt, contrast ratios, focus indicators, touch targets, ARIA states |
 
 ## Static Anti-Patterns
 
@@ -87,7 +87,7 @@ Grep-able anti-patterns detectable via static analysis or code review — no bro
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| A11y Anti-Patterns (Static) | `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/rules/a11y-antipatterns-static.md` | Focus removal, missing labels, autoplay, icon-only buttons, div-click handlers |
+| A11y Anti-Patterns (Static) | `${CLAUDE_SKILL_DIR}/rules/a11y-antipatterns-static.md` | Focus removal, missing labels, autoplay, icon-only buttons, div-click handlers |
 
 ## Focus Management
 
@@ -95,9 +95,9 @@ Keyboard focus management patterns for accessible interactive widgets.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Focus Trap | `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/rules/focus-trap.md` | Modal focus trapping, FocusScope, Escape key |
-| Focus Restoration | `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/rules/focus-restoration.md` | Return focus to trigger, focus first error |
-| Keyboard Navigation | `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/rules/focus-keyboard-nav.md` | Roving tabindex, skip links, arrow keys |
+| Focus Trap | `${CLAUDE_SKILL_DIR}/rules/focus-trap.md` | Modal focus trapping, FocusScope, Escape key |
+| Focus Restoration | `${CLAUDE_SKILL_DIR}/rules/focus-restoration.md` | Return focus to trigger, focus first error |
+| Keyboard Navigation | `${CLAUDE_SKILL_DIR}/rules/focus-keyboard-nav.md` | Roving tabindex, skip links, arrow keys |
 
 ## React Aria
 
@@ -105,9 +105,9 @@ Adobe React Aria hooks for building WCAG-compliant interactive UI.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Components | `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/rules/aria-components.md` | useButton, useDialog, useMenu, FocusScope |
-| Forms | `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/rules/aria-forms.md` | useComboBox, useTextField, useListBox |
-| Overlays | `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/rules/aria-overlays.md` | useModalOverlay, useTooltip, usePopover |
+| Components | `${CLAUDE_SKILL_DIR}/rules/aria-components.md` | useButton, useDialog, useMenu, FocusScope |
+| Forms | `${CLAUDE_SKILL_DIR}/rules/aria-forms.md` | useComboBox, useTextField, useListBox |
+| Overlays | `${CLAUDE_SKILL_DIR}/rules/aria-overlays.md` | useModalOverlay, useTooltip, usePopover |
 
 ## Modern Web Accessibility
 
@@ -115,9 +115,9 @@ Adobe React Aria hooks for building WCAG-compliant interactive UI.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Native HTML First | `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/rules/wcag-native-html-first.md` | `<dialog>`, `<details>`, native over custom ARIA |
-| Cognitive Inclusion | `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/rules/wcag-cognitive-inclusion.md` | ADHD/autism/dyslexia support, chunked content, notification management |
-| User Preferences | `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/rules/wcag-user-preferences.md` | prefers-reduced-motion, forced-colors, prefers-contrast, zoom |
+| Native HTML First | `${CLAUDE_SKILL_DIR}/rules/wcag-native-html-first.md` | `<dialog>`, `<details>`, native over custom ARIA |
+| Cognitive Inclusion | `${CLAUDE_SKILL_DIR}/rules/wcag-cognitive-inclusion.md` | ADHD/autism/dyslexia support, chunked content, notification management |
+| User Preferences | `${CLAUDE_SKILL_DIR}/rules/wcag-user-preferences.md` | prefers-reduced-motion, forced-colors, prefers-contrast, zoom |
 
 ## Key Decisions
 
@@ -149,11 +149,11 @@ Adobe React Aria hooks for building WCAG-compliant interactive UI.
 
 | Resource | Description |
 |----------|-------------|
-| `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/scripts/` | Templates: accessible form, focus trap, React Aria components |
-| `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/checklists/` | WCAG audit, focus management, React Aria component checklists |
-| `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/references/` | WCAG criteria reference, focus patterns, React Aria hooks API |
-| `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/references/ux-thresholds-quick.md` | UI/UX thresholds quick reference: contrast, touch targets, cognitive load, typography, forms |
-| `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/examples/` | Complete accessible component examples |
+| `${CLAUDE_SKILL_DIR}/scripts/` | Templates: accessible form, focus trap, React Aria components |
+| `${CLAUDE_SKILL_DIR}/checklists/` | WCAG audit, focus management, React Aria component checklists |
+| `${CLAUDE_SKILL_DIR}/references/` | WCAG criteria reference, focus patterns, React Aria hooks API |
+| `${CLAUDE_SKILL_DIR}/references/ux-thresholds-quick.md` | UI/UX thresholds quick reference: contrast, touch targets, cognitive load, typography, forms |
+| `${CLAUDE_SKILL_DIR}/examples/` | Complete accessible component examples |
 
 ## Related Skills
 

@@ -21,6 +21,7 @@ tools:
   - TaskCreate
   - TaskUpdate
   - TaskList
+  - ExitWorktree
 skills:
   - devops-deployment
   - security-patterns

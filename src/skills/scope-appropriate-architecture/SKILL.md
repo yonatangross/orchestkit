@@ -157,7 +157,7 @@ The detected tier is passed as context to constrain downstream decisions.
 
 ## References
 
-Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/scope-appropriate-architecture/references/<file>")`:
+Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | File | Content |
 |------|---------|
 | `interview-takehome.md` | Tiers 1-2 in detail |

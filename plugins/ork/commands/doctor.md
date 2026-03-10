@@ -62,27 +62,27 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 
 ## Health Check Categories
 
-> **Detailed check procedures**: Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/doctor/rules/diagnostic-checks.md")` for bash commands and validation logic per category.
+> **Detailed check procedures**: Load `Read("${CLAUDE_SKILL_DIR}/rules/diagnostic-checks.md")` for bash commands and validation logic per category.
 >
-> **MCP-specific checks**: Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/doctor/rules/mcp-status-checks.md")` for credential validation and misconfiguration detection.
+> **MCP-specific checks**: Load `Read("${CLAUDE_SKILL_DIR}/rules/mcp-status-checks.md")` for credential validation and misconfiguration detection.
 >
-> **Output examples**: Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/doctor/references/health-check-outputs.md")` for sample output per category.
+> **Output examples**: Load `Read("${CLAUDE_SKILL_DIR}/references/health-check-outputs.md")` for sample output per category.
 
 ### Categories 0-3: Core Validation
 
 | Category | What It Checks | Reference |
 |----------|---------------|-----------|
-| **0. Installed Plugins** | Auto-detects ork plugin, counts skills/agents | load `${CLAUDE_PLUGIN_ROOT}/skills/doctor/rules/diagnostic-checks.md` |
-| **1. Skills** | Frontmatter, context field, token budget, links | load `${CLAUDE_PLUGIN_ROOT}/skills/doctor/references/skills-validation.md` |
-| **2. Agents** | Frontmatter, model, skill refs, tool refs | load `${CLAUDE_PLUGIN_ROOT}/skills/doctor/references/agents-validation.md` |
-| **3. Hooks** | hooks.json schema, bundles, async patterns | load `${CLAUDE_PLUGIN_ROOT}/skills/doctor/references/hook-validation.md` |
+| **0. Installed Plugins** | Auto-detects ork plugin, counts skills/agents | load `${CLAUDE_SKILL_DIR}/rules/diagnostic-checks.md` |
+| **1. Skills** | Frontmatter, context field, token budget, links | load `${CLAUDE_SKILL_DIR}/references/skills-validation.md` |
+| **2. Agents** | Frontmatter, model, skill refs, tool refs | load `${CLAUDE_SKILL_DIR}/references/agents-validation.md` |
+| **3. Hooks** | hooks.json schema, bundles, async patterns | load `${CLAUDE_SKILL_DIR}/references/hook-validation.md` |
 
 ### Categories 4-5: System Health
 
 | Category | What It Checks | Reference |
 |----------|---------------|-----------|
-| **4. Memory** | .claude/memory/ exists, decisions.jsonl integrity, queue depth | load `${CLAUDE_PLUGIN_ROOT}/skills/doctor/references/memory-health.md` |
-| **5. Build** | plugins/ sync with src/, manifest counts, orphans | load `${CLAUDE_PLUGIN_ROOT}/skills/doctor/rules/diagnostic-checks.md` |
+| **4. Memory** | .claude/memory/ exists, decisions.jsonl integrity, queue depth | load `${CLAUDE_SKILL_DIR}/references/memory-health.md` |
+| **5. Build** | plugins/ sync with src/, manifest counts, orphans | load `${CLAUDE_SKILL_DIR}/rules/diagnostic-checks.md` |
 
 ### Categories 6-9: Infrastructure
 
@@ -97,17 +97,17 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 
 | Category | What It Checks | Reference |
 |----------|---------------|-----------|
-| **10. CC Version & Channel** | Runtime version against minimum required, release channel (stable/beta/alpha) | load `${CLAUDE_PLUGIN_ROOT}/skills/doctor/references/version-compatibility.md` |
-| **11. External Deps** | Optional tools (agent-browser) | load `${CLAUDE_PLUGIN_ROOT}/skills/doctor/rules/diagnostic-checks.md` |
-| **12. MCP Status** | Enabled/disabled state, credential checks | load `${CLAUDE_PLUGIN_ROOT}/skills/doctor/rules/mcp-status-checks.md` |
+| **10. CC Version & Channel** | Runtime version against minimum required, release channel (stable/beta/alpha) | load `${CLAUDE_SKILL_DIR}/references/version-compatibility.md` |
+| **11. External Deps** | Optional tools (agent-browser) | load `${CLAUDE_SKILL_DIR}/rules/diagnostic-checks.md` |
+| **12. MCP Status** | Enabled/disabled state, credential checks | load `${CLAUDE_SKILL_DIR}/rules/mcp-status-checks.md` |
 
 ## Report Format
 
-> Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/doctor/references/report-format.md")` for ASCII report templates, JSON CI output schema, and exit codes.
+> Load `Read("${CLAUDE_SKILL_DIR}/references/report-format.md")` for ASCII report templates, JSON CI output schema, and exit codes.
 
 ## Interpreting Results & Troubleshooting
 
-> Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/doctor/references/remediation-guide.md")` for the full results interpretation table and troubleshooting steps for common failures (skills validation, build sync, memory).
+> Load `Read("${CLAUDE_SKILL_DIR}/references/remediation-guide.md")` for the full results interpretation table and troubleshooting steps for common failures (skills validation, build sync, memory).
 
 ## Related Skills
 
@@ -117,7 +117,7 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 
 ## References
 
-Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/doctor/references/<file>")` or `Read("${CLAUDE_PLUGIN_ROOT}/skills/doctor/rules/<file>")`:
+Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")` or `Read("${CLAUDE_SKILL_DIR}/rules/<file>")`:
 | File | Content |
 |------|---------|
 | `rules/diagnostic-checks.md` | Bash commands and validation logic per category |

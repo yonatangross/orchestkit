@@ -335,7 +335,7 @@ export default defineConfig({
 
 ## References
 
-Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/vite-advanced/references/<file>")`:
+Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 
 | File | Content |
 |------|---------|

@@ -72,7 +72,7 @@ Scan codebase for signals: README keywords (take-home, interview), `.github/work
 
 | Signal | Tier | Architecture Ceiling |
 |--------|------|---------------------|
-| README says "take-home", time limit | **1. Interview** (load `${CLAUDE_PLUGIN_ROOT}/skills/implement/references/interview-mode.md`) | Flat files, 8-15 files |
+| README says "take-home", time limit | **1. Interview** (load `${CLAUDE_SKILL_DIR}/references/interview-mode.md`) | Flat files, 8-15 files |
 | < 10 files, no CI | **2. Hackathon** | Single file if possible |
 | `.github/workflows/`, managed DB | **3. MVP** | MVC monolith |
 | Module boundaries, Redis, queues | **4. Growth** | Modular monolith, DI |
@@ -97,7 +97,7 @@ Use `AskUserQuestion` to verify scope (full-stack / backend-only / frontend-only
 
 - Agent Teams (mesh) when `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` and complexity >= 2.5
 - Task tool (star) otherwise; `ORCHESTKIT_FORCE_TASK_TOOL=1` to override
-- Load orchestration modes: `Read("${CLAUDE_PLUGIN_ROOT}/skills/implement/references/orchestration-modes.md")`
+- Load orchestration modes: `Read("${CLAUDE_SKILL_DIR}/references/orchestration-modes.md")`
 
 ### Worktree Isolation (CC 2.1.49)
 
@@ -124,7 +124,7 @@ If worktree selected:
 3. On completion, merge back: `git checkout {original-branch} && git merge feat-{slug}`
 4. If merge conflicts arise, present diff to user via `AskUserQuestion`
 
-Load worktree details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/implement/references/worktree-isolation-mode.md")`
+Load worktree details: `Read("${CLAUDE_SKILL_DIR}/references/worktree-isolation-mode.md")`
 
 
 ## Task Management (MANDATORY)
@@ -137,19 +137,19 @@ Create tasks with `TaskCreate` BEFORE doing any work. Each phase gets a subtask.
 | Phase | Activities | Agents |
 |-------|------------|--------|
 | **1. Discovery** | Research best practices, Context7 docs, break into tasks | — |
-| **2. Micro-Planning** | Detailed plan per task (load `${CLAUDE_PLUGIN_ROOT}/skills/implement/references/micro-planning-guide.md`) | — |
-| **3. Worktree** | Isolate in git worktree for 5+ file features (load `${CLAUDE_PLUGIN_ROOT}/skills/implement/references/worktree-workflow.md`) | — |
+| **2. Micro-Planning** | Detailed plan per task (load `${CLAUDE_SKILL_DIR}/references/micro-planning-guide.md`) | — |
+| **3. Worktree** | Isolate in git worktree for 5+ file features (load `${CLAUDE_SKILL_DIR}/references/worktree-workflow.md`) | — |
 | **4. Architecture** | 4 parallel background agents | workflow-architect, backend-system-architect, frontend-ui-developer, llm-integrator |
 | **5. Implementation + Tests** | Parallel agents, single-pass artifacts with mandatory tests | backend-system-architect, frontend-ui-developer, llm-integrator, test-generator |
 | **6. Integration Verification** | Code review + real-service integration tests | backend, frontend, code-quality-reviewer, security-auditor |
-| **7. Scope Creep** | Compare planned vs actual (load `${CLAUDE_PLUGIN_ROOT}/skills/implement/references/scope-creep-detection.md`) | workflow-architect |
-| **8. E2E Verification** | Browser + API E2E testing (load `${CLAUDE_PLUGIN_ROOT}/skills/implement/references/e2e-verification.md`) | — |
+| **7. Scope Creep** | Compare planned vs actual (load `${CLAUDE_SKILL_DIR}/references/scope-creep-detection.md`) | workflow-architect |
+| **8. E2E Verification** | Browser + API E2E testing (load `${CLAUDE_SKILL_DIR}/references/e2e-verification.md`) | — |
 | **9. Documentation** | Save decisions to memory graph | — |
 | **10. Reflection** | Lessons learned, estimation accuracy | workflow-architect |
 
-Load agent prompts: `Read("${CLAUDE_PLUGIN_ROOT}/skills/implement/references/agent-phases.md")`
+Load agent prompts: `Read("${CLAUDE_SKILL_DIR}/references/agent-phases.md")`
 
-For Agent Teams mode: `Read("${CLAUDE_PLUGIN_ROOT}/skills/implement/references/agent-teams-phases.md")`
+For Agent Teams mode: `Read("${CLAUDE_SKILL_DIR}/references/agent-teams-phases.md")`
 
 ### Phase Handoffs (CC 2.1.71)
 
@@ -208,7 +208,7 @@ If working on a GitHub issue, run the Start Work ceremony from `issue-progress-t
 
 ### Feedback Loop
 
-Maintain checkpoints after each task. Load triggers: `Read("${CLAUDE_PLUGIN_ROOT}/skills/implement/references/feedback-loop.md")`
+Maintain checkpoints after each task. Load triggers: `Read("${CLAUDE_SKILL_DIR}/references/feedback-loop.md")`
 
 
 ## Test Requirements Matrix
@@ -252,7 +252,7 @@ If detected: run integration tests against real services, not just mocks. Refere
 - **Detect scope creep** (phase 7) — score 0-10, split PR if significant
 - **Real services when available** — if docker-compose/testcontainers exist, use them in Phase 6
 - **Reflect and capture lessons** (phase 10) — persist to memory graph
-- **Clean up agents** — use `TeamDelete()` after completion; press `Ctrl+F` twice as manual fallback
+- **Clean up agents** — use `TeamDelete()` after completion; press `Ctrl+F` twice as manual fallback. Note: `/clear` (CC 2.1.72+) preserves background agents
 
 
 ## Related Skills
@@ -263,7 +263,7 @@ If detected: run integration tests against real services, not just mocks. Refere
 
 ## References
 
-Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/implement/references/<file>")`:
+Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 
 | File | Content |
 |------|---------|

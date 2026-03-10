@@ -23,6 +23,7 @@ tools:
   - TaskCreate
   - TaskUpdate
   - TaskList
+  - ExitWorktree
 skills:
   - python-backend
   - performance

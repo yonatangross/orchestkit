@@ -70,7 +70,7 @@ FLAG = "$ARGUMENTS[0]"  # First token: --rescan, --score-only, --plan-only, --ch
 
 ## Phase 1: Scan
 
-Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/setup/references/scan-phase.md")` for full scan commands (20 parallel Glob probes + dependency file reads + pattern detection counts).
+Load details: `Read("${CLAUDE_SKILL_DIR}/references/scan-phase.md")` for full scan commands (20 parallel Glob probes + dependency file reads + pattern detection counts).
 
 Scans for package manifests (package.json, pyproject.toml, go.mod, Cargo.toml, etc.), infrastructure (Docker, GitHub Actions, Terraform, K8s), and existing CC configuration. Pattern detection counts API routes, React components, models, and tests for custom skill suggestions.
 
@@ -113,13 +113,13 @@ Detect release channel from `manifests/ork.json` version string. Classification:
 
 ## Phase 3: Safety Check
 
-Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/setup/references/safety-check.md")` for the full AskUserQuestion prompt and conflict detection logic.
+Load details: `Read("${CLAUDE_SKILL_DIR}/references/safety-check.md")` for the full AskUserQuestion prompt and conflict detection logic.
 
 Offers three install scopes: User-only (recommended, invisible to teammates), Project-wide (committed to repo), or Already installed (skip to configure). Checks for existing OrchestKit installs and conflicting plugins.
 
 ## Phase 3.5: Project Configuration Wizard
 
-Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/setup/references/configure-wizard.md")` for the full 5-step interactive configuration flow (branch strategy, commit scope, localhost browser, perf telemetry, log verbosity) and env var reference.
+Load details: `Read("${CLAUDE_SKILL_DIR}/references/configure-wizard.md")` for the full 6-step interactive configuration flow (branch strategy, commit scope, localhost browser, perf telemetry, log verbosity, webhook telemetry) and env var reference.
 
 > Also reachable directly via `/ork:setup --configure` — skips phases 1-3.
 
@@ -277,7 +277,7 @@ mcp__memory__create_entities(entities=[{
 
 After the improvement plan, check if the user's CLAUDE.md could benefit from CC 2.1.59+ modular structure.
 
-Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/setup/references/claude-md-health.md")` for analysis steps, thresholds, @import syntax, and `.claude/rules/` path-scoped rules.
+Load details: `Read("${CLAUDE_SKILL_DIR}/references/claude-md-health.md")` for analysis steps, thresholds, @import syntax, and `.claude/rules/` path-scoped rules.
 
 ```python
 # Quick check
@@ -289,7 +289,7 @@ If CLAUDE.md > 200 lines and no `.claude/rules/` exist, recommend splitting. Sho
 
 ## Phase 8: Keybindings
 
-Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/setup/references/keybindings.md")` for the full keybinding prompt, default shortcuts, and merge logic.
+Load details: `Read("${CLAUDE_SKILL_DIR}/references/keybindings.md")` for the full keybinding prompt, default shortcuts, and merge logic.
 
 Offers 5 recommended shortcuts (commit, verify, implement, explore, review-pr). Merges with existing `~/.claude/keybindings.json` without overwriting user-defined bindings.
 

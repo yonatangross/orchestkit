@@ -23,6 +23,7 @@ tools:
   - TaskList
   - TaskOutput
   - TaskStop
+  - ExitWorktree
 skills:
   - release-management
   - github-operations

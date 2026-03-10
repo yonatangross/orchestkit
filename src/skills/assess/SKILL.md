@@ -100,7 +100,7 @@ AskUserQuestion(
 
 ## STEP 0b: Select Orchestration Mode
 
-Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/assess/references/orchestration-mode.md")` for env var check logic, Agent Teams vs Task Tool comparison, and mode selection rules.
+Load details: `Read("${CLAUDE_SKILL_DIR}/references/orchestration-mode.md")` for env var check logic, Agent Teams vs Task Tool comparison, and mode selection rules.
 
 ---
 
@@ -158,15 +158,15 @@ mcp__memory__search_nodes(query="$ARGUMENTS[0]")  # Past decisions
 
 ## Phase 1.5: Scope Discovery
 
-Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/assess/references/scope-discovery.md")` for the full file discovery, limit application (MAX 30 files), and sampling priority logic. **Always include the scoped file list** in every agent prompt.
+Load `Read("${CLAUDE_SKILL_DIR}/references/scope-discovery.md")` for the full file discovery, limit application (MAX 30 files), and sampling priority logic. **Always include the scoped file list** in every agent prompt.
 
 ---
 
 ## Phase 2: Quality Rating (7 Dimensions)
 
-Rate each dimension 0-10 with weighted composite score. Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/assess/references/quality-model.md")` for dimensions, weights, and grade interpretation. Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/assess/references/scoring-rubric.md")` for per-dimension criteria.
+Rate each dimension 0-10 with weighted composite score. Load `Read("${CLAUDE_SKILL_DIR}/references/quality-model.md")` for dimensions, weights, and grade interpretation. Load `Read("${CLAUDE_SKILL_DIR}/references/scoring-rubric.md")` for per-dimension criteria.
 
-Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/assess/references/agent-spawn-definitions.md")` for Task Tool mode spawn patterns and Agent Teams alternative.
+Load `Read("${CLAUDE_SKILL_DIR}/references/agent-spawn-definitions.md")` for Task Tool mode spawn patterns and Agent Teams alternative.
 
 **Composite Score:** Weighted average of all 7 dimensions (see quality-model.md).
 
@@ -174,15 +174,15 @@ Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/assess/references/agent-spawn-definitio
 
 ## Phases 3-7: Analysis, Comparison & Report
 
-Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/assess/references/phase-templates.md")` for output templates for pros/cons, alternatives, improvements, effort, and the final report.
+Load `Read("${CLAUDE_SKILL_DIR}/references/phase-templates.md")` for output templates for pros/cons, alternatives, improvements, effort, and the final report.
 
-See also: `Read("${CLAUDE_PLUGIN_ROOT}/skills/assess/references/alternative-analysis.md")` | `Read("${CLAUDE_PLUGIN_ROOT}/skills/assess/references/improvement-prioritization.md")`
+See also: `Read("${CLAUDE_SKILL_DIR}/references/alternative-analysis.md")` | `Read("${CLAUDE_SKILL_DIR}/references/improvement-prioritization.md")`
 
 ---
 
 ## Grade Interpretation
 
-Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/assess/references/quality-model.md")` for scoring dimensions, weights, and grade interpretation.
+Load `Read("${CLAUDE_SKILL_DIR}/references/quality-model.md")` for scoring dimensions, weights, and grade interpretation.
 
 ---
 
@@ -201,8 +201,8 @@ Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/assess/references/quality-model.md")` f
 
 | Rule | Impact | What It Covers |
 |------|--------|----------------|
-| complexity-metrics (load `${CLAUDE_PLUGIN_ROOT}/skills/assess/rules/complexity-metrics.md`) | HIGH | 7-criterion scoring (1-5), complexity levels, thresholds |
-| complexity-breakdown (load `${CLAUDE_PLUGIN_ROOT}/skills/assess/rules/complexity-breakdown.md`) | HIGH | Task decomposition strategies, risk assessment |
+| complexity-metrics (load `${CLAUDE_SKILL_DIR}/rules/complexity-metrics.md`) | HIGH | 7-criterion scoring (1-5), complexity levels, thresholds |
+| complexity-breakdown (load `${CLAUDE_SKILL_DIR}/rules/complexity-breakdown.md`) | HIGH | Task decomposition strategies, risk assessment |
 
 ## Related Skills
 

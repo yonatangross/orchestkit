@@ -20,6 +20,7 @@ tools:
   - TaskCreate
   - TaskUpdate
   - TaskList
+  - ExitWorktree
 skills:
   - llm-integration
   - api-design

@@ -20,6 +20,7 @@ tools:
   - TaskCreate
   - TaskUpdate
   - TaskList
+  - ExitWorktree
 skills:
   - react-server-components-framework
   - ui-components

@@ -94,7 +94,7 @@ User research methods and requirements documentation patterns.
 
 ## Output Templates
 
-Structured JSON output formats for consistent deliverables. Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/product-frameworks/references/output-templates.md")` for PRD, business case, metrics framework, prioritization report, and research report templates.
+Structured JSON output formats for consistent deliverables. Load: `Read("${CLAUDE_SKILL_DIR}/references/output-templates.md")` for PRD, business case, metrics framework, prioritization report, and research report templates.
 
 ## Related Skills
 

@@ -66,11 +66,11 @@ View and manage the OrchestKit feedback system that learns from your usage.
 | `export-analytics` | Export anonymous analytics to file for review before sharing |
 | `bug` | File a bug report as a GitHub issue with auto-collected context |
 
-**Output:** Each subcommand displays formatted status, confirmation prompts, or exported file paths. Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/feedback/references/subcommand-reference.md")` for detailed actions and expected output for each subcommand. Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/feedback/references/bug-report-reference.md")` for the bug filing workflow.
+**Output:** Each subcommand displays formatted status, confirmation prompts, or exported file paths. Load `Read("${CLAUDE_SKILL_DIR}/references/subcommand-reference.md")` for detailed actions and expected output for each subcommand. Load `Read("${CLAUDE_SKILL_DIR}/references/bug-report-reference.md")` for the bug filing workflow.
 
 ## Consent and Security
 
-Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/feedback/rules/consent-and-security.md")` for GDPR consent management, security restrictions, and analytics data sharing policies.
+Load `Read("${CLAUDE_SKILL_DIR}/rules/consent-and-security.md")` for GDPR consent management, security restrictions, and analytics data sharing policies.
 
 ## Related Skills
 
@@ -78,6 +78,6 @@ Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/feedback/rules/consent-and-security.md"
 
 ## File Locations
 
-Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/feedback/references/file-locations.md")` for storage details.
+Load `Read("${CLAUDE_SKILL_DIR}/references/file-locations.md")` for storage details.
 
-Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/feedback/references/privacy-policy.md")` for full privacy documentation.
+Load `Read("${CLAUDE_SKILL_DIR}/references/privacy-policy.md")` for full privacy documentation.

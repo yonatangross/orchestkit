@@ -24,6 +24,7 @@ tools:
   - TaskList
   - TaskOutput
   - TaskStop
+  - ExitWorktree
 skills:
   - rag-retrieval
   - golden-dataset

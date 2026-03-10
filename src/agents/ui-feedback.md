@@ -28,6 +28,7 @@ tools:
   - mcp__agentation__agentation_acknowledge
   - mcp__agentation__agentation_list_sessions
   - mcp__agentation__agentation_get_session
+  - ExitWorktree
 skills:
   - fix-issue
   - ui-components

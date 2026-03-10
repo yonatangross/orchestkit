@@ -69,7 +69,7 @@ TaskCreate(subject="Create PR on GitHub", activeForm="Creating GitHub PR")
 
 ### Phase 1: Pre-Flight Checks
 
-Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/create-pr/rules/preflight-validation.md")` for the full checklist.
+Load: `Read("${CLAUDE_SKILL_DIR}/rules/preflight-validation.md")` for the full checklist.
 
 ```bash
 BRANCH=$(git branch --show-current)
@@ -82,7 +82,7 @@ git rev-parse --verify "origin/$BRANCH" &>/dev/null || git push -u origin "$BRAN
 
 ### Phase 2: Parallel Validation (Feature/Bug fix PRs)
 
-Launch agents in ONE message. Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/create-pr/references/parallel-validation.md")` for full agent configs.
+Launch agents in ONE message. Load `Read("${CLAUDE_SKILL_DIR}/references/parallel-validation.md")` for full agent configs.
 
 | PR Type | Agents to launch |
 |---------|-----------------|
@@ -110,7 +110,7 @@ git diff dev...HEAD --stat
 
 ### Phase 4: Create PR
 
-Follow `Read("${CLAUDE_PLUGIN_ROOT}/skills/create-pr/rules/pr-title-format.md")` and `Read("${CLAUDE_PLUGIN_ROOT}/skills/create-pr/rules/pr-body-structure.md")`. Use HEREDOC pattern from `Read("${CLAUDE_PLUGIN_ROOT}/skills/create-pr/references/pr-body-templates.md")`.
+Follow `Read("${CLAUDE_SKILL_DIR}/rules/pr-title-format.md")` and `Read("${CLAUDE_SKILL_DIR}/rules/pr-body-structure.md")`. Use HEREDOC pattern from `Read("${CLAUDE_SKILL_DIR}/references/pr-body-templates.md")`.
 
 ```bash
 TYPE="feat"  # Determine: feat/fix/refactor/docs/test/chore
@@ -183,7 +183,7 @@ Write(".claude/chain/pr-created.json", JSON.stringify({
 
 ## References
 
-Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/create-pr/references/<file>")`:
+Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | File | Content |
 |------|---------|
 | `references/pr-body-templates.md` | PR body templates |

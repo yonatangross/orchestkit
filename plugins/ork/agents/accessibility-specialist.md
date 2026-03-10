@@ -19,6 +19,7 @@ tools:
   - TaskCreate
   - TaskUpdate
   - TaskList
+  - ExitWorktree
 skills:
   - accessibility
   - testing-e2e

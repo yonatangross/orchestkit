@@ -22,6 +22,7 @@ tools:
   - TaskList
   - TaskOutput
   - TaskStop
+  - ExitWorktree
 disallowedTools:
   - Edit
   - MultiEdit

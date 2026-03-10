@@ -169,9 +169,70 @@ AskUserQuestion(questions=[{
 
 Generated env var: `ORCHESTKIT_LOG_LEVEL=<value>`
 
+## Step 6: Webhook Telemetry (HTTP Hooks)
+
+```python
+AskUserQuestion(questions=[{
+  "question": "Send CC hook events to an external API for observability (Langfuse traces, metrics)?",
+  "header": "Webhook telemetry",
+  "options": [
+    {
+      "label": "Yes, enable webhooks",
+      "description": "Runs `generate-http-hooks` to write native CC HTTP hooks to settings.local.json.",
+      "markdown": "```\nWebhook Telemetry\n-----------------\nWrites: .claude/settings.local.json\nEvents: All 19 CC hook types\nAuth:   Bearer $ORCHESTKIT_HOOK_TOKEN\n\nRequires:\n  1. A webhook URL (e.g. https://api.example.com/api/hooks)\n  2. ORCHESTKIT_HOOK_TOKEN env var set in your shell\n\nData sent: event type, session_id, tool_name,\n           cwd, model, timestamps\nNo secrets or file contents are sent.\n```"
+    },
+    {
+      "label": "No, skip webhooks (Recommended for most users)",
+      "description": "No HTTP hooks. All hook processing stays local.",
+      "markdown": "```\nNo Webhook Telemetry\n--------------------\nHooks run locally only (command hooks).\nNo data sent to external APIs.\nDefault and recommended for most users.\n```"
+    }
+  ],
+  "multiSelect": false
+}])
+```
+
+If **Yes** selected, ask for the webhook URL:
+
+```python
+AskUserQuestion(questions=[{
+  "question": "Webhook base URL (the API that receives CC hook events):",
+  "header": "Webhook URL",
+  "options": [
+    {
+      "label": "https://hq.yonatangross.com/api/hooks",
+      "description": "Yonatan HQ production API"
+    },
+    {
+      "label": "http://hq-api.localhost:1355/api/hooks",
+      "description": "Local dev API (Portless)"
+    },
+    {
+      "label": "Custom URL",
+      "description": "I'll provide my own webhook endpoint"
+    }
+  ],
+  "multiSelect": false
+}])
+```
+
+Then run the generator:
+
+```python
+Bash(command=f"npx tsx ${{CLAUDE_PLUGIN_ROOT}}/hooks/../src/hooks/src/cli/generate-http-hooks.ts {webhook_url} --write")
+```
+
+This writes 19 HTTP hook entries to `.claude/settings.local.json`. The hooks use `Bearer $ORCHESTKIT_HOOK_TOKEN` — the user must set this env var in their shell (e.g. `.zshrc`).
+
+Remind the user:
+```
+Webhook hooks written to .claude/settings.local.json
+Set ORCHESTKIT_HOOK_TOKEN in your shell:
+  export ORCHESTKIT_HOOK_TOKEN="your-token-here"
+```
+
 ## Writing the Configuration
 
-After all 5 steps, write (or merge) the env block into `config_target` (set in Step 0):
+After all 6 steps, write (or merge) the env block into `config_target` (set in Step 0):
 
 ```python
 # Merge new env values (preserving existing keys not in wizard scope)
@@ -218,4 +279,5 @@ To see full readiness: /ork:setup --score-only
 | `ORCHESTKIT_AGENT_BROWSER_ALLOW_LOCALHOST` | `1` | `1` \| `0` | Allow `*.localhost` browser access |
 | `ORCHESTKIT_PERF_SNAPSHOT_ENABLED` | `1` | `1` \| `0` | Write session token snapshots |
 | `ORCHESTKIT_LOG_LEVEL` | `warn` | `debug` \| `info` \| `warn` \| `error` | Hook log verbosity |
+| `ORCHESTKIT_HOOK_TOKEN` | (unset) | Bearer token string | Auth for webhook HTTP hooks |
 | `ENABLE_TOOL_SEARCH` | `auto:5` | `auto:N` \| `off` | MCP tool discovery limit |

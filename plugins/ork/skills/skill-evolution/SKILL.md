@@ -61,13 +61,13 @@ COLLECT                    ANALYZE                    ACT
 └─────────────┘           └─────────────┘           └─────────────┘
 ```
 
-Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/skill-evolution/rules/pattern-detection-heuristics.md")` for tracked edit patterns and detection regexes. Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/skill-evolution/rules/confidence-scoring.md")` for suggestion thresholds.
+Load details: `Read("${CLAUDE_SKILL_DIR}/rules/pattern-detection-heuristics.md")` for tracked edit patterns and detection regexes. Load details: `Read("${CLAUDE_SKILL_DIR}/rules/confidence-scoring.md")` for suggestion thresholds.
 
 ---
 
 ## Subcommands
 
-Each subcommand is documented with implementation details, shell commands, and sample output. Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/skill-evolution/references/evolution-commands.md")`
+Each subcommand is documented with implementation details, shell commands, and sample output. Load details: `Read("${CLAUDE_SKILL_DIR}/references/evolution-commands.md")`
 
 ### Report (Default)
 
@@ -105,7 +105,7 @@ Each subcommand is documented with implementation details, shell commands, and s
 
 ## Auto-Evolution Safety
 
-Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/skill-evolution/rules/auto-evolution-triggers.md")` for full safety mechanisms, health monitoring, and trigger criteria.
+Load details: `Read("${CLAUDE_SKILL_DIR}/rules/auto-evolution-triggers.md")` for full safety mechanisms, health monitoring, and trigger criteria.
 
 Key safeguards: version snapshots before changes, auto-alert on >20% success rate drop, human review required, rejected suggestions never re-suggested.
 
@@ -113,7 +113,7 @@ Key safeguards: version snapshots before changes, auto-alert on >20% success rat
 
 ## References
 
-Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/skill-evolution/references/<file>")`:
+Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 
 | File | Content |
 |------|---------|
@@ -123,7 +123,7 @@ Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/skill-evolution/referenc
 
 ## Rules
 
-Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/skill-evolution/rules/<file>")`:
+Load on demand with `Read("${CLAUDE_SKILL_DIR}/rules/<file>")`:
 
 | File | Content |
 |------|---------|

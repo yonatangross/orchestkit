@@ -202,7 +202,7 @@ TaskCreate(subject="Present design options", activeForm="Presenting options")
 
 Load the phase workflow for detailed instructions:
 ```
-Read("${CLAUDE_PLUGIN_ROOT}/skills/brainstorm/references/phase-workflow.md")
+Read("${CLAUDE_SKILL_DIR}/references/phase-workflow.md")
 ```
 
 
@@ -288,11 +288,11 @@ SendMessage(type="shutdown_request", recipient="testability-assessor", content="
 TeamDelete()
 ```
 
-> **Fallback:** If team formation fails, load `Read("${CLAUDE_PLUGIN_ROOT}/skills/brainstorm/references/phase-workflow.md")` and use standard Phase 2 Task spawns.
+> **Fallback:** If team formation fails, load `Read("${CLAUDE_SKILL_DIR}/references/phase-workflow.md")` and use standard Phase 2 Task spawns.
 
 > **Context exhaustion:** If context limit is reached mid-brainstorm, collect partial results from completed agents, synthesize what's available, and note which phases were skipped. Prefer returning partial results over failing silently.
 
-> **Manual cleanup:** If `TeamDelete()` doesn't terminate all agents, press `Ctrl+F` twice to force-kill remaining background agents.
+> **Manual cleanup:** If `TeamDelete()` doesn't terminate all agents, press `Ctrl+F` twice to force-stop remaining background agents. Note: `/clear` (CC 2.1.72+) preserves background agents — only foreground tasks are cleared.
 
 
 ## Key Principles
@@ -316,7 +316,7 @@ TeamDelete()
 
 ## References
 
-Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/brainstorm/references/<file>")`:
+Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 
 | File | Content |
 |------|---------|

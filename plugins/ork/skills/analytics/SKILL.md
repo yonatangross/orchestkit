@@ -26,15 +26,15 @@ Parse the user's argument to determine which report to show. If no argument prov
 
 | Subcommand | Description | Data Source | Reference |
 |------------|-------------|-------------|-----------|
-| `agents` | Top agents by frequency, duration, model breakdown | `agent-usage.jsonl` | `${CLAUDE_PLUGIN_ROOT}/skills/analytics/references/jq-queries.md` |
-| `models` | Model delegation breakdown (opus/sonnet/haiku) | `agent-usage.jsonl` | `${CLAUDE_PLUGIN_ROOT}/skills/analytics/references/jq-queries.md` |
-| `skills` | Top skills by invocation count | `skill-usage.jsonl` | `${CLAUDE_PLUGIN_ROOT}/skills/analytics/references/jq-queries.md` |
-| `hooks` | Slowest hooks and failure rates | `hook-timing.jsonl` | `${CLAUDE_PLUGIN_ROOT}/skills/analytics/references/jq-queries.md` |
-| `teams` | Team spawn counts, idle time, task completions | `team-activity.jsonl` | `${CLAUDE_PLUGIN_ROOT}/skills/analytics/references/jq-queries.md` |
-| `session` | Replay a session timeline with tools, tokens, timing | CC session JSONL | `${CLAUDE_PLUGIN_ROOT}/skills/analytics/references/session-replay.md` |
-| `cost` | Token cost estimation with cache savings | `stats-cache.json` | `${CLAUDE_PLUGIN_ROOT}/skills/analytics/references/cost-estimation.md` |
-| `trends` | Daily activity, model delegation, peak hours | `stats-cache.json` | `${CLAUDE_PLUGIN_ROOT}/skills/analytics/references/trends-analysis.md` |
-| `summary` | Unified view of all categories | All files | `${CLAUDE_PLUGIN_ROOT}/skills/analytics/references/jq-queries.md` |
+| `agents` | Top agents by frequency, duration, model breakdown | `agent-usage.jsonl` | `${CLAUDE_SKILL_DIR}/references/jq-queries.md` |
+| `models` | Model delegation breakdown (opus/sonnet/haiku) | `agent-usage.jsonl` | `${CLAUDE_SKILL_DIR}/references/jq-queries.md` |
+| `skills` | Top skills by invocation count | `skill-usage.jsonl` | `${CLAUDE_SKILL_DIR}/references/jq-queries.md` |
+| `hooks` | Slowest hooks and failure rates | `hook-timing.jsonl` | `${CLAUDE_SKILL_DIR}/references/jq-queries.md` |
+| `teams` | Team spawn counts, idle time, task completions | `team-activity.jsonl` | `${CLAUDE_SKILL_DIR}/references/jq-queries.md` |
+| `session` | Replay a session timeline with tools, tokens, timing | CC session JSONL | `${CLAUDE_SKILL_DIR}/references/session-replay.md` |
+| `cost` | Token cost estimation with cache savings | `stats-cache.json` | `${CLAUDE_SKILL_DIR}/references/cost-estimation.md` |
+| `trends` | Daily activity, model delegation, peak hours | `stats-cache.json` | `${CLAUDE_SKILL_DIR}/references/trends-analysis.md` |
+| `summary` | Unified view of all categories | All files | `${CLAUDE_SKILL_DIR}/references/jq-queries.md` |
 
 ### Quick Start Example
 
@@ -48,19 +48,19 @@ jq '.modelUsage | to_entries | map({model: .key, input: .value.inputTokens, outp
 
 ### Quick Subcommand Guide
 
-**`agents`, `models`, `skills`, `hooks`, `teams`, `summary`** — Run the jq query from `Read("${CLAUDE_PLUGIN_ROOT}/skills/analytics/references/jq-queries.md")` for the matching subcommand. Present results as a markdown table.
+**`agents`, `models`, `skills`, `hooks`, `teams`, `summary`** — Run the jq query from `Read("${CLAUDE_SKILL_DIR}/references/jq-queries.md")` for the matching subcommand. Present results as a markdown table.
 
-**`session`** — Follow the 4-step process in `Read("${CLAUDE_PLUGIN_ROOT}/skills/analytics/references/session-replay.md")`: locate session file, resolve reference (latest/partial/full ID), parse JSONL, present timeline.
+**`session`** — Follow the 4-step process in `Read("${CLAUDE_SKILL_DIR}/references/session-replay.md")`: locate session file, resolve reference (latest/partial/full ID), parse JSONL, present timeline.
 
-**`cost`** — Apply model-specific pricing from `Read("${CLAUDE_PLUGIN_ROOT}/skills/analytics/references/cost-estimation.md")` to CC's stats-cache.json. Show per-model breakdown, totals, and cache savings.
+**`cost`** — Apply model-specific pricing from `Read("${CLAUDE_SKILL_DIR}/references/cost-estimation.md")` to CC's stats-cache.json. Show per-model breakdown, totals, and cache savings.
 
-**`trends`** — Follow the 4-step process in `Read("${CLAUDE_PLUGIN_ROOT}/skills/analytics/references/trends-analysis.md")`: daily activity, model delegation, peak hours, all-time stats.
+**`trends`** — Follow the 4-step process in `Read("${CLAUDE_SKILL_DIR}/references/trends-analysis.md")`: daily activity, model delegation, peak hours, all-time stats.
 
 **`summary`** — Run all subcommands and present a unified view: total sessions, top 5 agents, top 5 skills, team activity, unique projects.
 
 ## Data Files
 
-Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/analytics/references/data-locations.md")` for complete data source documentation.
+Load `Read("${CLAUDE_SKILL_DIR}/references/data-locations.md")` for complete data source documentation.
 
 | File | Contents |
 |------|----------|
@@ -77,11 +77,11 @@ Each category has individual rule files in `rules/` loaded on-demand:
 
 | Category | Rule | Impact | Key Pattern |
 |----------|------|--------|-------------|
-| Data Integrity | `${CLAUDE_PLUGIN_ROOT}/skills/analytics/rules/data-privacy.md` | CRITICAL | Hash project IDs, never log PII, local-only |
-| Cost & Tokens | `${CLAUDE_PLUGIN_ROOT}/skills/analytics/rules/cost-calculation.md` | HIGH | Separate pricing per token type, cache savings |
-| Performance | `${CLAUDE_PLUGIN_ROOT}/skills/analytics/rules/large-file-streaming.md` | HIGH | Streaming jq for >50MB, rotation-aware queries |
-| Visualization | `${CLAUDE_PLUGIN_ROOT}/skills/analytics/rules/visualization-recharts.md` | HIGH | Recharts charts, ResponsiveContainer, tooltips |
-| Visualization | `${CLAUDE_PLUGIN_ROOT}/skills/analytics/rules/visualization-dashboards.md` | HIGH | Dashboard grids, stat cards, widget registry |
+| Data Integrity | `${CLAUDE_SKILL_DIR}/rules/data-privacy.md` | CRITICAL | Hash project IDs, never log PII, local-only |
+| Cost & Tokens | `${CLAUDE_SKILL_DIR}/rules/cost-calculation.md` | HIGH | Separate pricing per token type, cache savings |
+| Performance | `${CLAUDE_SKILL_DIR}/rules/large-file-streaming.md` | HIGH | Streaming jq for >50MB, rotation-aware queries |
+| Visualization | `${CLAUDE_SKILL_DIR}/rules/visualization-recharts.md` | HIGH | Recharts charts, ResponsiveContainer, tooltips |
+| Visualization | `${CLAUDE_SKILL_DIR}/rules/visualization-dashboards.md` | HIGH | Dashboard grids, stat cards, widget registry |
 
 **Total: 5 rules across 4 categories**
 
@@ -89,16 +89,16 @@ Each category has individual rule files in `rules/` loaded on-demand:
 
 | Reference | Contents |
 |-----------|----------|
-| `${CLAUDE_PLUGIN_ROOT}/skills/analytics/references/jq-queries.md` | Ready-to-run jq queries for all JSONL subcommands |
-| `${CLAUDE_PLUGIN_ROOT}/skills/analytics/references/session-replay.md` | Session JSONL parsing, timeline extraction, presentation |
-| `${CLAUDE_PLUGIN_ROOT}/skills/analytics/references/cost-estimation.md` | Pricing table, cost formula, daily cost queries |
-| `${CLAUDE_PLUGIN_ROOT}/skills/analytics/references/trends-analysis.md` | Daily activity, model delegation, peak hours queries |
-| `${CLAUDE_PLUGIN_ROOT}/skills/analytics/references/data-locations.md` | All data sources, file formats, CC session structure |
+| `${CLAUDE_SKILL_DIR}/references/jq-queries.md` | Ready-to-run jq queries for all JSONL subcommands |
+| `${CLAUDE_SKILL_DIR}/references/session-replay.md` | Session JSONL parsing, timeline extraction, presentation |
+| `${CLAUDE_SKILL_DIR}/references/cost-estimation.md` | Pricing table, cost formula, daily cost queries |
+| `${CLAUDE_SKILL_DIR}/references/trends-analysis.md` | Daily activity, model delegation, peak hours queries |
+| `${CLAUDE_SKILL_DIR}/references/data-locations.md` | All data sources, file formats, CC session structure |
 
 ## Important Notes
 
 - All files are JSONL (newline-delimited JSON) format
-- For large files (>50MB), use streaming `jq` without `-s` — load `Read("${CLAUDE_PLUGIN_ROOT}/skills/analytics/rules/large-file-streaming.md")`
+- For large files (>50MB), use streaming `jq` without `-s` — load `Read("${CLAUDE_SKILL_DIR}/rules/large-file-streaming.md")`
 - Rotated files: `<name>.<YYYY-MM>.jsonl` — include for historical queries
 - `team` field only present during team/swarm sessions
 - `pid` is a 12-char SHA256 hash — irreversible, for grouping only

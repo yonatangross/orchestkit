@@ -14,15 +14,15 @@ Rate-limit-resilient pipeline orchestrator. Saves progress to `.claude/pipeline-
 
 | Category | Rule | Impact | Key Pattern |
 |----------|------|--------|-------------|
-| Phase Ordering | `$\{CLAUDE_PLUGIN_ROOT\}/skills/checkpoint-resume/rules/ordering-priority.md` | CRITICAL | GitHub issues/commits first, file-heavy phases last |
-| State Writes | `$\{CLAUDE_PLUGIN_ROOT\}/skills/checkpoint-resume/rules/state-write-timing.md` | CRITICAL | Write after every phase, never batch |
-| Mini-Commits | `$\{CLAUDE_PLUGIN_ROOT\}/skills/checkpoint-resume/rules/checkpoint-mini-commit.md` | HIGH | Every 3 phases, checkpoint commit format |
+| Phase Ordering | `$\{CLAUDE_SKILL_DIR\}/rules/ordering-priority.md` | CRITICAL | GitHub issues/commits first, file-heavy phases last |
+| State Writes | `$\{CLAUDE_SKILL_DIR\}/rules/state-write-timing.md` | CRITICAL | Write after every phase, never batch |
+| Mini-Commits | `$\{CLAUDE_SKILL_DIR\}/rules/checkpoint-mini-commit.md` | HIGH | Every 3 phases, checkpoint commit format |
 
 **Total: 3 rules across 3 categories**
 
 ## On Invocation
 
-**If `.claude/pipeline-state.json` exists:** run `scripts/show-status.sh` to display progress, then ask to resume, pick a different phase, or restart. Load `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/checkpoint-resume/references/resume-decision-tree.md")` for the full decision tree.
+**If `.claude/pipeline-state.json` exists:** run `scripts/show-status.sh` to display progress, then ask to resume, pick a different phase, or restart. Load `Read("$\{CLAUDE_SKILL_DIR\}/references/resume-decision-tree.md")` for the full decision tree.
 
 **If no state file exists:** ask the user to describe the task, build an execution plan, write initial state via `scripts/init-pipeline.sh &lt;branch&gt;`, begin Phase 1.
 
@@ -42,12 +42,12 @@ Phases with empty `dependencies` may run in parallel via Task sub-agents (when t
 
 ## After Each Phase
 
-1. Update `.claude/pipeline-state.json` — see `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/checkpoint-resume/rules/state-write-timing.md")`
-2. Every 3 phases: create a mini-commit — see `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/checkpoint-resume/rules/checkpoint-mini-commit.md")`
+1. Update `.claude/pipeline-state.json` — see `Read("$\{CLAUDE_SKILL_DIR\}/rules/state-write-timing.md")`
+2. Every 3 phases: create a mini-commit — see `Read("$\{CLAUDE_SKILL_DIR\}/rules/checkpoint-mini-commit.md")`
 
 ## References
 
-Load on demand with `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/checkpoint-resume/references/&lt;file&gt;")`:
+Load on demand with `Read("$\{CLAUDE_SKILL_DIR\}/references/&lt;file&gt;")`:
 | File | Content |
 |------|---------|
 | `references/pipeline-state-schema.md` | Full field-by-field schema with examples |

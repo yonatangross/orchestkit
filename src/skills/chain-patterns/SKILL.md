@@ -45,7 +45,7 @@ if capabilities.memory:
 # else: skip gracefully, no error
 ```
 
-Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/mcp-detection.md")`
+Load details: `Read("${CLAUDE_SKILL_DIR}/references/mcp-detection.md")`
 
 ## Pattern 2: Handoff Files
 
@@ -65,7 +65,7 @@ Write(".claude/chain/NN-phase-name.json", JSON.stringify({
 
 **Location:** `.claude/chain/` — numbered files for ordering, descriptive names for clarity.
 
-Load schema: `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/handoff-schema.md")`
+Load schema: `Read("${CLAUDE_SKILL_DIR}/references/handoff-schema.md")`
 
 ## Pattern 3: Checkpoint-Resume
 
@@ -93,7 +93,7 @@ Write(".claude/chain/state.json", JSON.stringify({
 # Update state.json with new current_phase and append to completed_phases
 ```
 
-Load protocol: `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/checkpoint-resume.md")`
+Load protocol: `Read("${CLAUDE_SKILL_DIR}/references/checkpoint-resume.md")`
 
 ## Pattern 4: Worktree-Isolated Agents
 
@@ -112,7 +112,7 @@ Agent(
 **When to use worktree:** Agents with Write/Edit tools running in parallel.
 **When NOT to use:** Read-only agents (brainstorm, assessment, review).
 
-Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/worktree-agent-pattern.md")`
+Load details: `Read("${CLAUDE_SKILL_DIR}/references/worktree-agent-pattern.md")`
 
 ## Pattern 5: CronCreate Monitoring
 
@@ -128,7 +128,7 @@ CronCreate(
 )
 ```
 
-Load patterns: `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/cron-monitoring.md")`
+Load patterns: `Read("${CLAUDE_SKILL_DIR}/references/cron-monitoring.md")`
 
 ## Rules
 
@@ -140,7 +140,7 @@ Load patterns: `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/cro
 
 ## References
 
-Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/<file>")`:
+Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 
 | File | Content |
 |------|---------|
@@ -150,3 +150,10 @@ Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/reference
 | `worktree-agent-pattern.md` | `isolation: "worktree"` usage guide |
 | `cron-monitoring.md` | CronCreate patterns for post-task health |
 | `tier-fallbacks.md` | T1/T2/T3 graceful degradation |
+
+## Related Skills
+
+- `ork:implement` — Full-power feature implementation (primary consumer)
+- `ork:fix-issue` — Issue debugging and resolution pipeline
+- `ork:verify` — Post-implementation verification
+- `ork:brainstorm` — Design exploration pipeline

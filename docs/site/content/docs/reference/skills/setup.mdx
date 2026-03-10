@@ -62,7 +62,7 @@ FLAG = "$ARGUMENTS[0]"  # First token: --rescan, --score-only, --plan-only, --ch
 
 ## Phase 1: Scan
 
-Load details: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/setup/references/scan-phase.md")` for full scan commands (20 parallel Glob probes + dependency file reads + pattern detection counts).
+Load details: `Read("$\{CLAUDE_SKILL_DIR\}/references/scan-phase.md")` for full scan commands (20 parallel Glob probes + dependency file reads + pattern detection counts).
 
 Scans for package manifests (package.json, pyproject.toml, go.mod, Cargo.toml, etc.), infrastructure (Docker, GitHub Actions, Terraform, K8s), and existing CC configuration. Pattern detection counts API routes, React components, models, and tests for custom skill suggestions.
 
@@ -105,13 +105,13 @@ Detect release channel from `manifests/ork.json` version string. Classification:
 
 ## Phase 3: Safety Check
 
-Load details: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/setup/references/safety-check.md")` for the full AskUserQuestion prompt and conflict detection logic.
+Load details: `Read("$\{CLAUDE_SKILL_DIR\}/references/safety-check.md")` for the full AskUserQuestion prompt and conflict detection logic.
 
 Offers three install scopes: User-only (recommended, invisible to teammates), Project-wide (committed to repo), or Already installed (skip to configure). Checks for existing OrchestKit installs and conflicting plugins.
 
 ## Phase 3.5: Project Configuration Wizard
 
-Load details: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/setup/references/configure-wizard.md")` for the full 5-step interactive configuration flow (branch strategy, commit scope, localhost browser, perf telemetry, log verbosity) and env var reference.
+Load details: `Read("$\{CLAUDE_SKILL_DIR\}/references/configure-wizard.md")` for the full 6-step interactive configuration flow (branch strategy, commit scope, localhost browser, perf telemetry, log verbosity, webhook telemetry) and env var reference.
 
 > Also reachable directly via `/ork:setup --configure` — skips phases 1-3.
 
@@ -269,7 +269,7 @@ mcp__memory__create_entities(entities=[{
 
 After the improvement plan, check if the user's CLAUDE.md could benefit from CC 2.1.59+ modular structure.
 
-Load details: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/setup/references/claude-md-health.md")` for analysis steps, thresholds, @import syntax, and `.claude/rules/` path-scoped rules.
+Load details: `Read("$\{CLAUDE_SKILL_DIR\}/references/claude-md-health.md")` for analysis steps, thresholds, @import syntax, and `.claude/rules/` path-scoped rules.
 
 ```python
 # Quick check
@@ -281,7 +281,7 @@ If CLAUDE.md > 200 lines and no `.claude/rules/` exist, recommend splitting. Sho
 
 ## Phase 8: Keybindings
 
-Load details: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/setup/references/keybindings.md")` for the full keybinding prompt, default shortcuts, and merge logic.
+Load details: `Read("$\{CLAUDE_SKILL_DIR\}/references/keybindings.md")` for the full keybinding prompt, default shortcuts, and merge logic.
 
 Offers 5 recommended shortcuts (commit, verify, implement, explore, review-pr). Merges with existing `~/.claude/keybindings.json` without overwriting user-defined bindings.
 
@@ -610,9 +610,70 @@ AskUserQuestion(questions=[{
 
 Generated env var: `ORCHESTKIT_LOG_LEVEL=&lt;value&gt;`
 
+## Step 6: Webhook Telemetry (HTTP Hooks)
+
+```python
+AskUserQuestion(questions=[{
+  "question": "Send CC hook events to an external API for observability (Langfuse traces, metrics)?",
+  "header": "Webhook telemetry",
+  "options": [
+    {
+      "label": "Yes, enable webhooks",
+      "description": "Runs `generate-http-hooks` to write native CC HTTP hooks to settings.local.json.",
+      "markdown": "```\nWebhook Telemetry\n-----------------\nWrites: .claude/settings.local.json\nEvents: All 19 CC hook types\nAuth:   Bearer $ORCHESTKIT_HOOK_TOKEN\n\nRequires:\n  1. A webhook URL (e.g. https://api.example.com/api/hooks)\n  2. ORCHESTKIT_HOOK_TOKEN env var set in your shell\n\nData sent: event type, session_id, tool_name,\n           cwd, model, timestamps\nNo secrets or file contents are sent.\n```"
+    },
+    {
+      "label": "No, skip webhooks (Recommended for most users)",
+      "description": "No HTTP hooks. All hook processing stays local.",
+      "markdown": "```\nNo Webhook Telemetry\n--------------------\nHooks run locally only (command hooks).\nNo data sent to external APIs.\nDefault and recommended for most users.\n```"
+    }
+  ],
+  "multiSelect": false
+}])
+```
+
+If **Yes** selected, ask for the webhook URL:
+
+```python
+AskUserQuestion(questions=[{
+  "question": "Webhook base URL (the API that receives CC hook events):",
+  "header": "Webhook URL",
+  "options": [
+    {
+      "label": "https://hq.yonatangross.com/api/hooks",
+      "description": "Yonatan HQ production API"
+    },
+    {
+      "label": "http://hq-api.localhost:1355/api/hooks",
+      "description": "Local dev API (Portless)"
+    },
+    {
+      "label": "Custom URL",
+      "description": "I'll provide my own webhook endpoint"
+    }
+  ],
+  "multiSelect": false
+}])
+```
+
+Then run the generator:
+
+```python
+Bash(command=f"npx tsx ${{CLAUDE_PLUGIN_ROOT}}/hooks/../src/hooks/src/cli/generate-http-hooks.ts {webhook_url} --write")
+```
+
+This writes 19 HTTP hook entries to `.claude/settings.local.json`. The hooks use `Bearer $ORCHESTKIT_HOOK_TOKEN` — the user must set this env var in their shell (e.g. `.zshrc`).
+
+Remind the user:
+```
+Webhook hooks written to .claude/settings.local.json
+Set ORCHESTKIT_HOOK_TOKEN in your shell:
+  export ORCHESTKIT_HOOK_TOKEN="your-token-here"
+```
+
 ## Writing the Configuration
 
-After all 5 steps, write (or merge) the env block into `config_target` (set in Step 0):
+After all 6 steps, write (or merge) the env block into `config_target` (set in Step 0):
 
 ```python
 # Merge new env values (preserving existing keys not in wizard scope)
@@ -659,6 +720,7 @@ To see full readiness: /ork:setup --score-only
 | `ORCHESTKIT_AGENT_BROWSER_ALLOW_LOCALHOST` | `1` | `1` \| `0` | Allow `*.localhost` browser access |
 | `ORCHESTKIT_PERF_SNAPSHOT_ENABLED` | `1` | `1` \| `0` | Write session token snapshots |
 | `ORCHESTKIT_LOG_LEVEL` | `warn` | `debug` \| `info` \| `warn` \| `error` | Hook log verbosity |
+| `ORCHESTKIT_HOOK_TOKEN` | (unset) | Bearer token string | Auth for webhook HTTP hooks |
 | `ENABLE_TOOL_SEARCH` | `auto:5` | `auto:N` \| `off` | MCP tool discovery limit |
 
 

@@ -3845,7 +3845,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "testing-patterns": {
     "name": "testing-patterns",
-    "description": "Redirect — testing-patterns was split into 5 focused sub-skills. Use testing-unit, testing-e2e, testing-integration, testing-llm, or testing-perf instead.",
+    "description": "Redirect — testing-patterns was split into 5 focused sub-skills. Use when looking for testing-patterns, writing tests, or test automation. Redirects to testing-unit, testing-e2e, testing-integration, testing-llm, or testing-perf.",
     "version": "2.0.0",
     "author": "OrchestKit",
     "tags": [

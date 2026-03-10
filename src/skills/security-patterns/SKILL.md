@@ -218,7 +218,7 @@ langfuse.trace(input=raw_prompt)                   # Unmasked observability data
 
 ## Detailed Documentation
 
-Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/security-patterns/references/<file>")`:
+Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 
 | File | Content |
 |------|---------|

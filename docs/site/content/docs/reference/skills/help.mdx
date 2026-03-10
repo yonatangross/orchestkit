@@ -182,8 +182,11 @@ These are Claude Code built-in slash commands — not OrchestKit skills:
 | `/batch` | Run batch operations across multiple files | CC 2.1.63 |
 | `/help` | Claude Code built-in help | CC 2.1.0+ |
 | `/config` | Claude Code configuration | CC 2.1.0+ |
-| `/clear` | Clear conversation and reset cached skills | CC 2.1.63 |
+| `/clear` | Clear conversation and reset cached skills (preserves background agents since 2.1.72) | CC 2.1.63 |
 | `/fast` | Toggle fast mode (same model, faster output) | CC 2.1.59+ |
+| `/loop` | Run prompt/command on recurring interval (e.g. `/loop 5m /foo`) | CC 2.1.71 |
+| `/effort` | Set reasoning effort: low/medium/high, or `auto` to reset | CC 2.1.72 |
+| `/plan` | Enter plan mode, optionally with description (e.g. `/plan fix auth bug`) | CC 2.1.72 |
 
 ---
 
@@ -208,7 +211,7 @@ These are Claude Code built-in slash commands — not OrchestKit skills:
 
 ## References
 
-Load on demand with `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/help/references/&lt;file&gt;")`:
+Load on demand with `Read("$\{CLAUDE_SKILL_DIR\}/references/&lt;file&gt;")`:
 | File | Content |
 |------|---------|
 | `cc-keyboard-shortcuts.md` | CC keyboard shortcuts reference |

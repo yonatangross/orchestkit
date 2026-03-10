@@ -196,7 +196,7 @@ When using Agent Teams, if context limit is reached mid-workflow:
 
 ## References
 
-Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/task-dependency-patterns/references/<file>")`:
+Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 
 | File | Content |
 |------|---------|

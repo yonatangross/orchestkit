@@ -46,23 +46,23 @@ Modern responsive design patterns using Container Queries, fluid typography, and
 
 ## Modern CSS Layout
 
-> Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/responsive-patterns/rules/css-subgrid.md")` for CSS Subgrid patterns: nested grid alignment, card layouts with aligned titles/content/actions, two-dimensional subgrid.
+> Load `Read("${CLAUDE_SKILL_DIR}/rules/css-subgrid.md")` for CSS Subgrid patterns: nested grid alignment, card layouts with aligned titles/content/actions, two-dimensional subgrid.
 
-> Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/responsive-patterns/rules/css-intrinsic-responsive.md")` for intrinsically responsive layouts: auto-fit/minmax grids, clamp() for fluid everything, container queries for component logic, zero media query patterns.
+> Load `Read("${CLAUDE_SKILL_DIR}/rules/css-intrinsic-responsive.md")` for intrinsically responsive layouts: auto-fit/minmax grids, clamp() for fluid everything, container queries for component logic, zero media query patterns.
 
-> Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/responsive-patterns/rules/responsive-foldables.md")` for foldable/multi-screen device support: env(safe-area-inset-*), viewport segment queries, dual-screen layouts, progressive enhancement.
+> Load `Read("${CLAUDE_SKILL_DIR}/rules/responsive-foldables.md")` for foldable/multi-screen device support: env(safe-area-inset-*), viewport segment queries, dual-screen layouts, progressive enhancement.
 
 **Key patterns covered:** CSS Subgrid alignment, intrinsic responsive grids (auto-fit + minmax), fluid clamp() scales, foldable device layouts, safe area insets, viewport segment queries.
 
 ## CSS Patterns
 
-> Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/responsive-patterns/rules/css-patterns.md")` for complete CSS examples: container queries, cqi/cqb units, fluid typography with clamp(), mobile-first breakpoints, CSS Grid patterns, and scroll-queries.
+> Load `Read("${CLAUDE_SKILL_DIR}/rules/css-patterns.md")` for complete CSS examples: container queries, cqi/cqb units, fluid typography with clamp(), mobile-first breakpoints, CSS Grid patterns, and scroll-queries.
 
 **Key patterns covered:** Container Query basics, Container Query Units (cqi/cqb), Fluid Typography with clamp(), Container-Based Fluid Typography, Mobile-First Breakpoints, CSS Grid Responsive Patterns, Container Scroll-Queries (Chrome 126+).
 
 ## React Patterns
 
-> Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/responsive-patterns/rules/react-patterns.md")` for complete React examples: ResponsiveCard component, Tailwind container queries, useContainerQuery hook, and responsive images.
+> Load `Read("${CLAUDE_SKILL_DIR}/rules/react-patterns.md")` for complete React examples: ResponsiveCard component, Tailwind container queries, useContainerQuery hook, and responsive images.
 
 **Key patterns covered:** Responsive Component with Container Queries, Tailwind CSS Container Queries, useContainerQuery Hook, Responsive Images Pattern.
 
@@ -207,7 +207,7 @@ Each category has individual rule files in `rules/` loaded on-demand:
 
 ## References
 
-Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/responsive-patterns/references/<file>")`:
+Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | File | Content |
 |------|---------|
 | `container-queries.md` | Container query patterns |

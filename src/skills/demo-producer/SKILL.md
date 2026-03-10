@@ -88,13 +88,13 @@ Audio preferences?
 
 ## Pipeline Architecture
 
-> Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/demo-producer/references/demo-pipeline.md")` for the full pipeline diagram, generation commands, and output structure.
+> Load details: `Read("${CLAUDE_SKILL_DIR}/references/demo-pipeline.md")` for the full pipeline diagram, generation commands, and output structure.
 
 Content Detector -> Content Analyzer -> Script Generator -> Terminal Script -> VHS Recorder -> Remotion Composer -> Final Outputs (horizontal/vertical/square).
 
 ## Template System
 
-Four template architectures for different demo styles. Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/demo-producer/references/template-system.md")` for detailed configuration and the SkillDemoConfig interface.
+Four template architectures for different demo styles. Load `Read("${CLAUDE_SKILL_DIR}/references/template-system.md")` for detailed configuration and the SkillDemoConfig interface.
 
 | Template | Use Case | Duration | Key Feature |
 |----------|----------|----------|-------------|
@@ -103,11 +103,11 @@ Four template architectures for different demo styles. Load `Read("${CLAUDE_PLUG
 | **SplitThenMerge** | Before/after, transformations | 15-25s | Split screen -> unified merge |
 | **ScrapbookDemo** | Product launches, social proof | 15-35s | Warm paper aesthetic, fast cuts |
 
-Content type templates (skill, agent, plugin, tutorial, cli, code) are mapped in `Read("${CLAUDE_PLUGIN_ROOT}/skills/demo-producer/references/skill-category-mapping.md")`.
+Content type templates (skill, agent, plugin, tutorial, cli, code) are mapped in `Read("${CLAUDE_SKILL_DIR}/references/skill-category-mapping.md")`.
 
 ## Remotion Composition
 
-> Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/demo-producer/references/remotion-composition.md")` for folder structure, adding new compositions, and format variant prefixes.
+> Load details: `Read("${CLAUDE_SKILL_DIR}/references/remotion-composition.md")` for folder structure, adding new compositions, and format variant prefixes.
 
 Compositions organized under `Production/` by format (Landscape, Vertical, Square) and skill category.
 
@@ -136,11 +136,11 @@ Compositions organized under `Production/` by format (Landscape, Vertical, Squar
 
 ## Terminal Simulation Patterns
 
-> Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/demo-producer/references/terminal-simulation.md")` for TypeScript patterns: pinned header + scrolling content, agent color palette, and task spinner animation.
+> Load details: `Read("${CLAUDE_SKILL_DIR}/references/terminal-simulation.md")` for TypeScript patterns: pinned header + scrolling content, agent color palette, and task spinner animation.
 
 ## Slop Avoidance
 
-> Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/demo-producer/rules/slop-avoidance.md")` for text density rules, timing compression, common slop patterns, and hook styles.
+> Load details: `Read("${CLAUDE_SKILL_DIR}/rules/slop-avoidance.md")` for text density rules, timing compression, common slop patterns, and hook styles.
 
 Core rule: If content doesn't earn its screen time, cut it.
 
@@ -148,10 +148,10 @@ Core rule: If content doesn't earn its screen time, cut it.
 
 | Rule | Impact | What It Covers |
 |------|--------|----------------|
-| analyzer-patterns (load `${CLAUDE_PLUGIN_ROOT}/skills/demo-producer/rules/analyzer-patterns.md`) | MEDIUM | Frontmatter parsing, phase detection, example extraction |
-| production-pipeline (load `${CLAUDE_PLUGIN_ROOT}/skills/demo-producer/rules/production-pipeline.md`) | HIGH | Pre-production, storyboarding, recording, VHS, manim |
-| production-composition (load `${CLAUDE_PLUGIN_ROOT}/skills/demo-producer/rules/production-composition.md`) | HIGH | Remotion composition, audio mixing, thumbnails, captions |
-| slop-avoidance (load `${CLAUDE_PLUGIN_ROOT}/skills/demo-producer/rules/slop-avoidance.md`) | HIGH | Text density, timing compression, hook styles |
+| analyzer-patterns (load `${CLAUDE_SKILL_DIR}/rules/analyzer-patterns.md`) | MEDIUM | Frontmatter parsing, phase detection, example extraction |
+| production-pipeline (load `${CLAUDE_SKILL_DIR}/rules/production-pipeline.md`) | HIGH | Pre-production, storyboarding, recording, VHS, manim |
+| production-composition (load `${CLAUDE_SKILL_DIR}/rules/production-composition.md`) | HIGH | Remotion composition, audio mixing, thumbnails, captions |
+| slop-avoidance (load `${CLAUDE_SKILL_DIR}/rules/slop-avoidance.md`) | HIGH | Text density, timing compression, hook styles |
 
 ## Related Skills
 
@@ -159,7 +159,7 @@ Core rule: If content doesn't earn its screen time, cut it.
 
 ## References
 
-Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/demo-producer/references/<file>")`:
+Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | File | Content |
 |------|---------|
 | `template-system.md` | Template architecture and SkillDemoConfig interface |

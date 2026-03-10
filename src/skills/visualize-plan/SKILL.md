@@ -96,7 +96,7 @@ Agent(
 
 ## STEP 2: Render Tier 1 Header (Always)
 
-Use `assets/tier1-header.md` template. Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/visualize-plan/references/visualization-tiers.md")` for field computation (risk level, confidence, reversibility).
+Use `assets/tier1-header.md` template. Load `Read("${CLAUDE_SKILL_DIR}/references/visualization-tiers.md")` for field computation (risk level, confidence, reversibility).
 
 ```
 PLAN: {plan_name} ({issue_ref})  |  {phase_count} phases  |  {file_count} files  |  +{added} -{removed} lines
@@ -130,15 +130,15 @@ AskUserQuestion(
 
 ## STEP 4: Render Requested Sections
 
-Render each requested section following `${CLAUDE_PLUGIN_ROOT}/skills/visualize-plan/rules/section-rendering.md` conventions. Use the corresponding reference for ASCII patterns:
+Render each requested section following `${CLAUDE_SKILL_DIR}/rules/section-rendering.md` conventions. Use the corresponding reference for ASCII patterns:
 
 | Section | Reference | Key Convention |
 |---------|-----------|----------------|
-| [1] Change Manifest | (load `${CLAUDE_PLUGIN_ROOT}/skills/visualize-plan/references/change-manifest-patterns.md`) | `[A]`/`[M]`/`[D]` + `+N -N` per file |
-| [2] Execution Swimlane | (load `${CLAUDE_PLUGIN_ROOT}/skills/visualize-plan/references/execution-swimlane-patterns.md`) | `===` active, `---` blocked, `\|` deps |
-| [3] Risk Dashboard | (load `${CLAUDE_PLUGIN_ROOT}/skills/visualize-plan/references/risk-dashboard-patterns.md`) | Reversibility timeline + 3 pre-mortems |
-| [4] Decision Log | (load `${CLAUDE_PLUGIN_ROOT}/skills/visualize-plan/references/decision-log-patterns.md`) | ADR-lite: Context/Decision/Alternatives/Tradeoff |
-| [5] Impact Summary | (load `${CLAUDE_PLUGIN_ROOT}/skills/visualize-plan/assets/impact-dashboard.md`) | Table: Added/Modified/Deleted/NET + tests/API/deps |
+| [1] Change Manifest | (load `${CLAUDE_SKILL_DIR}/references/change-manifest-patterns.md`) | `[A]`/`[M]`/`[D]` + `+N -N` per file |
+| [2] Execution Swimlane | (load `${CLAUDE_SKILL_DIR}/references/execution-swimlane-patterns.md`) | `===` active, `---` blocked, `\|` deps |
+| [3] Risk Dashboard | (load `${CLAUDE_SKILL_DIR}/references/risk-dashboard-patterns.md`) | Reversibility timeline + 3 pre-mortems |
+| [4] Decision Log | (load `${CLAUDE_SKILL_DIR}/references/decision-log-patterns.md`) | ADR-lite: Context/Decision/Alternatives/Tradeoff |
+| [5] Impact Summary | (load `${CLAUDE_SKILL_DIR}/assets/impact-dashboard.md`) | Table: Added/Modified/Deleted/NET + tests/API/deps |
 
 ---
 
@@ -170,13 +170,13 @@ AskUserQuestion(
 
 ## Deep Dives (Tier 3, on request)
 
-Available when user selects "Drill deeper". Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/visualize-plan/references/deep-dives.md")` for cross-layer and migration patterns.
+Available when user selects "Drill deeper". Load `Read("${CLAUDE_SKILL_DIR}/references/deep-dives.md")` for cross-layer and migration patterns.
 
 | Section | What It Shows | Reference |
 |---------|--------------|-----------|
-| [6] Blast Radius | Concentric rings of impact (direct -> transitive -> tests) | (load `${CLAUDE_PLUGIN_ROOT}/skills/visualize-plan/references/blast-radius-patterns.md`) |
-| [7] Cross-Layer Consistency | Frontend/backend endpoint alignment with gap detection | (load `${CLAUDE_PLUGIN_ROOT}/skills/visualize-plan/references/deep-dives.md`) |
-| [8] Migration Checklist | Ordered runbook with sequential/parallel blocks and time estimates | (load `${CLAUDE_PLUGIN_ROOT}/skills/visualize-plan/references/deep-dives.md`) |
+| [6] Blast Radius | Concentric rings of impact (direct -> transitive -> tests) | (load `${CLAUDE_SKILL_DIR}/references/blast-radius-patterns.md`) |
+| [7] Cross-Layer Consistency | Frontend/backend endpoint alignment with gap detection | (load `${CLAUDE_SKILL_DIR}/references/deep-dives.md`) |
+| [8] Migration Checklist | Ordered runbook with sequential/parallel blocks and time estimates | (load `${CLAUDE_SKILL_DIR}/references/deep-dives.md`) |
 
 ---
 
@@ -195,12 +195,12 @@ Available when user selects "Drill deeper". Load `Read("${CLAUDE_PLUGIN_ROOT}/sk
 
 | Rule | Impact | What It Covers |
 |------|--------|----------------|
-| section-rendering (load `${CLAUDE_PLUGIN_ROOT}/skills/visualize-plan/rules/section-rendering.md`) | HIGH | Rendering conventions for all 5 core sections |
+| section-rendering (load `${CLAUDE_SKILL_DIR}/rules/section-rendering.md`) | HIGH | Rendering conventions for all 5 core sections |
 | ASCII diagrams | MEDIUM | Via `ascii-visualizer` skill (box-drawing, file trees, workflows) |
 
 ## References
 
-Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/visualize-plan/references/<file>")`:
+Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | File | Content |
 |------|---------|
 | `visualization-tiers.md` | Progressive disclosure tiers and header field computation |
@@ -213,7 +213,7 @@ Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/visualize-plan/reference
 
 ## Assets
 
-Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/visualize-plan/assets/<file>")`:
+Load on demand with `Read("${CLAUDE_SKILL_DIR}/assets/<file>")`:
 | File | Content |
 |------|---------|
 | `plan-report.md` | Full mustache-style report template |
