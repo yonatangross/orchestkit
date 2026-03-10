@@ -1,7 +1,7 @@
 ---
 name: audit-full
 license: MIT
-compatibility: "Claude Code 2.1.59+. Requires memory MCP server."
+compatibility: "Claude Code 2.1.72+. Requires memory MCP server."
 description: "Full-codebase audit using 1M context window. Security, architecture, and dependency analysis in a single pass. Use when you need whole-project analysis."
 argument-hint: "[scope]"
 context: fork
@@ -13,11 +13,6 @@ allowed-tools: [AskUserQuestion, Read, Grep, Glob, Bash, Task, TaskCreate, TaskU
 skills: [security-patterns, architecture-patterns, quality-gates]
 complexity: max
 model: opus
-hooks:
-  PreToolUse:
-    - matcher: "Read"
-      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/audit-context-loader"
-      once: true
 metadata:
   category: document-asset-creation
   mcp-server: memory
@@ -109,7 +104,7 @@ Before loading files, estimate whether the codebase fits in context.
 
 ```bash
 # Use the estimation script
-bash ${CLAUDE_PLUGIN_ROOT}/skills/audit-full/scripts/estimate-tokens.sh /path/to/project
+bash ${CLAUDE_SKILL_DIR}/scripts/estimate-tokens.sh /path/to/project
 ```
 
 ### Manual Estimation Rules
@@ -214,7 +209,7 @@ With codebase loaded, perform the selected audit mode(s).
 
 ### Security Audit
 
-Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/audit-full/references/security-audit-guide.md")` for the full checklist.
+Load: `Read("${CLAUDE_SKILL_DIR}/references/security-audit-guide.md")` for the full checklist.
 
 Key cross-file analysis patterns:
 1. **Data flow tracing**: Track user input from entry point → processing → storage
@@ -225,7 +220,7 @@ Key cross-file analysis patterns:
 
 ### Architecture Review
 
-Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/audit-full/references/architecture-review-guide.md")` for the full guide.
+Load: `Read("${CLAUDE_SKILL_DIR}/references/architecture-review-guide.md")` for the full guide.
 
 Key analysis patterns:
 1. **Dependency direction**: Verify imports flow inward (clean architecture)
@@ -236,7 +231,7 @@ Key analysis patterns:
 
 ### Dependency Audit
 
-Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/audit-full/references/dependency-audit-guide.md")` for the full guide.
+Load: `Read("${CLAUDE_SKILL_DIR}/references/dependency-audit-guide.md")` for the full guide.
 
 Key analysis patterns:
 1. **Known CVEs**: Check versions against known vulnerabilities
@@ -249,7 +244,7 @@ Key analysis patterns:
 
 ## STEP 4: Generate Report
 
-Load the report template: `Read("${CLAUDE_PLUGIN_ROOT}/skills/audit-full/assets/audit-report-template.md")`.
+Load the report template: `Read("${CLAUDE_SKILL_DIR}/assets/audit-report-template.md")`.
 
 ### Report Structure
 
@@ -281,11 +276,11 @@ Load the report template: `Read("${CLAUDE_PLUGIN_ROOT}/skills/audit-full/assets/
 
 ### Severity Classification
 
-Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/audit-full/assets/severity-matrix.md")` for classification criteria.
+Load: `Read("${CLAUDE_SKILL_DIR}/assets/severity-matrix.md")` for classification criteria.
 
 ### Completion Checklist
 
-Before finalizing the report, verify with `Read("${CLAUDE_PLUGIN_ROOT}/skills/audit-full/checklists/audit-completion.md")`.
+Before finalizing the report, verify with `Read("${CLAUDE_SKILL_DIR}/checklists/audit-completion.md")`.
 
 ---
 
@@ -311,7 +306,7 @@ Before finalizing the report, verify with `Read("${CLAUDE_PLUGIN_ROOT}/skills/au
 
 ## References
 
-Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/audit-full/references/<file>")`:
+Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | File | Content |
 |------|---------|
 | `references/security-audit-guide.md` | Cross-file vulnerability patterns |

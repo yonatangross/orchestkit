@@ -22,6 +22,7 @@ tools:
   - TaskUpdate
   - TaskList
   - AskUserQuestion
+  - ExitWorktree
 skills:
   - demo-producer
   - task-dependency-patterns

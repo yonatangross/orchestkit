@@ -1,8 +1,8 @@
 ---
 name: backend-system-architect
 description: "Backend architect: REST/GraphQL APIs, database schemas, microservice boundaries, distributed systems, clean architecture."
+model: inherit
 category: backend
-model: sonnet
 maxTurns: 40
 permissionMode: plan
 context: fork
@@ -24,6 +24,7 @@ tools:
   - TaskCreate
   - TaskUpdate
   - TaskList
+  - ExitWorktree
 skills:
   - api-design
   - database-patterns

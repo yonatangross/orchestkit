@@ -1,7 +1,7 @@
 ---
 name: distributed-systems
 license: MIT
-compatibility: "Claude Code 2.1.59+."
+compatibility: "Claude Code 2.1.72+."
 description: Distributed systems patterns for locking, resilience, idempotency, and rate limiting. Use when implementing distributed locks, circuit breakers, retry policies, idempotency keys, token bucket rate limiters, or fault tolerance patterns.
 tags: [distributed-systems, distributed-locks, resilience, circuit-breaker, idempotency, rate-limiting, retry, fault-tolerance, edge-computing, cloudflare-workers, vercel-edge, event-sourcing, cqrs, saga, outbox, message-queue, kafka]
 context: fork
@@ -71,9 +71,9 @@ Coordinate exclusive access to resources across multiple service instances.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Redis & Redlock | `${CLAUDE_PLUGIN_ROOT}/skills/distributed-systems/rules/locks-redis-redlock.md` | Lua scripts, SET NX, multi-node quorum |
-| PostgreSQL Advisory | `${CLAUDE_PLUGIN_ROOT}/skills/distributed-systems/rules/locks-postgres-advisory.md` | Session/transaction locks, lock ID strategies |
-| Fencing Tokens | `${CLAUDE_PLUGIN_ROOT}/skills/distributed-systems/rules/locks-fencing-tokens.md` | Owner validation, TTL, heartbeat extension |
+| Redis & Redlock | `${CLAUDE_SKILL_DIR}/rules/locks-redis-redlock.md` | Lua scripts, SET NX, multi-node quorum |
+| PostgreSQL Advisory | `${CLAUDE_SKILL_DIR}/rules/locks-postgres-advisory.md` | Session/transaction locks, lock ID strategies |
+| Fencing Tokens | `${CLAUDE_SKILL_DIR}/rules/locks-fencing-tokens.md` | Owner validation, TTL, heartbeat extension |
 
 ## Resilience
 
@@ -81,9 +81,9 @@ Production-grade fault tolerance for distributed systems.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Circuit Breaker | `${CLAUDE_PLUGIN_ROOT}/skills/distributed-systems/rules/resilience-circuit-breaker.md` | CLOSED/OPEN/HALF_OPEN states, sliding window |
-| Retry & Backoff | `${CLAUDE_PLUGIN_ROOT}/skills/distributed-systems/rules/resilience-retry-backoff.md` | Exponential backoff, jitter, error classification |
-| Bulkhead Isolation | `${CLAUDE_PLUGIN_ROOT}/skills/distributed-systems/rules/resilience-bulkhead.md` | Semaphore tiers, rejection policies, queue depth |
+| Circuit Breaker | `${CLAUDE_SKILL_DIR}/rules/resilience-circuit-breaker.md` | CLOSED/OPEN/HALF_OPEN states, sliding window |
+| Retry & Backoff | `${CLAUDE_SKILL_DIR}/rules/resilience-retry-backoff.md` | Exponential backoff, jitter, error classification |
+| Bulkhead Isolation | `${CLAUDE_SKILL_DIR}/rules/resilience-bulkhead.md` | Semaphore tiers, rejection policies, queue depth |
 
 ## Idempotency
 
@@ -91,9 +91,9 @@ Ensure operations can be safely retried without unintended side effects.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Idempotency Keys | `${CLAUDE_PLUGIN_ROOT}/skills/distributed-systems/rules/idempotency-keys.md` | Deterministic hashing, Stripe-style headers |
-| Request Dedup | `${CLAUDE_PLUGIN_ROOT}/skills/distributed-systems/rules/idempotency-dedup.md` | Event consumer dedup, Redis + DB dual layer |
-| Database-Backed | `${CLAUDE_PLUGIN_ROOT}/skills/distributed-systems/rules/idempotency-database.md` | Unique constraints, upsert, TTL cleanup |
+| Idempotency Keys | `${CLAUDE_SKILL_DIR}/rules/idempotency-keys.md` | Deterministic hashing, Stripe-style headers |
+| Request Dedup | `${CLAUDE_SKILL_DIR}/rules/idempotency-dedup.md` | Event consumer dedup, Redis + DB dual layer |
+| Database-Backed | `${CLAUDE_SKILL_DIR}/rules/idempotency-database.md` | Unique constraints, upsert, TTL cleanup |
 
 ## Rate Limiting
 
@@ -101,9 +101,9 @@ Protect APIs with distributed rate limiting using Redis.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Token Bucket | `${CLAUDE_PLUGIN_ROOT}/skills/distributed-systems/rules/ratelimit-token-bucket.md` | Redis Lua scripts, burst capacity, refill rate |
-| Sliding Window | `${CLAUDE_PLUGIN_ROOT}/skills/distributed-systems/rules/ratelimit-sliding-window.md` | Sorted sets, precise counting, no boundary spikes |
-| Distributed Limits | `${CLAUDE_PLUGIN_ROOT}/skills/distributed-systems/rules/ratelimit-distributed.md` | SlowAPI + Redis, tiered limits, response headers |
+| Token Bucket | `${CLAUDE_SKILL_DIR}/rules/ratelimit-token-bucket.md` | Redis Lua scripts, burst capacity, refill rate |
+| Sliding Window | `${CLAUDE_SKILL_DIR}/rules/ratelimit-sliding-window.md` | Sorted sets, precise counting, no boundary spikes |
+| Distributed Limits | `${CLAUDE_SKILL_DIR}/rules/ratelimit-distributed.md` | SlowAPI + Redis, tiered limits, response headers |
 
 ## Edge Computing
 
@@ -111,8 +111,8 @@ Edge runtime patterns for Cloudflare Workers, Vercel Edge, and Deno Deploy.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Edge Workers | `${CLAUDE_PLUGIN_ROOT}/skills/distributed-systems/rules/edge-workers.md` | V8 isolate constraints, Web APIs, geo-routing, auth at edge |
-| Edge Caching | `${CLAUDE_PLUGIN_ROOT}/skills/distributed-systems/rules/edge-caching.md` | Cache-aside at edge, CDN headers, KV storage, stale-while-revalidate |
+| Edge Workers | `${CLAUDE_SKILL_DIR}/rules/edge-workers.md` | V8 isolate constraints, Web APIs, geo-routing, auth at edge |
+| Edge Caching | `${CLAUDE_SKILL_DIR}/rules/edge-caching.md` | Cache-aside at edge, CDN headers, KV storage, stale-while-revalidate |
 
 ## Event-Driven
 
@@ -120,8 +120,8 @@ Event sourcing, CQRS, saga orchestration, and reliable messaging patterns.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Event Sourcing | `${CLAUDE_PLUGIN_ROOT}/skills/distributed-systems/rules/event-sourcing.md` | Event-sourced aggregates, CQRS read models, optimistic concurrency |
-| Event Messaging | `${CLAUDE_PLUGIN_ROOT}/skills/distributed-systems/rules/event-messaging.md` | Transactional outbox, saga compensation, idempotent consumers |
+| Event Sourcing | `${CLAUDE_SKILL_DIR}/rules/event-sourcing.md` | Event-sourced aggregates, CQRS read models, optimistic concurrency |
+| Event Messaging | `${CLAUDE_SKILL_DIR}/rules/event-messaging.md` | Transactional outbox, saga compensation, idempotent consumers |
 
 ## Key Decisions
 
@@ -184,10 +184,10 @@ request_counts = {}  # Lost on restart, not shared across instances
 
 | Resource | Description |
 |----------|-------------|
-| `${CLAUDE_PLUGIN_ROOT}/skills/distributed-systems/scripts/` | Templates: lock implementations, circuit breaker, rate limiter |
-| `${CLAUDE_PLUGIN_ROOT}/skills/distributed-systems/checklists/` | Pre-flight checklists for each pattern category |
-| `${CLAUDE_PLUGIN_ROOT}/skills/distributed-systems/references/` | Deep dives: Redlock algorithm, bulkhead tiers, token bucket |
-| `${CLAUDE_PLUGIN_ROOT}/skills/distributed-systems/examples/` | Complete integration examples |
+| `${CLAUDE_SKILL_DIR}/scripts/` | Templates: lock implementations, circuit breaker, rate limiter |
+| `${CLAUDE_SKILL_DIR}/checklists/` | Pre-flight checklists for each pattern category |
+| `${CLAUDE_SKILL_DIR}/references/` | Deep dives: Redlock algorithm, bulkhead tiers, token bucket |
+| `${CLAUDE_SKILL_DIR}/examples/` | Complete integration examples |
 
 ## Related Skills
 

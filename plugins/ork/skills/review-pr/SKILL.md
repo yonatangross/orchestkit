@@ -1,7 +1,7 @@
 ---
 name: review-pr
 license: MIT
-compatibility: "Claude Code 2.1.59+. Requires memory MCP server, gh CLI."
+compatibility: "Claude Code 2.1.72+. Requires memory MCP server, gh CLI."
 description: "PR review with parallel specialized agents. Use when reviewing pull requests or code."
 argument-hint: "[pr-number-or-branch]"
 context: fork
@@ -10,12 +10,15 @@ author: OrchestKit
 tags: [code-review, pull-request, quality, security, testing]
 user-invocable: true
 allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskOutput, TaskStop, mcp__memory__search_nodes, ToolSearch]
-skills: [code-review-playbook, testing-patterns, memory, chain-patterns]
+skills: [code-review-playbook, testing-unit, testing-e2e, testing-integration, memory, chain-patterns]
 complexity: medium
 hooks:
   PreToolUse:
     - matcher: "Read"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/pr-context-loader"
+      once: true
+    - matcher: "Agent"
+      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/review-dimensions-loader"
       once: true
 metadata:
   category: workflow-automation
@@ -87,7 +90,7 @@ AskUserQuestion(
 
 ## STEP 0b: Select Orchestration Mode
 
-Load orchestration guidance: `Read("${CLAUDE_PLUGIN_ROOT}/skills/review-pr/references/orchestration-mode-selection.md")`
+Load orchestration guidance: `Read("${CLAUDE_SKILL_DIR}/references/orchestration-mode-selection.md")`
 
 ---
 
@@ -182,7 +185,7 @@ Relevant skills activated automatically:
 - `code-review-playbook` -- Review patterns, conventional comments
 - `security-scanning` -- OWASP, secrets, dependencies
 - `type-safety-validation` -- Zod, TypeScript strict
-- `testing-patterns` -- Test adequacy, coverage gaps, rule matching
+- `testing-unit`, `testing-e2e`, `testing-integration` -- Test adequacy, coverage gaps, rule matching
 
 ## Phase 3: Parallel Code Review (6 Agents)
 
@@ -223,11 +226,11 @@ See [AI Code Review Agent](rules/ai-code-review-agent.md) for the optional 7th L
 
 ## Phase 4: Run Validation
 
-Load validation commands: `Read("${CLAUDE_PLUGIN_ROOT}/skills/review-pr/references/validation-commands.md")`
+Load validation commands: `Read("${CLAUDE_SKILL_DIR}/references/validation-commands.md")`
 
 ## Phase 5: Synthesize Review
 
-Combine all agent feedback into a structured report. Load template: `Read("${CLAUDE_PLUGIN_ROOT}/skills/review-pr/references/review-report-template.md")`
+Combine all agent feedback into a structured report. Load template: `Read("${CLAUDE_SKILL_DIR}/references/review-report-template.md")`
 
 ### Memory Persistence
 
@@ -276,7 +279,7 @@ claude --from-pr https://github.com/org/repo/pull/123
 
 ### Task Metrics (CC 2.1.30)
 
-Load metrics template: `Read("${CLAUDE_PLUGIN_ROOT}/skills/review-pr/references/task-metrics-template.md")`
+Load metrics template: `Read("${CLAUDE_SKILL_DIR}/references/task-metrics-template.md")`
 
 ## Conventional Comments
 
@@ -294,7 +297,7 @@ Use these prefixes for comments:
 
 ## References
 
-Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/review-pr/references/<file>")`:
+Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 
 | File | Content |
 |------|---------|
@@ -304,7 +307,7 @@ Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/review-pr/references/<fi
 | `validation-commands.md` | Build/test/lint commands |
 | `task-metrics-template.md` | Task metrics format |
 
-Rules: `Read("${CLAUDE_PLUGIN_ROOT}/skills/review-pr/rules/<file>")`:
+Rules: `Read("${CLAUDE_SKILL_DIR}/rules/<file>")`:
 
 | File | Content |
 |------|---------|

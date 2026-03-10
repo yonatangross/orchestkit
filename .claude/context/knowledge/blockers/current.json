@@ -9,21 +9,7 @@
 
   "blockers": [],
 
-  "resolved_recently": [
-    {
-      "id": "ollama-timeout-ci",
-      "description": "2 tests failing due to Ollama timeout in CI (worker crashes)",
-      "resolved": "2026-01-08",
-      "resolution": "Increased timeout and added retry logic"
-    }
-  ],
+  "resolved_recently": [],
 
-  "watching": [
-    {
-      "id": "context-migration",
-      "description": "Context Engineering 2.0 migration in progress",
-      "status": "in_progress",
-      "eta": "2026-01-08"
-    }
-  ]
+  "watching": []
 }

@@ -7,7 +7,7 @@
  * Keep in sync with: src/skills/doctor/references/version-compatibility.md
  */
 
-export const MIN_CC_VERSION = '2.1.69';
+export const MIN_CC_VERSION = '2.1.72';
 
 export interface CCFeatureEntry {
   readonly feature: string;
@@ -67,6 +67,26 @@ export const CC_FEATURE_MATRIX: readonly CCFeatureEntry[] = [
   { feature: 'prompt_rerender_opt',  minVersion: '2.1.70', description: '74% prompt re-render reduction (CC-internal optimization)' },
   { feature: 'skill_listing_savings', minVersion: '2.1.70', description: '~600 token savings on skill listing injection' },
   { feature: 'mcp_cache_invalidation', minVersion: '2.1.70', description: 'MCP tool cache properly invalidated on reconnect' },
+  // 2.1.71
+  { feature: 'loop_command',          minVersion: '2.1.71', description: '/loop slash command for recurring prompts on interval' },
+  { feature: 'cron_scheduling',       minVersion: '2.1.71', description: 'CronCreate/CronDelete/CronList tools for in-session scheduling' },
+  { feature: 'voice_pushto_talk_key', minVersion: '2.1.71', description: 'voice:pushToTalk keybinding rebindable in keybindings.json' },
+  { feature: 'resume_skill_savings',  minVersion: '2.1.71', description: 'Skill listing not re-injected on --resume (~600 tokens saved)' },
+  // 2.1.72
+  { feature: 'exit_worktree_tool',    minVersion: '2.1.72', description: 'ExitWorktree tool lets agents leave worktree sessions' },
+  { feature: 'agent_model_override',  minVersion: '2.1.72', description: 'model parameter restored on Agent tool for per-invocation overrides' },
+  { feature: 'team_model_inherit',    minVersion: '2.1.72', description: 'Team agents inherit the leader agent model' },
+  { feature: 'plan_with_description', minVersion: '2.1.72', description: '/plan accepts description argument for contextual plan mode entry' },
+  { feature: 'effort_simplified',     minVersion: '2.1.72', description: 'Effort levels simplified to low/medium/high, /effort auto resets' },
+  { feature: 'disable_cron_env',      minVersion: '2.1.72', description: 'CLAUDE_CODE_DISABLE_CRON env var stops scheduled cron jobs' },
+  { feature: 'skill_hook_dedup_fix',  minVersion: '2.1.72', description: 'Skill hooks no longer fire twice per event' },
+  { feature: 'clear_preserves_bg',    minVersion: '2.1.72', description: '/clear only clears foreground, background agents preserved' },
+  { feature: 'agent_prompt_fix',      minVersion: '2.1.72', description: 'Agent prompt no longer silently deleted from settings.json' },
+  { feature: 'always_allow_fix',      minVersion: '2.1.72', description: 'AlwaysAllow permission rules now match correctly' },
+  { feature: 'worktree_task_fix',     minVersion: '2.1.72', description: 'Worktree task resume restores cwd, bg notifications include metadata' },
+  { feature: 'prompt_cache_12x',      minVersion: '2.1.72', description: 'SDK query() prompt cache fix reduces input token costs up to 12x' },
+  { feature: 'bash_process_tools',    minVersion: '2.1.72', description: 'lsof, pgrep, tput, ss, fd, fdfind added to bash auto-approval' },
+  { feature: 'uri_handler',           minVersion: '2.1.72', description: 'vscode://anthropic.claude-code/open URI handler for programmatic sessions' },
 ] as const;
 
 export type CCFeature = typeof CC_FEATURE_MATRIX[number]['feature'];

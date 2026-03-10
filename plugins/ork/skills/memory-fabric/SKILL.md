@@ -1,7 +1,7 @@
 ---
 name: memory-fabric
 license: MIT
-compatibility: "Claude Code 2.1.59+. Requires memory MCP server."
+compatibility: "Claude Code 2.1.72+. Requires memory MCP server."
 description: Knowledge graph memory orchestration - entity extraction, query parsing, deduplication, and cross-reference boosting. Use when designing memory orchestration.
 context: fork
 version: 2.1.0
@@ -183,7 +183,7 @@ Extracted:
   - { from: "pgvector", relation: "used_for", to: "RAG" }
 ```
 
-Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/memory-fabric/references/entity-extraction.md")` for detailed extraction patterns.
+Load `Read("${CLAUDE_SKILL_DIR}/references/entity-extraction.md")` for detailed extraction patterns.
 
 ## Graph Relationship Traversal
 

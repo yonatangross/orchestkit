@@ -1,0 +1,92 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "testing-integration",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "integration-api",
+      "query": "Write integration tests for a REST API endpoint",
+      "expected_behavior": [
+        "Uses supertest or httpx AsyncClient to send HTTP requests against the test server",
+        "Tests both success and error responses",
+        "Validates both the HTTP response status code and body content against expected values"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "integration-database",
+      "query": "Test database operations with transaction rollback",
+      "expected_behavior": [
+        "Creates fresh database state per test",
+        "Uses in-memory SQLite or test container",
+        "Rolls back database transactions after each test to ensure clean state isolation"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "integration-component",
+      "query": "Test a React form component with API interaction",
+      "expected_behavior": [
+        "Wraps the component in QueryClientProvider to provide the required React Query context",
+        "Uses userEvent for simulating realistic user interactions like typing and clicking",
+        "Asserts on user-visible outcomes such as rendered text and DOM element presence"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "verification-property",
+      "query": "Write property-based tests with Hypothesis",
+      "expected_behavior": [
+        "Uses @given with appropriate Hypothesis strategies to generate diverse randomized test inputs",
+        "Tests roundtrip serialization and idempotence properties to verify mathematical correctness invariants",
+        "Bounds inputs to avoid slow generation"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "verification-stateful",
+      "query": "Test a stateful API with Hypothesis state machines",
+      "expected_behavior": [
+        "Uses Hypothesis RuleBasedStateMachine to model and test complex stateful system interactions",
+        "Models valid state transitions as rules that Hypothesis explores in randomized sequences",
+        "Verifies system invariants after each step to catch state corruption or illegal transitions"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "verification-contract",
+      "query": "Set up Pact contract tests between services",
+      "expected_behavior": [
+        "Writes consumer-side contract test with expected request and response interaction expectations",
+        "Uses Pact Like/EachLike matchers for flexible type-based response structure matching",
+        "Configures provider-side verification with provider states for realistic test scenario setup"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "validation-zod-schema",
+      "query": "Set up Zod validation for our API endpoints with branded types to prevent ID mix-ups",
+      "expected_behavior": [
+        "Uses safeParse for graceful error handling instead of throwing parse exceptions",
+        "Implements branded types with z.string().uuid().brand() to prevent ID type confusion",
+        "Validates at ALL boundaries including API inputs, form submissions, and external data",
+        "Uses assertNever in switch default for compile-time exhaustive union type checking"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    }
+  ]
+}

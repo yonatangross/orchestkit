@@ -1,0 +1,1034 @@
+---
+title: "Testing Perf"
+description: "Performance and load testing patterns — k6 load tests, Locust stress tests, pytest execution optimization (xdist parallel, plugins), test type classification, and performance benchmarking. Use when writing load tests, optimizing test execution speed, or setting up pytest infrastructure."
+---
+
+<span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
+
+**Primary Agent:** [test-generator](/docs/reference/agents/test-generator)
+
+
+# Performance & Load Testing Patterns
+
+Focused skill for performance testing, load testing, and pytest execution optimization. Covers k6, Locust, pytest-xdist parallel execution, custom plugins, and test type classification.
+
+## Quick Reference
+
+| Area | File | Purpose |
+|------|------|---------|
+| **k6 Load Testing** | `rules/perf-k6.md` | Thresholds, stages, custom metrics, CI integration |
+| **Locust Testing** | `rules/perf-locust.md` | Python load tests, task weighting, auth flows |
+| **Test Types** | `rules/perf-types.md` | Load, stress, spike, soak test patterns |
+| **Execution** | `rules/execution.md` | Coverage reporting, parallel execution, failure analysis |
+| **Pytest Markers** | `rules/pytest-execution.md` | Custom markers, xdist parallel, worker isolation |
+| **Pytest Plugins** | `rules/pytest-plugins.md` | Factory fixtures, plugin hooks, anti-patterns |
+| **k6 Patterns** | `references/k6-patterns.md` | Staged ramp-up, authenticated requests, test types |
+| **xdist Parallel** | `references/xdist-parallel.md` | Distribution modes, worker isolation, CI config |
+| **Custom Plugins** | `references/custom-plugins.md` | conftest plugins, installable plugins, hook reference |
+| **Perf Checklist** | `checklists/performance-checklist.md` | Planning, setup, metrics, load patterns, analysis |
+| **Pytest Checklist** | `checklists/pytest-production-checklist.md` | Config, markers, parallel, fixtures, CI/CD |
+| **Test Template** | `scripts/test-case-template.md` | Full test case documentation template |
+
+## k6 Quick Start
+
+Set up a load test with thresholds and staged ramp-up:
+
+```javascript
+import http from 'k6/http';
+import { check, sleep } from 'k6';
+
+export const options = {
+  stages: [
+    { duration: '30s', target: 20 },  // Ramp up
+    { duration: '1m', target: 20 },   // Steady state
+    { duration: '30s', target: 0 },   // Ramp down
+  ],
+  thresholds: {
+    http_req_duration: ['p(95)<500'],  // 95th percentile under 500ms
+    http_req_failed: ['rate<0.01'],    // Less than 1% error rate
+  },
+};
+
+export default function () {
+  const res = http.get('http://localhost:8000/api/health');
+  check(res, {
+    'status is 200': (r) => r.status === 200,
+    'response time < 200ms': (r) => r.timings.duration < 200,
+  });
+  sleep(1);
+}
+```
+
+Run: `k6 run --out json=results.json tests/load/api.js`
+
+## Performance Test Types
+
+| Type | Duration | VUs | Purpose | When to Use |
+|------|----------|-----|---------|-------------|
+| **Load** | 5-10 min | Expected traffic | Validate normal conditions | Every release |
+| **Stress** | 10-20 min | 2-3x expected | Find breaking point | Pre-launch |
+| **Spike** | 5 min | Sudden 10x surge | Test auto-scaling | Before events |
+| **Soak** | 4-12 hours | Normal load | Detect memory leaks | Weekly/nightly |
+
+## pytest Parallel Execution
+
+Speed up test suites with pytest-xdist:
+
+```toml
+# pyproject.toml
+[tool.pytest.ini_options]
+addopts = ["-n", "auto", "--dist", "loadscope"]
+markers = [
+    "slow: marks tests as slow",
+    "smoke: critical path tests for CI/CD",
+]
+```
+
+```bash
+# Run with parallel workers and coverage
+pytest -n auto --dist loadscope --cov=app --cov-report=term-missing --maxfail=3
+
+# CI fast path — skip slow tests
+pytest -m "not slow" -n auto
+
+# Debug mode — single worker
+pytest -n 0 -x --tb=long
+```
+
+## Worker Database Isolation
+
+When running parallel tests with databases, isolate per worker:
+
+```python
+@pytest.fixture(scope="session")
+def db_engine(worker_id):
+    db_name = f"test_db_{worker_id}" if worker_id != "master" else "test_db"
+    engine = create_engine(f"postgresql://localhost/{db_name}")
+    yield engine
+    engine.dispose()
+```
+
+## Key Thresholds
+
+| Metric | Target | Tool |
+|--------|--------|------|
+| p95 response time | &lt; 500ms | k6 |
+| p99 response time | &lt; 1000ms | k6 |
+| Error rate | &lt; 1% | k6 / Locust |
+| Business logic coverage | 90% | pytest-cov |
+| Critical path coverage | 100% | pytest-cov |
+
+## Decision Guide
+
+| Scenario | Recommendation |
+|----------|----------------|
+| JavaScript/TypeScript team | k6 for load testing |
+| Python team | Locust for load testing |
+| Need CI thresholds | k6 (built-in threshold support) |
+| Need distributed testing | Locust (built-in distributed mode) |
+| Slow test suite | pytest-xdist with `-n auto` |
+| Flaky parallel tests | `--dist loadscope` for fixture grouping |
+| DB-heavy tests | Worker-isolated databases with `worker_id` |
+
+## Related Skills
+
+- `ork:testing-unit` — Unit testing patterns, pytest fixtures
+- `ork:testing-e2e` — End-to-end performance testing with Playwright
+- `ork:performance` — Core Web Vitals and optimization patterns
+
+
+---
+
+## Rules (6)
+
+### Track coverage and run tests in parallel to cut CI feedback time and identify untested critical paths — HIGH
+
+
+## Coverage Reporting
+
+Track and enforce test coverage to identify untested critical paths.
+
+**Incorrect — running tests without coverage:**
+```bash
+pytest tests/  # No coverage data — can't identify gaps
+npm run test   # No --coverage flag — blind to untested code
+```
+
+**Correct — coverage with gap analysis:**
+```bash
+# Python: pytest-cov with missing line report
+poetry run pytest tests/unit/ \
+  --cov=app \
+  --cov-report=term-missing \
+  --cov-report=html:htmlcov
+
+# JavaScript: Jest with coverage
+npm run test -- --coverage --coverageReporters=text --coverageReporters=lcov
+```
+
+**Coverage report format:**
+```markdown
+# Test Results Report
+
+## Summary
+| Suite | Total | Passed | Failed | Coverage |
+|-------|-------|--------|--------|----------|
+| Backend | 150 | 148 | 2 | 87% |
+| Frontend | 95 | 95 | 0 | 82% |
+```
+
+**Coverage targets:**
+
+| Category | Target | Rationale |
+|----------|--------|-----------|
+| Business logic | 90% | Core value, highest bug risk |
+| Integration | 70% | External boundary coverage |
+| Critical paths | 100% | Authentication, payments, data integrity |
+
+**Key rules:**
+- Use `--cov-report=term-missing` to see exactly which lines are uncovered
+- Set minimum coverage thresholds in CI to prevent regression
+- Focus on covering critical paths (auth, payments) before chasing overall percentage
+- HTML coverage reports (`htmlcov/`) help visualize gap areas during development
+- Coverage numbers alone do not indicate test quality — pair with mutation testing for confidence
+
+---
+
+## Parallel Test Execution
+
+Run tests in parallel with smart failure handling and scope-based execution.
+
+**Incorrect — running everything sequentially with full output:**
+```bash
+# Runs all tests sequentially, floods output, no failure control
+pytest tests/ -v
+```
+
+**Correct — scoped execution with failure limits and coverage:**
+```bash
+# Backend with coverage and failure limit
+cd backend
+poetry run pytest tests/unit/ -v --tb=short \
+  --cov=app --cov-report=term-missing \
+  --maxfail=3
+
+# Frontend with coverage
+cd frontend
+npm run test -- --coverage
+
+# Specific test (fast feedback)
+poetry run pytest tests/unit/ -k "test_name" -v
+```
+
+**Test scope options:**
+
+| Argument | Scope |
+|----------|-------|
+| Empty / `all` | All tests |
+| `backend` | Backend only |
+| `frontend` | Frontend only |
+| `path/to/test.py` | Specific file |
+| `test_name` | Specific test |
+
+**Failure analysis — launch 3 parallel analyzers on failure:**
+1. Backend Failure Analysis — root cause, fix suggestions
+2. Frontend Failure Analysis — component issues, mock problems
+3. Coverage Gap Analysis — low coverage areas
+
+**Key pytest options:**
+
+| Option | Purpose |
+|--------|---------|
+| `--maxfail=3` | Stop after 3 failures (fast feedback) |
+| `-x` | Stop on first failure |
+| `--lf` | Run only last failed tests |
+| `--tb=short` | Shorter tracebacks (balance detail/readability) |
+| `-q` | Quiet mode (minimal output) |
+
+**Key rules:**
+- Use `--maxfail=3` in CI for fast feedback without overwhelming output
+- Use `--tb=short` by default — `--tb=long` only when debugging specific failures
+- Run `--lf` (last-failed) during development for rapid iteration
+- Always include `--cov` in CI runs to track coverage trends
+- Use `--watch` mode during frontend development for continuous feedback
+
+
+### Define load testing thresholds and patterns for API performance validation with k6 — MEDIUM
+
+
+# k6 Load Testing
+
+```javascript
+import http from 'k6/http';
+import { check, sleep } from 'k6';
+
+export const options = {
+  stages: [
+    { duration: '30s', target: 20 },  // Ramp up
+    { duration: '1m', target: 20 },   // Steady
+    { duration: '30s', target: 0 },   // Ramp down
+  ],
+  thresholds: {
+    http_req_duration: ['p(95)<500'],  // 95% under 500ms
+    http_req_failed: ['rate<0.01'],    // <1% errors
+  },
+};
+
+export default function () {
+  const res = http.get('http://localhost:8500/api/health');
+
+  check(res, {
+    'status is 200': (r) => r.status === 200,
+    'response time < 200ms': (r) => r.timings.duration < 200,
+  });
+
+  sleep(1);
+}
+```
+
+## Custom Metrics
+
+```javascript
+import { Trend, Counter, Rate } from 'k6/metrics';
+
+const responseTime = new Trend('response_time');
+const errors = new Counter('errors');
+const successRate = new Rate('success_rate');
+```
+
+## CI Integration
+
+```yaml
+- name: Run k6 load test
+  run: k6 run --out json=results.json tests/load/api.js
+```
+
+## Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Thresholds | p95 &lt; 500ms, errors &lt; 1% |
+| Duration | 5-10 min for load, 4h+ for soak |
+
+**Incorrect — No thresholds, tests pass even with poor performance:**
+```javascript
+export const options = {
+  stages: [{ duration: '1m', target: 20 }]
+  // Missing: thresholds for response time and errors
+};
+```
+
+**Correct — Thresholds enforce performance requirements:**
+```javascript
+export const options = {
+  stages: [{ duration: '1m', target: 20 }],
+  thresholds: {
+    http_req_duration: ['p(95)<500'],
+    http_req_failed: ['rate<0.01']
+  }
+};
+```
+
+
+### Build Python-based load tests with task weighting and authentication flows using Locust — MEDIUM
+
+
+# Locust Load Testing
+
+```python
+from locust import HttpUser, task, between
+
+class APIUser(HttpUser):
+    wait_time = between(1, 3)
+
+    @task(3)
+    def get_analyses(self):
+        self.client.get("/api/analyses")
+
+    @task(1)
+    def create_analysis(self):
+        self.client.post(
+            "/api/analyses",
+            json={"url": "https://example.com"}
+        )
+
+    def on_start(self):
+        """Login before tasks."""
+        self.client.post("/api/auth/login", json={
+            "email": "test@example.com",
+            "password": "password"
+        })
+```
+
+## Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Tool | Locust for Python teams |
+| Task weights | Higher weight = more frequent |
+| Authentication | Use on_start for login |
+
+**Incorrect — No authentication flow, requests fail:**
+```python
+class APIUser(HttpUser):
+    @task
+    def get_analyses(self):
+        self.client.get("/api/analyses")  # 401 Unauthorized
+```
+
+**Correct — Login in on_start before tasks:**
+```python
+class APIUser(HttpUser):
+    def on_start(self):
+        self.client.post("/api/auth/login", json={
+            "email": "test@example.com", "password": "password"
+        })
+
+    @task
+    def get_analyses(self):
+        self.client.get("/api/analyses")  # Authenticated
+```
+
+
+### Define load, stress, spike, and soak testing patterns for comprehensive performance validation — MEDIUM
+
+
+# Performance Test Types
+
+## Load Test (Normal expected load)
+
+```javascript
+export const options = {
+  vus: 50,
+  duration: '5m',
+};
+```
+
+## Stress Test (Find breaking point)
+
+```javascript
+export const options = {
+  stages: [
+    { duration: '2m', target: 100 },
+    { duration: '2m', target: 200 },
+    { duration: '2m', target: 300 },
+    { duration: '2m', target: 400 },
+  ],
+};
+```
+
+## Spike Test (Sudden traffic surge)
+
+```javascript
+export const options = {
+  stages: [
+    { duration: '10s', target: 10 },
+    { duration: '1s', target: 1000 },  // Spike!
+    { duration: '3m', target: 1000 },
+    { duration: '10s', target: 10 },
+  ],
+};
+```
+
+## Soak Test (Sustained load for memory leaks)
+
+```javascript
+export const options = {
+  vus: 50,
+  duration: '4h',
+};
+```
+
+## Common Mistakes
+
+- Testing against production without protection
+- No warmup period
+- Unrealistic load profiles
+- Missing error rate thresholds
+
+**Incorrect — No warmup, sudden load spike:**
+```javascript
+export const options = {
+  vus: 100,
+  duration: '5m'
+  // No ramp-up, cold start skews results
+};
+```
+
+**Correct — Gradual ramp-up with warmup period:**
+```javascript
+export const options = {
+  stages: [
+    { duration: '30s', target: 20 },   // Warmup
+    { duration: '1m', target: 100 },   // Ramp up
+    { duration: '3m', target: 100 },   // Steady load
+    { duration: '30s', target: 0 }     // Ramp down
+  ]
+};
+```
+
+
+### Enable selective test execution through custom markers and accelerate suites with pytest-xdist parallel execution — HIGH
+
+
+# Custom Pytest Markers
+
+## Configuration
+
+```toml
+# pyproject.toml
+[tool.pytest.ini_options]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests requiring external services",
+    "smoke: critical path tests for CI/CD",
+]
+```
+
+## Usage
+
+```python
+import pytest
+
+@pytest.mark.slow
+def test_complex_analysis():
+    result = perform_complex_analysis(large_dataset)
+    assert result.is_valid
+
+# Run: pytest -m "not slow"  # Skip slow tests
+# Run: pytest -m smoke       # Only smoke tests
+```
+
+## Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Marker strategy | Category (smoke, integration) + Resource (db, llm) |
+| CI fast path | `pytest -m "not slow"` for PR checks |
+| Nightly | `pytest` (all markers) for full coverage |
+
+**Incorrect — Using markers without registering them:**
+```python
+@pytest.mark.slow
+def test_complex():
+    pass
+# Pytest warns: PytestUnknownMarkWarning
+```
+
+**Correct — Register markers in pyproject.toml:**
+```toml
+[tool.pytest.ini_options]
+markers = [
+    "slow: marks tests as slow",
+    "integration: marks tests requiring external services"
+]
+```
+
+---
+
+# Parallel Execution with pytest-xdist
+
+## Configuration
+
+```toml
+[tool.pytest.ini_options]
+addopts = ["-n", "auto", "--dist", "loadscope"]
+```
+
+## Worker Database Isolation
+
+```python
+@pytest.fixture(scope="session")
+def db_engine(worker_id):
+    """Isolate database per worker."""
+    db_name = "test_db" if worker_id == "master" else f"test_db_{worker_id}"
+    engine = create_engine(f"postgresql://localhost/{db_name}")
+    yield engine
+```
+
+## Distribution Modes
+
+| Mode | Behavior | Use Case |
+|------|----------|----------|
+| loadscope | Group by module/class | DB-heavy tests |
+| load | Round-robin | Independent tests |
+| each | Send all to each worker | Cross-platform |
+
+## Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Workers | `-n auto` (match CPU cores) |
+| Distribution | `loadscope` for DB tests |
+| Fixture scope | `session` for expensive, `function` for mutable |
+| Async testing | pytest-asyncio with auto mode |
+
+**Incorrect — Shared database across workers causes conflicts:**
+```python
+@pytest.fixture(scope="session")
+def db_engine():
+    return create_engine("postgresql://localhost/test_db")
+    # Workers overwrite each other's data
+```
+
+**Correct — Isolated database per worker:**
+```python
+@pytest.fixture(scope="session")
+def db_engine(worker_id):
+    db_name = f"test_db_{worker_id}" if worker_id != "master" else "test_db"
+    return create_engine(f"postgresql://localhost/{db_name}")
+```
+
+
+### Build factory fixture patterns and pytest plugins for reusable test infrastructure — HIGH
+
+
+# Pytest Plugins and Hooks
+
+## Factory Fixtures
+
+```python
+@pytest.fixture
+def user_factory(db_session) -> Callable[..., User]:
+    """Factory fixture for creating users."""
+    created = []
+
+    def _create(**kwargs) -> User:
+        user = User(**{"email": f"u{len(created)}@test.com", **kwargs})
+        db_session.add(user)
+        created.append(user)
+        return user
+
+    yield _create
+    for u in created:
+        db_session.delete(u)
+```
+
+## Anti-Patterns (FORBIDDEN)
+
+```python
+# NEVER use expensive fixtures without session scope
+@pytest.fixture  # WRONG - loads every test
+def model():
+    return load_ml_model()  # 5s each time!
+
+# NEVER mutate global state
+@pytest.fixture
+def counter():
+    global _counter
+    _counter += 1  # WRONG - leaks between tests
+
+# NEVER skip cleanup
+@pytest.fixture
+def temp_db():
+    db = create_db()
+    yield db
+    # WRONG - missing db.drop()!
+```
+
+## Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Plugin location | conftest.py for project, package for reuse |
+| Async testing | pytest-asyncio with auto mode |
+| Fixture scope | Function default, session for expensive setup |
+
+**Incorrect — Expensive fixture without session scope:**
+```python
+@pytest.fixture
+def ml_model():
+    return load_large_model()  # 5s, reloaded EVERY test
+```
+
+**Correct — Session-scoped fixture for expensive setup:**
+```python
+@pytest.fixture(scope="session")
+def ml_model():
+    return load_large_model()  # 5s, loaded ONCE
+```
+
+
+
+---
+
+## References (3)
+
+### Custom Plugins
+
+# Custom Pytest Plugins
+
+## Plugin Types
+
+### Local Plugins (conftest.py)
+For project-specific functionality. Auto-loaded from any `conftest.py`.
+
+```python
+# conftest.py
+import pytest
+
+def pytest_configure(config):
+    """Run once at pytest startup."""
+    config.addinivalue_line(
+        "markers", "smoke: critical path tests"
+    )
+
+def pytest_collection_modifyitems(config, items):
+    """Reorder tests: smoke first, slow last."""
+    items.sort(key=lambda x: (
+        0 if x.get_closest_marker("smoke") else
+        2 if x.get_closest_marker("slow") else 1
+    ))
+```
+
+### Installable Plugins
+For reusable functionality across projects.
+
+```python
+# pytest_timing_plugin.py
+import pytest
+from datetime import datetime
+
+class TimingPlugin:
+    def __init__(self, threshold: float = 1.0):
+        self.threshold = threshold
+        self.slow_tests = []
+
+    @pytest.hookimpl(hookwrapper=True)
+    def pytest_runtest_call(self, item):
+        start = datetime.now()
+        yield
+        duration = (datetime.now() - start).total_seconds()
+        if duration > self.threshold:
+            self.slow_tests.append((item.nodeid, duration))
+
+    def pytest_terminal_summary(self, terminalreporter):
+        if self.slow_tests:
+            terminalreporter.write_sep("=", "Slow Tests Report")
+            for nodeid, duration in sorted(self.slow_tests, key=lambda x: -x[1]):
+                terminalreporter.write_line(f"  {duration:.2f}s - {nodeid}")
+
+def pytest_configure(config):
+    config.pluginmanager.register(TimingPlugin(threshold=1.0))
+```
+
+## Hook Reference
+
+### Collection Hooks
+```python
+def pytest_collection_modifyitems(config, items):
+    """Modify collected tests."""
+
+def pytest_generate_tests(metafunc):
+    """Generate parametrized tests dynamically."""
+```
+
+### Execution Hooks
+```python
+@pytest.hookimpl(tryfirst=True, hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    """Access test results."""
+    outcome = yield
+    report = outcome.get_result()
+    if report.when == "call" and report.failed:
+        # Handle failures
+        pass
+```
+
+### Setup/Teardown Hooks
+```python
+def pytest_configure(config):
+    """Startup hook."""
+
+def pytest_unconfigure(config):
+    """Shutdown hook."""
+
+def pytest_sessionstart(session):
+    """Session start."""
+
+def pytest_sessionfinish(session, exitstatus):
+    """Session end."""
+```
+
+## Publishing a Plugin
+
+```toml
+# pyproject.toml
+[project]
+name = "pytest-my-plugin"
+version = "1.0.0"
+
+[project.entry-points.pytest11]
+my_plugin = "pytest_my_plugin"
+```
+
+
+### K6 Patterns
+
+# k6 Load Testing Patterns
+
+Common patterns for effective performance testing with k6.
+
+## Implementation
+
+### Staged Ramp-Up Pattern
+
+```javascript
+import http from 'k6/http';
+import { check, sleep } from 'k6';
+
+export const options = {
+  stages: [
+    { duration: '1m', target: 50 },   // Ramp up to 50 users
+    { duration: '3m', target: 50 },   // Stay at 50 users
+    { duration: '1m', target: 100 },  // Ramp to 100 users
+    { duration: '3m', target: 100 },  // Stay at 100 users
+    { duration: '2m', target: 0 },    // Ramp down
+  ],
+  thresholds: {
+    http_req_duration: ['p(95)<500', 'p(99)<1000'],
+    http_req_failed: ['rate<0.01'],
+    checks: ['rate>0.99'],
+  },
+};
+
+export default function () {
+  const res = http.get('http://localhost:8000/api/health');
+
+  check(res, {
+    'status is 200': (r) => r.status === 200,
+    'response time < 200ms': (r) => r.timings.duration < 200,
+    'body contains status': (r) => r.body.includes('ok'),
+  });
+
+  sleep(Math.random() * 2 + 1); // 1-3 second think time
+}
+```
+
+### Authenticated Requests Pattern
+
+```javascript
+import http from 'k6/http';
+import { check } from 'k6';
+
+export function setup() {
+  const loginRes = http.post('http://localhost:8000/api/auth/login', {
+    email: 'loadtest@example.com',
+    password: 'testpassword',
+  });
+
+  return { token: loginRes.json('access_token') };
+}
+
+export default function (data) {
+  const params = {
+    headers: { Authorization: `Bearer ${data.token}` },
+  };
+
+  const res = http.get('http://localhost:8000/api/protected', params);
+  check(res, { 'authenticated request ok': (r) => r.status === 200 });
+}
+```
+
+## Test Types Summary
+
+| Type | Duration | VUs | Purpose |
+|------|----------|-----|---------|
+| Smoke | 1 min | 1-5 | Verify script works |
+| Load | 5-10 min | Expected | Normal traffic |
+| Stress | 10-20 min | 2-3x expected | Find limits |
+| Soak | 4-12 hours | Normal | Memory leaks |
+
+## Checklist
+
+- [ ] Define realistic thresholds (p95, p99, error rate)
+- [ ] Include proper ramp-up period (avoid cold start)
+- [ ] Add think time between requests (sleep)
+- [ ] Use checks for functional validation
+- [ ] Externalize configuration (stages, VUs)
+- [ ] Run smoke test before full load test
+
+
+### Xdist Parallel
+
+# pytest-xdist Parallel Execution
+
+## Distribution Modes
+
+### loadscope (Recommended Default)
+Groups tests by module for test functions and by class for test methods. Ideal when fixtures are expensive.
+
+```bash
+pytest -n auto --dist loadscope
+```
+
+### loadfile
+Groups tests by file. Good balance of parallelism and fixture sharing.
+
+```bash
+pytest -n auto --dist loadfile
+```
+
+### loadgroup
+Tests grouped by `@pytest.mark.xdist_group(name="group1")` marker.
+
+```python
+@pytest.mark.xdist_group(name="database")
+def test_create_user():
+    pass
+
+@pytest.mark.xdist_group(name="database")
+def test_delete_user():
+    pass
+```
+
+### load
+Round-robin distribution for maximum parallelism. Best when tests are truly independent.
+
+```bash
+pytest -n auto --dist load
+```
+
+## Worker Isolation
+
+Each worker is completely isolated:
+- Global state isn't shared
+- Environment variables are independent
+- Temp files/databases must be unique per worker
+
+```python
+@pytest.fixture(scope="session")
+def db_engine(worker_id):
+    """Create isolated database per worker."""
+    if worker_id == "master":
+        db_name = "test_db"  # Not running in parallel
+    else:
+        db_name = f"test_db_{worker_id}"  # gw0, gw1, etc.
+
+    engine = create_engine(f"postgresql://localhost/{db_name}")
+    yield engine
+    engine.dispose()
+```
+
+## Resource Allocation
+
+```bash
+# Auto-detect cores (recommended)
+pytest -n auto
+
+# Specific count
+pytest -n 4
+
+# Use logical CPUs
+pytest -n logical
+```
+
+**Warning**: Over-provisioning (e.g., `-n 20` on 4 cores) increases overhead.
+
+## CI/CD Configuration
+
+```yaml
+# GitHub Actions
+- name: Run tests in parallel
+  run: pytest -n auto --dist loadscope -v
+  env:
+    PYTEST_XDIST_AUTO_NUM_WORKERS: 4  # Override auto detection
+```
+
+## Limitations
+
+- `-s/--capture=no` doesn't work with xdist
+- Some fixtures may need refactoring for parallelism
+- Database tests need worker-isolated databases
+
+
+
+---
+
+## Checklists (2)
+
+### Performance Checklist
+
+# Performance Testing Checklist
+
+## Test Planning
+
+- [ ] Define performance goals
+- [ ] Identify critical paths
+- [ ] Determine test scenarios
+- [ ] Set baseline metrics
+
+## Test Setup
+
+- [ ] Production-like environment
+- [ ] Realistic test data
+- [ ] Proper warm-up period
+- [ ] Isolated test environment
+
+## Metrics
+
+- [ ] Response time (p50, p95, p99)
+- [ ] Throughput (requests/sec)
+- [ ] Error rate
+- [ ] Resource utilization
+
+## Load Patterns
+
+- [ ] Steady state
+- [ ] Ramp up
+- [ ] Spike testing
+- [ ] Soak testing
+
+## Analysis
+
+- [ ] Identify bottlenecks
+- [ ] Compare to baseline
+- [ ] Document findings
+- [ ] Create action items
+
+
+### Pytest Production Checklist
+
+# Pytest Production Checklist
+
+## Configuration
+- [ ] `pyproject.toml` has all custom markers defined
+- [ ] `conftest.py` at project root for shared fixtures
+- [ ] pytest-asyncio mode configured (`mode = "auto"`)
+- [ ] Coverage thresholds set (`--cov-fail-under=80`)
+
+## Markers
+- [ ] All tests have appropriate markers (smoke, integration, db, slow)
+- [ ] Marker filter expressions tested (`pytest -m "not slow"`)
+- [ ] CI pipeline uses marker filtering
+
+## Parallel Execution
+- [ ] pytest-xdist configured (`-n auto --dist loadscope`)
+- [ ] Worker isolation verified (no shared state)
+- [ ] Database fixtures use `worker_id` for isolation
+- [ ] Redis/external services use unique namespaces per worker
+
+## Fixtures
+- [ ] Expensive fixtures use `scope="session"` or `scope="module"`
+- [ ] Factory fixtures for complex object creation
+- [ ] All fixtures have proper cleanup (yield + teardown)
+- [ ] No global state mutations in fixtures
+
+## Performance
+- [ ] Slow tests marked with `@pytest.mark.slow`
+- [ ] No unnecessary `time.sleep()` (use mocking)
+- [ ] Large datasets use lazy loading
+- [ ] Timing reports enabled for slow test detection
+
+## CI/CD
+- [ ] Tests run in parallel in CI
+- [ ] Coverage reports uploaded
+- [ ] Test results in JUnit XML format
+- [ ] Flaky test detection enabled
+
+## Code Quality
+- [ ] No skipped tests without reasons (`@pytest.mark.skip(reason="...")`)
+- [ ] xfail tests have documented reasons
+- [ ] Parametrized tests have descriptive IDs
+- [ ] Test names follow convention (`test_&lt;what&gt;_&lt;condition&gt;_&lt;expected&gt;`)
+

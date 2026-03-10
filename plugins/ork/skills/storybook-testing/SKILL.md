@@ -1,7 +1,7 @@
 ---
 name: storybook-testing
 license: MIT
-compatibility: "Claude Code 2.1.59+."
+compatibility: "Claude Code 2.1.72+."
 description: Storybook 9/10 testing patterns with Vitest integration, CSF3 typesafe factories, play() interaction tests, Chromatic TurboSnap visual regression, sb.mock isolation, accessibility addon testing, and autodocs generation. Use when writing component stories, setting up visual regression testing, configuring Storybook CI pipelines, or migrating to Storybook 9/10.
 tags: [storybook, vitest, csf3, chromatic, turbosnap, visual-regression, play-functions, component-testing, a11y-testing, autodocs]
 context: fork
@@ -162,4 +162,4 @@ export default defineConfig({
 
 - `react-server-components-framework` — React 19 + Next.js 16 patterns (component architecture)
 - `accessibility` — Broader accessibility patterns beyond Storybook
-- `ci-automation` — CI pipeline patterns for automated testing
+- `devops-deployment` — CI/CD pipeline patterns for automated testing

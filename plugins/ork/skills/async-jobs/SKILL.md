@@ -1,7 +1,7 @@
 ---
 name: async-jobs
 license: MIT
-compatibility: "Claude Code 2.1.59+."
+compatibility: "Claude Code 2.1.72+."
 description: Async job processing patterns for background tasks, Celery workflows, task scheduling, retry strategies, and distributed task execution. Use when implementing background job processing, task queues, or scheduled task systems.
 tags: [async, jobs, celery, background-tasks, scheduling, queues]
 context: fork
@@ -264,7 +264,7 @@ Lightweight async Redis Queue for FastAPI and simple background tasks.
 
 ## Anti-Patterns (FORBIDDEN)
 
-Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/async-jobs/references/anti-patterns.md")` for full list.
+Load details: `Read("${CLAUDE_SKILL_DIR}/references/anti-patterns.md")` for full list.
 
 Key rules: never run long tasks in request handlers, never block on results inside tasks, never store large results in Redis, always use idempotency for retried tasks.
 
@@ -317,4 +317,4 @@ Activity and worker patterns for Temporal.io I/O operations.
 
 ## Capability Details
 
-Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/async-jobs/references/capability-details.md")` for full keyword index and problem-solution mapping across all 8 capabilities.
+Load details: `Read("${CLAUDE_SKILL_DIR}/references/capability-details.md")` for full keyword index and problem-solution mapping across all 8 capabilities.

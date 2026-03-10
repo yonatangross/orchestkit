@@ -1,0 +1,92 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "testing-perf",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "perf-k6",
+      "query": "Write a k6 load test with thresholds",
+      "expected_behavior": [
+        "Defines load test stages for ramp-up, steady state, and ramp-down traffic patterns",
+        "Sets p95 and error rate thresholds",
+        "Uses the k6 check() function for validating response status and body during load tests"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "perf-locust",
+      "query": "Create a Locust load test for an API",
+      "expected_behavior": [
+        "Defines a Locust HttpUser class with @task decorators to specify weighted user behaviors",
+        "Implements the on_start method for authentication and session setup before load generation",
+        "Uses wait_time between requests to simulate realistic user think time intervals"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "perf-types",
+      "query": "What type of performance test should I run?",
+      "expected_behavior": [
+        "Distinguishes between load, stress, spike, and soak tests based on traffic profile goals",
+        "Recommends appropriate traffic profiles for each performance test type and use case",
+        "Includes CI integration patterns for running performance tests in automated pipelines"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "pytest-markers",
+      "query": "Categorize tests with custom pytest markers",
+      "expected_behavior": [
+        "Defines custom pytest markers in pyproject.toml to categorize tests by type or scope",
+        "Uses markers like @pytest.mark.slow and @pytest.mark.smoke for selective test execution",
+        "Shows pytest marker selection for running smoke or slow tests selectively"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "pytest-xdist",
+      "query": "Run tests in parallel with pytest-xdist",
+      "expected_behavior": [
+        "Configures pytest-xdist with -n auto --dist loadscope for scope-based parallel distribution",
+        "Isolates database connections per worker_id to prevent cross-worker data conflicts",
+        "Handles shared resources safely using locks or worker-scoped fixtures to prevent races"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "pytest-plugins",
+      "query": "Create reusable pytest plugins and hooks",
+      "expected_behavior": [
+        "Implements reusable factory fixtures in conftest.py for consistent test data creation",
+        "Uses pytest hooks for customizing test collection, reporting, and execution behavior",
+        "Configures pytest-asyncio in auto mode to automatically detect and run async test functions"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "execution",
+      "query": "Our CI pipeline takes 25 minutes to run all tests. How can I speed it up and track coverage?",
+      "expected_behavior": [
+        "Uses --cov-report=term-missing to identify exactly which lines are uncovered",
+        "Recommends --maxfail=3 in CI for fast feedback without overwhelming output",
+        "Sets minimum coverage thresholds with 90% for business logic and 100% for critical paths",
+        "Uses --lf (last-failed) during development for rapid iteration on broken tests"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    }
+  ]
+}

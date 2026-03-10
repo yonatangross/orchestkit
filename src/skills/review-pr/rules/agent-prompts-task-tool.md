@@ -89,7 +89,8 @@ The lead reviewer collects all agent JSON outputs, deduplicates by file+line+cat
 Agent(
   description="Review code quality",
   subagent_type="code-quality-reviewer",
-  prompt="""CODE QUALITY REVIEW for PR $PR_NUMBER
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  CODE QUALITY REVIEW
 
   ## Project Context
   ${PROJECT_CONTEXT}
@@ -100,13 +101,14 @@ Agent(
   3. DRY violations and code duplication
   4. SOLID principles adherence
 
-  Scope: ONLY review the following changed files:
-  ${CHANGED_FILES}
-
-  Do NOT explore beyond these files. Focus your analysis on the diff.
+  Do NOT explore beyond the changed files listed below. Focus your analysis on the diff.
 
   Return your findings as a JSON block (```json```) matching the structured output contract above.
   Use category prefix MAINT for maintainability findings. Use conventional comments (praise/suggestion/issue/nitpick).
+
+  PR: $PR_NUMBER
+  Scope: ONLY review the following changed files:
+  ${CHANGED_FILES}
   """,
   run_in_background=True,
   max_turns=25
@@ -114,7 +116,8 @@ Agent(
 Agent(
   description="Review type safety",
   subagent_type="code-quality-reviewer",
-  prompt="""TYPE SAFETY REVIEW for PR $PR_NUMBER
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  TYPE SAFETY REVIEW
 
   ## Project Context
   ${PROJECT_CONTEXT}
@@ -125,13 +128,14 @@ Agent(
   3. No `any` types or type assertions
   4. Exhaustive switch/union handling
 
-  Scope: ONLY review the following changed files:
-  ${CHANGED_FILES}
-
-  Do NOT explore beyond these files. Focus your analysis on the diff.
+  Do NOT explore beyond the changed files listed below. Focus your analysis on the diff.
 
   Return your findings as a JSON block (```json```) matching the structured output contract above.
   Use category prefix MAINT for type safety findings. Use conventional comments.
+
+  PR: $PR_NUMBER
+  Scope: ONLY review the following changed files:
+  ${CHANGED_FILES}
   """,
   run_in_background=True,
   max_turns=25
@@ -139,7 +143,8 @@ Agent(
 Agent(
   description="Security audit PR",
   subagent_type="security-auditor",
-  prompt="""SECURITY REVIEW for PR $PR_NUMBER
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  SECURITY REVIEW
 
   ## Project Context
   ${PROJECT_CONTEXT}
@@ -153,13 +158,14 @@ Agent(
   6. SSRF protection on user-controlled URLs
   7. Rate limiting on auth endpoints
 
-  Scope: ONLY review the following changed files:
-  ${CHANGED_FILES}
-
-  Do NOT explore beyond these files. Focus your analysis on the diff.
+  Do NOT explore beyond the changed files listed below. Focus your analysis on the diff.
 
   Return your findings as a JSON block (```json```) matching the structured output contract above.
   Use category prefix SEC for security findings. Use conventional comments.
+
+  PR: $PR_NUMBER
+  Scope: ONLY review the following changed files:
+  ${CHANGED_FILES}
   """,
   run_in_background=True,
   max_turns=25
@@ -167,7 +173,8 @@ Agent(
 Agent(
   description="Review test adequacy",
   subagent_type="test-generator",
-  prompt="""TEST ADEQUACY REVIEW for PR $PR_NUMBER
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  TEST ADEQUACY REVIEW
 
   Evaluate whether this PR has sufficient tests:
 
@@ -176,7 +183,7 @@ Agent(
      - Are there changed files with 0 corresponding test files?
      - Flag: "MISSING" if code changes have no tests at all
 
-  2. TEST TYPE MATCHING (use testing-patterns rules)
+  2. TEST TYPE MATCHING (use testing-unit/testing-e2e/testing-integration rules)
      Match changed code to required test types:
      - API endpoint changes → need integration tests (rule: integration-api)
      - DB schema changes → need migration + integration tests (rule: integration-database)
@@ -197,13 +204,14 @@ Agent(
   ## Project Context
   ${PROJECT_CONTEXT}
 
-  Scope: ONLY review the following changed files:
-  ${CHANGED_FILES}
-
-  Do NOT explore beyond these files. Focus your analysis on the diff.
+  Do NOT explore beyond the changed files listed below. Focus your analysis on the diff.
 
   Return your findings as a JSON block (```json```) matching the structured output contract above.
   Use category prefix TEST for testing findings. Use conventional comments.
+
+  PR: $PR_NUMBER
+  Scope: ONLY review the following changed files:
+  ${CHANGED_FILES}
   """,
   run_in_background=True,
   max_turns=25
@@ -211,7 +219,8 @@ Agent(
 Agent(
   description="Review backend code",
   subagent_type="backend-system-architect",
-  prompt="""BACKEND REVIEW for PR $PR_NUMBER
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  BACKEND REVIEW
 
   ## Project Context
   ${PROJECT_CONTEXT}
@@ -224,13 +233,14 @@ Agent(
   5. Redis connection lifecycle (close in try/finally)
   6. Webhook auth patterns (fail-closed)
 
-  Scope: ONLY review the following changed files:
-  ${CHANGED_FILES}
-
-  Do NOT explore beyond these files. Focus your analysis on the diff.
+  Do NOT explore beyond the changed files listed below. Focus your analysis on the diff.
 
   Return your findings as a JSON block (```json```) matching the structured output contract above.
   Use category prefixes: BUG (correctness), PERF (performance), MAINT (maintainability). Use conventional comments.
+
+  PR: $PR_NUMBER
+  Scope: ONLY review the following changed files:
+  ${CHANGED_FILES}
   """,
   run_in_background=True,
   max_turns=25
@@ -238,7 +248,8 @@ Agent(
 Agent(
   description="Review frontend code",
   subagent_type="frontend-ui-developer",
-  prompt="""FRONTEND REVIEW for PR $PR_NUMBER
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  FRONTEND REVIEW
 
   ## Project Context
   ${PROJECT_CONTEXT}
@@ -250,13 +261,14 @@ Agent(
   4. Performance (memoization, lazy loading)
   5. SSR safety — no navigator/window outside hooks/useEffect
 
-  Scope: ONLY review the following changed files:
-  ${CHANGED_FILES}
-
-  Do NOT explore beyond these files. Focus your analysis on the diff.
+  Do NOT explore beyond the changed files listed below. Focus your analysis on the diff.
 
   Return your findings as a JSON block (```json```) matching the structured output contract above.
   Use category prefixes: A11Y (accessibility), PERF (performance), BUG (correctness). Use conventional comments.
+
+  PR: $PR_NUMBER
+  Scope: ONLY review the following changed files:
+  ${CHANGED_FILES}
   """,
   run_in_background=True,
   max_turns=25

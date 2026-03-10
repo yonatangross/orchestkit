@@ -9,7 +9,9 @@ description: "Full-power feature implementation with parallel subagents. Use whe
 
 - [api-design](/docs/reference/skills/api-design)
 - [react-server-components-framework](/docs/reference/skills/react-server-components-framework)
-- [testing-patterns](/docs/reference/skills/testing-patterns)
+- [testing-unit](/docs/reference/skills/testing-unit)
+- [testing-e2e](/docs/reference/skills/testing-e2e)
+- [testing-integration](/docs/reference/skills/testing-integration)
 - [explore](/docs/reference/skills/explore)
 - [verify](/docs/reference/skills/verify)
 - [memory](/docs/reference/skills/memory)
@@ -85,7 +87,7 @@ Scan codebase for signals: README keywords (take-home, interview), `.github/work
 
 | Signal | Tier | Architecture Ceiling |
 |--------|------|---------------------|
-| README says "take-home", time limit | **1. Interview** (load `$\{CLAUDE_PLUGIN_ROOT\}/skills/implement/references/interview-mode.md`) | Flat files, 8-15 files |
+| README says "take-home", time limit | **1. Interview** (load `$\{CLAUDE_SKILL_DIR\}/references/interview-mode.md`) | Flat files, 8-15 files |
 | &lt; 10 files, no CI | **2. Hackathon** | Single file if possible |
 | `.github/workflows/`, managed DB | **3. MVP** | MVC monolith |
 | Module boundaries, Redis, queues | **4. Growth** | Modular monolith, DI |
@@ -110,7 +112,7 @@ Use `AskUserQuestion` to verify scope (full-stack / backend-only / frontend-only
 
 - Agent Teams (mesh) when `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` and complexity >= 2.5
 - Task tool (star) otherwise; `ORCHESTKIT_FORCE_TASK_TOOL=1` to override
-- Load orchestration modes: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/implement/references/orchestration-modes.md")`
+- Load orchestration modes: `Read("$\{CLAUDE_SKILL_DIR\}/references/orchestration-modes.md")`
 
 ### Worktree Isolation (CC 2.1.49)
 
@@ -123,13 +125,13 @@ AskUserQuestion(questions=[{
   "options": [
     {"label": "Yes — worktree (Recommended)", "description": "Creates isolated branch via EnterWorktree, merges back on completion", "markdown": "```\nWorktree Isolation\n──────────────────\nmain ─────────────────────────────▶\n  \\                              /\n   └─ feat-{slug} (worktree) ───┘\n      ├── Isolated directory\n      ├── Own branch + index\n      └── Auto-merge on completion\n\nSafe: main stays untouched until done\n```"},
     {"label": "No — work in-place", "description": "Edit files directly in current branch", "markdown": "```\nIn-Place Editing\n────────────────\nmain ──[edit]──[edit]──[edit]───▶\n       ▲       ▲       ▲\n       │       │       │\n     direct modifications\n\nFast: no branch overhead\nRisk: changes visible immediately\n```"},
-    {"label": "Plan first", "description": "Research and design in plan mode before writing code", "markdown": "```\nPlan Mode Flow\n──────────────\n  1. EnterPlanMode\n  2. Read existing code\n  3. Research patterns\n  4. Design approach\n  5. ExitPlanMode → plan\n  6. User approves plan\n  7. Execute implementation\n\n  Best for: Large features,\n  unfamiliar codebases,\n  architectural decisions\n```"}
+    {"label": "Plan first", "description": "Research and design in plan mode before writing code", "markdown": "```\nPlan Mode Flow\n──────────────\n  1. EnterPlanMode($ARGUMENTS)\n  2. Read existing code\n  3. Research patterns\n  4. Design approach\n  5. ExitPlanMode → plan\n  6. User approves plan\n  7. Execute implementation\n\n  Best for: Large features,\n  unfamiliar codebases,\n  architectural decisions\n```"}
   ],
   "multiSelect": false
 }])
 ```
 
-**If 'Plan first' selected:** Call `EnterPlanMode`, perform research using Read/Grep/Glob only, then `ExitPlanMode` with the plan for user approval before proceeding.
+**If 'Plan first' selected:** Call `EnterPlanMode("Research and design: $ARGUMENTS")`, perform research using Read/Grep/Glob only, then `ExitPlanMode` with the plan for user approval before proceeding.
 
 If worktree selected:
 1. Call `EnterWorktree(name: "feat-\{slug\}")` to create isolated branch
@@ -137,7 +139,7 @@ If worktree selected:
 3. On completion, merge back: `git checkout \{original-branch\} && git merge feat-\{slug\}`
 4. If merge conflicts arise, present diff to user via `AskUserQuestion`
 
-Load worktree details: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/implement/references/worktree-isolation-mode.md")`
+Load worktree details: `Read("$\{CLAUDE_SKILL_DIR\}/references/worktree-isolation-mode.md")`
 
 ---
 
@@ -152,19 +154,19 @@ Create tasks with `TaskCreate` BEFORE doing any work. Each phase gets a subtask.
 | Phase | Activities | Agents |
 |-------|------------|--------|
 | **1. Discovery** | Research best practices, Context7 docs, break into tasks | — |
-| **2. Micro-Planning** | Detailed plan per task (load `$\{CLAUDE_PLUGIN_ROOT\}/skills/implement/references/micro-planning-guide.md`) | — |
-| **3. Worktree** | Isolate in git worktree for 5+ file features (load `$\{CLAUDE_PLUGIN_ROOT\}/skills/implement/references/worktree-workflow.md`) | — |
+| **2. Micro-Planning** | Detailed plan per task (load `$\{CLAUDE_SKILL_DIR\}/references/micro-planning-guide.md`) | — |
+| **3. Worktree** | Isolate in git worktree for 5+ file features (load `$\{CLAUDE_SKILL_DIR\}/references/worktree-workflow.md`) | — |
 | **4. Architecture** | 4 parallel background agents | workflow-architect, backend-system-architect, frontend-ui-developer, llm-integrator |
 | **5. Implementation + Tests** | Parallel agents, single-pass artifacts with mandatory tests | backend-system-architect, frontend-ui-developer, llm-integrator, test-generator |
 | **6. Integration Verification** | Code review + real-service integration tests | backend, frontend, code-quality-reviewer, security-auditor |
-| **7. Scope Creep** | Compare planned vs actual (load `$\{CLAUDE_PLUGIN_ROOT\}/skills/implement/references/scope-creep-detection.md`) | workflow-architect |
-| **8. E2E Verification** | Browser + API E2E testing (load `$\{CLAUDE_PLUGIN_ROOT\}/skills/implement/references/e2e-verification.md`) | — |
+| **7. Scope Creep** | Compare planned vs actual (load `$\{CLAUDE_SKILL_DIR\}/references/scope-creep-detection.md`) | workflow-architect |
+| **8. E2E Verification** | Browser + API E2E testing (load `$\{CLAUDE_SKILL_DIR\}/references/e2e-verification.md`) | — |
 | **9. Documentation** | Save decisions to memory graph | — |
 | **10. Reflection** | Lessons learned, estimation accuracy | workflow-architect |
 
-Load agent prompts: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/implement/references/agent-phases.md")`
+Load agent prompts: `Read("$\{CLAUDE_SKILL_DIR\}/references/agent-phases.md")`
 
-For Agent Teams mode: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/implement/references/agent-teams-phases.md")`
+For Agent Teams mode: `Read("$\{CLAUDE_SKILL_DIR\}/references/agent-teams-phases.md")`
 
 ### Phase Handoffs (CC 2.1.71)
 
@@ -199,6 +201,8 @@ Agent(subagent_type="test-generator",
 After final PR, schedule health monitoring:
 
 ```python
+# Guard: Skip cron in headless/CI (CLAUDE_CODE_DISABLE_CRON)
+# if env CLAUDE_CODE_DISABLE_CRON is set, run a single check instead
 CronCreate(
   schedule="0 */6 * * *",
   prompt="Health check for {feature} in PR #{pr}:
@@ -223,7 +227,7 @@ If working on a GitHub issue, run the Start Work ceremony from `issue-progress-t
 
 ### Feedback Loop
 
-Maintain checkpoints after each task. Load triggers: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/implement/references/feedback-loop.md")`
+Maintain checkpoints after each task. Load triggers: `Read("$\{CLAUDE_SKILL_DIR\}/references/feedback-loop.md")`
 
 ---
 
@@ -231,7 +235,7 @@ Maintain checkpoints after each task. Load triggers: `Read("$\{CLAUDE_PLUGIN_ROO
 
 Phase 5 test-generator MUST produce tests matching the change type:
 
-| Change Type | Required Tests | `testing-patterns` Rules |
+| Change Type | Required Tests | Testing Rules |
 |-------------|---------------|--------------------------|
 | API endpoint | Unit + Integration + Contract | `integration-api`, `verification-contract`, `mocking-msw` |
 | DB schema/migration | Migration + Integration | `integration-database`, `data-seeding-cleanup` |
@@ -252,7 +256,7 @@ Grep(pattern="testcontainers|docker-compose", glob="requirements*.txt")
 Grep(pattern="testcontainers|docker-compose", glob="package.json")
 ```
 
-If detected: run integration tests against real services, not just mocks. Reference `testing-patterns` rules: `integration-database`, `integration-api`, `data-seeding-cleanup`.
+If detected: run integration tests against real services, not just mocks. Reference `testing-integration` rules: `integration-database`, `integration-api`, `data-seeding-cleanup`.
 
 ### Phase 9 Gate
 
@@ -269,7 +273,7 @@ If detected: run integration tests against real services, not just mocks. Refere
 - **Detect scope creep** (phase 7) — score 0-10, split PR if significant
 - **Real services when available** — if docker-compose/testcontainers exist, use them in Phase 6
 - **Reflect and capture lessons** (phase 10) — persist to memory graph
-- **Clean up agents** — use `TeamDelete()` after completion; press `Ctrl+F` twice as manual fallback
+- **Clean up agents** — use `TeamDelete()` after completion; press `Ctrl+F` twice as manual fallback. Note: `/clear` (CC 2.1.72+) preserves background agents
 
 ---
 
@@ -281,7 +285,7 @@ If detected: run integration tests against real services, not just mocks. Refere
 
 ## References
 
-Load on demand with `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/implement/references/&lt;file&gt;")`:
+Load on demand with `Read("$\{CLAUDE_SKILL_DIR\}/references/&lt;file&gt;")`:
 
 | File | Content |
 |------|---------|
@@ -338,9 +342,8 @@ All 5 agents launch in ONE message with `run_in_background=true`.
 ```python
 Agent(
   subagent_type="workflow-architect",
-  prompt="""ARCHITECTURE PLANNING — SINGLE-PASS OUTPUT
-
-  Feature: $ARGUMENTS
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  ARCHITECTURE PLANNING — SINGLE-PASS OUTPUT
 
   Produce a COMPLETE implementation roadmap in one response:
 
@@ -366,7 +369,9 @@ Agent(
      - Acceptance criteria per task
 
   Output: Complete implementation roadmap with task dependencies.
-  Use full 128K output capacity — don't truncate or summarize.""",
+  Use full 128K output capacity — don't truncate or summarize.
+
+  Feature: $ARGUMENTS""",
   run_in_background=true
 )
 ```
@@ -375,9 +380,9 @@ Agent(
 ```python
 Agent(
   subagent_type="backend-system-architect",
-  prompt="""COMPLETE BACKEND ARCHITECTURE — SINGLE PASS
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  COMPLETE BACKEND ARCHITECTURE — SINGLE PASS
 
-  Feature: $ARGUMENTS
   Standards: FastAPI, Pydantic v2, async/await, SQLAlchemy 2.0
 
   Produce ALL of the following in one response:
@@ -390,7 +395,9 @@ Agent(
   7. Testing strategy (unit + integration test outline)
 
   Include file paths for every artifact.
-  Output: Complete backend implementation spec ready for coding.""",
+  Output: Complete backend implementation spec ready for coding.
+
+  Feature: $ARGUMENTS""",
   run_in_background=true
 )
 ```
@@ -399,9 +406,9 @@ Agent(
 ```python
 Agent(
   subagent_type="frontend-ui-developer",
-  prompt="""COMPLETE FRONTEND ARCHITECTURE — SINGLE PASS
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  COMPLETE FRONTEND ARCHITECTURE — SINGLE PASS
 
-  Feature: $ARGUMENTS
   Standards: React 19, TypeScript strict, Zod, TanStack Query
 
   Produce ALL of the following in one response:
@@ -415,7 +422,9 @@ Agent(
   8. Accessibility requirements (WCAG 2.1 AA)
 
   Include Tailwind class specifications for key components.
-  Output: Complete frontend implementation spec ready for coding.""",
+  Output: Complete frontend implementation spec ready for coding.
+
+  Feature: $ARGUMENTS""",
   run_in_background=true
 )
 ```
@@ -424,9 +433,8 @@ Agent(
 ```python
 Agent(
   subagent_type="llm-integrator",
-  prompt="""AI/ML INTEGRATION ANALYSIS — SINGLE PASS
-
-  Feature: $ARGUMENTS
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  AI/ML INTEGRATION ANALYSIS — SINGLE PASS
 
   Evaluate and design AI integration in one response:
   1. Does this feature need LLM? (justify yes/no)
@@ -438,7 +446,9 @@ Agent(
   7. Cost estimation (tokens per request, monthly projection)
   8. Fallback chain configuration
 
-  Output: Complete AI integration spec or "No AI needed" with justification.""",
+  Output: Complete AI integration spec or "No AI needed" with justification.
+
+  Feature: $ARGUMENTS""",
   run_in_background=true
 )
 ```
@@ -461,10 +471,8 @@ All 5 agents launch in ONE message with `run_in_background=true`.
 ```python
 Agent(
   subagent_type="backend-system-architect",
-  prompt="""IMPLEMENT COMPLETE BACKEND — SINGLE PASS (128K output)
-
-  Feature: $ARGUMENTS
-  Architecture: [paste Phase 4 backend spec]
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  IMPLEMENT COMPLETE BACKEND — SINGLE PASS (128K output)
 
   Generate ALL backend code in ONE response:
 
@@ -492,7 +500,10 @@ Agent(
 
   Write REAL code to disk using Write/Edit tools.
   Every file must be complete and runnable.
-  Do NOT split across responses — use full 128K output.""",
+  Do NOT split across responses — use full 128K output.
+
+  Feature: $ARGUMENTS
+  Architecture: [paste Phase 4 backend spec]""",
   run_in_background=true
 )
 ```
@@ -501,10 +512,8 @@ Agent(
 ```python
 Agent(
   subagent_type="frontend-ui-developer",
-  prompt="""IMPLEMENT COMPLETE FRONTEND — SINGLE PASS (128K output)
-
-  Feature: $ARGUMENTS
-  Architecture: [paste Phase 4 frontend spec]
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  IMPLEMENT COMPLETE FRONTEND — SINGLE PASS (128K output)
 
   Generate ALL frontend code in ONE response:
 
@@ -536,7 +545,10 @@ Agent(
 
   Write REAL code to disk. Every file must be complete.
   Include styling inline — no separate styling agent needed.
-  Do NOT split across responses — use full 128K output.""",
+  Do NOT split across responses — use full 128K output.
+
+  Feature: $ARGUMENTS
+  Architecture: [paste Phase 4 frontend spec]""",
   run_in_background=true
 )
 ```
@@ -545,10 +557,8 @@ Agent(
 ```python
 Agent(
   subagent_type="llm-integrator",
-  prompt="""IMPLEMENT AI INTEGRATION — SINGLE PASS (128K output)
-
-  Feature: $ARGUMENTS
-  Architecture: [paste Phase 4 AI spec]
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  IMPLEMENT AI INTEGRATION — SINGLE PASS (128K output)
 
   Generate ALL AI integration code in ONE response:
 
@@ -561,7 +571,10 @@ Agent(
   7. Langfuse tracing integration
   8. Tests with VCR.py cassettes
 
-  Write REAL code to disk. Skip if AI spec says "No AI needed".""",
+  Write REAL code to disk. Skip if AI spec says "No AI needed".
+
+  Feature: $ARGUMENTS
+  Architecture: [paste Phase 4 AI spec]""",
   run_in_background=true
 )
 ```
@@ -570,9 +583,8 @@ Agent(
 ```python
 Agent(
   subagent_type="test-generator",
-  prompt="""GENERATE COMPLETE TEST SUITE — SINGLE PASS (128K output)
-
-  Feature: $ARGUMENTS
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  GENERATE COMPLETE TEST SUITE — SINGLE PASS (128K output)
 
   IMPORTANT: Match test types to change type using the Test Requirements Matrix:
   - API endpoint → Unit + Integration + Contract (rules: integration-api, verification-contract, mocking-msw)
@@ -582,7 +594,7 @@ Agent(
   - LLM/AI      → Unit + Eval (rules: llm-evaluation, llm-mocking)
   - Full-stack   → All of the above
 
-  Follow the testing-patterns skill rules for each test type.
+  Follow the testing-unit/testing-e2e/testing-integration skill rules for each test type.
 
   Generate ALL tests in ONE response:
 
@@ -613,7 +625,9 @@ Agent(
 
   Write REAL test files to disk.
   Run tests after writing to verify they pass.
-  Do NOT split across responses — use full 128K output.""",
+  Do NOT split across responses — use full 128K output.
+
+  Feature: $ARGUMENTS""",
   run_in_background=true
 )
 ```
@@ -638,7 +652,7 @@ Grep(pattern="testcontainers|docker-compose", glob="requirements*.txt")
 Grep(pattern="testcontainers|docker-compose", glob="package.json")
 ```
 
-If detected, run integration tests against real services (not just mocks). Reference `testing-patterns` rules: `integration-database`, `integration-api`, `data-seeding-cleanup`.
+If detected, run integration tests against real services (not just mocks). Reference `testing-integration` rules: `integration-database`, `integration-api`, `data-seeding-cleanup`.
 
 ### Validation Commands
 

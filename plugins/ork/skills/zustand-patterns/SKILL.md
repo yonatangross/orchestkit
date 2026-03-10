@@ -1,7 +1,7 @@
 ---
 name: zustand-patterns
 license: MIT
-compatibility: "Claude Code 2.1.59+."
+compatibility: "Claude Code 2.1.72+."
 description: Zustand 5.x state management with slices, middleware, Immer, useShallow, and persistence patterns for React applications. Use when building state management with Zustand.
 tags: [zustand, state-management, react, immer, middleware, persistence, slices]
 context: fork
@@ -341,12 +341,12 @@ function Dashboard() {
 
 ## References
 
-Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/zustand-patterns/references/<file>")`:
+Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 
 | File | Content |
 |------|---------|
 | `middleware-composition.md` | Combining multiple middleware |
 
 Other resources:
-- Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/zustand-patterns/scripts/store-template.ts")` - Production-ready store template
-- Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/zustand-patterns/checklists/zustand-checklist.md")` - Implementation checklist
+- Load: `Read("${CLAUDE_SKILL_DIR}/scripts/store-template.ts")` - Production-ready store template
+- Load: `Read("${CLAUDE_SKILL_DIR}/checklists/zustand-checklist.md")` - Implementation checklist

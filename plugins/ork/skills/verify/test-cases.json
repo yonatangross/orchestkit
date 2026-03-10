@@ -1,15 +1,17 @@
 {
   "skill": "verify",
-  "version": "3.1.0",
+  "version": "4.0.0",
   "testCases": [
     {
       "id": "full-verification",
       "rule": null,
       "query": "Verify the authentication flow implementation",
       "expectedBehavior": [
-        "Dispatches 5 parallel verification agents covering distinct quality dimensions",
-        "Produces 0-10 scores across code quality, security, coverage, API, and UI",
-        "Calculates weighted composite score and letter grade (A-F)",
+        "Dispatches 6 parallel verification agents covering distinct quality dimensions",
+        "Launches visual capture agent in parallel with Phase 2 agents",
+        "Produces 0-10 scores across code quality, security, coverage, API, UI, and visual",
+        "Calculates weighted composite score using 8 dimensions and letter grade (A-F)",
+        "Generates gallery.html with base64-embedded screenshots and AI evaluations",
         "Generates improvement suggestions with effort/impact prioritization"
       ]
     },
@@ -21,6 +23,7 @@
         "Runs backend and frontend test suites in parallel",
         "Reports coverage data and pass/fail counts",
         "Skips security audit and UI/UX analysis phases",
+        "Skips visual capture phase entirely",
         "Focuses on test-generator agent only for targeted test execution"
       ]
     },
@@ -54,6 +57,7 @@
         "Runs git diff and git log commands in parallel in one message for context gathering",
         "Executes backend and frontend test suites in parallel with coverage reporting enabled",
         "Uses --cov=app and --cov-report=json for machine-readable coverage data collection",
+        "Captures screenshots via agent-browser and saves to verification-output folder",
         "Gathers evidence from multiple sources before producing any quality scores or grades"
       ]
     },
@@ -64,8 +68,46 @@
       "expectedBehavior": [
         "Uses 0 to 10 scale with decimals for nuanced scoring rather than binary pass or fail",
         "Grades A (9-10) and B (7-8.9) are READY FOR MERGE while D and F are BLOCKED",
-        "Calculates composite score as weighted sum across multiple quality dimensions",
+        "Calculates composite score as weighted sum across 8 quality dimensions including visual",
         "Prioritizes improvements by impact divided by effort ratio to focus on high-value fixes"
+      ]
+    },
+    {
+      "id": "visual-capture",
+      "rule": null,
+      "query": "Verify the dashboard feature with visual evidence",
+      "expectedBehavior": [
+        "Auto-detects project framework from package.json signals",
+        "Starts dev server using framework-appropriate command",
+        "Discovers routes via framework-aware scanning (App Router, Pages, React Router, etc.)",
+        "Uses agent-browser to navigate and screenshot each route (max 20)",
+        "Evaluates each screenshot with Claude vision for layout, a11y, and content issues",
+        "Generates self-contained gallery.html with base64-embedded screenshots",
+        "Includes visual score (0-10) in composite grading calculation"
+      ]
+    },
+    {
+      "id": "visual-graceful-degradation",
+      "rule": null,
+      "query": "Verify the API middleware implementation",
+      "expectedBehavior": [
+        "Detects no frontend framework when project is API-only",
+        "Skips visual capture phase with informational notice",
+        "Redistributes visual dimension weight proportionally to other 7 dimensions",
+        "Proceeds with full verification using remaining 6 agents without blocking"
+      ]
+    },
+    {
+      "id": "agentation-loop",
+      "rule": null,
+      "query": "Verify the signup flow with visual feedback",
+      "expectedBehavior": [
+        "Completes standard verification including visual capture",
+        "Detects agentation MCP availability via ToolSearch",
+        "Offers user choice to annotate live UI before finalizing",
+        "If accepted: watches for annotations, dispatches ui-feedback agent for fixes",
+        "Re-screenshots affected routes and shows before/after diffs in gallery",
+        "Limits annotation-fix cycles to max 3 rounds by default"
       ]
     }
   ]

@@ -1,7 +1,7 @@
 ---
 name: fix-issue
 license: MIT
-compatibility: "Claude Code 2.1.59+. Requires memory MCP server, context7 MCP server, gh CLI."
+compatibility: "Claude Code 2.1.72+. Requires memory MCP server, context7 MCP server, gh CLI."
 description: "Fixes GitHub issues with parallel analysis. Use when debugging errors, resolving regressions, fixing bugs, or triaging issues."
 argument-hint: "[issue-number]"
 context: fork
@@ -79,11 +79,11 @@ Write(".claude/chain/state.json", JSON.stringify({
 
 ## STEP 0: Verify User Intent
 
-**BEFORE creating tasks**, clarify fix approach using AskUserQuestion. Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/fix-issue/rules/evidence-gathering.md")` for the full prompt template and workflow adjustments per approach (Proper fix, Quick fix, Investigate first, Hotfix).
+**BEFORE creating tasks**, clarify fix approach using AskUserQuestion. Load `Read("${CLAUDE_SKILL_DIR}/rules/evidence-gathering.md")` for the full prompt template and workflow adjustments per approach (Proper fix, Quick fix, Investigate first, Hotfix).
 
 ## STEP 0b: Select Orchestration Mode
 
-Choose **Agent Teams** (mesh) or **Task tool** (star). Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/fix-issue/references/agent-selection.md")` for the selection criteria, cost comparison, and task creation patterns.
+Choose **Agent Teams** (mesh) or **Task tool** (star). Load `Read("${CLAUDE_SKILL_DIR}/references/agent-selection.md")` for the selection criteria, cost comparison, and task creation patterns.
 
 ## Workflow Overview
 
@@ -127,6 +127,8 @@ Agent(subagent_type="debug-investigator",
 After Phase 11 (commit + PR), schedule CI monitoring:
 
 ```python
+# Guard: Skip cron in headless/CI (CLAUDE_CODE_DISABLE_CRON)
+# if env CLAUDE_CODE_DISABLE_CRON is set, run a single check instead
 CronCreate(
   schedule="*/5 * * * *",
   prompt="Check CI for PR #{pr_number}: gh pr checks {pr_number} --repo {repo}.
@@ -147,7 +149,7 @@ if capabilities.memory:
   }])
 ```
 
-> **Full phase details**: Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/fix-issue/references/fix-phases.md")` for bash commands, templates, and procedures for each phase.
+> **Full phase details**: Load `Read("${CLAUDE_SKILL_DIR}/references/fix-phases.md")` for bash commands, templates, and procedures for each phase.
 
 ## Critical Constraints
 
@@ -158,16 +160,16 @@ if capabilities.memory:
 
 ## CC 2.1.49 Enhancements
 
-> Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/fix-issue/references/cc-enhancements.md")` for session resume, task metrics, tool guidance, worktree isolation, and adaptive thinking.
+> Load `Read("${CLAUDE_SKILL_DIR}/references/cc-enhancements.md")` for session resume, task metrics, tool guidance, worktree isolation, and adaptive thinking.
 
 ## Rules Quick Reference
 
 | Rule | Impact | What It Covers |
 |------|--------|----------------|
-| evidence-gathering (load `${CLAUDE_PLUGIN_ROOT}/skills/fix-issue/rules/evidence-gathering.md`) | HIGH | User intent verification, confidence scale, key decisions |
-| rca-five-whys (load `${CLAUDE_PLUGIN_ROOT}/skills/fix-issue/rules/rca-five-whys.md`) | HIGH | 5 Whys iterative causal analysis |
-| rca-fishbone (load `${CLAUDE_PLUGIN_ROOT}/skills/fix-issue/rules/rca-fishbone.md`) | MEDIUM | Ishikawa diagram, multi-factor analysis |
-| rca-fault-tree (load `${CLAUDE_PLUGIN_ROOT}/skills/fix-issue/rules/rca-fault-tree.md`) | MEDIUM | Fault tree analysis, AND/OR gates, critical systems |
+| evidence-gathering (load `${CLAUDE_SKILL_DIR}/rules/evidence-gathering.md`) | HIGH | User intent verification, confidence scale, key decisions |
+| rca-five-whys (load `${CLAUDE_SKILL_DIR}/rules/rca-five-whys.md`) | HIGH | 5 Whys iterative causal analysis |
+| rca-fishbone (load `${CLAUDE_SKILL_DIR}/rules/rca-fishbone.md`) | MEDIUM | Ishikawa diagram, multi-factor analysis |
+| rca-fault-tree (load `${CLAUDE_SKILL_DIR}/rules/rca-fault-tree.md`) | MEDIUM | Fault tree analysis, AND/OR gates, critical systems |
 
 ## Related Skills
 
@@ -178,7 +180,7 @@ if capabilities.memory:
 
 ## References
 
-Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/fix-issue/references/<file>")`:
+Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | File | Content |
 |------|---------|
 | `fix-phases.md` | Bash commands, templates, procedures per phase |

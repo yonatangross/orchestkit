@@ -1,7 +1,7 @@
 ---
 name: web-research-workflow
 license: MIT
-compatibility: "Claude Code 2.1.59+. Requires network access."
+compatibility: "Claude Code 2.1.72+. Requires network access."
 description: Unified decision tree for web research and competitive monitoring. Auto-selects WebFetch, Tavily, or agent-browser based on target site characteristics and available API keys. Includes competitor page tracking, snapshot diffing, and change alerting. Use when researching web content, scraping, extracting raw markdown, capturing documentation, or monitoring competitor changes.
 context: fork
 agent: web-research-analyst
@@ -68,23 +68,23 @@ Content OK? ──Yes──► Parse and return
 
 When `TAVILY_API_KEY` is set, Tavily provides a powerful middle tier between WebFetch and agent-browser. It returns raw markdown content, supports batch URL extraction, and offers semantic search with relevance scoring. If `TAVILY_API_KEY` is not set, the 3-tier tree collapses to 2-tier (WebFetch → agent-browser) automatically.
 
-Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/web-research-workflow/rules/tool-selection.md")` for when-to-use-what tables, escalation heuristics, SPA detection patterns, and cost awareness.
+Load details: `Read("${CLAUDE_SKILL_DIR}/rules/tool-selection.md")` for when-to-use-what tables, escalation heuristics, SPA detection patterns, and cost awareness.
 
-Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/web-research-workflow/references/tavily-api.md")` for Search, Extract, Map, Crawl, and Research endpoint examples and options.
+Load details: `Read("${CLAUDE_SKILL_DIR}/references/tavily-api.md")` for Search, Extract, Map, Crawl, and Research endpoint examples and options.
 
 ## Browser Patterns
 
 For content requiring JavaScript rendering, authentication, or multi-page crawling, fall back to agent-browser.
 
-Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/web-research-workflow/rules/browser-patterns.md")` for auto-fallback, authentication flow, multi-page research patterns, best practices, and troubleshooting.
+Load details: `Read("${CLAUDE_SKILL_DIR}/rules/browser-patterns.md")` for auto-fallback, authentication flow, multi-page research patterns, best practices, and troubleshooting.
 
 ## Competitive Monitoring
 
 Track competitor websites for changes in pricing, features, positioning, and content.
 
-Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/web-research-workflow/rules/monitoring-competitor.md")` for snapshot capture, structured data extraction, and change classification.
+Load details: `Read("${CLAUDE_SKILL_DIR}/rules/monitoring-competitor.md")` for snapshot capture, structured data extraction, and change classification.
 
-Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/web-research-workflow/rules/monitoring-change-detection.md")` for diff detection, structured comparison, Tavily site discovery, and CI automation.
+Load details: `Read("${CLAUDE_SKILL_DIR}/rules/monitoring-change-detection.md")` for diff detection, structured comparison, Tavily site discovery, and CI automation.
 
 ### Change Classification
 

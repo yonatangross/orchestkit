@@ -13,13 +13,16 @@ Each agent produces a 0-10 score with decimals for nuance. The composite score i
 
 ## Grade Thresholds
 
+<!-- Canonical source: ../references/quality-model.md — keep in sync -->
+
 | Grade | Score Range | Verdict |
 |-------|-------------|---------|
-| A | 9.0-10.0 | READY FOR MERGE |
-| B | 7.0-8.9 | READY FOR MERGE |
-| C | 5.0-6.9 | IMPROVEMENTS RECOMMENDED |
-| D | 3.0-4.9 | BLOCKED |
-| F | 0.0-2.9 | BLOCKED |
+| A+ | 9.0-10.0 | EXCELLENT |
+| A | 8.0-8.9 | READY FOR MERGE |
+| B | 7.0-7.9 | READY FOR MERGE |
+| C | 6.0-6.9 | IMPROVEMENTS RECOMMENDED |
+| D | 5.0-5.9 | IMPROVEMENTS RECOMMENDED |
+| F | 0.0-4.9 | BLOCKED |
 
 ## Key Decisions
 

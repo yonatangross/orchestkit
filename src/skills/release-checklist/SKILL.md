@@ -20,7 +20,7 @@ hooks:
 
 Sequential release gate for OrchestKit. Each step reports `[PASS]` or `[FAIL]`. Stop on first failure, suggest a fix, then continue after user confirmation.
 
-Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/release-checklist/references/release-flow.md")` for why the order matters and hotfix guidance.
+Load details: `Read("${CLAUDE_SKILL_DIR}/references/release-flow.md")` for why the order matters and hotfix guidance.
 
 ## Quick Reference
 

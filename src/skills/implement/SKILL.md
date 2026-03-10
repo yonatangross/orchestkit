@@ -1,7 +1,7 @@
 ---
 name: implement
 license: MIT
-compatibility: "Claude Code 2.1.59+. Requires memory MCP server, context7 MCP server, network access."
+compatibility: "Claude Code 2.1.72+. Requires memory MCP server, context7 MCP server, network access."
 description: "Full-power feature implementation with parallel subagents. Use when implementing, building, or creating features."
 argument-hint: "[feature-description]"
 context: fork
@@ -10,13 +10,16 @@ author: OrchestKit
 tags: [implementation, feature, full-stack, parallel-agents, reflection, worktree]
 user-invocable: true
 allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskOutput, TaskStop, ToolSearch, CronCreate, CronDelete, mcp__context7__query_docs, mcp__memory__search_nodes]
-skills: [api-design, react-server-components-framework, testing-patterns, explore, verify, memory, scope-appropriate-architecture, chain-patterns]
+skills: [api-design, react-server-components-framework, testing-unit, testing-e2e, testing-integration, explore, verify, memory, scope-appropriate-architecture, chain-patterns]
 complexity: medium
 model: sonnet
 hooks:
   PreToolUse:
     - matcher: "Write"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/project-convention-loader"
+      once: true
+    - matcher: "Agent"
+      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/implement-standards-loader"
       once: true
   PostToolUse:
     - matcher: "Write|Edit"
@@ -94,7 +97,7 @@ Scan codebase for signals: README keywords (take-home, interview), `.github/work
 
 | Signal | Tier | Architecture Ceiling |
 |--------|------|---------------------|
-| README says "take-home", time limit | **1. Interview** (load `${CLAUDE_PLUGIN_ROOT}/skills/implement/references/interview-mode.md`) | Flat files, 8-15 files |
+| README says "take-home", time limit | **1. Interview** (load `${CLAUDE_SKILL_DIR}/references/interview-mode.md`) | Flat files, 8-15 files |
 | < 10 files, no CI | **2. Hackathon** | Single file if possible |
 | `.github/workflows/`, managed DB | **3. MVP** | MVC monolith |
 | Module boundaries, Redis, queues | **4. Growth** | Modular monolith, DI |
@@ -119,7 +122,7 @@ Use `AskUserQuestion` to verify scope (full-stack / backend-only / frontend-only
 
 - Agent Teams (mesh) when `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` and complexity >= 2.5
 - Task tool (star) otherwise; `ORCHESTKIT_FORCE_TASK_TOOL=1` to override
-- Load orchestration modes: `Read("${CLAUDE_PLUGIN_ROOT}/skills/implement/references/orchestration-modes.md")`
+- Load orchestration modes: `Read("${CLAUDE_SKILL_DIR}/references/orchestration-modes.md")`
 
 ### Worktree Isolation (CC 2.1.49)
 
@@ -132,13 +135,13 @@ AskUserQuestion(questions=[{
   "options": [
     {"label": "Yes — worktree (Recommended)", "description": "Creates isolated branch via EnterWorktree, merges back on completion", "markdown": "```\nWorktree Isolation\n──────────────────\nmain ─────────────────────────────▶\n  \\                              /\n   └─ feat-{slug} (worktree) ───┘\n      ├── Isolated directory\n      ├── Own branch + index\n      └── Auto-merge on completion\n\nSafe: main stays untouched until done\n```"},
     {"label": "No — work in-place", "description": "Edit files directly in current branch", "markdown": "```\nIn-Place Editing\n────────────────\nmain ──[edit]──[edit]──[edit]───▶\n       ▲       ▲       ▲\n       │       │       │\n     direct modifications\n\nFast: no branch overhead\nRisk: changes visible immediately\n```"},
-    {"label": "Plan first", "description": "Research and design in plan mode before writing code", "markdown": "```\nPlan Mode Flow\n──────────────\n  1. EnterPlanMode\n  2. Read existing code\n  3. Research patterns\n  4. Design approach\n  5. ExitPlanMode → plan\n  6. User approves plan\n  7. Execute implementation\n\n  Best for: Large features,\n  unfamiliar codebases,\n  architectural decisions\n```"}
+    {"label": "Plan first", "description": "Research and design in plan mode before writing code", "markdown": "```\nPlan Mode Flow\n──────────────\n  1. EnterPlanMode($ARGUMENTS)\n  2. Read existing code\n  3. Research patterns\n  4. Design approach\n  5. ExitPlanMode → plan\n  6. User approves plan\n  7. Execute implementation\n\n  Best for: Large features,\n  unfamiliar codebases,\n  architectural decisions\n```"}
   ],
   "multiSelect": false
 }])
 ```
 
-**If 'Plan first' selected:** Call `EnterPlanMode`, perform research using Read/Grep/Glob only, then `ExitPlanMode` with the plan for user approval before proceeding.
+**If 'Plan first' selected:** Call `EnterPlanMode("Research and design: $ARGUMENTS")`, perform research using Read/Grep/Glob only, then `ExitPlanMode` with the plan for user approval before proceeding.
 
 If worktree selected:
 1. Call `EnterWorktree(name: "feat-{slug}")` to create isolated branch
@@ -146,7 +149,7 @@ If worktree selected:
 3. On completion, merge back: `git checkout {original-branch} && git merge feat-{slug}`
 4. If merge conflicts arise, present diff to user via `AskUserQuestion`
 
-Load worktree details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/implement/references/worktree-isolation-mode.md")`
+Load worktree details: `Read("${CLAUDE_SKILL_DIR}/references/worktree-isolation-mode.md")`
 
 ---
 
@@ -161,19 +164,19 @@ Create tasks with `TaskCreate` BEFORE doing any work. Each phase gets a subtask.
 | Phase | Activities | Agents |
 |-------|------------|--------|
 | **1. Discovery** | Research best practices, Context7 docs, break into tasks | — |
-| **2. Micro-Planning** | Detailed plan per task (load `${CLAUDE_PLUGIN_ROOT}/skills/implement/references/micro-planning-guide.md`) | — |
-| **3. Worktree** | Isolate in git worktree for 5+ file features (load `${CLAUDE_PLUGIN_ROOT}/skills/implement/references/worktree-workflow.md`) | — |
+| **2. Micro-Planning** | Detailed plan per task (load `${CLAUDE_SKILL_DIR}/references/micro-planning-guide.md`) | — |
+| **3. Worktree** | Isolate in git worktree for 5+ file features (load `${CLAUDE_SKILL_DIR}/references/worktree-workflow.md`) | — |
 | **4. Architecture** | 4 parallel background agents | workflow-architect, backend-system-architect, frontend-ui-developer, llm-integrator |
 | **5. Implementation + Tests** | Parallel agents, single-pass artifacts with mandatory tests | backend-system-architect, frontend-ui-developer, llm-integrator, test-generator |
 | **6. Integration Verification** | Code review + real-service integration tests | backend, frontend, code-quality-reviewer, security-auditor |
-| **7. Scope Creep** | Compare planned vs actual (load `${CLAUDE_PLUGIN_ROOT}/skills/implement/references/scope-creep-detection.md`) | workflow-architect |
-| **8. E2E Verification** | Browser + API E2E testing (load `${CLAUDE_PLUGIN_ROOT}/skills/implement/references/e2e-verification.md`) | — |
+| **7. Scope Creep** | Compare planned vs actual (load `${CLAUDE_SKILL_DIR}/references/scope-creep-detection.md`) | workflow-architect |
+| **8. E2E Verification** | Browser + API E2E testing (load `${CLAUDE_SKILL_DIR}/references/e2e-verification.md`) | — |
 | **9. Documentation** | Save decisions to memory graph | — |
 | **10. Reflection** | Lessons learned, estimation accuracy | workflow-architect |
 
-Load agent prompts: `Read("${CLAUDE_PLUGIN_ROOT}/skills/implement/references/agent-phases.md")`
+Load agent prompts: `Read("${CLAUDE_SKILL_DIR}/references/agent-phases.md")`
 
-For Agent Teams mode: `Read("${CLAUDE_PLUGIN_ROOT}/skills/implement/references/agent-teams-phases.md")`
+For Agent Teams mode: `Read("${CLAUDE_SKILL_DIR}/references/agent-teams-phases.md")`
 
 ### Phase Handoffs (CC 2.1.71)
 
@@ -208,6 +211,8 @@ Agent(subagent_type="test-generator",
 After final PR, schedule health monitoring:
 
 ```python
+# Guard: Skip cron in headless/CI (CLAUDE_CODE_DISABLE_CRON)
+# if env CLAUDE_CODE_DISABLE_CRON is set, run a single check instead
 CronCreate(
   schedule="0 */6 * * *",
   prompt="Health check for {feature} in PR #{pr}:
@@ -232,7 +237,7 @@ If working on a GitHub issue, run the Start Work ceremony from `issue-progress-t
 
 ### Feedback Loop
 
-Maintain checkpoints after each task. Load triggers: `Read("${CLAUDE_PLUGIN_ROOT}/skills/implement/references/feedback-loop.md")`
+Maintain checkpoints after each task. Load triggers: `Read("${CLAUDE_SKILL_DIR}/references/feedback-loop.md")`
 
 ---
 
@@ -240,7 +245,7 @@ Maintain checkpoints after each task. Load triggers: `Read("${CLAUDE_PLUGIN_ROOT
 
 Phase 5 test-generator MUST produce tests matching the change type:
 
-| Change Type | Required Tests | `testing-patterns` Rules |
+| Change Type | Required Tests | Testing Rules |
 |-------------|---------------|--------------------------|
 | API endpoint | Unit + Integration + Contract | `integration-api`, `verification-contract`, `mocking-msw` |
 | DB schema/migration | Migration + Integration | `integration-database`, `data-seeding-cleanup` |
@@ -261,7 +266,7 @@ Grep(pattern="testcontainers|docker-compose", glob="requirements*.txt")
 Grep(pattern="testcontainers|docker-compose", glob="package.json")
 ```
 
-If detected: run integration tests against real services, not just mocks. Reference `testing-patterns` rules: `integration-database`, `integration-api`, `data-seeding-cleanup`.
+If detected: run integration tests against real services, not just mocks. Reference `testing-integration` rules: `integration-database`, `integration-api`, `data-seeding-cleanup`.
 
 ### Phase 9 Gate
 
@@ -278,7 +283,7 @@ If detected: run integration tests against real services, not just mocks. Refere
 - **Detect scope creep** (phase 7) — score 0-10, split PR if significant
 - **Real services when available** — if docker-compose/testcontainers exist, use them in Phase 6
 - **Reflect and capture lessons** (phase 10) — persist to memory graph
-- **Clean up agents** — use `TeamDelete()` after completion; press `Ctrl+F` twice as manual fallback
+- **Clean up agents** — use `TeamDelete()` after completion; press `Ctrl+F` twice as manual fallback. Note: `/clear` (CC 2.1.72+) preserves background agents
 
 ---
 
@@ -290,7 +295,7 @@ If detected: run integration tests against real services, not just mocks. Refere
 
 ## References
 
-Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/implement/references/<file>")`:
+Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 
 | File | Content |
 |------|---------|

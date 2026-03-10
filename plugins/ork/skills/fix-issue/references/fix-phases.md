@@ -64,16 +64,18 @@ Agents that edit files SHOULD use `isolation: "worktree"` to prevent conflicts:
 # PARALLEL — All 5 in ONE message
 Agent(
   subagent_type="debug-investigator",
-  prompt="""ROOT CAUSE TRACING for issue #$ARGUMENTS
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  ROOT CAUSE TRACING
 
-  Investigate the primary hypothesis: {hypothesis_1}
   1. Trace the code path that triggers the bug
   2. Identify the exact line/condition causing the failure
   3. Check git blame for when the bug was introduced
 
-  Evidence files: {relevant_files}
-
   SUMMARY: End with: "RESULT: Root cause is [X] in [file:line] — introduced in [commit]"
+
+  Issue: #$ARGUMENTS
+  Investigate the primary hypothesis: {hypothesis_1}
+  Evidence files: {relevant_files}
   """,
   isolation="worktree",
   run_in_background=True,
@@ -81,23 +83,26 @@ Agent(
 )
 Agent(
   subagent_type="debug-investigator",
-  prompt="""IMPACT ANALYSIS for issue #$ARGUMENTS
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  IMPACT ANALYSIS
 
   Assess the blast radius of the confirmed root cause:
   1. What other code paths are affected?
   2. Are there similar patterns elsewhere that might have the same bug?
   3. What's the user-facing impact scope?
 
-  Evidence files: {relevant_files}
-
   SUMMARY: End with: "RESULT: Impact scope: [N] files, [M] code paths affected"
+
+  Issue: #$ARGUMENTS
+  Evidence files: {relevant_files}
   """,
   run_in_background=True,
   max_turns=25
 )
 Agent(
   subagent_type="backend-system-architect",
-  prompt="""BACKEND FIX DESIGN for issue #$ARGUMENTS
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  BACKEND FIX DESIGN
 
   Design the fix approach for the backend:
   1. Propose minimal code changes to resolve the root cause
@@ -105,13 +110,16 @@ Agent(
   3. Assess risk of regression
 
   SUMMARY: End with: "RESULT: Fix requires changes to [N] files — risk: [low/medium/high]"
+
+  Issue: #$ARGUMENTS
   """,
   run_in_background=True,
   max_turns=25
 )
 Agent(
   subagent_type="frontend-ui-developer",
-  prompt="""FRONTEND FIX DESIGN for issue #$ARGUMENTS
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  FRONTEND FIX DESIGN
 
   Design the fix approach for the frontend (if applicable):
   1. UI/UX impact of the bug and proposed fix
@@ -119,13 +127,16 @@ Agent(
   3. Accessibility implications
 
   SUMMARY: End with: "RESULT: Frontend [affected/not affected] — [N] components to update"
+
+  Issue: #$ARGUMENTS
   """,
   run_in_background=True,
   max_turns=25
 )
 Agent(
   subagent_type="test-generator",
-  prompt="""TEST REQUIREMENTS for issue #$ARGUMENTS
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  TEST REQUIREMENTS
 
   Define the test plan for the fix:
   1. Write a FAILING regression test that reproduces the bug
@@ -133,6 +144,8 @@ Agent(
   3. Match test types to the fix using the Test Requirements Matrix
 
   SUMMARY: End with: "RESULT: [N] tests needed — regression test targets [file:function]"
+
+  Issue: #$ARGUMENTS
   """,
   run_in_background=True,
   max_turns=25

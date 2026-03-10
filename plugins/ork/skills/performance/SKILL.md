@@ -1,7 +1,7 @@
 ---
 name: performance
 license: MIT
-compatibility: "Claude Code 2.1.59+."
+compatibility: "Claude Code 2.1.72+."
 description: Performance optimization patterns covering Core Web Vitals, React render optimization, lazy loading, image optimization, backend profiling, LLM inference, and sustainability UX. Use when improving page speed, debugging slow renders, optimizing bundles, reducing image payload, profiling backend, deploying LLMs efficiently, or reducing digital carbon footprint.
 tags: [performance, core-web-vitals, lcp, inp, cls, react-compiler, virtualization, lazy-loading, code-splitting, image-optimization, avif, profiling, vllm, quantization, inference, caching, redis, prompt-caching, tanstack-query, prefetching, optimistic-updates, sustainability, carbon-footprint, page-weight]
 context: fork
@@ -275,7 +275,7 @@ export default async function Page() {
 
 ## References
 
-Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/performance/references/<file>")`:
+Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | File | Content |
 |------|---------|
 | `rum-setup.md` | Real User Monitoring |
@@ -284,3 +284,4 @@ Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/performance/references/<
 | `vllm-deployment.md` | Production vLLM config |
 | `quantization-guide.md` | Method comparison |
 | `cdn-setup.md` | Image CDN configuration |
+| `cc-prompt-cache-guide.md` | CC 2.1.72 prompt cache optimization, stable-first prompt structure |

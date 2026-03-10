@@ -1,7 +1,7 @@
 ---
 name: code-review-playbook
 license: MIT
-compatibility: "Claude Code 2.1.59+."
+compatibility: "Claude Code 2.1.72+."
 description: Use this skill when conducting or improving code reviews. Provides structured review processes, conventional comments patterns, language-specific checklists, and feedback templates. Use when reviewing PRs or standardizing review practices.
 version: 2.0.0
 author: AI Agent Hub
@@ -301,7 +301,7 @@ cache.set(key, value, CACHE_TTL_SECONDS);
 
 - `ork:architecture-patterns` - Enforce testing and architectural best practices during code review
 - `security-scanning` - Automated security checks to complement manual review
-- `ork:testing-patterns` - Comprehensive testing patterns to verify during review
+- `ork:testing-unit` - Unit testing patterns to verify during review
 
 ## Capability Details
 

@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verification Gallery — {{BRANCH}}</title>
+<style>
+  :root {
+    --bg: #0d1117; --surface: #161b22; --border: #30363d;
+    --text: #e6edf3; --text-muted: #8b949e; --accent: #58a6ff;
+    --pass: #3fb950; --warn: #d29922; --fail: #f85149;
+    --radius: 8px; --gap: 16px;
+  }
+  [data-theme="light"] {
+    --bg: #f6f8fa; --surface: #ffffff; --border: #d0d7de;
+    --text: #1f2328; --text-muted: #656d76; --accent: #0969da;
+    --pass: #1a7f37; --warn: #9a6700; --fail: #cf222e;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.5; }
+
+  /* Header */
+  .header { padding: 24px 32px; border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center; }
+  .header h1 { font-size: 20px; font-weight: 600; }
+  .header h1 span { color: var(--text-muted); font-weight: 400; }
+  .header-actions { display: flex; gap: 12px; align-items: center; }
+
+  /* Score badge */
+  .score-badge { display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 14px; border-radius: 20px; font-weight: 600; font-size: 14px; }
+  .score-badge.pass { background: rgba(63,185,80,0.15); color: var(--pass); }
+  .score-badge.warn { background: rgba(210,153,34,0.15); color: var(--warn); }
+  .score-badge.fail { background: rgba(248,81,73,0.15); color: var(--fail); }
+
+  /* Theme toggle */
+  .theme-toggle { background: var(--surface); border: 1px solid var(--border);
+    color: var(--text); padding: 6px 12px; border-radius: var(--radius);
+    cursor: pointer; font-size: 13px; }
+
+  /* Summary bar */
+  .summary { display: flex; gap: 24px; padding: 16px 32px;
+    border-bottom: 1px solid var(--border); background: var(--surface); }
+  .stat { display: flex; flex-direction: column; }
+  .stat-label { font-size: 11px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px; }
+  .stat-value { font-size: 18px; font-weight: 600; }
+
+  /* Grid */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--gap); padding: 24px 32px; }
+
+  /* Card */
+  .card { background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden; cursor: pointer;
+    transition: border-color 0.15s, transform 0.15s; }
+  .card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .card-img { width: 100%; aspect-ratio: 16/9; object-fit: cover; object-position: top;
+    border-bottom: 1px solid var(--border); background: var(--bg); }
+  .card-body { padding: 12px 16px; }
+  .card-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .card-route { font-size: 12px; color: var(--text-muted); font-family: monospace; }
+  .card-footer { display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 16px; border-top: 1px solid var(--border); }
+  .card-score { font-size: 13px; font-weight: 600; }
+  .card-badge { font-size: 11px; padding: 2px 8px; border-radius: 12px; font-weight: 500; }
+  .card-badge.pass { background: rgba(63,185,80,0.15); color: var(--pass); }
+  .card-badge.warn { background: rgba(210,153,34,0.15); color: var(--warn); }
+  .card-badge.fail { background: rgba(248,81,73,0.15); color: var(--fail); }
+
+  /* Expanded view (modal) */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+    z-index: 100; overflow-y: auto; padding: 40px 20px; }
+  .modal-overlay.active { display: flex; justify-content: center; }
+  .modal { background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; max-width: 1000px; width: 100%; }
+  .modal-header { display: flex; justify-content: space-between; align-items: center;
+    padding: 16px 24px; border-bottom: 1px solid var(--border); }
+  .modal-header h2 { font-size: 16px; }
+  .modal-close { background: none; border: none; color: var(--text-muted);
+    font-size: 24px; cursor: pointer; padding: 4px 8px; }
+  .modal-close:hover { color: var(--text); }
+  .modal-img { width: 100%; border-bottom: 1px solid var(--border); }
+  .modal-body { padding: 20px 24px; }
+
+  /* AI evaluation */
+  .eval-section { margin-top: 16px; }
+  .eval-section h3 { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+  .eval-item { display: flex; gap: 8px; align-items: flex-start; padding: 6px 0;
+    font-size: 13px; border-bottom: 1px solid var(--border); }
+  .eval-item:last-child { border-bottom: none; }
+  .eval-icon { flex-shrink: 0; width: 18px; text-align: center; }
+  .eval-icon.ok { color: var(--pass); }
+  .eval-icon.warning { color: var(--warn); }
+  .eval-icon.error { color: var(--fail); }
+
+  /* Before/After (Layer 2) */
+  .diff-container { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+  .diff-label { font-size: 11px; text-transform: uppercase; color: var(--text-muted);
+    letter-spacing: 0.5px; margin-bottom: 4px; }
+  .diff-img { width: 100%; border-radius: var(--radius); border: 1px solid var(--border); }
+  .annotation-resolution { background: rgba(63,185,80,0.08); border: 1px solid rgba(63,185,80,0.2);
+    border-radius: var(--radius); padding: 12px; margin-top: 12px; font-size: 13px; }
+
+  /* API response section */
+  .api-response { background: var(--bg); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 12px; margin-top: 12px;
+    font-family: monospace; font-size: 12px; overflow-x: auto;
+    max-height: 200px; overflow-y: auto; white-space: pre-wrap; }
+
+  /* Findings panel (summary aggregation) */
+  .findings { padding: 20px 32px; border-bottom: 1px solid var(--border); }
+  .findings-header { font-size: 15px; font-weight: 600; margin-bottom: 12px; }
+  .findings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .findings-col h4 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;
+    color: var(--text-muted); margin-bottom: 8px; }
+  .findings-list { list-style: none; padding: 0; }
+  .findings-list li { font-size: 13px; padding: 6px 0; border-bottom: 1px solid var(--border);
+    display: flex; gap: 8px; align-items: flex-start; }
+  .findings-list li:last-child { border-bottom: none; }
+  .findings-icon { flex-shrink: 0; width: 16px; text-align: center; }
+  .findings-icon.issue { color: var(--warn); }
+  .findings-icon.strength { color: var(--pass); }
+  .findings-count { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+  .route-breakdown { display: flex; gap: 16px; margin-top: 12px; padding-top: 12px;
+    border-top: 1px solid var(--border); }
+  .route-breakdown .rb-item { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; }
+  .rb-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .rb-dot.pass { background: var(--pass); }
+  .rb-dot.warn { background: var(--warn); }
+  .rb-dot.fail { background: var(--fail); }
+
+  /* Metadata footer */
+  .gallery-footer { padding: 16px 32px; border-top: 1px solid var(--border);
+    font-size: 12px; color: var(--text-muted); display: flex; justify-content: space-between; }
+
+  @media (max-width: 640px) {
+    .grid { grid-template-columns: 1fr; padding: 16px; }
+    .summary { flex-wrap: wrap; gap: 16px; padding: 16px; }
+    .header { flex-direction: column; gap: 12px; align-items: flex-start; }
+    .diff-container { grid-template-columns: 1fr; }
+    .findings { padding: 16px; }
+    .findings-grid { grid-template-columns: 1fr; }
+    .route-breakdown { flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Verification Gallery <span>— {{BRANCH}}</span></h1>
+  <div class="header-actions">
+    <span class="score-badge {{VERDICT_CLASS}}">{{VISUAL_SCORE}}/10 Visual</span>
+    <span class="score-badge {{COMPOSITE_CLASS}}">{{COMPOSITE_SCORE}}/10 Composite</span>
+    <button class="theme-toggle" onclick="toggleTheme()">Toggle Theme</button>
+  </div>
+</div>
+
+<div class="summary">
+  <div class="stat"><span class="stat-label">Routes Captured</span><span class="stat-value">{{ROUTE_COUNT}}</span></div>
+  <div class="stat"><span class="stat-label">Issues Found</span><span class="stat-value">{{ISSUE_COUNT}}</span></div>
+  <div class="stat"><span class="stat-label">Annotations</span><span class="stat-value">{{ANNOTATION_COUNT}}</span></div>
+  <div class="stat"><span class="stat-label">Date</span><span class="stat-value">{{DATE}}</span></div>
+  <div class="stat"><span class="stat-label">Duration</span><span class="stat-value">{{DURATION}}</span></div>
+</div>
+
+<div class="findings" id="findings-panel" style="display:none">
+  <!-- Populated by init() from GALLERY_DATA.summary -->
+</div>
+
+<div class="grid" id="card-grid">
+  <!-- Cards injected by template engine. Example structure:
+  <div class="card" onclick="openModal('route-id')">
+    <img class="card-img" src="data:image/png;base64,{{BASE64}}" alt="Screenshot of {{ROUTE}}">
+    <div class="card-body">
+      <div class="card-title">{{ROUTE_NAME}}</div>
+      <div class="card-route">{{ROUTE_PATH}}</div>
+    </div>
+    <div class="card-footer">
+      <span class="card-score">{{SCORE}}/10</span>
+      <span class="card-badge {{STATUS_CLASS}}">{{STATUS}}</span>
+    </div>
+  </div>
+  -->
+</div>
+
+<div class="modal-overlay" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modal-title">Route Details</h2>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <img class="modal-img" id="modal-img" src="" alt="">
+    <div class="modal-body" id="modal-body">
+      <!-- AI evaluation + annotations injected here -->
+    </div>
+  </div>
+</div>
+
+<div class="gallery-footer">
+  <span>Generated by OrchestKit /ork:verify V2 — Visual Verification Portfolio</span>
+  <span>{{TIMESTAMP}}</span>
+</div>
+
+<script>
+// Gallery data — injected by verify skill at generation time
+const GALLERY_DATA = {{GALLERY_JSON_SAFE}}; // Injector must escape </ to <\/ and <!-- to <\!-- before substitution
+
+// Escape HTML to prevent XSS from route names/paths/messages
+function esc(s) { const d = document.createElement('div'); d.textContent = String(s); return d.innerHTML; }
+
+function init() {
+  // Render summary/findings panel if present
+  const s = GALLERY_DATA.summary;
+  if (s) {
+    const panel = document.getElementById('findings-panel');
+    panel.style.display = '';
+    let html = '<div class="findings-header">Cross-Route Findings</div><div class="findings-grid">';
+
+    // Common issues column
+    html += '<div class="findings-col"><h4>Common Issues</h4>';
+    if (s.common_issues && s.common_issues.length > 0) {
+      html += '<ul class="findings-list">';
+      s.common_issues.forEach(issue => {
+        html += `<li><span class="findings-icon issue">\u26A0</span><span>${esc(issue.message)}</span>`;
+        if (issue.count) html += ` <span class="findings-count">(${esc(issue.count)} routes)</span>`;
+        html += '</li>';
+      });
+      html += '</ul>';
+    } else {
+      html += '<p style="font-size:13px;color:var(--text-muted)">No recurring issues detected</p>';
+    }
+    html += '</div>';
+
+    // Strengths column
+    html += '<div class="findings-col"><h4>Strengths</h4>';
+    if (s.strengths && s.strengths.length > 0) {
+      html += '<ul class="findings-list">';
+      s.strengths.forEach(str => {
+        html += `<li><span class="findings-icon strength">\u2713</span><span>${esc(str)}</span></li>`;
+      });
+      html += '</ul>';
+    } else {
+      html += '<p style="font-size:13px;color:var(--text-muted)">No cross-route strengths identified</p>';
+    }
+    html += '</div></div>';
+
+    // Route breakdown bar
+    const pc = s.pass_count || 0, wc = s.warn_count || 0, fc = s.fail_count || 0;
+    if (pc + wc + fc > 0) {
+      html += '<div class="route-breakdown">';
+      html += `<div class="rb-item"><span class="rb-dot pass"></span>${pc} passed</div>`;
+      html += `<div class="rb-item"><span class="rb-dot warn"></span>${wc} warnings</div>`;
+      html += `<div class="rb-item"><span class="rb-dot fail"></span>${fc} failed</div>`;
+      html += '</div>';
+    }
+
+    panel.innerHTML = html;
+  }
+
+  // Render route cards
+  const grid = document.getElementById('card-grid');
+  grid.innerHTML = '';
+  GALLERY_DATA.routes.forEach(route => {
+    const status = route.score >= 7 ? 'pass' : route.score >= 5 ? 'warn' : 'fail';
+    const statusLabel = route.score >= 7 ? 'OK' : route.score >= 5 ? 'WARN' : 'FAIL';
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.onclick = () => openModal(route.id);
+    card.innerHTML = `
+      <img class="card-img" src="${route.screenshot && route.screenshot.startsWith('data:image/') ? route.screenshot : ''}" alt="Screenshot of ${esc(route.path)}">
+      <div class="card-body">
+        <div class="card-title">${esc(route.name)}</div>
+        <div class="card-route">${esc(route.path)}</div>
+      </div>
+      <div class="card-footer">
+        <span class="card-score">${esc(route.score)}/10</span>
+        <span class="card-badge ${status}">${statusLabel}</span>
+      </div>`;
+    grid.appendChild(card);
+  });
+}
+
+function openModal(routeId) {
+  const route = GALLERY_DATA.routes.find(r => r.id === routeId);
+  if (!route) return;
+  document.getElementById('modal-title').textContent = `${route.name} \u2014 ${route.path}`;
+  document.getElementById('modal-img').src = route.screenshot && route.screenshot.startsWith('data:image/') ? route.screenshot : '';
+  let body = '';
+
+  // AI evaluation
+  if (route.evaluation) {
+    body += '<div class="eval-section"><h3>AI Visual Evaluation</h3>';
+    route.evaluation.forEach(e => {
+      const cls = e.severity === 'ok' ? 'ok' : e.severity === 'warning' ? 'warning' : 'error';
+      const icon = e.severity === 'ok' ? '\u2713' : e.severity === 'warning' ? '\u26A0' : '\u2717';
+      body += `<div class="eval-item"><span class="eval-icon ${cls}">${icon}</span><span>${esc(e.message)}</span></div>`;
+    });
+    body += '</div>';
+  }
+
+  // Before/after (agentation annotations)
+  if (route.annotations && route.annotations.length > 0) {
+    body += '<div class="eval-section"><h3>Agentation Annotations</h3>';
+    route.annotations.forEach(a => {
+      const safeBefore = a.before && a.before.startsWith('data:image/') ? a.before : '';
+      const safeAfter = a.after && a.after.startsWith('data:image/') ? a.after : '';
+      body += `<div class="diff-container">
+        <div><div class="diff-label">Before</div><img class="diff-img" src="${safeBefore}" alt="Before"></div>
+        <div><div class="diff-label">After</div><img class="diff-img" src="${safeAfter}" alt="After"></div>
+      </div>
+      <div class="annotation-resolution">${esc(a.resolution)}</div>`;
+    });
+    body += '</div>';
+  }
+
+  // API response
+  if (route.apiResponse) {
+    body += `<div class="eval-section"><h3>API Response</h3>
+      <div class="api-response">${esc(JSON.stringify(route.apiResponse, null, 2))}</div></div>`;
+  }
+
+  document.getElementById('modal-body').innerHTML = body;
+  document.getElementById('modal').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+function toggleTheme() {
+  const html = document.documentElement;
+  html.dataset.theme = html.dataset.theme === 'dark' ? 'light' : 'dark';
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

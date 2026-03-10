@@ -17,6 +17,80 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.3.0",
+    "date": "2026-03-10",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**agents:** remove stale `git-workflow` references from git-operations-engineer, frontend-ui-developer, release-engineer",
+          "**agents:** remove stale `ci-automation` reference from ci-cd-engineer",
+          "**skills:** fix broken hook refs in commit skill (2 non-existent hooks → git-validator)",
+          "**skills:** remove broken `audit-context-loader` hook section from audit-full skill",
+          "**skills:** fix stale cross-references in help, storybook-testing, release-management, verify",
+          "**hooks:** fix verify scoring rubric weights (6→8 dimensions matching quality-model.md)",
+          "**tests:** fix test-git-enforcement-hooks.sh references to deleted skills",
+          "**tests:** fix trigger-cases.yaml — replace git-workflow with github-operations",
+          "**tests:** delete always-failing test-git-workflow-completeness.sh"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**hooks:** skill-scoped hooks 23→21 (removed 2 non-existent refs), total 101→99",
+          "**verify:** add cross-route findings panel to gallery template (common issues, strengths, breakdown)",
+          "**verify:** enhance visual-capture.md with 6-criteria structured AI evaluation prompt",
+          "**docs:** update all hook count references across 10+ doc files"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "7.2.2",
+    "date": "2026-03-10",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "removed",
+        "items": [
+          "**skills:** remove git-workflow skill (5 best rules migrated to commit skill)",
+          "**skills:** remove ci-automation skill (ci-cd-engineer agent covers this)",
+          "**evals:** remove orphaned git-workflow eval files"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**skills:** upgrade write-prd to v2.0.0 — AskUserQuestion, Task Management, memory integration, disk output",
+          "**skills:** upgrade commit to v1.2.0 — absorb 5 git-workflow rules (branch-protection, merge-strategy, history-hygiene, stacked-pr-workflow, stacked-pr-rebase)",
+          "**skills:** update compatibility field to `2.1.72+` across 77 SKILL.md files",
+          "**marketplace:** bump engine from `>=2.1.69` to `>=2.1.72`"
+        ]
+      },
+      {
+        "type": "added",
+        "items": [
+          "**skills:** split testing-patterns into 5 focused sub-skills — testing-unit, testing-e2e, testing-integration, testing-llm, testing-perf (#669)",
+          "**skills:** add visual verification portfolio to verify skill — Phase 2.5 (screenshot gallery) + Phase 8.5 (agentation feedback loop)",
+          "**skills:** gallery-template.html — self-contained HTML with dark/light mode, base64-embedded screenshots, AI vision evaluations",
+          "**hooks:** 4 once:true standards loaders for implement, review-pr, verify, brainstorm skills (CC 2.1.72 prompt cache optimization)",
+          "**hooks:** implement-standards-loader — dynamic project stack detection via package.json/pyproject.toml",
+          "**hooks:** review-dimensions-loader — static 6-dimension review criteria + JSON output contract",
+          "**hooks:** verify-scoring-rubric-loader — static 0-10 scale with dimension weights",
+          "**hooks:** brainstorm-instructions-loader — static divergent mode rules + evaluation dimensions"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**evals:** update help.eval.json from \"5 GIT skills\" to \"4 GIT skills\"",
+          "**tests:** update split-bundles expected hook count to 176"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.1.14",
     "date": "2026-03-08",
     "compareUrl": "",

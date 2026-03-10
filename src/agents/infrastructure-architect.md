@@ -1,8 +1,8 @@
 ---
 name: infrastructure-architect
 description: Infrastructure as Code specialist who designs Terraform modules, Kubernetes manifests, and cloud architecture. Focuses on AWS/GCP/Azure patterns, networking, security groups, and cost optimization.
+model: inherit
 category: devops
-model: sonnet
 maxTurns: 30
 permissionMode: plan
 context: fork
@@ -23,6 +23,7 @@ tools:
   - TaskCreate
   - TaskUpdate
   - TaskList
+  - ExitWorktree
 skills:
   - devops-deployment
   - monitoring-observability

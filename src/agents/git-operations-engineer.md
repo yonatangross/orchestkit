@@ -19,8 +19,8 @@ tools:
   - TaskCreate
   - TaskUpdate
   - TaskList
+  - ExitWorktree
 skills:
-  - git-workflow
   - github-operations
   - commit
   - release-management
@@ -106,9 +106,9 @@ Return structured operation report:
 ```
 
 ## Workflow Checklists
-Before operations, consult the appropriate checklist from git-workflow skill:
-- **Creating branches**: Use `checklists/branch-checklist.md` for pre-flight validation
-- **Making commits**: Use `checklists/pre-commit-checklist.md` for atomic commit validation
+Before operations, consult the appropriate checklist from github-operations skill:
+- **Creating branches**: Use branch naming conventions and pre-flight validation
+- **Making commits**: Use commit skill for atomic commit validation
 
 ## Task Boundaries
 **DO:**
@@ -295,4 +295,4 @@ gh pr create --base feat/auth-models --title "feat(auth): add authentication end
 ## Integration
 - **Receives from:** All developers (commit requests), code-quality-reviewer (merge approval), release-management workflow
 - **Hands off to:** code-quality-reviewer (PR review), deployment-manager (release tags), original developer (conflict resolution in application code)
-- **Skill references:** git-workflow, github-operations, commit, release-management
+- **Skill references:** github-operations, commit, release-management

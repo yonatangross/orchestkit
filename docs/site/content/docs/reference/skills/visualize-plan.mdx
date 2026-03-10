@@ -12,6 +12,8 @@ description: "Visualize planned changes before implementation. Use when reviewin
 - [ascii-visualizer](/docs/reference/skills/ascii-visualizer)
 - [explore](/docs/reference/skills/explore)
 - [architecture-decision-record](/docs/reference/skills/architecture-decision-record)
+- [memory](/docs/reference/skills/memory)
+- [remember](/docs/reference/skills/remember)
 
 
 # Plan Visualization
@@ -36,6 +38,20 @@ PLAN_TOKEN = "$ARGUMENTS[0]" # First token — could be issue "#234" or plan des
 ```
 
 ---
+
+## CRITICAL: Task Tracking
+
+```python
+TaskCreate(subject="Visualize plan: {PLAN_INPUT}", description="Plan visualization with ASCII rendering", activeForm="Analyzing plan context")
+```
+
+## STEP -1: Check Memory for Prior Plans
+
+```python
+# Search for related prior visualizations
+mcp__memory__search_nodes(query="plan visualization {PLAN_INPUT}")
+# If found, offer to compare with previous plan
+```
 
 ## STEP 0: Detect or Clarify Plan Context
 
@@ -93,7 +109,7 @@ Agent(
 
 ## STEP 2: Render Tier 1 Header (Always)
 
-Use `assets/tier1-header.md` template. Load `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/visualize-plan/references/visualization-tiers.md")` for field computation (risk level, confidence, reversibility).
+Use `assets/tier1-header.md` template. Load `Read("$\{CLAUDE_SKILL_DIR\}/references/visualization-tiers.md")` for field computation (risk level, confidence, reversibility).
 
 ```
 PLAN: {plan_name} ({issue_ref})  |  {phase_count} phases  |  {file_count} files  |  +{added} -{removed} lines
@@ -127,15 +143,15 @@ AskUserQuestion(
 
 ## STEP 4: Render Requested Sections
 
-Render each requested section following `$\{CLAUDE_PLUGIN_ROOT\}/skills/visualize-plan/rules/section-rendering.md` conventions. Use the corresponding reference for ASCII patterns:
+Render each requested section following `$\{CLAUDE_SKILL_DIR\}/rules/section-rendering.md` conventions. Use the corresponding reference for ASCII patterns:
 
 | Section | Reference | Key Convention |
 |---------|-----------|----------------|
-| [1] Change Manifest | (load `$\{CLAUDE_PLUGIN_ROOT\}/skills/visualize-plan/references/change-manifest-patterns.md`) | `[A]`/`[M]`/`[D]` + `+N -N` per file |
-| [2] Execution Swimlane | (load `$\{CLAUDE_PLUGIN_ROOT\}/skills/visualize-plan/references/execution-swimlane-patterns.md`) | `===` active, `---` blocked, `\|` deps |
-| [3] Risk Dashboard | (load `$\{CLAUDE_PLUGIN_ROOT\}/skills/visualize-plan/references/risk-dashboard-patterns.md`) | Reversibility timeline + 3 pre-mortems |
-| [4] Decision Log | (load `$\{CLAUDE_PLUGIN_ROOT\}/skills/visualize-plan/references/decision-log-patterns.md`) | ADR-lite: Context/Decision/Alternatives/Tradeoff |
-| [5] Impact Summary | (load `$\{CLAUDE_PLUGIN_ROOT\}/skills/visualize-plan/assets/impact-dashboard.md`) | Table: Added/Modified/Deleted/NET + tests/API/deps |
+| [1] Change Manifest | (load `$\{CLAUDE_SKILL_DIR\}/references/change-manifest-patterns.md`) | `[A]`/`[M]`/`[D]` + `+N -N` per file |
+| [2] Execution Swimlane | (load `$\{CLAUDE_SKILL_DIR\}/references/execution-swimlane-patterns.md`) | `===` active, `---` blocked, `\|` deps |
+| [3] Risk Dashboard | (load `$\{CLAUDE_SKILL_DIR\}/references/risk-dashboard-patterns.md`) | Reversibility timeline + 3 pre-mortems |
+| [4] Decision Log | (load `$\{CLAUDE_SKILL_DIR\}/references/decision-log-patterns.md`) | ADR-lite: Context/Decision/Alternatives/Tradeoff |
+| [5] Impact Summary | (load `$\{CLAUDE_SKILL_DIR\}/assets/impact-dashboard.md`) | Table: Added/Modified/Deleted/NET + tests/API/deps |
 
 ---
 
@@ -163,17 +179,32 @@ AskUserQuestion(
 
 **Generate issues:** For each execution phase, create a GitHub issue with title `[\{component\}] \{phase_description\}`, labels (component + `risk:\{level\}`), milestone, body from plan sections, and blocked-by references.
 
+**Store in memory:** Save plan summary to knowledge graph for future comparison:
+
+```python
+mcp__memory__create_entities(entities=[{
+  "name": "Plan: {plan_name}",
+  "entityType": "plan-visualization",
+  "observations": [
+    "Branch: {branch}",
+    "Risk: {risk_level}, Confidence: {confidence}",
+    "Phases: {phase_count}, Files: {file_count}",
+    "Key decisions: {decision_summary}"
+  ]
+}])
+```
+
 ---
 
 ## Deep Dives (Tier 3, on request)
 
-Available when user selects "Drill deeper". Load `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/visualize-plan/references/deep-dives.md")` for cross-layer and migration patterns.
+Available when user selects "Drill deeper". Load `Read("$\{CLAUDE_SKILL_DIR\}/references/deep-dives.md")` for cross-layer and migration patterns.
 
 | Section | What It Shows | Reference |
 |---------|--------------|-----------|
-| [6] Blast Radius | Concentric rings of impact (direct -> transitive -> tests) | (load `$\{CLAUDE_PLUGIN_ROOT\}/skills/visualize-plan/references/blast-radius-patterns.md`) |
-| [7] Cross-Layer Consistency | Frontend/backend endpoint alignment with gap detection | (load `$\{CLAUDE_PLUGIN_ROOT\}/skills/visualize-plan/references/deep-dives.md`) |
-| [8] Migration Checklist | Ordered runbook with sequential/parallel blocks and time estimates | (load `$\{CLAUDE_PLUGIN_ROOT\}/skills/visualize-plan/references/deep-dives.md`) |
+| [6] Blast Radius | Concentric rings of impact (direct -> transitive -> tests) | (load `$\{CLAUDE_SKILL_DIR\}/references/blast-radius-patterns.md`) |
+| [7] Cross-Layer Consistency | Frontend/backend endpoint alignment with gap detection | (load `$\{CLAUDE_SKILL_DIR\}/references/deep-dives.md`) |
+| [8] Migration Checklist | Ordered runbook with sequential/parallel blocks and time estimates | (load `$\{CLAUDE_SKILL_DIR\}/references/deep-dives.md`) |
 
 ---
 
@@ -192,12 +223,12 @@ Available when user selects "Drill deeper". Load `Read("$\{CLAUDE_PLUGIN_ROOT\}/
 
 | Rule | Impact | What It Covers |
 |------|--------|----------------|
-| section-rendering (load `$\{CLAUDE_PLUGIN_ROOT\}/skills/visualize-plan/rules/section-rendering.md`) | HIGH | Rendering conventions for all 5 core sections |
+| section-rendering (load `$\{CLAUDE_SKILL_DIR\}/rules/section-rendering.md`) | HIGH | Rendering conventions for all 5 core sections |
 | ASCII diagrams | MEDIUM | Via `ascii-visualizer` skill (box-drawing, file trees, workflows) |
 
 ## References
 
-Load on demand with `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/visualize-plan/references/&lt;file&gt;")`:
+Load on demand with `Read("$\{CLAUDE_SKILL_DIR\}/references/&lt;file&gt;")`:
 | File | Content |
 |------|---------|
 | `visualization-tiers.md` | Progressive disclosure tiers and header field computation |
@@ -210,7 +241,7 @@ Load on demand with `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/visualize-plan/referen
 
 ## Assets
 
-Load on demand with `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/visualize-plan/assets/&lt;file&gt;")`:
+Load on demand with `Read("$\{CLAUDE_SKILL_DIR\}/assets/&lt;file&gt;")`:
 | File | Content |
 |------|---------|
 | `plan-report.md` | Full mustache-style report template |
@@ -222,6 +253,8 @@ Load on demand with `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/visualize-plan/assets/
 - `ork:implement` - Execute planned changes
 - `ork:explore` - Understand current architecture
 - `ork:assess` - Evaluate complexity and risks
+- `ork:memory` - Search prior plan visualizations
+- `ork:remember` - Store plan decisions for future reference
 
 
 ---

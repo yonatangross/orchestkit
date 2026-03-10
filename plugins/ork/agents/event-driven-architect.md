@@ -22,6 +22,7 @@ tools:
   - TaskCreate
   - TaskUpdate
   - TaskList
+  - ExitWorktree
 skills:
   - distributed-systems
   - api-design

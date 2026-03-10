@@ -54,14 +54,14 @@ AskUserQuestion(
 
 ## Subcommands
 
-Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/memory/references/memory-commands.md")` for full usage, flags, output formats, and context-aware result limits for each subcommand.
+Load details: `Read("${CLAUDE_SKILL_DIR}/references/memory-commands.md")` for full usage, flags, output formats, and context-aware result limits for each subcommand.
 
 | Subcommand | Purpose |
 |------------|---------|
 | `search` | Search past decisions, patterns, entities. Supports `--category` (maps to metadata.category), `--limit`, `--agent` (scopes by agent_id), `--global` filter flags |
 | `load` | Auto-load relevant memories at session start. Supports `--project`, `--global` |
 | `history` | Decision timeline with table, Mermaid, or JSON output. Supports `--since`, `--mermaid` |
-| `viz` | Render knowledge graph as Mermaid diagram. See also `Read("${CLAUDE_PLUGIN_ROOT}/skills/memory/references/mermaid-patterns.md")` |
+| `viz` | Render knowledge graph as Mermaid diagram. See also `Read("${CLAUDE_SKILL_DIR}/references/mermaid-patterns.md")` |
 | `status` | Memory system health check |
 
 
@@ -87,13 +87,13 @@ Format output appropriate to the operation.
 
 | Rule | Impact | What It Covers |
 |------|--------|----------------|
-| entity-extraction-patterns (load `${CLAUDE_PLUGIN_ROOT}/skills/memory/rules/entity-extraction-patterns.md`) | HIGH | Entity types, relation types, graph query semantics |
-| deduplication-strategy (load `${CLAUDE_PLUGIN_ROOT}/skills/memory/rules/deduplication-strategy.md`) | HIGH | Edit-over-Write pattern, anchor-based insertion, verification |
+| entity-extraction-patterns (load `${CLAUDE_SKILL_DIR}/rules/entity-extraction-patterns.md`) | HIGH | Entity types, relation types, graph query semantics |
+| deduplication-strategy (load `${CLAUDE_SKILL_DIR}/rules/deduplication-strategy.md`) | HIGH | Edit-over-Write pattern, anchor-based insertion, verification |
 
 
 ## Session Resume
 
-Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/memory/references/session-resume-patterns.md")` for CC 2.1.31 resume hints, context capture before ending, and resume workflows for PRs, issues, and implementations.
+Load details: `Read("${CLAUDE_SKILL_DIR}/references/session-resume-patterns.md")` for CC 2.1.31 resume hints, context capture before ending, and resume workflows for PRs, issues, and implementations.
 
 
 ## Related Skills

@@ -62,7 +62,7 @@ FLAG = "$ARGUMENTS[0]"  # First token: --rescan, --score-only, --plan-only, --ch
 
 ## Phase 1: Scan
 
-Load details: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/setup/references/scan-phase.md")` for full scan commands (20 parallel Glob probes + dependency file reads + pattern detection counts).
+Load details: `Read("$\{CLAUDE_SKILL_DIR\}/references/scan-phase.md")` for full scan commands (20 parallel Glob probes + dependency file reads + pattern detection counts).
 
 Scans for package manifests (package.json, pyproject.toml, go.mod, Cargo.toml, etc.), infrastructure (Docker, GitHub Actions, Terraform, K8s), and existing CC configuration. Pattern detection counts API routes, React components, models, and tests for custom skill suggestions.
 
@@ -85,7 +85,7 @@ Detected Stack:
 | Detected | Recommended Skills |
 |----------|--------------------|
 | Python | `python-backend`, `async-jobs`, `database-patterns` |
-| FastAPI | `api-design`, `testing-patterns` |
+| FastAPI | `api-design`, `testing-unit`, `testing-integration` |
 | React | `react-server-components-framework`, `ui-components`, `responsive-patterns` |
 | Next.js | `react-server-components-framework`, `performance`, `vite-advanced` |
 | Zustand | `zustand-patterns` |
@@ -94,7 +94,7 @@ Detected Stack:
 | Terraform | `devops-deployment` |
 | GitHub Actions | `devops-deployment` |
 | LLM/AI deps | `llm-integration`, `rag-retrieval`, `langgraph`, `mcp-patterns` |
-| Test frameworks | `testing-patterns`, `golden-dataset` |
+| Test frameworks | `testing-unit`, `testing-e2e`, `testing-integration`, `golden-dataset` |
 | Security concerns | `security-patterns` |
 
 **All stacks get**: `explore`, `implement`, `verify`, `commit`, `review-pr`, `fix-issue`, `doctor`, `remember`, `brainstorm`, `help`
@@ -105,13 +105,13 @@ Detect release channel from `manifests/ork.json` version string. Classification:
 
 ## Phase 3: Safety Check
 
-Load details: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/setup/references/safety-check.md")` for the full AskUserQuestion prompt and conflict detection logic.
+Load details: `Read("$\{CLAUDE_SKILL_DIR\}/references/safety-check.md")` for the full AskUserQuestion prompt and conflict detection logic.
 
 Offers three install scopes: User-only (recommended, invisible to teammates), Project-wide (committed to repo), or Already installed (skip to configure). Checks for existing OrchestKit installs and conflicting plugins.
 
 ## Phase 3.5: Project Configuration Wizard
 
-Load details: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/setup/references/configure-wizard.md")` for the full 5-step interactive configuration flow (branch strategy, commit scope, localhost browser, perf telemetry, log verbosity) and env var reference.
+Load details: `Read("$\{CLAUDE_SKILL_DIR\}/references/configure-wizard.md")` for the full 6-step interactive configuration flow (branch strategy, commit scope, localhost browser, perf telemetry, log verbosity, webhook telemetry) and env var reference.
 
 > Also reachable directly via `/ork:setup --configure` — skips phases 1-3.
 
@@ -126,8 +126,8 @@ AskUserQuestion(questions=[{
   "question": "Which skill categories should we prioritize? (all are available, this helps focus the improvement plan)",
   "header": "Focus areas",
   "options": [
-    {"label": "Full-stack (Recommended)", "description": "All detected stack skills + security + testing", "markdown": "```\nFull-Stack Focus\n────────────────\nBackend:   api-design, database-patterns\nFrontend:  react-server-components, ui-components\nSecurity:  security-patterns, testing-patterns\nDevOps:    devops-deployment\nWorkflow:  implement, verify, commit\n```"},
-    {"label": "Backend focus", "description": "API, database, async, security patterns", "markdown": "```\nBackend Focus\n─────────────\nCore:      api-design, database-patterns\nAsync:     async-jobs, distributed-systems\nSecurity:  security-patterns\nTesting:   testing-patterns (integration)\nSkipped:   UI, components, accessibility\n```"},
+    {"label": "Full-stack (Recommended)", "description": "All detected stack skills + security + testing", "markdown": "```\nFull-Stack Focus\n────────────────\nBackend:   api-design, database-patterns\nFrontend:  react-server-components, ui-components\nSecurity:  security-patterns\nTesting:   testing-unit, testing-e2e\nDevOps:    devops-deployment\nWorkflow:  implement, verify, commit\n```"},
+    {"label": "Backend focus", "description": "API, database, async, security patterns", "markdown": "```\nBackend Focus\n─────────────\nCore:      api-design, database-patterns\nAsync:     async-jobs, distributed-systems\nSecurity:  security-patterns\nTesting:   testing-unit, testing-integration\nSkipped:   UI, components, accessibility\n```"},
     {"label": "Frontend focus", "description": "React, UI components, performance, accessibility", "markdown": "```\nFrontend Focus\n──────────────\nCore:      react-server-components\nUI:        ui-components, responsive-patterns\nPerf:      performance, vite-advanced\nA11y:      accessibility patterns\nSkipped:   database, async, infra\n```"},
     {"label": "DevOps focus", "description": "CI/CD, deployment, monitoring, infrastructure", "markdown": "```\nDevOps Focus\n────────────\nCI/CD:     devops-deployment\nInfra:     distributed-systems\nMonitor:   observability patterns\nSecurity:  security-patterns\nSkipped:   UI, components, API design\n```"}
   ],
@@ -269,7 +269,7 @@ mcp__memory__create_entities(entities=[{
 
 After the improvement plan, check if the user's CLAUDE.md could benefit from CC 2.1.59+ modular structure.
 
-Load details: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/setup/references/claude-md-health.md")` for analysis steps, thresholds, @import syntax, and `.claude/rules/` path-scoped rules.
+Load details: `Read("$\{CLAUDE_SKILL_DIR\}/references/claude-md-health.md")` for analysis steps, thresholds, @import syntax, and `.claude/rules/` path-scoped rules.
 
 ```python
 # Quick check
@@ -281,7 +281,7 @@ If CLAUDE.md > 200 lines and no `.claude/rules/` exist, recommend splitting. Sho
 
 ## Phase 8: Keybindings
 
-Load details: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/setup/references/keybindings.md")` for the full keybinding prompt, default shortcuts, and merge logic.
+Load details: `Read("$\{CLAUDE_SKILL_DIR\}/references/keybindings.md")` for the full keybinding prompt, default shortcuts, and merge logic.
 
 Offers 5 recommended shortcuts (commit, verify, implement, explore, review-pr). Merges with existing `~/.claude/keybindings.json` without overwriting user-defined bindings.
 
@@ -289,21 +289,78 @@ Offers 5 recommended shortcuts (commit, verify, implement, explore, review-pr). 
 
 > **Tip (CC 2.1.69+):** After setup completes, run `/reload-plugins` to activate all plugin changes without restarting your session.
 
+## Phase 9: Telemetry & Webhooks
+
+> Previously in `/ork:configure`. Now part of setup for single entry point.
+
+Load details: `Read("$\{CLAUDE_SKILL_DIR\}/references/telemetry-setup.md")` for the full configuration flow.
+
+Ask user preference with AskUserQuestion:
+
+| Mode | Events | Auth | Overhead |
+|------|--------|------|----------|
+| **Full streaming** | All 18 CC events via HTTP hooks | Bearer token | Near-zero |
+| **Summary only** | SessionEnd + worktree events | HMAC auth | None |
+| **Skip** | No telemetry | — | None |
+
+If streaming selected:
+1. Ask for webhook URL
+2. Run `npm run generate:http-hooks -- &lt;url&gt; --write`
+3. Save to `.claude/orchestration/config.json`
+4. Remind about `ORCHESTKIT_HOOK_TOKEN` env var
+
+## Phase 10: Optional Integrations
+
+Load details: `Read("$\{CLAUDE_SKILL_DIR\}/references/integrations.md")` for setup steps.
+
+Covers Agentation UI annotation tool and CC version-specific settings (CC 2.1.7 turn duration, CC 2.1.20 task deletion, CC 2.1.23 spinner verbs).
+
 ## CLI Flags
 
 | Flag | Behavior |
 |------|----------|
-| (none) | Full 9-phase wizard (includes 3.5 configure + 7b health check) |
+| (none) | Full wizard (phases 1-10) |
 | `--rescan` | Re-run scan + score, skip safety phase |
 | `--configure` | Jump directly to Phase 3.5: project configuration wizard |
 | `--score-only` | Show current readiness score (Phase 6 only) |
 | `--plan-only` | Show improvement plan (Phase 7 only) |
 | `--channel` | Show detected release channel only |
+| `--telemetry` | Jump to Phase 9: telemetry/webhook setup |
+| `--preset` | Apply a preset (complete/standard/lite/hooks-only/monorepo) |
+
+## Presets (via --preset)
+
+Apply a preset to quickly configure OrchestKit without the full wizard:
+
+| Preset | Skills | Agents | Hooks | Best For |
+|--------|--------|--------|-------|----------|
+| **complete** | 91 | 31 | 96 | Full power — everything enabled |
+| **standard** | 91 | 0 | 96 | Skills + hooks, no agents |
+| **lite** | 10 | 0 | 96 | Essential workflow skills only |
+| **hooks-only** | 0 | 0 | 96 | Just safety hooks |
+| **monorepo** | 91 | 31 | 96 | Complete + monorepo workspace detection |
+
+Load preset details: `Read("$\{CLAUDE_SKILL_DIR\}/references/presets.md")`
+
+## References
+
+Load on demand with `Read("$\{CLAUDE_SKILL_DIR\}/references/&lt;file&gt;")`:
+
+| File | Content |
+|------|---------|
+| `scan-phase.md` | Phase 1: 20 parallel Glob probes + pattern detection |
+| `safety-check.md` | Phase 3: Install scope and conflict detection |
+| `configure-wizard.md` | Phase 3.5: 6-step interactive project config |
+| `claude-md-health.md` | Phase 7b: CLAUDE.md modular structure analysis |
+| `keybindings.md` | Phase 8: Keyboard shortcut recommendations |
+| `telemetry-setup.md` | Phase 9: Webhook/telemetry configuration |
+| `integrations.md` | Phase 10: Agentation + CC version settings |
+| `presets.md` | Preset definitions and skill/agent matrices |
 
 ## Related Skills
 
 - `ork:doctor` — Health diagnostics (wizard uses its checks)
-- `ork:configure` — Detailed configuration (wizard recommends then links here)
+- `ork:configure` — Internal configuration (called by wizard phases 3.5, 9, 10)
 - `ork:remember` — Knowledge persistence (wizard seeds initial patterns)
 - `ork:explore` — Deep codebase analysis (wizard links for follow-up)
 - `ork:help` — Skill directory (wizard surfaces relevant subset)
@@ -311,7 +368,7 @@ Offers 5 recommended shortcuts (commit, verify, implement, explore, review-pr). 
 
 ---
 
-## References (5)
+## References (8)
 
 ### Claude Md Health
 
@@ -450,7 +507,7 @@ This phase walks users through every configurable OrchestKit behaviour and write
 The write target depends on the project type:
 
 - **Developing OrchestKit itself** (`src/settings/ork.settings.json` exists): write to `src/settings/ork.settings.json` — this is the plugin's global defaults file.
-- **Any other project** (yonatan-hq, client repos, etc.): write to `.claude/settings.json` — this is per-project CC settings that override plugin defaults without touching global config.
+- **Any other project** (your app, client repos, etc.): write to `.claude/settings.json` — this is per-project CC settings that override plugin defaults without touching global config.
 
 ```python
 # Detect config target
@@ -610,9 +667,70 @@ AskUserQuestion(questions=[{
 
 Generated env var: `ORCHESTKIT_LOG_LEVEL=&lt;value&gt;`
 
+## Step 6: Webhook Telemetry (HTTP Hooks)
+
+```python
+AskUserQuestion(questions=[{
+  "question": "Send CC hook events to an external API for observability (Langfuse traces, metrics)?",
+  "header": "Webhook telemetry",
+  "options": [
+    {
+      "label": "Yes, enable webhooks",
+      "description": "Runs `generate-http-hooks` to write native CC HTTP hooks to settings.local.json.",
+      "markdown": "```\nWebhook Telemetry\n-----------------\nWrites: .claude/settings.local.json\nEvents: All 19 CC hook types\nAuth:   Bearer $ORCHESTKIT_HOOK_TOKEN\n\nRequires:\n  1. A webhook URL (e.g. https://api.example.com/api/hooks)\n  2. ORCHESTKIT_HOOK_TOKEN env var set in your shell\n\nData sent: event type, session_id, tool_name,\n           cwd, model, timestamps\nNo secrets or file contents are sent.\n```"
+    },
+    {
+      "label": "No, skip webhooks (Recommended for most users)",
+      "description": "No HTTP hooks. All hook processing stays local.",
+      "markdown": "```\nNo Webhook Telemetry\n--------------------\nHooks run locally only (command hooks).\nNo data sent to external APIs.\nDefault and recommended for most users.\n```"
+    }
+  ],
+  "multiSelect": false
+}])
+```
+
+If **Yes** selected, ask for the webhook URL:
+
+```python
+AskUserQuestion(questions=[{
+  "question": "Webhook base URL (the API that receives CC hook events):",
+  "header": "Webhook URL",
+  "options": [
+    {
+      "label": "https://hq.yonatangross.com/api/hooks",
+      "description": "Yonatan HQ production API"
+    },
+    {
+      "label": "http://hq-api.localhost:1355/api/hooks",
+      "description": "Local dev API (Portless)"
+    },
+    {
+      "label": "Custom URL",
+      "description": "I'll provide my own webhook endpoint"
+    }
+  ],
+  "multiSelect": false
+}])
+```
+
+Then run the generator:
+
+```python
+Bash(command=f"npx tsx ${{CLAUDE_PLUGIN_ROOT}}/hooks/../src/hooks/src/cli/generate-http-hooks.ts {webhook_url} --write")
+```
+
+This writes 19 HTTP hook entries to `.claude/settings.local.json`. The hooks use `Bearer $ORCHESTKIT_HOOK_TOKEN` — the user must set this env var in their shell (e.g. `.zshrc`).
+
+Remind the user:
+```
+Webhook hooks written to .claude/settings.local.json
+Set ORCHESTKIT_HOOK_TOKEN in your shell:
+  export ORCHESTKIT_HOOK_TOKEN="your-token-here"
+```
+
 ## Writing the Configuration
 
-After all 5 steps, write (or merge) the env block into `config_target` (set in Step 0):
+After all 6 steps, write (or merge) the env block into `config_target` (set in Step 0):
 
 ```python
 # Merge new env values (preserving existing keys not in wizard scope)
@@ -659,7 +777,52 @@ To see full readiness: /ork:setup --score-only
 | `ORCHESTKIT_AGENT_BROWSER_ALLOW_LOCALHOST` | `1` | `1` \| `0` | Allow `*.localhost` browser access |
 | `ORCHESTKIT_PERF_SNAPSHOT_ENABLED` | `1` | `1` \| `0` | Write session token snapshots |
 | `ORCHESTKIT_LOG_LEVEL` | `warn` | `debug` \| `info` \| `warn` \| `error` | Hook log verbosity |
+| `ORCHESTKIT_HOOK_TOKEN` | (unset) | Bearer token string | Auth for webhook HTTP hooks |
 | `ENABLE_TOOL_SEARCH` | `auto:5` | `auto:N` \| `off` | MCP tool discovery limit |
+
+
+### Integrations
+
+# Phase 10: Optional Integrations
+
+## Agentation UI Annotation Tool
+
+If frontend UI work detected in Phase 1 scan:
+
+1. Install: `npm install agentation-mcp`
+2. MCP config: Add to `.mcp.json`
+3. Component scaffold: Wrap target components
+4. CSP updates: Allow agentation connections
+
+All steps are idempotent — safe to re-run.
+
+## CC Version-Specific Settings
+
+### CC 2.1.7+
+- Turn duration limits
+- MCP deferral threshold
+- Effective context window size
+
+### CC 2.1.20+
+- Task deletion support
+- PR enrichment
+- Agent permissions
+- Monorepo workspace detection
+- Team distribution settings
+
+### CC 2.1.23+
+- Spinner verb customization
+
+### CC 2.1.72+
+- Reasoning effort levels (low/medium/high/auto)
+- Plan mode (`/plan`)
+- Background agent preservation across `/clear`
+
+Present as toggles — only show settings relevant to detected CC version:
+
+```python
+Bash(command="claude --version 2>/dev/null | head -1")
+```
 
 
 ### Keybindings
@@ -700,6 +863,47 @@ If **Yes**: write or merge into `~/.claude/keybindings.json`:
 ```
 
 If the file already exists, **merge** — read existing entries, add only keybindings whose `key` is not already bound, then write back. Never overwrite user-defined bindings.
+
+
+### Presets
+
+# Presets
+
+Quick-start configurations for different use cases.
+
+## Preset Matrix
+
+| Preset | Skills | Agents | Hooks | Use Case |
+|--------|--------|--------|-------|----------|
+| **complete** | 91 | 31 | 96 | Full power — recommended for most users |
+| **standard** | 91 | 0 | 96 | No agent delegation — lower token cost |
+| **lite** | 10 | 0 | 96 | Essential: commit, implement, verify, explore, fix-issue, create-pr, review-pr, remember, memory, help |
+| **hooks-only** | 0 | 0 | 96 | Just safety hooks (git protection, secret redaction, file guards) |
+| **monorepo** | 91 | 31 | 96 | Complete + monorepo workspace detection enabled |
+
+## Lite Preset Skills
+
+The 10 essential skills for any project:
+
+1. `commit` — Conventional commits with safety hooks
+2. `implement` — Feature implementation with parallel agents
+3. `verify` — Test and grade implementations
+4. `explore` — Codebase exploration
+5. `fix-issue` — GitHub issue resolution
+6. `create-pr` — PR creation with validation
+7. `review-pr` — PR review with 6 agents
+8. `remember` — Store decisions in knowledge graph
+9. `memory` — Search and recall past decisions
+10. `help` — Skill directory
+
+## Applying a Preset
+
+```bash
+/ork:setup --preset complete
+/ork:setup --preset lite
+```
+
+Presets set the base, then user can toggle individual categories on/off.
 
 
 ### Safety Check
@@ -786,4 +990,58 @@ Grep(pattern="class.*Model\\)", glob="**/*.py", output_mode="count")
 Grep(pattern="def test_", glob="**/*.py", output_mode="count")
 Grep(pattern="(describe|it|test)\\(", glob="**/*.{ts,tsx,js}", output_mode="count")
 ```
+
+
+### Telemetry Setup
+
+# Phase 9: Telemetry & Webhook Configuration
+
+Dual-channel telemetry for streaming session data to your API.
+
+## Channel Architecture
+
+```
+Channel 1 (HTTP hooks):     All 18 CC events → /cc-event (Bearer auth)
+Channel 2 (Command hooks):  SessionEnd → /ingest (HMAC auth, enriched)
+```
+
+## AskUserQuestion Prompt
+
+```python
+AskUserQuestion(questions=[{
+  "question": "Set up session telemetry?",
+  "header": "Telemetry",
+  "options": [
+    {"label": "Full streaming (Recommended)", "description": "All 18 events stream via native HTTP + enriched summaries", "markdown": "```\nFull Streaming\n──────────────\nChannel 1: HTTP hooks (18 events)\n  → Tool calls, agent spawns,\n    task updates, session lifecycle\n  → Bearer token auth\n  → Near-zero overhead\n\nChannel 2: Command hooks\n  → SessionEnd summary\n  → HMAC auth, enriched data\n```"},
+    {"label": "Summary only", "description": "SessionEnd and worktree events only (command hooks)", "markdown": "```\nSummary Only\n────────────\nChannel 2 only:\n  → SessionEnd + worktree events\n  → HMAC auth\n  → Minimal overhead\n```"},
+    {"label": "Skip", "description": "No telemetry — hooks run locally only"}
+  ],
+  "multiSelect": false
+}])
+```
+
+## If Full Streaming
+
+1. Ask for webhook URL
+2. Generate HTTP hooks: `npm run generate:http-hooks -- &lt;url&gt; --write`
+3. Save config:
+```json
+// .claude/orchestration/config.json
+{ "webhookUrl": "<url>" }
+```
+4. Remind about auth:
+```
+Set ORCHESTKIT_HOOK_TOKEN in your environment (never in config files):
+  export ORCHESTKIT_HOOK_TOKEN=your-secret
+```
+
+## If Summary Only
+
+Save webhookUrl to config, skip HTTP hook generation.
+
+## Security Notes
+
+- Never store tokens in config files — use environment variables
+- Never use `set -x` with secrets in scope
+- Bearer token for HTTP hooks, HMAC for command hooks
 

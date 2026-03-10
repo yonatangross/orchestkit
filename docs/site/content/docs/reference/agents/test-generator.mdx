@@ -3,7 +3,7 @@ title: "Test Generator"
 description: "Test specialist: coverage gap analysis, unit/integration test generation, fixtures, API mocking (MSW), HTTP recording"
 ---
 
-<span className="badge badge-blue">sonnet</span>
+<span className="badge badge-gray">inherit</span>
  <span className="badge badge-gray">testing</span>
 
 > Test specialist: coverage gap analysis, unit/integration test generation, fixtures, API mocking (MSW), HTTP recording
@@ -20,10 +20,15 @@ description: "Test specialist: coverage gap analysis, unit/integration test gene
 - `TaskCreate`
 - `TaskUpdate`
 - `TaskList`
+- `ExitWorktree`
 
 ## Skills Used
 
-- [testing-patterns](/docs/reference/skills/testing-patterns)
+- [testing-unit](/docs/reference/skills/testing-unit)
+- [testing-e2e](/docs/reference/skills/testing-e2e)
+- [testing-llm](/docs/reference/skills/testing-llm)
+- [testing-integration](/docs/reference/skills/testing-integration)
+- [testing-perf](/docs/reference/skills/testing-perf)
 - [architecture-patterns](/docs/reference/skills/architecture-patterns)
 - [browser-tools](/docs/reference/skills/browser-tools)
 - [task-dependency-patterns](/docs/reference/skills/task-dependency-patterns)
@@ -386,4 +391,4 @@ class TestFeedbackService:
 ## Integration
 - **Triggered by:** code-quality-reviewer (coverage check), CI pipeline
 - **Receives from:** backend-system-architect (new features to test)
-- **Skill references:** testing-patterns
+- **Skill references:** testing-unit, testing-e2e, testing-llm, testing-integration, testing-perf

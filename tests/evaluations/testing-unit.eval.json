@@ -1,0 +1,104 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "testing-unit",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "unit-aaa-pattern",
+      "query": "Write a unit test for a discount calculator",
+      "expected_behavior": [
+        "Uses the Arrange-Act-Assert structure to clearly separate test setup, execution, and verification",
+        "Creates fresh instances per test via beforeEach",
+        "Tests observable behavior rather than implementation details to avoid brittle tests",
+        "Achieves coverage targets for business logic and critical paths per the test isolation rules"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "unit-parametrized",
+      "query": "Test email validation with multiple inputs",
+      "expected_behavior": [
+        "Uses test.each or @pytest.mark.parametrize to run the same test with multiple input sets",
+        "Covers valid, invalid, and edge case inputs",
+        "Uses descriptive test names with parameters"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "unit-fixture-scoping",
+      "query": "Set up pytest fixtures for database tests",
+      "expected_behavior": [
+        "Uses function scope for mutable state",
+        "Uses session scope for expensive setup like DB engine",
+        "Includes teardown cleanup via yield in the fixture to release resources after tests"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "mocking-msw",
+      "query": "Mock API responses with MSW in Vitest tests",
+      "expected_behavior": [
+        "Uses MSW http.get/post handlers to intercept and mock outgoing API requests",
+        "Sets up server.listen/resetHandlers/close lifecycle hooks in beforeAll/afterEach/afterAll blocks",
+        "Uses server.use() for per-test handler overrides to simulate specific API scenarios"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "mocking-vcr",
+      "query": "Record HTTP interactions with VCR.py",
+      "expected_behavior": [
+        "Configures cassette_library_dir and record_mode to control HTTP recording and playback behavior",
+        "Filters sensitive headers and body data",
+        "Uses 'none' record mode in CI to ensure tests only replay pre-recorded cassettes"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "data-factories",
+      "query": "Create test data factories for user and analysis models",
+      "expected_behavior": [
+        "Uses FactoryBoy with Faker for Python",
+        "Uses faker with spread overrides for TypeScript",
+        "Supports SubFactory for generating related model instances with proper foreign key relationships"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "data-fixtures",
+      "query": "Load JSON fixtures in pytest tests",
+      "expected_behavior": [
+        "Loads test fixtures from JSON files to provide consistent and reproducible test data",
+        "Composes multiple fixtures together for complex test scenarios requiring related data sets",
+        "Uses conftest.py for shared fixtures that are available across multiple test modules"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "data-seeding-cleanup",
+      "query": "Seed test database and clean up between tests",
+      "expected_behavior": [
+        "Seeds the database with factory-generated data to establish known baseline state for tests",
+        "Uses autouse fixture for automatic cleanup",
+        "Truncates tables with CASCADE to remove all test data including dependent foreign key rows"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    }
+  ]
+}

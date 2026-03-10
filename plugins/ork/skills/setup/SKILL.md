@@ -1,16 +1,16 @@
 ---
 name: setup
 license: MIT
-compatibility: "Claude Code 2.1.59+."
+compatibility: "Claude Code 2.1.72+."
 description: "Personalized setup and onboarding wizard. Use when setting up OrchestKit for a new project, configuring plugins, or generating a readiness score and improvement plan."
 argument-hint: "[--rescan] [--score-only] [--plan-only] [--channel] [--configure]"
 context: fork
-version: 1.0.0
+version: 2.0.0
 author: OrchestKit
-tags: [onboarding, setup, wizard, configuration, stack-detection, mcp, personalization]
+tags: [onboarding, setup, wizard, configuration, stack-detection, mcp, personalization, telemetry, presets]
 user-invocable: true
 disable-model-invocation: true
-allowed-tools: [Read, Grep, Glob, Bash, AskUserQuestion, mcp__memory__search_nodes, mcp__memory__create_entities, mcp__memory__create_relations]
+allowed-tools: [Read, Grep, Glob, Bash, AskUserQuestion, TaskCreate, TaskUpdate, mcp__memory__search_nodes, mcp__memory__create_entities, mcp__memory__create_relations]
 skills: [doctor, configure, remember, explore, help]
 complexity: medium
 hooks:
@@ -20,6 +20,7 @@ hooks:
       once: true
 metadata:
   category: configuration
+  mcp-server: memory
 ---
 
 # OrchestKit Setup Wizard
@@ -70,7 +71,7 @@ FLAG = "$ARGUMENTS[0]"  # First token: --rescan, --score-only, --plan-only, --ch
 
 ## Phase 1: Scan
 
-Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/setup/references/scan-phase.md")` for full scan commands (20 parallel Glob probes + dependency file reads + pattern detection counts).
+Load details: `Read("${CLAUDE_SKILL_DIR}/references/scan-phase.md")` for full scan commands (20 parallel Glob probes + dependency file reads + pattern detection counts).
 
 Scans for package manifests (package.json, pyproject.toml, go.mod, Cargo.toml, etc.), infrastructure (Docker, GitHub Actions, Terraform, K8s), and existing CC configuration. Pattern detection counts API routes, React components, models, and tests for custom skill suggestions.
 
@@ -93,7 +94,7 @@ Detected Stack:
 | Detected | Recommended Skills |
 |----------|--------------------|
 | Python | `python-backend`, `async-jobs`, `database-patterns` |
-| FastAPI | `api-design`, `testing-patterns` |
+| FastAPI | `api-design`, `testing-unit`, `testing-integration` |
 | React | `react-server-components-framework`, `ui-components`, `responsive-patterns` |
 | Next.js | `react-server-components-framework`, `performance`, `vite-advanced` |
 | Zustand | `zustand-patterns` |
@@ -102,7 +103,7 @@ Detected Stack:
 | Terraform | `devops-deployment` |
 | GitHub Actions | `devops-deployment` |
 | LLM/AI deps | `llm-integration`, `rag-retrieval`, `langgraph`, `mcp-patterns` |
-| Test frameworks | `testing-patterns`, `golden-dataset` |
+| Test frameworks | `testing-unit`, `testing-e2e`, `testing-integration`, `golden-dataset` |
 | Security concerns | `security-patterns` |
 
 **All stacks get**: `explore`, `implement`, `verify`, `commit`, `review-pr`, `fix-issue`, `doctor`, `remember`, `brainstorm`, `help`
@@ -113,13 +114,13 @@ Detect release channel from `manifests/ork.json` version string. Classification:
 
 ## Phase 3: Safety Check
 
-Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/setup/references/safety-check.md")` for the full AskUserQuestion prompt and conflict detection logic.
+Load details: `Read("${CLAUDE_SKILL_DIR}/references/safety-check.md")` for the full AskUserQuestion prompt and conflict detection logic.
 
 Offers three install scopes: User-only (recommended, invisible to teammates), Project-wide (committed to repo), or Already installed (skip to configure). Checks for existing OrchestKit installs and conflicting plugins.
 
 ## Phase 3.5: Project Configuration Wizard
 
-Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/setup/references/configure-wizard.md")` for the full 5-step interactive configuration flow (branch strategy, commit scope, localhost browser, perf telemetry, log verbosity) and env var reference.
+Load details: `Read("${CLAUDE_SKILL_DIR}/references/configure-wizard.md")` for the full 6-step interactive configuration flow (branch strategy, commit scope, localhost browser, perf telemetry, log verbosity, webhook telemetry) and env var reference.
 
 > Also reachable directly via `/ork:setup --configure` — skips phases 1-3.
 
@@ -134,8 +135,8 @@ AskUserQuestion(questions=[{
   "question": "Which skill categories should we prioritize? (all are available, this helps focus the improvement plan)",
   "header": "Focus areas",
   "options": [
-    {"label": "Full-stack (Recommended)", "description": "All detected stack skills + security + testing", "markdown": "```\nFull-Stack Focus\n────────────────\nBackend:   api-design, database-patterns\nFrontend:  react-server-components, ui-components\nSecurity:  security-patterns, testing-patterns\nDevOps:    devops-deployment\nWorkflow:  implement, verify, commit\n```"},
-    {"label": "Backend focus", "description": "API, database, async, security patterns", "markdown": "```\nBackend Focus\n─────────────\nCore:      api-design, database-patterns\nAsync:     async-jobs, distributed-systems\nSecurity:  security-patterns\nTesting:   testing-patterns (integration)\nSkipped:   UI, components, accessibility\n```"},
+    {"label": "Full-stack (Recommended)", "description": "All detected stack skills + security + testing", "markdown": "```\nFull-Stack Focus\n────────────────\nBackend:   api-design, database-patterns\nFrontend:  react-server-components, ui-components\nSecurity:  security-patterns\nTesting:   testing-unit, testing-e2e\nDevOps:    devops-deployment\nWorkflow:  implement, verify, commit\n```"},
+    {"label": "Backend focus", "description": "API, database, async, security patterns", "markdown": "```\nBackend Focus\n─────────────\nCore:      api-design, database-patterns\nAsync:     async-jobs, distributed-systems\nSecurity:  security-patterns\nTesting:   testing-unit, testing-integration\nSkipped:   UI, components, accessibility\n```"},
     {"label": "Frontend focus", "description": "React, UI components, performance, accessibility", "markdown": "```\nFrontend Focus\n──────────────\nCore:      react-server-components\nUI:        ui-components, responsive-patterns\nPerf:      performance, vite-advanced\nA11y:      accessibility patterns\nSkipped:   database, async, infra\n```"},
     {"label": "DevOps focus", "description": "CI/CD, deployment, monitoring, infrastructure", "markdown": "```\nDevOps Focus\n────────────\nCI/CD:     devops-deployment\nInfra:     distributed-systems\nMonitor:   observability patterns\nSecurity:  security-patterns\nSkipped:   UI, components, API design\n```"}
   ],
@@ -277,7 +278,7 @@ mcp__memory__create_entities(entities=[{
 
 After the improvement plan, check if the user's CLAUDE.md could benefit from CC 2.1.59+ modular structure.
 
-Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/setup/references/claude-md-health.md")` for analysis steps, thresholds, @import syntax, and `.claude/rules/` path-scoped rules.
+Load details: `Read("${CLAUDE_SKILL_DIR}/references/claude-md-health.md")` for analysis steps, thresholds, @import syntax, and `.claude/rules/` path-scoped rules.
 
 ```python
 # Quick check
@@ -289,7 +290,7 @@ If CLAUDE.md > 200 lines and no `.claude/rules/` exist, recommend splitting. Sho
 
 ## Phase 8: Keybindings
 
-Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/setup/references/keybindings.md")` for the full keybinding prompt, default shortcuts, and merge logic.
+Load details: `Read("${CLAUDE_SKILL_DIR}/references/keybindings.md")` for the full keybinding prompt, default shortcuts, and merge logic.
 
 Offers 5 recommended shortcuts (commit, verify, implement, explore, review-pr). Merges with existing `~/.claude/keybindings.json` without overwriting user-defined bindings.
 
@@ -297,21 +298,78 @@ Offers 5 recommended shortcuts (commit, verify, implement, explore, review-pr). 
 
 > **Tip (CC 2.1.69+):** After setup completes, run `/reload-plugins` to activate all plugin changes without restarting your session.
 
+## Phase 9: Telemetry & Webhooks
+
+> Previously in `/ork:configure`. Now part of setup for single entry point.
+
+Load details: `Read("${CLAUDE_SKILL_DIR}/references/telemetry-setup.md")` for the full configuration flow.
+
+Ask user preference with AskUserQuestion:
+
+| Mode | Events | Auth | Overhead |
+|------|--------|------|----------|
+| **Full streaming** | All 18 CC events via HTTP hooks | Bearer token | Near-zero |
+| **Summary only** | SessionEnd + worktree events | HMAC auth | None |
+| **Skip** | No telemetry | — | None |
+
+If streaming selected:
+1. Ask for webhook URL
+2. Run `npm run generate:http-hooks -- <url> --write`
+3. Save to `.claude/orchestration/config.json`
+4. Remind about `ORCHESTKIT_HOOK_TOKEN` env var
+
+## Phase 10: Optional Integrations
+
+Load details: `Read("${CLAUDE_SKILL_DIR}/references/integrations.md")` for setup steps.
+
+Covers Agentation UI annotation tool and CC version-specific settings (CC 2.1.7 turn duration, CC 2.1.20 task deletion, CC 2.1.23 spinner verbs).
+
 ## CLI Flags
 
 | Flag | Behavior |
 |------|----------|
-| (none) | Full 9-phase wizard (includes 3.5 configure + 7b health check) |
+| (none) | Full wizard (phases 1-10) |
 | `--rescan` | Re-run scan + score, skip safety phase |
 | `--configure` | Jump directly to Phase 3.5: project configuration wizard |
 | `--score-only` | Show current readiness score (Phase 6 only) |
 | `--plan-only` | Show improvement plan (Phase 7 only) |
 | `--channel` | Show detected release channel only |
+| `--telemetry` | Jump to Phase 9: telemetry/webhook setup |
+| `--preset` | Apply a preset (complete/standard/lite/hooks-only/monorepo) |
+
+## Presets (via --preset)
+
+Apply a preset to quickly configure OrchestKit without the full wizard:
+
+| Preset | Skills | Agents | Hooks | Best For |
+|--------|--------|--------|-------|----------|
+| **complete** | 91 | 31 | 96 | Full power — everything enabled |
+| **standard** | 91 | 0 | 96 | Skills + hooks, no agents |
+| **lite** | 10 | 0 | 96 | Essential workflow skills only |
+| **hooks-only** | 0 | 0 | 96 | Just safety hooks |
+| **monorepo** | 91 | 31 | 96 | Complete + monorepo workspace detection |
+
+Load preset details: `Read("${CLAUDE_SKILL_DIR}/references/presets.md")`
+
+## References
+
+Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
+
+| File | Content |
+|------|---------|
+| `scan-phase.md` | Phase 1: 20 parallel Glob probes + pattern detection |
+| `safety-check.md` | Phase 3: Install scope and conflict detection |
+| `configure-wizard.md` | Phase 3.5: 6-step interactive project config |
+| `claude-md-health.md` | Phase 7b: CLAUDE.md modular structure analysis |
+| `keybindings.md` | Phase 8: Keyboard shortcut recommendations |
+| `telemetry-setup.md` | Phase 9: Webhook/telemetry configuration |
+| `integrations.md` | Phase 10: Agentation + CC version settings |
+| `presets.md` | Preset definitions and skill/agent matrices |
 
 ## Related Skills
 
 - `ork:doctor` — Health diagnostics (wizard uses its checks)
-- `ork:configure` — Detailed configuration (wizard recommends then links here)
+- `ork:configure` — Internal configuration (called by wizard phases 3.5, 9, 10)
 - `ork:remember` — Knowledge persistence (wizard seeds initial patterns)
 - `ork:explore` — Deep codebase analysis (wizard links for follow-up)
 - `ork:help` — Skill directory (wizard surfaces relevant subset)

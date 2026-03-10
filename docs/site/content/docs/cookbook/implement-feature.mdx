@@ -57,7 +57,7 @@ After you select **Backend only**, OrchestKit creates a task plan via `TaskCreat
 | Agent | Model | Skills Injected | Output |
 |---|---|---|---|
 | `backend-system-architect` | opus | api-design, python-backend, security-patterns, architecture-patterns | Endpoints, middleware, schemas |
-| `test-generator` | sonnet | testing-patterns | Unit + integration tests |
+| `test-generator` | sonnet | testing-unit, testing-integration | Unit + integration tests |
 | `security-auditor` | opus | security-patterns | Vulnerability scan, recommendations |
 
 All three agents work simultaneously, then **results are merged**. The `backend-system-architect` designs the implementation while `test-generator` writes tests and `security-auditor` reviews the approach for vulnerabilities. No agent waits for another.
@@ -267,7 +267,9 @@ Several reference skills were loaded across the three agents without any explici
 - `python-backend` -- FastAPI, middleware, dependency injection patterns
 - `security-patterns` -- OWASP Top 10, defense-in-depth, input validation
 - `architecture-patterns` -- Clean architecture, separation of concerns
-- `testing-patterns` -- Fixtures, parametrize, async test patterns, integration tests
+- `testing-unit` -- Fixtures, parametrize, mocking, data factories
+- `testing-integration` -- API endpoint tests, database tests, contract testing
+- `testing-e2e` -- Playwright, page objects, visual regression
 - `database-patterns` -- Schema design, migrations, query optimization
 
 ---

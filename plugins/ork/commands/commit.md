@@ -138,16 +138,21 @@ Each category has individual rule files in `rules/` loaded on-demand:
 
 | Category | Rule | Impact | Key Pattern |
 |----------|------|--------|-------------|
-| Atomic Commits | `${CLAUDE_PLUGIN_ROOT}/skills/commit/rules/atomic-commit.md` | CRITICAL | One logical change per commit, atomicity test |
-| Commit Splitting | `${CLAUDE_PLUGIN_ROOT}/skills/commit/rules/commit-splitting.md` | HIGH | `git add -p`, interactive staging, separation strategies |
-| Conventional Format | `${CLAUDE_PLUGIN_ROOT}/skills/commit/rules/conventional-format.md` | HIGH | type(scope): description, breaking changes |
-| Issue Reference | `${CLAUDE_PLUGIN_ROOT}/skills/commit/rules/issue-reference-required.md` | HIGH | Reference issue `#N` in commits on issue branches |
+| Atomic Commits | `${CLAUDE_SKILL_DIR}/rules/atomic-commit.md` | CRITICAL | One logical change per commit, atomicity test |
+| Branch Protection | `${CLAUDE_SKILL_DIR}/rules/branch-protection.md` | CRITICAL | Protected branches, required PR workflow |
+| Commit Splitting | `${CLAUDE_SKILL_DIR}/rules/commit-splitting.md` | HIGH | `git add -p`, interactive staging, separation strategies |
+| Conventional Format | `${CLAUDE_SKILL_DIR}/rules/conventional-format.md` | HIGH | type(scope): description, breaking changes |
+| History Hygiene | `${CLAUDE_SKILL_DIR}/rules/history-hygiene.md` | HIGH | Squash WIP, fixup commits, clean history |
+| Issue Reference | `${CLAUDE_SKILL_DIR}/rules/issue-reference-required.md` | HIGH | Reference issue `#N` in commits on issue branches |
+| Merge Strategy | `${CLAUDE_SKILL_DIR}/rules/merge-strategy.md` | HIGH | Rebase-first, conflict resolution, force-with-lease |
+| Stacked PRs | `${CLAUDE_SKILL_DIR}/rules/stacked-pr-workflow.md` | HIGH | Stack planning, PR creation, dependency tracking |
+| Stacked PRs | `${CLAUDE_SKILL_DIR}/rules/stacked-pr-rebase.md` | HIGH | Rebase management, force-with-lease, retargeting |
 
-**Total: 4 rules across 4 categories**
+**Total: 9 rules across 7 categories**
 
 ## References
 
-Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/commit/references/<file>")`:
+Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | File | Content |
 |------|---------|
 | `references/conventional-commits.md` | Conventional commits specification |

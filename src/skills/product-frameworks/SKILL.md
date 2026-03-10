@@ -1,7 +1,7 @@
 ---
 name: product-frameworks
 license: MIT
-compatibility: "Claude Code 2.1.59+."
+compatibility: "Claude Code 2.1.72+."
 description: Product management frameworks for business cases, market analysis, strategy, prioritization, OKRs/KPIs, personas, requirements, and user research. Use when building ROI projections, competitive analysis, RICE scoring, OKR trees, user personas, PRDs, or usability testing plans.
 tags: [product, strategy, business-case, market-analysis, prioritization, okr, kpi, persona, requirements, user-research, rice, prd]
 context: fork
@@ -94,7 +94,7 @@ User research methods and requirements documentation patterns.
 
 ## Output Templates
 
-Structured JSON output formats for consistent deliverables. Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/product-frameworks/references/output-templates.md")` for PRD, business case, metrics framework, prioritization report, and research report templates.
+Structured JSON output formats for consistent deliverables. Load: `Read("${CLAUDE_SKILL_DIR}/references/output-templates.md")` for PRD, business case, metrics framework, prioritization report, and research report templates.
 
 ## Related Skills
 

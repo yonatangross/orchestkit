@@ -1,7 +1,7 @@
 ---
 name: browser-tools
 license: MIT
-compatibility: "Claude Code 2.1.59+. Requires network access."
+compatibility: "Claude Code 2.1.72+. Requires network access."
 description: OrchestKit orchestration wrapper for browser automation. Adds security rules, rate limiting, and ethical scraping guardrails on top of the upstream agent-browser skill. Use when automating browser workflows, capturing web content, or extracting structured data from web pages.
 tags: [browser, automation, playwright, puppeteer, scraping, content-capture]
 context: fork
@@ -303,5 +303,5 @@ Enhanced session lifecycle commands:
 
 - `agent-browser` (upstream) - Full command reference and usage patterns
 - `ork:web-research-workflow` - Unified decision tree for web research
-- `ork:testing-patterns` - Comprehensive testing patterns including E2E and webapp testing
+- `ork:testing-e2e` - E2E testing patterns including Playwright and webapp testing
 - `ork:api-design` - API design patterns for endpoints discovered during scraping

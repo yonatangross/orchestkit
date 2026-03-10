@@ -29,5 +29,7 @@ export { testRunner } from './test-runner.js';
 export { decisionProcessor } from './decision-processor.js';
 
 // once:true context loaders (CC 2.1.69)
-export { prContextLoader, issueContextLoader, commitConventionLoader, releaseStateLoader } from './context-loaders-git.js';
+export { prContextLoader, issueContextLoader, commitConventionLoader, planContextLoader, releaseStateLoader } from './context-loaders-git.js';
 export { repoStructureIndexer, testFrameworkDetector, projectConventionLoader, doctorEnvSnapshot, setupEnvDetector, priorDecisionsLoader, assessmentBaselineLoader, qualityBaselineLoader } from './context-loaders-env.js';
+// once:true standards loaders (CC 2.1.72 cache-opt)
+export { implementStandardsLoader, reviewDimensionsLoader, verifyScoringRubricLoader, brainstormInstructionsLoader } from './context-loaders-standards.js';

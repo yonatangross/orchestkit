@@ -71,11 +71,11 @@ Write(".claude/chain/state.json", JSON.stringify({
 
 ## STEP 0: Verify User Intent
 
-**BEFORE creating tasks**, clarify fix approach using AskUserQuestion. Load `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/fix-issue/rules/evidence-gathering.md")` for the full prompt template and workflow adjustments per approach (Proper fix, Quick fix, Investigate first, Hotfix).
+**BEFORE creating tasks**, clarify fix approach using AskUserQuestion. Load `Read("$\{CLAUDE_SKILL_DIR\}/rules/evidence-gathering.md")` for the full prompt template and workflow adjustments per approach (Proper fix, Quick fix, Investigate first, Hotfix).
 
 ## STEP 0b: Select Orchestration Mode
 
-Choose **Agent Teams** (mesh) or **Task tool** (star). Load `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/fix-issue/references/agent-selection.md")` for the selection criteria, cost comparison, and task creation patterns.
+Choose **Agent Teams** (mesh) or **Task tool** (star). Load `Read("$\{CLAUDE_SKILL_DIR\}/references/agent-selection.md")` for the selection criteria, cost comparison, and task creation patterns.
 
 ## Workflow Overview
 
@@ -119,6 +119,8 @@ Agent(subagent_type="debug-investigator",
 After Phase 11 (commit + PR), schedule CI monitoring:
 
 ```python
+# Guard: Skip cron in headless/CI (CLAUDE_CODE_DISABLE_CRON)
+# if env CLAUDE_CODE_DISABLE_CRON is set, run a single check instead
 CronCreate(
   schedule="*/5 * * * *",
   prompt="Check CI for PR #{pr_number}: gh pr checks {pr_number} --repo {repo}.
@@ -139,7 +141,7 @@ if capabilities.memory:
   }])
 ```
 
-> **Full phase details**: Load `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/fix-issue/references/fix-phases.md")` for bash commands, templates, and procedures for each phase.
+> **Full phase details**: Load `Read("$\{CLAUDE_SKILL_DIR\}/references/fix-phases.md")` for bash commands, templates, and procedures for each phase.
 
 ## Critical Constraints
 
@@ -150,16 +152,16 @@ if capabilities.memory:
 
 ## CC 2.1.49 Enhancements
 
-> Load `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/fix-issue/references/cc-enhancements.md")` for session resume, task metrics, tool guidance, worktree isolation, and adaptive thinking.
+> Load `Read("$\{CLAUDE_SKILL_DIR\}/references/cc-enhancements.md")` for session resume, task metrics, tool guidance, worktree isolation, and adaptive thinking.
 
 ## Rules Quick Reference
 
 | Rule | Impact | What It Covers |
 |------|--------|----------------|
-| evidence-gathering (load `$\{CLAUDE_PLUGIN_ROOT\}/skills/fix-issue/rules/evidence-gathering.md`) | HIGH | User intent verification, confidence scale, key decisions |
-| rca-five-whys (load `$\{CLAUDE_PLUGIN_ROOT\}/skills/fix-issue/rules/rca-five-whys.md`) | HIGH | 5 Whys iterative causal analysis |
-| rca-fishbone (load `$\{CLAUDE_PLUGIN_ROOT\}/skills/fix-issue/rules/rca-fishbone.md`) | MEDIUM | Ishikawa diagram, multi-factor analysis |
-| rca-fault-tree (load `$\{CLAUDE_PLUGIN_ROOT\}/skills/fix-issue/rules/rca-fault-tree.md`) | MEDIUM | Fault tree analysis, AND/OR gates, critical systems |
+| evidence-gathering (load `$\{CLAUDE_SKILL_DIR\}/rules/evidence-gathering.md`) | HIGH | User intent verification, confidence scale, key decisions |
+| rca-five-whys (load `$\{CLAUDE_SKILL_DIR\}/rules/rca-five-whys.md`) | HIGH | 5 Whys iterative causal analysis |
+| rca-fishbone (load `$\{CLAUDE_SKILL_DIR\}/rules/rca-fishbone.md`) | MEDIUM | Ishikawa diagram, multi-factor analysis |
+| rca-fault-tree (load `$\{CLAUDE_SKILL_DIR\}/rules/rca-fault-tree.md`) | MEDIUM | Fault tree analysis, AND/OR gates, critical systems |
 
 ## Related Skills
 
@@ -170,7 +172,7 @@ if capabilities.memory:
 
 ## References
 
-Load on demand with `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/fix-issue/references/&lt;file&gt;")`:
+Load on demand with `Read("$\{CLAUDE_SKILL_DIR\}/references/&lt;file&gt;")`:
 | File | Content |
 |------|---------|
 | `fix-phases.md` | Bash commands, templates, procedures per phase |
@@ -209,14 +211,14 @@ AskUserQuestion(
       {"label": "Quick fix", "description": "Minimal fix to resolve the immediate issue", "markdown": "```\nQuick Fix (phases 1-7)\n──────────────────────\n  Issue ──▶ Diagnose ──▶ Fix\n  ┌─────┐   ┌────────┐  ┌─────┐\n  │Read │   │Focused │  │Code │\n  │issue│   │RCA     │  │+test│\n  └─────┘   └────────┘  └─────┘\n  Skip: prevention, runbook,\n  lessons learned phases\n  Still requires regression test\n```"},
       {"label": "Investigate first", "description": "Understand the issue before deciding on approach", "markdown": "```\nInvestigate Only (phases 1-4)\n─────────────────────────────\n  Issue ──▶ Search ──▶ Hypotheses\n  ┌─────┐  ┌──────┐  ┌──────────┐\n  │Read │  │Find  │  │Rank by   │\n  │issue│  │similar│  │confidence│\n  └─────┘  └──────┘  └──────────┘\n  Output: Root cause analysis\n  NO code changes made\n  Decide approach after findings\n```"},
       {"label": "Hotfix", "description": "Emergency patch, minimal testing", "markdown": "```\nHotfix (minimal)\n────────────────\n  Issue ──▶ Fix ──▶ Ship\n  ┌─────┐  ┌────┐  ┌────┐\n  │Skim │  │Min │  │Push│\n  │issue│  │fix │  │now │\n  └─────┘  └────┘  └────┘\n  Skip: similar issue search,\n  deep RCA, prevention\n  ⚠ Follow up with proper fix\n```"},
-      {"label": "Plan first", "description": "Investigate root cause in plan mode before fixing", "markdown": "```\nPlan Mode Investigation\n──────────────────────\n  1. EnterPlanMode\n  2. Read issue + repro\n  3. Trace code paths\n  4. Identify root cause\n  5. ExitPlanMode → fix plan\n  6. User approves approach\n  7. Implement fix + tests\n\n  Best for: Complex bugs,\n  regressions, multi-file fixes\n```"}
+      {"label": "Plan first", "description": "Investigate root cause in plan mode before fixing", "markdown": "```\nPlan Mode Investigation\n──────────────────────\n  1. EnterPlanMode("Issue #$ISSUE")\n  2. Read issue + repro\n  3. Trace code paths\n  4. Identify root cause\n  5. ExitPlanMode → fix plan\n  6. User approves approach\n  7. Implement fix + tests\n\n  Best for: Complex bugs,\n  regressions, multi-file fixes\n```"}
     ],
     "multiSelect": false
   }]
 )
 ```
 
-**If 'Plan first' selected:** Call `EnterPlanMode`, perform research using Read/Grep/Glob only, then `ExitPlanMode` with the plan for user approval before proceeding.
+**If 'Plan first' selected:** Call `EnterPlanMode("Investigate issue #$ISSUE: $TITLE")`, perform research using Read/Grep/Glob only, then `ExitPlanMode` with the plan for user approval before proceeding.
 
 **Based on answer, adjust workflow:**
 - **Proper fix**: All 11 phases, parallel agents for RCA
@@ -828,16 +830,18 @@ Agents that edit files SHOULD use `isolation: "worktree"` to prevent conflicts:
 # PARALLEL — All 5 in ONE message
 Agent(
   subagent_type="debug-investigator",
-  prompt="""ROOT CAUSE TRACING for issue #$ARGUMENTS
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  ROOT CAUSE TRACING
 
-  Investigate the primary hypothesis: {hypothesis_1}
   1. Trace the code path that triggers the bug
   2. Identify the exact line/condition causing the failure
   3. Check git blame for when the bug was introduced
 
-  Evidence files: {relevant_files}
-
   SUMMARY: End with: "RESULT: Root cause is [X] in [file:line] — introduced in [commit]"
+
+  Issue: #$ARGUMENTS
+  Investigate the primary hypothesis: {hypothesis_1}
+  Evidence files: {relevant_files}
   """,
   isolation="worktree",
   run_in_background=True,
@@ -845,23 +849,26 @@ Agent(
 )
 Agent(
   subagent_type="debug-investigator",
-  prompt="""IMPACT ANALYSIS for issue #$ARGUMENTS
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  IMPACT ANALYSIS
 
   Assess the blast radius of the confirmed root cause:
   1. What other code paths are affected?
   2. Are there similar patterns elsewhere that might have the same bug?
   3. What's the user-facing impact scope?
 
-  Evidence files: {relevant_files}
-
   SUMMARY: End with: "RESULT: Impact scope: [N] files, [M] code paths affected"
+
+  Issue: #$ARGUMENTS
+  Evidence files: {relevant_files}
   """,
   run_in_background=True,
   max_turns=25
 )
 Agent(
   subagent_type="backend-system-architect",
-  prompt="""BACKEND FIX DESIGN for issue #$ARGUMENTS
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  BACKEND FIX DESIGN
 
   Design the fix approach for the backend:
   1. Propose minimal code changes to resolve the root cause
@@ -869,13 +876,16 @@ Agent(
   3. Assess risk of regression
 
   SUMMARY: End with: "RESULT: Fix requires changes to [N] files — risk: [low/medium/high]"
+
+  Issue: #$ARGUMENTS
   """,
   run_in_background=True,
   max_turns=25
 )
 Agent(
   subagent_type="frontend-ui-developer",
-  prompt="""FRONTEND FIX DESIGN for issue #$ARGUMENTS
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  FRONTEND FIX DESIGN
 
   Design the fix approach for the frontend (if applicable):
   1. UI/UX impact of the bug and proposed fix
@@ -883,13 +893,16 @@ Agent(
   3. Accessibility implications
 
   SUMMARY: End with: "RESULT: Frontend [affected/not affected] — [N] components to update"
+
+  Issue: #$ARGUMENTS
   """,
   run_in_background=True,
   max_turns=25
 )
 Agent(
   subagent_type="test-generator",
-  prompt="""TEST REQUIREMENTS for issue #$ARGUMENTS
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  TEST REQUIREMENTS
 
   Define the test plan for the fix:
   1. Write a FAILING regression test that reproduces the bug
@@ -897,6 +910,8 @@ Agent(
   3. Match test types to the fix using the Test Requirements Matrix
 
   SUMMARY: End with: "RESULT: [N] tests needed — regression test targets [file:function]"
+
+  Issue: #$ARGUMENTS
   """,
   run_in_background=True,
   max_turns=25

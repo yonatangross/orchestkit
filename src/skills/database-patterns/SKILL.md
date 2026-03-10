@@ -1,7 +1,7 @@
 ---
 name: database-patterns
 license: MIT
-compatibility: "Claude Code 2.1.59+."
+compatibility: "Claude Code 2.1.72+."
 description: Database design and migration patterns for Alembic migrations, schema design (SQL/NoSQL), and database versioning. Use when creating migrations, designing schemas, normalizing data, managing database versions, or handling schema drift.
 tags: [database, migrations, alembic, schema-design, versioning, postgresql, sql, nosql]
 context: fork
@@ -68,9 +68,9 @@ Migration management with Alembic for SQLAlchemy 2.0 async applications.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Autogenerate | `${CLAUDE_PLUGIN_ROOT}/skills/database-patterns/rules/alembic-autogenerate.md` | Auto-generate from models, async env.py, review workflow |
-| Data Migration | `${CLAUDE_PLUGIN_ROOT}/skills/database-patterns/rules/alembic-data-migration.md` | Batch backfill, two-phase NOT NULL, zero-downtime |
-| Branching | `${CLAUDE_PLUGIN_ROOT}/skills/database-patterns/rules/alembic-branching.md` | Feature branches, merge migrations, conflict resolution |
+| Autogenerate | `${CLAUDE_SKILL_DIR}/rules/alembic-autogenerate.md` | Auto-generate from models, async env.py, review workflow |
+| Data Migration | `${CLAUDE_SKILL_DIR}/rules/alembic-data-migration.md` | Batch backfill, two-phase NOT NULL, zero-downtime |
+| Branching | `${CLAUDE_SKILL_DIR}/rules/alembic-branching.md` | Feature branches, merge migrations, conflict resolution |
 
 ## Schema Design
 
@@ -78,9 +78,9 @@ SQL and NoSQL schema design with normalization, indexing, and constraint pattern
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Normalization | `${CLAUDE_PLUGIN_ROOT}/skills/database-patterns/rules/schema-normalization.md` | 1NF-3NF, when to denormalize, JSON vs normalized |
-| Indexing | `${CLAUDE_PLUGIN_ROOT}/skills/database-patterns/rules/schema-indexing.md` | B-tree, GIN, HNSW, partial/covering indexes |
-| NoSQL Patterns | `${CLAUDE_PLUGIN_ROOT}/skills/database-patterns/rules/schema-nosql.md` | Embed vs reference, document design, sharding |
+| Normalization | `${CLAUDE_SKILL_DIR}/rules/schema-normalization.md` | 1NF-3NF, when to denormalize, JSON vs normalized |
+| Indexing | `${CLAUDE_SKILL_DIR}/rules/schema-indexing.md` | B-tree, GIN, HNSW, partial/covering indexes |
+| NoSQL Patterns | `${CLAUDE_SKILL_DIR}/rules/schema-nosql.md` | Embed vs reference, document design, sharding |
 
 ## Versioning
 
@@ -88,9 +88,9 @@ Database version control and change management across environments.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Changelog | `${CLAUDE_PLUGIN_ROOT}/skills/database-patterns/rules/versioning-changelog.md` | Schema version table, semantic versioning, audit trails |
-| Rollback | `${CLAUDE_PLUGIN_ROOT}/skills/database-patterns/rules/versioning-rollback.md` | Rollback testing, destructive rollback docs, CI verification |
-| Drift Detection | `${CLAUDE_PLUGIN_ROOT}/skills/database-patterns/rules/versioning-drift.md` | Environment sync, checksum verification, migration locks |
+| Changelog | `${CLAUDE_SKILL_DIR}/rules/versioning-changelog.md` | Schema version table, semantic versioning, audit trails |
+| Rollback | `${CLAUDE_SKILL_DIR}/rules/versioning-rollback.md` | Rollback testing, destructive rollback docs, CI verification |
+| Drift Detection | `${CLAUDE_SKILL_DIR}/rules/versioning-drift.md` | Environment sync, checksum verification, migration locks |
 
 ## Database Selection
 
@@ -98,7 +98,7 @@ Decision frameworks for choosing the right database. Default: PostgreSQL.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Selection Guide | `${CLAUDE_PLUGIN_ROOT}/skills/database-patterns/rules/db-selection.md` | PostgreSQL-first, tier-based matrix, anti-patterns |
+| Selection Guide | `${CLAUDE_SKILL_DIR}/rules/db-selection.md` | PostgreSQL-first, tier-based matrix, anti-patterns |
 
 ## Key Decisions
 
@@ -144,10 +144,10 @@ command.stamp(alembic_config, "head")  # Loses history
 
 | Resource | Description |
 |----------|-------------|
-| `${CLAUDE_PLUGIN_ROOT}/skills/database-patterns/references/` | Advanced patterns: Alembic, normalization, migration, audit, environment, versioning |
-| `${CLAUDE_PLUGIN_ROOT}/skills/database-patterns/checklists/` | Migration deployment and schema design checklists |
-| `${CLAUDE_PLUGIN_ROOT}/skills/database-patterns/examples/` | Complete migration examples, schema examples |
-| `${CLAUDE_PLUGIN_ROOT}/skills/database-patterns/scripts/` | Migration templates, model change detector |
+| `${CLAUDE_SKILL_DIR}/references/` | Advanced patterns: Alembic, normalization, migration, audit, environment, versioning |
+| `${CLAUDE_SKILL_DIR}/checklists/` | Migration deployment and schema design checklists |
+| `${CLAUDE_SKILL_DIR}/examples/` | Complete migration examples, schema examples |
+| `${CLAUDE_SKILL_DIR}/scripts/` | Migration templates, model change detector |
 
 ## Zero-Downtime Migration
 
@@ -155,12 +155,12 @@ Safe database schema changes without downtime using expand-contract pattern and 
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Expand-Contract | `${CLAUDE_PLUGIN_ROOT}/skills/database-patterns/rules/migration-zero-downtime.md` | Expand phase, backfill, contract phase, pgroll automation |
-| Rollback & Monitoring | `${CLAUDE_PLUGIN_ROOT}/skills/database-patterns/rules/migration-rollback.md` | pgroll rollback, lock monitoring, replication lag, backfill progress |
+| Expand-Contract | `${CLAUDE_SKILL_DIR}/rules/migration-zero-downtime.md` | Expand phase, backfill, contract phase, pgroll automation |
+| Rollback & Monitoring | `${CLAUDE_SKILL_DIR}/rules/migration-rollback.md` | pgroll rollback, lock monitoring, replication lag, backfill progress |
 
 ## Related Skills
 
 - `sqlalchemy-2-async` - Async SQLAlchemy session patterns
-- `ork:testing-patterns` - Comprehensive testing patterns including migration testing
+- `ork:testing-integration` - Integration testing patterns including migration testing
 - `caching` - Cache layer design to complement database performance
 - `ork:performance` - Performance optimization patterns

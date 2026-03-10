@@ -19,9 +19,10 @@ tools:
   - TaskCreate
   - TaskUpdate
   - TaskList
+  - ExitWorktree
 skills:
   - accessibility
-  - testing-patterns
+  - testing-e2e
   - ui-components
   - responsive-patterns
   - i18n-date-patterns
@@ -300,4 +301,4 @@ Task: "Audit and fix login form accessibility"
 ## Integration
 - **Receives from:** frontend-ui-developer (components)
 - **Hands off to:** code-quality-reviewer (validation), test-generator (test coverage)
-- **Skill references:** accessibility, testing-patterns, design-system-starter
+- **Skill references:** accessibility, testing-e2e, design-system-starter

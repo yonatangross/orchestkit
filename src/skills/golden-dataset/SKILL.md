@@ -1,7 +1,7 @@
 ---
 name: golden-dataset
 license: MIT
-compatibility: "Claude Code 2.1.59+."
+compatibility: "Claude Code 2.1.72+."
 description: Golden dataset lifecycle patterns for curation, versioning, quality validation, and CI integration. Use when building evaluation datasets, managing dataset versions, validating quality scores, or integrating golden tests into pipelines.
 tags: [golden-dataset, evaluation, dataset-curation, dataset-validation, quality, llm-testing]
 context: fork
@@ -131,7 +131,7 @@ See `test-cases.json` for 9 test cases across all categories.
 
 - `ork:rag-retrieval` - Retrieval evaluation using golden dataset
 - `langfuse-observability` - Tracing patterns for curation workflows
-- `ork:testing-patterns` - General testing patterns and strategies
+- `ork:testing-unit` - Unit testing patterns and strategies
 - `ai-native-development` - Embedding generation for restore
 
 ## Capability Details

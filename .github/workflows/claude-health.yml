@@ -103,8 +103,8 @@ jobs:
           path: /tmp/health-report.json
           retention-days: 30
 
-      # Phase 2: POST to HQ API (uncomment when yonatan-hq#1039 is done)
-      # - name: Ingest to HQ
+      # Phase 2: POST to external API (optional — configure HQ_API_URL secret)
+      # - name: Ingest report
       #   if: env.HQ_API_URL != ''
       #   env:
       #     HQ_API_URL: ${{ secrets.HQ_API_URL }}

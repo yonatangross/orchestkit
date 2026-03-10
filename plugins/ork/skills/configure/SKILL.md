@@ -1,16 +1,16 @@
 ---
 name: configure
 license: MIT
-compatibility: "Claude Code 2.1.59+."
+compatibility: "Claude Code 2.1.72+."
 description: "Configures OrchestKit plugin settings, MCP servers, hook permissions, and keybindings. Use when customizing plugin behavior or managing settings."
 argument-hint: "[preset-name]"
 context: inherit
 version: 1.0.0
 author: OrchestKit
 tags: [configuration, setup, wizard, customization]
-user-invocable: true
+user-invocable: false
 disable-model-invocation: true
-allowed-tools: [Bash, Read, Grep, Glob]
+allowed-tools: [Bash, Read, Grep, Glob, AskUserQuestion]
 complexity: low
 model: haiku
 metadata:
@@ -43,22 +43,23 @@ Use AskUserQuestion:
 
 | Preset | Skills | Agents | Hooks | Description |
 |--------|--------|--------|-------|-------------|
-| **Complete** | 78 | 20 | 92 | Everything |
-| **Standard** | 78 | 0 | 92 | Skills, no agents |
-| **Lite** | 10 | 0 | 92 | Essential only |
-| **Hooks-only** | 0 | 0 | 92 | Just safety |
-| **Monorepo** | 78 | 20 | 92 | Complete + monorepo detection |
+| **Complete** | 91 | 31 | 96 | Everything |
+| **Standard** | 91 | 0 | 96 | Skills, no agents |
+| **Lite** | 10 | 0 | 96 | Essential only |
+| **Hooks-only** | 0 | 0 | 96 | Just safety |
+| **Monorepo** | 91 | 31 | 96 | Complete + monorepo detection |
 
 ## Step 2: Customize Skill Categories
 
 Categories available:
-- AI/ML (26 skills)
-- Backend (15 skills)
-- Frontend (8 skills)
-- Testing (13 skills)
+- AI/ML (28 skills)
+- Backend (16 skills)
+- Frontend (9 skills)
+- Testing (14 skills)
 - Security (7 skills)
-- DevOps (4 skills)
-- Planning (6 skills)
+- DevOps (5 skills)
+- Planning (7 skills)
+- Workflow (5 skills)
 
 ## Step 3: Customize Agents
 
@@ -66,7 +67,7 @@ Categories available:
 - market-intelligence
 - product-strategist
 
-**Technical Agents (12):**
+**Technical Agents (17):**
 - backend-system-architect
 - frontend-ui-developer
 - database-engineer
@@ -79,6 +80,25 @@ Categories available:
 - security-layer-auditor
 - debug-investigator
 - system-design-reviewer
+- python-performance-engineer
+- frontend-performance-engineer
+- monitoring-engineer
+- event-driven-architect
+- infrastructure-architect
+
+**Operations Agents (6):**
+- ci-cd-engineer
+- deployment-manager
+- git-operations-engineer
+- release-engineer
+- ai-safety-auditor
+- multimodal-specialist
+
+**Research Agents (4):**
+- web-research-analyst
+- market-intelligence
+- design-system-architect
+- demo-producer
 
 ## Step 4: Configure Hooks
 
@@ -123,7 +143,7 @@ Add to your shell profile (`~/.zshrc` or `~/.bashrc`) to persist across sessions
 
 ## Steps 6-8: CC Version-Specific Settings
 
-Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/configure/references/cc-version-settings.md")` for full configuration options.
+Load details: `Read("${CLAUDE_SKILL_DIR}/references/cc-version-settings.md")` for full configuration options.
 
 Covers CC 2.1.7 (turn duration, MCP deferral threshold, effective context window), CC 2.1.20 (task deletion, PR enrichment, agent permissions, monorepo detection, team distribution), and CC 2.1.23 (spinner verbs customization).
 
@@ -183,11 +203,11 @@ Two channels now active:
 
 Save webhookUrl to config and remind about env var (same as above, skip generator step).
 
-Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/configure/references/http-hooks.md")` for architecture details.
+Load `Read("${CLAUDE_SKILL_DIR}/references/http-hooks.md")` for architecture details.
 
 ## Step 10: Optional Integrations
 
-Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/configure/references/integrations.md")` for full integration setup steps.
+Load details: `Read("${CLAUDE_SKILL_DIR}/references/integrations.md")` for full integration setup steps.
 
 Covers Agentation UI annotation tool (npm install, MCP config, component scaffold, CSP updates). All steps are idempotent.
 
@@ -212,7 +232,7 @@ Save to: `~/.claude/plugins/orchestkit/config.json`
 - `ork:doctor`: Diagnose configuration issues
 ## References
 
-Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/configure/references/<file>")`:
+Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | File | Content |
 |------|---------|
 | `references/presets.md` | Preset definitions |

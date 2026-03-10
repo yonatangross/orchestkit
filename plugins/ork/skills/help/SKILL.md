@@ -1,15 +1,15 @@
 ---
 name: help
 license: MIT
-compatibility: "Claude Code 2.1.59+."
+compatibility: "Claude Code 2.1.72+."
 description: "OrchestKit help directory with categorized skill listings. Use when discovering skills for a task, finding the right workflow, or browsing capabilities."
 argument-hint: "[category]"
 context: fork
-version: 1.0.0
+version: 2.0.0
 author: OrchestKit
 tags: [help, documentation, skills, discovery, meta]
 user-invocable: true
-allowed-tools: [AskUserQuestion]
+allowed-tools: [AskUserQuestion, Read, Grep, Glob]
 complexity: low
 model: haiku
 metadata:
@@ -18,7 +18,7 @@ metadata:
 
 # OrchestKit Skill Directory
 
-Interactive guide to all user-invocable skills organized by category.
+Dynamic skill discovery — reads from source at runtime so listings are never stale.
 
 ## Quick Start
 
@@ -26,21 +26,44 @@ Interactive guide to all user-invocable skills organized by category.
 /ork:help           # Show all categories
 /ork:help build     # Show BUILD skills only
 /ork:help git       # Show GIT skills only
+/ork:help all       # List every user-invocable skill
 ```
 
 ## Argument Resolution
 
 ```python
-CATEGORY = "$ARGUMENTS[0]"  # Optional category filter: build, git, memory, quality, config, explore, media
+CATEGORY = "$ARGUMENTS[0]"  # Optional: build, git, memory, quality, config, explore, plan, media, all
 # If provided, skip AskUserQuestion and show that category directly.
 # $ARGUMENTS is the full string (CC 2.1.59 indexed access)
 ```
 
 ---
 
-## CRITICAL: Use AskUserQuestion for Category Selection
+## STEP 0: Dynamic Skill Discovery
 
-When invoked without arguments, present categories interactively:
+**ALWAYS run this first** to get accurate, up-to-date skill data:
+
+```python
+# Scan all user-invocable skills from source
+Grep(pattern="user-invocable:\\s*true", path="src/skills", output_mode="files_with_matches")
+```
+
+For each matched file, extract name and description from frontmatter:
+
+```python
+# For each SKILL.md found, read first 15 lines to get name + description
+Read(file_path="src/skills/{name}/SKILL.md", limit=15)
+```
+
+Build the skill list dynamically. **Never hardcode counts or skill names.**
+
+---
+
+## STEP 1: Category Selection
+
+If CATEGORY argument provided, skip to STEP 2 with that category.
+
+Otherwise, present categories interactively:
 
 ```python
 AskUserQuestion(
@@ -48,14 +71,14 @@ AskUserQuestion(
     "question": "What type of task are you working on?",
     "header": "Category",
     "options": [
-      {"label": "BUILD", "description": "Implement features, brainstorm, verify", "markdown": "```\nBUILD Skills\n────────────\n/ork:implement     Feature impl\n/ork:brainstorm Design explore\n/ork:verify        Test & grade\n```"},
-      {"label": "GIT", "description": "Commits, PRs, issues, recovery", "markdown": "```\nGIT Skills\n──────────\n/ork:commit       Conventional commit\n/ork:create-pr    PR with validation\n/ork:fix-issue    Debug + fix + PR\n/ork:git-workflow  Branch patterns\n```"},
-      {"label": "MEMORY", "description": "Store decisions, search, sync context", "markdown": "```\nMEMORY Skills\n─────────────\n/ork:remember  Store decisions\n/ork:memory    Search & recall\n```"},
-      {"label": "QUALITY", "description": "Assess code, health checks, golden datasets", "markdown": "```\nQUALITY Skills\n──────────────\n/ork:assess     Rate 0-10 + report\n/ork:review-pr  PR review (6 agents)\n/ork:audit-full 1M context audit\n```"},
-      {"label": "CONFIG", "description": "Configure OrchestKit, feedback, skill evolution", "markdown": "```\nCONFIG Skills\n─────────────\n/ork:setup      Onboarding wizard\n/ork:configure  Plugin settings\n/ork:doctor     Health diagnostics\n/ork:feedback   Learning prefs\n```"},
-      {"label": "EXPLORE", "description": "Explore codebase, coordinate worktrees", "markdown": "```\nEXPLORE Skills\n──────────────\n/ork:explore   Deep codebase search\n               4 parallel explorers\n               Code health scoring\n```"},
-      {"label": "MEDIA", "description": "Create demo videos", "markdown": "```\nMEDIA Skills\n────────────\n/ork:demo-producer  Video creation\n  Supports: skill, agent, plugin,\n  tutorial, CLI, code walkthrough\n```"},
-      {"label": "Show all", "description": "List all skills"}
+      {"label": "BUILD", "description": "Implement features, brainstorm, verify", "markdown": "```\nBUILD — Feature Development\n───────────────────────────\n/ork:implement     Full-power implementation\n/ork:brainstorm    Design exploration\n/ork:verify        Test & grade changes\n```"},
+      {"label": "GIT", "description": "Commits, PRs, issues, branches", "markdown": "```\nGIT — Version Control\n─────────────────────\n/ork:commit        Conventional commits\n/ork:create-pr     PR with validation\n/ork:review-pr     6-agent PR review\n/ork:fix-issue     Debug + fix + PR\n```"},
+      {"label": "PLAN", "description": "PRDs, plan visualization, assessment", "markdown": "```\nPLAN — Design & Strategy\n────────────────────────\n/ork:visualize-plan  ASCII plan rendering\n/ork:write-prd       Product requirements\n/ork:assess          Rate 0-10 + report\n```"},
+      {"label": "MEMORY", "description": "Store decisions, search, recall", "markdown": "```\nMEMORY — Knowledge Persistence\n──────────────────────────────\n/ork:remember  Store decisions/patterns\n/ork:memory    Search, recall, visualize\n```"},
+      {"label": "QUALITY", "description": "Assess, review, diagnose", "markdown": "```\nQUALITY — Assessment & Health\n─────────────────────────────\n/ork:assess     Rate quality 0-10\n/ork:review-pr  6-agent PR review\n/ork:doctor     Plugin health check\n```"},
+      {"label": "CONFIG", "description": "Setup, diagnostics", "markdown": "```\nCONFIG — Setup & Operations\n───────────────────────────\n/ork:setup         Onboarding wizard\n/ork:doctor        Health diagnostics\n/ork:configure     Plugin settings\n```"},
+      {"label": "EXPLORE", "description": "Codebase exploration and analysis", "markdown": "```\nEXPLORE — Codebase Analysis\n───────────────────────────\n/ork:explore  Multi-angle exploration\n              4 parallel agents\n              Architecture visualization\n```"},
+      {"label": "Show all", "description": "List every user-invocable skill"}
     ],
     "multiSelect": false
   }]
@@ -64,161 +87,76 @@ AskUserQuestion(
 
 ---
 
-## Skill Categories
+## STEP 2: Render Category
 
-### BUILD (3 skills)
-*Implement features and verify changes*
+For the selected category, render the skill table from the data gathered in STEP 0.
 
-| Skill | Description | Example |
-|-------|-------------|---------|
-| `/ork:implement` | Full-power feature implementation with parallel subagents | `/ork:implement user authentication` |
-| `/ork:brainstorm` | Design exploration with parallel agents | `/ork:brainstorm API design for payments` |
-| `/ork:verify` | Comprehensive verification with parallel test agents | `/ork:verify authentication flow` |
+### Category-to-Skill Mapping
 
----
+| Category | Skills |
+|----------|--------|
+| BUILD | implement, brainstorm, verify |
+| GIT | commit, create-pr, review-pr, fix-issue |
+| PLAN | visualize-plan, write-prd, assess |
+| MEMORY | remember, memory |
+| QUALITY | assess, review-pr, doctor |
+| CONFIG | setup, doctor, configure |
+| EXPLORE | explore |
 
-### GIT (5 skills)
-*Version control and GitHub operations*
-
-| Skill | Description | Example |
-|-------|-------------|---------|
-| `/ork:commit` | Creates commits with conventional format | `/ork:commit` |
-| `/ork:create-pr` | Create GitHub pull requests with validation | `/ork:create-pr` |
-| `/ork:review-pr` | PR review with parallel specialized agents | `/ork:review-pr 123` |
-| `/ork:fix-issue` | Fix GitHub issues with parallel analysis | `/ork:fix-issue 456` |
-| `/ork:git-workflow` | Git workflow with recovery support | `/ork:git-workflow` |
-
----
-
-### MEMORY (2 skills)
-*Knowledge persistence and retrieval*
-
-| Skill | Description | Example |
-|-------|-------------|---------|
-| `/ork:remember` | Store decisions and patterns | `/ork:remember We use cursor pagination` |
-| `/ork:memory` | Search, load, sync, history, viz | `/ork:memory search pagination` |
-
-**Subcommands for `/ork:memory`:**
-- `search` - Search decisions and patterns
-- `load` - Load session context
-- `history` - View decision timeline
-- `viz` - Visualize knowledge graph
-
----
-
-### QUALITY (3 skills)
-*Assessment and diagnostics*
-
-| Skill | Description | Example |
-|-------|-------------|---------|
-| `/ork:assess` | Rate quality 0-10 with pros/cons | `/ork:assess src/api/` |
-| `/ork:doctor` | OrchestKit health diagnostics | `/ork:doctor` |
-| `/ork:golden-dataset` | Add documents to golden dataset | `/ork:golden-dataset` |
-
----
-
-### CONFIG (3 skills)
-*Plugin configuration and management*
-
-| Skill | Description | Example |
-|-------|-------------|---------|
-| `/ork:configure` | OrchestKit configuration wizard | `/ork:configure` |
-| `/ork:feedback` | Manage feedback system | `/ork:feedback` |
-| `/ork:skill-evolution` | Evolve skills based on usage | `/ork:skill-evolution` |
-
----
-
-### EXPLORE (2 skills)
-*Codebase exploration and coordination*
-
-| Skill | Description | Example |
-|-------|-------------|---------|
-| `/ork:explore` | Deep codebase exploration with agents | `/ork:explore authentication` |
-
----
-
-### MEDIA (1 skill)
-*Content creation*
-
-| Skill | Description | Example |
-|-------|-------------|---------|
-| `/ork:demo-producer` | Create polished demo videos | `/ork:demo-producer commit skill` |
-
----
-
-## Pro Tip: Just Describe What You Want
-
-You don't need to memorize skills! OrchestKit auto-suggests the right skill based on your prompt:
+For each skill in the category, render:
 
 ```
-User: "I need to implement user login"
-→ OrchestKit suggests: /ork:implement
-
-User: "Show me how the payment system works"
-→ OrchestKit suggests: /ork:explore
-
-User: "Review PR 123"
-→ OrchestKit suggests: /ork:review-pr
+/ork:{name}  v{version}  {complexity}
+  {description}
+  Example: /ork:{name} {argument-hint example}
 ```
 
-Just describe your task naturally and OrchestKit will recommend the appropriate skill or agent.
+### "Show all" — Full Listing
+
+If user picks "Show all", render ALL user-invocable skills grouped by category from STEP 0 data.
 
 ---
 
-## Skill Count by Category
+## CC Built-in Commands (2.1.72+)
 
-| Category | Count | Purpose |
-|----------|-------|---------|
-| BUILD | 3 | Feature development |
-| GIT | 5 | Version control |
-| MEMORY | 2 | Knowledge persistence |
-| QUALITY | 3 | Assessment & diagnostics |
-| CONFIG | 3 | Plugin management |
-| EXPLORE | 2 | Code exploration |
-| MEDIA | 1 | Content creation |
-| META | 1 | This help skill |
-| UPGRADE | 1 | Platform upgrade assessment |
-| **Total** | **22** | |
-
----
-
-## CC Built-in Commands (2.1.63+)
-
-These are Claude Code built-in slash commands — not OrchestKit skills:
+Not OrchestKit skills — these are Claude Code built-ins:
 
 | Command | Description | Since |
 |---------|-------------|-------|
-| `/simplify` | Review changed code for reuse, quality, and efficiency, then fix issues | CC 2.1.63 |
-| `/batch` | Run batch operations across multiple files | CC 2.1.63 |
+| `/simplify` | Review changed code for quality, then fix | CC 2.1.63 |
 | `/help` | Claude Code built-in help | CC 2.1.0+ |
 | `/config` | Claude Code configuration | CC 2.1.0+ |
-| `/clear` | Clear conversation and reset cached skills | CC 2.1.63 |
+| `/clear` | Clear conversation (preserves background agents) | CC 2.1.72 |
 | `/fast` | Toggle fast mode (same model, faster output) | CC 2.1.59+ |
-
----
+| `/loop` | Recurring interval (e.g. `/loop 5m /foo`) | CC 2.1.71 |
+| `/effort` | Reasoning effort: low/medium/high/auto | CC 2.1.72 |
+| `/plan` | Enter plan mode | CC 2.1.72 |
 
 ## Keyboard Shortcuts
 
-| Shortcut | Action | Since |
-|----------|--------|-------|
-| `Ctrl+F` | Find in session output | CC 2.1.47 |
-| `Esc` | Dismiss autocomplete / cancel edit / stop generation | CC 2.1.0+ |
-| `Shift+Enter` | Newline in chat input (configurable via `chat:newline` keybinding) | CC 2.1.49 |
-| `Shift+Down` | Multi-line input entry | CC 2.1.47 |
-| `Ctrl+C` | Cancel current operation | CC 2.1.0+ |
-| `/exit` | Exit Claude Code session | CC 2.1.0+ |
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+F` | Find in session output |
+| `Esc` | Cancel / dismiss |
+| `Shift+Enter` | Newline in input |
+| `Ctrl+C` | Cancel operation |
 
 ---
 
+## Pro Tip
+
+You don't need to memorize skills. Just describe your task naturally:
+
+```
+"I need to implement user login"     → /ork:implement
+"Show me the payment architecture"   → /ork:explore
+"Review PR 123"                      → /ork:review-pr
+"Is this code good?"                 → /ork:assess
+"Plan out the billing redesign"      → /ork:visualize-plan
+```
+
 ## Related Skills
 
-- `/help` - Claude Code built-in help
-- `/config` - Claude Code configuration
-- `/ork:doctor` - OrchestKit health check
-
-## References
-
-Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/help/references/<file>")`:
-| File | Content |
-|------|---------|
-| `cc-keyboard-shortcuts.md` | CC keyboard shortcuts reference |
+- `/help` — Claude Code built-in help
+- `/ork:doctor` — OrchestKit health check
+- `/ork:setup` — Full onboarding wizard

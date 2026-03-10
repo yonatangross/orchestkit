@@ -5,10 +5,10 @@ import type { Totals, AgentSummary, CategoryMeta } from "./types";
 
 export const TOTALS: Totals = {
   "plugins": 1,
-  "skills": 87,
+  "skills": 89,
   "agents": 31,
-  "hooks": 96,
-  "commands": 19,
+  "hooks": 99,
+  "commands": 16,
   "compositions": 14
 };
 
@@ -37,7 +37,7 @@ export const AGENTS: AgentSummary[] = [
     "plugins": [
       "ork"
     ],
-    "model": "sonnet",
+    "model": "inherit",
     "category": "backend"
   },
   {
@@ -46,7 +46,7 @@ export const AGENTS: AgentSummary[] = [
     "plugins": [
       "ork"
     ],
-    "model": "sonnet",
+    "model": "inherit",
     "category": "devops"
   },
   {
@@ -55,7 +55,7 @@ export const AGENTS: AgentSummary[] = [
     "plugins": [
       "ork"
     ],
-    "model": "sonnet",
+    "model": "inherit",
     "category": "testing"
   },
   {
@@ -109,7 +109,7 @@ export const AGENTS: AgentSummary[] = [
     "plugins": [
       "ork"
     ],
-    "model": "sonnet",
+    "model": "inherit",
     "category": "development"
   },
   {
@@ -145,7 +145,7 @@ export const AGENTS: AgentSummary[] = [
     "plugins": [
       "ork"
     ],
-    "model": "sonnet",
+    "model": "inherit",
     "category": "frontend"
   },
   {
@@ -163,7 +163,7 @@ export const AGENTS: AgentSummary[] = [
     "plugins": [
       "ork"
     ],
-    "model": "sonnet",
+    "model": "inherit",
     "category": "devops"
   },
   {
@@ -208,7 +208,7 @@ export const AGENTS: AgentSummary[] = [
     "plugins": [
       "ork"
     ],
-    "model": "sonnet",
+    "model": "inherit",
     "category": "product"
   },
   {
@@ -217,7 +217,7 @@ export const AGENTS: AgentSummary[] = [
     "plugins": [
       "ork"
     ],
-    "model": "sonnet",
+    "model": "inherit",
     "category": "backend"
   },
   {
@@ -262,7 +262,7 @@ export const AGENTS: AgentSummary[] = [
     "plugins": [
       "ork"
     ],
-    "model": "sonnet",
+    "model": "inherit",
     "category": "testing"
   },
   {
@@ -342,12 +342,12 @@ export const SKILLS_SUMMARY = {
     "workflows": [
       "commit",
       "explore",
-      "git-workflow",
       "implement",
       "issue-progress-tracking",
       "langgraph",
       "task-dependency-patterns",
-      "verify"
+      "verify",
+      "web-research-workflow"
     ],
     "memory": [
       "doctor",
@@ -368,10 +368,10 @@ export const SKILLS_SUMMARY = {
       "animation-motion-design",
       "api-design",
       "assess",
-      "ci-automation",
       "code-review-playbook",
       "commit",
-      "create-pr"
+      "create-pr",
+      "demo-producer"
     ],
     "video": [
       "demo-producer",
@@ -382,7 +382,7 @@ export const SKILLS_SUMMARY = {
       "design-system-tokens",
       "figma-design-handoff",
       "storybook-testing",
-      "testing-patterns"
+      "testing-e2e"
     ],
     "devops": [
       "devops-deployment",
@@ -396,8 +396,8 @@ export const SKILLS_SUMMARY = {
       "product-analytics",
       "review-pr",
       "storybook-testing",
-      "testing-patterns",
-      "verify"
+      "testing-e2e",
+      "testing-integration"
     ],
     "security": [
       "audit-full",
@@ -409,7 +409,7 @@ export const SKILLS_SUMMARY = {
       "async-jobs",
       "domain-driven-design",
       "python-backend",
-      "testing-patterns"
+      "testing-perf"
     ],
     "react": [
       "accessibility",
@@ -432,7 +432,8 @@ export const SKILLS_SUMMARY = {
     "rag": [
       "interaction-patterns",
       "notebooklm",
-      "rag-retrieval"
+      "rag-retrieval",
+      "testing-llm"
     ],
     "backend": [
       "api-design",

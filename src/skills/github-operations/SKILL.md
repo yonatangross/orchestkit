@@ -1,7 +1,7 @@
 ---
 name: github-operations
 license: MIT
-compatibility: "Claude Code 2.1.59+. Requires gh CLI."
+compatibility: "Claude Code 2.1.72+. Requires gh CLI."
 author: OrchestKit
 description: GitHub CLI operations for issues, PRs, milestones, and Projects v2. Covers gh commands, REST API patterns, and automation scripts. Use when managing GitHub issues, PRs, milestones, or Projects with gh.
 context: fork
@@ -71,7 +71,7 @@ claude --from-pr https://github.com/org/repo/pull/456
 
 ### Milestone Operations (REST API)
 
-> **Footgun:** `gh issue edit --milestone` takes a **NAME** (string), not a number. The REST API uses a **NUMBER** (integer). Never pass a number to `--milestone`. Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/github-operations/references/cli-vs-api-identifiers.md")`.
+> **Footgun:** `gh issue edit --milestone` takes a **NAME** (string), not a number. The REST API uses a **NUMBER** (integer). Never pass a number to `--milestone`. Load `Read("${CLAUDE_SKILL_DIR}/references/cli-vs-api-identifiers.md")`.
 
 ```bash
 # List milestones with progress
@@ -140,8 +140,8 @@ Projects v2 uses GraphQL for setting custom fields (Status, Priority, Domain). B
 
 | Rule | Impact | What It Covers |
 |------|--------|----------------|
-| issue-tracking-automation (load `${CLAUDE_PLUGIN_ROOT}/skills/github-operations/rules/issue-tracking-automation.md`) | HIGH | Auto-progress from commits, sub-task completion, session summaries |
-| issue-branch-linking (load `${CLAUDE_PLUGIN_ROOT}/skills/github-operations/rules/issue-branch-linking.md`) | MEDIUM | Branch naming, commit references, PR linking patterns |
+| issue-tracking-automation (load `${CLAUDE_SKILL_DIR}/rules/issue-tracking-automation.md`) | HIGH | Auto-progress from commits, sub-task completion, session summaries |
+| issue-branch-linking (load `${CLAUDE_SKILL_DIR}/rules/issue-branch-linking.md`) | MEDIUM | Branch naming, commit references, PR linking patterns |
 
 ## Batch Issue Creation
 
@@ -181,7 +181,7 @@ done
 5. **Link issues in PRs** - `Closes #123`, `Fixes #456` — GitHub auto-closes on merge
 6. **Use ISO 8601 dates** - `YYYY-MM-DDTHH:MM:SSZ` for milestone due_on
 7. **Close milestones, don't delete** - Preserve history
-8. **`--milestone` takes NAME, not number** - Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/github-operations/references/cli-vs-api-identifiers.md")`
+8. **`--milestone` takes NAME, not number** - Load `Read("${CLAUDE_SKILL_DIR}/references/cli-vs-api-identifiers.md")`
 9. **Never `gh issue close` directly** - Comment progress with `gh issue comment`; issues close only when their linked PR merges to the default branch
 
 ---
@@ -206,7 +206,7 @@ done
 
 ## References
 
-Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/github-operations/references/<file>")`:
+Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | File | Content |
 |------|---------|
 | `issue-management.md` | Bulk operations, templates, sub-issues |
@@ -218,4 +218,4 @@ Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/github-operations/refere
 
 ## Examples
 
-Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/github-operations/examples/automation-scripts.md")` - Ready-to-use scripts for bulk operations, PR automation, milestone management
+Load: `Read("${CLAUDE_SKILL_DIR}/examples/automation-scripts.md")` - Ready-to-use scripts for bulk operations, PR automation, milestone management

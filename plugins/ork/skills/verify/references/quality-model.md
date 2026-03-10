@@ -1,31 +1,43 @@
-<!-- SHARED: keep in sync with ../../../assess/references/quality-model.md -->
+<!-- SHARED BASE: assess has 7 dimensions, verify extends with Visual (8th). Keep base dimensions in sync with ../../../assess/references/quality-model.md -->
 # Quality Model
 
 Canonical scoring reference for assess and verify skills. Defines unified dimensions, weights, grade thresholds, and improvement prioritization.
 
-## Scoring Dimensions (7 Unified)
+## Scoring Dimensions (8 Unified)
 
 | Dimension | Weight | What It Measures |
 |-----------|--------|------------------|
-| Correctness | 0.15 | Does it work correctly? Functional accuracy, edge cases handled |
-| Maintainability | 0.15 | Easy to understand and modify? Readability, complexity, patterns |
-| Performance | 0.12 | Efficient execution? No bottlenecks, resource usage, latency |
-| Security | 0.20 | Follows security best practices? OWASP, secrets, CVEs, input validation |
-| Scalability | 0.10 | Handles growth? Load patterns, data volume, horizontal scaling |
-| Testability | 0.13 | Easy to test? Coverage, test quality, isolation, mocking |
-| Compliance | 0.15 | Meets API and UI contracts? Conditional on scope (see below) |
+| Correctness | 0.14 | Does it work correctly? Functional accuracy, edge cases handled |
+| Maintainability | 0.14 | Easy to understand and modify? Readability, complexity, patterns |
+| Performance | 0.11 | Efficient execution? No bottlenecks, resource usage, latency |
+| Security | 0.18 | Follows security best practices? OWASP, secrets, CVEs, input validation |
+| Scalability | 0.09 | Handles growth? Load patterns, data volume, horizontal scaling |
+| Testability | 0.12 | Easy to test? Coverage, test quality, isolation, mocking |
+| Compliance | 0.12 | Meets API and UI contracts? Conditional on scope (see below) |
+| Visual | 0.10 | Does the UI look correct? Layout, accessibility, content completeness |
 
 **Total: 1.00**
 
+### Visual Dimension — Scope Rules
+
+Visual weight (0.10) applies conditionally:
+
+| Scope | Visual Covers | Weight Redistribution |
+|-------|---------------|----------------------|
+| Has frontend | AI vision evaluation of screenshots: layout, a11y, content | Full 0.10 |
+| API-only / no frontend | **Skipped** — weight redistributed proportionally to other 7 dimensions | 0.00 (others scaled up) |
+
+When visual is skipped, multiply each remaining dimension's weight by `1.0 / 0.90` to maintain total = 1.00.
+
 ### Compliance Dimension — Scope Rules
 
-Compliance weight (0.15) applies differently based on project scope:
+Compliance weight (0.12) applies differently based on project scope:
 
 | Scope | Compliance Covers |
 |-------|-------------------|
 | Backend-only | API compliance (contracts, schema validation, versioning) |
 | Frontend-only | UI compliance (design system, a11y, responsive) |
-| Full-stack | API + UI compliance (split evenly: 0.075 each) |
+| Full-stack | API + UI compliance (split evenly: 0.06 each) |
 
 ## Composite Score
 

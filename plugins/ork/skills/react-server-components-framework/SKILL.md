@@ -1,7 +1,7 @@
 ---
 name: react-server-components-framework
 license: MIT
-compatibility: "Claude Code 2.1.59+."
+compatibility: "Claude Code 2.1.72+."
 description: Use when building Next.js 16+ apps with React Server Components. Covers App Router, Cache Components (replacing experimental_ppr), streaming SSR, Server Actions, and React 19 patterns for server-first architecture.
 context: fork
 agent: frontend-ui-developer
@@ -119,13 +119,13 @@ export default async function PostPage({
 }
 ```
 
-**Note:** Also applies to `layout.tsx`, `generateMetadata()`, and route handlers. Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/react-server-components-framework/references/nextjs-16-upgrade.md")` for complete migration guide.
+**Note:** Also applies to `layout.tsx`, `generateMetadata()`, and route handlers. Load: `Read("${CLAUDE_SKILL_DIR}/references/nextjs-16-upgrade.md")` for complete migration guide.
 
 ---
 
 ## References
 
-Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/react-server-components-framework/references/<file>")`:
+Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | File | Content |
 |------|---------|
 | `server-components.md` | Async server components, data fetching patterns, route segment config, generateStaticParams, error handling |

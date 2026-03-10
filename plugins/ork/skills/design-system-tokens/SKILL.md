@@ -1,7 +1,7 @@
 ---
 name: design-system-tokens
 license: MIT
-compatibility: "Claude Code 2.1.59+."
+compatibility: "Claude Code 2.1.72+."
 description: Design token management with W3C Design Token Community Group specification, three-tier token hierarchy (global/alias/component), OKLCH color spaces, Style Dictionary transformation, and dark mode theming. Use when creating design token files, implementing theme systems, managing token versioning, or building design-to-code pipelines.
 tags: [design-tokens, w3c-tokens, oklch, style-dictionary, theming, dark-mode, css-variables, tailwind-theme, design-system, color-spaces]
 context: fork
@@ -124,21 +124,21 @@ Key advantage: adjusting lightness channel alone creates accessible shade scales
 
 Each rule file contains incorrect/correct code pairs and implementation guidance.
 
-Read("${CLAUDE_PLUGIN_ROOT}/skills/design-system-tokens/rules/tokens-w3c-format.md")
+Read("${CLAUDE_SKILL_DIR}/rules/tokens-w3c-format.md")
 
-Read("${CLAUDE_PLUGIN_ROOT}/skills/design-system-tokens/rules/tokens-contrast-enforcement.md")
+Read("${CLAUDE_SKILL_DIR}/rules/tokens-contrast-enforcement.md")
 
-Read("${CLAUDE_PLUGIN_ROOT}/skills/design-system-tokens/rules/tokens-three-tier.md")
+Read("${CLAUDE_SKILL_DIR}/rules/tokens-three-tier.md")
 
-Read("${CLAUDE_PLUGIN_ROOT}/skills/design-system-tokens/rules/tokens-oklch-color.md")
+Read("${CLAUDE_SKILL_DIR}/rules/tokens-oklch-color.md")
 
-Read("${CLAUDE_PLUGIN_ROOT}/skills/design-system-tokens/rules/tokens-spacing-depth.md")
+Read("${CLAUDE_SKILL_DIR}/rules/tokens-spacing-depth.md")
 
-Read("${CLAUDE_PLUGIN_ROOT}/skills/design-system-tokens/rules/tokens-style-dictionary.md")
+Read("${CLAUDE_SKILL_DIR}/rules/tokens-style-dictionary.md")
 
-Read("${CLAUDE_PLUGIN_ROOT}/skills/design-system-tokens/rules/tokens-theming-darkmode.md")
+Read("${CLAUDE_SKILL_DIR}/rules/tokens-theming-darkmode.md")
 
-Read("${CLAUDE_PLUGIN_ROOT}/skills/design-system-tokens/rules/tokens-versioning.md")
+Read("${CLAUDE_SKILL_DIR}/rules/tokens-versioning.md")
 
 ## Style Dictionary Integration
 

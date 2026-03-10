@@ -1,6 +1,6 @@
 {
   "name": "orchestkit",
-  "version": "7.2.1",
+  "version": "7.3.0",
   "description": "OrchestKit Claude Plugin - AI-assisted development toolkit",
   "scripts": {
     "build": "bash scripts/build-plugins.sh",
@@ -40,5 +40,8 @@
   "license": "MIT",
   "engines": {
     "node": ">=20.0.0"
+  },
+  "devDependencies": {
+    "agentation-mcp": "^1.2.0"
   }
 }

@@ -20,7 +20,7 @@
       "query": "/ork:help git",
       "expectedBehavior": [
         "Claude filters to show only GIT category skills",
-        "Claude lists all 5 GIT skills: commit, create-pr, review-pr, fix-issue, git-workflow",
+        "Claude lists all 4 GIT skills: commit, create-pr, review-pr, fix-issue",
         "Claude shows description and example for each skill",
         "Claude does NOT show skills from other categories like BUILD or MEMORY"
       ]

@@ -1,225 +1,42 @@
 ---
 name: testing-patterns
-license: MIT
-compatibility: "Claude Code 2.1.59+."
-description: Comprehensive testing patterns for unit, integration, E2E, pytest, API mocking (MSW/VCR), test data, property/contract testing, performance, LLM, and accessibility testing. Use when writing tests, setting up test infrastructure, or validating application quality.
-tags: [testing, unit, integration, e2e, pytest, msw, vcr, property, contract, performance, llm, a11y]
-context: fork
-agent: test-generator
+description: "Redirect — testing-patterns was split into 5 focused sub-skills. Use when looking for testing-patterns, writing tests, or test automation. Redirects to testing-unit, testing-e2e, testing-integration, testing-llm, or testing-perf."
+tags: [testing, redirect, deprecated]
 version: 2.0.0
 author: OrchestKit
 user-invocable: false
-disable-model-invocation: false
-complexity: high
-metadata:
-  category: document-asset-creation
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+disable-model-invocation: true
+complexity: low
 ---
 
-# Testing Patterns
+# Testing Patterns (Redirect)
 
-Comprehensive patterns for building production test suites. Each category has individual rule files in `rules/` loaded on-demand.
+> **This skill was split into 5 focused sub-skills in v7.2.0.** Use the appropriate sub-skill below.
+
+## Sub-Skills
+
+| Sub-Skill | Focus | When to Use |
+|-----------|-------|-------------|
+| `ork:testing-unit` | Unit tests, AAA pattern, fixtures, mocking, factories | Isolated business logic tests |
+| `ork:testing-e2e` | Playwright, page objects, visual regression, a11y | Browser-based end-to-end tests |
+| `ork:testing-integration` | API endpoints, database, contract testing | Cross-boundary integration tests |
+| `ork:testing-llm` | LLM mocking, DeepEval/RAGAS, structured output | AI/ML evaluation and testing |
+| `ork:testing-perf` | k6, Locust, pytest-xdist, benchmark | Performance and load testing |
 
 ## Quick Reference
 
-| Category | Rules | Impact | When to Use |
-|----------|-------|--------|-------------|
-| [Unit Testing](#unit-testing) | 3 | CRITICAL | AAA pattern, parametrized tests, fixture scoping |
-| [Integration Testing](#integration-testing) | 3 | HIGH | API endpoints, database tests, component integration |
-| [E2E Testing](#e2e-testing) | 3 | HIGH | Playwright, AI agents, page objects |
-| [Pytest Advanced](#pytest-advanced) | 3 | HIGH | Custom markers, xdist parallel, plugins |
-| [API Mocking](#api-mocking) | 3 | HIGH | MSW 2.x, VCR.py, LLM API mocking |
-| [Test Data](#test-data) | 3 | MEDIUM | Factories, fixtures, seeding/cleanup |
-| [Verification](#verification) | 3 | MEDIUM | Property-based, stateful, contract testing |
-| [Performance](#performance) | 3 | MEDIUM | k6 load tests, Locust, test types |
-| [LLM Testing](#llm-testing) | 3 | HIGH | Mock responses, DeepEval, structured output |
-| [Accessibility](#accessibility) | 3 | MEDIUM | jest-axe, Playwright axe, CI gates |
-| [Execution](#execution) | 2 | HIGH | Parallel runs (xdist/matrix), coverage thresholds/reporting |
-| [Validation](#validation) | 2 | HIGH | Zod schema testing, tRPC/Prisma end-to-end type safety |
-| [Evidence](#evidence) | 1 | MEDIUM | Task completion verification, exit codes, evidence protocol |
-
-**Total: 35 rules across 13 categories**
-
-## Quick Start
-
-```python
-# pytest: AAA pattern with fixtures
-@pytest.fixture
-def user(db_session):
-    return UserFactory.create(role="admin")
-
-def test_user_can_publish(user, article):
-    result = article.publish(by=user)
-    assert result.status == "published"
+```bash
+/ork:testing-unit          # Unit testing patterns
+/ork:testing-e2e           # End-to-end with Playwright
+/ork:testing-integration   # API and database integration
+/ork:testing-llm           # LLM evaluation patterns
+/ork:testing-perf          # Performance and load testing
 ```
-
-```typescript
-// Vitest + MSW: API integration test
-const server = setupServer(
-  http.get('/api/users', () => HttpResponse.json([{ id: 1 }]))
-);
-test('renders user list', async () => {
-  render(<UserList />);
-  expect(await screen.findByText('User 1')).toBeInTheDocument();
-});
-```
-
-## Unit Testing
-
-Isolated business logic tests with fast, deterministic execution.
-
-| Rule | File | Key Pattern |
-|------|------|-------------|
-| AAA Pattern | `rules/unit-aaa-pattern.md` | Arrange-Act-Assert with Vitest/pytest |
-| Parametrized Tests | `rules/unit-parametrized.md` | `test.each`, `@pytest.mark.parametrize`, indirect |
-| Fixture Scoping | `rules/unit-fixture-scoping.md` | function/module/session scope selection |
-
-## Integration Testing
-
-Component interactions, API endpoints, and database integration.
-
-| Rule | File | Key Pattern |
-|------|------|-------------|
-| API Testing | `rules/integration-api.md` | Supertest, httpx AsyncClient, FastAPI TestClient |
-| Database Testing | `rules/integration-database.md` | In-memory SQLite, transaction rollback, test containers |
-| Component Integration | `rules/integration-component.md` | React Testing Library, QueryClientProvider |
-
-## E2E Testing
-
-End-to-end validation with Playwright 1.58+.
-
-| Rule | File | Key Pattern |
-|------|------|-------------|
-| Playwright Core | `rules/e2e-playwright.md` | Semantic locators, auto-wait, flaky detection |
-| AI Agents | `rules/e2e-ai-agents.md` | Planner/Generator/Healer, init-agents |
-| Page Objects | `rules/e2e-page-objects.md` | Page object model, visual regression |
-
-## Pytest Advanced
-
-Advanced pytest infrastructure for scalable test suites.
-
-| Rule | File | Key Pattern |
-|------|------|-------------|
-| Markers + Parallel | `rules/pytest-execution.md` | Custom markers, pyproject.toml, xdist loadscope, worker DB isolation |
-| Plugins & Hooks | `rules/pytest-plugins.md` | conftest plugins, factory fixtures, async mode |
-
-## API Mocking
-
-Network-level mocking for deterministic tests.
-
-| Rule | File | Key Pattern |
-|------|------|-------------|
-| MSW 2.x | `rules/mocking-msw.md` | http/graphql/ws handlers, server.use() override |
-| VCR.py | `rules/mocking-vcr.md` | Record/replay cassettes, sensitive data filtering |
-| LLM API Mocking | `rules/llm-mocking.md` | Custom matchers, async VCR, CI record modes |
-
-## Test Data
-
-Fixture and factory patterns for test data management.
-
-| Rule | File | Key Pattern |
-|------|------|-------------|
-| Factory Patterns | `rules/data-factories.md` | FactoryBoy, faker, TypeScript factories |
-| JSON Fixtures | `rules/data-fixtures.md` | Fixture composition, conftest loading |
-| Seeding & Cleanup | `rules/data-seeding-cleanup.md` | Database seeding, autouse cleanup, isolation |
-
-## Verification
-
-Advanced verification patterns beyond example-based testing.
-
-| Rule | File | Key Pattern |
-|------|------|-------------|
-| Property-Based | `rules/verification-techniques.md` | Hypothesis strategies, roundtrip/idempotence |
-| Stateful Testing | `rules/verification-stateful.md` | RuleBasedStateMachine, Schemathesis |
-| Contract Testing | `rules/verification-contract.md` | Pact consumer/provider, broker CI/CD |
-
-## Performance
-
-Load and stress testing for capacity validation.
-
-| Rule | File | Key Pattern |
-|------|------|-------------|
-| k6 Patterns | `rules/perf-k6.md` | Stages, thresholds, custom metrics |
-| Locust | `rules/perf-locust.md` | HttpUser tasks, on_start auth |
-| Test Types | `rules/perf-types.md` | Load/stress/spike/soak profiles |
-
-## LLM Testing
-
-Testing patterns for AI/LLM applications.
-
-| Rule | File | Key Pattern |
-|------|------|-------------|
-| Mock Responses | `rules/llm-mocking.md` | AsyncMock, patch model_factory |
-| LLM Evaluation | `rules/llm-evaluation.md` | DeepEval metrics, schema validation, timeout testing |
-
-## Accessibility
-
-Automated accessibility testing for WCAG compliance.
-
-| Rule | File | Key Pattern |
-|------|------|-------------|
-| A11y Testing | `rules/a11y-testing.md` | jest-axe, CI gates, PR blocking, component-level validation |
-| Playwright axe | `rules/a11y-playwright.md` | Page-level wcag2aa scanning |
-
-## Execution
-
-Test execution strategies for parallel runs and coverage collection.
-
-| Rule | File | Key Pattern |
-|------|------|-------------|
-| Execution | `rules/execution.md` | Parallel execution, coverage reporting, CI optimization |
-
-## Validation
-
-Schema validation testing with Zod, tRPC, and end-to-end type safety.
-
-| Rule | File | Key Pattern |
-|------|------|-------------|
-| Zod Schema | `rules/validation-zod-schema.md` | safeParse testing, branded types, assertNever |
-| End-to-End Types | `rules/validation-end-to-end.md` | tRPC, Prisma, Pydantic, schema rejection tests |
-
-## Evidence
-
-Evidence collection for verifiable task completion.
-
-| Rule | File | Key Pattern |
-|------|------|-------------|
-| Evidence Verification | `rules/verification-evidence.md` | Exit codes, test/build/quality evidence, protocol |
-
-## Key Decisions
-
-| Decision | Recommendation |
-|----------|----------------|
-| Unit framework | Vitest (TS), pytest (Python) |
-| E2E framework | Playwright 1.58+ with semantic locators |
-| API mocking | MSW 2.x (frontend), VCR.py (backend) |
-| Test data | Factories over fixtures |
-| Coverage targets | 90% business logic, 70% integration, 100% critical paths |
-| Performance tool | k6 (JS), Locust (Python) |
-| A11y testing | jest-axe + Playwright axe-core |
-| Runtime validation | Zod (safeParse at boundaries) |
-| E2E type safety | tRPC (no codegen) |
-| Branded types | Zod .brand() for ID confusion prevention |
-| Evidence minimum | Exit code 0 + timestamp |
-| Coverage standard | 70% production, 80% gold |
-
-## Detailed Documentation
-
-| Resource | Description |
-|----------|-------------|
-| [scripts/](scripts/) | Templates: conftest, page objects, MSW handlers, k6 scripts |
-| [checklists/](checklists/) | Pre-flight checklists for each testing category |
-| [references/](references/) | API references: Playwright, MSW 2.x, DeepEval, strategies |
-| [examples/](examples/) | Complete test examples and patterns |
 
 ## Related Skills
 
-- `test-standards-enforcer` - AAA and naming enforcement
-- `run-tests` - Test execution orchestration
-- `golden-dataset-validation` - Golden dataset testing
-- `observability-monitoring` - Metrics and monitoring
+- `ork:testing-unit` — Unit testing: AAA pattern, fixtures, mocking, factories
+- `ork:testing-e2e` — E2E testing: Playwright, page objects, visual regression
+- `ork:testing-integration` — Integration testing: API endpoints, database, contracts
+- `ork:testing-llm` — LLM testing: mock responses, DeepEval/RAGAS evaluation
+- `ork:testing-perf` — Performance testing: k6, Locust, pytest-xdist

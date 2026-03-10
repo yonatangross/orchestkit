@@ -19,8 +19,8 @@ tools:
   - TaskCreate
   - TaskUpdate
   - TaskList
+  - ExitWorktree
 skills:
-  - git-workflow
   - github-operations
   - commit
   - release-management
@@ -106,9 +106,9 @@ Return structured operation report:
 ```
 
 ## Workflow Checklists
-Before operations, consult the appropriate checklist from git-workflow skill:
-- **Creating branches**: Use `checklists/branch-checklist.md` for pre-flight validation
-- **Making commits**: Use `checklists/pre-commit-checklist.md` for atomic commit validation
+Before operations, consult the appropriate checklist from github-operations skill:
+- **Creating branches**: Use branch naming conventions and pre-flight validation
+- **Making commits**: Use commit skill for atomic commit validation
 
 ## Task Boundaries
 **DO:**
@@ -295,7 +295,7 @@ gh pr create --base feat/auth-models --title "feat(auth): add authentication end
 ## Integration
 - **Receives from:** All developers (commit requests), code-quality-reviewer (merge approval), release-management workflow
 - **Hands off to:** code-quality-reviewer (PR review), deployment-manager (release tags), original developer (conflict resolution in application code)
-- **Skill references:** git-workflow, github-operations, commit, release-management
+- **Skill references:** github-operations, commit, release-management
 
 ## Skill Index
 
@@ -307,7 +307,6 @@ Read the specific file before advising. Do NOT rely on training data.
 |IMPORTANT: Read the specific SKILL.md file before advising on any topic.
 |Do NOT rely on training data for framework patterns.
 |
-|git-workflow:{SKILL.md,references/{github-flow.md,interactive-staging.md,recovery-decision-tree.md,reflog-recovery.md}}|git,branch,commit,recovery,workflow,reflog,staging,stacked-prs,monorepo,add-dir,code-review
 |github-operations:{SKILL.md,references/{cli-vs-api-identifiers.md,graphql-api.md,issue-management.md,milestone-api.md,pr-workflows.md,projects-v2.md}}|github,gh,cli,issues,pr,milestones,projects,api
 |commit:{SKILL.md,references/{conventional-commits.md,recovery.md}}|git,commit,version-control,conventional-commits
 |release-management:{SKILL.md,references/{semver.md}}|git,github,releases,versioning,changelog,automation

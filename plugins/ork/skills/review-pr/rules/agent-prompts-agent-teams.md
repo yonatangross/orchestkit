@@ -77,7 +77,7 @@ Agent(subagent_type="test-generator", name="test-reviewer",
      ${CHANGED_FILES}
      Do NOT explore beyond these files.
      1. Check: Does the PR add/modify code WITHOUT adding tests? Flag as MISSING.
-     2. Match change types to required test types (testing-patterns rules):
+     2. Match change types to required test types (testing-unit/testing-e2e/testing-integration rules):
         - API → integration-api, verification-contract
         - DB → integration-database, data-seeding-cleanup
         - UI → unit-aaa-pattern, a11y-testing

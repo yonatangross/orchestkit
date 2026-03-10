@@ -57,6 +57,21 @@ OrchestKit requires Claude Code >= 2.1.69. This matrix documents which CC featur
 | Plugin multi-instance fix | 2.1.71 | Concurrent CC instances preserve plugin installs | Plugin state lost with multiple instances |
 | ToolSearch cleanup | 2.1.71 | "Tool loaded." message removed from output | Noisy ToolSearch output |
 | Plugin marketplace fixes | 2.1.71 | `@ref` parsing and merge conflict resolution | Marketplace update/add failures |
+| Skill listing skip on `--resume` | 2.1.71 | ~600 tokens saved on session resume (no re-injection) | Skill listing re-injected on every resume |
+| ExitWorktree tool | 2.1.72 | Agents can leave worktree sessions programmatically | Agents stuck in worktree until session ends |
+| Agent `model` parameter restored | 2.1.72 | Per-invocation model override via Agent tool | Model override silently ignored |
+| Team agents inherit leader model | 2.1.72 | Teammates use leader's model when unspecified | Teammates fall back to default model |
+| `/plan` accepts description arg | 2.1.72 | `/plan fix auth bug` starts plan with context | Must type description after `/plan` prompt |
+| Effort levels simplified | 2.1.72 | Three levels: low/medium/high (was 5-level) | Five-level effort scale |
+| `CLAUDE_CODE_DISABLE_CRON` env var | 2.1.72 | Disable cron scheduling via environment | No way to disable cron |
+| Skill hooks double-fire fix | 2.1.72 | Skill-scoped hooks fire exactly once | Skill hooks may fire twice per invocation |
+| `/clear` preserves bg agents | 2.1.72 | Background agents survive `/clear` | `/clear` kills background agents |
+| Agent prompt persistence fix | 2.1.72 | Agent prompt no longer deleted from settings.json | Agent prompts lost on restart |
+| AlwaysAllow rule matching fix | 2.1.72 | Permission rules match commands correctly | AlwaysAllow rules may not match |
+| Worktree task resume fixes | 2.1.72 | cwd restore + bg notification metadata on resume | Worktree tasks resume in wrong dir, missing metadata |
+| Prompt cache fix | 2.1.72 | Up to 12x token cost reduction via improved caching | Higher token costs from cache misses |
+| Expanded bash auto-approval | 2.1.72 | `lsof`, `pgrep`, `tput`, `ss`, `fd`, `fdfind` auto-approved | Manual approval for system inspection tools |
+| `vscode://anthropic.claude-code/open` | 2.1.72 | URI handler to open CC from VS Code links | No deep-link integration with VS Code |
 
 ## Version Detection
 
@@ -81,6 +96,7 @@ claude --version  # Returns e.g. "2.1.47"
 | >= 2.1.69 | Full | InstructionsLoaded, once:true, outputAsk, path-scoped rules, env var interpolation |
 | >= 2.1.70 | Full+ | Worktree dedup, 74% re-render reduction, MCP cache fixes |
 | >= 2.1.71 | Full++ | `/loop` command, cron scheduling, expanded bash allowlist, `/debug` toggle, plugin stability |
+| >= 2.1.72 | Full+++ | ExitWorktree, agent model override, effort simplification, prompt cache 12x savings, skill hook fix |
 
 ## Doctor Check Implementation
 

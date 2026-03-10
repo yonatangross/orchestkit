@@ -8,7 +8,9 @@ description: "PR review with parallel specialized agents. Use when reviewing pul
 ## Related Skills
 
 - [code-review-playbook](/docs/reference/skills/code-review-playbook)
-- [testing-patterns](/docs/reference/skills/testing-patterns)
+- [testing-unit](/docs/reference/skills/testing-unit)
+- [testing-e2e](/docs/reference/skills/testing-e2e)
+- [testing-integration](/docs/reference/skills/testing-integration)
 - [memory](/docs/reference/skills/memory)
 - [chain-patterns](/docs/reference/skills/chain-patterns)
 
@@ -78,7 +80,7 @@ AskUserQuestion(
 
 ## STEP 0b: Select Orchestration Mode
 
-Load orchestration guidance: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/review-pr/references/orchestration-mode-selection.md")`
+Load orchestration guidance: `Read("$\{CLAUDE_SKILL_DIR\}/references/orchestration-mode-selection.md")`
 
 ---
 
@@ -173,7 +175,7 @@ Relevant skills activated automatically:
 - `code-review-playbook` -- Review patterns, conventional comments
 - `security-scanning` -- OWASP, secrets, dependencies
 - `type-safety-validation` -- Zod, TypeScript strict
-- `testing-patterns` -- Test adequacy, coverage gaps, rule matching
+- `testing-unit`, `testing-e2e`, `testing-integration` -- Test adequacy, coverage gaps, rule matching
 
 ## Phase 3: Parallel Code Review (6 Agents)
 
@@ -214,11 +216,11 @@ See [AI Code Review Agent](rules/ai-code-review-agent.md) for the optional 7th L
 
 ## Phase 4: Run Validation
 
-Load validation commands: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/review-pr/references/validation-commands.md")`
+Load validation commands: `Read("$\{CLAUDE_SKILL_DIR\}/references/validation-commands.md")`
 
 ## Phase 5: Synthesize Review
 
-Combine all agent feedback into a structured report. Load template: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/review-pr/references/review-report-template.md")`
+Combine all agent feedback into a structured report. Load template: `Read("$\{CLAUDE_SKILL_DIR\}/references/review-report-template.md")`
 
 ### Memory Persistence
 
@@ -267,7 +269,7 @@ claude --from-pr https://github.com/org/repo/pull/123
 
 ### Task Metrics (CC 2.1.30)
 
-Load metrics template: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/review-pr/references/task-metrics-template.md")`
+Load metrics template: `Read("$\{CLAUDE_SKILL_DIR\}/references/task-metrics-template.md")`
 
 ## Conventional Comments
 
@@ -285,7 +287,7 @@ Use these prefixes for comments:
 
 ## References
 
-Load on demand with `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/review-pr/references/&lt;file&gt;")`:
+Load on demand with `Read("$\{CLAUDE_SKILL_DIR\}/references/&lt;file&gt;")`:
 
 | File | Content |
 |------|---------|
@@ -295,7 +297,7 @@ Load on demand with `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/review-pr/references/&
 | `validation-commands.md` | Build/test/lint commands |
 | `task-metrics-template.md` | Task metrics format |
 
-Rules: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/review-pr/rules/&lt;file&gt;")`:
+Rules: `Read("$\{CLAUDE_SKILL_DIR\}/rules/&lt;file&gt;")`:
 
 | File | Content |
 |------|---------|
@@ -383,7 +385,7 @@ Agent(subagent_type="test-generator", name="test-reviewer",
      ${CHANGED_FILES}
      Do NOT explore beyond these files.
      1. Check: Does the PR add/modify code WITHOUT adding tests? Flag as MISSING.
-     2. Match change types to required test types (testing-patterns rules):
+     2. Match change types to required test types (testing-unit/testing-e2e/testing-integration rules):
         - API → integration-api, verification-contract
         - DB → integration-database, data-seeding-cleanup
         - UI → unit-aaa-pattern, a11y-testing
@@ -551,7 +553,8 @@ The lead reviewer collects all agent JSON outputs, deduplicates by file+line+cat
 Agent(
   description="Review code quality",
   subagent_type="code-quality-reviewer",
-  prompt="""CODE QUALITY REVIEW for PR $PR_NUMBER
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  CODE QUALITY REVIEW
 
   ## Project Context
   ${PROJECT_CONTEXT}
@@ -562,13 +565,14 @@ Agent(
   3. DRY violations and code duplication
   4. SOLID principles adherence
 
-  Scope: ONLY review the following changed files:
-  ${CHANGED_FILES}
-
-  Do NOT explore beyond these files. Focus your analysis on the diff.
+  Do NOT explore beyond the changed files listed below. Focus your analysis on the diff.
 
   Return your findings as a JSON block (```json```) matching the structured output contract above.
   Use category prefix MAINT for maintainability findings. Use conventional comments (praise/suggestion/issue/nitpick).
+
+  PR: $PR_NUMBER
+  Scope: ONLY review the following changed files:
+  ${CHANGED_FILES}
   """,
   run_in_background=True,
   max_turns=25
@@ -576,7 +580,8 @@ Agent(
 Agent(
   description="Review type safety",
   subagent_type="code-quality-reviewer",
-  prompt="""TYPE SAFETY REVIEW for PR $PR_NUMBER
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  TYPE SAFETY REVIEW
 
   ## Project Context
   ${PROJECT_CONTEXT}
@@ -587,13 +592,14 @@ Agent(
   3. No `any` types or type assertions
   4. Exhaustive switch/union handling
 
-  Scope: ONLY review the following changed files:
-  ${CHANGED_FILES}
-
-  Do NOT explore beyond these files. Focus your analysis on the diff.
+  Do NOT explore beyond the changed files listed below. Focus your analysis on the diff.
 
   Return your findings as a JSON block (```json```) matching the structured output contract above.
   Use category prefix MAINT for type safety findings. Use conventional comments.
+
+  PR: $PR_NUMBER
+  Scope: ONLY review the following changed files:
+  ${CHANGED_FILES}
   """,
   run_in_background=True,
   max_turns=25
@@ -601,7 +607,8 @@ Agent(
 Agent(
   description="Security audit PR",
   subagent_type="security-auditor",
-  prompt="""SECURITY REVIEW for PR $PR_NUMBER
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  SECURITY REVIEW
 
   ## Project Context
   ${PROJECT_CONTEXT}
@@ -615,13 +622,14 @@ Agent(
   6. SSRF protection on user-controlled URLs
   7. Rate limiting on auth endpoints
 
-  Scope: ONLY review the following changed files:
-  ${CHANGED_FILES}
-
-  Do NOT explore beyond these files. Focus your analysis on the diff.
+  Do NOT explore beyond the changed files listed below. Focus your analysis on the diff.
 
   Return your findings as a JSON block (```json```) matching the structured output contract above.
   Use category prefix SEC for security findings. Use conventional comments.
+
+  PR: $PR_NUMBER
+  Scope: ONLY review the following changed files:
+  ${CHANGED_FILES}
   """,
   run_in_background=True,
   max_turns=25
@@ -629,7 +637,8 @@ Agent(
 Agent(
   description="Review test adequacy",
   subagent_type="test-generator",
-  prompt="""TEST ADEQUACY REVIEW for PR $PR_NUMBER
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  TEST ADEQUACY REVIEW
 
   Evaluate whether this PR has sufficient tests:
 
@@ -638,7 +647,7 @@ Agent(
      - Are there changed files with 0 corresponding test files?
      - Flag: "MISSING" if code changes have no tests at all
 
-  2. TEST TYPE MATCHING (use testing-patterns rules)
+  2. TEST TYPE MATCHING (use testing-unit/testing-e2e/testing-integration rules)
      Match changed code to required test types:
      - API endpoint changes → need integration tests (rule: integration-api)
      - DB schema changes → need migration + integration tests (rule: integration-database)
@@ -659,13 +668,14 @@ Agent(
   ## Project Context
   ${PROJECT_CONTEXT}
 
-  Scope: ONLY review the following changed files:
-  ${CHANGED_FILES}
-
-  Do NOT explore beyond these files. Focus your analysis on the diff.
+  Do NOT explore beyond the changed files listed below. Focus your analysis on the diff.
 
   Return your findings as a JSON block (```json```) matching the structured output contract above.
   Use category prefix TEST for testing findings. Use conventional comments.
+
+  PR: $PR_NUMBER
+  Scope: ONLY review the following changed files:
+  ${CHANGED_FILES}
   """,
   run_in_background=True,
   max_turns=25
@@ -673,7 +683,8 @@ Agent(
 Agent(
   description="Review backend code",
   subagent_type="backend-system-architect",
-  prompt="""BACKEND REVIEW for PR $PR_NUMBER
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  BACKEND REVIEW
 
   ## Project Context
   ${PROJECT_CONTEXT}
@@ -686,13 +697,14 @@ Agent(
   5. Redis connection lifecycle (close in try/finally)
   6. Webhook auth patterns (fail-closed)
 
-  Scope: ONLY review the following changed files:
-  ${CHANGED_FILES}
-
-  Do NOT explore beyond these files. Focus your analysis on the diff.
+  Do NOT explore beyond the changed files listed below. Focus your analysis on the diff.
 
   Return your findings as a JSON block (```json```) matching the structured output contract above.
   Use category prefixes: BUG (correctness), PERF (performance), MAINT (maintainability). Use conventional comments.
+
+  PR: $PR_NUMBER
+  Scope: ONLY review the following changed files:
+  ${CHANGED_FILES}
   """,
   run_in_background=True,
   max_turns=25
@@ -700,7 +712,8 @@ Agent(
 Agent(
   description="Review frontend code",
   subagent_type="frontend-ui-developer",
-  prompt="""FRONTEND REVIEW for PR $PR_NUMBER
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  FRONTEND REVIEW
 
   ## Project Context
   ${PROJECT_CONTEXT}
@@ -712,13 +725,14 @@ Agent(
   4. Performance (memoization, lazy loading)
   5. SSR safety — no navigator/window outside hooks/useEffect
 
-  Scope: ONLY review the following changed files:
-  ${CHANGED_FILES}
-
-  Do NOT explore beyond these files. Focus your analysis on the diff.
+  Do NOT explore beyond the changed files listed below. Focus your analysis on the diff.
 
   Return your findings as a JSON block (```json```) matching the structured output contract above.
   Use category prefixes: A11Y (accessibility), PERF (performance), BUG (correctness). Use conventional comments.
+
+  PR: $PR_NUMBER
+  Scope: ONLY review the following changed files:
+  ${CHANGED_FILES}
   """,
   run_in_background=True,
   max_turns=25

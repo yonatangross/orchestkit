@@ -1,39 +1,43 @@
 # Session Handoff
 
-**Branch**: feat/ci-automation-1002-1005
-**When**: 2026-03-08 09:20:10 UTC
-**Session**: 0e015327-cefb-4b63-b0e6-36fdb7a67faa
+**Branch**: refactor/split-testing-patterns-669
+**When**: 2026-03-10 19:31:50 UTC
+**Session**: 7484a164-ecb7-45d2-86c7-dbdaa10cb9aa
 
 ## Summary
-Everything from the previous session is complete:
+OK so the real value of #1007 is sending the **OrchestKit-only data** that HQ can't extract from the transcript:
 
-- **Commit `1c28f593`** landed on `feat/ci-automation-1002-1005` — 6 new InstructionsLoaded handlers replacing the 3 broken ones
-- **83/83 tests passing**, security clean, typecheck green
-- 9 focused modules under `src/hooks/src/instructions-loaded/`
+```
+WHAT #1007 ACTUALLY ADDS (that HQ can't get otherwise):
+════════════════════════════════════════════════════════
 
-What's next?
+  CC Transcript (HQ can parse)     OrchestKit JSONL (HQ can't see)
+  ─────────────────────────────    ─────────────────────────────────
+  ✓ skills_used                    ✓ hooks_triggered[]
+  ✓ agents_spawned                    "pre-commit-blocker"
+  ✓ tool_sequence                     "session-tracker"
+  ✓ tokens / cost                     "profile-injector" ...
+ ...
 
 ## Modified Files
 - .claude-plugin/marketplace.json
 - .claude/HANDOFF.md
 - .claude/HANDOFF.md.consumed
-- .claude/agent-memory/ork-test-generator/MEMORY.md
-- .release-please-manifest.json
 - CLAUDE.md
 - CONTRIBUTING.md
 - README.md
-- manifests/ork.json
-- package-lock.json
-- package.json
-- pyproject.toml
-- version.txt
+- docs/site/lib/generated/plugins-data.ts
+- docs/site/lib/generated/shared-data.ts
+- plugins/ork/skills/verify/SKILL.md
+- src/hooks/README.md
+- src/skills/verify/SKILL.md
 
 ## Recent Tasks
-- Phase 1: Fix broken handlers in InstructionsLoaded dispatcher [completed]
-- Phase 2: Add token budget tracker handler [completed]
-- Phase 2: Add priority map injection handler [completed]
-- Phase 2: Add content dedup scanner handler [completed]
-- Phase 2: Add drift detection handler [completed]
-- Phase 3: Add smart rule suggestions handler [completed]
-- Build, typecheck, and test [completed]
-- Update hook counts and docs [completed]
+- Brainstorm: What OrchestKit can learn from CandleKeep UI/UX manual [completed]
+- Context Hub vs OrchestKit comparison analysis [completed]
+- Brainstorm: What to steal from Context Hub [completed]
+- Fetch and analyze AlmogBaku/debug-skill repo [completed]
+- Compare debug-skill vs CC built-in /debug [completed]
+- Brainstorm what to steal/adopt for OrchestKit [completed]
+- Create /playground skill [completed]
+- Brainstorm: debug-skill analysis + playground skill creation [completed]

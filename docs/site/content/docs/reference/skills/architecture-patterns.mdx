@@ -59,9 +59,9 @@ SOLID principles, hexagonal architecture, ports and adapters, and DDD tactical p
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Hexagonal Architecture | `$\{CLAUDE_PLUGIN_ROOT\}/skills/architecture-patterns/references/clean-hexagonal-ports-adapters.md` | Driving/driven ports, adapter implementations, layer structure |
-| SOLID & Dependency Rule | `$\{CLAUDE_PLUGIN_ROOT\}/skills/architecture-patterns/references/clean-solid-dependency-rule.md` | Protocol-based interfaces, dependency inversion, FastAPI DI |
-| DDD Tactical Patterns | `$\{CLAUDE_PLUGIN_ROOT\}/skills/architecture-patterns/references/clean-ddd-tactical-patterns.md` | Entities, value objects, aggregate roots, domain events |
+| Hexagonal Architecture | `$\{CLAUDE_SKILL_DIR\}/references/clean-hexagonal-ports-adapters.md` | Driving/driven ports, adapter implementations, layer structure |
+| SOLID & Dependency Rule | `$\{CLAUDE_SKILL_DIR\}/references/clean-solid-dependency-rule.md` | Protocol-based interfaces, dependency inversion, FastAPI DI |
+| DDD Tactical Patterns | `$\{CLAUDE_SKILL_DIR\}/references/clean-ddd-tactical-patterns.md` | Entities, value objects, aggregate roots, domain events |
 
 ### Key Decisions
 
@@ -79,8 +79,8 @@ Feature-based organization, max nesting depth, unidirectional imports, and barre
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Folder Structure & Nesting | `$\{CLAUDE_PLUGIN_ROOT\}/skills/architecture-patterns/references/structure-folder-conventions.md` | React/Next.js and FastAPI layouts, 4-level max nesting, barrel file rules |
-| Import Direction & Location | `$\{CLAUDE_PLUGIN_ROOT\}/skills/architecture-patterns/references/structure-import-direction.md` | Unidirectional imports, cross-feature prevention, component/hook placement |
+| Folder Structure & Nesting | `$\{CLAUDE_SKILL_DIR\}/references/structure-folder-conventions.md` | React/Next.js and FastAPI layouts, 4-level max nesting, barrel file rules |
+| Import Direction & Location | `$\{CLAUDE_SKILL_DIR\}/references/structure-import-direction.md` | Unidirectional imports, cross-feature prevention, component/hook placement |
 
 ### Blocking Rules
 
@@ -98,9 +98,9 @@ FastAPI Clean Architecture with router/service/repository layer separation and b
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Layer Separation | `$\{CLAUDE_PLUGIN_ROOT\}/skills/architecture-patterns/references/backend-layer-separation.md` | Router/service/repository boundaries, forbidden patterns, async rules |
-| Dependency Injection | `$\{CLAUDE_PLUGIN_ROOT\}/skills/architecture-patterns/references/backend-dependency-injection.md` | Depends() chains, auth patterns, testing with DI overrides |
-| File Naming & Exceptions | `$\{CLAUDE_PLUGIN_ROOT\}/skills/architecture-patterns/references/backend-naming-exceptions.md` | Naming conventions, domain exceptions, violation detection |
+| Layer Separation | `$\{CLAUDE_SKILL_DIR\}/references/backend-layer-separation.md` | Router/service/repository boundaries, forbidden patterns, async rules |
+| Dependency Injection | `$\{CLAUDE_SKILL_DIR\}/references/backend-dependency-injection.md` | Depends() chains, auth patterns, testing with DI overrides |
+| File Naming & Exceptions | `$\{CLAUDE_SKILL_DIR\}/references/backend-naming-exceptions.md` | Naming conventions, domain exceptions, violation detection |
 
 ### Layer Boundaries
 
@@ -116,9 +116,9 @@ Testing best practices with AAA pattern, naming conventions, isolation, and cove
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| AAA Pattern & Isolation | `$\{CLAUDE_PLUGIN_ROOT\}/skills/architecture-patterns/references/testing-aaa-isolation.md` | Arrange-Act-Assert, test isolation, parameterized tests |
-| Naming Conventions | `$\{CLAUDE_PLUGIN_ROOT\}/skills/architecture-patterns/references/testing-naming-conventions.md` | Descriptive behavior-focused names for Python and TypeScript |
-| Coverage & Location | `$\{CLAUDE_PLUGIN_ROOT\}/skills/architecture-patterns/references/testing-coverage-location.md` | Coverage thresholds, fixture scopes, test file placement rules |
+| AAA Pattern & Isolation | `$\{CLAUDE_SKILL_DIR\}/references/testing-aaa-isolation.md` | Arrange-Act-Assert, test isolation, parameterized tests |
+| Naming Conventions | `$\{CLAUDE_SKILL_DIR\}/references/testing-naming-conventions.md` | Descriptive behavior-focused names for Python and TypeScript |
+| Coverage & Location | `$\{CLAUDE_SKILL_DIR\}/references/testing-coverage-location.md` | Coverage thresholds, fixture scopes, test file placement rules |
 
 ### Coverage Requirements
 
@@ -135,14 +135,14 @@ Context-aware backend architecture enforcement. Rules adjust strictness based on
 
 **Enforcement procedure:**
 1. Read project tier from `scope-appropriate-architecture` context (set during brainstorm/implement Step 0)
-2. If no tier set, auto-detect using signals in `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/architecture-patterns/rules/right-sizing-tiers.md")`
+2. If no tier set, auto-detect using signals in `Read("$\{CLAUDE_SKILL_DIR\}/rules/right-sizing-tiers.md")`
 3. Apply tier-based enforcement matrix — skip rules marked OFF for detected tier
 4. **Security rules are tier-independent** — always enforce SQL parameterization, input validation, auth checks
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Architecture Sizing Tiers | `$\{CLAUDE_PLUGIN_ROOT\}/skills/architecture-patterns/rules/right-sizing-tiers.md` | Interview/MVP/production/enterprise sizing matrix, LOC estimates, detection signals |
-| Right-Sizing Decision Guide | `$\{CLAUDE_PLUGIN_ROOT\}/skills/architecture-patterns/rules/right-sizing-decision.md` | ORM, auth, error handling, testing recommendations per tier, over-engineering tax |
+| Architecture Sizing Tiers | `$\{CLAUDE_SKILL_DIR\}/rules/right-sizing-tiers.md` | Interview/MVP/production/enterprise sizing matrix, LOC estimates, detection signals |
+| Right-Sizing Decision Guide | `$\{CLAUDE_SKILL_DIR\}/rules/right-sizing-decision.md` | ORM, auth, error handling, testing recommendations per tier, over-engineering tax |
 
 ### Tier-Based Rule Enforcement
 
@@ -227,7 +227,9 @@ class UserService:
 - `ork:quality-gates` - YAGNI gate uses tier context to validate complexity
 - `ork:distributed-systems` - Distributed locking, resilience, idempotency patterns
 - `ork:api-design` - REST API design, versioning, error handling
-- `ork:testing-patterns` - Comprehensive testing patterns and strategies
+- `ork:testing-unit` - Unit testing: AAA pattern, fixtures, mocking, factories
+- `ork:testing-e2e` - E2E testing: Playwright, page objects, visual regression
+- `ork:testing-integration` - Integration testing: API endpoints, database, contracts
 - `ork:python-backend` - FastAPI, SQLAlchemy, asyncio patterns
 - `ork:database-patterns` - Schema design, query optimization, migrations
 

@@ -22,10 +22,12 @@ description: "LLM evaluation specialist who runs structured eval datasets, compu
 - `TaskList`
 - `TaskOutput`
 - `TaskStop`
+- `ExitWorktree`
 
 ## Skills Used
 
-- [testing-patterns](/docs/reference/skills/testing-patterns)
+- [testing-llm](/docs/reference/skills/testing-llm)
+- [testing-integration](/docs/reference/skills/testing-integration)
 - [golden-dataset](/docs/reference/skills/golden-dataset)
 - [monitoring-observability](/docs/reference/skills/monitoring-observability)
 - [task-dependency-patterns](/docs/reference/skills/task-dependency-patterns)
@@ -265,4 +267,4 @@ Task: "Run evals on the RAG golden dataset against GPT-4o-2024-08-06"
 - **Triggered by:** code-quality-reviewer (quality gate), CI pipeline (automated evals), team lead (manual)
 - **Receives from:** data-pipeline-engineer (golden datasets), backend-system-architect (model outputs)
 - **Hands off to:** monitoring-engineer (Langfuse dashboard alerts), team lead (regression decisions)
-- **Skill references:** testing-patterns, golden-dataset, monitoring-observability
+- **Skill references:** testing-llm, testing-integration, golden-dataset, monitoring-observability

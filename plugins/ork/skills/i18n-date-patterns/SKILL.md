@@ -1,7 +1,7 @@
 ---
 name: i18n-date-patterns
 license: MIT
-compatibility: "Claude Code 2.1.59+."
+compatibility: "Claude Code 2.1.72+."
 description: Implements internationalization (i18n) in React applications. Covers user-facing strings, date/time handling, locale-aware formatting, ICU MessageFormat, and RTL support. Use when building multilingual UIs or formatting dates/currency.
 context: fork
 agent: frontend-ui-developer
@@ -35,7 +35,7 @@ This skill provides comprehensive guidance for implementing internationalization
 - Embedding React components in translated text
 - Supporting RTL languages (Hebrew, Arabic)
 
-**Bundled Resources** (load with `Read("${CLAUDE_PLUGIN_ROOT}/skills/i18n-date-patterns/<path>")`):
+**Bundled Resources** (load with `Read("${CLAUDE_SKILL_DIR}/<path>")`):
 - `references/formatting-utilities.md` - useFormatting hook API reference
 - `references/icu-messageformat.md` - ICU plural/select syntax
 - `references/trans-component.md` - Trans component for rich text
@@ -87,7 +87,7 @@ function PriceDisplay({ amount, items }) {
 }
 ```
 
-Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/i18n-date-patterns/references/formatting-utilities.md")` for the complete API.
+Load `Read("${CLAUDE_SKILL_DIR}/references/formatting-utilities.md")` for the complete API.
 
 ### 3. Date Formatting
 
@@ -114,7 +114,7 @@ Use ICU syntax in translation files for pluralization:
 t('patients', { count: 5 })  // → "5 patients"
 ```
 
-Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/i18n-date-patterns/references/icu-messageformat.md")` for full syntax.
+Load `Read("${CLAUDE_SKILL_DIR}/references/icu-messageformat.md")` for full syntax.
 
 ### 5. Trans Component (Rich Text)
 
@@ -130,7 +130,7 @@ import { Trans } from 'react-i18next';
 />
 ```
 
-Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/i18n-date-patterns/references/trans-component.md")` for patterns.
+Load `Read("${CLAUDE_SKILL_DIR}/references/trans-component.md")` for patterns.
 
 ---
 
@@ -195,7 +195,7 @@ dangerouslySetInnerHTML             // Use <Trans> component
 
 ## Checklist
 
-Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/i18n-date-patterns/checklists/i18n-checklist.md")` for complete implementation and review checklists.
+Load `Read("${CLAUDE_SKILL_DIR}/checklists/i18n-checklist.md")` for complete implementation and review checklists.
 
 ---
 
@@ -219,7 +219,7 @@ Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/i18n-date-patterns/checklists/i18n-chec
 
 ## Related Skills
 
-- `ork:testing-patterns` - Comprehensive testing patterns including accessibility testing for i18n
+- `ork:testing-e2e` - E2E testing patterns including accessibility testing for i18n
 - `type-safety-validation` - Zod schemas for validating translation key structures and locale configs
 - `ork:react-server-components-framework` - Server-side locale detection and RSC i18n patterns
 - `ork:accessibility` - RTL-aware focus management for bidirectional UI navigation

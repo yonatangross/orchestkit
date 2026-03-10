@@ -12,7 +12,8 @@ description: "Design exploration with parallel agents. Use when brainstorming id
 - [memory](/docs/reference/skills/memory)
 - [remember](/docs/reference/skills/remember)
 - [scope-appropriate-architecture](/docs/reference/skills/scope-appropriate-architecture)
-- [testing-patterns](/docs/reference/skills/testing-patterns)
+- [testing-unit](/docs/reference/skills/testing-unit)
+- [testing-integration](/docs/reference/skills/testing-integration)
 - [chain-patterns](/docs/reference/skills/chain-patterns)
 
 
@@ -133,7 +134,7 @@ AskUserQuestion(
         {"label": "Constrained design", "description": "I have specific requirements to work within", "markdown": "```\nConstrained Design\n──────────────────\n  Requirements ──▶ Feasibility ──▶ Design\n  ┌──────────┐    ┌──────────┐    ┌──────┐\n  │ Fixed    │    │ Check    │    │ Best │\n  │ bounds   │    │ fit      │    │ fit  │\n  └──────────┘    └──────────┘    └──────┘\n  Skip divergent phase, focus on\n  feasibility within constraints\n```"},
         {"label": "Comparison", "description": "Compare 2-3 specific approaches I have in mind", "markdown": "```\nComparison Mode\n───────────────\n  Approach A ──┐\n  Approach B ──┼──▶ Rate 0-10 ──▶ Winner\n  Approach C ──┘    (6 dims)\n\n  Skip ideation, jump straight\n  to evaluation + trade-off table\n```"},
         {"label": "Quick ideation", "description": "Generate ideas fast, skip deep evaluation", "markdown": "```\nQuick Ideation\n──────────────\n  Braindump ──▶ Light filter ──▶ List\n  ┌────────┐   ┌────────────┐   ┌────┐\n  │ 10+    │   │ Viable?    │   │ 5-7│\n  │ ideas  │   │ Y/N only   │   │ out│\n  └────────┘   └────────────┘   └────┘\n  Fast pass, no deep scoring\n```"},
-        {"label": "Plan first", "description": "Structured exploration before generating ideas", "markdown": "```\nPlan Mode Exploration\n─────────────────────\n  1. EnterPlanMode\n  2. Analyze constraints\n  3. Research precedents\n  4. Map solution space\n  5. ExitPlanMode → options\n  6. User picks direction\n  7. Deep dive on chosen path\n\n  Best for: Architecture,\n  design systems, trade-offs\n```"}
+        {"label": "Plan first", "description": "Structured exploration before generating ideas", "markdown": "```\nPlan Mode Exploration\n─────────────────────\n  1. EnterPlanMode($TOPIC)\n  2. Analyze constraints\n  3. Research precedents\n  4. Map solution space\n  5. ExitPlanMode → options\n  6. User picks direction\n  7. Deep dive on chosen path\n\n  Best for: Architecture,\n  design systems, trade-offs\n```"}
       ],
       "multiSelect": false
     },
@@ -152,7 +153,7 @@ AskUserQuestion(
 )
 ```
 
-**If 'Plan first' selected:** Call `EnterPlanMode`, perform research using Read/Grep/Glob only, then `ExitPlanMode` with the plan for user approval before proceeding.
+**If 'Plan first' selected:** Call `EnterPlanMode("Brainstorm exploration: $TOPIC")`, perform research using Read/Grep/Glob only, then `ExitPlanMode` with the plan for user approval before proceeding.
 
 **Based on answers, adjust workflow:**
 - **Open exploration**: Full 7-phase process with all agents
@@ -217,7 +218,7 @@ TaskCreate(subject="Present design options", activeForm="Presenting options")
 
 Load the phase workflow for detailed instructions:
 ```
-Read("${CLAUDE_PLUGIN_ROOT}/skills/brainstorm/references/phase-workflow.md")
+Read("${CLAUDE_SKILL_DIR}/references/phase-workflow.md")
 ```
 
 ---
@@ -306,11 +307,11 @@ SendMessage(type="shutdown_request", recipient="testability-assessor", content="
 TeamDelete()
 ```
 
-> **Fallback:** If team formation fails, load `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/brainstorm/references/phase-workflow.md")` and use standard Phase 2 Task spawns.
+> **Fallback:** If team formation fails, load `Read("$\{CLAUDE_SKILL_DIR\}/references/phase-workflow.md")` and use standard Phase 2 Task spawns.
 
 > **Context exhaustion:** If context limit is reached mid-brainstorm, collect partial results from completed agents, synthesize what's available, and note which phases were skipped. Prefer returning partial results over failing silently.
 
-> **Manual cleanup:** If `TeamDelete()` doesn't terminate all agents, press `Ctrl+F` twice to force-kill remaining background agents.
+> **Manual cleanup:** If `TeamDelete()` doesn't terminate all agents, press `Ctrl+F` twice to force-stop remaining background agents. Note: `/clear` (CC 2.1.72+) preserves background agents — only foreground tasks are cleared.
 
 ---
 
@@ -336,7 +337,7 @@ TeamDelete()
 
 ## References
 
-Load on demand with `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/brainstorm/references/&lt;file&gt;")`:
+Load on demand with `Read("$\{CLAUDE_SKILL_DIR\}/references/&lt;file&gt;")`:
 
 | File | Content |
 |------|---------|
@@ -1202,7 +1203,7 @@ For each top approach, include:
 | **Recommended test types** | Unit, Integration, E2E, Contract, Property-based |
 | **Mock boundaries** | What to mock vs. what to test with real services |
 | **Infrastructure needs** | docker-compose services, testcontainers, test DBs |
-| **Testing-patterns rules** | Which `testing-patterns` rules apply (e.g., `integration-api`, `e2e-playwright`) |
+| **Testing rules** | Which testing sub-skill rules apply (e.g., `testing-integration/integration-api`, `testing-e2e/e2e-playwright`) |
 
 This ensures the chosen design comes with a concrete testing plan, not just architecture.
 

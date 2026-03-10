@@ -60,6 +60,9 @@
     },
     "ports": {
       "type": "object"
+    },
+    "claude_code_version": {
+      "type": "string"
     }
   },
   "additionalProperties": false

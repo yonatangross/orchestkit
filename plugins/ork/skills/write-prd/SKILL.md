@@ -1,12 +1,12 @@
 ---
 name: write-prd
 license: MIT
-compatibility: "Claude Code 2.1.59+."
+compatibility: "Claude Code 2.1.72+."
 description: "Write PRD — Product Requirements Documents with structured 8-section templates, user stories, acceptance criteria, and value proposition validation. Use when writing PRDs, defining product requirements, creating user stories with INVEST criteria, or building go/no-go decision frameworks."
 tags: [prd, requirements, user-story, acceptance-criteria, invest, value-proposition, go-no-go]
 context: fork
 agent: product-strategist
-version: 1.0.0
+version: 2.0.0
 author: OrchestKit
 user-invocable: true
 argument-hint: "product name or feature"
@@ -16,10 +16,21 @@ metadata:
   category: document-asset-creation
 allowed-tools:
   - Read
+  - Write
+  - Edit
   - Glob
   - Grep
+  - Bash
   - WebFetch
   - WebSearch
+  - AskUserQuestion
+  - TaskCreate
+  - TaskUpdate
+  - Agent
+  - mcp__memory__search_nodes
+  - mcp__memory__create_entities
+  - mcp__memory__add_observations
+  - mcp__memory__create_relations
 ---
 
 # PRD — Product Requirements Document
@@ -27,6 +38,54 @@ allowed-tools:
 Translate product vision and research into clear, actionable engineering specifications. Produces `PRD-[product-name].md` output files following an 8-section structure.
 
 **Output file naming:** `PRD-[product-name].md` (e.g., `PRD-sso-invite-flow.md`)
+
+## Argument Resolution
+
+```python
+PRODUCT = "$ARGUMENTS"  # Product name or feature, e.g., "SSO invite flow"
+```
+
+## STEP 0: Scope Clarification
+
+```python
+AskUserQuestion(
+  questions=[{
+    "question": "What type of PRD?",
+    "header": "PRD Scope",
+    "options": [
+      {"label": "Full PRD (Recommended)", "description": "All 8 sections with research, stories, and release plan"},
+      {"label": "Lightweight spec", "description": "Summary, objectives, user stories only"},
+      {"label": "User stories only", "description": "INVEST stories with acceptance criteria"},
+      {"label": "Update existing PRD", "description": "I have a PRD file to iterate on"}
+    ],
+    "multiSelect": false
+  }]
+)
+```
+
+## Task Management
+
+```python
+TaskCreate(
+  subject="Write PRD: {PRODUCT}",
+  description="8-section PRD with user stories and acceptance criteria",
+  activeForm="Writing PRD for {PRODUCT}"
+)
+```
+
+## Memory Integration
+
+```python
+# Search for prior PRDs and product decisions
+mcp__memory__search_nodes(query="{PRODUCT} PRD requirements")
+
+# After PRD is written, store key decisions
+mcp__memory__create_entities(entities=[{
+  "name": "PRD-{product-slug}",
+  "entityType": "document",
+  "observations": ["PRD written for {PRODUCT}", "Key objectives: ..."]
+}])
+```
 
 ## The 8-Section PRD Template
 
@@ -285,11 +344,30 @@ When producing structured PRD output for automated pipelines:
 - [output-templates.md](references/output-templates.md) — Structured JSON output schemas for PRD, business case, and strategy artifacts
 - [value-prop-canvas-guide.md](references/value-prop-canvas-guide.md) — Detailed value proposition canvas facilitation guide
 
+## Output
+
+After generating the PRD, write it to disk:
+
+```python
+Write(f"PRD-{product_slug}.md", prd_content)
+TaskUpdate(status="completed")
+```
+
+## Chain: Next Steps
+
+After PRD is approved, chain into implementation:
+
+```
+/ork:implement PRD-{product-slug}.md
+```
+
 ## Related Skills
 
 - `ork:user-research` — Build user understanding (personas, journey maps, interviews) before writing the PRD
-- `ork:product-frameworks` — Full PM framework suite (business cases, RICE, OKRs, metrics)
+- `ork:implement` — Execute the implementation plan from the PRD
+- `ork:brainstorm` — Explore solution alternatives before committing to PRD scope
+- `ork:assess` — Rate PRD quality and completeness
 
 ---
 
-**Version:** 1.0.0
+**Version:** 2.0.0

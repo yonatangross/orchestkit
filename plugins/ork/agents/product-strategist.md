@@ -1,8 +1,8 @@
 ---
 name: product-strategist
 description: "Product strategist: value proposition validation, feature-business alignment, build/buy/partner decisions, go/no-go."
+model: inherit
 category: product
-model: sonnet
 maxTurns: 30
 context: fork
 color: purple

@@ -693,7 +693,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "memory",
       "remember",
       "scope-appropriate-architecture",
-      "testing-patterns",
+      "testing-unit",
+      "testing-integration",
       "chain-patterns"
     ],
     "agent": null,
@@ -876,45 +877,6 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": []
   },
-  "ci-automation": {
-    "name": "ci-automation",
-    "description": "CI/CD automation with Claude Code -- GitHub Actions, headless CLI, and SDK patterns for automated reviews, triage, and health reports. Use when setting up CI pipelines with Claude.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "ci",
-      "cd",
-      "github-actions",
-      "automation",
-      "headless",
-      "claude-code-action"
-    ],
-    "userInvocable": true,
-    "context": "fork",
-    "allowedTools": [
-      "Read",
-      "Glob",
-      "Grep",
-      "Bash"
-    ],
-    "skills": [],
-    "agent": null,
-    "structure": {
-      "references": [
-        "cost-model.md",
-        "gh-action-patterns.md",
-        "headless-cli.md",
-        "loop-recipes.md",
-        "security.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "ci-cd-engineer"
-    ]
-  },
   "code-review-playbook": {
     "name": "code-review-playbook",
     "description": "Use this skill when conducting or improving code reviews. Provides structured review processes, conventional comments patterns, language-specific checklists, and feedback templates. Use when reviewing PRs or standardizing review practices.",
@@ -967,7 +929,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "commit": {
     "name": "commit",
     "description": "Creates commits with conventional format and validation. Use when committing changes or generating commit messages.",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "author": "OrchestKit",
     "tags": [
       "git",
@@ -1046,13 +1008,14 @@ export const SKILLS: Record<string, SkillMeta> = {
       "wizard",
       "customization"
     ],
-    "userInvocable": true,
+    "userInvocable": false,
     "context": "inherit",
     "allowedTools": [
       "Bash",
       "Read",
       "Grep",
-      "Glob"
+      "Glob",
+      "AskUserQuestion"
     ],
     "skills": [],
     "agent": null,
@@ -1777,55 +1740,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ui-feedback"
     ]
   },
-  "git-workflow": {
-    "name": "git-workflow",
-    "description": "Complete git workflow patterns including GitHub Flow branching, atomic commits with interactive staging, merge and rebase strategies, and recovery operations using reflog. Essential patterns for clean history. Use when managing branches, defining branching strategy, or recovering git history.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "git",
-      "branch",
-      "commit",
-      "recovery",
-      "workflow",
-      "reflog",
-      "staging",
-      "stacked-prs",
-      "monorepo",
-      "add-dir",
-      "code-review"
-    ],
-    "userInvocable": true,
-    "context": "fork",
-    "allowedTools": [
-      "AskUserQuestion",
-      "Bash",
-      "Read",
-      "Grep",
-      "Glob"
-    ],
-    "skills": [],
-    "agent": "git-operations-engineer",
-    "structure": {
-      "references": [
-        "github-flow.md",
-        "interactive-staging.md",
-        "recovery-decision-tree.md",
-        "reflog-recovery.md"
-      ],
-      "checklists": [
-        "branch-checklist.md",
-        "pre-commit-checklist.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "frontend-ui-developer",
-      "git-operations-engineer"
-    ]
-  },
   "github-operations": {
     "name": "github-operations",
     "description": "GitHub CLI operations for issues, PRs, milestones, and Projects v2. Covers gh commands, REST API patterns, and automation scripts. Use when managing GitHub issues, PRs, milestones, or Projects with gh.",
@@ -1932,7 +1846,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "help": {
     "name": "help",
     "description": "OrchestKit help directory with categorized skill listings. Use when discovering skills for a task, finding the right workflow, or browsing capabilities.",
-    "version": "1.0.0",
+    "version": "2.0.0",
     "author": "OrchestKit",
     "tags": [
       "help",
@@ -1944,7 +1858,10 @@ export const SKILLS: Record<string, SkillMeta> = {
     "userInvocable": true,
     "context": "fork",
     "allowedTools": [
-      "AskUserQuestion"
+      "AskUserQuestion",
+      "Read",
+      "Grep",
+      "Glob"
     ],
     "skills": [],
     "agent": null,
@@ -2041,7 +1958,9 @@ export const SKILLS: Record<string, SkillMeta> = {
     "skills": [
       "api-design",
       "react-server-components-framework",
-      "testing-patterns",
+      "testing-unit",
+      "testing-e2e",
+      "testing-integration",
       "explore",
       "verify",
       "memory",
@@ -2673,6 +2592,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "structure": {
       "references": [
         "caching-strategies.md",
+        "cc-prompt-cache-guide.md",
         "cdn-setup.md",
         "core-web-vitals.md",
         "database-optimization.md",
@@ -3219,41 +3139,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "release-engineer"
     ]
   },
-  "release-notebook": {
-    "name": "release-notebook",
-    "description": "Creates a versioned NotebookLM notebook for the current OrchestKit release. Reads version from package.json, extracts the matching CHANGELOG section, uploads CHANGELOG + CLAUDE.md + manifests/ork.json as sources, generates an audio overview, and shares the notebook. Use when cutting a release to create the Release KB.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "notebooklm",
-      "release",
-      "documentation",
-      "knowledge-base"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [
-      "Read",
-      "Bash",
-      "Grep",
-      "mcp__notebooklm-mcp__notebook_create",
-      "mcp__notebooklm-mcp__source_add",
-      "mcp__notebooklm-mcp__studio_create",
-      "mcp__notebooklm-mcp__studio_status",
-      "mcp__notebooklm-mcp__notebook_share_status",
-      "mcp__notebooklm-mcp__notebook_share_invite",
-      "mcp__notebooklm-mcp__note"
-    ],
-    "skills": [],
-    "agent": null,
-    "structure": {},
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "release-engineer"
-    ]
-  },
   "remember": {
     "name": "remember",
     "description": "Stores decisions and patterns in knowledge graph. Use when saving patterns, remembering outcomes, or recording decisions.",
@@ -3409,7 +3294,9 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [
       "code-review-playbook",
-      "testing-patterns",
+      "testing-unit",
+      "testing-e2e",
+      "testing-integration",
       "memory",
       "chain-patterns"
     ],
@@ -3543,7 +3430,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "setup": {
     "name": "setup",
     "description": "Personalized setup and onboarding wizard. Use when setting up OrchestKit for a new project, configuring plugins, or generating a readiness score and improvement plan.",
-    "version": "1.0.0",
+    "version": "2.0.0",
     "author": "OrchestKit",
     "tags": [
       "onboarding",
@@ -3552,7 +3439,9 @@ export const SKILLS: Record<string, SkillMeta> = {
       "configuration",
       "stack-detection",
       "mcp",
-      "personalization"
+      "personalization",
+      "telemetry",
+      "presets"
     ],
     "userInvocable": true,
     "context": "fork",
@@ -3562,6 +3451,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "Glob",
       "Bash",
       "AskUserQuestion",
+      "TaskCreate",
+      "TaskUpdate",
       "mcp__memory__search_nodes",
       "mcp__memory__create_entities",
       "mcp__memory__create_relations"
@@ -3578,9 +3469,12 @@ export const SKILLS: Record<string, SkillMeta> = {
       "references": [
         "claude-md-health.md",
         "configure-wizard.md",
+        "integrations.md",
         "keybindings.md",
+        "presets.md",
         "safety-check.md",
-        "scan-phase.md"
+        "scan-phase.md",
+        "telemetry-setup.md"
       ]
     },
     "plugins": [
@@ -3728,24 +3622,18 @@ export const SKILLS: Record<string, SkillMeta> = {
       "workflow-architect"
     ]
   },
-  "testing-patterns": {
-    "name": "testing-patterns",
-    "description": "Comprehensive testing patterns for unit, integration, E2E, pytest, API mocking (MSW/VCR), test data, property/contract testing, performance, LLM, and accessibility testing. Use when writing tests, setting up test infrastructure, or validating application quality.",
+  "testing-e2e": {
+    "name": "testing-e2e",
+    "description": "End-to-end testing patterns with Playwright — page objects, AI agent testing, visual regression, accessibility testing with axe-core, and CI integration. Use when writing E2E tests, setting up Playwright, implementing visual regression, or testing accessibility.",
     "version": "2.0.0",
     "author": "OrchestKit",
     "tags": [
       "testing",
-      "unit",
-      "integration",
       "e2e",
-      "pytest",
-      "msw",
-      "vcr",
-      "property",
-      "contract",
-      "performance",
-      "llm",
-      "a11y"
+      "playwright",
+      "accessibility",
+      "visual-regression",
+      "page-objects"
     ],
     "userInvocable": false,
     "context": "fork",
@@ -3761,59 +3649,232 @@ export const SKILLS: Record<string, SkillMeta> = {
     "structure": {
       "references": [
         "a11y-testing-tools.md",
-        "aaa-pattern.md",
-        "consumer-tests.md",
-        "custom-plugins.md",
-        "deepeval-ragas-api.md",
-        "factory-patterns.md",
-        "generator-agent.md",
-        "healer-agent.md",
-        "k6-patterns.md",
-        "msw-2x-api.md",
-        "pact-broker.md",
-        "planner-agent.md",
         "playwright-1.57-api.md",
         "playwright-setup.md",
-        "provider-verification.md",
-        "stateful-testing.md",
-        "strategies-guide.md",
-        "visual-regression.md",
-        "xdist-parallel.md"
+        "visual-regression.md"
       ],
       "scripts": [
-        "a11y-test-template.ts",
-        "conftest-template.py",
-        "consumer-test-template.py",
-        "create-integration-test.md",
-        "create-msw-handler.md",
-        "create-page-object.md",
-        "create-test-case.md",
-        "create-test-fixture.md",
-        "factory-boy.py",
-        "handlers-template.ts",
-        "hypothesis-conftest.py",
-        "k6-script.js",
-        "llm-test-template.py",
-        "page-object-template.ts",
-        "playwright-test-template.ts",
-        "provider-verification-template.py",
-        "pytest-fixture.py",
-        "pytest-integration.py",
-        "scaffold-test.sh",
-        "test-case-template.md",
-        "test-plan-template.md",
-        "vcr-cassette.py"
+        "create-page-object.md"
       ],
       "checklists": [
         "a11y-testing-checklist.md",
-        "contract-testing-checklist.md",
         "e2e-checklist.md",
-        "e2e-testing-checklist.md",
-        "llm-test-checklist.md",
-        "msw-setup-checklist.md",
+        "e2e-testing-checklist.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": [
+      "accessibility-specialist",
+      "design-system-architect",
+      "frontend-ui-developer",
+      "test-generator"
+    ]
+  },
+  "testing-integration": {
+    "name": "testing-integration",
+    "description": "Integration and contract testing patterns — API endpoint tests, component integration, database testing, Pact contract verification, property-based testing, and Zod schema validation. Use when testing API boundaries, verifying contracts, or validating cross-service integration.",
+    "version": "2.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "testing",
+      "integration",
+      "contract",
+      "pact",
+      "property",
+      "zod",
+      "api"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "skills": [],
+    "agent": "test-generator",
+    "structure": {
+      "references": [
+        "consumer-tests.md",
+        "pact-broker.md",
+        "provider-verification.md",
+        "strategies-guide.md"
+      ],
+      "scripts": [
+        "create-integration-test.md",
+        "test-plan-template.md"
+      ],
+      "checklists": [
+        "contract-testing-checklist.md",
+        "property-testing-checklist.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": [
+      "code-quality-reviewer",
+      "eval-runner",
+      "monitoring-engineer",
+      "test-generator"
+    ]
+  },
+  "testing-llm": {
+    "name": "testing-llm",
+    "description": "LLM and AI testing patterns — mock responses, evaluation with DeepEval/RAGAS, structured output validation, and agentic test patterns (generator, healer, planner). Use when testing AI features, validating LLM outputs, or building evaluation pipelines.",
+    "version": "2.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "testing",
+      "llm",
+      "ai",
+      "deepeval",
+      "ragas",
+      "evaluation",
+      "mocking"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "skills": [],
+    "agent": "test-generator",
+    "structure": {
+      "references": [
+        "deepeval-ragas-api.md",
+        "generator-agent.md",
+        "healer-agent.md",
+        "planner-agent.md"
+      ],
+      "checklists": [
+        "llm-test-checklist.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": [
+      "eval-runner",
+      "test-generator"
+    ]
+  },
+  "testing-patterns": {
+    "name": "testing-patterns",
+    "description": "Redirect — testing-patterns was split into 5 focused sub-skills. Use when looking for testing-patterns, writing tests, or test automation. Redirects to testing-unit, testing-e2e, testing-integration, testing-llm, or testing-perf.",
+    "version": "2.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "testing",
+      "redirect",
+      "deprecated"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "testing-perf": {
+    "name": "testing-perf",
+    "description": "Performance and load testing patterns — k6 load tests, Locust stress tests, pytest execution optimization (xdist parallel, plugins), test type classification, and performance benchmarking. Use when writing load tests, optimizing test execution speed, or setting up pytest infrastructure.",
+    "version": "2.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "testing",
+      "performance",
+      "k6",
+      "locust",
+      "pytest",
+      "load-testing",
+      "benchmarking"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "skills": [],
+    "agent": "test-generator",
+    "structure": {
+      "references": [
+        "custom-plugins.md",
+        "k6-patterns.md",
+        "xdist-parallel.md"
+      ],
+      "scripts": [
+        "test-case-template.md"
+      ],
+      "checklists": [
         "performance-checklist.md",
-        "property-testing-checklist.md",
-        "pytest-production-checklist.md",
+        "pytest-production-checklist.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": [
+      "monitoring-engineer",
+      "python-performance-engineer",
+      "test-generator"
+    ]
+  },
+  "testing-unit": {
+    "name": "testing-unit",
+    "description": "Unit testing patterns for isolated business logic tests — AAA pattern, parametrized tests, fixture scoping, mocking with MSW/VCR, and test data management with factories and fixtures. Use when writing unit tests, setting up mocks, or managing test data.",
+    "version": "2.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "testing",
+      "unit",
+      "mocking",
+      "msw",
+      "vcr",
+      "fixtures",
+      "factories"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "skills": [],
+    "agent": "test-generator",
+    "structure": {
+      "references": [
+        "aaa-pattern.md",
+        "factory-patterns.md",
+        "msw-2x-api.md",
+        "stateful-testing.md"
+      ],
+      "scripts": [
+        "create-msw-handler.md",
+        "create-test-case.md",
+        "create-test-fixture.md"
+      ],
+      "checklists": [
+        "msw-setup-checklist.md",
         "test-data-checklist.md",
         "vcr-checklist.md"
       ]
@@ -3822,12 +3883,9 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ork"
     ],
     "relatedAgents": [
-      "accessibility-specialist",
       "code-quality-reviewer",
       "design-system-architect",
-      "eval-runner",
       "frontend-ui-developer",
-      "monitoring-engineer",
       "python-performance-engineer",
       "test-generator"
     ]
@@ -4017,7 +4075,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "verify": {
     "name": "verify",
     "description": "Comprehensive verification with parallel test agents. Use when verifying implementations or validating changes.",
-    "version": "3.2.0",
+    "version": "4.0.0",
     "author": "OrchestKit",
     "tags": [
       "verification",
@@ -4044,16 +4102,25 @@ export const SKILLS: Record<string, SkillMeta> = {
       "TaskOutput",
       "TaskStop",
       "mcp__memory__search_nodes",
+      "mcp__agentation__agentation_get_all_pending",
+      "mcp__agentation__agentation_acknowledge",
+      "mcp__agentation__agentation_resolve",
+      "mcp__agentation__agentation_watch_annotations",
       "ToolSearch",
       "CronCreate",
       "CronDelete"
     ],
     "skills": [
       "code-review-playbook",
-      "testing-patterns",
+      "testing-unit",
+      "testing-e2e",
+      "testing-llm",
+      "testing-integration",
+      "testing-perf",
       "memory",
       "quality-gates",
-      "chain-patterns"
+      "chain-patterns",
+      "browser-tools"
     ],
     "agent": null,
     "structure": {
@@ -4065,9 +4132,11 @@ export const SKILLS: Record<string, SkillMeta> = {
         "quality-model.md",
         "report-template.md",
         "verification-checklist.md",
-        "verification-phases.md"
+        "verification-phases.md",
+        "visual-capture.md"
       ],
       "assets": [
+        "gallery-template.html",
         "quality-policy.yaml",
         "verification-report.md"
       ],
@@ -4083,7 +4152,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "visualize-plan": {
     "name": "visualize-plan",
     "description": "Visualize planned changes before implementation. Use when reviewing plans, comparing before/after architecture, assessing risk, or analyzing execution order and impact.",
-    "version": "1.0.0",
+    "version": "2.0.0",
     "author": "OrchestKit",
     "tags": [
       "visualization",
@@ -4102,14 +4171,21 @@ export const SKILLS: Record<string, SkillMeta> = {
       "Grep",
       "Glob",
       "Task",
+      "TaskCreate",
+      "TaskUpdate",
       "AskUserQuestion",
       "Bash",
-      "Write"
+      "Write",
+      "mcp__memory__search_nodes",
+      "mcp__memory__create_entities",
+      "ToolSearch"
     ],
     "skills": [
       "ascii-visualizer",
       "explore",
-      "architecture-decision-record"
+      "architecture-decision-record",
+      "memory",
+      "remember"
     ],
     "agent": "workflow-architect",
     "structure": {
@@ -4231,7 +4307,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "write-prd": {
     "name": "write-prd",
     "description": "Write PRD — Product Requirements Documents with structured 8-section templates, user stories, acceptance criteria, and value proposition validation. Use when writing PRDs, defining product requirements, creating user stories with INVEST criteria, or building go/no-go decision frameworks.",
-    "version": "1.0.0",
+    "version": "2.0.0",
     "author": "OrchestKit",
     "tags": [
       "prd",
@@ -4246,10 +4322,21 @@ export const SKILLS: Record<string, SkillMeta> = {
     "context": "fork",
     "allowedTools": [
       "Read",
+      "Write",
+      "Edit",
       "Glob",
       "Grep",
+      "Bash",
       "WebFetch",
-      "WebSearch"
+      "WebSearch",
+      "AskUserQuestion",
+      "TaskCreate",
+      "TaskUpdate",
+      "Agent",
+      "mcp__memory__search_nodes",
+      "mcp__memory__create_entities",
+      "mcp__memory__add_observations",
+      "mcp__memory__create_relations"
     ],
     "skills": [],
     "agent": "product-strategist",
