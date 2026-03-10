@@ -35,7 +35,7 @@ import { testPatternValidator } from '../skill/test-pattern-validator.js';
 import { testRunner } from '../skill/test-runner.js';
 
 // once:true context loaders (CC 2.1.69)
-import { prContextLoader, issueContextLoader, commitConventionLoader, releaseStateLoader } from '../skill/context-loaders-git.js';
+import { prContextLoader, issueContextLoader, commitConventionLoader, planContextLoader, releaseStateLoader } from '../skill/context-loaders-git.js';
 import { repoStructureIndexer, testFrameworkDetector, projectConventionLoader, doctorEnvSnapshot, setupEnvDetector, priorDecisionsLoader, assessmentBaselineLoader, qualityBaselineLoader } from '../skill/context-loaders-env.js';
 
 import type { HookFn } from '../types.js';
@@ -70,6 +70,7 @@ export const hooks: Record<string, HookFn> = {
   'skill/pr-context-loader': prContextLoader,
   'skill/issue-context-loader': issueContextLoader,
   'skill/commit-convention-loader': commitConventionLoader,
+  'skill/plan-context-loader': planContextLoader,
   'skill/release-state-loader': releaseStateLoader,
   'skill/repo-structure-indexer': repoStructureIndexer,
   'skill/test-framework-detector': testFrameworkDetector,

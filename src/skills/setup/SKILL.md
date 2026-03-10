@@ -5,12 +5,12 @@ compatibility: "Claude Code 2.1.59+."
 description: "Personalized setup and onboarding wizard. Use when setting up OrchestKit for a new project, configuring plugins, or generating a readiness score and improvement plan."
 argument-hint: "[--rescan] [--score-only] [--plan-only] [--channel] [--configure]"
 context: fork
-version: 1.0.0
+version: 2.0.0
 author: OrchestKit
-tags: [onboarding, setup, wizard, configuration, stack-detection, mcp, personalization]
+tags: [onboarding, setup, wizard, configuration, stack-detection, mcp, personalization, telemetry, presets]
 user-invocable: true
 disable-model-invocation: true
-allowed-tools: [Read, Grep, Glob, Bash, AskUserQuestion, mcp__memory__search_nodes, mcp__memory__create_entities, mcp__memory__create_relations]
+allowed-tools: [Read, Grep, Glob, Bash, AskUserQuestion, TaskCreate, TaskUpdate, mcp__memory__search_nodes, mcp__memory__create_entities, mcp__memory__create_relations]
 skills: [doctor, configure, remember, explore, help]
 complexity: medium
 hooks:
@@ -20,6 +20,7 @@ hooks:
       once: true
 metadata:
   category: configuration
+  mcp-server: memory
 ---
 
 # OrchestKit Setup Wizard
@@ -297,21 +298,78 @@ Offers 5 recommended shortcuts (commit, verify, implement, explore, review-pr). 
 
 > **Tip (CC 2.1.69+):** After setup completes, run `/reload-plugins` to activate all plugin changes without restarting your session.
 
+## Phase 9: Telemetry & Webhooks
+
+> Previously in `/ork:configure`. Now part of setup for single entry point.
+
+Load details: `Read("${CLAUDE_SKILL_DIR}/references/telemetry-setup.md")` for the full configuration flow.
+
+Ask user preference with AskUserQuestion:
+
+| Mode | Events | Auth | Overhead |
+|------|--------|------|----------|
+| **Full streaming** | All 18 CC events via HTTP hooks | Bearer token | Near-zero |
+| **Summary only** | SessionEnd + worktree events | HMAC auth | None |
+| **Skip** | No telemetry | — | None |
+
+If streaming selected:
+1. Ask for webhook URL
+2. Run `npm run generate:http-hooks -- <url> --write`
+3. Save to `.claude/orchestration/config.json`
+4. Remind about `ORCHESTKIT_HOOK_TOKEN` env var
+
+## Phase 10: Optional Integrations
+
+Load details: `Read("${CLAUDE_SKILL_DIR}/references/integrations.md")` for setup steps.
+
+Covers Agentation UI annotation tool and CC version-specific settings (CC 2.1.7 turn duration, CC 2.1.20 task deletion, CC 2.1.23 spinner verbs).
+
 ## CLI Flags
 
 | Flag | Behavior |
 |------|----------|
-| (none) | Full 9-phase wizard (includes 3.5 configure + 7b health check) |
+| (none) | Full wizard (phases 1-10) |
 | `--rescan` | Re-run scan + score, skip safety phase |
 | `--configure` | Jump directly to Phase 3.5: project configuration wizard |
 | `--score-only` | Show current readiness score (Phase 6 only) |
 | `--plan-only` | Show improvement plan (Phase 7 only) |
 | `--channel` | Show detected release channel only |
+| `--telemetry` | Jump to Phase 9: telemetry/webhook setup |
+| `--preset` | Apply a preset (complete/standard/lite/hooks-only/monorepo) |
+
+## Presets (via --preset)
+
+Apply a preset to quickly configure OrchestKit without the full wizard:
+
+| Preset | Skills | Agents | Hooks | Best For |
+|--------|--------|--------|-------|----------|
+| **complete** | 91 | 31 | 96 | Full power — everything enabled |
+| **standard** | 91 | 0 | 96 | Skills + hooks, no agents |
+| **lite** | 10 | 0 | 96 | Essential workflow skills only |
+| **hooks-only** | 0 | 0 | 96 | Just safety hooks |
+| **monorepo** | 91 | 31 | 96 | Complete + monorepo workspace detection |
+
+Load preset details: `Read("${CLAUDE_SKILL_DIR}/references/presets.md")`
+
+## References
+
+Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
+
+| File | Content |
+|------|---------|
+| `scan-phase.md` | Phase 1: 20 parallel Glob probes + pattern detection |
+| `safety-check.md` | Phase 3: Install scope and conflict detection |
+| `configure-wizard.md` | Phase 3.5: 6-step interactive project config |
+| `claude-md-health.md` | Phase 7b: CLAUDE.md modular structure analysis |
+| `keybindings.md` | Phase 8: Keyboard shortcut recommendations |
+| `telemetry-setup.md` | Phase 9: Webhook/telemetry configuration |
+| `integrations.md` | Phase 10: Agentation + CC version settings |
+| `presets.md` | Preset definitions and skill/agent matrices |
 
 ## Related Skills
 
 - `ork:doctor` — Health diagnostics (wizard uses its checks)
-- `ork:configure` — Detailed configuration (wizard recommends then links here)
+- `ork:configure` — Internal configuration (called by wizard phases 3.5, 9, 10)
 - `ork:remember` — Knowledge persistence (wizard seeds initial patterns)
 - `ork:explore` — Deep codebase analysis (wizard links for follow-up)
 - `ork:help` — Skill directory (wizard surfaces relevant subset)

@@ -112,6 +112,42 @@ export function commitConventionLoader(_input: HookInput): HookResult {
 }
 
 /**
+ * Plan Context Loader — gathers branch diff context for plan visualization.
+ * Used by: visualize-plan skill (PreToolUse/Bash, once:true)
+ *
+ * Provides branch name, base branch, commit count, and changed file summary
+ * so the skill has immediate context without running detection scripts.
+ */
+export function planContextLoader(_input: HookInput): HookResult {
+  const projectDir = getProjectDir();
+
+  const branch = safeExec('git branch --show-current', projectDir);
+  if (!branch) return outputSilentSuccess();
+
+  // Detect base branch (main or master)
+  const mainExists = safeExec('git rev-parse --verify main 2>/dev/null', projectDir);
+  const base = mainExists ? 'main' : 'master';
+
+  const commitCount = safeExec(`git rev-list ${base}..HEAD --count 2>/dev/null`, projectDir);
+  const diffStat = safeExec(`git diff ${base}...HEAD --stat 2>/dev/null | tail -1`, projectDir);
+  const changedFiles = safeExec(`git diff ${base}...HEAD --name-status 2>/dev/null | head -20`, projectDir);
+
+  // Check for linked issue in branch name
+  const issueMatch = branch.match(/(?:fix|issue|feat|refactor)[/-].*?(\d+)/i) || branch.match(/-(\d{2,})$/);
+
+  const ctx = [
+    '[Plan Context — loaded once]',
+    `Branch: ${branch} → ${base}`,
+    commitCount ? `Commits: ${commitCount} ahead of ${base}` : '',
+    diffStat || '',
+    changedFiles ? `\nChanged files:\n${changedFiles}` : '',
+    issueMatch ? `Linked issue: #${issueMatch[1]}` : '',
+  ].filter(Boolean).join('\n');
+
+  return outputWithContext(ctx);
+}
+
+/**
  * Release State Loader — captures version and changelog state.
  * Used by: release-checklist skill (PreToolUse/Read, once:true)
  */

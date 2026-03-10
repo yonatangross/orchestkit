@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 32 global + 44 agent-scoped + 19 skill-scoped = 95 total hooks (13 once:true context loaders). HTTP webhooks via `npm run generate:http-hooks`. All timeouts in SECONDS per CC spec.",
+  "description": "OrchestKit hooks - 32 global + 44 agent-scoped + 20 skill-scoped = 96 total hooks (14 once:true context loaders). HTTP webhooks via `npm run generate:http-hooks`. All timeouts in SECONDS per CC spec.",
   "hooks": {
     "PreToolUse": [
       {

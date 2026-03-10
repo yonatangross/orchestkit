@@ -6,15 +6,21 @@ description: "Visualize planned changes before implementation. Use when reviewin
 argument-hint: "[plan-or-issue]"
 context: fork
 agent: workflow-architect
-version: 1.0.0
+version: 2.0.0
 author: OrchestKit
 tags: [visualization, planning, before-after, architecture, diff, risk, impact, migration]
 user-invocable: true
-allowed-tools: [Read, Grep, Glob, Task, AskUserQuestion, Bash, Write]
-skills: [ascii-visualizer, explore, architecture-decision-record]
+allowed-tools: [Read, Grep, Glob, Task, TaskCreate, TaskUpdate, AskUserQuestion, Bash, Write, mcp__memory__search_nodes, mcp__memory__create_entities, ToolSearch]
+skills: [ascii-visualizer, explore, architecture-decision-record, memory, remember]
 complexity: medium
+hooks:
+  PreToolUse:
+    - matcher: "Bash"
+      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/plan-context-loader"
+      once: true
 metadata:
   category: document-asset-creation
+  mcp-server: memory
 ---
 
 # Plan Visualization
@@ -39,6 +45,20 @@ PLAN_TOKEN = "$ARGUMENTS[0]" # First token — could be issue "#234" or plan des
 ```
 
 ---
+
+## CRITICAL: Task Tracking
+
+```python
+TaskCreate(subject="Visualize plan: {PLAN_INPUT}", description="Plan visualization with ASCII rendering", activeForm="Analyzing plan context")
+```
+
+## STEP -1: Check Memory for Prior Plans
+
+```python
+# Search for related prior visualizations
+mcp__memory__search_nodes(query="plan visualization {PLAN_INPUT}")
+# If found, offer to compare with previous plan
+```
 
 ## STEP 0: Detect or Clarify Plan Context
 
@@ -166,6 +186,21 @@ AskUserQuestion(
 
 **Generate issues:** For each execution phase, create a GitHub issue with title `[{component}] {phase_description}`, labels (component + `risk:{level}`), milestone, body from plan sections, and blocked-by references.
 
+**Store in memory:** Save plan summary to knowledge graph for future comparison:
+
+```python
+mcp__memory__create_entities(entities=[{
+  "name": "Plan: {plan_name}",
+  "entityType": "plan-visualization",
+  "observations": [
+    "Branch: {branch}",
+    "Risk: {risk_level}, Confidence: {confidence}",
+    "Phases: {phase_count}, Files: {file_count}",
+    "Key decisions: {decision_summary}"
+  ]
+}])
+```
+
 ---
 
 ## Deep Dives (Tier 3, on request)
@@ -225,3 +260,5 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/assets/<file>")`:
 - `ork:implement` - Execute planned changes
 - `ork:explore` - Understand current architecture
 - `ork:assess` - Evaluate complexity and risks
+- `ork:memory` - Search prior plan visualizations
+- `ork:remember` - Store plan decisions for future reference

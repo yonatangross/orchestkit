@@ -1047,13 +1047,14 @@ export const SKILLS: Record<string, SkillMeta> = {
       "wizard",
       "customization"
     ],
-    "userInvocable": true,
+    "userInvocable": false,
     "context": "inherit",
     "allowedTools": [
       "Bash",
       "Read",
       "Grep",
-      "Glob"
+      "Glob",
+      "AskUserQuestion"
     ],
     "skills": [],
     "agent": null,
@@ -1933,7 +1934,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "help": {
     "name": "help",
     "description": "OrchestKit help directory with categorized skill listings. Use when discovering skills for a task, finding the right workflow, or browsing capabilities.",
-    "version": "1.0.0",
+    "version": "2.0.0",
     "author": "OrchestKit",
     "tags": [
       "help",
@@ -1945,7 +1946,10 @@ export const SKILLS: Record<string, SkillMeta> = {
     "userInvocable": true,
     "context": "fork",
     "allowedTools": [
-      "AskUserQuestion"
+      "AskUserQuestion",
+      "Read",
+      "Grep",
+      "Glob"
     ],
     "skills": [],
     "agent": null,
@@ -3514,7 +3518,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "setup": {
     "name": "setup",
     "description": "Personalized setup and onboarding wizard. Use when setting up OrchestKit for a new project, configuring plugins, or generating a readiness score and improvement plan.",
-    "version": "1.0.0",
+    "version": "2.0.0",
     "author": "OrchestKit",
     "tags": [
       "onboarding",
@@ -3523,7 +3527,9 @@ export const SKILLS: Record<string, SkillMeta> = {
       "configuration",
       "stack-detection",
       "mcp",
-      "personalization"
+      "personalization",
+      "telemetry",
+      "presets"
     ],
     "userInvocable": true,
     "context": "fork",
@@ -3533,6 +3539,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "Glob",
       "Bash",
       "AskUserQuestion",
+      "TaskCreate",
+      "TaskUpdate",
       "mcp__memory__search_nodes",
       "mcp__memory__create_entities",
       "mcp__memory__create_relations"
@@ -3549,9 +3557,12 @@ export const SKILLS: Record<string, SkillMeta> = {
       "references": [
         "claude-md-health.md",
         "configure-wizard.md",
+        "integrations.md",
         "keybindings.md",
+        "presets.md",
         "safety-check.md",
-        "scan-phase.md"
+        "scan-phase.md",
+        "telemetry-setup.md"
       ]
     },
     "plugins": [
@@ -4229,7 +4240,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "visualize-plan": {
     "name": "visualize-plan",
     "description": "Visualize planned changes before implementation. Use when reviewing plans, comparing before/after architecture, assessing risk, or analyzing execution order and impact.",
-    "version": "1.0.0",
+    "version": "2.0.0",
     "author": "OrchestKit",
     "tags": [
       "visualization",
@@ -4248,14 +4259,21 @@ export const SKILLS: Record<string, SkillMeta> = {
       "Grep",
       "Glob",
       "Task",
+      "TaskCreate",
+      "TaskUpdate",
       "AskUserQuestion",
       "Bash",
-      "Write"
+      "Write",
+      "mcp__memory__search_nodes",
+      "mcp__memory__create_entities",
+      "ToolSearch"
     ],
     "skills": [
       "ascii-visualizer",
       "explore",
-      "architecture-decision-record"
+      "architecture-decision-record",
+      "memory",
+      "remember"
     ],
     "agent": "workflow-architect",
     "structure": {
