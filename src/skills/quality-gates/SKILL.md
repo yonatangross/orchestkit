@@ -225,18 +225,6 @@ Track success/failure patterns across projects to prevent repeating mistakes and
 
 ---
 
-## Version History
-
-**v1.3.0** - Added YAGNI gate as Step 0 in gate flow, justified complexity ratio (BLOCK > 2.0, WARN 1.5-2.0), scope-appropriate-architecture integration
-
-**v1.1.0** - Added LLM-as-judge quality validation, retry logic, graceful degradation, triple-consumer artifact design
-
-**v1.0.0** - Initial release with complexity scoring, blocking thresholds, stuck detection, requirements checks
-
----
-
-**Remember:** Quality gates prevent wasted work. Better to ask questions upfront than to build the wrong solution. When in doubt, BLOCK and escalate.
-
 ---
 
 ## Related Skills
