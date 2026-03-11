@@ -5,6 +5,20 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.4.0] - 2026-03-11
+
+### Changed
+
+- **platform:** bump minimum Claude Code version from >= 2.1.72 to >= 2.1.73
+  - Fixes skill-file deadlock on `git pull` (critical for 89-skill plugin)
+  - Fixes SessionStart hooks double-firing on `--resume`/`--continue`
+  - Fixes no-op system reminder injection (~2K tokens/turn recovered across 99 hooks)
+  - Opus 4.6 now default on Bedrock/Vertex/Foundry (6 opus-tier agents auto-upgrade)
+- **skills:** update `compatibility` field to "Claude Code 2.1.73+" across 78 skills
+- **docs:** update version matrix with 5 new 2.1.73 features and "Full++++" compatibility level
+
+---
+
 ## [7.3.3] - 2026-03-11
 
 ### Added

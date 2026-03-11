@@ -2,7 +2,7 @@
 
 ## Overview
 
-OrchestKit requires Claude Code >= 2.1.72. This matrix documents which CC features OrchestKit depends on and their minimum version requirements.
+OrchestKit requires Claude Code >= 2.1.73. This matrix documents which CC features OrchestKit depends on and their minimum version requirements.
 
 ## Feature Matrix
 
@@ -72,6 +72,11 @@ OrchestKit requires Claude Code >= 2.1.72. This matrix documents which CC featur
 | Prompt cache fix | 2.1.72 | Up to 12x token cost reduction via improved caching | Higher token costs from cache misses |
 | Expanded bash auto-approval | 2.1.72 | `lsof`, `pgrep`, `tput`, `ss`, `fd`, `fdfind` auto-approved | Manual approval for system inspection tools |
 | `vscode://anthropic.claude-code/open` | 2.1.72 | URI handler to open CC from VS Code links | No deep-link integration with VS Code |
+| `/output-style` deprecated → `/config` | 2.1.73 | No OrchestKit references to /output-style | None — already using /config |
+| Skill-file deadlock fix on `git pull` | 2.1.73 | Fixes hang with 89-skill plugin after `git pull` | CC hangs during/after git pull |
+| SessionStart hooks double-fire fix | 2.1.73 | ~15 SessionStart hooks fire exactly once on resume | Hooks fire twice on --resume/--continue |
+| No-op system reminder injection fix | 2.1.73 | ~2K tokens/turn recovered across 99 hooks | Empty system-reminder tags waste context |
+| Opus 4.6 default on Bedrock/Vertex/Foundry | 2.1.73 | 6 opus-tier agents auto-upgrade on cloud providers | Older Opus model on cloud providers |
 
 ## Version Detection
 
@@ -97,6 +102,7 @@ claude --version  # Returns e.g. "2.1.47"
 | >= 2.1.70 | Full+ | Worktree dedup, 74% re-render reduction, MCP cache fixes |
 | >= 2.1.71 | Full++ | `/loop` command, cron scheduling, expanded bash allowlist, `/debug` toggle, plugin stability |
 | >= 2.1.72 | Full+++ | ExitWorktree, agent model override, effort simplification, prompt cache 12x savings, skill hook fix |
+| >= 2.1.73 | Full++++ | Skill-file deadlock fix, SessionStart double-fire fix, no-op reminder fix, Opus 4.6 cloud default |
 
 ## Doctor Check Implementation
 
@@ -175,6 +181,7 @@ Claude Code: 2.1.56 (OK)
 
 | OrchestKit | Min CC | Key Changes |
 |-----------|--------|-------------|
+| v7.4.x | 2.1.73 | Deadlock fix, SessionStart fix, no-op fix, Opus 4.6 cloud default |
 | v7.1.x | 2.1.69 | InstructionsLoaded, once:true loaders, outputAsk, env var HTTP hooks, worktree dedup |
 | v7.0.x | 2.1.59 | Auto-memory, @imports, ConfigChange, HTTP hooks (2.1.63+), unified plugin |
 | v6.0.x | 2.1.47 | Full CC 2.1.47 adoption, relaxed context limits |

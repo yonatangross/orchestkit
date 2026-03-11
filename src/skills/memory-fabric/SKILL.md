@@ -1,7 +1,7 @@
 ---
 name: memory-fabric
 license: MIT
-compatibility: "Claude Code 2.1.72+. Requires memory MCP server."
+compatibility: "Claude Code 2.1.73+. Requires memory MCP server."
 description: Knowledge graph memory orchestration - entity extraction, query parsing, deduplication, and cross-reference boosting. Use when designing memory orchestration.
 context: fork
 version: 2.1.0

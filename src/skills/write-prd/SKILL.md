@@ -1,7 +1,7 @@
 ---
 name: write-prd
 license: MIT
-compatibility: "Claude Code 2.1.72+."
+compatibility: "Claude Code 2.1.73+."
 description: "Write PRD — Product Requirements Documents with structured 8-section templates, user stories, acceptance criteria, and value proposition validation. Use when writing PRDs, defining product requirements, creating user stories with INVEST criteria, or building go/no-go decision frameworks."
 tags: [prd, requirements, user-story, acceptance-criteria, invest, value-proposition, go-no-go]
 context: fork

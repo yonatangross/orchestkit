@@ -1,7 +1,7 @@
 ---
 name: documentation-patterns
 license: MIT
-compatibility: "Claude Code 2.1.72+."
+compatibility: "Claude Code 2.1.73+."
 description: Technical documentation patterns for READMEs, ADRs, API docs (OpenAPI 3.1), changelogs, and writing style guides. Use when creating project documentation, writing architecture decisions, documenting APIs, or maintaining changelogs.
 tags: [documentation, readme, adr, api-docs, openapi, changelog, writing-style, technical-writing]
 version: 1.0.0

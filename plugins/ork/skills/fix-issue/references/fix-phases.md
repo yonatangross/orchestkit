@@ -64,7 +64,7 @@ Agents that edit files SHOULD use `isolation: "worktree"` to prevent conflicts:
 # PARALLEL — All 5 in ONE message
 Agent(
   subagent_type="debug-investigator",
-  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   ROOT CAUSE TRACING
 
   1. Trace the code path that triggers the bug
@@ -83,7 +83,7 @@ Agent(
 )
 Agent(
   subagent_type="debug-investigator",
-  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   IMPACT ANALYSIS
 
   Assess the blast radius of the confirmed root cause:
@@ -101,7 +101,7 @@ Agent(
 )
 Agent(
   subagent_type="backend-system-architect",
-  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   BACKEND FIX DESIGN
 
   Design the fix approach for the backend:
@@ -118,7 +118,7 @@ Agent(
 )
 Agent(
   subagent_type="frontend-ui-developer",
-  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   FRONTEND FIX DESIGN
 
   Design the fix approach for the frontend (if applicable):
@@ -135,7 +135,7 @@ Agent(
 )
 Agent(
   subagent_type="test-generator",
-  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   TEST REQUIREMENTS
 
   Define the test plan for the fix:

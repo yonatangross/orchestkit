@@ -17,6 +17,21 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.4.0",
+    "date": "2026-03-11",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**platform:** bump minimum Claude Code version from >= 2.1.72 to >= 2.1.73\n  - Fixes skill-file deadlock on `git pull` (critical for 89-skill plugin)\n  - Fixes SessionStart hooks double-firing on `--resume`/`--continue`\n  - Fixes no-op system reminder injection (~2K tokens/turn recovered across 99 hooks)\n  - Opus 4.6 now default on Bedrock/Vertex/Foundry (6 opus-tier agents auto-upgrade)",
+          "**skills:** update `compatibility` field to \"Claude Code 2.1.73+\" across 78 skills",
+          "**docs:** update version matrix with 5 new 2.1.73 features and \"Full++++\" compatibility level"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.3.3",
     "date": "2026-03-11",
     "compareUrl": "",
