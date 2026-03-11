@@ -5,6 +5,7 @@
 
 import { execFileSync } from 'node:child_process';
 import { getProjectDir } from './common.js';
+import { assertSafeGitArgs } from './sanitize-shell.js';
 
 /**
  * Execute a git command safely (no shell — args passed as array).
@@ -12,6 +13,7 @@ import { getProjectDir } from './common.js';
  */
 export function gitExec(args: string[], cwd?: string, timeout = 10000): string {
   try {
+    assertSafeGitArgs(args);
     return execFileSync('git', args, {
       cwd: cwd || getProjectDir(),
       encoding: 'utf8',

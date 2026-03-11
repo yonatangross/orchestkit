@@ -9,13 +9,14 @@ import { execFileSync } from 'node:child_process';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, getProjectDir } from '../lib/common.js';
 import { getRepoRoot, getCurrentBranch, hasUncommittedChanges } from '../lib/git.js';
-import { assertSafeGitRef } from '../lib/sanitize-shell.js';
+import { assertSafeGitRef, assertSafeGitArgs } from '../lib/sanitize-shell.js';
 
 /**
  * Execute git command safely (no shell — args passed as array)
  */
 function gitExec(args: string[], cwd?: string): string {
   try {
+    assertSafeGitArgs(args);
     return execFileSync('git', args, {
       cwd: cwd || getProjectDir(),
       encoding: 'utf8',

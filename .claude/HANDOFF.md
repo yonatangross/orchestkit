@@ -1,48 +1,59 @@
 # Session Handoff
 
-**Branch**: refactor/split-testing-patterns-669
-**When**: 2026-03-10 21:10:36 UTC
-**Session**: 95e4b6dc-aa22-4a38-b107-9c64ba09531f
+**Branch**: main
+**When**: 2026-03-11 09:51:48 UTC
+**Session**: 8b520159-eb22-4ab0-bebe-29418abdcc20
 
 ## Summary
-Full test suite passed (exit 0). All green:
-- **Skills**: 89/89 validated, 12/12 tests pass
-- **Rules**: 550/550 files valid, 3/3 tests pass  
-- **Security**: all suites pass (command injection, path traversal, unicode, symlink, input validation)
+All manifest tests pass, version 7.3.1 consistent. Here's a summary of everything done:
 
-Gallery is at `/tmp/verification-output/gallery-v2.html` — did it open for you?
+---
+
+## v7.3.1 Release Summary
+
+### Security Fixes
+
+| Alert | Severity | File | Fix |
+|-------|----------|------|-----|
+| **#124** | High | `src/hooks/src/lib/git.ts:15` | Added `assertSafeGitArgs()` — blocks `--upload-pack`, `--receive-pack`, `--exec`, `-c` args that let git execute arbitrary commands |
+| **#125** | Medium | `.github/workflows/claude-health.yml:28` | Added `--ignore-scripts` to npm install + bumped to `@2.1.72` |
+
+### Files Changed
+
+**Source (security):**
+- `src/hooks/src/lib/sanitize-she...
 
 ## Modified Files
+- .claude-plugin/marketplace.json
 - .claude/HANDOFF.md
 - .claude/HANDOFF.md.consumed
-- .claude/agent-memory/ork-test-generator/MEMORY.md
+- .claude/context/identity.json
+- .github/workflows/claude-health.yml
 - CHANGELOG.md
-- docs/site/content/docs/agents/choosing-an-agent.mdx
-- docs/site/content/docs/agents/multi-agent-patterns.mdx
-- docs/site/content/docs/cookbook/create-demo-video.mdx
-- docs/site/content/docs/foundations/choosing-a-plugin.mdx
-- docs/site/content/docs/foundations/overview.mdx
-- docs/site/content/docs/foundations/skills-agents-hooks.mdx
-- docs/site/content/docs/getting-started/first-10-minutes.mdx
-- docs/site/content/docs/getting-started/installation.mdx
-- docs/site/content/docs/getting-started/navigating.mdx
-- docs/site/content/docs/getting-started/release-channels.mdx
-- docs/site/content/docs/hooks/architecture.mdx
-- docs/site/content/docs/hooks/overview.mdx
-- docs/site/content/docs/hooks/spotlights/unified-dispatchers.mdx
-- docs/site/content/docs/reference/hooks/index.mdx
-- docs/site/content/docs/reference/index.mdx
-- docs/site/content/docs/reference/skills/verify.mdx
-- docs/site/content/docs/skills/overview.mdx
-- docs/site/content/docs/skills/writing-skills.mdx
-- docs/site/content/docs/troubleshooting/faq.mdx
-- docs/site/content/docs/troubleshooting/index.mdx
-- docs/site/lib/constants.ts
+- CLAUDE.md
 - docs/site/lib/generated/changelog-data.ts
-- src/hooks/README.md
-- src/skills/verify/SKILL.md
-- src/skills/verify/assets/gallery-template.html
-- src/skills/verify/references/visual-capture.md
+- docs/site/lib/generated/plugins-data.ts
+- manifests/ork.json
+- package.json
+- plugins/ork/.claude-plugin/plugin.json
+- pyproject.toml
+- src/hooks/dist/agent.mjs
+- src/hooks/dist/bundle-stats.json
+- src/hooks/dist/hooks.mjs
+- src/hooks/dist/hooks.mjs.map
+- src/hooks/dist/lifecycle.mjs
+- src/hooks/dist/lifecycle.mjs.map
+- src/hooks/dist/notification.mjs
+- src/hooks/dist/notification.mjs.map
+- src/hooks/dist/permission.mjs
+- src/hooks/dist/posttool.mjs
+- src/hooks/dist/posttool.mjs.map
+- src/hooks/dist/pretool.mjs
+- src/hooks/dist/pretool.mjs.map
+- src/hooks/dist/prompt.mjs
+- src/hooks/dist/prompt.mjs.map
+- src/hooks/dist/setup.mjs
+- src/hooks/dist/skill.mjs
 
 ## Recent Tasks
 - Brainstorm: What OrchestKit can learn from CandleKeep UI/UX manual [completed]

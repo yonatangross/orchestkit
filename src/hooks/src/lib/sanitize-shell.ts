@@ -82,6 +82,36 @@ export function assertSafeIssueNumber(num: string): string {
 }
 
 /**
+ * Git arguments that can execute arbitrary commands even without a shell.
+ * These are interpreted by git itself, not by the OS shell.
+ * See: https://codeql.github.com/codeql-query-help/javascript/js-command-line-injection/
+ */
+const DANGEROUS_GIT_ARGS = [
+  '--upload-pack',
+  '--receive-pack',
+  '--exec',
+  '-c',  // git -c core.fsmonitor=<cmd> / core.sshCommand=<cmd>
+];
+
+/**
+ * Validate that a git argument array does not contain options that could
+ * execute arbitrary commands (e.g., --upload-pack=<cmd>).
+ * Throws if a dangerous option is detected.
+ *
+ * Safe to call on the full args array passed to execFileSync('git', args).
+ */
+export function assertSafeGitArgs(args: readonly string[]): void {
+  for (const arg of args) {
+    const lower = arg.toLowerCase();
+    for (const dangerous of DANGEROUS_GIT_ARGS) {
+      if (lower === dangerous || lower.startsWith(`${dangerous}=`)) {
+        throw new Error(`Blocked dangerous git argument: ${JSON.stringify(arg)}`);
+      }
+    }
+  }
+}
+
+/**
  * Validate that a session ID is safe for use in file paths and shell contexts.
  * Allows: alphanumeric, dots, hyphens, underscores.
  * Rejects: path separators, shell metacharacters, spaces.
