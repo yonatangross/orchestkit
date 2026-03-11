@@ -1,6 +1,6 @@
-# Golden Test Evaluation Framework
+# Evaluation Framework
 
-CI-based validation of OrchestKit's golden test cases and scaffold integrity.
+CI-based validation of golden test cases, scaffold integrity, and skill quality.
 
 ## Overview
 
@@ -25,22 +25,29 @@ Runs A/B tests comparing Claude Code performance **with** vs **without** Orchest
 ```
 tests/evals/
 ├── README.md              # This file
-├── golden/                # Test cases (YAML format)
+├── golden/                # Agent routing tests (YAML)
 │   ├── api-design.yaml
 │   ├── database-schema.yaml
-│   ├── react-component.yaml
-│   ├── pytest-tests.yaml
-│   └── security-audit.yaml
+│   └── ...                # 11 golden tests
+├── skills/                # Skill trigger + quality tests (YAML)
+│   ├── commit.eval.yaml
+│   ├── assess.eval.yaml
+│   ├── api-design.eval.yaml
+│   ├── explore.eval.yaml
+│   └── implement.eval.yaml
 ├── scaffolds/             # Minimal project templates
 │   ├── python-fastapi/    # FastAPI starter
 │   ├── typescript-nextjs/ # Next.js starter
 │   └── empty/             # Empty project
 ├── scripts/
-│   ├── run-evals.sh       # Main test runner
-│   └── compare.sh         # A/B comparison
+│   ├── run-evals.sh       # Golden test runner
+│   ├── compare.sh         # A/B comparison (index effectiveness)
+│   ├── run-trigger-eval.sh   # Skill trigger eval (CC Max, local)
+│   └── run-quality-eval.sh   # Skill quality A/B eval (CC Max, local)
 └── results/               # Output (gitignored)
     ├── with-index/
-    └── without-index/
+    ├── without-index/
+    └── skills/            # Skill eval results
 ```
 
 ## Golden Test Format
@@ -99,12 +106,67 @@ In CI (no Claude CLI), the workflow validates golden test structure only. Full a
 | Test Passing | Simulated | Real |
 | Agent Routing | **Skipped** | Measured |
 
+## Skill Eval Format
+
+Skill evals live in `skills/` and test two things: **trigger accuracy** (does the skill activate on the right prompts?) and **quality** (does the skill add value vs base Claude?).
+
+```yaml
+id: skill-name
+name: "Human readable name"
+skill_path: src/skills/skill-name/SKILL.md
+plugin_dir: plugins/ork
+
+trigger_evals:
+  - prompt: "realistic user prompt"
+    should_trigger: true       # Skill should activate
+  - prompt: "adjacent task"
+    should_trigger: false      # Skill should NOT activate
+
+quality_evals:
+  - prompt: |
+      multi-line task description
+    scaffold: typescript-nextjs  # Optional project template
+    assertions:
+      - name: "what to check"
+        check: "grader-friendly description of expected outcome"
+
+tags: [skill-name, user-invocable]
+```
+
+### Running Skill Evals (local, requires CC Max)
+
+```bash
+# Trigger accuracy for one skill (5x per query)
+npm run eval:trigger -- commit
+
+# Quality A/B comparison (with-skill vs baseline)
+npm run eval:quality -- commit
+
+# All skills with eval files
+npm run eval:trigger -- --all
+```
+
+### Writing Good Eval Entries
+
+- **Trigger positives**: Include casual phrasing ("save my progress"), indirect requests, and varied vocabulary
+- **Trigger negatives**: Use **near-misses** that share keywords but need a different skill. "push to main" shares git context with commit but is not a commit task
+- **Cross-skill confusion**: Test boundaries between similar skills. "assess this PR" (assess) vs "review this PR" (review-pr)
+- **Quality assertions**: Describe what to look for, not exact strings. The grader is an LLM, not regex.
+
 ## Adding New Tests
 
+### Golden tests (agent routing)
 1. Create a new YAML file in `golden/`
 2. Define the prompt and expected outcomes
 3. Add appropriate scaffold if needed
 4. Run locally to verify
+5. Commit and push
+
+### Skill evals (trigger + quality)
+1. Create `skills/<name>.eval.yaml`
+2. Add 5+ trigger entries (3+ positive, 2+ negative)
+3. Add 1+ quality entries with assertions
+4. Run locally: `npm run eval:trigger -- <name>`
 5. Commit and push
 
 ## Security Model

@@ -387,12 +387,88 @@ Agent definitions can include `background: true` in frontmatter for agents that 
 
 OrchestKit ships `settings.json` per plugin (`src/settings/<plugin>.settings.json`). Skills can reference default permissions and keybindings defined there. The `chat:newline` keybinding (Shift+Enter) is available via settings.
 
+## Writing Effective Instructions
+
+### Explain the Why, Not Just the What
+
+If you find yourself writing ALWAYS or NEVER in all caps, that's a yellow flag. Today's LLMs are smart — they have good theory of mind and when given a clear explanation of *why* something matters, they go beyond rote instructions. Reframe heavy-handed rules into reasoning:
+
+**Weak:**
+```
+ALWAYS use conventional commit format. NEVER skip the scope.
+```
+
+**Strong:**
+```
+Use conventional commit format (feat/fix/chore) because our changelog
+generator parses these prefixes to categorize releases. Without a scope,
+the changelog groups changes under "other" which is unhelpful for users
+scanning release notes.
+```
+
+The reasoning approach is more humane, powerful, and effective than shouting in caps.
+
+### Description Quality
+
+The `description` field is the primary trigger mechanism — Claude decides whether to load a skill based on this text. Write descriptions that:
+
+1. **Include positive triggers**: what the skill does and when to use it
+2. **Include negative boundaries**: "Do NOT use for..." to prevent false positives
+3. **Cover casual phrasing**: users say "save my progress" not "create a conventional commit"
+
+**Good description:**
+```
+Creates commits with conventional format and validation. Use when
+committing changes, generating commit messages, or saving progress.
+Do NOT use for pushing, rebasing, squashing, or branch operations.
+```
+
+**Bad description:**
+```
+Helps with git commits.
+```
+
+### Eval Coverage (User-Invocable Skills)
+
+User-invocable skills (`user-invocable: true`) should include eval entries in `tests/evals/skills/<name>.eval.yaml`. This file tests trigger accuracy (does the skill fire on the right prompts?) and quality (does the skill add value vs base Claude?).
+
+```yaml
+# tests/evals/skills/my-skill.eval.yaml
+id: my-skill
+name: "My skill evaluation"
+skill_path: src/skills/my-skill/SKILL.md
+plugin_dir: plugins/ork
+
+trigger_evals:
+  - prompt: "realistic user prompt that should trigger"
+    should_trigger: true
+  - prompt: "adjacent task that should NOT trigger"
+    should_trigger: false
+
+quality_evals:
+  - prompt: "task to compare with-skill vs baseline"
+    assertions:
+      - name: "specific outcome"
+        check: "what to look for in output"
+```
+
+Guidelines for eval entries:
+- At least 5 trigger entries (3+ should-trigger, 2+ should-not)
+- At least 1 quality entry with graded assertions
+- Include **near-miss negatives** — prompts that share keywords but need a different skill
+- Include **casual phrasing** — typos, abbreviations, informal requests
+- Include **cross-skill confusion** — "assess this PR" vs "review this PR"
+
+Run locally with CC Max: `npm run eval:trigger -- <skill-name>`
+
 ## Checklist
 
 Before submitting a skill change:
 
 - [ ] SKILL.md under 500 lines
 - [ ] Description includes WHAT + WHEN (third person)
+- [ ] Description includes negative boundaries ("Do NOT use for...")
+- [ ] Instructions explain *why*, not just *what* (avoid ALWAYS/NEVER in caps)
 - [ ] Rules have YAML frontmatter with impact tag
 - [ ] Rules have incorrect/correct examples
 - [ ] `_sections.md` lists all rule files
@@ -400,6 +476,7 @@ Before submitting a skill change:
 - [ ] Area-prefixed filenames in `rules/`
 - [ ] Supporting files referenced from SKILL.md
 - [ ] Team-spawning skills include `Ctrl+F` cleanup note
+- [ ] User-invocable skills have eval YAML in `tests/evals/skills/`
 - [ ] `npm run build` passes
 - [ ] `npm run test:skills` passes
 - [ ] Run `/reload-plugins` to activate changes without restarting (CC 2.1.69+)
