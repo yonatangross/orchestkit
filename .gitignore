@@ -50,6 +50,7 @@ HOOK_SECURITY_*.txt
 .claude/session/*
 !.claude/session/.gitkeep
 .claude/context/handoffs/
+.claude/HANDOFF.md
 .claude/context/quality_gate_review_evidence.json
 .claude/context/verification-queue/
 
