@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.3.2](https://github.com/yonatangross/orchestkit/compare/v7.3.1...v7.3.2) (2026-03-11)
+
+
+### Bug Fixes
+
+* **security:** resolve CodeQL and Scorecard alerts ([#1027](https://github.com/yonatangross/orchestkit/issues/1027)) ([ab9136c](https://github.com/yonatangross/orchestkit/commit/ab9136c09593632a9c10a7d44ca4c9799df297ed))
+
+
+### Miscellaneous
+
+* fix hono CVE + organize playgrounds by date ([#1039](https://github.com/yonatangross/orchestkit/issues/1039)) ([b43cf2d](https://github.com/yonatangross/orchestkit/commit/b43cf2dc8f9d62d54b727de72928e123c2330e51))
+
 ## [7.3.2] - 2026-03-11
 
 ### Security
