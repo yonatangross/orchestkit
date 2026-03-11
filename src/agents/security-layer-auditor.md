@@ -26,6 +26,7 @@ hooks:
   PostToolUse:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs agent/security-command-audit"
+background: true
 ---
 # Security Layer Auditor Agent
 
