@@ -12,6 +12,7 @@ set -uo pipefail
 unset CLAUDECODE 2>/dev/null || true
 
 PLUGIN_DIR="plugins/ork"
+CLAUDE_FLAGS="--dangerously-skip-permissions --max-turns 1"
 PROMPT="commit my changes"
 SKILL_NAME="commit"
 RESULTS_DIR="/tmp/spike-trigger-detection"
@@ -25,7 +26,7 @@ echo ""
 # ─── Option 1: stream-json output ───────────────────────────────────────────
 echo "--- Option 1: --output-format stream-json ---"
 claude -p "$PROMPT" \
-  --plugin-dir "$PLUGIN_DIR" \
+  --plugin-dir "$PLUGIN_DIR" $CLAUDE_FLAGS \
   --output-format stream-json \
   > "$RESULTS_DIR/stream-json.jsonl" 2>"$RESULTS_DIR/stream-json.stderr"
 
@@ -39,7 +40,7 @@ echo ""
 # ─── Option 2: json output ─────────────────────────────────────────────────
 echo "--- Option 2: --output-format json ---"
 claude -p "$PROMPT" \
-  --plugin-dir "$PLUGIN_DIR" \
+  --plugin-dir "$PLUGIN_DIR" $CLAUDE_FLAGS \
   --output-format json \
   > "$RESULTS_DIR/json.json" 2>"$RESULTS_DIR/json.stderr"
 
@@ -61,7 +62,7 @@ echo ""
 # ─── Option 3: --debug stderr ──────────────────────────────────────────────
 echo "--- Option 3: --debug flag ---"
 claude -p "$PROMPT" \
-  --plugin-dir "$PLUGIN_DIR" \
+  --plugin-dir "$PLUGIN_DIR" $CLAUDE_FLAGS \
   --debug \
   > "$RESULTS_DIR/debug-stdout.txt" 2>"$RESULTS_DIR/debug-stderr.txt"
 
@@ -73,7 +74,7 @@ echo ""
 # ─── Option 4: append-system-prompt ────────────────────────────────────────
 echo "--- Option 4: --append-system-prompt ---"
 claude -p "$PROMPT" \
-  --plugin-dir "$PLUGIN_DIR" \
+  --plugin-dir "$PLUGIN_DIR" $CLAUDE_FLAGS \
   --append-system-prompt "IMPORTANT: At the very end of your response, add a line starting with '@@SKILLS_USED@@:' followed by a comma-separated list of skill names you consulted (from plugins). If none, write '@@SKILLS_USED@@: none'." \
   > "$RESULTS_DIR/append-prompt.txt" 2>"$RESULTS_DIR/append-prompt.stderr"
 
@@ -88,11 +89,11 @@ echo ""
 echo "--- Option 5: Output signature detection ---"
 # Run WITH plugin
 claude -p "$PROMPT" \
-  --plugin-dir "$PLUGIN_DIR" \
+  --plugin-dir "$PLUGIN_DIR" $CLAUDE_FLAGS \
   > "$RESULTS_DIR/with-plugin.txt" 2>/dev/null
 
 # Run WITHOUT plugin
-claude -p "$PROMPT" \
+claude -p "$PROMPT" $CLAUDE_FLAGS \
   > "$RESULTS_DIR/without-plugin.txt" 2>/dev/null
 
 echo "With plugin output length: $(wc -c < "$RESULTS_DIR/with-plugin.txt")"
