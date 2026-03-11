@@ -17,6 +17,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.3.2",
+    "date": "2026-03-11",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "security",
+        "items": [
+          "**hooks:** fix second-order command injection in `gitExec()` (CodeQL #124, High) — add `assertSafeGitArgs()` blocklist for `--upload-pack`, `--receive-pack`, `--exec`, `-c` options that can execute arbitrary commands via git",
+          "**ci:** fix unpinned npm dependency in `claude-health.yml` (Scorecard #125, Medium) — add `--ignore-scripts` to `npm install` and bump to `@2.1.72`"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.3.0",
     "date": "2026-03-10",
     "compareUrl": "",

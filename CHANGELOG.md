@@ -5,6 +5,15 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.3.2] - 2026-03-11
+
+### Security
+
+- **hooks:** fix second-order command injection in `gitExec()` (CodeQL #124, High) — add `assertSafeGitArgs()` blocklist for `--upload-pack`, `--receive-pack`, `--exec`, `-c` options that can execute arbitrary commands via git
+- **ci:** fix unpinned npm dependency in `claude-health.yml` (Scorecard #125, Medium) — add `--ignore-scripts` to `npm install` and bump to `@2.1.72`
+
+---
+
 ## [7.3.1](https://github.com/yonatangross/orchestkit/compare/v7.3.0...v7.3.1) (2026-03-11)
 
 

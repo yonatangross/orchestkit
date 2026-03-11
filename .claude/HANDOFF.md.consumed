@@ -1,36 +1,25 @@
 # Session Handoff
 
-**Branch**: refactor/split-testing-patterns-669
-**When**: 2026-03-10 19:31:50 UTC
-**Session**: 7484a164-ecb7-45d2-86c7-dbdaa10cb9aa
+**Branch**: main
+**When**: 2026-03-11 09:35:16 UTC
+**Session**: 95e4b6dc-aa22-4a38-b107-9c64ba09531f
 
 ## Summary
-OK so the real value of #1007 is sending the **OrchestKit-only data** that HQ can't extract from the transcript:
+Done. Here's the final picture:
 
 ```
-WHAT #1007 ACTUALLY ADDS (that HQ can't get otherwise):
-════════════════════════════════════════════════════════
-
-  CC Transcript (HQ can parse)     OrchestKit JSONL (HQ can't see)
-  ─────────────────────────────    ─────────────────────────────────
-  ✓ skills_used                    ✓ hooks_triggered[]
-  ✓ agents_spawned                    "pre-commit-blocker"
-  ✓ tool_sequence                     "session-tracker"
-  ✓ tokens / cost                     "profile-injector" ...
- ...
+╔══════════════════════════════════════════════════════════════════╗
+║              OrchestKit v7.3.0 — Triage Complete               ║
+╠══════════════════════════════════════════════════════════════════╣
+║                                                                  ║
+║  BEFORE                          AFTER                           ║
+║  ──────                          ─────                           ║
+║  57 open issues                  24 open issues                  ║
+║  7 milestones                    6 milestones                    ║
+║            ...
 
 ## Modified Files
-- .claude-plugin/marketplace.json
 - .claude/HANDOFF.md
-- .claude/HANDOFF.md.consumed
-- CLAUDE.md
-- CONTRIBUTING.md
-- README.md
-- docs/site/lib/generated/plugins-data.ts
-- docs/site/lib/generated/shared-data.ts
-- plugins/ork/skills/verify/SKILL.md
-- src/hooks/README.md
-- src/skills/verify/SKILL.md
 
 ## Recent Tasks
 - Brainstorm: What OrchestKit can learn from CandleKeep UI/UX manual [completed]

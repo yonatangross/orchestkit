@@ -4,7 +4,7 @@
 name: Claude PR Review
 on:
   pull_request:
-    types: [opened, synchronize]
+    types: [opened, ready_for_review]
   issue_comment:
     types: [created]
   workflow_dispatch:
@@ -36,7 +36,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
-      - uses: anthropics/claude-code-action@9469d113c6afd29550c402740f22d1a97dd1209b  # v1
+      - uses: anthropics/claude-code-action@491e5eb471f4008dc0db76dfec54c56ff9f88bba  # v1.0.70
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           prompt: |
@@ -60,4 +60,4 @@ jobs:
             | Security | PASS/WARN/FAIL | ... |
             | Tests | PASS/WARN/FAIL | ... |
             | Types | PASS/WARN/FAIL | ... |
-          claude_args: "--max-turns 5 --model claude-sonnet-4-5-20250514"
+          claude_args: "--max-turns 5 --model claude-sonnet-4-6"
