@@ -5,6 +5,26 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.3.3] - 2026-03-11
+
+### Added
+
+- **skills:** shared unified scoring framework in quality-gates for assess/verify
+- **skills:** 33 rule files across 12 skills (setup, implement, brainstorm, remember, help, audit-full, configure, errors, memory-fabric, release-management, scope-appropriate-architecture, testing-patterns)
+- **skills:** 12 `_sections.md` catalog files for new rule directories
+- **hooks:** task-existence-gate for task tracking enforcement in sync-task-dispatcher
+- **agents:** `background: true` on 8 read-only analysis agents
+
+### Changed
+
+- **skills:** compress 12 bloated skills under 300 lines via reference extraction (setup, write-prd, code-review-playbook, zustand-patterns, release-management, vite-advanced, async-jobs, devops-deployment, audit-full, implement, react-server-components-framework, remember)
+
+### Fixed
+
+- **hooks:** improve subagent-quality-gate and unified-dispatcher
+
+---
+
 ## [7.3.2](https://github.com/yonatangross/orchestkit/compare/v7.3.1...v7.3.2) (2026-03-11)
 
 
