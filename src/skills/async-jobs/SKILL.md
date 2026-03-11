@@ -44,7 +44,16 @@ Patterns for background task processing with Celery, ARQ, and Redis. Covers task
 
 ## Quick Start
 
-Load examples: `Read("${CLAUDE_SKILL_DIR}/references/quick-start-examples.md")` for Celery retry task and ARQ/FastAPI integration patterns.
+```python
+@app.task(bind=True, max_retries=3, default_retry_delay=60)
+def process_payment(self, order_id: str):
+    try:
+        return gateway.charge(order_id)
+    except TransientError as exc:
+        raise self.retry(exc=exc, countdown=2 ** self.request.retries * 60)
+```
+
+Load more examples: `Read("${CLAUDE_SKILL_DIR}/references/quick-start-examples.md")` for Celery retry task and ARQ/FastAPI integration patterns.
 
 ## Configuration
 

@@ -80,6 +80,14 @@ Code reviews serve multiple purposes:
 
 ## Conventional Comments
 
+```
+issue [blocking]: Missing error handling for API call
+If the API returns a 500 error, this will crash. Add try/catch.
+
+security [blocking]: API endpoint is not authenticated
+The /api/admin/users endpoint is missing auth middleware.
+```
+
 Load `Read("${CLAUDE_SKILL_DIR}/references/conventional-comments.md")` for the full format, labels (praise, nitpick, suggestion, issue, question, security, bug, breaking), decorations ([blocking], [non-blocking], [if-minor]), and examples.
 
 ---
