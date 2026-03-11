@@ -5,6 +5,41 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.3.0](https://github.com/yonatangross/orchestkit/compare/v7.2.2...v7.3.0) (2026-03-10)
+
+
+### Features
+
+* add ci-automation skill + GitHub Actions workflows ([#1006](https://github.com/yonatangross/orchestkit/issues/1006)) ([8b328a7](https://github.com/yonatangross/orchestkit/commit/8b328a7dc3e06428c17b2349dae1d8b92eb57350))
+* **skills:** add 13 cognitive-science UX rules across 5 existing skills ([#1011](https://github.com/yonatangross/orchestkit/issues/1011)) ([91b62ac](https://github.com/yonatangross/orchestkit/commit/91b62ac1ab43a1d3296b84e05b402d0102600531))
+
+
+### Bug Fixes
+
+* **ci:** add bootstrap-sha to release-please config ([#997](https://github.com/yonatangross/orchestkit/issues/997)) ([0d46843](https://github.com/yonatangross/orchestkit/commit/0d468437e75ffc7d3842f46972bd19836c565435))
+* **ci:** add plugins[0].version to release-please extra-files ([#1001](https://github.com/yonatangross/orchestkit/issues/1001)) ([8a4faad](https://github.com/yonatangross/orchestkit/commit/8a4faadf651d822d3c4e748360a27ca23cc9af14))
+* **docs:** replace broken ASCII diagrams with fumadocs Steps ([#999](https://github.com/yonatangross/orchestkit/issues/999)) ([2c1b6fe](https://github.com/yonatangross/orchestkit/commit/2c1b6fee670c4e1c8be2855bb23596792f354874))
+* **docs:** update generated plugins-data version to 7.2.0 ([#1012](https://github.com/yonatangross/orchestkit/issues/1012)) ([dca7243](https://github.com/yonatangross/orchestkit/commit/dca72432fd9982b3457d3423aad1124155a94584))
+
+
+### Miscellaneous
+
+* **main:** release 7.1.10 ([#1000](https://github.com/yonatangross/orchestkit/issues/1000)) ([d0c48a1](https://github.com/yonatangross/orchestkit/commit/d0c48a1f8f135fa741bb16a39166c1f0e5ebc965))
+* **main:** release 7.1.7 ([#998](https://github.com/yonatangross/orchestkit/issues/998)) ([c4607ad](https://github.com/yonatangross/orchestkit/commit/c4607ad811ec43b9cd6dc5ac323af953eca4096a))
+* **main:** release 7.2.0 ([#1010](https://github.com/yonatangross/orchestkit/issues/1010)) ([a6420bb](https://github.com/yonatangross/orchestkit/commit/a6420bbd4c50e234ccad3eeba676846e36b68a3d))
+* **main:** release 7.2.1 ([#1013](https://github.com/yonatangross/orchestkit/issues/1013)) ([2a83685](https://github.com/yonatangross/orchestkit/commit/2a8368559de636960593f3258e79afeb511d3311))
+
+
+### Code Refactoring
+
+* split testing-patterns, CC 2.1.72 upgrade, HTTP hooks fix ([#1015](https://github.com/yonatangross/orchestkit/issues/1015)) ([7bcab43](https://github.com/yonatangross/orchestkit/commit/7bcab430a21abdaaba714b8c7153351877387646))
+
+
+### CI/CD
+
+* bump actions/setup-node from 6.2.0 to 6.3.0 ([#1008](https://github.com/yonatangross/orchestkit/issues/1008)) ([61f73f5](https://github.com/yonatangross/orchestkit/commit/61f73f5f49327e0a773110aefb387d4b2bb2113b))
+* bump github/codeql-action from 4.32.4 to 4.32.6 ([#1009](https://github.com/yonatangross/orchestkit/issues/1009)) ([13a0975](https://github.com/yonatangross/orchestkit/commit/13a097584115d899681c321d15e2b8c05bda68ac))
+
 ## [7.3.0] - 2026-03-10
 
 ### Fixed
