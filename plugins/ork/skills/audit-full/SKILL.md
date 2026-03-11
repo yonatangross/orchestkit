@@ -39,42 +39,9 @@ Single-pass whole-project analysis leveraging Opus 4.6's extended context window
 
 ## STEP 0: Verify User Intent with AskUserQuestion
 
-**BEFORE creating tasks**, clarify audit scope:
+**BEFORE creating tasks**, clarify audit scope using the interactive dialog.
 
-```python
-AskUserQuestion(
-  questions=[
-    {
-      "question": "What type of audit do you want to run?",
-      "header": "Audit mode",
-      "options": [
-        {"label": "Full audit (Recommended)", "description": "Security + architecture + dependencies in one pass", "markdown": "```\nFull Audit (1M context)\n───────────────────────\n  Load entire codebase ──▶\n  ┌────────────────────────┐\n  │ Security    OWASP Top10│\n  │ Architecture  patterns │\n  │ Dependencies  CVEs     │\n  │ Cross-file   data flow │\n  └────────────────────────┘\n  Single pass: Opus 4.6 sees\n  ALL files simultaneously\n  Output: Prioritized findings\n```"},
-        {"label": "Security audit", "description": "Cross-file vulnerability analysis, data flow tracing, OWASP mapping", "markdown": "```\nSecurity Audit\n──────────────\n  ┌──────────────────────┐\n  │ OWASP mapping        │\n  │ Data flow tracing    │\n  │   input ──▶ DB ──▶ output\n  │ Cross-file vulns     │\n  │ Auth/AuthZ review    │\n  │ Secret detection     │\n  └──────────────────────┘\n  Finds vulns that chunked\n  analysis misses\n```"},
-        {"label": "Architecture review", "description": "Pattern consistency, coupling analysis, dependency violations", "markdown": "```\nArchitecture Review\n───────────────────\n  ┌──────────────────────┐\n  │ Pattern consistency  │\n  │ Coupling metrics     │\n  │   A ←→ B  (tight)   │\n  │   C ──▶ D  (clean)  │\n  │ Dependency violations│\n  │ Layer enforcement    │\n  └──────────────────────┘\n  Cross-file analysis of\n  architectural integrity\n```"},
-        {"label": "Dependency audit", "description": "License compliance, CVE checking, version currency", "markdown": "```\nDependency Audit\n────────────────\n  ┌──────────────────────┐\n  │ CVE scan       N vuls│\n  │ License check  ✓/✗   │\n  │ Version drift  N old │\n  │ Unused deps    N     │\n  │ Transitive risk      │\n  └──────────────────────┘\n  npm audit + pip-audit +\n  license compatibility\n```"}
-      ],
-      "multiSelect": true
-    },
-    {
-      "question": "What should be audited?",
-      "header": "Scope",
-      "options": [
-        {"label": "Entire codebase", "description": "Load all source files into context", "markdown": "```\nEntire Codebase\n───────────────\n  Load ALL source files\n  into 1M context window\n\n  Best for: first audit,\n  full security review,\n  architecture assessment\n  ⚠ Requires Tier 4+ API\n```"},
-        {"label": "Specific directory", "description": "Focus on a subdirectory (e.g., src/api/)", "markdown": "```\nSpecific Directory\n──────────────────\n  Load one subtree:\n  src/api/ or src/auth/\n\n  Best for: targeted review,\n  post-change validation,\n  smaller context budget\n```"},
-        {"label": "Changed files only", "description": "Audit only files changed vs main branch", "markdown": "```\nChanged Files Only\n──────────────────\n  git diff main...HEAD\n  Load only modified files\n\n  Best for: pre-merge check,\n  PR-scoped audit,\n  incremental review\n```"}
-      ],
-      "multiSelect": false
-    }
-  ]
-)
-```
-
-**Based on answers, adjust workflow:**
-- **Full audit**: All 3 domains, maximum context usage
-- **Security only**: Focus token budget on source + config files
-- **Architecture only**: Focus on module boundaries, imports, interfaces
-- **Dependency only**: Focus on lock files, manifests, import maps
-- **Changed files only**: Use `git diff --name-only main...HEAD` to scope
+Load: `Read("${CLAUDE_SKILL_DIR}/references/audit-scope-dialog.md")` for the full AskUserQuestion dialog with mode options (Full/Security/Architecture/Dependencies) and scope options (Entire codebase/Specific directory/Changed files).
 
 ---
 
@@ -100,106 +67,15 @@ TaskCreate(subject="Generate audit report", activeForm="Generating report")
 
 Before loading files, estimate whether the codebase fits in context.
 
-### Run Token Estimation
+Load: `Read("${CLAUDE_SKILL_DIR}/references/token-budget-planning.md")` for estimation rules (tokens/line by file type), budget allocation tables, auto-exclusion list, and fallback dialog when codebase exceeds budget.
 
-```bash
-# Use the estimation script
-bash ${CLAUDE_SKILL_DIR}/scripts/estimate-tokens.sh /path/to/project
-```
-
-### Manual Estimation Rules
-
-| File Type | Tokens per Line (approx) |
-|-----------|-------------------------|
-| TypeScript/JavaScript | ~8 tokens/line |
-| Python | ~7 tokens/line |
-| JSON/YAML config | ~5 tokens/line |
-| Markdown docs | ~6 tokens/line |
-| CSS/SCSS | ~6 tokens/line |
-
-### Budget Allocation
-
-| Context Size | Available for Code | Fits LOC (approx) |
-|-------------|-------------------|-------------------|
-| 200K (standard) | ~150K tokens | ~20K LOC |
-| 1M (beta) | ~800K tokens | ~100K LOC |
-
-### Auto-Exclusion List
-
-Always exclude from loading:
-- `node_modules/`, `vendor/`, `.venv/`, `__pycache__/`
-- `dist/`, `build/`, `.next/`, `out/`
-- `*.min.js`, `*.map`, `*.lock` (read lock files separately for deps audit)
-- Binary files, images, fonts
-- Test fixtures and snapshots (unless auditing tests)
-- Generated files (protobuf, graphql codegen)
-
-### If Codebase Exceeds Budget
-
-1. **Priority loading**: Entry points first, then imported modules
-2. **Directory scoping**: Ask user to narrow to specific directories
-3. **Fallback**: Recommend `/ork:verify` for chunked multi-agent approach
-
-```python
-# Fallback suggestion
-AskUserQuestion(
-  questions=[{
-    "question": "Codebase exceeds context window. How to proceed?",
-    "header": "Too large",
-    "options": [
-      {"label": "Narrow scope", "description": "Audit specific directories only"},
-      {"label": "Use /ork:verify instead", "description": "Chunked multi-agent approach (works with any context size)"},
-      {"label": "Priority loading", "description": "Load entry points + critical paths only"}
-    ],
-    "multiSelect": false
-  }]
-)
-```
+Run estimation: `bash ${CLAUDE_SKILL_DIR}/scripts/estimate-tokens.sh /path/to/project`
 
 ---
 
 ## STEP 2: Load Codebase into Context
 
-### Loading Strategy
-
-1. **Glob all source files** matching inclusion patterns
-2. **Sort by priority**: entry points → core modules → utilities → config
-3. **Read files in parallel** using multiple Read tool calls per message
-4. **Track loaded tokens** to stay within budget
-
-### Inclusion Patterns (by language)
-
-```bash
-# TypeScript/JavaScript
-**/*.ts **/*.tsx **/*.js **/*.jsx
-**/package.json **/tsconfig.json
-
-# Python
-**/*.py
-**/pyproject.toml **/setup.cfg **/requirements*.txt
-
-# Config
-**/.env.example **/docker-compose*.yml **/Dockerfile
-**/*.yaml **/*.yml (non-lock)
-```
-
-### Reading Pattern
-
-Read files in batches of 10-15 per message for efficiency:
-
-```python
-# Batch 1: Entry points and config
-Read("src/index.ts")
-Read("src/app.ts")
-Read("package.json")
-Read("tsconfig.json")
-# ... up to 15 files
-
-# Batch 2: Core modules
-Read("src/api/routes.ts")
-Read("src/db/connection.ts")
-# ... next batch
-```
+Load: `Read("${CLAUDE_SKILL_DIR}/references/report-structure.md")` for loading strategy, inclusion patterns by language (TS/JS, Python, Config), and batch reading patterns.
 
 ---
 
@@ -246,37 +122,9 @@ Key analysis patterns:
 
 Load the report template: `Read("${CLAUDE_SKILL_DIR}/assets/audit-report-template.md")`.
 
-### Report Structure
+Report structure and severity classification: `Read("${CLAUDE_SKILL_DIR}/references/report-structure.md")` for finding table format, severity breakdown (CRITICAL/HIGH/MEDIUM/LOW with timelines), and architecture diagram conventions.
 
-```markdown
-# Audit Report: {project-name}
-**Date:** {date} | **Mode:** {mode} | **Files loaded:** {count} | **LOC:** {loc}
-
-## Executive Summary
-{1-3 sentences: overall health, critical findings count}
-
-## Findings
-
-| # | Severity | Category | File(s) | Finding | Remediation |
-|---|----------|----------|---------|---------|-------------|
-| 1 | CRITICAL | Security | src/auth.ts:42 | ... | ... |
-
-## Severity Breakdown
-- CRITICAL: {n} (must fix before deploy)
-- HIGH: {n} (fix within sprint)
-- MEDIUM: {n} (fix within quarter)
-- LOW: {n} (track and address)
-
-## Architecture Diagram
-{ASCII diagram of module dependencies}
-
-## Recommendations
-{Prioritized action items}
-```
-
-### Severity Classification
-
-Load: `Read("${CLAUDE_SKILL_DIR}/assets/severity-matrix.md")` for classification criteria.
+Severity matrix: `Read("${CLAUDE_SKILL_DIR}/assets/severity-matrix.md")` for classification criteria.
 
 ### Completion Checklist
 

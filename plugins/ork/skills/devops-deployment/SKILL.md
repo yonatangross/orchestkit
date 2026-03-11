@@ -185,44 +185,9 @@ Key topics covered:
 
 ---
 
-## Deployment Checklist
+## Deployment Checklist & Templates
 
-### Pre-Deployment
-- [ ] All tests passing in CI
-- [ ] Security scans clean
-- [ ] Database migrations ready
-- [ ] Rollback plan documented
-
-### During Deployment
-- [ ] Monitor deployment progress
-- [ ] Watch error rates
-- [ ] Verify health checks passing
-
-### Post-Deployment
-- [ ] Verify metrics normal
-- [ ] Check logs for errors
-- [ ] Update status page
-
----
-
-## Helm Chart Structure
-
-```
-charts/app/
-├── Chart.yaml
-├── values.yaml
-├── scripts/
-│   ├── deployment.yaml
-│   ├── service.yaml
-│   ├── ingress.yaml
-│   ├── configmap.yaml
-│   ├── secret.yaml
-│   ├── hpa.yaml
-│   └── _helpers.tpl
-└── values/
-    ├── staging.yaml
-    └── production.yaml
-```
+Load: `Read("${CLAUDE_SKILL_DIR}/references/checklists-and-templates.md")` for pre/during/post-deployment checklists, Helm chart structure, template reference table, and extended thinking triggers.
 
 ---
 
@@ -242,79 +207,6 @@ charts/app/
 | Secrets management | External Secrets Operator | Syncs from cloud providers, GitOps compatible |
 | Health checks | Separate startup/liveness/readiness | Prevents premature traffic, enables graceful shutdown |
 
----
-
-## Extended Thinking Triggers
-
-Use Opus 4.6 adaptive thinking for:
-- **Architecture decisions** - Kubernetes vs serverless, multi-region setup
-- **Migration planning** - Moving between cloud providers
-- **Incident response** - Complex deployment failures
-- **Security design** - Zero-trust architecture
-
----
-
-## Templates Reference
-
-| Template | Purpose |
-|----------|---------|
-| `github-actions-pipeline.yml` | Full CI/CD workflow with 6 stages |
-| `Dockerfile` | Multi-stage Node.js build |
-| `docker-compose.yml` | Development environment |
-| `k8s-manifests.yaml` | Deployment, Service, Ingress |
-| `helm-values.yaml` | Helm chart values |
-| `terraform-aws.tf` | VPC, EKS, RDS infrastructure |
-| `argocd-application.yaml` | GitOps application |
-| `external-secrets.yaml` | Secrets Manager integration |
-
----
-
 ## Capability Details
 
-### ci-cd
-**Keywords:** ci, cd, pipeline, github actions, gitlab ci, jenkins, workflow
-**Solves:**
-- How do I set up CI/CD?
-- GitHub Actions workflow patterns
-- Pipeline caching strategies
-- Matrix testing setup
-
-### docker
-**Keywords:** docker, dockerfile, container, image, build, compose, multi-stage
-**Solves:**
-- How do I containerize my app?
-- Multi-stage Dockerfile best practices
-- Docker Compose development setup
-- Container security hardening
-
-### kubernetes
-**Keywords:** kubernetes, k8s, deployment, service, ingress, helm, statefulset, pdb
-**Solves:**
-- How do I deploy to Kubernetes?
-- K8s health probes and resource limits
-- Helm chart structure
-- StatefulSet for databases
-
-### infrastructure-as-code
-**Keywords:** terraform, pulumi, iac, infrastructure, provision, gitops, argocd
-**Solves:**
-- How do I set up infrastructure as code?
-- Terraform AWS patterns (VPC, EKS, RDS)
-- GitOps with ArgoCD
-- Secrets management patterns
-
-### deployment-strategies
-**Keywords:** blue green, canary, rolling, deployment strategy, rollback, zero downtime
-**Solves:**
-- Which deployment strategy should I use?
-- Zero-downtime database migrations
-- Blue-green deployment setup
-- Canary release with traffic splitting
-
-### observability
-**Keywords:** prometheus, grafana, metrics, alerting, monitoring, health check
-**Solves:**
-- How do I add monitoring to my app?
-- Prometheus metrics exposition
-- Grafana dashboard queries
-- Alerting rules for SLOs
+Load: `Read("${CLAUDE_SKILL_DIR}/references/capability-details.md")` for full keyword index and problem-solution mapping across all 6 capabilities (ci-cd, docker, kubernetes, infrastructure-as-code, deployment-strategies, observability).

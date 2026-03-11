@@ -64,40 +64,9 @@ Write(".claude/chain/state.json", JSON.stringify({
 
 **BEFORE any work**, detect the project tier. This becomes the complexity ceiling for all patterns.
 
-### Auto-Detection
+Scan codebase signals and classify into tiers 1-6 (Interview through Open Source). Each tier sets an architecture ceiling and determines which phases/agents to use.
 
-Scan codebase for signals: README keywords (take-home, interview), `.github/workflows/`, Dockerfile, terraform/, k8s/, CONTRIBUTING.md.
-
-### Tier Classification
-
-| Signal | Tier | Architecture Ceiling |
-|--------|------|---------------------|
-| README says "take-home", time limit | **1. Interview** (load `${CLAUDE_SKILL_DIR}/references/interview-mode.md`) | Flat files, 8-15 files |
-| < 10 files, no CI | **2. Hackathon** | Single file if possible |
-| `.github/workflows/`, managed DB | **3. MVP** | MVC monolith |
-| Module boundaries, Redis, queues | **4. Growth** | Modular monolith, DI |
-| K8s/Terraform, monorepo | **5. Enterprise** | Hexagonal/DDD |
-| CONTRIBUTING.md, LICENSE | **6. Open Source** | Minimal API, exhaustive tests |
-
-If confidence is low, use `AskUserQuestion` to ask the user. Pass detected tier to ALL downstream agents — see `scope-appropriate-architecture`.
-
-### Tier → Workflow Mapping
-
-| Tier | Phases | Max Agents |
-|------|--------|-----------|
-| 1. Interview | 1, 5 only | 2 |
-| 2. Hackathon | 5 only | 1 |
-| 3. MVP | 1-6, 9 | 3-4 |
-| 4-5. Growth/Enterprise | All 10 | 5-8 |
-| 6. Open Source | 1-7, 9-10 | 3-4 |
-
-Use `AskUserQuestion` to verify scope (full-stack / backend-only / frontend-only / prototype) and constraints.
-
-### Orchestration Mode
-
-- Agent Teams (mesh) when `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` and complexity >= 2.5
-- Task tool (star) otherwise; `ORCHESTKIT_FORCE_TASK_TOOL=1` to override
-- Load orchestration modes: `Read("${CLAUDE_SKILL_DIR}/references/orchestration-modes.md")`
+Load tier details, workflow mapping, and orchestration mode: `Read("${CLAUDE_SKILL_DIR}/references/tier-classification.md")`
 
 ### Worktree Isolation (CC 2.1.49)
 
@@ -215,34 +184,9 @@ Maintain checkpoints after each task. Load triggers: `Read("${CLAUDE_SKILL_DIR}/
 
 ## Test Requirements Matrix
 
-Phase 5 test-generator MUST produce tests matching the change type:
+Phase 5 test-generator MUST produce tests matching the change type. Each change type maps to specific required tests and testing rules.
 
-| Change Type | Required Tests | Testing Rules |
-|-------------|---------------|--------------------------|
-| API endpoint | Unit + Integration + Contract | `integration-api`, `verification-contract`, `mocking-msw` |
-| DB schema/migration | Migration + Integration | `integration-database`, `data-seeding-cleanup` |
-| UI component | Unit + Snapshot + A11y | `unit-aaa-pattern`, `integration-component`, `a11y-testing`, `e2e-playwright` |
-| Business logic | Unit + Property-based | `unit-aaa-pattern`, `pytest-execution`, `verification-techniques` |
-| LLM/AI feature | Unit + Eval | `llm-evaluation`, `llm-mocking` |
-| Full-stack feature | All of the above | All matching rules |
-
-### Real-Service Detection (Phase 6)
-
-Before running integration tests, detect infrastructure:
-
-```python
-# Auto-detect real service testing capability (PARALLEL)
-Glob(pattern="**/docker-compose*.yml")
-Glob(pattern="**/testcontainers*")
-Grep(pattern="testcontainers|docker-compose", glob="requirements*.txt")
-Grep(pattern="testcontainers|docker-compose", glob="package.json")
-```
-
-If detected: run integration tests against real services, not just mocks. Reference `testing-integration` rules: `integration-database`, `integration-api`, `data-seeding-cleanup`.
-
-### Phase 9 Gate
-
-**Do NOT proceed to Phase 9 (Documentation) if test-generator produced 0 tests.** Return to Phase 5 and generate tests for the implemented code.
+Load test matrix, real-service detection, and phase 9 gate: `Read("${CLAUDE_SKILL_DIR}/references/test-requirements-matrix.md")`
 
 
 ## Key Principles
@@ -282,3 +226,5 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | `worktree-workflow.md` | Git worktree workflow |
 | `e2e-verification.md` | Browser + API E2E testing guide |
 | `worktree-isolation-mode.md` | Worktree isolation details |
+| `tier-classification.md` | Tier classification, workflow mapping, orchestration mode |
+| `test-requirements-matrix.md` | Test matrix by change type, real-service detection, phase 9 gate |

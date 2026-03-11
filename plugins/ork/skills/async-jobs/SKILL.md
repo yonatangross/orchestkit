@@ -45,35 +45,15 @@ Patterns for background task processing with Celery, ARQ, and Redis. Covers task
 ## Quick Start
 
 ```python
-# Celery task with retry
-from celery import shared_task
-
-@shared_task(
-    bind=True,
-    max_retries=3,
-    autoretry_for=(ConnectionError, TimeoutError),
-    retry_backoff=True,
-)
-def process_order(self, order_id: str) -> dict:
-    result = do_processing(order_id)
-    return {"order_id": order_id, "status": "completed"}
+@app.task(bind=True, max_retries=3, default_retry_delay=60)
+def process_payment(self, order_id: str):
+    try:
+        return gateway.charge(order_id)
+    except TransientError as exc:
+        raise self.retry(exc=exc, countdown=2 ** self.request.retries * 60)
 ```
 
-```python
-# ARQ task with FastAPI
-from arq import create_pool
-from arq.connections import RedisSettings
-
-async def generate_report(ctx: dict, report_id: str) -> dict:
-    data = await ctx["db"].fetch_report_data(report_id)
-    pdf = await render_pdf(data)
-    return {"report_id": report_id, "size": len(pdf)}
-
-@router.post("/api/v1/reports")
-async def create_report(data: ReportRequest, arq: ArqRedis = Depends(get_arq_pool)):
-    job = await arq.enqueue_job("generate_report", data.report_id)
-    return {"job_id": job.job_id}
-```
+Load more examples: `Read("${CLAUDE_SKILL_DIR}/references/quick-start-examples.md")` for Celery retry task and ARQ/FastAPI integration patterns.
 
 ## Configuration
 
@@ -254,13 +234,7 @@ Lightweight async Redis Queue for FastAPI and simple background tasks.
 
 ## Tool Selection
 
-| Tool | Best For | Complexity |
-|------|----------|------------|
-| ARQ | FastAPI, simple async jobs | Low |
-| Celery | Complex workflows, enterprise | High |
-| RQ | Simple Redis queues | Low |
-| Dramatiq | Reliable messaging | Medium |
-| FastAPI BackgroundTasks | In-process quick tasks | Minimal |
+Load: `Read("${CLAUDE_SKILL_DIR}/references/quick-start-examples.md")` for the full tool comparison table (ARQ, Celery, RQ, Dramatiq, FastAPI BackgroundTasks).
 
 ## Anti-Patterns (FORBIDDEN)
 

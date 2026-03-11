@@ -60,36 +60,9 @@ Scans for package manifests (package.json, pyproject.toml, go.mod, Cargo.toml, e
 
 ## Phase 2: Stack Detection
 
-Classify scan results into a stack profile. Present to user:
+Classify scan results into a stack profile and present to user (languages, frameworks, database, infra, testing, existing CC config).
 
-```
-Detected Stack:
-  Languages:   Python 3.12, TypeScript 5.6, SQL
-  Frameworks:  FastAPI 0.115, React 19, Next.js 16
-  Database:    PostgreSQL (via Alembic), Redis
-  Infra:       Docker, GitHub Actions (3 workflows)
-  Testing:     pytest, Playwright
-  Existing CC: .claude/settings.json found, no conflicts
-```
-
-### Stack-to-Skill Mapping
-
-| Detected | Recommended Skills |
-|----------|--------------------|
-| Python | `python-backend`, `async-jobs`, `database-patterns` |
-| FastAPI | `api-design`, `testing-unit`, `testing-integration` |
-| React | `react-server-components-framework`, `ui-components`, `responsive-patterns` |
-| Next.js | `react-server-components-framework`, `performance`, `vite-advanced` |
-| Zustand | `zustand-patterns` |
-| SQLAlchemy/Alembic | `database-patterns` |
-| Docker/K8s | `devops-deployment`, `distributed-systems` |
-| Terraform | `devops-deployment` |
-| GitHub Actions | `devops-deployment` |
-| LLM/AI deps | `llm-integration`, `rag-retrieval`, `langgraph`, `mcp-patterns` |
-| Test frameworks | `testing-unit`, `testing-e2e`, `testing-integration`, `golden-dataset` |
-| Security concerns | `security-patterns` |
-
-**All stacks get**: `explore`, `implement`, `verify`, `commit`, `review-pr`, `fix-issue`, `doctor`, `remember`, `brainstorm`, `help`
+Load `Read("${CLAUDE_SKILL_DIR}/references/stack-skill-mapping.md")` for the full stack-to-skill mapping table, MCP recommendation matrix, and custom skill suggestion patterns.
 
 ## Phase 2b: Channel Detection
 
@@ -110,151 +83,19 @@ Load details: `Read("${CLAUDE_SKILL_DIR}/references/configure-wizard.md")` for t
 
 ## Phase 4: Skill Recommendations
 
-Present in 3 tiers using `AskUserQuestion`:
-
-```python
-AskUserQuestion(questions=[{
-  "question": "Which skill categories should we prioritize? (all are available, this helps focus the improvement plan)",
-  "header": "Focus areas",
-  "options": [
-    {"label": "Full-stack (Recommended)", "description": "All detected stack skills + security + testing", "markdown": "```\nFull-Stack Focus\n────────────────\nBackend:   api-design, database-patterns\nFrontend:  react-server-components, ui-components\nSecurity:  security-patterns\nTesting:   testing-unit, testing-e2e\nDevOps:    devops-deployment\nWorkflow:  implement, verify, commit\n```"},
-    {"label": "Backend focus", "description": "API, database, async, security patterns", "markdown": "```\nBackend Focus\n─────────────\nCore:      api-design, database-patterns\nAsync:     async-jobs, distributed-systems\nSecurity:  security-patterns\nTesting:   testing-unit, testing-integration\nSkipped:   UI, components, accessibility\n```"},
-    {"label": "Frontend focus", "description": "React, UI components, performance, accessibility", "markdown": "```\nFrontend Focus\n──────────────\nCore:      react-server-components\nUI:        ui-components, responsive-patterns\nPerf:      performance, vite-advanced\nA11y:      accessibility patterns\nSkipped:   database, async, infra\n```"},
-    {"label": "DevOps focus", "description": "CI/CD, deployment, monitoring, infrastructure", "markdown": "```\nDevOps Focus\n────────────\nCI/CD:     devops-deployment\nInfra:     distributed-systems\nMonitor:   observability patterns\nSecurity:  security-patterns\nSkipped:   UI, components, API design\n```"}
-  ],
-  "multiSelect": true
-}])
-```
-
-### Custom Skill Suggestions
-
-Based on pattern detection from Phase 1:
-
-```
-Detected patterns that could become custom skills:
-  47 API routes   → Create "api-endpoint" skill (auto-generate: route + schema + migration + test)
-  83 React comps  → Create "component" skill (auto-generate: component + props + story + test)
-  8 deploy steps  → Create "deploy-checklist" skill (automate your DEPLOY.md)
-
-To create any of these: see CONTRIBUTING-SKILLS.md in the plugin for authoring standards
-```
+Present skill categories using `AskUserQuestion` with 4 focus options (Full-stack, Backend, Frontend, DevOps) with `multiSelect: true`. Load `Read("${CLAUDE_SKILL_DIR}/references/stack-skill-mapping.md")` for mapping tables and custom skill suggestions.
 
 ## Phase 5: MCP Recommendations
 
-Check what's installed vs recommended:
-
-```python
-# Read existing MCP config
-Read(file_path=".mcp.json")  # project-level
-Bash(command="cat ~/.claude/settings.json 2>/dev/null | python3 -c \"import json,sys; d=json.load(sys.stdin); print(json.dumps(d.get('mcpServers',{}), indent=2))\"")
-```
-
-### MCP Recommendation Matrix
-
-| MCP | When to Recommend | Install Effort |
-|-----|-------------------|---------------|
-| **Context7** | Always — eliminates doc hallucination | Zero (cloud, free) |
-| **Memory** | Always — knowledge graph persistence | Low (local npx) |
-| **Sequential Thinking** | If using Sonnet/Haiku subagents | Low (local npx) |
-| **Tavily** | If web-research-workflow relevant | Medium (needs API key, free tier) |
-| **NotebookLM** | If many docs/READMEs for team RAG | Medium (Google auth) |
-| **Agentation** | If frontend UI work detected | Medium (npm install) |
-| **Phoenix/Langfuse** | If LLM observability desired (local tracing, cost tracking) | Medium (Docker, optional) |
-
-Present as toggles with impact labels. Show install commands for selected MCPs:
-
-```
-MCP Setup Commands:
-  Context7:  Already configured ✓
-  Memory:    /ork:configure mcp memory
-  Tavily:    Sign up at app.tavily.com → /ork:configure mcp tavily
-```
+Check installed vs recommended MCPs by reading `.mcp.json` and `~/.claude/settings.json`. Load `Read("${CLAUDE_SKILL_DIR}/references/stack-skill-mapping.md")` for the MCP recommendation matrix. Present as toggles with install commands.
 
 ## Phase 6: Readiness Score
 
-Compute a composite score (0-10) from 6 dimensions:
-
-| Dimension | Weight | Calculation |
-|-----------|--------|-------------|
-| **Stack Coverage** | 25% | matched_skills / relevant_skills_for_detected_stack |
-| **Hook Protection** | 20% | hooks_active / total_hooks (from /ork:doctor logic) |
-| **MCP Enhancement** | 15% | installed_mcps / recommended_mcps |
-| **Memory Depth** | 15% | entity_count from `mcp__memory__search_nodes` (target: 50+) |
-| **Custom Skills** | 15% | custom_skills_created / suggested_customs |
-| **Agent Utilization** | 10% | 1.0 if agents accessible, 0.5 if no MCPs limit agent capability |
-
-### Score Presentation
-
-```
-OrchestKit Readiness Score: 7.2 / 10  (stable channel, v7.0.0)
-
-  Stack Coverage  ████████░░  9/10  Python + React fully covered
-  Hook Protection ████████░░  8/10  107 hooks active
-  MCP Enhancement ██████░░░░  6/10  2/3 recommended MCPs active
-  Memory Depth    ████░░░░░░  4/10  12 entities (target: 50+)
-  Custom Skills   ██░░░░░░░░  2/10  0/3 suggested skills created
-  Agent Utilization ████████░░  8/10  30 agents available
-
-  Top improvement: Add /ork:remember patterns → +1.5 points
-```
-
-### Memory Integration
-
-Store the score for tracking over time:
-
-```python
-mcp__memory__create_entities(entities=[{
-  "name": "OrchestKit Setup Score",
-  "entityType": "metric",
-  "observations": [
-    "Score: 7.2/10 on 2026-02-26",
-    "Stack: Python + React + Next.js",
-    "Gap: Memory depth (12/50 entities), Custom skills (0/3)"
-  ]
-}])
-```
+Compute a composite score (0-10) from 6 dimensions. Load `Read("${CLAUDE_SKILL_DIR}/references/readiness-scoring.md")` for dimension weights, score presentation template, memory integration, and improvement plan template.
 
 ## Phase 7: Improvement Plan
 
-Generate prioritized, **runnable** recommendations:
-
-```
-Your Personalized Improvement Plan:
-
-P0 (do now):
-  $ /ork:remember "our API uses cursor pagination, never offset"
-  $ /ork:remember "FastAPI + SQLAlchemy 2.0 async + Alembic migrations"
-  $ /ork:remember "React 19 + TanStack Query + Zustand for state"
-  → Seeds your knowledge graph. Agents use this context automatically.
-
-P1 (this week):
-  $ /ork:configure mcp tavily
-  → Enables web research for up-to-date library docs.
-
-  Create a custom skill per CONTRIBUTING-SKILLS.md for your most repeated pattern (47 routes detected).
-  → e.g., "FastAPI endpoint with Pydantic schema, Alembic migration, and pytest"
-
-P2 (ongoing):
-  $ /ork:explore architecture
-  → Deep analysis of your codebase structure.
-
-  $ /ork:setup --rescan
-  → Re-run in 2 weeks to track score improvement.
-```
-
-### Save Plan to Memory
-
-```python
-mcp__memory__create_entities(entities=[{
-  "name": "OrchestKit Improvement Plan",
-  "entityType": "plan",
-  "observations": [
-    "P0: Seed knowledge graph with 3 core patterns",
-    "P1: Add Tavily MCP, create api-endpoint custom skill",
-    "P2: Run /ork:explore architecture, rescan in 2 weeks"
-  ]
-}])
-```
+Generate prioritized, **runnable** recommendations in P0/P1/P2 tiers. See `readiness-scoring.md` for the template and memory persistence pattern.
 
 ## Phase 7b: CLAUDE.md Health Check
 

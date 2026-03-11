@@ -174,7 +174,7 @@ Load details: `Read("${CLAUDE_SKILL_DIR}/references/visual-capture.md")` (Phase 
 
 ## Grading & Scoring
 
-Load details: `Read("${CLAUDE_SKILL_DIR}/rules/scoring-rubric.md")` for composite formula, grade thresholds, verdict criteria, and blocking rules. Load details: `Read("${CLAUDE_SKILL_DIR}/references/quality-model.md")` for dimension weights. Load details: `Read("${CLAUDE_SKILL_DIR}/references/grading-rubric.md")` for per-agent scoring criteria.
+Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/quality-gates/references/unified-scoring-framework.md")` for dimensions, weights, grade thresholds, and improvement prioritization. Load `Read("${CLAUDE_SKILL_DIR}/references/quality-model.md")` for verify-specific extensions (Visual dimension). Load `Read("${CLAUDE_SKILL_DIR}/references/grading-rubric.md")` for per-agent scoring criteria.
 
 
 ## Evidence & Test Execution
