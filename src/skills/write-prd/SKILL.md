@@ -53,10 +53,10 @@ AskUserQuestion(
     "question": "What type of PRD?",
     "header": "PRD Scope",
     "options": [
-      {"label": "Full PRD (Recommended)", "description": "All 8 sections with research, stories, and release plan"},
-      {"label": "Lightweight spec", "description": "Summary, objectives, user stories only"},
-      {"label": "User stories only", "description": "INVEST stories with acceptance criteria"},
-      {"label": "Update existing PRD", "description": "I have a PRD file to iterate on"}
+      {"label": "Full PRD (Recommended)", "description": "All 8 sections with research, stories, and release plan", "markdown": "```\nFull PRD (8 sections)\n─────────────────────\n1. Executive Summary\n2. Problem Statement\n3. Objectives & KPIs\n4. User Stories (INVEST)\n5. Functional Requirements\n6. Non-Functional Requirements\n7. Release Plan\n8. Appendices\n```"},
+      {"label": "Lightweight spec", "description": "Summary, objectives, user stories only", "markdown": "```\nLightweight Spec\n────────────────\n1. Summary (1 paragraph)\n2. Objectives (3-5 bullets)\n3. User Stories\n\nBest for: internal tools,\nsmall features, quick specs\n```"},
+      {"label": "User stories only", "description": "INVEST stories with acceptance criteria", "markdown": "```\nUser Stories Only\n─────────────────\nAs a [role], I want [goal]\nso that [benefit].\n\nAcceptance Criteria:\nGiven... When... Then...\n\nINVEST: Independent,\nNegotiable, Valuable,\nEstimable, Small, Testable\n```"},
+      {"label": "Update existing PRD", "description": "I have a PRD file to iterate on", "markdown": "```\nUpdate Existing PRD\n───────────────────\n→ Read current PRD file\n→ Identify gaps/changes\n→ Preserve approved sections\n→ Track change history\n```"}
     ],
     "multiSelect": false
   }]
