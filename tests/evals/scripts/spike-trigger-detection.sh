@@ -6,7 +6,10 @@
 # Run this OUTSIDE of Claude Code (raw terminal), requires CC Max license
 #
 # Usage: ./tests/evals/scripts/spike-trigger-detection.sh
-set -euo pipefail
+set -uo pipefail
+
+# Ensure we're not inside a Claude Code session
+unset CLAUDECODE 2>/dev/null || true
 
 PLUGIN_DIR="plugins/ork"
 PROMPT="commit my changes"

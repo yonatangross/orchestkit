@@ -28,6 +28,12 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
           "**skills:** update `compatibility` field to \"Claude Code 2.1.73+\" across 78 skills",
           "**docs:** update version matrix with 5 new 2.1.73 features and \"Full++++\" compatibility level"
         ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**docs:** fix broken light mode on documentation site — split dark-only `@theme` into proper light/dark token sets following fumadocs convention (`@theme` for light defaults, `.dark {}` for dark overrides)"
+        ]
       }
     ]
   },
