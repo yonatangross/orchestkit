@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CC 2.1.73 Upgrade Explorer — OrchestKit</title>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface2: #1a1a28;
+    --border: #2a2a3a;
+    --text: #e0e0ea;
+    --text-dim: #8888a0;
+    --accent: #6c5ce7;
+    --accent2: #a29bfe;
+    --green: #00b894;
+    --orange: #fdcb6e;
+    --red: #e17055;
+    --blue: #74b9ff;
+    --pink: #fd79a8;
+    --radius: 12px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', monospace;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .header {
+    padding: 32px 40px 24px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(135deg, var(--surface) 0%, rgba(108,92,231,0.08) 100%);
+  }
+
+  .header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent2), var(--blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 6px;
+  }
+
+  .header .subtitle {
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+
+  .version-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 16px;
+    font-size: 13px;
+  }
+
+  .version-pill {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 12px;
+  }
+
+  .v-current { background: rgba(0,184,148,0.15); color: var(--green); border: 1px solid rgba(0,184,148,0.3); }
+  .v-target { background: rgba(108,92,231,0.15); color: var(--accent2); border: 1px solid rgba(108,92,231,0.3); }
+
+  .arrow-icon { color: var(--text-dim); font-size: 18px; }
+
+  .main {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    min-height: calc(100vh - 130px);
+  }
+
+  .sidebar {
+    border-right: 1px solid var(--border);
+    padding: 20px 0;
+    background: var(--surface);
+  }
+
+  .sidebar h3 {
+    padding: 0 20px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-size: 13px;
+    border-left: 3px solid transparent;
+  }
+
+  .nav-item:hover { background: rgba(108,92,231,0.06); }
+  .nav-item.active {
+    background: rgba(108,92,231,0.1);
+    border-left-color: var(--accent);
+    color: var(--accent2);
+  }
+
+  .nav-badge {
+    margin-left: auto;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 700;
+  }
+
+  .badge-high { background: rgba(225,112,85,0.2); color: var(--red); }
+  .badge-med { background: rgba(253,203,110,0.2); color: var(--orange); }
+  .badge-low { background: rgba(0,184,148,0.2); color: var(--green); }
+  .badge-info { background: rgba(116,185,255,0.2); color: var(--blue); }
+
+  .content {
+    padding: 28px 36px;
+    overflow-y: auto;
+    max-height: calc(100vh - 130px);
+  }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  .panel-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .panel-desc {
+    color: var(--text-dim);
+    font-size: 13px;
+    margin-bottom: 24px;
+    line-height: 1.6;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 16px;
+    transition: border-color 0.2s;
+  }
+
+  .card:hover { border-color: var(--accent); }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .card-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .icon-fix { background: rgba(0,184,148,0.15); }
+  .icon-break { background: rgba(225,112,85,0.15); }
+  .icon-perf { background: rgba(116,185,255,0.15); }
+  .icon-change { background: rgba(253,203,110,0.15); }
+
+  .card-title { font-size: 15px; font-weight: 600; }
+  .card-impact { font-size: 11px; margin-left: auto; }
+
+  .card-body {
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.7;
+  }
+
+  .card-body code {
+    background: var(--surface2);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    color: var(--accent2);
+  }
+
+  .tag-row {
+    display: flex;
+    gap: 6px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .tag-action { background: rgba(108,92,231,0.15); color: var(--accent2); }
+  .tag-safe { background: rgba(0,184,148,0.15); color: var(--green); }
+  .tag-warn { background: rgba(253,203,110,0.15); color: var(--orange); }
+
+  /* Impact Matrix */
+  .matrix {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 13px;
+    margin-bottom: 24px;
+  }
+
+  .matrix th {
+    background: var(--surface2);
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-dim);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .matrix th:first-child { border-radius: var(--radius) 0 0 0; }
+  .matrix th:last-child { border-radius: 0 var(--radius) 0 0; }
+
+  .matrix td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  .matrix tr:last-child td { border-bottom: none; }
+  .matrix tr:hover td { background: rgba(108,92,231,0.04); }
+
+  .status-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+
+  .dot-green { background: var(--green); }
+  .dot-orange { background: var(--orange); }
+  .dot-red { background: var(--red); }
+  .dot-blue { background: var(--blue); }
+
+  /* Checklist */
+  .checklist { list-style: none; }
+
+  .checklist li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .checklist li:hover { background: rgba(108,92,231,0.04); }
+
+  .checklist li:last-child { border-bottom: none; }
+
+  .check-box {
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--border);
+    border-radius: 4px;
+    flex-shrink: 0;
+    margin-top: 1px;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+  }
+
+  .checklist li.checked .check-box {
+    background: var(--green);
+    border-color: var(--green);
+    color: #fff;
+  }
+
+  .check-label { flex: 1; line-height: 1.5; }
+  .check-label small { color: var(--text-dim); display: block; margin-top: 2px; }
+
+  .checklist li.checked .check-label { text-decoration: line-through; color: var(--text-dim); }
+
+  /* Stats Row */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    text-align: center;
+  }
+
+  .stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* Agent Grid */
+  .agent-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .agent-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    transition: all 0.2s;
+  }
+
+  .agent-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+
+  .agent-name { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .agent-model { font-size: 11px; color: var(--pink); }
+  .agent-note { font-size: 11px; color: var(--text-dim); margin-top: 8px; line-height: 1.4; }
+
+  /* Progress */
+  .progress-bar {
+    height: 6px;
+    background: var(--surface2);
+    border-radius: 3px;
+    overflow: hidden;
+    margin: 16px 0;
+  }
+
+  .progress-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.5s ease;
+  }
+
+  .progress-green { background: linear-gradient(90deg, var(--green), #55efc4); }
+
+  /* Timeline */
+  .timeline { position: relative; padding-left: 24px; }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 7px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--border);
+  }
+
+  .tl-item {
+    position: relative;
+    padding-bottom: 24px;
+  }
+
+  .tl-dot {
+    position: absolute;
+    left: -20px;
+    top: 4px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid var(--accent);
+    background: var(--bg);
+  }
+
+  .tl-item.done .tl-dot { background: var(--green); border-color: var(--green); }
+
+  .tl-title { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .tl-desc { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
+
+  /* Footer */
+  .footer {
+    padding: 16px 40px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--text-dim);
+    display: flex;
+    justify-content: space-between;
+  }
+
+  @media (max-width: 900px) {
+    .main { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .agent-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>CC 2.1.73 Upgrade Explorer</h1>
+  <div class="subtitle">OrchestKit v7.3.3 — Interactive upgrade impact analysis</div>
+  <div class="version-bar">
+    <span class="version-pill v-current">Current: CC >= 2.1.72</span>
+    <span class="arrow-icon">→</span>
+    <span class="version-pill v-target">Target: CC >= 2.1.73</span>
+    <span style="margin-left: auto; color: var(--text-dim); font-size: 12px;">
+      89 skills · 31 agents · 99 hooks
+    </span>
+  </div>
+</div>
+
+<div class="main">
+  <div class="sidebar">
+    <h3>Sections</h3>
+    <div class="nav-item active" data-panel="overview">
+      <span>◈</span> Overview
+    </div>
+    <div class="nav-item" data-panel="changes">
+      <span>△</span> What's New
+      <span class="nav-badge badge-med">5</span>
+    </div>
+    <div class="nav-item" data-panel="impact">
+      <span>⊕</span> Impact Matrix
+    </div>
+    <div class="nav-item" data-panel="agents">
+      <span>◎</span> Opus Agents
+      <span class="nav-badge badge-info">6</span>
+    </div>
+    <div class="nav-item" data-panel="hooks">
+      <span>⟁</span> Hook Fixes
+      <span class="nav-badge badge-high">2</span>
+    </div>
+    <div class="nav-item" data-panel="checklist">
+      <span>✓</span> Upgrade Checklist
+    </div>
+    <div class="nav-item" data-panel="timeline">
+      <span>◷</span> Migration Plan
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- OVERVIEW -->
+    <div class="panel active" id="overview">
+      <div class="panel-title">Upgrade Overview</div>
+      <div class="panel-desc">
+        CC 2.1.73 is a stability release focused on bug fixes. No new APIs, tools, or slash commands.
+        The upgrade is low-risk with high reward — it fixes 3 bugs that silently affect OrchestKit users.
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-value" style="color: var(--green)">0</div>
+          <div class="stat-label">New APIs</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" style="color: var(--orange)">1</div>
+          <div class="stat-label">Deprecation</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" style="color: var(--blue)">3</div>
+          <div class="stat-label">Bug Fixes</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" style="color: var(--pink)">1</div>
+          <div class="stat-label">Behavior Change</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon icon-perf">▲</div>
+          <div class="card-title">Bottom Line</div>
+        </div>
+        <div class="card-body">
+          <strong>Verdict: Upgrade recommended.</strong><br><br>
+          No OrchestKit source edits needed — OrchestKit has no <code>/output-style</code> references (the only deprecation).
+          The 3 bug fixes directly benefit OrchestKit's 89 skills, 99 hooks, and users pulling updates via <code>git pull</code>.
+          <br><br>
+          The only action item is updating the version matrix and doctor skill from <code>>= 2.1.72</code> to <code>>= 2.1.73</code>.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon icon-change">$</div>
+          <div class="card-title">Cost Impact</div>
+        </div>
+        <div class="card-body">
+          Opus 4.6 is now the default on Bedrock/Vertex/Foundry. OrchestKit's <strong>6 opus-tier agents</strong>
+          will use this model automatically on cloud providers. This may affect token costs for enterprise users.
+        </div>
+      </div>
+    </div>
+
+    <!-- WHAT'S NEW -->
+    <div class="panel" id="changes">
+      <div class="panel-title">What's New in CC 2.1.73</div>
+      <div class="panel-desc">5 changes from 2.1.72 → 2.1.73. Click cards for details.</div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon icon-break">!</div>
+          <div class="card-title">/output-style deprecated → use /config</div>
+          <span class="card-impact"><span class="status-dot dot-orange"></span>Deprecation</span>
+        </div>
+        <div class="card-body">
+          The <code>/output-style</code> slash command is deprecated in favor of the unified <code>/config</code> command.
+          <br><br>
+          <strong>OrchestKit impact:</strong> None — grep confirms zero references to <code>/output-style</code> across all 89 skills and docs.
+          <div class="tag-row">
+            <span class="tag tag-safe">No action needed</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon icon-fix">✓</div>
+          <div class="card-title">Skill-file deadlock fix on git pull</div>
+          <span class="card-impact"><span class="status-dot dot-red"></span>High</span>
+        </div>
+        <div class="card-body">
+          Fixed a deadlock triggered by <code>git pull</code> in repos with large <code>.claude/skills/</code> directories.
+          OrchestKit has <strong>89 skills</strong> — this bug was a real-world issue for every user pulling plugin updates.
+          <br><br>
+          <strong>Symptoms:</strong> CC hangs during/after <code>git pull</code> when OrchestKit plugin is installed.
+          <div class="tag-row">
+            <span class="tag tag-safe">Auto-fixed by CC upgrade</span>
+            <span class="tag tag-warn">Was affecting users silently</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon icon-fix">✓</div>
+          <div class="card-title">SessionStart hooks double-fire on resume — fixed</div>
+          <span class="card-impact"><span class="status-dot dot-red"></span>High</span>
+        </div>
+        <div class="card-body">
+          SessionStart hooks were firing twice on <code>--resume</code> and <code>--continue</code>. OrchestKit has
+          <strong>~15 SessionStart hooks</strong> across lifecycle, setup, and prompt categories — all were doubling their initialization work.
+          <br><br>
+          <strong>Wasted tokens:</strong> Every hook injecting system reminders on SessionStart was doing it twice per resume, inflating context.
+          <div class="tag-row">
+            <span class="tag tag-safe">Auto-fixed by CC upgrade</span>
+            <span class="tag tag-warn">Token waste on every resume</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon icon-fix">✓</div>
+          <div class="card-title">JSON hooks no-op system reminder injection — fixed</div>
+          <span class="card-impact"><span class="status-dot dot-orange"></span>Medium</span>
+        </div>
+        <div class="card-body">
+          JSON-type hooks were injecting empty <code>&lt;system-reminder&gt;</code> tags every turn even when returning no content.
+          With 99 hooks, this was a silent context budget drain.
+          <br><br>
+          <strong>Before:</strong> Each no-op hook added ~20 tokens of empty reminder boilerplate per turn.<br>
+          <strong>After:</strong> No-op hooks produce zero output.
+          <div class="tag-row">
+            <span class="tag tag-safe">Auto-fixed by CC upgrade</span>
+            <span class="tag tag-action">~2K tokens/turn saved</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon icon-change">◎</div>
+          <div class="card-title">Opus 4.6 default on Bedrock/Vertex/Foundry</div>
+          <span class="card-impact"><span class="status-dot dot-blue"></span>Info</span>
+        </div>
+        <div class="card-body">
+          The default Opus model on cloud providers (AWS Bedrock, Google Vertex, Azure Foundry) is now Opus 4.6.
+          OrchestKit's 6 opus-tier agents will become more capable — and potentially more expensive — for enterprise cloud users.
+          <br><br>
+          Direct API / anthropic.com users are unaffected (already on Opus 4.6).
+          <div class="tag-row">
+            <span class="tag tag-action">Communicate to enterprise users</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- IMPACT MATRIX -->
+    <div class="panel" id="impact">
+      <div class="panel-title">Impact Matrix</div>
+      <div class="panel-desc">How each 2.1.73 change maps to OrchestKit components.</div>
+
+      <table class="matrix">
+        <thead>
+          <tr>
+            <th>Change</th>
+            <th>Skills (89)</th>
+            <th>Agents (31)</th>
+            <th>Hooks (99)</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>/output-style deprecated</td>
+            <td><span class="status-dot dot-green"></span>Clean</td>
+            <td><span class="status-dot dot-green"></span>Clean</td>
+            <td><span class="status-dot dot-green"></span>Clean</td>
+            <td>None</td>
+          </tr>
+          <tr>
+            <td>Skill-file deadlock fix</td>
+            <td><span class="status-dot dot-green"></span>All 89 benefit</td>
+            <td><span class="status-dot dot-green"></span>—</td>
+            <td><span class="status-dot dot-green"></span>—</td>
+            <td>CC upgrade only</td>
+          </tr>
+          <tr>
+            <td>SessionStart double-fire</td>
+            <td><span class="status-dot dot-green"></span>—</td>
+            <td><span class="status-dot dot-green"></span>—</td>
+            <td><span class="status-dot dot-orange"></span>~15 hooks affected</td>
+            <td>CC upgrade only</td>
+          </tr>
+          <tr>
+            <td>No-op reminder injection</td>
+            <td><span class="status-dot dot-green"></span>—</td>
+            <td><span class="status-dot dot-green"></span>—</td>
+            <td><span class="status-dot dot-orange"></span>All 99 hooks</td>
+            <td>CC upgrade only</td>
+          </tr>
+          <tr>
+            <td>Opus 4.6 default (cloud)</td>
+            <td><span class="status-dot dot-green"></span>—</td>
+            <td><span class="status-dot dot-blue"></span>6 opus agents</td>
+            <td><span class="status-dot dot-green"></span>—</td>
+            <td>Document for users</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon icon-perf">Σ</div>
+          <div class="card-title">Net Impact Summary</div>
+        </div>
+        <div class="card-body">
+          <strong>Source code changes required:</strong> 0<br>
+          <strong>Documentation updates:</strong> 2 (version matrix + CHANGELOG)<br>
+          <strong>Token savings per session:</strong> ~2K tokens/turn from no-op fix + double-fire fix on resume<br>
+          <strong>Stability improvement:</strong> No more deadlocks on git pull for 89-skill plugin<br>
+          <strong>Risk level:</strong> Minimal — no breaking changes affect OrchestKit
+        </div>
+      </div>
+    </div>
+
+    <!-- OPUS AGENTS -->
+    <div class="panel" id="agents">
+      <div class="panel-title">Opus-Tier Agents</div>
+      <div class="panel-desc">
+        These 6 agents use <code>model: opus</code>. On Bedrock/Vertex/Foundry, CC 2.1.73 upgrades them to Opus 4.6 automatically.
+      </div>
+
+      <div class="agent-grid">
+        <div class="agent-card">
+          <div class="agent-name">security-auditor</div>
+          <div class="agent-model">model: opus</div>
+          <div class="agent-note">Vulnerability scanning, OWASP Top 10, dependency audits</div>
+        </div>
+        <div class="agent-card">
+          <div class="agent-name">workflow-architect</div>
+          <div class="agent-model">model: opus</div>
+          <div class="agent-note">LangGraph pipelines, supervisor-worker patterns, RAG orchestration</div>
+        </div>
+        <div class="agent-card">
+          <div class="agent-name">security-layer-auditor</div>
+          <div class="agent-model">model: opus</div>
+          <div class="agent-note">Defense-in-depth across 8 security layers</div>
+        </div>
+        <div class="agent-card">
+          <div class="agent-name">event-driven-architect</div>
+          <div class="agent-model">model: opus</div>
+          <div class="agent-note">Event sourcing, CQRS, Kafka, outbox pattern</div>
+        </div>
+        <div class="agent-card">
+          <div class="agent-name">ai-safety-auditor</div>
+          <div class="agent-model">model: opus</div>
+          <div class="agent-note">Red teaming, prompt injection, jailbreak testing</div>
+        </div>
+        <div class="agent-card">
+          <div class="agent-name">system-design-reviewer</div>
+          <div class="agent-model">model: opus</div>
+          <div class="agent-note">Scale, data, security, UX, coherence review</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-body">
+          <strong>Note:</strong> The remaining 25 agents use <code>model: sonnet</code> or inherit from the parent session — unaffected by this change.
+        </div>
+      </div>
+    </div>
+
+    <!-- HOOK FIXES -->
+    <div class="panel" id="hooks">
+      <div class="panel-title">Hook Bug Fixes</div>
+      <div class="panel-desc">Two fixes that silently affected OrchestKit's 99 hooks before 2.1.73.</div>
+
+      <div class="card" style="border-left: 3px solid var(--red);">
+        <div class="card-header">
+          <div class="card-icon icon-fix">1</div>
+          <div class="card-title">SessionStart Double-Fire on Resume</div>
+        </div>
+        <div class="card-body">
+          <strong>Bug:</strong> When a user ran <code>--resume</code> or <code>--continue</code>, all SessionStart hooks fired twice.<br><br>
+          <strong>OrchestKit hooks affected (~15):</strong><br>
+          <code>session-tracking</code>, <code>session-env-setup</code>, <code>type-error-indexer</code>,
+          <code>unified-dispatcher</code>, <code>sync-session-dispatcher</code>, <code>session-handoff-injector</code>,
+          <code>pattern-sync-pull</code>, <code>prefill-guard</code>, <code>mcp-health-check</code>,
+          <code>stale-team-cleanup</code>, <code>dependency-version-check</code>, <code>setup-check</code>, and more.
+          <br><br>
+          <strong>Impact:</strong> Double initialization, double context injection, wasted tokens on every resume.
+          <div class="tag-row">
+            <span class="tag tag-safe">Fixed in CC 2.1.73</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="border-left: 3px solid var(--orange);">
+        <div class="card-header">
+          <div class="card-icon icon-fix">2</div>
+          <div class="card-title">No-Op System Reminder Injection</div>
+        </div>
+        <div class="card-body">
+          <strong>Bug:</strong> JSON hooks returning empty/no-op responses still injected a <code>&lt;system-reminder&gt;</code> wrapper into the conversation.<br><br>
+          <strong>Scale:</strong> 99 hooks × ~20 tokens each = up to <strong>~2K wasted tokens per turn</strong>.<br><br>
+          <strong>Context budget:</strong> This was silently eating into the context window, leaving less room for actual skill content, agent reasoning, and user conversation.
+          <div class="tag-row">
+            <span class="tag tag-safe">Fixed in CC 2.1.73</span>
+            <span class="tag tag-action">~2K tokens/turn recovered</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHECKLIST -->
+    <div class="panel" id="checklist">
+      <div class="panel-title">Upgrade Checklist</div>
+      <div class="panel-desc">Interactive checklist — click items to mark as done. Progress is tracked locally.</div>
+
+      <div class="progress-bar">
+        <div class="progress-fill progress-green" id="progressFill" style="width: 0%"></div>
+      </div>
+      <div id="progressText" style="font-size: 12px; color: var(--text-dim); margin-bottom: 16px;">0 / 8 completed</div>
+
+      <div class="card" style="padding: 0;">
+        <ul class="checklist" id="checklist-items">
+          <li data-id="1">
+            <div class="check-box"></div>
+            <div class="check-label">
+              Update version-compatibility.md with 2.1.73 features
+              <small>Add 5 new rows to the feature matrix</small>
+            </div>
+          </li>
+          <li data-id="2">
+            <div class="check-box"></div>
+            <div class="check-label">
+              Add "Full++++" compatibility level for >= 2.1.73
+              <small>Deadlock fix, SessionStart fix, no-op fix, Opus 4.6 default</small>
+            </div>
+          </li>
+          <li data-id="3">
+            <div class="check-box"></div>
+            <div class="check-label">
+              Update CLAUDE.md minimum CC version to >= 2.1.73
+              <small>After verifying all fixes are beneficial</small>
+            </div>
+          </li>
+          <li data-id="4">
+            <div class="check-box"></div>
+            <div class="check-label">
+              Update identity.json claude_code_version constraint
+              <small>.claude/context/identity.json line 51</small>
+            </div>
+          </li>
+          <li data-id="5">
+            <div class="check-box"></div>
+            <div class="check-label">
+              Add CHANGELOG entry for version bump
+              <small>Document the CC minimum version change and why</small>
+            </div>
+          </li>
+          <li data-id="6">
+            <div class="check-box"></div>
+            <div class="check-label">
+              Run full test suite after changes
+              <small>npm test — all suites must pass</small>
+            </div>
+          </li>
+          <li data-id="7">
+            <div class="check-box"></div>
+            <div class="check-label">
+              Document Opus 4.6 cloud provider impact
+              <small>Note for enterprise users about potential cost changes</small>
+            </div>
+          </li>
+          <li data-id="8">
+            <div class="check-box"></div>
+            <div class="check-label">
+              npm run build && verify plugins/ output
+              <small>Rebuild plugins after any src/ changes</small>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- TIMELINE -->
+    <div class="panel" id="timeline">
+      <div class="panel-title">Migration Plan</div>
+      <div class="panel-desc">Recommended order for the CC 2.1.73 upgrade.</div>
+
+      <div class="timeline">
+        <div class="tl-item done">
+          <div class="tl-dot"></div>
+          <div class="tl-title">Phase 0: Research (Done)</div>
+          <div class="tl-desc">Analyzed CC 2.1.73 changelog. Confirmed 5 changes, 0 breaking for OrchestKit.</div>
+        </div>
+        <div class="tl-item done">
+          <div class="tl-dot"></div>
+          <div class="tl-title">Phase 1: Impact Assessment (Done)</div>
+          <div class="tl-desc">Scanned 89 skills, 31 agents, 99 hooks. No /output-style refs found. 6 opus agents identified.</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot"></div>
+          <div class="tl-title">Phase 2: Update Version Matrix</div>
+          <div class="tl-desc">
+            Add 2.1.73 features to <code>version-compatibility.md</code>. Add "Full++++" support level.
+            Update doctor skill output format.
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot"></div>
+          <div class="tl-title">Phase 3: Bump Minimum Version</div>
+          <div class="tl-desc">
+            Update <code>CLAUDE.md</code>, <code>identity.json</code>, and <code>version-compatibility.md</code> overview
+            from <code>>= 2.1.72</code> to <code>>= 2.1.73</code>.
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot"></div>
+          <div class="tl-title">Phase 4: Build + Test</div>
+          <div class="tl-desc">
+            <code>npm run build && npm test</code> — verify no regressions.
+            Check <code>plugins/</code> diff is expected.
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot"></div>
+          <div class="tl-title">Phase 5: Release</div>
+          <div class="tl-desc">
+            Bump to v7.3.4. Add CHANGELOG entry documenting the version bump and bug fix benefits.
+            Create PR targeting <code>main</code>.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="footer">
+  <span>OrchestKit v7.3.3 → CC 2.1.73 Upgrade Explorer</span>
+  <span>Generated 2026-03-11</span>
+</div>
+
+<script>
+  // Navigation
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      item.classList.add('active');
+      document.getElementById(item.dataset.panel).classList.add('active');
+    });
+  });
+
+  // Checklist
+  const checklist = document.getElementById('checklist-items');
+  const progressFill = document.getElementById('progressFill');
+  const progressText = document.getElementById('progressText');
+  const total = checklist.querySelectorAll('li').length;
+
+  // Load state
+  const saved = JSON.parse(localStorage.getItem('ork-upgrade-checklist') || '{}');
+  checklist.querySelectorAll('li').forEach(li => {
+    if (saved[li.dataset.id]) {
+      li.classList.add('checked');
+      li.querySelector('.check-box').textContent = '✓';
+    }
+  });
+  updateProgress();
+
+  checklist.addEventListener('click', e => {
+    const li = e.target.closest('li');
+    if (!li) return;
+    li.classList.toggle('checked');
+    const box = li.querySelector('.check-box');
+    box.textContent = li.classList.contains('checked') ? '✓' : '';
+
+    // Save state
+    const state = {};
+    checklist.querySelectorAll('li').forEach(l => {
+      if (l.classList.contains('checked')) state[l.dataset.id] = true;
+    });
+    localStorage.setItem('ork-upgrade-checklist', JSON.stringify(state));
+    updateProgress();
+  });
+
+  function updateProgress() {
+    const done = checklist.querySelectorAll('li.checked').length;
+    const pct = Math.round((done / total) * 100);
+    progressFill.style.width = pct + '%';
+    progressText.textContent = `${done} / ${total} completed (${pct}%)`;
+  }
+</script>
+</body>
+</html>

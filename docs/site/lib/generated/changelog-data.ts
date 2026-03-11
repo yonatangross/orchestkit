@@ -17,6 +17,35 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.3.3",
+    "date": "2026-03-11",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**skills:** shared unified scoring framework in quality-gates for assess/verify",
+          "**skills:** 33 rule files across 12 skills (setup, implement, brainstorm, remember, help, audit-full, configure, errors, memory-fabric, release-management, scope-appropriate-architecture, testing-patterns)",
+          "**skills:** 12 `_sections.md` catalog files for new rule directories",
+          "**hooks:** task-existence-gate for task tracking enforcement in sync-task-dispatcher",
+          "**agents:** `background: true` on 8 read-only analysis agents"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**skills:** compress 12 bloated skills under 300 lines via reference extraction (setup, write-prd, code-review-playbook, zustand-patterns, release-management, vite-advanced, async-jobs, devops-deployment, audit-full, implement, react-server-components-framework, remember)"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**hooks:** improve subagent-quality-gate and unified-dispatcher"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.3.2",
     "date": "2026-03-11",
     "compareUrl": "",

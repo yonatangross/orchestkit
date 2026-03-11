@@ -34,7 +34,7 @@ echo -n "  Checking version bump... "
 
 # Get versions (plugin.json moved to plugins/ork/ in marketplace restructure)
 PLUGIN_JSON="plugins/ork/.claude-plugin/plugin.json"
-PR_VERSION=$(jq -r '.version' "$PLUGIN_JSON" 2>/dev/null || echo "")
+PR_VERSION=$(jq -r '.version' "$PROJECT_ROOT/$PLUGIN_JSON" 2>/dev/null || echo "")
 MAIN_VERSION=$(git show "origin/main:$PLUGIN_JSON" 2>/dev/null | jq -r '.version' 2>/dev/null || echo "")
 
 if [[ -z "$PR_VERSION" ]]; then
