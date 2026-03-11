@@ -210,18 +210,6 @@ Track success/failure patterns across projects to prevent repeating mistakes and
 
 ---
 
-## Version History
-
-**v1.3.0** - Added YAGNI gate as Step 0 in gate flow, justified complexity ratio (BLOCK > 2.0, WARN 1.5-2.0), scope-appropriate-architecture integration
-
-**v1.1.0** - Added LLM-as-judge quality validation, retry logic, graceful degradation, triple-consumer artifact design
-
-**v1.0.0** - Initial release with complexity scoring, blocking thresholds, stuck detection, requirements checks
-
----
-
-**Remember:** Quality gates prevent wasted work. Better to ask questions upfront than to build the wrong solution. When in doubt, BLOCK and escalate.
-
 ---
 
 ## Related Skills
@@ -561,7 +549,7 @@ Step 5: Final gate decision
 
 ---
 
-## References (5)
+## References (6)
 
 ### Blocking Thresholds
 
@@ -1556,6 +1544,139 @@ class QuizQuestion(BaseModel):
 | Test Generation | 0.7 | Open | 2 |
 | Security Analysis | 0.8 | Closed | 3 |
 | Payment/Finance | 0.9 | Closed | 3 |
+
+### Unified Scoring Framework
+
+# Unified Scoring Framework
+
+Canonical scoring reference shared by `assess`, `verify`, and any skill that produces quality scores. Single source of truth — other skills reference this file instead of defining their own.
+
+## Base Dimensions (7)
+
+| Dimension | Base Weight | What It Measures |
+|-----------|-------------|------------------|
+| Correctness | 0.15 | Functional accuracy, edge cases, error handling |
+| Maintainability | 0.15 | Readability, complexity, naming, single responsibility |
+| Performance | 0.12 | Algorithm efficiency, caching, async, latency |
+| Security | 0.20 | OWASP Top 10, input validation, secrets, CVEs |
+| Scalability | 0.10 | Horizontal scaling, statelessness, load patterns |
+| Testability | 0.13 | Coverage, assertion quality, test isolation |
+| Compliance | 0.15 | API contracts, UI contracts, schema validation |
+
+**Base Total: 1.00**
+
+## Extended Dimensions
+
+Skills may add dimensions beyond the base 7. When adding:
+
+1. Define the new dimension with its weight
+2. Scale all weights so total = 1.00
+3. Define scope rules for when the dimension is skipped
+4. When skipped, redistribute weight proportionally: `adjusted_weight = base_weight / (1.0 - skipped_weight)`
+
+### Visual Dimension (used by `verify`)
+
+| Dimension | Weight | What It Measures |
+|-----------|--------|------------------|
+| Visual | 0.10 | Layout correctness, a11y, content completeness, responsiveness |
+
+When Visual is active, base dimensions scale down by `1.0 / 1.10` factor. When skipped (API-only), base weights stay at 1.00.
+
+### Compliance Scope Rules
+
+| Scope | Compliance Covers |
+|-------|-------------------|
+| Backend-only | API compliance (contracts, schema validation, versioning) |
+| Frontend-only | UI compliance (design system, a11y, responsive) |
+| Full-stack | API + UI compliance (split evenly) |
+
+## Composite Score
+
+```
+composite = sum(dimension_score * adjusted_weight for each dimension)
+```
+
+Each dimension scored **0-10** with decimal precision. Composite is also 0-10.
+
+## Grade Thresholds
+
+| Score | Grade | Verdict | Action |
+|-------|-------|---------|--------|
+| 9.0-10.0 | A+ | EXCELLENT | Ship it |
+| 8.0-8.9 | A | GOOD | Ready for merge |
+| 7.0-7.9 | B | GOOD | Minor improvements optional |
+| 6.0-6.9 | C | ADEQUATE | Consider improvements |
+| 5.0-5.9 | D | NEEDS WORK | Improvements recommended |
+| 0.0-4.9 | F | CRITICAL | Do not merge |
+
+## Per-Dimension Scoring Criteria
+
+### Score Levels (all dimensions)
+
+| Range | Level | Description |
+|-------|-------|-------------|
+| 9-10 | Excellent | Exemplary, reference quality |
+| 7-8 | Good | Ready for merge, minor suggestions |
+| 5-6 | Adequate | Functional but needs improvement |
+| 3-4 | Poor | Significant issues, blocks merge |
+| 1-2 | Critical | Fundamental problems |
+| 0 | Broken | Does not function |
+
+### Scoring Rules
+
+**Incorrect** (no evidence):
+```
+Security: "looks fine" → 8/10
+Performance: "fast enough" → 7/10
+```
+
+**Correct** (evidence-based):
+```
+Security: "11/11 injection tests pass, 0 CVEs" → 9/10
+Performance: "p99 latency 142ms (budget: 300ms), 0 N+1" → 8.5/10
+```
+
+## Improvement Prioritization
+
+### Effort Scale (1-5)
+
+| Points | Effort | Description |
+|--------|--------|-------------|
+| 1 | Trivial | &lt; 15 minutes, single file change |
+| 2 | Low | 15-60 minutes, few files |
+| 3 | Medium | 1-4 hours, moderate scope |
+| 4 | High | 4-8 hours, significant refactoring |
+| 5 | Major | 1+ days, architectural change |
+
+### Impact Scale (1-5)
+
+| Points | Impact | Description |
+|--------|--------|-------------|
+| 1 | Minimal | Cosmetic, no functional change |
+| 2 | Low | Minor improvement, limited scope |
+| 3 | Medium | Noticeable quality improvement |
+| 4 | High | Significant quality or security gain |
+| 5 | Critical | Blocks shipping or fixes major vulnerability |
+
+### Priority Formula
+
+```
+priority = impact / effort
+```
+
+Higher ratio = do first. **Quick Wins**: Effort &lt;= 2 AND Impact &gt;= 4 — always highlight at top.
+
+## Blocking Rules
+
+| Condition | Threshold | Action |
+|-----------|-----------|--------|
+| Composite below minimum | &lt; 6.0 (configurable) | BLOCK |
+| Security below minimum | &lt; 7.0 (configurable) | BLOCK |
+| Any critical dimension | &lt; 3.0 | BLOCK |
+| Coverage below minimum | &lt; 70% (configurable) | WARN |
+
+Override via `.claude/policies/verification-policy.json`.
+
 
 ### Workflows
 

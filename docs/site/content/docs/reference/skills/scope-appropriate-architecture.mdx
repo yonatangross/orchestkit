@@ -153,6 +153,217 @@ Load on demand with `Read("$\{CLAUDE_SKILL_DIR\}/references/&lt;file&gt;")`:
 
 ---
 
+## Rules (2)
+
+### Flag architecture patterns that exceed the detected project tier by 2+ levels — HIGH
+
+
+# Flag Over-Engineering (Tier + 2 Rule)
+
+## Why
+
+A pattern appropriate at Tier 5 (Enterprise) adds weeks of development time to a Tier 2 (Hackathon). The complexity does not pay for itself until the project reaches the tier where it is needed. The "Tier + 2 Rule" catches patterns that are 2+ levels above the detected tier.
+
+## Rule
+
+After detecting the project tier:
+1. Check each proposed pattern against the Pattern Appropriateness Matrix
+2. If a pattern is rated OVERKILL for the current tier AND the tier where it becomes APPROPRIATE is 2+ levels higher, flag it
+3. Suggest the tier-appropriate alternative
+4. Only allow override with explicit user justification
+
+## Incorrect — recommend enterprise patterns for a prototype
+
+```markdown
+## Architecture for Todo App (Tier 2: Hackathon)
+
+### Recommended:
+- Hexagonal architecture with ports and adapters
+- CQRS with separate read/write models
+- Event sourcing for audit trail
+- Dependency injection container (tsyringe)
+- Separate DTO/Entity/Domain layers
+- Message queue for async operations
+```
+
+**Problems:**
+- Hexagonal is Tier 5 (3 levels above Tier 2)
+- CQRS is Tier 5 (3 levels above)
+- Event sourcing is Tier 5 (3 levels above)
+- DI container is Tier 4 (2 levels above)
+- A Todo app needs none of this
+
+## Correct — flag over-engineering with tier-appropriate alternatives
+
+```markdown
+## Architecture for Todo App (Tier 2: Hackathon)
+
+### OVER-ENGINEERING FLAGS:
+
+| Proposed Pattern | Appropriate At | Current Tier | Gap | Alternative |
+|-----------------|---------------|--------------|-----|-------------|
+| Hexagonal architecture | Tier 5 | Tier 2 | +3 | Flat file structure |
+| CQRS | Tier 5 | Tier 2 | +3 | Single model |
+| Event sourcing | Tier 5 | Tier 2 | +3 | Simple CRUD |
+| DI container | Tier 4 | Tier 2 | +2 | Direct imports |
+
+### Recommended (Tier 2 appropriate):
+- Single file or flat structure
+- Direct function calls, no DI
+- SQLite or in-memory storage
+- No layers — route handler calls DB directly
+```
+
+## Pattern Check Implementation
+
+```typescript
+const PATTERN_TIER: Record<string, number> = {
+  "hexagonal":        5,
+  "cqrs":             5,
+  "event-sourcing":   5,
+  "ddd":              5,
+  "di-container":     4,
+  "message-queue":    4,
+  "microservices":    5,
+  "repository":       4,
+  "separate-dtos":    4,
+  "api-versioning":   3,
+};
+
+function checkOverEngineering(
+  currentTier: number,
+  proposedPatterns: string[]
+): { pattern: string; gap: number; appropriateAt: number }[] {
+  return proposedPatterns
+    .map(p => ({
+      pattern: p,
+      appropriateAt: PATTERN_TIER[p] ?? currentTier,
+      gap: (PATTERN_TIER[p] ?? currentTier) - currentTier
+    }))
+    .filter(p => p.gap >= 2);
+}
+
+// Example: Tier 2 project
+const flags = checkOverEngineering(2, ["hexagonal", "cqrs", "api-versioning"]);
+// flags = [
+//   { pattern: "hexagonal", appropriateAt: 5, gap: 3 },
+//   { pattern: "cqrs", appropriateAt: 5, gap: 3 }
+// ]
+// "api-versioning" (Tier 3, gap 1) is not flagged
+```
+
+## When Override Is Acceptable
+
+Flag but allow if the user provides explicit justification:
+
+| Justification | Acceptable |
+|---------------|------------|
+| "We plan to scale to 10K users next quarter" | Yes — document future tier |
+| "Our team already knows this pattern" | Yes — lower learning cost |
+| "I just want to practice DDD" | Yes — learning project |
+| No justification given | No — use tier-appropriate pattern |
+
+
+### Tier detection must cite evidence from the actual codebase, not assumptions — HIGH
+
+
+# Tier Detection Must Cite Evidence
+
+## Why
+
+The 6-tier system constrains all downstream architecture decisions. If tier detection is wrong, every recommendation is wrong: a hackathon gets CQRS, an enterprise app gets `console.log`. Tier must be derived from codebase evidence, not guesses.
+
+## Rule
+
+When detecting project tier:
+1. Scan for at least 3 signals from different categories
+2. Each signal must reference a specific file or metric
+3. If signals conflict, cite the conflict and ask the user
+4. Never default to a tier without evidence
+
+## Incorrect — assume tier without evidence
+
+```markdown
+## Architecture Recommendation
+
+This looks like a startup MVP, so I recommend:
+- MVC monolith
+- Managed Postgres
+- Clerk for auth
+- Basic CI with GitHub Actions
+```
+
+**Problems:**
+- "Looks like" is not evidence
+- No files were checked
+- No metrics were gathered
+- If this is actually a Tier 5 enterprise app, every recommendation is wrong
+
+## Correct — cite evidence for tier detection
+
+```markdown
+## Tier Detection: Tier 3 (Startup/MVP)
+
+**Evidence (4 signals):**
+
+| Signal | Source | Tier Indicated |
+|--------|--------|----------------|
+| 12 source files, no monorepo structure | `find src -name "*.ts" \| wc -l` = 12 | Tier 2-3 |
+| GitHub Actions present, single workflow | `.github/workflows/ci.yml` exists | Tier 3+ |
+| 8 direct dependencies | `package.json` dependencies count | Tier 2-3 |
+| No Kubernetes, no Terraform | `find . -name "*.tf" -o -name "*.yaml" \| grep -l "kind: Deployment"` = empty | Not Tier 4-5 |
+
+**Confidence:** HIGH (4/4 signals agree on Tier 2-3, CI presence upgrades to Tier 3)
+
+**Recommendation:** Tier 3 (Startup/MVP) constraints apply.
+```
+
+## Signal Categories
+
+Scan at least one signal from each category:
+
+```bash
+# Category 1: Scale indicators
+find src -name "*.ts" -o -name "*.py" | wc -l          # File count
+wc -l src/**/*.ts 2>/dev/null | tail -1                 # Total LOC
+
+# Category 2: Infrastructure signals
+ls .github/workflows/ 2>/dev/null                       # CI presence
+ls docker-compose* Dockerfile 2>/dev/null               # Container presence
+find . -name "*.tf" -o -name "helmfile*" 2>/dev/null    # K8s/Terraform
+
+# Category 3: Dependency complexity
+cat package.json | python3 -c "import json,sys; d=json.load(sys.stdin); print(len(d.get('dependencies',{})))"
+ls CONTRIBUTING.md CODE_OF_CONDUCT.md 2>/dev/null        # OSS indicators
+
+# Category 4: Documentation signals
+grep -ril "take-home\|assignment\|interview" README* 2>/dev/null
+grep -ril "enterprise\|compliance\|SOC2" README* docs/ 2>/dev/null
+```
+
+## Conflict Resolution
+
+When signals disagree:
+
+```markdown
+## Tier Detection: CONFLICTING SIGNALS
+
+| Signal | Tier Indicated |
+|--------|----------------|
+| 5 files, 200 LOC | Tier 1-2 |
+| Kubernetes manifests present | Tier 4-5 |
+| No tests | Tier 1-2 |
+
+**Conflict:** Codebase size suggests prototype, but K8s manifests
+suggest enterprise. Asking user to clarify project intent.
+```
+
+Do not average or guess — ask the user when signals conflict by more than 1 tier.
+
+
+
+---
+
 ## References (4)
 
 ### Enterprise

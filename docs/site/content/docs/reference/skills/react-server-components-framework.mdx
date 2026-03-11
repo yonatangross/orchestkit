@@ -125,24 +125,7 @@ Load on demand with `Read("$\{CLAUDE_SKILL_DIR\}/references/&lt;file&gt;")`:
 | `cache-components.md` | `"use cache"` directive (replaces `experimental_ppr`), cacheLife, cacheTag, revalidateTag, PPR integration |
 | `nextjs-16-upgrade.md` | Node.js 20.9+, breaking changes (async params, cookies, headers), proxy.ts migration, Turbopack, new caching APIs |
 | `tanstack-router-patterns.md` | React 19 features without Next.js, route-based data fetching, client-rendered app patterns |
-
----
-
-## Searching References
-
-```bash
-# Find component patterns
-grep -r "Server Component" references/
-
-# Search for data fetching strategies
-grep -A 10 "Caching Strategies" references/data-fetching.md
-
-# Find Server Actions examples
-grep -B 5 "Progressive Enhancement" references/server-actions.md
-
-# Locate routing patterns
-grep -n "Parallel Routes" references/routing-patterns.md
-```
+| `capability-details.md` | Keyword and problem-mapping metadata for all 12 RSC capabilities |
 
 ---
 
@@ -211,91 +194,9 @@ After mastering React Server Components:
 
 ## Capability Details
 
-### react-19-patterns
-**Keywords:** react 19, React.FC, forwardRef, useActionState, useFormStatus, useOptimistic, function declaration
-**Solves:**
-- How do I replace React.FC in React 19?
-- forwardRef replacement pattern
-- useActionState vs useFormState
-- React 19 component declaration best practices
+Keyword and problem-mapping metadata for each RSC capability (react-19-patterns, use-hook-suspense, optimistic-updates-async, rsc-patterns, server-actions, data-fetching, streaming-ssr, caching, cache-components, tanstack-router-patterns, async-params, nextjs-16-upgrade).
 
-### use-hook-suspense
-**Keywords:** use(), use hook, suspense, promise, data fetching, promise cache, cachePromise
-**Solves:**
-- How do I use the use() hook in React 19?
-- Suspense-native data fetching pattern
-- Promise caching to prevent infinite loops
-
-### optimistic-updates-async
-**Keywords:** useOptimistic, useTransition, optimistic update, instant ui, auto rollback
-**Solves:**
-- How to show instant UI updates before API responds?
-- useOptimistic with useTransition pattern
-- Auto-rollback on API failure
-
-### rsc-patterns
-**Keywords:** rsc, server component, client component, use client, use server
-**Solves:**
-- When to use server vs client components?
-- RSC boundaries and patterns
-
-### server-actions
-**Keywords:** server action, form action, use server, mutation
-**Solves:**
-- How do I create a server action?
-- Form handling with server actions
-
-### data-fetching
-**Keywords:** fetch, data fetching, async component, loading, suspense
-**Solves:**
-- How do I fetch data in RSC?
-- Async server components
-
-### streaming-ssr
-**Keywords:** streaming, ssr, suspense boundary, loading ui
-**Solves:**
-- How do I stream server content?
-- Progressive loading patterns
-
-### caching
-**Keywords:** cache, revalidate, static, dynamic, isr
-**Solves:**
-- How do I cache in Next.js 16?
-- Revalidation strategies
-
-### cache-components
-**Keywords:** use cache, cacheLife, cacheTag, cacheComponents, revalidateTag, updateTag, cache directive
-**Solves:**
-- How do I use the "use cache" directive?
-- What replaced experimental_ppr?
-- How do I set cache duration with cacheLife?
-- How do I invalidate cache with cacheTag?
-- How do I migrate from Next.js 15 fetch caching to use cache?
-
-### tanstack-router-patterns
-**Keywords:** tanstack router, react router, vite, spa, client rendering, prefetch
-**Solves:**
-- How do I use React 19 features without Next.js?
-- TanStack Router prefetching setup
-- Route-based data fetching with TanStack Query
-
-### async-params
-**Keywords:** async params, searchParams, Promise params, await params, dynamic route params
-**Solves:**
-- How do I access params in Next.js 16?
-- Why are my route params undefined?
-- How do I use searchParams in Next.js 16?
-- How do I type params as Promise?
-
-### nextjs-16-upgrade
-**Keywords:** next.js 16, nextjs 16, upgrade, migration, breaking changes, async params, turbopack, proxy.ts, cache components
-**Solves:**
-- How do I upgrade to Next.js 16?
-- What are the breaking changes in Next.js 16?
-- How do I migrate middleware.ts to proxy.ts?
-- How do I use async params and searchParams?
-- What replaced experimental_ppr?
-- How do I use the new caching APIs?
+Load full capability details: `Read("$\{CLAUDE_SKILL_DIR\}/references/capability-details.md")`
 
 ---
 
@@ -668,7 +569,7 @@ Reference: `references/component-patterns.md` (Serializable Props Only)
 
 ---
 
-## References (12)
+## References (13)
 
 ### Cache Components
 
@@ -1372,6 +1273,99 @@ async function Page() {
 | `updateTag()` | Invalidate by tag (immediate) |
 
 Cache Components provides a declarative, component-level caching model that makes it easy to build fast, dynamic applications with fine-grained control over what gets cached and when.
+
+
+### Capability Details
+
+# Capability Details
+
+Keyword and problem-mapping metadata for each RSC capability.
+
+## react-19-patterns
+**Keywords:** react 19, React.FC, forwardRef, useActionState, useFormStatus, useOptimistic, function declaration
+**Solves:**
+- How do I replace React.FC in React 19?
+- forwardRef replacement pattern
+- useActionState vs useFormState
+- React 19 component declaration best practices
+
+## use-hook-suspense
+**Keywords:** use(), use hook, suspense, promise, data fetching, promise cache, cachePromise
+**Solves:**
+- How do I use the use() hook in React 19?
+- Suspense-native data fetching pattern
+- Promise caching to prevent infinite loops
+
+## optimistic-updates-async
+**Keywords:** useOptimistic, useTransition, optimistic update, instant ui, auto rollback
+**Solves:**
+- How to show instant UI updates before API responds?
+- useOptimistic with useTransition pattern
+- Auto-rollback on API failure
+
+## rsc-patterns
+**Keywords:** rsc, server component, client component, use client, use server
+**Solves:**
+- When to use server vs client components?
+- RSC boundaries and patterns
+
+## server-actions
+**Keywords:** server action, form action, use server, mutation
+**Solves:**
+- How do I create a server action?
+- Form handling with server actions
+
+## data-fetching
+**Keywords:** fetch, data fetching, async component, loading, suspense
+**Solves:**
+- How do I fetch data in RSC?
+- Async server components
+
+## streaming-ssr
+**Keywords:** streaming, ssr, suspense boundary, loading ui
+**Solves:**
+- How do I stream server content?
+- Progressive loading patterns
+
+## caching
+**Keywords:** cache, revalidate, static, dynamic, isr
+**Solves:**
+- How do I cache in Next.js 16?
+- Revalidation strategies
+
+## cache-components
+**Keywords:** use cache, cacheLife, cacheTag, cacheComponents, revalidateTag, updateTag, cache directive
+**Solves:**
+- How do I use the "use cache" directive?
+- What replaced experimental_ppr?
+- How do I set cache duration with cacheLife?
+- How do I invalidate cache with cacheTag?
+- How do I migrate from Next.js 15 fetch caching to use cache?
+
+## tanstack-router-patterns
+**Keywords:** tanstack router, react router, vite, spa, client rendering, prefetch
+**Solves:**
+- How do I use React 19 features without Next.js?
+- TanStack Router prefetching setup
+- Route-based data fetching with TanStack Query
+
+## async-params
+**Keywords:** async params, searchParams, Promise params, await params, dynamic route params
+**Solves:**
+- How do I access params in Next.js 16?
+- Why are my route params undefined?
+- How do I use searchParams in Next.js 16?
+- How do I type params as Promise?
+
+## nextjs-16-upgrade
+**Keywords:** next.js 16, nextjs 16, upgrade, migration, breaking changes, async params, turbopack, proxy.ts, cache components
+**Solves:**
+- How do I upgrade to Next.js 16?
+- What are the breaking changes in Next.js 16?
+- How do I migrate middleware.ts to proxy.ts?
+- How do I use async params and searchParams?
+- What replaced experimental_ppr?
+- How do I use the new caching APIs?
 
 
 ### Client Components

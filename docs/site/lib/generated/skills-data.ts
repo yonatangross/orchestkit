@@ -547,6 +547,7 @@ export const SKILLS: Record<string, SkillMeta> = {
         "capability-details.md",
         "celery-config.md",
         "monitoring-health.md",
+        "quick-start-examples.md",
         "result-backends.md",
         "retry-strategies.md",
         "scheduled-tasks.md",
@@ -600,8 +601,11 @@ export const SKILLS: Record<string, SkillMeta> = {
     "structure": {
       "references": [
         "architecture-review-guide.md",
+        "audit-scope-dialog.md",
         "dependency-audit-guide.md",
+        "report-structure.md",
         "security-audit-guide.md",
+        "token-budget-planning.md",
         "token-estimation.md"
       ],
       "assets": [
@@ -901,6 +905,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "agent": "code-quality-reviewer",
     "structure": {
       "references": [
+        "conventional-comments.md",
         "review-patterns.md"
       ],
       "assets": [
@@ -1261,6 +1266,8 @@ export const SKILLS: Record<string, SkillMeta> = {
     "agent": "data-pipeline-engineer",
     "structure": {
       "references": [
+        "capability-details.md",
+        "checklists-and-templates.md",
         "ci-cd-pipelines.md",
         "deployment-strategies.md",
         "docker-patterns.md",
@@ -1982,6 +1989,8 @@ export const SKILLS: Record<string, SkillMeta> = {
         "orchestration-modes.md",
         "scope-creep-detection.md",
         "team-worktree-setup.md",
+        "test-requirements-matrix.md",
+        "tier-classification.md",
         "worktree-isolation-mode.md",
         "worktree-workflow.md"
       ],
@@ -2931,6 +2940,7 @@ export const SKILLS: Record<string, SkillMeta> = {
         "complexity-scoring.md",
         "gate-patterns.md",
         "llm-quality-validation.md",
+        "unified-scoring-framework.md",
         "workflows.md"
       ],
       "scripts": [
@@ -3030,6 +3040,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "structure": {
       "references": [
         "cache-components.md",
+        "capability-details.md",
         "client-components.md",
         "component-patterns.md",
         "data-fetching.md",
@@ -3122,6 +3133,9 @@ export const SKILLS: Record<string, SkillMeta> = {
     "agent": null,
     "structure": {
       "references": [
+        "changelog-generation.md",
+        "release-automation.md",
+        "release-workflows.md",
         "semver.md"
       ],
       "scripts": [
@@ -3167,7 +3181,11 @@ export const SKILLS: Record<string, SkillMeta> = {
     "agent": null,
     "structure": {
       "references": [
-        "category-detection.md"
+        "category-detection.md",
+        "confirmation-templates.md",
+        "entity-extraction-workflow.md",
+        "examples.md",
+        "graph-operations.md"
       ]
     },
     "plugins": [
@@ -3472,8 +3490,10 @@ export const SKILLS: Record<string, SkillMeta> = {
         "integrations.md",
         "keybindings.md",
         "presets.md",
+        "readiness-scoring.md",
         "safety-check.md",
         "scan-phase.md",
+        "stack-skill-mapping.md",
         "telemetry-setup.md"
       ]
     },
@@ -4247,7 +4267,8 @@ export const SKILLS: Record<string, SkillMeta> = {
         "environment-api.md",
         "library-mode.md",
         "plugin-development.md",
-        "ssr-configuration.md"
+        "ssr-configuration.md",
+        "vite8-rolldown.md"
       ],
       "scripts": [
         "custom-plugin.ts",
@@ -4343,6 +4364,8 @@ export const SKILLS: Record<string, SkillMeta> = {
     "structure": {
       "references": [
         "output-templates.md",
+        "prd-template.md",
+        "user-stories-guide.md",
         "value-prop-canvas-guide.md"
       ]
     },
@@ -4377,6 +4400,8 @@ export const SKILLS: Record<string, SkillMeta> = {
     "agent": "frontend-ui-developer",
     "structure": {
       "references": [
+        "anti-patterns-and-integration.md",
+        "core-patterns.md",
         "middleware-composition.md"
       ],
       "scripts": [

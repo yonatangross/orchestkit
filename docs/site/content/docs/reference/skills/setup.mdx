@@ -68,36 +68,9 @@ Scans for package manifests (package.json, pyproject.toml, go.mod, Cargo.toml, e
 
 ## Phase 2: Stack Detection
 
-Classify scan results into a stack profile. Present to user:
+Classify scan results into a stack profile and present to user (languages, frameworks, database, infra, testing, existing CC config).
 
-```
-Detected Stack:
-  Languages:   Python 3.12, TypeScript 5.6, SQL
-  Frameworks:  FastAPI 0.115, React 19, Next.js 16
-  Database:    PostgreSQL (via Alembic), Redis
-  Infra:       Docker, GitHub Actions (3 workflows)
-  Testing:     pytest, Playwright
-  Existing CC: .claude/settings.json found, no conflicts
-```
-
-### Stack-to-Skill Mapping
-
-| Detected | Recommended Skills |
-|----------|--------------------|
-| Python | `python-backend`, `async-jobs`, `database-patterns` |
-| FastAPI | `api-design`, `testing-unit`, `testing-integration` |
-| React | `react-server-components-framework`, `ui-components`, `responsive-patterns` |
-| Next.js | `react-server-components-framework`, `performance`, `vite-advanced` |
-| Zustand | `zustand-patterns` |
-| SQLAlchemy/Alembic | `database-patterns` |
-| Docker/K8s | `devops-deployment`, `distributed-systems` |
-| Terraform | `devops-deployment` |
-| GitHub Actions | `devops-deployment` |
-| LLM/AI deps | `llm-integration`, `rag-retrieval`, `langgraph`, `mcp-patterns` |
-| Test frameworks | `testing-unit`, `testing-e2e`, `testing-integration`, `golden-dataset` |
-| Security concerns | `security-patterns` |
-
-**All stacks get**: `explore`, `implement`, `verify`, `commit`, `review-pr`, `fix-issue`, `doctor`, `remember`, `brainstorm`, `help`
+Load `Read("$\{CLAUDE_SKILL_DIR\}/references/stack-skill-mapping.md")` for the full stack-to-skill mapping table, MCP recommendation matrix, and custom skill suggestion patterns.
 
 ## Phase 2b: Channel Detection
 
@@ -119,151 +92,19 @@ Load details: `Read("$\{CLAUDE_SKILL_DIR\}/references/configure-wizard.md")` for
 
 ## Phase 4: Skill Recommendations
 
-Present in 3 tiers using `AskUserQuestion`:
-
-```python
-AskUserQuestion(questions=[{
-  "question": "Which skill categories should we prioritize? (all are available, this helps focus the improvement plan)",
-  "header": "Focus areas",
-  "options": [
-    {"label": "Full-stack (Recommended)", "description": "All detected stack skills + security + testing", "markdown": "```\nFull-Stack Focus\n────────────────\nBackend:   api-design, database-patterns\nFrontend:  react-server-components, ui-components\nSecurity:  security-patterns\nTesting:   testing-unit, testing-e2e\nDevOps:    devops-deployment\nWorkflow:  implement, verify, commit\n```"},
-    {"label": "Backend focus", "description": "API, database, async, security patterns", "markdown": "```\nBackend Focus\n─────────────\nCore:      api-design, database-patterns\nAsync:     async-jobs, distributed-systems\nSecurity:  security-patterns\nTesting:   testing-unit, testing-integration\nSkipped:   UI, components, accessibility\n```"},
-    {"label": "Frontend focus", "description": "React, UI components, performance, accessibility", "markdown": "```\nFrontend Focus\n──────────────\nCore:      react-server-components\nUI:        ui-components, responsive-patterns\nPerf:      performance, vite-advanced\nA11y:      accessibility patterns\nSkipped:   database, async, infra\n```"},
-    {"label": "DevOps focus", "description": "CI/CD, deployment, monitoring, infrastructure", "markdown": "```\nDevOps Focus\n────────────\nCI/CD:     devops-deployment\nInfra:     distributed-systems\nMonitor:   observability patterns\nSecurity:  security-patterns\nSkipped:   UI, components, API design\n```"}
-  ],
-  "multiSelect": true
-}])
-```
-
-### Custom Skill Suggestions
-
-Based on pattern detection from Phase 1:
-
-```
-Detected patterns that could become custom skills:
-  47 API routes   → Create "api-endpoint" skill (auto-generate: route + schema + migration + test)
-  83 React comps  → Create "component" skill (auto-generate: component + props + story + test)
-  8 deploy steps  → Create "deploy-checklist" skill (automate your DEPLOY.md)
-
-To create any of these: see CONTRIBUTING-SKILLS.md in the plugin for authoring standards
-```
+Present skill categories using `AskUserQuestion` with 4 focus options (Full-stack, Backend, Frontend, DevOps) with `multiSelect: true`. Load `Read("$\{CLAUDE_SKILL_DIR\}/references/stack-skill-mapping.md")` for mapping tables and custom skill suggestions.
 
 ## Phase 5: MCP Recommendations
 
-Check what's installed vs recommended:
-
-```python
-# Read existing MCP config
-Read(file_path=".mcp.json")  # project-level
-Bash(command="cat ~/.claude/settings.json 2>/dev/null | python3 -c \"import json,sys; d=json.load(sys.stdin); print(json.dumps(d.get('mcpServers',{}), indent=2))\"")
-```
-
-### MCP Recommendation Matrix
-
-| MCP | When to Recommend | Install Effort |
-|-----|-------------------|---------------|
-| **Context7** | Always — eliminates doc hallucination | Zero (cloud, free) |
-| **Memory** | Always — knowledge graph persistence | Low (local npx) |
-| **Sequential Thinking** | If using Sonnet/Haiku subagents | Low (local npx) |
-| **Tavily** | If web-research-workflow relevant | Medium (needs API key, free tier) |
-| **NotebookLM** | If many docs/READMEs for team RAG | Medium (Google auth) |
-| **Agentation** | If frontend UI work detected | Medium (npm install) |
-| **Phoenix/Langfuse** | If LLM observability desired (local tracing, cost tracking) | Medium (Docker, optional) |
-
-Present as toggles with impact labels. Show install commands for selected MCPs:
-
-```
-MCP Setup Commands:
-  Context7:  Already configured ✓
-  Memory:    /ork:configure mcp memory
-  Tavily:    Sign up at app.tavily.com → /ork:configure mcp tavily
-```
+Check installed vs recommended MCPs by reading `.mcp.json` and `~/.claude/settings.json`. Load `Read("$\{CLAUDE_SKILL_DIR\}/references/stack-skill-mapping.md")` for the MCP recommendation matrix. Present as toggles with install commands.
 
 ## Phase 6: Readiness Score
 
-Compute a composite score (0-10) from 6 dimensions:
-
-| Dimension | Weight | Calculation |
-|-----------|--------|-------------|
-| **Stack Coverage** | 25% | matched_skills / relevant_skills_for_detected_stack |
-| **Hook Protection** | 20% | hooks_active / total_hooks (from /ork:doctor logic) |
-| **MCP Enhancement** | 15% | installed_mcps / recommended_mcps |
-| **Memory Depth** | 15% | entity_count from `mcp__memory__search_nodes` (target: 50+) |
-| **Custom Skills** | 15% | custom_skills_created / suggested_customs |
-| **Agent Utilization** | 10% | 1.0 if agents accessible, 0.5 if no MCPs limit agent capability |
-
-### Score Presentation
-
-```
-OrchestKit Readiness Score: 7.2 / 10  (stable channel, v7.0.0)
-
-  Stack Coverage  ████████░░  9/10  Python + React fully covered
-  Hook Protection ████████░░  8/10  107 hooks active
-  MCP Enhancement ██████░░░░  6/10  2/3 recommended MCPs active
-  Memory Depth    ████░░░░░░  4/10  12 entities (target: 50+)
-  Custom Skills   ██░░░░░░░░  2/10  0/3 suggested skills created
-  Agent Utilization ████████░░  8/10  30 agents available
-
-  Top improvement: Add /ork:remember patterns → +1.5 points
-```
-
-### Memory Integration
-
-Store the score for tracking over time:
-
-```python
-mcp__memory__create_entities(entities=[{
-  "name": "OrchestKit Setup Score",
-  "entityType": "metric",
-  "observations": [
-    "Score: 7.2/10 on 2026-02-26",
-    "Stack: Python + React + Next.js",
-    "Gap: Memory depth (12/50 entities), Custom skills (0/3)"
-  ]
-}])
-```
+Compute a composite score (0-10) from 6 dimensions. Load `Read("$\{CLAUDE_SKILL_DIR\}/references/readiness-scoring.md")` for dimension weights, score presentation template, memory integration, and improvement plan template.
 
 ## Phase 7: Improvement Plan
 
-Generate prioritized, **runnable** recommendations:
-
-```
-Your Personalized Improvement Plan:
-
-P0 (do now):
-  $ /ork:remember "our API uses cursor pagination, never offset"
-  $ /ork:remember "FastAPI + SQLAlchemy 2.0 async + Alembic migrations"
-  $ /ork:remember "React 19 + TanStack Query + Zustand for state"
-  → Seeds your knowledge graph. Agents use this context automatically.
-
-P1 (this week):
-  $ /ork:configure mcp tavily
-  → Enables web research for up-to-date library docs.
-
-  Create a custom skill per CONTRIBUTING-SKILLS.md for your most repeated pattern (47 routes detected).
-  → e.g., "FastAPI endpoint with Pydantic schema, Alembic migration, and pytest"
-
-P2 (ongoing):
-  $ /ork:explore architecture
-  → Deep analysis of your codebase structure.
-
-  $ /ork:setup --rescan
-  → Re-run in 2 weeks to track score improvement.
-```
-
-### Save Plan to Memory
-
-```python
-mcp__memory__create_entities(entities=[{
-  "name": "OrchestKit Improvement Plan",
-  "entityType": "plan",
-  "observations": [
-    "P0: Seed knowledge graph with 3 core patterns",
-    "P1: Add Tavily MCP, create api-endpoint custom skill",
-    "P2: Run /ork:explore architecture, rescan in 2 weeks"
-  ]
-}])
-```
+Generate prioritized, **runnable** recommendations in P0/P1/P2 tiers. See `readiness-scoring.md` for the template and memory persistence pattern.
 
 ## Phase 7b: CLAUDE.md Health Check
 
@@ -368,7 +209,333 @@ Load on demand with `Read("$\{CLAUDE_SKILL_DIR\}/references/&lt;file&gt;")`:
 
 ---
 
-## References (8)
+## Rules (5)
+
+### Never overwrite existing CLAUDE.md without user confirmation — HIGH
+
+
+## Existing Config Preservation
+
+The setup wizard must treat existing `CLAUDE.md` and `.claude/rules/*.md` files as user-owned content that must never be overwritten or modified without explicit consent.
+
+## Problem
+
+A project has a carefully maintained `CLAUDE.md` with team coding standards, architecture decisions, and project-specific instructions. The setup wizard's Phase 7b (CLAUDE.md Health Check) decides the file is "too long" and rewrites it into a modular structure, destroying custom content that isn't recoverable from git if the user doesn't notice.
+
+**Incorrect -- rewrite CLAUDE.md when it exceeds threshold:**
+```python
+# Phase 7b: Check CLAUDE.md health
+line_count = Bash(command="wc -l CLAUDE.md | awk '{print $1}'")
+
+if int(line_count) > 200:
+    # Split into modular structure without asking
+    sections = parse_sections("CLAUDE.md")
+    for section in sections:
+        Write(
+            file_path=f".claude/rules/{section['name']}.md",
+            content=section["content"]
+        )
+    # Rewrite CLAUDE.md with @imports
+    Write(file_path="CLAUDE.md", content=generate_import_stub(sections))
+    # Original CLAUDE.md content is now gone
+```
+
+**Correct -- analyze and recommend, never auto-modify:**
+```python
+# Phase 7b: Check CLAUDE.md health
+line_count = Bash(command="wc -l CLAUDE.md 2>/dev/null | awk '{print $1}'")
+existing_rules = Glob(pattern=".claude/rules/*.md")
+
+if int(line_count) > 200 and not existing_rules:
+    # Present analysis and recommendation only
+    AskUserQuestion(questions=[{
+        "question": "Your CLAUDE.md is " + line_count + " lines. "
+            + "Modular structure (.claude/rules/) improves cache efficiency. "
+            + "What would you like to do?",
+        "options": [
+            {"label": "Show split plan", "description": "Preview proposed sections without making changes"},
+            {"label": "Skip", "description": "Keep current CLAUDE.md as-is"},
+            {"label": "Add to plan", "description": "Add this to the P2 improvement plan for later"}
+        ]
+    }])
+    # Never write to CLAUDE.md or .claude/rules/ without explicit "proceed" confirmation
+```
+
+**Key rules:**
+- Never call `Write()` on `CLAUDE.md` or any `.claude/rules/*.md` without prior `AskUserQuestion` confirmation
+- Phase 7b must only analyze and recommend -- never auto-modify
+- If the user confirms a split, create new `.claude/rules/` files but keep the original `CLAUDE.md` intact until the user verifies the split is correct
+- Preserve all existing `.claude/rules/*.md` files -- never delete or rename them
+- When adding OrchestKit-specific rules, use a distinct prefix (e.g., `ork-`) to avoid collision with user rules
+- On `--rescan`, re-read existing config files fresh rather than relying on cached state from a previous run
+
+
+### Validate MCP server URLs are reachable before configuring — MEDIUM
+
+
+## MCP Server Verification
+
+During Phase 5 (MCP Recommendations), validate that recommended MCP servers are actually reachable or installable before adding them to configuration.
+
+## Problem
+
+Setup recommends and configures a cloud MCP server (e.g., Context7) but the user is behind a corporate proxy or firewall. The server entry is written to `.mcp.json`, but every tool call fails silently. The user sees degraded skill behavior with no clear cause.
+
+**Incorrect -- configure MCP without reachability check:**
+```python
+# Phase 5: Add recommended MCPs directly
+mcp_config = Read(".mcp.json") or {"mcpServers": {}}
+
+# No verification -- assumes network access
+mcp_config["mcpServers"]["context7"] = {
+    "command": "npx",
+    "args": ["-y", "@upstash/context7-mcp@latest"]
+}
+Write(file_path=".mcp.json", content=json.dumps(mcp_config, indent=2))
+# If npx can't reach npm registry, this silently fails at runtime
+```
+
+**Correct -- verify before configuring:**
+```python
+# Phase 5: Verify MCP availability before adding
+mcp_config = Read(".mcp.json") or {"mcpServers": {}}
+
+# For npx-based servers: check npm registry reachability
+npm_check = Bash(command="npm ping --registry https://registry.npmjs.org 2>&1; echo $?")
+npm_available = npm_check.strip().endswith("0")
+
+# For local servers: check if binary exists
+local_check = Bash(command="which uvx 2>/dev/null && echo 'available' || echo 'missing'")
+
+recommendations = []
+for server in recommended_mcps:
+    if server["type"] == "npx" and not npm_available:
+        recommendations.append({
+            "server": server["name"],
+            "status": "skipped",
+            "reason": "npm registry unreachable -- check network/proxy settings"
+        })
+    elif server["type"] == "local" and "missing" in local_check:
+        recommendations.append({
+            "server": server["name"],
+            "status": "skipped",
+            "reason": f"Required binary '{server['binary']}' not found -- install it first"
+        })
+    else:
+        recommendations.append({"server": server["name"], "status": "ready"})
+
+# Present results to user before writing config
+AskUserQuestion(questions=[{
+    "question": f"Configure {len([r for r in recommendations if r['status'] == 'ready'])} available MCP servers?",
+    "options": [
+        {"label": "Yes", "description": "Add verified servers to .mcp.json"},
+        {"label": "Show details", "description": "See full availability report first"},
+        {"label": "Skip", "description": "Configure MCPs later via /ork:configure"}
+    ]
+}])
+```
+
+**Key rules:**
+- Run `npm ping` before configuring any npx-based MCP server
+- Check for required local binaries (uvx, docker) before configuring local MCP servers
+- Mark unreachable servers as "skipped" with a clear reason, not as errors
+- Never write an MCP server entry to `.mcp.json` that is known to be unreachable
+- Include remediation steps (proxy config, install commands) for skipped servers
+- Re-check MCP availability on `--rescan` runs
+
+
+### Warn if chosen preset conflicts with existing .claude/ configuration — HIGH
+
+
+## Preset Conflict Detection
+
+Before applying any preset (complete, standard, lite, hooks-only, monorepo), check for existing `.claude/` configuration and warn the user about conflicts.
+
+## Problem
+
+A team has carefully configured `.claude/settings.json` with custom tool permissions and deny patterns. Running `/ork:setup --preset complete` overwrites these settings without warning, breaking their security posture and removing deny-listed commands.
+
+**Incorrect -- apply preset without conflict check:**
+```python
+# Apply preset directly
+preset = load_preset("complete")
+
+# Overwrites any existing config
+Write(file_path=".claude/settings.json", content=preset["settings"])
+Write(file_path=".mcp.json", content=preset["mcp_config"])
+# User's custom deny patterns and MCP servers are gone
+```
+
+**Correct -- detect conflicts and merge with user confirmation:**
+```python
+# Check for existing configuration first
+existing_settings = Read(".claude/settings.json")  # may not exist
+existing_mcp = Read(".mcp.json")                   # may not exist
+
+preset = load_preset("complete")
+conflicts = []
+
+if existing_settings:
+    if existing_settings.get("deny"):
+        conflicts.append("Existing deny patterns in .claude/settings.json will be preserved")
+    if existing_settings.get("permissions"):
+        conflicts.append(f"{len(existing_settings['permissions'])} custom permissions detected")
+
+if existing_mcp:
+    existing_servers = set(existing_mcp.get("mcpServers", {}).keys())
+    preset_servers = set(preset["mcp_config"].get("mcpServers", {}).keys())
+    overlap = existing_servers & preset_servers
+    if overlap:
+        conflicts.append(f"MCP servers will be updated: {', '.join(overlap)}")
+
+if conflicts:
+    AskUserQuestion(questions=[{
+        "question": "Existing configuration detected. How should we proceed?",
+        "options": [
+            {"label": "Merge (Recommended)", "description": "Keep existing settings, add preset additions"},
+            {"label": "Replace", "description": "Overwrite with preset defaults"},
+            {"label": "Cancel", "description": "Abort preset application"}
+        ]
+    }])
+```
+
+**Key rules:**
+- Always read existing `.claude/settings.json`, `.mcp.json`, and `CLAUDE.md` before applying a preset
+- Never overwrite `deny` patterns -- these are security-critical and must be preserved
+- Present a diff-style summary of what will change before writing any files
+- Default to merge strategy: keep user customizations, add preset additions
+- Log which files were modified and what was preserved for the improvement plan
+
+
+### Verify detected stack matches actual project files before applying presets — HIGH
+
+
+## Stack Detection Validation
+
+After Phase 1 scan and Phase 2 classification, validate that detected frameworks have corroborating evidence in actual project files before recommending skills or applying presets.
+
+## Problem
+
+Glob probes can produce false positives. A `next.config.js` file left over from a deleted experiment causes Next.js skills to be recommended for a pure Express project. A `docker-compose.yml` with only a database service triggers full Docker/K8s skill recommendations.
+
+**Incorrect -- trust Glob results without validation:**
+```python
+# Phase 2: Classify scan results directly
+scan = glob_results  # {"next.config.js": True, "package.json": True}
+
+stack = []
+if scan.get("next.config.js"):
+    stack.append("Next.js")  # No check if Next.js is an actual dependency
+    recommend_skills(["react-server-components-framework", "vite-advanced"])
+```
+
+**Correct -- cross-reference with dependency manifests:**
+```python
+# Phase 2: Validate detection against dependency files
+scan = glob_results  # {"next.config.js": True, "package.json": True}
+package_json = Read("package.json")
+deps = {**package_json.get("dependencies", {}), **package_json.get("devDependencies", {})}
+
+stack = []
+if scan.get("next.config.js") and "next" in deps:
+    stack.append({"name": "Next.js", "version": deps["next"], "confidence": "high"})
+elif scan.get("next.config.js"):
+    stack.append({"name": "Next.js", "version": "unknown", "confidence": "low"})
+    # Flag for user confirmation before recommending skills
+    flag_for_confirmation("Next.js detected via config file but not in package.json dependencies")
+```
+
+**Key rules:**
+- Cross-reference config file detection with dependency manifests (package.json, pyproject.toml, go.mod, Cargo.toml)
+- Assign confidence levels: `high` (in deps + config), `medium` (deps only), `low` (config only)
+- Present low-confidence detections to user for confirmation before applying preset skills
+- Never silently apply a preset based on a single file match without dependency corroboration
+- When `--rescan` is used, re-validate all previously detected stack items against current state
+- For monorepo projects, scan each workspace root independently -- a framework in `packages/web/` should not trigger recommendations for `packages/api/`
+- Display the confidence level next to each detected item in the Phase 2 stack profile output
+- If zero high-confidence items are detected, prompt the user to manually specify their stack before proceeding to Phase 4
+
+
+### Require explicit opt-in before enabling any telemetry or analytics — HIGH
+
+
+## Telemetry Consent Gate
+
+Phase 9 (Telemetry & Webhooks) must require explicit, informed opt-in before configuring any data collection. Never default to enabled, never bundle telemetry with other setup steps.
+
+## Problem
+
+The setup wizard configures "full streaming" telemetry as part of a batch operation, or pre-selects it as the default option. The user clicks through quickly and doesn't realize 18 Claude Code events are now being sent to an external webhook URL, potentially including file paths, tool invocations, and session metadata.
+
+**Incorrect -- telemetry enabled by default or bundled with other config:**
+```python
+# Phase 9: Configure telemetry (default: full streaming)
+AskUserQuestion(questions=[{
+    "question": "Configure telemetry?",
+    "options": [
+        {"label": "Full streaming (Recommended)", "description": "All 18 CC events"},  # Pre-selected
+        {"label": "Summary only", "description": "SessionEnd + worktree events"},
+        {"label": "Skip", "description": "No telemetry"}
+    ]
+}])
+
+# If user picked "Full streaming", immediately configure
+webhook_url = "https://company-default.example.com/hooks"  # Hardcoded default
+Bash(command=f'npm run generate:http-hooks -- {webhook_url} --write')
+# No explanation of what data is sent, no consent trail
+```
+
+**Correct -- informed consent with explicit opt-in, no pre-selection:**
+```python
+# Phase 9: Telemetry requires separate, informed consent
+# Step 1: Explain what telemetry collects
+AskUserQuestion(questions=[{
+    "question": "OrchestKit can send usage events to a webhook for team analytics. "
+        + "This is fully optional and disabled by default.\n\n"
+        + "Data sent includes: tool invocations, session duration, skill usage, "
+        + "error counts. NO file contents, NO prompts, NO code snippets.",
+    "header": "Telemetry Setup (Optional)",
+    "options": [
+        {"label": "Skip (Default)", "description": "No telemetry -- no data leaves your machine"},
+        {"label": "Summary only", "description": "Only session-end summaries"},
+        {"label": "Full streaming", "description": "All 18 event types -- requires webhook URL"}
+    ]
+}])
+
+# Step 2: If user explicitly chose telemetry, require their own URL
+if user_choice != "Skip":
+    webhook_url = AskUserQuestion(questions=[{
+        "question": "Enter your webhook URL (no default -- you must provide your own):",
+    }])
+    if not webhook_url or not webhook_url.startswith("https://"):
+        # Refuse non-HTTPS endpoints
+        report("Webhook URL must use HTTPS. Skipping telemetry configuration.")
+        return
+
+    # Step 3: Confirm before writing
+    AskUserQuestion(questions=[{
+        "question": f"Confirm: send {user_choice} events to {webhook_url}?",
+        "options": [
+            {"label": "Confirm", "description": "Write config and enable"},
+            {"label": "Cancel", "description": "Do not enable telemetry"}
+        ]
+    }])
+```
+
+**Key rules:**
+- "Skip" / disabled must always be the default option (listed first, no pre-selection)
+- Explain exactly what data is collected before asking for consent
+- Never hardcode or suggest a default webhook URL -- the user must provide their own
+- Require HTTPS for all webhook endpoints -- reject plain HTTP
+- Require a separate confirmation step after the user provides their URL
+- Store consent choice in `.claude/orchestration/config.json` with a timestamp for audit
+- On `--rescan`, never re-enable telemetry that was previously skipped
+
+
+
+---
+
+## References (10)
 
 ### Claude Md Health
 
@@ -906,6 +1073,65 @@ The 10 essential skills for any project:
 Presets set the base, then user can toggle individual categories on/off.
 
 
+### Readiness Scoring
+
+# Readiness Scoring
+
+Computes a composite readiness score (0-10) from 6 dimensions.
+
+## Dimensions
+
+| Dimension | Weight | Calculation |
+|-----------|--------|-------------|
+| **Stack Coverage** | 25% | matched_skills / relevant_skills_for_detected_stack |
+| **Hook Protection** | 20% | hooks_active / total_hooks (from /ork:doctor logic) |
+| **MCP Enhancement** | 15% | installed_mcps / recommended_mcps |
+| **Memory Depth** | 15% | entity_count from `mcp__memory__search_nodes` (target: 50+) |
+| **Custom Skills** | 15% | custom_skills_created / suggested_customs |
+| **Agent Utilization** | 10% | 1.0 if agents accessible, 0.5 if no MCPs limit capability |
+
+## Score Presentation
+
+```
+OrchestKit Readiness Score: 7.2 / 10  (stable channel, v7.0.0)
+
+  Stack Coverage  ████████░░  9/10  Python + React fully covered
+  Hook Protection ████████░░  8/10  107 hooks active
+  MCP Enhancement ██████░░░░  6/10  2/3 recommended MCPs active
+  Memory Depth    ████░░░░░░  4/10  12 entities (target: 50+)
+  Custom Skills   ██░░░░░░░░  2/10  0/3 suggested skills created
+  Agent Utilization ████████░░  8/10  30 agents available
+
+  Top improvement: Add /ork:remember patterns → +1.5 points
+```
+
+## Memory Integration
+
+Store the score for tracking over time:
+
+```python
+mcp__memory__create_entities(entities=[{
+  "name": "OrchestKit Setup Score",
+  "entityType": "metric",
+  "observations": [
+    "Score: 7.2/10 on 2026-02-26",
+    "Stack: Python + React + Next.js",
+    "Gap: Memory depth (12/50 entities), Custom skills (0/3)"
+  ]
+}])
+```
+
+## Improvement Plan Template
+
+Generate prioritized, **runnable** recommendations in 3 tiers:
+
+- **P0 (do now)**: Seed knowledge graph with `/ork:remember` patterns
+- **P1 (this week)**: Configure recommended MCPs, create custom skills for repeated patterns
+- **P2 (ongoing)**: Run `/ork:explore architecture`, rescan with `/ork:setup --rescan` in 2 weeks
+
+Save plan to memory as entity type "plan".
+
+
 ### Safety Check
 
 # Phase 3: Safety Check
@@ -989,6 +1215,59 @@ Grep(pattern="export (default |)function", glob="**/*.jsx", output_mode="count")
 Grep(pattern="class.*Model\\)", glob="**/*.py", output_mode="count")
 Grep(pattern="def test_", glob="**/*.py", output_mode="count")
 Grep(pattern="(describe|it|test)\\(", glob="**/*.{ts,tsx,js}", output_mode="count")
+```
+
+
+### Stack Skill Mapping
+
+# Stack-to-Skill Mapping
+
+Maps detected technologies to recommended OrchestKit skills.
+
+## Language/Framework Mapping
+
+| Detected | Recommended Skills |
+|----------|--------------------|
+| Python | `python-backend`, `async-jobs`, `database-patterns` |
+| FastAPI | `api-design`, `testing-unit`, `testing-integration` |
+| React | `react-server-components-framework`, `ui-components`, `responsive-patterns` |
+| Next.js | `react-server-components-framework`, `performance`, `vite-advanced` |
+| Zustand | `zustand-patterns` |
+| SQLAlchemy/Alembic | `database-patterns` |
+| Docker/K8s | `devops-deployment`, `distributed-systems` |
+| Terraform | `devops-deployment` |
+| GitHub Actions | `devops-deployment` |
+| LLM/AI deps | `llm-integration`, `rag-retrieval`, `langgraph`, `mcp-patterns` |
+| Test frameworks | `testing-unit`, `testing-e2e`, `testing-integration`, `golden-dataset` |
+| Security concerns | `security-patterns` |
+
+**All stacks get**: `explore`, `implement`, `verify`, `commit`, `review-pr`, `fix-issue`, `doctor`, `remember`, `brainstorm`, `help`
+
+## MCP Recommendation Matrix
+
+| MCP | When to Recommend | Install Effort |
+|-----|-------------------|---------------|
+| **Context7** | Always — eliminates doc hallucination | Zero (cloud, free) |
+| **Memory** | Always — knowledge graph persistence | Low (local npx) |
+| **Sequential Thinking** | If using Sonnet/Haiku subagents | Low (local npx) |
+| **Tavily** | If web-research-workflow relevant | Medium (needs API key, free tier) |
+| **NotebookLM** | If many docs/READMEs for team RAG | Medium (Google auth) |
+| **Agentation** | If frontend UI work detected | Medium (npm install) |
+| **Phoenix/Langfuse** | If LLM observability desired | Medium (Docker, optional) |
+
+Present as toggles with impact labels. Show install commands for selected MCPs.
+
+## Custom Skill Suggestions
+
+Based on pattern detection from Phase 1 scan:
+
+```
+Detected patterns that could become custom skills:
+  47 API routes   → Create "api-endpoint" skill
+  83 React comps  → Create "component" skill
+  8 deploy steps  → Create "deploy-checklist" skill
+
+To create any of these: see CONTRIBUTING-SKILLS.md
 ```
 
 
