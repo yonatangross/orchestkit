@@ -27,137 +27,27 @@ Advanced configuration for Vite 7+ including Environment API.
 
 ## Vite 7 Environment API (Key 2026 Feature)
 
-Multi-environment support is now first-class:
+Multi-environment support (client/SSR/edge) is now first-class with separate module graphs, plugin pipelines, and build outputs per environment. Requires Node.js 20.19+ or 22.12+.
 
-```typescript
-import { defineConfig } from 'vite'
-
-export default defineConfig({
-  environments: {
-    // Browser client
-    client: {
-      build: {
-        outDir: 'dist/client',
-        manifest: true,
-      },
-    },
-    // Node.js SSR
-    ssr: {
-      build: {
-        outDir: 'dist/server',
-        target: 'node20',
-      },
-    },
-    // Edge runtime (Cloudflare, etc.)
-    edge: {
-      resolve: {
-        noExternal: true,
-        conditions: ['edge', 'worker'],
-      },
-      build: {
-        outDir: 'dist/edge',
-      },
-    },
-  },
-})
-```
-
-**Key Changes:**
-- Environments have their own module graph
-- Plugins access `this.environment` in hooks
-- `createBuilder` API for coordinated builds
-- Node.js 20.19+ or 22.12+ required
+Load Read("${CLAUDE_SKILL_DIR}/references/environment-api.md") for full configuration, per-environment plugins, Builder API, and `buildApp` hook.
 
 ## Plugin Development
 
-Basic plugin structure:
+Hooks for `config`, `transform`, `resolveId`, `load`, virtual modules, HMR, and environment-aware transforms.
 
-```typescript
-export function myPlugin(): Plugin {
-  return {
-    name: 'my-plugin',
-
-    // Called once when config is resolved
-    configResolved(config) {
-      // Access resolved config
-    },
-
-    // Transform individual modules
-    transform(code, id) {
-      // this.environment available in Vite 7+
-      if (id.endsWith('.special')) {
-        return { code: transformCode(code) }
-      }
-    },
-
-    // Virtual modules
-    resolveId(id) {
-      if (id === 'virtual:my-module') {
-        return '\0virtual:my-module'
-      }
-    },
-    load(id) {
-      if (id === '\0virtual:my-module') {
-        return 'export const value = "generated"'
-      }
-    },
-  }
-}
-```
+Load Read("${CLAUDE_SKILL_DIR}/references/plugin-development.md") for plugin structure, hook execution order, and advanced patterns.
 
 ## SSR Configuration
 
-Development (middleware mode):
+Middleware mode for dev, separate client/server builds for prod, streaming SSR support.
 
-```typescript
-import { createServer } from 'vite'
-
-const vite = await createServer({
-  server: { middlewareMode: true },
-  appType: 'custom',
-})
-
-app.use('*', async (req, res) => {
-  const url = req.originalUrl
-  let template = fs.readFileSync('index.html', 'utf-8')
-  template = await vite.transformIndexHtml(url, template)
-
-  const { render } = await vite.ssrLoadModule('/src/entry-server.tsx')
-  const html = template.replace('<!--outlet-->', await render(url))
-
-  res.send(html)
-})
-```
-
-Production build scripts:
-
-```json
-{
-  "scripts": {
-    "build:client": "vite build --outDir dist/client",
-    "build:server": "vite build --outDir dist/server --ssr src/entry-server.tsx"
-  }
-}
-```
+Load Read("${CLAUDE_SKILL_DIR}/references/ssr-configuration.md") for entry points, dev/prod server setup, and streaming patterns.
 
 ## Build Optimization
 
-```typescript
-export default defineConfig({
-  build: {
-    target: 'baseline-widely-available', // Vite 7 default
-    sourcemap: false,
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom'],
-          router: ['react-router-dom'],
-        },
-      },
-    },
-  },
-})
-```
+Chunk splitting with `manualChunks` (Vite 7) or `advancedChunks` (Vite 8+), tree shaking, minification, and bundle analysis.
+
+Load Read("${CLAUDE_SKILL_DIR}/references/chunk-optimization.md") for chunk strategies, build targets, and optimization checklist.
 
 ## Quick Reference
 
