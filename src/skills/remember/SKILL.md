@@ -261,16 +261,7 @@ Use `mcp__memory__create_relations`:
 ### Agent-Scoped Memory
 
 **Input:** `/remember --agent backend-system-architect Use connection pooling with min=5, max=20`
-
-**Output:**
-```
-✓ Remembered (database): "Use connection pooling with min=5, max=20"
-   → Stored in knowledge graph
-   → Created entity: connection-pooling (Pattern)
-   → Created relation: project → USES → connection-pooling
-   📊 Graph: 1 entity, 1 relation
-   🤖 Agent: backend-system-architect
-```
+Stores with agent scope tag. Entity: connection-pooling (Pattern), relation: project → USES → connection-pooling.
 
 ## Duplicate Detection
 
@@ -297,10 +288,7 @@ When updating `.claude/memory/MEMORY.md` or project memory files:
 
 ## Error Handling
 
-- If knowledge graph unavailable, show configuration instructions
-- If text is empty, ask user to provide something to remember
-- If text >2000 chars, truncate with notice
-- If both --success and --failed provided, ask user to clarify
-- If --agent used without agent-id, prompt for agent selection
-- If entity extraction fails, create a generic Decision entity
-- If relation creation fails (e.g., entity doesn't exist), create entities first then retry
+- Knowledge graph unavailable → show configuration instructions
+- Empty text → ask user for content; text >2000 chars → truncate with notice
+- Both --success and --failed → ask user to clarify
+- Entity extraction fails → create generic Decision entity; relation fails → create entities first, retry
