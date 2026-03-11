@@ -122,37 +122,9 @@ Key analysis patterns:
 
 Load the report template: `Read("${CLAUDE_SKILL_DIR}/assets/audit-report-template.md")`.
 
-### Report Structure
+Report structure and severity classification: `Read("${CLAUDE_SKILL_DIR}/references/report-structure.md")` for finding table format, severity breakdown (CRITICAL/HIGH/MEDIUM/LOW with timelines), and architecture diagram conventions.
 
-```markdown
-# Audit Report: {project-name}
-**Date:** {date} | **Mode:** {mode} | **Files loaded:** {count} | **LOC:** {loc}
-
-## Executive Summary
-{1-3 sentences: overall health, critical findings count}
-
-## Findings
-
-| # | Severity | Category | File(s) | Finding | Remediation |
-|---|----------|----------|---------|---------|-------------|
-| 1 | CRITICAL | Security | src/auth.ts:42 | ... | ... |
-
-## Severity Breakdown
-- CRITICAL: {n} (must fix before deploy)
-- HIGH: {n} (fix within sprint)
-- MEDIUM: {n} (fix within quarter)
-- LOW: {n} (track and address)
-
-## Architecture Diagram
-{ASCII diagram of module dependencies}
-
-## Recommendations
-{Prioritized action items}
-```
-
-### Severity Classification
-
-Load: `Read("${CLAUDE_SKILL_DIR}/assets/severity-matrix.md")` for classification criteria.
+Severity matrix: `Read("${CLAUDE_SKILL_DIR}/assets/severity-matrix.md")` for classification criteria.
 
 ### Completion Checklist
 

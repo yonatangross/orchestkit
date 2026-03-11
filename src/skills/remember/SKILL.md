@@ -132,146 +132,17 @@ If outcome is "failed", look for:
 - "should have", "instead use", "better to"
 - If not found, prompt user: "What should be done instead?"
 
-### 4. Extract Entities from Text
+### 4-6. Extract Entities and Create Graph
 
-**Step A: Detect entities:**
+Extract entities (Technology, Agent, Pattern, Project, AntiPattern) from the text, detect relationship patterns ("X uses Y", "chose X over Y", etc.), then create entities and relations in the knowledge graph.
 
-```
-1. Find capitalized terms (PostgreSQL, React, FastAPI)
-2. Find agent names (database-engineer, backend-system-architect)
-3. Find pattern names (cursor-pagination, connection-pooling)
-4. Find technology keywords (pgvector, HNSW, RAG)
-```
-
-**Step B: Detect relationship patterns:**
-
-| Pattern | Relation Type |
-|---------|--------------|
-| "X uses Y" | USES |
-| "X recommends Y" | RECOMMENDS |
-| "X requires Y" | REQUIRES |
-| "X enables Y" | ENABLES |
-| "X prefers Y" | PREFERS |
-| "chose X over Y" | CHOSE_OVER |
-| "X for Y" | USED_FOR |
-
-### 5. Create Graph Entities (PRIMARY)
-
-Use `mcp__memory__create_entities`:
-
-```json
-{
-  "entities": [
-    {
-      "name": "pgvector",
-      "entityType": "Technology",
-      "observations": ["Used for vector search", "From remember: '{original text}'"]
-    },
-    {
-      "name": "database-engineer",
-      "entityType": "Agent",
-      "observations": ["Recommends pgvector for RAG"]
-    }
-  ]
-}
-```
-
-**Entity Type Assignment:**
-- Capitalized single words ending in common suffixes: Technology (PostgreSQL, FastAPI)
-- Words with hyphens matching agent pattern: Agent (database-engineer)
-- Words with hyphens matching pattern names: Pattern (cursor-pagination)
-- Project context: Project (current project name)
-- Failed patterns: AntiPattern
-
-### 6. Create Graph Relations
-
-Use `mcp__memory__create_relations`:
-
-```json
-{
-  "relations": [
-    {
-      "from": "database-engineer",
-      "to": "pgvector",
-      "relationType": "RECOMMENDS"
-    },
-    {
-      "from": "pgvector",
-      "to": "RAG",
-      "relationType": "USED_FOR"
-    }
-  ]
-}
-```
+Load entity extraction rules, type assignment, relationship patterns, and graph creation examples: `Read("${CLAUDE_SKILL_DIR}/references/graph-operations.md")`
 
 ### 7. Confirm Storage
 
-**For success:**
-```
-✅ Remembered SUCCESS (category): "summary of text"
-   → Stored in knowledge graph
-   → Created entity: {entity_name} ({entity_type})
-   → Created relation: {from} → {relation_type} → {to}
-   📊 Graph: {N} entities, {M} relations
-```
+Display confirmation using the appropriate template (success, anti-pattern, or neutral) showing created entities, relations, and graph stats.
 
-**For failed:**
-```
-❌ Remembered ANTI-PATTERN (category): "summary of text"
-   → Stored in knowledge graph
-   → Created entity: {anti-pattern-name} (AntiPattern)
-   💡 Lesson: {lesson if extracted}
-```
-
-**For neutral:**
-```
-✓ Remembered (category): "summary of text"
-   → Stored in knowledge graph
-   → Created entity: {entity_name} ({entity_type})
-   📊 Graph: {N} entities, {M} relations
-```
-
-## Examples
-
-### Basic Remember (Graph Only)
-
-**Input:** `/remember Cursor-based pagination scales well for large datasets`
-
-**Output:**
-```
-✓ Remembered (pagination): "Cursor-based pagination scales well for large datasets"
-   → Stored in knowledge graph
-   → Created entity: cursor-pagination (Pattern)
-   📊 Graph: 1 entity, 0 relations
-```
-
-### Anti-Pattern
-
-**Input:** `/remember --failed Offset pagination caused timeouts on tables with 1M+ rows`
-
-**Output:**
-```
-❌ Remembered ANTI-PATTERN (pagination): "Offset pagination caused timeouts on tables with 1M+ rows"
-   → Stored in knowledge graph
-   → Created entity: offset-pagination (AntiPattern)
-   💡 Lesson: Use cursor-based pagination for large datasets
-   📊 Graph: 1 entity, 0 relations
-```
-
-### Agent-Scoped Memory
-
-**Input:** `/remember --agent backend-system-architect Use connection pooling with min=5, max=20`
-Stores with agent scope tag. Entity: connection-pooling (Pattern), relation: project → USES → connection-pooling.
-
-## Duplicate Detection
-
-Before storing, search for similar patterns in graph:
-1. Query graph with `mcp__memory__search_nodes` for entity names
-2. If exact entity exists:
-   - Add observation to existing entity via `mcp__memory__add_observations`
-   - Inform user: "✓ Updated existing entity (added observation)"
-3. If similar pattern found with opposite outcome:
-   - Warn: "⚠️ This conflicts with an existing pattern. Store anyway?"
+Load output templates and examples: `Read("${CLAUDE_SKILL_DIR}/references/confirmation-templates.md")`
 
 ## File-Based Memory Updates
 
@@ -280,6 +151,18 @@ When updating `.claude/memory/MEMORY.md` or project memory files:
 - Use stable anchor lines: `## Recent Decisions`, `## Patterns`, `## Preferences`
 - See the `memory` skill's "Permission-Free File Operations" section for the full Edit pattern
 - This applies to the calling agent's file operations, not to the knowledge graph operations above
+
+---
+
+## References
+
+Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
+
+| File | Content |
+|------|---------|
+| `category-detection.md` | Auto-detection rules for categorizing memories (priority order) |
+| `graph-operations.md` | Entity extraction, type assignment, relationship patterns, graph creation |
+| `confirmation-templates.md` | Output templates (success, anti-pattern, neutral) and usage examples |
 
 ---
 

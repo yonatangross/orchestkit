@@ -9,7 +9,7 @@
  * - output-validator (first — validates output before other hooks process it; may block)
  * - auto-spawn-quality (may return systemMessage)
  * - multi-claude-verifier (may return systemMessage)
- * - subagent-quality-gate (may block via outputWarning)
+ * - subagent-quality-gate (BLOCKS for security < threshold; warns for other dimensions)
  * - retry-handler (may return additionalContext via outputWithContext)
  *
  * NOT consolidated (remains separate in hooks.json):

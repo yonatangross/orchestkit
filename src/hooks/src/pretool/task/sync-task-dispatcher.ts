@@ -3,11 +3,12 @@
 
 /**
  * Sync Task Dispatcher — PreToolUse Task Hook
- * Consolidates 2 Task PreToolUse hooks into a single dispatcher.
+ * Consolidates 3 Task PreToolUse hooks into a single dispatcher.
  *
  * Consolidated hooks (security-first order):
  * - unified-agent-safety-dispatcher (agent safety checks — FIRST)
  * - team-size-gate (limits team size — SECOND)
+ * - task-existence-gate (task tracking enforcement — THIRD)
  *
  * SHORT-CIRCUIT: On first block, returns immediately without running remaining hooks.
  * Merges additionalContext from all passing hooks into a single output.
@@ -21,6 +22,7 @@ import { outputSilentSuccess, logHook, extractContext } from '../../lib/common.j
 // Import consolidated hook implementations
 import { unifiedAgentSafetyDispatcher } from './unified-agent-safety-dispatcher.js';
 import { teamSizeGate } from './team-size-gate.js';
+import { taskExistenceGate } from './task-existence-gate.js';
 
 const HOOK_NAME = 'sync-task-dispatcher';
 
@@ -32,10 +34,12 @@ interface TaskHookConfig {
 /**
  * Registry of Task PreToolUse hooks, executed in security-first order.
  * Agent safety dispatcher runs first to catch all safety violations.
+ * Task existence gate runs last (advisory or blocking based on pipeline state).
  */
 const TASK_HOOKS: TaskHookConfig[] = [
   { name: 'unified-agent-safety-dispatcher', fn: unifiedAgentSafetyDispatcher },
   { name: 'team-size-gate', fn: teamSizeGate },
+  { name: 'task-existence-gate', fn: taskExistenceGate },
 ];
 
 /**
@@ -44,6 +48,7 @@ const TASK_HOOKS: TaskHookConfig[] = [
  * Execution order:
  * 1. unified-agent-safety-dispatcher (can block — agent safety checks)
  * 2. team-size-gate (can block — team size limits)
+ * 3. task-existence-gate (can block in pipeline — task tracking enforcement)
  *
  * On first block: SHORT-CIRCUIT immediately.
  * On pass: merge additionalContext from all hooks.

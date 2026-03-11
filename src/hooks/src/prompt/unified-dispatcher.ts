@@ -5,7 +5,7 @@
  * Unified Prompt Dispatcher — UserPromptSubmit Hook
  * Issue #448: Consolidate UserPromptSubmit hooks to reduce context bloat
  *
- * 3 hooks managed by this dispatcher:
+ * 4 hooks managed by this dispatcher:
  *
  * Once-per-session (file-based flag tracking):
  * - handoff-injector (producesContext: true)
@@ -41,6 +41,7 @@ import { join } from 'node:path';
 
 // Import hook implementations — every-turn
 import { contextExhaustionWarner } from './context-exhaustion-warner.js';
+import { pipelineDetector } from './pipeline-detector.js';
 // antipattern-warning migrated to type:prompt hook in hooks.json (#972)
 // Import hook implementations — once-per-session
 import { handoffInjector } from './handoff-injector.js';
@@ -90,6 +91,7 @@ const HOOKS: PromptHookConfig[] = [
 
   // --- Context producers (output merged into single additionalContext) ---
   { name: 'context-exhaustion-warner', fn: contextExhaustionWarner, producesContext: true },
+  { name: 'pipeline-detector', fn: pipelineDetector, producesContext: true },
   // antipattern-warning removed (#972) — now a type:prompt hook in hooks.json
 ];
 
