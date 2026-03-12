@@ -457,7 +457,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "assess": {
     "name": "assess",
     "description": "Assesses and rates quality 0-10 with pros/cons analysis. Use when evaluating code, designs, or approaches.",
-    "version": "1.2.0",
+    "version": "1.3.0",
     "author": "OrchestKit",
     "tags": [
       "assessment",
@@ -667,7 +667,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "brainstorm": {
     "name": "brainstorm",
     "description": "Design exploration with parallel agents. Use when brainstorming ideas, exploring solutions, or comparing alternatives.",
-    "version": "4.3.0",
+    "version": "4.4.0",
     "author": "OrchestKit",
     "tags": [
       "planning",
@@ -1677,7 +1677,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "fix-issue": {
     "name": "fix-issue",
     "description": "Fixes GitHub issues with parallel analysis. Use when debugging errors, resolving regressions, fixing bugs, or triaging issues.",
-    "version": "2.2.0",
+    "version": "2.3.0",
     "author": "OrchestKit",
     "tags": [
       "issue",
@@ -1931,7 +1931,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "implement": {
     "name": "implement",
     "description": "Full-power feature implementation with parallel subagents. Use when implementing, building, or creating features.",
-    "version": "2.4.0",
+    "version": "2.5.0",
     "author": "OrchestKit",
     "tags": [
       "implementation",
@@ -4095,7 +4095,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "verify": {
     "name": "verify",
     "description": "Comprehensive verification with parallel test agents. Use when verifying implementations or validating changes.",
-    "version": "4.0.0",
+    "version": "4.1.0",
     "author": "OrchestKit",
     "tags": [
       "verification",

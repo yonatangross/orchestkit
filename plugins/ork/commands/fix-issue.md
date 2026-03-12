@@ -120,6 +120,17 @@ CronCreate(
 )
 ```
 
+### Worktree Cleanup (CC 2.1.72)
+
+If worktree isolation was used in Phase 4, clean up after validation:
+
+```python
+# After Phase 7 validation passes — exit worktree, keep branch for PR
+ExitWorktree(action="keep")
+```
+
+Every `EnterWorktree` or `isolation: "worktree"` agent must have a matching cleanup. If agents used `isolation: "worktree"`, they handle their own exit — but if the lead entered a worktree in Step 0, it must call `ExitWorktree` before Phase 11 commit.
+
 ### Fix Pattern Memory
 
 If memory MCP is available (from Step -1 probe), save the fix pattern:
@@ -176,4 +187,4 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | `cc-enhancements.md` | CC 2.1.49 session resume, task metrics, adaptive thinking |
 
 
-**Version:** 2.2.0 (March 2026)
+**Version:** 2.3.0 (March 2026) — Added ExitWorktree cleanup in Phase 8

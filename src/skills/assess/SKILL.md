@@ -4,7 +4,7 @@ license: MIT
 compatibility: "Claude Code 2.1.74+. Requires memory MCP server."
 description: "Assesses and rates quality 0-10 with pros/cons analysis. Use when evaluating code, designs, or approaches."
 context: fork
-version: 1.2.0
+version: 1.3.0
 author: OrchestKit
 tags: [assessment, evaluation, quality, comparison, pros-cons, rating]
 user-invocable: true
@@ -32,9 +32,27 @@ Comprehensive assessment skill for answering "is this good?" with structured eva
 ```bash
 /ork:assess backend/app/services/auth.py
 /ork:assess our caching strategy
-/ork:assess the current database schema
+/ork:assess --model=opus the current database schema
 /ork:assess frontend/src/components/Dashboard
 ```
+
+---
+
+## Argument Resolution
+
+```python
+TARGET = "$ARGUMENTS"  # Full argument string, e.g., "backend/app/services/auth.py"
+# $ARGUMENTS[0] is the first token (CC 2.1.59 indexed access)
+
+# Model override detection (CC 2.1.72)
+MODEL_OVERRIDE = None
+for token in "$ARGUMENTS".split():
+    if token.startswith("--model="):
+        MODEL_OVERRIDE = token.split("=", 1)[1]  # "opus", "sonnet", "haiku"
+        TARGET = TARGET.replace(token, "").strip()
+```
+
+Pass `MODEL_OVERRIDE` to all Agent() calls via `model=MODEL_OVERRIDE` when set. Accepts symbolic names (`opus`, `sonnet`, `haiku`) or full IDs (`claude-opus-4-6`) per CC 2.1.74.
 
 ---
 
@@ -213,4 +231,4 @@ Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/quality-gates/references/unified-scorin
 
 ---
 
-**Version:** 1.1.0 (February 2026)
+**Version:** 1.3.0 (March 2026) — Added `--model=opus` override, argument resolution section, model param on Agent() spawns

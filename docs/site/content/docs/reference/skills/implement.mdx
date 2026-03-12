@@ -27,7 +27,7 @@ Parallel subagent execution for feature implementation with scope control and re
 
 ```bash
 /ork:implement user authentication
-/ork:implement real-time notifications
+/ork:implement --model=opus real-time notifications
 /ork:implement dashboard analytics
 ```
 
@@ -38,7 +38,16 @@ Parallel subagent execution for feature implementation with scope control and re
 ```python
 FEATURE_DESC = "$ARGUMENTS"  # Full argument string, e.g., "user authentication"
 # $ARGUMENTS[0] is the first token, $ARGUMENTS[1] second, etc. (CC 2.1.59)
+
+# Model override detection (CC 2.1.72)
+MODEL_OVERRIDE = None
+for token in "$ARGUMENTS".split():
+    if token.startswith("--model="):
+        MODEL_OVERRIDE = token.split("=", 1)[1]  # "opus", "sonnet", "haiku"
+        FEATURE_DESC = FEATURE_DESC.replace(token, "").strip()
 ```
+
+Pass `MODEL_OVERRIDE` to all Agent() calls via `model=MODEL_OVERRIDE` when set. Accepts symbolic names (`opus`, `sonnet`, `haiku`) or full IDs (`claude-opus-4-6`) per CC 2.1.74.
 
 ---
 
@@ -218,6 +227,7 @@ Load test matrix, real-service detection, and phase 9 gate: `Read("$\{CLAUDE_SKI
 - **Real services when available** — if docker-compose/testcontainers exist, use them in Phase 6
 - **Reflect and capture lessons** (phase 10) — persist to memory graph
 - **Clean up agents** — use `TeamDelete()` after completion; press `Ctrl+F` twice as manual fallback. Note: `/clear` (CC 2.1.72+) preserves background agents
+- **Exit worktrees** — call `ExitWorktree(action: "keep")` in Phase 10 if worktree was entered in Step 0; never leave orphaned worktrees
 
 ---
 
@@ -678,6 +688,7 @@ All 5 agents launch in ONE message with `run_in_background=true`.
 ```python
 Agent(
   subagent_type="workflow-architect",
+  model=MODEL_OVERRIDE,  # None inherits default; "opus" for large features (CC 2.1.72)
   prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   ARCHITECTURE PLANNING — SINGLE-PASS OUTPUT
 
@@ -716,6 +727,7 @@ Agent(
 ```python
 Agent(
   subagent_type="backend-system-architect",
+  model=MODEL_OVERRIDE,
   prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   COMPLETE BACKEND ARCHITECTURE — SINGLE PASS
 
@@ -742,6 +754,7 @@ Agent(
 ```python
 Agent(
   subagent_type="frontend-ui-developer",
+  model=MODEL_OVERRIDE,
   prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   COMPLETE FRONTEND ARCHITECTURE — SINGLE PASS
 
@@ -769,6 +782,7 @@ Agent(
 ```python
 Agent(
   subagent_type="llm-integrator",
+  model=MODEL_OVERRIDE,
   prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   AI/ML INTEGRATION ANALYSIS — SINGLE PASS
 
@@ -1143,7 +1157,22 @@ mcp__memory__create_entities(entities=[{
 
 ---
 
-## Phase 10: Post-Implementation Reflection
+## Phase 10: Post-Implementation Reflection & Cleanup
+
+### Worktree Cleanup (CC 2.1.72)
+
+If worktree isolation was used in Step 0, exit it before committing:
+
+```python
+# Exit worktree — keep branch for PR creation
+ExitWorktree(action="keep")
+# Verify no orphaned worktrees remain
+# Run: git worktree list
+```
+
+Every `EnterWorktree` must have a matching `ExitWorktree`. If the session crashes before cleanup, the next session should detect and clean up orphaned worktrees via `git worktree list` + `git worktree remove`.
+
+### Reflection
 
 Launch `workflow-architect` to evaluate:
 

@@ -5,7 +5,7 @@ compatibility: "Claude Code 2.1.74+. Requires memory MCP server, context7 MCP se
 description: "Fixes GitHub issues with parallel analysis. Use when debugging errors, resolving regressions, fixing bugs, or triaging issues."
 argument-hint: "[issue-number]"
 context: fork
-version: 2.2.0
+version: 2.3.0
 author: OrchestKit
 tags: [issue, bug-fix, github, debugging, rca, prevention]
 user-invocable: true
@@ -136,6 +136,17 @@ CronCreate(
 )
 ```
 
+### Worktree Cleanup (CC 2.1.72)
+
+If worktree isolation was used in Phase 4, clean up after validation:
+
+```python
+# After Phase 7 validation passes — exit worktree, keep branch for PR
+ExitWorktree(action="keep")
+```
+
+Every `EnterWorktree` or `isolation: "worktree"` agent must have a matching cleanup. If agents used `isolation: "worktree"`, they handle their own exit — but if the lead entered a worktree in Step 0, it must call `ExitWorktree` before Phase 11 commit.
+
 ### Fix Pattern Memory
 
 If memory MCP is available (from Step -1 probe), save the fix pattern:
@@ -193,4 +204,4 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 
 ---
 
-**Version:** 2.2.0 (March 2026)
+**Version:** 2.3.0 (March 2026) — Added ExitWorktree cleanup in Phase 8

@@ -5,7 +5,7 @@ compatibility: "Claude Code 2.1.74+. Requires memory MCP server, context7 MCP se
 description: "Full-power feature implementation with parallel subagents. Use when implementing, building, or creating features."
 argument-hint: "[feature-description]"
 context: fork
-version: 2.4.0
+version: 2.5.0
 author: OrchestKit
 tags: [implementation, feature, full-stack, parallel-agents, reflection, worktree]
 user-invocable: true
@@ -37,7 +37,7 @@ Parallel subagent execution for feature implementation with scope control and re
 
 ```bash
 /ork:implement user authentication
-/ork:implement real-time notifications
+/ork:implement --model=opus real-time notifications
 /ork:implement dashboard analytics
 ```
 
@@ -48,7 +48,16 @@ Parallel subagent execution for feature implementation with scope control and re
 ```python
 FEATURE_DESC = "$ARGUMENTS"  # Full argument string, e.g., "user authentication"
 # $ARGUMENTS[0] is the first token, $ARGUMENTS[1] second, etc. (CC 2.1.59)
+
+# Model override detection (CC 2.1.72)
+MODEL_OVERRIDE = None
+for token in "$ARGUMENTS".split():
+    if token.startswith("--model="):
+        MODEL_OVERRIDE = token.split("=", 1)[1]  # "opus", "sonnet", "haiku"
+        FEATURE_DESC = FEATURE_DESC.replace(token, "").strip()
 ```
+
+Pass `MODEL_OVERRIDE` to all Agent() calls via `model=MODEL_OVERRIDE` when set. Accepts symbolic names (`opus`, `sonnet`, `haiku`) or full IDs (`claude-opus-4-6`) per CC 2.1.74.
 
 ---
 
@@ -228,6 +237,7 @@ Load test matrix, real-service detection, and phase 9 gate: `Read("${CLAUDE_SKIL
 - **Real services when available** — if docker-compose/testcontainers exist, use them in Phase 6
 - **Reflect and capture lessons** (phase 10) — persist to memory graph
 - **Clean up agents** — use `TeamDelete()` after completion; press `Ctrl+F` twice as manual fallback. Note: `/clear` (CC 2.1.72+) preserves background agents
+- **Exit worktrees** — call `ExitWorktree(action: "keep")` in Phase 10 if worktree was entered in Step 0; never leave orphaned worktrees
 
 ---
 
