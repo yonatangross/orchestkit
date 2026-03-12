@@ -430,7 +430,10 @@ Helps with git commits.
 
 ### Eval Coverage (User-Invocable Skills)
 
-User-invocable skills (`user-invocable: true`) should include eval entries in `tests/evals/skills/<name>.eval.yaml`. This file tests trigger accuracy (does the skill fire on the right prompts?) and quality (does the skill add value vs base Claude?).
+User-invocable skills (`user-invocable: true`) MUST include eval entries in `tests/evals/skills/<name>.eval.yaml`. This file tests two things:
+
+1. **Trigger accuracy** — Does the skill fire on the right prompts and stay silent on wrong ones?
+2. **Quality** — Does the skill produce better output than base Claude without the plugin?
 
 ```yaml
 # tests/evals/skills/my-skill.eval.yaml
@@ -440,26 +443,69 @@ skill_path: src/skills/my-skill/SKILL.md
 plugin_dir: plugins/ork
 
 trigger_evals:
+  # Should trigger — direct requests
   - prompt: "realistic user prompt that should trigger"
     should_trigger: true
+  # Should trigger — casual/indirect phrasing
+  - prompt: "informal way of asking for the same thing"
+    should_trigger: true
+  # Should NOT trigger — near-miss (shares keywords, different skill)
   - prompt: "adjacent task that should NOT trigger"
     should_trigger: false
 
 quality_evals:
   - prompt: "task to compare with-skill vs baseline"
+    scaffold: typescript-nextjs  # optional: empty, python-fastapi, typescript-nextjs
     assertions:
       - name: "specific outcome"
-        check: "what to look for in output"
+        check: "what to look for in output (descriptive, not regex — graded by LLM)"
 ```
 
-Guidelines for eval entries:
-- At least 5 trigger entries (3+ should-trigger, 2+ should-not)
-- At least 1 quality entry with graded assertions
-- Include **near-miss negatives** — prompts that share keywords but need a different skill
-- Include **casual phrasing** — typos, abbreviations, informal requests
-- Include **cross-skill confusion** — "assess this PR" vs "review this PR"
+#### Eval Entry Requirements
 
-Run locally with CC Max: `npm run eval:trigger -- <skill-name>`
+| Requirement | Minimum |
+|-------------|---------|
+| Trigger entries | 5+ (3+ `should_trigger: true`, 2+ `should_trigger: false`) |
+| Quality entries | 1+ with graded assertions |
+| Near-miss negatives | At least 1 prompt that shares keywords but needs a different skill |
+| Cross-skill confusion | At least 1 pair that distinguishes from a similar skill |
+
+#### Writing Good Trigger Entries
+
+- **Positives**: Include casual phrasing ("save my progress"), indirect requests, varied vocabulary
+- **Negatives**: Use near-misses that share keywords. "push to main" shares git context with `commit` but is not a commit task
+- **Cross-skill confusion**: Test boundaries between similar skills. "assess this PR" (assess) vs "review this PR" (review-pr)
+
+#### Writing Good Quality Assertions
+
+Assertions are **descriptive, not regex** — an LLM grades the output against the check string.
+
+**Good:** `"commit message starts with feat, fix, refactor, or chore prefix"`
+**Bad:** `"output matches ^(feat|fix|refactor|chore)"`
+
+#### The "Explain Why" Principle
+
+If your SKILL.md uses ALWAYS or NEVER in caps, reframe with reasoning so the model understands *when* to apply the rule:
+
+**Bad:** `ALWAYS run tests before committing`
+**Better:** `Run tests before committing — a commit that breaks CI wastes reviewer time and blocks the pipeline`
+
+#### Description Requirements
+
+Skill descriptions must be **50-200 words** and include:
+- **WHAT** the skill does (capabilities)
+- **WHEN** to use it (trigger conditions, in third person)
+- **Negative boundary**: "Do NOT use for..." to prevent false triggers
+
+#### Running Evals Locally (CC Max)
+
+Evals run locally using `claude -p` with CC Max (free, 5x per query):
+
+```bash
+npm run eval:trigger -- commit           # trigger accuracy for one skill
+npm run eval:trigger -- --all            # all skills with .eval.yaml files
+npm run eval:trigger -- --dry-run        # validate YAML only, no Claude calls
+```
 
 ## Checklist
 
@@ -477,6 +523,9 @@ Before submitting a skill change:
 - [ ] Supporting files referenced from SKILL.md
 - [ ] Team-spawning skills include `Ctrl+F` cleanup note
 - [ ] User-invocable skills have eval YAML in `tests/evals/skills/`
+- [ ] Eval YAML has 5+ trigger entries (3+ true, 2+ false) and 1+ quality entry
+- [ ] Eval includes near-miss negatives and cross-skill confusion tests
+- [ ] `npm run eval:trigger -- <skill> --dry-run` passes (validates YAML)
 - [ ] `npm run build` passes
 - [ ] `npm run test:skills` passes
 - [ ] Run `/reload-plugins` to activate changes without restarting (CC 2.1.69+)
