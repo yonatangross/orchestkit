@@ -28,7 +28,7 @@
   "tech_stack": {
     "plugin": {
       "skills": "89 SKILL.md files (YAML frontmatter + Markdown)",
-      "agents": "31 agent definitions (CC 2.1.73 format)",
+      "agents": "31 agent definitions (CC 2.1.74 format)",
       "hooks": "99 TypeScript hooks (compiled to ESM)"
     },
     "hooks": {
@@ -48,5 +48,5 @@
     "maintainer": "Yonatan"
   },
 
-  "claude_code_version": ">= 2.1.73"
+  "claude_code_version": ">= 2.1.74"
 }

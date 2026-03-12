@@ -145,7 +145,7 @@ Session and instance lifecycle management.
 
 **Events:**
 - `SessionStart` - Initialize session, load context
-- `SessionEnd` - Save state, cleanup
+- `SessionEnd` - Save state, cleanup (CC 2.1.74: `hook.timeout` now respected; env override: `CLAUDE_CODE_SESSIONEND_HOOKS_TIMEOUT_MS`)
 - `Stop` - User stops conversation, trigger compaction
 - `Setup` - First-run setup, maintenance tasks
 - `SubagentStart` - Subagent spawn validation
@@ -1032,6 +1032,6 @@ OrchestKit hooks are managed defaults. Users retain full control to disable any 
 **Architecture:** 12 split bundles (381KB total) + 1 unified (324KB)
 **Hooks:** <!--ork:hooks-->99<!--/ork--> hooks (<!--ork:hooks-global-->33<!--/ork--> global + <!--ork:hooks-agent-->45<!--/ork--> agent-scoped + <!--ork:hooks-skill-->21<!--/ork--> skill-scoped)
 **Average Bundle:** ~35KB per event
-**Claude Code Requirement:** >= 2.1.72
+**Claude Code Requirement:** >= 2.1.74
 
 See the async hooks section above for detailed async hook patterns.

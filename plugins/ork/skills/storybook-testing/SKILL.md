@@ -1,7 +1,7 @@
 ---
 name: storybook-testing
 license: MIT
-compatibility: "Claude Code 2.1.73+."
+compatibility: "Claude Code 2.1.74+."
 description: Storybook 9/10 testing patterns with Vitest integration, CSF3 typesafe factories, play() interaction tests, Chromatic TurboSnap visual regression, sb.mock isolation, accessibility addon testing, and autodocs generation. Use when writing component stories, setting up visual regression testing, configuring Storybook CI pipelines, or migrating to Storybook 9/10.
 tags: [storybook, vitest, csf3, chromatic, turbosnap, visual-regression, play-functions, component-testing, a11y-testing, autodocs]
 context: fork

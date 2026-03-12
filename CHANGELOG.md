@@ -5,6 +5,24 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.5.0] - 2026-03-12
+
+### Changed
+
+- **platform:** bump minimum Claude Code version from >= 2.1.73 to >= 2.1.74
+  - SessionEnd `hook.timeout` now respected (was hardcoded to 1.5s — hooks silently killed)
+  - New `CLAUDE_CODE_SESSIONEND_HOOKS_TIMEOUT_MS` env var for timeout override
+  - Managed policy `ask` rules now correctly override user `allow` + skill `allowed-tools`
+  - Full model IDs (`claude-opus-4-6`) accepted in agent frontmatter (symbolic names still recommended)
+  - `/context` command surfaces actionable optimization suggestions
+  - `autoMemoryDirectory` setting for custom auto-memory storage path
+  - `--plugin-dir` local overrides take precedence over marketplace plugins
+  - Streaming API + bash prefix caching memory leaks fixed
+- **skills:** update `compatibility` field to "Claude Code 2.1.74+" across 78 skills
+- **docs:** update version matrix with 12 new features (4 for 2.1.73, 8 for 2.1.74) and "Full+++++" compatibility level
+
+---
+
 ## [7.4.0] - 2026-03-11
 
 ### Changed

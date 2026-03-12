@@ -17,6 +17,21 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.5.0",
+    "date": "2026-03-12",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**platform:** bump minimum Claude Code version from >= 2.1.73 to >= 2.1.74\n  - SessionEnd `hook.timeout` now respected (was hardcoded to 1.5s — hooks silently killed)\n  - New `CLAUDE_CODE_SESSIONEND_HOOKS_TIMEOUT_MS` env var for timeout override\n  - Managed policy `ask` rules now correctly override user `allow` + skill `allowed-tools`\n  - Full model IDs (`claude-opus-4-6`) accepted in agent frontmatter (symbolic names still recommended)\n  - `/context` command surfaces actionable optimization suggestions\n  - `autoMemoryDirectory` setting for custom auto-memory storage path\n  - `--plugin-dir` local overrides take precedence over marketplace plugins\n  - Streaming API + bash prefix caching memory leaks fixed",
+          "**skills:** update `compatibility` field to \"Claude Code 2.1.74+\" across 78 skills",
+          "**docs:** update version matrix with 12 new features (4 for 2.1.73, 8 for 2.1.74) and \"Full+++++\" compatibility level"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.4.0",
     "date": "2026-03-11",
     "compareUrl": "",

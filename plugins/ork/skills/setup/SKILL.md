@@ -1,7 +1,7 @@
 ---
 name: setup
 license: MIT
-compatibility: "Claude Code 2.1.73+."
+compatibility: "Claude Code 2.1.74+."
 description: "Personalized setup and onboarding wizard. Use when setting up OrchestKit for a new project, configuring plugins, or generating a readiness score and improvement plan."
 argument-hint: "[--rescan] [--score-only] [--plan-only] [--channel] [--configure]"
 context: fork

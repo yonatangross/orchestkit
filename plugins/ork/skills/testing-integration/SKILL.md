@@ -1,7 +1,7 @@
 ---
 name: testing-integration
 license: MIT
-compatibility: "Claude Code 2.1.73+."
+compatibility: "Claude Code 2.1.74+."
 description: Integration and contract testing patterns — API endpoint tests, component integration, database testing, Pact contract verification, property-based testing, and Zod schema validation. Use when testing API boundaries, verifying contracts, or validating cross-service integration.
 tags: [testing, integration, contract, pact, property, zod, api]
 context: fork

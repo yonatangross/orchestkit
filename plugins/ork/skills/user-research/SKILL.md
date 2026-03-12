@@ -1,7 +1,7 @@
 ---
 name: user-research
 license: MIT
-compatibility: "Claude Code 2.1.73+."
+compatibility: "Claude Code 2.1.74+."
 description: "User personas, customer journey maps, interview guides, usability testing, and card sorting. Use when building user understanding, mapping customer experiences, planning user research sessions, or defining Jobs-to-Be-Done."
 tags: [persona, journey-map, user-interview, usability, jtbd, card-sort, empathy-map, research]
 context: fork

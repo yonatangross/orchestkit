@@ -2,7 +2,7 @@
 
 ## Overview
 
-OrchestKit requires Claude Code >= 2.1.73. This matrix documents which CC features OrchestKit depends on and their minimum version requirements.
+OrchestKit requires Claude Code >= 2.1.74. This matrix documents which CC features OrchestKit depends on and their minimum version requirements.
 
 ## Feature Matrix
 
@@ -77,6 +77,14 @@ OrchestKit requires Claude Code >= 2.1.73. This matrix documents which CC featur
 | SessionStart hooks double-fire fix | 2.1.73 | ~15 SessionStart hooks fire exactly once on resume | Hooks fire twice on --resume/--continue |
 | No-op system reminder injection fix | 2.1.73 | ~2K tokens/turn recovered across 99 hooks | Empty system-reminder tags waste context |
 | Opus 4.6 default on Bedrock/Vertex/Foundry | 2.1.73 | 6 opus-tier agents auto-upgrade on cloud providers | Older Opus model on cloud providers |
+| `/context` optimization hints | 2.1.74 | Actionable suggestions for context-heavy tools, memory bloat, capacity | No optimization guidance |
+| `autoMemoryDirectory` setting | 2.1.74 | Custom auto-memory storage path via settings.json | Default path only |
+| SessionEnd `hook.timeout` respected | 2.1.74 | SessionEnd hooks run to configured timeout (was hardcoded 1.5s) | SessionEnd hooks killed at 1.5s regardless of config |
+| `CLAUDE_CODE_SESSIONEND_HOOKS_TIMEOUT_MS` | 2.1.74 | Env var override for SessionEnd hook timeout | No env var control |
+| `--plugin-dir` precedence | 2.1.74 | Local dev plugins override marketplace installs | Marketplace takes precedence |
+| Full model IDs in agent frontmatter | 2.1.74 | `claude-opus-4-6` etc. accepted (not just `opus`) | Only symbolic names (`opus`, `sonnet`, `haiku`) |
+| Managed policy precedence fix | 2.1.74 | Managed policy `ask` overrides user `allow` + `allowed-tools` | User rules could bypass managed policy |
+| Streaming + bash prefix memory fixes | 2.1.74 | Two memory leaks fixed (streaming buffers, bash prefix cache) | RSS growth in long sessions |
 
 ## Version Detection
 
@@ -103,6 +111,7 @@ claude --version  # Returns e.g. "2.1.47"
 | >= 2.1.71 | Full++ | `/loop` command, cron scheduling, expanded bash allowlist, `/debug` toggle, plugin stability |
 | >= 2.1.72 | Full+++ | ExitWorktree, agent model override, effort simplification, prompt cache 12x savings, skill hook fix |
 | >= 2.1.73 | Full++++ | Skill-file deadlock fix, SessionStart double-fire fix, no-op reminder fix, Opus 4.6 cloud default |
+| >= 2.1.74 | Full+++++ | SessionEnd timeout fix, managed policy precedence, full model IDs, memory leak fixes, /context hints |
 
 ## Doctor Check Implementation
 
@@ -181,6 +190,7 @@ Claude Code: 2.1.56 (OK)
 
 | OrchestKit | Min CC | Key Changes |
 |-----------|--------|-------------|
+| v7.5.x | 2.1.74 | SessionEnd timeout fix, managed policy precedence, full model IDs, memory fixes |
 | v7.4.x | 2.1.73 | Deadlock fix, SessionStart fix, no-op fix, Opus 4.6 cloud default |
 | v7.1.x | 2.1.69 | InstructionsLoaded, once:true loaders, outputAsk, env var HTTP hooks, worktree dedup |
 | v7.0.x | 2.1.59 | Auto-memory, @imports, ConfigChange, HTTP hooks (2.1.63+), unified plugin |
