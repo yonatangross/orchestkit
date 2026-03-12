@@ -11,19 +11,19 @@ TeamCreate(team_name="implement-{feature-slug}", description="Architecture for {
 
 # Spawn 4 teammates (5th role — UX — is lead-managed or optional)
 Agent(subagent_type="backend-system-architect", name="backend-architect",
-     team_name="implement-{feature-slug}",
+     team_name="implement-{feature-slug}", model=MODEL_OVERRIDE,
      prompt="Design backend architecture. Message frontend-dev when API contract ready.")
 
 Agent(subagent_type="frontend-ui-developer", name="frontend-dev",
-     team_name="implement-{feature-slug}",
+     team_name="implement-{feature-slug}", model=MODEL_OVERRIDE,
      prompt="Design frontend architecture. Wait for API contract from backend-architect.")
 
 Agent(subagent_type="test-generator", name="test-engineer",
-     team_name="implement-{feature-slug}",
+     team_name="implement-{feature-slug}", model=MODEL_OVERRIDE,
      prompt="Plan test strategy. Start fixtures immediately, tests as contracts stabilize.")
 
 Agent(subagent_type="code-quality-reviewer", name="code-reviewer",
-     team_name="implement-{feature-slug}",
+     team_name="implement-{feature-slug}", model=MODEL_OVERRIDE,
      prompt="Review architecture decisions as they're shared. Flag issues to author directly.")
 ```
 
@@ -113,11 +113,8 @@ SendMessage(type="shutdown_request", recipient="code-reviewer",
 ```python
 TeamDelete()  # Remove team and shared task list
 
-# Clean up worktrees (if used)
-Bash("git worktree remove ../{project}-backend")
-Bash("git worktree remove ../{project}-frontend")
-Bash("git worktree remove ../{project}-tests")
-Bash("git branch -d feat/{feature}/backend feat/{feature}/frontend feat/{feature}/tests")
+# Worktree cleanup (CC 2.1.72)
+ExitWorktree(action="keep")  # Keep branch for PR
 ```
 
 > Phases 7-10 (Scope Creep, E2E Verification, Documentation, Reflection) are the same in both modes — the team is already disbanded.

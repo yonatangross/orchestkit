@@ -16,7 +16,7 @@ Do NOT use Glob or Grep to discover additional files.
 """
 
 Agent(subagent_type="code-quality-reviewer", name="correctness-assessor",
-     team_name="assess-{target-slug}", max_turns=25,
+     team_name="assess-{target-slug}", max_turns=25, model=MODEL_OVERRIDE,
      prompt=f"""Assess CORRECTNESS (0-10) and MAINTAINABILITY (0-10) for: {target}
      {SCOPE_INSTRUCTIONS}
      When you find issues that affect security, message security-assessor.
@@ -25,7 +25,7 @@ Agent(subagent_type="code-quality-reviewer", name="correctness-assessor",
      significantly (>2 points), discuss the disagreement.""")
 
 Agent(subagent_type="security-auditor", name="security-assessor",
-     team_name="assess-{target-slug}", max_turns=25,
+     team_name="assess-{target-slug}", max_turns=25, model=MODEL_OVERRIDE,
      prompt=f"""Assess SECURITY (0-10) for: {target}
      {SCOPE_INSTRUCTIONS}
      When correctness-assessor flags security-relevant patterns, investigate deeper.
@@ -33,7 +33,7 @@ Agent(subagent_type="security-auditor", name="security-assessor",
      Share your score and flag any cross-dimension trade-offs.""")
 
 Agent(subagent_type="python-performance-engineer", name="perf-assessor",  # or frontend-performance-engineer for frontend
-     team_name="assess-{target-slug}", max_turns=25,
+     team_name="assess-{target-slug}", max_turns=25, model=MODEL_OVERRIDE,
      prompt=f"""Assess PERFORMANCE (0-10) and SCALABILITY (0-10) for: {target}
      {SCOPE_INSTRUCTIONS}
      When security-assessor flags performance trade-offs, evaluate the impact.
@@ -41,7 +41,7 @@ Agent(subagent_type="python-performance-engineer", name="perf-assessor",  # or f
      Share your scores with reasoning for the composite calculation.""")
 
 Agent(subagent_type="test-generator", name="test-assessor",
-     team_name="assess-{target-slug}", max_turns=25,
+     team_name="assess-{target-slug}", max_turns=25, model=MODEL_OVERRIDE,
      prompt=f"""Assess TESTABILITY (0-10) for: {target}
      {SCOPE_INSTRUCTIONS}
      Evaluate test coverage, test quality, and ease of testing.
@@ -56,6 +56,9 @@ SendMessage(type="shutdown_request", recipient="security-assessor", content="Ass
 SendMessage(type="shutdown_request", recipient="perf-assessor", content="Assessment complete")
 SendMessage(type="shutdown_request", recipient="test-assessor", content="Assessment complete")
 TeamDelete()
+
+# Worktree cleanup (CC 2.1.72)
+ExitWorktree(action="keep")
 ```
 
 > **Fallback — Team Formation Failure:** If team formation fails, use standard Phase 2 Task spawns.

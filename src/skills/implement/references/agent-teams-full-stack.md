@@ -282,16 +282,9 @@ After all teammates complete (or when all tasks are done):
    SendMessage(type="shutdown_request", recipient="test-engineer")
    SendMessage(type="shutdown_request", recipient="code-reviewer")
    TeamDelete()
-   ```
 
-6. **Clean up worktrees:**
-   ```bash
-   git worktree remove ../{project}-backend
-   git worktree remove ../{project}-frontend
-   git worktree remove ../{project}-tests
-   git branch -d feat/{feature}/backend
-   git branch -d feat/{feature}/frontend
-   git branch -d feat/{feature}/tests
+   # Worktree cleanup (CC 2.1.72)
+   ExitWorktree(action="keep")  # Keep branch for PR
    ```
 
 ---

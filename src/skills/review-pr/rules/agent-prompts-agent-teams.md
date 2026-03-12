@@ -137,6 +137,9 @@ SendMessage(type="shutdown_request", recipient="backend-reviewer", content="Revi
 # if HAS_FRONTEND:
 SendMessage(type="shutdown_request", recipient="frontend-reviewer", content="Review complete")
 TeamDelete()
+
+# Worktree cleanup (CC 2.1.72)
+ExitWorktree(action="keep")
 ```
 
 **Incorrect — No team teardown:**
@@ -153,6 +156,7 @@ Agent(subagent_type="security-auditor", team_name="review-pr-$PR_NUMBER")
 SendMessage(type="shutdown_request", recipient="quality-reviewer", content="Review complete")
 SendMessage(type="shutdown_request", recipient="security-reviewer", content="Review complete")
 TeamDelete()  # Clean shutdown
+ExitWorktree(action="keep")
 ```
 
 > **Fallback:** If team formation fails, use standard Task tool spawns from [agent-prompts-task-tool.md](agent-prompts-task-tool.md).

@@ -115,7 +115,7 @@ In Agent Teams mode, form a verification team where agents share findings and co
 TeamCreate(team_name="verify-{feature}", description="Verify {feature}")
 
 Agent(subagent_type="code-quality-reviewer", name="quality-verifier",
-     team_name="verify-{feature}",
+     team_name="verify-{feature}", model=MODEL_OVERRIDE,
      prompt="""# Cache-optimized: stable content first (CC 2.1.72)
      Verify code quality. Score 0-10.
      When you find patterns that affect security, message security-verifier.
@@ -124,7 +124,7 @@ Agent(subagent_type="code-quality-reviewer", name="quality-verifier",
      Feature: {feature}.""")
 
 Agent(subagent_type="security-auditor", name="security-verifier",
-     team_name="verify-{feature}",
+     team_name="verify-{feature}", model=MODEL_OVERRIDE,
      prompt="""# Cache-optimized: stable content first (CC 2.1.72)
      Security verification. Score 0-10.
      When quality-verifier flags security-relevant patterns, investigate deeper.
@@ -133,7 +133,7 @@ Agent(subagent_type="security-auditor", name="security-verifier",
      Feature: {feature}.""")
 
 Agent(subagent_type="test-generator", name="test-verifier",
-     team_name="verify-{feature}",
+     team_name="verify-{feature}", model=MODEL_OVERRIDE,
      prompt="""# Cache-optimized: stable content first (CC 2.1.72)
      Verify test coverage. Score 0-10.
      When quality-verifier or security-verifier flag untested paths, quantify the gap.
@@ -142,7 +142,7 @@ Agent(subagent_type="test-generator", name="test-verifier",
      Feature: {feature}.""")
 
 Agent(subagent_type="backend-system-architect", name="api-verifier",
-     team_name="verify-{feature}",
+     team_name="verify-{feature}", model=MODEL_OVERRIDE,
      prompt="""# Cache-optimized: stable content first (CC 2.1.72)
      Verify API design and backend patterns. Score 0-10.
      When security-verifier flags endpoint issues, validate and score.
@@ -150,7 +150,7 @@ Agent(subagent_type="backend-system-architect", name="api-verifier",
      Feature: {feature}.""")
 
 Agent(subagent_type="frontend-ui-developer", name="ui-verifier",
-     team_name="verify-{feature}",
+     team_name="verify-{feature}", model=MODEL_OVERRIDE,
      prompt="""# Cache-optimized: stable content first (CC 2.1.72)
      Verify frontend implementation. Score 0-10.
      When api-verifier shares API patterns, verify frontend matches.
@@ -161,7 +161,7 @@ Agent(subagent_type="frontend-ui-developer", name="ui-verifier",
 # Conditional 6th agent — use python-performance-engineer for backend,
 # frontend-performance-engineer for frontend
 Agent(subagent_type="python-performance-engineer", name="perf-verifier",
-     team_name="verify-{feature}",
+     team_name="verify-{feature}", model=MODEL_OVERRIDE,
      prompt="""# Cache-optimized: stable content first (CC 2.1.72)
      Verify performance and scalability. Score 0-10.
      Assess latency, resource usage, caching, and scaling patterns.
@@ -180,6 +180,9 @@ SendMessage(type="shutdown_request", recipient="api-verifier", content="Verifica
 SendMessage(type="shutdown_request", recipient="ui-verifier", content="Verification complete")
 SendMessage(type="shutdown_request", recipient="perf-verifier", content="Verification complete")
 TeamDelete()
+
+# Worktree cleanup (CC 2.1.72)
+ExitWorktree(action="keep")
 ```
 
 > **Fallback:** If team formation fails, use standard Phase 2 Task spawns above.

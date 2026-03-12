@@ -247,6 +247,9 @@ SendMessage(type="shutdown_request", recipient="data-flow-explorer", content="Ex
 SendMessage(type="shutdown_request", recipient="backend-explorer", content="Exploration complete")
 SendMessage(type="shutdown_request", recipient="frontend-explorer", content="Exploration complete")
 TeamDelete()
+
+# Worktree cleanup (CC 2.1.72)
+ExitWorktree(action="keep")
 ```
 
 > **Fallback:** If team formation fails, use standard Task tool spawns. See [exploration-agents.md](exploration-agents.md).
