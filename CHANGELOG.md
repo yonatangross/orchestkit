@@ -5,6 +5,19 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.5.0](https://github.com/yonatangross/orchestkit/compare/v7.4.0...v7.5.0) (2026-03-12)
+
+
+### Features
+
+* **skills:** adopt CC 2.1.72 features — ExitWorktree, model override ([#1036](https://github.com/yonatangross/orchestkit/issues/1036)) ([#1060](https://github.com/yonatangross/orchestkit/issues/1060)) ([96fd3a0](https://github.com/yonatangross/orchestkit/commit/96fd3a0ece399e3f843b11d3f018a0792eea9d46))
+
+
+### Bug Fixes
+
+* **docs:** update generated plugins-data version to 7.4.0 ([#1058](https://github.com/yonatangross/orchestkit/issues/1058)) ([e2693b1](https://github.com/yonatangross/orchestkit/commit/e2693b16b3f8cddb40348b5790611a004f37009e))
+* **skills:** add ExitWorktree + model override to Agent Teams teardown paths ([#1061](https://github.com/yonatangross/orchestkit/issues/1061)) ([c326666](https://github.com/yonatangross/orchestkit/commit/c3266663634912450ed965fae5ca6df752019705))
+
 ## [7.4.0](https://github.com/yonatangross/orchestkit/compare/v7.3.3...v7.4.0) (2026-03-12)
 
 
