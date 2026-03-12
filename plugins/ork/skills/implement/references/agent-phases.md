@@ -30,6 +30,7 @@ All 5 agents launch in ONE message with `run_in_background=true`.
 ```python
 Agent(
   subagent_type="workflow-architect",
+  model=MODEL_OVERRIDE,  # None inherits default; "opus" for large features (CC 2.1.72)
   prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   ARCHITECTURE PLANNING — SINGLE-PASS OUTPUT
 
@@ -68,6 +69,7 @@ Agent(
 ```python
 Agent(
   subagent_type="backend-system-architect",
+  model=MODEL_OVERRIDE,
   prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   COMPLETE BACKEND ARCHITECTURE — SINGLE PASS
 
@@ -94,6 +96,7 @@ Agent(
 ```python
 Agent(
   subagent_type="frontend-ui-developer",
+  model=MODEL_OVERRIDE,
   prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   COMPLETE FRONTEND ARCHITECTURE — SINGLE PASS
 
@@ -121,6 +124,7 @@ Agent(
 ```python
 Agent(
   subagent_type="llm-integrator",
+  model=MODEL_OVERRIDE,
   prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   AI/ML INTEGRATION ANALYSIS — SINGLE PASS
 
@@ -495,7 +499,22 @@ mcp__memory__create_entities(entities=[{
 
 ---
 
-## Phase 10: Post-Implementation Reflection
+## Phase 10: Post-Implementation Reflection & Cleanup
+
+### Worktree Cleanup (CC 2.1.72)
+
+If worktree isolation was used in Step 0, exit it before committing:
+
+```python
+# Exit worktree — keep branch for PR creation
+ExitWorktree(action="keep")
+# Verify no orphaned worktrees remain
+# Run: git worktree list
+```
+
+Every `EnterWorktree` must have a matching `ExitWorktree`. If the session crashes before cleanup, the next session should detect and clean up orphaned worktrees via `git worktree list` + `git worktree remove`.
+
+### Reflection
 
 Launch `workflow-architect` to evaluate:
 

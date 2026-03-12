@@ -15,7 +15,7 @@ Comprehensive verification using parallel specialized agents with nuanced gradin
 
 ```bash
 /ork:verify authentication flow
-/ork:verify user profile feature
+/ork:verify --model=opus user profile feature
 /ork:verify --scope=backend database migrations
 ```
 
@@ -25,7 +25,16 @@ Comprehensive verification using parallel specialized agents with nuanced gradin
 SCOPE = "$ARGUMENTS"       # Full argument string, e.g., "authentication flow"
 SCOPE_TOKEN = "$ARGUMENTS[0]"  # First token for flag detection (e.g., "--scope=backend")
 # $ARGUMENTS[0], $ARGUMENTS[1] etc. for indexed access (CC 2.1.59)
+
+# Model override detection (CC 2.1.72)
+MODEL_OVERRIDE = None
+for token in "$ARGUMENTS".split():
+    if token.startswith("--model="):
+        MODEL_OVERRIDE = token.split("=", 1)[1]  # "opus", "sonnet", "haiku"
+        SCOPE = SCOPE.replace(token, "").strip()
 ```
+
+Pass `MODEL_OVERRIDE` to all Agent() calls via `model=MODEL_OVERRIDE` when set. Accepts symbolic names (`opus`, `sonnet`, `haiku`) or full IDs (`claude-opus-4-6`) per CC 2.1.74.
 
 > **Opus 4.6**: Agents use native adaptive thinking (no MCP sequential-thinking needed). Extended 128K output supports comprehensive verification reports.
 
@@ -251,4 +260,4 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/rules/<file>")`:
 - `browser-tools` - Browser automation for visual capture
 
 
-**Version:** 4.0.0 (March 2026) — Added visual verification portfolio (Phase 2.5 + 8.5), gallery.html output, AI vision evaluation, agentation feedback loop
+**Version:** 4.1.0 (March 2026) — Added `model: sonnet` frontmatter, `--model=opus` override, model param on all Agent() spawns

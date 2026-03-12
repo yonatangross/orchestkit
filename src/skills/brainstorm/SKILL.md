@@ -6,7 +6,7 @@ description: "Design exploration with parallel agents. Use when brainstorming id
 argument-hint: "[topic-or-idea]"
 tags: [planning, ideation, creativity, design]
 context: fork
-version: 4.3.0
+version: 4.4.0
 author: OrchestKit
 user-invocable: true
 allowed-tools: [AskUserQuestion, Task, Read, Grep, Glob, TaskCreate, TaskUpdate, TaskList, TaskOutput, TaskStop, ToolSearch, mcp__memory__search_nodes]
@@ -314,6 +314,10 @@ SendMessage(type="shutdown_request", recipient="frontend-thinker", content="Brai
 SendMessage(type="shutdown_request", recipient="testability-assessor", content="Brainstorm complete")
 # ... shutdown any additional domain teammates
 TeamDelete()
+
+# Worktree cleanup (CC 2.1.72) — for Tier 3+ projects that entered a worktree
+# If EnterWorktree was called during brainstorm (e.g., Plan first → worktree), exit it
+ExitWorktree(action="keep")  # Keep branch for follow-up /ork:implement
 ```
 
 > **Fallback:** If team formation fails, load `Read("${CLAUDE_SKILL_DIR}/references/phase-workflow.md")` and use standard Phase 2 Task spawns.
@@ -360,4 +364,4 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 
 ---
 
-**Version:** 4.3.0 (February 2026) - Added testability scoring to evaluation, test strategy to synthesis output
+**Version:** 4.4.0 (March 2026) — Added ExitWorktree cleanup in agent teardown for Tier 3+ projects

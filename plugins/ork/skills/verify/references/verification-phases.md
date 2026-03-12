@@ -19,7 +19,7 @@
 
 ## Phase 2: Parallel Agent Dispatch (6 Agents)
 
-Launch ALL agents in ONE message with `run_in_background=True` and `max_turns=25`.
+Launch ALL agents in ONE message with `run_in_background=True` and `max_turns=25`. Pass `model=MODEL_OVERRIDE` when user specifies `--model=opus` (CC 2.1.72).
 
 | Agent | Focus | Output |
 |-------|-------|--------|
@@ -40,6 +40,7 @@ See [Grading Rubric](grading-rubric.md) for detailed scoring criteria.
 # PARALLEL — All 6 in ONE message
 Agent(
   subagent_type="code-quality-reviewer",
+  model=MODEL_OVERRIDE,  # None inherits default; "opus" for thorough verification (CC 2.1.72)
   prompt="""# Cache-optimized: stable content first (CC 2.1.72)
   Verify code quality. Score 0-10.
   Check: lint errors, type coverage, cyclomatic complexity, DRY, SOLID.
@@ -50,6 +51,7 @@ Agent(
 )
 Agent(
   subagent_type="security-auditor",
+  model=MODEL_OVERRIDE,
   prompt="""# Cache-optimized: stable content first (CC 2.1.72)
   Security verification. Score 0-10.
   Check: OWASP Top 10, secrets in code, dependency CVEs, auth patterns.
@@ -60,6 +62,7 @@ Agent(
 )
 Agent(
   subagent_type="test-generator",
+  model=MODEL_OVERRIDE,
   prompt="""# Cache-optimized: stable content first (CC 2.1.72)
   Verify test coverage. Score 0-10.
   Check: test existence, type matching, quality, edge cases, coverage %.
@@ -71,6 +74,7 @@ Agent(
 )
 Agent(
   subagent_type="backend-system-architect",
+  model=MODEL_OVERRIDE,
   prompt="""# Cache-optimized: stable content first (CC 2.1.72)
   Verify API design and backend patterns. Score 0-10.
   Check: REST conventions, async patterns, transaction boundaries, error handling.
@@ -81,6 +85,7 @@ Agent(
 )
 Agent(
   subagent_type="frontend-ui-developer",
+  model=MODEL_OVERRIDE,
   prompt="""# Cache-optimized: stable content first (CC 2.1.72)
   Verify frontend implementation. Score 0-10.
   Check: React 19 patterns, Zod schemas, accessibility (WCAG 2.1 AA), loading states.
@@ -91,6 +96,7 @@ Agent(
 )
 Agent(
   subagent_type="python-performance-engineer",
+  model=MODEL_OVERRIDE,
   prompt="""# Cache-optimized: stable content first (CC 2.1.72)
   Verify performance and scalability. Score 0-10.
   Check: latency hotspots, N+1 queries, resource usage, caching, scaling patterns.

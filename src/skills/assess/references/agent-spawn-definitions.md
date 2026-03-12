@@ -14,6 +14,7 @@ for dimension, agent_type in [
     ("TESTABILITY", "test-generator"),
 ]:
     Agent(subagent_type=agent_type, run_in_background=True, max_turns=25,
+         model=MODEL_OVERRIDE,  # None inherits default; "opus" for deep analysis (CC 2.1.72)
          prompt=f"""Assess {dimension} (0-10) for: {target}
 
 ## Scope Constraint

@@ -5,13 +5,14 @@ compatibility: "Claude Code 2.1.74+. Requires memory MCP server."
 description: "Comprehensive verification with parallel test agents. Use when verifying implementations or validating changes."
 argument-hint: "[feature-or-scope]"
 context: fork
-version: 4.0.0
+version: 4.1.0
 author: OrchestKit
 tags: [verification, testing, quality, validation, parallel-agents, grading]
 user-invocable: true
 allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskList, TaskOutput, TaskStop, mcp__memory__search_nodes, mcp__agentation__agentation_get_all_pending, mcp__agentation__agentation_acknowledge, mcp__agentation__agentation_resolve, mcp__agentation__agentation_watch_annotations, ToolSearch, CronCreate, CronDelete]
 skills: [code-review-playbook, testing-unit, testing-e2e, testing-llm, testing-integration, testing-perf, memory, quality-gates, chain-patterns, browser-tools]
 complexity: high
+model: sonnet
 hooks:
   PreToolUse:
     - matcher: "Bash"
@@ -33,7 +34,7 @@ Comprehensive verification using parallel specialized agents with nuanced gradin
 
 ```bash
 /ork:verify authentication flow
-/ork:verify user profile feature
+/ork:verify --model=opus user profile feature
 /ork:verify --scope=backend database migrations
 ```
 
@@ -43,7 +44,16 @@ Comprehensive verification using parallel specialized agents with nuanced gradin
 SCOPE = "$ARGUMENTS"       # Full argument string, e.g., "authentication flow"
 SCOPE_TOKEN = "$ARGUMENTS[0]"  # First token for flag detection (e.g., "--scope=backend")
 # $ARGUMENTS[0], $ARGUMENTS[1] etc. for indexed access (CC 2.1.59)
+
+# Model override detection (CC 2.1.72)
+MODEL_OVERRIDE = None
+for token in "$ARGUMENTS".split():
+    if token.startswith("--model="):
+        MODEL_OVERRIDE = token.split("=", 1)[1]  # "opus", "sonnet", "haiku"
+        SCOPE = SCOPE.replace(token, "").strip()
 ```
+
+Pass `MODEL_OVERRIDE` to all Agent() calls via `model=MODEL_OVERRIDE` when set. Accepts symbolic names (`opus`, `sonnet`, `haiku`) or full IDs (`claude-opus-4-6`) per CC 2.1.74.
 
 > **Opus 4.6**: Agents use native adaptive thinking (no MCP sequential-thinking needed). Extended 128K output supports comprehensive verification reports.
 
@@ -281,4 +291,4 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/rules/<file>")`:
 
 ---
 
-**Version:** 4.0.0 (March 2026) — Added visual verification portfolio (Phase 2.5 + 8.5), gallery.html output, AI vision evaluation, agentation feedback loop
+**Version:** 4.1.0 (March 2026) — Added `model: sonnet` frontmatter, `--model=opus` override, model param on all Agent() spawns

@@ -27,7 +27,7 @@ Comprehensive verification using parallel specialized agents with nuanced gradin
 
 ```bash
 /ork:verify authentication flow
-/ork:verify user profile feature
+/ork:verify --model=opus user profile feature
 /ork:verify --scope=backend database migrations
 ```
 
@@ -37,7 +37,16 @@ Comprehensive verification using parallel specialized agents with nuanced gradin
 SCOPE = "$ARGUMENTS"       # Full argument string, e.g., "authentication flow"
 SCOPE_TOKEN = "$ARGUMENTS[0]"  # First token for flag detection (e.g., "--scope=backend")
 # $ARGUMENTS[0], $ARGUMENTS[1] etc. for indexed access (CC 2.1.59)
+
+# Model override detection (CC 2.1.72)
+MODEL_OVERRIDE = None
+for token in "$ARGUMENTS".split():
+    if token.startswith("--model="):
+        MODEL_OVERRIDE = token.split("=", 1)[1]  # "opus", "sonnet", "haiku"
+        SCOPE = SCOPE.replace(token, "").strip()
 ```
+
+Pass `MODEL_OVERRIDE` to all Agent() calls via `model=MODEL_OVERRIDE` when set. Accepts symbolic names (`opus`, `sonnet`, `haiku`) or full IDs (`claude-opus-4-6`) per CC 2.1.74.
 
 > **Opus 4.6**: Agents use native adaptive thinking (no MCP sequential-thinking needed). Extended 128K output supports comprehensive verification reports.
 
@@ -275,7 +284,7 @@ Load on demand with `Read("$\{CLAUDE_SKILL_DIR\}/rules/&lt;file&gt;")`:
 
 ---
 
-**Version:** 4.0.0 (March 2026) — Added visual verification portfolio (Phase 2.5 + 8.5), gallery.html output, AI vision evaluation, agentation feedback loop
+**Version:** 4.1.0 (March 2026) — Added `model: sonnet` frontmatter, `--model=opus` override, model param on all Agent() spawns
 
 
 ---
@@ -1261,7 +1270,7 @@ Focus: React 19, Zod, exhaustive types, skeletons, prefetch, a11y
 
 ## Phase 2: Parallel Agent Dispatch (6 Agents)
 
-Launch ALL agents in ONE message with `run_in_background=True` and `max_turns=25`.
+Launch ALL agents in ONE message with `run_in_background=True` and `max_turns=25`. Pass `model=MODEL_OVERRIDE` when user specifies `--model=opus` (CC 2.1.72).
 
 | Agent | Focus | Output |
 |-------|-------|--------|
@@ -1282,6 +1291,7 @@ See [Grading Rubric](grading-rubric.md) for detailed scoring criteria.
 # PARALLEL — All 6 in ONE message
 Agent(
   subagent_type="code-quality-reviewer",
+  model=MODEL_OVERRIDE,  # None inherits default; "opus" for thorough verification (CC 2.1.72)
   prompt="""# Cache-optimized: stable content first (CC 2.1.72)
   Verify code quality. Score 0-10.
   Check: lint errors, type coverage, cyclomatic complexity, DRY, SOLID.
@@ -1292,6 +1302,7 @@ Agent(
 )
 Agent(
   subagent_type="security-auditor",
+  model=MODEL_OVERRIDE,
   prompt="""# Cache-optimized: stable content first (CC 2.1.72)
   Security verification. Score 0-10.
   Check: OWASP Top 10, secrets in code, dependency CVEs, auth patterns.
@@ -1302,6 +1313,7 @@ Agent(
 )
 Agent(
   subagent_type="test-generator",
+  model=MODEL_OVERRIDE,
   prompt="""# Cache-optimized: stable content first (CC 2.1.72)
   Verify test coverage. Score 0-10.
   Check: test existence, type matching, quality, edge cases, coverage %.
@@ -1313,6 +1325,7 @@ Agent(
 )
 Agent(
   subagent_type="backend-system-architect",
+  model=MODEL_OVERRIDE,
   prompt="""# Cache-optimized: stable content first (CC 2.1.72)
   Verify API design and backend patterns. Score 0-10.
   Check: REST conventions, async patterns, transaction boundaries, error handling.
@@ -1323,6 +1336,7 @@ Agent(
 )
 Agent(
   subagent_type="frontend-ui-developer",
+  model=MODEL_OVERRIDE,
   prompt="""# Cache-optimized: stable content first (CC 2.1.72)
   Verify frontend implementation. Score 0-10.
   Check: React 19 patterns, Zod schemas, accessibility (WCAG 2.1 AA), loading states.
@@ -1333,6 +1347,7 @@ Agent(
 )
 Agent(
   subagent_type="python-performance-engineer",
+  model=MODEL_OVERRIDE,
   prompt="""# Cache-optimized: stable content first (CC 2.1.72)
   Verify performance and scalability. Score 0-10.
   Check: latency hotspots, N+1 queries, resource usage, caching, scaling patterns.
