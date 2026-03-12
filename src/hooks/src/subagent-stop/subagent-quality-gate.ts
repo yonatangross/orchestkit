@@ -14,7 +14,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { atomicWriteSync } from '../lib/atomic-write.js';
 import { join } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, outputWarning, logHook, getProjectDir } from '../lib/common.js';
+import { outputSilentSuccess, outputWarning, outputBlock, logHook, getProjectDir } from '../lib/common.js';
 import { getMetricsFile } from '../lib/paths.js';
 
 // -----------------------------------------------------------------------------
@@ -204,12 +204,26 @@ export function subagentQualityGate(input: HookInput): HookResult {
       const label = score.dimension || 'overall';
 
       if (normalized < threshold) {
+        const isSecurityDimension = score.dimension !== null &&
+          /security|vuln|cve|owasp/i.test(score.dimension);
+        const securityThreshold = policy.thresholds?.security_minimum ?? DEFAULT_THRESHOLDS.security_minimum;
+
         logHook(
           'subagent-quality-gate',
-          `Score below threshold: ${label}=${normalized.toFixed(1)}/10 (min: ${threshold})`,
+          `Score below threshold: ${label}=${normalized.toFixed(1)}/10 (min: ${threshold})${isSecurityDimension ? ' [SECURITY — BLOCKING]' : ''}`,
           'warn',
         );
         updateMetrics('threshold_failure');
+
+        // Security dimensions BLOCK — non-security dimensions WARN
+        if (isSecurityDimension && normalized < securityThreshold) {
+          return outputBlock(
+            `Security gate BLOCKED: ${label} score ${score.value}/${score.max} ` +
+              `(${normalized.toFixed(1)}/10) is below security minimum ${securityThreshold}/10. ` +
+              `Address security findings before proceeding.`,
+          );
+        }
+
         return outputWarning(
           `Quality gate: ${label} score ${score.value}/${score.max} ` +
             `(${normalized.toFixed(1)}/10) is below minimum ${threshold}/10. ` +

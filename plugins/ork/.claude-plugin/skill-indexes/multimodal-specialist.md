@@ -9,4 +9,4 @@
 |llm-integration:{SKILL.md,references/{dpo-alignment.md,lora-qlora.md,model-selection.md,synthetic-data.md,tool-schema.md,when-to-finetune.md}}|llm,function-calling,streaming,ollama,fine-tuning,lora,tool-use,local-inference
 |task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,cc-2.1.16,workflow,coordination
 |memory:{SKILL.md,references/{memory-commands.md,mermaid-patterns.md,session-resume-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
-|remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory
+|remember:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md}}|memory,decisions,patterns,best-practices,graph-memory

@@ -386,6 +386,6 @@ Read the specific file before advising. Do NOT rely on training data.
 |testing-perf:{SKILL.md,references/{custom-plugins.md,k6-patterns.md,xdist-parallel.md}}|testing,performance,k6,locust,pytest,load-testing,benchmarking
 |testing-integration:{SKILL.md,references/{consumer-tests.md,pact-broker.md,provider-verification.md,strategies-guide.md}}|testing,integration,contract,pact,property,zod,api
 |task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,cc-2.1.16,workflow,coordination
-|remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory
+|remember:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md}}|memory,decisions,patterns,best-practices,graph-memory
 |memory:{SKILL.md,references/{memory-commands.md,mermaid-patterns.md,session-resume-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
 ```

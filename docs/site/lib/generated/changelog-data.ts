@@ -17,6 +17,71 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.5.0",
+    "date": "2026-03-12",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**platform:** bump minimum Claude Code version from >= 2.1.73 to >= 2.1.74\n  - SessionEnd `hook.timeout` now respected (was hardcoded to 1.5s — hooks silently killed)\n  - New `CLAUDE_CODE_SESSIONEND_HOOKS_TIMEOUT_MS` env var for timeout override\n  - Managed policy `ask` rules now correctly override user `allow` + skill `allowed-tools`\n  - Full model IDs (`claude-opus-4-6`) accepted in agent frontmatter (symbolic names still recommended)\n  - `/context` command surfaces actionable optimization suggestions\n  - `autoMemoryDirectory` setting for custom auto-memory storage path\n  - `--plugin-dir` local overrides take precedence over marketplace plugins\n  - Streaming API + bash prefix caching memory leaks fixed",
+          "**skills:** update `compatibility` field to \"Claude Code 2.1.74+\" across 78 skills",
+          "**docs:** update version matrix with 12 new features (4 for 2.1.73, 8 for 2.1.74) and \"Full+++++\" compatibility level"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "7.4.0",
+    "date": "2026-03-11",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**platform:** bump minimum Claude Code version from >= 2.1.72 to >= 2.1.73\n  - Fixes skill-file deadlock on `git pull` (critical for 89-skill plugin)\n  - Fixes SessionStart hooks double-firing on `--resume`/`--continue`\n  - Fixes no-op system reminder injection (~2K tokens/turn recovered across 99 hooks)\n  - Opus 4.6 now default on Bedrock/Vertex/Foundry (6 opus-tier agents auto-upgrade)",
+          "**skills:** update `compatibility` field to \"Claude Code 2.1.73+\" across 78 skills",
+          "**docs:** update version matrix with 5 new 2.1.73 features and \"Full++++\" compatibility level"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**docs:** fix broken light mode on documentation site — split dark-only `@theme` into proper light/dark token sets following fumadocs convention (`@theme` for light defaults, `.dark {}` for dark overrides)"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "7.3.3",
+    "date": "2026-03-11",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**skills:** shared unified scoring framework in quality-gates for assess/verify",
+          "**skills:** 33 rule files across 12 skills (setup, implement, brainstorm, remember, help, audit-full, configure, errors, memory-fabric, release-management, scope-appropriate-architecture, testing-patterns)",
+          "**skills:** 12 `_sections.md` catalog files for new rule directories",
+          "**hooks:** task-existence-gate for task tracking enforcement in sync-task-dispatcher",
+          "**agents:** `background: true` on 8 read-only analysis agents"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**skills:** compress 12 bloated skills under 300 lines via reference extraction (setup, write-prd, code-review-playbook, zustand-patterns, release-management, vite-advanced, async-jobs, devops-deployment, audit-full, implement, react-server-components-framework, remember)"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**hooks:** improve subagent-quality-gate and unified-dispatcher"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.3.2",
     "date": "2026-03-11",
     "compareUrl": "",

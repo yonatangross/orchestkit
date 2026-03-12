@@ -1,7 +1,7 @@
 ---
 name: assess
 license: MIT
-compatibility: "Claude Code 2.1.72+. Requires memory MCP server."
+compatibility: "Claude Code 2.1.74+. Requires memory MCP server."
 description: "Assesses and rates quality 0-10 with pros/cons analysis. Use when evaluating code, designs, or approaches."
 context: fork
 version: 1.2.0
@@ -164,7 +164,7 @@ Load `Read("${CLAUDE_SKILL_DIR}/references/scope-discovery.md")` for the full fi
 
 ## Phase 2: Quality Rating (7 Dimensions)
 
-Rate each dimension 0-10 with weighted composite score. Load `Read("${CLAUDE_SKILL_DIR}/references/quality-model.md")` for dimensions, weights, and grade interpretation. Load `Read("${CLAUDE_SKILL_DIR}/references/scoring-rubric.md")` for per-dimension criteria.
+Rate each dimension 0-10 with weighted composite score. Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/quality-gates/references/unified-scoring-framework.md")` for dimensions, weights, grade interpretation, and per-dimension criteria. Load `Read("${CLAUDE_SKILL_DIR}/references/quality-model.md")` for assess-specific overrides.
 
 Load `Read("${CLAUDE_SKILL_DIR}/references/agent-spawn-definitions.md")` for Task Tool mode spawn patterns and Agent Teams alternative.
 
@@ -182,7 +182,7 @@ See also: `Read("${CLAUDE_SKILL_DIR}/references/alternative-analysis.md")` | `Re
 
 ## Grade Interpretation
 
-Load `Read("${CLAUDE_SKILL_DIR}/references/quality-model.md")` for scoring dimensions, weights, and grade interpretation.
+Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/quality-gates/references/unified-scoring-framework.md")` for grade thresholds and scoring criteria.
 
 ---
 

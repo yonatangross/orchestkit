@@ -79,40 +79,9 @@ Write(".claude/chain/state.json", JSON.stringify({
 
 **BEFORE any work**, detect the project tier. This becomes the complexity ceiling for all patterns.
 
-### Auto-Detection
+Scan codebase signals and classify into tiers 1-6 (Interview through Open Source). Each tier sets an architecture ceiling and determines which phases/agents to use.
 
-Scan codebase for signals: README keywords (take-home, interview), `.github/workflows/`, Dockerfile, terraform/, k8s/, CONTRIBUTING.md.
-
-### Tier Classification
-
-| Signal | Tier | Architecture Ceiling |
-|--------|------|---------------------|
-| README says "take-home", time limit | **1. Interview** (load `$\{CLAUDE_SKILL_DIR\}/references/interview-mode.md`) | Flat files, 8-15 files |
-| &lt; 10 files, no CI | **2. Hackathon** | Single file if possible |
-| `.github/workflows/`, managed DB | **3. MVP** | MVC monolith |
-| Module boundaries, Redis, queues | **4. Growth** | Modular monolith, DI |
-| K8s/Terraform, monorepo | **5. Enterprise** | Hexagonal/DDD |
-| CONTRIBUTING.md, LICENSE | **6. Open Source** | Minimal API, exhaustive tests |
-
-If confidence is low, use `AskUserQuestion` to ask the user. Pass detected tier to ALL downstream agents — see `scope-appropriate-architecture`.
-
-### Tier → Workflow Mapping
-
-| Tier | Phases | Max Agents |
-|------|--------|-----------|
-| 1. Interview | 1, 5 only | 2 |
-| 2. Hackathon | 5 only | 1 |
-| 3. MVP | 1-6, 9 | 3-4 |
-| 4-5. Growth/Enterprise | All 10 | 5-8 |
-| 6. Open Source | 1-7, 9-10 | 3-4 |
-
-Use `AskUserQuestion` to verify scope (full-stack / backend-only / frontend-only / prototype) and constraints.
-
-### Orchestration Mode
-
-- Agent Teams (mesh) when `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` and complexity >= 2.5
-- Task tool (star) otherwise; `ORCHESTKIT_FORCE_TASK_TOOL=1` to override
-- Load orchestration modes: `Read("$\{CLAUDE_SKILL_DIR\}/references/orchestration-modes.md")`
+Load tier details, workflow mapping, and orchestration mode: `Read("$\{CLAUDE_SKILL_DIR\}/references/tier-classification.md")`
 
 ### Worktree Isolation (CC 2.1.49)
 
@@ -233,34 +202,9 @@ Maintain checkpoints after each task. Load triggers: `Read("$\{CLAUDE_SKILL_DIR\
 
 ## Test Requirements Matrix
 
-Phase 5 test-generator MUST produce tests matching the change type:
+Phase 5 test-generator MUST produce tests matching the change type. Each change type maps to specific required tests and testing rules.
 
-| Change Type | Required Tests | Testing Rules |
-|-------------|---------------|--------------------------|
-| API endpoint | Unit + Integration + Contract | `integration-api`, `verification-contract`, `mocking-msw` |
-| DB schema/migration | Migration + Integration | `integration-database`, `data-seeding-cleanup` |
-| UI component | Unit + Snapshot + A11y | `unit-aaa-pattern`, `integration-component`, `a11y-testing`, `e2e-playwright` |
-| Business logic | Unit + Property-based | `unit-aaa-pattern`, `pytest-execution`, `verification-techniques` |
-| LLM/AI feature | Unit + Eval | `llm-evaluation`, `llm-mocking` |
-| Full-stack feature | All of the above | All matching rules |
-
-### Real-Service Detection (Phase 6)
-
-Before running integration tests, detect infrastructure:
-
-```python
-# Auto-detect real service testing capability (PARALLEL)
-Glob(pattern="**/docker-compose*.yml")
-Glob(pattern="**/testcontainers*")
-Grep(pattern="testcontainers|docker-compose", glob="requirements*.txt")
-Grep(pattern="testcontainers|docker-compose", glob="package.json")
-```
-
-If detected: run integration tests against real services, not just mocks. Reference `testing-integration` rules: `integration-database`, `integration-api`, `data-seeding-cleanup`.
-
-### Phase 9 Gate
-
-**Do NOT proceed to Phase 9 (Documentation) if test-generator produced 0 tests.** Return to Phase 5 and generate tests for the implemented code.
+Load test matrix, real-service detection, and phase 9 gate: `Read("$\{CLAUDE_SKILL_DIR\}/references/test-requirements-matrix.md")`
 
 ---
 
@@ -302,11 +246,403 @@ Load on demand with `Read("$\{CLAUDE_SKILL_DIR\}/references/&lt;file&gt;")`:
 | `worktree-workflow.md` | Git worktree workflow |
 | `e2e-verification.md` | Browser + API E2E testing guide |
 | `worktree-isolation-mode.md` | Worktree isolation details |
+| `tier-classification.md` | Tier classification, workflow mapping, orchestration mode |
+| `test-requirements-matrix.md` | Test matrix by change type, real-service detection, phase 9 gate |
 
 
 ---
 
-## References (14)
+## Rules (5)
+
+### Subagents must only modify files within their assigned scope — prevent cross-agent conflicts — HIGH
+
+
+## Agent Scope Containment
+
+Each subagent spawned in Phase 4-5 must receive an explicit file scope boundary in its prompt. Agents must NOT modify files outside their assigned scope. This prevents parallel agents from overwriting each other's work.
+
+### Problem
+
+Claude spawns parallel agents (backend, frontend, test-generator) without defining which files each agent owns. Two agents edit the same file — the last one to finish silently overwrites the first. This is especially dangerous without worktree isolation.
+
+### Scope Assignment
+
+Define non-overlapping scopes in Phase 2 (Micro-Planning):
+
+```python
+scopes = {
+    "backend-system-architect": {
+        "owns": ["src/api/", "src/services/", "src/models/"],
+        "reads": ["src/types/", "src/config/"],
+        "forbidden": ["src/components/", "src/pages/", "tests/"]
+    },
+    "frontend-ui-developer": {
+        "owns": ["src/components/", "src/pages/", "src/hooks/"],
+        "reads": ["src/types/", "src/api/client.ts"],
+        "forbidden": ["src/api/routes/", "src/services/", "src/models/"]
+    },
+    "test-generator": {
+        "owns": ["tests/", "__tests__/", "*.test.*", "*.spec.*"],
+        "reads": ["src/"],
+        "forbidden": []  # Can read everything, writes only to test dirs
+    }
+}
+```
+
+**Incorrect — no scope boundaries in agent prompts:**
+```python
+# Phase 5: Agents with overlapping scope
+Agent(subagent_type="backend-system-architect",
+  prompt="Implement the user auth feature",
+  run_in_background=True)
+Agent(subagent_type="frontend-ui-developer",
+  prompt="Implement the user auth feature",
+  run_in_background=True)
+# Both agents edit src/types/user.ts — last write wins, first is lost
+# Both create src/utils/validation.ts — silent overwrite
+```
+
+**Correct — explicit scope in every agent prompt:**
+```python
+# Phase 5: Agents with strict scope boundaries
+Agent(subagent_type="backend-system-architect",
+  prompt="""Implement backend for user auth.
+  YOUR SCOPE (only modify these): src/api/, src/services/, src/models/
+  SHARED TYPES (read-only): src/types/
+  DO NOT TOUCH: src/components/, src/pages/, tests/
+  If you need a shared type, create it in src/types/auth.types.ts""",
+  run_in_background=True)
+
+Agent(subagent_type="frontend-ui-developer",
+  prompt="""Implement frontend for user auth.
+  YOUR SCOPE (only modify these): src/components/, src/pages/, src/hooks/
+  SHARED TYPES (read-only): src/types/
+  DO NOT TOUCH: src/api/routes/, src/services/, src/models/
+  Import API client from src/api/client.ts — do not modify it""",
+  run_in_background=True)
+```
+
+### Shared File Protocol
+
+For files both agents need (e.g., shared types):
+
+1. Assign ONE agent as the owner of each shared file
+2. Other agents may only read it
+3. If both need to add types, use separate files: `auth.types.ts` (backend), `auth-ui.types.ts` (frontend)
+
+### Key Rules
+
+- Include explicit scope boundaries in every subagent prompt
+- Log scope assignments in `02-plan.json` handoff for traceability
+- After all agents complete, check for conflicting writes to the same file
+- Prefer worktree isolation (`isolation: "worktree"`) to eliminate conflicts entirely
+- If an agent violates scope, discard its out-of-scope changes and re-run
+
+
+### Commit after each logical milestone — never batch all commits to session end — HIGH
+
+
+## Commit After Milestone
+
+Commit working code after each logical unit of work completes. A "logical unit" is a phase that produces working, buildable output. Never accumulate changes across 3+ phases without committing.
+
+### Problem
+
+Claude batches all commits to the end of a session. If the session dies mid-implementation (rate limit, timeout, network), all work is lost. The implement skill runs 10 phases — losing phases 1-7 because the commit was planned for phase 10 is catastrophic.
+
+### Commit Points
+
+| After Phase | Commit? | Why |
+|-------------|---------|-----|
+| 2. Micro-Plan | Yes | Plan files are valuable context for resume |
+| 4. Architecture | Yes | Architecture decisions should survive crashes |
+| 5. Implementation | Yes | The bulk of new code — highest risk of loss |
+| 6. Integration Verified | Yes | Tests pass, safe checkpoint |
+| 8. E2E Verified | Yes | Full verification complete |
+| 10. Reflection | Yes | Final commit with docs and lessons |
+
+**Incorrect — one commit after all phases:**
+```bash
+# Phase 1-2: Discovery + Planning (no commit)
+# Phase 4: Architecture decided (no commit)
+# Phase 5: 15 files implemented (no commit)
+# Phase 6: Integration tests pass (no commit)
+# Phase 8: E2E tests pass (no commit)
+# --- rate limit hits here ---
+# All work lost. No commits exist.
+```
+
+**Correct — commit at each milestone:**
+```bash
+# After Phase 2:
+git add .claude/chain/02-plan.json src/docs/plan.md
+git commit -m "plan: user auth micro-plan and task breakdown"
+
+# After Phase 5:
+git add src/auth/ tests/auth/
+git commit -m "feat: implement user auth endpoints and tests"
+
+# After Phase 6:
+git add tests/integration/
+git commit -m "test: integration verification for user auth"
+
+# After Phase 8:
+git add tests/e2e/
+git commit -m "test: e2e verification for user auth flow"
+
+# After Phase 10:
+git add docs/ .claude/chain/
+git commit -m "docs: user auth reflection and lessons learned"
+```
+
+### Commit Message Format
+
+```
+<type>: <what was completed>
+
+Phase: <N> (<phase-name>)
+Tier: <detected-tier>
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+```
+
+### Key Rules
+
+- Never go more than 2 phases without a commit
+- Commit even if tests are not yet written — partial progress beats total loss
+- Use specific `git add &lt;files&gt;` instead of `git add -A` to avoid committing artifacts
+- If a phase fails, commit the passing phases first, then address the failure
+- Include phase number in commit messages for traceability during resume
+- Handoff JSON files (`.claude/chain/*.json`) should be committed alongside code
+
+
+### Block completion if new code has zero test coverage — tests are mandatory for every implementation — HIGH
+
+
+## Test Coverage Requirement
+
+Every task in Phase 5 must produce both implementation code AND matching tests. The test-generator agent is not optional — it runs in parallel with implementation agents and its output is required before Phase 6.
+
+### Problem
+
+Claude often treats tests as a "nice to have" and moves to integration/documentation phases without verifying that test-generator actually produced output. The Phase 9 gate catches this too late.
+
+### Per-Task Enforcement
+
+Each Phase 5 task must include a test verification step:
+
+```python
+# After each implementation agent completes:
+task_output = TaskOutput(task_id)
+
+# Check: does the output include test files?
+Grep(pattern="describe\\(|it\\(|test\\(|def test_", glob="**/*.test.*")
+Grep(pattern="def test_|class Test", glob="**/test_*.py")
+
+# If 0 matches for new code paths → BLOCK Phase 6 entry
+```
+
+**Incorrect — proceed without tests:**
+```python
+# Phase 5: Implementation
+Agent(subagent_type="backend-system-architect",
+  prompt="Implement user auth endpoints", run_in_background=True)
+Agent(subagent_type="frontend-ui-developer",
+  prompt="Implement login form", run_in_background=True)
+# No test-generator agent spawned
+# Phase 6: "Let's verify integration..." ← no tests exist to run
+```
+
+**Correct — tests are parallel and mandatory:**
+```python
+# Phase 5: Implementation + Tests (parallel)
+Agent(subagent_type="backend-system-architect",
+  prompt="Implement user auth endpoints", run_in_background=True)
+Agent(subagent_type="frontend-ui-developer",
+  prompt="Implement login form", run_in_background=True)
+Agent(subagent_type="test-generator",
+  prompt="Generate tests for user auth: unit tests for endpoints,
+  integration tests for auth flow, component tests for login form.
+  Change types: API endpoint + UI component (see Test Requirements Matrix)",
+  run_in_background=True)
+
+# GATE: Verify before Phase 6
+for agent in [backend, frontend, test_gen]:
+    output = TaskOutput(agent.task_id)
+
+if test_file_count == 0:
+    # DO NOT proceed — return to Phase 5
+    Agent(subagent_type="test-generator",
+      prompt="BLOCKED: No tests found. Generate tests for: {files_created}")
+```
+
+### Change Type to Test Mapping
+
+Always reference the Test Requirements Matrix from SKILL.md when spawning test-generator:
+
+| Change | Minimum Tests |
+|--------|--------------|
+| API endpoint | 1 unit + 1 integration |
+| DB migration | 1 migration test |
+| UI component | 1 unit + 1 snapshot |
+| Business logic | 2 unit tests |
+
+### Key Rules
+
+- Spawn test-generator in the same message as implementation agents
+- Verify test output before advancing to Phase 6
+- If test-generator fails, re-run it — do not skip
+- Include test file paths in the `05-implementation.json` handoff
+
+
+### Match implementation tier to assessed complexity — never over-engineer a simple task — HIGH
+
+
+## Tier Validation
+
+The tier detected in Step 0 sets a hard ceiling on architecture complexity. Every phase must respect this ceiling — especially Phase 4 (Architecture) and Phase 5 (Implementation).
+
+### Tier Ceilings
+
+| Tier | Max Patterns | Max Files | Forbidden |
+|------|-------------|-----------|-----------|
+| 1. Interview | Flat files, simple routes | 8-15 | DI containers, message queues, microservices |
+| 2. Hackathon | Single file if possible | 5-10 | Abstract factories, hexagonal layers |
+| 3. MVP | MVC monolith | 20-40 | CQRS, event sourcing, k8s manifests |
+| 4-5. Growth/Enterprise | Full patterns allowed | No limit | None |
+
+### Problem
+
+Claude defaults to enterprise-grade patterns regardless of project size. A take-home interview gets hexagonal architecture with ports/adapters when a flat Express app with 3 routes would score higher.
+
+**Incorrect — Tier 1 interview with enterprise architecture:**
+```python
+# Detected: Tier 1 (Interview, README says "take-home, 4-hour limit")
+# Phase 4 agent prompt:
+Agent(subagent_type="backend-system-architect",
+  prompt="Design hexagonal architecture with DI container, repository pattern,
+  CQRS for read/write separation, and event sourcing for the todo API")
+# Result: 35 files, 4 abstraction layers for a CRUD app
+```
+
+**Correct — Tier 1 interview with appropriate simplicity:**
+```python
+# Detected: Tier 1 (Interview, README says "take-home, 4-hour limit")
+# Phase 4 agent prompt:
+Agent(subagent_type="backend-system-architect",
+  prompt="Design a simple flat-file Express app for the todo API.
+  Tier: 1 (Interview). Max 10 files. No DI, no abstractions beyond MVC.
+  Focus: working code, clear tests, clean README.")
+# Result: 8 files, runs out of the box, easy to review
+```
+
+**Validation check — add to Phase 4 handoff:**
+```python
+# In 04-architecture.json handoff:
+{
+  "tier": 1,
+  "patterns_used": ["flat-routes", "single-db-file"],
+  "tier_ceiling_respected": true,
+  "justification": "Interview project — simplicity scores higher than abstraction"
+}
+# If patterns_used includes anything above the tier ceiling, STOP and simplify
+```
+
+### Key Rules
+
+- Always pass the detected tier to every subagent prompt explicitly
+- If a subagent produces output exceeding the tier ceiling, reject and re-run with stricter constraints
+- When in doubt, under-engineer — simpler code is easier to review and extend
+- Tier upgrades require explicit user confirmation via `AskUserQuestion`
+
+
+### Always ExitWorktree after implementation — never leave orphaned worktrees — HIGH
+
+
+## Worktree Cleanup
+
+When the implement skill uses `EnterWorktree` for isolation, it MUST call `ExitWorktree` before completing — regardless of success or failure. Orphaned worktrees block future git operations and leak disk space.
+
+### Problem
+
+Claude enters a worktree for isolation but forgets to exit when the implementation finishes, errors out, or gets interrupted. The worktree directory and its lock file persist, causing `git worktree add` failures in the next session.
+
+**Incorrect — enter worktree, finish, but never exit:**
+```python
+# Phase 3: Enter worktree
+EnterWorktree(name="feat-user-auth")
+
+# Phase 5: Implementation agents run in worktree
+Agent(subagent_type="backend-system-architect", prompt="Implement auth...")
+
+# Phase 9: Documentation
+# "Done! Here's what was implemented..."
+# ← MISSING: ExitWorktree never called
+# Next session: "fatal: 'feat-user-auth' is already checked out"
+```
+
+**Correct — exit worktree in all code paths:**
+```python
+# Phase 3: Enter worktree
+EnterWorktree(name="feat-user-auth")
+
+# Phase 5-8: Implementation, verification, testing...
+# (all work happens in worktree)
+
+# Phase 9: Before documentation, merge and exit
+Bash("git add -A && git commit -m 'feat: user auth implementation'")
+ExitWorktree()  # Merges back to original branch and removes worktree
+
+# Phase 10: Reflection (back in main working tree)
+```
+
+**Correct — exit worktree even on failure:**
+```python
+# Phase 3: Enter worktree
+EnterWorktree(name="feat-user-auth")
+worktree_active = True
+
+# Phase 5: Implementation fails
+try:
+    Agent(subagent_type="backend-system-architect", prompt="...")
+except:
+    # STILL clean up the worktree
+    if worktree_active:
+        Bash("git stash")  # Save partial work
+        ExitWorktree()
+        worktree_active = False
+    raise
+
+# Normal exit path
+if worktree_active:
+    ExitWorktree()
+```
+
+### Verification
+
+After `ExitWorktree`, confirm cleanup:
+
+```bash
+# Should NOT list the feature worktree
+git worktree list
+# Expected: only the main worktree
+# /path/to/repo  abc1234 [main]
+```
+
+### Key Rules
+
+- Every `EnterWorktree` must have a matching `ExitWorktree`
+- Call `ExitWorktree` BEFORE Phase 10 (Reflection) so reflection runs in the main tree
+- On error or early exit, still call `ExitWorktree` to prevent orphaning
+- If resuming a session that has an active worktree, check `git worktree list` first
+- Never assume the worktree will be cleaned up by a future session
+- Include worktree status in handoff JSON: `"worktree_active": false` after cleanup
+
+
+
+---
+
+## References (16)
 
 ### Agent Phases
 
@@ -342,7 +678,7 @@ All 5 agents launch in ONE message with `run_in_background=true`.
 ```python
 Agent(
   subagent_type="workflow-architect",
-  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   ARCHITECTURE PLANNING — SINGLE-PASS OUTPUT
 
   Produce a COMPLETE implementation roadmap in one response:
@@ -380,7 +716,7 @@ Agent(
 ```python
 Agent(
   subagent_type="backend-system-architect",
-  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   COMPLETE BACKEND ARCHITECTURE — SINGLE PASS
 
   Standards: FastAPI, Pydantic v2, async/await, SQLAlchemy 2.0
@@ -406,7 +742,7 @@ Agent(
 ```python
 Agent(
   subagent_type="frontend-ui-developer",
-  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   COMPLETE FRONTEND ARCHITECTURE — SINGLE PASS
 
   Standards: React 19, TypeScript strict, Zod, TanStack Query
@@ -433,7 +769,7 @@ Agent(
 ```python
 Agent(
   subagent_type="llm-integrator",
-  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   AI/ML INTEGRATION ANALYSIS — SINGLE PASS
 
   Evaluate and design AI integration in one response:
@@ -471,7 +807,7 @@ All 5 agents launch in ONE message with `run_in_background=true`.
 ```python
 Agent(
   subagent_type="backend-system-architect",
-  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   IMPLEMENT COMPLETE BACKEND — SINGLE PASS (128K output)
 
   Generate ALL backend code in ONE response:
@@ -512,7 +848,7 @@ Agent(
 ```python
 Agent(
   subagent_type="frontend-ui-developer",
-  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   IMPLEMENT COMPLETE FRONTEND — SINGLE PASS (128K output)
 
   Generate ALL frontend code in ONE response:
@@ -557,7 +893,7 @@ Agent(
 ```python
 Agent(
   subagent_type="llm-integrator",
-  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   IMPLEMENT AI INTEGRATION — SINGLE PASS (128K output)
 
   Generate ALL AI integration code in ONE response:
@@ -583,7 +919,7 @@ Agent(
 ```python
 Agent(
   subagent_type="test-generator",
-  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   GENERATE COMPLETE TEST SUITE — SINGLE PASS (128K output)
 
   IMPORTANT: Match test types to change type using the Test Requirements Matrix:
@@ -1974,6 +2310,122 @@ After all teammates complete:
 - [ ] Integration tests pass on merged branch
 - [ ] Worktrees removed
 - [ ] Role branches deleted
+
+
+### Test Requirements Matrix
+
+# Test Requirements Matrix
+
+Phase 5 test-generator MUST produce tests matching the change type.
+
+## Required Tests by Change Type
+
+| Change Type | Required Tests | Testing Rules |
+|-------------|---------------|--------------------------|
+| API endpoint | Unit + Integration + Contract | `integration-api`, `verification-contract`, `mocking-msw` |
+| DB schema/migration | Migration + Integration | `integration-database`, `data-seeding-cleanup` |
+| UI component | Unit + Snapshot + A11y | `unit-aaa-pattern`, `integration-component`, `a11y-testing`, `e2e-playwright` |
+| Business logic | Unit + Property-based | `unit-aaa-pattern`, `pytest-execution`, `verification-techniques` |
+| LLM/AI feature | Unit + Eval | `llm-evaluation`, `llm-mocking` |
+| Full-stack feature | All of the above | All matching rules |
+
+## Real-Service Detection (Phase 6)
+
+Before running integration tests, detect infrastructure:
+
+```python
+# Auto-detect real service testing capability (PARALLEL)
+Glob(pattern="**/docker-compose*.yml")
+Glob(pattern="**/testcontainers*")
+Grep(pattern="testcontainers|docker-compose", glob="requirements*.txt")
+Grep(pattern="testcontainers|docker-compose", glob="package.json")
+```
+
+If detected: run integration tests against real services, not just mocks. Reference `testing-integration` rules: `integration-database`, `integration-api`, `data-seeding-cleanup`.
+
+## Phase 9 Gate
+
+**Do NOT proceed to Phase 9 (Documentation) if test-generator produced 0 tests.** Return to Phase 5 and generate tests for the implemented code.
+
+## Test Coverage Expectations
+
+| Tier | Minimum Coverage | Notes |
+|------|-----------------|-------|
+| 1. Interview | Happy path only | Focus on correctness, not coverage |
+| 2. Hackathon | None required | Tests are bonus |
+| 3. MVP | Unit + 1 integration | Cover critical paths |
+| 4-5. Growth/Enterprise | Unit + integration + e2e | Full matrix above applies |
+| 6. Open Source | Exhaustive | Every public API must have tests |
+
+## Test Runner Detection
+
+```python
+# Detect test framework (PARALLEL)
+Glob(pattern="**/jest.config*")
+Glob(pattern="**/vitest.config*")
+Glob(pattern="**/pytest.ini")
+Glob(pattern="**/pyproject.toml")
+Grep(pattern="\"test\":", glob="package.json")
+```
+
+Use the detected runner for all generated tests. Do not introduce a new test framework unless the project has none.
+
+
+### Tier Classification
+
+# Tier Classification & Workflow Mapping
+
+Project complexity tiers determine architecture ceilings and workflow phases.
+
+## Auto-Detection Signals
+
+Scan codebase for: README keywords (take-home, interview), `.github/workflows/`, Dockerfile, terraform/, k8s/, CONTRIBUTING.md.
+
+## Tier Classification
+
+| Signal | Tier | Architecture Ceiling |
+|--------|------|---------------------|
+| README says "take-home", time limit | **1. Interview** (load `$\{CLAUDE_SKILL_DIR\}/references/interview-mode.md`) | Flat files, 8-15 files |
+| &lt; 10 files, no CI | **2. Hackathon** | Single file if possible |
+| `.github/workflows/`, managed DB | **3. MVP** | MVC monolith |
+| Module boundaries, Redis, queues | **4. Growth** | Modular monolith, DI |
+| K8s/Terraform, monorepo | **5. Enterprise** | Hexagonal/DDD |
+| CONTRIBUTING.md, LICENSE | **6. Open Source** | Minimal API, exhaustive tests |
+
+If confidence is low, use `AskUserQuestion` to ask the user. Pass detected tier to ALL downstream agents — see `scope-appropriate-architecture`.
+
+## Tier → Workflow Mapping
+
+| Tier | Phases | Max Agents |
+|------|--------|-----------|
+| 1. Interview | 1, 5 only | 2 |
+| 2. Hackathon | 5 only | 1 |
+| 3. MVP | 1-6, 9 | 3-4 |
+| 4-5. Growth/Enterprise | All 10 | 5-8 |
+| 6. Open Source | 1-7, 9-10 | 3-4 |
+
+Use `AskUserQuestion` to verify scope (full-stack / backend-only / frontend-only / prototype) and constraints.
+
+## Orchestration Mode
+
+- Agent Teams (mesh) when `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` and complexity >= 2.5
+- Task tool (star) otherwise; `ORCHESTKIT_FORCE_TASK_TOOL=1` to override
+- Load orchestration modes: `Read("$\{CLAUDE_SKILL_DIR\}/references/orchestration-modes.md")`
+
+## Tier Override
+
+When auto-detection is ambiguous (e.g., a monorepo with no CI yet), prefer the **lower** tier to avoid over-engineering. The user can always escalate.
+
+Manual override example:
+```
+AskUserQuestion(questions=[{
+  "question": "Detected signals for both MVP and Growth. Which tier fits best?",
+  "options": [
+    {"label": "3. MVP", "description": "MVC monolith, 3-4 agents"},
+    {"label": "4. Growth", "description": "Modular monolith with DI, up to 8 agents"}
+  ]
+}])
+```
 
 
 ### Worktree Isolation Mode

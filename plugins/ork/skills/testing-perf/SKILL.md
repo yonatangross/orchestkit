@@ -1,7 +1,7 @@
 ---
 name: testing-perf
 license: MIT
-compatibility: "Claude Code 2.1.72+."
+compatibility: "Claude Code 2.1.74+."
 description: Performance and load testing patterns — k6 load tests, Locust stress tests, pytest execution optimization (xdist parallel, plugins), test type classification, and performance benchmarking. Use when writing load tests, optimizing test execution speed, or setting up pytest infrastructure.
 tags: [testing, performance, k6, locust, pytest, load-testing, benchmarking]
 context: fork

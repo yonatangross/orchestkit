@@ -30,7 +30,7 @@ All 5 agents launch in ONE message with `run_in_background=true`.
 ```python
 Agent(
   subagent_type="workflow-architect",
-  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   ARCHITECTURE PLANNING — SINGLE-PASS OUTPUT
 
   Produce a COMPLETE implementation roadmap in one response:
@@ -68,7 +68,7 @@ Agent(
 ```python
 Agent(
   subagent_type="backend-system-architect",
-  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   COMPLETE BACKEND ARCHITECTURE — SINGLE PASS
 
   Standards: FastAPI, Pydantic v2, async/await, SQLAlchemy 2.0
@@ -94,7 +94,7 @@ Agent(
 ```python
 Agent(
   subagent_type="frontend-ui-developer",
-  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   COMPLETE FRONTEND ARCHITECTURE — SINGLE PASS
 
   Standards: React 19, TypeScript strict, Zod, TanStack Query
@@ -121,7 +121,7 @@ Agent(
 ```python
 Agent(
   subagent_type="llm-integrator",
-  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   AI/ML INTEGRATION ANALYSIS — SINGLE PASS
 
   Evaluate and design AI integration in one response:
@@ -159,7 +159,7 @@ All 5 agents launch in ONE message with `run_in_background=true`.
 ```python
 Agent(
   subagent_type="backend-system-architect",
-  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   IMPLEMENT COMPLETE BACKEND — SINGLE PASS (128K output)
 
   Generate ALL backend code in ONE response:
@@ -200,7 +200,7 @@ Agent(
 ```python
 Agent(
   subagent_type="frontend-ui-developer",
-  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   IMPLEMENT COMPLETE FRONTEND — SINGLE PASS (128K output)
 
   Generate ALL frontend code in ONE response:
@@ -245,7 +245,7 @@ Agent(
 ```python
 Agent(
   subagent_type="llm-integrator",
-  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   IMPLEMENT AI INTEGRATION — SINGLE PASS (128K output)
 
   Generate ALL AI integration code in ONE response:
@@ -271,7 +271,7 @@ Agent(
 ```python
 Agent(
   subagent_type="test-generator",
-  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   GENERATE COMPLETE TEST SUITE — SINGLE PASS (128K output)
 
   IMPORTANT: Match test types to change type using the Test Requirements Matrix:

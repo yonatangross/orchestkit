@@ -1,7 +1,7 @@
 ---
 name: code-review-playbook
 license: MIT
-compatibility: "Claude Code 2.1.72+."
+compatibility: "Claude Code 2.1.74+."
 description: Use this skill when conducting or improving code reviews. Provides structured review processes, conventional comments patterns, language-specific checklists, and feedback templates. Use when reviewing PRs or standardizing review practices.
 version: 2.0.0
 author: AI Agent Hub
@@ -80,106 +80,15 @@ Code reviews serve multiple purposes:
 
 ## Conventional Comments
 
-A standardized format for review comments that makes intent clear.
-
-### Format
-
 ```
-<label> [decorations]: <subject>
-
-[discussion]
-```
-
-### Labels
-
-| Label | Meaning | Blocks Merge? |
-|-------|---------|---------------|
-| **praise** | Highlight something positive | No |
-| **nitpick** | Minor, optional suggestion | No |
-| **suggestion** | Propose an improvement | No |
-| **issue** | Problem that should be addressed | Usually |
-| **question** | Request clarification | No |
-| **thought** | Idea to consider | No |
-| **chore** | Routine task (formatting, deps) | No |
-| **note** | Informational comment | No |
-| **todo** | Follow-up work needed | Maybe |
-| **security** | Security concern | **Yes** |
-| **bug** | Potential bug | **Yes** |
-| **breaking** | Breaking change | **Yes** |
-
-### Decorations
-
-Optional modifiers in square brackets:
-
-| Decoration | Meaning |
-|------------|---------|
-| **[blocking]** | Must be addressed before merge |
-| **[non-blocking]** | Optional, can be deferred |
-| **[if-minor]** | Only if it's a quick fix |
-
-### Examples
-
-```typescript
-// ✅ Good: Clear, specific, actionable
-
-praise: Excellent use of TypeScript generics here!
-
-This makes the function much more reusable while maintaining type safety.
-
----
-
-nitpick [non-blocking]: Consider using const instead of let
-
-This variable is never reassigned, so `const` would be more appropriate:
-```typescript
-const MAX_RETRIES = 3;
-```
-
----
-
-issue: Missing error handling for API call
-
-If the API returns a 500 error, this will crash the application.
-Add a try/catch block:
-```typescript
-try {
-  const data = await fetchUser(userId);
-  // ...
-} catch (error) {
-  logger.error('Failed to fetch user', { userId, error });
-  throw new UserNotFoundError(userId);
-}
-```
-
----
-
-question: Why use a Map instead of an object here?
-
-Is there a specific reason for this data structure choice?
-If it's for performance, could you add a comment explaining?
-
----
+issue [blocking]: Missing error handling for API call
+If the API returns a 500 error, this will crash. Add try/catch.
 
 security [blocking]: API endpoint is not authenticated
-
-The `/api/admin/users` endpoint is missing authentication middleware.
-This allows unauthenticated access to sensitive user data.
-
-Add the auth middleware:
-```typescript
-router.get('/api/admin/users', requireAdmin, getUsers);
+The /api/admin/users endpoint is missing auth middleware.
 ```
 
----
-
-suggestion [if-minor]: Extract magic number to named constant
-
-Consider extracting this value:
-```typescript
-const CACHE_TTL_SECONDS = 3600;
-cache.set(key, value, CACHE_TTL_SECONDS);
-```
-```
+Load `Read("${CLAUDE_SKILL_DIR}/references/conventional-comments.md")` for the full format, labels (praise, nitpick, suggestion, issue, question, security, bug, breaking), decorations ([blocking], [non-blocking], [if-minor]), and examples.
 
 ---
 
@@ -302,42 +211,6 @@ cache.set(key, value, CACHE_TTL_SECONDS);
 - `ork:architecture-patterns` - Enforce testing and architectural best practices during code review
 - `security-scanning` - Automated security checks to complement manual review
 - `ork:testing-unit` - Unit testing patterns to verify during review
-
-## Capability Details
-
-### review-process
-**Keywords:** code review, pr review, review process, feedback
-**Solves:**
-- How to review PRs
-- Conventional comments format
-- Review best practices
-
-### quality-checks
-**Keywords:** readability, solid, dry, complexity, naming
-**Solves:**
-- Check code quality
-- SOLID principles review
-- Cyclomatic complexity
-
-### security-review
-**Keywords:** security, authentication, authorization, injection, xss
-**Solves:**
-- Security review checklist
-- Find vulnerabilities
-- Auth validation
-
-### language-specific
-**Keywords:** typescript, python, type hints, async await, pep8
-**Solves:**
-- TypeScript review
-- Python review
-- Language-specific patterns
-
-### pr-template
-**Keywords:** pr template, pull request, description
-**Solves:**
-- PR description format
-- Review checklist
 
 ## Rules
 

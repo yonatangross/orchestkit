@@ -89,7 +89,7 @@ The lead reviewer collects all agent JSON outputs, deduplicates by file+line+cat
 Agent(
   description="Review code quality",
   subagent_type="code-quality-reviewer",
-  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   CODE QUALITY REVIEW
 
   ## Project Context
@@ -116,7 +116,7 @@ Agent(
 Agent(
   description="Review type safety",
   subagent_type="code-quality-reviewer",
-  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   TYPE SAFETY REVIEW
 
   ## Project Context
@@ -143,7 +143,7 @@ Agent(
 Agent(
   description="Security audit PR",
   subagent_type="security-auditor",
-  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   SECURITY REVIEW
 
   ## Project Context
@@ -173,7 +173,7 @@ Agent(
 Agent(
   description="Review test adequacy",
   subagent_type="test-generator",
-  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   TEST ADEQUACY REVIEW
 
   Evaluate whether this PR has sufficient tests:
@@ -219,7 +219,7 @@ Agent(
 Agent(
   description="Review backend code",
   subagent_type="backend-system-architect",
-  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   BACKEND REVIEW
 
   ## Project Context
@@ -248,7 +248,7 @@ Agent(
 Agent(
   description="Review frontend code",
   subagent_type="frontend-ui-developer",
-  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   FRONTEND REVIEW
 
   ## Project Context

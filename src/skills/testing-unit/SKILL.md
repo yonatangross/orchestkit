@@ -1,7 +1,7 @@
 ---
 name: testing-unit
 license: MIT
-compatibility: "Claude Code 2.1.72+."
+compatibility: "Claude Code 2.1.74+."
 description: Unit testing patterns for isolated business logic tests — AAA pattern, parametrized tests, fixture scoping, mocking with MSW/VCR, and test data management with factories and fixtures. Use when writing unit tests, setting up mocks, or managing test data.
 tags: [testing, unit, mocking, msw, vcr, fixtures, factories]
 context: fork

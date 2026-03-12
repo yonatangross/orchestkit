@@ -37,6 +37,7 @@ hooks:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs agent/restrict-bash"
 mcpServers: [context7]
+background: true
 ---
 ## Directive
 Review code for bugs, security issues, performance problems, and ensure test coverage meets standards through automated tooling and manual pattern verification.

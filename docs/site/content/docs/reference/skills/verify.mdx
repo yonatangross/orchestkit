@@ -192,7 +192,7 @@ Load details: `Read("$\{CLAUDE_SKILL_DIR\}/references/visual-capture.md")` (Phas
 
 ## Grading & Scoring
 
-Load details: `Read("$\{CLAUDE_SKILL_DIR\}/rules/scoring-rubric.md")` for composite formula, grade thresholds, verdict criteria, and blocking rules. Load details: `Read("$\{CLAUDE_SKILL_DIR\}/references/quality-model.md")` for dimension weights. Load details: `Read("$\{CLAUDE_SKILL_DIR\}/references/grading-rubric.md")` for per-agent scoring criteria.
+Load `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/quality-gates/references/unified-scoring-framework.md")` for dimensions, weights, grade thresholds, and improvement prioritization. Load `Read("$\{CLAUDE_SKILL_DIR\}/references/quality-model.md")` for verify-specific extensions (Visual dimension). Load `Read("$\{CLAUDE_SKILL_DIR\}/references/grading-rubric.md")` for per-agent scoring criteria.
 
 ---
 
@@ -789,101 +789,38 @@ Multiple policies: `.claude/policies/\{name\}-policy.yaml`
 
 ### Quality Model
 
-&lt;!-- SHARED BASE: assess has 7 dimensions, verify extends with Visual (8th). Keep base dimensions in sync with ../../../assess/references/quality-model.md --&gt;
-# Quality Model
+# Quality Model (verify)
 
-Canonical scoring reference for assess and verify skills. Defines unified dimensions, weights, grade thresholds, and improvement prioritization.
+Extends the unified scoring framework with Visual as the 8th dimension.
 
-## Scoring Dimensions (8 Unified)
+> **Canonical source**: `quality-gates/references/unified-scoring-framework.md`
+> Load: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/quality-gates/references/unified-scoring-framework.md")`
+
+## verify-Specific Extensions
+
+### Visual Dimension (8th)
 
 | Dimension | Weight | What It Measures |
 |-----------|--------|------------------|
-| Correctness | 0.14 | Does it work correctly? Functional accuracy, edge cases handled |
-| Maintainability | 0.14 | Easy to understand and modify? Readability, complexity, patterns |
-| Performance | 0.11 | Efficient execution? No bottlenecks, resource usage, latency |
-| Security | 0.18 | Follows security best practices? OWASP, secrets, CVEs, input validation |
-| Scalability | 0.09 | Handles growth? Load patterns, data volume, horizontal scaling |
-| Testability | 0.12 | Easy to test? Coverage, test quality, isolation, mocking |
-| Compliance | 0.12 | Meets API and UI contracts? Conditional on scope (see below) |
-| Visual | 0.10 | Does the UI look correct? Layout, accessibility, content completeness |
+| Visual | 0.10 | Layout correctness, a11y, content completeness, responsiveness |
 
-**Total: 1.00**
+When Visual is active, base dimensions scale: `adjusted = base_weight * (1.0 / 1.10)`.
+When Visual is skipped (API-only), base weights stay at 1.00.
 
-### Visual Dimension — Scope Rules
+## Dimensions Used (with Visual)
 
-Visual weight (0.10) applies conditionally:
+| Dimension | Adjusted Weight |
+|-----------|----------------|
+| Correctness | 0.14 |
+| Maintainability | 0.14 |
+| Performance | 0.11 |
+| Security | 0.18 |
+| Scalability | 0.09 |
+| Testability | 0.12 |
+| Compliance | 0.12 |
+| Visual | 0.10 |
 
-| Scope | Visual Covers | Weight Redistribution |
-|-------|---------------|----------------------|
-| Has frontend | AI vision evaluation of screenshots: layout, a11y, content | Full 0.10 |
-| API-only / no frontend | **Skipped** — weight redistributed proportionally to other 7 dimensions | 0.00 (others scaled up) |
-
-When visual is skipped, multiply each remaining dimension's weight by `1.0 / 0.90` to maintain total = 1.00.
-
-### Compliance Dimension — Scope Rules
-
-Compliance weight (0.12) applies differently based on project scope:
-
-| Scope | Compliance Covers |
-|-------|-------------------|
-| Backend-only | API compliance (contracts, schema validation, versioning) |
-| Frontend-only | UI compliance (design system, a11y, responsive) |
-| Full-stack | API + UI compliance (split evenly: 0.06 each) |
-
-## Composite Score
-
-```
-composite = sum(dimension_score * weight for each dimension)
-```
-
-Each dimension is scored **0-10** with decimal precision. Composite is also 0-10.
-
-## Grade Thresholds
-
-| Score | Grade | Verdict | Action |
-|-------|-------|---------|--------|
-| 9.0-10.0 | A+ | EXCELLENT | Ship it! |
-| 8.0-8.9 | A | GOOD | Ready for merge |
-| 7.0-7.9 | B | GOOD | Minor improvements optional |
-| 6.0-6.9 | C | ADEQUATE | Consider improvements |
-| 5.0-5.9 | D | NEEDS WORK | Improvements recommended |
-| 0.0-4.9 | F | CRITICAL | Do not merge |
-
-## Improvement Prioritization
-
-### Effort Scale (1-5)
-
-| Points | Effort | Description |
-|--------|--------|-------------|
-| 1 | Trivial | &lt; 15 minutes, single file change |
-| 2 | Low | 15-60 minutes, few files |
-| 3 | Medium | 1-4 hours, moderate scope |
-| 4 | High | 4-8 hours, significant refactoring |
-| 5 | Major | 1+ days, architectural change |
-
-### Impact Scale (1-5)
-
-| Points | Impact | Description |
-|--------|--------|-------------|
-| 1 | Minimal | Cosmetic, no functional change |
-| 2 | Low | Minor improvement, limited scope |
-| 3 | Medium | Noticeable quality improvement |
-| 4 | High | Significant quality or security gain |
-| 5 | Critical | Blocks shipping or fixes major vulnerability |
-
-### Priority Formula
-
-```
-priority = impact / effort
-```
-
-Higher ratio = do first.
-
-### Quick Wins
-
-**Effort &lt;= 2 AND Impact &gt;= 4**
-
-Always highlight quick wins at the top of improvement suggestions. These are high-value changes that can be done fast.
+See unified framework for grade thresholds, improvement prioritization, effort/impact scales, and blocking rules.
 
 
 ### Report Template

@@ -50,6 +50,7 @@ HOOK_SECURITY_*.txt
 .claude/session/*
 !.claude/session/.gitkeep
 .claude/context/handoffs/
+.claude/HANDOFF.md
 .claude/context/quality_gate_review_evidence.json
 .claude/context/verification-queue/
 
@@ -150,6 +151,7 @@ viral-posts/09-security-validation.md
 viral-posts/10-zero-config.md
 viral-posts/README.md
 tests/skills/functional/results/
+tests/evals/results/
 
 # Playground prototypes (design artifacts, not shipped)
 playground-*.html

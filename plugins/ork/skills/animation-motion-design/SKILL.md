@@ -1,7 +1,7 @@
 ---
 name: animation-motion-design
 license: MIT
-compatibility: "Claude Code 2.1.72+."
+compatibility: "Claude Code 2.1.74+."
 description: Animation and motion design patterns using Motion library (formerly Framer Motion) and View Transitions API. Use when implementing component animations, page transitions, micro-interactions, gesture-driven UIs, or ensuring motion accessibility with prefers-reduced-motion.
 tags: [animation, motion, framer-motion, view-transitions, micro-interactions, gestures, layout-animation, AnimatePresence, prefers-reduced-motion, spring-physics]
 context: fork

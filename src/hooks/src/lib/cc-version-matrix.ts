@@ -7,7 +7,7 @@
  * Keep in sync with: src/skills/doctor/references/version-compatibility.md
  */
 
-export const MIN_CC_VERSION = '2.1.72';
+export const MIN_CC_VERSION = '2.1.74';
 
 export interface CCFeatureEntry {
   readonly feature: string;
@@ -87,6 +87,20 @@ export const CC_FEATURE_MATRIX: readonly CCFeatureEntry[] = [
   { feature: 'prompt_cache_12x',      minVersion: '2.1.72', description: 'SDK query() prompt cache fix reduces input token costs up to 12x' },
   { feature: 'bash_process_tools',    minVersion: '2.1.72', description: 'lsof, pgrep, tput, ss, fd, fdfind added to bash auto-approval' },
   { feature: 'uri_handler',           minVersion: '2.1.72', description: 'vscode://anthropic.claude-code/open URI handler for programmatic sessions' },
+  // 2.1.73
+  { feature: 'skill_file_deadlock_fix', minVersion: '2.1.73', description: 'Fixes skill-file deadlock on git pull with large plugins' },
+  { feature: 'session_start_dedup',   minVersion: '2.1.73', description: 'SessionStart hooks fire exactly once on --resume/--continue' },
+  { feature: 'noop_reminder_fix',     minVersion: '2.1.73', description: 'No-op system reminder injection suppressed (~2K tokens/turn recovered)' },
+  { feature: 'opus_46_cloud_default', minVersion: '2.1.73', description: 'Opus 4.6 default on Bedrock/Vertex/Foundry cloud providers' },
+  // 2.1.74
+  { feature: 'context_optimization_hints', minVersion: '2.1.74', description: '/context surfaces actionable optimization suggestions' },
+  { feature: 'auto_memory_directory',     minVersion: '2.1.74', description: 'autoMemoryDirectory setting for custom auto-memory storage path' },
+  { feature: 'session_end_timeout_fix',   minVersion: '2.1.74', description: 'SessionEnd hook.timeout now respected (was hardcoded 1.5s)' },
+  { feature: 'session_end_timeout_env',   minVersion: '2.1.74', description: 'CLAUDE_CODE_SESSIONEND_HOOKS_TIMEOUT_MS env var for SessionEnd timeout' },
+  { feature: 'plugin_dir_precedence',     minVersion: '2.1.74', description: '--plugin-dir local overrides take precedence over marketplace plugins' },
+  { feature: 'full_model_ids_agent',      minVersion: '2.1.74', description: 'Full model IDs (claude-opus-4-6) accepted in agent frontmatter' },
+  { feature: 'managed_policy_precedence', minVersion: '2.1.74', description: 'Managed policy ask rules override user allow + skill allowed-tools' },
+  { feature: 'streaming_memory_fix',      minVersion: '2.1.74', description: 'Streaming API response buffer + bash prefix caching memory leaks fixed' },
 ] as const;
 
 export type CCFeature = typeof CC_FEATURE_MATRIX[number]['feature'];

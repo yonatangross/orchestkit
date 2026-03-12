@@ -1,7 +1,7 @@
 ---
 name: quality-gates
 license: MIT
-compatibility: "Claude Code 2.1.72+."
+compatibility: "Claude Code 2.1.74+."
 description: Use when assessing task complexity, before starting complex tasks, when stuck after multiple attempts, or reviewing code against best practices. Provides quality-gates scoring (1-5), escalation workflows, and pattern library management.
 context: fork
 agent: code-quality-reviewer
@@ -224,18 +224,6 @@ Track success/failure patterns across projects to prevent repeating mistakes and
 | Proceed when BLOCKED | Build wrong solution | NEVER bypass BLOCKED gates |
 
 ---
-
-## Version History
-
-**v1.3.0** - Added YAGNI gate as Step 0 in gate flow, justified complexity ratio (BLOCK > 2.0, WARN 1.5-2.0), scope-appropriate-architecture integration
-
-**v1.1.0** - Added LLM-as-judge quality validation, retry logic, graceful degradation, triple-consumer artifact design
-
-**v1.0.0** - Initial release with complexity scoring, blocking thresholds, stuck detection, requirements checks
-
----
-
-**Remember:** Quality gates prevent wasted work. Better to ask questions upfront than to build the wrong solution. When in doubt, BLOCK and escalate.
 
 ---
 

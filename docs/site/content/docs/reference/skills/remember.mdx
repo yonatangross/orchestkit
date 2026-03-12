@@ -121,155 +121,17 @@ If outcome is "failed", look for:
 - "should have", "instead use", "better to"
 - If not found, prompt user: "What should be done instead?"
 
-### 4. Extract Entities from Text
+### 4-6. Extract Entities and Create Graph
 
-**Step A: Detect entities:**
+Extract entities (Technology, Agent, Pattern, Project, AntiPattern) from the text, detect relationship patterns ("X uses Y", "chose X over Y", etc.), then create entities and relations in the knowledge graph.
 
-```
-1. Find capitalized terms (PostgreSQL, React, FastAPI)
-2. Find agent names (database-engineer, backend-system-architect)
-3. Find pattern names (cursor-pagination, connection-pooling)
-4. Find technology keywords (pgvector, HNSW, RAG)
-```
-
-**Step B: Detect relationship patterns:**
-
-| Pattern | Relation Type |
-|---------|--------------|
-| "X uses Y" | USES |
-| "X recommends Y" | RECOMMENDS |
-| "X requires Y" | REQUIRES |
-| "X enables Y" | ENABLES |
-| "X prefers Y" | PREFERS |
-| "chose X over Y" | CHOSE_OVER |
-| "X for Y" | USED_FOR |
-
-### 5. Create Graph Entities (PRIMARY)
-
-Use `mcp__memory__create_entities`:
-
-```json
-{
-  "entities": [
-    {
-      "name": "pgvector",
-      "entityType": "Technology",
-      "observations": ["Used for vector search", "From remember: '{original text}'"]
-    },
-    {
-      "name": "database-engineer",
-      "entityType": "Agent",
-      "observations": ["Recommends pgvector for RAG"]
-    }
-  ]
-}
-```
-
-**Entity Type Assignment:**
-- Capitalized single words ending in common suffixes: Technology (PostgreSQL, FastAPI)
-- Words with hyphens matching agent pattern: Agent (database-engineer)
-- Words with hyphens matching pattern names: Pattern (cursor-pagination)
-- Project context: Project (current project name)
-- Failed patterns: AntiPattern
-
-### 6. Create Graph Relations
-
-Use `mcp__memory__create_relations`:
-
-```json
-{
-  "relations": [
-    {
-      "from": "database-engineer",
-      "to": "pgvector",
-      "relationType": "RECOMMENDS"
-    },
-    {
-      "from": "pgvector",
-      "to": "RAG",
-      "relationType": "USED_FOR"
-    }
-  ]
-}
-```
+Load entity extraction rules, type assignment, relationship patterns, and graph creation examples: `Read("$\{CLAUDE_SKILL_DIR\}/references/graph-operations.md")`
 
 ### 7. Confirm Storage
 
-**For success:**
-```
-✅ Remembered SUCCESS (category): "summary of text"
-   → Stored in knowledge graph
-   → Created entity: {entity_name} ({entity_type})
-   → Created relation: {from} → {relation_type} → {to}
-   📊 Graph: {N} entities, {M} relations
-```
+Display confirmation using the appropriate template (success, anti-pattern, or neutral) showing created entities, relations, and graph stats.
 
-**For failed:**
-```
-❌ Remembered ANTI-PATTERN (category): "summary of text"
-   → Stored in knowledge graph
-   → Created entity: {anti-pattern-name} (AntiPattern)
-   💡 Lesson: {lesson if extracted}
-```
-
-**For neutral:**
-```
-✓ Remembered (category): "summary of text"
-   → Stored in knowledge graph
-   → Created entity: {entity_name} ({entity_type})
-   📊 Graph: {N} entities, {M} relations
-```
-
-## Examples
-
-### Basic Remember (Graph Only)
-
-**Input:** `/remember Cursor-based pagination scales well for large datasets`
-
-**Output:**
-```
-✓ Remembered (pagination): "Cursor-based pagination scales well for large datasets"
-   → Stored in knowledge graph
-   → Created entity: cursor-pagination (Pattern)
-   📊 Graph: 1 entity, 0 relations
-```
-
-### Anti-Pattern
-
-**Input:** `/remember --failed Offset pagination caused timeouts on tables with 1M+ rows`
-
-**Output:**
-```
-❌ Remembered ANTI-PATTERN (pagination): "Offset pagination caused timeouts on tables with 1M+ rows"
-   → Stored in knowledge graph
-   → Created entity: offset-pagination (AntiPattern)
-   💡 Lesson: Use cursor-based pagination for large datasets
-   📊 Graph: 1 entity, 0 relations
-```
-
-### Agent-Scoped Memory
-
-**Input:** `/remember --agent backend-system-architect Use connection pooling with min=5, max=20`
-
-**Output:**
-```
-✓ Remembered (database): "Use connection pooling with min=5, max=20"
-   → Stored in knowledge graph
-   → Created entity: connection-pooling (Pattern)
-   → Created relation: project → USES → connection-pooling
-   📊 Graph: 1 entity, 1 relation
-   🤖 Agent: backend-system-architect
-```
-
-## Duplicate Detection
-
-Before storing, search for similar patterns in graph:
-1. Query graph with `mcp__memory__search_nodes` for entity names
-2. If exact entity exists:
-   - Add observation to existing entity via `mcp__memory__add_observations`
-   - Inform user: "✓ Updated existing entity (added observation)"
-3. If similar pattern found with opposite outcome:
-   - Warn: "⚠️ This conflicts with an existing pattern. Store anyway?"
+Load output templates and examples: `Read("$\{CLAUDE_SKILL_DIR\}/references/confirmation-templates.md")`
 
 ## File-Based Memory Updates
 
@@ -281,23 +143,310 @@ When updating `.claude/memory/MEMORY.md` or project memory files:
 
 ---
 
+## References
+
+Load on demand with `Read("$\{CLAUDE_SKILL_DIR\}/references/&lt;file&gt;")`:
+
+| File | Content |
+|------|---------|
+| `category-detection.md` | Auto-detection rules for categorizing memories (priority order) |
+| `graph-operations.md` | Entity extraction, type assignment, relationship patterns, graph creation |
+| `confirmation-templates.md` | Output templates (success, anti-pattern, neutral) and usage examples |
+
+---
+
 ## Related Skills
 - `ork:memory` - Search, load, sync, visualize (read-side operations)
 
 ## Error Handling
 
-- If knowledge graph unavailable, show configuration instructions
-- If text is empty, ask user to provide something to remember
-- If text >2000 chars, truncate with notice
-- If both --success and --failed provided, ask user to clarify
-- If --agent used without agent-id, prompt for agent selection
-- If entity extraction fails, create a generic Decision entity
-- If relation creation fails (e.g., entity doesn't exist), create entities first then retry
+- Knowledge graph unavailable → show configuration instructions
+- Empty text → ask user for content; text >2000 chars → truncate with notice
+- Both --success and --failed → ask user to clarify
+- Entity extraction fails → create generic Decision entity; relation fails → create entities first, retry
 
 
 ---
 
-## References (1)
+## Rules (3)
+
+### Search graph for existing entities before creating new ones to prevent duplicates — HIGH
+
+
+## Problem
+
+Creating entities without checking for existing ones leads to duplicate nodes in the knowledge graph. For example, "PostgreSQL", "postgres", and "Postgres" all become separate entities with separate relationships, splitting knowledge across fragments that are never linked.
+
+## Rule
+
+Before calling `mcp__memory__create_entities`, always call `mcp__memory__search_nodes` with the entity name. If a match shares 80%+ name similarity AND the same entity type, merge by adding observations to the existing entity instead of creating a new one.
+
+### Detection Criteria
+
+```
+1. Normalize: lowercase, strip hyphens/underscores
+2. Compare: Levenshtein distance or substring match
+3. Match threshold: >= 80% similarity AND same entityType
+4. Action: merge via add_observations if match found
+```
+
+### Incorrect -- creating without search:
+
+```json
+// User says: "/remember PostgreSQL handles our vector search"
+// Agent immediately creates without checking:
+mcp__memory__create_entities({
+  "entities": [{
+    "name": "PostgreSQL",
+    "entityType": "Technology",
+    "observations": ["Handles vector search"]
+  }]
+})
+// Graph already had "postgres" (Technology) with 5 observations
+// Now there are TWO entities for the same technology
+```
+
+### Correct -- search first, merge if found:
+
+```json
+// Step 1: Search for existing entity
+mcp__memory__search_nodes({ "query": "PostgreSQL" })
+// Returns: { "name": "postgres", "entityType": "Technology", "observations": [...] }
+
+// Step 2: 80%+ match found ("postgresql" vs "postgres") — merge
+mcp__memory__add_observations({
+  "observations": [{
+    "entityName": "postgres",
+    "contents": ["Handles vector search"]
+  }]
+})
+// Single entity with all observations consolidated
+```
+
+### Edge Cases
+
+- **Different entity types**: "react" (Technology) vs "react" (Pattern) are distinct -- do not merge
+- **Abbreviations**: "DB" vs "Database" -- treat as match only when context confirms same entity
+- **Versioned names**: "React 18" vs "React" -- merge into parent entity, add version as observation
+
+### Key Rules
+
+- Always search before create -- no exceptions
+- Normalize names (lowercase, strip punctuation) before comparison
+- Same name + same type at 80%+ similarity = merge via `add_observations`
+- Different entity types with same name are distinct entities
+- Inform user when merging: "Updated existing entity (added observation)"
+
+
+### Validate entity types and relation types against the schema before writing to the graph — HIGH
+
+
+## Problem
+
+The remember skill defines specific entity types (Technology, Agent, Pattern, Project, AntiPattern) and relation types (USES, RECOMMENDS, REQUIRES, ENABLES, PREFERS, CHOSE_OVER, USED_FOR). Writing entities with ad-hoc types like "Tool", "Library", or "Framework" creates nodes that don't group with anything and break downstream queries.
+
+## Valid Schema
+
+```
+Entity Types:   Technology | Agent | Pattern | Project | AntiPattern | Decision | Preference
+Relation Types: USES | RECOMMENDS | REQUIRES | ENABLES | PREFERS | CHOSE_OVER | USED_FOR
+```
+
+## Rule
+
+Before calling `mcp__memory__create_entities` or `mcp__memory__create_relations`, validate every `entityType` and `relationType` against the schema above. Map unrecognized types to the closest valid type.
+
+### Incorrect -- inventing entity types:
+
+```json
+mcp__memory__create_entities({
+  "entities": [
+    {
+      "name": "Express",
+      "entityType": "Framework",
+      "observations": ["Used for API server"]
+    },
+    {
+      "name": "Redis",
+      "entityType": "Cache",
+      "observations": ["Session storage"]
+    }
+  ]
+})
+// "Framework" and "Cache" are not valid entity types
+// These nodes won't appear in type-based queries
+```
+
+### Correct -- mapping to valid types:
+
+```json
+mcp__memory__create_entities({
+  "entities": [
+    {
+      "name": "Express",
+      "entityType": "Technology",
+      "observations": ["Used for API server (framework)"]
+    },
+    {
+      "name": "Redis",
+      "entityType": "Technology",
+      "observations": ["Session storage (cache layer)"]
+    }
+  ]
+})
+// Both map to "Technology" — specifics go in observations
+```
+
+### Incorrect -- inventing relation types:
+
+```json
+mcp__memory__create_relations({
+  "relations": [{
+    "from": "backend-api",
+    "to": "Redis",
+    "relationType": "CACHES_WITH"
+  }]
+})
+// "CACHES_WITH" is not a valid relation type
+```
+
+### Correct -- using valid relation types:
+
+```json
+mcp__memory__create_relations({
+  "relations": [{
+    "from": "backend-api",
+    "to": "Redis",
+    "relationType": "USES"
+  }]
+})
+// "USES" is the closest valid relation type
+```
+
+### Type Mapping Guide
+
+| Incoming Type | Valid Mapping | Where Detail Goes |
+|---------------|---------------|-------------------|
+| Framework     | Technology    | Observation: "(framework)" |
+| Library       | Technology    | Observation: "(library)" |
+| Tool          | Technology    | Observation: "(CLI tool)" |
+| Convention    | Pattern       | Observation: "(convention)" |
+| BestPractice  | Pattern       | Observation: "(best practice)" |
+| Guideline     | Preference    | Observation: "(team guideline)" |
+
+### Key Rules
+
+- Every `entityType` must be one of: Technology, Agent, Pattern, Project, AntiPattern, Decision, Preference
+- Every `relationType` must be one of: USES, RECOMMENDS, REQUIRES, ENABLES, PREFERS, CHOSE_OVER, USED_FOR
+- Put specifics that don't fit the type system into observations, not into the type field
+- If `--failed` flag is set, entityType must be AntiPattern
+
+
+### Observations must be specific and actionable with measurable details not vague labels — MEDIUM
+
+
+## Problem
+
+When storing observations on entities, agents often write vague summaries like "good pattern", "works well", or "useful tool". These provide no actionable information when recalled in future sessions. The entire value of the knowledge graph depends on observations being specific enough to act on without additional context.
+
+## Rule
+
+Every observation must pass the **Recall Value Test**: "If I read only this observation 6 months from now, can I act on it without asking follow-up questions?"
+
+### Quality Criteria
+
+```
+PASS: Contains at least ONE of:
+  - A concrete metric (p99, latency, throughput, error rate)
+  - A specific configuration value (min=5, max=20, timeout=30s)
+  - A named alternative that was rejected and why
+  - A reproduction step or trigger condition
+
+FAIL: Contains ONLY:
+  - Adjectives without context ("good", "fast", "better", "useful")
+  - Tautologies ("PostgreSQL is a database")
+  - Vague recommendations ("consider using X")
+```
+
+### Incorrect -- vague observations:
+
+```json
+mcp__memory__create_entities({
+  "entities": [{
+    "name": "cursor-pagination",
+    "entityType": "Pattern",
+    "observations": [
+      "Good pattern for large datasets",
+      "Works better than offset",
+      "Recommended approach"
+    ]
+  }]
+})
+// None of these help a future session make a decision
+```
+
+### Correct -- specific and actionable observations:
+
+```json
+mcp__memory__create_entities({
+  "entities": [{
+    "name": "cursor-pagination",
+    "entityType": "Pattern",
+    "observations": [
+      "Reduced p99 from 2s to 140ms on users table with 1.2M rows",
+      "Offset pagination caused linear scan past row 100k; cursor uses indexed seek",
+      "Implementation: ORDER BY id > :last_seen_id LIMIT :page_size"
+    ]
+  }]
+})
+// Each observation is independently actionable
+```
+
+### Incorrect -- tautological observation on anti-pattern:
+
+```json
+mcp__memory__add_observations({
+  "observations": [{
+    "entityName": "offset-pagination",
+    "contents": ["Bad for performance"]
+  }]
+})
+```
+
+### Correct -- specific failure context:
+
+```json
+mcp__memory__add_observations({
+  "observations": [{
+    "entityName": "offset-pagination",
+    "contents": [
+      "Caused 504 timeouts on /api/users?page=500 with 1M+ rows (OFFSET 500000 triggers sequential scan)"
+    ]
+  }]
+})
+```
+
+### Rewriting Guide
+
+| Vague Input | Rewritten Observation |
+|-------------|----------------------|
+| "good caching strategy" | "Redis cache with 5min TTL reduced DB queries by 80% on /api/products" |
+| "works well" | "Handles 10k concurrent connections with &lt;50ms p95 latency" |
+| "better than alternative" | "Chose Postgres over MongoDB: need JOIN-heavy queries across 6 tables" |
+| "useful for auth" | "JWT with RS256 + 15min expiry; refresh tokens stored in httpOnly cookies" |
+
+### Key Rules
+
+- Apply the Recall Value Test to every observation before writing
+- Rewrite vague user input into specific observations -- ask clarifying questions if needed
+- Include numbers, config values, or named comparisons whenever available
+- Prefix with source context when from a specific agent: "From remember: '\{original text\}'"
+
+
+
+---
+
+## References (5)
 
 ### Category Detection
 
@@ -353,3 +502,316 @@ If text matches multiple categories, the first match in priority order wins.
 Example: "JWT authentication API endpoint" matches:
 1. authentication (jwt, auth) - wins
 2. api (endpoint)
+
+### Confirmation Templates
+
+# Confirmation Output Templates
+
+Standard output formats for the remember skill.
+
+## Success Pattern
+
+```
+Remembered SUCCESS (category): "summary of text"
+   -> Stored in knowledge graph
+   -> Created entity: {entity_name} ({entity_type})
+   -> Created relation: {from} -> {relation_type} -> {to}
+   Graph: {N} entities, {M} relations
+```
+
+## Anti-Pattern (Failed)
+
+```
+Remembered ANTI-PATTERN (category): "summary of text"
+   -> Stored in knowledge graph
+   -> Created entity: {anti-pattern-name} (AntiPattern)
+   Lesson: {lesson if extracted}
+```
+
+## Neutral (Default)
+
+```
+Remembered (category): "summary of text"
+   -> Stored in knowledge graph
+   -> Created entity: {entity_name} ({entity_type})
+   Graph: {N} entities, {M} relations
+```
+
+## Agent-Scoped
+
+Append to any template above:
+
+```
+   Agent: {agent-id}
+```
+
+## Examples
+
+### Basic Remember (Graph Only)
+
+**Input:** `/remember Cursor-based pagination scales well for large datasets`
+
+**Output:**
+```
+Remembered (pagination): "Cursor-based pagination scales well for large datasets"
+   -> Stored in knowledge graph
+   -> Created entity: cursor-pagination (Pattern)
+   Graph: 1 entity, 0 relations
+```
+
+### Anti-Pattern
+
+**Input:** `/remember --failed Offset pagination caused timeouts on tables with 1M+ rows`
+
+**Output:**
+```
+Remembered ANTI-PATTERN (pagination): "Offset pagination caused timeouts on tables with 1M+ rows"
+   -> Stored in knowledge graph
+   -> Created entity: offset-pagination (AntiPattern)
+   Lesson: Use cursor-based pagination for large datasets
+   Graph: 1 entity, 0 relations
+```
+
+### Agent-Scoped Memory
+
+**Input:** `/remember --agent backend-system-architect Use connection pooling with min=5, max=20`
+
+**Output:**
+```
+Remembered (database): "Use connection pooling with min=5, max=20"
+   -> Stored in knowledge graph
+   -> Created entity: connection-pooling (Pattern)
+   -> Created relation: project -> USES -> connection-pooling
+   Graph: 1 entity, 1 relation
+   Agent: backend-system-architect
+```
+
+
+### Entity Extraction Workflow
+
+# Entity Extraction Workflow
+
+## Step 4: Extract Entities from Text
+
+**Step A: Detect entities:**
+
+```
+1. Find capitalized terms (PostgreSQL, React, FastAPI)
+2. Find agent names (database-engineer, backend-system-architect)
+3. Find pattern names (cursor-pagination, connection-pooling)
+4. Find technology keywords (pgvector, HNSW, RAG)
+```
+
+**Step B: Detect relationship patterns:**
+
+| Pattern | Relation Type |
+|---------|--------------|
+| "X uses Y" | USES |
+| "X recommends Y" | RECOMMENDS |
+| "X requires Y" | REQUIRES |
+| "X enables Y" | ENABLES |
+| "X prefers Y" | PREFERS |
+| "chose X over Y" | CHOSE_OVER |
+| "X for Y" | USED_FOR |
+
+## Step 5: Create Graph Entities (PRIMARY)
+
+Use `mcp__memory__create_entities`:
+
+```json
+{
+  "entities": [
+    {
+      "name": "pgvector",
+      "entityType": "Technology",
+      "observations": ["Used for vector search", "From remember: '{original text}'"]
+    },
+    {
+      "name": "database-engineer",
+      "entityType": "Agent",
+      "observations": ["Recommends pgvector for RAG"]
+    }
+  ]
+}
+```
+
+**Entity Type Assignment:**
+- Capitalized single words ending in common suffixes: Technology (PostgreSQL, FastAPI)
+- Words with hyphens matching agent pattern: Agent (database-engineer)
+- Words with hyphens matching pattern names: Pattern (cursor-pagination)
+- Project context: Project (current project name)
+- Failed patterns: AntiPattern
+
+## Step 6: Create Graph Relations
+
+Use `mcp__memory__create_relations`:
+
+```json
+{
+  "relations": [
+    {
+      "from": "database-engineer",
+      "to": "pgvector",
+      "relationType": "RECOMMENDS"
+    },
+    {
+      "from": "pgvector",
+      "to": "RAG",
+      "relationType": "USED_FOR"
+    }
+  ]
+}
+```
+
+## Step 7: Confirm Storage
+
+**For success:**
+```
+Remembered SUCCESS (category): "summary of text"
+   -> Stored in knowledge graph
+   -> Created entity: {entity_name} ({entity_type})
+   -> Created relation: {from} -> {relation_type} -> {to}
+   Graph: {N} entities, {M} relations
+```
+
+**For failed:**
+```
+Remembered ANTI-PATTERN (category): "summary of text"
+   -> Stored in knowledge graph
+   -> Created entity: {anti-pattern-name} (AntiPattern)
+   Lesson: {lesson if extracted}
+```
+
+**For neutral:**
+```
+Remembered (category): "summary of text"
+   -> Stored in knowledge graph
+   -> Created entity: {entity_name} ({entity_type})
+   Graph: {N} entities, {M} relations
+```
+
+
+### Examples
+
+# Remember Skill - Examples
+
+## Basic Remember (Graph Only)
+
+**Input:** `/remember Cursor-based pagination scales well for large datasets`
+
+**Output:**
+```
+Remembered (pagination): "Cursor-based pagination scales well for large datasets"
+   -> Stored in knowledge graph
+   -> Created entity: cursor-pagination (Pattern)
+   Graph: 1 entity, 0 relations
+```
+
+## Anti-Pattern
+
+**Input:** `/remember --failed Offset pagination caused timeouts on tables with 1M+ rows`
+
+**Output:**
+```
+Remembered ANTI-PATTERN (pagination): "Offset pagination caused timeouts on tables with 1M+ rows"
+   -> Stored in knowledge graph
+   -> Created entity: offset-pagination (AntiPattern)
+   Lesson: Use cursor-based pagination for large datasets
+   Graph: 1 entity, 0 relations
+```
+
+## Agent-Scoped Memory
+
+**Input:** `/remember --agent backend-system-architect Use connection pooling with min=5, max=20`
+
+**Output:**
+```
+Remembered (database): "Use connection pooling with min=5, max=20"
+   -> Stored in knowledge graph
+   -> Created entity: connection-pooling (Pattern)
+   -> Created relation: project -> USES -> connection-pooling
+   Graph: 1 entity, 1 relation
+   Agent: backend-system-architect
+```
+
+
+### Graph Operations
+
+# Graph Operations Reference
+
+Entity and relation creation patterns for the knowledge graph.
+
+## Entity Type Assignment
+
+| Pattern | Entity Type |
+|---------|------------|
+| Capitalized single words ending in common suffixes | Technology (PostgreSQL, FastAPI) |
+| Words with hyphens matching agent pattern | Agent (database-engineer) |
+| Words with hyphens matching pattern names | Pattern (cursor-pagination) |
+| Project context | Project (current project name) |
+| Failed patterns | AntiPattern |
+
+## Create Graph Entities
+
+Use `mcp__memory__create_entities`:
+
+```json
+{
+  "entities": [
+    {
+      "name": "pgvector",
+      "entityType": "Technology",
+      "observations": ["Used for vector search", "From remember: '{original text}'"]
+    },
+    {
+      "name": "database-engineer",
+      "entityType": "Agent",
+      "observations": ["Recommends pgvector for RAG"]
+    }
+  ]
+}
+```
+
+## Relationship Detection Patterns
+
+| Pattern | Relation Type |
+|---------|--------------|
+| "X uses Y" | USES |
+| "X recommends Y" | RECOMMENDS |
+| "X requires Y" | REQUIRES |
+| "X enables Y" | ENABLES |
+| "X prefers Y" | PREFERS |
+| "chose X over Y" | CHOSE_OVER |
+| "X for Y" | USED_FOR |
+
+## Create Graph Relations
+
+Use `mcp__memory__create_relations`:
+
+```json
+{
+  "relations": [
+    {
+      "from": "database-engineer",
+      "to": "pgvector",
+      "relationType": "RECOMMENDS"
+    },
+    {
+      "from": "pgvector",
+      "to": "RAG",
+      "relationType": "USED_FOR"
+    }
+  ]
+}
+```
+
+## Duplicate Detection
+
+Before storing, search for similar patterns in graph:
+1. Query graph with `mcp__memory__search_nodes` for entity names
+2. If exact entity exists:
+   - Add observation to existing entity via `mcp__memory__add_observations`
+   - Inform user: "Updated existing entity (added observation)"
+3. If similar pattern found with opposite outcome:
+   - Warn: "This conflicts with an existing pattern. Store anyway?"
+

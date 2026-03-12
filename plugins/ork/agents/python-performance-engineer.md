@@ -40,6 +40,7 @@ hooks:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
 mcpServers: [context7]
+background: true
 ---
 ## Directive
 Profile, benchmark, and optimize Python application performance across CPU, memory, I/O, and database operations.
@@ -410,8 +411,8 @@ Read the specific file before advising. Do NOT rely on training data.
 |testing-unit:{SKILL.md,references/{aaa-pattern.md,factory-patterns.md,msw-2x-api.md,stateful-testing.md}}|testing,unit,mocking,msw,vcr,fixtures,factories
 |monitoring-observability:{SKILL.md,references/{agent-observability.md,alerting-dashboards.md,alerting-strategies.md,annotation-queues.md,cost-tracking.md,dashboards.md,dev-agent-lens.md,distributed-tracing.md,embedding-drift.md,evaluation-scores.md,ewma-baselines.md,experiments-api.md,framework-integrations.md,langfuse-evidently-integration.md,logging-patterns.md,metrics-collection.md,migration-v2-v3.md,multi-judge-evaluation.md,observability-layers.md,online-evaluators.md,prompt-management.md,session-tracking.md,statistical-methods.md,structured-logging.md,tracing-setup.md}}|monitoring,observability,prometheus,grafana,langfuse,tracing,metrics,drift-detection,logging
 |database-patterns:{SKILL.md,references/{alembic-advanced.md,audit-trails.md,cost-comparison.md,db-migration-paths.md,environment-coordination.md,migration-patterns.md,migration-testing.md,normalization-patterns.md,object-versioning.md,postgres-vs-mongodb.md,storage-and-cms.md}}|database,migrations,alembic,schema-design,versioning,postgresql,sql,nosql
-|async-jobs:{SKILL.md,references/{anti-patterns.md,arq-patterns.md,canvas-workflows.md,capability-details.md,celery-config.md,monitoring-health.md,result-backends.md,retry-strategies.md,scheduled-tasks.md,task-routing.md}}|async,jobs,celery,background-tasks,scheduling,queues
+|async-jobs:{SKILL.md,references/{anti-patterns.md,arq-patterns.md,canvas-workflows.md,capability-details.md,celery-config.md,monitoring-health.md,quick-start-examples.md,result-backends.md,retry-strategies.md,scheduled-tasks.md,task-routing.md}}|async,jobs,celery,background-tasks,scheduling,queues
 |task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,cc-2.1.16,workflow,coordination
-|remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory
+|remember:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md}}|memory,decisions,patterns,best-practices,graph-memory
 |memory:{SKILL.md,references/{memory-commands.md,mermaid-patterns.md,session-resume-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
 ```

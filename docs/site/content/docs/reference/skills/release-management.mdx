@@ -102,59 +102,283 @@ Pre-release:
 
 ---
 
-## Release Workflow
+## Release Workflows
 
-### Standard Release
+Standard and hotfix release procedures using git tags and `gh release`.
 
-```bash
-# 1. Ensure main is up to date
-git checkout main
-git pull origin main
-
-# 2. Determine version bump
-# Check commits since last release
-gh release view --json tagName -q .tagName  # Current: v1.2.3
-git log v1.2.3..HEAD --oneline
-
-# 3. Create and push tag
-git tag -a v1.3.0 -m "Release v1.3.0"
-git push origin v1.3.0
-
-# 4. Create GitHub release
-gh release create v1.3.0 \
-  --title "v1.3.0: Feature Name" \
-  --generate-notes
-
-# 5. Close milestone if used
-gh api -X PATCH repos/:owner/:repo/milestones/5 -f state=closed
-```
-
-### Hotfix Release
-
-```bash
-# 1. Branch from release tag
-git checkout -b hotfix/v1.2.4 v1.2.3
-
-# 2. Fix and commit
-git commit -m "fix: Critical security patch"
-
-# 3. Tag and release
-git tag -a v1.2.4 -m "Hotfix: Security patch"
-git push origin v1.2.4
-gh release create v1.2.4 --title "v1.2.4: Security Hotfix" \
-  --notes "Critical security fix for authentication bypass"
-
-# 4. Merge fix to main
-git checkout main
-git cherry-pick <commit-sha>
-git push origin main
-```
+Load Read("$\{CLAUDE_SKILL_DIR\}/references/release-workflows.md") for step-by-step standard and hotfix release workflows.
 
 ---
 
 ## Changelog Generation
 
-### Auto-Generated (from PRs)
+Auto-generated from PRs, custom `.github/release.yml` templates, and manual CHANGELOG.md format.
+
+Load Read("$\{CLAUDE_SKILL_DIR\}/references/changelog-generation.md") for changelog template examples and Keep-a-Changelog format.
+
+---
+
+## Release Automation & Checklist
+
+GitHub Actions workflow for tag-triggered releases, version bumping script, and pre/post-release checklist.
+
+Load Read("$\{CLAUDE_SKILL_DIR\}/references/release-automation.md") for CI workflow, bump script, and release checklist.
+
+---
+
+## Best Practices
+
+1. **Use semantic versioning** - Communicate change impact
+2. **Draft releases first** - Review notes before publishing
+3. **Generate notes from PRs** - Accurate, automatic history
+4. **Close milestone on release** - Track completion
+5. **Tag main only** - Never tag feature branches
+6. **Announce breaking changes** - Prominent in release notes
+
+## Related Skills
+
+- `ork:github-operations`: Milestones, issues, and CLI reference
+- `ork:github-operations`: Branch management and git operations
+
+## References
+
+Load on demand with `Read("$\{CLAUDE_SKILL_DIR\}/references/&lt;file&gt;")`:
+
+| File | Content |
+|------|---------|
+| `semver.md` | Semantic versioning rules and decision tree |
+| `release-workflows.md` | Standard and hotfix release procedures |
+| `changelog-generation.md` | Auto-generated, template, and manual changelog formats |
+| `release-automation.md` | GitHub Actions workflow, bump script, and checklist |
+
+
+---
+
+## Rules (2)
+
+### Changelog must document all breaking changes with migration instructions — HIGH
+
+
+# Changelog Must Include All Breaking Changes
+
+## Why
+
+Developers read changelogs before upgrading. If a breaking change is missing from the changelog, they upgrade without migration steps and hit runtime errors. After one bad experience, teams stop upgrading and fall behind on security patches.
+
+## Rule
+
+Before publishing a release:
+1. Cross-reference all commits with the changelog
+2. Every commit with `!` or `BREAKING CHANGE` must appear in the changelog
+3. Breaking changes must include migration instructions
+4. The Breaking Changes section must appear first in the changelog
+
+## Incorrect — incomplete changelog missing breaking changes
+
+```markdown
+# Changelog
+
+## [2.0.0] - 2026-03-10
+
+### Added
+- Bulk export endpoint (#234)
+- Dark mode support (#236)
+
+### Fixed
+- Date parser null handling (#235)
+```
+
+**Problems:**
+- Version is 2.0.0 (major) but no breaking changes listed
+- The commit `feat!: remove /v1/users endpoint (#230)` is missing
+- The commit `refactor!: rename User model to Account (#232)` is missing
+- No migration instructions for breaking changes
+
+## Correct — complete changelog with migration instructions
+
+```markdown
+# Changelog
+
+## [2.0.0] - 2026-03-10
+
+### BREAKING CHANGES
+
+- **Removed `/v1/users` endpoint** (#230): The deprecated v1 users
+  API has been removed. Migrate to `/v2/users` which supports
+  cursor-based pagination.
+
+  ```diff
+  - GET /v1/users?page=2&limit=20
+  + GET /v2/users?cursor=abc123&limit=20
+  ```
+
+- **Renamed `User` model to `Account`** (#232): All database tables
+  and API responses now use `Account`. Run the migration:
+
+  ```bash
+  npm run migrate:up
+  ```
+
+  Update imports:
+  ```diff
+  - import \{ User \} from "./models/user";
+  + import \{ Account \} from "./models/account";
+  ```
+
+### Added
+- Bulk export endpoint (#234)
+- Dark mode support (#236)
+
+### Fixed
+- Date parser null handling (#235)
+```
+
+## Verification Script
+
+```bash
+#!/bin/bash
+LAST_TAG=$(gh release view --json tagName -q .tagName)
+
+# Find all breaking change commits
+BREAKING=$(git log "$LAST_TAG"..HEAD --oneline --format="%s" \
+  | grep -E '!:|BREAKING CHANGE')
+
+if [ -z "$BREAKING" ]; then
+  echo "No breaking changes found"
+  exit 0
+fi
+
+echo "Breaking changes to verify in CHANGELOG.md:"
+echo "$BREAKING" | while IFS= read -r commit; do
+  # Extract PR number if present
+  PR=$(echo "$commit" | grep -oE '#[0-9]+' | head -1)
+  if [ -n "$PR" ] && ! grep -q "$PR" CHANGELOG.md; then
+    echo "  MISSING: $commit"
+  else
+    echo "  OK: $commit"
+  fi
+done
+```
+
+## Changelog Section Order
+
+| Section | Required When | Position |
+|---------|--------------|----------|
+| BREAKING CHANGES | Any `!` or `BREAKING CHANGE` commit | First |
+| Deprecated | Deprecation notices | Second |
+| Added | New features | Third |
+| Changed | Behavior changes | Fourth |
+| Fixed | Bug fixes | Fifth |
+| Security | CVE patches | Sixth |
+
+
+### Validate that semantic version bump matches the actual scope of changes — HIGH
+
+
+# Validate Version Bump Matches Change Scope
+
+## Why
+
+Semantic versioning is a contract with consumers. A breaking API change shipped as a patch version (1.2.3 -> 1.2.4) causes runtime failures for anyone pinned to `^1.2.3`. A bug fix shipped as major (1.2.3 -> 2.0.0) forces unnecessary migration work.
+
+## Rule
+
+Before tagging a release:
+1. List all commits since the last release
+2. Classify each commit as patch/minor/major based on its impact
+3. The version bump must match the highest-impact commit
+4. Breaking changes require major bump — no exceptions
+
+## Incorrect — bump version without checking changes
+
+```bash
+# Blindly bump patch without reviewing commits
+CURRENT="1.2.3"
+NEW="1.2.4"  # Assumed patch
+
+git tag -a "v$NEW" -m "Release v$NEW"
+git push origin "v$NEW"
+gh release create "v$NEW" --generate-notes
+
+# But commits since v1.2.3 include:
+# - "feat!: remove deprecated /v1/users endpoint" (BREAKING)
+# - "feat: add /v2/users with pagination" (MINOR)
+# - "fix: correct date parsing" (PATCH)
+# Correct bump should have been MAJOR (2.0.0)
+```
+
+## Correct — classify commits then determine bump
+
+```bash
+#!/bin/bash
+LAST_TAG=$(gh release view --json tagName -q .tagName)
+echo "Commits since $LAST_TAG:"
+
+# Classify commits
+MAJOR=0; MINOR=0; PATCH=0
+
+while IFS= read -r msg; do
+  if echo "$msg" | grep -qE '^(feat|fix|refactor)(\(.+\))?!:|^BREAKING'; then
+    MAJOR=$((MAJOR + 1))
+    echo "  MAJOR: $msg"
+  elif echo "$msg" | grep -qE '^feat(\(.+\))?:'; then
+    MINOR=$((MINOR + 1))
+    echo "  MINOR: $msg"
+  else
+    PATCH=$((PATCH + 1))
+    echo "  PATCH: $msg"
+  fi
+done < <(git log "$LAST_TAG"..HEAD --oneline --format="%s")
+
+# Determine correct bump
+if [ "$MAJOR" -gt 0 ]; then
+  echo "Required bump: MAJOR ($MAJOR breaking changes)"
+elif [ "$MINOR" -gt 0 ]; then
+  echo "Required bump: MINOR ($MINOR new features)"
+else
+  echo "Required bump: PATCH ($PATCH fixes)"
+fi
+```
+
+## Classification Guide
+
+| Commit Pattern | Bump | Example |
+|----------------|------|---------|
+| `fix:` | PATCH | `fix: handle null in date parser` |
+| `docs:`, `chore:`, `ci:` | PATCH | `docs: update API reference` |
+| `feat:` | MINOR | `feat: add bulk export endpoint` |
+| `feat!:` or `BREAKING CHANGE:` | MAJOR | `feat!: remove v1 API endpoints` |
+| `refactor!:` | MAJOR | `refactor!: rename User to Account` |
+
+## Pre-Release Validation
+
+```bash
+# Before creating the release, verify:
+echo "=== Pre-Release Checklist ==="
+echo "1. Last release: $LAST_TAG"
+echo "2. Commits since: $(git rev-list "$LAST_TAG"..HEAD --count)"
+echo "3. Breaking changes: $MAJOR"
+echo "4. New features: $MINOR"
+echo "5. Fixes/chores: $PATCH"
+echo "6. Proposed version: v$NEW"
+echo ""
+if [ "$MAJOR" -gt 0 ] && ! echo "$NEW" | grep -qE '^[0-9]+\.0\.0'; then
+  echo "ERROR: Breaking changes found but version is not a major bump"
+  exit 1
+fi
+```
+
+
+
+---
+
+## References (4)
+
+### Changelog Generation
+
+# Changelog Generation
+
+## Auto-Generated (from PRs)
 
 ```bash
 # GitHub auto-generates from merged PRs
@@ -167,7 +391,7 @@ gh release create v1.2.0 --generate-notes
 # * docs: Update README by @dev in #125
 ```
 
-### Custom Changelog Template
+## Custom Changelog Template
 
 Create `.github/release.yml`:
 
@@ -193,7 +417,7 @@ changelog:
         - "*"
 ```
 
-### Manual CHANGELOG.md
+## Manual CHANGELOG.md
 
 ```markdown
 # Changelog
@@ -214,9 +438,12 @@ changelog:
 - Updated dependencies for CVE-2026-1234
 ```
 
----
 
-## Automation with GitHub Actions
+### Release Automation
+
+# Release Automation
+
+## GitHub Actions Release Workflow
 
 ```yaml
 # .github/workflows/release.yml
@@ -244,8 +471,6 @@ jobs:
             --generate-notes \
             ./dist/*.zip
 ```
-
----
 
 ## Version Bumping Script
 
@@ -277,8 +502,6 @@ Usage:
 ./bump-version.sh major  # 1.3.0 -> 2.0.0
 ```
 
----
-
 ## Release Checklist
 
 ```markdown
@@ -304,34 +527,57 @@ Usage:
 - [ ] Next milestone created
 ```
 
----
 
-## Best Practices
+### Release Workflows
 
-1. **Use semantic versioning** - Communicate change impact
-2. **Draft releases first** - Review notes before publishing
-3. **Generate notes from PRs** - Accurate, automatic history
-4. **Close milestone on release** - Track completion
-5. **Tag main only** - Never tag feature branches
-6. **Announce breaking changes** - Prominent in release notes
+# Release Workflows
 
-## Related Skills
+## Standard Release
 
-- `ork:github-operations`: Milestones, issues, and CLI reference
-- `ork:github-operations`: Branch management and git operations
+```bash
+# 1. Ensure main is up to date
+git checkout main
+git pull origin main
 
-## References
+# 2. Determine version bump
+# Check commits since last release
+gh release view --json tagName -q .tagName  # Current: v1.2.3
+git log v1.2.3..HEAD --oneline
 
-Load on demand with `Read("$\{CLAUDE_SKILL_DIR\}/references/&lt;file&gt;")`:
-| File | Content |
-|------|---------|
-| `semver.md` | Semantic Versioning |
-| `release-automation.md` | Release Automation |
+# 3. Create and push tag
+git tag -a v1.3.0 -m "Release v1.3.0"
+git push origin v1.3.0
 
+# 4. Create GitHub release
+gh release create v1.3.0 \
+  --title "v1.3.0: Feature Name" \
+  --generate-notes
 
----
+# 5. Close milestone if used
+gh api -X PATCH repos/:owner/:repo/milestones/5 -f state=closed
+```
 
-## References (1)
+## Hotfix Release
+
+```bash
+# 1. Branch from release tag
+git checkout -b hotfix/v1.2.4 v1.2.3
+
+# 2. Fix and commit
+git commit -m "fix: Critical security patch"
+
+# 3. Tag and release
+git tag -a v1.2.4 -m "Hotfix: Security patch"
+git push origin v1.2.4
+gh release create v1.2.4 --title "v1.2.4: Security Hotfix" \
+  --notes "Critical security fix for authentication bypass"
+
+# 4. Merge fix to main
+git checkout main
+git cherry-pick <commit-sha>
+git push origin main
+```
+
 
 ### Semver
 

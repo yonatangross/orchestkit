@@ -47,12 +47,20 @@ vi.mock('../../lib/common.js', () => ({
     continue: true,
     systemMessage: `\u26a0 ${message}`,
   })),
+  outputBlock: vi.fn((reason: string) => ({
+    continue: false,
+    stopReason: reason,
+    hookSpecificOutput: {
+      permissionDecision: 'deny',
+      permissionDecisionReason: reason,
+    },
+  })),
   getProjectDir: vi.fn(() => '/test/project'),
   getSessionId: vi.fn(() => 'test-session-123'),
 }));
 
 import { subagentQualityGate } from '../../subagent-stop/subagent-quality-gate.js';
-import { outputSilentSuccess, outputWarning, logHook } from '../../lib/common.js';
+import { outputSilentSuccess, outputWarning, outputBlock, logHook } from '../../lib/common.js';
 import { existsSync, writeFileSync, readFileSync } from 'node:fs';
 
 // =============================================================================
@@ -626,6 +634,199 @@ describe('subagent-quality-gate', () => {
       // Assert
       expect(outputWarning).toHaveBeenCalledWith(
         'Subagent test-agent failed: Connection refused'
+      );
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Score threshold validation
+  // ---------------------------------------------------------------------------
+
+  describe('score threshold validation', () => {
+    test('returns silent success for scores above threshold', () => {
+      const input = createSubagentStopInput({
+        agent_output: 'Code quality: 8/10\nSecurity: 9/10',
+      });
+
+      subagentQualityGate(input);
+
+      expect(outputSilentSuccess).toHaveBeenCalled();
+      expect(outputWarning).not.toHaveBeenCalled();
+      expect(outputBlock).not.toHaveBeenCalled();
+    });
+
+    test('warns for non-security score below threshold', () => {
+      const input = createSubagentStopInput({
+        agent_output: 'Code quality: 2/10',
+      });
+
+      subagentQualityGate(input);
+
+      expect(outputWarning).toHaveBeenCalledWith(
+        expect.stringContaining('code quality')
+      );
+      expect(outputBlock).not.toHaveBeenCalled();
+    });
+
+    test('BLOCKS for security score below threshold', () => {
+      const input = createSubagentStopInput({
+        agent_output: 'Security: 3/10',
+      });
+
+      const result = subagentQualityGate(input);
+
+      expect(result.continue).toBe(false);
+      expect(outputBlock).toHaveBeenCalledWith(
+        expect.stringContaining('Security gate BLOCKED')
+      );
+    });
+
+    test('BLOCKS for vulnerability score below threshold', () => {
+      // Note: "Vulnerability: 2/10" (no bold) — bold wrapping colon (**Vulnerability:**)
+      // doesn't match the current score extractor regex
+      const input = createSubagentStopInput({
+        agent_output: 'Vulnerability: 2/10',
+      });
+
+      const result = subagentQualityGate(input);
+
+      expect(result.continue).toBe(false);
+      expect(outputBlock).toHaveBeenCalledWith(
+        expect.stringContaining('Security gate BLOCKED')
+      );
+    });
+
+    test('BLOCKS for OWASP score below threshold', () => {
+      const input = createSubagentStopInput({
+        agent_output: 'OWASP compliance: 1/10',
+      });
+
+      const result = subagentQualityGate(input);
+
+      expect(result.continue).toBe(false);
+    });
+
+    test('does NOT block non-security dimensions even when low', () => {
+      const input = createSubagentStopInput({
+        agent_output: 'Performance: 1/10\nMaintainability: 2/10',
+      });
+
+      subagentQualityGate(input);
+
+      expect(outputBlock).not.toHaveBeenCalled();
+      expect(outputWarning).toHaveBeenCalled();
+    });
+
+    test('security at exactly threshold (5.0) passes', () => {
+      const input = createSubagentStopInput({
+        agent_output: 'Security: 5/10',
+      });
+
+      subagentQualityGate(input);
+
+      expect(outputBlock).not.toHaveBeenCalled();
+      expect(outputSilentSuccess).toHaveBeenCalled();
+    });
+
+    test('security at 4.9 (just below threshold) blocks', () => {
+      const input = createSubagentStopInput({
+        agent_output: 'Security: 4.9/10',
+      });
+
+      const result = subagentQualityGate(input);
+
+      expect(result.continue).toBe(false);
+      expect(outputBlock).toHaveBeenCalled();
+    });
+
+    test('block message includes the actual score', () => {
+      const input = createSubagentStopInput({
+        agent_output: 'Security: 3/10',
+      });
+
+      subagentQualityGate(input);
+
+      expect(outputBlock).toHaveBeenCalledWith(
+        expect.stringContaining('3/10')
+      );
+    });
+
+    test('block message includes minimum threshold', () => {
+      const input = createSubagentStopInput({
+        agent_output: 'Security: 2/10',
+      });
+
+      subagentQualityGate(input);
+
+      expect(outputBlock).toHaveBeenCalledWith(
+        expect.stringContaining('5/10')
+      );
+    });
+
+    test('extracts JSON-style scores', () => {
+      const input = createSubagentStopInput({
+        agent_output: '{"security_score": 2, "quality_score": 8}',
+      });
+
+      const result = subagentQualityGate(input);
+
+      expect(result.continue).toBe(false);
+      expect(outputBlock).toHaveBeenCalled();
+    });
+
+    test('handles output with no scores gracefully', () => {
+      const input = createSubagentStopInput({
+        agent_output: 'The implementation looks good. No major issues found.',
+      });
+
+      subagentQualityGate(input);
+
+      expect(outputSilentSuccess).toHaveBeenCalled();
+    });
+
+    test('respects custom policy thresholds', () => {
+      // Arrange: policy file exists with custom security_minimum of 7.0
+      vi.mocked(existsSync).mockImplementation((path) => {
+        if (typeof path === 'string' && path.includes('verification-policy.json')) return true;
+        return false;
+      });
+      vi.mocked(readFileSync).mockImplementation((path) => {
+        if (typeof path === 'string' && path.includes('verification-policy.json')) {
+          return JSON.stringify({
+            thresholds: { security_minimum: 7.0 },
+          });
+        }
+        return JSON.stringify({});
+      });
+
+      const input = createSubagentStopInput({
+        agent_output: 'Security: 6/10',
+      });
+
+      const result = subagentQualityGate(input);
+
+      // 6/10 is below custom threshold of 7.0
+      expect(result.continue).toBe(false);
+      expect(outputBlock).toHaveBeenCalled();
+    });
+
+    test('updates metrics on threshold failure', () => {
+      vi.mocked(existsSync).mockReturnValue(true);
+      vi.mocked(readFileSync).mockReturnValue(JSON.stringify({
+        errors: 0,
+        quality_checks: 5,
+        threshold_failures: 2,
+      }));
+
+      const input = createSubagentStopInput({
+        agent_output: 'Security: 2/10',
+      });
+
+      subagentQualityGate(input);
+
+      expect(writeFileSync).toHaveBeenCalledWith(
+        METRICS_FILE,
+        expect.stringContaining('"threshold_failures": 3')
       );
     });
   });
