@@ -121,9 +121,10 @@ detect_trigger() {
         return
     fi
 
-    # Fallback: check for exact skill references with word boundaries
-    # Uses \b to prevent "commit" matching "committed" or "committee"
-    if grep -qiP "\bork:$skill_name\b" "$output_file" 2>/dev/null; then
+    # Fallback: check for exact "ork:<skill>" reference
+    # Uses grep -w for word boundary (portable, works on BSD/GNU grep)
+    # to prevent "commit" matching "committed" or "committee"
+    if grep -qiw "ork:$skill_name" "$output_file" 2>/dev/null; then
         echo "true"
         return
     fi
