@@ -7,9 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.5.2] - 2026-03-12
 
-### Fixed
+### Added
 
-- TODO: Describe your changes here
+- **eval:** Trigger evaluation runner (`npm run eval:trigger`) — measures skill trigger precision and recall with flaky detection
+- **docs:** Expanded CONTRIBUTING-SKILLS.md with mandatory eval requirements, writing guidance, and pre-submit checklist
 
 ---
 

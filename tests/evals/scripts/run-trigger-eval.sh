@@ -20,6 +20,11 @@
 
 set -uo pipefail
 
+# Cleanup temp files on exit (Ctrl+C safe)
+CLEANUP_FILES=()
+cleanup() { rm -f "${CLEANUP_FILES[@]}" 2>/dev/null; }
+trap cleanup EXIT INT TERM
+
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -110,14 +115,15 @@ detect_trigger() {
     local output_file="$1"
     local skill_name="$2"
 
-    # Check stream-json output for Skill tool invocation or skill name in tool_use
+    # Primary: check stream-json for Skill tool invocation
     if grep -qi "\"tool\".*\"Skill\"\|\"name\".*\"Skill\"\|\"skill\".*\"$skill_name\"" "$output_file" 2>/dev/null; then
         echo "true"
         return
     fi
 
-    # Fallback: check if skill content patterns appear (skill was loaded)
-    if grep -qi "skill.*$skill_name\|command.*$skill_name\|ork:$skill_name" "$output_file" 2>/dev/null; then
+    # Fallback: check for exact skill references with word boundaries
+    # Uses \b to prevent "commit" matching "committed" or "committee"
+    if grep -qiP "\bork:$skill_name\b" "$output_file" 2>/dev/null; then
         echo "true"
         return
     fi
@@ -132,6 +138,7 @@ run_prompt() {
     local reps="$3"
     local triggered=0
     local tmpfile; tmpfile=$(mktemp)
+    CLEANUP_FILES+=("$tmpfile")
 
     for ((i=1; i<=reps; i++)); do
         claude -p "$prompt" \
@@ -174,13 +181,16 @@ eval_skill() {
         return 0
     fi
 
-    # Run trigger evals
+    # Run trigger evals — two-pass: positives first, then negatives
+    # Flaky results count as partial TP/FP (weighted by trigger rate)
     local tp=0 fp=0 tn=0 fn=0 flaky=0
+    local tp_partial="0" fp_partial="0"  # bc-compatible decimal accumulators
     local results_json="["
+    local first_result=true
 
-    echo -e "${BLUE}║${NC}  ${BOLD}SHOULD TRIGGER${NC}"
-
-    for ((idx=0; idx<trigger_count; idx++)); do
+    # Helper: run one eval entry and print result
+    run_eval_entry() {
+        local idx="$1"
         local prompt; prompt=$(yq ".trigger_evals[$idx].prompt" "$eval_file")
         local should_trigger; should_trigger=$(yq ".trigger_evals[$idx].should_trigger" "$eval_file")
         local triggered; triggered=$(run_prompt "$prompt" "$skill_id" "$REPS")
@@ -192,22 +202,24 @@ eval_skill() {
         if [[ "$should_trigger" == "true" ]]; then
             if [[ "$triggered" -eq "$REPS" ]]; then
                 verdict="OK"; symbol="${GREEN}✓${NC}"; ((tp++))
+                tp_partial=$(echo "$tp_partial + 1" | bc)
             elif [[ "$triggered" -eq 0 ]]; then
                 verdict="MISS"; symbol="${RED}✗${NC}"; ((fn++))
             else
                 verdict="FLAKY"; symbol="${YELLOW}⚠${NC}"; ((flaky++))
+                # Count flaky positives as partial TP weighted by rate
+                tp_partial=$(echo "$tp_partial + $rate" | bc)
             fi
         else
-            # Print header for negatives on first negative
-            if [[ "$idx" -gt 0 ]] && [[ "$(yq ".trigger_evals[$((idx-1))].should_trigger" "$eval_file")" == "true" ]]; then
-                echo -e "${BLUE}║${NC}  ${BOLD}SHOULD NOT TRIGGER${NC}"
-            fi
             if [[ "$triggered" -eq 0 ]]; then
                 verdict="OK"; symbol="${GREEN}✓${NC}"; ((tn++))
             elif [[ "$triggered" -eq "$REPS" ]]; then
                 verdict="FALSE+"; symbol="${RED}✗${NC}"; ((fp++))
+                fp_partial=$(echo "$fp_partial + 1" | bc)
             else
                 verdict="FLAKY"; symbol="${YELLOW}⚠${NC}"; ((flaky++))
+                # Count flaky negatives as partial FP weighted by rate
+                fp_partial=$(echo "$fp_partial + $rate" | bc)
             fi
         fi
 
@@ -218,22 +230,44 @@ eval_skill() {
         printf "${BLUE}║${NC}  %b %-42s %d/%d  %s\n" "$symbol" "\"$display_prompt\"" "$triggered" "$REPS" "$verdict"
 
         # Accumulate JSON results
-        local triggered_arr="["
-        # Simplified: just store count, not per-rep array
-        triggered_arr="$triggered/$REPS"
-        [[ "$idx" -gt 0 ]] && results_json+=","
+        [[ "$first_result" == "true" ]] && first_result=false || results_json+=","
         results_json+="{\"prompt\":$(echo "$prompt" | jq -Rs .),\"should_trigger\":$should_trigger,\"triggered\":$triggered,\"reps\":$REPS,\"rate\":$rate,\"verdict\":\"$verdict\"}"
+    }
+
+    # Pass 1: should_trigger=true entries
+    echo -e "${BLUE}║${NC}  ${BOLD}SHOULD TRIGGER${NC}"
+    for ((idx=0; idx<trigger_count; idx++)); do
+        local st; st=$(yq ".trigger_evals[$idx].should_trigger" "$eval_file")
+        [[ "$st" == "true" ]] && run_eval_entry "$idx"
+    done
+
+    # Pass 2: should_trigger=false entries
+    echo -e "${BLUE}║${NC}  ${BOLD}SHOULD NOT TRIGGER${NC}"
+    for ((idx=0; idx<trigger_count; idx++)); do
+        local st; st=$(yq ".trigger_evals[$idx].should_trigger" "$eval_file")
+        [[ "$st" == "false" ]] && run_eval_entry "$idx"
     done
 
     results_json+="]"
 
-    # Calculate precision and recall
-    local precision=0 recall=0
+    # Calculate effective precision and recall (flaky = partial weight)
+    # effective_recall = tp_partial / (tp_partial + fn) * 100
+    # effective_precision = tp_partial / (tp_partial + fp_partial) * 100
+    local precision=0 recall=0 eff_recall=0 eff_precision=0
     if [[ $((tp + fp)) -gt 0 ]]; then
         precision=$(echo "scale=1; $tp * 100 / ($tp + $fp)" | bc)
     fi
     if [[ $((tp + fn)) -gt 0 ]]; then
         recall=$(echo "scale=1; $tp * 100 / ($tp + $fn)" | bc)
+    fi
+    # Effective metrics include partial flaky weight
+    local tp_fn_partial; tp_fn_partial=$(echo "$tp_partial + $fn" | bc)
+    if [[ $(echo "$tp_fn_partial > 0" | bc) -eq 1 ]]; then
+        eff_recall=$(echo "scale=1; $tp_partial * 100 / $tp_fn_partial" | bc)
+    fi
+    local tp_fp_partial; tp_fp_partial=$(echo "$tp_partial + $fp_partial" | bc)
+    if [[ $(echo "$tp_fp_partial > 0" | bc) -eq 1 ]]; then
+        eff_precision=$(echo "scale=1; $tp_partial * 100 / $tp_fp_partial" | bc)
     fi
 
     local end_time; end_time=$(date +%s)
@@ -243,6 +277,7 @@ eval_skill() {
     printf "${BLUE}║${NC}  Precision: ${BOLD}%s%%${NC}  │  Recall: ${BOLD}%s%%${NC}  │  %dx reps\n" "$precision" "$recall" "$REPS"
     if [[ "$flaky" -gt 0 ]]; then
         echo -e "${BLUE}║${NC}  ${YELLOW}Flaky: $flaky prompts (1-$((REPS-1)) out of $REPS)${NC}"
+        printf "${BLUE}║${NC}  Effective (flaky-weighted): P=${BOLD}%s%%${NC}  R=${BOLD}%s%%${NC}\n" "$eff_precision" "$eff_recall"
     fi
     echo -e "${BLUE}║${NC}  Duration: ${duration}s"
     echo -e "${BLUE}╚══════════════════════════════════════════════════════╝${NC}"
@@ -255,6 +290,8 @@ eval_skill() {
   "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
   "precision": $precision,
   "recall": $recall,
+  "effective_precision": $eff_precision,
+  "effective_recall": $eff_recall,
   "true_positives": $tp,
   "false_positives": $fp,
   "true_negatives": $tn,
@@ -267,10 +304,12 @@ eval_skill() {
 }
 ENDJSON
 
-    # Return pass/fail based on recall threshold
-    local recall_int=${recall%.*}
-    [[ -z "$recall_int" ]] && recall_int=0
-    if [[ "$recall_int" -lt "$PASS_THRESHOLD" ]]; then
+    # Return pass/fail based on effective recall threshold
+    # Uses effective recall (flaky-weighted) so partially-working skills
+    # get credit rather than being treated as completely broken
+    local eff_recall_int=${eff_recall%.*}
+    [[ -z "$eff_recall_int" ]] && eff_recall_int=0
+    if [[ "$eff_recall_int" -lt "$PASS_THRESHOLD" ]]; then
         return 1
     fi
     return 0

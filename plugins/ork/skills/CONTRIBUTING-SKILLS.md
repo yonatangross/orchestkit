@@ -504,6 +504,8 @@ Evals run locally using `claude -p` with CC Max (free, 5x per query):
 ```bash
 npm run eval:trigger -- commit           # trigger accuracy for one skill
 npm run eval:trigger -- --all            # all skills with .eval.yaml files
+npm run eval:trigger -- --tag core       # filter by tag (matches tags[] in YAML)
+npm run eval:trigger -- --reps 3         # override repetitions (default: 5)
 npm run eval:trigger -- --dry-run        # validate YAML only, no Claude calls
 ```
 
