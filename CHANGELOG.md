@@ -5,6 +5,34 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.5.3] - 2026-03-13
+
+### Added
+
+- **eval:** Quality evaluation runner (`npm run eval:quality`) — A/B skill vs baseline grading with Claude-as-judge
+- **eval:** Seed eval YAMLs for all 16 user-invocable skills with trigger + quality assertions
+- **eval:** Shared eval library (`lib/eval-common.sh`) — colors, cleanup, deps, portable timeout
+- **eval:** `--grade-only`, `--tag`, `--max-turns`, `--timeout` flags for both eval runners
+- **eval:** Batch assertion grading (A3) reduces Claude calls ~60%
+- **eval:** Parallel with-skill + baseline execution (A4) for faster evals
+- **eval:** Scaffold field support — quality evals can declare project scaffolds (e.g., `typescript-nextjs`)
+
+### Fixed
+
+- **eval:** SEC-001 path traversal in skill name input validation
+- **eval:** SEC-002 JSON injection via unsanitized YAML-sourced strings
+- **eval:** PASS/FAIL grading anchored to first token to prevent false matches
+- **eval:** Silent claude CLI crashes now emit warnings
+- **eval:** `grep -w` with multi-word patterns replaced by ERE
+
+### Changed
+
+- **eval:** Trigger runner refactored to source shared `eval-common.sh`
+- **eval:** All 17 eval YAMLs hardened with adversarial prompts, confusion pairs, and negative assertions
+
+---
+
+
 ## [7.5.2] - 2026-03-12
 
 ### Added
