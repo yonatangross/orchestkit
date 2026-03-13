@@ -14,6 +14,8 @@
 #
 # Requirements:
 #   - yq for YAML parsing
+#   - jq for JSON escaping
+#   - bc for arithmetic (precision/recall)
 #   - Claude Code CLI (skipped in --dry-run mode)
 #   - Run OUTSIDE Claude Code session (unsets CLAUDECODE)
 # =============================================================================
@@ -50,8 +52,24 @@ PASS_THRESHOLD=80  # Minimum recall % to pass
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --all) SKILL_FILTER="__all__"; shift ;;
-        --tag) TAG_FILTER="$2"; shift 2 ;;
-        --reps) REPS="$2"; shift 2 ;;
+        --tag)
+            if [[ $# -lt 2 ]]; then
+                echo -e "${RED}Error: --tag requires a value${NC}"
+                exit 1
+            fi
+            TAG_FILTER="$2"; shift 2
+            ;;
+        --reps)
+            if [[ $# -lt 2 ]]; then
+                echo -e "${RED}Error: --reps requires a positive integer${NC}"
+                exit 1
+            fi
+            if ! [[ "$2" =~ ^[1-9][0-9]*$ ]]; then
+                echo -e "${RED}Error: --reps must be a positive integer (got: '$2')${NC}"
+                exit 1
+            fi
+            REPS="$2"; shift 2
+            ;;
         --dry-run) DRY_RUN=true; shift ;;
         --help|-h)
             echo "Usage: $0 [skill-name|--all] [--tag TAG] [--reps N] [--dry-run]"
@@ -77,6 +95,14 @@ check_deps() {
         echo -e "${RED}Error: yq is required (brew install yq)${NC}"
         exit 1
     fi
+    if ! command -v jq &> /dev/null; then
+        echo -e "${RED}Error: jq is required (brew install jq)${NC}"
+        exit 1
+    fi
+    if ! command -v bc &> /dev/null; then
+        echo -e "${RED}Error: bc is required (brew install bc)${NC}"
+        exit 1
+    fi
     if [[ "$DRY_RUN" == "false" ]] && ! command -v claude &> /dev/null; then
         echo -e "${YELLOW}Warning: Claude CLI not found — switching to dry-run mode${NC}"
         DRY_RUN=true
@@ -88,18 +114,18 @@ validate_yaml() {
     local file="$1"
     local errors=0
 
-    local id; id=$(yq '.id' "$file" 2>/dev/null)
+    local id; id=$(yq -r '.id' "$file" 2>/dev/null)
     if [[ -z "$id" || "$id" == "null" ]]; then
         echo -e "  ${RED}Missing: id${NC}"; ((errors++))
     fi
 
-    local trigger_count; trigger_count=$(yq '.trigger_evals | length' "$file" 2>/dev/null)
+    local trigger_count; trigger_count=$(yq -r '.trigger_evals | length' "$file" 2>/dev/null)
     if [[ "$trigger_count" -lt 5 ]]; then
         echo -e "  ${YELLOW}Warning: only $trigger_count trigger entries (recommend 5+)${NC}"
     fi
 
-    local true_count; true_count=$(yq '[.trigger_evals[] | select(.should_trigger == true)] | length' "$file" 2>/dev/null)
-    local false_count; false_count=$(yq '[.trigger_evals[] | select(.should_trigger == false)] | length' "$file" 2>/dev/null)
+    local true_count; true_count=$(yq -r '[.trigger_evals[] | select(.should_trigger == true)] | length' "$file" 2>/dev/null)
+    local false_count; false_count=$(yq -r '[.trigger_evals[] | select(.should_trigger == false)] | length' "$file" 2>/dev/null)
     if [[ "$true_count" -lt 3 ]]; then
         echo -e "  ${YELLOW}Warning: only $true_count should_trigger:true entries (recommend 3+)${NC}"
     fi
@@ -162,9 +188,9 @@ run_prompt() {
 # Evaluate one skill
 eval_skill() {
     local eval_file="$1"
-    local skill_id; skill_id=$(yq '.id' "$eval_file")
-    local skill_name; skill_name=$(yq '.name' "$eval_file")
-    local trigger_count; trigger_count=$(yq '.trigger_evals | length' "$eval_file")
+    local skill_id; skill_id=$(yq -r '.id' "$eval_file")
+    local skill_name; skill_name=$(yq -r '.name' "$eval_file")
+    local trigger_count; trigger_count=$(yq -r '.trigger_evals | length' "$eval_file")
     local start_time; start_time=$(date +%s)
 
     echo -e "\n${BLUE}╔══════════════════════════════════════════════════════╗${NC}"
@@ -173,7 +199,11 @@ eval_skill() {
 
     # Validate YAML
     echo -e "${CYAN}  Validating YAML...${NC}"
-    validate_yaml "$eval_file"
+    if ! validate_yaml "$eval_file"; then
+        echo -e "${BLUE}║${NC}  ${RED}YAML validation failed — skipping${NC}"
+        echo -e "${BLUE}╚══════════════════════════════════════════════════════╝${NC}"
+        return 1
+    fi
 
     if [[ "$DRY_RUN" == "true" ]]; then
         echo -e "${BLUE}║${NC}  ${YELLOW}DRY-RUN: YAML valid, skipping Claude calls${NC}"
@@ -192,8 +222,8 @@ eval_skill() {
     # Helper: run one eval entry and print result
     run_eval_entry() {
         local idx="$1"
-        local prompt; prompt=$(yq ".trigger_evals[$idx].prompt" "$eval_file")
-        local should_trigger; should_trigger=$(yq ".trigger_evals[$idx].should_trigger" "$eval_file")
+        local prompt; prompt=$(yq -r ".trigger_evals[$idx].prompt" "$eval_file")
+        local should_trigger; should_trigger=$(yq -r ".trigger_evals[$idx].should_trigger" "$eval_file")
         local triggered; triggered=$(run_prompt "$prompt" "$skill_id" "$REPS")
         local rate; rate=$(echo "scale=2; $triggered / $REPS" | bc)
 
@@ -238,14 +268,14 @@ eval_skill() {
     # Pass 1: should_trigger=true entries
     echo -e "${BLUE}║${NC}  ${BOLD}SHOULD TRIGGER${NC}"
     for ((idx=0; idx<trigger_count; idx++)); do
-        local st; st=$(yq ".trigger_evals[$idx].should_trigger" "$eval_file")
+        local st; st=$(yq -r ".trigger_evals[$idx].should_trigger" "$eval_file")
         [[ "$st" == "true" ]] && run_eval_entry "$idx"
     done
 
     # Pass 2: should_trigger=false entries
     echo -e "${BLUE}║${NC}  ${BOLD}SHOULD NOT TRIGGER${NC}"
     for ((idx=0; idx<trigger_count; idx++)); do
-        local st; st=$(yq ".trigger_evals[$idx].should_trigger" "$eval_file")
+        local st; st=$(yq -r ".trigger_evals[$idx].should_trigger" "$eval_file")
         [[ "$st" == "false" ]] && run_eval_entry "$idx"
     done
 
@@ -335,7 +365,7 @@ if [[ "$SKILL_FILTER" == "__all__" ]]; then
     for f in "$SKILLS_EVAL_DIR"/*.eval.yaml; do
         [[ -f "$f" ]] || continue
         if [[ -n "$TAG_FILTER" ]]; then
-            if yq ".tags[]" "$f" 2>/dev/null | grep -q "$TAG_FILTER"; then
+            if yq -r ".tags[]" "$f" 2>/dev/null | grep -q "$TAG_FILTER"; then
                 eval_files+=("$f")
             fi
         else
@@ -365,7 +395,7 @@ for eval_file in "${eval_files[@]}"; do
         ((passed++))
     else
         ((failed++))
-        failed_skills+=("$(yq '.id' "$eval_file")")
+        failed_skills+=("$(yq -r '.id' "$eval_file")")
     fi
 done
 
