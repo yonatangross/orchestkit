@@ -5,6 +5,25 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.6.0] - 2026-03-14
+
+### Added
+
+- **api-design:** Agent-facing RFC 9457 error patterns with structured retry signals — `retryable`, `error_category`, `retry_after`, `owner_action_required` extensions for deterministic AI agent error handling
+- **api-design:** Content negotiation middleware pattern (JSON/Markdown/HTML via Accept header) with token efficiency budget (<300 tokens)
+- **api-design:** Error category taxonomy (10 categories) with agent action mapping table
+- **types:** `StructuredError` and `ErrorCategory` types in orchestration-types.ts for structured error handling in hooks
+- **testing-integration:** RFC 9457 error response assertion patterns (Python + TypeScript)
+
+### Changed
+
+- **hooks:** retry-manager now extracts RFC 9457 structured errors before regex fallback — uses server-provided `retry_after` instead of calculated backoff
+- **hooks:** failure-handler detects structured errors for richer context injection with `error_category` and `what_you_should_do`
+
+### Fixed
+
+- **python-backend:** Updated stale RFC 7807 reference to RFC 9457 (the active standard)
+
 ## [7.5.3] - 2026-03-13
 
 ### Added

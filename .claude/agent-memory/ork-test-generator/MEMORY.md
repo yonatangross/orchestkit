@@ -53,3 +53,19 @@
 - Current prompt dispatcher HOOKS array (4 entries): handoff-injector, agentation-context, context-exhaustion-warner, antipattern-warning
 - No dedicated unified-dispatcher.test.ts for prompt — coverage comes from `e2e/hook-execution-e2e.test.ts` (execution tests) and individual hook test files
 - The e2e test asserts `registeredHookNames` is non-empty and contains `antipattern-warning` — it does NOT assert exact count 4
+
+## Sprint 2 Wave A Eval Framework (2026-03-13)
+- 17 skill eval YAMLs: 5 existing (api-design, assess, commit, explore, implement) + 12 new
+- Quality runner: `run-quality-eval.sh` — A/B skill vs baseline, LLM-graded assertions
+- Trigger runner: `run-trigger-eval.sh` — precision/recall with N reps
+- Dry-run mode validates YAML structure only (no Claude CLI needed) — used in CI
+- Results: `tests/evals/results/skills/*.json` (gitignored). Exit: 0=pass, 1=regression
+- Dry-run does NOT produce JSON output — gap for CI parseable results
+
+## B-Enhancements Applied to All 17 Evals (2026-03-13)
+- B1: Added confusion pair annotations to 5 original evals (assess, commit, explore, implement, api-design)
+- B2: Fixed non-reciprocal confusion pairs: assess<->verify, assess<->review-pr, brainstorm<->visualize-plan, implement<->fix-issue
+- B3: Added 2nd quality eval to doctor.eval.yaml (hooks-only scoped check)
+- B4: Added adversarial triggers to ALL 17 files (terse 1-2 word, typo-laden, multi-intent negatives)
+- B5: Added 1-2 negative assertions to EVERY quality eval across all 17 files
+- All 17 files pass yq/yaml parsing and dry-run validation (17/17 passed)
