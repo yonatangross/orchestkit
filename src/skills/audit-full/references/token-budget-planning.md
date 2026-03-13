@@ -22,7 +22,7 @@ bash ${CLAUDE_SKILL_DIR}/scripts/estimate-tokens.sh /path/to/project
 | Context Size | Available for Code | Fits LOC (approx) |
 |-------------|-------------------|-------------------|
 | 200K (standard) | ~150K tokens | ~20K LOC |
-| 1M (beta) | ~800K tokens | ~100K LOC |
+| 1M | ~800K tokens | ~100K LOC |
 
 ## Auto-Exclusion List
 

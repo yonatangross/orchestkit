@@ -17,7 +17,7 @@ vi.mock('../../lib/common.js', async (importOriginal) => {
 
 import { tokenBudgetTracker } from '../../instructions-loaded/token-budget-tracker.js';
 
-// 200,000 tokens estimated context; warn threshold is 15% = 30,000 tokens = 120,000 bytes
+// 1,000,000 tokens estimated context; warn threshold is 15% = 150,000 tokens = 600,000 bytes
 const EMPTY_CONTENTS = new Map<string, string>();
 
 function makeFile(path: string, byte_size: number): LoadedFile {
@@ -54,19 +54,19 @@ describe('tokenBudgetTracker', () => {
 
   describe('string returns (context injection)', () => {
     test('returns budget string when files exceed 1% of context', () => {
-      // 8,000 bytes = 2,000 tokens = 1% of 200,000
-      const files = [makeFile('/project/CLAUDE.md', 8_001)];
+      // 40,000 bytes = 10,000 tokens = 1% of 1,000,000
+      const files = [makeFile('/project/CLAUDE.md', 40_001)];
       const result = tokenBudgetTracker(files, EMPTY_CONTENTS);
       expect(result).not.toBeNull();
       expect(result).toContain('[Instruction Budget]');
     });
 
     test('includes token count and percentage', () => {
-      // 40,000 bytes = 10,000 tokens = 5% of 200,000
-      const files = [makeFile('/project/CLAUDE.md', 40_000)];
+      // 200,000 bytes = 50,000 tokens = 5% of 1,000,000
+      const files = [makeFile('/project/CLAUDE.md', 200_000)];
       const result = tokenBudgetTracker(files, EMPTY_CONTENTS);
       expect(result).not.toBeNull();
-      expect(result).toContain('10000 tokens');
+      expect(result).toContain('50000 tokens');
       expect(result).toContain('5.0%');
     });
 
@@ -87,8 +87,8 @@ describe('tokenBudgetTracker', () => {
     });
 
     test('appends WARNING when instructions exceed 15% of context window', () => {
-      // 15% of 200,000 tokens = 30,000 tokens = 120,000 bytes
-      const files = [makeFile('/project/CLAUDE.md', 130_000)]; // > 30,000 tokens
+      // 15% of 1,000,000 tokens = 150,000 tokens = 600,000 bytes
+      const files = [makeFile('/project/CLAUDE.md', 610_000)]; // > 150,000 tokens
       const result = tokenBudgetTracker(files, EMPTY_CONTENTS);
       expect(result).not.toBeNull();
       expect(result).toContain('WARNING');
@@ -96,17 +96,17 @@ describe('tokenBudgetTracker', () => {
     });
 
     test('no WARNING when instructions are exactly at threshold', () => {
-      // 120,000 bytes = 30,000 tokens = exactly 15%
-      const files = [makeFile('/project/CLAUDE.md', 120_000)];
+      // 600,000 bytes = 150,000 tokens = exactly 15%
+      const files = [makeFile('/project/CLAUDE.md', 600_000)];
       const result = tokenBudgetTracker(files, EMPTY_CONTENTS);
       expect(result).not.toBeNull();
       expect(result).not.toContain('WARNING');
     });
 
     test('treats missing byte_size as 0', () => {
-      // 1 file with 8001 bytes (above 1% threshold) + 3 files with no byte_size
+      // 1 file with 40001 bytes (above 1% threshold) + 3 files with no byte_size
       const files: LoadedFile[] = [
-        { path: '/project/CLAUDE.md', byte_size: 8_001 },
+        { path: '/project/CLAUDE.md', byte_size: 40_001 },
         { path: '/project/.claude/rules/a.md' },
         { path: '/project/.claude/rules/b.md' },
         { path: '/project/.claude/rules/c.md' },

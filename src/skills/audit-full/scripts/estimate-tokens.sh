@@ -92,7 +92,7 @@ elif [ "$TOTAL" -lt 450000 ]; then
 elif [ "$TOTAL" -lt 950000 ]; then
   echo "  200K context: NO"
   echo "  500K context: NO"
-  echo "  1M context:   YES (beta, Tier 4+)"
+  echo "  1M context:   YES (GA)"
 else
   echo "  200K context: NO"
   echo "  500K context: NO"

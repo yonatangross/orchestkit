@@ -53,7 +53,7 @@ response = client.chat.completions.create(
 - Use `detail: "high"` for documents with small text, tables, or charts
 - Gemini 2.5 Pro handles longest documents (1M+ context)
 - Always validate extracted numbers against source when accuracy is critical
-- Claude supports up to 100 images per request (useful for multi-page document analysis)
+- Claude supports up to 600 images or PDF pages per request (useful for multi-page document analysis)
 
 **PDF constraints:**
 
