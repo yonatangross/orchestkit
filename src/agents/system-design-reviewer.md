@@ -3,7 +3,7 @@ name: system-design-reviewer
 description: System design reviewer who evaluates implementation plans against scale, data, security, UX, and coherence criteria before code is written.
 category: design
 model: opus
-maxTurns: 40
+maxTurns: 60
 permissionMode: plan
 context: inherit
 color: cyan

@@ -3,7 +3,7 @@ name: security-layer-auditor
 description: Security layer auditor who verifies defense-in-depth implementation across 8 security layers, from edge to storage, ensuring comprehensive protection.
 category: security
 model: opus
-maxTurns: 40
+maxTurns: 60
 context: fork
 color: red
 memory: local

@@ -32,9 +32,8 @@ Total tokens ≈ (TS lines × 8) + (Py lines × 7) + (Config lines × 5) + (Othe
 
 | Context Size | Total | Reserved for Prompt | Available for Code | Max LOC |
 |-------------|-------|--------------------|--------------------|---------|
-| 200K | 200,000 | ~50,000 | ~150,000 | ~20,000 |
-| 500K | 500,000 | ~50,000 | ~450,000 | ~60,000 |
-| 1M | 1,000,000 | ~50,000 | ~950,000 | ~125,000 |
+| 1M (standard) | 1,000,000 | ~50,000 | ~950,000 | ~125,000 |
+| 200K (legacy) | 200,000 | ~50,000 | ~150,000 | ~20,000 |
 
 **Reserved for prompt** includes: system prompt, skill content, analysis instructions, and output space.
 
@@ -64,8 +63,8 @@ When partially loading, prioritize in this order:
 
 | Project Type | Typical LOC | Estimated Tokens | Fits in |
 |-------------|-------------|-----------------|---------|
-| Microservice | 5-15K | 40-120K | 200K |
-| Small app | 15-30K | 120-240K | 500K |
-| Medium app | 30-60K | 240-480K | 1M |
-| Large monolith | 60-150K | 480K-1.2M | Partial load |
-| Monorepo | 150K+ | 1M+ | Directory-scoped only |
+| Microservice | 5-15K | 40-120K | 1M (single-pass) |
+| Small app | 15-30K | 120-240K | 1M (single-pass) |
+| Medium app | 30-60K | 240-480K | 1M (single-pass) |
+| Large app | 60-125K | 480K-950K | 1M (fits with scoping) |
+| Large monolith | 125K+ | 950K+ | Directory-scoped or /ork:verify |

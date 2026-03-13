@@ -134,7 +134,7 @@ Before finalizing the report, verify with `Read("$\{CLAUDE_SKILL_DIR\}/checklist
 | CI/CD automated scanning | `security-scanning` skill |
 | Multi-agent graded verification | `/ork:verify` |
 | Exploring unfamiliar codebase | `/ork:explore` |
-| Context window &lt; 200K tokens | `/ork:verify` (chunked approach) |
+| Codebase > 125K LOC (exceeds 1M) | `/ork:verify` (chunked approach) |
 
 ---
 
@@ -144,7 +144,7 @@ Before finalizing the report, verify with `Read("$\{CLAUDE_SKILL_DIR\}/checklist
 - `ork:security-patterns` — Security architecture patterns and OWASP vulnerability classification
 - `ork:architecture-patterns` — Architectural pattern reference
 - `ork:quality-gates` — Quality assessment criteria
-- `ork:verify` — Chunked multi-agent verification (fallback for large codebases)
+- `ork:verify` — Multi-agent verification (fallback for codebases exceeding 1M context)
 
 ## References
 
@@ -286,7 +286,7 @@ find . -name "*.ts" -o -name "*.js" | xargs cat
 **Mode:** Security audit
 **Target directories:** src/api/, src/auth/, src/middleware/
 **Exclusions:** dist/, node_modules/, *.test.ts, *.spec.ts, __snapshots__/
-**Token budget:** ~200K available, estimated usage: ~85K (42%)
+**Token budget:** ~950K available (1M GA), estimated usage: ~85K (9%)
 **Priority order:**
   1. Entry points (src/index.ts, src/app.ts)
   2. Auth boundary (src/auth/*, src/middleware/auth*)
@@ -879,8 +879,8 @@ bash ${CLAUDE_SKILL_DIR}/scripts/estimate-tokens.sh /path/to/project
 
 | Context Size | Available for Code | Fits LOC (approx) |
 |-------------|-------------------|-------------------|
-| 200K (standard) | ~150K tokens | ~20K LOC |
-| 1M | ~800K tokens | ~100K LOC |
+| 200K | ~150K tokens | ~20K LOC |
+| 1M (standard) | ~950K tokens | ~125K LOC |
 
 ## Auto-Exclusion List
 
@@ -896,7 +896,7 @@ Always exclude from loading:
 
 1. **Priority loading**: Entry points first, then imported modules
 2. **Directory scoping**: Ask user to narrow to specific directories
-3. **Fallback**: Recommend `/ork:verify` for chunked multi-agent approach
+3. **Fallback**: Recommend `/ork:verify` for multi-agent approach (only needed for codebases > 125K LOC)
 
 ```python
 # Fallback suggestion
@@ -951,9 +951,8 @@ Total tokens ≈ (TS lines × 8) + (Py lines × 7) + (Config lines × 5) + (Othe
 
 | Context Size | Total | Reserved for Prompt | Available for Code | Max LOC |
 |-------------|-------|--------------------|--------------------|---------|
-| 200K | 200,000 | ~50,000 | ~150,000 | ~20,000 |
-| 500K | 500,000 | ~50,000 | ~450,000 | ~60,000 |
-| 1M | 1,000,000 | ~50,000 | ~950,000 | ~125,000 |
+| 1M (standard) | 1,000,000 | ~50,000 | ~950,000 | ~125,000 |
+| 200K (legacy) | 200,000 | ~50,000 | ~150,000 | ~20,000 |
 
 **Reserved for prompt** includes: system prompt, skill content, analysis instructions, and output space.
 
@@ -983,11 +982,11 @@ When partially loading, prioritize in this order:
 
 | Project Type | Typical LOC | Estimated Tokens | Fits in |
 |-------------|-------------|-----------------|---------|
-| Microservice | 5-15K | 40-120K | 200K |
-| Small app | 15-30K | 120-240K | 500K |
-| Medium app | 30-60K | 240-480K | 1M |
-| Large monolith | 60-150K | 480K-1.2M | Partial load |
-| Monorepo | 150K+ | 1M+ | Directory-scoped only |
+| Microservice | 5-15K | 40-120K | 1M (single-pass) |
+| Small app | 15-30K | 120-240K | 1M (single-pass) |
+| Medium app | 30-60K | 240-480K | 1M (single-pass) |
+| Large app | 60-125K | 480K-950K | 1M (fits with scoping) |
+| Large monolith | 125K+ | 950K+ | Directory-scoped or /ork:verify |
 
 
 

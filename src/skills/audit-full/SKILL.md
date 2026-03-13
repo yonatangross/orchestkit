@@ -140,7 +140,7 @@ Before finalizing the report, verify with `Read("${CLAUDE_SKILL_DIR}/checklists/
 | CI/CD automated scanning | `security-scanning` skill |
 | Multi-agent graded verification | `/ork:verify` |
 | Exploring unfamiliar codebase | `/ork:explore` |
-| Context window < 200K tokens | `/ork:verify` (chunked approach) |
+| Codebase > 125K LOC (exceeds 1M) | `/ork:verify` (chunked approach) |
 
 ---
 
@@ -150,7 +150,7 @@ Before finalizing the report, verify with `Read("${CLAUDE_SKILL_DIR}/checklists/
 - `ork:security-patterns` — Security architecture patterns and OWASP vulnerability classification
 - `ork:architecture-patterns` — Architectural pattern reference
 - `ork:quality-gates` — Quality assessment criteria
-- `ork:verify` — Chunked multi-agent verification (fallback for large codebases)
+- `ork:verify` — Multi-agent verification (fallback for codebases exceeding 1M context)
 
 ## References
 

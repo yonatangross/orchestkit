@@ -3,7 +3,7 @@ name: frontend-performance-engineer
 description: Performance engineer who optimizes Core Web Vitals, analyzes bundles, profiles render performance, and sets up RUM.
 category: frontend
 model: sonnet
-maxTurns: 30
+maxTurns: 50
 context: fork
 color: green
 memory: project

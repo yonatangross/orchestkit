@@ -3,7 +3,7 @@ name: code-quality-reviewer
 description: "Code quality reviewer: bug detection, security vulnerabilities, performance issues, linting, type checking, test coverage."
 model: inherit
 category: testing
-maxTurns: 30
+maxTurns: 50
 context: inherit
 color: green
 memory: project
