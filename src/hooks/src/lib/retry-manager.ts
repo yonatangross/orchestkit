@@ -15,6 +15,7 @@ import type {
   ExecutionAttempt,
   AgentOutcome,
   DispatchedAgent,
+  StructuredError,
 } from './orchestration-types.js';
 
 // -----------------------------------------------------------------------------
@@ -60,6 +61,33 @@ const ALTERNATIVE_SUGGESTING_ERRORS = [
   /consider using/i,
   /specialized agent/i,
 ];
+
+// -----------------------------------------------------------------------------
+// Structured Error Extraction (RFC 9457)
+// -----------------------------------------------------------------------------
+
+/**
+ * Attempt to extract an RFC 9457 structured error from an error message.
+ * Returns null if the error is not structured JSON with the required fields.
+ */
+export function extractStructuredError(error: string): StructuredError | null {
+  try {
+    const parsed = JSON.parse(error);
+    // Must have the agent-facing extension fields to qualify
+    if (
+      parsed &&
+      typeof parsed.type === 'string' &&
+      typeof parsed.status === 'number' &&
+      typeof parsed.retryable === 'boolean' &&
+      typeof parsed.error_category === 'string'
+    ) {
+      return parsed as StructuredError;
+    }
+  } catch {
+    // Not JSON — fall through to regex-based classification
+  }
+  return null;
+}
 
 // -----------------------------------------------------------------------------
 // Retry Logic
@@ -120,7 +148,12 @@ export function getAlternativeAgent(agent: string, triedAgents: string[] = []): 
 }
 
 /**
- * Make retry decision based on execution history and error
+ * Make retry decision based on execution history and error.
+ *
+ * When the error contains an RFC 9457 structured response (JSON with
+ * retryable, error_category, retry_after), uses those fields directly
+ * for deterministic decisions. Falls back to regex pattern matching
+ * for unstructured error strings.
  */
 export function makeRetryDecision(
   agent: string,
@@ -130,6 +163,56 @@ export function makeRetryDecision(
   maxRetries: number = DEFAULT_MAX_RETRIES
 ): RetryDecision {
   logHook('retry-manager', `Evaluating retry for ${agent}, attempt ${attemptNumber}`);
+
+  // Try RFC 9457 structured error first — deterministic, no regex needed
+  const structured = extractStructuredError(error);
+  if (structured) {
+    logHook('retry-manager', `Structured error: category=${structured.error_category}, retryable=${structured.retryable}`);
+
+    // Check if max retries exceeded even for retryable errors
+    if (attemptNumber >= maxRetries) {
+      const alternative = getAlternativeAgent(agent, triedAgents);
+      return {
+        shouldRetry: false,
+        retryCount: attemptNumber,
+        maxRetries,
+        alternativeAgent: alternative,
+        reason: `Max retries (${maxRetries}) exceeded for ${structured.error_category}: ${structured.title}`,
+        structuredError: structured,
+      };
+    }
+
+    // Use server-provided retryable signal directly
+    if (!structured.retryable) {
+      const alternative = getAlternativeAgent(agent, triedAgents);
+      return {
+        shouldRetry: false,
+        retryCount: attemptNumber,
+        maxRetries,
+        alternativeAgent: structured.owner_action_required ? undefined : alternative,
+        reason: structured.owner_action_required
+          ? `Owner action required (${structured.error_category}): ${structured.title}`
+          : `Non-retryable ${structured.error_category}: ${structured.title}`,
+        structuredError: structured,
+      };
+    }
+
+    // Use server-provided retry_after, falling back to calculated backoff
+    const delayMs = structured.retry_after
+      ? structured.retry_after * 1000
+      : calculateBackoffDelay(attemptNumber);
+
+    return {
+      shouldRetry: true,
+      retryCount: attemptNumber,
+      maxRetries,
+      delayMs,
+      reason: `Retrying ${structured.error_category} (attempt ${attemptNumber + 1}/${maxRetries}) after ${Math.round(delayMs / 1000)}s`,
+      structuredError: structured,
+    };
+  }
+
+  // Fallback: regex-based classification for unstructured errors
 
   // Check if max retries exceeded
   if (attemptNumber >= maxRetries) {

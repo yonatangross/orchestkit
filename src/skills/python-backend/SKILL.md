@@ -96,7 +96,7 @@ Production-ready FastAPI patterns for lifespan, dependencies, middleware, and se
 - **Dependency injection** with class-based services and `Depends()`
 - **Middleware stack**: CORS -> RequestID -> Timing -> Logging
 - **Pydantic Settings** with `.env` and field validation
-- **Exception handlers** with RFC 7807 Problem Details
+- **Exception handlers** with RFC 9457 Problem Details
 
 ### Key Decisions
 

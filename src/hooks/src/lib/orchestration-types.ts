@@ -169,6 +169,47 @@ export interface TaskUpdateInstruction {
 // Retry and Error Handling Types
 // -----------------------------------------------------------------------------
 
+/** RFC 9457 error category for deterministic agent branching */
+export type ErrorCategory =
+  | 'access_denied'     // 401/403 — don't retry, may escalate
+  | 'rate_limit'        // 429 — wait retry_after seconds, then retry
+  | 'not_found'         // 404 — don't retry
+  | 'validation'        // 422 — don't retry, fix input
+  | 'config'            // Misconfiguration — escalate to owner
+  | 'timeout'           // 408/504 — retry with backoff
+  | 'server_error'      // 500 — retry cautiously
+  | 'quota'             // Plan/usage limit — escalate
+  | 'dependency'        // Upstream failure — retry with backoff
+  | 'unsupported';      // Method/feature not supported — don't retry
+
+/**
+ * Structured error following RFC 9457 + agent-facing extensions.
+ * When a tool or MCP server returns a structured error, hooks can
+ * use these fields for deterministic retry/escalation instead of regex.
+ */
+export interface StructuredError {
+  /** RFC 9457 type URI identifying the problem */
+  type: string;
+  /** HTTP status code */
+  status: number;
+  /** Short human-readable summary */
+  title: string;
+  /** Occurrence-specific explanation */
+  detail?: string;
+  /** Error category for deterministic branching */
+  error_category: ErrorCategory;
+  /** Explicit retryability signal — no guessing needed */
+  retryable: boolean;
+  /** Server-suggested wait time in seconds */
+  retry_after?: number;
+  /** Whether a human must intervene */
+  owner_action_required: boolean;
+  /** Agent-optimized guidance (< 50 words) */
+  what_you_should_do?: string;
+  /** Trace/correlation ID */
+  instance?: string;
+}
+
 /** Outcome of an agent execution */
 export type AgentOutcome = 'success' | 'partial' | 'failure' | 'rejected';
 
@@ -183,6 +224,8 @@ export interface RetryDecision {
   reason: string;
   /** Delay before retry in ms */
   delayMs?: number;
+  /** Structured error from server, if available */
+  structuredError?: StructuredError;
 }
 
 /** Record of an agent execution attempt */
