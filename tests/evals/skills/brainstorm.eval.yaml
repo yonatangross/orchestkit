@@ -28,10 +28,22 @@ trigger_evals:
     should_trigger: false
   - prompt: "i need formal requirements for the payments system"
     should_trigger: false
+  # Should NOT trigger — visualize-plan confusion pair (both planning phase)
+  - prompt: "show me the execution plan with risk analysis and timeline"
+    should_trigger: false
   # Should NOT trigger — adjacent tasks
   - prompt: "implement the caching layer we discussed"
     should_trigger: false
   - prompt: "rate this code from 0 to 10"
+    should_trigger: false
+  # Should trigger — terse phrasing
+  - prompt: "brainstorm caching"
+    should_trigger: true
+  # Should trigger — common typo
+  - prompt: "brianstorm ideas"
+    should_trigger: true
+  # Should NOT trigger — multi-intent, primary is implement
+  - prompt: "implement the notification system and brainstorm future improvements"
     should_trigger: false
 
 quality_evals:
@@ -50,6 +62,8 @@ quality_evals:
         check: "accounts for the existing REST API and Postgres when evaluating feasibility"
       - name: "asks clarifying questions or detects tier"
         check: "either asks the user about constraints/project tier or auto-detects project complexity"
+      - name: "no single option"
+        check: "does NOT present only one approach — must offer multiple alternatives"
 
   - prompt: |
       i want to add full-text search to the app. should i use
@@ -62,5 +76,7 @@ quality_evals:
         check: "discusses postgres full text, elasticsearch, and typesense"
       - name: "provides a recommendation"
         check: "offers a directional suggestion based on trade-offs"
+      - name: "no unsupported claims"
+        check: "does NOT make performance or scalability claims without justification or data points"
 
 tags: [brainstorm, user-invocable, core]

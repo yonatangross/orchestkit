@@ -33,6 +33,12 @@ trigger_evals:
     should_trigger: false
   - prompt: "assess the quality of this code"
     should_trigger: false
+  # Should trigger — terse phrasing
+  - prompt: "visualize plan"
+    should_trigger: true
+  # Should NOT trigger — multi-intent, primary is implement
+  - prompt: "implement the migration and show me a plan for the next phase"
+    should_trigger: false
 
 quality_evals:
   - prompt: |
@@ -49,6 +55,8 @@ quality_evals:
         check: "provides a risk dashboard with severity levels and at least one pre-mortem scenario"
       - name: "offers next actions"
         check: "presents options like save to file, generate GitHub issues, or drill deeper"
+      - name: "no estimated counts"
+        check: "does NOT estimate file or line counts — must use actual git data"
 
   - prompt: |
       just show me the file diff for whats on this branch, nothing fancy
@@ -59,5 +67,7 @@ quality_evals:
         check: "runs git commands to get actual file and line counts rather than estimates"
       - name: "no unnecessary sections"
         check: "skips execution swimlane, risk dashboard, and decision log"
+      - name: "no hallucinated files"
+        check: "does NOT list files that are not actually changed on the branch"
 
 tags: [visualize-plan, user-invocable, core]

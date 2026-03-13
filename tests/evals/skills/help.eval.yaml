@@ -33,6 +33,12 @@ trigger_evals:
     should_trigger: false
   - prompt: "review PR 123"
     should_trigger: false
+  # Should trigger — terse phrasing
+  - prompt: "help"
+    should_trigger: true
+  # Should NOT trigger — multi-intent, primary is implement
+  - prompt: "implement user auth and help me understand the existing tests"
+    should_trigger: false
 
 quality_evals:
   - prompt: |
@@ -47,6 +53,8 @@ quality_evals:
         check: "shows example invocations like /ork:implement, /ork:commit for at least some skills"
       - name: "covers user-invocable skills"
         check: "lists all user-invocable skills, not just a subset"
+      - name: "no stale skill list"
+        check: "does NOT show a hardcoded or outdated skill list — must scan filesystem dynamically"
 
   - prompt: |
       i need to do something with git but not sure which ork
@@ -58,5 +66,7 @@ quality_evals:
         check: "provides a brief description of what each git skill does"
       - name: "shows invocation syntax"
         check: "shows how to call each skill with its argument format"
+      - name: "no non-invocable skills"
+        check: "does NOT show internal or non-user-invocable skills as available commands"
 
 tags: [help, user-invocable, core]

@@ -33,6 +33,15 @@ trigger_evals:
     should_trigger: false
   - prompt: "review PR 123"
     should_trigger: false
+  # Should trigger — terse phrasing
+  - prompt: "verify auth"
+    should_trigger: true
+  # Should trigger — common typo
+  - prompt: "verifiy the feature"
+    should_trigger: true
+  # Should NOT trigger — multi-intent, primary is implement
+  - prompt: "implement the payment flow and verify it works"
+    should_trigger: false
 
 quality_evals:
   - prompt: |
@@ -51,6 +60,8 @@ quality_evals:
         check: "converts the composite score to a letter grade (A through F)"
       - name: "generates improvement suggestions"
         check: "provides prioritized suggestions ranked by effort vs impact"
+      - name: "no passing grade without tests"
+        check: "does NOT assign a high score or passing grade if test coverage is missing or failing"
 
   - prompt: |
       quick check on the api changes i just made, just tests and lint
@@ -61,5 +72,7 @@ quality_evals:
         check: "shows test pass/fail and lint error counts"
       - name: "no grading overhead"
         check: "skips composite scoring and report generation for quick mode"
+      - name: "no unnecessary agents"
+        check: "does NOT launch security-auditor, test-generator, or other heavy agents for a quick check"
 
 tags: [verify, user-invocable, core]

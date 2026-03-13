@@ -33,6 +33,15 @@ trigger_evals:
     should_trigger: false
   - prompt: "explain the architecture of this repository"
     should_trigger: false
+  # Should trigger — terse phrasing
+  - prompt: "fix #87"
+    should_trigger: true
+  # Should trigger — common typo
+  - prompt: "fix isuse #23"
+    should_trigger: true
+  # Should NOT trigger — multi-intent, primary is explore
+  - prompt: "explore how the auth system works and fix the logging"
+    should_trigger: false
 
 quality_evals:
   - prompt: |
@@ -50,6 +59,8 @@ quality_evals:
         check: "works on a feature branch, never commits directly to main or dev"
       - name: "includes prevention plan"
         check: "suggests how to prevent similar auth regression in the future"
+      - name: "no direct main commit"
+        check: "does NOT commit the fix directly to main or dev branch"
 
   - prompt: |
       there's a memory leak in the WebSocket handler. the server
@@ -61,5 +72,7 @@ quality_evals:
         check: "looks for common WebSocket leak patterns like unremoved event listeners or unclosed connections"
       - name: "adds cleanup logic"
         check: "implements proper cleanup or disposal in the fix"
+      - name: "no blind fix"
+        check: "does NOT apply a fix without first diagnosing the root cause"
 
 tags: [fix-issue, user-invocable, core]

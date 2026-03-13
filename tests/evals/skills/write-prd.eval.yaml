@@ -33,6 +33,15 @@ trigger_evals:
     should_trigger: false
   - prompt: "rate this architecture from 0 to 10"
     should_trigger: false
+  # Should trigger — terse phrasing
+  - prompt: "write prd"
+    should_trigger: true
+  # Should trigger — common typo
+  - prompt: "write a prd docuemnt"
+    should_trigger: true
+  # Should NOT trigger — multi-intent, primary is brainstorm
+  - prompt: "brainstorm ideas for the feature and then write a PRD"
+    should_trigger: false
 
 quality_evals:
   - prompt: |
@@ -51,6 +60,8 @@ quality_evals:
         check: "saves the PRD to a file named PRD-team-invitation.md or similar"
       - name: "includes non-functional requirements"
         check: "covers rate limiting, security, and scalability as non-functional requirements"
+      - name: "no implementation details"
+        check: "PRD does NOT include code snippets, database schemas, or implementation-level technical decisions"
 
   - prompt: |
       just write user stories for an image upload feature, nothing
@@ -62,5 +73,7 @@ quality_evals:
         check: "includes stories for drag-and-drop, file size validation, and thumbnail generation"
       - name: "includes acceptance criteria"
         check: "each story has testable acceptance criteria"
+      - name: "no vague acceptance criteria"
+        check: "acceptance criteria do NOT use vague language like 'should work well' or 'fast enough'"
 
 tags: [write-prd, user-invocable, core]

@@ -33,6 +33,15 @@ trigger_evals:
     should_trigger: false
   - prompt: "check this pull request for security issues"
     should_trigger: false
+  # Should trigger — terse phrasing
+  - prompt: "create pr"
+    should_trigger: true
+  # Should trigger — common typo
+  - prompt: "crate a pull reqeust"
+    should_trigger: true
+  # Should NOT trigger — multi-intent, primary is commit
+  - prompt: "commit the changes and then create a pull request"
+    should_trigger: false
 
 quality_evals:
   - prompt: |
@@ -49,6 +58,8 @@ quality_evals:
         check: "PR body contains Summary, Changes, and Test Plan sections"
       - name: "runs pre-flight checks"
         check: "verifies there are no uncommitted changes and branch is pushed to remote"
+      - name: "no direct push to main"
+        check: "does NOT push directly to main or master branch"
 
   - prompt: |
       quick pr, just a docs update to the readme, nothing fancy
@@ -59,5 +70,7 @@ quality_evals:
         check: "skips or reduces agent validation since it is a quick/docs PR"
       - name: "creates PR via gh"
         check: "uses gh pr create command to create the pull request"
+      - name: "no empty description"
+        check: "PR body is NOT empty or a single line — includes meaningful context"
 
 tags: [create-pr, user-invocable, core]

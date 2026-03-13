@@ -33,6 +33,12 @@ trigger_evals:
     should_trigger: false
   - prompt: "configure my plugin settings"
     should_trigger: false
+  # Should trigger — terse phrasing
+  - prompt: "doctor"
+    should_trigger: true
+  # Should NOT trigger — multi-intent, primary is setup
+  - prompt: "set up orchestkit and then run a health check"
+    should_trigger: false
 
 quality_evals:
   - prompt: |
@@ -47,5 +53,19 @@ quality_evals:
         check: "validates the Claude Code version against the minimum required version"
       - name: "actionable remediation"
         check: "provides specific fix steps for any failures or warnings found"
+      - name: "no false positives"
+        check: "does NOT report healthy components as failing or warn about non-issues"
+
+  - prompt: |
+      just check if my hooks are working correctly, skip everything else
+    assertions:
+      - name: "scoped to hooks"
+        check: "focuses diagnostic checks on hooks only, skipping skill and agent health"
+      - name: "reports hook status"
+        check: "shows pass/fail status for individual hooks (global, agent-scoped, skill-scoped)"
+      - name: "quick format"
+        check: "output is concise and focused, not a full diagnostic report"
+      - name: "no unrelated checks"
+        check: "does NOT run or report on skill validation, agent health, or memory system checks"
 
 tags: [doctor, user-invocable, core]

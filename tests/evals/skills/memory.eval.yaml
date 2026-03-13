@@ -33,6 +33,12 @@ trigger_evals:
     should_trigger: false
   - prompt: "brainstorm ideas for the search feature"
     should_trigger: false
+  # Should trigger — terse phrasing
+  - prompt: "show memory"
+    should_trigger: true
+  # Should NOT trigger — multi-intent, primary is remember
+  - prompt: "remember this pattern and then show me all stored memories"
+    should_trigger: false
 
 quality_evals:
   - prompt: |
@@ -45,6 +51,8 @@ quality_evals:
         check: "searches with authentication/session-related query terms"
       - name: "formats results clearly"
         check: "presents found memories with entity names, types, and observations"
+      - name: "no fabricated memories"
+        check: "does NOT invent or hallucinate memories that are not in the knowledge graph"
 
   - prompt: |
       show me the full knowledge graph as a visualization
@@ -55,5 +63,7 @@ quality_evals:
         check: "differentiates entity types visually (Technology, Pattern, Decision, etc.)"
       - name: "handles empty graph"
         check: "shows a helpful message if the graph is empty instead of failing"
+      - name: "no raw JSON dump"
+        check: "does NOT dump raw JSON from the MCP server — formats output for human readability"
 
 tags: [memory, user-invocable, core]

@@ -33,6 +33,15 @@ trigger_evals:
     should_trigger: false
   - prompt: "open a PR against dev with a good description"
     should_trigger: false
+  # Should trigger — terse phrasing
+  - prompt: "review pr 42"
+    should_trigger: true
+  # Should trigger — common typo
+  - prompt: "reveiw my pull reqeust"
+    should_trigger: true
+  # Should NOT trigger — multi-intent, primary is create-pr
+  - prompt: "create a PR and then review it for quality"
+    should_trigger: false
 
 quality_evals:
   - prompt: |
@@ -50,6 +59,8 @@ quality_evals:
         check: "security-auditor agent evaluates the webhook handler for input validation and auth"
       - name: "submits review via gh"
         check: "submits the review to GitHub using gh pr review with approve or request-changes"
+      - name: "no rubber stamp"
+        check: "review does NOT approve without specific feedback — must have substantive comments"
 
   - prompt: |
       quick review of PR 12, its just a dependency bump
@@ -60,5 +71,7 @@ quality_evals:
         check: "verifies the dependency update doesn't introduce breaking changes or known CVEs"
       - name: "provides verdict"
         check: "gives a clear approve or request-changes recommendation"
+      - name: "no missed security check"
+        check: "does NOT skip security review for a dependency bump that could introduce vulnerabilities"
 
 tags: [review-pr, user-invocable, core]

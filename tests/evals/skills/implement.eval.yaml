@@ -29,6 +29,18 @@ trigger_evals:
     should_trigger: false
   - prompt: "compare these two approaches for handling websockets"
     should_trigger: false
+  # Should NOT trigger — fix-issue confusion pair (both write code)
+  - prompt: "there's a bug in the payment webhook, it's not validating signatures"
+    should_trigger: false
+  # Should trigger — terse phrasing
+  - prompt: "implement search"
+    should_trigger: true
+  # Should trigger — common typo
+  - prompt: "implment user auth"
+    should_trigger: true
+  # Should NOT trigger — multi-intent, primary is explore
+  - prompt: "explore how the auth system works and then implement SSO"
+    should_trigger: false
 
 quality_evals:
   - prompt: |
@@ -45,6 +57,8 @@ quality_evals:
         check: "creates a test file for the health endpoint"
       - name: "error handling"
         check: "handles database connection failure gracefully"
+      - name: "no placeholder code"
+        check: "implementation does NOT contain TODO, FIXME, or placeholder comments instead of real logic"
 
   - prompt: |
       add a search feature to the existing users list.
@@ -57,5 +71,7 @@ quality_evals:
         check: "shows loading indicator while search is in progress"
       - name: "empty state"
         check: "displays message when no results found"
+      - name: "no hardcoded values"
+        check: "does NOT hardcode API URLs, magic numbers, or configuration values that should be environment variables"
 
 tags: [implement, user-invocable, core]

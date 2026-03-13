@@ -33,6 +33,12 @@ trigger_evals:
   # Should NOT trigger — adjacent tasks
   - prompt: "commit my changes with a good message"
     should_trigger: false
+  # Should trigger — terse phrasing
+  - prompt: "remember this"
+    should_trigger: true
+  # Should NOT trigger — multi-intent, primary is memory
+  - prompt: "search my memories and remember any new patterns found"
+    should_trigger: false
 
 quality_evals:
   - prompt: |
@@ -50,6 +56,8 @@ quality_evals:
         check: "categorizes as performance or pattern based on content keywords"
       - name: "confirms storage"
         check: "displays a confirmation showing what was stored and the graph state"
+      - name: "no silent storage"
+        check: "does NOT store memory without showing the user a confirmation of what was saved"
 
   - prompt: |
       remember --failed using a single global database connection
@@ -62,5 +70,7 @@ quality_evals:
         check: "captures the lesson: use connection pooling instead of single global connection"
       - name: "categorizes correctly"
         check: "auto-detects as database category"
+      - name: "no lost lesson"
+        check: "does NOT store the failure without extracting the corrective lesson"
 
 tags: [remember, user-invocable, core]
