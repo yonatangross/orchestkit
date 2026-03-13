@@ -29,6 +29,21 @@ trigger_evals:
     should_trigger: false
   - prompt: "help me understand this error: Cannot read property of undefined"
     should_trigger: false
+  # Should NOT trigger — fix-issue confusion pair (both investigate code)
+  - prompt: "the auth endpoint returns 500 errors, fix it"
+    should_trigger: false
+  # Should NOT trigger — assess confusion pair (both analyze code)
+  - prompt: "rate this codebase from 0 to 10"
+    should_trigger: false
+  # Should trigger — terse phrasing
+  - prompt: "explore auth"
+    should_trigger: true
+  # Should trigger — common typo
+  - prompt: "exlpore the codebase"
+    should_trigger: true
+  # Should NOT trigger — multi-intent, primary is implement
+  - prompt: "explore the payment module and then implement retry logic"
+    should_trigger: false
 
 quality_evals:
   - prompt: |
@@ -44,5 +59,9 @@ quality_evals:
         check: "includes specific file paths when describing components"
       - name: "data flow description"
         check: "explains how data moves between components"
+      - name: "no fabricated paths"
+        check: "all file paths mentioned actually exist in the project, no hallucinated paths"
+      - name: "no shallow listing"
+        check: "does NOT just list directory names without explaining what each component does"
 
 tags: [explore, user-invocable, core]

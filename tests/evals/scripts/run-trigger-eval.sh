@@ -86,6 +86,12 @@ if [[ -z "$SKILL_FILTER" ]]; then
     exit 1
 fi
 
+# Validate skill name to prevent path traversal
+if [[ "$SKILL_FILTER" != "__all__" ]] && ! [[ "$SKILL_FILTER" =~ ^[a-z0-9][a-z0-9-]*$ ]]; then
+    echo -e "${RED}Error: invalid skill name (lowercase alphanumeric and hyphens only)${NC}"
+    exit 1
+fi
+
 # Ensure we're not inside a Claude Code session
 unset CLAUDECODE 2>/dev/null || true
 

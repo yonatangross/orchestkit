@@ -28,7 +28,17 @@ trigger_evals:
     should_trigger: false
   - prompt: "rebase my branch onto dev"
     should_trigger: false
+  # Should NOT trigger — create-pr confusion pair (both git operations)
   - prompt: "create a pull request for this feature"
+    should_trigger: false
+  # Should trigger — terse phrasing
+  - prompt: "commit"
+    should_trigger: true
+  # Should trigger — common typo
+  - prompt: "comit my changes"
+    should_trigger: true
+  # Should NOT trigger — multi-intent, primary is review-pr
+  - prompt: "review this PR and then commit any suggested fixes"
     should_trigger: false
 
 quality_evals:
@@ -45,6 +55,8 @@ quality_evals:
         check: "commit message or body references both db connection pool and payment webhook"
       - name: "runs tests first"
         check: "npm test or equivalent is executed before committing"
+      - name: "no WIP commit"
+        check: "commit message does NOT use WIP, TODO, or fixup prefix for a completed change"
 
   - prompt: |
       just fixed a typo in the README, quick commit please
@@ -54,5 +66,7 @@ quality_evals:
         check: "commit uses docs or fix type, not feat"
       - name: "concise message"
         check: "commit message is one line, under 72 characters"
+      - name: "no scope creep"
+        check: "commit does NOT include unrelated staged files beyond the docs change"
 
 tags: [commit, user-invocable, core]

@@ -21,11 +21,15 @@ trigger_evals:
     should_trigger: true
   - prompt: "i want to see my readiness score for this project"
     should_trigger: true
-  # Should NOT trigger — adjacent tasks
+  # Should NOT trigger — doctor confusion pair (both check plugin health)
   - prompt: "run a health check on my plugin installation"
     should_trigger: false
+  - prompt: "my hooks aren't running, diagnose the problem"
+    should_trigger: false
+  # Should NOT trigger — help confusion pair (both discover skills)
   - prompt: "what skills are available in orchestkit"
     should_trigger: false
+  # Should NOT trigger — adjacent tasks
   - prompt: "explore the codebase architecture"
     should_trigger: false
   - prompt: "implement a new feature"

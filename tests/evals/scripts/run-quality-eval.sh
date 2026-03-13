@@ -9,8 +9,12 @@
 #   npm run eval:quality -- commit           # one skill
 #   npm run eval:quality -- --all            # all skills with quality_evals
 #   npm run eval:quality -- --capture-only   # run prompts, save outputs, skip grading
+#   npm run eval:quality -- --grade-only     # re-grade previously captured outputs
 #   npm run eval:quality -- --dry-run        # validate YAML only
 #   npm run eval:quality -- --reps N         # repeat grading N times for stability
+#   npm run eval:quality -- --tag core       # filter by tag
+#   npm run eval:quality -- --max-turns N    # override max turns for generation
+#   npm run eval:quality -- --timeout N      # override generation timeout (seconds)
 #
 # Requirements:
 #   - yq for YAML parsing
@@ -20,39 +24,34 @@
 #   - Run OUTSIDE Claude Code session (unsets CLAUDECODE)
 # =============================================================================
 
-set -uo pipefail
-
-# Cleanup temp files on exit (Ctrl+C safe)
-CLEANUP_FILES=()
-cleanup() { rm -f "${CLEANUP_FILES[@]}" 2>/dev/null; }
-trap cleanup EXIT INT TERM
-
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-CYAN='\033[0;36m'
-BOLD='\033[1m'
-NC='\033[0m'
-
-# Configuration
+# Configuration (set BEFORE sourcing common lib so check_deps can use DRY_RUN)
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+DRY_RUN=false
+
+# Source shared library (A1)
+# shellcheck source=lib/eval-common.sh
+source "$SCRIPT_DIR/lib/eval-common.sh"
+
+# Runner-specific configuration
 EVALS_DIR="$(dirname "$SCRIPT_DIR")"
 SKILLS_EVAL_DIR="$EVALS_DIR/skills"
 RESULTS_DIR="$EVALS_DIR/results/skills"
 PLUGIN_DIR="plugins/ork"
 REPS=1
-DRY_RUN=false
 CAPTURE_ONLY=false
+GRADE_ONLY=false
 SKILL_FILTER=""
+TAG_FILTER=""
 MAX_TURNS=3
+GEN_TIMEOUT=120
+GRADE_TIMEOUT=60
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --all) SKILL_FILTER="__all__"; shift ;;
         --capture-only) CAPTURE_ONLY=true; shift ;;
+        --grade-only) GRADE_ONLY=true; shift ;;
         --dry-run) DRY_RUN=true; shift ;;
         --reps)
             if [[ $# -lt 2 ]]; then
@@ -65,8 +64,32 @@ while [[ $# -gt 0 ]]; do
             fi
             REPS="$2"; shift 2
             ;;
+        --tag)
+            if [[ $# -lt 2 ]]; then
+                echo -e "${RED}Error: --tag requires a value${NC}"; exit 1
+            fi
+            TAG_FILTER="$2"; shift 2
+            ;;
+        --max-turns)
+            if [[ $# -lt 2 ]]; then
+                echo -e "${RED}Error: --max-turns requires a positive integer${NC}"; exit 1
+            fi
+            if ! [[ "$2" =~ ^[1-9][0-9]*$ ]]; then
+                echo -e "${RED}Error: --max-turns must be a positive integer${NC}"; exit 1
+            fi
+            MAX_TURNS="$2"; shift 2
+            ;;
+        --timeout)
+            if [[ $# -lt 2 ]]; then
+                echo -e "${RED}Error: --timeout requires a positive integer${NC}"; exit 1
+            fi
+            if ! [[ "$2" =~ ^[1-9][0-9]*$ ]]; then
+                echo -e "${RED}Error: --timeout must be a positive integer (seconds)${NC}"; exit 1
+            fi
+            GEN_TIMEOUT="$2"; shift 2
+            ;;
         --help|-h)
-            echo "Usage: $0 [skill-name|--all] [--capture-only] [--dry-run] [--reps N]"
+            echo "Usage: $0 [skill-name|--all] [--capture-only] [--grade-only] [--dry-run] [--reps N] [--tag TAG] [--max-turns N] [--timeout N]"
             exit 0
             ;;
         -*) echo -e "${RED}Unknown option: $1${NC}"; exit 1 ;;
@@ -74,34 +97,29 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-if [[ -z "$SKILL_FILTER" ]]; then
-    echo -e "${RED}Error: specify a skill name or --all${NC}"
-    echo "Usage: $0 [skill-name|--all] [--capture-only] [--dry-run] [--reps N]"
+# Validate mutually exclusive flags (A5)
+if [[ "$GRADE_ONLY" == "true" && "$CAPTURE_ONLY" == "true" ]]; then
+    echo -e "${RED}Error: --grade-only and --capture-only are mutually exclusive${NC}"
+    exit 1
+fi
+if [[ "$GRADE_ONLY" == "true" && "$DRY_RUN" == "true" ]]; then
+    echo -e "${RED}Error: --grade-only and --dry-run are mutually exclusive${NC}"
     exit 1
 fi
 
-# Ensure we're not inside a Claude Code session
-unset CLAUDECODE 2>/dev/null || true
+if [[ -z "$SKILL_FILTER" ]]; then
+    echo -e "${RED}Error: specify a skill name or --all${NC}"
+    echo "Usage: $0 [skill-name|--all] [--capture-only] [--grade-only] [--dry-run] [--reps N] [--tag TAG] [--max-turns N] [--timeout N]"
+    exit 1
+fi
 
-# Check dependencies
-check_deps() {
-    if ! command -v yq &> /dev/null; then
-        echo -e "${RED}Error: yq is required (brew install yq)${NC}"
-        exit 1
-    fi
-    if ! command -v jq &> /dev/null; then
-        echo -e "${RED}Error: jq is required (brew install jq)${NC}"
-        exit 1
-    fi
-    if ! command -v bc &> /dev/null; then
-        echo -e "${RED}Error: bc is required (brew install bc)${NC}"
-        exit 1
-    fi
-    if [[ "$DRY_RUN" == "false" ]] && ! command -v claude &> /dev/null; then
-        echo -e "${YELLOW}Warning: Claude CLI not found — switching to dry-run mode${NC}"
-        DRY_RUN=true
-    fi
-}
+# Validate skill name to prevent path traversal (SEC-001)
+if [[ "$SKILL_FILTER" != "__all__" ]] && ! [[ "$SKILL_FILTER" =~ $SKILL_NAME_RE ]]; then
+    echo -e "${RED}Error: invalid skill name (lowercase alphanumeric and hyphens only)${NC}"
+    exit 1
+fi
+
+# ─── Functions ────────────────────────────────────────────────────────────────
 
 # Validate quality_evals section in YAML
 validate_quality_yaml() {
@@ -147,36 +165,64 @@ validate_quality_yaml() {
     return "$errors"
 }
 
-# Run a prompt with skill (plugin loaded) and capture output
+# Run a prompt with skill (plugin loaded) and capture output (A6: timeout)
 run_with_skill() {
     local prompt="$1"
     local output_file="$2"
     local stderr_file="$3"
+    local cwd_arg="$4"  # optional: directory to run from (A8)
 
-    claude -p "$prompt" \
-        --plugin-dir "$PLUGIN_DIR" \
-        --dangerously-skip-permissions \
-        --max-turns "$MAX_TURNS" \
-        --output-format json \
-        > "$output_file" 2>"$stderr_file"
+    if [[ -n "$cwd_arg" && "$cwd_arg" != "." ]]; then
+        (
+            cd "$cwd_arg" || exit 1
+            run_with_timeout "$GEN_TIMEOUT" claude -p "$prompt" \
+                --plugin-dir "$PLUGIN_DIR" \
+                --dangerously-skip-permissions \
+                --max-turns "$MAX_TURNS" \
+                --output-format json \
+                > "$output_file" 2>"$stderr_file"
+        ) || echo -e "  ${YELLOW}Warning: claude exited non-zero for with-skill run${NC}" >&2
+    else
+        if ! run_with_timeout "$GEN_TIMEOUT" claude -p "$prompt" \
+            --plugin-dir "$PLUGIN_DIR" \
+            --dangerously-skip-permissions \
+            --max-turns "$MAX_TURNS" \
+            --output-format json \
+            > "$output_file" 2>"$stderr_file"; then
+            echo -e "  ${YELLOW}Warning: claude exited non-zero for with-skill run${NC}" >&2
+        fi
+    fi
 }
 
-# Run a prompt without skill (baseline) and capture output
+# Run a prompt without skill (baseline) and capture output (A6: timeout)
 run_baseline() {
     local prompt="$1"
     local output_file="$2"
+    local cwd_arg="$3"  # optional: directory to run from (A8)
 
-    claude -p "$prompt" \
-        --dangerously-skip-permissions \
-        --max-turns "$MAX_TURNS" \
-        --output-format json \
-        > "$output_file" 2>/dev/null
+    if [[ -n "$cwd_arg" && "$cwd_arg" != "." ]]; then
+        (
+            cd "$cwd_arg" || exit 1
+            run_with_timeout "$GEN_TIMEOUT" claude -p "$prompt" \
+                --dangerously-skip-permissions \
+                --max-turns "$MAX_TURNS" \
+                --output-format json \
+                > "$output_file" 2>/dev/null
+        ) || echo -e "  ${YELLOW}Warning: claude exited non-zero for baseline run${NC}" >&2
+    else
+        if ! run_with_timeout "$GEN_TIMEOUT" claude -p "$prompt" \
+            --dangerously-skip-permissions \
+            --max-turns "$MAX_TURNS" \
+            --output-format json \
+            > "$output_file" 2>/dev/null; then
+            echo -e "  ${YELLOW}Warning: claude exited non-zero for baseline run${NC}" >&2
+        fi
+    fi
 }
 
 # Extract text content from claude JSON output
 extract_output_text() {
     local json_file="$1"
-    # Try .result first (common output field), then fall back to full content
     local text
     text=$(jq -r '.result // .content // . | if type == "string" then . else tostring end' "$json_file" 2>/dev/null)
     if [[ -z "$text" || "$text" == "null" ]]; then
@@ -185,7 +231,49 @@ extract_output_text() {
     echo "$text"
 }
 
-# Grade an output against a single assertion using Claude as grader
+# Grade ALL assertions for a given output in a single Claude call (A3: batch)
+# Returns a JSON array: [{"name":"...","verdict":"PASS"|"FAIL","reason":"..."},...]
+grade_assertions_batch() {
+    local assertions_json="$1"  # JSON array of {name, check}
+    local output_text="$2"
+    local tmpfile; tmpfile=$(mktemp)
+    CLEANUP_FILES+=("$tmpfile")
+
+    local grading_prompt
+    grading_prompt="You are an assertion grader. Grade this output against EACH assertion below.
+For each assertion, output a JSON object: {\"name\": \"...\", \"verdict\": \"PASS\" or \"FAIL\", \"reason\": \"one-line reason\"}
+Return ONLY a valid JSON array of all results. No other text.
+
+ASSERTIONS:
+$assertions_json
+
+OUTPUT:
+$output_text"
+
+    run_with_timeout "$GRADE_TIMEOUT" claude -p "$grading_prompt" \
+        --max-turns 1 \
+        --output-format text \
+        > "$tmpfile" 2>/dev/null || true
+
+    local raw; raw=$(cat "$tmpfile")
+    rm -f "$tmpfile"
+
+    # Try to extract a JSON array from the response
+    # Strip leading/trailing whitespace and any markdown fences
+    local cleaned; cleaned=$(echo "$raw" | sed 's/^```json//;s/^```//;s/```$//' | tr -d '\r')
+
+    # Validate it is a JSON array
+    if echo "$cleaned" | jq 'type == "array"' 2>/dev/null | grep -q true; then
+        echo "$cleaned"
+        return 0
+    fi
+
+    # Fallback: return empty to signal caller should use per-assertion grading
+    echo ""
+    return 1
+}
+
+# Grade a single assertion using Claude as grader (fallback for batch failure)
 # Returns "PASS|reason" or "FAIL|reason"
 grade_assertion() {
     local assertion_check="$1"
@@ -201,20 +289,19 @@ ASSERTION: $assertion_check
 OUTPUT:
 $output_text"
 
-    claude -p "$grading_prompt" \
+    run_with_timeout "$GRADE_TIMEOUT" claude -p "$grading_prompt" \
         --max-turns 1 \
         --output-format text \
-        > "$tmpfile" 2>/dev/null
+        > "$tmpfile" 2>/dev/null || true
 
     local grader_output; grader_output=$(cat "$tmpfile")
     rm -f "$tmpfile"
 
-    # Parse PASS/FAIL from grader output
-    if echo "$grader_output" | grep -qiw "PASS"; then
-        local reason; reason=$(echo "$grader_output" | sed 's/^[[:space:]]*PASS[[:space:]]*//' | head -1)
+    local first_token; first_token=$(echo "$grader_output" | head -1 | awk '{print toupper($1)}')
+    local reason; reason=$(echo "$grader_output" | head -1 | sed 's/^[[:space:]]*[A-Za-z]*[[:space:]]*//')
+    if [[ "$first_token" == "PASS" ]]; then
         echo "PASS|$reason"
     else
-        local reason; reason=$(echo "$grader_output" | sed 's/^[[:space:]]*FAIL[[:space:]]*//' | head -1)
         echo "FAIL|$reason"
     fi
 }
@@ -238,7 +325,6 @@ grade_assertion_with_reps() {
         fi
     done
 
-    # Majority vote
     local majority; majority=$(( (reps / 2) + 1 ))
     if [[ "$pass_count" -ge "$majority" ]]; then
         echo "PASS|$last_reason"
@@ -251,41 +337,255 @@ grade_assertion_with_reps() {
 count_hook_rejections() {
     local stderr_file="$1"
     if [[ -f "$stderr_file" ]]; then
-        grep -ciw "reject\|rejected\|hook.*fail\|hook.*block" "$stderr_file" 2>/dev/null || echo "0"
+        grep -ciE "reject(ed)?|hook.*(fail|block)" "$stderr_file" 2>/dev/null || echo "0"
     else
         echo "0"
     fi
 }
 
-# Evaluate one skill
+# ─── Scaffold support (A8) ────────────────────────────────────────────────────
+
+# Prepare a scaffold directory for a quality eval entry.
+# Sets _SCAFFOLD_DIR to the directory to use as cwd (or "." for current dir).
+prepare_scaffold() {
+    local scaffold_type="$1"
+    _SCAFFOLD_DIR="."
+
+    if [[ -z "$scaffold_type" || "$scaffold_type" == "null" || "$scaffold_type" == "empty" ]]; then
+        return 0
+    fi
+
+    local scaffold_dir; scaffold_dir=$(mktemp -d)
+    CLEANUP_DIRS+=("$scaffold_dir")
+
+    case "$scaffold_type" in
+        typescript-nextjs)
+            mkdir -p "$scaffold_dir/src" "$scaffold_dir/pages/api"
+            echo '{"name":"eval-scaffold","scripts":{"dev":"next dev","build":"next build","test":"jest"}}' > "$scaffold_dir/package.json"
+            echo '{"compilerOptions":{"target":"es5","lib":["dom","esnext"],"jsx":"preserve","module":"esnext","moduleResolution":"node","strict":true}}' > "$scaffold_dir/tsconfig.json"
+            ;;
+        *)
+            echo -e "  ${YELLOW}Warning: unknown scaffold type '$scaffold_type', using current dir${NC}" >&2
+            rm -rf "$scaffold_dir"
+            return 0
+            ;;
+    esac
+
+    _SCAFFOLD_DIR="$scaffold_dir"
+}
+
+# ─── Sub-functions for eval_skill (A2 refactor) ──────────────────────────────
+
+# Run with-skill + baseline for one eval entry, in parallel (A4).
+# Sets _EVAL_WITH_FILE, _EVAL_BASE_FILE, _EVAL_STDERR_FILE.
+run_eval_entry() {
+    local prompt="$1"
+    local scaffold_cwd="$2"
+
+    local with_file; with_file=$(mktemp)
+    local base_file; base_file=$(mktemp)
+    local with_stderr; with_stderr=$(mktemp)
+    CLEANUP_FILES+=("$with_file" "$base_file" "$with_stderr")
+
+    echo -e "${BLUE}||${NC}  ${CYAN}Running with-skill + baseline (parallel)...${NC}"
+
+    # Run both in parallel (A4)
+    run_with_skill "$prompt" "$with_file" "$with_stderr" "$scaffold_cwd" &
+    local with_pid=$!
+    run_baseline "$prompt" "$base_file" "$scaffold_cwd" &
+    local base_pid=$!
+
+    wait $with_pid 2>/dev/null || true
+    wait $base_pid 2>/dev/null || true
+
+    _EVAL_WITH_FILE="$with_file"
+    _EVAL_BASE_FILE="$base_file"
+    _EVAL_STDERR_FILE="$with_stderr"
+}
+
+# Grade all assertions for one eval entry (A3: batch + fallback).
+# Populates arrays: _GRADE_SKILL_VERDICTS, _GRADE_SKILL_REASONS,
+#                   _GRADE_BASE_VERDICTS, _GRADE_BASE_REASONS
+grade_eval_entry() {
+    local eval_file="$1"
+    local ei="$2"
+    local with_text="$3"
+    local base_text="$4"
+    local assertion_count="$5"
+
+    _GRADE_SKILL_VERDICTS=()
+    _GRADE_SKILL_REASONS=()
+    _GRADE_BASE_VERDICTS=()
+    _GRADE_BASE_REASONS=()
+
+    # Build assertions JSON array for batch grading (A3)
+    local assertions_arr="["
+    local first_a=true
+    for ((ai=0; ai<assertion_count; ai++)); do
+        local aname; aname=$(yq -r ".quality_evals[$ei].assertions[$ai].name" "$eval_file")
+        local acheck; acheck=$(yq -r ".quality_evals[$ei].assertions[$ai].check" "$eval_file")
+        [[ "$first_a" == "true" ]] && first_a=false || assertions_arr+=","
+        assertions_arr+="{\"name\":$(echo "$aname" | jq -Rs .),\"check\":$(echo "$acheck" | jq -Rs .)}"
+    done
+    assertions_arr+="]"
+
+    # --- Grade with-skill output (batch) ---
+    local batch_skill_ok=false
+    if [[ "$REPS" -eq 1 ]]; then
+        local batch_result; batch_result=$(grade_assertions_batch "$assertions_arr" "$with_text")
+        if [[ -n "$batch_result" ]]; then
+            local parsed_count; parsed_count=$(echo "$batch_result" | jq 'length' 2>/dev/null)
+            if [[ "$parsed_count" == "$assertion_count" ]]; then
+                batch_skill_ok=true
+                for ((ai=0; ai<assertion_count; ai++)); do
+                    local v; v=$(echo "$batch_result" | jq -r ".[$ai].verdict" 2>/dev/null | tr '[:lower:]' '[:upper:]')
+                    local r; r=$(echo "$batch_result" | jq -r ".[$ai].reason // \"\"" 2>/dev/null)
+                    [[ "$v" == "PASS" ]] && _GRADE_SKILL_VERDICTS+=("PASS") || _GRADE_SKILL_VERDICTS+=("FAIL")
+                    _GRADE_SKILL_REASONS+=("$r")
+                done
+            fi
+        fi
+    fi
+
+    # Fallback: per-assertion grading
+    if [[ "$batch_skill_ok" == "false" ]]; then
+        for ((ai=0; ai<assertion_count; ai++)); do
+            local acheck; acheck=$(yq -r ".quality_evals[$ei].assertions[$ai].check" "$eval_file")
+            local result; result=$(grade_assertion_with_reps "$acheck" "$with_text" "$REPS")
+            _GRADE_SKILL_VERDICTS+=("$(echo "$result" | cut -d'|' -f1)")
+            _GRADE_SKILL_REASONS+=("$(echo "$result" | cut -d'|' -f2-)")
+        done
+    fi
+
+    # --- Grade baseline output (batch) ---
+    local batch_base_ok=false
+    if [[ "$REPS" -eq 1 ]]; then
+        local batch_result; batch_result=$(grade_assertions_batch "$assertions_arr" "$base_text")
+        if [[ -n "$batch_result" ]]; then
+            local parsed_count; parsed_count=$(echo "$batch_result" | jq 'length' 2>/dev/null)
+            if [[ "$parsed_count" == "$assertion_count" ]]; then
+                batch_base_ok=true
+                for ((ai=0; ai<assertion_count; ai++)); do
+                    local v; v=$(echo "$batch_result" | jq -r ".[$ai].verdict" 2>/dev/null | tr '[:lower:]' '[:upper:]')
+                    local r; r=$(echo "$batch_result" | jq -r ".[$ai].reason // \"\"" 2>/dev/null)
+                    [[ "$v" == "PASS" ]] && _GRADE_BASE_VERDICTS+=("PASS") || _GRADE_BASE_VERDICTS+=("FAIL")
+                    _GRADE_BASE_REASONS+=("$r")
+                done
+            fi
+        fi
+    fi
+
+    # Fallback: per-assertion grading
+    if [[ "$batch_base_ok" == "false" ]]; then
+        for ((ai=0; ai<assertion_count; ai++)); do
+            local acheck; acheck=$(yq -r ".quality_evals[$ei].assertions[$ai].check" "$eval_file")
+            local result; result=$(grade_assertion_with_reps "$acheck" "$base_text" "$REPS")
+            _GRADE_BASE_VERDICTS+=("$(echo "$result" | cut -d'|' -f1)")
+            _GRADE_BASE_REASONS+=("$(echo "$result" | cut -d'|' -f2-)")
+        done
+    fi
+}
+
+# Compute pass rates and delta for one eval entry.
+# Sets _EVAL_SKILL_RATE, _EVAL_BASE_RATE, _EVAL_DELTA,
+#      _EVAL_SKILL_PASS, _EVAL_BASE_PASS, _EVAL_DISCRIMINATING
+compute_eval_metrics() {
+    local assertion_count="$1"
+
+    _EVAL_SKILL_PASS=0
+    _EVAL_BASE_PASS=0
+    _EVAL_DISCRIMINATING=0
+
+    for ((ai=0; ai<assertion_count; ai++)); do
+        [[ "${_GRADE_SKILL_VERDICTS[$ai]}" == "PASS" ]] && ((_EVAL_SKILL_PASS++))
+        [[ "${_GRADE_BASE_VERDICTS[$ai]}" == "PASS" ]] && ((_EVAL_BASE_PASS++))
+        if [[ "${_GRADE_SKILL_VERDICTS[$ai]}" != "${_GRADE_BASE_VERDICTS[$ai]}" ]]; then
+            ((_EVAL_DISCRIMINATING++))
+        fi
+    done
+
+    _EVAL_SKILL_RATE=0
+    _EVAL_BASE_RATE=0
+    _EVAL_DELTA=0
+    if [[ "$assertion_count" -gt 0 ]]; then
+        _EVAL_SKILL_RATE=$(echo "scale=0; $_EVAL_SKILL_PASS * 100 / $assertion_count" | bc)
+        _EVAL_BASE_RATE=$(echo "scale=0; $_EVAL_BASE_PASS * 100 / $assertion_count" | bc)
+        _EVAL_DELTA=$((_EVAL_SKILL_RATE - _EVAL_BASE_RATE))
+    fi
+}
+
+# Write the results JSON file for a skill.
+write_results_json() {
+    local skill_id="$1"
+    local evals_json="$2"
+    local agg_skill_rate="$3"
+    local agg_base_rate="$4"
+    local agg_delta="$5"
+    local agg_discriminating="$6"
+    local agg_skill_total="$7"
+    local agg_hook_rejections="$8"
+    local verdict="$9"
+    local duration="${10}"
+
+    mkdir -p "$RESULTS_DIR"
+    local safe_skill; safe_skill=$(echo "$skill_id" | jq -Rs .)
+    local safe_verdict; safe_verdict=$(echo "$verdict" | jq -Rs .)
+    local safe_ts; safe_ts=$(date -u +%Y-%m-%dT%H:%M:%SZ | jq -Rs .)
+    cat > "$RESULTS_DIR/$skill_id.quality.json" <<ENDJSON
+{
+  "skill": $safe_skill,
+  "timestamp": $safe_ts,
+  "evals": $evals_json,
+  "aggregate": {
+    "skill_pass_rate": $agg_skill_rate,
+    "baseline_pass_rate": $agg_base_rate,
+    "delta": $agg_delta,
+    "discriminating_assertions": $agg_discriminating,
+    "total_assertions": $agg_skill_total,
+    "hook_rejections": $agg_hook_rejections,
+    "verdict": $safe_verdict
+  },
+  "reps": $REPS,
+  "duration_seconds": $duration
+}
+ENDJSON
+}
+
+# ─── Main eval_skill orchestrator (A2) ───────────────────────────────────────
+
 eval_skill() {
     local eval_file="$1"
     local skill_id; skill_id=$(yq -r '.id' "$eval_file")
+    # Validate skill_id from YAML to prevent path traversal (SEC-002)
+    if ! [[ "$skill_id" =~ $SKILL_NAME_RE ]]; then
+        echo -e "  ${RED}Invalid skill id in $eval_file: '$skill_id'${NC}"
+        return 1
+    fi
     local quality_count; quality_count=$(yq -r '.quality_evals | length' "$eval_file")
     local start_time; start_time=$(date +%s)
 
-    echo -e "\n${BLUE}╔══════════════════════════════════════════════════════╗${NC}"
-    echo -e "${BLUE}║  QUALITY EVAL — ${BOLD}$skill_id${NC}${BLUE}$(printf '%*s' $((36 - ${#skill_id})) '')║${NC}"
-    echo -e "${BLUE}╠══════════════════════════════════════════════════════╣${NC}"
+    echo -e "\n${BLUE}+=======================================================+${NC}"
+    echo -e "${BLUE}|  QUALITY EVAL -- ${BOLD}$skill_id${NC}${BLUE}$(printf '%*s' $((36 - ${#skill_id})) '')|${NC}"
+    echo -e "${BLUE}+========================================================+${NC}"
 
     # Validate YAML
     echo -e "${CYAN}  Validating quality_evals YAML...${NC}"
     if ! validate_quality_yaml "$eval_file"; then
-        echo -e "${BLUE}║${NC}  ${RED}YAML validation failed — skipping${NC}"
-        echo -e "${BLUE}╚══════════════════════════════════════════════════════╝${NC}"
+        echo -e "${BLUE}|${NC}  ${RED}YAML validation failed -- skipping${NC}"
+        echo -e "${BLUE}+========================================================+${NC}"
         return 1
     fi
 
     if [[ "$DRY_RUN" == "true" ]]; then
-        echo -e "${BLUE}║${NC}  ${YELLOW}DRY-RUN: YAML valid, skipping Claude calls${NC}"
-        echo -e "${BLUE}║${NC}  Quality evals: $quality_count entries"
+        echo -e "${BLUE}|${NC}  ${YELLOW}DRY-RUN: YAML valid, skipping Claude calls${NC}"
+        echo -e "${BLUE}|${NC}  Quality evals: $quality_count entries"
         local total_assertions=0
         for ((i=0; i<quality_count; i++)); do
             local ac; ac=$(yq -r ".quality_evals[$i].assertions | length" "$eval_file")
             total_assertions=$((total_assertions + ac))
         done
-        echo -e "${BLUE}║${NC}  Total assertions: $total_assertions"
-        echo -e "${BLUE}╚══════════════════════════════════════════════════════╝${NC}"
+        echo -e "${BLUE}|${NC}  Total assertions: $total_assertions"
+        echo -e "${BLUE}+========================================================+${NC}"
         return 0
     fi
 
@@ -301,127 +601,127 @@ eval_skill() {
     for ((ei=0; ei<quality_count; ei++)); do
         local prompt; prompt=$(yq -r ".quality_evals[$ei].prompt" "$eval_file")
         local assertion_count; assertion_count=$(yq -r ".quality_evals[$ei].assertions | length" "$eval_file")
+        local scaffold_type; scaffold_type=$(yq -r ".quality_evals[$ei].scaffold // \"\"" "$eval_file")
 
         # Truncate prompt for display
         local display_prompt; display_prompt=$(echo "$prompt" | tr '\n' ' ' | sed 's/  */ /g')
         display_prompt="${display_prompt:0:48}"
         [[ ${#prompt} -gt 48 ]] && display_prompt="${display_prompt}..."
 
-        echo -e "${BLUE}║${NC}"
-        echo -e "${BLUE}║${NC}  ${BOLD}Eval $((ei+1)):${NC} \"$display_prompt\""
-        echo -e "${BLUE}║${NC}"
+        echo -e "${BLUE}|${NC}"
+        echo -e "${BLUE}|${NC}  ${BOLD}Eval $((ei+1)):${NC} \"$display_prompt\""
+        echo -e "${BLUE}|${NC}"
 
-        # Run with skill
-        local with_file; with_file=$(mktemp)
-        local with_stderr; with_stderr=$(mktemp)
-        CLEANUP_FILES+=("$with_file" "$with_stderr")
-        echo -e "${BLUE}║${NC}  ${CYAN}Running with skill...${NC}"
-        run_with_skill "$prompt" "$with_file" "$with_stderr"
-        local with_text; with_text=$(extract_output_text "$with_file")
+        # Prepare scaffold (A8)
+        prepare_scaffold "$scaffold_type"
+        local scaffold_cwd="$_SCAFFOLD_DIR"
 
-        # Run baseline
-        local base_file; base_file=$(mktemp)
-        CLEANUP_FILES+=("$base_file")
-        echo -e "${BLUE}║${NC}  ${CYAN}Running baseline...${NC}"
-        run_baseline "$prompt" "$base_file"
-        local base_text; base_text=$(extract_output_text "$base_file")
+        local with_text="" base_text="" with_stderr_file=""
 
-        # Check hook rejections from with-skill stderr
-        local hook_rej; hook_rej=$(count_hook_rejections "$with_stderr")
-        agg_hook_rejections=$((agg_hook_rejections + hook_rej))
+        if [[ "$GRADE_ONLY" == "true" ]]; then
+            # (A5) Load previously captured outputs
+            local saved_with="$RESULTS_DIR/${skill_id}.eval${ei}.with_skill.json"
+            local saved_base="$RESULTS_DIR/${skill_id}.eval${ei}.baseline.json"
+            if [[ ! -f "$saved_with" || ! -f "$saved_base" ]]; then
+                echo -e "${BLUE}|${NC}  ${RED}GRADE-ONLY: captured outputs not found (run --capture-only first)${NC}"
+                echo -e "${BLUE}|${NC}  ${RED}Expected: $saved_with${NC}"
+                echo -e "${BLUE}+========================================================+${NC}"
+                return 1
+            fi
+            echo -e "${BLUE}|${NC}  ${CYAN}Loading captured outputs...${NC}"
+            with_text=$(extract_output_text "$saved_with")
+            base_text=$(extract_output_text "$saved_base")
+        else
+            # (A4) Run with-skill + baseline in parallel
+            run_eval_entry "$prompt" "$scaffold_cwd"
+            with_text=$(extract_output_text "$_EVAL_WITH_FILE")
+            base_text=$(extract_output_text "$_EVAL_BASE_FILE")
+            with_stderr_file="$_EVAL_STDERR_FILE"
 
-        if [[ "$CAPTURE_ONLY" == "true" ]]; then
-            echo -e "${BLUE}║${NC}  ${YELLOW}CAPTURE-ONLY: outputs saved, skipping grading${NC}"
-            # Save captured outputs for manual review
-            mkdir -p "$RESULTS_DIR"
-            cp "$with_file" "$RESULTS_DIR/${skill_id}.eval${ei}.with_skill.json"
-            cp "$base_file" "$RESULTS_DIR/${skill_id}.eval${ei}.baseline.json"
-            continue
+            # Check hook rejections from with-skill stderr
+            local hook_rej; hook_rej=$(count_hook_rejections "$with_stderr_file")
+            agg_hook_rejections=$((agg_hook_rejections + hook_rej))
+
+            if [[ "$CAPTURE_ONLY" == "true" ]]; then
+                echo -e "${BLUE}|${NC}  ${YELLOW}CAPTURE-ONLY: outputs saved, skipping grading${NC}"
+                mkdir -p "$RESULTS_DIR"
+                cp "$_EVAL_WITH_FILE" "$RESULTS_DIR/${skill_id}.eval${ei}.with_skill.json"
+                cp "$_EVAL_BASE_FILE" "$RESULTS_DIR/${skill_id}.eval${ei}.baseline.json"
+                # Clean up temp files + scaffold for this entry
+                rm -f "$_EVAL_WITH_FILE" "$_EVAL_STDERR_FILE" "$_EVAL_BASE_FILE"
+                [[ "$scaffold_cwd" != "." ]] && rm -rf "$scaffold_cwd"
+                continue
+            fi
         fi
 
-        # Grade each assertion against both outputs
-        local eval_skill_pass=0 eval_base_pass=0 eval_discriminating=0
+        # Grade assertions (A2 + A3: batch then fallback)
+        grade_eval_entry "$eval_file" "$ei" "$with_text" "$base_text" "$assertion_count"
+
+        # Compute metrics (A2)
+        compute_eval_metrics "$assertion_count"
+
+        # Display assertion results
+        printf "${BLUE}|${NC}  %-25s %-14s %-14s\n" "" "With Skill" "Baseline"
+
         local assertions_json="["
         local first_assertion=true
-
-        printf "${BLUE}║${NC}  %-25s %-14s %-14s\n" "" "With Skill" "Baseline"
 
         for ((ai=0; ai<assertion_count; ai++)); do
             local aname; aname=$(yq -r ".quality_evals[$ei].assertions[$ai].name" "$eval_file")
             local acheck; acheck=$(yq -r ".quality_evals[$ei].assertions[$ai].check" "$eval_file")
+            local skill_verdict="${_GRADE_SKILL_VERDICTS[$ai]}"
+            local skill_reason="${_GRADE_SKILL_REASONS[$ai]}"
+            local base_verdict="${_GRADE_BASE_VERDICTS[$ai]}"
+            local base_reason="${_GRADE_BASE_REASONS[$ai]}"
 
-            # Grade with skill output
-            local skill_result; skill_result=$(grade_assertion_with_reps "$acheck" "$with_text" "$REPS")
-            local skill_verdict; skill_verdict=$(echo "$skill_result" | cut -d'|' -f1)
-            local skill_reason; skill_reason=$(echo "$skill_result" | cut -d'|' -f2-)
-
-            # Grade baseline output
-            local base_result; base_result=$(grade_assertion_with_reps "$acheck" "$base_text" "$REPS")
-            local base_verdict; base_verdict=$(echo "$base_result" | cut -d'|' -f1)
-            local base_reason; base_reason=$(echo "$base_result" | cut -d'|' -f2-)
-
-            # Track pass counts
-            [[ "$skill_verdict" == "PASS" ]] && ((eval_skill_pass++))
-            [[ "$base_verdict" == "PASS" ]] && ((eval_base_pass++))
-
-            # Determine if discriminating
             local is_discriminating=false
             local disc_marker=""
             if [[ "$skill_verdict" != "$base_verdict" ]]; then
                 is_discriminating=true
-                ((eval_discriminating++))
             else
                 disc_marker="  (=)"
             fi
 
-            # Display row
             local skill_sym base_sym
             [[ "$skill_verdict" == "PASS" ]] && skill_sym="${GREEN}PASS${NC}" || skill_sym="${RED}FAIL${NC}"
             [[ "$base_verdict" == "PASS" ]] && base_sym="${GREEN}PASS${NC}" || base_sym="${RED}FAIL${NC}"
 
-            # Use raw formatting to align columns properly
             local padded_name; padded_name=$(printf "%-23s" "$aname")
-            echo -e "${BLUE}║${NC}  ${padded_name}  $skill_sym       $base_sym${disc_marker}"
+            echo -e "${BLUE}|${NC}  ${padded_name}  $skill_sym       $base_sym${disc_marker}"
 
-            # Accumulate assertion JSON
             [[ "$first_assertion" == "true" ]] && first_assertion=false || assertions_json+=","
             assertions_json+="{\"name\":$(echo "$aname" | jq -Rs .),\"check\":$(echo "$acheck" | jq -Rs .),\"with_skill\":\"$skill_verdict\",\"baseline\":\"$base_verdict\",\"discriminating\":$is_discriminating,\"grader_reason\":$(echo "$skill_reason" | jq -Rs .)}"
         done
 
         assertions_json+="]"
 
-        # Per-eval metrics
-        local skill_rate=0 base_rate=0 delta=0
-        if [[ "$assertion_count" -gt 0 ]]; then
-            skill_rate=$(echo "scale=0; $eval_skill_pass * 100 / $assertion_count" | bc)
-            base_rate=$(echo "scale=0; $eval_base_pass * 100 / $assertion_count" | bc)
-            delta=$((skill_rate - base_rate))
-        fi
-
-        echo -e "${BLUE}║${NC}"
-        echo -e "${BLUE}║${NC}  Score: ${BOLD}$eval_skill_pass/$assertion_count ($skill_rate%)${NC}  vs  $eval_base_pass/$assertion_count ($base_rate%)   ${BOLD}D ${delta}%${NC}"
+        echo -e "${BLUE}|${NC}"
+        echo -e "${BLUE}|${NC}  Score: ${BOLD}$_EVAL_SKILL_PASS/$assertion_count ($_EVAL_SKILL_RATE%)${NC}  vs  $_EVAL_BASE_PASS/$assertion_count ($_EVAL_BASE_RATE%)   ${BOLD}D $_EVAL_DELTA%${NC}"
 
         # Update aggregates
-        agg_skill_pass=$((agg_skill_pass + eval_skill_pass))
-        agg_base_pass=$((agg_base_pass + eval_base_pass))
+        agg_skill_pass=$((agg_skill_pass + _EVAL_SKILL_PASS))
+        agg_base_pass=$((agg_base_pass + _EVAL_BASE_PASS))
         agg_skill_total=$((agg_skill_total + assertion_count))
         agg_base_total=$((agg_base_total + assertion_count))
-        agg_discriminating=$((agg_discriminating + eval_discriminating))
+        agg_discriminating=$((agg_discriminating + _EVAL_DISCRIMINATING))
 
         # Accumulate eval JSON
         [[ "$first_eval" == "true" ]] && first_eval=false || evals_json+=","
-        evals_json+="{\"prompt\":$(echo "$prompt" | jq -Rs .),\"assertions\":$assertions_json,\"skill_pass_rate\":$skill_rate,\"baseline_pass_rate\":$base_rate,\"delta\":$delta}"
+        evals_json+="{\"prompt\":$(echo "$prompt" | jq -Rs .),\"assertions\":$assertions_json,\"skill_pass_rate\":$_EVAL_SKILL_RATE,\"baseline_pass_rate\":$_EVAL_BASE_RATE,\"delta\":$_EVAL_DELTA}"
 
-        # Clean up temp files for this eval entry
-        rm -f "$with_file" "$with_stderr" "$base_file"
+        # Clean up temp files + scaffold for this eval entry
+        if [[ "$GRADE_ONLY" != "true" ]]; then
+            rm -f "$_EVAL_WITH_FILE" "$_EVAL_STDERR_FILE" "$_EVAL_BASE_FILE"
+        fi
+        [[ "$scaffold_cwd" != "." ]] && rm -rf "$scaffold_cwd"
     done
 
     evals_json+="]"
 
     if [[ "$CAPTURE_ONLY" == "true" ]]; then
-        echo -e "${BLUE}╠══════════════════════════════════════════════════════╣${NC}"
-        echo -e "${BLUE}║${NC}  ${YELLOW}Outputs saved to $RESULTS_DIR/${NC}"
-        echo -e "${BLUE}╚══════════════════════════════════════════════════════╝${NC}"
+        echo -e "${BLUE}+========================================================+${NC}"
+        echo -e "${BLUE}|${NC}  ${YELLOW}Outputs saved to $RESULTS_DIR/${NC}"
+        echo -e "${BLUE}+========================================================+${NC}"
         return 0
     fi
 
@@ -446,41 +746,24 @@ eval_skill() {
         verdict_display="${RED}SKILL REGRESSES${NC}"
     fi
 
-    # Non-discriminating count
     local non_disc=$((agg_skill_total - agg_discriminating))
-
     local end_time; end_time=$(date +%s)
     local duration=$((end_time - start_time))
 
-    echo -e "${BLUE}╠══════════════════════════════════════════════════════╣${NC}"
+    echo -e "${BLUE}+========================================================+${NC}"
     if [[ "$non_disc" -gt 0 ]]; then
-        echo -e "${BLUE}║${NC}  ${YELLOW}Non-discriminating: $non_disc assertion(s)${NC}"
+        echo -e "${BLUE}|${NC}  ${YELLOW}Non-discriminating: $non_disc assertion(s)${NC}"
     fi
-    echo -e "${BLUE}║${NC}  Hook rejections: $agg_hook_rejections"
-    echo -e "${BLUE}║${NC}  Verdict: ${BOLD}$verdict_display${NC}"
-    echo -e "${BLUE}║${NC}  Duration: ${duration}s"
-    echo -e "${BLUE}╚══════════════════════════════════════════════════════╝${NC}"
+    echo -e "${BLUE}|${NC}  Hook rejections: $agg_hook_rejections"
+    echo -e "${BLUE}|${NC}  Verdict: ${BOLD}$verdict_display${NC}"
+    echo -e "${BLUE}|${NC}  Duration: ${duration}s"
+    echo -e "${BLUE}+========================================================+${NC}"
 
-    # Write results JSON
-    mkdir -p "$RESULTS_DIR"
-    cat > "$RESULTS_DIR/$skill_id.quality.json" <<ENDJSON
-{
-  "skill": "$skill_id",
-  "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-  "evals": $evals_json,
-  "aggregate": {
-    "skill_pass_rate": $agg_skill_rate,
-    "baseline_pass_rate": $agg_base_rate,
-    "delta": $agg_delta,
-    "discriminating_assertions": $agg_discriminating,
-    "total_assertions": $agg_skill_total,
-    "hook_rejections": $agg_hook_rejections,
-    "verdict": "$verdict"
-  },
-  "reps": $REPS,
-  "duration_seconds": $duration
-}
-ENDJSON
+    # Write results JSON (A2)
+    write_results_json "$skill_id" "$evals_json" \
+        "$agg_skill_rate" "$agg_base_rate" "$agg_delta" \
+        "$agg_discriminating" "$agg_skill_total" "$agg_hook_rejections" \
+        "$verdict" "$duration"
 
     # Return pass/fail: regress = failure
     if [[ "$verdict" == "SKILL_REGRESSES" ]]; then
@@ -493,16 +776,18 @@ ENDJSON
 
 check_deps
 
-echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${BLUE}----------------------------------------------------${NC}"
 echo -e "${BLUE}  OrchestKit Skill Quality Evaluation${NC}"
 if [[ "$DRY_RUN" == "true" ]]; then
     echo -e "${BLUE}  Mode: ${YELLOW}DRY-RUN (YAML validation only)${NC}"
 elif [[ "$CAPTURE_ONLY" == "true" ]]; then
     echo -e "${BLUE}  Mode: ${YELLOW}CAPTURE-ONLY (outputs saved, no grading)${NC}"
+elif [[ "$GRADE_ONLY" == "true" ]]; then
+    echo -e "${BLUE}  Mode: ${YELLOW}GRADE-ONLY (re-grading captured outputs)${NC}"
 else
     echo -e "${BLUE}  Mode: ${GREEN}LIVE (grading with ${REPS}x reps)${NC}"
 fi
-echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${BLUE}----------------------------------------------------${NC}"
 
 # Collect eval files (only those with quality_evals)
 eval_files=()
@@ -511,7 +796,14 @@ if [[ "$SKILL_FILTER" == "__all__" ]]; then
         [[ -f "$f" ]] || continue
         local_quality_count=$(yq -r '.quality_evals | length' "$f" 2>/dev/null)
         if [[ "$local_quality_count" != "null" && "$local_quality_count" -gt 0 ]]; then
-            eval_files+=("$f")
+            # Tag filter (A7)
+            if [[ -n "$TAG_FILTER" ]]; then
+                if yq -r ".tags[]" "$f" 2>/dev/null | grep -q "$TAG_FILTER"; then
+                    eval_files+=("$f")
+                fi
+            else
+                eval_files+=("$f")
+            fi
         fi
     done
 else
@@ -543,15 +835,15 @@ done
 
 # Summary
 echo ""
-echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${BLUE}----------------------------------------------------${NC}"
 echo -e "${BLUE}  SUMMARY${NC}"
-echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${BLUE}----------------------------------------------------${NC}"
 echo -e "  Total:  $total"
 echo -e "  Passed: ${GREEN}$passed${NC}"
 if [[ "$failed" -gt 0 ]]; then
     echo -e "  Failed: ${RED}$failed${NC} (${failed_skills[*]})"
 fi
-echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${BLUE}----------------------------------------------------${NC}"
 
 if [[ "$failed" -gt 0 ]]; then
     exit 1
