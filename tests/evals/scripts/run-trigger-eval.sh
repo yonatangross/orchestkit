@@ -10,6 +10,8 @@
 #   npm run eval:trigger -- --all            # all skills with .eval.yaml
 #   npm run eval:trigger -- --tag core       # filter by tag
 #   npm run eval:trigger -- --reps 3         # override repetitions
+#   npm run eval:trigger -- --max-turns N    # override max turns
+#   npm run eval:trigger -- --timeout N      # override timeout (seconds)
 #   npm run eval:trigger -- --dry-run        # validate YAML only
 #
 # Requirements:
@@ -20,33 +22,25 @@
 #   - Run OUTSIDE Claude Code session (unsets CLAUDECODE)
 # =============================================================================
 
-set -uo pipefail
-
-# Cleanup temp files on exit (Ctrl+C safe)
-CLEANUP_FILES=()
-cleanup() { rm -f "${CLEANUP_FILES[@]}" 2>/dev/null; }
-trap cleanup EXIT INT TERM
-
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-CYAN='\033[0;36m'
-BOLD='\033[1m'
-NC='\033[0m'
-
-# Configuration
+# Configuration (set BEFORE sourcing common lib so check_deps can use DRY_RUN)
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+DRY_RUN=false
+
+# Source shared library (A1)
+# shellcheck source=lib/eval-common.sh
+source "$SCRIPT_DIR/lib/eval-common.sh"
+
+# Runner-specific configuration
 EVALS_DIR="$(dirname "$SCRIPT_DIR")"
 SKILLS_EVAL_DIR="$EVALS_DIR/skills"
 RESULTS_DIR="$EVALS_DIR/results/skills"
 PLUGIN_DIR="plugins/ork"
 REPS=5
-DRY_RUN=false
 SKILL_FILTER=""
 TAG_FILTER=""
 PASS_THRESHOLD=80  # Minimum recall % to pass
+MAX_TURNS=1
+GEN_TIMEOUT=120
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
@@ -70,9 +64,27 @@ while [[ $# -gt 0 ]]; do
             fi
             REPS="$2"; shift 2
             ;;
+        --max-turns)
+            if [[ $# -lt 2 ]]; then
+                echo -e "${RED}Error: --max-turns requires a positive integer${NC}"; exit 1
+            fi
+            if ! [[ "$2" =~ ^[1-9][0-9]*$ ]]; then
+                echo -e "${RED}Error: --max-turns must be a positive integer${NC}"; exit 1
+            fi
+            MAX_TURNS="$2"; shift 2
+            ;;
+        --timeout)
+            if [[ $# -lt 2 ]]; then
+                echo -e "${RED}Error: --timeout requires a positive integer${NC}"; exit 1
+            fi
+            if ! [[ "$2" =~ ^[1-9][0-9]*$ ]]; then
+                echo -e "${RED}Error: --timeout must be a positive integer (seconds)${NC}"; exit 1
+            fi
+            GEN_TIMEOUT="$2"; shift 2
+            ;;
         --dry-run) DRY_RUN=true; shift ;;
         --help|-h)
-            echo "Usage: $0 [skill-name|--all] [--tag TAG] [--reps N] [--dry-run]"
+            echo "Usage: $0 [skill-name|--all] [--tag TAG] [--reps N] [--max-turns N] [--timeout N] [--dry-run]"
             exit 0
             ;;
         -*) echo -e "${RED}Unknown option: $1${NC}"; exit 1 ;;
@@ -82,38 +94,17 @@ done
 
 if [[ -z "$SKILL_FILTER" ]]; then
     echo -e "${RED}Error: specify a skill name or --all${NC}"
-    echo "Usage: $0 [skill-name|--all] [--tag TAG] [--reps N] [--dry-run]"
+    echo "Usage: $0 [skill-name|--all] [--tag TAG] [--reps N] [--max-turns N] [--timeout N] [--dry-run]"
     exit 1
 fi
 
 # Validate skill name to prevent path traversal
-if [[ "$SKILL_FILTER" != "__all__" ]] && ! [[ "$SKILL_FILTER" =~ ^[a-z0-9][a-z0-9-]*$ ]]; then
+if [[ "$SKILL_FILTER" != "__all__" ]] && ! [[ "$SKILL_FILTER" =~ $SKILL_NAME_RE ]]; then
     echo -e "${RED}Error: invalid skill name (lowercase alphanumeric and hyphens only)${NC}"
     exit 1
 fi
 
-# Ensure we're not inside a Claude Code session
-unset CLAUDECODE 2>/dev/null || true
-
-# Check dependencies
-check_deps() {
-    if ! command -v yq &> /dev/null; then
-        echo -e "${RED}Error: yq is required (brew install yq)${NC}"
-        exit 1
-    fi
-    if ! command -v jq &> /dev/null; then
-        echo -e "${RED}Error: jq is required (brew install jq)${NC}"
-        exit 1
-    fi
-    if ! command -v bc &> /dev/null; then
-        echo -e "${RED}Error: bc is required (brew install bc)${NC}"
-        exit 1
-    fi
-    if [[ "$DRY_RUN" == "false" ]] && ! command -v claude &> /dev/null; then
-        echo -e "${YELLOW}Warning: Claude CLI not found — switching to dry-run mode${NC}"
-        DRY_RUN=true
-    fi
-}
+# ─── Functions ────────────────────────────────────────────────────────────────
 
 # Validate eval YAML schema
 validate_yaml() {
@@ -154,8 +145,6 @@ detect_trigger() {
     fi
 
     # Fallback: check for exact "ork:<skill>" reference
-    # Uses grep -w for word boundary (portable, works on BSD/GNU grep)
-    # to prevent "commit" matching "committed" or "committee"
     if grep -qiw "ork:$skill_name" "$output_file" 2>/dev/null; then
         echo "true"
         return
@@ -164,7 +153,7 @@ detect_trigger() {
     echo "false"
 }
 
-# Run one prompt N times and return trigger count
+# Run one prompt N times and return trigger count (A6: timeout)
 run_prompt() {
     local prompt="$1"
     local skill_name="$2"
@@ -174,12 +163,12 @@ run_prompt() {
     CLEANUP_FILES+=("$tmpfile")
 
     for ((i=1; i<=reps; i++)); do
-        claude -p "$prompt" \
+        run_with_timeout "$GEN_TIMEOUT" claude -p "$prompt" \
             --plugin-dir "$PLUGIN_DIR" \
             --dangerously-skip-permissions \
-            --max-turns 1 \
+            --max-turns "$MAX_TURNS" \
             --output-format stream-json \
-            > "$tmpfile" 2>/dev/null
+            > "$tmpfile" 2>/dev/null || true
 
         local result; result=$(detect_trigger "$tmpfile" "$skill_name")
         if [[ "$result" == "true" ]]; then
@@ -218,10 +207,9 @@ eval_skill() {
         return 0
     fi
 
-    # Run trigger evals — two-pass: positives first, then negatives
-    # Flaky results count as partial TP/FP (weighted by trigger rate)
+    # Run trigger evals -- two-pass: positives first, then negatives
     local tp=0 fp=0 tn=0 fn=0 flaky=0
-    local tp_partial="0" fp_partial="0"  # bc-compatible decimal accumulators
+    local tp_partial="0" fp_partial="0"
     local results_json="["
     local first_result=true
 
@@ -238,24 +226,22 @@ eval_skill() {
         local symbol=""
         if [[ "$should_trigger" == "true" ]]; then
             if [[ "$triggered" -eq "$REPS" ]]; then
-                verdict="OK"; symbol="${GREEN}✓${NC}"; ((tp++))
+                verdict="OK"; symbol="${GREEN}v${NC}"; ((tp++))
                 tp_partial=$(echo "$tp_partial + 1" | bc)
             elif [[ "$triggered" -eq 0 ]]; then
-                verdict="MISS"; symbol="${RED}✗${NC}"; ((fn++))
+                verdict="MISS"; symbol="${RED}x${NC}"; ((fn++))
             else
-                verdict="FLAKY"; symbol="${YELLOW}⚠${NC}"; ((flaky++))
-                # Count flaky positives as partial TP weighted by rate
+                verdict="FLAKY"; symbol="${YELLOW}~${NC}"; ((flaky++))
                 tp_partial=$(echo "$tp_partial + $rate" | bc)
             fi
         else
             if [[ "$triggered" -eq 0 ]]; then
-                verdict="OK"; symbol="${GREEN}✓${NC}"; ((tn++))
+                verdict="OK"; symbol="${GREEN}v${NC}"; ((tn++))
             elif [[ "$triggered" -eq "$REPS" ]]; then
-                verdict="FALSE+"; symbol="${RED}✗${NC}"; ((fp++))
+                verdict="FALSE+"; symbol="${RED}x${NC}"; ((fp++))
                 fp_partial=$(echo "$fp_partial + 1" | bc)
             else
-                verdict="FLAKY"; symbol="${YELLOW}⚠${NC}"; ((flaky++))
-                # Count flaky negatives as partial FP weighted by rate
+                verdict="FLAKY"; symbol="${YELLOW}~${NC}"; ((flaky++))
                 fp_partial=$(echo "$fp_partial + $rate" | bc)
             fi
         fi
@@ -288,8 +274,6 @@ eval_skill() {
     results_json+="]"
 
     # Calculate effective precision and recall (flaky = partial weight)
-    # effective_recall = tp_partial / (tp_partial + fn) * 100
-    # effective_precision = tp_partial / (tp_partial + fp_partial) * 100
     local precision=0 recall=0 eff_recall=0 eff_precision=0
     if [[ $((tp + fp)) -gt 0 ]]; then
         precision=$(echo "scale=1; $tp * 100 / ($tp + $fp)" | bc)
@@ -297,7 +281,6 @@ eval_skill() {
     if [[ $((tp + fn)) -gt 0 ]]; then
         recall=$(echo "scale=1; $tp * 100 / ($tp + $fn)" | bc)
     fi
-    # Effective metrics include partial flaky weight
     local tp_fn_partial; tp_fn_partial=$(echo "$tp_partial + $fn" | bc)
     if [[ $(echo "$tp_fn_partial > 0" | bc) -eq 1 ]]; then
         eff_recall=$(echo "scale=1; $tp_partial * 100 / $tp_fn_partial" | bc)
@@ -342,8 +325,6 @@ eval_skill() {
 ENDJSON
 
     # Return pass/fail based on effective recall threshold
-    # Uses effective recall (flaky-weighted) so partially-working skills
-    # get credit rather than being treated as completely broken
     local eff_recall_int=${eff_recall%.*}
     [[ -z "$eff_recall_int" ]] && eff_recall_int=0
     if [[ "$eff_recall_int" -lt "$PASS_THRESHOLD" ]]; then
