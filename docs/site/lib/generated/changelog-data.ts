@@ -17,6 +17,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.5.2",
+    "date": "2026-03-12",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**eval:** Trigger evaluation runner (`npm run eval:trigger`) — measures skill trigger precision and recall with flaky detection",
+          "**docs:** Expanded CONTRIBUTING-SKILLS.md with mandatory eval requirements, writing guidance, and pre-submit checklist"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.5.0",
     "date": "2026-03-12",
     "compareUrl": "",
