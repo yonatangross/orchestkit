@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>1M Context GA — OrchestKit Adoption Explorer</title>
+<style>
+  :root {
+    --bg: #0d1117; --surface: #161b22; --border: #30363d;
+    --text: #e6edf3; --muted: #8b949e; --accent: #58a6ff;
+    --green: #3fb950; --yellow: #d29922; --red: #f85149;
+    --purple: #bc8cff; --cyan: #39d353; --orange: #f0883e;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', monospace; background: var(--bg); color: var(--text); line-height: 1.6; }
+
+  .hero {
+    background: linear-gradient(135deg, #0d1117 0%, #1a1f35 50%, #0d1117 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 3rem 2rem 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(88,166,255,0.15) 0%, transparent 60%);
+  }
+  .hero h1 { font-size: 2.2rem; position: relative; z-index: 1; }
+  .hero h1 span { color: var(--accent); }
+  .hero .subtitle { color: var(--muted); font-size: 0.95rem; margin-top: 0.5rem; position: relative; z-index: 1; }
+  .hero .badge { display: inline-block; background: var(--green); color: #000; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; margin-top: 0.8rem; position: relative; z-index: 1; }
+
+  .mega-stat {
+    display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap;
+    padding: 2rem; position: relative; z-index: 1;
+  }
+  .mega-stat .stat {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 1.2rem 2rem; text-align: center; min-width: 140px;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+  .mega-stat .stat:hover { transform: translateY(-2px); border-color: var(--accent); }
+  .mega-stat .stat .num { font-size: 2rem; font-weight: 800; }
+  .mega-stat .stat .label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  .num.blue { color: var(--accent); }
+  .num.green { color: var(--green); }
+  .num.purple { color: var(--purple); }
+  .num.orange { color: var(--orange); }
+
+  .container { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
+
+  .tabs {
+    display: flex; gap: 4px; border-bottom: 1px solid var(--border);
+    padding-bottom: 0; margin-bottom: 1.5rem; flex-wrap: wrap;
+  }
+  .tab {
+    padding: 0.6rem 1.2rem; cursor: pointer; border-radius: 8px 8px 0 0;
+    background: transparent; color: var(--muted); border: 1px solid transparent;
+    border-bottom: none; font-family: inherit; font-size: 0.85rem;
+    transition: all 0.2s;
+  }
+  .tab:hover { color: var(--text); background: var(--surface); }
+  .tab.active { color: var(--accent); background: var(--surface); border-color: var(--border); border-bottom-color: var(--surface); position: relative; top: 1px; }
+
+  .panel { display: none; }
+  .panel.active { display: block; animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 1.2rem; margin-bottom: 1rem;
+    transition: border-color 0.2s;
+  }
+  .card:hover { border-color: var(--accent); }
+  .card h3 { font-size: 1rem; margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.5rem; }
+  .card h3 .icon { font-size: 1.2rem; }
+
+  .diff {
+    background: #0d1117; border-radius: 6px; padding: 0.8rem 1rem;
+    font-size: 0.82rem; overflow-x: auto; margin: 0.5rem 0;
+    border: 1px solid var(--border);
+  }
+  .diff .file { color: var(--muted); margin-bottom: 0.4rem; font-size: 0.75rem; }
+  .diff .del { color: var(--red); }
+  .diff .add { color: var(--green); }
+  .diff .ctx { color: var(--muted); }
+
+  .timeline {
+    position: relative; padding-left: 2rem;
+  }
+  .timeline::before {
+    content: ''; position: absolute; left: 8px; top: 0; bottom: 0;
+    width: 2px; background: var(--border);
+  }
+  .timeline .event {
+    position: relative; margin-bottom: 1.5rem; padding: 0.8rem 1rem;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  }
+  .timeline .event::before {
+    content: ''; position: absolute; left: -1.65rem; top: 1.1rem;
+    width: 10px; height: 10px; border-radius: 50%; background: var(--accent);
+    border: 2px solid var(--bg);
+  }
+  .timeline .event.done::before { background: var(--green); }
+  .timeline .event .time { font-size: 0.7rem; color: var(--muted); }
+  .timeline .event .desc { font-size: 0.85rem; margin-top: 0.2rem; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  th { text-align: left; color: var(--muted); font-weight: 600; padding: 0.5rem 0.8rem; border-bottom: 1px solid var(--border); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; }
+  td { padding: 0.5rem 0.8rem; border-bottom: 1px solid rgba(48,54,61,0.5); }
+  tr:hover td { background: rgba(88,166,255,0.04); }
+  .tag { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 0.72rem; font-weight: 600; }
+  .tag.hook { background: rgba(188,140,255,0.15); color: var(--purple); }
+  .tag.skill { background: rgba(88,166,255,0.15); color: var(--accent); }
+  .tag.test { background: rgba(63,185,80,0.15); color: var(--green); }
+
+  .context-viz {
+    display: flex; align-items: center; gap: 1rem; padding: 1rem 0;
+  }
+  .context-bar {
+    flex: 1; height: 36px; background: var(--border); border-radius: 6px;
+    overflow: hidden; position: relative;
+  }
+  .context-bar .fill {
+    height: 100%; border-radius: 6px; transition: width 1s ease;
+    position: relative;
+  }
+  .context-bar .fill.old { background: linear-gradient(90deg, var(--orange), var(--red)); }
+  .context-bar .fill.new { background: linear-gradient(90deg, var(--accent), var(--green)); }
+  .context-bar .label-inner {
+    position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+    font-size: 0.7rem; font-weight: 700; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  }
+
+  .toggle-group {
+    display: flex; gap: 0.5rem; margin-bottom: 1rem;
+  }
+  .toggle-btn {
+    padding: 0.4rem 1rem; border-radius: 6px; border: 1px solid var(--border);
+    background: transparent; color: var(--muted); cursor: pointer;
+    font-family: inherit; font-size: 0.8rem; transition: all 0.2s;
+  }
+  .toggle-btn.active { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
+
+  .impact-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+  }
+
+  .score-bar {
+    display: flex; align-items: center; gap: 0.6rem; margin: 0.3rem 0;
+  }
+  .score-bar .bar-label { width: 100px; font-size: 0.8rem; color: var(--muted); }
+  .score-bar .bar-track { flex: 1; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+  .score-bar .bar-fill { height: 100%; border-radius: 4px; transition: width 1.5s ease; }
+  .score-bar .bar-val { width: 40px; text-align: right; font-size: 0.8rem; font-weight: 600; }
+
+  .calculator {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 1.5rem; margin-top: 1rem;
+  }
+  .calculator h3 { margin-bottom: 1rem; }
+  .calc-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.8rem; flex-wrap: wrap; }
+  .calc-row label { width: 140px; font-size: 0.85rem; color: var(--muted); }
+  .calc-row input[type="range"] { flex: 1; min-width: 200px; accent-color: var(--accent); }
+  .calc-row .val { width: 80px; text-align: right; font-weight: 600; font-size: 0.9rem; }
+  .calc-result {
+    margin-top: 1rem; padding: 1rem; background: var(--bg); border-radius: 8px;
+    border: 1px solid var(--border); text-align: center;
+  }
+  .calc-result .big { font-size: 1.8rem; font-weight: 800; }
+  .calc-result .verdict { margin-top: 0.3rem; font-size: 0.85rem; }
+
+  footer { text-align: center; padding: 2rem; color: var(--muted); font-size: 0.75rem; border-top: 1px solid var(--border); margin-top: 2rem; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1><span>1M</span> Context Window — GA</h1>
+  <p class="subtitle">OrchestKit Adoption Explorer &middot; 13 files changed &middot; No beta header, no premium</p>
+  <div class="badge">LIVE IN v7.5.3</div>
+
+  <div class="mega-stat">
+    <div class="stat"><div class="num blue">1M</div><div class="label">Context Tokens</div></div>
+    <div class="stat"><div class="num green">600</div><div class="label">Images/PDFs</div></div>
+    <div class="stat"><div class="num purple">5x</div><div class="label">vs Previous</div></div>
+    <div class="stat"><div class="num orange">0</div><div class="label">Extra Cost</div></div>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('overview')">Overview</button>
+    <button class="tab" onclick="showTab('diffs')">File Diffs</button>
+    <button class="tab" onclick="showTab('impact')">Impact Analysis</button>
+    <button class="tab" onclick="showTab('calculator')">Token Calculator</button>
+    <button class="tab" onclick="showTab('timeline')">Adoption Timeline</button>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div id="overview" class="panel active">
+    <h2 style="margin-bottom:1rem;">What Changed</h2>
+
+    <div style="margin-bottom:1.5rem;">
+      <h3 style="margin-bottom:0.8rem;">Context Window: Before vs After</h3>
+      <div class="context-viz">
+        <span style="font-size:0.8rem;color:var(--muted);width:50px;">Before</span>
+        <div class="context-bar">
+          <div class="fill old" style="width:20%"><span class="label-inner">200K</span></div>
+        </div>
+      </div>
+      <div class="context-viz">
+        <span style="font-size:0.8rem;color:var(--accent);width:50px;font-weight:600;">After</span>
+        <div class="context-bar">
+          <div class="fill new" id="new-bar" style="width:0%"><span class="label-inner">1,000,000</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="impact-grid">
+      <div class="card">
+        <h3><span class="icon">&#x1f527;</span> Hooks (4 files)</h3>
+        <table>
+          <tr><td>token-budget-tracker.ts</td><td><span class="tag hook">hook</span></td></tr>
+          <tr><td>hook-priorities.ts</td><td><span class="tag hook">hook</span></td></tr>
+          <tr><td>cc-version-matrix.ts</td><td><span class="tag hook">hook</span></td></tr>
+          <tr><td>token-budget-tracker.test.ts</td><td><span class="tag test">test</span></td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <h3><span class="icon">&#x1f4da;</span> Skills (6 files)</h3>
+        <table>
+          <tr><td>audit-full/SKILL.md</td><td><span class="tag skill">skill</span></td></tr>
+          <tr><td>audit-report-template.md</td><td><span class="tag skill">skill</span></td></tr>
+          <tr><td>token-budget-planning.md</td><td><span class="tag skill">skill</span></td></tr>
+          <tr><td>estimate-tokens.sh</td><td><span class="tag skill">skill</span></td></tr>
+          <tr><td>vision-models.md</td><td><span class="tag skill">skill</span></td></tr>
+          <tr><td>vision-document.md</td><td><span class="tag skill">skill</span></td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <h3><span class="icon">&#x1f4cb;</span> Docs (1 file)</h3>
+        <table>
+          <tr><td>knowledge-compatibility.md</td><td><span class="tag skill">skill</span></td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:1rem;">
+      <h3>Key Changes Summary</h3>
+      <table>
+        <thead><tr><th>Change</th><th>Before</th><th>After</th></tr></thead>
+        <tbody>
+          <tr><td>Estimated context tokens</td><td style="color:var(--red)">200,000</td><td style="color:var(--green)">1,000,000</td></tr>
+          <tr><td>Images/PDFs per request</td><td style="color:var(--red)">100</td><td style="color:var(--green)">600</td></tr>
+          <tr><td>Beta header required</td><td style="color:var(--red)">Yes</td><td style="color:var(--green)">No</td></tr>
+          <tr><td>Pricing premium</td><td style="color:var(--red)">Beta pricing</td><td style="color:var(--green)">Standard (no premium)</td></tr>
+          <tr><td>1% budget threshold</td><td style="color:var(--muted)">2,000 tokens (8KB)</td><td style="color:var(--accent)">10,000 tokens (40KB)</td></tr>
+          <tr><td>15% warning threshold</td><td style="color:var(--muted)">30,000 tokens (120KB)</td><td style="color:var(--accent)">150,000 tokens (600KB)</td></tr>
+          <tr><td>Context fit: 1M label</td><td style="color:var(--muted)">beta, Tier 4+</td><td style="color:var(--green)">GA</td></tr>
+          <tr><td>Hook priority baseline</td><td style="color:var(--muted)">1.0x at 200K</td><td style="color:var(--green)">1.0x at 1M</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- DIFFS -->
+  <div id="diffs" class="panel">
+    <h2 style="margin-bottom:1rem;">File-by-File Diffs</h2>
+
+    <div class="toggle-group">
+      <button class="toggle-btn active" onclick="filterDiffs('all',this)">All</button>
+      <button class="toggle-btn" onclick="filterDiffs('hook',this)">Hooks</button>
+      <button class="toggle-btn" onclick="filterDiffs('skill',this)">Skills</button>
+      <button class="toggle-btn" onclick="filterDiffs('test',this)">Tests</button>
+    </div>
+
+    <div class="card diff-card" data-type="hook">
+      <h3>token-budget-tracker.ts <span class="tag hook">hook</span></h3>
+      <div class="diff">
+        <div class="file">src/hooks/src/instructions-loaded/token-budget-tracker.ts:18</div>
+        <div class="del">- const ESTIMATED_CONTEXT_TOKENS = 200_000;</div>
+        <div class="add">+ const ESTIMATED_CONTEXT_TOKENS = 1_000_000;</div>
+      </div>
+      <p style="font-size:0.82rem;color:var(--muted);margin-top:0.5rem;">The core change. Baseline context estimate raised 5x &mdash; affects all percentage calculations for budget tracking.</p>
+    </div>
+
+    <div class="card diff-card" data-type="hook">
+      <h3>hook-priorities.ts <span class="tag hook">hook</span></h3>
+      <div class="diff">
+        <div class="file">src/hooks/src/lib/hook-priorities.ts</div>
+        <div class="del">- const fallback = '200000';</div>
+        <div class="add">+ const fallback = '1000000';</div>
+        <div class="ctx">  // Dynamic budget scaling</div>
+        <div class="del">- const divisor = 200000; // 1.0x at 200K, 5.0x at 1M</div>
+        <div class="add">+ const divisor = 1000000; // 1.0x at 1M</div>
+      </div>
+      <p style="font-size:0.82rem;color:var(--muted);margin-top:0.5rem;">Priority scaling now normalized around 1M. Hooks no longer escalate priority for large contexts since 1M is the new normal.</p>
+    </div>
+
+    <div class="card diff-card" data-type="hook">
+      <h3>cc-version-matrix.ts <span class="tag hook">hook</span></h3>
+      <div class="diff">
+        <div class="file">src/hooks/src/lib/cc-version-matrix.ts:46</div>
+        <div class="del">- 'Opus 4.6 fast mode includes 1M context window'</div>
+        <div class="add">+ 'Opus 4.6 1M context window (GA, no beta header needed)'</div>
+      </div>
+    </div>
+
+    <div class="card diff-card" data-type="test">
+      <h3>token-budget-tracker.test.ts <span class="tag test">test</span></h3>
+      <div class="diff">
+        <div class="file">src/hooks/src/__tests__/instructions-loaded/token-budget-tracker.test.ts</div>
+        <div class="ctx">  // Thresholds recalculated for 1M baseline:</div>
+        <div class="del">- // 8,000 bytes = 2,000 tokens = 1% of 200,000</div>
+        <div class="del">- const files = [makeFile('/project/CLAUDE.md', 8_001)];</div>
+        <div class="add">+ // 40,000 bytes = 10,000 tokens = 1% of 1,000,000</div>
+        <div class="add">+ const files = [makeFile('/project/CLAUDE.md', 40_001)];</div>
+        <br>
+        <div class="del">- // 40,000 bytes = 10,000 tokens = 5% of 200,000</div>
+        <div class="del">- const files = [makeFile('/project/CLAUDE.md', 40_000)];</div>
+        <div class="add">+ // 200,000 bytes = 50,000 tokens = 5% of 1,000,000</div>
+        <div class="add">+ const files = [makeFile('/project/CLAUDE.md', 200_000)];</div>
+        <br>
+        <div class="del">- // 15% of 200,000 = 30,000 tokens = 120,000 bytes</div>
+        <div class="del">- const files = [makeFile('/project/CLAUDE.md', 130_000)];</div>
+        <div class="add">+ // 15% of 1,000,000 = 150,000 tokens = 600,000 bytes</div>
+        <div class="add">+ const files = [makeFile('/project/CLAUDE.md', 610_000)];</div>
+        <br>
+        <div class="del">- // 120,000 bytes = 30,000 tokens = exactly 15%</div>
+        <div class="del">- const files = [makeFile('/project/CLAUDE.md', 120_000)];</div>
+        <div class="add">+ // 600,000 bytes = 150,000 tokens = exactly 15%</div>
+        <div class="add">+ const files = [makeFile('/project/CLAUDE.md', 600_000)];</div>
+      </div>
+      <p style="font-size:0.82rem;color:var(--muted);margin-top:0.5rem;">All 9 tests updated and passing. Byte thresholds scaled 5x to match the new 1M baseline.</p>
+    </div>
+
+    <div class="card diff-card" data-type="skill">
+      <h3>audit-full/SKILL.md <span class="tag skill">skill</span></h3>
+      <div class="diff">
+        <div class="file">src/skills/audit-full/SKILL.md:34</div>
+        <div class="del">- 1M context (beta, Tier 4+)</div>
+        <div class="add">+ 1M context (GA)</div>
+      </div>
+    </div>
+
+    <div class="card diff-card" data-type="skill">
+      <h3>estimate-tokens.sh <span class="tag skill">skill</span></h3>
+      <div class="diff">
+        <div class="file">src/skills/audit-full/scripts/estimate-tokens.sh:95</div>
+        <div class="del">- echo "  1M context:   YES (beta, Tier 4+)"</div>
+        <div class="add">+ echo "  1M context:   YES (GA)"</div>
+      </div>
+    </div>
+
+    <div class="card diff-card" data-type="skill">
+      <h3>vision-models.md <span class="tag skill">skill</span></h3>
+      <div class="diff">
+        <div class="file">src/skills/multimodal-llm/rules/vision-models.md</div>
+        <div class="del">- Claude Opus 4.6: 100/request</div>
+        <div class="add">+ Claude Opus 4.6: 600/request</div>
+        <br>
+        <div class="del">- | Claude | 100/request |</div>
+        <div class="add">+ | Claude | 600/request |</div>
+        <br>
+        <div class="del">- Claude (100/req)</div>
+        <div class="add">+ Claude (600/req)</div>
+      </div>
+      <p style="font-size:0.82rem;color:var(--muted);margin-top:0.5rem;">Image/PDF limit bumped from 100 to 600 per request across all references.</p>
+    </div>
+
+    <div class="card diff-card" data-type="skill">
+      <h3>vision-document.md <span class="tag skill">skill</span></h3>
+      <div class="diff">
+        <div class="file">src/skills/multimodal-llm/rules/vision-document.md:56</div>
+        <div class="del">- Claude supports up to 100 images per request</div>
+        <div class="add">+ Claude supports up to 600 images or PDF pages per request</div>
+      </div>
+    </div>
+
+    <div class="card diff-card" data-type="skill">
+      <h3>knowledge-compatibility.md <span class="tag skill">skill</span></h3>
+      <div class="diff">
+        <div class="file">src/skills/upgrade-assessment/rules/knowledge-compatibility.md:22</div>
+        <div class="del">- Opus 4.6 fast mode gains 1M context</div>
+        <div class="add">+ Opus 4.6 1M context GA (no premium, no beta header)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- IMPACT -->
+  <div id="impact" class="panel">
+    <h2 style="margin-bottom:1rem;">Impact Analysis</h2>
+
+    <div class="impact-grid">
+      <div class="card">
+        <h3>Token Budget Tracker</h3>
+        <p style="font-size:0.82rem;color:var(--muted);margin-bottom:0.8rem;">How thresholds shift with 1M baseline</p>
+        <div class="score-bar">
+          <span class="bar-label">1% trigger</span>
+          <div class="bar-track"><div class="bar-fill" style="width:0%;background:var(--accent);" data-target="100"></div></div>
+          <span class="bar-val">40KB</span>
+        </div>
+        <div class="score-bar">
+          <span class="bar-label">5% info</span>
+          <div class="bar-track"><div class="bar-fill" style="width:0%;background:var(--yellow);" data-target="100"></div></div>
+          <span class="bar-val">200KB</span>
+        </div>
+        <div class="score-bar">
+          <span class="bar-label">15% warn</span>
+          <div class="bar-track"><div class="bar-fill" style="width:0%;background:var(--red);" data-target="100"></div></div>
+          <span class="bar-val">600KB</span>
+        </div>
+        <p style="font-size:0.75rem;color:var(--muted);margin-top:0.6rem;">Most projects (~10-80KB instructions) will now fall under 1%, producing no budget noise.</p>
+      </div>
+
+      <div class="card">
+        <h3>Hook Priority Scaling</h3>
+        <p style="font-size:0.82rem;color:var(--muted);margin-bottom:0.8rem;">Priority multiplier normalization</p>
+        <div class="score-bar">
+          <span class="bar-label">200K ctx</span>
+          <div class="bar-track"><div class="bar-fill" style="width:20%;background:var(--orange);"></div></div>
+          <span class="bar-val">0.2x</span>
+        </div>
+        <div class="score-bar">
+          <span class="bar-label">500K ctx</span>
+          <div class="bar-track"><div class="bar-fill" style="width:50%;background:var(--yellow);"></div></div>
+          <span class="bar-val">0.5x</span>
+        </div>
+        <div class="score-bar">
+          <span class="bar-label">1M ctx</span>
+          <div class="bar-track"><div class="bar-fill" style="width:100%;background:var(--green);"></div></div>
+          <span class="bar-val">1.0x</span>
+        </div>
+        <p style="font-size:0.75rem;color:var(--muted);margin-top:0.6rem;">1M is now the baseline (1.0x). Smaller contexts get lower priority multipliers. No more over-eagerness at default window size.</p>
+      </div>
+
+      <div class="card">
+        <h3>Multimodal Limits</h3>
+        <p style="font-size:0.82rem;color:var(--muted);margin-bottom:0.8rem;">Images & PDF pages per request</p>
+        <div class="score-bar">
+          <span class="bar-label">Before</span>
+          <div class="bar-track"><div class="bar-fill" style="width:16.7%;background:var(--red);"></div></div>
+          <span class="bar-val">100</span>
+        </div>
+        <div class="score-bar">
+          <span class="bar-label">After</span>
+          <div class="bar-track"><div class="bar-fill" style="width:0%;background:var(--green);" data-target="100"></div></div>
+          <span class="bar-val">600</span>
+        </div>
+        <p style="font-size:0.75rem;color:var(--muted);margin-top:0.6rem;">6x more images/PDFs per request. Full codebase audits can now include extensive visual documentation.</p>
+      </div>
+
+      <div class="card">
+        <h3>Fewer Compactions</h3>
+        <p style="font-size:0.82rem;color:var(--muted);margin-bottom:0.8rem;">Context compression events in long sessions</p>
+        <div class="score-bar">
+          <span class="bar-label">200K</span>
+          <div class="bar-track"><div class="bar-fill" style="width:100%;background:var(--red);"></div></div>
+          <span class="bar-val">Many</span>
+        </div>
+        <div class="score-bar">
+          <span class="bar-label">1M</span>
+          <div class="bar-track"><div class="bar-fill" style="width:0%;background:var(--green);" data-target="15"></div></div>
+          <span class="bar-val">Rare</span>
+        </div>
+        <p style="font-size:0.75rem;color:var(--muted);margin-top:0.6rem;">5x more room before context compression kicks in. Complex multi-agent workflows now run without losing context.</p>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:1rem;">
+      <h3>Test Results</h3>
+      <table>
+        <thead><tr><th>Suite</th><th>Tests</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Hook unit tests</td><td>6,011</td><td style="color:var(--green);">PASS</td></tr>
+          <tr><td>token-budget-tracker</td><td>9</td><td style="color:var(--green);">PASS (thresholds updated)</td></tr>
+          <tr><td>TypeScript typecheck</td><td>&mdash;</td><td style="color:var(--green);">PASS</td></tr>
+          <tr><td>Plugin build</td><td>&mdash;</td><td style="color:var(--green);">PASS (89 skills, 31 agents, 99 hooks)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CALCULATOR -->
+  <div id="calculator" class="panel">
+    <h2 style="margin-bottom:1rem;">Token Budget Calculator</h2>
+    <p style="color:var(--muted);font-size:0.85rem;margin-bottom:1rem;">Estimate how your project fits in the 1M context window.</p>
+
+    <div class="calculator">
+      <h3>Project Size Estimator</h3>
+      <div class="calc-row">
+        <label>CLAUDE.md (KB)</label>
+        <input type="range" id="claude-md" min="0" max="100" value="8" oninput="calculate()">
+        <span class="val" id="claude-md-val">8 KB</span>
+      </div>
+      <div class="calc-row">
+        <label>Rule files (KB)</label>
+        <input type="range" id="rules" min="0" max="200" value="20" oninput="calculate()">
+        <span class="val" id="rules-val">20 KB</span>
+      </div>
+      <div class="calc-row">
+        <label>Skill prompts (KB)</label>
+        <input type="range" id="skills" min="0" max="500" value="40" oninput="calculate()">
+        <span class="val" id="skills-val">40 KB</span>
+      </div>
+      <div class="calc-row">
+        <label>Hook context (KB)</label>
+        <input type="range" id="hooks" min="0" max="100" value="5" oninput="calculate()">
+        <span class="val" id="hooks-val">5 KB</span>
+      </div>
+      <div class="calc-row">
+        <label>Images/PDFs</label>
+        <input type="range" id="images" min="0" max="600" value="0" oninput="calculate()">
+        <span class="val" id="images-val">0</span>
+      </div>
+
+      <div class="calc-result">
+        <div class="big" id="calc-tokens" style="color:var(--green);">18,250 tokens</div>
+        <div class="verdict" id="calc-pct" style="color:var(--muted);">1.8% of context &middot; Comfortable fit</div>
+        <div style="margin-top:0.8rem;">
+          <div class="context-bar" style="height:24px;">
+            <div class="fill new" id="calc-bar" style="width:1.8%;transition:width 0.3s;">
+              <span class="label-inner" id="calc-bar-label">1.8%</span>
+            </div>
+          </div>
+        </div>
+        <div id="calc-img-status" style="margin-top:0.5rem;font-size:0.8rem;color:var(--muted);"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TIMELINE -->
+  <div id="timeline" class="panel">
+    <h2 style="margin-bottom:1rem;">Adoption Timeline</h2>
+
+    <div class="timeline">
+      <div class="event done">
+        <div class="time">Step 1 &middot; Completed</div>
+        <div class="desc"><strong>Web research</strong> &mdash; Fetched and analyzed <code>claude.com/blog/1m-context-ga</code></div>
+      </div>
+      <div class="event done">
+        <div class="time">Step 2 &middot; Completed</div>
+        <div class="desc"><strong>Plan visualization</strong> &mdash; Mapped all affected files across 3 workstreams (hooks, skills, docs)</div>
+      </div>
+      <div class="event done">
+        <div class="time">Step 3 &middot; Completed</div>
+        <div class="desc"><strong>3 parallel agents</strong> dispatched:
+          <br>&bull; Hooks agent: token-budget-tracker, hook-priorities, cc-version-matrix
+          <br>&bull; Skills agent: audit-full (4 files), multimodal-llm (2 files)
+          <br>&bull; Docs agent: upgrade-assessment, knowledge-compatibility
+        </div>
+      </div>
+      <div class="event done">
+        <div class="time">Step 4 &middot; Completed</div>
+        <div class="desc"><strong>Straggler fix</strong> &mdash; estimate-tokens.sh missed by agents, fixed manually</div>
+      </div>
+      <div class="event done">
+        <div class="time">Step 5 &middot; Completed</div>
+        <div class="desc"><strong>Test fix</strong> &mdash; Updated all 4 failing tests in token-budget-tracker.test.ts (200K&rarr;1M thresholds)</div>
+      </div>
+      <div class="event done">
+        <div class="time">Step 6 &middot; Completed</div>
+        <div class="desc"><strong>Build &amp; verify</strong> &mdash; 191 test files, 6,011 tests passing. TypeScript clean. Plugins built.</div>
+      </div>
+      <div class="event done">
+        <div class="time">Step 7 &middot; Completed</div>
+        <div class="desc"><strong>Committed</strong> &mdash; <code>feat(platform): adopt 1M context GA across hooks, skills, and tests</code></div>
+      </div>
+      <div class="event done">
+        <div class="time">Step 8 &middot; Now</div>
+        <div class="desc"><strong>Playground</strong> &mdash; This interactive explorer you're looking at right now</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  OrchestKit v7.5.3 &middot; 1M Context GA Playground &middot; Generated 2026-03-13
+</footer>
+
+<script>
+function showTab(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+  if (id === 'impact' || id === 'overview') animateBars();
+}
+
+function filterDiffs(type, btn) {
+  document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.diff-card').forEach(card => {
+    card.style.display = (type === 'all' || card.dataset.type === type) ? 'block' : 'none';
+  });
+}
+
+function animateBars() {
+  setTimeout(() => {
+    document.querySelectorAll('[data-target]').forEach(el => {
+      el.style.width = el.dataset.target + '%';
+    });
+    const nb = document.getElementById('new-bar');
+    if (nb) nb.style.width = '100%';
+  }, 100);
+}
+
+function calculate() {
+  const claudeMd = parseInt(document.getElementById('claude-md').value);
+  const rules = parseInt(document.getElementById('rules').value);
+  const skills = parseInt(document.getElementById('skills').value);
+  const hooks = parseInt(document.getElementById('hooks').value);
+  const images = parseInt(document.getElementById('images').value);
+
+  document.getElementById('claude-md-val').textContent = claudeMd + ' KB';
+  document.getElementById('rules-val').textContent = rules + ' KB';
+  document.getElementById('skills-val').textContent = skills + ' KB';
+  document.getElementById('hooks-val').textContent = hooks + ' KB';
+  document.getElementById('images-val').textContent = images;
+
+  const totalKB = claudeMd + rules + skills + hooks;
+  const tokens = Math.ceil((totalKB * 1024) / 4);
+  const imageTokens = images * 1600; // ~1600 tokens per image average
+  const totalTokens = tokens + imageTokens;
+  const pct = (totalTokens / 1000000) * 100;
+
+  document.getElementById('calc-tokens').textContent = totalTokens.toLocaleString() + ' tokens';
+
+  let verdict, color;
+  if (pct < 1) { verdict = 'Under 1% — silent (no budget message)'; color = 'var(--green)'; }
+  else if (pct < 5) { verdict = 'Comfortable fit — light context usage'; color = 'var(--green)'; }
+  else if (pct < 15) { verdict = 'Moderate usage — healthy headroom'; color = 'var(--yellow)'; }
+  else if (pct < 50) { verdict = 'WARNING threshold — consider trimming'; color = 'var(--orange)'; }
+  else { verdict = 'Heavy usage — risk of compaction'; color = 'var(--red)'; }
+
+  document.getElementById('calc-pct').innerHTML = pct.toFixed(1) + '% of context &middot; ' + verdict;
+  document.getElementById('calc-tokens').style.color = color;
+  document.getElementById('calc-bar').style.width = Math.min(pct, 100) + '%';
+  document.getElementById('calc-bar').style.background = pct > 15 ? 'linear-gradient(90deg, var(--orange), var(--red))' : 'linear-gradient(90deg, var(--accent), var(--green))';
+  document.getElementById('calc-bar-label').textContent = pct.toFixed(1) + '%';
+
+  const imgStatus = images > 600 ? 'Exceeds 600 limit!' : images > 0 ? images + '/600 images used' : '';
+  document.getElementById('calc-img-status').textContent = imgStatus;
+  document.getElementById('calc-img-status').style.color = images > 600 ? 'var(--red)' : 'var(--muted)';
+}
+
+// Initial animations
+window.addEventListener('load', () => { animateBars(); calculate(); });
+</script>
+</body>
+</html>
