@@ -3,22 +3,26 @@
 # OrchestKit Skill Trigger Evaluation Runner
 # =============================================================================
 # Tests whether skill descriptions correctly trigger for eval prompts.
-# Uses claude -p locally with CC Max (free, 5x per query by default).
+# Uses CC 2.1.74+ --json-schema for structured classification:
+#   1. Extracts user-invocable skill names + descriptions from plugin frontmatter
+#   2. Sends classification prompt via claude -p with --json-schema
+#   3. Parses structured_output from JSON response for skill match
+# No --plugin-dir or --dangerously-skip-permissions needed.
 #
 # Usage:
 #   npm run eval:trigger -- commit           # one skill
 #   npm run eval:trigger -- --all            # all skills with .eval.yaml
 #   npm run eval:trigger -- --tag core       # filter by tag
 #   npm run eval:trigger -- --reps 3         # override repetitions
-#   npm run eval:trigger -- --max-turns N    # override max turns
+#   npm run eval:trigger -- --max-turns N    # override max turns (default 2)
 #   npm run eval:trigger -- --timeout N      # override timeout (seconds)
 #   npm run eval:trigger -- --dry-run        # validate YAML only
 #
 # Requirements:
 #   - yq for YAML parsing
-#   - jq for JSON escaping
+#   - jq for JSON parsing (structured_output extraction)
 #   - bc for arithmetic (precision/recall)
-#   - Claude Code CLI (skipped in --dry-run mode)
+#   - Claude Code CLI >= 2.1.74 (--json-schema support, tested on 2.1.75)
 #   - Run OUTSIDE Claude Code session (unsets CLAUDECODE)
 # =============================================================================
 
@@ -39,8 +43,13 @@ REPS=5
 SKILL_FILTER=""
 TAG_FILTER=""
 PASS_THRESHOLD=80  # Minimum recall % to pass
-MAX_TURNS=1
+MAX_TURNS=2        # json-schema uses tool_use internally, needs 2 turns
 GEN_TIMEOUT=120
+SKILLS_CATALOG=""  # Built at startup from plugin skill frontmatter
+
+# JSON schema for structured trigger detection (CC 2.1.74+)
+TRIGGER_SCHEMA='{"type":"object","properties":{"skill_triggered":{"type":"boolean"},"skill_name":{"type":"string"},"confidence":{"type":"number"}},"required":["skill_triggered","skill_name","confidence"]}'
+CLASSIFIER_SYSTEM_PROMPT="You are a skill classifier. Given a list of available skills and a user prompt, determine which skill best matches the user's intent. If no skill matches, set skill_triggered to false. Respond with the JSON schema output."
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
@@ -133,27 +142,41 @@ validate_yaml() {
     return "$errors"
 }
 
-# Detect skill trigger from stream-json output
+# Build skills catalog from plugin skill frontmatter (run once at startup)
+build_skills_catalog() {
+    local catalog=""
+    for skill_dir in "$PLUGIN_DIR"/skills/*/; do
+        local skill_file="$skill_dir/SKILL.md"
+        [[ -f "$skill_file" ]] || continue
+        local name; name=$(grep '^name:' "$skill_file" | head -1 | sed 's/name: *//' | tr -d '"')
+        local desc; desc=$(grep '^description:' "$skill_file" | head -1 | sed 's/description: *//' | tr -d '"')
+        local invocable; invocable=$(grep '^user-invocable:' "$skill_file" | head -1 | sed 's/user-invocable: *//' | tr -d '"')
+        [[ "$invocable" == "true" ]] && catalog="$catalog- ork:$name: $desc\n"
+    done
+    SKILLS_CATALOG="$catalog"
+}
+
+# Detect skill trigger from --json-schema structured output (CC 2.1.74+)
+# Uses structured_output field from --output-format json response.
 detect_trigger() {
     local output_file="$1"
     local skill_name="$2"
 
-    # Primary: check stream-json for Skill tool invocation
-    if grep -qi "\"tool\".*\"Skill\"\|\"name\".*\"Skill\"\|\"skill\".*\"$skill_name\"" "$output_file" 2>/dev/null; then
-        echo "true"
-        return
-    fi
+    # Parse structured_output from JSON response
+    local triggered_skill
+    triggered_skill=$(jq -r '.structured_output.skill_name // empty' "$output_file" 2>/dev/null)
+    local was_triggered
+    was_triggered=$(jq -r '.structured_output.skill_triggered // false' "$output_file" 2>/dev/null)
 
-    # Fallback: check for exact "ork:<skill>" reference
-    if grep -qiw "ork:$skill_name" "$output_file" 2>/dev/null; then
+    if [[ "$was_triggered" == "true" && "$triggered_skill" == "ork:$skill_name" ]]; then
         echo "true"
-        return
+    else
+        echo "false"
     fi
-
-    echo "false"
 }
 
 # Run one prompt N times and return trigger count (A6: timeout)
+# Uses --json-schema for structured classification instead of plugin execution.
 run_prompt() {
     local prompt="$1"
     local skill_name="$2"
@@ -162,12 +185,18 @@ run_prompt() {
     local tmpfile; tmpfile=$(mktemp)
     CLEANUP_FILES+=("$tmpfile")
 
+    local classification_prompt
+    classification_prompt="Which skill would be triggered by this user prompt: \"$prompt\"
+
+Available skills:
+$(echo -e "$SKILLS_CATALOG")"
+
     for ((i=1; i<=reps; i++)); do
-        run_with_timeout "$GEN_TIMEOUT" claude -p "$prompt" \
-            --plugin-dir "$PLUGIN_DIR" \
-            --dangerously-skip-permissions \
+        run_with_timeout "$GEN_TIMEOUT" claude -p "$classification_prompt" \
+            --system-prompt "$CLASSIFIER_SYSTEM_PROMPT" \
+            --output-format json \
+            --json-schema "$TRIGGER_SCHEMA" \
             --max-turns "$MAX_TURNS" \
-            --output-format stream-json \
             > "$tmpfile" 2>/dev/null || true
 
         local result; result=$(detect_trigger "$tmpfile" "$skill_name")
@@ -337,12 +366,24 @@ ENDJSON
 
 check_deps
 
+# Build skills catalog for --json-schema classification
+if [[ "$DRY_RUN" == "false" ]]; then
+    echo -e "${CYAN}  Building skills catalog...${NC}"
+    build_skills_catalog
+    skill_count=$(echo -e "$SKILLS_CATALOG" | grep -c "^- ork:" || true)
+    if [[ "$skill_count" -eq 0 ]]; then
+        echo -e "${RED}Error: No user-invocable skills found in $PLUGIN_DIR/skills/${NC}"
+        exit 1
+    fi
+    echo -e "${GREEN}  Found $skill_count user-invocable skills${NC}"
+fi
+
 echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo -e "${BLUE}  OrchestKit Skill Trigger Evaluation${NC}"
 if [[ "$DRY_RUN" == "true" ]]; then
     echo -e "${BLUE}  Mode: ${YELLOW}DRY-RUN (YAML validation only)${NC}"
 else
-    echo -e "${BLUE}  Mode: ${GREEN}LIVE (${REPS}x reps per prompt)${NC}"
+    echo -e "${BLUE}  Mode: ${GREEN}LIVE (${REPS}x reps, --json-schema classifier)${NC}"
 fi
 echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
