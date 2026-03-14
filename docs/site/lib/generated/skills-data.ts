@@ -667,7 +667,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "brainstorm": {
     "name": "brainstorm",
     "description": "Design exploration with parallel agents. Use when brainstorming ideas, exploring solutions, or comparing alternatives.",
-    "version": "4.4.0",
+    "version": "4.6.0",
     "author": "OrchestKit",
     "tags": [
       "planning",
@@ -699,7 +699,17 @@ export const SKILLS: Record<string, SkillMeta> = {
       "scope-appropriate-architecture",
       "testing-unit",
       "testing-integration",
-      "chain-patterns"
+      "chain-patterns",
+      "design-to-code",
+      "component-search",
+      "design-context-extract",
+      "security-patterns",
+      "database-patterns",
+      "performance",
+      "devops-deployment",
+      "competitive-analysis",
+      "user-research",
+      "browser-tools"
     ],
     "agent": null,
     "structure": {

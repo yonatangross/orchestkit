@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **hooks:** PostCompact and Elicitation hooks registered in `entries/lifecycle.ts` split bundle (lifecycle.mjs grew 77→80KB)
 - **compatibility:** All 78 skill `compatibility:` fields updated from 2.1.74+ to 2.1.76+
 - **counts:** 99→104 hooks (33→36 global), MIN_CC_VERSION 2.1.74→2.1.76
+- **brainstorm:** v4.4.0→4.6.0 — added product/event-driven/devops/data-pipeline domain detection, design pipeline agents (design-context-extractor, component-curator), `/effort` phase scaling, CC 2.1.76 `[PARTIAL RESULT]` handling, PostCompact recovery, browser-tools + web-research-analyst for research phases
 
 ### Fixed
 
