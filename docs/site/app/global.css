@@ -14,6 +14,12 @@
    ============================================================ */
 
 @theme {
+  /* Fluid typography — clamp(min, vw + rem, max)
+     rem component respects user font-size preferences (accessibility)
+     vw component drives smooth viewport scaling */
+  --text-fluid-h1: clamp(2rem, 2.5vw + 1.5rem, 4.5rem);
+  --text-fluid-h2: clamp(1.25rem, 1.5vw + 0.75rem, 2.25rem);
+
   /* Light mode palette — slate + emerald (oklch for perceptual uniformity) */
   --color-fd-background: oklch(0.985 0.002 250);      /* #fafbfc */
   --color-fd-foreground: oklch(0.208 0.042 265);      /* #0f172a */
@@ -201,6 +207,11 @@
   @keyframes trace-draw {
     from { stroke-dashoffset: 100%; }
     to { stroke-dashoffset: 0%; }
+  }
+
+  @keyframes slide-up {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
   .animate-fade-in {

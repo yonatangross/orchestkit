@@ -49,12 +49,14 @@ const TASK_ICON_MAP: Record<TaskType, typeof Hammer> = {
 const MODEL_LABELS: Record<string, string> = {
   opus: "Opus",
   sonnet: "Sonnet",
+  haiku: "Haiku",
   inherit: "Inherit",
 };
 
 const MODEL_STYLES: Record<string, string> = {
   opus: "bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300",
   sonnet: "bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-300",
+  haiku: "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300",
   inherit:
     "bg-fd-muted text-fd-muted-foreground",
 };

@@ -513,7 +513,7 @@ function SkillCard({
                 </span>
               ))}
               <a
-                href={`https://github.com/orchestkit/orchestkit/tree/main/src/skills/${skill.name}/SKILL.md`}
+                href={`https://github.com/yonatangross/orchestkit/tree/main/src/skills/${skill.name}/SKILL.md`}
                 className="inline-flex items-center gap-1 text-[11px] text-fd-primary hover:underline"
                 tabIndex={expanded ? 0 : -1}
                 target="_blank"

@@ -177,24 +177,14 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Category Distribution */}
-      <section aria-label="Skill categories" className="border-t border-fd-border bg-[var(--color-fd-surface-sunken)]">
+      {/* Coverage areas */}
+      <section aria-label="Coverage areas" className="border-t border-fd-border bg-[var(--color-fd-surface-sunken)]">
         <div className="mx-auto max-w-[1024px] px-6 py-5">
           <div className="flex flex-wrap justify-center gap-3">
-            {Object.entries({
-              Backend: 38,
-              Frontend: 32,
-              "AI / LLM": 35,
-              Security: 12,
-              DevOps: 18,
-              Testing: 22,
-              Product: 16,
-              Workflows: 27,
-            }).map(([label, count]) => (
+            {["Backend", "Frontend", "AI / LLM", "Security", "DevOps", "Testing", "Product", "Data"].map((label) => (
               <div key={label} className="flex items-center gap-1.5 text-xs text-fd-muted-foreground">
                 <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-fd-primary-30)]" />
                 <span>{label}</span>
-                <span className="font-mono font-medium tabular-nums text-fd-muted-foreground">{count}</span>
               </div>
             ))}
           </div>
