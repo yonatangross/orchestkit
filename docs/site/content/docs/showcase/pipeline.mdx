@@ -5,6 +5,7 @@ icon: Sparkles
 ---
 
 import { PipelineGallery } from "@/components/pipeline-gallery";
+import { ComponentDNA } from "@/components/component-dna";
 
 # Pipeline Gallery
 
@@ -14,6 +15,16 @@ Every entry below was produced by OrchestKit's three-stage pipeline:
 **Extract** (Stitch MCP) → **Match** (21st.dev) → **Adapt** (project tokens).
 
 <PipelineGallery />
+
+<ComponentDNA
+  name="PipelineGallery"
+  sources={[
+    { name: "expandable-card", registry: "21st.dev", url: "https://21st.dev/s/features" },
+    { name: "step-indicator", registry: "21st.dev", url: "https://21st.dev/s/features" },
+  ]}
+  tokens={["fd-primary-10", "fd-primary-20", "fd-surface-sunken", "fd-glow", "fd-muted"]}
+  forkCommand='/ork:design-to-code expandable card gallery with pipeline stages and MCP badges'
+/>
 
 ## How It Works
 
