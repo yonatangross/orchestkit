@@ -77,7 +77,7 @@ export default async function HomePage() {
           <div className="animate-fade-in stagger-4 mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
             <Link
               href="/docs/getting-started/first-10-minutes"
-              className="hover-glow inline-flex h-10 items-center rounded-lg bg-fd-primary px-6 text-sm font-semibold text-fd-primary-foreground transition-colors hover:bg-fd-primary/80"
+              className="hover-glow inline-flex h-10 items-center rounded-lg bg-fd-primary px-6 text-sm font-semibold text-fd-primary-foreground transition-colors hover:bg-[var(--color-fd-primary-50)]"
             >
               Get Started
             </Link>
@@ -86,7 +86,7 @@ export default async function HomePage() {
               href={SITE.github}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex h-10 items-center gap-2 rounded-lg border border-fd-border bg-fd-card px-4 text-sm font-medium text-fd-foreground transition-colors hover:bg-fd-secondary"
+              className="inline-flex h-10 items-center gap-2 rounded-lg border border-fd-border bg-fd-card px-4 text-sm font-medium text-fd-foreground transition-all hover:bg-[var(--color-fd-primary-5)] hover:border-[var(--color-fd-primary-30)]"
               aria-label="Star OrchestKit on GitHub"
             >
               <svg className="h-4 w-4" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
@@ -248,7 +248,7 @@ export default async function HomePage() {
               <Link
                 key={comp.id}
                 href="/docs/reference"
-                className="group flex-none w-[260px] border border-fd-border bg-fd-card overflow-hidden rounded-lg transition-all duration-200 hover:bg-[var(--color-fd-primary-5)] hover:border-fd-primary/30"
+                className="group flex-none w-[260px] border border-fd-border bg-fd-card overflow-hidden rounded-lg transition-all duration-200 hover:bg-[var(--color-fd-primary-5)] hover:border-[var(--color-fd-primary-30)]"
               >
                 <div className="aspect-video bg-fd-background relative">
                   <OptimizedThumbnail
@@ -269,7 +269,7 @@ export default async function HomePage() {
           <div className="mt-3">
             <Link
               href="/docs/reference"
-              className="font-mono text-[13px] text-fd-primary hover:text-fd-primary/80 transition-colors"
+              className="font-mono text-[13px] text-fd-primary hover:text-[var(--color-fd-primary-50)] transition-colors"
             >
               View all compositions &rarr;
             </Link>

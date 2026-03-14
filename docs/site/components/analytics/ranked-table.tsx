@@ -12,7 +12,7 @@ export function RankedTable({ title, rows }: { title: string; rows: { name: stri
             <span className="w-36 truncate text-[13px] text-fd-foreground/75 sm:w-44">{r.name}</span>
             <div className="relative flex-1">
               <div
-                className="h-5 rounded-sm bg-fd-primary/20"
+                className="h-5 rounded-sm bg-[var(--color-fd-primary-20)]"
                 style={{ width: `${(r.count / maxCount) * 100}%` }}
               />
               <span className="absolute inset-y-0 left-1.5 flex items-center text-[11px] font-medium text-fd-foreground/80">

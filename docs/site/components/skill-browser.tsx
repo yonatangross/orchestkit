@@ -271,7 +271,7 @@ export function SkillBrowser() {
                 aria-pressed={active}
                 className={`rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
                   active
-                    ? "bg-fd-primary/10 text-fd-primary shadow-sm"
+                    ? "bg-[var(--color-fd-primary-10)] text-fd-primary shadow-sm"
                     : "text-fd-muted-foreground hover:bg-fd-muted"
                 }`}
               >

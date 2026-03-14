@@ -72,7 +72,7 @@ export function AnalyticsDashboard() {
           </button>
           <button
             onClick={handleSample}
-            className="rounded-md border border-fd-border px-4 py-1.5 text-[13px] text-fd-muted-foreground transition-colors hover:border-fd-primary/40 hover:text-fd-primary"
+            className="rounded-md border border-fd-border px-4 py-1.5 text-[13px] text-fd-muted-foreground transition-colors hover:border-[var(--color-fd-primary-30)] hover:text-fd-primary"
           >
             Load Sample
           </button>
@@ -89,7 +89,7 @@ export function AnalyticsDashboard() {
         </div>
         <button
           onClick={handleReset}
-          className="rounded-md border border-fd-border px-3 py-1 text-[11px] text-fd-muted-foreground transition-colors hover:border-fd-primary/40 hover:text-fd-primary"
+          className="rounded-md border border-fd-border px-3 py-1 text-[11px] text-fd-muted-foreground transition-colors hover:border-[var(--color-fd-primary-30)] hover:text-fd-primary"
         >
           Reset
         </button>
