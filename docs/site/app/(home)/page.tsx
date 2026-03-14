@@ -44,11 +44,32 @@ const PRIMITIVES = [
   },
 ] as const;
 
+const PERSONAS = [
+  {
+    title: "New to OrchestKit?",
+    desc: "Install and ship your first feature in under 5 minutes.",
+    cta: "Get started",
+    href: "/docs/getting-started/installation",
+  },
+  {
+    title: "Evaluating for your team?",
+    desc: "104 hooks enforce security and quality automatically. Zero config.",
+    cta: "See the guardrails",
+    href: "/docs/hooks/overview",
+  },
+  {
+    title: "Already using Claude Code?",
+    desc: "33 parallel specialist agents, 3-tier memory, keyword activation.",
+    cta: "What OrchestKit adds",
+    href: "/docs/foundations/overview",
+  },
+] as const;
+
 const QUICK_PATHS = [
-  { title: "3 Building Blocks", desc: "How Skills, Agents, and Hooks compose", href: "/docs/foundations/skills-agents-hooks" },
   { title: "First 10 Minutes", desc: "Install to first AI-assisted commit", href: "/docs/getting-started/first-10-minutes" },
   { title: "Find Your Path", desc: "Backend, Frontend, AI, or DevOps", href: "/docs/getting-started/navigating" },
   { title: "Cookbook", desc: "Real workflow walkthroughs", href: "/docs/cookbook/implement-feature" },
+  { title: "How It Works", desc: "Skills, Agents, and Hooks in depth", href: "/docs/foundations/skills-agents-hooks" },
 ] as const;
 
 export default async function HomePage() {
@@ -228,6 +249,34 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* Choose Your Path — persona-based entry points */}
+      <section aria-labelledby="personas-heading" className="border-t border-fd-border bg-[var(--color-fd-surface-sunken)]">
+        <div className="mx-auto max-w-[1024px] px-6 py-12 sm:py-16">
+          <span className="overline">Choose Your Path</span>
+          <h2 id="personas-heading" className="mt-2 text-fluid-h2 font-semibold tracking-tight text-fd-foreground">
+            Where do you want to start?
+          </h2>
+          <div className="mt-8 grid gap-4 sm:grid-cols-3">
+            {PERSONAS.map((persona) => (
+              <Link
+                key={persona.href}
+                href={persona.href}
+                className="group flex flex-col justify-between border border-fd-border bg-fd-card p-5 rounded-lg transition-all duration-200 hover:bg-[var(--color-fd-primary-5)] hover:border-[var(--color-fd-primary-30)] hover:shadow-[0_0_12px_var(--color-fd-glow)]"
+              >
+                <div>
+                  <h3 className="font-semibold text-fd-foreground">{persona.title}</h3>
+                  <p className="mt-2 text-[13px] leading-relaxed text-fd-muted-foreground">{persona.desc}</p>
+                </div>
+                <span className="mt-4 inline-flex items-center gap-1 font-mono text-[12px] font-medium text-fd-primary transition-all group-hover:gap-2">
+                  {persona.cta}
+                  <ChevronRight className="h-3 w-3" />
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Demo Showcase */}
       <section aria-labelledby="demos-heading" className="border-t border-fd-border">
         <div className="mx-auto max-w-[1024px] px-6 py-12 sm:py-16">
@@ -311,7 +360,7 @@ export default async function HomePage() {
           </span>
           <nav aria-label="Footer" className="flex gap-5">
             <a href={SITE.github} target="_blank" rel="noopener noreferrer" className="hover:text-fd-muted-foreground">GitHub</a>
-            <Link href="/docs/foundations/overview" className="hover:text-fd-muted-foreground">Docs</Link>
+            <Link href="/docs/getting-started/installation" className="hover:text-fd-muted-foreground">Docs</Link>
             <Link href="/docs/cookbook/implement-feature" className="hover:text-fd-muted-foreground">Cookbook</Link>
           </nav>
         </div>

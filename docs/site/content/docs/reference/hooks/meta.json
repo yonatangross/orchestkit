@@ -14,12 +14,16 @@
     "subagent-stop",
     "notification",
     "pre-compact",
+    "post-compact",
+    "elicitation",
+    "elicitation-result",
     "teammate-idle",
     "task-completed",
     "worktree-create",
     "worktree-remove",
     "instructions-loaded",
     "config-change",
-    "setup"
+    "setup",
+    "spotlights"
   ]
 }

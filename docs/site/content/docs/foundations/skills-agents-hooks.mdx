@@ -21,8 +21,8 @@ src/skills/python-backend/SKILL.md
 
 | Type | Count | How It Works | Example |
 |---|---|---|---|
-| **Command** | 18 | You invoke directly: `/ork:commit` | `/ork:verify`, `/ork:implement` |
-| **Reference** | 61 | Auto-injected into agents | `python-backend`, `security-patterns` |
+| **Command** | 19 | You invoke directly: `/ork:commit` | `/ork:verify`, `/ork:implement` |
+| **Reference** | 73 | Auto-injected into agents | `python-backend`, `security-patterns` |
 
 Command skills are what you type. Reference skills are what agents read. You never need to invoke a reference skill — the right agent loads the right skills automatically.
 
@@ -90,7 +90,7 @@ All three run in parallel, then results are synthesized into a single PR review.
 
 Hooks are TypeScript functions that **fire automatically** on lifecycle events. You never invoke them — they run in the background on every prompt, tool call, and session transition.
 
-**101 hooks** across 11 categories:
+**104 hooks** across 11 categories:
 
 | Category | Count | What It Does |
 |---|---|---|

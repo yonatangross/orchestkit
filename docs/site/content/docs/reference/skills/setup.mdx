@@ -154,7 +154,21 @@ If streaming selected:
 
 Load details: `Read("$\{CLAUDE_SKILL_DIR\}/references/integrations.md")` for setup steps.
 
-Covers Agentation UI annotation tool and CC version-specific settings (CC 2.1.7 turn duration, CC 2.1.20 task deletion, CC 2.1.23 spinner verbs).
+Covers Agentation UI annotation tool, CC version-specific settings (CC 2.1.7 turn duration, CC 2.1.20 task deletion, CC 2.1.23 spinner verbs), and monorepo worktree optimization.
+
+### Monorepo Sparse Paths (CC 2.1.76+)
+
+If Phase 1 scan detected a monorepo (pnpm-workspace.yaml, nx.json, lerna.json, turbo.json, or package.json workspaces), suggest configuring `worktree.sparsePaths` in `.claude/settings.json`:
+
+```json
+{
+  "worktree": {
+    "sparsePaths": ["src/", "packages/core/", "tests/", "scripts/"]
+  }
+}
+```
+
+This makes `--worktree` and agent `isolation: worktree` check out only the listed directories via git sparse-checkout — significantly faster in large monorepos.
 
 ## CLI Flags
 
@@ -1096,7 +1110,7 @@ Computes a composite readiness score (0-10) from 6 dimensions.
 OrchestKit Readiness Score: 7.2 / 10  (stable channel, v7.0.0)
 
   Stack Coverage  ████████░░  9/10  Python + React fully covered
-  Hook Protection ████████░░  8/10  101 hooks active
+  Hook Protection ████████░░  8/10  104 hooks active
   MCP Enhancement ██████░░░░  6/10  2/3 recommended MCPs active
   Memory Depth    ████░░░░░░  4/10  12 entities (target: 50+)
   Custom Skills   ██░░░░░░░░  2/10  0/3 suggested skills created

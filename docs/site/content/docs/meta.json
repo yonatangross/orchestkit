@@ -1,10 +1,10 @@
 {
   "title": "OrchestKit",
   "pages": [
-    "---[BookOpen]Foundations---",
-    "...foundations",
     "---[Rocket]Getting Started---",
     "...getting-started",
+    "---[BookOpen]How It Works---",
+    "...foundations",
     "---[ChefHat]Cookbook---",
     "...cookbook",
     "---[Sparkles]Skills---",
