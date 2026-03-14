@@ -16,6 +16,7 @@
 #   npm run eval:quality -- --max-turns N    # override max turns for generation (default 10)
 #   npm run eval:quality -- --timeout N      # override generation timeout (seconds)
 #   npm run eval:quality -- --skip-baseline   # skip baseline, quality-only (saves ~50% CLI calls)
+#   npm run eval:quality -- --force-skill    # TIER 1: inject SKILL.md, bypass routing (unit eval)
 #   npm run eval:quality -- --model sonnet   # use cheaper model for evals
 #   npm run eval:quality -- --budget N       # max USD per eval run (default 2.00)
 #   npm run eval:quality -- --mcp-config F   # load MCP servers from JSON file
@@ -53,6 +54,7 @@ EVAL_MODEL=""
 MAX_BUDGET="2.00"
 MCP_CONFIG=""
 SKIP_BASELINE=false
+FORCE_SKILL=false
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
@@ -61,6 +63,7 @@ while [[ $# -gt 0 ]]; do
         --capture-only) CAPTURE_ONLY=true; shift ;;
         --grade-only) GRADE_ONLY=true; shift ;;
         --skip-baseline) SKIP_BASELINE=true; shift ;;
+        --force-skill) FORCE_SKILL=true; SKIP_BASELINE=true; shift ;;
         --dry-run) DRY_RUN=true; shift ;;
         --reps)
             if [[ $# -lt 2 ]]; then
@@ -119,7 +122,11 @@ while [[ $# -gt 0 ]]; do
             MCP_CONFIG="$2"; shift 2
             ;;
         --help|-h)
-            echo "Usage: $0 [skill-name|--all] [--capture-only] [--grade-only] [--dry-run] [--skip-baseline] [--reps N] [--tag TAG] [--max-turns N] [--timeout N] [--model MODEL] [--budget USD] [--mcp-config FILE]"
+            echo "Usage: $0 [skill-name|--all] [--capture-only] [--grade-only] [--dry-run] [--skip-baseline] [--force-skill] [--reps N] [--tag TAG] [--max-turns N] [--timeout N] [--model MODEL] [--budget USD] [--mcp-config FILE]"
+            echo ""
+            echo "  --force-skill    TIER 1 unit eval: inject SKILL.md via --append-system-prompt."
+            echo "                   Bypasses agent routing to test skill content quality in isolation."
+            echo "                   Implies --skip-baseline and --max-turns 1."
             exit 0
             ;;
         -*) echo -e "${RED}Unknown option: $1${NC}"; exit 1 ;;
@@ -217,6 +224,55 @@ build_claude_flags() {
     fi
 
     echo "${flags[@]}"
+}
+
+# Run a prompt with skill content force-loaded via --append-system-prompt (TIER 1: unit eval).
+# Bypasses agent routing entirely — tests skill content quality in isolation.
+run_with_forced_skill() {
+    local prompt="$1"
+    local output_file="$2"
+    local stderr_file="$3"
+    local skill_id="$4"
+    local cwd_arg="$5"  # optional
+    local -a flags=()
+
+    # Resolve SKILL.md path
+    local skill_path="src/skills/$skill_id/SKILL.md"
+    if [[ ! -f "$skill_path" ]]; then
+        echo -e "  ${RED}Error: $skill_path not found for --force-skill${NC}" >&2
+        echo "SKILL_NOT_FOUND" > "$output_file"
+        return 1
+    fi
+
+    # Read skill content (strip YAML frontmatter — macOS-compatible)
+    local skill_content
+    skill_content=$(awk 'BEGIN{skip=0} /^---$/{skip++; next} skip>=2{print}' "$skill_path")
+
+    # Build flags: no --plugin-dir, no tool use (pure text generation)
+    # --print forces text-only output with no tool calls — ideal for quality eval
+    flags+=(--print)
+    flags+=(--no-session-persistence)
+    flags+=(--max-budget-usd "$MAX_BUDGET")
+    flags+=(--append-system-prompt "$skill_content")
+
+    if [[ -n "$EVAL_MODEL" ]]; then
+        flags+=(--model "$EVAL_MODEL")
+    fi
+
+    if [[ -n "$cwd_arg" && "$cwd_arg" != "." ]]; then
+        (
+            cd "$cwd_arg" || exit 1
+            run_with_timeout "$GEN_TIMEOUT" claude -p "$prompt" \
+                "${flags[@]}" \
+                > "$output_file" 2>"$stderr_file"
+        ) || echo -e "  ${YELLOW}Warning: claude exited non-zero for force-skill run${NC}" >&2
+    else
+        if ! run_with_timeout "$GEN_TIMEOUT" claude -p "$prompt" \
+            "${flags[@]}" \
+            > "$output_file" 2>"$stderr_file"; then
+            echo -e "  ${YELLOW}Warning: claude exited non-zero for force-skill run${NC}" >&2
+        fi
+    fi
 }
 
 # Run a prompt with skill (plugin loaded) and capture output (A6: timeout)
@@ -490,6 +546,7 @@ SCAFFOLD_EOF
 
 # Run with-skill + baseline for one eval entry, in parallel (A4).
 # Sets _EVAL_WITH_FILE, _EVAL_BASE_FILE, _EVAL_STDERR_FILE.
+# When FORCE_SKILL=true, uses --append-system-prompt instead of --plugin-dir.
 run_eval_entry() {
     local prompt="$1"
     local scaffold_cwd="$2"
@@ -499,7 +556,10 @@ run_eval_entry() {
     local with_stderr; with_stderr=$(mktemp)
     CLEANUP_FILES+=("$with_file" "$base_file" "$with_stderr")
 
-    if [[ "$SKIP_BASELINE" == "true" ]]; then
+    if [[ "$FORCE_SKILL" == "true" ]]; then
+        echo -e "${BLUE}||${NC}  ${CYAN}Running force-skill (SKILL.md injected, no routing)...${NC}"
+        run_with_forced_skill "$prompt" "$with_file" "$with_stderr" "$_CURRENT_SKILL_ID" "$scaffold_cwd"
+    elif [[ "$SKIP_BASELINE" == "true" ]]; then
         echo -e "${BLUE}||${NC}  ${CYAN}Running with-skill (baseline skipped)...${NC}"
         run_with_skill "$prompt" "$with_file" "$with_stderr" "$scaffold_cwd"
     else
@@ -685,6 +745,7 @@ ENDJSON
 eval_skill() {
     local eval_file="$1"
     local skill_id; skill_id=$(yq -r '.id' "$eval_file")
+    _CURRENT_SKILL_ID="$skill_id"  # Expose to run_eval_entry for --force-skill
     # Validate skill_id from YAML to prevent path traversal (SEC-002)
     if ! [[ "$skill_id" =~ $SKILL_NAME_RE ]]; then
         echo -e "  ${RED}Invalid skill id in $eval_file: '$skill_id'${NC}"
@@ -947,6 +1008,8 @@ elif [[ "$CAPTURE_ONLY" == "true" ]]; then
     echo -e "${BLUE}  Mode: ${YELLOW}CAPTURE-ONLY (outputs saved, no grading)${NC}"
 elif [[ "$GRADE_ONLY" == "true" ]]; then
     echo -e "${BLUE}  Mode: ${YELLOW}GRADE-ONLY (re-grading captured outputs)${NC}"
+elif [[ "$FORCE_SKILL" == "true" ]]; then
+    echo -e "${BLUE}  Mode: ${CYAN}TIER 1 UNIT (SKILL.md injected, no routing)${NC}"
 else
     echo -e "${BLUE}  Mode: ${GREEN}LIVE (grading with ${REPS}x reps)${NC}"
 fi
