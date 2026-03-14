@@ -4,6 +4,7 @@ import { CopyInstallButton } from "./copy-button";
 import { SITE, COUNTS } from "@/lib/constants";
 import { COMPOSITIONS } from "@/lib/generated/compositions-data";
 import { OptimizedThumbnail } from "@/components/optimized-thumbnail";
+import { AnimateOnView } from "@/components/animate-on-view";
 
 async function getStarCount(): Promise<number | null> {
   try {
@@ -59,22 +60,26 @@ export default async function HomePage() {
         <div className="absolute inset-0 bg-dot-grid" aria-hidden="true" />
 
         <div className="relative z-10 mx-auto w-full max-w-[1024px] px-6 py-20">
-          <div className="animate-fade-in stagger-1">
+          <AnimateOnView>
             <span className="overline">OrchestKit v{SITE.version}</span>
-          </div>
+          </AnimateOnView>
 
-          <h1 id="hero-heading" className="animate-fade-in stagger-2 mt-4 max-w-3xl text-4xl font-bold tracking-tight text-fd-foreground sm:text-5xl lg:text-6xl">
-            Stop explaining your stack.
-            <br />
-            <span className="text-fd-primary">Start shipping.</span>
-          </h1>
+          <AnimateOnView delay={100} className="mt-4">
+            <h1 id="hero-heading" className="max-w-3xl text-fluid-h1 font-bold tracking-tight text-fd-foreground">
+              Stop explaining your stack.
+              <br />
+              <span className="text-fd-primary">Start shipping.</span>
+            </h1>
+          </AnimateOnView>
 
-          <p className="animate-fade-in stagger-3 mt-6 max-w-lg text-[15px] text-fd-muted-foreground leading-relaxed">
-            {COUNTS.skills} skills, {COUNTS.agents} agents, and {COUNTS.hooks} hooks that turn Claude Code into
-            a full development team.
-          </p>
+          <AnimateOnView delay={200} className="mt-6">
+            <p className="max-w-lg text-[15px] text-fd-muted-foreground leading-relaxed">
+              {COUNTS.skills} skills, {COUNTS.agents} agents, and {COUNTS.hooks} hooks that turn Claude Code into
+              a full development team.
+            </p>
+          </AnimateOnView>
 
-          <div className="animate-fade-in stagger-4 mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <AnimateOnView delay={300} className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
             <Link
               href="/docs/getting-started/first-10-minutes"
               className="hover-glow inline-flex h-10 items-center rounded-lg bg-fd-primary px-6 text-sm font-semibold text-fd-primary-foreground transition-colors hover:bg-[var(--color-fd-primary-50)]"
@@ -94,37 +99,37 @@ export default async function HomePage() {
               </svg>
               Star on GitHub
             </a>
-          </div>
+          </AnimateOnView>
 
           {/* Circuit-trace stat bar — animated counters */}
-          <div className="mt-16 hidden items-center justify-between border-t border-fd-border pt-8 max-w-2xl sm:flex" aria-label="Quick statistics">
-            <div className="text-center animate-count-up stagger-1">
+          <AnimateOnView delay={400} className="mt-16 hidden items-center justify-between border-t border-fd-border pt-8 max-w-2xl sm:flex" distance={16}>
+            <AnimateOnView delay={500} className="text-center" distance={20}>
               <dd className="font-mono text-[40px] font-bold tabular-nums text-fd-foreground leading-none">{COUNTS.skills}</dd>
               <dt className="mt-1 overline-muted">Skills</dt>
-            </div>
+            </AnimateOnView>
 
-            <div className="flex-1 mx-6 relative animate-fade-in stagger-2">
+            <div className="flex-1 mx-6 relative">
               <div className="circuit-line" />
               <div className="circuit-dot absolute top-1/2 left-0 -translate-y-1/2 -translate-x-1/2" />
               <div className="circuit-dot absolute top-1/2 right-0 -translate-y-1/2 translate-x-1/2" />
             </div>
 
-            <div className="text-center animate-count-up stagger-2">
+            <AnimateOnView delay={600} className="text-center" distance={20}>
               <dd className="font-mono text-[40px] font-bold tabular-nums text-fd-foreground leading-none">{COUNTS.agents}</dd>
               <dt className="mt-1 overline-muted">Agents</dt>
-            </div>
+            </AnimateOnView>
 
-            <div className="flex-1 mx-6 relative animate-fade-in stagger-3">
+            <div className="flex-1 mx-6 relative">
               <div className="circuit-line" />
               <div className="circuit-dot absolute top-1/2 left-0 -translate-y-1/2 -translate-x-1/2" />
               <div className="circuit-dot absolute top-1/2 right-0 -translate-y-1/2 translate-x-1/2" />
             </div>
 
-            <div className="text-center animate-count-up stagger-3">
+            <AnimateOnView delay={700} className="text-center" distance={20}>
               <dd className="font-mono text-[40px] font-bold tabular-nums text-fd-foreground leading-none">{COUNTS.hooks}</dd>
               <dt className="mt-1 overline-muted">Hooks</dt>
-            </div>
-          </div>
+            </AnimateOnView>
+          </AnimateOnView>
 
           {/* Mobile stats — stacked, no connectors */}
           <dl className="mt-10 grid grid-cols-3 gap-4 border-t border-fd-border pt-6 sm:hidden" aria-label="Quick statistics">
@@ -200,7 +205,7 @@ export default async function HomePage() {
       <section aria-labelledby="primitives-heading" className="border-t border-fd-border">
         <div className="mx-auto max-w-[1024px] px-6 py-12 sm:py-16">
           <span className="overline">Building Blocks</span>
-          <h2 id="primitives-heading" className="mt-2 text-2xl font-semibold tracking-tight text-fd-foreground">
+          <h2 id="primitives-heading" className="mt-2 text-fluid-h2 font-semibold tracking-tight text-fd-foreground">
             Three primitives, infinite workflows
           </h2>
           <p className="mt-2 max-w-lg text-[15px] text-fd-muted-foreground">
@@ -237,7 +242,7 @@ export default async function HomePage() {
       <section aria-labelledby="demos-heading" className="border-t border-fd-border">
         <div className="mx-auto max-w-[1024px] px-6 py-12 sm:py-16">
           <span className="overline">Demos</span>
-          <h2 id="demos-heading" className="mt-2 text-2xl font-semibold tracking-tight text-fd-foreground">
+          <h2 id="demos-heading" className="mt-2 text-fluid-h2 font-semibold tracking-tight text-fd-foreground">
             See it in action
           </h2>
           <p className="mt-2 max-w-md text-[15px] text-fd-muted-foreground">
