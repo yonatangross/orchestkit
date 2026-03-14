@@ -1,0 +1,43 @@
+id: demo-producer
+name: "Demo producer evaluation"
+agent_path: src/agents/demo-producer.md
+
+agent_evals:
+  - prompt: |
+      Create a demo video for the OrchestKit "explore" skill. Generate the
+      VHS tape script for both horizontal (16:9) and vertical (9:16) formats,
+      the bash simulator script, and the Remotion composition entry.
+    scaffold: typescript-nextjs
+    assertions:
+      - name: "vhs-tape"
+        check: "Output includes a VHS .tape file with realistic terminal commands showing skill activation and usage"
+      - name: "dual-format"
+        check: "Generates both horizontal (16:9) and vertical (9:16) format scripts"
+      - name: "remotion-composition"
+        check: "Includes Remotion Composition JSX entry with correct folder structure placement and ID naming convention"
+
+  - prompt: |
+      Produce a tutorial demo showing how to build a REST API with FastAPI.
+      The demo should cover project setup, creating endpoints, adding
+      validation, and running tests. Generate the bash simulator and VHS tape.
+    scaffold: typescript-nextjs
+    assertions:
+      - name: "tutorial-flow"
+        check: "Demo script follows a logical tutorial flow: setup, code, validate, test"
+      - name: "realistic-output"
+        check: "Terminal simulator produces realistic command outputs including pip install, uvicorn startup, and test results"
+
+  - prompt: |
+      Create a demo for the monitoring-engineer agent showing it being spawned,
+      analyzing a service, generating Prometheus metrics, and creating a
+      Grafana dashboard. Include the quality checklist verification.
+    scaffold: typescript-nextjs
+    assertions:
+      - name: "agent-demo-pattern"
+        check: "Demo shows agent spawning with agent activation indicators and tool/skill listing"
+      - name: "content-readability"
+        check: "Terminal content is sized and paced for readability in video format"
+      - name: "quality-checklist"
+        check: "Output references or addresses the quality checklist items (readability, content fit, duration)"
+
+tags: [demo-producer, agent, design, video]
