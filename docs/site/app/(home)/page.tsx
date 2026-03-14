@@ -77,7 +77,7 @@ export default async function HomePage() {
           <div className="animate-fade-in stagger-4 mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
             <Link
               href="/docs/getting-started/first-10-minutes"
-              className="inline-flex h-10 items-center rounded-lg bg-fd-primary px-6 text-sm font-semibold text-fd-primary-foreground transition-colors hover:bg-fd-primary/80"
+              className="hover-glow inline-flex h-10 items-center rounded-lg bg-fd-primary px-6 text-sm font-semibold text-fd-primary-foreground transition-colors hover:bg-fd-primary/80"
             >
               Get Started
             </Link>
@@ -96,31 +96,31 @@ export default async function HomePage() {
             </a>
           </div>
 
-          {/* Circuit-trace stat bar */}
+          {/* Circuit-trace stat bar — animated counters */}
           <div className="mt-16 hidden items-center justify-between border-t border-fd-border pt-8 max-w-2xl sm:flex" aria-label="Quick statistics">
-            <div className="text-center">
+            <div className="text-center animate-count-up stagger-1">
               <dd className="font-mono text-[40px] font-bold tabular-nums text-fd-foreground leading-none">{COUNTS.skills}</dd>
               <dt className="mt-1 overline-muted">Skills</dt>
             </div>
 
-            <div className="flex-1 mx-6 relative">
+            <div className="flex-1 mx-6 relative animate-fade-in stagger-2">
               <div className="circuit-line" />
               <div className="circuit-dot absolute top-1/2 left-0 -translate-y-1/2 -translate-x-1/2" />
               <div className="circuit-dot absolute top-1/2 right-0 -translate-y-1/2 translate-x-1/2" />
             </div>
 
-            <div className="text-center">
+            <div className="text-center animate-count-up stagger-2">
               <dd className="font-mono text-[40px] font-bold tabular-nums text-fd-foreground leading-none">{COUNTS.agents}</dd>
               <dt className="mt-1 overline-muted">Agents</dt>
             </div>
 
-            <div className="flex-1 mx-6 relative">
+            <div className="flex-1 mx-6 relative animate-fade-in stagger-3">
               <div className="circuit-line" />
               <div className="circuit-dot absolute top-1/2 left-0 -translate-y-1/2 -translate-x-1/2" />
               <div className="circuit-dot absolute top-1/2 right-0 -translate-y-1/2 translate-x-1/2" />
             </div>
 
-            <div className="text-center">
+            <div className="text-center animate-count-up stagger-3">
               <dd className="font-mono text-[40px] font-bold tabular-nums text-fd-foreground leading-none">{COUNTS.hooks}</dd>
               <dt className="mt-1 overline-muted">Hooks</dt>
             </div>
@@ -143,7 +143,7 @@ export default async function HomePage() {
       </section>
 
       {/* Social proof */}
-      <section aria-label="Community traction" className="border-t border-fd-border bg-fd-card/30">
+      <section aria-label="Community traction" className="border-t border-fd-border bg-[var(--color-fd-surface-sunken)]">
         <div className="mx-auto flex max-w-[1024px] items-center justify-center gap-6 px-6 py-4 text-[13px] text-fd-muted-foreground sm:gap-8">
           <a
             href={`${SITE.github}/stargazers`}
@@ -173,7 +173,7 @@ export default async function HomePage() {
       </section>
 
       {/* Category Distribution */}
-      <section aria-label="Skill categories" className="border-t border-fd-border bg-fd-card/50">
+      <section aria-label="Skill categories" className="border-t border-fd-border bg-[var(--color-fd-surface-sunken)]">
         <div className="mx-auto max-w-[1024px] px-6 py-5">
           <div className="flex flex-wrap justify-center gap-3">
             {Object.entries({
@@ -187,7 +187,7 @@ export default async function HomePage() {
               Workflows: 27,
             }).map(([label, count]) => (
               <div key={label} className="flex items-center gap-1.5 text-xs text-fd-muted-foreground">
-                <span className="h-1.5 w-1.5 rounded-full bg-fd-primary" />
+                <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-fd-primary-30)]" />
                 <span>{label}</span>
                 <span className="font-mono font-medium tabular-nums text-fd-muted-foreground">{count}</span>
               </div>
@@ -212,7 +212,7 @@ export default async function HomePage() {
               <Link
                 key={item.letter}
                 href={item.href}
-                className="group border border-fd-border border-l-2 border-l-fd-primary bg-fd-card p-5 transition-colors duration-200 hover:bg-fd-secondary hover:border-l-fd-primary/80 sm:rounded-r-lg"
+                className="group border border-fd-border border-l-2 border-l-fd-primary bg-fd-card p-5 transition-all duration-200 hover:bg-[var(--color-fd-primary-5)] hover:border-l-fd-primary sm:rounded-r-lg hover:shadow-[0_0_12px_var(--color-fd-glow)]"
               >
                 <div className="mb-2 inline-flex h-7 w-7 items-center justify-center rounded border border-fd-border font-mono text-xs font-bold text-fd-primary" aria-hidden="true">
                   {item.letter}
@@ -248,7 +248,7 @@ export default async function HomePage() {
               <Link
                 key={comp.id}
                 href="/docs/reference"
-                className="group flex-none w-[260px] border border-fd-border bg-fd-card overflow-hidden rounded-lg transition-colors hover:bg-fd-secondary"
+                className="group flex-none w-[260px] border border-fd-border bg-fd-card overflow-hidden rounded-lg transition-all duration-200 hover:bg-[var(--color-fd-primary-5)] hover:border-fd-primary/30"
               >
                 <div className="aspect-video bg-fd-background relative">
                   <OptimizedThumbnail
@@ -289,7 +289,7 @@ export default async function HomePage() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="group flex items-center justify-between border border-fd-border bg-fd-card px-4 py-3.5 transition-colors duration-200 hover:bg-fd-secondary"
+                className="group flex items-center justify-between border border-fd-border bg-fd-card px-4 py-3.5 transition-all duration-200 hover:bg-[var(--color-fd-primary-5)]"
               >
                 <div>
                   <h3 className="text-sm font-medium text-fd-foreground">{item.title}</h3>
