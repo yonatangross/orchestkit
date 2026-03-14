@@ -20,7 +20,6 @@
     "worktree-remove",
     "instructions-loaded",
     "config-change",
-    "setup",
-    "spotlights"
+    "setup"
   ]
 }

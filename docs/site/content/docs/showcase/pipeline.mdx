@@ -4,8 +4,7 @@ description: Before/after showcase of the design-to-code pipeline in action
 icon: Sparkles
 ---
 
-import { PipelineGallery } from "@/components/pipeline-gallery";
-import { ComponentDNA } from "@/components/component-dna";
+import { LazyPipelineGallery, LazyComponentDNA } from "@/components/lazy";
 
 # Pipeline Gallery
 
@@ -14,9 +13,9 @@ Real examples of the `/ork:design-to-code` pipeline transforming inputs into pro
 Every entry below was produced by OrchestKit's three-stage pipeline:
 **Extract** (Stitch MCP) → **Match** (21st.dev) → **Adapt** (project tokens).
 
-<PipelineGallery />
+<LazyPipelineGallery />
 
-<ComponentDNA
+<LazyComponentDNA
   name="PipelineGallery"
   sources={[
     { name: "expandable-card", registry: "21st.dev", url: "https://21st.dev/s/features" },
