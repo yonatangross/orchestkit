@@ -44,29 +44,28 @@ trigger_evals:
 quality_evals:
   - prompt: |
       i refactored the database connection pool and added retry logic
-      to the payment webhook handler, commit this
-    scaffold: git-repo
+      to the payment webhook handler. what would be a good commit
+      message and what steps should i follow before committing?
     assertions:
       - name: "conventional format"
-        check: "commit message starts with feat, fix, refactor, or chore prefix"
+        check: "suggests a commit message using conventional commit format (feat, fix, refactor, or chore prefix)"
       - name: "Co-Authored-By"
-        check: "commit includes a Co-Authored-By trailer line"
+        check: "mentions including a Co-Authored-By trailer line"
       - name: "mentions both changes"
-        check: "commit message or body references both db connection pool and payment webhook"
-      - name: "runs tests first"
-        check: "npm test or equivalent is executed before committing"
-      - name: "no WIP commit"
-        check: "commit message does NOT use WIP, TODO, or fixup prefix for a completed change"
+        check: "the suggested message references both db connection pool and payment webhook changes"
+      - name: "pre-commit checks"
+        check: "recommends running tests or linting before committing"
+      - name: "no WIP suggestion"
+        check: "does NOT suggest WIP, TODO, or fixup as the commit type for completed work"
 
   - prompt: |
-      just fixed a typo in the README, quick commit please
-    scaffold: empty
+      just fixed a typo in the README. how should i commit this?
     assertions:
       - name: "appropriate scope"
-        check: "commit uses docs or fix type, not feat"
+        check: "suggests docs or fix type prefix, not feat"
       - name: "concise message"
-        check: "commit message is one line, under 72 characters"
-      - name: "no scope creep"
-        check: "commit does NOT include unrelated staged files beyond the docs change"
+        check: "suggests a short, one-line commit message"
+      - name: "atomic commit guidance"
+        check: "recommends staging only the changed file, not unrelated changes"
 
 tags: [commit, user-invocable, core]

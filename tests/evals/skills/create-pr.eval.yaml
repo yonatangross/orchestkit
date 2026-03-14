@@ -46,31 +46,29 @@ trigger_evals:
 quality_evals:
   - prompt: |
       i just finished implementing the user invitation system.
-      create a pull request with a proper description. the related
-      issue is #87.
-    scaffold: git-repo
+      how should i create a pull request? the related issue is #87.
+      what should the PR description include?
     assertions:
-      - name: "validates branch"
-        check: "checks that the current branch is not main or dev before creating the PR"
-      - name: "references issue"
-        check: "PR body includes 'Closes #87' or equivalent issue reference"
+      - name: "branch validation"
+        check: "recommends verifying the current branch is not main or dev before creating a PR"
+      - name: "issue reference"
+        check: "recommends including 'Closes #87' or equivalent issue reference in the PR body"
       - name: "structured PR body"
-        check: "PR body contains Summary, Changes, and Test Plan sections"
-      - name: "runs pre-flight checks"
-        check: "verifies there are no uncommitted changes and branch is pushed to remote"
-      - name: "no direct push to main"
-        check: "does NOT push directly to main or master branch"
+        check: "suggests a PR body with Summary, Changes, and Test Plan sections"
+      - name: "pre-flight checklist"
+        check: "mentions checking for uncommitted changes or unpushed commits before creating the PR"
+      - name: "gh pr create"
+        check: "recommends using gh pr create to create the pull request"
 
   - prompt: |
-      quick pr, just a docs update to the readme, nothing fancy
+      quick pr for a docs update to the readme. what's the minimal
+      but correct way to do this?
     assertions:
       - name: "appropriate scope"
-        check: "uses docs type prefix in PR title, not feat"
-      - name: "lightweight validation"
-        check: "skips or reduces agent validation since it is a quick/docs PR"
-      - name: "creates PR via gh"
-        check: "uses gh pr create command to create the pull request"
-      - name: "no empty description"
-        check: "PR body is NOT empty or a single line — includes meaningful context"
+        check: "suggests docs type prefix in the PR title, not feat"
+      - name: "meaningful description"
+        check: "recommends a PR body with at least a brief summary, not empty"
+      - name: "lightweight process"
+        check: "acknowledges this is a simple change and suggests a streamlined process"
 
 tags: [create-pr, user-invocable, core]

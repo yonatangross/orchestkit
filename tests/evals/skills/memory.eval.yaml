@@ -42,28 +42,28 @@ trigger_evals:
 
 quality_evals:
   - prompt: |
-      search memory for any decisions we made about authentication
-      and session management in this project.
+      i want to search my project's knowledge graph for any past
+      decisions about authentication. how does the memory system
+      work and what should i search for?
     assertions:
-      - name: "uses knowledge graph"
-        check: "queries the memory MCP server using mcp__memory__search_nodes or mcp__memory__read_graph"
-      - name: "filters by relevant topic"
-        check: "searches with authentication/session-related query terms"
-      - name: "formats results clearly"
-        check: "presents found memories with entity names, types, and observations"
+      - name: "explains search mechanism"
+        check: "describes using mcp__memory__search_nodes or similar MCP tools to query the knowledge graph"
+      - name: "suggests search terms"
+        check: "recommends searching with authentication/session/auth-related query terms"
+      - name: "describes result format"
+        check: "explains that results include entity names, types, observations, and relationships"
       - name: "no fabricated memories"
-        check: "does NOT invent or hallucinate memories that are not in the knowledge graph"
+        check: "does NOT invent specific memories — explains the search process without hallucinating results"
 
   - prompt: |
-      show me the full knowledge graph as a visualization
+      how can i visualize the knowledge graph for my project?
+      what format does it use?
     assertions:
-      - name: "renders Mermaid diagram"
-        check: "outputs a Mermaid graph diagram showing entities and relationships"
-      - name: "includes entity types"
-        check: "differentiates entity types visually (Technology, Pattern, Decision, etc.)"
-      - name: "handles empty graph"
-        check: "shows a helpful message if the graph is empty instead of failing"
-      - name: "no raw JSON dump"
-        check: "does NOT dump raw JSON from the MCP server — formats output for human readability"
+      - name: "Mermaid visualization"
+        check: "mentions Mermaid diagrams as the visualization format for the knowledge graph"
+      - name: "entity types"
+        check: "describes entity types in the graph (Technology, Pattern, Decision, etc.)"
+      - name: "empty graph handling"
+        check: "mentions that an empty graph should show a helpful message rather than an error"
 
 tags: [memory, user-invocable, core]

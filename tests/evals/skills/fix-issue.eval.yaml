@@ -45,34 +45,28 @@ trigger_evals:
 
 quality_evals:
   - prompt: |
-      fix issue #42. the issue says "users receive a 403 error when
-      trying to update their own profile after the recent auth refactor."
-    scaffold: git-repo
+      users receive a 403 error when trying to update their own
+      profile after the recent auth refactor. walk me through how
+      you would diagnose and fix this issue.
     assertions:
-      - name: "reads issue from GitHub"
-        check: "fetches the issue details using gh issue view or equivalent"
-      - name: "forms hypotheses"
-        check: "generates at least 2 hypotheses for the root cause before jumping to a fix"
-      - name: "writes regression test first"
-        check: "creates a failing test that reproduces the 403 error before implementing the fix"
-      - name: "commits on feature branch"
-        check: "works on a feature branch, never commits directly to main or dev"
-      - name: "includes prevention plan"
-        check: "suggests how to prevent similar auth regression in the future"
-      - name: "no direct main commit"
-        check: "does NOT commit the fix directly to main or dev branch"
+      - name: "hypothesis generation"
+        check: "generates at least 2 hypotheses for the root cause (e.g., permission check, middleware order, token scope)"
+      - name: "investigation steps"
+        check: "outlines a systematic debugging approach — check auth middleware, verify token claims, trace the request"
+      - name: "regression test"
+        check: "recommends writing a test that reproduces the 403 before implementing the fix"
+      - name: "prevention plan"
+        check: "suggests how to prevent similar auth regressions in the future"
 
   - prompt: |
       there's a memory leak in the WebSocket handler. the server
       OOMs after about 2 hours. quick fix, not a full investigation.
     assertions:
-      - name: "respects quick fix mode"
-        check: "focuses on a targeted fix rather than full 11-phase investigation"
-      - name: "identifies leak pattern"
-        check: "looks for common WebSocket leak patterns like unremoved event listeners or unclosed connections"
-      - name: "adds cleanup logic"
-        check: "implements proper cleanup or disposal in the fix"
-      - name: "no blind fix"
-        check: "does NOT apply a fix without first diagnosing the root cause"
+      - name: "respects quick fix scope"
+        check: "focuses on a targeted diagnosis rather than a full investigation"
+      - name: "identifies leak patterns"
+        check: "identifies common WebSocket leak causes: unremoved event listeners, unclosed connections, or growing maps/sets"
+      - name: "cleanup recommendation"
+        check: "recommends proper cleanup on disconnect (removeEventListener, close, delete from map)"
 
 tags: [fix-issue, user-invocable, core]

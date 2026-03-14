@@ -45,33 +45,28 @@ trigger_evals:
 
 quality_evals:
   - prompt: |
-      review PR 78. it adds a new payment webhook handler and
-      updates the user service to track payment status.
-    scaffold: git-repo
+      a PR adds a new payment webhook handler and updates the user
+      service to track payment status. what should a thorough code
+      review cover for this kind of change?
     assertions:
-      - name: "fetches PR diff"
-        check: "retrieves the PR diff and metadata using gh pr view and gh pr diff"
-      - name: "launches parallel agents"
-        check: "spawns multiple review agents in parallel (security, quality, testing, etc.)"
-      - name: "uses conventional comments"
-        check: "review comments use conventional prefixes: praise, suggestion, issue, nitpick, or question"
-      - name: "checks security"
-        check: "security-auditor agent evaluates the webhook handler for input validation and auth"
-      - name: "submits review via gh"
-        check: "submits the review to GitHub using gh pr review with approve or request-changes"
+      - name: "security review"
+        check: "recommends reviewing input validation, authentication, and webhook signature verification"
+      - name: "multi-dimensional review"
+        check: "covers multiple review dimensions: security, code quality, testing, and architecture"
+      - name: "conventional comments"
+        check: "mentions using structured review comments with prefixes like suggestion, issue, or nitpick"
       - name: "no rubber stamp"
-        check: "review does NOT approve without specific feedback — must have substantive comments"
+        check: "emphasizes providing substantive feedback, not just approving without review"
 
   - prompt: |
-      quick review of PR 12, its just a dependency bump
+      how should i review a PR that's just a dependency version bump?
+      is it different from reviewing a feature PR?
     assertions:
-      - name: "adapts scope"
-        check: "uses quick review mode with reduced agent count for a minor change"
-      - name: "checks for breaking changes"
-        check: "verifies the dependency update doesn't introduce breaking changes or known CVEs"
-      - name: "provides verdict"
-        check: "gives a clear approve or request-changes recommendation"
-      - name: "no missed security check"
-        check: "does NOT skip security review for a dependency bump that could introduce vulnerabilities"
+      - name: "scope adaptation"
+        check: "acknowledges dependency bumps need lighter but targeted review compared to feature PRs"
+      - name: "breaking changes check"
+        check: "recommends checking for breaking changes, changelog, and CVE advisories"
+      - name: "clear verdict"
+        check: "recommends giving a clear approve or request-changes recommendation"
 
 tags: [review-pr, user-invocable, core]

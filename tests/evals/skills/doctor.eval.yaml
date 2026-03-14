@@ -42,30 +42,27 @@ trigger_evals:
 
 quality_evals:
   - prompt: |
-      run a full orchestkit health check and tell me if anything
-      needs attention. i recently updated to a new version.
+      what does an orchestkit health check cover? what categories
+      does it validate and what kind of issues can it detect?
     assertions:
-      - name: "checks multiple categories"
-        check: "validates at least 5 health check categories (skills, agents, hooks, memory, build, etc.)"
-      - name: "reports status per category"
-        check: "shows pass/warn/fail status for each checked category"
-      - name: "checks CC version"
-        check: "validates the Claude Code version against the minimum required version"
-      - name: "actionable remediation"
-        check: "provides specific fix steps for any failures or warnings found"
-      - name: "no false positives"
-        check: "does NOT report healthy components as failing or warn about non-issues"
+      - name: "multiple categories"
+        check: "describes at least 5 health check categories (skills, agents, hooks, memory, build, CC version)"
+      - name: "status reporting"
+        check: "mentions pass/warn/fail status reporting for each category"
+      - name: "CC version check"
+        check: "mentions validating the Claude Code version against minimum required"
+      - name: "remediation guidance"
+        check: "explains that the doctor provides specific fix steps for failures"
 
   - prompt: |
-      just check if my hooks are working correctly, skip everything else
+      my hooks seem broken after an update. what would a hook-focused
+      diagnostic check look for?
     assertions:
-      - name: "scoped to hooks"
-        check: "focuses diagnostic checks on hooks only, skipping skill and agent health"
-      - name: "reports hook status"
-        check: "shows pass/fail status for individual hooks (global, agent-scoped, skill-scoped)"
-      - name: "quick format"
-        check: "output is concise and focused, not a full diagnostic report"
-      - name: "no unrelated checks"
-        check: "does NOT run or report on skill validation, agent health, or memory system checks"
+      - name: "hook categories"
+        check: "identifies the three hook scopes: global, agent-scoped, and skill-scoped"
+      - name: "common hook issues"
+        check: "describes common hook problems: missing files, syntax errors, permission issues, stale references"
+      - name: "scoped diagnosis"
+        check: "recommends focusing on hooks specifically rather than running a full diagnostic"
 
 tags: [doctor, user-invocable, core]

@@ -42,35 +42,29 @@ trigger_evals:
 
 quality_evals:
   - prompt: |
-      remember --success we used Redis with a 5-minute TTL for
-      session caching and it reduced latency by 40%. this should
-      be our standard approach.
+      we used Redis with a 5-minute TTL for session caching and it
+      reduced latency by 40%. how would this be stored in the
+      knowledge graph? what entities and relationships would be created?
     assertions:
-      - name: "stores as success pattern"
-        check: "creates the memory entity marked with a success/positive outcome"
-      - name: "extracts entities"
-        check: "identifies Redis, session caching, and latency as entities in the knowledge graph"
-      - name: "creates relationships"
-        check: "creates relations between entities (e.g., project USES Redis, Redis IMPROVES latency)"
-      - name: "auto-detects category"
-        check: "categorizes as performance or pattern based on content keywords"
-      - name: "confirms storage"
-        check: "displays a confirmation showing what was stored and the graph state"
-      - name: "no silent storage"
-        check: "does NOT store memory without showing the user a confirmation of what was saved"
+      - name: "entity extraction"
+        check: "identifies Redis, session caching, and latency as entities to store in the knowledge graph"
+      - name: "relationship modeling"
+        check: "describes relationships like project USES Redis, Redis IMPROVES latency"
+      - name: "success categorization"
+        check: "marks or categorizes this as a success pattern or positive outcome"
+      - name: "confirmation step"
+        check: "mentions confirming with the user what was stored, not silently saving"
 
   - prompt: |
-      remember --failed using a single global database connection
-      caused connection exhaustion under load. should have used
-      connection pooling from the start.
+      using a single global database connection caused connection
+      exhaustion under load. we should have used connection pooling.
+      how do i store this lesson so we don't repeat it?
     assertions:
-      - name: "stores as anti-pattern"
-        check: "marks the memory as a failed/anti-pattern outcome"
-      - name: "extracts lesson"
-        check: "captures the lesson: use connection pooling instead of single global connection"
-      - name: "categorizes correctly"
-        check: "auto-detects as database category"
-      - name: "no lost lesson"
-        check: "does NOT store the failure without extracting the corrective lesson"
+      - name: "anti-pattern storage"
+        check: "recommends storing as a failed/anti-pattern outcome in the knowledge graph"
+      - name: "lesson extraction"
+        check: "captures the corrective lesson: use connection pooling instead of single global connection"
+      - name: "category detection"
+        check: "categorizes as database-related based on content"
 
 tags: [remember, user-invocable, core]

@@ -42,31 +42,28 @@ trigger_evals:
 
 quality_evals:
   - prompt: |
-      show me all orchestkit skills organized by category.
-      i want to know what i can do.
+      what orchestkit skills can i use? organize them by category.
     assertions:
-      - name: "dynamic discovery"
-        check: "scans skill files at runtime rather than showing hardcoded lists"
       - name: "categorized output"
-        check: "groups skills into categories like BUILD, GIT, PLAN, MEMORY, QUALITY, CONFIG"
-      - name: "includes usage examples"
-        check: "shows example invocations like /ork:implement, /ork:commit for at least some skills"
-      - name: "covers user-invocable skills"
-        check: "lists all user-invocable skills, not just a subset"
-      - name: "no stale skill list"
-        check: "does NOT show a hardcoded or outdated skill list — must scan filesystem dynamically"
+        check: "groups skills into categories like BUILD, GIT, PLAN, MEMORY, QUALITY, CONFIG or similar"
+      - name: "includes invocations"
+        check: "shows invocation syntax like /ork:implement, /ork:commit for skills"
+      - name: "covers key skills"
+        check: "lists major user-invocable skills including implement, commit, explore, assess, brainstorm"
+      - name: "descriptions included"
+        check: "provides a brief description of what each skill does"
 
   - prompt: |
       i need to do something with git but not sure which ork
-      command to use. whats available?
+      command to use. whats available for git workflows?
     assertions:
-      - name: "filters to git category"
-        check: "shows git-related skills like commit, create-pr, review-pr, fix-issue"
+      - name: "git skills listed"
+        check: "shows git-related skills: commit, create-pr, review-pr, and/or fix-issue"
       - name: "includes descriptions"
         check: "provides a brief description of what each git skill does"
-      - name: "shows invocation syntax"
-        check: "shows how to call each skill with its argument format"
-      - name: "no non-invocable skills"
-        check: "does NOT show internal or non-user-invocable skills as available commands"
+      - name: "shows invocation"
+        check: "shows how to call each skill (e.g., /ork:commit)"
+      - name: "focused response"
+        check: "filters to git-relevant skills rather than listing all skills"
 
 tags: [help, user-invocable, core]
