@@ -5,6 +5,23 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.7.0] - 2026-03-14
+
+### Added
+
+- **design-to-code:** New user-invocable skill (`/ork:design-to-code`) — mockup-to-component pipeline using Google Stitch MCP and 21st.dev component registry
+- **component-search:** New user-invocable skill (`/ork:component-search`) — search 21st.dev registry for production-ready React components
+- **design-context-extract:** New user-invocable skill (`/ork:design-context-extract`) — extract design DNA (colors, typography, spacing) from screenshots or URLs
+- **design-context-extractor:** New agent for autonomous design context extraction with stitch-mcp integration
+- **component-curator:** New background agent that audits project component usage and recommends 21st.dev upgrades
+- **MCP:** Added stitch-mcp (Google Stitch) and 21st-dev-magic (21st.dev component registry) to MCP configuration docs
+
+### Changed
+
+- **frontend-ui-developer:** Added 21st-dev-magic MCP scope + component-search, design-to-code, design-context-extract skills
+- **design-system-architect:** Added stitch-mcp MCP scope + design-context-extract, component-search skills
+- **counts:** 89→92 skills, 31→33 agents, 99→101 hooks, 16→19 user-invocable
+
 ## [7.6.0] - 2026-03-14
 
 ### Added
