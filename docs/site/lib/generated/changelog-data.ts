@@ -17,6 +17,44 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.8.0",
+    "date": "2026-03-14",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**hooks:** PostCompact recovery hook — re-injects branch, tasks, decisions after compaction using CC-provided `compaction_count` and `context_size_after` fields",
+          "**hooks:** Elicitation guard — blocks form-mode MCP elicitations requesting secret fields (api_key, password, token), forces URL mode",
+          "**hooks:** ElicitationResult logger — tracks accept/decline/cancel outcomes for analytics, injects alternative suggestions on decline",
+          "**hooks:** Effort-aware context budgeting — `detectEffortLevel()` reads `/effort` setting, adjusts prompt dispatcher token budget (low=200t, medium=800t, high=1200t), skips heavy context at low effort",
+          "**hooks:** Monorepo sparse paths advisory — WorktreeCreate detects monorepo (pnpm-workspace, nx, lerna, turbo, workspaces) and suggests `worktree.sparsePaths` config",
+          "**types:** `PostCompact`, `Elicitation`, `ElicitationResult` added to HookEvent union with typed input fields",
+          "**version-matrix:** 23 new feature entries covering CC 2.1.75 and 2.1.76 (elicitation, sparse paths, /effort, bg agent partial results, compaction circuit breaker, etc.)"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**hooks:** MIN_CC_VERSION bumped from 2.1.74 to 2.1.76 — backward compatibility dropped",
+          "**hooks:** SubagentStop retry-handler now returns early with `[PARTIAL RESULT]` tag for killed background agents instead of entering retry logic (CC 2.1.76 partial results)",
+          "**hooks:** PostCompact and Elicitation hooks registered in `entries/lifecycle.ts` split bundle (lifecycle.mjs grew 77→80KB)",
+          "**compatibility:** All 78 skill `compatibility:` fields updated from 2.1.74+ to 2.1.76+",
+          "**counts:** 99→104 hooks (33→36 global), MIN_CC_VERSION 2.1.74→2.1.76"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**docs:** Missing v7.7.x row in version history table (between v7.8.x and v7.5.x)",
+          "**docs:** Stale \"CC 2.1.74 format\" agent reference in CLAUDE.md directory structure",
+          "**docs:** README badge and requirement updated from ≥2.1.74 to ≥2.1.76",
+          "**docs:** hooks README footer CC requirement updated to >= 2.1.76"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.7.0",
     "date": "2026-03-14",
     "compareUrl": "",
