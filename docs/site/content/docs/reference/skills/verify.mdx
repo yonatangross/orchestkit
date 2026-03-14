@@ -46,7 +46,7 @@ for token in "$ARGUMENTS".split():
         SCOPE = SCOPE.replace(token, "").strip()
 ```
 
-Pass `MODEL_OVERRIDE` to all Agent() calls via `model=MODEL_OVERRIDE` when set. Accepts symbolic names (`opus`, `sonnet`, `haiku`) or full IDs (`claude-opus-4-6`) per CC 2.1.74.
+Pass `MODEL_OVERRIDE` to all Agent() calls via `model=MODEL_OVERRIDE` when set. Accepts symbolic names (`opus`, `sonnet`, `haiku`) or full IDs (`claude-opus-4-6`) per CC 2.1.75.
 
 > **Opus 4.6**: Agents use native adaptive thinking (no MCP sequential-thinking needed). Extended 128K output supports comprehensive verification reports.
 
@@ -1723,7 +1723,7 @@ Score 0-10 based on: 0 errors=9+, 1-2 warnings=7-8, errors=5-6, multiple errors=
   "evaluation": [
     {"severity": "ok", "message": "LAYOUT: Content within viewport, no horizontal overflow, grid columns align properly"},
     {"severity": "ok", "message": "NAVIGATION: Sidebar present with 8 sections, 'Dashboard' correctly highlighted as active"},
-    {"severity": "warning", "message": "CONTENT: Stats show '79 skills' but should be '89 skills' — stale count detected"},
+    {"severity": "warning", "message": "CONTENT: Stats show '79 skills' but should be '92 skills' — stale count detected"},
     {"severity": "ok", "message": "ACCESSIBILITY: Body text ~16px on dark bg (#e6edf3 on #0d1117), contrast ratio ~13:1, passes WCAG AAA"},
     {"severity": "warning", "message": "INTERACTIVITY: Code block copy buttons present but no visible hover state change"},
     {"severity": "ok", "message": "BRANDING: Dark theme consistent, green accent (#3fb950) used for active states, monospace for code"}

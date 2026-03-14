@@ -11,7 +11,7 @@ export const SITE = {
   domain: "https://orchestkit.vercel.app",
   github: "https://github.com/yonatangross/orchestkit",
   installCommand: "claude install orchestkit/ork",
-  ccVersion: "2.1.74+",
+  ccVersion: "2.1.75+",
 } as const;
 
 export const COUNTS = {

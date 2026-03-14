@@ -521,7 +521,7 @@ Channel: alpha (v7.0.0-alpha.1)
 
 ```
 Installed Plugins: 1
-- ork: 80 skills, 30 agents, 105 hook entries
+- ork: 92 skills, 33 agents, 101 hook entries
 ```
 
 ## Skills Validation
@@ -1244,7 +1244,7 @@ jq '.properties | to_entries | map({key: .key, type: .value.type})' \
 
 ## Overview
 
-OrchestKit includes 80 skills validated against frontmatter requirements and content standards.
+OrchestKit includes 92 skills validated against frontmatter requirements and content standards.
 
 ## Skill Types
 
@@ -1341,7 +1341,7 @@ Ensure file exists at `references/filename.md`.
 
 ## Overview
 
-OrchestKit requires Claude Code >= 2.1.74. This matrix documents which CC features OrchestKit depends on and their minimum version requirements.
+OrchestKit requires Claude Code >= 2.1.75. This matrix documents which CC features OrchestKit depends on and their minimum version requirements.
 
 ## Feature Matrix
 
@@ -1412,9 +1412,9 @@ OrchestKit requires Claude Code >= 2.1.74. This matrix documents which CC featur
 | Expanded bash auto-approval | 2.1.72 | `lsof`, `pgrep`, `tput`, `ss`, `fd`, `fdfind` auto-approved | Manual approval for system inspection tools |
 | `vscode://anthropic.claude-code/open` | 2.1.72 | URI handler to open CC from VS Code links | No deep-link integration with VS Code |
 | `/output-style` deprecated → `/config` | 2.1.73 | No OrchestKit references to /output-style | None — already using /config |
-| Skill-file deadlock fix on `git pull` | 2.1.73 | Fixes hang with 89-skill plugin after `git pull` | CC hangs during/after git pull |
+| Skill-file deadlock fix on `git pull` | 2.1.73 | Fixes hang with 92-skill plugin after `git pull` | CC hangs during/after git pull |
 | SessionStart hooks double-fire fix | 2.1.73 | ~15 SessionStart hooks fire exactly once on resume | Hooks fire twice on --resume/--continue |
-| No-op system reminder injection fix | 2.1.73 | ~2K tokens/turn recovered across 99 hooks | Empty system-reminder tags waste context |
+| No-op system reminder injection fix | 2.1.73 | ~2K tokens/turn recovered across 101 hooks | Empty system-reminder tags waste context |
 | Opus 4.6 default on Bedrock/Vertex/Foundry | 2.1.73 | 6 opus-tier agents auto-upgrade on cloud providers | Older Opus model on cloud providers |
 | `/context` optimization hints | 2.1.74 | Actionable suggestions for context-heavy tools, memory bloat, capacity | No optimization guidance |
 | `autoMemoryDirectory` setting | 2.1.74 | Custom auto-memory storage path via settings.json | Default path only |
