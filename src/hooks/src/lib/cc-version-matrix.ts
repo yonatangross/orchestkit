@@ -7,7 +7,7 @@
  * Keep in sync with: src/skills/doctor/references/version-compatibility.md
  */
 
-export const MIN_CC_VERSION = '2.1.74';
+export const MIN_CC_VERSION = '2.1.76';
 
 export interface CCFeatureEntry {
   readonly feature: string;
@@ -101,6 +101,29 @@ export const CC_FEATURE_MATRIX: readonly CCFeatureEntry[] = [
   { feature: 'full_model_ids_agent',      minVersion: '2.1.74', description: 'Full model IDs (claude-opus-4-6) accepted in agent frontmatter' },
   { feature: 'managed_policy_precedence', minVersion: '2.1.74', description: 'Managed policy ask rules override user allow + skill allowed-tools' },
   { feature: 'streaming_memory_fix',      minVersion: '2.1.74', description: 'Streaming API response buffer + bash prefix caching memory leaks fixed' },
+  // 2.1.75
+  { feature: 'opus_46_1m_default',       minVersion: '2.1.75', description: '1M context for Opus 4.6 default on Max/Team/Enterprise (no extra usage)' },
+  { feature: 'color_command',            minVersion: '2.1.75', description: '/color command to set prompt-bar color for session' },
+  { feature: 'session_rename_display',   minVersion: '2.1.75', description: 'Session name shown on prompt bar via /rename' },
+  { feature: 'memory_timestamps',        minVersion: '2.1.75', description: 'Last-modified timestamps on memory files for freshness reasoning' },
+  { feature: 'hook_source_display',      minVersion: '2.1.75', description: 'Hook source (settings/plugin/skill) shown in permission prompts' },
+  { feature: 'token_estimation_fix',     minVersion: '2.1.75', description: 'Token estimation fix prevents premature compaction from over-counting' },
+  { feature: 'async_hook_suppress',      minVersion: '2.1.75', description: 'Async hook completion messages suppressed by default (visible with --verbose)' },
+  // 2.1.76
+  { feature: 'mcp_elicitation',          minVersion: '2.1.76', description: 'MCP elicitation support — servers request structured input via form/URL dialog' },
+  { feature: 'elicitation_hooks',        minVersion: '2.1.76', description: 'Elicitation/ElicitationResult hooks intercept and override MCP input dialogs' },
+  { feature: 'session_name_flag',        minVersion: '2.1.76', description: '-n/--name CLI flag sets display name for session at startup' },
+  { feature: 'worktree_sparse_paths',    minVersion: '2.1.76', description: 'worktree.sparsePaths setting for selective sparse-checkout in large monorepos' },
+  { feature: 'post_compact_hook',        minVersion: '2.1.76', description: 'PostCompact hook fires after compaction completes' },
+  { feature: 'effort_command',           minVersion: '2.1.76', description: '/effort slash command to set model effort level mid-session' },
+  { feature: 'feedback_survey_rate',     minVersion: '2.1.76', description: 'feedbackSurveyRate setting for enterprise session quality surveys' },
+  { feature: 'deferred_tools_compaction_fix', minVersion: '2.1.76', description: 'Deferred tools retain input schemas after compaction (array/number params fixed)' },
+  { feature: 'bg_agent_partial_results', minVersion: '2.1.76', description: 'Killed background agents preserve partial results in conversation context' },
+  { feature: 'compaction_circuit_breaker', minVersion: '2.1.76', description: 'Auto-compaction circuit breaker stops after 3 consecutive failures' },
+  { feature: 'worktree_startup_perf',    minVersion: '2.1.76', description: 'Faster --worktree startup via direct ref reads and skipped redundant fetch' },
+  { feature: 'stale_worktree_cleanup',   minVersion: '2.1.76', description: 'Stale worktrees from interrupted parallel runs auto-cleaned on next launch' },
+  { feature: 'model_fallback_visible',   minVersion: '2.1.76', description: 'Model fallback notifications always visible with human-friendly model names' },
+  { feature: 'plugin_dir_single_path',   minVersion: '2.1.76', description: '--plugin-dir accepts one path per flag (use repeated flags for multiple)' },
 ] as const;
 
 export type CCFeature = typeof CC_FEATURE_MATRIX[number]['feature'];

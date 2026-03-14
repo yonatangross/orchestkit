@@ -36,6 +36,7 @@ import {
   fnv1aHash,
 } from '../lib/common.js';
 import { isImageOrBinaryPrompt, MAX_PROMPT_LENGTH } from '../lib/prompt-guards.js';
+import { detectEffortLevel, effortTokenBudget } from '../lib/effort-detector.js';
 import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -170,12 +171,25 @@ export function unifiedPromptDispatcher(input: HookInput): HookResult {
   const contextParts: string[] = [];
   let totalTokens = 0;
 
+  // Effort-aware budget (CC 2.1.76): /effort low → 200t, medium → 800t, high → 1200t
+  const effort = detectEffortLevel(input);
+  const tokenBudget = effortTokenBudget(effort, MAX_OUTPUT_TOKENS);
+  if (effort !== 'medium') {
+    logHook(HOOK_NAME, `Effort level: ${effort} → token budget: ${tokenBudget}t`);
+  }
+
   // Resolve session/project for once-flag tracking
   const sessionId = input.session_id || getSessionId();
   const projectDir = input.project_dir || getProjectDir();
 
   for (const hook of HOOKS) {
     try {
+      // Low effort: skip once-per-session context hooks (handoffs, etc.) — they're heavy
+      if (effort === 'low' && hook.runOnce && hook.producesContext) {
+        logHook(HOOK_NAME, `${hook.name}: skipped at low effort`);
+        continue;
+      }
+
       // Once-per-session gate: skip if already run this session
       if (hook.runOnce) {
         if (!sessionId) {
@@ -215,10 +229,10 @@ export function unifiedPromptDispatcher(input: HookInput): HookResult {
         continue;
       }
 
-      // Budget check: don't exceed max output tokens
+      // Budget check: don't exceed effort-adjusted token budget
       const contextTokens = estimateTokenCount(context);
-      if (totalTokens + contextTokens > MAX_OUTPUT_TOKENS) {
-        logHook(HOOK_NAME, `Budget limit: skipping ${hook.name} (${contextTokens}t would exceed ${MAX_OUTPUT_TOKENS}t cap)`);
+      if (totalTokens + contextTokens > tokenBudget) {
+        logHook(HOOK_NAME, `Budget limit: skipping ${hook.name} (${contextTokens}t would exceed ${tokenBudget}t cap, effort=${effort})`);
         continue;
       }
 

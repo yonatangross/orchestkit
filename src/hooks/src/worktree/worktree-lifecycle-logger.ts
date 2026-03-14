@@ -4,12 +4,76 @@
 /**
  * Worktree Lifecycle Logger
  * Logs worktree creation and removal events, emits advisory context.
+ * CC 2.1.76+: Detects monorepo and suggests worktree.sparsePaths.
  *
  * Hook events: WorktreeCreate, WorktreeRemove
  */
 
 import type { HookInput, HookResult } from '../types.js';
-import { logHook, outputSilentSuccess, outputPromptContext } from '../lib/common.js';
+import { logHook, outputSilentSuccess, outputPromptContext, getProjectDir } from '../lib/common.js';
+import { readdirSync, existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
+/** Heuristic: repos with many top-level dirs are likely monorepos. */
+const MONOREPO_DIR_THRESHOLD = 15;
+
+/** Monorepo signals: workspace config files */
+const MONOREPO_MARKERS = [
+  'pnpm-workspace.yaml',
+  'lerna.json',
+  'nx.json',
+  'rush.json',
+  'turbo.json',
+];
+
+/**
+ * Detect if the project is a monorepo and count top-level directories.
+ * Returns { isMonorepo, topDirCount } — fast, no recursion.
+ */
+function detectMonorepo(projectDir: string): { isMonorepo: boolean; topDirCount: number } {
+  // Check for explicit monorepo markers
+  const hasMarker = MONOREPO_MARKERS.some(m => existsSync(join(projectDir, m)));
+
+  // Check for workspaces in package.json
+  let hasWorkspaces = false;
+  const pkgPath = join(projectDir, 'package.json');
+  if (existsSync(pkgPath)) {
+    try {
+      const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'));
+      hasWorkspaces = Array.isArray(pkg.workspaces) || typeof pkg.workspaces === 'object';
+    } catch { /* ignore parse errors */ }
+  }
+
+  // Count top-level directories (fast — single readdir, no recursion)
+  let topDirCount = 0;
+  try {
+    const entries = readdirSync(projectDir, { withFileTypes: true });
+    for (const entry of entries) {
+      if (entry.isDirectory() && !entry.name.startsWith('.') && entry.name !== 'node_modules') {
+        topDirCount++;
+      }
+    }
+  } catch { /* ignore readdir errors */ }
+
+  return {
+    isMonorepo: hasMarker || hasWorkspaces || topDirCount >= MONOREPO_DIR_THRESHOLD,
+    topDirCount,
+  };
+}
+
+/**
+ * Check if worktree.sparsePaths is already configured in project settings.
+ */
+function hasSparsePathsConfigured(projectDir: string): boolean {
+  const settingsPath = join(projectDir, '.claude', 'settings.json');
+  if (!existsSync(settingsPath)) return false;
+  try {
+    const settings = JSON.parse(readFileSync(settingsPath, 'utf8'));
+    return Array.isArray(settings?.worktree?.sparsePaths) && settings.worktree.sparsePaths.length > 0;
+  } catch {
+    return false;
+  }
+}
 
 export function worktreeLifecycleLogger(input: HookInput): HookResult {
   const event = input.hook_event;
@@ -18,10 +82,24 @@ export function worktreeLifecycleLogger(input: HookInput): HookResult {
     // CC 2.1.69: WorktreeCreate sends `name` (slug identifier like 'feature-auth')
     const name = input.name || 'unknown';
     logHook('worktree-lifecycle', `Worktree creating: name=${name}`);
-    return outputPromptContext(
-      `[WorktreeCreate] Creating worktree "${name}". ` +
-      'You are now working in an isolated worktree. Changes here do not affect the main working tree.'
-    );
+
+    // CC 2.1.76: Suggest worktree.sparsePaths for monorepos without sparse config
+    const projectDir = input.project_dir || getProjectDir();
+    const { isMonorepo, topDirCount } = detectMonorepo(projectDir);
+    const hasSparse = hasSparsePathsConfigured(projectDir);
+
+    let advisory = `[WorktreeCreate] Creating worktree "${name}". ` +
+      'You are now working in an isolated worktree. Changes here do not affect the main working tree.';
+
+    if (isMonorepo && !hasSparse) {
+      advisory += `\n\n⚡ **Monorepo detected** (${topDirCount} top-level dirs). ` +
+        'Consider configuring `worktree.sparsePaths` in `.claude/settings.json` to speed up worktree creation. ' +
+        'Example: `{ "worktree": { "sparsePaths": ["src/", "packages/core/", "tests/"] } }` — ' +
+        'only those directories will be checked out in worktrees (CC 2.1.76+).';
+      logHook('worktree-lifecycle', `Monorepo (${topDirCount} dirs) without sparsePaths — advisory injected`);
+    }
+
+    return outputPromptContext(advisory);
   }
 
   if (event === 'WorktreeRemove') {

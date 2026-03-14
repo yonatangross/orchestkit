@@ -2,7 +2,7 @@
 
 ## Overview
 
-OrchestKit requires Claude Code >= 2.1.74. This matrix documents which CC features OrchestKit depends on and their minimum version requirements.
+OrchestKit requires Claude Code >= 2.1.76. This matrix documents which CC features OrchestKit depends on and their minimum version requirements.
 
 ## Feature Matrix
 
@@ -85,6 +85,23 @@ OrchestKit requires Claude Code >= 2.1.74. This matrix documents which CC featur
 | Full model IDs in agent frontmatter | 2.1.74 | `claude-opus-4-6` etc. accepted (not just `opus`) | Only symbolic names (`opus`, `sonnet`, `haiku`) |
 | Managed policy precedence fix | 2.1.74 | Managed policy `ask` overrides user `allow` + `allowed-tools` | User rules could bypass managed policy |
 | Streaming + bash prefix memory fixes | 2.1.74 | Two memory leaks fixed (streaming buffers, bash prefix cache) | RSS growth in long sessions |
+| 1M context default for Opus 4.6 | 2.1.75 | No extra usage needed on Max/Team/Enterprise | Must opt-in to 1M context |
+| Memory file timestamps | 2.1.75 | Last-modified timestamps for memory freshness reasoning | No staleness signal on memories |
+| Hook source in permission prompts | 2.1.75 | Shows settings/plugin/skill origin when hook asks for confirmation | Opaque hook origin |
+| Token estimation fix | 2.1.75 | Prevents premature compaction from thinking/tool_use over-counting | Compaction triggers too early |
+| Async hook messages suppressed | 2.1.75 | Hook completion messages hidden by default (visible with --verbose) | Noisy async hook output |
+| MCP elicitation support | 2.1.76 | Servers request structured input mid-task via form/URL dialog | No MCP input dialogs |
+| Elicitation/ElicitationResult hooks | 2.1.76 | Intercept and override MCP elicitation requests/responses | No elicitation interception |
+| `-n`/`--name` CLI flag | 2.1.76 | Set display name for session at startup | No session naming at launch |
+| `worktree.sparsePaths` setting | 2.1.76 | Selective sparse-checkout for large monorepos | Full checkout in worktrees |
+| PostCompact hook | 2.1.76 | Fires after compaction completes for context recovery | Only PreCompact (before) exists |
+| `/effort` slash command | 2.1.76 | Set model effort level mid-session | No effort control |
+| `feedbackSurveyRate` setting | 2.1.76 | Enterprise session quality survey sample rate | No quality feedback loop |
+| Deferred tools compaction fix | 2.1.76 | ToolSearch schemas retained after compaction | Array/number params rejected post-compaction |
+| Background agent partial results | 2.1.76 | Killed agents preserve partial results in context | Killed agents lose all output |
+| Compaction circuit breaker | 2.1.76 | Auto-compaction stops after 3 consecutive failures | Compaction retries indefinitely |
+| Stale worktree cleanup | 2.1.76 | Worktrees from interrupted parallel runs auto-cleaned | Stale worktrees accumulate |
+| Worktree startup performance | 2.1.76 | Direct ref reads, skip redundant fetch | Slower worktree startup |
 
 ## Version Detection
 
@@ -112,6 +129,8 @@ claude --version  # Returns e.g. "2.1.47"
 | >= 2.1.72 | Full+++ | ExitWorktree, agent model override, effort simplification, prompt cache 12x savings, skill hook fix |
 | >= 2.1.73 | Full++++ | Skill-file deadlock fix, SessionStart double-fire fix, no-op reminder fix, Opus 4.6 cloud default |
 | >= 2.1.74 | Full+++++ | SessionEnd timeout fix, managed policy precedence, full model IDs, memory leak fixes, /context hints |
+| >= 2.1.75 | Full++++++ | 1M context default, memory timestamps, hook source display, token estimation fix |
+| >= 2.1.76 | Full+++++++ | PostCompact hook, Elicitation hooks, worktree.sparsePaths, /effort, bg agent partial results |
 
 ## Doctor Check Implementation
 
@@ -190,6 +209,7 @@ Claude Code: 2.1.56 (OK)
 
 | OrchestKit | Min CC | Key Changes |
 |-----------|--------|-------------|
+| v7.8.x | 2.1.76 | PostCompact hook, Elicitation hooks, sparse paths, /effort, bg agent partial results |
 | v7.5.x | 2.1.74 | SessionEnd timeout fix, managed policy precedence, full model IDs, memory fixes |
 | v7.4.x | 2.1.73 | Deadlock fix, SessionStart fix, no-op fix, Opus 4.6 cloud default |
 | v7.1.x | 2.1.69 | InstructionsLoaded, once:true loaders, outputAsk, env var HTTP hooks, worktree dedup |
