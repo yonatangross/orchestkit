@@ -47,11 +47,6 @@
   /* Glow token — transparent emerald for hover effects, focus rings */
   --color-fd-glow: oklch(0.696 0.170 163 / 0.25);
 
-  /* Animation duration tokens */
-  --duration-fast: 150ms;
-  --duration-normal: 300ms;
-  --duration-slow: 500ms;
-  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* ============================================================
@@ -108,6 +103,10 @@
 
 :root {
   --color-success: oklch(0.696 0.170 163); /* #10b981 */
+  --duration-fast: 150ms;
+  --duration-normal: 300ms;
+  --duration-slow: 500ms;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   color-scheme: light;
 }
 
@@ -205,16 +204,25 @@
   }
 
   .animate-fade-in {
-    animation: fade-in var(--duration-normal) var(--ease-out-expo) both;
+    animation-name: fade-in;
+    animation-duration: 300ms;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+    animation-fill-mode: both;
   }
 
   .animate-count-up {
-    animation: count-up var(--duration-slow) var(--ease-out-expo) both;
+    animation-name: count-up;
+    animation-duration: 500ms;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+    animation-fill-mode: both;
   }
 
   .animate-trace-draw {
     stroke-dasharray: 100%;
-    animation: trace-draw 1s var(--ease-out-expo) both;
+    animation-name: trace-draw;
+    animation-duration: 1s;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+    animation-fill-mode: both;
   }
 
   .stagger-1 { animation-delay: 0ms; }
@@ -222,9 +230,9 @@
   .stagger-3 { animation-delay: 200ms; }
   .stagger-4 { animation-delay: 300ms; }
 
-  /* Hover glow — uses emerald glow token */
+  /* Hover glow — emerald glow on hover */
   .hover-glow {
-    transition: box-shadow var(--duration-fast) ease-out;
+    transition: box-shadow 150ms ease-out;
   }
   .hover-glow:hover {
     box-shadow: 0 0 20px var(--color-fd-glow), 0 0 40px oklch(0.696 0.170 163 / 0.10);
