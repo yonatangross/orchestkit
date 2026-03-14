@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OrchestKit v7.7.0 — Design-to-Code Pipeline Showcase</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg: oklch(0.165 0.022 265);
+    --fg: oklch(0.929 0.013 255);
+    --card: oklch(0.192 0.025 260);
+    --border: oklch(0.279 0.041 265);
+    --muted: oklch(0.704 0.022 255);
+    --primary: oklch(0.696 0.170 163);
+    --primary-5: oklch(0.696 0.170 163 / 0.05);
+    --primary-10: oklch(0.696 0.170 163 / 0.10);
+    --primary-20: oklch(0.696 0.170 163 / 0.20);
+    --primary-30: oklch(0.696 0.170 163 / 0.30);
+    --primary-50: oklch(0.696 0.170 163 / 0.50);
+    --glow: oklch(0.696 0.170 163 / 0.30);
+    --surface-sunken: oklch(0.140 0.018 265);
+    --surface-raised: oklch(0.222 0.027 260);
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    color-scheme: dark;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  .container { max-width: 1024px; margin: 0 auto; padding: 0 24px; }
+
+  /* ═══ Header ═══ */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 16px 0;
+  }
+  header .inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .version-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--primary);
+  }
+
+  /* ═══ Hero ═══ */
+  .hero {
+    padding: 80px 0 60px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: 20%;
+    left: 30%;
+    width: 400px;
+    height: 400px;
+    background: var(--primary-20);
+    border-radius: 50%;
+    filter: blur(120px);
+    pointer-events: none;
+  }
+  .hero h1 {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    position: relative;
+    animation: fade-up 0.6s var(--ease-out-expo) both;
+  }
+  .hero h1 span { color: var(--primary); }
+  .hero p {
+    margin-top: 16px;
+    color: var(--muted);
+    max-width: 480px;
+    font-size: 15px;
+    animation: fade-up 0.6s var(--ease-out-expo) 0.1s both;
+  }
+
+  /* ═══ Stat Bar ═══ */
+  .stat-bar {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-top: 48px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+    max-width: 600px;
+  }
+  .stat {
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .stat-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 40px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    animation: count-up 0.5s var(--ease-out-expo) both;
+  }
+  .stat:nth-child(1) .stat-number { animation-delay: 0ms; }
+  .stat:nth-child(3) .stat-number { animation-delay: 100ms; }
+  .stat:nth-child(5) .stat-number { animation-delay: 200ms; }
+  .stat-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .circuit-connector {
+    flex: 1;
+    margin: 0 24px;
+    position: relative;
+    height: 1px;
+    background: var(--border);
+  }
+  .circuit-connector::before,
+  .circuit-connector::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--primary);
+    transform: translateY(-50%);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  .circuit-connector::before { left: -3px; }
+  .circuit-connector::after { right: -3px; animation-delay: 0.5s; }
+
+  /* ═══ Section Headers ═══ */
+  .section { padding: 60px 0; border-top: 1px solid var(--border); }
+  .section-overline {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--primary);
+  }
+  .section h2 {
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-top: 8px;
+  }
+  .section p.desc {
+    color: var(--muted);
+    font-size: 15px;
+    margin-top: 8px;
+    max-width: 480px;
+  }
+
+  /* ═══ Token Comparison ═══ */
+  .token-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    margin-top: 24px;
+    background: var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .token-col {
+    background: var(--card);
+    padding: 20px;
+  }
+  .token-col h3 {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .token-col h3 .badge {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .badge-old { background: oklch(0.637 0.237 25 / 0.15); color: oklch(0.637 0.237 25); }
+  .badge-new { background: var(--primary-20); color: var(--primary); }
+
+  .token-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+    font-size: 12px;
+  }
+  .token-swatch {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .token-name { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); }
+
+  /* ═══ Surface Hierarchy ═══ */
+  .surface-demo {
+    display: flex;
+    gap: 2px;
+    margin-top: 24px;
+    height: 80px;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .surface-level {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    transition: all 0.2s;
+  }
+  .surface-level:hover { transform: scale(1.02); }
+  .surface-label { font-size: 10px; color: var(--muted); margin-top: 4px; }
+
+  /* ═══ Emerald Ramp ═══ */
+  .ramp-demo {
+    display: flex;
+    gap: 4px;
+    margin-top: 24px;
+  }
+  .ramp-stop {
+    flex: 1;
+    height: 48px;
+    border-radius: 6px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    transition: transform 0.15s;
+  }
+  .ramp-stop:hover { transform: translateY(-4px); }
+
+  /* ═══ Pipeline Cards ═══ */
+  .pipeline-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 24px;
+  }
+  .pipeline-card {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--card);
+    overflow: hidden;
+    transition: all 0.2s;
+  }
+  .pipeline-card:hover {
+    border-color: var(--primary-30);
+    box-shadow: 0 0 20px var(--glow);
+  }
+  .pipeline-header {
+    padding: 16px 20px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    cursor: pointer;
+  }
+  .pipeline-title {
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .pipeline-desc {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .pipeline-meta {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--muted);
+  }
+  .complexity-badge {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    background: var(--primary-20);
+    color: var(--primary);
+    text-transform: uppercase;
+  }
+
+  .pipeline-stages {
+    border-top: 1px solid var(--border);
+    padding: 16px 20px;
+    display: none;
+  }
+  .pipeline-card.open .pipeline-stages { display: block; }
+
+  .stage {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .stage-dot {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--primary-20);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .stage-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--primary);
+  }
+  .stage-detail {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .mcp-tags {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+  }
+  .mcp-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    background: var(--primary-10);
+    color: var(--primary);
+  }
+  .tech-tag {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    background: var(--surface-raised);
+    color: var(--muted);
+  }
+
+  /* ═══ Component DNA ═══ */
+  .dna-panel {
+    margin-top: 24px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .dna-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 500;
+    color: var(--muted);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .dna-header:hover { background: var(--primary-5); }
+  .dna-icon { color: var(--primary); }
+  .dna-body {
+    border-top: 1px solid var(--border);
+    padding: 14px;
+    display: none;
+  }
+  .dna-panel.open .dna-body { display: block; }
+  .dna-section-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .dna-sources { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+  .dna-source {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 9999px;
+    background: var(--primary-10);
+    color: var(--primary);
+    text-decoration: none;
+    transition: background 0.15s;
+  }
+  .dna-source:hover { background: var(--primary-20); }
+  .dna-tokens { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 12px; }
+  .dna-token {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: var(--surface-raised);
+    color: var(--muted);
+  }
+  .dna-fork {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    background: var(--surface-sunken);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--fg);
+    cursor: pointer;
+    transition: background 0.15s;
+    border: none;
+    width: 100%;
+    text-align: left;
+  }
+  .dna-fork:hover { background: var(--primary-5); }
+
+  /* ═══ Hover Glow Demo ═══ */
+  .glow-demo {
+    display: flex;
+    gap: 16px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+  }
+  .glow-btn {
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .glow-btn-primary {
+    background: var(--primary);
+    color: var(--bg);
+  }
+  .glow-btn-primary:hover {
+    box-shadow: 0 0 20px var(--glow), 0 0 40px oklch(0.696 0.170 163 / 0.10);
+  }
+  .glow-btn-outline {
+    background: transparent;
+    color: var(--fg);
+    border: 1px solid var(--border);
+  }
+  .glow-btn-outline:hover {
+    background: var(--primary-5);
+    border-color: var(--primary-30);
+  }
+  .glow-btn-ghost {
+    background: var(--primary-10);
+    color: var(--primary);
+  }
+  .glow-btn-ghost:hover {
+    background: var(--primary-20);
+    box-shadow: 0 0 12px var(--glow);
+  }
+
+  /* ═══ Animations ═══ */
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes count-up {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+  }
+
+  /* ═══ Footer ═══ */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 20px 0;
+    text-align: center;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  footer a { color: var(--primary); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  @media (max-width: 640px) {
+    .stat-bar { flex-direction: column; gap: 16px; }
+    .circuit-connector { display: none; }
+    .token-grid { grid-template-columns: 1fr; }
+    .surface-demo { flex-direction: column; height: auto; }
+    .surface-level { height: 48px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container inner">
+    <div style="display:flex;align-items:center;gap:12px">
+      <strong style="font-size:15px">OrchestKit</strong>
+      <span class="version-badge">v7.7.0</span>
+    </div>
+    <span style="font-size:13px;color:var(--muted)">Design-to-Code Pipeline Showcase</span>
+  </div>
+</header>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="container">
+    <h1>Design-to-Code<br><span>Pipeline in Action</span></h1>
+    <p>Everything on this page was built or enhanced using OrchestKit's new v7.7.0 pipeline — Google Stitch MCP + 21st.dev component registry.</p>
+
+    <div class="stat-bar">
+      <div class="stat">
+        <div class="stat-number">92</div>
+        <div class="stat-label">Skills</div>
+      </div>
+      <div class="circuit-connector"></div>
+      <div class="stat">
+        <div class="stat-number">33</div>
+        <div class="stat-label">Agents</div>
+      </div>
+      <div class="circuit-connector"></div>
+      <div class="stat">
+        <div class="stat-number">101</div>
+        <div class="stat-label">Hooks</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Token Evolution -->
+<section class="section">
+  <div class="container">
+    <span class="section-overline">Token Evolution</span>
+    <h2>Circuit Forge — oklch Migration</h2>
+    <p class="desc">34 hex tokens migrated to oklch for perceptual uniformity. Inspired by Vercel, Stripe, and Linear docs.</p>
+
+    <div class="token-grid">
+      <div class="token-col">
+        <h3>Before <span class="badge badge-old">v7.6.0</span></h3>
+        <div class="token-row">
+          <div class="token-swatch" style="background:#059669"></div>
+          <span class="token-name">--fd-primary: #059669</span>
+        </div>
+        <div class="token-row">
+          <div class="token-swatch" style="background:#0c0f14"></div>
+          <span class="token-name">--fd-background: #0c0f14</span>
+        </div>
+        <div class="token-row">
+          <div class="token-swatch" style="background:#111621"></div>
+          <span class="token-name">--fd-card: #111621</span>
+        </div>
+        <div class="token-row">
+          <div class="token-swatch" style="background:#1e293b"></div>
+          <span class="token-name">--fd-border: #1e293b</span>
+        </div>
+        <div class="token-row" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+          <span class="token-name" style="color:var(--muted)">3 surfaces only</span>
+        </div>
+        <div class="token-row">
+          <span class="token-name" style="color:var(--muted)">1 primary value</span>
+        </div>
+        <div class="token-row">
+          <span class="token-name" style="color:var(--muted)">No animation tokens</span>
+        </div>
+      </div>
+      <div class="token-col">
+        <h3>After <span class="badge badge-new">v7.7.0</span></h3>
+        <div class="token-row">
+          <div class="token-swatch" style="background:oklch(0.696 0.170 163)"></div>
+          <span class="token-name">oklch(0.696 0.170 163)</span>
+        </div>
+        <div class="token-row">
+          <div class="token-swatch" style="background:oklch(0.165 0.022 265)"></div>
+          <span class="token-name">oklch(0.165 0.022 265)</span>
+        </div>
+        <div class="token-row">
+          <div class="token-swatch" style="background:oklch(0.192 0.025 260)"></div>
+          <span class="token-name">oklch(0.192 0.025 260)</span>
+        </div>
+        <div class="token-row">
+          <div class="token-swatch" style="background:oklch(0.279 0.041 265)"></div>
+          <span class="token-name">oklch(0.279 0.041 265)</span>
+        </div>
+        <div class="token-row" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+          <span class="token-name" style="color:var(--primary)">5 surfaces (+ sunken, raised)</span>
+        </div>
+        <div class="token-row">
+          <span class="token-name" style="color:var(--primary)">5-stop emerald ramp</span>
+        </div>
+        <div class="token-row">
+          <span class="token-name" style="color:var(--primary)">3 duration + ease tokens</span>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="margin-top:32px;font-size:14px;font-weight:600">5-Surface Hierarchy</h3>
+    <div class="surface-demo">
+      <div class="surface-level" style="background:var(--surface-sunken)">
+        <span class="mono" style="font-size:13px;font-weight:600">Sunken</span>
+        <span class="surface-label">Below bg</span>
+      </div>
+      <div class="surface-level" style="background:var(--bg)">
+        <span class="mono" style="font-size:13px;font-weight:600">Background</span>
+        <span class="surface-label">Default</span>
+      </div>
+      <div class="surface-level" style="background:var(--card)">
+        <span class="mono" style="font-size:13px;font-weight:600">Card</span>
+        <span class="surface-label">Content</span>
+      </div>
+      <div class="surface-level" style="background:var(--surface-raised)">
+        <span class="mono" style="font-size:13px;font-weight:600">Raised</span>
+        <span class="surface-label">Elevated</span>
+      </div>
+      <div class="surface-level" style="background:oklch(0.254 0.030 260)">
+        <span class="mono" style="font-size:13px;font-weight:600">Muted</span>
+        <span class="surface-label">Subtle</span>
+      </div>
+    </div>
+
+    <h3 style="margin-top:32px;font-size:14px;font-weight:600">5-Stop Emerald Ramp</h3>
+    <div class="ramp-demo">
+      <div class="ramp-stop" style="background:var(--primary-5);color:var(--primary)">5%</div>
+      <div class="ramp-stop" style="background:var(--primary-10);color:var(--primary)">10%</div>
+      <div class="ramp-stop" style="background:var(--primary-20);color:var(--primary)">20%</div>
+      <div class="ramp-stop" style="background:var(--primary-30);color:var(--fg)">30%</div>
+      <div class="ramp-stop" style="background:var(--primary-50);color:var(--fg)">50%</div>
+    </div>
+  </div>
+</section>
+
+<!-- Hover Glow -->
+<section class="section">
+  <div class="container">
+    <span class="section-overline">Micro-Interactions</span>
+    <h2>Hover Glow + Emerald Ramp Buttons</h2>
+    <p class="desc">New button variants using the glow token and emerald ramp. Hover to see the effect.</p>
+    <div class="glow-demo">
+      <button class="glow-btn glow-btn-primary">Get Started</button>
+      <button class="glow-btn glow-btn-outline">View on GitHub</button>
+      <button class="glow-btn glow-btn-ghost">Browse Skills</button>
+    </div>
+  </div>
+</section>
+
+<!-- Pipeline Gallery -->
+<section class="section">
+  <div class="container">
+    <span class="section-overline">Pipeline Gallery</span>
+    <h2>Before / After Pipeline Traces</h2>
+    <p class="desc">Click any entry to expand its three-stage pipeline trace.</p>
+
+    <div class="pipeline-cards">
+      <div class="pipeline-card" onclick="this.classList.toggle('open')">
+        <div class="pipeline-header">
+          <div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <div class="pipeline-title">Portfolio Hero Redesign</div>
+              <span class="complexity-badge">medium</span>
+            </div>
+            <div class="pipeline-desc">Static portfolio hero → animated component with badge, gradient text, dual CTAs.</div>
+            <div class="pipeline-meta">
+              <span>45s</span>
+              <span>95 LOC</span>
+              <span>src/components/Hero.tsx</span>
+            </div>
+          </div>
+        </div>
+        <div class="pipeline-stages">
+          <div style="background:var(--surface-sunken);border-radius:6px;padding:10px 12px;margin-bottom:12px">
+            <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted)">Input (url)</div>
+            <div class="mono" style="font-size:13px;margin-top:4px">https://yonatangross.dev</div>
+          </div>
+          <div class="stage">
+            <div class="stage-dot">1</div>
+            <div><div class="stage-label">Extract</div><div class="stage-detail">8 colors (oklch), Geist font, 4xl-6xl scale, gradient mesh + orb background</div></div>
+          </div>
+          <div class="stage">
+            <div class="stage-dot">2</div>
+            <div><div class="stage-label">Match</div><div class="stage-detail">Codehagen/hero from 21st.dev — 98% match. Framer Motion stagger, HeroBadge, configurable props.</div></div>
+          </div>
+          <div class="stage">
+            <div class="stage-dot">3</div>
+            <div><div class="stage-label">Adapt</div><div class="stage-detail">Mapped to Circuit Forge oklch tokens, replaced colors with --color-fd-primary ramp, added blur-3xl orbs</div></div>
+          </div>
+          <div class="mcp-tags">
+            <span class="mcp-tag">stitch-mcp</span>
+            <span class="mcp-tag">21st-dev-magic</span>
+            <span class="tech-tag">hero</span>
+            <span class="tech-tag">animation</span>
+            <span class="tech-tag">react</span>
+            <span class="tech-tag">framer-motion</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="pipeline-card" onclick="this.classList.toggle('open')">
+        <div class="pipeline-header">
+          <div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <div class="pipeline-title">Circuit Forge Token Migration</div>
+              <span class="complexity-badge">medium</span>
+            </div>
+            <div class="pipeline-desc">34 hex tokens → oklch, 3 surfaces → 5, 1 primary → 5-stop ramp.</div>
+            <div class="pipeline-meta">
+              <span>120s</span>
+              <span>302 LOC</span>
+              <span>docs/site/app/global.css</span>
+            </div>
+          </div>
+        </div>
+        <div class="pipeline-stages">
+          <div class="stage">
+            <div class="stage-dot">1</div>
+            <div><div class="stage-label">Extract</div><div class="stage-detail">Analyzed Vercel, Stripe, Linear docs. Gaps: 3 surfaces (need 5), no color ramp, hex-only.</div></div>
+          </div>
+          <div class="stage">
+            <div class="stage-dot">2</div>
+            <div><div class="stage-label">Match</div><div class="stage-detail">Token-level evolution — no component match. Competitive analysis from 3 sites.</div></div>
+          </div>
+          <div class="stage">
+            <div class="stage-dot">3</div>
+            <div><div class="stage-label">Adapt</div><div class="stage-detail">All 34 tokens → oklch, +sunken/raised surfaces, +primary/5-50 ramp, +glow + animation tokens</div></div>
+          </div>
+          <div class="mcp-tags">
+            <span class="mcp-tag">stitch-mcp</span>
+            <span class="tech-tag">design-tokens</span>
+            <span class="tech-tag">oklch</span>
+            <span class="tech-tag">css</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="pipeline-card" onclick="this.classList.toggle('open')">
+        <div class="pipeline-header">
+          <div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <div class="pipeline-title">Animated Stat Counter Bar</div>
+              <span class="complexity-badge" style="background:var(--primary-10)">low</span>
+            </div>
+            <div class="pipeline-desc">Static numbers → animated count-up with stagger and circuit-trace connectors.</div>
+            <div class="pipeline-meta">
+              <span>30s</span>
+              <span>30 LOC</span>
+              <span>docs/site/app/(home)/page.tsx</span>
+            </div>
+          </div>
+        </div>
+        <div class="pipeline-stages">
+          <div class="stage">
+            <div class="stage-dot">1</div>
+            <div><div class="stage-label">Extract</div><div class="stage-detail">font-mono 40px tabular-nums, circuit-dot pulse, static line connectors.</div></div>
+          </div>
+          <div class="stage">
+            <div class="stage-dot">2</div>
+            <div><div class="stage-label">Match</div><div class="stage-detail">21st.dev animated number counter — spring physics, scroll-trigger, responsive.</div></div>
+          </div>
+          <div class="stage">
+            <div class="stage-dot">3</div>
+            <div><div class="stage-label">Adapt</div><div class="stage-detail">count-up keyframe + translateY(12px), stagger-1/2/3, --ease-out-expo curve</div></div>
+          </div>
+          <div class="mcp-tags">
+            <span class="mcp-tag">21st-dev-magic</span>
+            <span class="tech-tag">animation</span>
+            <span class="tech-tag">counter</span>
+            <span class="tech-tag">css</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Component DNA -->
+    <div class="dna-panel" onclick="this.classList.toggle('open')">
+      <div class="dna-header">
+        <svg class="dna-icon" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="8" cy="8" r="3"/><path d="M8 1v3M8 12v3M1 8h3M12 8h3M3.5 3.5l2 2M10.5 10.5l2 2M3.5 12.5l2-2M10.5 5.5l2-2"/>
+        </svg>
+        Component DNA
+        <span style="margin-left:auto;font-size:10px">PipelineGallery</span>
+      </div>
+      <div class="dna-body">
+        <div class="dna-section-label">Built from</div>
+        <div class="dna-sources">
+          <a href="https://21st.dev/s/features" class="dna-source">expandable-card <span style="font-size:9px;color:var(--muted)">21st.dev</span></a>
+          <a href="https://21st.dev/s/features" class="dna-source">step-indicator <span style="font-size:9px;color:var(--muted)">21st.dev</span></a>
+        </div>
+        <div class="dna-section-label">Design tokens</div>
+        <div class="dna-tokens">
+          <span class="dna-token">fd-primary-10</span>
+          <span class="dna-token">fd-primary-20</span>
+          <span class="dna-token">fd-surface-sunken</span>
+          <span class="dna-token">fd-glow</span>
+          <span class="dna-token">fd-muted</span>
+        </div>
+        <div class="dna-section-label">Fork this component</div>
+        <button class="dna-fork" onclick="event.stopPropagation();navigator.clipboard.writeText('/ork:design-to-code expandable card gallery with pipeline stages and MCP badges')">
+          <span>/ork:design-to-code expandable card gallery with pipeline stages</span>
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="5" width="8" height="8" rx="1.5"/><path d="M3 11V3h8"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    Built with <a href="https://github.com/yonatangross/orchestkit">OrchestKit v7.7.0</a> · 92 skills · 33 agents · 101 hooks
+  </div>
+</footer>
+
+</body>
+</html>
