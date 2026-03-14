@@ -109,7 +109,7 @@ describe('Split Bundle Entry Points', () => {
       const hookNames = Object.keys(lifecycleBundle.hooks);
       expect(hookNames.length).toBeGreaterThan(0);
       // Lifecycle bundle includes lifecycle/* plus related event hooks (teammate-idle, task-completed)
-      const validPrefixes = ['lifecycle/', 'teammate-idle/', 'task-completed/', 'worktree/', 'config-change/', 'instructions-loaded/'];
+      const validPrefixes = ['lifecycle/', 'teammate-idle/', 'task-completed/', 'worktree/', 'config-change/', 'instructions-loaded/', 'elicitation/'];
       expect(hookNames.every(name => validPrefixes.some(p => name.startsWith(p)))).toBe(true);
     });
 
@@ -328,7 +328,8 @@ describe('Cross-Bundle Consistency', () => {
     // 172 -> 171: #1063 — removed release-notebook-trigger from posttool bundle
     // 171 -> 175: CC 2.1.72 cache-opt — added 4 once:true standards loaders (implement, review, verify, brainstorm)
     // 176: #1007 — replaced session-end-reporter with usage-summary-reporter (net 0)
-    expect(totalHooks).toBe(176);
+    // 176 -> 179: CC 2.1.76 — added post-compact-recovery (lifecycle), elicitation-guard + elicitation-result-logger (lifecycle)
+    expect(totalHooks).toBe(179);
   });
 });
 

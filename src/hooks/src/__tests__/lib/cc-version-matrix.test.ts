@@ -17,8 +17,8 @@ import {
 
 describe('cc-version-matrix', () => {
   describe('MIN_CC_VERSION', () => {
-    test('is 2.1.74', () => {
-      expect(MIN_CC_VERSION).toBe('2.1.74');
+    test('is 2.1.76', () => {
+      expect(MIN_CC_VERSION).toBe('2.1.76');
     });
   });
 
@@ -72,7 +72,7 @@ describe('cc-version-matrix', () => {
 
   describe('getAvailableFeatures', () => {
     test('all features available at latest version', () => {
-      const features = getAvailableFeatures('2.1.74');
+      const features = getAvailableFeatures('2.1.76');
       expect(features.length).toBe(CC_FEATURE_MATRIX.length);
     });
 
@@ -98,8 +98,8 @@ describe('cc-version-matrix', () => {
   });
 
   describe('getMissingFeatures', () => {
-    test('no missing features at 2.1.74', () => {
-      const missing = getMissingFeatures('2.1.74');
+    test('no missing features at 2.1.76', () => {
+      const missing = getMissingFeatures('2.1.76');
       expect(missing.length).toBe(0);
     });
 
@@ -135,16 +135,16 @@ describe('cc-version-matrix', () => {
       expect(hasFeature('2.1.47', 'last_assistant_message')).toBe(true);
     });
 
-    test('session_end_timeout_fix available at 2.1.74', () => {
-      expect(hasFeature('2.1.74', 'session_end_timeout_fix')).toBe(true);
+    test('session_end_timeout_fix available at 2.1.76', () => {
+      expect(hasFeature('2.1.76', 'session_end_timeout_fix')).toBe(true);
     });
 
     test('session_end_timeout_fix not available at 2.1.73', () => {
       expect(hasFeature('2.1.73', 'session_end_timeout_fix')).toBe(false);
     });
 
-    test('full_model_ids_agent available at 2.1.74', () => {
-      expect(hasFeature('2.1.74', 'full_model_ids_agent')).toBe(true);
+    test('full_model_ids_agent available at 2.1.76', () => {
+      expect(hasFeature('2.1.76', 'full_model_ids_agent')).toBe(true);
     });
 
     test('returns false for unknown feature', () => {
