@@ -47,7 +47,7 @@ quality_evals:
   - prompt: |
       fix issue #42. the issue says "users receive a 403 error when
       trying to update their own profile after the recent auth refactor."
-    scaffold: typescript-nextjs
+    scaffold: git-repo
     assertions:
       - name: "reads issue from GitHub"
         check: "fetches the issue details using gh issue view or equivalent"

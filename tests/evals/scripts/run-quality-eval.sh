@@ -13,8 +13,11 @@
 #   npm run eval:quality -- --dry-run        # validate YAML only
 #   npm run eval:quality -- --reps N         # repeat grading N times for stability
 #   npm run eval:quality -- --tag core       # filter by tag
-#   npm run eval:quality -- --max-turns N    # override max turns for generation
+#   npm run eval:quality -- --max-turns N    # override max turns for generation (default 10)
 #   npm run eval:quality -- --timeout N      # override generation timeout (seconds)
+#   npm run eval:quality -- --model sonnet   # use cheaper model for evals
+#   npm run eval:quality -- --budget N       # max USD per eval run (default 2.00)
+#   npm run eval:quality -- --mcp-config F   # load MCP servers from JSON file
 #
 # Requirements:
 #   - yq for YAML parsing
@@ -42,9 +45,12 @@ CAPTURE_ONLY=false
 GRADE_ONLY=false
 SKILL_FILTER=""
 TAG_FILTER=""
-MAX_TURNS=3
-GEN_TIMEOUT=120
+MAX_TURNS=10
+GEN_TIMEOUT=180
 GRADE_TIMEOUT=60
+EVAL_MODEL=""
+MAX_BUDGET="2.00"
+MCP_CONFIG=""
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
@@ -88,8 +94,29 @@ while [[ $# -gt 0 ]]; do
             fi
             GEN_TIMEOUT="$2"; shift 2
             ;;
+        --model)
+            if [[ $# -lt 2 ]]; then
+                echo -e "${RED}Error: --model requires a value (e.g., sonnet, opus, haiku)${NC}"; exit 1
+            fi
+            EVAL_MODEL="$2"; shift 2
+            ;;
+        --budget)
+            if [[ $# -lt 2 ]]; then
+                echo -e "${RED}Error: --budget requires a value (e.g., 2.00)${NC}"; exit 1
+            fi
+            MAX_BUDGET="$2"; shift 2
+            ;;
+        --mcp-config)
+            if [[ $# -lt 2 ]]; then
+                echo -e "${RED}Error: --mcp-config requires a file path${NC}"; exit 1
+            fi
+            if [[ ! -f "$2" ]]; then
+                echo -e "${RED}Error: MCP config file not found: $2${NC}"; exit 1
+            fi
+            MCP_CONFIG="$2"; shift 2
+            ;;
         --help|-h)
-            echo "Usage: $0 [skill-name|--all] [--capture-only] [--grade-only] [--dry-run] [--reps N] [--tag TAG] [--max-turns N] [--timeout N]"
+            echo "Usage: $0 [skill-name|--all] [--capture-only] [--grade-only] [--dry-run] [--reps N] [--tag TAG] [--max-turns N] [--timeout N] [--model MODEL] [--budget USD] [--mcp-config FILE]"
             exit 0
             ;;
         -*) echo -e "${RED}Unknown option: $1${NC}"; exit 1 ;;
@@ -165,29 +192,49 @@ validate_quality_yaml() {
     return "$errors"
 }
 
+# Build common claude flags for eval runs
+build_claude_flags() {
+    local include_plugin="$1"  # "true" or "false"
+    local flags=()
+
+    if [[ "$include_plugin" == "true" ]]; then
+        flags+=(--plugin-dir "$PLUGIN_DIR")
+    fi
+    flags+=(--dangerously-skip-permissions)
+    flags+=(--max-turns "$MAX_TURNS")
+    flags+=(--output-format json)
+    flags+=(--no-session-persistence)
+    flags+=(--max-budget-usd "$MAX_BUDGET")
+
+    if [[ -n "$EVAL_MODEL" ]]; then
+        flags+=(--model "$EVAL_MODEL")
+    fi
+    if [[ -n "$MCP_CONFIG" ]]; then
+        flags+=(--mcp-config "$MCP_CONFIG")
+    fi
+
+    echo "${flags[@]}"
+}
+
 # Run a prompt with skill (plugin loaded) and capture output (A6: timeout)
 run_with_skill() {
     local prompt="$1"
     local output_file="$2"
     local stderr_file="$3"
     local cwd_arg="$4"  # optional: directory to run from (A8)
+    local -a flags
+    read -ra flags <<< "$(build_claude_flags true)"
 
     if [[ -n "$cwd_arg" && "$cwd_arg" != "." ]]; then
         (
             cd "$cwd_arg" || exit 1
             run_with_timeout "$GEN_TIMEOUT" claude -p "$prompt" \
-                --plugin-dir "$PLUGIN_DIR" \
-                --dangerously-skip-permissions \
-                --max-turns "$MAX_TURNS" \
-                --output-format json \
+                "${flags[@]}" \
                 > "$output_file" 2>"$stderr_file"
         ) || echo -e "  ${YELLOW}Warning: claude exited non-zero for with-skill run${NC}" >&2
     else
         if ! run_with_timeout "$GEN_TIMEOUT" claude -p "$prompt" \
-            --plugin-dir "$PLUGIN_DIR" \
-            --dangerously-skip-permissions \
-            --max-turns "$MAX_TURNS" \
-            --output-format json \
+            "${flags[@]}" \
             > "$output_file" 2>"$stderr_file"; then
             echo -e "  ${YELLOW}Warning: claude exited non-zero for with-skill run${NC}" >&2
         fi
@@ -199,21 +246,19 @@ run_baseline() {
     local prompt="$1"
     local output_file="$2"
     local cwd_arg="$3"  # optional: directory to run from (A8)
+    local -a flags
+    read -ra flags <<< "$(build_claude_flags false)"
 
     if [[ -n "$cwd_arg" && "$cwd_arg" != "." ]]; then
         (
             cd "$cwd_arg" || exit 1
             run_with_timeout "$GEN_TIMEOUT" claude -p "$prompt" \
-                --dangerously-skip-permissions \
-                --max-turns "$MAX_TURNS" \
-                --output-format json \
+                "${flags[@]}" \
                 > "$output_file" 2>/dev/null
         ) || echo -e "  ${YELLOW}Warning: claude exited non-zero for baseline run${NC}" >&2
     else
         if ! run_with_timeout "$GEN_TIMEOUT" claude -p "$prompt" \
-            --dangerously-skip-permissions \
-            --max-turns "$MAX_TURNS" \
-            --output-format json \
+            "${flags[@]}" \
             > "$output_file" 2>/dev/null; then
             echo -e "  ${YELLOW}Warning: claude exited non-zero for baseline run${NC}" >&2
         fi
@@ -337,7 +382,9 @@ grade_assertion_with_reps() {
 count_hook_rejections() {
     local stderr_file="$1"
     if [[ -f "$stderr_file" ]]; then
-        grep -ciE "reject(ed)?|hook.*(fail|block)" "$stderr_file" 2>/dev/null || echo "0"
+        local count
+        count=$(grep -ciE "reject(ed)?|hook.*(fail|block)" "$stderr_file" 2>/dev/null) || true
+        echo "${count:-0}"
     else
         echo "0"
     fi
@@ -363,6 +410,68 @@ prepare_scaffold() {
             mkdir -p "$scaffold_dir/src" "$scaffold_dir/pages/api"
             echo '{"name":"eval-scaffold","scripts":{"dev":"next dev","build":"next build","test":"jest"}}' > "$scaffold_dir/package.json"
             echo '{"compilerOptions":{"target":"es5","lib":["dom","esnext"],"jsx":"preserve","module":"esnext","moduleResolution":"node","strict":true}}' > "$scaffold_dir/tsconfig.json"
+            ;;
+        git-repo)
+            # Git repo with staged changes — for commit, create-pr, review-pr evals
+            (
+                cd "$scaffold_dir" || exit 1
+                git init -q
+                git config user.email "eval@orchestkit.dev"
+                git config user.name "Eval Runner"
+                mkdir -p src tests
+                echo '{"name":"eval-project","scripts":{"test":"echo ok","build":"echo ok"}}' > package.json
+                cat > src/auth.ts << 'SCAFFOLD_EOF'
+export async function authenticate(token: string): Promise<boolean> {
+  const decoded = await verifyJwt(token);
+  return decoded !== null;
+}
+SCAFFOLD_EOF
+                cat > src/db.ts << 'SCAFFOLD_EOF'
+import { Pool } from 'pg';
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+export async function query(sql: string, params?: unknown[]) {
+  const client = await pool.connect();
+  try { return await client.query(sql, params); }
+  finally { client.release(); }
+}
+SCAFFOLD_EOF
+                cat > tests/auth.test.ts << 'SCAFFOLD_EOF'
+import { authenticate } from '../src/auth';
+test('rejects invalid token', async () => {
+  expect(await authenticate('bad')).toBe(false);
+});
+SCAFFOLD_EOF
+                git add -A
+                git commit -q -m "initial commit"
+                # Stage a change for commit/PR evals
+                cat >> src/auth.ts << 'SCAFFOLD_EOF'
+
+export async function refreshToken(token: string): Promise<string> {
+  const decoded = await verifyJwt(token);
+  if (!decoded) throw new Error('Invalid token');
+  return signJwt({ ...decoded, exp: Date.now() + 3600000 });
+}
+SCAFFOLD_EOF
+                git add src/auth.ts
+            ) 2>/dev/null
+            ;;
+        python-fastapi)
+            mkdir -p "$scaffold_dir/app" "$scaffold_dir/tests"
+            cat > "$scaffold_dir/app/main.py" << 'SCAFFOLD_EOF'
+from fastapi import FastAPI
+app = FastAPI()
+
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
+SCAFFOLD_EOF
+            cat > "$scaffold_dir/pyproject.toml" << 'SCAFFOLD_EOF'
+[project]
+name = "eval-project"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = ["fastapi", "uvicorn"]
+SCAFFOLD_EOF
             ;;
         *)
             echo -e "  ${YELLOW}Warning: unknown scaffold type '$scaffold_type', using current dir${NC}" >&2
@@ -787,6 +896,9 @@ elif [[ "$GRADE_ONLY" == "true" ]]; then
 else
     echo -e "${BLUE}  Mode: ${GREEN}LIVE (grading with ${REPS}x reps)${NC}"
 fi
+echo "  Max turns: $MAX_TURNS  |  Timeout: ${GEN_TIMEOUT}s  |  Budget: \$${MAX_BUDGET}"
+[[ -n "$EVAL_MODEL" ]] && echo "  Model: $EVAL_MODEL"
+[[ -n "$MCP_CONFIG" ]] && echo "  MCP config: $MCP_CONFIG"
 echo -e "${BLUE}----------------------------------------------------${NC}"
 
 # Collect eval files (only those with quality_evals)

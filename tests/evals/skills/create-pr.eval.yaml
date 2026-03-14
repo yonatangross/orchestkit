@@ -48,7 +48,7 @@ quality_evals:
       i just finished implementing the user invitation system.
       create a pull request with a proper description. the related
       issue is #87.
-    scaffold: typescript-nextjs
+    scaffold: git-repo
     assertions:
       - name: "validates branch"
         check: "checks that the current branch is not main or dev before creating the PR"

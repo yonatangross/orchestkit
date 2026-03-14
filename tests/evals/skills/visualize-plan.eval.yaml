@@ -45,7 +45,7 @@ quality_evals:
       visualize the plan for migrating our auth from session cookies
       to JWT. the branch has changes to 8 files across the auth
       middleware, user service, and frontend login.
-    scaffold: typescript-nextjs
+    scaffold: git-repo
     assertions:
       - name: "renders change manifest"
         check: "shows a file tree with [A]/[M]/[D] markers and line counts per file"

@@ -45,7 +45,7 @@ quality_evals:
   - prompt: |
       i refactored the database connection pool and added retry logic
       to the payment webhook handler, commit this
-    scaffold: typescript-nextjs
+    scaffold: git-repo
     assertions:
       - name: "conventional format"
         check: "commit message starts with feat, fix, refactor, or chore prefix"

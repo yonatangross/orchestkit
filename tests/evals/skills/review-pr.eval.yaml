@@ -47,7 +47,7 @@ quality_evals:
   - prompt: |
       review PR 78. it adds a new payment webhook handler and
       updates the user service to track payment status.
-    scaffold: typescript-nextjs
+    scaffold: git-repo
     assertions:
       - name: "fetches PR diff"
         check: "retrieves the PR diff and metadata using gh pr view and gh pr diff"
