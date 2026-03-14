@@ -1002,6 +1002,46 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": []
   },
+  "component-search": {
+    "name": "component-search",
+    "description": "Search 21st.dev component registry for production-ready React components. Finds components by natural language description, filters by framework and style system, returns ranked results with install instructions. Use when looking for UI components, finding alternatives to existing components, or sourcing design system building blocks.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "components",
+      "21st-dev",
+      "react",
+      "ui",
+      "search",
+      "registry",
+      "tailwind",
+      "shadcn"
+    ],
+    "userInvocable": true,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch",
+      "AskUserQuestion",
+      "TaskCreate",
+      "TaskUpdate",
+      "TaskList"
+    ],
+    "skills": [],
+    "agent": null,
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": [
+      "component-curator",
+      "design-system-architect",
+      "frontend-ui-developer"
+    ]
+  },
   "configure": {
     "name": "configure",
     "description": "Configures OrchestKit plugin settings, MCP servers, hook permissions, and keybindings. Use when customizing plugin behavior or managing settings.",
@@ -1198,6 +1238,51 @@ export const SKILLS: Record<string, SkillMeta> = {
       "demo-producer"
     ]
   },
+  "design-context-extract": {
+    "name": "design-context-extract",
+    "description": "Extract design DNA from existing app screenshots or live URLs using Google Stitch. Produces color palettes, typography specs, spacing tokens, and component patterns as design-tokens.json or Tailwind config. Use when auditing an existing design, creating a design system from a live app, or ensuring new pages match an established visual identity.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "design-context",
+      "design-tokens",
+      "stitch",
+      "extraction",
+      "colors",
+      "typography",
+      "audit",
+      "visual-identity"
+    ],
+    "userInvocable": true,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Write",
+      "Glob",
+      "Grep",
+      "Bash",
+      "WebFetch",
+      "AskUserQuestion",
+      "TaskCreate",
+      "TaskUpdate",
+      "TaskList"
+    ],
+    "skills": [
+      "design-system-tokens",
+      "remember",
+      "memory"
+    ],
+    "agent": "design-context-extractor",
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": [
+      "design-context-extractor",
+      "design-system-architect",
+      "frontend-ui-developer"
+    ]
+  },
   "design-system-tokens": {
     "name": "design-system-tokens",
     "description": "Design token management with W3C Design Token Community Group specification, three-tier token hierarchy (global/alias/component), OKLCH color spaces, Style Dictionary transformation, and dark mode theming. Use when creating design token files, implementing theme systems, managing token versioning, or building design-to-code pipelines.",
@@ -1237,7 +1322,59 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ork"
     ],
     "relatedAgents": [
+      "component-curator",
+      "design-context-extractor",
       "design-system-architect",
+      "frontend-ui-developer"
+    ]
+  },
+  "design-to-code": {
+    "name": "design-to-code",
+    "description": "Mockup-to-component pipeline using Google Stitch and 21st.dev. Accepts screenshots, descriptions, or URLs as input and produces production-ready React components. Orchestrates design extraction via Stitch MCP, component matching via 21st.dev registry, and adaptation to project design tokens. Use when converting visual designs to code, implementing UI from mockups, or building components from screenshots.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "design-to-code",
+      "stitch",
+      "21st-dev",
+      "ui-generation",
+      "mockup",
+      "component",
+      "react",
+      "frontend"
+    ],
+    "userInvocable": true,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Write",
+      "Edit",
+      "Glob",
+      "Grep",
+      "Bash",
+      "WebFetch",
+      "WebSearch",
+      "AskUserQuestion",
+      "Agent",
+      "TaskCreate",
+      "TaskUpdate",
+      "TaskList"
+    ],
+    "skills": [
+      "design-system-tokens",
+      "component-search",
+      "design-context-extract",
+      "remember",
+      "memory"
+    ],
+    "agent": null,
+    "structure": {
+      "references": []
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": [
       "frontend-ui-developer"
     ]
   },
@@ -2297,11 +2434,13 @@ export const SKILLS: Record<string, SkillMeta> = {
       "backend-system-architect",
       "ci-cd-engineer",
       "code-quality-reviewer",
+      "component-curator",
       "data-pipeline-engineer",
       "database-engineer",
       "debug-investigator",
       "demo-producer",
       "deployment-manager",
+      "design-context-extractor",
       "design-system-architect",
       "eval-runner",
       "event-driven-architect",
@@ -3197,11 +3336,13 @@ export const SKILLS: Record<string, SkillMeta> = {
       "backend-system-architect",
       "ci-cd-engineer",
       "code-quality-reviewer",
+      "component-curator",
       "data-pipeline-engineer",
       "database-engineer",
       "debug-investigator",
       "demo-producer",
       "deployment-manager",
+      "design-context-extractor",
       "design-system-architect",
       "eval-runner",
       "event-driven-architect",
@@ -3971,6 +4112,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": [
       "accessibility-specialist",
+      "component-curator",
       "design-system-architect",
       "frontend-ui-developer",
       "ui-feedback"

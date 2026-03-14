@@ -8,7 +8,7 @@ Always respond in English. Never Hebrew. No exceptions.
 
 ## Project Overview
 
-**OrchestKit** — Claude Code plugin: **<!--ork:skills-->89<!--/ork--> skills**, **<!--ork:agents-->31<!--/ork--> agents**, **<!--ork:hooks-->99<!--/ork--> hooks** (<!--ork:hooks-global-->33<!--/ork--> global + <!--ork:hooks-agent-->45<!--/ork--> agent-scoped + <!--ork:hooks-skill-->21<!--/ork--> skill-scoped).
+**OrchestKit** — Claude Code plugin: **<!--ork:skills-->92<!--/ork--> skills**, **<!--ork:agents-->33<!--/ork--> agents**, **<!--ork:hooks-->101<!--/ork--> hooks** (<!--ork:hooks-global-->33<!--/ork--> global + <!--ork:hooks-agent-->47<!--/ork--> agent-scoped + <!--ork:hooks-skill-->21<!--/ork--> skill-scoped).
 
 **Purpose**: AI-assisted development with built-in best practices, security patterns, and quality gates.
 
@@ -75,7 +75,7 @@ Commit after each logical unit of work — never batch all commits to end of ses
 
 ## Plugin Architecture
 
-Single plugin `ork`: <!--ork:skills-->89<!--/ork--> skills, <!--ork:agents-->31<!--/ork--> agents, <!--ork:hooks-->99<!--/ork--> hooks (<!--ork:hooks-global-->33<!--/ork--> global + <!--ork:hooks-agent-->45<!--/ork--> agent-scoped + <!--ork:hooks-skill-->21<!--/ork--> skill-scoped). <!--ork:invocable-->16<!--/ork--> user-invocable via `/ork:skillname`.
+Single plugin `ork`: <!--ork:skills-->92<!--/ork--> skills, <!--ork:agents-->33<!--/ork--> agents, <!--ork:hooks-->101<!--/ork--> hooks (<!--ork:hooks-global-->33<!--/ork--> global + <!--ork:hooks-agent-->47<!--/ork--> agent-scoped + <!--ork:hooks-skill-->21<!--/ork--> skill-scoped). <!--ork:invocable-->19<!--/ork--> user-invocable via `/ork:skillname`.
 
 ## Version
 
